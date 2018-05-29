@@ -397,7 +397,7 @@ void BKE_view_layer_copy_data(
 	// TODO: not always safe to free BKE_layer_collection_sync(scene_dst, view_layer_dst);
 }
 
-void BKE_view_layer_rename(Scene *scene, ViewLayer *view_layer, const char *newname)
+void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, const char *newname)
 {
 	char oldname[sizeof(view_layer->name)];
 
@@ -418,8 +418,9 @@ void BKE_view_layer_rename(Scene *scene, ViewLayer *view_layer, const char *newn
 		}
 	}
 
-	/* fix all the animation data which may link to this */
+	/* fix all the animation data and workspace which may link to this */
 	BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
+	BKE_workspace_view_layer_rename(bmain, scene, oldname, view_layer->name);
 
 	/* Dependency graph uses view layer name based lookups. */
 	DEG_id_tag_update(&scene->id, 0);

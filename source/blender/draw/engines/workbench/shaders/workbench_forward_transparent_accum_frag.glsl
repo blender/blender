@@ -17,12 +17,7 @@ layout(std140) uniform world_block {
 
 layout(location=0) out vec4 transparentAccum;
 
-vec4 calculate_transparent_accum(vec4 premultiplied) {
-	float a = min(1.0, premultiplied.a) * 8.0 + 0.01;
-	float b = -gl_FragCoord.z * 0.95 + 1.0;
-	float w = clamp(a * a * a * 1e8 * b * b * b, 1e-2, 3e2);
-	return vec4(premultiplied.rgb, premultiplied.a);
-}
+
 void main()
 {
 	vec4 diffuse_color;
@@ -47,7 +42,7 @@ void main()
 	vec3 shaded_color = diffuse_color.rgb;
 #endif /* V3D_LIGHTING_STUDIO */
 
-	float alpha = 0.1;
+	float alpha = 0.5	;
 	vec4 premultiplied = vec4(shaded_color.rgb * alpha, alpha);
 	transparentAccum = calculate_transparent_accum(premultiplied);
 }

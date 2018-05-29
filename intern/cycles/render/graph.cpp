@@ -774,6 +774,12 @@ void ShaderGraph::default_inputs(bool do_osl)
 
 					connect(texco->output("Generated"), input);
 				}
+				if(input->flags() & SocketType::LINK_TEXTURE_NORMAL) {
+					if(!texco)
+						texco = new TextureCoordinateNode();
+
+					connect(texco->output("Normal"), input);
+				}
 				else if(input->flags() & SocketType::LINK_TEXTURE_UV) {
 					if(!texco)
 						texco = new TextureCoordinateNode();

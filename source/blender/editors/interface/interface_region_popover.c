@@ -189,17 +189,20 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 		UI_block_flag_enable(block, UI_BLOCK_LOOP);
 		UI_block_direction_set(block, block->direction);
 		block->minbounds = UI_MENU_WIDTH_MIN;
+		bool use_place_under_active = !handle->refresh;
 
-		uiBut *but = NULL;
-		for (but = block->buttons.first; but; but = but->next) {
-			if (but->flag & (UI_SELECT | UI_SELECT_DRAW)) {
-				break;
+		if (use_place_under_active) {
+			uiBut *but = NULL;
+			for (but = block->buttons.first; but; but = but->next) {
+				if (but->flag & (UI_SELECT | UI_SELECT_DRAW)) {
+					break;
+				}
 			}
-		}
 
-		if (but) {
-			offset[0] = -(but->rect.xmin + 0.8f * BLI_rctf_size_x(&but->rect));
-			offset[1] = -(but->rect.ymin + 0.5f * BLI_rctf_size_y(&but->rect));
+			if (but) {
+				offset[0] = -(but->rect.xmin + 0.8f * BLI_rctf_size_x(&but->rect));
+				offset[1] = -(but->rect.ymin + 0.5f * BLI_rctf_size_y(&but->rect));
+			}
 		}
 
 		UI_block_bounds_set_popup(block, block_margin, offset[0], offset[1]);
@@ -256,30 +259,9 @@ uiPopupBlockHandle *ui_popover_panel_create(
 /** \name Standard Popover Panels
  * \{ */
 
-
-void UI_popover_panel_from_type(bContext *C, uiLayout *layout, PanelType *pt)
-{
-	/* TODO: move into UI_paneltype_draw */
-	Panel *panel = MEM_callocN(sizeof(Panel), "popover panel");
-	panel->type = pt;
-
-
-	if (pt->draw_header) {
-		panel->layout = uiLayoutRow(layout, false);
-		pt->draw_header(C, panel);
-		panel->layout = NULL;
-	}
-
-	panel->layout = layout;
-	pt->draw(C, panel);
-	panel->layout = NULL;
-
-	MEM_freeN(panel);
-}
-
 int UI_popover_panel_invoke(
         bContext *C, int space_id, int region_id, const char *idname,
-        ReportList *reports)
+        bool keep_open, ReportList *reports)
 {
 	uiLayout *layout;
 	PanelType *pt = UI_paneltype_find(space_id, region_id, idname);
@@ -296,13 +278,15 @@ int UI_popover_panel_invoke(
 		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 	}
 
-	uiPopover *pup = UI_popover_begin(C);
-
-	layout = UI_popover_layout(pup);
-
-	UI_popover_panel_from_type(C, layout, pt);
-
-	UI_popover_end(C, pup, NULL);
+	if (keep_open) {
+		ui_popover_panel_create(C, NULL, NULL, ui_item_paneltype_func, pt);
+	}
+	else {
+		uiPopover *pup = UI_popover_begin(C);
+		layout = UI_popover_layout(pup);
+		UI_paneltype_draw(C, pt, layout);
+		UI_popover_end(C, pup, NULL);
+	}
 
 	return OPERATOR_INTERFACE;
 }
@@ -371,6 +355,9 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 	 * The begin/end stype of calling popups doesn't allow to 'can_refresh' to be set.
 	 * For now close this style of popvers when accessed. */
 	UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
+
+	/* panels are created flipped (from event handling pov) */
+	pup->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 uiLayout *UI_popover_layout(uiPopover *pup)
@@ -386,7 +373,3 @@ void UI_popover_once_clear(uiPopover *pup)
 #endif
 
 /** \} */
-
-/* We may want to support this in future */
-/* Similar to UI_popup_menu_invoke */
-// int UI_popover_panel_invoke(bContext *C, const char *idname, ReportList *reports);

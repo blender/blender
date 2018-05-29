@@ -84,7 +84,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (scene_eval->flag & SCE_EEVEE_DOF_ENABLED) {
+	if (scene_eval->eevee.flag & SCE_EEVEE_DOF_ENABLED) {
 		RegionView3D *rv3d = draw_ctx->rv3d;
 
 		if (!e_data.dof_downsample_sh) {

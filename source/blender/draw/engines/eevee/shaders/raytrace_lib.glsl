@@ -61,7 +61,8 @@ float refine_isect(float prev_delta, float curr_delta)
 	return saturate(prev_delta / (prev_delta - curr_delta));
 }
 
-void prepare_raycast(vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss_step, out vec4 ss_ray, out float max_time)
+void prepare_raycast(
+        vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss_step, out vec4 ss_ray, out float max_time)
 {
 	/* Negate the ray direction if it goes towards the camera.
 	 * This way we don't need to care if the projected point

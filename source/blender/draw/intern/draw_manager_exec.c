@@ -221,7 +221,8 @@ void drw_state_set(DRWState state)
 		int test;
 		if (CHANGED_ANY_STORE_VAR(
 		        DRW_STATE_BLEND | DRW_STATE_BLEND_PREMUL | DRW_STATE_ADDITIVE |
-		        DRW_STATE_MULTIPLY | DRW_STATE_TRANSMISSION | DRW_STATE_ADDITIVE_FULL,
+		        DRW_STATE_MULTIPLY | DRW_STATE_TRANSMISSION | DRW_STATE_ADDITIVE_FULL |
+		        DRW_STATE_TRANSPARENT_REVEALAGE,
 		        test))
 		{
 			if (test) {
@@ -239,6 +240,9 @@ void drw_state_set(DRWState state)
 				}
 				else if ((state & DRW_STATE_TRANSMISSION) != 0) {
 					glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+				}
+				else if ((state & DRW_STATE_TRANSPARENT_REVEALAGE) != 0) {
+					glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 				}
 				else if ((state & DRW_STATE_ADDITIVE) != 0) {
 					/* Do not let alpha accumulate but premult the source RGB by it. */
@@ -329,8 +333,8 @@ void drw_state_set(DRWState state)
 				}
 				else if ((state & DRW_STATE_WRITE_STENCIL_SHADOW_FAIL) != 0) {
 					glStencilMask(0xFF);
-					glStencilOpSeparate(GL_BACK,  GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+					glStencilOpSeparate(GL_BACK,  GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
 				}
 				/* Stencil Test */
 				else if ((state & (DRW_STATE_STENCIL_EQUAL | DRW_STATE_STENCIL_NEQUAL)) != 0) {
@@ -703,6 +707,12 @@ bool DRW_culling_plane_test(float plane[4])
 	return false;
 }
 
+void DRW_culling_frustum_corners_get(BoundBox *corners)
+{
+	draw_clipping_setup_from_view();
+	memcpy(corners, &DST.clipping.frustum_corners, sizeof(BoundBox));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -818,7 +828,8 @@ static void draw_geometry_execute_ex(
 	}
 
 	/* step 2 : bind vertex array & draw */
-	GWN_batch_program_set_no_use(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+	GWN_batch_program_set_no_use(
+	        geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	/* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
 	geom->program_in_use = true;
 

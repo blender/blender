@@ -428,7 +428,11 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 static bool PE_create_shape_tree(PEData *data, Object *shapeob)
 {
-	Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_object(shapeob, 0);
+	ModifierEvalContext ctx = {
+	    .depsgraph = data->depsgraph,
+	    .flag = 0,
+	};
+	Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_object(&ctx, shapeob);
 	
 	memset(&data->shape_bvh, 0, sizeof(data->shape_bvh));
 	
@@ -2959,7 +2963,7 @@ static void PE_mirror_x(
 			}
 			else {
 				newpa->num_dmcache = psys_particle_dm_face_lookup(
-				                         psmd->mesh_final, psmd->mesh_deformed, newpa->num, newpa->fuv, NULL);
+				                         psmd->mesh_final, psmd->mesh_original, newpa->num, newpa->fuv, NULL);
 			}
 
 			/* update edit key pointers */
@@ -3553,7 +3557,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 		mesh = psmd->mesh_final;
 	}
 	else {
-		mesh = psmd->mesh_deformed;
+		mesh = psmd->mesh_original;
 	}
 	BLI_assert(mesh);
 
@@ -3587,11 +3591,11 @@ static int brush_add(const bContext *C, PEData *data, short number)
 				add_pars[n].num = add_pars[n].num_dmcache;
 				add_pars[n].num_dmcache = DMCACHE_ISCHILD;
 			}
-			else if (mesh == psmd->mesh_deformed) {
+			else if (mesh == psmd->mesh_original) {
 				/* Final DM is not same topology as orig mesh, we have to map num_dmcache to real final dm. */
 				add_pars[n].num = add_pars[n].num_dmcache;
 				add_pars[n].num_dmcache = psys_particle_dm_face_lookup(
-				                              psmd->mesh_final, psmd->mesh_deformed,
+				                              psmd->mesh_final, psmd->mesh_original,
 				                              add_pars[n].num, add_pars[n].fuv, NULL);
 			}
 			else {

@@ -53,12 +53,20 @@ void BKE_workspace_layout_remove(
 
 void BKE_workspace_relations_free(
         ListBase *relation_list);
+void BKE_workspace_scene_relations_free_invalid(
+        struct WorkSpace *workspace);
 
 
 /* -------------------------------------------------------------------- */
 /* General Utils */
 
-void BKE_workspace_view_layer_remove_references(
+void BKE_workspace_view_layer_rename(
+        const struct Main *bmain,
+        const struct Scene *scene,
+        const char *old_name,
+        const char *new_name) ATTR_NONNULL();
+
+void BKE_workspace_view_layer_remove(
         const struct Main *bmain,
         const struct ViewLayer *view_layer) ATTR_NONNULL();
 
@@ -90,6 +98,9 @@ void            BKE_workspace_active_screen_set(
 
 struct Base *BKE_workspace_active_base_get(const struct WorkSpace *workspace, const struct Scene *scene);
 struct ViewLayer *BKE_workspace_view_layer_get(
+        const struct WorkSpace *workspace,
+        const struct Scene *scene) GETTER_ATTRS;
+struct ViewLayer *BKE_workspace_view_layer_exists(
         const struct WorkSpace *workspace,
         const struct Scene *scene) GETTER_ATTRS;
 void BKE_workspace_view_layer_set(

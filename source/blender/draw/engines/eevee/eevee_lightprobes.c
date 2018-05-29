@@ -71,6 +71,7 @@
 
 static struct {
 	struct GPUShader *probe_default_sh;
+	struct GPUShader *probe_default_studiolight_sh;
 	struct GPUShader *probe_filter_glossy_sh;
 	struct GPUShader *probe_filter_diffuse_sh;
 	struct GPUShader *probe_filter_visibility_sh;
@@ -213,6 +214,9 @@ static void lightprobe_shaders_init(void)
 
 	e_data.probe_default_sh = DRW_shader_create(
 	        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
+
+	e_data.probe_default_studiolight_sh = DRW_shader_create(
+	        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, "#define LOOKDEV\n");
 
 	MEM_freeN(shader_str);
 
@@ -411,7 +415,11 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		World *wo = scene->world;
 
 		float *col = ts.colorBackground;
-		if (wo) {
+
+		/* LookDev */
+		EEVEE_lookdev_cache_init(vedata, &grp, e_data.probe_default_studiolight_sh, psl->probe_background, pinfo);
+		/* END */
+		if (!grp && wo) {
 			col = &wo->horr;
 			bool wo_sh_compiled = true;
 
@@ -445,6 +453,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 
 			if (wo->update_flag != 0 || pinfo->prev_world != wo || pinfo->prev_wo_sh_compiled != wo_sh_compiled) {
 				pinfo->update_world |= PROBE_UPDATE_ALL;
+				pinfo->studiolight_index = 0;
 				pinfo->prev_wo_sh_compiled = wo_sh_compiled;
 				pinfo->prev_world = wo;
 			}
@@ -452,6 +461,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		}
 		else if (pinfo->prev_world) {
 			pinfo->update_world |= PROBE_UPDATE_ALL;
+			pinfo->studiolight_index = 0;
 			pinfo->prev_wo_sh_compiled = false;
 			pinfo->prev_world = NULL;
 		}
@@ -1830,6 +1840,7 @@ void EEVEE_lightprobes_free(void)
 	MEM_SAFE_FREE(e_data.format_probe_display_cube);
 	MEM_SAFE_FREE(e_data.format_probe_display_planar);
 	DRW_SHADER_FREE_SAFE(e_data.probe_default_sh);
+	DRW_SHADER_FREE_SAFE(e_data.probe_default_studiolight_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_glossy_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_diffuse_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_visibility_sh);

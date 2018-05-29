@@ -175,7 +175,8 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *lamp_distance;
 	DRWShadingGroup *lamp_buflimit;
 	DRWShadingGroup *lamp_buflimit_points;
-	DRWShadingGroup *lamp_area;
+	DRWShadingGroup *lamp_area_square;
+	DRWShadingGroup *lamp_area_disk;
 	DRWShadingGroup *lamp_hemi;
 	DRWShadingGroup *lamp_spot_cone;
 	DRWShadingGroup *lamp_spot_blend;
@@ -288,6 +289,7 @@ enum {
 	PLANE_YZ     = (1 << 6),
 	CLIP_ZPOS    = (1 << 7),
 	CLIP_ZNEG    = (1 << 8),
+	GRID_BACK    = (1 << 9),
 };
 
 /* *********** FUNCTIONS *********** */
@@ -446,18 +448,21 @@ static void OBJECT_engine_init(void *vedata)
 				e_data.grid_flag |= SHOW_AXIS_Y;
 				e_data.grid_flag |= SHOW_AXIS_Z;
 				e_data.grid_flag |= SHOW_GRID;
+				e_data.grid_flag |= GRID_BACK;
 			}
 			else if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
 				e_data.grid_flag = PLANE_XY;
 				e_data.grid_flag |= SHOW_AXIS_X;
 				e_data.grid_flag |= SHOW_AXIS_Y;
 				e_data.grid_flag |= SHOW_GRID;
+				e_data.grid_flag |= GRID_BACK;
 			}
 			else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
 				e_data.grid_flag = PLANE_XZ;
 				e_data.grid_flag |= SHOW_AXIS_X;
 				e_data.grid_flag |= SHOW_AXIS_Z;
 				e_data.grid_flag |= SHOW_GRID;
+				e_data.grid_flag |= GRID_BACK;
 			}
 			else { /* RV3D_VIEW_USER */
 				e_data.grid_flag = PLANE_XY;
@@ -987,7 +992,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Solid bones */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
 		psl->bone_outline = DRW_pass_create("Bone Outline Pass", state);
 	}
@@ -1164,8 +1169,11 @@ static void OBJECT_cache_init(void *vedata)
 		stl->g_data->lamp_groundline = shgroup_groundlines_uniform_color(psl->non_meshes, ts.colorLamp);
 		stl->g_data->lamp_groundpoint = shgroup_groundpoints_uniform_color(psl->non_meshes, ts.colorLamp);
 
-		geom = DRW_cache_lamp_area_get();
-		stl->g_data->lamp_area = shgroup_instance(psl->non_meshes, geom);
+		geom = DRW_cache_lamp_area_square_get();
+		stl->g_data->lamp_area_square = shgroup_instance(psl->non_meshes, geom);
+
+		geom = DRW_cache_lamp_area_disk_get();
+		stl->g_data->lamp_area_disk = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_lamp_hemi_get();
 		stl->g_data->lamp_hemi = shgroup_instance(psl->non_meshes, geom);
@@ -1398,13 +1406,18 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, ViewLayer *vie
 	else if (la->type == LA_AREA) {
 		float size[3] = {1.0f, 1.0f, 1.0f}, sizemat[4][4];
 
-		if (la->area_shape == LA_AREA_RECT) {
+		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) {
 			size[1] = la->area_sizey / la->area_size;
 			size_to_mat4(sizemat, size);
 			mul_m4_m4m4(shapemat, shapemat, sizemat);
 		}
 
-		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area, color, &la->area_size, shapemat);
+		if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
+			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area_disk, color, &la->area_size, shapemat);
+		}
+		else {
+			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area_square, color, &la->area_size, shapemat);
+		}
 	}
 
 	/* Line and point going to the ground */

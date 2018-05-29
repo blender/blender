@@ -596,8 +596,8 @@ int ED_transform_calc_manipulator_stats(
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	Object *ob = OBACT(view_layer);
-	const Object *ob_eval = NULL;
-	const Object *obedit_eval = NULL;
+	Object *ob_eval = NULL;
+	Object *obedit_eval = NULL;
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	int a, totsel = 0;
@@ -629,7 +629,7 @@ int ED_transform_calc_manipulator_stats(
 			case V3D_MANIP_GIMBAL:
 			{
 				float mat[3][3];
-				if (gimbal_axis(ob, mat)) {
+				if (gimbal_axis(ob_eval, mat)) {
 					copy_m4_m3(rv3d->twmat, mat);
 					break;
 				}
@@ -947,7 +947,7 @@ int ED_transform_calc_manipulator_stats(
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
 		bool ok = false;
 
-		if ((pivot_point == V3D_AROUND_ACTIVE) && (pchan = BKE_pose_channel_active(ob))) {
+		if ((pivot_point == V3D_AROUND_ACTIVE) && (pchan = BKE_pose_channel_active(ob_eval))) {
 			/* doesn't check selection or visibility intentionally */
 			Bone *bone = pchan->bone;
 			if (bone) {
@@ -958,11 +958,11 @@ int ED_transform_calc_manipulator_stats(
 			}
 		}
 		else {
-			totsel = count_set_pose_transflags(&mode, 0, ob);
+			totsel = count_set_pose_transflags(&mode, 0, ob_eval);
 
 			if (totsel) {
 				/* use channels to get stats */
-				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+				for (pchan = ob_eval->pose->chanbase.first; pchan; pchan = pchan->next) {
 					Bone *bone = pchan->bone;
 					if (bone && (bone->flag & BONE_TRANSFORM)) {
 						calc_tw_center(tbounds, pchan->pose_head);
@@ -1018,7 +1018,7 @@ int ED_transform_calc_manipulator_stats(
 			if (!TESTBASELIB(base)) {
 				continue;
 			}
-			const Object *base_object_eval = DEG_get_evaluated_object(depsgraph, base->object);
+			Object *base_object_eval = DEG_get_evaluated_object(depsgraph, base->object);
 			if (ob == NULL) {
 				ob = base->object;
 				ob_eval = base_object_eval;

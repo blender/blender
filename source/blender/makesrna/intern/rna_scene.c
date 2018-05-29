@@ -175,11 +175,10 @@ const EnumPropertyItem rna_enum_snap_element_items[] = {
 };
 
 const EnumPropertyItem rna_enum_snap_node_element_items[] = {
-	{SCE_SNAP_MODE_GRID  , "GRID"   , ICON_SNAP_GRID, "Grid", "Snap to grid"},
-	{SCE_SNAP_MODE_NODE_X, "NODE_X" , ICON_SNAP_EDGE, "Node X", "Snap to left/right node border"},
-	{SCE_SNAP_MODE_NODE_Y, "NODE_Y" , ICON_SNAP_EDGE, "Node Y", "Snap to top/bottom node border"},
-	{SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y,
-	                       "NODE_XY", ICON_SNAP_EDGE, "Node X / Y", "Snap to any node border"},
+	{SCE_SNAP_MODE_GRID,   "GRID",    ICON_SNAP_GRID, "Grid", "Snap to grid"},
+	{SCE_SNAP_MODE_NODE_X, "NODE_X",  ICON_SNAP_EDGE, "Node X", "Snap to left/right node border"},
+	{SCE_SNAP_MODE_NODE_Y, "NODE_Y",  ICON_SNAP_EDGE, "Node Y", "Snap to top/bottom node border"},
+	{SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y, "NODE_XY", ICON_SNAP_EDGE, "Node X / Y", "Snap to any node border"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1486,7 +1485,7 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	BKE_view_layer_rename(scene, view_layer, value);
+	BKE_view_layer_rename(G.main, scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
@@ -5866,7 +5865,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "taa_reprojection", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_taa_reprojection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_TAA_REPROJECTION);
 	RNA_def_property_boolean_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Viewport Denoising", "Denoise image using temporal reprojection "
@@ -5874,7 +5873,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
 	/* Screen Space Subsurface Scattering */
-	prop = RNA_def_property(srna, "sss_enable", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_sss", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSS_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Subsurface Scattering", "Enable screen space subsurface scattering");
@@ -5892,7 +5891,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "sss_separate_albedo", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_sss_separate_albedo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSS_SEPARATE_ALBEDO);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Separate Albedo", "Avoid albedo being blured by the subsurface scattering "
@@ -5900,19 +5899,19 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
 	/* Screen Space Reflection */
-	prop = RNA_def_property(srna, "ssr_enable", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_ssr", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSR_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Screen Space Reflections", "Enable screen space reflection");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "ssr_refraction", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_ssr_refraction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSR_REFRACTION);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Screen Space Refractions", "Enable screen space Refractions");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "ssr_halfres", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_ssr_halfres", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSR_HALF_RESOLUTION);
 	RNA_def_property_boolean_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Half Res Trace", "Raytrace at a lower resolution");
@@ -5950,7 +5949,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
 	/* Volumetrics */
-	prop = RNA_def_property(srna, "volumetric_enable", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_volumetric", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_VOLUMETRIC_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Volumetrics", "Enable scattering and absorbance of volumetric material");
@@ -5988,7 +5987,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Exponential Sampling", "Distribute more samples closer to the camera");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "volumetric_lights", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_volumetric_lights", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_VOLUMETRIC_LIGHTS);
 	RNA_def_property_boolean_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Volumetric Lighting", "Enable scene lamps interactions with volumetrics");
@@ -6000,7 +5999,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clamp", "Maximum light contribution, reducing noise");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "volumetric_shadows", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_volumetric_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_VOLUMETRIC_SHADOWS);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Volumetric Shadows", "Generate shadows from volumetric material (Very expensive)");
@@ -6012,26 +6011,26 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Volumetric Shadow Samples", "Number of samples to compute volumetric shadowing");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "volumetric_colored_transmittance", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_volumetric_colored_transmittance", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_VOLUMETRIC_COLORED);
 	RNA_def_property_boolean_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Colored Transmittance", "Enable wavelength dependent volumetric transmittance");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
 	/* Ambient Occlusion */
-	prop = RNA_def_property(srna, "gtao_enable", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_gtao", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_GTAO_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Ambient Occlusion", "Enable ambient occlusion to simulate medium scale indirect shadowing");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "gtao_use_bent_normals", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_gtao_bent_normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_GTAO_BENT_NORMALS);
 	RNA_def_property_boolean_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Bent Normals", "Compute main non occluded direction to sample the environment");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "gtao_bounce", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_gtao_bounce", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_GTAO_BOUNCE);
 	RNA_def_property_boolean_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Bounces Approximation", "An approximation to simulate light bounces "
@@ -6059,7 +6058,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
 	/* Depth of Field */
-	prop = RNA_def_property(srna, "dof_enable", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_dof", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_DOF_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Depth of Field", "Enable depth of field using the values from the active camera");
@@ -6080,7 +6079,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
 	/* Bloom */
-	prop = RNA_def_property(srna, "bloom_enable", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_bloom", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_BLOOM_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Bloom", "High brighness pixels generate a glowing effect");
@@ -6127,7 +6126,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
 	/* Motion blur */
-	prop = RNA_def_property(srna, "motion_blur_enable", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_MOTION_BLUR_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Motion Blur", "Enable motion blur effect (only in camera view)");
@@ -6164,7 +6163,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Directional Shadows Resolution", "Size of sun lamps shadow maps");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "shadow_high_bitdepth", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_shadow_high_bitdepth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SHADOW_HIGH_BITDEPTH);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "High Bitdepth", "Use 32bit shadows");

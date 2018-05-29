@@ -343,3 +343,16 @@ void MathAbsoluteOperation::executePixelSampled(float output[4], float x, float 
 
 	clampIfNeeded(output);
 }
+
+void MathArcTan2Operation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+{
+	float inputValue1[4];
+	float inputValue2[4];
+
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
+
+	output[0] = atan2(inputValue1[0], inputValue2[0]);
+
+	clampIfNeeded(output);
+}

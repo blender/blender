@@ -113,7 +113,6 @@ typedef struct SnapObjectData_EditMesh {
 } SnapObjectData_EditMesh;
 
 struct SnapObjectContext {
-	Main *bmain;
 	Scene *scene;
 	Depsgraph *depsgraph;
 
@@ -534,6 +533,10 @@ static bool raycastEditMesh(
 		if (treedata->tree == NULL) {
 			return retval;
 		}
+	}
+	else {
+		/* COW hack: Update pointers */
+		treedata->em = em;
 	}
 
 	float imat[4][4];
@@ -2265,13 +2268,12 @@ static short snapObjectsRay(
  * \{ */
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        Main *bmain, Scene *scene, Depsgraph *depsgraph, int flag)
+        Scene *scene, Depsgraph *depsgraph, int flag)
 {
 	SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
 	sctx->flag = flag;
 
-	sctx->bmain = bmain;
 	sctx->scene = scene;
 	sctx->depsgraph = depsgraph;
 
@@ -2282,11 +2284,11 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 }
 
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        Main *bmain, Scene *scene, Depsgraph *depsgraph, int flag,
+        Scene *scene, Depsgraph *depsgraph, int flag,
         /* extra args for view3d */
         const ARegion *ar, const View3D *v3d)
 {
-	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, depsgraph, flag);
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, depsgraph, flag);
 
 	sctx->use_v3d = true;
 	sctx->v3d_data.ar = ar;
@@ -2511,6 +2513,10 @@ static short transform_snap_context_project_view3d_mixed_impl(
 			/* Compute the new clip_pane but do not add it yet. */
 			float new_clipplane[4];
 			plane_from_point_normal_v3(new_clipplane, loc, no);
+			if (dot_v3v3(snapdata.clip_plane[0], new_clipplane) > 0.0f) {
+				/* The plane is facing the wrong direction. */
+				negate_v4(new_clipplane);
+			}
 
 			/* Try to snap only to the polygon. */
 			elem = snap_mesh_polygon(

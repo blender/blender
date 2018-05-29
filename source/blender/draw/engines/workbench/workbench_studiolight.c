@@ -27,7 +27,10 @@
 #include "DRW_engine.h"
 #include "workbench_private.h"
 
+#include "BKE_object.h"
+
 #include "BLI_math.h"
+#include "BKE_global.h"
 
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd)
 {
@@ -39,4 +42,140 @@ void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd)
 	copy_v3_v3(wd->diffuse_light_y_neg, sl->diffuse_light[STUDIOLIGHT_Y_NEG]);
 	copy_v3_v3(wd->diffuse_light_z_pos, sl->diffuse_light[STUDIOLIGHT_Z_POS]);
 	copy_v3_v3(wd->diffuse_light_z_neg, sl->diffuse_light[STUDIOLIGHT_Z_NEG]);
+}
+
+static void compute_parallel_lines_nor_and_dist(const float v1[2], const float v2[2], const float v3[2], float r_line[2])
+{
+	sub_v2_v2v2(r_line, v2, v1);
+	/* Find orthogonal vector. */
+	SWAP(float, r_line[0], r_line[1]);
+	r_line[0] = -r_line[0];
+	/* Edge distances. */
+	r_line[2] = dot_v2v2(r_line, v1);
+	r_line[3] = dot_v2v2(r_line, v3);
+	/* Make sure r_line[2] is the minimum. */
+	if (r_line[2] > r_line[3]) {
+		SWAP(float, r_line[2], r_line[3]);
+	}
+}
+
+void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_direction[3])
+{
+	wpd->shadow_changed = !compare_v3v3(wpd->cached_shadow_direction, light_direction, 1e-5f);
+
+	if (wpd->shadow_changed) {
+		float up[3] = {0.0f, 0.0f, 1.0f};
+		unit_m4(wpd->shadow_mat);
+
+		/* TODO fix singularity. */
+		copy_v3_v3(wpd->shadow_mat[2], light_direction);
+		cross_v3_v3v3(wpd->shadow_mat[0], wpd->shadow_mat[2], up);
+		normalize_v3(wpd->shadow_mat[0]);
+		cross_v3_v3v3(wpd->shadow_mat[1], wpd->shadow_mat[2], wpd->shadow_mat[0]);
+
+		invert_m4_m4(wpd->shadow_inv, wpd->shadow_mat);
+
+		copy_v3_v3(wpd->cached_shadow_direction, light_direction);
+
+	}
+
+	BoundBox frustum_corners;
+	DRW_culling_frustum_corners_get(&frustum_corners);
+
+	mul_v3_mat3_m4v3(wpd->shadow_near_corners[0], wpd->shadow_inv, frustum_corners.vec[0]);
+	mul_v3_mat3_m4v3(wpd->shadow_near_corners[1], wpd->shadow_inv, frustum_corners.vec[3]);
+	mul_v3_mat3_m4v3(wpd->shadow_near_corners[2], wpd->shadow_inv, frustum_corners.vec[7]);
+	mul_v3_mat3_m4v3(wpd->shadow_near_corners[3], wpd->shadow_inv, frustum_corners.vec[4]);
+
+	INIT_MINMAX(wpd->shadow_near_min, wpd->shadow_near_max);
+	for (int i = 0; i < 4; ++i) {
+		minmax_v3v3_v3(wpd->shadow_near_min, wpd->shadow_near_max, wpd->shadow_near_corners[i]);
+	}
+
+	compute_parallel_lines_nor_and_dist(wpd->shadow_near_corners[0], wpd->shadow_near_corners[1], wpd->shadow_near_corners[2], wpd->shadow_near_sides[0]);
+	compute_parallel_lines_nor_and_dist(wpd->shadow_near_corners[1], wpd->shadow_near_corners[2], wpd->shadow_near_corners[0], wpd->shadow_near_sides[1]);
+}
+
+static BoundBox *studiolight_object_shadow_bbox_get(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed)
+{
+	if ((oed->shadow_bbox_dirty) || (wpd->shadow_changed)) {
+		float tmp_mat[4][4];
+		mul_m4_m4m4(tmp_mat, wpd->shadow_inv, ob->obmat);
+
+		/* Get AABB in shadow space. */
+		INIT_MINMAX(oed->shadow_min, oed->shadow_max);
+
+		/* From object space to shadow space */
+		BoundBox *bbox = BKE_object_boundbox_get(ob);
+		for (int i = 0; i < 8; ++i) {
+			float corner[3];
+			mul_v3_m4v3(corner, tmp_mat, bbox->vec[i]);
+			minmax_v3v3_v3(oed->shadow_min, oed->shadow_max, corner);
+		}
+		/* Extend towards infinity. */
+		oed->shadow_max[2] += 1e4;
+
+		/* Get extended AABB in world space. */
+		BKE_boundbox_init_from_minmax(&oed->shadow_bbox, oed->shadow_min, oed->shadow_max);
+		for (int i = 0; i < 8; ++i) {
+			mul_m4_v3(wpd->shadow_mat, oed->shadow_bbox.vec[i]);
+		}
+	}
+
+	return &oed->shadow_bbox;
+}
+
+bool studiolight_object_cast_visible_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed)
+{
+	BoundBox *shadow_bbox = studiolight_object_shadow_bbox_get(wpd, ob, oed);
+	return DRW_culling_box_test(shadow_bbox);
+}
+
+bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed)
+{
+	/* Just to be sure the min, max are updated. */
+	studiolight_object_shadow_bbox_get(wpd, ob, oed);
+
+	/* Test if near plane is in front of the shadow. */
+	if (oed->shadow_min[2] > wpd->shadow_near_max[2]) {
+		return false;
+	}
+
+	/* Separation Axis Theorem test */
+
+	/* Test bbox sides first (faster) */
+	if ((oed->shadow_min[0] > wpd->shadow_near_max[0]) ||
+	    (oed->shadow_max[0] < wpd->shadow_near_min[0]) ||
+	    (oed->shadow_min[1] > wpd->shadow_near_max[1]) ||
+	    (oed->shadow_max[1] < wpd->shadow_near_min[1]))
+	{
+		return false;
+	}
+
+	/* Test projected near rectangle sides */
+	float pts[4][2] = {
+	        {oed->shadow_min[0], oed->shadow_min[1]},
+	        {oed->shadow_min[0], oed->shadow_max[1]},
+	        {oed->shadow_max[0], oed->shadow_min[1]},
+	        {oed->shadow_max[0], oed->shadow_max[1]}
+	};
+
+	for (int i = 0; i < 2; ++i) {
+		float min_dst = FLT_MAX, max_dst = -FLT_MAX;
+		for (int j = 0; j < 4; ++j) {
+			float dst = dot_v2v2(wpd->shadow_near_sides[i], pts[j]);
+			/* Do min max */
+			if (min_dst > dst) min_dst = dst;
+			if (max_dst < dst) max_dst = dst;
+		}
+
+		if ((wpd->shadow_near_sides[i][2] > max_dst) ||
+		    (wpd->shadow_near_sides[i][3] < min_dst))
+		{
+			return false;
+		}
+	}
+
+	/* No separation axis found. Both shape intersect. */
+	return true;
 }

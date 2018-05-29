@@ -1067,6 +1067,7 @@ float ED_view3d_radius_to_dist_ortho(const float lens, const float radius)
  */
 float ED_view3d_radius_to_dist(
         const View3D *v3d, const ARegion *ar,
+        const struct Depsgraph *depsgraph,
         const char persp, const bool use_aspect,
         const float radius)
 {
@@ -1087,7 +1088,8 @@ float ED_view3d_radius_to_dist(
 			BKE_camera_params_init(&params);
 			params.clipsta = v3d->near;
 			params.clipend = v3d->far;
-			BKE_camera_params_from_object(&params, v3d->camera);
+			Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+			BKE_camera_params_from_object(&params, camera_eval);
 
 			lens = params.lens;
 			sensor_size = BKE_camera_sensor_size(params.sensor_fit, params.sensor_x, params.sensor_y);
@@ -1277,7 +1279,7 @@ bool ED_view3d_lock(RegionView3D *rv3d)
  * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
  * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
-void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist)
+void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], float *dist)
 {
 	float nmat[3][3];
 
@@ -1322,13 +1324,14 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
 
 /**
  * Set the RegionView3D members from an objects transformation and optionally lens.
+ * \param depsgraph The depsgraph to get the evaluated object for the lens calculation.
  * \param ob The object to set the view to.
  * \param ofs The view offset to be set, normally from RegionView3D.ofs.
  * \param quat The view rotation to be set, quaternion normally from RegionView3D.viewquat.
  * \param dist The view distance from ofs to be set, normally from RegionView3D.dist.
  * \param lens The view lens angle set for cameras and lamps, normally from View3D.lens.
  */
-void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
+void ED_view3d_from_object(const Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
 {
 	ED_view3d_from_m4(ob->obmat, ofs, quat, dist);
 
@@ -1343,6 +1346,7 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
 
 /**
  * Set the object transformation from RegionView3D members.
+ * \param depsgraph The depsgraph to get the evaluated object parent for the transformation calculation.
  * \param ob The object which has the transformation assigned.
  * \param ofs The view offset, normally from RegionView3D.ofs.
  * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.

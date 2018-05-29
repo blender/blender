@@ -2122,25 +2122,24 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 				continue;
 			}
 			/* Loop over contiguous bone hits for 'base'. */
-			bool bone_selected = false;
+			bool changed = false;
 			for (; col != col_end; col += 4) {
 				/* should never fail */
 				if (bone != NULL) {
 					if (select) {
 						if ((bone->flag & BONE_UNSELECTABLE) == 0) {
 							bone->flag |= BONE_SELECTED;
-							bone_selected = true;
 						}
 					}
 					else {
 						bArmature *arm = base->object->data;
 						if ((bone->flag & BONE_UNSELECTABLE) == 0) {
 							bone->flag &= ~BONE_SELECTED;
-							bone_selected = true;
 							if (arm->act_bone == bone)
 								arm->act_bone = NULL;
 						}
 					}
+					changed = true;
 				}
 				else if (!bone_only) {
 					ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
@@ -2154,7 +2153,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 
 					if ((base->object->pose != NULL) && bone_only) {
 						const uint hit_bone = (col[4] & ~BONESEL_ANY) >> 16;
-						bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);;
+						bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);
 						bone = pchan ? pchan->bone : NULL;
 					}
 					else {
@@ -2163,7 +2162,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 				}
 			}
 
-			if (bone_selected) {
+			if (changed) {
 				if (base->object && (base->object->type == OB_ARMATURE)) {
 					bArmature *arm = base->object->data;
 
@@ -2174,6 +2173,8 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 						DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
 					}
 					
+					/* copy on write tag is needed (for the armature), or else no refresh happens */
+					DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 				}
 			}
 		}
@@ -2750,6 +2751,9 @@ static void pose_circle_select(ViewContext *vc, const bool select, const int mva
 			/* mask modifier ('armature' mode), etc. */
 			DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
 		}
+		
+		/* copy on write tag is needed (for the armature), or else no refresh happens */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 

@@ -379,6 +379,52 @@ static void action_channel_region_listener(
 	}
 }
 
+static void saction_channel_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	PointerRNA ptr;
+	RNA_pointer_create(&screen->id, &RNA_SpaceDopeSheetEditor, sa->spacedata.first, &ptr);
+
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+	
+	/* All dopesheet filter settings, etc. affect the drawing of this editor,
+	 * also same applies for all animation-related datatypes that may appear here,
+	 * so just whitelist the entire structs for updates
+	 */
+	{
+		wmMsgParams_RNA msg_key_params = {{{0}}};
+		StructRNA *type_array[] = {
+			&RNA_DopeSheet,    /* dopesheet filters */
+			
+			&RNA_ActionGroup,  /* channel groups */
+			
+			&RNA_FCurve,       /* F-Curve */
+			&RNA_Keyframe,
+			&RNA_FCurveSample,
+			
+			&RNA_GreasePencil, /* Grease Pencil */
+			&RNA_GPencilLayer,
+			&RNA_GPencilFrame,
+		};
+
+		for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
+			msg_key_params.ptr.type = type_array[i];
+			WM_msg_subscribe_rna_params(
+			        mbus,
+			        &msg_key_params,
+			        &msg_sub_value_region_tag_redraw,
+			        __func__);
+		}
+	}
+}
+
 static void action_main_region_listener(
         bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
@@ -435,8 +481,8 @@ static void action_main_region_listener(
 }
 
 static void saction_main_region_message_subscribe(
-        const struct bContext *UNUSED(C),
-        struct WorkSpace *UNUSED(workspace), struct Scene *scene,
+        const struct bContext *C,
+        struct WorkSpace *workspace, struct Scene *scene,
         struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
@@ -472,6 +518,9 @@ static void saction_main_region_message_subscribe(
 			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
 		}
 	}
+	
+	/* Now run the general "channels region" one - since channels and main should be in sync */
+	saction_channel_region_message_subscribe(C, workspace, scene, screen, sa, ar, mbus);
 }
 
 /* editor level listener */
@@ -835,6 +884,7 @@ void ED_spacetype_action(void)
 	art->init = action_channel_region_init;
 	art->draw = action_channel_region_draw;
 	art->listener = action_channel_region_listener;
+	art->message_subscribe = saction_channel_region_message_subscribe;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

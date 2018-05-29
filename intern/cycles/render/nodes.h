@@ -25,6 +25,7 @@
 CCL_NAMESPACE_BEGIN
 
 class ImageManager;
+class LightManager;
 class Scene;
 class Shader;
 
@@ -279,6 +280,27 @@ public:
 		return ShaderNode::equals(other) &&
 		       builtin_data == point_dendity_node.builtin_data;
 	}
+};
+
+class IESLightNode : public TextureNode {
+public:
+	SHADER_NODE_NO_CLONE_CLASS(IESLightNode)
+
+	~IESLightNode();
+	ShaderNode *clone() const;
+	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
+
+	ustring filename;
+	ustring ies;
+
+	float strength;
+	float3 vector;
+
+private:
+	LightManager *light_manager;
+	int slot;
+
+	void get_slot();
 };
 
 class MappingNode : public ShaderNode {

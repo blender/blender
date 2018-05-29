@@ -16,7 +16,7 @@ in mat4 InstanceModelMatrix;
 in vec3 boneColor;
 in vec3 stateColor;
 
-flat out vec4 finalColor;
+out vec4 finalColor;
 
 void main()
 {

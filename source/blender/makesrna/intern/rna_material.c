@@ -372,9 +372,9 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clip Threshold", "A pixel is rendered only if its alpha value is above this threshold");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
-	prop = RNA_def_property(srna, "transparent_hide_backside", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_HIDE_BACKSIDE);
-	RNA_def_property_ui_text(prop, "Hide Backside", "Limit transparency to a single layer "
+	prop = RNA_def_property(srna, "show_transparent_backside", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "blend_flag", MA_BL_HIDE_BACKSIDE);
+	RNA_def_property_ui_text(prop, "Show Backside", "Limit transparency to a single layer "
 	                                                 "(avoids transparency sorting problems)");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
@@ -519,7 +519,8 @@ static void rna_def_tex_slot(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "UV Map", "Name of UV map");
 	RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Material_update");
 	
-	prop = RNA_def_property(srna, "valid", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "valid", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Valid", "Slot has a valid image and UV map");
 }

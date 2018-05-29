@@ -165,6 +165,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case SPACE_TOPBAR:
 					ts = &btheme->ttopbar;
 					break;
+				case SPACE_STATUSBAR:
+					ts = &btheme->tstatusbar;
+					break;
 				default:
 					ts = &btheme->tv3d;
 					break;
@@ -1238,6 +1241,9 @@ void ui_theme_init_default(void)
 	copy_v4_v4_char(tmp, btheme->ttopbar.header);
 	copy_v4_v4_char(btheme->ttopbar.header, btheme->ttopbar.tab_inactive);
 	copy_v4_v4_char(btheme->ttopbar.back, tmp);
+
+	/* space statusbar */
+	btheme->tstatusbar = btheme->tv3d;
 }
 
 void ui_style_init_default(void)
@@ -2998,6 +3004,12 @@ void init_userdef_do_versions(void)
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
 			btheme->tui.wcol_toolbar_item = wcol_toolbar_item;
 			btheme->tui.icon_saturation = 1.0f;
+		}
+	}
+
+	if (!USER_VERSION_ATLEAST(280, 16)) {
+		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			btheme->tstatusbar = btheme->tv3d;
 		}
 	}
 

@@ -184,7 +184,8 @@ void integrate_slice(vec3 normal, vec2 t_phi, vec2 horizons, inout float visibil
 	bent_normal += vec3(sin(b_angle) * -t_phi, cos(b_angle) * 0.5);
 }
 
-void gtao_deferred(vec3 normal, vec3 position, vec4 noise, float frag_depth, out float visibility, out vec3 bent_normal)
+void gtao_deferred(
+        vec3 normal, vec3 position, vec4 noise, float frag_depth, out float visibility, out vec3 bent_normal)
 {
 	/* Fetch early, hide latency! */
 	vec4 horizons = texelFetch(horizonBuffer, ivec2(gl_FragCoord.xy), 0);

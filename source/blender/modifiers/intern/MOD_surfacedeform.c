@@ -1041,7 +1041,7 @@ static bool surfacedeformBind(
 	return data.success == 1;
 }
 
-static Mesh *surfacedeform_get_mesh(SurfaceDeformModifierData *smd, bool *r_needsfree)
+static Mesh *surfacedeform_get_mesh(Depsgraph *depsgraph, SurfaceDeformModifierData *smd, bool *r_needsfree)
 {
 	Mesh *mesh;
 
@@ -1052,8 +1052,11 @@ static Mesh *surfacedeform_get_mesh(SurfaceDeformModifierData *smd, bool *r_need
 		*r_needsfree = true;
 	}
 	else {
-		mesh = BKE_modifier_get_evaluated_mesh_from_object(
-		           smd->target, smd->modifier.mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
+		ModifierEvalContext ctx = {
+		    .depsgraph = depsgraph,
+		    .flag = smd->modifier.mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0,
+		};
+		mesh = BKE_modifier_get_evaluated_mesh_from_object(&ctx, smd->target);
 		*r_needsfree = false;
 	}
 
@@ -1124,6 +1127,7 @@ static void deformVert(
 
 static void surfacedeformModifier_do(
         ModifierData *md,
+        const ModifierEvalContext *ctx,
         float (*vertexCos)[3], unsigned int numverts, Object *ob)
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
@@ -1137,7 +1141,7 @@ static void surfacedeformModifier_do(
 		return;
 	}
 
-	target = surfacedeform_get_mesh(smd, &free_target);
+	target = surfacedeform_get_mesh(ctx->depsgraph, smd, &free_target);
 	if (!target) {
 		modifier_setError(md, "No valid target mesh");
 		return;
@@ -1204,7 +1208,7 @@ static void deformVerts(
         Mesh *UNUSED(mesh),
         float (*vertexCos)[3], int numVerts)
 {
-	surfacedeformModifier_do(md, vertexCos, numVerts, ctx->object);
+	surfacedeformModifier_do(md, ctx, vertexCos, numVerts, ctx->object);
 }
 
 static void deformVertsEM(
@@ -1213,7 +1217,7 @@ static void deformVertsEM(
         Mesh *UNUSED(mesh),
         float (*vertexCos)[3], int numVerts)
 {
-	surfacedeformModifier_do(md, vertexCos, numVerts, ctx->object);
+	surfacedeformModifier_do(md, ctx, vertexCos, numVerts, ctx->object);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))

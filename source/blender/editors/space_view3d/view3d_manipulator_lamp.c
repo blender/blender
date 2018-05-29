@@ -45,6 +45,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -80,16 +82,18 @@ static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmManipulator
 
 static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
 	wmManipulator *mpr = wwrapper->manipulator;
 	Object *ob = CTX_data_active_object(C);
+	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	Lamp *la = ob->data;
 	float dir[3];
 
-	negate_v3_v3(dir, ob->obmat[2]);
+	negate_v3_v3(dir, ob_eval->obmat[2]);
 
 	WM_manipulator_set_matrix_rotation_from_z_axis(mpr, dir);
-	WM_manipulator_set_matrix_location(mpr, ob->obmat[3]);
+	WM_manipulator_set_matrix_location(mpr, ob_eval->obmat[3]);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	PointerRNA lamp_ptr;
@@ -129,7 +133,7 @@ static void manipulator_area_lamp_prop_matrix_get(
 	const Lamp *la = mpr_prop->custom_func.user_data;
 
 	matrix[0][0] = la->area_size;
-	matrix[1][1] = (la->area_shape == LA_AREA_RECT) ? la->area_sizey : la->area_size;
+	matrix[1][1] = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE) ? la->area_sizey : la->area_size;
 }
 
 static void manipulator_area_lamp_prop_matrix_set(
@@ -140,7 +144,7 @@ static void manipulator_area_lamp_prop_matrix_set(
 	BLI_assert(mpr_prop->type->array_length == 16);
 	Lamp *la = mpr_prop->custom_func.user_data;
 
-	if (la->area_shape == LA_AREA_RECT) {
+	if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) {
 		la->area_size = len_v3(matrix[0]);
 		la->area_sizey = len_v3(matrix[1]);
 	}
@@ -179,15 +183,19 @@ static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulator
 static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
-	Lamp *la = ob->data;
+	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	Lamp *la = ob_eval->data;
 	wmManipulator *mpr = wwrapper->manipulator;
 
-	copy_m4_m4(mpr->matrix_basis, ob->obmat);
+	copy_m4_m4(mpr->matrix_basis, ob_eval->obmat);
 
-	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
-	             ((la->area_shape == LA_AREA_SQUARE) ? ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM : 0));
+	int flag = ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE;
+	if (ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_DISK)) {
+		flag |= ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM;
+	}
+	RNA_enum_set(mpr->ptr, "transform", flag);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	WM_manipulator_target_property_def_func(
@@ -264,10 +272,12 @@ static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmManipulat
 static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
+	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	wmManipulator *mpr = wwrapper->manipulator;
 
-	copy_m4_m4(mpr->matrix_basis, ob->obmat);
+	copy_m4_m4(mpr->matrix_basis, ob_eval->obmat);
 	unit_m4(mpr->matrix_offset);
 	mpr->matrix_offset[3][2] = -2.4f / mpr->scale_basis;
 	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);

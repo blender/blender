@@ -2,7 +2,9 @@ out vec4 fragColor;
 
 uniform usampler2D objectId;
 uniform sampler2D transparentAccum;
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 uniform sampler2D transparentRevealage;
+#endif
 uniform vec2 invertedViewportSize;
 
 layout(std140) uniform world_block {
@@ -15,7 +17,9 @@ void main()
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
 	uint object_id = texelFetch(objectId, texel, 0).r;
 	vec4 transparent_accum = texelFetch(transparentAccum, texel, 0);
-	float revealage = texelFetch(transparentRevealage, texel, 0).r;
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+	float transparent_revealage = texelFetch(transparentRevealage, texel, 0).r;
+#endif
 	vec4 color;
 
 #ifdef V3D_SHADING_OBJECT_OUTLINE
@@ -27,7 +31,11 @@ void main()
 	if (object_id == NO_OBJECT_ID) {
 		color = vec4(background_color(world_data, uv_viewport.y), 0.0);
 	} else {
-		color = transparent_accum / transparent_accum.a;
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+		color = vec4((transparent_accum.xyz / max(transparent_accum.a, EPSILON)) * (1.0 - transparent_revealage), 1.0);
+#else
+		color = vec4(transparent_accum.xyz / max(transparent_accum.a, EPSILON), 1.0);
+#endif
 	}
 
 	fragColor = vec4(mix(world_data.object_outline_color.rgb, color.xyz, outline), 1.0);

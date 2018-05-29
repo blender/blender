@@ -152,7 +152,9 @@ typedef struct DrawEngineType {
 	void (*view_update)(void *vedata);
 	void (*id_update)(void *vedata, struct ID *id);
 
-	void (*render_to_image)(void *vedata, struct RenderEngine *engine, struct RenderLayer *layer, const struct rcti *rect);
+	void (*render_to_image)(
+	        void *vedata, struct RenderEngine *engine,
+	        struct RenderLayer *layer, const struct rcti *rect);
 } DrawEngineType;
 
 #ifndef __DRW_ENGINE_H__
@@ -280,6 +282,7 @@ typedef enum {
 	DRW_STATE_BLEND_PREMUL  = (1 << 21), /* Use that if color is already premult by alpha. */
 	DRW_STATE_WIRE_SMOOTH   = (1 << 22),
 	DRW_STATE_TRANS_FEEDBACK = (1 << 23),
+	DRW_STATE_TRANSPARENT_REVEALAGE = (1 << 24),
 
 	DRW_STATE_WRITE_STENCIL          = (1 << 27),
 	DRW_STATE_WRITE_STENCIL_SHADOW_PASS   = (1 << 28),
@@ -317,10 +320,14 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(struct GPUMaterial 
 DRWShadingGroup *DRW_shgroup_instance_create(
         struct GPUShader *shader, DRWPass *pass, struct Gwn_Batch *geom, struct Gwn_VertFormat *format);
 DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass);
-DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(struct GPUShader *shader, DRWPass *pass, struct Gwn_VertFormat *format);
-DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass);
-DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DRWPass *pass, int size);
-DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader, DRWPass *pass, struct Gwn_VertBuf *tf_target);
+DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(
+        struct GPUShader *shader, DRWPass *pass, struct Gwn_VertFormat *format);
+DRWShadingGroup *DRW_shgroup_line_batch_create(
+        struct GPUShader *shader, DRWPass *pass);
+DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(
+        struct GPUShader *shader, DRWPass *pass, int size);
+DRWShadingGroup *DRW_shgroup_transform_feedback_create(
+        struct GPUShader *shader, DRWPass *pass, struct Gwn_VertBuf *tf_target);
 
 typedef void (DRWCallGenerateFn)(
         DRWShadingGroup *shgroup,
@@ -439,8 +446,10 @@ void DRW_render_instance_buffer_finish(void);
 
 /* ViewLayers */
 void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
-void **DRW_view_layer_engine_data_ensure_ex(struct ViewLayer *view_layer, DrawEngineType *engine_type, void (*callback)(void *storage));
-void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*callback)(void *storage));
+void **DRW_view_layer_engine_data_ensure_ex(
+        struct ViewLayer *view_layer, DrawEngineType *engine_type, void (*callback)(void *storage));
+void **DRW_view_layer_engine_data_ensure(
+        DrawEngineType *engine_type, void (*callback)(void *storage));
 
 /* Objects */
 ObjectEngineData *DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type);
@@ -487,6 +496,8 @@ void DRW_state_clip_planes_reset(void);
 bool DRW_culling_sphere_test(BoundSphere *bsphere);
 bool DRW_culling_box_test(BoundBox *bbox);
 bool DRW_culling_plane_test(float plane[4]);
+
+void DRW_culling_frustum_corners_get(BoundBox *corners);
 
 /* Selection */
 void DRW_select_load_id(uint id);

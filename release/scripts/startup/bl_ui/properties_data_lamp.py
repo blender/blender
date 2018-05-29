@@ -136,9 +136,9 @@ class DATA_PT_EEVEE_lamp(DataButtonsPanel, Panel):
         elif lamp.type == 'AREA':
             sub = sub.column(align=True)
             sub.prop(lamp, "shape", text="")
-            if lamp.shape == 'SQUARE':
+            if lamp.shape  in {'SQUARE', 'DISK'}:
                 sub.prop(lamp, "size")
-            elif lamp.shape == 'RECTANGLE':
+            elif lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 
@@ -228,9 +228,9 @@ class DATA_PT_area(DataButtonsPanel, Panel):
         col.row().prop(lamp, "shape", expand=True)
         sub = col.row(align=True)
 
-        if lamp.shape == 'SQUARE':
+        if lamp.shape in {'SQUARE', 'DISK'}:
             sub.prop(lamp, "size")
-        elif lamp.shape == 'RECTANGLE':
+        elif lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
             sub.prop(lamp, "size", text="Size X")
             sub.prop(lamp, "size_y", text="Size Y")
 

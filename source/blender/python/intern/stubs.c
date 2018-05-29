@@ -32,7 +32,7 @@
 
 #include "BPY_extern.h"
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic error "-Wmissing-prototypes"
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif

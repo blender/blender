@@ -42,6 +42,7 @@
 
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
@@ -55,7 +56,7 @@ static void initData(ModifierData *md)
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	psmd->psys = NULL;
 	psmd->mesh_final = NULL;
-	psmd->mesh_deformed = NULL;
+	psmd->mesh_original = NULL;
 	psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
 }
 static void freeData(ModifierData *md)
@@ -65,9 +66,9 @@ static void freeData(ModifierData *md)
 	if (psmd->mesh_final) {
 		BKE_id_free(NULL, psmd->mesh_final);
 		psmd->mesh_final = NULL;
-		if (psmd->mesh_deformed) {
-			BKE_id_free(NULL, psmd->mesh_deformed);
-			psmd->mesh_deformed = NULL;
+		if (psmd->mesh_original) {
+			BKE_id_free(NULL, psmd->mesh_original);
+			psmd->mesh_original = NULL;
 		}
 	}
 	psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
@@ -88,7 +89,7 @@ static void copyData(const ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 
 	tpsmd->mesh_final = NULL;
-	tpsmd->mesh_deformed = NULL;
+	tpsmd->mesh_original = NULL;
 	tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 }
 
@@ -129,9 +130,9 @@ static void deformVerts(
 	if (psmd->mesh_final) {
 		BKE_id_free(NULL, psmd->mesh_final);
 		psmd->mesh_final = NULL;
-		if (psmd->mesh_deformed) {
-			BKE_id_free(NULL, psmd->mesh_deformed);
-			psmd->mesh_deformed = NULL;
+		if (psmd->mesh_original) {
+			BKE_id_free(NULL, psmd->mesh_original);
+			psmd->mesh_original = NULL;
 		}
 	}
 	else if (psmd->flag & eParticleSystemFlag_file_loaded) {
@@ -156,20 +157,40 @@ static void deformVerts(
 	BKE_mesh_tessface_ensure(psmd->mesh_final);
 
 	if (!psmd->mesh_final->runtime.deformed_only) {
-		/* XXX Think we can assume here that if current DM is not only-deformed, ob->deformedOnly has been set.
-		 *     This is awfully weak though. :| */
-		if (ctx->object->derivedDeform) {
-			DM_to_mesh(ctx->object->derivedDeform, psmd->mesh_deformed, ctx->object, CD_MASK_EVERYTHING, false);
+		/* Get the original mesh from the object, this is what the particles
+		 * are attached to so in case of non-deform modifiers we need to remap
+		 * them to the final mesh (typically subdivision surfaces). */
+		Mesh *mesh_original = NULL;
+
+		if (ctx->object->type == OB_MESH) {
+			BMEditMesh *edit_btmesh = BKE_editmesh_from_object(ctx->object);
+
+			if (edit_btmesh) {
+				/* In edit mode get directly from the edit mesh. */
+				psmd->mesh_original = BKE_bmesh_to_mesh_nomain(edit_btmesh->bm, &(struct BMeshToMeshParams){0});
+			}
+			else {
+				/* Otherwise get regular mesh. */
+				mesh_original = ctx->object->data;
+			}
 		}
-		else {  /* Can happen in some cases, e.g. when rendering from Edit mode... */
-			BKE_id_copy_ex(NULL, &mesh_src->id, (ID **)&psmd->mesh_deformed,
+		else {
+			mesh_original = mesh_src;
+		}
+
+		if (mesh_original) {
+			/* Make a persistent copy of the mesh. We don't actually need
+			 * all this data, just some topology for remapping. Could be
+			 * optimized once. */
+			BKE_id_copy_ex(NULL, &mesh_original->id, (ID **)&psmd->mesh_original,
 			               LIB_ID_CREATE_NO_MAIN |
 			               LIB_ID_CREATE_NO_USER_REFCOUNT |
 			               LIB_ID_CREATE_NO_DEG_TAG |
 			               LIB_ID_COPY_NO_PREVIEW,
 			               false);
 		}
-		BKE_mesh_tessface_ensure(psmd->mesh_deformed);
+
+		BKE_mesh_tessface_ensure(psmd->mesh_original);
 	}
 
 	if (mesh_src != psmd->mesh_final && mesh_src != mesh) {

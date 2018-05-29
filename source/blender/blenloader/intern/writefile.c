@@ -3599,18 +3599,10 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace)
 {
 	ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
-	/* Update the names for file (only need to set on write). */
-	for (WorkSpaceDataRelation *relation = workspace->scene_viewlayer_relations.first;
-	     relation;
-	     relation = relation->next)
-	{
-		STRNCPY(relation->value_name, ((ViewLayer *)relation->value)->name);
-	}
-
 	writestruct(wd, ID_WS, WorkSpace, 1, workspace);
 	writelist(wd, DATA, WorkSpaceLayout, layouts);
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
-	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->scene_viewlayer_relations);
+	writelist(wd, DATA, WorkSpaceSceneRelation, &workspace->scene_layer_relations);
 	writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
 	writelist(wd, DATA, bToolRef, &workspace->tools);
 	for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {

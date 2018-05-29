@@ -187,17 +187,17 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Intensity", "Modify the intensity of the lighting captured by this probe");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
-	prop = RNA_def_property(srna, "visibility_group", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "visibility_collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_pointer_sdna(prop, NULL, "visibility_grp");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Visibility Collection", "Restrict objects visible for this probe");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
-	prop = RNA_def_property(srna, "invert_visibility_group", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "invert_visibility_collection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_INVERT_GROUP);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Invert Group", "Invert visibility group");
+	RNA_def_property_ui_text(prop, "Invert Collection", "Invert visibility collection");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	/* Data preview */

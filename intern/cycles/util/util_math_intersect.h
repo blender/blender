@@ -186,12 +186,17 @@ ccl_device_forceinline bool ray_triangle_intersect(
 #undef dot3
 }
 
+/* Tests for an intersection between a ray and a quad defined by
+ * its midpoint, normal and sides.
+ * If ellipse is true, hits outside the ellipse that's enclosed by the
+ * quad are rejected.
+ */
 ccl_device bool ray_quad_intersect(float3 ray_P, float3 ray_D,
                                    float ray_mint, float ray_maxt,
                                    float3 quad_P,
                                    float3 quad_u, float3 quad_v, float3 quad_n,
                                    float3 *isect_P, float *isect_t,
-                                   float *isect_u, float *isect_v)
+                                   float *isect_u, float *isect_v, bool ellipse)
 {
 	/* Perform intersection test. */
 	float t = -(dot(ray_P, quad_n) - dot(quad_P, quad_n)) / dot(ray_D, quad_n);
@@ -200,20 +205,23 @@ ccl_device bool ray_quad_intersect(float3 ray_P, float3 ray_D,
 	}
 	const float3 hit = ray_P + t*ray_D;
 	const float3 inplane = hit - quad_P;
-	const float u = dot(inplane, quad_u) / dot(quad_u, quad_u) + 0.5f;
-	if(u < 0.0f || u > 1.0f) {
+	const float u = dot(inplane, quad_u) / dot(quad_u, quad_u);
+	if(u < -0.5f || u > 0.5f) {
 		return false;
 	}
-	const float v = dot(inplane, quad_v) / dot(quad_v, quad_v) + 0.5f;
-	if(v < 0.0f || v > 1.0f) {
+	const float v = dot(inplane, quad_v) / dot(quad_v, quad_v);
+	if(v < -0.5f || v > 0.5f) {
+		return false;
+	}
+	if(ellipse && (u*u + v*v > 0.25f)) {
 		return false;
 	}
 	/* Store the result. */
 	/* TODO(sergey): Check whether we can avoid some checks here. */
 	if(isect_P != NULL) *isect_P = hit;
 	if(isect_t != NULL) *isect_t = t;
-	if(isect_u != NULL) *isect_u = u;
-	if(isect_v != NULL) *isect_v = v;
+	if(isect_u != NULL) *isect_u = u + 0.5f;
+	if(isect_v != NULL) *isect_v = v + 0.5f;
 	return true;
 }
 

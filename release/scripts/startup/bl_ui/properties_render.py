@@ -75,28 +75,6 @@ class RENDER_PT_context(Panel):
             layout.prop(rd, "engine", text="")
 
 
-class RENDER_PT_render(RenderButtonsPanel, Panel):
-    bl_label = "Render"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-
-        row = layout.row(align=True)
-        row.operator("render.render", text="Render", icon='RENDER_STILL')
-        row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
-        row.operator("sound.mixdown", text="Audio", icon='PLAY_AUDIO')
-
-        split = layout.split(percentage=0.33)
-
-        split.label(text="Display:")
-        row = split.row(align=True)
-        row.prop(rd, "display_mode", text="")
-        row.prop(rd, "use_lock_interface", icon_only=True)
-
-
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     bl_label = "Dimensions"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
@@ -465,17 +443,17 @@ class RENDER_PT_eevee_ambient_occlusion(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
-        self.layout.prop(props, "gtao_enable", text="")
+        self.layout.prop(props, "use_gtao", text="")
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         props = scene.eevee
 
-        layout.active = props.gtao_enable
+        layout.active = props.use_gtao
         col = layout.column()
-        col.prop(props, "gtao_use_bent_normals")
-        col.prop(props, "gtao_bounce")
+        col.prop(props, "use_gtao_bent_normals")
+        col.prop(props, "use_gtao_bounce")
         col.prop(props, "gtao_distance")
         col.prop(props, "gtao_factor")
         col.prop(props, "gtao_quality")
@@ -493,14 +471,14 @@ class RENDER_PT_eevee_motion_blur(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
-        self.layout.prop(props, "motion_blur_enable", text="")
+        self.layout.prop(props, "use_motion_blur", text="")
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         props = scene.eevee
 
-        layout.active = props.motion_blur_enable
+        layout.active = props.use_motion_blur
         col = layout.column()
         col.prop(props, "motion_blur_samples")
         col.prop(props, "motion_blur_shutter")
@@ -518,14 +496,14 @@ class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
-        self.layout.prop(props, "dof_enable", text="")
+        self.layout.prop(props, "use_dof", text="")
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         props = scene.eevee
 
-        layout.active = props.dof_enable
+        layout.active = props.use_dof
         col = layout.column()
         col.prop(props, "bokeh_max_size")
         col.prop(props, "bokeh_threshold")
@@ -543,14 +521,14 @@ class RENDER_PT_eevee_bloom(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
-        self.layout.prop(props, "bloom_enable", text="")
+        self.layout.prop(props, "use_bloom", text="")
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         props = scene.eevee
 
-        layout.active = props.bloom_enable
+        layout.active = props.use_bloom
         col = layout.column()
         col.prop(props, "bloom_threshold")
         col.prop(props, "bloom_knee")
@@ -572,25 +550,25 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
-        self.layout.prop(props, "volumetric_enable", text="")
+        self.layout.prop(props, "use_volumetric", text="")
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         props = scene.eevee
 
-        layout.active = props.volumetric_enable
+        layout.active = props.use_volumetric
         col = layout.column()
         col.prop(props, "volumetric_start")
         col.prop(props, "volumetric_end")
         col.prop(props, "volumetric_tile_size")
         col.prop(props, "volumetric_samples")
         col.prop(props, "volumetric_sample_distribution")
-        col.prop(props, "volumetric_lights")
+        col.prop(props, "use_volumetric_lights")
         col.prop(props, "volumetric_light_clamp")
-        col.prop(props, "volumetric_shadows")
+        col.prop(props, "use_volumetric_shadows")
         col.prop(props, "volumetric_shadow_samples")
-        col.prop(props, "volumetric_colored_transmittance")
+        col.prop(props, "use_volumetric_colored_transmittance")
 
 
 class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):
@@ -605,7 +583,7 @@ class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
-        self.layout.prop(props, "sss_enable", text="")
+        self.layout.prop(props, "use_sss", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -615,7 +593,7 @@ class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):
         col = layout.column()
         col.prop(props, "sss_samples")
         col.prop(props, "sss_jitter_threshold")
-        col.prop(props, "sss_separate_albedo")
+        col.prop(props, "use_sss_separate_albedo")
 
 
 class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
@@ -630,7 +608,7 @@ class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
-        self.layout.prop(props, "ssr_enable", text="")
+        self.layout.prop(props, "use_ssr", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -638,9 +616,9 @@ class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
         props = scene.eevee
 
         col = layout.column()
-        col.active = props.ssr_enable
-        col.prop(props, "ssr_refraction")
-        col.prop(props, "ssr_halfres")
+        col.active = props.use_ssr
+        col.prop(props, "use_ssr_refraction")
+        col.prop(props, "use_ssr_halfres")
         col.prop(props, "ssr_quality")
         col.prop(props, "ssr_max_roughness")
         col.prop(props, "ssr_thickness")
@@ -666,7 +644,7 @@ class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
         col.prop(props, "shadow_method")
         col.prop(props, "shadow_cube_size")
         col.prop(props, "shadow_cascade_size")
-        col.prop(props, "shadow_high_bitdepth")
+        col.prop(props, "use_shadow_high_bitdepth")
 
 
 class RENDER_PT_eevee_sampling(RenderButtonsPanel, Panel):
@@ -686,7 +664,7 @@ class RENDER_PT_eevee_sampling(RenderButtonsPanel, Panel):
         col = layout.column()
         col.prop(props, "taa_samples")
         col.prop(props, "taa_render_samples")
-        col.prop(props, "taa_reprojection")
+        col.prop(props, "use_taa_reprojection")
 
 
 class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
@@ -737,7 +715,6 @@ classes = (
     RENDER_MT_ffmpeg_presets,
     RENDER_MT_framerate_presets,
     RENDER_PT_context,
-    RENDER_PT_render,
     RENDER_PT_dimensions,
     RENDER_PT_post_processing,
     RENDER_PT_stamp,

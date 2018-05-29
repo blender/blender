@@ -95,7 +95,9 @@ public:
 		string full_report() const;
 	};
 
-	SVMCompiler(ShaderManager *shader_manager, ImageManager *image_manager);
+	SVMCompiler(ShaderManager *shader_manager,
+	            ImageManager *image_manager,
+	            LightManager *light_manager);
 	void compile(Scene *scene,
 	             Shader *shader,
 	             array<int4>& svm_nodes,
@@ -125,6 +127,7 @@ public:
 
 	ImageManager *image_manager;
 	ShaderManager *shader_manager;
+	LightManager *light_manager;
 	bool background;
 
 protected:

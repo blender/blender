@@ -126,7 +126,7 @@ typedef struct WorkSpace {
 	/* Store for each hook (so for each window) which layout has
 	 * been activated the last time this workspace was visible. */
 	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
-	ListBase scene_viewlayer_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
+	ListBase scene_layer_relations; /* WorkSpaceSceneRelation */
 
 	/* Feature tagging (use for addons) */
 	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE; /* wmOwnerID */
@@ -180,12 +180,16 @@ typedef struct WorkSpaceDataRelation {
 	void *parent;
 	/* The value for this parent-data/workspace relation */
 	void *value;
-
-	/** Use when we reference non-ID data, this allows use to look it up when linking in a workspace. */
-	char value_name[64];  /* MAX_NAME. */
 } WorkSpaceDataRelation;
 
 #endif /* DNA_PRIVATE_WORKSPACE_READ_WRITE */
+
+typedef struct WorkSpaceSceneRelation {
+	struct WorkSpaceSceneRelation *next, *prev;
+
+	struct Scene *scene;
+	char view_layer[64]; /* MAX_NAME */
+} WorkSpaceSceneRelation;
 
 /**
  * Little wrapper to store data that is going to be per window, but comming from the workspace.

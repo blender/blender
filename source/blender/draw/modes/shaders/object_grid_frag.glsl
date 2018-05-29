@@ -29,22 +29,23 @@ uniform int gridFlag;
 #define PLANE_XY  (1 << 4)
 #define PLANE_XZ  (1 << 5)
 #define PLANE_YZ  (1 << 6)
+#define GRID_BACK (1 << 9) /* grid is behind objects */
 
 #define GRID_LINE_SMOOTH 1.15
 
-float get_grid(vec3 co, vec3 fwidthCos, float grid_size)
+float get_grid(vec2 co, vec2 fwidthCos, float grid_size)
 {
 	float half_size = grid_size / 2.0;
-	/* triangular wave pattern, amplitude is [0, grid_size] */
-	vec3 grid_domain = abs(mod(co + half_size, grid_size) - half_size);
+	/* triangular wave pattern, amplitude is [0, half_size] */
+	vec2 grid_domain = abs(mod(co + half_size, grid_size) - half_size);
 	/* modulate by the absolute rate of change of the coordinates
 	 * (make lines have the same width under perspective) */
 	grid_domain /= fwidthCos;
 
 	/* collapse waves and normalize */
-	grid_domain.x = min(grid_domain.x, min(grid_domain.y, grid_domain.z)) / grid_size;
+	grid_domain.x = min(grid_domain.x, grid_domain.y) / half_size;
 
-	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH / grid_size, grid_domain.x);
+	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH / grid_size, grid_domain.x * 0.5);
 }
 
 vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
@@ -137,18 +138,6 @@ void main()
 		}
 	}
 
-	/* Manual, non hard, depth test:
-	 * Progressively fade the grid below occluders
-	 * (avoids poping visuals due to depth buffer precision) */
-	float scene_depth = texture(depthBuffer, sPos).r;
-	/* Add a small bias so the grid will always
-	 * be on top of a mesh with the same depth. */
-	float grid_depth = gl_FragCoord.z - 1e-8;
-	/* Harder settings tend to flicker more,
-	 * but have less "see through" appearance. */
-	const float test_hardness = 1e4;
-	fade *= 1.0 - clamp((grid_depth - scene_depth) * test_hardness, 0.0, 1.0);
-
 	if ((gridFlag & GRID) > 0) {
 		float grid_res = log(dist * gridResolution) * gridOneOverLogSubdiv;
 
@@ -160,9 +149,23 @@ void main()
 		float scaleB = gridScale * pow(gridSubdiv, max(lvl + 0.0, 0.0));
 		float scaleC = gridScale * pow(gridSubdiv, max(lvl + 1.0, 1.0));
 
-		float gridA = get_grid(wPos, fwidthPos, scaleA);
-		float gridB = get_grid(wPos, fwidthPos, scaleB);
-		float gridC = get_grid(wPos, fwidthPos, scaleC);
+		vec2 grid_pos, grid_fwidth;
+		if ((gridFlag & PLANE_XZ) > 0) {
+			grid_pos = wPos.xz;
+			grid_fwidth = fwidthPos.xz;
+		}
+		else if ((gridFlag & PLANE_YZ) > 0) {
+			grid_pos = wPos.yz;
+			grid_fwidth = fwidthPos.yz;
+		}
+		else {
+			grid_pos = wPos.xy;
+			grid_fwidth = fwidthPos.xy;
+		}
+
+		float gridA = get_grid(grid_pos, grid_fwidth, scaleA);
+		float gridB = get_grid(grid_pos, grid_fwidth, scaleB);
+		float gridC = get_grid(grid_pos, grid_fwidth, scaleC);
 
 		FragColor = vec4(colorGrid.rgb, gridA * blend);
 		FragColor = mix(FragColor, vec4(mix(colorGrid.rgb, colorGridEmphasise.rgb, blend), 1.0), gridB);
@@ -201,6 +204,23 @@ void main()
 		if ((gridFlag & AXIS_Z) > 0) {
 			FragColor = mix(FragColor, colorGridAxisZ, axes.z);
 		}
+	}
+
+	float scene_depth = texture(depthBuffer, sPos).r;
+	if ((gridFlag & GRID_BACK) > 0) {
+		fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
+	}
+	else {
+		/* Manual, non hard, depth test:
+		 * Progressively fade the grid below occluders
+		 * (avoids poping visuals due to depth buffer precision) */
+		/* Add a small bias so the grid will always
+		 * be on top of a mesh with the same depth. */
+		float grid_depth = gl_FragCoord.z - 1e-8;
+		/* Harder settings tend to flicker more,
+		 * but have less "see through" appearance. */
+		const float test_hardness = 1e4;
+		fade *= 1.0 - clamp((grid_depth - scene_depth) * test_hardness, 0.0, 1.0);
 	}
 
 	FragColor.a *= fade;

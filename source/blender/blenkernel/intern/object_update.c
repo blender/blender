@@ -128,7 +128,7 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph,
 	 * Not sure why, this is from Joshua - sergey
 	 *
 	 */
-	cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+	cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 	BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);
 	BKE_constraints_clear_evalob(cob);
 }
@@ -276,11 +276,12 @@ void BKE_object_handle_data_update(
 	/* quick cache removed */
 }
 
-bool BKE_object_eval_proxy_copy(Depsgraph *UNUSED(depsgraph),
+bool BKE_object_eval_proxy_copy(Depsgraph *depsgraph,
                                 Object *object)
 {
 	/* Handle proxy copy for target, */
 	if (ID_IS_LINKED(object) && object->proxy_from) {
+		DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 		if (object->proxy_from->proxy_group) {
 			/* Transform proxy into group space. */
 			Object *obg = object->proxy_from->proxy_group;

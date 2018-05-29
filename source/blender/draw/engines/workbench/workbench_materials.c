@@ -77,6 +77,10 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 		BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
 	}
 
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+	BLI_dynstr_appendf(ds, "#define WORKBENCH_REVEALAGE_ENABLED\n");
+#endif
+
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
@@ -117,7 +121,8 @@ int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype
 	return index;
 }
 
-void workbench_material_set_normal_world_matrix(DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3])
+void workbench_material_set_normal_world_matrix(
+        DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3])
 {
 	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
 		float view_matrix_inverse[4][4];

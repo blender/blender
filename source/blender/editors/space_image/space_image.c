@@ -171,12 +171,12 @@ static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sce
 	simage->spacetype = SPACE_IMAGE;
 	simage->zoom = 1.0f;
 	simage->lock = true;
-	simage->flag = SI_SHOW_GPENCIL | SI_USE_ALPHA;
+	simage->flag = SI_SHOW_GPENCIL | SI_USE_ALPHA | SI_COORDFLOATS;
 
 	simage->iuser.ok = true;
 	simage->iuser.fie_ima = 2;
 	simage->iuser.frames = 100;
-	simage->iuser.flag = IMA_SHOW_STEREO;
+	simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS;
 
 	scopes_new(&simage->scopes);
 	simage->sample_line_hist.height = 100;

@@ -397,6 +397,18 @@ bool EDBM_backbuf_circle_init(
  * to avoid the bias interfering with distance comparisons when mixing types.
  * \{ */
 
+#define FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, select_mode_required) \
+	short select_mode = select_mode_required; \
+	bool fake_select_mode = (select_mode & (vc)->scene->toolsettings->selectmode) == 0; \
+	if (fake_select_mode) { \
+		(vc)->v3d->flag |= V3D_INVALID_BACKBUF; \
+	} ((void)0)
+
+#define FAKE_SELECT_MODE_END(vc, fake_select_mode) \
+	if (fake_select_mode) { \
+		(vc)->v3d->flag |= V3D_INVALID_BACKBUF; \
+	} ((void)0)
+
 #define FIND_NEAR_SELECT_BIAS 5
 #define FIND_NEAR_CYCLE_THRESHOLD_MIN 3
 
@@ -470,11 +482,16 @@ BMVert *EDBM_vert_find_nearest_ex(
 		BMVert *eve;
 
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
-		ED_view3d_backbuf_validate(vc);
+		{
+			FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_VERTEX);
+			ED_view3d_backbuf_validate_with_select_mode(vc, select_mode);
 
-		index = ED_view3d_backbuf_sample_rect(
-		        vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &dist_test);
-		eve = index ? BM_vert_at_index_find_or_table(bm, index - 1) : NULL;
+			index = ED_view3d_backbuf_sample_rect(
+			            vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &dist_test);
+			eve = index ? BM_vert_at_index_find_or_table(bm, index - 1) : NULL;
+
+			FAKE_SELECT_MODE_END(vc, fake_select_mode);
+		}
 
 		if (eve) {
 			if (dist_test < *r_dist) {
@@ -657,23 +674,16 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		unsigned int index;
 		BMEdge *eed;
 
-		/* Make sure that the edges also are considered to find nearest.
-		 * TODO: cleanup: add `selectmode` as a parameter
-		 * XXX: Without selectmode as parameter we need to resort to this super ugly hack,
-		 *      because we should never write to evaluate data. */
-		const short ts_selectmode = vc->scene->toolsettings->selectmode;
-
-		Scene *scene_eval = (Scene *)DEG_get_evaluated_id(vc->depsgraph, &vc->scene->id);
-		scene_eval->toolsettings->selectmode |= SCE_SELECT_EDGE;
-
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
-		ED_view3d_backbuf_validate(vc);
-
-		/* restore `selectmode` */
-		scene_eval->toolsettings->selectmode = ts_selectmode;
-
-		index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
-		eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
+		{
+			FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_EDGE);
+			ED_view3d_backbuf_validate_with_select_mode(vc, select_mode);
+			
+			index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
+			eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
+			
+			FAKE_SELECT_MODE_END(vc, fake_select_mode);
+		}
 
 		if (r_eed_zbuf) {
 			*r_eed_zbuf = eed;
@@ -834,10 +844,15 @@ BMFace *EDBM_face_find_nearest_ex(
 		unsigned int index;
 		BMFace *efa;
 
-		ED_view3d_backbuf_validate(vc);
+		{
+			FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_FACE);
+			ED_view3d_backbuf_validate_with_select_mode(vc, select_mode);
 
-		index = ED_view3d_backbuf_sample(vc, vc->mval[0], vc->mval[1]);
-		efa = index ? BM_face_at_index_find_or_table(bm, index - 1) : NULL;
+			index = ED_view3d_backbuf_sample(vc, vc->mval[0], vc->mval[1]);
+			efa = index ? BM_face_at_index_find_or_table(bm, index - 1) : NULL;
+
+			FAKE_SELECT_MODE_END(vc, fake_select_mode);
+		}
 
 		if (r_efa_zbuf) {
 			*r_efa_zbuf = efa;
@@ -1066,6 +1081,9 @@ static bool unified_findnearest(
 
 	return (hit.v.ele || hit.e.ele || hit.f.ele);
 }
+
+#undef FAKE_SELECT_MODE_BEGIN
+#undef FAKE_SELECT_MODE_END
 
 /** \} */
 
@@ -1702,17 +1720,6 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	mvalf[0] = (float)(vc.mval[0] = mval[0]);
 	mvalf[1] = (float)(vc.mval[1] = mval[1]);
 	em = vc.em;
-
-	/* Make sure that the edges are also considered for selection.
-	 * TODO: cleanup: add `selectmode` as a parameter */
-	const short ts_selectmode = vc.scene->toolsettings->selectmode;
-	vc.scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
-
-	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
-	ED_view3d_backbuf_validate(&vc);
-
-	/* restore `selectmode` */
-	vc.scene->toolsettings->selectmode = ts_selectmode;
 
 	eed = EDBM_edge_find_nearest_ex(&vc, &dist, NULL, true, true, NULL);
 	if (eed == NULL) {

@@ -1881,7 +1881,9 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	}
 
 #ifdef USE_NUMBUTS_LR_ALIGN
-	if (!drawstr_right && ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
+	if (!drawstr_right &&
+	    (but->drawflag & UI_BUT_TEXT_LEFT) &&
+	    ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
 	    /* if we're editing or multi-drag (fake editing), then use left alignment */
 	    (but->editstr == NULL) && (drawstr == but->drawstr))
 	{
@@ -4755,7 +4757,7 @@ void ui_draw_popover_back(ARegion *ar, uiStyle *UNUSED(style), uiBlock *block, r
 	if (block) {
 		float mval_origin[2] = {block->mx, block->my};
 		ui_window_to_block_fl(ar, block, &mval_origin[0], &mval_origin[1]);
-		ui_draw_popover_back_impl(&wcol_menu_back, rect, block->direction, mval_origin);
+		ui_draw_popover_back_impl(wt->wcol_theme, rect, block->direction, mval_origin);
 	}
 	else {
 		wt->state(wt, 0);

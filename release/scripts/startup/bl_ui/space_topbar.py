@@ -400,6 +400,7 @@ class INFO_MT_editor_menus(Menu):
     @staticmethod
     def draw_menus(layout, context):
         layout.menu("INFO_MT_file")
+        layout.menu("INFO_MT_edit")
 
         layout.menu("INFO_MT_render")
 
@@ -432,8 +433,6 @@ class INFO_MT_file(Menu):
         layout.operator("wm.save_as_mainfile", text="Save Copy...", icon='SAVE_COPY').copy = True
 
         layout.separator()
-
-        layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_homefile", icon='SAVE_PREFS')
@@ -554,16 +553,27 @@ class INFO_MT_render(Menu):
     def draw(self, context):
         layout = self.layout
 
+        rd = context.scene.render
+
         layout.operator("render.render", text="Render Image", icon='RENDER_STILL').use_viewport = True
         props = layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION')
         props.animation = True
         props.use_viewport = True
+        layout.operator("sound.mixdown", text="Render Audio", icon='PLAY_AUDIO')
 
         layout.separator()
 
-        layout.operator("render.opengl", text="OpenGL Render Image")
-        layout.operator("render.opengl", text="OpenGL Render Animation").animation = True
-        layout.menu("INFO_MT_opengl_render")
+        layout.prop_menu_enum(rd, "display_mode", text="Display Mode", icon='IMAGE_COL')
+        layout.prop(rd, "use_lock_interface", text="Lock Interface")
+
+        layout.separator()
+
+        props = layout.operator("render.opengl", text="OpenGL Render Image", icon='RENDER_STILL')
+        props.view_context = False
+        props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
+        props.view_context = False
+        props.animation = True
+        layout.menu("INFO_MT_opengl_render", icon='SETTINGS')
 
         layout.separator()
 
@@ -583,6 +593,24 @@ class INFO_MT_opengl_render(Menu):
 
         layout.prop_menu_enum(rd, "antialiasing_samples")
         layout.prop_menu_enum(rd, "alpha_mode")
+
+
+class INFO_MT_edit(Menu):
+    bl_label = "Edit"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
+
+        layout.operator("ed.undo_history")
+
+        layout.separator()
+
+        layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
 
 class INFO_MT_window(Menu):
@@ -664,6 +692,7 @@ classes = (
     INFO_MT_file_export,
     INFO_MT_file_external_data,
     INFO_MT_file_previews,
+    INFO_MT_edit,
     INFO_MT_game,
     INFO_MT_render,
     INFO_MT_opengl_render,

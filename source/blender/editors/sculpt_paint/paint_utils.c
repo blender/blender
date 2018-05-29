@@ -50,13 +50,15 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_DerivedMesh.h"
+#include "BKE_customdata.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -274,26 +276,26 @@ static void imapaint_tri_weights(float matrix[4][4], GLint view[4],
 }
 
 /* compute uv coordinates of mouse in face */
-static void imapaint_pick_uv(Depsgraph *depsgraph, Scene *scene, Object *ob, unsigned int faceindex, const int xy[2], float uv[2])
+static void imapaint_pick_uv(Mesh *me_eval, Scene *scene, Object *ob_eval, unsigned int faceindex, const int xy[2], float uv[2])
 {
-	DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
-	const int tottri = dm->getNumLoopTri(dm);
+	const int tottri = me_eval->runtime.looptris.len;
 	int i, findex;
 	float p[2], w[3], absw, minabsw;
 	float matrix[4][4], proj[4][4];
 	GLint view[4];
 	const eImagePaintMode mode = scene->toolsettings->imapaint.mode;
-	const MLoopTri *lt = dm->getLoopTriArray(dm);
-	const MPoly *mpoly = dm->getPolyArray(dm);
-	const MLoop *mloop = dm->getLoopArray(dm);
-	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	const MLoopTri *lt = me_eval->runtime.looptris.array;
+	const MVert *mvert = me_eval->mvert;
+	const MPoly *mpoly = me_eval->mpoly;
+	const MLoop *mloop = me_eval->mloop;
+	const int *index_mp_to_orig  = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
 	/* get the needed opengl matrices */
 	glGetIntegerv(GL_VIEWPORT, view);
 	gpuGetModelViewMatrix(matrix);
 	gpuGetProjectionMatrix(proj);
 	view[0] = view[1] = 0;
-	mul_m4_m4m4(matrix, matrix, ob->obmat);
+	mul_m4_m4m4(matrix, matrix, ob_eval->obmat);
 	mul_m4_m4m4(matrix, proj, matrix);
 
 	minabsw = 1e10;
@@ -310,25 +312,25 @@ static void imapaint_pick_uv(Depsgraph *depsgraph, Scene *scene, Object *ob, uns
 			const MLoopUV *tri_uv[3];
 			float  tri_co[3][3];
 
-			dm->getVertCo(dm, mloop[lt->tri[0]].v, tri_co[0]);
-			dm->getVertCo(dm, mloop[lt->tri[1]].v, tri_co[1]);
-			dm->getVertCo(dm, mloop[lt->tri[2]].v, tri_co[2]);
+			for (int j = 3; j--; ) {
+				copy_v3_v3(tri_co[j], mvert[mloop[lt->tri[j]].v].co);
+			}
 
 			if (mode == IMAGEPAINT_MODE_MATERIAL) {
 				const Material *ma;
 				const TexPaintSlot *slot;
 
-				ma = dm->mat[mp->mat_nr];
+				ma = give_current_material(ob_eval, mp->mat_nr);
 				slot = &ma->texpaintslot[ma->paint_active_slot];
 
 				if (!(slot && slot->uvname &&
-				      (mloopuv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, slot->uvname))))
+				      (mloopuv = CustomData_get_layer_named(&me_eval->ldata, CD_MLOOPUV, slot->uvname))))
 				{
-					mloopuv = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
+					mloopuv = CustomData_get_layer(&me_eval->ldata, CD_MLOOPUV);
 				}
 			}
 			else {
-				mloopuv = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
+				mloopuv = CustomData_get_layer(&me_eval->ldata, CD_MLOOPUV);
 			}
 
 			tri_uv[0] = &mloopuv[lt->tri[0]];
@@ -347,8 +349,6 @@ static void imapaint_pick_uv(Depsgraph *depsgraph, Scene *scene, Object *ob, uns
 			}
 		}
 	}
-
-	dm->release(dm);
 }
 
 /* returns 0 if not found, otherwise 1 */
@@ -452,20 +452,21 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 		/* first try getting a colour directly from the mesh faces if possible */
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		Object *ob = OBACT(view_layer);
+		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 		bool sample_success = false;
 		ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
 		bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 
 		if (ob) {
 			Mesh *me = (Mesh *)ob->data;
-			DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
+			Mesh *me_eval = BKE_object_get_evaluated_mesh(depsgraph, ob);  /* Or shall we just do ob_eval->mesh_evaluated ? */
 
 			ViewContext vc;
 			const int mval[2] = {x, y};
 			unsigned int faceindex;
 			unsigned int totpoly = me->totpoly;
 
-			if (dm->getLoopDataArray(dm, CD_MLOOPUV)) {
+			if (CustomData_has_layer(&me_eval->ldata, CD_MLOOPUV)) {
 				ED_view3d_viewcontext_init(C, &vc);
 
 				view3d_operator_needs_opengl(C);
@@ -474,7 +475,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 					Image *image;
 					
 					if (use_material) 
-						image = imapaint_face_image(ob, me, faceindex);
+						image = imapaint_face_image(ob_eval, me_eval, faceindex);
 					else
 						image = imapaint->canvas;
 					
@@ -483,7 +484,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 						if (ibuf && ibuf->rect) {
 							float uv[2];
 							float u, v;
-							imapaint_pick_uv(depsgraph, scene, ob, faceindex, mval, uv);
+							imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
 							sample_success = true;
 							
 							u = fmodf(uv[0], 1.0f);
@@ -525,7 +526,6 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 					}
 				}
 			}
-			dm->release(dm);
 		}
 
 		if (!sample_success) {

@@ -49,12 +49,19 @@
 
 // #define DEBUG_SHADOW_VOLUME
 
+#ifdef DEBUG_SHADOW_VOLUME
+#  include "draw_debug.h"
+#endif
+
 static struct {
 	struct GPUShader *prepass_sh_cache[MAX_SHADERS];
 	struct GPUShader *composite_sh_cache[MAX_SHADERS];
 	struct GPUShader *shadow_fail_sh;
+	struct GPUShader *shadow_fail_manifold_sh;
 	struct GPUShader *shadow_pass_sh;
+	struct GPUShader *shadow_pass_manifold_sh;
 	struct GPUShader *shadow_caps_sh;
+	struct GPUShader *shadow_caps_manifold_sh;
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
@@ -65,7 +72,7 @@ static struct {
 	float light_direction_vs[3];
 	int next_object_id;
 	float normal_world_matrix[3][3];
-} e_data = {NULL};
+} e_data = {{NULL}};
 
 /* Shaders */
 extern char datatoc_workbench_prepass_vert_glsl[];
@@ -82,8 +89,6 @@ extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
-
-
 
 static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 {
@@ -123,15 +128,14 @@ static char *workbench_build_prepass_frag(void)
 	return str;
 }
 
-
-
 static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype)
 {
 	if (e_data.prepass_sh_cache[index] == NULL) {
 		char *defines = workbench_material_build_defines(wpd, drawtype);
 		char *composite_frag = workbench_build_composite_frag(wpd);
 		char *prepass_frag = workbench_build_prepass_frag();
-		e_data.prepass_sh_cache[index] = DRW_shader_create(datatoc_workbench_prepass_vert_glsl, NULL, prepass_frag, defines);
+		e_data.prepass_sh_cache[index] = DRW_shader_create(
+		        datatoc_workbench_prepass_vert_glsl, NULL, prepass_frag, defines);
 		if (drawtype == OB_SOLID) {
 			e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
 		}
@@ -161,6 +165,7 @@ static void workbench_init_object_data(ObjectEngineData *engine_data)
 {
 	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)engine_data;
 	data->object_id = e_data.next_object_id++;
+	data->shadow_bbox_dirty = true;
 }
 
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
@@ -174,26 +179,44 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		memset(e_data.prepass_sh_cache,   0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 		memset(e_data.composite_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 		e_data.next_object_id = 1;
-		#ifdef DEBUG_SHADOW_VOLUME
-				const char *shadow_frag = datatoc_workbench_shadow_debug_frag_glsl;
-		#else
-				const char *shadow_frag = NULL;
-		#endif
-				e_data.shadow_pass_sh = DRW_shader_create(
-				        datatoc_workbench_shadow_vert_glsl,
-				        datatoc_workbench_shadow_geom_glsl,
-				        shadow_frag,
-				        "#define SHADOW_PASS\n");
-				e_data.shadow_fail_sh = DRW_shader_create(
-				        datatoc_workbench_shadow_vert_glsl,
-				        datatoc_workbench_shadow_geom_glsl,
-				        shadow_frag,
-				        "#define SHADOW_FAIL\n");
-				e_data.shadow_caps_sh = DRW_shader_create(
-				        datatoc_workbench_shadow_vert_glsl,
-				        datatoc_workbench_shadow_caps_geom_glsl,
-				        shadow_frag,
-				        NULL);
+#ifdef DEBUG_SHADOW_VOLUME
+		const char *shadow_frag = datatoc_workbench_shadow_debug_frag_glsl;
+#else
+		const char *shadow_frag = NULL;
+#endif
+		e_data.shadow_pass_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_PASS\n"
+		        "#define DOUBLE_MANIFOLD\n");
+		e_data.shadow_pass_manifold_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_PASS\n");
+		e_data.shadow_fail_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_FAIL\n"
+		        "#define DOUBLE_MANIFOLD\n");
+		e_data.shadow_fail_manifold_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_FAIL\n");
+		e_data.shadow_caps_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_caps_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_FAIL\n"
+		        "#define DOUBLE_MANIFOLD\n");
+		e_data.shadow_caps_manifold_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_caps_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_FAIL\n");
 	}
 
 	if (!stl->g_data) {
@@ -208,12 +231,16 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_solid);
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
-		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
+		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
+		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 
 		if (NORMAL_ENCODING_ENABLED()) {
-			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
-		} else {
-			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA32F, &draw_engine_workbench_solid);
+			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(
+			        size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
+		}
+		else {
+			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(
+			        size[0], size[1], GPU_RGBA32F, &draw_engine_workbench_solid);
 		}
 
 		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
@@ -242,8 +269,11 @@ void workbench_deferred_engine_free()
 		DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
 	}
 	DRW_SHADER_FREE_SAFE(e_data.shadow_pass_sh);
+	DRW_SHADER_FREE_SAFE(e_data.shadow_pass_manifold_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_fail_sh);
+	DRW_SHADER_FREE_SAFE(e_data.shadow_fail_manifold_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_sh);
+	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_manifold_sh);
 }
 
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
@@ -292,7 +322,8 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 		e_data.display.shadow_shift = scene->display.shadow_shift;
 
 		if (SHADOW_ENABLED(wpd)) {
-			psl->composite_pass = DRW_pass_create("Composite", DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL);
+			psl->composite_pass = DRW_pass_create(
+			        "Composite", DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL);
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
 			DRW_shgroup_stencil_mask(grp, 0x00);
@@ -302,22 +333,35 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
+			/* Stencil Shadow passes. */
 #ifdef DEBUG_SHADOW_VOLUME
-			psl->shadow_depth_pass_pass = DRW_pass_create("Shadow Debug Pass", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
-			grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
-			psl->shadow_depth_fail_pass = DRW_pass_create("Shadow Debug Fail", DRW_STATE_DEPTH_GREATER_EQUAL | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
-			grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
-			psl->shadow_depth_fail_caps_pass = DRW_pass_create("Shadow Depth Fail Caps", DRW_STATE_DEPTH_GREATER_EQUAL | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
-			grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
+			DRWState depth_pass_state = DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE;
+			DRWState depth_fail_state = DRW_STATE_DEPTH_GREATER_EQUAL | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE;
 #else
-			psl->shadow_depth_pass_pass = DRW_pass_create("Shadow Depth Pass", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_PASS);
+			DRWState depth_pass_state = DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_PASS;
+			DRWState depth_fail_state = DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL;
+#endif
+			psl->shadow_depth_pass_pass = DRW_pass_create("Shadow Pass", depth_pass_state);
+			psl->shadow_depth_pass_mani_pass = DRW_pass_create("Shadow Pass Mani", depth_pass_state);
+			psl->shadow_depth_fail_pass = DRW_pass_create("Shadow Fail", depth_fail_state);
+			psl->shadow_depth_fail_mani_pass = DRW_pass_create("Shadow Fail Mani", depth_fail_state);
+			psl->shadow_depth_fail_caps_pass = DRW_pass_create("Shadow Fail Caps", depth_fail_state);
+			psl->shadow_depth_fail_caps_mani_pass = DRW_pass_create("Shadow Fail Caps Mani", depth_fail_state);
+
+#ifndef DEBUG_SHADOW_VOLUME
+			grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
+			DRW_shgroup_stencil_mask(grp, 0xFF);
 			grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
-			psl->shadow_depth_fail_pass = DRW_pass_create("Shadow Depth Fail", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL);
+			grp = DRW_shgroup_create(e_data.shadow_pass_manifold_sh, psl->shadow_depth_pass_mani_pass);
+			DRW_shgroup_stencil_mask(grp, 0xFF);
 			grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
-			psl->shadow_depth_fail_caps_pass = DRW_pass_create("Shadow Depth Fail Caps", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL);
+			grp = DRW_shgroup_create(e_data.shadow_fail_manifold_sh, psl->shadow_depth_fail_mani_pass);
+			DRW_shgroup_stencil_mask(grp, 0xFF);
 			grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
+			DRW_shgroup_stencil_mask(grp, 0xFF);
+			grp = DRW_shgroup_create(e_data.shadow_caps_manifold_sh, psl->shadow_depth_fail_caps_mani_pass);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
 
 			psl->composite_shadow_pass = DRW_pass_create("Composite Shadow", DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL);
@@ -330,16 +374,21 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
+
+			studiolight_update_light(wpd, e_data.display.light_direction);
 		}
 		else {
-			psl->composite_pass = DRW_pass_create("Composite", DRW_STATE_WRITE_COLOR);
+			psl->composite_pass = DRW_pass_create(
+			        "Composite", DRW_STATE_WRITE_COLOR);
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 		}
 	}
 }
-static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int drawtype)
+
+static WORKBENCH_MaterialData *get_or_create_material_data(
+        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int drawtype)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
@@ -359,7 +408,8 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
-		material->shgrp = DRW_shgroup_create(drawtype == OB_SOLID ? wpd->prepass_solid_sh : wpd->prepass_texture_sh, psl->prepass_pass);
+		material->shgrp = DRW_shgroup_create(
+		        drawtype == OB_SOLID ? wpd->prepass_solid_sh : wpd->prepass_texture_sh, psl->prepass_pass);
 		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
 		material->object_id = engine_object_data->object_id;
 		copy_v4_v4(material->color, material_template.color);
@@ -473,7 +523,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					gpumat_array[i] = NULL;
 				}
 
-				struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len, NULL, NULL, NULL);
+				struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(
+				        ob, gpumat_array, materials_len, NULL, NULL, NULL);
 				if (mat_geom) {
 					for (int i = 0; i < materials_len; ++i) {
 						Material *mat = give_current_material(ob, i + 1);
@@ -485,7 +536,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		}
 
 		if (SHADOW_ENABLED(wpd) && (ob->display.flag & OB_SHOW_SHADOW) > 0) {
-			struct Gwn_Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob);
+			bool is_manifold;
+			struct Gwn_Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
 			if (geom_shadow) {
 				if (is_sculpt_mode) {
 					/* Currently unsupported in sculpt mode. We could revert to the slow
@@ -497,26 +549,60 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
 					        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 
-					invert_m4_m4(ob->imat, ob->obmat);
-					mul_v3_mat3_m4v3(engine_object_data->shadow_dir, ob->imat, e_data.display.light_direction);
+					if (studiolight_object_cast_visible_shadow(wpd, ob, engine_object_data)) {
 
-					DRWShadingGroup *grp;
-					if (true) {
-						grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
-						DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
-						DRW_shgroup_call_object_add(grp, geom_shadow, ob);
-					}
-					else {
-						struct Gwn_Batch *geom_caps = DRW_cache_object_surface_get(ob);
-						if (geom_caps) {
-							grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
-							DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
-							DRW_shgroup_call_object_add(grp, geom_caps, ob);
+						invert_m4_m4(ob->imat, ob->obmat);
+						mul_v3_mat3_m4v3(engine_object_data->shadow_dir, ob->imat, e_data.display.light_direction);
+
+						DRWShadingGroup *grp;
+						bool use_shadow_pass_technique = !studiolight_camera_in_object_shadow(wpd, ob, engine_object_data);
+
+						/* Unless we expose a parameter to the user, it's better to use the depth pass technique if the object is
+						 * non manifold. Exposing a switch to the user to force depth fail in this case can be beneficial for
+						 * planes and non-closed terrains. */
+						if (!is_manifold) {
+							use_shadow_pass_technique = true;
 						}
 
-						grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
-						DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
-						DRW_shgroup_call_object_add(grp, geom_shadow, ob);
+						if (use_shadow_pass_technique) {
+							if (is_manifold) {
+								grp = DRW_shgroup_create(e_data.shadow_pass_manifold_sh, psl->shadow_depth_pass_mani_pass);
+							}
+							else {
+								grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
+							}
+							DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
+							DRW_shgroup_call_add(grp, geom_shadow, ob->obmat);
+#ifdef DEBUG_SHADOW_VOLUME
+							DRW_debug_bbox(&engine_object_data->shadow_bbox, (float[4]){1.0f, 0.0f, 0.0f, 1.0f});
+#endif
+						}
+						else {
+							/* TODO(fclem): only use caps if they are in the view frustum. */
+							const bool need_caps = true;
+							if (need_caps) {
+								if (is_manifold) {
+									grp = DRW_shgroup_create(e_data.shadow_caps_manifold_sh, psl->shadow_depth_fail_caps_mani_pass);
+								}
+								else {
+									grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
+								}
+								DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
+								DRW_shgroup_call_add(grp, DRW_cache_object_surface_get(ob), ob->obmat);
+							}
+
+							if (is_manifold) {
+								grp = DRW_shgroup_create(e_data.shadow_fail_manifold_sh, psl->shadow_depth_fail_mani_pass);
+							}
+							else {
+								grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
+							}
+							DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
+							DRW_shgroup_call_add(grp, geom_shadow, ob->obmat);
+#ifdef DEBUG_SHADOW_VOLUME
+							DRW_debug_bbox(&engine_object_data->shadow_bbox, (float[4]){0.0f, 1.0f, 0.0f, 1.0f});
+#endif
+						}
 					}
 				}
 			}
@@ -560,14 +646,16 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 #ifdef DEBUG_SHADOW_VOLUME
 		GPU_framebuffer_bind(fbl->composite_fb);
 		DRW_draw_pass(psl->composite_pass);
-		DRW_draw_pass(psl->shadow_depth_pass_pass);
-		DRW_draw_pass(psl->shadow_depth_fail_pass);
-		DRW_draw_pass(psl->shadow_depth_fail_caps_pass);
 #else
 		GPU_framebuffer_bind(dfbl->depth_only_fb);
+#endif
 		DRW_draw_pass(psl->shadow_depth_pass_pass);
+		DRW_draw_pass(psl->shadow_depth_pass_mani_pass);
 		DRW_draw_pass(psl->shadow_depth_fail_pass);
+		DRW_draw_pass(psl->shadow_depth_fail_mani_pass);
 		DRW_draw_pass(psl->shadow_depth_fail_caps_pass);
+		DRW_draw_pass(psl->shadow_depth_fail_caps_mani_pass);
+#ifndef DEBUG_SHADOW_VOLUME
 		GPU_framebuffer_bind(fbl->composite_fb);
 		DRW_draw_pass(psl->composite_pass);
 		DRW_draw_pass(psl->composite_shadow_pass);

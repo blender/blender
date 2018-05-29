@@ -394,6 +394,8 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	static const EnumPropertyItem prop_areashape_items[] = {
 		{LA_AREA_SQUARE, "SQUARE", 0, "Square", ""},
 		{LA_AREA_RECT, "RECTANGLE", 0, "Rectangle", ""},
+		{LA_AREA_DISK, "DISK", 0, "Disk", ""},
+		{LA_AREA_ELLIPSE, "ELLIPSE", 0, "Ellipse", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

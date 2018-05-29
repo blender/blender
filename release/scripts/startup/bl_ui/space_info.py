@@ -31,8 +31,24 @@ class INFO_HT_header(Header):
         # Empty for now until info editor gets turned into log editor
         pass
 
+
+# Not really info, just add to re-usable location.
+class INFO_MT_area(Menu):
+    bl_label = "Area"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("screen.area_dupli")
+        if context.space_data.type == 'VIEW_3D':
+            layout.operator("screen.region_quadview")
+        layout.operator("screen.screen_full_area")
+        layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+
+
 classes = (
     INFO_HT_header,
+    INFO_MT_area,
 )
 
 if __name__ == "__main__":  # only for live edit.

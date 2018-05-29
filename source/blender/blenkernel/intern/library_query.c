@@ -932,6 +932,9 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					BKE_workspace_layout_screen_set(layout, screen);
 				}
 
+				for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first; relation; relation = relation->next) {
+					CALLBACK_INVOKE(relation->scene, IDWALK_CB_NOP);
+				}
 				break;
 			}
 			case ID_GD:
@@ -1080,6 +1083,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 		case ID_LP:
 			return ELEM(id_type_used, ID_IM);
 		case ID_WS:
+			return ELEM(id_type_used, ID_SCR, ID_SCE);
 		case ID_IM:
 		case ID_VF:
 		case ID_TXT:

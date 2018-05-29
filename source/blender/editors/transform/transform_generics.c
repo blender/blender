@@ -1007,6 +1007,11 @@ static void recalcData_objects(TransInfo *t)
 	}
 }
 
+static void recalcData_cursor(TransInfo *t)
+{
+	DEG_id_tag_update(&t->scene->id, DEG_TAG_COPY_ON_WRITE);
+}
+
 /* helper for recalcData() - for sequencer transforms */
 static void recalcData_sequencer(TransInfo *t)
 {
@@ -1056,7 +1061,10 @@ static void recalcData_gpencil_strokes(TransInfo *t)
 void recalcData(TransInfo *t)
 {
 	/* if tests must match createTransData for correct updates */
-	if (t->options & CTX_TEXTURE) {
+	if (t->options & CTX_CURSOR) {
+		recalcData_cursor(t);
+	}
+	else if (t->options & CTX_TEXTURE) {
 		recalcData_objects(t);
 	}
 	else if (t->options & CTX_EDGE) {
@@ -1323,9 +1331,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			prop_id = "use_even_offset";
 		}
 
-		if (prop_id && (prop = RNA_struct_find_property(op->ptr, prop_id)) &&
-		    RNA_property_is_set(op->ptr, prop))
-		{
+		if (prop_id && (prop = RNA_struct_find_property(op->ptr, prop_id))) {
 			SET_FLAG_FROM_TEST(t->flag, RNA_property_boolean_get(op->ptr, prop), T_ALT_TRANSFORM);
 		}
 	}
@@ -1628,6 +1634,10 @@ void postTrans(bContext *C, TransInfo *t)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
 	if (t->draw_handle_cursor)
 		WM_paint_cursor_end(CTX_wm_manager(C), t->draw_handle_cursor);
+
+	if (t->flag & T_MODAL_CURSOR_SET) {
+		WM_cursor_modal_restore(CTX_wm_window(C));
+	}
 
 	/* Free all custom-data */
 	freeTransCustomDataContainer(t, NULL, &t->custom);

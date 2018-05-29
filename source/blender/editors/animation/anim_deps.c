@@ -79,6 +79,9 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	if (adt) {
 		adt->recalc |= ADT_RECALC_ANIM;
 		DEG_id_tag_update(id, OB_RECALC_TIME);
+		if (adt->action != NULL) {
+			DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+		}
 	}
 
 	/* update data */

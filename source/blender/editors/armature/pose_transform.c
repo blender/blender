@@ -780,6 +780,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter)
 	{
+		Object *ob_eval = DEG_get_evaluated_object(CTX_data_depsgraph(C), ob_iter); // XXX: UGLY HACK (for autokey + clear transforms)
 		ListBase dsources = {NULL, NULL};
 		bool changed = false;
 
@@ -797,6 +798,11 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 				}
 				/* tag for autokeying later */
 				ANIM_relative_keyingset_add_source(&dsources, &ob_iter->id, &RNA_PoseBone, pchan);
+				
+#if 1			/* XXX: Ugly Hack - Run clearing function on evaluated copy of pchan */
+				bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
+				clear_func(pchan_eval);
+#endif
 			}
 			else {
 				/* add unkeyed tags */

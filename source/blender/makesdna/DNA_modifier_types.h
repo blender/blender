@@ -740,7 +740,7 @@ typedef struct ParticleSystemModifierData {
 
 	struct ParticleSystem *psys;
 	struct Mesh *mesh_final;  /* Final Mesh - its topology may differ from orig mesh. */
-	struct Mesh *mesh_deformed;  /* Deformed-only Mesh - its topology is same as orig mesh one. */
+	struct Mesh *mesh_original;  /* Original mesh that particles are attached to. */
 	int totdmvert, totdmedge, totdmface;
 	short flag, pad;
 } ParticleSystemModifierData;
@@ -1615,6 +1615,7 @@ typedef struct SDefVert {
 typedef struct SurfaceDeformModifierData {
 	ModifierData modifier;
 
+	struct Depsgraph *depsgraph;
 	struct Object *target;	/* bind target object */
 	SDefVert *verts;		/* vertex bind data */
 	float falloff;

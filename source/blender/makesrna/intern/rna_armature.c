@@ -168,8 +168,10 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 {
 	ID *id = ptr->id.data;
 	
-	/* special updates for cases where rigs try to hook into armature drawing stuff 
-	 * e.g. Mask Modifier - 'Armature' option
+	/* 1) special updates for cases where rigs try to hook into armature drawing stuff
+	 *    e.g. Mask Modifier - 'Armature' option
+	 * 2) tag armature for copy-on-write, so that selection status (set by addons)
+	 *    will update properly, like standard tools do already
 	 */
 	if (id) {
 		if (GS(id->name) == ID_AR) {
@@ -178,6 +180,8 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
 				DEG_id_tag_update(id, OB_RECALC_DATA);
 			}
+			
+			DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
 		}
 		else if (GS(id->name) == ID_OB) {
 			Object *ob = (Object *)id;
@@ -186,6 +190,8 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
 				DEG_id_tag_update(id, OB_RECALC_DATA);
 			}
+			
+			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 		}
 	}
 	

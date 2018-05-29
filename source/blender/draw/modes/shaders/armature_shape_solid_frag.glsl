@@ -1,5 +1,5 @@
 
-flat in vec4 finalColor;
+in vec4 finalColor;
 
 out vec4 fragColor;
 

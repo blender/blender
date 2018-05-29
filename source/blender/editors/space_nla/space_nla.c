@@ -527,6 +527,41 @@ static void nla_channel_region_listener(
 	}
 }
 
+static void nla_channel_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	PointerRNA ptr;
+	RNA_pointer_create(&screen->id, &RNA_SpaceNLA, sa->spacedata.first, &ptr);
+
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+	
+	/* All dopesheet filter settings, etc. affect the drawing of this editor,
+	 * so just whitelist the entire struct for updates
+	 */
+	{
+		wmMsgParams_RNA msg_key_params = {{{0}}};
+		StructRNA *type_array[] = {
+			&RNA_DopeSheet,
+		};
+
+		for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
+			msg_key_params.ptr.type = type_array[i];
+			WM_msg_subscribe_rna_params(
+			        mbus,
+			        &msg_key_params,
+			        &msg_sub_value_region_tag_redraw,
+			        __func__);
+		}
+	}
+}
+
 /* editor level listener */
 static void nla_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
                          WorkSpace *UNUSED(workspace))
@@ -628,6 +663,7 @@ void ED_spacetype_nla(void)
 	art->init = nla_channel_region_init;
 	art->draw = nla_channel_region_draw;
 	art->listener = nla_channel_region_listener;
+	art->message_subscribe = nla_channel_region_message_subscribe;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

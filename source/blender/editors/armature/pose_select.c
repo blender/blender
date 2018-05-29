@@ -299,7 +299,22 @@ void ED_pose_deselect_all_multi(Object **objects, uint objects_len, int select_m
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob_iter = objects[ob_index];
+		bArmature *arm = ob_iter->data;
+		
 		ED_pose_deselect_all(ob_iter, select_mode, ignore_visibility);
+		
+		/* if there are some dependencies for visualizing armature state
+		 * (e.g. Mask Modifier in 'Armature' mode), force update
+		 */
+		if (arm->flag & ARM_HAS_VIZ_DEPS) {
+			/* NOTE: ob not ob_act here is intentional - it's the source of the
+			 *       bones being selected  [T37247]
+			 */
+			DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
+		}
+		
+		/* need to tag armature for cow updates, or else selection doesn't update */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 
@@ -368,6 +383,9 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 		/* mask modifier ('armature' mode), etc. */
 		DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 	}
+	
+	/* need to tag armature for cow updates, or else selection doesn't update */
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 
 	return OPERATOR_FINISHED;
 }
@@ -907,6 +925,9 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	
+	/* need to tag armature for cow updates, or else selection doesn't update */
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	
 	/* report done status */
 	if (changed)
 		return OPERATOR_FINISHED;
@@ -1001,6 +1022,9 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 		}
 
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		
+		/* need to tag armature for cow updates, or else selection doesn't update */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 	FOREACH_OBJECT_IN_MODE_END;
 

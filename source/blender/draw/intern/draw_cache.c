@@ -72,7 +72,8 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_lamp;
 	Gwn_Batch *drw_lamp_shadows;
 	Gwn_Batch *drw_lamp_sunrays;
-	Gwn_Batch *drw_lamp_area;
+	Gwn_Batch *drw_lamp_area_square;
+	Gwn_Batch *drw_lamp_area_disk;
 	Gwn_Batch *drw_lamp_hemi;
 	Gwn_Batch *drw_lamp_spot;
 	Gwn_Batch *drw_lamp_spot_square;
@@ -502,11 +503,11 @@ Gwn_Batch *DRW_cache_object_wire_outline_get(Object *ob)
 }
 
 /* Returns a buffer texture. */
-Gwn_Batch *DRW_cache_object_edge_detection_get(Object *ob)
+Gwn_Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
 	switch (ob->type) {
 		case OB_MESH:
-			return DRW_cache_mesh_edge_detection_get(ob);
+			return DRW_cache_mesh_edge_detection_get(ob, r_is_manifold);
 
 		/* TODO, should match 'DRW_cache_object_surface_get' */
 		default:
@@ -1122,9 +1123,9 @@ Gwn_Batch *DRW_cache_lamp_sunrays_get(void)
 	return SHC.drw_lamp_sunrays;
 }
 
-Gwn_Batch *DRW_cache_lamp_area_get(void)
+Gwn_Batch *DRW_cache_lamp_area_square_get(void)
 {
-	if (!SHC.drw_lamp_area) {
+	if (!SHC.drw_lamp_area_square) {
 		float v1[3] = {0.0f, 0.0f, 0.0f};
 
 		/* Position Only 3D format */
@@ -1151,9 +1152,40 @@ Gwn_Batch *DRW_cache_lamp_area_get(void)
 		v1[1] = 0.5f;
 		GWN_vertbuf_attr_set(vbo, attr_id.pos, 7, v1);
 
-		SHC.drw_lamp_area = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_lamp_area_square = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
-	return SHC.drw_lamp_area;
+	return SHC.drw_lamp_area_square;
+}
+
+Gwn_Batch *DRW_cache_lamp_area_disk_get(void)
+{
+#define NSEGMENTS 32
+	if (!SHC.drw_lamp_area_disk) {
+		/* Position Only 3D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, 2 * NSEGMENTS);
+
+		float v[3] = {0.0f, 0.5f, 0.0f};
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, 0, v);
+		for (int a = 1; a < NSEGMENTS; a++) {
+			v[0] = 0.5f * sinf(2.0f * (float)M_PI * a / NSEGMENTS);
+			v[1] = 0.5f * cosf(2.0f * (float)M_PI * a / NSEGMENTS);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2 * a - 1, v);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2 * a, v);
+		}
+		copy_v3_fl3(v, 0.0f, 0.5f, 0.0f);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, (2 * NSEGMENTS) - 1, v);
+
+		SHC.drw_lamp_area_disk = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_lamp_area_disk;
+#undef NSEGMENTS
 }
 
 Gwn_Batch *DRW_cache_lamp_hemi_get(void)
@@ -1562,6 +1594,7 @@ static const float bone_octahedral_smooth_normals[6][3] = {
 };
 
 #if 0  /* UNUSED */
+
 static const uint bone_octahedral_wire[24] = {
 	0, 1,  1, 5,  5, 3,  3, 0,
 	0, 4,  4, 5,  5, 2,  2, 0,
@@ -1600,6 +1633,13 @@ static const uint bone_octahedral_solid_tris[8][3] = {
  * the first vertex of the first face aka. vertex 2):
  * {0, 12, 1, 10, 2, 3}
  **/
+static const uint bone_octahedral_wire_lines_adjacency[12][4] = {
+	{ 0, 1, 2,  6}, { 0, 12, 1,  6}, { 0, 3, 12,  6}, { 0, 2, 3,  6},
+	{ 1, 6, 2,  3}, { 1, 12, 6,  3}, { 1, 0, 12,  3}, { 1, 2, 0,  3},
+	{ 2, 0, 1, 12}, { 2,  3, 0, 12}, { 2, 6,  3, 12}, { 2, 1, 6, 12},
+};
+
+#if 0 /* UNUSED */
 static const uint bone_octahedral_solid_tris_adjacency[8][6] = {
 	{ 0, 12,  1, 10,  2,  3},
 	{ 3, 15,  4,  1,  5,  6},
@@ -1611,6 +1651,7 @@ static const uint bone_octahedral_solid_tris_adjacency[8][6] = {
 	{18, 16, 19,  8, 20, 23},
 	{21, 19, 22, 11, 23, 14},
 };
+#endif
 
 /* aligned with bone_octahedral_solid_tris */
 static const float bone_octahedral_solid_normals[8][3] = {
@@ -1641,28 +1682,41 @@ Gwn_Batch *DRW_cache_bone_octahedral_get(void)
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 24);
 
-		Gwn_IndexBufBuilder elb;
-		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 8, 24, false);
-
 		for (int i = 0; i < 8; i++) {
-			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
-			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][0]]);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
-			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
-			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][1]]);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
-			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
-			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][2]]);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
-			for (int j = 0; j < 6; ++j) {
-				GWN_indexbuf_add_generic_vert(&elb, bone_octahedral_solid_tris_adjacency[i][j]);
+			for (int j = 0; j < 3; ++j) {
+				GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+				GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][j]]);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][j]]);
 			}
 		}
 
-		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
-		                                              GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL,
+		                                              GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_bone_octahedral;
+}
+
+Gwn_Batch *DRW_cache_bone_octahedral_wire_get(void)
+{
+	if (!SHC.drw_bone_octahedral_wire) {
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES_ADJ, 12, 24);
+
+		for (int i = 0; i < 12; i++) {
+			GWN_indexbuf_add_line_adj_verts(&elb,
+			                                bone_octahedral_wire_lines_adjacency[i][0],
+			                                bone_octahedral_wire_lines_adjacency[i][1],
+			                                bone_octahedral_wire_lines_adjacency[i][2],
+			                                bone_octahedral_wire_lines_adjacency[i][3]);
+		}
+
+		/* HACK Reuse vertex buffer. */
+		Gwn_Batch *pos_nor_batch = DRW_cache_bone_octahedral_get();
+
+		SHC.drw_bone_octahedral_wire = GWN_batch_create_ex(GWN_PRIM_LINES_ADJ, pos_nor_batch->verts[0], GWN_indexbuf_build(&elb),
+		                                                   GWN_BATCH_OWNS_INDEX);
+	}
+	return SHC.drw_bone_octahedral_wire;
 }
 
 /* XXX TODO move that 1 unit cube to more common/generic place? */
@@ -1728,6 +1782,13 @@ static const uint bone_box_solid_tris[12][3] = {
  * Store indices of generated verts from bone_box_solid_tris to define adjacency infos.
  * See bone_octahedral_solid_tris for more infos.
  **/
+static const uint bone_box_wire_lines_adjacency[12][4] = {
+	{ 4,  2,  0, 11}, { 0,  1, 2,  8}, { 2, 4,  1,  14}, {  1,  0,  4, 20}, /* bottom */
+	{ 0,  8, 11, 14}, { 2, 14, 8, 20}, { 1, 20, 14, 11}, {  4, 11, 20,  8}, /* top */
+	{ 20, 0, 11,  2}, { 11, 2, 8,  1}, { 8, 1,  14,  4}, { 14,  4, 20,  0}, /* sides */
+};
+
+#if 0 /* UNUSED */
 static const uint bone_box_solid_tris_adjacency[12][6] = {
 	{ 0,  5,  1, 14,  2,  8},
 	{ 3, 26,  4, 20,  5,  1},
@@ -1747,6 +1808,7 @@ static const uint bone_box_solid_tris_adjacency[12][6] = {
 	{30,  9, 31, 15, 32, 35},
 	{33, 31, 34, 21, 35, 27},
 };
+#endif
 
 /* aligned with bone_box_solid_tris */
 static const float bone_box_solid_normals[12][3] = {
@@ -1786,24 +1848,41 @@ Gwn_Batch *DRW_cache_bone_box_get(void)
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 36);
 
-		Gwn_IndexBufBuilder elb;
-		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 12, 36, false);
-
 		for (int i = 0; i < 12; i++) {
 			for (int j = 0; j < 3; j++) {
 				GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_box_solid_normals[i]);
 				GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_box_smooth_normals[bone_box_solid_tris[i][j]]);
 				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_box_verts[bone_box_solid_tris[i][j]]);
 			}
-			for (int j = 0; j < 6; ++j) {
-				GWN_indexbuf_add_generic_vert(&elb, bone_box_solid_tris_adjacency[i][j]);
-			}
 		}
 
-		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
-		                                       GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL,
+		                                       GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_bone_box;
+}
+
+Gwn_Batch *DRW_cache_bone_box_wire_get(void)
+{
+	if (!SHC.drw_bone_box_wire) {
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES_ADJ, 12, 36);
+
+		for (int i = 0; i < 12; i++) {
+			GWN_indexbuf_add_line_adj_verts(&elb,
+			                                bone_box_wire_lines_adjacency[i][0],
+			                                bone_box_wire_lines_adjacency[i][1],
+			                                bone_box_wire_lines_adjacency[i][2],
+			                                bone_box_wire_lines_adjacency[i][3]);
+		}
+
+		/* HACK Reuse vertex buffer. */
+		Gwn_Batch *pos_nor_batch = DRW_cache_bone_box_get();
+
+		SHC.drw_bone_box_wire = GWN_batch_create_ex(GWN_PRIM_LINES_ADJ, pos_nor_batch->verts[0], GWN_indexbuf_build(&elb),
+		                                                   GWN_BATCH_OWNS_INDEX);
+	}
+	return SHC.drw_bone_box_wire;
 }
 
 /* Helpers for envelope bone's solid sphere-with-hidden-equatorial-cylinder.
@@ -2014,9 +2093,9 @@ Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v1[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v1[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
 			copy_v2_v2(v0, v1);
 		}
@@ -2506,12 +2585,12 @@ Gwn_Batch *DRW_cache_mesh_wire_outline_get(Object *ob)
 	return DRW_mesh_batch_cache_get_fancy_edges(me);
 }
 
-Gwn_Batch *DRW_cache_mesh_edge_detection_get(Object *ob)
+Gwn_Batch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_edge_detection(me);
+	return DRW_mesh_batch_cache_get_edge_detection(me, r_is_manifold);
 }
 
 Gwn_Batch *DRW_cache_mesh_surface_get(Object *ob)

@@ -2239,7 +2239,7 @@ void BKE_pose_where_is_bone(
 			/* prepare PoseChannel for Constraint solving
 			 * - makes a copy of matrix, and creates temporary struct to use
 			 */
-			cob = BKE_constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
+			cob = BKE_constraints_make_evalob(depsgraph, scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
 
 			/* Solve PoseChannel's Constraints */
 			BKE_constraints_solve(depsgraph, &pchan->constraints, cob, ctime); /* ctime doesnt alter objects */

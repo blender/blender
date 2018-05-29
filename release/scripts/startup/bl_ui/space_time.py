@@ -112,7 +112,10 @@ class TIME_MT_editor_menus(Menu):
                        region_type='HEADER',
                        panel_type="TIME_PT_playback",
                        text="Playback")
-
+        layout.popover(space_type='DOPESHEET_EDITOR',
+                       region_type='HEADER',
+                       panel_type="TIME_PT_keyframing_settings",
+                       text="Keying")
 
 class TIME_MT_marker(Menu):
     bl_label = "Marker"
@@ -152,9 +155,7 @@ class TIME_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
-        layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+        layout.menu("INFO_MT_area")
 
 
 class TIME_MT_cache(Menu):
@@ -267,6 +268,7 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
 class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
     bl_label = "Keyframing Settings"
     bl_options = {'HIDE_HEADER'}
+    bl_region_type = 'HEADER'
 
     @classmethod
     def poll(cls, context):

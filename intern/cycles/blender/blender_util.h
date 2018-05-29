@@ -468,6 +468,21 @@ static inline string blender_absolute_path(BL::BlendData& b_data,
 	return path;
 }
 
+static inline string get_text_datablock_content(const PointerRNA& ptr)
+{
+	if(ptr.data == NULL) {
+		return "";
+	}
+
+	string content;
+	BL::Text::lines_iterator iter;
+	for(iter.begin(ptr); iter; ++iter) {
+		content += iter->body() + "\n";
+	}
+
+	return content;
+}
+
 /* Texture Space */
 
 static inline void mesh_texture_space(BL::Mesh& b_mesh,

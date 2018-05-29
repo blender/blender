@@ -272,6 +272,14 @@ typedef struct ViewUboStorage {
 	float clipplanes[2][4];
 } ViewUboStorage;
 
+/* ------------- DRAW DEBUG ------------ */
+
+typedef struct DRWDebugLine {
+	struct DRWDebugLine *next; /* linked list */
+	float pos[2][3];
+	float color[4];
+} DRWDebugLine;
+
 /* ------------- DRAW MANAGER ------------ */
 
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
@@ -359,6 +367,11 @@ typedef struct DRWManager {
 		char *bound_ubo_slots;
 		int bind_ubo_inc;
 	} RST;
+
+	struct {
+		/* TODO(fclem) optimize: use chunks. */
+		DRWDebugLine *lines;
+	} debug;
 } DRWManager;
 
 extern DRWManager DST; /* TODO : get rid of this and allow multithreaded rendering */
@@ -373,5 +386,8 @@ void drw_texture_get_format(
 void *drw_viewport_engine_data_ensure(void *engine_type);
 
 void drw_state_set(DRWState state);
+
+void drw_debug_draw(void);
+void drw_debug_init(void);
 
 #endif /* __DRAW_MANAGER_H__ */

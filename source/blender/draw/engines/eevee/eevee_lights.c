@@ -82,7 +82,8 @@ static bool lightbits_get(const EEVEE_LightBits *r, uint idx)
 	return r->fields[idx / 8] & (1 << (idx % 8));
 }
 
-static void lightbits_convert(EEVEE_LightBits *r, const EEVEE_LightBits *bitf, const int *light_bit_conv_table, uint table_length)
+static void lightbits_convert(
+        EEVEE_LightBits *r, const EEVEE_LightBits *bitf, const int *light_bit_conv_table, uint table_length)
 {
 	for (int i = 0; i < table_length; ++i) {
 		if (lightbits_get(bitf, i) != 0) {
@@ -591,7 +592,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 	}
 	else if (la->type == LA_AREA) {
 		evli->sizex = max_ff(0.0001f, la->area_size * scale[0] * 0.5f);
-		if (la->area_shape == LA_AREA_RECT) {
+		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) {
 			evli->sizey = max_ff(0.0001f, la->area_sizey * scale[1] * 0.5f);
 		}
 		else {
@@ -602,10 +603,18 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 		evli->radius = max_ff(0.001f, la->area_size);
 	}
 
+	/* Lamp Type */
+	evli->lamptype = (float)la->type;
+
 	/* Make illumination power constant */
 	if (la->type == LA_AREA) {
 		power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) * /* 1/(w*h*Pi) */
 		        80.0f; /* XXX : Empirical, Fit cycles power */
+		if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
+			evli->lamptype = LAMPTYPE_AREA_ELLIPSE;
+			/* Scale power to account for the lower area of the ellipse compared to the surrouding rectangle. */
+			power *= 4.0f / M_PI;
+		}
 	}
 	else if (la->type == LA_SPOT || la->type == LA_LOCAL) {
 		power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI) * /* 1/(4*r²*Pi²) */
@@ -619,9 +628,6 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 		        12.5f; /* XXX : Empirical, Fit cycles power */
 	}
 	mul_v3_fl(evli->color, power * la->energy);
-
-	/* Lamp Type */
-	evli->lamptype = (float)la->type;
 
 	/* No shadow by default */
 	evli->shadowid = -1.0f;

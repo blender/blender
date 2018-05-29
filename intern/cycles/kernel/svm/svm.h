@@ -157,6 +157,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_camera.h"
 #include "kernel/svm/svm_geometry.h"
 #include "kernel/svm/svm_hsv.h"
+#include "kernel/svm/svm_ies.h"
 #include "kernel/svm/svm_image.h"
 #include "kernel/svm/svm_gamma.h"
 #include "kernel/svm/svm_brightness.h"
@@ -420,6 +421,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				break;
 			case NODE_LIGHT_FALLOFF:
 				svm_node_light_falloff(sd, stack, node);
+				break;
+			case NODE_IES:
+				svm_node_ies(kg, sd, stack, node, &offset);
 				break;
 #  endif  /* __EXTRA_NODES__ */
 #endif  /* NODES_GROUP(NODE_GROUP_LEVEL_2) */

@@ -1232,9 +1232,8 @@ class CLIP_MT_view(Menu):
             layout.prop(sc, "show_locked_time")
 
         layout.separator()
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
-        layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+
+        layout.menu("INFO_MT_area")
 
 
 class CLIP_MT_clip(Menu):

@@ -237,9 +237,7 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "use_marker_sync")
             layout.separator()
 
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
-        layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+        layout.menu("INFO_MT_area")
 
 
 class SEQUENCER_MT_select(Menu):
@@ -430,10 +428,6 @@ class SEQUENCER_MT_strip(Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_transform")

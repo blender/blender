@@ -116,7 +116,7 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
 
 static ViewLayer *scene_change_get_new_view_layer(const WorkSpace *workspace, const Scene *scene_new)
 {
-	ViewLayer *layer_new = BKE_workspace_view_layer_get(workspace, scene_new);
+	ViewLayer *layer_new = BKE_workspace_view_layer_exists(workspace, scene_new);
 	return layer_new ? layer_new : BKE_view_layer_default_view(scene_new);
 }
 
@@ -202,9 +202,10 @@ bool ED_scene_view_layer_delete(
 	BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
 
 	ED_workspace_view_layer_unset(bmain, scene, layer, scene->view_layers.first);
-	BKE_workspace_view_layer_remove_references(bmain, layer);
 
 	BKE_view_layer_free(layer);
+
+	BKE_workspace_view_layer_remove(bmain, layer);
 
 	DEG_id_tag_update(&scene->id, 0);
 	DEG_relations_tag_update(bmain);

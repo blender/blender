@@ -655,12 +655,7 @@ static int rna_3DViewShading_type_get(PointerRNA *ptr)
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	View3D *v3d = (View3D *)ptr->data;
 
-	if (BKE_scene_uses_blender_eevee(scene)) {
-		if (v3d->drawtype == OB_MATERIAL) {
-			return OB_RENDER;
-		}
-	}
-	else if (v3d->drawtype == OB_RENDER) {
+	if (!BKE_scene_uses_blender_eevee(scene) && v3d->drawtype == OB_RENDER) {
 		if (!(type && type->render_to_view)) {
 			return OB_MATERIAL;
 		}
@@ -693,6 +688,7 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_TEXTURE);
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_MATERIAL);
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
 	}
 	else {
@@ -711,7 +707,7 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 static int rna_View3DShading_studio_light_orientation_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light);
+	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, 0);
 	return sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_CAMERA);
 }
 static void rna_View3DShading_studio_light_orientation_set(PointerRNA *UNUSED(ptr), int UNUSED(value))
@@ -721,7 +717,9 @@ static void rna_View3DShading_studio_light_orientation_set(PointerRNA *UNUSED(pt
 static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light);
+	const int flag = v3d->drawtype == OB_MATERIAL? STUDIOLIGHT_ORIENTATION_WORLD: 0;
+	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, flag);
+	BLI_strncpy(v3d->shading.studio_light, sl->name, FILE_MAXFILE);
 	return sl->index;
 }
 
@@ -733,19 +731,40 @@ static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 }
 
 static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
-        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        bContext *UNUSED(C), PointerRNA *ptr,
         PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	View3D *v3d = (View3D *)ptr->data;
 	EnumPropertyItem *item = NULL;
 	EnumPropertyItem *lastitem;
 	int totitem = 0;
+	bool show_studiolight;
 
 	LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
-		if (totitem < NUM_STUDIOLIGHT_ITEMS) {
-			RNA_enum_items_add_value(&item, &totitem, rna_enum_studio_light_items, totitem);
+		show_studiolight = false;
+		int icon_id = sl->irradiance_icon_id;
+
+		if ((sl->flag & STUDIOLIGHT_EXTERNAL_FILE) == 0) {
+			/* always show internal lights */
+			show_studiolight = true;
+		} else {
+			switch (v3d->drawtype) {
+				case OB_SOLID:
+				case OB_TEXTURE:
+					show_studiolight = true;
+					break;
+				case OB_MATERIAL:
+					show_studiolight = (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD) > 0;
+					icon_id = sl->radiance_icon_id;
+					break;
+			}
+		}
+
+		if (show_studiolight && totitem < NUM_STUDIOLIGHT_ITEMS) {
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_studio_light_items, sl->index);
 			lastitem = &item[totitem - 1];
 			lastitem->value = sl->index;
-			lastitem->icon = sl->icon_id;
+			lastitem->icon = icon_id;
 			lastitem->name = sl->name;
 		}
 	}
@@ -2038,10 +2057,10 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Texture Paint UVs", "Draw overlay of texture paint uv layer");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-	prop = RNA_def_property(srna, "show_normalized_coords", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
-	RNA_def_property_ui_text(prop, "Normalized Coordinates",
-	                         "Display UV coordinates from 0.0 to 1.0 rather than in pixels");
+	prop = RNA_def_property(srna, "show_pixel_coords", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SI_COORDFLOATS);
+	RNA_def_property_ui_text(prop, "Pixel Coordinates",
+	                         "Display UV coordinates in pixels rather than from 0.0 to 1.0");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
 	prop = RNA_def_property(srna, "show_faces", PROP_BOOLEAN, PROP_NONE);
@@ -2305,10 +2324,10 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shadow", "Show Shadow");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "show_see_through", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_SEE_THROUGH);
+	prop = RNA_def_property(srna, "show_xray", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_XRAY);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "See Through", "Show whole scene transparent");
+	RNA_def_property_ui_text(prop, "X-Ray", "Show whole scene transparent");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "object_outline_color", PROP_FLOAT, PROP_COLOR);
@@ -2475,7 +2494,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "transparent_bones", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_transparent_bones", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "overlay.arm_flag", V3D_OVERLAY_ARM_TRANSP_BONES);
 	RNA_def_property_ui_text(prop, "Transparent Bones", "Display bones as transparent");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);

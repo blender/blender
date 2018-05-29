@@ -169,4 +169,10 @@ public:
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
+class MathArcTan2Operation : public MathBaseOperation {
+public:
+	MathArcTan2Operation() : MathBaseOperation() {}
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
 #endif

@@ -89,6 +89,8 @@ static const EnumPropertyItem space_items[] = {
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MEM_guardedalloc.h"
 
 static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, int action)
@@ -173,13 +175,14 @@ static void rna_Object_mat_convert_space(Object *ob, ReportList *reports, bPoseC
 }
 
 static void rna_Object_calc_matrix_camera(
-        Object *ob, float mat_ret[16], int width, int height, float scalex, float scaley)
+        Object *ob, Depsgraph *depsgraph, float mat_ret[16], int width, int height, float scalex, float scaley)
 {
+	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	CameraParams params;
 
 	/* setup parameters */
 	BKE_camera_params_init(&params);
-	BKE_camera_params_from_object(&params, ob);
+	BKE_camera_params_from_object(&params, ob_eval);
 
 	/* compute matrix, viewplane, .. */
 	BKE_camera_params_compute_viewplane(&params, width, height, scalex, scaley);
@@ -189,9 +192,9 @@ static void rna_Object_calc_matrix_camera(
 }
 
 static void rna_Object_camera_fit_coords(
-        Object *ob, Scene *scene, int num_cos, float *cos, float co_ret[3], float *scale_ret)
+        Object *ob, Depsgraph *depsgraph, int num_cos, float *cos, float co_ret[3], float *scale_ret)
 {
-	BKE_camera_view_frame_fit_to_coords(scene, (const float (*)[3])cos, num_cos / 3, ob, co_ret, scale_ret);
+	BKE_camera_view_frame_fit_to_coords(depsgraph, (const float (*)[3])cos, num_cos / 3, ob, co_ret, scale_ret);
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
@@ -518,6 +521,9 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "calc_matrix_camera", "rna_Object_calc_matrix_camera");
 	RNA_def_function_ui_description(func, "Generate the camera projection matrix of this object "
 	                                      "(mostly useful for Camera and Lamp types)");
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "",
+	                       "Depsgraph to get evaluated data from");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_property(func, "result", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_ui_text(parm, "", "The camera projection matrix");
@@ -530,7 +536,8 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "camera_fit_coords", "rna_Object_camera_fit_coords");
 	RNA_def_function_ui_description(func, "Compute the coordinate (and scale for ortho cameras) "
 	                                      "given object should be to 'see' all given coordinates");
-	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene to get render size information from, if available");
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "",
+	                       "Depsgraph to get evaluated data from");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_float_array(func, "coordinates", 1, NULL, -FLT_MAX, FLT_MAX, "", "Coordinates to fit in",
 	                           -FLT_MAX, FLT_MAX);

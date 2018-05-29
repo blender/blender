@@ -182,6 +182,7 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
         arm = context.active_object.data
 
         self.layout.prop(arm, "use_auto_ik")
+        self.layout.prop(arm, "use_mirror_x")
 
 # ********** default tools for paint modes ****************
 
@@ -569,7 +570,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 else:
                     slot = None
 
-                if slot and slot.valid:
+                if slot and slot.is_valid:
                     col.label("UV Map:")
                     col.prop_search(slot, "uv_layer", ob.data, "uv_layers", text="")
 

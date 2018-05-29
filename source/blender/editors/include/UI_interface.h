@@ -429,11 +429,9 @@ void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *b
 
 typedef struct uiPopover uiPopover;
 
-void UI_popover_panel_from_type(
-        struct bContext *C, struct uiLayout *layout, struct PanelType *pt);
 int UI_popover_panel_invoke(
         struct bContext *C, int space_id, int region_id, const char *idname,
-        struct ReportList *reports);
+        bool keep_open, struct ReportList *reports);
 
 uiPopover *UI_popover_begin(struct bContext *C) ATTR_NONNULL(1);
 void UI_popover_end(struct bContext *C, struct uiPopover *head, struct wmKeyMap *keymap);
@@ -949,6 +947,7 @@ const char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 struct MenuType *UI_but_menutype_get(uiBut *but);
 struct PanelType *UI_but_paneltype_get(uiBut *but);
 void UI_menutype_draw(struct bContext *C, struct MenuType *mt, struct uiLayout *layout);
+void UI_paneltype_draw(struct bContext *C, struct PanelType *pt, struct uiLayout *layout);
 
 /* Only for convenience. */
 void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but);
@@ -962,6 +961,7 @@ void uiLayoutSetKeepAspect(uiLayout *layout, bool keepaspect);
 void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 void uiLayoutSetEmboss(uiLayout *layout, char emboss);
+void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
 
 int uiLayoutGetOperatorContext(uiLayout *layout);
 bool uiLayoutGetActive(uiLayout *layout);
@@ -973,6 +973,7 @@ int uiLayoutGetWidth(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 int uiLayoutGetEmboss(uiLayout *layout);
+bool uiLayoutGetPropSep(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);

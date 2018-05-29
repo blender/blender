@@ -76,7 +76,8 @@ static void overlay_engine_init(void *vedata)
 
 	if (!e_data.face_orientation_sh) {
 		/* Face orientation */
-		e_data.face_orientation_sh = DRW_shader_create(datatoc_overlay_face_orientation_vert_glsl, NULL, datatoc_overlay_face_orientation_frag_glsl, "\n");
+		e_data.face_orientation_sh = DRW_shader_create(
+		        datatoc_overlay_face_orientation_vert_glsl, NULL, datatoc_overlay_face_orientation_frag_glsl, "\n");
 	}
 }
 
@@ -100,7 +101,8 @@ static void overlay_cache_init(void *vedata)
 	if (stl->g_data->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND;
 		psl->face_orientation_pass = DRW_pass_create("Face Orientation", state);
-		stl->g_data->face_orientation_shgrp = DRW_shgroup_create(e_data.face_orientation_sh, psl->face_orientation_pass);
+		stl->g_data->face_orientation_shgrp = DRW_shgroup_create(
+		        e_data.face_orientation_sh, psl->face_orientation_pass);
 	}
 }
 

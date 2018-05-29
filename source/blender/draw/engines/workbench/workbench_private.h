@@ -44,6 +44,7 @@
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || SHADOW_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
+#define WORKBENCH_REVEALAGE_ENABLED
 #define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD)
 
 
@@ -55,6 +56,10 @@ typedef struct WORKBENCH_FramebufferList {
 	/* Forward render buffers */
 	struct GPUFrameBuffer *object_outline_fb;
 	struct GPUFrameBuffer *transparent_accum_fb;
+
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+	struct GPUFrameBuffer *transparent_revealage_fb;
+#endif
 } WORKBENCH_FramebufferList;
 
 typedef struct WORKBENCH_StorageList {
@@ -65,13 +70,19 @@ typedef struct WORKBENCH_PassList {
 	/* deferred rendering */
 	struct DRWPass *prepass_pass;
 	struct DRWPass *shadow_depth_pass_pass;
+	struct DRWPass *shadow_depth_pass_mani_pass;
 	struct DRWPass *shadow_depth_fail_pass;
+	struct DRWPass *shadow_depth_fail_mani_pass;
 	struct DRWPass *shadow_depth_fail_caps_pass;
+	struct DRWPass *shadow_depth_fail_caps_mani_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
 
 	/* forward rendering */
 	struct DRWPass *transparent_accum_pass;
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+	struct DRWPass *transparent_revealage_pass;
+#endif
 	struct DRWPass *object_outline_pass;
 	struct DRWPass *depth_pass;
 	struct DRWPass *checker_depth_pass;
@@ -111,8 +122,19 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+	struct DRWShadingGroup *transparent_revealage_shgrp;
+#endif
 	WORKBENCH_UBO_World world_data;
 	float shadow_multiplier;
+	float cached_shadow_direction[3];
+	float shadow_mat[4][4];
+	float shadow_inv[4][4];
+	float shadow_near_corners[4][3]; /* Near plane corners in shadow space. */
+	float shadow_near_min[3]; /* min and max of shadow_near_corners. allow fast test */
+	float shadow_near_max[3];
+	float shadow_near_sides[2][4]; /* This is a parallelogram, so only 2 normal and distance to the edges. */
+	bool shadow_changed;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_MaterialData {
@@ -137,6 +159,9 @@ typedef struct WORKBENCH_ObjectData {
 	int recalc;
 	/* Shadow direction in local object space. */
 	float shadow_dir[3];
+	float shadow_min[3], shadow_max[3]; /* Min, max in shadow space */
+	BoundBox shadow_bbox;
+	bool shadow_bbox_dirty;
 
 	int object_id;
 } WORKBENCH_ObjectData;
@@ -172,10 +197,14 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 void workbench_material_get_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, float *color);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype);
-void workbench_material_set_normal_world_matrix(DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
+void workbench_material_set_normal_world_matrix(
+        DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
 
 /* workbench_studiolight.c */
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);
+void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_direction[3]);
+bool studiolight_object_cast_visible_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
+bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
 
 /* workbench_data.c */
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);

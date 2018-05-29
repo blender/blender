@@ -49,6 +49,7 @@
 #include "BLI_threads.h"
 #include "BLI_string.h"
 
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
@@ -76,6 +77,7 @@ extern "C" {
 #  include "DNA_lattice_types.h"
 #  include "DNA_linestyle_types.h"
 #  include "DNA_material_types.h"
+#  include "DNA_meta_types.h"
 #  include "DNA_node_types.h"
 #  include "DNA_texture_types.h"
 #  include "DNA_world_types.h"
@@ -276,10 +278,11 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 	bool result = BKE_id_copy_ex(NULL,
 	                             (ID *)id_for_copy,
 	                             &newid,
-	                             LIB_ID_CREATE_NO_MAIN |
-	                             LIB_ID_CREATE_NO_USER_REFCOUNT |
-	                             LIB_ID_CREATE_NO_ALLOCATE |
-	                             LIB_ID_CREATE_NO_DEG_TAG,
+	                             (LIB_ID_CREATE_NO_MAIN |
+	                              LIB_ID_CREATE_NO_USER_REFCOUNT |
+	                              LIB_ID_CREATE_NO_ALLOCATE |
+	                              LIB_ID_CREATE_NO_DEG_TAG |
+	                              LIB_ID_COPY_CACHES),
 	                             false);
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
@@ -410,7 +413,7 @@ int foreach_libblock_remap_callback(void *user_data_v,
 	return IDWALK_RET_NOP;
 }
 
-void updata_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+void update_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
                                         const ID *id_orig, ID *id_cow)
 {
 	const bArmature *armature_orig = (const bArmature *)id_orig;
@@ -418,7 +421,32 @@ void updata_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 	armature_cow->edbo = armature_orig->edbo;
 }
 
-void updata_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
+void update_curve_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+                                     const ID *id_orig, ID *id_cow)
+{
+	const Curve *curve_orig = (const Curve *)id_orig;
+	Curve *curve_cow = (Curve *)id_cow;
+	curve_cow->editnurb = curve_orig->editnurb;
+	curve_cow->editfont = curve_orig->editfont;
+}
+
+void update_mball_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+                                     const ID *id_orig, ID *id_cow)
+{
+	const MetaBall *mball_orig = (const MetaBall *)id_orig;
+	MetaBall *mball_cow = (MetaBall *)id_cow;
+	mball_cow->editelems = mball_orig->editelems;
+}
+
+void update_lattice_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+                                     const ID *id_orig, ID *id_cow)
+{
+	const Lattice *lt_orig = (const Lattice *)id_orig;
+	Lattice *lt_cow = (Lattice *)id_cow;
+	lt_cow->editlatt = lt_orig->editlatt;
+}
+
+void update_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
                                     const ID *id_orig, ID *id_cow)
 {
 	/* For meshes we need to update edit_btmesh to make it to point
@@ -443,16 +471,25 @@ void updata_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
 /* Edit data is stored and owned by original datablocks, copied ones
  * are simply referencing to them.
  */
-void updata_edit_mode_pointers(const Depsgraph *depsgraph,
+void update_edit_mode_pointers(const Depsgraph *depsgraph,
                                const ID *id_orig, ID *id_cow)
 {
 	const ID_Type type = GS(id_orig->name);
 	switch (type) {
 		case ID_AR:
-			updata_armature_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			update_armature_edit_mode_pointers(depsgraph, id_orig, id_cow);
 			break;
 		case ID_ME:
-			updata_mesh_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			update_mesh_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
+		case ID_CU:
+			update_curve_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
+		case ID_MB:
+			update_mball_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
+		case ID_LT:
+			update_lattice_edit_mode_pointers(depsgraph, id_orig, id_cow);
 			break;
 		default:
 			break;
@@ -504,7 +541,7 @@ void update_special_pointers(const Depsgraph *depsgraph,
 		default:
 			break;
 	}
-	updata_edit_mode_pointers(depsgraph, id_orig, id_cow);
+	update_edit_mode_pointers(depsgraph, id_orig, id_cow);
 }
 
 /* This callback is used to validate that all nested ID datablocks are
@@ -680,6 +717,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
 	Mesh *mesh_evaluated = NULL;
+	CurveCache *curve_cache = NULL;
 	short base_flag = 0;
 	if (check_datablock_expanded(id_cow)) {
 		switch (id_type) {
@@ -729,6 +767,10 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 						object->data = mesh_evaluated->id.orig_id;
 					}
 				}
+				/* Store curve cache and make sure we don't free it. */
+				curve_cache = object->curve_cache;
+				object->curve_cache = NULL;
+
 				/* Make a backup of base flags. */
 				base_flag = object->base_flag;
 				break;
@@ -764,6 +806,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				        ((Mesh *)mesh_evaluated->id.orig_id)->edit_btmesh;
 			}
 		}
+		if (curve_cache != NULL) {
+			object->curve_cache = curve_cache;
+		}
 		object->base_flag = base_flag;
 	}
 	return id_cow;
@@ -784,6 +829,25 @@ void discard_armature_edit_mode_pointers(ID *id_cow)
 {
 	bArmature *armature_cow = (bArmature *)id_cow;
 	armature_cow->edbo = NULL;
+}
+
+void discard_curve_edit_mode_pointers(ID *id_cow)
+{
+	Curve *curve_cow = (Curve *)id_cow;
+	curve_cow->editnurb = NULL;
+	curve_cow->editfont = NULL;
+}
+
+void discard_mball_edit_mode_pointers(ID *id_cow)
+{
+	MetaBall *mball_cow = (MetaBall *)id_cow;
+	mball_cow->editelems = NULL;
+}
+
+void discard_lattice_edit_mode_pointers(ID *id_cow)
+{
+	Lattice *lt_cow = (Lattice *)id_cow;
+	lt_cow->editlatt = NULL;
 }
 
 void discard_mesh_edit_mode_pointers(ID *id_cow)
@@ -809,6 +873,15 @@ void discard_edit_mode_pointers(ID *id_cow)
 			break;
 		case ID_ME:
 			discard_mesh_edit_mode_pointers(id_cow);
+			break;
+		case ID_CU:
+			discard_curve_edit_mode_pointers(id_cow);
+			break;
+		case ID_MB:
+			discard_mball_edit_mode_pointers(id_cow);
+			break;
+		case ID_LT:
+			discard_lattice_edit_mode_pointers(id_cow);
 			break;
 		default:
 			break;

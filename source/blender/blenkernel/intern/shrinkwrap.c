@@ -414,7 +414,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, const Mo
 	}
 
 	if (calc->smd->auxTarget) {
-		auxMesh = BKE_modifier_get_evaluated_mesh_from_object(calc->smd->auxTarget, ctx->flag);
+		auxMesh = BKE_modifier_get_evaluated_mesh_from_object(ctx, calc->smd->auxTarget);
 		if (!auxMesh)
 			return;
 		BLI_SPACE_TRANSFORM_SETUP(&local2aux, calc->ob, calc->smd->auxTarget);
@@ -625,7 +625,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *me
 
 
 	if (smd->target) {
-		calc.target = BKE_modifier_get_evaluated_mesh_from_object(smd->target, ctx->flag);
+		calc.target = BKE_modifier_get_evaluated_mesh_from_object(ctx, smd->target);
 
 		/* TODO there might be several "bugs" on non-uniform scales matrixs
 		 * because it will no longer be nearest surface, not sphere projection

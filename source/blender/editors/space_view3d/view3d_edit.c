@@ -1110,7 +1110,7 @@ static void view3d_ndof_pan_zoom(
 static void view3d_ndof_orbit(
         const struct wmNDOFMotionData *ndof, ScrArea *sa, ARegion *ar,
         /* optional, can be NULL*/
-        ViewOpsData *vod)
+        ViewOpsData *vod, const bool apply_dyn_ofs)
 {
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
@@ -1173,7 +1173,7 @@ static void view3d_ndof_orbit(
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 	}
 
-	if (vod) {
+	if (apply_dyn_ofs) {
 		viewrotate_apply_dyn_ofs(vod, rv3d->viewquat);
 	}
 }
@@ -1342,7 +1342,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 
 			if (has_rotation) {
-				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod);
+				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, true);
 			}
 		}
 
@@ -1424,7 +1424,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			}
 
 			if (has_rotation) {
-				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod);
+				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, true);
 			}
 		}
 		else {  /* free/explore (like fly mode) */
@@ -1442,7 +1442,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			ED_view3d_distance_set(rv3d, 0.0f);
 
 			if (has_rotation) {
-				view3d_ndof_orbit(ndof, vod->sa, vod->ar, NULL);
+				view3d_ndof_orbit(ndof, vod->sa, vod->ar, NULL, false);
 			}
 
 			ED_view3d_distance_set(rv3d, dist_backup);
@@ -2654,7 +2654,7 @@ static void view3d_from_minmax(
 		}
 
 		if (ok_dist) {
-			new_dist = ED_view3d_radius_to_dist(v3d, ar, persp, true, (size / 2) * VIEW3D_MARGIN);
+			new_dist = ED_view3d_radius_to_dist(v3d, ar, CTX_data_depsgraph(C), persp, true, (size / 2) * VIEW3D_MARGIN);
 			if (rv3d->is_persp) {
 				/* don't zoom closer than the near clipping plane */
 				new_dist = max_ff(new_dist, v3d->near * 1.5f);
@@ -2763,6 +2763,10 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		view3d_from_minmax(C, v3d, ar, min, max, true, smooth_viewtx);
+	}
+
+	if (center) {
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 	}
 
 	return OPERATOR_FINISHED;
@@ -3678,7 +3682,8 @@ static void axis_set_view(
 		dist = rv3d->dist;
 
 		/* so we animate _from_ the camera location */
-		ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, &rv3d->dist, NULL);
+		Object *camera_eval = DEG_get_evaluated_object(CTX_data_depsgraph(C), v3d->camera);
+		ED_view3d_from_object(camera_eval, rv3d->ofs, NULL, &rv3d->dist, NULL);
 
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
@@ -4599,12 +4604,11 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 	cursor_curr->rotation[0] *= -1.0f;
 
 	{
-		struct Main *bmain = CTX_data_main(C);
 		const float mval_fl[2] = {UNPACK2(mval)};
 		float ray_no[3];
 
 		struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-		        bmain, scene, CTX_data_depsgraph(C), 0, ar, v3d);
+		        scene, CTX_data_depsgraph(C), 0, ar, v3d);
 
 		float obmat[4][4];
 		Object *ob_dummy = NULL;

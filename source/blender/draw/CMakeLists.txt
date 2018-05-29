@@ -62,6 +62,7 @@ set(SRC
 	intern/draw_cache_impl_metaball.c
 	intern/draw_cache_impl_particles.c
 	intern/draw_common.c
+	intern/draw_debug.c
 	intern/draw_instance_data.c
 	intern/draw_manager.c
 	intern/draw_manager_data.c
@@ -96,6 +97,7 @@ set(SRC
 	engines/eevee/eevee_engine.c
 	engines/eevee/eevee_lightprobes.c
 	engines/eevee/eevee_lights.c
+	engines/eevee/eevee_lookdev.c
 	engines/eevee/eevee_materials.c
 	engines/eevee/eevee_mist.c
 	engines/eevee/eevee_motion_blur.c
@@ -120,6 +122,7 @@ set(SRC
 	intern/draw_cache.h
 	intern/draw_cache_impl.h
 	intern/draw_common.h
+	intern/draw_debug.h
 	intern/draw_instance_data.h
 	intern/draw_manager.h
 	intern/draw_manager_text.h
@@ -220,6 +223,7 @@ data_to_c_simple(engines/workbench/shaders/workbench_deferred_composite_frag.gls
 data_to_c_simple(engines/workbench/shaders/workbench_forward_composite_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_forward_depth_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_forward_transparent_accum_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_forward_transparent_revealage_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_object_outline_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_vert.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_frag.glsl SRC)

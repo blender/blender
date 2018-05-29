@@ -275,7 +275,7 @@ static void meshdeform_vert_task(
 }
 
 static void meshdeformModifier_do(
-        ModifierData *md, Object *ob, Mesh *mesh,
+        ModifierData *md, Depsgraph *depsgraph, Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
@@ -307,7 +307,11 @@ static void meshdeformModifier_do(
 		free_cagemesh = true;
 	}
 	else {
-		cagemesh = BKE_modifier_get_evaluated_mesh_from_object(ob, md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
+		ModifierEvalContext ctx = {
+		    .depsgraph = depsgraph,
+		    .flag = md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0,
+		};
+		cagemesh = BKE_modifier_get_evaluated_mesh_from_object(&ctx, ob);
 	}
 
 	/* if we don't have one computed, use derivedmesh from data
@@ -421,7 +425,7 @@ static void deformVerts(
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
-	meshdeformModifier_do(md, ctx->object, mesh_src, vertexCos, numVerts);
+	meshdeformModifier_do(md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src && mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
@@ -437,7 +441,7 @@ static void deformVertsEM(
 {
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
-	meshdeformModifier_do(md, ctx->object, mesh_src, vertexCos, numVerts);
+	meshdeformModifier_do(md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src && mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);

@@ -112,7 +112,7 @@ static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = view3d_copybuffer_exec;
-	ot->poll = ED_operator_view3d_active;
+	ot->poll = ED_operator_scene;
 }
 
 static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
@@ -149,7 +149,7 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = view3d_pastebuffer_exec;
-	ot->poll = ED_operator_view3d_active;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -222,7 +222,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
 
 	WM_operatortype_append(VIEW3D_OT_toggle_render);
-	WM_operatortype_append(VIEW3D_OT_toggle_see_through_draw_option);
+	WM_operatortype_append(VIEW3D_OT_toggle_xray_draw_option);
 
 	WM_operatortype_append(VIEW3D_OT_ruler_add);
 
@@ -409,7 +409,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "value_2", "TEXTURED");
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_render", ZKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_see_through_draw_option", ZKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_xray_draw_option", ZKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", ZKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.use_occlude_geometry");

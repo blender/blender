@@ -129,9 +129,9 @@ bool BKE_camera_view_frame_fit_to_scene(
         struct Scene *scene, struct ViewLayer *view_layer, struct Object *camera_ob,
         float r_co[3], float *r_scale);
 bool BKE_camera_view_frame_fit_to_coords(
-        const struct Scene *scene,
+        const struct Depsgraph *depsgraph,
         const float (*cos)[3], int num_cos,
-        const struct Object *camera_ob,
+        struct Object *camera_ob,
         float r_co[3], float *r_scale);
 
 void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_settings);
@@ -139,11 +139,11 @@ void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_set
 /* Camera multi-view API */
 
 struct Object *BKE_camera_multiview_render(struct Scene *scene, struct Object *camera, const char *viewname);
-void           BKE_camera_multiview_view_matrix(struct RenderData *rd, struct Object *camera, const bool is_left, float r_viewmat[4][4]);
-void           BKE_camera_multiview_model_matrix(struct RenderData *rd, struct Object *camera, const char *viewname, float r_modelmat[4][4]);
-float          BKE_camera_multiview_shift_x(struct RenderData *rd, struct Object *camera, const char *viewname);
-void           BKE_camera_multiview_params(struct RenderData *rd, struct CameraParams *params, struct Object *camera, const char *viewname);
-bool           BKE_camera_multiview_spherical_stereo(struct RenderData *rd, struct Object *camera);
+void           BKE_camera_multiview_view_matrix(struct RenderData *rd, const struct Object *camera, const bool is_left, float r_viewmat[4][4]);
+void           BKE_camera_multiview_model_matrix(struct RenderData *rd, const struct Object *camera, const char *viewname, float r_modelmat[4][4]);
+float          BKE_camera_multiview_shift_x(struct RenderData *rd, const struct Object *camera, const char *viewname);
+void           BKE_camera_multiview_params(struct RenderData *rd, struct CameraParams *params, const struct Object *camera, const char *viewname);
+bool           BKE_camera_multiview_spherical_stereo(struct RenderData *rd, const struct Object *camera);
 
 /* Camera background image API */
 struct CameraBGImage *BKE_camera_background_image_new(struct Camera *cam);

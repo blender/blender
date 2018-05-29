@@ -614,7 +614,7 @@ bool BKE_collection_object_remove(Main *bmain, Collection *collection, Object *o
 		return false;
 	}
 
-	if (collection_object_remove(bmain, collection, ob, free_us)) {
+	if (!collection_object_remove(bmain, collection, ob, free_us)) {
 		return false;
 	}
 

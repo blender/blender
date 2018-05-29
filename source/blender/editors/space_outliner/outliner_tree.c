@@ -153,6 +153,9 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 				}
 			}
 		}
+		else if (soops->treehash) {
+			BKE_outliner_treehash_clear_used(soops->treehash);
+		}
 	}
 }
 
@@ -813,8 +816,11 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		}
 		case ID_GR:
 		{
-			Collection *collection = (Collection *)id;
-			outliner_add_collection_recursive(soops, collection, te);
+			/* Don't expand for instances, creates too many elements. */
+			if (!(te->parent && te->parent->idcode == ID_OB)) {
+				Collection *collection = (Collection *)id;
+				outliner_add_collection_recursive(soops, collection, te);
+			}
 		}
 		default:
 			break;
@@ -1180,15 +1186,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 
 	return te;
-}
-
-/**
- * \note Really only removes \a tselem, not it's TreeElement instance or any children.
- */
-void outliner_remove_treestore_element(SpaceOops *soops, TreeStoreElem *tselem)
-{
-	BKE_outliner_treehash_remove_element(soops->treehash, tselem);
-	BLI_mempool_free(soops->treestore, tselem);
 }
 
 /* ======================================================= */

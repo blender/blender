@@ -162,10 +162,24 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 			light->axisu = transform_get_column(&tfm, 0);
 			light->axisv = transform_get_column(&tfm, 1);
 			light->sizeu = b_area_lamp.size();
-			if(b_area_lamp.shape() == BL::AreaLamp::shape_RECTANGLE)
-				light->sizev = b_area_lamp.size_y();
-			else
-				light->sizev = light->sizeu;
+			switch(b_area_lamp.shape()) {
+				case BL::AreaLamp::shape_SQUARE:
+					light->sizev = light->sizeu;
+					light->round = false;
+					break;
+				case BL::AreaLamp::shape_RECTANGLE:
+					light->sizev = b_area_lamp.size_y();
+					light->round = false;
+					break;
+				case BL::AreaLamp::shape_DISK:
+					light->sizev = light->sizeu;
+					light->round = true;
+					break;
+				case BL::AreaLamp::shape_ELLIPSE:
+					light->sizev = b_area_lamp.size_y();
+					light->round = true;
+					break;
+			}
 			light->type = LIGHT_AREA;
 			break;
 		}
