@@ -1428,6 +1428,36 @@ class PARTICLE_PT_textures(ParticleButtonsPanel, Panel):
             layout.template_ID(slot, "texture", new="texture.new")
 
 
+class PARTICLE_PT_hair_shape(ParticleButtonsPanel, Panel):
+    bl_label = "Hair Shape"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.particle_system is None:
+            return False
+        return particle_panel_poll(cls, context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        part = psys.settings
+
+        row = layout.row()
+        row.prop(part, "shape", text="Shape")
+
+        layout.label(text="Thickness:")
+        row = layout.row()
+        row.prop(part, "root_radius", text="Root")
+        row.prop(part, "tip_radius", text="Tip")
+
+        row = layout.row()
+        row.prop(part, "radius_scale", text="Scaling")
+        row.prop(part, "use_close_tip")
+
+
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     _context_path = "particle_system.settings"
@@ -1449,6 +1479,7 @@ classes = (
     PARTICLE_PT_render,
     PARTICLE_PT_draw,
     PARTICLE_PT_children,
+    PARTICLE_PT_hair_shape,
     PARTICLE_PT_field_weights,
     PARTICLE_PT_force_fields,
     PARTICLE_PT_vertexgroups,

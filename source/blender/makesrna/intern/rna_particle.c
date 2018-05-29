@@ -3147,6 +3147,38 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Twist Curve", "Curve defining twist");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	/* hair shape */
+	prop = RNA_def_property(srna, "use_close_tip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shape_flag", PART_SHAPE_CLOSE_TIP);
+	RNA_def_property_ui_text(prop, "Close Tip", "Set tip radius to zero");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
+
+	prop = RNA_def_property(srna, "shape", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Shape", "Strand shape parameter");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
+
+	prop = RNA_def_property(srna, "root_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rad_root");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Root", "Strand width at the root");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
+
+	prop = RNA_def_property(srna, "tip_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rad_tip");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Tip", "Strand width at the tip");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
+
+	prop = RNA_def_property(srna, "radius_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rad_scale");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Scaling", "Multiplier of radius properties.");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
 }
 
 static void rna_def_particle_target(BlenderRNA *brna)

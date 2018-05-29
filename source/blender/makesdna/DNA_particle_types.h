@@ -255,12 +255,18 @@ typedef struct ParticleSettings {
 
 	/* modified dm support */
 	short use_modifier_stack;
-
 	short pad5;
-	int pad8;
 
-	float twist;
-	float pad6;
+	/* hair shape */
+	short shape_flag;
+	short pad6;
+
+	float twist, pad8;
+
+	/* hair thickness shape */
+	float shape;
+	float rad_root, rad_tip, rad_scale;
+
 	struct CurveMapping *twistcurve;
 	void *pad7;
 } ParticleSettings;
@@ -448,6 +454,11 @@ typedef enum eParticleChildFlag {
 	PART_CHILD_USE_ROUGH_CURVE  = (1<<2),
 	PART_CHILD_USE_TWIST_CURVE  = (1<<3),
 } eParticleChildFlag;
+
+/* part->shape_flag */
+typedef enum eParticleShapeFlag {
+	PART_SHAPE_CLOSE_TIP     = (1<<0),
+} eParticleShapeFlag;
 
 /* part->draw_col */
 #define PART_DRAW_COL_NONE		0

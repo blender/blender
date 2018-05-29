@@ -3169,6 +3169,12 @@ static void default_particle_settings(ParticleSettings *part)
 	part->omat = 1;
 	part->use_modifier_stack = false;
 	part->draw_size = 0.1f;
+
+	part->shape_flag = PART_SHAPE_CLOSE_TIP;
+	part->shape = 0.0f;
+	part->rad_root = 1.0f;
+	part->rad_tip = 0.0f;
+	part->rad_scale = 0.01f;
 }
 
 

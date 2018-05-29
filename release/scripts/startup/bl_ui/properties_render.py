@@ -710,6 +710,26 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
+class RENDER_PT_hair(RenderButtonsPanel, Panel):
+    bl_label = "Hair"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        rd = scene.render
+
+        row = layout.row()
+        row.prop(rd, "hair_type", expand=True)
+
+        layout.prop(rd, "hair_subdiv")
+
+
 classes = (
     RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
@@ -722,6 +742,7 @@ classes = (
     RENDER_PT_encoding,
     RENDER_UL_renderviews,
     RENDER_PT_stereoscopy,
+    RENDER_PT_hair,
     RENDER_PT_clay_settings,
     RENDER_PT_eevee_sampling,
     RENDER_PT_eevee_film,

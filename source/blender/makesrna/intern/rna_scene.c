@@ -4817,7 +4817,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-
+	static const EnumPropertyItem hair_shape_type_items[] = {
+		{SCE_HAIR_SHAPE_STRAND, "STRAND", 0, "Strand", ""},
+		{SCE_HAIR_SHAPE_STRIP, "STRIP", 0, "Strip", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	rna_def_scene_ffmpeg_settings(brna);
 
@@ -5016,7 +5020,18 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "mblur_shutter_curve");
 	RNA_def_property_struct_type(prop, "CurveMapping");
 	RNA_def_property_ui_text(prop, "Shutter Curve", "Curve defining the shutter's openness over time");
-	
+
+	/* Hairs */
+	prop = RNA_def_property(srna, "hair_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, hair_shape_type_items);
+	RNA_def_property_ui_text(prop, "Hair Shape Type", "Hair shape type");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
+
+	prop = RNA_def_property(srna, "hair_subdiv", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 3);
+	RNA_def_property_ui_text(prop, "Additional Subdiv", "Additional subdivision along the hair");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
+
 	/* border */
 	prop = RNA_def_property(srna, "use_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_BORDER);
