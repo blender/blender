@@ -3963,7 +3963,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 			else {
-				BKE_tracking_get_camera_object_matrix(cob->scene, camob_eval, mat);
+				BKE_tracking_get_camera_object_matrix(depsgraph, cob->scene, camob_eval, mat);
 
 				mul_m4_m4m4(cob->matrix, obmat, mat);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
@@ -3975,7 +3975,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 		float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
 		float len, d;
 
-		BKE_object_where_is_calc_mat4(scene, camob_eval, mat);
+		BKE_object_where_is_calc_mat4(depsgraph, scene, camob_eval, mat);
 
 		/* camera axis */
 		vec[0] = 0.0f;
@@ -4238,7 +4238,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 			float ctime = DEG_get_ctime(depsgraph);
 			float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
-			BKE_object_where_is_calc_mat4(scene, camob, cammat);
+			BKE_object_where_is_calc_mat4(depsgraph, scene, camob, cammat);
 
 			BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
 

@@ -32,6 +32,7 @@
  *  \author Sergey Sharybin
  */
 
+struct Depsgraph;
 struct bGPDlayer;
 struct ImBuf;
 struct ListBase;
@@ -61,7 +62,8 @@ struct ListBase *BKE_tracking_get_active_plane_tracks(struct MovieTracking *trac
 struct MovieTrackingReconstruction *BKE_tracking_get_active_reconstruction(struct MovieTracking *tracking);
 
 /* matrices for constraints and drawing */
-void BKE_tracking_get_camera_object_matrix(struct Scene *scene, struct Object *ob, float mat[4][4]);
+void BKE_tracking_get_camera_object_matrix(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float mat[4][4]);
 void BKE_tracking_get_projection_matrix(struct MovieTracking *tracking, struct MovieTrackingObject *object,
                                         int framenr, int winx, int winy, float mat[4][4]);
 

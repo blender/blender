@@ -142,7 +142,7 @@ struct Base **BKE_object_pose_base_array_get_unique(struct ViewLayer *view_layer
 struct Base **BKE_object_pose_base_array_get(struct ViewLayer *view_layer, unsigned int *r_bases_len);
 
 void BKE_object_get_parent_matrix(
-        struct Scene *scene, struct Object *ob,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
         struct Object *par, float parentmat[4][4]);
 void BKE_object_where_is_calc(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
@@ -154,7 +154,8 @@ void BKE_object_where_is_calc_time(
 void BKE_object_where_is_calc_time_ex(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime,
         struct RigidBodyWorld *rbw, float r_originmat[3][3]);
-void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float obmat[4][4]);
+void BKE_object_where_is_calc_mat4(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float obmat[4][4]);
 
 /* possibly belong in own moduke? */
 struct BoundBox *BKE_boundbox_alloc_unit(void);

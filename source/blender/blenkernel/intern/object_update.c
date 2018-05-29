@@ -95,7 +95,7 @@ void BKE_object_eval_parent(Depsgraph *depsgraph,
 	copy_m4_m4(locmat, ob->obmat);
 
 	/* get parent effect matrix */
-	BKE_object_get_parent_matrix(scene, ob, par, totmat);
+	BKE_object_get_parent_matrix(depsgraph, scene, ob, par, totmat);
 
 	/* total */
 	mul_m4_m4m4(tmat, totmat, ob->parentinv);

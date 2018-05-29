@@ -524,7 +524,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 /* **************************************************** */
 
-static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
+static void bundle_midpoint(Depsgraph *depsgraph, Scene *scene, Object *ob, float vec[3])
 {
 	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
 	MovieTracking *tracking;
@@ -539,7 +539,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 	copy_m4_m4(cammat, ob->obmat);
 
-	BKE_tracking_get_camera_object_matrix(scene, ob, mat);
+	BKE_tracking_get_camera_object_matrix(depsgraph, scene, ob, mat);
 
 	INIT_MINMAX(min, max);
 
@@ -578,7 +578,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 {
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -650,7 +650,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 				if (ob_eval->type == OB_CAMERA) {
 					/* snap to bundles should happen only when bundles are visible */
 					if (v3d->flag2 & V3D_SHOW_RECONSTRUCTION) {
-						bundle_midpoint(scene, DEG_get_original_object(ob_eval), vec);
+						bundle_midpoint(depsgraph, scene, DEG_get_original_object(ob_eval), vec);
 					}
 				}
 
