@@ -1410,37 +1410,6 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
         col.prop(cscene, "debug_bvh_type")
 
 
-class CYCLES_PARTICLE_PT_curve_settings(CyclesButtonsPanel, Panel):
-    bl_label = "Cycles Hair Settings"
-    bl_context = "particle"
-
-    @classmethod
-    def poll(cls, context):
-        scene = context.scene
-        ccscene = scene.cycles_curves
-        psys = context.particle_system
-        use_curves = ccscene.use_curves and psys
-        return CyclesButtonsPanel.poll(context) and use_curves and psys.settings.type == 'HAIR'
-
-    def draw(self, context):
-        layout = self.layout
-
-        psys = context.particle_settings
-        cpsys = psys.cycles
-
-        row = layout.row()
-        row.prop(cpsys, "shape", text="Shape")
-
-        layout.label(text="Thickness:")
-        row = layout.row()
-        row.prop(cpsys, "root_width", text="Root")
-        row.prop(cpsys, "tip_width", text="Tip")
-
-        row = layout.row()
-        row.prop(cpsys, "radius_scale", text="Scaling")
-        row.prop(cpsys, "use_closetip", text="Close tip")
-
-
 class CYCLES_SCENE_PT_simplify(CyclesButtonsPanel, Panel):
     bl_label = "Simplify"
     bl_context = "scene"
@@ -1596,7 +1565,6 @@ classes = (
     CYCLES_MATERIAL_PT_viewport,
     CYCLES_RENDER_PT_bake,
     CYCLES_RENDER_PT_debug,
-    CYCLES_PARTICLE_PT_curve_settings,
     CYCLES_SCENE_PT_simplify,
 )
 

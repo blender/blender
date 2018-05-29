@@ -1330,49 +1330,6 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         del bpy.types.ViewLayer.cycles
 
 
-class CyclesCurveSettings(bpy.types.PropertyGroup):
-    @classmethod
-    def register(cls):
-        bpy.types.ParticleSettings.cycles = PointerProperty(
-                name="Cycles Hair Settings",
-                description="Cycles hair settings",
-                type=cls,
-                )
-        cls.radius_scale = FloatProperty(
-                name="Radius Scaling",
-                description="Multiplier of width properties",
-                min=0.0, max=1000.0,
-                default=0.01,
-                )
-        cls.root_width = FloatProperty(
-                name="Root Size",
-                description="Strand's width at root",
-                min=0.0, max=1000.0,
-                default=1.0,
-                )
-        cls.tip_width = FloatProperty(
-                name="Tip Multiplier",
-                description="Strand's width at tip",
-                min=0.0, max=1000.0,
-                default=0.0,
-                )
-        cls.shape = FloatProperty(
-                name="Strand Shape",
-                description="Strand shape parameter",
-                min=-1.0, max=1.0,
-                default=0.0,
-                )
-        cls.use_closetip = BoolProperty(
-                name="Close tip",
-                description="Set tip radius to zero",
-                default=True,
-                )
-
-    @classmethod
-    def unregister(cls):
-        del bpy.types.ParticleSettings.cycles
-
-
 class CyclesDeviceSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
@@ -1503,7 +1460,6 @@ def register():
     bpy.utils.register_class(CyclesMeshSettings)
     bpy.utils.register_class(CyclesObjectSettings)
     bpy.utils.register_class(CyclesCurveRenderSettings)
-    bpy.utils.register_class(CyclesCurveSettings)
     bpy.utils.register_class(CyclesDeviceSettings)
     bpy.utils.register_class(CyclesPreferences)
     bpy.utils.register_class(CyclesRenderLayerSettings)
@@ -1519,7 +1475,6 @@ def unregister():
     bpy.utils.unregister_class(CyclesObjectSettings)
     bpy.utils.unregister_class(CyclesVisibilitySettings)
     bpy.utils.unregister_class(CyclesCurveRenderSettings)
-    bpy.utils.unregister_class(CyclesCurveSettings)
     bpy.utils.unregister_class(CyclesDeviceSettings)
     bpy.utils.unregister_class(CyclesPreferences)
     bpy.utils.unregister_class(CyclesRenderLayerSettings)

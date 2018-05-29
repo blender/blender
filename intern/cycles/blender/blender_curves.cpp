@@ -149,18 +149,16 @@ static bool ObtainCacheParticleData(Mesh *mesh,
 				if(b_part.kink() == BL::ParticleSettings::kink_SPIRAL)
 					ren_step += b_part.kink_extra_steps();
 
-				PointerRNA cpsys = RNA_pointer_get(&b_part.ptr, "cycles");
-
 				CData->psys_firstcurve.push_back_slow(curvenum);
 				CData->psys_curvenum.push_back_slow(totcurves);
 				CData->psys_shader.push_back_slow(shader);
 
-				float radius = get_float(cpsys, "radius_scale") * 0.5f;
+				float radius = b_part.radius_scale() * 0.5f;
 
-				CData->psys_rootradius.push_back_slow(radius * get_float(cpsys, "root_width"));
-				CData->psys_tipradius.push_back_slow(radius * get_float(cpsys, "tip_width"));
-				CData->psys_shape.push_back_slow(get_float(cpsys, "shape"));
-				CData->psys_closetip.push_back_slow(get_boolean(cpsys, "use_closetip"));
+				CData->psys_rootradius.push_back_slow(radius * b_part.root_radius());
+				CData->psys_tipradius.push_back_slow(radius * b_part.tip_radius());
+				CData->psys_shape.push_back_slow(b_part.shape());
+				CData->psys_closetip.push_back_slow(b_part.use_close_tip());
 
 				int pa_no = 0;
 				if(!(b_part.child_type() == 0) && totchild != 0)
