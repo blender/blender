@@ -48,7 +48,8 @@ class NODE_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        layout.prop(snode, "tree_type", text="")
+        # Now expanded via the 'ui_type'
+        # layout.prop(snode, "tree_type", text="")
 
         NODE_MT_editor_menus.draw_collapsible(context, layout)
 

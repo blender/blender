@@ -54,6 +54,8 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -942,6 +944,32 @@ static void node_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID 
 	}
 }
 
+
+static int node_space_subtype_get(ScrArea *sa)
+{
+	SpaceNode *snode = sa->spacedata.first;
+	return rna_node_tree_idname_to_enum(snode->tree_idname);
+}
+
+static void node_space_subtype_set(ScrArea *sa, int value)
+{
+	SpaceNode *snode = sa->spacedata.first;
+	ED_node_set_tree_type(snode, rna_node_tree_type_from_enum(value));
+}
+
+static void node_space_subtype_item_extend(
+        bContext *C, EnumPropertyItem **item, int *totitem)
+{
+	bool free;
+	const EnumPropertyItem *item_src = RNA_enum_node_tree_types_itemf_impl(C, &free);
+	for (const EnumPropertyItem *item_iter = item_src; item_iter->identifier; item_iter++) {
+		RNA_enum_item_add(item, totitem, item_iter);
+	}
+	if (free) {
+		MEM_freeN((void *)item_src);
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_node(void)
 {
@@ -963,6 +991,10 @@ void ED_spacetype_node(void)
 	st->dropboxes = node_dropboxes;
 	st->manipulators = node_widgets;
 	st->id_remap = node_id_remap;
+
+	st->space_subtype_item_extend = node_space_subtype_item_extend;
+	st->space_subtype_get = node_space_subtype_get;
+	st->space_subtype_set = node_space_subtype_set;
 
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype node region");

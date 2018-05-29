@@ -114,6 +114,10 @@ typedef struct SpaceType {
 	/* Used when we want to replace an ID by another (or NULL). */
 	void (*id_remap)(struct ScrArea *, struct SpaceLink *, struct ID *, struct ID *);
 
+	int  (*space_subtype_get)(struct ScrArea *sa);
+	void (*space_subtype_set)(struct ScrArea *sa, int value);
+	void (*space_subtype_item_extend)(struct bContext *C, EnumPropertyItem **item, int *totitem);
+
 	/* region type definitions */
 	ListBase regiontypes;
 	

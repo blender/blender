@@ -1753,7 +1753,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	RNA_pointer_create(&(scr->id), &RNA_Area, sa, &areaptr);
 
 	uiDefButR(block, UI_BTYPE_MENU, 0, "", xco, yco, 1.6 * U.widget_unit, U.widget_unit,
-	          &areaptr, "type", 0, 0.0f, 0.0f, 0.0f, 0.0f, "");
+	          &areaptr, "ui_type", 0, 0.0f, 0.0f, 0.0f, 0.0f, "");
 
 	return xco + 1.7 * U.widget_unit;
 }
