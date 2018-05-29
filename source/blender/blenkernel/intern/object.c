@@ -1694,7 +1694,7 @@ void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4])
 int enable_cu_speed = 1;
 
 /**
- * \param scene: Used when curve cache needs to be calculated, or for dupli-frame time.
+ * \param depsgraph: Used for dupli-frame time.
  * \return success if \a mat is set.
  */
 static bool ob_parcurve(Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob, Object *par, float mat[4][4])
