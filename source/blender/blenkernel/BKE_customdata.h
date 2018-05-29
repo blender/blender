@@ -67,12 +67,14 @@ extern const CustomDataMask CD_MASK_EVERYTHING;
  * CD_NUMTYPES elements, that indicate if a layer can be copied. */
 
 /* add/copy/merge allocation types */
-#define CD_ASSIGN    0  /* use the data pointer */
-#define CD_CALLOC    1  /* allocate blank memory */
-#define CD_DEFAULT   2  /* allocate and set to default */
-#define CD_REFERENCE 3  /* use data pointers, set layer flag NOFREE */
-#define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
-                         * has same number of elements */
+typedef enum CDAllocType {
+	CD_ASSIGN    = 0,  /* use the data pointer */
+	CD_CALLOC    = 1,  /* allocate blank memory */
+	CD_DEFAULT   = 2,  /* allocate and set to default */
+	CD_REFERENCE = 3,  /* use data pointers, set layer flag NOFREE */
+	CD_DUPLICATE = 4,  /* do a full copy of all layers, only allowed if source
+	                    * has same number of elements */
+} CDAllocType;
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
