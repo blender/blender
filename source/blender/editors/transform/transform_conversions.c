@@ -810,13 +810,18 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 		}
 	}
 
-	/* if there are no translatable bones, do rotation */
-	if (mode == TFM_TRANSLATION && !has_translation) {
-		if (has_rotation) {
-			*out_mode = TFM_ROTATION;
-		}
-		else {
-			*out_mode = TFM_RESIZE;
+	/* only modify transform mode if there are bones here that do something...
+	 * otherwise we get problems when multiple objects are selected
+	 */
+	if (total) {
+		/* if there are no translatable bones, do rotation */
+		if (mode == TFM_TRANSLATION && !has_translation) {
+			if (has_rotation) {
+				*out_mode = TFM_ROTATION;
+			}
+			else {
+				*out_mode = TFM_RESIZE;
+			}
 		}
 	}
 
