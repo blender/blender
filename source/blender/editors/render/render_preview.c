@@ -336,7 +336,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_addtail(&pr_main->mat, mat);
 				
 				if (!BKE_scene_use_new_shading_nodes(scene)) {
-					init_render_material(mat, 0, NULL);     /* call that retrieves mode_l */
+					init_render_material(bmain, mat, 0, NULL);     /* call that retrieves mode_l */
 					end_render_material(mat);
 					
 					/* un-useful option */

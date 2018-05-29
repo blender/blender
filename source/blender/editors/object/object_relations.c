@@ -1570,7 +1570,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						ob_dst->data = obdata_id;
 
 						/* if amount of material indices changed: */
-						test_object_materials(ob_dst, ob_dst->data);
+						test_object_materials(bmain, ob_dst, ob_dst->data);
 
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 						break;
@@ -1578,7 +1578,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						/* new approach, using functions from kernel */
 						for (a = 0; a < ob_src->totcol; a++) {
 							Material *ma = give_current_material(ob_src, a + 1);
-							assign_material(ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF); /* also works with ma==NULL */
+							assign_material(bmain, ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF); /* also works with ma==NULL */
 						}
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 						break;
@@ -1978,7 +1978,7 @@ static void single_mat_users(Main *bmain, Scene *scene, const int flag, const bo
 						BKE_animdata_copy_id_action(&man->id, false);
 
 						man->id.us = 0;
-						assign_material(ob, man, a, BKE_MAT_ASSIGN_USERPREF);
+						assign_material(bmain, ob, man, a, BKE_MAT_ASSIGN_USERPREF);
 
 						if (do_textures) {
 							for (b = 0; b < MAX_MTEX; b++) {
@@ -2494,7 +2494,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
 	if (base == NULL || ma == NULL)
 		return OPERATOR_CANCELLED;
 
-	assign_material(base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+	assign_material(CTX_data_main(C), base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
 
 	DAG_id_tag_update(&base->object->id, OB_RECALC_OB);
 

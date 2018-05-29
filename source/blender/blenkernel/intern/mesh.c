@@ -880,7 +880,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
 	else return NULL;
 }
 
-void BKE_mesh_assign_object(Object *ob, Mesh *me)
+void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
 {
 	Mesh *old = NULL;
 
@@ -896,7 +896,7 @@ void BKE_mesh_assign_object(Object *ob, Mesh *me)
 		id_us_plus((ID *)me);
 	}
 	
-	test_object_materials(ob, (ID *)me);
+	test_object_materials(bmain, ob, (ID *)me);
 
 	test_object_modifiers(ob);
 }

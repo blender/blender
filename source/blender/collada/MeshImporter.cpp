@@ -1077,7 +1077,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	// Attention! This temporaly assigns material to object on purpose!
 	// See note above.
 	ob->actcol=0;
-	assign_material(ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT); 
+	assign_material(G.main, ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT);
 	
 	COLLADAFW::TextureCoordinateBindingArray& tex_array = 
 	    cmaterial.getTextureCoordinateBindingArray();
@@ -1172,7 +1172,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	Mesh *old_mesh = (Mesh *)ob->data;
 	Mesh *new_mesh = uid_mesh_map[*geom_uid];
 
-	BKE_mesh_assign_object(ob, new_mesh);
+	BKE_mesh_assign_object(G.main, ob, new_mesh);
 	BKE_mesh_calc_normals(new_mesh);
 
 	id_us_plus(&old_mesh->id);  /* Because BKE_mesh_assign_object would have already decreased it... */

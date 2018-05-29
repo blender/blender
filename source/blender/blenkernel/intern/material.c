@@ -501,7 +501,7 @@ Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data
 
 				(*totcol)--;
 				*matar = MEM_reallocN(*matar, sizeof(void *) * (*totcol));
-				test_all_objects_materials(G.main, id);
+				test_all_objects_materials(bmain, id);
 			}
 
 			if (update_data) {
@@ -634,7 +634,7 @@ void BKE_material_resize_object(Main *bmain, Object *ob, const short totcol, boo
 	DAG_relations_tag_update(bmain);
 }
 
-void test_object_materials(Object *ob, ID *id)
+void test_object_materials(Main *bmain, Object *ob, ID *id)
 {
 	/* make the ob mat-array same size as 'ob->data' mat-array */
 	const short *totcol;
@@ -643,7 +643,7 @@ void test_object_materials(Object *ob, ID *id)
 		return;
 	}
 
-	BKE_material_resize_object(G.main, ob, *totcol, false);
+	BKE_material_resize_object(bmain, ob, *totcol, false);
 }
 
 void test_all_objects_materials(Main *bmain, ID *id)
@@ -665,7 +665,7 @@ void test_all_objects_materials(Main *bmain, ID *id)
 	BKE_main_unlock(bmain);
 }
 
-void assign_material_id(ID *id, Material *ma, short act)
+void assign_material_id(Main *bmain, ID *id, Material *ma, short act)
 {
 	Material *mao, **matar, ***matarar;
 	short *totcolp;
@@ -709,10 +709,10 @@ void assign_material_id(ID *id, Material *ma, short act)
 	if (ma)
 		id_us_plus(&ma->id);
 
-	test_all_objects_materials(G.main, id);
+	test_all_objects_materials(bmain, id);
 }
 
-void assign_material(Object *ob, Material *ma, short act, int assign_type)
+void assign_material(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
 {
 	Material *mao, **matar, ***matarar;
 	short *totcolp;
@@ -784,14 +784,14 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 		if (mao)
 			id_us_min(&mao->id);
 		ob->mat[act - 1] = ma;
-		test_object_materials(ob, ob->data);
+		test_object_materials(bmain, ob, ob->data);
 	}
 	else {  /* in data */
 		mao = (*matarar)[act - 1];
 		if (mao)
 			id_us_min(&mao->id);
 		(*matarar)[act - 1] = ma;
-		test_all_objects_materials(G.main, ob->data);  /* Data may be used by several objects... */
+		test_all_objects_materials(bmain, ob->data);  /* Data may be used by several objects... */
 	}
 
 	if (ma)
@@ -884,20 +884,20 @@ void BKE_material_remap_object_calc(
 
 
 /* XXX - this calls many more update calls per object then are needed, could be optimized */
-void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
+void assign_matarar(Main *bmain, struct Object *ob, struct Material ***matar, short totcol)
 {
 	int actcol_orig = ob->actcol;
 	short i;
 
 	while ((ob->totcol > totcol) &&
-	       BKE_object_material_slot_remove(ob))
+	       BKE_object_material_slot_remove(bmain, ob))
 	{
 		/* pass */
 	}
 
 	/* now we have the right number of slots */
 	for (i = 0; i < totcol; i++)
-		assign_material(ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
+		assign_material(bmain, ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
 
 	if (actcol_orig > ob->totcol)
 		actcol_orig = ob->totcol;
@@ -926,17 +926,17 @@ short BKE_object_material_slot_find_index(Object *ob, Material *ma)
 	return 0;
 }
 
-bool BKE_object_material_slot_add(Object *ob)
+bool BKE_object_material_slot_add(Main *bmain, Object *ob)
 {
 	if (ob == NULL) return false;
 	if (ob->totcol >= MAXMAT) return false;
 	
-	assign_material(ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
+	assign_material(bmain, ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 	ob->actcol = ob->totcol;
 	return true;
 }
 
-static void do_init_render_material(Material *ma, int r_mode, float *amb)
+static void do_init_render_material(Main *bmain, Material *ma, int r_mode, float *amb)
 {
 	MTex *mtex;
 	int a, needuv = 0, needtang = 0;
@@ -995,7 +995,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	if ((ma->shade_flag & MA_GROUP_LOCAL) && ma->id.lib && ma->group && ma->group->id.lib) {
 		Group *group;
 
-		for (group = G.main->group.first; group; group = group->id.next) {
+		for (group = bmain->group.first; group; group = group->id.next) {
 			if (!ID_IS_LINKED(group) && STREQ(group->id.name, ma->group->id.name)) {
 				ma->group = group;
 			}
@@ -1003,7 +1003,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	}
 }
 
-static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
+static void init_render_nodetree(Main *bmain, bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
 {
 	bNode *node;
 
@@ -1014,7 +1014,7 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 			if (GS(node->id->name) == ID_MA) {
 				Material *ma = (Material *)node->id;
 				if (ma != basemat) {
-					do_init_render_material(ma, r_mode, amb);
+					do_init_render_material(bmain, ma, r_mode, amb);
 					basemat->texco |= ma->texco;
 				}
 
@@ -1028,7 +1028,7 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 					basemat->mode_l |= MA_STR_SURFDIFF;
 			}
 			else if (node->type == NODE_GROUP)
-				init_render_nodetree((bNodeTree *)node->id, basemat, r_mode, amb);
+				init_render_nodetree(bmain, (bNodeTree *)node->id, basemat, r_mode, amb);
 		}
 		else if (node->typeinfo->type == SH_NODE_NORMAL_MAP) {
 			basemat->mode2_l |= MA_TANGENT_CONCRETE;
@@ -1048,10 +1048,10 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 	}
 }
 
-void init_render_material(Material *mat, int r_mode, float *amb)
+void init_render_material(Main *bmain, Material *mat, int r_mode, float *amb)
 {
 	
-	do_init_render_material(mat, r_mode, amb);
+	do_init_render_material(bmain, mat, r_mode, amb);
 	
 	if (mat->nodetree && mat->use_nodes) {
 		/* mode_l will take the pipeline options from the main material, and the or-ed
@@ -1060,7 +1060,7 @@ void init_render_material(Material *mat, int r_mode, float *amb)
 		mat->mode_l = (mat->mode & MA_MODE_PIPELINE) | MA_SHLESS;
 		mat->mode2_l = mat->mode2 & MA_MODE2_PIPELINE;
 		mat->nmap_tangent_names_count = 0;
-		init_render_nodetree(mat->nodetree, mat, r_mode, amb);
+		init_render_nodetree(bmain, mat->nodetree, mat, r_mode, amb);
 		
 		if (!mat->nodetree->execdata)
 			mat->nodetree->execdata = ntreeShaderBeginExecTree(mat->nodetree);
@@ -1093,11 +1093,11 @@ void init_render_materials(Main *bmain, int r_mode, float *amb, bool do_default_
 		/* is_used flag comes back in convertblender.c */
 		ma->flag &= ~MA_IS_USED;
 		if (ma->id.us) 
-			init_render_material(ma, r_mode, amb);
+			init_render_material(bmain, ma, r_mode, amb);
 	}
 
 	if (do_default_material) {
-		init_render_material(&defmaterial, r_mode, amb);
+		init_render_material(bmain, &defmaterial, r_mode, amb);
 	}
 }
 
@@ -1208,7 +1208,7 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	ma->id.tag &= ~LIB_TAG_DOIT;
 }
 
-bool BKE_object_material_slot_remove(Object *ob)
+bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 {
 	Material *mao, ***matarar;
 	short *totcolp;
@@ -1259,7 +1259,7 @@ bool BKE_object_material_slot_remove(Object *ob)
 	
 	actcol = ob->actcol;
 
-	for (Object *obt = G.main->object.first; obt; obt = obt->id.next) {
+	for (Object *obt = bmain->object.first; obt; obt = obt->id.next) {
 		if (obt->data == ob->data) {
 			/* Can happen when object material lists are used, see: T52953 */
 			if (actcol > obt->totcol) {
@@ -1709,7 +1709,7 @@ void free_matcopybuf(void)
 	matcopied = 0;
 }
 
-void copy_matcopybuf(Material *ma)
+void copy_matcopybuf(Main *bmain, Material *ma)
 {
 	int a;
 	MTex *mtex;
@@ -1727,13 +1727,13 @@ void copy_matcopybuf(Material *ma)
 			matcopybuf.mtex[a] = MEM_dupallocN(mtex);
 		}
 	}
-	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, G.main, false);
+	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, false);
 	matcopybuf.preview = NULL;
 	BLI_listbase_clear(&matcopybuf.gpumaterial);
 	matcopied = 1;
 }
 
-void paste_matcopybuf(Material *ma)
+void paste_matcopybuf(Main *bmain, Material *ma)
 {
 	int a;
 	MTex *mtex;
@@ -1772,7 +1772,7 @@ void paste_matcopybuf(Material *ma)
 			ma->mtex[a] = MEM_dupallocN(mtex);
 			if (mtex->tex) {
 				/* first check this is in main (we may have loaded another file) [#35500] */
-				if (BLI_findindex(&G.main->tex, mtex->tex) != -1) {
+				if (BLI_findindex(&bmain->tex, mtex->tex) != -1) {
 					id_us_plus((ID *)mtex->tex);
 				}
 				else {
@@ -1782,7 +1782,7 @@ void paste_matcopybuf(Material *ma)
 		}
 	}
 
-	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, G.main, false);
+	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
 }
 
 
@@ -1921,9 +1921,9 @@ static short mesh_getmaterialnumber(Mesh *me, Material *ma)
 }
 
 /* append material */
-static short mesh_addmaterial(Mesh *me, Material *ma)
+static short mesh_addmaterial(Main *bmain, Mesh *me, Material *ma)
 {
-	BKE_material_append_id(G.main, &me->id, NULL);
+	BKE_material_append_id(bmain, &me->id, NULL);
 	me->mat[me->totcol - 1] = ma;
 
 	id_us_plus(&ma->id);
@@ -1943,7 +1943,7 @@ static void set_facetexture_flags(Material *ma, Image *image)
 }
 
 /* returns material number */
-static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
+static short convert_tfacenomaterial(Main *bmain, Mesh *me, MTFace *tf, int flag)
 {
 	Material *ma;
 	char idname[MAX_ID_NAME];
@@ -1952,21 +1952,21 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 	/* new material, the name uses the flag*/
 	BLI_snprintf(idname, sizeof(idname), "MAMaterial.TF.%0*d", integer_getdigits(flag), flag);
 
-	if ((ma = BLI_findstring(&main->mat, idname + 2, offsetof(ID, name) + 2))) {
+	if ((ma = BLI_findstring(&bmain->mat, idname + 2, offsetof(ID, name) + 2))) {
 		mat_nr = mesh_getmaterialnumber(me, ma);
 		/* assign the material to the mesh */
-		if (mat_nr == -1) mat_nr = mesh_addmaterial(me, ma);
+		if (mat_nr == -1) mat_nr = mesh_addmaterial(bmain, me, ma);
 
 		/* if needed set "Face Textures [Alpha]" Material options */
 		set_facetexture_flags(ma, tf->tpage);
 	}
 	/* create a new material */
 	else {
-		ma = BKE_material_add(main, idname + 2);
+		ma = BKE_material_add(bmain, idname + 2);
 
 		if (ma) {
 			printf("TexFace Convert: Material \"%s\" created.\n", idname + 2);
-			mat_nr = mesh_addmaterial(me, ma);
+			mat_nr = mesh_addmaterial(bmain, me, ma);
 			
 			/* if needed set "Face Textures [Alpha]" Material options */
 			set_facetexture_flags(ma, tf->tpage);
@@ -1989,7 +1989,7 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 }
 
 /* Function to fully convert materials */
-static void convert_tfacematerial(Main *main, Material *ma)
+static void convert_tfacematerial(Main *bmain, Material *ma)
 {
 	Mesh *me;
 	Material *mat_new;
@@ -2001,7 +2001,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 	CustomDataLayer *cdl;
 	char idname[MAX_ID_NAME];
 
-	for (me = main->mesh.first; me; me = me->id.next) {
+	for (me = bmain->mesh.first; me; me = me->id.next) {
 		/* check if this mesh uses this material */
 		for (a = 0; a < me->totcol; a++)
 			if (me->mat[a] == ma) break;
@@ -2025,21 +2025,21 @@ static void convert_tfacematerial(Main *main, Material *ma)
 			/* the name of the new material */
 			calculate_tface_materialname(ma->id.name, (char *)&idname, flag);
 
-			if ((mat_new = BLI_findstring(&main->mat, idname + 2, offsetof(ID, name) + 2))) {
+			if ((mat_new = BLI_findstring(&bmain->mat, idname + 2, offsetof(ID, name) + 2))) {
 				/* material already existent, see if the mesh has it */
 				mat_nr = mesh_getmaterialnumber(me, mat_new);
 				/* material is not in the mesh, add it */
-				if (mat_nr == -1) mat_nr = mesh_addmaterial(me, mat_new);
+				if (mat_nr == -1) mat_nr = mesh_addmaterial(bmain, me, mat_new);
 			}
 			/* create a new material */
 			else {
-				mat_new = BKE_material_copy(main, ma);
+				mat_new = BKE_material_copy(bmain, ma);
 				if (mat_new) {
 					/* rename the material*/
 					BLI_strncpy(mat_new->id.name, idname, sizeof(mat_new->id.name));
 					id_us_min((ID *)mat_new);
 
-					mat_nr = mesh_addmaterial(me, mat_new);
+					mat_nr = mesh_addmaterial(bmain, me, mat_new);
 					decode_tfaceflag(mat_new, flag, 1);
 				}
 				else {
@@ -2062,7 +2062,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 		/* remove material from mesh */
 		for (a = 0; a < me->totcol; ) {
 			if (me->mat[a] == ma) {
-				BKE_material_pop_id(main, &me->id, a, true);
+				BKE_material_pop_id(bmain, &me->id, a, true);
 			}
 			else {
 				a++;
