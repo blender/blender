@@ -4533,30 +4533,12 @@ static int space_context_cycle_invoke(bContext *C, wmOperator *op, const wmEvent
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	context_cycle_prop_get(CTX_wm_screen(C), CTX_wm_area(C), &ptr, &prop);
-
-	if (prop) {
-		const int old_context = RNA_property_enum_get(&ptr, prop);
-		const int new_context = RNA_property_enum_step(
-		        C, &ptr, prop, old_context,
-		        direction == SPACE_CONTEXT_CYCLE_PREV ? -1 : 1);
-		RNA_property_enum_set(&ptr, prop, new_context);
-		RNA_property_update(C, &ptr, prop);
-	}
-	else {
-		/* Cycle workspace */
-		Main *bmain = CTX_data_main(C);
-		wmWindow *win = CTX_wm_window(C);
-		if (WM_window_is_temp_screen(win)) {
-			return OPERATOR_CANCELLED;
-		}
-		WorkSpace *workspace_src = WM_window_get_active_workspace(win);
-		WorkSpace *workspace_dst = workspace_src->id.next ? workspace_src->id.next : bmain->workspaces.first;
-		if (workspace_src != workspace_dst) {
-			win->workspace_hook->temp_workspace_store = workspace_dst;
-			WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, workspace_dst);
-			win->workspace_hook->temp_workspace_store = NULL;
-		}
-	}
+	const int old_context = RNA_property_enum_get(&ptr, prop);
+	const int new_context = RNA_property_enum_step(
+	        C, &ptr, prop, old_context,
+	        direction == SPACE_CONTEXT_CYCLE_PREV ? -1 : 1);
+	RNA_property_enum_set(&ptr, prop, new_context);
+	RNA_property_update(C, &ptr, prop);
 
 	return OPERATOR_FINISHED;
 }
