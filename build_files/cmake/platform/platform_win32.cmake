@@ -31,7 +31,12 @@ endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
 	set(MSVC_CLANG On)
-	file(TO_CMAKE_PATH $ENV{VCToolsRedistDir} MSVC_REDIST_DIR)
+	set(MSVC_REDIST_DIR $ENV{VCToolsRedistDir})
+	if (DEFINED MSVC_REDIST_DIR)
+		file(TO_CMAKE_PATH ${MSVC_REDIST_DIR} MSVC_REDIST_DIR)
+	else()
+		message("Unable to detect the Visual Studio redist directory, copying of the runtime dlls will not work, try running from the visual studio developer prompt.")
+	endif()
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ${WINDOWS_USE_VISUAL_STUDIO_FOLDERS})
