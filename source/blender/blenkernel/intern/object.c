@@ -502,15 +502,6 @@ bool BKE_object_is_in_editmode(const Object *ob)
 	return false;
 }
 
-bool BKE_object_is_in_editmode_and_selected(const Object *ob)
-{
-	if ((ob->base_flag & BASE_SELECTED) && (BKE_object_is_in_editmode(ob))) {
-		return true;
-	}
-	return false;
-}
-
-
 bool BKE_object_is_in_editmode_vgroup(const Object *ob)
 {
 	return (OB_TYPE_SUPPORT_VGROUP(ob->type) &&

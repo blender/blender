@@ -239,7 +239,7 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 #if 0
 		if (ob == draw_ctx->object_edit)
 #else
-		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob))
+		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob))
 #endif
 		{
 			Curve *cu = ob->data;

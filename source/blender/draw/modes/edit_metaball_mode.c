@@ -136,7 +136,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		DRWShadingGroup *group = stl->g_data->group;
 
-		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob)) {
+		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob)) {
 			MetaBall *mb = ob->data;
 
 			const float *color;

@@ -1206,8 +1206,7 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
 	}
 
 	while (base) {
-		if ((base->flag & BASE_SELECTED) != 0 &&
-		    (base->object->type == data->base_active->object->type) &&
+		if ((base->object->type == data->base_active->object->type) &&
 		    (base != data->base_active) &&
 		    (base->object->mode & data->object_mode))
 		{

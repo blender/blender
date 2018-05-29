@@ -468,16 +468,16 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	else {
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
 		if ((obact->mode & mode_flag) == 0) {
-			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
+			FOREACH_OBJECT_BEGIN(view_layer, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
 					ED_object_editmode_exit_ex(scene, ob, EM_FREEDATA | EM_WAITCURSOR);
 				}
 			}
-			FOREACH_SELECTED_OBJECT_END;
+			FOREACH_OBJECT_END;
 		}
 	}
-	
+
 	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), scene);
 
 	WM_msg_publish_rna_prop(mbus, &obact->id, obact, Object, mode);
@@ -549,7 +549,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 		if (ok) {
 			struct Main *bmain = CTX_data_main(C);
 			ViewLayer *view_layer = CTX_data_view_layer(C);
-			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
+			FOREACH_OBJECT_BEGIN(view_layer, ob)
 			{
 				if ((ob != obact) &&
 				    (ob->type == OB_ARMATURE) &&
@@ -558,7 +558,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 					ED_object_posemode_exit_ex(bmain, ob);
 				}
 			}
-			FOREACH_SELECTED_OBJECT_END;
+			FOREACH_OBJECT_END;
 		}
 	}
 	else {
