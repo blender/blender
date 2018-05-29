@@ -100,12 +100,13 @@
 
 static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
 
 	if (!ob)
 		return OPERATOR_CANCELLED;
 	
-	BKE_object_material_slot_add(ob);
+	BKE_object_material_slot_add(bmain, ob);
 
 	if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
@@ -148,7 +149,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	BKE_object_material_slot_remove(ob);
+	BKE_object_material_slot_remove(CTX_data_main(C), ob);
 
 	if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
@@ -348,6 +349,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 
 static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
 	Material ***matar;
 
@@ -358,7 +360,7 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		if (ob != ob_iter && give_matarar(ob_iter)) {
 			if (ob->data != ob_iter->data)
-				assign_matarar(ob_iter, matar, ob->totcol);
+				assign_matarar(bmain, ob_iter, matar, ob->totcol);
 			
 			if (ob_iter->totcol == ob->totcol) {
 				ob_iter->actcol = ob->actcol;
@@ -1494,7 +1496,7 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ma == NULL)
 		return OPERATOR_CANCELLED;
 
-	copy_matcopybuf(ma);
+	copy_matcopybuf(CTX_data_main(C), ma);
 
 	return OPERATOR_FINISHED;
 }
@@ -1520,7 +1522,7 @@ static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ma == NULL)
 		return OPERATOR_CANCELLED;
 
-	paste_matcopybuf(ma);
+	paste_matcopybuf(CTX_data_main(C), ma);
 
 	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 

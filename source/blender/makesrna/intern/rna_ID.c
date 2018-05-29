@@ -456,7 +456,7 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
 	short *totcol = give_totcolp_id(id);
 	Material *mat_id = assign_ptr->id.data;
 	if (totcol && (key >= 0 && key < *totcol)) {
-		assign_material_id(id, mat_id, key + 1);
+		assign_material_id(G.main, id, mat_id, key + 1);
 		return 1;
 	}
 	else {

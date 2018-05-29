@@ -2201,6 +2201,7 @@ static int material_drop_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
 	Material *ma = NULL;
 	Object *ob = NULL;
+	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
 	TreeElement *te = NULL;
@@ -2223,7 +2224,7 @@ static int material_drop_invoke(bContext *C, wmOperator *op, const wmEvent *even
 			return OPERATOR_CANCELLED;
 		}
 
-		assign_material(ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
+		assign_material(bmain, ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);

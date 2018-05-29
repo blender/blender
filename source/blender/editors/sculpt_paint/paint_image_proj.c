@@ -5724,14 +5724,15 @@ static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op
 static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	char imagename[MAX_ID_NAME - 2];
+	Main *bmain = CTX_data_main(C);
 	Object *ob = CTX_data_active_object(C);
 	Material *ma = give_current_material(ob, ob->actcol);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (!ma) {
-		ma = BKE_material_add(CTX_data_main(C), "Material");
+		ma = BKE_material_add(bmain, "Material");
 		/* no material found, just assign to first slot */
-		assign_material(ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
+		assign_material(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
 	}
 	
 	type = RNA_enum_from_value(layer_type_items, type);

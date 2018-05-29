@@ -402,7 +402,7 @@ Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data
 
 				(*totcol)--;
 				*matar = MEM_reallocN(*matar, sizeof(void *) * (*totcol));
-				test_all_objects_materials(G.main, id);
+				test_all_objects_materials(bmain, id);
 			}
 
 			if (update_data) {
@@ -535,7 +535,7 @@ void BKE_material_resize_object(Main *bmain, Object *ob, const short totcol, boo
 	DEG_relations_tag_update(bmain);
 }
 
-void test_object_materials(Object *ob, ID *id)
+void test_object_materials(Main *bmain, Object *ob, ID *id)
 {
 	/* make the ob mat-array same size as 'ob->data' mat-array */
 	const short *totcol;
@@ -544,7 +544,7 @@ void test_object_materials(Object *ob, ID *id)
 		return;
 	}
 
-	BKE_material_resize_object(G.main, ob, *totcol, false);
+	BKE_material_resize_object(bmain, ob, *totcol, false);
 }
 
 void test_all_objects_materials(Main *bmain, ID *id)
@@ -566,7 +566,7 @@ void test_all_objects_materials(Main *bmain, ID *id)
 	BKE_main_unlock(bmain);
 }
 
-void assign_material_id(ID *id, Material *ma, short act)
+void assign_material_id(Main *bmain, ID *id, Material *ma, short act)
 {
 	Material *mao, **matar, ***matarar;
 	short *totcolp;
@@ -610,10 +610,10 @@ void assign_material_id(ID *id, Material *ma, short act)
 	if (ma)
 		id_us_plus(&ma->id);
 
-	test_all_objects_materials(G.main, id);
+	test_all_objects_materials(bmain, id);
 }
 
-void assign_material(Object *ob, Material *ma, short act, int assign_type)
+void assign_material(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
 {
 	Material *mao, **matar, ***matarar;
 	short *totcolp;
@@ -685,14 +685,14 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 		if (mao)
 			id_us_min(&mao->id);
 		ob->mat[act - 1] = ma;
-		test_object_materials(ob, ob->data);
+		test_object_materials(bmain, ob, ob->data);
 	}
 	else {  /* in data */
 		mao = (*matarar)[act - 1];
 		if (mao)
 			id_us_min(&mao->id);
 		(*matarar)[act - 1] = ma;
-		test_all_objects_materials(G.main, ob->data);  /* Data may be used by several objects... */
+		test_all_objects_materials(bmain, ob->data);  /* Data may be used by several objects... */
 	}
 
 	if (ma)
@@ -785,20 +785,20 @@ void BKE_material_remap_object_calc(
 
 
 /* XXX - this calls many more update calls per object then are needed, could be optimized */
-void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
+void assign_matarar(Main *bmain, struct Object *ob, struct Material ***matar, short totcol)
 {
 	int actcol_orig = ob->actcol;
 	short i;
 
 	while ((ob->totcol > totcol) &&
-	       BKE_object_material_slot_remove(ob))
+	       BKE_object_material_slot_remove(bmain, ob))
 	{
 		/* pass */
 	}
 
 	/* now we have the right number of slots */
 	for (i = 0; i < totcol; i++)
-		assign_material(ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
+		assign_material(bmain, ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
 
 	if (actcol_orig > ob->totcol)
 		actcol_orig = ob->totcol;
@@ -827,19 +827,19 @@ short BKE_object_material_slot_find_index(Object *ob, Material *ma)
 	return 0;
 }
 
-bool BKE_object_material_slot_add(Object *ob)
+bool BKE_object_material_slot_add(Main *bmain, Object *ob)
 {
 	if (ob == NULL) return false;
 	if (ob->totcol >= MAXMAT) return false;
 	
-	assign_material(ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
+	assign_material(bmain, ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 	ob->actcol = ob->totcol;
 	return true;
 }
 
 /* ****************** */
 
-bool BKE_object_material_slot_remove(Object *ob)
+bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 {
 	Material *mao, ***matarar;
 	short *totcolp;
@@ -890,7 +890,7 @@ bool BKE_object_material_slot_remove(Object *ob)
 	
 	actcol = ob->actcol;
 
-	for (Object *obt = G.main->object.first; obt; obt = obt->id.next) {
+	for (Object *obt = bmain->object.first; obt; obt = obt->id.next) {
 		if (obt->data == ob->data) {
 			/* Can happen when object material lists are used, see: T52953 */
 			if (actcol > obt->totcol) {
@@ -1276,21 +1276,21 @@ void free_matcopybuf(void)
 	matcopied = 0;
 }
 
-void copy_matcopybuf(Material *ma)
+void copy_matcopybuf(Main *bmain, Material *ma)
 {
 	if (matcopied)
 		free_matcopybuf();
 
 	memcpy(&matcopybuf, ma, sizeof(Material));
 
-	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, G.main, false);
+	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, false);
 	matcopybuf.preview = NULL;
 	BLI_listbase_clear(&matcopybuf.gpumaterial);
 	/* TODO Duplicate Engine Settings and set runtime to NULL */
 	matcopied = 1;
 }
 
-void paste_matcopybuf(Material *ma)
+void paste_matcopybuf(Main *bmain, Material *ma)
 {
 	ID id;
 
@@ -1309,7 +1309,7 @@ void paste_matcopybuf(Material *ma)
 	memcpy(ma, &matcopybuf, sizeof(Material));
 	(ma->id) = id;
 
-	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, G.main, false);
+	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
 }
 
 void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)

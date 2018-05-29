@@ -395,8 +395,7 @@ static void libblock_remap_data_postprocess_collection_update(Main *bmain, Colle
 	}
 }
 
-
-static void libblock_remap_data_postprocess_obdata_relink(Main *UNUSED(bmain), Object *ob, ID *new_id)
+static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *ob, ID *new_id)
 {
 	if (ob->data == new_id) {
 		switch (GS(new_id->name)) {
@@ -410,7 +409,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *UNUSED(bmain), O
 				break;
 		}
 		test_object_modifiers(ob);
-		test_object_materials(ob, new_id);
+		test_object_materials(bmain, ob, new_id);
 	}
 }
 

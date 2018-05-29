@@ -838,7 +838,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 		material_index++;
 	} // loop over strokes
 
-	test_object_materials(object_mesh, (ID *)mesh);
+	test_object_materials(freestyle_bmain, object_mesh, (ID *)mesh);
 
 #if 0 // XXX
 	BLI_assert(mesh->totvert == vertex_index);

@@ -47,7 +47,7 @@ struct Scene;
 void init_def_material(void);
 void BKE_material_free(struct Material *ma);
 void BKE_material_free_ex(struct Material *ma, bool do_id_user);
-void test_object_materials(struct Object *ob, struct ID *id);
+void test_object_materials(struct Main *bmain, struct Object *ob, struct ID *id);
 void test_all_objects_materials(struct Main *bmain, struct ID *id);
 void BKE_material_resize_object(struct Main *bmain, struct Object *ob, const short totcol, bool do_id_user);
 void BKE_material_init(struct Material *ma);
@@ -79,13 +79,13 @@ enum {
 };
 
 struct Material *give_current_material(struct Object *ob, short act);
-void assign_material_id(struct ID *id, struct Material *ma, short act);
-void assign_material(struct Object *ob, struct Material *ma, short act, int assign_type);
-void assign_matarar(struct Object *ob, struct Material ***matar, short totcol);
+void assign_material_id(struct Main *bmain, struct ID *id, struct Material *ma, short act);
+void assign_material(struct Main *bmain, struct Object *ob, struct Material *ma, short act, int assign_type);
+void assign_matarar(struct Main *bmain, struct Object *ob, struct Material ***matar, short totcol);
 
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
-bool  BKE_object_material_slot_add(struct Object *ob);
-bool  BKE_object_material_slot_remove(struct Object *ob);
+bool  BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
+bool  BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
 
 void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
 void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
@@ -102,8 +102,8 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
 /* copy/paste */
 void clear_matcopybuf(void);
 void free_matcopybuf(void);
-void copy_matcopybuf(struct Material *ma);
-void paste_matcopybuf(struct Material *ma);
+void copy_matcopybuf(struct Main *bmain, struct Material *ma);
+void paste_matcopybuf(struct Main *bmain, struct Material *ma);
 
 /* Evaluation. */
 

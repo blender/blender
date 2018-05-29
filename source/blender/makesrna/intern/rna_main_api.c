@@ -251,7 +251,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
 	ob = BKE_object_add_only_object(bmain, type, safe_name);
 
 	ob->data = data;
-	test_object_materials(ob, ob->data);
+	test_object_materials(bmain, ob, ob->data);
 
 	return ob;
 }
