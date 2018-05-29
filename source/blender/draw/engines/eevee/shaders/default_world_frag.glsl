@@ -7,7 +7,7 @@ uniform mat4 ViewMatrixInverse;
 #ifdef LOOKDEV
 uniform mat3 StudioLightMatrix;
 uniform sampler2D image;
-uniform float studioLightFadeout = 0.0;
+uniform float studioLightBackground = 1.0;
 in vec3 viewPosition;
 #endif
 uniform vec3 color;
@@ -51,7 +51,7 @@ void main() {
 	vec4 background_color;
 	background_transform_to_world(viewPosition, worldvec);
 	node_tex_environment_equirectangular(StudioLightMatrix * worldvec, image, background_color);
-	background_color.rgb = mix(background_color.rgb, color, studioLightFadeout);
+	background_color.rgb = mix(color, background_color.rgb, studioLightBackground);
 #else
 	vec3 background_color = color;
 #endif

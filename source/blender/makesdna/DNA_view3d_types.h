@@ -145,7 +145,7 @@ typedef struct View3DShading {
 	float single_color[3];
 
 	float studiolight_rot_z;
-	float studiolight_fadeout;
+	float studiolight_background;
 
 	float object_outline_color[3];
 	float pad3;

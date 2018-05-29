@@ -54,6 +54,10 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShad
 			DRW_shgroup_uniform_vec3(*grp, "color", &world->horr, 1);
 			DRW_shgroup_uniform_float(*grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(*grp, geom, NULL);
+			if (!pinfo) {
+				/* Do not fadeout when doing probe rendering, only when drawing the background */
+				DRW_shgroup_uniform_float(*grp, "studioLightBackground", &v3d->shading.studiolight_background, 1);
+			}
 
 			/* Do we need to recalc the lightprobes? */
 			if (pinfo && (pinfo->studiolight_index != sl->index || pinfo->studiolight_rot_z != v3d->shading.studiolight_rot_z)) {
@@ -62,10 +66,6 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShad
 				pinfo->studiolight_rot_z = v3d->shading.studiolight_rot_z;
 				pinfo->prev_wo_sh_compiled = false;
 				pinfo->prev_world = NULL;
-			}
-			else {
-				/* Do not fadeout when doing probe rendering, only when drawing the background */
-				DRW_shgroup_uniform_float(*grp, "studioLightFadeout", &v3d->shading.studiolight_fadeout, 1);
 			}
 		}
 	}
