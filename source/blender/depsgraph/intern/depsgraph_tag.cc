@@ -64,6 +64,7 @@ extern "C" {
 } /* extern "C" */
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/eval/deg_eval_flush.h"
@@ -621,7 +622,20 @@ void DEG_id_type_tag(Main *bmain, short id_type)
 		DEG_id_type_tag(bmain, ID_SCE);
 	}
 
-	bmain->id_tag_update[BKE_idcode_to_index(id_type)] = 1;
+	int id_type_index = BKE_idcode_to_index(id_type);
+
+	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+			Depsgraph *depsgraph =
+			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
+			                                             view_layer,
+			                                             false);
+			if (depsgraph != NULL) {
+				DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+				deg_graph->id_type_updated[id_type_index] = 1;
+			}
+		}
+	}
 }
 
 void DEG_graph_flush_update(Main *bmain, Depsgraph *depsgraph)
@@ -663,58 +677,62 @@ void DEG_ids_check_recalc(Main *bmain,
                           ViewLayer *view_layer,
                           bool time)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
-	int a;
-	bool updated = false;
-
-	/* Loop over all ID types. */
-	a  = set_listbasepointers(bmain, lbarray);
-	while (a--) {
-		ListBase *lb = lbarray[a];
-		ID *id = (ID *)lb->first;
-
-		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
-			updated = true;
-			break;
-		}
-	}
+	bool updated = time || DEG_id_type_any_updated(depsgraph);
 
 	DEGEditorUpdateContext update_ctx = {NULL};
 	update_ctx.bmain = bmain;
 	update_ctx.depsgraph = depsgraph;
 	update_ctx.scene = scene;
 	update_ctx.view_layer = view_layer;
-	DEG::deg_editors_scene_update(&update_ctx, (updated || time));
+	DEG::deg_editors_scene_update(&update_ctx, updated);
 }
 
-void DEG_ids_clear_recalc(Main *bmain)
+static void deg_graph_clear_id_node_func(
+        void *__restrict data_v,
+        const int i,
+        const ParallelRangeTLS *__restrict /*tls*/)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
-	bNodeTree *ntree;
-	int a;
+	/* TODO: we clear original ID recalc flags here, but this may not work
+	 * correctly when there are multiple depsgraph with others still using
+	 * the recalc flag. */
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(data_v);
+	DEG::IDDepsNode *id_node = deg_graph->id_nodes[i];
+	id_node->id_cow->recalc &= ~ID_RECALC_ALL;
+	id_node->id_orig->recalc &= ~ID_RECALC_ALL;
+
+	/* Clear embedded node trees too. */
+	bNodeTree *ntree_cow = ntreeFromID(id_node->id_cow);
+	if (ntree_cow) {
+		ntree_cow->id.recalc &= ~ID_RECALC_ALL;
+	}
+	bNodeTree *ntree_orig = ntreeFromID(id_node->id_orig);
+	if (ntree_orig) {
+		ntree_orig->id.recalc &= ~ID_RECALC_ALL;
+	}
+}
+
+void DEG_ids_clear_recalc(Main *UNUSED(bmain),
+                          Depsgraph *depsgraph)
+{
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
 
 	/* TODO(sergey): Re-implement POST_UPDATE_HANDLER_WORKAROUND using entry_tags
 	 * and id_tags storage from the new dependency graph.
 	 */
 
-	/* Loop over all ID types. */
-	a  = set_listbasepointers(bmain, lbarray);
-	while (a--) {
-		ListBase *lb = lbarray[a];
-		ID *id = (ID *)lb->first;
-
-		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
-			for (; id; id = (ID *)id->next) {
-				id->recalc &= ~ID_RECALC_ALL;
-
-				/* Some ID's contain semi-datablock nodetree */
-				ntree = ntreeFromID(id);
-				if (ntree != NULL) {
-					ntree->id.recalc &= ~ID_RECALC_ALL;
-				}
-			}
-		}
+	if (!DEG_id_type_any_updated(depsgraph)) {
+		return;
 	}
 
-	memset(bmain->id_tag_update, 0, sizeof(bmain->id_tag_update));
+	/* Go over all ID nodes nodes, clearing tags. */
+	const int num_id_nodes = deg_graph->id_nodes.size();
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.min_iter_per_thread = 1024;
+	BLI_task_parallel_range(0, num_id_nodes,
+	                        deg_graph,
+	                        deg_graph_clear_id_node_func,
+	                        &settings);
+
+	memset(deg_graph->id_type_updated, 0, sizeof(deg_graph->id_type_updated));
 }

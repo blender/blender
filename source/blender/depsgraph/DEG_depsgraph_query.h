@@ -66,7 +66,8 @@ float DEG_get_ctime(const Depsgraph *graph);
 /* ********************* DEG evaluated data ******************* */
 
 /* Check if given ID type was tagged for update. */
-bool DEG_id_type_tagged(struct Main *bmain, short id_type);
+bool DEG_id_type_updated(const struct Depsgraph *depsgraph, short id_type);
+bool DEG_id_type_any_updated(const struct Depsgraph *depsgraph);
 
 /* Get additional evaluation flags for the given ID. */
 short DEG_get_eval_flags_for_id(const struct Depsgraph *graph, struct ID *id);
@@ -96,7 +97,7 @@ struct Object *DEG_get_original_object(struct Object *object);
 /* Get original version of given evaluated ID datablock. */
 struct ID *DEG_get_original_id(struct ID *id);
 
-/* ************************ DEG iterators ********************* */
+/* ************************ DEG object iterators ********************* */
 
 enum {
 	DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY   = (1 << 0),
@@ -180,6 +181,21 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
 #define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END                             \
 	DEG_OBJECT_ITER_END
+
+
+/* ************************ DEG ID iterators ********************* */
+
+typedef struct DEGIDIterData {
+	struct Depsgraph *graph;
+	bool only_updated;
+
+	size_t id_node_index;
+	size_t num_id_nodes;
+} DEGIDIterData;
+
+void DEG_iterator_ids_begin(struct BLI_Iterator *iter, DEGIDIterData *data);
+void DEG_iterator_ids_next(struct BLI_Iterator *iter);
+void DEG_iterator_ids_end(struct BLI_Iterator *iter);
 
 /* ************************ DEG traversal ********************* */
 

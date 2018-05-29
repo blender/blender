@@ -173,7 +173,7 @@ void DEG_graph_id_tag_update(struct Main *bmain,
  */
 void DEG_id_type_tag(struct Main *bmain, short id_type);
 
-void DEG_ids_clear_recalc(struct Main *bmain);
+void DEG_ids_clear_recalc(struct Main *bmain, Depsgraph *depsgraph);
 
 /* Update Flushing ------------------------------- */
 

@@ -41,6 +41,7 @@ extern "C" {
 #include "BKE_anim.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 } /* extern "C" */
 
@@ -196,13 +197,13 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
 	const size_t num_id_nodes = deg_graph->id_nodes.size();
 
+	iter->data = data;
+
 	if (num_id_nodes == 0) {
-		iter->data = NULL;
 		iter->valid = false;
 		return;
 	}
 
-	iter->data = data;
 	data->dupli_parent = NULL;
 	data->dupli_list = NULL;
 	data->dupli_object_next = NULL;
@@ -268,4 +269,73 @@ void DEG_iterator_objects_end(BLI_Iterator *iter)
 #else
 	(void) iter;
 #endif
+}
+
+/* ************************ DEG ID ITERATOR ********************* */
+
+static void DEG_iterator_ids_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node, bool only_updated)
+{
+	ID *id_cow = id_node->id_cow;
+
+	if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
+		bNodeTree *ntree = ntreeFromID(id_cow);
+
+		/* Nodetree is considered part of the datablock. */
+		if (!(ntree && (ntree->id.recalc & ID_RECALC_ALL))) {
+			iter->skip = true;
+			return;
+		}
+	}
+
+	iter->current = id_cow;
+	iter->skip = false;
+}
+
+void DEG_iterator_ids_begin(BLI_Iterator *iter, DEGIDIterData *data)
+{
+	Depsgraph *depsgraph = data->graph;
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	const size_t num_id_nodes = deg_graph->id_nodes.size();
+
+	iter->data = data;
+
+	if ((num_id_nodes == 0) ||
+	    (data->only_updated && !DEG_id_type_any_updated(depsgraph))) {
+		iter->valid = false;
+		return;
+	}
+
+	data->id_node_index = 0;
+	data->num_id_nodes = num_id_nodes;
+
+	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
+	DEG_iterator_ids_step(iter, id_node, data->only_updated);
+
+	if (iter->skip) {
+		DEG_iterator_ids_next(iter);
+	}
+}
+
+void DEG_iterator_ids_next(BLI_Iterator *iter)
+{
+	DEGIDIterData *data = (DEGIDIterData *)iter->data;
+	Depsgraph *depsgraph = data->graph;
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+
+	do {
+		iter->skip = false;
+
+		++data->id_node_index;
+		if (data->id_node_index == data->num_id_nodes) {
+			iter->valid = false;
+			return;
+		}
+
+		DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
+		DEG_iterator_ids_step(iter, id_node, data->only_updated);
+	} while (iter->skip);
+}
+
+void DEG_iterator_ids_end(BLI_Iterator *UNUSED(iter))
+{
 }

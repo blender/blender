@@ -243,9 +243,60 @@ static PointerRNA rna_Depsgraph_duplis_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_DepsgraphIter, iterator);
 }
 
+/* Iteration over evaluated IDs */
+
+static void rna_Depsgraph_ids_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
+	DEGIDIterData *data = MEM_callocN(sizeof(DEGIDIterData), __func__);
+
+	data->graph = (Depsgraph *)ptr->data;
+
+	((BLI_Iterator *)iter->internal.custom)->valid = true;
+	DEG_iterator_ids_begin(iter->internal.custom, data);
+	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
+}
+
+static void rna_Depsgraph_ids_updated_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
+	DEGIDIterData *data = MEM_callocN(sizeof(DEGIDIterData), __func__);
+
+	data->graph = (Depsgraph *)ptr->data;
+	data->only_updated = true;
+
+	((BLI_Iterator *)iter->internal.custom)->valid = true;
+	DEG_iterator_ids_begin(iter->internal.custom, data);
+	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
+}
+
+static void rna_Depsgraph_ids_next(CollectionPropertyIterator *iter)
+{
+	DEG_iterator_ids_next(iter->internal.custom);
+	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
+}
+
+static void rna_Depsgraph_ids_end(CollectionPropertyIterator *iter)
+{
+	DEG_iterator_ids_end(iter->internal.custom);
+	MEM_freeN(((BLI_Iterator *)iter->internal.custom)->data);
+	MEM_freeN(iter->internal.custom);
+}
+
+static PointerRNA rna_Depsgraph_ids_get(CollectionPropertyIterator *iter)
+{
+	ID *id = ((BLI_Iterator *)iter->internal.custom)->current;
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_ID, id);
+}
+
 static ID *rna_Depsgraph_id_eval_get(Depsgraph *depsgraph, ID *id_orig)
 {
 	return DEG_get_evaluated_id(depsgraph, id_orig);
+}
+
+static int rna_Depsgraph_id_type_updated(Depsgraph *depsgraph, int id_type)
+{
+	return DEG_id_type_updated(depsgraph, id_type);
 }
 
 static PointerRNA rna_Depsgraph_scene_get(PointerRNA *ptr)
@@ -400,6 +451,12 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "id_eval", "ID", "", "Evaluated ID for the given original one");
 	RNA_def_function_return(func, parm);
 
+	func = RNA_def_function(srna, "id_type_updated", "rna_Depsgraph_id_type_updated");
+	parm = RNA_def_enum(func, "id_type", rna_enum_id_type_items, 0, "ID Type", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_boolean(func, "updated", false, "Updated", "True if any datablock with this type was added, updated or removed");
+	RNA_def_function_return(func, parm);
+
 	prop = RNA_def_property(srna, "scene_eval", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_scene_eval_get", NULL, NULL, NULL);
@@ -431,6 +488,24 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                  "rna_Depsgraph_duplis_next",
 	                                  "rna_Depsgraph_duplis_end",
 	                                  "rna_Depsgraph_duplis_get",
+	                                  NULL, NULL, NULL, NULL);
+
+	prop = RNA_def_property(srna, "ids", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_collection_funcs(prop,
+	                                  "rna_Depsgraph_ids_begin",
+	                                  "rna_Depsgraph_ids_next",
+	                                  "rna_Depsgraph_ids_end",
+	                                  "rna_Depsgraph_ids_get",
+	                                  NULL, NULL, NULL, NULL);
+
+	prop = RNA_def_property(srna, "ids_updated", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_collection_funcs(prop,
+	                                  "rna_Depsgraph_ids_updated_begin",
+	                                  "rna_Depsgraph_ids_next",
+	                                  "rna_Depsgraph_ids_end",
+	                                  "rna_Depsgraph_ids_get",
 	                                  NULL, NULL, NULL, NULL);
 }
 

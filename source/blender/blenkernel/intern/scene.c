@@ -1268,10 +1268,10 @@ void BKE_scene_frame_set(struct Scene *scene, double cfra)
 #define POSE_ANIMATION_WORKAROUND
 
 #ifdef POSE_ANIMATION_WORKAROUND
-static void scene_armature_depsgraph_workaround(Main *bmain)
+static void scene_armature_depsgraph_workaround(Main *bmain, Depsgraph *depsgraph)
 {
 	Object *ob;
-	if (BLI_listbase_is_empty(&bmain->armature) || !DEG_id_type_tagged(bmain, ID_OB)) {
+	if (BLI_listbase_is_empty(&bmain->armature) || !DEG_id_type_updated(depsgraph, ID_OB)) {
 		return;
 	}
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
@@ -1373,7 +1373,7 @@ void BKE_scene_graph_update_tagged(Depsgraph *depsgraph,
 	/* Inform editors about possible changes. */
 	DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
 	/* Clear recalc flags. */
-	DEG_ids_clear_recalc(bmain);
+	DEG_ids_clear_recalc(bmain, depsgraph);
 }
 
 /* applies changes right away, does all sets too */
@@ -1402,7 +1402,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph,
 	BKE_cachefile_update_frame(bmain, scene, ctime,
 	                           (((double)scene->r.frs_sec) / (double)scene->r.frs_sec_base));
 #ifdef POSE_ANIMATION_WORKAROUND
-	scene_armature_depsgraph_workaround(bmain);
+	scene_armature_depsgraph_workaround(bmain, depsgraph);
 #endif
 	/* Update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed.
@@ -1415,7 +1415,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph,
 	/* Inform editors about possible changes. */
 	DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
 	/* clear recalc flags */
-	DEG_ids_clear_recalc(bmain);
+	DEG_ids_clear_recalc(bmain, depsgraph);
 }
 
 /* return default view */

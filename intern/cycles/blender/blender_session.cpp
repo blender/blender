@@ -773,7 +773,7 @@ void BlenderSession::synchronize(BL::Depsgraph& b_depsgraph_)
 
 	/* copy recalc flags, outside of mutex so we can decide to do the real
 	 * synchronization at a later time to not block on running updates */
-	sync->sync_recalc();
+	sync->sync_recalc(b_depsgraph_);
 
 	/* don't do synchronization if on pause */
 	if(session_pause) {

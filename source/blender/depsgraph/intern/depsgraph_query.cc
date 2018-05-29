@@ -80,9 +80,24 @@ float DEG_get_ctime(const Depsgraph *graph)
 }
 
 
-bool DEG_id_type_tagged(Main *bmain, short id_type)
+bool DEG_id_type_updated(const Depsgraph *graph, short id_type)
 {
-	return bmain->id_tag_update[BKE_idcode_to_index(id_type)] != 0;
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	return deg_graph->id_type_updated[BKE_idcode_to_index(id_type)] != 0;
+}
+
+bool DEG_id_type_any_updated(const Depsgraph *graph)
+{
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+
+	/* Loop over all ID types. */
+	for (int id_type_index = 0; id_type_index < MAX_LIBARRAY; id_type_index++) {
+		if (deg_graph->id_type_updated[id_type_index]) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 short DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)

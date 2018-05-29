@@ -59,7 +59,7 @@ public:
 	~BlenderSync();
 
 	/* sync */
-	bool sync_recalc();
+	void sync_recalc(BL::Depsgraph& b_depsgraph);
 	void sync_data(BL::RenderSettings& b_render,
 	               BL::Depsgraph& b_depsgraph,
 	               BL::SpaceView3D& b_v3d,

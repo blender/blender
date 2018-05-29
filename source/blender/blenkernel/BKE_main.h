@@ -128,8 +128,6 @@ typedef struct Main {
 	ListBase cachefiles;
 	ListBase workspaces;
 
-	char id_tag_update[MAX_LIBARRAY];
-
 	/* Must be generated, used and freed by same code - never assume this is valid data unless you know
 	 * when, who and how it was created.
 	 * Used by code doing a lot of remapping etc. at once to speed things up. */

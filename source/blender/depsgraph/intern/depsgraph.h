@@ -36,6 +36,10 @@
 
 #pragma once
 
+#include <stdlib.h>
+
+#include "BKE_library.h" /* for MAX_LIBARRAY */
+
 #include "BLI_threads.h"  /* for SpinLock */
 
 #include "DEG_depsgraph.h"
@@ -173,6 +177,9 @@ struct Depsgraph {
 
 	/* Indicates whether relations needs to be updated. */
 	bool need_update;
+
+	/* Indicates which ID types were updated. */
+	char id_type_updated[MAX_LIBARRAY];
 
 	/* Quick-Access Temp Data ............. */
 

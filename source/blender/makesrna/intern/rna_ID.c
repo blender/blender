@@ -806,9 +806,13 @@ static int rna_ID_is_updated_get(PointerRNA *ptr)
 
 static int rna_ID_is_updated_data_get(PointerRNA *ptr)
 {
+	/* TODO: replace with more generic granular recalc flags. */
 	ID *id = (ID *)ptr->data;
 	if (GS(id->name) != ID_OB) {
-		return 0;
+		return false;
+	}
+	if (id->recalc & ID_RECALC_GEOMETRY) {
+		return true;
 	}
 	Object *object = (Object *)id;
 	ID *data = object->data;
