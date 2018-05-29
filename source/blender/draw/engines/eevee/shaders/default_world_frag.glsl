@@ -9,9 +9,8 @@ uniform mat3 StudioLightMatrix;
 uniform sampler2D image;
 uniform float studioLightFadeout = 0.0;
 in vec3 viewPosition;
-#else
-uniform vec3 color;
 #endif
+uniform vec3 color;
 
 out vec4 FragColor;
 
@@ -49,11 +48,13 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 void main() {
 #ifdef LOOKDEV
 	vec3 worldvec;
-	vec4 color;
+	vec4 background_color;
 	background_transform_to_world(viewPosition, worldvec);
-	node_tex_environment_equirectangular(StudioLightMatrix * worldvec, image, color);
-	color *= (1.0 - studioLightFadeout);
+	node_tex_environment_equirectangular(StudioLightMatrix * worldvec, image, background_color);
+	background_color.rgb = mix(background_color.rgb, color, studioLightFadeout);
+#else
+	vec3 background_color = color;
 #endif
 
-	FragColor = vec4(clamp(color.rgb, vec3(0.0), vec3(1e10)), backgroundAlpha);
+	FragColor = vec4(clamp(background_color.rgb, vec3(0.0), vec3(1e10)), backgroundAlpha);
 }

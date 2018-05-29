@@ -28,10 +28,11 @@
 #include "BKE_studiolight.h"
 
 #include "DNA_screen_types.h"
+#include "DNA_world_types.h"
 
 #include "eevee_private.h"
 
-void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShader *shader, DRWPass *pass, EEVEE_LightProbesInfo *pinfo)
+void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShader *shader, DRWPass *pass, World *world, EEVEE_LightProbesInfo *pinfo)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -50,6 +51,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShad
 			axis_angle_to_mat3_single(stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
 			DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
 
+			DRW_shgroup_uniform_vec3(*grp, "color", &world->horr, 1);
 			DRW_shgroup_uniform_float(*grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(*grp, geom, NULL);
 
