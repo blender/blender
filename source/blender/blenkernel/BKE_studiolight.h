@@ -57,14 +57,16 @@
 struct GPUTexture;
 
 enum StudioLightFlag {
-	STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED      = (1 << 0),
-	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED    = (1 << 1),
-	STUDIOLIGHT_EXTERNAL_FILE                 = (1 << 2),
-	STUDIOLIGHT_ORIENTATION_CAMERA            = (1 << 3),
-	STUDIOLIGHT_ORIENTATION_WORLD             = (1 << 4),
-	STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED  = (1 << 5),
-	STUDIOLIGHT_EQUIRECTANGULAR_GPUTEXTURE    = (1 << 6),
-	STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED   = (1 << 7),
+	STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED                    = (1 << 0),
+	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED                  = (1 << 1),
+	STUDIOLIGHT_EXTERNAL_FILE                               = (1 << 2),
+	STUDIOLIGHT_ORIENTATION_CAMERA                          = (1 << 3),
+	STUDIOLIGHT_ORIENTATION_WORLD                           = (1 << 4),
+	STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED                = (1 << 5),
+	STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED = (1 << 6),
+	STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE         = (1 << 7),
+	STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_GPUTEXTURE       = (1 << 8),
+	STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED                 = (1 << 9),
 } StudioLightFlag;
 
 typedef struct StudioLight {
@@ -77,9 +79,11 @@ typedef struct StudioLight {
 	int index;
 	float diffuse_light[6][3];
 	float light_direction[3];
-	ImBuf *equirectangular_buffer;
-	ImBuf *radiance_buffers[6];
-	struct GPUTexture *equirectangular_gputexture;
+	ImBuf *equirectangular_radiance_buffer;
+	ImBuf *equirectangular_irradiance_buffer;
+	ImBuf *radiance_cubemap_buffers[6];
+	struct GPUTexture *equirectangular_radiance_gputexture;
+	struct GPUTexture *equirectangular_irradiance_gputexture;
 } StudioLight;
 
 void BKE_studiolight_init(void);
