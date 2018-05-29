@@ -1,9 +1,12 @@
 
 uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewMatrixInverse;
 uniform mat3 NormalMatrix;
+
+#ifndef ATTRIB
+uniform mat4 ModelMatrixInverse;
+#endif
 
 /* Old glsl mode compat. */
 

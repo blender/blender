@@ -895,6 +895,15 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	GPUInput *input;
 	char *code;
 
+	/* Hairs uv and col attribs are passed by bufferTextures. */
+	BLI_dynstr_append(ds,
+	    "#ifdef HAIR_SHADER\n"
+	    "#define DEFINE_ATTRIB(type, attr) uniform samplerBuffer attr\n"
+	    "#else\n"
+	    "#define DEFINE_ATTRIB(type, attr) in type attr\n"
+	    "#endif\n"
+	);
+
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
@@ -905,12 +914,12 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 					BLI_dynstr_appendf(ds, "uniform vec3 OrcoTexCoFactors[2];\n");
 				}
 				else if (input->attribname[0] == '\0') {
-					BLI_dynstr_appendf(ds, "in %s %s;\n", GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype));
+					BLI_dynstr_appendf(ds, "DEFINE_ATTRIB(%s, %s);\n", GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype));
 					BLI_dynstr_appendf(ds, "#define att%d %s\n", input->attribid, attrib_prefix_get(input->attribtype));
 				}
 				else {
 					unsigned int hash = BLI_ghashutil_strhash_p(input->attribname);
-					BLI_dynstr_appendf(ds, "in %s %s%u;\n",
+					BLI_dynstr_appendf(ds, "DEFINE_ATTRIB(%s, %s%u);\n",
 						GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);
 					BLI_dynstr_appendf(ds, "#define att%d %s%u\n",
 						input->attribid, attrib_prefix_get(input->attribtype), hash);
@@ -932,6 +941,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	BLI_dynstr_append(ds,
 	    "#define ATTRIB\n"
 	    "uniform mat3 NormalMatrix;\n"
+	    "uniform mat4 ModelMatrixInverse;\n"
 	    "vec3 srgb_to_linear_attrib(vec3 c) {\n"
 	    "\tc = max(c, vec3(0.0));\n"
 	    "\tvec3 c1 = c * (1.0 / 12.92);\n"
@@ -940,7 +950,40 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	    "}\n\n"
 	);
 
+	/* Prototype because defined later. */
+	BLI_dynstr_append(ds,
+	    "vec2 hair_get_customdata_vec2(const samplerBuffer);\n"
+	    "vec3 hair_get_customdata_vec3(const samplerBuffer);\n"
+	    "vec4 hair_get_customdata_vec4(const samplerBuffer);\n"
+	    "vec3 hair_get_strand_pos(void);\n"
+	    "\n"
+	);
+
 	BLI_dynstr_append(ds, "void pass_attrib(in vec3 position) {\n");
+
+	BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
+
+	for (node = nodes->first; node; node = node->next) {
+		for (input = node->inputs.first; input; input = input->next) {
+			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+				if (input->attribtype == CD_TANGENT) {
+					/* Not supported by hairs */
+					BLI_dynstr_appendf(ds, "\tvar%d%s = vec4(0.0);\n",
+					                   input->attribid, use_geom ? "g" : "");
+				}
+				else if (input->attribtype == CD_ORCO) {
+					BLI_dynstr_appendf(ds, "\tvar%d%s = OrcoTexCoFactors[0] + (ModelMatrixInverse * vec4(hair_get_strand_pos(), 1.0)).xyz * OrcoTexCoFactors[1];\n",
+					                   input->attribid, use_geom ? "g" : "");
+				}
+				else {
+					BLI_dynstr_appendf(ds, "\tvar%d%s = hair_get_customdata_%s(att%d);\n",
+					                   input->attribid, use_geom ? "g" : "", GPU_DATATYPE_STR[input->type], input->attribid);
+				}
+			}
+		}
+	}
+
+	BLI_dynstr_append(ds, "#else /* MESH_SHADER */\n");
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
@@ -973,6 +1016,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 			}
 		}
 	}
+	BLI_dynstr_append(ds, "#endif /* HAIR_SHADER */\n");
 
 	BLI_dynstr_append(ds, "}\n");
 

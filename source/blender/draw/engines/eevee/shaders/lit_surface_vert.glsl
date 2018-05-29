@@ -5,6 +5,7 @@ uniform mat4 ModelViewMatrix;
 uniform mat3 WorldNormalMatrix;
 #ifndef ATTRIB
 uniform mat3 NormalMatrix;
+uniform mat4 ModelMatrixInverse;
 #endif
 
 in vec3 pos;
