@@ -2098,6 +2098,7 @@ void DRW_engines_free(void)
 	DRW_TEXTURE_FREE_SAFE(g_select_buffer.texture_depth);
 	GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer);
 
+	DRW_hair_free();
 	DRW_shape_cache_free();
 	DRW_stats_free();
 	DRW_globals_free();

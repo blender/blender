@@ -871,6 +871,7 @@ DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DR
 
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader, DRWPass *pass, Gwn_VertBuf *tf_target)
 {
+	BLI_assert(tf_target != NULL);
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 	shgroup->type = DRW_SHG_FEEDBACK_TRANSFORM;
 

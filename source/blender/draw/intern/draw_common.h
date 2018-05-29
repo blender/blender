@@ -29,8 +29,12 @@
 struct DRWPass;
 struct DRWShadingGroup;
 struct Gwn_Batch;
+struct GPUMaterial;
 struct Object;
 struct ViewLayer;
+struct ModifierData;
+struct ParticleSystem;
+struct PTCacheEdit;
 
 /* Used as ubo but colors can be directly referenced as well */
 /* Keep in sync with: common_globals_lib.glsl (globalsBlock) */
@@ -144,6 +148,22 @@ typedef struct DRWArmaturePasses {
 void DRW_shgroup_armature_object(struct Object *ob, struct ViewLayer *view_layer, struct DRWArmaturePasses passes);
 void DRW_shgroup_armature_pose(struct Object *ob, struct DRWArmaturePasses passes);
 void DRW_shgroup_armature_edit(struct Object *ob, struct DRWArmaturePasses passes);
+
+/* draw_hair.c */
+
+/* This creates a shading group with display hairs.
+ * The draw call is already added by this function, just add additional uniforms. */
+struct DRWShadingGroup *DRW_shgroup_hair_create(
+        struct Object *object, struct ParticleSystem *psys, struct ModifierData *md,
+        struct DRWPass *hair_pass, struct DRWPass *tf_pass,
+        struct GPUShader *shader);
+
+struct DRWShadingGroup *DRW_shgroup_material_hair_create(
+        struct Object *object, struct ParticleSystem *psys, struct ModifierData *md,
+        struct DRWPass *hair_pass, struct DRWPass *tf_pass,
+        struct GPUMaterial *material);
+
+void DRW_hair_free(void);
 
 /* pose_mode.c */
 bool DRW_pose_mode_armature(
