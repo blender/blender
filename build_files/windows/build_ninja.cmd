@@ -10,7 +10,7 @@ echo %TIME% >>buildtime.txt
 cd %BLENDER_DIR%
 
 if "%HAS_ERROR%" == "1" (
-		echo Error during build, see %BUILD_DIR%\Build.log for details 
+		echo Error during build
 		exit /b 1
 )
 :EOF

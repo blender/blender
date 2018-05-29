@@ -10,6 +10,10 @@ if "%BUILD_ARCH%"=="x64" (
 	)
 )
 
+if "%WITH_CLANG%"=="1" (
+	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -T"LLVM-vs2017"
+)
+
 if NOT EXIST %BUILD_DIR%\nul (
 	mkdir %BUILD_DIR%
 )
