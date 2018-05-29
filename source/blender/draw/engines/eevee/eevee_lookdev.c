@@ -36,7 +36,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShad
 	EEVEE_StorageList *stl = vedata->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
-	if (v3d && v3d->drawtype == OB_MATERIAL)
+	if (LOOK_DEV_MODE_ENABLED(v3d))
 	{
 		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_ORIENTATION_WORLD);
 		if ((sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
@@ -60,6 +60,10 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShad
 				pinfo->studiolight_rot_z = v3d->shading.studiolight_rot_z;
 				pinfo->prev_wo_sh_compiled = false;
 				pinfo->prev_world = NULL;
+			}
+			else {
+				/* Do not fadeout when doing probe rendering, only when drawing the background */
+				DRW_shgroup_uniform_float(*grp, "studioLightFadeout", &v3d->shading.studiolight_fadeout, 1);
 			}
 		}
 	}
