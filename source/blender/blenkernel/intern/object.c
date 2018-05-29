@@ -2168,11 +2168,11 @@ void BKE_object_where_is_calc_mat4(Depsgraph *depsgraph, Scene *scene, Object *o
 
 void BKE_object_where_is_calc_ex(Depsgraph *depsgraph, Scene *scene, RigidBodyWorld *rbw, Object *ob, float r_originmat[3][3])
 {
-	BKE_object_where_is_calc_time_ex(depsgraph, scene, ob, BKE_scene_frame_get(scene), rbw, r_originmat);
+	BKE_object_where_is_calc_time_ex(depsgraph, scene, ob, DEG_get_ctime(depsgraph), rbw, r_originmat);
 }
 void BKE_object_where_is_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-	BKE_object_where_is_calc_time_ex(depsgraph, scene, ob, BKE_scene_frame_get(scene), NULL, NULL);
+	BKE_object_where_is_calc_time_ex(depsgraph, scene, ob, DEG_get_ctime(depsgraph), NULL, NULL);
 }
 
 /**
