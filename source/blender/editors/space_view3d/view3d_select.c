@@ -106,6 +106,9 @@
 
 // #include "PIL_time_utildefines.h"
 
+/* Don't allow switching object-modes when selecting objects. */
+#define USE_OBJECT_MODE_STRICT
+
 float ED_view3d_select_dist_px(void)
 {
 	return 75.0f * U.pixelsize;
@@ -1249,6 +1252,25 @@ static int mixed_bones_object_selectbuffer(
 finally:
 	view3d_opengl_select_cache_end();
 
+#ifdef USE_OBJECT_MODE_STRICT
+	{
+		const bool is_pose_mode = (vc->obact && vc->obact->mode & OB_MODE_POSE);
+		struct {
+			uint data[4];
+		} *buffer4 = (void *)buffer;
+		uint j = 0;
+		for (uint i = 0; i < hits; i++) {
+			if (((buffer4[i].data[3] & 0xFFFF0000) != 0) == is_pose_mode) {
+				if (i != j) {
+					buffer4[i] = buffer4[j];
+				}
+				j++;
+			}
+		}
+		hits = j;
+	}
+#endif
+
 	return hits;
 }
 
@@ -1467,7 +1489,7 @@ static bool ed_object_select_pick(
 			else {
 				basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, has_bones, do_nearest);
 			}
-			
+
 			if (has_bones && basact) {
 				if (basact->object->type == OB_CAMERA) {
 					if (BASACT(view_layer) == basact) {
@@ -1554,7 +1576,22 @@ static bool ed_object_select_pick(
 			}
 		}
 	}
-	
+
+#ifdef USE_OBJECT_MODE_STRICT
+	/* Disallow switching modes,
+	 * special exception for edit-mode - vertex-parent operator. */
+	if (is_obedit == false) {
+		oldbasact = BASACT(view_layer);
+		if (oldbasact && basact) {
+			if ((oldbasact->object->mode != basact->object->mode) &&
+			    (oldbasact->object->mode & basact->object->mode) == 0)
+			{
+				basact = NULL;
+			}
+		}
+	}
+#endif
+
 	/* so, do we have something selected? */
 	if (basact) {
 		retval = true;
