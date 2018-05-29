@@ -550,6 +550,12 @@ bool BKE_object_has_mode_data(const struct Object *ob, eObjectMode object_mode)
 	return false;
 }
 
+bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
+{
+	return ((ob->mode == object_mode) ||
+	        (ob->mode & object_mode) != 0);
+}
+
 /**
  * Return if the object is visible, as evaluated by depsgraph
  */
