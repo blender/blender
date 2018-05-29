@@ -327,6 +327,8 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->shading.shadow_intensity = 0.5;
 	copy_v3_fl(v3d->shading.single_color, 0.8f);
 
+	v3d->overlay.flag = V3D_OVERLAY_LOOK_DEV;
+
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 	
 	v3d->flag = V3D_SELECT_OUTLINE;

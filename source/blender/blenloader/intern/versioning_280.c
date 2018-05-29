@@ -1206,6 +1206,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 
 						v3d->overlay.backwire_opacity = 0.5f;
 						v3d->overlay.normals_length = 0.1f;
+						v3d->overlay.flag = V3D_OVERLAY_LOOK_DEV;
 					}
 				}
 			}

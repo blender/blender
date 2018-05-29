@@ -74,7 +74,7 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 	
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	if (psl->lookdev_pass && draw_ctx->v3d) {
+	if (psl->lookdev_pass && LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
 		DRW_stats_group_start("Look Dev");
 		CameraParams params;
 		BKE_camera_params_init(&params);

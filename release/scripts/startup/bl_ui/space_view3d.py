@@ -3564,6 +3564,7 @@ class VIEW3D_PT_overlay(Panel):
         layout = self.layout
 
         view = context.space_data
+        shading = view.shading
         overlay = view.overlay
         scene = context.scene
         toolsettings = context.tool_settings
@@ -3577,6 +3578,9 @@ class VIEW3D_PT_overlay(Panel):
         col.prop(overlay, "show_cursor", text="3D Cursor")
 
         col.prop(view, "show_manipulator", text="Manipulators")
+
+        if shading.type == "MATERIAL":
+            col.prop(overlay, "show_look_dev")
 
         col = layout.column()
         col.active = display_all

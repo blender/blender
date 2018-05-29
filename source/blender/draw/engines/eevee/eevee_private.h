@@ -92,6 +92,9 @@ extern struct DrawEngineType draw_engine_eevee_type;
 	}                                              \
 } ((void)0)
 
+#define OVERLAY_ENABLED(v3d) ((v3d) && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
+#define LOOK_DEV_OVERLAY_ENABLED(v3d) (OVERLAY_ENABLED(v3d) && ((v3d->overlay.flag & V3D_OVERLAY_LOOK_DEV) > 0))
+
 /* World shader variations */
 enum {
 	VAR_WORLD_BACKGROUND    = 0,
