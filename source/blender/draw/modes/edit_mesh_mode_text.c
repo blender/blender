@@ -84,7 +84,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	else if (grid <= 10.0f) conv_float = "%.3g";
 	else conv_float = "%.2g";
 
-	if (me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_EDGEANG)) {
+	if (me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_EDGEANG | ME_DRAWEXTRA_INDICES)) {
 		BoundBox bb;
 		const rcti rect = {0, ar->winx, 0, ar->winy};
 
@@ -294,6 +294,57 @@ void DRW_edit_mesh_mode_text_measure_stats(
 						interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
 						DRW_text_cache_add(dt, fvec, numstr, numstr_len, 0, txt_flag, col);
 					}
+				}
+			}
+		}
+	}
+
+	/* This option is for mesh ops and addons debugging; only available in UI if Blender starts with --debug */
+	if (me->drawflag & ME_DRAWEXTRA_INDICES) {
+		int i;
+
+		/* For now, reuse an appropriate theme color */
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+
+		if (em->selectmode & SCE_SELECT_VERTEX) {
+			BMVert *v;
+
+			BM_ITER_MESH_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+				if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+					numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+					DRW_text_cache_add(dt, v->co, numstr, numstr_len, 0, txt_flag, col);
+				}
+			}
+		}
+
+		if (em->selectmode & SCE_SELECT_EDGE) {
+			BMEdge *e;
+
+			BM_ITER_MESH_INDEX(e, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+					float v1_clip[3], v2_clip[3];
+
+					copy_v3_v3(v1, e->v1->co);
+					copy_v3_v3(v2, e->v2->co);
+
+					if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
+						mid_v3_v3v3(vmid, v1_clip, v2_clip);
+						numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+						DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, txt_flag, col);
+					}
+				}
+			}
+		}
+
+		if (em->selectmode & SCE_SELECT_FACE) {
+			BMFace *f;
+
+			BM_ITER_MESH_INDEX(f, &iter, em->bm, BM_FACES_OF_MESH, i) {
+				if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+					BM_face_calc_center_mean(f, v1);
+
+					numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+					DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, txt_flag, col);
 				}
 			}
 		}
