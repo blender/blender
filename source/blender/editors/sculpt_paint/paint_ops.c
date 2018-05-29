@@ -493,34 +493,6 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static wmKeyMapItem *keymap_brush_select(wmKeyMap *keymap, int paint_mode,
-                                         int tool, int keymap_type,
-                                         int keymap_modifier)
-{
-	wmKeyMapItem *kmi;
-	kmi = WM_keymap_add_item(keymap, "PAINT_OT_brush_select",
-	                         keymap_type, KM_PRESS, keymap_modifier, 0);
-
-	RNA_enum_set(kmi->ptr, "paint_mode", paint_mode);
-	
-	switch (paint_mode) {
-		case OB_MODE_SCULPT:
-			RNA_enum_set(kmi->ptr, "sculpt_tool", tool);
-			break;
-		case OB_MODE_VERTEX_PAINT:
-			RNA_enum_set(kmi->ptr, "vertex_paint_tool", tool);
-			break;
-		case OB_MODE_WEIGHT_PAINT:
-			RNA_enum_set(kmi->ptr, "weight_paint_tool", tool);
-			break;
-		case OB_MODE_TEXTURE_PAINT:
-			RNA_enum_set(kmi->ptr, "texture_paint_tool", tool);
-			break;
-	}
-
-	return kmi;
-}
-
 static int brush_uv_sculpt_tool_set_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush;
@@ -1080,20 +1052,6 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_mask_lasso_gesture);
 }
 
-
-static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *mode)
-{
-	wmKeyMapItem *kmi;
-	int i;
-	/* index 0-9 (zero key is tenth), shift key for index 10-19 */
-	for (i = 0; i < 20; i++) {
-		kmi = WM_keymap_add_item(keymap, "BRUSH_OT_active_index_set",
-		                         ZEROKEY + ((i + 1) % 10), KM_PRESS, i < 10 ? 0 : KM_SHIFT, 0);
-		RNA_string_set(kmi->ptr, "mode", mode);
-		RNA_int_set(kmi->ptr, "index", i);
-	}
-}
-
 static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *UNUSED(path))
 {
 	wmKeyMapItem *kmi;
@@ -1298,25 +1256,10 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "level", -1);
 	RNA_boolean_set(kmi->ptr, "relative", true);
 
-	ed_keymap_paint_brush_switch(keymap, "sculpt");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.sculpt.brush.size");
 	ed_keymap_paint_brush_radial_control(keymap, "sculpt", RC_ROTATION);
 
 	ed_keymap_stencil(keymap);
-
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_DRAW, XKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_SMOOTH, SKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_PINCH, PKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_INFLATE, IKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_GRAB, GKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_LAYER, LKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_FLATTEN, TKEY, KM_SHIFT);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CLAY, CKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CREASE, CKEY, KM_SHIFT);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_SNAKE_HOOK, KKEY, 0);
-	kmi = keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_MASK, MKEY, 0);
-	RNA_boolean_set(kmi->ptr, "toggle", 1);
-	RNA_boolean_set(kmi->ptr, "create_missing", 1);
 
 	/* */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", EKEY, KM_PRESS, 0, 0);
@@ -1338,7 +1281,6 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap,
 	                   "PAINT_OT_vertex_color_set", KKEY, KM_PRESS, KM_SHIFT, 0);
 
-	ed_keymap_paint_brush_switch(keymap, "vertex_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.vertex_paint.brush.size");
 	ed_keymap_paint_brush_radial_control(keymap, "vertex_paint", RC_COLOR | RC_COLOR_OVERRIDE | RC_ROTATION);
 
@@ -1371,7 +1313,6 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap,
 	                   "PAINT_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);
 
-	ed_keymap_paint_brush_switch(keymap, "weight_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.weight_paint.brush.size");
 	ed_keymap_paint_brush_radial_control(keymap, "weight_paint", RC_WEIGHT);
 
@@ -1412,7 +1353,6 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", SKEY, KM_PRESS, 0, 0);
 
-	ed_keymap_paint_brush_switch(keymap, "image_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.image_paint.brush.size");
 	ed_keymap_paint_brush_radial_control(
 	        keymap, "image_paint",

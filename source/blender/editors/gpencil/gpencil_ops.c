@@ -290,28 +290,6 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	/* Move to Layer */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
 
-	/* Select drawing brush using index */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", ONEKEY, KM_PRESS, 0, 0); 
-	RNA_int_set(kmi->ptr, "index", 0);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", TWOKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 1);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", THREEKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 2);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", FOURKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 3);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", FIVEKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 4);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", SIXKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 5);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", SEVENKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 6);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", EIGHTKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 7);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", NINEKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 8);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_select", ZEROKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "index", 9);
-
 	/* Transform Tools */
 	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
 	

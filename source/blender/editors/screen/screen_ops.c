@@ -4534,12 +4534,29 @@ static int space_context_cycle_invoke(bContext *C, wmOperator *op, const wmEvent
 	PropertyRNA *prop;
 	context_cycle_prop_get(CTX_wm_screen(C), CTX_wm_area(C), &ptr, &prop);
 
-	const int old_context = RNA_property_enum_get(&ptr, prop);
-	const int new_context = RNA_property_enum_step(
-	                  C, &ptr, prop, old_context,
-	                  direction == SPACE_CONTEXT_CYCLE_PREV ? -1 : 1);
-	RNA_property_enum_set(&ptr, prop, new_context);
-	RNA_property_update(C, &ptr, prop);
+	if (prop) {
+		const int old_context = RNA_property_enum_get(&ptr, prop);
+		const int new_context = RNA_property_enum_step(
+		        C, &ptr, prop, old_context,
+		        direction == SPACE_CONTEXT_CYCLE_PREV ? -1 : 1);
+		RNA_property_enum_set(&ptr, prop, new_context);
+		RNA_property_update(C, &ptr, prop);
+	}
+	else {
+		/* Cycle workspace */
+		Main *bmain = CTX_data_main(C);
+		wmWindow *win = CTX_wm_window(C);
+		if (WM_window_is_temp_screen(win)) {
+			return OPERATOR_CANCELLED;
+		}
+		WorkSpace *workspace_src = WM_window_get_active_workspace(win);
+		WorkSpace *workspace_dst = workspace_src->id.next ? workspace_src->id.next : bmain->workspaces.first;
+		if (workspace_src != workspace_dst) {
+			win->workspace_hook->temp_workspace_store = workspace_dst;
+			WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, workspace_dst);
+			win->workspace_hook->temp_workspace_store = NULL;
+		}
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -4554,6 +4571,51 @@ static void SCREEN_OT_space_context_cycle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = space_context_cycle_invoke;
 	ot->poll = space_context_cycle_poll;
+
+	ot->flag = 0;
+
+	RNA_def_enum(ot->srna, "direction", space_context_cycle_direction, SPACE_CONTEXT_CYCLE_NEXT, "Direction",
+	             "Direction to cycle through");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Workspace Cycle Operator
+ * \{ */
+
+static int space_workspace_cycle_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	wmWindow *win = CTX_wm_window(C);
+	if (WM_window_is_temp_screen(win)) {
+		return OPERATOR_CANCELLED;
+	}
+	
+	Main *bmain = CTX_data_main(C);
+	const int direction = RNA_enum_get(op->ptr, "direction");
+	WorkSpace *workspace_src = WM_window_get_active_workspace(win);
+	WorkSpace *workspace_dst = (direction == SPACE_CONTEXT_CYCLE_PREV) ? workspace_src->id.prev : workspace_src->id.next;
+	if (workspace_dst == NULL) {
+		workspace_dst = (direction == SPACE_CONTEXT_CYCLE_PREV) ? bmain->workspaces.last : bmain->workspaces.first;
+	}
+	if (workspace_src != workspace_dst) {
+		win->workspace_hook->temp_workspace_store = workspace_dst;
+		WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, workspace_dst);
+		win->workspace_hook->temp_workspace_store = NULL;
+	}
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_workspace_cycle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Cycle Workspace";
+	ot->description = "Cycle through workspaces";
+	ot->idname = "SCREEN_OT_workspace_cycle";
+
+	/* api callbacks */
+	ot->invoke = space_workspace_cycle_invoke;
+	ot->poll = ED_operator_screenactive;;
 
 	ot->flag = 0;
 
@@ -4599,6 +4661,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_drivers_editor_show);
 	WM_operatortype_append(SCREEN_OT_region_blend);
 	WM_operatortype_append(SCREEN_OT_space_context_cycle);
+	WM_operatortype_append(SCREEN_OT_workspace_cycle);
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
@@ -4728,6 +4791,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_space_context_cycle", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_NEXT);
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_space_context_cycle", TABKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_PREV);
+
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_workspace_cycle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_NEXT);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_workspace_cycle", TABKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_PREV);
 
 	/* tests */

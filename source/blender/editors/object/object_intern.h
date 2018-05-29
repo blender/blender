@@ -77,6 +77,7 @@ void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 
 /* object_edit.c */
 void OBJECT_OT_mode_set(struct wmOperatorType *ot);
+void OBJECT_OT_mode_set_or_submode(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_proxy_make(struct wmOperatorType *ot);

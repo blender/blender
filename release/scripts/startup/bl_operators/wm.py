@@ -2369,9 +2369,7 @@ class WM_OT_toolbar(Operator):
 
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         if cls is None:
-            # self.report({'WARNING'}, f"Toolbar not found for {space_type!r}")
-            # Passthrough to running search directly.
-            bpy.ops.wm.search_menu('INVOKE_DEFAULT')
+            self.report({'WARNING'}, f"Toolbar not found for {space_type!r}")
             return {'CANCELLED'}
 
         wm = context.window_manager
@@ -2380,9 +2378,6 @@ class WM_OT_toolbar(Operator):
         def draw_menu(popover, context):
             layout = popover.layout
             cls.draw_cls(layout, context, detect_layout=False)
-
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("wm.search_menu")
 
         wm.popover(draw_menu, keymap=keymap)
         return {'FINISHED'}

@@ -67,6 +67,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_origin_set);
 	
 	WM_operatortype_append(OBJECT_OT_mode_set);
+	WM_operatortype_append(OBJECT_OT_mode_set_or_submode);
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
 	WM_operatortype_append(OBJECT_OT_posemode_toggle);
 	WM_operatortype_append(OBJECT_OT_proxy_make);
@@ -283,28 +284,29 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
-	int i;
-	
+
 	/* Objects, Regardless of Mode -------------------------------------------------- */
 	keymap = WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
-	
-	/* Note: this keymap works disregarding mode */
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
-	RNA_boolean_set(kmi->ptr, "toggle", true);
 
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "mode", OB_MODE_POSE);
-	RNA_boolean_set(kmi->ptr, "toggle", true);
+	/* modes */
+	{
+		short key_mode_pair[][2] = {
+			{ACCENTGRAVEKEY, OB_MODE_OBJECT},
+			{ONEKEY, OB_MODE_OBJECT},
+			{TWOKEY, OB_MODE_EDIT},
+			{THREEKEY, OB_MODE_SCULPT},
+			{FOURKEY, OB_MODE_TEXTURE_PAINT},  /* or OB_MODE_POSE */
+			{FIVEKEY, OB_MODE_VERTEX_PAINT},
+			{SIXKEY, OB_MODE_WEIGHT_PAINT},
+			{SEVENKEY, OB_MODE_PARTICLE_EDIT},
+		};
 
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
-	RNA_boolean_set(kmi->ptr, "toggle", true);
-	
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "mode", OB_MODE_WEIGHT_PAINT);
-	RNA_boolean_set(kmi->ptr, "toggle", true);
-	
+		for (uint i = 0; i < ARRAY_SIZE(key_mode_pair); i++) {
+			kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set_or_submode", key_mode_pair[i][0], KM_PRESS, 0, 0);
+			RNA_enum_set(kmi->ptr, "mode", key_mode_pair[i][1]);
+		}
+	}
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_origin_set", CKEY, KM_PRESS, KM_ALT | KM_SHIFT | KM_CTRL, 0);
 
 	/* Object Mode ---------------------------------------------------------------- */
@@ -407,7 +409,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* XXX No more available 'T' shortcuts... :/ */
 	/* WM_keymap_verify_item(keymap, "OBJECT_OT_datalayout_transfer", TKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0); */
 
-	for (i = 0; i <= 5; i++) {
+	for (int i = 0; i <= 5; i++) {
 		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY + i, KM_PRESS, KM_CTRL, 0);
 		RNA_int_set(kmi->ptr, "level", i);
 	}

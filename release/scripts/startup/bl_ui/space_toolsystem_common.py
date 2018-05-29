@@ -594,10 +594,6 @@ def keymap_from_context(context, space_type):
     for kmi in keymap.keymap_items:
         keymap.keymap_items.remove(kmi)
 
-
-    kmi_search = wm.keyconfigs.find_item_from_operator(idname="wm.toolbar")[1]
-    kmi_search_type = None if not kmi_search else kmi_search.type
-
     items = []
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     for i, item in enumerate(
@@ -636,14 +632,6 @@ def keymap_from_context(context, space_type):
                         key_modifier=kmi_found.key_modifier,
                     )
                     kmi.properties.name = item.text
-
-                    # Disallow overlap
-                    if kmi_search_type == kmi_found_type:
-                        kmi_search_type = None
-
-    # Support double-tap for search.
-    if kmi_search_type:
-        keymap.keymap_items.new("wm.search_menu", type=kmi_search_type, value='PRESS')
 
     wm.keyconfigs.update()
     return keymap
