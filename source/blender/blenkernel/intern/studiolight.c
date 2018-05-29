@@ -178,6 +178,11 @@ static void studiolight_create_equierectangular_radiance_gputexture(StudioLight 
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED);
 		ImBuf *ibuf = sl->equirectangular_radiance_buffer;
 		sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
+		GPUTexture *tex = sl->equirectangular_radiance_gputexture;
+		GPU_texture_bind(tex, 0);
+		GPU_texture_filter_mode(tex, true);
+		GPU_texture_wrap_mode(tex, true);
+		GPU_texture_unbind(tex);
 	}
 	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE;
 }
@@ -189,6 +194,11 @@ static void studiolight_create_equierectangular_irradiance_gputexture(StudioLigh
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED);
 		ImBuf *ibuf = sl->equirectangular_irradiance_buffer;
 		sl->equirectangular_irradiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
+		GPUTexture *tex = sl->equirectangular_irradiance_gputexture;
+		GPU_texture_bind(tex, 0);
+		GPU_texture_filter_mode(tex, true);
+		GPU_texture_wrap_mode(tex, true);
+		GPU_texture_unbind(tex);
 	}
 	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_GPUTEXTURE;
 }
@@ -404,6 +414,10 @@ static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *
 		}
 		sl->equirectangular_irradiance_buffer = IMB_allocFromBuffer(NULL, colbuf, STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH, STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT);
 		MEM_freeN(colbuf);
+#if 0
+		IMB_saveiff(sl->equirectangular_irradiance_buffer, "/tmp/studiolight_specular_irradiance.png", IB_rectfloat);
+#endif
+
 	}
 	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED;
 }

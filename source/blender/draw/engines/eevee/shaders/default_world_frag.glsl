@@ -1,3 +1,4 @@
+
 #define M_PI 3.14159265358979323846
 
 uniform float backgroundAlpha;
@@ -35,8 +36,9 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 	float v = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5;
 
 	/* Fix pole bleeding */
-	float half_width = 0.5 / float(textureSize(ima, 0).x);
-	v = clamp(v, half_width, 1.0 - half_width);
+	float width = float(textureSize(ima, 0).x);
+	float texel_width = 1.0 / width;
+	v = clamp(v, texel_width, 1.0 - texel_width);
 
 	/* Fix u = 0 seam */
 	/* This is caused by texture filtering, since uv don't have smooth derivatives
