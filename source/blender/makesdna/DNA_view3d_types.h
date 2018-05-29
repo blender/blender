@@ -338,8 +338,9 @@ enum {
 /* View3DShading->flag */
 enum {
 	V3D_SHADING_OBJECT_OUTLINE = (1 << 0),
-	V3D_SHADING_XRAY   = (1 << 1),
+	V3D_SHADING_XRAY           = (1 << 1),
 	V3D_SHADING_SHADOW         = (1 << 2),
+	V3D_SHADING_SCENE_LIGHT    = (1 << 3),
 };
 
 /* View3DShading->single_color_type */

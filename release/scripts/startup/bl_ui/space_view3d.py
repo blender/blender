@@ -3549,6 +3549,7 @@ class VIEW3D_PT_shading(Panel):
             col.row().template_icon_view(shading, "studio_light")
             if shading.studio_light_orientation == 'WORLD':
                 col.row().prop(shading, "studiolight_rot_z")
+            col.row().prop(shading, "use_scene_light")
 
 
 class VIEW3D_PT_overlay(Panel):

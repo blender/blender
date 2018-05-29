@@ -1633,7 +1633,7 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 	/* Look-Dev */
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const View3D *v3d = draw_ctx->v3d;
-	if (v3d && v3d->drawtype == OB_MATERIAL) {
+	if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
 		EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 		EEVEE_LampsInfo *linfo = sldata->lamps;
 		struct Gwn_Batch *sphere = DRW_cache_sphere_get();

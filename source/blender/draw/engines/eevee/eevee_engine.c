@@ -148,6 +148,9 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 			EEVEE_lights_cache_shcaster_object_add(sldata, ob);
 		}
 	}
+	else if (!USE_SCENE_LIGHT(draw_ctx->v3d)) {
+		/* do not add any light sources to the cache */
+	}
 	else if (ob->type == OB_LIGHTPROBE) {
 		if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
 			/* TODO: Special case for dupli objects because we cannot save the object pointer. */
