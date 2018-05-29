@@ -7,13 +7,28 @@ layout(std140) uniform clip_block {
 	vec4 ClipPlanes[1];
 };
 
+#ifndef HAIR_SHADER
 in vec3 pos;
+#endif
 
 void main()
 {
+#ifdef HAIR_SHADER
+	float time, thick_time, thickness;
+	vec3 pos, nor, binor;
+	hair_get_pos_tan_nor_time(
+	        (ProjectionMatrix[3][3] == 0.0),
+	        ViewMatrixInverse[3].xyz, ViewMatrixInverse[2].xyz,
+	        pos, nor, binor, time, thickness, thick_time);
+
+	gl_Position = ViewProjectionMatrix * vec4(pos, 1.0);
+	vec4 worldPosition = vec4(pos, 1.0);
+#else
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-#ifdef CLIP_PLANES
 	vec4 worldPosition = (ModelMatrix * vec4(pos, 1.0));
+#endif
+
+#ifdef CLIP_PLANES
 	gl_ClipDistance[0] = dot(vec4(worldPosition.xyz, 1.0), ClipPlanes[0]);
 #endif
 	/* TODO motion vectors */

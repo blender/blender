@@ -212,6 +212,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *background_pass;
 	struct DRWPass *update_noise_pass;
 	struct DRWPass *lookdev_pass;
+	struct DRWPass *hair_tf_pass;
 } EEVEE_PassList;
 
 typedef struct EEVEE_FramebufferList {

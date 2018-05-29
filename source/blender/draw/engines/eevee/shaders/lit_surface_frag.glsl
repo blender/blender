@@ -21,6 +21,15 @@ in vec3 worldNormal;
 in vec3 viewNormal;
 #endif
 
+#ifdef HAIR_SHADER
+in vec3 hairTangent; /* world space */
+in float hairThickTime;
+in float hairThickness;
+in float hairTime;
+
+uniform int hairThicknessRes = 1;
+#endif
+
 #endif /* LIT_SURFACE_UNIFORM */
 
 /** AUTO CONFIG
@@ -169,21 +178,30 @@ void CLOSURE_NAME(
 	vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
 
 #ifdef HAIR_SHADER
-	/* Random normal distribution on the hair surface. */
-	vec3 T = normalize(worldNormal); /* meh, TODO fix worldNormal misnaming. */
-	vec3 B = normalize(cross(V, T));
-	N = cross(T, B); /* Normal facing view */
-	/* We want a cosine distribution. */
-	float cos_theta = rand.x * 2.0 - 1.0;
-	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
-	N = N * sin_theta + B * cos_theta;
+	if (hairThicknessRes == 1) {
+		/* Random normal distribution on the hair surface. */
+		vec3 T = normalize(worldNormal); /* meh, TODO fix worldNormal misnaming. */
+		vec3 B = normalize(cross(V, T));
+		N = cross(T, B); /* Normal facing view */
+		/* We want a cosine distribution. */
+		float cos_theta = rand.x * 2.0 - 1.0;
+		float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
+		N = N * sin_theta + B * cos_theta;
 
 #  ifdef CLOSURE_GLOSSY
-	/* Hair random normal does not work with SSR :(.
-	 * It just create self reflection feedback (which is beautifful btw)
-	 * but not correct. */
-	ssr_id = NO_SSR; /* Force bypass */
+		/* Hair random normal does not work with SSR :(.
+		 * It just create self reflection feedback (which is beautifful btw)
+		 * but not correct. */
+		ssr_id = NO_SSR; /* Force bypass */
 #  endif
+	}
+	else {
+		vec3 T = normalize(cross(hairTangent, worldNormal));
+		/* We want a cosine distribution. */
+		float cos_theta = hairThickTime / hairThickness;
+		float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
+		N = normalize(hairTangent * cos_theta + T * sin_theta);
+	}
 #endif
 
 	/* ---------------------------------------------------------------- */
