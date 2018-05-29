@@ -94,8 +94,14 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 
 		BKE_camera_params_from_view3d(&params, draw_ctx->depsgraph, v3d, rv3d);
 		params.is_ortho = true;
-		params.ortho_scale = 4.0;
+		params.ortho_scale = 4.0f;
 		params.zoom = CAMERA_PARAM_ZOOM_INIT_PERSP;
+		params.offsetx = 0.0f;
+		params.offsety = 0.0f;
+		params.shiftx = 0.0f;
+		params.shifty = 0.0f;
+		params.clipsta = 0.001f;
+		params.clipend = 20.0f;
 		BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
 		BKE_camera_params_compute_matrix(&params);
 
