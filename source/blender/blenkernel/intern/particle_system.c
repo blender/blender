@@ -3043,6 +3043,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim, int totpoint, in
 	if (!mesh) {
 		*r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
 		CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, mesh->totvert);
+		BKE_mesh_update_customdata_pointers(mesh, false);
 	}
 	mvert = mesh->mvert;
 	medge = mesh->medge;
