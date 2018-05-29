@@ -253,7 +253,7 @@ struct DRWShadingGroup {
 #endif
 
 #ifdef USE_GPU_SELECT
-	DRWInstanceData *inst_selectid;
+	Gwn_VertBuf *inst_selectid;
 	DRWPass *pass_parent; /* backlink to pass we're in */
 	int override_selectid; /* Override for single object instances. */
 #endif

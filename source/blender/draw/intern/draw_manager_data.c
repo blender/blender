@@ -517,12 +517,10 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 {
 #ifdef USE_GPU_SELECT
 	if (G.f & G_PICKSEL) {
-		if (shgroup->inst_selectid == NULL) {
-			shgroup->inst_selectid = DRW_instance_data_request(DST.idatalist, 1, 128);
+		if (shgroup->instance_count == shgroup->inst_selectid->vertex_ct) {
+			GWN_vertbuf_data_resize(shgroup->inst_selectid, shgroup->instance_count + 32);
 		}
-
-		int *select_id = DRW_instance_data_next(shgroup->inst_selectid);
-		*select_id = DST.select_id;
+		GWN_vertbuf_attr_set(shgroup->inst_selectid, 0, shgroup->instance_count, &DST.select_id);
 	}
 #endif
 
@@ -622,6 +620,21 @@ static void drw_shgroup_instance_init(
 
 	DRW_instancing_buffer_request(DST.idatalist, format, batch, shgroup,
 	                              &shgroup->instance_geom, &shgroup->instance_vbo);
+
+#ifdef USE_GPU_SELECT
+	if (G.f & G_PICKSEL) {
+		/* Not actually used for rendering but alloced in one chunk.
+		 * Plus we don't have to care about ownership. */
+		static Gwn_VertFormat inst_select_format = {0};
+		if (inst_select_format.attrib_ct == 0) {
+			GWN_vertformat_attr_add(&inst_select_format, "selectId", GWN_COMP_I32, 1, GWN_FETCH_INT);
+		}
+		Gwn_Batch *batch_dummy; /* Not used */
+		DRW_batching_buffer_request(DST.idatalist, &inst_select_format,
+		                            GWN_PRIM_POINTS, shgroup,
+		                            &batch_dummy, &shgroup->inst_selectid);
+	}
+#endif
 }
 
 static void drw_shgroup_batching_init(
@@ -644,6 +657,20 @@ static void drw_shgroup_batching_init(
 
 	DRW_batching_buffer_request(DST.idatalist, format, type, shgroup,
 	                            &shgroup->batch_geom, &shgroup->batch_vbo);
+
+#ifdef USE_GPU_SELECT
+	if (G.f & G_PICKSEL) {
+		/* Not actually used for rendering but alloced in one chunk. */
+		static Gwn_VertFormat inst_select_format = {0};
+		if (inst_select_format.attrib_ct == 0) {
+			GWN_vertformat_attr_add(&inst_select_format, "selectId", GWN_COMP_I32, 1, GWN_FETCH_INT);
+		}
+		Gwn_Batch *batch; /* Not used */
+		DRW_batching_buffer_request(DST.idatalist, &inst_select_format,
+		                            GWN_PRIM_POINTS, shgroup,
+		                            &batch, &shgroup->inst_selectid);
+	}
+#endif
 }
 
 static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass *pass)

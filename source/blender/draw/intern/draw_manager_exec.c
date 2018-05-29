@@ -1045,7 +1045,10 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	int *select_id = NULL;                                           \
 	if (G.f & G_PICKSEL) {                                           \
 		if (_shgroup->override_selectid == -1) {                        \
-			select_id = DRW_instance_data_get(_shgroup->inst_selectid); \
+			/* Hack : get vbo data without actually drawing. */     \
+			Gwn_VertBufRaw raw;                   \
+			GWN_vertbuf_attr_get_raw_data(_shgroup->inst_selectid, 0, &raw); \
+			select_id = GWN_vertbuf_raw_step(&raw);                               \
 			switch (_shgroup->type) {                                             \
 				case DRW_SHG_TRIANGLE_BATCH: _count = 3; break;                   \
 				case DRW_SHG_LINE_BATCH: _count = 2; break;                       \
