@@ -169,7 +169,7 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 		if (sa->spacetype == SPACE_VIEW3D) {
 			ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
 			if (ar) {
-				struct Depsgraph *graph = CTX_data_depsgraph(C);
+				struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 				View3D *v3d = sa->spacedata.first;
 				RegionView3D *rv3d = ar->regiondata;
 				/* weak, we could pass in some reference point */
@@ -187,7 +187,7 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 
 				view3d_operator_needs_opengl(C);
 
-				if (ED_view3d_autodist(graph, ar, v3d, mval, co, true, NULL)) {
+				if (ED_view3d_autodist(depsgraph, ar, v3d, mval, co, true, NULL)) {
 					const float mval_center_fl[2] = {
 					    (float)ar->winx / 2,
 					    (float)ar->winy / 2};

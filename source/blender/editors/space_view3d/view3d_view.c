@@ -908,7 +908,7 @@ int view3d_opengl_select(
         eV3DSelectMode select_mode)
 {
 	struct bThemeState theme_state;
-	Depsgraph *graph = vc->depsgraph;
+	Depsgraph *depsgraph = vc->depsgraph;
 	Scene *scene = vc->scene;
 	View3D *v3d = vc->v3d;
 	ARegion *ar = vc->ar;
@@ -975,7 +975,7 @@ int view3d_opengl_select(
 
 	/* Important we use the 'viewmat' and don't re-calculate since
 	 * the object & bone view locking takes 'rect' into account, see: T51629. */
-	ED_view3d_draw_setup_view(vc->win, graph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
+	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
@@ -1012,7 +1012,7 @@ int view3d_opengl_select(
 			.gpu_select_mode = gpu_select_mode,
 		};
 		DRW_draw_select_loop(
-		        graph, ar, v3d,
+		        depsgraph, ar, v3d,
 		        use_obedit_skip, use_nearest, &rect,
 		        drw_select_loop_pass, &drw_select_loop_user_data);
 		hits = drw_select_loop_user_data.hits;
@@ -1020,7 +1020,7 @@ int view3d_opengl_select(
 #endif /* WITH_OPENGL_LEGACY */
 
 	G.f &= ~G_PICKSEL;
-	ED_view3d_draw_setup_view(vc->win, graph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
+	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 	
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;
