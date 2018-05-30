@@ -125,12 +125,12 @@ enum {
 	EM_IGNORE_LAYER     = (1 << 3),
 	EM_NO_CONTEXT       = (1 << 4),
 };
-void ED_object_editmode_exit_ex(
+bool ED_object_editmode_exit_ex(
         struct Scene *scene, struct Object *obedit, int flag);
-void ED_object_editmode_exit(struct bContext *C, int flag);
+bool ED_object_editmode_exit(struct bContext *C, int flag);
 
-void ED_object_editmode_enter_ex(struct Scene *scene, struct Object *ob, int flag);
-void ED_object_editmode_enter(struct bContext *C, int flag);
+bool ED_object_editmode_enter_ex(struct Scene *scene, struct Object *ob, int flag);
+bool ED_object_editmode_enter(struct bContext *C, int flag);
 bool ED_object_editmode_load(struct Object *obedit);
 
 bool ED_object_editmode_calc_active_center(struct Object *obedit, const bool select_only, float r_center[3]);
@@ -232,17 +232,20 @@ enum {
 	MODIFIER_APPLY_SHAPE
 };
 
-struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
-                                            struct Object *ob, const char *name, int type);
+struct ModifierData *ED_object_modifier_add(
+        struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+        struct Object *ob, const char *name, int type);
 bool ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain,
                                struct Object *ob, struct ModifierData *md);
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
-                               struct ViewLayer *view_layer, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_apply(struct ReportList *reports, struct Depsgraph *depsgraph, struct Scene *scene,
-                             struct Object *ob, struct ModifierData *md, int mode);
+int ED_object_modifier_convert(
+        struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+        struct ViewLayer *view_layer, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_apply(
+        struct ReportList *reports, struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
 bool ED_object_iter_other(
@@ -262,7 +265,8 @@ const struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         bool *r_free,
         const unsigned int selection_mask);
 
-void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object);
+void ED_object_check_force_modifiers(
+        struct Main *bmain, struct Scene *scene, struct Object *object);
 
 /* object_facemap_ops.c */
 void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);
