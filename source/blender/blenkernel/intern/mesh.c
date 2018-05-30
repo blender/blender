@@ -543,12 +543,13 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 
 	me_dst->mat = MEM_dupallocN(me_src->mat);
 
-	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, CD_DUPLICATE, me_dst->totvert);
-	CustomData_copy(&me_src->edata, &me_dst->edata, mask, CD_DUPLICATE, me_dst->totedge);
-	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, CD_DUPLICATE, me_dst->totloop);
-	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask, CD_DUPLICATE, me_dst->totpoly);
+	const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
+	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, alloc_type, me_dst->totvert);
+	CustomData_copy(&me_src->edata, &me_dst->edata, mask, alloc_type, me_dst->totedge);
+	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, alloc_type, me_dst->totloop);
+	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask, alloc_type, me_dst->totpoly);
 	if (do_tessface) {
-		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask, CD_DUPLICATE, me_dst->totface);
+		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask, alloc_type, me_dst->totface);
 	}
 	else {
 		mesh_tessface_clear_intern(me_dst, false);
