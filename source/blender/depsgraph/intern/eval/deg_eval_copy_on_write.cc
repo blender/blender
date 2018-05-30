@@ -756,8 +756,8 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 			{
 				Object *object = (Object *)id_cow;
 				/* Store evaluated mesh, make sure we don't free it. */
-				mesh_eval = object->mesh_eval;
-				object->mesh_eval = NULL;
+				mesh_eval = object->runtime.mesh_eval;
+				object->runtime.mesh_eval = NULL;
 				/* Currently object update will override actual object->data
 				 * to an evaluated version. Need to make sure we don't have
 				 * data set to evaluated one before free anything.
@@ -792,7 +792,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	if (id_type == ID_OB) {
 		Object *object = (Object *)id_cow;
 		if (mesh_eval != NULL) {
-			object->mesh_eval = mesh_eval;
+			object->runtime.mesh_eval = mesh_eval;
 			/* Do same thing as object update: override actual object data
 			 * pointer with evaluated datablock.
 			 */

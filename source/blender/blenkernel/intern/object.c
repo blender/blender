@@ -341,15 +341,16 @@ void BKE_object_free_derived_caches(Object *ob)
 		ob->derivedDeform = NULL;
 	}
 
-	if (ob->mesh_eval != NULL) {
+	if (ob->runtime.mesh_eval != NULL) {
+		Mesh *mesh_eval = ob->runtime.mesh_eval;
 		/* Restore initial pointer. */
-		ob->data = ob->mesh_eval->id.orig_id;
+		ob->data = mesh_eval->id.orig_id;
 		/* Evaluated mesh points to edit mesh, but does not own it. */
-		ob->mesh_eval->edit_btmesh = NULL;
-		BKE_mesh_free(ob->mesh_eval);
-		BKE_libblock_free_data(&ob->mesh_eval->id, false);
-		MEM_freeN(ob->mesh_eval);
-		ob->mesh_eval = NULL;
+		mesh_eval->edit_btmesh = NULL;
+		BKE_mesh_free(mesh_eval);
+		BKE_libblock_free_data(&mesh_eval->id, false);
+		MEM_freeN(mesh_eval);
+		ob->runtime.mesh_eval = NULL;
 	}
 
 	BKE_object_free_curve_cache(ob);
@@ -2837,8 +2838,7 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 Mesh *BKE_object_get_evaluated_mesh(const Depsgraph *depsgraph, Object *ob)
 {
 	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-	return ob_eval->mesh_eval;
+	return ob_eval->runtime.mesh_eval;
 }
 
 
