@@ -378,6 +378,10 @@ enum {
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
 	(ELEM(_type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE))
 
+/** Matches #OB_TYPE_SUPPORT_EDITMODE. */
+#define OB_DATA_SUPPORT_EDITMODE(_type) \
+	(ELEM(_type, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR))
+
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \
 	(ELEM(_id_type, ID_ME, ID_CU, ID_MB, ID_LA, ID_SPK, ID_CA, ID_LT, ID_AR))
