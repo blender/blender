@@ -72,6 +72,82 @@
 
 #include "outliner_intern.h"
 
+static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *view_layer, Base *base)
+{
+	Object *obact = OBACT(view_layer);
+	bool use_all = false;
+
+	if (obact == NULL) {
+		ED_object_base_activate(C, base);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+		obact = base->object;
+		use_all = true;
+	}
+	else if (obact->data == base->object->data) {
+		use_all = true;
+	}
+
+	if (use_all) {
+		WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_INVOKE_REGION_WIN, NULL);
+	}
+	else {
+		Object *ob = base->object;
+		if (ob->type == obact->type) {
+			bool ok;
+			if (BKE_object_is_in_editmode(ob)) {
+				ok = ED_object_editmode_exit_ex(scene, ob, EM_FREEDATA | EM_WAITCURSOR);
+			}
+			else {
+				ok = ED_object_editmode_enter_ex(scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
+			}
+			if (ok) {
+				ED_object_base_select(base, (ob->mode & OB_MODE_EDIT) ? BA_SELECT : BA_DESELECT);
+				WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+			}
+		}
+	}
+}
+
+static void do_outliner_activate_pose(bContext *C, ViewLayer *view_layer, Base *base)
+{
+	Object *obact = OBACT(view_layer);
+	bool use_all = false;
+
+	if (obact == NULL) {
+		ED_object_base_activate(C, base);
+		Scene *scene = CTX_data_scene(C);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+		obact = base->object;
+		use_all = true;
+	}
+	else if (obact->data == base->object->data) {
+		use_all = true;
+	}
+
+	if (use_all) {
+		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_INVOKE_REGION_WIN, NULL);
+	}
+	else {
+		Object *ob = base->object;
+		if (ob->type == obact->type) {
+			struct Main *bmain = CTX_data_main(C);
+			bool ok = false;
+			if (ob->mode & OB_MODE_POSE) {
+				ok = ED_object_posemode_exit_ex(bmain, ob);
+			}
+			else {
+				ok = ED_object_posemode_enter_ex(bmain, ob);
+			}
+			if (ok) {
+				ED_object_base_select(base, (ob->mode & OB_MODE_POSE) ? BA_SELECT : BA_DESELECT);
+
+				Scene *scene = CTX_data_scene(C);
+				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
+				WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+			}
+		}
+	}
+}
 
 /* ****************************************************** */
 /* Outliner Element Selection/Activation on Click */
@@ -584,16 +660,7 @@ static eOLDrawState tree_element_active_pose(
 	}
 
 	if (set != OL_SETSEL_NONE) {
-		if (OBEDIT_FROM_VIEW_LAYER(view_layer)) {
-			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
-		}
-
-		if (ob->mode & OB_MODE_POSE) {
-			ED_object_posemode_exit(C, ob);
-		}
-		else {
-			ED_object_posemode_enter(C, ob);
-		}
+		do_outliner_activate_pose(C, view_layer, base);
 	}
 	else {
 		if (ob->mode & OB_MODE_POSE) {
@@ -817,10 +884,18 @@ static void do_outliner_item_activate_tree_element(
         TreeElement *te, TreeStoreElem *tselem,
         const bool extend, const bool recursive)
 {
-	/* always makes active object, except for some specific types.
-	 * Note about TSE_EBONE: In case of a same ID_AR datablock shared among several objects, we do not want
-	 * to switch out of edit mode (see T48328 for details). */
-	if (!ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP, TSE_EBONE, TSE_LAYER_COLLECTION)) {
+	/* Always makes active object, except for some specific types. */
+	if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP, TSE_EBONE, TSE_LAYER_COLLECTION)) {
+		/* Note about TSE_EBONE: In case of a same ID_AR datablock shared among several objects, we do not want
+		 * to switch out of edit mode (see T48328 for details). */
+	}
+	else if (tselem->id && OB_DATA_SUPPORT_EDITMODE(te->idcode)) {
+		/* Support edit-mode toggle, keeping the active object as is. */
+	}
+	else if (tselem->type == TSE_POSE_BASE) {
+		/* Support pose mode toggle, keeping the active object as is. */
+	}
+	else {
 		tree_element_set_active_object(
 		        C, scene, view_layer, soops, te,
 		        (extend && tselem->type == 0) ? OL_SETSEL_EXTEND : OL_SETSEL_NORMAL,
@@ -873,7 +948,13 @@ static void do_outliner_item_activate_tree_element(
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 		else if (OB_DATA_SUPPORT_EDITMODE(te->idcode)) {
-			WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_INVOKE_REGION_WIN, NULL);
+			Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
+			if ((ob != NULL) && (ob->data == tselem->id)) {
+				Base *base = BKE_view_layer_base_find(view_layer, ob);
+				if ((base != NULL) && (base->flag & BASE_VISIBLED)) {
+					do_outliner_activate_obdata(C, scene, view_layer, base);
+				}
+			}
 		}
 		else {  // rest of types
 			tree_element_active(C, scene, view_layer, soops, te, OL_SETSEL_NORMAL, false);
