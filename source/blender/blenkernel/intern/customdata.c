@@ -1397,7 +1397,7 @@ void customData_mask_layers__print(CustomDataMask mask)
 /********************* CustomData functions *********************/
 static void customData_update_offsets(CustomData *data);
 
-static CustomDataLayer *customData_add_layer__internal(CustomData *data, int type, int alloctype, void *layerdata,
+static CustomDataLayer *customData_add_layer__internal(CustomData *data, int type, CDAllocType alloctype, void *layerdata,
                                                        int totelem, const char *name);
 
 void CustomData_update_typemap(CustomData *data)
@@ -1428,7 +1428,7 @@ static bool customdata_typemap_is_valid(const CustomData *data)
 #endif
 
 bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
-                      CustomDataMask mask, int alloctype, int totelem)
+                      CustomDataMask mask, CDAllocType alloctype, int totelem)
 {
 	/*const LayerTypeInfo *typeInfo;*/
 	CustomDataLayer *layer, *newlayer;
@@ -1511,7 +1511,7 @@ void CustomData_realloc(CustomData *data, int totelem)
 }
 
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
-                     CustomDataMask mask, int alloctype, int totelem)
+                     CustomDataMask mask, CDAllocType alloctype, int totelem)
 {
 	CustomData_reset(dest);
 
@@ -1810,7 +1810,7 @@ static int customData_resize(CustomData *data, int amount)
 	return 1;
 }
 
-static CustomDataLayer *customData_add_layer__internal(CustomData *data, int type, int alloctype, void *layerdata,
+static CustomDataLayer *customData_add_layer__internal(CustomData *data, int type, CDAllocType alloctype, void *layerdata,
                                                        int totelem, const char *name)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -1898,7 +1898,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data, int typ
 	return &data->layers[index];
 }
 
-void *CustomData_add_layer(CustomData *data, int type, int alloctype,
+void *CustomData_add_layer(CustomData *data, int type, CDAllocType alloctype,
                            void *layerdata, int totelem)
 {
 	CustomDataLayer *layer;
@@ -1915,7 +1915,7 @@ void *CustomData_add_layer(CustomData *data, int type, int alloctype,
 }
 
 /*same as above but accepts a name*/
-void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
+void *CustomData_add_layer_named(CustomData *data, int type, CDAllocType alloctype,
                                  void *layerdata, int totelem, const char *name)
 {
 	CustomDataLayer *layer;
@@ -2673,7 +2673,7 @@ void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 
 bool CustomData_bmesh_merge(
         const CustomData *source, CustomData *dest,
-        CustomDataMask mask, int alloctype, BMesh *bm, const char htype)
+        CustomDataMask mask, CDAllocType alloctype, BMesh *bm, const char htype)
 {
 	BMHeader *h;
 	BMIter iter;

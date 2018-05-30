@@ -123,7 +123,7 @@ void CustomData_data_add(int type, void *data1, const void *data2);
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
  * if a layer should be copied or not. alloctype must be one of the above. */
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
-                     CustomDataMask mask, int alloctype, int totelem);
+                     CustomDataMask mask, CDAllocType alloctype, int totelem);
 
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
@@ -131,7 +131,7 @@ void CustomData_update_typemap(struct CustomData *data);
 /* same as the above, except that this will preserve existing layers, and only
  * add the layers that were not there yet */
 bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
-                      CustomDataMask mask, int alloctype, int totelem);
+                      CustomDataMask mask, CDAllocType alloctype, int totelem);
 
 /* Reallocate custom data to a new element count.
  * Only affects on data layers which are owned by the CustomData itself,
@@ -146,7 +146,7 @@ void CustomData_realloc(struct CustomData *data, int totelem);
  * consistent with the new layout.*/
 bool CustomData_bmesh_merge(
         const struct CustomData *source, struct CustomData *dest,
-        CustomDataMask mask, int alloctype, struct BMesh *bm, const char htype);
+        CustomDataMask mask, CDAllocType alloctype, struct BMesh *bm, const char htype);
 
 /** NULL's all members and resets the typemap. */
 void CustomData_reset(struct CustomData *data);
@@ -166,10 +166,10 @@ void CustomData_free_temporary(struct CustomData *data, int totelem);
  * backed by an external data array. the different allocation types are
  * defined above. returns the data of the layer.
  */
-void *CustomData_add_layer(struct CustomData *data, int type, int alloctype,
+void *CustomData_add_layer(struct CustomData *data, int type, CDAllocType alloctype,
                            void *layer, int totelem);
 /*same as above but accepts a name */
-void *CustomData_add_layer_named(struct CustomData *data, int type, int alloctype,
+void *CustomData_add_layer_named(struct CustomData *data, int type, CDAllocType alloctype,
                                  void *layer, int totelem, const char *name);
 
 /* frees the active or first data layer with the give type.
