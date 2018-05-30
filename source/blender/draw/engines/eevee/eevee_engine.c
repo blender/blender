@@ -319,7 +319,7 @@ static void eevee_draw_background(void *vedata)
 	/* LookDev */
 	EEVEE_lookdev_draw_background(vedata);
 	/* END */
-	
+
 
 	/* Tonemapping and transfer result to default framebuffer. */
 	GPU_framebuffer_bind(dfbl->default_fb);

@@ -402,7 +402,7 @@ static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *
 		float *color = colbuf;
 		for (int y = 0; y < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT ; y ++) {
 			float yf = y / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT;
-			
+
 			for (int x = 0; x < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH ; x ++) {
 				float xf = x / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH;
 				float dir[3];
