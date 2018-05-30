@@ -212,7 +212,7 @@ static Mesh *applyModifier(
 	        false);
 
 	if (has_mdef) {
-		dvert = CustomData_get_layer(&result->vdata, CD_MDEFORMVERT);
+		dvert = CustomData_duplicate_referenced_layer(&result->vdata, CD_MDEFORMVERT, numVerts);
 	}
 	else {
 		/* Add a valid data layer! */
