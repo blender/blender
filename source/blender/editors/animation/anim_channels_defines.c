@@ -4049,6 +4049,15 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	if (ale_setting->type == ANIMTYPE_GPLAYER)
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
 	
+	/* tag copy-on-write flushing (so that the settings will have an effect) */
+	if (ale_setting->id) {
+		DEG_id_tag_update(ale_setting->id, DEG_TAG_COPY_ON_WRITE);
+	}
+	if (ale_setting->adt && ale_setting->adt->action) {
+		/* action is it's own datablock, so has to be tagged specifically... */
+		DEG_id_tag_update(&ale_setting->adt->action->id, DEG_TAG_COPY_ON_WRITE);
+	}
+	
 	/* verify animation context */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
