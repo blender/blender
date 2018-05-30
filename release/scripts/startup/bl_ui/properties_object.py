@@ -48,25 +48,40 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        col = layout.column()
 
         ob = context.object
 
-        row = layout.row()
+        sub = col.row(align=True)
+        sub.prop(ob, "location")
+        sub.prop(ob, "lock_location", text="")
 
-        row.column().prop(ob, "location")
         if ob.rotation_mode == 'QUATERNION':
-            row.column().prop(ob, "rotation_quaternion", text="Rotation")
+            sub = col.row(align=True)
+            sub.prop(ob, "rotation_quaternion", text="Rotation")
+            subsub = sub.column(align=True)
+            subsub.prop(ob, "lock_rotation_w", text="")
+            subsub.prop(ob, "lock_rotation", text="")
         elif ob.rotation_mode == 'AXIS_ANGLE':
-            #row.column().label(text="Rotation")
+            # row.column().label(text="Rotation")
             #row.column().prop(pchan, "rotation_angle", text="Angle")
             #row.column().prop(pchan, "rotation_axis", text="Axis")
-            row.column().prop(ob, "rotation_axis_angle", text="Rotation")
+            sub = col.row(align=True)
+            sub.prop(ob, "rotation_axis_angle", text="Rotation")
+            subsub = sub.column(align=True)
+            subsub.prop(ob, "lock_rotation_w", text="")
+            subsub.prop(ob, "lock_rotation", text="")
         else:
-            row.column().prop(ob, "rotation_euler", text="Rotation")
+            sub = col.row(align=True)
+            sub.prop(ob, "rotation_euler", text="Rotation")
+            sub.prop(ob, "lock_rotation", text="")
 
-        row.column().prop(ob, "scale")
+        sub = col.row(align=True)
+        sub.prop(ob, "scale")
+        sub.prop(ob, "lock_scale", text="")
 
-        layout.prop(ob, "rotation_mode")
+        col.prop(ob, "rotation_mode")
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
@@ -75,102 +90,65 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
 
-        row = layout.row()
+        col = layout.column()
 
-        row.column().prop(ob, "delta_location")
+        col.column().prop(ob, "delta_location")
         if ob.rotation_mode == 'QUATERNION':
-            row.column().prop(ob, "delta_rotation_quaternion", text="Rotation")
+            col.column().prop(ob, "delta_rotation_quaternion", text="Rotation")
         elif ob.rotation_mode == 'AXIS_ANGLE':
-            #row.column().label(text="Rotation")
+            # row.column().label(text="Rotation")
             #row.column().prop(pchan, "delta_rotation_angle", text="Angle")
             #row.column().prop(pchan, "delta_rotation_axis", text="Axis")
             #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
-            row.column().label(text="Not for Axis-Angle")
+            col.column().label(text="Not for Axis-Angle")
         else:
-            row.column().prop(ob, "delta_rotation_euler", text="Delta Rotation")
+            col.column().prop(ob, "delta_rotation_euler", text="Delta Rotation")
 
-        row.column().prop(ob, "delta_scale")
-
-
-class OBJECT_PT_transform_locks(ObjectButtonsPanel, Panel):
-    bl_label = "Transform Locks"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-
-        split = layout.split(percentage=0.1)
-
-        col = split.column(align=True)
-        col.label(text="")
-        col.label(text="X:")
-        col.label(text="Y:")
-        col.label(text="Z:")
-
-        split.column().prop(ob, "lock_location", text="Location")
-        split.column().prop(ob, "lock_rotation", text="Rotation")
-        split.column().prop(ob, "lock_scale", text="Scale")
-
-        if ob.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
-            row = layout.row()
-            row.prop(ob, "lock_rotations_4d", text="Lock Rotation")
-
-            sub = row.row()
-            sub.active = ob.lock_rotations_4d
-            sub.prop(ob, "lock_rotation_w", text="W")
+        col.column().prop(ob, "delta_scale")
 
 
 class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
     bl_label = "Relations"
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(ob, "pass_index")
-
-        col = split.column()
-        col.label(text="Parent:")
-        col.prop(ob, "parent", text="")
-
-        sub = col.column()
-        sub.prop(ob, "parent_type", text="")
-        parent = ob.parent
-        if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
-            sub.prop_search(ob, "parent_bone", parent.data, "bones", text="")
-        sub.active = (parent is not None)
-
-
-class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
-    bl_label = "Relations Extras"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
 
-        split = layout.split()
+        col = layout.column()
 
-        col = split.column()
-        col.label(text="Tracking Axes:")
-        col.prop(ob, "track_axis", text="Axis")
+        col.prop(ob, "parent")
+
+        sub = col.column()
+        sub.prop(ob, "parent_type")
+        parent = ob.parent
+        if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
+            sub.prop_search(ob, "parent_bone", parent.data, "bones")
+        sub.active = (parent is not None)
+
+        col = col.column()
+        col.active = (ob.parent is not None)
+        col.prop(ob, "use_slow_parent")
+        sub = col.column()
+        sub.active = (ob.use_slow_parent)
+        sub.prop(ob, "slow_parent_offset", text="Offset")
+
+        col.separator()
+
+        col = layout.column()
+
+        col.prop(ob, "track_axis", text="Tracking Axis")
         col.prop(ob, "up_axis", text="Up Axis")
 
-        col = split.column()
-        col.prop(ob, "use_slow_parent")
-        row = col.row()
-        row.active = ((ob.parent is not None) and (ob.use_slow_parent))
-        row.prop(ob, "slow_parent_offset", text="Offset")
+        col.separator()
+
+        col.prop(ob, "pass_index")
 
 
 class COLLECTION_MT_specials(Menu):
@@ -222,9 +200,11 @@ class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):
     bl_label = "Display"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         obj = context.object
         obj_type = obj.type
@@ -233,9 +213,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE')
         is_dupli = (obj.dupli_type != 'NONE')
 
-        split = layout.split()
-
-        col = split.column()
+        col = layout.column(align=True)
         col.prop(obj, "show_name", text="Name")
         col.prop(obj, "show_axis", text="Axis")
         # Makes no sense for cameras, armatures, etc.!
@@ -245,48 +223,44 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         if obj_type == 'MESH' or is_dupli:
             col.prop(obj, "show_all_edges")
 
-        col = split.column()
-        row = col.row()
-        row.prop(obj, "show_bounds", text="Bounds")
-        sub = row.row()
-        sub.active = obj.show_bounds
-        sub.prop(obj, "draw_bounds_type", text="")
+        col = layout.column()
+        col.prop(obj, "show_bounds", text="Bounds")
+        col = layout.column()
+        col.active = obj.show_bounds
+        col.prop(obj, "draw_bounds_type")
 
+        col = layout.column()
         if is_geometry:
             col.prop(obj, "show_texture_space", text="Texture Space")
-            col.prop(obj.display, "show_shadows")
+            col.prop(obj.display, "show_shadows", text="Shadow")
 
         col.prop(obj, "show_x_ray", text="X-Ray")
-        if obj_type == 'MESH' or is_empty_image:
-            col.prop(obj, "show_transparent", text="Transparency")
+#        if obj_type == 'MESH' or is_empty_image:
+    #        col.prop(obj, "show_transparent", text="Transparency")
 
-        split = layout.split()
-
-        col = split.column()
+        col = layout.column()
         if is_wire:
             # wire objects only use the max. draw type for duplis
             col.active = is_dupli
-            col.label(text="Maximum Dupli Draw Type:")
-        else:
-            col.label(text="Maximum Draw Type:")
-        col.prop(obj, "draw_type", text="")
-
-        col = split.column()
-        if is_geometry or is_empty_image:
-            # Only useful with object having faces/materials...
-            col.label(text="Object Color:")
-            col.prop(obj, "color", text="")
+        col.prop(
+            obj, "draw_type",
+            text="Maximum Dupli Draw Type" if is_wire else "Maximum Dupli Draw Type",
+        )
 
         col = layout.column()
+        if is_geometry or is_empty_image:
+            # Only useful with object having faces/materials...
+            col.prop(obj, "color")
+
+        col = layout.column(align=True)
         col.active = bool(is_dupli or obj.particle_systems)
-        col.label(text="Duplicator Visibility:")
-        row = col.row(align=True)
-        row.prop(obj, "show_duplicator_for_viewport", text="Viewport")
-        row.prop(obj, "show_duplicator_for_render", text="Render")
+        col.prop(obj, "show_duplicator_for_viewport")
+        col.prop(obj, "show_duplicator_for_render")
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
     bl_label = "Duplication"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -295,14 +269,15 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 
         layout.row().prop(ob, "dupli_type", expand=True)
 
-        if ob.dupli_type == 'FRAMES':
-            split = layout.split()
+        layout.use_property_split = True
 
-            col = split.column(align=True)
+        if ob.dupli_type == 'FRAMES':
+
+            col = layout.column(align=True)
             col.prop(ob, "dupli_frames_start", text="Start")
             col.prop(ob, "dupli_frames_end", text="End")
 
-            col = split.column(align=True)
+            col = layout.column(align=True)
             col.prop(ob, "dupli_frames_on", text="On")
             col.prop(ob, "dupli_frames_off", text="Off")
 
@@ -312,9 +287,9 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
             layout.prop(ob, "use_dupli_vertices_rotation", text="Rotation")
 
         elif ob.dupli_type == 'FACES':
-            row = layout.row()
-            row.prop(ob, "use_dupli_faces_scale", text="Scale")
-            sub = row.row()
+            col = layout.column()
+            col.prop(ob, "use_dupli_faces_scale", text="Scale")
+            sub = col.column()
             sub.active = ob.use_dupli_faces_scale
             sub.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
@@ -370,9 +345,7 @@ classes = (
     OBJECT_PT_context_object,
     OBJECT_PT_transform,
     OBJECT_PT_delta_transform,
-    OBJECT_PT_transform_locks,
     OBJECT_PT_relations,
-    OBJECT_PT_relations_extras,
     COLLECTION_MT_specials,
     OBJECT_PT_collections,
     OBJECT_PT_display,

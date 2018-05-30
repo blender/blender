@@ -19,10 +19,10 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import (
-        Menu,
-        Panel,
-        UIList,
-        )
+    Menu,
+    Panel,
+    UIList,
+)
 
 from rna_prop_ui import PropertyPanel
 
@@ -69,12 +69,12 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        layout.use_property_split = True
         scene = context.scene
 
         layout.prop(scene, "camera")
-        layout.prop(scene, "background_set", text="Background")
-        layout.prop(scene, "active_clip", text="Active Clip")
+        layout.prop(scene, "background_set")
+        layout.prop(scene, "active_clip")
 
 
 class SCENE_PT_unit(SceneButtonsPanel, Panel):
@@ -91,23 +91,18 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
         row.operator("scene.units_length_preset_add", text="", icon='ZOOMIN')
         row.operator("scene.units_length_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
-        layout.separator()
+        layout.use_property_split = True
 
-        split = layout.split(percentage=0.35)
-        split.label("Length:")
-        split.prop(unit, "system", text="")
-        split = layout.split(percentage=0.35)
-        split.label("Angle:")
-        split.prop(unit, "system_rotation", text="")
+        col = layout.column()
+        col.prop(unit, "system")
+
+        col = layout.column()
+        col.prop(unit, "system_rotation")
 
         col = layout.column()
         col.enabled = unit.system != 'NONE'
-        split = col.split(percentage=0.35)
-        split.label("Unit Scale:")
-        split.prop(unit, "scale_length", text="")
-        split = col.split(percentage=0.35)
-        split.row()
-        split.prop(unit, "use_separate")
+        col.prop(unit, "scale_length")
+        col.prop(unit, "use_separate")
 
 
 class SceneKeyingSetsPanel:
@@ -115,18 +110,19 @@ class SceneKeyingSetsPanel:
     @staticmethod
     def draw_keyframing_settings(context, layout, ks, ksp):
         SceneKeyingSetsPanel._draw_keyframing_setting(
-                context, layout, ks, ksp, "Needed",
-                "use_insertkey_override_needed", "use_insertkey_needed",
-                userpref_fallback="use_keyframe_insert_needed")
-
+            context, layout, ks, ksp, "Needed",
+            "use_insertkey_override_needed", "use_insertkey_needed",
+            userpref_fallback="use_keyframe_insert_needed",
+        )
         SceneKeyingSetsPanel._draw_keyframing_setting(
-                context, layout, ks, ksp, "Visual",
-                "use_insertkey_override_visual", "use_insertkey_visual",
-                userpref_fallback="use_visual_keying")
-
+            context, layout, ks, ksp, "Visual",
+            "use_insertkey_override_visual", "use_insertkey_visual",
+            userpref_fallback="use_visual_keying",
+        )
         SceneKeyingSetsPanel._draw_keyframing_setting(
-                context, layout, ks, ksp, "XYZ to RGB",
-                "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb")
+            context, layout, ks, ksp, "XYZ to RGB",
+            "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb",
+        )
 
     @staticmethod
     def _draw_keyframing_setting(context, layout, ks, ksp, label, toggle_prop, prop, userpref_fallback=None):
@@ -197,6 +193,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
     bl_label = "Active Keying Set"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     @classmethod
@@ -258,22 +255,21 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
 
         col = layout.column()
-        col.label(text="Display:")
         col.prop(scene.display_settings, "display_device")
 
-        col = layout.column()
         col.separator()
-        col.label(text="Render:")
-        col.template_colormanaged_view_settings(scene, "view_settings")
 
         col = layout.column()
+        col.template_colormanaged_view_settings(scene, "view_settings")
+
         col.separator()
-        col.label(text="Sequencer:")
-        col.prop(scene.sequencer_colorspace_settings, "name")
+        col = layout.column()
+        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer Color Space")
 
 
 class SCENE_PT_audio(SceneButtonsPanel, Panel):
@@ -283,27 +279,29 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
         rd = context.scene.render
         ffmpeg = rd.ffmpeg
 
         layout.prop(scene, "audio_volume")
+
+        col = layout.column()
+        col.prop(scene, "audio_distance_model")
+
+        col.prop(ffmpeg, "audio_channels")
+        col.prop(ffmpeg, "audio_mixrate", text="Sample Rate")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(scene, "audio_doppler_speed", text="Doppler Speed")
+        col.prop(scene, "audio_doppler_factor", text="Doppler Factor")
+
+        layout.separator()
+
         layout.operator("sound.bake_animation")
-
-        split = layout.split()
-
-        col = split.column()
-        col.label("Distance Model:")
-        col.prop(scene, "audio_distance_model", text="")
-        sub = col.column(align=True)
-        sub.prop(scene, "audio_doppler_speed", text="Speed")
-        sub.prop(scene, "audio_doppler_factor", text="Doppler")
-
-        col = split.column()
-        col.label("Format:")
-        col.prop(ffmpeg, "audio_channels", text="")
-        col.prop(ffmpeg, "audio_mixrate", text="Rate")
 
 
 class SCENE_PT_physics(SceneButtonsPanel, Panel):
@@ -315,16 +313,18 @@ class SCENE_PT_physics(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
 
         layout.active = scene.use_gravity
 
-        layout.prop(scene, "gravity", text="")
+        layout.prop(scene, "gravity")
 
 
 class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
     bl_label = "Rigid Body World"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
@@ -403,6 +403,7 @@ class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
 
 class SCENE_PT_simplify(SceneButtonsPanel, Panel):
     bl_label = "Simplify"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
@@ -411,22 +412,21 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         rd = context.scene.render
 
         layout.active = rd.use_simplify
 
-        split = layout.split()
+        col = layout.column()
+        col.prop(rd, "simplify_subdivision", text="Max Viewport Subdivision")
+        col.prop(rd, "simplify_child_particles", text="Max Child Particles")
 
-        col = split.column()
-        col.label(text="Viewport:")
-        col.prop(rd, "simplify_subdivision", text="Subdivision")
-        col.prop(rd, "simplify_child_particles", text="Child Particles")
+        col.separator()
 
-        col = split.column()
-        col.label(text="Render:")
-        col.prop(rd, "simplify_subdivision_render", text="Subdivision")
-        col.prop(rd, "simplify_child_particles_render", text="Child Particles")
+        col = layout.column()
+        col.prop(rd, "simplify_subdivision_render", text="Max Render Subdivision")
+        col.prop(rd, "simplify_child_particles_render", text="Max Child Particles")
 
 
 class SCENE_PT_viewport_display(SceneButtonsPanel, Panel):
