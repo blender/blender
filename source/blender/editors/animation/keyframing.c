@@ -1827,7 +1827,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			
 			if (path) {
 				const char *identifier = RNA_property_identifier(prop);
-				char *group = NULL;
+				const char *group = NULL;
 				
 				/* Special exception for keyframing transforms:
 				 * Set "group" for this manually, instead of having them appearing at the bottom (ungrouped)
