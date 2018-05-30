@@ -1505,7 +1505,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHTS;
+							v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHT;
 						}
 					}
 				}

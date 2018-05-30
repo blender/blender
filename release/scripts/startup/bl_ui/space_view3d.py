@@ -3528,7 +3528,7 @@ class VIEW3D_PT_shading(Panel):
                     col.row().prop(shading, "studiolight_rot_z")
 
                 row = col.row()
-                row.prop(shading, "show_specular_highlights")
+                row.prop(shading, "show_specular_highlight")
 
             col.separator()
 

@@ -52,8 +52,8 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
 	}
-	if (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHTS) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SPECULAR_HIGHLIGHTS\n");
+	if (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) {
+		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SPECULAR_HIGHLIGHT\n");
 	}
 	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
@@ -110,7 +110,7 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype)
 {
-	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OUTLINE | V3D_SHADING_SHADOW | V3D_SHADING_SPECULAR_HIGHLIGHTS;
+	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OUTLINE | V3D_SHADING_SHADOW | V3D_SHADING_SPECULAR_HIGHLIGHT;
 	int index = (wpd->shading.flag & DRAWOPTIONS_MASK);
 	index = (index << 2) + wpd->shading.light;
 	index = (index << 2);
