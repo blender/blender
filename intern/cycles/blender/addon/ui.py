@@ -1359,7 +1359,6 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
             else:
                 sub.prop(cbk, "cage_extrusion", text="Ray Distance")
 
-        if rd.use_bake_multires == False:
             layout.operator("object.bake", icon='RENDER_STILL').type = cscene.bake_type
 
 
