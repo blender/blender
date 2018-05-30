@@ -493,6 +493,35 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+static wmKeyMapItem *keymap_brush_select(
+        wmKeyMap *keymap, int paint_mode,
+        int tool, int keymap_type,
+        int keymap_modifier)
+{
+	wmKeyMapItem *kmi;
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_brush_select",
+	                         keymap_type, KM_PRESS, keymap_modifier, 0);
+
+	RNA_enum_set(kmi->ptr, "paint_mode", paint_mode);
+
+	switch (paint_mode) {
+		case OB_MODE_SCULPT:
+			RNA_enum_set(kmi->ptr, "sculpt_tool", tool);
+			break;
+		case OB_MODE_VERTEX_PAINT:
+			RNA_enum_set(kmi->ptr, "vertex_paint_tool", tool);
+			break;
+		case OB_MODE_WEIGHT_PAINT:
+			RNA_enum_set(kmi->ptr, "weight_paint_tool", tool);
+			break;
+		case OB_MODE_TEXTURE_PAINT:
+			RNA_enum_set(kmi->ptr, "texture_paint_tool", tool);
+			break;
+	}
+
+	return kmi;
+}
+
 static int brush_uv_sculpt_tool_set_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush;
@@ -1260,6 +1289,20 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	ed_keymap_paint_brush_radial_control(keymap, "sculpt", RC_ROTATION);
 
 	ed_keymap_stencil(keymap);
+
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_DRAW, XKEY, 0);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_SMOOTH, SKEY, 0);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_PINCH, PKEY, 0);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_INFLATE, IKEY, 0);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_GRAB, GKEY, 0);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_LAYER, LKEY, 0);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_FLATTEN, TKEY, KM_SHIFT);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CLAY, CKEY, 0);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CREASE, CKEY, KM_SHIFT);
+	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_SNAKE_HOOK, KKEY, 0);
+	kmi = keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_MASK, MKEY, 0);
+	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "create_missing", 1);
 
 	/* */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", EKEY, KM_PRESS, 0, 0);
