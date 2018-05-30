@@ -139,6 +139,7 @@ typedef struct MeshRenderData {
 	MLoop *mloop;
 	MPoly *mpoly;
 	float (*orco)[3];  /* vertex coordinates normalized to bounding box */
+	bool is_orco_allocated;
 	MDeformVert *dvert;
 	MLoopUV *mloopuv;
 	MLoopCol *mloopcol;
@@ -564,10 +565,12 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 #undef CD_VALIDATE_ACTIVE_LAYER
 
+		rdata->is_orco_allocated = false;
 		if (cd_vused[CD_ORCO] & 1) {
 			rdata->orco = CustomData_get_layer(cd_vdata, CD_ORCO);
 			/* If orco is not available compute it ourselves */
 			if (!rdata->orco) {
+				rdata->is_orco_allocated = true;
 				if (me->edit_btmesh) {
 					BMesh *bm = me->edit_btmesh->bm;
 					rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
@@ -814,7 +817,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 static void mesh_render_data_free(MeshRenderData *rdata)
 {
-	MEM_SAFE_FREE(rdata->orco);
+	if (rdata->is_orco_allocated) {
+		MEM_SAFE_FREE(rdata->orco);
+	}
 	MEM_SAFE_FREE(rdata->cd.offset.uv);
 	MEM_SAFE_FREE(rdata->cd.offset.vcol);
 	MEM_SAFE_FREE(rdata->cd.uuid.auto_mix);
