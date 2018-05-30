@@ -534,7 +534,7 @@ Mesh *BKE_mesh_new_nomain_from_curve(Object *ob)
 }
 
 /* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use_orco_uv, const char *obdata_name)
+void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use_orco_uv, const char *obdata_name, bool temporary)
 {
 	Main *bmain = G.main;
 	Object *ob1;
@@ -620,7 +620,16 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 		ob1 = ob1->id.next;
 	}
 
-	BKE_libblock_free_us(bmain, cu);
+	if (temporary) {
+		/* For temporary objects in BKE_mesh_new_from_object don't remap
+		 * the entire scene with associated depsgraph updates, which are
+		 * problematic for renderers exporting data. */
+		id_us_min(&cu->id);
+		BKE_libblock_free(bmain, cu);
+	}
+	else {
+		BKE_libblock_free_us(bmain, cu);
+	}
 }
 
 void BKE_mesh_from_nurbs(Object *ob)
@@ -633,7 +642,7 @@ void BKE_mesh_from_nurbs(Object *ob)
 		disp = ob->curve_cache->disp;
 	}
 
-	BKE_mesh_from_nurbs_displist(ob, &disp, use_orco_uv, cu->id.name);
+	BKE_mesh_from_nurbs_displist(ob, &disp, use_orco_uv, cu->id.name, false);
 }
 
 typedef struct EdgeLink {
@@ -856,9 +865,8 @@ Mesh *BKE_mesh_new_from_object(
 			/* copies object and modifiers (but not the data) */
 			Object *tmpobj;
 			/* TODO: make it temp copy outside bmain! */
-			BKE_id_copy_ex(bmain, &ob->id, (ID **)&tmpobj, LIB_ID_COPY_CACHES, false);
+			BKE_id_copy_ex(bmain, &ob->id, (ID **)&tmpobj, LIB_ID_COPY_CACHES | LIB_ID_CREATE_NO_DEG_TAG, false);
 			tmpcu = (Curve *)tmpobj->data;
-			id_us_min(&tmpcu->id);
 
 			/* Copy cached display list, it might be needed by the stack evaluation.
 			 * Ideally stack should be able to use render-time display list, but doing
@@ -878,7 +886,8 @@ Mesh *BKE_mesh_new_from_object(
 				BKE_object_free_modifiers(tmpobj, 0);
 
 			/* copies the data */
-			copycu = tmpobj->data = BKE_curve_copy(bmain, (Curve *) ob->data);
+			BKE_id_copy_ex(bmain,ob->data, (ID **)&copycu, LIB_ID_CREATE_NO_DEG_TAG, false);
+			tmpobj->data = copycu;
 
 			/* make sure texture space is calculated for a copy of curve,
 			 * it will be used for the final result.
@@ -901,7 +910,7 @@ Mesh *BKE_mesh_new_from_object(
 
 			/* convert object type to mesh */
 			uv_from_orco = (tmpcu->flag & CU_UV_ORCO) != 0;
-			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco, tmpcu->id.name + 2);
+			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco, tmpcu->id.name + 2, true);
 
 			tmpmesh = tmpobj->data;
 
@@ -911,11 +920,11 @@ Mesh *BKE_mesh_new_from_object(
 			 * if it didn't the curve did not have any segments or otherwise
 			 * would have generated an empty mesh */
 			if (tmpobj->type != OB_MESH) {
-				BKE_libblock_free_us(bmain, tmpobj);
+				BKE_libblock_free(bmain, tmpobj);
 				return NULL;
 			}
 
-			BKE_libblock_free_us(bmain, tmpobj);
+			BKE_libblock_free(bmain, tmpobj);
 
 			/* XXX The curve to mesh conversion is convoluted... But essentially, BKE_mesh_from_nurbs_displist()
 			 *     already transfers the ownership of materials from the temp copy of the Curve ID to the new
