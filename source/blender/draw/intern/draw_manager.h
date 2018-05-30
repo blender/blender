@@ -295,7 +295,7 @@ typedef struct DRWManager {
 	/* Cache generation */
 	ViewportMemoryPool *vmempool;
 	DRWInstanceDataList *idatalist;
-	DRWInstanceData *common_instance_data[MAX_INSTANCE_DATA_SIZE];
+	DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
 	/* State of the object being evaluated if already allocated. */
 	DRWCallState *ob_state;
 	unsigned char state_cache_id; /* Could be larger but 254 view changes is already a lot! */

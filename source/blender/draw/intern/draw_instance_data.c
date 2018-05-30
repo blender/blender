@@ -38,6 +38,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
+#include "BLI_mempool.h"
 
 #define BUFFER_CHUNK_SIZE 32
 #define BUFFER_VERTS_CHUNK 32
@@ -69,18 +70,13 @@ typedef struct DRWInstanceChunk {
 struct DRWInstanceData {
 	struct DRWInstanceData *next;
 	bool used;                 /* If this data is used or not. */
-	size_t chunk_size;         /* Current size of the whole chunk. */
 	size_t data_size;          /* Size of one instance data. */
-	size_t instance_group;     /* How many instance to allocate at a time. */
-	size_t offset;             /* Offset to the next instance data. */
-	float *memchunk;           /* Should be float no matter what. */
+	BLI_mempool *mempool;
 };
 
 struct DRWInstanceDataList {
 	struct DRWInstanceDataList *next, *prev;
 	/* Linked lists for all possible data pool size */
-	/* Not entirely sure if we should separate them in the first place.
-	 * This is done to minimize the reattribution misses. */
 	DRWInstanceData *idata_head[MAX_INSTANCE_DATA_SIZE];
 	DRWInstanceData *idata_tail[MAX_INSTANCE_DATA_SIZE];
 
@@ -282,17 +278,13 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 /** \name Instance Data (DRWInstanceData)
  * \{ */
 
-static DRWInstanceData *drw_instance_data_create(
-        DRWInstanceDataList *idatalist, uint attrib_size, uint instance_group)
+static DRWInstanceData *drw_instance_data_create(DRWInstanceDataList *idatalist, uint attrib_size)
 {
 	DRWInstanceData *idata = MEM_callocN(sizeof(DRWInstanceData), "DRWInstanceData");
 	idata->next = NULL;
 	idata->used = true;
 	idata->data_size = attrib_size;
-	idata->instance_group = instance_group;
-	idata->chunk_size = idata->data_size * instance_group;
-	idata->offset = 0;
-	idata->memchunk = MEM_mallocN(idata->chunk_size * sizeof(float), "DRWInstanceData memchunk");
+	idata->mempool = BLI_mempool_create(sizeof(float) * idata->data_size, 0, 16, 0);
 
 	BLI_assert(attrib_size > 0);
 
@@ -310,35 +302,18 @@ static DRWInstanceData *drw_instance_data_create(
 
 static void DRW_instance_data_free(DRWInstanceData *idata)
 {
-	MEM_freeN(idata->memchunk);
+	BLI_mempool_destroy(idata->mempool);
 }
 
 /**
  * Return a pointer to the next instance data space.
- * DO NOT SAVE/REUSE THIS POINTER after the next call
- * to this function since the chunk may have been
- * reallocated.
  **/
 void *DRW_instance_data_next(DRWInstanceData *idata)
 {
-	idata->offset += idata->data_size;
-
-	/* Check if chunk is large enough. realloc otherwise. */
-	if (idata->offset > idata->chunk_size) {
-		idata->chunk_size += idata->data_size * idata->instance_group;
-		idata->memchunk = MEM_reallocN(idata->memchunk, idata->chunk_size * sizeof(float));
-	}
-
-	return idata->memchunk + (idata->offset - idata->data_size);
+	return BLI_mempool_alloc(idata->mempool);
 }
 
-void *DRW_instance_data_get(DRWInstanceData *idata)
-{
-	return (void *)idata->memchunk;
-}
-
-DRWInstanceData *DRW_instance_data_request(
-        DRWInstanceDataList *idatalist, uint attrib_size, uint instance_group)
+DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint attrib_size)
 {
 	BLI_assert(attrib_size > 0 && attrib_size <= MAX_INSTANCE_DATA_SIZE);
 
@@ -352,7 +327,7 @@ DRWInstanceData *DRW_instance_data_request(
 		}
 	}
 
-	return drw_instance_data_create(idatalist, attrib_size, instance_group);
+	return drw_instance_data_create(idatalist, attrib_size);
 }
 
 /** \} */
@@ -413,7 +388,6 @@ void DRW_instance_data_list_reset(DRWInstanceDataList *idatalist)
 	for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; ++i) {
 		for (idata = idatalist->idata_head[i]; idata; idata = idata->next) {
 			idata->used = false;
-			idata->offset = 0;
 		}
 	}
 }
@@ -454,14 +428,7 @@ void DRW_instance_data_list_resize(DRWInstanceDataList *idatalist)
 
 	for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; ++i) {
 		for (idata = idatalist->idata_head[i]; idata; idata = idata->next) {
-			/* Rounding up to nearest chunk size to compare. */
-			size_t fac = idata->data_size * idata->instance_group;
-			size_t tmp = idata->offset + fac - 1;
-			size_t rounded_offset = tmp - tmp % fac;
-			if (rounded_offset < idata->chunk_size) {
-				idata->chunk_size = rounded_offset;
-				idata->memchunk = MEM_reallocN(idata->memchunk, idata->chunk_size * sizeof(float));
-			}
+			BLI_mempool_clear_ex(idata->mempool, BLI_mempool_len(idata->mempool));
 		}
 	}
 }

@@ -581,7 +581,7 @@ static void drw_viewport_var_init(void)
 
 	DST.clipping.updated = false;
 
-	memset(DST.common_instance_data, 0x0, sizeof(DST.common_instance_data));
+	memset(DST.object_instance_data, 0x0, sizeof(DST.object_instance_data));
 }
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
@@ -764,10 +764,10 @@ ObjectEngineData *DRW_object_engine_data_ensure(
 		const size_t t = sizeof(float) - 1;
 		size = (size + t) & ~t;
 		size_t fsize = size / sizeof(float);
-		if (DST.common_instance_data[fsize] == NULL) {
-			DST.common_instance_data[fsize] = DRW_instance_data_request(DST.idatalist, fsize, 16);
+		if (DST.object_instance_data[fsize] == NULL) {
+			DST.object_instance_data[fsize] = DRW_instance_data_request(DST.idatalist, fsize);
 		}
-		oed = (ObjectEngineData *)DRW_instance_data_next(DST.common_instance_data[fsize]);
+		oed = (ObjectEngineData *)DRW_instance_data_next(DST.object_instance_data[fsize]);
 		memset(oed, 0, size);
 	}
 	else {
