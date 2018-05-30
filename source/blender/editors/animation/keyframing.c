@@ -1826,12 +1826,37 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			path = RNA_path_from_ID_to_property(&ptr, prop);
 			
 			if (path) {
+				const char *identifier = RNA_property_identifier(prop);
+				char *group = NULL;
+				
+				/* Special exception for keyframing transforms:
+				 * Set "group" for this manually, instead of having them appearing at the bottom (ungrouped)
+				 * part of the channels list. Leaving these ungrouped is not a nice user behaviour in this case.
+				 *
+				 * TODO: Perhaps we can extend this behaviour in future for other properties...
+				 */
+				if ((ptr.type == &RNA_PoseBone) &&
+				    (strstr(identifier, "location") || strstr(identifier, "rotation") || strstr(identifier, "scale")))
+				{
+					bPoseChannel *pchan = (bPoseChannel *)ptr.data;
+					group = pchan->name;
+				}
+				else if ((ptr.type == &RNA_Object) &&
+				         (strstr(identifier, "location") || strstr(identifier, "rotation") || strstr(identifier, "scale")))
+				{
+					/* NOTE: Keep this label in sync with the "ID" case in
+					 * keyingsets_utils.py :: get_transform_generators_base_info()
+					 */
+					group = "Object Transforms";
+				}
+				
+				
 				if (all) {
 					/* -1 indicates operating on the entire array (or the property itself otherwise) */
 					index = -1;
 				}
 				
-				success = insert_keyframe(depsgraph, op->reports, ptr.id.data, NULL, NULL, path, index, cfra, ts->keyframe_type, flag);
+				success = insert_keyframe(depsgraph, op->reports, ptr.id.data, NULL, group, path, index, cfra, ts->keyframe_type, flag);
 				
 				MEM_freeN(path);
 			}

@@ -153,8 +153,10 @@ def get_transform_generators_base_info(data):
         # no path in this case
         path = ""
 
-        # data on ID-blocks directly should get grouped by the KeyingSet
-        grouping = None
+        # transform data on ID-blocks directly should get grouped under a
+        # hardcoded label ("Object Transforms") so that they get grouped
+        # consistently when keyframed directly
+        grouping = "Object Transforms"
     else:
         # get the path to the ID-block
         path = data.path_from_id()
