@@ -36,7 +36,9 @@ void main()
 	vec3 normal_world = normalWorldMatrix * normal_viewport;
 	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_world);
 #endif
-	vec3 shaded_color = diffuse_light * diffuse_color.rgb;
+
+	vec3 specular_color = get_world_specular_light(world_data, normal_viewport, vec3(0.0, 0.0, 1.0));
+	vec3 shaded_color = diffuse_light * diffuse_color.rgb + specular_color;
 
 #else /* V3D_LIGHTING_STUDIO */
 	vec3 shaded_color = diffuse_color.rgb;

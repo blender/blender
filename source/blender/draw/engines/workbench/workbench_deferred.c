@@ -304,22 +304,10 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 	select_deferred_shaders(wpd);
 	/* Deferred Mix Pass */
 	{
-		copy_v3_v3(e_data.display.light_direction, scene->display.light_direction);
-		negate_v3(e_data.display.light_direction);
-#if 0
-	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
-		BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED);
-		float rot_matrix[3][3];
-		// float dir[3] = {0.57, 0.57, -0.57};
-		axis_angle_to_mat3_single(rot_matrix, 'Z', wpd->shading.studiolight_rot_z);
-		mul_v3_m3v3(e_data.display.light_direction, rot_matrix, wpd->studio_light->light_direction);
-	}
-#endif
-		float view_matrix[4][4];
-		DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
-		mul_v3_mat3_m4v3(e_data.light_direction_vs, view_matrix, e_data.display.light_direction);
+		workbench_private_data_get_light_direction(wpd, e_data.display.light_direction);
 
 		e_data.display.shadow_shift = scene->display.shadow_shift;
+		copy_v3_v3(e_data.light_direction_vs, wpd->world_data.light_direction_vs);
 
 		if (SHADOW_ENABLED(wpd)) {
 			psl->composite_pass = DRW_pass_create(
@@ -327,7 +315,6 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
 			DRW_shgroup_stencil_mask(grp, 0x00);
-			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.light_direction_vs, 1);
 			DRW_shgroup_uniform_float(grp, "lightMultiplier", &light_multiplier, 1);
 			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
@@ -368,7 +355,6 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_shadow_pass);
 			DRW_shgroup_stencil_mask(grp, 0x00);
 			workbench_composite_uniforms(wpd, grp);
-			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.light_direction_vs, 1);
 			DRW_shgroup_uniform_float(grp, "lightMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);

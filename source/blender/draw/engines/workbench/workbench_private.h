@@ -37,7 +37,7 @@
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
-#define MAX_SHADERS 255
+#define MAX_SHADERS 512
 
 
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
@@ -106,6 +106,9 @@ typedef struct WORKBENCH_UBO_World {
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];
+	float light_direction_vs[4];
+	float specular_sharpness;
+	float pad[3];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
@@ -209,6 +212,7 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob,
 /* workbench_data.c */
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
+void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float light_direction[3]);
 
 extern DrawEngineType draw_engine_workbench_solid;
 extern DrawEngineType draw_engine_workbench_transparent;

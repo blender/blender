@@ -442,6 +442,7 @@ class SCENE_PT_viewport_display(SceneButtonsPanel, Panel):
         scene = context.scene
         layout.prop(scene.display, "light_direction", text="")
         layout.prop(scene.display, "shadow_shift")
+        layout.prop(scene.display, "roughness")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

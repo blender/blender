@@ -149,7 +149,7 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 		}
 	}
 	else if (!USE_SCENE_LIGHT(draw_ctx->v3d)) {
-		/* do not add any light sources to the cache */
+		/* do not add any scene light sources to the cache */
 	}
 	else if (ob->type == OB_LIGHTPROBE) {
 		if ((ob->base_flag & BASE_FROMDUPLI) != 0) {

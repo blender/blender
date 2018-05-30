@@ -57,7 +57,7 @@
 static ListBase studiolights;
 #define STUDIOLIGHT_EXTENSIONS ".jpg", ".hdr"
 #define STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE 8
-#define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 64
+#define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 32
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH (STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * 2)
 
 static const char *STUDIOLIGHT_CAMERA_FOLDER = "studiolights/camera/";
@@ -430,30 +430,27 @@ static void studiolight_calculate_light_direction(StudioLight *sl)
 	sl->light_direction[2] = -1.0f;
 
 	if ((sl->flag & STUDIOLIGHT_EXTERNAL_FILE) && (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
-		ImBuf *ibuf = NULL;
-		ibuf = IMB_loadiffname(sl->path, 0, NULL);
+		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED);
+		ImBuf *ibuf = sl->equirectangular_irradiance_buffer;
 		if (ibuf) {
-			IMB_float_from_rect(ibuf);
 			/* go over every pixel, determine light, if higher calc direction off the light */
-			float col[4];
-			float direction[3];
 			float new_light;
-			for (int y = 0; y < ibuf->y; y ++) {
-				for (int x = 0; x < ibuf->x; x ++) {
-					nearest_interpolation_color_wrap(ibuf, NULL, col, x, y);
-					new_light = col[0] + col[1] + col[2];
+			float *color = ibuf->rect_float;
+			for (int y = 0; y < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT; y ++) {
+				for (int x = 0; x < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH; x ++) {
+					new_light = color[0] + color[1] + color[2];
 					if (new_light > best_light) {
-						float u = x / (float)ibuf->x;
-						float v = y / (float)ibuf->y;
-						equirectangular_to_direction(direction, u, v);
-						sl->light_direction[0] = direction[1];
-						sl->light_direction[1] = direction[0];
-						sl->light_direction[2] = direction[2];
+						float u = x / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH;
+						float v = y / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT;
+						equirectangular_to_direction(sl->light_direction, u, v);
+						SWAP(float, sl->light_direction[0], sl->light_direction[1]);
+						normalize_v3(sl->light_direction);
+						negate_v3(sl->light_direction);
 						best_light = new_light;
 					}
+					color += 4;
 				}
 			}
-			IMB_freeImBuf(ibuf);
 		}
 	}
 	sl->flag |= STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED;

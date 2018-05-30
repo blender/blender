@@ -8,4 +8,6 @@ struct WorldData {
 	vec4 background_color_low;
 	vec4 background_color_high;
 	vec4 object_outline_color;
+	vec4 light_direction_vs;
+	float specular_sharpness;
 };
