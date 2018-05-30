@@ -772,6 +772,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * Copy-on-Write components in a way that only needed parts are being
 	 * copied over.
 	 */
+	/* TODO(sergey): Wrap GPU material backup and object runtime backup to a
+	 * generic backup structure.
+	 */
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
 	ObjectRuntimeBackup object_runtime_backup = {NULL};
