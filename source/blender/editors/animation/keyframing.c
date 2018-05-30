@@ -1835,9 +1835,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 				 *
 				 * TODO: Perhaps we can extend this behaviour in future for other properties...
 				 */
-				if ((ptr.type == &RNA_PoseBone) &&
-				    (strstr(identifier, "location") || strstr(identifier, "rotation") || strstr(identifier, "scale")))
-				{
+				if (ptr.type == &RNA_PoseBone) {
 					bPoseChannel *pchan = (bPoseChannel *)ptr.data;
 					group = pchan->name;
 				}
