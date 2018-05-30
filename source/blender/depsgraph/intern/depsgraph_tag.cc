@@ -40,6 +40,7 @@
 #include "BLI_task.h"
 
 extern "C" {
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -49,6 +50,7 @@ extern "C" {
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_idcode.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -438,6 +440,41 @@ string stringify_update_bitfield(int flag)
 	return result;
 }
 
+/* Special tag function which tags all components which needs to be tagged
+ * for update flag=0.
+ *
+ * TODO(sergey): This is something to be avoid in the future, make it more
+ * explicit and granular for users to tag what they really need.
+ */
+void deg_graph_node_tag_zero(Main *bmain, Depsgraph *graph, IDDepsNode *id_node)
+{
+	if (id_node == NULL) {
+		return;
+	}
+	ID *id = id_node->id_orig;
+	/* TODO(sergey): Which recalc flags to set here? */
+	id->recalc |= ID_RECALC_ALL & ~(DEG_TAG_PSYS_ALL | ID_RECALC_TIME);
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+	{
+		if (comp_node->type == DEG_NODE_TYPE_ANIMATION) {
+			AnimData *adt = BKE_animdata_from_id(id);
+			/* NOTE: Animation data might be null if relations are tagged
+			 * for update.
+			 */
+			if (adt == NULL || (adt->recalc & ADT_RECALC_ANIM) == 0) {
+				/* If there is no animation, or animation is not tagged for
+				 * update yet, we don't force animation channel to be evaluated.
+				 */
+				continue;
+			}
+			id->recalc |= ID_RECALC_TIME;
+		}
+		comp_node->tag_update(graph);
+	}
+	GHASH_FOREACH_END();
+	deg_graph_id_tag_legacy_compat(bmain, id, (eDepsgraph_Tag)0);
+}
+
 void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 {
 	const int debug_flags = (graph != NULL)
@@ -453,12 +490,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	                                      : NULL;
 	DEG_id_type_tag(bmain, GS(id->name));
 	if (flag == 0) {
-		/* TODO(sergey): Which recalc flags to set here? */
-		id->recalc |= ID_RECALC_ALL & ~DEG_TAG_PSYS_ALL;
-		if (id_node != NULL) {
-			id_node->tag_update(graph);
-		}
-		deg_graph_id_tag_legacy_compat(bmain, id, (eDepsgraph_Tag)0);
+		deg_graph_node_tag_zero(bmain, graph, id_node);
 	}
 	id->recalc |= (flag & PSYS_RECALC);
 	int current_flag = flag;
