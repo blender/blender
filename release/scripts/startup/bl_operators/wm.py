@@ -55,6 +55,15 @@ rna_relative_prop = BoolProperty(
         default=False,
         )
 
+rna_space_type_prop = EnumProperty(
+        name="Type",
+        items=tuple(
+            (e.identifier, e.name, "", e. value)
+            for e in bpy.types.Space.bl_rna.properties["type"].enum_items
+           ),
+        default='EMPTY',
+        )
+
 
 def context_path_validate(context, data_path):
     try:
@@ -2335,21 +2344,27 @@ class WM_OT_tool_set_by_name(Operator):
             name="Text",
             description="Display name of the tool",
             )
-    space_type = EnumProperty(
-            name="Type",
-            items=tuple(
-                (e.identifier, e.name, "", e. value)
-                for e in bpy.types.Space.bl_rna.properties["type"].enum_items
-            ),
-            default='EMPTY',
+
+    cycle = BoolProperty(
+            name="Cycle",
+            description="Cycle through tools in this group",
+            default=False,
+            options={'SKIP_SAVE'},
             )
 
+    space_type = rna_space_type_prop
+
     def execute(self, context):
-        from bl_ui.space_toolsystem_common import activate_by_name
+        from bl_ui.space_toolsystem_common import (
+            activate_by_name,
+            activate_by_name_or_cycle,
+        )
         space_type = self.space_type
         if space_type == 'EMPTY':
             space_type = context.space_data.type
-        if activate_by_name(context, space_type, self.name):
+
+        fn = activate_by_name_or_cycle if self.cycle else activate_by_name
+        if fn(context, space_type, self.name):
             return {'FINISHED'}
         else:
             self.report({'WARNING'}, f"Tool {self.name!r} not found.")
