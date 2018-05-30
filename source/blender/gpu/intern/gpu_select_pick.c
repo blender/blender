@@ -337,7 +337,7 @@ void gpu_select_pick_begin(
 		}
 
 		float viewport[4];
-		glGetFloatv(GL_SCISSOR_BOX, viewport);
+		glGetFloatv(GL_VIEWPORT, viewport);
 
 		ps->src.clip_rect = *input;
 		ps->src.rect_len = rect_len;

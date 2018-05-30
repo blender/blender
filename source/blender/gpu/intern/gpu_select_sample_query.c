@@ -103,10 +103,10 @@ void gpu_select_query_begin(
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	/* In order to save some fill rate we minimize the viewport using rect.
-	 * We need to get the region of the scissor so that our geometry doesn't
+	 * We need to get the region of the viewport so that our geometry doesn't
 	 * get rejected before the depth test. Should probably cull rect against
-	 * scissor for viewport but this is a rare case I think */
-	glGetFloatv(GL_SCISSOR_BOX, viewport);
+	 * the viewport but this is a rare case I think */
+	glGetFloatv(GL_VIEWPORT, viewport);
 	glViewport(viewport[0], viewport[1], BLI_rcti_size_x(input), BLI_rcti_size_y(input));
 
 	/* occlusion queries operates on fragments that pass tests and since we are interested on all
@@ -116,7 +116,6 @@ void gpu_select_query_begin(
 		glDepthMask(GL_FALSE);
 	}
 	else if (mode == GPU_SELECT_NEAREST_FIRST_PASS) {
-		glDisable(GL_SCISSOR_TEST); /* allows fast clear */
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);

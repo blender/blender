@@ -692,7 +692,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 		//GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
 		
 		/* standard state vars for window */
-		glEnable(GL_SCISSOR_TEST);
 		GPU_state_init();
 	}
 }
@@ -2024,13 +2023,7 @@ void wm_window_raise(wmWindow *win)
 
 void wm_window_swap_buffers(wmWindow *win)
 {
-#ifdef WIN32
-	glDisable(GL_SCISSOR_TEST);
 	GHOST_SwapWindowBuffers(win->ghostwin);
-	glEnable(GL_SCISSOR_TEST);
-#else
-	GHOST_SwapWindowBuffers(win->ghostwin);
-#endif
 }
 
 void wm_window_set_swap_interval (wmWindow *win, int interval)
