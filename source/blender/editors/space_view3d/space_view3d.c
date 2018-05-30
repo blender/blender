@@ -1107,6 +1107,20 @@ static void view3d_main_region_message_subscribe(
 	}
 }
 
+static void view3d_tools_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
+        struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+	WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
+}
+
 /* concept is to retrieve cursor type context-less */
 static void view3d_main_region_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
@@ -1525,6 +1539,7 @@ void ED_spacetype_view3d(void)
 	art->prefsizey = 50; /* XXX */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	art->listener = view3d_buttons_region_listener;
+	art->message_subscribe = view3d_tools_region_message_subscribe;
 	art->snap_size = view3d_tools_region_snap_size;
 	art->init = view3d_tools_region_init;
 	art->draw = view3d_tools_region_draw;
