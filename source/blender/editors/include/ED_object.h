@@ -277,4 +277,7 @@ void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int
 }
 #endif
 
+/* Don't allow switching object-modes when selecting objects. */
+#define USE_OBJECT_MODE_STRICT
+
 #endif /* __ED_OBJECT_H__ */

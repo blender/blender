@@ -249,6 +249,23 @@ static eOLDrawState tree_element_set_active_object(
 	/* find associated base in current scene */
 	base = BKE_view_layer_base_find(view_layer, ob);
 
+#ifdef USE_OBJECT_MODE_STRICT
+	if (base != NULL) {
+		Object *obact = OBACT(view_layer);
+		const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
+		if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
+			if (object_mode == OB_MODE_OBJECT) {
+				struct Main *bmain = CTX_data_main(C);
+				Depsgraph *depsgraph = CTX_data_depsgraph(C);
+				ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
+			}
+			if (!BKE_object_is_mode_compat(base->object, object_mode)) {
+				base = NULL;
+			}
+		}
+	}
+#endif
+
 	if (base) {
 		if (set == OL_SETSEL_EXTEND) {
 			/* swap select */
@@ -272,10 +289,10 @@ static eOLDrawState tree_element_set_active_object(
 			ED_object_base_activate(C, base); /* adds notifier */
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
-	}
-
-	if (ob != OBEDIT_FROM_VIEW_LAYER(view_layer)) {
-		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+		
+		if (ob != OBEDIT_FROM_VIEW_LAYER(view_layer)) {
+			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+		}
 	}
 	return OL_DRAWSEL_NORMAL;
 }

@@ -106,9 +106,6 @@
 
 // #include "PIL_time_utildefines.h"
 
-/* Don't allow switching object-modes when selecting objects. */
-#define USE_OBJECT_MODE_STRICT
-
 float ED_view3d_select_dist_px(void)
 {
 	return 75.0f * U.pixelsize;
@@ -1414,13 +1411,13 @@ static bool ed_object_select_pick(
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = BASACT(view_layer);
+	const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
 	bool is_obedit;
 	float dist = ED_view3d_select_dist_px() * 1.3333f;
 	bool retval = false;
 	int hits;
 	const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
 
-	
 	/* setup view context for argument to callbacks */
 	ED_view3d_viewcontext_init(C, &vc);
 
@@ -1470,10 +1467,14 @@ static bool ed_object_select_pick(
 		}
 #ifdef USE_OBJECT_MODE_STRICT
 		if (is_obedit == false) {
-			if (basact && !BKE_object_is_mode_compat(
-			            basact->object, oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT))
-			{
-				basact = NULL;
+			if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
+				if (object_mode == OB_MODE_OBJECT) {
+					struct Main *bmain = CTX_data_main(C);
+					ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
+				}
+				if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
+					basact = NULL;
+				}
 			}
 		}
 #endif
@@ -1503,10 +1504,14 @@ static bool ed_object_select_pick(
 
 #ifdef USE_OBJECT_MODE_STRICT
 			if (is_obedit == false) {
-				if (basact && !BKE_object_is_mode_compat(
-				            basact->object, oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT))
-				{
-					basact = NULL;
+				if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
+					if (object_mode == OB_MODE_OBJECT) {
+						struct Main *bmain = CTX_data_main(C);
+						ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
+					}
+					if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
+						basact = NULL;
+					}
 				}
 			}
 #endif
