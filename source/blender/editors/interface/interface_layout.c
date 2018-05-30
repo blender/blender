@@ -1520,45 +1520,55 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 
 	/* Split the label / property. */
 	if (use_prop_sep) {
-		uiLayout *layout_split = uiLayoutSplit(layout, UI_ITEM_PROP_SEP_DIVIDE, true);
-		layout_split->space = 0;
-		uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
-		layout_sub->space = 0;
-
-		if (index == RNA_NO_INDEX && is_array) {
-			char name_with_suffix[UI_MAX_DRAW_STR + 2];
-			char str[2] = {'\0'};
-			for (int a = 0; a < len; a++) {
-				str[0] = RNA_property_array_item_char(prop, a);
-				const bool use_prefix = (a == 0 && name && name[0]);
-				if (use_prefix) {
-					char *s = name_with_suffix;
-					s += STRNCPY_RLEN(name_with_suffix, name);
-					*s++ = ' ';
-					*s++ = str[0];
-					*s++ = '\0';
-				}
-				but = uiDefBut(
-				        block, UI_BTYPE_LABEL, 0, use_prefix ? name_with_suffix : str,
-				        0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-				but->drawflag |= UI_BUT_TEXT_RIGHT;
-				but->drawflag &= ~UI_BUT_TEXT_LEFT;
-			}
+		if (name[0] == '\0') {
+			/* Ensure we get a column when text is not set. */
+			layout = uiLayoutColumn(layout, true);
+			layout->space = 0;
 		}
 		else {
-			if (name) {
-				but = uiDefBut(
-				        block, UI_BTYPE_LABEL, 0, name,
-				        0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-				but->drawflag |= UI_BUT_TEXT_RIGHT;
-				but->drawflag &= ~UI_BUT_TEXT_LEFT;
-			}
-		}
+			const PropertySubType subtype = RNA_property_subtype(prop);
+			uiLayout *layout_split = uiLayoutSplit(layout, UI_ITEM_PROP_SEP_DIVIDE, true);
+			layout_split->space = 0;
+			uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
+			layout_sub->space = 0;
 
-		/* Watch out! We can only write into the new column now. */
-		layout = uiLayoutColumn(layout_split, true);
-		layout->space = 0;
-		name = "";
+			if ((index == RNA_NO_INDEX && is_array) &&
+				((ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand) == 0))
+			{
+				char name_with_suffix[UI_MAX_DRAW_STR + 2];
+				char str[2] = {'\0'};
+				for (int a = 0; a < len; a++) {
+					str[0] = RNA_property_array_item_char(prop, a);
+					const bool use_prefix = (a == 0 && name && name[0]);
+					if (use_prefix) {
+						char *s = name_with_suffix;
+						s += STRNCPY_RLEN(name_with_suffix, name);
+						*s++ = ' ';
+						*s++ = str[0];
+						*s++ = '\0';
+					}
+					but = uiDefBut(
+							block, UI_BTYPE_LABEL, 0, use_prefix ? name_with_suffix : str,
+							0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+					but->drawflag |= UI_BUT_TEXT_RIGHT;
+					but->drawflag &= ~UI_BUT_TEXT_LEFT;
+				}
+			}
+			else {
+				if (name) {
+					but = uiDefBut(
+							block, UI_BTYPE_LABEL, 0, name,
+							0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+					but->drawflag |= UI_BUT_TEXT_RIGHT;
+					but->drawflag &= ~UI_BUT_TEXT_LEFT;
+				}
+			}
+
+			/* Watch out! We can only write into the new column now. */
+			layout = uiLayoutColumn(layout_split, true);
+			layout->space = 0;
+			name = "";
+		}
 	}
 	/* End split. */
 
