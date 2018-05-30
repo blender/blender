@@ -1533,7 +1533,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			layout_sub->space = 0;
 
 			if ((index == RNA_NO_INDEX && is_array) &&
-				((ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand) == 0))
+			    ((ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand) == 0))
 			{
 				char name_with_suffix[UI_MAX_DRAW_STR + 2];
 				char str[2] = {'\0'};
@@ -1548,8 +1548,8 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 						*s++ = '\0';
 					}
 					but = uiDefBut(
-							block, UI_BTYPE_LABEL, 0, use_prefix ? name_with_suffix : str,
-							0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+					        block, UI_BTYPE_LABEL, 0, use_prefix ? name_with_suffix : str,
+					        0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 					but->drawflag |= UI_BUT_TEXT_RIGHT;
 					but->drawflag &= ~UI_BUT_TEXT_LEFT;
 				}
@@ -1557,8 +1557,8 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			else {
 				if (name) {
 					but = uiDefBut(
-							block, UI_BTYPE_LABEL, 0, name,
-							0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+					        block, UI_BTYPE_LABEL, 0, name,
+					        0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 					but->drawflag |= UI_BUT_TEXT_RIGHT;
 					but->drawflag &= ~UI_BUT_TEXT_LEFT;
 				}

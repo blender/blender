@@ -3252,7 +3252,7 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 		/* Create edges for each pair of triangles sharing an edge. */
 		for (int i = 0; i < tri_len; i++) {
 			for (int e = 0; e < 3; ++e) {
-				unsigned int v0, v1, v2;
+				uint v0, v1, v2;
 				if (rdata->edit_bmesh) {
 					const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
 					if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
@@ -3283,7 +3283,7 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 					/* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
 					*pval = SET_INT_IN_POINTER(NO_EDGE);
 					bool inv_opposite = (v_data < 0);
-					unsigned int v_opposite = (unsigned int)abs(v_data) - 1;
+					uint v_opposite = (uint)abs(v_data) - 1;
 
 					if (inv_opposite == inv_indices) {
 						/* Don't share edge if triangles have non matching winding. */
@@ -3303,15 +3303,15 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 		     BLI_edgehashIterator_isDone(ehi) == false;
 		     BLI_edgehashIterator_step(ehi))
 		{
-			unsigned int v1, v2;
+			uint v1, v2;
 			int v_data = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
 			if (v_data == NO_EDGE) {
 				continue;
 			}
 			BLI_edgehashIterator_getKey(ehi, &v1, &v2);
-			unsigned int v0 = (unsigned int)abs(v_data) - 1;
+			uint v0 = (uint)abs(v_data) - 1;
 			if (v_data < 0) { /* inv_opposite  */
-				SWAP(unsigned int, v1, v2);
+				SWAP(uint, v1, v2);
 			}
 			GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
 			cache->is_manifold = false;

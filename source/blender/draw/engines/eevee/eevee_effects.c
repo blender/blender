@@ -511,10 +511,13 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 	/* Save the final texture and framebuffer for final transformation or read. */
 	effects->final_tx = effects->source_buffer;
 	effects->final_fb = (effects->target_buffer != fbl->main_color_fb) ? fbl->main_fb : fbl->effect_fb;
-	if ((effects->enabled_effects & EFFECT_TAA) && (effects->enabled_effects & (EFFECT_BLOOM | EFFECT_DOF | EFFECT_MOTION_BLUR)) == 0) {
+	if ((effects->enabled_effects & EFFECT_TAA) &&
+	    (effects->enabled_effects & (EFFECT_BLOOM | EFFECT_DOF | EFFECT_MOTION_BLUR)) == 0)
+	{
 		if (!effects->swap_double_buffer) {
 			effects->final_fb = fbl->double_buffer_fb;
-		} else {
+		}
+		else {
 			effects->final_fb = fbl->main_fb;
 		}
 	}

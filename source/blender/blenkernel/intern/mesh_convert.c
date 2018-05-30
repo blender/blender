@@ -886,7 +886,7 @@ Mesh *BKE_mesh_new_from_object(
 				BKE_object_free_modifiers(tmpobj, 0);
 
 			/* copies the data */
-			BKE_id_copy_ex(bmain,ob->data, (ID **)&copycu, LIB_ID_CREATE_NO_DEG_TAG, false);
+			BKE_id_copy_ex(bmain, ob->data, (ID **)&copycu, LIB_ID_CREATE_NO_DEG_TAG, false);
 			tmpobj->data = copycu;
 
 			/* make sure texture space is calculated for a copy of curve,

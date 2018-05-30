@@ -367,7 +367,7 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 }
 
 static void drw_shgroup_call_procedural_add_ex(
-        DRWShadingGroup *shgroup, Gwn_PrimType prim_type, unsigned int prim_count, float (*obmat)[4])
+        DRWShadingGroup *shgroup, Gwn_PrimType prim_type, uint prim_count, float (*obmat)[4])
 {
 	BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
@@ -383,17 +383,17 @@ static void drw_shgroup_call_procedural_add_ex(
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
-void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, unsigned int point_count, float (*obmat)[4])
+void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, uint point_count, float (*obmat)[4])
 {
 	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_POINTS, point_count, obmat);
 }
 
-void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, unsigned int line_count, float (*obmat)[4])
+void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, uint line_count, float (*obmat)[4])
 {
 	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_LINES, line_count, obmat);
 }
 
-void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, unsigned int tria_count, float (*obmat)[4])
+void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, uint tria_count, float (*obmat)[4])
 {
 	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_TRIS, tria_count, obmat);
 }

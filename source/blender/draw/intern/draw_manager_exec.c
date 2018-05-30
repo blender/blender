@@ -749,11 +749,12 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 	/* No need to go further the call will not be used. */
 	if ((st->flag & DRW_CALL_CULLED) != 0 &&
 	    (st->flag & DRW_CALL_BYPASS_CULLING) == 0)
+	{
 		return;
-
+	}
 	/* Order matters */
 	if (st->matflag & (DRW_CALL_MODELVIEW | DRW_CALL_MODELVIEWINVERSE |
-	                  DRW_CALL_NORMALVIEW | DRW_CALL_EYEVEC))
+	                   DRW_CALL_NORMALVIEW | DRW_CALL_EYEVEC))
 	{
 		mul_m4_m4m4(st->modelview, DST.view_data.matstate.mat[DRW_MAT_VIEW], st->model);
 	}

@@ -300,7 +300,8 @@ void DEG_iterator_ids_begin(BLI_Iterator *iter, DEGIDIterData *data)
 	iter->data = data;
 
 	if ((num_id_nodes == 0) ||
-	    (data->only_updated && !DEG_id_type_any_updated(depsgraph))) {
+	    (data->only_updated && !DEG_id_type_any_updated(depsgraph)))
+	{
 		iter->valid = false;
 		return;
 	}

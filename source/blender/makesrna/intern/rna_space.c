@@ -717,7 +717,7 @@ static void rna_View3DShading_studio_light_orientation_set(PointerRNA *UNUSED(pt
 static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	const int flag = v3d->drawtype == OB_MATERIAL? STUDIOLIGHT_ORIENTATION_WORLD: 0;
+	const int flag = (v3d->drawtype == OB_MATERIAL) ? STUDIOLIGHT_ORIENTATION_WORLD : 0;
 	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, flag);
 	BLI_strncpy(v3d->shading.studio_light, sl->name, FILE_MAXFILE);
 	return sl->index;
@@ -747,7 +747,8 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 		if ((sl->flag & STUDIOLIGHT_EXTERNAL_FILE) == 0) {
 			/* always show internal lights */
 			show_studiolight = true;
-		} else {
+		}
+		else {
 			switch (v3d->drawtype) {
 				case OB_SOLID:
 				case OB_TEXTURE:

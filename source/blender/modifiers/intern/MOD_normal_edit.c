@@ -415,7 +415,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd, Object *ob, Mes
 		        LIB_ID_CREATE_NO_DEG_TAG |
 		        LIB_ID_COPY_NO_PREVIEW,
 		        false);
-	} else {
+	}
+	else {
 		result = mesh;
 	}
 

@@ -3351,7 +3351,8 @@ MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default)
 	return clip;
 }
 
-void BKE_object_runtime_reset(Object *object) {
+void BKE_object_runtime_reset(Object *object)
+{
 	memset(&object->runtime, 0, sizeof(object->runtime));
 }
 

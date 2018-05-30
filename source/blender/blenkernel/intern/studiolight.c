@@ -207,7 +207,7 @@ static void studiolight_calculate_radiance_cubemap_buffers(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED);
-		ImBuf* ibuf = sl->equirectangular_radiance_buffer;
+		ImBuf *ibuf = sl->equirectangular_radiance_buffer;
 		if (ibuf) {
 			float *colbuf = MEM_mallocN(SQUARE(STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) * sizeof(float[4]), __func__);
 			const float add = 1.0f / (STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE + 1);
@@ -462,7 +462,7 @@ static void studiolight_add_files_from_datafolder(const int folder_id, const cha
 	struct direntry *dir;
 	const char *folder = BKE_appdir_folder_id(folder_id, subfolder);
 	if (folder) {
-		unsigned int totfile = BLI_filelist_dir_contents(folder, &dir);
+		uint totfile = BLI_filelist_dir_contents(folder, &dir);
 		int i;
 		for (i = 0; i < totfile; i++) {
 			if ((dir[i].type & S_IFREG)) {
@@ -512,7 +512,7 @@ static int studiolight_cmp(const void *a, const void *b)
 }
 
 /* icons */
-static unsigned int* studiolight_radiance_preview(StudioLight *sl, int icon_size)
+static uint *studiolight_radiance_preview(StudioLight *sl, int icon_size)
 {
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED);
 
@@ -566,7 +566,7 @@ static unsigned int* studiolight_radiance_preview(StudioLight *sl, int icon_size
 	return rect;
 }
 
-static unsigned int* studiolight_irradiance_preview(StudioLight *sl, int icon_size)
+static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 {
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
@@ -660,7 +660,8 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
 		if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
 			if ((sl->flag & flag) == flag) {
 				return sl;
-			} else {
+			}
+			else {
 				/* flags do not match, so use default */
 				return studiolights.first;
 			}
@@ -686,11 +687,12 @@ const struct ListBase *BKE_studiolight_listbase(void)
 	return &studiolights;
 }
 
-unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size, int icon_id_type)
+uint *BKE_studiolight_preview(StudioLight *sl, int icon_size, int icon_id_type)
 {
 	if (icon_id_type == STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE) {
 		return studiolight_irradiance_preview(sl, icon_size);
-	} else {
+	}
+	else {
 		return studiolight_radiance_preview(sl, icon_size);
 	}
 }
