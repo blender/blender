@@ -1360,15 +1360,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	if (use_submode) {
-		/* Apply arbitrary fallback modes, see: T55162. */
-		if (ob) {
-			if (ob->type == OB_ARMATURE) {
-				if (mode == OB_MODE_TEXTURE_PAINT) {
-					mode = OB_MODE_POSE;
-				}
-			}
-		}
-
+		/* When not changing modes use submodes, see: T55162. */
 		if (toggle == false) {
 			if (mode == restore_mode) {
 				switch (mode) {
