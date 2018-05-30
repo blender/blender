@@ -60,6 +60,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_idcode.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -1212,13 +1213,26 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 	}
 }
 
-/** Get evaluated mesh for other object, which is used as an operand for the modifier,
- * i.e. second operand for boolean modifier.
+/**
+ * Get evaluated mesh for other evaluated object, which is used as an operand for the modifier,
+ * e.g. second operand for boolean modifier.
+ * Note thqt modifiers in stack always get fully evaluated COW ID pointers, never original ones. Makes things simpler.
  */
-Mesh *BKE_modifier_get_evaluated_mesh_from_object(const ModifierEvalContext *ctx, Object *ob)
+Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval, bool *r_free_mesh)
 {
-	/* Note: we do not care about RENDER setting here, since we get data from despgraph
-	 * (and render depsgraph shall be different from realtime one)
-	 */
-	return BKE_object_get_evaluated_mesh(ctx->depsgraph, ob);
+	Mesh *me;
+
+	if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {
+		/* Note: currently we have no equivalent to derived cagemesh or even final dm in BMEditMesh...
+		 * This is TODO in core depsgraph/modifier stack code still. */
+		BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+		me = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+		*r_free_mesh = true;
+	}
+	else {
+		me = ob_eval->runtime.mesh_eval;
+		*r_free_mesh = false;
+	}
+
+	return me;
 }

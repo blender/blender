@@ -1041,33 +1041,6 @@ static bool surfacedeformBind(
 	return data.success == 1;
 }
 
-static Mesh *surfacedeform_get_mesh(Depsgraph *depsgraph, SurfaceDeformModifierData *smd, bool *r_needsfree)
-{
-	Mesh *mesh;
-
-	/* Handle target mesh both in and out of edit mode */
-	if (smd->target->mode & OB_MODE_EDIT) {
-		BMEditMesh *em = BKE_editmesh_from_object(smd->target);
-		mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
-		*r_needsfree = true;
-	}
-	else {
-		ModifierEvalContext ctx = {
-		    .depsgraph = depsgraph,
-		    .flag = smd->modifier.mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0,
-		};
-		mesh = BKE_modifier_get_evaluated_mesh_from_object(&ctx, smd->target);
-		*r_needsfree = false;
-	}
-
-	if (!mesh) {
-		mesh = get_mesh(smd->target, NULL, NULL, NULL, false, false);
-		*r_needsfree = true;
-	}
-
-	return mesh;
-}
-
 static void deformVert(
         void *__restrict userdata,
         const int index,
@@ -1127,7 +1100,7 @@ static void deformVert(
 
 static void surfacedeformModifier_do(
         ModifierData *md,
-        const ModifierEvalContext *ctx,
+        const ModifierEvalContext *UNUSED(ctx),
         float (*vertexCos)[3], unsigned int numverts, Object *ob)
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
@@ -1141,7 +1114,7 @@ static void surfacedeformModifier_do(
 		return;
 	}
 
-	target = surfacedeform_get_mesh(ctx->depsgraph, smd, &free_target);
+	target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(smd->target, &free_target);
 	if (!target) {
 		modifier_setError(md, "No valid target mesh");
 		return;
@@ -1200,7 +1173,9 @@ static void surfacedeformModifier_do(
 		MEM_freeN(data.targetCos);
 	}
 
-	if (free_target) BKE_id_free(NULL, target);
+	if (target != NULL && free_target) {
+		BKE_id_free(NULL, target);
+	}
 }
 
 static void deformVerts(

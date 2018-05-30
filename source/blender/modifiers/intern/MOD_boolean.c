@@ -170,14 +170,16 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
+	Mesh *result;
+
 	Mesh *mesh_other;
+	bool mesh_other_free;
 
 	if (!bmd->object)
 		return mesh;
 
-	mesh_other = BKE_modifier_get_evaluated_mesh_from_object(ctx, bmd->object);
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, &mesh_other_free);
 	if (mesh_other) {
-		Mesh *result;
 		Object *object_eval = DEG_get_evaluated_object(ctx->depsgraph, ctx->object);
 		Object *other_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
 
@@ -321,19 +323,19 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 #ifdef DEBUG_TIME
 			TIMEIT_END(boolean_bmesh);
 #endif
-
-			return result;
 		}
 
 		/* if new mesh returned, return it; otherwise there was
 		 * an error, so delete the modifier object */
-		if (result)
-			return result;
-		else
+		if (result == NULL)
 			modifier_setError(md, "Cannot execute boolean operation");
 	}
 
-	return mesh;
+	if (mesh_other != NULL && mesh_other_free) {
+		BKE_id_free(NULL, mesh_other);
+	}
+
+	return result;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
