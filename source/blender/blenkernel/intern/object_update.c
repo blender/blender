@@ -330,62 +330,6 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph,
 			BKE_mball_batch_cache_dirty(ob->data, BKE_MBALL_BATCH_DIRTY_ALL);
 			break;
 	}
-
-	if (DEG_depsgraph_use_copy_on_write()) {
-		if (ob->type == OB_MESH) {
-			/* Quick hack to convert evaluated derivedMesh to Mesh. */
-			DerivedMesh *dm = ob->derivedFinal;
-			if (dm != NULL) {
-				Mesh *mesh = (Mesh *)ob->data;
-				Mesh *new_mesh = BKE_libblock_alloc_notest(ID_ME);
-				BKE_mesh_init(new_mesh);
-				/* Copy ID name so GS(new_mesh->id) works correct later on. */
-				BLI_strncpy(new_mesh->id.name, mesh->id.name, sizeof(new_mesh->id.name));
-				/* Copy materials so render engines can access them. */
-				new_mesh->mat = MEM_dupallocN(mesh->mat);
-				new_mesh->totcol = mesh->totcol;
-				DM_to_mesh(dm, new_mesh, ob, CD_MASK_MESH, true);
-				new_mesh->edit_btmesh = mesh->edit_btmesh;
-				/* Store result mesh as derived_mesh of object. This way we have
-				 * explicit  way to query final object evaluated data and know for sure
-				 * who owns the newly created mesh datablock.
-				 */
-				ob->runtime.mesh_eval = new_mesh;
-				/* TODO(sergey): This is kind of compatibility thing, so all render
-				 * engines can use object->data for mesh data for display. This is
-				 * something what we might want to change in the future.
-				 * XXX: This can sometimes cause modifiers to be applied twice!
-				 */
-				ob->data = new_mesh;
-				/* Special flags to help debugging. */
-				new_mesh->id.tag |= LIB_TAG_COPY_ON_WRITE_EVAL;
-				/* Save some memory by throwing DerivedMesh away. */
-				/* NOTE: Watch out, some tools might need it!
-				 * So keep around for now..
-				 */
-				/* Store original ID as a pointer in evaluated ID.
-				 * This way we can restore original object data when we are freeing
-				 * evaluated mesh.
-				 */
-				new_mesh->id.orig_id = &mesh->id;
-				/* Copy autosmooth settings from original mesh. */
-				new_mesh->flag |= (mesh->flag & ME_AUTOSMOOTH);
-				new_mesh->smoothresh = mesh->smoothresh;
-			}
-#if 0
-			if (ob->derivedFinal != NULL) {
-				ob->derivedFinal->needsFree = 1;
-				ob->derivedFinal->release(ob->derivedFinal);
-				ob->derivedFinal = NULL;
-			}
-			if (ob->derivedDeform != NULL) {
-				ob->derivedDeform->needsFree = 1;
-				ob->derivedDeform->release(ob->derivedDeform);
-				ob->derivedDeform = NULL;
-			}
-#endif
-		}
-	}
 }
 
 void BKE_object_eval_cloth(Depsgraph *depsgraph,
