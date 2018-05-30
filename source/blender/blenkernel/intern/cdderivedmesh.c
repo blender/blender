@@ -597,7 +597,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 	return CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_MESH);
 }
 
-DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, CDAllocType alloctype, CustomDataMask mask)
+DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, eCDAllocType alloctype, CustomDataMask mask)
 {
 	CDDerivedMesh *cddm = cdDM_create(__func__);
 	DerivedMesh *dm = &cddm->dm;

@@ -398,19 +398,19 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
  * freed, see BKE_customdata.h for the different options
  */
 void DM_add_vert_layer(
-        struct DerivedMesh *dm, int type, CDAllocType alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_edge_layer(
-        struct DerivedMesh *dm, int type, CDAllocType alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_tessface_layer(
-        struct DerivedMesh *dm, int type, CDAllocType alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_loop_layer(
-        DerivedMesh *dm, int type, CDAllocType alloctype,
+        DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_poly_layer(
-        struct DerivedMesh *dm, int type, CDAllocType alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 
 /* custom data access functions

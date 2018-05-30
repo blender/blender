@@ -716,7 +716,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool
 	Mesh tmp = *me;
 	int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
 	int did_shapekeys = 0;
-	CDAllocType alloctype = CD_DUPLICATE;
+	eCDAllocType alloctype = CD_DUPLICATE;
 
 	if (take_ownership && dm->type == DM_TYPE_CDDM && dm->needsFree) {
 		bool has_any_referenced_layers =
@@ -911,27 +911,27 @@ static void mesh_set_only_copy(Mesh *mesh, CustomDataMask mask)
 #endif
 }
 
-void DM_add_vert_layer(DerivedMesh *dm, int type, CDAllocType alloctype, void *layer)
+void DM_add_vert_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->vertData, type, alloctype, layer, dm->numVertData);
 }
 
-void DM_add_edge_layer(DerivedMesh *dm, int type, CDAllocType alloctype, void *layer)
+void DM_add_edge_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->edgeData, type, alloctype, layer, dm->numEdgeData);
 }
 
-void DM_add_tessface_layer(DerivedMesh *dm, int type, CDAllocType alloctype, void *layer)
+void DM_add_tessface_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->faceData, type, alloctype, layer, dm->numTessFaceData);
 }
 
-void DM_add_loop_layer(DerivedMesh *dm, int type, CDAllocType alloctype, void *layer)
+void DM_add_loop_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->loopData, type, alloctype, layer, dm->numLoopData);
 }
 
-void DM_add_poly_layer(DerivedMesh *dm, int type, CDAllocType alloctype, void *layer)
+void DM_add_poly_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->polyData, type, alloctype, layer, dm->numPolyData);
 }
