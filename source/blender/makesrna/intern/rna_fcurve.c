@@ -605,6 +605,10 @@ static void rna_FModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	
 	DEG_id_tag_update(id, (GS(id->name) == ID_OB) ? OB_RECALC_OB : OB_RECALC_DATA);
 	
+	/* tag datablock for time update so that animation is recalculated,
+	 * as FModifiers affect how animation plays...
+	 */
+	DEG_id_tag_update(id, DEG_TAG_TIME);
 	if (adt != NULL) {
 		adt->recalc |= ADT_RECALC_ANIM;
 		
