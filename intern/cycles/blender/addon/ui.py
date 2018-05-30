@@ -391,7 +391,7 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
         sub.active = not rd.use_save_buffers
         for view_layer in scene.view_layers:
             if view_layer.cycles.use_denoising:
-                subsub.active = False
+                sub.active = False
         sub.prop(cscene, "use_progressive_refine")
 
         layout.separator()
