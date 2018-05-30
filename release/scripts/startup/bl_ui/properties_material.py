@@ -215,6 +215,25 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         row.prop(mat, "use_sss_translucency")
 
 
+class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
+    bl_label = "Viewport"
+    bl_context = "material"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.material
+
+    def draw(self, context):
+        mat = context.material
+
+        layout = self.layout
+        split = layout.split()
+
+        col = split.column(align=True)
+        col.prop(mat, "diffuse_color")
+
+
 classes = (
     MATERIAL_MT_specials,
     MATERIAL_UL_matslots,
@@ -223,7 +242,9 @@ classes = (
     EEVEE_MATERIAL_PT_context_material,
     EEVEE_MATERIAL_PT_surface,
     EEVEE_MATERIAL_PT_options,
+    MATERIAL_PT_viewport,
 )
+
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class

@@ -1253,31 +1253,6 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(mat, "pass_index")
 
 
-class CYCLES_MATERIAL_PT_viewport(CyclesButtonsPanel, Panel):
-    bl_label = "Viewport"
-    bl_context = "material"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return context.material and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        mat = context.material
-
-        layout = self.layout
-        split = layout.split()
-
-        col = split.column(align=True)
-        col.label("Color:")
-        col.prop(mat, "diffuse_color", text="")
-        col.prop(mat, "alpha")
-
-        col = split.column(align=True)
-        col.label("Specular:")
-        col.prop(mat, "specular_color", text="")
-
-
 class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
     bl_label = "Bake"
     bl_context = "render"
@@ -1563,7 +1538,6 @@ classes = (
     CYCLES_MATERIAL_PT_volume,
     CYCLES_MATERIAL_PT_displacement,
     CYCLES_MATERIAL_PT_settings,
-    CYCLES_MATERIAL_PT_viewport,
     CYCLES_RENDER_PT_bake,
     CYCLES_RENDER_PT_debug,
     CYCLES_SCENE_PT_simplify,
