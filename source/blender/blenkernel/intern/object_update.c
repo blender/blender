@@ -350,7 +350,7 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph,
 				 * explicit  way to query final object evaluated data and know for sure
 				 * who owns the newly created mesh datablock.
 				 */
-				ob->mesh_evaluated = new_mesh;
+				ob->mesh_eval = new_mesh;
 				/* TODO(sergey): This is kind of compatibility thing, so all render
 				 * engines can use object->data for mesh data for display. This is
 				 * something what we might want to change in the future.

@@ -716,7 +716,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 */
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
-	Mesh *mesh_evaluated = NULL;
+	Mesh *mesh_eval = NULL;
 	CurveCache *curve_cache = NULL;
 	short base_flag = 0;
 	if (check_datablock_expanded(id_cow)) {
@@ -756,15 +756,15 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 			{
 				Object *object = (Object *)id_cow;
 				/* Store evaluated mesh, make sure we don't free it. */
-				mesh_evaluated = object->mesh_evaluated;
-				object->mesh_evaluated = NULL;
+				mesh_eval = object->mesh_eval;
+				object->mesh_eval = NULL;
 				/* Currently object update will override actual object->data
 				 * to an evaluated version. Need to make sure we don't have
 				 * data set to evaluated one before free anything.
 				 */
-				if (mesh_evaluated != NULL) {
-					if (object->data == mesh_evaluated) {
-						object->data = mesh_evaluated->id.orig_id;
+				if (mesh_eval != NULL) {
+					if (object->data == mesh_eval) {
+						object->data = mesh_eval->id.orig_id;
 					}
 				}
 				/* Store curve cache and make sure we don't free it. */
@@ -791,19 +791,19 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	}
 	if (id_type == ID_OB) {
 		Object *object = (Object *)id_cow;
-		if (mesh_evaluated != NULL) {
-			object->mesh_evaluated = mesh_evaluated;
+		if (mesh_eval != NULL) {
+			object->mesh_eval = mesh_eval;
 			/* Do same thing as object update: override actual object data
 			 * pointer with evaluated datablock.
 			 */
 			if (object->type == OB_MESH) {
-				object->data = mesh_evaluated;
+				object->data = mesh_eval;
 				/* Evaluated mesh simply copied edit_btmesh pointer from
 				 * original mesh during update, need to make sure no dead
 				 * pointers are left behind.
 				 */
-				mesh_evaluated->edit_btmesh =
-				        ((Mesh *)mesh_evaluated->id.orig_id)->edit_btmesh;
+				mesh_eval->edit_btmesh =
+				        ((Mesh *)mesh_eval->id.orig_id)->edit_btmesh;
 			}
 		}
 		if (curve_cache != NULL) {

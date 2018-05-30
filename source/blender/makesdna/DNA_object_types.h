@@ -302,7 +302,7 @@ typedef struct Object {
 	/* Mesh structure created during object evaluation.
 	 * It has all modifiers applied.
 	 */
-	struct Mesh *mesh_evaluated;
+	struct Mesh *mesh_eval;
 
 	/* Object Display */
 	struct ObjectDisplay display;
