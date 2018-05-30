@@ -146,6 +146,12 @@ const EnumPropertyItem *rna_WorkSpace_tools_mode_itemf(
 	return DummyRNA_DEFAULT_items;
 }
 
+static int rna_WorkspaceTool_index_get(PointerRNA *ptr)
+{
+	bToolRef *tref = ptr->data;
+	return (tref->runtime) ? tref->runtime->index : 0;
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_workspace_owner(BlenderRNA *brna)
@@ -212,6 +218,11 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "idname");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
+
+	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Index", "");
+	RNA_def_property_int_funcs(prop, "rna_WorkspaceTool_index_get", NULL, NULL);
 
 	RNA_api_workspace_tool(srna);
 }
