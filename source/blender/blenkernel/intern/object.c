@@ -508,6 +508,30 @@ bool BKE_object_is_in_editmode_vgroup(const Object *ob)
 	        BKE_object_is_in_editmode(ob));
 }
 
+bool BKE_object_data_is_in_editmode(const ID *id)
+{
+	const short type = GS(id->name);
+	BLI_assert(OB_DATA_SUPPORT_EDITMODE(type));
+	switch (type) {
+		case ID_ME:
+			return ((const Mesh *)id)->edit_btmesh != NULL;
+		case ID_CU:
+			return (
+			        (((const Curve *)id)->editnurb != NULL) ||
+			        (((const Curve *)id)->editfont != NULL)
+			);
+		case ID_MB:
+			return ((const MetaBall *)id)->editelems != NULL;
+		case ID_LT:
+			return ((const Lattice *)id)->editlatt != NULL;
+		case ID_AR:
+			return ((const bArmature *)id)->edbo != NULL;
+		default:
+			BLI_assert(0);
+			return false;
+	}
+}
+
 bool BKE_object_is_in_wpaint_select_vert(const Object *ob)
 {
 	if (ob->type == OB_MESH) {
