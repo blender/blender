@@ -1498,7 +1498,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	{
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "float", "roughness")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				scene->display.roughness = 0.0f;
+				scene->display.roughness = 0.5f;
 			}
 			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {

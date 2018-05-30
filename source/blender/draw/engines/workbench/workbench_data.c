@@ -37,7 +37,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
 	copy_v3_v3(wd->object_outline_color, wpd->shading.object_outline_color);
 	wd->object_outline_color[3] = 1.0f;
-	wd->specular_sharpness = 100.0f - sqrtf(scene->display.roughness) * 100.0f;
+	wd->specular_sharpness = 100.0f - scene->display.roughness * 100.0f;
 
 	wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), &wpd->world_data);
 }
