@@ -117,9 +117,9 @@ enum {
 	EM_WAITCURSOR       = (1 << 1),
 	EM_IGNORE_LAYER     = (1 << 3),
 };
-void ED_object_editmode_exit_ex(struct Scene *scene, struct Object *obedit, int flag);
-void ED_object_editmode_exit(struct bContext *C, int flag);
-void ED_object_editmode_enter(struct bContext *C, int flag);
+bool ED_object_editmode_exit_ex(struct Scene *scene, struct Object *obedit, int flag);
+bool ED_object_editmode_exit(struct bContext *C, int flag);
+bool ED_object_editmode_enter(struct bContext *C, int flag);
 bool ED_object_editmode_load(struct Object *obedit);
 
 bool ED_object_editmode_calc_active_center(struct Object *obedit, const bool select_only, float r_center[3]);

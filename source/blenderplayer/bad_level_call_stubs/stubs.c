@@ -495,8 +495,8 @@ void ED_base_object_select(struct Base *base, short mode) RET_NONE
 bool ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Object *ob, struct ModifierData *md) RET_ZERO
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type) RET_ZERO
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob) RET_NONE
-void ED_object_editmode_enter(struct bContext *C, int flag) RET_NONE
-void ED_object_editmode_exit(struct bContext *C, int flag) RET_NONE
+bool ED_object_editmode_enter(struct bContext *C, int flag) RET_NONE
+bool ED_object_editmode_exit(struct bContext *C, int flag) RET_NONE
 bool ED_object_editmode_load(struct Object *obedit) RET_ZERO
 void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object) RET_NONE
 bool uiLayoutGetActive(struct uiLayout *layout) RET_ZERO

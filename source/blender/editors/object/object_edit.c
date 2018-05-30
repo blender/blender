@@ -447,7 +447,7 @@ bool ED_object_editmode_load(Object *obedit)
  * \param flag:
  * - If #EM_FREEDATA isn't in the flag, use ED_object_editmode_load directly.
  */
-void ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
+bool ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
 {
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
@@ -460,7 +460,7 @@ void ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
 			scene->basact->object->mode &= ~OB_MODE_EDIT;
 		}
 		if (flag & EM_WAITCURSOR) waitcursor(0);
-		return;
+		return true;
 	}
 
 	/* freedata only 0 now on file saves and render */
@@ -478,7 +478,7 @@ void ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
 				pid->cache->flag |= PTCACHE_OUTDATED;
 		}
 		BLI_freelistN(&pidlist);
-		
+
 		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
@@ -490,16 +490,18 @@ void ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
 	}
 
 	if (flag & EM_WAITCURSOR) waitcursor(0);
+
+	return (obedit->mode & OB_MODE_EDIT) == 0;
 }
 
-void ED_object_editmode_exit(bContext *C, int flag)
+bool ED_object_editmode_exit(bContext *C, int flag)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	ED_object_editmode_exit_ex(scene, obedit, flag);
+	return ED_object_editmode_exit_ex(scene, obedit, flag);
 }
 
-void ED_object_editmode_enter(bContext *C, int flag)
+bool ED_object_editmode_enter(bContext *C, int flag)
 {
 	Scene *scene = CTX_data_scene(C);
 	Base *base = NULL;
@@ -508,7 +510,9 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	View3D *v3d = NULL;
 	bool ok = false;
 
-	if (ID_IS_LINKED(scene)) return;
+	if (ID_IS_LINKED(scene)) {
+		return false;
+	}
 
 	if (sa && sa->spacetype == SPACE_VIEW3D)
 		v3d = sa->spacedata.first;
@@ -516,25 +520,31 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	if ((flag & EM_IGNORE_LAYER) == 0) {
 		base = CTX_data_active_base(C); /* active layer checked here for view3d */
 
-		if (base == NULL) return;
-		else if (v3d && (base->lay & v3d->lay) == 0) return;
-		else if (!v3d && (base->lay & scene->lay) == 0) return;
+		if ((base == NULL) ||
+		    (v3d && (base->lay & v3d->lay) == 0) ||
+		    (!v3d && (base->lay & scene->lay) == 0))
+		{
+			return false;
+		}
 	}
 	else {
 		base = scene->basact;
 	}
 
-	if (ELEM(NULL, base, base->object, base->object->data)) return;
+	if (ELEM(NULL, base, base->object, base->object->data)) {
+		return false;
+	}
 
 	ob = base->object;
 
 	/* this checks actual object->data, for cases when other scenes have it in editmode context */
-	if (BKE_object_is_in_editmode(ob))
-		return;
-	
+	if (BKE_object_is_in_editmode(ob)) {
+		return true;
+	}
+
 	if (BKE_object_obdata_is_libdata(ob)) {
 		error_libdata();
-		return;
+		return false;
 	}
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
@@ -567,23 +577,9 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_MESH, scene);
 	}
 	else if (ob->type == OB_ARMATURE) {
-		bArmature *arm = ob->data;
-		if (!arm) return;
-		/*
-		 * The function BKE_object_obdata_is_libdata make a problem here, the
-		 * check for ob->proxy return 0 and let blender enter to edit mode
-		 * this causes a crash when you try leave the edit mode.
-		 * The problem is that i can't remove the ob->proxy check from
-		 * BKE_object_obdata_is_libdata that prevent the bugfix #6614, so
-		 * i add this little hack here.
-		 */
-		if (ID_IS_LINKED(arm)) {
-			error_libdata();
-			return;
-		}
 		ok = 1;
 		scene->obedit = ob;
-		ED_armature_to_edit(arm);
+		ED_armature_to_edit(ob->data);
 		/* to ensure all goes in restposition and without striding */
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); /* XXX: should this be OB_RECALC_DATA? */
 
@@ -628,6 +624,8 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	}
 
 	if (flag & EM_WAITCURSOR) waitcursor(0);
+
+	return (ob->mode & OB_MODE_EDIT) != 0;
 }
 
 static int editmode_toggle_exec(bContext *C, wmOperator *op)
