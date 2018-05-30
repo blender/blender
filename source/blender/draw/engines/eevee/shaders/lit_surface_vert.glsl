@@ -47,7 +47,7 @@ void main()
 	        pos, nor, hairTangent, hairTime, hairThickness, hairThickTime);
 
 	gl_Position = ViewProjectionMatrix * vec4(pos, 1.0);
-	viewPosition = (ModelMatrixInverse * vec4(pos, 1.0)).xyz;
+	viewPosition = (ViewMatrix * vec4(pos, 1.0)).xyz;
 	worldPosition = pos;
 	worldNormal = nor;
 	viewNormal = normalize(mat3(ViewMatrixInverse) * nor);
