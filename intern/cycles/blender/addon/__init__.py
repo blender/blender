@@ -78,7 +78,7 @@ class CyclesRender(bpy.types.RenderEngine):
 
         engine.reset(self, data, depsgraph)
 
-    def render_to_image(self, depsgraph):
+    def render(self, depsgraph):
         engine.render(self, depsgraph)
 
     def bake(self, depsgraph, obj, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result):
@@ -93,7 +93,7 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.reset(self, context.blend_data, context.depsgraph)
         engine.sync(self, context.depsgraph, context.blend_data)
 
-    def render_to_view(self, context):
+    def view_draw(self, context):
         engine.draw(self, context.depsgraph, context.region, context.space_data, context.region_data)
 
     def update_script_node(self, node):

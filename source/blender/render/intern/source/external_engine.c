@@ -122,7 +122,7 @@ RenderEngineType *RE_engines_find(const char *idname)
 
 bool RE_engine_is_external(Render *re)
 {
-	return (re->engine && re->engine->type && re->engine->type->render_to_image);
+	return (re->engine && re->engine->type && re->engine->type->render);
 }
 
 bool RE_engine_is_opengl(RenderEngineType *render_type)
@@ -632,7 +632,7 @@ int RE_engine_render(Render *re, int do_all)
 	bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 
 	/* verify if we can render */
-	if (!type->render_to_image)
+	if (!type->render)
 		return 0;
 	if ((re->r.scemode & R_BUTS_PREVIEW) && !(type->flag & RE_USE_PREVIEW))
 		return 0;
@@ -719,7 +719,7 @@ int RE_engine_render(Render *re, int do_all)
 		re->draw_lock(re->dlh, 0);
 	}
 
-	if (type->render_to_image) {
+	if (type->render) {
 		FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re, view_layer_iter)
 		{
 			if (re->draw_lock) {
@@ -737,7 +737,7 @@ int RE_engine_render(Render *re, int do_all)
 				re->draw_lock(re->dlh, 0);
 			}
 
-			type->render_to_image(engine, engine->depsgraph);
+			type->render(engine, engine->depsgraph);
 
 			engine_depsgraph_free(engine);
 		}

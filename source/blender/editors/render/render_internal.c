@@ -314,7 +314,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 
 	/* Cannot do render if there is not this function. */
-	if (re_type->render_to_image == NULL) {
+	if (re_type->render == NULL) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -883,7 +883,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	ScrArea *sa;
 
 	/* Cannot do render if there is not this function. */
-	if (re_type->render_to_image == NULL) {
+	if (re_type->render == NULL) {
 		return OPERATOR_CANCELLED;
 	}
 

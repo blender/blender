@@ -656,7 +656,7 @@ static int rna_3DViewShading_type_get(PointerRNA *ptr)
 	View3D *v3d = (View3D *)ptr->data;
 
 	if (!BKE_scene_uses_blender_eevee(scene) && v3d->drawtype == OB_RENDER) {
-		if (!(type && type->render_to_view)) {
+		if (!(type && type->view_draw)) {
 			return OB_MATERIAL;
 		}
 	}
@@ -693,7 +693,7 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 	}
 	else {
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_MATERIAL);
-		if (type && type->render_to_view) {
+		if (type && type->view_draw) {
 			RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
 		}
 	}

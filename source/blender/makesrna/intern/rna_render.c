@@ -168,15 +168,15 @@ static void engine_update(RenderEngine *engine, Main *bmain, Depsgraph *depsgrap
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
+static void engine_render(RenderEngine *engine, Depsgraph *depsgraph)
 {
-	extern FunctionRNA rna_RenderEngine_render_to_image_func;
+	extern FunctionRNA rna_RenderEngine_render_func;
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func = &rna_RenderEngine_render_to_image_func;
+	func = &rna_RenderEngine_render_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "depsgraph", &depsgraph);
@@ -230,15 +230,15 @@ static void engine_view_update(RenderEngine *engine, const struct bContext *cont
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_render_to_view(RenderEngine *engine, const struct bContext *context)
+static void engine_view_draw(RenderEngine *engine, const struct bContext *context)
 {
-	extern FunctionRNA rna_RenderEngine_render_to_view_func;
+	extern FunctionRNA rna_RenderEngine_view_draw_func;
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func = &rna_RenderEngine_render_to_view_func;
+	func = &rna_RenderEngine_view_draw_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &context);
@@ -344,10 +344,10 @@ static StructRNA *rna_RenderEngine_register(
 	RNA_struct_blender_type_set(et->ext.srna, et);
 
 	et->update = (have_function[0]) ? engine_update : NULL;
-	et->render_to_image = (have_function[1]) ? engine_render_to_image : NULL;
+	et->render = (have_function[1]) ? engine_render : NULL;
 	et->bake = (have_function[2]) ? engine_bake : NULL;
 	et->view_update = (have_function[3]) ? engine_view_update : NULL;
-	et->render_to_view = (have_function[4]) ? engine_render_to_view : NULL;
+	et->view_draw = (have_function[4]) ? engine_view_draw : NULL;
 	et->update_script_node = (have_function[5]) ? engine_update_script_node : NULL;
 	et->update_render_passes = (have_function[6]) ? engine_update_render_passes : NULL;
 
@@ -489,7 +489,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_pointer(func, "data", "BlendData", "", "");
 	RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
 
-	func = RNA_def_function(srna, "render_to_image", NULL);
+	func = RNA_def_function(srna, "render", NULL);
 	RNA_def_function_ui_description(func, "Render scene into an image");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
@@ -524,7 +524,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
-	func = RNA_def_function(srna, "render_to_view", NULL);
+	func = RNA_def_function(srna, "view_draw", NULL);
 	RNA_def_function_ui_description(func, "Draw viewport render");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
