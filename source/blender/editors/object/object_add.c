@@ -2353,7 +2353,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 	DEG_relations_tag_update(bmain);
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&CTX_data_scene(C)->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
