@@ -1432,12 +1432,6 @@ int rna_Lamp_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 	return ((Object *)value.id.data)->type == OB_LAMP;
 }
 
-int rna_DupliObject_index_get(PointerRNA *ptr)
-{
-	DupliObject *dob = (DupliObject *)ptr->data;
-	return dob->persistent_id[0];
-}
-
 int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
 	SculptSession *ss = ((Object *)ptr->id.data)->sculpt;
@@ -2520,64 +2514,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_api_object(srna);
 }
 
-static void rna_def_dupli_object(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "DupliObject", NULL);
-	RNA_def_struct_sdna(srna, "DupliObject");
-	RNA_def_struct_ui_text(srna, "Object Duplicate", "An object duplicate");
-	/* RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA); */
-
-	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "ob");
-	/* RNA_def_property_pointer_funcs(prop, "rna_DupliObject_object_get", NULL, NULL, NULL); */
-	RNA_def_property_ui_text(prop, "Object", "Object being duplicated");
-
-	prop = RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_float_sdna(prop, NULL, "mat");
-	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Object Duplicate Matrix", "Object duplicate transformation matrix");
-
-	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "no_draw", 0);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Hide", "Don't show dupli object in viewport or render");
-
-	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, "rna_DupliObject_index_get", NULL, NULL);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Index", "Index in the lowest-level dupli list");
-
-	prop = RNA_def_property(srna, "persistent_id", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Persistent ID", "Persistent identifier for inter-frame matching of objects with motion blur");
-
-	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Particle System", "Particle system that this dupli object was instanced from");
-
-	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Generated Coordinates", "Generated coordinates in parent object space");
-
-	prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "UV Coordinates", "UV coordinates in parent object space");
-
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, dupli_items);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Dupli Type", "Duplicator type that generated this dupli object");
-
-	prop = RNA_def_property(srna, "random_id", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Dupli random id", "Random id for this dupli object");
-}
-
 void RNA_def_object(BlenderRNA *brna)
 {
 	rna_def_object(brna);
@@ -2586,7 +2522,6 @@ void RNA_def_object(BlenderRNA *brna)
 	rna_def_vertex_group(brna);
 	rna_def_face_map(brna);
 	rna_def_material_slot(brna);
-	rna_def_dupli_object(brna);
 	rna_def_object_display(brna);
 	RNA_define_animate_sdna(true);
 }

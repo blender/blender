@@ -659,7 +659,9 @@ static ShaderNode *add_node(Scene *scene,
 			image->animated = b_image_node.image_user().use_auto_refresh();
 			image->use_alpha = b_image.use_alpha();
 
+			/* TODO: restore */
 			/* TODO(sergey): Does not work properly when we change builtin type. */
+#if 0
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(
 				        image->filename.string(),
@@ -668,6 +670,7 @@ static ShaderNode *add_node(Scene *scene,
 				        get_image_extension(b_image_node),
 				        image->use_alpha);
 			}
+#endif
 		}
 		image->color_space = (NodeImageColorSpace)b_image_node.color_space();
 		image->projection = (NodeImageProjection)b_image_node.projection();
@@ -707,7 +710,9 @@ static ShaderNode *add_node(Scene *scene,
 			env->animated = b_env_node.image_user().use_auto_refresh();
 			env->use_alpha = b_image.use_alpha();
 
+			/* TODO: restore */
 			/* TODO(sergey): Does not work properly when we change builtin type. */
+#if 0
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(
 				        env->filename.string(),
@@ -716,6 +721,7 @@ static ShaderNode *add_node(Scene *scene,
 				        EXTENSION_REPEAT,
 				        env->use_alpha);
 			}
+#endif
 		}
 		env->color_space = (NodeImageColorSpace)b_env_node.color_space();
 		env->interpolation = get_image_interpolation(b_env_node);

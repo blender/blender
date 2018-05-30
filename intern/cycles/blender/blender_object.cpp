@@ -278,25 +278,25 @@ void BlenderSync::sync_background_light(bool use_portal)
 /* Object */
 
 Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
-                                 BL::Depsgraph::duplis_iterator& b_dupli_iter,
+                                 BL::DepsgraphObjectInstance& b_instance,
                                  uint layer_flag,
                                  float motion_time,
                                  bool hide_tris,
                                  BlenderObjectCulling& culling,
                                  bool *use_portal)
 {
-	const bool is_instance = b_dupli_iter->is_instance();
-	BL::Object b_ob = b_dupli_iter->object();
-	BL::Object b_parent = is_instance ? b_dupli_iter->parent()
-	                                  : b_dupli_iter->object();
-	BL::Object b_ob_instance = is_instance ? b_dupli_iter->instance_object()
+	const bool is_instance = b_instance.is_instance();
+	BL::Object b_ob = b_instance.object();
+	BL::Object b_parent = is_instance ? b_instance.parent()
+	                                  : b_instance.object();
+	BL::Object b_ob_instance = is_instance ? b_instance.instance_object()
 	                                       : b_ob;
 	const bool motion = motion_time != 0.0f;
 	/*const*/ Transform tfm = get_transform(b_ob.matrix_world());
 	int *persistent_id = NULL;
 	BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id_array;
 	if(is_instance) {
-		persistent_id_array = b_dupli_iter->persistent_id();
+		persistent_id_array = b_instance.persistent_id();
 		persistent_id = persistent_id_array.data;
 	}
 
@@ -310,7 +310,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 			           persistent_id,
 			           b_ob,
 			           b_ob_instance,
-			           is_instance ? b_dupli_iter->random_id() : 0,
+			           is_instance ? b_instance.random_id() : 0,
 			           tfm,
 			           use_portal);
 		}
@@ -448,12 +448,12 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 
 		/* dupli texture coordinates and random_id */
 		if(is_instance) {
-			object->dupli_generated = 0.5f*get_float3(b_dupli_iter->orco()) - make_float3(0.5f, 0.5f, 0.5f);
-			object->dupli_uv = get_float2(b_dupli_iter->uv());
-			object->random_id = b_dupli_iter->random_id();
+			object->dupli_generated = 0.5f*get_float3(b_instance.orco()) - make_float3(0.5f, 0.5f, 0.5f);
+			object->dupli_uv = get_float2(b_instance.uv());
+			object->random_id = b_instance.random_id();
 
 			/* Sync possible particle data. */
-			sync_dupli_particle(b_ob, *b_dupli_iter, object);
+			sync_dupli_particle(b_ob, b_instance, object);
 		}
 		else {
 			object->dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
@@ -563,12 +563,13 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 	bool cancel = false;
 	bool use_portal = false;
 
-	BL::Depsgraph::duplis_iterator b_dupli_iter;
-	for(b_depsgraph.duplis.begin(b_dupli_iter);
-	    b_dupli_iter != b_depsgraph.duplis.end() && !cancel;
-	    ++b_dupli_iter)
+	BL::Depsgraph::object_instances_iterator b_instance_iter;
+	for(b_depsgraph.object_instances.begin(b_instance_iter);
+	    b_instance_iter != b_depsgraph.object_instances.end() && !cancel;
+	    ++b_instance_iter)
 	{
-		BL::Object b_ob = b_dupli_iter->object();
+		BL::DepsgraphObjectInstance b_instance = *b_instance_iter;
+		BL::Object b_ob = b_instance.object();
 		if(!b_ob.is_visible()) {
 			continue;
 		}
@@ -584,7 +585,7 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 		 if(!object_render_hide(b_ob, true, true, hide_tris)) {
 			/* object itself */
 			sync_object(b_depsgraph,
-			            b_dupli_iter,
+			            b_instance,
 			            ~(0), /* until we get rid of layers */
 			            motion_time,
 			            hide_tris,

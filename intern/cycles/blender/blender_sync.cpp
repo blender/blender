@@ -104,28 +104,32 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 	}
 
 	/* Iterate over all IDs in this depsgraph. */
-	BL::Depsgraph::ids_updated_iterator b_id;
-	for(b_depsgraph.ids_updated.begin(b_id); b_id != b_depsgraph.ids_updated.end(); ++b_id) {
+	BL::Depsgraph::updates_iterator b_update;
+	for(b_depsgraph.updates.begin(b_update); b_update != b_depsgraph.updates.end(); ++b_update) {
+		BL::ID b_id(b_update->id());
+
 		/* Material */
-		if (b_id->is_a(&RNA_Material)) {
-			BL::Material b_mat(*b_id);
+		if (b_id.is_a(&RNA_Material)) {
+			BL::Material b_mat(b_id);
 			shader_map.set_recalc(b_mat);
 		}
 		/* Lamp */
-		else if (b_id->is_a(&RNA_Lamp)) {
-			BL::Lamp b_lamp(*b_id);
+		else if (b_id.is_a(&RNA_Lamp)) {
+			BL::Lamp b_lamp(b_id);
 			shader_map.set_recalc(b_lamp);
 		}
 		/* Object */
-		else if (b_id->is_a(&RNA_Object)) {
-			BL::Object b_ob(*b_id);
-			const bool updated_data = b_ob.is_updated_data();
+		else if (b_id.is_a(&RNA_Object)) {
+			BL::Object b_ob(b_id);
+			const bool updated_geometry = b_update->updated_geometry();
 
-			object_map.set_recalc(b_ob);
-			light_map.set_recalc(b_ob);
+			if (b_update->updated_transform()) {
+				object_map.set_recalc(b_ob);
+				light_map.set_recalc(b_ob);
+			}
 
 			if(object_is_mesh(b_ob)) {
-				if(updated_data ||
+				if(updated_geometry ||
 				   (dicing_prop_changed && object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE))
 				{
 					BL::ID key = BKE_object_is_modified(b_ob)? b_ob: b_ob.data();
@@ -133,25 +137,25 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 				}
 			}
 			else if(object_is_light(b_ob)) {
-				if(updated_data) {
+				if(updated_geometry) {
 					light_map.set_recalc(b_ob);
 				}
 			}
 
-			if(updated_data) {
+			if(updated_geometry) {
 				BL::Object::particle_systems_iterator b_psys;
 				for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys)
 					particle_system_map.set_recalc(b_ob);
 			}
 		}
 		/* Mesh */
-		else if (b_id->is_a(&RNA_Mesh)) {
-			BL::Mesh b_mesh(*b_id);
+		else if (b_id.is_a(&RNA_Mesh)) {
+			BL::Mesh b_mesh(b_id);
 			mesh_map.set_recalc(b_mesh);
 		}
 		/* World */
-		else if (b_id->is_a(&RNA_World)) {
-			BL::World b_world(*b_id);
+		else if (b_id.is_a(&RNA_World)) {
+			BL::World b_world(b_id);
 			if(world_map == b_world.ptr.data) {
 				world_recalc = true;
 			}
