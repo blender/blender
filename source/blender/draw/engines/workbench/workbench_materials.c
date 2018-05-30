@@ -26,9 +26,6 @@ void workbench_material_get_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, 
 		float hsv[3] = {offset, HSV_SATURATION, HSV_VALUE};
 		hsv_to_rgb_v(hsv, color);
 	}
-	else if (color_type == V3D_SHADING_OBJECT_COLOR) {
-		copy_v3_v3(color, ob->col);
-	}
 	else {
 		/* V3D_SHADING_MATERIAL_COLOR */
 		if (mat) {

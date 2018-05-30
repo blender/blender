@@ -100,7 +100,7 @@ static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_background_lib_glsl);
 
-	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
+	if ((wpd->shading.light & V3D_LIGHTING_STUDIO) || (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT)) {
 		BLI_dynstr_append(ds, datatoc_workbench_world_light_lib_glsl);
 	}
 	if (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE) {
