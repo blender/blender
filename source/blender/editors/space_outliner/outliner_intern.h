@@ -115,7 +115,7 @@ typedef struct TreeElement {
 #define TREESTORE_ID_TYPE(_id) \
 	(ELEM(GS((_id)->name), ID_SCE, ID_LI, ID_OB, ID_ME, ID_CU, ID_MB, ID_NT, ID_MA, ID_TE, ID_IM, ID_LT, ID_LA, ID_CA) || \
 	 ELEM(GS((_id)->name), ID_KE, ID_WO, ID_SPK, ID_GR, ID_AR, ID_AC, ID_BR, ID_PA, ID_GD, ID_LS, ID_LP) || \
-	 ELEM(GS((_id)->name), ID_SCR, ID_WM, ID_TXT, ID_VF, ID_SO, ID_CF, ID_PAL, ID_WS))  /* Only in 'blendfile' mode ... :/ */
+	 ELEM(GS((_id)->name), ID_SCR, ID_WM, ID_TXT, ID_VF, ID_SO, ID_CF, ID_PAL, ID_MC, ID_WS))  /* Only in 'blendfile' mode ... :/ */
 
 /* TreeElement->flag */
 enum {
