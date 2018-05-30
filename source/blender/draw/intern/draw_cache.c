@@ -2183,7 +2183,8 @@ Gwn_Batch *DRW_cache_bone_stick_get(void)
 			GWN_indexbuf_add_generic_vert(&elb, v++);
 		}
 
-		SHC.drw_bone_stick = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, GWN_indexbuf_build(&elb), GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_stick = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, GWN_indexbuf_build(&elb),
+		                                         GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 #undef CIRCLE_RESOL
 	}
 	return SHC.drw_bone_stick;
