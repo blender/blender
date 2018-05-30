@@ -47,6 +47,7 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mball.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_image.h"
@@ -228,6 +229,9 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *points_active;
 	DRWShadingGroup *points_select;
 	DRWShadingGroup *points_transform;
+
+	/* Texture Space */
+	DRWShadingGroup *texspace;
 
 	/* Outlines id offset */
 	int id_ofs_active;
@@ -1105,6 +1109,9 @@ static void OBJECT_cache_init(void *vedata)
 		stl->g_data->camera_clip_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
 		stl->g_data->camera_mist_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
+		/* Texture Space */
+		geom = DRW_cache_cube_get();
+		stl->g_data->texspace = shgroup_instance(psl->non_meshes, geom);
 	}
 
 	{
@@ -1924,6 +1931,59 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 	DRW_shgroup_call_dynamic_add(shgroup, ob->obmat[3]);
 }
 
+static void DRW_shgroup_texture_space(OBJECT_StorageList *stl, Object *ob, int theme_id)
+{
+	if (ob->data == NULL) {
+		return;
+	}
+
+	ID *ob_data = ob->data;
+	float *texcoloc = NULL;
+	float *texcosize = NULL;
+	if (ob->data != NULL) {
+		switch (GS(ob_data->name)) {
+			case ID_ME:
+				BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, NULL, &texcosize);
+				break;
+			case ID_CU:
+			{
+				Curve *cu = (Curve *)ob_data;
+				if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
+					BKE_curve_texspace_calc(cu);
+				}
+				texcoloc = cu->loc;
+				texcosize = cu->size;
+				break;
+			}
+			case ID_MB:
+			{
+				MetaBall *mb = (MetaBall *)ob_data;
+				texcoloc = mb->loc;
+				texcosize = mb->size;
+				break;
+			}
+			default:
+				BLI_assert(0);
+		}
+	}
+
+	float tmp[4][4] = {{0.0f}}, one = 1.0f;
+	tmp[0][0] = texcosize[0];
+	tmp[1][1] = texcosize[1];
+	tmp[2][2] = texcosize[2];
+	tmp[3][0] = texcoloc[0];
+	tmp[3][1] = texcoloc[1];
+	tmp[3][2] = texcoloc[2];
+	tmp[3][3] = 1.0f;
+
+	mul_m4_m4m4(tmp, ob->obmat, tmp);
+
+	float color[4];
+	UI_GetThemeColor4fv(theme_id, color);
+
+	DRW_shgroup_call_dynamic_add(stl->g_data->texspace, color, &one, tmp);
+}
+
 static void OBJECT_cache_populate_particles(Object *ob,
                                             OBJECT_PassList *psl)
 {
@@ -2151,11 +2211,12 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 		DRW_shgroup_relationship_lines(stl, ob);
 
+		if ((ob->dtx != 0) && theme_id == TH_UNDEFINED) {
+			theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+		}
+
 		if ((ob->dtx & OB_DRAWNAME) && DRW_state_show_text()) {
 			struct DRWTextStore *dt = DRW_text_cache_ensure();
-			if (theme_id == TH_UNDEFINED) {
-				theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-			}
 
 			unsigned char color[4];
 			UI_GetThemeColor4ubv(theme_id, color);
@@ -2164,6 +2225,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			        dt, ob->obmat[3],
 			        ob->id.name + 2, strlen(ob->id.name + 2),
 			        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
+		}
+
+		if ((ob->dtx & OB_TEXSPACE) && ELEM(ob->type, OB_MESH, OB_CURVE, OB_MBALL)) {
+			DRW_shgroup_texture_space(stl, ob, theme_id);
 		}
 	}
 }
