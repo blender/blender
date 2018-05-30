@@ -149,6 +149,10 @@ typedef struct Object_Runtime {
 	 * It has all modifiers applied.
 	 */
 	struct Mesh *mesh_eval;
+	/* Mesh structure created during object evaluation.
+	 * It has deforemation only modifiers applied on it.
+	 */
+	struct Mesh *mesh_deform_eval;
 } Object_Runtime;
 
 typedef struct Object {

@@ -352,6 +352,13 @@ void BKE_object_free_derived_caches(Object *ob)
 		MEM_freeN(mesh_eval);
 		ob->runtime.mesh_eval = NULL;
 	}
+	if (ob->runtime.mesh_deform_eval != NULL) {
+		Mesh *mesh_deform_eval = ob->runtime.mesh_deform_eval;
+		BKE_mesh_free(mesh_deform_eval);
+		BKE_libblock_free_data(&mesh_deform_eval->id, false);
+		MEM_freeN(mesh_deform_eval);
+		ob->runtime.mesh_deform_eval = NULL;
+	}
 
 	BKE_object_free_curve_cache(ob);
 }
@@ -3344,6 +3351,9 @@ MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default)
 	return clip;
 }
 
+void BKE_object_runtime_reset(Object *object) {
+	memset(&object->runtime, 0, sizeof(object->runtime));
+}
 
 /*
  * Find an associated Armature object

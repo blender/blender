@@ -5523,6 +5523,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->bb = NULL;
 	ob->derivedDeform = NULL;
 	ob->derivedFinal = NULL;
+	BKE_object_runtime_reset(ob);
 	BLI_listbase_clear(&ob->gpulamp);
 	BLI_listbase_clear(&ob->drawdata);
 	link_list(fd, &ob->pc_ids);
