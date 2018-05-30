@@ -276,7 +276,15 @@ static eOLDrawState tree_element_set_active_object(
 		}
 		else {
 			/* deleselect all */
-			BKE_view_layer_base_deselect_all(view_layer);
+#ifdef USE_OBJECT_MODE_STRICT
+			/* Only in object mode so we can switch the active object,
+			 * keeping all objects in the current 'mode' selected, useful for multi-pose/edit mode.
+			 * This keeps the convention that all objects in the current mode are also selected. see T55246. */
+			if (ob->mode == OB_MODE_OBJECT)
+#endif
+			{
+				BKE_view_layer_base_deselect_all(view_layer);
+			}
 			ED_object_base_select(base, BA_SELECT);
 		}
 
