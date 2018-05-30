@@ -349,11 +349,11 @@ void deg_graph_id_tag_legacy_compat(Main *bmain,
 	}
 }
 
-void deg_graph_id_tag_update_single_flag(Main *bmain,
-                                         Depsgraph *graph,
-                                         ID *id,
-                                         IDDepsNode *id_node,
-                                         eDepsgraph_Tag tag)
+static void deg_graph_id_tag_update_single_flag(Main *bmain,
+                                                Depsgraph *graph,
+                                                ID *id,
+                                                IDDepsNode *id_node,
+                                                eDepsgraph_Tag tag)
 {
 	if (tag == DEG_TAG_EDITORS_UPDATE) {
 		if (graph != NULL) {
