@@ -216,6 +216,7 @@ bool ED_object_mode_generic_enter(
         struct bContext *C,
         eObjectMode object_mode);
 void ED_object_mode_generic_exit(
+        struct Main *bmain,
         struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob);
 bool ED_object_mode_generic_has_data(

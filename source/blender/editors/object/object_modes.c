@@ -45,6 +45,7 @@
 
 #include "DEG_depsgraph.h"
 
+#include "ED_armature.h"
 #include "ED_screen.h"
 
 #include "ED_object.h"  /* own include */
@@ -197,10 +198,12 @@ bool ED_object_mode_generic_enter(
  * Caller can check #OB_MODE_ALL_MODE_DATA to test if this needs to be run.
  */
 static bool ed_object_mode_generic_exit_ex(
+        struct Main *bmain,
         struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob,
         bool only_test)
 {
+	BLI_assert((bmain == NULL) == only_test);
 	if (ob->mode & OB_MODE_EDIT) {
 		if (BKE_object_is_in_editmode(ob)) {
 			if (only_test) {
@@ -233,6 +236,14 @@ static bool ed_object_mode_generic_exit_ex(
 			ED_object_sculptmode_exit_ex(depsgraph, scene, ob);
 		}
 	}
+	else if (ob->mode & OB_MODE_POSE) {
+		if (ob->pose != NULL) {
+			if (only_test) {
+				return true;
+			}
+			ED_object_posemode_exit_ex(bmain, ob);
+		}
+	}
 	else {
 		if (only_test) {
 			return false;
@@ -244,17 +255,18 @@ static bool ed_object_mode_generic_exit_ex(
 }
 
 void ED_object_mode_generic_exit(
+        struct Main *bmain,
         struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob)
 {
-	ed_object_mode_generic_exit_ex(depsgraph, scene, ob, false);
+	ed_object_mode_generic_exit_ex(bmain, depsgraph, scene, ob, false);
 }
 
 bool ED_object_mode_generic_has_data(
         struct Depsgraph *depsgraph,
         struct Object *ob)
 {
-	return ed_object_mode_generic_exit_ex(depsgraph, NULL, ob, true);
+	return ed_object_mode_generic_exit_ex(NULL, depsgraph, NULL, ob, true);
 }
 
 /** \} */
