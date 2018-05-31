@@ -1716,46 +1716,48 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr, ListBase *list, AnimMapper
 
 	const bool copy_on_write = orig_ptr.id.data != NULL;
 
-	/* calculate then execute each curve */
+	/* Calculate then execute each curve. */
 	for (fcu = list->first; fcu; fcu = fcu->next) {
-		/* check if this F-Curve doesn't belong to a muted group */
-		if ((fcu->grp == NULL) || (fcu->grp->flag & AGRP_MUTED) == 0) {
-			/* check if this curve should be skipped */
-			if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {
-				PathResolvedRNA anim_rna;
-				/* Read current value from original datablock. */
-				float dna_val;
+		/* Check if this F-Curve doesn't belong to a muted group. */
+		if ((fcu->grp != NULL) && (fcu->grp->flag & AGRP_MUTED)) {
+			continue;
+		}
+		/* Check if this curve should be skipped. */
+		if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))) {
+			continue;
+		}
+		PathResolvedRNA anim_rna;
+		/* Read current value from original datablock. */
+		float dna_val;
 
-				if (copy_on_write) {
-					if (animsys_store_rna_setting(&orig_ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
-						if (!animsys_read_rna_setting(&anim_rna, &dna_val)) {
-							continue;
-						}
-					}
-					else {
-						continue;
-					}
+		if (copy_on_write) {
+			if (animsys_store_rna_setting(&orig_ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
+				if (!animsys_read_rna_setting(&anim_rna, &dna_val)) {
+					continue;
 				}
+			}
+			else {
+				continue;
+			}
+		}
 
-				if (animsys_store_rna_setting(ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
-					if (copy_on_write) {
-						const bool check_orig_dna = ((recalc & ADT_RECALC_CHECK_ORIG_DNA) != 0);
-						/* If we are tweaking DNA without changing frame, we don't write f-curves,
-						 * since otherwise we will not be able to change properties which has animation.
-						 */
-						if (check_orig_dna && fcu->orig_dna_val != dna_val) {
-							continue;
-						}
-					}
-
-					const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
-					animsys_write_rna_setting(&anim_rna, curval);
-
-					if (copy_on_write) {
-						/* Store original DNA value f-curve was written for. */
-						fcu->orig_dna_val = dna_val;
-					}
+		if (animsys_store_rna_setting(ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
+			if (copy_on_write) {
+				const bool check_orig_dna = ((recalc & ADT_RECALC_CHECK_ORIG_DNA) != 0);
+				/* If we are tweaking DNA without changing frame, we don't write f-curves,
+				 * since otherwise we will not be able to change properties which has animation.
+				 */
+				if (check_orig_dna && fcu->orig_dna_val != dna_val) {
+					continue;
 				}
+			}
+
+			const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
+			animsys_write_rna_setting(&anim_rna, curval);
+
+			if (copy_on_write) {
+				/* Store original DNA value f-curve was written for. */
+				fcu->orig_dna_val = dna_val;
 			}
 		}
 	}
