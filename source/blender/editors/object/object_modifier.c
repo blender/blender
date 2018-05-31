@@ -2203,7 +2203,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		
 		/* ok, this doesn't work with drivers, but is way faster. 
 		 * let's use this for now and hope nobody wants to drive the time value... */
-		BKE_animsys_evaluate_animdata(scene, (ID *)ob, ob->adt, f, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(CTX_data_depsgraph(C), scene, (ID *)ob, ob->adt, f, ADT_RECALC_ANIM);
 		
 		och->time[i] = omd->time;
 		i++;

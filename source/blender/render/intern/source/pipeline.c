@@ -1678,7 +1678,12 @@ static void do_render_seq(Render *re)
 
 	if (recurs_depth == 0) {
 		/* otherwise sequencer animation isn't updated */
-		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_scene_frame_get(re->scene)
+		/* TODO(sergey): Currently depsgraph is only used to check whether it is an active
+		 * edit window or not to deal with unkeyed changes. We don't have depsgraph here yet,
+		 * but we also dont' deal with unkeyed changes. But still nice to get proper depsgraph
+		 * within tjhe render pipeline, somehow.
+		 */
+		BKE_animsys_evaluate_all_animation(re->main, NULL, re->scene, (float)cfra); // XXX, was BKE_scene_frame_get(re->scene)
 	}
 
 	recurs_depth++;
@@ -2619,7 +2624,12 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			{
 				float ctime = BKE_scene_frame_get(scene);
 				AnimData *adt = BKE_animdata_from_id(&scene->id);
-				BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, ADT_RECALC_ALL);
+				/* TODO(sergey): Currently depsgraph is only used to check whether it is an active
+				 * edit window or not to deal with unkeyed changes. We don't have depsgraph here yet,
+				 * but we also dont' deal with unkeyed changes. But still nice to get proper depsgraph
+				 * within tjhe render pipeline, somehow.
+				 */
+				BKE_animsys_evaluate_animdata(NULL, scene, &scene->id, adt, ctime, ADT_RECALC_ALL);
 			}
 
 			/* only border now, todo: camera lens. (ton) */

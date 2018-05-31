@@ -5961,7 +5961,7 @@ static int dynamicPaint_doStep(struct Depsgraph *depsgraph, Scene *scene, Object
 					    psys_check_enabled(brushObj, brush->psys, G.is_rendering))
 					{
 						/* Paint a particle system */
-						BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt,
+						BKE_animsys_evaluate_animdata(depsgraph, scene, &brush->psys->part->id, brush->psys->part->adt,
 						                              BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 						dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);
 					}

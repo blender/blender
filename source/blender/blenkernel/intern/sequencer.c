@@ -3136,7 +3136,7 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
 
 		/* anim-data */
 		adt = BKE_animdata_from_id(&mask->id);
-		BKE_animsys_evaluate_animdata(context->scene, &mask_temp->id, adt, nr, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(context->depsgraph, context->scene, &mask_temp->id, adt, nr, ADT_RECALC_ANIM);
 
 		maskbuf = MEM_mallocN(sizeof(float) * context->rectx * context->recty, __func__);
 
@@ -3516,7 +3516,7 @@ static ImBuf *do_render_strip_uncached(
 				ibuf = seq_render_scene_strip(context, seq, nr, cfra);
 
 				/* Scene strips update all animation, so we need to restore original state.*/
-				BKE_animsys_evaluate_all_animation(context->bmain, context->scene, cfra);
+				BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, context->scene, cfra);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 			}

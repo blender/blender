@@ -34,6 +34,7 @@
 struct AnimData;
 struct AnimMapper;
 struct ChannelDriver;
+struct Depsgraph;
 struct FCurve;
 struct ID;
 struct KS_Path;
@@ -174,10 +175,10 @@ void BKE_fcurves_main_cb(struct Main *bmain, ID_FCurve_Edit_Callback func, void 
 /* In general, these ones should be called to do all animation evaluation */
 
 /* Evaluation loop for evaluating animation data  */
-void BKE_animsys_evaluate_animdata(struct Scene *scene, struct ID *id, struct AnimData *adt, float ctime, short recalc);
+void BKE_animsys_evaluate_animdata(struct Depsgraph *depsgraph, struct Scene *scene, struct ID *id, struct AnimData *adt, float ctime, short recalc);
 
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only */
-void BKE_animsys_evaluate_all_animation(struct Main *main, struct Scene *scene, float ctime);
+void BKE_animsys_evaluate_all_animation(struct Main *main, struct Depsgraph *depsgraph, struct Scene *scene, float ctime);
 
 /* TODO(sergey): This is mainly a temp public function. */
 bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap, struct FCurve *fcu, float curval);
@@ -191,7 +192,7 @@ bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap
  */
 
 /* Evaluate Action (F-Curve Bag) */
-void animsys_evaluate_action(struct PointerRNA *ptr, struct bAction *act, struct AnimMapper *remap, float ctime);
+void animsys_evaluate_action(struct Depsgraph *depsgraph, struct PointerRNA *ptr, struct bAction *act, struct AnimMapper *remap, float ctime);
 
 /* Evaluate Action Group */
 void animsys_evaluate_action_group(struct PointerRNA *ptr, struct bAction *act, struct bActionGroup *agrp, struct AnimMapper *remap, float ctime);

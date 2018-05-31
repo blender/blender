@@ -335,6 +335,7 @@ static const DupliGenerator gen_dupli_collection = {
 /* OB_DUPLIFRAMES */
 static void make_duplis_frames(const DupliContext *ctx)
 {
+	Depsgraph *depsgraph = ctx->depsgraph;
 	Scene *scene = ctx->scene;
 	Object *ob = ctx->object;
 	extern int enable_cu_speed; /* object.c */
@@ -378,8 +379,9 @@ static void make_duplis_frames(const DupliContext *ctx)
 			 * and/or other objects which may affect this object's transforms are not updated either.
 			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
 			 */
-			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
-			BKE_object_where_is_calc_time(ctx->depsgraph, scene, ob, (float)scene->r.cfra);
+			/* ob-eval will do drivers, so we don't need to do them */
+			BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM);
+			BKE_object_where_is_calc_time(depsgraph, scene, ob, (float)scene->r.cfra);
 
 			make_dupli(ctx, ob, ob->obmat, scene->r.cfra, false, false);
 		}
@@ -392,8 +394,9 @@ static void make_duplis_frames(const DupliContext *ctx)
 	 */
 	scene->r.cfra = cfrao;
 
-	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
-	BKE_object_where_is_calc_time(ctx->depsgraph, scene, ob, (float)scene->r.cfra);
+	/* ob-eval will do drivers, so we don't need to do them */
+	BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM);
+	BKE_object_where_is_calc_time(depsgraph, scene, ob, (float)scene->r.cfra);
 
 	/* but, to make sure unkeyed object transforms are still sane,
 	 * let's copy object's original data back over

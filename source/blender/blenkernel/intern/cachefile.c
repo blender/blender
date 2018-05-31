@@ -159,14 +159,16 @@ void BKE_cachefile_ensure_handle(const Main *bmain, CacheFile *cache_file)
 	BLI_mutex_unlock(cache_file->handle_mutex);
 }
 
-void BKE_cachefile_update_frame(Main *bmain, Scene *scene, const float ctime, const float fps)
+void BKE_cachefile_update_frame(
+        Main *bmain, struct Depsgraph *depsgraph, Scene *scene,
+        const float ctime, const float fps)
 {
 	CacheFile *cache_file;
 	char filename[FILE_MAX];
 
 	for (cache_file = bmain->cachefiles.first; cache_file; cache_file = cache_file->id.next) {
 		/* Execute drivers only, as animation has already been done. */
-		BKE_animsys_evaluate_animdata(scene, &cache_file->id, cache_file->adt, ctime, ADT_RECALC_DRIVERS);
+		BKE_animsys_evaluate_animdata(depsgraph, scene, &cache_file->id, cache_file->adt, ctime, ADT_RECALC_DRIVERS);
 
 		if (!cache_file->is_sequence) {
 			continue;

@@ -956,8 +956,8 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 			workob.data = ob->data;
 			workob.adt = ob->adt;
 			workob.pose = dummyPose;
-			
-			BKE_animsys_evaluate_animdata(scene, &workob.id, workob.adt, cframe, ADT_RECALC_ANIM);
+
+			BKE_animsys_evaluate_animdata(NULL, scene, &workob.id, workob.adt, cframe, ADT_RECALC_ANIM);
 			
 			/* copy back values, but on selected bones only  */
 			for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
