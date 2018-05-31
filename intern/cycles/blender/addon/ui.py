@@ -1475,8 +1475,9 @@ def draw_pause(self, context):
     if context.engine == "CYCLES":
         view = context.space_data
 
-        cscene = scene.cycles
-        layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+        if view.shading.type == 'RENDERED':
+            cscene = scene.cycles
+            layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
 
 
 def get_panels():
