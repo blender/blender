@@ -557,6 +557,9 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_new", CKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete", XKEY, KM_PRESS, 0, 0);
 
+	WM_keymap_verify_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
+
 	outliner_item_drag_drop_modal_keymap(keyconf);
 }
 

@@ -42,6 +42,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -694,4 +695,22 @@ void OUTLINER_OT_collection_include_set(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/**
+ * Populates the \param objects ListBase with all the outliner selected objects
+ * We store it as (Object *)LinkData->data
+ * \param objects expected to be empty
+ */
+void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	struct ObjectsSelectedData data = {{NULL}};
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
+	LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
+		TreeElement *ten_selected = (TreeElement *)link->data;
+		Object *ob = (Object *)TREESTORE(ten_selected)->id;
+		BLI_addtail(objects, BLI_genericNodeN(ob));
+	}
+	BLI_freelistN(&data.objects_selected_array);
 }

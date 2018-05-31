@@ -96,6 +96,7 @@
 #include "ED_mball.h"
 #include "ED_lattice.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
 #include "ED_image.h"
@@ -1537,6 +1538,16 @@ bool ED_object_editmode_calc_active_center(Object *obedit, const bool select_onl
 
 #define COLLECTION_INVALID_INDEX -1
 
+static int move_to_collection_poll(bContext *C)
+{
+	if (CTX_wm_space_outliner(C) != NULL) {
+		return ED_outliner_collections_editor_poll(C);
+	}
+	else {
+		return ED_operator_object_active_editable(C);
+	}
+}
+
 static int move_to_collection_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
@@ -1545,6 +1556,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 	const bool is_link = STREQ(op->idname, "OBJECT_OT_link_to_collection");
 	const bool is_new = RNA_boolean_get(op->ptr, "is_new");
 	Collection *collection;
+	ListBase objects = {NULL};
 
 	if (!RNA_property_is_set(op->ptr, prop)) {
 		BKE_report(op->reports, RPT_ERROR, "No collection selected");
@@ -1558,18 +1570,16 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	Object *single_object = NULL;
-	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
-	{
-		if (single_object != NULL) {
-			single_object = NULL;
-			break;
-		}
-		else {
-			single_object = ob;
-		}
+	if (CTX_wm_space_outliner(C) != NULL) {
+		ED_outliner_selected_objects_get(C, &objects);
 	}
-	CTX_DATA_END;
+	else {
+		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+		{
+			BLI_addtail(&objects, BLI_genericNodeN(ob));
+		}
+		CTX_DATA_END;
+	}
 
 	if (is_new) {
 		char new_collection_name[MAX_NAME];
@@ -1577,16 +1587,21 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 		collection = BKE_collection_add(bmain, collection, new_collection_name);
 	}
 
+	Object *single_object = BLI_listbase_is_single(&objects) ?
+	                            ((LinkData *)objects.first)->data : NULL;
+
 	if ((single_object != NULL) &&
 	    is_link &&
 	    BLI_findptr(&collection->gobject, single_object, offsetof(CollectionObject, ob)))
 	{
 		BKE_reportf(op->reports, RPT_ERROR, "%s already in %s", single_object->id.name + 2, collection->id.name + 2);
+		BLI_freelistN(&objects);
 		return OPERATOR_CANCELLED;
 	}
 
-	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
-	{
+	for (LinkData *link = objects.first; link; link = link->next) {
+		Object *ob = link->data;
+
 		if (!is_link) {
 			BKE_collection_object_move(bmain, scene, collection, NULL, ob);
 		}
@@ -1594,7 +1609,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 			BKE_collection_object_add(bmain, collection, ob);
 		}
 	}
-	CTX_DATA_END;
+	BLI_freelistN(&objects);
 
 	BKE_reportf(op->reports,
 	            RPT_INFO,
@@ -1801,7 +1816,7 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = move_to_collection_exec;
 	ot->invoke = move_to_collection_invoke;
-	ot->poll = ED_operator_object_active_editable;
+	ot->poll = move_to_collection_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1828,7 +1843,7 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = move_to_collection_exec;
 	ot->invoke = move_to_collection_invoke;
-	ot->poll = ED_operator_object_active_editable;
+	ot->poll = move_to_collection_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
