@@ -251,7 +251,7 @@ static const EnumPropertyItem *rna_Area_ui_type_itemf(
 static int rna_Area_ui_type_get(PointerRNA *ptr)
 {
 	int value = rna_Area_type_get(ptr) << 16;
-	ScrArea *sa = (ScrArea *)ptr->data;
+	ScrArea *sa = ptr->data;
 	if (sa->type->space_subtype_item_extend != NULL) {
 		value |= sa->type->space_subtype_get(sa);
 	}
@@ -260,16 +260,28 @@ static int rna_Area_ui_type_get(PointerRNA *ptr)
 
 static void rna_Area_ui_type_set(PointerRNA *ptr, int value)
 {
-	rna_Area_type_set(ptr, value >> 16);
-	ScrArea *sa = (ScrArea *)ptr->data;
-	if (sa->type->space_subtype_item_extend != NULL) {
-		sa->type->space_subtype_set(sa, value & 0xffff);
+	ScrArea *sa = ptr->data;
+	const int space_type = value >> 16;
+	SpaceType *st = BKE_spacetype_from_id(space_type);
+
+	rna_Area_type_set(ptr, space_type);
+
+	if (st && st->space_subtype_item_extend != NULL) {
+		sa->butspacetype_subtype = value & 0xffff;
 	}
 }
 
 static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
 {
+	ScrArea *sa = ptr->data;
+	SpaceType *st = BKE_spacetype_from_id(sa->butspacetype);
+
 	rna_Area_type_update(C, ptr);
+
+	if ((sa->type == st) && (st->space_subtype_item_extend != NULL)) {
+		st->space_subtype_set(sa, sa->butspacetype_subtype);
+	}
+	sa->butspacetype_subtype = 0;
 }
 
 static void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float result[2])

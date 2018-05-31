@@ -274,11 +274,12 @@ typedef struct ScrArea {
 	 * SPACE_EMPTY. Also, versioning uses it to nicely replace deprecated
 	 * editors. It's been there for ages, name doesn't fit any more... */
 	char butspacetype;  /* eSpace_Type (SPACE_FOO) */
+	short butspacetype_subtype;
 
 	short winx, winy;				/* size */
 
-	short headertype DNA_DEPRECATED;/* OLD! 0=no header, 1= down, 2= up */
-	short do_refresh;				/* private, for spacetype refresh callback */
+	char headertype DNA_DEPRECATED;/* OLD! 0=no header, 1= down, 2= up */
+	char do_refresh;				/* private, for spacetype refresh callback */
 	short flag;
 	short region_active_win;		/* index of last used region of 'RGN_TYPE_WINDOW'
 									 * runtime variable, updated by executing operators */
