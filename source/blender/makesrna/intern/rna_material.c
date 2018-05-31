@@ -112,11 +112,6 @@ static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 }
 
-static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)
-{
-	return rna_pointer_inherit_refine(ptr, &RNA_MaterialRaytraceMirror, ptr->id.data);
-}
-
 static void rna_Material_texpaint_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Material *ma = (Material *)ptr->data;
@@ -250,7 +245,7 @@ void rna_mtex_texture_slots_clear(ID *self_id, struct bContext *C, ReportList *r
 
 #else
 
-static void rna_def_material_colors(StructRNA *srna)
+static void rna_def_material_display(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
@@ -265,17 +260,26 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Specular Color", "Specular color of the material");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+	prop = RNA_def_property(srna, "roughness", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "roughness");
+	RNA_def_property_float_default(prop, 0.25f);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Roughness", "Roughness of the material");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop = RNA_def_property(srna, "specular_intensity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
+	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Specular Intensity", "How intense (bright) the specular reflection is");
+	RNA_def_property_ui_text(prop, "Specular", "How intense (bright) the specular reflection is");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
-	prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "metallic", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "metallic");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Alpha", "Alpha transparency of the material");
-	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+	RNA_def_property_ui_text(prop, "Metallic", "Amount of mirror reflection for raytrace");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	/* Freestyle line color */
 	prop = RNA_def_property(srna, "line_color", PROP_FLOAT, PROP_COLOR);
@@ -289,30 +293,6 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_range(prop, 0, 32767);
 	RNA_def_property_ui_text(prop, "Line Priority",
 	                         "The line color of a higher priority is used at material boundaries");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-}
-
-static void rna_def_material_raymirror(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "MaterialRaytraceMirror", NULL);
-	RNA_def_struct_sdna(srna, "Material");
-	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Raytrace Mirror", "Raytraced reflection settings for a Material data-block");
-
-	prop = RNA_def_property(srna, "reflect_factor", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "ray_mirror");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Reflectivity", "Amount of mirror reflection for raytrace");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
-	prop = RNA_def_property(srna, "gloss_factor", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "gloss_mir");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Gloss Amount",
-	                         "The shininess of the reflection (values < 1.0 give diffuse, blurry reflections)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
@@ -412,13 +392,6 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Material Index\" render pass");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Material_update");
 
-	/* nested structs */
-	prop = RNA_def_property(srna, "raytrace_mirror", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "MaterialRaytraceMirror");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_mirror_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Raytrace Mirror", "Raytraced reflection settings for the material");
-
 	/* nodetree */
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
@@ -435,8 +408,7 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_animdata_common(srna);
 	rna_def_texpaint_slots(brna, srna);
 
-	rna_def_material_colors(srna);
-	rna_def_material_raymirror(brna);
+	rna_def_material_display(srna);
 
 	RNA_api_material(srna);
 }

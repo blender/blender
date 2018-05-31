@@ -1,3 +1,8 @@
+struct LightData {
+	vec4 light_direction_vs;
+	vec4 specular_color;
+};
+
 struct WorldData {
 	vec4 diffuse_light_x_pos;
 	vec4 diffuse_light_x_neg;
@@ -9,5 +14,13 @@ struct WorldData {
 	vec4 background_color_high;
 	vec4 object_outline_color;
 	vec4 light_direction_vs;
-	float specular_sharpness;
+	LightData lights[3];
+	int num_lights;
+	int pad[3];
+};
+
+struct MaterialData {
+	vec4 diffuse_color;
+	vec4 specular_color;
+	float roughness;
 };

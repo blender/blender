@@ -73,7 +73,13 @@ typedef struct Material {
 	/* Colors from Blender Internal that we are still using. */
 	float r, g, b;
 	float specr, specg, specb;
-	float alpha, ray_mirror, spec, gloss_mir;
+	float alpha DNA_DEPRECATED;
+	float ray_mirror  DNA_DEPRECATED;
+	float spec;
+	float gloss_mir  DNA_DEPRECATED; /* renamed and inversed to roughness */
+	float roughness;
+	float metallic;
+	float pad4[2];
 
 	/* Ror buttons and render. */
 	char pr_type, use_nodes;

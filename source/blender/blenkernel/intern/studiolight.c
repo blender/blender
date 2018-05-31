@@ -631,10 +631,10 @@ void BKE_studiolight_init(void)
 	sl->flag = STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA;
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_NEG], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 1.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 0.8f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_NEG], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.2f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.1f);
 	BLI_addtail(&studiolights, sl);
 
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);

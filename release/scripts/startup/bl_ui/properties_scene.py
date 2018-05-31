@@ -439,10 +439,11 @@ class SCENE_PT_viewport_display(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
         scene = context.scene
-        layout.prop(scene.display, "light_direction", text="")
-        layout.prop(scene.display, "shadow_shift")
-        layout.prop(scene.display, "roughness")
+        col = layout.column()
+        col.prop(scene.display, "light_direction")
+        col.prop(scene.display, "shadow_shift")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

@@ -1117,9 +1117,9 @@ static void material_opaque(
 	EEVEE_LampsInfo *linfo = sldata->lamps;
 
 	float *color_p = &ma->r;
-	float *metal_p = &ma->ray_mirror;
+	float *metal_p = &ma->metallic;
 	float *spec_p = &ma->spec;
-	float *rough_p = &ma->gloss_mir;
+	float *rough_p = &ma->roughness;
 
 	const bool use_gpumat = (ma->use_nodes && ma->nodetree);
 	const bool use_refract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
@@ -1297,9 +1297,9 @@ static void material_transparent(
 	        ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0)
 	);
 	float *color_p = &ma->r;
-	float *metal_p = &ma->ray_mirror;
+	float *metal_p = &ma->metallic;
 	float *spec_p = &ma->spec;
-	float *rough_p = &ma->gloss_mir;
+	float *rough_p = &ma->roughness;
 
 	if (ma->use_nodes && ma->nodetree) {
 		static float error_col[3] = {1.0f, 0.0f, 1.0f};
@@ -1605,9 +1605,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 				}
 
 				float *color_p = &ma->r;
-				float *metal_p = &ma->ray_mirror;
+				float *metal_p = &ma->metallic;
 				float *spec_p = &ma->spec;
-				float *rough_p = &ma->gloss_mir;
+				float *rough_p = &ma->roughness;
 
 				shgrp = DRW_shgroup_hair_create(
 				        ob, psys, md,

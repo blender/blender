@@ -48,6 +48,7 @@
 #define NORMAL_ENCODING_ENABLED() (true)
 #define WORKBENCH_REVEALAGE_ENABLED
 #define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD)
+#define STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_CAMERA)
 
 
 typedef struct WORKBENCH_FramebufferList {
@@ -98,6 +99,12 @@ typedef struct WORKBENCH_Data {
 	WORKBENCH_StorageList *stl;
 } WORKBENCH_Data;
 
+typedef struct WORKBENCH_UBO_Light {
+	float light_direction_vs[4];
+	float specular_color[3];
+	float energy;
+} WORKBENCH_UBO_Light;
+
 typedef struct WORKBENCH_UBO_World {
 	float diffuse_light_x_pos[4];
 	float diffuse_light_x_neg[4];
@@ -109,10 +116,19 @@ typedef struct WORKBENCH_UBO_World {
 	float background_color_high[4];
 	float object_outline_color[4];
 	float light_direction_vs[4];
-	float specular_sharpness;
-	float pad[3];
+	WORKBENCH_UBO_Light lights[3];
+	int num_lights;
+	int pad[3];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
+
+typedef struct WORKBENCH_UBO_Material {
+	float diffuse_color[4];
+	float specular_color[4];
+	float roughness;
+	float pad[3];
+} WORKBENCH_UBO_Material;
+BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_Material, 16)
 
 typedef struct WORKBENCH_PrivateData {
 	struct GHash *material_hash;
@@ -144,7 +160,9 @@ typedef struct WORKBENCH_PrivateData {
 
 typedef struct WORKBENCH_MaterialData {
 	/* Solid color */
-	float color[4];
+	WORKBENCH_UBO_Material material_data;
+	struct GPUUniformBuffer *material_ubo;
+
 	int object_id;
 	int drawtype;
 	Image *ima;
@@ -199,7 +217,7 @@ void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype);
-void workbench_material_get_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, float *color);
+void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype);
 void workbench_material_set_normal_world_matrix(

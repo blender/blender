@@ -797,7 +797,7 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 #endif
 	}
 	// reflectivity
-	ma->ray_mirror = ef->getReflectivity().getFloatValue();
+	ma->metallic = ef->getReflectivity().getFloatValue();
 	// index of refraction
 #if 0
 	ma->ang = ef->getIndexOfRefraction().getFloatValue();

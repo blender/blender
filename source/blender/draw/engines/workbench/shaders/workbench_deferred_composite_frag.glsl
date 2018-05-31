@@ -2,6 +2,7 @@ out vec4 fragColor;
 
 uniform usampler2D objectId;
 uniform sampler2D colorBuffer;
+uniform sampler2D specularBuffer;
 uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
 uniform vec2 invertedViewportSize;
@@ -54,6 +55,14 @@ void main()
 #endif /* WORKBENCH_ENCODE_NORMALS */
 #endif
 
+#ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
+	/* XXX Should calculate the correct VS Incoming direction */
+	vec3 I_vs = vec3(0.0, 0.0, 1.0);
+	vec4 specular_data = texelFetch(specularBuffer, texel, 0);
+	vec3 specular_color = get_world_specular_lights(world_data, specular_data, normal_viewport, I_vs);
+#else
+	vec3 specular_color = vec3(0.0);
+#endif
 
 #ifdef V3D_LIGHTING_STUDIO
   #ifdef STUDIOLIGHT_ORIENTATION_CAMERA
@@ -64,19 +73,10 @@ void main()
 	vec3 normal_world = normalWorldMatrix * normal_viewport;
 	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_world);
   #endif
-
-	vec3 specular_color = get_world_specular_light(world_data, normal_viewport, vec3(0.0, 0.0, 1.0));
 	vec3 shaded_color = diffuse_light * diffuse_color.rgb + specular_color;
 
 #else /* V3D_LIGHTING_STUDIO */
-  #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	vec3 specular_color = get_world_specular_light(world_data, normal_viewport, vec3(0.0, 0.0, 1.0));
 	vec3 shaded_color = diffuse_color.rgb + specular_color;
-
-  #else /* V3D_SHADING_SPECULAR_HIGHLIGHT */
-	vec3 shaded_color = diffuse_color.rgb;
-
-  #endif /* V3D_SHADING_SPECULAR_HIGHLIGHT */
 
 #endif /* V3D_LIGHTING_STUDIO */
 

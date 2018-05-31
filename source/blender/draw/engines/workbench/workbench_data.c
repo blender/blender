@@ -1,11 +1,14 @@
 #include "workbench_private.h"
 
+#include "DNA_userdef_types.h"
+
 #include "UI_resources.h"
+
 
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	Scene *scene = draw_ctx->scene;
+	const Scene *scene = draw_ctx->scene;
 	wpd->material_hash = BLI_ghash_ptr_new(__func__);
 
 	View3D *v3d = draw_ctx->v3d;
@@ -46,7 +49,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
 	copy_v3_v3(wd->object_outline_color, wpd->shading.object_outline_color);
 	wd->object_outline_color[3] = 1.0f;
-	wd->specular_sharpness = 100.0f - scene->display.roughness * 100.0f;
 
 	wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), &wpd->world_data);
 }
@@ -55,6 +57,33 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
+	WORKBENCH_UBO_World *wd = &wpd->world_data;
+	float view_matrix[4][4];
+	DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
+	WORKBENCH_UBO_Light *light = &wd->lights[0];
+
+	mul_v3_mat3_m4v3(light->light_direction_vs, view_matrix, light_direction);
+	light->light_direction_vs[3] = 0.0f;
+	copy_v3_fl(light->specular_color, 1.0f);
+	light->energy = 1.0f;
+	copy_v4_v4(wd->light_direction_vs, light->light_direction_vs);
+	wd->num_lights = 1;
+
+	if (STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd)) {
+		int light_index = 0;
+		for (int index = 0 ; index < 3; index++)
+		{
+			SolidLight *sl = &U.light[index];
+			if (sl->flag) {
+				WORKBENCH_UBO_Light *light = &wd->lights[light_index++];
+				copy_v4_v4(light->light_direction_vs, sl->vec);
+				negate_v3(light->light_direction_vs);
+				copy_v4_v4(light->specular_color, sl->spec);
+				light->energy = 1.0f;
+			}
+		}
+		wd->num_lights = light_index;
+	}
 
 #if 0
 	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
@@ -71,15 +100,19 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 		negate_v3(light_direction);
 	}
 
-	float view_matrix[4][4];
-	DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
-	mul_v3_mat3_m4v3(wpd->world_data.light_direction_vs, view_matrix, light_direction);
-	wpd->world_data.light_direction_vs[3] = 0.0;
 	DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
+}
+
+static void workbench_private_material_free(void* data)
+{
+	WORKBENCH_MaterialData *material_data = (WORKBENCH_MaterialData*)data;
+	DRW_UBO_FREE_SAFE(material_data->material_ubo);
+	MEM_freeN(material_data);
 }
 
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
-	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
+	
+	BLI_ghash_free(wpd->material_hash, NULL, workbench_private_material_free);
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);
 }

@@ -1,5 +1,9 @@
 uniform int object_id = 0;
-uniform vec3 object_color = vec3(1.0, 0.0, 1.0);
+
+layout(std140) uniform material_block {
+	MaterialData material_data;
+};
+
 #ifdef OB_TEXTURE
 uniform sampler2D image;
 #endif
@@ -13,11 +17,12 @@ in vec2 uv_interp;
 
 layout(location=0) out uint objectId;
 layout(location=1) out vec4 diffuseColor;
+layout(location=2) out vec4 specularColor;
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 	#ifdef WORKBENCH_ENCODE_NORMALS
-layout(location=2) out vec2 normalViewport;
+layout(location=3) out vec2 normalViewport;
 	#else /* WORKBENCH_ENCODE_NORMALS */
-layout(location=2) out vec3 normalViewport;
+layout(location=3) out vec3 normalViewport;
 	#endif /* WORKBENCH_ENCODE_NORMALS */
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
 
@@ -25,11 +30,15 @@ void main()
 {
 	objectId = uint(object_id);
 #ifdef OB_SOLID
-	diffuseColor = vec4(object_color, 0.0);
+	diffuseColor = vec4(material_data.diffuse_color.rgb, 0.0);
 #endif /* OB_SOLID */
 #ifdef OB_TEXTURE
 	diffuseColor = texture(image, uv_interp);
 #endif /* OB_TEXTURE */
+
+#ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
+	specularColor = vec4(material_data.specular_color.rgb, material_data.roughness);
+#endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 	#ifdef WORKBENCH_ENCODE_NORMALS

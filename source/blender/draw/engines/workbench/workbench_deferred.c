@@ -65,6 +65,7 @@ static struct {
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
+	struct GPUTexture *specular_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 
@@ -120,6 +121,7 @@ static char *workbench_build_prepass_frag(void)
 
 	DynStr *ds = BLI_dynstr_new();
 
+	BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_prepass_frag_glsl);
 
@@ -231,6 +233,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_solid);
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
+		e_data.specular_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
 		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 
@@ -247,6 +250,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 			GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 			GPU_ATTACHMENT_TEXTURE(e_data.color_buffer_tx),
+			GPU_ATTACHMENT_TEXTURE(e_data.specular_buffer_tx),
 			GPU_ATTACHMENT_TEXTURE(e_data.normal_buffer_tx),
 		});
 		GPU_framebuffer_ensure_config(&fbl->composite_fb, {
@@ -283,6 +287,28 @@ static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingG
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &e_data.normal_buffer_tx);
 	}
+	if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
+		DRW_shgroup_uniform_texture_ref(grp, "specularBuffer", &e_data.specular_buffer_tx);
+
+#if 0
+		float invwinmat[4][4];
+		DRW_viewport_matrix_get(invwinmat, DRW_MAT_WININV);
+
+		copy_v4_fl4(e_data.screenvecs[0],  1.0f, -1.0f, 0.0f, 1.0f);
+		copy_v4_fl4(e_data.screenvecs[1], -1.0f,  1.0f, 0.0f, 1.0f);
+		copy_v4_fl4(e_data.screenvecs[2], -1.0f, -1.0f, 0.0f, 1.0f);
+		for (int i = 0; i < 3; i++) {
+			mul_m4_v4(invwinmat, e_data.screenvecs[i]);
+			e_data.screenvecs[i][0] /= e_data.screenvecs[i][3]; /* perspective divide */
+			e_data.screenvecs[i][1] /= e_data.screenvecs[i][3]; /* perspective divide */
+			e_data.screenvecs[i][2] /= e_data.screenvecs[i][3]; /* perspective divide */
+			e_data.screenvecs[i][3] = 1.0f;
+		}
+		sub_v3_v3(e_data.screenvecs[0], e_data.screenvecs[2]);
+		sub_v3_v3(e_data.screenvecs[1], e_data.screenvecs[2]);
+		DRW_shgroup_uniform_vec4(grp, "screenvecs[0]", e_data.screenvecs[0], 3);
+#endif
+	}
 	DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
 	DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 
@@ -307,7 +333,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 		workbench_private_data_get_light_direction(wpd, e_data.display.light_direction);
 
 		e_data.display.shadow_shift = scene->display.shadow_shift;
-		copy_v3_v3(e_data.light_direction_vs, wpd->world_data.light_direction_vs);
+		copy_v3_v3(e_data.light_direction_vs, wpd->world_data.lights[0].light_direction_vs);
 
 		if (SHADOW_ENABLED(wpd)) {
 			psl->composite_pass = DRW_pass_create(
@@ -385,7 +411,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	WORKBENCH_MaterialData material_template;
 
 	/* Solid */
-	workbench_material_get_solid_color(wpd, ob, mat, material_template.color);
+	workbench_material_update_data(wpd, ob, mat, &material_template);
 	material_template.object_id = engine_object_data->object_id;
 	material_template.drawtype = drawtype;
 	material_template.ima = ima;
@@ -398,10 +424,11 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		        drawtype == OB_SOLID ? wpd->prepass_solid_sh : wpd->prepass_texture_sh, psl->prepass_pass);
 		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
 		material->object_id = engine_object_data->object_id;
-		copy_v4_v4(material->color, material_template.color);
+		copy_v4_v4(material->material_data.diffuse_color, material_template.material_data.diffuse_color);
+		copy_v4_v4(material->material_data.specular_color, material_template.material_data.specular_color);
+		material->material_data.roughness = material_template.material_data.roughness;
 		switch (drawtype) {
 			case OB_SOLID:
-				DRW_shgroup_uniform_vec3(material->shgrp, "object_color", material->color, 1);
 				break;
 
 			case OB_TEXTURE:
@@ -412,6 +439,9 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 			}
 		}
 		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
+		material->material_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_Material), &material->material_data);
+		DRW_shgroup_uniform_block(material->shgrp, "material_block", material->material_ubo);
+
 		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
 	}
 	return material;
