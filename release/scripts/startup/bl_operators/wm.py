@@ -62,6 +62,7 @@ rna_space_type_prop = EnumProperty(
             for e in bpy.types.Space.bl_rna.properties["type"].enum_items
            ),
         default='EMPTY',
+        options={'SKIP_SAVE'},
         )
 
 
