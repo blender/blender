@@ -155,7 +155,7 @@ typedef struct SpaceButs {
 #define CONTEXT_SHADING 3
 #define CONTEXT_EDITING 4
 // #define CONTEXT_SCRIPT  5
-#define CONTEXT_LOGIC   6
+// #define CONTEXT_LOGIC   6
 
 /* SpaceButs.mainb old (deprecated) */
 // #define BUTS_VIEW           0
@@ -214,21 +214,6 @@ typedef enum eSpaceButtons_Align {
 	BUT_VERTICAL = 2,
 	BUT_AUTO = 3,
 } eSpaceButtons_Align;
-
-/* SpaceButs.scaflag */
-#define BUTS_SENS_SEL           1
-#define BUTS_SENS_ACT           2
-#define BUTS_SENS_LINK          4
-#define BUTS_CONT_SEL           8
-#define BUTS_CONT_ACT           16
-#define BUTS_CONT_LINK          32
-#define BUTS_ACT_SEL            64
-#define BUTS_ACT_ACT            128
-#define BUTS_ACT_LINK           256
-#define BUTS_SENS_STATE         512
-#define BUTS_ACT_STATE          1024
-#define BUTS_CONT_INIT_STATE    2048
-
 
 /** \} */
 
