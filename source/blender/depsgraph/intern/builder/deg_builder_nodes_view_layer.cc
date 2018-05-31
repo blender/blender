@@ -96,13 +96,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	scene_ = scene;
 	view_layer_ = view_layer;
 	/* Get pointer to a CoW version of scene ID. */
-	Scene *scene_cow;
-	if (DEG_depsgraph_use_copy_on_write()) {
-		scene_cow = get_cow_datablock(scene);
-	}
-	else {
-		scene_cow = scene;
-	}
+	Scene *scene_cow = get_cow_datablock(scene);
 	/* Scene objects. */
 	int select_color = 1;
 	/* NOTE: Base is used for function bindings as-is, so need to pass CoW base,

@@ -33,7 +33,7 @@
 #include "intern/builder/deg_builder_map.h"
 #include "intern/depsgraph_types.h"
 
-#include "DEG_depsgraph.h"  /* used for DEG_depsgraph_use_copy_on_write() */
+#include "DEG_depsgraph.h"
 
 struct Base;
 struct CacheFile;
@@ -92,12 +92,7 @@ struct DepsgraphNodeBuilder {
 	/* For a given COW datablock get corresponding original one. */
 	template<typename T>
 	T *get_orig_datablock(const T *cow) const {
-		if (DEG_depsgraph_use_copy_on_write()) {
-			return (T *)cow->id.orig_id;
-		}
-		else {
-			return (T *)cow;
-		}
+		return (T *)cow->id.orig_id;
 	}
 
 	void begin_build();

@@ -150,9 +150,6 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-	if (!DEG_depsgraph_use_copy_on_write()) {
-		return graph_->add_id_node(id);
-	}
 	IDDepsNode *id_node = NULL;
 	ID *id_cow = (ID *)BLI_ghash_lookup(cow_id_hash_, id);
 	if (id_cow != NULL) {
@@ -324,22 +321,21 @@ ID *DepsgraphNodeBuilder::ensure_cow_id(ID *id_orig)
 
 /* **** Build functions for entity nodes **** */
 
-void DepsgraphNodeBuilder::begin_build() {
-	if (DEG_depsgraph_use_copy_on_write()) {
-		/* Store existing copy-on-write versions of datablock, so we can re-use
-		 * them for new ID nodes.
-		 */
-		cow_id_hash_ = BLI_ghash_ptr_new("Depsgraph id hash");
-		foreach (IDDepsNode *id_node, graph_->id_nodes) {
-			if (deg_copy_on_write_is_expanded(id_node->id_cow)) {
-				if (id_node->id_orig == id_node->id_cow) {
-					continue;
-				}
-				BLI_ghash_insert(cow_id_hash_,
-				                 id_node->id_orig,
-				                 id_node->id_cow);
-				id_node->id_cow = NULL;
+void DepsgraphNodeBuilder::begin_build()
+{
+	/* Store existing copy-on-write versions of datablock, so we can re-use
+	 * them for new ID nodes.
+	 */
+	cow_id_hash_ = BLI_ghash_ptr_new("Depsgraph id hash");
+	foreach (IDDepsNode *id_node, graph_->id_nodes) {
+		if (deg_copy_on_write_is_expanded(id_node->id_cow)) {
+			if (id_node->id_orig == id_node->id_cow) {
+				continue;
 			}
+			BLI_ghash_insert(cow_id_hash_,
+			                 id_node->id_orig,
+			                 id_node->id_cow);
+			id_node->id_cow = NULL;
 		}
 	}
 

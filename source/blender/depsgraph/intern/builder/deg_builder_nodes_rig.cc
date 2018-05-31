@@ -145,16 +145,8 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
 void DepsgraphNodeBuilder::build_rig(Object *object)
 {
 	bArmature *armature = (bArmature *)object->data;
-	Scene *scene_cow;
-	Object *object_cow;
-	if (DEG_depsgraph_use_copy_on_write()) {
-		scene_cow = get_cow_datablock(scene_);
-		object_cow = get_cow_datablock(object);
-	}
-	else {
-		scene_cow = scene_;
-		object_cow = object;
-	}
+	Scene *scene_cow = get_cow_datablock(scene_);
+	Object *object_cow = get_cow_datablock(object);
 	OperationDepsNode *op_node;
 
 	/* Animation and/or drivers linking posebones to base-armature used to
@@ -324,13 +316,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 {
 	bArmature *arm = (bArmature *)object->data;
 	OperationDepsNode *op_node;
-	Object *object_cow;
-	if (DEG_depsgraph_use_copy_on_write()) {
-		object_cow = get_cow_datablock(object);
-	}
-	else {
-		object_cow = object;
-	}
+	Object *object_cow = get_cow_datablock(object);
 	/* Sanity check. */
 	BLI_assert(object->pose != NULL);
 	/* Animation. */

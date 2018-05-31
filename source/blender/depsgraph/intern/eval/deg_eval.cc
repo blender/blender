@@ -228,9 +228,6 @@ static void depsgraph_ensure_view_layer(Depsgraph *graph)
 	 * - It was tagged for update of CoW component.
 	 * This allows us to have proper view layer pointer.
 	 */
-	if (!DEG_depsgraph_use_copy_on_write()) {
-		return;
-	}
 	Scene *scene_cow = graph->scene_cow;
 	if (!deg_copy_on_write_is_expanded(&scene_cow->id) ||
 	     scene_cow->id.recalc & ID_RECALC_COPY_ON_WRITE)

@@ -70,18 +70,6 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
-static bool use_copy_on_write = true;
-
-bool DEG_depsgraph_use_copy_on_write(void)
-{
-	return use_copy_on_write;
-}
-
-void DEG_depsgraph_disable_copy_on_write(void)
-{
-	use_copy_on_write = false;
-}
-
 namespace DEG {
 
 static DEG_EditorUpdateIDCb deg_editor_update_id_cb = NULL;
@@ -340,7 +328,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 void Depsgraph::clear_id_nodes()
 {
 	/* Free memory used by ID nodes. */
-	if (use_copy_on_write) {
+	{
 		/* Stupid workaround to ensure we free IDs in a proper order. */
 		foreach (IDDepsNode *id_node, id_nodes) {
 			if (id_node->id_cow == NULL) {

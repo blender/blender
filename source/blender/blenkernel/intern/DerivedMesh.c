@@ -2934,9 +2934,6 @@ static bool calc_modifiers_skip_orco(Depsgraph *depsgraph,
 
 static void mesh_finalize_eval(Object *object)
 {
-	if (!DEG_depsgraph_use_copy_on_write()) {
-		return;
-	}
 	Mesh *mesh = (Mesh *)object->data;
 	Mesh *mesh_eval = object->runtime.mesh_eval;
 	/* Special Tweaks for cases when evaluated mesh came from
