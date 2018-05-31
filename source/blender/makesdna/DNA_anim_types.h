@@ -917,6 +917,8 @@ typedef struct AnimData {
 	ListBase    drivers;    /* standard user-created Drivers/Expressions (used as part of a rig) */
 	ListBase    overrides;  /* temp storage (AnimOverride) of values for settings that are animated (but the value hasn't been keyframed) */
 
+	FCurve **driver_array;  /* runtime data, for depsgraph evaluation */
+
 		/* settings for animation evaluation */
 	int flag;               /* user-defined settings */
 	int recalc;             /* depsgraph recalculation flags */

@@ -704,9 +704,10 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 		}
 
 		/* drivers */
+		int driver_index = 0;
 		LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
 			/* create driver */
-			build_driver(id, fcu);
+			build_driver(id, fcu, driver_index++);
 		}
 	}
 }
@@ -715,16 +716,21 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
  * Build graph node(s) for Driver
  * \param id: ID-Block that driver is attached to
  * \param fcu: Driver-FCurve
+ * \param driver_index: Index in animation data drivers list
  */
-void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve)
+void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index)
 {
-	ID *id_cow = get_cow_id(id);
-
 	/* Create data node for this driver */
-	/* TODO(sergey): Shall we use COW of fcu itself here? */
+	ID *id_cow = get_cow_id(id);
+	ChannelDriver *driver_orig = fcurve->driver;
+
+	/* TODO(sergey): ideally we could pass the COW of fcu, but since it
+	 * has not yet been allocated at this point we can't. As a workaround
+	 * the animation systems allocates an array so we can do a fast lookup
+	 * with the driver index. */
 	ensure_operation_node(id,
 	                      DEG_NODE_TYPE_PARAMETERS,
-	                      function_bind(BKE_animsys_eval_driver, _1, id_cow, fcurve),
+	                      function_bind(BKE_animsys_eval_driver, _1, id_cow, driver_index, driver_orig),
 	                      DEG_OPCODE_DRIVER,
 	                      fcurve->rna_path ? fcurve->rna_path : "",
 	                      fcurve->array_index);

@@ -2819,6 +2819,7 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	/* link drivers */
 	link_list(fd, &adt->drivers);
 	direct_link_fcurves(fd, &adt->drivers);
+	adt->driver_array = NULL;
 	
 	/* link overrides */
 	// TODO...

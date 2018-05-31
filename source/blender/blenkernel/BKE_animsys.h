@@ -33,6 +33,7 @@
 
 struct AnimData;
 struct AnimMapper;
+struct ChannelDriver;
 struct FCurve;
 struct ID;
 struct KS_Path;
@@ -202,7 +203,9 @@ void animsys_evaluate_action_group(struct PointerRNA *ptr, struct bAction *act, 
 struct Depsgraph;
 
 void BKE_animsys_eval_animdata(struct Depsgraph *depsgraph, struct ID *id);
-void BKE_animsys_eval_driver(struct Depsgraph *depsgraph, struct ID *id, struct FCurve *fcurve);
+void BKE_animsys_eval_driver(struct Depsgraph *depsgraph, struct ID *id, int driver_index, struct ChannelDriver *driver_orig);
+
+void BKE_animsys_update_driver_array(struct ID *id);
 
 /* ************************************* */
 
