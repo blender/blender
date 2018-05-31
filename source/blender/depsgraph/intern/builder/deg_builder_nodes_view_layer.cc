@@ -102,10 +102,14 @@ void DepsgraphNodeBuilder::build_view_layer(
 	 * tricks here iterating over the view layer.
 	 */
 	int base_index = 0;
+	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+		BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
 	LISTBASE_FOREACH(Base *, base, &view_layer->object_bases) {
 		/* object itself */
-		build_object(base_index, base->object, linked_state);
-		base->object->select_color = select_color++;
+		if (base->flag & base_flag) {
+			build_object(base_index, base->object, linked_state);
+			base->object->select_color = select_color++;
+		}
 		++base_index;
 	}
 	build_layer_collections(&view_layer->layer_collections);

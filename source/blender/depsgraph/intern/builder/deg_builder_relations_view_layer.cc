@@ -86,8 +86,12 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	 * passed to the evaluation functions. During relations builder we only
 	 * do NULL-pointer check of the base, so it's fine to pass original one.
 	 */
+	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+		BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
 	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-		build_object(base, base->object);
+		if (base->flag & base_flag) {
+			build_object(base, base->object);
+		}
 	}
 
 	build_layer_collections(&view_layer->layer_collections);
