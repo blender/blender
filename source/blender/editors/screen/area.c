@@ -2258,7 +2258,7 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 		}
 	}
 
-	rect.ymin = BLI_rcti_size_y(&rect) - header_height * num_lines;
+	rect.ymin = rect.ymax - header_height * num_lines;
 
 	/* setup scissor */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
