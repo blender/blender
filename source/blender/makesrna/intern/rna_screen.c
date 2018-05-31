@@ -146,7 +146,7 @@ static const EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C), PointerR
 
 	/* +1 to skip SPACE_EMPTY */
 	for (const EnumPropertyItem *item_from = rna_enum_space_type_items + 1; item_from->identifier; item_from++) {
-		if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR)) {
+		if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR, SPACE_USERPREF)) {
 			continue;
 		}
 		RNA_enum_item_add(&item, &totitem, item_from);
@@ -167,7 +167,7 @@ static int rna_Area_type_get(PointerRNA *ptr)
 
 static void rna_Area_type_set(PointerRNA *ptr, int value)
 {
-	if (ELEM(value, SPACE_TOPBAR, SPACE_STATUSBAR)) {
+	if (ELEM(value, SPACE_TOPBAR, SPACE_STATUSBAR, SPACE_USERPREF)) {
 		/* Special case: An area can not be set to show the top-bar editor (or
 		 * other global areas). However it should still be possible to identify
 		 * its type from Python. */
@@ -225,7 +225,7 @@ static const EnumPropertyItem *rna_Area_ui_type_itemf(
 
 	/* +1 to skip SPACE_EMPTY */
 	for (const EnumPropertyItem *item_from = rna_enum_space_type_items + 1; item_from->identifier; item_from++) {
-		if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR)) {
+		if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR, SPACE_USERPREF)) {
 			continue;
 		}
 
