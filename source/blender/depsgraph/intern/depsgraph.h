@@ -210,6 +210,16 @@ struct Depsgraph {
 	 */
 	Scene *scene_cow;
 
+	/* Active dependency graph is a dependency graph which is used by the
+	 * currently active window. When dependency graph is active, it is allowed
+	 * for evaluation functions to write animation f-curve result, drivers
+	 * result and other selective things (object matrix?) to original object.
+	 *
+	 * This way we simplify operators, which don't need to worry about where
+	 * to read stuff from.
+	 */
+	bool is_active;
+
 	/* NITE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
 	int debug_flags;
 	string debug_name;

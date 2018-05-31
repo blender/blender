@@ -92,7 +92,8 @@ Depsgraph::Depsgraph(Scene *scene,
     view_layer(view_layer),
     mode(mode),
     ctime(BKE_scene_frame_get(scene)),
-    scene_cow(NULL)
+    scene_cow(NULL),
+	is_active(false)
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
@@ -586,6 +587,34 @@ void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
 {
 	DEG::deg_editor_update_id_cb = id_func;
 	DEG::deg_editor_update_scene_cb = scene_func;
+}
+
+bool DEG_is_active(const struct Depsgraph *depsgraph)
+{
+	if (depsgraph == NULL) {
+		/* Happens for such cases as work object in what_does_obaction(),
+		 * and sine render pipeline parts. Shouldn't really be accepting
+		 * NULL depsgraph, but is quite hard to get proper one in those
+		 * cases.
+		 */
+		return false;
+	}
+	const DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
+	return deg_graph->is_active;
+}
+
+void DEG_make_active(struct Depsgraph *depsgraph)
+{
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	deg_graph->is_active = true;
+	/* TODO(sergey): Copy data from evaluated state to original. */
+}
+
+void DEG_make_inactive(struct Depsgraph *depsgraph)
+{
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	deg_graph->is_active = false;
 }
 
 /* Evaluation and debug */

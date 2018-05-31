@@ -229,6 +229,12 @@ typedef void (*DEG_EditorUpdateSceneCb)(
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
                                DEG_EditorUpdateSceneCb scene_func);
 
+/* Evaluation  ----------------------------------- */
+
+bool DEG_is_active(const struct Depsgraph *depsgraph);
+void DEG_make_active(struct Depsgraph *depsgraph);
+void DEG_make_inactive(struct Depsgraph *depsgraph);
+
 /* Evaluation Debug ------------------------------ */
 
 void DEG_debug_print_begin(struct Depsgraph *depsgraph);
