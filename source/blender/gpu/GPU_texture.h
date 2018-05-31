@@ -156,7 +156,10 @@ GPUTexture *GPU_texture_create_3D(
         int w, int h, int d, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_cube(
         int w, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_from_vertbuf(struct Gwn_VertBuf *vert);
+GPUTexture *GPU_texture_create_from_vertbuf(
+        struct Gwn_VertBuf *vert);
+GPUTexture *GPU_texture_create_buffer(
+        GPUTextureFormat data_type, const uint buffer);
 
 GPUTexture *GPU_texture_from_blender(
         struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data, double time, int mipmap);
