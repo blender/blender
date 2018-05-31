@@ -1304,7 +1304,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	}
 	else if (sa && sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = sa->spacedata.first;
-		ED_space_image_set(sima, scene, obedit, ima);
+		ED_space_image_set(bmain, sima, scene, obedit, ima);
 		iuser = &sima->iuser;
 	}
 	else if (sa && sa->spacetype == SPACE_VIEW3D) {
@@ -1621,7 +1621,7 @@ static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 	}
 }
 
-static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, Scene *scene,
+static int save_image_options_init(Main *bmain, SaveImageOptions *simopts, SpaceImage *sima, Scene *scene,
                                    const bool guess_path, const bool save_as_render)
 {
 	void *lock;
@@ -1686,12 +1686,12 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 				}
 				else {
 					BLI_strncpy(simopts->filepath, "//untitled", sizeof(simopts->filepath));
-					BLI_path_abs(simopts->filepath, G.main->name);
+					BLI_path_abs(simopts->filepath, bmain->name);
 				}
 			}
 			else {
 				BLI_snprintf(simopts->filepath, sizeof(simopts->filepath), "//%s", ima->id.name + 2);
-				BLI_path_abs(simopts->filepath, is_prev_save ? G.ima : G.main->name);
+				BLI_path_abs(simopts->filepath, is_prev_save ? G.ima : bmain->name);
 			}
 		}
 
@@ -1705,7 +1705,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 	return (ibuf != NULL);
 }
 
-static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op)
+static void save_image_options_from_op(Main *bmain, SaveImageOptions *simopts, wmOperator *op)
 {
 	if (op->customdata) {
 		BKE_color_managed_view_settings_free(&simopts->im_format.view_settings);
@@ -1715,7 +1715,7 @@ static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		RNA_string_get(op->ptr, "filepath", simopts->filepath);
-		BLI_path_abs(simopts->filepath, G.main->name);
+		BLI_path_abs(simopts->filepath, bmain->name);
 	}
 }
 
@@ -2048,6 +2048,7 @@ static void image_save_as_free(wmOperator *op)
 
 static int image_save_as_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	SaveImageOptions simopts;
 
@@ -2055,9 +2056,9 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
 	/* just in case to initialize values,
 	 * these should be set on invoke or by the caller. */
-	save_image_options_init(&simopts, sima, CTX_data_scene(C), false, false);
+	save_image_options_init(bmain, &simopts, sima, CTX_data_scene(C), false, false);
 
-	save_image_options_from_op(&simopts, op);
+	save_image_options_from_op(bmain, &simopts, op);
 
 	save_image_doit(C, sima, op, &simopts, true);
 
@@ -2074,6 +2075,7 @@ static bool image_save_as_check(bContext *UNUSED(C), wmOperator *op)
 
 static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
 	Scene *scene = CTX_data_scene(C);
@@ -2086,7 +2088,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 	save_image_options_defaults(&simopts);
 
-	if (save_image_options_init(&simopts, sima, scene, true, save_as_render) == 0)
+	if (save_image_options_init(bmain, &simopts, sima, scene, true, save_as_render) == 0)
 		return OPERATOR_CANCELLED;
 	save_image_options_to_op(&simopts, op);
 
@@ -2197,14 +2199,15 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 static int image_save_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
 	SaveImageOptions simopts;
 
 	save_image_options_defaults(&simopts);
-	if (save_image_options_init(&simopts, sima, scene, false, false) == 0)
+	if (save_image_options_init(bmain, &simopts, sima, scene, false, false) == 0)
 		return OPERATOR_CANCELLED;
-	save_image_options_from_op(&simopts, op);
+	save_image_options_from_op(bmain, &simopts, op);
 
 	if (BLI_exists(simopts.filepath) && BLI_file_is_writable(simopts.filepath)) {
 		if (save_image_doit(C, sima, op, &simopts, false)) {
@@ -2432,7 +2435,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &ptr, prop);
 	}
 	else if (sima) {
-		ED_space_image_set(sima, scene, obedit, ima);
+		ED_space_image_set(bmain, sima, scene, obedit, ima);
 	}
 	else if (gen_context == GEN_CONTEXT_PAINT_CANVAS) {
 		bScreen *sc;
@@ -2452,7 +2455,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 						SpaceImage *sima_other = (SpaceImage *)sl;
 						
 						if (!sima_other->pin) {
-							ED_space_image_set(sima_other, scene, scene->obedit, ima);
+							ED_space_image_set(bmain, sima_other, scene, scene->obedit, ima);
 						}
 					}
 				}
@@ -3596,13 +3599,14 @@ void IMAGE_OT_change_frame(wmOperatorType *ot)
 /* goes over all scenes, reads render layers */
 static int image_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima;
 
 	ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	if (sima->image == NULL) {
-		ED_space_image_set(sima, scene, NULL, ima);
+		ED_space_image_set(bmain, sima, scene, NULL, ima);
 	}
 
 	RE_ReadRenderResult(scene, scene);
