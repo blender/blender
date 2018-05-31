@@ -197,13 +197,13 @@ struct ListBase *get_active_constraints(struct Object *ob);
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **r_pchan);
 struct bConstraint *get_active_constraint(struct Object *ob);
 
-void object_test_constraints(struct Object *ob);
+void object_test_constraints(struct Main *bmain, struct Object *ob);
 
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
-void ED_object_constraint_update(struct Object *ob);
+void ED_object_constraint_update(struct Main *bmain, struct Object *ob);
 void ED_object_constraint_dependency_update(struct Main *bmain, struct Object *ob);
 
-void ED_object_constraint_tag_update(struct Object *ob, struct bConstraint *con);
+void ED_object_constraint_tag_update(struct Main *bmain, struct Object *ob, struct bConstraint *con);
 void ED_object_constraint_dependency_tag_update(struct Main *bmain, struct Object *ob, struct bConstraint *con);
 
 /* object_modes.c */

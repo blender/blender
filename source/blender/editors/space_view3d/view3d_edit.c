@@ -54,6 +54,7 @@
 #include "BKE_font.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -2803,6 +2804,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 /* like a localview without local!, was centerview() in 2.4x */
 static int viewselected_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);

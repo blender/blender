@@ -78,7 +78,7 @@ void BKE_object_free_modifiers(struct Object *ob, const int flag);
 void BKE_object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
-bool BKE_object_exists_check(const struct Object *obtest);
+bool BKE_object_exists_check(struct Main *bmain, const struct Object *obtest);
 bool BKE_object_is_in_editmode(const struct Object *ob);
 bool BKE_object_is_in_editmode_vgroup(const struct Object *ob);
 bool BKE_object_is_in_wpaint_select_vert(const struct Object *ob);

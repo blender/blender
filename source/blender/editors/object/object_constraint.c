@@ -262,7 +262,7 @@ static void set_constraint_nth_target(bConstraint *con, Object *target, const ch
 
 /* ------------- Constraint Sanity Testing ------------------- */
 
-static void test_constraint(Object *owner, bPoseChannel *pchan, bConstraint *con, int type)
+static void test_constraint(Main *bmain, Object *owner, bPoseChannel *pchan, bConstraint *con, int type)
 {
 	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 	ListBase targets = {NULL, NULL};
@@ -280,7 +280,7 @@ static void test_constraint(Object *owner, bPoseChannel *pchan, bConstraint *con
 		 *		the constraint is deemed invalid
 		 */
 		/* default IK check ... */
-		if (BKE_object_exists_check(data->tar) == 0) {
+		if (BKE_object_exists_check(bmain, data->tar) == 0) {
 			data->tar = NULL;
 			con->flag |= CONSTRAINT_DISABLE;
 		}
@@ -291,7 +291,7 @@ static void test_constraint(Object *owner, bPoseChannel *pchan, bConstraint *con
 		}
 
 		if (data->poletar) {
-			if (BKE_object_exists_check(data->poletar) == 0) {
+			if (BKE_object_exists_check(bmain, data->poletar) == 0) {
 				data->poletar = NULL;
 				con->flag |= CONSTRAINT_DISABLE;
 			}
@@ -310,7 +310,7 @@ static void test_constraint(Object *owner, bPoseChannel *pchan, bConstraint *con
 		bPivotConstraint *data = con->data;
 
 		/* target doesn't have to exist, but if it is non-null, it must exist! */
-		if (data->tar && BKE_object_exists_check(data->tar) == 0) {
+		if (data->tar && BKE_object_exists_check(bmain, data->tar) == 0) {
 			data->tar = NULL;
 			con->flag |= CONSTRAINT_DISABLE;
 		}
@@ -433,7 +433,7 @@ static void test_constraint(Object *owner, bPoseChannel *pchan, bConstraint *con
 		/* disable and clear constraints targets that are incorrect */
 		for (ct = targets.first; ct; ct = ct->next) {
 			/* general validity checks (for those constraints that need this) */
-			if (BKE_object_exists_check(ct->tar) == 0) {
+			if (BKE_object_exists_check(bmain, ct->tar) == 0) {
 				/* object doesn't exist, but constraint requires target */
 				ct->tar = NULL;
 				con->flag |= CONSTRAINT_DISABLE;
@@ -503,7 +503,7 @@ static int constraint_type_get(Object *owner, bPoseChannel *pchan)
 /* checks validity of object pointers, and NULLs,
  * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag.
  */
-static void test_constraints(Object *owner, bPoseChannel *pchan)
+static void test_constraints(Main *bmain, Object *owner, bPoseChannel *pchan)
 {
 	bConstraint *curcon;
 	ListBase *conlist = NULL;
@@ -526,44 +526,44 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 	/* Check all constraints - is constraint valid? */
 	if (conlist) {
 		for (curcon = conlist->first; curcon; curcon = curcon->next) {
-			test_constraint(owner, pchan, curcon, type);
+			test_constraint(bmain, owner, pchan, curcon, type);
 		}
 	}
 }
 
-void object_test_constraints(Object *owner)
+void object_test_constraints(Main *bmain, Object *owner)
 {
 	if (owner->constraints.first)
-		test_constraints(owner, NULL);
+		test_constraints(bmain, owner, NULL);
 	
 	if (owner->type == OB_ARMATURE && owner->pose) {
 		bPoseChannel *pchan;
 		
 		for (pchan = owner->pose->chanbase.first; pchan; pchan = pchan->next) {
 			if (pchan->constraints.first)
-				test_constraints(owner, pchan);
+				test_constraints(bmain, owner, pchan);
 		}
 	}
 }
 
-static void object_test_constraint(Object *owner, bConstraint *con)
+static void object_test_constraint(Main *bmain, Object *owner, bConstraint *con)
 {
 	if (owner->type == OB_ARMATURE && owner->pose) {
 		if (BLI_findindex(&owner->constraints, con) != -1) {
-			test_constraint(owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
+			test_constraint(bmain, owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
 		}
 		else {
 			bPoseChannel *pchan;
 			for (pchan = owner->pose->chanbase.first; pchan; pchan = pchan->next) {
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
-					test_constraint(owner, pchan, con, CONSTRAINT_OBTYPE_BONE);
+					test_constraint(bmain, owner, pchan, con, CONSTRAINT_OBTYPE_BONE);
 					break;
 				}
 			}
 		}
 	}
 	else {
-		test_constraint(owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
+		test_constraint(bmain, owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
 	}
 }
 
@@ -689,6 +689,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 
 static int stretchto_reset_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_STRETCHTO);
 	bStretchToConstraint *data = (con) ? (bStretchToConstraint *)con->data : NULL;
@@ -699,7 +700,7 @@ static int stretchto_reset_exec(bContext *C, wmOperator *op)
 	
 	/* just set original length to 0.0, which will cause a reset on next recalc */
 	data->orglength = 0.0f;
-	ED_object_constraint_update(ob);
+	ED_object_constraint_update(bmain, ob);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, NULL);
 	return OPERATOR_FINISHED;
@@ -735,6 +736,7 @@ void CONSTRAINT_OT_stretchto_reset(wmOperatorType *ot)
 
 static int limitdistance_reset_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_DISTLIMIT);
 	bDistLimitConstraint *data = (con) ? (bDistLimitConstraint *)con->data : NULL;
@@ -745,7 +747,7 @@ static int limitdistance_reset_exec(bContext *C, wmOperator *op)
 	
 	/* just set original length to 0.0, which will cause a reset on next recalc */
 	data->dist = 0.0f;
-	ED_object_constraint_update(ob);
+	ED_object_constraint_update(bmain, ob);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, NULL);
 	return OPERATOR_FINISHED;
@@ -1198,11 +1200,11 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 	BKE_constraints_active_set(lb, con);
 }
 
-void ED_object_constraint_update(Object *ob)
+void ED_object_constraint_update(Main *bmain, Object *ob)
 {
 	if (ob->pose) BKE_pose_update_constraint_flags(ob->pose);
 
-	object_test_constraints(ob);
+	object_test_constraints(bmain, ob);
 
 	if (ob->type == OB_ARMATURE) 
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
@@ -1225,7 +1227,7 @@ static void object_pose_tag_update(Main *bmain, Object *ob)
 
 void ED_object_constraint_dependency_update(Main *bmain, Object *ob)
 {
-	ED_object_constraint_update(ob);
+	ED_object_constraint_update(bmain, ob);
 
 	if (ob->pose) {
 		object_pose_tag_update(bmain, ob);
@@ -1233,13 +1235,13 @@ void ED_object_constraint_dependency_update(Main *bmain, Object *ob)
 	DEG_relations_tag_update(bmain);
 }
 
-void ED_object_constraint_tag_update(Object *ob, bConstraint *con)
+void ED_object_constraint_tag_update(Main *bmain, Object *ob, bConstraint *con)
 {
 	if (ob->pose) {
 		BKE_pose_tag_update_constraint_flags(ob->pose);
 	}
 
-	object_test_constraint(ob, con);
+	object_test_constraint(bmain, ob, con);
 
 	if (ob->type == OB_ARMATURE)
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
@@ -1254,7 +1256,7 @@ void ED_object_constraint_tag_update(Object *ob, bConstraint *con)
 
 void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstraint *con)
 {
-	ED_object_constraint_tag_update(ob, con);
+	ED_object_constraint_tag_update(bmain, ob, con);
 
 	if (ob->pose) {
 		object_pose_tag_update(bmain, ob);
@@ -1271,6 +1273,7 @@ static int constraint_poll(bContext *C)
 
 static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
 	Object *ob = ptr.id.data;
 	bConstraint *con = ptr.data;
@@ -1280,7 +1283,7 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	if (BKE_constraint_remove_ex(lb, ob, con, true)) {
 		/* there's no active constraint now, so make sure this is the case */
 		BKE_constraints_active_set(&ob->constraints, NULL);
-		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
+		ED_object_constraint_update(bmain, ob); /* needed to set the flags on posebones correctly */
 
 		/* relatiols */
 		DEG_relations_tag_update(CTX_data_main(C));
@@ -1816,7 +1819,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	}
 	
 	/* make sure all settings are valid - similar to above checks, but sometimes can be wrong */
-	object_test_constraints(ob);
+	object_test_constraints(bmain, ob);
 
 	if (pchan)
 		BKE_pose_update_constraint_flags(ob->pose);

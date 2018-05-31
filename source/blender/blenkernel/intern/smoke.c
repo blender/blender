@@ -73,6 +73,7 @@
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"

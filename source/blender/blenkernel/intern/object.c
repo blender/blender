@@ -618,13 +618,13 @@ bool BKE_object_is_visible(Object *ob, const eObjectVisibilityCheck mode)
 	}
 }
 
-bool BKE_object_exists_check(const Object *obtest)
+bool BKE_object_exists_check(Main *bmain, const Object *obtest)
 {
 	Object *ob;
 	
 	if (obtest == NULL) return false;
 	
-	ob = G.main->object.first;
+	ob = bmain->object.first;
 	while (ob) {
 		if (ob == obtest) return true;
 		ob = ob->id.next;
