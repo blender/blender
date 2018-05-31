@@ -427,6 +427,12 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 
 void DepsgraphRelationBuilder::build_collection(Object *object, Collection *collection)
 {
+	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
+	if (collection->flag & restrict_flag) {
+		return;
+	}
+
 	const bool group_done = built_map_.checkIsBuiltAndTag(collection);
 	OperationKey object_local_transform_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,

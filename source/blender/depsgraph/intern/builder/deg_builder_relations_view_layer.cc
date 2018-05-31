@@ -71,9 +71,17 @@ namespace DEG {
 
 void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
 {
+	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
+
 	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
-		build_collection(NULL, lc->collection);
-		build_layer_collections(&lc->layer_collections);
+		if (!(lc->collection->flag & restrict_flag)) {
+			if (!(lc->flag & LAYER_COLLECTION_EXCLUDE)) {
+				build_collection(NULL, lc->collection);
+			}
+
+			build_layer_collections(&lc->layer_collections);
+		}
 	}
 }
 

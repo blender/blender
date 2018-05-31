@@ -424,6 +424,13 @@ void DepsgraphNodeBuilder::build_collection(Collection *collection)
 	if (built_map_.checkIsBuiltAndTag(collection)) {
 		return;
 	}
+
+	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
+	if (collection->flag & restrict_flag) {
+		return;
+	}
+
 	/* Build collection objects. */
 	LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
 		build_object(-1, cob->ob, DEG_ID_LINKED_INDIRECTLY);
