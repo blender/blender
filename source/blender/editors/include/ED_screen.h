@@ -79,7 +79,7 @@ void    ED_region_tag_refresh_ui(struct ARegion *ar);
 void    ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
 void    ED_region_panels(
             const struct bContext *C, struct ARegion *ar,
-            const char *context, int contextnr,
+            const char *contexts[], int contextnr,
             const bool vertical);
 void    ED_region_header_init(struct ARegion *ar);
 void    ED_region_header(const struct bContext *C, struct ARegion *ar);

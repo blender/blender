@@ -991,7 +991,6 @@ void ED_spacetype_node(void)
 	st->dropboxes = node_dropboxes;
 	st->manipulators = node_widgets;
 	st->id_remap = node_id_remap;
-
 	st->space_subtype_item_extend = node_space_subtype_item_extend;
 	st->space_subtype_get = node_space_subtype_get;
 	st->space_subtype_set = node_space_subtype_set;

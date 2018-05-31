@@ -146,36 +146,59 @@ static void buttons_main_region_draw(const bContext *C, ARegion *ar)
 
 	buttons_context_compute(C, sbuts);
 
-	if (sbuts->mainb == BCONTEXT_SCENE)
-		ED_region_panels(C, ar, "scene", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_RENDER)
-		ED_region_panels(C, ar, "render", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_VIEW_LAYER)
-		ED_region_panels(C, ar, "view_layer", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_WORLD)
-		ED_region_panels(C, ar, "world", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_WORKSPACE)
-		ED_region_panels(C, ar, "workspace", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_OBJECT)
-		ED_region_panels(C, ar, "object", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_DATA)
-		ED_region_panels(C, ar, "data", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_MATERIAL)
-		ED_region_panels(C, ar, "material", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_TEXTURE)
-		ED_region_panels(C, ar, "texture", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_PARTICLE)
-		ED_region_panels(C, ar, "particle", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_PHYSICS)
-		ED_region_panels(C, ar, "physics", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_BONE)
-		ED_region_panels(C, ar, "bone", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_MODIFIER)
-		ED_region_panels(C, ar, "modifier", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
-		ED_region_panels(C, ar, "constraint", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_BONE_CONSTRAINT)
-		ED_region_panels(C, ar, "bone_constraint", sbuts->mainb, vertical);
+	const char *contexts[2] = {NULL, NULL};
+
+	switch (sbuts->mainb) {
+		case BCONTEXT_SCENE:
+			contexts[0] = "scene";
+			break;
+		case BCONTEXT_RENDER:
+			contexts[0] = "render";
+			break;
+		case BCONTEXT_VIEW_LAYER:
+			contexts[0] = "view_layer";
+			break;
+		case BCONTEXT_WORLD:
+			contexts[0] = "world";
+			break;
+		case BCONTEXT_WORKSPACE:
+			contexts[0] = "workspace";
+			break;
+		case BCONTEXT_OBJECT:
+			contexts[0] = "object";
+			break;
+		case BCONTEXT_DATA:
+			contexts[0] = "data";
+			break;
+		case BCONTEXT_MATERIAL:
+			contexts[0] = "material";
+			break;
+		case BCONTEXT_TEXTURE:
+			contexts[0] = "texture";
+			break;
+		case BCONTEXT_PARTICLE:
+			contexts[0] = "particle";
+			break;
+		case BCONTEXT_PHYSICS:
+			contexts[0] = "physics";
+			break;
+		case BCONTEXT_BONE:
+			contexts[0] = "bone";
+			break;
+		case BCONTEXT_MODIFIER:
+			contexts[0] = "modifier";
+			break;
+		case BCONTEXT_CONSTRAINT:
+			contexts[0] = "constraint";
+			break;
+		case BCONTEXT_BONE_CONSTRAINT:
+			contexts[0] = "bone_constraint";
+			break;
+	}
+
+	if (contexts[0]) {
+		ED_region_panels(C, ar, contexts, sbuts->mainb, vertical);
+	}
 
 	sbuts->re_align = 0;
 	sbuts->mainbo = sbuts->mainb;
