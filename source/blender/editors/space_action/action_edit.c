@@ -384,12 +384,22 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
 	if (only_sel && (found == false))
 		return OPERATOR_CANCELLED;
 
-	v2d->cur.xmin = min;
-	v2d->cur.xmax = max;
-
-	extra = 0.1f * BLI_rctf_size_x(&v2d->cur);
-	v2d->cur.xmin -= extra;
-	v2d->cur.xmax += extra;
+	if (fabsf(max - min) < 1.0f) {
+		/* Exception - center the single keyfrme */
+		float xwidth = BLI_rctf_size_x(&v2d->cur);
+		
+		v2d->cur.xmin = min - xwidth / 2.0f;
+		v2d->cur.xmax = max + xwidth / 2.0f;
+	}
+	else {
+		/* Normal case - stretch the two keyframes out to fill the space, with extra spacing */
+		v2d->cur.xmin = min;
+		v2d->cur.xmax = max;
+		
+		extra = 0.125f * BLI_rctf_size_x(&v2d->cur);
+		v2d->cur.xmin -= extra;
+		v2d->cur.xmax += extra;
+	}
 	
 	/* set vertical range */
 	if (only_sel == false) {
