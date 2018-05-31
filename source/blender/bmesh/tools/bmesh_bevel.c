@@ -150,6 +150,7 @@ typedef struct BoundVert {
 	Profile profile;    /* edge profile between this and next BoundVert */
 	bool any_seam;      /* are any of the edges attached here seams? */
 	bool visited;       /* used during delta adjust pass */
+	int add_seam;
 //	int _pad;
 } BoundVert;	
 
@@ -1522,6 +1523,38 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
 	co[2] = z;
 }
 
+#define BEV_SEAM(eh) (BM_elem_flag_test(eh->e, BM_ELEM_SEAM))
+
+static void set_bound_vert_extend_seam_sharp_edges(BevVert *bv)
+{
+	EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
+
+	while (!BEV_SEAM(e)) {
+		e = e->next;
+		if (e == efirst)
+			break;
+	}
+	if (!BEV_SEAM(e))
+		return;
+
+	efirst = e;
+	do {
+		int seam_length = 0;
+		EdgeHalf *ne = e->next;
+
+		while (!BEV_SEAM(ne) && ne != efirst) {
+			if(ne->is_bev)
+				seam_length++;
+			ne = ne->next;
+		}
+		if (ne == e || (ne == efirst && !BEV_SEAM(efirst))) {
+			break;
+		}
+		e->rightv->add_seam = seam_length ? seam_length : 0;
+		e = ne;
+	} while (e != efirst);
+}
+
 /* Set the any_seam property for a BevVert and all its BoundVerts */
 static void set_bound_vert_seams(BevVert *bv)
 {
@@ -1539,6 +1572,8 @@ static void set_bound_vert_seams(BevVert *bv)
 		}
 		bv->any_seam |= v->any_seam;
 	} while ((v = v->next) != bv->vmesh->boundstart);
+
+	set_bound_vert_extend_seam_sharp_edges(bv);
 }
 
 static int count_bound_vert_seams(BevVert *bv)
