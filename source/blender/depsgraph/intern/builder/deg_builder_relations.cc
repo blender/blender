@@ -546,21 +546,18 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	if (object->gpd != NULL) {
 		build_gpencil(object->gpd);
 	}
-	/* Object that this is a proxy for. */
-	if (object->proxy != NULL) {
-		object->proxy->proxy_from = object;
-		build_object(NULL, object->proxy);
-		/* TODO(sergey): This is an inverted relation, matches old depsgraph
-		 * behavior and need to be investigated if it still need to be inverted.
-		 */
-		ComponentKey ob_pose_key(&object->id, DEG_NODE_TYPE_EVAL_POSE);
-		ComponentKey proxy_pose_key(&object->proxy->id, DEG_NODE_TYPE_EVAL_POSE);
+	/* Proxy object to copy from. */
+	if (object->proxy_from != NULL) {
+		build_object(NULL, object->proxy_from);
+		ComponentKey ob_pose_key(&object->proxy_from->id, DEG_NODE_TYPE_EVAL_POSE);
+		ComponentKey proxy_pose_key(&object->id, DEG_NODE_TYPE_EVAL_POSE);
 		add_relation(ob_pose_key, proxy_pose_key, "Proxy Pose");
 
-		ComponentKey ob_transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
-		ComponentKey proxy_transform_key(&object->proxy->id, DEG_NODE_TYPE_TRANSFORM);
+		ComponentKey ob_transform_key(&object->proxy_from->id, DEG_NODE_TYPE_TRANSFORM);
+		ComponentKey proxy_transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(ob_transform_key, proxy_transform_key, "Proxy Transform");
 	}
+
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
 		build_collection(object, object->dup_group);

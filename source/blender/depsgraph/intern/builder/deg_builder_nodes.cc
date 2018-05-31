@@ -502,10 +502,9 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	if (object->gpd != NULL) {
 		build_gpencil(object->gpd);
 	}
-	/* Object that this is a proxy for. */
-	if (object->proxy) {
-		object->proxy->proxy_from = object;
-		build_object(-1, object->proxy, DEG_ID_LINKED_INDIRECTLY);
+	/* Proxy object to copy from. */
+	if (object->proxy_from) {
+		build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY);
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
