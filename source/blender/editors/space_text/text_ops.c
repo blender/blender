@@ -234,7 +234,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 
-	text = BKE_text_load_ex(bmain, str, G.main->name, internal);
+	text = BKE_text_load_ex(bmain, str, bmain->name, internal);
 
 	if (!text) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -272,8 +272,9 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 static int text_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	Main *bmain = CTX_data_main(C);
 	Text *text = CTX_data_edit_text(C);
-	const char *path = (text && text->name) ? text->name : G.main->name;
+	const char *path = (text && text->name) ? text->name : bmain->name;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_open_exec(C, op);
@@ -456,7 +457,7 @@ static int text_save_poll(bContext *C)
 	return (text->name != NULL && !(text->flags & TXT_ISMEM));
 }
 
-static void txt_write_file(Text *text, ReportList *reports) 
+static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
 {
 	FILE *fp;
 	TextLine *tmp;
@@ -464,7 +465,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 	char filepath[FILE_MAX];
 	
 	BLI_strncpy(filepath, text->name, FILE_MAX);
-	BLI_path_abs(filepath, G.main->name);
+	BLI_path_abs(filepath, bmain->name);
 	
 	fp = BLI_fopen(filepath, "w");
 	if (fp == NULL) {
@@ -499,9 +500,10 @@ static void txt_write_file(Text *text, ReportList *reports)
 
 static int text_save_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Text *text = CTX_data_edit_text(C);
 
-	txt_write_file(text, op->reports);
+	txt_write_file(bmain, text, op->reports);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
@@ -525,6 +527,7 @@ void TEXT_OT_save(wmOperatorType *ot)
 
 static int text_save_as_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Text *text = CTX_data_edit_text(C);
 	char str[FILE_MAX];
 
@@ -537,7 +540,7 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 	text->name = BLI_strdup(str);
 	text->flags &= ~TXT_ISMEM;
 
-	txt_write_file(text, op->reports);
+	txt_write_file(bmain, text, op->reports);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
@@ -547,6 +550,7 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 
 static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	Main *bmain = CTX_data_main(C);
 	Text *text = CTX_data_edit_text(C);
 	const char *str;
 
@@ -558,7 +562,7 @@ static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	else if (text->flags & TXT_ISMEM)
 		str = text->id.name + 2;
 	else
-		str = G.main->name;
+		str = bmain->name;
 	
 	RNA_string_set(op->ptr, "filepath", str);
 	WM_event_add_fileselect(C, op); 
