@@ -28,6 +28,7 @@
 
 struct CurveCache;
 struct GPUMaterial;
+struct GPUTexture;
 struct Gwn_Batch;
 struct Gwn_IndexBuf;
 struct Gwn_VertBuf;
@@ -121,6 +122,9 @@ struct Gwn_Batch *DRW_mesh_batch_cache_get_overlay_facedots(struct Mesh *me);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_facedots_with_select_id(struct Mesh *me, uint select_id_offset);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_edges_with_select_id(struct Mesh *me, uint select_id_offset);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_verts_with_select_id(struct Mesh *me, uint select_id_offset);
+/* Object mode Wireframe overlays */
+void DRW_mesh_batch_cache_get_wireframes_face_texbuf(
+        struct Mesh *me, struct GPUTexture **verts_data, struct GPUTexture **face_indices, int *tri_count);
 
 void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 
