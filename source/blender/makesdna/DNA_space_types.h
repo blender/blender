@@ -131,12 +131,14 @@ typedef struct SpaceButs {
 
 	View2D v2d DNA_DEPRECATED;                      /* deprecated, copied to region */
 
+	/* For different kinds of property editors (exposed in the space type selector). */
+	short space_subtype;
+
 	short mainb, mainbo, mainbuser; /* context tabs */
 	short re_align, align;          /* align for panels */
 	short preview;                  /* preview is signal to refresh */
 	char flag;
 	char collection_context;
-	char pad[2];
 
 	void *path;                     /* runtime */
 	int pathflag, dataicon;         /* runtime */
@@ -214,6 +216,12 @@ typedef enum eSpaceButtons_Align {
 	BUT_VERTICAL = 2,
 	BUT_AUTO = 3,
 } eSpaceButtons_Align;
+
+/* SpaceButs.flag */
+typedef enum eSpaceButtons_SubType {
+	SB_SUBTYPE_DATA = 0,
+	SB_SUBTYPE_TOOL = 1,
+} eSpaceButtons_SubType;
 
 /** \} */
 

@@ -31,7 +31,9 @@ class PROPERTIES_HT_header(Header):
 
         row = layout.row()
         row.template_header()
-        row.prop(view, "context", expand=True, icon_only=True)
+
+        if view.mode == 'DATA_PROPERTIES':
+            row.prop(view, "context", expand=True, icon_only=True)
 
 
 classes = (

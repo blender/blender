@@ -36,8 +36,8 @@ from .properties_paint_common import (
 
 
 class View3DPanel:
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
 
 
 # **************** standard tool clusters ******************
@@ -69,7 +69,7 @@ def draw_vpaint_symmetry(layout, vpaint):
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
-    bl_category = ""
+    bl_category = "Options"
     bl_context = ".mesh_edit" # dot on purpose (access from topbar)
     bl_label = "Mesh Options"
 
@@ -188,8 +188,8 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
 
 
 class View3DPaintPanel(UnifiedPaintPanel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
 
 
 class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):

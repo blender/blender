@@ -1371,7 +1371,8 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		int tool = PAINT_TOOL_DRAW, mode = 0;
 		ScrArea *sa = CTX_wm_area(C);
 		char space_type = sa->spacetype;
-		if (space_type == SPACE_TOPBAR) {
+		/* When in an unsupported space. */
+		if (!ELEM(space_type, SPACE_VIEW3D, SPACE_IMAGE)) {
 			space_type = workspace->tools_space_type;
 		}
 

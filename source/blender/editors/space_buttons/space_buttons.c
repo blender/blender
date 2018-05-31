@@ -47,6 +47,10 @@
 #include "WM_message.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "UI_resources.h"
 
 #include "buttons_intern.h"  /* own include */
 
@@ -138,10 +142,9 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void buttons_main_region_draw(const bContext *C, ARegion *ar)
+static void buttons_main_region_draw_properties(const bContext *C, SpaceButs *sbuts, ARegion *ar)
 {
-	/* draw entirely, view changes should be handled here */
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	BLI_assert(sbuts->space_subtype == SB_SUBTYPE_DATA);
 	const bool vertical = (sbuts->align == BUT_VERTICAL);
 
 	buttons_context_compute(C, sbuts);
@@ -199,6 +202,81 @@ static void buttons_main_region_draw(const bContext *C, ARegion *ar)
 	if (contexts[0]) {
 		ED_region_panels(C, ar, contexts, sbuts->mainb, vertical);
 	}
+}
+
+static void buttons_main_region_draw_tool(const bContext *C, SpaceButs *sbuts, ARegion *ar)
+{
+	BLI_assert(sbuts->space_subtype == SB_SUBTYPE_TOOL);
+	const bool vertical = (sbuts->align == BUT_VERTICAL);
+
+	const WorkSpace *workspace = CTX_wm_workspace(C);
+	if (workspace->tools_space_type == SPACE_VIEW3D) {
+		const int mode = CTX_data_mode_enum(C);
+		const char *contexts[3] = {NULL};
+		switch (mode) {
+			case CTX_MODE_EDIT_MESH:
+				ARRAY_SET_ITEMS(contexts, ".mesh_edit");
+				break;
+			case CTX_MODE_EDIT_CURVE:
+				ARRAY_SET_ITEMS(contexts, ".curve_edit");
+				break;
+			case CTX_MODE_EDIT_SURFACE:
+				ARRAY_SET_ITEMS(contexts, ".curve_edit");
+				break;
+			case CTX_MODE_EDIT_TEXT:
+				ARRAY_SET_ITEMS(contexts, ".todo");
+				break;
+			case CTX_MODE_EDIT_ARMATURE:
+				ARRAY_SET_ITEMS(contexts, ".armature_edit");
+				break;
+			case CTX_MODE_EDIT_METABALL:
+				ARRAY_SET_ITEMS(contexts, ".todo");
+				break;
+			case CTX_MODE_EDIT_LATTICE:
+				ARRAY_SET_ITEMS(contexts, ".todo");
+				break;
+			case CTX_MODE_POSE:
+				ARRAY_SET_ITEMS(contexts, ".posemode");
+				break;
+			case CTX_MODE_SCULPT:
+				ARRAY_SET_ITEMS(contexts, ".paint_common", ".sculpt_mode");
+				break;
+			case CTX_MODE_PAINT_WEIGHT:
+				ARRAY_SET_ITEMS(contexts, ".paint_common", ".weightpaint");
+				break;
+			case CTX_MODE_PAINT_VERTEX:
+				ARRAY_SET_ITEMS(contexts, ".paint_common", ".vertexpaint");
+				break;
+			case CTX_MODE_PAINT_TEXTURE:
+				ARRAY_SET_ITEMS(contexts, ".paint_common", ".imagepaint");
+				break;
+			case CTX_MODE_PARTICLE:
+				ARRAY_SET_ITEMS(contexts, ".particlemode");
+				break;
+			case CTX_MODE_OBJECT:
+				ARRAY_SET_ITEMS(contexts, ".todo");
+				break;
+		}
+		if (contexts[0]) {
+			ED_region_panels(C, ar, contexts, -1, vertical);
+		}
+	}
+	else if (workspace->tools_space_type == SPACE_IMAGE) {
+		/* TODO */
+	}
+}
+
+static void buttons_main_region_draw(const bContext *C, ARegion *ar)
+{
+	/* draw entirely, view changes should be handled here */
+	SpaceButs *sbuts = CTX_wm_space_buts(C);
+
+	if (sbuts->space_subtype == SB_SUBTYPE_DATA) {
+		buttons_main_region_draw_properties(C, sbuts, ar);
+	}
+	else if (sbuts->space_subtype == SB_SUBTYPE_TOOL) {
+		buttons_main_region_draw_tool(C, sbuts, ar);
+	}
 
 	sbuts->re_align = 0;
 	sbuts->mainbo = sbuts->mainb;
@@ -242,8 +320,10 @@ static void buttons_header_region_draw(const bContext *C, ARegion *ar)
 {
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
 
-	/* Needed for RNA to get the good values! */
-	buttons_context_compute(C, sbuts);
+	if (sbuts->space_subtype == SB_SUBTYPE_DATA) {
+		/* Needed for RNA to get the good values! */
+		buttons_context_compute(C, sbuts);
+	}
 
 	ED_region_header(C, ar);
 }
@@ -510,6 +590,24 @@ static void buttons_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, 
 	}
 }
 
+static int buttons_space_subtype_get(ScrArea *sa)
+{
+	SpaceButs *sbuts = sa->spacedata.first;
+	return sbuts->space_subtype;
+}
+
+static void buttons_space_subtype_set(ScrArea *sa, int value)
+{
+	SpaceButs *sbuts = sa->spacedata.first;
+	sbuts->space_subtype = value;
+}
+
+static void buttons_space_subtype_item_extend(
+        bContext *UNUSED(C), EnumPropertyItem **item, int *totitem)
+{
+	RNA_enum_items_add(item, totitem, rna_enum_space_button_mode_items);
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_buttons(void)
 {
@@ -528,6 +626,9 @@ void ED_spacetype_buttons(void)
 	st->listener = buttons_area_listener;
 	st->context = buttons_context;
 	st->id_remap = buttons_id_remap;
+	st->space_subtype_item_extend = buttons_space_subtype_item_extend;
+	st->space_subtype_get = buttons_space_subtype_get;
+	st->space_subtype_set = buttons_space_subtype_set;
 
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype buttons region");

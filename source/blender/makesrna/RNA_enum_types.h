@@ -57,6 +57,7 @@ extern const EnumPropertyItem rna_enum_mesh_select_mode_items[];
 extern const EnumPropertyItem rna_enum_mesh_delimit_mode_items[];
 extern const EnumPropertyItem rna_enum_space_type_items[];
 extern const EnumPropertyItem rna_enum_space_image_mode_items[];
+extern const EnumPropertyItem rna_enum_space_button_mode_items[];
 extern const EnumPropertyItem rna_enum_region_type_items[];
 extern const EnumPropertyItem rna_enum_object_modifier_type_items[];
 extern const EnumPropertyItem rna_enum_constraint_type_items[];

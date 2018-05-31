@@ -125,13 +125,13 @@ class TOPBAR_HT_lower_bar(Header):
 
         # Note: general mode options should be added to 'draw_right'.
         if mode == 'SCULPT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'PAINT_VERTEX':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'PAINT_TEXTURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'EDIT_ARMATURE':
             pass
         elif mode == 'EDIT_CURVE':
@@ -139,9 +139,9 @@ class TOPBAR_HT_lower_bar(Header):
         elif mode == 'EDIT_MESH':
             pass
         elif mode == 'POSE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".posemode", category="")
+            pass
         elif mode == 'PARTICLE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
+            pass
 
     def draw_right(self, context):
         layout = self.layout
@@ -151,23 +151,23 @@ class TOPBAR_HT_lower_bar(Header):
         mode = context.mode
 
         if mode == 'SCULPT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".sculpt_mode", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".sculpt_mode", category="")
         elif mode == 'PAINT_VERTEX':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".vertexpaint", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".vertexpaint", category="")
         elif mode == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".weightpaint", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".weightpaint", category="")
         elif mode == 'PAINT_TEXTURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".imagepaint", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint", category="")
         elif mode == 'EDIT_ARMATURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".armature_edit", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".armature_edit", category="")
         elif mode == 'EDIT_CURVE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".curve_edit", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".curve_edit", category="")
         elif mode == 'EDIT_MESH':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".mesh_edit", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mesh_edit", category="")
         elif mode == 'POSE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".posemode", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".posemode", category="")
         elif mode == 'PARTICLE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".particlemode", category="")
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
 
         # 3D View Options, tsk. maybe users aren't always using 3D view?
         toolsettings = context.tool_settings
