@@ -52,21 +52,25 @@ void packAll(struct Main *bmain, struct ReportList *reports, bool verbose);
 void packLibraries(struct Main *bmain, struct ReportList *reports);
 
 /* unpack */
-char *unpackFile(struct ReportList *reports, const char *abs_name, const char *local_name, struct PackedFile *pf, int how);
-int unpackVFont(struct ReportList *reports, struct VFont *vfont, int how);
+char *unpackFile(
+        struct ReportList *reports, const char *ref_file_name,
+        const char *abs_name, const char *local_name, struct PackedFile *pf, int how);
+int unpackVFont(struct Main *bmain, struct ReportList *reports, struct VFont *vfont, int how);
 int unpackSound(struct Main *bmain, struct ReportList *reports, struct bSound *sound, int how);
-int unpackImage(struct ReportList *reports, struct Image *ima, int how);
+int unpackImage(struct Main *bmain, struct ReportList *reports, struct Image *ima, int how);
 void unpackAll(struct Main *bmain, struct ReportList *reports, int how);
 int unpackLibraries(struct Main *bmain, struct ReportList *reports);
 
-int writePackedFile(struct ReportList *reports, const char *filename, struct PackedFile *pf, int guimode);
+int writePackedFile(
+        struct ReportList *reports, const char *ref_file_name,
+        const char *filename, struct PackedFile *pf, const bool guimode);
 
 /* free */
 void freePackedFile(struct PackedFile *pf);
 
 /* info */
 int countPackedFiles(struct Main *bmain);
-int checkPackedFile(const char *filename, struct PackedFile *pf);
+int checkPackedFile(const char *ref_file_name, const char *filename, struct PackedFile *pf);
 
 /* read */
 int seekPackedFile(struct PackedFile *pf, int offset, int whence);

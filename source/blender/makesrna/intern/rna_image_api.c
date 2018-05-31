@@ -64,9 +64,9 @@
 
 #include "MEM_guardedalloc.h"
 
-static void rna_ImagePackedFile_save(ImagePackedFile *imapf, ReportList *reports)
+static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, ReportList *reports)
 {
-	if (writePackedFile(reports, imapf->filepath, imapf->packedfile, 0) != RET_OK) {
+	if (writePackedFile(reports, bmain->name, imapf->filepath, imapf->packedfile, 0) != RET_OK) {
 		BKE_reportf(reports, RPT_ERROR, "Could not save packed file to disk as '%s'",
 		            imapf->filepath);
 	}
@@ -177,7 +177,7 @@ static void rna_Image_pack(
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
-static void rna_Image_unpack(Image *image, ReportList *reports, int method)
+static void rna_Image_unpack(Image *image, Main *bmain, ReportList *reports, int method)
 {
 	if (!BKE_image_has_packedfile(image)) {
 		BKE_report(reports, RPT_ERROR, "Image not packed");
@@ -188,7 +188,7 @@ static void rna_Image_unpack(Image *image, ReportList *reports, int method)
 	}
 	else {
 		/* reports its own error on failure */
-		unpackImage(reports, image, method);
+		unpackImage(bmain, reports, image, method);
 	}
 }
 
@@ -302,7 +302,7 @@ void RNA_api_image_packed_file(StructRNA *srna)
 
 	func = RNA_def_function(srna, "save", "rna_ImagePackedFile_save");
 	RNA_def_function_ui_description(func, "Save the packed file to its filepath");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
 }
 
 void RNA_api_image(StructRNA *srna)
@@ -332,7 +332,7 @@ void RNA_api_image(StructRNA *srna)
 
 	func = RNA_def_function(srna, "unpack", "rna_Image_unpack");
 	RNA_def_function_ui_description(func, "Save an image packed in the .blend file to disk");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
 	RNA_def_enum(func, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "method", "How to unpack");
 
 	func = RNA_def_function(srna, "reload", "rna_Image_reload");

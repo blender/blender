@@ -291,7 +291,8 @@ static char *find_new_name(char *name)
 }
 #endif
 
-int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, int guimode)
+int writePackedFile(
+        ReportList *reports, const char *ref_file_name, const char *filename, PackedFile *pf, const bool guimode)
 {
 	int file, number;
 	int ret_value = RET_OK;
@@ -303,7 +304,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 	if (guimode) {} //XXX  waitcursor(1);
 	
 	BLI_strncpy(name, filename, sizeof(name));
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, ref_file_name);
 	
 	if (BLI_exists(name)) {
 		for (number = 1; number <= 999; number++) {
@@ -363,7 +364,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
  * - PF_DIFFERENT: the packed file and original file differ
  * - PF_NOFILE:    the original file doens't exist
  */
-int checkPackedFile(const char *filename, PackedFile *pf)
+int checkPackedFile(const char *ref_file_name, const char *filename, PackedFile *pf)
 {
 	BLI_stat_t st;
 	int ret_val, i, len, file;
@@ -371,7 +372,7 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 	char name[FILE_MAX];
 	
 	BLI_strncpy(name, filename, sizeof(name));
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, ref_file_name);
 	
 	if (BLI_stat(name, &st) == -1) {
 		ret_val = PF_NOFILE;
@@ -423,7 +424,9 @@ int checkPackedFile(const char *filename, PackedFile *pf)
  *
  * \warning 'abs_name' may be relative still! (use a "//" prefix) be sure to run #BLI_path_abs on it first.
  */
-char *unpackFile(ReportList *reports, const char *abs_name, const char *local_name, PackedFile *pf, int how)
+char *unpackFile(
+        ReportList *reports, const char *ref_file_name,
+        const char *abs_name, const char *local_name, PackedFile *pf, int how)
 {
 	char *newname = NULL;
 	const char *temp = NULL;
@@ -441,7 +444,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 				char temp_abs[FILE_MAX];
 
 				BLI_strncpy(temp_abs, local_name, sizeof(temp_abs));
-				BLI_path_abs(temp_abs, G.main->name);
+				BLI_path_abs(temp_abs, ref_file_name);
 
 				/* if file exists use it */
 				if (BLI_exists(temp_abs)) {
@@ -452,7 +455,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 				ATTR_FALLTHROUGH;
 			}
 			case PF_WRITE_LOCAL:
-				if (writePackedFile(reports, local_name, pf, 1) == RET_OK) {
+				if (writePackedFile(reports, ref_file_name, local_name, pf, 1) == RET_OK) {
 					temp = local_name;
 				}
 				break;
@@ -461,7 +464,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 				char temp_abs[FILE_MAX];
 
 				BLI_strncpy(temp_abs, abs_name, sizeof(temp_abs));
-				BLI_path_abs(temp_abs, G.main->name);
+				BLI_path_abs(temp_abs, ref_file_name);
 
 				/* if file exists use it */
 				if (BLI_exists(temp_abs)) {
@@ -473,7 +476,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 				ATTR_FALLTHROUGH;
 			}
 			case PF_WRITE_ORIGINAL:
-				if (writePackedFile(reports, abs_name, pf, 1) == RET_OK) {
+				if (writePackedFile(reports, ref_file_name, abs_name, pf, 1) == RET_OK) {
 					temp = abs_name;
 				}
 				break;
@@ -531,7 +534,7 @@ static void unpack_generate_paths(
 	}
 }
 
-int unpackVFont(ReportList *reports, VFont *vfont, int how)
+int unpackVFont(Main *bmain, ReportList *reports, VFont *vfont, int how)
 {
 	char localname[FILE_MAX], absname[FILE_MAX];
 	char *newname;
@@ -539,7 +542,7 @@ int unpackVFont(ReportList *reports, VFont *vfont, int how)
 	
 	if (vfont != NULL) {
 		unpack_generate_paths(vfont->name, (ID *)vfont, absname, localname, sizeof(absname), sizeof(localname));
-		newname = unpackFile(reports, absname, localname, vfont->packedfile, how);
+		newname = unpackFile(reports, bmain->name, absname, localname, vfont->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(vfont->packedfile);
@@ -560,7 +563,7 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 
 	if (sound != NULL) {
 		unpack_generate_paths(sound->name, (ID *)sound, absname, localname, sizeof(absname), sizeof(localname));
-		newname = unpackFile(reports, absname, localname, sound->packedfile, how);
+		newname = unpackFile(reports, bmain->name, absname, localname, sound->packedfile, how);
 		if (newname != NULL) {
 			BLI_strncpy(sound->name, newname, sizeof(sound->name));
 			MEM_freeN(newname);
@@ -577,7 +580,7 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 	return(ret_value);
 }
 
-int unpackImage(ReportList *reports, Image *ima, int how)
+int unpackImage(Main *bmain, ReportList *reports, Image *ima, int how)
 {
 	int ret_value = RET_ERROR;
 
@@ -588,7 +591,7 @@ int unpackImage(ReportList *reports, Image *ima, int how)
 			ImagePackedFile *imapf = ima->packedfiles.last;
 
 			unpack_generate_paths(imapf->filepath, (ID *)ima, absname, localname, sizeof(absname), sizeof(localname));
-			newname = unpackFile(reports, absname, localname, imapf->packedfile, how);
+			newname = unpackFile(reports, bmain->name, absname, localname, imapf->packedfile, how);
 
 			if (newname != NULL) {
 				ImageView *iv;
@@ -634,7 +637,7 @@ int unpackLibraries(Main *bmain, ReportList *reports)
 	for (lib = bmain->library.first; lib; lib = lib->id.next) {
 		if (lib->packedfile && lib->name[0]) {
 			
-			newname = unpackFile(reports, lib->filepath, lib->filepath, lib->packedfile, PF_WRITE_ORIGINAL);
+			newname = unpackFile(reports, bmain->name, lib->filepath, lib->filepath, lib->packedfile, PF_WRITE_ORIGINAL);
 			if (newname != NULL) {
 				ret_value = RET_OK;
 				
@@ -678,11 +681,11 @@ void unpackAll(Main *bmain, ReportList *reports, int how)
 
 	for (ima = bmain->image.first; ima; ima = ima->id.next)
 		if (BKE_image_has_packedfile(ima))
-			unpackImage(reports, ima, how);
+			unpackImage(bmain, reports, ima, how);
 
 	for (vf = bmain->vfont.first; vf; vf = vf->id.next)
 		if (vf->packedfile)
-			unpackVFont(reports, vf, how);
+			unpackVFont(bmain, reports, vf, how);
 
 	for (sound = bmain->sound.first; sound; sound = sound->id.next)
 		if (sound->packedfile)
@@ -727,7 +730,7 @@ void BKE_unpack_id(Main *bmain, ID *id, ReportList *reports, int how)
 		{
 			Image *ima = (Image *)id;
 			if (BKE_image_has_packedfile(ima)) {
-				unpackImage(reports, ima, how);
+				unpackImage(bmain, reports, ima, how);
 			}
 			break;
 		}
@@ -735,7 +738,7 @@ void BKE_unpack_id(Main *bmain, ID *id, ReportList *reports, int how)
 		{
 			VFont *vf = (VFont *)id;
 			if (vf->packedfile) {
-				unpackVFont(reports, vf, how);
+				unpackVFont(bmain, reports, vf, how);
 			}
 			break;
 		}
