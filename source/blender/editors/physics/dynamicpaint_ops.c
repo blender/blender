@@ -384,7 +384,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
 		ED_update_for_newframe(job->bmain, scene, 1);
-		if (!dynamicPaint_calculateFrame(surface, scene, cObject, frame)) {
+		if (!dynamicPaint_calculateFrame(job->bmain->eval_ctx, surface, scene, cObject, frame)) {
 			job->success = 0;
 			return;
 		}

@@ -237,7 +237,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *UNUSED(scene), Pointer
 	
 	BKE_pose_update_constraint_flags(pose);
 	
-	object_test_constraints(ob);
+	object_test_constraints(bmain, ob);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 }
@@ -535,7 +535,8 @@ static bConstraint *rna_PoseChannel_constraints_new(ID *id, bPoseChannel *pchan,
 	return new_con;
 }
 
-static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, PointerRNA *con_ptr)
+static void rna_PoseChannel_constraints_remove(
+        ID *id, bPoseChannel *pchan, Main *bmain, ReportList *reports, PointerRNA *con_ptr)
 {
 	bConstraint *con = con_ptr->data;
 	const bool is_ik = ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
@@ -549,7 +550,7 @@ static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, Repo
 	BKE_constraint_remove(&pchan->constraints, con);
 	RNA_POINTER_INVALIDATE(con_ptr);
 
-	ED_object_constraint_update(ob);
+	ED_object_constraint_update(bmain, ob);
 
 	BKE_constraints_active_set(&pchan->constraints, NULL);  /* XXX, is this really needed? - Campbell */
 
@@ -777,7 +778,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 
 	func = RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
 	RNA_def_function_ui_description(func, "Remove a constraint from this object");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID); /* ID needed for refresh */
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS ); /* ID needed for refresh */
 	/* constraint to remove */
 	parm = RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);

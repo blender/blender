@@ -641,7 +641,7 @@ static bool camera_frame_fit_calc_from_data(
 /* don't move the camera, just yield the fit location */
 /* r_scale only valid/useful for ortho cameras */
 bool BKE_camera_view_frame_fit_to_scene(
-        Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3], float *r_scale)
+        Main *bmain, Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3], float *r_scale)
 {
 	CameraParams params;
 	CameraViewFrameData data_cb;
@@ -652,7 +652,7 @@ bool BKE_camera_view_frame_fit_to_scene(
 	camera_frame_fit_data_init(scene, camera_ob, &params, &data_cb);
 
 	/* run callback on all visible points */
-	BKE_scene_foreach_display_point(scene, v3d, BA_SELECT, camera_to_frame_view_cb, &data_cb);
+	BKE_scene_foreach_display_point(bmain, scene, v3d, BA_SELECT, camera_to_frame_view_cb, &data_cb);
 
 	return camera_frame_fit_calc_from_data(&params, &data_cb, r_co, r_scale);
 }

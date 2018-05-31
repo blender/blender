@@ -71,8 +71,10 @@
 #include "BKE_constraint.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -2104,7 +2106,7 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 	}
 }
 
-static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt)
+static void update_flowsfluids(EvaluationContext *eval_ctx, Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt)
 {
 	Object **flowobjs = NULL;
 	EmissionMap *emaps = NULL;
@@ -2211,7 +2213,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 					else { /* MOD_SMOKE_FLOW_SOURCE_MESH */
 						/* update flow object frame */
 						BLI_mutex_lock(&object_update_lock);
-						BKE_object_modifier_update_subframe(scene, collob, true, 5, BKE_scene_frame_get(scene), eModifierType_Smoke);
+						BKE_object_modifier_update_subframe(eval_ctx, scene, collob, true, 5, BKE_scene_frame_get(scene), eModifierType_Smoke);
 						BLI_mutex_unlock(&object_update_lock);
 
 						/* apply flow */
@@ -2558,7 +2560,8 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 	pdEndEffectors(&effectors);
 }
 
-static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *domain_dm, float fps)
+static void step(
+        EvaluationContext *eval_ctx, Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *domain_dm, float fps)
 {
 	SmokeDomainSettings *sds = smd->domain;
 	/* stability values copied from wturbulence.cpp */
@@ -2628,7 +2631,7 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *
 	for (substep = 0; substep < totalSubsteps; substep++)
 	{
 		// calc animated obstacle velocities
-		update_flowsfluids(scene, ob, sds, dtSubdiv);
+		update_flowsfluids(eval_ctx, scene, ob, sds, dtSubdiv);
 		update_obstacles(scene, ob, sds, dtSubdiv, substep, totalSubsteps);
 
 		if (sds->total_cells > 1) {
@@ -2725,7 +2728,7 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 	return result;
 }
 
-static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+static void smokeModifier_process(EvaluationContext *eval_ctx, SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	if ((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{
@@ -2846,7 +2849,7 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 
 			}
 
-			step(scene, ob, smd, dm, scene->r.frs_sec / scene->r.frs_sec_base);
+			step(eval_ctx, scene, ob, smd, dm, scene->r.frs_sec / scene->r.frs_sec_base);
 		}
 
 		// create shadows before writing cache so they get stored
@@ -2873,7 +2876,8 @@ struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Objec
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_lock(smd->domain->fluid_mutex, THREAD_LOCK_WRITE);
 
-	smokeModifier_process(smd, scene, ob, dm);
+	/* Ugly G.main, hopefully won't be needed anymore in 2.8 */
+	smokeModifier_process(G.main->eval_ctx , smd, scene, ob, dm);
 
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_unlock(smd->domain->fluid_mutex);

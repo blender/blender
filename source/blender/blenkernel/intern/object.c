@@ -529,13 +529,13 @@ bool BKE_object_is_in_wpaint_select_vert(const Object *ob)
 	return false;
 }
 
-bool BKE_object_exists_check(const Object *obtest)
+bool BKE_object_exists_check(Main *bmain, const Object *obtest)
 {
 	Object *ob;
 	
 	if (obtest == NULL) return false;
 	
-	ob = G.main->object.first;
+	ob = bmain->object.first;
 	while (ob) {
 		if (ob == obtest) return true;
 		ob = ob->id.next;
@@ -2421,7 +2421,9 @@ void BKE_object_empty_draw_type_set(Object *ob, const int value)
 	}
 }
 
-bool BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
+bool BKE_object_minmax_dupli(
+        Main *bmain, Scene *scene,
+        Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
 {
 	bool ok = false;
 	if ((ob->transflag & OB_DUPLI) == 0) {
@@ -2430,7 +2432,7 @@ bool BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_m
 	else {
 		ListBase *lb;
 		DupliObject *dob;
-		lb = object_duplilist(G.main->eval_ctx, scene, ob);
+		lb = object_duplilist(bmain->eval_ctx, scene, ob);
 		for (dob = lb->first; dob; dob = dob->next) {
 			if ((use_hidden == false) && (dob->no_draw != 0)) {
 				/* pass */
@@ -2490,7 +2492,7 @@ void BKE_object_foreach_display_point(
 }
 
 void BKE_scene_foreach_display_point(
-        Scene *scene, View3D *v3d, const short flag,
+        Main *bmain, Scene *scene, View3D *v3d, const short flag,
         void (*func_cb)(const float[3], void *), void *user_data)
 {
 	Base *base;
@@ -2507,7 +2509,7 @@ void BKE_scene_foreach_display_point(
 				ListBase *lb;
 				DupliObject *dob;
 
-				lb = object_duplilist(G.main->eval_ctx, scene, ob);
+				lb = object_duplilist(bmain->eval_ctx, scene, ob);
 				for (dob = lb->first; dob; dob = dob->next) {
 					if (dob->no_draw == 0) {
 						BKE_object_foreach_display_point(dob->ob, dob->mat, func_cb, user_data);
@@ -3603,7 +3605,7 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 /* Note: this function should eventually be replaced by depsgraph functionality.
  * Avoid calling this in new code unless there is a very good reason for it!
  */
-bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_mesh,
+bool BKE_object_modifier_update_subframe(EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update_mesh,
                                          int parent_recursion, float frame,
                                          int type)
 {
@@ -3628,8 +3630,8 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 	if (parent_recursion) {
 		int recursion = parent_recursion - 1;
 		bool no_update = false;
-		if (ob->parent) no_update |= BKE_object_modifier_update_subframe(scene, ob->parent, 0, recursion, frame, type);
-		if (ob->track) no_update |= BKE_object_modifier_update_subframe(scene, ob->track, 0, recursion, frame, type);
+		if (ob->parent) no_update |= BKE_object_modifier_update_subframe(eval_ctx, scene, ob->parent, 0, recursion, frame, type);
+		if (ob->track) no_update |= BKE_object_modifier_update_subframe(eval_ctx, scene, ob->track, 0, recursion, frame, type);
 
 		/* skip subframe if object is parented
 		 *  to vertex of a dynamic paint canvas */
@@ -3646,7 +3648,7 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 				cti->get_constraint_targets(con, &targets);
 				for (ct = targets.first; ct; ct = ct->next) {
 					if (ct->tar)
-						BKE_object_modifier_update_subframe(scene, ct->tar, 0, recursion, frame, type);
+						BKE_object_modifier_update_subframe(eval_ctx, scene, ct->tar, 0, recursion, frame, type);
 				}
 				/* free temp targets */
 				if (cti->flush_constraint_targets)
@@ -3662,7 +3664,7 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 		/* ignore cache clear during subframe updates
 		 *  to not mess up cache validity */
 		object_cacheIgnoreClear(ob, 1);
-		BKE_object_handle_update(G.main->eval_ctx, scene, ob);
+		BKE_object_handle_update(eval_ctx, scene, ob);
 		object_cacheIgnoreClear(ob, 0);
 	}
 	else
