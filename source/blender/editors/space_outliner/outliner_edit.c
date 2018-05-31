@@ -1992,9 +1992,9 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 
 	partype = RNA_enum_get(op->ptr, "type");
 	RNA_string_get(op->ptr, "parent", parname);
-	par = (Object *)BKE_libblock_find_name(ID_OB, parname);
+	par = (Object *)BKE_libblock_find_name(bmain, ID_OB, parname);
 	RNA_string_get(op->ptr, "child", childname);
-	ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
+	ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, childname);
 
 	if (ID_IS_LINKED(ob)) {
 		BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
@@ -2033,9 +2033,9 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		RNA_string_set(op->ptr, "parent", te->name);
 		/* Identify parent and child */
 		RNA_string_get(op->ptr, "child", childname);
-		ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
+		ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, childname);
 		RNA_string_get(op->ptr, "parent", parname);
-		par = (Object *)BKE_libblock_find_name(ID_OB, parname);
+		par = (Object *)BKE_libblock_find_name(bmain, ID_OB, parname);
 		
 		if (ELEM(NULL, ob, par)) {
 			if (par == NULL) printf("par==NULL\n");
@@ -2183,7 +2183,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	char obname[MAX_ID_NAME];
 
 	RNA_string_get(op->ptr, "dragged_obj", obname);
-	ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
+	ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, obname);
 
 	/* search forwards to find the object */
 	outliner_find_id(soops, &soops->tree, (ID *)ob);
@@ -2236,10 +2236,10 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		Base *base;
 
 		RNA_string_set(op->ptr, "scene", te->name);
-		scene = (Scene *)BKE_libblock_find_name(ID_SCE, te->name);
+		scene = (Scene *)BKE_libblock_find_name(bmain, ID_SCE, te->name);
 
 		RNA_string_get(op->ptr, "object", obname);
-		ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
+		ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, obname);
 
 		if (ELEM(NULL, ob, scene) || ID_IS_LINKED(scene)) {
 			return OPERATOR_CANCELLED;
@@ -2305,10 +2305,10 @@ static int material_drop_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 	if (te) {
 		RNA_string_set(op->ptr, "object", te->name);
-		ob = (Object *)BKE_libblock_find_name(ID_OB, te->name);
+		ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, te->name);
 
 		RNA_string_get(op->ptr, "material", mat_name);
-		ma = (Material *)BKE_libblock_find_name(ID_MA, mat_name);
+		ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, mat_name);
 
 		if (ELEM(NULL, ob, ma)) {
 			return OPERATOR_CANCELLED;
@@ -2363,10 +2363,10 @@ static int group_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	te = outliner_dropzone_find(soops, fmval, true);
 
 	if (te) {
-		group = (Group *)BKE_libblock_find_name(ID_GR, te->name);
+		group = (Group *)BKE_libblock_find_name(bmain, ID_GR, te->name);
 
 		RNA_string_get(op->ptr, "object", ob_name);
-		ob = (Object *)BKE_libblock_find_name(ID_OB, ob_name);
+		ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, ob_name);
 
 		if (ELEM(NULL, group, ob)) {
 			return OPERATOR_CANCELLED;

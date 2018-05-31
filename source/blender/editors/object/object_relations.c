@@ -2485,12 +2485,13 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Main *bmain = CTX_data_main(C);
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 	Material *ma;
 	char name[MAX_ID_NAME - 2];
 
 	RNA_string_get(op->ptr, "name", name);
-	ma = (Material *)BKE_libblock_find_name(ID_MA, name);
+	ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, name);
 	if (base == NULL || ma == NULL)
 		return OPERATOR_CANCELLED;
 

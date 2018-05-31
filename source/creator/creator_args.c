@@ -1732,8 +1732,9 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
 
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
+		Main *bmain = CTX_data_main(C);
 		/* Make the path absolute because its needed for relative linked blends to be found */
-		struct Text *text = (struct Text *)BKE_libblock_find_name(ID_TXT, argv[1]);
+		struct Text *text = (struct Text *)BKE_libblock_find_name(bmain, ID_TXT, argv[1]);
 		bool ok;
 
 		if (text) {

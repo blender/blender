@@ -410,6 +410,7 @@ static int node_add_mask_poll(bContext *C)
 
 static int node_add_mask_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	ID *mask = NULL;
@@ -417,7 +418,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
 	/* check input variables */
 	char name[MAX_ID_NAME - 2];
 	RNA_string_get(op->ptr, "name", name);
-	mask = BKE_libblock_find_name(ID_MSK, name);
+	mask = BKE_libblock_find_name(bmain, ID_MSK, name);
 	if (!mask) {
 		BKE_reportf(op->reports, RPT_ERROR, "Mask '%s' not found", name);
 		return OPERATOR_CANCELLED;

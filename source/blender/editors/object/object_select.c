@@ -1076,6 +1076,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 
 static int object_select_same_group_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Group *group;
 	char group_name[MAX_ID_NAME];
 
@@ -1084,7 +1085,7 @@ static int object_select_same_group_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "group", group_name);
 
-	group = (Group *)BKE_libblock_find_name(ID_GR, group_name);
+	group = (Group *)BKE_libblock_find_name(bmain, ID_GR, group_name);
 
 	if (!group) {
 		return OPERATOR_PASS_THROUGH;
@@ -1123,6 +1124,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 /**************************** Select Mirror ****************************/
 static int object_select_mirror_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	bool extend;
 	
@@ -1135,7 +1137,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 		BLI_string_flip_side_name(name_flip, primbase->object->id.name + 2, true, sizeof(name_flip));
 		
 		if (!STREQ(name_flip, primbase->object->id.name + 2)) {
-			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, name_flip);
+			Object *ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name_flip);
 			if (ob) {
 				Base *secbase = BKE_scene_base_find(scene, ob);
 

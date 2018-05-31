@@ -4200,6 +4200,7 @@ static void sculpt_update_cache_invariants(
         wmOperator *op, const float mouse[2])
 {
 	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 	Brush *brush = BKE_paint_brush(&sd->paint);
@@ -4271,7 +4272,7 @@ static void sculpt_update_cache_invariants(
 			BLI_strncpy(cache->saved_active_brush_name, brush->id.name + 2,
 			            sizeof(cache->saved_active_brush_name));
 
-			br = (Brush *)BKE_libblock_find_name(ID_BR, "Smooth");
+			br = (Brush *)BKE_libblock_find_name(bmain, ID_BR, "Smooth");
 			if (br) {
 				BKE_paint_brush_set(p, br);
 				brush = br;
@@ -5006,6 +5007,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 
 static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(stroke))
 {
+	Main *bmain  = CTX_data_main(C);
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
 	SculptSession *ss = ob->sculpt;
@@ -5027,7 +5029,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 			}
 			else {
 				BKE_brush_size_set(scene, brush, ss->cache->saved_smooth_size);
-				brush = (Brush *)BKE_libblock_find_name(ID_BR, ss->cache->saved_active_brush_name);
+				brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, ss->cache->saved_active_brush_name);
 				if (brush) {
 					BKE_paint_brush_set(&sd->paint, brush);
 				}

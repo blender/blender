@@ -88,8 +88,7 @@ void *BKE_libblock_copy_nolib(const struct ID *id, const bool do_action) ATTR_NO
 void  BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) ATTR_NONNULL();
 void  BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_NONNULL();
 
-struct ID *BKE_libblock_find_name_ex(struct Main *bmain, const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+struct ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* library_remap.c (keep here since they're general functions) */
 /**
@@ -133,7 +132,7 @@ void  BKE_libblock_free_data(struct ID *id, const bool do_id_user) ATTR_NONNULL(
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
 void id_lib_extern(struct ID *id);
-void BKE_library_filepath_set(struct Library *lib, const char *filepath);
+void BKE_library_filepath_set(struct Main *bmain, struct Library *lib, const char *filepath);
 void id_us_ensure_real(struct ID *id);
 void id_us_clear_real(struct ID *id);
 void id_us_plus_no_lib(struct ID *id);
