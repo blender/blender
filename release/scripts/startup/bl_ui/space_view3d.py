@@ -3593,6 +3593,7 @@ class VIEW3D_PT_overlay(Panel):
         col.prop(overlay, "show_all_objects_origin")
         col.prop(overlay, "show_relationship_lines")
         col.prop(overlay, "show_face_orientation")
+        col.prop(overlay, "show_wireframes")
         col.prop(overlay, "show_backface_culling")
 
         col = layout.column()

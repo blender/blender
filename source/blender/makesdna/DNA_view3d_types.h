@@ -357,6 +357,7 @@ enum {
 	V3D_OVERLAY_HIDE_CURSOR       = (1 << 1),
 	V3D_OVERLAY_BONE_SELECTION    = (1 << 2),
 	V3D_OVERLAY_LOOK_DEV          = (1 << 3),
+	V3D_OVERLAY_WIREFRAMES       = (1 << 4),
 };
 
 /* View3DOverlay->edit_flag */
