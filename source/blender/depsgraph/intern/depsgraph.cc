@@ -99,6 +99,7 @@ Depsgraph::Depsgraph(Scene *scene,
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
 	entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
 	debug_flags = G.debug;
+	memset(id_type_updated, 0, sizeof(id_type_updated));
 }
 
 Depsgraph::~Depsgraph()
