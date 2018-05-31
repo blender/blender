@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_fluidsim.h"
+#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -637,13 +638,13 @@ static int fluid_validate_scene(ReportList *reports, ViewLayer *view_layer, Obje
 #define FLUID_SUFFIX_SURFACE	"fluidsurface"
 
 static bool fluid_init_filepaths(
-        ReportList *reports, FluidsimSettings *domainSettings, Object *fsDomain,
+        Main *bmain, ReportList *reports, FluidsimSettings *domainSettings, Object *fsDomain,
         char *targetDir, char *targetFile)
 {
 	const char *suffixConfigTmp = FLUID_SUFFIX_CONFIG_TMP;
 
 	/* prepare names... */
-	const char *relbase = modifier_path_relbase(fsDomain);
+	const char *relbase = modifier_path_relbase(bmain, fsDomain);
 
 	/* We do not accept empty paths, they can end in random places silently, see T51176. */
 	if (domainSettings->surfdataPath[0] == '\0') {
@@ -840,6 +841,7 @@ static void fluidsim_delete_until_lastframe(FluidsimSettings *fss, const char *r
 
 static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, short do_job)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -849,7 +851,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	char debugStrBuffer[256];
 	
 	int gridlevels = 0;
-	const char *relbase= modifier_path_relbase(fsDomain);
+	const char *relbase= modifier_path_relbase(bmain, fsDomain);
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
 	const char *suffixConfigTmp = FLUID_SUFFIX_CONFIG_TMP;
 	const char *suffixSurface = FLUID_SUFFIX_SURFACE;
@@ -941,7 +943,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	
 	
 	/* ******** prepare output file paths ******** */
-	if (!fluid_init_filepaths(reports, domainSettings, fsDomain, targetDir, targetFile)) {
+	if (!fluid_init_filepaths(bmain, reports, domainSettings, fsDomain, targetDir, targetFile)) {
 		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return false;
 	}

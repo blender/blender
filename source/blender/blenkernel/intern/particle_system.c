@@ -74,8 +74,10 @@
 #include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_main.h"
 #include "BKE_particle.h"
 
 #include "BKE_collection.h"
@@ -3805,7 +3807,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
 	}
 }
 
-static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
+static void particles_fluid_step(Main *bmain, ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
 {	
 	ParticleSystem *psys = sim->psys;
 	if (psys->particles) {
@@ -3836,7 +3838,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra), 
 			// ok, start loading
 			BLI_join_dirfile(filename, sizeof(filename), fss->surfdataPath, OB_FLUIDSIM_SURF_PARTICLES_FNAME);
 
-			BLI_path_abs(filename, modifier_path_relbase(sim->ob));
+			BLI_path_abs(filename, modifier_path_relbase(bmain, sim->ob));
 
 			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no 
 
@@ -4308,7 +4310,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 		}
 		case PART_FLUID:
 		{
-			particles_fluid_step(&sim, (int)cfra, use_render_params);
+			particles_fluid_step(G.main  /* Yuck :/ */, &sim, (int)cfra, use_render_params);
 			break;
 		}
 		default:
