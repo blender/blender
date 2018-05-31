@@ -2184,7 +2184,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	int a, need_orco, vlakindex, *index, negative_scale;
 	ListBase dispbase= {NULL, NULL};
 
-	if (ob!=BKE_mball_basis_find(re->scene, ob))
+	if (ob!=BKE_mball_basis_find(re->eval_ctx, re->scene, ob))
 		return;
 
 	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -4862,7 +4862,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 	}
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob->type == OB_MBALL && ob!=BKE_mball_basis_find(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=BKE_mball_basis_find(re->eval_ctx, re->scene, ob))
 		return 0;
 	
 	if (nolamps && (ob->type==OB_LAMP))

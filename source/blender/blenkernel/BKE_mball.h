@@ -32,6 +32,7 @@
  *  \since March 2001
  *  \author nzc
  */
+struct EvaluationContext;
 struct Main;
 struct MetaBall;
 struct Object;
@@ -48,12 +49,12 @@ void BKE_mball_make_local(struct Main *bmain, struct MetaBall *mb, const bool li
 
 bool BKE_mball_is_basis_for(struct Object *ob1, struct Object *ob2);
 bool BKE_mball_is_basis(struct Object *ob);
-struct Object *BKE_mball_basis_find(struct Scene *scene, struct Object *ob);
+struct Object *BKE_mball_basis_find(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
 
 void BKE_mball_texspace_calc(struct Object *ob);
 float *BKE_mball_make_orco(struct Object *ob, struct ListBase *dispbase);
 
-void BKE_mball_properties_copy(struct Scene *scene, struct Object *active_object);
+void BKE_mball_properties_copy(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *active_object);
 
 bool BKE_mball_minmax(struct MetaBall *mb, float min[3], float max[3]);
 bool BKE_mball_minmax_ex(struct MetaBall *mb, float min[3], float max[3],

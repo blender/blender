@@ -26,6 +26,7 @@
 #include "abc_object.h"
 
 class AbcMeshWriter;
+struct EvaluationContext;
 struct Main;
 struct MetaBall;
 struct Object;
@@ -50,7 +51,7 @@ public:
 
 	~AbcMBallWriter();
 
-	static bool isBasisBall(Scene *scene, Object *ob);
+	static bool isBasisBall(EvaluationContext *eval_ctx, Scene *scene, Object *ob);
 
 private:
 	virtual void do_write();

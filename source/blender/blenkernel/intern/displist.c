@@ -731,7 +731,7 @@ void BKE_displist_make_mball(EvaluationContext *eval_ctx, Scene *scene, Object *
 	if (!ob || ob->type != OB_MBALL)
 		return;
 
-	if (ob == BKE_mball_basis_find(scene, ob)) {
+	if (ob == BKE_mball_basis_find(eval_ctx, scene, ob)) {
 		if (ob->curve_cache) {
 			BKE_displist_free(&(ob->curve_cache->disp));
 		}

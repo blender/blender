@@ -115,8 +115,8 @@ void AbcMBallWriter::do_write()
 	m_mesh_ob->data = NULL;
 }
 
-bool AbcMBallWriter::isBasisBall(Scene *scene, Object *ob)
+bool AbcMBallWriter::isBasisBall(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	Object *basis_ob = BKE_mball_basis_find(scene, ob);
+	Object *basis_ob = BKE_mball_basis_find(eval_ctx, scene, ob);
 	return ob == basis_ob;
 }

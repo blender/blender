@@ -111,7 +111,7 @@ static bool object_is_smoke_sim(Object *ob)
 	return false;
 }
 
-static bool object_type_is_exportable(Scene *scene, Object *ob)
+static bool object_type_is_exportable(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	switch (ob->type) {
 		case OB_MESH:
@@ -126,7 +126,7 @@ static bool object_type_is_exportable(Scene *scene, Object *ob)
 		case OB_CAMERA:
 			return true;
 		case OB_MBALL:
-			return AbcMBallWriter::isBasisBall(scene, ob);
+			return AbcMBallWriter::isBasisBall(eval_ctx, scene, ob);
 		default:
 			return false;
 	}
@@ -386,7 +386,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 		return;
 	}
 
-	if (object_type_is_exportable(m_scene, ob)) {
+	if (object_type_is_exportable(eval_ctx, m_scene, ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
 
@@ -551,7 +551,7 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
 
 void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 {
-	if (!object_type_is_exportable(m_scene, ob)) {
+	if (!object_type_is_exportable(m_bmain->eval_ctx, m_scene, ob)) {
 		return;
 	}
 

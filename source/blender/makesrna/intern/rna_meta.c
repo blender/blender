@@ -101,7 +101,7 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	if (mb->id.us > 0) {
 		for (ob = bmain->object.first; ob; ob = ob->id.next)
 			if (ob->data == mb)
-				BKE_mball_properties_copy(scene, ob);
+				BKE_mball_properties_copy(bmain->eval_ctx, scene, ob);
 	
 		DAG_id_tag_update(&mb->id, 0);
 		WM_main_add_notifier(NC_GEOM | ND_DATA, mb);

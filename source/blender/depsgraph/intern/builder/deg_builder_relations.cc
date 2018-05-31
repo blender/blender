@@ -1612,7 +1612,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 
 		case OB_MBALL:
 		{
-			Object *mom = BKE_mball_basis_find(scene_, object);
+			Object *mom = BKE_mball_basis_find(bmain_->eval_ctx, scene_, object);
 			ComponentKey mom_geom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
 			/* motherball - mom depends on children! */
 			if (mom == object) {

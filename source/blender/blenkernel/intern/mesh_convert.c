@@ -876,7 +876,7 @@ Mesh *BKE_mesh_new_from_object(
 		case OB_MBALL:
 		{
 			/* metaballs don't have modifiers, so just convert to mesh */
-			Object *basis_ob = BKE_mball_basis_find(sce, ob);
+			Object *basis_ob = BKE_mball_basis_find(bmain->eval_ctx, sce, ob);
 			/* todo, re-generatre for render-res */
 			/* metaball_polygonize(scene, ob) */
 
