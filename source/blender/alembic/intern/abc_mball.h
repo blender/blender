@@ -26,6 +26,7 @@
 #include "abc_object.h"
 
 class AbcMeshWriter;
+struct EvaluationContext;
 struct Main;
 struct MetaBall;
 struct Object;
