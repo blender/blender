@@ -149,7 +149,7 @@ typedef struct DRWCall {
 			void *user_data;
 		} generate;
 		struct { /* type == DRW_CALL_PROCEDURAL */
-			unsigned int prim_count;
+			uint vert_count;
 			Gwn_PrimType prim_type;
 		} procedural;
 	};

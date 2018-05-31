@@ -1157,7 +1157,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 					call->generate.geometry_fn(shgroup, draw_geometry_execute, call->generate.user_data);
 					break;
 				case DRW_CALL_PROCEDURAL:
-					GWN_draw_primitive(call->procedural.prim_type, call->procedural.prim_count);
+					GWN_draw_primitive(call->procedural.prim_type, call->procedural.vert_count);
 					break;
 				default:
 					BLI_assert(0);
