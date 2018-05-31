@@ -39,7 +39,6 @@ namespace DEG {
 
 void TimeSourceDepsNode::tag_update(Depsgraph *graph)
 {
-	graph->scene_cow->id.recalc |= ID_RECALC_TIME;
 	foreach (DepsRelation *rel, outlinks) {
 		DepsNode *node = rel->to;
 		node->tag_update(graph);

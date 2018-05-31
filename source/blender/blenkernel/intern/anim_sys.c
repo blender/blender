@@ -2956,13 +2956,6 @@ void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
 	                      */
 	DEG_debug_print_eval_time(depsgraph, __func__, id->name, id, ctime);
 	short recalc = ADT_RECALC_ANIM;
-	const Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-	/* If animation component is directly tagged for update, we always apply f-curves. */
-	if (((scene_eval->id.recalc & ID_RECALC_TIME) == 0) &&
-	    (id->recalc & ID_RECALC_TIME) == 0)
-	{
-		recalc |= ADT_RECALC_CHECK_ORIG_DNA;
-	}
 	BKE_animsys_evaluate_animdata(depsgraph, scene, id, adt, ctime, recalc);
 }
 
