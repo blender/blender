@@ -35,6 +35,7 @@
 
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_types.h"
+#include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_id.h"
 
@@ -53,12 +54,11 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		ID *id = id_node->id_orig;
 		id_node->finalize_build(graph);
 		if ((id->recalc & ID_RECALC_ALL)) {
-			id_node->tag_update(graph);
+			DEG_id_tag_update_ex(bmain, id_node->id_orig, 0);
 		}
-		/* TODO(sergey): This is not ideal at all, since this forces
-		 * re-evaluaiton of the whole tree.
-		 */
-		DEG_id_tag_update_ex(bmain, id_node->id_orig, DEG_TAG_COPY_ON_WRITE);
+		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
+			DEG_id_tag_update_ex(bmain, id_node->id_orig, DEG_TAG_COPY_ON_WRITE);
+		}
 	}
 }
 

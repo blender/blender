@@ -2071,7 +2071,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 	}
 	else {
 		obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
-		DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+		DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 		base = BKE_view_layer_base_find(view_layer, ob);
 		if ((base != NULL) && (base->flag & BASE_VISIBLED)) {
