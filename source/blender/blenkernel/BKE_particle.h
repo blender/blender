@@ -389,7 +389,7 @@ void psys_check_boid_data(struct ParticleSystem *psys);
 
 void psys_get_birth_coords(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleKey *state, float dtime, float cfra);
 
-void particle_system_update(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, const bool use_render_params);
+void particle_system_update(struct Main *bmain, struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, const bool use_render_params);
 
 /* Callback format for performing operations on ID-pointers for particle systems */
 typedef void (*ParticleSystemIDFunc)(struct ParticleSystem *psys, struct ID **idpoin, void *userdata, int cb_flag);

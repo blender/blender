@@ -260,7 +260,7 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 					ob->transflag |= OB_DUPLIPARTS;
 				}
 
-				particle_system_update(scene, ob, psys, (eval_ctx->mode == DAG_EVAL_RENDER));
+				particle_system_update(G.main, scene, ob, psys, (eval_ctx->mode == DAG_EVAL_RENDER));
 				psys = psys->next;
 			}
 			else if (psys->flag & PSYS_DELETE) {

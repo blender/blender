@@ -42,6 +42,7 @@
 
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 
@@ -189,7 +190,7 @@ static void deformVerts(
 
 	if (!(ob->transflag & OB_NO_PSYS_UPDATE)) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(md->scene, ob, psys, (flag & MOD_APPLY_RENDER) != 0);
+		particle_system_update(G.main, md->scene, ob, psys, (flag & MOD_APPLY_RENDER) != 0);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
 	}
 }

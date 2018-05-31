@@ -1293,6 +1293,7 @@ void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 
 static int multires_external_save_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_active_context(C);
 	Mesh *me = (ob) ? ob->data : op->customdata;
 	char path[FILE_MAX];
@@ -1307,7 +1308,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", path);
 
 	if (relative)
-		BLI_path_rel(path, G.main->name);
+		BLI_path_rel(path, bmain->name);
 
 	CustomData_external_add(&me->ldata, &me->id, CD_MDISPS, me->totloop, path);
 	CustomData_external_write(&me->ldata, &me->id, CD_MASK_MESH, me->totloop, 0);
@@ -2129,6 +2130,7 @@ static void oceanbake_endjob(void *customdata)
 
 static int ocean_bake_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_active_context(C);
 	OceanModifierData *omd = (OceanModifierData *)edit_modifier_property_get(op, ob, eModifierType_Ocean);
 	Scene *scene = CTX_data_scene(C);
@@ -2150,7 +2152,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 
-	och = BKE_ocean_init_cache(omd->cachepath, modifier_path_relbase(ob),
+	och = BKE_ocean_init_cache(omd->cachepath, modifier_path_relbase(bmain, ob),
 	                           omd->bakestart, omd->bakeend, omd->wave_scale,
 	                           omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 	
@@ -2164,7 +2166,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		 *
 		 * XXX: This can't be used due to an anim sys optimization that ignores recalc object animation,
 		 * leaving it for the depgraph (this ignores object animation such as modifier properties though... :/ )
-		 * --> BKE_animsys_evaluate_all_animation(G.main, eval_time);
+		 * --> BKE_animsys_evaluate_all_animation(bmain, eval_time);
 		 * This doesn't work with drivers:
 		 * --> BKE_animsys_evaluate_animdata(&fsDomain->id, fsDomain->adt, eval_time, ADT_RECALC_ALL);
 		 */
@@ -2173,7 +2175,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		 * this part of the process before a threaded job is created */
 		
 		//scene->r.cfra = f;
-		//ED_update_for_newframe(CTX_data_main(C), scene, 1);
+		//ED_update_for_newframe(bmain, scene, 1);
 		
 		/* ok, this doesn't work with drivers, but is way faster. 
 		 * let's use this for now and hope nobody wants to drive the time value... */
