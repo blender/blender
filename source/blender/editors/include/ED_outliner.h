@@ -27,4 +27,9 @@
 #ifndef __ED_OUTLINER_H__
 #define __ED_OUTLINER_H__
 
+struct bContext;
+struct ListBase;
+
+int ED_outliner_collections_editor_poll(struct bContext *C);
+
 #endif /*  __ED_OUTLINER_H__ */

@@ -101,7 +101,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 /* -------------------------------------------------------------------- */
 /* Poll functions. */
 
-static int collections_editor_poll(bContext *C)
+int ED_outliner_collections_editor_poll(bContext *C)
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
 	return (so != NULL) && ELEM(so->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
@@ -178,7 +178,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_new_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -261,7 +261,7 @@ void OUTLINER_OT_collection_delete(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_delete_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -333,7 +333,7 @@ void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_objects_select_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -348,7 +348,7 @@ void OUTLINER_OT_collection_objects_deselect(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_objects_select_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -427,7 +427,7 @@ void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_duplicate_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -477,7 +477,7 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_link_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -540,7 +540,7 @@ void OUTLINER_OT_collection_instance(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_instance_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
