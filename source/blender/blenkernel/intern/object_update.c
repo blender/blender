@@ -140,6 +140,12 @@ void BKE_object_eval_done(Depsgraph *depsgraph, Object *ob)
 	/* Set negative scale flag in object. */
 	if (is_negative_m4(ob->obmat)) ob->transflag |= OB_NEG_SCALE;
 	else ob->transflag &= ~OB_NEG_SCALE;
+
+	if (DEG_is_active(depsgraph)) {
+		Object *ob_orig = DEG_get_original_object(ob);
+		copy_m4_m4(ob_orig->obmat, ob->obmat);
+		ob_orig->transflag = ob->transflag;
+	}
 }
 
 void BKE_object_handle_data_update(

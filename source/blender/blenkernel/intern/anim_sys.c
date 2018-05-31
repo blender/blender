@@ -1702,24 +1702,32 @@ bool BKE_animsys_execute_fcurve(PointerRNA *ptr, AnimMapper *remap, FCurve *fcu,
 	return ok;
 }
 
-/* Evaluate all the F-Curves in the given list 
- * This performs a set of standard checks. If extra checks are required, separate code should be used
- */
-static void animsys_evaluate_fcurves(
-        Depsgraph *depsgraph, PointerRNA *ptr, ListBase *list, AnimMapper *remap,float ctime, short recalc)
+static void animsys_write_orig_anim_rna(
+        PointerRNA *ptr,
+        AnimMapper *remap,
+        FCurve *fcu,
+        float value)
 {
-	(void) depsgraph;
-	FCurve *fcu;
-
 	/* Pointer is expected to be an ID pointer, if it's not -- we are doomed. */
 	PointerRNA orig_ptr = *ptr;
 	orig_ptr.id.data = ((ID *)orig_ptr.id.data)->orig_id;
 	orig_ptr.data = orig_ptr.id.data;
+	PathResolvedRNA orig_anim_rna;
+	/* TODO(sergey): Is there a faster way to get anim_rna of original ID? */
+	if (animsys_store_rna_setting(&orig_ptr, remap, fcu->rna_path, fcu->array_index, &orig_anim_rna)) {
+		animsys_write_rna_setting(&orig_anim_rna, value);
+	}
+}
 
-	const bool copy_on_write = orig_ptr.id.data != NULL;
-
+/* Evaluate all the F-Curves in the given list
+ * This performs a set of standard checks. If extra checks are required, separate code should be used
+ */
+static void animsys_evaluate_fcurves(
+        Depsgraph *depsgraph, PointerRNA *ptr, ListBase *list, AnimMapper *remap, float ctime)
+{
+	const bool is_active_depsgraph = DEG_is_active(depsgraph);
 	/* Calculate then execute each curve. */
-	for (fcu = list->first; fcu; fcu = fcu->next) {
+	for (FCurve *fcu = list->first; fcu; fcu = fcu->next) {
 		/* Check if this F-Curve doesn't belong to a muted group. */
 		if ((fcu->grp != NULL) && (fcu->grp->flag & AGRP_MUTED)) {
 			continue;
@@ -1729,37 +1737,11 @@ static void animsys_evaluate_fcurves(
 			continue;
 		}
 		PathResolvedRNA anim_rna;
-		/* Read current value from original datablock. */
-		float dna_val;
-
-		if (copy_on_write) {
-			if (animsys_store_rna_setting(&orig_ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
-				if (!animsys_read_rna_setting(&anim_rna, &dna_val)) {
-					continue;
-				}
-			}
-			else {
-				continue;
-			}
-		}
-
 		if (animsys_store_rna_setting(ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
-			if (copy_on_write) {
-				const bool check_orig_dna = ((recalc & ADT_RECALC_CHECK_ORIG_DNA) != 0);
-				/* If we are tweaking DNA without changing frame, we don't write f-curves,
-				 * since otherwise we will not be able to change properties which has animation.
-				 */
-				if (check_orig_dna && fcu->orig_dna_val != dna_val) {
-					continue;
-				}
-			}
-
 			const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
 			animsys_write_rna_setting(&anim_rna, curval);
-
-			if (copy_on_write) {
-				/* Store original DNA value f-curve was written for. */
-				fcu->orig_dna_val = dna_val;
+			if (is_active_depsgraph) {
+				animsys_write_orig_anim_rna(ptr, remap, fcu, curval);
 			}
 		}
 	}
@@ -1872,7 +1854,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr, bAction *act, bActionGroup *
 
 /* Evaluate Action (F-Curve Bag) */
 static void animsys_evaluate_action_ex(
-        Depsgraph *depsgraph, PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime, short recalc)
+        Depsgraph *depsgraph, PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
 {
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if (act == NULL) return;
@@ -1881,12 +1863,12 @@ static void animsys_evaluate_action_ex(
 	action_idcode_patch_check(ptr->id.data, act);
 	
 	/* calculate then execute each curve */
-	animsys_evaluate_fcurves(depsgraph, ptr, &act->curves, remap, ctime, recalc);
+	animsys_evaluate_fcurves(depsgraph, ptr, &act->curves, remap, ctime);
 }
 
 void animsys_evaluate_action(Depsgraph *depsgraph, PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
 {
-	animsys_evaluate_action_ex(depsgraph, ptr, act, remap, ctime, 0);
+	animsys_evaluate_action_ex(depsgraph, ptr, act, remap, ctime);
 }
 
 /* ***************************************** */
@@ -1925,7 +1907,7 @@ static void nlastrip_evaluate_controls(Depsgraph *depsgraph, NlaStrip *strip, fl
 		RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 		
 		/* execute these settings as per normal */
-		animsys_evaluate_fcurves(depsgraph, &strip_ptr, &strip->fcurves, NULL, ctime, 0);
+		animsys_evaluate_fcurves(depsgraph, &strip_ptr, &strip->fcurves, NULL, ctime);
 	}
 	
 	/* analytically generate values for influence and time (if applicable)
@@ -2794,7 +2776,7 @@ void BKE_animsys_evaluate_animdata(Depsgraph *depsgraph, Scene *scene, ID *id, A
 		}
 		/* evaluate Active Action only */
 		else if (adt->action)
-			animsys_evaluate_action_ex(depsgraph, &id_ptr, adt->action, adt->remap, ctime, recalc);
+			animsys_evaluate_action_ex(depsgraph, &id_ptr, adt->action, adt->remap, ctime);
 		
 		/* reset tag */
 		adt->recalc &= ~ADT_RECALC_ANIM;
@@ -3044,6 +3026,9 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 				const float ctime = DEG_get_ctime(depsgraph);
 				const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
 				ok = animsys_write_rna_setting(&anim_rna, curval);
+				if (ok && DEG_is_active(depsgraph)) {
+					animsys_write_orig_anim_rna(&id_ptr, NULL, fcu, curval);
+				}
 			}
 
 			//printf("\tnew val = %f\n", fcu->curval);

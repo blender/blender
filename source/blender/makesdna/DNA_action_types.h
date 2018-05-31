@@ -277,6 +277,9 @@ typedef struct bPoseChannel {
 	void        *temp;              /* use for outliner */
 	/* Runtime data for color and bbone segment matrix. */
 	bPoseChannelDrawData *draw_data;
+
+	/* Points to an original pose channel. */
+	struct bPoseChannel *orig_pchan;
 } bPoseChannel;
 
 

@@ -510,6 +510,17 @@ void update_particle_system_orig_pointers(const Object *object_orig,
 	}
 }
 
+void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
+{
+	bPoseChannel *pchan_cow = (bPoseChannel *) pose_cow->chanbase.first;
+	bPoseChannel *pchan_orig = (bPoseChannel *) pose_orig->chanbase.first;
+	while (pchan_orig != NULL) {
+		pchan_cow->orig_pchan = pchan_orig;
+		pchan_cow = pchan_cow->next;
+		pchan_orig = pchan_orig->next;
+	}
+}
+
 /* Do some special treatment of data transfer from original ID to it's
  * CoW complementary part.
  *
@@ -534,6 +545,7 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			if (object_cow->type == OB_ARMATURE) {
 				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
 				                             object_cow->pose);
+				update_pose_orig_pointers(object_orig->pose, object_cow->pose);
 			}
 			update_particle_system_orig_pointers(object_orig, object_cow);
 			break;
