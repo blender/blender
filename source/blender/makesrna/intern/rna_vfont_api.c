@@ -43,14 +43,14 @@ static void rna_VectorFont_pack(VFont *vfont, Main *bmain, ReportList *reports)
 	vfont->packedfile = newPackedFile(reports, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 }
 
-static void rna_VectorFont_unpack(VFont *vfont, ReportList *reports, int method)
+static void rna_VectorFont_unpack(VFont *vfont, Main *bmain, ReportList *reports, int method)
 {
 	if (!vfont->packedfile) {
 		BKE_report(reports, RPT_ERROR, "Font not packed");
 	}
 	else {
 		/* reports its own error on failure */
-		unpackVFont(reports, vfont, method);
+		unpackVFont(bmain, reports, vfont, method);
 	}
 }
 
@@ -62,11 +62,11 @@ void RNA_api_vfont(StructRNA *srna)
 
 	func = RNA_def_function(srna, "pack", "rna_VectorFont_pack");
 	RNA_def_function_ui_description(func, "Pack the font into the current blend file");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_MAIN);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
 
 	func = RNA_def_function(srna, "unpack", "rna_VectorFont_unpack");
 	RNA_def_function_ui_description(func, "Unpack the font to the samples filename");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
 	RNA_def_enum(func, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "method", "How to unpack");
 }
 

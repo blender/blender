@@ -2828,7 +2828,7 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 	/* XXX unpackImage frees image buffers */
 	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 	
-	unpackImage(op->reports, ima, method);
+	unpackImage(CTX_data_main(C), op->reports, ima, method);
 	
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
