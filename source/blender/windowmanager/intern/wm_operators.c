@@ -1408,6 +1408,7 @@ void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
  */
 ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short idcode)
 {
+	Main *bmain = CTX_data_main(C);
 	ID *id = NULL;
 	/* check input variables */
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -1435,8 +1436,6 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
 
 		if (is_relative_path ) {
 			if (exists == false) {
-				Main *bmain = CTX_data_main(C);
-
 				if (idcode == ID_IM) {
 					BLI_path_rel(((Image *)id)->name, bmain->name);
 				}
@@ -1449,7 +1448,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
 		char name[MAX_ID_NAME - 2];
 		RNA_string_get(op->ptr, "name", name);
-		id = BKE_libblock_find_name(idcode, name);
+		id = BKE_libblock_find_name(bmain, idcode, name);
 		if (!id) {
 			BKE_reportf(op->reports, RPT_ERROR, "%s '%s' not found",
 			            BKE_idcode_to_name(idcode), name);

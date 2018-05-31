@@ -580,7 +580,7 @@ static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 	char lib_name[MAX_NAME];
 
 	RNA_string_get(op->ptr, "library", lib_name);
-	lib = (Library *)BKE_libblock_find_name_ex(CTX_data_main(C), ID_LI, lib_name);
+	lib = (Library *)BKE_libblock_find_name(CTX_data_main(C), ID_LI, lib_name);
 
 	if (lib) {
 		if (lib->parent) {
@@ -822,7 +822,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 	char lib_name[MAX_NAME];
 
 	RNA_string_get(op->ptr, "library", lib_name);
-	lib = (Library *)BKE_libblock_find_name_ex(CTX_data_main(C), ID_LI, lib_name);
+	lib = (Library *)BKE_libblock_find_name(CTX_data_main(C), ID_LI, lib_name);
 
 	if (lib) {
 		Main *bmain = CTX_data_main(C);

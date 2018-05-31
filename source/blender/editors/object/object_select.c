@@ -905,6 +905,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 
 static int object_select_same_collection_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Collection *collection;
 	char collection_name[MAX_ID_NAME];
 
@@ -913,7 +914,7 @@ static int object_select_same_collection_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "collection", collection_name);
 
-	collection = (Collection *)BKE_libblock_find_name(ID_GR, collection_name);
+	collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, collection_name);
 
 	if (!collection) {
 		return OPERATOR_PASS_THROUGH;
@@ -955,6 +956,7 @@ void OBJECT_OT_select_same_collection(wmOperatorType *ot)
 /**************************** Select Mirror ****************************/
 static int object_select_mirror_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	bool extend;
@@ -968,7 +970,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 		BLI_string_flip_side_name(name_flip, primbase->object->id.name + 2, true, sizeof(name_flip));
 		
 		if (!STREQ(name_flip, primbase->object->id.name + 2)) {
-			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, name_flip);
+			Object *ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name_flip);
 			if (ob) {
 				Base *secbase = BKE_view_layer_base_find(view_layer, ob);
 

@@ -307,7 +307,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				Library *lib = (Library *)tselem->id;
 				char expanded[FILE_MAX];
 
-				BKE_library_filepath_set(lib, lib->name);
+				BKE_library_filepath_set(bmain, lib, lib->name);
 
 				BLI_strncpy(expanded, lib->name, sizeof(expanded));
 				BLI_path_abs(expanded, bmain->name);

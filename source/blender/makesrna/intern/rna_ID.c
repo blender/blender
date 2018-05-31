@@ -512,7 +512,7 @@ static void rna_IDMaterials_clear_id(ID *id, Main *bmain, int remove_material_sl
 static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Library *lib = (Library *)ptr->data;
-	BKE_library_filepath_set(lib, value);
+	BKE_library_filepath_set(G.main, lib, value);
 }
 
 /* ***** ImagePreview ***** */

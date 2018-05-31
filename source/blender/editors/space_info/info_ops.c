@@ -301,7 +301,7 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
 	int method = RNA_enum_get(op->ptr, "method");
 
 	RNA_string_get(op->ptr, "id_name", idname);
-	id = BKE_libblock_find_name(type, idname);
+	id = BKE_libblock_find_name(bmain, type, idname);
 
 	if (id == NULL) {
 		BKE_report(op->reports, RPT_WARNING, "No packed file");

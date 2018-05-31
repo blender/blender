@@ -186,7 +186,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 		Main *bmain = CTX_data_main(C);
 
 		/* Currently only brush data-blocks supported. */
-		struct Brush *brush = (struct Brush *)BKE_libblock_find_name(ID_BR, tref_rt->data_block);
+		struct Brush *brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, tref_rt->data_block);
 
 		if (brush) {
 			wmWindowManager *wm = bmain->wm.first;
