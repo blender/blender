@@ -532,7 +532,7 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
 		int chanshown = sseq ? sseq->chanshown : 0;
 
 		BKE_sequencer_new_render_data(
-		        oglrender->bmain, scene,
+		        oglrender->bmain, oglrender->depsgraph, scene,
 		        oglrender->sizex, oglrender->sizey, 100.0f, false,
 		        &context);
 

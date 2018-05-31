@@ -894,7 +894,9 @@ void ED_sequencer_special_preview_clear(void)
 	sequencer_special_update_set(NULL);
 }
 
-ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int cfra, int frame_ofs, const char *viewname)
+ImBuf *sequencer_ibuf_get(
+        struct Main *bmain, struct Depsgraph *depsgraph, Scene *scene,
+        SpaceSeq *sseq, int cfra, int frame_ofs, const char *viewname)
 {
 	SeqRenderData context = {0};
 	ImBuf *ibuf;
@@ -919,7 +921,7 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	recty = (render_size * (float)scene->r.ysch) / 100.0f + 0.5f;
 
 	BKE_sequencer_new_render_data(
-	        bmain, scene,
+	        bmain, depsgraph, scene,
 	        rectx, recty, proxy_size, false,
 	        &context);
 	context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
@@ -1091,6 +1093,7 @@ static void sequencer_draw_background(
 void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, bool draw_overlay, bool draw_backdrop)
 {
 	struct Main *bmain = CTX_data_main(C);
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	struct ImBuf *ibuf = NULL;
 	struct ImBuf *scope = NULL;
 	struct View2D *v2d = &ar->v2d;
@@ -1134,7 +1137,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 
 	/* for now we only support Left/Right */
-	ibuf = sequencer_ibuf_get(bmain, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
+	ibuf = sequencer_ibuf_get(bmain, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
 
 	if ((ibuf == NULL) ||
 	    (ibuf->rect == NULL && ibuf->rect_float == NULL))

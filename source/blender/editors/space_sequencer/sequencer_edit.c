@@ -128,8 +128,9 @@ typedef struct TransSeq {
 /* ***************** proxy job manager ********************** */
 
 typedef struct ProxyBuildJob {
-	Scene *scene; 
 	struct Main *main;
+	struct Depsgraph *depsgraph;
+	Scene *scene; 
 	ListBase queue;
 	int stop;
 } ProxyJob;
@@ -181,6 +182,7 @@ static void seq_proxy_build_job(const bContext *C)
 {
 	wmJob *wm_job;
 	ProxyJob *pj;
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	ScrArea *sa = CTX_wm_area(C);
@@ -199,6 +201,7 @@ static void seq_proxy_build_job(const bContext *C)
 	if (!pj) {
 		pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
 	
+		pj->depsgraph = depsgraph;
 		pj->scene = scene;
 		pj->main = CTX_data_main(C);
 
@@ -211,7 +214,7 @@ static void seq_proxy_build_job(const bContext *C)
 	SEQP_BEGIN (ed, seq)
 	{
 		if ((seq->flag & SELECT)) {
-			BKE_sequencer_proxy_rebuild_context(pj->main, pj->scene, seq, file_list, &pj->queue);
+			BKE_sequencer_proxy_rebuild_context(pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
 		}
 	}
 	SEQ_END
@@ -3456,6 +3459,7 @@ static int sequencer_rebuild_proxy_invoke(bContext *C, wmOperator *UNUSED(op),
 static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq;
@@ -3475,7 +3479,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 			short stop = 0, do_update;
 			float progress;
 
-			BKE_sequencer_proxy_rebuild_context(bmain, scene, seq, file_list, &queue);
+			BKE_sequencer_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue);
 
 			for (link = queue.first; link; link = link->next) {
 				struct SeqIndexBuildContext *context = link->data;

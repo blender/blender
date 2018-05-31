@@ -1697,8 +1697,13 @@ static void do_render_seq(Render *re)
 	tot_views = BKE_scene_multiview_num_views_get(&re->r);
 	ibuf_arr = MEM_mallocN(sizeof(ImBuf *) * tot_views, "Sequencer Views ImBufs");
 
+	/* TODO(sergey): Currently depsgraph is only used to check whether it is an active
+	 * edit window or not to deal with unkeyed changes. We don't have depsgraph here yet,
+	 * but we also dont' deal with unkeyed changes. But still nice to get proper depsgraph
+	 * within tjhe render pipeline, somehow.
+	 */
 	BKE_sequencer_new_render_data(
-	        re->main, re->scene,
+	        re->main, NULL, re->scene,
 	        re_x, re_y, 100, true,
 	        &context);
 

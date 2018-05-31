@@ -593,11 +593,12 @@ void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixe
 /*********************** sequencer pipeline functions *************************/
 
 void BKE_sequencer_new_render_data(
-        Main *bmain, Scene *scene, int rectx, int recty,
+        Main *bmain, struct Depsgraph *depsgraph, Scene *scene, int rectx, int recty,
         int preview_render_size, int for_render,
         SeqRenderData *r_context)
 {
 	r_context->bmain = bmain;
+	r_context->depsgraph = depsgraph;
 	r_context->scene = scene;
 	r_context->rectx = rectx;
 	r_context->recty = recty;
@@ -1462,6 +1463,7 @@ typedef struct SeqIndexBuildContext {
 	int view_id;
 
 	Main *bmain;
+	Depsgraph *depsgraph;
 	Scene *scene;
 	Sequence *seq, *orig_seq;
 } SeqIndexBuildContext;
@@ -1950,7 +1952,9 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
 	return num_views;
 }
 
-void BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq, struct GSet *file_list, ListBase *queue)
+void BKE_sequencer_proxy_rebuild_context(
+        Main *bmain, Depsgraph *depsgraph, Scene *scene,
+        Sequence *seq, struct GSet *file_list, ListBase *queue)
 {
 	SeqIndexBuildContext *context;
 	Sequence *nseq;
@@ -1982,6 +1986,7 @@ void BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *se
 		context->overwrite = (nseq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
 
 		context->bmain = bmain;
+		context->depsgraph = depsgraph;
 		context->scene = scene;
 		context->orig_seq = seq;
 		context->seq = nseq;
@@ -2035,7 +2040,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 	/* fail safe code */
 
 	BKE_sequencer_new_render_data(
-	        bmain, context->scene,
+	        bmain, context->depsgraph, context->scene,
 	        (scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f,
 	        (scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f, 100,
 	        false,
