@@ -1026,6 +1026,8 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 			}
 		}
 	}
+
+	DEG_id_tag_update(&act->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 /* Auto-keys/tags bones affected by the pose used from the poselib */
