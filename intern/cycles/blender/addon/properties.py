@@ -1154,7 +1154,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 default='THICK',
                 )
         cls.cull_backfacing = BoolProperty(
-                name="Cull back-faces",
+                name="Cull Back-faces",
                 description="Do not test the back-face of each strand",
                 default=True,
                 )

@@ -67,12 +67,13 @@ class RENDER_PT_context(Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
         rd = scene.render
 
         if rd.has_multiple_engines:
-            layout.prop(rd, "engine", text="")
+            layout.prop(rd, "engine", text="Render Engine")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
@@ -138,7 +139,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(rd, "resolution_x", text="Resolution X")
         col.prop(rd, "resolution_y", text="Y")
-        col.prop(rd, "resolution_percentage")
+        col.prop(rd, "resolution_percentage", text="%")
 
         col = layout.column(align=True)
         col.prop(rd, "pixel_aspect_x", text="Aspect X")
