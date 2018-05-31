@@ -505,6 +505,13 @@ void BKE_workspace_update_tagged(Main *bmain,
 	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene,
 	                                                      view_layer,
 	                                                      true);
+	/* TODO(sergey): For now all dependency graphs which are evaluated from
+	 * workspace are considered active. This will work all fine with "locked"
+	 * view layer and time across windows. This is to be granted separately,
+	 * and for until then we have to accept ambiguities when object is shared
+	 * across visible view layers and has overrides on it.
+	 */
+	DEG_make_active(depsgraph);
 	BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 
