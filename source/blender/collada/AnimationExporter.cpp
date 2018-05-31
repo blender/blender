@@ -1004,7 +1004,7 @@ std::string AnimationExporter::create_source_from_fcurve(COLLADASW::InputSemanti
 
 void AnimationExporter::evaluate_anim_with_constraints(Object *ob, float ctime)
 {
-	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
+	BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
 	ListBase *conlist = get_active_constraints(ob);
 	bConstraint *con;
 	for (con = (bConstraint *)conlist->first; con; con = con->next) {
@@ -1020,7 +1020,7 @@ void AnimationExporter::evaluate_anim_with_constraints(Object *ob, float ctime)
 				obtar = ct->tar;
 
 				if (obtar) {
-					BKE_animsys_evaluate_animdata(scene, &obtar->id, obtar->adt, ctime, ADT_RECALC_ANIM);
+					BKE_animsys_evaluate_animdata(depsgraph, scene, &obtar->id, obtar->adt, ctime, ADT_RECALC_ANIM);
 					BKE_object_where_is_calc_time(this->depsgraph, scene, obtar, ctime);
 				}
 			}
@@ -1320,7 +1320,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 
 			if (pchan->flag & POSE_CHAIN) {
 				enable_fcurves(ob->adt->action, NULL);
-				BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
+				BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
 				BKE_pose_where_is(depsgraph, scene, ob);
 			}
 			else {
@@ -1896,7 +1896,7 @@ void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, i
 		float ctime = BKE_scene_frame_get_from_ctime(scene, *it);
 
 
-		BKE_animsys_evaluate_animdata(scene, &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(depsgraph, scene, &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
 		BKE_pose_where_is_bone(depsgraph, scene, ob_arm, pchan, ctime, 1);
 
 		// compute bone local mat
