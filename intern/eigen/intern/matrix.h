@@ -24,12 +24,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __EIGEN_C_API_H__
-#define __EIGEN_C_API_H__
+#ifndef __EIGEN3_MATRIX_C_API_H__
+#define __EIGEN3_MATRIX_C_API_H__
 
-#include "intern/eigenvalues.h"
-#include "intern/linear_solver.h"
-#include "intern/matrix.h"
-#include "intern/svd.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif  /* __EIGEN_C_API_H__ */
+bool EIG_invert_m4_m4(float inverse[4][4], const float matrix[4][4]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* __EIGEN3_MATRIX_C_API_H__ */

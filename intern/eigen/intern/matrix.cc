@@ -24,12 +24,33 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __EIGEN_C_API_H__
-#define __EIGEN_C_API_H__
+#ifndef __EIGEN3_MATRIX_C_API_CC__
+#define __EIGEN3_MATRIX_C_API_CC__
 
-#include "intern/eigenvalues.h"
-#include "intern/linear_solver.h"
-#include "intern/matrix.h"
-#include "intern/svd.h"
+/* Eigen gives annoying huge amount of warnings here, silence them! */
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic ignored "-Wlogical-op"
+#endif
 
-#endif  /* __EIGEN_C_API_H__ */
+#ifdef __EIGEN3_MATRIX_C_API_CC__  /* quiet warning */
+#endif
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include "matrix.h"
+
+using Eigen::Map;
+using Eigen::Matrix4f;
+
+bool EIG_invert_m4_m4(float inverse[4][4], const float matrix[4][4])
+{
+	Map<Matrix4f> M = Map<Matrix4f>((float*)matrix);
+	Matrix4f R;
+	bool invertible = true;
+	M.computeInverseWithCheck(R, invertible, 0.0f);
+	memcpy(inverse, R.data(), sizeof(float)*4*4);
+	return invertible;
+}
+
+#endif  /* __EIGEN3_MATRIX_C_API_CC__ */

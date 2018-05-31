@@ -33,6 +33,8 @@
 
 #include "BLI_strict_flags.h"
 
+#include "eigen_capi.h"
+
 /********************************* Init **************************************/
 
 void zero_m2(float m[2][2])
@@ -192,6 +194,25 @@ void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4])
 	BLI_assert(R != A && R != B);
 
 	/* matrix product: R[j][k] = A[j][i] . B[i][k] */
+#ifdef __SSE2__
+    __m128 A0 = _mm_loadu_ps(A[0]);
+    __m128 A1 = _mm_loadu_ps(A[1]);
+    __m128 A2 = _mm_loadu_ps(A[2]);
+    __m128 A3 = _mm_loadu_ps(A[3]);
+
+    for (int i = 0; i < 4; i++) {
+        __m128 B0 = _mm_set1_ps(B[i][0]);
+        __m128 B1 = _mm_set1_ps(B[i][1]);
+        __m128 B2 = _mm_set1_ps(B[i][2]);
+        __m128 B3 = _mm_set1_ps(B[i][3]);
+
+        __m128 sum = _mm_add_ps(
+			_mm_add_ps(_mm_mul_ps(B0, A0), _mm_mul_ps(B1, A1)),
+			_mm_add_ps(_mm_mul_ps(B2, A2), _mm_mul_ps(B3, A3)));
+
+        _mm_storeu_ps(R[i], sum);
+    }
+#else
 	R[0][0] = B[0][0] * A[0][0] + B[0][1] * A[1][0] + B[0][2] * A[2][0] + B[0][3] * A[3][0];
 	R[0][1] = B[0][0] * A[0][1] + B[0][1] * A[1][1] + B[0][2] * A[2][1] + B[0][3] * A[3][1];
 	R[0][2] = B[0][0] * A[0][2] + B[0][1] * A[1][2] + B[0][2] * A[2][2] + B[0][3] * A[3][2];
@@ -211,6 +232,7 @@ void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4])
 	R[3][1] = B[3][0] * A[0][1] + B[3][1] * A[1][1] + B[3][2] * A[2][1] + B[3][3] * A[3][1];
 	R[3][2] = B[3][0] * A[0][2] + B[3][1] * A[1][2] + B[3][2] * A[2][2] + B[3][3] * A[3][2];
 	R[3][3] = B[3][0] * A[0][3] + B[3][1] * A[1][3] + B[3][2] * A[2][3] + B[3][3] * A[3][3];
+#endif
 }
 
 void mul_m4_m4_pre(float R[4][4], const float A[4][4])
@@ -875,74 +897,11 @@ bool invert_m4(float m[4][4])
 	return success;
 }
 
-/*
- * invertmat -
- *      computes the inverse of mat and puts it in inverse.  Returns
- *  true on success (i.e. can always find a pivot) and false on failure.
- *  Uses Gaussian Elimination with partial (maximal column) pivoting.
- *
- *					Mark Segal - 1992
- */
-
 bool invert_m4_m4(float inverse[4][4], const float mat[4][4])
 {
-	int i, j, k;
-	double temp;
-	float tempmat[4][4];
-	float max;
-	int maxj;
-
-	BLI_assert(inverse != mat);
-
-	/* Set inverse to identity */
-	for (i = 0; i < 4; i++)
-		for (j = 0; j < 4; j++)
-			inverse[i][j] = 0;
-	for (i = 0; i < 4; i++)
-		inverse[i][i] = 1;
-
-	/* Copy original matrix so we don't mess it up */
-	for (i = 0; i < 4; i++)
-		for (j = 0; j < 4; j++)
-			tempmat[i][j] = mat[i][j];
-
-	for (i = 0; i < 4; i++) {
-		/* Look for row with max pivot */
-		max = fabsf(tempmat[i][i]);
-		maxj = i;
-		for (j = i + 1; j < 4; j++) {
-			if (fabsf(tempmat[j][i]) > max) {
-				max = fabsf(tempmat[j][i]);
-				maxj = j;
-			}
-		}
-		/* Swap rows if necessary */
-		if (maxj != i) {
-			for (k = 0; k < 4; k++) {
-				SWAP(float, tempmat[i][k], tempmat[maxj][k]);
-				SWAP(float, inverse[i][k], inverse[maxj][k]);
-			}
-		}
-
-		if (UNLIKELY(tempmat[i][i] == 0.0f)) {
-			return false;  /* No non-zero pivot */
-		}
-		temp = (double)tempmat[i][i];
-		for (k = 0; k < 4; k++) {
-			tempmat[i][k] = (float)((double)tempmat[i][k] / temp);
-			inverse[i][k] = (float)((double)inverse[i][k] / temp);
-		}
-		for (j = 0; j < 4; j++) {
-			if (j != i) {
-				temp = tempmat[j][i];
-				for (k = 0; k < 4; k++) {
-					tempmat[j][k] -= (float)((double)tempmat[i][k] * temp);
-					inverse[j][k] -= (float)((double)inverse[i][k] * temp);
-				}
-			}
-		}
-	}
-	return true;
+	/* Use optimized matrix inverse from Eigen, since performance
+	 * impact of this function is significant in complex rigs. */
+	return EIG_invert_m4_m4(inverse, mat);
 }
 
 /****************************** Linear Algebra *******************************/
