@@ -1154,21 +1154,22 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 static void ed_mesh_pick_face_vert__mpoly_find(
         /* context */
         struct ARegion *ar, const float mval[2],
-        /* mesh data */
-        DerivedMesh *dm, MPoly *mp, MLoop *mloop,
+        /* mesh data (evaluated) */
+        const MPoly *mp,
+        const MVert *mvert, const MLoop *mloop,
         /* return values */
         float *r_len_best, int *r_v_idx_best)
 {
 	const MLoop *ml;
 	int j = mp->totloop;
 	for (ml = &mloop[mp->loopstart]; j--; ml++) {
-		float co[3], sco[2], len;
+		float sco[2];
 		const int v_idx = ml->v;
-		dm->getVertCo(dm, v_idx, co);
+		const float *co = mvert[v_idx].co;
 		if (ED_view3d_project_float_object(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-			len = len_manhattan_v2v2(mval, sco);
-			if (len < *r_len_best) {
-				*r_len_best = len;
+			const float len_test = len_manhattan_v2v2(mval, sco);
+			if (len_test < *r_len_best) {
+				*r_len_best = len_test;
 				*r_v_idx_best = v_idx;
 			}
 		}
@@ -1191,7 +1192,7 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 		struct ARegion *ar = CTX_wm_region(C);
 
 		/* derived mesh to find deformed locations */
-		DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 		int v_idx_best = ORIGINDEX_NONE;
 
@@ -1199,36 +1200,38 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 		const float mval_f[2] = {UNPACK2(mval)};
 		float len_best = FLT_MAX;
 
-		MPoly *dm_mpoly;
-		MLoop *dm_mloop;
-		unsigned int dm_mpoly_tot;
+		MPoly *me_eval_mpoly;
+		MLoop *me_eval_mloop;
+		MVert *me_eval_mvert;
+		unsigned int me_eval_mpoly_len;
 		const int *index_mp_to_orig;
 
-		dm_mpoly = dm->getPolyArray(dm);
-		dm_mloop = dm->getLoopArray(dm);
+		me_eval_mpoly = me_eval->mpoly;
+		me_eval_mloop = me_eval->mloop;
+		me_eval_mvert = me_eval->mvert;
 
-		dm_mpoly_tot = dm->getNumPolys(dm);
+		me_eval_mpoly_len = me_eval->totpoly;
 
-		index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+		index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
 		/* tag all verts using this face */
 		if (index_mp_to_orig) {
 			unsigned int i;
 
-			for (i = 0; i < dm_mpoly_tot; i++) {
+			for (i = 0; i < me_eval_mpoly_len; i++) {
 				if (index_mp_to_orig[i] == poly_index) {
 					ed_mesh_pick_face_vert__mpoly_find(
 					        ar, mval_f,
-					        dm, &dm_mpoly[i], dm_mloop,
+					        &me_eval_mpoly[i], me_eval_mvert, me_eval_mloop,
 					        &len_best, &v_idx_best);
 				}
 			}
 		}
 		else {
-			if (poly_index < dm_mpoly_tot) {
+			if (poly_index < me_eval_mpoly_len) {
 				ed_mesh_pick_face_vert__mpoly_find(
 				        ar, mval_f,
-				        dm, &dm_mpoly[poly_index], dm_mloop,
+				        &me_eval_mpoly[poly_index], me_eval_mvert, me_eval_mloop,
 				        &len_best, &v_idx_best);
 			}
 		}
@@ -1236,14 +1239,11 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 		/* map 'dm -> me' index if possible */
 		if (v_idx_best != ORIGINDEX_NONE) {
 			const int *index_mv_to_orig;
-
-			index_mv_to_orig = dm->getVertDataArray(dm, CD_ORIGINDEX);
+			index_mv_to_orig = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
 			if (index_mv_to_orig) {
 				v_idx_best = index_mv_to_orig[v_idx_best];
 			}
 		}
-
-		dm->release(dm);
 
 		if ((v_idx_best != ORIGINDEX_NONE) && (v_idx_best < me->totvert)) {
 			*index = v_idx_best;
