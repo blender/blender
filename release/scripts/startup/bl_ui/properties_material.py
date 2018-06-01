@@ -172,9 +172,8 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         if mat.use_nodes:
             panel_node_draw(layout, mat.node_tree, ('OUTPUT_EEVEE_MATERIAL', 'OUTPUT_MATERIAL'))
         else:
-            raym = mat.raytrace_mirror
             layout.prop(mat, "diffuse_color", text="Base Color")
-            layout.prop(raym, "metallic")
+            layout.prop(mat, "metallic")
             layout.prop(mat, "specular_intensity", text="Specular")
             layout.prop(mat, "roughness")
 
