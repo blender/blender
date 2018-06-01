@@ -113,7 +113,7 @@ void BKE_material_init(Material *ma)
 
 	ma->r = ma->g = ma->b = 0.8;
 	ma->specr = ma->specg = ma->specb = 1.0;
-	ma->alpha = 1.0;
+	// ma->alpha = 1.0;  /* DEPRECATED */
 	ma->spec = 0.5;
 
 	ma->roughness = 0.25f;
