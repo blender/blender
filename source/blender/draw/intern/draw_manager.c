@@ -1618,8 +1618,8 @@ void DRW_draw_select_loop(
 			obedit_mode = CTX_MODE_EDIT_ARMATURE;
 		}
 	}
-	if (v3d->overlay.flag &= V3D_OVERLAY_BONE_SELECTION) {
-		if (!(v3d->flag2 &= V3D_RENDER_OVERRIDE)) {
+	if (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECTION) {
+		if (!(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
 			Object *obpose = OBPOSE_FROM_OBACT(obact);
 			if (obpose) {
 				use_obedit = true;
