@@ -1328,15 +1328,19 @@ class INFO_MT_add(Menu):
         layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_FORCE_FIELD')
         layout.separator()
 
-        if len(bpy.data.collections) > 10:
-            layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator(
+        has_collections = bool(bpy.data.collections)
+        col = layout.column()
+        col.enabled = has_collections
+
+        if not has_collections or len(bpy.data.collections) > 10:
+            col.operator_context = 'INVOKE_REGION_WIN'
+            col.operator(
                 "object.collection_instance_add",
-                text="Collection Instance...",
+                text="Collection Instance..." if has_collections else "No Collections to Instance",
                 icon='OUTLINER_OB_GROUP_INSTANCE',
             )
         else:
-            layout.operator_menu_enum(
+            col.operator_menu_enum(
                 "object.collection_instance_add",
                 "collection",
                 text="Collection Instance",
