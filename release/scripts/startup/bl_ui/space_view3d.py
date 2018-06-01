@@ -3580,6 +3580,7 @@ class VIEW3D_PT_overlay(Panel):
 
         col = layout.column()
         col.active = display_all
+        col.prop(overlay, "show_text", text="Text")
         col.prop(overlay, "show_cursor", text="3D Cursor")
 
         col.prop(view, "show_manipulator", text="Manipulators")

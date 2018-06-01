@@ -1207,33 +1207,37 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 		draw_view_axis(rv3d, &rect);
 	}
 
-	if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
-		ED_scene_draw_fps(scene, &rect);
-	}
-	else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-		draw_viewport_name(ar, v3d, &rect);
-	}
-
-	if (U.uiflag & USER_DRAWVIEWINFO) {
-		ViewLayer *view_layer = CTX_data_view_layer(C);
-		Object *ob = OBACT(view_layer);
-		draw_selected_name(scene, ob, &rect);
-	}
-
-#if 0 /* TODO */
-	if (grid_unit) { /* draw below the viewport name */
-		char numstr[32] = "";
-
-		UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
-		if (v3d->grid != 1.0f) {
-			BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
+	if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
+		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
+			ED_scene_draw_fps(scene, &rect);
+		}
+		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
+			draw_viewport_name(ar, v3d, &rect);
 		}
 
-		BLF_draw_default_ascii(rect.xmin + U.widget_unit,
-		                       rect.ymax - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
-		                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
+		if (U.uiflag & USER_DRAWVIEWINFO) {
+			ViewLayer *view_layer = CTX_data_view_layer(C);
+			Object *ob = OBACT(view_layer);
+			draw_selected_name(scene, ob, &rect);
+		}
+
+// #if 0 /* TODO */
+		if (grid_unit) { /* draw below the viewport name */
+			char numstr[32] = "";
+
+			UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
+			if (v3d->grid != 1.0f) {
+				BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
+			}
+
+			BLF_draw_default_ascii(
+			        rect.xmin + U.widget_unit,
+			        rect.ymax - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
+			        numstr[0] ? numstr : grid_unit, sizeof(numstr));
+		}
+// #endif
 	}
-#endif
+
 	BLF_batch_draw_end();
 }
 

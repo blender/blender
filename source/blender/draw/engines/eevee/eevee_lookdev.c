@@ -86,7 +86,7 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-	
+
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	if (psl->lookdev_pass && LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
