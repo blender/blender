@@ -1789,6 +1789,7 @@ static void mesh_batch_cache_clear_selective(Mesh *me, Gwn_VertBuf *vert)
 		GWN_BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
 		GWN_BATCH_DISCARD_SAFE(cache->triangles_with_select_mask);
 		GWN_BATCH_DISCARD_SAFE(cache->points_with_normals);
+		GWN_BATCH_DISCARD_SAFE(cache->ledges_with_normals);
 		if (cache->shaded_triangles) {
 			for (int i = 0; i < cache->mat_len; ++i) {
 				GWN_BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
@@ -1849,6 +1850,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 
 	GWN_BATCH_DISCARD_SAFE(cache->triangles_with_normals);
 	GWN_BATCH_DISCARD_SAFE(cache->points_with_normals);
+	GWN_BATCH_DISCARD_SAFE(cache->ledges_with_normals);
 	GWN_VERTBUF_DISCARD_SAFE(cache->pos_with_normals);
 	GWN_BATCH_DISCARD_SAFE(cache->triangles_with_weights);
 	GWN_BATCH_DISCARD_SAFE(cache->triangles_with_vert_colors);
