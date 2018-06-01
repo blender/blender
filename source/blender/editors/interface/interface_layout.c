@@ -1533,7 +1533,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			layout_sub->space = 0;
 
 			if ((index == RNA_NO_INDEX && is_array) &&
-			    ((ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand) == 0))
+			    ((!expand && ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA, PROP_DIRECTION)) == 0))
 			{
 				char name_with_suffix[UI_MAX_DRAW_STR + 2];
 				char str[2] = {'\0'};
