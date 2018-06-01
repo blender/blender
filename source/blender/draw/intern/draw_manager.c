@@ -1051,6 +1051,8 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 static void drw_engines_enable_from_object_mode(void)
 {
 	use_drw_engine(&draw_engine_object_type);
+	/* TODO(fclem) remove this, it does not belong to it's own engine. */
+	use_drw_engine(&draw_engine_motion_path_type);
 }
 
 static void drw_engines_enable_from_mode(int mode)
@@ -1347,7 +1349,9 @@ void DRW_draw_render_loop_ex(
 
 	drw_debug_draw();
 
+	glDisable(GL_DEPTH_TEST);
 	drw_engines_draw_text();
+	glEnable(GL_DEPTH_TEST);
 
 	if (DST.draw_ctx.evil_C) {
 		/* needed so manipulator isn't obscured */
@@ -2047,6 +2051,7 @@ void DRW_engines_register(void)
 	DRW_engine_register(&draw_engine_edit_metaball_type);
 	DRW_engine_register(&draw_engine_edit_surface_type);
 	DRW_engine_register(&draw_engine_edit_text_type);
+	DRW_engine_register(&draw_engine_motion_path_type);
 	DRW_engine_register(&draw_engine_overlay_type);
 	DRW_engine_register(&draw_engine_paint_texture_type);
 	DRW_engine_register(&draw_engine_paint_vertex_type);

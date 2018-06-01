@@ -3597,6 +3597,7 @@ class VIEW3D_PT_overlay(Panel):
         col.prop(overlay, "show_outline_selected")
         col.prop(overlay, "show_all_objects_origin")
         col.prop(overlay, "show_relationship_lines")
+        col.prop(overlay, "show_motion_paths")
         col.prop(overlay, "show_face_orientation")
         col.prop(overlay, "show_wireframes")
         col.prop(overlay, "show_backface_culling")

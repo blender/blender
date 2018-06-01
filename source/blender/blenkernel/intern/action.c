@@ -582,7 +582,9 @@ void BKE_pose_copy_data_ex(bPose **dst, const bPose *src, const int flag, const 
 		if (copy_constraints) {
 			BKE_constraints_copy_ex(&listb, &pchan->constraints, flag, true);  // BKE_constraints_copy NULLs listb
 			pchan->constraints = listb;
-			pchan->mpath = NULL; /* motion paths should not get copied yet... */
+
+			/* XXX: This is needed for motionpath drawing to work. Dunno why it was setting to null before... */
+			pchan->mpath = animviz_copy_motionpath(pchan->mpath);
 		}
 		
 		if (pchan->prop) {

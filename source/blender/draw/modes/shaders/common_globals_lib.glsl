@@ -48,6 +48,10 @@ layout(std140) uniform globalsBlock {
 	vec4 colorNurbSelUline;
 	vec4 colorActiveSpline;
 
+	vec4 colorBonePose;
+
+	vec4 colorCurrentFrame;
+
 	vec4 colorGrid;
 	vec4 colorGridEmphasise;
 	vec4 colorGridAxisX;

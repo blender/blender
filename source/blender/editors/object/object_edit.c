@@ -1004,6 +1004,15 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	/* recalculate paths, then free */
 	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
 	BLI_freelistN(&targets);
+	
+	/* tag objects for copy on write - so paths will draw/redraw */
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
+	{
+		if (ob->mpath) {
+			DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+		}
+	}
+	CTX_DATA_END;
 }
 
 

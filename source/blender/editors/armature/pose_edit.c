@@ -193,6 +193,9 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	/* recalculate paths, then free */
 	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
 	BLI_freelistN(&targets);
+	
+	/* tag armature object for copy on write - so paths will draw/redraw */
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 

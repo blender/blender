@@ -48,6 +48,8 @@ struct Main;
 
 void animviz_settings_init(struct bAnimVizSettings *avs);
 
+struct bMotionPath *animviz_copy_motionpath(const struct bMotionPath *mpath_src);
+
 void animviz_free_motionpath_cache(struct bMotionPath *mpath);
 void animviz_free_motionpath(struct bMotionPath *mpath);
 

@@ -1150,6 +1150,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				case DRW_CALL_SINGLE:
 					draw_geometry_execute(shgroup, call->single.geometry);
 					break;
+				case DRW_CALL_RANGE:
+					draw_geometry_execute_ex(shgroup, call->range.geometry, call->range.start, call->range.count, false);
+					break;
 				case DRW_CALL_INSTANCES:
 					draw_geometry_execute_ex(shgroup, call->instances.geometry, 0, *call->instances.count, true);
 					break;
