@@ -113,7 +113,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 }
 
 typedef struct Projector {
-	Object *ob_eval;             /* object this projector is derived from */
+	Object *ob;             /* object this projector is derived from */
 	float projmat[4][4];    /* projection matrix */
 	float normal[3];        /* projector normal in world space */
 	void *uci;              /* optional uv-project info (panorama projection) */
@@ -121,7 +121,6 @@ typedef struct Projector {
 
 static Mesh *uvprojectModifier_do(
         UVProjectModifierData *umd,
-        Depsgraph *depsgraph,
         Object *ob, Mesh *mesh)
 {
 	float (*coords)[3], (*co)[3];
@@ -140,7 +139,7 @@ static Mesh *uvprojectModifier_do(
 
 	for (i = 0; i < umd->num_projectors; ++i)
 		if (umd->projectors[i])
-			projectors[num_projectors++].ob_eval = DEG_get_evaluated_object(depsgraph, umd->projectors[i]);
+			projectors[num_projectors++].ob = umd->projectors[i];
 
 	if (num_projectors == 0) return mesh;
 
@@ -157,14 +156,14 @@ static Mesh *uvprojectModifier_do(
 		float offsetmat[4][4];
 		Camera *cam = NULL;
 		/* calculate projection matrix */
-		invert_m4_m4(projectors[i].projmat, projectors[i].ob_eval->obmat);
+		invert_m4_m4(projectors[i].projmat, projectors[i].ob->obmat);
 
 		projectors[i].uci = NULL;
 
-		if (projectors[i].ob_eval->type == OB_CAMERA) {
-			cam = (Camera *)projectors[i].ob_eval->data;
+		if (projectors[i].ob->type == OB_CAMERA) {
+			cam = (Camera *)projectors[i].ob->data;
 			if (cam->type == CAM_PANO) {
-				projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob_eval, NULL, aspx, aspy);
+				projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob, NULL, aspx, aspy);
 				BLI_uvproject_camera_info_scale(projectors[i].uci, scax, scay);
 				free_uci = 1;
 			}
@@ -173,7 +172,7 @@ static Mesh *uvprojectModifier_do(
 
 				/* setup parameters */
 				BKE_camera_params_init(&params);
-				BKE_camera_params_from_object(&params, projectors[i].ob_eval);
+				BKE_camera_params_from_object(&params, projectors[i].ob);
 
 				/* compute matrix, viewplane, .. */
 				BKE_camera_params_compute_viewplane(&params, 1, 1, aspx, aspy);
@@ -202,7 +201,7 @@ static Mesh *uvprojectModifier_do(
 		projectors[i].normal[0] = 0;
 		projectors[i].normal[1] = 0;
 		projectors[i].normal[2] = 1;
-		mul_mat3_m4_v3(projectors[i].ob_eval->obmat, projectors[i].normal);
+		mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
 	}
 
 	numPolys = mesh->totpoly;
@@ -314,7 +313,7 @@ static Mesh *applyModifier(
 	Mesh *result;
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 
-	result = uvprojectModifier_do(umd, ctx->depsgraph, ctx->object, mesh);
+	result = uvprojectModifier_do(umd, ctx->object, mesh);
 
 	return result;
 }
