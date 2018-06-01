@@ -93,43 +93,42 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             row = layout.row()
             row.prop(curve, "dimensions", expand=True)
 
-        split = layout.split()
+        layout.use_property_split = True
 
-        col = split.column()
-        col.label(text="Resolution:")
+        col = layout.column()
         sub = col.column(align=True)
-        sub.prop(curve, "resolution_u", text="Preview U")
+        sub.prop(curve, "resolution_u", text="Resolution Preview U")
+        if is_surf:
+            sub.prop(curve, "resolution_v", text="V")
+
+        sub = col.column(align=True)
         sub.prop(curve, "render_resolution_u", text="Render U")
+        if is_surf:
+            sub.prop(curve, "render_resolution_v", text="V")
+        col.separator()
+
         if is_curve:
-            col.label(text="Twisting:")
-            col.prop(curve, "twist_mode", text="")
+            col.prop(curve, "twist_mode")
             col.prop(curve, "twist_smooth", text="Smooth")
         elif is_text:
-            col.label(text="Display:")
             col.prop(curve, "use_fast_edit", text="Fast Editing")
 
-        col = split.column()
-
-        if is_surf:
-            sub = col.column()
-            sub.label(text="")
-            sub = col.column(align=True)
-            sub.prop(curve, "resolution_v", text="Preview V")
-            sub.prop(curve, "render_resolution_v", text="Render V")
-
         if is_curve or is_text:
-            col.label(text="Fill:")
+            col = layout.column()
+            col.separator()
+
             sub = col.column()
             sub.active = (curve.dimensions == '2D' or (curve.bevel_object is None and curve.dimensions == '3D'))
-            sub.prop(curve, "fill_mode", text="")
+            sub.prop(curve, "fill_mode")
             col.prop(curve, "use_fill_deform")
 
         if is_curve:
-            col.label(text="Path/Curve-Deform:")
+            col = layout.column()
+            col.separator()
+
             sub = col.column()
-            subsub = sub.row()
-            subsub.prop(curve, "use_radius")
-            subsub.prop(curve, "use_stretch")
+            sub.prop(curve, "use_radius")
+            sub.prop(curve, "use_stretch")
             sub.prop(curve, "use_deform_bounds")
 
 
@@ -140,16 +139,17 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         curve = context.curve
 
-        row = layout.row()
-        row.prop(curve, "use_auto_texspace")
-        row.prop(curve, "use_uv_as_generated")
+        col = layout.column()
+        col.prop(curve, "use_uv_as_generated")
+        col.prop(curve, "use_auto_texspace")
 
-        row = layout.row()
-        row.column().prop(curve, "texspace_location", text="Location")
-        row.column().prop(curve, "texspace_size", text="Size")
+        col = layout.column()
+        col.prop(curve, "texspace_location")
+        col.prop(curve, "texspace_size")
 
         layout.operator("curve.match_texture_space")
 
@@ -163,49 +163,54 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         curve = context.curve
 
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Modification:")
+        col = layout.column()
         col.prop(curve, "offset")
-        col.prop(curve, "extrude")
-        col.label(text="Taper Object:")
-        col.prop(curve, "taper_object", text="")
 
-        col = split.column()
-        col.label(text="Bevel:")
-        col.prop(curve, "bevel_depth", text="Depth")
-        col.prop(curve, "bevel_resolution", text="Resolution")
-        col.label(text="Bevel Object:")
-        col.prop(curve, "bevel_object", text="")
+        sub = col.column()
+        sub.active = (curve.bevel_object is None)
+        sub.prop(curve, "extrude")
+
+        col.prop(curve, "taper_object")
+
+        sub = col.column()
+        sub.active = curve.taper_object is not None
+        sub.prop(curve, "use_map_taper")
+
+        col.separator()
+
+        layout.label(text="Bevel")
+
+        col = layout.column()
+        sub = col.column()
+        sub.active = (curve.bevel_object is None)
+        sub.prop(curve, "bevel_depth", text="Depth")
+        sub.prop(curve, "bevel_resolution", text="Resolution")
+
+        col.prop(curve, "bevel_object", text="Object")
+
+        sub = col.column()
+        sub.active = curve.bevel_object is not None
+        sub.prop(curve, "use_fill_caps")
 
         if type(curve) is not TextCurve:
-            col = layout.column(align=True)
-            row = col.row()
-            row.label(text="Bevel Factor:")
 
             col = layout.column()
             col.active = (
-                    (curve.bevel_depth > 0.0) or
-                    (curve.extrude > 0.0) or
-                    (curve.bevel_object is not None))
-            row = col.row(align=True)
-            row.prop(curve, "bevel_factor_mapping_start", text="")
-            row.prop(curve, "bevel_factor_start", text="Start")
-            row = col.row(align=True)
-            row.prop(curve, "bevel_factor_mapping_end", text="")
-            row.prop(curve, "bevel_factor_end", text="End")
+                (curve.bevel_depth > 0.0) or
+                (curve.extrude > 0.0) or
+                (curve.bevel_object is not None)
+            )
+            sub = col.column(align=True)
+            sub.prop(curve, "bevel_factor_start", text="Bevel Start")
+            sub.prop(curve, "bevel_factor_end", text="End")
 
-            row = layout.row()
-            sub = row.row()
-            sub.active = curve.taper_object is not None
-            sub.prop(curve, "use_map_taper")
-            sub = row.row()
-            sub.active = curve.bevel_object is not None
-            sub.prop(curve, "use_fill_caps")
+            sub = col.column(align=True)
+            sub.prop(curve, "bevel_factor_mapping_start", text="Bevel Mapping Start")
+            sub.prop(curve, "bevel_factor_mapping_end", text="End")
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
@@ -218,6 +223,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         curve = context.curve
 
@@ -228,8 +234,9 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
         col.prop(curve, "eval_time")
 
         # these are for paths only
-        row = layout.row()
-        row.prop(curve, "use_path_follow")
+        col.separator()
+
+        col.prop(curve, "use_path_follow")
 
 
 class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
@@ -237,65 +244,64 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         curve = context.curve
         act_spline = curve.splines.active
         is_surf = type(curve) is SurfaceCurve
         is_poly = (act_spline.type == 'POLY')
 
-        split = layout.split()
+        col = layout.column()
 
         if is_poly:
             # These settings are below but its easier to have
             # polys set aside since they use so few settings
-            row = layout.row()
-            row.label(text="Cyclic:")
-            row.prop(act_spline, "use_cyclic_u", text="U")
 
-            layout.prop(act_spline, "use_smooth")
+            col.prop(act_spline, "use_cyclic_u")
+            col.prop(act_spline, "use_smooth")
         else:
-            col = split.column()
-            col.label(text="Cyclic:")
-            if act_spline.type == 'NURBS':
-                col.label(text="Bezier:")
-                col.label(text="Endpoint:")
-                col.label(text="Order:")
 
-            col.label(text="Resolution:")
-
-            col = split.column()
-            col.prop(act_spline, "use_cyclic_u", text="U")
-
-            if act_spline.type == 'NURBS':
-                sub = col.column()
-                # sub.active = (not act_spline.use_cyclic_u)
-                sub.prop(act_spline, "use_bezier_u", text="U")
-                sub.prop(act_spline, "use_endpoint_u", text="U")
-
-                sub = col.column()
-                sub.prop(act_spline, "order_u", text="U")
-            col.prop(act_spline, "resolution_u", text="U")
-
+            sub = col.column(align=True)
+            sub.prop(act_spline, "use_cyclic_u")
             if is_surf:
-                col = split.column()
-                col.prop(act_spline, "use_cyclic_v", text="V")
+                sub.prop(act_spline, "use_cyclic_v", text="V")
 
-                # its a surface, assume its a nurbs
-                sub = col.column()
-                sub.active = (not act_spline.use_cyclic_v)
-                sub.prop(act_spline, "use_bezier_v", text="V")
-                sub.prop(act_spline, "use_endpoint_v", text="V")
-                sub = col.column()
-                sub.prop(act_spline, "order_v", text="V")
+            if act_spline.type == 'NURBS':
+                sub = col.column(align=True)
+                # sub.active = (not act_spline.use_cyclic_u)
+                sub.prop(act_spline, "use_bezier_u", text="Bezier U")
+
+                if is_surf:
+                    subsub = sub.column()
+                    subsub.active = (not act_spline.use_cyclic_v)
+                    subsub.prop(act_spline, "use_bezier_v", text="V")
+
+                sub = col.column(align=True)
+                sub.prop(act_spline, "use_endpoint_u", text="Endpoint U")
+
+                if is_surf:
+                    subsub = sub.column()
+                    subsub.active = (not act_spline.use_cyclic_v)
+                    subsub.prop(act_spline, "use_endpoint_v", text="V")
+
+                sub = col.column(align=True)
+                sub.prop(act_spline, "order_u", text="Order U")
+
+                if is_surf:
+                    sub.prop(act_spline, "order_v", text="V")
+
+            sub = col.column(align=True)
+            sub.prop(act_spline, "resolution_u", text="Resolution U")
+            if is_surf:
                 sub.prop(act_spline, "resolution_v", text="V")
 
             if act_spline.type == 'BEZIER':
-                col = layout.column()
-                col.label(text="Interpolation:")
+
+                col.separator()
 
                 sub = col.column()
                 sub.active = (curve.dimensions == '3D')
-                sub.prop(act_spline, "tilt_interpolation", text="Tilt")
+                sub.prop(act_spline, "tilt_interpolation", text="Interpolation Tilt")
 
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
@@ -324,42 +330,36 @@ class DATA_PT_font(CurveButtonsPanelText, Panel):
         row.label(text="Bold & Italic")
         row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
 
+        layout.separator()
+
+        row = layout.row(align=True)
+        row.prop(char, "use_bold", toggle=True)
+        row.prop(char, "use_italic", toggle=True)
+        row.prop(char, "use_underline", toggle=True)
+        row.prop(char, "use_small_caps", toggle=True)
+
+        layout.use_property_split = True
         # layout.prop(text, "font")
 
-        split = layout.split()
+        col = layout.column()
 
-        col = split.column()
+        col.separator()
+
         col.prop(text, "size", text="Size")
-        col = split.column()
         col.prop(text, "shear")
 
-        split = layout.split()
+        col.separator()
 
-        col = split.column()
-        col.label(text="Object Font:")
-        col.prop(text, "family", text="")
+        col.prop(text, "family")
+        col.prop(text, "follow_curve")
 
-        col = split.column()
-        col.label(text="Text on Curve:")
-        col.prop(text, "follow_curve", text="")
+        col.separator()
 
-        split = layout.split()
-
-        col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Underline:")
-        sub.prop(text, "underline_position", text="Position")
-        sub.prop(text, "underline_height", text="Thickness")
+        sub.prop(text, "underline_position", text="Underline Position")
+        sub.prop(text, "underline_height", text="Underline Thickness")
 
-        col = split.column()
-        col.label(text="Character:")
-        col.prop(char, "use_bold")
-        col.prop(char, "use_italic")
-        col.prop(char, "use_underline")
-
-        row = layout.row()
-        row.prop(text, "small_caps_scale", text="Small Caps")
-        row.prop(char, "use_small_caps")
+        col.prop(text, "small_caps_scale", text="Small Caps Scale")
 
 
 class DATA_PT_paragraph(CurveButtonsPanelText, Panel):
@@ -370,23 +370,21 @@ class DATA_PT_paragraph(CurveButtonsPanelText, Panel):
 
         text = context.curve
 
-        layout.label(text="Horizontal Alignment:")
+        layout.label(text="Alignment")
         layout.row().prop(text, "align_x", expand=True)
-
-        layout.label(text="Vertical Alignment:")
         layout.row().prop(text, "align_y", expand=True)
 
-        split = layout.split()
+        layout.use_property_split = True
 
-        col = split.column(align=True)
-        col.label(text="Spacing:")
-        col.prop(text, "space_character", text="Letter")
-        col.prop(text, "space_word", text="Word")
-        col.prop(text, "space_line", text="Line")
+        col = layout.column(align=True)
+        col.prop(text, "space_character", text="Character Spacing")
+        col.prop(text, "space_word", text="Word Spacing")
+        col.prop(text, "space_line", text="Line Spacing")
 
-        col = split.column(align=True)
-        col.label(text="Offset:")
-        col.prop(text, "offset_x", text="X")
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(text, "offset_x", text="Offset X")
         col.prop(text, "offset_y", text="Y")
 
 
@@ -398,10 +396,7 @@ class DATA_PT_text_boxes(CurveButtonsPanelText, Panel):
 
         text = context.curve
 
-        split = layout.split()
-        col = split.column()
-        col.operator("font.textbox_add", icon='ZOOMIN')
-        col = split.column()
+        layout.operator("font.textbox_add", icon='ZOOMIN')
 
         for i, box in enumerate(text.text_boxes):
 
@@ -409,19 +404,16 @@ class DATA_PT_text_boxes(CurveButtonsPanelText, Panel):
 
             row = boxy.row()
 
-            split = row.split()
+            col = row.column()
+            col.use_property_split = True
 
-            col = split.column(align=True)
+            sub = col.column(align=True)
+            sub.prop(box, "width", text="Size X")
+            sub.prop(box, "height", text="Y")
 
-            col.label(text="Dimensions:")
-            col.prop(box, "width", text="Width")
-            col.prop(box, "height", text="Height")
-
-            col = split.column(align=True)
-
-            col.label(text="Offset:")
-            col.prop(box, "x", text="X")
-            col.prop(box, "y", text="Y")
+            sub = col.column(align=True)
+            sub.prop(box, "x", text="Offset X")
+            sub.prop(box, "y", text="Y")
 
             row.operator("font.textbox_remove", text="", icon='X', emboss=False).index = i
 

@@ -158,18 +158,17 @@ class DATA_PT_normals(MeshButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         mesh = context.mesh
 
-        split = layout.split()
+        col = layout.column()
+        col.prop(mesh, "show_double_sided")
 
-        col = split.column()
         col.prop(mesh, "use_auto_smooth")
         sub = col.column()
         sub.active = mesh.use_auto_smooth and not mesh.has_custom_normals
         sub.prop(mesh, "auto_smooth_angle", text="Angle")
-
-        split.prop(mesh, "show_double_sided")
 
 
 class DATA_PT_texture_space(MeshButtonsPanel, Panel):
@@ -179,6 +178,7 @@ class DATA_PT_texture_space(MeshButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         mesh = context.mesh
 
@@ -187,9 +187,9 @@ class DATA_PT_texture_space(MeshButtonsPanel, Panel):
         layout.separator()
 
         layout.prop(mesh, "use_auto_texspace")
-        row = layout.row()
-        row.column().prop(mesh, "texspace_location", text="Location")
-        row.column().prop(mesh, "texspace_size", text="Size")
+
+        layout.prop(mesh, "texspace_location", text="Location")
+        layout.prop(mesh, "texspace_size", text="Size")
 
 
 class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
@@ -279,6 +279,7 @@ class DATA_PT_face_maps(MeshButtonsPanel, Panel):
             sub = row.row(align=True)
             sub.operator("object.face_map_select", text="Select")
             sub.operator("object.face_map_deselect", text="Deselect")
+
 
 class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
     bl_label = "Shape Keys"

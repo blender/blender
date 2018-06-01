@@ -157,6 +157,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         col.prop(scene, "frame_step", text="Step")
 
         col = layout.split(percentage=0.5)
+        col.alignment = 'RIGHT'
         col.label(text="Frame Rate")
         self.draw_framerate(col, rd)
 

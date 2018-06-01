@@ -80,27 +80,27 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
 
         layout.row().prop(lamp, "type", expand=True)
 
-        split = layout.split()
+        layout.use_property_split = True
 
-        col = split.column()
-        sub = col.column()
-        sub.prop(lamp, "color", text="")
-        sub.prop(lamp, "energy")
+        col = col.column()
+        col.prop(lamp, "color")
+        col.prop(lamp, "energy")
 
         if lamp.type in {'POINT', 'SPOT'}:
-            sub.label(text="Falloff:")
-            sub.prop(lamp, "falloff_type", text="")
-            sub.prop(lamp, "distance")
-            sub.prop(lamp, "shadow_soft_size", text="Radius")
+
+            col = col.column()
+            col.label(text="Falloff")
+            col.prop(lamp, "falloff_type")
+            col.prop(lamp, "distance")
+            col.prop(lamp, "shadow_soft_size")
 
             if lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
-                col.label(text="Attenuation Factors:")
                 sub = col.column(align=True)
                 sub.prop(lamp, "linear_attenuation", slider=True, text="Linear")
                 sub.prop(lamp, "quadratic_attenuation", slider=True, text="Quadratic")
 
             elif lamp.falloff_type == 'INVERSE_COEFFICIENTS':
-                col.label(text="Inverse Coefficients:")
+                col.label(text="Inverse Coefficients")
                 sub = col.column(align=True)
                 sub.prop(lamp, "constant_coefficient", text="Constant")
                 sub.prop(lamp, "linear_coefficient", text="Linear")
@@ -119,31 +119,31 @@ class DATA_PT_EEVEE_lamp(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
         lamp = context.lamp
 
         layout.row().prop(lamp, "type", expand=True)
 
-        split = layout.split()
+        layout.use_property_split = True
 
-        col = split.column()
-        sub = col.column()
-        sub.prop(lamp, "color", text="")
-        sub.prop(lamp, "energy")
+        col = layout.column()
+        col.prop(lamp, "color")
+        col.prop(lamp, "energy")
+        col.prop(lamp, "specular_factor", text="Specular")
+
+        col.separator()
 
         if lamp.type in {'POINT', 'SPOT', 'SUN'}:
-            sub.prop(lamp, "shadow_soft_size", text="Radius")
+            col.prop(lamp, "shadow_soft_size", text="Radius")
         elif lamp.type == 'AREA':
-            sub = sub.column(align=True)
-            sub.prop(lamp, "shape", text="")
-            if lamp.shape  in {'SQUARE', 'DISK'}:
+            col.prop(lamp, "shape")
+
+            sub = col.column(align=True)
+
+            if lamp.shape in {'SQUARE', 'DISK'}:
                 sub.prop(lamp, "size")
             elif lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
                 sub.prop(lamp, "size", text="Size X")
-                sub.prop(lamp, "size_y", text="Size Y")
-
-        col = split.column()
-        col.prop(lamp, "specular_factor", text="Specular")
+                sub.prop(lamp, "size_y", text="Y")
 
 
 class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
@@ -162,49 +162,45 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         lamp = context.lamp
 
-        split = layout.split()
-        split.active = lamp.use_shadow
+        layout.active = lamp.use_shadow
 
-        sub = split.column()
-        col = sub.column(align=True)
-        col.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
-        col.prop(lamp, "shadow_buffer_clip_end", text="Clip End")
-        col = sub.column()
-        col.prop(lamp, "shadow_buffer_soft", text="Soft")
+        col = layout.column()
+        sub = col.column(align=True)
+        sub.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
+        sub.prop(lamp, "shadow_buffer_clip_end", text="End")
 
-        col = split.column(align=True)
+        col.prop(lamp, "shadow_buffer_soft", text="Softness")
+
+        col.separator()
+
         col.prop(lamp, "shadow_buffer_bias", text="Bias")
         col.prop(lamp, "shadow_buffer_exp", text="Exponent")
         col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
 
+        col.separator()
+
         if lamp.type == 'SUN':
-            col = layout.column()
-            col.active = lamp.use_shadow
-            col.label("Cascaded Shadow Map:")
+            col.label("Cascaded Shadow Map")
 
-            split = col.split()
+            col.prop(lamp, "shadow_cascade_count", text="Count")
+            col.prop(lamp, "shadow_cascade_fade", text="Fade")
 
-            sub = split.column()
-            sub.prop(lamp, "shadow_cascade_count", text="Count")
-            sub.prop(lamp, "shadow_cascade_fade", text="Fade")
-
-            sub = split.column()
-            sub.prop(lamp, "shadow_cascade_max_distance", text="Max Distance")
-            sub.prop(lamp, "shadow_cascade_exponent", text="Distribution")
+            col.prop(lamp, "shadow_cascade_max_distance", text="Max Distance")
+            col.prop(lamp, "shadow_cascade_exponent", text="Distribution")
 
         layout.separator()
 
         layout.prop(lamp, "use_contact_shadow")
-        split = layout.split()
-        split.active = lamp.use_contact_shadow
-        col = split.column()
-        col.prop(lamp, "contact_shadow_distance", text="Distance")
-        col.prop(lamp, "contact_shadow_soft_size", text="Soft")
 
-        col = split.column()
+        col = layout.column()
+        col.active = lamp.use_contact_shadow
+
+        col.prop(lamp, "contact_shadow_distance", text="Distance")
+        col.prop(lamp, "contact_shadow_soft_size", text="Softness")
         col.prop(lamp, "contact_shadow_bias", text="Bias")
         col.prop(lamp, "contact_shadow_thickness", text="Thickness")
 
@@ -282,16 +278,15 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         lamp = context.lamp
 
-        split = layout.split()
+        col = layout.column()
 
-        col = split.column()
-        sub = col.column()
-        sub.prop(lamp, "spot_size", text="Size")
-        sub.prop(lamp, "spot_blend", text="Blend", slider=True)
-        col = split.column()
+        col.prop(lamp, "spot_size", text="Size")
+        col.prop(lamp, "spot_blend", text="Blend", slider=True)
+
         col.prop(lamp, "show_cone")
 
 
