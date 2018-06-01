@@ -108,6 +108,7 @@ struct Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(st
 struct Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(struct Mesh *me);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide, uint select_id_offset);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh *me, bool use_hide);
+struct Gwn_Batch *DRW_mesh_batch_cache_get_loose_edges_with_normals(struct Mesh *me);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_points_with_normals(struct Mesh *me);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_all_verts(struct Mesh *me);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_fancy_edges(struct Mesh *me);

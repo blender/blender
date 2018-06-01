@@ -526,6 +526,17 @@ void DRW_cache_object_face_wireframe_get(
 	}
 }
 
+Gwn_Batch *DRW_cache_object_loose_edges_get(struct Object *ob)
+{
+	switch (ob->type) {
+		case OB_MESH:
+			return DRW_cache_mesh_loose_edges_get(ob);
+
+		/* TODO, should match 'DRW_cache_object_surface_get' */
+		default:
+			return NULL;
+	}
+}
 
 Gwn_Batch *DRW_cache_object_surface_get(Object *ob)
 {
@@ -2612,6 +2623,14 @@ Gwn_Batch *DRW_cache_mesh_surface_get(Object *ob)
 
 	Mesh *me = ob->data;
 	return DRW_mesh_batch_cache_get_triangles_with_normals(me);
+}
+
+Gwn_Batch *DRW_cache_mesh_loose_edges_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_loose_edges_with_normals(me);
 }
 
 Gwn_Batch *DRW_cache_mesh_surface_weights_get(Object *ob)

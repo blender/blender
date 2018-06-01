@@ -2101,28 +2101,26 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			if (ob != draw_ctx->object_edit) {
 				Mesh *me = ob->data;
-				if (me->totpoly == 0) {
-					if (me->totedge == 0) {
-						struct Gwn_Batch *geom = DRW_cache_mesh_verts_get(ob);
-						if (geom) {
-							if (theme_id == TH_UNDEFINED) {
-								theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-							}
-
-							DRWShadingGroup *shgroup = shgroup_theme_id_to_point_or(stl, theme_id, stl->g_data->points);
-							DRW_shgroup_call_object_add(shgroup, geom, ob);
+				if (me->totedge == 0) {
+					struct Gwn_Batch *geom = DRW_cache_mesh_verts_get(ob);
+					if (geom) {
+						if (theme_id == TH_UNDEFINED) {
+							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 						}
+
+						DRWShadingGroup *shgroup = shgroup_theme_id_to_point_or(stl, theme_id, stl->g_data->points);
+						DRW_shgroup_call_object_add(shgroup, geom, ob);
 					}
-					else {
-						struct Gwn_Batch *geom = DRW_cache_mesh_edges_get(ob);
-						if (geom) {
-							if (theme_id == TH_UNDEFINED) {
-								theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-							}
-
-							DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-							DRW_shgroup_call_object_add(shgroup, geom, ob);
+				}
+				else {
+					struct Gwn_Batch *geom = DRW_cache_mesh_loose_edges_get(ob);
+					if (geom) {
+						if (theme_id == TH_UNDEFINED) {
+							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 						}
+
+						DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
+						DRW_shgroup_call_object_add(shgroup, geom, ob);
 					}
 				}
 			}
