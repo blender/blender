@@ -178,7 +178,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	if (!bmd->object)
 		return mesh;
 
-	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, &mesh_other_free);
+	Object *ob_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_eval, &mesh_other_free);
 	if (mesh_other) {
 		Object *object = ctx->object;
 		Object *other = bmd->object;
