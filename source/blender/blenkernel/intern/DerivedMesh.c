@@ -3108,6 +3108,7 @@ void makeDerivedMesh(
 
 /***/
 
+/* Deprecated DM, use: 'mesh_get_eval_final'. */
 DerivedMesh *mesh_get_derived_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
@@ -3127,7 +3128,27 @@ DerivedMesh *mesh_get_derived_final(
 	if (ob->derivedFinal) { BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS)); }
 	return ob->derivedFinal;
 }
+Mesh *mesh_get_eval_final(
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
+{
+	/* if there's no evaluated mesh or the last data mask used doesn't include
+	 * the data we need, rebuild the derived mesh
+	 */
+	bool need_mapping;
+	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
 
+	if (!ob->derivedFinal ||
+	    ((dataMask & ob->lastDataMask) != dataMask) ||
+	    (need_mapping != ob->lastNeedMapping))
+	{
+		mesh_build_data(depsgraph, scene, ob, dataMask, false, need_mapping);
+	}
+
+	if (ob->runtime.mesh_eval) { BLI_assert(!(ob->runtime.mesh_eval->runtime.cd_dirty_vert & CD_MASK_NORMAL)); }
+	return ob->runtime.mesh_eval;
+}
+
+/* Deprecated DM, use: 'mesh_get_eval_deform' instead. */
 DerivedMesh *mesh_get_derived_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
@@ -3146,6 +3167,25 @@ DerivedMesh *mesh_get_derived_deform(struct Depsgraph *depsgraph, Scene *scene, 
 
 	return ob->derivedDeform;
 }
+Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
+{
+	/* if there's no derived mesh or the last data mask used doesn't include
+	 * the data we need, rebuild the derived mesh
+	 */
+	bool need_mapping;
+
+	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
+
+	if (!ob->runtime.mesh_deform_eval ||
+	    ((dataMask & ob->lastDataMask) != dataMask) ||
+	    (need_mapping != ob->lastNeedMapping))
+	{
+		mesh_build_data(depsgraph, scene, ob, dataMask, false, need_mapping);
+	}
+
+	return ob->runtime.mesh_deform_eval;
+}
+
 
 DerivedMesh *mesh_create_derived_render(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {

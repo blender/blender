@@ -534,7 +534,13 @@ void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int 
 DerivedMesh *mesh_get_derived_final(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask);
+struct Mesh *mesh_get_eval_final(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, CustomDataMask dataMask);
+
 DerivedMesh *mesh_get_derived_deform(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask);
+struct Mesh *mesh_get_eval_deform(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask);
 
