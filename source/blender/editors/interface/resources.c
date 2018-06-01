@@ -184,7 +184,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 						cp = ts->list;
 					else if (theme_regionid == RGN_TYPE_HEADER)
 						cp = ts->header;
-					else
+					else {
 						cp = ts->button;
 
 						copy_v4_v4_char(back, cp);
@@ -192,6 +192,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 							back[3] = 255;
 						}
 						cp = back;
+					}
 					break;
 				case TH_LOW_GRAD:
 					cp = ts->gradients.gradient;
