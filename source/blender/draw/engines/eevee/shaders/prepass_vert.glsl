@@ -15,11 +15,11 @@ void main()
 {
 #ifdef HAIR_SHADER
 	float time, thick_time, thickness;
-	vec3 pos, nor, binor;
-	hair_get_pos_tan_nor_time(
+	vec3 pos, tan, binor;
+	hair_get_pos_tan_binor_time(
 	        (ProjectionMatrix[3][3] == 0.0),
 	        ViewMatrixInverse[3].xyz, ViewMatrixInverse[2].xyz,
-	        pos, nor, binor, time, thickness, thick_time);
+	        pos, tan, binor, time, thickness, thick_time);
 
 	gl_Position = ViewProjectionMatrix * vec4(pos, 1.0);
 	vec4 worldPosition = vec4(pos, 1.0);

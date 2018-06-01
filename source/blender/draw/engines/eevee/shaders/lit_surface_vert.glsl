@@ -40,17 +40,18 @@ out float hairTime;
 void main()
 {
 #ifdef HAIR_SHADER
-	vec3 pos, nor;
-	hair_get_pos_tan_nor_time(
+	vec3 pos, binor;
+	hair_get_pos_tan_binor_time(
 	        (ProjectionMatrix[3][3] == 0.0),
 	        ViewMatrixInverse[3].xyz, ViewMatrixInverse[2].xyz,
-	        pos, nor, hairTangent, hairTime, hairThickness, hairThickTime);
+	        pos, hairTangent, binor, hairTime, hairThickness, hairThickTime);
 
 	gl_Position = ViewProjectionMatrix * vec4(pos, 1.0);
 	viewPosition = (ViewMatrix * vec4(pos, 1.0)).xyz;
 	worldPosition = pos;
-	worldNormal = nor;
-	viewNormal = normalize(mat3(ViewMatrixInverse) * nor);
+	hairTangent = normalize(hairTangent);
+	worldNormal = cross(binor, hairTangent);
+	viewNormal = normalize(mat3(ViewMatrix) * worldNormal);
 #else
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;

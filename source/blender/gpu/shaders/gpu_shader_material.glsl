@@ -2485,7 +2485,7 @@ void node_hair_info(out float is_strand, out float intercept, out float thicknes
 	is_strand = 1.0;
 	intercept = hairTime;
 	thickness = hairThickness;
-	tangent = normalize(worldNormal); /* TODO fix naming */
+	tangent = normalize(hairTangent);
 	random = 0.0;
 #else
 	is_strand = 0.0;

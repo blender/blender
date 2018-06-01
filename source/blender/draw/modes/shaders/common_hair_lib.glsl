@@ -134,9 +134,9 @@ float hair_shaperadius(float shape, float root, float tip, float time)
 	return (radius * (root - tip)) + tip;
 }
 
-void hair_get_pos_tan_nor_time(
+void hair_get_pos_tan_binor_time(
         bool is_persp, vec3 camera_pos, vec3 camera_z,
-        out vec3 wpos, out vec3 wtan, out vec3 wnor, out float time, out float thickness, out float thick_time)
+        out vec3 wpos, out vec3 wtan, out vec3 wbinor, out float time, out float thickness, out float thick_time)
 {
 	int id = hair_get_base_id();
 	vec4 data = texelFetch(hairPointBuffer, id);
@@ -151,7 +151,7 @@ void hair_get_pos_tan_nor_time(
 	}
 
 	vec3 camera_vec = (is_persp) ? wpos - camera_pos : -camera_z;
-	wnor = normalize(cross(camera_vec, wtan));
+	wbinor = normalize(cross(camera_vec, wtan));
 
 	thickness = hair_shaperadius(hairRadShape, hairRadRoot, hairRadTip, time);
 
@@ -159,7 +159,7 @@ void hair_get_pos_tan_nor_time(
 		thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
 		thick_time = thickness * (thick_time * 2.0 - 1.0);
 
-		wpos += wnor * thick_time;
+		wpos += wbinor * thick_time;
 	}
 }
 
