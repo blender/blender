@@ -271,7 +271,6 @@ static void displaceModifier_do_task(
 	}
 }
 
-/* dm must be a CDDerivedMesh */
 static void displaceModifier_do(
         DisplaceModifierData *dmd, const ModifierEvalContext *ctx,
         Mesh *mesh, float (*vertexCos)[3], const int numVerts)
