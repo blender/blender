@@ -60,14 +60,16 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	WORKBENCH_UBO_World *wd = &wpd->world_data;
 	float view_matrix[4][4];
 	DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
-	WORKBENCH_UBO_Light *light = &wd->lights[0];
 
-	mul_v3_mat3_m4v3(light->light_direction_vs, view_matrix, light_direction);
-	light->light_direction_vs[3] = 0.0f;
-	copy_v3_fl(light->specular_color, 1.0f);
-	light->energy = 1.0f;
-	copy_v4_v4(wd->light_direction_vs, light->light_direction_vs);
-	wd->num_lights = 1;
+	{
+		WORKBENCH_UBO_Light *light = &wd->lights[0];
+		mul_v3_mat3_m4v3(light->light_direction_vs, view_matrix, light_direction);
+		light->light_direction_vs[3] = 0.0f;
+		copy_v3_fl(light->specular_color, 1.0f);
+		light->energy = 1.0f;
+		copy_v4_v4(wd->light_direction_vs, light->light_direction_vs);
+		wd->num_lights = 1;
+	}
 
 	if (STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd)) {
 		int light_index = 0;
