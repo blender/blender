@@ -30,6 +30,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_world_types.h"
 
+#include "ED_screen.h"
+
 #include "eevee_private.h"
 
 void EEVEE_lookdev_cache_init(
@@ -86,6 +88,7 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
@@ -99,7 +102,7 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 
 		BKE_camera_params_from_view3d(&params, draw_ctx->depsgraph, v3d, rv3d);
 		params.is_ortho = true;
-		params.ortho_scale = 4.0f;
+		params.ortho_scale = 3.0f;
 		params.zoom = CAMERA_PARAM_ZOOM_INIT_PERSP;
 		params.offsetx = 0.0f;
 		params.offsety = 0.0f;
@@ -111,6 +114,8 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 		BKE_camera_params_compute_matrix(&params);
 
 		const float *viewport_size = DRW_viewport_size_get();
+		rcti rect;
+		ED_region_visible_rect(draw_ctx->ar, &rect);
 		int viewport_inset_x = viewport_size[0] / 4;
 		int viewport_inset_y = viewport_size[1] / 4;
 
@@ -142,7 +147,12 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 
 		GPUFrameBuffer *fb = effects->final_fb;
 		GPU_framebuffer_bind(fb);
-		GPU_framebuffer_viewport_set(fb, viewport_size[0] - viewport_inset_x, 0, viewport_inset_x, viewport_inset_y);
+		GPU_framebuffer_viewport_set(fb, rect.xmax - viewport_inset_x, 0, viewport_inset_x, viewport_inset_y);
+		DRW_draw_pass(psl->lookdev_pass);
+
+		fb = dfbl->depth_only_fb;
+		GPU_framebuffer_bind(fb);
+		GPU_framebuffer_viewport_set(fb, rect.xmax - viewport_inset_x, 0, viewport_inset_x, viewport_inset_y);
 		DRW_draw_pass(psl->lookdev_pass);
 
 		DRW_viewport_matrix_override_unset_all();
