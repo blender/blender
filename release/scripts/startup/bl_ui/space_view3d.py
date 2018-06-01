@@ -3552,12 +3552,14 @@ class VIEW3D_PT_shading(Panel):
             sub.active = shading.show_object_outline
             sub.prop(shading, "object_outline_color", text="")
 
+            col.prop(view, "show_world")
+
         elif shading.type in ('MATERIAL'):
             col.row().template_icon_view(shading, "studio_light")
             if shading.studio_light_orientation == 'WORLD':
                 col.row().prop(shading, "studiolight_rot_z")
                 col.row().prop(shading, "studiolight_background")
-            col.row().prop(shading, "use_scene_light")
+            col.prop(shading, "use_scene_light")
 
 
 class VIEW3D_PT_overlay(Panel):
@@ -3580,20 +3582,12 @@ class VIEW3D_PT_overlay(Panel):
         display_all = overlay.show_overlays
 
         col = layout.column()
-        col.prop(view, "show_world")
-
-        col = layout.column()
         col.active = display_all
-        col.prop(overlay, "show_text", text="Text")
-        col.prop(overlay, "show_cursor", text="3D Cursor")
 
         col.prop(view, "show_manipulator", text="Manipulators")
 
-        if shading.type == "MATERIAL":
-            col.prop(overlay, "show_look_dev")
-
-        col = layout.column()
-        col.active = display_all
+        col.prop(overlay, "show_text", text="Text")
+        col.prop(overlay, "show_cursor", text="3D Cursor")
         col.prop(overlay, "show_outline_selected")
         col.prop(overlay, "show_all_objects_origin")
         col.prop(overlay, "show_relationship_lines")
@@ -3601,6 +3595,9 @@ class VIEW3D_PT_overlay(Panel):
         col.prop(overlay, "show_face_orientation")
         col.prop(overlay, "show_wireframes")
         col.prop(overlay, "show_backface_culling")
+
+        if shading.type == "MATERIAL":
+            col.prop(overlay, "show_look_dev")
 
         col = layout.column()
         col.active = display_all
@@ -3616,11 +3613,8 @@ class VIEW3D_PT_overlay(Panel):
         sub.active = bool(overlay.show_floor or view.region_quadviews or not view.region_3d.is_perspective)
         subsub = sub.column(align=True)
         subsub.active = overlay.show_floor
-        subsub.prop(overlay, "grid_lines", text="Lines")
         sub.prop(overlay, "grid_scale", text="Scale")
-        subsub = sub.column(align=True)
-        subsub.active = scene.unit_settings.system == 'NONE'
-        subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
+        sub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
         if context.mode == 'EDIT_MESH':
             col.separator()
