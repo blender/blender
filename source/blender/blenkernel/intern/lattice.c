@@ -420,10 +420,11 @@ void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float
 	int defgrp_index = -1;
 	float co_prev[3], weight_blend = 0.0f;
 	MDeformVert *dvert = BKE_lattice_deform_verts_get(ob);
+	float *__restrict latticedata = lattice_deform_data->latticedata;
 
 
 	if (lt->editlatt) lt = lt->editlatt->latt;
-	if (lattice_deform_data->latticedata == NULL) return;
+	if (latticedata == NULL) return;
 
 	if (lt->vgroup[0] && dvert) {
 		defgrp_index = defgroup_name_index(ob, lt->vgroup);
@@ -504,7 +505,7 @@ void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float
 								idx_u = idx_v;
 							}
 
-							madd_v3_v3fl(co, &lattice_deform_data->latticedata[idx_u * 3], u);
+							madd_v3_v3fl(co, &latticedata[idx_u * 3], u);
 
 							if (defgrp_index != -1)
 								weight_blend += (u * defvert_find_weight(dvert + idx_u, defgrp_index));

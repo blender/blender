@@ -513,25 +513,27 @@ static void create_kdop_hull(const BVHTree *tree, BVHNode *node, const float *co
 }
 
 /**
- * \note depends on the fact that the BVH's for each face is already build
+ * \note depends on the fact that the BVH's for each face is already built
  */
 static void refit_kdop_hull(const BVHTree *tree, BVHNode *node, int start, int end)
 {
 	float newmin, newmax;
-	float *bv = node->bv;
+	float *__restrict bv = node->bv;
 	int j;
 	axis_t axis_iter;
 
 	node_minmax_init(tree, node);
 
 	for (j = start; j < end; j++) {
+		float *__restrict node_bv = tree->nodes[j]->bv;
+
 		/* for all Axes. */
 		for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-			newmin = tree->nodes[j]->bv[(2 * axis_iter)];
+			newmin = node_bv[(2 * axis_iter)];
 			if ((newmin < bv[(2 * axis_iter)]))
 				bv[(2 * axis_iter)] = newmin;
 
-			newmax = tree->nodes[j]->bv[(2 * axis_iter) + 1];
+			newmax = node_bv[(2 * axis_iter) + 1];
 			if ((newmax > bv[(2 * axis_iter) + 1]))
 				bv[(2 * axis_iter) + 1] = newmax;
 		}

@@ -225,8 +225,8 @@ static void meshdeform_vert_task(
 	const MDeformVert *dvert = data->dvert;
 	const int defgrp_index = data->defgrp_index;
 	const int *offsets = mmd->bindoffsets;
-	const MDefInfluence *influences = mmd->bindinfluences;
-	/*const*/ float (*dco)[3] = data->dco;
+	const MDefInfluence *__restrict influences = mmd->bindinfluences;
+	/*const*/ float (*__restrict dco)[3] = data->dco;
 	float (*vertexCos)[3] = data->vertexCos;
 	float co[3];
 	float weight, totweight, fac = 1.0f;
@@ -253,11 +253,12 @@ static void meshdeform_vert_task(
 		totweight = meshdeform_dynamic_bind(mmd, dco, co);
 	}
 	else {
-		int a;
 		totweight = 0.0f;
 		zero_v3(co);
+		int start = offsets[iter];
+		int end = offsets[iter + 1];
 
-		for (a = offsets[iter]; a < offsets[iter + 1]; a++) {
+		for (int a = start; a < end; a++) {
 			weight = influences[a].weight;
 			madd_v3_v3fl(co, dco[influences[a].vertex], weight);
 			totweight += weight;
