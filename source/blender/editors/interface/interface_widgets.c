@@ -2626,15 +2626,9 @@ static void widget_state_nothing(uiWidgetType *wt, int UNUSED(state))
 }
 
 /* special case, button that calls pulldown */
-static void widget_state_pulldown(uiWidgetType *wt, int state)
+static void widget_state_pulldown(uiWidgetType *wt, int UNUSED(state))
 {
 	wt->wcol = *(wt->wcol_theme);
-
-	copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
-	copy_v3_v3_char(wt->wcol.outline, wt->wcol.inner);
-
-	if (state & UI_ACTIVE)
-		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
 }
 
 /* special case, pie menu items */
@@ -3812,9 +3806,22 @@ static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 
 static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	if (state & UI_ACTIVE) {
+	float back[4];
+	UI_GetThemeColor4fv(TH_BACK, back);
+
+	if ((state & UI_ACTIVE) || (back[3] < 1.0f)) {
 		uiWidgetBase wtb;
 		const float rad = wcol->roundness * U.widget_unit;
+
+		if (state & UI_ACTIVE) {
+			copy_v4_v4_char(wcol->inner, wcol->inner_sel);
+			copy_v3_v3_char(wcol->text, wcol->text_sel);
+			copy_v3_v3_char(wcol->outline, wcol->inner);
+		}
+		else {
+			wcol->inner[3] *= 1.0f - back[3];
+			wcol->outline[3] = 0.0f;
+		}
 
 		widget_init(&wtb);
 

@@ -56,6 +56,8 @@
 
 #include "BLF_api.h"
 
+#include "ED_screen.h"
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
@@ -96,6 +98,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	static char error[4] = {240, 0, 240, 255};
 	static char alert[4] = {240, 60, 60, 255};
 	static char headerdesel[4] = {0, 0, 0, 255};
+	static char back[4] = {0, 0, 0, 255};
 	static char setting = 0;
 	const char *cp = error;
 
@@ -183,6 +186,12 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 						cp = ts->header;
 					else
 						cp = ts->button;
+
+						copy_v4_v4_char(back, cp);
+						if (!ED_region_is_overlap(spacetype, theme_regionid)) {
+							back[3] = 255;
+						}
+						cp = back;
 					break;
 				case TH_LOW_GRAD:
 					cp = ts->gradients.gradient;

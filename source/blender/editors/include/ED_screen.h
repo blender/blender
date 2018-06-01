@@ -94,6 +94,7 @@ void    ED_region_image_metadata_draw(int x, int y, struct ImBuf *ibuf, const rc
 void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
 float	ED_region_blend_alpha(struct ARegion *ar);
 void	ED_region_visible_rect(struct ARegion *ar, struct rcti *rect);
+bool    ED_region_is_overlap(int spacetype, int regiontype);
 
 int     ED_region_snap_size_test(const struct ARegion *ar);
 bool    ED_region_snap_size_apply(struct ARegion *ar, int snap_flag);
