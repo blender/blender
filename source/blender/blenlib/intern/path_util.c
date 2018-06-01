@@ -113,25 +113,29 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 	}
 
 	if (found_digit) {
-		if (tail) strcpy(tail, &string[nume + 1]);
-		if (head) {
-			strcpy(head, string);
-			head[nums] = 0;
+		char *ptr;
+		long ret;
+		ret = strtoll(&(string[nums]), &ptr, 10);
+		if (ret >= INT_MIN && ret <= INT_MAX) {
+			if (tail) strcpy(tail, &string[nume + 1]);
+			if (head) {
+				strcpy(head, string);
+				head[nums] = 0;
+			}
+			if (numlen) *numlen = nume - nums + 1;
+			return ((int)ret);
 		}
-		if (numlen) *numlen = nume - nums + 1;
-		return ((int)atoi(&(string[nums])));
 	}
-	else {
-		if (tail) strcpy(tail, string + name_end);
-		if (head) {
-			/* name_end points to last character of head,
-			 * make it +1 so null-terminator is nicely placed
-			 */
-			BLI_strncpy(head, string, name_end + 1);
-		}
-		if (numlen) *numlen = 0;
-		return 0;
+
+	if (tail) strcpy(tail, string + name_end);
+	if (head) {
+		/* name_end points to last character of head,
+		 * make it +1 so null-terminator is nicely placed
+		 */
+		BLI_strncpy(head, string, name_end + 1);
 	}
+	if (numlen) *numlen = 0;
+	return 0;
 }
 
 
