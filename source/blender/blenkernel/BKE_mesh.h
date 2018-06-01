@@ -34,6 +34,9 @@
 /* defines BLI_INLINE */
 #include "BLI_utildefines.h"
 
+/* defines CustomDataMask */
+#include "BKE_customdata.h"
+
 struct ID;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;
@@ -46,9 +49,11 @@ struct LinkNode;
 struct BLI_Stack;
 struct MemArena;
 struct BMesh;
+struct KeyBlock;
 struct MLoopTri;
 struct Main;
 struct Mesh;
+struct ModifierData;
 struct MPoly;
 struct MLoop;
 struct MFace;
@@ -168,6 +173,15 @@ void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 struct Mesh *BKE_mesh_new_from_object(
         struct Depsgraph *depsgraph, struct Main *bmain, struct Scene *sce, struct Object *ob,
         const bool apply_modifiers, const bool calc_tessface, const bool calc_undeformed);
+struct Mesh *BKE_mesh_create_derived_for_modifier(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
+        struct ModifierData *md, int build_shapekey_layers);
+
+/* Copies a nomain-Mesh into an existing Mesh. */
+void BKE_nomain_mesh_to_mesh(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct Object *ob,
+                             CustomDataMask mask, bool take_ownership);
+void BKE_nomain_mesh_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct KeyBlock *kb);
+
 
 /* vertex level transformations & checks (no derived mesh) */
 

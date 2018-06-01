@@ -546,7 +546,7 @@ static int modifier_apply_shape(ReportList *reports, Depsgraph *depsgraph, Scene
 	 */
 
 	if (ob->type == OB_MESH) {
-		DerivedMesh *dm;
+		Mesh *mesh_applied;
 		Mesh *me = ob->data;
 		Key *key = me->key;
 		KeyBlock *kb;
@@ -556,8 +556,8 @@ static int modifier_apply_shape(ReportList *reports, Depsgraph *depsgraph, Scene
 			return 0;
 		}
 		
-		dm = mesh_create_derived_for_modifier(depsgraph, scene, ob, md, 0);
-		if (!dm) {
+		mesh_applied = BKE_mesh_create_derived_for_modifier(depsgraph, scene, ob, md, 0);
+		if (!mesh_applied) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
 			return 0;
 		}
@@ -572,9 +572,9 @@ static int modifier_apply_shape(ReportList *reports, Depsgraph *depsgraph, Scene
 		}
 
 		kb = BKE_keyblock_add(key, md->name);
-		DM_to_meshkey(dm, me, kb);
+		BKE_nomain_mesh_to_meshkey(mesh_applied, me, kb);
 		
-		dm->release(dm);
+		BKE_id_free(NULL, mesh_applied);
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
@@ -595,7 +595,7 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 	}
 
 	if (ob->type == OB_MESH) {
-		DerivedMesh *dm;
+		Mesh *mesh_applied;
 		Mesh *me = ob->data;
 		MultiresModifierData *mmd = find_multires_modifier_before(scene, md);
 
@@ -615,13 +615,13 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 			}
 		}
 		else {
-			dm = mesh_create_derived_for_modifier(depsgraph, scene, ob, md, 1);
-			if (!dm) {
+			mesh_applied = BKE_mesh_create_derived_for_modifier(depsgraph, scene, ob, md, 1);
+			if (!mesh_applied) {
 				BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
 				return 0;
 			}
 
-			DM_to_mesh(dm, me, ob, CD_MASK_MESH, true);
+			BKE_nomain_mesh_to_mesh(mesh_applied, me, ob, CD_MASK_MESH, true);
 
 			if (md->type == eModifierType_Multires)
 				multires_customdata_delete(me);
