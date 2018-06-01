@@ -676,8 +676,8 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 	MPoly *mp,  *mpoly = me->mpoly;
 	MLoop       *mloop = me->mloop;
 
-	int dm_totedge = me->totedge;
-	int dm_totpoly = me->totpoly;
+	int medge_len = me->totedge;
+	int mpoly_len = me->totpoly;
 	int totedges = 0;
 	int i;
 
@@ -687,8 +687,8 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 	ListBase edges = {NULL, NULL};
 
 	/* get boundary edges */
-	edge_users = MEM_calloc_arrayN(dm_totedge, sizeof(int), __func__);
-	for (i = 0, mp = mpoly; i < dm_totpoly; i++, mp++) {
+	edge_users = MEM_calloc_arrayN(medge_len, sizeof(int), __func__);
+	for (i = 0, mp = mpoly; i < mpoly_len; i++, mp++) {
 		MLoop *ml = &mloop[mp->loopstart];
 		int j;
 		for (j = 0; j < mp->totloop; j++, ml++) {
@@ -698,7 +698,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 
 	/* create edges from all faces (so as to find edges not in any faces) */
 	med = medge;
-	for (i = 0; i < dm_totedge; i++, med++) {
+	for (i = 0; i < medge_len; i++, med++) {
 		if (edge_users[i] == edge_users_test) {
 			EdgeLink *edl = MEM_callocN(sizeof(EdgeLink), "EdgeLink");
 			edl->edge = med;
