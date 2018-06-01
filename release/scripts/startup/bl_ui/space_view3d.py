@@ -3538,6 +3538,9 @@ class VIEW3D_PT_shading(Panel):
 
             row = col.row()
             row.prop(shading, "show_xray")
+            sub = row.row()
+            sub.active = shading.show_xray
+            sub.prop(shading, "xray_alpha", text="")
 
             row = col.row()
             row.active = not shading.show_xray

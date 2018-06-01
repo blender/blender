@@ -21,18 +21,20 @@ void main()
 	float transparent_revealage = texelFetch(transparentRevealage, texel, 0).r;
 #endif
 	vec4 color;
+	vec4 bg_color;
 
 #ifdef V3D_SHADING_OBJECT_OUTLINE
 	float outline = calculate_object_outline(objectId, texel, object_id);
 #else /* V3D_SHADING_OBJECT_OUTLINE */
 	float outline = 1.0;
 #endif /* V3D_SHADING_OBJECT_OUTLINE */
-
+	bg_color = vec4(background_color(world_data, uv_viewport.y), 0.0);
 	if (object_id == NO_OBJECT_ID) {
-		color = vec4(background_color(world_data, uv_viewport.y), 0.0);
+		color = bg_color;
 	} else {
 #ifdef WORKBENCH_REVEALAGE_ENABLED
 		color = vec4((transparent_accum.xyz / max(transparent_accum.a, EPSILON)) * (1.0 - transparent_revealage), 1.0);
+		color = mix(bg_color, color, clamp(1.0 - transparent_revealage, 0.0, 1.0));
 #else
 		color = vec4(transparent_accum.xyz / max(transparent_accum.a, EPSILON), 1.0);
 #endif

@@ -2,6 +2,7 @@
 uniform sampler2D image;
 #endif
 uniform mat3 normalWorldMatrix;
+uniform float alpha = 0.5;
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 in vec3 normal_viewport;
@@ -53,7 +54,6 @@ void main()
 
 #endif /* V3D_LIGHTING_STUDIO */
 
-	float alpha = 0.5	;
 	vec4 premultiplied = vec4(shaded_color.rgb * alpha, alpha);
 	transparentAccum = calculate_transparent_accum(premultiplied);
 }

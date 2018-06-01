@@ -2342,6 +2342,15 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "X-Ray", "Show whole scene transparent");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "xray_alpha", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "shading.xray_alpha");
+	RNA_def_property_float_default(prop, 0.5);
+	RNA_def_property_ui_text(prop, "X-Ray Alpha", "Amount of alpha to use");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.04f, 1.0f, 1, 1);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "use_scene_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_SCENE_LIGHT);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

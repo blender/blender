@@ -148,7 +148,7 @@ typedef struct View3DShading {
 	float studiolight_background;
 
 	float object_outline_color[3];
-	float pad2;
+	float xray_alpha;
 } View3DShading;
 
 /* 3D Viewport Overlay setings */
