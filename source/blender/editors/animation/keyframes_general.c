@@ -62,7 +62,7 @@
  * (i.e. they will modify the order of the keyframes, and change the size of the array).
  * While some of these tools may eventually be moved out into blenkernel, for now, it is
  * fine to have these calls here.
- * 
+ *
  * There are also a few tools here which cannot be easily coded for in the other system (yet).
  * These may also be moved around at some point, but for now, they are best added here.
  *
@@ -73,7 +73,7 @@
 
 /* Only delete the nominated keyframe from provided F-Curve. 
  * Not recommended to be used many times successively. For that
- * there is delete_fcurve_keys(). 
+ * there is delete_fcurve_keys().
  */
 void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
 {

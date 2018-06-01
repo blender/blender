@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -836,7 +836,7 @@ bool nodeIsChildOf(const bNode *parent, const bNode *child)
 /**
  * Iterate over a chain of nodes, starting with \a node_start, executing
  * \a callback for each node (which can return false to end iterator).
- * 
+ *
  * \param reversed for backwards iteration
  * \note Recursive
  */
@@ -868,7 +868,7 @@ void nodeChainIter(
 
 /**
  * Iterate over all parents of \a node, executing \a callback for each parent (which can return false to end iterator)
- * 
+ *
  * \note Recursive
  */
 void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userdata)

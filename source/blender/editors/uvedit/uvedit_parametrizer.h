@@ -77,7 +77,7 @@ void param_delete(ParamHandle *chart);
  * - lscm is divided in three steps:
  * - begin: compute matrix and it's factorization (expensive)
  * - solve using pinned coordinates (cheap)
- * - end: clean up 
+ * - end: clean up
  * - uv coordinates are allowed to change within begin/end, for
  *   quick re-solving
  */

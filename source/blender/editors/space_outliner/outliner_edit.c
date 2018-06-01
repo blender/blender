@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1347,7 +1347,7 @@ static int ed_operator_outliner_datablocks_active(bContext *C)
 
 /* Helper func to extract an RNA path from selected tree element 
  * NOTE: the caller must zero-out all values of the pointers that it passes here first, as
- * this function does not do that yet 
+ * this function does not do that yet
  */
 static void tree_element_to_path(TreeElement *te, TreeStoreElem *tselem,
                                  ID **id, char **path, int *array_index, short *flag, short *UNUSED(groupmode))

@@ -167,7 +167,7 @@ void fromWorldToImage(const Vec3r& p, Vec3r& q, const real model_view_matrix[4][
  *  q
  *    vector in which the result will be stored
  *  transform
- *    The transformation matrix (gathering model view and projection), 
+ *    The transformation matrix (gathering model view and projection),
  *    expressed in line major order (OpenGL matrices are column major ordered)
  *  viewport
  *    The viewport: x,y coordinates followed by width and height (OpenGL like viewport)
@@ -175,7 +175,7 @@ void fromWorldToImage(const Vec3r& p, Vec3r& q, const real model_view_matrix[4][
 void fromWorldToImage(const Vec3r& p, Vec3r& q, const real transform[4][4], const int viewport[4]);
 
 /*! Projects from world coordinates to camera coordinates 
- *  Returns the point's coordinates expressed in the camera's 
+ *  Returns the point's coordinates expressed in the camera's
  *  coordinates system.
  *  p
  *    point's coordinates expressed in world coordinates system
@@ -221,8 +221,8 @@ void fromRetinaToImage(const Vec3r& p, Vec3r& q, const int viewport[4]);
 void fromImageToRetina(const Vec3r& p, Vec3r& q, const int viewport[4]);
 
 /*! computes the coordinates of q in the camera coordinates system, 
- *  using the known z coordinates of the 3D point. 
- *  That means that this method does not inverse any matrices, 
+ *  using the known z coordinates of the 3D point.
+ *  That means that this method does not inverse any matrices,
  *  it only computes X and Y from x,y and Z)
  *  p
  *    point's coordinates expressed in retina system
@@ -235,7 +235,7 @@ void fromImageToRetina(const Vec3r& p, Vec3r& q, const int viewport[4]);
 void fromRetinaToCamera(const Vec3r& p, Vec3r& q, real z, const real projection_matrix[4][4]);
 
 /*! Projects from camera coordinates to world coordinates
- *  Returns the point's coordinates expressed in the world's 
+ *  Returns the point's coordinates expressed in the world's
  *  coordinates system.
  *  p
  *    point's coordinates expressed in the camera coordinates system

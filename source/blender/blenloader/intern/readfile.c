@@ -2716,7 +2716,7 @@ static void lib_link_nladata(FileData *fd, ID *id, ListBase *list)
 }
 
 /* This handles Animato NLA-Strips linking 
- * NOTE: this assumes that link_list has already been called on the list 
+ * NOTE: this assumes that link_list has already been called on the list
  */
 static void direct_link_nladata_strips(FileData *fd, ListBase *list)
 {

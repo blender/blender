@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -387,12 +387,12 @@ typedef enum eAnimFilter_Flags {
 size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_Flags filter_mode, void *data, eAnimCont_Types datatype);
 
 /* Obtain current anim-data context from Blender Context info.
- * Returns whether the operation was successful. 
+ * Returns whether the operation was successful.
  */
 bool ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
 
 /* Obtain current anim-data context (from Animation Editor) given 
- * that Blender Context info has already been set. 
+ * that Blender Context info has already been set.
  * Returns whether the operation was successful.
  */
 bool ANIM_animdata_context_getdata(bAnimContext *ac);
@@ -509,9 +509,9 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
  *		  then the channels under closed expanders get ignored...
  *	- ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
- *		with the new state of the setting that we want flushed up/down the hierarchy 
+ *		with the new state of the setting that we want flushed up/down the hierarchy
  *	- setting: type of setting to set
- *	- on: whether the visibility setting has been enabled or disabled 
+ *	- on: whether the visibility setting has been enabled or disabled
  */
 void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode);
 
@@ -580,7 +580,7 @@ void ANIM_fmodifiers_copybuf_free(void);
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
 
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list 
- *	- replace: free all the existing modifiers to leave only the pasted ones 
+ *	- replace: free all the existing modifiers to leave only the pasted ones
  */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, struct FCurve *curve);
 

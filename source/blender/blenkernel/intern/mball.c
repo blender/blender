@@ -277,7 +277,7 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
  * This really needs a rewrite/refactor its totally broken in anything other then basic cases
  * Multiple Scenes + Set Scenes & mixing mball basis SHOULD work but fails to update the depsgraph on rename
  * and linking into scenes or removal of basis mball. so take care when changing this code.
- * 
+ *
  * Main idiot thing here is that the system returns find_basis_mball() objects which fail a is_basis_mball() test.
  *
  * Not only that but the depsgraph and their areas depend on this behavior!, so making small fixes here isn't worth it.

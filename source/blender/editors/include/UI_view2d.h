@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,12 +18,12 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation, Joshua Leung
  *
  *
  * Generic 2d view with should allow drawing grids,
- * panning, zooming, scrolling, .. 
+ * panning, zooming, scrolling, ..
  * ***** END GPL LICENSE BLOCK *****
  */
 
@@ -45,7 +45,7 @@
 #define V2D_IS_CLIPPED  12000
 
 /* Common View2D view types 
- * NOTE: only define a type here if it completely sets all (+/- a few) of the relevant flags 
+ * NOTE: only define a type here if it completely sets all (+/- a few) of the relevant flags
  *	    and settings for a View2D region, and that set of settings is used in more
  *	    than one specific place
  */

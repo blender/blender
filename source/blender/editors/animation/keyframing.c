@@ -303,8 +303,8 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
 /* This function adds a given BezTriple to an F-Curve. It will allocate 
  * memory for the array if needed, and will insert the BezTriple into a
  * suitable place in chronological order.
- * 
- * NOTE: any recalculate of the F-Curve that needs to be done will need to 
+ *
+ * NOTE: any recalculate of the F-Curve that needs to be done will need to
  *      be done by the caller.
  */
 int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
@@ -391,11 +391,11 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
 
 /**
  * This function is a wrapper for insert_bezt_fcurve_internal(), and should be used when
- * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet. 
+ * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet.
  * It returns the index at which the keyframe was added.
  *
  * \param keyframe_type: The type of keyframe (eBezTriple_KeyframeType)
- * \param flag: Optional flags (eInsertKeyFlags) for controlling how keys get added 
+ * \param flag: Optional flags (eInsertKeyFlags) for controlling how keys get added
  *              and/or whether updates get done
  */
 int insert_vert_fcurve(FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag)
@@ -664,8 +664,8 @@ enum {
 
 /* This helper function determines if visual-keyframing should be used when  
  * inserting keyframes for the given channel. As visual-keyframing only works
- * on Object and Pose-Channel blocks, this should only get called for those 
- * blocktypes, when using "standard" keying but 'Visual Keying' option in Auto-Keying 
+ * on Object and Pose-Channel blocks, this should only get called for those
+ * blocktypes, when using "standard" keying but 'Visual Keying' option in Auto-Keying
  * settings is on.
  */
 static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
@@ -1012,7 +1012,7 @@ bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRN
 
 /* Main Keyframing API call:
  *	Use this when validation of necessary animation data is necessary, since it may not exist yet.
- *	
+ *
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
@@ -1110,7 +1110,7 @@ short insert_keyframe(Depsgraph *depsgraph, ReportList *reports, ID *id, bAction
 /* Main Keyframing API call:
  *	Use this when validation of necessary animation data isn't necessary as it
  *	already exists. It will delete a keyframe at the current frame.
- *	
+ *
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
@@ -1434,7 +1434,7 @@ void ANIM_OT_keyframe_insert(wmOperatorType *ot)
 
 /* Insert Key Operator (With Menu) ------------------------ */
 /* This operator checks if a menu should be shown for choosing the KeyingSet to use, 
- * then calls the menu if necessary before 
+ * then calls the menu if necessary before
  */
 
 static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

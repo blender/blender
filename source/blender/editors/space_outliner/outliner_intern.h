@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -170,13 +170,13 @@ typedef enum {
  * Are we looking for something in the outliner?
  * If so finding matches in child items makes it more useful
  *
- * - We want to flag parents to act as being open to filter child matches 
+ * - We want to flag parents to act as being open to filter child matches
  * - and also flag matches so we can highlight them
  * - Flags are stored in TreeStoreElem->flag
  * - Flag options defined in DNA_outliner_types.h
  * - SO_SEARCH_RECURSIVE defined in DNA_space_types.h
  *
- * - NOT in datablocks view - searching all datablocks takes way too long 
+ * - NOT in datablocks view - searching all datablocks takes way too long
  *   to be useful
  * - not searching into RNA items helps but isn't the complete solution
  */

@@ -70,8 +70,8 @@
 
 /* Get (or add relevant data to be able to do so) F-Curve from the driver stack, 
  * for the given Animation Data block. This assumes that all the destinations are valid.
- *	
- *	- add:	0 - don't add anything if not found, 
+ *
+ *	- add:	0 - don't add anything if not found,
  *			1 - add new Driver FCurve (with keyframes for visual tweaking),
  *			2 - add new Driver FCurve (with generator, for script backwards compatibility)
  *			-1 - add new Driver FCurve without driver stuff (for pasting)
@@ -583,7 +583,7 @@ bool ANIM_copy_driver(ReportList *reports, ID *id, const char rna_path[], int ar
 
 /* Main Driver Management API calls:
  *  Add a new driver for the specified property on the given ID block or replace an existing one
- *	with the driver + driver-curve data from the buffer 
+ *	with the driver + driver-curve data from the buffer
  */
 bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {	

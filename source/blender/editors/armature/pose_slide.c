@@ -79,7 +79,7 @@
  * C) Pose Sculpting
  * This is yet to be implemented, but the idea here is to use
  * sculpting techniques to make it easier to pose rigs by allowing
- * rigs to be manipulated using a familiar paint-based interface. 
+ * rigs to be manipulated using a familiar paint-based interface.
  */
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */

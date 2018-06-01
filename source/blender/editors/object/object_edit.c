@@ -986,7 +986,7 @@ void OBJECT_OT_forcefield_toggle(wmOperatorType *ot)
 /* For the objects with animation: update paths for those that have got them
  * This should selectively update paths that exist...
  *
- * To be called from various tools that do incremental updates 
+ * To be called from various tools that do incremental updates
  */
 void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 {

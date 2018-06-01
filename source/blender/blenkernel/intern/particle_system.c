@@ -1449,7 +1449,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 }
 
 /*********************************************************************************************************
- *                    SPH fluid physics 
+ *                    SPH fluid physics
  *
  * In theory, there could be unlimited implementation of SPH simulators
  *

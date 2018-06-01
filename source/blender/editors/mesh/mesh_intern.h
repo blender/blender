@@ -48,7 +48,7 @@ struct LinkNode;
 /* *** editmesh_utils.c *** */
 
 /*
- * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
+ * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the
  * BMEdit module is for code shared with blenkernel that concerns
  * the BMEditMesh structure. */
 

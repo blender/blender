@@ -398,7 +398,7 @@ static int check_pixel_assigned(const void *buffer, const char *mask, const int 
 }
 
 /* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
- * 
+ *
  * When a mask is given, only effect pixels with a mask value of 1, defined as BAKE_MASK_MARGIN in rendercore.c
  * */
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)

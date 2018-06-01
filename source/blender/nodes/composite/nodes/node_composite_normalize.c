@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s):  gsr b3d, and a very minor edit from Robert Holcomb 
+ * Contributor(s):  gsr b3d, and a very minor edit from Robert Holcomb
  *
  * ***** END GPL LICENSE BLOCK *****
  */

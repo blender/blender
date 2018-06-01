@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
  */
 
 #ifndef __BLO_RUNTIME_H__

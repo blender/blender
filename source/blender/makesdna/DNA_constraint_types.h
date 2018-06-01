@@ -157,7 +157,7 @@ typedef enum eConstraint_IK_Type {
 
 /* Spline IK Constraint 
  * Aligns 'n' bones to the curvature defined by the curve,
- * with the chain ending on the bone that owns this constraint, 
+ * with the chain ending on the bone that owns this constraint,
  * and starting on the nth parent.
  */
 typedef struct bSplineIKConstraint {

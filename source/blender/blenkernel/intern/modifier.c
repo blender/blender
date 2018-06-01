@@ -400,9 +400,9 @@ void modifier_setError(ModifierData *md, const char *_format, ...)
 
 /* used for buttons, to find out if the 'draw deformed in editmode' option is
  * there
- * 
+ *
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
- * then is NULL) 
+ * then is NULL)
  * also used for some mesh tools to give warnings
  */
 int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *r_lastPossibleCageIndex, bool is_virtual)

@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joseph Eagar, Joshua Leung, Howard Trickey,
  *                 Campbell Barton
  *

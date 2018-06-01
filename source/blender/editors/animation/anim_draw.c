@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -304,7 +304,7 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve 
- *	- restore = whether to map points back to non-mapped time 
+ *	- restore = whether to map points back to non-mapped time
  *  - only_keys = whether to only adjust the location of the center point of beztriples
  */
 void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys)

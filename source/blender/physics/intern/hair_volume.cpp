@@ -45,12 +45,12 @@ extern "C" {
 
 /* ================ Volumetric Hair Interaction ================
  * adapted from
- * 
+ *
  * Volumetric Methods for Simulation and Rendering of Hair
  *     (Petrovic, Henne, Anderson, Pixar Technical Memo #06-08, Pixar Animation Studios)
- * 
+ *
  * as well as
- * 
+ *
  * "Detail Preserving Continuum Simulation of Straight Hair"
  *     (McAdams, Selle 2009)
  */
@@ -423,11 +423,11 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
 }
 
 /* Uses a variation of Bresenham's algorithm for rasterizing a 3D grid with a line segment.
- * 
+ *
  * The radius of influence around a segment is assumed to be at most 2*cellsize,
  * i.e. only cells containing the segment and their direct neighbors are examined.
- * 
- * 
+ *
+ *
  */
 void BPH_hair_volume_add_segment(HairGrid *grid,
                                  const float x1[3], const float v1[3], const float x2[3], const float v2[3],

@@ -47,7 +47,7 @@ extern "C" {
 /* F-Curve Modifiers (fcm) 
  *
  * These alter the way F-Curves behave, by altering the value that is returned
- * when evaluating the curve's data at some time (t). 
+ * when evaluating the curve's data at some time (t).
  */
 typedef struct FModifier {
 	struct FModifier *next, *prev;
@@ -134,7 +134,7 @@ typedef enum eFMod_Generator_Flags {
 
 
 /* 'Built-In Function' Generator modifier data
- * 
+ *
  * This uses the general equation for equations:
  * 		y = amplitude * fn(phase_multiplier*x + phase_offset) + y_offset
  *
@@ -397,14 +397,14 @@ typedef enum eDriverVar_Flags {
 
 /* Channel Driver (i.e. Drivers / Expressions) (driver)
  *
- * Channel Drivers are part of the dependency system, and are executed in addition to 
+ * Channel Drivers are part of the dependency system, and are executed in addition to
  * normal user-defined animation. They take the animation result of some channel(s), and
  * use that (optionally combined with its own F-Curve for modification of results) to define
  * the value of some setting semi-procedurally.
  *
  * Drivers are stored as part of F-Curve data, so that the F-Curve's RNA-path settings (for storing
  * what setting the driver will affect). The order in which they are stored defines the order that they're
- * evaluated in. This order is set by the Depsgraph's sorting stuff. 
+ * evaluated in. This order is set by the Depsgraph's sorting stuff.
  */
 typedef struct ChannelDriver {
 	ListBase variables;	/* targets for this driver (i.e. list of DriverVar) */
@@ -583,8 +583,8 @@ typedef struct AnimMapPair {
 
 /* Retargetting Information for Actions 
  *
- * This should only be used if it is strictly necessary (i.e. user will need to explicitly 
- * add this when they find that some channels do not match, or motion is not going to right 
+ * This should only be used if it is strictly necessary (i.e. user will need to explicitly
+ * add this when they find that some channels do not match, or motion is not going to right
  * places). When executing an action, this will be checked to see if it provides any useful
  * remaps for the given paths.
  *
@@ -607,7 +607,7 @@ typedef struct AnimMapper {
 /* NLA Strip (strip)
  *
  * A NLA Strip is a container for the reuse of Action data, defining parameters
- * to control the remapping of the Action data to some destination. 
+ * to control the remapping of the Action data to some destination.
  */
 typedef struct NlaStrip {
 	struct NlaStrip *next, *prev;
@@ -716,7 +716,7 @@ typedef enum eNlaStrip_Type {
 
 /* NLA Track (nlt)
  *
- * A track groups a bunch of 'strips', which should form a continuous set of 
+ * A track groups a bunch of 'strips', which should form a continuous set of
  * motion, on top of which other such groups can be layered. This should allow
  * for animators to work in a non-destructive manner, layering tweaks, etc. over
  * 'rough' blocks of their work.
@@ -759,7 +759,7 @@ typedef enum eNlaTrack_Flag {
  * dynamic data-block - such as PoseChannels - to act upon, ala
  * Maya's 'Character Sets' and XSI's 'Marking Sets'), or they may
  * be generic (using various placeholder template tags that will be
- * replaced with appropriate information from the context). 
+ * replaced with appropriate information from the context).
  */
 typedef struct KS_Path {
 	struct KS_Path *next, *prev;
@@ -807,7 +807,7 @@ typedef enum eKSP_Grouping {
  * be keyframed together, providing a convenient way for animators
  * to insert keyframes without resorting to Auto-Keyframing.
  *
- * A few 'generic' (non-absolute and dependent on templates) KeyingSets 
+ * A few 'generic' (non-absolute and dependent on templates) KeyingSets
  * are defined 'built-in' to facilitate easy animating for the casual
  * animator without the need to add extra steps to the rigging process.
  */
@@ -864,7 +864,7 @@ typedef enum eInsertKeyFlags {
  *
  * This is used to as temporary storage of values which have been changed by the user, but not
  * yet keyframed (thus, would get overwritten by the animation system before the user had a chance
- * to see the changes that were made). 
+ * to see the changes that were made).
  *
  * It is probably not needed for overriding keyframed values in most cases, as those will only get evaluated
  * on frame-change now. That situation may change in future.
@@ -881,11 +881,11 @@ typedef struct AnimOverride {
 /* AnimData ------------------------------------- */
 
 /* Animation data for some ID block (adt)
- * 
+ *
  * This block of data is used to provide all of the necessary animation data for a datablock.
  * Currently, this data will not be reusable, as there shouldn't be any need to do so.
- * 
- * This information should be made available for most if not all ID-blocks, which should 
+ *
+ * This information should be made available for most if not all ID-blocks, which should
  * enable all of its settings to be animatable locally. Animation from 'higher-up' ID-AnimData
  * blocks may override local settings.
  *

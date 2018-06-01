@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
  */
 
 /** \file DNA_vec_types.h

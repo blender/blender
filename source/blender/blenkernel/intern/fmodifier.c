@@ -58,14 +58,14 @@ void *fmodifiers_storage_get(FModifierStackStorage *storage, FModifier *fcm);
 /* Info ------------------------------- */
 
 /* F-Modifiers are modifiers which operate on F-Curves. However, they can also be defined
- * on NLA-Strips to affect all of the F-Curves referenced by the NLA-Strip. 
+ * on NLA-Strips to affect all of the F-Curves referenced by the NLA-Strip.
  */
 
 /* Template --------------------------- */
 
 /* Each modifier defines a set of functions, which will be called at the appropriate
  * times. In addition to this, each modifier should have a type-info struct, where
- * its functions are attached for use. 
+ * its functions are attached for use.
  */
  
 /* Template for type-info data:
@@ -74,7 +74,7 @@ void *fmodifiers_storage_get(FModifierStackStorage *storage, FModifier *fcm);
  *  - although the naming of functions doesn't matter, it would help for code
  *    readability, to follow the same naming convention as is presented here
  *  - any functions that a constraint doesn't need to define, don't define
- *    for such cases, just use NULL 
+ *    for such cases, just use NULL
  *  - these should be defined after all the functions have been defined, so that
  *    forward-definitions/prototypes don't need to be used!
  *	- keep this copy #if-def'd so that future constraints can get based off this
@@ -260,7 +260,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
  * x is the evaluation 'time', and 'y' is the resultant value
  *
  * Functions available are
- *	sin, cos, tan, sinc (normalized sin), natural log, square root 
+ *	sin, cos, tan, sinc (normalized sin), natural log, square root
  */
 
 static void fcm_fn_generator_new_data(void *mdata)
@@ -1397,7 +1397,7 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
 }
 
 /* evaluate time modifications imposed by some F-Curve Modifiers
- *	- this step acts as an optimization to prevent the F-Curve stack being evaluated 
+ *	- this step acts as an optimization to prevent the F-Curve stack being evaluated
  *	  several times by modifiers requesting the time be modified, as the final result
  *	  would have required using the modified time
  *	- modifiers only ever receive the unmodified time, as subsequent modifiers should be

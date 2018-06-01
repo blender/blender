@@ -73,7 +73,7 @@
 /* Freeing ------------------------------------------- */
 
 /* Remove the given NLA strip from the NLA track it occupies, free the strip's data,
- * and the strip itself. 
+ * and the strip itself.
  */
 void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip)
 {
@@ -400,7 +400,7 @@ NlaStrip *BKE_nla_add_soundstrip(Scene *scene, Speaker *speaker)
 /* Strip Mapping ------------------------------------- */
 
 /* non clipped mapping for strip-time <-> global time (for Action-Clips)
- *	invert = convert action-strip time to global time 
+ *	invert = convert action-strip time to global time
  */
 static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short mode)
 {
@@ -470,7 +470,7 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
 }
 
 /* non clipped mapping for strip-time <-> global time (for Transitions)
- *	invert = convert action-strip time to global time 
+ *	invert = convert action-strip time to global time
  */
 static float nlastrip_get_frame_transition(NlaStrip *strip, float cframe, short mode)
 {
@@ -597,7 +597,7 @@ bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
 }
 
 /* Rearrange the strips in the track so that they are always in order 
- * (usually only needed after a strip has been moved) 
+ * (usually only needed after a strip has been moved)
  */
 void BKE_nlastrips_sort_strips(ListBase *strips)
 {
@@ -1037,7 +1037,7 @@ bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
 }
 
 /* Rearrange the strips in the track so that they are always in order 
- * (usually only needed after a strip has been moved) 
+ * (usually only needed after a strip has been moved)
  */
 void BKE_nlatrack_sort_strips(NlaTrack *nlt)
 {
@@ -1050,7 +1050,7 @@ void BKE_nlatrack_sort_strips(NlaTrack *nlt)
 }
 
 /* Add the given NLA-Strip to the given NLA-Track, assuming that it 
- * isn't currently attached to another one 
+ * isn't currently attached to another one
  */
 bool BKE_nlatrack_add_strip(NlaTrack *nlt, NlaStrip *strip)
 {
@@ -1757,7 +1757,7 @@ bool BKE_nla_action_stash(AnimData *adt)
 /* Core Tools ------------------------------------------- */
 
 /* For the given AnimData block, add the active action to the NLA
- * stack (i.e. 'push-down' action). The UI should only allow this 
+ * stack (i.e. 'push-down' action). The UI should only allow this
  * for normal editing only (i.e. not in editmode for some strip's action),
  * so no checks for this are performed.
  */

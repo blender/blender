@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  * - Blender Foundation, 2003-2009
  * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
  *

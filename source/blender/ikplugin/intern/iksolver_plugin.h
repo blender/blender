@@ -21,7 +21,7 @@
  * The Original Code is: all of this file.
  *
  * Original author: Benoit Bolsee
- * Contributor(s): 
+ * Contributor(s):
  *
  * ***** END GPL LICENSE BLOCK *****
  */

@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -251,7 +251,7 @@ static void wm_draw_callbacks(wmWindow *win)
 
 
 /************************* Region drawing. ********************************
- * 
+ *
  * Each region draws into its own framebuffer, which is then blit on the
  * window draw buffer. This helps with fast redrawing if only some regions
  * change. It also means we can share a single context for multiple windows,

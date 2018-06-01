@@ -751,7 +751,7 @@ static void deduplicate_recursive(const struct DeDuplicateParams *p, uint i)
  * although it can still be used as a target.
  * \returns The numebr of merges found (includes any merges already in the \a duplicates array).
  *
- * \note Merging is always a single step (target indices wont be marked for merging). 
+ * \note Merging is always a single step (target indices wont be marked for merging).
  */
 int BLI_kdtree_calc_duplicates_fast(
         const KDTree *tree, const float range, bool use_index_order,
