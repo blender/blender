@@ -1221,7 +1221,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 			draw_selected_name(scene, ob, &rect);
 		}
 
-// #if 0 /* TODO */
+#if 0 /* TODO */
 		if (grid_unit) { /* draw below the viewport name */
 			char numstr[32] = "";
 
@@ -1235,7 +1235,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 			        rect.ymax - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
 			        numstr[0] ? numstr : grid_unit, sizeof(numstr));
 		}
-// #endif
+#endif
 	}
 
 	BLF_batch_draw_end();
