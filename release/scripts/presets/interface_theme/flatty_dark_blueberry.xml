@@ -160,8 +160,8 @@
           </ThemeWidgetColors>
         </wcol_menu>
         <wcol_pulldown>
-          <ThemeWidgetColors outline="#000000"
-                             inner="#29282eff"
+          <ThemeWidgetColors outline="#29282e"
+                             inner="#29282e99"
                              inner_sel="#505158ff"
                              item="#ffffffff"
                              text="#eeeeee"
@@ -936,18 +936,18 @@
       </ThemeUserPreferences>
     </user_preferences>
     <console>
-      <ThemeConsole line_output="#6080ff"
+      <ThemeConsole line_output="#b3c2ff"
                     line_input="#ffffff"
-                    line_info="#00aa00"
-                    line_error="#dc6060"
-                    cursor="#dc6060"
+                    line_info="#47b347"
+                    line_error="#de6f6f"
+                    cursor="#de5959"
                     select="#ffffff30">
         <space>
           <ThemeSpaceGeneric back="#2f3035"
                              title="#ffffff"
                              text="#ffffff"
                              text_hi="#ffffff"
-                             header="#29282eff"
+                             header="#2f3035ff"
                              header_text="#eeeeee"
                              header_text_hi="#ffffff"
                              button="#2f303599"

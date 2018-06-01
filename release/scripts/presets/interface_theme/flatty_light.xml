@@ -161,7 +161,7 @@
         </wcol_menu>
         <wcol_pulldown>
           <ThemeWidgetColors outline="#000000"
-                             inner="#3f3f3fff"
+                             inner="#e6e6e699"
                              inner_sel="#5680c2ff"
                              item="#ffffffff"
                              text="#000000"
@@ -169,7 +169,7 @@
                              show_shaded="FALSE"
                              shadetop="25"
                              shadedown="-20"
-                             roundness="0.4">
+                             roundness="0.3">
           </ThemeWidgetColors>
         </wcol_pulldown>
         <wcol_menu_back>
