@@ -581,54 +581,109 @@ static uint *studiolight_radiance_preview(StudioLight *sl, int icon_size)
 
 static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 {
-	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
+	if (/*!(sl->flag & STUDIOLIGHT_EXTERNAL_FILE)*/ 1) {
 
-	uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
-	int icon_center = icon_size / 2;
-	float sphere_radius = icon_center * 0.9;
+		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
-	int offset = 0;
-	for (int y = 0; y < icon_size; y++) {
-		float dy = y - icon_center;
-		for (int x = 0; x < icon_size; x++) {
-			float dx = x - icon_center;
-			/* calculate aliasing */
-			float alias = 0;
-			const float alias_step = 0.333;
-			for (float ay = dy - 0.5; ay < dy + 0.5; ay += alias_step) {
-				for (float ax = dx - 0.5; ax < dx + 0.5; ax += alias_step) {
-					if (sqrt(ay * ay + ax * ax) < sphere_radius) {
-						alias += alias_step * alias_step;
+		uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
+		int icon_center = icon_size / 2;
+		float sphere_radius = icon_center * 0.9;
+
+		int offset = 0;
+		for (int y = 0; y < icon_size; y++) {
+			float dy = y - icon_center;
+			for (int x = 0; x < icon_size; x++) {
+				float dx = x - icon_center;
+				/* calculate aliasing */
+				float alias = 0;
+				const float alias_step = 0.333;
+				for (float ay = dy - 0.5; ay < dy + 0.5; ay += alias_step) {
+					for (float ax = dx - 0.5; ax < dx + 0.5; ax += alias_step) {
+						if (sqrt(ay * ay + ax * ax) < sphere_radius) {
+							alias += alias_step * alias_step;
+						}
 					}
 				}
-			}
-			uint pixelresult = 0x0;
-			uint alias_i = clamp_i(alias * 256, 0, 255);
-			if (alias_i != 0) {
-				/* calculate normal */
-				uint alias_mask = alias_i << 24;
-				float normal[3];
-				normal[0] = dx / sphere_radius;
-				normal[1] = dy / sphere_radius;
-				normal[2] = sqrt(-(normal[0] * normal[0]) - (normal[1] * normal[1]) + 1);
-				normalize_v3(normal);
+				uint pixelresult = 0x0;
+				uint alias_i = clamp_i(alias * 256, 0, 255);
+				if (alias_i != 0) {
+					/* calculate normal */
+					uint alias_mask = alias_i << 24;
+					float normal[3];
+					normal[0] = dx / sphere_radius;
+					normal[1] = dy / sphere_radius;
+					normal[2] = sqrt(-(normal[0] * normal[0]) - (normal[1] * normal[1]) + 1);
+					normalize_v3(normal);
 
-				float color[3];
-				mul_v3_v3fl(color, sl->diffuse_light[STUDIOLIGHT_X_POS], clamp_f(normal[0], 0.0, 1.0));
-				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_X_NEG], clamp_f(-normal[0], 0.0, 1.0));
-				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Z_POS], clamp_f(normal[1], 0.0, 1.0));
-				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Z_NEG], clamp_f(-normal[1], 0.0, 1.0));
-				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Y_POS], clamp_f(normal[2], 0.0, 1.0));
+					float color[3];
+					mul_v3_v3fl(color, sl->diffuse_light[STUDIOLIGHT_X_POS], clamp_f(normal[0], 0.0, 1.0));
+					interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_X_NEG], clamp_f(-normal[0], 0.0, 1.0));
+					interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Z_POS], clamp_f(normal[1], 0.0, 1.0));
+					interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Z_NEG], clamp_f(-normal[1], 0.0, 1.0));
+					interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Y_POS], clamp_f(normal[2], 0.0, 1.0));
 
-				pixelresult = rgb_to_cpack(
-				        linearrgb_to_srgb(color[0]),
-				        linearrgb_to_srgb(color[1]),
-				        linearrgb_to_srgb(color[2])) | alias_mask;
+					pixelresult = rgb_to_cpack(
+					        linearrgb_to_srgb(color[0]),
+					        linearrgb_to_srgb(color[1]),
+					        linearrgb_to_srgb(color[2])) | alias_mask;
+				}
+				rect[offset++] = pixelresult;
 			}
-			rect[offset++] = pixelresult;
 		}
+		return rect;
 	}
-	return rect;
+	else {
+		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED);
+
+		uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
+		int icon_center = icon_size / 2;
+		float sphere_radius = icon_center * 0.9;
+
+		int offset = 0;
+		for (int y = 0; y < icon_size; y++) {
+			float dy = y - icon_center;
+			for (int x = 0; x < icon_size; x++) {
+				float dx = x - icon_center;
+				/* calculate aliasing */
+				float alias = 0;
+				const float alias_step = 0.333;
+				for (float ay = dy - 0.5; ay < dy + 0.5; ay += alias_step) {
+					for (float ax = dx - 0.5; ax < dx + 0.5; ax += alias_step) {
+						if (sqrt(ay * ay + ax * ax) < sphere_radius) {
+							alias += alias_step * alias_step;
+						}
+					}
+				}
+				uint pixelresult = 0x0;
+				uint alias_i = clamp_i(alias * 256, 0, 255);
+				if (alias_i != 0) {
+					/* calculate normal */
+					uint alias_mask = alias_i << 24;
+					float incoming[3];
+					copy_v3_fl3(incoming, 0.0, 1.0, 0.0);
+
+					float normal[3];
+					normal[0] = dx / sphere_radius;
+					normal[2] = dy / sphere_radius;
+					normal[1] = -sqrt(-(normal[0] * normal[0]) - (normal[2] * normal[2]) + 1);
+					normalize_v3(normal);
+
+					float direction[3];
+					reflect_v3_v3v3(direction, incoming, normal);
+
+					float color[4];
+					studiolight_calculate_radiance(sl->equirectangular_irradiance_buffer, color, direction);
+
+					pixelresult = rgb_to_cpack(
+							linearrgb_to_srgb(color[0]),
+							linearrgb_to_srgb(color[1]),
+							linearrgb_to_srgb(color[2])) | alias_mask;
+				}
+				rect[offset++] = pixelresult;
+			}
+		}
+		return rect;
+	}
 }
 
 /* API */
@@ -645,7 +700,7 @@ void BKE_studiolight_init(void)
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_NEG], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 0.8f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_NEG], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_NEG], 0.05f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.2f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.1f);
 	BLI_addtail(&studiolights, sl);
