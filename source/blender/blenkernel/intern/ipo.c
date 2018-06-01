@@ -266,7 +266,7 @@ static const char *ob_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* PoseChannel types 
- * NOTE: pchan name comes from 'actname' added earlier... 
+ * NOTE: pchan name comes from 'actname' added earlier...
  */
 static const char *pchan_adrcodes_to_paths(int adrcode, int *array_index)
 {
@@ -329,7 +329,7 @@ static const char *constraint_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* ShapeKey types 
- * NOTE: as we don't have access to the keyblock where the data comes from (for now), 
+ * NOTE: as we don't have access to the keyblock where the data comes from (for now),
  *       we'll just use numerical indices for now...
  */
 static char *shapekey_adrcodes_to_paths(ID *id, int adrcode, int *UNUSED(array_index))
@@ -1687,10 +1687,10 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
 /* Called from do_versions() in readfile.c to convert the old 'IPO/adrcode' system
  * to the new 'Animato/RNA' system.
  *
- * The basic method used here, is to loop over datablocks which have IPO-data, and 
- * add those IPO's to new AnimData blocks as Actions. 
+ * The basic method used here, is to loop over datablocks which have IPO-data, and
+ * add those IPO's to new AnimData blocks as Actions.
  * Action/NLA data only works well for Objects, so these only need to be checked for there.
- *  
+ *
  * Data that has been converted should be freed immediately, which means that it is immediately
  * clear which datablocks have yet to be converted, and also prevent freeing errors when we exit.
  */

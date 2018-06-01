@@ -50,7 +50,7 @@ void SunBeamsOperation::initExecution()
  * For a target point (x,y) the sector should be chosen such that
  *   ``u >= v >= 0``
  * This removes the need to handle all sorts of special cases.
- * 
+ *
  * Template parameters:
  * fxu : buffer increment in x for sector u+1
  * fxv : buffer increment in x for sector v+1

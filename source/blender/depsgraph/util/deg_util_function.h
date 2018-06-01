@@ -19,7 +19,7 @@
  * All rights reserved.
  *
  * Original Author: Lukas Toenne
- * Contributor(s): 
+ * Contributor(s):
  *
  * ***** END GPL LICENSE BLOCK *****
  */

@@ -38,7 +38,7 @@
 
 /**
  * Make environment maps for all objects in the scene that have an
- * environment map as texture. 
+ * environment map as texture.
  * (initrender.c)
  */
 

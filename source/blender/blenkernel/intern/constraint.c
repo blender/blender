@@ -105,7 +105,7 @@
 
 /* ************************ Constraints - General Utilities *************************** */
 /* These functions here don't act on any specific constraints, and are therefore should/will
- * not require any of the special function-pointers afforded by the relevant constraint 
+ * not require any of the special function-pointers afforded by the relevant constraint
  * type-info structs.
  */
 
@@ -655,7 +655,7 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 /* ************************* Specific Constraints ***************************** */
 /* Each constraint defines a set of functions, which will be called at the appropriate
  * times. In addition to this, each constraint should have a type-info struct, where
- * its functions are attached for use. 
+ * its functions are attached for use.
  */
  
 /* Template for type-info data:
@@ -664,7 +664,7 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
  *  - although the naming of functions doesn't matter, it would help for code
  *    readability, to follow the same naming convention as is presented here
  *  - any functions that a constraint doesn't need to define, don't define
- *    for such cases, just use NULL 
+ *    for such cases, just use NULL
  *  - these should be defined after all the functions have been defined, so that
  *    forward-definitions/prototypes don't need to be used!
  *	- keep this copy #if-def'd so that future constraints can get based off this
@@ -4528,7 +4528,7 @@ static void con_unlink_refs_cb(bConstraint *UNUSED(con), ID **idpoin, bool is_re
 
 /* Free data of a specific constraint if it has any info.
  * be sure to run BIK_clear_data() when freeing an IK constraint,
- * unless DAG_relations_tag_update is called. 
+ * unless DAG_relations_tag_update is called.
  */
 void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)
 {
@@ -4862,7 +4862,7 @@ bool BKE_constraints_proxylocked_owner(Object *ob, bPoseChannel *pchan)
 
 /* This function is a relic from the prior implementations of the constraints system, when all
  * constraints either had one or no targets. It used to be called during the main constraint solving
- * loop, but is now only used for the remaining cases for a few constraints. 
+ * loop, but is now only used for the remaining cases for a few constraints.
  *
  * None of the actual calculations of the matrices should be done here! Also, this function is
  * not to be used by any new constraints, particularly any that have multiple targets.
@@ -4966,7 +4966,7 @@ void BKE_constraint_targets_for_solving_get(bConstraint *con, bConstraintOb *cob
 /* This function is called whenever constraints need to be evaluated. Currently, all
  * constraints that can be evaluated are every time this gets run.
  *
- * BKE_constraints_make_evalob and BKE_constraints_clear_evalob should be called before and 
+ * BKE_constraints_make_evalob and BKE_constraints_clear_evalob should be called before and
  * after running this function, to sort out cob
  */
 void BKE_constraints_solve(ListBase *conlist, bConstraintOb *cob, float ctime)

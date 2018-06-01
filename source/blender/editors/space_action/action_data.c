@@ -291,7 +291,7 @@ void ACTION_OT_new(wmOperatorType *ot)
 /* ******************* Action Push-Down Operator ******************** */
 
 /* Criteria:
- *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions 
+ *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions
  *  2) There must be an action active
  *  3) The associated AnimData block must not be in tweakmode
  */
@@ -423,7 +423,7 @@ void ACTION_OT_stash(wmOperatorType *ot)
 /* ----------------- */
 
 /* Criteria:
- *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions 
+ *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions
  *  2) The associated AnimData block must not be in tweakmode
  */
 static int action_stash_create_poll(bContext *C)

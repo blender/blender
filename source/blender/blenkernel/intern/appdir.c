@@ -718,13 +718,13 @@ bool BKE_appdir_app_template_id_search(const char *app_template, char *path, siz
 /**
  * Gets the temp directory when blender first runs.
  * If the default path is not found, use try $TEMP
- * 
+ *
  * Also make sure the temp dir has a trailing slash
  *
  * \param fullname The full path to the temporary temp directory
  * \param basename The full path to the persistent temp directory (may be NULL)
  * \param maxlen The size of the fullname buffer
- * \param userdir Directory specified in user preferences 
+ * \param userdir Directory specified in user preferences
  */
 static void where_is_temp(char *fullname, char *basename, const size_t maxlen, char *userdir)
 {

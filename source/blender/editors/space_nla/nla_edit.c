@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung (major recode)
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -101,7 +101,7 @@ void ED_nla_postop_refresh(bAnimContext *ac)
 
 /* ******************** Tweak-Mode Operators ***************************** */
 /* 'Tweak mode' allows the action referenced by the active NLA-strip to be edited 
- * as if it were the normal Active-Action of its AnimData block. 
+ * as if it were the normal Active-Action of its AnimData block.
  */
 
 static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)

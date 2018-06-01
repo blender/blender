@@ -441,7 +441,7 @@ void UI_popup_block_close(struct bContext *C, struct wmWindow *win, uiBlock *blo
  *
  * Functions for creating, drawing and freeing blocks. A Block is a
  * container of buttons and used for various purposes.
- * 
+ *
  * Begin/Define Buttons/End/Draw is the typical order in which these
  * function should be called, though for popup blocks Draw is left out.
  * Freeing blocks is done by the screen/ module automatically.

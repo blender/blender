@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -30,12 +30,12 @@
 
 
 /* User-Interface Stuff for F-Modifiers:
- * This file defines the (C-Coded) templates + editing callbacks needed 
+ * This file defines the (C-Coded) templates + editing callbacks needed
  * by the interface stuff or F-Modifiers, as used by F-Curves in the Graph Editor,
  * and NLA-Strips in the NLA Editor.
  *
  * Copy/Paste Buffer for F-Modifiers:
- * For now, this is also defined in this file so that it can be shared between the 
+ * For now, this is also defined in this file so that it can be shared between the
  */
  
 #include <string.h>
@@ -734,7 +734,7 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 }
 
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list 
- *	- replace: free all the existing modifiers to leave only the pasted ones 
+ *	- replace: free all the existing modifiers to leave only the pasted ones
  */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *curve)
 {

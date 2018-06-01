@@ -104,7 +104,7 @@ int insert_vert_fcurve(struct FCurve *fcu, float x, float y, eBezTriple_Keyframe
 /* -------- */
 
 /* Secondary Keyframing API calls: 
- *	Use this to insert a keyframe using the current value being keyframed, in the 
+ *	Use this to insert a keyframe using the current value being keyframed, in the
  *	nominated F-Curve (no creation of animation data performed). Returns success.
  */
 bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
@@ -307,7 +307,7 @@ bool ANIM_copy_driver(struct ReportList *reports, struct ID *id, const char rna_
 
 /* Main Driver Management API calls:
  *  Add a new driver for the specified property on the given ID block or replace an existing one
- *	with the driver + driver-curve data from the buffer 
+ *	with the driver + driver-curve data from the buffer
  */
 bool ANIM_paste_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
 

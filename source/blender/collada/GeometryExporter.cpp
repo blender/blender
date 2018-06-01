@@ -519,11 +519,11 @@ void GeometryExporter::createPolylists(std::set<Image *> uv_images,
 }
 
 /* ===========================================================================
- * Export Meshes with UV Textures (export as materials, see also in 
+ * Export Meshes with UV Textures (export as materials, see also in
  * effectExporter and MaterialExporter)
- * 
+ *
  * If imageid is the empty string, then collect only untextured polygons
- * =========================================================================== */ 
+ * =========================================================================== */
 void GeometryExporter::createPolylist(std::string imageid,
 	bool has_uvs,
 	bool has_color,

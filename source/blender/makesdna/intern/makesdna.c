@@ -172,7 +172,7 @@ static int additional_slen_offset;
 static int add_type(const char *str, int len);
 
 /**
- * Add variable \c str to 
+ * Add variable \c str to
  * \param str
  */
 static int add_name(const char *str);
@@ -191,22 +191,22 @@ static int preprocess_include(char *maindata, int len);
 
 /**
  * Scan this file for serializable types.
- */ 
+ */
 static int convert_include(const char *filename);
 
 /**
  * Determine how many bytes are needed for an array.
- */ 
+ */
 static int arraysize(const char *str);
 
 /**
  * Determine how many bytes are needed for each struct.
- */ 
+ */
 static int calculate_structlens(int);
 
 /**
  * Construct the DNA.c file
- */ 
+ */
 static void dna_write(FILE *file, const void *pntr, const int size);
 
 /**

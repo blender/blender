@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -244,7 +244,7 @@ KeyframeEditFunc ANIM_editkeyframes_easing(short mode);
 /* -------- BezTriple Callbacks (Selection Map) ---------- */
 
 /* Get a callback to populate the selection settings map  
- * requires: ked->custom = char[] of length fcurve->totvert 
+ * requires: ked->custom = char[] of length fcurve->totvert
  */
 KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode);
 
@@ -262,7 +262,7 @@ short bezt_calc_average(KeyframeEditData *ked, struct BezTriple *bezt);
 short bezt_to_cfraelem(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* used to remap times from one range to another
- * requires:  ked->custom = KeyframeEditCD_Remap	
+ * requires:  ked->custom = KeyframeEditCD_Remap
  */
 void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 

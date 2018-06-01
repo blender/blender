@@ -495,7 +495,7 @@ void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol
 /**
  *
  * \attention defined in readimage.c
- */  
+ */
 struct ImBuf *IMB_loadifffile(int file, const char *filepath, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
 /**

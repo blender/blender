@@ -3296,7 +3296,7 @@ static void obrel_list_add(LinkNode **links, Object *ob)
  * Iterates over all objects of the given scene.
  * Depending on the eObjectSet flag:
  * collect either OB_SET_ALL, OB_SET_VISIBLE or OB_SET_SELECTED objects.
- * If OB_SET_VISIBLE or OB_SET_SELECTED are collected, 
+ * If OB_SET_VISIBLE or OB_SET_SELECTED are collected,
  * then also add related objects according to the given includeFilters.
  */
 LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectSet, eObRelationTypes includeFilter)

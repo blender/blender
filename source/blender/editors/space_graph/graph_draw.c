@@ -156,7 +156,7 @@ static void draw_fcurve_vertices_keyframes(FCurve *fcu, SpaceIpo *UNUSED(sipo), 
 
 
 /* helper func - draw handle vertex for an F-Curve as a round unfilled circle 
- * NOTE: the caller MUST HAVE GL_LINE_SMOOTH & GL_BLEND ENABLED, otherwise, the controls don't 
+ * NOTE: the caller MUST HAVE GL_LINE_SMOOTH & GL_BLEND ENABLED, otherwise, the controls don't
  * have a consistent appearance (due to off-pixel alignments)...
  */
 static void draw_fcurve_handle_control(float x, float y, float xscale, float yscale, float hsize)
@@ -396,7 +396,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 /* Samples ---------------- */
 
 /* helper func - draw sample-range marker for an F-Curve as a cross 
- * NOTE: the caller MUST HAVE GL_LINE_SMOOTH & GL_BLEND ENABLED, otherwise, the controls don't 
+ * NOTE: the caller MUST HAVE GL_LINE_SMOOTH & GL_BLEND ENABLED, otherwise, the controls don't
  * have a consistent appearance (due to off-pixel alignments)...
  */
 static void draw_fcurve_sample_control(float x, float y, float xscale, float yscale, float hsize)
@@ -631,7 +631,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 }
 
 /* helper func - check if the F-Curve only contains easily drawable segments 
- * (i.e. no easing equation interpolations) 
+ * (i.e. no easing equation interpolations)
  */
 static bool fcurve_can_use_simple_bezt_drawing(FCurve *fcu)
 {
@@ -812,7 +812,7 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 /* Draw indicators which show the value calculated from the driver, 
  * and how this is mapped to the value that comes out of it. This
  * is handy for helping users better understand how to interpret
- * the graphs, and also facilitates debugging. 
+ * the graphs, and also facilitates debugging.
  */
 static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 {

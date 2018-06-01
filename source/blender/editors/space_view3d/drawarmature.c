@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -2392,7 +2392,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 /* ---------- Paths --------- */
 
 /* draw bone paths
- *	- in view space 
+ *	- in view space
  */
 static void draw_pose_paths(Scene *scene, View3D *v3d, ARegion *ar, Object *ob)
 {
@@ -2512,7 +2512,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 }
 
 /* draw ghosts on keyframes in action within range 
- *	- object should be in posemode 
+ *	- object should be in posemode
  */
 static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {

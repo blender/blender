@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -61,7 +61,7 @@
 /* **************************** depsgraph tagging ******************************** */
 
 /* tags the given anim list element for refreshes (if applicable)
- * due to Animation Editor editing 
+ * due to Animation Editor editing
  */
 void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 {
@@ -121,10 +121,10 @@ void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 /* **************************** animation data <-> data syncing ******************************** */
 /* This code here is used to synchronize the
  *	- selection (to find selected data easier)
- *	- ... (insert other relevant items here later) 
+ *	- ... (insert other relevant items here later)
  * status in relevant Blender data with the status stored in animation channels.
  *
- * This should be called in the refresh() callbacks for various editors in 
+ * This should be called in the refresh() callbacks for various editors in
  * response to appropriate notifiers.
  */
 

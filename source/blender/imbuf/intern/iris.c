@@ -245,8 +245,8 @@ int imb_is_a_iris(const uchar *mem)
 }
 
 /*
- *	longimagedata - 
- *		read in a B/W RGB or RGBA iris image file and return a 
+ *	longimagedata -
+ *		read in a B/W RGB or RGBA iris image file and return a
  *	pointer to an array of ints.
  *
  */

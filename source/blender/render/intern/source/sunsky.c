@@ -84,7 +84,7 @@ void ClipColor(float c[3])
 
 /**
  * AngleBetween:
- * compute angle between to direction 
+ * compute angle between to direction
  * all angles are in radians
  * */
 static float AngleBetween(float thetav, float phiv, float theta, float phi)
@@ -353,7 +353,7 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
  * parameters:
  * sunSky, contains information about sun, and in this function some atmosphere parameters will initiated
  * sun_intens, shows sun intensity value
- * mief, Mie scattering factor this factor currently call with 1.0 
+ * mief, Mie scattering factor this factor currently call with 1.0
  * rayf, Rayleigh scattering factor, this factor currently call with 1.0
  * inscattf, inscatter light factor that range from 0.0 to 1.0, 0.0 means no inscatter light and 1.0 means full inscatter light
  * extincf, extinction light factor that range from 0.0 to 1.0, 0.0 means no extinction and 1.0 means full extinction
@@ -429,7 +429,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
  * parameters:
  * sunSky, contains information about sun parameters and user values
  * view, is camera view vector
- * s, is distance 
+ * s, is distance
  * rgb, contains rendered color value for a pixle
  * */
 void AtmospherePixleShader(struct SunSky *sunSky, float view[3], float s, float rgb[3])

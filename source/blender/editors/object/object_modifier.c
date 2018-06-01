@@ -196,7 +196,7 @@ static bool object_has_modifier(const Object *ob, const ModifierData *exclude,
  * each of them.
  *
  * If include_orig is true, the callback will run on 'orig_ob' too.
- * 
+ *
  * If the callback ever returns true, iteration will stop and the
  * function value will be true. Otherwise the function returns false.
  */

@@ -60,7 +60,7 @@ bool AnimationExporter::is_flat_line(std::vector<float> &values, int channel_cou
 	return true;
 }
 /*
- *  This function creates a complete LINEAR Collada <Animation> Entry with all needed 
+ *  This function creates a complete LINEAR Collada <Animation> Entry with all needed
  *  <source>, <sampler>, and <channel> entries.
  *  This is is used for creating sampled Transformation Animations for either:
  *
@@ -78,8 +78,8 @@ bool AnimationExporter::is_flat_line(std::vector<float> &values, int channel_cou
  *			axis_name = "" (actually not used)
  *			is_rot = false (see xxx below)
  *
- *	xxx: I tried to create a 3 axis rotation animation 
- *		 like for translation or scale. But i could not 
+ *	xxx: I tried to create a 3 axis rotation animation
+ *		 like for translation or scale. But i could not
  *		 figure out how to setup the channel for this case.
  *		 So for now rotations are exported as 3 separate 1-axis collada animations
  *		 See export_sampled_animation() further down.
@@ -1035,8 +1035,8 @@ void AnimationExporter::evaluate_anim_with_constraints(Object *ob, float ctime)
 /*
  * ob is needed to aply parent inverse information to fcurve.
  * TODO: Here we have to step over all keyframes for each object and for each fcurve.
- * Instead of processing each fcurve one by one, 
- * step over the animation from keyframe to keyframe, 
+ * Instead of processing each fcurve one by one,
+ * step over the animation from keyframe to keyframe,
  * then create adjusted fcurves (and entries) for all affected objects.
  * Then we would need to step through the scene only once.
  */
@@ -1571,7 +1571,7 @@ std::string AnimationExporter::get_camera_param_sid(char *rna_path, int tm_type,
 }
 
 /*
- * Assign sid of the animated parameter or transform for rotation, 
+ * Assign sid of the animated parameter or transform for rotation,
  * axis name is always appended and the value of append_axis is ignored
  */
 std::string AnimationExporter::get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)

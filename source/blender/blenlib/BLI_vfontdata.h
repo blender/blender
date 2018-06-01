@@ -30,7 +30,7 @@
 
 /** \file BLI_vfontdata.h
  *  \ingroup bli
- *  \brief A structure to represent vector fonts, 
+ *  \brief A structure to represent vector fonts,
  *   and to load them from PostScript fonts.
  */
 

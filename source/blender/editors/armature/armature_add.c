@@ -1067,7 +1067,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 
 /* Subdivide Operators:
  * This group of operators all use the same 'exec' callback, but they are called
- * through several different operators - a combined menu (which just calls the exec in the 
+ * through several different operators - a combined menu (which just calls the exec in the
  * appropriate ways), and two separate ones.
  */
 

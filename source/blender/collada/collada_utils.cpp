@@ -300,7 +300,7 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 }
 
 /* Check if a bone is the top most exportable bone in the bone hierarchy. 
- * When deform_bones_only == false, then only bones with NO parent 
+ * When deform_bones_only == false, then only bones with NO parent
  * can be root bones. Otherwise the top most deform bones in the hierarchy
  * are root bones.
  */

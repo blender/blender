@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,7 +23,7 @@
  * Contributor(s): André Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
- * RE_raytrace.h: ray tracing api, can be used independently from the renderer. 
+ * RE_raytrace.h: ray tracing api, can be used independently from the renderer.
  */
 
 /** \file blender/render/intern/include/rayintersection.h

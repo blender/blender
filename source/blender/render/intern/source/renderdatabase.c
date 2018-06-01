@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,7 +34,7 @@
  * All data from a Blender scene is converted by the renderconverter/
  * into a special format that is used by the render module to make
  * images out of. These functions interface to the render-specific
- * database.  
+ * database.
  *
  * The blo{ha/ve/vl} arrays store pointers to blocks of 256 data
  * entries each.
@@ -53,7 +53,7 @@
  * to exist (as long as the malloc does not break). Since guarded
  * allocation is used, memory _must_ be available. Otherwise, an
  * exit(0) would occur.
- * 
+ *
  */
 
 #include <limits.h>

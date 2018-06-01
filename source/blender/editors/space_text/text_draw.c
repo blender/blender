@@ -168,7 +168,7 @@ static void format_draw_color(char formatchar)
  *     view_width    The maximum number of characters displayable in the region
  *                 This equals region_width/font_width for the region
  *     wrap_chars    Characters that allow wrapping. This equals [' ', '\t', '-']
- * 
+ *
  * def wrap(line, view_width, wrap_chars):
  *     draw_start = 0
  *     draw_end = view_width
@@ -182,7 +182,7 @@ static void format_draw_color(char formatchar)
  *             draw_end = pos+1
  *         pos += 1
  *     print line[draw_start:]
- * 
+ *
  */
 
 int wrap_width(const SpaceText *st, ARegion *ar)

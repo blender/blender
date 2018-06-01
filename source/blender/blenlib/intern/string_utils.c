@@ -21,7 +21,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
  */
 
 /** \file blender/blenlib/intern/string_utils.c

@@ -25,14 +25,14 @@
  *  \ingroup bli
  *
  * \note dials act similar to old rotation based phones and output an angle.
- * 
+ *
  * They just are initialized with the center of the dial and a threshold value as input.
- * 
- * When the distance of the current position of the dial from the center 
- * exceeds the threshold, this position is used to calculate the initial direction. 
+ *
+ * When the distance of the current position of the dial from the center
+ * exceeds the threshold, this position is used to calculate the initial direction.
  * After that, the angle from the initial direction is calculated based on
  * current and previous directions of the digit, and returned to the user.
- * 
+ *
  * Usage examples:
  *
  * \code{.c}
@@ -41,11 +41,11 @@
  * float threshold = 0.5f;
  * float angle;
  * Dial *dial;
- * 
+ *
  * dial = BLI_dial_initialize(start_position, threshold);
  *
  * angle = BLI_dial_angle(dial, curent_position);
- * 
+ *
  * MEM_freeN(dial);
  * \endcode
  */

@@ -77,7 +77,7 @@
  *	- This is called by the deselect all operator, as well as other ones!
  *
  *  - test: check if select or deselect all
- *	- sel: how to select keyframes 
+ *	- sel: how to select keyframes
  *		0 = deselect
  *		1 = select
  *		2 = invert
@@ -1068,7 +1068,7 @@ void GRAPH_OT_select_leftright(wmOperatorType *ot)
  *	- 2) all keyframes on the same side of current frame indicator as mouse - ALT modifier
  *	- 3) column select all keyframes in frame under mouse - CTRL modifier
  *
- * In addition to these basic options, the SHIFT modifier can be used to toggle the 
+ * In addition to these basic options, the SHIFT modifier can be used to toggle the
  * selection mode between replacing the selection (without) and inverting the selection (with).
  */
 
@@ -1275,7 +1275,7 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
 }
 
 /* Find the nearest vertices (either a handle or the keyframe) that are nearest to the mouse cursor (in area coordinates) 
- * NOTE: the match info found must still be freed 
+ * NOTE: the match info found must still be freed
  */
 static tNearestVertInfo *find_nearest_fcurve_vert(bAnimContext *ac, const int mval[2])
 {

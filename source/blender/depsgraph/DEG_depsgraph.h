@@ -42,9 +42,9 @@
  * Evaluation Engine
  * =================
  *
- * The evaluation takes the operation-nodes the Depsgraph has tagged for updating, 
+ * The evaluation takes the operation-nodes the Depsgraph has tagged for updating,
  * and schedules them up for being evaluated/executed such that the all dependency
- * relationship constraints are satisfied. 
+ * relationship constraints are satisfied.
  */
 
 /* ************************************************* */

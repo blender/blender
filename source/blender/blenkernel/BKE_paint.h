@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- */ 
+ */
 
 #ifndef __BKE_PAINT_H__
 #define __BKE_PAINT_H__

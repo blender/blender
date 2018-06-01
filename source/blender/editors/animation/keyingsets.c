@@ -827,7 +827,7 @@ typedef struct tRKS_DSource {
 
 
 /* Iterator used for overriding the behavior of iterators defined for 
- * relative Keying Sets, with the main usage of this being operators 
+ * relative Keying Sets, with the main usage of this being operators
  * requiring Auto Keyframing. Internal Use Only!
  */
 static void RKS_ITER_overrides_list(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks, ListBase *dsources)

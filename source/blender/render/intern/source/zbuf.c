@@ -1035,7 +1035,7 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
  * the corresponding face buffer.
  *
  * This is one of the z buffer fill functions called in zbufclip() and
- * zbufwireclip(). 
+ * zbufwireclip().
  *
  * \param v1 [4 floats, world coordinates] first vertex
  * \param v2 [4 floats, world coordinates] second vertex
@@ -1290,7 +1290,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr,
  * Fill the z buffer. The face buffer is not operated on!
  *
  * This is one of the z buffer fill functions called in zbufclip() and
- * zbufwireclip(). 
+ * zbufwireclip().
  *
  * \param v1 [4 floats, world coordinates] first vertex
  * \param v2 [4 floats, world coordinates] second vertex
@@ -1594,7 +1594,7 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
  * Note: uses globals.
  * \param v1 start coordinate s
  * \param v2 target coordinate t
- * \param b2 
+ * \param b2
  * \param b3
  * \param a index for coordinate (x, y, or z)
  */
@@ -1650,12 +1650,12 @@ static void clippyra(float *lambda, float *v1, float *v2, int *b2, int *b3, int 
  * segment from v1 to v2. lambda is the factor by which the vector is
  * cut. ( calculate s + l * ( t - s )). The result is appended to the
  * vertex list of this face.
- * 
- * 
+ *
+ *
  * \param v1 start coordinate s
  * \param v2 target coordinate t
- * \param b1 
- * \param b2 
+ * \param b1
+ * \param b2
  * \param clve vertex vector.
  */
 

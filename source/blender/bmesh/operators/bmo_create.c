@@ -21,7 +21,7 @@
  */
 
 /** \file blender/bmesh/operators/bmo_create.c
- *  \ingroup bmesh 
+ *  \ingroup bmesh
  *
  * Create faces or edges (Fkey by default).
  */

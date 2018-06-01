@@ -58,7 +58,7 @@
 /* Contents of this File:
  *
  * This file contains methods shared between Pose Slide and Pose Lib;
- * primarily the functions in question concern Animato <-> Pose 
+ * primarily the functions in question concern Animato <-> Pose
  * convenience functions, such as applying/getting pose values
  * and/or inserting keyframes for these.
  */

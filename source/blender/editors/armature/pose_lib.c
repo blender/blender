@@ -81,8 +81,8 @@ static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUS
 
 /* ************************************************************* */
 /* == POSE-LIBRARY TOOL FOR BLENDER == 
- *	
- * Overview: 
+ *
+ * Overview:
  *  This tool allows animators to store a set of frequently used poses to dump into
  *  the active action to help in "budget" productions to quickly block out new actions.
  *  It acts as a kind of "glorified clipboard for poses", allowing for naming of poses.

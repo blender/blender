@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -604,21 +604,21 @@ static ARegion *screen_find_region_type(bContext *C, int type)
 
 /* operator state vars used:  
  * none
- * 
+ *
  * functions:
- * 
+ *
  * apply() set actionzone event
- * 
+ *
  * exit()	free customdata
- * 
+ *
  * callbacks:
- * 
+ *
  * exec()	never used
- * 
- * invoke() check if in zone  
+ *
+ * invoke() check if in zone
  * add customdata, put mouseco and area in it
  * add modal handler
- * 
+ *
  * modal()	accept modal events while doing it
  * call apply() with gesture info, active window, nonactive window
  * call exit() and remove handler when LMB confirm
@@ -1084,26 +1084,26 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 /* operator state vars used:  
  * x, y             mouse coord near edge
  * delta            movement of edge
- * 
+ *
  * functions:
- * 
+ *
  * init()   set default property values, find edge based on mouse coords, test
  * if the edge can be moved, select edges, calculate min and max movement
- * 
+ *
  * apply()	apply delta on selection
- * 
+ *
  * exit()	cleanup, send notifier
- * 
+ *
  * cancel() cancel moving
- * 
+ *
  * callbacks:
- * 
+ *
  * exec()   execute without any user interaction, based on properties
  * call init(), apply(), exit()
- * 
+ *
  * invoke() gets called on mouse click near edge
  * call init(), add handler
- * 
+ *
  * modal()  accept modal events while doing it
  * call apply() with delta motion
  * call exit() and remove handler
@@ -2643,25 +2643,25 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 /* operator state vars used:  
  * x1, y1     mouse coord in first area, which will disappear
  * x2, y2     mouse coord in 2nd area, which will become joined
- * 
+ *
  * functions:
- * 
- * init()   find edge based on state vars 
- * test if the edge divides two areas, 
+ *
+ * init()   find edge based on state vars
+ * test if the edge divides two areas,
  * store active and nonactive area,
- * 
+ *
  * apply()  do the actual join
- * 
+ *
  * exit()	cleanup, send notifier
- * 
+ *
  * callbacks:
- * 
- * exec()	calls init, apply, exit 
- * 
+ *
+ * exec()	calls init, apply, exit
+ *
  * invoke() sets mouse coords in x,y
  * call init()
  * add modal handler
- * 
+ *
  * modal()	accept modal events while doing it
  * call apply() with active window and nonactive window
  * call exit() and remove handler when LMB confirm
@@ -3932,21 +3932,21 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
  * \{ */
 
 /* operator state vars used: (added by default WM callbacks)   
- * xmin, ymin     
- * xmax, ymax     
- * 
+ * xmin, ymin
+ * xmax, ymax
+ *
  * customdata: the wmGesture pointer
- * 
+ *
  * callbacks:
- * 
+ *
  * exec()	has to be filled in by user
- * 
+ *
  * invoke() default WM function
  * adds modal handler
- * 
- * modal()	default WM function 
+ *
+ * modal()	default WM function
  * accept modal events while doing it, calls exec(), handles ESC and border drawing
- * 
+ *
  * poll()	has to be filled in by user for context
  */
 #if 0

@@ -270,7 +270,7 @@ FCurve *iter_step_fcurve(FCurve *fcu_iter, const char rna_path[])
 
 /* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated 
  * Lists...
- *	- dst: list of LinkData's matching the criteria returned. 
+ *	- dst: list of LinkData's matching the criteria returned.
  *	  List must be freed after use, and is assumed to be empty when passed.
  *	- src: list of F-Curves to search through
  * Filters...
@@ -879,7 +879,7 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
 /* ***************************** F-Curve Sanity ********************************* */
 /* The functions here are used in various parts of Blender, usually after some editing
  * of keyframe data has occurred. They ensure that keyframe data is properly ordered and
- * that the handles are correctly 
+ * that the handles are correctly
  */
 
 /* Checks if the F-Curve has a Cycles modifier with simple settings that warrant transition smoothing */

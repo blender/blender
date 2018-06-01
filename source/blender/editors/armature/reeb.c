@@ -41,16 +41,16 @@ static ReebGraph *FILTERED_RG = NULL;
 #endif
 
 /*
- * Skeleton generation algorithm based on: 
+ * Skeleton generation algorithm based on:
  * "Harmonic Skeleton for Realistic Character Animation"
  * Gregoire Aujay, Franck Hetroy, Francis Lazarus and Christine Depraz
  * SIGGRAPH 2007
- * 
- * Reeb graph generation algorithm based on: 
+ *
+ * Reeb graph generation algorithm based on:
  * "Robust On-line Computation of Reeb Graphs: Simplicity and Speed"
  * Valerio Pascucci, Giorgio Scorzelli, Peer-Timo Bremer and Ajith Mascarenhas
  * SIGGRAPH 2007
- * 
+ *
  * */
 
 #if 0

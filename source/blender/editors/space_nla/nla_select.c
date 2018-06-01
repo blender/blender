@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung (major recode)
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -94,7 +94,7 @@ enum {
  *	- This is called by the deselect all operator, as well as other ones!
  *
  *  - test: check if select or deselect all (1) or clear all active (2)
- *	- sel: how to select keyframes 
+ *	- sel: how to select keyframes
  *		0 = deselect
  *		1 = select
  *		2 = invert

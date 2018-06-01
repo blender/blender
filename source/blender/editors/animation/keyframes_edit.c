@@ -56,15 +56,15 @@
  *			ANIM_fcurve_keyframes_loop()
  * which take the data they operate on, a few callbacks defining what operations to perform.
  *
- * As operators which work on keyframes usually apply the same operation on all BezTriples in 
- * every channel, the code has been optimized providing a set of functions which will get the 
+ * As operators which work on keyframes usually apply the same operation on all BezTriples in
+ * every channel, the code has been optimized providing a set of functions which will get the
  * appropriate bezier-modify function to set. These functions (ANIM_editkeyframes_*) will need
  * to be called before getting any channels.
- * 
+ *
  * A set of 'validation' callbacks are provided for checking if a BezTriple should be operated on.
- * These should only be used when using a 'general' BezTriple editor (i.e. selection setters which 
+ * These should only be used when using a 'general' BezTriple editor (i.e. selection setters which
  * don't check existing selection status).
- * 
+ *
  * - Joshua Leung, Dec 2008
  */
 
@@ -735,7 +735,7 @@ short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* used to remap times from one range to another
- * requires:  ked->data = KeyframeEditCD_Remap	
+ * requires:  ked->data = KeyframeEditCD_Remap
  */
 void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
 {

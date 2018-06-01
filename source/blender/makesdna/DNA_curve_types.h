@@ -92,7 +92,7 @@ typedef struct BevList {
 
 /**
  * Keyframes on F-Curves (allows code reuse of Bezier eval code) and
- * Points on Bezier Curves/Paths are generally BezTriples 
+ * Points on Bezier Curves/Paths are generally BezTriples
  *
  * \note alfa location in struct is abused by Key system
  *

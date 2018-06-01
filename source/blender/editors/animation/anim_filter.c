@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung (original author)
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -30,10 +30,10 @@
 
 
 /* This file contains a system used to provide a layer of abstraction between sources
- * of animation data and tools in Animation Editors. The method used here involves 
- * generating a list of edit structures which enable tools to naively perform the actions 
- * they require without all the boiler-plate associated with loops within loops and checking 
- * for cases to ignore. 
+ * of animation data and tools in Animation Editors. The method used here involves
+ * generating a list of edit structures which enable tools to naively perform the actions
+ * they require without all the boiler-plate associated with loops within loops and checking
+ * for cases to ignore.
  *
  * While this is primarily used for the Action/Dopesheet Editor (and its accessory modes),
  * the Graph Editor also uses this for its channel list and for determining which curves
@@ -42,7 +42,7 @@
  *
  * Note: much of the original system this was based on was built before the creation of the RNA
  * system. In future, it would be interesting to replace some parts of this code with RNA queries,
- * however, RNA does not eliminate some of the boiler-plate reduction benefits presented by this 
+ * however, RNA does not eliminate some of the boiler-plate reduction benefits presented by this
  * system, so if any such work does occur, it should only be used for the internals used here...
  *
  * -- Joshua Leung, Dec 2008 (Last revision July 2009)
@@ -403,8 +403,8 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  * cases:
  *	1) Graph Edit main area (just data) OR channels visible in Channel List
  *	2) If not showing channels, we're only interested in the data (Action Editor's editing)
- *	3) We don't care what data, we just care there is some (so that a collapsed 
- *	   channel can be kept around). No need to clear channels-flag in order to 
+ *	3) We don't care what data, we just care there is some (so that a collapsed
+ *	   channel can be kept around). No need to clear channels-flag in order to
  *	   keep expander channels with no sub-data out, as those cases should get
  *	   dealt with by the recursive detection idiom in place.
  *
@@ -447,12 +447,12 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 #define ANIMDATA_HAS_NLA(id) ((id)->adt && (id)->adt->nla_tracks.first)
 
 /* Quick macro to test for all three above usability tests, performing the appropriate provided 
- * action for each when the AnimData context is appropriate. 
+ * action for each when the AnimData context is appropriate.
  *
  * Priority order for this goes (most important, to least): AnimData blocks, NLA, Drivers, Keyframes.
  *
  * For this to work correctly, a standard set of data needs to be available within the scope that this
- * gets called in: 
+ * gets called in:
  *  - ListBase anim_data;
  *  - bDopeSheet *ads;
  *  - bAnimListElem *ale;
@@ -469,7 +469,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  *	0) top level: checks for animdata and also that all the F-Curves for the block will be visible
  *	1) animdata check: for filtering animdata blocks only
  *	2A) nla tracks: include animdata block's data as there are NLA tracks+strips there
- *	2B) actions to convert to nla: include animdata block's data as there is an action that can be 
+ *	2B) actions to convert to nla: include animdata block's data as there is an action that can be
  *		converted to a new NLA strip, and the filtering options allow this
  *	2C) allow non-animated datablocks to be included so that datablocks can be added
  *	3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
@@ -559,7 +559,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 /* ----------- 'Private' Stuff --------------- */
 
 /* this function allocates memory for a new bAnimListElem struct for the 
- * provided animation channel-data. 
+ * provided animation channel-data.
  */
 static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owner_id)
 {
@@ -963,7 +963,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 /* ----------------------------------------- */
 
 /* 'Only Selected' selected data and/or 'Include Hidden' filtering
- * NOTE: when this function returns true, the F-Curve is to be skipped 
+ * NOTE: when this function returns true, the F-Curve is to be skipped
  */
 static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
 {
@@ -1085,7 +1085,7 @@ static bool name_matches_dopesheet_filter(bDopeSheet *ads, char *name)
 }
 
 /* (Display-)Name-based F-Curve filtering
- * NOTE: when this function returns true, the F-Curve is to be skipped 
+ * NOTE: when this function returns true, the F-Curve is to be skipped
  */
 static bool skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, eAnim_ChannelType channel_type, void *owner, ID *owner_id)
 {
@@ -1364,7 +1364,7 @@ static size_t animfilter_action(bAnimContext *ac, ListBase *anim_data, bDopeShee
 /* Include NLA-Data for NLA-Editor:
  *	- when ANIMFILTER_LIST_CHANNELS is used, that means we should be filtering the list for display
  *	  Although the evaluation order is from the first track to the last and then apply the Action on top,
- *	  we present this in the UI as the Active Action followed by the last track to the first so that we 
+ *	  we present this in the UI as the Active Action followed by the last track to the first so that we
  *	  get the evaluation order presented as per a stack.
  *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
  *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
@@ -3166,8 +3166,8 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 /* ----------- Public API --------------- */
 
 /* This function filters the active data source to leave only animation channels suitable for
- * usage by the caller. It will return the length of the list 
- * 
+ * usage by the caller. It will return the length of the list
+ *
  *  *anim_data: is a pointer to a ListBase, to which the filtered animation channels
  *		will be placed for use.
  *	filter_mode: how should the data be filtered - bitmapping accessed flags

@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- */ 
+ */
 
 #ifndef __BKE_MULTIRES_H__
 #define __BKE_MULTIRES_H__

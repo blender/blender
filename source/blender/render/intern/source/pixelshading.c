@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -263,7 +263,7 @@ static float haloZtoDist(int z)
 
 /**
  * \param col (float[4]) Store the rgb color here (with alpha)
- * The alpha is used to blend the color to the background 
+ * The alpha is used to blend the color to the background
  * color_new = (1-alpha)*color_background + color
  * \param zz The current zbuffer value at the place of this pixel
  * \param dist Distance of the pixel from the center of the halo squared. Given in pixels

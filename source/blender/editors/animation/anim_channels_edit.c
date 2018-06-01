@@ -454,9 +454,9 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types d
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
  *		  then the channels under closed expanders get ignored...
  *	- ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
- *		with the new state of the setting that we want flushed up/down the hierarchy 
+ *		with the new state of the setting that we want flushed up/down the hierarchy
  *	- setting: type of setting to set
- *	- on: whether the visibility setting has been enabled or disabled 
+ *	- on: whether the visibility setting has been enabled or disabled
  */
 void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode)
 {
@@ -1039,7 +1039,7 @@ static bool rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp re
 
 /* Change the order NLA Tracks within NLA Stack
  * ! NLA tracks are displayed in opposite order, so directions need care
- *	mode: REARRANGE_ANIMCHAN_*  
+ *	mode: REARRANGE_ANIMCHAN_*
  */
 static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
 {
@@ -1067,7 +1067,7 @@ static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, eRearrangeAn
 /* Drivers Specific Stuff ------------------------------------------------- */
 
 /* Change the order drivers within AnimData block
- *	mode: REARRANGE_ANIMCHAN_*  
+ *	mode: REARRANGE_ANIMCHAN_*
  */
 static void rearrange_driver_channels(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
 {
@@ -1182,7 +1182,7 @@ static void join_groups_action_temp(bAction *act)
 }
 
 /* Change the order of anim-channels within action 
- *	mode: REARRANGE_ANIMCHAN_*  
+ *	mode: REARRANGE_ANIMCHAN_*
  */
 static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrangeAnimChan_Mode mode)
 {

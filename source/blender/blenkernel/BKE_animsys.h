@@ -184,9 +184,9 @@ bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap
 
 /* ------------ Specialized API --------------- */
 /* There are a few special tools which require these following functions. They are NOT to be used
- * for standard animation evaluation UNDER ANY CIRCUMSTANCES! 
+ * for standard animation evaluation UNDER ANY CIRCUMSTANCES!
  *
- * i.e. Pose Library (PoseLib) uses some of these for selectively applying poses, but 
+ * i.e. Pose Library (PoseLib) uses some of these for selectively applying poses, but
  *	    Particles/Sequencer performing funky time manipulation is not ok.
  */
 

@@ -727,7 +727,7 @@ static int precache_resolution(Render *re, VolumePrecache *vp, ObjectInstanceRen
 }
 
 /* Precache a volume into a 3D voxel grid.
- * The voxel grid is stored in the ObjectInstanceRen, 
+ * The voxel grid is stored in the ObjectInstanceRen,
  * in camera space, aligned with the ObjectRen's bounding box.
  * Resolution is defined by the user.
  */

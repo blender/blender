@@ -381,7 +381,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 
 /* ******************** Region Select Operators ***************************** */
 /* "Region Select" operators include the Lasso and Circle Select operators.
- * These two ended up being lumped together, as it was easier in the 
+ * These two ended up being lumped together, as it was easier in the
  * original Graph Editor implementation of these to do it this way.
  */
 
@@ -1193,7 +1193,7 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
  *	- 3) column select all keyframes in frame under mouse - CTRL modifier
  *  - 4) all keyframes in channel under mouse - CTRL+ALT modifiers
  *
- * In addition to these basic options, the SHIFT modifier can be used to toggle the 
+ * In addition to these basic options, the SHIFT modifier can be used to toggle the
  * selection mode between replacing the selection (without) and inverting the selection (with).
  */
 

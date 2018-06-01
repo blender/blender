@@ -43,9 +43,9 @@ typedef void (*RadialSymmetry)(struct BNode *root_node, struct RadialArc *ring, 
 typedef void (*AxialSymmetry)(struct BNode *root_node, struct BNode *node1, struct BNode *node2, struct BArc *arc1, struct BArc *arc2);
 
 /* IF YOU MODIFY THOSE TYPES, YOU NEED TO UPDATE ALL THOSE THAT "INHERIT" FROM THEM
- * 
+ *
  * RigGraph, ReebGraph
- * 
+ *
  * */
 
 typedef struct BGraph {
@@ -175,7 +175,7 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3]);
 #define SYM_RADIAL      8
 
 /* BArc symmetry flags
- * 
+ *
  * axial symmetry sides */
 #define SYM_SIDE_POSITIVE       1
 #define SYM_SIDE_NEGATIVE       2

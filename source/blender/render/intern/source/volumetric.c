@@ -351,7 +351,7 @@ static void vol_get_emission(ShadeInput *shi, float emission_col[3], const float
 
 
 /* A combination of scattering and absorption -> known as sigma T.
- * This can possibly use a specific scattering color, 
+ * This can possibly use a specific scattering color,
  * and absorption multiplier factor too, but these parameters are left out for simplicity.
  * It's easy enough to get a good wide range of results with just these two parameters. */
 static void vol_get_sigma_t(ShadeInput *shi, float sigma_t[3], const float co[3])
@@ -370,7 +370,7 @@ static void vol_get_sigma_t(ShadeInput *shi, float sigma_t[3], const float co[3]
 }
 
 /* phase function - determines in which directions the light 
- * is scattered in the volume relative to incoming direction 
+ * is scattered in the volume relative to incoming direction
  * and view direction */
 static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3], const float wp[3])
 {
@@ -591,7 +591,7 @@ void vol_get_scattering(ShadeInput *shi, float scatter_col[3], const float co[3]
  */
 
 /* For ease of use, I've also introduced a 'reflection' and 'reflection color' parameter, which isn't 
- * physically correct. This works as an RGB tint/gain on out-scattered light, but doesn't affect the light 
+ * physically correct. This works as an RGB tint/gain on out-scattered light, but doesn't affect the light
  * that is transmitted through the volume. While having wavelength dependent absorption/scattering is more correct,
  * it also makes it harder to control the overall look of the volume since coloring the outscattered light results
  * in the inverse color being transmitted through the rest of the volume.

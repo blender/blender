@@ -105,7 +105,7 @@ struct LaplacianSystem {
 /* Computation of these weights for the laplacian is based on:
  * "Discrete Differential-Geometry Operators for Triangulated 2-Manifolds",
  * Meyer et al, 2002. Section 3.5, formula (8).
- * 
+ *
  * We do it a bit different by going over faces instead of going over each
  * vertex and adjacent faces, since we don't store this adjacency. Also, the
  * formulas are tweaked a bit to work for non-manifold meshes. */

@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -485,7 +485,7 @@ void ED_markers_draw(const bContext *C, int flag)
 
 /* ************************ Marker Wrappers API ********************* */
 /* These wrappers allow marker operators to function within the confines 
- * of standard animation editors, such that they can coexist with the 
+ * of standard animation editors, such that they can coexist with the
  * primary operations of those editors.
  */
 
@@ -641,25 +641,25 @@ static void MARKER_OT_add(wmOperatorType *ot)
 
 /* operator state vars used:  
  *     frs: delta movement
- * 
+ *
  * functions:
- * 
+ *
  *     init()   check selection, add customdata with old values and some lookups
- * 
+ *
  *     apply()  do the actual movement
- * 
+ *
  *     exit()    cleanup, send notifier
- * 
+ *
  *     cancel() to escape from modal
- * 
+ *
  * callbacks:
- * 
- *     exec()    calls init, apply, exit 
- * 
+ *
+ *     exec()    calls init, apply, exit
+ *
  *     invoke() calls init, adds modal handler
- * 
+ *
  *     modal()    accept modal events while doing it, ends with apply and exit, or cancel
- * 
+ *
  */
 
 typedef struct MarkerMove {

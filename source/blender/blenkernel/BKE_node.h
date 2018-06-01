@@ -86,7 +86,7 @@ struct bNodeInstanceHash;
 
 /** Compact definition of a node socket.
  * Can be used to quickly define a list of static sockets for a node,
- * which are added to each new node of that type. 
+ * which are added to each new node of that type.
  *
  * \deprecated This struct is used by C nodes to define templates as simple
  * static struct lists. These are converted to the new template collections

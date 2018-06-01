@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,7 +46,7 @@ void fillrect(int *rect, int x, int y, int val);
 
 /**
  * Converts a world coordinate into a homogeneous coordinate in view
- * coordinates. 
+ * coordinates.
  */
 void projectvert(const float v1[3], float winmat[4][4], float adr[4]);
 void projectverto(const float v1[3], float winmat[4][4], float adr[4]);

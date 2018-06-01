@@ -1745,7 +1745,7 @@ bool BLI_path_name_at_index(const char *path, const int index, int *r_offset, in
 #if 0
 /**
  * Produce image export path.
- * 
+ *
  * Returns:
  * 0        if image filename is empty or if destination path
  *          matches image path (i.e. both are the same file).
@@ -1759,12 +1759,12 @@ bool BLI_path_name_at_index(const char *path, const int index, int *r_offset, in
  * - if an image is "below" current .blend file directory:
  *   rebuild the same dir structure in dest_dir
  *
- *   Example: 
+ *   Example:
  *   src : //textures/foo/bar.png
  *   dest: [dest_dir]/textures/foo/bar.png.
  *
  * - if an image is not "below" current .blend file directory,
- *   disregard it's path and copy it into the destination  
+ *   disregard it's path and copy it into the destination
  *   directory.
  *
  *   Example:

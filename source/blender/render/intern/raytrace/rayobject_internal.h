@@ -44,7 +44,7 @@ extern "C" {
  *    implemented with some thread_cancel function)
  *  - max number of threads and threads callback to use during build
  *	...
- */	
+ */
 
 typedef int (*RE_rayobjectcontrol_test_break_callback)(void *data);
 
