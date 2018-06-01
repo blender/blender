@@ -77,7 +77,7 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 		{
 			SolidLight *sl = &U.light[index];
 			if (sl->flag) {
-				light = &wd->lights[light_index++];
+				WORKBENCH_UBO_Light *light = &wd->lights[light_index++];
 				copy_v4_v4(light->light_direction_vs, sl->vec);
 				negate_v3(light->light_direction_vs);
 				copy_v4_v4(light->specular_color, sl->spec);
