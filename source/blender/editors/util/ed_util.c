@@ -201,7 +201,7 @@ bool ED_editors_flush_edits(const bContext *C, bool for_render)
 		else if (ob->mode & OB_MODE_EDIT) {
 			/* get editmode results */
 			has_edited = true;
-			ED_object_editmode_load(ob);
+			ED_object_editmode_load(bmain, ob);
 		}
 	}
 

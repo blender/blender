@@ -1372,6 +1372,7 @@ static void render_view3d_free(void *customdata)
 
 static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1408,7 +1409,7 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 
 		/* load editmesh */
 		if (scene->obedit)
-			ED_object_editmode_load(scene->obedit);
+			ED_object_editmode_load(bmain, scene->obedit);
 	}
 	
 	engine->update_flag = 0;

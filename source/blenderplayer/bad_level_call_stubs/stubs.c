@@ -497,7 +497,7 @@ struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct M
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob) RET_NONE
 bool ED_object_editmode_enter(struct bContext *C, int flag) RET_ZERO
 bool ED_object_editmode_exit(struct bContext *C, int flag) RET_ZERO
-bool ED_object_editmode_load(struct Object *obedit) RET_ZERO
+bool ED_object_editmode_load(struct Main *bmain, struct Object *obedit) RET_ZERO
 void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object) RET_NONE
 bool uiLayoutGetActive(struct uiLayout *layout) RET_ZERO
 int uiLayoutGetOperatorContext(struct uiLayout *layout) RET_ZERO

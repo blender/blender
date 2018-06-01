@@ -114,9 +114,10 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 		Scene *scene = CTX_data_scene(C);
 		Sequence *last_seq = BKE_sequencer_active_get(scene);
 		if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
+			Main *bmain = CTX_data_main(C);
 			char path[FILE_MAX];
 			BLI_strncpy(path, last_seq->strip->dir, sizeof(path));
-			BLI_path_abs(path, G.main->name);
+			BLI_path_abs(path, bmain->name);
 			RNA_string_set(op->ptr, identifier, path);
 		}
 	}
@@ -173,8 +174,10 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, i
 	}
 }
 
-static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
+static void seq_load_operator_info(SeqLoadInfo *seq_load, bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
+
 	PropertyRNA *prop;
 	const bool relative = (prop = RNA_struct_find_property(op->ptr, "relative_path")) && RNA_property_boolean_get(op->ptr, prop);
 	int is_file = -1;
@@ -196,7 +199,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	}
 
 	if ((is_file != -1) && relative)
-		BLI_path_rel(seq_load->path, G.main->name);
+		BLI_path_rel(seq_load->path, bmain->name);
 
 	
 	if ((prop = RNA_struct_find_property(op->ptr, "frame_end"))) {
@@ -545,7 +548,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	SeqLoadInfo seq_load;
 	int tot_files;
 
-	seq_load_operator_info(&seq_load, op);
+	seq_load_operator_info(&seq_load, C, op);
 
 	if (seq_load.flag & SEQ_LOAD_REPLACE_SEL)
 		ED_sequencer_deselect_all(scene);
@@ -855,7 +858,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	StripElem *se;
 	const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
 
-	seq_load_operator_info(&seq_load, op);
+	seq_load_operator_info(&seq_load, C, op);
 
 	/* images are unique in how they handle this - 1 per strip elem */
 	if (use_placeholders) {

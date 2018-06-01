@@ -120,7 +120,7 @@ enum {
 bool ED_object_editmode_exit_ex(struct Scene *scene, struct Object *obedit, int flag);
 bool ED_object_editmode_exit(struct bContext *C, int flag);
 bool ED_object_editmode_enter(struct bContext *C, int flag);
-bool ED_object_editmode_load(struct Object *obedit);
+bool ED_object_editmode_load(struct Main *bmain, struct Object *obedit);
 
 bool ED_object_editmode_calc_active_center(struct Object *obedit, const bool select_only, float r_center[3]);
 

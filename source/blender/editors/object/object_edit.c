@@ -323,13 +323,13 @@ void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 
 /* ******************* toggle editmode operator  ***************** */
 
-static bool mesh_needs_keyindex(const Mesh *me)
+static bool mesh_needs_keyindex(Main *bmain, const Mesh *me)
 {
 	if (me->key) {
 		return false;  /* will be added */
 	}
 
-	for (const Object *ob = G.main->object.first; ob; ob = ob->id.next) {
+	for (const Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 		if ((ob->parent) && (ob->parent->data == me) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
 			return true;
 		}
@@ -437,10 +437,9 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 	return true;
 }
 
-bool ED_object_editmode_load(Object *obedit)
+bool ED_object_editmode_load(Main *bmain, Object *obedit)
 {
-	/* TODO(sergey): use proper main here? */
-	return ED_object_editmode_load_ex(G.main, obedit, false);
+	return ED_object_editmode_load_ex(bmain, obedit, false);
 }
 
 /**
@@ -503,6 +502,7 @@ bool ED_object_editmode_exit(bContext *C, int flag)
 
 bool ED_object_editmode_enter(bContext *C, int flag)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *base = NULL;
 	Object *ob;
@@ -563,7 +563,7 @@ bool ED_object_editmode_enter(bContext *C, int flag)
 		ok = 1;
 		scene->obedit = ob;  /* context sees this */
 
-		const bool use_key_index = mesh_needs_keyindex(ob->data);
+		const bool use_key_index = mesh_needs_keyindex(bmain, ob->data);
 
 		EDBM_mesh_make(ob, scene->toolsettings->selectmode, use_key_index);
 
