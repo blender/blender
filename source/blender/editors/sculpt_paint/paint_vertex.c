@@ -1188,6 +1188,8 @@ static void ed_vwpaintmode_exit_generic(
 		ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
 		ED_mesh_mirror_topo_table(NULL, NULL, 'e');
 	}
+
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 void ED_object_vpaintmode_exit_ex(Object *ob)

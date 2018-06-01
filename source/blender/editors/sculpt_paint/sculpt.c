@@ -5787,6 +5787,8 @@ void ED_object_sculptmode_exit_ex(
 	BKE_sculptsession_free(ob);
 
 	paint_cursor_delete_textures();
+
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 void ED_object_sculptmode_exit(bContext *C)
