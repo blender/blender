@@ -828,7 +828,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 	}
 	/* rect needed for mouse pointer test */
 	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
-}	
+}
 
 static void region_azone_edge_initialize(ScrArea *sa, ARegion *ar, AZEdge edge, const bool is_fullscreen)
 {
@@ -847,7 +847,8 @@ static void region_azone_edge_initialize(ScrArea *sa, ARegion *ar, AZEdge edge, 
 
 	if (is_hidden) {
 		region_azone_tab_plus(sa, az, ar);
-	} else if (!is_hidden && (ar->regiontype != RGN_TYPE_HEADER)) {
+	}
+	else if (!is_hidden && (ar->regiontype != RGN_TYPE_HEADER)) {
 		region_azone_edge(az, ar);
 	}
 }

@@ -195,23 +195,23 @@ void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4])
 
 	/* matrix product: R[j][k] = A[j][i] . B[i][k] */
 #ifdef __SSE2__
-    __m128 A0 = _mm_loadu_ps(A[0]);
-    __m128 A1 = _mm_loadu_ps(A[1]);
-    __m128 A2 = _mm_loadu_ps(A[2]);
-    __m128 A3 = _mm_loadu_ps(A[3]);
+	__m128 A0 = _mm_loadu_ps(A[0]);
+	__m128 A1 = _mm_loadu_ps(A[1]);
+	__m128 A2 = _mm_loadu_ps(A[2]);
+	__m128 A3 = _mm_loadu_ps(A[3]);
 
-    for (int i = 0; i < 4; i++) {
-        __m128 B0 = _mm_set1_ps(B[i][0]);
-        __m128 B1 = _mm_set1_ps(B[i][1]);
-        __m128 B2 = _mm_set1_ps(B[i][2]);
-        __m128 B3 = _mm_set1_ps(B[i][3]);
+	for (int i = 0; i < 4; i++) {
+		__m128 B0 = _mm_set1_ps(B[i][0]);
+		__m128 B1 = _mm_set1_ps(B[i][1]);
+		__m128 B2 = _mm_set1_ps(B[i][2]);
+		__m128 B3 = _mm_set1_ps(B[i][3]);
 
-        __m128 sum = _mm_add_ps(
-			_mm_add_ps(_mm_mul_ps(B0, A0), _mm_mul_ps(B1, A1)),
-			_mm_add_ps(_mm_mul_ps(B2, A2), _mm_mul_ps(B3, A3)));
+		__m128 sum = _mm_add_ps(
+		        _mm_add_ps(_mm_mul_ps(B0, A0), _mm_mul_ps(B1, A1)),
+		        _mm_add_ps(_mm_mul_ps(B2, A2), _mm_mul_ps(B3, A3)));
 
-        _mm_storeu_ps(R[i], sum);
-    }
+		_mm_storeu_ps(R[i], sum);
+	}
 #else
 	R[0][0] = B[0][0] * A[0][0] + B[0][1] * A[1][0] + B[0][2] * A[2][0] + B[0][3] * A[3][0];
 	R[0][1] = B[0][0] * A[0][1] + B[0][1] * A[1][1] + B[0][2] * A[2][1] + B[0][3] * A[3][1];

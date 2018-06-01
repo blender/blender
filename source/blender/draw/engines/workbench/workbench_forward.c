@@ -548,7 +548,7 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	/* Write Depth + Object ID */
 	GPU_framebuffer_bind(fbl->object_outline_fb);
 	DRW_draw_pass(psl->object_outline_pass);
-	
+
 	if (wpd->shading.xray_alpha > 0.0) {
 		/* Shade */
 		GPU_framebuffer_bind(fbl->transparent_accum_fb);

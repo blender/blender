@@ -73,8 +73,7 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 
 	if (STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd)) {
 		int light_index = 0;
-		for (int index = 0 ; index < 3; index++)
-		{
+		for (int index = 0 ; index < 3; index++) {
 			SolidLight *sl = &U.light[index];
 			if (sl->flag) {
 				WORKBENCH_UBO_Light *light = &wd->lights[light_index++];
@@ -105,16 +104,15 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
 }
 
-static void workbench_private_material_free(void* data)
+static void workbench_private_material_free(void *data)
 {
-	WORKBENCH_MaterialData *material_data = (WORKBENCH_MaterialData*)data;
+	WORKBENCH_MaterialData *material_data = data;
 	DRW_UBO_FREE_SAFE(material_data->material_ubo);
 	MEM_freeN(material_data);
 }
 
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
-	
 	BLI_ghash_free(wpd->material_hash, NULL, workbench_private_material_free);
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);
 }

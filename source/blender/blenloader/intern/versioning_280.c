@@ -1501,7 +1501,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				if (mat->use_nodes) {
 					if (MAIN_VERSION_ATLEAST(main, 280, 0)) {
 						mat->roughness = mat->gloss_mir;
-					} else {
+					}
+					else {
 						mat->roughness = 0.25f;
 					}
 				}

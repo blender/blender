@@ -675,9 +675,9 @@ static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 					studiolight_calculate_radiance(sl->equirectangular_irradiance_buffer, color, direction);
 
 					pixelresult = rgb_to_cpack(
-							linearrgb_to_srgb(color[0]),
-							linearrgb_to_srgb(color[1]),
-							linearrgb_to_srgb(color[2])) | alias_mask;
+					        linearrgb_to_srgb(color[0]),
+					        linearrgb_to_srgb(color[1]),
+					        linearrgb_to_srgb(color[2])) | alias_mask;
 				}
 				rect[offset++] = pixelresult;
 			}

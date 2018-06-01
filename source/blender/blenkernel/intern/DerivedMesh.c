@@ -2970,7 +2970,7 @@ static void mesh_finalize_eval(Object *object)
 
 	/* Object is sometimes not evaluated!
 	 * TODO(sergey): BAD TEMPORARY HACK FOR UNTIL WE ARE SMARTER */
-	if(object->id.tag & LIB_TAG_COPY_ON_WRITE) {
+	if (object->id.tag & LIB_TAG_COPY_ON_WRITE) {
 		object->data = mesh_eval;
 	}
 	else {

@@ -2970,7 +2970,7 @@ void BKE_animsys_update_driver_array(ID *id)
 		BLI_assert(!adt->driver_array);
 
 		int num_drivers = BLI_listbase_count(&adt->drivers);
-		adt->driver_array = MEM_mallocN(sizeof(FCurve*) * num_drivers, "adt->driver_array");
+		adt->driver_array = MEM_mallocN(sizeof(FCurve *) * num_drivers, "adt->driver_array");
 
 		int driver_index = 0;
 		for (FCurve *fcu = adt->drivers.first; fcu; fcu = fcu->next) {
@@ -2990,7 +2990,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 
 	/* Lookup driver, accelerated with driver array map. */
 	const AnimData *adt = BKE_animdata_from_id(id);
-	FCurve* fcu;
+	FCurve *fcu;
 
 	if (adt->driver_array) {
 		fcu = adt->driver_array[driver_index];
