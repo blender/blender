@@ -1555,6 +1555,51 @@ static void set_bound_vert_extend_seam_sharp_edges(BevVert *bv)
 	} while (e != efirst);
 }
 
+static void bevel_add_seams(BevVert *bv)
+{
+	VMesh *vm = bv->vmesh;
+
+	BoundVert *bcur = bv->vmesh->boundstart, *start = bcur;
+
+	do {
+		if (bcur->add_seam) {
+			if (!bv->vmesh->boundstart->add_seam && start == bv->vmesh->boundstart)
+				start = bcur;
+
+			int idxlen = bcur->index + bcur->add_seam;
+			for (int i = bcur->index; i < idxlen; i++) {
+				BMVert *v1 = mesh_vert(vm, i % vm->count, 0, 0)->v, *v2;
+				BMEdge *e;
+				for (int k = 1; k < vm->seg; k++) {
+					v2 = mesh_vert(vm, i % vm->count, 0, k)->v;
+
+					e = v1->e;
+					while (e->v1 != v2 && e->v2 != v2) {
+						if (e->v1 == v1)
+							e = e->v1_disk_link.next;
+						else
+							e = e->v2_disk_link.next;
+					}
+					BM_elem_flag_set(e, BM_ELEM_SEAM, true);
+					v1 = v2;
+				}
+				BMVert *v3 = mesh_vert(vm, (i + 1) % vm->count, 0, 0)->v;
+				e = v1->e;
+				while (e->v1 != v3 && e->v2 != v3) {
+					if (e->v1 == v1)
+						e = e->v1_disk_link.next;
+					else
+						e = e->v2_disk_link.next;
+				}
+				BM_elem_flag_set(e, BM_ELEM_SEAM, true);
+				bcur = bcur->next;
+			}
+		}
+		else
+			bcur = bcur->next;
+	} while (bcur != start);
+}
+
 /* Set the any_seam property for a BevVert and all its BoundVerts */
 static void set_bound_vert_seams(BevVert *bv)
 {
@@ -5471,7 +5516,9 @@ void BM_mesh_bevel(
 
 		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				BLI_assert(find_bevvert(&bp, v) != NULL);
+				BevVert *bv = find_bevvert(&bp, v);
+				BLI_assert(bv != NULL);
+				bevel_add_seams(bv);
 				BM_vert_kill(bm, v);
 			}
 		}
