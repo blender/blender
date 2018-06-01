@@ -257,7 +257,7 @@ static void studiolight_calculate_radiance_cubemap_buffers(StudioLight *sl)
 	sl->flag |= STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED;
 }
 
-static inline void studiolight_evaluate_radiance_buffer(ImBuf *radiance_buffer, const float normal[3], float color[3], int *hits, int xoffset, int yoffset, int zoffset, float zvalue)
+BLI_INLINE void studiolight_evaluate_radiance_buffer(ImBuf *radiance_buffer, const float normal[3], float color[3], int *hits, int xoffset, int yoffset, int zoffset, float zvalue)
 {
 	if (radiance_buffer == NULL) {
 		return;
@@ -340,7 +340,7 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 	sl->flag |= STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED;
 }
 
-static inline void studiolight_evaluate_specular_radiance_buffer(ImBuf *radiance_buffer, const float specular, const float normal[3], float color[3], int *hits, int xoffset, int yoffset, int zoffset, float zvalue)
+BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(ImBuf *radiance_buffer, const float specular, const float normal[3], float color[3], int *hits, int xoffset, int yoffset, int zoffset, float zvalue)
 {
 	if (radiance_buffer == NULL) {
 		return;
