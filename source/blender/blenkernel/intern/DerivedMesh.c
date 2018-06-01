@@ -2967,7 +2967,15 @@ static void mesh_finalize_eval(Object *object)
 	 * really happen. But since there is no reference to the report, can not
 	 * do much about this.
 	 */
-	object->data = mesh_eval;
+
+	/* Object is sometimes not evaluated!
+	 * TODO(sergey): BAD TEMPORARY HACK FOR UNTIL WE ARE SMARTER */
+	if(object->id.tag & LIB_TAG_COPY_ON_WRITE) {
+		object->data = mesh_eval;
+	}
+	else {
+		/* evaluated will be available via: 'object->runtime.mesh_eval' */
+	}
 }
 
 static void mesh_build_data(
