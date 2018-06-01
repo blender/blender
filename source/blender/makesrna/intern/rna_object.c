@@ -2291,7 +2291,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_duplicator_for_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_VIEWPORT);
-	RNA_def_property_ui_text(prop, "Show Duplicator", "Make duplicator visible in the viewport");
+	RNA_def_property_ui_text(prop, "Display Duplicator", "Make duplicator visible in the viewport");
 
 	prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Object_is_visible_get", NULL);

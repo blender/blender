@@ -199,7 +199,7 @@ class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):
-    bl_label = "Display"
+    bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -252,11 +252,6 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
             # Only useful with object having faces/materials...
             col.prop(obj, "color")
 
-        col = layout.column(align=True)
-        col.active = bool(is_dupli or obj.particle_systems)
-        col.prop(obj, "show_duplicator_for_viewport")
-        col.prop(obj, "show_duplicator_for_render")
-
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
     bl_label = "Duplication"
@@ -295,6 +290,13 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 
         elif ob.dupli_type == 'COLLECTION':
             layout.prop(ob, "dupli_group", text="Collection")
+
+        if ob.dupli_type != 'NONE' or len(ob.particle_systems):
+            layout.separator()
+
+            col = layout.column(align=True)
+            col.prop(ob, "show_duplicator_for_viewport")
+            col.prop(ob, "show_duplicator_for_render")
 
 
 from .properties_animviz import (

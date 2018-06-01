@@ -215,7 +215,7 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
-    bl_label = "Viewport"
+    bl_label = "Viewport Display"
     bl_context = "material"
     bl_options = {'DEFAULT_CLOSED'}
 
