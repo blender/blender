@@ -152,7 +152,7 @@ bool DRW_object_is_renderable(Object *ob)
 	BLI_assert(BKE_object_is_visible(ob, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE));
 
 	if (ob->type == OB_MESH) {
-		if (ob == DST.draw_ctx.object_edit) {
+		if ((ob == DST.draw_ctx.object_edit) || BKE_object_is_in_editmode(ob)) {
 			View3D *v3d = DST.draw_ctx.v3d;
 			const int mask = (V3D_OVERLAY_EDIT_OCCLUDE_WIRE | V3D_OVERLAY_EDIT_WEIGHT);
 
