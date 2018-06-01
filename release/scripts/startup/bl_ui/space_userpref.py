@@ -289,12 +289,13 @@ class USERPREF_PT_interface(Panel):
         #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
         col.prop(view, "show_manipulator")
-        col.prop(view, "show_manipulator_navigate")
         ## Currently not working
         # col.prop(view, "show_manipulator_shaded")
         sub = col.column()
         sub.active = view.show_manipulator
         sub.prop(view, "manipulator_size", text="Size")
+
+        col.prop(view, "show_manipulator_navigate")
 
         col.separator()
         col.separator()
