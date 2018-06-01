@@ -2304,7 +2304,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
-		/* Then, we make static override of the whole set of objects in the collection. */
+		/* Then, we remove (untag) bone shape objects, you shall never want to override those (hopefully)... */
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, ob)
 		{
 			if (ob->type == OB_ARMATURE && ob->pose != NULL) {
@@ -2325,18 +2325,16 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		Collection *new_collection = (Collection *)collection->id.newid;
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(new_collection, new_ob)
 		{
-			if (new_ob != NULL &&
-			    new_ob->id.override_static != NULL &&
-			    (base = BKE_view_layer_base_find(view_layer, new_ob)) == NULL)
-			{
-				BKE_collection_object_add_from(bmain, scene, obcollection, new_ob);
-				DEG_id_tag_update_ex(bmain, &new_ob->id, OB_RECALC_OB | DEG_TAG_BASE_FLAGS_UPDATE);
+			if (new_ob != NULL && new_ob->id.override_static != NULL) {
+				if ((base = BKE_view_layer_base_find(view_layer, new_ob)) == NULL) {
+					BKE_collection_object_add_from(bmain, scene, obcollection, new_ob);
+					DEG_id_tag_update_ex(bmain, &new_ob->id, DEG_TAG_TRANSFORM | DEG_TAG_BASE_FLAGS_UPDATE);
+				}
 				/* parent to 'collection' empty */
 				if (new_ob->parent == NULL) {
 					new_ob->parent = obcollection;
 				}
 				if (new_ob == (Object *)obact->id.newid) {
-					base = BKE_view_layer_base_find(view_layer, new_ob);
 					BKE_view_layer_base_select(view_layer, base);
 				}
 				else {
