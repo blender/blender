@@ -515,8 +515,10 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			                    ME_DRAWEXTRA_EDGEANG |
 			                    ME_DRAWEXTRA_INDICES))
 			{
-				DRW_edit_mesh_mode_text_measure_stats(
-				       draw_ctx->ar, v3d, ob, &scene->unit);
+				if (DRW_state_show_text()) {
+					DRW_edit_mesh_mode_text_measure_stats(
+					       draw_ctx->ar, v3d, ob, &scene->unit);
+				}
 			}
 		}
 	}
