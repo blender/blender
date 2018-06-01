@@ -28,6 +28,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_world_types.h"
 #include "DNA_view3d_types.h"
 
 #include "ED_screen.h"
@@ -558,12 +559,21 @@ void DRW_draw_grid(void)
 
 void DRW_draw_background(void)
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	
 	/* Just to make sure */
 	glDepthMask(GL_TRUE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glStencilMask(0xFF);
 
-	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+	if ((draw_ctx->v3d->flag3 & V3D_SHOW_WORLD) &&
+	    (draw_ctx->scene->world != NULL))
+	{
+		const World *world = draw_ctx->scene->world;
+		glClearColor(world->horr, world->horg, world->horb, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	}
+	else if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
 		float m[4][4];
 		unit_m4(m);
 

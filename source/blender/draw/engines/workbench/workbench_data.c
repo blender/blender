@@ -25,8 +25,17 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 
 	WORKBENCH_UBO_World *wd = &wpd->world_data;
-	UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);
-	UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
+
+	if ((v3d->flag3 & V3D_SHOW_WORLD) &&
+	    (scene->world != NULL))
+	{
+		copy_v3_v3(wd->background_color_low, &scene->world->horr);
+		copy_v3_v3(wd->background_color_high, &scene->world->horr);
+	}
+	else {
+		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);
+		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
+	}
 
 	/* XXX: Really quick conversion to avoid washed out background.
 	 * Needs to be adressed properly (color managed using ocio). */
