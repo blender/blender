@@ -847,8 +847,7 @@ static void region_azone_edge_initialize(ScrArea *sa, ARegion *ar, AZEdge edge, 
 
 	if (is_hidden) {
 		region_azone_tab_plus(sa, az, ar);
-	}
-	else {
+	} else if (!is_hidden && (ar->regiontype != RGN_TYPE_HEADER)) {
 		region_azone_edge(az, ar);
 	}
 }

@@ -3577,6 +3577,8 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 	ARegion *ar = CTX_wm_region(C);
 	const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") : IFACE_("Flip to Top");
 
+	uiItemO(layout, IFACE_("Toggle Header"), ICON_NONE, "SCREEN_OT_header");
+
 	/* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
