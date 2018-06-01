@@ -625,7 +625,7 @@ static size_t initialize_internal_images(BakeImages *bake_images, ReportList *re
 /* create new mesh with edit mode changes and modifiers applied */
 static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph, Main *bmain, Scene *scene, Object *ob)
 {
-	ED_object_editmode_load(ob);
+	ED_object_editmode_load(bmain, ob);
 
 	Mesh *me = BKE_mesh_new_from_object(depsgraph, bmain, scene, ob, 1, 0, 0);
 	if (me->flag & ME_AUTOSMOOTH) {

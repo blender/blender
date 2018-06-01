@@ -98,7 +98,7 @@ static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *vi
 				ok = ED_object_editmode_exit_ex(scene, ob, EM_FREEDATA | EM_WAITCURSOR);
 			}
 			else {
-				ok = ED_object_editmode_enter_ex(scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
+				ok = ED_object_editmode_enter_ex(CTX_data_main(C), scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
 			}
 			if (ok) {
 				ED_object_base_select(base, (ob->mode & OB_MODE_EDIT) ? BA_SELECT : BA_DESELECT);

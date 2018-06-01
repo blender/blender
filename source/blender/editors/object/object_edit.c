@@ -149,13 +149,13 @@ Object *ED_object_active_context(bContext *C)
 
 /* ******************* toggle editmode operator  ***************** */
 
-static bool mesh_needs_keyindex(const Mesh *me)
+static bool mesh_needs_keyindex(Main *bmain, const Mesh *me)
 {
 	if (me->key) {
 		return false;  /* will be added */
 	}
 
-	for (const Object *ob = G.main->object.first; ob; ob = ob->id.next) {
+	for (const Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 		if ((ob->parent) && (ob->parent->data == me) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
 			return true;
 		}
@@ -263,10 +263,9 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 	return true;
 }
 
-bool ED_object_editmode_load(Object *obedit)
+bool ED_object_editmode_load(Main *bmain, Object *obedit)
 {
-	/* TODO(sergey): use proper main here? */
-	return ED_object_editmode_load_ex(G.main, obedit, false);
+	return ED_object_editmode_load_ex(bmain, obedit, false);
 }
 
 /**
@@ -324,7 +323,7 @@ bool ED_object_editmode_exit(bContext *C, int flag)
 	return ED_object_editmode_exit_ex(scene, obedit, flag);
 }
 
-bool ED_object_editmode_enter_ex(Scene *scene, Object *ob, int flag)
+bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
 {
 	bool ok = false;
 
@@ -351,7 +350,8 @@ bool ED_object_editmode_enter_ex(Scene *scene, Object *ob, int flag)
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
 		ok = 1;
-		const bool use_key_index = mesh_needs_keyindex(ob->data);
+
+		const bool use_key_index = mesh_needs_keyindex(bmain, ob->data);
 
 		EDBM_mesh_make(ob, scene->toolsettings->selectmode, use_key_index);
 
@@ -414,6 +414,7 @@ bool ED_object_editmode_enter_ex(Scene *scene, Object *ob, int flag)
 
 bool ED_object_editmode_enter(bContext *C, int flag)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob;
@@ -427,7 +428,7 @@ bool ED_object_editmode_enter(bContext *C, int flag)
 	if ((ob == NULL) || ID_IS_LINKED(ob)) {
 		return false;
 	}
-	return ED_object_editmode_enter_ex(scene, ob, flag);
+	return ED_object_editmode_enter_ex(bmain, scene, ob, flag);
 }
 
 static int editmode_toggle_exec(bContext *C, wmOperator *op)
@@ -435,6 +436,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	const int mode_flag = OB_MODE_EDIT;
 	const bool is_mode_set = (CTX_data_edit_object(C) != NULL);
+	Main *bmain = CTX_data_main(C);
 	Scene *scene =  CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obact = OBACT(view_layer);
@@ -451,7 +453,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
-					ED_object_editmode_enter_ex(scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
+					ED_object_editmode_enter_ex(bmain, scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
 				}
 			}
 			FOREACH_SELECTED_OBJECT_END;

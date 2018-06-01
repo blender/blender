@@ -164,8 +164,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	limit_precision = RNA_boolean_get(op->ptr, "limit_precision");
 	keep_bind_info = RNA_boolean_get(op->ptr, "keep_bind_info");
 
+	Main *bmain = CTX_data_main(C);
+
 	/* get editmode results */
-	ED_object_editmode_load(CTX_data_edit_object(C));
+	ED_object_editmode_load(bmain, CTX_data_edit_object(C));
 
 	Scene *scene = CTX_data_scene(C);
 

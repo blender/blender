@@ -445,10 +445,10 @@ void rna_Object_dm_info(struct Object *ob, int type, char *result)
 }
 #endif /* NDEBUG */
 
-static int rna_Object_update_from_editmode(Object *ob)
+static int rna_Object_update_from_editmode(Object *ob, Main *bmain)
 {
 	/* fail gracefully if we aren't in edit-mode. */
-	return ED_object_editmode_load(ob);
+	return ED_object_editmode_load(bmain, ob);
 }
 #else /* RNA_RUNTIME */
 
@@ -676,6 +676,7 @@ void RNA_api_object(StructRNA *srna)
 
 	func = RNA_def_function(srna, "update_from_editmode", "rna_Object_update_from_editmode");
 	RNA_def_function_ui_description(func, "Load the objects edit-mode data into the object data");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	parm = RNA_def_boolean(func, "result", 0, "", "Success");
 	RNA_def_function_return(func, parm);
 

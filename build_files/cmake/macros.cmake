@@ -352,6 +352,11 @@ function(SETUP_LIBDIRS)
 	endif()
 endfunction()
 
+macro(setup_platform_linker_flags)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
+endmacro()
+
 function(setup_liblinks
 	target
 	)

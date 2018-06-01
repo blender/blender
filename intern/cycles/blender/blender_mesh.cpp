@@ -1173,7 +1173,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 		 * freed data from the blender side.
 		 */
 		if(preview && b_ob.type() != BL::Object::type_MESH)
-			b_ob.update_from_editmode();
+			b_ob.update_from_editmode(b_data);
 
 		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
 
