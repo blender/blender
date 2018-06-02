@@ -1388,6 +1388,8 @@ static int area_snap_calc_location(
 			}
 			break;
 		}
+		case SNAP_NONE:
+			break;
 	}
 
 	return final_loc;
