@@ -57,6 +57,7 @@ typedef enum ParticleRefineShader {
 } ParticleRefineShader;
 
 static GPUShader *g_refine_shaders[PART_REFINE_MAX_SHADER] = {NULL};
+static DRWPass *g_tf_pass; /* XXX can be a problem with mulitple DRWManager in the future */
 
 extern char datatoc_common_hair_lib_glsl[];
 extern char datatoc_common_hair_refine_vert_glsl[];
@@ -79,9 +80,14 @@ static GPUShader *hair_refine_shader_get(ParticleRefineShader sh)
 	return g_refine_shaders[sh];
 }
 
+void DRW_hair_init(void)
+{
+	g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_TRANS_FEEDBACK);
+}
+
 static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
         Object *object, ParticleSystem *psys, ModifierData *md,
-        DRWPass *hair_pass, DRWPass *tf_pass,
+        DRWPass *hair_pass,
         struct GPUMaterial *gpu_mat, GPUShader *gpu_shader)
 {
 	/* TODO(fclem): Pass the scene as parameter */
@@ -132,7 +138,7 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 	if (need_ft_update) {
 		int final_points_ct = hair_cache->final[subdiv].strands_res * hair_cache->strands_count;
 		GPUShader *tf_shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
-		DRWShadingGroup *tf_shgrp = DRW_shgroup_transform_feedback_create(tf_shader, tf_pass,
+		DRWShadingGroup *tf_shgrp = DRW_shgroup_transform_feedback_create(tf_shader, g_tf_pass,
 		                                                                  hair_cache->final[subdiv].proc_buf);
 		DRW_shgroup_uniform_texture(tf_shgrp, "hairPointBuffer", hair_cache->point_tex);
 		DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandBuffer", hair_cache->strand_tex);
@@ -145,18 +151,23 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 
 DRWShadingGroup *DRW_shgroup_hair_create(
         Object *object, ParticleSystem *psys, ModifierData *md,
-        DRWPass *hair_pass, DRWPass *tf_pass,
+        DRWPass *hair_pass,
         GPUShader *shader)
 {
-	return drw_shgroup_create_hair_procedural_ex(object, psys, md, hair_pass, tf_pass, NULL, shader);
+	return drw_shgroup_create_hair_procedural_ex(object, psys, md, hair_pass, NULL, shader);
 }
 
 DRWShadingGroup *DRW_shgroup_material_hair_create(
         Object *object, ParticleSystem *psys, ModifierData *md,
-        DRWPass *hair_pass, DRWPass *tf_pass,
+        DRWPass *hair_pass,
         struct GPUMaterial *material)
 {
-	return drw_shgroup_create_hair_procedural_ex(object, psys, md, hair_pass, tf_pass, material, NULL);
+	return drw_shgroup_create_hair_procedural_ex(object, psys, md, hair_pass, material, NULL);
+}
+
+void DRW_hair_update(void)
+{
+	DRW_draw_pass(g_tf_pass);
 }
 
 void DRW_hair_free(void)

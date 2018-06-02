@@ -162,14 +162,16 @@ void DRW_shgroup_armature_edit(struct Object *ob, struct DRWArmaturePasses passe
  * The draw call is already added by this function, just add additional uniforms. */
 struct DRWShadingGroup *DRW_shgroup_hair_create(
         struct Object *object, struct ParticleSystem *psys, struct ModifierData *md,
-        struct DRWPass *hair_pass, struct DRWPass *tf_pass,
+        struct DRWPass *hair_pass,
         struct GPUShader *shader);
 
 struct DRWShadingGroup *DRW_shgroup_material_hair_create(
         struct Object *object, struct ParticleSystem *psys, struct ModifierData *md,
-        struct DRWPass *hair_pass, struct DRWPass *tf_pass,
+        struct DRWPass *hair_pass,
         struct GPUMaterial *material);
 
+void DRW_hair_init(void);
+void DRW_hair_update(void);
 void DRW_hair_free(void);
 
 /* pose_mode.c */

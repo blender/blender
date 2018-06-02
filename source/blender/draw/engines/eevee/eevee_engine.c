@@ -193,9 +193,6 @@ static void eevee_draw_background(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-	/* Refresh Hair */
-	DRW_draw_pass(psl->hair_tf_pass);
-
 	/* Sort transparents before the loop. */
 	DRW_pass_sort_shgroup_z(psl->transparent_pass);
 

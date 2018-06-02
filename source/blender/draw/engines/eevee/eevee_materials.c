@@ -894,7 +894,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
 
 	if (is_hair) {
 		DRWShadingGroup *shgrp = DRW_shgroup_hair_create(ob, psys, md,
-		                                                 vedata->psl->default_pass[options], vedata->psl->hair_tf_pass,
+		                                                 vedata->psl->default_pass[options],
 		                                                 e_data.default_lit[options]);
 		add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false, false);
 		return shgrp;
@@ -1070,10 +1070,6 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_texture(grp, "blueNoise", e_data.noise_tex);
 		DRW_shgroup_uniform_vec3(grp, "offsets", e_data.noise_offsets, 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
-	}
-
-	{
-		psl->hair_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_TRANS_FEEDBACK);
 	}
 }
 
@@ -1619,12 +1615,12 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 
 				shgrp = DRW_shgroup_hair_create(
 				        ob, psys, md,
-				        psl->depth_pass, psl->hair_tf_pass,
+				        psl->depth_pass,
 				        e_data.default_hair_prepass_sh);
 
 				shgrp = DRW_shgroup_hair_create(
 				        ob, psys, md,
-				        psl->depth_pass_clip, psl->hair_tf_pass,
+				        psl->depth_pass_clip,
 				        e_data.default_hair_prepass_clip_sh);
 				DRW_shgroup_uniform_block(shgrp, "clip_block", sldata->clip_ubo);
 
@@ -1642,7 +1638,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 						{
 							shgrp = DRW_shgroup_material_hair_create(
 							        ob, psys, md,
-							        psl->material_pass, psl->hair_tf_pass,
+							        psl->material_pass,
 							        gpumat);
 							add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false, false);
 							break;
@@ -1677,7 +1673,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 				/* Shadows */
 				DRW_shgroup_hair_create(
 				        ob, psys, md,
-				        psl->shadow_pass, psl->hair_tf_pass,
+				        psl->shadow_pass,
 				        e_data.default_hair_prepass_sh);
 				*cast_shadow = true;
 			}
