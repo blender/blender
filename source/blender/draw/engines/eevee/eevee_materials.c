@@ -1672,6 +1672,13 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 					DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
 					DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
 				}
+
+				/* Shadows */
+				DRW_shgroup_hair_create(
+				        ob, psys, md,
+				        psl->shadow_pass, psl->hair_tf_pass,
+				        e_data.default_hair_prepass_sh);
+				*cast_shadow = true;
 			}
 		}
 	}
