@@ -541,7 +541,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
 bool WM_toolsystem_active_tool_is_brush(const bContext *C)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	return tref_rt->data_block[0] != '\0';
+	return tref_rt && (tref_rt->data_block[0] != '\0');
 }
 
 /* Follow wmMsgNotifyFn spec */
