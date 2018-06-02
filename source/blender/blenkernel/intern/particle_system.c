@@ -3797,8 +3797,9 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 	}
 }
 
-static void particles_fluid_step(Main *bmain, ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
-{	
+static void particles_fluid_step(
+        Main *bmain, ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
+{
 	ParticleSystem *psys = sim->psys;
 	if (psys->particles) {
 		MEM_freeN(psys->particles);
@@ -3902,7 +3903,7 @@ static void particles_fluid_step(Main *bmain, ParticleSimulationData *sim, int U
 		} // fluid sim particles done
 	}
 #else
-	UNUSED_VARS(use_render_params);
+	UNUSED_VARS(bmain, use_render_params);
 #endif // WITH_MOD_FLUID
 }
 
