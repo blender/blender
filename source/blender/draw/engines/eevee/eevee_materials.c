@@ -941,7 +941,6 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	/* Create Material Ghash */
 	{
 		stl->g_data->material_hash = BLI_ghash_ptr_new("Eevee_material ghash");
-		stl->g_data->hair_material_hash = BLI_ghash_ptr_new("Eevee_hair_material ghash");
 	}
 
 	{
@@ -1587,7 +1586,6 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 
 	if (ob->type == OB_MESH) {
 		if (ob != draw_ctx->object_edit) {
-			material_hash = stl->g_data->hair_material_hash;
 			for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 				if (md->type != eModifierType_ParticleSystem) {
 					continue;
@@ -1728,7 +1726,6 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 	/* END */
 
 	BLI_ghash_free(stl->g_data->material_hash, NULL, MEM_freeN);
-	BLI_ghash_free(stl->g_data->hair_material_hash, NULL, NULL);
 }
 
 void EEVEE_materials_free(void)

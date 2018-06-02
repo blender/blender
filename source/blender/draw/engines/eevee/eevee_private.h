@@ -783,7 +783,6 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *cube_display_shgrp;
 	struct DRWShadingGroup *planar_display_shgrp;
 	struct GHash *material_hash;
-	struct GHash *hair_material_hash;
 	float background_alpha; /* TODO find a better place for this. */
 	/* For planar probes */
 	float planar_texel_size[2];
