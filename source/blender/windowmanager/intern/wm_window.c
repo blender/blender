@@ -85,6 +85,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_init_exit.h"
 #include "GPU_immediate.h"
+#include "GPU_texture.h"
 #include "BLF_api.h"
 
 #include "UI_resources.h"
@@ -2023,6 +2024,7 @@ void wm_window_raise(wmWindow *win)
 
 void wm_window_swap_buffers(wmWindow *win)
 {
+	GPU_texture_delete_orphans(); /* XXX should be done elsewhere. */
 	GHOST_SwapWindowBuffers(win->ghostwin);
 }
 

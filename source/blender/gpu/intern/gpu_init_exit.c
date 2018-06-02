@@ -34,6 +34,7 @@
 #include "GPU_init_exit.h"  /* interface */
 #include "GPU_immediate.h"
 #include "GPU_batch.h"
+#include "GPU_texture.h"
 #include "BKE_global.h"
 
 #include "intern/gpu_codegen.h"
@@ -56,6 +57,7 @@ void GPU_init(void)
 
 	gpu_extensions_init(); /* must come first */
 
+	GPU_texture_init_orphans();
 	gpu_codegen_init();
 
 	if (G.debug & G_DEBUG_GPU)
@@ -79,6 +81,8 @@ void GPU_exit(void)
 	}
 
 	gpu_batch_exit();
+
+	GPU_texture_exit_orphans();
 
 	if (G.debug & G_DEBUG_GPU)
 		gpu_debug_exit();

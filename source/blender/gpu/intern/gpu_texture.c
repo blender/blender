@@ -32,6 +32,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_listbase.h"
+#include "BLI_threads.h"
 
 #include "BKE_global.h"
 
@@ -48,6 +50,9 @@ static struct GPUTextureGlobal {
 	GPUTexture *invalid_tex_2D;
 	GPUTexture *invalid_tex_3D;
 } GG = {NULL, NULL, NULL};
+
+static ListBase g_orphaned_tex = {NULL, NULL};
+static ThreadMutex g_orphan_lock;
 
 /* Maximum number of FBOs a texture can be attached to. */
 #define GPU_TEX_MAX_FBO_ATTACHED 8
@@ -1083,6 +1088,16 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat)
 		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, repeat);
 }
 
+static void gpu_texture_delete(GPUTexture *tex)
+{
+	if (tex->bindcode && !tex->fromblender)
+		glDeleteTextures(1, &tex->bindcode);
+
+	gpu_texture_memory_footprint_remove(tex);
+
+	MEM_freeN(tex);
+}
+
 void GPU_texture_free(GPUTexture *tex)
 {
 	tex->refcount--;
@@ -1097,13 +1112,37 @@ void GPU_texture_free(GPUTexture *tex)
 			}
 		}
 
-		if (tex->bindcode && !tex->fromblender)
-			glDeleteTextures(1, &tex->bindcode);
-
-		gpu_texture_memory_footprint_remove(tex);
-
-		MEM_freeN(tex);
+		/* TODO(fclem): Check if the thread has an ogl context. */
+		if (BLI_thread_is_main()) {
+			gpu_texture_delete(tex);
+		}
+		else{
+			BLI_mutex_lock(&g_orphan_lock);
+			BLI_addtail(&g_orphaned_tex, BLI_genericNodeN(tex));
+			BLI_mutex_unlock(&g_orphan_lock);
+		}
 	}
+}
+
+void GPU_texture_init_orphans(void)
+{
+	BLI_mutex_init(&g_orphan_lock);
+}
+
+void GPU_texture_delete_orphans(void)
+{
+	BLI_mutex_lock(&g_orphan_lock);
+	LinkData *link;
+	while((link = BLI_pophead(&g_orphaned_tex))) {
+		gpu_texture_delete((GPUTexture *)link->data);
+	}
+	BLI_mutex_unlock(&g_orphan_lock);
+}
+
+void GPU_texture_exit_orphans(void)
+{
+	GPU_texture_delete_orphans();
+	BLI_mutex_end(&g_orphan_lock);
 }
 
 void GPU_texture_ref(GPUTexture *tex)
