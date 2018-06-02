@@ -2486,7 +2486,7 @@ void node_hair_info(out float is_strand, out float intercept, out float thicknes
 	intercept = hairTime;
 	thickness = hairThickness;
 	tangent = normalize(hairTangent);
-	random = 0.0;
+	random = wang_hash_noise(uint(hairStrandID)); /* TODO: could be precomputed per strand instead. */
 #else
 	is_strand = 0.0;
 	intercept = 0.0;

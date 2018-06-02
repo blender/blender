@@ -26,6 +26,7 @@ in vec3 hairTangent; /* world space */
 in float hairThickTime;
 in float hairThickness;
 in float hairTime;
+flat in int hairStrandID;
 
 uniform int hairThicknessRes = 1;
 #endif

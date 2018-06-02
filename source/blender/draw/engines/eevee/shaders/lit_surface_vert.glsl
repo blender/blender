@@ -35,11 +35,13 @@ out vec3 hairTangent;
 out float hairThickTime;
 out float hairThickness;
 out float hairTime;
+flat out int hairStrandID;
 #endif
 
 void main()
 {
 #ifdef HAIR_SHADER
+	hairStrandID = hair_get_strand_id();
 	vec3 pos, binor;
 	hair_get_pos_tan_binor_time(
 	        (ProjectionMatrix[3][3] == 0.0),
