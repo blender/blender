@@ -37,27 +37,26 @@ class MotionPathButtonsPanel:
         mps = avs.motion_path
 
         # Display Range
-        layout.row().prop(mps, "type", expand=True)
+        layout.use_property_split = True
+        layout.row().prop(mps, "type")
 
-        split = layout.split()
+        col = layout.column()
 
-        col = split.column()
-        col.label(text="Display Range:")
         sub = col.column(align=True)
         if mps.type == 'CURRENT_FRAME':
-            sub.prop(mps, "frame_before", text="Before")
+            sub.prop(mps, "frame_before", text="Frame Range Before")
             sub.prop(mps, "frame_after", text="After")
         elif mps.type == 'RANGE':
-            sub.prop(mps, "frame_start", text="Start")
+            sub.prop(mps, "frame_start", text="Frame Range Start")
             sub.prop(mps, "frame_end", text="End")
 
         sub.prop(mps, "frame_step", text="Step")
 
-        col = split.column()
+        col = layout.column(align=True)
         if bones:
             col.label(text="Cache for Bone:")
         else:
-            col.label(text="Cache:")
+            col.label(text="Cache")
 
         if mpath:
             sub = col.column(align=True)
@@ -81,17 +80,15 @@ class MotionPathButtonsPanel:
                 sub.operator("object.paths_calculate", text="Calculate...", icon='OBJECT_DATA')
 
         # Display Settings
-        split = layout.split()
 
-        col = split.column()
-        col.label(text="Show:")
+        layout.label(text="Display")
+
+        col = layout.column()
         col.prop(mps, "show_frame_numbers", text="Frame Numbers")
         if mpath is not None:
             col.prop(mpath, "lines", text="Lines")
             col.prop(mpath, "line_thickness", text="Thickness")
 
-        col = split.column()
-        col.label("")
         col.prop(mps, "show_keyframe_highlight", text="Keyframes")
         sub = col.column()
         sub.enabled = mps.show_keyframe_highlight
@@ -101,11 +98,11 @@ class MotionPathButtonsPanel:
 
         # Customize path
         if mpath is not None:
-            row = layout.row(align=True)
-            row.prop(mpath, "use_custom_color", text="", toggle=True, icon='COLOR')
-            sub = row.row(align=True)
+
+            col.prop(mpath, "use_custom_color", text="Custom Color")
+            sub = col.column()
             sub.enabled = mpath.use_custom_color
-            sub.prop(mpath, "color", text="")
+            sub.prop(mpath, "color")
 
 
 # FIXME: this panel still needs to be ported so that it will work correctly with animviz

@@ -23,6 +23,7 @@ from rna_prop_ui import PropertyPanel
 from bpy.app.translations import pgettext_iface as iface_
 from bpy_extras.node_utils import find_node_input, find_output_node
 
+
 class MATERIAL_MT_specials(Menu):
     bl_label = "Material Specials"
 
@@ -172,6 +173,7 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         if mat.use_nodes:
             panel_node_draw(layout, mat.node_tree, ('OUTPUT_EEVEE_MATERIAL', 'OUTPUT_MATERIAL'))
         else:
+            layout.use_property_split = True
             layout.prop(mat, "diffuse_color", text="Base Color")
             layout.prop(mat, "metallic")
             layout.prop(mat, "specular_intensity", text="Specular")
@@ -190,6 +192,7 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         mat = context.material
 

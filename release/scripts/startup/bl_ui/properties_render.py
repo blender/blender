@@ -750,6 +750,7 @@ class RENDER_PT_hair(RenderButtonsPanel, Panel):
         row = layout.row()
         row.prop(rd, "hair_type", expand=True)
 
+        layout.use_property_split = True
         layout.prop(rd, "hair_subdiv")
 
 
