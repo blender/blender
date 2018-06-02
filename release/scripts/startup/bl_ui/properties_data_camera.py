@@ -127,7 +127,8 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
         sub.prop(cam, "shift_x", text="Shift X")
         sub.prop(cam, "shift_y", text="Y")
 
-        col = split.column(align=True)
+        col.separator()
+        sub = col.column(align=True)
         sub.prop(cam, "clip_start", text="Clip Start")
         sub.prop(cam, "clip_end", text="End")
 
