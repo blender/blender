@@ -896,7 +896,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
 		DRWShadingGroup *shgrp = DRW_shgroup_hair_create(ob, psys, md,
 		                                                 vedata->psl->default_pass[options], vedata->psl->hair_tf_pass,
 		                                                 e_data.default_lit[options]);
-		add_standard_uniforms(shgrp, sldata, vedata, NULL, NULL, false, false);
+		add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false, false);
 		return shgrp;
 	}
 	else {
@@ -1584,6 +1584,8 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
 
+	bool use_ssr = ((stl->effects->enabled_effects & EFFECT_SSR) != 0);
+
 	if (ob->type == OB_MESH) {
 		if (ob != draw_ctx->object_edit) {
 			for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
@@ -1628,6 +1630,8 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 
 				shgrp = NULL;
 				if (ma->use_nodes && ma->nodetree) {
+					static int ssr_id;
+					ssr_id = (use_ssr) ? 1 : -1;
 					static float half = 0.5f;
 					static float error_col[3] = {1.0f, 0.0f, 1.0f};
 					static float compile_col[3] = {0.5f, 0.5f, 0.5f};
@@ -1640,7 +1644,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 							        ob, psys, md,
 							        psl->material_pass, psl->hair_tf_pass,
 							        gpumat);
-							add_standard_uniforms(shgrp, sldata, vedata, NULL, NULL, false, false);
+							add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false, false);
 							break;
 						}
 						case GPU_MAT_QUEUED:
@@ -1660,7 +1664,6 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 
 				/* Fallback to default shader */
 				if (shgrp == NULL) {
-					bool use_ssr = ((stl->effects->enabled_effects & EFFECT_SSR) != 0);
 					shgrp = EEVEE_default_shading_group_get(sldata, vedata,
 					                                        ob, psys, md,
 					                                        true, false, use_ssr,

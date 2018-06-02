@@ -2558,7 +2558,23 @@ void node_output_world(Closure surface, Closure volume, out Closure result)
 /* EEVEE output */
 void world_normals_get(out vec3 N)
 {
+#ifdef HAIR_SHADER
+	vec3 B = normalize(cross(worldNormal, hairTangent));
+	float cos_theta;
+	if (hairThicknessRes == 1) {
+		vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
+		/* Random cosine normal distribution on the hair surface. */
+		cos_theta = rand.x * 2.0 - 1.0;
+	}
+	else {
+		/* Shade as a cylinder. */
+		cos_theta = hairThickTime / hairThickness;
+	}
+	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
+	N = normalize(worldNormal * sin_theta + B * cos_theta);
+#else
 	N = gl_FrontFacing ? worldNormal : -worldNormal;
+#endif
 }
 
 void node_eevee_specular(

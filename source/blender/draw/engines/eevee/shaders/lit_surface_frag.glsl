@@ -178,21 +178,6 @@ void CLOSURE_NAME(
 
 	vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
 
-#ifdef HAIR_SHADER
-	vec3 B = normalize(cross(worldNormal, hairTangent));
-	float cos_theta;
-	if (hairThicknessRes == 1) {
-		/* Random cosine normal distribution on the hair surface. */
-		cos_theta = rand.x * 2.0 - 1.0;
-	}
-	else {
-		/* Shade as a cylinder. */
-		cos_theta = hairThickTime / hairThickness;
-	}
-	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
-	N = normalize(N * sin_theta + B * cos_theta);
-#endif
-
 	/* ---------------------------------------------------------------- */
 	/* -------------------- SCENE LAMPS LIGHTING ---------------------- */
 	/* ---------------------------------------------------------------- */
@@ -399,12 +384,6 @@ void CLOSURE_NAME(
 	}
 
 	out_spec += spec_accum.rgb * ssr_spec * spec_occlu * float(specToggle);
-
-#  ifdef HAIR_SHADER
-	/* Hack: Overide spec color so that ssr will not be computed
-	 * even if ssr_id match the active ssr. */
-	ssr_spec = vec3(0.0);
-#  endif
 #endif
 
 #ifdef CLOSURE_REFRACTION
