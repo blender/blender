@@ -182,6 +182,8 @@ typedef enum {
 	DRW_UNIFORM_BLOCK_PERSIST
 } DRWUniformType;
 
+#define MAX_UNIFORM_NAME 13
+
 struct DRWUniform {
 	DRWUniform *next; /* single-linked list */
 	union {
@@ -195,6 +197,9 @@ struct DRWUniform {
 	char type; /* DRWUniformType */
 	char length; /* cannot be more than 16 */
 	char arraysize; /* cannot be more than 16 too */
+#ifndef NDEBUG
+	char name[MAX_UNIFORM_NAME];
+#endif
 };
 
 typedef enum {

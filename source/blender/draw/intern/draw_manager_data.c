@@ -132,6 +132,11 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup, const char *name,
 	BLI_assert(length >= 0 && length <= 16);
 
 	drw_shgroup_uniform_create_ex(shgroup, location, type, value, length, arraysize);
+
+#ifndef NDEBUG
+	/* Save uniform name to easily identify it when debugging. */
+	BLI_strncpy(shgroup->uniforms->name, name, MAX_UNIFORM_NAME);
+#endif
 }
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
