@@ -1576,6 +1576,14 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 			EEVEE_volumes_cache_object_add(sldata, vedata, scene, ob);
 		}
 	}
+}
+
+void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob, bool *cast_shadow)
+{
+	EEVEE_PassList *psl = vedata->psl;
+	EEVEE_StorageList *stl = vedata->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
 
 	if (ob->type == OB_MESH) {
 		if (ob != draw_ctx->object_edit) {

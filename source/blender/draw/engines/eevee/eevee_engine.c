@@ -129,38 +129,40 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool is_active = (ob == draw_ctx->obact);
+	bool cast_shadow = false;
+
 	if (is_active) {
 		if (DRW_object_is_mode_shade(ob) == true) {
 			return;
 		}
 	}
 
-	if (DRW_check_object_visible_within_active_context(ob) == false) {
-		return;
+	if (ob->base_flag & BASE_VISIBLED) {
+		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
 	}
 
-	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
-		bool cast_shadow;
+	if (DRW_check_object_visible_within_active_context(ob)) {
+		if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+			EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
+		}
+		else if (!USE_SCENE_LIGHT(draw_ctx->v3d)) {
+			/* do not add any scene light sources to the cache */
+		}
+		else if (ob->type == OB_LIGHTPROBE) {
+			if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
+				/* TODO: Special case for dupli objects because we cannot save the object pointer. */
+			}
+			else {
+				EEVEE_lightprobes_cache_add(sldata, ob);
+			}
+		}
+		else if (ob->type == OB_LAMP) {
+			EEVEE_lights_cache_add(sldata, ob);
+		}
+	}
 
-		EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
-
-		if (cast_shadow) {
-			EEVEE_lights_cache_shcaster_object_add(sldata, ob);
-		}
-	}
-	else if (!USE_SCENE_LIGHT(draw_ctx->v3d)) {
-		/* do not add any scene light sources to the cache */
-	}
-	else if (ob->type == OB_LIGHTPROBE) {
-		if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
-			/* TODO: Special case for dupli objects because we cannot save the object pointer. */
-		}
-		else {
-			EEVEE_lightprobes_cache_add(sldata, ob);
-		}
-	}
-	else if (ob->type == OB_LAMP) {
-		EEVEE_lights_cache_add(sldata, ob);
+	if (cast_shadow) {
+		EEVEE_lights_cache_shcaster_object_add(sldata, ob);
 	}
 }
 
