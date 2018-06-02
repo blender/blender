@@ -1185,6 +1185,8 @@ typedef struct sAreaMoveData {
 	enum AreaMoveSnapType {
 		/* Snapping disabled */
 		SNAP_NONE = 0,
+		/* Snap to an invisible grid with a unit defined in AREAGRID */
+		SNAP_AREAGRID,
 		/* Snap to mid-point and adjacent edges. */
 		SNAP_MIDPOINT_AND_ADJACENT,
 		/* Snap to either bigger or smaller, nothing in-between (used for
@@ -1323,7 +1325,7 @@ static int area_move_init(bContext *C, wmOperator *op)
 	                     &md->bigger, &md->smaller,
 	                     &use_bigger_smaller_snap);
 
-	md->snap_type = use_bigger_smaller_snap ? SNAP_BIGGER_SMALLER_ONLY : SNAP_NONE;
+	md->snap_type = use_bigger_smaller_snap ? SNAP_BIGGER_SMALLER_ONLY : SNAP_AREAGRID;
 
 	return 1;
 }
@@ -1334,30 +1336,43 @@ static int area_snap_calc_location(
         const int bigger, const int smaller)
 {
 	BLI_assert(snap_type != SNAP_NONE);
-	if (snap_type == SNAP_BIGGER_SMALLER_ONLY) {
-		return ((origval + delta) >= bigger) ? bigger : smaller;
-	}
-
 	int final_loc = -1;
 	const int m_loc = origval + delta;
-	const int axis = (dir == 'v') ? 0 : 1;
-	int snap_dist;
-	int dist;
-	{
-		/* Test the snap to middle. */
-		int middle = origval + (bigger - smaller) / 2;
-		middle -= (middle % AREAGRID);
 
-		snap_dist = abs(m_loc - middle);
-		final_loc = middle;
-	}
+	switch (snap_type) {
+		case SNAP_AREAGRID:
+			final_loc = m_loc;
+			if (delta != bigger && delta != -smaller) {
+				final_loc -= (m_loc % AREAGRID);
+			}
+			break;
 
-	for (const ScrVert *v1 = sc->vertbase.first; v1; v1 = v1->next) {
-		if (v1->editflag) {
-			const int v_loc = (&v1->vec.x)[!axis];
+		case SNAP_BIGGER_SMALLER_ONLY:
+			final_loc = (m_loc >= bigger) ? bigger : smaller;
+			break;
 
-			for (const ScrVert *v2 = sc->vertbase.first; v2; v2 = v2->next) {
-				if (!v2->editflag) {
+		case SNAP_MIDPOINT_AND_ADJACENT:
+		{
+			const int axis = (dir == 'v') ? 0 : 1;
+			int snap_dist;
+			int dist;
+			{
+				/* Test the snap to middle. */
+				int middle = origval + (bigger - smaller) / 2;
+				snap_dist = abs(m_loc - middle);
+				final_loc = middle;
+			}
+
+			for (const ScrVert *v1 = sc->vertbase.first; v1; v1 = v1->next) {
+				if (!v1->editflag) {
+					continue;
+				}
+				const int v_loc = (&v1->vec.x)[!axis];
+
+				for (const ScrVert *v2 = sc->vertbase.first; v2; v2 = v2->next) {
+					if (v2->editflag) {
+						continue;
+					}
 					if (v_loc == (&v2->vec.x)[!axis]) {
 						const int v_loc2 = (&v2->vec.x)[axis];
 						/* Do not snap to the vertices at the ends. */
@@ -1371,6 +1386,7 @@ static int area_snap_calc_location(
 					}
 				}
 			}
+			break;
 		}
 	}
 
@@ -1393,9 +1409,6 @@ static void area_move_apply_do(
 
 	if (snap_type == SNAP_NONE) {
 		final_loc = origval + delta;
-		if (delta != bigger && delta != -smaller) {
-			final_loc -= (final_loc % AREAGRID);
-		}
 	}
 	else {
 		final_loc = area_snap_calc_location(sc, snap_type, delta, origval, dir, bigger, smaller);
@@ -1526,13 +1539,14 @@ static int area_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					return OPERATOR_CANCELLED;
 
 				case KM_MODAL_SNAP_ON:
-					if (md->snap_type == SNAP_NONE) {
+					if (md->snap_type != SNAP_BIGGER_SMALLER_ONLY) {
 						md->snap_type = SNAP_MIDPOINT_AND_ADJACENT;
 					}
 					break;
+
 				case KM_MODAL_SNAP_OFF:
-					if (md->snap_type == SNAP_MIDPOINT_AND_ADJACENT) {
-						md->snap_type = SNAP_NONE;
+					if (md->snap_type != SNAP_BIGGER_SMALLER_ONLY) {
+						md->snap_type = SNAP_AREAGRID;
 					}
 					break;
 			}
@@ -1652,7 +1666,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	sAreaSplitData *sd;
-	int areaminy = ED_area_headersize() + 1;
+	int areaminy = ED_area_headersize();
 	int dir;
 	
 	/* required context */
@@ -1670,9 +1684,15 @@ static int area_split_init(bContext *C, wmOperator *op)
 	op->customdata = sd;
 	
 	sd->sarea = sa;
-	sd->origsize = dir == 'v' ? sa->winx : sa->winy;
-	sd->origmin = dir == 'v' ? sa->totrct.xmin : sa->totrct.ymin;
-	
+	if (dir == 'v') {
+		sd->origmin = sa->v1->vec.x;
+		sd->origsize = sa->v4->vec.x - sd->origmin;
+	}
+	else {
+		sd->origmin = sa->v1->vec.y;
+		sd->origsize = sa->v2->vec.y - sd->origmin;
+	}
+
 	return 1;
 }
 
@@ -1991,12 +2011,12 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (sd->sarea) {
 				ScrArea *sa = sd->sarea;
 				if (dir == 'v') {
-					sd->origsize = sa->winx;
-					sd->origmin = sa->totrct.xmin;
+					sd->origmin = sa->v1->vec.x;
+					sd->origsize = sa->v4->vec.x - sd->origmin;
 				}
 				else {
-					sd->origsize = sa->winy;
-					sd->origmin = sa->totrct.ymin;
+					sd->origmin = sa->v1->vec.y;
+					sd->origsize = sa->v2->vec.y - sd->origmin;
 				}
 
 				if (sd->do_snap) {

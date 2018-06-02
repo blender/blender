@@ -226,25 +226,25 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 	CLAMP(fac, 0.0f, 1.0f);
 	
 	if (dir == 'h') {
-		y = sa->v1->vec.y + fac * (sa->v2->vec.y - sa->v1->vec.y);
-		
+		y = sa->v1->vec.y +
+		        round_fl_to_short(fac * (float)(sa->v2->vec.y - sa->v1->vec.y));
+
 		if (y - sa->v1->vec.y < area_min_y)
 			y = sa->v1->vec.y + area_min_y;
 		else if (sa->v2->vec.y - y < area_min_y)
 			y = sa->v2->vec.y - area_min_y;
-		else y -= (y % AREAGRID);
-		
+
 		return y;
 	}
 	else {
-		x = sa->v1->vec.x + fac * (sa->v4->vec.x - sa->v1->vec.x);
-		
+		x = sa->v1->vec.x +
+		        round_fl_to_short(fac * (float)(sa->v4->vec.x - sa->v1->vec.x));
+
 		if (x - sa->v1->vec.x < area_min_x)
 			x = sa->v1->vec.x + area_min_x;
 		else if (sa->v4->vec.x - x < area_min_x)
 			x = sa->v4->vec.x - area_min_x;
-		else x -= (x % AREAGRID);
-		
+
 		return x;
 	}
 }
@@ -609,7 +609,7 @@ static void screen_vertices_scale(
 
 	if (screen_size_x_prev != screen_size_x || screen_size_y_prev != screen_size_y) {
 		const float facx = ((float)screen_size_x - 1) / ((float)screen_size_x_prev - 1);
-		const float facy = ((float)screen_size_y) / ((float)screen_size_y_prev);
+		const float facy = ((float)screen_size_y - 1) / ((float)screen_size_y_prev - 1);
 
 		/* make sure it fits! */
 		for (sv = sc->vertbase.first; sv; sv = sv->next) {
@@ -617,7 +617,7 @@ static void screen_vertices_scale(
 			CLAMP(sv->vec.x, screen_rect->xmin, screen_rect->xmax - 1);
 
 			sv->vec.y = screen_rect->ymin + round_fl_to_short((sv->vec.y - min[1]) * facy);
-			CLAMP(sv->vec.y, screen_rect->ymin, screen_rect->ymax);
+			CLAMP(sv->vec.y, screen_rect->ymin, screen_rect->ymax - 1);
 		}
 	}
 
