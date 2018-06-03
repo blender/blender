@@ -159,6 +159,7 @@ static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int d
 		if (drawtype == OB_SOLID && !is_hair) {
 			e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
 		}
+		MEM_freeN(prepass_vert);
 		MEM_freeN(prepass_frag);
 		MEM_freeN(composite_frag);
 		MEM_freeN(defines);

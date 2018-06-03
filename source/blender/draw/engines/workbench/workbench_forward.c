@@ -316,6 +316,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		MEM_freeN(forward_vert);
 		MEM_freeN(forward_depth_frag);
 		MEM_freeN(defines);
+		MEM_freeN(defines_hair);
 	}
 	select_forward_shaders(wpd);
 
