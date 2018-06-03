@@ -6396,19 +6396,24 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 
 /* *********** READ AREA **************** */
 
-static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
+static void direct_link_panel_list(FileData *fd, ListBase *lb)
 {
-	Panel *pa;
-	uiList *ui_list;
+	link_list(fd, lb);
 
-	link_list(fd, &ar->panels);
-
-	for (pa = ar->panels.first; pa; pa = pa->next) {
+	for (Panel *pa = lb->first; pa; pa = pa->next) {
 		pa->paneltab = newdataadr(fd, pa->paneltab);
 		pa->runtime_flag = 0;
 		pa->activedata = NULL;
 		pa->type = NULL;
+		direct_link_panel_list(fd, &pa->children);
 	}
+}
+
+static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
+{
+	uiList *ui_list;
+
+	direct_link_panel_list(fd, &ar->panels);
 
 	link_list(fd, &ar->panels_category_active);
 

@@ -205,7 +205,8 @@ typedef struct PanelType {
 	char translation_context[BKE_ST_MAXNAME];
 	char context[BKE_ST_MAXNAME];             /* for buttons window */
 	char category[BKE_ST_MAXNAME];            /* for category tabs */
-	char owner_id[BKE_ST_MAXNAME];              /* for work-spaces to selectively show. */
+	char owner_id[BKE_ST_MAXNAME];            /* for work-spaces to selectively show. */
+	char parent_id[BKE_ST_MAXNAME];           /* parent idname for subpanels */
 	int space_type;
 	int region_type;
 
@@ -217,6 +218,10 @@ typedef struct PanelType {
 	void (*draw_header)(const struct bContext *C, struct Panel *pa);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *C, struct Panel *pa);
+
+	/* sub panels */
+	struct PanelType *parent;
+	ListBase children;
 
 	/* RNA integration */
 	ExtensionRNA ext;

@@ -1806,6 +1806,84 @@ BLI_INLINE bool streq_array_any(const char *s, const char *arr[])
 	return false;
 }
 
+static void ed_panel_draw(const bContext *C,
+                          ScrArea *sa,
+                          ARegion *ar,
+                          ListBase *lb,
+                          PanelType *pt,
+                          Panel *panel,
+                          int w,
+                          int em,
+                          bool vertical)
+{
+	uiStyle *style = UI_style_get_dpi();
+
+	/* draw panel */
+	uiBlock *block = UI_block_begin(C, ar, pt->idname, UI_EMBOSS);
+
+	bool open;
+	panel = UI_panel_begin(sa, ar, lb, block, pt, panel, &open);
+
+	/* bad fixed values */
+	int triangle = (int)(UI_UNIT_Y * 1.1f);
+	int xco, yco, h = 0;
+
+	if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+		/* for enabled buttons */
+		panel->layout = UI_block_layout(
+		        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+		        triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, 0, style);
+
+		pt->draw_header(C, panel);
+
+		UI_block_layout_resolve(block, &xco, &yco);
+		panel->labelofs = xco - triangle;
+		panel->layout = NULL;
+	}
+	else {
+		panel->labelofs = 0;
+	}
+
+	if (open) {
+		short panelContext;
+
+		/* panel context can either be toolbar region or normal panels region */
+		if (ar->regiontype == RGN_TYPE_TOOLS)
+			panelContext = UI_LAYOUT_TOOLBAR;
+		else
+			panelContext = UI_LAYOUT_PANEL;
+
+		panel->layout = UI_block_layout(
+		        block, UI_LAYOUT_VERTICAL, panelContext,
+		        style->panelspace, 0, w - 2 * style->panelspace, em, 0, style);
+
+		pt->draw(C, panel);
+
+		UI_block_layout_resolve(block, &xco, &yco);
+		panel->layout = NULL;
+
+		if (yco != 0) {
+			h = -yco + 2 * style->panelspace;
+		}
+	}
+
+	UI_block_end(C, block);
+
+	/* Draw child panels. */
+	if (open) {
+		for (LinkData *link = pt->children.first; link; link = link->next) {
+			PanelType *child_pt = link->data;
+			Panel *child_panel = UI_panel_find_by_type(&panel->children, child_pt);
+
+			if (child_pt->draw && (!child_pt->poll || child_pt->poll(C, child_pt))) {
+				ed_panel_draw(C, sa, ar, &panel->children, child_pt, child_panel, w, em, vertical);
+			}
+		}
+	}
+
+	UI_panel_end(block, w, h);
+}
+
 /**
  * \param contexts: A NULL terminated array of context strings to match against.
  * Matching against any of these strings will draw the panel.
@@ -1815,13 +1893,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 {
 	const WorkSpace *workspace = CTX_wm_workspace(C);
 	ScrArea *sa = CTX_wm_area(C);
-	uiStyle *style = UI_style_get_dpi();
-	uiBlock *block;
 	PanelType *pt;
-	Panel *panel;
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
-	int x, y, xco, yco, w, em, triangle;
+	int x, y, w, em;
 	bool is_context_new = 0;
 	int scroll;
 
@@ -1859,6 +1934,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 
 	/* collect panels to draw */
 	for (pt = ar->type->paneltypes.last; pt; pt = pt->prev) {
+		/* Only draw top level panels. */
+		if (pt->parent) {
+			continue;
+		}
+
 		/* verify context */
 		if (contexts && pt->context[0] && !streq_array_any(pt->context, contexts)) {
 			continue;
@@ -1920,9 +2000,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 
 	BLI_SMALLSTACK_ITER_BEGIN(pt_stack, pt)
 	{
-		bool open;
-
-		panel = UI_panel_find_by_type(ar, pt);
+		Panel *panel = UI_panel_find_by_type(&ar->panels, pt);
 
 		if (use_category_tabs && pt->category[0] && !STREQ(category, pt->category)) {
 			if ((panel == NULL) || ((panel->flag & PNL_PIN) == 0)) {
@@ -1930,56 +2008,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 			}
 		}
 
-		/* draw panel */
-		block = UI_block_begin(C, ar, pt->idname, UI_EMBOSS);
-		panel = UI_panel_begin(sa, ar, block, pt, panel, &open);
-
-		/* bad fixed values */
-		triangle = (int)(UI_UNIT_Y * 1.1f);
-
-		if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
-			/* for enabled buttons */
-			panel->layout = UI_block_layout(
-			        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-			        triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, 0, style);
-
-			pt->draw_header(C, panel);
-
-			UI_block_layout_resolve(block, &xco, &yco);
-			panel->labelofs = xco - triangle;
-			panel->layout = NULL;
-		}
-		else {
-			panel->labelofs = 0;
-		}
-
-		if (open) {
-			short panelContext;
-
-			/* panel context can either be toolbar region or normal panels region */
-			if (ar->regiontype == RGN_TYPE_TOOLS)
-				panelContext = UI_LAYOUT_TOOLBAR;
-			else
-				panelContext = UI_LAYOUT_PANEL;
-
-			panel->layout = UI_block_layout(
-			        block, UI_LAYOUT_VERTICAL, panelContext,
-			        style->panelspace, 0, w - 2 * style->panelspace, em, 0, style);
-
-			pt->draw(C, panel);
-
-			UI_block_layout_resolve(block, &xco, &yco);
-			panel->layout = NULL;
-
-			yco -= 2 * style->panelspace;
-			UI_panel_end(block, w, -yco);
-		}
-		else {
-			yco = 0;
-			UI_panel_end(block, w, 0);
-		}
-
-		UI_block_end(C, block);
+		ed_panel_draw(C, sa, ar, &ar->panels, pt, panel, w, em, vertical);
 	}
 	BLI_SMALLSTACK_ITER_END;
 

@@ -150,9 +150,9 @@ typedef struct uiWidgetStateColors {
 typedef struct uiPanelColors {
 	char header[4];
 	char back[4];
+	char sub_back[4];
 	short show_header;
 	short show_back;
-	int pad;
 } uiPanelColors;
 
 typedef struct uiGradientColors {

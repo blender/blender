@@ -2814,11 +2814,6 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, sh
 	return block;
 }
 
-uiBlock *UI_block_find_in_region(const char *name, ARegion *ar)
-{
-	return BLI_findstring(&ar->uiblocks, name, offsetof(uiBlock, name));
-}
-
 void UI_block_emboss_set(uiBlock *block, char dt)
 {
 	block->dt = dt;

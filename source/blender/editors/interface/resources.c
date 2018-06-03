@@ -254,6 +254,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->panelcolors.header; break;
 				case TH_PANEL_BACK:
 					cp = ts->panelcolors.back; break;
+				case TH_PANEL_SUB_BACK:
+					cp = ts->panelcolors.sub_back; break;
 				case TH_PANEL_SHOW_HEADER:
 					cp = &setting;
 					setting = ts->panelcolors.show_header;
@@ -821,6 +823,7 @@ static void ui_theme_init_new_do(ThemeSpace *ts)
 	ts->panelcolors.show_header = false;
 	rgba_char_args_set(ts->panelcolors.back,   114, 114, 114, 128);
 	rgba_char_args_set(ts->panelcolors.header, 0, 0, 0, 25);
+	rgba_char_args_set(ts->panelcolors.sub_back, 0, 0, 0, 25);
 
 	rgba_char_args_set(ts->button,         145, 145, 145, 245);
 	rgba_char_args_set(ts->button_title,   0, 0, 0, 255);
@@ -3019,6 +3022,16 @@ void init_userdef_do_versions(void)
 	if (!USER_VERSION_ATLEAST(280, 16)) {
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
 			btheme->tstatusbar = btheme->tv3d;
+		}
+	}
+
+	if (!USER_VERSION_ATLEAST(280, 17)) {
+		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			ThemeSpace *ts;
+
+			for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
+				rgba_char_args_set(ts->panelcolors.sub_back, 0, 0, 0, 25);
+			}
 		}
 	}
 

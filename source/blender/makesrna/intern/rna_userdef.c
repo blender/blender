@@ -902,6 +902,10 @@ static void rna_def_userdef_theme_ui_panel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "back", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_ui_text(prop, "Background", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "sub_back", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_ui_text(prop, "Sub Background", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "show_header", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Show Header", "");

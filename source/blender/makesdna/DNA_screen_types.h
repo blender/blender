@@ -121,7 +121,9 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	char drawname[64];					/* panelname is identifier for restoring location */
-	int ofsx, ofsy, sizex, sizey;
+	int ofsx, ofsy;                     /* offset within the region */
+	int sizex, sizey;                   /* panel size including children */
+	int blocksizex, blocksizey;         /* panel size excluding children */
 	short labelofs, pad;
 	short flag, runtime_flag;
 	short control;
@@ -129,6 +131,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	int sortorder;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
+	ListBase children;          /* sub panels */
 } Panel;
 
 

@@ -74,6 +74,7 @@ typedef enum ThemeColorID {
 	/* panels */
 	TH_PANEL_HEADER,
 	TH_PANEL_BACK,
+	TH_PANEL_SUB_BACK,
 	TH_PANEL_SHOW_HEADER,
 	TH_PANEL_SHOW_BACK,
 	

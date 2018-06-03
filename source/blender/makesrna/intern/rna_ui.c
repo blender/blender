@@ -179,6 +179,12 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free_extension(type, &pt->ext);
 	RNA_struct_free(&BLENDER_RNA, type);
 
+	if (pt->parent) {
+		LinkData *link = BLI_findptr(&pt->parent->children, pt, offsetof(LinkData, data));
+		BLI_freelinkN(&pt->parent->children, link);
+	}
+
+	BLI_freelistN(&pt->children);
 	BLI_freelinkN(&art->paneltypes, pt);
 
 	/* update while blender is running */
@@ -190,7 +196,7 @@ static StructRNA *rna_Panel_register(
         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
-	PanelType *pt, dummypt = {NULL};
+	PanelType *pt, *parent = NULL, dummypt = {NULL};
 	Panel dummypanel = {NULL};
 	PointerRNA dummyptr;
 	int have_function[3];
@@ -229,11 +235,20 @@ static StructRNA *rna_Panel_register(
 				BLI_freelinkN(&art->paneltypes, pt);
 			break;
 		}
+
+		if (dummypt.parent_id[0] && STREQ(pt->idname, dummypt.parent_id)) {
+			parent = pt;
+		}
 	}
 	if (!RNA_struct_available_or_report(reports, dummypt.idname)) {
 		return NULL;
 	}
 	if (!RNA_struct_bl_idname_ok_or_report(reports, dummypt.idname, "_PT_")) {
+		return NULL;
+	}
+	if (dummypt.parent_id[0] && !parent) {
+		BKE_reportf(reports, RPT_ERROR, "Registering panel class: parent '%s' for '%s' not found",
+		            dummypt.parent_id, dummypt.idname);
 		return NULL;
 	}
 	
@@ -266,6 +281,11 @@ static StructRNA *rna_Panel_register(
 	}
 	else
 		BLI_addtail(&art->paneltypes, pt);
+
+	if (parent) {
+		pt->parent = parent;
+		BLI_addtail(&parent->children, BLI_genericNodeN(pt));
+	}
 
 	{
 		const char *owner_id = RNA_struct_state_owner_get();
@@ -1101,6 +1121,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, panel_flag_items);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Options",  "Options for this panel type");
+
+	prop = RNA_def_property(srna, "bl_parent_id", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->parent_id");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_ui_text(prop, "Parent ID Name", "If this is set, the panel becomes a subpanel");
 
 	prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PNL_PIN);
