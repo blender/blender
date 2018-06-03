@@ -144,8 +144,10 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *shadow_pass;
 	struct DRWPass *shadow_cube_copy_pass;
 	struct DRWPass *shadow_cube_store_pass;
+	struct DRWPass *shadow_cube_store_high_pass;
 	struct DRWPass *shadow_cascade_copy_pass;
 	struct DRWPass *shadow_cascade_store_pass;
+	struct DRWPass *shadow_cascade_store_high_pass;
 
 	/* Probes */
 	struct DRWPass *probe_background;
