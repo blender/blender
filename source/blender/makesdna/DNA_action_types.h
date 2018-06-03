@@ -677,10 +677,10 @@ typedef enum eDopeSheet_Flag {
 typedef struct SpaceAction {
 	struct SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-
-	short blockhandler[8];
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	View2D v2d DNA_DEPRECATED;  /* copied to region */
 	

@@ -312,7 +312,6 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	
 	v3d = MEM_callocN(sizeof(View3D), "initview3d");
 	v3d->spacetype = SPACE_VIEW3D;
-	v3d->blockscale = 0.7f;
 	v3d->lay = v3d->layact = 1;
 	if (scene) {
 		v3d->lay = v3d->layact = scene->lay;

@@ -171,9 +171,10 @@ typedef struct View3DOverlay {
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-	short blockhandler[8];
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	float viewquat[4]  DNA_DEPRECATED;
 	float dist         DNA_DEPRECATED;
@@ -199,7 +200,7 @@ typedef struct View3D {
 	int layact;
 	
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
-	short scenelock, _pad0;
+	short scenelock, _pad1;
 	short flag, flag2, pad2;
 	
 	float lens, grid;

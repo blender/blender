@@ -1100,8 +1100,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl;
 
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->blockscale == 0.0f)
-						sl->blockscale = 0.7f;
 					/* added: 5x better zoom in for action */
 					if (sl->spacetype == SPACE_ACTION) {
 						SpaceAction *sac = (SpaceAction *)sl;
@@ -1211,9 +1209,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->blockscale == 0.0f)
-						sl->blockscale = 0.7f;
-
 					/* added: 5x better zoom in for nla */
 					if (sl->spacetype == SPACE_NLA) {
 						SpaceNla *snla = (SpaceNla *) sl;

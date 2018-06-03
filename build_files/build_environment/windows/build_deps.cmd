@@ -14,10 +14,18 @@ if NOT "%1" == "" (
     set BuildDir=VS14
     goto par2
   )
+	if "%1" == "2017" (
+    echo "Building for VS2017"
+    set VSVER=15.0
+    set VSVER_SHORT=15
+    set BuildDir=VS15
+    goto par2
+  )
+  
 )
 :usage
 
-Echo Usage build_deps 2013/2015 x64/x86
+Echo Usage build_deps 2013/2015/2017 x64/x86
 goto exit
 :par2
 if NOT "%2" == "" (
@@ -31,6 +39,10 @@ if NOT "%2" == "" (
 		if "%1" == "2015" (
 			set CMAKE_BUILDER=Visual Studio 14 2015
 		)
+		if "%1" == "2017" (
+			set CMAKE_BUILDER=Visual Studio 15 2017
+		)
+		
     goto start
   )
 	if "%2" == "x64" (
@@ -43,6 +55,10 @@ if NOT "%2" == "" (
 		if "%1" == "2015" (
 			set CMAKE_BUILDER=Visual Studio 14 2015 Win64
 		)
+		if "%1" == "2017" (
+			set CMAKE_BUILDER=Visual Studio 15 2017 Win64
+		)
+		
     goto start
   )
 )
