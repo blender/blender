@@ -79,9 +79,9 @@ struct BLI_mempool;
 typedef struct SpaceLink {
 	struct SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;        /* XXX make deprecated */
-	short blockhandler[8]  DNA_DEPRECATED;  /* XXX make deprecated */
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
 } SpaceLink;
 
 /* -------------------------------------------------------------------- */
@@ -92,9 +92,10 @@ typedef struct SpaceLink {
 typedef struct SpaceInfo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	short blockhandler[8]  DNA_DEPRECATED;      /* XXX make deprecated */
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	char rpt_mask;
 	char pad[7];
@@ -119,10 +120,10 @@ typedef enum eSpaceInfo_RptMask {
 typedef struct SpaceButs {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	View2D v2d DNA_DEPRECATED;                      /* deprecated, copied to region */
 
@@ -244,9 +245,10 @@ typedef enum eSpaceButtons_Align {
 typedef struct SpaceOops {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
 
@@ -327,9 +329,10 @@ typedef enum eSpaceOutliner_Search_Flags {
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
 
@@ -403,9 +406,10 @@ typedef enum eGraphEdit_Mode {
 typedef struct SpaceNla {
 	struct SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	short autosnap;         /* this uses the same settings as autosnap for Action Editor */
 	short flag;
@@ -449,8 +453,11 @@ typedef struct SpaceTimeCache {
 typedef struct SpaceTime {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
+
 
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
 
@@ -508,10 +515,10 @@ typedef enum eTimeline_Cache_Flag {
 typedef struct SpaceSeq {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
 
@@ -653,8 +660,12 @@ typedef struct FileSelectParams {
 typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
+	char _pad1[4];
 	int scroll_offset;
 
 	struct FileSelectParams *params; /* config and input for file select */
@@ -905,9 +916,10 @@ enum {
 typedef struct SpaceImage {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-
-	int flag;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	struct Image *image;
 	struct ImageUser iuser;
@@ -934,7 +946,8 @@ typedef struct SpaceImage {
 
 	/* Filter settings when editor shows other object's UVs. */
 	int other_uv_filter;
-	int pad2;
+
+	int flag;
 
 	MaskSpaceInfo mask_info;
 } SpaceImage;
@@ -1030,9 +1043,10 @@ typedef enum eSpaceImage_OtherUVFilter {
 typedef struct SpaceText {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	struct Text *text;
 
@@ -1113,8 +1127,11 @@ typedef struct Script {
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
+
 	struct Script *script;
 
 	short flags, menunr;
@@ -1143,9 +1160,10 @@ typedef struct bNodeTreePath {
 typedef struct SpaceNode {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
 
@@ -1233,10 +1251,10 @@ enum {
 typedef struct SpaceLogic {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-
-	short blockhandler[8]  DNA_DEPRECATED;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	short flag, scaflag;
 	int pad;
@@ -1276,9 +1294,10 @@ typedef enum eConsoleLine_Type {
 typedef struct SpaceConsole {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;            // XXX are these needed?
-	short blockhandler[8]  DNA_DEPRECATED;      // XXX are these needed?
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	/* space vars */
 	int lheight, pad;
@@ -1301,9 +1320,12 @@ typedef struct SpaceConsole {
 typedef struct SpaceUserPref {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
-	char pad[3];
+	char _pad1[7];
 	char filter_type;
 	char filter[64];        /* search term for filtering in the UI */
 } SpaceUserPref;
@@ -1318,7 +1340,12 @@ typedef struct SpaceUserPref {
 typedef struct SpaceClip {
 	SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
+
+	char _pad1[4];
 
 	float xof, yof;             /* user defined offset, image is centered */
 	float xlockof, ylockof;     /* user defined offset from locked position */

@@ -148,9 +148,10 @@ typedef struct RegionView3D {
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-	short blockhandler[8];
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	float viewquat[4]  DNA_DEPRECATED;
 	float dist         DNA_DEPRECATED;
