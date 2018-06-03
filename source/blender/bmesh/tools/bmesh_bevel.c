@@ -151,6 +151,7 @@ typedef struct BoundVert {
 	bool any_seam;      /* are any of the edges attached here seams? */
 	bool visited;       /* used during delta adjust pass */
 	int add_seam;
+	int sharp_len;
 //	int _pad;
 } BoundVert;	
 
@@ -1523,39 +1524,49 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
 	co[2] = z;
 }
 
-#define BEV_SEAM(eh) (BM_elem_flag_test(eh->e, BM_ELEM_SEAM))
+#define EDGE_DATA_CHECK(eh, flag) (BM_elem_flag_test(eh->e, flag))
 
-static void set_bound_vert_extend_seam_sharp_edges(BevVert *bv)
+static void check_edge_data(BevVert *bv, int flag, bool neg)
 {
 	EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
-	while (!BEV_SEAM(e)) {
+	while (neg ^ !EDGE_DATA_CHECK(e, flag)) {
 		e = e->next;
 		if (e == efirst)
 			break;
 	}
-	if (!BEV_SEAM(e))
+	if (neg ^ !EDGE_DATA_CHECK(e, flag))
 		return;
 
 	efirst = e;
 	do {
-		int seam_length = 0;
+		int flag_count = 0;
 		EdgeHalf *ne = e->next;
-
-		while (!BEV_SEAM(ne) && ne != efirst) {
-			if(ne->is_bev)
-				seam_length++;
+		
+		while ((neg ^ !EDGE_DATA_CHECK(ne, flag)) && ne != efirst) {
+			if (ne->is_bev)
+				flag_count++;
 			ne = ne->next;
 		}
-		if (ne == e || (ne == efirst && !BEV_SEAM(efirst))) {
+		if (ne == e || (ne == efirst && (neg ^ !EDGE_DATA_CHECK(efirst, flag)))) {
 			break;
 		}
-		e->rightv->add_seam = seam_length ? seam_length : 0;
+ 		if (flag == BM_ELEM_SEAM)
+			e->rightv->add_seam = flag_count;
+		else if (flag == BM_ELEM_SMOOTH)
+			e->rightv->sharp_len = flag_count;
 		e = ne;
 	} while (e != efirst);
+
 }
 
-static void bevel_add_seams(BevVert *bv)
+static void set_bound_vert_extend_seam_sharp_edges(BevVert *bv)
+{
+	check_edge_data(bv, BM_ELEM_SEAM, false);
+	check_edge_data(bv, BM_ELEM_SMOOTH, true);
+}
+
+static void bevel_extend_edge_data(BevVert *bv)
 {
 	VMesh *vm = bv->vmesh;
 
@@ -1592,6 +1603,47 @@ static void bevel_add_seams(BevVert *bv)
 						e = e->v2_disk_link.next;
 				}
 				BM_elem_flag_set(e, BM_ELEM_SEAM, true);
+				bcur = bcur->next;
+			}
+		}
+		else
+			bcur = bcur->next;
+	} while (bcur != start);
+
+
+	bcur = bv->vmesh->boundstart;
+	start = bcur;
+	do {
+		if (bcur->sharp_len) {
+			if (!bv->vmesh->boundstart->sharp_len && start == bv->vmesh->boundstart)
+				start = bcur;
+
+			int idxlen = bcur->index + bcur->sharp_len;
+			for (int i = bcur->index; i < idxlen; i++) {
+				BMVert *v1 = mesh_vert(vm, i % vm->count, 0, 0)->v, *v2;
+				BMEdge *e;
+				for (int k = 1; k < vm->seg; k++) {
+					v2 = mesh_vert(vm, i % vm->count, 0, k)->v;
+
+					e = v1->e;
+					while (e->v1 != v2 && e->v2 != v2) {
+						if (e->v1 == v1)
+							e = e->v1_disk_link.next;
+						else
+							e = e->v2_disk_link.next;
+					}
+					BM_elem_flag_set(e, BM_ELEM_SMOOTH, false);
+					v1 = v2;
+				}
+				BMVert *v3 = mesh_vert(vm, (i + 1) % vm->count, 0, 0)->v;
+				e = v1->e;
+				while (e->v1 != v3 && e->v2 != v3) {
+					if (e->v1 == v1)
+						e = e->v1_disk_link.next;
+					else
+						e = e->v2_disk_link.next;
+				}
+				BM_elem_flag_set(e, BM_ELEM_SMOOTH, false);
 				bcur = bcur->next;
 			}
 		}
@@ -5518,7 +5570,7 @@ void BM_mesh_bevel(
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				BevVert *bv = find_bevvert(&bp, v);
 				BLI_assert(bv != NULL);
-				bevel_add_seams(bv);
+				bevel_extend_edge_data(bv);
 				BM_vert_kill(bm, v);
 			}
 		}
