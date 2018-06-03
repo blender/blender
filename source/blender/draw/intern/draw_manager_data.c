@@ -436,7 +436,8 @@ void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, Gwn_Batch *geom, O
 	call->select_id = DST.select_id;
 #endif
 
-	SET_FLAG_FROM_TEST(call->state->flag, bypass_culling, DRW_CALL_BYPASS_CULLING);
+	/* NOTE this will disable culling for the whole object. */
+	call->state->flag |= (bypass_culling) ? DRW_CALL_BYPASS_CULLING : 0;
 
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
