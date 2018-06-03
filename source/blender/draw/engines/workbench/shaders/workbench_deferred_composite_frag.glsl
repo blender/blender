@@ -47,7 +47,7 @@ void main()
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 #ifdef WORKBENCH_ENCODE_NORMALS
 	vec3 normal_viewport = normal_decode(texelFetch(normalBuffer, texel, 0).rg);
-	if (diffuse_color.a == 1.0) {
+	if (diffuse_color.a == 0.0) {
 		normal_viewport = -normal_viewport;
 	}
 #else /* WORKBENCH_ENCODE_NORMALS */
@@ -81,9 +81,13 @@ void main()
 #endif /* V3D_LIGHTING_STUDIO */
 
 #ifdef V3D_SHADING_SHADOW
-	float shadow_mix = step(-shadowShift, dot(normal_viewport, world_data.light_direction_vs.xyz));
-	float light_multiplier;
-	light_multiplier = mix(lightMultiplier, shadowMultiplier, shadow_mix);
+	float light_factor = -dot(normal_viewport, world_data.light_direction_vs.xyz);
+	/* The step function might be ok for meshes but it's
+	 * clearly not the case for hairs. Do smoothstep in this case. */
+	float shadow_mix = (diffuse_color.a == 1.0 || diffuse_color.a == 0.0)
+	                        ? step(-shadowShift, -light_factor)
+	                        : smoothstep(1.0, shadowShift, light_factor);
+	float light_multiplier = mix(lightMultiplier, shadowMultiplier, shadow_mix);
 
 #else /* V3D_SHADING_SHADOW */
 	float light_multiplier = 1.0;

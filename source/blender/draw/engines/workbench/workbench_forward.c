@@ -51,8 +51,9 @@ static struct {
 	struct GPUShader *composite_sh_cache[MAX_SHADERS];
 	struct GPUShader *transparent_accum_sh_cache[MAX_SHADERS];
 	struct GPUShader *transparent_revealage_sh;
+	struct GPUShader *transparent_revealage_hair_sh;
 	struct GPUShader *object_outline_sh;
-	struct GPUShader *depth_sh;
+	struct GPUShader *object_outline_hair_sh;
 	struct GPUShader *checker_depth_sh;
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
@@ -66,6 +67,7 @@ static struct {
 } e_data = {{NULL}};
 
 /* Shaders */
+extern char datatoc_common_hair_lib_glsl[];
 extern char datatoc_workbench_forward_composite_frag_glsl[];
 extern char datatoc_workbench_forward_depth_frag_glsl[];
 extern char datatoc_workbench_forward_transparent_accum_frag_glsl[];
@@ -89,6 +91,20 @@ static char *workbench_build_forward_depth_frag(void)
 
 	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_forward_depth_frag_glsl);
+
+	str = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+	return str;
+}
+
+static char *workbench_build_forward_vert(void)
+{
+	char *str = NULL;
+
+	DynStr *ds = BLI_dynstr_new();
+
+	BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_workbench_prepass_vert_glsl);
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -208,10 +224,10 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	return material;
 }
 
-static void ensure_forward_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype)
+static void ensure_forward_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype, bool is_hair)
 {
-	if (e_data.composite_sh_cache[index] == NULL && drawtype == OB_SOLID) {
-		char *defines = workbench_material_build_defines(wpd, drawtype);
+	if (e_data.composite_sh_cache[index] == NULL && drawtype == OB_SOLID && !is_hair) {
+		char *defines = workbench_material_build_defines(wpd, drawtype, is_hair);
 		char *composite_frag = workbench_build_forward_composite_frag();
 		e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
 		MEM_freeN(composite_frag);
@@ -219,27 +235,35 @@ static void ensure_forward_shaders(WORKBENCH_PrivateData *wpd, int index, int dr
 	}
 
 	if (e_data.transparent_accum_sh_cache[index] == NULL) {
-		char *defines = workbench_material_build_defines(wpd, drawtype);
+		char *defines = workbench_material_build_defines(wpd, drawtype, is_hair);
+		char *transparent_accum_vert = workbench_build_forward_vert();
 		char *transparent_accum_frag = workbench_build_forward_transparent_accum_frag();
 		e_data.transparent_accum_sh_cache[index] = DRW_shader_create(
-		        datatoc_workbench_prepass_vert_glsl, NULL, transparent_accum_frag, defines);
+		        transparent_accum_vert, NULL,
+		        transparent_accum_frag, defines);
+		MEM_freeN(transparent_accum_vert);
 		MEM_freeN(transparent_accum_frag);
-
 		MEM_freeN(defines);
 	}
 }
 
 static void select_forward_shaders(WORKBENCH_PrivateData *wpd)
 {
-	int index_solid = workbench_material_get_shader_index(wpd, OB_SOLID);
-	int index_texture = workbench_material_get_shader_index(wpd, OB_TEXTURE);
+	int index_solid = workbench_material_get_shader_index(wpd, OB_SOLID, false);
+	int index_solid_hair = workbench_material_get_shader_index(wpd, OB_SOLID, true);
+	int index_texture = workbench_material_get_shader_index(wpd, OB_TEXTURE, false);
+	int index_texture_hair = workbench_material_get_shader_index(wpd, OB_TEXTURE, true);
 
-	ensure_forward_shaders(wpd, index_solid, OB_SOLID);
-	ensure_forward_shaders(wpd, index_texture, OB_TEXTURE);
+	ensure_forward_shaders(wpd, index_solid, OB_SOLID, false);
+	ensure_forward_shaders(wpd, index_solid_hair, OB_SOLID, true);
+	ensure_forward_shaders(wpd, index_texture, OB_TEXTURE, false);
+	ensure_forward_shaders(wpd, index_texture_hair, OB_TEXTURE, true);
 
 	wpd->composite_sh = e_data.composite_sh_cache[index_solid];
 	wpd->transparent_accum_sh = e_data.transparent_accum_sh_cache[index_solid];
+	wpd->transparent_accum_hair_sh = e_data.transparent_accum_sh_cache[index_solid_hair];
 	wpd->transparent_accum_texture_sh = e_data.transparent_accum_sh_cache[index_texture];
+	wpd->transparent_accum_texture_hair_sh = e_data.transparent_accum_sh_cache[index_texture_hair];
 }
 
 /* public functions */
@@ -265,21 +289,31 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		memset(e_data.composite_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 		memset(e_data.transparent_accum_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 
-		char *defines = workbench_material_build_defines(wpd, OB_SOLID);
+		char *defines = workbench_material_build_defines(wpd, OB_SOLID, false);
+		char *defines_hair = workbench_material_build_defines(wpd, OB_SOLID, true);
+		char *forward_vert = workbench_build_forward_vert();
 		char *forward_depth_frag = workbench_build_forward_depth_frag();
 		e_data.object_outline_sh = DRW_shader_create(
-		        datatoc_workbench_prepass_vert_glsl, NULL, forward_depth_frag, defines);
+		        forward_vert, NULL,
+		        forward_depth_frag, defines);
+		e_data.object_outline_hair_sh = DRW_shader_create(
+		        forward_vert, NULL,
+		        forward_depth_frag, defines_hair);
 
 #ifdef WORKBENCH_REVEALAGE_ENABLED
 		char *forward_transparent_revealage_frag = workbench_build_forward_transparent_revealage_frag();
 		e_data.transparent_revealage_sh = DRW_shader_create(
-		        datatoc_workbench_prepass_vert_glsl, NULL, forward_transparent_revealage_frag, defines);
+		        forward_vert, NULL,
+		        forward_transparent_revealage_frag, defines);
+		e_data.transparent_revealage_hair_sh = DRW_shader_create(
+		        forward_vert, NULL,
+		        forward_transparent_revealage_frag, defines_hair);
 		MEM_freeN(forward_transparent_revealage_frag);
 #endif
 
-		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 		e_data.checker_depth_sh = DRW_shader_create_fullscreen(
 		        datatoc_workbench_checkerboard_depth_frag_glsl, NULL);
+		MEM_freeN(forward_vert);
 		MEM_freeN(forward_depth_frag);
 		MEM_freeN(defines);
 	}
@@ -332,14 +366,14 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	GPU_framebuffer_clear_color_depth(fbl->object_outline_fb, clear_color, 1.0f);
 	DRW_stats_group_end();
 
-	/* Treansparecy Accum */
+	/* Transparency Accum */
 	{
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL;
 		psl->transparent_accum_pass = DRW_pass_create("Transparent Accum", state);
 	}
 
 #ifdef WORKBENCH_REVEALAGE_ENABLED
-	/* Treansparecy Revealage */
+	/* Transparency Revealage */
 	{
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSPARENT_REVEALAGE;
 		psl->transparent_revealage_pass = DRW_pass_create("Transparent Revealage", state);
@@ -386,8 +420,10 @@ void workbench_forward_engine_free()
 	}
 #ifdef WORKBENCH_REVEALAGE_ENABLED
 	DRW_SHADER_FREE_SAFE(e_data.transparent_revealage_sh);
+	DRW_SHADER_FREE_SAFE(e_data.transparent_revealage_hair_sh);
 #endif
 	DRW_SHADER_FREE_SAFE(e_data.object_outline_sh);
+	DRW_SHADER_FREE_SAFE(e_data.object_outline_hair_sh);
 	DRW_SHADER_FREE_SAFE(e_data.checker_depth_sh);
 }
 
@@ -397,15 +433,19 @@ void workbench_forward_cache_init(WORKBENCH_Data *UNUSED(vedata))
 
 static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, Object *ob)
 {
-#ifdef WORKBENCH_REVEALAGE_ENABLED
 	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
-#endif
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+
 	if (ob == draw_ctx->object_edit) {
 		return;
 	}
-	for (ParticleSystem *psys = ob->particlesystem.first; psys != NULL; psys = psys->next) {
+	for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+		if (md->type != eModifierType_ParticleSystem) {
+			continue;
+		}
+		ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 		if (!psys_check_enabled(ob, psys, false)) {
 			continue;
 		}
@@ -415,17 +455,46 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 		ParticleSettings *part = psys->part;
 		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
-		static float mat[4][4];
-		unit_m4(mat);
-
 		if (draw_as == PART_DRAW_PATH) {
-			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(ob, psys, NULL);
-			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
+			Image *image = NULL;
+			Material *mat = give_current_material(ob, part->omat);
+			int mat_drawtype = OB_SOLID;
+
+			if (wpd->drawtype == OB_TEXTURE) {
+				ED_object_get_active_image(ob, part->omat, &image, NULL, NULL, NULL);
+				/* use OB_SOLID when no texture could be determined */
+				if (image) {
+					mat_drawtype = OB_TEXTURE;
+				}
+			}
+
+			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, mat_drawtype);
+
+			struct GPUShader *shader = (mat_drawtype == OB_SOLID)
+			                           ? wpd->transparent_accum_hair_sh
+			                           : wpd->transparent_accum_texture_hair_sh;
+			DRWShadingGroup *shgrp = DRW_shgroup_hair_create(
+			                                ob, psys, md,
+			                                psl->transparent_accum_pass,
+			                                shader);
+			workbench_material_set_normal_world_matrix(shgrp, wpd, e_data.normal_world_matrix);
+			DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
+			DRW_shgroup_uniform_block(shgrp, "material_block", material->material_ubo);
+			DRW_shgroup_uniform_float(shgrp, "alpha", &wpd->shading.xray_alpha, 1);
+			if (image) {
+				GPUTexture *tex = GPU_texture_from_blender(image, NULL, GL_TEXTURE_2D, false, false, false);
+				DRW_shgroup_uniform_texture(shgrp, "image", tex);
+			}
 #ifdef WORKBENCH_REVEALAGE_ENABLED
-			DRW_shgroup_call_add(wpd->transparent_revealage_shgrp, geom, mat);
+			shgrp = DRW_shgroup_hair_create(ob, psys, md,
+			                        psl->transparent_revealage_pass,
+			                        e_data.transparent_revealage_hair_sh);
+			DRW_shgroup_uniform_float(shgrp, "alpha", &wpd->shading.xray_alpha, 1);
 #endif
-			DRW_shgroup_call_add(material->shgrp_object_outline, geom, mat);
-			DRW_shgroup_call_add(material->shgrp, geom, mat);
+			shgrp = DRW_shgroup_hair_create(ob, psys, md,
+			                        vedata->psl->object_outline_pass,
+			                        e_data.object_outline_hair_sh);
+			DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
 		}
 	}
 }

@@ -76,6 +76,8 @@ static struct {
 } e_data = {{NULL}};
 
 /* Shaders */
+extern char datatoc_common_hair_lib_glsl[];
+
 extern char datatoc_workbench_prepass_vert_glsl[];
 extern char datatoc_workbench_prepass_frag_glsl[];
 extern char datatoc_workbench_deferred_composite_frag_glsl[];
@@ -130,15 +132,31 @@ static char *workbench_build_prepass_frag(void)
 	return str;
 }
 
-static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype)
+static char *workbench_build_prepass_vert(void)
+{
+	char *str = NULL;
+
+	DynStr *ds = BLI_dynstr_new();
+
+	BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_workbench_prepass_vert_glsl);
+
+	str = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+	return str;
+}
+
+static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype, bool is_hair)
 {
 	if (e_data.prepass_sh_cache[index] == NULL) {
-		char *defines = workbench_material_build_defines(wpd, drawtype);
+		char *defines = workbench_material_build_defines(wpd, drawtype, is_hair);
 		char *composite_frag = workbench_build_composite_frag(wpd);
+		char *prepass_vert = workbench_build_prepass_vert();
 		char *prepass_frag = workbench_build_prepass_frag();
 		e_data.prepass_sh_cache[index] = DRW_shader_create(
-		        datatoc_workbench_prepass_vert_glsl, NULL, prepass_frag, defines);
-		if (drawtype == OB_SOLID) {
+		        prepass_vert, NULL,
+		        prepass_frag, defines);
+		if (drawtype == OB_SOLID && !is_hair) {
 			e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
 		}
 		MEM_freeN(prepass_frag);
@@ -149,14 +167,20 @@ static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int d
 
 static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
 {
-	int index_solid = workbench_material_get_shader_index(wpd, OB_SOLID);
-	int index_texture = workbench_material_get_shader_index(wpd, OB_TEXTURE);
+	int index_solid = workbench_material_get_shader_index(wpd, OB_SOLID, false);
+	int index_solid_hair = workbench_material_get_shader_index(wpd, OB_SOLID, true);
+	int index_texture = workbench_material_get_shader_index(wpd, OB_TEXTURE, false);
+	int index_texture_hair = workbench_material_get_shader_index(wpd, OB_TEXTURE, true);
 
-	ensure_deferred_shaders(wpd, index_solid, OB_SOLID);
-	ensure_deferred_shaders(wpd, index_texture, OB_TEXTURE);
+	ensure_deferred_shaders(wpd, index_solid, OB_SOLID, false);
+	ensure_deferred_shaders(wpd, index_solid_hair, OB_SOLID, true);
+	ensure_deferred_shaders(wpd, index_texture, OB_TEXTURE, false);
+	ensure_deferred_shaders(wpd, index_texture_hair, OB_TEXTURE, true);
 
 	wpd->prepass_solid_sh = e_data.prepass_sh_cache[index_solid];
+	wpd->prepass_solid_hair_sh = e_data.prepass_sh_cache[index_solid_hair];
 	wpd->prepass_texture_sh = e_data.prepass_sh_cache[index_texture];
+	wpd->prepass_texture_hair_sh = e_data.prepass_sh_cache[index_texture_hair];
 	wpd->composite_sh = e_data.composite_sh_cache[index_solid];
 }
 
@@ -263,6 +287,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	{
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		psl->prepass_pass = DRW_pass_create("Prepass", state);
+		psl->prepass_hair_pass = DRW_pass_create("Prepass", state);
 	}
 }
 
@@ -449,11 +474,18 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 
 static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *ob)
 {
+	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PassList *psl = vedata->psl;
+	WORKBENCH_PrivateData *wpd = stl->g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	if (ob == draw_ctx->object_edit) {
 		return;
 	}
-	for (ParticleSystem *psys = ob->particlesystem.first; psys != NULL; psys = psys->next) {
+	for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+		if (md->type != eModifierType_ParticleSystem) {
+			continue;
+		}
+		ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 		if (!psys_check_enabled(ob, psys, false)) {
 			continue;
 		}
@@ -463,13 +495,35 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 		ParticleSettings *part = psys->part;
 		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
-		static float mat[4][4];
-		unit_m4(mat);
-
 		if (draw_as == PART_DRAW_PATH) {
-			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(ob, psys, NULL);
-			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
-			DRW_shgroup_call_add(material->shgrp, geom, mat);
+			Image *image = NULL;
+			Material *mat = give_current_material(ob, part->omat);
+			int mat_drawtype = OB_SOLID;
+
+			if (wpd->drawtype == OB_TEXTURE) {
+				ED_object_get_active_image(ob, part->omat, &image, NULL, NULL, NULL);
+				/* use OB_SOLID when no texture could be determined */
+				if (image) {
+					mat_drawtype = OB_TEXTURE;
+				}
+			}
+
+			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, mat_drawtype);
+
+			struct GPUShader *shader = (mat_drawtype == OB_SOLID)
+			                           ? wpd->prepass_solid_hair_sh
+			                           : wpd->prepass_texture_hair_sh;
+			DRWShadingGroup *shgrp = DRW_shgroup_hair_create(
+			                                ob, psys, md,
+			                                psl->prepass_hair_pass,
+			                                shader);
+			DRW_shgroup_stencil_mask(shgrp, 0xFF);
+			DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
+			DRW_shgroup_uniform_block(shgrp, "material_block", material->material_ubo);
+			if (image) {
+				GPUTexture *tex = GPU_texture_from_blender(image, NULL, GL_TEXTURE_2D, false, false, false);
+				DRW_shgroup_uniform_texture(shgrp, "image", tex);
+			}
 		}
 	}
 }
@@ -658,6 +712,7 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	/* clear in background */
 	GPU_framebuffer_bind(fbl->prepass_fb);
 	DRW_draw_pass(psl->prepass_pass);
+	DRW_draw_pass(psl->prepass_hair_pass);
 	if (SHADOW_ENABLED(wpd)) {
 #ifdef DEBUG_SHADOW_VOLUME
 		GPU_framebuffer_bind(fbl->composite_fb);

@@ -38,7 +38,7 @@
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
-#define MAX_SHADERS 512
+#define MAX_SHADERS (1 << 10)
 
 
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
@@ -72,6 +72,7 @@ typedef struct WORKBENCH_StorageList {
 typedef struct WORKBENCH_PassList {
 	/* deferred rendering */
 	struct DRWPass *prepass_pass;
+	struct DRWPass *prepass_hair_pass;
 	struct DRWPass *shadow_depth_pass_pass;
 	struct DRWPass *shadow_depth_pass_mani_pass;
 	struct DRWPass *shadow_depth_fail_pass;
@@ -133,10 +134,14 @@ BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_Material, 16)
 typedef struct WORKBENCH_PrivateData {
 	struct GHash *material_hash;
 	struct GPUShader *prepass_solid_sh;
+	struct GPUShader *prepass_solid_hair_sh;
 	struct GPUShader *prepass_texture_sh;
+	struct GPUShader *prepass_texture_hair_sh;
 	struct GPUShader *composite_sh;
 	struct GPUShader *transparent_accum_sh;
+	struct GPUShader *transparent_accum_hair_sh;
 	struct GPUShader *transparent_accum_texture_sh;
+	struct GPUShader *transparent_accum_texture_hair_sh;
 	View3DShading shading;
 	StudioLight *studio_light;
 	int drawtype;
@@ -216,10 +221,10 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
-char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype);
+char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
-int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype);
+int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair);
 void workbench_material_set_normal_world_matrix(
         DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
 

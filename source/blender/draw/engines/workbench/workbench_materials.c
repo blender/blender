@@ -40,7 +40,7 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Mate
 	}
 }
 
-char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
+char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair)
 {
 	char *str = NULL;
 
@@ -79,6 +79,9 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 	if (NORMAL_ENCODING_ENABLED()) {
 		BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
 	}
+	if (is_hair) {
+		BLI_dynstr_appendf(ds, "#define HAIR_SHADER\n");
+	}
 
 #ifdef WORKBENCH_REVEALAGE_ENABLED
 	BLI_dynstr_appendf(ds, "#define WORKBENCH_REVEALAGE_ENABLED\n");
@@ -115,12 +118,13 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 	return result;
 }
 
-int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype)
+int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair)
 {
+	/* NOTE: change MAX_SHADERS accordingly when modifying this function. */
 	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OUTLINE | V3D_SHADING_SHADOW | V3D_SHADING_SPECULAR_HIGHLIGHT;
 	int index = (wpd->shading.flag & DRAWOPTIONS_MASK);
 	index = (index << 2) + wpd->shading.light;
-	index = (index << 2);
+	index = (index << 3);
 	/* set the drawtype flag
 	0 = OB_SOLID,
 	1 = OB_TEXTURE
@@ -128,6 +132,7 @@ int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype
 	*/
 	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD, 2);
 	SET_FLAG_FROM_TEST(index, drawtype == OB_TEXTURE, 1);
+	SET_FLAG_FROM_TEST(index, is_hair, 4);
 	return index;
 }
 

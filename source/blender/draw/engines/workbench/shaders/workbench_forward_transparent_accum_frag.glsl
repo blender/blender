@@ -39,20 +39,17 @@ void main()
 #endif
 
 #ifdef V3D_LIGHTING_STUDIO
-#ifdef STUDIOLIGHT_ORIENTATION_CAMERA
+#  ifdef STUDIOLIGHT_ORIENTATION_CAMERA
 	vec3 diffuse_light = get_camera_diffuse_light(world_data, normal_viewport);
-#endif
-#ifdef STUDIOLIGHT_ORIENTATION_WORLD
+#  endif
+#  ifdef STUDIOLIGHT_ORIENTATION_WORLD
 	vec3 normal_world = normalWorldMatrix * normal_viewport;
 	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_world);
-#endif
-
+#  endif
 	vec3 shaded_color = diffuse_light * diffuse_color.rgb + specular_color;
-
-#else /* V3D_LIGHTING_STUDIO */
+#else
 	vec3 shaded_color = diffuse_color.rgb + specular_color;
-
-#endif /* V3D_LIGHTING_STUDIO */
+#endif
 
 	vec4 premultiplied = vec4(shaded_color.rgb * alpha, alpha);
 	transparentAccum = calculate_transparent_accum(premultiplied);
