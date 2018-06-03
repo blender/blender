@@ -58,7 +58,7 @@ struct GPUFXSettings;
 
 #include "RNA_types.h"
 
-/* spacetype has everything stored to get an editor working, it gets initialized via 
+/* spacetype has everything stored to get an editor working, it gets initialized via
  * ED_spacetypes_init() in editors/space_api/spacetypes.c   */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
 
@@ -66,26 +66,26 @@ struct GPUFXSettings;
 
 typedef struct SpaceType {
 	struct SpaceType *next, *prev;
-	
+
 	char name[BKE_ST_MAXNAME];                  /* for menus */
 	int spaceid;                                /* unique space identifier */
 	int iconid;                                 /* icon lookup for menus */
-	
+
 	/* initial allocation, after this WM will call init() too */
 	struct SpaceLink    *(*new)(const struct bContext *C);
 	/* not free spacelink itself */
 	void (*free)(struct SpaceLink *sl);
-	
+
 	/* init is to cope with file load, screen (size) changes, check handlers */
 	void (*init)(struct wmWindowManager *wm, struct ScrArea *sa);
 	/* exit is called when the area is hidden or removed */
 	void (*exit)(struct wmWindowManager *wm, struct ScrArea *sa);
 	/* Listeners can react to bContext changes */
 	void (*listener)(struct bScreen *sc, struct ScrArea *sa, struct wmNotifier *wmn);
-	
+
 	/* refresh context, called after filereads, ED_area_tag_refresh() */
 	void (*refresh)(const struct bContext *C, struct ScrArea *sa);
-	
+
 	/* after a spacedata copy, an init should result in exact same situation */
 	struct SpaceLink *(*duplicate)(struct SpaceLink *sl);
 
@@ -104,39 +104,40 @@ typedef struct SpaceType {
 
 	/* region type definitions */
 	ListBase regiontypes;
-	
+
 	/* tool shelf definitions */
 	ListBase toolshelf;
-		
+
 	/* read and write... */
-	
+
 	/* default keymaps to add */
 	int keymapflag;
-	
+
 } SpaceType;
 
 /* region types are also defined using spacetypes_init, via a callback */
 
 typedef struct ARegionType {
 	struct ARegionType *next, *prev;
-	
-	int regionid;           /* unique identifier within this space, defines RGN_TYPE_xxxx */
-	
+
+	/* unique identifier within this space, defines RGN_TYPE_xxxx */
+	int regionid;
+
 	/* add handlers, stuff you only do once or on area/region type/size changes */
 	void (*init)(struct wmWindowManager *wm, struct ARegion *ar);
 	/* exit is called when the region is hidden or removed */
 	void (*exit)(struct wmWindowManager *wm, struct ARegion *ar);
 	/* draw entirely, view changes should be handled here */
-	void (*draw)(const struct bContext *wm, struct ARegion *ar);
+	void (*draw)(const struct bContext *C, struct ARegion *ar);
 	/* contextual changes should be handled here */
 	void (*listener)(struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar, struct wmNotifier *wmn);
-	
+
 	void (*free)(struct ARegion *ar);
 
 	/* split region, copy data optionally */
 	void *(*duplicate)(void *poin);
 
-	
+
 	/* register operator types on startup */
 	void (*operatortypes)(void);
 	/* add own items to keymap */
@@ -155,7 +156,7 @@ typedef struct ARegionType {
 
 	/* header type definitions */
 	ListBase headertypes;
-	
+
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int minsizex, minsizey;
 	/* when new region opens (region prefsizex/y are zero then */
@@ -172,7 +173,7 @@ typedef struct ARegionType {
 
 typedef struct PanelType {
 	struct PanelType *next, *prev;
-	
+
 	char idname[BKE_ST_MAXNAME];              /* unique name */
 	char label[BKE_ST_MAXNAME];               /* for panel header */
 	char translation_context[BKE_ST_MAXNAME];
@@ -316,8 +317,7 @@ float BKE_screen_view3d_zoom_to_fac(float camzoom);
 float BKE_screen_view3d_zoom_from_fac(float zoomfac);
 
 /* screen */
-void BKE_screen_free(struct bScreen *sc); 
+void BKE_screen_free(struct bScreen *sc);
 unsigned int BKE_screen_visible_layers(struct bScreen *screen, struct Scene *scene);
 
-#endif
-
+#endif  /* __BKE_SCREEN_H__ */

@@ -84,6 +84,8 @@ typedef struct SpaceLink {
 	char _pad0[6];
 } SpaceLink;
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Space Info
  * \{ */
@@ -1428,7 +1430,11 @@ typedef enum eSpaceClip_GPencil_Source {
 	SC_GPENCIL_SRC_TRACK = 1,
 } eSpaceClip_GPencil_Source;
 
-/* **************** SPACE DEFINES ********************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Space Defines (eSpace_Type)
+ * \{ */
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */
@@ -1464,7 +1470,8 @@ typedef enum eSpace_Type {
 /* use for function args */
 #define SPACE_TYPE_ANY -1
 
-
 #define IMG_SIZE_FALLBACK 256
+
+/** \} */
 
 #endif  /* __DNA_SPACE_TYPES_H__ */
