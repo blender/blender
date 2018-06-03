@@ -281,8 +281,18 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
             col.prop(part, "lifetime")
             col.prop(part, "lifetime_random", slider=True, text="Lifetime Randomness")
 
-        col.separator()
-        layout.label(text="Source")
+
+class PARTICLE_PT_emission_source(ParticleButtonsPanel, Panel):
+    bl_label = "Source"
+    bl_parent_id = "PARTICLE_PT_emission"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        part = particle_get_settings(context)
+
+        layout.use_property_split = True
 
         col = layout.column()
         col.prop(part, "emit_from")
@@ -1460,6 +1470,7 @@ classes = (
     PARTICLE_UL_particle_systems,
     PARTICLE_PT_context_particles,
     PARTICLE_PT_emission,
+    PARTICLE_PT_emission_source,
     PARTICLE_PT_hair_dynamics,
     PARTICLE_PT_cache,
     PARTICLE_PT_velocity,
