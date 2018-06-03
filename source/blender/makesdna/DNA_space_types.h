@@ -89,6 +89,8 @@ typedef struct SpaceLink {
 	char _pad0[6];
 } SpaceLink;
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Space Info
  * \{ */
@@ -1433,7 +1435,7 @@ typedef struct SpaceStatusBar {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Space Type Definitions
+/** \name Space Defines (eSpace_Type)
  * \{ */
 
 /* space types, moved from DNA_screen_types.h */
