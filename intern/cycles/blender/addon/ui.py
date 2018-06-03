@@ -373,6 +373,18 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
 
         col = layout.column()
 
+        col = layout.column()
+        col.active = show_device_active(context)
+        col.prop(cscene, "device")
+
+        from . import engine
+        if engine.with_osl() and use_cpu(context):
+            col.prop(cscene, "shading_system")
+
+        col.separator()
+
+        col = layout.column()
+
         col.row(align=True).prop(rd, "threads_mode")
         sub = col.column(align=True)
         sub.enabled = rd.threads_mode == 'FIXED'
@@ -1459,13 +1471,6 @@ def draw_device(self, context):
 
         col = layout.column()
         col.prop(cscene, "feature_set")
-
-        col = layout.column()
-        col.active = show_device_active(context)
-        col.prop(cscene, "device")
-
-        if engine.with_osl() and use_cpu(context):
-            layout.prop(cscene, "shading_system")
 
 
 def draw_pause(self, context):
