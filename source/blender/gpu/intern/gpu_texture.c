@@ -1135,6 +1135,7 @@ void GPU_texture_delete_orphans(void)
 	LinkData *link;
 	while((link = BLI_pophead(&g_orphaned_tex))) {
 		gpu_texture_delete((GPUTexture *)link->data);
+		MEM_freeN(link);
 	}
 	BLI_mutex_unlock(&g_orphan_lock);
 }
