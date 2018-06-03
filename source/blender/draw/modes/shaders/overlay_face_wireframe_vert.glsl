@@ -1,3 +1,8 @@
+
+#ifdef GPU_INTEL
+#define USE_GEOM_SHADER
+#endif
+
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ProjectionMatrix;
@@ -9,10 +14,15 @@ uniform float nearDist;
 uniform samplerBuffer vertData;
 uniform isamplerBuffer faceIds;
 
+#ifdef USE_GEOM_SHADER
+out vec2 ssPos;
+out float facingOut; /* abs(facing) > 1.0 if we do edge */
+#else
 flat out vec3 ssVec0;
 flat out vec3 ssVec1;
 flat out vec3 ssVec2;
 out float facing;
+#endif
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -67,6 +77,21 @@ vec3 get_vertex_pos(int v_id)
 
 void main()
 {
+#ifdef USE_GEOM_SHADER
+	int v_id = texelFetch(faceIds, gl_VertexID).r;
+
+	bool do_edge = v_id < 0;
+	v_id = abs(v_id) - 1;
+
+	vec3 pos = get_vertex_pos(v_id);
+	vec3 nor = get_vertex_nor(v_id);
+	facingOut = normalize(NormalMatrix * nor).z;
+	facingOut += (do_edge) ? ((facingOut > 0.0) ? 2.0 : -2.0) : 0.0;
+
+	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	ssPos = proj(gl_Position);
+
+#else
 
 	int v_0 = (gl_VertexID / 3) * 3;
 	int v_n = gl_VertexID % 3;
@@ -102,5 +127,6 @@ void main()
 	gl_Position = p_pos[v_n];
 
 	vec3 nor = get_vertex_nor(v_id[v_n]);
-	facing = (NormalMatrix * nor).z;
+	facing = normalize(NormalMatrix * nor).z;
+#endif
 }

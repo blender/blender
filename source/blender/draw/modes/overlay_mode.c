@@ -28,6 +28,7 @@
 #include "BKE_object.h"
 
 #include "GPU_shader.h"
+#include "GPU_extensions.h"
 #include "DRW_render.h"
 
 #include "draw_mode_engines.h"
@@ -68,6 +69,7 @@ extern char datatoc_overlay_face_orientation_frag_glsl[];
 extern char datatoc_overlay_face_orientation_vert_glsl[];
 
 extern char datatoc_overlay_face_wireframe_vert_glsl[];
+extern char datatoc_overlay_face_wireframe_geom_glsl[];
 extern char datatoc_overlay_face_wireframe_frag_glsl[];
 
 extern struct GlobalsUboStorage ts; /* draw_common.c */
@@ -91,8 +93,13 @@ static void overlay_engine_init(void *vedata)
 	}
 
 	if (!e_data.face_wireframe_sh) {
+		char *wireframe_geom = NULL;
+		if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+			wireframe_geom = datatoc_overlay_face_wireframe_geom_glsl;
+		}
 		e_data.face_wireframe_sh = DRW_shader_create(
-		        datatoc_overlay_face_wireframe_vert_glsl, NULL,
+		        datatoc_overlay_face_wireframe_vert_glsl,
+		        wireframe_geom,
 		        datatoc_overlay_face_wireframe_frag_glsl, NULL);
 	}
 }
