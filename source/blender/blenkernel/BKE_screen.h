@@ -79,29 +79,29 @@ typedef struct SpaceType {
 	
 	/* Initial allocation, after this WM will call init() too. Some editors need
 	 * area and scene data (e.g. frame range) to set their initial scrolling. */
-	struct SpaceLink    *(*new)(const struct ScrArea *, const struct Scene *);
+	struct SpaceLink *(*new)(const struct ScrArea *sa, const struct Scene *scene);
 	/* not free spacelink itself */
-	void (*free)(struct SpaceLink *);
+	void (*free)(struct SpaceLink *sl);
 	
 	/* init is to cope with file load, screen (size) changes, check handlers */
-	void (*init)(struct wmWindowManager *, struct ScrArea *);
+	void (*init)(struct wmWindowManager *wm, struct ScrArea *sa);
 	/* exit is called when the area is hidden or removed */
-	void (*exit)(struct wmWindowManager *, struct ScrArea *);
+	void (*exit)(struct wmWindowManager *wm, struct ScrArea *sa);
 	/* Listeners can react to bContext changes */
-	void (*listener)(struct bScreen *sc, struct ScrArea *,
-	                 struct wmNotifier *, struct Scene *scene,
+	void (*listener)(struct bScreen *sc, struct ScrArea *sa,
+	                 struct wmNotifier *wmn, struct Scene *scene,
 	                 struct WorkSpace *workspace);
 	
 	/* refresh context, called after filereads, ED_area_tag_refresh() */
-	void (*refresh)(const struct bContext *, struct ScrArea *);
+	void (*refresh)(const struct bContext *C, struct ScrArea *sa);
 	
 	/* after a spacedata copy, an init should result in exact same situation */
-	struct SpaceLink    *(*duplicate)(struct SpaceLink *);
+	struct SpaceLink *(*duplicate)(struct SpaceLink *sl);
 
 	/* register operator types on startup */
 	void (*operatortypes)(void);
 	/* add default items to WM keymap */
-	void (*keymap)(struct wmKeyConfig *);
+	void (*keymap)(struct wmKeyConfig *keyconf);
 	/* on startup, define dropboxes for spacetype+regions */
 	void (*dropboxes)(void);
 
@@ -109,10 +109,10 @@ typedef struct SpaceType {
 	void (*manipulators)(void);
 
 	/* return context data */
-	int (*context)(const struct bContext *, const char *, struct bContextDataResult *);
+	int (*context)(const struct bContext *C, const char *member, struct bContextDataResult *result);
 
 	/* Used when we want to replace an ID by another (or NULL). */
-	void (*id_remap)(struct ScrArea *, struct SpaceLink *, struct ID *, struct ID *);
+	void (*id_remap)(struct ScrArea *sa, struct SpaceLink *sl, struct ID *old_id, struct ID *new_id);
 
 	int  (*space_subtype_get)(struct ScrArea *sa);
 	void (*space_subtype_set)(struct ScrArea *sa, int value);
@@ -139,18 +139,18 @@ typedef struct ARegionType {
 	int regionid;           /* unique identifier within this space, defines RGN_TYPE_xxxx */
 	
 	/* add handlers, stuff you only do once or on area/region type/size changes */
-	void (*init)(struct wmWindowManager *, struct ARegion *);
+	void (*init)(struct wmWindowManager *wm, struct ARegion *ar);
 	/* exit is called when the region is hidden or removed */
-	void (*exit)(struct wmWindowManager *, struct ARegion *);
+	void (*exit)(struct wmWindowManager *wm, struct ARegion *ar);
 	/* draw entirely, view changes should be handled here */
-	void (*draw)(const struct bContext *, struct ARegion *);
+	void (*draw)(const struct bContext *wm, struct ARegion *ar);
 	/* optional, compute button layout before drawing for dynamic size */
-	void (*layout)(const struct bContext *, struct ARegion *);
+	void (*layout)(const struct bContext *C, struct ARegion *ar);
 	/* snap the size of the region (can be NULL for no snapping). */
 	int (*snap_size)(const struct ARegion *ar, int size, int axis);
 	/* contextual changes should be handled here */
-	void (*listener)(struct bScreen *, struct ScrArea *, struct ARegion *,
-	                 struct wmNotifier *, const struct Scene *scene);
+	void (*listener)(struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar,
+	                 struct wmNotifier *wmn, const struct Scene *scene);
 	/* Optional callback to generate subscriptions. */
 	void (*message_subscribe)(
 	        const struct bContext *C,
@@ -161,18 +161,18 @@ typedef struct ARegionType {
 	void (*free)(struct ARegion *);
 
 	/* split region, copy data optionally */
-	void        *(*duplicate)(void *);
+	void *(*duplicate)(void *poin);
 
 	
 	/* register operator types on startup */
 	void (*operatortypes)(void);
 	/* add own items to keymap */
-	void (*keymap)(struct wmKeyConfig *);
+	void (*keymap)(struct wmKeyConfig *keyconf);
 	/* allows default cursor per region */
-	void (*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
+	void (*cursor)(struct wmWindow *win, struct ScrArea *sa, struct ARegion *ar);
 
 	/* return context data */
-	int (*context)(const struct bContext *, const char *, struct bContextDataResult *);
+	int (*context)(const struct bContext *C, const char *member, struct bContextDataResult *result);
 
 	/* custom drawing callbacks */
 	ListBase drawcalls;
@@ -212,11 +212,11 @@ typedef struct PanelType {
 	int flag;
 
 	/* verify if the panel should draw or not */
-	int (*poll)(const struct bContext *, struct PanelType *);
+	int (*poll)(const struct bContext *C, struct PanelType *pt);
 	/* draw header (optional) */
-	void (*draw_header)(const struct bContext *, struct Panel *);
+	void (*draw_header)(const struct bContext *C, struct Panel *pa);
 	/* draw entirely, view changes should be handled here */
-	void (*draw)(const struct bContext *, struct Panel *);
+	void (*draw)(const struct bContext *C, struct Panel *pa);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -225,14 +225,18 @@ typedef struct PanelType {
 /* uilist types */
 
 /* Draw an item in the uiList */
-typedef void (*uiListDrawItemFunc)(struct uiList *, struct bContext *, struct uiLayout *, struct PointerRNA *,
-                                   struct PointerRNA *, int, struct PointerRNA *, const char *, int, int);
+typedef void (*uiListDrawItemFunc)(
+        struct uiList *ui_list, struct bContext *C, struct uiLayout *layout, struct PointerRNA *dataptr,
+        struct PointerRNA *itemptr, int icon, struct PointerRNA *active_dataptr, const char *active_propname,
+        int index, int flt_flag);
 
 /* Draw the filtering part of an uiList */
-typedef void (*uiListDrawFilterFunc)(struct uiList *, struct bContext *, struct uiLayout *);
+typedef void (*uiListDrawFilterFunc)(
+        struct uiList *ui_list, struct bContext *C, struct uiLayout *layout);
 
 /* Filter items of an uiList */
-typedef void (*uiListFilterItemsFunc)(struct uiList *, struct bContext *, struct PointerRNA *, const char *);
+typedef void (*uiListFilterItemsFunc)(
+        struct uiList *ui_list, struct bContext *C, struct PointerRNA *, const char *propname);
 
 typedef struct uiListType {
 	struct uiListType *next, *prev;
@@ -257,7 +261,7 @@ typedef struct HeaderType {
 	int region_type;
 
 	/* draw entirely, view changes should be handled here */
-	void (*draw)(const struct bContext *, struct Header *);
+	void (*draw)(const struct bContext *C, struct Header *header);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -281,9 +285,9 @@ typedef struct MenuType {
 	const char *description;
 
 	/* verify if the menu should draw or not */
-	int (*poll)(const struct bContext *, struct MenuType *);
+	int (*poll)(const struct bContext *C, struct MenuType *mt);
 	/* draw entirely, view changes should be handled here */
-	void (*draw)(const struct bContext *, struct Menu *);
+	void (*draw)(const struct bContext *C, struct Menu *menu);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -307,7 +311,8 @@ void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
 void BKE_spacedata_draw_locks(int set);
 
-void BKE_spacedata_callback_id_remap_set(void (*func)(struct ScrArea *, struct SpaceLink *, struct ID *, struct ID *));
+void BKE_spacedata_callback_id_remap_set(
+        void (*func)(struct ScrArea *sa, struct SpaceLink *sl, struct ID *old_id, struct ID *new_id));
 void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID *id);
 
 /* area/regions */
