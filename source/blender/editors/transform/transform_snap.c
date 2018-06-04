@@ -406,6 +406,11 @@ void applyGridAbsolute(TransInfo *t)
 
 void applySnapping(TransInfo *t, float *vec)
 {
+	if (t->tsnap.project && t->tsnap.mode == SCE_SNAP_MODE_FACE) {
+		/* Each Trans Data already makes the snap to face */
+		return;
+	}
+
 	if (t->tsnap.status & SNAP_FORCED) {
 		t->tsnap.targetSnap(t);
 
