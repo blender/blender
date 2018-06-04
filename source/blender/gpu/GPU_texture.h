@@ -39,7 +39,7 @@ extern "C" {
 struct Image;
 struct ImageUser;
 struct PreviewImage;
-	
+
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;
 

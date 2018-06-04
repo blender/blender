@@ -222,7 +222,7 @@ static void gpu_buffer_pool_free(GPUBufferPool *pool)
 {
 	if (!pool)
 		return;
-	
+
 	while (pool->totbuf)
 		gpu_buffer_pool_delete_last(pool);
 
@@ -236,7 +236,7 @@ static void gpu_buffer_pool_free_unused(GPUBufferPool *pool)
 		return;
 
 	BLI_mutex_lock(&buffer_mutex);
-	
+
 	while (pool->totbuf)
 		gpu_buffer_pool_delete_last(pool);
 
@@ -294,7 +294,7 @@ static GPUBuffer *gpu_buffer_alloc_intern(size_t size)
 	 * twice as big */
 	for (i = 0; i < pool->totbuf; i++) {
 		bufsize = pool->buffers[i]->size;
-		
+
 		/* check for an exact size match */
 		if (bufsize == size) {
 			bestfit = i;
@@ -621,7 +621,7 @@ void GPU_vertex_setup(DerivedMesh *dm)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->points->id);
 	glVertexPointer(3, GL_FLOAT, 0, 0);
-	
+
 	GLStates |= GPU_BUFFER_VERTEX_STATE;
 }
 
@@ -716,7 +716,7 @@ void GPU_edge_setup(DerivedMesh *dm)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->points->id);
 	glVertexPointer(3, GL_FLOAT, 0, 0);
-	
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dm->drawObject->edges->id);
 
 	GLStates |= (GPU_BUFFER_VERTEX_STATE | GPU_BUFFER_ELEMENT_STATE);
@@ -730,7 +730,7 @@ void GPU_uvedge_setup(DerivedMesh *dm)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->uvedges->id);
 	glVertexPointer(2, GL_FLOAT, 0, 0);
-	
+
 	GLStates |= GPU_BUFFER_VERTEX_STATE;
 }
 
@@ -792,7 +792,7 @@ void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numda
 		elementsize = element_size;
 
 	glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
-	
+
 	for (i = 0; i < numdata; i++) {
 		glEnableVertexAttribArray(data[i].index);
 		int info = 0;
@@ -804,13 +804,13 @@ void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numda
 		glVertexAttribPointer(data[i].index, data[i].size, data[i].type,
 		                         GL_TRUE, elementsize, BUFFER_OFFSET(offset));
 		offset += data[i].size * gpu_typesize(data[i].type);
-		
+
 		attribData[i].index = data[i].index;
 		attribData[i].size = data[i].size;
 		attribData[i].type = data[i].type;
 	}
-	
-	attribData[numdata].index = -1;	
+
+	attribData[numdata].index = -1;
 }
 
 void GPU_interleaved_attrib_unbind(void)
@@ -952,7 +952,7 @@ typedef struct {
 	 * boundary; drastically increases viewport performance on my
 	 * drivers (Gallium/Radeon) --nicholasbishop */
 	char pad[2];
-	
+
 	unsigned char color[3];
 } VertexBufferFormat;
 
@@ -1283,7 +1283,7 @@ void GPU_pbvh_grid_buffers_update(
 				for (y = 0; y < key->grid_size; y++) {
 					for (x = 0; x < key->grid_size; x++) {
 						CCGElem *elem = CCG_grid_elem(key, grid, x, y);
-						
+
 						copy_v3_v3(vd->co, CCG_elem_co(key, elem));
 						if (buffers->smooth) {
 							normal_float_to_short_v3(vd->no, CCG_elem_no(key, elem));
@@ -1301,7 +1301,7 @@ void GPU_pbvh_grid_buffers_update(
 						vd++;
 					}
 				}
-				
+
 				if (!buffers->smooth) {
 					/* for flat shading, recalc normals and set the last vertex of
 					 * each triangle in the index buffer to have the flat normal as
@@ -1739,7 +1739,7 @@ void GPU_pbvh_bmesh_buffers_update(
 						fmask += BM_ELEM_CD_GET_FLOAT(v[i], cd_vert_mask_offset);
 					}
 					fmask /= 3.0f;
-					
+
 					for (i = 0; i < 3; i++) {
 						gpu_bmesh_vert_to_buffer_copy(v[i], vert_data,
 						                              &v_index, f->no, &fmask,

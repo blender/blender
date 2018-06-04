@@ -108,17 +108,17 @@ typedef struct GPUDrawObject {
 	struct GPUVertPointLink *vert_points_mem;
 	int vert_points_usage;
 #endif
-	
+
 	int colType;
 
 	GPUBufferMaterial *materials;
 	int totmaterial;
-	
+
 	unsigned int tot_triangle_point;
 	unsigned int tot_loose_point;
 	/* different than total loops since ngons get tesselated still */
 	unsigned int tot_loop_verts;
-	
+
 	/* caches of the original DerivedMesh values */
 	unsigned int totvert;
 	unsigned int totedge;

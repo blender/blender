@@ -122,10 +122,10 @@ void GPU_render_text(
 		Image *ima = (Image *)mtexpoly->tpage;
 		const size_t textlen_st = textlen;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-		
+
 		/* multiline */
 		float line_start = 0.0f, line_height;
-		
+
 		if (v4)
 			line_height = max_ffff(v1[1], v2[1], v3[1], v4[2]) - min_ffff(v1[1], v2[1], v3[1], v4[2]);
 		else
@@ -133,7 +133,7 @@ void GPU_render_text(
 		line_height *= 1.2f; /* could be an option? */
 		/* end multiline */
 
-		
+
 		/* color has been set */
 		if (mtexpoly->mode & TF_OBCOL)
 			col = NULL;
@@ -141,22 +141,22 @@ void GPU_render_text(
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 		glPushMatrix();
-		
+
 		/* get the tab width */
 		ImBuf *first_ibuf = BKE_image_get_first_ibuf(ima);
 		matrixGlyph(first_ibuf, ' ', &centerx, &centery,
 			&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
-		
+
 		float advance_tab = advance * 4; /* tab width could also be an option */
-		
-		
+
+
 		for (size_t index = 0; index < textlen_st; ) {
 			unsigned int character;
 			float uv[4][2];
 
 			/* lets calculate offset stuff */
 			character = BLI_str_utf8_as_unicode_and_size_safe(textstr + index, &index);
-			
+
 			if (character == '\n') {
 				glTranslatef(line_start, -line_height, 0.0f);
 				line_start = 0.0f;
@@ -166,13 +166,13 @@ void GPU_render_text(
 				glTranslatef(advance_tab, 0.0f, 0.0f);
 				line_start -= advance_tab; /* so we can go back to the start of the line */
 				continue;
-				
+
 			}
 			else if (character > USHRT_MAX) {
 				/* not much we can do here bmfonts take ushort */
 				character = '?';
 			}
-			
+
 			/* space starts at offset 1 */
 			/* character = character - ' ' + 1; */
 			matrixGlyph(first_ibuf, character, & centerx, &centery,
@@ -184,13 +184,13 @@ void GPU_render_text(
 			uv[1][1] = (uv_quad[1][1] - centery) * sizey + transy;
 			uv[2][0] = (uv_quad[2][0] - centerx) * sizex + transx;
 			uv[2][1] = (uv_quad[2][1] - centery) * sizey + transy;
-			
+
 			glBegin(GL_POLYGON);
 			if (glattrib >= 0) glVertexAttrib2fv(glattrib, uv[0]);
 			else glTexCoord2fv(uv[0]);
 			if (col) gpu_mcol(col[0]);
 			glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
-			
+
 			if (glattrib >= 0) glVertexAttrib2fv(glattrib, uv[1]);
 			else glTexCoord2fv(uv[1]);
 			if (col) gpu_mcol(col[1]);
@@ -419,7 +419,7 @@ void GPU_clear_tpage(bool force)
 {
 	if (GTS.lasttface == NULL && !force)
 		return;
-	
+
 	GTS.lasttface = NULL;
 	GTS.curtile = 0;
 	GTS.curima = NULL;
@@ -432,7 +432,7 @@ void GPU_clear_tpage(bool force)
 	GTS.curtileXRep = 0;
 	GTS.curtileYRep = 0;
 	GTS.alphablend = -1;
-	
+
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_GEN_S);
@@ -460,7 +460,7 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 
 		/* for OpenGL render we use the alpha channel, this makes alpha blend correct */
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		
+
 		/* if U.glalphaclip == 1.0, some cards go bonkers...
 		 * turn off alpha test in this case */
 
@@ -652,29 +652,29 @@ int GPU_verify_image(
 		GPU_free_image(ima);
 		ima->tpageflag &= ~IMA_TPAGE_REFRESH;
 	}
-	
+
 	if (GTS.tilemode) {
 		/* tiled mode */
 		if (ima->repbind == NULL) gpu_make_repbind(ima);
 		if (GTS.tile >= ima->totbind) GTS.tile = 0;
-		
+
 		/* this happens when you change repeat buttons */
 		if (ima->repbind && textarget == GL_TEXTURE_2D) bind = &ima->repbind[GTS.tile];
 		else bind = gpu_get_image_bindcode(ima, textarget);
-		
+
 		if (*bind == 0) {
 			short texwindx = ibuf->x / ima->xrep;
 			short texwindy = ibuf->y / ima->yrep;
-			
+
 			if (GTS.tile >= ima->xrep * ima->yrep)
 				GTS.tile = ima->xrep * ima->yrep - 1;
-	
+
 			short texwinsy = GTS.tile / ima->xrep;
 			short texwinsx = GTS.tile - texwinsy * ima->xrep;
-	
+
 			texwinsx *= texwindx;
 			texwinsy *= texwindy;
-	
+
 			tpx = texwindx;
 			tpy = texwindy;
 
@@ -748,7 +748,7 @@ int GPU_verify_image(
 
 				memcpy(tilerectrow, rectrow, tpx * sizeof(*rectrow));
 			}
-			
+
 			rect = tilerect;
 		}
 	}
@@ -759,13 +759,13 @@ int GPU_verify_image(
 	else
 #endif
 		GPU_create_gl_tex(bind, rect, frect, rectw, recth, textarget, mipmap, use_high_bit_depth, ima);
-	
+
 	/* mark as non-color data texture */
 	if (*bind) {
 		if (is_data)
-			ima->tpageflag |= IMA_GLBIND_IS_DATA;	
+			ima->tpageflag |= IMA_GLBIND_IS_DATA;
 		else
-			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;	
+			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 	}
 
 	/* clean up */
@@ -859,7 +859,7 @@ void GPU_create_gl_tex(
 	int tpy = recth;
 
 	/* scale if not a power of two. this is not strictly necessary for newer
-	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures 
+	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
 	if (textarget == GL_TEXTURE_2D &&
 	    ((!GPU_full_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth)) ||
@@ -1130,7 +1130,7 @@ int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
 	}
 	else {
 		glDisable(GL_TEXTURE_2D);
-		
+
 		GTS.curtile = 0;
 		GTS.curima = NULL;
 		GTS.curtilemode = 0;
@@ -1139,9 +1139,9 @@ int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
 
 		return 0;
 	}
-	
+
 	gpu_verify_repeat(ima);
-	
+
 	/* Did this get lost in the image recode? */
 	/* BKE_image_tag_time(ima);*/
 
@@ -1296,7 +1296,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 			float *buffer = MEM_mallocN(w * h * sizeof(float) * 4, "temp_texpaint_float_buf");
 			bool is_data = (ima->tpageflag & IMA_GLBIND_IS_DATA) != 0;
 			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
-			
+
 			if (gpu_check_scaled_image(ibuf, ima, buffer, x, y, w, h)) {
 				MEM_freeN(buffer);
 				BKE_image_release_ibuf(ima, ibuf, NULL);
@@ -1361,9 +1361,9 @@ void GPU_update_images_framechange(void)
 		if (ima->tpageflag & IMA_TWINANIM) {
 			if (ima->twend >= ima->xrep * ima->yrep)
 				ima->twend = ima->xrep * ima->yrep - 1;
-		
+
 			/* check: is bindcode not in the array? free. (to do) */
-			
+
 			ima->lastframe++;
 			if (ima->lastframe > ima->twend)
 				ima->lastframe = ima->twsta;
@@ -1386,9 +1386,9 @@ int GPU_update_image_time(Image *ima, double time)
 
 	if (ima->tpageflag & IMA_TWINANIM) {
 		if (ima->twend >= ima->xrep * ima->yrep) ima->twend = ima->xrep * ima->yrep - 1;
-		
+
 		/* check: is the bindcode not in the array? Then free. (still to do) */
-		
+
 		float diff = (float)((float)time - ima->lastupdate);
 		inc = (int)(diff * (float)ima->animspeed);
 
@@ -1528,7 +1528,7 @@ void GPU_free_image(Image *ima)
 	/* free repeated image binding */
 	if (ima->repbind) {
 		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
-	
+
 		MEM_freeN(ima->repbind);
 		ima->repbind = NULL;
 	}
@@ -1601,7 +1601,7 @@ typedef struct GPUMaterialFixed {
 	float spec[3];
 	int hard;
 	float alpha;
-} GPUMaterialFixed; 
+} GPUMaterialFixed;
 
 static struct GPUMaterialState {
 	GPUMaterialFixed (*matbuf);
@@ -1657,12 +1657,12 @@ static void gpu_material_to_fixed(
 		copy_v3_v3(smat->spec, &bmat->specr);
 		smat->alpha = 1.0f;
 		smat->hard = CLAMPIS(bmat->har, 0, 128);
-		
+
 		if (dimdown) {
 			mul_v3_fl(smat->diff, 0.8f);
 			mul_v3_fl(smat->spec, 0.5f);
 		}
-		
+
 		if (gamma) {
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
 			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
@@ -1673,7 +1673,7 @@ static void gpu_material_to_fixed(
 
 		if (bmat->shade_flag & MA_OBCOLOR)
 			mul_v3_v3(smat->diff, ob->col);
-		
+
 		mul_v3_v3fl(smat->spec, &bmat->specr, bmat->spec);
 		smat->hard = CLAMPIS(bmat->har, 1, 128);
 		smat->alpha = 1.0f;
@@ -1789,7 +1789,7 @@ void GPU_begin_object_materials(
 	GMS.is_alpha_pass = (v3d->transp != false);
 	if (GMS.use_alpha_pass)
 		*do_alpha_after = false;
-	
+
 	if (GMS.totmat > FIXEDMAT) {
 		GMS.matbuf = MEM_callocN(sizeof(GPUMaterialFixed) * GMS.totmat, "GMS.matbuf");
 		GMS.gmatbuf = MEM_callocN(sizeof(*GMS.gmatbuf) * GMS.totmat, "GMS.matbuf");
@@ -1808,11 +1808,11 @@ void GPU_begin_object_materials(
 
 		/* do material 1 too, for displists! */
 		memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
-	
+
 		GMS.alphablend[0] = GPU_BLEND_SOLID;
 	}
 	else {
-	
+
 		/* no materials assigned? */
 		if (ob->totcol == 0) {
 			gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob, new_shading_nodes, true);
@@ -1827,7 +1827,7 @@ void GPU_begin_object_materials(
 
 			GMS.alphablend[0] = GPU_BLEND_SOLID;
 		}
-		
+
 		/* setup materials */
 		for (a = 1; a <= ob->totcol; a++) {
 			/* find a suitable material */
@@ -1986,7 +1986,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 			if (GMS.dob) {
 				gpu_get_particle_info(&partile_info);
 			}
-			
+
 			if (GPU_get_material_builtins(gpumat) & GPU_OBJECT_INFO) {
 				GPU_get_object_info(object_info, mat);
 			}
@@ -2064,7 +2064,7 @@ void GPU_set_material_alpha_blend(int alphablend)
 {
 	if (GMS.lastalphablend == alphablend)
 		return;
-	
+
 	gpu_set_alpha_blend(alphablend);
 	GMS.lastalphablend = alphablend;
 }
@@ -2155,13 +2155,13 @@ int GPU_default_lights(void)
 		U.light[0].col[0] = 0.8; U.light[0].col[1] = 0.8; U.light[0].col[2] = 0.8;
 		U.light[0].spec[0] = 0.5; U.light[0].spec[1] = 0.5; U.light[0].spec[2] = 0.5;
 		U.light[0].spec[3] = 1.0;
-		
+
 		U.light[1].flag = 0;
 		U.light[1].vec[0] = 0.5; U.light[1].vec[1] = 0.5; U.light[1].vec[2] = 0.1;
 		U.light[1].col[0] = 0.4; U.light[1].col[1] = 0.4; U.light[1].col[2] = 0.8;
 		U.light[1].spec[0] = 0.3; U.light[1].spec[1] = 0.3; U.light[1].spec[2] = 0.5;
 		U.light[1].spec[3] = 1.0;
-	
+
 		U.light[2].flag = 0;
 		U.light[2].vec[0] = 0.3; U.light[2].vec[1] = -0.3; U.light[2].vec[2] = -0.2;
 		U.light[2].col[0] = 0.8; U.light[2].col[1] = 0.5; U.light[2].col[2] = 0.4;
@@ -2199,7 +2199,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 	/* disable all lights */
 	for (int count = 0; count < 8; count++)
 		GPU_basic_shader_light_set(count, NULL);
-	
+
 	/* view direction for specular is not computed correct by default in
 	 * opengl, so we set the settings ourselves */
 	GPU_basic_shader_light_set_viewer(!ortho);
@@ -2214,11 +2214,11 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 			continue;
 
 		Lamp *la = base->object->data;
-		
+
 		/* setup lamp transform */
 		glPushMatrix();
 		glLoadMatrixf((float *)viewmat);
-		
+
 		/* setup light */
 		GPULightData light = {0};
 
@@ -2237,7 +2237,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 			light.constant_attenuation = 1.0f;
 			light.linear_attenuation = la->att1 / la->dist;
 			light.quadratic_attenuation = la->att2 / (la->dist * la->dist);
-			
+
 			if (la->type == LA_SPOT) {
 				light.type = GPU_LIGHT_SPOT;
 				negate_v3_v3(light.direction, base->object->obmat[2]);
@@ -2248,11 +2248,11 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 			else
 				light.type = GPU_LIGHT_POINT;
 		}
-		
+
 		GPU_basic_shader_light_set(count, &light);
-		
+
 		glPopMatrix();
-		
+
 		count++;
 		if (count == 8)
 			break;
@@ -2301,7 +2301,7 @@ void GPU_state_init(void)
 {
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
-	
+
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
@@ -2309,7 +2309,7 @@ void GPU_state_init(void)
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 
 	GPU_default_lights();
-	
+
 	glDepthFunc(GL_LEQUAL);
 	/* scaling matrices */
 	glEnable(GL_NORMALIZE);
@@ -2331,7 +2331,7 @@ void GPU_state_init(void)
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	
+
 	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
 	glPixelTransferi(GL_RED_SCALE, 1);
 	glPixelTransferi(GL_RED_BIAS, 0);
@@ -2341,7 +2341,7 @@ void GPU_state_init(void)
 	glPixelTransferi(GL_BLUE_BIAS, 0);
 	glPixelTransferi(GL_ALPHA_SCALE, 1);
 	glPixelTransferi(GL_ALPHA_BIAS, 0);
-	
+
 	glPixelTransferi(GL_DEPTH_BIAS, 0);
 	glPixelTransferi(GL_DEPTH_SCALE, 1);
 	glDepthRange(0.0, 1.0);
