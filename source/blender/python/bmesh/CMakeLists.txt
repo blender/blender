@@ -18,7 +18,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
 	../../bmesh
 	../../blenkernel

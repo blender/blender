@@ -1,4 +1,4 @@
-/* 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ bool        bpy_text_compile(struct Text *text);
 PyObject   *bpy_text_import(struct Text *text);
 PyObject   *bpy_text_import_name(const char *name, int *found);
 PyObject   *bpy_text_reimport(PyObject *module, int *found);
-/* void		bpy_text_clear_modules(int clear_all);*/ /* Clear user modules */ 
+/* void		bpy_text_clear_modules(int clear_all);*/ /* Clear user modules */
 
 void bpy_text_filename_get(char *fn, size_t fn_len, struct Text *text);
 

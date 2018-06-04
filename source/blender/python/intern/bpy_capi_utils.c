@@ -88,21 +88,21 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
 
 	if (!PyErr_Occurred())
 		return 1;
-	
+
 	/* less hassle if we allow NULL */
 	if (reports == NULL) {
 		PyErr_Print();
 		PyErr_Clear();
 		return 1;
 	}
-	
+
 	if (use_full) {
 		pystring = PyC_ExceptionBuffer();
 	}
 	else {
 		pystring = PyC_ExceptionBuffer_Simple();
 	}
-	
+
 	if (pystring == NULL) {
 		BKE_report(reports, RPT_ERROR, "Unknown py-exception, could not convert");
 		return 0;

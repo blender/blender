@@ -277,10 +277,10 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 			 *    dimsize[1] = 4
 			 *    dimsize[2] = 5
 			 *    lvalue_dim = 0, totdim = 3
-			 * 
+			 *
 			 *    arr[2][3] = x
 			 *    lvalue_dim = 1
-			 * 
+			 *
 			 *    arr[2][3][4] = x
 			 *    lvalue_dim = 2 */
 			for (i = lvalue_dim; i < totdim; i++)
@@ -805,7 +805,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 		 *
 		 *    x = arr[2]
 		 *    index = 0 + 2 * 4 * 5
-		 * 
+		 *
 		 *    x = arr[2][3]
 		 *    index = offset + 3 * 5 */
 

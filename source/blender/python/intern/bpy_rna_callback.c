@@ -93,7 +93,7 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "OO!|s:bpy_struct.callback_add", &cb_func, &PyTuple_Type, &cb_args, &cb_event_str))
 		return NULL;
-	
+
 	if (!PyCallable_Check(cb_func)) {
 		PyErr_SetString(PyExc_TypeError, "callback_add(): first argument isn't callable");
 		return NULL;
