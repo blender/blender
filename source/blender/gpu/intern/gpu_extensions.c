@@ -174,7 +174,7 @@ void gpu_extensions_init(void)
 	const char *renderer = (const char *)glGetString(GL_RENDERER);
 	const char *version = (const char *)glGetString(GL_VERSION);
 
-	if (strstr(vendor, "ATI")) {
+	if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
@@ -191,6 +191,7 @@ void gpu_extensions_init(void)
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
 	else if ((strstr(renderer, "Mesa DRI R")) ||
+	         (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
 	         (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
 	         (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
 	{
@@ -214,6 +215,7 @@ void gpu_extensions_init(void)
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
 	else {
+		printf("Warning: Could not find a matching GPU name. Things may not behave as expected.\n");
 		GG.device = GPU_DEVICE_ANY;
 		GG.driver = GPU_DRIVER_ANY;
 	}
