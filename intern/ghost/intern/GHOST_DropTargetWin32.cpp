@@ -29,7 +29,7 @@
  *  \ingroup GHOST
  */
 
- 
+
 #include "GHOST_Debug.h"
 #include "GHOST_DropTargetWin32.h"
 #include <shellapi.h>
@@ -59,7 +59,7 @@ GHOST_DropTargetWin32::~GHOST_DropTargetWin32()
 }
 
 
-/* 
+/*
  *  IUnknown::QueryInterface
  */
 HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppvObj)
@@ -81,8 +81,8 @@ HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppvO
 }
 
 
-/* 
- *	IUnknown::AddRef 
+/*
+ *	IUnknown::AddRef
  */
 
 ULONG __stdcall GHOST_DropTargetWin32::AddRef(void)
@@ -90,13 +90,13 @@ ULONG __stdcall GHOST_DropTargetWin32::AddRef(void)
 	return ::InterlockedIncrement(&m_cRef);
 }
 
-/* 
+/*
  * IUnknown::Release
  */
 ULONG __stdcall GHOST_DropTargetWin32::Release(void)
 {
 	ULONG refs = ::InterlockedDecrement(&m_cRef);
-		
+
 	if (refs == 0) {
 		delete this;
 		return 0;
@@ -106,7 +106,7 @@ ULONG __stdcall GHOST_DropTargetWin32::Release(void)
 	}
 }
 
-/* 
+/*
  * Implementation of IDropTarget::DragEnter
  */
 HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
@@ -114,13 +114,13 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *pDataObject, DWO
 	// we accept all drop by default
 	m_window->setAcceptDragOperation(true);
 	*pdwEffect = DROPEFFECT_NONE;
-	
+
 	m_draggedObjectType = getGhostType(pDataObject);
 	m_system->pushDragDropEvent(GHOST_kEventDraggingEntered, m_draggedObjectType, m_window, pt.x, pt.y, NULL);
 	return S_OK;
 }
 
-/* 
+/*
  * Implementation of IDropTarget::DragOver
  */
 HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
@@ -136,7 +136,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD grfKeyState, POINTL pt, 
 	return S_OK;
 }
 
-/* 
+/*
  * Implementation of IDropTarget::DragLeave
  */
 HRESULT __stdcall GHOST_DropTargetWin32::DragLeave(void)
@@ -147,7 +147,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragLeave(void)
 }
 
 /* Implementation of IDropTarget::Drop
- * This function will not be called if pdwEffect is set to DROPEFFECT_NONE in 
+ * This function will not be called if pdwEffect is set to DROPEFFECT_NONE in
  * the implementation of IDropTarget::DragOver
  */
 HRESULT __stdcall GHOST_DropTargetWin32::Drop(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
@@ -162,15 +162,15 @@ HRESULT __stdcall GHOST_DropTargetWin32::Drop(IDataObject *pDataObject, DWORD gr
 	}
 	if (data)
 		m_system->pushDragDropEvent(GHOST_kEventDraggingDropDone, m_draggedObjectType, m_window, pt.x, pt.y, data);
-		
+
 	m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
 	return S_OK;
 }
 
-/* 
+/*
  * Helpers
  */
- 
+
 DWORD GHOST_DropTargetWin32::allowedDropEffect(DWORD dwAllowed)
 {
 	DWORD dwEffect = DROPEFFECT_NONE;
@@ -264,7 +264,7 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
 			// Free up memory.
 			::GlobalUnlock(stgmed.hGlobal);
 			::ReleaseStgMedium(&stgmed);
-			
+
 			return strArray;
 		}
 	}
@@ -301,7 +301,7 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
 	if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
 		if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
 			char *str = (char *)::GlobalLock(stgmed.hGlobal);
-			
+
 			tmp_string = (char *)::malloc(::strlen(str) + 1);
 			if (!tmp_string) {
 				::GlobalUnlock(stgmed.hGlobal);
@@ -320,7 +320,7 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
 			return tmp_string;
 		}
 	}
-	
+
 	return NULL;
 }
 
@@ -338,7 +338,7 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char * &out)
 	                             0,
 	                             NULL, NULL
 	                             );
-	
+
 	if (!size) {
 #ifdef GHOST_DEBUG
 		::printLastError();

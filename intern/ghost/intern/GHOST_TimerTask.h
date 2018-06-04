@@ -78,7 +78,7 @@ public:
 	 * \param start The timer start time.
 	 */
 	void setStart(GHOST_TUns64 start)
-	{ 
+	{
 		m_start = start;
 	}
 
@@ -96,7 +96,7 @@ public:
 	 * \param interval The timer interval.
 	 */
 	void setInterval(GHOST_TUns64 interval)
-	{ 
+	{
 		m_interval = interval;
 	}
 
@@ -114,7 +114,7 @@ public:
 	 * \param next The time the timerProc will be called.
 	 */
 	void setNext(GHOST_TUns64 next)
-	{ 
+	{
 		m_next = next;
 	}
 
@@ -144,7 +144,7 @@ public:
 	{
 		return m_userData;
 	}
-	
+
 	/**
 	 * Changes the time user data.
 	 * \param userData: The timer user data.
@@ -168,7 +168,7 @@ public:
 	 * \param auxData The auxiliary storage room.
 	 */
 	void setAuxData(GHOST_TUns32 auxData)
-	{ 
+	{
 		m_auxData = auxData;
 	}
 

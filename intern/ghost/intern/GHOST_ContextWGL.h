@@ -42,7 +42,7 @@
 
 #include <GL/wglew.h>
 
-#ifdef WITH_GLEW_MX 
+#ifdef WITH_GLEW_MX
 extern "C" WGLEWContext *wglewContext;
 #endif
 
@@ -123,7 +123,7 @@ public:
 
 protected:
 	inline void activateWGLEW() const {
-#ifdef WITH_GLEW_MX 
+#ifdef WITH_GLEW_MX
 		wglewContext = m_wglewContext;
 #endif
 	}
@@ -172,10 +172,10 @@ private:
 
 	HGLRC m_hGLRC;
 
-#ifdef WITH_GLEW_MX 
+#ifdef WITH_GLEW_MX
 	WGLEWContext *m_wglewContext;
 #endif
-	
+
 #ifndef NDEBUG
 	const char *m_dummyVendor;
 	const char *m_dummyRenderer;

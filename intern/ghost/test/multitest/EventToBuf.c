@@ -47,7 +47,7 @@ char *eventtype_to_string(GHOST_TEventType type)
 	case GHOST_kEventQuit:				return "Quit";
 
 	case GHOST_kEventWindowClose:		return "WindowClose";
-	case GHOST_kEventWindowActivate:	return "WindowActivate";	
+	case GHOST_kEventWindowActivate:	return "WindowActivate";
 	case GHOST_kEventWindowDeactivate:	return "WindowDeactivate";
 	case GHOST_kEventWindowUpdate:		return "WindowUpdate";
 	case GHOST_kEventWindowSize:		return "WindowSize";
@@ -188,7 +188,7 @@ static char *keytype_to_string(GHOST_TKey key)
 	K(KeyF22);
 	K(KeyF23);
 	K(KeyF24);
-	
+
 	default:
 		return "KeyUnknown";
 	}

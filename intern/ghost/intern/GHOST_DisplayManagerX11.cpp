@@ -158,7 +158,7 @@ getDisplaySetting(
 
 	return GHOST_kSuccess;
 }
-	
+
 GHOST_TSuccess
 GHOST_DisplayManagerX11::
 getCurrentDisplaySetting(

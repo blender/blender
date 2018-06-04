@@ -67,7 +67,7 @@ GHOST_TSuccess GHOST_ISystemPaths::create()
 #  else
 		m_systemPaths = new GHOST_SystemPathsUnix();
 #  endif
-#endif 
+#endif
 		success = m_systemPaths != NULL ? GHOST_kSuccess : GHOST_kFailure;
 	}
 	else {

@@ -43,7 +43,7 @@ WindowData *windowdata_new(void *data, WindowDataHandler handler)
 	WindowData *wb = MEM_mallocN(sizeof(*wb), "windowdata_new");
 	wb->data = data;
 	wb->handler = handler;
-	
+
 	return wb;
 }
 

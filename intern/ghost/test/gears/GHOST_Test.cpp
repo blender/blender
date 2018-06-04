@@ -273,7 +273,7 @@ static void View(GHOST_IWindow *window, bool stereo, int eye = 0)
 	if (stereo)
 	{
 		if (nVidiaWindows)
-		{ 
+		{
 			// handled by nVidia driver so act as normal (explicitly put here since
 			// it -is- stereo)
 			glViewport(0, 0, bnds.getWidth(), bnds.getHeight());
@@ -666,7 +666,7 @@ bool Application::processEvent(GHOST_IEvent *event)
 			window2->swapBuffers();
 		}
 		break;
-		
+
 		default:
 			handled = false;
 			break;

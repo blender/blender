@@ -50,7 +50,7 @@ public:
 	 * Constructor.
 	 */
 	GHOST_DisplayManager(void);
-	
+
 	/**
 	 * Destructor.
 	 */
@@ -79,7 +79,7 @@ public:
 	                                             GHOST_TInt32& numSettings) const;
 
 	/**
-	 * Returns the current setting for this display device. 
+	 * Returns the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param index	  The setting index to be returned.
 	 * \param setting The setting of the display device with this index.
@@ -90,7 +90,7 @@ public:
 	                                         GHOST_DisplaySetting& setting) const;
 
 	/**
-	 * Returns the current setting for this display device. 
+	 * Returns the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param setting The current setting of the display device with this index.
 	 * \return Indication of success.
@@ -128,7 +128,7 @@ protected:
 	 * \return Indication of success.
 	 */
 	GHOST_TSuccess initializeSettings(void);
-	
+
 	/** Tells whether the list of display modes has been stored already. */
 	bool m_settingsInitialized;
 	/** The list with display settings for the main display. */

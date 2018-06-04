@@ -361,7 +361,7 @@ public:
 	 */
 	virtual void endIME() = 0;
 #endif /* WITH_INPUT_IME */
-	
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IWindow")
 #endif
