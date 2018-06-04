@@ -118,7 +118,7 @@ class DOPESHEET_HT_header(Header):
 
         row = layout.row(align=True)
         row.template_header()
-        
+
         # XXX: perhaps our mode menu can be retired eventually when we get editor submodes in the main menu?
         layout.prop(st, "mode", text="")
 

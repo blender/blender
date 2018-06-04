@@ -217,7 +217,7 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2)
 {
 	BMEdge *e_iter, *e_first;
-	
+
 	if (v1->e) {
 		e_first = e_iter = v1->e;
 
@@ -227,7 +227,7 @@ BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2)
 			}
 		} while ((e_iter = bmesh_disk_edge_next(e_iter, v1)) != e_first);
 	}
-	
+
 	return NULL;
 }
 
@@ -380,7 +380,7 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
 {
 	BMLoop *l_iter = l;
 	int i = 0;
-	
+
 	if (bmesh_radial_length(l) != radlen)
 		return false;
 
@@ -389,17 +389,17 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
 			BMESH_ASSERT(0);
 			return false;
 		}
-		
+
 		if (l_iter->e != l->e)
 			return false;
 		if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2)
 			return false;
-		
+
 		if (UNLIKELY(i > BM_LOOP_RADIAL_MAX)) {
 			BMESH_ASSERT(0);
 			return false;
 		}
-		
+
 		i++;
 	} while ((l_iter = l_iter->radial_next) != l);
 
@@ -529,7 +529,7 @@ int bmesh_radial_length(const BMLoop *l)
 			BMESH_ASSERT(0);
 			return 0;
 		}
-		
+
 		i++;
 		if (UNLIKELY(i >= BM_LOOP_RADIAL_MAX)) {
 			BMESH_ASSERT(0);

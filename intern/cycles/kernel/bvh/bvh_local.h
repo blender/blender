@@ -246,20 +246,22 @@ ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
 	switch(kernel_data.bvh.bvh_layout) {
 #ifdef __QBVH__
 		case BVH_LAYOUT_BVH4:
-			return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
-			                                    ray,
-			                                    local_isect,
-			                                    local_object,
-			                                    lcg_state,
-			                                    max_hits);
+			BVH_FUNCTION_FULL_NAME(QBVH)(kg,
+			                             ray,
+			                             local_isect,
+			                             local_object,
+			                             lcg_state,
+			                             max_hits);
+			break;
 #endif
 		case BVH_LAYOUT_BVH2:
-			return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-			                                   ray,
-			                                   local_isect,
-			                                   local_object,
-			                                   lcg_state,
-			                                   max_hits);
+			BVH_FUNCTION_FULL_NAME(BVH)(kg,
+			                            ray,
+			                            local_isect,
+			                            local_object,
+			                            lcg_state,
+			                            max_hits);
+			break;
 	}
 	kernel_assert(!"Should not happen");
 }

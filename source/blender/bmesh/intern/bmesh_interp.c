@@ -152,7 +152,7 @@ void BM_data_interp_face_vert_edge(
 			l_v = l_iter;
 			l_v2 = l_iter->prev;
 		}
-		
+
 		if (!l_v1 || !l_v2) {
 			return;
 		}
@@ -260,15 +260,15 @@ static int compute_mdisp_quad(
 
 	mid_v3_v3v3(p, l->prev->v->co, l->v->co);
 	mid_v3_v3v3(n, l->next->v->co, l->v->co);
-	
+
 	copy_v3_v3(v1, l_f_center);
 	copy_v3_v3(v2, p);
 	copy_v3_v3(v3, l->v->co);
 	copy_v3_v3(v4, n);
-	
+
 	sub_v3_v3v3(e1, v2, v1);
 	sub_v3_v3v3(e2, v3, v4);
-	
+
 	return 1;
 }
 
@@ -331,7 +331,7 @@ static bool mdisp_in_mdispquad(
 {
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
-	
+
 	if (is_zero_v3(l_src->v->no))
 		BM_vert_normal_update_all(l_src->v);
 	if (is_zero_v3(l_dst->v->no))
@@ -341,17 +341,17 @@ static bool mdisp_in_mdispquad(
 
 	/* expand quad a bit */
 	mid_v3_v3v3v3v3(c, v1, v2, v3, v4);
-	
+
 	sub_v3_v3(v1, c); sub_v3_v3(v2, c);
 	sub_v3_v3(v3, c); sub_v3_v3(v4, c);
 	mul_v3_fl(v1, 1.0f + eps); mul_v3_fl(v2, 1.0f + eps);
 	mul_v3_fl(v3, 1.0f + eps); mul_v3_fl(v4, 1.0f + eps);
 	add_v3_v3(v1, c); add_v3_v3(v2, c);
 	add_v3_v3(v3, c); add_v3_v3(v4, c);
-	
+
 	if (!quad_co(v1, v2, v3, v4, p, l_src->v->no, r_uv))
 		return 0;
-	
+
 	mul_v2_fl(r_uv, (float)(res - 1));
 
 	mdisp_axis_from_quad(v1, v2, v3, v4, r_axis_x, r_axis_y);
@@ -478,14 +478,14 @@ void BM_loop_interp_multires_ex(
 	MDisps *md_dst;
 	float v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
 	float axis_x[3], axis_y[3];
-	
+
 	/* ignore 2-edged faces */
 	if (UNLIKELY(l_dst->f->len < 3))
 		return;
 
 	md_dst = BM_ELEM_CD_GET_VOID_P(l_dst, cd_loop_mdisp_offset);
 	compute_mdisp_quad(l_dst, f_dst_center, v1, v2, v3, v4, e1, e2);
-	
+
 	/* if no disps data allocate a new grid, the size of the first grid in f_src. */
 	if (!md_dst->totdisp) {
 		const MDisps *md_src = BM_ELEM_CD_GET_VOID_P(BM_FACE_FIRST_LOOP(f_src), cd_loop_mdisp_offset);
@@ -499,7 +499,7 @@ void BM_loop_interp_multires_ex(
 			return;
 		}
 	}
-	
+
 	mdisp_axis_from_quad(v1, v2, v3, v4, axis_x, axis_y);
 
 	const int res = (int)sqrt(md_dst->totdisp);
@@ -571,10 +571,10 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	BMLoop *l;
 	BMIter liter;
-	
+
 	if (cd_loop_mdisp_offset == -1)
 		return;
-	
+
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		MDisps *mdp = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_mdisp_offset);
 		MDisps *mdl = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
@@ -582,7 +582,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 		float co1[3];
 		int sides;
 		int y;
-		
+
 		/*
 		 *  mdisps is a grid of displacements, ordered thus:
 		 *
@@ -605,14 +605,14 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 			copy_v3_v3(mdl->disps[y], co1);
 		}
 	}
-	
+
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		MDisps *mdl1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
 		MDisps *mdl2;
 		float co1[3], co2[3], co[3];
 		int sides;
 		int y;
-		
+
 		/*
 		 *  mdisps is a grid of displacements, ordered thus:
 		 *
@@ -638,11 +638,11 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 		sides = (int)sqrt(mdl1->totdisp);
 		for (y = 0; y < sides; y++) {
 			int a1, a2, o1, o2;
-			
+
 			if (l->v != l->radial_next->v) {
 				a1 = sides * y + sides - 2;
 				a2 = (sides - 2) * sides + y;
-				
+
 				o1 = sides * y + sides - 1;
 				o2 = (sides - 1) * sides + y;
 			}
@@ -652,16 +652,16 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 				o1 = sides * y + sides - 1;
 				o2 = sides * y + sides - 1;
 			}
-			
+
 			/* magic blending numbers, hardcoded! */
 			add_v3_v3v3(co1, mdl1->disps[a1], mdl2->disps[a2]);
 			mul_v3_fl(co1, 0.18);
-			
+
 			add_v3_v3v3(co2, mdl1->disps[o1], mdl2->disps[o2]);
 			mul_v3_fl(co2, 0.32);
-			
+
 			add_v3_v3v3(co, co1, co2);
-			
+
 			copy_v3_v3(mdl1->disps[o1], co);
 			copy_v3_v3(mdl2->disps[o2], co);
 		}

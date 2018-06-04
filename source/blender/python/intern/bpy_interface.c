@@ -291,7 +291,7 @@ void BPY_python_start(int argc, const char **argv)
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
-	
+
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
 #else
@@ -330,7 +330,7 @@ void BPY_python_start(int argc, const char **argv)
 	BPy_init_modules();
 
 	bpy_import_init(PyEval_GetBuiltins());
-	
+
 	pyrna_alloc_types();
 
 #ifndef WITH_PYTHON_MODULE
@@ -349,7 +349,7 @@ void BPY_python_end(void)
 
 	/* finalizing, no need to grab the state, except when we are a module */
 	gilstate = PyGILState_Ensure();
-	
+
 	/* free other python data. */
 	pyrna_free_types();
 
@@ -696,7 +696,7 @@ bool BPY_execute_string_ex(bContext *C, const char *expr, bool use_eval)
 	PyC_MainModule_Restore(main_mod);
 
 	bpy_context_clear(C, &gilstate);
-	
+
 	return ok;
 }
 
@@ -880,7 +880,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
 
 	argv[0] = filename_abs;
 	argv[1] = NULL;
-	
+
 	// printf("module found %s\n", argv[0]);
 
 	main_python_enter(argc, argv);
@@ -909,14 +909,14 @@ PyMODINIT_FUNC
 PyInit_bpy(void)
 {
 	PyObject *bpy_proxy = PyModule_Create(&bpy_proxy_def);
-	
+
 	/* Problem:
 	 * 1) this init function is expected to have a private member defined - 'md_def'
 	 *    but this is only set for C defined modules (not py packages)
 	 *    so we cant return 'bpy_package_py' as is.
 	 *
 	 * 2) there is a 'bpy' C module for python to load which is basically all of blender,
-	 *    and there is scripts/bpy/__init__.py, 
+	 *    and there is scripts/bpy/__init__.py,
 	 *    we may end up having to rename this module so there is no naming conflict here eg:
 	 *    'from blender import bpy'
 	 *
@@ -926,13 +926,13 @@ PyInit_bpy(void)
 
 	/* assign an object which is freed after __file__ is assigned */
 	dealloc_obj *dob;
-	
+
 	/* assign dummy type */
 	dealloc_obj_Type.tp_name = "dealloc_obj";
 	dealloc_obj_Type.tp_basicsize = sizeof(dealloc_obj);
 	dealloc_obj_Type.tp_dealloc = dealloc_obj_dealloc;
 	dealloc_obj_Type.tp_flags = Py_TPFLAGS_DEFAULT;
-	
+
 	if (PyType_Ready(&dealloc_obj_Type) < 0)
 		return NULL;
 

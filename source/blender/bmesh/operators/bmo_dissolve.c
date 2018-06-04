@@ -158,7 +158,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_MARK | FACE_TAG);
-	
+
 	/* collect region */
 	BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 		BMFace *f_iter;
@@ -178,7 +178,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 			BLI_array_append(faces, f_iter);
 		}
 		BMW_end(&regwalker);
-		
+
 		for (i = 0; i < BLI_array_len(faces); i++) {
 			f_iter = faces[i];
 			BMO_face_flag_disable(bm, f_iter, FACE_TAG);
@@ -190,7 +190,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 			BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED, NULL);
 			goto cleanup;
 		}
-		
+
 		BLI_array_append(faces, NULL);
 		BLI_array_append(regions, faces);
 	}
@@ -201,17 +201,17 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 	for (i = 0; i < BLI_array_len(regions); i++) {
 		BMFace *f_new;
 		int tot = 0;
-		
+
 		faces = regions[i];
 		if (!faces[0]) {
 			BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED,
 			                "Could not find boundary of dissolve region");
 			goto cleanup;
 		}
-		
+
 		while (faces[tot])
 			tot++;
-		
+
 		f_new = BM_faces_join(bm, faces, tot, true);
 
 		if (f_new) {

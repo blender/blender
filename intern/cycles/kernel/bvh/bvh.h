@@ -212,20 +212,21 @@ ccl_device_intersect void scene_intersect_local(KernelGlobals *kg,
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
-		return bvh_intersect_local_motion(kg,
-		                                  &ray,
-		                                  local_isect,
-		                                  local_object,
-		                                  lcg_state,
-		                                  max_hits);
+		bvh_intersect_local_motion(kg,
+		                           &ray,
+		                           local_isect,
+		                           local_object,
+		                           lcg_state,
+		                           max_hits);
+		return;
 	}
 #endif /* __OBJECT_MOTION__ */
-	return bvh_intersect_local(kg,
-	                            &ray,
-	                            local_isect,
-	                            local_object,
-	                            lcg_state,
-	                            max_hits);
+	bvh_intersect_local(kg,
+	                    &ray,
+	                    local_isect,
+	                    local_object,
+	                    lcg_state,
+	                    max_hits);
 }
 #endif
 

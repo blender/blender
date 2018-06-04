@@ -160,7 +160,7 @@ int BM_mesh_edgeloops_find(
 	BMEdge **edges = MEM_mallocN(sizeof(*edges) * edges_len, __func__);
 	BLI_stack_pop_n_reverse(edge_stack, edges, BLI_stack_count(edge_stack));
 	BLI_stack_free(edge_stack);
-	
+
 	for (uint i = 0; i < edges_len; i += 1) {
 		e = edges[i];
 		if (BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG)) {

@@ -424,7 +424,7 @@ int BM_verts_in_face_count(BMVert **varr, int len, BMFace *f)
 #endif
 
 	int i, count = 0;
-	
+
 	for (i = 0; i < len; i++) {
 		BM_ELEM_API_FLAG_ENABLE(varr[i], _FLAG_OVERLAP);
 	}
@@ -1213,7 +1213,7 @@ int BM_face_share_edge_count(BMFace *f_a, BMFace *f_b)
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	int count = 0;
-	
+
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f_a);
 	do {
 		if (BM_edge_in_face(l_iter->e, f_b)) {

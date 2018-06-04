@@ -168,7 +168,7 @@ BMesh *BM_mesh_create(
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
-	
+
 	/* allocate the memory pools for the mesh elements */
 	bm_mempool_init(bm, allocsize, params->use_toolflags);
 
@@ -1052,41 +1052,41 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(
 		BMFace *f;
 		BMIter iter;
 		// int i = 0; // UNUSED
-		
+
 		multires_set_space(dm, ob, from, to);
-		
+
 		mdisps = CustomData_get_layer(&dm->loopData, CD_MDISPS);
-		
+
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			BMLoop *l;
 			BMIter liter;
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				MDisps *lmd = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
-				
+
 				if (!lmd->disps) {
 					printf("%s: warning - 'lmd->disps' == NULL\n", __func__);
 				}
-				
+
 				if (lmd->disps && lmd->totdisp == mdisps->totdisp) {
 					memcpy(lmd->disps, mdisps->disps, sizeof(float) * 3 * lmd->totdisp);
 				}
 				else if (mdisps->disps) {
 					if (lmd->disps)
 						MEM_freeN(lmd->disps);
-					
+
 					lmd->disps = MEM_dupallocN(mdisps->disps);
 					lmd->totdisp = mdisps->totdisp;
 					lmd->level = mdisps->level;
 				}
-				
+
 				mdisps++;
 				// i += 1;
 			}
 		}
-		
+
 		dm->needsFree = 1;
 		dm->release(dm);
-		
+
 		/* setting this to NULL prevents BKE_editmesh_free from freeing it */
 		em->bm = NULL;
 		BKE_editmesh_free(em);
