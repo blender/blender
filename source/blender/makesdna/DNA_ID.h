@@ -229,7 +229,7 @@ typedef struct ID {
 	/* Only set for datablocks which are coming from copy-on-write, points to
 	 * the original version of it.
 	 */
-	void *orig_id;
+	struct ID *orig_id;
 
 	void *py_instance;
 } ID;
