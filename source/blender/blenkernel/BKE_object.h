@@ -274,6 +274,9 @@ void BKE_object_sculpt_modifiers_changed(struct Object *ob);
 int BKE_object_obdata_texspace_get(struct Object *ob, short **r_texflag, float **r_loc, float **r_size, float **r_rot);
 
 struct Mesh *BKE_object_get_evaluated_mesh(const struct Depsgraph *depsgraph, struct Object *ob);
+struct Mesh *BKE_object_get_final_mesh(struct Object *object);
+struct Mesh *BKE_object_get_unmodified_mesh(struct Object *object);
+struct Mesh *BKE_object_get_original_mesh(struct Object *object);
 
 int BKE_object_insert_ptcache(struct Object *ob);
 void BKE_object_delete_ptcache(struct Object *ob, int index);
