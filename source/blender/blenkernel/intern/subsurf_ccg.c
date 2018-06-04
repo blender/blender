@@ -69,6 +69,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
@@ -2329,9 +2330,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		                     numGrids, &key, (void **) ccgdm->gridFaces, ccgdm->gridFlagMats, ccgdm->gridHidden);
 	}
 	else if (ob->type == OB_MESH) {
-		Object *ob_orig = DEG_get_original_object(ob);
-		Mesh *me = ob_orig->data;
-		BLI_assert(!(me->id.tag & LIB_TAG_NO_MAIN));
+		Mesh *me = BKE_object_get_original_mesh(ob);
 		const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 		MLoopTri *looptri;
 

@@ -46,6 +46,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_editmesh.h"
 #include "BKE_curve.h"
@@ -291,9 +292,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	 * this derivedmesh is just original mesh. it's the multires subsurf dm
 	 * that this is actually for, to support a pbvh on a modified mesh */
 	if (!cddm->pbvh && ob->type == OB_MESH) {
-		Object *ob_orig = DEG_get_original_object(ob);
-		Mesh *me = ob_orig->data;
-		BLI_assert(!(me->id.tag & LIB_TAG_NO_MAIN));
+		Mesh *me = BKE_object_get_original_mesh(ob);
 		const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 		MLoopTri *looptri;
 		bool deformed;
