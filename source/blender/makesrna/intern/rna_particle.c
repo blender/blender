@@ -134,6 +134,7 @@ static const EnumPropertyItem part_hair_ren_as_items[] = {
 
 #include "BLI_math.h"
 
+#include "BKE_boids.h"
 #include "BKE_context.h"
 #include "BKE_cloth.h"
 #include "BKE_colortools.h"
@@ -638,9 +639,31 @@ static void rna_Particle_change_type(Main *bmain, Scene *UNUSED(scene), PointerR
 	DEG_relations_tag_update(bmain);
 }
 
-static void rna_Particle_change_physics(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Particle_change_physics_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET | PSYS_RECALC_PHYS);
+	
+	ParticleSettings *part = (ParticleSettings *)ptr->data;
+
+	if (part->phystype == PART_PHYS_BOIDS && part->boids == NULL) {
+		BoidState *state;
+
+		part->boids = MEM_callocN(sizeof(BoidSettings), "Boid Settings");
+		boid_default_settings(part->boids);
+
+		state = boid_new_state(part->boids);
+		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Separate));
+		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Flock));
+
+		((BoidRule*)state->rules.first)->flag |= BOIDRULE_CURRENT;
+
+		state->flag |= BOIDSTATE_CURRENT;
+		BLI_addtail(&part->boids->states, state);
+	}
+	else if (part->phystype == PART_PHYS_FLUID && part->fluid == NULL) {
+		part->fluid = MEM_callocN(sizeof(SPHFluidSettings), "SPH Fluid Settings");
+		BKE_particlesettings_fluid_default_settings(part);
+	}
 }
 
 static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -2227,7 +2250,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, phys_type_items);
 	RNA_def_property_ui_text(prop, "Physics Type", "Particle physics type");
-	RNA_def_property_update(prop, 0, "rna_Particle_change_physics");
+	RNA_def_property_update(prop, 0, "rna_Particle_change_physics_type");
 
 	prop = RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");

@@ -4150,7 +4150,7 @@ void psys_check_boid_data(ParticleSystem *psys)
 		}
 }
 
-static void fluid_default_settings(ParticleSettings *part)
+void BKE_particlesettings_fluid_default_settings(ParticleSettings *part)
 {
 	SPHFluidSettings *fluid = part->fluid;
 
@@ -4182,24 +4182,12 @@ static void psys_prepare_physics(ParticleSimulationData *sim)
 		sim->psys->flag &= ~PSYS_KEYED;
 	}
 
-	if (part->phystype == PART_PHYS_BOIDS && part->boids == NULL) {
-		BoidState *state;
-
-		part->boids = MEM_callocN(sizeof(BoidSettings), "Boid Settings");
-		boid_default_settings(part->boids);
-
-		state = boid_new_state(part->boids);
-		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Separate));
-		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Flock));
-
-		((BoidRule*)state->rules.first)->flag |= BOIDRULE_CURRENT;
-
-		state->flag |= BOIDSTATE_CURRENT;
-		BLI_addtail(&part->boids->states, state);
+	/* RNA Update must ensure this is true. */
+	if (part->phystype == PART_PHYS_BOIDS) {
+		BLI_assert(part->boids != NULL);
 	}
-	else if (part->phystype == PART_PHYS_FLUID && part->fluid == NULL) {
-		part->fluid = MEM_callocN(sizeof(SPHFluidSettings), "SPH Fluid Settings");
-		fluid_default_settings(part);
+	else if (part->phystype == PART_PHYS_FLUID) {
+		BLI_assert(part->fluid != NULL);
 	}
 
 	psys_check_boid_data(sim->psys);

@@ -312,6 +312,7 @@ bool psys_check_edited(struct ParticleSystem *psys);
 
 void psys_check_group_weights(struct ParticleSettings *part);
 int psys_uses_gravity(struct ParticleSimulationData *sim);
+void BKE_particlesettings_fluid_default_settings(struct ParticleSettings *part);
 
 /* free */
 void BKE_particlesettings_free(struct ParticleSettings *part);
