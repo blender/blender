@@ -42,8 +42,8 @@ class GHOST_IWindow;
  * Interface class for events received from GHOST.
  * You should not need to inherit this class. The system will pass these events
  * to the GHOST_IEventConsumer::processEvent() method of event consumers.<br>
- * Use the getType() method to retrieve the type of event and the getData() 
- * method to get the event data out. Using the event type you can cast the 
+ * Use the getType() method to retrieve the type of event and the getData()
+ * method to get the event data out. Using the event type you can cast the
  * event data to the correct event dat structure.
  * \see GHOST_IEventConsumer#processEvent
  * \see GHOST_TEventType
@@ -73,18 +73,18 @@ public:
 	virtual GHOST_TUns64 getTime() = 0;
 
 	/**
-	 * Returns the window this event was generated on, 
+	 * Returns the window this event was generated on,
 	 * or NULL if it is a 'system' event.
 	 * \return The generating window.
 	 */
 	virtual GHOST_IWindow *getWindow() = 0;
-	
+
 	/**
 	 * Returns the event data.
 	 * \return The event data.
 	 */
 	virtual GHOST_TEventDataPtr getData() = 0;
-	
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IEvent")
 #endif

@@ -113,7 +113,7 @@ GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow *window)
 
 	/*
 	 * Remove all pending events for the window.
-	 */ 
+	 */
 	if (m_windowManager->getWindowFound(window)) {
 		m_eventManager->removeWindowEvents(window);
 	}
@@ -272,7 +272,7 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent *event)
 GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const
 {
 	GHOST_ModifierKeys keys;
-	// Get the state of all modifier keys 
+	// Get the state of all modifier keys
 	GHOST_TSuccess success = getModifierKeys(keys);
 	if (success) {
 		// Isolate the state of the key requested
@@ -306,7 +306,7 @@ GHOST_TSuccess GHOST_System::init()
 	m_timerManager = new GHOST_TimerManager();
 	m_windowManager = new GHOST_WindowManager();
 	m_eventManager = new GHOST_EventManager();
-	
+
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
 		m_eventPrinter = new GHOST_EventPrinter();

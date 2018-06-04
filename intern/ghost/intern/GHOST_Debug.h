@@ -40,9 +40,9 @@
 #  endif // DEBUG
 #endif // _MSC_VER
 
-#ifdef WITH_GHOST_DEBUG 
+#ifdef WITH_GHOST_DEBUG
 #  define GHOST_DEBUG // spit ghost events to stdout
-#endif // WITH_GHOST_DEBUG 
+#endif // WITH_GHOST_DEBUG
 
 #ifdef GHOST_DEBUG
 #  include <iostream>

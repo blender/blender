@@ -99,7 +99,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 	if (state != GHOST_kWindowStateFullScreen) {
 		RECT rect;
 		MONITORINFO monitor;
-		GHOST_TUns32 tw, th; 
+		GHOST_TUns32 tw, th;
 
 #ifndef _MSC_VER
 		int cxsizeframe = GetSystemMetrics(SM_CXSIZEFRAME);
@@ -158,7 +158,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 			width = rect.right - rect.left;
 			height = rect.bottom - rect.top;
 		}
-		
+
 		wchar_t *title_16 = alloc_utf16_from_8((char *)(const char *)title, 0);
 		m_hWnd = ::CreateWindowW(
 			s_windowClassName,          // pointer to registered class name
@@ -225,7 +225,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 			::ShowWindow(m_hWnd, nCmdShow);
 #ifdef WIN32_COMPOSITING
 			if (alphaBackground && parentwindowhwnd == 0) {
-				
+
 				HRESULT hr = S_OK;
 
 				// Create and populate the Blur Behind structure
@@ -817,7 +817,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 		m_cursorGrabBounds.m_l = m_cursorGrabBounds.m_r = -1; /* disable */
 		registerMouseClickEvent(3);
 	}
-	
+
 	return GHOST_kSuccess;
 }
 
@@ -1041,7 +1041,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(
 
 
 GHOST_TSuccess GHOST_WindowWin32::setProgressBar(float progress)
-{	
+{
 	/*SetProgressValue sets state to TBPF_NORMAL automaticly*/
 	if (m_Bar && S_OK == m_Bar->SetProgressValue(m_hWnd, 10000 * progress, 10000))
 		return GHOST_kSuccess;

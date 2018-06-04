@@ -108,7 +108,7 @@ void GHOST_Rect::setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy)
 void GHOST_Rect::setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy, GHOST_TInt32 w, GHOST_TInt32 h)
 {
 	long w_2, h_2;
-	
+
 	w_2 = w >> 1;
 	h_2 = h >> 1;
 	m_l = cx - w_2;

@@ -158,7 +158,7 @@ private:
 	const int m_contextResetNotificationStrategy;
 
 	HGLRC m_hGLRC;
-	
+
 #ifndef NDEBUG
 	const char *m_dummyVendor;
 	const char *m_dummyRenderer;

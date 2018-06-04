@@ -102,14 +102,14 @@ GHOST_TUns64 GHOST_TimerManager::nextFireTime()
 {
 	GHOST_TUns64 smallest = GHOST_kFireTimeNever;
 	TTimerVector::iterator iter;
-	
+
 	for (iter = m_timers.begin(); iter != m_timers.end(); ++iter) {
 		GHOST_TUns64 next = (*iter)->getNext();
-		
+
 		if (next < smallest)
 			smallest = next;
 	}
-	
+
 	return smallest;
 }
 

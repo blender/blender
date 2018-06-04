@@ -204,7 +204,7 @@ static XVisualInfo *x11_visualinfo_from_glx(
 		numOfAASamples = 0;
 		actualSamples = 0;
 	}
-	
+
 #ifdef WITH_X11_ALPHA
 	if (   needAlpha
 	    && glx_version >= 103
@@ -276,7 +276,7 @@ static XVisualInfo *x11_visualinfo_from_glx(
 		/* legacy, don't use extension */
 		for (;;) {
 			GHOST_X11_GL_GetAttributes(glx_attribs, 64, actualSamples, stereoVisual, needAlpha, false);
-			
+
 			visual = glXChooseVisual(display, DefaultScreen(display), glx_attribs);
 
 			/* Any sample level or even zero, which means oversampling disabled, is good
@@ -408,7 +408,7 @@ GHOST_WindowX11(GHOST_SystemX11 *system,
 		Window root_return;
 		int x_return, y_return;
 		unsigned int w_return, h_return, border_w_return, depth_return;
-		
+
 		XGetGeometry(m_display, parentWindow, &root_return, &x_return, &y_return,
 		             &w_return, &h_return, &border_w_return, &depth_return);
 
@@ -430,8 +430,8 @@ GHOST_WindowX11(GHOST_SystemX11 *system,
 		        &xattributes);
 
 		XSelectInput(m_display, parentWindow, SubstructureNotifyMask);
-		
-	}	
+
+	}
 
 #ifdef WITH_XDND
 	/* initialize drop target for newly created window */
@@ -717,12 +717,12 @@ getTitle(
 		STR_String& title) const
 {
 	char *name = NULL;
-	
+
 	XFetchName(m_display, m_window, &name);
 	title = name ? name : "untitled";
 	XFree(name);
 }
-	
+
 void
 GHOST_WindowX11::
 getWindowBounds(
@@ -742,12 +742,12 @@ getClientBounds(
 	int x_return, y_return;
 	unsigned int w_return, h_return, border_w_return, depth_return;
 	GHOST_TInt32 screen_x, screen_y;
-	
+
 	XGetGeometry(m_display, m_window, &root_return, &x_return, &y_return,
 	             &w_return, &h_return, &border_w_return, &depth_return);
 
 	clientToScreen(0, 0, screen_x, screen_y);
-	
+
 	bounds.m_l = screen_x;
 	bounds.m_r = bounds.m_l + w_return;
 	bounds.m_t = screen_y;
@@ -794,7 +794,7 @@ setClientSize(
 	XConfigureWindow(m_display, m_window, value_mask, &values);
 	return GHOST_kSuccess;
 
-}	
+}
 
 void
 GHOST_WindowX11::
@@ -818,7 +818,7 @@ screenToClient(
 	outX = ax;
 	outY = ay;
 }
-		 
+
 void
 GHOST_WindowX11::
 clientToScreen(
@@ -1159,7 +1159,7 @@ setOrder(
 		GHOST_TWindowOrder order)
 {
 	if (order == GHOST_kWindowOrderTop) {
-		XWindowAttributes attr;	  
+		XWindowAttributes attr;
 		Atom atom;
 
 		/* We use both XRaiseWindow and _NET_ACTIVE_WINDOW, since some
@@ -1209,7 +1209,7 @@ setOrder(
 	else {
 		return GHOST_kFailure;
 	}
-	
+
 	return GHOST_kSuccess;
 }
 
@@ -1233,8 +1233,8 @@ invalidate()
 	if (m_invalid_window == false) {
 		m_system->addDirtyWindow(this);
 		m_invalid_window = true;
-	} 
- 
+	}
+
 	return GHOST_kSuccess;
 }
 
@@ -1242,15 +1242,15 @@ invalidate()
  * called by the X11 system implementation when expose events
  * for the window have been pushed onto the GHOST queue
  */
- 
+
 void
 GHOST_WindowX11::
 validate()
 {
 	m_invalid_window = false;
-}	
- 
- 
+}
+
+
 /**
  * Destructor.
  * Closes the window and disposes resources allocated.
@@ -1289,7 +1289,7 @@ GHOST_WindowX11::
 			XSetSelectionOwner(m_display, Clipboard_atom, None, CurrentTime);
 		}
 	}
-	
+
 	if (m_visualInfo) {
 		XFree(m_visualInfo);
 	}
@@ -1425,13 +1425,13 @@ getStandardCursor(
 
 	if (xcursor_id) {
 		Cursor xcursor = m_standard_cursors[xcursor_id];
-		
+
 		if (!xcursor) {
 			xcursor = XCreateFontCursor(m_display, xcursor_id);
 
 			m_standard_cursors[xcursor_id] = xcursor;
 		}
-		
+
 		return xcursor;
 	}
 	else {
@@ -1447,7 +1447,7 @@ getEmptyCursor(
 		Pixmap blank;
 		XColor dummy = {0};
 		char data[1] = {0};
-			
+
 		/* make a blank cursor */
 		blank = XCreateBitmapFromData(
 		    m_display,
@@ -1468,7 +1468,7 @@ setWindowCursorVisibility(
 		bool visible)
 {
 	Cursor xcursor;
-	
+
 	if (visible) {
 		if (m_visible_cursor)
 			xcursor = m_visible_cursor;
@@ -1481,7 +1481,7 @@ setWindowCursorVisibility(
 
 	XDefineCursor(m_display, m_window, xcursor);
 	XFlush(m_display);
-	
+
 	return GHOST_kSuccess;
 }
 
@@ -1544,7 +1544,7 @@ setWindowCursorGrab(
 	}
 
 	XFlush(m_display);
-	
+
 	return GHOST_kSuccess;
 }
 
@@ -1556,7 +1556,7 @@ setWindowCursorShape(
 	Cursor xcursor = getStandardCursor(shape);
 
 	m_visible_cursor = xcursor;
-	
+
 	XDefineCursor(m_display, m_window, xcursor);
 	XFlush(m_display);
 
@@ -1578,7 +1578,7 @@ setWindowCustomCursorShape(
 
 GHOST_TSuccess
 GHOST_WindowX11::
-setWindowCustomCursorShape(	
+setWindowCustomCursorShape(
 		GHOST_TUns8 *bitmap,
 		GHOST_TUns8 *mask,
 		int sizex,
@@ -1591,7 +1591,7 @@ setWindowCustomCursorShape(
 	Colormap colormap = DefaultColormap(m_display, m_visualInfo->screen);
 	Pixmap bitmap_pix, mask_pix;
 	XColor fg, bg;
-	
+
 	if (XAllocNamedColor(m_display, colormap, "White", &fg, &fg) == 0) return GHOST_kFailure;
 	if (XAllocNamedColor(m_display, colormap, "Black", &bg, &bg) == 0) return GHOST_kFailure;
 
@@ -1601,13 +1601,13 @@ setWindowCustomCursorShape(
 
 	bitmap_pix = XCreateBitmapFromData(m_display, m_window, (char *) bitmap, sizex, sizey);
 	mask_pix = XCreateBitmapFromData(m_display, m_window, (char *) mask, sizex, sizey);
-		
+
 	m_custom_cursor = XCreatePixmapCursor(m_display, bitmap_pix, mask_pix, &fg, &bg, hotX, hotY);
 	XDefineCursor(m_display, m_window, m_custom_cursor);
 	XFlush(m_display);
 
 	m_visible_cursor = m_custom_cursor;
-	
+
 	XFreePixmap(m_display, bitmap_pix);
 	XFreePixmap(m_display, mask_pix);
 

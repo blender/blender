@@ -79,7 +79,7 @@ void rect_bevel_side(int rect[2][2], int side, float *lt, float *dk, const float
 	int ltidx = (side / 2) % 4;
 	int dkidx = (ltidx + 1 + (side & 1)) % 4;
 	int i, corner;
-	
+
 	glBegin(GL_LINES);
 	for (i = 0; i < width; i++) {
 		float ltf = pow(lt[i], 1.0 / 2.2), dkf = pow(dk[i], 1.0 / 2.2);
@@ -102,7 +102,7 @@ void rect_bevel_side(int rect[2][2], int side, float *lt, float *dk, const float
 		}
 	}
 	glEnd();
-	
+
 	glColor3fv(col);
 	glRecti(rect[0][0] + width, rect[0][1] + width, rect[1][0] - width, rect[1][1] - width);
 }
@@ -113,17 +113,17 @@ void rect_bevel_smooth(int rect[2][2], int width)
 	float *dk = malloc(sizeof(*dk) * width);
 	float col[4];
 	int i;
-	
+
 	for (i = 0; i < width; i++) {
 		float v = width - 1 ? ((float) i / (width - 1)) : 0;
 		lt[i] = 1.2 + (1.0 - 1.2) * v;
 		dk[i] = 0.2 + (1.0 - 0.2) * v;
 	}
-	
+
 	glGetFloatv(GL_CURRENT_COLOR, col);
-	
+
 	rect_bevel_side(rect, 3, lt, dk, col, width);
-	
+
 	free(lt);
 	free(dk);
 }
@@ -136,11 +136,11 @@ typedef struct {
 	MultiTestApp        *app;
 
 	GHOST_WindowHandle win;
-	
+
 	int size[2];
-	
+
 	int lmouse[2], lmbut[3];
-	
+
 	int tmouse[2];
 } MainWindow;
 
@@ -152,18 +152,18 @@ static void mainwindow_log(MainWindow *mw, char *str)
 static void mainwindow_do_draw(MainWindow *mw)
 {
 	GHOST_ActivateWindowDrawingContext(mw->win);
-	
+
 	if (mw->lmbut[0]) {
 		glClearColor(0.5, 0.5, 0.5, 1);
 	}
 	else {
 		glClearColor(1, 1, 1, 1);
-	}		
+	}
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	glColor3f(0.5, 0.6, 0.8);
 	glRecti(mw->tmouse[0] - 5, mw->tmouse[1] - 5, mw->tmouse[0] + 5, mw->tmouse[1] + 5);
-	
+
 	GHOST_SwapWindowBuffers(mw->win);
 }
 
@@ -175,7 +175,7 @@ static void mainwindow_do_reshape(MainWindow *mw)
 
 	mw->size[0] = GHOST_GetWidthRectangle(bounds);
 	mw->size[1] = GHOST_GetHeightRectangle(bounds);
-	
+
 	glViewport(0, 0, mw->size[0], mw->size[1]);
 
 	glMatrixMode(GL_PROJECTION);
@@ -234,7 +234,7 @@ static void mainwindow_do_key(MainWindow *mw, GHOST_TKey key, int press)
 static void mainwindow_do_move(MainWindow *mw, int x, int y)
 {
 	mw->lmouse[0] = x, mw->lmouse[1] = y;
-	
+
 	if (mw->lmbut[0]) {
 		mw->tmouse[0] = x, mw->tmouse[1] = y;
 		GHOST_InvalidateWindow(mw->win);
@@ -261,10 +261,10 @@ static void mainwindow_handle(void *priv, GHOST_EventHandle evt)
 	MainWindow *mw = priv;
 	GHOST_TEventType type = GHOST_GetEventType(evt);
 	char buf[256];
-	
+
 	event_to_buf(evt, buf);
 	mainwindow_log(mw, buf);
-	
+
 	switch (type) {
 		case GHOST_kEventCursorMove:
 		{
@@ -304,7 +304,7 @@ static void mainwindow_timer_proc(GHOST_TimerTaskHandle task, GHOST_TUns64 time)
 {
 	MainWindow *mw = GHOST_GetTimerTaskUserData(task);
 	char buf[64];
-	
+
 	sprintf(buf, "timer: %6.2f", (double) ((GHOST_TInt64) time) / 1000);
 	mainwindow_log(mw, buf);
 }
@@ -314,23 +314,23 @@ MainWindow *mainwindow_new(MultiTestApp *app)
 	GHOST_SystemHandle sys = multitestapp_get_system(app);
 	GHOST_WindowHandle win;
 	GHOST_GLSettings glSettings = {0};
-	
+
 	win = GHOST_CreateWindow(
 	        sys, "MultiTest:Main",
 	        40, 40, 400, 400,
 	        GHOST_kWindowStateNormal,
 	        GHOST_kDrawingContextTypeOpenGL,
 	        glSettings);
-	
+
 	if (win) {
 		MainWindow *mw = MEM_callocN(sizeof(*mw), "mainwindow_new");
 		mw->app = app;
 		mw->win = win;
-		
+
 		GHOST_SetWindowUserData(mw->win, windowdata_new(mw, mainwindow_handle));
-		
+
 		GHOST_InstallTimer(sys, 1000, 10000, mainwindow_timer_proc, mw);
-		
+
 		return mw;
 	}
 	else {
@@ -356,23 +356,23 @@ struct _LoggerWindow {
 
 	GHOST_WindowHandle win;
 
-#ifdef USE_BMF	
+#ifdef USE_BMF
 	BMF_Font    *font;
 #else
 	int font;
 #endif
 	int fonttexid;
 	int fontheight;
-	
+
 	int size[2];
-	
+
 	int ndisplines;
 	int textarea[2][2];
 	ScrollBar   *scroll;
-	
+
 	char        **loglines;
 	int nloglines, logsize;
-	
+
 	int lmbut[3];
 	int lmouse[2];
 };
@@ -383,7 +383,7 @@ struct _LoggerWindow {
 static void loggerwindow_recalc_regions(LoggerWindow *lw)
 {
 	int nscroll[2][2];
-	
+
 	nscroll[0][0] = SCROLLBAR_PAD;
 	nscroll[0][1] = SCROLLBAR_PAD;
 	nscroll[1][0] = nscroll[0][0] + SCROLLBAR_WIDTH;
@@ -418,10 +418,10 @@ static void loggerwindow_do_reshape(LoggerWindow *lw)
 	GHOST_RectangleHandle bounds = GHOST_GetClientBounds(lw->win);
 
 	GHOST_ActivateWindowDrawingContext(lw->win);
-	
+
 	lw->size[0] = GHOST_GetWidthRectangle(bounds);
 	lw->size[1] = GHOST_GetHeightRectangle(bounds);
-	
+
 	loggerwindow_recalc_regions(lw);
 	loggerwindow_setup_window_gl(lw);
 }
@@ -430,21 +430,21 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
 {
 	int i, ndisplines, startline;
 	int sb_rect[2][2], sb_thumb[2][2];
-		
+
 	GHOST_ActivateWindowDrawingContext(lw->win);
-	
+
 	glClearColor(1, 1, 1, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glColor3f(0.8, 0.8, 0.8);
 	rect_bevel_smooth(lw->textarea, 4);
-	
+
 	scrollbar_get_rect(lw->scroll, sb_rect);
 	scrollbar_get_thumb(lw->scroll, sb_thumb);
-	
+
 	glColor3f(0.6, 0.6, 0.6);
 	rect_bevel_smooth(sb_rect, 1);
-	
+
 	if (scrollbar_is_scrolling(lw->scroll)) {
 		glColor3f(0.6, 0.7, 0.5);
 	}
@@ -452,16 +452,16 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
 		glColor3f(0.9, 0.9, 0.92);
 	}
 	rect_bevel_smooth(sb_thumb, 1);
-	
+
 	startline = scrollbar_get_thumbpos(lw->scroll) * (lw->nloglines - 1);
 	ndisplines = min_i(lw->ndisplines, lw->nloglines - startline);
 
 	if (lw->fonttexid != -1) {
 		glBindTexture(GL_TEXTURE_2D, lw->fonttexid);
-		
+
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);		
+		glEnable(GL_TEXTURE_2D);
 	}
 	glColor3f(0, 0, 0);
 	for (i = 0; i < ndisplines; i++) {
@@ -470,7 +470,7 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
 		int x_pos = lw->textarea[0][0] + 4;
 		int y_pos = lw->textarea[0][1] + 4 + i * lw->fontheight;
 
-#ifdef USE_BMF		
+#ifdef USE_BMF
 		if (lw->fonttexid == -1) {
 			glRasterPos2i(x_pos, y_pos);
 			BMF_DrawString(lw->font, line);
@@ -486,7 +486,7 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
 
 #ifdef USE_BMF
 	if (lw->fonttexid != -1) {
-		glDisable(GL_TEXTURE_2D);		
+		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);
 	}
 #endif
@@ -497,7 +497,7 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
 static void loggerwindow_do_move(LoggerWindow *lw, int x, int y)
 {
 	lw->lmouse[0] = x, lw->lmouse[1] = y;
-	
+
 	if (scrollbar_is_scrolling(lw->scroll)) {
 		scrollbar_keep_scrolling(lw->scroll, y);
 		GHOST_InvalidateWindow(lw->win);
@@ -508,10 +508,10 @@ static void loggerwindow_do_button(LoggerWindow *lw, int which, int press)
 {
 	if (which == GHOST_kButtonMaskLeft) {
 		lw->lmbut[0] = press;
-		
+
 		if (press) {
 			if (scrollbar_contains_pt(lw->scroll, lw->lmouse)) {
-				scrollbar_start_scrolling(lw->scroll, lw->lmouse[1]);				
+				scrollbar_start_scrolling(lw->scroll, lw->lmouse[1]);
 				GHOST_SetCursorShape(lw->win, GHOST_kStandardCursorUpDown);
 				GHOST_InvalidateWindow(lw->win);
 			}
@@ -546,7 +546,7 @@ static void loggerwindow_handle(void *priv, GHOST_EventHandle evt)
 {
 	LoggerWindow *lw = priv;
 	GHOST_TEventType type = GHOST_GetEventType(evt);
-	
+
 	switch (type) {
 		case GHOST_kEventCursorMove:
 		{
@@ -588,7 +588,7 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
 	GHOST_SystemHandle sys = multitestapp_get_system(app);
 	GHOST_TUns32 screensize[2];
 	GHOST_WindowHandle win;
-	
+
 	GHOST_GetMainDisplayDimensions(sys, &screensize[0], &screensize[1]);
 	win = GHOST_CreateWindow(
 	        sys, "MultiTest:Logger",
@@ -596,7 +596,7 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
 	        GHOST_kWindowStateNormal,
 	        GHOST_kDrawingContextTypeOpenGL,
 	        glSettings);
-	
+
 	if (win) {
 		LoggerWindow *lw = MEM_callocN(sizeof(*lw), "loggerwindow_new");
 		int bbox[2][2];
@@ -614,12 +614,12 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
 		BLF_size(lw->font, 11, 72);
 		lw->fontheight = BLF_height(lw->font, "A_", 2);
 #endif
-		
+
 		lw->nloglines = lw->logsize = 0;
 		lw->loglines = MEM_mallocN(sizeof(*lw->loglines) * lw->nloglines, "loglines");
-		
+
 		lw->scroll = scrollbar_new(2, 40);
-		
+
 		GHOST_SetWindowUserData(lw->win, windowdata_new(lw, loggerwindow_handle));
 
 		loggerwindow_do_reshape(lw);
@@ -636,10 +636,10 @@ void loggerwindow_log(LoggerWindow *lw, char *line)
 	if (lw->nloglines == lw->logsize) {
 		lw->loglines = memdbl(lw->loglines, &lw->logsize, sizeof(*lw->loglines));
 	}
-	
+
 	lw->loglines[lw->nloglines++] = string_dup(line);
 	scrollbar_set_thumbpct(lw->scroll, (float) lw->ndisplines / lw->nloglines);
-	
+
 	GHOST_InvalidateWindow(lw->win);
 }
 
@@ -652,7 +652,7 @@ void loggerwindow_free(LoggerWindow *lw)
 		MEM_freeN(lw->loglines[i]);
 	}
 	MEM_freeN(lw->loglines);
-	
+
 	windowdata_free(GHOST_GetWindowUserData(lw->win));
 	GHOST_DisposeWindow(sys, lw->win);
 	MEM_freeN(lw);
@@ -667,7 +667,7 @@ typedef struct {
 	MultiTestApp        *app;
 
 	GHOST_WindowHandle win;
-	
+
 	int size[2];
 } ExtraWindow;
 
@@ -677,10 +677,10 @@ static void extrawindow_do_draw(ExtraWindow *ew)
 
 	glClearColor(1, 1, 1, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	glColor3f(0.8, 0.8, 0.8);
 	glRecti(10, 10, ew->size[0] - 10, ew->size[1] - 10);
-	
+
 	GHOST_SwapWindowBuffers(ew->win);
 }
 
@@ -692,7 +692,7 @@ static void extrawindow_do_reshape(ExtraWindow *ew)
 
 	ew->size[0] = GHOST_GetWidthRectangle(bounds);
 	ew->size[1] = GHOST_GetHeightRectangle(bounds);
-	
+
 	glViewport(0, 0, ew->size[0], ew->size[1]);
 
 	glMatrixMode(GL_PROJECTION);
@@ -721,15 +721,15 @@ static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time)
 	double ftime = (double) ((GHOST_TInt64) time) / 1000;
 	float angle = fmod(ftime, 1.0) * 3.1415 * 2;
 	int i;
-	
+
 	memset(&bitmap, 0, sizeof(bitmap));
 	memset(&mask, 0, sizeof(mask));
-	
+
 	bitmap[0][0] |= mask[0][0] |= 0xF;
 	bitmap[1][0] |= mask[1][0] |= 0xF;
 	bitmap[2][0] |= mask[2][0] |= 0xF;
 	bitmap[3][0] |= mask[3][0] |= 0xF;
-	
+
 	for (i = 0; i < 7; i++) {
 		int x = 7 + cos(angle) * i;
 		int y = 7 + sin(angle) * i;
@@ -740,10 +740,10 @@ static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time)
 		float v = (i / 63.0) * 3.1415 * 2;
 		int x = 7 + cos(v) * 7;
 		int y = 7 + sin(v) * 7;
-		
+
 		mask[y][x / 8] |= (1 << (x % 8));
 	}
-	
+
 	GHOST_SetCustomCursorShape(ew->win, bitmap, mask, 0, 0);
 }
 
@@ -752,10 +752,10 @@ static void extrawindow_handle(void *priv, GHOST_EventHandle evt)
 	ExtraWindow *ew = priv;
 	GHOST_TEventType type = GHOST_GetEventType(evt);
 	char buf[256];
-	
+
 	event_to_buf(evt, buf);
 	loggerwindow_log(multitestapp_get_logger(ew->app), buf);
-	
+
 	switch (type) {
 		case GHOST_kEventKeyDown:
 		case GHOST_kEventKeyUp:
@@ -790,21 +790,21 @@ ExtraWindow *extrawindow_new(MultiTestApp *app)
 	GHOST_GLSettings glSettings = {0};
 	GHOST_SystemHandle sys = multitestapp_get_system(app);
 	GHOST_WindowHandle win;
-	
+
 	win = GHOST_CreateWindow(
 	        sys, "MultiTest:Extra",
 	        500, 40, 400, 400,
 	        GHOST_kWindowStateNormal,
 	        GHOST_kDrawingContextTypeOpenGL,
 	        glSettings);
-	
+
 	if (win) {
 		ExtraWindow *ew = MEM_callocN(sizeof(*ew), "mainwindow_new");
 		ew->app = app;
 		ew->win = win;
-		
+
 		GHOST_SetWindowUserData(ew->win, windowdata_new(ew, extrawindow_handle));
-		
+
 		return ew;
 	}
 	else {
@@ -824,13 +824,13 @@ void extrawindow_free(ExtraWindow *ew)
 /*
  * MultiTestApp
  */
-	
+
 struct _MultiTestApp {
 	GHOST_SystemHandle sys;
 	MainWindow          *main;
 	LoggerWindow        *logger;
 	ExtraWindow         *extra;
-	
+
 	int exit;
 };
 
@@ -838,21 +838,21 @@ static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr dat
 {
 	MultiTestApp *app = data;
 	GHOST_WindowHandle win;
-	
+
 	win = GHOST_GetEventWindow(evt);
 	if (win && !GHOST_ValidWindow(app->sys, win)) {
 		loggerwindow_log(app->logger, "WARNING: bad event, non-valid window\n");
 		return 1;
 	}
-		
+
 	if (win) {
 		WindowData *wb = GHOST_GetWindowUserData(win);
-		
+
 		windowdata_handle(wb, evt);
 	}
 	else {
 		GHOST_TEventType type = GHOST_GetEventType(evt);
-			
+
 		/* GHOST_kEventQuit are the only 'system' events,
 		 * that is, events without a window.
 		 */
@@ -866,7 +866,7 @@ static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr dat
 				break;
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -880,25 +880,25 @@ MultiTestApp *multitestapp_new(void) {
 	if (!app->sys)
 		fatal("Unable to create ghost system");
 
-	if (!GHOST_AddEventConsumer(app->sys, consumer))	
+	if (!GHOST_AddEventConsumer(app->sys, consumer))
 		fatal("Unable to add multitest event consumer ");
-		
+
 	app->main = mainwindow_new(app);
-	if (!app->main) 
+	if (!app->main)
 		fatal("Unable to create main window");
-		
+
 	app->logger = loggerwindow_new(app);
 	if (!app->logger)
 		fatal("Unable to create logger window");
 
 	app->extra = NULL;
 	app->exit = 0;
-	
+
 	return app;
 }
 
 LoggerWindow *multitestapp_get_logger(MultiTestApp *app) {
-	return app->logger;	
+	return app->logger;
 }
 
 GHOST_SystemHandle multitestapp_get_system(MultiTestApp *app) {
@@ -943,7 +943,7 @@ void multitestapp_free(MultiTestApp *app)
 }
 
 /***/
-	
+
 int main(int argc, char **argv)
 {
 	MultiTestApp *app;
@@ -953,9 +953,9 @@ int main(int argc, char **argv)
 #endif
 
 	app = multitestapp_new();
-	
+
 	multitestapp_run(app);
 	multitestapp_free(app);
-	
+
 	return 0;
 }

@@ -54,7 +54,7 @@ class GHOST_DropTargetX11;
 
 /**
  * X11 implementation of GHOST_IWindow.
- * Dimensions are given in screen coordinates that are relative to the upper-left corner of the screen. 
+ * Dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.
  * \author	Laurence Bourn
  * \date	October 26, 2001
  */
@@ -112,7 +112,7 @@ public:
 	getWindowBounds(
 	    GHOST_Rect& bounds
 	    ) const;
-	
+
 	void
 	getClientBounds(
 	    GHOST_Rect& bounds
@@ -149,7 +149,7 @@ public:
 	    GHOST_TInt32& outX,
 	    GHOST_TInt32& outY
 	    ) const;
-	
+
 	GHOST_TWindowState
 	getState(
 	    ) const;
@@ -158,12 +158,12 @@ public:
 	setState(
 	    GHOST_TWindowState state
 	    );
-	
+
 	GHOST_TSuccess
 	setOrder(
 	    GHOST_TWindowOrder order
 	    );
-	
+
 	GHOST_TSuccess
 	invalidate(
 	    );
@@ -191,7 +191,7 @@ public:
 	validate(
 	    );
 
-	/**	
+	/**
 	 * Return a handle to the x11 window type.
 	 */
 	Window
@@ -257,7 +257,7 @@ protected:
 	setWindowCursorVisibility(
 	    bool visible
 	    );
-	
+
 	/**
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
@@ -290,7 +290,7 @@ protected:
 	    int hotX,
 	    int hotY
 	    );
-	
+
 	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls (Arbitrary size/color).
@@ -310,7 +310,7 @@ protected:
 private:
 
 	/// Force use of public constructor.
-	
+
 	GHOST_WindowX11(
 	    );
 
@@ -322,11 +322,11 @@ private:
 	getStandardCursor(
 	    GHOST_TStandardCursor g_cursor
 	    );
-	
+
 	Cursor
 	getEmptyCursor(
 	    );
-	
+
 	Window m_window;
 	Display *m_display;
 	XVisualInfo *m_visualInfo;
@@ -342,13 +342,13 @@ private:
 
 	/** XCursor structure of an empty (blank) cursor */
 	Cursor m_empty_cursor;
-	
+
 	/** XCursor structure of the custom cursor */
 	Cursor m_custom_cursor;
 
 	/** XCursor to show when cursor is visible */
 	Cursor m_visible_cursor;
-	
+
 	/** Cache of XC_* ID's to XCursor structures */
 	std::map<unsigned int, Cursor> m_standard_cursors;
 

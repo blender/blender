@@ -61,7 +61,7 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
     # Set in a subclass
     blender: pathlib.Path = None
     testdir: pathlib.Path = None
-    
+
 
     def run_blender(self, filepath: str, python_script: str, timeout: int=300) -> str:
         """Runs Blender by opening a blendfile and executing a script.

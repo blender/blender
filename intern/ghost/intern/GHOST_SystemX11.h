@@ -86,7 +86,7 @@ public:
 
 	GHOST_SystemX11(
 	    );
-	
+
 	/**
 	 * Destructor.
 	 */
@@ -114,7 +114,7 @@ public:
 	GHOST_TUns64
 	getMilliSeconds(
 	    ) const;
-	
+
 
 	/**
 	 * Returns the number of displays on this system.
@@ -146,7 +146,7 @@ public:
 
 	/**
 	 * Create a new window.
-	 * The new window is added to the list of windows managed. 
+	 * The new window is added to the list of windows managed.
 	 * Never explicitly delete the window, use disposeWindow() instead.
 	 * \param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
 	 * \param	left		The coordinate of the left edge of the window.
@@ -210,7 +210,7 @@ public:
 	    GHOST_TInt32& x,
 	    GHOST_TInt32& y
 	    ) const;
-	
+
 	GHOST_TSuccess
 	setCursorPosition(
 	    GHOST_TInt32 x,
@@ -239,15 +239,15 @@ public:
 
 	/**
 	 * Flag a window as dirty. This will
-	 * generate a GHOST window update event on a call to processEvents() 
+	 * generate a GHOST window update event on a call to processEvents()
 	 */
 
 	void
 	addDirtyWindow(
 	    GHOST_WindowX11 *bad_wind
 	    );
-  
- 
+
+
 	/**
 	 * return a pointer to the X11 display structure
 	 */
@@ -256,7 +256,7 @@ public:
 	getXDisplay(
 	        ) {
 		return m_display;
-	}	
+	}
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	XIM
@@ -277,7 +277,7 @@ public:
 	 * \return				Returns the Clipboard indicated by Flag
 	 */
 	GHOST_TUns8 *getClipboard(bool selection) const;
-	
+
 	/**
 	 * Puts buffer to system clipboard
 	 * \param buffer	The buffer to copy to the clipboard
@@ -287,14 +287,14 @@ public:
 
 #ifdef WITH_XDND
 	/**
-	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
+	 * Creates a drag'n'drop event and pushes it immediately onto the event queue.
 	 * Called by GHOST_DropTargetX11 class.
 	 * \param eventType The type of drag'n'drop event
 	 * \param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
 	 * \param mouseX x mouse coordinate (in window coordinates)
 	 * \param mouseY y mouse coordinate
 	 * \param window The window on which the event occurred
-	 * \return Indication whether the event was handled. 
+	 * \return Indication whether the event was handled.
 	 */
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_IWindow *window, int mouseX, int mouseY, void *data);
 #endif

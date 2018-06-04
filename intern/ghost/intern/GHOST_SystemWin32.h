@@ -110,7 +110,7 @@ public:
 
 	/**
 	 * Create a new window.
-	 * The new window is added to the list of windows managed. 
+	 * The new window is added to the list of windows managed.
 	 * Never explicitly delete the window, use disposeWindow() instead.
 	 * \param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
 	 * \param	left	The coordinate of the left edge of the window.
@@ -157,7 +157,7 @@ public:
 	 * \return Indication of the presence of events.
 	 */
 	bool processEvents(bool waitForEvent);
-	
+
 
 	/***************************************************************************************
 	 ** Cursor management functionality
@@ -203,7 +203,7 @@ public:
 	 * \return				Returns the Clipboard
 	 */
 	GHOST_TUns8 *getClipboard(bool selection) const;
-	
+
 	/**
 	 * Puts buffer to system clipboard
 	 * \param selection		Used by X11 only
@@ -212,7 +212,7 @@ public:
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
-	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
+	 * Creates a drag'n'drop event and pushes it immediately onto the event queue.
 	 * Called by GHOST_DropTargetWin32 class.
 	 * \param eventType The type of drag'n'drop event
 	 * \param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
@@ -222,7 +222,7 @@ public:
 	 * \return Indication whether the event was handled.
 	 */
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_WindowWin32 *window, int mouseX, int mouseY, void *data);
-	
+
 	/**
 	 * Confirms quitting he program when there is just one window left open
 	 * in the application
@@ -242,7 +242,7 @@ protected:
 	 * \return A success value.
 	 */
 	GHOST_TSuccess exit();
-	
+
 	/**
 	 * Converts raw WIN32 key codes from the wndproc to GHOST keys.
 	 * \param vKey		The virtual key from hardKey
@@ -303,7 +303,7 @@ protected:
 	 */
 	GHOST_TKey processSpecialKey(short vKey, short scanCode) const;
 
-	/** 
+	/**
 	 * Creates a window event.
 	 * \param type		The type of event to create.
 	 * \param window	The window receiving the event (the active window).
@@ -351,7 +351,7 @@ protected:
 	 * param keys The new state of the modifier keys.
 	 */
 	inline void storeModifierKeys(const GHOST_ModifierKeys& keys);
-	
+
 	/**
 	 * Check current key layout for AltGr
 	 */
@@ -373,7 +373,7 @@ protected:
 	 * \return current status (1 -visible, 0 - hidden)
 	 */
 	int toggleConsole(int action);
-	
+
 	/** The current state of the modifier keys. */
 	GHOST_ModifierKeys m_modifierKeys;
 	/** State variable set at initialization. */
