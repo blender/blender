@@ -542,6 +542,7 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			BLI_assert(object_cow->derivedDeform == NULL);
 			object_cow->mode = object_orig->mode;
 			object_cow->sculpt = object_orig->sculpt;
+			object_cow->runtime.mesh_orig = (Mesh *)object_cow->data;
 			if (object_cow->type == OB_ARMATURE) {
 				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
 				                             object_cow->pose);
@@ -724,12 +725,12 @@ static void deg_backup_object_runtime(
 	Mesh *mesh_eval = object->runtime.mesh_eval;
 	object_runtime_backup->runtime = object->runtime;
 	BKE_object_runtime_reset(object);
-	/* Currently object update will override actual object->data
-	 * to an evaluated version. Need to make sure we don't have
-	 * data set to evaluated one before free anything.
+	/* Object update will override actual object->data to an evaluated version.
+	 * Need to make sure we don't have data set to evaluated one before free
+	 * anything.
 	 */
 	if (mesh_eval != NULL && object->data == mesh_eval) {
-		object->data = mesh_eval->id.orig_id;
+		object->data = object->runtime.mesh_orig;
 	}
 	/* Store curve cache and make sure we don't free it. */
 	object_runtime_backup->curve_cache = object->curve_cache;
@@ -742,20 +743,33 @@ static void deg_restore_object_runtime(
         Object *object,
         const ObjectRuntimeBackup *object_runtime_backup)
 {
+	Mesh *mesh_orig = object->runtime.mesh_orig;
 	object->runtime = object_runtime_backup->runtime;
+	object->runtime.mesh_orig = mesh_orig;
 	if (object->runtime.mesh_eval != NULL) {
-		Mesh *mesh_eval = object->runtime.mesh_eval;
-		/* Do same thing as object update: override actual object data
-		 * pointer with evaluated datablock.
-		 */
-		if (object->type == OB_MESH) {
-			object->data = mesh_eval;
-			/* Evaluated mesh simply copied edit_btmesh pointer from
-			 * original mesh during update, need to make sure no dead
-			 * pointers are left behind.
+		if (object->id.recalc & ID_RECALC_GEOMETRY) {
+			/* If geometry is tagged for update it means, that part of
+			 * evaluated mesh are not valid anymore. In this case we can not
+			 * have any "persistent" pointers to point to an invalid data.
+			 *
+			 * We restore object's data datablock to an original copy of
+			 * that datablock.
 			 */
-			Mesh *mesh = ((Mesh *)mesh_eval->id.orig_id);
-			mesh_eval->edit_btmesh = mesh->edit_btmesh;
+			object->data = mesh_orig;
+		}
+		else {
+			Mesh *mesh_eval = object->runtime.mesh_eval;
+			/* Do same thing as object update: override actual object data
+			 * pointer with evaluated datablock.
+			 */
+			if (object->type == OB_MESH) {
+				object->data = mesh_eval;
+				/* Evaluated mesh simply copied edit_btmesh pointer from
+				 * original mesh during update, need to make sure no dead
+				 * pointers are left behind.
+				*/
+				mesh_eval->edit_btmesh = mesh_orig->edit_btmesh;
+			}
 		}
 	}
 	if (object_runtime_backup->curve_cache != NULL) {
@@ -995,8 +1009,8 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow)
 void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
 {
 	BLI_assert(id_cow != id_orig);
-	BLI_assert((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0);
-	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
+	BLI_assert((id_orig->tag & LIB_TAG_COPIED_ON_WRITE) == 0);
+	id_cow->tag |= LIB_TAG_COPIED_ON_WRITE;
 	id_cow->orig_id = (ID *)id_orig;
 }
 

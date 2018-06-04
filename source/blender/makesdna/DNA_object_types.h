@@ -145,6 +145,11 @@ typedef struct ObjectDisplay {
 
 /* Not saved in file! */
 typedef struct Object_Runtime {
+	/* Original mesh pointer, before object->data was changed to point
+	 * to mesh_eval.
+	 * Is assigned by dependency craph's copy-on-write evaluation.
+	 */
+	struct Mesh *mesh_orig;
 	/* Mesh structure created during object evaluation.
 	 * It has all modifiers applied.
 	 */

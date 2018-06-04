@@ -1057,7 +1057,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		modifier_deformVerts_DM_deprecated(md, &mectx, NULL, vertexCos, numVerts);
 	}
 
-	if (ob->id.tag & LIB_TAG_COPY_ON_WRITE) {
+	if (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) {
 		if (vertexCos) {
 			BKE_lattice_vertexcos_apply(ob, vertexCos);
 			MEM_freeN(vertexCos);

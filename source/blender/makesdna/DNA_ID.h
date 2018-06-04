@@ -467,8 +467,8 @@ enum {
 	LIB_TAG_PRE_EXISTING    = 1 << 11,
 
 	/* The datablock is a copy-on-write/localized version. */
-	LIB_TAG_COPY_ON_WRITE   = 1 << 12,
-	LIB_TAG_COPY_ON_WRITE_EVAL = 1 << 13,
+	LIB_TAG_COPIED_ON_WRITE               = 1 << 12,
+	LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT   = 1 << 13,
 	LIB_TAG_LOCALIZED = 1 << 14,
 
 	/* RESET_NEVER tag datablock for freeing etc. behavior (usually set when copying real one into temp/runtime one). */

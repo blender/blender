@@ -240,6 +240,6 @@ ID *DEG_get_original_id(ID *id)
 	if (id->orig_id == NULL) {
 		return id;
 	}
-	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) != 0);
+	BLI_assert((id->tag & LIB_TAG_COPIED_ON_WRITE) != 0);
 	return (ID *)id->orig_id;
 }

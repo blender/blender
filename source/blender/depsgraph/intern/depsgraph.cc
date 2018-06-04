@@ -310,7 +310,7 @@ IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 
 IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 {
-	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) == 0);
+	BLI_assert((id->tag & LIB_TAG_COPIED_ON_WRITE) == 0);
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
 		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_ID_REF);
@@ -500,7 +500,7 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 		 * We try to enforce that in debug builds, for for release we play a bit
 		 * safer game here.
 		 */
-		if ((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0) {
+		if ((id_orig->tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
 			/* TODO(sergey): This is nice sanity check to have, but it fails
 			 * in following situations:
 			 *

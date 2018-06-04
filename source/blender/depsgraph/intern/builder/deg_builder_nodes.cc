@@ -311,7 +311,7 @@ ID *DepsgraphNodeBuilder::get_cow_id(const ID *id_orig) const
 
 ID *DepsgraphNodeBuilder::ensure_cow_id(ID *id_orig)
 {
-	if (id_orig->tag & LIB_TAG_COPY_ON_WRITE) {
+	if (id_orig->tag & LIB_TAG_COPIED_ON_WRITE) {
 		/* ID is already remapped to copy-on-write. */
 		return id_orig;
 	}
