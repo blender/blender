@@ -156,6 +156,7 @@ typedef struct WORKBENCH_PrivateData {
 	float cached_shadow_direction[3];
 	float shadow_mat[4][4];
 	float shadow_inv[4][4];
+	float shadow_far_plane[4]; /* Far plane of the view frustum. */
 	float shadow_near_corners[4][3]; /* Near plane corners in shadow space. */
 	float shadow_near_min[3]; /* min and max of shadow_near_corners. allow fast test */
 	float shadow_near_max[3];
@@ -186,7 +187,7 @@ typedef struct WORKBENCH_ObjectData {
 	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
 	int recalc;
 	/* Shadow direction in local object space. */
-	float shadow_dir[3];
+	float shadow_dir[3], shadow_depth;
 	float shadow_min[3], shadow_max[3]; /* Min, max in shadow space */
 	BoundBox shadow_bbox;
 	bool shadow_bbox_dirty;
@@ -232,6 +233,7 @@ void workbench_material_set_normal_world_matrix(
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);
 void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_direction[3]);
 bool studiolight_object_cast_visible_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
+float studiolight_object_shadow_distance(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
 bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
 
 /* workbench_data.c */

@@ -516,12 +516,12 @@ static void draw_clipping_setup_from_view(void)
 	for (int p = 0; p < 6; p++) {
 		int q, r;
 		switch (p) {
-			case 0:  q = 1; r = 2; break;
-			case 1:  q = 0; r = 5; break;
-			case 2:  q = 1; r = 5; break;
-			case 3:  q = 2; r = 6; break;
-			case 4:  q = 0; r = 3; break;
-			default: q = 4; r = 7; break;
+			case 0:  q = 1; r = 2; break; /* -X */
+			case 1:  q = 0; r = 5; break; /* -Y */
+			case 2:  q = 1; r = 5; break; /* +Z (far) */
+			case 3:  q = 2; r = 6; break; /* +Y */
+			case 4:  q = 0; r = 3; break; /* -Z (near) */
+			default: q = 4; r = 7; break; /* +X */
 		}
 		if (DST.frontface == GL_CW) {
 			SWAP(int, q, r);
@@ -711,6 +711,13 @@ void DRW_culling_frustum_corners_get(BoundBox *corners)
 {
 	draw_clipping_setup_from_view();
 	memcpy(corners, &DST.clipping.frustum_corners, sizeof(BoundBox));
+}
+
+/* See draw_clipping_setup_from_view() for the plane order. */
+void DRW_culling_frustum_planes_get(float planes[6][4])
+{
+	draw_clipping_setup_from_view();
+	memcpy(planes, &DST.clipping.frustum_planes, sizeof(DST.clipping.frustum_planes));
 }
 
 /** \} */

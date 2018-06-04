@@ -506,6 +506,7 @@ bool DRW_culling_box_test(BoundBox *bbox);
 bool DRW_culling_plane_test(float plane[4]);
 
 void DRW_culling_frustum_corners_get(BoundBox *corners);
+void DRW_culling_frustum_planes_get(float planes[6][4]);
 
 /* Selection */
 void DRW_select_load_id(uint id);

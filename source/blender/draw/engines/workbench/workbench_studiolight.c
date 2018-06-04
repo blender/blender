@@ -76,8 +76,12 @@ void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_dire
 		invert_m4_m4(wpd->shadow_inv, wpd->shadow_mat);
 
 		copy_v3_v3(wpd->cached_shadow_direction, light_direction);
-
 	}
+
+	float planes[6][4];
+	DRW_culling_frustum_planes_get(planes);
+	/* we only need the far plane. */
+	copy_v4_v4(wpd->shadow_far_plane, planes[2]);
 
 	BoundBox frustum_corners;
 	DRW_culling_frustum_corners_get(&frustum_corners);
@@ -112,8 +116,9 @@ static BoundBox *studiolight_object_shadow_bbox_get(WORKBENCH_PrivateData *wpd, 
 			mul_v3_m4v3(corner, tmp_mat, bbox->vec[i]);
 			minmax_v3v3_v3(oed->shadow_min, oed->shadow_max, corner);
 		}
+		oed->shadow_depth = oed->shadow_max[2] - oed->shadow_min[2];
 		/* Extend towards infinity. */
-		oed->shadow_max[2] += 1e4;
+		oed->shadow_max[2] += 1e4f;
 
 		/* Get extended AABB in world space. */
 		BKE_boundbox_init_from_minmax(&oed->shadow_bbox, oed->shadow_min, oed->shadow_max);
@@ -129,6 +134,30 @@ bool studiolight_object_cast_visible_shadow(WORKBENCH_PrivateData *wpd, Object *
 {
 	BoundBox *shadow_bbox = studiolight_object_shadow_bbox_get(wpd, ob, oed);
 	return DRW_culling_box_test(shadow_bbox);
+}
+
+float studiolight_object_shadow_distance(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed)
+{
+	BoundBox *shadow_bbox = studiolight_object_shadow_bbox_get(wpd, ob, oed);
+
+	int corners[4] = {0, 3, 4, 7};
+	float dist = 1e4f, dist_isect;
+	for (int i = 0; i < 4; ++i) {
+		if (isect_ray_plane_v3(shadow_bbox->vec[corners[i]],
+		                       wpd->cached_shadow_direction,
+		                       wpd->shadow_far_plane,
+		                       &dist_isect, true))
+		{
+			if (dist_isect < dist) {
+				dist = dist_isect;
+			}
+		}
+		else {
+			/* All rays are parallels. If one fails, the other will too. */
+			break;
+		}
+	}
+	return max_ii(dist - oed->shadow_depth, 0);
 }
 
 bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed)
