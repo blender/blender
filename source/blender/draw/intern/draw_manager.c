@@ -764,6 +764,7 @@ ObjectEngineData *DRW_object_engine_data_ensure(
 		const size_t t = sizeof(float) - 1;
 		size = (size + t) & ~t;
 		size_t fsize = size / sizeof(float);
+		BLI_assert(fsize < MAX_INSTANCE_DATA_SIZE);
 		if (DST.object_instance_data[fsize] == NULL) {
 			DST.object_instance_data[fsize] = DRW_instance_data_request(DST.idatalist, fsize);
 		}
