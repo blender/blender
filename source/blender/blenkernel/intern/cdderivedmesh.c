@@ -56,8 +56,6 @@
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h" /* for Curve */
 
-#include "DEG_depsgraph_query.h"
-
 #include "MEM_guardedalloc.h"
 
 #include <string.h>

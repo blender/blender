@@ -74,8 +74,6 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
-#include "DEG_depsgraph_query.h"
-
 #ifndef USE_DYNSIZE
 #  include "BLI_array.h"
 #endif
