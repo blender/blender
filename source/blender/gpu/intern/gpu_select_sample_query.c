@@ -37,7 +37,7 @@
 #include "GPU_select.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
- 
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_rect.h"

@@ -40,7 +40,7 @@ struct Image;
 struct ImageUser;
 struct PreviewImage;
 struct Gwn_VertBuf;
-	
+
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;
 

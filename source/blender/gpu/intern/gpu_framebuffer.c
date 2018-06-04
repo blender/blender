@@ -680,7 +680,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 	if (!GPU_framebuffer_check_valid(ofs->fb, err_out)) {
 		GPU_offscreen_free(ofs);
 		gpuPopAttrib();
-		return NULL;		
+		return NULL;
 	}
 
 	GPU_framebuffer_restore();
@@ -698,7 +698,7 @@ void GPU_offscreen_free(GPUOffScreen *ofs)
 		GPU_texture_free(ofs->color);
 	if (ofs->depth)
 		GPU_texture_free(ofs->depth);
-	
+
 	MEM_freeN(ofs);
 }
 

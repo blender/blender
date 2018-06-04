@@ -189,11 +189,11 @@ static void shader_print_errors(const char *task, const char *log, const char **
 				c = pos + 1;
 				line++;
 			}
-			
+
 			fprintf(stderr, "%s", c);
 		}
 	}
-	
+
 	fprintf(stderr, "%s\n", log);
 }
 

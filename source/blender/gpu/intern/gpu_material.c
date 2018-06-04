@@ -87,7 +87,7 @@ struct GPUMaterial {
 
 	const void *engine_type;   /* attached engine type */
 	int options;    /* to identify shader variations (shadow, probe, world background...) */
-	
+
 	/* for creating the material */
 	ListBase nodes;
 	GPUNodeLink *outlink;
@@ -670,6 +670,6 @@ void GPU_materials_free(void)
 
 	for (wo = G.main->world.first; wo; wo = wo->id.next)
 		GPU_material_free(&wo->gpumaterial);
-	
+
 	GPU_material_free(&defmaterial.gpumaterial);
 }

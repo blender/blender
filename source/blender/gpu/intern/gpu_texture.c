@@ -736,10 +736,10 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 {
 	GPUTexture *tex = prv->gputexture[0];
 	GLuint bindcode = 0;
-	
+
 	if (tex)
 		bindcode = tex->bindcode;
-	
+
 	/* this binds a texture, so that's why we restore it to 0 */
 	if (bindcode == 0) {
 		GPU_create_gl_tex(&bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], GL_TEXTURE_2D, mipmap, 0, NULL);
@@ -758,9 +758,9 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 	tex->target_base = GL_TEXTURE_2D;
 	tex->format = -1;
 	tex->components = -1;
-	
+
 	prv->gputexture[0] = tex;
-	
+
 	if (!glIsTexture(tex->bindcode)) {
 		GPU_print_error_debug("Blender Texture Not Loaded");
 	}
@@ -770,13 +770,13 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 		glBindTexture(GL_TEXTURE_2D, tex->bindcode);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
-		
+
 		tex->w = w;
 		tex->h = h;
 	}
-	
+
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
+
 	return tex;
 
 }
@@ -1104,7 +1104,7 @@ void GPU_texture_free(GPUTexture *tex)
 
 	if (tex->refcount < 0)
 		fprintf(stderr, "GPUTexture: negative refcount\n");
-	
+
 	if (tex->refcount == 0) {
 		for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
 			if (tex->fb[i] != NULL) {
@@ -1116,7 +1116,7 @@ void GPU_texture_free(GPUTexture *tex)
 		if (BLI_thread_is_main()) {
 			gpu_texture_delete(tex);
 		}
-		else{
+		else {
 			BLI_mutex_lock(&g_orphan_lock);
 			BLI_addtail(&g_orphaned_tex, BLI_genericNodeN(tex));
 			BLI_mutex_unlock(&g_orphan_lock);
@@ -1133,7 +1133,7 @@ void GPU_texture_delete_orphans(void)
 {
 	BLI_mutex_lock(&g_orphan_lock);
 	LinkData *link;
-	while((link = BLI_pophead(&g_orphaned_tex))) {
+	while ((link = BLI_pophead(&g_orphaned_tex))) {
 		gpu_texture_delete((GPUTexture *)link->data);
 		MEM_freeN(link);
 	}

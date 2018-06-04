@@ -460,7 +460,7 @@ void GPU_pbvh_grid_buffers_update(
 						vbo_index += 1;
 					}
 				}
-				
+
 				if (!buffers->smooth) {
 					for (j = 0; j < key->grid_size - 1; j++) {
 						for (k = 0; k < key->grid_size - 1; k++) {
@@ -865,7 +865,7 @@ void GPU_pbvh_bmesh_buffers_update(
 						fmask += BM_ELEM_CD_GET_FLOAT(v[i], cd_vert_mask_offset);
 					}
 					fmask /= 3.0f;
-					
+
 					for (i = 0; i < 3; i++) {
 						gpu_bmesh_vert_to_buffer_copy__gwn(
 						        v[i], buffers->vert_buf,
