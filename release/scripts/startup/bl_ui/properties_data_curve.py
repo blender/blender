@@ -180,9 +180,19 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
         sub.active = curve.taper_object is not None
         sub.prop(curve, "use_map_taper")
 
-        col.separator()
+class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
+    bl_label = "Bevel"
+    bl_parent_id = "DATA_PT_geometry_curve"
 
-        layout.label(text="Bevel")
+    @classmethod
+    def poll(cls, context):
+        return (type(context.curve) in {Curve, TextCurve})
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        curve = context.curve
 
         col = layout.column()
         sub = col.column()
@@ -338,8 +348,17 @@ class DATA_PT_font(CurveButtonsPanelText, Panel):
         row.prop(char, "use_underline", toggle=True)
         row.prop(char, "use_small_caps", toggle=True)
 
+class DATA_PT_font_transform(CurveButtonsPanelText, Panel):
+    bl_label = "Transform"
+    bl_parent_id = "DATA_PT_font"
+
+    def draw(self, context):
+        layout = self.layout
+
+        text = context.curve
+        char = context.curve.edit_format
+
         layout.use_property_split = True
-        # layout.prop(text, "font")
 
         col = layout.column()
 
@@ -370,11 +389,31 @@ class DATA_PT_paragraph(CurveButtonsPanelText, Panel):
 
         text = context.curve
 
-        layout.label(text="Alignment")
+
+class DATA_PT_paragraph_alignment(CurveButtonsPanelText, Panel):
+    bl_parent_id = "DATA_PT_paragraph"
+    bl_label = "Alignment"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+
+        text = context.curve
+
         layout.row().prop(text, "align_x", expand=True)
         layout.row().prop(text, "align_y", expand=True)
 
+
+
+class DATA_PT_paragraph_spacing(CurveButtonsPanelText, Panel):
+    bl_parent_id = "DATA_PT_paragraph"
+    bl_label = "Spacing"
+
+    def draw(self, context):
+        layout = self.layout
         layout.use_property_split = True
+
+        text = context.curve
 
         col = layout.column(align=True)
         col.prop(text, "space_character", text="Character Spacing")
@@ -429,10 +468,14 @@ classes = (
     DATA_PT_shape_curve,
     DATA_PT_curve_texture_space,
     DATA_PT_geometry_curve,
+    DATA_PT_geometry_curve_bevel,
     DATA_PT_pathanim,
     DATA_PT_active_spline,
     DATA_PT_font,
+    DATA_PT_font_transform,
     DATA_PT_paragraph,
+    DATA_PT_paragraph_alignment,
+    DATA_PT_paragraph_spacing,
     DATA_PT_text_boxes,
     DATA_PT_custom_props_curve,
 )

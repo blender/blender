@@ -160,6 +160,7 @@ class SceneKeyingSetsPanel:
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
     bl_label = "Keying Sets"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw(self, context):
@@ -193,7 +194,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
     bl_label = "Active Keying Set"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "SCENE_PT_keying_sets"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     @classmethod
@@ -258,18 +259,46 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
         layout.use_property_split = True
 
         scene = context.scene
+        view = scene.view_settings
 
         col = layout.column()
         col.prop(scene.display_settings, "display_device")
-
-        col.separator()
-
-        col = layout.column()
-        col.template_colormanaged_view_settings(scene, "view_settings")
-
-        col.separator()
-        col = layout.column()
         col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer Color Space")
+
+        col.separator()
+
+        col = layout.column()
+        col.prop(view, "view_transform")
+        col.prop(view, "exposure")
+        col.prop(view, "gamma")
+        col.prop(view, "look")
+
+
+class SCENE_PT_color_management_curves(SceneButtonsPanel, Panel):
+    bl_label = "Use Curves"
+    bl_parent_id = "SCENE_PT_color_management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    def draw_header(self, context):
+
+        scene = context.scene
+        view = scene.view_settings
+
+        self.layout.prop(view, "use_curve_mapping", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        view = scene.view_settings
+
+        layout.use_property_split = False
+        layout.enabled = view.use_curve_mapping
+
+        layout.template_curve_mapping(view, "curve_mapping", levels = True)
+
+
 
 
 class SCENE_PT_audio(SceneButtonsPanel, Panel):
@@ -306,6 +335,7 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
 
 class SCENE_PT_physics(SceneButtonsPanel, Panel):
     bl_label = "Gravity"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
@@ -368,7 +398,8 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
-    bl_label = "Rigid Body Cache"
+    bl_label = "Cache"
+    bl_parent_id = "SCENE_PT_rigid_body_world"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -385,7 +416,8 @@ class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
-    bl_label = "Rigid Body Field Weights"
+    bl_label = "Field Weights"
+    bl_parent_id = "SCENE_PT_rigid_body_world"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -460,6 +492,7 @@ classes = (
     SCENE_PT_keying_sets,
     SCENE_PT_keying_set_paths,
     SCENE_PT_color_management,
+    SCENE_PT_color_management_curves,
     SCENE_PT_viewport_display,
     SCENE_PT_audio,
     SCENE_PT_physics,

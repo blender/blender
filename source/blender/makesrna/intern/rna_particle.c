@@ -115,7 +115,7 @@ static const EnumPropertyItem part_ren_as_items[] = {
 	{PART_DRAW_LINE, "LINE", 0, "Line", ""},
 	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
 	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
-	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{PART_DRAW_GR, "COLLECTION", 0, "Collection", ""},
 	{PART_DRAW_BB, "BILLBOARD", 0, "Billboard", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -125,7 +125,7 @@ static const EnumPropertyItem part_hair_ren_as_items[] = {
 	{PART_DRAW_NOT, "NONE", 0, "None", ""},
 	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
 	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
-	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{PART_DRAW_GR, "COLLECTION", 0, "Collection", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 #endif

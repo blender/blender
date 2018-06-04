@@ -86,6 +86,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
     bl_label = "Delta Transform"
+    bl_parent_id = "OBJECT_PT_transform"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):

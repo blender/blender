@@ -222,11 +222,24 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         sub.active = rd.use_stamp_note
         sub.prop(rd, "stamp_note_text", text="")
 
+class RENDER_PT_stamp_burn(RenderButtonsPanel, Panel):
+    bl_label = "Burn Into Image"
+    bl_parent_id = "RENDER_PT_stamp"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+
+        self.layout.prop(rd, "use_stamp", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
         layout.use_property_split = True
 
-        layout.separator()
-
-        layout.prop(rd, "use_stamp", text="Burn Into Image")
         col = layout.column()
         col.active = rd.use_stamp
         col.prop(rd, "stamp_font_size", text="Font Size")
@@ -764,6 +777,7 @@ classes = (
     RENDER_PT_output,
     RENDER_PT_encoding,
     RENDER_PT_stamp,
+    RENDER_PT_stamp_burn,
     RENDER_UL_renderviews,
     RENDER_PT_stereoscopy,
     RENDER_PT_hair,
