@@ -2870,7 +2870,7 @@ Mesh *BKE_object_get_final_mesh(Object *object)
  * - For copied-on-write objects it will give pointer to a copied-on-write
  *   mesh which corresponds to original object's mesh.
  */
-Mesh *BKE_object_get_unmodified_mesh(Object *object)
+Mesh *BKE_object_get_pre_modified_mesh(Object *object)
 {
 	if (object->runtime.mesh_orig != NULL) {
 		BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
