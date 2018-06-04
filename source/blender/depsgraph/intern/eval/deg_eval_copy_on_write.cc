@@ -542,7 +542,9 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			BLI_assert(object_cow->derivedDeform == NULL);
 			object_cow->mode = object_orig->mode;
 			object_cow->sculpt = object_orig->sculpt;
-			object_cow->runtime.mesh_orig = (Mesh *)object_cow->data;
+			if (object_cow->type == OB_MESH) {
+				object_cow->runtime.mesh_orig = (Mesh *)object_cow->data;
+			}
 			if (object_cow->type == OB_ARMATURE) {
 				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
 				                             object_cow->pose);

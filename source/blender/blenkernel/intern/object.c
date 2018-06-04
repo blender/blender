@@ -2851,7 +2851,6 @@ Mesh *BKE_object_get_evaluated_mesh(const Depsgraph *depsgraph, Object *ob)
 	return ob_eval->runtime.mesh_eval;
 }
 
-
 static int pc_cmp(const void *a, const void *b)
 {
 	const LinkData *ad = a, *bd = b;
