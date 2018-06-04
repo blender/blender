@@ -227,6 +227,7 @@ void RNA_def_collections(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Objects", "Objects that are directly in this collection");
 	RNA_def_property_collection_funcs(prop, "rna_Collection_objects_begin",
 	                                        "rna_iterator_listbase_next",
