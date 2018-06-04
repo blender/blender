@@ -1231,6 +1231,7 @@ class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
 class CYCLES_WORLD_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
     bl_label = "Ambient Occlusion"
     bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1324,25 +1325,57 @@ class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.label(text="Surface")
+class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
+    bl_label = "Surface"
+    bl_parent_id = "CYCLES_WORLD_PT_settings"
+    bl_context = "world"
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        world = context.world
+        cworld = world.cycles
+
+        col = layout.column()
         col.prop(cworld, "sample_as_light", text="Multiple Importance")
 
-        sub = col.column(align=True)
+        sub = col.column()
         sub.active = cworld.sample_as_light
         sub.prop(cworld, "sample_map_resolution")
         if use_branched_path(context):
-            subsub = sub.row(align=True)
+            subsub = sub.column(align=True)
             subsub.active = use_sample_all_lights(context)
             subsub.prop(cworld, "samples")
         sub.prop(cworld, "max_bounces")
 
-        col.separator()
 
-        col.label(text="Volume")
+class CYCLES_WORLD_PT_settings_volume(CyclesButtonsPanel, Panel):
+    bl_label = "Volume"
+    bl_parent_id = "CYCLES_WORLD_PT_settings"
+    bl_context = "world"
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        world = context.world
+        cworld = world.cycles
+
+        col = layout.column()
+
         sub = col.column()
         sub.active = use_cpu(context)
-        sub.prop(cworld, "volume_sampling", text="")
-        col.prop(cworld, "volume_interpolation", text="")
+        sub.prop(cworld, "volume_sampling", text="Sampling")
+        col.prop(cworld, "volume_interpolation", text="Interpolation")
         col.prop(cworld, "homogeneous_volume", text="Homogeneous")
 
 
@@ -1425,25 +1458,75 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
         mat = context.material
         cmat = mat.cycles
 
+        layout.prop(mat, "pass_index")
+
+
+class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
+    bl_label = "Surface"
+    bl_parent_id = "CYCLES_MATERIAL_PT_settings"
+    bl_context = "material"
+
+    @classmethod
+    def poll(cls, context):
+        return context.material and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        mat = context.material
+        cmat = mat.cycles
+
         col = layout.column()
-        col.label(text="Surface")
         col.prop(cmat, "sample_as_light", text="Multiple Importance")
         col.prop(cmat, "use_transparent_shadow")
 
-        col.separator()
-        col.label(text="Geometry")
+
+class CYCLES_MATERIAL_PT_settings_geometry(CyclesButtonsPanel, Panel):
+    bl_label = "Geometry"
+    bl_parent_id = "CYCLES_MATERIAL_PT_settings"
+    bl_context = "material"
+
+    @classmethod
+    def poll(cls, context):
+        return context.material and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        mat = context.material
+        cmat = mat.cycles
+
+        col = layout.column()
+
         col.prop(cmat, "displacement_method", text="Displacement Method")
 
-        col.separator()
-        col.label(text="Volume")
+
+class CYCLES_MATERIAL_PT_settings_volume(CyclesButtonsPanel, Panel):
+    bl_label = "Volume"
+    bl_parent_id = "CYCLES_MATERIAL_PT_settings"
+    bl_context = "material"
+
+    @classmethod
+    def poll(cls, context):
+        return context.material and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        mat = context.material
+        cmat = mat.cycles
+
+        col = layout.column()
         sub = col.column()
         sub.active = use_cpu(context)
         sub.prop(cmat, "volume_sampling", text="Sampling")
         col.prop(cmat, "volume_interpolation", text="Interpolation")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
 
-        col.separator()
-        col.prop(mat, "pass_index")
+
 
 
 class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
@@ -1600,30 +1683,6 @@ class CYCLES_SCENE_PT_simplify(CyclesButtonsPanel, Panel):
 
         layout.active = rd.use_simplify
 
-        col = layout.column(align=True)
-        col.prop(rd, "simplify_subdivision", text="Max Subdivision View")
-        col.prop(rd, "simplify_subdivision_render", text="Render")
-
-        col.separator()
-
-        col = layout.column(align=True)
-        col.prop(rd, "simplify_child_particles", text="Child Particles View")
-        col.prop(rd, "simplify_child_particles_render", text="Render")
-
-        col.separator()
-
-        col = layout.column(align=True)
-        col.prop(cscene, "texture_limit", text="Texture Limit View")
-        col.prop(cscene, "texture_limit_render", text="Render")
-
-        col.separator()
-
-        col = layout.column(align=True)
-        col.prop(cscene, "ao_bounces", text="AO Bounces View")
-        col.prop(cscene, "ao_bounces_render", text="Render")
-
-        layout.separator()
-
         col = layout.column()
         col.prop(cscene, "use_camera_cull")
         sub = col.column()
@@ -1638,6 +1697,53 @@ class CYCLES_SCENE_PT_simplify(CyclesButtonsPanel, Panel):
         sub = col.column()
         sub.active = cscene.use_distance_cull
         sub.prop(cscene, "distance_cull_margin", text="Distance")
+
+
+class CYCLES_SCENE_PT_simplify_viewport(CyclesButtonsPanel, Panel):
+    bl_label = "Viewport"
+    bl_context = "scene"
+    bl_parent_id = "CYCLES_SCENE_PT_simplify"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        rd = scene.render
+        cscene = scene.cycles
+
+        layout.active = rd.use_simplify
+
+        col = layout.column()
+        col.prop(rd, "simplify_subdivision", text="Max Subdivision")
+        col.prop(rd, "simplify_child_particles", text="Child Particles")
+        col.prop(cscene, "texture_limit", text="Texture Limit")
+        col.prop(cscene, "ao_bounces", text="AO Bounces")
+
+
+class CYCLES_SCENE_PT_simplify_render(CyclesButtonsPanel, Panel):
+    bl_label = "Render"
+    bl_context = "scene"
+    bl_parent_id = "CYCLES_SCENE_PT_simplify"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        rd = scene.render
+        cscene = scene.cycles
+
+        layout.active = rd.use_simplify
+
+        col = layout.column()
+
+        col.prop(rd, "simplify_subdivision_render", text="Max Subdivision")
+        col.prop(rd, "simplify_child_particles_render", text="Child Particles")
+        col.prop(cscene, "texture_limit_render", text="Texture Limit")
+        col.prop(cscene, "ao_bounces_render", text="AO Bounces")
 
 
 def draw_device(self, context):
@@ -1733,14 +1839,21 @@ classes = (
     CYCLES_WORLD_PT_mist,
     CYCLES_WORLD_PT_ray_visibility,
     CYCLES_WORLD_PT_settings,
+    CYCLES_WORLD_PT_settings_surface,
+    CYCLES_WORLD_PT_settings_volume,
     CYCLES_MATERIAL_PT_preview,
     CYCLES_MATERIAL_PT_surface,
     CYCLES_MATERIAL_PT_volume,
     CYCLES_MATERIAL_PT_displacement,
     CYCLES_MATERIAL_PT_settings,
+    CYCLES_MATERIAL_PT_settings_surface,
+    CYCLES_MATERIAL_PT_settings_geometry,
+    CYCLES_MATERIAL_PT_settings_volume,
     CYCLES_RENDER_PT_bake,
     CYCLES_RENDER_PT_debug,
     CYCLES_SCENE_PT_simplify,
+    CYCLES_SCENE_PT_simplify_viewport,
+    CYCLES_SCENE_PT_simplify_render,
 )
 
 

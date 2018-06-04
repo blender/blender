@@ -181,23 +181,60 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
         col.prop(lamp, "shadow_buffer_exp", text="Exponent")
         col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
 
-        col.separator()
 
-        if lamp.type == 'SUN':
-            col.label("Cascaded Shadow Map")
 
-            col.prop(lamp, "shadow_cascade_count", text="Count")
-            col.prop(lamp, "shadow_cascade_fade", text="Fade")
+class DATA_PT_EEVEE_shadow_cascaded_shadow_map(DataButtonsPanel, Panel):
+    bl_label = "Cascaded Shadow Map"
+    bl_parent_id = "DATA_PT_EEVEE_shadow"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
-            col.prop(lamp, "shadow_cascade_max_distance", text="Max Distance")
-            col.prop(lamp, "shadow_cascade_exponent", text="Distribution")
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.engine
 
-        layout.separator()
+        return (lamp and lamp.type == 'SUN') and (engine in cls.COMPAT_ENGINES)
 
-        layout.prop(lamp, "use_contact_shadow")
+    def draw(self, context):
+        layout = self.layout
+        lamp = context.lamp
+        layout.use_property_split = True
 
         col = layout.column()
-        col.active = lamp.use_contact_shadow
+
+        col.prop(lamp, "shadow_cascade_count", text="Count")
+        col.prop(lamp, "shadow_cascade_fade", text="Fade")
+
+        col.prop(lamp, "shadow_cascade_max_distance", text="Max Distance")
+        col.prop(lamp, "shadow_cascade_exponent", text="Distribution")
+
+
+class DATA_PT_EEVEE_shadow_contact(DataButtonsPanel, Panel):
+    bl_label = "Contact Shadows"
+    bl_parent_id = "DATA_PT_EEVEE_shadow"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.engine
+        return (lamp and lamp.type in {'POINT', 'SUN', 'SPOT', 'AREA'}) and (engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        lamp = context.lamp
+
+        layout = self.layout
+        layout.active = lamp.use_shadow
+        layout.prop(lamp, "use_contact_shadow", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        lamp = context.lamp
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.active = lamp.use_shadow and lamp.use_contact_shadow
 
         col.prop(lamp, "contact_shadow_distance", text="Distance")
         col.prop(lamp, "contact_shadow_soft_size", text="Softness")
@@ -268,6 +305,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
+    bl_parent_id = "DATA_PT_EEVEE_lamp"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
@@ -321,6 +359,8 @@ classes = (
     DATA_PT_lamp,
     DATA_PT_EEVEE_lamp,
     DATA_PT_EEVEE_shadow,
+    DATA_PT_EEVEE_shadow_contact,
+    DATA_PT_EEVEE_shadow_cascaded_shadow_map,
     DATA_PT_area,
     DATA_PT_spot,
     DATA_PT_falloff_curve,
