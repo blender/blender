@@ -1261,7 +1261,7 @@ finally:
 		for (uint i = 0; i < hits; i++) {
 			if (((buffer4[i].data[3] & 0xFFFF0000) != 0) == is_pose_mode) {
 				if (i != j) {
-					buffer4[i] = buffer4[j];
+					buffer4[j] = buffer4[i];
 				}
 				j++;
 			}
