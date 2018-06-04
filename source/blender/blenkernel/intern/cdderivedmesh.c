@@ -55,6 +55,8 @@
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h" /* for Curve */
 
+#include "DEG_depsgraph_query.h"
+
 #include "MEM_guardedalloc.h"
 
 #include <string.h>
@@ -289,7 +291,9 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	 * this derivedmesh is just original mesh. it's the multires subsurf dm
 	 * that this is actually for, to support a pbvh on a modified mesh */
 	if (!cddm->pbvh && ob->type == OB_MESH) {
-		Mesh *me = ob->data;
+		Object *ob_orig = DEG_get_original_object(ob);
+		Mesh *me = ob_orig->data;
+		BLI_assert(!(me->id.tag & LIB_TAG_NO_MAIN));
 		const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 		MLoopTri *looptri;
 		bool deformed;

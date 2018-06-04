@@ -73,6 +73,8 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
+#include "DEG_depsgraph_query.h"
+
 #ifndef USE_DYNSIZE
 #  include "BLI_array.h"
 #endif
@@ -2327,7 +2329,9 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		                     numGrids, &key, (void **) ccgdm->gridFaces, ccgdm->gridFlagMats, ccgdm->gridHidden);
 	}
 	else if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
+		Object *ob_orig = DEG_get_original_object(ob);
+		Mesh *me = ob_orig->data;
+		BLI_assert(!(me->id.tag & LIB_TAG_NO_MAIN));
 		const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 		MLoopTri *looptri;
 
