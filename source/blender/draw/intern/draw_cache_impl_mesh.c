@@ -1587,6 +1587,7 @@ typedef struct MeshBatchCache {
 
 	Gwn_Batch *edge_detection;
 
+	Gwn_VertBuf *edges_face_overlay;
 	GPUTexture *edges_face_overlay_tx;
 	int edges_face_overlay_tri_count; /* Number of tri in edges_face_overlay_tx */
 
@@ -1869,6 +1870,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GWN_INDEXBUF_DISCARD_SAFE(cache->edges_adjacency);
 	GWN_BATCH_DISCARD_SAFE(cache->edge_detection);
 
+	GWN_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay);
 	DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_tx);
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->shaded_triangles_data);
@@ -3356,6 +3358,7 @@ static GPUTexture *mesh_batch_cache_get_edges_overlay_texture_buf(MeshRenderData
 	Gwn_VertFormat format = {0};
 	uint index_id = GWN_vertformat_attr_add(&format, "index", GWN_COMP_I32, 1, GWN_FETCH_INT);
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+	cache->edges_face_overlay = vbo;
 
 	int vbo_len_capacity = tri_len * 3;
 	GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
