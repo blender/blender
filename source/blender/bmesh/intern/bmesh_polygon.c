@@ -611,7 +611,7 @@ void BM_edge_normals_update(BMEdge *e)
 {
 	BMIter iter;
 	BMFace *f;
-	
+
 	BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 		BM_face_normal_update(f);
 	}
@@ -886,7 +886,7 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
 	float co_2d[2];
 	BMLoop *l_iter;
 	int i;
-	
+
 	BLI_assert(BM_face_is_normal_valid(f));
 
 	axis_dominant_v3_to_m3(axis_mat, f->no);
@@ -1199,7 +1199,7 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
 		out[1] = max_ff(out[1], projverts[i][1]);
 	}
 	bm->elem_index_dirty |= BM_LOOP;
-	
+
 	/* ensure we are well outside the face bounds (value is arbitrary) */
 	add_v2_fl(out, 1.0f);
 
@@ -1212,7 +1212,7 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
 	for (i = 0; i < len; i++) {
 		float mid[2];
 		mid_v2_v2v2(mid, edgeverts[i][0], edgeverts[i][1]);
-		
+
 		int isect = 0;
 		int j_prev;
 		for (j = 0, j_prev = f->len - 1; j < f->len; j_prev = j++) {

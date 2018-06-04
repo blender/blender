@@ -303,7 +303,7 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 		if (l_first == NULL) {
 			l_first = l;
 		}
-		
+
 		for (i = 0; i < bm->ldata.totlayer; i++) {
 			if (CustomData_layer_has_math(&bm->ldata, i)) {
 				const int type = bm->ldata.layers[i].type;
@@ -312,7 +312,7 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 
 				e1 = BM_ELEM_CD_GET_VOID_P(l_first, offset);
 				e2 = BM_ELEM_CD_GET_VOID_P(l,       offset);
-				
+
 				CustomData_data_multiply(type, e2, fac);
 
 				if (l != l_first) {
@@ -348,7 +348,7 @@ void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op)
 
 		if (!CustomData_layer_has_math(&bm->ldata, i))
 			continue;
-		
+
 		CustomData_data_initminmax(type, &min, &max);
 
 		BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
@@ -378,7 +378,7 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *vert_snap = NULL;
 	float vec[3];
 	BMOpSlot *slot_targetmap;
-	
+
 	BMO_slot_vec_get(op->slots_in, "merge_co", vec);
 
 	//BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");

@@ -46,10 +46,10 @@
 /* Internal operator flags */
 typedef enum {
 	HULL_FLAG_INPUT =           (1 << 0),
-	
+
 	HULL_FLAG_INTERIOR_ELE =    (1 << 1),
 	HULL_FLAG_OUTPUT_GEOM =     (1 << 2),
-	
+
 	HULL_FLAG_DEL =             (1 << 3),
 	HULL_FLAG_HOLE =            (1 << 4)
 } HullFlags;
@@ -106,7 +106,7 @@ static BMFace *hull_find_example_face(BMesh *bm, BMEdge *e)
 static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
 {
 	GSetIterator iter;
-	
+
 	GSET_ITER (iter, hull_triangles) {
 		HullTriangle *t = BLI_gsetIterator_getKey(&iter);
 		int i;
@@ -213,7 +213,7 @@ static HullFinalEdges *hull_final_edges(GSet *hull_triangles)
 {
 	HullFinalEdges *final_edges;
 	GSetIterator iter;
-	
+
 	final_edges = MEM_callocN(sizeof(HullFinalEdges), "HullFinalEdges");
 	final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
 	final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 0, 128, BLI_MEMPOOL_NOP);
@@ -286,7 +286,7 @@ static void hull_remove_overlapping(
 					break;
 				}
 			}
-			
+
 			/* Note: can't change ghash while iterating, so mark
 			 * with 'skip' flag rather than deleting triangles */
 			if (BM_vert_in_face(t->v[1], f) &&
@@ -336,7 +336,7 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
 		if (BMO_vert_flag_test(bm, v, HULL_FLAG_INTERIOR_ELE)) {
 			bool del = true;
-		
+
 			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 				if (!BMO_edge_flag_test(bm, e, HULL_FLAG_INPUT)) {
 					del = false;
@@ -406,7 +406,7 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
 		bool hole = true;
 		bool any_faces = false;
-		
+
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 			any_faces = true;
 			if (!BMO_face_flag_test(bm, f, HULL_FLAG_HOLE)) {
@@ -511,7 +511,7 @@ static void hull_from_bullet(
 
 	hull = plConvexHullCompute(coords, num_input_verts);
 	hull_verts = hull_verts_from_bullet(hull, input_verts, num_input_verts);
-	
+
 	count = plConvexHullNumFaces(hull);
 	for (i = 0; i < count; i++) {
 		const int len = plConvexHullGetFaceSize(hull, i);
@@ -601,7 +601,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	hull_from_bullet(bm, op, hull_triangles, hull_pool);
 
 	final_edges = hull_final_edges(hull_triangles);
-	
+
 	hull_mark_interior_elements(bm, op, final_edges);
 
 	/* Remove hull triangles covered by an existing face */

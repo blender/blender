@@ -105,7 +105,7 @@ void BMO_mesh_delete_oflag_tagged(BMesh *bm, const short oflag, const char htype
 		bmo_remove_tagged_edges(bm, oflag);
 	}
 	if (htype & BM_VERT) {
-		bmo_remove_tagged_verts(bm, oflag);	
+		bmo_remove_tagged_verts(bm, oflag);
 	}
 }
 

@@ -63,7 +63,7 @@ void *BMW_begin(BMWalker *walker, void *start)
 	BLI_assert(((BMHeader *)start)->htype & walker->begin_htype);
 
 	walker->begin(walker, start);
-	
+
 	return BMW_current_state(walker) ? walker->step(walker) : NULL;
 }
 
@@ -101,7 +101,7 @@ void BMW_init(
 		BLI_assert(0);
 		return;
 	}
-	
+
 	if (type != BMW_CUSTOM) {
 		walker->begin_htype = bm_walker_types[type]->begin_htype;
 		walker->begin = bm_walker_types[type]->begin;
@@ -118,7 +118,7 @@ void BMW_init(
 		BLI_assert(mask_edge == 0 || (walker->valid_mask & BM_EDGE));
 		BLI_assert(mask_face == 0 || (walker->valid_mask & BM_FACE));
 	}
-	
+
 	walker->worklist = BLI_mempool_create(walker->structsize, 0, 128, BLI_MEMPOOL_NOP);
 	BLI_listbase_clear(&walker->states);
 }

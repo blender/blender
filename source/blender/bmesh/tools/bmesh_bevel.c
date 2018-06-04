@@ -151,7 +151,7 @@ typedef struct BoundVert {
 	bool any_seam;      /* are any of the edges attached here seams? */
 	bool visited;       /* used during delta adjust pass */
 //	int _pad;
-} BoundVert;	
+} BoundVert;
 
 /* Mesh structure replacing a vertex */
 typedef struct VMesh {
@@ -511,7 +511,7 @@ static BMFace *bev_create_ngon(
 
 static BMFace *bev_create_quad(
         BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-        BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4, 
+        BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4,
         int mat_nr)
 {
 	BMVert *varr[4] = {v1, v2, v3, v4};
@@ -521,7 +521,7 @@ static BMFace *bev_create_quad(
 
 static BMFace *bev_create_quad_ex(
         BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-        BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4, 
+        BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4,
         BMEdge *e1, BMEdge *e2, BMEdge *e3, BMEdge *e4,
         int mat_nr)
 {
@@ -1355,7 +1355,7 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int n,
 		else
 			copy_v3_v3(r_co, pro->cob);
 	}
-	
+
 	else {
 		if (n == bp->seg) {
 			BLI_assert(pro->prof_co != NULL);
@@ -2119,7 +2119,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 #ifdef DEBUG_ADJUST
 			printf("b[%d]=%f * %f, for e%d->offset_r\n", row, weight, eright->offset_r, BM_elem_index_get(eright->e));
 #endif
-			
+
 			/* residue np + 2*i + 1 (if cycle) else np - 1 + 2*i + 1:
 			 * left offset for parm i matches its spec; weighted */
 			 row = row + 1;
@@ -2607,7 +2607,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm0)
 	float beta, gamma;
 	VMesh *vm1;
 	BoundVert *bndv;
-	
+
 	n = vm0->count;
 	ns0 = vm0->seg;
 	ns20 = ns0 / 2;
@@ -2627,7 +2627,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm0)
 			add_v3_v3v3(acc, co1, co2);
 			madd_v3_v3fl(acc, co, -2.0f);
 			madd_v3_v3fl(co, acc, -1.0f / 6.0f);
-			
+
 			copy_v3_v3(mesh_vert_canon(vm1, i, 0, 2 * k)->co, co);
 		}
 	}
@@ -2642,7 +2642,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm0)
 			add_v3_v3v3(acc, co1, co2);
 			madd_v3_v3fl(acc, co, -2.0f);
 			madd_v3_v3fl(co, acc, -1.0f / 6.0f);
-			
+
 			copy_v3_v3(mesh_vert_canon(vm1, i, 0, k)->co, co);
 		}
 		bndv = bndv->next;
@@ -2661,7 +2661,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm0)
 
 	/* Now we do the internal vertices, using standard Catmull-Clark
 	 * and assuming all boundary vertices have valence 4 */
-	
+
 	/* The new face vertices */
 	for (i = 0; i < n; i++) {
 		for (j = 0; j < ns20; j++) {
@@ -2882,7 +2882,7 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 		copy_v3_v3(bndv->profile.proj_dir, bndv->profile.plane_no);
 		calculate_profile(bp, bndv);
 		get_profile_point(bp, &bndv->profile, 1, 2, mesh_vert(vm0, i, 0, 1)->co);
-		
+
 		bndv = bndv->next;
 	}
 	/* center vertex */
@@ -4618,7 +4618,7 @@ static void bevel_reattach_wires(BMesh *bm, BevelParams *bp, BMVert *v)
 						vclosest = bndv->nv.v;
 						votherclosest = bndvother->nv.v;
 						dclosest = d;
-						
+
 					}
 				} while ((bndvother = bndvother->next) != bvother->vmesh->boundstart);
 			}
@@ -5215,7 +5215,7 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
 	kc = kc / bp->offset;
 	th1 = angle_v3v3v3(va->co, vb->co, vc->co);
 	th2 = angle_v3v3v3(vb->co, vc->co, vd->co);
-	
+
 	/* First calculate offset at which edge B collapses, which happens
 	 * when advancing clones of A, B, C all meet at a point.
 	 * This only happens if at least two of those three edges have non-zero k's */

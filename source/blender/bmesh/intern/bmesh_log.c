@@ -141,7 +141,7 @@ static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 static void bm_log_vert_id_set(BMLog *log, BMVert *v, uint id)
 {
 	void *vid = SET_UINT_IN_POINTER(id);
-	
+
 	BLI_ghash_reinsert(log->id_to_elem, vid, v, NULL, NULL);
 	BLI_ghash_reinsert(log->elem_to_id, v, vid, NULL, NULL);
 }

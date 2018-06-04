@@ -83,9 +83,9 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_count(op->slots_in, "edges"));
 
 	BMO_slot_vec_get(op->slots_in, "normal", normal);
-	
+
 	BLI_scanfill_begin(&sf_ctx);
-	
+
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 		ScanFillVert *sf_verts[2];
 		BMVert **e_verts = &e->v1;
@@ -108,7 +108,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	}
 	nors_tot = BLI_ghash_len(sf_vert_map);
 	BLI_ghash_free(sf_vert_map, NULL, NULL);
-	
+
 
 	if (is_zero_v3(normal)) {
 		/* calculate the normal from the cross product of vert-edge pairs.
@@ -225,7 +225,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		f = BM_face_create_quad_tri(bm,
 		                            sf_tri->v1->tmp.p, sf_tri->v2->tmp.p, sf_tri->v3->tmp.p, NULL,
 		                            NULL, BM_CREATE_NO_DOUBLE);
-		
+
 		BMO_face_flag_enable(bm, f, ELE_NEW);
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			if (!BMO_edge_flag_test(bm, l->e, EDGE_MARK)) {
@@ -233,9 +233,9 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
-	
+
 	BLI_scanfill_end(&sf_ctx);
-	
+
 	if (use_beauty) {
 		BMOperator bmop;
 
