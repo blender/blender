@@ -140,6 +140,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_only_vertices")
         col.prop(md, "use_clamp_overlap")
         col.prop(md, "loop_slide")
+        col.prop(md, "mark_seam")
+        col.prop(md, "mark_sharp")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)

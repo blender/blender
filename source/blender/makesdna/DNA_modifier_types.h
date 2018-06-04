@@ -328,7 +328,7 @@ typedef struct BevelModifierData {
 	short lim_flags;      /* flags to tell the tool how to limit the bevel */
 	short e_flags;        /* flags to direct how edge weights are applied to verts */
 	short mat;            /* material index if >= 0, else material inherited from surrounding faces */
-	short pad;
+	short edge_flags;
 	int pad2;
 	float profile;        /* controls profile shape (0->1, .5 is round) */
 	/* if the MOD_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
@@ -363,6 +363,12 @@ enum {
 	MOD_BEVEL_AMT_WIDTH = 1,
 	MOD_BEVEL_AMT_DEPTH = 2,
 	MOD_BEVEL_AMT_PERCENT = 3,
+};
+
+/* BevelModifierData->edge_flags */
+enum {
+	MOD_BEVEL_MARK_SEAM	 = (1 << 0),
+	MOD_BEVEL_MARK_SHARP = (1 << 1),
 };
 
 typedef struct SmokeModifierData {

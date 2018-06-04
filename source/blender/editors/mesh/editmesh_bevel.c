@@ -224,6 +224,8 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const bool clamp_overlap = RNA_boolean_get(op->ptr, "clamp_overlap");
 	int material = RNA_int_get(op->ptr, "material");
 	const bool loop_slide = RNA_boolean_get(op->ptr, "loop_slide");
+	const bool mark_seam = RNA_boolean_get(op->ptr, "mark_seam");
+	const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
 
 
 	for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
@@ -240,9 +242,9 @@ static bool edbm_bevel_calc(wmOperator *op)
 
 		EDBM_op_init(em, &bmop, op,
 			"bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
-			"material=%i loop_slide=%b",
+			"material=%i loop_slide=%b mark_seam=%b mark_sharp=%b",
 			BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
-			clamp_overlap, material, loop_slide);
+			clamp_overlap, material, loop_slide, mark_seam, mark_sharp);
 
 		BMO_op_exec(em->bm, &bmop);
 
@@ -603,6 +605,26 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
+			case UKEY:
+				if (event->val == KM_RELEASE)
+					break;
+				else {
+					bool mark_seam = RNA_boolean_get(op->ptr, "mark_seam");
+					RNA_boolean_set(op->ptr, "mark_seam", !mark_seam);
+					edbm_bevel_calc(op);
+					handled = true;
+					break;
+				}
+			case KKEY:
+				if (event->val == KM_RELEASE)
+					break;
+				else {
+					bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
+					RNA_boolean_set(op->ptr, "mark_sharp", !mark_sharp);
+					edbm_bevel_calc(op);
+					handled = true;
+					break;
+				}
 				
 		}
 
@@ -666,6 +688,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "clamp_overlap", false, "Clamp Overlap",
 		"Do not allow beveled edges/vertices to overlap each other");
 	RNA_def_boolean(ot->srna, "loop_slide", true, "Loop Slide", "Prefer slide along edge to even widths");
+	RNA_def_boolean(ot->srna, "mark_seam", false, "Mark Seams", "Mark Seams along beveled edges");
+	RNA_def_boolean(ot->srna, "mark_sharp", false, "Mark Sharp", "Mark beveled edges as sharp");
 	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material",
 		"Material for bevel faces (-1 means use adjacent faces)", -1, 100);
 }

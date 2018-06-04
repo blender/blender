@@ -202,6 +202,8 @@ typedef struct BevelParams {
 	bool loop_slide;	    /* should bevel prefer to slide along edges rather than keep widths spec? */
 	bool limit_offset;      /* should offsets be limited by collisions? */
 	bool offset_adjust;     /* should offsets be adjusted to try to get even widths? */
+	bool mark_seam;
+	bool mark_sharp;
 	const struct MDeformVert *dvert; /* vertex group array, maybe set if vertex_only */
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
 	int mat_nr;             /* if >= 0, material number for bevel; else material comes from adjacent faces */
@@ -1526,7 +1528,7 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
 
 #define EDGE_DATA_CHECK(eh, flag) (BM_elem_flag_test(eh->e, flag))
 
-static void check_edge_data(BevVert *bv, int flag, bool neg)
+static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {
 	EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
@@ -1558,12 +1560,6 @@ static void check_edge_data(BevVert *bv, int flag, bool neg)
 		e = ne;
 	} while (e != efirst);
 
-}
-
-static void set_bound_vert_extend_seam_sharp_edges(BevVert *bv)
-{
-	check_edge_data(bv, BM_ELEM_SEAM, false);
-	check_edge_data(bv, BM_ELEM_SMOOTH, true);
 }
 
 static void bevel_extend_edge_data(BevVert *bv)
@@ -1653,7 +1649,7 @@ static void bevel_extend_edge_data(BevVert *bv)
 }
 
 /* Set the any_seam property for a BevVert and all its BoundVerts */
-static void set_bound_vert_seams(BevVert *bv)
+static void set_bound_vert_seams(BevVert *bv, bool mark_seam, bool mark_sharp)
 {
 	BoundVert *v;
 	EdgeHalf *e;
@@ -1670,7 +1666,12 @@ static void set_bound_vert_seams(BevVert *bv)
 		bv->any_seam |= v->any_seam;
 	} while ((v = v->next) != bv->vmesh->boundstart);
 
-	set_bound_vert_extend_seam_sharp_edges(bv);
+	if (mark_seam) {
+		check_edge_data_seam_sharp_edges(bv, BM_ELEM_SEAM, false);
+	}
+	if (mark_sharp) {
+		check_edge_data_seam_sharp_edges(bv, BM_ELEM_SMOOTH, true);
+	}
 }
 
 static int count_bound_vert_seams(BevVert *bv)
@@ -1741,7 +1742,7 @@ static void build_boundary_vertex_only(BevelParams *bp, BevVert *bv, bool constr
 	calculate_vm_profiles(bp, bv, vm);
 
 	if (construct) {
-		set_bound_vert_seams(bv);
+		set_bound_vert_seams(bv, bp->mark_seam, bp->mark_sharp);
 		if (vm->count == 2)
 			vm->mesh_kind = M_NONE;
 		else if (bp->seg == 1)
@@ -1796,7 +1797,7 @@ static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf 
 			e->next->leftv = e->next->rightv = v;
 			/* could use M_POLY too, but tri-fan looks nicer)*/
 			vm->mesh_kind = M_TRI_FAN;
-			set_bound_vert_seams(bv);
+			set_bound_vert_seams(bv, bp->mark_seam, bp->mark_sharp);
 		}
 		else {
 			adjust_bound_vert(e->next->leftv, co);
@@ -1855,7 +1856,7 @@ static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf 
 	}
 
 	if (construct) {
-		set_bound_vert_seams(bv);
+		set_bound_vert_seams(bv, bp->mark_seam, bp->mark_sharp);
 
 		if (vm->count == 2 && bv->edgecount == 3) {
 			vm->mesh_kind = M_NONE;
@@ -1997,7 +1998,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 	calculate_vm_profiles(bp, bv, vm);
 
 	if (construct) {
-		set_bound_vert_seams(bv);
+		set_bound_vert_seams(bv, bp->mark_seam, bp->mark_sharp);
 
 		if (vm->count == 2) {
 			vm->mesh_kind = M_NONE;
@@ -5481,7 +5482,7 @@ void BM_mesh_bevel(
         const float segments, const float profile,
         const bool vertex_only, const bool use_weights, const bool limit_offset,
         const struct MDeformVert *dvert, const int vertex_group, const int mat,
-        const bool loop_slide)
+        const bool loop_slide, const bool mark_seam, const bool mark_sharp)
 {
 	BMIter iter;
 	BMVert *v, *v_next;
@@ -5502,6 +5503,8 @@ void BM_mesh_bevel(
 	bp.dvert = dvert;
 	bp.vertex_group = vertex_group;
 	bp.mat_nr = mat;
+	bp.mark_seam = mark_seam;
+	bp.mark_sharp = mark_sharp;
 
 	if (profile >= 0.999f) {  /* r ~ 692, so PRO_SQUARE_R is 1e4 */
 		bp.pro_super_r = PRO_SQUARE_R;

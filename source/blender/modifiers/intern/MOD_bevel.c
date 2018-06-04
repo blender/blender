@@ -59,6 +59,7 @@ static void initData(ModifierData *md)
 	bmd->val_flags = MOD_BEVEL_AMT_OFFSET;
 	bmd->lim_flags = 0;
 	bmd->e_flags = 0;
+	bmd->edge_flags = 0;
 	bmd->mat = -1;
 	bmd->profile = 0.5f;
 	bmd->bevel_angle = DEG2RADF(30.0f);
@@ -96,6 +97,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	const int offset_type = bmd->val_flags;
 	const int mat = CLAMPIS(bmd->mat, -1, ctx->object->totcol - 1);
 	const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
+	const bool mark_seam = (bmd->edge_flags & MOD_BEVEL_MARK_SEAM);
+	const bool mark_sharp = (bmd->edge_flags & MOD_BEVEL_MARK_SHARP);
 
 	bm = BKE_mesh_to_bmesh_ex(
 	        mesh,
@@ -166,7 +169,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
-	              dvert, vgroup, mat, loop_slide);
+	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp);
 
 	result = BKE_bmesh_to_mesh_nomain(bm, &(struct BMeshToMeshParams){0});
 
