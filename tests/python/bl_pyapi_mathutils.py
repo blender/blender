@@ -127,7 +127,7 @@ class MatrixTesting(unittest.TestCase):
                       (0, 0, 0, 1)))
 
         vec = Vector((1, 2, 3))
-        
+
         prod_mat_vec = Vector((7, 12, 4))
         prod_vec_mat = Vector((1, 12, 5))
 

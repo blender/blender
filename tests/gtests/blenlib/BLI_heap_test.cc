@@ -40,7 +40,7 @@ TEST(heap, One)
 	const char *in = "test";
 
 	heap = BLI_heap_new();
- 
+
 	BLI_heap_insert(heap, 0.0f, (void *)in);
 	EXPECT_FALSE(BLI_heap_is_empty(heap));
 	EXPECT_EQ(BLI_heap_len(heap), 1);
