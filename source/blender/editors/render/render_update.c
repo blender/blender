@@ -100,14 +100,14 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 
 	CTX_wm_manager_set(C, bmain->wm.first);
 	wm = bmain->wm.first;
-	
+
 	for (win = wm->windows.first; win; win = win->next) {
 		bScreen *sc = win->screen;
 		ScrArea *sa;
 		ARegion *ar;
-		
+
 		CTX_wm_window_set(C, win);
-		
+
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
@@ -207,22 +207,22 @@ static void render_engine_flag_changed(Main *bmain, int update_flag)
 	bScreen *sc;
 	ScrArea *sa;
 	ARegion *ar;
-	
+
 	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
-			
+
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
 				RegionView3D *rv3d;
-				
+
 				if (ar->regiontype != RGN_TYPE_WINDOW)
 					continue;
-				
+
 				rv3d = ar->regiondata;
 				if (rv3d->render_engine)
 					rv3d->render_engine->update_flag |= update_flag;
-				
+
 			}
 		}
 	}
@@ -238,7 +238,7 @@ static int mtex_use_tex(MTex **mtex, int tot, Tex *tex)
 	for (a = 0; a < tot; a++)
 		if (mtex[a] && mtex[a]->tex == tex)
 			return 1;
-	
+
 	return 0;
 }
 
@@ -368,7 +368,7 @@ static int material_uses_texture(Material *ma, Tex *tex)
 		return true;
 	else if (ma->use_nodes && ma->nodetree && nodes_use_tex(ma->nodetree, tex))
 		return true;
-	
+
 	return false;
 }
 
@@ -426,9 +426,9 @@ static void texture_changed(Main *bmain, Tex *tex)
 		}
 
 		BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
-		
+
 		if (wo->gpumaterial.first)
-			GPU_material_free(&wo->gpumaterial);		
+			GPU_material_free(&wo->gpumaterial);
 	}
 
 	/* find compositing nodes */
@@ -474,7 +474,7 @@ static void world_changed(Main *bmain, World *wo)
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
-	
+
 	/* glsl */
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
@@ -482,7 +482,7 @@ static void world_changed(Main *bmain, World *wo)
 
 	if (defmaterial.gpumaterial.first)
 		GPU_material_free(&defmaterial.gpumaterial);
-	
+
 	if (wo->gpumaterial.first)
 		GPU_material_free(&wo->gpumaterial);
 }
@@ -510,7 +510,7 @@ static void scene_changed(Main *bmain, Scene *scene)
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->gpulamp.first)
 			GPU_lamp_free(ob);
-		
+
 		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 			BKE_texpaint_slots_refresh_object(scene, ob);
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
@@ -525,7 +525,7 @@ static void scene_changed(Main *bmain, Scene *scene)
 	for (wo = bmain->world.first; wo; wo = wo->id.next)
 		if (wo->gpumaterial.first)
 			GPU_material_free(&wo->gpumaterial);
-	
+
 	if (defmaterial.gpumaterial.first)
 		GPU_material_free(&defmaterial.gpumaterial);
 }
@@ -563,15 +563,15 @@ void ED_render_id_flush_update(Main *bmain, ID *id)
 			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_OTHER);
 			break;
 	}
-	
+
 }
 
 
 void ED_render_internal_init(void)
 {
 	RenderEngineType *ret = RE_engines_find(RE_engine_id_BLENDER_RENDER);
-	
+
 	ret->view_update = render_view3d_update;
 	ret->view_draw = render_view3d_draw;
-	
+
 }

@@ -144,7 +144,7 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir)
 
 	points[6].x = sa->v4->vec.x;
 	points[6].y = sa->v4->vec.y + h;
-	
+
 	points[7].x = sa->v3->vec.x;
 	points[7].y = sa->v3->vec.y;
 

@@ -61,7 +61,7 @@ typedef struct ConsoleDrawContext {
 	int ymin, ymax;
 	int *xy; // [2]
 	int *sel; // [2]
-	int *pos_pick; // bottom of view == 0, top of file == combine chars, end of line is lower then start. 
+	int *pos_pick; // bottom of view == 0, top of file == combine chars, end of line is lower then start.
 	const int *mval; // [2]
 	int draw;
 } ConsoleDrawContext;
@@ -173,14 +173,14 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		size_t len = str_len - initial_offset;
 		const char *s = str + initial_offset;
 		int i;
-		
+
 		int sel_orig[2];
 		copy_v2_v2_int(sel_orig, cdc->sel);
 
 		/* invert and swap for wrapping */
 		cdc->sel[0] = str_len - sel_orig[1];
 		cdc->sel[1] = str_len - sel_orig[0];
-		
+
 		if (bg) {
 			glColor3ubv(bg);
 			glRecti(0, cdc->xy[1], cdc->winx, (cdc->xy[1] + (cdc->lheight * tot_lines)));
@@ -207,7 +207,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 			BLF_position(cdc->font_id, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
 			BLF_draw_mono(cdc->font_id, s, len, cdc->cwidth);
-			
+
 			if (cdc->sel[0] != cdc->sel[1]) {
 				console_step_sel(cdc, len);
 				// glColor4ub(0, 255, 0, 96); // debug
@@ -216,7 +216,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			}
 
 			cdc->xy[1] += cdc->lheight;
-			
+
 			/* check if were out of view bounds */
 			if (cdc->xy[1] > cdc->ymax) {
 				MEM_freeN(offsets);
@@ -238,7 +238,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		BLF_position(cdc->font_id, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
 		BLF_draw_mono(cdc->font_id, str, str_len, cdc->cwidth);
-		
+
 		if (cdc->sel[0] != cdc->sel[1]) {
 			int isel[2];
 

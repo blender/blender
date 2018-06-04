@@ -70,7 +70,7 @@ typedef struct EditBone {
 	 * animation are automatically relative to the bones' rest positions*/
 	int flag;
 	int layer;
-	
+
 	float dist, weight;
 	float xwidth, length, zwidth;  /* put them in order! transform uses this as scale */
 	float rad_head, rad_tail;
@@ -83,7 +83,7 @@ typedef struct EditBone {
 	float scaleIn, scaleOut;
 
 	float oldlength;        /* for envelope scaling */
-	
+
 	short segments;
 
 	/* Used to store temporary data */
@@ -230,7 +230,7 @@ void ED_mesh_deform_bind_callback(struct Scene *scene,
                       struct MeshDeformModifierData *mmd,
                       struct DerivedMesh *cagedm,
                       float *vertexcos, int totvert, float cagemat[4][4]);
-	
+
 #ifdef __cplusplus
 }
 #endif

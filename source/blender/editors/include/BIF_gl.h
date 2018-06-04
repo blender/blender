@@ -40,7 +40,7 @@
  * these should be phased out. cpack should be replaced in
  * code with calls to glColor3ub. - zr
  */
-/* 
+/*
  *
  * This define converts a numerical value to the equivalent 24-bit
  * color, while not being endian-sensitive. On little-endians, this

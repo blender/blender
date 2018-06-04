@@ -221,7 +221,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
-		
+
 		glColor3ubv(green);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  G:%-.5f", fp[1]);
@@ -232,7 +232,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
-		
+
 		glColor3ubv(blue);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  B:%-.5f", fp[2]);
@@ -243,7 +243,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
-		
+
 		if (channels == 4) {
 			glColor3ub(255, 255, 255);
 			if (fp)
@@ -277,7 +277,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 			dx += BLF_width(blf_mono_font, str, sizeof(str));
 		}
 	}
-	
+
 	/* color rectangle */
 	if (channels == 1) {
 		if (fp) {
@@ -366,7 +366,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 			rgb_to_hsv((float)cp[0] / 255.0f, (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, &hue, &sat, &val);
 			rgb_to_yuv((float)cp[0] / 255.0f, (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, &lum, &u, &v, BLI_YUV_ITU_BT709);
 		}
-		
+
 		BLI_snprintf(str, sizeof(str), "V:%-.4f", val);
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -409,7 +409,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
 {
-	
+
 	/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 	if (ENDIAN_ORDER == B_ENDIAN)
 		glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
@@ -422,10 +422,10 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 {
 	float *trectf = MEM_mallocN(rectx * recty * 4, "temp");
 	int a, b;
-	
+
 	for (a = rectx * recty - 1, b = 4 * a + 3; a >= 0; a--, b -= 4)
 		trectf[a] = rectf[b];
-	
+
 	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_FLOAT, trectf);
 	MEM_freeN(trectf);
 	/* ogl trick below is slower... (on ATI 9600) */
@@ -447,9 +447,9 @@ static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int 
 	glPixelTransferf(GL_RED_BIAS, 0.5f);
 	glPixelTransferf(GL_GREEN_BIAS, 0.5f);
 	glPixelTransferf(GL_BLUE_BIAS, 0.5f);
-	
+
 	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_INT, recti);
-	
+
 	glPixelTransferf(GL_RED_SCALE, 1.0f);
 	glPixelTransferf(GL_GREEN_SCALE, 1.0f);
 	glPixelTransferf(GL_BLUE_SCALE, 1.0f);
@@ -462,7 +462,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 {
 	float bias, scale, *rectf, clipend;
 	int a;
-	
+
 	if (scene->camera && scene->camera->type == OB_CAMERA) {
 		bias = ((Camera *)scene->camera->data)->clipsta;
 		clipend = ((Camera *)scene->camera->data)->clipend;
@@ -473,7 +473,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 		scale = 0.01f;
 		clipend = 100.0f;
 	}
-	
+
 	rectf = MEM_mallocN(rectx * recty * 4, "temp");
 	for (a = rectx * recty - 1; a >= 0; a--) {
 		if (rect_float[a] > clipend)
@@ -486,7 +486,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 		}
 	}
 	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_FLOAT, rectf);
-	
+
 	MEM_freeN(rectf);
 }
 
@@ -511,7 +511,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 	glPixelZoom(zoomx, zoomy);
 
 	glaDefine2DArea(&ar->winrct);
-	
+
 	/* find window pixel coordinates of origin */
 	UI_view2d_view_to_region(&ar->v2d, fx, fy, &x, &y);
 
@@ -586,7 +586,7 @@ static unsigned int *get_part_from_buffer(unsigned int *buffer, int width, short
 	heigth = (endy - starty);
 
 	rp = rectmain = MEM_mallocN(heigth * len * sizeof(int), "rect");
-	
+
 	for (y = 0; y < heigth; y++) {
 		memcpy(rp, rt, len * 4);
 		rt += width;
@@ -619,14 +619,14 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 
 	if (sima->curtile >= ima->xrep * ima->yrep)
 		sima->curtile = ima->xrep * ima->yrep - 1;
-	
+
 	/* retrieve part of image buffer */
 	dx = max_ii(ibuf->x / ima->xrep, 1);
 	dy = max_ii(ibuf->y / ima->yrep, 1);
 	sx = (sima->curtile % ima->xrep) * dx;
 	sy = (sima->curtile / ima->xrep) * dy;
 	rect = get_part_from_buffer((unsigned int *)display_buffer, ibuf->x, sx, sy, sx + dx, sy + dy);
-	
+
 	/* draw repeated */
 	if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B)) != 0) {
 		channel_offset = draw_image_channel_offset(sima);
@@ -690,7 +690,7 @@ void draw_image_grease_pencil(bContext *C, bool onlyv2d)
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */
 		//SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
-		
+
 		/* draw grease-pencil ('screen' strokes) */
 		ED_gpencil_draw_view2d(C, 0);
 	}
@@ -735,7 +735,7 @@ static void draw_image_view_tool(Scene *scene)
 		}
 		else if (settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL)
 			draw = 1;
-		
+
 		if (draw) {
 			getmouseco_areawin(mval);
 
@@ -762,7 +762,7 @@ static unsigned char *get_alpha_clone_image(const bContext *C, Scene *scene, int
 
 	if (!brush || !brush->clone.image)
 		return NULL;
-	
+
 	ibuf = BKE_image_acquire_ibuf(brush->clone.image, NULL, NULL);
 
 	if (!ibuf)
@@ -848,10 +848,10 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	/* XXX can we do this in refresh? */
 #if 0
 	what_image(sima);
-	
+
 	if (sima->image) {
 		ED_image_get_aspect(sima->image, &xuser_asp, &yuser_asp);
-		
+
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
 		if (sima->image->type == IMA_TYPE_COMPOSITE) {
 			ImageUser *iuser = ntree_get_active_iuser(scene->nodetree);
@@ -906,7 +906,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 			draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
 		else
 			draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
-		
+
 		if (sima->flag & SI_DRAW_METADATA) {
 			int x, y;
 			rctf frame;
@@ -928,7 +928,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 #if 0
 	if (ibuf) {
 		float xoffs = 0.0f, yoffs = 0.0f;
-		
+
 		if (image_preview_active(sa, &xim, &yim)) {
 			xoffs = scene->r.disprect.xmin;
 			yoffs = scene->r.disprect.ymin;

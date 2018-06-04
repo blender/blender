@@ -73,7 +73,7 @@
 typedef struct RingSelOpData {
 	ARegion *ar;        /* region that ringsel was activated in */
 	void *draw_handle;  /* for drawing preview loop */
-	
+
 	float (*edges)[2][3];
 	int totedge;
 
@@ -99,7 +99,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RingSelOpData *lcd = arg;
-	
+
 	if ((lcd->totedge > 0) || (lcd->totpoint > 0)) {
 		if (v3d && v3d->zbuf)
 			glDisable(GL_DEPTH_TEST);
@@ -148,7 +148,7 @@ static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
 				break;
 		}
 	}
-	
+
 	/* this should never happen */
 	if (!l) {
 		v[0][0] = eed->v1;
@@ -157,7 +157,7 @@ static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
 		v[1][1] = lasteed->v2;
 		return;
 	}
-	
+
 	l2 = BM_loop_other_edge_loop(l, eed->v1);
 	rev = (l2 == l->prev);
 	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
@@ -371,7 +371,7 @@ static void edgering_select(RingSelOpData *lcd)
 	BMEdge *eed_start = lcd->eed;
 	BMWalker walker;
 	BMEdge *eed;
-	
+
 	if (!eed_start)
 		return;
 
@@ -417,7 +417,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		BMVert *v_eed_orig[2] = {lcd->eed->v1, lcd->eed->v2};
 
 		edgering_select(lcd);
-		
+
 		if (lcd->do_cut) {
 			const bool is_macro = (op->opm != NULL);
 			/* a single edge (rare, but better support) */
@@ -465,7 +465,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 				BM_select_history_store(em->bm, lcd->eed->v1);  /* low priority TODO, get vertrex close to mouse */
 			if (em->selectmode & SCE_SELECT_EDGE)
 				BM_select_history_store(em->bm, lcd->eed);
-			
+
 			EDBM_selectmode_flush(lcd->em);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);
 		}
@@ -479,7 +479,7 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
-	
+
 	edgering_preview_free(lcd);
 
 	ED_region_tag_redraw(lcd->ar);
@@ -498,7 +498,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 
 	/* alloc new customdata */
 	lcd = op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data");
-	
+
 	/* assign the drawing handle for drawing preview line... */
 	lcd->ar = CTX_wm_region(C);
 	lcd->draw_handle = ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
@@ -508,7 +508,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 	lcd->do_cut = do_cut;
 	lcd->cuts = RNA_int_get(op->ptr, "number_cuts");
 	lcd->smoothness = RNA_float_get(op->ptr, "smoothness");
-	
+
 	initNumInput(&lcd->num);
 	lcd->num.idx_max = 1;
 	lcd->num.val_flag[0] |= NUM_NO_NEGATIVE | NUM_NO_FRACTION;
@@ -679,7 +679,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case LEFTMOUSE: /* confirm */ // XXX hardcoded
 				if (event->val == KM_PRESS)
 					return loopcut_finish(lcd, C, op);
-				
+
 				ED_region_tag_redraw(lcd->ar);
 				handled = true;
 				break;
@@ -694,11 +694,11 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					/* cancel */
 					ED_region_tag_redraw(lcd->ar);
 					ED_area_headerprint(CTX_wm_area(C), NULL);
-					
+
 					ringcut_cancel(C, op);
 					return OPERATOR_CANCELLED;
 				}
-				
+
 				ED_region_tag_redraw(lcd->ar);
 				handled = true;
 				break;
@@ -800,7 +800,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		             str_rep, str_rep + NUM_STR_REP_LEN);
 		ED_area_headerprint(CTX_wm_area(C), buf);
 	}
-	
+
 	/* keep going until the user confirms */
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -814,11 +814,11 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
 	ot->name = "Edge Ring Select";
 	ot->idname = "MESH_OT_edgering_select";
 	ot->description = "Select an edge ring";
-	
+
 	/* callbacks */
 	ot->invoke = ringsel_invoke;
-	ot->poll = ED_operator_editmesh_region_view3d; 
-	
+	ot->poll = ED_operator_editmesh_region_view3d;
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -835,14 +835,14 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 	ot->name = "Loop Cut";
 	ot->idname = "MESH_OT_loopcut";
 	ot->description = "Add a new loop between existing loops";
-	
+
 	/* callbacks */
 	ot->invoke = ringcut_invoke;
 	ot->exec = loopcut_exec;
 	ot->modal = loopcut_modal;
 	ot->cancel = ringcut_cancel;
 	ot->poll = ED_operator_editmesh_region_view3d;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 

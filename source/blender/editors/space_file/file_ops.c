@@ -75,7 +75,7 @@
 static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect_region)
 {
 	FileSelection sel;
-	
+
 	View2D *v2d = &ar->v2d;
 	rcti rect_view;
 	rctf rect_view_fl;
@@ -92,7 +92,7 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const r
 	              (int)(v2d->tot.ymax - rect_view_fl.ymax));
 
 	sel  = ED_fileselect_layout_offset_rect(sfile->layout, &rect_view);
-	
+
 	return sel;
 }
 
@@ -101,14 +101,14 @@ static void file_deselect_all(SpaceFile *sfile, unsigned int flag)
 	FileSelection sel;
 	sel.first = 0;
 	sel.last = filelist_files_ensure(sfile->files) - 1;
-	
+
 	filelist_entries_select_index_range_set(sfile->files, &sel, FILE_SEL_REMOVE, flag, CHECK_ALL);
 }
 
 typedef enum FileSelect {
 	FILE_SELECT_NOTHING = 0,
-	FILE_SELECT_DIR = 1, 
-	FILE_SELECT_FILE = 2 
+	FILE_SELECT_DIR = 1,
+	FILE_SELECT_FILE = 2
 } FileSelect;
 
 static void clamp_to_filelist(int numfiles, FileSelection *sel)
@@ -122,7 +122,7 @@ static void clamp_to_filelist(int numfiles, FileSelection *sel)
 		sel->first = -1;
 		sel->last = -1;
 	}
-	
+
 	/* fix if last file invalid */
 	if ( (sel->first > 0) && (sel->last < 0) )
 		sel->last = numfiles - 1;
@@ -298,10 +298,10 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	FileSelect retval = FILE_SELECT_NOTHING;
 	FileSelection sel = file_selection_get(C, rect, fill); /* get the selection */
 	const FileCheckType check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_ALL;
-	
+
 	/* flag the files as selected in the filelist */
 	filelist_entries_select_index_range_set(sfile->files, &sel, select, FILE_SEL_SELECTED, check_type);
-	
+
 	/* Don't act on multiple selected files */
 	if (sel.first != sel.last) select = 0;
 
@@ -333,7 +333,7 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 
 	/* update operator for name change event */
 	file_draw_check(C);
-	
+
 	return retval;
 }
 
@@ -460,7 +460,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->name = "Activate/Select File";
 	ot->description = "Activate/select the file(s) contained in the border";
 	ot->idname = "FILE_OT_select_border";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = file_border_select_exec;
@@ -529,7 +529,7 @@ void FILE_OT_select(wmOperatorType *ot)
 	ot->name = "Activate/Select File";
 	ot->description = "Activate/select file";
 	ot->idname = "FILE_OT_select";
-	
+
 	/* api callbacks */
 	ot->invoke = file_select_invoke;
 	ot->poll = ED_operator_file_active;
@@ -777,7 +777,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	const int numfiles = filelist_files_ensure(sfile->files);
 	const bool has_selection = file_is_any_selected(sfile->files);
 
-	sel.first = 0; 
+	sel.first = 0;
 	sel.last = numfiles - 1;
 
 	/* select all only if previously no file was selected */
@@ -813,7 +813,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 	ot->name = "(De)select All Files";
 	ot->description = "Select or deselect all files";
 	ot->idname = "FILE_OT_select_all_toggle";
-	
+
 	/* api callbacks */
 	ot->exec = file_select_all_exec;
 	ot->poll = ED_operator_file_active;
@@ -840,7 +840,7 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -852,7 +852,7 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	ot->name = "Select Directory";
 	ot->description = "Select a bookmarked directory";
 	ot->idname = "FILE_OT_select_bookmark";
-	
+
 	/* api callbacks */
 	ot->exec = bookmark_select_exec;
 	ot->poll = ED_operator_file_active;
@@ -871,7 +871,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (params->dir[0] != '\0') {
 		char name[FILE_MAX];
-	
+
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, NULL, FS_INSERT_SAVE);
 		BLI_make_file_string("/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
@@ -888,7 +888,7 @@ void FILE_OT_bookmark_add(wmOperatorType *ot)
 	ot->name = "Add Bookmark";
 	ot->description = "Add a bookmark for the selected/active directory";
 	ot->idname = "FILE_OT_bookmark_add";
-	
+
 	/* api callbacks */
 	ot->exec = bookmark_add_exec;
 	ot->poll = ED_operator_file_active;
@@ -913,7 +913,7 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 		}
 		if ((index > -1) && (index < nentries)) {
 			char name[FILE_MAX];
-			
+
 			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
 			BLI_make_file_string("/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 			fsmenu_write_file(fsmenu, name);
@@ -933,7 +933,7 @@ void FILE_OT_bookmark_delete(wmOperatorType *ot)
 	ot->name = "Delete Bookmark";
 	ot->description = "Delete selected bookmark";
 	ot->idname = "FILE_OT_bookmark_delete";
-	
+
 	/* api callbacks */
 	ot->exec = bookmark_delete_exec;
 	ot->poll = ED_operator_file_active;
@@ -1080,7 +1080,7 @@ static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa = CTX_wm_area(C);
 	char name[FILE_MAX];
 	struct FSMenu *fsmenu = ED_fsmenu_get();
-	
+
 	while (ED_fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != NULL) {
 		fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
 	}
@@ -1097,7 +1097,7 @@ void FILE_OT_reset_recent(wmOperatorType *ot)
 	ot->name = "Reset Recent";
 	ot->description = "Reset Recent files";
 	ot->idname = "FILE_OT_reset_recent";
-	
+
 	/* api callbacks */
 	ot->exec = reset_recent_exec;
 	ot->poll = ED_operator_file_active;
@@ -1148,7 +1148,7 @@ static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 		return OPERATOR_CANCELLED;
 
 	ED_area_tag_redraw(CTX_wm_area(C));
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1158,7 +1158,7 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 	ot->name = "Highlight File";
 	ot->description = "Highlight selected file(s)";
 	ot->idname = "FILE_OT_highlight";
-	
+
 	/* api callbacks */
 	ot->invoke = file_highlight_invoke;
 	ot->poll = ED_operator_file_active;
@@ -1169,11 +1169,11 @@ int file_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	wmOperator *op = sfile->op;
-	
+
 	sfile->op = NULL;
 
 	WM_event_fileselect_event(wm, op, EVT_FILESELECT_CANCEL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1193,7 +1193,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 	ot->name = "Cancel File Load";
 	ot->description = "Cancel loading of selected file";
 	ot->idname = "FILE_OT_cancel";
-	
+
 	/* api callbacks */
 	ot->exec = file_cancel_exec;
 	ot->poll = file_operator_poll;
@@ -1221,7 +1221,7 @@ void file_sfile_to_operator_ex(wmOperator *op, SpaceFile *sfile, char *filepath)
 	if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
 		RNA_property_string_set(op->ptr, prop, filepath);
 	}
-	
+
 	/* some ops have multiple files to select */
 	/* this is called on operators check() so clear collections first since
 	 * they may be already set. */
@@ -1259,7 +1259,7 @@ void file_sfile_to_operator_ex(wmOperator *op, SpaceFile *sfile, char *filepath)
 					num_dirs++;
 				}
 			}
-			
+
 			/* make sure the directory specified in the button is added even if no directory selected */
 			if (0 == num_dirs) {
 				RNA_property_collection_add(op->ptr, prop, &itemptr);
@@ -1295,7 +1295,7 @@ void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 			RNA_property_string_get(op->ptr, prop, sfile->params->dir);
 		}
 	}
-	
+
 	/* we could check for relative_path property which is used when converting
 	 * in the other direction but doesnt hurt to do this every time */
 	BLI_path_abs(sfile->params->dir, G.main->name);
@@ -1331,11 +1331,11 @@ void file_draw_check(bContext *C)
 	if (op) { /* fail on reload */
 		if (op->type->check) {
 			file_sfile_to_operator(op, sfile);
-			
+
 			/* redraw */
 			if (op->type->check(C, op)) {
 				file_operator_to_sfile(sfile, op);
-	
+
 				/* redraw, else the changed settings wont get updated */
 				ED_area_tag_redraw(CTX_wm_area(C));
 			}
@@ -1394,13 +1394,13 @@ int file_exec(bContext *C, wmOperator *exec_op)
 	/* opening file - sends events now, so things get handled on windowqueue level */
 	else if (sfile->op) {
 		wmOperator *op = sfile->op;
-	
-		/* when used as a macro, for doubleclick, 
+
+		/* when used as a macro, for doubleclick,
 		 * to prevent closing when doubleclicking on .. item */
 		if (RNA_boolean_get(exec_op->ptr, "need_active")) {
 			const int numfiles = filelist_files_ensure(sfile->files);
 			int i, active = 0;
-			
+
 			for (i = 0; i < numfiles; i++) {
 				if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
 					active = 1;
@@ -1410,7 +1410,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			if (active == 0)
 				return OPERATOR_CANCELLED;
 		}
-		
+
 		sfile->op = NULL;
 
 		file_sfile_to_operator_ex(op, sfile, filepath);
@@ -1438,10 +1438,10 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	ot->name = "Execute File Window";
 	ot->description = "Execute selected file";
 	ot->idname = "FILE_OT_execute";
-	
+
 	/* api callbacks */
 	ot->exec = file_exec;
-	ot->poll = file_operator_poll; 
+	ot->poll = file_operator_poll;
 
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "need_active", 0, "Need Active",
@@ -1453,7 +1453,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
-	
+
 	if (sfile->params) {
 		if (BLI_parent_dir(sfile->params->dir)) {
 			BLI_cleanup_dir(G.main->name, sfile->params->dir);
@@ -1466,7 +1466,7 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
 
 }
@@ -1478,7 +1478,7 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 	ot->name = "Parent File";
 	ot->description = "Move to parent directory";
 	ot->idname = "FILE_OT_parent";
-	
+
 	/* api callbacks */
 	ot->exec = file_parent_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
@@ -1509,7 +1509,7 @@ void FILE_OT_previous(struct wmOperatorType *ot)
 	ot->name = "Previous Folder";
 	ot->description = "Move to previous folder";
 	ot->idname = "FILE_OT_previous";
-	
+
 	/* api callbacks */
 	ot->exec = file_previous_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
@@ -1540,7 +1540,7 @@ void FILE_OT_next(struct wmOperatorType *ot)
 	ot->name = "Next Folder";
 	ot->description = "Move to next folder";
 	ot->idname = "FILE_OT_next";
-	
+
 	/* api callbacks */
 	ot->exec = file_next_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
@@ -1581,7 +1581,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	/* escape if not our timer */
 	if (sfile->smoothscroll_timer == NULL || sfile->smoothscroll_timer != event->customdata)
 		return OPERATOR_PASS_THROUGH;
-	
+
 	numfiles = filelist_files_ensure(sfile->files);
 
 	/* check if we are editing a name */
@@ -1621,9 +1621,9 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 			if (sfile->scroll_offset <= offset) sfile->scroll_offset -= sfile->layout->columns;
 		}
 	}
-	
+
 	numfiles_layout = ED_fileselect_layout_numfiles(sfile->layout, ar);
-	
+
 	/* check if we have reached our final scroll position */
 	if ( (sfile->scroll_offset >= offset) && (sfile->scroll_offset < offset + numfiles_layout) ) {
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
@@ -1631,10 +1631,10 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		return OPERATOR_FINISHED;
 	}
 
-	/* temporarily set context to the main window region, 
+	/* temporarily set context to the main window region,
 	 * so the scroll operators work */
 	CTX_wm_region_set(C, ar);
-	
+
 	/* scroll one step in the desired direction */
 	if (sfile->scroll_offset < offset) {
 		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
@@ -1643,7 +1643,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		else {
 			WM_operator_name_call(C, "VIEW2D_OT_scroll_up", 0, NULL);
 		}
-		
+
 	}
 	else {
 		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
@@ -1653,27 +1653,27 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 			WM_operator_name_call(C, "VIEW2D_OT_scroll_down", 0, NULL);
 		}
 	}
-	
+
 	ED_region_tag_redraw(ar);
-	
+
 	/* and restore context */
 	CTX_wm_region_set(C, oldar);
-	
+
 	return OPERATOR_FINISHED;
 }
 
 
 void FILE_OT_smoothscroll(wmOperatorType *ot)
 {
-	
+
 	/* identifiers */
 	ot->name = "Smooth Scroll";
 	ot->idname = "FILE_OT_smoothscroll";
 	ot->description = "Smooth scroll to make editable file visible";
-	
+
 	/* api callbacks */
 	ot->invoke = file_smoothscroll_invoke;
-	
+
 	ot->poll = ED_operator_file_active;
 }
 
@@ -1749,12 +1749,12 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	ScrArea *sa = CTX_wm_area(C);
-	
+
 	if (!sfile->params) {
 		BKE_report(op->reports, RPT_WARNING, "No parent directory given");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	path[0] = '\0';
 
 	if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
@@ -1824,7 +1824,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	ot->name = "Create New Directory";
 	ot->description = "Create a new directory";
 	ot->idname = "FILE_OT_directory_new";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = file_directory_new_exec;
@@ -1841,7 +1841,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 static void file_expand_directory(bContext *C)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
-	
+
 	if (sfile->params) {
 		if (BLI_path_is_rel(sfile->params->dir)) {
 			/* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
@@ -1899,7 +1899,7 @@ static bool can_create_dir(const char *dir)
 void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UNUSED(arg_but))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
-	
+
 	if (sfile->params) {
 		file_expand_directory(C);
 
@@ -1995,7 +1995,7 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 		if (matches) {
 			/* replace the pattern (or filename that the user typed in, with the first selected file of the match */
 			BLI_strncpy(sfile->params->file, matched_file, sizeof(sfile->params->file));
-			
+
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 		}
 
@@ -2024,7 +2024,7 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 	ot->name = "Refresh Filelist";
 	ot->description = "Refresh the file list";
 	ot->idname = "FILE_OT_refresh";
-	
+
 	/* api callbacks */
 	ot->exec = file_refresh_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
@@ -2035,13 +2035,13 @@ static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	ScrArea *sa = CTX_wm_area(C);
-	
+
 	if (sfile->params) {
 		sfile->params->flag ^= FILE_HIDE_DOT;
 		ED_fileselect_clear(wm, sa, sfile);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2052,7 +2052,7 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 	ot->name = "Toggle Hide Dot Files";
 	ot->description = "Toggle hide hidden dot files";
 	ot->idname = "FILE_OT_hidedot";
-	
+
 	/* api callbacks */
 	ot->exec = file_hidedot_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
@@ -2067,11 +2067,11 @@ ARegion *file_tools_region(ScrArea *sa)
 
 	/* add subdiv level; after header */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
-	
+
 	/* is error! */
 	if (ar == NULL)
 		return NULL;
-	
+
 	arnew = MEM_callocN(sizeof(ARegion), "tools for file");
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype = RGN_TYPE_TOOLS;
@@ -2089,7 +2089,7 @@ static int file_bookmark_toggle_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = file_tools_region(sa);
-	
+
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
@@ -2102,7 +2102,7 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 	ot->name = "Toggle Bookmarks";
 	ot->description = "Toggle bookmarks display";
 	ot->idname = "FILE_OT_bookmark_toggle";
-	
+
 	/* api callbacks */
 	ot->exec = file_bookmark_toggle_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
@@ -2144,7 +2144,7 @@ static int file_filenum_exec(bContext *C, wmOperator *op)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	ScrArea *sa = CTX_wm_area(C);
-	
+
 	int inc = RNA_int_get(op->ptr, "increment");
 	if (sfile->params && (inc != 0)) {
 		filenum_newname(sfile->params->file, sizeof(sfile->params->file), inc);
@@ -2152,7 +2152,7 @@ static int file_filenum_exec(bContext *C, wmOperator *op)
 		file_draw_check(C);
 		// WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
-	
+
 	return OPERATOR_FINISHED;
 
 }
@@ -2163,7 +2163,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 	ot->name = "Increment Number in Filename";
 	ot->description = "Increment number in filename";
 	ot->idname = "FILE_OT_filenum";
-	
+
 	/* api callbacks */
 	ot->exec = file_filenum_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
@@ -2176,7 +2176,7 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
-	
+
 	if (sfile->params) {
 		int idx = sfile->params->highlight_file;
 		int numfiles = filelist_files_ensure(sfile->files);
@@ -2188,7 +2188,7 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		ED_area_tag_redraw(sa);
 	}
-	
+
 	return OPERATOR_FINISHED;
 
 }
@@ -2232,10 +2232,10 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 	ot->name = "Rename File or Directory";
 	ot->description = "Rename file or file directory";
 	ot->idname = "FILE_OT_rename";
-	
+
 	/* api callbacks */
 	ot->exec = file_rename_exec;
-	ot->poll = file_rename_poll; 
+	ot->poll = file_rename_poll;
 
 }
 
@@ -2262,7 +2262,7 @@ static int file_delete_poll(bContext *C)
 	}
 	else
 		poll = 0;
-		
+
 	return poll;
 }
 
@@ -2289,7 +2289,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	
+
 	if (report_error) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Could not delete file: %s",
@@ -2298,7 +2298,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
 
 	ED_fileselect_clear(wm, sa, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
-	
+
 	return OPERATOR_FINISHED;
 
 }
@@ -2309,7 +2309,7 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 	ot->name = "Delete Selected Files";
 	ot->description = "Delete selected files";
 	ot->idname = "FILE_OT_delete";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = file_delete_exec;
@@ -2321,6 +2321,6 @@ void ED_operatormacros_file(void)
 {
 //	wmOperatorType *ot;
 //	wmOperatorTypeMacro *otmacro;
-	
+
 	/* future macros */
 }

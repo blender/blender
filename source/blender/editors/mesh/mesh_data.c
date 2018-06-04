@@ -254,7 +254,7 @@ void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 	CustomData *pdata = GET_CD_DATA(me, pdata);
 	const int layernum = CustomData_get_active_layer(pdata, CD_MTEXPOLY);
 	ED_mesh_uv_loop_reset_ex(me, layernum);
-	
+
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 }
 
@@ -313,7 +313,7 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface, name);
 		}
-		
+
 		if (active_set || layernum_dst == 0) {
 			CustomData_set_layer_active(&me->pdata, CD_MTEXPOLY, layernum_dst);
 			CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum_dst);
@@ -541,7 +541,7 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -551,7 +551,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 	ot->name = "Add UV Map";
 	ot->description = "Add UV Map";
 	ot->idname = "MESH_OT_uv_texture_add";
-	
+
 	/* api callbacks */
 	ot->poll = layers_poll;
 	ot->exec = mesh_uv_texture_add_exec;
@@ -570,7 +570,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	Mesh *me;
 	Object *obedit;
 	int exitmode = 0;
-	
+
 	if (v3d == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No 3D View Available");
 		return OPERATOR_CANCELLED;
@@ -583,7 +583,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		BKE_report(op->reports, RPT_ERROR, "Not an object or mesh");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
 	if (!ima) {
 		return OPERATOR_CANCELLED;
@@ -601,7 +601,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	}
 	if (me->edit_btmesh == NULL)
 		return OPERATOR_CANCELLED;
-	
+
 	ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 
 	if (exitmode) {
@@ -618,9 +618,9 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	/* dummie drop support; ensure view shows a result :) */
 	if (v3d)
 		v3d->flag2 |= V3D_SOLID_TEX;
-	
+
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -630,14 +630,14 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	ot->name = "Drop Image to Mesh UV Map";
 	ot->description = "Assign Image to active UV Map, or create an UV Map";
 	ot->idname = "MESH_OT_drop_named_image";
-	
+
 	/* api callbacks */
 	ot->poll = layers_poll;
 	ot->invoke = drop_named_image_invoke;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
-	
+
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");
 	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
@@ -657,7 +657,7 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -667,7 +667,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 	ot->name = "Remove UV Map";
 	ot->description = "Remove UV Map";
 	ot->idname = "MESH_OT_uv_texture_remove";
-	
+
 	/* api callbacks */
 	ot->poll = layers_poll;
 	ot->exec = mesh_uv_texture_remove_exec;
@@ -695,7 +695,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 	ot->name = "Add Vertex Color";
 	ot->description = "Add vertex color layer";
 	ot->idname = "MESH_OT_vertex_color_add";
-	
+
 	/* api callbacks */
 	ot->poll = layers_poll;
 	ot->exec = mesh_vertex_color_add_exec;
@@ -721,7 +721,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 	ot->name = "Remove Vertex Color";
 	ot->description = "Remove vertex color layer";
 	ot->idname = "MESH_OT_vertex_color_remove";
-	
+
 	/* api callbacks */
 	ot->exec = mesh_vertex_color_remove_exec;
 	ot->poll = layers_poll;

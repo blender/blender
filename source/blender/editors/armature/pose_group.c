@@ -65,13 +65,13 @@ static int pose_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 	/* only continue if there's an object and pose */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	
+
 	/* for now, just call the API function for this */
 	BKE_pose_add_group(ob->pose, NULL);
-	
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -81,11 +81,11 @@ void POSE_OT_group_add(wmOperatorType *ot)
 	ot->name = "Add Bone Group";
 	ot->idname = "POSE_OT_group_add";
 	ot->description = "Add a new bone group";
-	
+
 	/* api callbacks */
 	ot->exec = pose_group_add_exec;
 	ot->poll = ED_operator_posemode_context;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -94,17 +94,17 @@ void POSE_OT_group_add(wmOperatorType *ot)
 static int pose_group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_pose_object_from_context(C);
-	
+
 	/* only continue if there's an object and pose */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	
+
 	/* for now, just call the API function for this */
 	BKE_pose_remove_group_index(ob->pose, ob->pose->active_group);
-	
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -114,11 +114,11 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 	ot->name = "Remove Bone Group";
 	ot->idname = "POSE_OT_group_remove";
 	ot->description = "Remove the active bone group";
-	
+
 	/* api callbacks */
 	ot->exec = pose_group_remove_exec;
 	ot->poll = ED_operator_posemode_context;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -131,14 +131,14 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose;
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "type");
-	
+
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	bActionGroup *grp;
 	int i;
-	
+
 	/* only continue if there's an object, and a pose there too */
-	if (ELEM(NULL, ob, ob->pose)) 
+	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
 	pose = ob->pose;
 
@@ -152,28 +152,28 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 			return op->type->exec(C, op);
 		}
 	}
-	
+
 	/* if there's no active group (or active is invalid), create a new menu to find it */
 	if (pose->active_group <= 0) {
 		/* create a new menu, and start populating it with group names */
 		pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
 		layout = UI_popup_menu_layout(pup);
-		
-		/* special entry - allow to create new group, then use that 
+
+		/* special entry - allow to create new group, then use that
 		 *	(not to be used for removing though)
 		 */
 		if (strstr(op->idname, "assign")) {
 			uiItemIntO(layout, "New Group", ICON_NONE, op->idname, "type", 0);
 			uiItemS(layout);
 		}
-		
+
 		/* add entries for each group */
 		for (grp = pose->agroups.first, i = 1; grp; grp = grp->next, i++)
 			uiItemIntO(layout, grp->name, ICON_NONE, op->idname, "type", i);
-			
+
 		/* finish building the menu, and process it (should result in calling self again) */
 		UI_popup_menu_end(C, pup);
-		
+
 		return OPERATOR_INTERFACE;
 	}
 	else {
@@ -195,14 +195,14 @@ static int pose_group_assign_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	pose = ob->pose;
-	
-	/* set the active group number to the one from operator props 
+
+	/* set the active group number to the one from operator props
 	 *  - if 0 after this, make a new group...
 	 */
 	pose->active_group = RNA_int_get(op->ptr, "type");
 	if (pose->active_group == 0)
 		BKE_pose_add_group(ob->pose, NULL);
-	
+
 	/* add selected bones to group then */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 	{
@@ -213,7 +213,7 @@ static int pose_group_assign_exec(bContext *C, wmOperator *op)
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	/* report done status */
 	if (done)
 		return OPERATOR_FINISHED;
@@ -227,15 +227,15 @@ void POSE_OT_group_assign(wmOperatorType *ot)
 	ot->name = "Add Selected to Bone Group";
 	ot->idname = "POSE_OT_group_assign";
 	ot->description = "Add selected bones to the chosen bone group";
-	
+
 	/* api callbacks */
 	ot->invoke = pose_groups_menu_invoke;
 	ot->exec = pose_group_assign_exec;
 	ot->poll = ED_operator_posemode_context;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* properties */
 	RNA_def_int(ot->srna, "type", 0, 0, INT_MAX, "Bone Group Index", "", 0, 10);
 }
@@ -245,11 +245,11 @@ static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_pose_object_from_context(C);
 	bool done = false;
-	
+
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	
+
 	/* find selected bones to remove from all bone groups */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 	{
@@ -259,10 +259,10 @@ static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	CTX_DATA_END;
-	
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	/* report done status */
 	if (done)
 		return OPERATOR_FINISHED;
@@ -276,11 +276,11 @@ void POSE_OT_group_unassign(wmOperatorType *ot)
 	ot->name = "Remove Selected from Bone Groups";
 	ot->idname = "POSE_OT_group_unassign";
 	ot->description = "Remove selected bones from all bone groups";
-	
+
 	/* api callbacks */
 	ot->exec = pose_group_unassign_exec;
 	ot->poll = ED_operator_posemode_context;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -435,16 +435,16 @@ void POSE_OT_group_sort(wmOperatorType *ot)
 static void pose_group_select(bContext *C, Object *ob, bool select)
 {
 	bPose *pose = ob->pose;
-	
+
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
 	{
 		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			if (select) {
-				if (pchan->agrp_index == pose->active_group) 
+				if (pchan->agrp_index == pose->active_group)
 					pchan->bone->flag |= BONE_SELECTED;
 			}
 			else {
-				if (pchan->agrp_index == pose->active_group) 
+				if (pchan->agrp_index == pose->active_group)
 					pchan->bone->flag &= ~BONE_SELECTED;
 			}
 		}
@@ -455,16 +455,16 @@ static void pose_group_select(bContext *C, Object *ob, bool select)
 static int pose_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_pose_object_from_context(C);
-	
+
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	
+
 	pose_group_select(C, ob, 1);
-	
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -474,11 +474,11 @@ void POSE_OT_group_select(wmOperatorType *ot)
 	ot->name = "Select Bones of Bone Group";
 	ot->idname = "POSE_OT_group_select";
 	ot->description = "Select bones in active Bone Group";
-	
+
 	/* api callbacks */
 	ot->exec = pose_group_select_exec;
 	ot->poll = ED_operator_posemode_context;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -486,16 +486,16 @@ void POSE_OT_group_select(wmOperatorType *ot)
 static int pose_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_pose_object_from_context(C);
-	
+
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	
+
 	pose_group_select(C, ob, 0);
-	
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -505,11 +505,11 @@ void POSE_OT_group_deselect(wmOperatorType *ot)
 	ot->name = "Deselect Bone Group";
 	ot->idname = "POSE_OT_group_deselect";
 	ot->description = "Deselect bones of active Bone Group";
-	
+
 	/* api callbacks */
 	ot->exec = pose_group_deselect_exec;
 	ot->poll = ED_operator_posemode_context;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

@@ -465,7 +465,7 @@ static void sk_drawNormal(GLUquadric *quad, SK_Point *pt, float size, float heig
 {
 	float vec2[3] = {0, 0, 1}, axis[3];
 	float angle;
-	
+
 	glPushMatrix();
 
 	cross_v3_v3v3(axis, vec2, pt->no);
@@ -2126,7 +2126,7 @@ static int sk_draw_stroke(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_Dra
 		sk_addStrokePoint(C, sketch, stk, dd, snap);
 		sk_updateDrawData(dd);
 		sk_updateNextPoint(sketch, stk);
-		
+
 		return 1;
 	}
 
@@ -2246,7 +2246,7 @@ SK_Sketch *contextSketch(const bContext *C, int create)
 
 	if (obedit && obedit->type == OB_ARMATURE) {
 		bArmature *arm = obedit->data;
-	
+
 		if (arm->sketch == NULL && create) {
 			arm->sketch = createSketch();
 		}
@@ -2263,7 +2263,7 @@ SK_Sketch *viewcontextSketch(ViewContext *vc, int create)
 
 	if (obedit && obedit->type == OB_ARMATURE) {
 		bArmature *arm = obedit->data;
-	
+
 		if (arm->sketch == NULL && create) {
 			arm->sketch = createSketch();
 		}

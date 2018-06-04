@@ -75,7 +75,7 @@ static void handle_view3d_lock(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	
+
 	if (v3d != NULL && sa != NULL) {
 		if (v3d->localvd == NULL && v3d->scenelock && sa->spacetype == SPACE_VIEW3D) {
 			/* copy to scene */
@@ -86,7 +86,7 @@ static void handle_view3d_lock(bContext *C)
 			/* not through notifier, listener don't have context
 			 * and non-open screens or spaces need to be updated too */
 			BKE_screen_view3d_main_sync(&bmain->screen, scene);
-			
+
 			/* notifiers for scene update */
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 		}
@@ -121,7 +121,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 	View3D *v3d = sa->spacedata.first;
 	int nr = RNA_int_get(op->ptr, "nr");
 	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
-	
+
 	if (nr < 0)
 		return OPERATOR_CANCELLED;
 
@@ -169,13 +169,13 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	
+
 	if (v3d->scenelock) handle_view3d_lock(C);
-	
+
 	DAG_on_visible_update(CTX_data_main(C), false);
 
 	ED_area_tag_redraw(sa);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -185,18 +185,18 @@ static int view3d_layers_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
 	if (event->ctrl || event->oskey)
 		return OPERATOR_PASS_THROUGH;
-	
+
 	if (event->shift)
 		RNA_boolean_set(op->ptr, "extend", true);
 	else
 		RNA_boolean_set(op->ptr, "extend", false);
-	
+
 	if (event->alt) {
 		const int nr = RNA_int_get(op->ptr, "nr") + 10;
 		RNA_int_set(op->ptr, "nr", nr);
 	}
 	view3d_layers_exec(C, op);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -211,15 +211,15 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	ot->name = "Layers";
 	ot->description = "Toggle layer(s) visibility";
 	ot->idname = "VIEW3D_OT_layers";
-	
+
 	/* api callbacks */
 	ot->invoke = view3d_layers_invoke;
 	ot->exec = view3d_layers_exec;
 	ot->poll = view3d_layers_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");
 	RNA_def_boolean(ot->srna, "toggle", 1, "Toggle", "Toggle the layer");
@@ -293,7 +293,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiLayout *row;
 	bool is_paint = false;
 	int modeselect;
-	
+
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
@@ -303,7 +303,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	/* other buttons: */
 	UI_block_emboss_set(block, UI_EMBOSS);
-	
+
 	/* mode */
 	if ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
 		modeselect = OB_MODE_GPENCIL;
@@ -379,6 +379,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		/* Scene lock */
 		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	}
-	
+
 	uiTemplateEditModeSelection(layout, C);
 }

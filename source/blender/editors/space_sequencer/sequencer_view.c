@@ -97,7 +97,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 	ImBuf *ibuf = sequencer_ibuf_get(bmain, scene, sseq, CFRA, 0, NULL);
 	ImageSampleInfo *info = op->customdata;
 	float fx, fy;
-	
+
 	if (ibuf == NULL) {
 		IMB_freeImBuf(ibuf);
 		info->draw = 0;
@@ -121,7 +121,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
 		info->colp = NULL;
 		info->colfp = NULL;
-		
+
 		if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 

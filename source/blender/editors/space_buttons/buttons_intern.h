@@ -45,7 +45,7 @@ struct bNodeTree;
 struct uiLayout;
 struct wmOperatorType;
 
-/* buts->scaflag */		
+/* buts->scaflag */
 #define BUTS_SENS_SEL       1
 #define BUTS_SENS_ACT       2
 #define BUTS_SENS_LINK      4

@@ -93,7 +93,7 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, DerivedMesh *dm, co
 		else {
 			MVert *mvert = dm ? dm->getVertArray(dm) : me->mvert;
 			int i;
-			
+
 			for (i = 0; i < totvert; i++, mvert++) {
 				BLI_kdtree_insert(MirrKdStore.tree, i, mvert->co);
 			}

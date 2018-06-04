@@ -63,7 +63,7 @@ enum {
 
 #define REDRAW_FRAME_AVERAGE 8
 
-/* for playback framerate info 
+/* for playback framerate info
  * stored during runtime as scene->fps_info
  */
 typedef struct ScreenFrameRateInfo {

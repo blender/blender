@@ -95,19 +95,19 @@ static void edit_sensor_properties(wmOperatorType *ot)
 static int edit_sensor_invoke_properties(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "sensor", &RNA_Sensor);
-	
+
 	if (RNA_struct_property_is_set(op->ptr, "sensor") && RNA_struct_property_is_set(op->ptr, "object") )
 		return 1;
-	
+
 	if (ptr.data) {
 		bSensor *sens = ptr.data;
 		Object *ob = ptr.id.data;
-		
+
 		RNA_string_set(op->ptr, "sensor", sens->name);
 		RNA_string_set(op->ptr, "object", ob->id.name + 2);
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -132,12 +132,12 @@ static bSensor *edit_sensor_property_get(bContext *C, wmOperator *op, Object **o
 {
 	char sensor_name[MAX_NAME];
 	bSensor *sens;
-	
+
 	RNA_string_get(op->ptr, "sensor", sensor_name);
 
 	*ob = edit_object_property_get(C, op);
 	if (!*ob) return NULL;
-	
+
 	sens = BLI_findstring(&((*ob)->sensors), sensor_name, offsetof(bSensor, name));
 	return sens;
 }
@@ -151,19 +151,19 @@ static void edit_controller_properties(wmOperatorType *ot)
 static int edit_controller_invoke_properties(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "controller", &RNA_Controller);
-	
+
 	if (RNA_struct_property_is_set(op->ptr, "controller") && RNA_struct_property_is_set(op->ptr, "object") )
 		return 1;
-	
+
 	if (ptr.data) {
 		bController *cont = ptr.data;
 		Object *ob = ptr.id.data;
-		
+
 		RNA_string_set(op->ptr, "controller", cont->name);
 		RNA_string_set(op->ptr, "object", ob->id.name + 2);
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -171,12 +171,12 @@ static bController *edit_controller_property_get(bContext *C, wmOperator *op, Ob
 {
 	char controller_name[MAX_NAME];
 	bController *cont;
-	
+
 	RNA_string_get(op->ptr, "controller", controller_name);
 
 	*ob = edit_object_property_get(C, op);
 	if (!*ob) return NULL;
-	
+
 	cont = BLI_findstring(&((*ob)->controllers), controller_name, offsetof(bController, name));
 	return cont;
 }
@@ -190,19 +190,19 @@ static void edit_actuator_properties(wmOperatorType *ot)
 static int edit_actuator_invoke_properties(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "actuator", &RNA_Actuator);
-	
+
 	if (RNA_struct_property_is_set(op->ptr, "actuator") && RNA_struct_property_is_set(op->ptr, "object") )
 		return 1;
-	
+
 	if (ptr.data) {
 		bActuator *act = ptr.data;
 		Object *ob = ptr.id.data;
-		
+
 		RNA_string_set(op->ptr, "actuator", act->name);
 		RNA_string_set(op->ptr, "object", ob->id.name + 2);
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -210,12 +210,12 @@ static bActuator *edit_actuator_property_get(bContext *C, wmOperator *op, Object
 {
 	char actuator_name[MAX_NAME];
 	bActuator *act;
-	
+
 	RNA_string_get(op->ptr, "actuator", actuator_name);
 
 	*ob = edit_object_property_get(C, op);
 	if (!*ob) return NULL;
-	
+
 	act = BLI_findstring(&((*ob)->actuators), actuator_name, offsetof(bActuator, name));
 	return act;
 }
@@ -236,15 +236,15 @@ static int sensor_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = NULL;
 	bSensor *sens = edit_sensor_property_get(C, op, &ob);
-	
+
 	if (!sens)
 		return OPERATOR_CANCELLED;
-	
+
 	BLI_remlink(&(ob->sensors), sens);
 	free_sensor(sens);
-	
+
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -261,11 +261,11 @@ static void LOGIC_OT_sensor_remove(wmOperatorType *ot)
 	ot->name = "Remove Sensor";
 	ot->description = "Remove a sensor from the active object";
 	ot->idname = "LOGIC_OT_sensor_remove";
-	
+
 	ot->invoke = sensor_remove_invoke;
 	ot->exec = sensor_remove_exec;
 	ot->poll = edit_sensor_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_sensor_properties(ot);
@@ -287,7 +287,7 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 
 	sens = new_sensor(type);
 	BLI_addtail(&(ob->sensors), sens);
-	
+
 	/* set the sensor name based on rna type enum */
 	RNA_pointer_create((ID *)ob, &RNA_Sensor, sens, &sens_ptr);
 	prop = RNA_struct_find_property(&sens_ptr, "type");
@@ -305,27 +305,27 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 	ob->scaflag |= OB_SHOWSENS;
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
 static void LOGIC_OT_sensor_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	
+
 	/* identifiers */
 	ot->name = "Add Sensor";
 	ot->description = "Add a sensor to the active object";
 	ot->idname = "LOGIC_OT_sensor_add";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = sensor_add_exec;
 	ot->poll = ED_operator_object_active_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-	
+
 	/* properties */
 	ot->prop = prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
 	RNA_def_enum_funcs(prop, rna_Sensor_type_itemf);
@@ -341,16 +341,16 @@ static int controller_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = NULL;
 	bController *cont = edit_controller_property_get(C, op, &ob);
-	
+
 	if (!cont)
 		return OPERATOR_CANCELLED;
-	
+
 	BLI_remlink(&(ob->controllers), cont);
 	unlink_controller(cont);
 	free_controller(cont);
-	
+
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -367,11 +367,11 @@ static void LOGIC_OT_controller_remove(wmOperatorType *ot)
 	ot->name = "Remove Controller";
 	ot->description = "Remove a controller from the active object";
 	ot->idname = "LOGIC_OT_controller_remove";
-	
+
 	ot->invoke = controller_remove_invoke;
 	ot->exec = controller_remove_exec;
 	ot->poll = edit_controller_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_controller_properties(ot);
@@ -391,10 +391,10 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	ob = edit_object_property_get(C, op);
 	if (!ob)
 		return OPERATOR_CANCELLED;
-	
+
 	cont = new_controller(type);
 	BLI_addtail(&(ob->controllers), cont);
-	
+
 	/* set the controller name based on rna type enum */
 	RNA_pointer_create((ID *)ob, &RNA_Controller, cont, &cont_ptr);
 	prop = RNA_struct_find_property(&cont_ptr, "type");
@@ -422,11 +422,11 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 		/* shouldn't happen, object state is never 0 */
 		cont->state_mask = 1;
 	}
-	
+
 	ob->scaflag |= OB_SHOWCONT;
-	
+
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -438,15 +438,15 @@ static void LOGIC_OT_controller_add(wmOperatorType *ot)
 	ot->name = "Add Controller";
 	ot->description = "Add a controller to the active object";
 	ot->idname = "LOGIC_OT_controller_add";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = controller_add_exec;
 	ot->poll = ED_operator_object_active_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-	
+
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
 	prop = RNA_def_string(ot->srna, "name", NULL, MAX_NAME, "Name", "Name of the Controller to add");
@@ -461,16 +461,16 @@ static int actuator_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = NULL;
 	bActuator *act = edit_actuator_property_get(C, op, &ob);
-	
+
 	if (!act)
 		return OPERATOR_CANCELLED;
-	
+
 	BLI_remlink(&(ob->actuators), act);
 	unlink_actuator(act);
 	free_actuator(act);
-	
+
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -487,11 +487,11 @@ static void LOGIC_OT_actuator_remove(wmOperatorType *ot)
 	ot->name = "Remove Actuator";
 	ot->description = "Remove an actuator from the active object";
 	ot->idname = "LOGIC_OT_actuator_remove";
-	
+
 	ot->invoke = actuator_remove_invoke;
 	ot->exec = actuator_remove_exec;
 	ot->poll = edit_actuator_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_actuator_properties(ot);
@@ -506,14 +506,14 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	const char *act_name;
 	char name[MAX_NAME];
 	int type = RNA_enum_get(op->ptr, "type");
-		
+
 	ob = edit_object_property_get(C, op);
 	if (!ob)
 		return OPERATOR_CANCELLED;
 
 	act = new_actuator(type);
 	BLI_addtail(&(ob->actuators), act);
-	
+
 	/* set the actuator name based on rna type enum */
 	RNA_pointer_create((ID *)ob, &RNA_Actuator, act, &act_ptr);
 	prop = RNA_struct_find_property(&act_ptr, "type");
@@ -529,29 +529,29 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 
 	BLI_uniquename(&ob->actuators, act, DATA_("Actuator"), '.', offsetof(bActuator, name), sizeof(act->name));
 	ob->scaflag |= OB_SHOWACT;
-	
+
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
 static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	
+
 	/* identifiers */
 	ot->name = "Add Actuator";
 	ot->description = "Add an actuator to the active object";
 	ot->idname = "LOGIC_OT_actuator_add";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = actuator_add_exec;
 	ot->poll = ED_operator_object_active_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-	
+
 	/* properties */
 	ot->prop = prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
 	RNA_def_enum_funcs(prop, rna_Actuator_type_itemf);
@@ -574,14 +574,14 @@ static int sensor_move_exec(bContext *C, wmOperator *op)
 	Object *ob = NULL;
 	bSensor *sens = edit_sensor_property_get(C, op, &ob);
 	int move_up = logicbricks_move_property_get(op);
-	
+
 	if (!sens)
 		return OPERATOR_CANCELLED;
 
 	sca_move_sensor(sens, ob, move_up);
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -600,15 +600,15 @@ static void LOGIC_OT_sensor_move(wmOperatorType *ot)
 	ot->name = "Move Sensor";
 	ot->description = "Move Sensor";
 	ot->idname = "LOGIC_OT_sensor_move";
-	
+
 	/* api callbacks */
 	ot->invoke = sensor_move_invoke;
 	ot->exec = sensor_move_exec;
 	ot->poll = edit_sensor_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-	
+
 	/* properties */
 	edit_sensor_properties(ot);
 	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
@@ -619,14 +619,14 @@ static int controller_move_exec(bContext *C, wmOperator *op)
 	Object *ob = NULL;
 	bController *cont = edit_controller_property_get(C, op, &ob);
 	int move_up = logicbricks_move_property_get(op);
-	
+
 	if (!cont)
 		return OPERATOR_CANCELLED;
 
 	sca_move_controller(cont, ob, move_up);
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -645,15 +645,15 @@ static void LOGIC_OT_controller_move(wmOperatorType *ot)
 	ot->name = "Move Controller";
 	ot->description = "Move Controller";
 	ot->idname = "LOGIC_OT_controller_move";
-	
+
 	/* api callbacks */
 	ot->invoke = controller_move_invoke;
 	ot->exec = controller_move_exec;
 	ot->poll = edit_controller_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-	
+
 	/* properties */
 	edit_controller_properties(ot);
 	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
@@ -671,7 +671,7 @@ static int actuator_move_exec(bContext *C, wmOperator *op)
 	sca_move_actuator(act, ob, move_up);
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -690,15 +690,15 @@ static void LOGIC_OT_actuator_move(wmOperatorType *ot)
 	ot->name = "Move Actuator";
 	ot->description = "Move Actuator";
 	ot->idname = "LOGIC_OT_actuator_move";
-	
+
 	/* api callbacks */
 	ot->invoke = actuator_move_invoke;
 	ot->exec = actuator_move_exec;
 	ot->poll = edit_actuator_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-	
+
 	/* properties */
 	edit_actuator_properties(ot);
 	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
@@ -712,10 +712,10 @@ static int logic_view_all_exec(bContext *C, wmOperator *op)
 	rctf cur_new = ar->v2d.tot;
 	float aspect = BLI_rctf_size_y(&ar->v2d.cur) / BLI_rctf_size_x(&ar->v2d.cur);
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-	
+
 	/* force the view2d code to zoom to width, not height */
 	cur_new.ymin = cur_new.ymax - BLI_rctf_size_x(&cur_new) * aspect;
-	
+
 	UI_view2d_smooth_view(C, ar, &cur_new, smooth_viewtx);
 
 	return OPERATOR_FINISHED;
@@ -727,11 +727,11 @@ static void LOGIC_OT_view_all(wmOperatorType *ot)
 	ot->name = "View All";
 	ot->idname = "LOGIC_OT_view_all";
 	ot->description = "Resize view so you can see all logic bricks";
-	
+
 	/* api callbacks */
 	ot->exec = logic_view_all_exec;
 	ot->poll = ED_operator_logic_active;
-	
+
 	/* flags */
 	ot->flag = 0;
 }

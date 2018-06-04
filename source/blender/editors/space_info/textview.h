@@ -37,7 +37,7 @@ typedef struct TextViewContext {
 
 	int winx;
 	int ymin, ymax;
-	
+
 	/* callbacks */
 	int (*begin)(struct TextViewContext *tvc);
 	void (*end)(struct TextViewContext *tvc);

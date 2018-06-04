@@ -73,7 +73,7 @@ int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar,
 	float oldasp, asp;
 	int tot = 0;
 	bool has_frame = false;
-	
+
 	oldwidth  = BLI_rctf_size_x(&ar->v2d.cur);
 	oldheight = BLI_rctf_size_y(&ar->v2d.cur);
 
@@ -154,11 +154,11 @@ void NODE_OT_view_all(wmOperatorType *ot)
 	ot->name = "View All";
 	ot->idname = "NODE_OT_view_all";
 	ot->description = "Resize view so you can see all nodes";
-	
+
 	/* api callbacks */
 	ot->exec = node_view_all_exec;
 	ot->poll = ED_operator_node_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -394,7 +394,7 @@ typedef struct ImageSampleInfo {
 	unsigned char col[4];
 	float colf[4];
 	float linearcol[4];
-	
+
 	int z;
 	float zf;
 
@@ -545,7 +545,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
 			info->color_manage = true;
 		}
-		
+
 		if (ibuf->zbuf) {
 			info->z = ibuf->zbuf[y * ibuf->x + x];
 			info->zp = &info->z;

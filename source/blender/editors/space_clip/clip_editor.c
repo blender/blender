@@ -297,7 +297,7 @@ bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r
 			ret = true;
 		}
 	}
-	
+
 	IMB_freeImBuf(ibuf);
 
 	return ret;

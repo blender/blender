@@ -72,7 +72,7 @@ static int uvedit_center(Scene *scene, BMEditMesh *em, Image *ima, float center[
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
-	
+
 	zero_v2(center);
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = BM_ELEM_CD_GET_VOID_P(f, cd_poly_tex_offset);
@@ -106,7 +106,7 @@ static void uvedit_translate(Scene *scene, BMEditMesh *em, Image *ima, float del
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
-	
+
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = BM_ELEM_CD_GET_VOID_P(f, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, f, tf))
@@ -137,7 +137,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 	float width = 8 * UI_UNIT_X;
 
 	ED_space_image_get_size(sima, &imx, &imy);
-	
+
 	em = BKE_editmesh_from_object(obedit);
 
 	if (uvedit_center(scene, em, ima, center)) {
@@ -170,7 +170,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 			step = 100;
 			digits = 2;
 		}
-		
+
 		UI_block_align_begin(block);
 		uiDefButF(block, UI_BTYPE_NUM, B_UVEDIT_VERTEX, IFACE_("X:"), 0, 0, width, UI_UNIT_Y, &uvedit_old_center[0],
 		          UNPACK2(range_xy[0]), step, digits, "");
@@ -223,12 +223,12 @@ static int image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
 static void image_panel_uv(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
-	
+
 	block = uiLayoutAbsoluteBlock(pa->layout);
 	UI_block_func_handle_set(block, do_uvedit_vertex, NULL);
 
 	uvedit_vertex_buttons(C, block);
-}	
+}
 
 void ED_uvedit_buttons_register(ARegionType *art)
 {

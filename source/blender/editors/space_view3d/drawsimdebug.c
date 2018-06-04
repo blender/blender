@@ -48,23 +48,23 @@
 static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 {
 	GHashIterator iter;
-	
+
 	/**** dots ****/
-	
+
 	glPointSize(3.0f);
 	glBegin(GL_POINTS);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_DOT)
 			continue;
-		
+
 		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
 		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
 	}
 	glEnd();
-	
+
 	/**** circles ****/
-	
+
 	{
 		float circle[16][2] = {
 		    {0.000000, 1.000000}, {0.382683, 0.923880}, {0.707107, 0.707107}, {0.923880, 0.382683},
@@ -76,10 +76,10 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 			float radius = elem->v2[0];
 			float co[3];
 			int i;
-			
+
 			if (elem->type != SIM_DEBUG_ELEM_CIRCLE)
 				continue;
-			
+
 			glColor3f(elem->color[0], elem->color[1], elem->color[2]);
 			glBegin(GL_LINE_LOOP);
 			for (i = 0; i < 16; ++i) {
@@ -88,62 +88,62 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 				co[2] = 0.0f;
 				mul_mat3_m4_v3(imat, co);
 				add_v3_v3(co, elem->v1);
-				
+
 				glVertex3f(co[0], co[1], co[2]);
 			}
 			glEnd();
 		}
 	}
-	
+
 	/**** lines ****/
-	
+
 	glBegin(GL_LINES);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_LINE)
 			continue;
-		
+
 		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
 		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
 		glVertex3f(elem->v2[0], elem->v2[1], elem->v2[2]);
 	}
 	glEnd();
-	
+
 	/**** vectors ****/
-	
+
 	glPointSize(2.0f);
 	glBegin(GL_POINTS);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_VECTOR)
 			continue;
-		
+
 		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
 		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
 	}
 	glEnd();
-	
+
 	glBegin(GL_LINES);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		float t[3];
 		if (elem->type != SIM_DEBUG_ELEM_VECTOR)
 			continue;
-		
+
 		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
 		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
 		add_v3_v3v3(t, elem->v1, elem->v2);
 		glVertex3f(t[0], t[1], t[2]);
 	}
 	glEnd();
-	
+
 	/**** strings ****/
-	
+
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_STRING)
 			continue;
-		
+
 		unsigned char col[4];
 		rgb_float_to_uchar(col, elem->color);
 		col[3] = 255;
@@ -157,24 +157,24 @@ void draw_sim_debug_data(Scene *UNUSED(scene), View3D *v3d, ARegion *ar)
 	RegionView3D *rv3d = ar->regiondata;
 	/*Object *ob = base->object;*/
 	float imat[4][4];
-	
+
 	if (!_sim_debug_data)
 		return;
-	
+
 	invert_m4_m4(imat, rv3d->viewmatob);
-	
+
 //	glDepthMask(GL_FALSE);
 //	glEnable(GL_BLEND);
-	
+
 	glPushMatrix();
 	glLoadMatrixf(rv3d->viewmat);
-	
+
 	view3d_cached_text_draw_begin();
 	draw_sim_debug_elements(_sim_debug_data, imat);
 	view3d_cached_text_draw_end(v3d, ar, false);
-	
+
 	glPopMatrix();
-	
+
 //	glDepthMask(GL_TRUE);
 //	glDisable(GL_BLEND);
 }

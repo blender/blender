@@ -264,7 +264,7 @@ static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **s
 
 		RNA_string_get(op->ptr, "scene", scene_name);
 		scn = (Scene *)BLI_findstring(&mainp->scene, scene_name, offsetof(ID, name) + 2);
-		
+
 		if (scn) {
 			/* camera switch wont have updated */
 			scn->r.cfra = (*scene)->r.cfra;
@@ -280,7 +280,7 @@ static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **s
 
 		RNA_string_get(op->ptr, "layer", rl_name);
 		rl = (SceneRenderLayer *)BLI_findstring(&(*scene)->r.layers, rl_name, offsetof(SceneRenderLayer, name));
-		
+
 		if (rl)
 			*srl = rl;
 	}
@@ -427,7 +427,7 @@ static void make_renderinfo_string(const RenderStats *rs,
 	/* full sample */
 	if (rs->curfsa)
 		spos += sprintf(spos, IFACE_("| Full Sample %d "), rs->curfsa);
-	
+
 	/* extra info */
 	if (rs->infostr && rs->infostr[0]) {
 		spos += sprintf(spos, "| %s ", rs->infostr);
@@ -469,7 +469,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 static void render_progress_update(void *rjv, float progress)
 {
 	RenderJob *rj = rjv;
-	
+
 	if (rj->progress && *rj->progress != progress) {
 		*rj->progress = progress;
 
@@ -555,10 +555,10 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		*(rj->do_update) = true;
 		return;
 	}
-	
+
 	if (rr == NULL)
 		return;
-	
+
 	/* update part of render */
 	render_image_update_pass_and_layer(rj, rr, &rj->iuser);
 	ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
@@ -577,7 +577,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		{
 			image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, renrect, viewname);
 		}
-		
+
 		/* make jobs timer to send notifier */
 		*(rj->do_update) = true;
 	}
@@ -663,13 +663,13 @@ static void render_endjob(void *rjv)
 			ED_update_for_newframe(G.main, rj->scene, 1);
 		}
 	}
-	
+
 	/* XXX above function sets all tags in nodes */
 	ntreeCompositClearTags(rj->scene->nodetree);
-	
+
 	/* potentially set by caller */
 	rj->scene->r.scemode &= ~R_NO_FRAME_UPDATE;
-	
+
 	if (rj->srl) {
 		nodeUpdateID(rj->scene->nodetree, &rj->scene->id);
 		WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
@@ -846,7 +846,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 	const char *name;
 	ScrArea *sa;
-	
+
 	/* only one render job at a time */
 	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))
 		return OPERATOR_CANCELLED;
@@ -862,7 +862,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	/* stop all running jobs, except screen one. currently previews frustrate Render */
 	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
 
@@ -878,7 +878,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	/* cancel animation playback */
 	if (ED_screen_animation_playing(CTX_wm_manager(C)))
 		ED_screen_animation_play(C, 0, 0);
-	
+
 	/* handle UI stuff */
 	WM_cursor_wait(1);
 
@@ -899,7 +899,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	sa = render_view_open(C, event->x, event->y, op->reports);
 
 	jobflag = WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS;
-	
+
 	/* custom scene and single layer re-render */
 	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
@@ -1055,7 +1055,7 @@ typedef struct RenderPreview {
 	void *owner;
 	short *stop, *do_update;
 	wmJob *job;
-	
+
 	Scene *scene;
 	ScrArea *sa;
 	ARegion *ar;
@@ -1063,7 +1063,7 @@ typedef struct RenderPreview {
 	RegionView3D *rv3d;
 	Main *bmain;
 	RenderEngine *engine;
-	
+
 	float viewmat[4][4];
 
 	int start_resolution_divider;
@@ -1076,7 +1076,7 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 	/* copied code from view3d_draw.c */
 	rctf viewborder;
 	int draw_border;
-	
+
 	if (rv3d->persp == RV3D_CAMOB)
 		draw_border = (scene->r.mode & R_BORDER) != 0;
 	else
@@ -1085,7 +1085,7 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 	if (draw_border) {
 		if (rv3d->persp == RV3D_CAMOB) {
 			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, false);
-			
+
 			disprect->xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
 			disprect->ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
 			disprect->xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
@@ -1097,10 +1097,10 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 			disprect->ymin = v3d->render_border.ymin * ar->winy;
 			disprect->ymax = v3d->render_border.ymax * ar->winy;
 		}
-		
+
 		return 1;
 	}
-	
+
 	BLI_rcti_init(disprect, 0, 0, 0, 0);
 	return 0;
 }
@@ -1109,11 +1109,11 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 static bool render_view3d_get_rects(ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine,
                                     float *r_clipsta, float *r_clipend, float *r_pixsize, bool *r_ortho)
 {
-	
+
 	if (ar->winx < 4 || ar->winy < 4) return false;
-	
+
 	*r_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, viewplane, r_clipsta, r_clipend, r_pixsize);
-	
+
 	engine->resolution_x = ar->winx;
 	engine->resolution_y = ar->winy;
 
@@ -1129,22 +1129,22 @@ static bool render_view3d_is_valid(RenderPreview *rp)
 static int render_view3d_break(void *rpv)
 {
 	RenderPreview *rp = rpv;
-	
+
 	if (G.is_break)
 		return 1;
-	
+
 	/* during render, rv3d->engine can get freed */
 	if (render_view3d_is_valid(rp) == false) {
 		*rp->stop = 1;
 	}
-	
+
 	return *(rp->stop);
 }
 
 static void render_view3d_display_update(void *rpv, RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect))
 {
 	RenderPreview *rp = rpv;
-	
+
 	*(rp->do_update) = true;
 }
 
@@ -1158,7 +1158,7 @@ static void render_view3d_renderinfo_cb(void *rjp, RenderStats *rs)
 	}
 	else {
 		make_renderinfo_string(rs, rp->scene, false, NULL, rp->engine->text);
-	
+
 		/* make jobs timer to send notifier */
 		*(rp->do_update) = true;
 	}
@@ -1218,24 +1218,24 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	//printf("ma %d res %d view %d db %d\n", update_flag & PR_UPDATE_MATERIAL, update_flag & PR_UPDATE_RENDERSIZE, update_flag & PR_UPDATE_VIEW, update_flag & PR_UPDATE_DATABASE);
 
 	G.is_break = false;
-	
+
 	if (false == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &pixsize, &orth))
 		return;
-	
+
 	rp->stop = stop;
 	rp->do_update = do_update;
 
 	// printf("Enter previewrender\n");
-	
+
 	/* ok, are we rendering all over? */
 	sprintf(name, "View3dPreview %p", (void *)rp->ar);
 	re = rp->engine->re = RE_GetRender(name);
-	
+
 	/* set this always, rp is different for each job */
 	RE_test_break_cb(re, rp, render_view3d_break);
 	RE_display_update_cb(re, rp, render_view3d_display_update);
 	RE_stats_draw_cb(re, rp, render_view3d_renderinfo_cb);
-	
+
 	rstats = RE_GetStats(re);
 
 	if (update_flag & PR_UPDATE_VIEW) {
@@ -1282,7 +1282,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		RE_SetWindow(re, &viewplane, clipsta, clipend);
 
 	RE_SetPixelSize(re, pixsize);
-	
+
 	if ((update_flag & PR_UPDATE_DATABASE) || rstats->convertdone == 0) {
 		unsigned int lay = rp->scene->lay;
 
@@ -1290,7 +1290,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		if (rp->v3d->lay & 0xFF000000)
 			lay |= rp->v3d->lay;
 		else lay = rp->v3d->lay;
-		
+
 		RE_SetView(re, rp->viewmat);
 
 		/* copying blender data while main thread is locked, to avoid crashes */
@@ -1366,7 +1366,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 static void render_view3d_free(void *customdata)
 {
 	RenderPreview *rp = customdata;
-	
+
 	MEM_freeN(rp);
 }
 
@@ -1384,7 +1384,7 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 	bool orth;
 	int job_update_flag = 0;
 	char name[32];
-	
+
 	/* ensure render engine exists */
 	re = engine->re;
 
@@ -1400,10 +1400,10 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 	/* check update_flag */
 	if (engine->update_flag & RE_ENGINE_UPDATE_MA)
 		job_update_flag |= PR_UPDATE_MATERIAL;
-	
+
 	if (engine->update_flag & RE_ENGINE_UPDATE_OTHER)
 		job_update_flag |= PR_UPDATE_MATERIAL;
-	
+
 	if (engine->update_flag & RE_ENGINE_UPDATE_DATABASE) {
 		job_update_flag |= PR_UPDATE_DATABASE;
 
@@ -1411,9 +1411,9 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 		if (scene->obedit)
 			ED_object_editmode_load(bmain, scene->obedit);
 	}
-	
+
 	engine->update_flag = 0;
-	
+
 	/* check if viewport changed */
 	if (engine->last_winx != ar->winx || engine->last_winy != ar->winy) {
 		engine->last_winx = ar->winx;
@@ -1425,14 +1425,14 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 		copy_m4_m4(engine->last_viewmat, rv3d->viewmat);
 		job_update_flag |= PR_UPDATE_VIEW;
 	}
-	
+
 	render_view3d_get_rects(ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, NULL, &orth);
-	
+
 	if (BLI_rctf_compare(&viewplane, &engine->last_viewplane, 0.00001f) == 0) {
 		engine->last_viewplane = viewplane;
 		job_update_flag |= PR_UPDATE_VIEW;
 	}
-	
+
 	render_view3d_disprect(scene, ar, v3d, rv3d, &disprect);
 	if (BLI_rcti_compare(&disprect, &engine->last_disprect) == 0) {
 		engine->last_disprect = disprect;
@@ -1487,23 +1487,23 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	rp->start_resolution_divider = divider;
 	rp->has_freestyle = (scene->r.mode & R_EDGE_FRS) != 0;
 	copy_m4_m4(rp->viewmat, rp->rv3d->viewmat);
-	
+
 	/* clear info text */
 	engine->text[0] = '\0';
-	
+
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, rp, render_view3d_free);
 	WM_jobs_timer(wm_job, 0.1, NC_SPACE | ND_SPACE_VIEW3D, NC_SPACE | ND_SPACE_VIEW3D);
 	WM_jobs_callbacks(wm_job, render_view3d_startjob, NULL, NULL, NULL);
-	
+
 	WM_jobs_start(CTX_wm_manager(C), wm_job);
-	
+
 	engine->flag &= ~RE_ENGINE_DO_UPDATE;
 }
 
 /* callback for render engine, on changes */
 void render_view3d_update(RenderEngine *engine, const bContext *C)
-{	
+{
 	/* this shouldn't be needed and causes too many database rebuilds, but we
 	 * aren't actually tracking updates for all relevant datablocks so this is
 	 * a catch-all for updates */
@@ -1517,19 +1517,19 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	Render *re = engine->re;
 	RenderResult rres;
 	char name[32];
-	
+
 	render_view3d_do(engine, C);
-	
+
 	if (re == NULL) {
 		sprintf(name, "View3dPreview %p", (void *)CTX_wm_region(C));
 		re = RE_GetRender(name);
-	
+
 		if (re == NULL) return;
 	}
-	
+
 	/* Viewport render preview doesn't support multiview, view hardcoded to 0 */
 	RE_AcquireResultImage(re, &rres, 0);
-	
+
 	if (rres.rectf) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		View3D *v3d = CTX_wm_view3d(C);
@@ -1617,13 +1617,13 @@ void ED_viewport_render_kill_jobs(wmWindowManager *wm,
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
-			
+
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
 				RegionView3D *rv3d;
-				
+
 				if (ar->regiontype != RGN_TYPE_WINDOW)
 					continue;
-				
+
 				rv3d = ar->regiondata;
 
 				if (rv3d->render_engine) {
@@ -1656,10 +1656,10 @@ Scene *ED_render_job_get_scene(const bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(wm, WM_JOB_TYPE_RENDER);
-	
+
 	if (rj)
 		return rj->scene;
-	
+
 	return NULL;
 }
 

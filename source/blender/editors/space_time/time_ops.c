@@ -63,16 +63,16 @@ static int time_set_sfra_exec(bContext *C, wmOperator *UNUSED(op))
 		scene->r.psfra = frame;
 	else
 		scene->r.sfra = frame;
-	
+
 	if (PEFRA < frame) {
 		if (PRVRANGEON)
 			scene->r.pefra = frame;
 		else
 			scene->r.efra = frame;
 	}
-	
+
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -82,14 +82,14 @@ static void TIME_OT_start_frame_set(wmOperatorType *ot)
 	ot->name = "Set Start Frame";
 	ot->idname = "TIME_OT_start_frame_set";
 	ot->description = "Set the start frame";
-	
+
 	/* api callbacks */
 	ot->exec = time_set_sfra_exec;
 	ot->poll = ED_operator_timeline_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}	
+}
 
 
 static int time_set_efra_exec(bContext *C, wmOperator *UNUSED(op))
@@ -114,9 +114,9 @@ static int time_set_efra_exec(bContext *C, wmOperator *UNUSED(op))
 		else
 			scene->r.sfra = frame;
 	}
-	
+
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -126,11 +126,11 @@ static void TIME_OT_end_frame_set(wmOperatorType *ot)
 	ot->name = "Set End Frame";
 	ot->idname = "TIME_OT_end_frame_set";
 	ot->description = "Set the end frame";
-	
+
 	/* api callbacks */
 	ot->exec = time_set_efra_exec;
 	ot->poll = ED_operator_timeline_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -150,15 +150,15 @@ static int time_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set extents of view to start/end frames (Preview Range too) */
 	v2d->cur.xmin = (float)PSFRA;
 	v2d->cur.xmax = (float)PEFRA;
-	
+
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
 	const float extra = 0.01f * BLI_rctf_size_x(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
-	
+
 	/* this only affects this TimeLine instance, so just force redraw of this region */
 	ED_region_tag_redraw(ar);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -168,11 +168,11 @@ static void TIME_OT_view_all(wmOperatorType *ot)
 	ot->name = "View All";
 	ot->idname = "TIME_OT_view_all";
 	ot->description = "Show the entire playable frame range";
-	
+
 	/* api callbacks */
 	ot->exec = time_view_all_exec;
 	ot->poll = ED_operator_timeline_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -183,7 +183,7 @@ static int time_view_frame_exec(bContext *C, wmOperator *op)
 {
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 	ANIM_center_frame(C, smooth_viewtx);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -193,11 +193,11 @@ static void TIME_OT_view_frame(wmOperatorType *ot)
 	ot->name = "View Frame";
 	ot->idname = "TIME_OT_view_frame";
 	ot->description = "Reset viewable area to show range around current frame";
-	
+
 	/* api callbacks */
 	ot->exec = time_view_frame_exec;
 	ot->poll = ED_operator_timeline_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -215,7 +215,7 @@ void time_operatortypes(void)
 void time_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Timeline", SPACE_TIME, 0);
-	
+
 	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);

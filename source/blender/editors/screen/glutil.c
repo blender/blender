@@ -62,18 +62,18 @@ void fdrawbezier(float vec[4][3])
 {
 	float dist;
 	float curve_res = 24, spline_step = 0.0f;
-	
+
 	dist = 0.5f * fabsf(vec[0][0] - vec[3][0]);
-	
+
 	/* check direction later, for top sockets */
 	vec[1][0] = vec[0][0] + dist;
 	vec[1][1] = vec[0][1];
-	
+
 	vec[2][0] = vec[3][0] - dist;
 	vec[2][1] = vec[3][1];
 	/* we can reuse the dist variable here to increment the GL curve eval amount */
 	dist = 1.0f / curve_res;
-	
+
 	cpack(0x0);
 	glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
 	glBegin(GL_LINE_STRIP);
@@ -100,12 +100,12 @@ void fdrawline(float x1, float y1, float x2, float y2)
 void fdrawbox(float x1, float y1, float x2, float y2)
 {
 	glBegin(GL_LINE_LOOP);
-	
+
 	glVertex2f(x1, y1);
 	glVertex2f(x1, y2);
 	glVertex2f(x2, y2);
 	glVertex2f(x2, y1);
-	
+
 	glEnd();
 }
 
@@ -166,12 +166,12 @@ void sdrawtrifill(int x1, int y1, int x2, int y2)
 void sdrawbox(int x1, int y1, int x2, int y2)
 {
 	glBegin(GL_LINE_LOOP);
-	
+
 	glVertex2i(x1, y1);
 	glVertex2i(x1, y2);
 	glVertex2i(x2, y2);
 	glVertex2i(x2, y1);
-	
+
 	glEnd();
 }
 
@@ -184,7 +184,7 @@ void setlinestyle(int nr)
 		glDisable(GL_LINE_STIPPLE);
 	}
 	else {
-		
+
 		glEnable(GL_LINE_STIPPLE);
 		if (U.pixelsize > 1.0f)
 			glLineStipple(nr, 0xCCCC);
@@ -194,10 +194,10 @@ void setlinestyle(int nr)
 }
 
 /* Invert line handling */
-	
+
 #define GL_TOGGLE(mode, onoff)  (((onoff) ? glEnable : glDisable)(mode))
 
-void set_inverted_drawing(int enable) 
+void set_inverted_drawing(int enable)
 {
 	glLogicOp(enable ? GL_INVERT : GL_COPY);
 	GL_TOGGLE(GL_COLOR_LOGIC_OP, enable);
@@ -211,12 +211,12 @@ void sdrawXORline(int x0, int y0, int x1, int y1)
 	if (x0 == x1 && y0 == y1) return;
 
 	set_inverted_drawing(1);
-	
+
 	glBegin(GL_LINES);
 	glVertex2i(x0, y0);
 	glVertex2i(x1, y1);
 	glEnd();
-	
+
 	set_inverted_drawing(0);
 }
 
@@ -224,11 +224,11 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 {
 	static int old[4][2][2];
 	static char flags[4] = {0, 0, 0, 0};
-	
+
 	/* with builtin memory, max 4 lines */
 
 	set_inverted_drawing(1);
-		
+
 	glBegin(GL_LINES);
 	if (nr == -1) { /* flush */
 		for (nr = 0; nr < 4; nr++) {
@@ -250,15 +250,15 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 			old[nr][0][1] = y0;
 			old[nr][1][0] = x1;
 			old[nr][1][1] = y1;
-			
+
 			flags[nr] = 1;
 		}
-		
+
 		glVertex2i(x0, y0);
 		glVertex2i(x1, y1);
 	}
 	glEnd();
-	
+
 	set_inverted_drawing(0);
 }
 
@@ -294,13 +294,13 @@ void fdrawXORcirc(float xofs, float yofs, float rad)
 void glutil_draw_filled_arc(float start, float angle, float radius, int nsegments)
 {
 	int i;
-	
+
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex2f(0.0, 0.0);
 	for (i = 0; i < nsegments; i++) {
 		float t = (float) i / (nsegments - 1);
 		float cur = start + t * angle;
-		
+
 		glVertex2f(cosf(cur) * radius, sinf(cur) * radius);
 	}
 	glEnd();
@@ -309,12 +309,12 @@ void glutil_draw_filled_arc(float start, float angle, float radius, int nsegment
 void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments)
 {
 	int i;
-	
+
 	glBegin(GL_LINE_STRIP);
 	for (i = 0; i < nsegments; i++) {
 		float t = (float) i / (nsegments - 1);
 		float cur = start + t * angle;
-		
+
 		glVertex2f(cosf(cur) * radius, sinf(cur) * radius);
 	}
 	glEnd();
@@ -406,13 +406,13 @@ void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	/* workaround for os x 10.5/10.6 driver bug: http://lists.apple.com/archives/Mac-opengl/2008/Jul/msg00117.html */
 	glPixelZoom(1.0f, 1.0f);
 #endif
-	
+
 	/* setup seamless 2=on, 0=off */
 	seamless = ((tex_w < img_w || tex_h < img_h) && tex_w > 2 && tex_h > 2) ? 2 : 0;
-	
+
 	offset_x = tex_w - seamless;
 	offset_y = tex_h - seamless;
-	
+
 	nsubparts_x = (img_w + (offset_x - 1)) / (offset_x);
 	nsubparts_y = (img_h + (offset_y - 1)) / (offset_y);
 
@@ -474,7 +474,7 @@ void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 
 			if (type == GL_FLOAT) {
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, format, GL_FLOAT, &f_rect[((size_t)subpart_y) * offset_y * img_w * components + subpart_x * offset_x * components]);
-				
+
 				/* add an extra border of pixels so linear looks ok at edges of full image */
 				if (subpart_w < tex_w)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, format, GL_FLOAT, &f_rect[((size_t)subpart_y) * offset_y * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
@@ -485,7 +485,7 @@ void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 			}
 			else {
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, format, GL_UNSIGNED_BYTE, &uc_rect[((size_t)subpart_y) * offset_y * img_w * components + subpart_x * offset_x * components]);
-				
+
 				if (subpart_w < tex_w)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, format, GL_UNSIGNED_BYTE, &uc_rect[((size_t)subpart_y) * offset_y * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
 				if (subpart_h < tex_h)
@@ -514,7 +514,7 @@ void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-	
+
 #if defined(__APPLE__) && 0
 	/* workaround for os x 10.5/10.6 driver bug (above) */
 	glPixelZoom(xzoom, yzoom);
@@ -553,7 +553,7 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	 */
 	float ix = -x / xzoom;
 	float iy = -y / yzoom;
-		
+
 	/* The maximum pixel amounts the image can be cropped
 	 * at the lower left without exceeding the origin.
 	 */
@@ -619,7 +619,7 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 				glDrawPixels(draw_w, draw_h, format, type, uc_rect + (off_y * row_w + off_x) * 4);
 			}
 		}
-		
+
 		glPixelStorei(GL_UNPACK_ROW_LENGTH,  0);
 
 		GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options);
@@ -685,23 +685,23 @@ struct gla2DDrawInfo {
 	float wo_to_sc[2];
 };
 
-void gla2DGetMap(gla2DDrawInfo *di, rctf *rect) 
+void gla2DGetMap(gla2DDrawInfo *di, rctf *rect)
 {
 	*rect = di->world_rect;
 }
 
-void gla2DSetMap(gla2DDrawInfo *di, rctf *rect) 
+void gla2DSetMap(gla2DDrawInfo *di, rctf *rect)
 {
 	int sc_w, sc_h;
 	float wo_w, wo_h;
 
 	di->world_rect = *rect;
-	
+
 	sc_w = BLI_rcti_size_x(&di->screen_rect);
 	sc_h = BLI_rcti_size_y(&di->screen_rect);
 	wo_w = BLI_rcti_size_x(&di->world_rect);
 	wo_h = BLI_rcti_size_y(&di->world_rect);
-	
+
 	di->wo_to_sc[0] = sc_w / wo_w;
 	di->wo_to_sc[1] = sc_h / wo_h;
 }
@@ -718,7 +718,7 @@ void gla2DSetMap(gla2DDrawInfo *di, rctf *rect)
  * by \a screen_rect is supposed to represent. If NULL it is assumed the
  * world has a 1 to 1 mapping to the screen.
  */
-gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect) 
+gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 {
 	gla2DDrawInfo *di = MEM_mallocN(sizeof(*di), "gla2DDrawInfo");
 	int sc_w, sc_h;
@@ -796,7 +796,7 @@ void bgl_get_mats(bglMats *mats)
 	glGetDoublev(GL_MODELVIEW_MATRIX, mats->modelview);
 	glGetDoublev(GL_PROJECTION_MATRIX, mats->projection);
 	glGetIntegerv(GL_VIEWPORT, (GLint *)mats->viewport);
-	
+
 	/* Very strange code here - it seems that certain bad values in the
 	 * modelview matrix can cause gluUnProject to give bad results. */
 	if (mats->modelview[0] < badvalue &&
@@ -809,7 +809,7 @@ void bgl_get_mats(bglMats *mats)
 	{
 		mats->modelview[5] = 0;
 	}
-	
+
 	/* Set up viewport so that gluUnProject will give correct values */
 	mats->viewport[0] = 0;
 	mats->viewport[1] = 0;
@@ -823,19 +823,19 @@ void bgl_get_mats(bglMats *mats)
 void bglPolygonOffset(float viewdist, float dist)
 {
 	static float winmat[16], offset = 0.0f;
-	
+
 	if (dist != 0.0f) {
 		float offs;
-		
+
 		// glEnable(GL_POLYGON_OFFSET_FILL);
 		// glPolygonOffset(-1.0, -1.0);
 
 		/* hack below is to mimic polygon offset */
 		glMatrixMode(GL_PROJECTION);
 		glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
-		
+
 		/* dist is from camera to center point */
-		
+
 		if (winmat[15] > 0.5f) {
 #if 1
 			offs = 0.00001f * dist * viewdist;  // ortho tweaking
@@ -860,10 +860,10 @@ void bglPolygonOffset(float viewdist, float dist)
 			 */
 			offs = winmat[14] * -0.0025f * dist;
 		}
-		
+
 		winmat[14] -= offs;
 		offset += offs;
-		
+
 		glLoadMatrixf(winmat);
 		glMatrixMode(GL_MODELVIEW);
 	}

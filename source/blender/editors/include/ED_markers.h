@@ -68,7 +68,7 @@ struct TimeMarker *ED_markers_get_first_selected(ListBase *markers);
 /* Operators ------------------------------ */
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
-void ED_operatortypes_marker(void); 
+void ED_operatortypes_marker(void);
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_keymap_marker(struct wmKeyConfig *keyconf);
 

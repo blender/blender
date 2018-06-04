@@ -52,28 +52,28 @@ typedef struct RigGraph {
 	ListBase nodes;
 
 	float length;
-	
+
 	FreeArc         free_arc;
 	FreeNode        free_node;
 	RadialSymmetry  radial_symmetry;
 	AxialSymmetry   axial_symmetry;
 	/*********************************/
-	
+
 	int flag;
 
 	ListBase   controls;
 	ListBase  *editbones;
-	
+
 	struct RigNode *head;
 	ReebGraph *link_mesh;
-	
-	
+
+
 	TaskScheduler *task_scheduler;
 	TaskPool *task_pool;
-	
+
 	GHash *bones_map;     /* map of editbones by name */
 	GHash *controls_map;  /* map of rigcontrols by bone pointer */
-	
+
 	struct Object *ob;
 } RigGraph;
 
@@ -106,7 +106,7 @@ typedef struct RigArc {
 	int symmetry_group;
 	int symmetry_flag;
 	/*********************************/
-	
+
 	ListBase edges;
 	int count;
 	ReebArc *link_mesh;

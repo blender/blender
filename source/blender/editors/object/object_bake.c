@@ -557,7 +557,7 @@ typedef struct BakeRender {
 	short *stop;
 	short *do_update;
 	float *progress;
-	
+
 	ListBase threads;
 
 	/* backup */
@@ -662,7 +662,7 @@ static void finish_bake_internal(BakeRender *bkr)
 			}
 
 			BKE_image_release_ibuf(ima, ibuf, NULL);
-			DAG_id_tag_update(&ima->id, 0);			
+			DAG_id_tag_update(&ima->id, 0);
 		}
 	}
 

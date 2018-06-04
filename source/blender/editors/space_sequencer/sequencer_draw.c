@@ -125,12 +125,12 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 
 		case SEQ_TYPE_SCENE:
 			UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
-		
+
 			if (seq->scene == curscene) {
 				UI_GetColorPtrShade3ubv(col, col, 20);
 			}
 			break;
-		
+
 		/* transitions */
 		case SEQ_TYPE_CROSS:
 		case SEQ_TYPE_GAMCROSS:
@@ -210,14 +210,14 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		float startsample, endsample;
 		float value1, value2;
 		bSound *sound = seq->sound;
-		
+
 		SoundWaveform *waveform;
-		
+
 		if (!sound->spinlock) {
 			sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
 			BLI_spin_init(sound->spinlock);
 		}
-		
+
 		BLI_spin_lock(sound->spinlock);
 		if (!sound->waveform) {
 			if (!(sound->flags & SOUND_FLAGS_WAVEFORM_LOADING)) {
@@ -232,7 +232,7 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 			return;  /* nothing to draw */
 		}
 		BLI_spin_unlock(sound->spinlock);
-		
+
 		waveform = sound->waveform;
 
 		if (waveform->length == 0) {
@@ -287,7 +287,7 @@ static void drawmeta_stipple(int value)
 	if (value) {
 		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
 		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_HALFTONE);
-		
+
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
 	}
@@ -358,7 +358,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 			color3ubv_from_seq(scene, seq, col);
 
 			glColor4ubv(col);
-			
+
 			/* clamp within parent sequence strip bounds */
 			if (x1_chan < x1) x1_chan = x1;
 			if (x2_chan > x2) x2_chan = x2;
@@ -379,7 +379,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 
 	if (seqm->flag & SEQ_MUTE)
 		drawmeta_stipple(0);
-	
+
 	glDisable(GL_BLEND);
 }
 
@@ -400,10 +400,10 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 	float v1[2], v2[2], v3[2], rx1 = 0, rx2 = 0; //for triangles and rect
 	float x1, x2, y1, y2;
 	unsigned int whichsel = 0;
-	
+
 	x1 = seq->startdisp;
 	x2 = seq->enddisp;
-	
+
 	y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
@@ -411,50 +411,50 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 	if (direction == SEQ_LEFTHANDLE) {
 		rx1 = x1;
 		rx2 = x1 + handsize_clamped * 0.75f;
-		
+
 		v1[0] = x1 + handsize_clamped / 4; v1[1] = y1 + ( ((y1 + y2) / 2.0f - y1) / 2);
 		v2[0] = x1 + handsize_clamped / 4; v2[1] = y2 - ( ((y1 + y2) / 2.0f - y1) / 2);
 		v3[0] = v2[0] + handsize_clamped / 4; v3[1] = (y1 + y2) / 2.0f;
-		
+
 		whichsel = SEQ_LEFTSEL;
 	}
 	else if (direction == SEQ_RIGHTHANDLE) {
 		rx1 = x2 - handsize_clamped * 0.75f;
 		rx2 = x2;
-		
+
 		v1[0] = x2 - handsize_clamped / 4; v1[1] = y1 + ( ((y1 + y2) / 2.0f - y1) / 2);
 		v2[0] = x2 - handsize_clamped / 4; v2[1] = y2 - ( ((y1 + y2) / 2.0f - y1) / 2);
 		v3[0] = v2[0] - handsize_clamped / 4; v3[1] = (y1 + y2) / 2.0f;
-		
+
 		whichsel = SEQ_RIGHTSEL;
 	}
-	
+
 	/* draw! */
 	if (!(seq->type & SEQ_TYPE_EFFECT) ||
 	    BKE_sequence_effect_get_num_inputs(seq->type) == 0)
 	{
 		glEnable(GL_BLEND);
-		
+
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
+
 		if (seq->flag & whichsel) glColor4ub(0, 0, 0, 80);
 		else if (seq->flag & SELECT) glColor4ub(255, 255, 255, 30);
 		else glColor4ub(0, 0, 0, 22);
-		
+
 		glRectf(rx1, y1, rx2, y2);
-		
+
 		if (seq->flag & whichsel) glColor4ub(255, 255, 255, 200);
 		else glColor4ub(0, 0, 0, 50);
-		
+
 		glEnable(GL_POLYGON_SMOOTH);
 		glBegin(GL_TRIANGLES);
 		glVertex2fv(v1); glVertex2fv(v2); glVertex2fv(v3);
 		glEnd();
-		
+
 		glDisable(GL_POLYGON_SMOOTH);
 		glDisable(GL_BLEND);
 	}
-	
+
 	if ((G.moving & G_TRANSFORM_SEQ) || (seq->flag & whichsel)) {
 		const char col[4] = {255, 255, 255, 255};
 		char numstr[32];
@@ -570,7 +570,7 @@ static void draw_seq_text(View2D *v2d, SpaceSeq *sseq, Sequence *seq, float x1, 
 		str_len = BLI_snprintf(str, sizeof(str), "%s | %d",
 		                       name, seq->len);
 	}
-	
+
 	if (seq->flag & SELECT) {
 		col[0] = col[1] = col[2] = 255;
 	}
@@ -594,23 +594,23 @@ static void draw_seq_text(View2D *v2d, SpaceSeq *sseq, Sequence *seq, float x1, 
 void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, float x2, float y2)
 {
 	float ymid1, ymid2;
-	
+
 	if (seq->flag & SEQ_MUTE) {
 		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
 		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_HALFTONE);
 	}
-	
+
 	ymid1 = (y2 - y1) * 0.25f + y1;
 	ymid2 = (y2 - y1) * 0.65f + y1;
-	
+
 	glBegin(GL_QUADS);
-	
+
 	if (seq->flag & SEQ_INVALID_EFFECT) { col[0] = 255; col[1] = 0; col[2] = 255; }
 	else if (seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, -50);
 	/* else UI_GetColorPtrShade3ubv(col, col, 0); */ /* DO NOTHING */
-	
+
 	glColor3ubv(col);
-	
+
 	glVertex2f(x1, y1);
 	glVertex2f(x2, y1);
 
@@ -619,29 +619,29 @@ void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, f
 	else UI_GetColorPtrShade3ubv(col, col, -5);
 
 	glColor3ubv((GLubyte *)col);
-	
+
 	glVertex2f(x2, ymid1);
 	glVertex2f(x1, ymid1);
-	
+
 	glEnd();
-	
+
 	glRectf(x1,  ymid1,  x2,  ymid2);
-	
+
 	glBegin(GL_QUADS);
-	
+
 	glVertex2f(x1, ymid2);
 	glVertex2f(x2, ymid2);
-	
+
 	if (seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, -15);
 	else UI_GetColorPtrShade3ubv(col, col, 25);
-	
+
 	glColor3ubv((GLubyte *)col);
-	
+
 	glVertex2f(x2, y2);
 	glVertex2f(x1, y2);
-	
+
 	glEnd();
-	
+
 	if (seq->flag & SEQ_MUTE) {
 		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	}
@@ -652,25 +652,25 @@ void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 	float x1, x2, y1, y2, pixely, a;
 	unsigned char col[3], blendcol[3];
 	View2D *v2d = &ar->v2d;
-	
+
 	x1 = seq->startdisp;
 	x2 = seq->enddisp;
-	
+
 	y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
-	
+
 	pixely = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
-	
+
 	if (pixely <= 0) return;  /* can happen when the view is split/resized */
-	
+
 	blendcol[0] = blendcol[1] = blendcol[2] = 120;
-	
+
 	if (seq->startofs) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
+
 		color3ubv_from_seq(scene, seq, col);
-		
+
 		if (seq->flag & SELECT) {
 			UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.3, -40);
 			glColor4ub(col[0], col[1], col[2], 170);
@@ -679,22 +679,22 @@ void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 			UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.6, 0);
 			glColor4ub(col[0], col[1], col[2], 110);
 		}
-		
+
 		glRectf((float)(seq->start), y1 - SEQ_STRIP_OFSBOTTOM, x1, y1);
-		
+
 		if (seq->flag & SELECT) glColor4ub(col[0], col[1], col[2], 255);
 		else glColor4ub(col[0], col[1], col[2], 160);
-		
+
 		fdrawbox((float)(seq->start), y1 - SEQ_STRIP_OFSBOTTOM, x1, y1);  //outline
-		
+
 		glDisable(GL_BLEND);
 	}
 	if (seq->endofs) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
+
 		color3ubv_from_seq(scene, seq, col);
-		
+
 		if (seq->flag & SELECT) {
 			UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.3, -40);
 			glColor4ub(col[0], col[1], col[2], 170);
@@ -703,30 +703,30 @@ void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 			UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.6, 0);
 			glColor4ub(col[0], col[1], col[2], 110);
 		}
-		
+
 		glRectf(x2, y2, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM);
-		
+
 		if (seq->flag & SELECT) glColor4ub(col[0], col[1], col[2], 255);
 		else glColor4ub(col[0], col[1], col[2], 160);
-		
+
 		fdrawbox(x2, y2, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM); //outline
-		
+
 		glDisable(GL_BLEND);
 	}
 	if (seq->startstill) {
 		color3ubv_from_seq(scene, seq, col);
 		UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.75, 40);
 		glColor3ubv((GLubyte *)col);
-		
+
 		draw_shadedstrip(seq, col, x1, y1, (float)(seq->start), y2);
-		
+
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
 		 * especially when the extension is very small */
 		if (seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 24);
 		else UI_GetColorPtrShade3ubv(col, col, -16);
-		
+
 		glColor3ubv((GLubyte *)col);
-		
+
 		for (a = y1; a < y2; a += pixely * 2.0f) {
 			fdrawline(x1,  a,  (float)(seq->start),  a);
 		}
@@ -735,16 +735,16 @@ void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		color3ubv_from_seq(scene, seq, col);
 		UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.75, 40);
 		glColor3ubv((GLubyte *)col);
-		
+
 		draw_shadedstrip(seq, col, (float)(seq->start + seq->len), y1, x2, y2);
-		
+
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
 		 * especially when the extension is very small */
 		if (seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, 24);
 		else UI_GetColorPtrShade3ubv(col, col, -16);
-		
+
 		glColor3ubv((GLubyte *)col);
-		
+
 		for (a = y1; a < y2; a += pixely * 2.0f) {
 			fdrawline((float)(seq->start + seq->len),  a,  x2,  a);
 		}
@@ -766,7 +766,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 
 	/* we need to know if this is a single image/color or not for drawing */
 	is_single_image = (char)BKE_sequence_single_check(seq);
-	
+
 	/* body */
 	x1 = (seq->startstill) ? seq->start : seq->startdisp;
 	y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
@@ -777,7 +777,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	/* get the correct color per strip type*/
 	//color3ubv_from_seq(scene, seq, col);
 	color3ubv_from_seq(scene, seq, background_col);
-	
+
 	/* draw the main strip body */
 	if (is_single_image) {  /* single image */
 		draw_shadedstrip(seq, background_col,
@@ -796,11 +796,11 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 
 	draw_seq_handle(v2d, seq, handsize_clamped, SEQ_LEFTHANDLE);
 	draw_seq_handle(v2d, seq, handsize_clamped, SEQ_RIGHTHANDLE);
-	
+
 	/* draw the strip outline */
 	x1 = seq->startdisp;
 	x2 = seq->enddisp;
-	
+
 	/* draw sound wave */
 	if (seq->type == SEQ_TYPE_SOUND_RAM) {
 		if (!(sseq->flag & SEQ_NO_WAVEFORMS)) {
@@ -848,7 +848,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	}
 	else
 		UI_GetColorPtrShade3ubv(col, col, outline_tint);
-	
+
 	if ((seq->type == SEQ_TYPE_META) ||
 	    ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
 	{
@@ -859,15 +859,15 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
 	}
-	
+
 	glColor3ubv((GLubyte *)col);
-	
+
 	UI_draw_roundbox_shade_x(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
-	
+
 	if (seq->flag & SEQ_MUTE) {
 		glDisable(GL_LINE_STIPPLE);
 	}
-	
+
 	/* calculate if seq is long enough to print a name */
 	x1 = seq->startdisp + handsize_clamped;
 	x2 = seq->enddisp   - handsize_clamped;
@@ -997,7 +997,7 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
 {
 	ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 	ImBuf *scope;
-	
+
 	IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
 		                                             &scene->display_settings);
 
@@ -1457,7 +1457,7 @@ void drawprefetchseqspace(Scene *scene, ARegion *UNUSED(ar), SpaceSeq *sseq)
 {
 	int rectx, recty;
 	int render_size = sseq->render_size;
-	int proxy_size = 100.0; 
+	int proxy_size = 100.0;
 	if (render_size == 0) {
 		render_size = scene->r.size;
 	}
@@ -1483,7 +1483,7 @@ void drawprefetchseqspace(Scene *scene, ARegion *UNUSED(ar), SpaceSeq *sseq)
 static void draw_seq_backdrop(View2D *v2d)
 {
 	int i;
-	
+
 	/* darker gray overlay over the view backdrop */
 	UI_ThemeColorShade(TH_BACK, -20);
 	glRectf(v2d->cur.xmin,  -1.0,  v2d->cur.xmax,  1.0);
@@ -1497,7 +1497,7 @@ static void draw_seq_backdrop(View2D *v2d)
 			UI_ThemeColorShade(TH_BACK, -15);
 		else
 			UI_ThemeColorShade(TH_BACK, -25);
-			
+
 		glVertex2f(v2d->cur.xmax, i);
 		glVertex2f(v2d->cur.xmin, i);
 		glVertex2f(v2d->cur.xmin, i + 1);
@@ -1506,16 +1506,16 @@ static void draw_seq_backdrop(View2D *v2d)
 		i += 1.0;
 	}
 	glEnd();
-	
+
 	/* Darker lines separating the horizontal bands */
 	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 	UI_ThemeColor(TH_GRID);
-	
+
 	glBegin(GL_LINES);
 	while (i < v2d->cur.ymax) {
 		glVertex2f(v2d->cur.xmax, i);
 		glVertex2f(v2d->cur.xmin, i);
-			
+
 		i += 1.0;
 	}
 	glEnd();
@@ -1530,12 +1530,12 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	Sequence *last_seq = BKE_sequencer_active_get(scene);
 	int sel = 0, j;
 	float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
-	
+
 	/* loop through twice, first unselected, then selected */
 	for (j = 0; j < 2; j++) {
 		Sequence *seq;
 		int outline_tint = (j) ? -60 : -150; /* highlighting around strip edges indicating selection */
-		
+
 		/* loop through strips, checking for those that are visible */
 		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 			/* boundbox and selection tests for NOT drawing the strip... */
@@ -1545,15 +1545,15 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 			else if (max_ii(seq->enddisp, seq->start + seq->len) < v2d->cur.xmin) continue;
 			else if (seq->machine + 1.0f < v2d->cur.ymin) continue;
 			else if (seq->machine > v2d->cur.ymax) continue;
-			
+
 			/* strip passed all tests unscathed... so draw it now */
 			draw_seq_strip(C, sseq, scene, ar, seq, outline_tint, pixelx);
 		}
-		
+
 		/* draw selected next time round */
 		sel = SELECT;
 	}
-	
+
 	/* draw the last selected last (i.e. 'active' in other parts of Blender), removes some overlapping error */
 	if (last_seq)
 		draw_seq_strip(C, sseq, scene, ar, last_seq, 120, pixelx);
@@ -1575,8 +1575,8 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 	const int frame_end = PEFRA + 1;
 
 	glEnable(GL_BLEND);
-	
-	/* draw darkened area outside of active timeline 
+
+	/* draw darkened area outside of active timeline
 	 * frame range used is preview range or scene range */
 	UI_ThemeColorShadeAlpha(TH_BACK, -25, -100);
 
@@ -1618,27 +1618,27 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	View2DScrollers *scrollers;
 	short unit = 0, flag = 0;
 	float col[3];
-	
+
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	if (ed && ed->metastack.first) 
+	if (ed && ed->metastack.first)
 		glClearColor(col[0], col[1], col[2] - 0.1f, 0.0f);
-	else 
+	else
 		glClearColor(col[0], col[1], col[2], 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	UI_view2d_view_ortho(v2d);
-	
-	
-	/* calculate extents of sequencer strips/data 
+
+
+	/* calculate extents of sequencer strips/data
 	 * NOTE: needed for the scrollers later
 	 */
 	boundbox_seq(scene, &v2d->tot);
-	
-	
+
+
 	/* draw backdrop */
 	draw_seq_backdrop(v2d);
-	
+
 	/* regular grid-pattern over the rest of the view (i.e. 1-second grid lines) */
 	UI_view2d_constant_grid_draw(v2d, FPS);
 
@@ -1647,30 +1647,30 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 		draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0, false, true);
 		UI_view2d_view_ortho(v2d);
 	}
-		
+
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
-	
+
 	seq_draw_sfra_efra(scene, v2d);
 
 	/* sequence strips (if there is data available to be drawn) */
 	if (ed) {
 		/* draw the data */
 		draw_seq_strips(C, ed, ar);
-		
+
 		/* text draw cached (for sequence names), in pixelspace now */
 		UI_view2d_text_cache_draw(ar);
 	}
-	
+
 	/* current frame */
 	UI_view2d_view_ortho(v2d);
 	if ((sseq->flag & SEQ_DRAWFRAMES) == 0)      flag |= DRAWCFRA_UNIT_SECONDS;
 	if ((sseq->flag & SEQ_NO_DRAW_CFRANUM) == 0) flag |= DRAWCFRA_SHOW_NUMBOX;
 	ANIM_draw_cfra(C, v2d, flag);
-	
+
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	ED_markers_draw(C, DRAW_MARKERS_LINES | DRAW_MARKERS_MARGIN);
-	
+
 	/* preview range */
 	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d, 1);
@@ -1687,7 +1687,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 		glEnd();
 
 	}
-	
+
 	/* callback */
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 

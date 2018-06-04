@@ -22,7 +22,7 @@
  *  \ingroup edarmature
  */
 
- 
+
 #ifndef __BIF_GENERATE_H__
 #define __BIF_GENERATE_H__
 
@@ -33,7 +33,7 @@ struct bArmature;
 struct ListBase;
 
 typedef int (NextSubdivisionFunc)(struct ToolSettings *, struct BArcIterator *, int, int, float[3], float[3]);
- 
+
 float calcArcCorrelation(struct BArcIterator *iter, int start, int end, float v0[3], float n[3]);
 
 int nextFixedSubdivision(struct ToolSettings *toolsettings, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
@@ -44,6 +44,6 @@ struct EditBone *subdivideArcBy(struct ToolSettings *toolsettings, struct bArmat
                                 float invmat[4][4], float tmat[3][3], NextSubdivisionFunc next_subdividion);
 
 void setBoneRollFromNormal(struct EditBone *bone, const float no[3], float invmat[4][4], float tmat[3][3]);
- 
+
 
 #endif /* __BIF_GENERATE_H__ */

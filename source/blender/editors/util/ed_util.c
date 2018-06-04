@@ -131,7 +131,7 @@ void ED_editors_exit(bContext *C)
 
 	if (!bmain)
 		return;
-	
+
 	/* frees all editmode undos */
 	if (G.main->wm.first) {
 		wmWindowManager *wm = G.main->wm.first;
@@ -145,7 +145,7 @@ void ED_editors_exit(bContext *C)
 	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 		if (sce->obedit) {
 			Object *ob = sce->obedit;
-		
+
 			if (ob) {
 				if (ob->type == OB_MESH) {
 					Mesh *me = ob->data;
@@ -218,7 +218,7 @@ void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, fl
 	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
 	if (invert)
 		ctrl = !ctrl;
-	
+
 	if (ctrl && shift) {
 		if (fac3 != 0.0f) *val = fac3 * floorf(*val / fac3 + 0.5f);
 	}

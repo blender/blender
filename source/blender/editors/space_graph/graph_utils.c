@@ -57,7 +57,7 @@
 /* ************************************************************** */
 /* Active F-Curve */
 
-/* Find 'active' F-Curve. It must be editable, since that's the purpose of these buttons (subject to change).  
+/* Find 'active' F-Curve. It must be editable, since that's the purpose of these buttons (subject to change).
  * We return the 'wrapper' since it contains valuable context info (about hierarchy), which will need to be freed
  * when the caller is done with it.
  *
@@ -68,20 +68,20 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 	ListBase anim_data = {NULL, NULL};
 	int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE);
 	size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
+
 	/* We take the first F-Curve only, since some other ones may have had 'active' flag set
 	 * if they were from linked data.
 	 */
 	if (items) {
 		bAnimListElem *ale = (bAnimListElem *)anim_data.first;
-		
+
 		/* remove first item from list, then free the rest of the list and return the stored one */
 		BLI_remlink(&anim_data, ale);
 		ANIM_animdata_freelist(&anim_data);
-		
+
 		return ale;
 	}
-	
+
 	/* no active F-Curve */
 	return NULL;
 }
@@ -99,30 +99,30 @@ int graphop_visible_keyframes_poll(bContext *C)
 	size_t items;
 	int filter;
 	short found = 0;
-	
+
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
 	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
 		return 0;
-		
+
 	/* try to init Anim-Context stuff ourselves and check */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return 0;
-	
+
 	/* loop over the visible (selection doesn't matter) F-Curves, and see if they're suitable
 	 * stopping on the first successful match
 	 */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	if (items == 0) 
+	if (items == 0)
 		return 0;
-	
+
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
-		
+
 		/* visible curves for selection must fulfill the following criteria:
 		 *	- it has bezier keyframes
-		 *	- F-Curve modifiers do not interfere with the result too much 
+		 *	- F-Curve modifiers do not interfere with the result too much
 		 *	  (i.e. the modifier-control drawing check returns false)
 		 */
 		if (fcu->bezt == NULL)
@@ -132,7 +132,7 @@ int graphop_visible_keyframes_poll(bContext *C)
 			break;
 		}
 	}
-	
+
 	/* cleanup and return findings */
 	ANIM_animdata_freelist(&anim_data);
 	return found;
@@ -148,27 +148,27 @@ int graphop_editable_keyframes_poll(bContext *C)
 	size_t items;
 	int filter;
 	short found = 0;
-	
+
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
 	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
 		return 0;
-		
+
 	/* try to init Anim-Context stuff ourselves and check */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return 0;
-	
+
 	/* loop over the editable F-Curves, and see if they're suitable
 	 * stopping on the first successful match
 	 */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	if (items == 0) 
+	if (items == 0)
 		return 0;
-	
+
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
-		
+
 		/* editable curves must fulfill the following criteria:
 		 *	- it has bezier keyframes
 		 *	- it must not be protected from editing (this is already checked for with the edit flag
@@ -182,7 +182,7 @@ int graphop_editable_keyframes_poll(bContext *C)
 			break;
 		}
 	}
-	
+
 	/* cleanup and return findings */
 	ANIM_animdata_freelist(&anim_data);
 	return found;
@@ -195,21 +195,21 @@ int graphop_active_fcurve_poll(bContext *C)
 	bAnimListElem *ale;
 	ScrArea *sa = CTX_wm_area(C);
 	bool has_fcurve = 0;
-	
+
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
 	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
 		return 0;
-		
+
 	/* try to init Anim-Context stuff ourselves and check */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return 0;
-		
+
 	/* try to get the Active F-Curve */
 	ale = get_active_fcurve_channel(&ac);
 	if (ale == NULL)
 		return 0;
-		
+
 	/* do we have a suitable F-Curves?
 	 * - For most cases, NLA Control Curves are sufficiently similar to NLA curves to serve this role too.
 	 *   Under the hood, they are F-Curves too. The only problems which will arise here are if these need to be
@@ -220,10 +220,10 @@ int graphop_active_fcurve_poll(bContext *C)
 		FCurve *fcu = (FCurve *)ale->data;
 		has_fcurve = (fcu->flag & FCURVE_VISIBLE) != 0;
 	}
-	
+
 	/* free temp data... */
 	MEM_freeN(ale);
-	
+
 	/* return success */
 	return has_fcurve;
 }
@@ -236,24 +236,24 @@ int graphop_selected_fcurve_poll(bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	size_t items;
 	int filter;
-	
+
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
 	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
 		return 0;
-		
+
 	/* try to init Anim-Context stuff ourselves and check */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return 0;
-	
-	/* get the editable + selected F-Curves, and as long as we got some, we can return 
+
+	/* get the editable + selected F-Curves, and as long as we got some, we can return
 	 * NOTE: curve-visible flag isn't included, otherwise selecting a curve via list to edit is too cumbersome
 	 */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	if (items == 0) 
+	if (items == 0)
 		return 0;
-	
+
 	/* cleanup and return findings */
 	ANIM_animdata_freelist(&anim_data);
 	return 1;

@@ -74,14 +74,14 @@
 /* ************************ main time area region *********************** */
 
 static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
-{	
-	/* draw darkened area outside of active timeline 
-	 * frame range used is preview range or scene range 
+{
+	/* draw darkened area outside of active timeline
+	 * frame range used is preview range or scene range
 	 */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-		
+
 	if (PSFRA < PEFRA) {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
 		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -104,13 +104,13 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 	SpaceTimeCache *stc = stime->caches.first;
 	const float cache_draw_height = (4.0f * UI_DPI_FAC * U.pixelsize);
 	float yoffs = 0.f;
-	
+
 	if (!(stime->cache_display & TIME_CACHE_DISPLAY) || (!ob))
 		return;
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
-	/* iterate over pointcaches on the active object, 
+	/* iterate over pointcaches on the active object,
 	 * add spacetimecache and vertex array for each */
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		float col[4], *fp;
@@ -161,25 +161,25 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 				fp[0] = (float)i - 0.5f;
 				fp[1] = 0.0;
 				fp += 2;
-				
+
 				fp[0] = (float)i - 0.5f;
 				fp[1] = 1.0;
 				fp += 2;
-				
+
 				fp[0] = (float)i + 0.5f;
 				fp[1] = 1.0;
 				fp += 2;
-				
+
 				fp[0] = (float)i + 0.5f;
 				fp[1] = 0.0;
 				fp += 2;
 			}
 		}
-		
+
 		glPushMatrix();
 		glTranslatef(0.0, (float)V2D_SCROLL_HEIGHT + yoffs, 0.0);
 		glScalef(1.0, cache_draw_height, 0.0);
-		
+
 		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
 				col[0] = 1.0;   col[1] = 0.4;   col[2] = 0.02;
@@ -213,11 +213,11 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 				break;
 		}
 		glColor4fv(col);
-		
+
 		glEnable(GL_BLEND);
-		
+
 		glRectf((float)sta, 0.0, (float)end, 1.0);
-		
+
 		col[3] = 0.4f;
 		if (pid->cache->flag & PTCACHE_BAKED) {
 			col[0] -= 0.4f; col[1] -= 0.4f; col[2] -= 0.4f;
@@ -226,16 +226,16 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 			col[0] += 0.4f; col[1] += 0.4f; col[2] += 0.4f;
 		}
 		glColor4fv(col);
-		
+
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, 0, stc->array);
 		glDrawArrays(GL_QUADS, 0, (fp - stc->array) / 2);
 		glDisableClientState(GL_VERTEX_ARRAY);
-		
+
 		glDisable(GL_BLEND);
-		
+
 		glPopMatrix();
-		
+
 		yoffs += cache_draw_height;
 
 		stc = stc->next;
@@ -256,14 +256,14 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 static void time_cache_free(SpaceTime *stime)
 {
 	SpaceTimeCache *stc;
-	
+
 	for (stc = stime->caches.first; stc; stc = stc->next) {
 		if (stc->array) {
 			MEM_freeN(stc->array);
 			stc->array = NULL;
 		}
 	}
-	
+
 	BLI_freelistN(&stime->caches);
 }
 
@@ -277,17 +277,17 @@ static void time_cache_refresh(SpaceTime *stime)
 static ActKeyColumn *time_cfra_find_ak(ActKeyColumn *ak, float cframe)
 {
 	ActKeyColumn *akn = NULL;
-	
+
 	/* sanity checks */
 	if (ak == NULL)
 		return NULL;
-	
+
 	/* check if this is a match, or whether it is in some subtree */
 	if (cframe < ak->cfra)
 		akn = time_cfra_find_ak(ak->left, cframe);
 	else if (cframe > ak->cfra)
 		akn = time_cfra_find_ak(ak->right, cframe);
-		
+
 	/* if no match found (or found match), just use the current one */
 	if (akn == NULL)
 		return ak;
@@ -301,16 +301,16 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	bDopeSheet ads = {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
-	
+
 	float fac1 = (GS(id->name) == ID_GD) ? 0.8f : 0.6f; /* draw GPencil keys taller, to help distinguish them */
 	float fac2 = 1.0f - fac1;
-	
+
 	float ymin = v2d->tot.ymin;
 	float ymax = v2d->tot.ymax * fac1 + ymin * fac2;
-	
+
 	/* init binarytree-list for getting keyframes */
 	BLI_dlrbTree_init(&keys);
-	
+
 	/* init dopesheet settings */
 	if (onlysel)
 		ads.filterflag |= ADS_FILTER_ONLYSEL;
@@ -332,12 +332,12 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 		default:
 			break;
 	}
-		
+
 	/* build linked-list for searching */
 	BLI_dlrbTree_linkedlist_sync(&keys);
-	
-	/* start drawing keyframes 
-	 *	- we use the binary-search capabilities of the tree to only start from 
+
+	/* start drawing keyframes
+	 *	- we use the binary-search capabilities of the tree to only start from
 	 *	  the first visible keyframe (last one can then be easily checked)
 	 *	- draw within a single GL block to be faster
 	 */
@@ -350,7 +350,7 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 		glVertex2f(ak->cfra, ymax);
 	}
 	glEnd(); // GL_LINES
-		
+
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 }
@@ -412,7 +412,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	Object *ob = CTX_data_active_object(C);
 	View2D *v2d = &ar->v2d;
 	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);
-	
+
 	/* set this for all keyframe lines once and for all */
 	glLineWidth(1.0);
 
@@ -420,7 +420,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	UI_ThemeColor(TH_TIME_KEYFRAME);
 	time_draw_caches_keyframes(CTX_data_main(C), scene, v2d, onlysel);
 
-	/* draw grease pencil keyframes (if available) */	
+	/* draw grease pencil keyframes (if available) */
 	UI_ThemeColor(TH_TIME_GP_KEYFRAME);
 	if (scene->gpd) {
 		time_draw_idblock_keyframes(v2d, (ID *)scene->gpd, onlysel);
@@ -428,8 +428,8 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	if (ob && ob->gpd) {
 		time_draw_idblock_keyframes(v2d, (ID *)ob->gpd, onlysel);
 	}
-	
-	/* draw scene keyframes first 
+
+	/* draw scene keyframes first
 	 *	- don't try to do this when only drawing active/selected data keyframes,
 	 *	  since this can become quite slow
 	 */
@@ -438,33 +438,33 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 		UI_ThemeColorShade(TH_TIME_KEYFRAME, -50);
 		time_draw_idblock_keyframes(v2d, (ID *)scene, onlysel);
 	}
-	
-	/* draw keyframes from selected objects 
+
+	/* draw keyframes from selected objects
 	 *  - only do the active object if in posemode (i.e. showing only keyframes for the bones)
 	 *    OR the onlysel flag was set, which means that only active object's keyframes should
 	 *    be considered
 	 */
 	UI_ThemeColor(TH_TIME_KEYFRAME);
-	
+
 	if (ob && ((ob->mode == OB_MODE_POSE) || onlysel)) {
 		/* draw keyframes for active object only */
 		time_draw_idblock_keyframes(v2d, (ID *)ob, onlysel);
 	}
 	else {
 		bool active_done = false;
-		
+
 		/* draw keyframes from all selected objects */
 		CTX_DATA_BEGIN (C, Object *, obsel, selected_objects)
 		{
 			/* last arg is 0, since onlysel doesn't apply here... */
 			time_draw_idblock_keyframes(v2d, (ID *)obsel, 0);
-			
+
 			/* if this object is the active one, set flag so that we don't draw again */
 			if (obsel == ob)
 				active_done = true;
 		}
 		CTX_DATA_END;
-		
+
 		/* if active object hasn't been done yet, draw it... */
 		if (ob && (active_done == 0))
 			time_draw_idblock_keyframes(v2d, (ID *)ob, 0);
@@ -558,9 +558,9 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 static void time_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
-	
+
 	/* own keymap */
 	keymap = WM_keymap_find(wm->defaultconf, "Timeline", SPACE_TIME, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
@@ -576,49 +576,49 @@ static void time_main_region_draw(const bContext *C, ARegion *ar)
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	int unit, flag = 0;
-	
+
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	UI_view2d_view_ortho(v2d);
-	
+
 	/* grid */
 	unit = (stime->flag & TIME_DRAWFRAMES) ? V2D_UNIT_FRAMES : V2D_UNIT_SECONDS;
 	grid = UI_view2d_grid_calc(scene, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(v2d, grid, (V2D_VERTICAL_LINES | V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
-	
+
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
 	/* start and end frame */
 	time_draw_sfra_efra(scene, v2d);
-	
+
 	/* current frame */
 	flag = DRAWCFRA_WIDE; /* this is only really needed on frames where there's a keyframe, but this will do... */
 	if ((stime->flag & TIME_DRAWFRAMES) == 0)  flag |= DRAWCFRA_UNIT_SECONDS;
 	if (stime->flag & TIME_CFRA_NUM)           flag |= DRAWCFRA_SHOW_NUMBOX;
 	ANIM_draw_cfra(C, v2d, flag);
-	
+
 	UI_view2d_view_ortho(v2d);
-	
+
 	/* keyframes */
 	time_draw_keyframes(C, ar);
-	
+
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	ED_markers_draw(C, 0);
-	
+
 	/* caches */
 	time_draw_cache(stime, obact, scene);
-	
+
 	/* callback */
 	UI_view2d_view_ortho(v2d);
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
-	
+
 	/* scrollers */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
@@ -637,7 +637,7 @@ static void time_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 		case NC_ANIMATION:
 			ED_region_tag_redraw(ar);
 			break;
-		
+
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_OB_SELECT:
@@ -718,22 +718,22 @@ static SpaceLink *time_new(const bContext *C)
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for time");
-	
+
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_BOTTOM;
-	
+
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for time");
-	
+
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
-	
+
 	ar->v2d.tot.xmin = (float)(SFRA - 4);
 	ar->v2d.tot.ymin = 0.0f;
 	ar->v2d.tot.xmax = (float)(EFRA + 4);
 	ar->v2d.tot.ymax = 50.0f;
-	
+
 	ar->v2d.cur = ar->v2d.tot;
 
 	ar->v2d.min[0] = 1.0f;
@@ -758,7 +758,7 @@ static SpaceLink *time_new(const bContext *C)
 static void time_free(SpaceLink *sl)
 {
 	SpaceTime *stime = (SpaceTime *)sl;
-	
+
 	time_cache_free(stime);
 }
 /* spacetype; init callback in ED_area_initialize() */
@@ -767,9 +767,9 @@ static void time_free(SpaceLink *sl)
 static void time_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
-	
+
 	time_cache_free(stime);
-	
+
 	/* enable all cache display */
 	stime->cache_display |= TIME_CACHE_DISPLAY;
 	stime->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
@@ -781,9 +781,9 @@ static SpaceLink *time_duplicate(SpaceLink *sl)
 {
 	SpaceTime *stime = (SpaceTime *)sl;
 	SpaceTime *stimen = MEM_dupallocN(stime);
-	
+
 	BLI_listbase_clear(&stimen->caches);
-	
+
 	return (SpaceLink *)stimen;
 }
 
@@ -793,10 +793,10 @@ void ED_spacetype_time(void)
 {
 	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype time");
 	ARegionType *art;
-	
+
 	st->spaceid = SPACE_TIME;
 	strncpy(st->name, "Timeline", BKE_ST_MAXNAME);
-	
+
 	st->new = time_new;
 	st->free = time_free;
 	st->init = time_init;
@@ -805,29 +805,29 @@ void ED_spacetype_time(void)
 	st->keymap = NULL;
 	st->listener = time_listener;
 	st->refresh = time_refresh;
-	
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_MARKERS | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
-	
+
 	art->init = time_main_region_init;
 	art->draw = time_main_region_draw;
 	art->listener = time_main_region_listener;
 	art->keymap = time_keymap;
 	art->lock = 1;   /* Due to pointcache, see T4960. */
 	BLI_addhead(&st->regiontypes, art);
-	
+
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
-	
+
 	art->init = time_header_region_init;
 	art->draw = time_header_region_draw;
 	art->listener = time_header_region_listener;
 	BLI_addhead(&st->regiontypes, art);
-		
+
 	BKE_spacetype_register(st);
 }

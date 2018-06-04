@@ -143,7 +143,7 @@ static bool sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoN
 	SculptSession *ss = ob->sculpt;
 	MVert *mvert;
 	int *index;
-	
+
 	if (unode->maxvert) {
 		/* regular mesh restore */
 
@@ -260,7 +260,7 @@ static bool sculpt_undo_restore_hidden(
 
 	if (unode->maxvert) {
 		MVert *mvert = ss->mvert;
-		
+
 		for (i = 0; i < unode->totvert; i++) {
 			MVert *v = &mvert[unode->index[i]];
 			if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
@@ -272,12 +272,12 @@ static bool sculpt_undo_restore_hidden(
 	}
 	else if (unode->maxgrid && dm->getGridData) {
 		BLI_bitmap **grid_hidden = dm->getGridHidden(dm);
-		
+
 		for (i = 0; i < unode->totgrid; i++) {
 			SWAP(BLI_bitmap *,
 			     unode->grid_hidden[i],
 			     grid_hidden[unode->grids[i]]);
-			
+
 		}
 	}
 
@@ -291,7 +291,7 @@ static bool sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNod
 	MVert *mvert;
 	float *vmask;
 	int *index, i, j;
-	
+
 	if (unode->maxvert) {
 		/* regular mesh restore */
 
@@ -672,10 +672,10 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,
 
 	BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid,
 	                        NULL, NULL, NULL);
-			
+
 	unode->grid_hidden = MEM_mapallocN(sizeof(*unode->grid_hidden) * totgrid,
 	                                   "unode->grid_hidden");
-		
+
 	for (i = 0; i < totgrid; i++) {
 		if (grid_hidden[grid_indices[i]])
 			unode->grid_hidden[i] = MEM_dupallocN(grid_hidden[grid_indices[i]]);
@@ -692,7 +692,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(
 	SculptUndoNode *unode;
 	SculptSession *ss = ob->sculpt;
 	int totvert, allvert, totgrid, maxgrid, gridsize, *grids;
-	
+
 	unode = MEM_callocN(sizeof(SculptUndoNode), "SculptUndoNode");
 	BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
 	unode->type = type;
@@ -707,7 +707,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(
 	}
 	else
 		maxgrid = 0;
-	
+
 	/* we will use this while sculpting, is mapalloc slow to access then? */
 
 	/* general TODO, fix count_alloc */
@@ -723,7 +723,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(
 				sculpt_undo_alloc_and_store_hidden(ss->pbvh, unode);
 			else
 				unode->vert_hidden = BLI_BITMAP_NEW(allvert, "SculptUndoNode.vert_hidden");
-	
+
 			break;
 		case SCULPT_UNDO_MASK:
 			unode->mask = MEM_mapallocN(sizeof(float) * allvert, "SculptUndoNode.mask");
@@ -737,7 +737,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(
 			BLI_assert(!"Dynamic topology should've already been handled");
 			break;
 	}
-	
+
 	BLI_addtail(&usculpt->nodes, unode);
 
 	if (maxgrid) {
@@ -789,7 +789,7 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 		const int *vert_indices;
 		int allvert;
 		int i;
-		
+
 		BKE_pbvh_node_num_verts(pbvh, node, NULL, &allvert);
 		BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
 		for (i = 0; i < allvert; i++) {
@@ -928,7 +928,7 @@ SculptUndoNode *sculpt_undo_push_node(
 	}
 
 	unode = sculpt_undo_alloc_node(ob, node, type);
-	
+
 	BLI_thread_unlock(LOCK_CUSTOM1);
 
 	/* copy threaded, hopefully this is the performance critical part */

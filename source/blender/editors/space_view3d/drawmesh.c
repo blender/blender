@@ -104,7 +104,7 @@ static BLI_bitmap *get_tface_mesh_marked_edge_info(Mesh *me, bool draw_select_ed
 	MLoop *ml;
 	int i, j;
 	bool select_set;
-	
+
 	for (i = 0; i < me->totpoly; i++) {
 		mp = &me->mpoly[i];
 
@@ -197,7 +197,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm, bool d
 		dm->drawMappedFaces(dm, draw_mesh_face_select__drawFaceOptsInv, NULL, NULL, (void *)me, DM_DRAW_SKIP_HIDDEN);
 		glDisable(GL_BLEND);
 	}
-	
+
 	ED_view3d_polygon_offset(rv3d, 1.0);
 
 	/* Draw Stippled Outline for selected faces */
@@ -330,7 +330,7 @@ static bool set_draw_settings_cached(
 					glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_PRIMARY_COLOR);
 					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);
-					
+
 					glActiveTexture(GL_TEXTURE1);
 					glEnable(GL_TEXTURE_2D);
 					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -342,14 +342,14 @@ static bool set_draw_settings_cached(
 					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
 					glBindTexture(GL_TEXTURE_2D, ima->bindcode[TEXTARGET_TEXTURE_2D]);
-					glActiveTexture(GL_TEXTURE0);					
+					glActiveTexture(GL_TEXTURE0);
 				}
 				else {
 					glActiveTexture(GL_TEXTURE1);
 					glDisable(GL_TEXTURE_2D);
 					glBindTexture(GL_TEXTURE_2D, 0);
 					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-					glActiveTexture(GL_TEXTURE0);									
+					glActiveTexture(GL_TEXTURE0);
 
 					c_badtex = true;
 					GPU_clear_tpage(true);
@@ -457,9 +457,9 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.canvas = (Gtexdraw.texpaint_material) ? NULL : imapaint->canvas;
 	Gtexdraw.is_tex = is_tex;
 
-	/* naughty multitexturing hacks to quickly support stencil + shading + alpha blending 
+	/* naughty multitexturing hacks to quickly support stencil + shading + alpha blending
 	 * in new texpaint code. The better solution here would be to support GLSL */
-	if (Gtexdraw.is_texpaint) {			
+	if (Gtexdraw.is_texpaint) {
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -470,7 +470,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
-		
+
 		/* load the stencil texture here */
 		if (Gtexdraw.stencil != NULL) {
 			glActiveTexture(GL_TEXTURE2);
@@ -496,7 +496,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		}
 		glActiveTexture(GL_TEXTURE0);
 	}
-	
+
 	Gtexdraw.color_profile = BKE_scene_check_color_management_enabled(scene);
 	Gtexdraw.use_game_mat = (RE_engines_find(scene->r.engine)->flag & RE_GAME) != 0;
 	Gtexdraw.use_backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING) != 0;
@@ -522,7 +522,7 @@ static void draw_textured_end(void)
 			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glBindTexture(GL_TEXTURE_2D, 0);
-		}		
+		}
 		glActiveTexture(GL_TEXTURE0);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		/* manual reset, since we don't use tpage */
@@ -542,7 +542,7 @@ static void draw_textured_end(void)
 	 * glLightfv(GL_POSITION, ...) which
 	 * is transformed by the current matrix... we
 	 * need to make sure that matrix is identity.
-	 * 
+	 *
 	 * It would be better if drawmesh.c kept track
 	 * of and restored the light settings it changed.
 	 *  - zr
@@ -710,7 +710,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 					else copy_v3_v3(col, &ma->r);
 					rgb_float_to_uchar((unsigned char *)&lcol.r, col);
 					lcol.a = 255;
-					
+
 					for (j = 0; j < mp->totloop; j++, loop_index++) {
 						finalCol[loop_index] = lcol;
 					}
@@ -741,7 +741,7 @@ static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, i
 	else {
 		MTexPoly *tpoly = (me->mtpoly) ? &me->mtpoly[origindex] : NULL;
 		int matnr = mpoly->mat_nr;
-		
+
 		return draw_tface__set_draw(tpoly, (me->mloopcol != NULL), matnr);
 	}
 }
@@ -899,7 +899,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 			BKE_bproperty_set_valstr(prop, string);
 			characters = strlen(string);
-			
+
 			if (!BKE_image_has_ibuf(mtpoly->tpage, NULL))
 				characters = 0;
 
@@ -957,7 +957,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	/* correct for negative scale */
 	if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
 	else glFrontFace(GL_CCW);
-	
+
 	/* draw the textured mesh */
 	draw_textured_begin(scene, v3d, rv3d, ob);
 
@@ -1047,7 +1047,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	}
 
 	draw_textured_end();
-	
+
 	/* draw edges and selected faces over textured mesh */
 	if (!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT)) {
 		bool draw_select_edges = (ob->mode & OB_MODE_TEXTURE_PAINT) == 0;
@@ -1056,7 +1056,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);
-	
+
 	/* in editmode, the blend mode needs to be set in case it was ADD */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -1207,7 +1207,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	TexMatCallback data = {scene, ob, me, dm, shadeless, two_sided_lighting};
 	bool (*set_face_cb)(void *, int);
 	bool picking = (G.f & G_PICKSEL) != 0;
-	
+
 	/* face hiding callback depending on mode */
 	if (ob == scene->obedit)
 		set_face_cb = tex_mat_set_face_editmesh_cb;

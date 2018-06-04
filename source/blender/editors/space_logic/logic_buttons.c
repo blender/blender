@@ -53,7 +53,7 @@ static int logic_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = logic_has_buttons_region(sa);
-	
+
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
@@ -65,10 +65,10 @@ void LOGIC_OT_properties(wmOperatorType *ot)
 	ot->name = "Properties";
 	ot->description = "Toggle the properties region visibility";
 	ot->idname = "LOGIC_OT_properties";
-	
+
 	ot->exec = logic_properties_toggle_exec;
 	ot->poll = ED_operator_logic_active;
-	
+
 	/* flags */
 	ot->flag = 0;
 }
@@ -102,11 +102,11 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	float mcoords[256][2];
 	int i = 0;
-	
+
 	RNA_BEGIN (op->ptr, itemptr, "path")
 	{
 		float loc[2];
-		
+
 		RNA_float_get_array(&itemptr, "loc", loc);
 		UI_view2d_region_to_view(&ar->v2d,
 		                         (int)loc[0], (int)loc[1],
@@ -145,17 +145,17 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 	ot->name = "Cut Links";
 	ot->idname = "LOGIC_OT_links_cut";
 	ot->description = "Remove logic brick connections";
-	
+
 	ot->invoke = WM_gesture_lines_invoke;
 	ot->modal = WM_gesture_lines_modal;
 	ot->exec = cut_links_exec;
 	ot->cancel = WM_gesture_lines_cancel;
-	
+
 	ot->poll = ED_operator_logic_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
-	
+
 	/* properties */
 	PropertyRNA *prop;
 	prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");

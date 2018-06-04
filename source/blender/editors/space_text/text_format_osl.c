@@ -132,7 +132,7 @@ static int txtfmt_osl_find_reserved(const char *string)
 static int txtfmt_osl_find_specialvar(const char *string)
 {
 	int i, len;
-	
+
 	/* OSL shader types */
 	if      (STR_LITERAL_STARTSWITH(string, "shader",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "surface",      len)) i = len;
