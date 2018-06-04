@@ -74,7 +74,7 @@ void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_du
 	/* fake the edit line being in the scroll buffer */
 	ConsoleLine *cl = sc->history.last;
 	int prompt_len = strlen(sc->prompt);
-	
+
 	cl_dummy->type = CONSOLE_LINE_INPUT;
 	cl_dummy->len = prompt_len + cl->len;
 	cl_dummy->len_alloc = cl_dummy->len + 1;
@@ -83,7 +83,7 @@ void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_du
 	memcpy(cl_dummy->line + prompt_len, cl->line, cl->len + 1);
 	BLI_addtail(&sc->scrollback, cl_dummy);
 }
-void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy) 
+void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy)
 {
 	MEM_freeN(cl_dummy->line);
 	BLI_remlink(&sc->scrollback, cl_dummy);
@@ -98,10 +98,10 @@ static int console_textview_begin(TextViewContext *tvc)
 	tvc->lheight = sc->lheight * UI_DPI_FAC;
 	tvc->sel_start = sc->sel_start;
 	tvc->sel_end = sc->sel_end;
-	
+
 	/* iterator */
 	tvc->iter = sc->scrollback.last;
-	
+
 	return (tvc->iter != NULL);
 }
 
@@ -109,7 +109,7 @@ static void console_textview_end(TextViewContext *tvc)
 {
 	SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
 	(void)sc;
-	
+
 }
 
 static int console_textview_step(TextViewContext *tvc)
@@ -199,7 +199,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc, ARegion *ar,
 {
 	ConsoleLine cl_dummy = {NULL};
 	int ret = 0;
-	
+
 	View2D *v2d = &ar->v2d;
 
 	TextViewContext tvc = {0};

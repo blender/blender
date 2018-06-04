@@ -88,10 +88,10 @@ static int particle_system_add_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	object_add_particle_system(scene, ob, NULL);
-	
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -101,11 +101,11 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 	ot->name = "Add Particle System Slot";
 	ot->idname = "OBJECT_OT_particle_system_add";
 	ot->description = "Add a particle system";
-	
+
 	/* api callbacks */
 	ot->poll = ED_operator_object_active_editable;
 	ot->exec = particle_system_add_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -136,7 +136,7 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -146,7 +146,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 	ot->name = "Remove Particle System Slot";
 	ot->idname = "OBJECT_OT_particle_system_remove";
 	ot->description = "Remove the selected particle system";
-	
+
 	/* api callbacks */
 	ot->poll = ED_operator_object_active_editable;
 	ot->exec = particle_system_remove_exec;
@@ -194,7 +194,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -204,7 +204,7 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 	ot->name = "New Particle Settings";
 	ot->idname = "PARTICLE_OT_new";
 	ot->description = "Add new particle settings";
-	
+
 	/* api callbacks */
 	ot->exec = new_particle_settings_exec;
 	ot->poll = psys_poll;
@@ -242,7 +242,7 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -252,7 +252,7 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
 	ot->name = "New Particle Target";
 	ot->idname = "PARTICLE_OT_new_target";
 	ot->description = "Add a new particle target";
-	
+
 	/* api callbacks */
 	ot->exec = new_particle_target_exec;
 
@@ -290,7 +290,7 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -300,7 +300,7 @@ void PARTICLE_OT_target_remove(wmOperatorType *ot)
 	ot->name = "Remove Particle Target";
 	ot->idname = "PARTICLE_OT_target_remove";
 	ot->description = "Remove the selected particle target";
-	
+
 	/* api callbacks */
 	ot->exec = remove_particle_target_exec;
 
@@ -319,7 +319,7 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (!psys)
 		return OPERATOR_CANCELLED;
-	
+
 	pt = psys->targets.first;
 	for (; pt; pt=pt->next) {
 		if (pt->flag & PTARGET_CURRENT && pt->prev) {
@@ -331,7 +331,7 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			break;
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -340,9 +340,9 @@ void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 	ot->name = "Move Up Target";
 	ot->idname = "PARTICLE_OT_target_move_up";
 	ot->description = "Move particle target up in the list";
-	
+
 	ot->exec = target_move_up_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -369,7 +369,7 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			break;
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -378,9 +378,9 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 	ot->name = "Move Down Target";
 	ot->idname = "PARTICLE_OT_target_move_down";
 	ot->description = "Move particle target down in the list";
-	
+
 	ot->exec = target_move_down_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -407,7 +407,7 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			break;
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -416,9 +416,9 @@ void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
 	ot->name = "Move Up Dupli Object";
 	ot->idname = "PARTICLE_OT_dupliob_move_up";
 	ot->description = "Move dupli object up in the list";
-	
+
 	ot->exec = dupliob_move_up_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -446,7 +446,7 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 			break;
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -456,7 +456,7 @@ void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
 	ot->name = "Copy Particle Dupliob";
 	ot->idname = "PARTICLE_OT_dupliob_copy";
 	ot->description = "Duplicate the current dupliobject";
-	
+
 	/* api callbacks */
 	ot->exec = copy_particle_dupliob_exec;
 
@@ -489,7 +489,7 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 		dw->flag |= PART_DUPLIW_CURRENT;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -499,7 +499,7 @@ void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
 	ot->name = "Remove Particle Dupliobject";
 	ot->idname = "PARTICLE_OT_dupliob_remove";
 	ot->description = "Remove the selected dupliobject";
-	
+
 	/* api callbacks */
 	ot->exec = remove_particle_dupliob_exec;
 
@@ -529,7 +529,7 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			break;
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -538,9 +538,9 @@ void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
 	ot->name = "Move Down Dupli Object";
 	ot->idname = "PARTICLE_OT_dupliob_move_down";
 	ot->description = "Move dupli object down in the list";
-	
+
 	ot->exec = dupliob_move_down_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -566,7 +566,7 @@ static void disconnect_hair(
 
 	if (!psys->part || psys->part->type != PART_HAIR)
 		return;
-	
+
 	edit = psys->edit;
 	point= edit ? edit->points : NULL;
 
@@ -580,7 +580,7 @@ static void disconnect_hair(
 
 		for (k=0, key=pa->hair; k<pa->totkey; k++, key++) {
 			mul_m4_v3(hairmat, key->co);
-			
+
 			if (ekey) {
 				ekey->flag &= ~PEK_USE_WCO;
 				ekey++;
@@ -630,9 +630,9 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 	ot->name = "Disconnect Hair";
 	ot->description = "Disconnect hair from the emitter mesh";
 	ot->idname = "PARTICLE_OT_disconnect_hair";
-	
+
 	ot->exec = disconnect_hair_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_UNDO;  /* No REGISTER, redo does not work due to missing update, see T47750. */
 
@@ -667,14 +667,14 @@ static bool remap_hair_emitter(
 		return false;
 	if (!target_psys->part || target_psys->part->type != PART_HAIR)
 		return false;
-	
+
 	edit_point = target_edit ? target_edit->points : NULL;
-	
+
 	invert_m4_m4(from_ob_imat, ob->obmat);
 	invert_m4_m4(to_ob_imat, target_ob->obmat);
 	invert_m4_m4(from_imat, from_mat);
 	invert_m4_m4(to_imat, to_mat);
-	
+
 	if (target_psmd->mesh_final->runtime.deformed_only) {
 		/* we don't want to mess up target_psmd->dm when converting to global coordinates below */
 		mesh = target_psmd->mesh_final;
@@ -744,7 +744,7 @@ static bool remap_hair_emitter(
 
 		if (mface) {
 			float v[4][3];
-			
+
 			mf = &mface[nearest.index];
 
 			copy_v3_v3(v[0], mvert[mf->v1].co);
@@ -780,7 +780,7 @@ static bool remap_hair_emitter(
 			HairKey *key, *tkey;
 			float hairmat[4][4], imat[4][4];
 			float offset[3];
-			
+
 			if (to_global)
 				copy_m4_m4(imat, target_ob->obmat);
 			else {
@@ -789,41 +789,41 @@ static bool remap_hair_emitter(
 				invert_m4_m4(imat, hairmat);
 			}
 			mul_m4_m4m4(imat, imat, to_imat);
-			
+
 			/* offset in world space */
 			sub_v3_v3v3(offset, nearest.co, from_co);
-			
+
 			if (edit_point) {
 				for (k=0, key=pa->hair, tkey=tpa->hair, ekey = edit_point->keys; k<tpa->totkey; k++, key++, tkey++, ekey++) {
 					float co_orig[3];
-					
+
 					if (from_global)
 						mul_v3_m4v3(co_orig, from_ob_imat, key->co);
 					else
 						mul_v3_m4v3(co_orig, from_ob_imat, key->world_co);
 					mul_m4_v3(from_mat, co_orig);
-					
+
 					add_v3_v3v3(tkey->co, co_orig, offset);
-					
+
 					mul_m4_v3(imat, tkey->co);
-					
+
 					ekey->flag |= PEK_USE_WCO;
 				}
-				
+
 				edit_point++;
 			}
 			else {
 				for (k=0, key=pa->hair, tkey=tpa->hair; k<tpa->totkey; k++, key++, tkey++) {
 					float co_orig[3];
-					
+
 					if (from_global)
 						mul_v3_m4v3(co_orig, from_ob_imat, key->co);
 					else
 						mul_v3_m4v3(co_orig, from_ob_imat, key->world_co);
 					mul_m4_v3(from_mat, co_orig);
-					
+
 					add_v3_v3v3(tkey->co, co_orig, offset);
-					
+
 					mul_m4_v3(imat, tkey->co);
 				}
 			}
@@ -845,15 +845,15 @@ static bool connect_hair(
         Object *ob, ParticleSystem *psys)
 {
 	bool ok;
-	
+
 	if (!psys)
 		return false;
-	
+
 	ok = remap_hair_emitter(
 	         depsgraph, scene, ob, psys, ob, psys, psys->edit,
 	         ob->obmat, ob->obmat, psys->flag & PSYS_GLOBAL_HAIR, false);
 	psys->flag &= ~PSYS_GLOBAL_HAIR;
-	
+
 	return ok;
 }
 
@@ -896,9 +896,9 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 	ot->name = "Connect Hair";
 	ot->description = "Connect hair to the emitter mesh";
 	ot->idname = "PARTICLE_OT_connect_hair";
-	
+
 	ot->exec = connect_hair_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_UNDO;  /* No REGISTER, redo does not work due to missing update, see T47750. */
 
@@ -920,17 +920,17 @@ static void copy_particle_edit(
 	ParticleData *pa;
 	KEY_K;
 	POINT_P;
-	
+
 	if (!edit_from)
 		return;
-	
+
 	edit = MEM_dupallocN(edit_from);
 	edit->psys = psys;
 	psys->edit = edit;
-	
+
 	edit->pathcache = NULL;
 	BLI_listbase_clear(&edit->pathcachebufs);
-	
+
 	edit->emitter_field = NULL;
 	edit->emitter_cosnos = NULL;
 
@@ -938,7 +938,7 @@ static void copy_particle_edit(
 	pa = psys->particles;
 	LOOP_POINTS {
 		HairKey *hkey = pa->hair;
-		
+
 		point->keys= MEM_dupallocN(point->keys);
 		LOOP_KEYS {
 			key->co = hkey->co;
@@ -948,17 +948,17 @@ static void copy_particle_edit(
 				key->flag |= PEK_USE_WCO;
 				hkey->editflag |= PEK_USE_WCO;
 			}
-			
+
 			hkey++;
 		}
-		
+
 		pa++;
 	}
 	update_world_cos(depsgraph, ob, edit);
-	
+
 	UI_GetThemeColor3ubv(TH_EDGE_SELECT, edit->sel_col);
 	UI_GetThemeColor3ubv(TH_WIRE, edit->nosel_col);
-	
+
 	recalc_lengths(edit);
 	recalc_emitter_field(depsgraph, ob, psys);
 	PE_update_object(depsgraph, scene, ob, true);
@@ -967,15 +967,15 @@ static void copy_particle_edit(
 static void remove_particle_systems_from_object(Object *ob_to)
 {
 	ModifierData *md, *md_next;
-	
+
 	if (ob_to->type != OB_MESH)
 		return;
 	if (!ob_to->data || ID_IS_LINKED(ob_to->data))
 		return;
-	
+
 	for (md = ob_to->modifiers.first; md; md = md_next) {
 		md_next = md->next;
-		
+
 		/* remove all particle system modifiers as well,
 		 * these need to sync to the particle system list
 		 */
@@ -984,7 +984,7 @@ static void remove_particle_systems_from_object(Object *ob_to)
 			modifier_free(md);
 		}
 	}
-	
+
 	BKE_object_free_particlesystems(ob_to);
 }
 
@@ -1010,7 +1010,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		return false;
 	if (!ob_to->data || ID_IS_LINKED(ob_to->data))
 		return false;
-	
+
 	/* For remapping we need a valid DM.
 	 * Because the modifiers are appended at the end it's safe to use
 	 * the final DM of the object without particles.
@@ -1022,9 +1022,9 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	#define PSYS_FROM_FIRST (single_psys_from ? single_psys_from : ob_from->particlesystem.first)
 	#define PSYS_FROM_NEXT(cur) (single_psys_from ? NULL : (cur)->next)
 	totpsys = single_psys_from ? 1 : BLI_listbase_count(&ob_from->particlesystem);
-	
+
 	tmp_psys = MEM_mallocN(sizeof(ParticleSystem*) * totpsys, "temporary particle system array");
-	
+
 	cdmask = 0;
 	for (psys_from = PSYS_FROM_FIRST, i = 0;
 	     psys_from;
@@ -1032,17 +1032,17 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	{
 		psys = BKE_object_copy_particlesystem(psys_from, 0);
 		tmp_psys[i] = psys;
-		
+
 		if (psys_start == NULL)
 			psys_start = psys;
-		
+
 		cdmask |= psys_emitter_customdata_mask(psys);
 	}
 	/* to iterate source and target psys in sync,
 	 * we need to know where the newly added psys start
 	 */
 	psys_start = totpsys > 0 ? tmp_psys[0] : NULL;
-	
+
 	/* get the DM (psys and their modifiers have not been appended yet) */
 	/* TODO(Sybren): use mesh_eval instead */
 	DerivedMesh *final_dm = mesh_get_derived_final(depsgraph, scene, ob_to, cdmask);
@@ -1055,21 +1055,21 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	     ++i, psys_from = PSYS_FROM_NEXT(psys_from))
 	{
 		ParticleSystemModifierData *psmd;
-		
+
 		psys = tmp_psys[i];
-		
+
 		/* append to the object */
 		BLI_addtail(&ob_to->particlesystem, psys);
-		
+
 		/* add a particle system modifier for each system */
 		md = modifier_new(eModifierType_ParticleSystem);
 		psmd = (ParticleSystemModifierData *)md;
 		/* push on top of the stack, no use trying to reproduce old stack order */
 		BLI_addtail(&ob_to->modifiers, md);
-		
+
 		BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", i);
 		modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
-		
+
 		psmd->psys = psys;
 		BKE_id_copy_ex(
 		            NULL, &final_mesh->id, (ID **)&psmd->mesh_final,
@@ -1092,7 +1092,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		}
 	}
 	MEM_freeN(tmp_psys);
-	
+
 	/* note: do this after creating DM copies for all the particle system modifiers,
 	 * the remapping otherwise makes final_dm invalid!
 	 */
@@ -1101,7 +1101,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	     psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), ++i)
 	{
 		float (*from_mat)[4], (*to_mat)[4];
-		
+
 		switch (space) {
 			case PAR_COPY_SPACE_OBJECT:
 				from_mat = I;
@@ -1122,14 +1122,14 @@ static bool copy_particle_systems_to_object(const bContext *C,
 			        depsgraph, scene, ob_from, psys_from, ob_to, psys, psys->edit,
 			        from_mat, to_mat, psys_from->flag & PSYS_GLOBAL_HAIR, psys->flag & PSYS_GLOBAL_HAIR);
 		}
-		
+
 		/* tag for recalc */
 //		psys->recalc |= PSYS_RECALC_RESET;
 	}
-	
+
 	#undef PSYS_FROM_FIRST
 	#undef PSYS_FROM_NEXT
-	
+
 	DEG_id_tag_update(&ob_to->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, ob_to);
 	return true;
@@ -1140,11 +1140,11 @@ static int copy_particle_systems_poll(bContext *C)
 	Object *ob;
 	if (!ED_operator_object_active_editable(C))
 		return false;
-	
+
 	ob = ED_object_active_context(C);
 	if (BLI_listbase_is_empty(&ob->particlesystem))
 		return false;
-	
+
 	return true;
 }
 
@@ -1156,10 +1156,10 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_from = ED_object_active_context(C);
 	ParticleSystem *psys_from = use_active ? CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data : NULL;
-	
+
 	int changed_tot = 0;
 	int fail = 0;
-	
+
 	CTX_DATA_BEGIN (C, Object *, ob_to, selected_editable_objects)
 	{
 		if (ob_from != ob_to) {
@@ -1172,19 +1172,19 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 				changed = true;
 			else
 				fail++;
-			
+
 			if (changed)
 				changed_tot++;
 		}
 	}
 	CTX_DATA_END;
-	
+
 	if ((changed_tot == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Copy particle systems to selected: %d done, %d failed",
 		            changed_tot, fail);
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1195,17 +1195,17 @@ void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 		{PAR_COPY_SPACE_WORLD, "WORLD", 0, "World", "Copy in world space"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	ot->name = "Copy Particle Systems";
 	ot->description = "Copy particle systems from the active object to selected objects";
 	ot->idname = "PARTICLE_OT_copy_particle_systems";
-	
+
 	ot->poll = copy_particle_systems_poll;
 	ot->exec = copy_particle_systems_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	RNA_def_enum(ot->srna, "space", space_items, PAR_COPY_SPACE_OBJECT, "Space", "Space transform for copying from one object to another");
 	RNA_def_boolean(ot->srna, "remove_target_particles", true, "Remove Target Particles", "Remove particle systems on the target objects");
 	RNA_def_boolean(ot->srna, "use_active", false, "Use Active", "Use the active particle system from the context");

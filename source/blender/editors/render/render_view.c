@@ -104,7 +104,7 @@ static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow *
 				break;
 		}
 	}
-	
+
 	return sa;
 }
 
@@ -139,7 +139,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
 	if (scene->r.displaymode == R_OUTPUT_NONE)
 		return NULL;
-	
+
 	if (scene->r.displaymode == R_OUTPUT_WINDOW) {
 		int sizex = 30 * UI_DPI_FAC + (scene->r.xsch * scene->r.size) / 100;
 		int sizey = 60 * UI_DPI_FAC + (scene->r.ysch * scene->r.size) / 100;
@@ -177,7 +177,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 		sa = find_area_showing_r_result(C, scene, &win);
 		if (sa == NULL)
 			sa = find_area_image_empty(C);
-		
+
 		/* if area found in other window, we make that one show in front */
 		if (win && win != CTX_wm_window(C))
 			wm_window_raise(win);
@@ -292,7 +292,7 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *wincur = CTX_wm_window(C);
-	
+
 	/* test if we have currently a temp screen active */
 	if (WM_window_is_temp_screen(wincur)) {
 		wm_window_lower(wincur);
@@ -300,7 +300,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	else {
 		wmWindow *win, *winshow;
 		ScrArea *sa = find_area_showing_r_result(C, CTX_data_scene(C), &winshow);
-		
+
 		/* is there another window on current scene showing result? */
 		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
 			const bScreen *sc = WM_window_get_active_screen(win);
@@ -312,7 +312,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
 				return OPERATOR_FINISHED;
 			}
 		}
-		
+
 		/* determine if render already shows */
 		if (sa) {
 			/* but don't close it when rendering */

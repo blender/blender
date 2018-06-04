@@ -60,7 +60,7 @@
 #include "io_collada.h"
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{	
+{
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
 
@@ -586,8 +586,8 @@ void WM_OT_collada_import(wmOperatorType *ot)
 		0,
 		INT_MAX);
 
-	RNA_def_boolean(ot->srna, 
-		"keep_bind_info", 0, "Keep Bind Info", 
+	RNA_def_boolean(ot->srna,
+		"keep_bind_info", 0, "Keep Bind Info",
 		"Store Bindpose information in custom bone properties for later use during Collada export");
 
 }

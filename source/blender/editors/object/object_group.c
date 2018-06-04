@@ -182,7 +182,7 @@ void COLLECTION_OT_objects_add_active(wmOperatorType *ot)
 	ot->name = "Add Selected To Active Collection";
 	ot->description = "Add the object to an object collection that contains the active object";
 	ot->idname = "COLLECTION_OT_objects_add_active";
-	
+
 	/* api callbacks */
 	ot->exec = objects_add_active_exec;
 	ot->invoke = WM_menu_invoke;
@@ -207,10 +207,10 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	Collection *single_collection = collection_object_active_find_index(bmain, ob, single_collection_index);
 	Collection *collection;
 	bool ok = false;
-	
+
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
-	
+
 	/* linking to same collection requires its own loop so we can avoid
 	 * looking up the active objects collections each time */
 
@@ -228,13 +228,13 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 			CTX_DATA_END;
 		}
 	}
-	
+
 	if (!ok)
 		BKE_report(op->reports, RPT_ERROR, "Active object contains no collections");
-	
+
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -246,12 +246,12 @@ void COLLECTION_OT_objects_remove_active(wmOperatorType *ot)
 	ot->name = "Remove Selected From Active Collection";
 	ot->description = "Remove the object from an object collection that contains the active object";
 	ot->idname = "COLLECTION_OT_objects_remove_active";
-	
+
 	/* api callbacks */
 	ot->exec = objects_remove_active_exec;
 	ot->invoke = WM_menu_invoke;
 	ot->poll = ED_operator_objectmode;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -274,7 +274,7 @@ static int collection_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op
 
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -284,11 +284,11 @@ void COLLECTION_OT_objects_remove_all(wmOperatorType *ot)
 	ot->name = "Remove From All Unlinked Collections";
 	ot->description = "Remove selected objects from all collections not used in a scene";
 	ot->idname = "COLLECTION_OT_objects_remove_all";
-	
+
 	/* api callbacks */
 	ot->exec = collection_objects_remove_all_exec;
 	ot->poll = ED_operator_objectmode;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -357,11 +357,11 @@ static int collection_create_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	char name[MAX_ID_NAME - 2]; /* id name */
-	
+
 	RNA_string_get(op->ptr, "name", name);
-	
+
 	Collection *collection = BKE_collection_add(bmain, NULL, name);
-		
+
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
 		BKE_collection_object_add(bmain, collection, base->object);
@@ -370,7 +370,7 @@ static int collection_create_exec(bContext *C, wmOperator *op)
 
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -380,14 +380,14 @@ void COLLECTION_OT_create(wmOperatorType *ot)
 	ot->name = "Create New Collection";
 	ot->description = "Create an object collection from selected objects";
 	ot->idname = "COLLECTION_OT_create";
-	
+
 	/* api callbacks */
 	ot->exec = collection_create_exec;
 	ot->poll = ED_operator_objectmode;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	RNA_def_string(ot->srna, "name", "Collection", MAX_ID_NAME - 2, "Name", "Name of the new collection");
 }
 
@@ -415,7 +415,7 @@ void OBJECT_OT_collection_add(wmOperatorType *ot)
 	ot->name = "Add to Collection";
 	ot->idname = "OBJECT_OT_collection_add";
 	ot->description = "Add an object to a new collection";
-	
+
 	/* api callbacks */
 	ot->exec = collection_add_exec;
 	ot->poll = ED_operator_objectmode;
@@ -466,7 +466,7 @@ void OBJECT_OT_collection_link(wmOperatorType *ot)
 	ot->name = "Link to Collection";
 	ot->idname = "OBJECT_OT_collection_link";
 	ot->description = "Add an object to an existing collection";
-	
+
 	/* api callbacks */
 	ot->exec = collection_link_exec;
 	ot->invoke = WM_enum_search_invoke;
@@ -494,7 +494,7 @@ static int collection_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	BKE_collection_object_remove(bmain, collection, ob, false);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -504,7 +504,7 @@ void OBJECT_OT_collection_remove(wmOperatorType *ot)
 	ot->name = "Remove Collection";
 	ot->idname = "OBJECT_OT_collection_remove";
 	ot->description = "Remove the active object from this collection";
-	
+
 	/* api callbacks */
 	ot->exec = collection_remove_exec;
 	ot->poll = ED_operator_objectmode;

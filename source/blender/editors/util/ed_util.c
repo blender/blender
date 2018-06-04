@@ -227,7 +227,7 @@ void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, fl
 	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
 	if (invert)
 		ctrl = !ctrl;
-	
+
 	if (ctrl && shift) {
 		if (fac3 != 0.0f) *val = fac3 * floorf(*val / fac3 + 0.5f);
 	}

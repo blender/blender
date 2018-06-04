@@ -144,7 +144,7 @@ static int buttons_context_path_world(ButsContextPath *path)
 	else if (buttons_context_path_scene(path)) {
 		scene = path->ptr[path->len - 1].data;
 		world = scene->world;
-		
+
 		if (world) {
 			RNA_id_pointer_create(&scene->world->id, &path->ptr[path->len]);
 			path->len++;
@@ -421,7 +421,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 
 	if (!ct->user)
 		return 0;
-	
+
 	id = ct->user->id;
 
 	if (id) {
@@ -572,7 +572,7 @@ static int buttons_shading_context(const bContext *C, int mainb)
 		return 1;
 	if (mainb == BCONTEXT_DATA && ob && ELEM(ob->type, OB_LAMP, OB_CAMERA))
 		return 1;
-	
+
 	return 0;
 }
 
@@ -586,7 +586,7 @@ static int buttons_shading_new_context(const bContext *C, int flag)
 		return BCONTEXT_DATA;
 	else if (flag & (1 << BCONTEXT_WORLD))
 		return BCONTEXT_WORLD;
-	
+
 	return BCONTEXT_RENDER;
 }
 
@@ -858,7 +858,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	else if (CTX_data_equals(member, "particle_settings")) {
 		/* only available when pinned */
 		PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSettings);
-		
+
 		if (ptr && ptr->data) {
 			CTX_data_pointer_set(result, ptr->id.data, &RNA_ParticleSettings, ptr->data);
 			return 1;
@@ -866,7 +866,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		else {
 			/* get settings from active particle system instead */
 			ptr = get_pointer_type(path, &RNA_ParticleSystem);
-			
+
 			if (ptr && ptr->data) {
 				ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
 				CTX_data_pointer_set(result, ptr->id.data, &RNA_ParticleSettings, part);
@@ -906,7 +906,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			return 1;
 		}
 	}
-	
+
 	else if (CTX_data_equals(member, "smoke")) {
 		PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
@@ -963,7 +963,7 @@ static void pin_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 	}
 	else
 		sbuts->pinid = NULL;
-	
+
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 

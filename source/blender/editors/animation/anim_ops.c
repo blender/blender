@@ -67,10 +67,10 @@
 static int change_frame_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	
+
 	/* XXX temp? prevent changes during render */
 	if (G.is_rendering) return false;
-	
+
 	/* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
 	 * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
 	 */
@@ -85,7 +85,7 @@ static int change_frame_poll(bContext *C)
 			return false;
 		}
 	}
-	
+
 	CTX_wm_operator_poll_msg_set(C, "Expected an animation area to be active");
 	return false;
 }
@@ -139,12 +139,12 @@ static float frame_from_event(bContext *C, const wmEvent *event)
 
 	/* convert from region coordinates to View2D 'tot' space */
 	frame = UI_view2d_region_to_view_x(&region->v2d, event->mval[0]);
-	
+
 	/* respect preview range restrictions (if only allowed to move around within that range) */
 	if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
 		CLAMP(frame, PSFRA, PEFRA);
 	}
-	
+
 	return frame;
 }
 
@@ -195,7 +195,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	change_frame_seq_preview_begin(C, event);
 
 	change_frame_apply(C, op);
-	
+
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
 
@@ -221,11 +221,11 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			RNA_float_set(op->ptr, "frame", frame_from_event(C, event));
 			change_frame_apply(C, op);
 			break;
-		
-		case LEFTMOUSE: 
+
+		case LEFTMOUSE:
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
-			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
+			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init
 			 * the modal op) doesn't work for some reason
 			 */
 			if (event->val == KM_RELEASE)
@@ -258,14 +258,14 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->name = "Change Frame";
 	ot->idname = "ANIM_OT_change_frame";
 	ot->description = "Interactively change the current frame number";
-	
+
 	/* api callbacks */
 	ot->exec = change_frame_exec;
 	ot->invoke = change_frame_invoke;
 	ot->cancel = change_frame_cancel;
 	ot->modal = change_frame_modal;
 	ot->poll = change_frame_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR | OPTYPE_UNDO_GROUPED;
 	ot->undo_group = "FRAME_CHANGE";
@@ -282,10 +282,10 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 static int anim_set_end_frames_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	
+
 	/* XXX temp? prevent changes during render */
 	if (G.is_rendering) return false;
-	
+
 	/* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
 	 * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
 	 */
@@ -294,7 +294,7 @@ static int anim_set_end_frames_poll(bContext *C)
 			return true;
 		}
 	}
-	
+
 	CTX_wm_operator_poll_msg_set(C, "Expected an animation area to be active");
 	return false;
 }
@@ -314,16 +314,16 @@ static int anim_set_sfra_exec(bContext *C, wmOperator *UNUSED(op))
 		scene->r.psfra = frame;
 	else
 		scene->r.sfra = frame;
-	
+
 	if (PEFRA < frame) {
 		if (PRVRANGEON)
 			scene->r.pefra = frame;
 		else
 			scene->r.efra = frame;
 	}
-	
+
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -333,14 +333,14 @@ static void ANIM_OT_start_frame_set(wmOperatorType *ot)
 	ot->name = "Set Start Frame";
 	ot->idname = "ANIM_OT_start_frame_set";
 	ot->description = "Set the start frame";
-	
+
 	/* api callbacks */
 	ot->exec = anim_set_sfra_exec;
 	ot->poll = anim_set_end_frames_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}	
+}
 
 
 static int anim_set_efra_exec(bContext *C, wmOperator *UNUSED(op))
@@ -365,9 +365,9 @@ static int anim_set_efra_exec(bContext *C, wmOperator *UNUSED(op))
 		else
 			scene->r.sfra = frame;
 	}
-	
+
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -377,11 +377,11 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
 	ot->name = "Set End Frame";
 	ot->idname = "ANIM_OT_end_frame_set";
 	ot->description = "Set the end frame";
-	
+
 	/* api callbacks */
 	ot->exec = anim_set_efra_exec;
 	ot->poll = anim_set_end_frames_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -394,31 +394,31 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	float sfra, efra;
 	rcti rect;
-	
+
 	/* get min/max values from border select rect (already in region coordinates, not screen) */
 	WM_operator_properties_border_to_rcti(op, &rect);
-	
+
 	/* convert min/max values to frames (i.e. region to 'tot' rect) */
 	sfra = UI_view2d_region_to_view_x(&ar->v2d, rect.xmin);
 	efra = UI_view2d_region_to_view_x(&ar->v2d, rect.xmax);
-	
-	/* set start/end frames for preview-range 
+
+	/* set start/end frames for preview-range
 	 *	- must clamp within allowable limits
 	 *	- end must not be before start (though this won't occur most of the time)
 	 */
 	FRAMENUMBER_MIN_CLAMP(sfra);
 	FRAMENUMBER_MIN_CLAMP(efra);
 	if (efra < sfra) efra = sfra;
-	
+
 	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra = round_fl_to_int(sfra);
 	scene->r.pefra = round_fl_to_int(efra);
-	
+
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
+
 	return OPERATOR_FINISHED;
-} 
+}
 
 static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 {
@@ -426,18 +426,18 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	ot->name = "Set Preview Range";
 	ot->idname = "ANIM_OT_previewrange_set";
 	ot->description = "Interactively define frame range used for playback";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = previewrange_define_exec;
 	ot->modal = WM_gesture_border_modal;
 	ot->cancel = WM_gesture_border_cancel;
-	
+
 	ot->poll = ED_operator_animview_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* rna */
 	/* used to define frame range.
 	 *
@@ -452,23 +452,23 @@ static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *curarea = CTX_wm_area(C);
-	
+
 	/* sanity checks */
 	if (ELEM(NULL, scene, curarea))
 		return OPERATOR_CANCELLED;
-	
+
 	/* simply clear values */
 	scene->r.flag &= ~SCER_PRV_RANGE;
 	scene->r.psfra = 0;
 	scene->r.pefra = 0;
-	
+
 	ED_area_tag_redraw(curarea);
-	
+
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
+
 	return OPERATOR_FINISHED;
-} 
+}
 
 static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 {
@@ -476,12 +476,12 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 	ot->name = "Clear Preview Range";
 	ot->idname = "ANIM_OT_previewrange_clear";
 	ot->description = "Clear Preview Range";
-	
+
 	/* api callbacks */
 	ot->exec = previewrange_clear_exec;
-	
+
 	ot->poll = ED_operator_animview_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -492,13 +492,13 @@ void ED_operatortypes_anim(void)
 {
 	/* Animation Editors only -------------------------- */
 	WM_operatortype_append(ANIM_OT_change_frame);
-	
+
 	WM_operatortype_append(ANIM_OT_start_frame_set);
 	WM_operatortype_append(ANIM_OT_end_frame_set);
-	
+
 	WM_operatortype_append(ANIM_OT_previewrange_set);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
-	
+
 	/* Entire UI --------------------------------------- */
 	WM_operatortype_append(ANIM_OT_keyframe_insert);
 	WM_operatortype_append(ANIM_OT_keyframe_delete);
@@ -508,23 +508,23 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_keyframe_insert_button);
 	WM_operatortype_append(ANIM_OT_keyframe_delete_button);
 	WM_operatortype_append(ANIM_OT_keyframe_clear_button);
-	
-	
+
+
 	WM_operatortype_append(ANIM_OT_driver_button_add);
 	WM_operatortype_append(ANIM_OT_driver_button_remove);
 	WM_operatortype_append(ANIM_OT_driver_button_edit);
 	WM_operatortype_append(ANIM_OT_copy_driver_button);
 	WM_operatortype_append(ANIM_OT_paste_driver_button);
 
-	
+
 	WM_operatortype_append(ANIM_OT_keyingset_button_add);
 	WM_operatortype_append(ANIM_OT_keyingset_button_remove);
-	
+
 	WM_operatortype_append(ANIM_OT_keying_set_add);
 	WM_operatortype_append(ANIM_OT_keying_set_remove);
 	WM_operatortype_append(ANIM_OT_keying_set_path_add);
 	WM_operatortype_append(ANIM_OT_keying_set_path_remove);
-	
+
 	WM_operatortype_append(ANIM_OT_keying_set_active_set);
 }
 
@@ -532,14 +532,14 @@ void ED_keymap_anim(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation", 0, 0);
 	wmKeyMapItem *kmi;
-	
+
 	/* frame management */
 	/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons */
 	WM_keymap_add_item(keymap, "ANIM_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.show_seconds");
-	
+
 	/* preview range */
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_set", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);

@@ -77,9 +77,9 @@ static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
 
 /* not spacelink itself */
 static void userpref_free(SpaceLink *UNUSED(sl))
-{	
+{
 //	SpaceUserPref *spref = (SpaceUserPref *)sl;
-	
+
 }
 
 
@@ -105,7 +105,7 @@ static void userpref_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	/* do not use here, the properties changed in userprefs do a system-wide refresh, then scroller jumps back */
 	/*	ar->v2d.flag &= ~V2D_IS_INITIALISED; */
-	
+
 	ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
 
 	ED_region_panels_init(wm, ar);
@@ -122,7 +122,7 @@ static void userpref_operatortypes(void)
 
 static void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf))
 {
-	
+
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

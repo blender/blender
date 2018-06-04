@@ -59,7 +59,7 @@
 int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
 	int icon = 0;
-	
+
 	/* sanity checks */
 	if (name == NULL)
 		return icon;
@@ -74,17 +74,17 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 	else {
 		PointerRNA id_ptr, ptr;
 		PropertyRNA *prop;
-		
+
 		/* get RNA pointer, and resolve the path */
 		RNA_id_pointer_create(id, &id_ptr);
-		
+
 		/* try to resolve the path */
 		if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
 			const char *structname = NULL, *propname = NULL;
 			char arrayindbuf[16];
 			const char *arrayname = NULL;
 			short free_structname = 0;
-			
+
 			/* For now, name will consist of 3 parts: struct-name, property name, array index
 			 * There are several options possible:
 			 *	1) <struct-name>.<property-name>.<array-index>
@@ -93,12 +93,12 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 *		i.e. X Location (Bone1), or X Location (Object)
 			 *
 			 * Currently, option 2 is in use, to try and make it easier to quickly identify F-Curves (it does have
-			 * problems with looking rather odd though). Option 1 is better in terms of revealing a consistent sense of 
+			 * problems with looking rather odd though). Option 1 is better in terms of revealing a consistent sense of
 			 * hierarchy though, which isn't so clear with option 2.
 			 */
-			
+
 			/* for structname
-			 *	- as base, we use a custom name from the structs if one is available 
+			 *	- as base, we use a custom name from the structs if one is available
 			 *	- however, if we're showing subdata of bones (probably there will be other exceptions later)
 			 *	  need to include that info too since it gets confusing otherwise
 			 *	- if a pointer just refers to the ID-block, then don't repeat this info
@@ -108,11 +108,11 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
 				char *pchanName = BLI_str_quoted_substrN(fcu->rna_path, "bones[");
 				char *constName = BLI_str_quoted_substrN(fcu->rna_path, "constraints[");
-				
+
 				/* assemble the string to display in the UI... */
 				structname = BLI_sprintfN("%s : %s", pchanName, constName);
 				free_structname = 1;
-				
+
 				/* free the temp names */
 				if (pchanName) MEM_freeN(pchanName);
 				if (constName) MEM_freeN(constName);
@@ -127,25 +127,25 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				else
 					structname = RNA_struct_ui_name(ptr.type);
 			}
-			
+
 			/* Property Name is straightforward */
 			propname = RNA_property_ui_name(prop);
-			
+
 			/* Array Index - only if applicable */
 			if (RNA_property_array_check(prop)) {
 				char c = RNA_property_array_item_char(prop, fcu->array_index);
-				
+
 				/* we need to write the index to a temp buffer (in py syntax) */
 				if (c) BLI_snprintf(arrayindbuf, sizeof(arrayindbuf), "%c ", c);
 				else BLI_snprintf(arrayindbuf, sizeof(arrayindbuf), "[%d]", fcu->array_index);
-				
+
 				arrayname = &arrayindbuf[0];
 			}
 			else {
 				/* no array index */
 				arrayname = "";
 			}
-			
+
 			/* putting this all together into the buffer */
 			/* XXX we need to check for invalid names...
 			 * XXX the name length limit needs to be passed in or as some define */
@@ -153,17 +153,17 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				BLI_snprintf(name, 256, "%s%s (%s)", arrayname, propname, structname);
 			else
 				BLI_snprintf(name, 256, "%s%s", arrayname, propname);
-			
+
 			/* free temp name if nameprop is set */
 			if (free_structname)
 				MEM_freeN((void *)structname);
-			
-			
+
+
 			/* Icon for this property's owner:
 			 *	use the struct's icon if it is set
 			 */
 			icon = RNA_struct_ui_icon(ptr.type);
-			
+
 			/* valid path - remove the invalid tag since we now know how to use it saving
 			 * users manual effort to reenable using "Revive Disabled FCurves" [#29629]
 			 */
@@ -172,16 +172,16 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		else {
 			/* invalid path */
 			BLI_snprintf(name, 256, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
-			
+
 			/* icon for this should be the icon for the base ID */
 			/* TODO: or should we just use the error icon? */
 			icon = RNA_struct_ui_icon(id_ptr.type);
-			
+
 			/* tag F-Curve as disabled - as not usable path */
 			fcu->flag |= FCURVE_DISABLED;
 		}
 	}
-	
+
 	/* return the icon that the active data had */
 	return icon;
 }
@@ -197,7 +197,7 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
 {
 	float hsv[3], fac;
 	int grouping;
-	
+
 	/* we try to divide the color into groupings of n colors,
 	 * where n is:
 	 *	3 - for 'odd' numbers of curves - there should be a majority of triplets of curves
@@ -206,24 +206,24 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
 	 */
 	grouping = (4 - (tot % 2));
 	hsv[0] = HSV_BANDWIDTH * (float)(cur % grouping);
-	
-	/* 'Value' (i.e. darkness) needs to vary so that larger sets of three will be 
+
+	/* 'Value' (i.e. darkness) needs to vary so that larger sets of three will be
 	 * 'darker' (i.e. smaller value), so that they don't look that similar to previous ones.
 	 * However, only a range of 0.3 to 1.0 is really usable to avoid clashing
-	 * with some other stuff 
+	 * with some other stuff
 	 */
 	fac = ((float)cur / (float)tot) * 0.7f;
-	
+
 	/* the base color can get offset a bit so that the colors aren't so identical */
 	hsv[0] += fac * HSV_BANDWIDTH;
 	if (hsv[0] > 1.0f) hsv[0] = fmod(hsv[0], 1.0f);
-	
+
 	/* saturation adjustments for more visible range */
 	hsv[1] = ((hsv[0] > 0.5f) && (hsv[0] < 0.8f)) ? 0.5f : 0.6f;
-	
+
 	/* value is fixed at 1.0f, otherwise we cannot clearly see the curves... */
 	hsv[2] = 1.0f;
-	
+
 	/* finally, conver this to RGB colors */
 	hsv_to_rgb_v(hsv, out);
 }

@@ -91,7 +91,7 @@ static void clip_draw_dopesheet_background(ARegion *ar, MovieClip *clip, unsigne
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 	MovieTrackingDopesheetCoverageSegment *coverage_segment;
-	
+
 	for (coverage_segment = dopesheet->coverage_segments.first;
 	     coverage_segment;
 	     coverage_segment = coverage_segment->next)
@@ -291,7 +291,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	uiStyle *style = UI_style_get();
 	int fontid = style->widget.uifont_id;
-	
+
 	if (!clip)
 		return;
 

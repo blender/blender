@@ -73,7 +73,7 @@ typedef struct EditBone {
 	 * animation are automatically relative to the bones' rest positions*/
 	int flag;
 	int layer;
-	
+
 	float dist, weight;
 	float xwidth, length, zwidth;  /* put them in order! transform uses this as scale */
 	float rad_head, rad_tail;
@@ -86,7 +86,7 @@ typedef struct EditBone {
 	float scaleIn, scaleOut;
 
 	float oldlength;        /* for envelope scaling */
-	
+
 	short segments;
 
 	/* Used for display */

@@ -122,7 +122,7 @@ static void object_clear_rot(Object *ob, const bool clear_delta)
 					ob->rotAxis[2] = 0.0f;
 					if (clear_delta) ob->drotAxis[2] = 0.0f;
 				}
-					
+
 				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
 				if (IS_EQF(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQF(ob->rotAxis[1], ob->rotAxis[2]))
 					ob->rotAxis[1] = 1.0f;
@@ -168,7 +168,7 @@ static void object_clear_rot(Object *ob, const bool clear_delta)
 			/* perform clamping using euler form (3-components) */
 			/* FIXME: deltas are not handled for these cases yet... */
 			float eul[3], oldeul[3], quat1[4] = {0};
-			
+
 			if (ob->rotmode == ROT_MODE_QUAT) {
 				copy_qt_qt(quat1, ob->quat);
 				quat_to_eul(oldeul, ob->quat);
@@ -179,16 +179,16 @@ static void object_clear_rot(Object *ob, const bool clear_delta)
 			else {
 				copy_v3_v3(oldeul, ob->rot);
 			}
-			
+
 			eul[0] = eul[1] = eul[2] = 0.0f;
-			
+
 			if (ob->protectflag & OB_LOCK_ROTX)
 				eul[0] = oldeul[0];
 			if (ob->protectflag & OB_LOCK_ROTY)
 				eul[1] = oldeul[1];
 			if (ob->protectflag & OB_LOCK_ROTZ)
 				eul[2] = oldeul[2];
-			
+
 			if (ob->rotmode == ROT_MODE_QUAT) {
 				eul_to_quat(ob->quat, eul);
 				/* quaternions flip w sign to accumulate rotations correctly */
@@ -241,24 +241,24 @@ static void object_clear_scale(Object *ob, const bool clear_delta)
 /* --------------- */
 
 /* generic exec for clear-transform operators */
-static int object_clear_transform_generic_exec(bContext *C, wmOperator *op, 
+static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
                                                void (*clear_func)(Object *, const bool),
                                                const char default_ksName[])
 {
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks;
 	const bool clear_delta = RNA_boolean_get(op->ptr, "clear_delta");
-	
+
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
 		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or keying set name");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	/* get KeyingSet to use */
 	ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
-	
-	/* operate on selected objects only if they aren't in weight-paint mode 
+
+	/* operate on selected objects only if they aren't in weight-paint mode
 	 * (so that object-transform clearing won't be applied at same time as bone-clearing)
 	 */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -266,15 +266,15 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 		if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			/* run provided clearing function */
 			clear_func(ob, clear_delta);
-			
+
 			ED_autokeyframe_object(C, scene, ob, ks);
-			
+
 			/* tag for updates */
 			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 		}
 	}
 	CTX_DATA_END;
-	
+
 	/* this is needed so children are also updated */
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
@@ -295,15 +295,15 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 	ot->name = "Clear Location";
 	ot->description = "Clear the object's location";
 	ot->idname = "OBJECT_OT_location_clear";
-	
+
 	/* api callbacks */
 	ot->exec = object_location_clear_exec;
 	ot->poll = ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
-	
+
+
 	/* properties */
 	ot->prop = RNA_def_boolean(ot->srna, "clear_delta", false, "Clear Delta",
 	                           "Clear delta location in addition to clearing the normal location transform");
@@ -320,14 +320,14 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 	ot->name = "Clear Rotation";
 	ot->description = "Clear the object's rotation";
 	ot->idname = "OBJECT_OT_rotation_clear";
-	
+
 	/* api callbacks */
 	ot->exec = object_rotation_clear_exec;
 	ot->poll = ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* properties */
 	ot->prop = RNA_def_boolean(ot->srna, "clear_delta", false, "Clear Delta",
 	                           "Clear delta rotation in addition to clearing the normal rotation transform");
@@ -344,14 +344,14 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 	ot->name = "Clear Scale";
 	ot->description = "Clear the object's scale";
 	ot->idname = "OBJECT_OT_scale_clear";
-	
+
 	/* api callbacks */
 	ot->exec = object_scale_clear_exec;
 	ot->poll = ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* properties */
 	ot->prop = RNA_def_boolean(ot->srna, "clear_delta", false, "Clear Delta",
 	                           "Clear delta scale in addition to clearing the normal scale transform");
@@ -370,7 +370,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 			/* vectors pointed to by v1 and v3 will get modified */
 			v1 = ob->loc;
 			v3 = ob->parentinv[3];
-			
+
 			copy_m3_m4(mat, ob->parentinv);
 			negate_v3_v3(v3, v1);
 			mul_m3_v3(mat, v3);
@@ -381,7 +381,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -391,11 +391,11 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 	ot->name = "Clear Origin";
 	ot->description = "Clear the object's origin";
 	ot->idname = "OBJECT_OT_origin_clear";
-	
+
 	/* api callbacks */
 	ot->exec = object_origin_clear_exec;
 	ot->poll = ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -409,7 +409,7 @@ static void ignore_parent_tx(const bContext *C, Main *bmain, Scene *scene, Objec
 	Object workob;
 	Object *ob_child;
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	
+
 	/* a change was made, adjust the children to compensate */
 	for (ob_child = bmain->object.first; ob_child; ob_child = ob_child->id.next) {
 		if (ob_child->parent == ob) {
@@ -493,7 +493,7 @@ static int apply_objects_internal(
 		}
 	}
 	CTX_DATA_END;
-	
+
 	if (!changed)
 		return OPERATOR_CANCELLED;
 
@@ -545,10 +545,10 @@ static int apply_objects_internal(
 
 			if (apply_scale)
 				multiresModifier_scale_disp(depsgraph, scene, ob);
-			
+
 			/* adjust data */
 			BKE_mesh_transform(me, mat, true);
-			
+
 			/* update normals */
 			BKE_mesh_calc_normals(me);
 		}
@@ -600,12 +600,12 @@ static int apply_objects_internal(
 				BKE_tracking_reconstruction_scale(&clip->tracking, ob->size);
 		}
 		else if (ob->type == OB_EMPTY) {
-			/* It's possible for empties too, even though they don't 
+			/* It's possible for empties too, even though they don't
 			 * really have obdata, since we can simply apply the maximum
 			 * scaling to the empty's drawsize.
 			 *
 			 * Core Assumptions:
-			 * 1) Most scaled empties have uniform scaling 
+			 * 1) Most scaled empties have uniform scaling
 			 *    (i.e. for visibility reasons), AND/OR
 			 * 2) Preserving non-uniform scaling is not that important,
 			 *    and is something that many users would be willing to
@@ -690,7 +690,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 
 		/* update for any children that may get moved */
 		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
-	
+
 		changed = true;
 	}
 	CTX_DATA_END;
@@ -708,11 +708,11 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 	ot->name = "Apply Visual Transform";
 	ot->description = "Apply the object's visual transformation to its data";
 	ot->idname = "OBJECT_OT_visual_transform_apply";
-	
+
 	/* api callbacks */
 	ot->exec = visual_transform_apply_exec;
 	ot->poll = ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -803,7 +803,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
 			BMIter iter;
-			
+
 			if (centermode == ORIGIN_TO_CURSOR) {
 				copy_v3_v3(cent, cursor);
 				invert_m4_m4(obedit->imat, obedit->obmat);
@@ -827,7 +827,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					mid_v3_v3v3(cent, min, max);
 				}
 			}
-			
+
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				sub_v3_v3(eve->co, cent);
 			}
@@ -880,7 +880,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				invert_m4_m4(ob->imat, ob->obmat);
 				mul_m4_v3(ob->imat, cent);
 			}
-			
+
 			if (ob->data == NULL) {
 				/* special support for dupligroups */
 				if ((ob->transflag & OB_DUPLICOLLECTION) && ob->dup_group && (ob->dup_group->id.tag & LIB_TAG_DOIT) == 0) {
@@ -900,7 +900,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							invert_m4_m4(ob->imat, ob->obmat);
 							mul_m4_v3(ob->imat, cent);
 						}
-						
+
 						add_v3_v3(ob->dup_group->dupli_ofs, cent);
 
 						tot_change++;
@@ -1077,7 +1077,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				}
 
 				ignore_parent_tx(C, bmain, scene, ob);
-				
+
 				/* other users? */
 				//CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
 				//{
@@ -1151,27 +1151,27 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 		 "Calculate the center of mass from the volume (must be manifold geometry with consistent normals)"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	static const EnumPropertyItem prop_set_bounds_types[] = {
 		{V3D_AROUND_CENTER_MEAN, "MEDIAN", 0, "Median Center", ""},
 		{V3D_AROUND_CENTER_BOUNDS, "BOUNDS", 0, "Bounds Center", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	/* identifiers */
 	ot->name = "Set Origin";
 	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3D cursor";
 	ot->idname = "OBJECT_OT_origin_set";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = object_origin_set_exec;
-	
+
 	ot->poll = ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_AROUND_CENTER_MEAN, "Center", "");
 }

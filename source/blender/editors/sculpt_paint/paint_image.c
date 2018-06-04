@@ -169,7 +169,7 @@ void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short te
 		IMB_partial_display_buffer_update_delayed(ibuf, imapaintpartial.x1, imapaintpartial.y1,
 		                                          imapaintpartial.x2, imapaintpartial.y2);
 	}
-	
+
 	if (ibuf->mipmap[0])
 		ibuf->userflags |= IB_MIPMAP_INVALID;
 
@@ -195,7 +195,7 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 
 	if (proj) {
 		radius = 0.5f;
-		
+
 		side = kernel->side = 2;
 		kernel->side_squared = kernel->side * kernel->side;
 		kernel->wdata = MEM_mallocN(sizeof(float) * kernel->side_squared, "blur kernel data");
@@ -204,15 +204,15 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 	else {
 		if (br->blur_kernel_radius <= 0)
 			br->blur_kernel_radius = 1;
-		
+
 		radius = br->blur_kernel_radius;
-					
+
 		side = kernel->side = radius * 2 + 1;
 		kernel->side_squared = kernel->side * kernel->side;
 		kernel->wdata = MEM_mallocN(sizeof(float) * kernel->side_squared, "blur kernel data");
 		kernel->pixel_len = br->blur_kernel_radius;
 	}
-	
+
 	switch (type) {
 		case KERNEL_BOX:
 			for (i = 0; i < kernel->side_squared; i++)
@@ -221,9 +221,9 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 
 		case KERNEL_GAUSSIAN:
 		{
-			/* at 3.0 standard deviations distance, kernel is about zero */			
-			float standard_dev = radius / 3.0f; 
-			
+			/* at 3.0 standard deviations distance, kernel is about zero */
+			float standard_dev = radius / 3.0f;
+
 			/* make the necessary adjustment to the value for use in the normal distribution formula */
 			standard_dev = -standard_dev * standard_dev * 2;
 
@@ -232,7 +232,7 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 					float idist = radius - i;
 					float jdist = radius - j;
 					float value = exp((idist * idist + jdist * jdist) / standard_dev);
-					
+
 					kernel->wdata[i + j * side] = value;
 				}
 			}
@@ -312,7 +312,7 @@ static int image_paint_2d_clone_poll(bContext *C)
 		if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE))
 			if (brush->clone.image)
 				return 1;
-	
+
 	return 0;
 }
 
@@ -465,7 +465,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 			BKE_paint_data_warning(op->reports, uvs, mat, tex, stencil);
 			MEM_freeN(pop);
 			WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
-			return NULL;			
+			return NULL;
 		}
 		pop->mode = PAINT_MODE_3D_PROJECT;
 		pop->custom_paint = paint_proj_new_stroke(C, ob, mouse, mode);
@@ -483,7 +483,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 	if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
 		pop->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, gradient_draw_line, pop);
 	}
-	
+
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
 	ED_image_undo_push_begin(op->type->name);
 
@@ -850,7 +850,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 	ot->name = "Grab Clone";
 	ot->idname = "PAINT_OT_grab_clone";
 	ot->description = "Move the clone source image";
-	
+
 	/* api callbacks */
 	ot->exec = grab_clone_exec;
 	ot->invoke = grab_clone_invoke;
@@ -915,7 +915,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1017,7 +1017,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	ot->name = "Sample Color";
 	ot->idname = "PAINT_OT_sample_color";
 	ot->description = "Use the mouse to sample a color in the image";
-	
+
 	/* api callbacks */
 	ot->exec = sample_color_exec;
 	ot->invoke = sample_color_invoke;
@@ -1086,7 +1086,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		BKE_texpaint_slots_refresh_object(scene, ob);
 
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-		
+
 		/* entering paint mode also sets image to editors */
 		if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
 			Material *ma = give_current_material(ob, ob->actcol); /* set the current material active paint slot on image editor */
@@ -1096,8 +1096,8 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		}
 		else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
 			ima = imapaint->canvas;
-		}	
-		
+		}
+
 		if (ima) {
 			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 				ScrArea *sa;
@@ -1106,7 +1106,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 					for (sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_IMAGE) {
 							SpaceImage *sima = (SpaceImage *)sl;
-							
+
 							if (!sima->pin) {
 								Object *obedit = CTX_data_edit_object(C);
 								ED_space_image_set(sima, scene, obedit, ima);
@@ -1116,7 +1116,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		
+
 		ob->mode |= mode_flag;
 
 		BKE_paint_init(scene, ePaintTextureProjective, PAINT_CURSOR_TEXTURE_PAINT);
@@ -1143,7 +1143,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	ot->name = "Texture Paint Toggle";
 	ot->idname = "PAINT_OT_texture_paint_toggle";
 	ot->description = "Toggle texture paint mode in 3D view";
-	
+
 	/* api callbacks */
 	ot->exec = texture_paint_toggle_exec;
 	ot->poll = texture_paint_toggle_poll;
@@ -1163,7 +1163,7 @@ static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
 		br = image_paint_brush(C);
 	}
 	else {
-		/* At the moment, wpaint does not support the color flipper. 
+		/* At the moment, wpaint does not support the color flipper.
 		 * So for now we're only handling vpaint */
 		ToolSettings *ts = CTX_data_tool_settings(C);
 		VPaint *vp = ts->vpaint;
@@ -1236,7 +1236,7 @@ static int texture_paint_poll(bContext *C)
 	if (texture_paint_toggle_poll(C))
 		if (CTX_data_active_object(C)->mode & OB_MODE_TEXTURE_PAINT)
 			return 1;
-	
+
 	return 0;
 }
 

@@ -455,7 +455,7 @@ static void add_gpencil_renderpass(const bContext *C, OGLRender *oglrender, Rend
 	short oldalphamode = scene->r.alphamode;
 	/* set alpha transparent for gp */
 	scene->r.alphamode = R_ALPHAPREMUL;
-	
+
 	/* saves layer status */
 	short *oldsts = MEM_mallocN(BLI_listbase_count(&gpd->layers) * sizeof(short), "temp_gplayers_flag");
 	int i = 0;
@@ -477,7 +477,7 @@ static void add_gpencil_renderpass(const bContext *C, OGLRender *oglrender, Rend
 
 		/* render this gp layer */
 		screen_opengl_render_doit(C, oglrender, rr);
-		
+
 		/* add RendePass composite */
 		RenderPass *rp = RE_create_gp_pass(rr, gpl->info, rv->name);
 
@@ -1108,7 +1108,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
 
 	/* run first because screen_opengl_render_anim_step can free oglrender */
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
-	
+
 	if (anim == 0) {
 		screen_opengl_render_apply(C, op->customdata);
 		screen_opengl_render_end(C, op->customdata);
@@ -1138,16 +1138,16 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
 		if (!screen_opengl_render_anim_initialize(C, op))
 			return OPERATOR_CANCELLED;
 	}
-	
+
 	oglrender = op->customdata;
 	render_view_open(C, event->x, event->y, op->reports);
-	
+
 	/* view may be changed above (R_OUTPUT_WINDOW) */
 	oglrender->win = CTX_wm_window(C);
 
 	WM_event_add_modal_handler(C, op);
 	oglrender->timer = WM_event_add_timer(oglrender->wm, oglrender->win, TIMER, 0.01f);
-	
+
 	return OPERATOR_RUNNING_MODAL;
 }
 

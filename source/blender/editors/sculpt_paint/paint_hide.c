@@ -101,7 +101,7 @@ static void partialvis_update_mesh(Object *ob,
 	const int *vert_indices;
 	int totvert, i;
 	bool any_changed = false, any_visible = false;
-			
+
 	BKE_pbvh_node_num_verts(pbvh, node, NULL, &totvert);
 	BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
 	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
@@ -153,7 +153,7 @@ static void partialvis_update_grids(Object *ob,
 	                        &grids);
 	grid_hidden = BKE_pbvh_grid_hidden(pbvh);
 	BKE_pbvh_get_grid_key(pbvh, &key);
-	
+
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
 	for (i = 0; i < totgrid; i++) {
@@ -323,7 +323,7 @@ static void clip_planes_from_rect(bContext *C,
 {
 	ViewContext vc;
 	BoundBox bb;
-	
+
 	view3d_operator_needs_opengl(C);
 	ED_view3d_viewcontext_init(C, &vc);
 	ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, rect);
@@ -354,7 +354,7 @@ static void get_pbvh_nodes(PBVH *pbvh,
 		case PARTIALVIS_MASKED:
 			break;
 	}
-	
+
 	BKE_pbvh_search_gather(pbvh, cb, clip_planes, nodes, totnode);
 }
 
@@ -414,7 +414,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
 	if (nodes)
 		MEM_freeN(nodes);
-	
+
 	/* end undo */
 	sculpt_undo_push_end();
 
@@ -425,7 +425,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	}
 
 	ED_region_tag_redraw(ar);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -454,7 +454,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 		{PARTIALVIS_MASKED, "MASKED", 0, "Masked", "Hide or show vertices that are masked (minimum mask value of 0.5)"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	/* identifiers */
 	ot->name = "Hide/Show";
 	ot->idname = "PAINT_OT_hide_show";
@@ -474,6 +474,6 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	             "Action", "Whether to hide or show vertices");
 	RNA_def_enum(ot->srna, "area", area_items, PARTIALVIS_INSIDE,
 	             "Area", "Which vertices to hide or show");
-	
+
 	WM_operator_properties_border(ot);
 }

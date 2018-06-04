@@ -34,7 +34,7 @@
 
 /* *** Lua Keywords (for format_line) *** */
 
-/* Checks the specified source string for a Lua keyword (minus boolean & 'nil'). 
+/* Checks the specified source string for a Lua keyword (minus boolean & 'nil').
  * This name must start at the beginning of the source string and must be
  * followed by a non-identifier (see text_check_identifier(char)) or null char.
  *
@@ -75,7 +75,7 @@ static int txtfmt_lua_find_keyword(const char *string)
 	return i;
 }
 
-/* Checks the specified source string for a Lua special name/function. This 
+/* Checks the specified source string for a Lua special name/function. This
  * name must start at the beginning of the source string and must be followed
  * by a non-identifier (see text_check_identifier(char)) or null character.
  *

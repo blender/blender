@@ -194,12 +194,12 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 	BLI_buffer_declare_static(vec2f, tf_uvorig_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
 	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
-	
+
 	switch (sima->dt_uvstretch) {
 		case SI_UVDT_STRETCH_AREA:
 		{
 			float totarea = 0.0f, totuvarea = 0.0f, areadiff, uvarea, area;
-			
+
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				const int efa_len = efa->len;
 				float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
@@ -214,7 +214,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 
 				totarea += BM_face_calc_area(efa);
 				totuvarea += area_poly_v2(tf_uv, efa->len);
-				
+
 				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				}
@@ -266,17 +266,17 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 						uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
 
 						uvarea = area_poly_v2(tf_uv, efa->len) / totuvarea;
-						
+
 						if (area < FLT_EPSILON || uvarea < FLT_EPSILON)
 							areadiff = 1.0f;
 						else if (area > uvarea)
 							areadiff = 1.0f - (uvarea / area);
 						else
 							areadiff = 1.0f - (area / uvarea);
-						
+
 						weight_to_rgb(col, areadiff);
 						immUniformColor3fv(col);
-						
+
 						/* TODO: use editmesh tessface */
 						immBegin(GWN_PRIM_TRI_FAN, efa->len);
 
@@ -455,7 +455,7 @@ static void draw_uvs_other_mesh(Object *ob, const Image *curimage,
 
 	for (a = 0; a < totcol; a++) {
 		Image *image;
-		
+
 		/* if no materials, assume a default material with no image */
 		if (ob->totcol)
 			ED_object_get_active_image(ob, a + 1, &image, NULL, NULL, NULL);
@@ -602,7 +602,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		interpedges = (ts->selectmode & SCE_SELECT_VERTEX);
 	else
 		interpedges = (ts->uv_selectmode == UV_SELECT_VERTEX);
-	
+
 	/* draw other uvs */
 	if (sima->flag & SI_DRAW_OTHER) {
 		Image *curimage;
@@ -618,7 +618,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	}
 
 	/* 1. draw shadow mesh */
-	
+
 	if (sima->flag & SI_DRAWSHADOW) {
 		Object *ob_cage_eval = DEG_get_evaluated_object(depsgraph, obedit);
 		/* XXX TODO: Need to check if shadow mesh is different than original mesh. */
@@ -632,7 +632,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	}
 
 	/* 2. draw colored faces */
-	
+
 	if (sima->flag & SI_DRAW_STRETCH) {
 		draw_uvs_stretch(sima, scene, obedit, em, efa_act);
 	}
@@ -899,7 +899,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 		pointsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
 		glPointSize(pointsize);
-		
+
 		immBeginAtMost(GWN_PRIM_POINTS, bm->totface);
 
 		/* unselected faces */
@@ -950,7 +950,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	}
 
 	/* 6. draw uv vertices */
-	
+
 	if (drawfaces != 2) { /* 2 means Mesh Face Mode */
 		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
@@ -975,12 +975,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		}
 
 		immEnd();
-	
+
 		/* pinned uvs */
 		/* give odd pointsizes odd pin pointsizes */
 		glPointSize(pointsize * 2 + (((int)pointsize % 2) ? (-1) : 0));
 		imm_cpack(0xFF);
-	
+
 		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -996,11 +996,11 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		}
 
 		immEnd();
-	
+
 		/* selected uvs */
 		immUniformThemeColor(TH_VERTEX_SELECT);
 		glPointSize(pointsize);
-	
+
 		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -1033,10 +1033,10 @@ static void draw_uv_shadows_get(
 
 	if ((sima->mode == SI_MODE_PAINT) && obedit && obedit->type == OB_MESH) {
 		struct BMEditMesh *em = BKE_editmesh_from_object(obedit);
-		
+
 		*show_shadow = EDBM_uv_check(em);
 	}
-	
+
 	*show_texpaint = (ob && ob->type == OB_MESH && ob->mode == OB_MODE_TEXTURE_PAINT);
 }
 

@@ -88,10 +88,10 @@ static void BRUSH_OT_add(wmOperatorType *ot)
 	ot->name = "Add Brush";
 	ot->description = "Add brush by mode type";
 	ot->idname = "BRUSH_OT_add";
-	
+
 	/* api callbacks */
 	ot->exec = brush_add_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -145,10 +145,10 @@ static void BRUSH_OT_scale_size(wmOperatorType *ot)
 	ot->name = "Scale Sculpt/Paint Brush Size";
 	ot->description = "Change brush size by a scalar";
 	ot->idname = "BRUSH_OT_scale_size";
-	
+
 	/* api callbacks */
 	ot->exec = brush_scale_size_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -286,10 +286,10 @@ static void BRUSH_OT_reset(wmOperatorType *ot)
 	ot->name = "Reset Brush";
 	ot->description = "Return brush to defaults based on current tool";
 	ot->idname = "BRUSH_OT_reset";
-	
+
 	/* api callbacks */
 	ot->exec = brush_reset_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -354,7 +354,7 @@ static Brush *brush_tool_toggle(Main *bmain, Brush *brush_orig, const int tool, 
 		/* store the previously-selected brush */
 		if (br)
 			br->toggle_brush = brush_orig;
-		
+
 		return br;
 	}
 	else if (brush_orig->toggle_brush) {
@@ -930,7 +930,7 @@ static int stencil_reset_transform_exec(bContext *C, wmOperator *op)
 
 	if (!br)
 		return OPERATOR_CANCELLED;
-	
+
 	if (do_mask) {
 		br->mask_stencil_pos[0] = 256;
 		br->mask_stencil_pos[1] = 256;
@@ -1201,7 +1201,7 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
 static void paint_partial_visibility_keys(wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
-	
+
 	/* Partial visibility */
 	kmi = WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", PARTIALVIS_SHOW);
@@ -1247,7 +1247,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	int i;
-	
+
 	keymap = WM_keymap_find(keyconf, "Paint Curve", 0, 0);
 	keymap->poll = paint_curve_poll;
 
@@ -1286,7 +1286,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCULPT_OT_dynamic_topology_toggle", DKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* Dynamic-topology detail size
-	 * 
+	 *
 	 * This should be improved further, perhaps by showing a triangle
 	 * grid rather than brush alpha */
 	kmi = WM_keymap_add_item(keymap, "SCULPT_OT_set_detail_size", DKEY, KM_PRESS, KM_SHIFT, 0);

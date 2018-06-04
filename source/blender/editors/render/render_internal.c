@@ -272,7 +272,7 @@ static void screen_render_single_layer_set(wmOperator *op, Main *mainp, WorkSpac
 
 		RNA_string_get(op->ptr, "scene", scene_name);
 		scn = (Scene *)BLI_findstring(&mainp->scene, scene_name, offsetof(ID, name) + 2);
-		
+
 		if (scn) {
 			/* camera switch wont have updated */
 			scn->r.cfra = (*scene)->r.cfra;
@@ -288,7 +288,7 @@ static void screen_render_single_layer_set(wmOperator *op, Main *mainp, WorkSpac
 
 		RNA_string_get(op->ptr, "layer", rl_name);
 		rl = (ViewLayer *)BLI_findstring(&(*scene)->view_layers, rl_name, offsetof(ViewLayer, name));
-		
+
 		if (rl)
 			*single_layer = rl;
 	}
@@ -445,7 +445,7 @@ static void make_renderinfo_string(const RenderStats *rs,
 	/* full sample */
 	if (rs->curfsa)
 		spos += sprintf(spos, IFACE_("| Full Sample %d "), rs->curfsa);
-	
+
 	/* extra info */
 	if (rs->infostr && rs->infostr[0]) {
 		spos += sprintf(spos, "| %s ", rs->infostr);
@@ -487,7 +487,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 static void render_progress_update(void *rjv, float progress)
 {
 	RenderJob *rj = rjv;
-	
+
 	if (rj->progress && *rj->progress != progress) {
 		*rj->progress = progress;
 
@@ -574,10 +574,10 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		*(rj->do_update) = true;
 		return;
 	}
-	
+
 	if (rr == NULL)
 		return;
-	
+
 	/* update part of render */
 	render_image_update_pass_and_layer(rj, rr, &rj->iuser);
 	ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
@@ -596,7 +596,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		{
 			image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, renrect, viewname);
 		}
-		
+
 		/* make jobs timer to send notifier */
 		*(rj->do_update) = true;
 	}
@@ -683,13 +683,13 @@ static void render_endjob(void *rjv)
 			ED_update_for_newframe(G.main, rj->depsgraph);
 		}
 	}
-	
+
 	/* XXX above function sets all tags in nodes */
 	ntreeCompositClearTags(rj->scene->nodetree);
-	
+
 	/* potentially set by caller */
 	rj->scene->r.scemode &= ~R_NO_FRAME_UPDATE;
-	
+
 	if (rj->single_layer) {
 		nodeUpdateID(rj->scene->nodetree, &rj->scene->id);
 		WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
@@ -902,14 +902,14 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	/* stop all running jobs, except screen one. currently previews frustrate Render */
 	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
 
 	/* cancel animation playback */
 	if (ED_screen_animation_playing(CTX_wm_manager(C)))
 		ED_screen_animation_play(C, 0, 0);
-	
+
 	/* handle UI stuff */
 	WM_cursor_wait(1);
 
@@ -930,7 +930,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	sa = render_view_open(C, event->x, event->y, op->reports);
 
 	jobflag = WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS;
-	
+
 	if (RNA_struct_property_is_set(op->ptr, "layer"))
 		jobflag |= WM_JOB_SUSPEND;
 
@@ -1075,10 +1075,10 @@ Scene *ED_render_job_get_scene(const bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(wm, WM_JOB_TYPE_RENDER);
-	
+
 	if (rj)
 		return rj->scene;
-	
+
 	return NULL;
 }
 

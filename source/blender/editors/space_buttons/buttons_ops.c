@@ -86,7 +86,7 @@ void BUTTONS_OT_toolbox(wmOperatorType *ot)
 	ot->name = "Toolbox";
 	ot->description = "Display button panel toolbox";
 	ot->idname = "BUTTONS_OT_toolbox";
-	
+
 	/* api callbacks */
 	ot->invoke = toolbox_invoke;
 	ot->poll = ED_operator_buttons_active;
@@ -106,10 +106,10 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	ID *id;
 	char *str, path[FILE_MAX];
 	const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" : "filepath";
-	
+
 	if (RNA_struct_property_is_set(op->ptr, path_prop) == 0 || fbo == NULL)
 		return OPERATOR_CANCELLED;
-	
+
 	str = RNA_string_get_alloc(op->ptr, path_prop, NULL, 0);
 
 	/* add slash for directories, important for some properties */
@@ -119,7 +119,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 
 		BLI_strncpy(path, str, FILE_MAX);
 		BLI_path_abs(path, id ? ID_BLEND_PATH(G.main, id) : G.main->name);
-		
+
 		if (BLI_is_dir(path)) {
 			/* do this first so '//' isnt converted to '//\' on windows */
 			BLI_add_slash(path);
@@ -255,7 +255,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	ot->name = "Accept";
 	ot->description = "Open a file browser, Hold Shift to open the file, Alt to browse containing directory";
 	ot->idname = "BUTTONS_OT_file_browse";
-	
+
 	/* api callbacks */
 	ot->invoke = file_browse_invoke;
 	ot->exec = file_browse_exec;

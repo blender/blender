@@ -42,7 +42,7 @@
 
 #include "io_cache.h"
 
-void ED_operatortypes_io(void) 
+void ED_operatortypes_io(void)
 {
 #ifdef WITH_COLLADA
 	/* Collada operators: */

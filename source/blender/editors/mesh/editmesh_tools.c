@@ -5310,7 +5310,7 @@ static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
 	} /* objects */
 
 	const float thresh = RNA_float_get(op->ptr, "threshold");
-	
+
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);

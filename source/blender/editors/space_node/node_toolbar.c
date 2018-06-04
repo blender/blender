@@ -55,7 +55,7 @@ static int node_toolbar_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = node_has_tools_region(sa);
-	
+
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
@@ -74,10 +74,10 @@ void NODE_OT_toolbar(wmOperatorType *ot)
 	ot->name = "Tool Shelf";
 	ot->description = "Toggles tool shelf display";
 	ot->idname = "NODE_OT_toolbar";
-	
+
 	ot->exec = node_toolbar_toggle_exec;
 	ot->poll = node_toolbar_poll;
-	
+
 	/* flags */
 	ot->flag = 0;
 }

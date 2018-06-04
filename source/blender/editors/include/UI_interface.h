@@ -579,7 +579,7 @@ bool UI_but_online_manual_id_from_active(
  * - R: RNA
  * - O: operator */
 
-uiBut *uiDefBut(uiBlock *block, 
+uiBut *uiDefBut(uiBlock *block,
                 int type, int retval, const char *str,
                 int x1, int y1,
                 short x2, short y2,
@@ -599,7 +599,7 @@ uiBut *uiDefButR_prop(uiBlock *block, int type, int retval, const char *str, int
 uiBut *uiDefButO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, const char *tip);
 uiBut *uiDefButO_ptr(uiBlock *block, int type, struct wmOperatorType *ot, int opcontext, const char *str, int x, int y, short width, short height, const char *tip);
 
-uiBut *uiDefIconBut(uiBlock *block, 
+uiBut *uiDefIconBut(uiBlock *block,
                     int type, int retval, int icon,
                     int x1, int y1,
                     short x2, short y2,
@@ -663,7 +663,7 @@ enum {
 typedef struct uiStringInfo {
 	int type;
 	char *strinfo;
-} uiStringInfo; 
+} uiStringInfo;
 
 /* Note: Expects pointers to uiStringInfo structs as parameters.
  *       Will fill them with translated strings, when possible.
@@ -1003,7 +1003,7 @@ void uiTemplateIDTabs(
         PointerRNA *ptr, const char *propname,
         const char *newop, const char *openop, const char *unlinkop,
         int filter);
-void uiTemplateAnyID(uiLayout *layout, struct PointerRNA *ptr, const char *propname, 
+void uiTemplateAnyID(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                      const char *proptypename, const char *text);
 void uiTemplateSearch(
         uiLayout *layout, struct bContext *C,
@@ -1016,7 +1016,7 @@ void uiTemplateSearchPreview(
         struct PointerRNA *searchptr, const char *searchpropname,
         const char *newop, const char *unlinkop,
         const int rows, const int cols);
-void uiTemplatePathBuilder(uiLayout *layout, struct PointerRNA *ptr, const char *propname, 
+void uiTemplatePathBuilder(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                            struct PointerRNA *root_ptr, const char *text);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 

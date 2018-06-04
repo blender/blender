@@ -582,7 +582,7 @@ static void brush_painter_imbuf_partial_update(BrushPainter *painter, const floa
 		destx = desty = 0;
 		w = h = 0;
 	}
-	
+
 	x1 = min_ii(destx, ibuf->x);
 	y1 = min_ii(desty, ibuf->y);
 	x2 = min_ii(destx + w, ibuf->x);
@@ -1132,13 +1132,13 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 		paint_2d_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
 		tot = 1;
 	}
-	
+
 	/* blend into canvas */
 	for (a = 0; a < tot; a++) {
 		ED_imapaint_dirty_region(s->image, s->canvas,
 		                         region[a].destx, region[a].desty,
 		                         region[a].width, region[a].height, true);
-	
+
 		if (s->do_masking) {
 			/* masking, find original pixels tiles from undo buffer to composite over */
 			int tilex, tiley, tilew, tileh;
@@ -1232,7 +1232,7 @@ static int paint_2d_canvas_set(ImagePaintState *s, Image *ima)
 
 	/* set masking */
 	s->do_masking = paint_use_opacity_masking(s->brush);
-	
+
 	return 1;
 }
 

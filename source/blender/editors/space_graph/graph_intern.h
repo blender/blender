@@ -87,7 +87,7 @@ enum eGraphKeys_ColumnSelect_Mode {
 /* ***************************************** */
 /* graph_edit.c */
 
-void get_graph_keyframe_extents(struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, 
+void get_graph_keyframe_extents(struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax,
                                 const bool do_selected, const bool include_handles);
 
 void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
@@ -119,7 +119,7 @@ void GRAPH_OT_frame_jump(struct wmOperatorType *ot);
 void GRAPH_OT_snap(struct wmOperatorType *ot);
 void GRAPH_OT_mirror(struct wmOperatorType *ot);
 
-/* defines for snap keyframes 
+/* defines for snap keyframes
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
  */
 enum eGraphKeys_Snap_Mode {
@@ -131,7 +131,7 @@ enum eGraphKeys_Snap_Mode {
 	GRAPHKEYS_SNAP_VALUE,
 };
 
-/* defines for mirror keyframes 
+/* defines for mirror keyframes
  * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
  */
 enum eGraphKeys_Mirror_Mode {

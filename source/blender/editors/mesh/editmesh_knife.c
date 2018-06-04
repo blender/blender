@@ -1806,7 +1806,7 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd, const float mval[2], 
 	ED_view3d_unproject(kcd->vc.ar, mval[0], mval[1], ofs,  r_origin_ofs);
 
 	/* transform into object space */
-	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat); 
+	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
 
 	mul_m4_v3(kcd->ob->imat, r_origin);
 	mul_m4_v3(kcd->ob->imat, r_origin_ofs);

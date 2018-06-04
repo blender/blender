@@ -146,25 +146,25 @@ void POSE_OT_toggle_bone_selection_overlay(struct wmOperatorType *ot);
 /* Temporary data linking PoseChannels with the F-Curves they affect */
 typedef struct tPChanFCurveLink {
 	struct tPChanFCurveLink *next, *prev;
-	
+
 	ListBase fcurves;               /* F-Curves for this PoseChannel (wrapped with LinkData) */
 	struct bPoseChannel *pchan;     /* Pose Channel which data is attached to */
-	
+
 	char *pchan_path;               /* RNA Path to this Pose Channel (needs to be freed when we're done) */
-	
+
 	float oldloc[3];                /* transform values at start of operator (to be restored before each modal step) */
 	float oldrot[3];
 	float oldscale[3];
 	float oldquat[4];
 	float oldangle;
 	float oldaxis[3];
-	
+
 	float roll1, roll2;             /* old bbone values (to be restored along with the transform properties) */
 	float curveInX, curveInY;       /* (NOTE: we haven't renamed these this time, as their names are already long enough) */
 	float curveOutX, curveOutY;
 	float ease1, ease2;
 	float scaleIn, scaleOut;
-	
+
 	struct IDProperty *oldprops;    /* copy of custom properties at start of operator (to be restored before each modal step) */
 } tPChanFCurveLink;
 

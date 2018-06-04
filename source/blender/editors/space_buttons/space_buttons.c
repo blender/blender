@@ -60,7 +60,7 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 {
 	ARegion *ar;
 	SpaceButs *sbuts;
-	
+
 	sbuts = MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype = SPACE_BUTS;
 	sbuts->align = BUT_VERTICAL;
@@ -69,11 +69,11 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for buts");
-	
+
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_TOP;
-	
+
 #if 0
 	/* context region */
 	ar = MEM_callocN(sizeof(ARegion), "context region for buts");
@@ -84,7 +84,7 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for buts");
-	
+
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
 
@@ -93,12 +93,12 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 
 /* not spacelink itself */
 static void buttons_free(SpaceLink *sl)
-{	
+{
 	SpaceButs *sbuts = (SpaceButs *) sl;
 
 	if (sbuts->path)
 		MEM_freeN(sbuts->path);
-	
+
 	if (sbuts->texuser) {
 		ButsContextTexture *ct = sbuts->texuser;
 		BLI_freelistN(&ct->users);
@@ -123,11 +123,11 @@ static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 static SpaceLink *buttons_duplicate(SpaceLink *sl)
 {
 	SpaceButs *sbutsn = MEM_dupallocN(sl);
-	
+
 	/* clear or remove stuff from old */
 	sbutsn->path = NULL;
 	sbutsn->texuser = NULL;
-	
+
 	return (SpaceLink *)sbutsn;
 }
 
@@ -306,7 +306,7 @@ static void buttons_operatortypes(void)
 static void buttons_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Property Editor", SPACE_BUTS, 0);
-	
+
 	WM_keymap_add_item(keymap, "BUTTONS_OT_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 }
 
@@ -355,7 +355,7 @@ static void buttons_header_region_message_subscribe(
 static void buttons_area_redraw(ScrArea *sa, short buttons)
 {
 	SpaceButs *sbuts = sa->spacedata.first;
-	
+
 	/* if the area's current button set is equal to the one to redraw */
 	if (sbuts->mainb == buttons)
 		ED_area_tag_redraw(sa);
@@ -613,10 +613,10 @@ void ED_spacetype_buttons(void)
 {
 	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype buttons");
 	ARegionType *art;
-	
+
 	st->spaceid = SPACE_BUTS;
 	strncpy(st->name, "Buttons", BKE_ST_MAXNAME);
-	
+
 	st->new = buttons_new;
 	st->free = buttons_free;
 	st->init = buttons_init;
@@ -640,13 +640,13 @@ void ED_spacetype_buttons(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	buttons_context_register(art);
-	
+
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
-	
+
 	art->init = buttons_header_region_init;
 	art->draw = buttons_header_region_draw;
 	art->message_subscribe = buttons_header_region_message_subscribe;

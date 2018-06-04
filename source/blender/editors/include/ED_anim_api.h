@@ -64,31 +64,31 @@ struct PropertyRNA;
 
 /* --------------- Context --------------------- */
 
-/* This struct defines a structure used for animation-specific 
+/* This struct defines a structure used for animation-specific
  * 'context' information
  */
 typedef struct bAnimContext {
 	void *data;             /* data to be filtered for use in animation editor */
 	short datatype;         /* type of data eAnimCont_Types */
-	
+
 	short mode;             /* editor->mode */
 	short spacetype;        /* sa->spacetype */
 	short regiontype;       /* active region -> type (channels or main) */
-	
+
 	struct ScrArea *sa;     /* editor host */
 	struct SpaceLink *sl;   /* editor data */
 	struct ARegion *ar;     /* region within editor */
-	
+
 	struct bDopeSheet *ads; /* dopesheet data for editor (or which is being used) */
-	
+
 	struct Depsgraph *depsgraph; /* active dependency graph */
 	struct Scene *scene;    /* active scene */
 	struct ViewLayer *view_layer; /* active scene layer */
 	struct Object *obact;   /* active object */
 	ListBase *markers;      /* active set of markers */
-	
+
 	struct ReportList *reports; /* pointer to current reports list */
-	
+
 	float yscale_fac;       /* scale factor for height of channels (i.e. based on the size of keyframes) */
 } bAnimContext;
 
@@ -109,24 +109,24 @@ typedef enum eAnimCont_Types {
 
 /* --------------- Channels -------------------- */
 
-/* This struct defines a structure used for quick and uniform access for 
+/* This struct defines a structure used for quick and uniform access for
  * channels of animation data
  */
 typedef struct bAnimListElem {
 	struct bAnimListElem *next, *prev;
-	
+
 	void    *data;          /* source data this elem represents */
 	int     type;           /* (eAnim_ChannelType) one of the ANIMTYPE_* values */
 	int     flag;           /* copy of elem's flags for quick access */
 	int     index;          /* for un-named data, the index of the data in its collection */
-	
+
 	char    update;         /* (eAnim_Update_Flags)  tag the element for updating */
 	char    tag;            /* tag the included data. Temporary always */
 
 	short   datatype;       /* (eAnim_KeyType) type of motion data to expect */
 	void   *key_data;       /* motion data - mostly F-Curves, but can be other types too */
-	
-	
+
+
 	/* NOTE: id here is the "IdAdtTemplate"-style datablock (e.g. Object, Material, Texture, NodeTree)
 	 *       from which evaluation of the RNA-paths takes place. It's used to figure out how deep
 	 *       channels should be nested (e.g. for Textures/NodeTrees) in the tree, and allows property
@@ -138,12 +138,12 @@ typedef struct bAnimListElem {
 	 */
 	struct ID *id;          /* ID block that channel is attached to */
 	struct AnimData *adt;   /* source of the animation data attached to ID block (for convenience) */
-	
+
 	void   *owner;          /* for per-element F-Curves (e.g. NLA Control Curves), the element that this represents (e.g. NlaStrip) */
 } bAnimListElem;
 
 
-/* Some types for easier type-testing 
+/* Some types for easier type-testing
  * NOTE: need to keep the order of these synchronized with the channels define code
  *      which is used for drawing and handling channel lists for
  */
@@ -151,20 +151,20 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_NONE = 0,
 	ANIMTYPE_ANIMDATA,
 	ANIMTYPE_SPECIALDATA,
-	
+
 	ANIMTYPE_SUMMARY,
-	
+
 	ANIMTYPE_SCENE,
 	ANIMTYPE_OBJECT,
 	ANIMTYPE_GROUP,
 	ANIMTYPE_FCURVE,
-	
+
 	ANIMTYPE_NLACONTROLS,
 	ANIMTYPE_NLACURVE,
-	
+
 	ANIMTYPE_FILLACTD,
 	ANIMTYPE_FILLDRIVERS,
-	
+
 	ANIMTYPE_DSMAT,
 	ANIMTYPE_DSLAM,
 	ANIMTYPE_DSCAM,
@@ -183,18 +183,18 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSSPK,
 	ANIMTYPE_DSGPENCIL,
 	ANIMTYPE_DSMCLIP,
-	
+
 	ANIMTYPE_SHAPEKEY,
-	
+
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
-	
+
 	ANIMTYPE_MASKDATABLOCK,
 	ANIMTYPE_MASKLAYER,
-	
+
 	ANIMTYPE_NLATRACK,
 	ANIMTYPE_NLAACTION,
-	
+
 	/* always as last item, the total number of channel types... */
 	ANIMTYPE_NUM_TYPES
 } eAnim_ChannelType;
@@ -239,31 +239,31 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_LIST_VISIBLE   = (1 << 1),
 	/* channel has specifically been tagged as visible in Graph Editor (* Graph Editor Only) */
 	ANIMFILTER_CURVE_VISIBLE  = (1 << 2),
-	
+
 	/* include summary channels and "expanders" (for drawing/mouse-selection in channel list) */
 	ANIMFILTER_LIST_CHANNELS  = (1 << 3),
-	
+
 	/* for its type, channel should be "active" one */
 	ANIMFILTER_ACTIVE         = (1 << 4),
 	/* channel is a child of the active group (* Actions speciality) */
 	ANIMFILTER_ACTGROUPED     = (1 << 5),
-	
+
 	/* channel must be selected/not-selected, but both must not be set together */
 	ANIMFILTER_SEL            = (1 << 6),
 	ANIMFILTER_UNSEL          = (1 << 7),
-	
+
 	/* editability status - must be editable to be included */
 	ANIMFILTER_FOREDIT        = (1 << 8),
 	/* only selected animchannels should be considerable as editable - mainly for Graph Editor's option for keys on select curves only */
 	ANIMFILTER_SELEDIT        = (1 << 9),
-	
+
 	/* flags used to enforce certain data types */
 	// NOTE: the ones for curves and NLA tracks were redundant and have been removed for now...
 	ANIMFILTER_ANIMDATA       = (1 << 10),
-	
+
 	/* duplicate entries for animation data attached to multi-user blocks must not occur */
 	ANIMFILTER_NODUPLIS       = (1 << 11),
-	
+
 	/* for checking if we should keep some collapsed channel around (internal use only!) */
 	ANIMFILTER_TMP_PEEK       = (1 << 30),
 
@@ -325,7 +325,7 @@ typedef enum eAnimFilter_Flags {
 
 /* Grease Pencil only */
 /* Grease Pencil datablock settings */
-#define EXPANDED_GPD(gpd) (gpd->flag & GP_DATA_EXPAND) 
+#define EXPANDED_GPD(gpd) (gpd->flag & GP_DATA_EXPAND)
 /* Grease Pencil Layer settings */
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED) == 0)
 #define SEL_GPL(gpl) (gpl->flag & GP_LAYER_SELECT)
@@ -391,7 +391,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_F
  */
 bool ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
 
-/* Obtain current anim-data context (from Animation Editor) given 
+/* Obtain current anim-data context (from Animation Editor) given
  * that Blender Context info has already been set.
  * Returns whether the operation was successful.
  */
@@ -444,7 +444,7 @@ typedef struct bAnimChannelType {
 	const char *channel_type_name;
 	/* "level" or role in hierarchy - for finding the active channel */
 	eAnimChannel_Role channel_role;
-	
+
 	/* -- Drawing -- */
 	/* get RGB color that is used to draw the majority of the backdrop */
 	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float r_color[3]);
@@ -454,14 +454,14 @@ typedef struct bAnimChannelType {
 	short (*get_indent_level)(bAnimContext *ac, bAnimListElem *ale);
 	/* get offset in pixels for the start of the channel (in addition to the indent depth) */
 	short (*get_offset)(bAnimContext *ac, bAnimListElem *ale);
-	
+
 	/* get name (for channel lists) */
 	void (*name)(bAnimListElem *ale, char *name);
 	/* get RNA property+pointer for editing the name */
 	bool (*name_prop)(bAnimListElem *ale, struct PointerRNA *ptr, struct PropertyRNA **prop);
 	/* get icon (for channel lists) */
 	int (*icon)(bAnimListElem *ale);
-	
+
 	/* -- Settings -- */
 	/* check if the given setting is valid in the current context */
 	bool (*has_setting)(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
@@ -490,21 +490,21 @@ void ANIM_channel_draw_widgets(const struct bContext *C, bAnimContext *ac, bAnim
 
 /* ------------------------ Editing API -------------------------- */
 
-/* Check if some setting for a channel is enabled 
+/* Check if some setting for a channel is enabled
  * Returns: 1 = On, 0 = Off, -1 = Invalid
  *
  *  - setting: eAnimChannel_Settings
  */
 short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
 
-/* Change value of some setting for a channel 
+/* Change value of some setting for a channel
  *	- setting: eAnimChannel_Settings
  *	- mode: eAnimChannels_SetFlag
  */
 void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode);
 
 
-/* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting 
+/* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting
  *	- anim_data: list of the all the anim channels that can be chosen
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
  *		  then the channels under closed expanders get ignored...
@@ -579,7 +579,7 @@ void ANIM_fmodifiers_copybuf_free(void);
  */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
 
-/* 'Paste' the F-Modifier(s) from the buffer to the specified list 
+/* 'Paste' the F-Modifier(s) from the buffer to the specified list
  *	- replace: free all the existing modifiers to leave only the pasted ones
  */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, struct FCurve *curve);
@@ -654,7 +654,7 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
  */
 #define BEZKEYTYPE(bezt) ((bezt)->hide)
 
-/* set/clear/toggle macro 
+/* set/clear/toggle macro
  *	- channel - channel with a 'flag' member that we're setting
  *	- smode - 0=clear, 1=set, 2=invert
  *	- sflag - bitflag to set
@@ -665,8 +665,8 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
 		else if (smode == ACHANNEL_SETFLAG_ADD)     (channel)->flag |=  (sflag); \
 		else                                        (channel)->flag &= ~(sflag); \
 	}
-	
-/* set/clear/toggle macro, where the flag is negative 
+
+/* set/clear/toggle macro, where the flag is negative
  *	- channel - channel with a 'flag' member that we're setting
  *	- smode - 0=clear, 1=set, 2=invert
  *	- sflag - bitflag to set
@@ -690,7 +690,7 @@ void ANIM_sync_animchannels_to_data(const struct bContext *C);
 void ANIM_center_frame(struct bContext *C, int smooth_viewtx);
 /* ************************************************* */
 /* OPERATORS */
-	
+
 /* generic animation channels */
 void ED_operatortypes_animchannels(void);
 void ED_keymap_animchannels(struct wmKeyConfig *keyconf);
@@ -698,7 +698,7 @@ void ED_keymap_animchannels(struct wmKeyConfig *keyconf);
 /* generic time editing */
 void ED_operatortypes_anim(void);
 void ED_keymap_anim(struct wmKeyConfig *keyconf);
-	
+
 /* space_graph */
 void ED_operatormacros_graph(void);
 /* space_action */
@@ -710,7 +710,7 @@ void ED_operatormacros_action(void);
 
 /* Action Editor - Action Management */
 struct AnimData *ED_actedit_animdata_from_context(struct bContext *C);
-void ED_animedit_unlink_action(struct bContext *C, struct ID *id, 
+void ED_animedit_unlink_action(struct bContext *C, struct ID *id,
                                struct AnimData *adt, struct bAction *act,
                                struct ReportList *reports, bool force_delete);
 

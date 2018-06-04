@@ -93,7 +93,7 @@ typedef struct ViewDepths {
 	short x, y; /* only for temp use for sub-rects, added to ar->winx/y */
 	float *depths;
 	double depth_range[2];
-	
+
 	bool damaged;
 } ViewDepths;
 

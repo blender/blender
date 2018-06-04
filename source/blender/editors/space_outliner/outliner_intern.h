@@ -143,7 +143,7 @@ typedef enum {
 	OL_SETSEL_EXTEND   = 2,  /* select the item and extend (also toggles selection) */
 } eOLSetState;
 
-/* get TreeStoreElem associated with a TreeElement 
+/* get TreeStoreElem associated with a TreeElement
  * < a: (TreeElement) tree element to find stored element for
  */
 #define TREESTORE(a) ((a)->store_elem)

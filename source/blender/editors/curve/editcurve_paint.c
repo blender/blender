@@ -1016,7 +1016,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		nu->resolv = 1;
 		nu->orderu = 4;
 		nu->orderv = 1;
-		
+
 		BPoint *bp = nu->bp;
 
 		BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);

@@ -78,7 +78,7 @@
 
 /************************* Texture User **************************/
 
-static void buttons_texture_user_property_add(ListBase *users, ID *id, 
+static void buttons_texture_user_property_add(ListBase *users, ID *id,
                                               PointerRNA ptr, PropertyRNA *prop,
                                               const char *category, int icon, const char *name)
 {
@@ -95,7 +95,7 @@ static void buttons_texture_user_property_add(ListBase *users, ID *id,
 	BLI_addtail(users, user);
 }
 
-static void buttons_texture_user_node_add(ListBase *users, ID *id, 
+static void buttons_texture_user_node_add(ListBase *users, ID *id,
                                           bNodeTree *ntree, bNode *node,
                                           const char *category, int icon, const char *name)
 {
@@ -122,10 +122,10 @@ static void buttons_texture_users_find_nodetree(ListBase *users, ID *id,
 			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
 				PointerRNA ptr;
 				/* PropertyRNA *prop; */ /* UNUSED */
-				
+
 				RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 				/* prop = RNA_struct_find_property(&ptr, "texture"); */ /* UNUSED */
-				
+
 				buttons_texture_user_node_add(users, id, ntree, node,
 				                              category, RNA_struct_ui_icon(ptr.type), node->name);
 			}
@@ -449,7 +449,7 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
 	for (user = ct->users.first; user; user = user->next)
 		if (user->ptr.data == data_p && user->prop == prop_p)
 			break;
-	
+
 	if (user) {
 		/* select texture */
 		template_texture_select(C, user, NULL);
@@ -479,12 +479,12 @@ void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, Prope
 	for (user = ct->users.first; user; user = user->next)
 		if (user->ptr.data == ptr->data && user->prop == prop)
 			break;
-	
+
 	/* draw button */
 	if (user) {
 		uiBlock *block = uiLayoutGetBlock(layout);
 		uiBut *but;
-		
+
 		but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Show texture in texture tab"));
 		UI_but_func_set(but, template_texture_show, user->ptr.data, user->prop);

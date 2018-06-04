@@ -276,7 +276,7 @@ static void refresh_images(BakeImages *bake_images)
 		Image *ima = bake_images->data[i].image;
 		if (ima->ok == IMA_OK_LOADED) {
 			GPU_free_image(ima);
-			DEG_id_tag_update(&ima->id, 0);		
+			DEG_id_tag_update(&ima->id, 0);
 		}
 	}
 }

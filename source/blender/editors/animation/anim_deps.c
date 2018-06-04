@@ -73,7 +73,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	id = ale->id;
 	if (!id)
 		return;
-	
+
 	/* tag AnimData for refresh so that other views will update in realtime with these changes */
 	adt = BKE_animdata_from_id(id);
 	if (adt) {
@@ -86,16 +86,16 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 
 	/* update data */
 	fcu = (ale->datatype == ALE_FCURVE) ? ale->key_data : NULL;
-		
+
 	if (fcu && fcu->rna_path) {
 		/* if we have an fcurve, call the update for the property we
 		 * are editing, this is then expected to do the proper redraws
 		 * and depsgraph updates  */
 		PointerRNA id_ptr, ptr;
 		PropertyRNA *prop;
-		
+
 		RNA_id_pointer_create(id, &id_ptr);
-			
+
 		if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop))
 			RNA_property_update_main(G.main, scene, &ptr, prop);
 	}
@@ -106,17 +106,17 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	}
 }
 
-/* tags the given ID block for refreshes (if applicable) due to 
+/* tags the given ID block for refreshes (if applicable) due to
  * Animation Editor editing */
 void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 {
 	if (id) {
 		AnimData *adt = BKE_animdata_from_id(id);
-		
+
 		/* tag AnimData for refresh so that other views will update in realtime with these changes */
 		if (adt)
 			adt->recalc |= ADT_RECALC_ANIM;
-			
+
 		/* set recalc flags */
 		DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
@@ -137,33 +137,33 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
 {
 	bActionGroup *agrp = (bActionGroup *)ale->data;
 	ID *owner_id = ale->id;
-	
+
 	/* major priority is selection status
 	 * so we need both a group and an owner
 	 */
 	if (ELEM(NULL, agrp, owner_id))
 		return;
-		
+
 	/* for standard Objects, check if group is the name of some bone */
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob = (Object *)owner_id;
-		
-		/* check if there are bones, and whether the name matches any 
+
+		/* check if there are bones, and whether the name matches any
 		 * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
 		 */
 		if (ob->pose) {
 			bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
 			bArmature *arm = ob->data;
-			
+
 			if (pchan) {
 				bActionGroup *bgrp;
-				
+
 				/* if one matches, sync the selection status */
 				if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))
 					agrp->flag |= AGRP_SELECTED;
 				else
 					agrp->flag &= ~AGRP_SELECTED;
-					
+
 				/* also sync active group status */
 				if ((ob == ac->obact) && (pchan->bone == arm->act_bone)) {
 					/* if no previous F-Curve has active flag, then we're the first and only one to get it */
@@ -180,7 +180,7 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
 					/* this can't possibly be active now */
 					agrp->flag &= ~AGRP_ACTIVE;
 				}
-				
+
 				/* sync group colors */
 				bgrp = (bActionGroup *)BLI_findlink(&ob->pose->agroups, (pchan->agrp_index - 1));
 				if (bgrp) {
@@ -191,33 +191,33 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
 		}
 	}
 }
- 
+
 /* perform syncing updates for F-Curves */
 static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **active_fcurve)
 {
 	FCurve *fcu = (FCurve *)ale->data;
 	ID *owner_id = ale->id;
-	
-	/* major priority is selection status, so refer to the checks done in anim_filter.c 
+
+	/* major priority is selection status, so refer to the checks done in anim_filter.c
 	 * skip_fcurve_selected_data() for reference about what's going on here...
 	 */
 	if (ELEM(NULL, fcu, fcu->rna_path, owner_id))
 		return;
-	
+
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob = (Object *)owner_id;
-		
+
 		/* only affect if F-Curve involves pose.bones */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
 			bArmature *arm = (bArmature *)ob->data;
 			bPoseChannel *pchan;
 			char *bone_name;
-			
+
 			/* get bone-name, and check if this bone is selected */
 			bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
 			pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
-			
+
 			/* F-Curve selection depends on whether the bone is selected */
 			if ((pchan) && (pchan->bone)) {
 				/* F-Curve selection */
@@ -225,8 +225,8 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 					fcu->flag |= FCURVE_SELECTED;
 				else
 					fcu->flag &= ~FCURVE_SELECTED;
-					
-				/* Active F-Curve - it should be the first one for this bone on the 
+
+				/* Active F-Curve - it should be the first one for this bone on the
 				 * active object to be considered as active
 				 */
 				if ((ob == ac->obact) && (pchan->bone == arm->act_bone)) {
@@ -249,18 +249,18 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 	}
 	else if (GS(owner_id->name) == ID_SCE) {
 		Scene *scene = (Scene *)owner_id;
-		
+
 		/* only affect if F-Curve involves sequence_editor.sequences */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
 			Editing *ed = BKE_sequencer_editing_get(scene, false);
 			Sequence *seq;
 			char *seq_name;
-			
+
 			/* get strip name, and check if this strip is selected */
 			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
 			seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
 			if (seq_name) MEM_freeN(seq_name);
-			
+
 			/* update selection status */
 			if (seq) {
 				if (seq->flag & SELECT)
@@ -272,17 +272,17 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 	}
 	else if (GS(owner_id->name) == ID_NT) {
 		bNodeTree *ntree = (bNodeTree *)owner_id;
-		
+
 		/* check for selected nodes */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
 			bNode *node;
 			char *node_name;
-			
+
 			/* get strip name, and check if this strip is selected */
 			node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
 			node = nodeFindNodebyName(ntree, node_name);
 			if (node_name) MEM_freeN(node_name);
-			
+
 			/* update selection/active status */
 			if (node) {
 				/* update selection status */
@@ -290,7 +290,7 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 					fcu->flag |= FCURVE_SELECTED;
 				else
 					fcu->flag &= ~FCURVE_SELECTED;
-					
+
 				/* update active status */
 				/* XXX: this may interfere with setting bones as active if both exist at once;
 				 * then again, if that's the case, production setups aren't likely to be animating
@@ -317,7 +317,7 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 static void animchan_sync_gplayer(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
 	bGPDlayer *gpl = (bGPDlayer *)ale->data;
-	
+
 	/* Make sure the selection flags agree with the "active" flag.
 	 * The selection flags are used in the Dopesheet only, whereas
 	 * the active flag is used everywhere else. Hence, we try to
@@ -336,7 +336,7 @@ static void animchan_sync_gplayer(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 }
 
 /* ---------------- */
- 
+
 /* Main call to be exported to animation editors */
 void ANIM_sync_animchannels_to_data(const bContext *C)
 {
@@ -344,38 +344,38 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	
+
 	bActionGroup *active_agrp = NULL;
 	FCurve *active_fcurve = NULL;
-	
+
 	/* get animation context info for filtering the channels */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
-	
+
 	/* filter data */
-	/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed 
+	/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed
 	 *       However, don't include duplicates so that selection statuses don't override each other
 	 */
 	filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS;
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
+
 	/* flush settings as appropriate depending on the types of the channels */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		switch (ale->type) {
 			case ANIMTYPE_GROUP:
 				animchan_sync_group(&ac, ale, &active_agrp);
 				break;
-			
+
 			case ANIMTYPE_FCURVE:
 				animchan_sync_fcurve(&ac, ale, &active_fcurve);
 				break;
-				
+
 			case ANIMTYPE_GPLAYER:
 				animchan_sync_gplayer(&ac, ale);
 				break;
 		}
 	}
-	
+
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -396,14 +396,14 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 	for (ale = anim_data->first; ale; ale = ale->next) {
 		if (ale->type == ANIMTYPE_GPLAYER) {
 			bGPDlayer *gpl = ale->data;
-			
+
 			if (ale->update & ANIM_UPDATE_ORDER) {
 				ale->update &= ~ANIM_UPDATE_ORDER;
 				if (gpl) {
 					//gpencil_sort_frames(gpl);
 				}
 			}
-			
+
 			if (ale->update & ANIM_UPDATE_DEPS) {
 				ale->update &= ~ANIM_UPDATE_DEPS;
 				ANIM_list_elem_update(ac->scene, ale);
@@ -411,19 +411,19 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 		}
 		else if (ale->datatype == ALE_FCURVE) {
 			FCurve *fcu = ale->key_data;
-			
+
 			if (ale->update & ANIM_UPDATE_ORDER) {
 				ale->update &= ~ANIM_UPDATE_ORDER;
 				if (fcu)
 					sort_time_fcurve(fcu);
 			}
-			
+
 			if (ale->update & ANIM_UPDATE_HANDLES) {
 				ale->update &= ~ANIM_UPDATE_HANDLES;
 				if (fcu)
 					calchandles_fcurve(fcu);
 			}
-			
+
 			if (ale->update & ANIM_UPDATE_DEPS) {
 				ale->update &= ~ANIM_UPDATE_DEPS;
 				ANIM_list_elem_update(ac->scene, ale);

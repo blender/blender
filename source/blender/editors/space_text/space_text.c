@@ -66,17 +66,17 @@ static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
 {
 	ARegion *ar;
 	SpaceText *stext;
-	
+
 	stext = MEM_callocN(sizeof(SpaceText), "inittext");
 	stext->spacetype = SPACE_TEXT;
 
 	stext->lheight = 12;
 	stext->tabnumber = 4;
 	stext->margin_column = 80;
-	
+
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for text");
-	
+
 	BLI_addtail(&stext->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_TOP;
@@ -91,18 +91,18 @@ static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
 
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for text");
-	
+
 	BLI_addtail(&stext->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
-	
+
 	return (SpaceLink *)stext;
 }
 
 /* not spacelink itself */
 static void text_free(SpaceLink *sl)
-{	
+{
 	SpaceText *stext = (SpaceText *) sl;
-	
+
 	stext->text = NULL;
 	text_free_caches(stext);
 }
@@ -205,7 +205,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_select_line);
 	WM_operatortype_append(TEXT_OT_select_all);
 	WM_operatortype_append(TEXT_OT_select_word);
-	
+
 	WM_operatortype_append(TEXT_OT_move_lines);
 
 	WM_operatortype_append(TEXT_OT_jump);
@@ -231,7 +231,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_replace_set_selected);
 
 	WM_operatortype_append(TEXT_OT_start_find);
-	
+
 	WM_operatortype_append(TEXT_OT_to_3d_object);
 
 	WM_operatortype_append(TEXT_OT_resolve_conflict);
@@ -243,7 +243,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
-	
+
 	keymap = WM_keymap_find(keyconf, "Text Generic", SPACE_TEXT, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_start_find", FKEY, KM_PRESS, KM_CTRL, 0);
 #ifdef __APPLE__
@@ -255,7 +255,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_properties", TKEY, KM_PRESS, KM_CTRL, 0);
 
 	keymap = WM_keymap_find(keyconf, "Text", SPACE_TEXT, 0);
-	
+
 #ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_END);
@@ -263,30 +263,30 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", UPARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", FILE_TOP);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", DOWNARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", FILE_BOTTOM);
-	
+
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT | KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT | KM_OSKEY, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "type", PREV_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "type", NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", UPARROWKEY, KM_PRESS, KM_SHIFT | KM_OSKEY, 0)->ptr, "type", FILE_TOP);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", DOWNARROWKEY, KM_PRESS, KM_SHIFT | KM_OSKEY, 0)->ptr, "type", FILE_BOTTOM);
-	
+
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", DEL_PREV_WORD);
-	
+
 	WM_keymap_add_item(keymap, "TEXT_OT_save", SKEY, KM_PRESS, KM_ALT | KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_save_as", SKEY, KM_PRESS, KM_ALT | KM_SHIFT | KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_cut", XKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0); 
+	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_find_set_selected", EKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_line", AKEY, KM_PRESS, KM_SHIFT | KM_OSKEY, 0);
 #endif
-	
+
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", false);
-	
+
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", true);
@@ -294,7 +294,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", false);
-	
+
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", true);
@@ -306,7 +306,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_save_as", SKEY, KM_PRESS, KM_ALT | KM_SHIFT | KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_run_script", PKEY, KM_PRESS, KM_ALT, 0);
-	
+
 	WM_keymap_add_item(keymap, "TEXT_OT_cut", XKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
@@ -314,7 +314,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_cut", DELKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_copy", INSERTKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_paste", INSERTKEY, KM_PRESS, KM_SHIFT, 0);
-	
+
 	WM_keymap_add_item(keymap, "TEXT_OT_duplicate_line", DKEY, KM_PRESS, KM_CTRL, 0);
 
 	if (U.uiflag & USER_MMB_PASTE) { // XXX not dynamic
@@ -328,14 +328,14 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_lines", UPARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)->ptr, "direction", TXT_MOVE_LINE_UP);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_lines", DOWNARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)->ptr, "direction", TXT_MOVE_LINE_DOWN);
-	
+
 	WM_keymap_add_item(keymap, "TEXT_OT_indent", TABKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_unindent", TABKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_uncomment", DKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
-	
+
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
@@ -367,7 +367,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", DEL_PREV_CHAR); /* same as above [#26623] */
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
-	
+
 	WM_keymap_add_item(keymap, "TEXT_OT_overwrite_toggle", INSERTKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -388,7 +388,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "TEXT_MT_toolbox", RIGHTMOUSE, KM_PRESS, KM_ANY, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_autocomplete", SPACEKEY, KM_PRESS, KM_CTRL, 0);
-	
+
 	WM_keymap_add_item(keymap, "TEXT_OT_line_number", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
@@ -418,18 +418,18 @@ static void text_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	ListBase *lb;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
-	
+
 	/* own keymap */
 	keymap = WM_keymap_find(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	keymap = WM_keymap_find(wm->defaultconf, "Text", SPACE_TEXT, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	
+
 	/* add drop boxes */
 	lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
-	
+
 	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
 
@@ -438,19 +438,19 @@ static void text_main_region_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceText *st = CTX_wm_space_text(C);
 	//View2D *v2d = &ar->v2d;
-	
+
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	// UI_view2d_view_ortho(v2d);
-		
+
 	/* data... */
 	draw_text_main(st, ar);
-	
+
 	/* reset view matrix */
 	// UI_view2d_view_restore(C);
-	
+
 	/* scrollers? */
 }
 
@@ -510,7 +510,7 @@ static void text_drop_paste(wmDrag *drag, wmDropBox *drop)
 static void text_dropboxes(void)
 {
 	ListBase *lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
-	
+
 	WM_dropbox_add(lb, "TEXT_OT_open", text_drop_poll, text_drop_copy);
 	WM_dropbox_add(lb, "TEXT_OT_insert", text_drop_paste_poll, text_drop_paste);
 }
@@ -550,9 +550,9 @@ static void text_properties_region_init(wmWindowManager *wm, ARegion *ar)
 static void text_properties_region_draw(const bContext *C, ARegion *ar)
 {
 	SpaceText *st = CTX_wm_space_text(C);
-	
+
 	ED_region_panels(C, ar, NULL, -1, true);
-	
+
 	/* this flag trick is make sure buttons have been added already */
 	if (st->flags & ST_FIND_ACTIVATE) {
 		if (UI_textbutton_activate_rna(C, ar, st, "find_text")) {
@@ -585,10 +585,10 @@ void ED_spacetype_text(void)
 {
 	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype text");
 	ARegionType *art;
-	
+
 	st->spaceid = SPACE_TEXT;
 	strncpy(st->name, "Text", BKE_ST_MAXNAME);
-	
+
 	st->new = text_new;
 	st->free = text_free;
 	st->init = text_init;
@@ -609,13 +609,13 @@ void ED_spacetype_text(void)
 	art->event_cursor = true;
 
 	BLI_addhead(&st->regiontypes, art);
-	
+
 	/* regions: properties */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex = UI_COMPACT_PANEL_WIDTH;
 	art->keymapflag = ED_KEYMAP_UI;
-	
+
 	art->init = text_properties_region_init;
 	art->draw = text_properties_region_draw;
 	BLI_addhead(&st->regiontypes, art);
@@ -625,7 +625,7 @@ void ED_spacetype_text(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
-	
+
 	art->init = text_header_region_init;
 	art->draw = text_header_region_draw;
 

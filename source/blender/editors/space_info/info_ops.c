@@ -87,7 +87,7 @@ void FILE_OT_pack_libraries(wmOperatorType *ot)
 	ot->name = "Pack Blender Libraries";
 	ot->idname = "FILE_OT_pack_libraries";
 	ot->description = "Pack all used Blender library files into the current .blend";
-	
+
 	/* api callbacks */
 	ot->exec = pack_libraries_exec;
 
@@ -98,9 +98,9 @@ void FILE_OT_pack_libraries(wmOperatorType *ot)
 static int unpack_libraries_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	
+
 	unpackLibraries(bmain, op->reports);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -115,11 +115,11 @@ void FILE_OT_unpack_libraries(wmOperatorType *ot)
 	ot->name = "Unpack Blender Libraries";
 	ot->idname = "FILE_OT_unpack_libraries";
 	ot->description = "Unpack all used Blender library files from this .blend file";
-	
+
 	/* api callbacks */
 	ot->invoke = unpack_libraries_invoke;
 	ot->exec = unpack_libraries_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -131,13 +131,13 @@ static int autopack_toggle_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 
 	if (G.fileflags & G_AUTOPACK) {
-		G.fileflags &= ~G_AUTOPACK;		
+		G.fileflags &= ~G_AUTOPACK;
 	}
 	else {
 		packAll(bmain, op->reports, true);
 		G.fileflags |= G_AUTOPACK;
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -147,10 +147,10 @@ void FILE_OT_autopack_toggle(wmOperatorType *ot)
 	ot->name = "Automatically Pack Into .blend";
 	ot->idname = "FILE_OT_autopack_toggle";
 	ot->description = "Automatically pack all external files into the .blend file";
-	
+
 	/* api callbacks */
 	ot->exec = autopack_toggle_exec;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -160,9 +160,9 @@ void FILE_OT_autopack_toggle(wmOperatorType *ot)
 static int pack_all_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	
+
 	packAll(bmain, op->reports, true);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -171,25 +171,25 @@ static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
 	Main *bmain = CTX_data_main(C);
 	Image *ima;
 	ImBuf *ibuf;
-	
+
 	// first check for dirty images
 	for (ima = bmain->image.first; ima; ima = ima->id.next) {
 		if (BKE_image_has_loaded_ibuf(ima)) { /* XXX FIX */
 			ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-			
+
 			if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 				BKE_image_release_ibuf(ima, ibuf, NULL);
 				break;
 			}
-			
+
 			BKE_image_release_ibuf(ima, ibuf, NULL);
 		}
 	}
-	
+
 	if (ima) {
 		return WM_operator_confirm_message(C, op, "Some images are painted on. These changes will be lost. Continue?");
 	}
-	
+
 	return pack_all_exec(C, op);
 }
 
@@ -199,11 +199,11 @@ void FILE_OT_pack_all(wmOperatorType *ot)
 	ot->name = "Pack All Into .blend";
 	ot->idname = "FILE_OT_pack_all";
 	ot->description = "Pack all used external files into the .blend";
-	
+
 	/* api callbacks */
 	ot->exec = pack_all_exec;
 	ot->invoke = pack_all_invoke;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -238,9 +238,9 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	uiLayout *layout;
 	char title[64];
 	int count = 0;
-	
+
 	count = countPackedFiles(bmain);
-	
+
 	if (!count) {
 		BKE_report(op->reports, RPT_WARNING, "No packed files to unpack");
 		G.fileflags &= ~G_AUTOPACK;
@@ -251,7 +251,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 		BLI_strncpy(title, IFACE_("Unpack 1 File"), sizeof(title));
 	else
 		BLI_snprintf(title, sizeof(title), IFACE_("Unpack %d Files"), count);
-	
+
 	pup = UI_popup_menu_begin(C, title, ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
 
@@ -269,7 +269,7 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 	ot->name = "Unpack All Into Files";
 	ot->idname = "FILE_OT_unpack_all";
 	ot->description = "Unpack all files packed into this .blend to external ones";
-	
+
 	/* api callbacks */
 	ot->exec = unpack_all_exec;
 	ot->invoke = unpack_all_invoke;
@@ -307,12 +307,12 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "No packed file");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	if (method != PF_KEEP)
 		BKE_unpack_id(bmain, id, op->reports, method);  /* XXX PF_ASK can't work here */
-	
+
 	G.fileflags &= ~G_AUTOPACK;
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -320,15 +320,15 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
-	
+
 	pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
-	
+
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemsFullEnumO(layout, op->type->idname, "method", op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
-	
+
 	UI_popup_menu_end(C, pup);
-	
+
 	return OPERATOR_INTERFACE;
 }
 
@@ -338,14 +338,14 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
 	ot->name = "Unpack Item";
 	ot->idname = "FILE_OT_unpack_item";
 	ot->description = "Unpack this file to an external file";
-	
+
 	/* api callbacks */
 	ot->exec = unpack_item_exec;
 	ot->invoke = unpack_item_invoke;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
-	
+
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_item_method_items, PF_USE_LOCAL, "Method", "How to unpack");
 	RNA_def_string(ot->srna, "id_name", NULL, BKE_ST_MAXNAME, "ID name", "Name of ID block to unpack");
@@ -378,7 +378,7 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 	ot->name = "Make All Paths Relative";
 	ot->idname = "FILE_OT_make_paths_relative";
 	ot->description = "Make all paths to external files relative to current .blend";
-	
+
 	/* api callbacks */
 	ot->exec = make_paths_relative_exec;
 
@@ -411,7 +411,7 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 	ot->name = "Make All Paths Absolute";
 	ot->idname = "FILE_OT_make_paths_absolute";
 	ot->description = "Make all paths to external files absolute";
-	
+
 	/* api callbacks */
 	ot->exec = make_paths_absolute_exec;
 
@@ -427,7 +427,7 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 
 	/* run the missing file check */
 	BKE_bpath_missing_files_check(bmain, op->reports);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -437,7 +437,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 	ot->name = "Report Missing Files";
 	ot->idname = "FILE_OT_report_missing_files";
 	ot->description = "Report all missing external files";
-	
+
 	/* api callbacks */
 	ot->exec = report_missing_files_exec;
 
@@ -462,7 +462,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
 static int find_missing_files_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	/* XXX file open button text "Find Missing Files" */
-	WM_event_add_fileselect(C, op); 
+	WM_event_add_fileselect(C, op);
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -472,7 +472,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	ot->name = "Find Missing Files";
 	ot->idname = "FILE_OT_find_missing_files";
 	ot->description = "Try to find missing external files";
-	
+
 	/* api callbacks */
 	ot->exec = find_missing_files_exec;
 	ot->invoke = find_missing_files_invoke;
@@ -490,7 +490,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 
 /********************* report box operator *********************/
 
-/* Hard to decide whether to keep this as an operator, 
+/* Hard to decide whether to keep this as an operator,
  * or turn it into a hardcoded ui control feature,
  * handling TIMER events for all regions in interface_handlers.c
  * Not sure how good that is to be accessing UI data from
@@ -513,7 +513,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 	float neutral_gray = 0.6;
 	float timeout = 0.0, color_timeout = 0.0;
 	int send_note = 0;
-	
+
 	/* escape if not our timer */
 	if ((reports->reporttimer == NULL) ||
 	    (reports->reporttimer != event->customdata) ||
@@ -524,17 +524,17 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 	}
 
 	rti = (ReportTimerInfo *)reports->reporttimer->customdata;
-	
+
 	timeout = (report->type & RPT_ERROR_ALL) ? ERROR_TIMEOUT : INFO_TIMEOUT;
 	color_timeout = (report->type & RPT_ERROR_ALL) ? ERROR_COLOR_TIMEOUT : INFO_COLOR_TIMEOUT;
-	
+
 	/* clear the report display after timeout */
 	if ((float)reports->reporttimer->duration > timeout) {
 		WM_event_remove_timer(wm, NULL, reports->reporttimer);
 		reports->reporttimer = NULL;
-		
+
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
-		
+
 		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 	}
 
@@ -558,14 +558,14 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 		rti->grayscale = 0.75;
 		rti->widthfac = 1.0;
 	}
-	
+
 	progress = (float)reports->reporttimer->duration / timeout;
 	color_progress = (float)reports->reporttimer->duration / color_timeout;
-	
+
 	/* save us from too many draws */
 	if (color_progress <= 1.0f) {
 		send_note = 1;
-		
+
 		/* fade colors out sharply according to progress through fade-out duration */
 		interp_v3_v3v3(rti->col, rti->col, neutral_col, color_progress);
 		rti->grayscale = interpf(neutral_gray, rti->grayscale, color_progress);
@@ -577,11 +577,11 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 		rti->widthfac = 1.0f - rti->widthfac;
 		send_note = 1;
 	}
-	
+
 	if (send_note) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 	}
-	
+
 	return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 }
 
@@ -591,13 +591,13 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
 	ot->name = "Update Reports Display";
 	ot->idname = "INFO_OT_reports_display_update";
 	ot->description = "Update the display of reports in Blender UI (internal use)";
-	
+
 	/* api callbacks */
 	ot->invoke = update_reports_display_invoke;
-	
+
 	/* flags */
 	ot->flag = 0;
-	
+
 	/* properties */
 }
 

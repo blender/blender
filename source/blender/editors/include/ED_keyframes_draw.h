@@ -53,17 +53,17 @@ struct DLRBT_Tree;
 typedef struct ActKeyColumn {
 	/* ListBase linkage */
 	struct ActKeyColumn *next, *prev;
-	
+
 	/* sorting-tree linkage */
 	struct ActKeyColumn *left, *right;  /* 'children' of this node, less than and greater than it (respectively) */
 	struct ActKeyColumn *parent;        /* parent of this node in the tree */
 	char tree_col;                      /* DLRB_BLACK or DLRB_RED */
-	
+
 	/* keyframe info */
 	char key_type;                      /* eBezTripe_KeyframeType */
 	short sel;
 	float cfra;
-	
+
 	/* only while drawing - used to determine if long-keyframe needs to be drawn */
 	short modified;
 	short totcurve;
@@ -73,21 +73,21 @@ typedef struct ActKeyColumn {
 typedef struct ActKeyBlock {
 	/* ListBase linkage */
 	struct ActKeyBlock *next, *prev;
-	
+
 	/* sorting-tree linkage */
 	struct ActKeyBlock *left, *right;   /* 'children' of this node, less than and greater than it (respectively) */
 	struct ActKeyBlock *parent;         /* parent of this node in the tree */
 	char tree_col;                      /* DLRB_BLACK or DLRB_RED */
-	
+
 	/* key-block info */
 	char sel;
 	short flag;
 	float val;
 	float start, end;
-	
+
 	/* only while drawing - used to determine if block needs to be drawn */
 	short modified;
-	short totcurve; 
+	short totcurve;
 } ActKeyBlock;
 
 /* ActKeyBlock - Flag */

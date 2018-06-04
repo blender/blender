@@ -326,7 +326,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 	if (palcolor == NULL) {
 		palcolor = BKE_gpencil_palettecolor_addnew(palette, (char *)ruler_name, true);
 	}
-	
+
 	gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
 	BKE_gpencil_free_strokes(gpf);
 

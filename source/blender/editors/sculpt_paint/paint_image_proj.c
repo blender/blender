@@ -1055,7 +1055,7 @@ static bool check_seam(
 
 				/* set up the other face */
 				*other_face = tri_index;
-				
+
 				/* we check if difference is 1 here, else we might have a case of edge 2-0 for a tri */
 				*orig_fidx = (i1_fidx < i2_fidx && (i2_fidx - i1_fidx == 1)) ? i1_fidx : i2_fidx;
 
@@ -2117,7 +2117,7 @@ static void project_bucket_clip_face(
 	int inside_face_flag = 0;
 	int flip;
 	bool collinear = false;
-	
+
 	float bucket_bounds_ss[4][2];
 
 	/* detect pathological case where face the three vertices are almost collinear in screen space.
@@ -2128,12 +2128,12 @@ static void project_bucket_clip_face(
 	{
 		collinear = true;
 	}
-	
+
 	/* get the UV space bounding box */
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v1coSS);
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v2coSS) << 1;
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v3coSS) << 2;
-	
+
 	if (inside_bucket_flag == ISECT_ALL3) {
 		/* is_flip_object is used here because we use the face winding */
 		flip = (((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) != is_flip_object) !=
@@ -2150,20 +2150,20 @@ static void project_bucket_clip_face(
 			copy_v2_v2(bucket_bounds_uv[0], uv1co);
 			copy_v2_v2(bucket_bounds_uv[1], uv2co);
 			copy_v2_v2(bucket_bounds_uv[2], uv3co);
-		}		
-		
+		}
+
 		*tot = 3;
 		return;
 	}
 	/* handle pathological case here, no need for further intersections below since tringle area is almost zero */
 	if (collinear) {
 		int flag;
-		
+
 		(*tot) = 0;
 
 		if (cull)
 			return;
-		
+
 		if (inside_bucket_flag & ISECT_1) { copy_v2_v2(bucket_bounds_uv[*tot], uv1co); (*tot)++; }
 
 		flag = inside_bucket_flag & (ISECT_1 | ISECT_2);
@@ -2171,9 +2171,9 @@ static void project_bucket_clip_face(
 			if (line_rect_clip(bucket_bounds, v1coSS, v2coSS, uv1co, uv2co, bucket_bounds_uv[*tot], is_ortho))
 				(*tot)++;
 		}
-		
+
 		if (inside_bucket_flag & ISECT_2) { copy_v2_v2(bucket_bounds_uv[*tot], uv2co); (*tot)++; }
-		
+
 		flag = inside_bucket_flag & (ISECT_2 | ISECT_3);
 		if (flag && flag != (ISECT_2 | ISECT_3)) {
 			if (line_rect_clip(bucket_bounds, v2coSS, v3coSS, uv2co, uv3co, bucket_bounds_uv[*tot], is_ortho))
@@ -2187,7 +2187,7 @@ static void project_bucket_clip_face(
 			if (line_rect_clip(bucket_bounds, v3coSS, v1coSS, uv3co, uv1co, bucket_bounds_uv[*tot], is_ortho))
 				(*tot)++;
 		}
-		
+
 		if ((*tot) < 3) {
 			/* no intersections to speak of, but more probable is that all face is just outside the
 			 * rectangle and culled due to float precision issues. Since above tests have failed,
@@ -2352,7 +2352,7 @@ static void project_bucket_clip_face(
 					(*tot)--;
 				}
 			}
-			
+
 			/* its possible there is only a few left after remove doubles */
 			if ((*tot) < 3) {
 				// printf("removed too many doubles B\n");
@@ -2976,7 +2976,7 @@ static bool project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int buck
 	int fidx;
 
 	project_bucket_bounds(ps, bucket_x, bucket_y, &bucket_bounds);
-	
+
 	/* Is one of the faces verts in the bucket bounds? */
 
 	fidx = 2;
@@ -3487,7 +3487,7 @@ static void proj_paint_layer_clone_init(
 			/* get active instead */
 			mloopuv_clone_base = CustomData_get_layer(&ps->dm->loopData, CD_MLOOPUV);
 		}
-		
+
 	}
 
 	memset(layer_clone, 0, sizeof(*layer_clone));
@@ -3513,7 +3513,7 @@ static bool project_paint_clone_face_skip(
 
 		if (ps->do_material_slots) {
 			if (lc->slot_clone != lc->slot_last_clone) {
-				if (!slot->uvname || 
+				if (!slot->uvname ||
 				    !(lc->mloopuv_clone_base = CustomData_get_layer_named(
 				          &ps->dm->loopData, CD_MLOOPUV,
 				          lc->slot_clone->uvname)))
@@ -3707,7 +3707,7 @@ static void project_paint_prepare_all_faces(
 					ps->dm_mloopuv[lt->poly] = mloopuv_base;
 					continue;
 				}
-				
+
 				tpage = slot->ima;
 			}
 		}
@@ -4399,7 +4399,7 @@ static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, con
 
 	if (ps->is_texbrush)
 		mul_v3_v3(rgba, texrgb);
-	
+
 	mul_v3_fl(rgba, mask);
 	rgba[3] = mask;
 
@@ -4608,7 +4608,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							                     projPixel->newColor.ch, ps->blend);
 						}
 					}
-					
+
 					if (lock_alpha) {
 						if (is_floatbuf) {
 							/* slightly more involved case since floats are in premultiplied space we need
@@ -4686,7 +4686,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							/* masking to keep brush contribution to a pixel limited. note we do not do
 							 * a simple max(mask, mask_accum), as this is very sensitive to spacing and
 							 * gives poor results for strokes crossing themselves.
-							 * 
+							 *
 							 * Instead we use a formula that adds up but approaches brush_alpha slowly
 							 * and never exceeds it, which gives nice smooth results. */
 							float mask_accum = *projPixel->mask_accum;
@@ -4919,14 +4919,14 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 			touch_any = 1;
 		}
 	}
-	
+
 	/* calculate pivot for rotation around seletion if needed */
 	if (U.uiflag & USER_ORBIT_SELECTION) {
 		float w[3];
 		int tri_index;
-		
+
 		tri_index = project_paint_PickFace(ps, pos, w);
-		
+
 		if (tri_index != -1) {
 			const MLoopTri *lt = &ps->dm_mlooptri[tri_index];
 			const int lt_vtri[3] = { PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt) };
@@ -4939,14 +4939,14 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 			        ps->dm_mvert[lt_vtri[1]].co,
 			        ps->dm_mvert[lt_vtri[2]].co,
 			        w);
-			
+
 			ups->average_stroke_counter++;
 			mul_m4_v3(ps->obmat, world);
 			add_v3_v3(ups->average_stroke_accum, world);
 			ups->last_stroke_valid = true;
 		}
 	}
-	
+
 	return touch_any;
 }
 
@@ -5085,9 +5085,9 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 
 	ps->do_material_slots = (settings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
 	ps->stencil_ima = settings->imapaint.stencil;
-	ps->canvas_ima = (!ps->do_material_slots) ? 
+	ps->canvas_ima = (!ps->do_material_slots) ?
 	                 settings->imapaint.canvas : NULL;
-	ps->clone_ima = (!ps->do_material_slots) ? 
+	ps->clone_ima = (!ps->do_material_slots) ?
 	                settings->imapaint.clone : NULL;
 
 	ps->do_mask_cavity = (settings->imapaint.paint.flags & PAINT_USE_CAVITY_MASK) ? true : false;
@@ -5319,7 +5319,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	if (!BKE_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, NULL)) {
 		BKE_paint_data_warning(op->reports, uvs, mat, tex, true);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
-		return OPERATOR_CANCELLED;		
+		return OPERATOR_CANCELLED;
 	}
 
 	project_state_init(C, ob, &ps, BRUSH_STROKE_NORMAL);
@@ -5519,7 +5519,7 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
 
 void BKE_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool tex, bool stencil)
 {
-	BKE_reportf(reports, RPT_WARNING, "Missing%s%s%s%s detected!", 
+	BKE_reportf(reports, RPT_WARNING, "Missing%s%s%s%s detected!",
 	           !uvs ? " UVs," : "",
 	           !mat ? " Materials," : "",
 	           !tex ? " Textures," : "",
@@ -5540,7 +5540,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 	bool hasuvs = true;
 
 	imapaint->missing_data = 0;
-	
+
 	BLI_assert(ob->type == OB_MESH);
 
 	if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
@@ -5554,16 +5554,16 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 			int i;
 			hasmat = false;
 			hastex = false;
-			
+
 			for (i = 1; i < ob->totcol + 1; i++) {
 				Material *ma = give_current_material(ob, i);
-				
+
 				if (ma) {
 					hasmat = true;
 					if (!ma->texpaintslot) {
 						/* refresh here just in case */
 						BKE_texpaint_slot_refresh_cache(scene, ma);
-						
+
 						/* if still no slots, we have to add */
 						if (ma->texpaintslot) {
 							hastex = true;
@@ -5583,7 +5583,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 			hastex = false;
 		}
 	}
-	
+
 	me = BKE_mesh_from_object(ob);
 	layernum = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 
@@ -5604,7 +5604,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 	if (!hasmat) imapaint->missing_data |= IMAGEPAINT_MISSING_MATERIAL;
 	if (!hastex) imapaint->missing_data |= IMAGEPAINT_MISSING_TEX;
 	if (!hasstencil) imapaint->missing_data |= IMAGEPAINT_MISSING_STENCIL;
-	
+
 	if (uvs) {
 		*uvs = hasuvs;
 	}
@@ -5617,7 +5617,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 	if (stencil) {
 		*stencil = hasstencil;
 	}
-	
+
 	return hasuvs && hasmat && hastex && hasstencil;
 }
 
@@ -5654,7 +5654,7 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain)
 	}
 	ima = BKE_image_add_generated(bmain, width, height, imagename, alpha ? 32 : 24, use_float,
 	                              gen_type, color, false);
-	
+
 	return ima;
 }
 
@@ -5681,32 +5681,32 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			ED_node_shader_default(C, &ma->id);
 			ntree = ma->nodetree;
 		}
-		
+
 		ma->use_nodes = true;
-					
+
 		/* try to add an image node */
 		imanode = nodeAddStaticNode(C, ntree, SH_NODE_TEX_IMAGE);
-		
+
 		ima = proj_paint_image_create(op, bmain);
 		imanode->id = &ima->id;
-		
+
 		nodeSetActive(ntree, imanode);
-				
+
 		ntreeUpdateTree(CTX_data_main(C), ntree);
-		
+
 		if (ima) {
 			BKE_texpaint_slot_refresh_cache(scene, ma);
 			BKE_image_signal(ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 			WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 			DEG_id_tag_update(&ma->id, 0);
 			ED_area_tag_redraw(CTX_wm_area(C));
-			
+
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-			
+
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -5734,7 +5734,7 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 		/* no material found, just assign to first slot */
 		assign_material(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
 	}
-	
+
 	type = RNA_enum_from_value(layer_type_items, type);
 
 	/* get the name of the texture layer type */
@@ -5819,7 +5819,7 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 		scene->toolsettings->uv_flag |= UV_SYNC_SELECTION;
 
 	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-	
+
 	DEG_id_tag_update(ob->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);

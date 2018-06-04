@@ -64,7 +64,7 @@ void paintface_flush_flags(Object *ob, short flag)
 	const int *index_array = NULL;
 	int totpoly;
 	int i;
-	
+
 	BLI_assert((flag & ~(SELECT | ME_HIDE)) == 0);
 
 	if (me == NULL)
@@ -106,7 +106,7 @@ void paintface_hide(Object *ob, const bool unselected)
 	Mesh *me;
 	MPoly *mpoly;
 	int a;
-	
+
 	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) return;
 
@@ -122,10 +122,10 @@ void paintface_hide(Object *ob, const bool unselected)
 		if (mpoly->flag & ME_HIDE) {
 			mpoly->flag &= ~ME_FACE_SEL;
 		}
-		
+
 		mpoly++;
 	}
-	
+
 	BKE_mesh_flush_hidden_from_polys(me);
 
 	paintface_flush_flags(ob, SELECT | ME_HIDE);
@@ -258,7 +258,7 @@ void paintface_deselect_all_visible(Object *ob, int action, bool flush_flags)
 
 	me = BKE_mesh_from_object(ob);
 	if (me == NULL) return;
-	
+
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
 
@@ -311,7 +311,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 	if (!me || !me->mloopuv) {
 		return ok;
 	}
-	
+
 	copy_m3_m4(bmat, ob->obmat);
 
 	mvert = me->mvert;
@@ -338,19 +338,19 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	Mesh *me;
 	MPoly *mpoly, *mpoly_sel;
 	unsigned int a, index;
-	
+
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
 
 	if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 		return false;
-	
+
 	if (index >= me->totpoly)
 		return false;
 
 	mpoly_sel = me->mpoly + index;
 	if (mpoly_sel->flag & ME_HIDE) return false;
-	
+
 	/* clear flags */
 	mpoly = me->mpoly;
 	a = me->totpoly;
@@ -360,7 +360,7 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 			mpoly++;
 		}
 	}
-	
+
 	me->act_face = (int)index;
 
 	if (extend) {
@@ -378,7 +378,7 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	else {
 		mpoly_sel->flag |= ME_FACE_SEL;
 	}
-	
+
 	/* image window redraw */
 
 	paintface_flush_flags(ob, SELECT);
@@ -399,7 +399,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool exten
 	const int size[2] = {
 	    BLI_rcti_size_x(rect) + 1,
 	    BLI_rcti_size_y(rect) + 1};
-	
+
 	me = BKE_mesh_from_object(ob);
 
 	if ((me == NULL) || (me->totpoly == 0) || (size[0] * size[1] <= 0)) {
@@ -455,7 +455,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool exten
 	IMB_freeImBuf(ibuf);
 	MEM_freeN(selar);
 
-#ifdef __APPLE__	
+#ifdef __APPLE__
 	glReadBuffer(GL_BACK);
 #endif
 
@@ -520,7 +520,7 @@ void paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
 
 	me = BKE_mesh_from_object(ob);
 	if (me == NULL) return;
-	
+
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
 

@@ -2334,7 +2334,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 	ot->description = "Stitch selected UV vertices by proximity";
 	ot->idname = "UV_OT_stitch";
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* api callbacks */
 	ot->invoke = stitch_invoke;
 	ot->modal = stitch_modal;

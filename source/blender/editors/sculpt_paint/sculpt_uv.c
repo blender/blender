@@ -138,7 +138,7 @@ typedef struct UvSculptData {
 
 	/* uvsmooth Paint for fast reference */
 	Paint *uvsculpt;
-	
+
 	/* tool to use. duplicating here to change if modifier keys are pressed */
 	char tool;
 

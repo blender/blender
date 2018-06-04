@@ -24,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 /** \file rigidbody_world.c
  *  \ingroup editor_physics
  *  \brief Rigid Body world editing operators
@@ -174,7 +174,7 @@ static int rigidbody_world_export_invoke(bContext *C, wmOperator *op, const wmEv
 
 	// TODO: use the actual rigidbody world's name + .bullet instead of this temp crap
 	RNA_string_set(op->ptr, "filepath", "rigidbodyworld_export.bullet");
-	WM_event_add_fileselect(C, op); 
+	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

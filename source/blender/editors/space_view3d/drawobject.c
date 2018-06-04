@@ -709,7 +709,7 @@ void ED_draw_object_facemap(
 
 
 	glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
-	
+
 #if 0
 	DM_update_materials(dm, ob);
 

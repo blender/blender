@@ -85,7 +85,7 @@ typedef struct {
 typedef struct {
 	float initial_length[NUM_VALUE_KINDS];
 	float scale[NUM_VALUE_KINDS];
-	NumInput num_input[NUM_VALUE_KINDS]; 
+	NumInput num_input[NUM_VALUE_KINDS];
 	float shift_value[NUM_VALUE_KINDS]; /* The current value when shift is pressed. Negative when shift not active. */
 	bool is_modal;
 
@@ -174,7 +174,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		opdata->shift_value[i] = -1.0f;
 		opdata->initial_length[i] = -1.0f;
 		/* note: scale for OFFSET_VALUE will get overwritten in edbm_bevel_invoke */
-		opdata->scale[i] = value_scale_per_inch[i] / pixels_per_inch; 
+		opdata->scale[i] = value_scale_per_inch[i] / pixels_per_inch;
 
 		initNumInput(&opdata->num_input[i]);
 		opdata->num_input[i].idx_max = 0;
@@ -338,7 +338,7 @@ static void edbm_bevel_calc_initial_length(wmOperator *op, const wmEvent *event,
 	len = len_v2(mlen);
 	vmode = opdata->value_mode;
 	if (mode_changed || opdata->initial_length[vmode] == -1.0f) {
-		/* If current value is not default start value, adjust len so that 
+		/* If current value is not default start value, adjust len so that
 		 * the scaling and offset in edbm_bevel_mouse_set_value will
 		 * start at current value */
 		value = (vmode == SEGMENTS_VALUE) ?
@@ -552,7 +552,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				    (opdata->value_mode == OFFSET_VALUE || opdata->value_mode == OFFSET_VALUE_PERCENT))
 				{
 					edbm_bevel_mouse_set_value(op, event);
-				}		
+				}
 				edbm_bevel_calc(op);
 				edbm_bevel_update_header(C, op);
 				handled = true;
@@ -594,7 +594,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case VKEY:
 				if (event->val == KM_RELEASE)
 					break;
-				
+
 				{
 					PropertyRNA *prop = RNA_struct_find_property(op->ptr, "vertex_only");
 					RNA_property_boolean_set(op->ptr, prop, !RNA_property_boolean_get(op->ptr, prop));
@@ -603,7 +603,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
-				
+
 		}
 
 		/* Modal numinput inactive, try to handle numeric inputs last... */

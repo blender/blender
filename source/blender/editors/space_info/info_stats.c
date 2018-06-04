@@ -70,7 +70,7 @@ typedef struct SceneStats {
 	int totface, totfacesel;
 	int totbone, totbonesel;
 	int totobj,  totobjsel;
-	int totlamp, totlampsel; 
+	int totlamp, totlampsel;
 	int tottri;
 
 	char infostr[MAX_INFO_LEN];
@@ -154,10 +154,10 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 
 		stats->totvert = em->bm->totvert;
 		stats->totvertsel = em->bm->totvertsel;
-		
+
 		stats->totedge = em->bm->totedge;
 		stats->totedgesel = em->bm->totedgesel;
-		
+
 		stats->totface = em->bm->totface;
 		stats->totfacesel = em->bm->totfacesel;
 
@@ -170,15 +170,15 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 
 		for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
 			stats->totbone++;
-			
+
 			if ((ebo->flag & BONE_CONNECTED) && ebo->parent)
 				stats->totvert--;
-			
+
 			if (ebo->flag & BONE_TIPSEL)
 				stats->totvertsel++;
 			if (ebo->flag & BONE_ROOTSEL)
 				stats->totvertsel++;
-			
+
 			if (ebo->flag & BONE_SELECTED) stats->totbonesel++;
 
 			/* if this is a connected child and it's parent is being moved, remove our root */
@@ -227,7 +227,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		/* MetaBall Edit */
 		MetaBall *mball = obedit->data;
 		MetaElem *ml;
-		
+
 		for (ml = mball->editelems->first; ml; ml = ml->next) {
 			stats->totvert++;
 			if (ml->flag & SELECT) stats->totvertsel++;
@@ -241,7 +241,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		int a;
 
 		bp = editlatt->def;
-		
+
 		a = editlatt->pntsu * editlatt->pntsv * editlatt->pntsw;
 		while (a--) {
 			stats->totvert++;
@@ -319,7 +319,7 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 				stats_dupli_object_group_doit(collection, stats, psys, totgroup, &cur);
 			}
 		}
-		
+
 		stats_object(ob, base->flag & BASE_SELECTED, 1, stats);
 		stats->totobj++;
 	}

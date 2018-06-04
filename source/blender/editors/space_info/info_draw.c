@@ -236,7 +236,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, Re
                                         int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
 	int ret = 0;
-	
+
 	View2D *v2d = &ar->v2d;
 
 	TextViewContext tvc = {0};
@@ -260,7 +260,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, Re
 	tvc.winx = ar->winx - V2D_SCROLL_WIDTH;
 
 	ret = textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
-	
+
 	return ret;
 }
 

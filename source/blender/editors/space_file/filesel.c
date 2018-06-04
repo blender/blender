@@ -224,7 +224,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else {
 			params->flag &= ~FILE_HIDE_DOT;
 		}
-		
+
 
 		if (params->type == FILE_LOADLIB) {
 			params->flag |= RNA_boolean_get(op->ptr, "link") ? FILE_LINK : 0;
@@ -366,12 +366,12 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 
 	if (layout == NULL)
 		return sel;
-	
+
 	colmin = (rect->xmin) / (layout->tile_w + 2 * layout->tile_border_x);
 	rowmin = (rect->ymin) / (layout->tile_h + 2 * layout->tile_border_y);
 	colmax = (rect->xmax) / (layout->tile_w + 2 * layout->tile_border_x);
 	rowmax = (rect->ymax) / (layout->tile_h + 2 * layout->tile_border_y);
-	
+
 	if (is_inside(colmin, rowmin, layout->columns, layout->rows) ||
 	    is_inside(colmax, rowmax, layout->columns, layout->rows) )
 	{
@@ -380,12 +380,12 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 		CLAMP(colmax, 0, layout->columns - 1);
 		CLAMP(rowmax, 0, layout->rows - 1);
 	}
-	
+
 	if ((colmin > layout->columns - 1) || (rowmin > layout->rows - 1)) {
 		sel.first = -1;
 	}
 	else {
-		if (layout->flag & FILE_LAYOUT_HOR) 
+		if (layout->flag & FILE_LAYOUT_HOR)
 			sel.first = layout->rows * colmin + rowmin;
 		else
 			sel.first = colmin + layout->columns * rowmin;
@@ -394,7 +394,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 		sel.last = -1;
 	}
 	else {
-		if (layout->flag & FILE_LAYOUT_HOR) 
+		if (layout->flag & FILE_LAYOUT_HOR)
 			sel.last = layout->rows * colmax + rowmax;
 		else
 			sel.last = colmax + layout->columns * rowmax;
@@ -410,14 +410,14 @@ int ED_fileselect_layout_offset(FileLayout *layout, int x, int y)
 
 	if (layout == NULL)
 		return -1;
-	
+
 	offsetx = (x) / (layout->tile_w + 2 * layout->tile_border_x);
 	offsety = (y) / (layout->tile_h + 2 * layout->tile_border_y);
-	
+
 	if (offsetx > layout->columns - 1) return -1;
 	if (offsety > layout->rows - 1) return -1;
-	
-	if (layout->flag & FILE_LAYOUT_HOR) 
+
+	if (layout->flag & FILE_LAYOUT_HOR)
 		active_file = layout->rows * offsetx + offsety;
 	else
 		active_file = offsetx + layout->columns * offsety;
@@ -611,12 +611,12 @@ void ED_file_change_dir(bContext *C)
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file)
 {
 	int match = 0;
-	
+
 	int i;
 	FileDirEntry *file;
 	int n = filelist_files_ensure(sfile->files);
 
-	/* select any file that matches the pattern, this includes exact match 
+	/* select any file that matches the pattern, this includes exact match
 	 * if the user selects a single file by entering the filename
 	 */
 	for (i = 0; i < n; i++) {
@@ -645,7 +645,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 
 		DIR *dir;
 		struct dirent *de;
-		
+
 		BLI_split_dir_part(str, dirname, sizeof(dirname));
 
 		dir = opendir(dirname);
@@ -660,7 +660,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 				else {
 					char path[FILE_MAX];
 					BLI_stat_t status;
-					
+
 					BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
 					if (BLI_stat(path, &status) == 0) {
@@ -726,7 +726,7 @@ void ED_fileselect_exit(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
 
 	folderlist_free(sfile->folders_prev);
 	folderlist_free(sfile->folders_next);
-	
+
 	if (sfile->files) {
 		ED_fileselect_clear(wm, sa, sfile);
 		filelist_free(sfile->files);

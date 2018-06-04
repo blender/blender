@@ -104,7 +104,7 @@ static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy)
 	*dumpsy = WM_window_pixels_y(win);
 
 	if (*dumpsx && *dumpsy) {
-		
+
 		dumprect = MEM_mallocN(sizeof(int) * (*dumpsx) * (*dumpsy), "dumprect");
 		glReadBuffer(GL_FRONT);
 		screenshot_read_pixels(x, y, *dumpsx, *dumpsy, (unsigned char *)dumprect);
@@ -122,13 +122,13 @@ static int screenshot_data_create(bContext *C, wmOperator *op)
 
 	/* do redraw so we don't show popups/menus */
 	WM_redraw_windows(C);
-	
+
 	dumprect = screenshot(C, &dumpsx, &dumpsy);
 
 	if (dumprect) {
 		ScreenshotData *scd = MEM_callocN(sizeof(ScreenshotData), "screenshot");
 		ScrArea *sa = CTX_wm_area(C);
-		
+
 		scd->dumpsx = dumpsx;
 		scd->dumpsy = dumpsy;
 		scd->dumprect = dumprect;
@@ -237,9 +237,9 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 			BLI_replace_extension(filepath, sizeof(filepath), "");  /* strip '.blend' */
 		}
 		RNA_string_set(op->ptr, "filepath", filepath);
-		
+
 		WM_event_add_fileselect(C, op);
-	
+
 		return OPERATOR_RUNNING_MODAL;
 	}
 	return OPERATOR_CANCELLED;
@@ -291,16 +291,16 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->name = "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname = "SCREEN_OT_screenshot";
 	ot->description = "Capture a picture of the active area or whole Blender window";
-	
+
 	ot->invoke = screenshot_invoke;
 	ot->check = screenshot_check;
 	ot->exec = screenshot_exec;
 	ot->cancel = screenshot_cancel;
 	ot->ui = screenshot_draw;
 	ot->poll = screenshot_poll;
-	
+
 	ot->flag = 0;
-	
+
 	WM_operator_properties_filesel(
 	        ot, FILE_TYPE_FOLDER | FILE_TYPE_IMAGE, FILE_SPECIAL, FILE_SAVE,
 	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
@@ -328,7 +328,7 @@ typedef struct ScreenshotJob {
 static void screenshot_freejob(void *sjv)
 {
 	ScreenshotJob *sj = sjv;
-	
+
 	if (sj->dumprect)
 		MEM_freeN(sj->dumprect);
 
@@ -347,11 +347,11 @@ static void screenshot_updatejob(void *sjv)
 {
 	ScreenshotJob *sj = sjv;
 	unsigned int *dumprect;
-	
+
 	if (sj->dumprect == NULL) {
 		dumprect = MEM_mallocN(sizeof(int) * sj->dumpsx * sj->dumpsy, "dumprect");
 		screenshot_read_pixels(sj->x, sj->y, sj->dumpsx, sj->dumpsy, (unsigned char *)dumprect);
-		
+
 		sj->dumprect = dumprect;
 	}
 }
@@ -367,7 +367,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	/* we need this as local variables for renderdata */
 	rd.frs_sec = U.scrcastfps;
 	rd.frs_sec_base = 1.0f;
-	
+
 	if (BKE_imtype_is_movie(rd.im_format.imtype)) {
 		mh = BKE_movie_handle_get(sj->scene->r.im_format.imtype);
 		if (mh == NULL) {
@@ -382,16 +382,16 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 			return;
 		}
 	}
-	
+
 	sj->stop = stop;
 	sj->do_update = do_update;
-	
+
 	*do_update = true; /* wait for opengl rect */
-	
+
 	while (*stop == 0) {
-		
+
 		if (sj->dumprect) {
-			
+
 			if (mh) {
 				if (mh->append_movie(sj->movie_ctx, &rd, rd.sfra, rd.cfra, (int *)sj->dumprect,
 				                     sj->dumpsx, sj->dumpsy, "", &sj->reports))
@@ -407,14 +407,14 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				ImBuf *ibuf = IMB_allocImBuf(sj->dumpsx, sj->dumpsy, rd.im_format.planes, 0);
 				char name[FILE_MAX];
 				int ok;
-				
+
 				BKE_image_path_from_imformat(
 				        name, rd.pic, sj->bmain->name, rd.cfra,
 				        &rd.im_format, (rd.scemode & R_EXTENSION) != 0, true, NULL);
-				
+
 				ibuf->rect = sj->dumprect;
 				ok = BKE_imbuf_write(ibuf, name, &rd.im_format);
-				
+
 				if (ok == 0) {
 					printf("Write error: cannot save %s\n", name);
 					BKE_reportf(&sj->reports, RPT_INFO, "Write error: cannot save %s", name);
@@ -424,23 +424,23 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 					printf("Saved file: %s\n", name);
 					BKE_reportf(&sj->reports, RPT_INFO, "Saved file: %s", name);
 				}
-				
+
 				/* imbuf knows which rects are not part of ibuf */
 				IMB_freeImBuf(ibuf);
 			}
-			
+
 			MEM_freeN(sj->dumprect);
 			sj->dumprect = NULL;
-			
+
 			*do_update = true;
-			
+
 			rd.cfra++;
 
 		}
-		else 
+		else
 			PIL_sleep_ms(U.scrcastwait);
 	}
-	
+
 	if (mh) {
 		mh->end_movie(sj->movie_ctx);
 		mh->context_free(sj->movie_ctx);
@@ -468,7 +468,7 @@ static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUS
 	imm_draw_circle_wire_2d(pos, (float)x, (float)y, 20, 40);
 
 	immUnbindProgram();
-	
+
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 }
@@ -477,7 +477,7 @@ static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUS
 static void screencast_cursor_toggle(wmWindowManager *wm, short enable)
 {
 	static void *cursor = NULL;
-	
+
 	if (cursor && !enable) {
 		/* clear cursor */
 		WM_paint_cursor_end(wm, cursor);
@@ -492,7 +492,7 @@ static void screencast_cursor_toggle(wmWindowManager *wm, short enable)
 static void screenshot_endjob(void *sjv)
 {
 	ScreenshotJob *sj = sjv;
-	
+
 	screencast_cursor_toggle(sj->wm, 0);
 }
 
@@ -508,10 +508,10 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	/* if called again, stop the running job */
 	if (WM_jobs_test(wm, screen, WM_JOB_TYPE_SCREENCAST))
 		WM_jobs_stop(wm, screen, screenshot_startjob);
-	
+
 	wm_job = WM_jobs_get(wm, win, screen, "Screencast", 0, WM_JOB_TYPE_SCREENCAST);
 	sj = MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
-	
+
 	/* setup sj */
 	if (RNA_boolean_get(op->ptr, "full")) {
 		sj->x = 0;
@@ -529,20 +529,20 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	sj->bmain = CTX_data_main(C);
 	sj->scene = CTX_data_scene(C);
 	sj->wm = wm;
-	
+
 	BKE_reports_init(&sj->reports, RPT_PRINT);
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, sj, screenshot_freejob);
 	WM_jobs_timer(wm_job, 0.1, 0, NC_SCREEN | ND_SCREENCAST);
 	WM_jobs_callbacks(wm_job, screenshot_startjob, NULL, screenshot_updatejob, screenshot_endjob);
-	
+
 	WM_jobs_start(sj->wm, wm_job);
-	
+
 	screencast_cursor_toggle(sj->wm, 1);
-	
+
 	WM_event_add_notifier(C, NC_SCREEN | ND_SCREENCAST, screen);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -551,13 +551,13 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	ot->name = "Make Screencast";
 	ot->idname = "SCREEN_OT_screencast";
 	ot->description = "Capture a video of the active area or whole Blender window";
-	
+
 	ot->invoke = WM_operator_confirm;
 	ot->exec = screencast_exec;
 	ot->poll = screenshot_poll;  /* shared poll */
-	
+
 	ot->flag = 0;
-	
+
 	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen",
 	                "Capture the whole window (otherwise only capture the active area)");

@@ -44,7 +44,7 @@
 /* generic value to use when coordinate lies out of view when converting */
 #define V2D_IS_CLIPPED  12000
 
-/* Common View2D view types 
+/* Common View2D view types
  * NOTE: only define a type here if it completely sets all (+/- a few) of the relevant flags
  *	    and settings for a View2D region, and that set of settings is used in more
  *	    than one specific place
@@ -75,7 +75,7 @@ enum eView2D_Units {
 	V2D_UNIT_SECONDS = 0,
 	V2D_UNIT_FRAMES,
 	V2D_UNIT_FRAMESCALE,
-	
+
 	/* for drawing values */
 	V2D_UNIT_VALUES,
 	V2D_UNIT_DEGREES,
@@ -95,7 +95,7 @@ enum eView2D_Gridlines {
 	V2D_HORIZONTAL_AXIS         = (1 << 2),
 	V2D_VERTICAL_AXIS           = (1 << 3),
 	V2D_HORIZONTAL_FINELINES    = (1 << 4),
-	
+
 	V2D_GRIDLINES_MAJOR         = (V2D_VERTICAL_LINES | V2D_VERTICAL_AXIS | V2D_HORIZONTAL_LINES | V2D_HORIZONTAL_AXIS),
 	V2D_GRIDLINES_ALL           = (V2D_GRIDLINES_MAJOR | V2D_HORIZONTAL_FINELINES),
 };

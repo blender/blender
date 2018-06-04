@@ -62,7 +62,7 @@ void setlinestyle(int nr)
 		glDisable(GL_LINE_STIPPLE);
 	}
 	else {
-		
+
 		glEnable(GL_LINE_STIPPLE);
 		if (U.pixelsize > 1.0f)
 			glLineStipple(nr, 0xCCCC);
@@ -72,10 +72,10 @@ void setlinestyle(int nr)
 }
 
 /* Invert line handling */
-	
+
 #define GL_TOGGLE(mode, onoff)  (((onoff) ? glEnable : glDisable)(mode))
 
-void set_inverted_drawing(int enable) 
+void set_inverted_drawing(int enable)
 {
 	glLogicOp(enable ? GL_INVERT : GL_COPY);
 	GL_TOGGLE(GL_COLOR_LOGIC_OP, enable);
@@ -355,18 +355,18 @@ void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
 void bglPolygonOffset(float viewdist, float dist)
 {
 	static float winmat[16], offset = 0.0f;
-	
+
 	if (dist != 0.0f) {
 		float offs;
-		
+
 		// glEnable(GL_POLYGON_OFFSET_FILL);
 		// glPolygonOffset(-1.0, -1.0);
 
 		/* hack below is to mimic polygon offset */
 		gpuGetProjectionMatrix(winmat);
-		
+
 		/* dist is from camera to center point */
-		
+
 		if (winmat[15] > 0.5f) {
 #if 1
 			offs = 0.00001f * dist * viewdist;  // ortho tweaking
@@ -391,7 +391,7 @@ void bglPolygonOffset(float viewdist, float dist)
 			 */
 			offs = winmat[14] * -0.0025f * dist;
 		}
-		
+
 		winmat[14] -= offs;
 		offset += offs;
 	}

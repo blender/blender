@@ -50,7 +50,7 @@ struct wmKeyConfig;
 /* temp data to pass on to modal */
 typedef struct bNodeLinkDrag {
 	struct bNodeLinkDrag *next, *prev;
-	
+
 	/* List of links dragged by the operator.
 	 * Note: This is a list of LinkData structs on top of the actual bNodeLinks.
 	 * This way the links can be added to the node tree while being stored in this list.

@@ -1055,13 +1055,13 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 	Collection *collection;
 	unsigned int layer;
 	float loc[3], rot[3];
-	
+
 	if (RNA_struct_property_is_set(op->ptr, "name")) {
 		char name[MAX_ID_NAME - 2];
-		
+
 		RNA_string_get(op->ptr, "name", name);
 		collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, name);
-		
+
 		if (0 == RNA_struct_property_is_set(op->ptr, "location")) {
 			const wmEvent *event = CTX_wm_window(C)->eventstate;
 			ARegion *ar = CTX_wm_region(C);
@@ -1216,7 +1216,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	const bool use_global = RNA_boolean_get(op->ptr, "use_global");
 	bool changed = false;
 
-	if (CTX_data_edit_object(C)) 
+	if (CTX_data_edit_object(C))
 		return OPERATOR_CANCELLED;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
@@ -1290,7 +1290,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 
 		if (scene->id.tag & LIB_TAG_DOIT) {
 			scene->id.tag &= ~LIB_TAG_DOIT;
-			
+
 			DEG_relations_tag_update(bmain);
 
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
@@ -2046,7 +2046,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 
 /**************************** Duplicate ************************/
 
-/* 
+/*
  * dupflag: a flag made from constants declared in DNA_userdef_types.h
  * The flag tells adduplicate() whether to copy data linked to the object, or to reference the existing data.
  * U.dupflag for default operations or you can construct a flag as python does
@@ -2424,7 +2424,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 		ED_object_location_from_view(C, basen->object->loc);
 		ED_view3d_cursor3d_position(C, basen->object->loc, mval);
 	}
-	
+
 	ED_object_base_select(basen, BA_SELECT);
 	ED_object_base_activate(C, basen);
 

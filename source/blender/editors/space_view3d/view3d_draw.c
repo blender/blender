@@ -441,14 +441,14 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 		return;
 	if (v3d->camera->type == OB_CAMERA)
 		ca = v3d->camera->data;
-	
+
 	ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &viewborder, false);
 	/* the offsets */
 	x1 = viewborder.xmin;
 	y1 = viewborder.ymin;
 	x2 = viewborder.xmax;
 	y2 = viewborder.ymax;
-	
+
 	glLineWidth(1.0f);
 
 	/* apply offsets so the real 3D camera shows through */
@@ -647,7 +647,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 
 			/* draw */
 			immUniformThemeColorShade(TH_VIEW_OVERLAY, 100);
-			
+
 			/* TODO Was using UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color).
 			 * We'll probably need a new imm_draw_line_roundbox_dashed dor that - though in practice the
 			 * 2.0f round corner effect was nearly not visible anyway... */
@@ -885,7 +885,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 		sub_v3_v3v3(end, o, scaled_axis);
 		immVertex3fv(pos, end);
 		immEnd();
-		
+
 		/* -- draw ring around rotation center -- */
 		{
 #define     ROT_AXIS_DETAIL 13
@@ -1252,7 +1252,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar)
 RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
 {
 	/*
-	 * Tempory viewport draw modes until we have a proper system. 
+	 * Tempory viewport draw modes until we have a proper system.
 	 * all modes are done in the draw manager, except
 	 * cycles material as it is an external render engine.
 	 */

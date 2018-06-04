@@ -28,7 +28,7 @@
 /** \file blender/editors/sculpt_paint/sculpt_intern.h
  *  \ingroup edsculpt
  */
- 
+
 
 #ifndef __SCULPT_INTERN_H__
 #define __SCULPT_INTERN_H__

@@ -61,19 +61,19 @@ struct EnumPropertyItem;
 
 /* ************ Keyframing Management **************** */
 
-/* Get the active settings for keyframing settings from context (specifically the given scene) 
+/* Get the active settings for keyframing settings from context (specifically the given scene)
  *	- incl_mode: include settings from keyframing mode in the result (i.e. replace only)
  */
 short ANIM_get_keyframing_flags(struct Scene *scene, short incl_mode);
 
 /* -------- */
 
-/* Get (or add relevant data to be able to do so) the Active Action for the given 
+/* Get (or add relevant data to be able to do so) the Active Action for the given
  * Animation Data block, given an ID block where the Animation Data should reside.
  */
 struct bAction *verify_adt_action(struct ID *id, short add);
 
-/* Get (or add relevant data to be able to do so) F-Curve from the given Action. 
+/* Get (or add relevant data to be able to do so) F-Curve from the given Action.
  * This assumes that all the destinations are valid.
  */
 struct FCurve *verify_fcurve(struct bAction *act, const char group[], struct PointerRNA *ptr,
@@ -96,7 +96,7 @@ void update_autoflags_fcurve(struct FCurve *fcu, struct bContext *C, struct Repo
  */
 int insert_bezt_fcurve(struct FCurve *fcu, const struct BezTriple *bezt, eInsertKeyFlags flag);
 
-/* Main Keyframing API call: 
+/* Main Keyframing API call:
  *  Use this when validation of necessary animation data isn't necessary as it
  *  already exists. It will insert a keyframe using the current value being keyframed.
  *  Returns the index at which a keyframe was added (or -1 if failed)
@@ -105,7 +105,7 @@ int insert_vert_fcurve(struct FCurve *fcu, float x, float y, eBezTriple_Keyframe
 
 /* -------- */
 
-/* Secondary Keyframing API calls: 
+/* Secondary Keyframing API calls:
  *	Use this to insert a keyframe using the current value being keyframed, in the
  *	nominated F-Curve (no creation of animation data performed). Returns success.
  */
@@ -113,13 +113,13 @@ bool insert_keyframe_direct(struct Depsgraph *depsgraph, struct ReportList *repo
 
 /* -------- */
 
-/* Main Keyframing API calls: 
+/* Main Keyframing API calls:
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
 short insert_keyframe(struct Depsgraph *depsgraph, struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
 
-/* Main Keyframing API call: 
+/* Main Keyframing API call:
  *  Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.
  */
 short delete_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eInsertKeyFlags flag);
@@ -135,13 +135,13 @@ typedef int (*cbKeyingSet_Poll)(struct KeyingSetInfo *ksi, struct bContext *C);
 /* Context Iterator Callback for KeyingSets */
 typedef void (*cbKeyingSet_Iterator)(struct KeyingSetInfo *ksi, struct bContext *C, struct KeyingSet *ks);
 /* Property Specifier Callback for KeyingSets (called from iterators) */
-typedef void (*cbKeyingSet_Generate)(struct KeyingSetInfo *ksi, struct bContext *C, struct KeyingSet *ks, struct PointerRNA *ptr); 
+typedef void (*cbKeyingSet_Generate)(struct KeyingSetInfo *ksi, struct bContext *C, struct KeyingSet *ks, struct PointerRNA *ptr);
 
 
 /* Callback info for 'Procedural' KeyingSets to use */
 typedef struct KeyingSetInfo {
 	struct KeyingSetInfo *next, *prev;
-	
+
 	/* info */
 	/* identifier used for class name, which KeyingSet instances reference as "Typeinfo Name" */
 	char idname[64];
@@ -151,11 +151,11 @@ typedef struct KeyingSetInfo {
 	char description[240]; /* RNA_DYN_DESCR_MAX */
 	/* keying settings */
 	short keyingflag;
-	
+
 	/* polling callbacks */
 	/* callback for polling the context for whether the right data is available */
 	cbKeyingSet_Poll poll;
-	
+
 	/* generate callbacks */
 	/* iterator to use to go through collections of data in context
 	 *  - this callback is separate from the 'adding' stage, allowing
@@ -164,7 +164,7 @@ typedef struct KeyingSetInfo {
 	cbKeyingSet_Iterator iter;
 	/* generator to use to add properties based on the data found by iterator */
 	cbKeyingSet_Generate generate;
-	
+
 	/* RNA integration */
 	struct ExtensionRNA ext;
 } KeyingSetInfo;
@@ -243,7 +243,7 @@ typedef enum eCreateDriver_MappingTypes {
 	CREATEDRIVER_MAPPING_1_N        = 0,           /* 1 to Many - Use the specified index, and drive all elements with it */
 	CREATEDRIVER_MAPPING_1_1        = 1,           /* 1 to 1 - Only for the specified index on each side */
 	CREATEDRIVER_MAPPING_N_N        = 2,           /* Many to Many - Match up the indices one by one (only for drivers on vectors/arrays) */
-	
+
 	CREATEDRIVER_MAPPING_NONE       = 3,           /* None (Single Prop)    - Do not create driver with any targets; these will get added later instead */
 	CREATEDRIVER_MAPPING_NONE_ALL   = 4,           /* None (All Properties) - Do not create driver with any targets; these will get added later instead */
 } eCreateDriver_MappingTypes;
@@ -272,7 +272,7 @@ struct FCurve *verify_driver_fcurve(struct ID *id, const char rna_path[], const 
  * - mapping_type: eCreateDriver_MappingTypes
  */
 int ANIM_add_driver_with_target(
-        struct ReportList *reports, 
+        struct ReportList *reports,
         struct ID *dst_id, const char dst_path[], int dst_index,
         struct ID *src_id, const char src_path[], int src_index,
         short flag, int driver_type, short mapping_type);
@@ -364,7 +364,7 @@ bool fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
  */
 bool id_frame_has_keyframe(struct ID *id, float frame, short filter);
 
-/* filter flags for id_cfra_has_keyframe 
+/* filter flags for id_cfra_has_keyframe
  *
  * WARNING: do not alter order of these, as also stored in files
  *	(for v3d->keyflags)

@@ -249,7 +249,7 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 				immBeginAtMost(GWN_PRIM_LINE_STRIP, totpoints - i + 1);
 
 				/* need to roll-back one point to ensure that there are no gaps in the stroke */
-				if (i != 0) { 
+				if (i != 0) {
 					gp_set_tpoint_varying_color(pt - 1, ink, color);
 					immVertex2iv(pos, &(pt - 1)->x);
 					++draw_points;
@@ -389,7 +389,7 @@ static void gp_draw_stroke_volumetric_3d(
 
 	const bGPDspoint *pt = points;
 	for (int i = 0; i < totpoints && pt; i++, pt++) {
-		gp_set_point_varying_color(pt, ink, color);		
+		gp_set_point_varying_color(pt, ink, color);
 		immAttrib1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
 		immVertex3fv(pos, &pt->x);                   /* we can adjust size in vertex shader based on view/projection! */
 	}
@@ -650,7 +650,7 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 			immBeginAtMost(GWN_PRIM_LINE_STRIP, totpoints - i + 1 + cyclic_add);
 
 			/* need to roll-back one point to ensure that there are no gaps in the stroke */
-			if (i != 0) { 
+			if (i != 0) {
 				const bGPDspoint *pt2 = pt - 1;
 				mul_v3_m4v3(fpt, diff_mat, &pt2->x);
 				gp_set_point_varying_color(pt2, ink, color);
@@ -1322,7 +1322,7 @@ void ED_gp_draw_interpolation(tGPDinterpolate *tgpi, const int type)
 
 	UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, color);
 	color[3] = 0.6f;
-	int dflag = 0; 
+	int dflag = 0;
 	/* if 3d stuff, enable flags */
 	if (type == REGION_DRAW_POST_VIEW) {
 		dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
@@ -1366,7 +1366,7 @@ static void gp_draw_data_layers(
 
 		/* set basic stroke thickness */
 		glLineWidth(lthick);
-		
+
 		/* Add layer drawing settings to the set of "draw flags"
 		 * NOTE: If the setting doesn't apply, it *must* be cleared,
 		 *       as dflag's carry over from the previous layer
@@ -1386,7 +1386,7 @@ static void gp_draw_data_layers(
 		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_HQ_FILL), GP_DRAWDATA_HQ_FILL);
 
 #undef GP_DRAWFLAG_APPLY
-		
+
 		/* Draw 'onionskins' (frame left + right)
 		 *   - It is only possible to show these if the option is enabled
 		 *   - The "no onions" flag prevents ghosts from appearing during animation playback/scrubbing
@@ -1394,8 +1394,8 @@ static void gp_draw_data_layers(
 		 *   - The per-layer "always show" flag however overrides the playback/render restriction,
 		 *     allowing artists to selectively turn onionskins on/off during playback
 		 */
-		if ((gpl->flag & GP_LAYER_ONIONSKIN) && 
-		    ((dflag & GP_DRAWDATA_NO_ONIONS) == 0 || (gpl->flag & GP_LAYER_GHOST_ALWAYS))) 
+		if ((gpl->flag & GP_LAYER_ONIONSKIN) &&
+		    ((dflag & GP_DRAWDATA_NO_ONIONS) == 0 || (gpl->flag & GP_LAYER_GHOST_ALWAYS)))
 		{
 			/* Drawing method - only immediately surrounding (gstep = 0),
 			 * or within a frame range on either side (gstep > 0)
@@ -1430,7 +1430,7 @@ static void gp_draw_data_layers(
 		{
 			/* Buffer stroke needs to be drawn with a different linestyle
 			 * to help differentiate them from normal strokes.
-			 * 
+			 *
 			 * It should also be noted that sbuffer contains temporary point types
 			 * i.e. tGPspoints NOT bGPDspoints
 			 */
@@ -1465,7 +1465,7 @@ static void gp_draw_status_text(const bGPdata *gpd, ARegion *ar)
 		int font_id = BLF_default();
 
 		BLF_width_and_height(font_id, printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
-		
+
 		int xco = (rect.xmax - U.widget_unit) - (int)printable_size[0];
 		int yco = (rect.ymax - U.widget_unit);
 
@@ -1499,7 +1499,7 @@ static void gp_draw_data(
 	/* turn on smooth lines (i.e. anti-aliasing) */
 	glEnable(GL_LINE_SMOOTH);
 
-	/* XXX: turn on some way of ensuring that the polygon edges get smoothed 
+	/* XXX: turn on some way of ensuring that the polygon edges get smoothed
 	 *      GL_POLYGON_SMOOTH is nasty and shouldn't be used, as it ends up
 	 *      creating internal white rays due to the ways it accumulates stuff
 	 */
@@ -1643,7 +1643,7 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	int dflag = 0;
-	
+
 	/* check that we have grease-pencil stuff to draw */
 	if (sa == NULL) return;
 	bGPdata *gpd = ED_gpencil_data_get_active(C); // XXX
@@ -1725,7 +1725,7 @@ void ED_gpencil_draw_view3d(wmWindowManager *wm,
 	}
 
 	/* draw it! */
-	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);	
+	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
 }
 
 void ED_gpencil_draw_ex(Scene *scene, bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)

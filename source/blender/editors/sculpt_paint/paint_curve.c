@@ -697,17 +697,17 @@ void PAINTCURVE_OT_draw(wmOperatorType *ot)
 static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-	
+
 	switch (mode) {
 		case ePaintTexture2D:
 		{
 			ARegion *ar = CTX_wm_region(C);
 			SpaceImage *sima = CTX_wm_space_image(C);
 			float location[2];
-			
+
 			if (!sima)
 				return OPERATOR_CANCELLED;
-			
+
 			UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 			copy_v2_v2(sima->cursor, location);
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
@@ -717,7 +717,7 @@ static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const w
 			ED_view3d_cursor3d_update(C, event->mval);
 			break;
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
