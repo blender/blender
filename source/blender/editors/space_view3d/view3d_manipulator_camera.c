@@ -73,7 +73,7 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmManipulatorGroupType *U
 		Camera *camera = ob->data;
 		/* TODO: support overrides. */
 		if (camera->id.lib == NULL) {
-			return false;
+			return true;
 		}
 	}
 	return false;
