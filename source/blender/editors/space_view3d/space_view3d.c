@@ -329,6 +329,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	copy_v3_fl(v3d->shading.single_color, 0.8f);
 
 	v3d->overlay.flag = V3D_OVERLAY_LOOK_DEV;
+	v3d->overlay.wireframe_threshold = 0.5f;
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 

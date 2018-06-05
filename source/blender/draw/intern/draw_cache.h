@@ -56,6 +56,8 @@ struct Gwn_Batch **DRW_cache_object_surface_material_get(
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
 void DRW_cache_object_face_wireframe_get(
         Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count);
+void DRW_cache_object_face_wireframe_pretty_get(
+        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count);
 
 /* Empties */
 struct Gwn_Batch *DRW_cache_plain_axes_get(void);

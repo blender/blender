@@ -3573,7 +3573,13 @@ class VIEW3D_PT_overlay(Panel):
         col.prop(overlay, "show_relationship_lines")
         col.prop(overlay, "show_motion_paths")
         col.prop(overlay, "show_face_orientation")
-        col.prop(overlay, "show_wireframes")
+
+        row = col.row()
+        row.prop(overlay, "show_wireframes")
+        sub = row.row()
+        sub.active = overlay.show_wireframes
+        sub.prop(overlay, "wireframe_threshold", text="")
+
         col.prop(overlay, "show_backface_culling")
 
         if shading.type == "MATERIAL":

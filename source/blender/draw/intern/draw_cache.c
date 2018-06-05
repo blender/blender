@@ -526,6 +526,17 @@ void DRW_cache_object_face_wireframe_get(
 	}
 }
 
+void DRW_cache_object_face_wireframe_pretty_get(
+        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count)
+{
+	switch (ob->type) {
+		case OB_MESH:
+			DRW_mesh_batch_cache_get_pretty_wireframes_face_texbuf((Mesh *)ob->data, r_vert_tx, r_faceid_tx, r_tri_count);
+
+		/* TODO, should match 'DRW_cache_object_surface_get' */
+	}
+}
+
 Gwn_Batch *DRW_cache_object_loose_edges_get(struct Object *ob)
 {
 	switch (ob->type) {

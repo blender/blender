@@ -1553,5 +1553,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "wireframe_threshold")) {
+			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->overlay.wireframe_threshold = 0.5f;
+						}
+					}
+				}
+			}
+		}
 	}
 }

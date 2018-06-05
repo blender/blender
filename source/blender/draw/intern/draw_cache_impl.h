@@ -126,6 +126,8 @@ struct Gwn_Batch *DRW_mesh_batch_cache_get_verts_with_select_id(struct Mesh *me,
 /* Object mode Wireframe overlays */
 void DRW_mesh_batch_cache_get_wireframes_face_texbuf(
         struct Mesh *me, struct GPUTexture **verts_data, struct GPUTexture **face_indices, int *tri_count);
+void DRW_mesh_batch_cache_get_pretty_wireframes_face_texbuf(
+        struct Mesh *me, struct GPUTexture **verts_data, struct GPUTexture **face_indices, int *tri_count);
 
 void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 

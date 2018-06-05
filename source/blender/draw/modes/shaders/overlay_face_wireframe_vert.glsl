@@ -1,13 +1,10 @@
 
-#ifdef GPU_INTEL
-#define USE_GEOM_SHADER
-#endif
-
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ProjectionMatrix;
 uniform mat3 NormalMatrix;
 
+uniform vec2 wireStepParam;
 uniform vec2 viewportSize;
 uniform float nearDist;
 
@@ -22,6 +19,15 @@ flat out vec3 ssVec0;
 flat out vec3 ssVec1;
 flat out vec3 ssVec2;
 out float facing;
+#endif
+
+#ifdef LIGHT_EDGES
+#ifdef USE_GEOM_SHADER
+out vec3 obPos;
+out vec3 edgeAdj;
+#else
+flat out vec3 edgeSharpness;
+#endif
 #endif
 
 /* project to screen space */
@@ -73,12 +79,24 @@ vec3 get_vertex_pos(int v_id)
 	return pos;
 }
 
+float get_edge_sharpness(vec3 e0, vec3 e1, vec3 e2)
+{
+	vec3 n0 = normalize(cross(e0, e1));
+	vec3 n1 = normalize(cross(e1, e2));
+	return dot(n0, n1);
+}
+
 #define NO_EDGE vec3(10000.0);
 
 void main()
 {
 #ifdef USE_GEOM_SHADER
+
+#  ifdef LIGHT_EDGES
+	int v_id = texelFetch(faceIds, gl_VertexID * 2).r;
+#  else
 	int v_id = texelFetch(faceIds, gl_VertexID).r;
+#  endif
 
 	bool do_edge = v_id < 0;
 	v_id = abs(v_id) - 1;
@@ -91,15 +109,28 @@ void main()
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	ssPos = proj(gl_Position);
 
+#  ifdef LIGHT_EDGES
+	int adj_id = texelFetch(faceIds, gl_VertexID * 2 + 1).r;
+	obPos = pos;
+	edgeAdj = get_vertex_pos(adj_id);
+#  endif
+
 #else
 
+#  ifdef LIGHT_EDGES
+	int v_0 = (gl_VertexID / 3) * 6;
+	ivec2 ofs = ivec2(2, 4); /* GL_TRIANGLE_ADJACENCY */
+#  else
 	int v_0 = (gl_VertexID / 3) * 3;
+	ivec2 ofs = ivec2(1, 2); /* GL_TRIANGLES */
+#  endif
 	int v_n = gl_VertexID % 3;
+
 	/* Getting the same positions for each of the 3 verts. */
 	ivec3 v_id;
 	v_id.x = texelFetch(faceIds, v_0).r;
-	v_id.y = texelFetch(faceIds, v_0 + 1).r;
-	v_id.z = texelFetch(faceIds, v_0 + 2).r;
+	v_id.y = texelFetch(faceIds, v_0 + ofs.x).r;
+	v_id.z = texelFetch(faceIds, v_0 + ofs.y).r;
 
 	bvec3 do_edge = lessThan(v_id, ivec3(0));
 	v_id = abs(v_id) - 1;
@@ -128,5 +159,30 @@ void main()
 
 	vec3 nor = get_vertex_nor(v_id[v_n]);
 	facing = normalize(NormalMatrix * nor).z;
+
+#  ifdef LIGHT_EDGES
+	ivec3 adj_id;
+	adj_id.x = texelFetch(faceIds, v_0 + 1).r;
+	adj_id.y = texelFetch(faceIds, v_0 + 3).r;
+	adj_id.z = texelFetch(faceIds, v_0 + 5).r;
+
+	vec3 adj_pos[3];
+	adj_pos[0] = get_vertex_pos(adj_id.x);
+	adj_pos[1] = get_vertex_pos(adj_id.y);
+	adj_pos[2] = get_vertex_pos(adj_id.z);
+
+	vec3 edges[3];
+	edges[0] = pos[1] - pos[0];
+	edges[1] = pos[2] - pos[1];
+	edges[2] = pos[0] - pos[2];
+
+	edgeSharpness.x = get_edge_sharpness(adj_pos[0] - pos[0], edges[0], -edges[2]);
+	edgeSharpness.y = get_edge_sharpness(adj_pos[1] - pos[1], edges[1], -edges[0]);
+	edgeSharpness.z = get_edge_sharpness(adj_pos[2] - pos[2], edges[2], -edges[1]);
+
+	/* Easy to adjust parameters. */
+	edgeSharpness = smoothstep(wireStepParam.xxx, wireStepParam.yyy, edgeSharpness);
+#  endif
+
 #endif
 }

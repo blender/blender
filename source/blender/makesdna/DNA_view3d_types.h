@@ -166,6 +166,9 @@ typedef struct View3DOverlay {
 
 	/* Armature edit/pose mode settings */
 	int arm_flag;
+
+	/* Other settings */
+	float wireframe_threshold, pad;
 } View3DOverlay;
 
 /* 3D ViewPort Struct */
