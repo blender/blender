@@ -52,17 +52,26 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype,
 	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
 	}
-	if (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) {
+	if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SPECULAR_HIGHLIGHT\n");
 	}
-	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
+	if (STUDIOLIGHT_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
-		if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
-			BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_WORLD\n");
-		}
-		else {
-			BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_CAMERA\n");
-		}
+	}
+	if (FLAT_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_FLAT\n");
+	}
+	if (MATCAP_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_MATCAP\n");
+	}
+	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_WORLD\n");
+	}
+	if (STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_CAMERA\n");
+	}
+	if (STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_VIEWNORMAL\n");
 	}
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
@@ -94,7 +103,6 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype,
 
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 {
-	/* TODO: make a C-string with settings and hash the string */
 	uint input[4];
 	uint result;
 	float *color = material_template->material_data.diffuse_color;
@@ -121,18 +129,20 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair)
 {
 	/* NOTE: change MAX_SHADERS accordingly when modifying this function. */
-	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OUTLINE | V3D_SHADING_SHADOW | V3D_SHADING_SPECULAR_HIGHLIGHT;
-	int index = (wpd->shading.flag & DRAWOPTIONS_MASK);
-	index = (index << 2) + wpd->shading.light;
-	index = (index << 3);
-	/* set the drawtype flag
-	0 = OB_SOLID,
-	1 = OB_TEXTURE
-	2 = STUDIOLIGHT_ORIENTATION_WORLD
-	*/
-	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD, 2);
-	SET_FLAG_FROM_TEST(index, drawtype == OB_TEXTURE, 1);
-	SET_FLAG_FROM_TEST(index, is_hair, 4);
+	int index = 0;
+	/* 1 bit OB_SOLID and OB_TEXTURE */
+	SET_FLAG_FROM_TEST(index, drawtype == OB_TEXTURE, 1 << 0);
+	/* 2 bits FLAT/STUDIO/MATCAP/SCENE */
+	SET_FLAG_FROM_TEST(index, wpd->shading.light, wpd->shading.light << 1);
+	/* 1 bit V3D_SHADING_SPECULAR_HIGHLIGHT */
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT, 1 << 3);
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SHADOW, 1 << 4);
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 5);
+	/* 2 bits STUDIOLIGHT_ORIENTATION */
+	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD, 1 << 6);
+	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL, 1 << 7);
+	/* 1 bit for hair */
+	SET_FLAG_FROM_TEST(index, is_hair, 1 << 8);
 	return index;
 }
 

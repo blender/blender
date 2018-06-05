@@ -38,17 +38,22 @@
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
-#define MAX_SHADERS (1 << 10)
+#define MAX_SHADERS (1 << 9)
 
-
+#define OB_SOLID_ENABLED(wpd) (wpd->drawtype & OB_SOLID)
+#define OB_TEXTURE_ENABLED(wpd) (wpd->drawtype & OB_TEXTURE)
+#define FLAT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_FLAT)
+#define STUDIOLIGHT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_STUDIO)
+#define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP && OB_SOLID_ENABLED(wpd))
+#define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD))
+#define STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_CAMERA))
+#define STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd) (MATCAP_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL))
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
-#define SPECULAR_HIGHLIGHT_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT)
-#define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED	(wpd))
+#define SPECULAR_HIGHLIGHT_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
+#define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
 #define WORKBENCH_REVEALAGE_ENABLED
-#define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD)
-#define STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_CAMERA)
 
 
 typedef struct WORKBENCH_FramebufferList {
@@ -127,7 +132,8 @@ typedef struct WORKBENCH_UBO_Material {
 	float diffuse_color[4];
 	float specular_color[4];
 	float roughness;
-	float pad[3];
+	int matcap_texture_index;
+	float pad[2];
 } WORKBENCH_UBO_Material;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_Material, 16)
 

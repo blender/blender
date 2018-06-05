@@ -196,44 +196,221 @@ const EnumPropertyItem rna_enum_shading_type_items[] = {
 const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 	{V3D_LIGHTING_FLAT,   "FLAT",   0, "Flat Lighting",   "Display using flat lighting"},
 	{V3D_LIGHTING_STUDIO, "STUDIO", 0, "Studio Lighting", "Display using studio lighting"},
-	/* {V3D_LIGHTING_SCENE, "SCENE", 0, "Scene Lighting", "Display using scene lighting"}, */
+	{V3D_LIGHTING_MATCAP, "MATCAP", 0, "Matcap",          "Display using matcap material and lighting"},
 	{0, NULL, 0, NULL, NULL}
 };
 
+#define DEF_SINGLE_STUDIO_LIGHT_ITEM(value) {value, "STUDIOLIGHT_%%value%%", 0, "", ""}
 static const EnumPropertyItem rna_enum_studio_light_items[] = {
-	{0, "STUDIOLIGHT_00", 0, "", ""},
-	{1, "STUDIOLIGHT_01", 0, "", ""},
-	{2, "STUDIOLIGHT_02", 0, "", ""},
-	{3, "STUDIOLIGHT_03", 0, "", ""},
-	{4, "STUDIOLIGHT_04", 0, "", ""},
-	{5, "STUDIOLIGHT_05", 0, "", ""},
-	{6, "STUDIOLIGHT_06", 0, "", ""},
-	{7, "STUDIOLIGHT_07", 0, "", ""},
-	{8, "STUDIOLIGHT_08", 0, "", ""},
-	{9, "STUDIOLIGHT_09", 0, "", ""},
-	{10, "STUDIOLIGHT_10", 0, "", ""},
-	{11, "STUDIOLIGHT_11", 0, "", ""},
-	{12, "STUDIOLIGHT_12", 0, "", ""},
-	{13, "STUDIOLIGHT_13", 0, "", ""},
-	{14, "STUDIOLIGHT_14", 0, "", ""},
-	{15, "STUDIOLIGHT_15", 0, "", ""},
-	{16, "STUDIOLIGHT_16", 0, "", ""},
-	{17, "STUDIOLIGHT_17", 0, "", ""},
-	{18, "STUDIOLIGHT_18", 0, "", ""},
-	{19, "STUDIOLIGHT_19", 0, "", ""},
-	{20, "STUDIOLIGHT_20", 0, "", ""},
-	{21, "STUDIOLIGHT_21", 0, "", ""},
-	{22, "STUDIOLIGHT_22", 0, "", ""},
-	{23, "STUDIOLIGHT_23", 0, "", ""},
-	{24, "STUDIOLIGHT_24", 0, "", ""},
-	{25, "STUDIOLIGHT_25", 0, "", ""},
-	{26, "STUDIOLIGHT_26", 0, "", ""},
-	{27, "STUDIOLIGHT_27", 0, "", ""},
-	{28, "STUDIOLIGHT_28", 0, "", ""},
-	{29, "STUDIOLIGHT_29", 0, "", ""},
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(0),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(1),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(2),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(3),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(4),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(5),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(6),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(7),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(8),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(9),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(10),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(11),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(12),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(13),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(14),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(15),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(16),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(17),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(18),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(19),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(20),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(21),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(22),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(23),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(24),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(25),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(26),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(27),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(28),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(29),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(30),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(31),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(32),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(33),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(34),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(35),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(36),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(37),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(38),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(39),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(40),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(41),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(42),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(43),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(44),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(45),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(46),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(47),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(48),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(49),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(50),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(51),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(52),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(53),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(54),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(55),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(56),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(57),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(58),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(59),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(60),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(61),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(62),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(63),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(64),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(65),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(66),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(67),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(68),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(69),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(70),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(71),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(72),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(73),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(74),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(75),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(76),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(77),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(78),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(79),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(80),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(81),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(82),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(83),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(84),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(85),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(86),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(87),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(88),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(89),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(90),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(91),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(92),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(93),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(94),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(95),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(96),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(97),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(98),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(99),
 	{0, NULL, 0, NULL, NULL}
 };
-#define NUM_STUDIOLIGHT_ITEMS 30
+#define NUM_STUDIOLIGHT_ITEMS 100
+
+static const EnumPropertyItem rna_enum_matcap_items[] = {
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(0),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(1),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(2),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(3),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(4),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(5),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(6),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(7),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(8),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(9),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(10),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(11),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(12),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(13),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(14),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(15),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(16),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(17),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(18),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(19),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(20),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(21),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(22),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(23),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(24),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(25),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(26),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(27),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(28),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(29),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(30),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(31),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(32),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(33),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(34),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(35),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(36),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(37),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(38),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(39),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(40),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(41),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(42),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(43),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(44),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(45),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(46),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(47),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(48),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(49),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(50),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(51),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(52),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(53),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(54),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(55),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(56),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(57),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(58),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(59),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(60),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(61),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(62),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(63),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(64),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(65),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(66),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(67),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(68),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(69),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(70),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(71),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(72),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(73),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(74),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(75),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(76),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(77),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(78),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(79),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(80),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(81),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(82),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(83),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(84),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(85),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(86),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(87),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(88),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(89),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(90),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(91),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(92),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(93),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(94),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(95),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(96),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(97),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(98),
+	DEF_SINGLE_STUDIO_LIGHT_ITEM(99),
+	{0, NULL, 0, NULL, NULL}
+};
+#define NUM_MATCAP_ITEMS 100
+#undef DEF_SINGLE_STUDIO_LIGHT_ITEM
 
 const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
@@ -547,17 +724,6 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *UNUSED(scene), Poi
 	ED_view3d_shade_update(bmain, v3d, sa);
 }
 
-static void rna_SpaceView3D_matcap_enable(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	View3D *v3d = (View3D *)(ptr->data);
-
-	if (v3d->matcap_icon < ICON_MATCAP_01 ||
-	    v3d->matcap_icon > ICON_MATCAP_24)
-	{
-		v3d->matcap_icon = ICON_MATCAP_01;
-	}
-}
-
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)(ptr->data);
@@ -676,6 +842,9 @@ static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
 	if (value != v3d->drawtype && value == OB_RENDER) {
 		v3d->prev_drawtype = v3d->drawtype;
 	}
+	if (value == OB_TEXTURE && v3d->shading.light == V3D_LIGHTING_MATCAP) {
+		v3d->shading.light = V3D_LIGHTING_STUDIO;
+	}
 	v3d->drawtype = value;
 }
 
@@ -713,17 +882,56 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 static int rna_View3DShading_studio_light_orientation_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, 0);
-	return sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_CAMERA);
+	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_FLAG_ALL);
+	return sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS;
 }
 static void rna_View3DShading_studio_light_orientation_set(PointerRNA *UNUSED(ptr), int UNUSED(value))
 {
 }
 
+/* shading.light */
+static int rna_View3DShading_light_get(PointerRNA *ptr)
+{
+	View3D *v3d = (View3D *)ptr->data;
+	return v3d->shading.light;
+}
+
+static void rna_View3DShading_light_set(PointerRNA *ptr, int value)
+{
+	View3D *v3d = (View3D *)ptr->data;
+	v3d->shading.light = value;
+}
+
+static const EnumPropertyItem *rna_View3DShading_light_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	View3D *v3d = (View3D *)ptr->data;
+
+	int totitem = 0;
+	EnumPropertyItem *item = NULL;
+
+	if (v3d->drawtype == OB_SOLID || v3d->drawtype == OB_TEXTURE) {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_lighting_items, V3D_LIGHTING_FLAT);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_lighting_items, V3D_LIGHTING_STUDIO);
+	}
+
+	if (v3d->drawtype == OB_SOLID) {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_lighting_items, V3D_LIGHTING_MATCAP);
+	}
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+	return item;
+}
+
+/* Studio light */
 static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	const int flag = (v3d->drawtype == OB_MATERIAL) ? STUDIOLIGHT_ORIENTATION_WORLD : 0;
+	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
+	if (v3d->drawtype == OB_MATERIAL) {
+		flag = STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE;
+	}
 	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, flag);
 	BLI_strncpy(v3d->shading.studio_light, sl->name, FILE_MAXFILE);
 	return sl->index;
@@ -732,7 +940,7 @@ static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	StudioLight *sl = BKE_studiolight_findindex(value);
+	StudioLight *sl = BKE_studiolight_findindex(value, STUDIOLIGHT_FLAG_ALL);
 	BLI_strncpy(v3d->shading.studio_light, sl->name, FILE_MAXFILE);
 }
 
@@ -750,7 +958,7 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 		show_studiolight = false;
 		int icon_id = sl->irradiance_icon_id;
 
-		if ((sl->flag & STUDIOLIGHT_EXTERNAL_FILE) == 0) {
+		if ((sl->flag & STUDIOLIGHT_INTERNAL)) {
 			/* always show internal lights */
 			show_studiolight = true;
 		}
@@ -758,8 +966,9 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 			switch (v3d->drawtype) {
 				case OB_SOLID:
 				case OB_TEXTURE:
-					show_studiolight = true;
+					show_studiolight = (sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_CAMERA)) > 0;
 					break;
+
 				case OB_MATERIAL:
 					show_studiolight = (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD) > 0;
 					icon_id = sl->radiance_icon_id;
@@ -769,6 +978,52 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 
 		if (show_studiolight && totitem < NUM_STUDIOLIGHT_ITEMS) {
 			RNA_enum_items_add_value(&item, &totitem, rna_enum_studio_light_items, sl->index);
+			lastitem = &item[totitem - 1];
+			lastitem->value = sl->index;
+			lastitem->icon = icon_id;
+			lastitem->name = sl->name;
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+	return item;
+}
+/* Matcap studiolight */
+static int rna_View3DShading_matcap_get(PointerRNA *ptr)
+{
+	View3D *v3d = (View3D *)ptr->data;
+	StudioLight *sl = BKE_studiolight_find(v3d->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+	BLI_strncpy(v3d->shading.matcap, sl->name, FILE_MAXFILE);
+	return sl->index;
+}
+
+static void rna_View3DShading_matcap_set(PointerRNA *ptr, int value)
+{
+	View3D *v3d = (View3D *)ptr->data;
+	StudioLight *sl = BKE_studiolight_findindex(value, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+	BLI_strncpy(v3d->shading.matcap, sl->name, FILE_MAXFILE);
+}
+
+static const EnumPropertyItem *rna_View3DShading_matcap_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	EnumPropertyItem *item = NULL;
+	EnumPropertyItem *lastitem;
+	int totitem = 0;
+	bool show_studiolight;
+
+	const int flags = (STUDIOLIGHT_EXTERNAL_FILE | STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+
+	LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
+		show_studiolight = false;
+		int icon_id = sl->irradiance_icon_id;
+
+		show_studiolight = (sl->flag & flags) == flags;
+
+		if (show_studiolight && totitem < NUM_MATCAP_ITEMS) {
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_matcap_items, sl->index);
 			lastitem = &item[totitem - 1];
 			lastitem->value = sl->index;
 			lastitem->icon = icon_id;
@@ -2261,9 +2516,10 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem studio_light_orientation_items[] = {
-		{0,                              "UNKNOWN", 0, "Unknown", "Studio light has no orientation"},
-		{STUDIOLIGHT_ORIENTATION_CAMERA, "CAMERA",  0, "Camera",  "Studio light is camera based"},
-		{STUDIOLIGHT_ORIENTATION_WORLD,  "WORLD",   0, "World",   "Studio light is world based"},
+		{0,                                  "UNKNOWN", 0,    "Unknown", "Studio light has no orientation"},
+		{STUDIOLIGHT_ORIENTATION_CAMERA,     "CAMERA",  0,    "Camera",  "Studio light is camera based"},
+		{STUDIOLIGHT_ORIENTATION_WORLD,      "WORLD",   0,    "World",   "Studio light is world based"},
+		{STUDIOLIGHT_ORIENTATION_VIEWNORMAL, "VIEWNORMAL", 0, "Matcap",  "Studio light is a matcap"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2284,6 +2540,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "light", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shading.light");
 	RNA_def_property_enum_items(prop, rna_enum_viewport_lighting_items);
+	RNA_def_property_enum_funcs(prop, "rna_View3DShading_light_get", "rna_View3DShading_light_set", "rna_View3DShading_light_itemf");
 	RNA_def_property_ui_text(prop, "Lighting", "Lighting Method for Solid/Texture Viewport Shading");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
@@ -2298,6 +2555,13 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_enum_default(prop, 0);
 	RNA_def_property_enum_funcs(prop, "rna_View3DShading_studio_light_get", "rna_View3DShading_studio_light_set", "rna_View3DShading_studio_light_itemf");
 	RNA_def_property_ui_text(prop, "Studiolight", "Studio lighting setup");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "matcap", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, rna_enum_matcap_items);
+	RNA_def_property_enum_default(prop, 0);
+	RNA_def_property_enum_funcs(prop, "rna_View3DShading_matcap_get", "rna_View3DShading_matcap_set", "rna_View3DShading_matcap_itemf");
+	RNA_def_property_ui_text(prop, "Matcap", "Matcap material and lighting");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "studio_light_orientation", PROP_ENUM, PROP_NONE);
@@ -2588,34 +2852,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem view3d_matcap_items[] = {
-		{ICON_MATCAP_01, "01", ICON_MATCAP_01, "", ""},
-		{ICON_MATCAP_02, "02", ICON_MATCAP_02, "", ""},
-		{ICON_MATCAP_03, "03", ICON_MATCAP_03, "", ""},
-		{ICON_MATCAP_04, "04", ICON_MATCAP_04, "", ""},
-		{ICON_MATCAP_05, "05", ICON_MATCAP_05, "", ""},
-		{ICON_MATCAP_06, "06", ICON_MATCAP_06, "", ""},
-		{ICON_MATCAP_07, "07", ICON_MATCAP_07, "", ""},
-		{ICON_MATCAP_08, "08", ICON_MATCAP_08, "", ""},
-		{ICON_MATCAP_09, "09", ICON_MATCAP_09, "", ""},
-		{ICON_MATCAP_10, "10", ICON_MATCAP_10, "", ""},
-		{ICON_MATCAP_11, "11", ICON_MATCAP_11, "", ""},
-		{ICON_MATCAP_12, "12", ICON_MATCAP_12, "", ""},
-		{ICON_MATCAP_13, "13", ICON_MATCAP_13, "", ""},
-		{ICON_MATCAP_14, "14", ICON_MATCAP_14, "", ""},
-		{ICON_MATCAP_15, "15", ICON_MATCAP_15, "", ""},
-		{ICON_MATCAP_16, "16", ICON_MATCAP_16, "", ""},
-		{ICON_MATCAP_17, "17", ICON_MATCAP_17, "", ""},
-		{ICON_MATCAP_18, "18", ICON_MATCAP_18, "", ""},
-		{ICON_MATCAP_19, "19", ICON_MATCAP_19, "", ""},
-		{ICON_MATCAP_20, "20", ICON_MATCAP_20, "", ""},
-		{ICON_MATCAP_21, "21", ICON_MATCAP_21, "", ""},
-		{ICON_MATCAP_22, "22", ICON_MATCAP_22, "", ""},
-		{ICON_MATCAP_23, "23", ICON_MATCAP_23, "", ""},
-		{ICON_MATCAP_24, "24", ICON_MATCAP_24, "", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -2830,17 +3066,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_bundle_names", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
 	RNA_def_property_ui_text(prop, "Show 3D Marker Names", "Show names for reconstructed tracks objects");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "use_matcap", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SOLID_MATCAP);
-	RNA_def_property_ui_text(prop, "Matcap", "Active Objects draw images mapped on normals, enhancing Solid Draw Mode");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_matcap_enable");
-
-	prop = RNA_def_property(srna, "matcap_icon", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "matcap_icon");
-	RNA_def_property_enum_items(prop, view3d_matcap_items);
-	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture, active objects only");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "fx_settings", PROP_POINTER, PROP_NONE);

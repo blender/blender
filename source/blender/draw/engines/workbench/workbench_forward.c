@@ -202,7 +202,13 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		material->material_data.roughness = material_template.material_data.roughness;
 		switch (drawtype) {
 			case OB_SOLID:
+			{
+				if (STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)) {
+					BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE);
+					DRW_shgroup_uniform_texture(grp, "matcapImage", wpd->studio_light->equirectangular_radiance_gputexture);
+				}
 				break;
+			}
 
 			case OB_TEXTURE:
 			{

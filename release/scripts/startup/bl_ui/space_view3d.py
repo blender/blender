@@ -3518,12 +3518,6 @@ class VIEW3D_PT_shading(Panel):
 
         col = layout.column()
 
-        if shading.type == 'SOLID':
-            col.row().prop(shading, "color_type", expand=True)
-
-            if shading.color_type == 'SINGLE':
-                col.row().prop(shading, "single_color", text="")
-
         if shading.type in ('SOLID', 'TEXTURED'):
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
@@ -3531,11 +3525,20 @@ class VIEW3D_PT_shading(Panel):
                 if shading.studio_light_orientation == 'WORLD':
                     col.row().prop(shading, "studiolight_rot_z")
 
+            elif shading.light == 'MATCAP':
+                col.row().template_icon_view(shading, "matcap")
+
+        if shading.type == 'SOLID':
+            col.row().prop(shading, "color_type", expand=True)
+
+            if shading.color_type == 'SINGLE':
+                col.row().prop(shading, "single_color", text="")
+
+        if not(shading.type == 'SOLID' and shading.light == 'MATCAP'):
             row = col.row()
             row.prop(shading, "show_specular_highlight")
 
-            col.separator()
-
+        if shading.type in ('SOLID', 'TEXTURED'):
             row = col.row()
             row.prop(shading, "show_xray")
             sub = row.row()

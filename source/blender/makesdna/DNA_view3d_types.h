@@ -140,6 +140,7 @@ typedef struct View3DShading {
 	short light;
 	char pad[2];
 	char studio_light[256]; /* FILE_MAXFILE */
+	char matcap[256]; /* FILE_MAXFILE */
 
 	float shadow_intensity;
 	float single_color[3];
@@ -333,7 +334,7 @@ typedef struct View3D {
 enum {
 	V3D_LIGHTING_FLAT   = 0,
 	V3D_LIGHTING_STUDIO = 1,
-	V3D_LIGHTING_SCENE  = 2
+	V3D_LIGHTING_MATCAP = 2,
 };
 
 /* View3DShading->flag */

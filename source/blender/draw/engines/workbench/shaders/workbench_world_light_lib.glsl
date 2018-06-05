@@ -29,7 +29,7 @@ vec3 get_world_specular_light(vec4 specular_data, LightData light_data, vec3 N, 
 
 	float shininess = exp2(10*(1.0-specular_data.a) + 1);
 
-#ifdef BLINN
+#  ifdef BLINN
 	float normalization_factor = (shininess + 8) / (8 * M_PI);
 	vec3 L = -light_data.light_direction_vs.xyz;
 	vec3 halfDir = normalize(L + I);
@@ -37,11 +37,11 @@ vec3 get_world_specular_light(vec4 specular_data, LightData light_data, vec3 N, 
 	float NL = max(dot(L, N), 0.0);
 	float specular_influence = pow(specAngle, shininess) * NL  * normalization_factor;
 
-#else
+#  else
 	vec3 reflection_vector = reflect(I, N);
 	float specAngle = max(dot(light_data.light_direction_vs.xyz, reflection_vector), 0.0);
 	float specular_influence = pow(specAngle, shininess);
-#endif
+#  endif
 
 	vec3 specular_color = specular_light * specular_influence;
 

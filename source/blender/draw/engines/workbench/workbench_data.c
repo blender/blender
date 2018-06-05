@@ -15,7 +15,11 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	if (v3d) {
 		wpd->shading = v3d->shading;
 		wpd->drawtype = v3d->drawtype;
-		wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light, 0);
+		if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
+			wpd->studio_light = BKE_studiolight_find(wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+		} else {
+			wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
+		}
 	}
 	else {
 		memset(&wpd->shading, 0, sizeof(wpd->shading));
@@ -23,7 +27,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		wpd->shading.shadow_intensity = 0.5;
 		copy_v3_fl(wpd->shading.single_color, 0.8f);
 		wpd->drawtype = OB_SOLID;
-		wpd->studio_light = BKE_studiolight_findindex(0);
+		wpd->studio_light = BKE_studiolight_find_first(STUDIOLIGHT_INTERNAL);
 	}
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 
@@ -71,7 +75,7 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 		wd->num_lights = 1;
 	}
 
-	if (STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd)) {
+	if (!STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
 		int light_index = 0;
 		for (int index = 0 ; index < 3; index++) {
 			SolidLight *sl = &U.light[index];

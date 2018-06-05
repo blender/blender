@@ -24,19 +24,29 @@ layout(location=0) out uint objectId;
 layout(location=1) out vec4 diffuseColor;
 layout(location=2) out vec4 specularColor;
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-	#ifdef WORKBENCH_ENCODE_NORMALS
+#  ifdef WORKBENCH_ENCODE_NORMALS
 layout(location=3) out vec2 normalViewport;
-	#else /* WORKBENCH_ENCODE_NORMALS */
+#  else /* WORKBENCH_ENCODE_NORMALS */
 layout(location=3) out vec3 normalViewport;
-	#endif /* WORKBENCH_ENCODE_NORMALS */
+#  endif /* WORKBENCH_ENCODE_NORMALS */
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
 
 void main()
 {
 	objectId = uint(object_id);
+
+#ifdef NORMAL_VIEWPORT_PASS_ENABLED
+	vec3 n = (gl_FrontFacing) ? normal_viewport : -normal_viewport;
+	n = normalize(n);
+#endif
+
 #ifdef OB_SOLID
 	diffuseColor = vec4(material_data.diffuse_color.rgb, 0.0);
+#  ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
+	specularColor = vec4(material_data.diffuse_color.rgb, material_data.matcap_texture_index);
+#  endif
 #endif /* OB_SOLID */
+
 #ifdef OB_TEXTURE
 	diffuseColor = texture(image, uv_interp);
 #endif /* OB_TEXTURE */
@@ -47,14 +57,12 @@ void main()
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
 	specularColor = vec4(material_data.specular_color.rgb, material_data.roughness);
-#ifdef HAIR_SHADER
+#  ifdef HAIR_SHADER
 	specularColor.rgb = clamp(specularColor.rgb - hair_color_variation, 0.0, 1.0);
-#endif
+#  endif
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-	vec3 n = (gl_FrontFacing) ? normal_viewport : -normal_viewport;
-	n = normalize(n);
 #  ifdef WORKBENCH_ENCODE_NORMALS
 	diffuseColor.a = float(gl_FrontFacing);
 	normalViewport = normal_encode(n);
