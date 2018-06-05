@@ -180,6 +180,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
         sub.active = curve.taper_object is not None
         sub.prop(curve, "use_map_taper")
 
+
 class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
     bl_label = "Bevel"
     bl_parent_id = "DATA_PT_geometry_curve"
@@ -348,6 +349,7 @@ class DATA_PT_font(CurveButtonsPanelText, Panel):
         row.prop(char, "use_underline", toggle=True)
         row.prop(char, "use_small_caps", toggle=True)
 
+
 class DATA_PT_font_transform(CurveButtonsPanelText, Panel):
     bl_label = "Transform"
     bl_parent_id = "DATA_PT_font"
@@ -402,7 +404,6 @@ class DATA_PT_paragraph_alignment(CurveButtonsPanelText, Panel):
 
         layout.row().prop(text, "align_x", expand=True)
         layout.row().prop(text, "align_y", expand=True)
-
 
 
 class DATA_PT_paragraph_spacing(CurveButtonsPanelText, Panel):

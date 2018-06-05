@@ -91,7 +91,7 @@ class _defs_view3d_generic:
                 ("transform.translate",
                  dict(release_confirm=True, cursor_transform=True),
                  dict(type='EVT_TWEAK_A', value='ANY'),
-                ),
+                 ),
             ),
         )
 
@@ -291,7 +291,6 @@ class _defs_edit_armature:
 
 
 class _defs_edit_mesh:
-
 
     @ToolDef.from_fn
     def cube_add():

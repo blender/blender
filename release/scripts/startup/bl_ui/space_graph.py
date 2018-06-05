@@ -336,11 +336,11 @@ class GRAPH_MT_channel_specials(Menu):
         st = context.space_data
 
         layout.separator()
-        layout.operator("anim.channels_setting_enable", text="Mute Channels").type='MUTE'
-        layout.operator("anim.channels_setting_disable", text="Unmute Channels").type='MUTE'
+        layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
+        layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
         layout.separator()
-        layout.operator("anim.channels_setting_enable", text="Protect Channels").type='PROTECT'
-        layout.operator("anim.channels_setting_disable", text="Unprotect Channels").type='PROTECT'
+        layout.operator("anim.channels_setting_enable", text="Protect Channels").type = 'PROTECT'
+        layout.operator("anim.channels_setting_disable", text="Unprotect Channels").type = 'PROTECT'
 
         layout.separator()
         layout.operator("anim.channels_group")

@@ -425,11 +425,11 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         layout.operator("anim.channels_editable_toggle")
 
         # XXX: to be enabled when these are ready for use!
-        #layout.separator()
-        #layout.operator("anim.channels_expand")
-        #layout.operator("anim.channels_collapse")
+        # layout.separator()
+        # layout.operator("anim.channels_expand")
+        # layout.operator("anim.channels_collapse")
 
-        #layout.separator()
+        # layout.separator()
         #layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
@@ -450,9 +450,9 @@ class DOPESHEET_MT_gpencil_frame(Menu):
         layout.separator()
         layout.operator("action.keyframe_type")
 
-        #layout.separator()
-        #layout.operator("action.copy")
-        #layout.operator("action.paste")
+        # layout.separator()
+        # layout.operator("action.copy")
+        # layout.operator("action.paste")
 
 
 class DOPESHEET_MT_delete(Menu):
@@ -496,18 +496,18 @@ class DOPESHEET_MT_specials(Menu):
         layout.operator_menu_enum("action.mirror", "type", text="Mirror")
         layout.operator_menu_enum("action.snap", "type", text="Snap")
 
+
 class DOPESHEET_MT_channel_specials(Menu):
     bl_label = "Dope Sheet Channel Context Menu"
 
     def draw(self, context):
         layout = self.layout
 
-
-        layout.operator("anim.channels_setting_enable", text="Mute Channels").type='MUTE'
-        layout.operator("anim.channels_setting_disable", text="Unmute Channels").type='MUTE'
+        layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
+        layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
         layout.separator()
-        layout.operator("anim.channels_setting_enable", text="Protect Channels").type='PROTECT'
-        layout.operator("anim.channels_setting_disable", text="Unprotect Channels").type='PROTECT'
+        layout.operator("anim.channels_setting_enable", text="Protect Channels").type = 'PROTECT'
+        layout.operator("anim.channels_setting_disable", text="Unprotect Channels").type = 'PROTECT'
 
         layout.separator()
         layout.operator("anim.channels_group")

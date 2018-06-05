@@ -182,7 +182,6 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
         col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
 
 
-
 class DATA_PT_EEVEE_shadow_cascaded_shadow_map(DataButtonsPanel, Panel):
     bl_label = "Cascaded Shadow Map"
     bl_parent_id = "DATA_PT_EEVEE_shadow"

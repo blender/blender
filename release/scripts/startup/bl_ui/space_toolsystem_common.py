@@ -427,7 +427,6 @@ class ToolSelectPanelHelper:
 
         return ui_gen, show_text
 
-
     @classmethod
     def draw_cls(cls, layout, context, detect_layout=True):
         # Use a classmethod so it can be called outside of a panel context.
@@ -675,6 +674,7 @@ def keymap_from_context(context, space_type):
 
     wm.keyconfigs.update()
     return keymap
+
 
 classes = (
     WM_MT_toolsystem_submenu,

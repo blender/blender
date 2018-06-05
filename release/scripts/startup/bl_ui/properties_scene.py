@@ -296,9 +296,7 @@ class SCENE_PT_color_management_curves(SceneButtonsPanel, Panel):
         layout.use_property_split = False
         layout.enabled = view.use_curve_mapping
 
-        layout.template_curve_mapping(view, "curve_mapping", levels = True)
-
-
+        layout.template_curve_mapping(view, "curve_mapping", levels=True)
 
 
 class SCENE_PT_audio(SceneButtonsPanel, Panel):

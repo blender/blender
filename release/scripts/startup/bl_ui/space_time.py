@@ -117,6 +117,7 @@ class TIME_MT_editor_menus(Menu):
                        panel_type="TIME_PT_keyframing_settings",
                        text="Keying")
 
+
 class TIME_MT_marker(Menu):
     bl_label = "Marker"
 
@@ -216,6 +217,7 @@ def marker_menu_generic(layout):
     layout.prop(ts, "lock_markers")
 
 ###################################
+
 
 class TimelinePanelButtons:
     bl_space_type = 'DOPESHEET_EDITOR'

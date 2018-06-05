@@ -621,6 +621,7 @@ class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
     bl_region_type = 'TOOLS'
     bl_category = 'Mask'
 
+
 class IMAGE_PT_tools_mask_add(MASK_PT_add, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
@@ -1162,8 +1163,6 @@ class IMAGE_PT_uv_sculpt(Panel, ImagePaintPanel):
             col.prop(toolsettings, "uv_relax_method")
 
         col.prop(uvsculpt, "show_brush")
-
-
 
 
 class IMAGE_PT_options_uvs(Panel, UVToolsPanel):

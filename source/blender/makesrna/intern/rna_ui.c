@@ -302,8 +302,8 @@ static StructRNA *rna_Panel_register(
 
 static StructRNA *rna_Panel_refine(PointerRNA *ptr)
 {
-	Panel *hdr = (Panel *)ptr->data;
-	return (hdr->type && hdr->type->ext.srna) ? hdr->type->ext.srna : &RNA_Panel;
+	Panel *menu = (Panel *)ptr->data;
+	return (menu->type && menu->type->ext.srna) ? menu->type->ext.srna : &RNA_Panel;
 }
 
 /* UIList */
@@ -696,7 +696,7 @@ static int menu_poll(const bContext *C, MenuType *pt)
 	return visible;
 }
 
-static void menu_draw(const bContext *C, Menu *hdr)
+static void menu_draw(const bContext *C, Menu *menu)
 {
 	extern FunctionRNA rna_Menu_draw_func;
 
@@ -704,12 +704,12 @@ static void menu_draw(const bContext *C, Menu *hdr)
 	ParameterList list;
 	FunctionRNA *func;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->ext.srna, hdr, &mtr);
+	RNA_pointer_create(&CTX_wm_screen(C)->id, menu->type->ext.srna, menu, &mtr);
 	func = &rna_Menu_draw_func; /* RNA_struct_find_function(&mtr, "draw"); */
 
 	RNA_parameter_list_create(&list, &mtr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	hdr->type->ext.call((bContext *)C, &mtr, func, &list);
+	menu->type->ext.call((bContext *)C, &mtr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -818,8 +818,8 @@ static StructRNA *rna_Menu_register(
 
 static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 {
-	Menu *hdr = (Menu *)mtr->data;
-	return (hdr->type && hdr->type->ext.srna) ? hdr->type->ext.srna : &RNA_Menu;
+	Menu *menu = (Menu *)mtr->data;
+	return (menu->type && menu->type->ext.srna) ? menu->type->ext.srna : &RNA_Menu;
 }
 
 static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)

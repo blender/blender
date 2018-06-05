@@ -43,7 +43,7 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
         rd = scene.render
         layer = bpy.context.view_layer
 
-        layout.prop(layer, "use", text="Use for Rendering");
+        layout.prop(layer, "use", text="Use for Rendering")
         layout.prop(rd, "use_single_layer", text="Render Single Layer")
 
 

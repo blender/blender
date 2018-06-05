@@ -59,6 +59,7 @@ class TEXTURE_UL_texslots(UIList):
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
 
+
 def context_tex_datablock(context):
     idblock = context.brush
     if idblock:
@@ -105,6 +106,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel, Panel):
         idblock = context_tex_datablock(context)
         if isinstance(idblock, Brush):
             layout.prop(tex, "use_preview_alpha")
+
 
 class TEXTURE_PT_context(TextureButtonsPanel, Panel):
     bl_label = ""

@@ -70,7 +70,7 @@ def draw_vpaint_symmetry(layout, vpaint):
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = ".mesh_edit" # dot on purpose (access from topbar)
+    bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
     bl_label = "Mesh Options"
 
     @classmethod
@@ -101,9 +101,10 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 
 # ********** default tools for editmode_curve ****************
 
+
 class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = ".curve_edit" # dot on purpose (access from topbar)
+    bl_context = ".curve_edit"  # dot on purpose (access from topbar)
     bl_label = "Curve Stroke"
 
     def draw(self, context):
@@ -155,8 +156,6 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
                 colsub.prop(cps, "surface_plane", expand=True)
 
 
-
-
 # ********** default tools for editmode_armature ****************
 
 
@@ -175,7 +174,7 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = ".posemode" # dot on purpose (access from topbar)
+    bl_context = ".posemode"  # dot on purpose (access from topbar)
     bl_label = "Pose Options"
 
     def draw(self, context):
@@ -194,7 +193,7 @@ class View3DPaintPanel(UnifiedPaintPanel):
 
 class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Missing Data"
 
     @classmethod
@@ -528,7 +527,7 @@ class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
 
 
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Slots"
     bl_category = "Slots"
 
@@ -589,7 +588,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
 
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Mask"
     bl_category = "Slots"
 
@@ -723,7 +722,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -886,11 +885,11 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     def draw_header(self, context):
         layout = self.layout
         layout.operator(
-                "sculpt.dynamic_topology_toggle",
-                icon='CHECKBOX_HLT' if context.sculpt_object.use_dynamic_topology_sculpting else 'CHECKBOX_DEHLT',
-                text="",
-                emboss=False,
-                )
+            "sculpt.dynamic_topology_toggle",
+            icon='CHECKBOX_HLT' if context.sculpt_object.use_dynamic_topology_sculpting else 'CHECKBOX_DEHLT',
+            text="",
+            emboss=False,
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -1124,7 +1123,7 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "External"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1146,7 +1145,7 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1165,7 +1164,7 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
     bl_category = "Options"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Project Paint"
 
     @classmethod
@@ -1323,6 +1322,8 @@ class VIEW3D_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
     bl_space_type = 'VIEW_3D'
 
 # Grease Pencil drawingcurves
+
+
 class VIEW3D_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
     bl_space_type = 'VIEW_3D'
 

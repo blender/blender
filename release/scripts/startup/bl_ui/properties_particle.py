@@ -404,7 +404,7 @@ class PARTICLE_PT_hair_dynamics_structure(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.particle_system.cloth != None
+        return context.particle_system.cloth is not None
 
     def draw(self, context):
         layout = self.layout
@@ -436,7 +436,7 @@ class PARTICLE_PT_hair_dynamics_volume(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.particle_system.cloth != None
+        return context.particle_system.cloth is not None
 
     def draw(self, context):
         layout = self.layout
@@ -590,6 +590,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
 
         if part.type != 'HAIR':
             col.prop(part, "use_dynamic_rotation")
+
 
 class PARTICLE_PT_rotation_angular_velocity(ParticleButtonsPanel, Panel):
     bl_label = "Angular Velocity"
@@ -812,6 +813,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                     sub.prop(key, "object", text="")
                     sub.prop(key, "system", text="System")
 
+
 class PARTICLE_PT_physics_deflection(ParticleButtonsPanel, Panel):
     bl_label = "Deflection"
     bl_parent_id = "PARTICLE_PT_physics"
@@ -820,8 +822,8 @@ class PARTICLE_PT_physics_deflection(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-       part = particle_get_settings(context)
-       return part.physics_type in {'NEWTON', 'FLUID'}
+        part = particle_get_settings(context)
+        return part.physics_type in {'NEWTON', 'FLUID'}
 
     def draw(self, context):
         layout = self.layout
@@ -846,8 +848,8 @@ class PARTICLE_PT_physics_forces(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-       part = particle_get_settings(context)
-       return part.physics_type == 'NEWTON'
+        part = particle_get_settings(context)
+        return part.physics_type == 'NEWTON'
 
     def draw(self, context):
         layout = self.layout
@@ -873,8 +875,8 @@ class PARTICLE_PT_physics_integration(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-       part = particle_get_settings(context)
-       return part.physics_type == 'NEWTON'
+        part = particle_get_settings(context)
+        return part.physics_type == 'NEWTON'
 
     def draw(self, context):
         layout = self.layout
@@ -924,7 +926,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
 
         # Currently boids can only use the first state so these are commented out for now.
         #row = layout.row()
-        #row.template_list("UI_UL_list", "particle_boids", boids, "states",
+        # row.template_list("UI_UL_list", "particle_boids", boids, "states",
         #                  boids, "active_boid_state_index", compact="True")
         #col = row.row()
         #sub = col.row(align=True)
@@ -1039,6 +1041,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                 col.prop(part, "material_slot", text="Material")
                 col.prop(psys, "parent", text="Coordinate System")
 
+
 class PARTICLE_PT_render_extra(ParticleButtonsPanel, Panel):
     bl_label = "Extra"
     bl_parent_id = "PARTICLE_PT_render"
@@ -1058,13 +1061,12 @@ class PARTICLE_PT_render_extra(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col = layout.column()
         col.prop(part, "use_parent_particles", text="Parent Particles")
         col.prop(part, "show_unborn", text="Unborn")
         col.prop(part, "use_dead", text="Dead")
-
 
 
 class PARTICLE_PT_render_line(ParticleButtonsPanel, Panel):
@@ -1086,13 +1088,14 @@ class PARTICLE_PT_render_line(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col.separator()
         sub = col.column(align=True)
         sub.prop(part, "line_length_tail", text="Length Tail")
         sub.prop(part, "line_length_head", text="Head")
         col.prop(part, "use_velocity_length", text="Velocity Length")
+
 
 class PARTICLE_PT_render_path(ParticleButtonsPanel, Panel):
     bl_label = "Path"
@@ -1113,7 +1116,7 @@ class PARTICLE_PT_render_path(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col.prop(part, "use_strand_primitive")
         sub = col.column()
@@ -1148,7 +1151,7 @@ class PARTICLE_PT_render_path_timing(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col.prop(part, "use_absolute_path_time")
 
@@ -1159,6 +1162,7 @@ class PARTICLE_PT_render_path_timing(ParticleButtonsPanel, Panel):
 
         col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
         col.prop(part, "length_random", text="Random", slider=True)
+
 
 class PARTICLE_PT_render_object(ParticleButtonsPanel, Panel):
     bl_label = "Object"
@@ -1179,7 +1183,7 @@ class PARTICLE_PT_render_object(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col.prop(part, "dupli_object", text="Instance Object")
         sub = col.column()
@@ -1207,7 +1211,7 @@ class PARTICLE_PT_render_collection(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col.prop(part, "dupli_group")
 
@@ -1218,6 +1222,7 @@ class PARTICLE_PT_render_collection(ParticleButtonsPanel, Panel):
         sub.prop(part, "use_global_dupli", text="Global Coordinates")
         sub.prop(part, "use_rotation_dupli", text="Object Rotation")
         sub.prop(part, "use_scale_dupli", text="Object Scale")
+
 
 class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
     bl_label = "Use Count"
@@ -1246,13 +1251,13 @@ class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         layout.active = part.use_group_count and not part.use_whole_group
 
         row = layout.row()
         row.template_list("UI_UL_list", "particle_dupli_weights", part, "dupli_weights",
-                                  part, "active_dupliweight_index")
+                          part, "active_dupliweight_index")
 
         col = row.column()
         sub = col.row()
@@ -1266,6 +1271,7 @@ class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
         if weight:
             row = layout.row()
             row.prop(weight, "count")
+
 
 class PARTICLE_PT_render_billboards_alignment(ParticleButtonsPanel, Panel):
     bl_label = "Billboard Alignment"
@@ -1286,11 +1292,12 @@ class PARTICLE_PT_render_billboards_alignment(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col.prop(part, "billboard_align", text="Align To")
         col.prop(part, "lock_billboard", text="Lock Axis")
         col.prop(part, "billboard_object")
+
 
 class PARTICLE_PT_render_billboards_tilt(ParticleButtonsPanel, Panel):
     bl_label = "Billboard Tilt"
@@ -1311,7 +1318,7 @@ class PARTICLE_PT_render_billboards_tilt(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         sub = col.column(align=True)
         sub.prop(part, "billboard_tilt", text="Angle", slider=True)
@@ -1324,6 +1331,7 @@ class PARTICLE_PT_render_billboards_tilt(ParticleButtonsPanel, Panel):
             col = col.column(align=True)
             col.prop(part, "billboard_velocity_head", text="Velocity ScaleHead")
             col.prop(part, "billboard_velocity_tail", text="Tail")
+
 
 class PARTICLE_PT_render_billboards_uv(ParticleButtonsPanel, Panel):
     bl_label = "Billboard UVs"
@@ -1344,7 +1352,7 @@ class PARTICLE_PT_render_billboards_uv(ParticleButtonsPanel, Panel):
         ob = context.object
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         if psys:
             col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_layers")
@@ -1359,7 +1367,6 @@ class PARTICLE_PT_render_billboards_uv(ParticleButtonsPanel, Panel):
 
         sub.prop(part, "billboard_animation")
         sub.prop(part, "billboard_offset_split")
-
 
 
 class PARTICLE_PT_render_trails(ParticleButtonsPanel, Panel):
@@ -1380,7 +1387,7 @@ class PARTICLE_PT_render_trails(ParticleButtonsPanel, Panel):
         psys = context.particle_system
         part = particle_get_settings(context)
 
-        col=layout.column()
+        col = layout.column()
 
         col.prop(part, "trail_count")
 
@@ -1532,6 +1539,7 @@ class PARTICLE_PT_children_parting(ParticleButtonsPanel, Panel):
         col.prop(part, "child_parting_min", text="Min")
         col.prop(part, "child_parting_max", text="Max")
 
+
 class PARTICLE_PT_children_clumping(ParticleButtonsPanel, Panel):
     bl_label = "Clumping"
     bl_parent_id = "PARTICLE_PT_children"
@@ -1572,6 +1580,7 @@ class PARTICLE_PT_children_clumping(ParticleButtonsPanel, Panel):
             sub.prop(part, "use_twist_curve")
             if part.use_twist_curve:
                 sub.template_curve_mapping(part, "twist_curve")
+
 
 class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
     bl_label = "Roughness"
