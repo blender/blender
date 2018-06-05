@@ -1952,7 +1952,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 
 	if (check_id_has_anim_component(&ntree->id)) {
 		ComponentKey animation_key(&ntree->id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(shading_parameters_key, animation_key, "NTree Shading Parameters");
+		add_relation(animation_key, shading_parameters_key, "NTree Shading Parameters");
 	}
 }
 
