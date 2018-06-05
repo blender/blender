@@ -422,6 +422,43 @@ class IMAGE_MT_uvs_select_mode(Menu):
             props.data_path = "tool_settings.uv_select_mode"
 
 
+class IMAGE_MT_specials(Menu):
+    bl_label = "UV Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+
+        # UV Edit Mode
+        if sima.show_uvedit:
+            layout.operator("uv.unwrap")
+            layout.operator("uv.follow_active_quads")
+
+            layout.separator()
+
+            layout.operator("uv.pin").clear = False
+            layout.operator("uv.pin", text="Unpin").clear = True
+
+            layout.separator()
+
+            layout.operator("uv.weld")
+            layout.operator("uv.stitch")
+
+            layout.separator()
+
+            layout.operator_enum("uv.align", "axis")  # W, 2/3/4
+
+            layout.separator()
+
+            layout.operator("transform.mirror", text="Mirror X").constraint_axis[0] = True
+            layout.operator("transform.mirror", text="Mirror Y").constraint_axis[1] = True
+
+            layout.separator()
+
+            layout.menu("IMAGE_MT_uvs_snap")
+
+
 class IMAGE_HT_header(Header):
     bl_space_type = 'IMAGE_EDITOR'
 
@@ -1308,6 +1345,7 @@ classes = (
     IMAGE_MT_uvs_mirror,
     IMAGE_MT_uvs_weldalign,
     IMAGE_MT_uvs_select_mode,
+    IMAGE_MT_specials,
     IMAGE_HT_header,
     MASK_MT_editor_menus,
     IMAGE_PT_mask,

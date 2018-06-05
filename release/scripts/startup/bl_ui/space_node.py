@@ -290,6 +290,41 @@ class NODE_MT_node_color_specials(Menu):
         layout.operator("node.node_copy_color", icon='COPY_ID')
 
 
+class NODE_MT_specials(Menu):
+    bl_label = "Node Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("node.duplicate_move")
+        layout.operator("node.delete")
+        layout.operator_context = 'EXEC_DEFAULT'
+
+        layout.operator("node.delete_reconnect")
+
+        layout.separator()
+
+        layout.operator("node.link_make").replace = False
+        layout.operator("node.link_make", text="Make and Replace Links").replace = True
+        layout.operator("node.links_detach")
+
+        layout.separator()
+
+        layout.operator("node.group_make", text="Group")
+        layout.operator("node.group_ungroup", text="Ungroup")
+        layout.operator("node.group_edit").exit = False
+
+        layout.separator()
+
+        layout.operator("node.hide_toggle")
+        layout.operator("node.mute_toggle")
+        layout.operator("node.preview_toggle")
+        layout.operator("node.hide_socket_toggle")
+        layout.operator("node.options_toggle")
+        layout.operator("node.collapse_hide_unused_toggle")
+
+
 class NODE_PT_active_node_generic(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -531,6 +566,7 @@ classes = (
     NODE_MT_node,
     NODE_MT_node_color_presets,
     NODE_MT_node_color_specials,
+    NODE_MT_specials,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,
     NODE_PT_active_node_properties,

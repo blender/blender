@@ -295,6 +295,8 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *ar)
 	keymap = WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
+	WM_keymap_add_menu(keymap, "DOPESHEET_MT_specials_channels", WKEY, KM_PRESS, 0, 0);
+
 	keymap = WM_keymap_find(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
@@ -903,4 +905,3 @@ void ED_spacetype_action(void)
 
 	BKE_spacetype_register(st);
 }
-

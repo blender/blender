@@ -1483,7 +1483,7 @@ class VIEW3D_MT_object_clear(Menu):
 
 
 class VIEW3D_MT_object_specials(Menu):
-    bl_label = "Context Menu"
+    bl_label = "Object Context Menu"
 
     @classmethod
     def poll(cls, context):
@@ -2113,7 +2113,7 @@ class VIEW3D_MT_particle(Menu):
 
 
 class VIEW3D_MT_particle_specials(Menu):
-    bl_label = "Context Menu"
+    bl_label = "Particle Context Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -2363,7 +2363,7 @@ class VIEW3D_MT_pose_apply(Menu):
 
 
 class VIEW3D_MT_pose_specials(Menu):
-    bl_label = "Context Menu"
+    bl_label = "Pose Context Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -2496,7 +2496,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
 
 class VIEW3D_MT_edit_mesh_specials(Menu):
-    bl_label = "Context Menu"
+    bl_label = "Mesh Context Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -3030,7 +3030,7 @@ class VIEW3D_MT_edit_curve_clean(Menu):
 
 
 class VIEW3D_MT_edit_curve_specials(Menu):
-    bl_label = "Context Menu"
+    bl_label = "Curve Context Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -3244,7 +3244,7 @@ class VIEW3D_MT_edit_armature(Menu):
 
 
 class VIEW3D_MT_armature_specials(Menu):
-    bl_label = "Context Menu"
+    bl_label = "Armature Context Menu"
 
     def draw(self, context):
         layout = self.layout

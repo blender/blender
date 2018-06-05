@@ -216,6 +216,9 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_type", RKEY, KM_PRESS, 0, 0);
 
+	/* specials */
+	WM_keymap_add_menu(keymap, "DOPESHEET_MT_specials", WKEY, KM_PRESS, 0, 0);
+
 	/* destructive */
 	WM_keymap_add_item(keymap, "ACTION_OT_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -289,4 +292,3 @@ void action_keymap(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Dopesheet", SPACE_ACTION, 0);
 	action_keymap_keyframes(keyconf, keymap);
 }
-
