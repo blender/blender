@@ -875,7 +875,7 @@ bool applyTransformOrientation(const struct TransformOrientation *ts, float r_ma
 int getTransformOrientation_ex(const struct bContext *C, float normal[3], float plane[3], const short around);
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3]);
 
-void freeCustomNormalArray(TransInfo *t, TransCustomData *custom_data);
+void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 
 void freeEdgeSlideTempFaces(EdgeSlideData *sld);
 void freeEdgeSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
