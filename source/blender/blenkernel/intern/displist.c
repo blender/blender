@@ -1110,6 +1110,8 @@ static void displist_surf_indices(DispList *dl)
 	}
 }
 
+/* XXX2.8(Sybren): unused function; impossible to test after porting to Mesh */
+#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
 static DerivedMesh *create_orco_dm(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	DerivedMesh *dm;
@@ -1153,7 +1155,10 @@ static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
 	else
 		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
 }
+#endif
 
+/* XXX2.8(Sybren): unused function; impossible to test after porting to Mesh */
+#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
 static void curve_calc_orcodm(
         Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm_final,
         const bool for_render, const bool use_render_resolution)
@@ -1223,6 +1228,7 @@ static void curve_calc_orcodm(
 
 	orcodm->release(orcodm);
 }
+#endif
 
 void BKE_displist_make_surf(
         Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *dispbase,
@@ -1831,6 +1837,8 @@ void BKE_displist_make_curveTypes_forOrco(
 }
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
+/* XXX2.8(Sybren): can be removed once DerivedMesh port is done */
+#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
 float *BKE_displist_make_orco(
         Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm_final,
         const bool for_render,
@@ -1853,6 +1861,7 @@ float *BKE_displist_make_orco(
 
 	return orco;
 }
+#endif
 
 void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 {
