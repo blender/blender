@@ -209,6 +209,7 @@ void BKE_mesh_apply_vert_coords(struct Mesh *mesh, float (*vertCoords)[3]);
 
 /* *** mesh_evaluate.c *** */
 
+void BKE_mesh_calc_normals_mapping_simple(struct Mesh *me);
 void BKE_mesh_calc_normals_mapping(
         struct MVert *mverts, int numVerts,
         const struct MLoop *mloop, const struct MPoly *mpolys, int numLoops, int numPolys, float (*r_polyNors)[3],
