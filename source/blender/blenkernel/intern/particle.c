@@ -3089,6 +3089,9 @@ void object_remove_particle_system(Scene *UNUSED(scene), Object *ob)
 
 	DEG_relations_tag_update(G.main);
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	
+	/* Flush object mode. */
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 static void default_particle_settings(ParticleSettings *part)

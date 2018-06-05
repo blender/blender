@@ -5735,6 +5735,9 @@ void ED_object_sculptmode_enter_ex(
 	}
 
 	// ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
+
+	/* Flush object mode. */
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 void ED_object_sculptmode_enter(struct bContext *C, ReportList *reports)
@@ -5788,6 +5791,7 @@ void ED_object_sculptmode_exit_ex(
 
 	paint_cursor_delete_textures();
 
+	/* Flush object mode. */
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
