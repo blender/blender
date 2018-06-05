@@ -1566,19 +1566,21 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Material Slot", "Material slot in an object");
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
 
+	/* WARNING! Order is crucial for override to work properly here... :/
+	 * 'link' must come before material pointer, since it defines where (in object or obdata) that one is set! */
+	prop = RNA_def_property(srna, "link", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, link_items);
+	RNA_def_property_enum_funcs(prop, "rna_MaterialSlot_link_get", "rna_MaterialSlot_link_set", NULL);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+	RNA_def_property_ui_text(prop, "Link", "Link material to object or the object's data");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
+
 	prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_pointer_funcs(prop, "rna_MaterialSlot_material_get", "rna_MaterialSlot_material_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Material", "Material data-block used by this material slot");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
-
-	prop = RNA_def_property(srna, "link", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, link_items);
-	RNA_def_property_enum_funcs(prop, "rna_MaterialSlot_link_get", "rna_MaterialSlot_link_set", NULL);
-	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-	RNA_def_property_ui_text(prop, "Link", "Link material to object or the object's data");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
