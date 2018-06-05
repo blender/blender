@@ -56,6 +56,7 @@
 #include "BKE_tracking.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

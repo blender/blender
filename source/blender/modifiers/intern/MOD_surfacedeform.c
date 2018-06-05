@@ -9,7 +9,7 @@
 #include "BLI_task.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_editmesh.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"

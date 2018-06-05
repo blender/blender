@@ -41,6 +41,7 @@
 
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils

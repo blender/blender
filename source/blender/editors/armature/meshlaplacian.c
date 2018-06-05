@@ -42,6 +42,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 
 #include "ED_mesh.h"
 #include "ED_armature.h"

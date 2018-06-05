@@ -46,6 +46,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"

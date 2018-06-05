@@ -61,6 +61,7 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_tangent.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"

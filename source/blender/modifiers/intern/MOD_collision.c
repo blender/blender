@@ -45,6 +45,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
