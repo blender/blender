@@ -8593,7 +8593,10 @@ void createTransData(bContext *C, TransInfo *t)
 					countAndCleanTransDataContainer(t);
 				}
 			}
-
+		}
+		/* Mark as initialized if above checks fail. */
+		if (t->data_len_all == -1) {
+			t->data_len_all = 0;
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, ob))) {
