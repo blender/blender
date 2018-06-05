@@ -673,7 +673,7 @@ int wm_homefile_read(
         bool use_factory_settings, bool use_empty_data, bool use_userdef,
         const char *filepath_startup_override, const char *app_template_override)
 {
-	Main *bmain = CTX_data_main(C);
+	Main *bmain = G.main;  /* Context does not always have valid main pointer here... */
 	ListBase wmbase;
 	bool success = false;
 
@@ -865,13 +865,15 @@ int wm_homefile_read(
 	 * can remove this eventually, only in a 2.53 and older, now its not written */
 	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
 
-	if (use_userdef) {	
+	bmain = CTX_data_main(C);
+
+	if (use_userdef) {
 		/* check userdef before open window, keymaps etc */
-		wm_init_userdef(CTX_data_main(C), read_userdef_from_memory);
+		wm_init_userdef(bmain, read_userdef_from_memory);
 	}
 	
 	/* match the read WM with current WM */
-	wm_window_match_do(C, &wmbase, &G.main->wm, &G.main->wm);
+	wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	bmain->name[0] = '\0';
