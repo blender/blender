@@ -51,7 +51,9 @@ void EEVEE_lookdev_cache_init(
 			axis_angle_to_mat3_single(stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
 			DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
 
-			DRW_shgroup_uniform_vec3(*grp, "color", &world->horr, 1);
+			if (world) {
+				DRW_shgroup_uniform_vec3(*grp, "color", &world->horr, 1);
+			}
 			DRW_shgroup_uniform_float(*grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(*grp, geom, NULL);
 			if (!pinfo) {
