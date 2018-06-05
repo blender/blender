@@ -3438,8 +3438,8 @@ static Gwn_VertBuf *mesh_batch_cache_create_edges_overlay_adj_texture_buf(MeshRe
 			GWN_vertbuf_attr_set(vbo, index_id, vidx++, &value);
 
 			if (do_adjacency) {
-				int v1 = mloop[mlt->tri[(e+1) % 3]].v;
-				int v2 = mloop[mlt->tri[(e+2) % 3]].v;
+				int v1 = mloop[mlt->tri[(e + 1) % 3]].v;
+				int v2 = mloop[mlt->tri[(e + 2) % 3]].v;
 				EdgeAdjacentVerts *eav = BLI_edgehash_lookup(eh, v0, v1);
 				int adj_v;
 				if (eav->vert_index[0] != v2) {

@@ -586,15 +586,13 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size)
 
 	uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
 	int offset = 0;
-	ImBuf* ibuf = sl->equirectangular_radiance_buffer;
-	for (int y= 0; y < icon_size; y ++)
-	{
-		for (int x = 0; x < icon_size; x ++)
-		{
+	ImBuf *ibuf = sl->equirectangular_radiance_buffer;
+	for (int y = 0; y < icon_size; y++) {
+		for (int x = 0; x < icon_size; x++) {
 			uint pixelresult = 0x0;
 			float fx = x * ibuf->x / icon_size;
 			float fy = y * ibuf->y / icon_size;
-			nearest_interpolation_color(ibuf, (unsigned char*)&pixelresult, NULL, fx, fy);
+			nearest_interpolation_color(ibuf, (uchar *)&pixelresult, NULL, fx, fy);
 			rect[offset++] = pixelresult;
 		}
 	}

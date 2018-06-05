@@ -16,9 +16,12 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		wpd->shading = v3d->shading;
 		wpd->drawtype = v3d->drawtype;
 		if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
-			wpd->studio_light = BKE_studiolight_find(wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
-		} else {
-			wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
+			wpd->studio_light = BKE_studiolight_find(
+			        wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+		}
+		else {
+			wpd->studio_light = BKE_studiolight_find(
+			        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
 		}
 	}
 	else {

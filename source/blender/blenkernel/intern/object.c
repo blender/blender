@@ -2875,8 +2875,7 @@ Mesh *BKE_object_get_pre_modified_mesh(Object *object)
 	if (object->runtime.mesh_orig != NULL) {
 		BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
 		BLI_assert(object->id.orig_id != NULL);
-		BLI_assert(object->runtime.mesh_orig->id.orig_id ==
-		           ((Object*)object->id.orig_id)->data);
+		BLI_assert(object->runtime.mesh_orig->id.orig_id == ((Object *)object->id.orig_id)->data);
 		Mesh *result = object->runtime.mesh_orig;
 		BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_WRITE) != 0);
 		BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT) == 0);
@@ -2900,7 +2899,7 @@ Mesh *BKE_object_get_original_mesh(Object *object)
 	}
 	else {
 		BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_WRITE) != 0);
-		result = ((Object*)object->id.orig_id)->data;
+		result = ((Object *)object->id.orig_id)->data;
 	}
 	BLI_assert(result != NULL);
 	BLI_assert((result->id.tag & (LIB_TAG_COPIED_ON_WRITE | LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT)) == 0);
