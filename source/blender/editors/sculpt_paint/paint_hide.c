@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"

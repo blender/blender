@@ -54,6 +54,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"

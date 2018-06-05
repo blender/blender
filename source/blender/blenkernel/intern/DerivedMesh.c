@@ -3105,6 +3105,7 @@ void makeDerivedMesh(
 
 /***/
 
+#ifdef WITH_DERIVEDMESH
 /* Deprecated DM, use: 'mesh_get_eval_final'. */
 DerivedMesh *mesh_get_derived_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
@@ -3125,6 +3126,7 @@ DerivedMesh *mesh_get_derived_final(
 	if (ob->derivedFinal) { BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS)); }
 	return ob->derivedFinal;
 }
+#endif
 Mesh *mesh_get_eval_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
@@ -3145,6 +3147,7 @@ Mesh *mesh_get_eval_final(
 	return ob->runtime.mesh_eval;
 }
 
+#ifdef WITH_DERIVEDMESH
 /* Deprecated DM, use: 'mesh_get_eval_deform' instead. */
 DerivedMesh *mesh_get_derived_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
@@ -3164,6 +3167,7 @@ DerivedMesh *mesh_get_derived_deform(struct Depsgraph *depsgraph, Scene *scene, 
 
 	return ob->derivedDeform;
 }
+#endif
 Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include

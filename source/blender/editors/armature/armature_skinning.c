@@ -45,6 +45,7 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "BKE_subsurf.h"

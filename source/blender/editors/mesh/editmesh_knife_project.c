@@ -40,6 +40,7 @@
 #include "BKE_curve.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"

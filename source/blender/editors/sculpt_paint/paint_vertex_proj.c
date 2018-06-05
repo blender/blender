@@ -41,6 +41,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
+#include "BKE_mesh_runtime.h"
 
 #include "DEG_depsgraph.h"
 

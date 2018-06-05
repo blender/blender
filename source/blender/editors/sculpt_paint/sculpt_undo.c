@@ -58,6 +58,7 @@
 #include "BKE_paint.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_subsurf.h"
 #include "BKE_undo_system.h"
 

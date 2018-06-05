@@ -35,6 +35,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"
 #include "BLI_threads.h"
@@ -42,6 +43,10 @@
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+
+#ifdef WITH_DERIVEDMESH
+#include "BKE_DerivedMesh.h"
+#endif
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils

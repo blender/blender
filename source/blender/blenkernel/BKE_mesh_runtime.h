@@ -33,10 +33,22 @@
  * This file contains access functions for the Mesh.runtime struct.
  */
 
+#include "BKE_customdata.h"  /* for CustomDataMask */
+
+struct Depsgraph;
 struct Mesh;
 struct MLoop;
 struct MLoopTri;
 struct MVertTri;
+struct Object;
+struct Scene;
+
+/* Undefine to hide DerivedMesh-based function declarations */
+#define WITH_DERIVEDMESH
+
+#ifdef WITH_DERIVEDMESH
+struct DerivedMesh;
+#endif
 
 void BKE_mesh_runtime_reset(struct Mesh *mesh);
 int BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
@@ -51,5 +63,23 @@ void BKE_mesh_runtime_verttri_from_looptri(
         struct MVertTri *r_verttri,
         const struct MLoop *mloop, const struct MLoopTri *looptri, int looptri_num);
 
+/* NOTE: the functions below are defined in DerivedMesh.c, and are intended to be moved
+ * to a more suitable location when that file is removed. */
+#ifdef WITH_DERIVEDMESH
+struct DerivedMesh *mesh_get_derived_final(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask);
+#endif
+struct Mesh *mesh_get_eval_final(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, CustomDataMask dataMask);
+
+#ifdef WITH_DERIVEDMESH
+struct DerivedMesh *mesh_get_derived_deform(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask);
+#endif
+struct Mesh *mesh_get_eval_deform(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask);
 
 #endif /* __BKE_MESH_RUNTIME_H__ */
