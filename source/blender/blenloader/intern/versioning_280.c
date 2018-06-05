@@ -1537,7 +1537,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "matcap")) {
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "matcap[256]")) {
 			StudioLight *default_matcap = BKE_studiolight_find_first(STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
 			/* when loading the internal file is loaded before the matcaps */
 			if (default_matcap) {
