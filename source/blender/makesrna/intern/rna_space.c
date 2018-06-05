@@ -2611,7 +2611,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0.5);
 	RNA_def_property_ui_text(prop, "X-Ray Alpha", "Amount of alpha to use");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_range(prop, 0.04f, 1.0f, 1, 1);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
