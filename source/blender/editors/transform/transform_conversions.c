@@ -5619,18 +5619,17 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 /* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 {
-	Depsgraph *depsgraph = t->depsgraph;
 	Scene *scene = t->scene;
 	bool constinv;
 	bool skip_invert = false;
 
 	if (t->mode != TFM_DUMMY && ob->rigidbody_object) {
 		float rot[3][3], scale[3];
-		float ctime = DEG_get_ctime(depsgraph);
+		float ctime = BKE_scene_frame_get(scene);
 
 		/* only use rigid body transform if simulation is running, avoids problems with initial setup of rigid bodies */
-		// XXX: This needs fixing for COW. May need rigidbody_world from scene
 		if (BKE_rigidbody_check_sim_running(scene->rigidbody_world, ctime)) {
+
 			/* save original object transform */
 			copy_v3_v3(td->ext->oloc, ob->loc);
 
@@ -5665,26 +5664,21 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	constinv = constraints_list_needinv(t, &ob->constraints);
 
 	/* disable constraints inversion for dummy pass */
-	// XXX: Should this use ob or ob_eval?! It's not clear!
 	if (t->mode == TFM_DUMMY)
 		skip_invert = true;
 
-	Scene *scene_eval = DEG_get_evaluated_scene(t->depsgraph);
 	if (skip_invert == false && constinv == false) {
-		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-		ob_eval->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc_time checks this */
-		BKE_object_where_is_calc(t->depsgraph, scene_eval, ob_eval);
-		ob_eval->transflag &= ~OB_NO_CONSTRAINTS;
+		ob->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc_time checks this */
+		BKE_object_where_is_calc(t->depsgraph, t->scene, ob);
+		ob->transflag &= ~OB_NO_CONSTRAINTS;
 	}
-	else {
-		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-		BKE_object_where_is_calc(t->depsgraph, scene_eval, ob_eval);
-	}
+	else
+		BKE_object_where_is_calc(t->depsgraph, t->scene, ob);
 
 	td->ob = ob;
 
 	td->loc = ob->loc;
-	copy_v3_v3(td->iloc, ob->loc);
+	copy_v3_v3(td->iloc, td->loc);
 
 	if (ob->rotmode > 0) {
 		td->ext->rot = ob->rot;

@@ -56,8 +56,6 @@
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
-#include "DEG_depsgraph_query.h"
-
 #include "BLT_translation.h"
 
 #include "ED_armature.h"
@@ -1016,14 +1014,12 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		const Depsgraph *depsgraph = CTX_data_depsgraph(C);
-		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-		bArmature *arm = ob_eval->data;
+		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 		float imat[3][3], mat[3][3];
 		bool ok = false;
 
-		if (activeOnly && (pchan = BKE_pose_channel_active(ob_eval))) {
+		if (activeOnly && (pchan = BKE_pose_channel_active(ob))) {
 			add_v3_v3(normal, pchan->pose_mat[2]);
 			add_v3_v3(plane, pchan->pose_mat[1]);
 			ok = true;
@@ -1034,7 +1030,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 			totsel = count_bone_select(arm, &arm->bonebase, true);
 			if (totsel) {
 				/* use channels to get stats */
-				for (pchan = ob_eval->pose->chanbase.first; pchan; pchan = pchan->next) {
+				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
 						add_v3_v3(normal, pchan->pose_mat[2]);
 						add_v3_v3(plane, pchan->pose_mat[1]);
@@ -1047,7 +1043,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 		/* use for both active & all */
 		if (ok) {
 			/* we need the transpose of the inverse for a normal... */
-			copy_m3_m4(imat, ob_eval->obmat);
+			copy_m3_m4(imat, ob->obmat);
 
 			invert_m3_m3(mat, imat);
 			transpose_m3(mat);
