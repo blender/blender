@@ -200,7 +200,7 @@ const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-#define DEF_SINGLE_STUDIO_LIGHT_ITEM(value) {value, "STUDIOLIGHT_%%value%%", 0, "", ""}
+#define DEF_SINGLE_STUDIO_LIGHT_ITEM(value) {value, "STUDIOLIGHT_" #value, 0, "", ""}
 static const EnumPropertyItem rna_enum_studio_light_items[] = {
 	DEF_SINGLE_STUDIO_LIGHT_ITEM(0),
 	DEF_SINGLE_STUDIO_LIGHT_ITEM(1),
