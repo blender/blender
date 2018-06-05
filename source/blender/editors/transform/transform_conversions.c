@@ -574,17 +574,14 @@ static short apply_targetless_ik(Object *ob)
 	return apply;
 }
 
-static void add_pose_transdata(
-        TransInfo *t, Object *ob, bPoseChannel *pchan,
-        Object *ob_eval, bPoseChannel *pchan_eval,
-        TransDataContainer *tc, TransData *td)
+static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransDataContainer *tc, TransData *td)
 {
-	Bone *bone = pchan_eval->bone;
+	Bone *bone = pchan->bone;
 	float pmat[3][3], omat[3][3];
 	float cmat[3][3], tmat[3][3];
 	float vec[3];
 
-	copy_v3_v3(vec, pchan_eval->pose_mat[3]);
+	copy_v3_v3(vec, pchan->pose_mat[3]);
 	copy_v3_v3(td->center, vec);
 
 	td->ob = ob;
@@ -601,10 +598,10 @@ static void add_pose_transdata(
 	td->protectflag = pchan->protectflag;
 
 	td->loc = pchan->loc;
-	copy_v3_v3(td->iloc, pchan_eval->loc);
+	copy_v3_v3(td->iloc, pchan->loc);
 
 	td->ext->size = pchan->size;
-	copy_v3_v3(td->ext->isize, pchan_eval->size);
+	copy_v3_v3(td->ext->isize, pchan->size);
 
 	if (pchan->rotmode > 0) {
 		td->ext->rot = pchan->eul;
@@ -612,7 +609,7 @@ static void add_pose_transdata(
 		td->ext->rotAngle = NULL;
 		td->ext->quat = NULL;
 
-		copy_v3_v3(td->ext->irot, pchan_eval->eul);
+		copy_v3_v3(td->ext->irot, pchan->eul);
 	}
 	else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		td->ext->rot = NULL;
@@ -620,8 +617,8 @@ static void add_pose_transdata(
 		td->ext->rotAngle = &pchan->rotAngle;
 		td->ext->quat = NULL;
 
-		td->ext->irotAngle = pchan_eval->rotAngle;
-		copy_v3_v3(td->ext->irotAxis, pchan_eval->rotAxis);
+		td->ext->irotAngle = pchan->rotAngle;
+		copy_v3_v3(td->ext->irotAxis, pchan->rotAxis);
 	}
 	else {
 		td->ext->rot = NULL;
@@ -629,20 +626,20 @@ static void add_pose_transdata(
 		td->ext->rotAngle = NULL;
 		td->ext->quat = pchan->quat;
 
-		copy_qt_qt(td->ext->iquat, pchan_eval->quat);
+		copy_qt_qt(td->ext->iquat, pchan->quat);
 	}
 	td->ext->rotOrder = pchan->rotmode;
 
 
 	/* proper way to get parent transform + own transform + constraints transform */
-	copy_m3_m4(omat, ob_eval->obmat);
+	copy_m3_m4(omat, ob->obmat);
 
 	/* New code, using "generic" BKE_pchan_to_pose_mat(). */
 	{
 		float rotscale_mat[4][4], loc_mat[4][4];
 		float rpmat[3][3];
 
-		BKE_pchan_to_pose_mat(pchan_eval, rotscale_mat, loc_mat);
+		BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
 		if (t->mode == TFM_TRANSLATION)
 			copy_m3_m4(pmat, loc_mat);
 		else
@@ -655,7 +652,7 @@ static void add_pose_transdata(
 		copy_m3_m4(rpmat, rotscale_mat);
 
 		if (constraints_list_needinv(t, &pchan->constraints)) {
-			copy_m3_m4(tmat, pchan_eval->constinv);
+			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
 			mul_m3_series(td->mtx, cmat, omat, pmat);
 			mul_m3_series(td->ext->r_mtx, cmat, omat, rpmat);
@@ -675,7 +672,7 @@ static void add_pose_transdata(
 		if (pchan->parent) {
 			/* same as td->smtx but without pchan->bone->bone_mat */
 			td->flag |= TD_PBONE_LOCAL_MTX_C;
-			mul_m3_m3m3(td->ext->l_smtx, pchan_eval->bone->bone_mat, td->smtx);
+			mul_m3_m3m3(td->ext->l_smtx, pchan->bone->bone_mat, td->smtx);
 		}
 		else {
 			td->flag |= TD_PBONE_LOCAL_MTX_P;
@@ -683,7 +680,7 @@ static void add_pose_transdata(
 	}
 
 	/* for axismat we use bone's own transform */
-	copy_m3_m4(pmat, pchan_eval->pose_mat);
+	copy_m3_m4(pmat, pchan->pose_mat);
 	mul_m3_m3m3(td->axismtx, omat, pmat);
 	normalize_m3(td->axismtx);
 
@@ -708,10 +705,10 @@ static void add_pose_transdata(
 		bKinematicConstraint *data = has_targetless_ik(pchan);
 		if (data) {
 			if (data->flag & CONSTRAINT_IK_TIP) {
-				copy_v3_v3(data->grabtarget, pchan_eval->pose_tail);
+				copy_v3_v3(data->grabtarget, pchan->pose_tail);
 			}
 			else {
-				copy_v3_v3(data->grabtarget, pchan_eval->pose_head);
+				copy_v3_v3(data->grabtarget, pchan->pose_head);
 			}
 			td->loc = data->grabtarget;
 			copy_v3_v3(td->iloc, td->loc);
@@ -1178,7 +1175,7 @@ static void createTransPose(TransInfo *t, Object **objects, uint objects_len)
 		td = tc->data;
 		for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {
-				add_pose_transdata(t, ob, pchan, ob, pchan, tc, td);
+				add_pose_transdata(t, pchan, ob, tc, td);
 				td++;
 			}
 		}
