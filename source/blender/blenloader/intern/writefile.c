@@ -4093,7 +4093,7 @@ bool BLO_write_file(
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
 				 * print an error, don't try make the absolute in this case. */
-				BKE_bpath_absolute_convert(mainvar, G.main->name, NULL);
+				BKE_bpath_absolute_convert(mainvar, BKE_main_blendfile_path_from_global(), NULL);
 			}
 		}
 	}

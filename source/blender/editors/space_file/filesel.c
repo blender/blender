@@ -96,11 +96,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	FileSelectParams *params;
 	wmOperator *op = sfile->op;
 
+	const char *blendfile_path = BKE_main_blendfile_path_from_global();
+
 	/* create new parameters if necessary */
 	if (!sfile->params) {
 		sfile->params = MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
-		BLI_split_dirfile(G.main->name, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
+		BLI_split_dirfile(blendfile_path, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 		sfile->params->filter_glob[0] = '\0';
 		/* set the default thumbnails size */
 		sfile->params->thumbnail_size = 128;
@@ -149,8 +151,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		if (params->dir[0]) {
-			BLI_cleanup_dir(G.main->name, params->dir);
-			BLI_path_abs(params->dir, G.main->name);
+			BLI_cleanup_dir(blendfile_path, params->dir);
+			BLI_path_abs(params->dir, blendfile_path);
 		}
 
 		if (is_directory == true && is_filename == false && is_filepath == false && is_files == false) {
@@ -283,8 +285,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		sfile->folders_prev = folderlist_new();
 
 	if (!sfile->params->dir[0]) {
-		if (G.main->name[0]) {
-			BLI_split_dir_part(G.main->name, sfile->params->dir, sizeof(sfile->params->dir));
+		if (blendfile_path[0] != '\0') {
+			BLI_split_dir_part(blendfile_path, sfile->params->dir, sizeof(sfile->params->dir));
 		}
 		else {
 			const char *doc_path = BKE_appdir_folder_default();

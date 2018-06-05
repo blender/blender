@@ -227,7 +227,7 @@ static int space_image_file_exists_poll(bContext *C)
 		ibuf = ED_space_image_acquire_buffer(sima, &lock);
 		if (ibuf) {
 			BLI_strncpy(name, ibuf->name, FILE_MAX);
-			BLI_path_abs(name, bmain->name);
+			BLI_path_abs(name, BKE_main_blendfile_path(bmain));
 
 			if (BLI_exists(name) == false) {
 				CTX_wm_operator_poll_msg_set(C, "image file not found");
@@ -1263,11 +1263,11 @@ static int image_open_exec(bContext *C, wmOperator *op)
 			BLI_strncpy(filepath_range, frame_range->filepath, sizeof(filepath_range));
 
 			if (was_relative) {
-				BLI_path_rel(filepath_range, bmain->name);
+				BLI_path_rel(filepath_range, BKE_main_blendfile_path(bmain));
 			}
 
 			Image *ima_range = image_open_single(
-			         op, filepath_range, bmain->name,
+			         op, filepath_range, BKE_main_blendfile_path(bmain),
 			         is_relative_path, use_multiview, frame_range_seq_len);
 
 			/* take the first image */
@@ -1282,7 +1282,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	else {
 		/* for drag & drop etc. */
 		ima = image_open_single(
-		        op, filepath, bmain->name,
+		        op, filepath, BKE_main_blendfile_path(bmain),
 		        is_relative_path, use_multiview, 1);
 	}
 
@@ -1692,12 +1692,12 @@ static int save_image_options_init(Main *bmain, SaveImageOptions *simopts, Space
 				}
 				else {
 					BLI_strncpy(simopts->filepath, "//untitled", sizeof(simopts->filepath));
-					BLI_path_abs(simopts->filepath, bmain->name);
+					BLI_path_abs(simopts->filepath, BKE_main_blendfile_path(bmain));
 				}
 			}
 			else {
 				BLI_snprintf(simopts->filepath, sizeof(simopts->filepath), "//%s", ima->id.name + 2);
-				BLI_path_abs(simopts->filepath, is_prev_save ? G.ima : bmain->name);
+				BLI_path_abs(simopts->filepath, is_prev_save ? G.ima : BKE_main_blendfile_path(bmain));
 			}
 		}
 
@@ -1721,7 +1721,7 @@ static void save_image_options_from_op(Main *bmain, SaveImageOptions *simopts, w
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		RNA_string_get(op->ptr, "filepath", simopts->filepath);
-		BLI_path_abs(simopts->filepath, bmain->name);
+		BLI_path_abs(simopts->filepath, BKE_main_blendfile_path(bmain));
 	}
 }
 
@@ -2302,7 +2302,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			BLI_strncpy(name, ibuf->name, sizeof(name));
 
-			BLI_path_abs(name, bmain->name);
+			BLI_path_abs(name, BKE_main_blendfile_path(bmain));
 
 			if (0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 				BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));

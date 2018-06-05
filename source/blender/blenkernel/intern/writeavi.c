@@ -145,7 +145,7 @@ static void filepath_avi(char *string, RenderData *rd, bool preview, const char 
 	}
 
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.main->name);
+	BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
 	BLI_make_existing_file(string);
 

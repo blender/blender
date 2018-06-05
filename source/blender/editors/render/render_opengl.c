@@ -404,7 +404,7 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 	rr = RE_AcquireResultRead(oglrender->re);
 
 	BKE_image_path_from_imformat(
-	        name, scene->r.pic, oglrender->bmain->name, scene->r.cfra,
+	        name, scene->r.pic, BKE_main_blendfile_path(oglrender->bmain), scene->r.cfra,
 	        &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, false, NULL);
 
 	/* write images as individual images or stereo */
@@ -943,7 +943,7 @@ static void write_result_func(TaskPool * __restrict pool,
 		char name[FILE_MAX];
 		BKE_image_path_from_imformat(name,
 		                             scene->r.pic,
-		                             oglrender->bmain->name,
+		                             BKE_main_blendfile_path(oglrender->bmain),
 		                             cfra,
 		                             &scene->r.im_format,
 		                             (scene->r.scemode & R_EXTENSION) != 0,
@@ -1030,7 +1030,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 	if (!is_movie) {
 		BKE_image_path_from_imformat(
-		        name, scene->r.pic, oglrender->bmain->name, scene->r.cfra,
+		        name, scene->r.pic, BKE_main_blendfile_path(oglrender->bmain), scene->r.cfra,
 		        &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, true, NULL);
 
 		if ((scene->r.mode & R_NO_OVERWRITE) && BLI_exists(name)) {

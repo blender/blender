@@ -3753,7 +3753,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 			/* TODO, shouldn't this already be relative from the filesel?
 			 * (as the 'filepath' is) for now just make relative here,
 			 * but look into changing after 2.60 - campbell */
-			BLI_path_rel(directory, bmain->name);
+			BLI_path_rel(directory, BKE_main_blendfile_path(bmain));
 		}
 		BLI_strncpy(seq->strip->dir, directory, sizeof(seq->strip->dir));
 
@@ -3869,10 +3869,10 @@ static int sequencer_export_subtitles_invoke(bContext *C, wmOperator *op, const 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
 
-		if (bmain->name[0] == '\0')
+		if (BKE_main_blendfile_path(bmain)[0] == '\0')
 			BLI_strncpy(filepath, "untitled", sizeof(filepath));
 		else
-			BLI_strncpy(filepath, bmain->name, sizeof(filepath));
+			BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
 
 		BLI_replace_extension(filepath, sizeof(filepath), ".srt");
 		RNA_string_set(op->ptr, "filepath", filepath);

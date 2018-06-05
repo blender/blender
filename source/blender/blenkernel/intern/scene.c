@@ -945,11 +945,11 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 	Scene *sce = (Scene *)BKE_libblock_find_name(bmain, ID_SCE, name);
 	if (sce) {
 		BKE_scene_set_background(bmain, sce);
-		printf("Scene switch for render: '%s' in file: '%s'\n", name, bmain->name);
+		printf("Scene switch for render: '%s' in file: '%s'\n", name, BKE_main_blendfile_path(bmain));
 		return sce;
 	}
 
-	printf("Can't find scene: '%s' in file: '%s'\n", name, bmain->name);
+	printf("Can't find scene: '%s' in file: '%s'\n", name, BKE_main_blendfile_path(bmain));
 	return NULL;
 }
 

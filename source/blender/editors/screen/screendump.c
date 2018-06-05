@@ -194,7 +194,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 			char path[FILE_MAX];
 
 			RNA_string_get(op->ptr, "filepath", path);
-			BLI_path_abs(path, G.main->name);
+			BLI_path_abs(path, BKE_main_blendfile_path_from_global());
 
 			/* operator ensures the extension */
 			ibuf = IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
@@ -233,7 +233,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 		/* extension is added by 'screenshot_check' after */
 		char filepath[FILE_MAX] = "//screen";
 		if (G.relbase_valid) {
-			BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+			BLI_strncpy(filepath, BKE_main_blendfile_path_from_global(), sizeof(filepath));
 			BLI_replace_extension(filepath, sizeof(filepath), "");  /* strip '.blend' */
 		}
 		RNA_string_set(op->ptr, "filepath", filepath);
@@ -409,7 +409,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				int ok;
 
 				BKE_image_path_from_imformat(
-				        name, rd.pic, sj->bmain->name, rd.cfra,
+				        name, rd.pic, BKE_main_blendfile_path(sj->bmain), rd.cfra,
 				        &rd.im_format, (rd.scemode & R_EXTENSION) != 0, true, NULL);
 
 				ibuf->rect = sj->dumprect;

@@ -672,15 +672,15 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 	scene->basact = NULL;
 }
 
-void do_versions_after_linking_280(Main *main)
+void do_versions_after_linking_280(Main *bmain)
 {
 	bool use_collection_compat_28 = true;
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 		use_collection_compat_28 = false;
 
 		/* Convert group layer visibility flags to hidden nested collection. */
-		for (Collection *collection = main->collection.first; collection; collection = collection->id.next) {
+		for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
 			/* Add fake user for all existing groups. */
 			id_fake_user_set(&collection->id);
 
@@ -695,25 +695,25 @@ void do_versions_after_linking_280(Main *main)
 
 				if (!(ob->lay & collection->layer)) {
 					if (collection_hidden == NULL) {
-						collection_hidden = BKE_collection_add(main, collection, "Hidden");
+						collection_hidden = BKE_collection_add(bmain, collection, "Hidden");
 						collection_hidden->id.lib = collection->id.lib;
 						collection_hidden->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
 					}
 
-					BKE_collection_object_add(main, collection_hidden, ob);
-					BKE_collection_object_remove(main, collection, ob, true);
+					BKE_collection_object_add(bmain, collection_hidden, ob);
+					BKE_collection_object_remove(bmain, collection, ob, true);
 				}
 			}
 		}
 
 		/* Convert layers to collections. */
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-			do_version_layers_to_collections(main, scene);
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			do_version_layers_to_collections(bmain, scene);
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
-		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			/* same render-layer as do_version_workspaces_after_lib_link will activate,
 			 * so same layer as BKE_view_layer_from_workspace_get would return */
 			ViewLayer *layer = screen->scene->view_layers.first;
@@ -747,14 +747,14 @@ void do_versions_after_linking_280(Main *main)
 	}
 
 	/* New workspace design */
-	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
-		do_version_workspaces_after_lib_link(main);
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
+		do_version_workspaces_after_lib_link(bmain);
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 2)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 2)) {
 		/* Cleanup any remaining SceneRenderLayer data for files that were created
 		 * with Blender 2.8 before the SceneRenderLayer > RenderLayer refactor. */
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 				if (srl->prop) {
 					IDP_FreeProperty(srl->prop);
@@ -766,10 +766,10 @@ void do_versions_after_linking_280(Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 3)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
 		/* Due to several changes to particle RNA and draw code particles from older files may no longer
 		 * be visible. Here we correct this by setting a default draw size for those files. */
-		for (Object *object = main->object.first; object; object = object->id.next) {
+		for (Object *object = bmain->object.first; object; object = object->id.next) {
 			for (ParticleSystem *psys = object->particlesystem.first; psys; psys = psys->next) {
 				if (psys->part->draw_size == 0.0f) {
 					psys->part->draw_size = 0.1f;
@@ -778,8 +778,8 @@ void do_versions_after_linking_280(Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 4)) {
-		for (Object *object = main->object.first; object; object = object->id.next) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 4)) {
+		for (Object *object = bmain->object.first; object; object = object->id.next) {
 #ifndef VERSION_280_SUBVERSION_4
 			/* If any object already has an initialized value for
 			 * duplicator_visibility_flag it means we've already doversioned it.
@@ -811,9 +811,9 @@ void do_versions_after_linking_280(Main *main)
 	}
 
 	/* SpaceTime & SpaceLogic removal/replacing */
-	if (!MAIN_VERSION_ATLEAST(main, 280, 9)) {
-		const wmWindowManager *wm = main->wm.first;
-		const Scene *scene = main->scene.first;
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 9)) {
+		const wmWindowManager *wm = bmain->wm.first;
+		const Scene *scene = bmain->scene.first;
 
 		if (wm != NULL) {
 			/* Action editors need a scene for creation. First, update active
@@ -833,7 +833,7 @@ void do_versions_after_linking_280(Main *main)
 			}
 		}
 		if (scene != NULL) {
-			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 					if (ELEM(area->butspacetype, SPACE_TIME, SPACE_LOGIC)) {
 						/* Areas that were already handled won't be handled again */
@@ -848,39 +848,39 @@ void do_versions_after_linking_280(Main *main)
 	}
 
 #ifdef USE_COLLECTION_COMPAT_28
-	if (use_collection_compat_28 && !MAIN_VERSION_ATLEAST(main, 280, 14)) {
-		for (Collection *group = main->collection.first; group; group = group->id.next) {
-			do_version_group_collection_to_collection(main, group);
+	if (use_collection_compat_28 && !MAIN_VERSION_ATLEAST(bmain, 280, 14)) {
+		for (Collection *group = bmain->collection.first; group; group = group->id.next) {
+			do_version_group_collection_to_collection(bmain, group);
 		}
 
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-			do_version_scene_collection_to_collection(main, scene);
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			do_version_scene_collection_to_collection(bmain, scene);
 		}
 	}
 #endif
 }
 
-void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
+void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
 	bool use_collection_compat_28 = true;
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 		use_collection_compat_28 = false;
 
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			scene->r.gauss = 1.5f;
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp")) {
-			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
 				la->bleedexp = 2.5f;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio")) {
-			for (Camera *ca = main->camera.first; ca; ca = ca->id.next) {
+			for (Camera *ca = bmain->camera.first; ca; ca = ca->id.next) {
 				ca->gpu_dof.ratio = 1.0f;
 			}
 		}
@@ -888,7 +888,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* MTexPoly now removed. */
 		if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
 			const int cd_mtexpoly = 15;  /* CD_MTEXPOLY, deprecated */
-			for (Mesh *me = main->mesh.first; me; me = me->id.next) {
+			for (Mesh *me = bmain->mesh.first; me; me = me->id.next) {
 				/* If we have UV's, so this file will have MTexPoly layers too! */
 				if (me->mloopuv != NULL) {
 					CustomData_update_typemap(&me->pdata);
@@ -899,9 +899,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 2)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 2)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist")) {
-			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
 				la->cascade_max_dist = 1000.0f;
 				la->cascade_count = 4;
 				la->cascade_exponent = 0.8f;
@@ -910,7 +910,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist")) {
-			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
 				la->contact_dist = 1.0f;
 				la->contact_bias = 0.03f;
 				la->contact_spread = 0.2f;
@@ -919,7 +919,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "vis_bias")) {
-			for (LightProbe *probe = main->lightprobe.first; probe; probe = probe->id.next) {
+			for (LightProbe *probe = bmain->lightprobe.first; probe; probe = probe->id.next) {
 				probe->vis_bias = 1.0f;
 				probe->vis_blur = 0.2f;
 			}
@@ -938,7 +938,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		 * Also, metallic node is now unified into the principled node. */
 		eNTreeDoVersionErrors error = NTREE_DOVERSION_NO_ERROR;
 
-		FOREACH_NODETREE(main, ntree, id) {
+		FOREACH_NODETREE(bmain, ntree, id) {
 			if (ntree->type == NTREE_SHADER) {
 				for (bNode *node = ntree->nodes.first; node; node = node->next) {
 					if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
@@ -987,7 +987,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		    (DNA_struct_elem_find(fd->filesdna, "ViewLayer", "FreestyleConfig", "freestyle_config") == false) &&
 		    DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "view_layers"))
 		{
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				ViewLayer *view_layer;
 				for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 					view_layer->flag |= VIEW_LAYER_FREESTYLE;
@@ -1002,15 +1002,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 #ifdef USE_COLLECTION_COMPAT_28
-	if (use_collection_compat_28 && !MAIN_VERSION_ATLEAST(main, 280, 3)) {
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+	if (use_collection_compat_28 && !MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			ViewLayer *view_layer;
 			for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 				do_version_view_layer_visibility(view_layer);
 			}
 		}
 
-		for (Collection *group = main->collection.first; group; group = group->id.next) {
+		for (Collection *group = bmain->collection.first; group; group = group->id.next) {
 			if (group->view_layer != NULL) {
 				do_version_view_layer_visibility(group->view_layer);
 			}
@@ -1018,14 +1018,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 #endif
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 6)) {
 		if (DNA_struct_elem_find(fd->filesdna, "SpaceOops", "int", "filter") == false) {
 			bScreen *sc;
 			ScrArea *sa;
 			SpaceLink *sl;
 
 			/* Update files using invalid (outdated) outlinevis Outliner values. */
-			for (sc = main->screen.first; sc; sc = sc->id.next) {
+			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 				for (sa = sc->areabase.first; sa; sa = sa->next) {
 					for (sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_OUTLINER) {
@@ -1047,12 +1047,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "intensity")) {
-			for (LightProbe *probe = main->lightprobe.first; probe; probe = probe->id.next) {
+			for (LightProbe *probe = bmain->lightprobe.first; probe; probe = probe->id.next) {
 				probe->intensity = 1.0f;
 			}
 		}
 
-		for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 			bConstraint *con, *con_next;
 			con = ob->constraints.first;
 			while (con) {
@@ -1067,12 +1067,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "int", "orientation_index_custom")) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->orientation_index_custom = -1;
 			}
 		}
 
-		for (bScreen *sc = main->screen.first; sc; sc = sc->id.next) {
+		for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
 			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
@@ -1082,7 +1082,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 
 						/* Assume (demo) files written with 2.8 want to show
 						 * Eevee renders in the viewport. */
-						if (MAIN_VERSION_ATLEAST(main, 280, 0)) {
+						if (MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 							v3d->drawtype = OB_MATERIAL;
 						}
 					}
@@ -1091,20 +1091,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 7)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 7)) {
 		/* Render engine storage moved elsewhere and back during 2.8
 		 * development, we assume any files saved in 2.8 had Eevee set
 		 * as scene render engine. */
-		if (MAIN_VERSION_ATLEAST(main, 280, 0)) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+		if (MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 			}
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 8)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 8)) {
 		/* Blender Internal removal */
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			if (STREQ(scene->r.engine, "BLENDER_RENDER") ||
 			    STREQ(scene->r.engine, "BLENDER_GAME"))
 			{
@@ -1114,7 +1114,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			scene->r.bake_mode = 0;
 		}
 
-		for (Tex *tex = main->tex.first; tex; tex = tex->id.next) {
+		for (Tex *tex = bmain->tex.first; tex; tex = tex->id.next) {
 			/* Removed envmap, pointdensity, voxeldata, ocean textures. */
 			if (ELEM(tex->type, 10, 14, 15, 16)) {
 				tex->type = 0;
@@ -1122,10 +1122,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 11)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 11)) {
 
 		/* Remove info editor, but only if at the top of the window. */
-		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			/* Calculate window width/height from screen vertices */
 			int win_width = 0, win_height = 0;
 			for (ScrVert *vert = screen->vertbase.first; vert; vert = vert->next) {
@@ -1155,8 +1155,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 11)) {
-		for (Lamp *lamp = main->lamp.first; lamp; lamp = lamp->id.next) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 11)) {
+		for (Lamp *lamp = bmain->lamp.first; lamp; lamp = lamp->id.next) {
 			if (lamp->mode & (1 << 13)) { /* LA_SHAD_RAY */
 				lamp->mode |= LA_SHADOW;
 				lamp->mode &= ~(1 << 13);
@@ -1164,9 +1164,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 12)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 12)) {
 		/* Remove tool property regions. */
-		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_CLIP)) {
@@ -1186,16 +1186,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 13)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 13)) {
 		/* Initialize specular factor. */
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "spec_fac")) {
-			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
 				la->spec_fac = 1.0f;
 			}
 		}
 
 		/* Initialize new view3D options. */
-		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
@@ -1214,10 +1214,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		if (!DNA_struct_find(fd->filesdna, "View3DCursor")) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				unit_qt(scene->cursor.rotation);
 			}
-			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1230,34 +1230,34 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 14)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 14)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "SceneDisplay", "display")) {
 			/* Initialize new scene.SceneDisplay */
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				copy_v3_v3(scene->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "float", "shadow_shift")) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->display.shadow_shift = 0.1;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Object", "ObjectDisplay", "display")) {
 			/* Initialize new object.ObjectDisplay */
-			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 				ob->display.flag = OB_SHOW_SHADOW;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "transform_pivot_point")) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEAN;
 			}
 		}
 
 		if (!DNA_struct_find(fd->filesdna, "SceneEEVEE")) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				/* First set the default for all the properties. */
 
 				scene->eevee.gi_diffuse_bounces = 3;
@@ -1439,8 +1439,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 
-		if (!MAIN_VERSION_ATLEAST(main, 280, 15)) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+		if (!MAIN_VERSION_ATLEAST(bmain, 280, 15)) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->display.matcap_icon = 1;
 				scene->display.matcap_type = CLAY_MATCAP_NONE;
 				scene->display.matcap_hue = 0.5f;
@@ -1453,7 +1453,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				scene->display.matcap_ssao_samples = 16;
 			}
 
-			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_OUTLINER) {
@@ -1465,7 +1465,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				switch (scene->toolsettings->snap_mode) {
 					case 0: scene->toolsettings->snap_mode = SCE_SNAP_MODE_INCREMENT; break;
 					case 1: scene->toolsettings->snap_mode = SCE_SNAP_MODE_VERTEX   ; break;
@@ -1486,7 +1486,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 
 			ParticleSettings *part;
-			for (part = main->particle.first; part; part = part->id.next) {
+			for (part = bmain->particle.first; part; part = part->id.next) {
 				part->shape_flag = PART_SHAPE_CLOSE_TIP;
 				part->shape = 0.0f;
 				part->rad_root = 1.0f;
@@ -1498,9 +1498,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 	{
 		if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "roughness")) {
-			for (Material *mat = main->mat.first; mat; mat = mat->id.next) {
+			for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
 				if (mat->use_nodes) {
-					if (MAIN_VERSION_ATLEAST(main, 280, 0)) {
+					if (MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 						mat->roughness = mat->gloss_mir;
 					}
 					else {
@@ -1513,7 +1513,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				mat->metallic = mat->ray_mirror;
 			}
 
-			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1526,7 +1526,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "xray_alpha")) {
-			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1541,7 +1541,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			StudioLight *default_matcap = BKE_studiolight_find_first(STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
 			/* when loading the internal file is loaded before the matcaps */
 			if (default_matcap) {
-				for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+				for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 					for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 						for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 							if (sl->spacetype == SPACE_VIEW3D) {

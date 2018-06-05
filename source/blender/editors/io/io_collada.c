@@ -61,13 +61,16 @@
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	Main *bmain = CTX_data_main(C);
+
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
+		const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-		if (G.main->name[0] == 0)
+		if (blendfile_path[0] == '\0')
 			BLI_strncpy(filepath, "untitled", sizeof(filepath));
 		else
-			BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+			BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
 
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);

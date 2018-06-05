@@ -63,7 +63,7 @@
 
 static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, ReportList *reports)
 {
-	if (writePackedFile(reports, bmain->name, imapf->filepath, imapf->packedfile, 0) != RET_OK) {
+	if (writePackedFile(reports, BKE_main_blendfile_path(bmain), imapf->filepath, imapf->packedfile, 0) != RET_OK) {
 		BKE_reportf(reports, RPT_ERROR, "Could not save packed file to disk as '%s'",
 		            imapf->filepath);
 	}

@@ -572,6 +572,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
+		Main *bmain = CTX_data_main(C);
 		int G_f = G.f;
 		ListBase wmbase;
 
@@ -583,7 +584,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		G.relbase_valid = 1;
 		retval = BKE_blendfile_read(C, filepath, reports, 0);
 		/* when loading startup.blend's, we can be left with a blank path */
-		if (G.main->name[0]) {
+		if (BKE_main_blendfile_path(bmain)) {
 			G.save_over = 1;
 		}
 		else {
@@ -672,6 +673,7 @@ int wm_homefile_read(
         bool use_factory_settings, bool use_empty_data, bool use_userdef,
         const char *filepath_startup_override, const char *app_template_override)
 {
+	Main *bmain = CTX_data_main(C);
 	ListBase wmbase;
 	bool success = false;
 
@@ -872,7 +874,7 @@ int wm_homefile_read(
 	wm_window_match_do(C, &wmbase, &G.main->wm, &G.main->wm);
 	WM_check(C); /* opens window(s), checks keymaps */
 
-	G.main->name[0] = '\0';
+	bmain->name[0] = '\0';
 
 	/* start with save preference untitled.blend */
 	G.save_over = 0;
@@ -969,16 +971,18 @@ static void wm_history_file_write(void)
 static void wm_history_file_update(void)
 {
 	RecentFile *recent;
+	const char *blendfile_name = BKE_main_blendfile_path_from_global();
 
 	/* no write history for recovered startup files */
-	if (G.main->name[0] == 0)
+	if (blendfile_name[0] == '\0') {
 		return;
+	}
 
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
-	if (!(recent) || (BLI_path_cmp(recent->filepath, G.main->name) != 0)) {
+	if (!(recent) || (BLI_path_cmp(recent->filepath, blendfile_name) != 0)) {
 
-		recent = wm_file_history_find(G.main->name);
+		recent = wm_file_history_find(blendfile_name);
 		if (recent) {
 			BLI_remlink(&G.recent_files, recent);
 		}
@@ -988,7 +992,7 @@ static void wm_history_file_update(void)
 				recent_next = recent->next;
 				wm_history_file_free(recent);
 			}
-			recent = wm_history_file_new(G.main->name);
+			recent = wm_history_file_new(blendfile_name);
 		}
 
 		/* add current file to the beginning of list */
@@ -998,7 +1002,7 @@ static void wm_history_file_update(void)
 		wm_history_file_write();
 
 		/* also update most recent files on System */
-		GHOST_addToSystemRecentFiles(G.main->name);
+		GHOST_addToSystemRecentFiles(blendfile_name);
 	}
 }
 
@@ -1087,7 +1091,7 @@ bool write_crash_blend(void)
 	char path[FILE_MAX];
 	int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on crash file */
 
-	BLI_strncpy(path, G.main->name, sizeof(path));
+	BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
 	BLI_replace_extension(path, sizeof(path), "_crash.blend");
 	if (BLO_write_file(G.main, path, fileflags, NULL, NULL)) {
 		printf("written: %s\n", path);
@@ -1104,6 +1108,7 @@ bool write_crash_blend(void)
  */
 static int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *reports)
 {
+	Main *bmain = CTX_data_main(C);
 	Library *li;
 	int len;
 	int ret = -1;
@@ -1133,7 +1138,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	 * its handy for scripts to save to a predefined name without blender editing it */
 	
 	/* send the OnSave event */
-	for (li = G.main->library.first; li; li = li->id.next) {
+	for (li = bmain->library.first; li; li = li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
 			BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
 			return ret;
@@ -1141,7 +1146,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	}
 
 	/* Call pre-save callbacks befores writing preview, that way you can generate custom file thumbnail... */
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
@@ -1154,7 +1159,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	/* operator now handles overwrite checks */
 
 	if (G.fileflags & G_AUTOPACK) {
-		packAll(G.main, reports, false);
+		packAll(bmain, reports, false);
 	}
 
 	/* don't forget not to return without! */
@@ -1166,19 +1171,19 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 
 	/* first time saving */
 	/* XXX temp solution to solve bug, real fix coming (ton) */
-	if ((G.main->name[0] == '\0') && !(fileflags & G_FILE_SAVE_COPY)) {
-		BLI_strncpy(G.main->name, filepath, sizeof(G.main->name));
+	if ((BKE_main_blendfile_path(bmain)[0] == '\0') && !(fileflags & G_FILE_SAVE_COPY)) {
+		BLI_strncpy(bmain->name, filepath, sizeof(bmain->name));
 	}
 
 	/* XXX temp solution to solve bug, real fix coming (ton) */
-	G.main->recovered = 0;
+	bmain->recovered = 0;
 	
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {
 		const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
 
 		if (!(fileflags & G_FILE_SAVE_COPY)) {
 			G.relbase_valid = 1;
-			BLI_strncpy(G.main->name, filepath, sizeof(G.main->name));  /* is guaranteed current file */
+			BLI_strncpy(bmain->name, filepath, sizeof(bmain->name));  /* is guaranteed current file */
 	
 			G.save_over = 1; /* disable untitled.blend convention */
 		}
@@ -1190,7 +1195,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 			wm_history_file_update();
 		}
 
-		BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_POST);
+		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_POST);
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {
@@ -1224,7 +1229,7 @@ void wm_autosave_location(char *filepath)
 #endif
 
 	if (G.main && G.relbase_valid) {
-		const char *basename = BLI_path_basename(G.main->name);
+		const char *basename = BLI_path_basename(BKE_main_blendfile_path_from_global());
 		int len = strlen(basename) - 6;
 		BLI_snprintf(path, sizeof(path), "%.*s.blend", len, basename);
 	}
@@ -1754,7 +1759,8 @@ struct FileRuntime {
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	const char *openname = G.main->name;
+	Main *bmain = CTX_data_main(C);
+	const char *openname = BKE_main_blendfile_path(bmain);
 
 	if (CTX_wm_window(C) == NULL) {
 		/* in rare cases this could happen, when trying to invoke in background
@@ -1893,6 +1899,7 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
 
 static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	bool success;
 	char filepath[FILE_MAX];
 
@@ -1903,7 +1910,7 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 	else
 		G.f &= ~G_SCRIPT_AUTOEXEC;
 
-	BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+	BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
 	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_SCRIPT_AUTOEXEC));
 
 	if (success) {
@@ -1941,6 +1948,7 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
 
 void WM_recover_last_session(bContext *C, ReportList *reports)
 {
+	Main *bmain = CTX_data_main(C);
 	char filepath[FILE_MAX];
 
 	BLI_make_file_string("/", filepath, BKE_tempdir_base(), BLENDER_QUIT_FILE);
@@ -1953,8 +1961,9 @@ void WM_recover_last_session(bContext *C, ReportList *reports)
 		G.fileflags &= ~G_FILE_RECOVER;
 
 		/* XXX bad global... fixme */
-		if (G.main->name[0])
+		if (BKE_main_blendfile_path(bmain)[0] != '\0') {
 			G.file_loaded = 1;	/* prevents splash to show */
+		}
 		else {
 			G.relbase_valid = 0;
 			G.save_over = 0;    /* start with save preference untitled.blend */
@@ -2053,20 +2062,21 @@ static void save_set_compress(wmOperator *op)
 	}
 }
 
-static void save_set_filepath(wmOperator *op)
+static void save_set_filepath(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	PropertyRNA *prop;
 	char name[FILE_MAX];
 
 	prop = RNA_struct_find_property(op->ptr, "filepath");
 	if (!RNA_property_is_set(op->ptr, prop)) {
 		/* if not saved before, get the name of the most recently used .blend file */
-		if (G.main->name[0] == 0 && G.recent_files.first) {
+		if (BKE_main_blendfile_path(bmain)[0] == '\0' && G.recent_files.first) {
 			struct RecentFile *recent = G.recent_files.first;
 			BLI_strncpy(name, recent->filepath, FILE_MAX);
 		}
 		else {
-			BLI_strncpy(name, G.main->name, FILE_MAX);
+			BLI_strncpy(name, bmain->name, FILE_MAX);
 		}
 
 		wm_filepath_default(name);
@@ -2078,7 +2088,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
 {
 
 	save_set_compress(op);
-	save_set_filepath(op);
+	save_set_filepath(C, op);
 
 	WM_event_add_fileselect(C, op);
 
@@ -2088,6 +2098,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
 /* function used for WM_OT_save_mainfile too */
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	char path[FILE_MAX];
 	int fileflags;
 
@@ -2097,7 +2108,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		RNA_string_get(op->ptr, "filepath", path);
 	}
 	else {
-		BLI_strncpy(path, G.main->name, FILE_MAX);
+		BLI_strncpy(path, BKE_main_blendfile_path(bmain), FILE_MAX);
 		wm_filepath_default(path);
 	}
 
@@ -2193,7 +2204,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 		return OPERATOR_CANCELLED;
 
 	save_set_compress(op);
-	save_set_filepath(op);
+	save_set_filepath(C, op);
 
 	/* if we're saving for the first time and prefer relative paths - any existing paths will be absolute,
 	 * enable the option to remap paths to avoid confusion [#37240] */

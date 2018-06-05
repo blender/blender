@@ -730,7 +730,7 @@ void BPY_modules_load_user(bContext *C)
 					G.f |= G_SCRIPT_AUTOEXEC_FAIL;
 					BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Text '%s'", text->id.name + 2);
 
-					printf("scripts disabled for \"%s\", skipping '%s'\n", bmain->name, text->id.name + 2);
+					printf("scripts disabled for \"%s\", skipping '%s'\n", BKE_main_blendfile_path(bmain), text->id.name + 2);
 				}
 			}
 			else {

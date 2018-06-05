@@ -2967,7 +2967,7 @@ static void rna_ShaderNodeTexIES_mode_set(PointerRNA *ptr, int value)
 
 			if (value == NODE_IES_EXTERNAL && text->name) {
 				BLI_strncpy(nss->filepath, text->name, sizeof(nss->filepath));
-				BLI_path_rel(nss->filepath, G.main->name);
+				BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
 			}
 
 			id_us_min(node->id);
@@ -2992,7 +2992,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 
 			if (value == NODE_SCRIPT_EXTERNAL && text->name) {
 				BLI_strncpy(nss->filepath, text->name, sizeof(nss->filepath));
-				BLI_path_rel(nss->filepath, G.main->name);
+				BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
 			}
 
 			id_us_min(node->id);

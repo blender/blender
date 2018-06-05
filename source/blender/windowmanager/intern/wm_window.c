@@ -374,6 +374,7 @@ static void wm_block_confirm_quit_save(bContext *C, void *arg_block, void *UNUSE
 /* Build the confirm dialog UI */
 static uiBlock *block_create_confirm_quit(struct bContext *C, struct ARegion *ar, void *UNUSED(arg1))
 {
+	Main *bmain = CTX_data_main(C);
 
 	uiStyle *style = UI_style_get();
 	uiBlock *block = UI_block_begin(C, ar, "confirm_quit_popup", UI_EMBOSS);
@@ -387,11 +388,11 @@ static uiBlock *block_create_confirm_quit(struct bContext *C, struct ARegion *ar
 	/* Text and some vertical space */
 	{
 		char *message;
-		if (G.main->name[0] == '\0') {
+		if (BKE_main_blendfile_path(bmain)[0] == '\0') {
 			message = BLI_strdup(IFACE_("This file has not been saved yet. Save before closing?"));
 		}
 		else {
-			const char *basename = BLI_path_basename(G.main->name);
+			const char *basename = BLI_path_basename(BKE_main_blendfile_path(bmain));
 			message = BLI_sprintfN(IFACE_("Save changes to \"%s\" before closing?"), basename);
 		}
 		uiItemL(layout, message, ICON_ERROR);
@@ -546,9 +547,10 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 	}
 	else if (win->ghostwin) {
 		/* this is set to 1 if you don't have startup.blend open */
-		if (G.save_over && G.main->name[0]) {
-			char str[sizeof(G.main->name) + 24];
-			BLI_snprintf(str, sizeof(str), "Blender%s [%s%s]", wm->file_saved ? "" : "*", G.main->name,
+		if (G.save_over && BKE_main_blendfile_path_from_global()[0]) {
+			char str[sizeof(((Main *)NULL)->name) + 24];
+			BLI_snprintf(str, sizeof(str), "Blender%s [%s%s]", wm->file_saved ? "" : "*",
+			             BKE_main_blendfile_path_from_global(),
 			             G.main->recovered ? " (Recovered)" : "");
 			GHOST_SetTitle(win->ghostwin, str);
 		}

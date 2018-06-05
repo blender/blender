@@ -246,14 +246,14 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
 
 	for (vfont = bmain->vfont.first; vfont; vfont = vfont->id.next) {
 		if (vfont->packedfile == NULL && !ID_IS_LINKED(vfont) && BKE_vfont_is_builtin(vfont) == false) {
-			vfont->packedfile = newPackedFile(reports, vfont->name, bmain->name);
+			vfont->packedfile = newPackedFile(reports, vfont->name, BKE_main_blendfile_path(bmain));
 			tot ++;
 		}
 	}
 
 	for (sound = bmain->sound.first; sound; sound = sound->id.next) {
 		if (sound->packedfile == NULL && !ID_IS_LINKED(sound)) {
-			sound->packedfile = newPackedFile(reports, sound->name, bmain->name);
+			sound->packedfile = newPackedFile(reports, sound->name, BKE_main_blendfile_path(bmain));
 			tot++;
 		}
 	}
@@ -542,7 +542,7 @@ int unpackVFont(Main *bmain, ReportList *reports, VFont *vfont, int how)
 	
 	if (vfont != NULL) {
 		unpack_generate_paths(vfont->name, (ID *)vfont, absname, localname, sizeof(absname), sizeof(localname));
-		newname = unpackFile(reports, bmain->name, absname, localname, vfont->packedfile, how);
+		newname = unpackFile(reports, BKE_main_blendfile_path(bmain), absname, localname, vfont->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(vfont->packedfile);
@@ -563,7 +563,7 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 
 	if (sound != NULL) {
 		unpack_generate_paths(sound->name, (ID *)sound, absname, localname, sizeof(absname), sizeof(localname));
-		newname = unpackFile(reports, bmain->name, absname, localname, sound->packedfile, how);
+		newname = unpackFile(reports, BKE_main_blendfile_path(bmain), absname, localname, sound->packedfile, how);
 		if (newname != NULL) {
 			BLI_strncpy(sound->name, newname, sizeof(sound->name));
 			MEM_freeN(newname);
@@ -591,7 +591,7 @@ int unpackImage(Main *bmain, ReportList *reports, Image *ima, int how)
 			ImagePackedFile *imapf = ima->packedfiles.last;
 
 			unpack_generate_paths(imapf->filepath, (ID *)ima, absname, localname, sizeof(absname), sizeof(localname));
-			newname = unpackFile(reports, bmain->name, absname, localname, imapf->packedfile, how);
+			newname = unpackFile(reports, BKE_main_blendfile_path(bmain), absname, localname, imapf->packedfile, how);
 
 			if (newname != NULL) {
 				ImageView *iv;
@@ -637,7 +637,7 @@ int unpackLibraries(Main *bmain, ReportList *reports)
 	for (lib = bmain->library.first; lib; lib = lib->id.next) {
 		if (lib->packedfile && lib->name[0]) {
 			
-			newname = unpackFile(reports, bmain->name, lib->filepath, lib->filepath, lib->packedfile, PF_WRITE_ORIGINAL);
+			newname = unpackFile(reports, BKE_main_blendfile_path(bmain), lib->filepath, lib->filepath, lib->packedfile, PF_WRITE_ORIGINAL);
 			if (newname != NULL) {
 				ret_value = RET_OK;
 				
@@ -670,7 +670,7 @@ void packLibraries(Main *bmain, ReportList *reports)
 	
 	for (lib = bmain->library.first; lib; lib = lib->id.next)
 		if (lib->packedfile == NULL)
-			lib->packedfile = newPackedFile(reports, lib->name, bmain->name);
+			lib->packedfile = newPackedFile(reports, lib->name, BKE_main_blendfile_path(bmain));
 }
 
 void unpackAll(Main *bmain, ReportList *reports, int how)

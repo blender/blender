@@ -31,6 +31,7 @@
 #include "BLI_string.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
@@ -100,11 +101,10 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinitExecution()
 
 	if (width != 0 && height != 0) {
 		void *exrhandle;
-		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 
 		BKE_image_path_from_imtype(
-		        filename, this->m_path, bmain->name, this->m_rd->cfra, R_IMF_IMTYPE_OPENEXR,
+		        filename, this->m_path, BKE_main_blendfile_path_from_global(), this->m_rd->cfra, R_IMF_IMTYPE_OPENEXR,
 		        (this->m_rd->scemode & R_EXTENSION) != 0, true, NULL);
 
 		exrhandle = this->get_handle(filename);
@@ -190,11 +190,10 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinitExecution()
 
 	if (width != 0 && height != 0) {
 		void *exrhandle;
-		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 
 		BKE_image_path_from_imtype(
-		        filename, this->m_path, bmain->name, this->m_rd->cfra, R_IMF_IMTYPE_MULTILAYER,
+		        filename, this->m_path, BKE_main_blendfile_path_from_global(), this->m_rd->cfra, R_IMF_IMTYPE_MULTILAYER,
 		        (this->m_rd->scemode & R_EXTENSION) != 0, true, NULL);
 
 		exrhandle = this->get_handle(filename);
@@ -283,7 +282,6 @@ void OutputStereoOperation::deinitExecution()
 		if (BKE_scene_multiview_is_render_view_last(this->m_rd, this->m_viewName)) {
 			ImBuf *ibuf[3] = {NULL};
 			const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
-			Main *bmain = G.main; /* TODO, have this passed along */
 			char filename[FILE_MAX];
 			int i;
 
@@ -307,7 +305,7 @@ void OutputStereoOperation::deinitExecution()
 			ibuf[2] = IMB_stereo3d_ImBuf(this->m_format, ibuf[0], ibuf[1]);
 
 			BKE_image_path_from_imformat(
-			        filename, this->m_path, bmain->name, this->m_rd->cfra, this->m_format,
+			        filename, this->m_path, BKE_main_blendfile_path_from_global(), this->m_rd->cfra, this->m_format,
 			        (this->m_rd->scemode & R_EXTENSION) != 0, true, NULL);
 
 			BKE_imbuf_write(ibuf[2], filename, this->m_format);

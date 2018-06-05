@@ -115,7 +115,7 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 		}
 		else if (G.relbase_valid) {
 			char path[FILE_MAX];
-			BLI_strncpy(path, G.main->name, sizeof(G.main->name));
+			BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
 			BLI_parent_dir(path);
 			RNA_string_set(op->ptr, "filepath", path);
 		}
@@ -333,7 +333,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		BKE_reportf(op->reports, RPT_ERROR, "'%s': nothing indicated", path);
 		return OPERATOR_CANCELLED;
 	}
-	else if (BLI_path_cmp(bmain->name, libname) == 0) {
+	else if (BLI_path_cmp(BKE_main_blendfile_path(bmain), libname) == 0) {
 		BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", path);
 		return OPERATOR_CANCELLED;
 	}

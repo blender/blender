@@ -375,7 +375,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	specs.rate = scene->r.ffcodecdata.audio_mixrate;
 
 	BLI_strncpy(filename, path, sizeof(filename));
-	BLI_path_abs(filename, bmain->name);
+	BLI_path_abs(filename, BKE_main_blendfile_path(bmain));
 
 	if (split)
 		result = AUD_mixdown_per_channel(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA + 1) * specs.rate / FPS,

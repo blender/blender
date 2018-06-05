@@ -155,7 +155,7 @@
  * also note that the id _must_ have a library - campbell */
 void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 {
-	const char *bpath_user_data[2] = {bmain->name, lib->filepath};
+	const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath};
 
 	BKE_bpath_traverse_id(bmain, id,
 	                      BKE_bpath_relocate_visitor,
@@ -1737,6 +1737,24 @@ void BKE_main_thumbnail_create(struct Main *bmain)
 	bmain->blen_thumb->height = BLEN_THUMB_SIZE;
 }
 
+/**
+ * Return filepath of given \a main.
+ */
+const char *BKE_main_blendfile_path(const Main *bmain)
+{
+	return bmain->name;
+}
+
+/**
+ * Return filepath of global main (G.main).
+ *
+ * \warning Usage is not recommended, you should always try to get a velid Main pointer from context...
+ */
+const char *BKE_main_blendfile_path_from_global(void)
+{
+	return BKE_main_blendfile_path(G.main);
+}
+
 /* ***************** ID ************************ */
 ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *name)
 {
@@ -2525,7 +2543,7 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
 		 */
 		/* Never make paths relative to parent lib - reading code (blenloader) always set *all* lib->name relative to
 		 * current main, not to their parent for indirectly linked ones. */
-		const char *basepath = bmain->name;
+		const char *basepath = BKE_main_blendfile_path(bmain);
 		BLI_path_abs(lib->filepath, basepath);
 	}
 }

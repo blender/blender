@@ -548,7 +548,7 @@ static const EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_ite
 	return items;
 }
 
-static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
 
@@ -565,7 +565,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 	else if (GS(id->name) == ID_MC) {
 		MovieClip *clip = (MovieClip *) id;
 
-		BKE_movieclip_reload(clip);
+		BKE_movieclip_reload(bmain, clip);
 
 		/* all sequencers for now, we don't know which scenes are using this clip as a strip */
 		BKE_sequencer_cache_cleanup();

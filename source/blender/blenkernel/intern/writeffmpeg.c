@@ -1127,7 +1127,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context, char *string, RenderData
 	}
 
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.main->name);
+	BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
 	BLI_make_existing_file(string);
 

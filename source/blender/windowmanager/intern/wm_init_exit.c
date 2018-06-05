@@ -293,11 +293,11 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 	/* allow a path of "", this is what happens when making a new file */
 #if 0
-	if (G.main->name[0] == 0)
+	if (BKE_main_blendfile_path_from_global()[0] == '\0')
 		BLI_make_file_string("/", G.main->name, BKE_appdir_folder_default(), "untitled.blend");
 #endif
 
-	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
+	BLI_strncpy(G.lib, BKE_main_blendfile_path_from_global(), sizeof(G.lib));
 
 #ifdef WITH_COMPOSITOR
 	if (1) {

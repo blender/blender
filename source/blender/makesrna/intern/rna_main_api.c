@@ -489,7 +489,7 @@ static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *f
 	Text *txt;
 
 	errno = 0;
-	txt = BKE_text_load_ex(bmain, filepath, bmain->name, is_internal);
+	txt = BKE_text_load_ex(bmain, filepath, BKE_main_blendfile_path(bmain), is_internal);
 
 	if (!txt)
 		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,

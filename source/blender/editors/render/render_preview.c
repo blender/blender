@@ -122,7 +122,7 @@ ImBuf *get_brush_icon(Brush *brush)
 				// first use the path directly to try and load the file
 
 				BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
-				BLI_path_abs(path, G.main->name);
+				BLI_path_abs(path, BKE_main_blendfile_path_from_global());
 
 				/* use default colorspaces for brushes */
 				brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
@@ -131,7 +131,7 @@ ImBuf *get_brush_icon(Brush *brush)
 				if (!(brush->icon_imbuf)) {
 					folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
 
-					BLI_make_file_string(G.main->name, path, folder, brush->icon_filepath);
+					BLI_make_file_string(BKE_main_blendfile_path_from_global(), path, folder, brush->icon_filepath);
 
 					if (path[0]) {
 						/* use fefault color spaces */
@@ -319,7 +319,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 	Scene *sce;
 	Main *pr_main = sp->pr_main;
 
-	memcpy(pr_main->name, bmain->name, sizeof(pr_main->name));
+	memcpy(pr_main->name, BKE_main_blendfile_path(bmain), sizeof(pr_main->name));
 
 	sce = preview_get_scene(pr_main);
 	if (sce) {

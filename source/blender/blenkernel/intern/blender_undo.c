@@ -67,10 +67,11 @@
 
 bool BKE_memfile_undo_decode(MemFileUndoData *mfu, bContext *C)
 {
-	char mainstr[sizeof(G.main->name)];
+	Main *bmain = CTX_data_main(C);
+	char mainstr[sizeof(bmain->name)];
 	int success = 0, fileflags;
 
-	BLI_strncpy(mainstr, G.main->name, sizeof(mainstr));    /* temporal store */
+	BLI_strncpy(mainstr, BKE_main_blendfile_path(bmain), sizeof(mainstr));    /* temporal store */
 
 	fileflags = G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;
@@ -83,7 +84,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu, bContext *C)
 	}
 
 	/* restore */
-	BLI_strncpy(G.main->name, mainstr, sizeof(G.main->name)); /* restore */
+	BLI_strncpy(bmain->name, mainstr, sizeof(bmain->name)); /* restore */
 	G.fileflags = fileflags;
 
 	if (success) {

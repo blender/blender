@@ -592,7 +592,7 @@ Image *BKE_image_load(Main *bmain, const char *filepath)
 	char str[FILE_MAX];
 
 	STRNCPY(str, filepath);
-	BLI_path_abs(str, bmain->name);
+	BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
 	/* exists? */
 	file = BLI_open(str, O_BINARY | O_RDONLY, 0);
@@ -621,7 +621,7 @@ Image *BKE_image_load_exists_ex(const char *filepath, bool *r_exists)
 	char str[FILE_MAX], strtest[FILE_MAX];
 
 	STRNCPY(str, filepath);
-	BLI_path_abs(str, G.main->name);
+	BLI_path_abs(str, BKE_main_blendfile_path_from_global());
 
 	/* first search an identical filepath */
 	for (ima = G.main->image.first; ima; ima = ima->id.next) {
@@ -1648,7 +1648,8 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	time_t t;
 
 	if (scene->r.stamp & R_STAMP_FILENAME) {
-		SNPRINTF(stamp_data->file, do_prefix ? "File %s" : "%s", G.relbase_valid ? G.main->name : "<untitled>");
+		SNPRINTF(stamp_data->file, do_prefix ? "File %s" : "%s",
+		         G.relbase_valid ? BKE_main_blendfile_path_from_global() : "<untitled>");
 	}
 	else {
 		stamp_data->file[0] = '\0';
@@ -4698,7 +4699,7 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
 			char str[FILE_MAX];
 
 			STRNCPY(str, iv->filepath);
-			BLI_path_abs(str, G.main->name);
+			BLI_path_abs(str, BKE_main_blendfile_path_from_global());
 
 			/* exists? */
 			file = BLI_open(str, O_BINARY | O_RDONLY, 0);

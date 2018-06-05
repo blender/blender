@@ -310,7 +310,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				BKE_library_filepath_set(bmain, lib, lib->name);
 
 				BLI_strncpy(expanded, lib->name, sizeof(expanded));
-				BLI_path_abs(expanded, bmain->name);
+				BLI_path_abs(expanded, BKE_main_blendfile_path(bmain));
 				if (!BLI_exists(expanded)) {
 					BKE_reportf(CTX_wm_reports(C), RPT_ERROR,
 					            "Library path '%s' does not exist, correct this before saving", expanded);

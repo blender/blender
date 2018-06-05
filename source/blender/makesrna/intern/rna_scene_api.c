@@ -158,7 +158,7 @@ static void rna_SceneRender_get_frame_path(
 	}
 	else {
 		BKE_image_path_from_imformat(
-		        name, rd->pic, bmain->name, (frame == INT_MIN) ? rd->cfra : frame,
+		        name, rd->pic, BKE_main_blendfile_path(bmain), (frame == INT_MIN) ? rd->cfra : frame,
 		        &rd->im_format, (rd->scemode & R_EXTENSION) != 0, true, suffix);
 	}
 }

@@ -56,11 +56,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_MovieClip_reload_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 
-	BKE_movieclip_reload(clip);
+	BKE_movieclip_reload(bmain, clip);
 	DEG_id_tag_update(&clip->id, 0);
 }
 
