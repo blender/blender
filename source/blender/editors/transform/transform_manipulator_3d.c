@@ -1538,12 +1538,6 @@ static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulato
 static bool WIDGETGROUP_manipulator_poll(const struct bContext *C, struct wmManipulatorGroupType *wgt)
 {
 	/* it's a given we only use this in 3D view */
-	ScrArea *sa = CTX_wm_area(C);
-	View3D *v3d = sa->spacedata.first;
-	if (v3d && ((v3d->twflag & V3D_MANIPULATOR_DRAW)) == 0) {
-		return false;
-	}
-
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if ((tref_rt == NULL) ||
 	    !STREQ(wgt->idname, tref_rt->manipulator_group))
@@ -1584,12 +1578,6 @@ struct XFormCageWidgetGroup {
 
 static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmManipulatorGroupType *wgt)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	View3D *v3d = sa->spacedata.first;
-	if (v3d && ((v3d->twflag & V3D_MANIPULATOR_DRAW)) == 0) {
-		return false;
-	}
-
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if (!STREQ(wgt->idname, tref_rt->manipulator_group)) {
 		WM_manipulator_group_type_unlink_delayed_ptr(wgt);

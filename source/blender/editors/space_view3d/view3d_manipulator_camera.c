@@ -63,12 +63,17 @@ struct CameraWidgetGroup {
 
 static bool WIDGETGROUP_camera_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	Object *ob = CTX_data_active_object(C);
 	if (ob && ob->type == OB_CAMERA) {
 		Camera *camera = ob->data;
 		/* TODO: support overrides. */
 		if (camera->id.lib == NULL) {
-			return true;
+			return false;
 		}
 	}
 	return false;
@@ -352,9 +357,13 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupTy
 		}
 	}
 
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
-	View3D *v3d = CTX_wm_view3d(C);
 	if (rv3d->persp == RV3D_CAMOB) {
 		if (scene->r.mode & R_BORDER) {
 			/* TODO: support overrides. */

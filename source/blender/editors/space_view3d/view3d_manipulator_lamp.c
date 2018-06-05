@@ -54,6 +54,11 @@
 
 static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob && ob->type == OB_LAMP) {
@@ -151,8 +156,12 @@ static void manipulator_area_lamp_prop_matrix_set(
 
 static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
-	Object *ob = CTX_data_active_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
 
+	Object *ob = CTX_data_active_object(C);
 	if (ob && ob->type == OB_LAMP) {
 		Lamp *la = ob->data;
 		return (la->type == LA_AREA);
@@ -226,6 +235,11 @@ void VIEW3D_WGT_lamp_area(wmManipulatorGroupType *wgt)
 
 static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob != NULL) {

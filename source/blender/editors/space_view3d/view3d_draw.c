@@ -1203,11 +1203,15 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 
 	BLF_batch_draw_begin();
 
-	if (U.uiflag & USER_SHOW_ROTVIEWICON) {
+	if (((U.uiflag & USER_SHOW_ROTVIEWICON) != 0) &&
+	    (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
+	{
 		draw_view_axis(rv3d, &rect);
 	}
 
-	if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0 &&
+	    (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0)
+	{
 		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
 			ED_scene_draw_fps(scene, &rect);
 		}

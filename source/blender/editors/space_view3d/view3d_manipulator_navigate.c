@@ -176,8 +176,13 @@ struct NavigateWidgetGroup {
 	int region_size[2];
 };
 
-static bool WIDGETGROUP_navigate_poll(const bContext *UNUSED(C), wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_navigate_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	if (U.manipulator_flag & USER_MANIPULATOR_DRAW_NAVIGATE) {
 		return true;
 	}

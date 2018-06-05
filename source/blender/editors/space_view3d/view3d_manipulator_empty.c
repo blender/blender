@@ -106,6 +106,11 @@ static void manipulator_empty_image_prop_matrix_set(
 
 static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob && ob->type == OB_EMPTY) {

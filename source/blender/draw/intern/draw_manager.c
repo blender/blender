@@ -1233,7 +1233,9 @@ void DRW_draw_view(const bContext *C)
 
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
-	DST.options.draw_text = (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0;
+	DST.options.draw_text = (
+	        (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0 &&
+	        (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0);
 	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, C);
 }
 
