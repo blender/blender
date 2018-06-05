@@ -109,6 +109,7 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 		shgrp = DRW_shgroup_create(gpu_shader, hair_pass);
 	}
 	else {
+		shgrp = NULL;
 		BLI_assert(0);
 	}
 
