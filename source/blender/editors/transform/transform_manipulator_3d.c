@@ -951,7 +951,7 @@ int ED_transform_calc_manipulator_stats(
 			}
 		}
 		else {
-			totsel = count_set_pose_transflags(&mode, 0, ob);
+			totsel = count_set_pose_transflags(ob, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
 
 			if (totsel) {
 				/* use channels to get stats */

@@ -748,12 +748,11 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
 
 /* sets transform flags in the bones
  * returns total number of bones with BONE_TRANSFORM */
-int count_set_pose_transflags(int *out_mode, short around, Object *ob)
+int count_set_pose_transflags(Object *ob, const int mode, short around, bool has_translate_rotate[2])
 {
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
-	int mode = *out_mode;
 	int total = 0;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -781,43 +780,30 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 		}
 	}
 	/* now count, and check if we have autoIK or have to switch from translate to rotate */
-	bool has_translation = false, has_rotation = false;
-
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if (bone->flag & BONE_TRANSFORM) {
 			total++;
 
-			if (mode == TFM_TRANSLATION) {
+			if (has_translate_rotate != NULL) {
 				if (has_targetless_ik(pchan) == NULL) {
 					if (pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
-						if (pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM)
-							has_translation = true;
+						if (pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
+							has_translate_rotate[0] = true;
+						}
 					}
 					else {
-						if ((pchan->protectflag & OB_LOCK_LOC) != OB_LOCK_LOC)
-							has_translation = true;
+						if ((pchan->protectflag & OB_LOCK_LOC) != OB_LOCK_LOC) {
+							has_translate_rotate[0] = true;
+						}
 					}
-					if ((pchan->protectflag & OB_LOCK_ROT) != OB_LOCK_ROT)
-						has_rotation = true;
+					if ((pchan->protectflag & OB_LOCK_ROT) != OB_LOCK_ROT) {
+						has_translate_rotate[1] = true;
+					}
 				}
-				else
-					has_translation = true;
-			}
-		}
-	}
-
-	/* only modify transform mode if there are bones here that do something...
-	 * otherwise we get problems when multiple objects are selected
-	 */
-	if (total) {
-		/* if there are no translatable bones, do rotation */
-		if (mode == TFM_TRANSLATION && !has_translation) {
-			if (has_rotation) {
-				*out_mode = TFM_ROTATION;
-			}
-			else {
-				*out_mode = TFM_RESIZE;
+				else {
+					has_translate_rotate[1] = true;
+				}
 			}
 		}
 	}
@@ -1125,15 +1111,14 @@ static void createTransPose(TransInfo *t, Object **objects, uint objects_len)
 
 	t->data_len_all = 0;
 
+	bool has_translate_rotate_buf[2] = {false, false};
+	bool *has_translate_rotate = (t->mode == TFM_TRANSLATION) ? has_translate_rotate_buf : NULL;
+
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 		Object *ob = tc->poseobj;
 
 		bArmature *arm;
-		TransData *td;
-		TransDataExtension *tdx;
 		short ik_on = 0;
-		int i;
-
 
 		/* check validity of state */
 		arm = BKE_armature_from_object(tc->poseobj);
@@ -1155,11 +1140,29 @@ static void createTransPose(TransInfo *t, Object **objects, uint objects_len)
 		}
 
 		/* set flags and count total (warning, can change transform to rotate) */
-		tc->data_len = count_set_pose_transflags(&t->mode, t->around, ob);
+		tc->data_len = count_set_pose_transflags(ob, t->mode, t->around, has_translate_rotate);
+		/* len may be zero, skip next iteration. */
+	}
 
+	/* if there are no translatable bones, do rotation */
+	if ((t->mode == TFM_TRANSLATION) && !has_translate_rotate[0]) {
+		if (has_translate_rotate[1]) {
+			t->mode = TFM_ROTATION;
+		}
+		else {
+			t->mode = TFM_RESIZE;
+		}
+	}
+
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 		if (tc->data_len == 0) {
 			continue;
 		}
+		Object *ob = tc->poseobj;
+		TransData *td;
+		TransDataExtension *tdx;
+		short ik_on = 0;
+		int i;
 
 		tc->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
 
@@ -6681,8 +6684,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			}
 
 			/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
-			if (!canceled && (t->mode != TFM_DUMMY))
-				count_set_pose_transflags(&t->mode, t->around, ob);
+			if (!canceled && (t->mode != TFM_DUMMY)) {
+				count_set_pose_transflags(ob, t->mode, t->around, NULL);
+			}
 
 			/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 			if (!canceled && t->mode == TFM_TRANSLATION)

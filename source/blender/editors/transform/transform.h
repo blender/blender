@@ -722,7 +722,7 @@ int  special_transform_moving(TransInfo *t);
 void transform_autoik_update(TransInfo *t, short mode);
 bool transdata_check_local_islands(TransInfo *t, short around);
 
-int count_set_pose_transflags(int *out_mode, short around, struct Object *ob);
+int count_set_pose_transflags(struct Object *ob, const int mode, const short around, bool has_translate_rotate[2]);
 
 /* auto-keying stuff used by special_aftertrans_update */
 void autokeyframe_ob_cb_func(
