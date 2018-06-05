@@ -1596,7 +1596,7 @@ void BKE_main_thumbnail_create(struct Main *bmain)
 /**
  * Return filepath of given \a main.
  */
-const char *BKE_main_blendfile_path(Main *bmain)
+const char *BKE_main_blendfile_path(const Main *bmain)
 {
 	return bmain->name;
 }

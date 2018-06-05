@@ -102,6 +102,7 @@ typedef struct FileBrowseOp {
 
 static int file_browse_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	FileBrowseOp *fbo = op->customdata;
 	ID *id;
 	char *str, path[FILE_MAX];
@@ -118,14 +119,14 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 		id = fbo->ptr.id.data;
 
 		BLI_strncpy(path, str, FILE_MAX);
-		BLI_path_abs(path, id ? ID_BLEND_PATH(G.main, id) : G.main->name);
+		BLI_path_abs(path, id ? ID_BLEND_PATH(bmain, id) : BKE_main_blendfile_path(bmain));
 
 		if (BLI_is_dir(path)) {
 			/* do this first so '//' isnt converted to '//\' on windows */
 			BLI_add_slash(path);
 			if (is_relative) {
 				BLI_strncpy(path, str, FILE_MAX);
-				BLI_path_rel(path, G.main->name);
+				BLI_path_rel(path, BKE_main_blendfile_path(bmain));
 				str = MEM_reallocN(str, strlen(path) + 2);
 				BLI_strncpy(str, path, FILE_MAX);
 			}

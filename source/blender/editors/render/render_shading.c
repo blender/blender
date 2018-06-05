@@ -1572,13 +1572,14 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 
 static int envmap_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	Main *bmain = CTX_data_main(C);
 	//Scene *scene= CTX_data_scene(C);
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return envmap_save_exec(C, op);
 
 	//RNA_enum_set(op->ptr, "file_type", scene->r.im_format.imtype);
-	RNA_string_set(op->ptr, "filepath", G.main->name);
+	RNA_string_set(op->ptr, "filepath", BKE_main_blendfile_path(bmain));
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;

@@ -109,9 +109,9 @@ void file_filename_enter_handle(bContext *C, void *arg_unused, void *arg_but);
 int file_highlight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
 
 void file_sfile_filepath_set(struct SpaceFile *sfile, const char *filepath);
-void file_sfile_to_operator_ex(struct wmOperator *op, struct SpaceFile *sfile, char *filepath);
-void file_sfile_to_operator(struct wmOperator *op, struct SpaceFile *sfile);
-void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);
+void file_sfile_to_operator_ex(bContext *C, struct wmOperator *op, struct SpaceFile *sfile, char *filepath);
+void file_sfile_to_operator(bContext *C, struct wmOperator *op, struct SpaceFile *sfile);
+void file_operator_to_sfile(bContext *C, struct SpaceFile *sfile, struct wmOperator *op);
 
 
 /* filesel.c */

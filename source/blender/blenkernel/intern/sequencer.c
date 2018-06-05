@@ -893,7 +893,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
 
 			BLI_join_dirfile(path, sizeof(path), seq->strip->dir,
 			                 seq->strip->stripdata->name);
-			BLI_path_abs(path, G.main->name);
+			BLI_path_abs(path, BKE_main_blendfile_path_from_global());
 
 			BKE_sequence_free_anim(seq);
 
@@ -1540,7 +1540,7 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 
 	BLI_join_dirfile(name, sizeof(name),
 	                 seq->strip->dir, seq->strip->stripdata->name);
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 
 	proxy = seq->strip->proxy;
 
@@ -1557,7 +1557,7 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 		else {
 			BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
 		}
-		BLI_path_abs(dir, G.main->name);
+		BLI_path_abs(dir, BKE_main_blendfile_path_from_global());
 	}
 
 	if (is_multiview && seq->views_format == R_IMF_VIEWS_INDIVIDUAL) {
@@ -1685,7 +1685,7 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 			return false;
 		}
 		BLI_path_append(dir, sizeof(dir), fname);
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 	}
 	else if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
@@ -1717,7 +1717,7 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 	{
 		char fname[FILE_MAXFILE];
 		BLI_join_dirfile(fname, PROXY_MAXFILE, dir, proxy->file);
-		BLI_path_abs(fname, G.main->name);
+		BLI_path_abs(fname, BKE_main_blendfile_path_from_global());
 		if (suffix[0] != '\0') {
 			/* TODO(sergey): This will actually append suffix after extension
 			 * which is weird but how was originally coded in multiview branch.
@@ -1743,7 +1743,7 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####%s", dir, render_size, suffix);
 	}
 
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 	BLI_path_frame(name, frameno, 0);
 
 	strcat(name, ".jpg");
@@ -1888,7 +1888,7 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, con
 			char path[FILE_MAX];
 			BLI_join_dirfile(path, sizeof(path), seq->strip->dir,
 			                 seq->strip->stripdata->name);
-			BLI_path_abs(path, G.main->name);
+			BLI_path_abs(path, BKE_main_blendfile_path_from_global());
 			BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
 		}
 		else {
@@ -2841,7 +2841,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context, Sequence *seq
 
 	if (s_elem) {
 		BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 	}
 
 	flag = IB_rect | IB_metadata;
@@ -5138,7 +5138,7 @@ void BKE_sequence_init_colorspace(Sequence *seq)
 		ImBuf *ibuf;
 
 		BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 
 		/* initialize input color space */
 		if (seq->type == SEQ_TYPE_IMAGE) {
@@ -5306,6 +5306,7 @@ static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_
 
 Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C); /* only for sound */
 	char path[sizeof(seq_load->path)];
 
@@ -5320,7 +5321,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	int i;
 
 	BLI_strncpy(path, seq_load->path, sizeof(path));
-	BLI_path_abs(path, G.main->name);
+	BLI_path_abs(path, BKE_main_blendfile_path(bmain));
 
 	anim_arr = MEM_callocN(sizeof(struct anim *) * totfiles, "Video files");
 

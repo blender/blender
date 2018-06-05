@@ -28,6 +28,7 @@
 #include "BLI_string.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
@@ -185,7 +186,6 @@ void OutputSingleLayerOperation::deinitExecution()
 		
 		int size = get_datatype_size(this->m_datatype);
 		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), this->m_format->planes, 0);
-		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 		const char *suffix;
 		
@@ -200,7 +200,7 @@ void OutputSingleLayerOperation::deinitExecution()
 		suffix = BKE_scene_multiview_view_suffix_get(this->m_rd, this->m_viewName);
 
 		BKE_image_path_from_imformat(
-		        filename, this->m_path, bmain->name, this->m_rd->cfra, this->m_format,
+		        filename, this->m_path, BKE_main_blendfile_path_from_global(), this->m_rd->cfra, this->m_format,
 		        (this->m_rd->scemode & R_EXTENSION) != 0, true, suffix);
 
 		if (0 == BKE_imbuf_write(ibuf, filename, this->m_format))
@@ -271,14 +271,13 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 	unsigned int width = this->getWidth();
 	unsigned int height = this->getHeight();
 	if (width != 0 && height != 0) {
-		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 		const char *suffix;
 		void *exrhandle = IMB_exr_get_handle();
 
 		suffix = BKE_scene_multiview_view_suffix_get(this->m_rd, this->m_viewName);
 		BKE_image_path_from_imtype(
-		        filename, this->m_path, bmain->name, this->m_rd->cfra, R_IMF_IMTYPE_MULTILAYER,
+		        filename, this->m_path, BKE_main_blendfile_path_from_global(), this->m_rd->cfra, R_IMF_IMTYPE_MULTILAYER,
 		        (this->m_rd->scemode & R_EXTENSION) != 0, true, suffix);
 		BLI_make_existing_file(filename);
 

@@ -176,6 +176,7 @@ static FileSelection file_selection_get(bContext *C, const rcti *rect, bool fill
 
 static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 {
+	Main *bmain = CTX_data_main(C);
 	FileSelect retval = FILE_SELECT_NOTHING;
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
@@ -213,7 +214,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 					}
 				}
 				else {
-					BLI_cleanup_dir(G.main->name, params->dir);
+					BLI_cleanup_dir(BKE_main_blendfile_path(bmain), params->dir);
 					strcat(params->dir, file->relpath);
 					BLI_add_slash(params->dir);
 				}
@@ -826,6 +827,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 /* Note we could get rid of this one, but it's used by some addon so... Does not hurt keeping it around for now. */
 static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	PropertyRNA *prop;
 
@@ -835,7 +837,7 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
 		RNA_property_string_get(op->ptr, prop, entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
-		BLI_cleanup_dir(G.main->name, params->dir);
+		BLI_cleanup_dir(BKE_main_blendfile_path(bmain), params->dir);
 		ED_file_change_dir(C);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
@@ -1200,15 +1202,16 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 }
 
 
-void file_sfile_to_operator_ex(wmOperator *op, SpaceFile *sfile, char *filepath)
+void file_sfile_to_operator_ex(bContext *C, wmOperator *op, SpaceFile *sfile, char *filepath)
 {
+	Main *bmain = CTX_data_main(C);
 	PropertyRNA *prop;
 
 	BLI_join_dirfile(filepath, FILE_MAX, sfile->params->dir, sfile->params->file); /* XXX, not real length */
 
 	if ((prop = RNA_struct_find_property(op->ptr, "relative_path"))) {
 		if (RNA_property_boolean_get(op->ptr, prop)) {
-			BLI_path_rel(filepath, G.main->name);
+			BLI_path_rel(filepath, BKE_main_blendfile_path(bmain));
 		}
 	}
 
@@ -1270,15 +1273,16 @@ void file_sfile_to_operator_ex(wmOperator *op, SpaceFile *sfile, char *filepath)
 
 	}
 }
-void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile)
+void file_sfile_to_operator(bContext *C, wmOperator *op, SpaceFile *sfile)
 {
 	char filepath[FILE_MAX];
 
-	file_sfile_to_operator_ex(op, sfile, filepath);
+	file_sfile_to_operator_ex(C, op, sfile, filepath);
 }
 
-void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
+void file_operator_to_sfile(bContext *C, SpaceFile *sfile, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	PropertyRNA *prop;
 
 	/* If neither of the above are set, split the filepath back */
@@ -1298,7 +1302,7 @@ void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 
 	/* we could check for relative_path property which is used when converting
 	 * in the other direction but doesnt hurt to do this every time */
-	BLI_path_abs(sfile->params->dir, G.main->name);
+	BLI_path_abs(sfile->params->dir, BKE_main_blendfile_path(bmain));
 
 	/* XXX, files and dirs updates missing, not really so important though */
 }
@@ -1330,11 +1334,11 @@ void file_draw_check(bContext *C)
 	wmOperator *op = sfile->op;
 	if (op) { /* fail on reload */
 		if (op->type->check) {
-			file_sfile_to_operator(op, sfile);
+			file_sfile_to_operator(C, op, sfile);
 
 			/* redraw */
 			if (op->type->check(C, op)) {
-				file_operator_to_sfile(sfile, op);
+				file_operator_to_sfile(C, sfile, op);
 
 				/* redraw, else the changed settings wont get updated */
 				ED_area_tag_redraw(CTX_wm_area(C));
@@ -1369,6 +1373,7 @@ bool file_draw_check_exists(SpaceFile *sfile)
 
 int file_exec(bContext *C, wmOperator *exec_op)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	const struct FileDirEntry *file = filelist_file(sfile->files, sfile->params->active_file);
@@ -1384,7 +1389,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			BLI_parent_dir(sfile->params->dir);
 		}
 		else {
-			BLI_cleanup_path(G.main->name, sfile->params->dir);
+			BLI_cleanup_path(BKE_main_blendfile_path(bmain), sfile->params->dir);
 			BLI_path_append(sfile->params->dir, sizeof(sfile->params->dir) - 1, file->relpath);
 			BLI_add_slash(sfile->params->dir);
 		}
@@ -1413,14 +1418,14 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		sfile->op = NULL;
 
-		file_sfile_to_operator_ex(op, sfile, filepath);
+		file_sfile_to_operator_ex(C, op, sfile, filepath);
 
 		if (BLI_exists(sfile->params->dir)) {
 			fsmenu_insert_entry(ED_fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, NULL,
 			                    FS_INSERT_SAVE | FS_INSERT_FIRST);
 		}
 
-		BLI_make_file_string(G.main->name, filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+		BLI_make_file_string(BKE_main_blendfile_path(bmain), filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
 		                     BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(ED_fsmenu_get(), filepath);
 		WM_event_fileselect_event(wm, op, EVT_FILESELECT_EXEC);
@@ -1452,11 +1457,12 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 
 int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile->params) {
 		if (BLI_parent_dir(sfile->params->dir)) {
-			BLI_cleanup_dir(G.main->name, sfile->params->dir);
+			BLI_cleanup_dir(BKE_main_blendfile_path(bmain), sfile->params->dir);
 			ED_file_change_dir(C);
 			if (sfile->params->recursion_level > 1) {
 				/* Disable 'dirtree' recursion when going up in tree. */
@@ -1694,7 +1700,7 @@ static int filepath_drop_exec(bContext *C, wmOperator *op)
 		file_sfile_filepath_set(sfile, filepath);
 
 		if (sfile->op) {
-			file_sfile_to_operator(sfile->op, sfile);
+			file_sfile_to_operator(C, sfile->op, sfile);
 			file_draw_check(C);
 		}
 
@@ -1840,12 +1846,13 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 /* TODO This should go to BLI_path_utils. */
 static void file_expand_directory(bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile->params) {
 		if (BLI_path_is_rel(sfile->params->dir)) {
 			/* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
-			BLI_path_abs(sfile->params->dir, G.relbase_valid ? G.main->name : BKE_appdir_folder_default());
+			BLI_path_abs(sfile->params->dir, G.relbase_valid ? BKE_main_blendfile_path(bmain) : BKE_appdir_folder_default());
 		}
 		else if (sfile->params->dir[0] == '~') {
 			char tmpstr[sizeof(sfile->params->dir) - 1];
@@ -1898,6 +1905,7 @@ static bool can_create_dir(const char *dir)
 
 void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UNUSED(arg_but))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile->params) {
@@ -1928,7 +1936,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 			}
 		}
 
-		BLI_cleanup_dir(G.main->name, sfile->params->dir);
+		BLI_cleanup_dir(BKE_main_blendfile_path(bmain), sfile->params->dir);
 
 		if (filelist_is_dir(sfile->files, sfile->params->dir)) {
 			/* if directory exists, enter it immediately */
@@ -1975,6 +1983,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 
 void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg_but)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	uiBut *but = arg_but;
 	char matched_file[FILE_MAX];
@@ -2004,7 +2013,7 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 
 			/* if directory, open it and empty filename field */
 			if (filelist_is_dir(sfile->files, filepath)) {
-				BLI_cleanup_dir(G.main->name, filepath);
+				BLI_cleanup_dir(BKE_main_blendfile_path(bmain), filepath);
 				BLI_strncpy(sfile->params->dir, filepath, sizeof(sfile->params->dir));
 				sfile->params->file[0] = '\0';
 				ED_file_change_dir(C);
@@ -2269,6 +2278,7 @@ static int file_delete_poll(bContext *C)
 int file_delete_exec(bContext *C, wmOperator *op)
 {
 	char str[FILE_MAX];
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -2281,7 +2291,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
 	for (i = 0; i < numfiles; i++) {
 		if (filelist_entry_select_index_get(sfile->files, i, CHECK_FILES)) {
 			file = filelist_file(sfile->files, i);
-			BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relpath);
+			BLI_make_file_string(BKE_main_blendfile_path(bmain), str, sfile->params->dir, file->relpath);
 			if (BLI_delete(str, false, false) != 0 ||
 			    BLI_exists(str))
 			{

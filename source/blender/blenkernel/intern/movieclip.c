@@ -199,7 +199,7 @@ static void get_proxy_fname(const MovieClip *clip,
 	else
 		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, proxynr);
 
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 	BLI_path_frame(name, 1, 0);
 
 	strcat(name, ".jpg");
@@ -270,7 +270,7 @@ static void movieclip_open_anim_file(MovieClip *clip)
 			if (clip->flag & MCLIP_USE_PROXY_CUSTOM_DIR) {
 				char dir[FILE_MAX];
 				BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
-				BLI_path_abs(dir, G.main->name);
+				BLI_path_abs(dir, BKE_main_blendfile_path_from_global());
 				IMB_anim_set_index_dir(clip->anim, dir);
 			}
 		}
@@ -627,13 +627,13 @@ static void movieclip_load_get_size(MovieClip *clip)
 	}
 }
 
-static void detect_clip_source(MovieClip *clip)
+static void detect_clip_source(Main *bmain, MovieClip *clip)
 {
 	ImBuf *ibuf;
 	char name[FILE_MAX];
 
 	BLI_strncpy(name, clip->name, sizeof(name));
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, BKE_main_blendfile_path(bmain));
 
 	ibuf = IMB_testiffname(name, IB_rect | IB_multilayer);
 	if (ibuf) {
@@ -656,7 +656,7 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 	char str[FILE_MAX];
 
 	BLI_strncpy(str, name, sizeof(str));
-	BLI_path_abs(str, bmain->name);
+	BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
 	/* exists? */
 	file = BLI_open(str, O_BINARY | O_RDONLY, 0);
@@ -670,7 +670,7 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 	clip = movieclip_alloc(bmain, BLI_path_basename(name));
 	BLI_strncpy(clip->name, name, sizeof(clip->name));
 
-	detect_clip_source(clip);
+	detect_clip_source(bmain, clip);
 
 	movieclip_load_get_size(clip);
 	if (clip->lastsize[0]) {
@@ -690,7 +690,7 @@ MovieClip *BKE_movieclip_file_add_exists_ex(Main *bmain, const char *filepath, b
 	char str[FILE_MAX], strtest[FILE_MAX];
 
 	BLI_strncpy(str, filepath, sizeof(str));
-	BLI_path_abs(str, bmain->name);
+	BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
 	/* first search an identical filepath */
 	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
@@ -1282,13 +1282,13 @@ void BKE_movieclip_clear_proxy_cache(MovieClip *clip)
 	}
 }
 
-void BKE_movieclip_reload(MovieClip *clip)
+void BKE_movieclip_reload(Main *bmain, MovieClip *clip)
 {
 	/* clear cache */
 	free_buffers(clip);
 
 	/* update clip source */
-	detect_clip_source(clip);
+	detect_clip_source(bmain, clip);
 
 	clip->lastsize[0] = clip->lastsize[1] = 0;
 	movieclip_load_get_size(clip);

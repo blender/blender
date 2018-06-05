@@ -234,7 +234,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 
-	text = BKE_text_load_ex(bmain, str, bmain->name, internal);
+	text = BKE_text_load_ex(bmain, str, BKE_main_blendfile_path(bmain), internal);
 
 	if (!text) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -274,7 +274,7 @@ static int text_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 {
 	Main *bmain = CTX_data_main(C);
 	Text *text = CTX_data_edit_text(C);
-	const char *path = (text && text->name) ? text->name : bmain->name;
+	const char *path = (text && text->name) ? text->name : BKE_main_blendfile_path(bmain);
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_open_exec(C, op);
@@ -465,7 +465,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
 	char filepath[FILE_MAX];
 
 	BLI_strncpy(filepath, text->name, FILE_MAX);
-	BLI_path_abs(filepath, bmain->name);
+	BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
 	fp = BLI_fopen(filepath, "w");
 	if (fp == NULL) {
@@ -562,7 +562,7 @@ static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	else if (text->flags & TXT_ISMEM)
 		str = text->id.name + 2;
 	else
-		str = bmain->name;
+		str = BKE_main_blendfile_path(bmain);
 
 	RNA_string_set(op->ptr, "filepath", str);
 	WM_event_add_fileselect(C, op);

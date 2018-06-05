@@ -113,7 +113,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
 			// make absolute source path
 			BLI_strncpy(source_path, image->name, sizeof(source_path));
-			BLI_path_abs(source_path, G.main->name);
+			BLI_path_abs(source_path, BKE_main_blendfile_path_from_global());
 			BLI_cleanup_path(NULL, source_path);
 
 			if (use_copies) {

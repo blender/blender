@@ -325,7 +325,7 @@ void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportLis
 	struct BPathFind_Data data = {NULL};
 	const int flag = BKE_BPATH_TRAVERSE_ABS | BKE_BPATH_TRAVERSE_RELOAD_EDITED;
 
-	data.basedir = bmain->name;
+	data.basedir = BKE_main_blendfile_path(bmain);
 	data.reports = reports;
 	data.searchdir = searchpath;
 	data.find_all = find_all;

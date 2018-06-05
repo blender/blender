@@ -117,7 +117,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 			Main *bmain = CTX_data_main(C);
 			char path[FILE_MAX];
 			BLI_strncpy(path, last_seq->strip->dir, sizeof(path));
-			BLI_path_abs(path, bmain->name);
+			BLI_path_abs(path, BKE_main_blendfile_path(bmain));
 			RNA_string_set(op->ptr, identifier, path);
 		}
 	}
@@ -199,7 +199,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, bContext *C, wmOperato
 	}
 
 	if ((is_file != -1) && relative)
-		BLI_path_rel(seq_load->path, bmain->name);
+		BLI_path_rel(seq_load->path, BKE_main_blendfile_path(bmain));
 
 
 	if ((prop = RNA_struct_find_property(op->ptr, "frame_end"))) {

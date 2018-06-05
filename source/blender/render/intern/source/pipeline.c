@@ -3319,7 +3319,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 			else {
 				char name[FILE_MAX];
 				BKE_image_path_from_imformat(
-				        name, scene->r.pic, bmain->name, scene->r.cfra,
+				        name, scene->r.pic, BKE_main_blendfile_path(bmain), scene->r.cfra,
 				        &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, false, NULL);
 
 				/* reports only used for Movie */
@@ -3559,7 +3559,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 			BLI_strncpy(name, name_override, sizeof(name));
 		else
 			BKE_image_path_from_imformat(
-			        name, scene->r.pic, bmain->name, scene->r.cfra,
+			        name, scene->r.pic, BKE_main_blendfile_path(bmain), scene->r.cfra,
 			        &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, true, NULL);
 
 		/* write images as individual images or stereo */
@@ -3754,7 +3754,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			if (is_movie == false) {
 				if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
 					BKE_image_path_from_imformat(
-					        name, scene->r.pic, bmain->name, scene->r.cfra,
+					        name, scene->r.pic, BKE_main_blendfile_path(bmain), scene->r.cfra,
 					        &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, true, NULL);
 
 				if (scene->r.mode & R_NO_OVERWRITE) {
@@ -4076,7 +4076,7 @@ bool RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env,
 
 	/* to save, we first get absolute path */
 	BLI_strncpy(filepath, relpath, sizeof(filepath));
-	BLI_path_abs(filepath, G.main->name);
+	BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
 	ok = BKE_imbuf_write(ibuf, filepath, &imf);
 
