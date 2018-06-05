@@ -78,7 +78,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
             if pchan.rotation_mode == 'QUATERNION':
                 col.prop(pchan, "rotation_quaternion", text="Rotation")
             elif pchan.rotation_mode == 'AXIS_ANGLE':
-                #col.label(text="Rotation")
+                # col.label(text="Rotation")
                 #col.prop(pchan, "rotation_angle", text="Angle")
                 #col.prop(pchan, "rotation_axis", text="Axis")
                 col.prop(pchan, "rotation_axis_angle", text="Rotation")

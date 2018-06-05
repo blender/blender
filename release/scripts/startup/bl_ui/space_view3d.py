@@ -2966,6 +2966,7 @@ class VIEW3D_MT_edit_curve_segments(Menu):
         layout.operator("curve.subdivide")
         layout.operator("curve.switch_direction")
 
+
 class VIEW3D_MT_edit_curve_clean(Menu):
     bl_label = "Clean Up"
 

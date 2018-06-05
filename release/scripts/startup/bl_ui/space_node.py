@@ -510,11 +510,15 @@ class NODE_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
     bl_region_type = 'TOOLS'
 
 # Grease Pencil drawing brushes
+
+
 class NODE_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
 
 # Grease Pencil drawing curves
+
+
 class NODE_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
@@ -524,6 +528,7 @@ class NODE_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Pane
 
 def node_draw_tree_view(layout, context):
     pass
+
 
 classes = (
     NODE_HT_header,

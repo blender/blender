@@ -1087,8 +1087,8 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
                 factor_but(col, "use_map_warp", "warp_factor", "Warp")
                 factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
 
-                #~ sub = col.column()
-                #~ sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
+                # ~ sub = col.column()
+                # ~ sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
                 #~ sub.prop(tex, "default_value", text="Amount", slider=True)
             elif idblock.type == 'HALO':
                 layout.label(text="Halo:")

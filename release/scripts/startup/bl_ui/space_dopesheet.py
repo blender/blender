@@ -405,11 +405,11 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         layout.operator("anim.channels_editable_toggle")
 
         # XXX: to be enabled when these are ready for use!
-        #layout.separator()
-        #layout.operator("anim.channels_expand")
-        #layout.operator("anim.channels_collapse")
+        # layout.separator()
+        # layout.operator("anim.channels_expand")
+        # layout.operator("anim.channels_collapse")
 
-        #layout.separator()
+        # layout.separator()
         #layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
@@ -430,9 +430,9 @@ class DOPESHEET_MT_gpencil_frame(Menu):
         layout.separator()
         layout.operator("action.keyframe_type")
 
-        #layout.separator()
-        #layout.operator("action.copy")
-        #layout.operator("action.paste")
+        # layout.separator()
+        # layout.operator("action.copy")
+        # layout.operator("action.paste")
 
 
 class DOPESHEET_MT_delete(Menu):

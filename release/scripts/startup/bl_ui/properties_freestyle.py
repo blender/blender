@@ -627,7 +627,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
         row = layout.row(align=True)
         row.prop(linestyle, "panel", expand=True)
         if linestyle.panel == 'STROKES':
-            ## Chaining
+            # Chaining
             layout.prop(linestyle, "use_chaining", text="Chaining:")
             split = layout.split(align=True)
             split.active = linestyle.use_chaining
@@ -641,7 +641,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             col = split.column()
             col.prop(linestyle, "use_same_object")
 
-            ## Splitting
+            # Splitting
             layout.label(text="Splitting:")
             split = layout.split(align=True)
             # First column
@@ -677,7 +677,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             sub.prop(linestyle, "split_dash3", text="D3")
             sub.prop(linestyle, "split_gap3", text="G3")
 
-            ## Sorting
+            # Sorting
             layout.prop(linestyle, "use_sorting", text="Sorting:")
             col = layout.column()
             col.active = linestyle.use_sorting
@@ -691,7 +691,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             row = col.row(align=True)
             row.prop(linestyle, "sort_order", expand=True)
 
-            ## Selection
+            # Selection
             layout.label(text="Selection:")
             split = layout.split(align=True)
             # First column
@@ -714,12 +714,12 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             sub.active = linestyle.use_chain_count
             sub.prop(linestyle, "chain_count")
 
-            ## Caps
+            # Caps
             layout.label(text="Caps:")
             row = layout.row(align=True)
             row.prop(linestyle, "caps", expand=True)
 
-            ## Dashed lines
+            # Dashed lines
             layout.prop(linestyle, "use_dashed_line", text="Dashed Line:")
             row = layout.row(align=True)
             row.active = linestyle.use_dashed_line
@@ -787,9 +787,10 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
 
             row = layout.row()
             props = row.operator(
-                    "wm.properties_context_change",
-                    text="Go to Linestyle Textures Properties",
-                    icon='TEXTURE')
+                "wm.properties_context_change",
+                text="Go to Linestyle Textures Properties",
+                icon='TEXTURE',
+            )
             props.context = 'TEXTURE'
 
         elif linestyle.panel == 'MISC':

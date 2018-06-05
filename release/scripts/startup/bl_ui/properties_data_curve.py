@@ -189,9 +189,10 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
 
             col = layout.column()
             col.active = (
-                    (curve.bevel_depth > 0.0) or
-                    (curve.extrude > 0.0) or
-                    (curve.bevel_object is not None))
+                (curve.bevel_depth > 0.0) or
+                (curve.extrude > 0.0) or
+                (curve.bevel_object is not None)
+            )
             row = col.row(align=True)
             row.prop(curve, "bevel_factor_mapping_start", text="")
             row.prop(curve, "bevel_factor_start", text="Start")

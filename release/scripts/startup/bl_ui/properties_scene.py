@@ -19,10 +19,10 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import (
-        Menu,
-        Panel,
-        UIList,
-        )
+    Menu,
+    Panel,
+    UIList,
+)
 
 from rna_prop_ui import PropertyPanel
 
@@ -117,18 +117,19 @@ class SceneKeyingSetsPanel:
     @staticmethod
     def draw_keyframing_settings(context, layout, ks, ksp):
         SceneKeyingSetsPanel._draw_keyframing_setting(
-                context, layout, ks, ksp, "Needed",
-                "use_insertkey_override_needed", "use_insertkey_needed",
-                userpref_fallback="use_keyframe_insert_needed")
-
+            context, layout, ks, ksp, "Needed",
+            "use_insertkey_override_needed", "use_insertkey_needed",
+            userpref_fallback="use_keyframe_insert_needed",
+        )
         SceneKeyingSetsPanel._draw_keyframing_setting(
-                context, layout, ks, ksp, "Visual",
-                "use_insertkey_override_visual", "use_insertkey_visual",
-                userpref_fallback="use_visual_keying")
-
+            context, layout, ks, ksp, "Visual",
+            "use_insertkey_override_visual", "use_insertkey_visual",
+            userpref_fallback="use_visual_keying",
+        )
         SceneKeyingSetsPanel._draw_keyframing_setting(
-                context, layout, ks, ksp, "XYZ to RGB",
-                "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb")
+            context, layout, ks, ksp, "XYZ to RGB",
+            "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb",
+        )
 
     @staticmethod
     def _draw_keyframing_setting(context, layout, ks, ksp, label, toggle_prop, prop, userpref_fallback=None):

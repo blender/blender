@@ -485,7 +485,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
             row.prop(part, "object_factor", slider=True)
         row.prop(part, "factor_random")
 
-        #if part.type=='REACTOR':
+        # if part.type=='REACTOR':
         #    sub.prop(part, "reactor_factor")
         #    sub.prop(part, "reaction_shape", slider=True)
 
@@ -815,7 +815,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
 
         # Currently boids can only use the first state so these are commented out for now.
         #row = layout.row()
-        #row.template_list("UI_UL_list", "particle_boids", boids, "states",
+        # row.template_list("UI_UL_list", "particle_boids", boids, "states",
         #                  boids, "active_boid_state_index", compact="True")
         #col = row.row()
         #sub = col.row(align=True)

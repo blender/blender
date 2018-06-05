@@ -168,7 +168,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if bpy.app.debug:
             layout.prop(md, "debug_options")
 
-
     def BUILD(self, layout, ob, md):
         split = layout.split()
 
@@ -329,7 +328,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             layout_info = layout
 
         layout_info.label(text=iface_("Face Count: {:,}".format(md.face_count)),
-                     translate=False)
+                          translate=False)
 
     def DISPLACE(self, layout, ob, md):
         has_texture = (md.texture is not None)
