@@ -262,7 +262,7 @@ typedef enum PropertyOverrideFlag {
 	/* Only use indices to compare items in the property, never names (collections only). */
 	/* Useful when nameprop of the items is generated from other data
 	 * (e.g. name of material slots is actually name of assigned material). */
-	PROPOVERRIDE_INDEX_ONLY = (1 << 11),
+	PROPOVERRIDE_NO_PROP_NAME = (1 << 11),
 } PropertyOverrideFlag;
 
 /* Function parameters flags.

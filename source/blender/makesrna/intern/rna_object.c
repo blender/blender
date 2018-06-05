@@ -1985,7 +1985,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "material_slots", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "MaterialSlot");
-	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC | PROPOVERRIDE_INDEX_ONLY);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC | PROPOVERRIDE_NO_PROP_NAME);
 	/* don't dereference pointer! */
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Material Slots", "Material slots in the object");
@@ -2002,6 +2002,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actcol");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_int_funcs(prop, "rna_Object_active_material_index_get", "rna_Object_active_material_index_set",
 	                           "rna_Object_active_material_index_range");
 	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot");
