@@ -806,6 +806,7 @@ PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
+int RNA_property_override_flag(PropertyRNA *prop);
 int RNA_property_tags(PropertyRNA *prop);
 bool RNA_property_builtin(PropertyRNA *prop);
 void *RNA_property_py_data_get(PropertyRNA *prop);

@@ -595,7 +595,7 @@ static int rna_Property_overridable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-	return (prop->flag & PROP_OVERRIDABLE_STATIC) != 0;
+	return (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_STATIC) != 0;
 }
 
 static int rna_Property_use_output_get(PointerRNA *ptr)
@@ -1549,7 +1549,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 		{
 			/* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
 			 * and that we never remove anything. */
-			const bool use_insertion = (RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC_INSERTION) && do_create;
+			const bool use_insertion = (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) && do_create;
 			bool equals = true;
 			bool abort = false;
 			bool is_first_insert = true;
@@ -1615,7 +1615,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						printf("Checking %s, %s [%d] vs %s [%d]; diffing: %d; insert: %d (could be used: %d, do_create: %d)\n",
 						       rna_path, propname_a ? propname_a : "", idx_a, propname_b ? propname_b : "", idx_b,
 						       is_valid_for_diffing, is_valid_for_insertion,
-						       (RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC_INSERTION) != 0, do_create);
+						       (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) != 0, do_create);
 					}
 #endif
 

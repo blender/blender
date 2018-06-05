@@ -2690,7 +2690,6 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	prop = RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Materials", "");
 	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");

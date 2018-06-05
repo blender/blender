@@ -1293,6 +1293,16 @@ void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
 	prop->flag &= ~flag;
 }
 
+void RNA_def_property_override_flag(PropertyRNA *prop, PropertyOverrideFlag flag)
+{
+	prop->flag_override |= flag;
+}
+
+void RNA_def_property_override_clear_flag(PropertyRNA *prop, PropertyOverrideFlag flag)
+{
+	prop->flag_override &= ~flag;
+}
+
 /**
  * Add the property-tags passed as \a tags to \a prop (if valid).
  *
