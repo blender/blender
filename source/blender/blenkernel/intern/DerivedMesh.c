@@ -1158,6 +1158,8 @@ DerivedMesh *mesh_create_derived(Mesh *me, float (*vertCos)[3])
 	return dm;
 }
 
+/* XXX2.8(Sybren): can be removed once DerivedMesh port is done */
+#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
 DerivedMesh *mesh_create_derived_for_modifier(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         ModifierData *md, int build_shapekey_layers)
@@ -1208,6 +1210,7 @@ DerivedMesh *mesh_create_derived_for_modifier(
 
 	return dm;
 }
+#endif
 
 static float (*get_editbmesh_orco_verts(BMEditMesh *em))[3]
 {
