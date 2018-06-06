@@ -563,11 +563,6 @@ void BKE_mball_select_swap(struct MetaBall *mb)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mball_eval_geometry(struct Depsgraph *UNUSED(depsgraph),
-                             MetaBall *UNUSED(mball))
-{
-}
-
 /* Draw Engine */
 
 void (*BKE_mball_batch_cache_dirty_cb)(MetaBall *mb, int mode) = NULL;

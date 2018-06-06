@@ -1077,29 +1077,12 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 
 		case OB_MBALL:
 		{
-			Object *mom = BKE_mball_basis_find(scene_, object);
-			/* NOTE: Only the motherball gets evaluated, it's children are
-			 * having empty placeholders for the correct relations being built.
-			 */
-			if (mom == object) {
-				/* metaball evaluation operations */
-				op_node = add_operation_node(obdata,
-				                             DEG_NODE_TYPE_GEOMETRY,
-				                             function_bind(
-				                                     BKE_mball_eval_geometry,
-				                                     _1,
-				                                     (MetaBall *)obdata_cow),
-				                             DEG_OPCODE_PLACEHOLDER,
-				                             "Geometry Eval");
-			}
-			else {
-				op_node = add_operation_node(obdata,
-				                             DEG_NODE_TYPE_GEOMETRY,
-				                             NULL,
-				                             DEG_OPCODE_PLACEHOLDER,
-				                             "Geometry Eval");
-				op_node->set_as_entry();
-			}
+			op_node = add_operation_node(obdata,
+			                             DEG_NODE_TYPE_GEOMETRY,
+			                             NULL,
+			                             DEG_OPCODE_PLACEHOLDER,
+			                             "Geometry Eval");
+			op_node->set_as_entry();
 			break;
 		}
 
