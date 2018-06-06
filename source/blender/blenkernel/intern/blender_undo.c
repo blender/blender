@@ -82,13 +82,14 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu, bContext *C)
 		success = BKE_blendfile_read_from_memfile(C, &mfu->memfile, NULL, 0);
 	}
 
-	/* restore */
-	BLI_strncpy(bmain->name, mainstr, sizeof(bmain->name)); /* restore */
+	/* Restore, bmain has been re-allocated. */
+	bmain = CTX_data_main(C);
+	BLI_strncpy(bmain->name, mainstr, sizeof(bmain->name));
 	G.fileflags = fileflags;
 
 	if (success) {
 		/* important not to update time here, else non keyed tranforms are lost */
-		DAG_on_visible_update(G.main, false);
+		DAG_on_visible_update(bmain, false);
 	}
 
 	return success;
