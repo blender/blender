@@ -670,6 +670,9 @@ static Mesh *mesh_new_nomain_from_template_ex(
 		mesh_tessface_clear_intern(me_dst, false);
 	}
 
+	/* The destination mesh should at least have valid primary CD layers,
+	 * even in cases where the source mesh does not. */
+	mesh_ensure_cdlayers_primary(me_dst, do_tessface);
 	mesh_ensure_cdlayers_origindex(me_dst, false);
 	BKE_mesh_update_customdata_pointers(me_dst, false);
 
