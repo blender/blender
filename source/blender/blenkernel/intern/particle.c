@@ -298,24 +298,6 @@ ParticleSystem *psys_orig_get(ParticleSystem *psys)
 	return psys->orig_psys;
 }
 
-struct ParticleSystem *psys_eval_get(Depsgraph *depsgraph,
-                                     Object *object,
-                                     ParticleSystem *psys)
-{
-	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
-	if (object_eval == object) {
-		return psys;
-	}
-	ParticleSystem *psys_eval = object_eval->particlesystem.first;
-	while (psys_eval != NULL) {
-		if (psys_eval->orig_psys == psys) {
-			return psys_eval;
-		}
-		psys_eval = psys_eval->next;
-	}
-	return psys_eval;
-}
-
 static PTCacheEdit *psys_orig_edit_get(ParticleSystem *psys)
 {
 	if (psys->orig_psys == NULL) {
@@ -2618,7 +2600,6 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 }
 void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
 {
-	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	ParticleCacheKey *ca, **cache = edit->pathcache;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
 	
@@ -2626,16 +2607,9 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 	PTCacheEditKey *ekey = NULL;
 
 	ParticleSystem *psys = edit->psys;
-	ParticleSystem *psys_eval = NULL;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-	ParticleSystemModifierData *psmd_eval = NULL;
 
-	if (psmd != NULL) {
-		psmd_eval = (ParticleSystemModifierData *)modifiers_findByName(ob_eval, psmd->modifier.name);
-		psys_eval = psmd_eval->psys;
-	}
-
-	ParticleData *pa = psys_eval ? psys_eval->particles : NULL;
+	ParticleData *pa = psys ? psys->particles : NULL;
 
 	ParticleInterpolationData pind;
 	ParticleKey result;
@@ -2664,7 +2638,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 
 	/* frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f; */ /* UNUSED */
 
-	const bool use_weight = (pset->brushtype == PE_BRUSH_WEIGHT) && (psys_eval != NULL) && (psys_eval->particles != NULL);
+	const bool use_weight = (pset->brushtype == PE_BRUSH_WEIGHT) && (psys != NULL) && (psys->particles != NULL);
 
 	if (use_weight) {
 		; /* use weight painting colors now... */
@@ -2709,10 +2683,10 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 		cache[i]->segments = segments;
 
 		/*--get the first data points--*/
-		init_particle_interpolation(ob_eval, psys_eval, pa, &pind);
+		init_particle_interpolation(ob, psys, pa, &pind);
 
-		if (psys_eval) {
-			psys_mat_hair_to_global(ob_eval, psmd_eval->mesh_final, psys->part->from, pa, hairmat);
+		if (psys) {
+			psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, pa, hairmat);
 			copy_v3_v3(rotmat[0], hairmat[2]);
 			copy_v3_v3(rotmat[1], hairmat[1]);
 			copy_v3_v3(rotmat[2], hairmat[0]);
@@ -2731,7 +2705,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 			time = (float)k / (float)segments;
 			t = birthtime + time * (dietime - birthtime);
 			result.time = -t;
-			do_particle_interpolation(psys_eval, i, pa, t, &pind, &result);
+			do_particle_interpolation(psys, i, pa, t, &pind, &result);
 			copy_v3_v3(ca->co, result.co);
 
 			/* non-hair points are already in global space */
@@ -2828,9 +2802,9 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 		ParticleSimulationData sim = {0};
 		sim.depsgraph = depsgraph;
 		sim.scene = scene;
-		sim.ob = ob_eval;
-		sim.psys = psys_eval;
-		sim.psmd = psys_get_modifier(ob_eval, psys_eval);
+		sim.ob = ob;
+		sim.psys = psys;
+		sim.psmd = psys_get_modifier(ob, psys);
 
 		psys_cache_child_paths(&sim, cfra, true, use_render_params);
 	}
