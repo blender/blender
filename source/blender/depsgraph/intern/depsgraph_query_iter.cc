@@ -120,7 +120,7 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		/* Duplicated elements shouldn't care whether their original collection is visible or not. */
 		temp_dupli_object->base_flag |= BASE_VISIBLED;
 
-		if (BKE_object_is_visible(temp_dupli_object, (eObjectVisibilityCheck)data->visibility_check) == false) {
+		if (BKE_object_is_visible(temp_dupli_object, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE) == false) {
 			continue;
 		}
 
