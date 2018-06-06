@@ -582,6 +582,34 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	}
 }
 
+/* Custom data layer functions; those assume that totXXX are set correctly. */
+static void mesh_ensure_cdlayers_primary(Mesh *mesh, bool do_tessface)
+{
+	if (!CustomData_get_layer(&mesh->vdata, CD_MVERT))
+		CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
+	if (!CustomData_get_layer(&mesh->edata, CD_MEDGE))
+		CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
+	if (!CustomData_get_layer(&mesh->ldata, CD_MLOOP))
+		CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
+	if (!CustomData_get_layer(&mesh->pdata, CD_MPOLY))
+		CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
+
+	if (do_tessface && !CustomData_get_layer(&mesh->fdata, CD_MFACE))
+		CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_CALLOC, NULL, mesh->totface);
+}
+static void mesh_ensure_cdlayers_origindex(Mesh *mesh, bool do_tessface)
+{
+	if (!CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totvert);
+	if (!CustomData_get_layer(&mesh->edata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totedge);
+	if (!CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CALLOC, NULL,  mesh->totpoly);
+
+	if (do_tessface && !CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->fdata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
+}
+
 Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int loops_len, int polys_len)
 {
 	Mesh *mesh = BKE_libblock_alloc(
@@ -599,28 +627,15 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int lo
 	copy_vn_i(mesh->ldata.typemap, CD_NUMTYPES, -1);
 	copy_vn_i(mesh->pdata.typemap, CD_NUMTYPES, -1);
 
-	CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, verts_len);
-	CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_CALLOC, NULL, edges_len);
-	CustomData_add_layer(&mesh->fdata, CD_ORIGINDEX, CD_CALLOC, NULL, tessface_len);
-	CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, polys_len);
-
-	CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, verts_len);
-	CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, edges_len);
-	CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_CALLOC, NULL, tessface_len);
-	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, loops_len);
-	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, polys_len);
-
-	mesh->mvert = CustomData_get_layer(&mesh->vdata, CD_MVERT);
-	mesh->medge = CustomData_get_layer(&mesh->edata, CD_MEDGE);
-	mesh->mface = CustomData_get_layer(&mesh->fdata, CD_MFACE);
-	mesh->mloop = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-	mesh->mpoly = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
-
 	mesh->totvert = verts_len;
 	mesh->totedge = edges_len;
 	mesh->totface = tessface_len;
 	mesh->totloop = loops_len;
 	mesh->totpoly = polys_len;
+
+	mesh_ensure_cdlayers_primary(mesh, true);
+	mesh_ensure_cdlayers_origindex(mesh, true);
+	BKE_mesh_update_customdata_pointers(mesh, false);
 
 	return mesh;
 }
@@ -655,14 +670,8 @@ static Mesh *mesh_new_nomain_from_template_ex(
 		mesh_tessface_clear_intern(me_dst, false);
 	}
 
+	mesh_ensure_cdlayers_origindex(me_dst, false);
 	BKE_mesh_update_customdata_pointers(me_dst, false);
-
-	if (!CustomData_get_layer(&me_dst->vdata, CD_ORIGINDEX))
-		CustomData_add_layer(&me_dst->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, verts_len);
-	if (!CustomData_get_layer(&me_dst->edata, CD_ORIGINDEX))
-		CustomData_add_layer(&me_dst->edata, CD_ORIGINDEX, CD_CALLOC, NULL, edges_len);
-	if (!CustomData_get_layer(&me_dst->pdata, CD_ORIGINDEX))
-		CustomData_add_layer(&me_dst->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, polys_len);
 
 	return me_dst;
 }
