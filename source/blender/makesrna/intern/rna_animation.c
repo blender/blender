@@ -1074,7 +1074,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	                         "Method used for combining Active Action's result with result of NLA stack");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
 	
-	prop = RNA_def_property(srna, "action_influence", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "action_influence", PROP_FLOAT, PROP_FACTOR); 
 	RNA_def_property_float_sdna(prop, NULL, "act_influence");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);

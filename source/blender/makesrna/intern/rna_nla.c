@@ -655,7 +655,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	                         "NLA Strips that this strip acts as a container for (if it is of type Meta)");
 	
 	/* Settings - Values necessary for evaluation */
-	prop = RNA_def_property(srna, "influence", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "influence", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Influence", "Amount the strip contributes to the current result");
 	/* XXX: Update temporarily disabled so that the property can be edited at all!
