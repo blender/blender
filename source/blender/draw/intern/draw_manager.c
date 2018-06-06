@@ -1698,7 +1698,8 @@ void DRW_draw_select_loop(
 			        DEG_ITER_OBJECT_FLAG_DUPLI)
 			{
 				if ((ob->base_flag & BASE_SELECTABLED) != 0) {
-					DRW_select_load_id(ob->select_color);
+					Object *ob_orig = DEG_get_original_object(ob);
+					DRW_select_load_id(ob_orig->select_color);
 					drw_engines_cache_populate(ob);
 				}
 			}
