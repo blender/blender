@@ -410,9 +410,9 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 				exploreTransform(eval_ctx, dupli_ob, dupli_parent, ob);
 			}
 		}
-	}
 
-	free_object_duplilist(lb);
+		free_object_duplilist(lb);
+	}
 }
 
 AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupliObParent)
@@ -521,9 +521,9 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object 
 				exploreObject(eval_ctx, link->ob, ob);
 			}
 		}
-	}
 
-	free_object_duplilist(lb);
+		free_object_duplilist(lb);
+	}
 }
 
 void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform)
