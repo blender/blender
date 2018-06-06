@@ -473,7 +473,12 @@ void DepsgraphRelationBuilder::build_collection(Object *object, Collection *coll
 	}
 	if (object != NULL) {
 		const ListBase group_objects = BKE_collection_object_cache_get(collection);
+		const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+			BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
 		LISTBASE_FOREACH (Base *, base, &group_objects) {
+			if ((base->flag & base_flag) == 0) {
+				continue;
+			}
 			ComponentKey dupli_transform_key(&base->object->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
 		}
