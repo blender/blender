@@ -3535,7 +3535,7 @@ class VIEW3D_PT_shading(Panel):
                 row = col.split(0.4)
                 row.active = not shading.show_xray
                 row.prop(shading, "show_cavity")
-                sub = row.column()
+                sub = row.column(align=True)
                 sub.active = not shading.show_xray and shading.show_cavity
                 sub.prop(shading, "cavity_ridge_factor")
                 sub.prop(shading, "cavity_valley_factor")
