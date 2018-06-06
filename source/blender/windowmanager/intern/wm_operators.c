@@ -2246,7 +2246,7 @@ static int wm_call_panel_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "name", idname);
 	const int space_type = RNA_enum_get(op->ptr, "space_type");
 	const int region_type = RNA_enum_get(op->ptr, "region_type");
-	const bool keep_open = RNA_enum_get(op->ptr, "region_type");
+	const bool keep_open = RNA_boolean_get(op->ptr, "keep_open");
 
 	return UI_popover_panel_invoke(C, space_type, region_type, idname, keep_open, op->reports);
 }
