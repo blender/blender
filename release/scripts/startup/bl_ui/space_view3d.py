@@ -3492,7 +3492,7 @@ class VIEW3D_PT_shading(Panel):
         shading = view.shading
 
         col = layout.column()
-
+        col.row().label("Lighting")
         if shading.type in ('SOLID', 'TEXTURED'):
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
@@ -3504,44 +3504,49 @@ class VIEW3D_PT_shading(Panel):
                 col.row().template_icon_view(shading, "matcap")
 
         if shading.type == 'SOLID':
+            col.separator()
+            col.row().label("Color")
             col.row().prop(shading, "color_type", expand=True)
 
             if shading.color_type == 'SINGLE':
                 col.row().prop(shading, "single_color", text="")
 
-        if not(shading.type == 'SOLID' and shading.light == 'MATCAP'):
-            row = col.row()
-            row.prop(shading, "show_specular_highlight")
-
         if shading.type in ('SOLID', 'TEXTURED'):
-            row = col.row()
-            row.prop(shading, "show_xray")
-            sub = row.row()
-            sub.active = shading.show_xray
-            sub.prop(shading, "xray_alpha", text="")
+            col.separator()
 
-            row = col.row()
-            row.active = not shading.show_xray
-            row.prop(shading, "show_shadows")
-            sub = row.row()
-            sub.active = shading.show_shadows and not shading.show_xray
-            sub.prop(shading, "shadow_intensity", text="")
+            if not shading.light == 'MATCAP':
+                row = col.row()
+                row.prop(shading, "show_specular_highlight")
 
-            row = col.row()
-            row.active = not shading.show_xray
-            row.prop(shading, "show_cavity")
-            sub = row.column()
-            sub.active = not shading.show_xray and shading.show_cavity
-            sub.prop(shading, "cavity_ridge_factor")
-            sub.prop(shading, "cavity_valley_factor")
+            if shading.type in ('SOLID', 'TEXTURED'):
+                row = col.split(0.4)
+                row.prop(shading, "show_xray")
+                sub = row.row()
+                sub.active = shading.show_xray
+                sub.prop(shading, "xray_alpha", text="")
 
-            row = col.row()
-            row.prop(shading, "show_object_outline")
-            sub = row.row()
-            sub.active = shading.show_object_outline
-            sub.prop(shading, "object_outline_color", text="")
+                row = col.split(0.4)
+                row.active = not shading.show_xray
+                row.prop(shading, "show_shadows")
+                sub = row.row()
+                sub.active = shading.show_shadows and not shading.show_xray
+                sub.prop(shading, "shadow_intensity", text="")
 
-            col.prop(view, "show_world")
+                row = col.split(0.4)
+                row.active = not shading.show_xray
+                row.prop(shading, "show_cavity")
+                sub = row.column()
+                sub.active = not shading.show_xray and shading.show_cavity
+                sub.prop(shading, "cavity_ridge_factor")
+                sub.prop(shading, "cavity_valley_factor")
+
+                row = col.split(0.4)
+                row.prop(shading, "show_object_outline")
+                sub = row.row()
+                sub.active = shading.show_object_outline
+                sub.prop(shading, "object_outline_color", text="")
+
+                col.prop(view, "show_world")
 
         elif shading.type in ('MATERIAL'):
             col.row().template_icon_view(shading, "studio_light")
