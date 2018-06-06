@@ -1069,6 +1069,7 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 /* operator callback */
 static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *newwin, *win = CTX_wm_window(C);
 	Scene *scene;
 	WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -1110,7 +1111,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	WM_window_set_active_workspace(newwin, workspace);
 	/* allocs new screen and adds to newly created window, using window size */
-	layout_new = ED_workspace_layout_add(workspace, newwin, BKE_workspace_layout_name_get(layout_old));
+	layout_new = ED_workspace_layout_add(bmain, workspace, newwin, BKE_workspace_layout_name_get(layout_old));
 	newsc = BKE_workspace_layout_screen_get(layout_new);
 	WM_window_set_active_layout(newwin, workspace, layout_new);
 
@@ -4301,12 +4302,13 @@ static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
 
 static int screen_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win = CTX_wm_window(C);
 	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
 	WorkSpaceLayout *layout_old = BKE_workspace_active_layout_get(win->workspace_hook);
 	WorkSpaceLayout *layout_new;
 
-	layout_new = ED_workspace_layout_duplicate(workspace, layout_old, win);
+	layout_new = ED_workspace_layout_duplicate(bmain, workspace, layout_old, win);
 	WM_event_add_notifier(C, NC_SCREEN | ND_LAYOUTBROWSE, layout_new);
 
 	return OPERATOR_FINISHED;

@@ -131,7 +131,7 @@ static bool workspace_change_find_new_layout_cb(const WorkSpaceLayout *layout, v
 }
 
 static WorkSpaceLayout *workspace_change_get_new_layout(
-        WorkSpace *workspace_new, wmWindow *win)
+        Main *bmain, WorkSpace *workspace_new, wmWindow *win)
 {
 	/* ED_workspace_duplicate may have stored a layout to activate once the workspace gets activated. */
 	WorkSpaceLayout *layout_new;
@@ -155,7 +155,7 @@ static WorkSpaceLayout *workspace_change_get_new_layout(
 		                                   NULL, false);
 		if (!layout_temp) {
 			/* fallback solution: duplicate layout */
-			layout_temp = ED_workspace_layout_duplicate(workspace_new, layout_new, win);
+			layout_temp = ED_workspace_layout_duplicate(bmain, workspace_new, layout_new, win);
 		}
 		layout_new = layout_temp;
 	}
@@ -177,7 +177,7 @@ bool ED_workspace_change(
 {
 	Main *bmain = CTX_data_main(C);
 	WorkSpace *workspace_old = WM_window_get_active_workspace(win);
-	WorkSpaceLayout *layout_new = workspace_change_get_new_layout(workspace_new, win);
+	WorkSpaceLayout *layout_new = workspace_change_get_new_layout(bmain, workspace_new, win);
 	bScreen *screen_new = BKE_workspace_layout_screen_get(layout_new);
 	bScreen *screen_old = BKE_workspace_active_screen_get(win->workspace_hook);
 
@@ -228,7 +228,7 @@ WorkSpace *ED_workspace_duplicate(
 	/* TODO(campbell): tools */
 
 	for (WorkSpaceLayout *layout_old = layouts_old->first; layout_old; layout_old = layout_old->next) {
-		WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(workspace_new, layout_old, win);
+		WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(bmain, workspace_new, layout_old, win);
 
 		if (layout_active_old == layout_old) {
 			win->workspace_hook->temp_layout_store = layout_new;

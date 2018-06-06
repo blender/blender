@@ -215,6 +215,7 @@ static void wm_window_match_keep_current_wm(
         const bool load_ui,
         ListBase *r_new_wm_list)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = current_wm_list->first;
 	bScreen *screen = NULL;
 
@@ -236,7 +237,7 @@ static void wm_window_match_keep_current_wm(
 			}
 			else {
 				WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
-				WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(workspace, layout_old, win);
+				WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(bmain, workspace, layout_old, win);
 
 				WM_window_set_active_layout(win, workspace, layout_new);
 			}

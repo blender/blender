@@ -211,10 +211,12 @@ void ED_workspace_view_layer_unset(
         const struct Main *bmain, struct Scene *scene,
         const ViewLayer *layer_unset, ViewLayer *layer_new) ATTR_NONNULL(1, 2);
 struct WorkSpaceLayout *ED_workspace_layout_add(
+        struct Main *bmain,
         struct WorkSpace *workspace,
         struct wmWindow *win,
         const char *name) ATTR_NONNULL();
 struct WorkSpaceLayout *ED_workspace_layout_duplicate(
+        struct Main *bmain,
         struct WorkSpace *workspace, const struct WorkSpaceLayout *layout_old,
         struct wmWindow *win) ATTR_NONNULL();
 bool ED_workspace_layout_delete(

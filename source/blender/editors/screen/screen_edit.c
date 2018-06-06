@@ -1399,6 +1399,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
  */
 ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const short state)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	WorkSpace *workspace = WM_window_get_active_workspace(win);
 	bScreen *sc, *oldscreen;
@@ -1489,7 +1490,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		oldscreen->state = state;
 		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name + 2, "nonnormal");
 
-		layout_new = ED_workspace_layout_add(workspace, win, newname);
+		layout_new = ED_workspace_layout_add(bmain, workspace, win, newname);
 
 		sc = BKE_workspace_layout_screen_get(layout_new);
 		sc->state = state;

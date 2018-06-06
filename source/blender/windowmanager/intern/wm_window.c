@@ -288,6 +288,7 @@ static wmWindow *wm_window_new_test(bContext *C)
 /* part of wm_window.c api */
 wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_layout)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win_dst = wm_window_new(C);
 	WorkSpace *workspace = WM_window_get_active_workspace(win_src);
 	WorkSpaceLayout *layout_old = WM_window_get_active_layout(win_src);
@@ -301,7 +302,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 
 	win_dst->scene = scene;
 	WM_window_set_active_workspace(win_dst, workspace);
-	layout_new = duplicate_layout ? ED_workspace_layout_duplicate(workspace, layout_old, win_dst) : layout_old;
+	layout_new = duplicate_layout ? ED_workspace_layout_duplicate(bmain, workspace, layout_old, win_dst) : layout_old;
 	WM_window_set_active_layout(win_dst, workspace, layout_new);
 
 	*win_dst->stereo3d_format = *win_src->stereo3d_format;
@@ -906,7 +907,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 	if (screen == NULL) {
 		/* add new screen layout */
 		WorkSpace *workspace = WM_window_get_active_workspace(win);
-		WorkSpaceLayout *layout = ED_workspace_layout_add(workspace, win, "temp");
+		WorkSpaceLayout *layout = ED_workspace_layout_add(bmain, workspace, win, "temp");
 
 		screen = BKE_workspace_layout_screen_get(layout);
 		WM_window_set_active_layout(win, workspace, layout);
@@ -1031,6 +1032,7 @@ static WorkSpaceLayout *wm_window_new_find_layout(wmOperator *op, WorkSpace *wor
 /* new window operator callback */
 int wm_window_new_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win_src = CTX_wm_window(C);
 	WorkSpace *workspace = WM_window_get_active_workspace(win_src);
 	WorkSpaceLayout *layout_new = wm_window_new_find_layout(op, workspace);
@@ -1040,7 +1042,7 @@ int wm_window_new_exec(bContext *C, wmOperator *op)
 	if ((win_dst = wm_window_new_test(C))) {
 		if (screen_new->winid) {
 			/* layout/screen is already used, duplicate it */
-			layout_new = ED_workspace_layout_duplicate(workspace, layout_new, win_dst);
+			layout_new = ED_workspace_layout_duplicate(bmain, workspace, layout_new, win_dst);
 			screen_new = BKE_workspace_layout_screen_get(layout_new);
 		}
 		/* New window with a different screen but same workspace */
