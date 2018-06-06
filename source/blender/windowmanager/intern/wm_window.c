@@ -249,6 +249,7 @@ wmWindow *wm_window_new(bContext *C)
 /* part of wm_window.c api */
 wmWindow *wm_window_copy(bContext *C, wmWindow *win_src)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win_dst = wm_window_new(C);
 	
 	win_dst->posx = win_src->posx + 10;
@@ -257,7 +258,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src)
 	win_dst->sizey = win_src->sizey;
 	
 	/* duplicate assigns to window */
-	win_dst->screen = ED_screen_duplicate(win_dst, win_src->screen);
+	win_dst->screen = ED_screen_duplicate(bmain, win_dst, win_src->screen);
 	BLI_strncpy(win_dst->screenname, win_dst->screen->id.name + 2, sizeof(win_dst->screenname));
 	win_dst->screen->winid = win_dst->winid;
 
@@ -793,6 +794,7 @@ wmWindow *WM_window_open(bContext *C, const rcti *rect)
  */
 wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, int type)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win_prev = CTX_wm_window(C);
 	wmWindow *win;
 	ScrArea *sa;
@@ -839,7 +841,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 	
 	if (win->screen == NULL) {
 		/* add new screen */
-		win->screen = ED_screen_add(win, scene, "temp");
+		win->screen = ED_screen_add(bmain, win, scene, "temp");
 	}
 	else {
 		/* switch scene for rendering */

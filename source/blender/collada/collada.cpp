@@ -48,7 +48,8 @@ int collada_import(bContext *C, ImportSettings *import_settings)
 	return (imp.import())? 1:0;
 }
 
-int collada_export(EvaluationContext *eval_ctx,
+int collada_export(bContext *C,
+                   EvaluationContext *eval_ctx,
                    Scene *sce,
                    ExportSettings *export_settings)
 {
@@ -75,7 +76,7 @@ int collada_export(EvaluationContext *eval_ctx,
 	}
 
 	DocumentExporter exporter(export_settings);
-	int status = exporter.exportCurrentScene(eval_ctx, sce);
+	int status = exporter.exportCurrentScene(C, eval_ctx, sce);
 
 	BLI_linklist_free(export_settings->export_set, NULL);
 

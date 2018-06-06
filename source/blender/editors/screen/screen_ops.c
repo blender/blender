@@ -1007,6 +1007,7 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 /* operator callback */
 static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *newwin, *win;
 	bScreen *newsc, *sc;
 	ScrArea *sa;
@@ -1041,7 +1042,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	*newwin->stereo3d_format = *win->stereo3d_format;
 
 	/* allocs new screen and adds to newly created window, using window size */
-	newsc = ED_screen_add(newwin, CTX_data_scene(C), sc->id.name + 2);
+	newsc = ED_screen_add(bmain, newwin, CTX_data_scene(C), sc->id.name + 2);
 	newwin->screen = newsc;
 
 	/* copy area to new screen */
@@ -4066,10 +4067,11 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 
 static int screen_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win = CTX_wm_window(C);
 	bScreen *sc = CTX_wm_screen(C);
 
-	sc = ED_screen_duplicate(win, sc);
+	sc = ED_screen_duplicate(bmain, win, sc);
 	WM_event_add_notifier(C, NC_SCREEN | ND_SCREENBROWSE, sc);
 
 	return OPERATOR_FINISHED;

@@ -301,7 +301,7 @@ static int return_editcurve_indexar(
 	return totvert;
 }
 
-static bool object_hook_index_array(Scene *scene, Object *obedit,
+static bool object_hook_index_array(Main *bmain, Scene *scene, Object *obedit,
                                     int *r_tot, int **r_indexar, char *r_name, float r_cent[3])
 {
 	*r_indexar = NULL;
@@ -333,7 +333,7 @@ static bool object_hook_index_array(Scene *scene, Object *obedit,
 		}
 		case OB_CURVE:
 		case OB_SURF:
-			ED_curve_editnurb_load(obedit);
+			ED_curve_editnurb_load(bmain, obedit);
 			ED_curve_editnurb_make(obedit);
 			return return_editcurve_indexar(obedit, r_tot, r_indexar, r_cent);
 		case OB_LATTICE:
@@ -473,7 +473,7 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 	int tot, ok, *indexar;
 	char name[MAX_NAME];
 
-	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
+	ok = object_hook_index_array(bmain, scene, obedit, &tot, &indexar, name, cent);
 
 	if (!ok) {
 		BKE_report(reports, RPT_ERROR, "Requires selected vertices or active vertex group");
@@ -809,6 +809,7 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 
 static int object_hook_assign_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
 	int num = RNA_enum_get(op->ptr, "modifier");
@@ -826,7 +827,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 
 	/* assign functionality */
 
-	if (!object_hook_index_array(scene, ob, &tot, &indexar, name, cent)) {
+	if (!object_hook_index_array(bmain, scene, ob, &tot, &indexar, name, cent)) {
 		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
 		return OPERATOR_CANCELLED;
 	}

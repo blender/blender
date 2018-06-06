@@ -52,7 +52,8 @@ struct Scene;
 int collada_import(struct bContext *C,
 				   ImportSettings *import_settings);
 
-int collada_export(struct EvaluationContext *eval_ctx,
+int collada_export(struct bContext *C,
+                   struct EvaluationContext *eval_ctx,
                    struct Scene *sce,
                    ExportSettings *export_settings);
 

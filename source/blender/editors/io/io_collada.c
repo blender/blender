@@ -205,10 +205,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
 
-	export_count = collada_export(eval_ctx,
-		scene,
-		&export_settings
-	);
+	export_count = collada_export(
+	                   C,
+	                   eval_ctx,
+	                   scene,
+	                   &export_settings);
 
 	if (export_count == 0) {
 		BKE_report(op->reports, RPT_WARNING, "No objects selected -- Created empty export file");

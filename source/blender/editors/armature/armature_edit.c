@@ -49,6 +49,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -66,7 +67,7 @@
 /* ************************** Object Tools Exports ******************************* */
 /* NOTE: these functions are exported to the Object module to be called from the tools there */
 
-void ED_armature_transform_apply(Object *ob, float mat[4][4], const bool do_props)
+void ED_armature_transform_apply(Main *bmain, Object *ob, float mat[4][4], const bool do_props)
 {
 	bArmature *arm = ob->data;
 
@@ -77,7 +78,7 @@ void ED_armature_transform_apply(Object *ob, float mat[4][4], const bool do_prop
 	ED_armature_transform_bones(arm, mat, do_props);
 
 	/* Turn the list into an armature */
-	ED_armature_from_edit(arm);
+	ED_armature_from_edit(bmain, arm);
 	ED_armature_edit_free(arm);
 }
 
@@ -118,7 +119,7 @@ void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4], const b
 	}
 }
 
-void ED_armature_transform(struct bArmature *arm, float mat[4][4], const bool do_props)
+void ED_armature_transform(Main *bmain, bArmature *arm, float mat[4][4], const bool do_props)
 {
 	if (arm->edbo) {
 		ED_armature_transform_bones(arm, mat, do_props);
@@ -131,14 +132,14 @@ void ED_armature_transform(struct bArmature *arm, float mat[4][4], const bool do
 		ED_armature_transform_bones(arm, mat, do_props);
 
 		/* Go back to object mode*/
-		ED_armature_from_edit(arm);
+		ED_armature_from_edit(bmain, arm);
 		ED_armature_edit_free(arm);
 	}
 }
 
 /* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
-void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int centermode, int around)
+void ED_armature_origin_set(Main *bmain, Scene *scene, Object *ob, float cursor[3], int centermode, int around)
 {
 	Object *obedit = scene->obedit; // XXX get from context
 	EditBone *ebone;
@@ -189,7 +190,7 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 
 	/* Turn the list into an armature */
 	if (obedit == NULL) {
-		ED_armature_from_edit(arm);
+		ED_armature_from_edit(bmain, arm);
 		ED_armature_edit_free(arm);
 	}
 
