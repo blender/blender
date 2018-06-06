@@ -25,7 +25,6 @@
 
 #include "abc_object.h"
 
-struct DerivedMesh;
 struct ParticleSettings;
 struct ParticleSystem;
 
@@ -51,14 +50,14 @@ public:
 private:
 	virtual void do_write();
 
-	void write_hair_sample(DerivedMesh *dm,
+	void write_hair_sample(struct Mesh *mesh,
 	                       ParticleSettings *part,
 	                       std::vector<Imath::V3f> &verts,
 	                       std::vector<Imath::V3f> &norm_values,
 	                       std::vector<Imath::V2f> &uv_values,
 	                       std::vector<int32_t> &hvertices);
 
-	void write_hair_child_sample(DerivedMesh *dm,
+	void write_hair_child_sample(struct Mesh *mesh,
 	                             ParticleSettings *part,
 	                             std::vector<Imath::V3f> &verts,
 	                             std::vector<Imath::V3f> &norm_values,

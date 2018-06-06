@@ -30,6 +30,7 @@
 extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
@@ -37,10 +38,10 @@ extern "C" {
 #include "BLI_math_geom.h"
 #include "BLI_string.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -103,27 +104,27 @@ using Alembic::AbcGeom::IN3fGeomParam;
 
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
 
-static void get_vertices(DerivedMesh *dm, std::vector<Imath::V3f> &points)
+static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
 {
 	points.clear();
-	points.resize(dm->getNumVerts(dm));
+	points.resize(mesh->totvert);
 
-	MVert *verts = dm->getVertArray(dm);
+	MVert *verts = mesh->mvert;
 
-	for (int i = 0, e = dm->getNumVerts(dm); i < e; ++i) {
+	for (int i = 0, e = mesh->totvert; i < e; ++i) {
 		copy_yup_from_zup(points[i].getValue(), verts[i].co);
 	}
 }
 
-static void get_topology(DerivedMesh *dm,
+static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &poly_verts,
                          std::vector<int32_t> &loop_counts,
                          bool &smooth_normal)
 {
-	const int num_poly = dm->getNumPolys(dm);
-	const int num_loops = dm->getNumLoops(dm);
-	MLoop *mloop = dm->getLoopArray(dm);
-	MPoly *mpoly = dm->getPolyArray(dm);
+	const int num_poly = mesh->totpoly;
+	const int num_loops = mesh->totloop;
+	MLoop *mloop = mesh->mloop;
+	MPoly *mpoly = mesh->mpoly;
 
 	poly_verts.clear();
 	loop_counts.clear();
@@ -145,7 +146,7 @@ static void get_topology(DerivedMesh *dm,
 	}
 }
 
-static void get_creases(DerivedMesh *dm,
+static void get_creases(struct Mesh *mesh,
                         std::vector<int32_t> &indices,
                         std::vector<int32_t> &lengths,
                         std::vector<float> &sharpnesses)
@@ -156,9 +157,9 @@ static void get_creases(DerivedMesh *dm,
 	lengths.clear();
 	sharpnesses.clear();
 
-	MEdge *edge = dm->getEdgeArray(dm);
+	MEdge *edge = mesh->medge;
 
-	for (int i = 0, e = dm->getNumEdges(dm); i < e; ++i) {
+	for (int i = 0, e = mesh->totedge; i < e; ++i) {
 		const float sharpness = static_cast<float>(edge[i].crease) * factor;
 
 		if (sharpness != 0.0f) {
@@ -171,41 +172,40 @@ static void get_creases(DerivedMesh *dm,
 	lengths.resize(sharpnesses.size(), 2);
 }
 
-static void get_vertex_normals(DerivedMesh *dm, std::vector<Imath::V3f> &normals)
+static void get_vertex_normals(struct Mesh *mesh, std::vector<Imath::V3f> &normals)
 {
 	normals.clear();
-	normals.resize(dm->getNumVerts(dm));
+	normals.resize(mesh->totvert);
 
-	MVert *verts = dm->getVertArray(dm);
+	MVert *verts = mesh->mvert;
 	float no[3];
 
-	for (int i = 0, e = dm->getNumVerts(dm); i < e; ++i) {
+	for (int i = 0, e = mesh->totvert; i < e; ++i) {
 		normal_short_to_float_v3(no, verts[i].no);
 		copy_yup_from_zup(normals[i].getValue(), no);
 	}
 }
 
-static void get_loop_normals(DerivedMesh *dm, std::vector<Imath::V3f> &normals)
+static void get_loop_normals(struct Mesh *mesh, std::vector<Imath::V3f> &normals)
 {
-	MPoly *mpoly = dm->getPolyArray(dm);
-	MPoly *mp = mpoly;
+	MPoly *mp = mesh->mpoly;
 
-	MLoop *mloop = dm->getLoopArray(dm);
+	MLoop *mloop = mesh->mloop;
 	MLoop *ml = mloop;
 
-	MVert *verts = dm->getVertArray(dm);
+	MVert *verts = mesh->mvert;
 
-	const float (*lnors)[3] = static_cast<float(*)[3]>(dm->getLoopDataArray(dm, CD_NORMAL));
+	const float (*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
 
 	normals.clear();
-	normals.resize(dm->getNumLoops(dm));
+	normals.resize(mesh->totloop);
 
 	unsigned loop_index = 0;
 
 	/* NOTE: data needs to be written in the reverse order. */
 
 	if (lnors) {
-		for (int i = 0, e = dm->getNumPolys(dm); i < e; ++i, ++mp) {
+		for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mp) {
 			ml = mloop + mp->loopstart + (mp->totloop - 1);
 
 			for (int j = 0; j < mp->totloop; --ml, ++j, ++loop_index) {
@@ -217,7 +217,7 @@ static void get_loop_normals(DerivedMesh *dm, std::vector<Imath::V3f> &normals)
 	else {
 		float no[3];
 
-		for (int i = 0, e = dm->getNumPolys(dm); i < e; ++i, ++mp) {
+		for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mp) {
 			ml = mloop + mp->loopstart + (mp->totloop - 1);
 
 			/* Flat shaded, use common normal for all verts. */
@@ -369,36 +369,36 @@ void AbcMeshWriter::do_write()
 	if (!m_first_frame && !m_is_animated)
 		return;
 
-	DerivedMesh *dm = getFinalMesh();
+	struct Mesh *mesh = getFinalMesh();
 
 	try {
 		if (m_settings.use_subdiv_schema && m_subdiv_schema.valid()) {
-			writeSubD(dm);
+			writeSubD(mesh);
 		}
 		else {
-			writeMesh(dm);
+			writeMesh(mesh);
 		}
 
-		freeMesh(dm);
+		freeMesh(mesh);
 	}
 	catch (...) {
-		freeMesh(dm);
+		freeMesh(mesh);
 		throw;
 	}
 }
 
-void AbcMeshWriter::writeMesh(DerivedMesh *dm)
+void AbcMeshWriter::writeMesh(struct Mesh *mesh)
 {
 	std::vector<Imath::V3f> points, normals;
 	std::vector<int32_t> poly_verts, loop_counts;
 
 	bool smooth_normal = false;
 
-	get_vertices(dm, points);
-	get_topology(dm, poly_verts, loop_counts, smooth_normal);
+	get_vertices(mesh, points);
+	get_topology(mesh, poly_verts, loop_counts, smooth_normal);
 
 	if (m_first_frame && m_settings.export_face_sets) {
-		writeFaceSets(dm, m_mesh_schema);
+		writeFaceSets(mesh, m_mesh_schema);
 	}
 
 	m_mesh_sample = OPolyMeshSchema::Sample(V3fArraySample(points),
@@ -407,7 +407,7 @@ void AbcMeshWriter::writeMesh(DerivedMesh *dm)
 
 	UVSample sample;
 	if (m_first_frame && m_settings.export_uvs) {
-		const char *name = get_uv_sample(sample, m_custom_data_config, &dm->loopData);
+		const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
 
 		if (!sample.indices.empty() && !sample.uvs.empty()) {
 			OV2fGeomParam::Sample uv_sample;
@@ -419,15 +419,15 @@ void AbcMeshWriter::writeMesh(DerivedMesh *dm)
 			m_mesh_sample.setUVs(uv_sample);
 		}
 
-		write_custom_data(m_mesh_schema.getArbGeomParams(), m_custom_data_config, &dm->loopData, CD_MLOOPUV);
+		write_custom_data(m_mesh_schema.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
 	}
 
 	if (m_settings.export_normals) {
 		if (smooth_normal) {
-			get_loop_normals(dm, normals);
+			get_loop_normals(mesh, normals);
 		}
 		else {
-			get_vertex_normals(dm, normals);
+			get_vertex_normals(mesh, normals);
 		}
 
 		ON3fGeomParam::Sample normals_sample;
@@ -441,7 +441,7 @@ void AbcMeshWriter::writeMesh(DerivedMesh *dm)
 
 	if (m_is_liquid) {
 		std::vector<Imath::V3f> velocities;
-		getVelocities(dm, velocities);
+		getVelocities(mesh, velocities);
 
 		m_mesh_sample.setVelocities(V3fArraySample(velocities));
 	}
@@ -450,10 +450,10 @@ void AbcMeshWriter::writeMesh(DerivedMesh *dm)
 
 	m_mesh_schema.set(m_mesh_sample);
 
-	writeArbGeoParams(dm);
+	writeArbGeoParams(mesh);
 }
 
-void AbcMeshWriter::writeSubD(DerivedMesh *dm)
+void AbcMeshWriter::writeSubD(struct Mesh *mesh)
 {
 	std::vector<float> crease_sharpness;
 	std::vector<Imath::V3f> points;
@@ -462,12 +462,12 @@ void AbcMeshWriter::writeSubD(DerivedMesh *dm)
 
 	bool smooth_normal = false;
 
-	get_vertices(dm, points);
-	get_topology(dm, poly_verts, loop_counts, smooth_normal);
-	get_creases(dm, crease_indices, crease_lengths, crease_sharpness);
+	get_vertices(mesh, points);
+	get_topology(mesh, poly_verts, loop_counts, smooth_normal);
+	get_creases(mesh, crease_indices, crease_lengths, crease_sharpness);
 
 	if (m_first_frame && m_settings.export_face_sets) {
-		writeFaceSets(dm, m_subdiv_schema);
+		writeFaceSets(mesh, m_subdiv_schema);
 	}
 
 	m_subdiv_sample = OSubDSchema::Sample(V3fArraySample(points),
@@ -476,7 +476,7 @@ void AbcMeshWriter::writeSubD(DerivedMesh *dm)
 
 	UVSample sample;
 	if (m_first_frame && m_settings.export_uvs) {
-		const char *name = get_uv_sample(sample, m_custom_data_config, &dm->loopData);
+		const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
 
 		if (!sample.indices.empty() && !sample.uvs.empty()) {
 			OV2fGeomParam::Sample uv_sample;
@@ -488,7 +488,7 @@ void AbcMeshWriter::writeSubD(DerivedMesh *dm)
 			m_subdiv_sample.setUVs(uv_sample);
 		}
 
-		write_custom_data(m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &dm->loopData, CD_MLOOPUV);
+		write_custom_data(m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
 	}
 
 	if (!crease_indices.empty()) {
@@ -500,11 +500,11 @@ void AbcMeshWriter::writeSubD(DerivedMesh *dm)
 	m_subdiv_sample.setSelfBounds(bounds());
 	m_subdiv_schema.set(m_subdiv_sample);
 
-	writeArbGeoParams(dm);
+	writeArbGeoParams(mesh);
 }
 
 template <typename Schema>
-void AbcMeshWriter::writeFaceSets(DerivedMesh *dm, Schema &schema)
+void AbcMeshWriter::writeFaceSets(struct Mesh *dm, Schema &schema)
 {
 	std::map< std::string, std::vector<int32_t> > geo_groups;
 	getGeoGroups(dm, geo_groups);
@@ -518,14 +518,14 @@ void AbcMeshWriter::writeFaceSets(DerivedMesh *dm, Schema &schema)
 	}
 }
 
-DerivedMesh *AbcMeshWriter::getFinalMesh()
+Mesh *AbcMeshWriter::getFinalMesh()
 {
 	/* We don't want subdivided mesh data */
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
 	}
 
-	DerivedMesh *dm = mesh_create_derived_render(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
+	struct Mesh *mesh = mesh_get_eval_final(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
 
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
@@ -536,34 +536,37 @@ DerivedMesh *AbcMeshWriter::getFinalMesh()
 		const int quad_method = m_settings.quad_method;
 		const int ngon_method = m_settings.ngon_method;
 
-		BMesh *bm = DM_to_bmesh(dm, true);
+		struct BMeshCreateParams bmcp = {.use_toolflags = false,};
+		struct BMeshFromMeshParams bmfmp = {.calc_face_normal = true,};
+		BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
 
 		BM_mesh_triangulate(bm, quad_method, ngon_method, tag_only, NULL, NULL, NULL);
 
-		DerivedMesh *result = CDDM_from_bmesh(bm, false);
+		struct BMeshToMeshParams bmmp = {0};
+		Mesh *result = BKE_bmesh_to_mesh_nomain(bm, &bmmp);
 		BM_mesh_free(bm);
 
-		freeMesh(dm);
+		freeMesh(mesh);
 
-		dm = result;
+		mesh = result;
 	}
 
 	m_custom_data_config.pack_uvs = m_settings.pack_uv;
-	m_custom_data_config.mpoly = dm->getPolyArray(dm);
-	m_custom_data_config.mloop = dm->getLoopArray(dm);
-	m_custom_data_config.totpoly = dm->getNumPolys(dm);
-	m_custom_data_config.totloop = dm->getNumLoops(dm);
-	m_custom_data_config.totvert = dm->getNumVerts(dm);
+	m_custom_data_config.mpoly = mesh->mpoly;
+	m_custom_data_config.mloop = mesh->mloop;
+	m_custom_data_config.totpoly = mesh->totpoly;
+	m_custom_data_config.totloop = mesh->totloop;
+	m_custom_data_config.totvert = mesh->totvert;
 
-	return dm;
+	return mesh;
 }
 
-void AbcMeshWriter::freeMesh(DerivedMesh *dm)
+void AbcMeshWriter::freeMesh(struct Mesh *mesh)
 {
-	dm->release(dm);
+	BKE_id_free(NULL, mesh);
 }
 
-void AbcMeshWriter::writeArbGeoParams(DerivedMesh *dm)
+void AbcMeshWriter::writeArbGeoParams(struct Mesh *dm)
 {
 	if (m_is_liquid) {
 		/* We don't need anything more for liquid meshes. */
@@ -572,17 +575,17 @@ void AbcMeshWriter::writeArbGeoParams(DerivedMesh *dm)
 
 	if (m_first_frame && m_settings.export_vcols) {
 		if (m_subdiv_schema.valid()) {
-			write_custom_data(m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &dm->loopData, CD_MLOOPCOL);
+			write_custom_data(m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &dm->ldata, CD_MLOOPCOL);
 		}
 		else {
-			write_custom_data(m_mesh_schema.getArbGeomParams(), m_custom_data_config, &dm->loopData, CD_MLOOPCOL);
+			write_custom_data(m_mesh_schema.getArbGeomParams(), m_custom_data_config, &dm->ldata, CD_MLOOPCOL);
 		}
 	}
 }
 
-void AbcMeshWriter::getVelocities(DerivedMesh *dm, std::vector<Imath::V3f> &vels)
+void AbcMeshWriter::getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels)
 {
-	const int totverts = dm->getNumVerts(dm);
+	const int totverts = mesh->totvert;
 
 	vels.clear();
 	vels.resize(totverts);
@@ -605,11 +608,11 @@ void AbcMeshWriter::getVelocities(DerivedMesh *dm, std::vector<Imath::V3f> &vels
 }
 
 void AbcMeshWriter::getGeoGroups(
-        DerivedMesh *dm,
+        struct Mesh *mesh,
         std::map<std::string, std::vector<int32_t> > &geo_groups)
 {
-	const int num_poly = dm->getNumPolys(dm);
-	MPoly *polygons = dm->getPolyArray(dm);
+	const int num_poly = mesh->totpoly;
+	MPoly *polygons = mesh->mpoly;
 
 	for (int i = 0; i < num_poly; ++i) {
 		MPoly &current_poly = polygons[i];
@@ -638,7 +641,7 @@ void AbcMeshWriter::getGeoGroups(
 
 		std::vector<int32_t> faceArray;
 
-		for (int i = 0, e = dm->getNumTessFaces(dm); i < e; ++i) {
+		for (int i = 0, e = mesh->totface; i < e; ++i) {
 			faceArray.push_back(i);
 		}
 

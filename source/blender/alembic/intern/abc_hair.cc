@@ -30,12 +30,16 @@
 extern "C" {
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 }
@@ -77,8 +81,8 @@ void AbcHairWriter::do_write()
 		return;
 	}
 
-	DerivedMesh *dm = mesh_create_derived_render(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
-	DM_ensure_tessface(dm);
+	Mesh *mesh = mesh_get_eval_final(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
+	BKE_mesh_tessface_ensure(mesh);
 
 	std::vector<Imath::V3f> verts;
 	std::vector<int32_t> hvertices;
@@ -88,14 +92,14 @@ void AbcHairWriter::do_write()
 	if (m_psys->pathcache) {
 		ParticleSettings *part = m_psys->part;
 
-		write_hair_sample(dm, part, verts, norm_values, uv_values, hvertices);
+		write_hair_sample(mesh, part, verts, norm_values, uv_values, hvertices);
 
 		if (m_settings.export_child_hairs && m_psys->childcache) {
-			write_hair_child_sample(dm, part, verts, norm_values, uv_values, hvertices);
+			write_hair_child_sample(mesh, part, verts, norm_values, uv_values, hvertices);
 		}
 	}
 
-	dm->release(dm);
+	BKE_id_free(NULL, mesh);
 
 	Alembic::Abc::P3fArraySample iPos(verts);
 	m_sample = OCurvesSchema::Sample(iPos, hvertices);
@@ -119,7 +123,7 @@ void AbcHairWriter::do_write()
 	m_schema.set(m_sample);
 }
 
-void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
+void AbcHairWriter::write_hair_sample(Mesh *mesh,
                                       ParticleSettings *part,
                                       std::vector<Imath::V3f> &verts,
                                       std::vector<Imath::V3f> &norm_values,
@@ -130,9 +134,9 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 	float inv_mat[4][4];
 	invert_m4_m4_safe(inv_mat, m_object->obmat);
 
-	MTFace *mtface = static_cast<MTFace *>(CustomData_get_layer(&dm->faceData, CD_MTFACE));
-	MFace *mface = dm->getTessFaceArray(dm);
-	MVert *mverts = dm->getVertArray(dm);
+	MTFace *mtface = mesh->mtface;
+	MFace *mface = mesh->mface;
+	MVert *mverts = mesh->mvert;
 
 	if ((!mtface || !mface) && !m_uv_warning_shown) {
 		std::fprintf(stderr, "Warning, no UV set found for underlying geometry of %s.\n",
@@ -155,8 +159,9 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 		if (part->from == PART_FROM_FACE && mtface) {
 			const int num = pa->num_dmcache >= 0 ? pa->num_dmcache : pa->num;
 
-			if (num < dm->getNumTessFaces(dm)) {
-				MFace *face = static_cast<MFace *>(dm->getTessFaceData(dm, num, CD_MFACE));
+			if (num < mesh->totface) {
+				/* TODO(Sybren): check whether the NULL check here and if(mface) are actually required */
+				MFace *face = mface == NULL ? NULL : &mface[num];
 				MTFace *tface = mtface + num;
 
 				if (mface) {
@@ -172,7 +177,7 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 				}
 			}
 			else {
-				std::fprintf(stderr, "Particle to faces overflow (%d/%d)\n", num, dm->getNumTessFaces(dm));
+				std::fprintf(stderr, "Particle to faces overflow (%d/%d)\n", num, mesh->totface);
 			}
 		}
 		else if (part->from == PART_FROM_VERT && mtface) {
@@ -180,8 +185,8 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 			const int num = (pa->num_dmcache >= 0) ? pa->num_dmcache : pa->num;
 
 			/* iterate over all faces to find a corresponding underlying UV */
-			for (int n = 0; n < dm->getNumTessFaces(dm); ++n) {
-				MFace *face  = static_cast<MFace *>(dm->getTessFaceData(dm, n, CD_MFACE));
+			for (int n = 0; n < mesh->totface; ++n) {
+				MFace *face  = &mface[n];
 				MTFace *tface = mtface + n;
 				unsigned int vtx[4];
 				vtx[0] = face->v1;
@@ -230,7 +235,7 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 	}
 }
 
-void AbcHairWriter::write_hair_child_sample(DerivedMesh *dm,
+void AbcHairWriter::write_hair_child_sample(Mesh *mesh,
                                             ParticleSettings *part,
                                             std::vector<Imath::V3f> &verts,
                                             std::vector<Imath::V3f> &norm_values,
@@ -241,8 +246,8 @@ void AbcHairWriter::write_hair_child_sample(DerivedMesh *dm,
 	float inv_mat[4][4];
 	invert_m4_m4_safe(inv_mat, m_object->obmat);
 
-	MTFace *mtface = static_cast<MTFace *>(CustomData_get_layer(&dm->faceData, CD_MTFACE));
-	MVert *mverts = dm->getVertArray(dm);
+	MTFace *mtface = mesh->mtface;
+	MVert *mverts = mesh->mvert;
 
 	ParticleCacheKey **cache = m_psys->childcache;
 	ParticleCacheKey *path;
@@ -265,7 +270,7 @@ void AbcHairWriter::write_hair_child_sample(DerivedMesh *dm,
 				continue;
 			}
 
-			MFace *face = static_cast<MFace *>(dm->getTessFaceData(dm, num, CD_MFACE));
+			MFace *face = &mesh->mface[num];
 			MTFace *tface = mtface + num;
 
 			float r_uv[2], tmpnor[3], mapfw[4], vec[3];
