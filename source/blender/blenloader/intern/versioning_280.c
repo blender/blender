@@ -97,6 +97,9 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		Scene *scene = screen->scene;
 		WorkSpace *workspace;
 		ViewLayer *layer = BLI_findlink(&scene->view_layers, scene->r.actlay);
+		if (screen->temp) {
+			continue;
+		}
 		if (!layer) {
 			layer = BKE_view_layer_default_view(scene);
 		}
