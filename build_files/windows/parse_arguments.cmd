@@ -53,6 +53,10 @@ if NOT "%1" == "" (
 	) else if "%1" == "2017pre" (
 		set BUILD_VS_YEAR=2017
 		set VSWHERE_ARGS=-prerelease
+		set BUILD_VS_YEAR=2017
+	) else if "%1" == "2017b" (
+		set BUILD_VS_YEAR=2017
+		set VSWHERE_ARGS=-products Microsoft.VisualStudio.Product.BuildTools
 	) else if "%1" == "2015" (
 		set BUILD_VS_YEAR=2015
 	) else if "%1" == "2013" (

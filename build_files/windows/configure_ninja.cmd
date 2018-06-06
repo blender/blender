@@ -1,3 +1,9 @@
+ninja --version 1>NUL 2>&1
+if %ERRORLEVEL% NEQ 0 (
+		echo "Ninja not detected in the path"
+		exit /b 1
+	)
+
 set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -G "Ninja" %TESTS_CMAKE_ARGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE%
 
 if "%WITH_CLANG%" == "1" (
