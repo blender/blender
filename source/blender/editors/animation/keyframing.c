@@ -616,12 +616,14 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 /* ------------------ RNA Data-Access Functions ------------------ */
 
 /* Try to read value using RNA-properties obtained already */
-static float setting_get_rna_value(Depsgraph *depsgraph, PointerRNA *ptr, PropertyRNA *prop, int index)
+static float setting_get_rna_value(Depsgraph *depsgraph, PointerRNA *ptr, PropertyRNA *prop, int index, const bool get_evaluated)
 {
-	PointerRNA ptr_eval;
+	PointerRNA ptr_eval = *ptr;
 	float value = 0.0f;
 
-	DEG_get_evaluated_rna_pointer(depsgraph, ptr, &ptr_eval);
+	if (get_evaluated) {
+		DEG_get_evaluated_rna_pointer(depsgraph, ptr, &ptr_eval);
+	}
 
 	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
@@ -847,7 +849,7 @@ static float visualkey_get_value(Depsgraph *depsgraph, PointerRNA *ptr, Property
 		}
 	}
 	else {
-		return setting_get_rna_value(depsgraph, ptr, prop, array_index);
+		return setting_get_rna_value(depsgraph, ptr, prop, array_index, true);
 	}
 
 	/* Rot/Scale code are common! */
@@ -885,7 +887,7 @@ static float visualkey_get_value(Depsgraph *depsgraph, PointerRNA *ptr, Property
 	}
 
 	/* as the function hasn't returned yet, read value from system in the default way */
-	return setting_get_rna_value(depsgraph, ptr, prop, array_index);
+	return setting_get_rna_value(depsgraph, ptr, prop, array_index, true);
 }
 
 /* ------------------------- Insert Key API ------------------------- */
@@ -970,7 +972,7 @@ bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRN
 	}
 	else {
 		/* read value from system */
-		curval = setting_get_rna_value(depsgraph, &ptr, prop, fcu->array_index);
+		curval = setting_get_rna_value(depsgraph, &ptr, prop, fcu->array_index, false);
 	}
 
 	/* only insert keyframes where they are needed */
