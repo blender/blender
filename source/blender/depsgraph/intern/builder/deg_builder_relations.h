@@ -248,7 +248,7 @@ struct DepsgraphRelationBuilder
 	                         RootPChanMap *root_map);
 	void build_rig(Object *object);
 	void build_proxy_rig(Object *object);
-	void build_shapekeys(ID *obdata, Key *key);
+	void build_shapekeys(Key *key);
 	void build_armature(bArmature *armature);
 	void build_camera(Camera *camera);
 	void build_lamp(Lamp *lamp);

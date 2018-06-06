@@ -1646,27 +1646,13 @@ void DepsgraphRelationBuilder::build_cloth(Object *object,
 }
 
 /* Shapekeys */
-void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
+void DepsgraphRelationBuilder::build_shapekeys(Key *key)
 {
-	ComponentKey obdata_key(obdata, DEG_NODE_TYPE_GEOMETRY);
-
+	if (built_map_.checkIsBuiltAndTag(key)) {
+		return;
+	}
 	/* attach animdata to geometry */
 	build_animdata(&key->id);
-
-	if (key->adt) {
-		// TODO: this should really be handled in build_animdata, since many of these cases will need it
-		if (key->adt->action || key->adt->nla_tracks.first) {
-			ComponentKey adt_key(&key->id, DEG_NODE_TYPE_ANIMATION);
-			add_relation(adt_key, obdata_key, "Animation");
-		}
-
-		/* NOTE: individual shapekey drivers are handled above already */
-	}
-
-	/* attach to geometry */
-	// XXX: aren't shapekeys now done as a pseudo-modifier on object?
-	//ComponentKey key_key(&key->id, DEG_NODE_TYPE_GEOMETRY); // FIXME: this doesn't exist
-	//add_relation(key_key, obdata_key, "Shapekeys");
 }
 
 /**
@@ -1808,6 +1794,17 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 	}
 	/* Object data datablock. */
 	build_object_data_geometry_datablock((ID *)object->data);
+	Key *key = BKE_key_from_object(object);
+	if (key != NULL) {
+		if (key->adt != NULL) {
+			if (key->adt->action || key->adt->nla_tracks.first) {
+				ComponentKey obdata_key((ID *)object->data,
+				                        DEG_NODE_TYPE_GEOMETRY);
+				ComponentKey adt_key(&key->id, DEG_NODE_TYPE_ANIMATION);
+				add_relation(adt_key, obdata_key, "Animation");
+			}
+		}
+	}
 }
 
 void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
@@ -1820,7 +1817,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 	/* ShapeKeys. */
 	Key *key = BKE_key_from_id(obdata);
 	if (key != NULL) {
-		build_shapekeys(obdata, key);
+		build_shapekeys(key);
 	}
 	/* Link object data evaluation node to exit operation. */
 	OperationKey obdata_geom_eval_key(obdata,

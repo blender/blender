@@ -990,6 +990,9 @@ void DepsgraphNodeBuilder::build_cloth(Object *object)
 /* Shapekeys */
 void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 {
+	if (built_map_.checkIsBuiltAndTag(key)) {
+		return;
+	}
 	build_animdata(&key->id);
 	add_operation_node(&key->id,
 	                   DEG_NODE_TYPE_GEOMETRY,
