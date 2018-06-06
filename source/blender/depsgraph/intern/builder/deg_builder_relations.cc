@@ -1881,6 +1881,14 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 	}
 }
 
+void DepsgraphRelationBuilder::build_armature(bArmature *armature)
+{
+	if (built_map_.checkIsBuiltAndTag(armature)) {
+		return;
+	}
+	build_animdata(&armature->id);
+}
+
 void DepsgraphRelationBuilder::build_camera(Camera *camera)
 {
 	if (built_map_.checkIsBuiltAndTag(camera)) {

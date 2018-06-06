@@ -148,7 +148,6 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	Scene *scene_cow = get_cow_datablock(scene_);
 	Object *object_cow = get_cow_datablock(object);
 	OperationDepsNode *op_node;
-
 	/* Animation and/or drivers linking posebones to base-armature used to
 	 * define them.
 	 *
@@ -158,16 +157,8 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	 *       mechanism in-between here to ensure that we can use same rig
 	 *       multiple times in same scene.
 	 */
-	if (!built_map_.checkIsBuiltAndTag(armature)) {
-		build_animdata(&armature->id);
-		/* Make sure pose is up-to-date with armature updates. */
-		add_operation_node(&armature->id,
-		                   DEG_NODE_TYPE_PARAMETERS,
-		                   NULL,
-		                   DEG_OPCODE_PLACEHOLDER,
-		                   "Armature Eval");
-	}
-
+	/* Armature. */
+	build_armature(armature);
 	/* Rebuild pose if not up to date. */
 	if (object->pose == NULL || (object->pose->flag & POSE_RECALC)) {
 		BKE_pose_rebuild(object, armature);
@@ -179,15 +170,13 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 			object->adt->recalc |= ADT_RECALC_ANIM;
 		}
 	}
-
-	/* speed optimization for animation lookups */
+	/* Speed optimization for animation lookups. */
 	if (object->pose != NULL) {
 		BKE_pose_channels_hash_make(object->pose);
 		if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
 			BKE_pose_update_constraint_flags(object->pose);
 		}
 	}
-
 	/**
 	 * Pose Rig Graph
 	 * ==============
@@ -209,8 +198,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	 *   only so that we can redirect those to point at either the the post-IK/
 	 *   post-constraint/post-matrix steps, as needed.
 	 */
-
-	/* pose eval context */
+	/* Pose eval context. */
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
 	                             function_bind(BKE_pose_eval_init,
@@ -236,8 +224,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	                                           object_cow),
 	                             DEG_OPCODE_POSE_DONE);
 	op_node->set_as_exit();
-
-	/* bones */
+	/* Bones. */
 	int pchan_index = 0;
 	LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 		/* Node for bone evaluation. */
@@ -302,25 +289,23 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 					break;
 			}
 		}
-
 		/* Custom shape. */
 		if (pchan->custom != NULL) {
 			build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY);
 		}
-
 		pchan_index++;
 	}
 }
 
 void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 {
-	bArmature *arm = (bArmature *)object->data;
+	bArmature *armature = (bArmature *)object->data;
 	OperationDepsNode *op_node;
 	Object *object_cow = get_cow_datablock(object);
 	/* Sanity check. */
 	BLI_assert(object->pose != NULL);
-	/* Animation. */
-	build_animdata(&arm->id);
+	/* Armature. */
+	build_armature(armature);
 	/* speed optimization for animation lookups */
 	BKE_pose_channels_hash_make(object->pose);
 	if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {

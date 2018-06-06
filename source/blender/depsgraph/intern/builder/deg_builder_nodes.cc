@@ -1159,6 +1159,20 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
 	                   DEG_OPCODE_GEOMETRY_SELECT_UPDATE);
 }
 
+void DepsgraphNodeBuilder::build_armature(bArmature *armature)
+{
+	if (built_map_.checkIsBuiltAndTag(armature)) {
+		return;
+	}
+	build_animdata(&armature->id);
+	/* Make sure pose is up-to-date with armature updates. */
+	add_operation_node(&armature->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Armature Eval");
+}
+
 void DepsgraphNodeBuilder::build_camera(Camera *camera)
 {
 	if (built_map_.checkIsBuiltAndTag(camera)) {

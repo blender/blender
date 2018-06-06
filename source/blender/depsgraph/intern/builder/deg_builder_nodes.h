@@ -36,6 +36,7 @@
 #include "DEG_depsgraph.h"
 
 struct Base;
+struct bArmature;
 struct CacheFile;
 struct Camera;
 struct bGPdata;
@@ -192,6 +193,7 @@ struct DepsgraphNodeBuilder {
 	                         bConstraint *con);
 	void build_rig(Object *object);
 	void build_proxy_rig(Object *object);
+	void build_armature(bArmature *armature);
 	void build_shapekeys(Key *key);
 	void build_camera(Camera *camera);
 	void build_lamp(Lamp *lamp);

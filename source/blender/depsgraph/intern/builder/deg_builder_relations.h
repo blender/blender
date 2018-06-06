@@ -49,6 +49,7 @@
 #include "intern/nodes/deg_node_operation.h"
 
 struct Base;
+struct bArmature;
 struct bGPdata;
 struct CacheFile;
 struct Camera;
@@ -248,6 +249,7 @@ struct DepsgraphRelationBuilder
 	void build_rig(Object *object);
 	void build_proxy_rig(Object *object);
 	void build_shapekeys(ID *obdata, Key *key);
+	void build_armature(bArmature *armature);
 	void build_camera(Camera *camera);
 	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
