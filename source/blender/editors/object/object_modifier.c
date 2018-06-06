@@ -573,7 +573,7 @@ static int modifier_apply_shape(ReportList *reports, Depsgraph *depsgraph, Scene
 		}
 
 		kb = BKE_keyblock_add(key, md->name);
-		BKE_nomain_mesh_to_meshkey(mesh_applied, me, kb);
+		BKE_mesh_nomain_to_meshkey(mesh_applied, me, kb);
 
 		BKE_id_free(NULL, mesh_applied);
 	}
@@ -622,7 +622,7 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 				return 0;
 			}
 
-			BKE_nomain_mesh_to_mesh(mesh_applied, me, ob, CD_MASK_MESH, true);
+			BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, CD_MASK_MESH, true);
 
 			if (md->type == eModifierType_Multires)
 				multires_customdata_delete(me);

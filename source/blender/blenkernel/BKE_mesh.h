@@ -178,9 +178,9 @@ struct Mesh *BKE_mesh_create_derived_for_modifier(
         struct ModifierData *md, int build_shapekey_layers);
 
 /* Copies a nomain-Mesh into an existing Mesh. */
-void BKE_nomain_mesh_to_mesh(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct Object *ob,
+void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct Object *ob,
                              CustomDataMask mask, bool take_ownership);
-void BKE_nomain_mesh_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct KeyBlock *kb);
+void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct KeyBlock *kb);
 
 
 /* vertex level transformations & checks (no derived mesh) */
