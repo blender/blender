@@ -37,6 +37,7 @@
 
 struct Base;
 struct CacheFile;
+struct Camera;
 struct bGPdata;
 struct ListBase;
 struct GHash;
@@ -167,6 +168,7 @@ struct DepsgraphNodeBuilder {
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);
 	void build_object_data(Object *object);
+	void build_object_data_camera(Object *object);
 	void build_object_data_lamp(Object *object);
 	void build_object_data_lightprobe(Object *object);
 	void build_object_transform(Object *object);
@@ -190,7 +192,7 @@ struct DepsgraphNodeBuilder {
 	void build_proxy_rig(Object *object);
 	void build_shapekeys(Key *key);
 	void build_obdata_geom(Object *object);
-	void build_camera(Object *object);
+	void build_camera(Camera *camera);
 	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);

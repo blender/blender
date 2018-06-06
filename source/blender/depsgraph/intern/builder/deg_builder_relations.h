@@ -51,6 +51,7 @@
 struct Base;
 struct bGPdata;
 struct CacheFile;
+struct Camera;
 struct ListBase;
 struct GHash;
 struct ID;
@@ -203,6 +204,7 @@ struct DepsgraphRelationBuilder
 	void build_object(Base *base, Object *object);
 	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);
+	void build_object_data_camera(Object *object);
 	void build_object_data_lamp(Object *object);
 	void build_object_data_lightprobe(Object *object);
 	void build_object_parent(Object *object);
@@ -245,7 +247,7 @@ struct DepsgraphRelationBuilder
 	void build_proxy_rig(Object *object);
 	void build_shapekeys(ID *obdata, Key *key);
 	void build_obdata_geom(Object *object);
-	void build_camera(Object *object);
+	void build_camera(Camera *camera);
 	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);

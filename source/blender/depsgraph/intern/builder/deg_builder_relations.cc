@@ -612,7 +612,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 			build_object_data_lamp(object);
 			break;
 		case OB_CAMERA:
-			build_camera(object);
+			build_object_data_camera(object);
 			break;
 		case OB_LIGHTPROBE:
 			build_object_data_lightprobe(object);
@@ -625,6 +625,15 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		add_relation(key_key, geometry_key, "Shapekeys");
 		build_nested_shapekey(&object->id, key);
 	}
+}
+
+void DepsgraphRelationBuilder::build_object_data_camera(Object *object)
+{
+	Camera *camera = (Camera *)object->data;
+	build_camera(camera);
+	ComponentKey object_parameters_key(&object->id, DEG_NODE_TYPE_PARAMETERS);
+	ComponentKey camera_parameters_key(&camera->id, DEG_NODE_TYPE_PARAMETERS);
+	add_relation(camera_parameters_key, object_parameters_key, "Camera -> Object");
 }
 
 void DepsgraphRelationBuilder::build_object_data_lamp(Object *object)
@@ -1859,25 +1868,15 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 	}
 }
 
-/* Cameras */
-// TODO: Link scene-camera links in somehow...
-void DepsgraphRelationBuilder::build_camera(Object *object)
+void DepsgraphRelationBuilder::build_camera(Camera *camera)
 {
-	Camera *camera = (Camera *)object->data;
 	if (built_map_.checkIsBuiltAndTag(camera)) {
 		return;
 	}
-
-	ComponentKey object_parameters_key(&object->id, DEG_NODE_TYPE_PARAMETERS);
-	ComponentKey camera_parameters_key(&camera->id, DEG_NODE_TYPE_PARAMETERS);
-
-	add_relation(camera_parameters_key, object_parameters_key,
-	             "Camera -> Object");
-
-	/* DOF */
 	if (camera->dof_ob != NULL) {
+		ComponentKey camera_parameters_key(&camera->id, DEG_NODE_TYPE_PARAMETERS);
 		ComponentKey dof_ob_key(&camera->dof_ob->id, DEG_NODE_TYPE_TRANSFORM);
-		add_relation(dof_ob_key, object_parameters_key, "Camera DOF");
+		add_relation(dof_ob_key, camera_parameters_key, "Camera DOF");
 	}
 }
 

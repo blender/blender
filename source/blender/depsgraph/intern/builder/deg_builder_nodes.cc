@@ -572,7 +572,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 			build_object_data_lamp(object);
 			break;
 		case OB_CAMERA:
-			build_camera(object);
+			build_object_data_camera(object);
 			break;
 		case OB_LIGHTPROBE:
 			build_object_data_lightprobe(object);
@@ -586,6 +586,12 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 			break;
 		}
 	}
+}
+
+void DepsgraphNodeBuilder::build_object_data_camera(Object *object)
+{
+	Camera *camera = (Camera *)object->data;
+	build_camera(camera);
 }
 
 void DepsgraphNodeBuilder::build_object_data_lamp(Object *object)
@@ -1166,12 +1172,8 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 	                   DEG_OPCODE_GEOMETRY_SELECT_UPDATE);
 }
 
-/* Cameras */
-void DepsgraphNodeBuilder::build_camera(Object *object)
+void DepsgraphNodeBuilder::build_camera(Camera *camera)
 {
-	/* Object data. */
-	/* TODO: Link scene-camera links in somehow... */
-	Camera *camera = (Camera *)object->data;
 	if (built_map_.checkIsBuiltAndTag(camera)) {
 		return;
 	}
