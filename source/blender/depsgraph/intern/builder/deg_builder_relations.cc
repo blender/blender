@@ -161,6 +161,9 @@ static bool particle_system_depends_on_time(ParticleSystem *psys)
 
 static bool object_particles_depends_on_time(Object *object)
 {
+	if (object->type != OB_MESH) {
+		return false;
+	}
 	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		if (particle_system_depends_on_time(psys)) {
 			return true;
@@ -597,7 +600,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		case OB_MBALL:
 		case OB_LATTICE:
 		{
-			build_obdata_geom(object);
+			build_object_data_geometry(object);
 			break;
 		}
 		case OB_ARMATURE:
@@ -1671,42 +1674,42 @@ void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
  * ==========================
  *
  * The evaluation of geometry on objects is as follows:
- * - The actual evaluated of the derived geometry (e.g. DerivedMesh, DispList, etc.)
- *   occurs in the Geometry component of the object which references this. This includes
- *   modifiers, and the temporary "ubereval" for geometry.
- * - Therefore, each user of a piece of shared geometry data ends up evaluating its own
- *   version of the stuff, complete with whatever modifiers it may use.
+ * - The actual evaluated of the derived geometry (e.g. DerivedMesh, DispList)
+ *   occurs in the Geometry component of the object which references this.
+ *   This includes modifiers, and the temporary "ubereval" for geometry.
+ *   Therefore, each user of a piece of shared geometry data ends up evaluating
+ *   its own version of the stuff, complete with whatever modifiers it may use.
  *
- * - The datablocks for the geometry data - "obdata" (e.g. ID_ME, ID_CU, ID_LT, etc.) are used for
+ * - The datablocks for the geometry data - "obdata" (e.g. ID_ME, ID_CU, ID_LT.)
+ *   are used for
  *     1) calculating the bounding boxes of the geometry data,
- *     2) aggregating inward links from other objects (e.g. for text on curve, etc.)
+ *     2) aggregating inward links from other objects (e.g. for text on curve)
  *        and also for the links coming from the shapekey datablocks
- * - Animation/Drivers affecting the parameters of the geometry are made to trigger
- *   updates on the obdata geometry component, which then trigger downstream
- *   re-evaluation of the individual instances of this geometry.
+ * - Animation/Drivers affecting the parameters of the geometry are made to
+ *   trigger updates on the obdata geometry component, which then trigger
+ *   downstream re-evaluation of the individual instances of this geometry.
  */
-// TODO: Materials and lighting should probably get their own component, instead of being lumped under geometry?
-void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
+void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 {
 	ID *obdata = (ID *)object->data;
-
 	/* Init operation of object-level geometry evaluation. */
-	OperationKey geom_init_key(&object->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Eval Init");
-
-	/* get nodes for result of obdata's evaluation, and geometry evaluation on object */
+	OperationKey geom_init_key(&object->id,
+	                           DEG_NODE_TYPE_GEOMETRY,
+							   DEG_OPCODE_PLACEHOLDER,
+							   "Eval Init");
+	/* Get nodes for result of obdata's evaluation, and geometry evaluation
+	 * on object.
+	 */
 	ComponentKey obdata_geom_key(obdata, DEG_NODE_TYPE_GEOMETRY);
 	ComponentKey geom_key(&object->id, DEG_NODE_TYPE_GEOMETRY);
-
-	/* link components to each other */
+	/* Link components to each other. */
 	add_relation(obdata_geom_key, geom_key, "Object Geometry Base Data");
-
 	OperationKey obdata_ubereval_key(&object->id,
 	                                 DEG_NODE_TYPE_GEOMETRY,
 	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
-
-	/* Special case: modifiers and DerivedMesh creation queries scene for various
-	 * things like data mask to be used. We add relation here to ensure object is
-	 * never evaluated prior to Scene's CoW is ready.
+	/* Special case: modifiers evaluation queries scene for various things like
+	 * data mask to be used. We add relation here to ensure object is never
+	 * evaluated prior to Scene's CoW is ready.
 	 */
 	OperationKey scene_key(&scene_->id,
 	                       DEG_NODE_TYPE_PARAMETERS,
@@ -1714,13 +1717,11 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 	                       "Scene Eval");
 	DepsRelation *rel = add_relation(scene_key, obdata_ubereval_key, "CoW Relation");
 	rel->flag |= DEPSREL_FLAG_NO_FLUSH;
-
 	/* Modifiers */
 	if (object->modifiers.first != NULL) {
 		ModifierUpdateDepsgraphContext ctx = {};
 		ctx.scene = scene_;
 		ctx.object = object;
-
 		LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
 			if (mti->updateDepsgraph) {
@@ -1737,8 +1738,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 			}
 		}
 	}
-
-	/* materials */
+	/* Materials. */
 	if (object->totcol) {
 		for (int a = 1; a <= object->totcol; a++) {
 			Material *ma = give_current_material(object, a);
@@ -1749,59 +1749,32 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 					OperationKey material_key(&ma->id,
 					                          DEG_NODE_TYPE_SHADING,
 					                          DEG_OPCODE_MATERIAL_UPDATE);
-					OperationKey shading_key(&object->id, DEG_NODE_TYPE_SHADING, DEG_OPCODE_SHADING);
+					OperationKey shading_key(&object->id,
+					                         DEG_NODE_TYPE_SHADING,
+					                         DEG_OPCODE_SHADING);
 					add_relation(material_key, shading_key, "Material Update");
 				}
 			}
 		}
 	}
-
-	/* geometry collision */
+	/* Geometry collision. */
 	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_LATTICE)) {
 		// add geometry collider relations
 	}
-
 	/* Make sure uber update is the last in the dependencies.
 	 *
 	 * TODO(sergey): Get rid of this node.
 	 */
 	if (object->type != OB_ARMATURE) {
 		/* Armatures does no longer require uber node. */
-		OperationKey obdata_ubereval_key(&object->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
-		add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
+		OperationKey obdata_ubereval_key(&object->id,
+		                                 DEG_NODE_TYPE_GEOMETRY,
+		                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
+		add_relation(geom_init_key,
+		             obdata_ubereval_key,
+		             "Object Geometry UberEval");
 	}
-
-	if (built_map_.checkIsBuiltAndTag(obdata)) {
-		return;
-	}
-
-	/* Link object data evaluation node to exit operation. */
-	OperationKey obdata_geom_eval_key(obdata, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
-	OperationKey obdata_geom_done_key(obdata, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Eval Done");
-	add_relation(obdata_geom_eval_key, obdata_geom_done_key, "ObData Geom Eval Done");
-
-	/* type-specific node/links */
-	switch (object->type) {
-		case OB_MESH:
-			/* NOTE: This is compatibility code to support particle systems
-			 *
-			 * for viewport being properly rendered in final render mode.
-			 * This relation is similar to what dag_object_time_update_flags()
-			 * was doing for mesh objects with particle system.
-			 *
-			 * Ideally we need to get rid of this relation.
-			 */
-			if (object_particles_depends_on_time(object)) {
-				TimeSourceKey time_key;
-				OperationKey obdata_ubereval_key(&object->id,
-				                                 DEG_NODE_TYPE_GEOMETRY,
-				                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
-				add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
-			}
-			break;
-
-		case OB_MBALL:
-		{
+	if (object->type == OB_MBALL) {
 			Object *mom = BKE_mball_basis_find(scene_, object);
 			ComponentKey mom_geom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
 			/* motherball - mom depends on children! */
@@ -1817,54 +1790,94 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 				add_relation(geom_key, mom_geom_key, "Metaball Motherball");
 				add_relation(transform_key, mom_geom_key, "Metaball Motherball");
 			}
-			break;
-		}
+	}
+	/* NOTE: This is compatibility code to support particle systems
+	 *
+	 * for viewport being properly rendered in final render mode.
+	 * This relation is similar to what dag_object_time_update_flags()
+	 * was doing for mesh objects with particle system.
+	 *
+	 * Ideally we need to get rid of this relation.
+	 */
+	if (object_particles_depends_on_time(object)) {
+		TimeSourceKey time_key;
+		OperationKey obdata_ubereval_key(&object->id,
+		                                 DEG_NODE_TYPE_GEOMETRY,
+		                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
+		add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
+	}
+	/* Object data datablock. */
+	build_object_data_geometry_datablock((ID *)object->data);
+}
 
-		case OB_CURVE:
-		case OB_FONT:
+void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
+{
+	if (built_map_.checkIsBuiltAndTag(obdata)) {
+		return;
+	}
+	/* Animation. */
+	build_animdata(obdata);
+	/* ShapeKeys. */
+	Key *key = BKE_key_from_id(obdata);
+	if (key != NULL) {
+		build_shapekeys(obdata, key);
+	}
+	/* Link object data evaluation node to exit operation. */
+	OperationKey obdata_geom_eval_key(obdata,
+	                                  DEG_NODE_TYPE_GEOMETRY,
+	                                  DEG_OPCODE_PLACEHOLDER,
+	                                  "Geometry Eval");
+	OperationKey obdata_geom_done_key(obdata,
+	                                  DEG_NODE_TYPE_GEOMETRY,
+	                                  DEG_OPCODE_PLACEHOLDER,
+	                                  "Eval Done");
+	add_relation(obdata_geom_eval_key,
+	             obdata_geom_done_key,
+				 "ObData Geom Eval Done");
+	/* Type-specific links. */
+	const ID_Type id_type = GS(obdata->name);
+	switch (id_type) {
+		case ID_ME:
+			break;
+		case ID_MB:
+			break;
+		case ID_CU:
 		{
 			Curve *cu = (Curve *)obdata;
-
-			/* curve's dependencies */
-			// XXX: these needs geom data, but where is geom stored?
-			if (cu->bevobj) {
-				ComponentKey bevob_geom_key(&cu->bevobj->id, DEG_NODE_TYPE_GEOMETRY);
-				add_relation(bevob_geom_key, obdata_geom_key, "Curve Bevel Geometry");
-				/* We only need scale, but we can't tag individual TRANSFORM components. */
-				ComponentKey bevob_key(&cu->bevobj->id, DEG_NODE_TYPE_TRANSFORM);
-				add_relation(bevob_key, obdata_geom_key, "Curve Bevel Scale");
+			if (cu->bevobj != NULL) {
+				ComponentKey bevob_geom_key(&cu->bevobj->id,
+				                            DEG_NODE_TYPE_GEOMETRY);
+				add_relation(bevob_geom_key,
+				             obdata_geom_eval_key,
+				             "Curve Bevel Geometry");
+				ComponentKey bevob_key(&cu->bevobj->id,
+				                       DEG_NODE_TYPE_TRANSFORM);
+				add_relation(bevob_key,
+				             obdata_geom_eval_key,
+				             "Curve Bevel Transform");
 				build_object(NULL, cu->bevobj);
 			}
-			if (cu->taperobj) {
-				ComponentKey taperob_key(&cu->taperobj->id, DEG_NODE_TYPE_GEOMETRY);
+			if (cu->taperobj != NULL) {
+				ComponentKey taperob_key(&cu->taperobj->id,
+				                         DEG_NODE_TYPE_GEOMETRY);
+				add_relation(taperob_key, obdata_geom_eval_key, "Curve Taper");
 				build_object(NULL, cu->taperobj);
-				add_relation(taperob_key, geom_key, "Curve Taper");
 			}
-			if (object->type == OB_FONT) {
-				if (cu->textoncurve) {
-					ComponentKey textoncurve_key(&cu->textoncurve->id, DEG_NODE_TYPE_GEOMETRY);
-					build_object(NULL, cu->textoncurve);
-					add_relation(textoncurve_key, geom_key, "Text on Curve");
-				}
+			if (cu->textoncurve != NULL) {
+				ComponentKey textoncurve_key(&cu->textoncurve->id,
+				                             DEG_NODE_TYPE_GEOMETRY);
+				add_relation(textoncurve_key,
+				             obdata_geom_eval_key,
+				             "Text on Curve");
+				build_object(NULL, cu->textoncurve);
 			}
 			break;
 		}
-
-		case OB_SURF: /* Nurbs Surface */
-		{
+		case ID_LT:
 			break;
-		}
-
-		case OB_LATTICE: /* Lattice */
-		{
+		default:
+			BLI_assert(!"Should not happen");
 			break;
-		}
-	}
-
-	/* ShapeKeys */
-	Key *key = BKE_key_from_object(object);
-	if (key) {
-		build_shapekeys(obdata, key);
 	}
 }
 

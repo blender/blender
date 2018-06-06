@@ -549,7 +549,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 		case OB_SURF:
 		case OB_MBALL:
 		case OB_LATTICE:
-			build_obdata_geom(object);
+			build_object_data_geometry(object);
 			/* TODO(sergey): Only for until we support granular
 			 * update of curves.
 			 */
@@ -999,12 +999,11 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 
 /* ObData Geometry Evaluation */
 // XXX: what happens if the datablock is shared!
-void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
+void DepsgraphNodeBuilder::build_object_data_geometry(Object *object)
 {
 	OperationDepsNode *op_node;
 	Scene *scene_cow = get_cow_datablock(scene_);
 	Object *object_cow = get_cow_datablock(object);
-
 	/* Temporary uber-update node, which does everything.
 	 * It is for the being we're porting old dependencies into the new system.
 	 * We'll get rid of this node as soon as all the granular update functions
@@ -1027,17 +1026,14 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 	                             DEG_OPCODE_PLACEHOLDER,
 	                             "Eval Init");
 	op_node->set_as_entry();
-
 	// TODO: "Done" operation
-
 	/* Cloth modifier. */
 	LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
 		if (md->type == eModifierType_Cloth) {
 			build_cloth(object);
 		}
 	}
-
-	/* materials */
+	/* Materials. */
 	if (object->totcol != 0) {
 		if (object->type == OB_MESH) {
 			add_operation_node(&object->id,
@@ -1055,37 +1051,36 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 			}
 		}
 	}
-
-	/* geometry collision */
+	/* Geometry collision. */
 	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_LATTICE)) {
 		// add geometry collider relations
 	}
+	build_object_data_geometry_datablock((ID *)object->data);
+}
 
-	ID *obdata = (ID *)object->data;
+void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
+{
 	if (built_map_.checkIsBuiltAndTag(obdata)) {
 		return;
 	}
+	OperationDepsNode *op_node;
 	/* Make sure we've got an ID node before requesting CoW pointer. */
 	(void) add_id_node((ID *)obdata);
 	ID *obdata_cow = get_cow_id(obdata);
-
+	/* Animation. */
+	build_animdata(obdata);
 	/* ShapeKeys */
-	Key *key = BKE_key_from_object(object);
+	Key *key = BKE_key_from_id(obdata);
 	if (key) {
 		build_shapekeys(key);
 	}
-
-	build_animdata(obdata);
-
 	/* Nodes for result of obdata's evaluation, and geometry
 	 * evaluation on object.
 	 */
-	switch (object->type) {
-		case OB_MESH:
+	const ID_Type id_type = GS(obdata->name);
+	switch (id_type) {
+		case ID_ME:
 		{
-			//Mesh *me = (Mesh *)object->data;
-
-			/* evaluation operations */
 			op_node = add_operation_node(obdata,
 			                             DEG_NODE_TYPE_GEOMETRY,
 			                             function_bind(BKE_mesh_eval_geometry,
@@ -1096,8 +1091,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 			op_node->set_as_entry();
 			break;
 		}
-
-		case OB_MBALL:
+		case ID_MB:
 		{
 			op_node = add_operation_node(obdata,
 			                             DEG_NODE_TYPE_GEOMETRY,
@@ -1107,13 +1101,8 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 			op_node->set_as_entry();
 			break;
 		}
-
-		case OB_CURVE:
-		case OB_SURF:
-		case OB_FONT:
+		case ID_CU:
 		{
-			/* Curve/nurms evaluation operations. */
-			/* - calculate curve geometry (including path) */
 			op_node = add_operation_node(obdata,
 			                             DEG_NODE_TYPE_GEOMETRY,
 			                             function_bind(BKE_curve_eval_geometry,
@@ -1132,15 +1121,13 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 			if (cu->taperobj != NULL) {
 				build_object(-1, cu->taperobj, DEG_ID_LINKED_INDIRECTLY);
 			}
-			if (object->type == OB_FONT && cu->textoncurve != NULL) {
+			if (cu->textoncurve != NULL) {
 				build_object(-1, cu->textoncurve, DEG_ID_LINKED_INDIRECTLY);
 			}
 			break;
 		}
-
-		case OB_LATTICE:
+		case ID_LT:
 		{
-			/* Lattice evaluation operations. */
 			op_node = add_operation_node(obdata,
 			                             DEG_NODE_TYPE_GEOMETRY,
 			                             function_bind(BKE_lattice_eval_geometry,
@@ -1151,18 +1138,18 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 			op_node->set_as_entry();
 			break;
 		}
+		default:
+			BLI_assert(!"Should not happen");
+			break;
 	}
-
 	op_node = add_operation_node(obdata, DEG_NODE_TYPE_GEOMETRY, NULL,
 	                             DEG_OPCODE_PLACEHOLDER, "Eval Done");
 	op_node->set_as_exit();
-
 	/* Parameters for driver sources. */
 	add_operation_node(obdata,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARAMETERS_EVAL);
-
 	/* Batch cache. */
 	add_operation_node(obdata,
 	                   DEG_NODE_TYPE_BATCH_CACHE,

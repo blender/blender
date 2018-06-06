@@ -205,6 +205,8 @@ struct DepsgraphRelationBuilder
 	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);
 	void build_object_data_camera(Object *object);
+	void build_object_data_geometry(Object *object);
+	void build_object_data_geometry_datablock(ID *obdata);
 	void build_object_data_lamp(Object *object);
 	void build_object_data_lightprobe(Object *object);
 	void build_object_parent(Object *object);
@@ -246,7 +248,6 @@ struct DepsgraphRelationBuilder
 	void build_rig(Object *object);
 	void build_proxy_rig(Object *object);
 	void build_shapekeys(ID *obdata, Key *key);
-	void build_obdata_geom(Object *object);
 	void build_camera(Camera *camera);
 	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
