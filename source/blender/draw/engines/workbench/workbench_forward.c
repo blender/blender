@@ -163,7 +163,7 @@ static char *workbench_build_forward_composite_frag(void)
 static void workbench_init_object_data(ObjectEngineData *engine_data)
 {
 	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)engine_data;
-	data->object_id = e_data.next_object_id++;
+	data->object_id = ((e_data.next_object_id++) & 0xff) + 1;
 }
 
 static WORKBENCH_MaterialData *get_or_create_material_data(
@@ -180,7 +180,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 
 	/* Solid */
 	workbench_material_update_data(wpd, ob, mat, &material_template);
-	material_template.object_id = engine_object_data->object_id;
+	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd)? engine_object_data->object_id: 1;
 	material_template.drawtype = drawtype;
 	material_template.ima = ima;
 	uint hash = workbench_material_get_hash(&material_template);

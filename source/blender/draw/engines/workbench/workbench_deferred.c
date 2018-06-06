@@ -191,7 +191,7 @@ static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
 static void workbench_init_object_data(ObjectEngineData *engine_data)
 {
 	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)engine_data;
-	data->object_id = e_data.next_object_id++;
+	data->object_id = ((e_data.next_object_id++) & 0xff) + 1;
 	data->shadow_bbox_dirty = true;
 }
 
@@ -441,18 +441,18 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 
 	/* Solid */
 	workbench_material_update_data(wpd, ob, mat, &material_template);
-	material_template.object_id = engine_object_data->object_id;
+	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd)? engine_object_data->object_id: 1;
 	material_template.drawtype = drawtype;
 	material_template.ima = ima;
 	uint hash = workbench_material_get_hash(&material_template);
-
+	
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
 		material->shgrp = DRW_shgroup_create(
 		        drawtype == OB_SOLID ? wpd->prepass_solid_sh : wpd->prepass_texture_sh, psl->prepass_pass);
 		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
-		material->object_id = engine_object_data->object_id;
+		material->object_id = material_template.object_id;
 		copy_v4_v4(material->material_data.diffuse_color, material_template.material_data.diffuse_color);
 		copy_v4_v4(material->material_data.specular_color, material_template.material_data.specular_color);
 		material->material_data.roughness = material_template.material_data.roughness;
