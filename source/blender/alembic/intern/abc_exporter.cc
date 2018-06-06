@@ -417,9 +417,9 @@ void AbcExporter::exploreTransform(Depsgraph *depsgraph, Base *ob_base, Object *
 				exploreTransform(depsgraph, &fake_base, dupli_parent, ob);
 			}
 		}
-	}
 
-	free_object_duplilist(lb);
+		free_object_duplilist(lb);
+	}
 }
 
 AbcTransformWriter * AbcExporter::createTransformWriter(Depsgraph *depsgraph, Object *ob, Object *parent, Object *dupliObParent)
@@ -527,9 +527,9 @@ void AbcExporter::exploreObject(Depsgraph *depsgraph, Base *ob_base, Object *dup
 				exploreObject(depsgraph, &fake_base, ob);
 			}
 		}
-	}
 
-	free_object_duplilist(lb);
+		free_object_duplilist(lb);
+	}
 }
 
 void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform)
