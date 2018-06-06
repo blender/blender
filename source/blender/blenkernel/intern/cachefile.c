@@ -93,7 +93,9 @@ void BKE_cachefile_free(CacheFile *cache_file)
 	ABC_free_handle(cache_file->handle);
 #endif
 
-	if (cache_file->handle_mutex) {
+	/* CoW copies share the mutex, so it should only be freed if the original
+	 * CacheFile datablock is freed. */
+	if (cache_file->handle_mutex && (cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
 		BLI_mutex_free(cache_file->handle_mutex);
 	}
 	BLI_freelistN(&cache_file->object_paths);
