@@ -367,12 +367,12 @@ ListBase BKE_collection_object_cache_get(Collection *collection)
 	if (!(collection->flag & COLLECTION_HAS_OBJECT_CACHE)) {
 		static ThreadMutex cache_lock = BLI_MUTEX_INITIALIZER;
 
+		BLI_mutex_lock(&cache_lock);
 		if (!(collection->flag & COLLECTION_HAS_OBJECT_CACHE)) {
-			BLI_mutex_lock(&cache_lock);
 			collection_object_cache_fill(&collection->object_cache, collection, 0);
 			collection->flag |= COLLECTION_HAS_OBJECT_CACHE;
-			BLI_mutex_unlock(&cache_lock);
 		}
+		BLI_mutex_unlock(&cache_lock);
 	}
 
 	return collection->object_cache;
