@@ -361,6 +361,7 @@ static int collection_create_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "name", name);
 
 	Collection *collection = BKE_collection_add(bmain, NULL, name);
+	id_fake_user_set(&collection->id);
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
@@ -402,6 +403,7 @@ static int collection_add_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	Collection *collection = BKE_collection_add(bmain, NULL, "Collection");
+	id_fake_user_set(&collection->id);
 	BKE_collection_object_add(bmain, collection, ob);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

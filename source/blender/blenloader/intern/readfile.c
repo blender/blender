@@ -10064,6 +10064,7 @@ static void add_collections_to_scene(
 
 				/* Assign the collection. */
 				ob->dup_group = collection;
+				id_us_plus(&collection->id);
 				ob->transflag |= OB_DUPLICOLLECTION;
 				copy_v3_v3(ob->loc, scene->cursor.location);
 			}
