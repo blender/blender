@@ -3528,6 +3528,14 @@ class VIEW3D_PT_shading(Panel):
             sub.prop(shading, "shadow_intensity", text="")
 
             row = col.row()
+            row.active = not shading.show_xray
+            row.prop(shading, "show_cavity")
+            sub = row.column()
+            sub.active = not shading.show_xray and shading.show_cavity
+            sub.prop(shading, "cavity_ridge_factor")
+            sub.prop(shading, "cavity_valley_factor")
+
+            row = col.row()
             row.prop(shading, "show_object_outline")
             sub = row.row()
             sub.active = shading.show_object_outline

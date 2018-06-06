@@ -219,6 +219,8 @@ data_to_c_simple(engines/eevee/shaders/volumetric_scatter_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_integration_frag.glsl SRC)
 
 data_to_c_simple(engines/workbench/shaders/workbench_background_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_cavity_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_cavity_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_checkerboard_depth_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_common_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_data_lib.glsl SRC)

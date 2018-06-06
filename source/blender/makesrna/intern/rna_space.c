@@ -2350,6 +2350,30 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Matcap", "Matcap material and lighting");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "show_cavity", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_CAVITY);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Cavity", "Show Cavity");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "cavity_ridge_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "shading.cavity_ridge_factor");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Ridge", "Factor for the ridges");
+	RNA_def_property_range(prop, 0.0f, 250.0f);
+	RNA_def_property_ui_range(prop, 0.00f, 2.5f, 1, 3);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "cavity_valley_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "shading.cavity_valley_factor");
+	RNA_def_property_float_default(prop, 1.0);
+	RNA_def_property_ui_text(prop, "Valley", "Factor for the valleys");
+	RNA_def_property_range(prop, 0.0f, 250.0f);
+	RNA_def_property_ui_range(prop, 0.00f, 2.5f, 1, 3);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "studio_light_orientation", PROP_ENUM, PROP_NONE);
 	RNA_define_verify_sdna(0);
 	RNA_def_property_enum_sdna(prop, NULL, "shading.flag");

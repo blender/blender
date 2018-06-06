@@ -30,6 +30,7 @@
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
+#include "BLI_rand.h"
 
 #include "BKE_node.h"
 #include "BKE_particle.h"
@@ -44,6 +45,7 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
+#include "../eevee/eevee_lut.h" /* TODO find somewhere to share blue noise Table */
 
 /* *********** STATIC *********** */
 
@@ -56,6 +58,7 @@
 static struct {
 	struct GPUShader *prepass_sh_cache[MAX_SHADERS];
 	struct GPUShader *composite_sh_cache[MAX_SHADERS];
+	struct GPUShader *cavity_sh;
 	struct GPUShader *shadow_fail_sh;
 	struct GPUShader *shadow_fail_manifold_sh;
 	struct GPUShader *shadow_pass_sh;
@@ -65,6 +68,7 @@ static struct {
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
+	struct GPUTexture *cavity_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *specular_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
@@ -73,6 +77,10 @@ static struct {
 	float light_direction_vs[3];
 	int next_object_id;
 	float normal_world_matrix[3][3];
+
+	struct GPUUniformBuffer *sampling_ubo;
+	struct GPUTexture *jitter_tx;
+	int cached_sample_num;
 } e_data = {{NULL}};
 
 /* Shaders */
@@ -80,6 +88,7 @@ extern char datatoc_common_hair_lib_glsl[];
 
 extern char datatoc_workbench_prepass_vert_glsl[];
 extern char datatoc_workbench_prepass_frag_glsl[];
+extern char datatoc_workbench_cavity_frag_glsl[];
 extern char datatoc_workbench_deferred_composite_frag_glsl[];
 
 extern char datatoc_workbench_shadow_vert_glsl[];
@@ -88,6 +97,7 @@ extern char datatoc_workbench_shadow_caps_geom_glsl[];
 extern char datatoc_workbench_shadow_debug_frag_glsl[];
 
 extern char datatoc_workbench_background_lib_glsl[];
+extern char datatoc_workbench_cavity_lib_glsl[];
 extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
@@ -146,6 +156,21 @@ static char *workbench_build_prepass_vert(void)
 	return str;
 }
 
+static char *workbench_build_cavity_frag(void)
+{
+	char *str = NULL;
+
+	DynStr *ds = BLI_dynstr_new();
+
+	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_workbench_cavity_frag_glsl);
+	BLI_dynstr_append(ds, datatoc_workbench_cavity_lib_glsl);
+
+	str = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+	return str;
+}
+
 static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype, bool is_hair)
 {
 	if (e_data.prepass_sh_cache[index] == NULL) {
@@ -185,6 +210,50 @@ static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
 	wpd->composite_sh = e_data.composite_sh_cache[index_solid];
 }
 
+
+/* Using Hammersley distribution */
+static float *create_disk_samples(int num_samples)
+{
+	/* vec4 to ensure memory alignment. */
+	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * num_samples, "concentric_tex");
+	const float num_samples_inv = 1.0f / num_samples;
+
+	for (int i = 0; i < num_samples; i++) {
+		float r = (i + 0.5f) * num_samples_inv;
+		double dphi;
+		BLI_hammersley_1D(i, &dphi);
+
+		float phi = (float)dphi * 2.0f * M_PI;
+		texels[i][0] = cosf(phi);
+		texels[i][1] = sinf(phi);
+		/* This deliberatly distribute more samples
+		 * at the center of the disk (and thus the shadow). */
+		texels[i][2] = r;
+	}
+
+	return (float *)texels;
+}
+
+static struct GPUTexture *create_jitter_texture(int num_samples)
+{
+	float jitter[64 * 64][3];
+	const float num_samples_inv = 1.0f / num_samples;
+
+	for (int i = 0; i < 64 * 64; i++) {
+		float phi = blue_noise[i][0] * 2.0f * M_PI;
+		/* This rotate the sample per pixels */
+		jitter[i][0] = cosf(phi);
+		jitter[i][1] = sinf(phi);
+		/* This offset the sample along it's direction axis (reduce banding) */
+		float bn = blue_noise[i][1] - 0.5f;
+		CLAMP(bn, -0.499f, 0.499f); /* fix fireflies */
+		jitter[i][2] = bn * num_samples_inv;
+	}
+
+	UNUSED_VARS(bsdf_split_sum_ggx, btdf_split_sum_ggx, ltc_mag_ggx, ltc_mat_ggx, ltc_disk_integral);
+
+	return DRW_texture_create_2D(64, 64, GPU_RGB16F, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
+}
 /* Functions */
 
 
@@ -244,6 +313,10 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		        datatoc_workbench_shadow_caps_geom_glsl,
 		        shadow_frag,
 		        "#define SHADOW_FAIL\n");
+
+		char *cavity_frag = workbench_build_cavity_frag();
+		e_data.cavity_sh = DRW_shader_create_fullscreen(cavity_frag, NULL);
+		MEM_freeN(cavity_frag);
 	}
 
 	if (!stl->g_data) {
@@ -251,13 +324,15 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
-	workbench_private_data_init(stl->g_data);
+	WORKBENCH_PrivateData *wpd = stl->g_data;
+	workbench_private_data_init(wpd);
 
 	{
 		const float *viewport_size = DRW_viewport_size_get();
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_solid);
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
+		e_data.cavity_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
 		e_data.specular_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
 		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
@@ -278,10 +353,33 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 			GPU_ATTACHMENT_TEXTURE(e_data.specular_buffer_tx),
 			GPU_ATTACHMENT_TEXTURE(e_data.normal_buffer_tx),
 		});
+		GPU_framebuffer_ensure_config(&fbl->cavity_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(e_data.cavity_buffer_tx),
+		});
 		GPU_framebuffer_ensure_config(&fbl->composite_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 			GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
 		});
+	}
+
+	{
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		Scene *scene = draw_ctx->scene;
+		/* AO Samples Tex */
+		const int ssao_samples = scene->display.matcap_ssao_samples;
+		if (e_data.sampling_ubo && (e_data.cached_sample_num != ssao_samples)) {
+			DRW_UBO_FREE_SAFE(e_data.sampling_ubo);
+			DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
+		}
+
+		if (e_data.sampling_ubo == NULL) {
+			float *samples = create_disk_samples(ssao_samples);
+			e_data.jitter_tx = create_jitter_texture(ssao_samples);
+			e_data.sampling_ubo = DRW_uniformbuffer_create(sizeof(float[4]) * ssao_samples, samples);
+			e_data.cached_sample_num = ssao_samples;
+			MEM_freeN(samples);
+		}
 	}
 
 	/* Prepass */
@@ -289,6 +387,24 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		psl->prepass_pass = DRW_pass_create("Prepass", state);
 		psl->prepass_hair_pass = DRW_pass_create("Prepass", state);
+	}
+	
+	{
+		int state = DRW_STATE_WRITE_COLOR;
+		psl->cavity_pass = DRW_pass_create("Cavity", state);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.cavity_sh, psl->cavity_pass);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.color_buffer_tx);
+		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &e_data.normal_buffer_tx);
+
+		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
+		DRW_shgroup_uniform_vec4(grp, "ssao_params", wpd->ssao_params, 1);
+		DRW_shgroup_uniform_vec4(grp, "ssao_settings", wpd->ssao_settings, 1);
+		DRW_shgroup_uniform_mat4(grp, "WinMatrix", wpd->winmat);
+		DRW_shgroup_uniform_texture(grp, "ssao_jitter", e_data.jitter_tx);
+		DRW_shgroup_uniform_block(grp, "samples_block", e_data.sampling_ubo);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 }
 
@@ -298,20 +414,28 @@ void workbench_deferred_engine_free()
 		DRW_SHADER_FREE_SAFE(e_data.prepass_sh_cache[index]);
 		DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
 	}
+	DRW_SHADER_FREE_SAFE(e_data.cavity_sh);
+	DRW_UBO_FREE_SAFE(e_data.sampling_ubo);
+	DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
+
 	DRW_SHADER_FREE_SAFE(e_data.shadow_pass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_pass_manifold_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_fail_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_fail_manifold_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_manifold_sh);
+
 }
 
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
 {
 	DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.color_buffer_tx);
 	DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
-	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
+	if (NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &e_data.normal_buffer_tx);
+	}
+	if (CAVITY_ENABLED(wpd)) {
+		DRW_shgroup_uniform_texture_ref(grp, "cavityBuffer", &e_data.cavity_buffer_tx);
 	}
 	if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || MATCAP_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "specularBuffer", &e_data.specular_buffer_tx);
@@ -715,6 +839,12 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	GPU_framebuffer_bind(fbl->prepass_fb);
 	DRW_draw_pass(psl->prepass_pass);
 	DRW_draw_pass(psl->prepass_hair_pass);
+
+	if (CAVITY_ENABLED(wpd)) {
+		GPU_framebuffer_bind(fbl->cavity_fb);
+		DRW_draw_pass(psl->cavity_pass);
+	}
+
 	if (SHADOW_ENABLED(wpd)) {
 #ifdef DEBUG_SHADOW_VOLUME
 		GPU_framebuffer_bind(fbl->composite_fb);

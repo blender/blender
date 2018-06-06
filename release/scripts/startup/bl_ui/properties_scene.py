@@ -476,6 +476,24 @@ class SCENE_PT_viewport_display(SceneButtonsPanel, Panel):
         col.prop(scene.display, "shadow_shift")
 
 
+class SCENE_PT_viewport_display_ssao(SceneButtonsPanel, Panel):
+    bl_label = "Viewport Display SSAO"
+    bl_parent_id = "SCENE_PT_viewport_display"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        scene = context.scene
+        col = layout.column()
+        col.prop(scene.display, "matcap_ssao_samples")
+        col.prop(scene.display, "matcap_ssao_distance")
+        col.prop(scene.display, "matcap_ssao_attenuation")
+
+
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     _context_path = "scene"
@@ -492,6 +510,7 @@ classes = (
     SCENE_PT_color_management,
     SCENE_PT_color_management_curves,
     SCENE_PT_viewport_display,
+    SCENE_PT_viewport_display_ssao,
     SCENE_PT_audio,
     SCENE_PT_physics,
     SCENE_PT_rigid_body_world,

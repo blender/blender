@@ -5759,7 +5759,7 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 250.0f);
 
 	prop = RNA_def_property(srna, "matcap_ssao_factor_edge", PROP_FLOAT, PROP_NONE);
-		RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Edge Strength", "Strength of the Edge effect");
 	RNA_def_property_range(prop, 0.0f, 250.0f);
 

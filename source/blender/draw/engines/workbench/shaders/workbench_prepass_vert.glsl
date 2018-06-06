@@ -18,6 +18,7 @@ flat out float hair_rand;
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 out vec3 normal_viewport;
 #endif
+
 #ifdef OB_TEXTURE
 out vec2 uv_interp;
 #endif
@@ -57,6 +58,7 @@ void main()
 #ifdef OB_TEXTURE
 	uv_interp = uv;
 #endif
+
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 	normal_viewport = NormalMatrix * nor;
 #  ifndef HAIR_SHADER

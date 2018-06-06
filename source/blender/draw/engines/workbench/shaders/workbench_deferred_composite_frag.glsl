@@ -5,6 +5,8 @@ uniform sampler2D colorBuffer;
 uniform sampler2D specularBuffer;
 uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
+uniform sampler2D cavityBuffer;
+
 uniform vec2 invertedViewportSize;
 uniform float shadowMultiplier;
 uniform float lightMultiplier;
@@ -77,7 +79,6 @@ void main()
 #endif
 
 #ifdef V3D_LIGHTING_MATCAP
-	/* TODO: if pixel data is matcap. then */
 	vec3 diffuse_light = texelFetch(specularBuffer, texel, 0).rgb;
 #endif
 
@@ -92,6 +93,12 @@ void main()
 #  endif
 #endif
 	vec3 shaded_color = diffuse_light * diffuse_color.rgb + specular_color;
+
+#ifdef V3D_SHADING_CAVITY
+	vec2 cavity = texelFetch(cavityBuffer, texel, 0).rg;
+	shaded_color *= 1.0 - cavity.x;
+	shaded_color *= 1.0 + cavity.y;
+#endif
 
 #ifdef V3D_SHADING_SHADOW
 	float light_factor = -dot(normal_viewport, world_data.light_direction_vs.xyz);

@@ -9,9 +9,9 @@ uniform sampler2D image;
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-in vec3 position_viewport;
 in vec3 normal_viewport;
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
+
 #ifdef OB_TEXTURE
 in vec2 uv_interp;
 #endif /* OB_TEXTURE */
