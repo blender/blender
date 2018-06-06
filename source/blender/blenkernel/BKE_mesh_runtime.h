@@ -44,9 +44,9 @@ struct Object;
 struct Scene;
 
 /* Undefine to hide DerivedMesh-based function declarations */
-#define WITH_DERIVEDMESH
+#define USE_DERIVEDMESH
 
-#ifdef WITH_DERIVEDMESH
+#ifdef USE_DERIVEDMESH
 struct DerivedMesh;
 #endif
 
@@ -65,7 +65,7 @@ void BKE_mesh_runtime_verttri_from_looptri(
 
 /* NOTE: the functions below are defined in DerivedMesh.c, and are intended to be moved
  * to a more suitable location when that file is removed. */
-#ifdef WITH_DERIVEDMESH
+#ifdef USE_DERIVEDMESH
 struct DerivedMesh *mesh_get_derived_final(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask);
@@ -73,7 +73,7 @@ struct DerivedMesh *mesh_get_derived_final(
 struct Mesh *mesh_get_eval_final(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, CustomDataMask dataMask);
 
-#ifdef WITH_DERIVEDMESH
+#ifdef USE_DERIVEDMESH
 struct DerivedMesh *mesh_get_derived_deform(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask);

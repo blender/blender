@@ -44,7 +44,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 
-#ifdef WITH_DERIVEDMESH
+#ifdef USE_DERIVEDMESH
 #include "BKE_DerivedMesh.h"
 #endif
 

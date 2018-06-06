@@ -3105,7 +3105,7 @@ void makeDerivedMesh(
 
 /***/
 
-#ifdef WITH_DERIVEDMESH
+#ifdef USE_DERIVEDMESH
 /* Deprecated DM, use: 'mesh_get_eval_final'. */
 DerivedMesh *mesh_get_derived_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
@@ -3147,7 +3147,7 @@ Mesh *mesh_get_eval_final(
 	return ob->runtime.mesh_eval;
 }
 
-#ifdef WITH_DERIVEDMESH
+#ifdef USE_DERIVEDMESH
 /* Deprecated DM, use: 'mesh_get_eval_deform' instead. */
 DerivedMesh *mesh_get_derived_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
