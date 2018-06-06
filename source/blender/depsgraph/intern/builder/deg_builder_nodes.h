@@ -45,12 +45,13 @@ struct Image;
 struct FCurve;
 struct Collection;
 struct Key;
+struct Lamp;
 struct LayerCollection;
+struct LightProbe;
 struct Main;
 struct Material;
 struct Mask;
 struct MTex;
-struct LightProbe;
 struct MovieClip;
 struct bNodeTree;
 struct Object;
@@ -166,6 +167,7 @@ struct DepsgraphNodeBuilder {
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);
 	void build_object_data(Object *object);
+	void build_object_data_lamp(Object *object);
 	void build_object_data_lightprobe(Object *object);
 	void build_object_transform(Object *object);
 	void build_object_constraints(Object *object);
@@ -189,7 +191,7 @@ struct DepsgraphNodeBuilder {
 	void build_shapekeys(Key *key);
 	void build_obdata_geom(Object *object);
 	void build_camera(Object *object);
-	void build_lamp(Object *object);
+	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);
 	void build_texture(Tex *tex);

@@ -57,6 +57,7 @@ struct ID;
 struct FCurve;
 struct Collection;
 struct Key;
+struct Lamp;
 struct LayerCollection;
 struct LightProbe;
 struct Main;
@@ -202,6 +203,7 @@ struct DepsgraphRelationBuilder
 	void build_object(Base *base, Object *object);
 	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);
+	void build_object_data_lamp(Object *object);
 	void build_object_data_lightprobe(Object *object);
 	void build_object_parent(Object *object);
 	void build_constraints(ID *id,
@@ -244,7 +246,7 @@ struct DepsgraphRelationBuilder
 	void build_shapekeys(ID *obdata, Key *key);
 	void build_obdata_geom(Object *object);
 	void build_camera(Object *object);
-	void build_lamp(Object *object);
+	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);
 	void build_texture(Tex *tex);

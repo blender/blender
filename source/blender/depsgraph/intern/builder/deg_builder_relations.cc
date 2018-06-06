@@ -609,7 +609,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 			}
 			break;
 		case OB_LAMP:
-			build_lamp(object);
+			build_object_data_lamp(object);
 			break;
 		case OB_CAMERA:
 			build_camera(object);
@@ -625,6 +625,15 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		add_relation(key_key, geometry_key, "Shapekeys");
 		build_nested_shapekey(&object->id, key);
 	}
+}
+
+void DepsgraphRelationBuilder::build_object_data_lamp(Object *object)
+{
+	Lamp *lamp = (Lamp *)object->data;
+	build_lamp(lamp);
+	ComponentKey object_parameters_key(&object->id, DEG_NODE_TYPE_PARAMETERS);
+	ComponentKey lamp_parameters_key(&lamp->id, DEG_NODE_TYPE_PARAMETERS);
+	add_relation(lamp_parameters_key, object_parameters_key, "Lamp -> Object");
 }
 
 void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
@@ -1873,37 +1882,19 @@ void DepsgraphRelationBuilder::build_camera(Object *object)
 }
 
 /* Lamps */
-void DepsgraphRelationBuilder::build_lamp(Object *object)
+void DepsgraphRelationBuilder::build_lamp(Lamp *lamp)
 {
-	Lamp *lamp = (Lamp *)object->data;
 	if (built_map_.checkIsBuiltAndTag(lamp)) {
 		return;
 	}
-
-	ComponentKey object_parameters_key(&object->id, DEG_NODE_TYPE_PARAMETERS);
-	ComponentKey lamp_parameters_key(&lamp->id, DEG_NODE_TYPE_PARAMETERS);
-
-	add_relation(lamp_parameters_key, object_parameters_key,
-	             "Lamp -> Object");
-
 	/* lamp's nodetree */
 	if (lamp->nodetree != NULL) {
 		build_nodetree(lamp->nodetree);
+		ComponentKey lamp_parameters_key(&lamp->id, DEG_NODE_TYPE_PARAMETERS);
 		ComponentKey nodetree_key(&lamp->nodetree->id, DEG_NODE_TYPE_SHADING);
 		add_relation(nodetree_key, lamp_parameters_key, "NTree->Lamp Parameters");
 		build_nested_nodetree(&lamp->id, lamp->nodetree);
 	}
-
-	/* Make sure copy on write of lamp data is always properly updated for
-	 * visible lamps.
-	 */
-	OperationKey ob_copy_on_write_key(&object->id,
-	                                  DEG_NODE_TYPE_COPY_ON_WRITE,
-	                                  DEG_OPCODE_COPY_ON_WRITE);
-	OperationKey lamp_copy_on_write_key(&lamp->id,
-	                                    DEG_NODE_TYPE_COPY_ON_WRITE,
-	                                    DEG_OPCODE_COPY_ON_WRITE);
-	add_relation(lamp_copy_on_write_key, ob_copy_on_write_key, "Eval Order");
 }
 
 void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)

@@ -569,7 +569,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 			}
 			break;
 		case OB_LAMP:
-			build_lamp(object);
+			build_object_data_lamp(object);
 			break;
 		case OB_CAMERA:
 			build_camera(object);
@@ -586,6 +586,12 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 			break;
 		}
 	}
+}
+
+void DepsgraphNodeBuilder::build_object_data_lamp(Object *object)
+{
+	Lamp *lamp = (Lamp *)object->data;
+	build_lamp(lamp);
 }
 
 void DepsgraphNodeBuilder::build_object_data_lightprobe(Object *object)
@@ -1176,11 +1182,8 @@ void DepsgraphNodeBuilder::build_camera(Object *object)
 	                   DEG_OPCODE_PARAMETERS_EVAL);
 }
 
-/* Lamps */
-void DepsgraphNodeBuilder::build_lamp(Object *object)
+void DepsgraphNodeBuilder::build_lamp(Lamp *lamp)
 {
-	/* Object data. */
-	Lamp *lamp = (Lamp *)object->data;
 	if (built_map_.checkIsBuiltAndTag(lamp)) {
 		return;
 	}
