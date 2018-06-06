@@ -40,6 +40,8 @@ extern "C" {
 #include "BKE_scene.h"
 
 #include "BLI_math.h"
+
+#include "DEG_depsgraph_query.h"
 }
 
 using Alembic::AbcGeom::kVertexScope;
@@ -102,7 +104,7 @@ void AbcPointsWriter::do_write()
 			continue;
 		}
 
-		state.time = BKE_scene_frame_get(m_scene);
+		state.time = DEG_get_ctime(m_depsgraph);
 
 		if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
 			continue;

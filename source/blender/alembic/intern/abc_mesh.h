@@ -74,8 +74,7 @@ private:
 	                 std::vector<int32_t> &creaseLengths,
 	                 std::vector<float> &creaseSharpness);
 
-	struct Mesh *getFinalMesh();
-	void freeMesh(struct Mesh *mesh);
+	struct Mesh *getFinalMesh(bool &r_needsfree);
 
 	void getMaterialIndices(struct Mesh *mesh, std::vector<int32_t> &indices);
 

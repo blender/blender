@@ -60,6 +60,8 @@ extern "C" {
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+
+#include "DEG_depsgraph_query.h"
 }
 
 using Alembic::Abc::TimeSamplingPtr;
@@ -381,14 +383,13 @@ void AbcExporter::createTransformWritersHierarchy(Depsgraph *depsgraph)
 
 void AbcExporter::exploreTransform(Depsgraph *depsgraph, Base *ob_base, Object *parent, Object *dupliObParent)
 {
-	Object *ob = ob_base->object;
-
 	/* If an object isn't exported itself, its duplilist shouldn't be
 	 * exported either. */
 	if (!export_object(&m_settings, ob_base, dupliObParent != NULL)) {
 		return;
 	}
 
+	Object *ob = DEG_get_evaluated_object(depsgraph, ob_base->object);
 	if (object_type_is_exportable(m_scene, ob)) {
 		createTransformWriter(depsgraph, ob, parent, dupliObParent);
 	}

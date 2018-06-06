@@ -369,7 +369,8 @@ void AbcMeshWriter::do_write()
 	if (!m_first_frame && !m_is_animated)
 		return;
 
-	struct Mesh *mesh = getFinalMesh();
+	bool needsfree;
+	struct Mesh *mesh = getFinalMesh(needsfree);
 
 	try {
 		if (m_settings.use_subdiv_schema && m_subdiv_schema.valid()) {
@@ -379,10 +380,10 @@ void AbcMeshWriter::do_write()
 			writeMesh(mesh);
 		}
 
-		freeMesh(mesh);
+		if (needsfree) BKE_id_free(NULL, mesh);
 	}
 	catch (...) {
-		freeMesh(mesh);
+		if (needsfree) BKE_id_free(NULL, mesh);
 		throw;
 	}
 }
@@ -518,7 +519,7 @@ void AbcMeshWriter::writeFaceSets(struct Mesh *dm, Schema &schema)
 	}
 }
 
-Mesh *AbcMeshWriter::getFinalMesh()
+Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 {
 	/* We don't want subdivided mesh data */
 	if (m_subsurf_mod) {
@@ -526,6 +527,7 @@ Mesh *AbcMeshWriter::getFinalMesh()
 	}
 
 	struct Mesh *mesh = mesh_get_eval_final(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
+	r_needsfree = false;
 
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
@@ -546,9 +548,8 @@ Mesh *AbcMeshWriter::getFinalMesh()
 		Mesh *result = BKE_bmesh_to_mesh_nomain(bm, &bmmp);
 		BM_mesh_free(bm);
 
-		freeMesh(mesh);
-
 		mesh = result;
+		r_needsfree = true;
 	}
 
 	m_custom_data_config.pack_uvs = m_settings.pack_uv;
@@ -559,11 +560,6 @@ Mesh *AbcMeshWriter::getFinalMesh()
 	m_custom_data_config.totvert = mesh->totvert;
 
 	return mesh;
-}
-
-void AbcMeshWriter::freeMesh(struct Mesh *mesh)
-{
-	BKE_id_free(NULL, mesh);
 }
 
 void AbcMeshWriter::writeArbGeoParams(struct Mesh *dm)
