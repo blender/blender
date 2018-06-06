@@ -226,14 +226,14 @@ static void wm_window_substitute_old(wmWindowManager *wm, wmWindow *oldwin, wmWi
  * 4- current wm, and wm in file: try match ghostwin
  */
 
-static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
+static void wm_window_match_do(Main *bmain, bContext *C, ListBase *oldwmlist)
 {
 	wmWindowManager *oldwm, *wm;
 	wmWindow *oldwin, *win;
 	
 	/* cases 1 and 2 */
 	if (BLI_listbase_is_empty(oldwmlist)) {
-		if (G.main->wm.first) {
+		if (bmain->wm.first) {
 			/* nothing todo */
 		}
 		else {
@@ -244,7 +244,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 		/* cases 3 and 4 */
 		
 		/* we've read file without wm..., keep current one entirely alive */
-		if (BLI_listbase_is_empty(&G.main->wm)) {
+		if (BLI_listbase_is_empty(&bmain->wm)) {
 			bScreen *screen = NULL;
 
 			/* when loading without UI, no matching needed */
@@ -258,7 +258,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 						if (screen->winid == 0)
 							win->screen = screen;
 						else 
-							win->screen = ED_screen_duplicate(win, screen);
+							win->screen = ED_screen_duplicate(bmain, win, screen);
 						
 						BLI_strncpy(win->screenname, win->screen->id.name + 2, sizeof(win->screenname));
 						win->screen->winid = win->winid;
@@ -266,10 +266,10 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 				}
 			}
 			
-			G.main->wm = *oldwmlist;
+			bmain->wm = *oldwmlist;
 			
 			/* screens were read from file! */
-			ED_screens_initialize(G.main->wm.first);
+			ED_screens_initialize(bmain, bmain->wm.first);
 		}
 		else {
 			bool has_match = false;
@@ -277,7 +277,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			/* what if old was 3, and loaded 1? */
 			/* this code could move to setup_appdata */
 			oldwm = oldwmlist->first;
-			wm = G.main->wm.first;
+			wm = bmain->wm.first;
 
 			/* preserve key configurations in new wm, to preserve their keymaps */
 			wm->keyconfigs = oldwm->keyconfigs;
@@ -559,7 +559,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
-		Main *bmain = CTX_data_main(C);
 		int G_f = G.f;
 		ListBase wmbase;
 
@@ -570,6 +569,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		/* confusing this global... */
 		G.relbase_valid = 1;
 		retval = BKE_blendfile_read(C, filepath, reports, 0);
+
+		/* BKE_file_read sets new Main into context. */
+		Main *bmain = CTX_data_main(C);
+
 		/* when loading startup.blend's, we can be left with a blank path */
 		if (BKE_main_blendfile_path(bmain)) {
 			G.save_over = 1;
@@ -587,12 +590,12 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		}
 
 		/* match the read WM with current WM */
-		wm_window_match_do(C, &wmbase);
+		wm_window_match_do(bmain, C, &wmbase);
 		WM_check(C); /* opens window(s), checks keymaps */
 
 		if (retval == BKE_BLENDFILE_READ_OK_USERPREFS) {
 			/* in case a userdef is read from regular .blend */
-			wm_init_userdef(G.main, false);
+			wm_init_userdef(bmain, false);
 		}
 		
 		if (retval != BKE_BLENDFILE_READ_FAIL) {
@@ -856,7 +859,7 @@ int wm_homefile_read(
 	}
 	
 	/* match the read WM with current WM */
-	wm_window_match_do(C, &wmbase); 
+	wm_window_match_do(bmain, C, &wmbase);
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	bmain->name[0] = '\0';

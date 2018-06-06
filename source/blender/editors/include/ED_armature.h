@@ -41,6 +41,7 @@ struct Bone;
 struct bPoseChannel;
 struct IDProperty;
 struct ListBase;
+struct Main;
 struct MeshDeformModifierData;
 struct DerivedMesh;
 struct Object;
@@ -126,7 +127,7 @@ void ED_operatormacros_armature(void);
 void ED_keymap_armature(struct wmKeyConfig *keyconf);
 
 /* editarmature.c */
-void ED_armature_from_edit(struct bArmature *arm);
+void ED_armature_from_edit(struct Main *bmain, struct bArmature *arm);
 void ED_armature_to_edit(struct bArmature *arm);
 void ED_armature_edit_free(struct bArmature *arm);
 
@@ -162,11 +163,11 @@ void ED_armature_ebone_from_mat3(EditBone *ebone, float mat[3][3]);
 void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]);
 
 void ED_armature_edit_transform_mirror_update(struct Object *obedit);
-void ED_armature_origin_set(struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
+void ED_armature_origin_set(struct Main *bmain, struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
 
 void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4], const bool do_props);
-void ED_armature_transform_apply(struct Object *ob, float mat[4][4], const bool do_props);
-void ED_armature_transform(struct bArmature *arm, float mat[4][4], const bool do_props);
+void ED_armature_transform_apply(struct Main *bmain, struct Object *ob, float mat[4][4], const bool do_props);
+void ED_armature_transform(struct Main *bmain, struct bArmature *arm, float mat[4][4], const bool do_props);
 
 #define ARM_GROUPS_NAME     1
 #define ARM_GROUPS_ENVELOPE 2

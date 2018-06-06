@@ -98,14 +98,14 @@ void    ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 int     ED_area_headersize(void);
 
 /* screens */
-void    ED_screens_initialize(struct wmWindowManager *wm);
+void    ED_screens_initialize(struct Main *bmain, struct wmWindowManager *wm);
 void    ED_screen_draw_edges(struct wmWindow *win);
 void    ED_screen_draw_join_shape(struct ScrArea *sa1, struct ScrArea *sa2);
 void    ED_screen_draw_split_preview(struct ScrArea *sa, const int dir, const float fac);
 void    ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void    ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
-bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
-bScreen *ED_screen_add(struct wmWindow *win, struct Scene *scene, const char *name);
+bScreen *ED_screen_duplicate(struct Main *bmain, struct wmWindow *win, struct bScreen *sc);
+bScreen *ED_screen_add(struct Main *bmain, struct wmWindow *win, struct Scene *scene, const char *name);
 bool    ED_screen_set(struct bContext *C, struct bScreen *sc);
 bool    ED_screen_delete(struct bContext *C, struct bScreen *sc);
 void    ED_screen_set_scene(struct bContext *C, struct bScreen *screen, struct Scene *scene);

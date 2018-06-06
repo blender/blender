@@ -283,7 +283,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA
 				break;
 			case OB_CURVE:
 			case OB_SURF:
-				ED_curve_editnurb_load(ob);
+				ED_curve_editnurb_load(bmain, ob);
 				ED_curve_editnurb_make(ob);
 				break;
 			case OB_LATTICE:

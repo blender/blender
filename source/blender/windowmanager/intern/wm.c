@@ -381,6 +381,7 @@ void WM_keymap_init(bContext *C)
 
 void WM_check(bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	
 	/* wm context */
@@ -407,7 +408,7 @@ void WM_check(bContext *C)
 	/* case: fileread */
 	/* note: this runs in bg mode to set the screen context cb */
 	if ((wm->initialized & WM_INIT_WINDOW) == 0) {
-		ED_screens_initialize(wm);
+		ED_screens_initialize(bmain, wm);
 		wm->initialized |= WM_INIT_WINDOW;
 	}
 }

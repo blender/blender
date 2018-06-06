@@ -459,7 +459,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 
 /* empty screen, with 1 dummy area without spacedata */
 /* uses window size */
-bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
+bScreen *ED_screen_add(Main *bmain, wmWindow *win, Scene *scene, const char *name)
 {
 	const int winsize_x = WM_window_pixels_x(win);
 	const int winsize_y = WM_window_pixels_y(win);
@@ -467,7 +467,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 
-	sc = BKE_libblock_alloc(G.main, ID_SCR, name, 0);
+	sc = BKE_libblock_alloc(bmain, ID_SCR, name, 0);
 	sc->scene = scene;
 	sc->do_refresh = true;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
@@ -837,14 +837,14 @@ static void screen_test_scale(bScreen *sc, int winsize_x, int winsize_y)
 
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */
 
-bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
+bScreen *ED_screen_duplicate(Main *bmain, wmWindow *win, bScreen *sc)
 {
 	bScreen *newsc;
 
 	if (sc->state != SCREENNORMAL) return NULL;  /* XXX handle this case! */
 
 	/* make new empty screen: */
-	newsc = ED_screen_add(win, sc->scene, sc->id.name + 2);
+	newsc = ED_screen_add(bmain, win, sc->scene, sc->id.name + 2);
 	/* copy all data */
 	screen_copy(newsc, sc);
 
@@ -951,14 +951,14 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 }
 
 /* file read, set all screens, ... */
-void ED_screens_initialize(wmWindowManager *wm)
+void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
 {
 	wmWindow *win;
 
 	for (win = wm->windows.first; win; win = win->next) {
 
 		if (win->screen == NULL)
-			win->screen = G.main->screen.first;
+			win->screen = bmain->screen.first;
 
 		ED_screen_refresh(wm, win);
 	}
@@ -1566,6 +1566,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
  */
 ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const short state)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	bScreen *sc, *oldscreen;
 	ARegion *ar;
@@ -1648,7 +1649,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 
 		oldscreen->state = state;
 		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name + 2, "nonnormal");
-		sc = ED_screen_add(win, oldscreen->scene, newname);
+		sc = ED_screen_add(bmain, win, oldscreen->scene, newname);
 		sc->state = state;
 		sc->redraws_flag = oldscreen->redraws_flag;
 		sc->temp = oldscreen->temp;

@@ -40,6 +40,7 @@
 #include "BKE_constraint.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_main.h"
 
 #include "ED_armature.h"
 #include "ED_undo.h"
@@ -2413,6 +2414,7 @@ static void finishRetarget(RigGraph *rigg)
 
 static void adjustGraphs(bContext *C, RigGraph *rigg)
 {
+	Main *bmain = CTX_data_main(C);
 	bArmature *arm = rigg->ob->data;
 	RigArc *arc;
 
@@ -2426,13 +2428,14 @@ static void adjustGraphs(bContext *C, RigGraph *rigg)
 
 	/* Turn the list into an armature */
 	arm->edbo = rigg->editbones;
-	ED_armature_from_edit(arm);
+	ED_armature_from_edit(bmain, arm);
 
 	ED_undo_push(C, "Retarget Skeleton");
 }
 
 static void retargetGraphs(bContext *C, RigGraph *rigg)
 {
+	Main *bmain = CTX_data_main(C);
 	bArmature *arm = rigg->ob->data;
 	ReebGraph *reebg = rigg->link_mesh;
 	RigNode *inode;
@@ -2453,7 +2456,7 @@ static void retargetGraphs(bContext *C, RigGraph *rigg)
 
 	/* Turn the list into an armature */
 	arm->edbo = rigg->editbones;
-	ED_armature_from_edit(arm);
+	ED_armature_from_edit(bmain, arm);
 }
 
 const char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index)

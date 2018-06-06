@@ -92,6 +92,7 @@ static void applyarmature_fix_boneparents(Scene *scene, Object *armob)
 /* set the current pose as the restpose */
 static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
 	bArmature *arm = BKE_armature_from_object(ob);
@@ -185,7 +186,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	}
 
 	/* convert editbones back to bones, and then free the edit-data */
-	ED_armature_from_edit(arm);
+	ED_armature_from_edit(bmain, arm);
 	ED_armature_edit_free(arm);
 
 	/* flush positions of posebones */
