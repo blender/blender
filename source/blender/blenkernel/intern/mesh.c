@@ -618,6 +618,7 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int lo
 
 	mesh->totvert = verts_len;
 	mesh->totedge = edges_len;
+	mesh->totface = tessface_len;
 	mesh->totloop = loops_len;
 	mesh->totpoly = polys_len;
 
@@ -639,6 +640,7 @@ static Mesh *mesh_new_nomain_from_template_ex(
 
 	me_dst->totvert = verts_len;
 	me_dst->totedge = edges_len;
+	me_dst->totface = tessface_len;
 	me_dst->totloop = loops_len;
 	me_dst->totpoly = polys_len;
 
