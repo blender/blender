@@ -37,8 +37,8 @@ extern "C" {
 
 #include "BLI_listbase.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 
 #include "ED_curve.h"
@@ -400,16 +400,16 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const ISampleSele
 	}
 }
 
-/* NOTE: Alembic only stores data about control points, but the DerivedMesh
+/* NOTE: Alembic only stores data about control points, but the Mesh
  * passed from the cache modifier contains the displist, which has more data
  * than the control points, so to avoid corrupting the displist we modify the
- * object directly and create a new DerivedMesh from that. Also we might need to
+ * object directly and create a new Mesh from that. Also we might need to
  * create new or delete existing NURBS in the curve.
  */
-DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh * /*dm*/,
-                                              const ISampleSelector &sample_sel,
-                                              int /*read_flag*/,
-                                              const char ** /*err_str*/)
+Mesh *AbcCurveReader::read_mesh(Mesh * /*existing_mesh*/,
+                                const ISampleSelector &sample_sel,
+                                int /*read_flag*/,
+                                const char ** /*err_str*/)
 {
 	const ICurvesSchema::Sample sample = m_curves_schema.getValue(sample_sel);
 
@@ -450,5 +450,5 @@ DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh * /*dm*/,
 		}
 	}
 
-	return CDDM_from_curve(m_object);
+	return BKE_mesh_new_nomain_from_curve(m_object);
 }

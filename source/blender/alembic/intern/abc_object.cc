@@ -248,12 +248,12 @@ Imath::M44d get_matrix(const IXformSchema &schema, const float time)
 	return s0.getMatrix();
 }
 
-DerivedMesh *AbcObjectReader::read_derivedmesh(DerivedMesh *dm,
-                                               const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
-                                               int UNUSED(read_flag),
-                                               const char **UNUSED(err_str))
+struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
+                                        const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
+                                        int UNUSED(read_flag),
+                                        const char **UNUSED(err_str))
 {
-	return dm;
+	return existing_mesh;
 }
 
 void AbcObjectReader::setupObjectTransform(const float time)

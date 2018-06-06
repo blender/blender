@@ -873,11 +873,11 @@ ABC_INLINE void read_normals_params(AbcMeshData &abc_data,
 	}
 }
 
-static bool check_smooth_poly_flag(DerivedMesh *dm)
+static bool check_smooth_poly_flag(Mesh *mesh)
 {
-	MPoly *mpolys = dm->getPolyArray(dm);
+	MPoly *mpolys = mesh->mpoly;
 
-	for (int i = 0, e = dm->getNumPolys(dm); i < e; ++i) {
+	for (int i = 0, e = mesh->totpoly; i < e; ++i) {
 		MPoly &poly = mpolys[i];
 
 		if ((poly.flag & ME_SMOOTH) != 0) {
@@ -888,11 +888,11 @@ static bool check_smooth_poly_flag(DerivedMesh *dm)
 	return false;
 }
 
-static void set_smooth_poly_flag(DerivedMesh *dm)
+static void set_smooth_poly_flag(Mesh *mesh)
 {
-	MPoly *mpolys = dm->getPolyArray(dm);
+	MPoly *mpolys = mesh->mpoly;
 
-	for (int i = 0, e = dm->getNumPolys(dm); i < e; ++i) {
+	for (int i = 0, e = mesh->totpoly; i < e; ++i) {
 		MPoly &poly = mpolys[i];
 		poly.flag |= ME_SMOOTH;
 	}
@@ -900,7 +900,7 @@ static void set_smooth_poly_flag(DerivedMesh *dm)
 
 static void *add_customdata_cb(void *user_data, const char *name, int data_type)
 {
-	DerivedMesh *dm = static_cast<DerivedMesh *>(user_data);
+	Mesh *mesh = static_cast<Mesh *>(user_data);
 	CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
 	void *cd_ptr;
 	CustomData *loopdata;
@@ -911,7 +911,7 @@ static void *add_customdata_cb(void *user_data, const char *name, int data_type)
 		return NULL;
 	}
 
-	loopdata = dm->getLoopDataLayout(dm);
+	loopdata = &mesh->ldata;
 	cd_ptr = CustomData_get_layer_named(loopdata, cd_data_type, name);
 	if (cd_ptr != NULL) {
 		/* layer already exists, so just return it. */
@@ -920,7 +920,7 @@ static void *add_customdata_cb(void *user_data, const char *name, int data_type)
 
 	/* create a new layer, taking care to construct the hopefully-soon-to-be-removed
 	 * CD_MTEXPOLY layer too, with the same name. */
-	numloops = dm->getNumLoops(dm);
+	numloops = mesh->totloop;
 	cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT,
 	                                    NULL, numloops, name);
 	return cd_ptr;
@@ -986,17 +986,19 @@ static void read_mesh_sample(const std::string & iobject_full_name,
 	}
 }
 
-CDStreamConfig get_config(DerivedMesh *dm)
+CDStreamConfig get_config(Mesh *mesh)
 {
 	CDStreamConfig config;
 
-	config.user_data = dm;
-	config.mvert = dm->getVertArray(dm);
-	config.mloop = dm->getLoopArray(dm);
-	config.mpoly = dm->getPolyArray(dm);
-	config.totloop = dm->getNumLoops(dm);
-	config.totpoly = dm->getNumPolys(dm);
-	config.loopdata = dm->getLoopDataLayout(dm);
+	BLI_assert(mesh->mvert);
+
+	config.user_data = mesh;
+	config.mvert = mesh->mvert;
+	config.mloop = mesh->mloop;
+	config.mpoly = mesh->mpoly;
+	config.totloop = mesh->totloop;
+	config.totpoly = mesh->totpoly;
+	config.loopdata = &mesh->ldata;
 	config.add_customdata_cb = add_customdata_cb;
 
 	return config;
@@ -1027,14 +1029,8 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 	m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
 	m_object->data = mesh;
 
-	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
-
-	if (ndm != dm) {
-		dm->release(dm);
-	}
-
-	DM_to_mesh(ndm, mesh, m_object, CD_MASK_MESH, true);
+	Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
+	BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, CD_MASK_MESH, true);
 
 	if (m_settings->validate_meshes) {
 		BKE_mesh_validate(mesh, false, false);
@@ -1064,10 +1060,10 @@ bool AbcMeshReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHe
 	return true;
 }
 
-DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
-                                             const ISampleSelector &sample_sel,
-                                             int read_flag,
-                                             const char **err_str)
+Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
+                               const ISampleSelector &sample_sel,
+                               int read_flag,
+                               const char **err_str)
 {
 	const IPolyMeshSchema::Sample sample = m_schema.getValue(sample_sel);
 
@@ -1075,22 +1071,22 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
 	const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
 	const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
 
-	DerivedMesh *new_dm = NULL;
+	Mesh *new_mesh = NULL;
 
 	/* Only read point data when streaming meshes, unless we need to create new ones. */
 	ImportSettings settings;
 	settings.read_flag |= read_flag;
 
-	bool topology_changed =  positions->size() != dm->getNumVerts(dm) ||
-	                         face_counts->size() != dm->getNumPolys(dm) ||
-	                         face_indices->size() != dm->getNumLoops(dm);
+	bool topology_changed =  positions->size() != existing_mesh->totvert ||
+	                         face_counts->size() != existing_mesh->totpoly ||
+	                         face_indices->size() != existing_mesh->totloop;
 	if (topology_changed) {
-		new_dm = CDDM_from_template(dm,
-		                            positions->size(),
-		                            0,
-		                            0,
-		                            face_indices->size(),
-		                            face_counts->size());
+		new_mesh = BKE_mesh_new_nomain_from_template(existing_mesh,
+		                                             positions->size(),
+		                                             0,
+		                                             0,
+		                                             face_indices->size(),
+		                                             face_counts->size());
 
 		settings.read_flag |= MOD_MESHSEQ_READ_ALL;
 	}
@@ -1098,8 +1094,8 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
 		/* If the face count changed (e.g. by triangulation), only read points.
 		 * This prevents crash from T49813.
 		 * TODO(kevin): perhaps find a better way to do this? */
-		if (face_counts->size() != dm->getNumPolys(dm) ||
-		    face_indices->size() != dm->getNumLoops(dm))
+		if (face_counts->size() != existing_mesh->totpoly ||
+		    face_indices->size() != existing_mesh->totloop)
 		{
 			settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
@@ -1110,40 +1106,39 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
 		}
 	}
 
-	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	CDStreamConfig config = get_config(new_mesh ? new_mesh : existing_mesh);
 	config.time = sample_sel.getRequestedTime();
 
 	bool do_normals = false;
 	read_mesh_sample(m_iobject.getFullName(),
 	                 &settings, m_schema, sample_sel, config, do_normals);
 
-	if (new_dm) {
+	if (new_mesh) {
 		/* Check if we had ME_SMOOTH flag set to restore it. */
-		if (!do_normals && check_smooth_poly_flag(dm)) {
-			set_smooth_poly_flag(new_dm);
+		if (!do_normals && check_smooth_poly_flag(existing_mesh)) {
+			set_smooth_poly_flag(new_mesh);
 		}
 
-		CDDM_calc_normals(new_dm);
-		CDDM_calc_edges(new_dm);
+		BKE_mesh_calc_normals(new_mesh);
+		BKE_mesh_calc_edges(new_mesh, false, false);
 
 		/* Here we assume that the number of materials doesn't change, i.e. that
 		 * the material slots that were created when the object was loaded from
 		 * Alembic are still valid now. */
-		size_t num_polys = new_dm->getNumPolys(new_dm);
+		size_t num_polys = new_mesh->totpoly;
 		if (num_polys > 0) {
-			MPoly *dmpolies = new_dm->getPolyArray(new_dm);
 			std::map<std::string, int> mat_map;
-			assign_facesets_to_mpoly(sample_sel, 0, dmpolies, num_polys, mat_map);
+			assign_facesets_to_mpoly(sample_sel, 0, new_mesh->mpoly, num_polys, mat_map);
 		}
 
-		return new_dm;
+		return new_mesh;
 	}
 
 	if (do_normals) {
-		CDDM_calc_normals(dm);
+		BKE_mesh_calc_normals(existing_mesh);
 	}
 
-	return dm;
+	return existing_mesh;
 }
 
 void AbcMeshReader::assign_facesets_to_mpoly(
@@ -1305,14 +1300,8 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 	m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
 	m_object->data = mesh;
 
-	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
-
-	if (ndm != dm) {
-		dm->release(dm);
-	}
-
-	DM_to_mesh(ndm, mesh, m_object, CD_MASK_MESH, true);
+	Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
+	BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, CD_MASK_MESH, true);
 
 	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
 	Int32ArraySamplePtr indices = sample.getCreaseIndices();
@@ -1344,10 +1333,10 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 	}
 }
 
-DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm,
-                                             const ISampleSelector &sample_sel,
-                                             int read_flag,
-                                             const char **err_str)
+Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
+                               const ISampleSelector &sample_sel,
+                               int read_flag,
+                               const char **err_str)
 {
 	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
 
@@ -1355,18 +1344,18 @@ DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm,
 	const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
 	const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
 
-	DerivedMesh *new_dm = NULL;
+	Mesh *new_mesh = NULL;
 
 	ImportSettings settings;
 	settings.read_flag |= read_flag;
 
-	if (dm->getNumVerts(dm) != positions->size()) {
-		new_dm = CDDM_from_template(dm,
-		                            positions->size(),
-		                            0,
-		                            0,
-		                            face_indices->size(),
-		                            face_counts->size());
+	if (existing_mesh->totvert != positions->size()) {
+		new_mesh = BKE_mesh_new_nomain_from_template(existing_mesh,
+		                                           positions->size(),
+		                                           0,
+		                                           0,
+		                                           face_indices->size(),
+		                                           face_counts->size());
 
 		settings.read_flag |= MOD_MESHSEQ_READ_ALL;
 	}
@@ -1374,8 +1363,8 @@ DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm,
 		/* If the face count changed (e.g. by triangulation), only read points.
 		 * This prevents crash from T49813.
 		 * TODO(kevin): perhaps find a better way to do this? */
-		if (face_counts->size() != dm->getNumPolys(dm) ||
-		    face_indices->size() != dm->getNumLoops(dm))
+		if (face_counts->size() != existing_mesh->totpoly ||
+		    face_indices->size() != existing_mesh->totpoly)
 		{
 			settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
@@ -1387,22 +1376,22 @@ DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm,
 	}
 
 	/* Only read point data when streaming meshes, unless we need to create new ones. */
-	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	CDStreamConfig config = get_config(new_mesh ? new_mesh : existing_mesh);
 	config.time = sample_sel.getRequestedTime();
 	read_subd_sample(m_iobject.getFullName(),
 	                 &settings, m_schema, sample_sel, config);
 
-	if (new_dm) {
+	if (new_mesh) {
 		/* Check if we had ME_SMOOTH flag set to restore it. */
-		if (check_smooth_poly_flag(dm)) {
-			set_smooth_poly_flag(new_dm);
+		if (check_smooth_poly_flag(existing_mesh)) {
+			set_smooth_poly_flag(new_mesh);
 		}
 
-		CDDM_calc_normals(new_dm);
-		CDDM_calc_edges(new_dm);
+		BKE_mesh_calc_normals(new_mesh);
+		BKE_mesh_calc_edges(new_mesh, false, false);
 
-		return new_dm;
+		return new_mesh;
 	}
 
-	return dm;
+	return existing_mesh;
 }

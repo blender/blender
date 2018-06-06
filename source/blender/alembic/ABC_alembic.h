@@ -29,8 +29,8 @@ extern "C" {
 
 struct bContext;
 struct CacheReader;
-struct DerivedMesh;
 struct ListBase;
+struct Mesh;
 struct Object;
 struct Scene;
 
@@ -114,12 +114,13 @@ void ABC_get_transform(struct CacheReader *reader,
                        float time,
                        float scale);
 
-struct DerivedMesh *ABC_read_mesh(struct CacheReader *reader,
-                                  struct Object *ob,
-                                  struct DerivedMesh *dm,
-                                  const float time,
-                                  const char **err_str,
-                                  int flags);
+/* Either modifies current_mesh in-place or constructs a new mesh. */
+struct Mesh *ABC_read_mesh(struct CacheReader *reader,
+                           struct Object *ob,
+                           struct Mesh *current_mesh,
+                           const float time,
+                           const char **err_str,
+                           int flags);
 
 void CacheReader_incref(struct CacheReader *reader);
 void CacheReader_free(struct CacheReader *reader);

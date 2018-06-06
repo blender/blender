@@ -960,12 +960,12 @@ void ABC_get_transform(CacheReader *reader, float r_mat[4][4], float time, float
 
 /* ************************************************************************** */
 
-DerivedMesh *ABC_read_mesh(CacheReader *reader,
-                           Object *ob,
-                           DerivedMesh *dm,
-                           const float time,
-                           const char **err_str,
-                           int read_flag)
+Mesh *ABC_read_mesh(CacheReader *reader,
+                    Object *ob,
+                    Mesh *existing_mesh,
+                    const float time,
+                    const char **err_str,
+                    int read_flag)
 {
 	AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
 	IObject iobject = abc_reader->iobject();
@@ -984,7 +984,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 	/* kFloorIndex is used to be compatible with non-interpolating
 	 * properties; they use the floor. */
 	ISampleSelector sample_sel(time, ISampleSelector::kFloorIndex);
-	return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+	return abc_reader->read_mesh(existing_mesh, sample_sel, read_flag, err_str);
 }
 
 /* ************************************************************************** */
