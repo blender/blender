@@ -95,7 +95,7 @@ NodeGroup *BlenderFileLoader::Load()
 	int id = 0;
 
 	DEG_OBJECT_ITER_BEGIN(
-	        depsgraph, ob, DEG_ITER_OBJECT_MODE_RENDER,
+	        depsgraph, ob,
 	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
 	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
 	        DEG_ITER_OBJECT_FLAG_VISIBLE |

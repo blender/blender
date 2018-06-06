@@ -208,7 +208,6 @@ static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, Pointe
 	data->flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
 	             DEG_ITER_OBJECT_FLAG_VISIBLE |
 	             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
-	data->mode = DEG_ITER_OBJECT_MODE_RENDER;
 
 	((BLI_Iterator *)iter->internal.custom)->valid = true;
 	DEG_iterator_objects_begin(iter->internal.custom, data);
@@ -249,7 +248,6 @@ static void rna_Depsgraph_object_instances_begin(CollectionPropertyIterator *ite
 	             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
 	             DEG_ITER_OBJECT_FLAG_VISIBLE |
 	             DEG_ITER_OBJECT_FLAG_DUPLI;
-	data->mode = DEG_ITER_OBJECT_MODE_RENDER;
 
 	((BLI_Iterator *)iter->internal.custom)->valid = true;
 	DEG_iterator_objects_begin(iter->internal.custom, data);
