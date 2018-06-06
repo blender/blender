@@ -482,7 +482,8 @@ static bool object_render_hide_original(BL::Object::type_enum ob_type,
 static bool object_render_hide(BL::Object& b_ob,
                                bool top_level,
                                bool parent_hide,
-                               bool& hide_triangles)
+                               bool& hide_triangles,
+                               BL::Depsgraph::mode_enum depsgraph_mode)
 {
 	/* check if we should render or hide particle emitter */
 	BL::Object::particle_systems_iterator b_psys;
@@ -501,11 +502,16 @@ static bool object_render_hide(BL::Object& b_ob,
 		has_particles = true;
 	}
 
+	/* Both mode_PREVIEW and mode_VIEWPORT are treated the same here.*/
+	const bool show_duplicator = depsgraph_mode == BL::Depsgraph::mode_RENDER
+	                             ? b_ob.show_duplicator_for_render()
+	                             : b_ob.show_duplicator_for_viewport();
+
 	if(has_particles) {
-		show_emitter = b_ob.show_duplicator_for_render();
+		show_emitter = show_duplicator;
 		hide_emitter = !show_emitter;
 	} else if(b_ob.is_duplicator()) {
-		if(top_level || b_ob.show_duplicator_for_render()) {
+		if(top_level || show_duplicator) {
 			hide_as_dupli_parent = true;
 		}
 	}
@@ -563,6 +569,8 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 	bool cancel = false;
 	bool use_portal = false;
 
+	BL::Depsgraph::mode_enum depsgraph_mode = b_depsgraph.mode();
+
 	BL::Depsgraph::object_instances_iterator b_instance_iter;
 	for(b_depsgraph.object_instances.begin(b_instance_iter);
 	    b_instance_iter != b_depsgraph.object_instances.end() && !cancel;
@@ -582,7 +590,7 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 		/* test if object needs to be hidden */
 		bool hide_tris;
 
-		 if(!object_render_hide(b_ob, true, true, hide_tris)) {
+		 if(!object_render_hide(b_ob, true, true, hide_tris, depsgraph_mode)) {
 			/* object itself */
 			sync_object(b_depsgraph,
 			            b_instance,
