@@ -95,7 +95,6 @@
 static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 
-static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob);
 static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid);
 
 static void mesh_init_origspace(Mesh *mesh);
@@ -1924,7 +1923,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 	}
 }
 
-static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
+static void UNUSED_FUNCTION(add_shapekey_layers)(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
 {
 	KeyBlock *kb;
 	Key *key = me->key;
