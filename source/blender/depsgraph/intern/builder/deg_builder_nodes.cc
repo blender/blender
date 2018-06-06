@@ -575,7 +575,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 			build_camera(object);
 			break;
 		case OB_LIGHTPROBE:
-			build_lightprobe(object);
+			build_object_data_lightprobe(object);
 			break;
 		default:
 		{
@@ -586,6 +586,16 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 			break;
 		}
 	}
+}
+
+void DepsgraphNodeBuilder::build_object_data_lightprobe(Object *object)
+{
+	LightProbe *probe = (LightProbe *)object->data;
+	build_lightprobe(probe);
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_LIGHT_PROBE_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_object_transform(Object *object)
@@ -1388,9 +1398,8 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
 	                   DEG_OPCODE_MOVIECLIP_EVAL);
 }
 
-void DepsgraphNodeBuilder::build_lightprobe(Object *object)
+void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
 {
-	LightProbe *probe = (LightProbe *)object->data;
 	if (built_map_.checkIsBuiltAndTag(probe)) {
 		return;
 	}
@@ -1398,13 +1407,7 @@ void DepsgraphNodeBuilder::build_lightprobe(Object *object)
 	add_operation_node(&probe->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
-	                   DEG_OPCODE_PLACEHOLDER,
-	                   "LightProbe Eval");
-	add_operation_node(&object->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   NULL,
-	                   DEG_OPCODE_PLACEHOLDER,
-	                   "LightProbe Eval");
+	                   DEG_OPCODE_LIGHT_PROBE_EVAL);
 
 	build_animdata(&probe->id);
 }

@@ -205,6 +205,9 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_GEOMETRY_CLOTH_MODIFIER,
 	DEG_OPCODE_GEOMETRY_SHAPEKEY,
 
+	/* Object data. ------------------------------------- */
+	DEG_OPCODE_LIGHT_PROBE_EVAL,
+
 	/* Pose. -------------------------------------------- */
 	/* Init pose, clear flags, etc. */
 	DEG_OPCODE_POSE_INIT,

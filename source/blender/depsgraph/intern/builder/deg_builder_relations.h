@@ -58,6 +58,7 @@ struct FCurve;
 struct Collection;
 struct Key;
 struct LayerCollection;
+struct LightProbe;
 struct Main;
 struct Mask;
 struct Material;
@@ -201,6 +202,7 @@ struct DepsgraphRelationBuilder
 	void build_object(Base *base, Object *object);
 	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);
+	void build_object_data_lightprobe(Object *object);
 	void build_object_parent(Object *object);
 	void build_constraints(ID *id,
 	                       eDepsNode_Type component_type,
@@ -251,7 +253,7 @@ struct DepsgraphRelationBuilder
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
-	void build_lightprobe(Object *object);
+	void build_lightprobe(LightProbe *probe);
 
 	void build_nested_datablock(ID *owner, ID *id);
 	void build_nested_nodetree(ID *owner, bNodeTree *ntree);

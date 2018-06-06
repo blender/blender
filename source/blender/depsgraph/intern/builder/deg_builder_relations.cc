@@ -615,7 +615,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 			build_camera(object);
 			break;
 		case OB_LIGHTPROBE:
-			build_lightprobe(object);
+			build_object_data_lightprobe(object);
 			break;
 	}
 	Key *key = BKE_key_from_object(object);
@@ -625,6 +625,19 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		add_relation(key_key, geometry_key, "Shapekeys");
 		build_nested_shapekey(&object->id, key);
 	}
+}
+
+void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
+{
+	LightProbe *probe = (LightProbe *)object->data;
+	build_lightprobe(probe);
+	OperationKey probe_key(&probe->id,
+	                       DEG_NODE_TYPE_PARAMETERS,
+	                       DEG_OPCODE_LIGHT_PROBE_EVAL);
+	OperationKey object_key(&object->id,
+	                        DEG_NODE_TYPE_PARAMETERS,
+	                        DEG_OPCODE_LIGHT_PROBE_EVAL);
+	add_relation(probe_key, object_key, "LightProbe Update");
 }
 
 void DepsgraphRelationBuilder::build_object_parent(Object *object)
@@ -2045,23 +2058,12 @@ void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
 	build_animdata(&clip->id);
 }
 
-void DepsgraphRelationBuilder::build_lightprobe(Object *object)
+void DepsgraphRelationBuilder::build_lightprobe(LightProbe *probe)
 {
-	LightProbe *probe = (LightProbe *)object->data;
 	if (built_map_.checkIsBuiltAndTag(probe)) {
 		return;
 	}
 	build_animdata(&probe->id);
-
-	OperationKey probe_key(&probe->id,
-	                       DEG_NODE_TYPE_PARAMETERS,
-	                       DEG_OPCODE_PLACEHOLDER,
-	                       "LightProbe Eval");
-	OperationKey object_key(&object->id,
-	                        DEG_NODE_TYPE_PARAMETERS,
-	                        DEG_OPCODE_PLACEHOLDER,
-	                        "LightProbe Eval");
-	add_relation(probe_key, object_key, "LightProbe Update");
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()

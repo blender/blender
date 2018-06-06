@@ -50,6 +50,7 @@ struct Main;
 struct Material;
 struct Mask;
 struct MTex;
+struct LightProbe;
 struct MovieClip;
 struct bNodeTree;
 struct Object;
@@ -165,6 +166,7 @@ struct DepsgraphNodeBuilder {
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);
 	void build_object_data(Object *object);
+	void build_object_data_lightprobe(Object *object);
 	void build_object_transform(Object *object);
 	void build_object_constraints(Object *object);
 	void build_pose_constraints(Object *object, bPoseChannel *pchan, int pchan_index);
@@ -198,7 +200,7 @@ struct DepsgraphNodeBuilder {
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
-	void build_lightprobe(Object *object);
+	void build_lightprobe(LightProbe *probe);
 
 protected:
 	struct SavedEntryTag {
