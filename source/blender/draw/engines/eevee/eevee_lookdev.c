@@ -42,7 +42,7 @@ void EEVEE_lookdev_cache_init(
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	if (LOOK_DEV_MODE_ENABLED(v3d)) {
-		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_ORIENTATION_WORLD);
+		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_INTERNAL | STUDIOLIGHT_ORIENTATION_WORLD);
 		if ((sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
 			struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 			GPUTexture *tex;
