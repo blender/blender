@@ -339,9 +339,7 @@ class ToolSelectPanelHelper:
     # - None: Signal to finish (complete any final operations, e.g. add padding).
 
     @staticmethod
-    def _layout_generator_single_column(layout):
-        scale_y = 2.0
-
+    def _layout_generator_single_column(layout, scale_y):
         col = layout.column(align=True)
         col.scale_y = scale_y
         is_sep = False
@@ -355,9 +353,8 @@ class ToolSelectPanelHelper:
             is_sep = yield col
 
     @staticmethod
-    def _layout_generator_multi_columns(layout, column_count):
-        scale_y = 2.0
-        scale_x = 2.2
+    def _layout_generator_multi_columns(layout, column_count, scale_y):
+        scale_x = scale_y * 1.1
         column_last = column_count - 1
 
         col = layout.column(align=True)
@@ -394,7 +391,7 @@ class ToolSelectPanelHelper:
             column_index += 1
 
     @staticmethod
-    def _layout_generator_detect_from_region(layout, region):
+    def _layout_generator_detect_from_region(layout, region, scale_y):
         """
         Choose an appropriate layout for the toolbar.
         """
@@ -421,14 +418,14 @@ class ToolSelectPanelHelper:
                 column_count = 1
 
         if column_count == 1:
-            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout)
+            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout, scale_y=scale_y)
         else:
-            ui_gen = ToolSelectPanelHelper._layout_generator_multi_columns(layout, column_count=column_count)
+            ui_gen = ToolSelectPanelHelper._layout_generator_multi_columns(layout, column_count=column_count, scale_y=scale_y)
 
         return ui_gen, show_text
 
     @classmethod
-    def draw_cls(cls, layout, context, detect_layout=True):
+    def draw_cls(cls, layout, context, detect_layout=True, scale_y=2.0):
         # Use a classmethod so it can be called outside of a panel context.
 
         # XXX, this UI isn't very nice.
@@ -444,9 +441,9 @@ class ToolSelectPanelHelper:
         )
 
         if detect_layout:
-            ui_gen, show_text = cls._layout_generator_detect_from_region(layout, context.region)
+            ui_gen, show_text = cls._layout_generator_detect_from_region(layout, context.region, scale_y)
         else:
-            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout)
+            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout, scale_y)
             show_text = True
 
         # Start iteration
