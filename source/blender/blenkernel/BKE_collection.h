@@ -91,7 +91,6 @@ bool BKE_collection_is_in_scene(struct Collection *collection);
 void BKE_collections_after_lib_link(struct Main *bmain);
 bool BKE_collection_object_cyclic_check(struct Main *bmain, struct Object *object, struct Collection *collection);
 bool BKE_collection_is_animated(struct Collection *collection, struct Object *parent);
-void BKE_collection_handle_recalc_and_update(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *parent, struct Collection *collection);
 
 /* Object list cache. */
 

@@ -44,6 +44,8 @@
 
 #include "BLI_iterator.h"
 
+#include "BKE_anim.h"
+
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"

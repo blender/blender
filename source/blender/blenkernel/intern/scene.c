@@ -1029,7 +1029,7 @@ int BKE_scene_base_iter_next(
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of collection_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							iter->duplilist = object_duplilist_ex(depsgraph, (*scene), (*base)->object, false);
+							iter->duplilist = object_duplilist(depsgraph, (*scene), (*base)->object);
 							
 							iter->dupob = iter->duplilist->first;
 

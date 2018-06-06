@@ -311,23 +311,6 @@ bool BKE_collection_is_animated(Collection *collection, Object *UNUSED(parent))
 	return false;
 }
 
-/* puts all collection members in local timing system, after this call
- * you can draw everything, leaves tags in objects to signal it needs further updating */
-
-/* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
-void BKE_collection_handle_recalc_and_update(
-        struct Depsgraph *depsgraph, Scene *scene, Object *UNUSED(parent), Collection *collection)
-{
-	/* only do existing tags, as set by regular depsgraph */
-	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
-	{
-		if (object->id.recalc & ID_RECALC_ALL) {
-			BKE_object_handle_update(depsgraph, scene, object);
-		}
-	}
-	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-}
-
 /* **************** Object List Cache *******************/
 
 static void collection_object_cache_fill(ListBase *lb, Collection *collection, int parent_restrict)
