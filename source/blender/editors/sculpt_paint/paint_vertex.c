@@ -3143,6 +3143,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		 * avoid this if we can! */
 		DEG_id_tag_update(ob->data, 0);
 	}
+	else {
+		/* Flush changes through DEG. */
+		DEG_id_tag_update(ob->data, DEG_TAG_COPY_ON_WRITE);
+	}
 }
 
 static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
