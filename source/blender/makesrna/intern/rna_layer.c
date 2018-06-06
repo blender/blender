@@ -163,22 +163,11 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
 	rna_iterator_listbase_begin(iter, &view_layer->object_bases, rna_ViewLayer_objects_selected_skip);
 }
 
-static void rna_ViewLayer_update_tagged(ViewLayer *UNUSED(view_layer), bContext *C)
+static void rna_ViewLayer_update_tagged(ID *id_ptr, ViewLayer *view_layer, Main *bmain)
 {
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	DEG_OBJECT_ITER_BEGIN(
-	        depsgraph, ob, DEG_ITER_OBJECT_MODE_VIEWPORT,
-	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
-	        DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |
-	        DEG_ITER_OBJECT_FLAG_VISIBLE |
-	        DEG_ITER_OBJECT_FLAG_DUPLI)
-	{
-		/* Don't do anything, we just need to run the iterator to flush
-		 * the base info to the objects. */
-		UNUSED_VARS(ob);
-	}
-	DEG_OBJECT_ITER_END;
+	Scene *scene = (Scene *)id_ptr;
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+	BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 
 static void rna_ObjectBase_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -351,7 +340,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
 
 	/* debug update routine */
 	func = RNA_def_function(srna, "update", "rna_ViewLayer_update_tagged");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func,
 	                                "Update data tagged to be updated from previous access to data or operators");
 
