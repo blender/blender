@@ -1825,19 +1825,21 @@ static void ed_panel_draw(const bContext *C,
 	panel = UI_panel_begin(sa, ar, lb, block, pt, panel, &open);
 
 	/* bad fixed values */
-	int triangle = (int)(UI_UNIT_Y * 1.1f);
 	int xco, yco, h = 0;
 
 	if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+		int labelx, labely;
+		UI_panel_label_offset(block, &labelx, &labely);
+
 		/* for enabled buttons */
 		panel->layout = UI_block_layout(
 		        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-		        triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, 0, style);
+		        labelx, labely, UI_UNIT_Y, 1, 0, style);
 
 		pt->draw_header(C, panel);
 
 		UI_block_layout_resolve(block, &xco, &yco);
-		panel->labelofs = xco - triangle;
+		panel->labelofs = xco - labelx;
 		panel->layout = NULL;
 	}
 	else {

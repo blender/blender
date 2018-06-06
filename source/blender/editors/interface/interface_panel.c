@@ -612,6 +612,20 @@ static void ui_draw_panel_dragwidget(unsigned int pos, unsigned int col, const r
 	immEnd();
 }
 
+/* For button layout next to label. */
+void UI_panel_label_offset(uiBlock *block, int *x, int *y)
+{
+	Panel *panel = block->panel;
+	uiStyle *style = UI_style_get_dpi();
+	const bool is_subpanel = (panel->type && panel->type->parent);
+
+	*x = UI_UNIT_X * 1.1f;
+	*y = (UI_UNIT_Y * 1.1f) + style->panelspace;
+
+	if (is_subpanel) {
+		*x += 5.0f / block->aspect;
+	}
+}
 
 static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const rcti *rect, char dir)
 {
@@ -619,6 +633,8 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 	rcti hrect;
 	int pnl_icons;
 	const char *activename = panel->drawname[0] ? panel->drawname : panel->panelname;
+	const bool is_subpanel = (panel->type && panel->type->parent);
+	uiFontStyle *fontstyle = (is_subpanel) ? &style->widgetlabel : &style->paneltitle;
 	unsigned char col_title[4];
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
@@ -635,14 +651,14 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 	if (dir == 'h') {
 		hrect.xmin = rect->xmin + pnl_icons;
 		hrect.ymin += 2.0f / block->aspect;
-		UI_fontstyle_draw(&style->paneltitle, &hrect, activename, col_title);
+		UI_fontstyle_draw(fontstyle, &hrect, activename, col_title);
 	}
 	else {
 		/* ignore 'pnl_icons', otherwise the text gets offset horizontally
 		 * + 0.001f to avoid flirting with float inaccuracy
 		 */
 		hrect.xmin = rect->xmin + (PNL_ICON + 5) / block->aspect + 0.001f;
-		UI_fontstyle_draw_rotated(&style->paneltitle, &hrect, activename, col_title);
+		UI_fontstyle_draw_rotated(fontstyle, &hrect, activename, col_title);
 	}
 }
 
@@ -666,6 +682,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	headrect = *rect;
 	headrect.ymin = headrect.ymax;
 	headrect.ymax = headrect.ymin + floor(PNL_HEADER / block->aspect + 0.001f);
+
+	rcti titlerect = headrect;
+	if (is_subpanel) {
+		titlerect.xmin += 5.0f / block->aspect;
+	}
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -738,7 +759,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 	/* horizontal title */
 	if (is_closed_x == false) {
-		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
+		ui_draw_aligned_panel_header(style, block, &titlerect, 'h');
 
 		if (show_drag) {
 			unsigned int col;
@@ -817,10 +838,10 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	/* draw collapse icon */
 
 	/* itemrect smaller */
-	itemrect.xmin = headrect.xmin + 3.0f / block->aspect;
-	itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&headrect);
-	itemrect.ymin = headrect.ymin;
-	itemrect.ymax = headrect.ymax;
+	itemrect.xmin = titlerect.xmin + 3.0f / block->aspect;
+	itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&titlerect);
+	itemrect.ymin = titlerect.ymin;
+	itemrect.ymax = titlerect.ymax;
 
 	BLI_rctf_scale(&itemrect, 0.25f);
 

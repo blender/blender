@@ -828,6 +828,7 @@ struct Panel *UI_panel_begin(struct ScrArea *sa, struct ARegion *ar, struct List
                              bool *r_open);
 void UI_panel_end(uiBlock *block, int width, int height);
 void UI_panels_scale(struct ARegion *ar, float new_width);
+void UI_panel_label_offset(struct uiBlock *block, int *x, int *y);
 
 bool                       UI_panel_category_is_visible(struct ARegion *ar);
 void                       UI_panel_category_add(struct ARegion *ar, const char *name);
