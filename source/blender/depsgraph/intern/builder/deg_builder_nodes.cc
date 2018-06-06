@@ -383,11 +383,26 @@ void DepsgraphNodeBuilder::build_id(ID* id) {
 		return;
 	}
 	switch (GS(id->name)) {
+		case ID_AR:
+			build_armature((bArmature *)id);
+			break;
+		case ID_CA:
+			build_camera((Camera *)id);
+			break;
 		case ID_GR:
 			build_collection((Collection *)id);
 			break;
 		case ID_OB:
 			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
+			break;
+		case ID_KE:
+			build_shapekeys((Key *)id);
+			break;
+		case ID_LA:
+			build_lamp((Lamp *)id);
+			break;
+		case ID_LP:
+			build_lightprobe((LightProbe *)id);
 			break;
 		case ID_NT:
 			build_nodetree((bNodeTree *)id);
@@ -410,8 +425,16 @@ void DepsgraphNodeBuilder::build_id(ID* id) {
 		case ID_MC:
 			build_movieclip((MovieClip *)id);
 			break;
+		case ID_ME:
+		case ID_CU:
+		case ID_MB:
+		case ID_LT:
+			build_object_data_geometry_datablock(id);
+			break;
 		default:
 			fprintf(stderr, "Unhandled ID %s\n", id->name);
+			BLI_assert(!"Should never happen");
+			break;
 	}
 }
 
