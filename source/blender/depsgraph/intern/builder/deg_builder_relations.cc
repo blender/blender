@@ -1709,8 +1709,8 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 	/* Init operation of object-level geometry evaluation. */
 	OperationKey geom_init_key(&object->id,
 	                           DEG_NODE_TYPE_GEOMETRY,
-							   DEG_OPCODE_PLACEHOLDER,
-							   "Eval Init");
+	                           DEG_OPCODE_PLACEHOLDER,
+	                           "Eval Init");
 	/* Get nodes for result of obdata's evaluation, and geometry evaluation
 	 * on object.
 	 */
@@ -1789,21 +1789,21 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 		             "Object Geometry UberEval");
 	}
 	if (object->type == OB_MBALL) {
-			Object *mom = BKE_mball_basis_find(scene_, object);
-			ComponentKey mom_geom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
-			/* motherball - mom depends on children! */
-			if (mom == object) {
-				ComponentKey mom_transform_key(&mom->id,
-				                               DEG_NODE_TYPE_TRANSFORM);
-				add_relation(mom_transform_key,
-				             mom_geom_key,
-				             "Metaball Motherball Transform -> Geometry");
-			}
-			else {
-				ComponentKey transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
-				add_relation(geom_key, mom_geom_key, "Metaball Motherball");
-				add_relation(transform_key, mom_geom_key, "Metaball Motherball");
-			}
+		Object *mom = BKE_mball_basis_find(scene_, object);
+		ComponentKey mom_geom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
+		/* motherball - mom depends on children! */
+		if (mom == object) {
+			ComponentKey mom_transform_key(&mom->id,
+			                               DEG_NODE_TYPE_TRANSFORM);
+			add_relation(mom_transform_key,
+			             mom_geom_key,
+			             "Metaball Motherball Transform -> Geometry");
+		}
+		else {
+			ComponentKey transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
+			add_relation(geom_key, mom_geom_key, "Metaball Motherball");
+			add_relation(transform_key, mom_geom_key, "Metaball Motherball");
+		}
 	}
 	/* NOTE: This is compatibility code to support particle systems
 	 *
@@ -1858,7 +1858,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 	                                  "Eval Done");
 	add_relation(obdata_geom_eval_key,
 	             obdata_geom_done_key,
-				 "ObData Geom Eval Done");
+	             "ObData Geom Eval Done");
 	/* Type-specific links. */
 	const ID_Type id_type = GS(obdata->name);
 	switch (id_type) {

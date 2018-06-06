@@ -378,7 +378,7 @@ void DepsgraphNodeBuilder::end_build()
 	}
 }
 
-void DepsgraphNodeBuilder::build_id(ID* id) {
+void DepsgraphNodeBuilder::build_id(ID *id) {
 	if (id == NULL) {
 		return;
 	}

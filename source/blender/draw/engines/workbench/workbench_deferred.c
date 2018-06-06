@@ -388,7 +388,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		psl->prepass_pass = DRW_pass_create("Prepass", state);
 		psl->prepass_hair_pass = DRW_pass_create("Prepass", state);
 	}
-	
+
 	{
 		int state = DRW_STATE_WRITE_COLOR;
 		psl->cavity_pass = DRW_pass_create("Cavity", state);
@@ -565,11 +565,11 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 
 	/* Solid */
 	workbench_material_update_data(wpd, ob, mat, &material_template);
-	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd)? engine_object_data->object_id: 1;
+	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
 	material_template.drawtype = drawtype;
 	material_template.ima = ima;
 	uint hash = workbench_material_get_hash(&material_template);
-	
+
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);

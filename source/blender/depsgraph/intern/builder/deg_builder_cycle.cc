@@ -68,7 +68,9 @@ struct CyclesSolverState {
 		: graph(graph),
 		  traversal_stack(BLI_stack_new(sizeof(StackEntry),
 		                                "DEG detect cycles stack")),
-		  num_cycles(0) {
+		  num_cycles(0)
+	{
+		/* pass */
 	}
 	~CyclesSolverState() {
 		BLI_stack_free(traversal_stack);

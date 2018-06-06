@@ -180,7 +180,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 
 	/* Solid */
 	workbench_material_update_data(wpd, ob, mat, &material_template);
-	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd)? engine_object_data->object_id: 1;
+	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
 	material_template.drawtype = drawtype;
 	material_template.ima = ima;
 	uint hash = workbench_material_get_hash(&material_template);

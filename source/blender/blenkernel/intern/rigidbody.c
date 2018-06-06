@@ -705,7 +705,8 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
 
 /* --------------------- */
 
-static void rigidbody_constraint_set_limits(RigidBodyCon *rbc, void (*set_limits)(rbConstraint*,int,float,float))
+static void rigidbody_constraint_set_limits(
+        RigidBodyCon *rbc, void (*set_limits)(rbConstraint *, int, float, float))
 {
 	if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
 		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);

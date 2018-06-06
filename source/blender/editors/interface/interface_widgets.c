@@ -2016,7 +2016,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			but->block->aspect *= 2.0f;
 		}
 #endif
-		
+
 		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
 		int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
 		const float icon_size = icon_size_init / (but->block->aspect / UI_DPI_FAC);
@@ -2040,13 +2040,13 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		}
 		else if (ui_block_is_menu(but->block))
 			rect->xmin += 0.3f * U.widget_unit;
-		
+
 		widget_draw_icon(but, icon, alpha, rect, show_menu_icon);
 
 #ifdef USE_UI_TOOLBAR_HACK
 		but->block->aspect = aspect_orig;
 #endif
-		
+
 		rect->xmin += icon_size;
 		/* without this menu keybindings will overlap the arrow icon [#38083] */
 		if (show_menu_icon) {
