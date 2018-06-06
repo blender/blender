@@ -1252,7 +1252,7 @@ static void icon_draw_size(
 		/* We need to flush widget base first to ensure correct ordering. */
 		UI_widgetbase_draw_cache_flush();
 
-#ifdef USE_TOOLBAR_HACK
+#ifdef USE_UI_TOOLBAR_HACK
 		/* TODO(campbell): scale icons up for toolbar, we need a way to detect larger buttons and do this automatic. */
 		{
 			float scale = (float)ICON_DEFAULT_HEIGHT_TOOLBAR / (float)ICON_DEFAULT_HEIGHT;

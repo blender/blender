@@ -1244,10 +1244,10 @@ void UI_widgetbase_draw_cache_flush(void);
 void UI_widgetbase_draw_cache_end(void);
 
 /* Special drawing for toolbar, mainly workarounds for inflexible icon sizing. */
-#define USE_TOOLBAR_HACK
+#define USE_UI_TOOLBAR_HACK
 
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
-#define USE_POPOVER_ONCE
+#define USE_UI_POPOVER_ONCE
 
 bool UI_but_is_tool(const uiBut *but);
 

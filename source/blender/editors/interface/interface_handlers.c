@@ -506,7 +506,7 @@ bool ui_but_is_toggle(const uiBut *but)
 	);
 }
 
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 bool ui_but_is_popover_once_compat(const uiBut *but)
 {
 	return (
@@ -8362,7 +8362,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				data->cancel = true;
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				break;
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 			case LEFTMOUSE:
 			{
 				if (event->val == KM_RELEASE) {
@@ -9527,7 +9527,7 @@ static int ui_handle_menu_event(
 		retval = ui_handle_menu_button(C, event, menu);
 	}
 
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 	if (block->flag & UI_BLOCK_POPOVER_ONCE) {
 		if ((event->type == LEFTMOUSE) && (event->val == KM_RELEASE)) {
 			UI_popover_once_clear(menu->popup_create_vars.arg);

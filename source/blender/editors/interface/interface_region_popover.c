@@ -87,7 +87,7 @@ struct uiPopover {
 	uiMenuCreateFunc menu_func;
 	void *menu_arg;
 
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 	bool is_once;
 #endif
 };
@@ -136,7 +136,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 	UI_block_region_set(block, handle->region);
 	UI_block_layout_resolve(block, &width, &height);
 	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 	if (pup->is_once) {
 		UI_block_flag_enable(block, UI_BLOCK_POPOVER_ONCE);
 	}
@@ -231,7 +231,7 @@ uiPopupBlockHandle *ui_popover_panel_create(
 	pup->menu_func = menu_func;
 	pup->menu_arg = arg;
 
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 	pup->is_once = true;
 #endif
 
@@ -365,7 +365,7 @@ uiLayout *UI_popover_layout(uiPopover *pup)
 	return pup->layout;
 }
 
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 void UI_popover_once_clear(uiPopover *pup)
 {
 	pup->is_once = false;

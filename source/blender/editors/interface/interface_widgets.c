@@ -2010,7 +2010,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 		/* XXX add way to draw icons at a different size!
 		 * Use small icons for popup. */
-#ifdef USE_TOOLBAR_HACK
+#ifdef USE_UI_TOOLBAR_HACK
 		const float aspect_orig = but->block->aspect;
 		if (is_tool && (but->block->flag & UI_BLOCK_POPOVER)) {
 			but->block->aspect *= 2.0f;
@@ -2021,7 +2021,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
 		const float icon_size = icon_size_init / (but->block->aspect / UI_DPI_FAC);
 
-#ifdef USE_TOOLBAR_HACK
+#ifdef USE_UI_TOOLBAR_HACK
 		if (is_tool) {
 			/* pass (even if its a menu toolbar) */
 			but->drawflag |= UI_BUT_TEXT_LEFT;
@@ -2043,7 +2043,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		
 		widget_draw_icon(but, icon, alpha, rect, show_menu_icon);
 
-#ifdef USE_TOOLBAR_HACK
+#ifdef USE_UI_TOOLBAR_HACK
 		but->block->aspect = aspect_orig;
 #endif
 		
@@ -4372,7 +4372,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	uiFontStyle *fstyle = &style->widget;
 	uiWidgetType *wt = NULL;
 
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 	const rcti rect_orig = *rect;
 #endif
 
@@ -4426,7 +4426,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 
 			case UI_BTYPE_BUT:
-#ifdef USE_TOOLBAR_HACK
+#ifdef USE_UI_TOOLBAR_HACK
 				if (UI_but_is_tool(but)) {
 					wt = widget_type(UI_WTYPE_TOOLBAR_ITEM);
 				}
@@ -4652,7 +4652,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		if (disabled)
 			glEnable(GL_BLEND);
 
-#ifdef USE_POPOVER_ONCE
+#ifdef USE_UI_POPOVER_ONCE
 		if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
 			if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
 				uiWidgetType wt_back = *wt;
