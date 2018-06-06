@@ -54,7 +54,7 @@ WorkSpaceLayout *ED_workspace_layout_add(
 	rcti screen_rect;
 
 	WM_window_screen_rect_calc(win, &screen_rect);
-	screen = screen_add(name, &screen_rect);
+	screen = screen_add(G.main, name, &screen_rect);
 
 	return BKE_workspace_layout_add(workspace, screen, name);
 }

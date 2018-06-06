@@ -340,12 +340,12 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 /**
  * Empty screen, with 1 dummy area without spacedata. Uses window size.
  */
-bScreen *screen_add(const char *name, const rcti *rect)
+bScreen *screen_add(Main *bmain, const char *name, const rcti *rect)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 
-	sc = BKE_libblock_alloc(G.main, ID_SCR, name, 0);
+	sc = BKE_libblock_alloc(bmain, ID_SCR, name, 0);
 	sc->do_refresh = true;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
 
@@ -832,7 +832,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 }
 
 /* file read, set all screens, ... */
-void ED_screens_initialize(wmWindowManager *wm)
+void ED_screens_initialize(Main *UNUSED(bmain), wmWindowManager *wm)
 {
 	wmWindow *win;
 

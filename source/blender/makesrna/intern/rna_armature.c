@@ -504,9 +504,9 @@ static int rna_Armature_is_editmode_get(PointerRNA *ptr)
 	return (arm->edbo != NULL);
 }
 
-static void rna_Armature_transform(struct bArmature *arm, float *mat)
+static void rna_Armature_transform(struct bArmature *arm, Main *bmain, float *mat)
 {
-	ED_armature_transform(arm, (float (*)[4])mat, true);
+	ED_armature_transform(bmain, arm, (float (*)[4])mat, true);
 }
 
 #else
@@ -1034,6 +1034,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bArmature");
 
 	func = RNA_def_function(srna, "transform", "rna_Armature_transform");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Transform armature bones by a matrix");
 	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

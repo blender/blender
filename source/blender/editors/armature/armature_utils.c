@@ -585,7 +585,7 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
 }
 
 /* put EditMode back in Object */
-void ED_armature_from_edit(bArmature *arm)
+void ED_armature_from_edit(Main *bmain, bArmature *arm)
 {
 	EditBone *eBone, *neBone;
 	Bone *newBone;
@@ -679,7 +679,7 @@ void ED_armature_from_edit(bArmature *arm)
 	armature_finalize_restpose(&arm->bonebase, arm->edbo);
 
 	/* so all users of this armature should get rebuilt */
-	for (obt = G.main->object.first; obt; obt = obt->id.next) {
+	for (obt = bmain->object.first; obt; obt = obt->id.next) {
 		if (obt->data == arm) {
 			BKE_pose_rebuild(obt, arm);
 		}

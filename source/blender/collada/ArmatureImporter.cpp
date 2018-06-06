@@ -448,7 +448,7 @@ ArmatureJoints& ArmatureImporter::get_armature_joints(Object *ob_arm)
 	return armature_joints.back();
 }
 #endif
-void ArmatureImporter::create_armature_bones(std::vector<Object *> &ob_arms)
+void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> &ob_arms)
 {
 	std::vector<COLLADAFW::Node *>::iterator ri;
 	std::vector<std::string> layer_labels;
@@ -481,7 +481,7 @@ void ArmatureImporter::create_armature_bones(std::vector<Object *> &ob_arms)
 		}
 
 		/* exit armature edit mode to populate the Armature object */
-		ED_armature_from_edit(armature);
+		ED_armature_from_edit(bmain, armature);
 		ED_armature_edit_free(armature);
 
 		ED_armature_to_edit(armature);
@@ -489,7 +489,7 @@ void ArmatureImporter::create_armature_bones(std::vector<Object *> &ob_arms)
 		fix_leaf_bone_hierarchy(armature, (Bone *)armature->bonebase.first, this->import_settings->fix_orientation);
 		unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
-		ED_armature_from_edit(armature);
+		ED_armature_from_edit(bmain, armature);
 		ED_armature_edit_free(armature);
 
 		int index = std::find(ob_arms.begin(), ob_arms.end(), ob_arm) - ob_arms.begin();
@@ -501,7 +501,7 @@ void ArmatureImporter::create_armature_bones(std::vector<Object *> &ob_arms)
 	}
 }
 
-Object *ArmatureImporter::create_armature_bones(SkinInfo& skin)
+Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo& skin)
 {
 	// just do like so:
 	// - get armature
@@ -619,7 +619,7 @@ Object *ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	}
 
 	/* exit armature edit mode to populate the Armature object */
-	ED_armature_from_edit(armature);
+	ED_armature_from_edit(bmain, armature);
 	ED_armature_edit_free(armature);
 
 	ED_armature_to_edit(armature);
@@ -627,7 +627,7 @@ Object *ArmatureImporter::create_armature_bones(SkinInfo& skin)
 		connect_bone_chains(armature, (Bone *)armature->bonebase.first, UNLIMITED_CHAIN_MAX);
 	}
 	fix_leaf_bone_hierarchy(armature, (Bone *)armature->bonebase.first, this->import_settings->fix_orientation);
-	ED_armature_from_edit(armature);
+	ED_armature_from_edit(bmain, armature);
 	ED_armature_edit_free(armature);
 
 	DEG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
@@ -709,6 +709,7 @@ void ArmatureImporter::add_root_joint(COLLADAFW::Node *node)
 // here we add bones to armatures, having armatures previously created in write_controller
 void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &objects_to_scale)
 {
+	Main *bmain = CTX_data_main(C);
 	std::vector<Object *> ob_arms;
 	std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
 
@@ -718,7 +719,7 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
 
 		SkinInfo& skin = it->second;
 
-		Object *ob_arm = create_armature_bones(skin);
+		Object *ob_arm = create_armature_bones(bmain, skin);
 
 		// link armature with a mesh object
 		const COLLADAFW::UniqueId &uid = skin.get_controller_uid();
@@ -759,7 +760,7 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
 	}
 	
 	//for bones without skins
-	create_armature_bones(ob_arms);
+	create_armature_bones(bmain, ob_arms);
 
 	// Fix bone relations
 	std::vector<Object *>::iterator ob_arm_it;
@@ -773,7 +774,7 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
 
 		fix_parent_connect(armature, (Bone *)armature->bonebase.first);
 
-		ED_armature_from_edit(armature);
+		ED_armature_from_edit(bmain, armature);
 		ED_armature_edit_free(armature);
 	}
 }

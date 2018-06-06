@@ -400,7 +400,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 
 	DEG_relations_tag_update(bmain);  /* because we removed object(s) */
 
-	ED_armature_from_edit(arm);
+	ED_armature_from_edit(bmain, arm);
 	ED_armature_edit_free(arm);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
@@ -516,7 +516,7 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
  *	sel: remove selected bones from the armature, otherwise the unselected bones are removed
  *  (ob is not in editmode)
  */
-static void separate_armature_bones(Object *ob, short sel)
+static void separate_armature_bones(Main *bmain, Object *ob, short sel)
 {
 	bArmature *arm = (bArmature *)ob->data;
 	bPoseChannel *pchan, *pchann;
@@ -563,7 +563,7 @@ static void separate_armature_bones(Object *ob, short sel)
 	}
 
 	/* exit editmode (recalculates pchans too) */
-	ED_armature_from_edit(ob->data);
+	ED_armature_from_edit(bmain, ob->data);
 	ED_armature_edit_free(ob->data);
 }
 
@@ -611,7 +611,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	oldob->mode &= ~OB_MODE_POSE;
 	//oldbase->flag &= ~OB_POSEMODE;
 
-	ED_armature_from_edit(obedit->data);
+	ED_armature_from_edit(bmain, obedit->data);
 	ED_armature_edit_free(obedit->data);
 
 	/* 2) duplicate base */
@@ -623,8 +623,8 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 
 
 	/* 3) remove bones that shouldn't still be around on both armatures */
-	separate_armature_bones(oldob, 1);
-	separate_armature_bones(newob, 0);
+	separate_armature_bones(bmain, oldob, 1);
+	separate_armature_bones(bmain, newob, 0);
 
 
 	/* 4) fix links before depsgraph flushes */ // err... or after?

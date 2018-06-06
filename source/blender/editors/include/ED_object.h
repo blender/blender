@@ -126,7 +126,7 @@ enum {
 	EM_NO_CONTEXT       = (1 << 4),
 };
 bool ED_object_editmode_exit_ex(
-        struct Scene *scene, struct Object *obedit, int flag);
+        struct Main *bmain, struct Scene *scene, struct Object *obedit, int flag);
 bool ED_object_editmode_exit(struct bContext *C, int flag);
 
 bool ED_object_editmode_enter_ex(struct Main *bmain, struct Scene *scene, struct Object *ob, int flag);

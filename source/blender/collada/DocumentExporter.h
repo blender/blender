@@ -40,7 +40,7 @@ class DocumentExporter
 {
  public:
 	DocumentExporter(Depsgraph *depsgraph, const ExportSettings *export_settings);
-	int  exportCurrentScene(Scene *sce);
+	int  exportCurrentScene(bContext *C, Scene *sce);
 
 	void exportScenes(const char *filename);
 private:

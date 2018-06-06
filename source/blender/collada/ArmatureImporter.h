@@ -130,8 +130,8 @@ private:
 	ArmatureJoints& get_armature_joints(Object *ob_arm);
 #endif
 
-	Object *create_armature_bones(SkinInfo& skin);
-	void create_armature_bones(std::vector<Object *> &arm_objs);
+	Object *create_armature_bones(Main *bmain, SkinInfo& skin);
+	void create_armature_bones(Main *bmain, std::vector<Object *> &arm_objs);
 
 	/** TagsMap typedef for uid_tags_map. */
 	typedef std::map<std::string, ExtraTags*> TagsMap;

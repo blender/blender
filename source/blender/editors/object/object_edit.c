@@ -209,7 +209,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 		if (arm->edbo == NULL) {
 			return false;
 		}
-		ED_armature_from_edit(obedit->data);
+		ED_armature_from_edit(bmain, obedit->data);
 		if (freedata) {
 			ED_armature_edit_free(obedit->data);
 		}
@@ -224,7 +224,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 		if (cu->editnurb == NULL) {
 			return false;
 		}
-		ED_curve_editnurb_load(obedit);
+		ED_curve_editnurb_load(bmain, obedit);
 		if (freedata) {
 			ED_curve_editnurb_free(obedit);
 		}
@@ -272,13 +272,13 @@ bool ED_object_editmode_load(Main *bmain, Object *obedit)
  * \param flag:
  * - If #EM_FREEDATA isn't in the flag, use ED_object_editmode_load directly.
  */
-bool ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
+bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int flag)
 {
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
-	if (ED_object_editmode_load_ex(G.main, obedit, freedata) == false) {
+	if (ED_object_editmode_load_ex(bmain, obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
 		if (UNLIKELY(obedit && obedit->mode & OB_MODE_EDIT)) {
@@ -318,9 +318,10 @@ bool ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
 
 bool ED_object_editmode_exit(bContext *C, int flag)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	return ED_object_editmode_exit_ex(scene, obedit, flag);
+	return ED_object_editmode_exit_ex(bmain, scene, obedit, flag);
 }
 
 bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
@@ -465,7 +466,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 			FOREACH_OBJECT_BEGIN(view_layer, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
-					ED_object_editmode_exit_ex(scene, ob, EM_FREEDATA | EM_WAITCURSOR);
+					ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA | EM_WAITCURSOR);
 				}
 			}
 			FOREACH_OBJECT_END;

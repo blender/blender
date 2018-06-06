@@ -205,9 +205,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;
 	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
-	export_count = collada_export(CTX_data_depsgraph(C),
-		scene,
-		&export_settings
+	export_count = collada_export(
+	                   C,
+	                   CTX_data_depsgraph(C),
+	                   scene,
+	                   &export_settings
 	);
 
 	if (export_count == 0) {

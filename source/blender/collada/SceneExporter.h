@@ -96,12 +96,12 @@ class SceneExporter: COLLADASW::LibraryVisualScenes, protected TransformWriter, 
 {
 public:
 	SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings);
-	void exportScene(Depsgraph *depsgraph, Scene *sce);
+	void exportScene(bContext *C, Depsgraph *depsgraph, Scene *sce);
 
 private:
 	friend class ArmatureExporter;
-	void exportHierarchy(struct Depsgraph *depsgraph, Scene *sce);
-	void writeNodes(struct Depsgraph *depsgraph, Object *ob, Scene *sce);
+	void exportHierarchy(bContext *C, struct Depsgraph *depsgraph, Scene *sce);
+	void writeNodes(bContext *C, struct Depsgraph *depsgraph, Object *ob, Scene *sce);
 	
 	ArmatureExporter *arm_exporter;
 	const ExportSettings *export_settings;

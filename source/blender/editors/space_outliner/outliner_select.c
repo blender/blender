@@ -47,6 +47,7 @@
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
@@ -74,6 +75,7 @@
 
 static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *view_layer, Base *base)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *obact = OBACT(view_layer);
 	bool use_all = false;
 
@@ -95,7 +97,7 @@ static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *vi
 		if (ob->type == obact->type) {
 			bool ok;
 			if (BKE_object_is_in_editmode(ob)) {
-				ok = ED_object_editmode_exit_ex(scene, ob, EM_FREEDATA | EM_WAITCURSOR);
+				ok = ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA | EM_WAITCURSOR);
 			}
 			else {
 				ok = ED_object_editmode_enter_ex(CTX_data_main(C), scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);

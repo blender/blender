@@ -1782,7 +1782,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 	MEM_freeN(emap);
 	MEM_freeN(emap_mem);
 
-	ED_armature_from_edit(arm);
+	ED_armature_from_edit(bmain, arm);
 	ED_armature_edit_free(arm);
 
 	return arm_ob;

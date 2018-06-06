@@ -1105,7 +1105,7 @@ static int *initialize_index_map(Object *obedit, int *r_old_totvert)
 	return old_to_new_map;
 }
 
-static void remap_hooks_and_vertex_parents(Object *obedit)
+static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
 {
 	Object *object;
 	Curve *curve = (Curve *) obedit->data;
@@ -1121,7 +1121,7 @@ static void remap_hooks_and_vertex_parents(Object *obedit)
 		return;
 	}
 
-	for (object = G.main->object.first; object; object = object->id.next) {
+	for (object = bmain->object.first; object; object = object->id.next) {
 		ModifierData *md;
 		int index;
 		if ((object->parent) &&
@@ -1184,7 +1184,7 @@ static void remap_hooks_and_vertex_parents(Object *obedit)
 }
 
 /* load editNurb in object */
-void ED_curve_editnurb_load(Object *obedit)
+void ED_curve_editnurb_load(Main *bmain, Object *obedit)
 {
 	ListBase *editnurb = object_editcurve_get(obedit);
 
@@ -1195,7 +1195,7 @@ void ED_curve_editnurb_load(Object *obedit)
 		Nurb *nu, *newnu;
 		ListBase newnurb = {NULL, NULL}, oldnurb = cu->nurb;
 
-		remap_hooks_and_vertex_parents(obedit);
+		remap_hooks_and_vertex_parents(bmain, obedit);
 
 		for (nu = editnurb->first; nu; nu = nu->next) {
 			newnu = BKE_nurb_duplicate(nu);
@@ -1325,7 +1325,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	BLI_movelisttolist(&newedit->nurbs, &newnurb);
 
 	/* 4. put old object out of editmode and delete separated geometry */
-	ED_curve_editnurb_load(newob);
+	ED_curve_editnurb_load(bmain, newob);
 	ED_curve_editnurb_free(newob);
 	curve_delete_segments(oldob, true);
 

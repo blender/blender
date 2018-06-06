@@ -209,7 +209,7 @@ static bool ed_object_mode_generic_exit_ex(
 			if (only_test) {
 				return true;
 			}
-			ED_object_editmode_exit_ex(scene, ob, EM_FREEDATA);
+			ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
 		}
 	}
 	else if (ob->mode & OB_MODE_VERTEX_PAINT) {

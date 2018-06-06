@@ -32,15 +32,16 @@
 #define __ED_CURVE_H__
 
 struct bContext;
+struct BezTriple;
+struct BPoint;
+struct Curve;
+struct EditNurb;
+struct Main;
 struct Nurb;
 struct Object;
 struct Text;
 struct wmOperator;
 struct wmKeyConfig;
-struct Curve;
-struct EditNurb;
-struct BezTriple;
-struct BPoint;
 struct UndoType;
 
 /* curve_ops.c */
@@ -51,7 +52,7 @@ void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 /* editcurve.c */
 struct ListBase *object_editcurve_get(struct Object *ob);
 
-void    ED_curve_editnurb_load(struct Object *obedit);
+void    ED_curve_editnurb_load(struct Main *bmain, struct Object *obedit);
 void    ED_curve_editnurb_make(struct Object *obedit);
 void    ED_curve_editnurb_free(struct Object *obedit);
 

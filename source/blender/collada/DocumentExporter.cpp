@@ -181,7 +181,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 // For this to work, we need to know objects that use a certain action.
 
 
-int DocumentExporter::exportCurrentScene(Scene *sce)
+int DocumentExporter::exportCurrentScene(bContext *C, Scene *sce)
 {
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
@@ -307,7 +307,7 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 		AnimationExporter ae(depsgraph, writer, this->export_settings);
 		ae.exportAnimations(sce);
 	}
-	se.exportScene(depsgraph, sce);
+	se.exportScene(C, depsgraph, sce);
 	
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));

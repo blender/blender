@@ -48,7 +48,7 @@ void        screen_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, 
 void        region_toggle_hidden(struct bContext *C, ARegion *ar, const bool do_fade);
 
 /* screen_edit.c */
-bScreen    *screen_add(const char *name, const rcti *rect);
+bScreen    *screen_add(struct Main *bmain, const char *name, const rcti *rect);
 void        screen_data_copy(bScreen *to, bScreen *from);
 void        screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new);
 void        screen_change_update(struct bContext *C, wmWindow *win, bScreen *sc);

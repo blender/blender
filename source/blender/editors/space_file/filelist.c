@@ -2313,7 +2313,7 @@ static int filelist_readjob_list_lib(const char *root, ListBase *entries, const 
 #if 0
 /* Kept for reference here, in case we want to add back that feature later. We do not need it currently. */
 /* Code ***NOT*** updated for job stuff! */
-static void filelist_readjob_main_rec(struct FileList *filelist)
+static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
 {
 	ID *id;
 	FileDirEntry *files, *firstlib = NULL;
@@ -2375,7 +2375,7 @@ static void filelist_readjob_main_rec(struct FileList *filelist)
 		/* make files */
 		idcode = groupname_to_code(filelist->filelist.root);
 
-		lb = which_libbase(G.main, idcode);
+		lb = which_libbase(bmain, idcode);
 		if (lb == NULL) return;
 
 		filelist->filelist.nbr_entries = 0;
