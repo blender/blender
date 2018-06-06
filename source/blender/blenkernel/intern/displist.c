@@ -1072,7 +1072,7 @@ static void curve_calc_modifiers_post(
 			/* XXX2.8(Sybren): make sure the face normals are recalculated as well */
 			BKE_mesh_ensure_normals(modified);
 
-			(*r_dm_final) = CDDM_from_mesh(modified);
+			(*r_dm_final) = CDDM_from_mesh_ex(modified, CD_DUPLICATE, CD_MASK_MESH);
 			BKE_id_free(NULL, modified);
 		}
 		else {
