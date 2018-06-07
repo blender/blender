@@ -52,6 +52,8 @@ extern "C" {
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
+
+#include "DEG_depsgraph_query.h"
 }
 
 using Alembic::Abc::FloatArraySample;
@@ -524,7 +526,9 @@ Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 		m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
 	}
 
-	struct Mesh *mesh = mesh_get_eval_final(m_settings.depsgraph, m_settings.scene, m_object, CD_MASK_MESH);
+	Scene *scene = DEG_get_evaluated_scene(m_settings.depsgraph);
+	Object *ob_eval = DEG_get_evaluated_object(m_settings.depsgraph, m_object);
+	struct Mesh *mesh = mesh_get_eval_final(m_settings.depsgraph, scene, ob_eval, CD_MASK_MESH);
 	r_needsfree = false;
 
 	if (m_subsurf_mod) {
