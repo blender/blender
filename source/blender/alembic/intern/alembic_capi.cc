@@ -230,9 +230,7 @@ static void find_iobject(const IObject &object, IObject &ret,
 }
 
 struct ExportJobData {
-	Scene *scene;
 	ViewLayer *view_layer;
-	Depsgraph *depsgraph;
 	Main *bmain;
 
 	char filename[1024];
@@ -263,9 +261,9 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 	G.is_break = false;
 
 	try {
-		Scene *scene = data->scene;
-		AbcExporter exporter(data->bmain, scene, data->depsgraph, data->filename, data->settings);
+		AbcExporter exporter(data->bmain, data->filename, data->settings);
 
+		Scene *scene = data->settings.scene; /* for the CFRA macro */
 		const int orig_frame = CFRA;
 
 		data->was_canceled = false;
@@ -274,7 +272,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 		if (CFRA != orig_frame) {
 			CFRA = orig_frame;
 
-			BKE_scene_graph_update_for_newframe(data->depsgraph, data->bmain);
+			BKE_scene_graph_update_for_newframe(data->settings.depsgraph, data->bmain);
 		}
 
 		data->export_ok = !data->was_canceled;
@@ -313,9 +311,7 @@ bool ABC_export(
 {
 	ExportJobData *job = static_cast<ExportJobData *>(MEM_mallocN(sizeof(ExportJobData), "ExportJobData"));
 
-	job->scene = scene;
 	job->view_layer = CTX_data_view_layer(C);
-	job->depsgraph = CTX_data_depsgraph(C);
 	job->bmain = CTX_data_main(C);
 	job->export_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
@@ -336,8 +332,8 @@ bool ABC_export(
 	 * do bigger refactor and maybe there is a better way which does not involve
 	 * hardcore refactoring. */
 	new (&job->settings) ExportSettings();
-	job->settings.scene = job->scene;
-	job->settings.depsgraph = job->depsgraph;
+	job->settings.scene = scene;
+	job->settings.depsgraph = CTX_data_depsgraph(C);
 
 	/* Sybren: for now we only export the active scene layer.
 	 * Later in the 2.8 development process this may be replaced by using
@@ -387,7 +383,7 @@ bool ABC_export(
 	if (as_background_job) {
 		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
 		                            CTX_wm_window(C),
-		                            job->scene,
+		                            job->settings.scene,
 		                            "Alembic Export",
 		                            WM_JOB_PROGRESS,
 		                            WM_JOB_TYPE_ALEMBIC);

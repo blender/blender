@@ -60,13 +60,11 @@ using Alembic::AbcGeom::ONuPatchSchema;
 
 /* ************************************************************************** */
 
-AbcNurbsWriter::AbcNurbsWriter(Depsgraph *depsgraph,
-                               Scene *scene,
-                               Object *ob,
+AbcNurbsWriter::AbcNurbsWriter(Object *ob,
                                AbcTransformWriter *parent,
                                uint32_t time_sampling,
                                ExportSettings &settings)
-    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
 {
 	m_is_animated = isAnimated();
 

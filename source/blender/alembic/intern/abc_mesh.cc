@@ -286,13 +286,11 @@ static ModifierData *get_liquid_sim_modifier(Scene *scene, Object *ob)
 
 /* ************************************************************************** */
 
-AbcMeshWriter::AbcMeshWriter(Depsgraph *depsgraph,
-                             Scene *scene,
-                             Object *ob,
+AbcMeshWriter::AbcMeshWriter(Object *ob,
                              AbcTransformWriter *parent,
                              uint32_t time_sampling,
                              ExportSettings &settings)
-    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
 {
 	m_is_animated = isAnimated();
 	m_subsurf_mod = NULL;
@@ -304,11 +302,11 @@ AbcMeshWriter::AbcMeshWriter(Depsgraph *depsgraph,
 	}
 
 	if (!m_settings.apply_subdiv) {
-		m_subsurf_mod = get_subsurf_modifier(m_scene, m_object);
+		m_subsurf_mod = get_subsurf_modifier(m_settings.scene, m_object);
 		m_is_subd = (m_subsurf_mod != NULL);
 	}
 
-	m_is_liquid = (get_liquid_sim_modifier(m_scene, m_object) != NULL);
+	m_is_liquid = (get_liquid_sim_modifier(m_settings.scene, m_object) != NULL);
 
 	while (parent->alembicXform().getChildHeader(m_name)) {
 		m_name.append("_");
@@ -526,7 +524,7 @@ Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 		m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
 	}
 
-	struct Mesh *mesh = mesh_get_eval_final(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
+	struct Mesh *mesh = mesh_get_eval_final(m_settings.depsgraph, m_settings.scene, m_object, CD_MASK_MESH);
 	r_needsfree = false;
 
 	if (m_subsurf_mod) {
@@ -586,7 +584,7 @@ void AbcMeshWriter::getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &ve
 	vels.clear();
 	vels.resize(totverts);
 
-	ModifierData *md = get_liquid_sim_modifier(m_scene, m_object);
+	ModifierData *md = get_liquid_sim_modifier(m_settings.scene, m_object);
 	FluidsimModifierData *fmd = reinterpret_cast<FluidsimModifierData *>(md);
 	FluidsimSettings *fss = fmd->fss;
 

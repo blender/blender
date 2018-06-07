@@ -58,16 +58,12 @@ using Alembic::AbcGeom::OStringProperty;
 
 /* ************************************************************************** */
 
-AbcObjectWriter::AbcObjectWriter(Depsgraph *depsgraph,
-                                 Scene *scene,
-                                 Object *ob,
+AbcObjectWriter::AbcObjectWriter(Object *ob,
                                  uint32_t time_sampling,
                                  ExportSettings &settings,
                                  AbcObjectWriter *parent)
     : m_object(ob)
     , m_settings(settings)
-    , m_depsgraph(depsgraph)
-    , m_scene(scene)
     , m_time_sampling(time_sampling)
     , m_first_frame(true)
 {

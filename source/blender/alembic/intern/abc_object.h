@@ -44,8 +44,6 @@ protected:
 	Object *m_object;
 	ExportSettings &m_settings;
 
-	Depsgraph *m_depsgraph;
-	Scene *m_scene;
 	uint32_t m_time_sampling;
 
 	Imath::Box3d m_bounds;
@@ -57,9 +55,7 @@ protected:
 	std::string m_name;
 
 public:
-	AbcObjectWriter(Depsgraph *depsgraph,
-	                Scene *scene,
-	                Object *ob,
+	AbcObjectWriter(Object *ob,
 	                uint32_t time_sampling,
 	                ExportSettings &settings,
 	                AbcObjectWriter *parent = NULL);

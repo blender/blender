@@ -57,13 +57,12 @@ static bool has_parent_camera(Object *ob)
 
 /* ************************************************************************** */
 
-AbcTransformWriter::AbcTransformWriter(Depsgraph *depsgraph,
-                                       Object *ob,
+AbcTransformWriter::AbcTransformWriter(Object *ob,
                                        const OObject &abc_parent,
                                        AbcTransformWriter *parent,
                                        unsigned int time_sampling,
                                        ExportSettings &settings)
-    : AbcObjectWriter(depsgraph, NULL, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
     , m_proxy_from(NULL)
 {
 	m_is_animated = hasAnimation(m_object);

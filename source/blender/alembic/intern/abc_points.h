@@ -38,9 +38,7 @@ class AbcPointsWriter : public AbcObjectWriter {
 	ParticleSystem *m_psys;
 
 public:
-	AbcPointsWriter(Depsgraph *depsgraph,
-	                Scene *scene,
-	                Object *ob,
+	AbcPointsWriter(Object *ob,
 	                AbcTransformWriter *parent,
 	                uint32_t time_sampling,
 	                ExportSettings &settings,

@@ -53,14 +53,12 @@ using Alembic::AbcGeom::OV2fGeomParam;
 
 /* ************************************************************************** */
 
-AbcHairWriter::AbcHairWriter(Depsgraph *depsgraph,
-                             Scene *scene,
-                             Object *ob,
+AbcHairWriter::AbcHairWriter(Object *ob,
                              AbcTransformWriter *parent,
                              uint32_t time_sampling,
                              ExportSettings &settings,
                              ParticleSystem *psys)
-    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
     , m_uv_warning_shown(false)
 {
 	m_psys = psys;
@@ -81,7 +79,7 @@ void AbcHairWriter::do_write()
 		return;
 	}
 
-	Mesh *mesh = mesh_get_eval_final(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
+	Mesh *mesh = mesh_get_eval_final(m_settings.depsgraph, m_settings.scene, m_object, CD_MASK_MESH);
 	BKE_mesh_tessface_ensure(mesh);
 
 	std::vector<Imath::V3f> verts;

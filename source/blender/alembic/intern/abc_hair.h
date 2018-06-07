@@ -39,9 +39,7 @@ class AbcHairWriter : public AbcObjectWriter {
 	bool m_uv_warning_shown;
 
 public:
-	AbcHairWriter(Depsgraph *depsgraph,
-	              Scene *scene,
-	              Object *ob,
+	AbcHairWriter(Object *ob,
 	              AbcTransformWriter *parent,
 	              uint32_t time_sampling,
 	              ExportSettings &settings,

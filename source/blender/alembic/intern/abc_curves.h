@@ -36,9 +36,7 @@ class AbcCurveWriter : public AbcObjectWriter {
 	Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
 
 public:
-	AbcCurveWriter(Depsgraph *depsgraph,
-	               Scene *scene,
-	               Object *ob,
+	AbcCurveWriter(Object *ob,
 	               AbcTransformWriter *parent,
 	               uint32_t time_sampling,
 	               ExportSettings &settings);
