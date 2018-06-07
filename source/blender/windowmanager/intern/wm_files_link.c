@@ -335,7 +335,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	if (scene && RNA_boolean_get(op->ptr, "autoselect")) {
 		BKE_scene_base_deselect_all(scene);
 	}
-	
+
 	/* tag everything, all untagged data can be made local
 	 * its also generally useful to know what is new
 	 *
@@ -453,7 +453,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	if (scene) {
 		DAG_scene_relations_rebuild(bmain, scene);
 	}
-	
+
 	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
 	GPU_materials_free();
 
@@ -490,18 +490,18 @@ void WM_OT_link(wmOperatorType *ot)
 	ot->name = "Link from Library";
 	ot->idname = "WM_OT_link";
 	ot->description = "Link from a Library .blend file";
-	
+
 	ot->invoke = wm_link_append_invoke;
 	ot->exec = wm_link_append_exec;
 	ot->poll = wm_link_append_poll;
-	
+
 	ot->flag |= OPTYPE_UNDO;
 
 	WM_operator_properties_filesel(
 	        ot, FILE_TYPE_FOLDER | FILE_TYPE_BLENDER | FILE_TYPE_BLENDERLIB, FILE_LOADLIB, FILE_OPENFILE,
 	        WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME | WM_FILESEL_RELPATH | WM_FILESEL_FILES,
 	        FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
-	
+
 	wm_link_append_properties_common(ot, true);
 }
 

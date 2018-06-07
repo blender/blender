@@ -41,7 +41,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_listBase.h"
-#include "DNA_userdef_types.h" 
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -57,7 +57,7 @@
 
 
 /* Some simple ghost <-> blender conversions */
-static GHOST_TStandardCursor convert_cursor(int curs) 
+static GHOST_TStandardCursor convert_cursor(int curs)
 {
 	switch (curs) {
 		default:
@@ -78,23 +78,23 @@ static GHOST_TStandardCursor convert_cursor(int curs)
 	}
 }
 
-static void window_set_custom_cursor(wmWindow *win, unsigned char mask[16][2], 
+static void window_set_custom_cursor(wmWindow *win, unsigned char mask[16][2],
                                      unsigned char bitmap[16][2], int hotx, int hoty)
 {
 	GHOST_SetCustomCursorShape(win->ghostwin, bitmap, mask, hotx, hoty);
 }
 
-static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor, int useBig) 
+static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor, int useBig)
 {
 	if (useBig) {
-		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
+		GHOST_SetCustomCursorShapeEx(win->ghostwin,
 		                             (GHOST_TUns8 *)cursor->big_bm, (GHOST_TUns8 *)cursor->big_mask,
 		                             cursor->big_sizex, cursor->big_sizey,
 		                             cursor->big_hotx, cursor->big_hoty,
 		                             cursor->fg_color, cursor->bg_color);
 	}
 	else {
-		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
+		GHOST_SetCustomCursorShapeEx(win->ghostwin,
 		                             (GHOST_TUns8 *)cursor->small_bm, (GHOST_TUns8 *)cursor->small_mask,
 		                             cursor->small_sizex, cursor->small_sizey,
 		                             cursor->small_hotx, cursor->small_hoty,
@@ -131,12 +131,12 @@ void WM_cursor_set(wmWindow *win, int curs)
 #endif
 
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
-	
+
 	if (curs == CURSOR_STD && win->modalcursor)
 		curs = win->modalcursor;
-	
+
 	win->cursor = curs;
-	
+
 	/* detect if we use system cursor or Blender cursor */
 	if (curs >= BC_GHOST_CURSORS) {
 		GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
@@ -178,7 +178,7 @@ void WM_cursor_wait(bool val)
 	if (!G.background) {
 		wmWindowManager *wm = G.main->wm.first;
 		wmWindow *win = wm ? wm->windows.first : NULL;
-		
+
 		for (; win; win = win->next) {
 			if (val) {
 				WM_cursor_modal_set(win, BC_WAITCURSOR);
@@ -196,7 +196,7 @@ void WM_cursor_wait(bool val)
 void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
 {
 	/* Only grab cursor when not running debug.
-	 * It helps not to get a stuck WM when hitting a breakpoint  
+	 * It helps not to get a stuck WM when hitting a breakpoint
 	 * */
 	GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
 
@@ -204,7 +204,7 @@ void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
 		wm_cursor_position_to_ghost(win, &bounds[0], &bounds[1]);
 		wm_cursor_position_to_ghost(win, &bounds[2], &bounds[3]);
 	}
-	
+
 	if (hide) {
 		mode = GHOST_kGrabHide;
 	}
@@ -293,12 +293,12 @@ void WM_cursor_time(wmWindow *win, int nr)
 	unsigned char mask[16][2];
 	unsigned char bitmap[16][2] = {{0}};
 	int i, idx;
-	
+
 	if (win->lastcursor == 0)
 		win->lastcursor = win->cursor;
-	
+
 	memset(&mask, 0xFF, sizeof(mask));
-	
+
 	/* print number bottom right justified */
 	for (idx = 3; nr && idx >= 0; idx--) {
 		const char *digit = number_bitmaps[nr % 10];
@@ -309,7 +309,7 @@ void WM_cursor_time(wmWindow *win, int nr)
 			bitmap[i + y * 8][x] = digit[i];
 		nr /= 10;
 	}
-	
+
 	window_set_custom_cursor(win, mask, bitmap, 7, 7);
 }
 
@@ -423,7 +423,7 @@ BEGIN_CURSOR_BLOCK
 	};
 
 	BlenderCursor[BC_NS_ARROWCURSOR] = &NSArrowCursor;
-		
+
 END_CURSOR_BLOCK
 	/********************** EW_ARROW Cursor *************************/
 BEGIN_CURSOR_BLOCK
@@ -444,7 +444,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor EWArrowCursor = {
 		/*small*/
 		ew_sbm, ew_smsk,
-		16, 16, 
+		16, 16,
 		7,  6,
 		/*big*/
 		NULL, NULL,
@@ -514,7 +514,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor WaitCursor = {
 		/*small*/
 		wait_sbm, wait_smsk,
-		16, 16, 
+		16, 16,
 		7,  7,
 		/*big*/
 		wait_lbm, wait_lmsk,
@@ -583,7 +583,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor CrossCursor = {
 		/*small*/
 		cross_sbm, cross_smsk,
-		16, 16, 
+		16, 16,
 		7,  7,
 		/*big*/
 		cross_lbm, cross_lmsk,
@@ -615,7 +615,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor EditCrossCursor = {
 		/*small*/
 		editcross_sbm, editcross_smsk,
-		16, 16, 
+		16, 16,
 		9,  8,
 		/*big*/
 		NULL, NULL,
@@ -648,7 +648,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor BoxSelCursor = {
 		/*small*/
 		box_sbm, box_smsk,
-		16, 16, 
+		16, 16,
 		9,  8,
 		/*big*/
 		NULL, NULL,
@@ -720,7 +720,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor KnifeCursor = {
 		/*small*/
 		knife_sbm, knife_smsk,
-		16, 16, 
+		16, 16,
 		0,  15,
 		/*big*/
 		knife_lbm, knife_lmsk,
@@ -733,7 +733,7 @@ BEGIN_CURSOR_BLOCK
 	BlenderCursor[BC_KNIFECURSOR] = &KnifeCursor;
 
 END_CURSOR_BLOCK
-	
+
 	/********************** Loop Select Cursor ***********************/
 BEGIN_CURSOR_BLOCK
 
@@ -796,7 +796,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor VLoopCursor = {
 		/*small*/
 		vloop_sbm, vloop_smsk,
-		16, 16, 
+		16, 16,
 		0,  0,
 		/*big*/
 		vloop_lbm, vloop_lmsk,
@@ -809,7 +809,7 @@ BEGIN_CURSOR_BLOCK
 	BlenderCursor[BC_VLOOPCURSOR] = &VLoopCursor;
 
 END_CURSOR_BLOCK
-	
+
 
 	/********************** TextEdit Cursor ***********************/
 BEGIN_CURSOR_BLOCK
@@ -830,7 +830,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor TextEditCursor = {
 		/*small*/
 		textedit_sbm, textedit_smsk,
-		16, 16, 
+		16, 16,
 		9,  8,
 		/*big*/
 		NULL, NULL,
@@ -869,7 +869,7 @@ BEGIN_CURSOR_BLOCK
 	static BCursor PaintBrushCursor = {
 		/*small*/
 		paintbrush_sbm, paintbrush_smsk,
-		16, 16, 
+		16, 16,
 		0,  15,
 		/*big*/
 		NULL, NULL,
@@ -1042,7 +1042,7 @@ BEGIN_CURSOR_BLOCK
 		0x7e,  0x00,  0x3f,  0x00,  0x0c,  0x00,  0x04,  0x00,
 	};
 
-	
+
 	static BCursor EyedropperCursor = {
 		/*small*/
 		eyedropper_sbm, eyedropper_smsk,

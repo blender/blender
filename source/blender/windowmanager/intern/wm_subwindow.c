@@ -67,7 +67,7 @@
 
 typedef struct wmSubWindow {
 	struct wmSubWindow *next, *prev;
-	
+
 	rcti winrct;
 	int swinid;
 } wmSubWindow;
@@ -84,10 +84,10 @@ static void wm_subwindow_free(wmSubWindow *UNUSED(swin))
 void wm_subwindows_free(wmWindow *win)
 {
 	wmSubWindow *swin;
-	
+
 	for (swin = win->subwindows.first; swin; swin = swin->next)
 		wm_subwindow_free(swin);
-	
+
 	BLI_freelistN(&win->subwindows);
 }
 
@@ -102,7 +102,7 @@ int wm_subwindow_get_id(wmWindow *win)
 static wmSubWindow *swin_from_swinid(wmWindow *win, int swinid)
 {
 	wmSubWindow *swin;
-	
+
 	for (swin = win->subwindows.first; swin; swin = swin->next)
 		if (swin->swinid == swinid)
 			break;
@@ -198,14 +198,14 @@ int wm_subwindow_open(wmWindow *win, const rcti *winrct, bool activate)
 	wmSubWindow *swin;
 	int width, height;
 	int freewinid = 1;
-	
+
 	for (swin = win->subwindows.first; swin; swin = swin->next)
 		if (freewinid <= swin->swinid)
 			freewinid = swin->swinid + 1;
 
 	win->curswin = swin = MEM_callocN(sizeof(wmSubWindow), "swinopen");
 	BLI_addtail(&win->subwindows, swin);
-	
+
 	swin->swinid = freewinid;
 	swin->winrct = *winrct;
 
@@ -242,15 +242,15 @@ void wm_subwindow_close(wmWindow *win, int swinid)
 void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct, bool activate)
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
-	
+
 	if (swin) {
 		const int winsize_x = WM_window_pixels_x(win);
 		const int winsize_y = WM_window_pixels_y(win);
 
 		int width, height;
-		
+
 		swin->winrct = *winrct;
-		
+
 		/* CRITICAL, this clamping ensures that
 		 * the viewport never goes outside the screen
 		 * edges (assuming the x, y coords aren't
@@ -263,12 +263,12 @@ void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct, bool a
 		 * scaling routine, and be damn sure you
 		 * fixed it). - zr  (2001!)
 		 */
-		
+
 		if (swin->winrct.xmax > winsize_x)
 			swin->winrct.xmax = winsize_x;
 		if (swin->winrct.ymax > winsize_y)
 			swin->winrct.ymax = winsize_y;
-		
+
 		if (activate) {
 			/* extra service */
 			wmSubWindowSet(win, swinid);
@@ -292,19 +292,19 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool src
 {
 	int width, height;
 	_curswin = swin_from_swinid(win, swinid);
-	
+
 	if (_curswin == NULL) {
 		printf("%s %d: doesn't exist\n", __func__, swinid);
 		return;
 	}
-	
+
 	win->curswin = _curswin;
 	_curwindow = win;
-	
+
 	width  = BLI_rcti_size_x(&_curswin->winrct) + 1;
 	height = BLI_rcti_size_y(&_curswin->winrct) + 1;
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
-	
+
 	if (srct) {
 		int scissor_width  = BLI_rcti_size_x(srct);
 		int scissor_height = BLI_rcti_size_y(srct);
@@ -320,10 +320,10 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool src
 	}
 	else
 		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
-	
+
 	wmOrtho2_pixelspace(width, height);
 	glLoadIdentity();
-	
+
 	glFlush();
 }
 

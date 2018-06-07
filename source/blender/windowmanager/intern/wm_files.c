@@ -146,27 +146,27 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
 	wmWindowManager *wm;
 	wmWindow *win, *active_win;
-	
+
 	*wmlist = G.main->wm;
 	BLI_listbase_clear(&G.main->wm);
-	
+
 	active_win = CTX_wm_window(C);
 
 	/* first wrap up running stuff */
 	/* code copied from wm_init_exit.c */
 	for (wm = wmlist->first; wm; wm = wm->id.next) {
-		
+
 		WM_jobs_kill_all(wm);
-		
+
 		for (win = wm->windows.first; win; win = win->next) {
-		
+
 			CTX_wm_window_set(C, win);  /* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
 			WM_event_remove_handlers(C, &win->modalhandlers);
 			ED_screen_exit(C, win, win->screen);
 		}
 	}
-	
+
 	/* reset active window */
 	CTX_wm_window_set(C, active_win);
 
@@ -183,7 +183,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 #if 0
 	if (wm == NULL) return;
 	if (G.fileflags & G_FILE_NO_UI) return;
-	
+
 	/* we take apart the used screens from non-active window */
 	for (win = wm->windows.first; win; win = win->next) {
 		BLI_strncpy(win->screenname, win->screen->id.name, MAX_ID_NAME);
@@ -230,7 +230,7 @@ static void wm_window_match_do(Main *bmain, bContext *C, ListBase *oldwmlist)
 {
 	wmWindowManager *oldwm, *wm;
 	wmWindow *oldwin, *win;
-	
+
 	/* cases 1 and 2 */
 	if (BLI_listbase_is_empty(oldwmlist)) {
 		if (bmain->wm.first) {
@@ -242,7 +242,7 @@ static void wm_window_match_do(Main *bmain, bContext *C, ListBase *oldwmlist)
 	}
 	else {
 		/* cases 3 and 4 */
-		
+
 		/* we've read file without wm..., keep current one entirely alive */
 		if (BLI_listbase_is_empty(&bmain->wm)) {
 			bScreen *screen = NULL;
@@ -252,22 +252,22 @@ static void wm_window_match_do(Main *bmain, bContext *C, ListBase *oldwmlist)
 
 				/* match oldwm to new dbase, only old files */
 				for (wm = oldwmlist->first; wm; wm = wm->id.next) {
-					
+
 					for (win = wm->windows.first; win; win = win->next) {
 						/* all windows get active screen from file */
 						if (screen->winid == 0)
 							win->screen = screen;
-						else 
+						else
 							win->screen = ED_screen_duplicate(bmain, win, screen);
-						
+
 						BLI_strncpy(win->screenname, win->screen->id.name + 2, sizeof(win->screenname));
 						win->screen->winid = win->winid;
 					}
 				}
 			}
-			
+
 			bmain->wm = *oldwmlist;
-			
+
 			/* screens were read from file! */
 			ED_screens_initialize(bmain, bmain->wm.first);
 		}
@@ -324,7 +324,7 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 {
 	/* versioning is here */
 	UI_init_userdef();
-	
+
 	MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
 	BKE_sound_init(bmain);
 
@@ -516,7 +516,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	if (addons_loaded) {
 		wm_file_read_report(C);
 	}
-	
+
 	if (!G.background) {
 		if (wm->undo_stack == NULL) {
 			wm->undo_stack = BKE_undosys_stack_create();
@@ -556,7 +556,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	/* it throws error box when file doesn't exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
 	retval = wm_read_exotic(filepath);
-	
+
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
 		int G_f = G.f;
@@ -564,8 +564,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		/* put aside screens to match with persistent windows later */
 		/* also exit screens and editors */
-		wm_window_match_init(C, &wmbase); 
-		
+		wm_window_match_init(C, &wmbase);
+
 		/* confusing this global... */
 		G.relbase_valid = 1;
 		retval = BKE_blendfile_read(C, filepath, reports, 0);
@@ -597,7 +597,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 			/* in case a userdef is read from regular .blend */
 			wm_init_userdef(bmain, false);
 		}
-		
+
 		if (retval != BKE_BLENDFILE_READ_FAIL) {
 			if (do_history) {
 				wm_history_file_update();
@@ -850,14 +850,14 @@ int wm_homefile_read(
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
 	 * can remove this eventually, only in a 2.53 and older, now its not written */
 	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
-	
+
 	bmain = CTX_data_main(C);
 
 	if (use_userdef) {
 		/* check userdef before open window, keymaps etc */
 		wm_init_userdef(bmain, read_userdef_from_memory);
 	}
-	
+
 	/* match the read WM with current WM */
 	wm_window_match_do(bmain, C, &wmbase);
 	WM_check(C); /* opens window(s), checks keymaps */
@@ -912,7 +912,7 @@ void wm_history_file_read(void)
 			num++;
 		}
 	}
-	
+
 	BLI_file_free_lines(lines);
 }
 
@@ -1065,7 +1065,7 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, BlendThumbnail **t
 
 		/* add pretty overlay */
 		IMB_thumb_overlay_blend(ibuf->rect, ibuf->x, ibuf->y, aspect);
-		
+
 		thumb = BKE_main_thumbnail_from_imbuf(NULL, ibuf);
 	}
 	else {
@@ -1073,10 +1073,10 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, BlendThumbnail **t
 		fprintf(stderr, "blend_file_thumb failed to create thumbnail: %s\n", err_out);
 		thumb = NULL;
 	}
-	
+
 	/* must be freed by caller */
 	*thumb_pt = thumb;
-	
+
 	return ibuf;
 }
 
@@ -1111,7 +1111,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	ImBuf *ibuf_thumb = NULL;
 
 	len = strlen(filepath);
-	
+
 	if (len == 0) {
 		BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
 		return ret;
@@ -1121,7 +1121,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 		BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
 		return ret;
 	}
-	
+
 	/* Check if file write permission is ok */
 	if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
@@ -1131,7 +1131,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	/* note: used to replace the file extension (to ensure '.blend'),
 	 * no need to now because the operator ensures,
 	 * its handy for scripts to save to a predefined name without blender editing it */
-	
+
 	/* send the OnSave event */
 	for (li = bmain->library.first; li; li = li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
@@ -1159,7 +1159,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 
 	/* don't forget not to return without! */
 	WM_cursor_wait(1);
-	
+
 	ED_editors_flush_edits(C, false);
 
 	fileflags |= G_FILE_HISTORY; /* write file history */
@@ -1172,14 +1172,14 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 
 	/* XXX temp solution to solve bug, real fix coming (ton) */
 	bmain->recovered = 0;
-	
+
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {
 		const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
 
 		if (!(fileflags & G_FILE_SAVE_COPY)) {
 			G.relbase_valid = 1;
 			BLI_strncpy(bmain->name, filepath, sizeof(bmain->name));  /* is guaranteed current file */
-	
+
 			G.save_over = 1; /* disable untitled.blend convention */
 		}
 
@@ -1265,7 +1265,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 	wmWindow *win;
 	wmEventHandler *handler;
 	char filepath[FILE_MAX];
-	
+
 	WM_event_remove_timer(wm, NULL, wm->autosavetimer);
 
 	/* if a modal operator is running, don't autosave, but try again in 10 seconds */
@@ -1314,7 +1314,7 @@ void wm_autosave_timer_ended(wmWindowManager *wm)
 void wm_autosave_delete(void)
 {
 	char filename[FILE_MAX];
-	
+
 	wm_autosave_location(filename);
 
 	if (BLI_exists(filename)) {
