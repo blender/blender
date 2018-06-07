@@ -143,25 +143,26 @@ void EEVEE_render_cache(
 	char info[42];
 	BLI_snprintf(info, sizeof(info), "Syncing %s", ob->id.name + 2);
 	RE_engine_update_stats(engine, NULL, info);
+	bool cast_shadow = false;
 
-	if (DRW_check_object_visible_within_active_context(ob) == false) {
-		return;
+	if (ob->base_flag & BASE_VISIBLED) {
+		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
 	}
 
-	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
-		bool cast_shadow;
-
-		EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
-
-		if (cast_shadow) {
-			EEVEE_lights_cache_shcaster_object_add(sldata, ob);
+	if (DRW_check_object_visible_within_active_context(ob)) {
+		if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+			EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
+		}
+		else if (ob->type == OB_LIGHTPROBE) {
+			EEVEE_lightprobes_cache_add(sldata, ob);
+		}
+		else if (ob->type == OB_LAMP) {
+			EEVEE_lights_cache_add(sldata, ob);
 		}
 	}
-	else if (ob->type == OB_LIGHTPROBE) {
-		EEVEE_lightprobes_cache_add(sldata, ob);
-	}
-	else if (ob->type == OB_LAMP) {
-		EEVEE_lights_cache_add(sldata, ob);
+
+	if (cast_shadow) {
+		EEVEE_lights_cache_shcaster_object_add(sldata, ob);
 	}
 }
 
@@ -420,6 +421,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
 	/* Push instances attribs to the GPU. */
 	DRW_render_instance_buffer_finish();
+
+	/* Need to be called after DRW_render_instance_buffer_finish() */
+	DRW_hair_update();
 
 	if ((view_layer->passflag & (SCE_PASS_SUBSURFACE_COLOR |
 	                             SCE_PASS_SUBSURFACE_DIRECT |
