@@ -359,6 +359,7 @@ static void recalcData_actedit(TransInfo *t)
 
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+	ac.bmain = CTX_data_main(t->context);
 	ac.scene = t->scene;
 	ac.view_layer = t->view_layer;
 	ac.obact = OBACT(view_layer);
@@ -409,6 +410,7 @@ static void recalcData_graphedit(TransInfo *t)
 
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+	ac.bmain = CTX_data_main(t->context);
 	ac.scene = t->scene;
 	ac.view_layer = t->view_layer;
 	ac.obact = OBACT(view_layer);
