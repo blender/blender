@@ -376,7 +376,7 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, c
 		us->type = ut;
 		ustack->step_init = us;
 		ut->step_encode_init(C, us);
-		undosys_stack_validate(ustack, true);
+		undosys_stack_validate(ustack, false);
 		return us;
 	}
 	else {
