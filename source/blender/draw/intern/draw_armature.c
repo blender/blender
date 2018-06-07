@@ -319,20 +319,31 @@ static void drw_shgroup_bone_custom_solid(
         Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Gwn_Batch *geom = DRW_cache_object_surface_get(custom);
-	if (geom) {
-		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
-		float final_bonemat[4][4];
+	struct Gwn_Batch *surf = DRW_cache_object_surface_get(custom);
+	struct Gwn_Batch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
+	struct Gwn_Batch *ledges = DRW_cache_object_loose_edges_get(custom);
+	float final_bonemat[4][4];
+
+	if (surf || edges || ledges) {
 		mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
+	}
+
+	if (surf) {
+		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, surf);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, bone_color, hint_color);
 	}
 
-	geom = DRW_cache_object_edge_detection_get(custom, NULL);
-	if (geom && outline_color[3] > 0.0f) {
-		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
-		float final_bonemat[4][4];
-		mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
+	if (edges && outline_color[3] > 0.0f) {
+		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, edges);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, outline_color);
+	}
+
+	if (ledges) {
+		DRWShadingGroup *shgrp_geom_ledges = shgroup_instance_wire(g_data.passes.bone_wire, ledges);
+		float final_color[4];
+		copy_v3_v3(final_color, outline_color);
+		final_color[3] = 1.0f; /* hack */
+		DRW_shgroup_call_dynamic_add(shgrp_geom_ledges, final_bonemat, final_color);
 	}
 }
 
