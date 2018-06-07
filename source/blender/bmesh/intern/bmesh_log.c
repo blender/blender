@@ -654,17 +654,21 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
  */
 BMLogEntry *BM_log_entry_add(BMLog *log)
 {
-	BMLogEntry *entry, *next;
-
+	/* WARNING: this is now handled by the UndoSystem: BKE_UNDOSYS_TYPE_SCULPT
+	 * freeing here causes unnecesssary complications. */
+	BMLogEntry *entry;
+#if 0
 	/* Delete any entries after the current one */
 	entry = log->current_entry;
 	if (entry) {
+		BMLogEntry *next;
 		for (entry = entry->next; entry; entry = next) {
 			next = entry->next;
 			bm_log_entry_free(entry);
 			BLI_freelinkN(&log->entries, entry);
 		}
 	}
+#endif
 
 	/* Create and append the new entry */
 	entry = bm_log_entry_create();
