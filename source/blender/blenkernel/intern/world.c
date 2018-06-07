@@ -168,6 +168,5 @@ void BKE_world_eval(struct Depsgraph *depsgraph, World *world)
 	DEG_debug_print_eval(depsgraph, __func__, world->id.name, world);
 	if (!BLI_listbase_is_empty(&world->gpumaterial)) {
 		world->update_flag = 1;
-		GPU_material_uniform_buffer_tag_dirty(&world->gpumaterial);
 	}
 }
