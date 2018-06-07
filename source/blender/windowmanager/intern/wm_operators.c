@@ -3989,7 +3989,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 
 	/* menus that can be accessed anywhere in blender */
 
-	WM_keymap_verify_item(keymap, "WM_OT_search_menu", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", F3KEY, KM_PRESS, 0, 0);
 
 #ifdef WITH_INPUT_NDOF
 	WM_keymap_add_menu(keymap, "USERPREF_MT_ndof_settings", NDOF_BUTTON_MENU, KM_PRESS, 0, 0);

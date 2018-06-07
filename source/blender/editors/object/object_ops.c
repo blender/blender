@@ -289,23 +289,11 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 
 	/* modes */
-	{
-		short key_mode_pair[][2] = {
-			{ONEKEY, OB_MODE_OBJECT},
-			{TWOKEY, OB_MODE_EDIT},
-			{THREEKEY, OB_MODE_POSE},
-			{THREEKEY, OB_MODE_WEIGHT_PAINT},
-			{FOURKEY, OB_MODE_VERTEX_PAINT},
-			{FIVEKEY, OB_MODE_TEXTURE_PAINT},
-			{SIXKEY, OB_MODE_SCULPT},
-			{SEVENKEY, OB_MODE_PARTICLE_EDIT},
-		};
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_RELEASE, 0, 0);
+	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
 
-		for (uint i = 0; i < ARRAY_SIZE(key_mode_pair); i++) {
-			kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set_or_submode", key_mode_pair[i][0], KM_PRESS, 0, 0);
-			RNA_enum_set(kmi->ptr, "mode", key_mode_pair[i][1]);
-		}
-	}
+	kmi = WM_keymap_add_menu_pie(keymap, "VIEW3D_PIE_object_mode", TABKEY, KM_CLICK_DRAG, 0, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_origin_set", CKEY, KM_PRESS, KM_ALT | KM_SHIFT | KM_CTRL, 0);
 

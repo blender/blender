@@ -335,6 +335,24 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "vertex_only", true);
 
 	/* selecting */
+
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", ONEKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_VERTEX);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", TWOKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_EDGE);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", THREEKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_FACE);
+
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", ONEKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_VERTEX);
+	RNA_boolean_set(kmi->ptr, "use_extend", true);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", TWOKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_EDGE);
+	RNA_boolean_set(kmi->ptr, "use_extend", true);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", THREEKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_FACE);
+	RNA_boolean_set(kmi->ptr, "use_extend", true);
+
 	/* standard mouse selection goes via space_view3d */
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", false);
