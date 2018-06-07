@@ -55,7 +55,6 @@
 
 /* Statics */
 static ListBase studiolights;
-#define STUDIOLIGHT_EXTENSIONS ".jpg", ".hdr"
 #define STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE 8
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 32
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH (STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * 2)
@@ -482,7 +481,7 @@ static void studiolight_add_files_from_datafolder(const int folder_id, const cha
 			if ((dir[i].type & S_IFREG)) {
 				const char *filename = dir[i].relname;
 				const char *path = dir[i].path;
-				if (BLI_testextensie_n(filename, STUDIOLIGHT_EXTENSIONS, NULL)) {
+				if (BLI_testextensie_array(filename, imb_ext_image)) {
 					sl = studiolight_create();
 					sl->flag = STUDIOLIGHT_EXTERNAL_FILE | flag;
 					BLI_strncpy(sl->name, filename, FILE_MAXFILE);
@@ -726,11 +725,11 @@ void BKE_studiolight_init(void)
 	BLI_addtail(&studiolights, sl);
 
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_USER_DEFINED);
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_USER_DEFINED);
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_MATCAP_FOLDER, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_MATCAP_FOLDER, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_MATCAP_FOLDER, STUDIOLIGHT_ORIENTATION_VIEWNORMAL | STUDIOLIGHT_USER_DEFINED);
 
 	/* sort studio lights on filename. */
 	BLI_listbase_sort(&studiolights, studiolight_cmp);
@@ -782,7 +781,7 @@ struct StudioLight *BKE_studiolight_findindex(int index, int flag)
 	return BKE_studiolight_find_first(flag);
 }
 
-const struct ListBase *BKE_studiolight_listbase(void)
+struct ListBase *BKE_studiolight_listbase(void)
 {
 	return &studiolights;
 }
@@ -829,4 +828,10 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 	if ((flag & STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED)) {
 		studiolight_calculate_irradiance_equirectangular_image(sl);
 	}
+}
+
+void BKE_studiolight_refresh(void)
+{
+	BKE_studiolight_free();
+	BKE_studiolight_init();
 }

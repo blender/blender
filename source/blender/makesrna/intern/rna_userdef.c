@@ -41,6 +41,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_sound.h"
 #include "BKE_addon.h"
+#include "BKE_studiolight.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -652,6 +653,104 @@ static void rna_ThemeUI_roundness_set(PointerRNA *ptr, float value)
 	uiWidgetColors *tui = (uiWidgetColors *)ptr->data;
 	tui->roundness = value * 0.5f;
 }
+
+/* Studio Light */
+static void rna_UserDef_studiolight_begin(CollectionPropertyIterator *iter, PointerRNA *UNUSED(ptr))
+{
+	rna_iterator_listbase_begin(iter, BKE_studiolight_listbase(), NULL);
+}
+
+static void rna_UserDef_studiolight_refresh(UserDef *UNUSED(userdef))
+{
+	BKE_studiolight_refresh();
+}
+
+/* StudioLight.name */
+static void rna_UserDef_studiolight_name_get(PointerRNA *ptr, char *value)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	BLI_strncpy(value, sl->name, FILE_MAXFILE);
+}
+
+static int rna_UserDef_studiolight_name_length(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return strlen(sl->name);
+}
+
+/* StudioLight.path */
+static void rna_UserDef_studiolight_path_get(PointerRNA *ptr, char *value)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	if (sl->path) {
+		BLI_strncpy(value, sl->path, FILE_MAX);
+	}
+	else {
+		value[0] = '\0';
+	}
+}
+
+static int rna_UserDef_studiolight_path_length(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return strlen(sl->path);
+}
+
+/* StudioLight.index */
+static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return sl->index;
+}
+
+/* StudioLight.radiance_icon_id */
+static int rna_UserDef_studiolight_radiance_icon_id_get(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return sl->radiance_icon_id;
+}
+
+/* StudioLight.irradiance_icon_id */
+static int rna_UserDef_studiolight_irradiance_icon_id_get(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return sl->irradiance_icon_id;
+}
+
+/* StudioLight.is_user_defined */
+static int rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return (sl->flag & STUDIOLIGHT_USER_DEFINED) > 0;
+}
+
+/* StudioLight.show_expanded */
+static int rna_UserDef_studiolight_show_expanded_get(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return (sl->flag & STUDIOLIGHT_UI_EXPANDED) > 0;
+}
+
+static void rna_UserDef_studiolight_show_expanded_set(PointerRNA *ptr, const bool value)
+{	
+	StudioLight *sl = (StudioLight *)ptr->data;
+	sl->flag ^= STUDIOLIGHT_UI_EXPANDED;
+	sl->flag |= value?STUDIOLIGHT_UI_EXPANDED: 0;
+}
+
+
+/* StudioLight.orientation */
+
+static int rna_UserDef_studiolight_orientation_get(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS;
+}
+
+static void rna_UserDef_studiolight_orientation_set(PointerRNA *UNUSED(ptr), const int UNUSED(value))
+{
+}
+
 
 #else
 
@@ -3161,6 +3260,67 @@ static void rna_def_userdef_addon(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Addon_preferences_get", NULL, NULL, NULL);
 }
 
+static void rna_def_userdef_studiolight(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static const EnumPropertyItem rna_enum_studio_light_orientation_items[] = {
+		{STUDIOLIGHT_ORIENTATION_CAMERA,     "CAMERA", 0, "Camera", ""},
+		{STUDIOLIGHT_ORIENTATION_WORLD,      "WORLD",  0, "World",  ""},
+		{STUDIOLIGHT_ORIENTATION_VIEWNORMAL, "MATCAP", 0, "MatCap", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	RNA_define_verify_sdna(false);
+	srna = RNA_def_struct(brna, "StudioLight", NULL);
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Studio Light", "Studio light");
+
+	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_UserDef_studiolight_index_get", NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Index", "");
+
+	prop = RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UserDef_studiolight_is_user_defined_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "User Defined", "");
+
+	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UserDef_studiolight_show_expanded_get", "rna_UserDef_studiolight_show_expanded_set");
+	RNA_def_property_ui_text(prop, "Show Expanded", "");
+
+	prop = RNA_def_property(srna, "orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, rna_enum_studio_light_orientation_items);
+	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_orientation_get", "rna_UserDef_studiolight_orientation_set", NULL);
+	RNA_def_property_ui_text(prop, "Orientation", "");
+
+	prop = RNA_def_property(srna, "radiance_icon_id", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_UserDef_studiolight_radiance_icon_id_get", NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Radiance Icon", "");
+
+	prop = RNA_def_property(srna, "irradiance_icon_id", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_UserDef_studiolight_irradiance_icon_id_get", NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Irradiance Icon", "");
+
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_name_get", "rna_UserDef_studiolight_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_struct_name_property(srna, prop);
+
+	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_path_get", "rna_UserDef_studiolight_path_length", NULL);
+	RNA_def_property_ui_text(prop, "Path", "");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	RNA_define_verify_sdna(true);
+
+}
+
 static void rna_def_userdef_pathcompare(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -4665,6 +4825,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 
 	static const EnumPropertyItem user_pref_sections[] = {
 		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
@@ -4672,6 +4833,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
 		{USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
 		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
+		{USER_SECTION_LIGHT, "LIGHTS", 0, "Lights", ""},
 		{USER_SECTION_FILE, "FILES", 0, "File", ""},
 		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -4757,6 +4919,17 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
 
+	prop = RNA_def_property(srna, "studio_lights", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "StudioLight");
+	RNA_def_property_collection_funcs(prop, "rna_UserDef_studiolight_begin", "rna_iterator_listbase_next",
+									  "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+									  NULL, NULL, NULL, NULL);
+
+	func = RNA_def_function(srna, "studio_lights_refresh", "rna_UserDef_studiolight_refresh");
+	RNA_def_function_ui_description(func, "Refresh Studio Lights");
+
+	RNA_def_property_ui_text(prop, "Studio Lights", "");
+
 	rna_def_userdef_view(brna);
 	rna_def_userdef_edit(brna);
 	rna_def_userdef_input(brna);
@@ -4764,6 +4937,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 	rna_def_userdef_system(brna);
 	rna_def_userdef_addon(brna);
 	rna_def_userdef_addon_pref(brna);
+	rna_def_userdef_studiolight(brna);
 	rna_def_userdef_pathcompare(brna);
 	
 }

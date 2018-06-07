@@ -22,6 +22,7 @@ from bpy.types import (
     Header,
     Menu,
     Panel,
+    Operator,
 )
 from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
@@ -1570,6 +1571,50 @@ class USERPREF_PT_addons(Panel):
                 row.label(text=module_name, translate=False)
 
 
+class USERPREF_PT_studiolight(Panel):
+    bl_space_type = 'USER_PREFERENCES'
+    bl_label = "Lights"
+    bl_region_type = 'WINDOW'
+    bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        userpref = context.user_preferences
+        return (userpref.active_section == 'LIGHTS')
+
+    def draw_studio_light(self, layout, studio_light):
+        box = layout.box()
+        row = box.row()
+
+        op = row.operator('wm.studiolight_expand', emboss=False, text="", icon='TRIA_DOWN' if studio_light.show_expanded else 'TRIA_RIGHT')
+        op.index = studio_light.index
+
+        row.label(text=studio_light.name, icon_value=studio_light.radiance_icon_id)
+        op = row.operator('wm.studiolight_uninstall', text="", icon='ZOOMOUT')
+        op.index = studio_light.index
+
+        if studio_light.show_expanded:
+            box.label(studio_light.path)
+
+
+    def draw(self, context):
+        layout = self.layout
+        userpref = context.user_preferences
+        lights = [light for light in userpref.studio_lights if light.is_user_defined]
+        layout.label("MatCaps")
+        for studio_light in filter(lambda x: x.orientation=='MATCAP', lights):
+            self.draw_studio_light(layout, studio_light)
+        layout.operator('wm.studiolight_install', text="Install Custom MatCap").orientation='MATCAP'
+        layout.label("World HDRI")
+        for studio_light in filter(lambda x: x.orientation=='WORLD', lights):
+            self.draw_studio_light(layout, studio_light)
+        layout.operator('wm.studiolight_install', text="Install Custom HDRI").orientation='WORLD'
+        layout.label("Camera HDRI")
+        for studio_light in filter(lambda x: x.orientation=='CAMERA', lights):
+            self.draw_studio_light(layout, studio_light)
+        layout.operator('wm.studiolight_install', text="Install Custom Camera HDRI").orientation='CAMERA'
+
+
 classes = (
     USERPREF_HT_header,
     USERPREF_PT_tabs,
@@ -1590,6 +1635,7 @@ classes = (
     USERPREF_PT_input,
     USERPREF_MT_addons_online_resources,
     USERPREF_PT_addons,
+    USERPREF_PT_studiolight,
 )
 
 if __name__ == "__main__":  # only for live edit.

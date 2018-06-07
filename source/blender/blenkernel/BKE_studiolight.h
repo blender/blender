@@ -61,6 +61,7 @@ enum StudioLightFlag {
 	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED                  = (1 << 1),
 	STUDIOLIGHT_INTERNAL                                    = (1 << 2),
 	STUDIOLIGHT_EXTERNAL_FILE                               = (1 << 3),
+	STUDIOLIGHT_USER_DEFINED                                = (1 << 12),
 	STUDIOLIGHT_ORIENTATION_CAMERA                          = (1 << 4),
 	STUDIOLIGHT_ORIENTATION_WORLD                           = (1 << 5),
 	STUDIOLIGHT_ORIENTATION_VIEWNORMAL                      = (1 << 6),
@@ -69,6 +70,7 @@ enum StudioLightFlag {
 	STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE         = (1 << 9),
 	STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_GPUTEXTURE       = (1 << 10),
 	STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED                 = (1 << 11),
+	STUDIOLIGHT_UI_EXPANDED                                 = (1 << 13),
 } StudioLightFlag;
 #define STUDIOLIGHT_FLAG_ALL (STUDIOLIGHT_INTERNAL | STUDIOLIGHT_EXTERNAL_FILE)
 #define STUDIOLIGHT_FLAG_ORIENTATIONS (STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_VIEWNORMAL)
@@ -98,7 +100,8 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag);
 struct StudioLight *BKE_studiolight_findindex(int index, int flag);
 struct StudioLight *BKE_studiolight_find_first(int flag);
 unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size, int icon_id_type);
-const struct ListBase *BKE_studiolight_listbase(void);
+struct ListBase *BKE_studiolight_listbase(void);
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag);
+void BKE_studiolight_refresh(void);
 
 #endif /*  __BKE_STUDIOLIGHT_H__ */

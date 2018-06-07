@@ -19,13 +19,17 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Operator
+from bpy.types import (
+    Operator,
+    OperatorFileListElement
+)
 from bpy.props import (
     BoolProperty,
     EnumProperty,
     FloatProperty,
     IntProperty,
     StringProperty,
+    CollectionProperty,
 )
 
 from bpy.app.translations import pgettext_tip as tip_
@@ -2400,6 +2404,120 @@ class WM_OT_toolbar(Operator):
         return {'FINISHED'}
 
 
+# Studio Light operations
+class WM_OT_studiolight_install(Operator):
+    """Install a user defined studio light"""
+    bl_idname = "wm.studiolight_install"
+    bl_label = "Install Custom Studio Light"
+
+    files = CollectionProperty(
+            name="File Path",
+            type=OperatorFileListElement,
+            )
+    directory = StringProperty(
+            subtype='DIR_PATH',
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_glob = StringProperty(
+            default="*.png;*.jpg;*.hdr;*.exr",
+            options={'HIDDEN'},
+            )
+    orientation = EnumProperty(
+        items=(
+            ("MATCAP", "MatCap", ""),
+            ("WORLD", "World", ""),
+            ("CAMERA", "Camera", ""),
+        )
+    )
+
+    def execute(self, context):
+        import traceback
+        import shutil
+        import pathlib
+        userpref = context.user_preferences
+
+        filepaths = [pathlib.Path(self.directory, e.name) for e in self.files]
+        path_studiolights = bpy.utils.user_resource('DATAFILES')
+
+        if not path_studiolights:
+            self.report({'ERROR'}, "Failed to get Studio Light path")
+            return {'CANCELLED'}
+
+        path_studiolights = pathlib.Path(path_studiolights, "studiolights", self.orientation.lower())
+        if not path_studiolights.exists():
+            try:
+                path_studiolights.mkdir(parents=True, exist_ok=True)
+            except:
+                traceback.print_exc()
+
+        for filepath in filepaths:
+            shutil.copy(str(filepath), str(path_studiolights))
+        userpref.studio_lights_refresh()
+
+        # print message
+        msg = (
+            tip_("StudioLight Installed %r into %r") %
+            (", ".join(str(x.name) for x in self.files), str(path_studiolights))
+        )
+        print(msg)
+        self.report({'INFO'}, msg)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class WM_OT_studiolight_uninstall(Operator):
+    bl_idname = 'wm.studiolight_uninstall'
+    bl_label = "Uninstall Studio Light"
+    index = bpy.props.IntProperty()
+
+    def execute(self, context):
+        import pathlib
+        userpref = context.user_preferences
+        for studio_light in userpref.studio_lights:
+            if studio_light.index == self.index:
+                path = pathlib.Path(studio_light.path)
+                if path.exists():
+                    path.unlink()
+                    userpref.studio_lights_refresh()
+                    return {'FINISHED'}
+        return {'CANCELLED'}
+
+
+class WM_OT_studiolight_expand(Operator):
+    bl_idname = "wm.studiolight_expand"
+    bl_label = "Expand Studio Light"
+    index = bpy.props.IntProperty()
+
+    def execute(self, context):
+        userpref = context.user_preferences
+        for studio_light in userpref.studio_lights:
+            if studio_light.index == self.index:
+                studio_light.show_expanded = not studio_light.show_expanded
+                break
+
+        return {'FINISHED'}
+
+
+class WM_OT_studiolight_userpref_show(Operator):
+    """Show light user preferences"""
+    bl_idname = "wm.studiolight_userpref_show"
+    bl_label = ""
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+        context.user_preferences.active_section = 'LIGHTS'
+        bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
+        return {'FINISHED'}
+
+
 classes = (
     BRUSH_OT_active_index_set,
     WM_OT_addon_disable,
@@ -2454,6 +2572,10 @@ classes = (
     WM_OT_owner_disable,
     WM_OT_owner_enable,
     WM_OT_url_open,
+    WM_OT_studiolight_expand,
+    WM_OT_studiolight_install,
+    WM_OT_studiolight_uninstall,
+    WM_OT_studiolight_userpref_show,
     WM_OT_tool_set_by_name,
     WM_OT_toolbar,
 )
