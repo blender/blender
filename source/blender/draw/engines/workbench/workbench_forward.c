@@ -517,6 +517,11 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 	if (ob->type == OB_MESH) {
 		workbench_forward_cache_populate_particles(vedata, ob);
 	}
+
+	if (!DRW_check_object_visible_within_active_context(ob)) {
+		return;
+	}
+
 	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);

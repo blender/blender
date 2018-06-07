@@ -661,12 +661,15 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
-
 	if (!DRW_object_is_renderable(ob))
 		return;
 
 	if (ob->type == OB_MESH) {
 		workbench_cache_populate_particles(vedata, ob);
+	}
+
+	if (!DRW_check_object_visible_within_active_context(ob)) {
+		return;
 	}
 
 	WORKBENCH_MaterialData *material;
