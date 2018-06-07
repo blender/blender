@@ -238,7 +238,7 @@ GPUNodeLink *GPU_uniformbuffer_link_out(
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 GPUBuiltin GPU_get_material_builtins(GPUMaterial *material);
 
-void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short *falloff_type, float *sharpness);
+void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], short *falloff_type, float *sharpness);
 struct GPUUniformBuffer *GPU_material_sss_profile_get(
         GPUMaterial *material, int sample_ct, struct GPUTexture **tex_profile);
 

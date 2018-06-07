@@ -127,10 +127,11 @@ struct GPUMaterial {
 	/* Eevee SSS */
 	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
 	GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
-	float *sss_radii; /* UBO containing SSS profile. */
+	float sss_enabled;
+	float sss_radii[3];
 	int sss_samples;
-	short int *sss_falloff;
-	float *sss_sharpness;
+	short int sss_falloff;
+	float sss_sharpness;
 	bool sss_dirty;
 };
 
@@ -328,7 +329,7 @@ static float eval_integral(float x0, float x1, short falloff_type, float sharpne
 #undef INTEGRAL_RESOLUTION
 
 static void compute_sss_kernel(
-        GPUSssKernelData *kd, float *radii, int sample_ct, int falloff_type, float sharpness)
+        GPUSssKernelData *kd, float radii[3], int sample_ct, int falloff_type, float sharpness)
 {
 	float rad[3];
 	/* Minimum radius */
@@ -483,12 +484,13 @@ static void compute_sss_translucence_kernel(
 }
 #undef INTEGRAL_RESOLUTION
 
-void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short *falloff_type, float *sharpness)
+void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], short *falloff_type, float *sharpness)
 {
-	material->sss_radii = radii;
-	material->sss_falloff = falloff_type;
-	material->sss_sharpness = sharpness;
+	copy_v3_v3(material->sss_radii, radii);
+	material->sss_falloff = (falloff_type) ? *falloff_type : 0.0;
+	material->sss_sharpness = (sharpness) ? *sharpness : 0.0;
 	material->sss_dirty = true;
+	material->sss_enabled = true;
 
 	/* Update / Create UBO */
 	if (material->sss_profile == NULL) {
@@ -498,25 +500,25 @@ void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short 
 
 struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct, GPUTexture **tex_profile)
 {
-	if (material->sss_radii == NULL)
+	if (!material->sss_enabled)
 		return NULL;
 
 	if (material->sss_dirty || (material->sss_samples != sample_ct)) {
 		GPUSssKernelData kd;
 
-		float sharpness = (material->sss_sharpness != NULL) ? *material->sss_sharpness : 0.0f;
+		float sharpness = material->sss_sharpness;
 
 		/* XXX Black magic but it seems to fit. Maybe because we integrate -1..1 */
 		sharpness *= 0.5f;
 
-		compute_sss_kernel(&kd, material->sss_radii, sample_ct, *material->sss_falloff, sharpness);
+		compute_sss_kernel(&kd, material->sss_radii, sample_ct, material->sss_falloff, sharpness);
 
 		/* Update / Create UBO */
 		GPU_uniformbuffer_update(material->sss_profile, &kd);
 
 		/* Update / Create Tex */
 		float *translucence_profile;
-		compute_sss_translucence_kernel(&kd, 64, *material->sss_falloff, sharpness, &translucence_profile);
+		compute_sss_translucence_kernel(&kd, 64, material->sss_falloff, sharpness, &translucence_profile);
 
 		if (material->sss_tex_profile != NULL) {
 			GPU_texture_free(material->sss_tex_profile);
