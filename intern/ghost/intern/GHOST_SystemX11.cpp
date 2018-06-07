@@ -669,10 +669,8 @@ processEvents(
 			}
 
 			/* dispatch event to XIM server */
-			if ((XFilterEvent(&xevent, (Window)NULL) == True) && (xevent.type != KeyRelease)) {
-				/* do nothing now, the event is consumed by XIM.
-				 * however, KeyRelease event should be processed
-				 * here, otherwise modifiers remain activated.   */
+			if ((XFilterEvent(&xevent, (Window)NULL) == True)) {
+				/* do nothing now, the event is consumed by XIM. */
 				continue;
 			}
 #endif
