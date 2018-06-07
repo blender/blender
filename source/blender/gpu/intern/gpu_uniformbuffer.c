@@ -368,11 +368,4 @@ int GPU_uniformbuffer_bindpoint(GPUUniformBuffer *ubo)
 	return ubo->bindpoint;
 }
 
-void GPU_uniformbuffer_tag_dirty(GPUUniformBuffer *ubo_)
-{
-	BLI_assert(ubo_->type == GPU_UBO_DYNAMIC);
-	GPUUniformBufferDynamic *ubo = (GPUUniformBufferDynamic *)ubo_;
-	ubo->flag |= GPU_UBO_FLAG_DIRTY;
-}
-
 #undef MAX_UBO_GPU_TYPE

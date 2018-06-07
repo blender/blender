@@ -52,7 +52,6 @@ int GPU_uniformbuffer_bindpoint(GPUUniformBuffer *ubo);
 
 bool GPU_uniformbuffer_is_empty(GPUUniformBuffer *ubo);
 bool GPU_uniformbuffer_is_dirty(GPUUniformBuffer *ubo);
-void GPU_uniformbuffer_tag_dirty(GPUUniformBuffer *ubo);
 
 #define GPU_UBO_BLOCK_NAME "nodeTree"
 

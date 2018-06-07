@@ -214,16 +214,6 @@ void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 	material->ubo = GPU_uniformbuffer_dynamic_create(inputs, NULL);
 }
 
-void GPU_material_uniform_buffer_tag_dirty(ListBase *gpumaterials)
-{
-	for (LinkData *link = gpumaterials->first; link; link = link->next) {
-		GPUMaterial *material = link->data;
-		if (material->ubo != NULL) {
-			GPU_uniformbuffer_tag_dirty(material->ubo);
-		}
-	}
-}
-
 /* Eevee Subsurface scattering. */
 /* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */
 
