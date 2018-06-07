@@ -260,7 +260,7 @@ struct ListBase *GPU_material_get_inputs(GPUMaterial *material);
 GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material);
-void GPU_material_create_uniform_buffer(GPUMaterial *material, struct ListBase *inputs);
+void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 void GPU_material_uniform_buffer_tag_dirty(struct ListBase *gpumaterials);
 
 void GPU_material_vertex_attributes(GPUMaterial *material,

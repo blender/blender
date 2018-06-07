@@ -672,7 +672,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 
 	/* Handle the UBO block separately. */
 	if ((material != NULL) && !BLI_listbase_is_empty(&ubo_inputs)) {
-		GPU_material_create_uniform_buffer(material, &ubo_inputs);
+		GPU_material_uniform_buffer_create(material, &ubo_inputs);
 
 		/* Inputs are sorted */
 		BLI_dynstr_appendf(ds, "\nlayout (std140) uniform %s {\n", GPU_UBO_BLOCK_NAME);
