@@ -2307,31 +2307,13 @@ static void rna_NodeSocketStandard_vector_range(PointerRNA *ptr, float *min, flo
 	*softmax = dval->max;
 }
 
-static void rna_NodeSocket_value_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
-	bNodeSocket *sock = ptr->data;
-
-	if (ntree->type == NTREE_SHADER) {
-		DEG_id_tag_update_ex(bmain, &ntree->id, DEG_TAG_SHADING_UPDATE);
-		WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
-
-		if (sock->type == SOCK_STRING) {
-			rna_NodeSocket_update(bmain, scene, ptr);
-		}
-	}
-	else {
-		rna_NodeSocket_update(bmain, scene, ptr);
-	}
-}
-
 /* using a context update function here, to avoid searching the node if possible */
 static void rna_NodeSocketStandard_value_update(struct bContext *C, PointerRNA *ptr)
 {
 	bNode *node;
 	
 	/* default update */
-	rna_NodeSocket_value_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+	rna_NodeSocket_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 	
 	/* try to use node from context, faster */
 	node = CTX_data_pointer_get(C, "node").data;
