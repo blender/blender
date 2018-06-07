@@ -158,7 +158,7 @@ static bool sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoN
 			if (kb) {
 				ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-				BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, 0, false);
+				BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, false);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
 			}
 			else {
@@ -495,7 +495,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 
-	BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, 0, need_mask);
+	BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, need_mask);
 
 	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
 	dm = mesh_get_derived_final(depsgraph, scene, ob, 0);
