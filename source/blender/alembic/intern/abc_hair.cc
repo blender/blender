@@ -97,8 +97,6 @@ void AbcHairWriter::do_write()
 		}
 	}
 
-	BKE_id_free(NULL, mesh);
-
 	Alembic::Abc::P3fArraySample iPos(verts);
 	m_sample = OCurvesSchema::Sample(iPos, hvertices);
 	m_sample.setBasis(Alembic::AbcGeom::kNoBasis);
