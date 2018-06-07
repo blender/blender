@@ -477,7 +477,7 @@ class SCENE_PT_viewport_display(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_viewport_display_ssao(SceneButtonsPanel, Panel):
-    bl_label = "Viewport Display SSAO"
+    bl_label = "Screen Space Ambient Occlusion"
     bl_parent_id = "SCENE_PT_viewport_display"
 
     @classmethod
