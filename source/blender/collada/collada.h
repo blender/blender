@@ -51,7 +51,6 @@ struct ViewLayer;
 int collada_import(struct bContext *C,
 				   ImportSettings *import_settings);
 
-
 int collada_export(struct bContext *C,
                    struct Depsgraph *depsgraph,
                    struct Scene *sce,
