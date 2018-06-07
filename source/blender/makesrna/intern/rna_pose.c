@@ -106,6 +106,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_constraint.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 
 #include "DEG_depsgraph.h"
@@ -291,7 +292,7 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(newname, value, sizeof(pchan->name));
 	BLI_strncpy(oldname, pchan->name, sizeof(pchan->name));
 
-	ED_armature_bone_rename(ob->data, oldname, newname);
+	ED_armature_bone_rename(G.main, ob->data, oldname, newname);
 }
 
 static int rna_PoseChannel_has_ik_get(PointerRNA *ptr)

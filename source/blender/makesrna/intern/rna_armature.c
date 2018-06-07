@@ -44,6 +44,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 
@@ -340,7 +341,7 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(newname, value, sizeof(ebone->name));
 	BLI_strncpy(oldname, ebone->name, sizeof(ebone->name));
 	
-	ED_armature_bone_rename(arm, oldname, newname);
+	ED_armature_bone_rename(G.main, arm, oldname, newname);
 }
 
 static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
@@ -353,7 +354,7 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(newname, value, sizeof(bone->name));
 	BLI_strncpy(oldname, bone->name, sizeof(bone->name));
 
-	ED_armature_bone_rename(arm, oldname, newname);
+	ED_armature_bone_rename(G.main, arm, oldname, newname);
 }
 
 static void rna_EditBone_layer_set(PointerRNA *ptr, const int values[])

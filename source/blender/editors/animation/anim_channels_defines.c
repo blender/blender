@@ -65,6 +65,7 @@
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 
@@ -4144,6 +4145,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 /* callback for shapekey widget sliders - insert keyframes */
 static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, void *kb_poin)
 {
+	Main *bmain = CTX_data_main(C);
 	Key *key = (Key *)key_poin;
 	KeyBlock *kb = (KeyBlock *)kb_poin;
 	char *rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
@@ -4171,7 +4173,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 	if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
 		/* find or create new F-Curve */
 		// XXX is the group name for this ok?
-		bAction *act = verify_adt_action((ID *)key, 1);
+		bAction *act = verify_adt_action(bmain, (ID *)key, 1);
 		FCurve *fcu = verify_fcurve(act, NULL, &ptr, rna_path, 0, 1);
 
 		/* set the special 'replace' flag if on a keyframe */

@@ -378,6 +378,7 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac)
  */
 bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 {
+	Main *bmain = CTX_data_main(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceLink *sl = CTX_wm_space_data(C);
@@ -388,6 +389,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 	memset(ac, 0, sizeof(bAnimContext));
 
 	/* get useful default context settings from context */
+	ac->bmain = bmain;
 	ac->scene = scene;
 	if (scene) {
 		ac->markers = ED_context_get_markers(C);
@@ -1742,7 +1744,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 		bGPdata *gpd;
 
 		/* Grab all Grease Pencil datablocks directly from main, but only those that seem to be useful somewhere */
-		for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
+		for (gpd = ac->bmain->gpencil.first; gpd; gpd = gpd->id.next) {
 			/* only show if gpd is used by something... */
 			if (ID_REAL_USERS(gpd) < 1)
 				continue;
@@ -1858,14 +1860,14 @@ static size_t animdata_filter_mask_data(ListBase *anim_data, Mask *mask, const i
 }
 
 /* Grab all mask data */
-static size_t animdata_filter_mask(ListBase *anim_data, void *UNUSED(data), int filter_mode)
+static size_t animdata_filter_mask(Main *bmain, ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {
 	Mask *mask;
 	size_t items = 0;
 
 	/* for now, grab mask datablocks directly from main */
 	// XXX: this is not good...
-	for (mask = G.main->mask.first; mask; mask = mask->id.next) {
+	for (mask = bmain->mask.first; mask; mask = mask->id.next) {
 		ListBase tmp_data = {NULL, NULL};
 		size_t tmp_items = 0;
 
@@ -2820,7 +2822,7 @@ static size_t animdata_filter_dopesheet_movieclips(bAnimContext *ac, ListBase *a
 {
 	size_t items = 0;
 	MovieClip *clip;
-	for (clip = G.main->movieclip.first; clip != NULL; clip = clip->id.next) {
+	for (clip = ac->bmain->movieclip.first; clip != NULL; clip = clip->id.next) {
 		/* only show if gpd is used by something... */
 		if (ID_REAL_USERS(clip) < 1) {
 			continue;
@@ -2959,7 +2961,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	}
 
 	/* Cache files level animations (frame duration and such). */
-	CacheFile *cache_file = G.main->cachefiles.first;
+	CacheFile *cache_file = ac->bmain->cachefiles.first;
 	for (; cache_file; cache_file = cache_file->id.next) {
 		items += animdata_filter_ds_cachefile(ac, anim_data, ads, cache_file, filter_mode);
 	}
@@ -3223,7 +3225,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_F
 			case ANIMCONT_MASK:
 			{
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
-					items = animdata_filter_mask(anim_data, data, filter_mode);
+					items = animdata_filter_mask(ac->bmain, anim_data, data, filter_mode);
 				break;
 			}
 

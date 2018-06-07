@@ -198,8 +198,8 @@ void ED_object_vgroup_calc_from_armature(
 
 /* if bone is already in list, pass it as param to ignore it */
 void ED_armature_ebone_unique_name(struct ListBase *ebones, char *name, EditBone *bone);
-void ED_armature_bone_rename(struct bArmature *arm, const char *oldnamep, const char *newnamep);
-void ED_armature_bones_flip_names(struct bArmature *arm, struct ListBase *bones_names, const bool do_strip_numbers);
+void ED_armature_bone_rename(struct Main *bmain, struct bArmature *arm, const char *oldnamep, const char *newnamep);
+void ED_armature_bones_flip_names(struct Main *bmain, struct bArmature *arm, struct ListBase *bones_names, const bool do_strip_numbers);
 
 /* low level selection functions which handle */
 int  ED_armature_ebone_selectflag_get(const EditBone *ebone);

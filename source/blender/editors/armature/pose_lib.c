@@ -48,6 +48,7 @@
 #include "BKE_armature.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
 
@@ -191,7 +192,7 @@ static int has_poselib_pose_data_for_editing_poll(bContext *C)
 /* ----------------------------------- */
 
 /* Initialize a new poselib (whether it is needed or not) */
-static bAction *poselib_init_new(Object *ob)
+static bAction *poselib_init_new(Main *bmain, Object *ob)
 {
 	/* sanity checks - only for armatures */
 	if (ELEM(NULL, ob, ob->pose))
@@ -201,19 +202,19 @@ static bAction *poselib_init_new(Object *ob)
 	if (ob->poselib)
 		id_us_min(&ob->poselib->id);
 
-	ob->poselib = BKE_action_add(G.main, "PoseLib");
+	ob->poselib = BKE_action_add(bmain, "PoseLib");
 	ob->poselib->idroot = ID_OB;
 
 	return ob->poselib;
 }
 
 /* Initialize a new poselib (checks if that needs to happen) */
-static bAction *poselib_validate(Object *ob)
+static bAction *poselib_validate(Main *bmain, Object *ob)
 {
 	if (ELEM(NULL, ob, ob->pose))
 		return NULL;
 	else if (ob->poselib == NULL)
-		return poselib_init_new(ob);
+		return poselib_init_new(bmain, ob);
 	else
 		return ob->poselib;
 }
@@ -223,6 +224,7 @@ static bAction *poselib_validate(Object *ob)
 
 static int poselib_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = get_poselib_object(C);
 
 	/* sanity checks */
@@ -230,7 +232,7 @@ static int poselib_new_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	/* new method here deals with the rest... */
-	poselib_init_new(ob);
+	poselib_init_new(bmain, ob);
 
 	/* notifier here might evolve? */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
@@ -458,8 +460,9 @@ static int poselib_add_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
 static int poselib_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = get_poselib_object(C);
-	bAction *act = poselib_validate(ob);
+	bAction *act = poselib_validate(bmain, ob);
 	bPose *pose = (ob) ? ob->pose : NULL;
 	TimeMarker *marker;
 	KeyingSet *ks;

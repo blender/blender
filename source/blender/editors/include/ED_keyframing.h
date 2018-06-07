@@ -71,7 +71,7 @@ short ANIM_get_keyframing_flags(struct Scene *scene, short incl_mode);
 /* Get (or add relevant data to be able to do so) the Active Action for the given
  * Animation Data block, given an ID block where the Animation Data should reside.
  */
-struct bAction *verify_adt_action(struct ID *id, short add);
+struct bAction *verify_adt_action(struct Main *bmain, struct ID *id, short add);
 
 /* Get (or add relevant data to be able to do so) F-Curve from the given Action.
  * This assumes that all the destinations are valid.
@@ -117,7 +117,9 @@ bool insert_keyframe_direct(struct Depsgraph *depsgraph, struct ReportList *repo
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
-short insert_keyframe(struct Depsgraph *depsgraph, struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
+short insert_keyframe(
+        struct Main *bmain, struct Depsgraph *depsgraph, struct ReportList *reports, struct ID *id, struct bAction *act,
+        const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
 
 /* Main Keyframing API call:
  *  Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.

@@ -969,6 +969,7 @@ void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
 
 static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_FOLLOWPATH);
 	bFollowPathConstraint *data = (con) ? (bFollowPathConstraint *)con->data : NULL;
@@ -993,7 +994,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 		    (list_find_fcurve(&cu->adt->action->curves, "eval_time", 0) == NULL))
 		{
 			/* create F-Curve for path animation */
-			act = verify_adt_action(&cu->id, 1);
+			act = verify_adt_action(bmain, &cu->id, 1);
 			fcu = verify_fcurve(act, NULL, NULL, "eval_time", 0, 1);
 
 			/* standard vertical range - 1:1 = 100 frames */
@@ -1018,7 +1019,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 		path = RNA_path_from_ID_to_property(&ptr, prop);
 
 		/* create F-Curve for constraint */
-		act = verify_adt_action(&ob->id, 1);
+		act = verify_adt_action(bmain, &ob->id, 1);
 		fcu = verify_fcurve(act, NULL, NULL, path, 0, 1);
 
 		/* standard vertical range - 0.0 to 1.0 */

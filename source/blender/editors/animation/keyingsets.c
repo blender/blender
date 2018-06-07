@@ -959,6 +959,7 @@ static short keyingset_apply_keying_flags(const short base_flags, const short ov
 int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ReportList *reports = CTX_wm_reports(C);
 	KS_Path *ksp;
@@ -1039,7 +1040,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 		for (; i < arraylen; i++) {
 			/* action to take depends on mode */
 			if (mode == MODIFYKEY_MODE_INSERT)
-				success += insert_keyframe(depsgraph, reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, keytype, kflag2);
+				success += insert_keyframe(bmain, depsgraph, reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, keytype, kflag2);
 			else if (mode == MODIFYKEY_MODE_DELETE)
 				success += delete_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
 		}

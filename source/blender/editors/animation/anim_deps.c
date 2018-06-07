@@ -46,10 +46,10 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
-#include "BKE_context.h"
-#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
 
@@ -64,7 +64,7 @@
 /* tags the given anim list element for refreshes (if applicable)
  * due to Animation Editor editing
  */
-void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
+void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 {
 	ID *id;
 	FCurve *fcu;
@@ -97,7 +97,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 		RNA_id_pointer_create(id, &id_ptr);
 
 		if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop))
-			RNA_property_update_main(G.main, scene, &ptr, prop);
+			RNA_property_update_main(bmain, scene, &ptr, prop);
 	}
 	else {
 		/* in other case we do standard depsgraph update, ideally
@@ -406,7 +406,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 
 			if (ale->update & ANIM_UPDATE_DEPS) {
 				ale->update &= ~ANIM_UPDATE_DEPS;
-				ANIM_list_elem_update(ac->scene, ale);
+				ANIM_list_elem_update(ac->bmain, ac->scene, ale);
 			}
 		}
 		else if (ale->datatype == ALE_FCURVE) {
@@ -426,13 +426,13 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 
 			if (ale->update & ANIM_UPDATE_DEPS) {
 				ale->update &= ~ANIM_UPDATE_DEPS;
-				ANIM_list_elem_update(ac->scene, ale);
+				ANIM_list_elem_update(ac->bmain, ac->scene, ale);
 			}
 		}
 		else if (ale->datatype == ALE_NLASTRIP) {
 			if (ale->update & ANIM_UPDATE_DEPS) {
 				ale->update &= ~ANIM_UPDATE_DEPS;
-				ANIM_list_elem_update(ac->scene, ale);
+				ANIM_list_elem_update(ac->bmain, ac->scene, ale);
 			}
 		}
 

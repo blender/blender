@@ -180,11 +180,11 @@ void AnimationImporter::fcurve_is_used(FCurve *fcu)
 }
 
 
-void AnimationImporter::add_fcurves_to_object(Object *ob, std::vector<FCurve *>& curves, char *rna_path, int array_index, Animation *animated)
+void AnimationImporter::add_fcurves_to_object(Main *bmain, Object *ob, std::vector<FCurve *>& curves, char *rna_path, int array_index, Animation *animated)
 {
 	bAction *act;
 	
-	if (!ob->adt || !ob->adt->action) act = verify_adt_action((ID *)&ob->id, 1);
+	if (!ob->adt || !ob->adt->action) act = verify_adt_action(bmain, (ID *)&ob->id, 1);
 	else act = ob->adt->action;
 	
 	std::vector<FCurve *>::iterator it;
@@ -725,7 +725,7 @@ void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId& listid
 	}
 }
 
-void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& animcurves, COLLADAFW::Node *root, COLLADAFW::Node *node,
+void AnimationImporter::apply_matrix_curves(Main *bmain, Object *ob, std::vector<FCurve *>& animcurves, COLLADAFW::Node *root, COLLADAFW::Node *node,
                                             COLLADAFW::Transformation *tm)
 {
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
@@ -840,7 +840,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 				add_bezt(newcu[i], fra, scale[i - 7]);
 		}
 	}
-	verify_adt_action((ID *)&ob->id, 1);
+	verify_adt_action(bmain, (ID *)&ob->id, 1);
 
 	ListBase *curves = &ob->adt->action->curves;
 
@@ -897,18 +897,18 @@ static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
 	return aspect;
 }
 
-static ListBase &get_animation_curves(Material *ma)
+static ListBase &get_animation_curves(Main *bmain, Material *ma)
 {
 	bAction *act;
 	if (!ma->adt || !ma->adt->action)
-		act = verify_adt_action((ID *)&ma->id, 1);
+		act = verify_adt_action(bmain, (ID *)&ma->id, 1);
 	else
 		act = ma->adt->action;
 
 	return act->curves;
 }
 
-void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
+void AnimationImporter::translate_Animations(Main *bmain, COLLADAFW::Node *node,
                                              std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& root_map,
                                              std::multimap<COLLADAFW::UniqueId, Object *>& object_map,
                                              std::map<COLLADAFW::UniqueId, const COLLADAFW::Object *> FW_object_map,
@@ -941,7 +941,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 			armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
 
 
-		if (!ob->adt || !ob->adt->action) act = verify_adt_action((ID *)&ob->id, 1);
+		if (!ob->adt || !ob->adt->action) act = verify_adt_action(bmain, (ID *)&ob->id, 1);
 		else act = ob->adt->action;
 
 		//Get the list of animation curves of the object
@@ -972,12 +972,11 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 				for (unsigned int j = 0; j < bindings.getCount(); j++) {
 					animcurves = curve_map[bindings[j].animation];
 					if (is_matrix) {
-						apply_matrix_curves(ob, animcurves, root, node,  transform);
+						apply_matrix_curves(bmain, ob, animcurves, root, node,  transform);
 					}
-					else {				
-
+					else {
 						if (is_joint) {
-							add_bone_animation_sampled(ob, animcurves, root, node, transform);
+							add_bone_animation_sampled(bmain, ob, animcurves, root, node, transform);
 						}
 						else {
 							//calculate rnapaths and array index of fcurves according to transformation and animation class
@@ -1005,7 +1004,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	if ((animType->light) != 0) {
 		Lamp *lamp  = (Lamp *) ob->data;
 
-		if (!lamp->adt || !lamp->adt->action) act = verify_adt_action((ID *)&lamp->id, 1);
+		if (!lamp->adt || !lamp->adt->action) act = verify_adt_action(bmain, (ID *)&lamp->id, 1);
 		else act = lamp->adt->action;
 
 		ListBase *AnimCurves = &(act->curves);
@@ -1039,7 +1038,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	if (animType->camera != 0) {
 		Camera *cam  = (Camera *) ob->data;
 		if (!cam->adt || !cam->adt->action)
-			act = verify_adt_action((ID *)&cam->id, 1);
+			act = verify_adt_action(bmain, (ID *)&cam->id, 1);
 		else
 			act = cam->adt->action;
 
@@ -1103,7 +1102,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 						fprintf(stderr, "Collada: Node %s refers to undefined material\n", node->getName().c_str());
 						continue;
 					}
-					ListBase &AnimCurves = get_animation_curves(ma);
+					ListBase &AnimCurves = get_animation_curves(bmain, ma);
 					const COLLADAFW::CommonEffectPointerArray& commonEffects = ef->getCommonEffects();
 					COLLADAFW::EffectCommon *efc = commonEffects[0];
 					if ((animType->material & MATERIAL_SHININESS) != 0) {
@@ -1137,7 +1136,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	delete animType;
 }
 
-void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurve *>& animcurves, COLLADAFW::Node *root, COLLADAFW::Node *node, COLLADAFW::Transformation *tm)
+void AnimationImporter::add_bone_animation_sampled(Main *bmain, Object *ob, std::vector<FCurve *>& animcurves, COLLADAFW::Node *root, COLLADAFW::Node *node, COLLADAFW::Transformation *tm)
 {
 	const char *bone_name = bc_get_joint_name(node);
 	char joint_path[200];
@@ -1260,7 +1259,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 				add_bezt(newcu[i], fra, scale[i - 7]);
 		}
 	}
-	verify_adt_action((ID *)&ob->id, 1);
+	verify_adt_action(bmain, (ID *)&ob->id, 1);
 
 	// add curves
 	for (int i = 0; i < totcu; i++) {
@@ -1436,7 +1435,7 @@ void AnimationImporter::find_frames_old(std::vector<float> *frames, COLLADAFW::N
 // prerequisites:
 // animlist_map - map animlist id -> animlist
 // curve_map - map anim id -> curve(s)
-Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
+Object *AnimationImporter::translate_animation_OLD(Main *bmain, COLLADAFW::Node *node,
                                                    std::map<COLLADAFW::UniqueId, Object *>& object_map,
                                                    std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& root_map,
                                                    COLLADAFW::Transformation::TransformationType tm_type,
@@ -1659,7 +1658,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 #endif
 	}
 
-	verify_adt_action((ID *)&ob->id, 1);
+	verify_adt_action(bmain, (ID *)&ob->id, 1);
 
 	ListBase *curves = &ob->adt->action->curves;
 

@@ -46,6 +46,7 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_layer.h"
@@ -622,6 +623,7 @@ static void pose_copy_menu(Scene *scene)
 
 static int pose_flip_names_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
 
@@ -636,7 +638,7 @@ static int pose_flip_names_exec(bContext *C, wmOperator *op)
 		}
 		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 
-		ED_armature_bones_flip_names(arm, &bones_names, do_strip_numbers);
+		ED_armature_bones_flip_names(bmain, arm, &bones_names, do_strip_numbers);
 
 		BLI_freelistN(&bones_names);
 
@@ -674,6 +676,7 @@ void POSE_OT_flip_names(wmOperatorType *ot)
 
 static int pose_autoside_names_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm;
 	char newname[MAXBONENAME];
@@ -689,7 +692,7 @@ static int pose_autoside_names_exec(bContext *C, wmOperator *op)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
 		if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]))
-			ED_armature_bone_rename(arm, pchan->name, newname);
+			ED_armature_bone_rename(bmain, arm, pchan->name, newname);
 	}
 	CTX_DATA_END;
 
