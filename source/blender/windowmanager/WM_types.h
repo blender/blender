@@ -188,6 +188,7 @@ enum {
 #define KM_RELEASE	2
 #define KM_CLICK	3
 #define KM_DBL_CLICK	4
+#define KM_CLICK_DRAG	5
 
 
 /* ************** UI Handler ***************** */
@@ -462,6 +463,7 @@ typedef struct wmEvent {
 
 	/* set in case a KM_PRESS went by unhandled */
 	char check_click;
+	char check_drag;
 	char is_motion_absolute;
 
 	/* keymap item, set by handler (weak?) */

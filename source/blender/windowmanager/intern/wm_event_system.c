@@ -2221,8 +2221,30 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	if (CTX_wm_window(C) == NULL)
 		return action;
 
-	if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE, EVENT_NONE) && !ISTIMER(event->type)) {
+	if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+		if (event->check_drag) {
+			wmWindow *win = CTX_wm_window(C);
+			if ((abs(event->x - win->eventstate->prevclickx)) >= U.tweak_threshold ||
+			    (abs(event->y - win->eventstate->prevclicky)) >= U.tweak_threshold)
+			{
+				short val = event->val;
+				short type = event->type;
+				event->val = KM_CLICK_DRAG;
+				event->type = win->eventstate->type;
 
+				CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
+
+				action |= wm_handlers_do_intern(C, event, handlers);
+
+				event->val = val;
+				event->type = type;
+
+				win->eventstate->check_click = 0;
+				win->eventstate->check_drag = 0;
+			}
+		}
+	}
+	else if (!ELEM(event->type, EVENT_NONE) && !ISTIMER(event->type)) {
 		/* test for CLICK events */
 		if (wm_action_not_handled(action)) {
 			wmWindow *win = CTX_wm_window(C);
@@ -2232,6 +2254,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 			if (win && event->val == KM_PRESS) {
 				win->eventstate->check_click = true;
+				win->eventstate->check_drag = true;
 			}
 
 			if (win && win->eventstate->prevtype == event->type) {
@@ -2253,6 +2276,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					}
 					else {
 						win->eventstate->check_click = 0;
+						win->eventstate->check_drag = 0;
 					}
 				}
 				else if (event->val == KM_DBL_CLICK) {

@@ -150,8 +150,16 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
 	}
 
 	pie->layout = UI_block_layout(pie->block_radial, UI_LAYOUT_VERTICAL, UI_LAYOUT_PIEMENU, 0, 0, 200, 0, 0, style);
-	pie->mx = event->x;
-	pie->my = event->y;
+
+	/* Open from where we started dragging. */
+	if (event->val == KM_CLICK_DRAG) {
+		pie->mx = event->prevclickx;
+		pie->my = event->prevclicky;
+	}
+	else {
+		pie->mx = event->x;
+		pie->my = event->y;
+	}
 
 	/* create title button */
 	if (title[0]) {
