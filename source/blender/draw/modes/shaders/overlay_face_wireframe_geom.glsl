@@ -17,9 +17,9 @@ out float facing;
 
 #ifdef LIGHT_EDGES
 in vec3 obPos[];
-in vec3 edgeAdj[];
+in vec3 vNor[];
 
-flat out vec3 edgeSharpness;
+out float edgeSharpness;
 #endif
 
 #define NO_EDGE vec3(10000.0);
@@ -32,11 +32,10 @@ vec3 compute_vec(vec2 v0, vec2 v1)
 	return vec3(v, -dot(v, v0));
 }
 
-float get_edge_sharpness(vec3 e0, vec3 e1, vec3 e2)
+float get_edge_sharpness(vec3 fnor, vec3 vnor)
 {
-	vec3 n0 = normalize(cross(e0, e1));
-	vec3 n1 = normalize(cross(e1, e2));
-	return dot(n0, n1);
+	float sharpness = abs(dot(fnor, vnor));
+	return smoothstep(wireStepParam.x, wireStepParam.y, sharpness);
 }
 
 void main(void)
@@ -50,25 +49,24 @@ void main(void)
 	ssVec2 = do_edge.z ? compute_vec(ssPos[2], ssPos[0]) : NO_EDGE;
 
 #ifdef LIGHT_EDGES
-	vec3 edges[3];
-	edges[0] = obPos[1] - obPos[0];
-	edges[1] = obPos[2] - obPos[1];
-	edges[2] = obPos[0] - obPos[2];
+	vec3 fnor = normalize(cross(obPos[1] - obPos[0], obPos[2] - obPos[0]));
 
-	edgeSharpness.x = get_edge_sharpness(edgeAdj[0] - obPos[0], edges[0], -edges[2]);
-	edgeSharpness.y = get_edge_sharpness(edgeAdj[1] - obPos[1], edges[1], -edges[0]);
-	edgeSharpness.z = get_edge_sharpness(edgeAdj[2] - obPos[2], edges[2], -edges[1]);
-
-	/* Easy to adjust parameters. */
-	edgeSharpness = smoothstep(wireStepParam.xxx, wireStepParam.yyy, edgeSharpness);
+	edgeSharpness = get_edge_sharpness(fnor, vNor[0]);
 #endif
-
 	gl_Position = gl_in[0].gl_Position;
 	facing = facings.x;
 	EmitVertex();
+
+#ifdef LIGHT_EDGES
+	edgeSharpness = get_edge_sharpness(fnor, vNor[1]);
+#endif
 	gl_Position = gl_in[1].gl_Position;
 	facing = facings.y;
 	EmitVertex();
+
+#ifdef LIGHT_EDGES
+	edgeSharpness = get_edge_sharpness(fnor, vNor[2]);
+#endif
 	gl_Position = gl_in[2].gl_Position;
 	facing = facings.z;
 	EmitVertex();

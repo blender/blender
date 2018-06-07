@@ -1592,9 +1592,7 @@ typedef struct MeshBatchCache {
 	Gwn_Batch *edge_detection;
 
 	Gwn_VertBuf *edges_face_overlay;
-	Gwn_VertBuf *edges_face_overlay_adj;
 	GPUTexture *edges_face_overlay_tx;
-	GPUTexture *edges_face_overlay_adj_tx;
 	int edges_face_overlay_tri_count; /* Number of tri in edges_face_overlay(_adj)_tx */
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
@@ -1877,9 +1875,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GWN_BATCH_DISCARD_SAFE(cache->edge_detection);
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay);
-	GWN_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay_adj);
 	DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_tx);
-	DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_adj_tx);
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->shaded_triangles_data);
 	if (cache->shaded_triangles_in_order) {
@@ -3468,26 +3464,6 @@ static Gwn_VertBuf *mesh_batch_cache_create_edges_overlay_adj_texture_buf(MeshRe
 	return vbo;
 }
 
-static GPUTexture *mesh_batch_cache_get_edges_overlay_adj_texture_buf(MeshRenderData *rdata, MeshBatchCache *cache)
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI));
-
-	BLI_assert(rdata->edit_bmesh == NULL); /* Not supported in edit mode */
-
-	if (cache->edges_face_overlay_adj_tx != NULL) {
-		return cache->edges_face_overlay_adj_tx;
-	}
-
-	Gwn_VertBuf *vbo = cache->edges_face_overlay_adj = mesh_batch_cache_create_edges_overlay_adj_texture_buf(rdata, true);
-
-	/* Upload data early because we need to create the texture for it. */
-	GWN_vertbuf_use(vbo);
-	cache->edges_face_overlay_adj_tx = GPU_texture_create_from_vertbuf(vbo);
-	cache->edges_face_overlay_tri_count = vbo->vertex_alloc / 6;
-
-	return cache->edges_face_overlay_adj_tx;
-}
-
 static GPUTexture *mesh_batch_cache_get_edges_overlay_texture_buf(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI));
@@ -4126,27 +4102,6 @@ void DRW_mesh_batch_cache_get_wireframes_face_texbuf(
 
 	*tri_count = cache->edges_face_overlay_tri_count;
 	*face_indices = cache->edges_face_overlay_tx;
-	*verts_data = cache->pos_in_order_tx;
-}
-
-void DRW_mesh_batch_cache_get_pretty_wireframes_face_texbuf(
-        Mesh *me, GPUTexture **verts_data, GPUTexture **face_indices, int *tri_count)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->edges_face_overlay_adj_tx == NULL || cache->pos_in_order_tx == NULL) {
-		const int options = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI;
-
-		MeshRenderData *rdata = mesh_render_data_create(me, options);
-
-		mesh_batch_cache_get_edges_overlay_adj_texture_buf(rdata, cache);
-		mesh_batch_cache_get_vert_pos_and_nor_in_order_buf(rdata, cache);
-
-		mesh_render_data_free(rdata);
-	}
-
-	*tri_count = cache->edges_face_overlay_tri_count;
-	*face_indices = cache->edges_face_overlay_adj_tx;
 	*verts_data = cache->pos_in_order_tx;
 }
 

@@ -7,7 +7,7 @@ flat in vec3 ssVec2;
 in float facing;
 
 #ifdef LIGHT_EDGES
-flat in vec3 edgeSharpness;
+in float edgeSharpness;
 #endif
 
 out vec4 fragColor;

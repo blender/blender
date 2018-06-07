@@ -156,8 +156,8 @@ static void overlay_cache_init(void *vedata)
 		 * The range controls the falloff effect. If range was 0.0f we would get a hard cut (as in 2.7).
 		 * That said we are using a different algorithm so the results will always differ.
 		 */
-		const float factor = 0.006f;
-		const float range = 0.0025f;
+		const float factor = 0.0045f;
+		const float range = 0.00125f;
 		stl->g_data->wire_step_param[1] = (1.0f - factor) + stl->g_data->overlay.wireframe_threshold * factor;
 		stl->g_data->wire_step_param[0] = stl->g_data->wire_step_param[1] + range;
 	}
@@ -186,12 +186,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 		if ((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) {
 			int tri_count;
 			GPUTexture *verts = NULL, *faceids;
-			if (stl->g_data->overlay.wireframe_threshold == 1.0f) {
-				DRW_cache_object_face_wireframe_get(ob, &verts, &faceids, &tri_count);
-			}
-			else {
-				DRW_cache_object_face_wireframe_pretty_get(ob, &verts, &faceids, &tri_count);
-			}
+			DRW_cache_object_face_wireframe_get(ob, &verts, &faceids, &tri_count);
 			if (verts) {
 				float *rim_col = ts.colorWire;
 				if ((ob->base_flag & BASE_SELECTED) != 0) {
