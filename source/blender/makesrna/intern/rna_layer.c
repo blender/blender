@@ -49,6 +49,10 @@
 
 #ifdef RNA_RUNTIME
 
+#ifdef WITH_PYTHON
+#  include "BPY_extern.h"
+#endif
+
 #include "DNA_group_types.h"
 #include "DNA_object_types.h"
 
@@ -165,9 +169,18 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
 
 static void rna_ViewLayer_update_tagged(ID *id_ptr, ViewLayer *view_layer, Main *bmain)
 {
+#ifdef WITH_PYTHON
+	/* Allow drivers to be evaluated */
+	BPy_BEGIN_ALLOW_THREADS;
+#endif
+
 	Scene *scene = (Scene *)id_ptr;
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	BKE_scene_graph_update_tagged(depsgraph, bmain);
+
+#ifdef WITH_PYTHON
+	BPy_END_ALLOW_THREADS;
+#endif
 }
 
 static void rna_ObjectBase_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
