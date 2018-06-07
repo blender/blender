@@ -63,20 +63,20 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 	wmGesture *gesture = MEM_callocN(sizeof(wmGesture), "new gesture");
 	wmWindow *window = CTX_wm_window(C);
 	ARegion *ar = CTX_wm_region(C);
-	
+
 	BLI_addtail(&window->gesture, gesture);
-	
+
 	gesture->type = type;
 	gesture->event_type = event->type;
 	gesture->winrct = ar->winrct;
 	gesture->userdata_free = true;   /* Free if userdata is set. */
 	gesture->modal_state = GESTURE_MODAL_NOP;
-	
+
 	if (ELEM(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK,
 	          WM_GESTURE_CIRCLE, WM_GESTURE_STRAIGHTLINE))
 	{
 		rcti *rect = MEM_callocN(sizeof(rcti), "gesture rect new");
-		
+
 		gesture->customdata = rect;
 		rect->xmin = event->x - gesture->winrct.xmin;
 		rect->ymin = event->y - gesture->winrct.ymin;
@@ -96,14 +96,14 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 		lasso[1] = event->y - gesture->winrct.ymin;
 		gesture->points = 1;
 	}
-	
+
 	return gesture;
 }
 
 void WM_gesture_end(bContext *C, wmGesture *gesture)
 {
 	wmWindow *win = CTX_wm_window(C);
-	
+
 	if (win->tweak == gesture)
 		win->tweak = NULL;
 	BLI_remlink(&win->gesture, gesture);
@@ -117,7 +117,7 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
 void WM_gestures_remove(bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
-	
+
 	while (win->gesture.first)
 		WM_gesture_end(C, win->gesture.first);
 }
@@ -141,7 +141,7 @@ int wm_gesture_evaluate(wmGesture *gesture)
 			else if (theta == -1) val = EVT_GESTURE_SE;
 			else if (theta == -2) val = EVT_GESTURE_S;
 			else if (theta == -3) val = EVT_GESTURE_SW;
-			
+
 #if 0
 			/* debug */
 			if (val == 1) printf("tweak north\n");
@@ -421,7 +421,7 @@ void wm_gesture_draw(wmWindow *win)
 	for (; gt; gt = gt->next) {
 		/* all in subwindow space */
 		wmViewport(&gt->winrct);
-		
+
 		if (gt->type == WM_GESTURE_RECT)
 			wm_gesture_draw_rect(gt);
 //		else if (gt->type == WM_GESTURE_TWEAK)
@@ -448,7 +448,7 @@ void wm_gesture_draw(wmWindow *win)
 void wm_gesture_tag_redraw(bContext *C)
 {
 	bScreen *screen = CTX_wm_screen(C);
-	
+
 	if (screen)
 		screen->do_draw_gesture = true;
 }

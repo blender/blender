@@ -755,7 +755,7 @@ static bool wm_draw_update_test_window(wmWindow *win)
 
 	if (do_draw)
 		return true;
-	
+
 	if (screen->do_refresh)
 		return true;
 	if (screen->do_draw)
@@ -766,7 +766,7 @@ static bool wm_draw_update_test_window(wmWindow *win)
 		return true;
 	if (screen->do_draw_drag)
 		return true;
-	
+
 	return false;
 }
 
@@ -788,7 +788,7 @@ void wm_draw_update(bContext *C)
 #endif
 
 	GPU_free_unused_buffers();
-	
+
 	for (win = wm->windows.first; win; win = win->next) {
 #ifdef WIN32
 		GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
@@ -806,7 +806,7 @@ void wm_draw_update(bContext *C)
 			bScreen *screen = WM_window_get_active_screen(win);
 
 			CTX_wm_window_set(C, win);
-			
+
 			/* sets context window+screen */
 			wm_window_make_drawable(wm, win);
 
@@ -818,7 +818,7 @@ void wm_draw_update(bContext *C)
 			screen->do_draw_gesture = false;
 			screen->do_draw_paintcursor = false;
 			screen->do_draw_drag = false;
-		
+
 			wm_window_swap_buffers(win);
 
 			CTX_wm_window_set(C, NULL);

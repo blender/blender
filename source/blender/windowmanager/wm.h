@@ -41,7 +41,7 @@ typedef struct wmPaintCursor {
 	struct wmPaintCursor *next, *prev;
 
 	void *customdata;
-	
+
 	int (*poll)(struct bContext *C);
 	void (*draw)(bContext *C, int, int, void *customdata);
 } wmPaintCursor;
@@ -54,7 +54,7 @@ extern void wm_close_and_free_all(bContext *C, ListBase *);
 
 extern void wm_add_default(struct Main *bmain, bContext *C);
 extern void wm_clear_default_size(bContext *C);
-			
+
 			/* register to windowmanager for redo or macro */
 void		wm_operator_register(bContext *C, wmOperator *op);
 

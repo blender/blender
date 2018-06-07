@@ -92,7 +92,7 @@ enum {
 	WM_IME_COMPOSITE_EVENT      = 0x0015,
 /* IME event, GHOST_kEventImeCompositionEnd in ghost */
 	WM_IME_COMPOSITE_END   = 0x0016,
-	
+
 	/* Tablet/Pen Specific Events */
 	TABLET_STYLUS       = 0x001a,
 	TABLET_ERASER       = 0x001b,

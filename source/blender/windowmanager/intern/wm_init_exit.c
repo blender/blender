@@ -197,7 +197,7 @@ void WM_init_opengl(void)
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
 {
-	
+
 	if (!G.background) {
 		wm_ghost_init(C);   /* note: it assigns C to ghost! */
 		wm_init_cursor_data();
@@ -224,12 +224,12 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap); /* screen.c */
 	DEG_editors_set_update_cb(ED_render_id_flush_update,
 	                          ED_render_scene_update);
-	
+
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
-	
+
 	ED_file_init();         /* for fsmenu */
 	ED_node_init_butfuncs();
-	
+
 	BLF_init();
 	BLT_lang_init();
 
@@ -307,7 +307,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 		COM_linker_hack = COM_execute;
 	}
 #endif
-	
+
 	/* load last session, uses regular file reading so it has to be in end (after init py etc) */
 	if (U.uiflag2 & USER_KEEP_SESSION) {
 		/* calling WM_recover_last_session(C, NULL) has been moved to creator.c */
@@ -340,7 +340,7 @@ void WM_init_splash(bContext *C)
 	if ((U.uiflag & USER_SPLASH_DISABLE) == 0) {
 		wmWindowManager *wm = CTX_wm_manager(C);
 		wmWindow *prevwin = CTX_wm_window(C);
-	
+
 		if (wm->windows.first) {
 			CTX_wm_window_set(C, wm->windows.first);
 			WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
@@ -353,10 +353,10 @@ void WM_init_splash(bContext *C)
 static void free_openrecent(void)
 {
 	struct RecentFile *recent;
-	
+
 	for (recent = G.recent_files.first; recent; recent = recent->next)
 		MEM_freeN(recent->filepath);
-	
+
 	BLI_freelistN(&(G.recent_files));
 }
 
@@ -439,11 +439,11 @@ void WM_exit_ext(bContext *C, const bool do_python)
 				}
 			}
 		}
-		
+
 		WM_jobs_kill_all(wm);
 
 		for (win = wm->windows.first; win; win = win->next) {
-			
+
 			CTX_wm_window_set(C, win);  /* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
 			WM_event_remove_handlers(C, &win->modalhandlers);
@@ -464,13 +464,13 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	ED_undosys_type_free();
 
 	free_openrecent();
-	
+
 	BKE_mball_cubeTable_free();
-	
+
 	/* render code might still access databases */
 	RE_FreeAllRender();
 	RE_engines_exit();
-	
+
 	ED_preview_free_dbase();  /* frees a Main dbase, before BKE_blender_free! */
 
 	if (C && wm)
@@ -480,7 +480,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BKE_tracking_clipboard_free();
 	BKE_mask_clipboard_free();
 	BKE_vfont_clipboard_free();
-		
+
 #ifdef WITH_COMPOSITOR
 	COM_deinitialize();
 #endif
@@ -494,7 +494,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
 		GPU_exit();
 	}
-	
+
 	BKE_blender_free();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	ANIM_fcurves_copybuf_free();
@@ -523,11 +523,11 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BLF_free_unifont_mono();
 	BLT_lang_free();
 #endif
-	
+
 	ANIM_keyingset_infos_exit();
-	
+
 //	free_txt_data();
-	
+
 
 #ifdef WITH_PYTHON
 	/* option not to close python so we can use 'atexit' */
@@ -551,11 +551,11 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BKE_blender_userdef_data_free(&U, false);
 
 	RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
-	
+
 	wm_ghost_exit();
 
 	CTX_free(C);
-	
+
 	GHOST_DisposeSystemPaths();
 
 	DNA_sdna_current_free();
