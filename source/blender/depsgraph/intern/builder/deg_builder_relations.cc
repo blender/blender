@@ -1726,9 +1726,8 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 	 * evaluated prior to Scene's CoW is ready.
 	 */
 	OperationKey scene_key(&scene_->id,
-	                       DEG_NODE_TYPE_PARAMETERS,
-	                       DEG_OPCODE_PLACEHOLDER,
-	                       "Scene Eval");
+	                       DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                       DEG_OPCODE_VIEW_LAYER_EVAL);
 	DepsRelation *rel = add_relation(scene_key, obdata_ubereval_key, "CoW Relation");
 	rel->flag |= DEPSREL_FLAG_NO_FLUSH;
 	/* Modifiers */
