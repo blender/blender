@@ -72,13 +72,15 @@ typedef struct POSE_Data {
 
 typedef struct POSE_PrivateData {
 	DRWShadingGroup *bone_selection_shgrp;
+	DRWShadingGroup *bone_selection_invert_shgrp;
+	float blend_color[4];
+	float blend_color_invert[4];
 } POSE_PrivateData; /* Transient data */
 
 static struct {
 	struct GPUShader *bone_selection_sh;
 } e_data = {NULL};
 
-static float blend_color[4] = {0.0, 0.0, 0.0, 0.5};
 
 /* *********** FUNCTIONS *********** */
 static bool POSE_is_bone_selection_overlay_active(void)
@@ -105,11 +107,14 @@ static void POSE_cache_init(void *vedata)
 {
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
 	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
+	POSE_PrivateData *ppd = stl->g_data;
 
 	{
 		/* Solid bones */
@@ -150,13 +155,18 @@ static void POSE_cache_init(void *vedata)
 
 	{
 		if (POSE_is_bone_selection_overlay_active()) {
+			copy_v4_fl4(ppd->blend_color, 0.0f, 0.0f, 0.0f, v3d->overlay.bone_selection_alpha);
+			copy_v4_fl4(ppd->blend_color_invert, 0.0f, 0.0f, 0.0f, pow(v3d->overlay.bone_selection_alpha, 4));
 			DRWShadingGroup *grp;
 			psl->bone_selection = DRW_pass_create(
 			        "Bone Selection",
 			        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND);
 			grp = DRW_shgroup_create(e_data.bone_selection_sh, psl->bone_selection);
-			DRW_shgroup_uniform_vec4(grp, "color", blend_color, 1);
+			DRW_shgroup_uniform_vec4(grp, "color", ppd->blend_color, 1);
 			stl->g_data->bone_selection_shgrp = grp;
+			grp = DRW_shgroup_create(e_data.bone_selection_sh, psl->bone_selection);
+			DRW_shgroup_uniform_vec4(grp, "color", ppd->blend_color_invert, 1);
+			stl->g_data->bone_selection_invert_shgrp = grp;
 		}
 	}
 }
@@ -206,12 +216,16 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	}
 	else if (ob->type == OB_MESH &&
 	         !DRW_state_is_select() &&
-	         POSE_is_bone_selection_overlay_active() &&
-	         POSE_is_driven_by_active_armature(ob))
+	         POSE_is_bone_selection_overlay_active())
 	{
 		struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
-			DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);
+			if (POSE_is_driven_by_active_armature(ob)) {
+				DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);
+			}
+			else {
+				DRW_shgroup_call_object_add(stl->g_data->bone_selection_invert_shgrp, geom, ob);
+			}
 		}
 	}
 }
