@@ -53,6 +53,7 @@ static const EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
 	{KM_CLICK, "CLICK", 0, "Click", ""},
 	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
+	{KM_CLICK_DRAG, "CLICK_DRAG", 0, "Click Drag", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -391,6 +392,7 @@ const EnumPropertyItem rna_enum_event_value_items[] = {
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
 	{KM_CLICK, "CLICK", 0, "Click", ""},
 	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
+	{KM_CLICK_DRAG, "CLICK_DRAG", 0, "Click Drag", ""},
 	{EVT_GESTURE_N, "NORTH", 0, "North", ""},
 	{EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
 	{EVT_GESTURE_E, "EAST", 0, "East", ""},
