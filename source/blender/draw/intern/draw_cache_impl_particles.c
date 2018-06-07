@@ -779,7 +779,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
-	if (psmd != NULL) {
+	if (psmd != NULL && psmd->mesh_final != NULL) {
 		if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPUV)) {
 			cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPUV);
 			active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
