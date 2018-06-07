@@ -62,7 +62,6 @@ typedef struct DRWDeferredShader {
 	struct DRWDeferredShader *prev, *next;
 
 	GPUMaterial *mat;
-	char *vert, *geom, *frag, *defs;
 } DRWDeferredShader;
 
 typedef struct DRWShaderCompiler {
@@ -80,11 +79,6 @@ typedef struct DRWShaderCompiler {
 static void drw_deferred_shader_free(DRWDeferredShader *dsh)
 {
 	/* Make sure it is not queued before freeing. */
-	MEM_SAFE_FREE(dsh->vert);
-	MEM_SAFE_FREE(dsh->geom);
-	MEM_SAFE_FREE(dsh->frag);
-	MEM_SAFE_FREE(dsh->defs);
-
 	MEM_freeN(dsh);
 }
 
@@ -129,12 +123,7 @@ static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop,
 		BLI_spin_unlock(&comp->list_lock);
 
 		/* Do the compilation. */
-		GPU_material_generate_pass(
-		        comp->mat_compiling->mat,
-		        comp->mat_compiling->vert,
-		        comp->mat_compiling->geom,
-		        comp->mat_compiling->frag,
-		        comp->mat_compiling->defs);
+		GPU_material_compile(comp->mat_compiling->mat);
 
 		*progress = (float)comp->shaders_done / (float)total;
 		*do_update = true;
@@ -165,25 +154,21 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 	MEM_freeN(comp);
 }
 
-static void drw_deferred_shader_add(
-        GPUMaterial *mat, const char *vert, const char *geom, const char *frag_lib, const char *defines)
+static void drw_deferred_shader_add(GPUMaterial *mat)
 {
 	/* Do not deferre the compilation if we are rendering for image. */
 	if (DRW_state_is_image_render() || !USE_DEFERRED_COMPILATION) {
 		/* Double checking that this GPUMaterial is not going to be
 		 * compiled by another thread. */
 		DRW_deferred_shader_remove(mat);
-		GPU_material_generate_pass(mat, vert, geom, frag_lib, defines);
+		printf("%s GPUMaterial %p\n", __func__, mat);
+		GPU_material_compile(mat);
 		return;
 	}
 
 	DRWDeferredShader *dsh = MEM_callocN(sizeof(DRWDeferredShader), "Deferred Shader");
 
 	dsh->mat = mat;
-	if (vert)     dsh->vert = BLI_strdup(vert);
-	if (geom)     dsh->geom = BLI_strdup(geom);
-	if (frag_lib) dsh->frag = BLI_strdup(frag_lib);
-	if (defines)  dsh->defs = BLI_strdup(defines);
 
 	BLI_assert(DST.draw_ctx.evil_C);
 	wmWindowManager *wm = CTX_wm_manager(DST.draw_ctx.evil_C);
@@ -361,10 +346,13 @@ GPUMaterial *DRW_shader_create_from_world(
 
 	if (mat == NULL) {
 		mat = GPU_material_from_nodetree(
-		        scene, wo->nodetree, &wo->gpumaterial, engine_type, options);
+		        scene, wo->nodetree, &wo->gpumaterial, engine_type, options,
+		        vert, geom, frag_lib, defines);
 	}
 
-	drw_deferred_shader_add(mat, vert, geom, frag_lib, defines);
+	if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
+		drw_deferred_shader_add(mat);
+	}
 
 	return mat;
 }
@@ -380,10 +368,13 @@ GPUMaterial *DRW_shader_create_from_material(
 
 	if (mat == NULL) {
 		mat = GPU_material_from_nodetree(
-		        scene, ma->nodetree, &ma->gpumaterial, engine_type, options);
+		        scene, ma->nodetree, &ma->gpumaterial, engine_type, options,
+		        vert, geom, frag_lib, defines);
 	}
 
-	drw_deferred_shader_add(mat, vert, geom, frag_lib, defines);
+	if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
+		drw_deferred_shader_add(mat);
+	}
 
 	return mat;
 }

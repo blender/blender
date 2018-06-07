@@ -602,7 +602,8 @@ GPUMaterial *GPU_material_from_nodetree_find(
  * so only do this when they are needed.
  */
 GPUMaterial *GPU_material_from_nodetree(
-        Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, const void *engine_type, int options)
+        Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, const void *engine_type, int options,
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
 {
 	LinkData *link;
 	bool has_volume_output, has_surface_output;
@@ -631,11 +632,38 @@ GPUMaterial *GPU_material_from_nodetree(
 		 * generated VBOs are ready to accept the future shader. */
 		GPU_nodes_prune(&mat->nodes, mat->outlink);
 		GPU_nodes_get_vertex_attributes(&mat->nodes, &mat->attribs);
-		mat->status = GPU_MAT_QUEUED;
+		/* Create source code and search pass cache for an already compiled version. */
+		mat->pass = GPU_generate_pass_new(mat,
+		                      mat->outlink,
+		                      &mat->attribs,
+		                      &mat->nodes,
+		                      vert_code,
+		                      geom_code,
+		                      frag_lib,
+		                      defines);
+
+		if (mat->pass == NULL) {
+			/* We had a cache hit and the shader has already failed to compile. */
+			mat->status = GPU_MAT_FAILED;
+		}
+		else {
+			GPUShader *sh = GPU_pass_shader_get(mat->pass);
+			if (sh != NULL) {
+				/* We had a cache hit and the shader is already compiled. */
+				mat->status = GPU_MAT_SUCCESS;
+				GPU_nodes_extract_dynamic_inputs(sh, &mat->inputs, &mat->nodes);
+			}
+			else {
+				mat->status = GPU_MAT_QUEUED;
+			}
+		}
+	}
+	else {
+		mat->status = GPU_MAT_FAILED;
 	}
 
 	/* note that even if building the shader fails in some way, we still keep
-	 * it to avoid trying to compile again and again, and simple do not use
+	 * it to avoid trying to compile again and again, and simply do not use
 	 * the actual shader on drawing */
 
 	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
@@ -645,17 +673,26 @@ GPUMaterial *GPU_material_from_nodetree(
 	return mat;
 }
 
-void GPU_material_generate_pass(
-        GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+void GPU_material_compile(GPUMaterial *mat)
 {
-	BLI_assert(mat->pass == NULL); /* Only run once! */
-	if (mat->outlink) {
-		mat->pass = GPU_generate_pass_new(
-		        mat, mat->outlink, &mat->attribs, &mat->nodes, &mat->inputs, vert_code, geom_code, frag_lib, defines);
-		mat->status = (mat->pass) ? GPU_MAT_SUCCESS : GPU_MAT_FAILED;
+	/* Only run once! */
+	BLI_assert(mat->status == GPU_MAT_QUEUED);
+	BLI_assert(mat->pass);
+
+	/* NOTE: The shader may have already been compiled here since we are
+	 * sharing GPUShader across GPUMaterials. In this case it's a no-op. */
+	GPU_pass_compile(mat->pass);
+	GPUShader *sh = GPU_pass_shader_get(mat->pass);
+
+	if (sh != NULL) {
+		mat->status = GPU_MAT_SUCCESS;
+		GPU_nodes_extract_dynamic_inputs(sh, &mat->inputs, &mat->nodes);
 	}
 	else {
 		mat->status = GPU_MAT_FAILED;
+		GPU_pass_free_nodes(&mat->nodes);
+		GPU_pass_release(mat->pass);
+		mat->pass = NULL;
 	}
 }
 

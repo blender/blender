@@ -186,6 +186,8 @@ void WM_init_opengl(void)
 	GPU_set_anisotropic(U.anisotropic_filter);
 	GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
 
+	GPU_pass_cache_init();
+
 #ifdef WITH_OPENSUBDIV
 	BKE_subsurf_osd_init();
 #endif

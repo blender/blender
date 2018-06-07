@@ -246,9 +246,9 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(
 GPUMaterial *GPU_material_from_nodetree_find(
         struct ListBase *gpumaterials, const void *engine_type, int options);
 GPUMaterial *GPU_material_from_nodetree(
-        struct Scene *scene, struct bNodeTree *ntree, struct ListBase *gpumaterials, const void *engine_type, int options);
-void GPU_material_generate_pass(
-        GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines);
+        struct Scene *scene, struct bNodeTree *ntree, struct ListBase *gpumaterials, const void *engine_type, int options,
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines);
+void GPU_material_compile(GPUMaterial *mat);
 void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_materials_free(void);
@@ -270,6 +270,7 @@ bool GPU_material_do_color_management(GPUMaterial *mat);
 bool GPU_material_use_domain_surface(GPUMaterial *mat);
 bool GPU_material_use_domain_volume(GPUMaterial *mat);
 
+void GPU_pass_cache_init(void);
 void GPU_pass_cache_garbage_collect(void);
 void GPU_pass_cache_free(void);
 

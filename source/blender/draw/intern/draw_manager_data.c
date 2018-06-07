@@ -732,7 +732,14 @@ static DRWShadingGroup *drw_shgroup_material_create_ex(GPUPass *gpupass, DRWPass
 		return NULL;
 	}
 
-	DRWShadingGroup *grp = drw_shgroup_create_ex(GPU_pass_shader(gpupass), pass);
+	GPUShader *sh = GPU_pass_shader_get(gpupass);
+
+	if (!sh) {
+		/* Shader not yet compiled */
+		return NULL;
+	}
+
+	DRWShadingGroup *grp = drw_shgroup_create_ex(sh, pass);
 	return grp;
 }
 
@@ -808,7 +815,7 @@ DRWShadingGroup *DRW_shgroup_material_create(
 	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
 
 	if (shgroup) {
-		drw_shgroup_init(shgroup, GPU_pass_shader(gpupass));
+		drw_shgroup_init(shgroup, GPU_pass_shader_get(gpupass));
 		drw_shgroup_material_inputs(shgroup, material);
 	}
 
@@ -825,7 +832,7 @@ DRWShadingGroup *DRW_shgroup_material_instance_create(
 		shgroup->type = DRW_SHG_INSTANCE;
 		shgroup->instance_geom = geom;
 		drw_call_calc_orco(ob, shgroup->instance_orcofac);
-		drw_shgroup_instance_init(shgroup, GPU_pass_shader(gpupass), geom, format);
+		drw_shgroup_instance_init(shgroup, GPU_pass_shader_get(gpupass), geom, format);
 		drw_shgroup_material_inputs(shgroup, material);
 	}
 
@@ -843,7 +850,7 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(
 
 	if (shgroup) {
 		/* Calling drw_shgroup_init will cause it to call GWN_draw_primitive(). */
-		drw_shgroup_init(shgroup, GPU_pass_shader(gpupass));
+		drw_shgroup_init(shgroup, GPU_pass_shader_get(gpupass));
 		shgroup->type = DRW_SHG_TRIANGLE_BATCH;
 		shgroup->instance_count = tri_count * 3;
 		drw_shgroup_material_inputs(shgroup, material);
