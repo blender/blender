@@ -221,9 +221,6 @@ void GPU_material_uniform_buffer_tag_dirty(ListBase *gpumaterials)
 		if (material->ubo != NULL) {
 			GPU_uniformbuffer_tag_dirty(material->ubo);
 		}
-		if (material->sss_profile != NULL) {
-			material->sss_dirty = true;
-		}
 	}
 }
 
