@@ -3910,9 +3910,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 			/* double click test - only for press */
 			if (event.val == KM_PRESS) {
-				evt->prevclicktime = PIL_check_seconds_timer();
-				evt->prevclickx = event.x;
-				evt->prevclicky = event.y;
+				/* Don't reset timer & location when holding the key generates repeat events. */
+				if ((evt->prevtype != event.type) || (evt->prevval != KM_PRESS)) {
+					evt->prevclicktime = PIL_check_seconds_timer();
+					evt->prevclickx = event.x;
+					evt->prevclicky = event.y;
+				}
 			}
 
 			wm_event_add(win, &event);
