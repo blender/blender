@@ -1062,7 +1062,19 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
                                int read_flag,
                                const char **err_str)
 {
-	const IPolyMeshSchema::Sample sample = m_schema.getValue(sample_sel);
+	IPolyMeshSchema::Sample sample;
+	try {
+		sample = m_schema.getValue(sample_sel);
+	}
+	catch(Alembic::Util::Exception &ex) {
+		*err_str = "Error reading mesh sample; more detail on the console";
+		printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
+			   m_iobject.getFullName().c_str(),
+			   m_schema.getName().c_str(),
+			   sample_sel.getRequestedTime(),
+			   ex.what());
+		return existing_mesh;
+	}
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
 	const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
@@ -1300,7 +1312,19 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 	Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
 	BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, CD_MASK_MESH, true);
 
-	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
+	ISubDSchema::Sample sample;
+	try {
+		sample = m_schema.getValue(sample_sel);
+	}
+	catch(Alembic::Util::Exception &ex) {
+		printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
+			   m_iobject.getFullName().c_str(),
+			   m_schema.getName().c_str(),
+			   sample_sel.getRequestedTime(),
+			   ex.what());
+		return;
+	}
+
 	Int32ArraySamplePtr indices = sample.getCreaseIndices();
 	Alembic::Abc::FloatArraySamplePtr sharpnesses = sample.getCreaseSharpnesses();
 
@@ -1335,7 +1359,19 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
                                int read_flag,
                                const char **err_str)
 {
-	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
+	ISubDSchema::Sample sample;
+	try {
+		sample = m_schema.getValue(sample_sel);
+	}
+	catch(Alembic::Util::Exception &ex) {
+		*err_str = "Error reading mesh sample; more detail on the console";
+		printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
+			   m_iobject.getFullName().c_str(),
+			   m_schema.getName().c_str(),
+			   sample_sel.getRequestedTime(),
+			   ex.what());
+		return existing_mesh;
+	}
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
 	const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();

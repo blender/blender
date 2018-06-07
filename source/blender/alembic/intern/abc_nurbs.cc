@@ -253,7 +253,19 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 		nu->resolv = cu->resolv;
 
 		const INuPatchSchema &schema = it->first;
-		const INuPatchSchema::Sample smp = schema.getValue(sample_sel);
+		INuPatchSchema::Sample smp;
+		try {
+			smp = schema.getValue(sample_sel);
+		}
+		catch(Alembic::Util::Exception &ex) {
+			printf("Alembic: error reading nurbs sample for '%s/%s' at time %f: %s\n",
+				   m_iobject.getFullName().c_str(),
+				   schema.getName().c_str(),
+				   sample_sel.getRequestedTime(),
+				   ex.what());
+			return;
+		}
+
 
 		nu->orderu = smp.getUOrder() - 1;
 		nu->orderv = smp.getVOrder() - 1;

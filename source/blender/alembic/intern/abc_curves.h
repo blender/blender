@@ -62,12 +62,13 @@ public:
 	                       const Alembic::Abc::ISampleSelector &sample_sel,
 	                       int read_flag,
 	                       const char **err_str);
+
+	void read_curve_sample(Curve *cu,
+	                       const Alembic::AbcGeom::ICurvesSchema &schema,
+	                       const Alembic::Abc::ISampleSelector &sample_selector);
+
 };
 
 /* ************************************************************************** */
-
-void read_curve_sample(Curve *cu,
-                       const Alembic::AbcGeom::ICurvesSchema &schema,
-                       const Alembic::Abc::ISampleSelector &sample_selector);
 
 #endif  /* __ABC_CURVES_H__ */

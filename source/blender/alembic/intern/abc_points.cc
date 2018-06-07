@@ -215,9 +215,21 @@ void read_points_sample(const IPointsSchema &schema,
 struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
                                         const ISampleSelector &sample_sel,
                                         int /*read_flag*/,
-                                        const char ** /*err_str*/)
+                                        const char **err_str)
 {
-	const IPointsSchema::Sample sample = m_schema.getValue(sample_sel);
+	IPointsSchema::Sample sample;
+	try {
+		sample = m_schema.getValue(sample_sel);
+	}
+	catch(Alembic::Util::Exception &ex) {
+		*err_str = "Error reading points sample; more detail on the console";
+		printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
+			   m_iobject.getFullName().c_str(),
+			   m_schema.getName().c_str(),
+			   sample_sel.getRequestedTime(),
+			   ex.what());
+		return existing_mesh;
+	}
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
 
