@@ -630,8 +630,8 @@ void KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 
 					mat3_to_compatible_eul(blenderObject->rot, blenderObject->rot, tmat);
 
-					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "location", -1, (float)frameNumber, BEZT_KEYTYPE_JITTER, INSERTKEY_FAST);
-					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "rotation_euler", -1, (float)frameNumber, BEZT_KEYTYPE_JITTER, INSERTKEY_FAST);
+					insert_keyframe(G.main, NULL, &blenderObject->id, NULL, NULL, "location", -1, (float)frameNumber, BEZT_KEYTYPE_JITTER, INSERTKEY_FAST);
+					insert_keyframe(G.main, NULL, &blenderObject->id, NULL, NULL, "rotation_euler", -1, (float)frameNumber, BEZT_KEYTYPE_JITTER, INSERTKEY_FAST);
 
 #if 0
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
@@ -726,7 +726,7 @@ void KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 			if (gameObj->IsRecordAnimation()) {
 				Object *blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->adt) {
-					bAction *act = verify_adt_action(&blenderObject->id, false);
+					bAction *act = verify_adt_action(G.main, &blenderObject->id, false);
 					FCurve *fcu;
 
 					if (!act) {

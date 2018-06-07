@@ -36,6 +36,7 @@ struct ListBase;
 struct AnimData;
 
 struct bContext;
+struct Main;
 struct wmKeyConfig;
 struct ReportList;
 struct ScrArea;
@@ -81,6 +82,7 @@ typedef struct bAnimContext {
 
 	struct bDopeSheet *ads; /* dopesheet data for editor (or which is being used) */
 
+	struct Main *bmain;     /* Current Main */
 	struct Scene *scene;    /* active scene */
 	struct Object *obact;   /* active object */
 	ListBase *markers;      /* active set of markers */
@@ -672,7 +674,7 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
 /* --------- anim_deps.c, animation updates -------- */
 
 void ANIM_id_update(struct Scene *scene, struct ID *id);
-void ANIM_list_elem_update(struct Scene *scene, bAnimListElem *ale);
+void ANIM_list_elem_update(struct Main *bmain, struct Scene *scene, bAnimListElem *ale);
 
 /* data -> channels syncing */
 void ANIM_sync_animchannels_to_data(const struct bContext *C);

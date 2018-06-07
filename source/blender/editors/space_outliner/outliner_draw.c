@@ -213,7 +213,7 @@ static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob
 						eInsertKeyFlags key_flag = ANIM_get_keyframing_flags(scene, 1);
 
 						fcu->flag &= ~FCURVE_SELECTED;
-						insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
+						insert_keyframe(bmain, reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
 						                fcu->rna_path, fcu->array_index, CFRA, ts->keyframe_type, key_flag);
 						/* Assuming this is not necessary here, since 'ancestor' object button will do it anyway. */
 						/* WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL); */
@@ -527,7 +527,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 						/* restore bone name */
 						BLI_strncpy(newname, ebone->name, sizeof(ebone->name));
 						BLI_strncpy(ebone->name, oldname, sizeof(ebone->name));
-						ED_armature_bone_rename(obedit->data, oldname, newname);
+						ED_armature_bone_rename(bmain, obedit->data, oldname, newname);
 						WM_event_add_notifier(C, NC_OBJECT | ND_POSE, OBACT);
 					}
 					break;
@@ -546,7 +546,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					/* restore bone name */
 					BLI_strncpy(newname, bone->name, sizeof(bone->name));
 					BLI_strncpy(bone->name, oldname, sizeof(bone->name));
-					ED_armature_bone_rename(ob->data, oldname, newname);
+					ED_armature_bone_rename(bmain, ob->data, oldname, newname);
 					WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 					break;
 				}
@@ -565,7 +565,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					/* restore bone name */
 					BLI_strncpy(newname, pchan->name, sizeof(pchan->name));
 					BLI_strncpy(pchan->name, oldname, sizeof(pchan->name));
-					ED_armature_bone_rename(ob->data, oldname, newname);
+					ED_armature_bone_rename(bmain, ob->data, oldname, newname);
 					WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 					break;
 				}

@@ -54,11 +54,12 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_nla.h"
-#include "BKE_context.h"
 #include "BKE_report.h"
 
 #include "UI_view2d.h"
@@ -607,7 +608,8 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 			 *                        up adding the keyframes on a new F-Curve in the action data instead.
 			 */
 			if (ale->id && !ale->owner && !fcu->driver) {
-				insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
+				insert_keyframe(ac->bmain, reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
+				                fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
 			}
 			else {
 				const float curval = evaluate_fcurve(fcu, cfra);

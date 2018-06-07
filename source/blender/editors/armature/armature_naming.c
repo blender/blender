@@ -136,7 +136,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, const char *
 /* called by UI for renaming a bone */
 /* warning: make sure the original bone was not renamed yet! */
 /* seems messy, but thats what you get with not using pointers but channel names :) */
-void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *newnamep)
+void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, const char *newnamep)
 {
 	Object *ob;
 	char newname[MAXBONENAME];
@@ -175,7 +175,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 		}
 
 		/* do entire dbase - objects */
-		for (ob = G.main->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 
 			/* we have the object using the armature */
@@ -205,7 +205,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 				}
 
 				/* Update any object constraints to use the new bone name */
-				for (cob = G.main->object.first; cob; cob = cob->id.next) {
+				for (cob = bmain->object.first; cob; cob = cob->id.next) {
 					if (cob->constraints.first)
 						constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
 					if (cob->pose) {
@@ -278,7 +278,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 		/* correct view locking */
 		{
 			bScreen *screen;
-			for (screen = G.main->screen.first; screen; screen = screen->id.next) {
+			for (screen = bmain->screen.first; screen; screen = screen->id.next) {
 				ScrArea *sa;
 				/* add regions */
 				for (sa = screen->areabase.first; sa; sa = sa->next) {
@@ -315,7 +315,7 @@ typedef struct BoneFlipNameData {
  * \param bones_names: List of BoneConflict elems.
  * \param do_strip_numbers: if set, try to get rid of dot-numbers at end of bone names.
  */
-void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names, const bool do_strip_numbers)
+void ED_armature_bones_flip_names(Main *bmain, bArmature *arm, ListBase *bones_names, const bool do_strip_numbers)
 {
 	ListBase bones_names_conflicts = {NULL};
 	BoneFlipNameData *bfn;
@@ -331,7 +331,7 @@ void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names, const b
 		 * Bone.R, Bone.R.001, Bone.R.002, etc. */
 		BLI_string_flip_side_name(name_flip, name, do_strip_numbers, sizeof(name_flip));
 
-		ED_armature_bone_rename(arm, name, name_flip);
+		ED_armature_bone_rename(bmain, arm, name, name_flip);
 
 		if (!STREQ(name, name_flip)) {
 			bfn = alloca(sizeof(BoneFlipNameData));
@@ -345,7 +345,7 @@ void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names, const b
 	 * Note that if the other bone was not selected, its name was not flipped, so conflict remains and that second
 	 * rename simply generates a new numbered alternative name. */
 	for (bfn = bones_names_conflicts.first; bfn; bfn = bfn->next) {
-		ED_armature_bone_rename(arm, bfn->name, bfn->name_flip);
+		ED_armature_bone_rename(bmain, arm, bfn->name, bfn->name_flip);
 	}
 }
 
@@ -354,6 +354,7 @@ void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names, const b
 
 static int armature_flip_names_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = CTX_data_edit_object(C);
 	bArmature *arm;
 
@@ -373,7 +374,7 @@ static int armature_flip_names_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_armature_bones_flip_names(arm, &bones_names, do_strip_numbers);
+	ED_armature_bones_flip_names(bmain, arm, &bones_names, do_strip_numbers);
 
 	BLI_freelistN(&bones_names);
 
@@ -412,6 +413,7 @@ void ARMATURE_OT_flip_names(wmOperatorType *ot)
 
 static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = CTX_data_edit_object(C);
 	bArmature *arm;
 	char newname[MAXBONENAME];
@@ -427,7 +429,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 	{
 		BLI_strncpy(newname, ebone->name, sizeof(newname));
 		if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]))
-			ED_armature_bone_rename(arm, ebone->name, newname);
+			ED_armature_bone_rename(bmain, arm, ebone->name, newname);
 	}
 	CTX_DATA_END;
 

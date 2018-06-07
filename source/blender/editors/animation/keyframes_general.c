@@ -48,6 +48,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_deform.h"
 
@@ -729,7 +730,8 @@ static tAnimCopybufItem *pastebuf_match_path_full(FCurve *fcu, const short from_
 }
 
 /* medium match strictness: path match only (i.e. ignore ID) */
-static tAnimCopybufItem *pastebuf_match_path_property(FCurve *fcu, const short from_single, const short UNUSED(to_simple))
+static tAnimCopybufItem *pastebuf_match_path_property(
+        Main *bmain, FCurve *fcu, const short from_single, const short UNUSED(to_simple))
 {
 	tAnimCopybufItem *aci;
 
@@ -742,7 +744,7 @@ static tAnimCopybufItem *pastebuf_match_path_property(FCurve *fcu, const short f
 			 * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
 			 * this should work out ok.
 			 */
-			if (BLI_findindex(which_libbase(G.main, aci->id_type), aci->id) == -1) {
+			if (BLI_findindex(which_libbase(bmain, aci->id_type), aci->id) == -1) {
 				/* pedantic but the ID could have been removed, and beats crashing! */
 				printf("paste_animedit_keys: error ID has been removed!\n");
 			}
@@ -996,7 +998,7 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 
 					case 1:
 						/* less strict, just compare property names */
-						aci = pastebuf_match_path_property(fcu, from_single, to_simple);
+						aci = pastebuf_match_path_property(ac->bmain, fcu, from_single, to_simple);
 						break;
 
 					case 2:

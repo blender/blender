@@ -53,18 +53,19 @@
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_idcode.h"
-#include "BKE_nla.h"
 #include "BKE_global.h"
-#include "BKE_context.h"
-#include "BKE_report.h"
+#include "BKE_idcode.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_nla.h"
+#include "BKE_report.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
@@ -123,7 +124,7 @@ short ANIM_get_keyframing_flags(Scene *scene, short incl_mode)
 /* Get (or add relevant data to be able to do so) the Active Action for the given
  * Animation Data block, given an ID block where the Animation Data should reside.
  */
-bAction *verify_adt_action(ID *id, short add)
+bAction *verify_adt_action(Main *bmain, ID *id, short add)
 {
 	AnimData *adt;
 
@@ -145,7 +146,7 @@ bAction *verify_adt_action(ID *id, short add)
 		BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
 
 		/* create action */
-		adt->action = BKE_action_add(G.main, actname);
+		adt->action = BKE_action_add(bmain, actname);
 
 		/* set ID-type from ID-block that this is going to be assigned to
 		 * so that users can't accidentally break actions by assigning them
@@ -155,7 +156,7 @@ bAction *verify_adt_action(ID *id, short add)
 
 		/* tag depsgraph to be rebuilt to include time dependency */
 		/* XXX: we probably should have bmain passed down, but that involves altering too many API's */
-		DAG_relations_tag_update(G.main);
+		DAG_relations_tag_update(bmain);
 	}
 
 	/* return the action */
@@ -1006,7 +1007,9 @@ bool insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *pr
  *
  *	index of -1 keys all array indices
  */
-short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
+short insert_keyframe(
+        Main *bmain, ReportList *reports, ID *id, bAction *act,
+        const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop = NULL;
@@ -1032,7 +1035,7 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	/* if no action is provided, keyframe to the default one attached to this ID-block */
 	if (act == NULL) {
 		/* get action to add F-Curve+keyframe to */
-		act = verify_adt_action(id, 1);
+		act = verify_adt_action(bmain, id, 1);
 
 		if (act == NULL) {
 			BKE_reportf(reports, RPT_ERROR,
@@ -1757,6 +1760,7 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 
 static int insert_key_button_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
 	PointerRNA ptr = {{NULL}};
@@ -1817,7 +1821,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 					index = -1;
 				}
 
-				success = insert_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index, cfra, ts->keyframe_type, flag);
+				success = insert_keyframe(bmain, op->reports, ptr.id.data, NULL, NULL, path, index, cfra, ts->keyframe_type, flag);
 
 				MEM_freeN(path);
 			}

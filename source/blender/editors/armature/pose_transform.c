@@ -70,12 +70,12 @@
 /* Pose Apply */
 
 /* helper for apply_armature_pose2bones - fixes parenting of objects that are bone-parented to armature */
-static void applyarmature_fix_boneparents(Scene *scene, Object *armob)
+static void applyarmature_fix_boneparents(Main *bmain, Scene *scene, Object *armob)
 {
 	Object workob, *ob;
 
 	/* go through all objects in database */
-	for (ob = G.main->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		/* if parent is bone in this armature, apply corrections */
 		if ((ob->parent == armob) && (ob->partype == PARBONE)) {
 			/* apply current transform from parent (not yet destroyed),
@@ -193,7 +193,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	BKE_pose_where_is(scene, ob);
 
 	/* fix parenting of objects which are bone-parented */
-	applyarmature_fix_boneparents(scene, ob);
+	applyarmature_fix_boneparents(bmain, scene, ob);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);

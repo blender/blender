@@ -408,7 +408,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 /* *********************************** Separate *********************************************** */
 
 /* Helper function for armature separating - link fixing */
-static void separated_armature_fix_links(Object *origArm, Object *newArm)
+static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *newArm)
 {
 	Object *ob;
 	bPoseChannel *pchan;
@@ -420,7 +420,7 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 	npchans = &newArm->pose->chanbase;
 
 	/* let's go through all objects in database */
-	for (ob = G.main->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		/* do some object-type specific things */
 		if (ob->type == OB_ARMATURE) {
 			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -620,7 +620,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 
 
 	/* 4) fix links before depsgraph flushes */ // err... or after?
-	separated_armature_fix_links(oldob, newob);
+	separated_armature_fix_links(bmain, oldob, newob);
 
 	DAG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* this is the original one */
 	DAG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* this is the separated one */

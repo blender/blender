@@ -87,7 +87,7 @@ private:
 
 	void fcurve_is_used(FCurve *fcu);
 
-	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
+	void add_fcurves_to_object(Main *bmain, Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
 
 	
 	int typeFlag;
@@ -153,7 +153,7 @@ public:
 	virtual void change_eul_to_quat(Object *ob, bAction *act);
 #endif
 
-	void translate_Animations(COLLADAFW::Node * Node,
+	void translate_Animations(Main *bmain, COLLADAFW::Node * Node,
 	                          std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 	                          std::multimap<COLLADAFW::UniqueId, Object*>& object_map,
 	                          std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map,
@@ -161,10 +161,10 @@ public:
 
 	AnimMix* get_animation_type( const COLLADAFW::Node * node, std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map );
 
-	void apply_matrix_curves(Object *ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node,
+	void apply_matrix_curves(Main *bmain, Object *ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node,
 	                         COLLADAFW::Transformation * tm );
 	
-	void add_bone_animation_sampled(Object *ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node, COLLADAFW::Transformation * tm);
+	void add_bone_animation_sampled(Main *bmain, Object *ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node, COLLADAFW::Transformation * tm);
 
 	void Assign_transform_animations(COLLADAFW::Transformation* transform,
 	                                 const COLLADAFW::AnimationList::AnimationBinding *binding,
@@ -181,7 +181,7 @@ public:
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
 	// curve_map - map anim id -> curve(s)
-	Object * translate_animation_OLD(COLLADAFW::Node *node,
+	Object * translate_animation_OLD(Main *bmain, COLLADAFW::Node *node,
 	                                 std::map<COLLADAFW::UniqueId, Object*>& object_map,
 	                                 std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 	                                 COLLADAFW::Transformation::TransformationType tm_type,
