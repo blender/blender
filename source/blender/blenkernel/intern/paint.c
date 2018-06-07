@@ -948,12 +948,12 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 
 	/* if pbvh is deformed, key block is already applied to it */
 	if (ss->kb) {
-		bool pbvh_deformd = BKE_pbvh_isDeformed(ss->pbvh);
-		if (!pbvh_deformd || ss->deform_cos == NULL) {
+		bool pbvh_deformed = BKE_pbvh_isDeformed(ss->pbvh);
+		if (!pbvh_deformed || ss->deform_cos == NULL) {
 			float (*vertCos)[3] = BKE_keyblock_convert_to_vertcos(ob, ss->kb);
 
 			if (vertCos) {
-				if (!pbvh_deformd) {
+				if (!pbvh_deformed) {
 					/* apply shape keys coordinates to PBVH */
 					BKE_pbvh_apply_vertCos(ss->pbvh, vertCos);
 				}
