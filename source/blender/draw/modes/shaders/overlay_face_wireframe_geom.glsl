@@ -18,6 +18,7 @@ out float facing;
 #ifdef LIGHT_EDGES
 in vec3 obPos[];
 in vec3 vNor[];
+in float forceEdge[];
 
 out float edgeSharpness;
 #endif
@@ -52,6 +53,7 @@ void main(void)
 	vec3 fnor = normalize(cross(obPos[1] - obPos[0], obPos[2] - obPos[0]));
 
 	edgeSharpness = get_edge_sharpness(fnor, vNor[0]);
+	edgeSharpness = (forceEdge[0] == 1.0 || forceEdge[2] == 1.0) ? 1.0 : edgeSharpness;
 #endif
 	gl_Position = gl_in[0].gl_Position;
 	facing = facings.x;
@@ -59,6 +61,7 @@ void main(void)
 
 #ifdef LIGHT_EDGES
 	edgeSharpness = get_edge_sharpness(fnor, vNor[1]);
+	edgeSharpness = (forceEdge[1] == 1.0 || forceEdge[0] == 1.0) ? 1.0 : edgeSharpness;
 #endif
 	gl_Position = gl_in[1].gl_Position;
 	facing = facings.y;
@@ -66,6 +69,7 @@ void main(void)
 
 #ifdef LIGHT_EDGES
 	edgeSharpness = get_edge_sharpness(fnor, vNor[2]);
+	edgeSharpness = (forceEdge[2] == 1.0 || forceEdge[1] == 1.0) ? 1.0 : edgeSharpness;
 #endif
 	gl_Position = gl_in[2].gl_Position;
 	facing = facings.z;
