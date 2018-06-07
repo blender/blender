@@ -161,7 +161,6 @@ static void drw_deferred_shader_add(GPUMaterial *mat)
 		/* Double checking that this GPUMaterial is not going to be
 		 * compiled by another thread. */
 		DRW_deferred_shader_remove(mat);
-		printf("%s GPUMaterial %p\n", __func__, mat);
 		GPU_material_compile(mat);
 		return;
 	}
