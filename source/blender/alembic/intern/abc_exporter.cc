@@ -505,9 +505,9 @@ void AbcExporter::exploreObject(Base *ob_base, Object *dupliObParent)
 		return;
 	}
 
-	createShapeWriter(ob_base, dupliObParent);
-	
-	Object *ob = ob_base->object;
+	Object *ob = DEG_get_evaluated_object(m_settings.depsgraph, ob_base->object);
+	createShapeWriter(ob, dupliObParent);
+
 	ListBase *lb = object_duplilist(m_settings.depsgraph, m_settings.scene, ob);
 
 	if (lb) {
@@ -554,10 +554,8 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
 	}
 }
 
-void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
+void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 {
-	Object *ob = ob_base->object;
-
 	if (!object_type_is_exportable(m_settings.scene, ob)) {
 		return;
 	}

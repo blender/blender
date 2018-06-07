@@ -120,7 +120,7 @@ private:
 	void exploreTransform(Base *ob_base, Object *parent, Object *dupliObParent);
 	void exploreObject(Base *ob_base, Object *dupliObParent);
 	void createShapeWriters();
-	void createShapeWriter(Base *ob_base, Object *dupliObParent);
+	void createShapeWriter(Object *ob, Object *dupliObParent);
 	void createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform);
 
 	AbcTransformWriter *getXForm(const std::string &name);
