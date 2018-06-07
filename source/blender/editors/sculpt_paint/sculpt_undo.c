@@ -493,6 +493,8 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 		}
 	}
 
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+
 	BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, 0, need_mask);
 
 	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
