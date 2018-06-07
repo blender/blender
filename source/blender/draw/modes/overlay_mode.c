@@ -202,7 +202,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				DRW_shgroup_uniform_texture(shgrp, "faceIds", faceids);
 				DRW_shgroup_uniform_vec3(shgrp, "wireColor", ts.colorWire, 1);
 				DRW_shgroup_uniform_vec3(shgrp, "rimColor", rim_col, 1);
-				DRW_shgroup_call_procedural_triangles_add(shgrp, tri_count, ob->obmat);
+				DRW_shgroup_call_object_procedural_triangles_culled_add(shgrp, tri_count, ob);
 			}
 		}
 	}

@@ -391,12 +391,17 @@ void DRW_shgroup_call_range_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float
 }
 
 static void drw_shgroup_call_procedural_add_ex(
-        DRWShadingGroup *shgroup, Gwn_PrimType prim_type, uint vert_count, float (*obmat)[4])
+        DRWShadingGroup *shgroup, Gwn_PrimType prim_type, uint vert_count, float (*obmat)[4], Object *ob)
 {
 	BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
-	call->state = drw_call_state_create(shgroup, obmat, NULL);
+	if (ob) {
+		call->state = drw_call_state_object(shgroup, ob->obmat, ob);
+	}
+	else {
+		call->state = drw_call_state_create(shgroup, obmat, NULL);
+	}
 	call->type = DRW_CALL_PROCEDURAL;
 	call->procedural.prim_type = prim_type;
 	call->procedural.vert_count = vert_count;
@@ -409,17 +414,24 @@ static void drw_shgroup_call_procedural_add_ex(
 
 void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, uint point_count, float (*obmat)[4])
 {
-	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_POINTS, point_count, obmat);
+	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_POINTS, point_count, obmat, NULL);
 }
 
 void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, uint line_count, float (*obmat)[4])
 {
-	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_LINES, line_count * 2, obmat);
+	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_LINES, line_count * 2, obmat, NULL);
 }
 
 void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, uint tria_count, float (*obmat)[4])
 {
-	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_TRIS, tria_count * 3, obmat);
+	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_TRIS, tria_count * 3, obmat, NULL);
+}
+
+/* TODO (fclem): this is a sign that the api is starting to be limiting.
+ * Maybe add special function that general purpose for special cases. */
+void DRW_shgroup_call_object_procedural_triangles_culled_add(DRWShadingGroup *shgroup, uint tria_count, Object *ob)
+{
+	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_TRIS, tria_count * 3, NULL, ob);
 }
 
 /* These calls can be culled and are optimized for redraw */
