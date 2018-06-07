@@ -2252,9 +2252,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			/* eventstate stores if previous event was a KM_PRESS, in case that
 			 * wasn't handled, the KM_RELEASE will become a KM_CLICK */
 
-			if (win && event->val == KM_PRESS) {
-				win->eventstate->check_click = true;
-				win->eventstate->check_drag = true;
+			if (win != NULL) {
+				if (event->val == KM_PRESS) {
+					win->eventstate->check_click = true;
+					win->eventstate->check_drag = true;
+				}
+				else if (event->val == KM_RELEASE) {
+					win->eventstate->check_drag = false;
+				}
 			}
 
 			if (win && win->eventstate->prevtype == event->type) {
