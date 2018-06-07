@@ -1998,10 +1998,6 @@ static void OBJECT_cache_populate_particles(Object *ob,
 		ParticleSettings *part = psys->part;
 		int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
-		if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-			draw_as = PART_DRAW_DOT;
-		}
-
 		static float mat[4][4];
 		unit_m4(mat);
 
