@@ -2284,8 +2284,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 			if (win != NULL) {
 				if (event->val == KM_PRESS) {
-					win->eventstate->check_click = true;
-					win->eventstate->check_drag = true;
+					/* Ensure the types match to prevent mouse wheel from triggering drag/clicks. */
+					if (event->type == win->eventstate->prevtype) {
+						win->eventstate->check_click = true;
+						win->eventstate->check_drag = true;
+					}
 				}
 				else if (event->val == KM_RELEASE) {
 					win->eventstate->check_drag = false;
