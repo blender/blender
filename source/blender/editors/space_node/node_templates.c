@@ -634,7 +634,7 @@ static void ui_node_draw_node(uiLayout *layout, bContext *C, bNodeTree *ntree, b
 
 	if (node->typeinfo->draw_buttons) {
 		if (node->type != NODE_GROUP) {
-			split = uiLayoutSplit(layout, 0.35f, false);
+			split = uiLayoutSplit(layout, 0.5f, false);
 			col = uiLayoutColumn(split, false);
 			col = uiLayoutColumn(split, false);
 
@@ -677,10 +677,10 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 		label[i] = ' ';
 	}
 	label[indent] = '\0';
-	BLI_snprintf(label + indent, UI_MAX_NAME_STR - indent, "%s:", IFACE_(input->name));
+	BLI_snprintf(label + indent, UI_MAX_NAME_STR - indent, "%s", IFACE_(input->name));
 
 	/* split in label and value */
-	split = uiLayoutSplit(layout, 0.35f, false);
+	split = uiLayoutSplit(layout, 0.5f, false);
 
 	row = uiLayoutRow(split, true);
 
@@ -702,7 +702,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 
 	uiItemL(row, label, ICON_NONE);
 	bt = block->buttons.last;
-	bt->drawflag = UI_BUT_TEXT_LEFT;
+	bt->drawflag = UI_BUT_TEXT_RIGHT;
 
 	if (dependency_loop) {
 		row = uiLayoutRow(split, false);
