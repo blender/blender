@@ -61,9 +61,9 @@ class SimpleImportTest(AbstractAlembicTest):
             as_background_job=False)
         self.assertEqual({'FINISHED'}, res)
 
-        # The objects should be linked to scene_collection in Blender 2.8,
+        # The objects should be linked to scene.collection in Blender 2.8,
         # and to scene in Blender 2.7x.
-        objects = bpy.context.scene_collection.objects
+        objects = bpy.context.scene.collection.objects
         self.assertEqual(13, len(objects))
 
         # Test the hierarchy.
@@ -81,9 +81,9 @@ class SimpleImportTest(AbstractAlembicTest):
             as_background_job=False)
         self.assertEqual({'FINISHED'}, res)
 
-        # The objects should be linked to scene_collection in Blender 2.8,
+        # The objects should be linked to scene.collection in Blender 2.8,
         # and to scene in Blender 2.7x.
-        objects = bpy.context.scene_collection.objects
+        objects = bpy.context.scene.collection.objects
 
         # ABC parent is top-level object, which translates to nothing in Blender
         self.assertIsNone(objects['locator1'].parent)
@@ -185,7 +185,7 @@ class SimpleImportTest(AbstractAlembicTest):
         bpy.context.scene.frame_set(6)
         scene = bpy.context.scene
         layer = scene.view_layers[scene.active_layer]
-        mesh = plane.to_mesh(scene, layer, True, 'RENDER')
+        mesh = plane.to_mesh(bpy.context.depsgraph, True, True, False)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[0].co.z)
@@ -195,7 +195,7 @@ class SimpleImportTest(AbstractAlembicTest):
         bpy.data.cache_files[fname].filepath = relpath
         scene.frame_set(6)
 
-        mesh = plane.to_mesh(scene, layer, True, 'RENDER')
+        mesh = plane.to_mesh(bpy.context.depsgraph, True, True, False)
         self.assertAlmostEqual(1, mesh.vertices[3].co.x)
         self.assertAlmostEqual(1, mesh.vertices[3].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[3].co.z)
