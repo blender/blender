@@ -2189,8 +2189,13 @@ float (*BKE_pbvh_get_vertCos(PBVH *pbvh))[3]
 	return vertCos;
 }
 
-void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
+void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3], const int totvert)
 {
+	if (totvert != pbvh->totvert) {
+		BLI_assert(!"PBVH: Given deforming vcos number does not natch PBVH vertex number!");
+		return;
+	}
+
 	if (!pbvh->deformed) {
 		if (pbvh->verts) {
 			/* if pbvh is not already deformed, verts/faces points to the */

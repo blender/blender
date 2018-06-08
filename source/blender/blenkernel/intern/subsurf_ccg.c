@@ -2352,7 +2352,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 			totvert = deformdm->getNumVerts(deformdm);
 			vertCos = MEM_malloc_arrayN(totvert, sizeof(float[3]), "ccgDM_getPBVH vertCos");
 			deformdm->getVertCos(deformdm, vertCos);
-			BKE_pbvh_apply_vertCos(ccgdm->pbvh, vertCos);
+			BKE_pbvh_apply_vertCos(ccgdm->pbvh, vertCos, totvert);
 			MEM_freeN(vertCos);
 		}
 	}

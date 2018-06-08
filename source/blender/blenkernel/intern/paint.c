@@ -946,7 +946,7 @@ void BKE_sculpt_update_mesh_elements(
 			ss->orig_cos = (ss->kb) ? BKE_keyblock_convert_to_vertcos(ob, ss->kb) : BKE_mesh_vertexCos_get(me, NULL);
 
 			BKE_crazyspace_build_sculpt(depsgraph, scene, ob, &ss->deform_imats, &ss->deform_cos);
-			BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
+			BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos, me->totvert);
 
 			for (a = 0; a < me->totvert; ++a) {
 				invert_m3(ss->deform_imats[a]);
@@ -970,7 +970,7 @@ void BKE_sculpt_update_mesh_elements(
 			if (vertCos) {
 				if (!pbvh_deformed) {
 					/* apply shape keys coordinates to PBVH */
-					BKE_pbvh_apply_vertCos(ss->pbvh, vertCos);
+					BKE_pbvh_apply_vertCos(ss->pbvh, vertCos, me->totvert);
 				}
 				if (ss->deform_cos == NULL) {
 					ss->deform_cos = vertCos;
