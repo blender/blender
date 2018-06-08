@@ -340,7 +340,7 @@ static void wm_window_match_do(
 static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 {
 	/* versioning is here */
-	UI_init_userdef();
+	UI_init_userdef(bmain);
 
 	MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
 	BKE_sound_init(bmain);
@@ -1157,7 +1157,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
 	/* Main now can store a .blend thumbnail, usefull for background mode or thumbnail customization. */
-	main_thumb = thumb = CTX_data_main(C)->blen_thumb;
+	main_thumb = thumb = bmain->blen_thumb;
 	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
 		ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}

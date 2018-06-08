@@ -34,6 +34,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -616,6 +617,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 		}
 	}
 	else {
+		cdd->vc.bmain = CTX_data_main(C);
 		cdd->vc.depsgraph = CTX_data_depsgraph(C);
 		cdd->vc.scene = CTX_data_scene(C);
 		cdd->vc.view_layer = CTX_data_view_layer(C);

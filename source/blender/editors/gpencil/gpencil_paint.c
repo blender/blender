@@ -46,14 +46,15 @@
 
 #include "PIL_time.h"
 
-#include "BKE_paint.h"
-#include "BKE_gpencil.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
+#include "BKE_main.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
-#include "BKE_colortools.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -115,6 +116,7 @@ typedef enum eGPencil_PaintFlags {
  *   "p" = op->customdata
  */
 typedef struct tGPsdata {
+	Main *bmain;
 	Scene *scene;       /* current scene from context */
 	struct Depsgraph *depsgraph;
 
@@ -1399,6 +1401,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	}
 
 	/* pass on current scene and window */
+	p->bmain = CTX_data_main(C);
 	p->scene = CTX_data_scene(C);
 	p->depsgraph = CTX_data_depsgraph(C);
 	p->win = CTX_wm_window(C);

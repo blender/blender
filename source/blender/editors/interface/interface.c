@@ -53,10 +53,11 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_unit.h"
+#include "BKE_idprop.h"
+#include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_idprop.h"
+#include "BKE_unit.h"
 
 #include "GPU_glew.h"
 #include "GPU_matrix.h"
@@ -4694,10 +4695,10 @@ void UI_init(void)
 }
 
 /* after reading userdef file */
-void UI_init_userdef(void)
+void UI_init_userdef(Main *bmain)
 {
 	/* fix saved themes */
-	init_userdef_do_versions();
+	init_userdef_do_versions(bmain);
 	uiStyleInit();
 }
 

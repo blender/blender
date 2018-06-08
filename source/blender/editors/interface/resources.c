@@ -1818,10 +1818,8 @@ void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3]
 /* ************************************************************* */
 
 /* patching UserDef struct and Themes */
-void init_userdef_do_versions(void)
+void init_userdef_do_versions(Main *bmain)
 {
-	Main *bmain = G.main;
-
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(bmain, ver, subver)
 
 	/* the UserDef struct is not corrected with do_versions() .... ugh! */

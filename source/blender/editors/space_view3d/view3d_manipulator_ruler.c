@@ -31,8 +31,10 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_object.h"
 #include "BKE_gpencil.h"
+#include "BKE_main.h"
+
+#include "BKE_object.h"
 #include "BKE_unit.h"
 
 #include "DNA_object_types.h"
@@ -263,6 +265,7 @@ static bool view3d_ruler_pick(
  */
 static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
 {
+	Main *bmain = CTX_data_main(C);
 	if (state == ruler_info->state) {
 		return;
 	}
@@ -278,7 +281,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
 	}
 	else if (state == RULER_STATE_DRAG) {
 		ruler_info->snap_context = ED_transform_snap_object_context_create_view3d(
-		        CTX_data_scene(C), CTX_data_depsgraph(C), 0,
+		        bmain, CTX_data_scene(C), CTX_data_depsgraph(C), 0,
 		        ruler_info->ar, CTX_wm_view3d(C));
 	}
 	else {

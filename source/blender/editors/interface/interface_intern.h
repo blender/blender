@@ -784,7 +784,7 @@ void ui_icon_ensure_deferred(const struct bContext *C, const int icon_id, const 
 int ui_id_icon_get(const struct bContext *C, struct ID *id, const bool big);
 
 /* resources.c */
-void init_userdef_do_versions(void);
+void init_userdef_do_versions(struct Main *bmain);
 void ui_theme_init_default(void);
 void ui_style_init_default(void);
 void ui_resources_init(void);

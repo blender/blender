@@ -164,7 +164,7 @@ static void rna_SceneRender_get_frame_path(
 }
 
 static void rna_Scene_ray_cast(
-        Scene *scene, ViewLayer *view_layer,
+        Scene *scene, Main *bmain, ViewLayer *view_layer,
         float origin[3], float direction[3], float ray_dist,
         int *r_success, float r_location[3], float r_normal[3], int *r_index,
         Object **r_ob, float r_obmat[16])
@@ -172,8 +172,7 @@ static void rna_Scene_ray_cast(
 	normalize_v3(direction);
 
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-	SnapObjectContext *sctx = ED_transform_snap_object_context_create(
-	        scene, depsgraph, 0);
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, depsgraph, 0);
 
 	bool ret = ED_transform_snap_object_project_ray_ex(
 	        sctx,
@@ -309,6 +308,7 @@ void RNA_api_scene(StructRNA *srna)
 	
 	/* Ray Cast */
 	func = RNA_def_function(srna, "ray_cast", "rna_Scene_ray_cast");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
 	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Scene Layer");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
