@@ -71,13 +71,13 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
 
 	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
-		if (!(lc->collection->flag & restrict_flag)) {
-			if (!(lc->flag & LAYER_COLLECTION_EXCLUDE)) {
-				build_collection(lc->collection);
-			}
-
-			build_layer_collections(&lc->layer_collections);
+		if (lc->collection->flag & restrict_flag) {
+			continue;
 		}
+		if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
+			build_collection(lc->collection);
+		}
+		build_layer_collections(&lc->layer_collections);
 	}
 }
 
