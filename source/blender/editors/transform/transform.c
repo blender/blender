@@ -1520,7 +1520,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 		/* confirm transform if launch key is released after mouse move */
 		if (t->flag & T_RELEASE_CONFIRM) {
 			/* XXX Keyrepeat bug in Xorg messes this up, will test when fixed */
-			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE)) {
+			if ((event->type == t->launch_event) && ISMOUSE(t->launch_event)) {
 				t->state = TRANS_CONFIRM;
 			}
 		}
@@ -2140,14 +2140,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 	t->mode = mode;
 
-	t->launch_event = event ? event->type : -1;
-
-	if (t->launch_event == EVT_TWEAK_R) {
-		t->launch_event = RIGHTMOUSE;
-	}
-	else if (t->launch_event == EVT_TWEAK_L) {
-		t->launch_event = LEFTMOUSE;
-	}
+	/* Needed to translate tweak events to mouse buttons. */
+	t->launch_event = event ? WM_userdef_event_type_from_keymap_type(event->type) : -1;
 
 	// XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
 	// For manipulator only, so assume LEFTMOUSE
