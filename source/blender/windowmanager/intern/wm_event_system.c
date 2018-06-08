@@ -2274,7 +2274,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 	}
-	else if (!ELEM(event->type, EVENT_NONE) && !ISTIMER(event->type)) {
+	else if (ISMOUSE(event->type) || ISKEYBOARD(event->type)) {
+		/* All events that don't set wmEvent.prevtype must be ignored. */
+
 		/* test for CLICK events */
 		if (wm_action_not_handled(action)) {
 			wmWindow *win = CTX_wm_window(C);
@@ -2284,11 +2286,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 			if (win != NULL) {
 				if (event->val == KM_PRESS) {
-					/* Ensure the types match to prevent mouse wheel from triggering drag/clicks. */
-					if (event->type == win->eventstate->prevtype) {
-						win->eventstate->check_click = true;
-						win->eventstate->check_drag = true;
-					}
+					win->eventstate->check_click = true;
+					win->eventstate->check_drag = true;
 				}
 				else if (event->val == KM_RELEASE) {
 					win->eventstate->check_drag = false;
