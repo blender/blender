@@ -77,7 +77,7 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
 	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
 		if (!(lc->collection->flag & restrict_flag)) {
 			if (!(lc->flag & LAYER_COLLECTION_EXCLUDE)) {
-				build_collection(NULL, lc->collection);
+				build_collection(DEG_COLLECTION_OWNER_SCENE, NULL, lc->collection);
 			}
 
 			build_layer_collections(&lc->layer_collections);

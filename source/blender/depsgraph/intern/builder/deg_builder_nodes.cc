@@ -390,7 +390,7 @@ void DepsgraphNodeBuilder::build_id(ID *id) {
 			build_camera((Camera *)id);
 			break;
 		case ID_GR:
-			build_collection((Collection *)id);
+			build_collection(DEG_COLLECTION_OWNER_UNKNOWN, (Collection *)id);
 			break;
 		case ID_OB:
 			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
@@ -438,28 +438,32 @@ void DepsgraphNodeBuilder::build_id(ID *id) {
 	}
 }
 
-void DepsgraphNodeBuilder::build_collection(Collection *collection)
+void DepsgraphNodeBuilder::build_collection(
+    eDepsNode_CollectionOwner owner_type,
+	Collection *collection)
 {
 	if (built_map_.checkIsBuiltAndTag(collection)) {
 		return;
 	}
-
-	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
-		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
-	if (collection->flag & restrict_flag) {
-		return;
+	const bool allow_restrict_flags = (owner_type == DEG_COLLECTION_OWNER_SCENE);
+	if (allow_restrict_flags) {
+		const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
+		        ? COLLECTION_RESTRICT_VIEW
+		        : COLLECTION_RESTRICT_RENDER;
+		if (collection->flag & restrict_flag) {
+			return;
+		}
 	}
-
+	/* Collection itself. */
+	add_id_node(&collection->id);
 	/* Build collection objects. */
 	LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
 		build_object(-1, cob->ob, DEG_ID_LINKED_INDIRECTLY);
 	}
 	/* Build child collections. */
 	LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-		build_collection(child->collection);
+		build_collection(owner_type, child->collection);
 	}
-
-	add_id_node(&collection->id);
 }
 
 void DepsgraphNodeBuilder::build_object(int base_index,
@@ -531,7 +535,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
-		build_collection(object->dup_group);
+		build_collection(DEG_COLLECTION_OWNER_OBJECT, object->dup_group);
 	}
 }
 
@@ -968,7 +972,7 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 				break;
 			case PART_DRAW_GR:
 				if (part->dup_group != NULL) {
-					build_collection(part->dup_group);
+					build_collection(DEG_COLLECTION_OWNER_OBJECT, part->dup_group);
 				}
 				break;
 		}

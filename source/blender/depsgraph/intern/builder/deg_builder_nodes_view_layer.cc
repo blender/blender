@@ -75,7 +75,7 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 			continue;
 		}
 		if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-			build_collection(lc->collection);
+			build_collection(DEG_COLLECTION_OWNER_SCENE, lc->collection);
 		}
 		build_layer_collections(&lc->layer_collections);
 	}

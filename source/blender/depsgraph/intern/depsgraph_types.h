@@ -272,7 +272,17 @@ typedef enum eDepsOperation_Code {
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
-
 const char *operationCodeAsString(eDepsOperation_Code opcode);
+
+typedef enum eDepsNode_CollectionOwner {
+	/* Unknown owner of collection, collection is pulled directly, maybe
+	 * via driver.
+	 */
+	DEG_COLLECTION_OWNER_UNKNOWN,
+	/* Collection belongs to a scene. */
+	DEG_COLLECTION_OWNER_SCENE,
+	/* Collection is used by object, as a dupli-system. */
+	DEG_COLLECTION_OWNER_OBJECT,
+} eDepsNode_CollectionOwner;
 
 }  // namespace DEG
