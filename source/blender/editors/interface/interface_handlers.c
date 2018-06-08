@@ -3594,7 +3594,7 @@ static int ui_do_but_BUT(
 			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
 			return WM_UI_HANDLER_BREAK;
 		}
-		else if (event->type == LEFTMOUSE && but->block->handle) {
+		else if (event->type == LEFTMOUSE && event->val == KM_RELEASE && but->block->handle) {
 			/* regular buttons will be 'UI_SELECT', menu items 'UI_ACTIVE' */
 			if (!(but->flag & (UI_SELECT | UI_ACTIVE)))
 				data->cancel = true;
