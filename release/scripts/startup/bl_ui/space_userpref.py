@@ -1584,6 +1584,27 @@ class StudioLightPanelMixin():
         userpref = context.user_preferences
         return (userpref.active_section == 'LIGHTS')
 
+    def _get_lights(self, userpref):
+        return [light for light in userpref.studio_lights if light.is_user_defined and light.orientation == self.sl_orientation]
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        userpref = context.user_preferences
+        lights = self._get_lights(userpref)
+        row.label("({})".format(len(lights)))
+
+    def draw(self, context):
+        layout = self.layout
+        userpref = context.user_preferences
+        lights = self._get_lights(userpref)
+        if lights:
+            flow = layout.column_flow(4)
+            for studio_light in lights:
+                self.draw_studio_light(flow, studio_light)
+        else:
+            layout.label("No custom {} configured".format(self.bl_label))
+
     def draw_studio_light(self, layout, studio_light):
         box = layout.box()
         row = box.row()
@@ -1595,36 +1616,17 @@ class StudioLightPanelMixin():
 
 class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
     bl_label = "MatCaps"
+    sl_orientation = 'MATCAP'
 
-    def draw(self, context):
-        layout = self.layout
-        flow = layout.column_flow(4)
-        userpref = context.user_preferences
-        lights = [light for light in userpref.studio_lights if light.is_user_defined]
-        for studio_light in filter(lambda x: x.orientation=='MATCAP', lights):
-            self.draw_studio_light(flow, studio_light)
 
 class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
     bl_label = "World HDRI"
+    sl_orientation = 'WORLD'
 
-    def draw(self, context):
-        layout = self.layout
-        flow = layout.column_flow(4)
-        userpref = context.user_preferences
-        lights = [light for light in userpref.studio_lights if light.is_user_defined]
-        for studio_light in filter(lambda x: x.orientation=='WORLD', lights):
-            self.draw_studio_light(flow, studio_light)
 
 class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
     bl_label = "Camera HDRI"
-
-    def draw(self, context):
-        layout = self.layout
-        flow = layout.column_flow(4)
-        userpref = context.user_preferences
-        lights = [light for light in userpref.studio_lights if light.is_user_defined]
-        for studio_light in filter(lambda x: x.orientation=='CAMERA', lights):
-            self.draw_studio_light(flow, studio_light)
+    sl_orientation = 'CAMERA'
 
 
 
