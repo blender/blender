@@ -584,15 +584,19 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size)
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
 
 	uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
+	const uint alphamask = 0xff000000;
+	float color[4];
+	float fx, fy;
 	int offset = 0;
 	ImBuf *ibuf = sl->equirectangular_radiance_buffer;
 	for (int y = 0; y < icon_size; y++) {
 		for (int x = 0; x < icon_size; x++) {
-			uint pixelresult = 0x0;
-			float fx = x * ibuf->x / icon_size;
-			float fy = y * ibuf->y / icon_size;
-			nearest_interpolation_color(ibuf, (uchar *)&pixelresult, NULL, fx, fy);
-			rect[offset++] = pixelresult;
+			fx = x * ibuf->x / icon_size;
+			fy = y * ibuf->y / icon_size;
+			nearest_interpolation_color(ibuf, NULL, color, fx, fy);
+			rect[offset++] = rgb_to_cpack(linearrgb_to_srgb(color[0]),
+			                              linearrgb_to_srgb(color[1]),
+			                              linearrgb_to_srgb(color[2])) | alphamask;
 		}
 	}
 	return rect;
