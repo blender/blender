@@ -1208,11 +1208,13 @@ void DepsgraphNodeBuilder::build_camera(Camera *camera)
 	if (built_map_.checkIsBuiltAndTag(camera)) {
 		return;
 	}
+	OperationDepsNode *op_node;
 	build_animdata(&camera->id);
-	add_operation_node(&camera->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   NULL,
-	                   DEG_OPCODE_PARAMETERS_EVAL);
+	op_node = add_operation_node(&camera->id,
+	                             DEG_NODE_TYPE_PARAMETERS,
+	                             NULL,
+	                             DEG_OPCODE_PARAMETERS_EVAL);
+	op_node->set_as_exit();
 }
 
 void DepsgraphNodeBuilder::build_lamp(Lamp *lamp)
@@ -1220,11 +1222,13 @@ void DepsgraphNodeBuilder::build_lamp(Lamp *lamp)
 	if (built_map_.checkIsBuiltAndTag(lamp)) {
 		return;
 	}
+	OperationDepsNode *op_node;
 	build_animdata(&lamp->id);
-	add_operation_node(&lamp->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   NULL,
-	                   DEG_OPCODE_PARAMETERS_EVAL);
+	op_node = add_operation_node(&lamp->id,
+	                             DEG_NODE_TYPE_PARAMETERS,
+	                             NULL,
+	                             DEG_OPCODE_PARAMETERS_EVAL);
+	op_node->set_as_exit();
 	/* lamp's nodetree */
 	build_nodetree(lamp->nodetree);
 }
