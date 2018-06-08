@@ -5665,6 +5665,15 @@ void ED_object_sculptmode_enter_ex(
 		BKE_sculptsession_free(ob);
 	}
 
+	/* Make sure derived final from original object does not reference possibly
+	 * freed memory.
+	 */
+	if (ob->derivedFinal != NULL) {
+		ob->derivedFinal->needsFree = true;
+		ob->derivedFinal->release(ob->derivedFinal);
+		ob->derivedFinal = NULL;
+	}
+
 	sculpt_init_session(depsgraph, scene, ob);
 
 	/* Mask layer is required */
