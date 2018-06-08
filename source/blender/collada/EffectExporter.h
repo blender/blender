@@ -49,30 +49,30 @@ public:
 	EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 	void exportEffects(Scene *sce);
 	void operator()(Material *ma, Object *ob);
-	
+
 	COLLADASW::ColorOrTexture createTexture(Image *ima,
 											std::string& uv_layer_name,
 											COLLADASW::Sampler *sampler
 											/*COLLADASW::Surface *surface*/);
-	
+
 	COLLADASW::ColorOrTexture getcol(float r, float g, float b, float a);
 private:
 	/** Fills the array of mtex indices which have image. Used for exporting images. */
 	void createTextureIndices(Material *ma, std::vector<int> &indices);
-	
+
 	void writeBlinn(COLLADASW::EffectProfile &ep, Material *ma);
 	void writeLambert(COLLADASW::EffectProfile &ep, Material *ma);
 	void writePhong(COLLADASW::EffectProfile &ep, Material *ma);
 	void writeTextures(COLLADASW::EffectProfile &ep,
 			std::string &key,
-			COLLADASW::Sampler *sampler, 
+			COLLADASW::Sampler *sampler,
 			MTex *t, Image *ima,
 			std::string &uvname );
 
 	bool hasEffects(Scene *sce);
-	
+
 	const ExportSettings *export_settings;
-	
+
 	Scene *scene;
 };
 

@@ -45,7 +45,7 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 {
 	TexCallData *cdata = (TexCallData *)data;
 	TexResult *target = cdata->target;
-	
+
 	if (cdata->do_preview) {
 		TexParams params;
 		params_from_cdata(&params, cdata);
@@ -61,12 +61,12 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 		if (cdata->which_output == node->custom1 || (cdata->which_output == 0 && node->custom1 == 1)) {
 			TexParams params;
 			params_from_cdata(&params, cdata);
-			
+
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
-		
+
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
 			target->talpha = true;
-		
+
 			if (target->nor) {
 				if (in[1] && in[1]->hasinput)
 					tex_input_vec(target->nor, in[1], &params, cdata->thread);
@@ -85,7 +85,7 @@ static void unique_name(bNode *node)
 	int suffix;
 	bNode *i;
 	const char *name = tno->name;
-	
+
 	new_name[0] = '\0';
 	i = node;
 	while (i->prev) i = i->prev;
@@ -114,7 +114,7 @@ static void unique_name(bNode *node)
 		}
 		sprintf(new_name + new_len - 4, ".%03d", ++suffix);
 	}
-	
+
 	if (new_name[0] != '\0') {
 		BLI_strncpy(tno->name, new_name, sizeof(tno->name));
 	}
@@ -124,11 +124,11 @@ static void assign_index(struct bNode *node)
 {
 	bNode *tnode;
 	int index = 1;
-	
+
 	tnode = node;
 	while (tnode->prev)
 		tnode = tnode->prev;
-	
+
 check_index:
 	for (; tnode; tnode = tnode->next)
 		if (tnode->type == TEX_NODE_OUTPUT && tnode != node)
@@ -136,7 +136,7 @@ check_index:
 				index++;
 				goto check_index;
 			}
-			
+
 	node->custom1 = index;
 }
 
@@ -144,7 +144,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
 	node->storage = tno;
-	
+
 	strcpy(tno->name, "Default");
 	unique_name(node);
 	assign_index(node);
@@ -160,16 +160,16 @@ static void copy(bNodeTree *dest_ntree, bNode *dest_node, bNode *src_node)
 void register_node_type_tex_output(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, inputs, NULL);
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	/* Do not allow muting output. */
 	node_type_internal_links(&ntype, NULL);
-	
+
 	nodeRegisterType(&ntype);
 }

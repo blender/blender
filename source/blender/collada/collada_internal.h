@@ -51,7 +51,7 @@ private:
 	float y_up_mat4[4][4];
 	float z_up_mat4[4][4];
 	float scale_mat4[4][4];
-	
+
 public:
 
 	enum UnitSystem {
@@ -66,11 +66,11 @@ public:
 	void read_asset(const COLLADAFW::FileInfo *asset);
 
 	void convertVector3(COLLADABU::Math::Vector3 &vec, float *v);
-	
+
 	UnitConverter::UnitSystem isMetricSystem(void);
-	
+
 	float getLinearMeter(void);
-		
+
 	// TODO need also for angle conversion, time conversion...
 
 	void dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::Matrix4& in);

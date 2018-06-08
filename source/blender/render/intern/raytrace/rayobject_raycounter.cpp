@@ -80,7 +80,7 @@ void RE_RC_MERGE(RayCounter *dest, RayCounter *tmp)
 
 	dest->raycast.test += tmp->raycast.test;
 	dest->raycast.hit  += tmp->raycast.hit;
-	
+
 	dest->rayshadow_last_hit.test += tmp->rayshadow_last_hit.test;
 	dest->rayshadow_last_hit.hit  += tmp->rayshadow_last_hit.hit;
 

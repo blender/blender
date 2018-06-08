@@ -62,7 +62,7 @@ struct Implicit_Data;
 
 typedef struct ImplicitSolverResult {
 	int status;
-	
+
 	int iterations;
 	float error;
 } ImplicitSolverResult;

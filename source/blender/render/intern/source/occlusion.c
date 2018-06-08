@@ -99,7 +99,7 @@ typedef struct OcclusionTree {
 	OccFace *face;      /* instance and face indices */
 	float *occlusion;   /* occlusion for faces */
 	float (*rad)[3];    /* radiance for faces */
-	
+
 	OccNode *root;
 
 	OccNode **stack[BLENDER_MAX_THREADS];
@@ -144,7 +144,7 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	ShadeInput *shi = ssamp->shi;
 	ShadeResult *shr = ssamp->shr;
 	float l, u, v, *v1, *v2, *v3;
-	
+
 	/* init */
 	if (vlr->v4) {
 		shi->u = u = 0.5f;
@@ -159,10 +159,10 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	v1 = vlr->v1->co;
 	v2 = vlr->v2->co;
 	v3 = vlr->v3->co;
-	
+
 	/* renderco */
 	l = 1.0f - u - v;
-	
+
 	shi->co[0] = l * v3[0] + u * v1[0] + v * v2[0];
 	shi->co[1] = l * v3[1] + u * v1[1] + v * v2[1];
 	shi->co[2] = l * v3[2] + u * v1[2] + v * v2[2];
@@ -172,13 +172,13 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	/* set up view vector */
 	copy_v3_v3(shi->view, shi->co);
 	normalize_v3(shi->view);
-	
+
 	/* cache for shadow */
 	shi->samplenr++;
 
 	shi->xs = 0; /* TODO */
 	shi->ys = 0;
-	
+
 	shade_input_set_normals(shi);
 
 	/* no normal flip */
@@ -324,7 +324,7 @@ static void occ_face(const OccFace *face, float co[3], float normal[3], float *a
 
 	obi = &R.objectinstance[face->obi];
 	vlr = RE_findOrAddVlak(obi->obr, face->facenr);
-	
+
 	if (co) {
 		if (vlr->v4)
 			mid_v3_v3v3(co, vlr->v1->co, vlr->v3->co);
@@ -334,7 +334,7 @@ static void occ_face(const OccFace *face, float co[3], float normal[3], float *a
 		if (obi->flag & R_TRANSFORMED)
 			mul_m4_v3(obi->mat, co);
 	}
-	
+
 	if (normal) {
 		normal[0] = -vlr->n[0];
 		normal[1] = -vlr->n[1];
@@ -397,7 +397,7 @@ static void occ_sum_occlusion(OcclusionTree *tree, OccNode *node)
 		occ /= totarea;
 		if (indirect) mul_v3_fl(rad, 1.0f / totarea);
 	}
-	
+
 	node->occlusion = occ;
 	if (indirect) copy_v3_v3(node->rad, rad);
 }
@@ -668,7 +668,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 
 	if (totface == 0)
 		return NULL;
-	
+
 	tree = MEM_callocN(sizeof(OcclusionTree), "OcclusionTree");
 	tree->totface = totface;
 
@@ -704,7 +704,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 				tree->face[b].obi = c;
 				tree->face[b].facenr = a;
 				tree->occlusion[b] = 1.0f;
-				occ_face(&tree->face[b], tree->co[b], NULL, NULL); 
+				occ_face(&tree->face[b], tree->co[b], NULL, NULL);
 				b++;
 			}
 		}
@@ -726,7 +726,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 		if (!(re->test_break(re->tbh)))
 			occ_sum_occlusion(tree, tree->root);
 	}
-	
+
 	MEM_freeN(tree->co);
 	tree->co = NULL;
 
@@ -773,7 +773,7 @@ static float occ_solid_angle(OccNode *node, const float v[3], float d2, float in
 
 	CLAMP(dotemit, 0.0f, 1.0f);
 	CLAMP(dotreceive, 0.0f, 1.0f);
-	
+
 	return ((node->area * dotemit * dotreceive) / (d2 + node->area * INVPI)) * INVPI;
 }
 
@@ -827,7 +827,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude,
 
 	if (bentn)
 		copy_v3_v3(bentn, n);
-	
+
 	error = tree->error;
 	distfac = tree->distfac;
 
@@ -883,7 +883,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude,
 					/* accumulate occlusion with face form factor */
 					if (!exclude || !(face->obi == exclude->obi && face->facenr == exclude->facenr)) {
 						if (bentn || distfac != 0.0f) {
-							occ_face(face, co, NULL, NULL); 
+							occ_face(face, co, NULL, NULL);
 							sub_v3_v3v3(v, co, p);
 							d2 = dot_v3v3(v, v) + 1e-16f;
 
@@ -977,7 +977,7 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 {
 	float *occ, co[3], n[3];
 	int pass, i;
-	
+
 	occ = MEM_callocN(sizeof(float) * tree->totface, "OcclusionPassOcc");
 
 	for (pass = 0; pass < totpass; pass++) {
@@ -1095,7 +1095,7 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 
 	if (!tree->cache)
 		return 0;
-	
+
 	/* first try to find a sample in the same pixel */
 	cache = &tree->cache[thread];
 
@@ -1278,9 +1278,9 @@ void make_occ_tree(Render *re)
 
 	re->i.infostr = IFACE_("Occlusion preprocessing");
 	re->stats_draw(re->sdh, &re->i);
-	
+
 	re->occlusiontree = tree = occ_tree_build(re);
-	
+
 	if (tree && !re->test_break(re->tbh)) {
 		if (re->wrld.ao_approx_passes > 0)
 			occ_compute_passes(re, tree, re->wrld.ao_approx_passes);

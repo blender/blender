@@ -49,7 +49,7 @@ void SceneExporter::exportScene(bContext *C, Scene *sce)
 }
 
 void SceneExporter::exportHierarchy(bContext *C, Scene *sce)
-{	
+{
 	LinkNode *node;
 	std::vector<Object *> base_objects;
 
@@ -58,7 +58,7 @@ void SceneExporter::exportHierarchy(bContext *C, Scene *sce)
 		Object *ob = (Object *) node->link;
 		ob->id.tag |= LIB_TAG_DOIT;
 	}
-	
+
 	// Now find all exportable base ojects (highest in export hierarchy)
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *) node->link;
@@ -146,9 +146,9 @@ void SceneExporter::writeNodes(bContext *C, Object *ob, Scene *sce)
 			COLLADASW::InstanceGeometry instGeom(mSW);
 			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, this->export_settings->use_object_instantiation)));
 			instGeom.setName(translate_id(id_name(ob)));
-			InstanceWriter::add_material_bindings(instGeom.getBindMaterial(), 
-				    ob, 
-					this->export_settings->active_uv_only, 
+			InstanceWriter::add_material_bindings(instGeom.getBindMaterial(),
+				    ob,
+					this->export_settings->active_uv_only,
 					this->export_settings->export_texture_type);
 
 			instGeom.add();
@@ -204,17 +204,17 @@ void SceneExporter::writeNodes(bContext *C, Object *ob, Scene *sce)
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"rot_error",con->rot_error);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"tar_space",con->tarspace);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"lin_error",con->lin_error);
-			
-			//not ideal: add the target object name as another parameter. 
+
+			//not ideal: add the target object name as another parameter.
 			//No real mapping in the .dae
 			//Need support for multiple target objects also.
 			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 			if (cti && cti->get_constraint_targets) {
-			
+
 				bConstraintTarget *ct;
 				Object *obtar;
-			
+
 				cti->get_constraint_targets(con, &targets);
 
 				for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {

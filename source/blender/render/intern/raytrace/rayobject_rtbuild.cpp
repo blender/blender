@@ -60,13 +60,13 @@ static void rtbuild_init(RTBuilder *b)
 	b->primitives.end     = NULL;
 	b->primitives.maxsize = 0;
 	b->depth = 0;
-	
+
 	for (int i = 0; i < RTBUILD_MAX_CHILDS; i++)
 		b->child_offset[i] = 0;
 
 	for (int i = 0; i < 3; i++)
 		b->sorted_begin[i] = b->sorted_end[i] = NULL;
-		
+
 	INIT_MINMAX(b->bb, b->bb + 3);
 }
 
@@ -77,15 +77,15 @@ RTBuilder *rtbuild_create(int size)
 
 
 	rtbuild_init(builder);
-	
+
 	builder->primitives.begin = builder->primitives.end = memblock;
 	builder->primitives.maxsize = size;
-	
+
 	for (int i = 0; i < 3; i++) {
 		builder->sorted_begin[i] = (RTBuilder::Object **)MEM_mallocN(sizeof(RTBuilder::Object *) * size, "RTBuilder.sorted_objects");
 		builder->sorted_end[i]   = builder->sorted_begin[i];
 	}
-	
+
 
 	return builder;
 }
@@ -124,12 +124,12 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	 * will give problems in rtbuild_heuristic_object_split later */
 	if (bb[0] == bb[3] && bb[1] == bb[4] && bb[2] == bb[5])
 		return;
-	
+
 	copy_v3_v3(b->primitives.end->bb, bb);
 	copy_v3_v3(b->primitives.end->bb + 3, bb + 3);
 	b->primitives.end->obj = o;
 	b->primitives.end->cost = RE_rayobject_cost(o);
-	
+
 	for (int i = 0; i < 3; i++) {
 		*(b->sorted_end[i]) = b->primitives.end;
 		b->sorted_end[i]++;
@@ -190,7 +190,7 @@ RTBuilder *rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 			tmp->sorted_begin[i] = NULL;
 			tmp->sorted_end[i] = NULL;
 		}
-	
+
 	return tmp;
 }
 
@@ -227,17 +227,17 @@ int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 	long long s;
 
 	assert(nchilds <= RTBUILD_MAX_CHILDS);
-	
+
 	//TODO optimize calc of leafs_per_child
 	for (s = nchilds; s < tot_leafs; s *= nchilds) ;
 	Mleafs_per_child = s / nchilds;
 	mleafs_per_child = Mleafs_per_child / nchilds;
-	
+
 	//split min leafs per child
 	b->child_offset[0] = 0;
 	for (i = 1; i <= nchilds; i++)
 		b->child_offset[i] = mleafs_per_child;
-	
+
 	//split remaining leafs
 	missing_leafs = tot_leafs - mleafs_per_child * nchilds;
 	for (i = 1; i <= nchilds; i++)
@@ -253,7 +253,7 @@ int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 			break;
 		}
 	}
-	
+
 	//adjust for accumulative offsets
 	for (i = 1; i <= nchilds; i++)
 		b->child_offset[i] += b->child_offset[i - 1];
@@ -261,12 +261,12 @@ int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 	//Count created childs
 	for (i = nchilds; b->child_offset[i] == b->child_offset[i - 1]; i--) ;
 	split_leafs(b, b->child_offset, i, axis);
-	
+
 	assert(b->child_offset[0] == 0 && b->child_offset[i] == tot_leafs);
 	return i;
 }
-	
-	
+
+
 int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds)
 {
 	int axis = rtbuild_get_largest_axis(b);
@@ -282,7 +282,7 @@ int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds)
 int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis)
 {
 	int size = rtbuild_size(b);
-		
+
 	assert(nchilds <= RTBUILD_MAX_CHILDS);
 	if (size <= nchilds)
 	{
@@ -292,17 +292,17 @@ int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis)
 		int i;
 
 		b->split_axis = axis;
-		
+
 		//Calculate child offsets
 		b->child_offset[0] = 0;
 		for (i = 0; i < nchilds - 1; i++)
 			b->child_offset[i + 1] = split_leafs_by_plane(b, b->child_offset[i], size, separators[i]);
 		b->child_offset[nchilds] = size;
-		
+
 		for (i = 0; i < nchilds; i++)
 			if (b->child_offset[i + 1] - b->child_offset[i] == size)
 				return rtbuild_mean_split(b, nchilds, axis);
-		
+
 		return nchilds;
 	}
 }
@@ -311,13 +311,13 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
 {
 	int la, i;
 	float separators[RTBUILD_MAX_CHILDS];
-	
+
 	rtbuild_calc_bb(b);
 
 	la = bb_largest_axis(b->bb, b->bb + 3);
 	for (i = 1; i < nchilds; i++)
 		separators[i - 1] = (b->bb[la + 3] - b->bb[la]) * i / nchilds;
-		
+
 	return rtbuild_median_split(b, separators, nchilds, la);
 }
 #endif
@@ -353,12 +353,12 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 		boffset = size / 2;
 
 		SweepCost *sweep = (SweepCost *)MEM_mallocN(sizeof(SweepCost) * size, "RTBuilder.HeuristicSweep");
-		
+
 		for (int axis = 0; axis < 3; axis++) {
 			SweepCost sweep_left;
 
 			RTBuilder::Object **obj = b->sorted_begin[axis];
-			
+
 //			float right_cost = 0;
 			for (int i = size - 1; i >= 0; i--) {
 				if (i == size - 1) {
@@ -377,7 +377,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				}
 //				right_cost += obj[i]->cost;
 			}
-			
+
 			sweep_left.bb[0] = obj[0]->bb[0];
 			sweep_left.bb[1] = obj[0]->bb[1];
 			sweep_left.bb[2] = obj[0]->bb[2];
@@ -385,13 +385,13 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 			sweep_left.bb[4] = obj[0]->bb[4];
 			sweep_left.bb[5] = obj[0]->bb[5];
 			sweep_left.cost  = obj[0]->cost;
-			
+
 //			right_cost -= obj[0]->cost;	if (right_cost < 0) right_cost = 0;
 
 			for (int i = 1; i < size; i++) {
 				//Worst case heuristic (cost of each child is linear)
 				float hcost, left_side, right_side;
-				
+
 				// not using log seems to have no impact on raytracing perf, but
 				// makes tree construction quicker, left out for now to test (brecht)
 				// left_side  = bb_area(sweep_left.bb, sweep_left.bb + 3) * (sweep_left.cost + logf((float)i));
@@ -402,7 +402,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 
 				assert(left_side >= 0);
 				assert(right_side >= 0);
-				
+
 				if (left_side > bcost) break;   //No way we can find a better heuristic in this axis
 
 				assert(hcost >= 0);
@@ -418,13 +418,13 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				sweep_left.cost += obj[i]->cost;
 //				right_cost -= obj[i]->cost; if (right_cost < 0) right_cost = 0;
 			}
-			
+
 			//assert(baxis >= 0 && baxis < 3);
 			if (!(baxis >= 0 && baxis < 3))
 				baxis = 0;
 		}
-			
-		
+
+
 		MEM_freeN(sweep);
 	}
 	else if (size == 2) {
@@ -436,11 +436,11 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 		b->child_offset[1] = 1;
 		return 1;
 	}
-		
+
 	b->child_offset[0] = 0;
 	b->child_offset[1] = boffset;
 	b->child_offset[2] = size;
-	
+
 
 	/* Adjust sorted arrays for childs */
 	for (int i = 0; i < boffset; i++) b->sorted_begin[baxis][i]->selected = true;
@@ -498,7 +498,7 @@ float bb_area(const float min[3], const float max[3])
 int bb_largest_axis(const float min[3], const float max[3])
 {
 	float sub[3];
-	
+
 	sub[0] = max[0] - min[0];
 	sub[1] = max[1] - min[1];
 	sub[2] = max[2] - min[2];

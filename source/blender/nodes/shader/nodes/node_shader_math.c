@@ -33,7 +33,7 @@
 #include "node_shader_util.h"
 
 
-/* **************** SCALAR MATH ******************** */ 
+/* **************** SCALAR MATH ******************** */
 static bNodeSocketTemplate sh_node_math_in[] = {
 	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
@@ -45,15 +45,15 @@ static bNodeSocketTemplate sh_node_math_out[] = {
 	{ -1, 0, "" }
 };
 
-static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out) 
+static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	float a, b, r = 0.0f;
-	
+
 	nodestack_get_vec(&a, SOCK_FLOAT, in[0]);
 	nodestack_get_vec(&b, SOCK_FLOAT, in[1]);
-	
+
 	switch (node->custom1) {
-	
+
 		case NODE_MATH_ADD:
 			r = a + b;
 			break;
@@ -147,7 +147,7 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 			}
 			else {
 				float y_mod_1 = fabsf(fmodf(b, 1.0f));
-				
+
 				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
 				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
 					r = powf(a, floorf(b + 0.5f));

@@ -64,7 +64,7 @@ extern RayCounter re_rc_counter[];
 #define RE_RC_INFO(rc)
 #define RE_RC_MERGE(dest,src)
 #define	RE_RC_COUNT(var)
-		
+
 #endif
 
 #ifdef __cplusplus

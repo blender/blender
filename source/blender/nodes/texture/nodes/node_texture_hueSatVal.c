@@ -51,7 +51,7 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat
 {
 	if (fac != 0 && (hue != 0.5f || sat != 1 || val != 1)) {
 		float col[3], hsv[3], mfac = 1.0f - fac;
-		
+
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv + 1, hsv + 2);
 		hsv[0] += (hue - 0.5f);
 		if (hsv[0] > 1.0f) hsv[0] -= 1.0f; else if (hsv[0] < 0.0f) hsv[0] += 1.0f;
@@ -71,19 +71,19 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat
 }
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
-{	
+{
 	float hue = tex_input_value(in[0], p, thread);
 	float sat = tex_input_value(in[1], p, thread);
 	float val = tex_input_value(in[2], p, thread);
 	float fac = tex_input_value(in[3], p, thread);
-	
+
 	float col[4];
 	tex_input_rgba(col, in[4], p, thread);
-	
+
 	hue += 0.5f; /* [-0.5, 0.5] -> [0, 1] */
-	
+
 	do_hue_sat_fac(node, out, hue, sat, val, col, fac);
-	
+
 	out[3] = col[3];
 }
 
@@ -95,11 +95,11 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 void register_node_type_tex_hue_sat(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	nodeRegisterType(&ntype);
 }

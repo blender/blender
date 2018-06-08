@@ -26,7 +26,7 @@
  */
 
 #ifndef __RENDERCORE_H__
-#define __RENDERCORE_H__ 
+#define __RENDERCORE_H__
 
 /** \file blender/render/intern/include/rendercore.h
  *  \ingroup render

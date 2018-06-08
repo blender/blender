@@ -81,11 +81,11 @@ typedef struct BakeShade {
 	ShadeSample ssamp;
 	ObjectInstanceRen *obi;
 	VlakRen *vlr;
-	
+
 	ZSpan *zspan;
 	Image *ima;
 	ImBuf *ibuf;
-	
+
 	int rectx, recty, quad, type, vdone;
 	bool ready;
 
@@ -97,7 +97,7 @@ typedef struct BakeShade {
 	MPoly *mpoly;
 	MLoop *mloop;
 	MLoopCol *vcol;
-	
+
 	unsigned int *rect;
 	float *rect_float;
 
@@ -105,7 +105,7 @@ typedef struct BakeShade {
 	bool use_displacement_buffer;
 	float *displacement_buffer;
 	float displacement_min, displacement_max;
-	
+
 	bool use_mask;
 	char *rect_mask; /* bake pixel mask */
 
@@ -122,7 +122,7 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
 	else
 		shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-		
+
 	/* cache for shadow */
 	shi->samplenr = R.shadowsamplenr[shi->thread]++;
 
@@ -172,12 +172,12 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			shi->r = shi->g = shi->b = 1.0f;
 
 		shade_input_set_shade_texco(shi);
-		
+
 		/* only do AO for a full bake (and obviously AO bakes)
 		 * AO for light bakes is a leftover and might not be needed */
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_AO, RE_BAKE_LIGHT))
 			shade_samples_do_AO(ssamp);
-		
+
 		if (shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, &shr);
 			shi->mat = vlr->mat;  /* shi->mat is being set in nodetree */
@@ -271,7 +271,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			shr.alpha = shi->vcol[3];
 		}
 	}
-	
+
 	if (bs->rect_float && !bs->vcol) {
 		float *col = bs->rect_float + 4 * (bs->rectx * y + x);
 		copy_v3_v3(col, shr.combined);
@@ -303,7 +303,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		else {
 			rgb_float_to_uchar(col, shr.combined);
 		}
-		
+
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE, RE_BAKE_VERTEX_COLORS)) {
 			col[3] = unit_float_to_uchar_clamp(shr.alpha);
 		}
@@ -324,7 +324,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 
 	}
-	
+
 	if (bs->rect_mask) {
 		bs->rect_mask[bs->rectx * y + x] = FILTER_MASK_USED;
 	}
@@ -608,7 +608,7 @@ static int get_next_bake_face(BakeShade *bs)
 		obi = R.instancetable.first;
 		return 0;
 	}
-	
+
 	BLI_thread_lock(LOCK_CUSTOM1);
 
 	for (; obi; obi = obi->next, v = 0) {
@@ -688,17 +688,17 @@ static int get_next_bake_face(BakeShade *bs)
 						BKE_image_release_ibuf(ima, ibuf, NULL);
 						continue;
 					}
-					
+
 					if (ima->flag & IMA_USED_FOR_RENDER) {
 						ima->id.tag &= ~LIB_TAG_DOIT;
 						BKE_image_release_ibuf(ima, ibuf, NULL);
 						continue;
 					}
-					
+
 					/* find the image for the first time? */
 					if (ima->id.tag & LIB_TAG_DOIT) {
 						ima->id.tag &= ~LIB_TAG_DOIT;
-						
+
 						/* we either fill in float or char, this ensures things go fine */
 						if (ibuf->rect_float)
 							imb_freerectImBuf(ibuf);
@@ -729,7 +729,7 @@ static int get_next_bake_face(BakeShade *bs)
 			}
 		}
 	}
-	
+
 	BLI_thread_unlock(LOCK_CUSTOM1);
 	return 0;
 }
@@ -820,7 +820,7 @@ static void shade_tface(BakeShade *bs)
 
 	/* per face fixed seed */
 	BLI_thread_srandom(bs->thread, vlr->index);
-	
+
 	/* check valid zspan */
 	if (ima != bs->ima) {
 		BKE_image_release_ibuf(bs->ima, bs->ibuf, NULL);
@@ -870,7 +870,7 @@ static void shade_tface(BakeShade *bs)
 		bs->rect_mask = userdata->mask_buffer;
 		bs->displacement_buffer = userdata->displacement_buffer;
 	}
-	
+
 	/* get pixel level vertex coordinates */
 	for (a = 0; a < 4; a++) {
 		/* Note, workaround for pixel aligned UVs which are common and can screw up our intersection tests
@@ -886,7 +886,7 @@ static void shade_tface(BakeShade *bs)
 	vlr_set_uv_indices(vlr, &i1, &i2, &i3);
 	bake_set_vlr_dxyco(bs, vec[i1], vec[i2], vec[i3]);
 	zspan_scanconvert(bs->zspan, bs, vec[i1], vec[i2], vec[i3], do_bake_shade);
-	
+
 	if (vlr->v4) {
 		bs->quad = 1;
 		bake_set_vlr_dxyco(bs, vec[0], vec[2], vec[3]);
@@ -905,7 +905,7 @@ static void *do_bake_thread(void *bs_v)
 		else {
 			shade_tface(bs);
 		}
-		
+
 		/* fast threadsafe break test */
 		if (R.test_break(R.tbh))
 			break;
@@ -1000,14 +1000,14 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	}
 
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(re->scene);
-	
+
 	/* initialize render global */
 	R = *re;
 	R.bakebuf = NULL;
 
 	/* initialize static vars */
 	get_next_bake_face(NULL);
-	
+
 	/* do we need a mask? */
 	if (re->r.bake_filter)
 		use_mask = true;
@@ -1068,18 +1068,18 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			handles[a].zspan = NULL;
 		else
 			handles[a].zspan = MEM_callocN(sizeof(ZSpan), "zspan for bake");
-		
+
 		handles[a].use_mask = use_mask;
 		handles[a].use_displacement_buffer = use_displacement_buffer;
 
 		handles[a].do_update = do_update; /* use to tell the view to update */
-		
+
 		handles[a].displacement_min = FLT_MAX;
 		handles[a].displacement_max = -FLT_MAX;
 
 		BLI_threadpool_insert(&threads, &handles[a]);
 	}
-	
+
 	/* wait for everything to be done */
 	a = 0;
 	while (a != re->r.threads) {
@@ -1150,7 +1150,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	}
 
 	MEM_freeN(handles);
-	
+
 	BLI_threadpool_end(&threads);
 
 	if (vdone == 0) {

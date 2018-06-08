@@ -32,7 +32,7 @@
 
 #include "../node_composite_util.h"
 
-/* **************** SCALAR MATH ******************** */ 
+/* **************** SCALAR MATH ******************** */
 static bNodeSocketTemplate cmp_node_ellipsemask_in[] = {
 	{	SOCK_FLOAT, 1, N_("Mask"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Value"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},

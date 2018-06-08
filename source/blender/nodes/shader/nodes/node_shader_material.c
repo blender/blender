@@ -85,7 +85,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		bNodeSocket *sock;
 		char hasinput[NUM_MAT_IN] = {'\0'};
 		int i, mode;
-		
+
 		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily
 		 * the constant input stack values (e.g. in case material node is inside a group).
 		 * we just want to know if a node input uses external data or the material setting.
@@ -93,24 +93,24 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		 */
 		for (sock = node->inputs.first, i = 0; sock; sock = sock->next, ++i)
 			hasinput[i] = (sock->link != NULL);
-		
+
 		shi = shcd->shi;
 		shi->mat = (Material *)node->id;
-		
+
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
 		memcpy(&shi->r, &shi->mat->r, 23 * sizeof(float));
 		shi->har = shi->mat->har;
-		
+
 		/* write values */
 		if (hasinput[MAT_IN_COLOR])
 			nodestack_get_vec(&shi->r, SOCK_VECTOR, in[MAT_IN_COLOR]);
-		
+
 		if (hasinput[MAT_IN_SPEC])
 			nodestack_get_vec(&shi->specr, SOCK_VECTOR, in[MAT_IN_SPEC]);
-		
+
 		if (hasinput[MAT_IN_REFL])
 			nodestack_get_vec(&shi->refl, SOCK_FLOAT, in[MAT_IN_REFL]);
-		
+
 		/* retrieve normal */
 		if (hasinput[MAT_IN_NORMAL]) {
 			nodestack_get_vec(shi->vn, SOCK_VECTOR, in[MAT_IN_NORMAL]);
@@ -122,12 +122,12 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		}
 		else
 			copy_v3_v3(shi->vn, shi->vno);
-		
+
 		/* custom option to flip normal */
 		if (node->custom1 & SH_NODE_MAT_NEG) {
 			negate_v3(shi->vn);
 		}
-		
+
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			if (hasinput[MAT_IN_MIR])
 				nodestack_get_vec(&shi->mirr, SOCK_VECTOR, in[MAT_IN_MIR]);
@@ -144,7 +144,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 			if (hasinput[MAT_IN_TRANSLUCENCY])
 				nodestack_get_vec(&shi->translucency, SOCK_FLOAT, in[MAT_IN_TRANSLUCENCY]);
 		}
-		
+
 		/* make alpha output give results even if transparency is only enabled on
 		 * the material linked in this not and not on the parent material */
 		mode = shi->mode;
@@ -154,7 +154,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		shi->nodes = 1; /* temp hack to prevent trashadow recursion */
 		node_shader_lamp_loop(shi, &shrnode);   /* clears shrnode */
 		shi->nodes = 0;
-		
+
 		shi->mode = mode;
 
 		/* write to outputs */
@@ -169,21 +169,21 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		}
 		else
 			col[0] = col[1] = col[2] = 0.0f;
-		
+
 		col[3] = shrnode.alpha;
-		
+
 		if (shi->do_preview)
 			BKE_node_preview_set_pixel(execdata->preview, col, shi->xs, shi->ys, shi->do_manage);
-		
+
 		copy_v3_v3(out[MAT_OUT_COLOR]->vec, col);
 		out[MAT_OUT_ALPHA]->vec[0] = shrnode.alpha;
-		
+
 		if (node->custom1 & SH_NODE_MAT_NEG) {
 			shi->vn[0] = -shi->vn[0];
 			shi->vn[1] = -shi->vn[1];
 			shi->vn[2] = -shi->vn[2];
 		}
-		
+
 		copy_v3_v3(out[MAT_OUT_NORMAL]->vec, shi->vn);
 
 		if (shi->use_world_space_shading) {
@@ -198,7 +198,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 			copy_v3_v3(out[MAT_OUT_SPEC]->vec, shrnode.spec);
 			copy_v3_v3(out[MAT_OUT_AO]->vec, shrnode.ao);
 		}
-		
+
 		/* copy passes, now just active node */
 		if (node->flag & NODE_ACTIVE_ID) {
 			float combined[4], alpha;
@@ -254,7 +254,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		bNodeSocket *sock;
 		char hasinput[NUM_MAT_IN] = {'\0'};
 		int i;
-		
+
 		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily
 		 * the constant input stack values (e.g. in case material node is inside a group).
 		 * we just want to know if a node input uses external data or the material setting.
@@ -267,13 +267,13 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		/* write values */
 		if (hasinput[MAT_IN_COLOR])
 			shi.rgb = gpu_get_input_link(mat, &in[MAT_IN_COLOR]);
-		
+
 		if (hasinput[MAT_IN_SPEC])
 			shi.specrgb = gpu_get_input_link(mat, &in[MAT_IN_SPEC]);
-		
+
 		if (hasinput[MAT_IN_REFL])
 			shi.refl = gpu_get_input_link(mat, &in[MAT_IN_REFL]);
-		
+
 		/* retrieve normal */
 		if (hasinput[MAT_IN_NORMAL]) {
 			GPUNodeLink *tmp;
@@ -284,7 +284,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 			}
 			GPU_link(mat, "vec_math_normalize", shi.vn, &shi.vn, &tmp);
 		}
-		
+
 		/* custom option to flip normal */
 		if (node->custom1 & SH_NODE_MAT_NEG)
 			GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
@@ -303,7 +303,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		}
 
 		GPU_shaderesult_set(&shi, &shr); /* clears shr */
-		
+
 		/* write to outputs */
 		if (node->custom1 & SH_NODE_MAT_DIFF) {
 			out[MAT_OUT_COLOR].link = shr.combined;
@@ -322,7 +322,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		GPU_link(mat, "mtex_alpha_to_col", out[MAT_OUT_COLOR].link, shr.alpha, &out[MAT_OUT_COLOR].link);
 
 		out[MAT_OUT_ALPHA].link = shr.alpha; //
-		
+
 		if (node->custom1 & SH_NODE_MAT_NEG)
 			GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
 		out[MAT_OUT_NORMAL].link = shi.vn;

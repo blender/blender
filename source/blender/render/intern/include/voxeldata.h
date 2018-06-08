@@ -30,7 +30,7 @@
  */
 
 #ifndef __VOXELDATA_H__
-#define __VOXELDATA_H__ 
+#define __VOXELDATA_H__
 
 struct Render;
 struct TexResult;

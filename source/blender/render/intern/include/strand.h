@@ -26,7 +26,7 @@
 
 
 #ifndef __STRAND_H__
-#define __STRAND_H__ 
+#define __STRAND_H__
 
 struct StrandVert;
 struct StrandRen;

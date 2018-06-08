@@ -68,7 +68,7 @@ static float strand_eval_width(Material *ma, float strandco)
 			fac= pow(strandco, 1.0f/(1.0f-ma->strand_ease));
 	}
 	else fac= strandco;
-	
+
 	return ((1.0f-fac)*ma->strand_sta + (fac)*ma->strand_end);
 }
 
@@ -131,7 +131,7 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	negate_v3(spoint->nor);
 
 	spoint->width= strand_eval_width(ma, spoint->strandco);
-	
+
 	/* simplification */
 	simplify= RE_strandren_get_simplify(strandbuf->obr, sseg->strand, 0);
 	spoint->alpha= (simplify)? simplify[1]: 1.0f;
@@ -285,10 +285,10 @@ static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *ss
 
 	shade_input_set_strand(shi, sseg->strand, spoint);
 	shade_input_set_strand_texco(shi, sseg->strand, sseg->v[1], spoint);
-	
+
 	/* init material vars */
 	shade_input_init_material(shi);
-	
+
 	/* shade */
 	shade_samples_do_AO(ssamp);
 	shade_input_do_shade(shi, shr);
@@ -300,7 +300,7 @@ static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *ss
 	if (re->flag & R_LAMPHALO)
 		if (shi->layflag & SCE_LAY_HALO)
 			renderspothalo(shi, shr->combined, shr->combined[3]);
-	
+
 	shi->strand= NULL;
 }
 
@@ -325,7 +325,7 @@ StrandShadeCache *strand_shade_cache_create(void)
 	cache->resulthash= BLI_ghash_pair_new("strand_shade_cache_create1 gh");
 	cache->refcounthash= BLI_ghash_pair_new("strand_shade_cache_create2 gh");
 	cache->memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "strand shade cache arena");
-	
+
 	return cache;
 }
 
@@ -367,7 +367,7 @@ static void strand_shade_get(Render *re, StrandShadeCache *cache, ShadeSample *s
 	else
 		/* already shaded, just copy previous result from hash */
 		ssamp->shr[0]= entry->shr;
-	
+
 	/* lower reference count and remove if not needed anymore by any samples */
 	(*refcount)--;
 	if (*refcount == 0) {
@@ -536,10 +536,10 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 		/* find the z of the sample */
 		PixStr *ps;
 		intptr_t *rd= spart->rectdaps + offset;
-		
+
 		bufferz= 0x7FFFFFFF;
 		if (spart->rectmask) maskz= 0x7FFFFFFF;
-		
+
 		if (*rd) {
 			for (ps= (PixStr *)(*rd); ps; ps= ps->next) {
 				if (mask & ps->mask) {
@@ -609,7 +609,7 @@ static int strand_test_clip(float winmat[4][4], ZSpan *UNUSED(zspan), float *bou
 
 	if (hoco[0]+widthx < bounds[0]*hoco[3]) clipflag |= 1;
 	else if (hoco[0]-widthx > bounds[1]*hoco[3]) clipflag |= 2;
-	
+
 	if (hoco[1]-widthy > bounds[3]*hoco[3]) clipflag |= 4;
 	else if (hoco[1]+widthy < bounds[2]*hoco[3]) clipflag |= 8;
 
@@ -713,7 +713,7 @@ static int strand_segment_recursive(Render *re, float winmat[4][4], StrandPart *
 
 	if (len1 == 0.0f || len2 == 0.0f)
 		return 0;
-	
+
 	dot= d1[0]*d2[0] + d1[1]*d2[1];
 	if (dot*dot > sseg->sqadaptcos*len1*len2)
 		return 0;
@@ -735,7 +735,7 @@ static int strand_segment_recursive(Render *re, float winmat[4][4], StrandPart *
 		strand_render(re, sseg, winmat, spart, zspan, totzspan, p1, &p);
 	if (!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, &p, p2, depth+1))
 		strand_render(re, sseg, winmat, spart, zspan, totzspan, &p, p2);
-	
+
 	return 1;
 }
 
@@ -818,7 +818,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	/* needed for transform from hoco to zbuffer co */
 	zspan.zmulx= ((float)winx)/2.0f;
 	zspan.zmuly= ((float)winy)/2.0f;
-	
+
 	zspan.zofsx= -pa->disprect.xmin;
 	zspan.zofsy= -pa->disprect.ymin;
 
@@ -866,7 +866,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 		if (clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 			continue;
-		
+
 		widthx= obr->strandbuf->maxwidth*obwinmat[0][0];
 		widthy= obr->strandbuf->maxwidth*obwinmat[1][1];
 
@@ -962,7 +962,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	if (sortsegments)
 		MEM_freeN(sortsegments);
 	MEM_freeN(spart.totapixbuf);
-	
+
 	zbuf_free_span(&zspan);
 
 	return totsegment;
@@ -1057,7 +1057,7 @@ void strand_minmax(StrandRen *strand, float min[3], float max[3], const float wi
 	for (a=0, svert=strand->vert; a<strand->totvert; a++, svert++) {
 		copy_v3_v3(vec, svert->co);
 		minmax_v3v3_v3(min, max, vec);
-		
+
 		if (width!=0.0f) {
 			add_v3_fl(vec, width);
 			minmax_v3v3_v3(min, max, vec);

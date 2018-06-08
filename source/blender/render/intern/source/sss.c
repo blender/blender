@@ -190,7 +190,7 @@ static float compute_reduced_albedo(ScatterSettings *ss)
 
 		if (xn > 1.0f) xn= 1.0f;
 		if (xn_1 > 1.0f) xn_1= 1.0f;
-		
+
 		fxn= f_Rd(xn, ss->A, ss->ro);
 	}
 
@@ -299,7 +299,7 @@ static void build_Rd_table(ScatterSettings *ss)
 ScatterSettings *scatter_settings_new(float refl, float radius, float ior, float reflfac, float frontweight, float backweight)
 {
 	ScatterSettings *ss;
-	
+
 	ss= MEM_callocN(sizeof(ScatterSettings), "ScatterSettings");
 
 	/* see [1] and [3] for these formulas */
@@ -346,7 +346,7 @@ void scatter_settings_free(ScatterSettings *ss)
 
 #define SUBNODE_INDEX(co, split) \
 	((co[0]>=split[0]) + (co[1]>=split[1])*2 + (co[2]>=split[2])*4)
-	
+
 static void add_radiance(ScatterTree *tree, float *frontrad, float *backrad, float area, float backarea, float rr, ScatterResult *result)
 {
 	float rd[3], frontrd[3], backrd[3];
@@ -694,7 +694,7 @@ static void create_octree_node(ScatterTree *tree, ScatterNode *node, float *mid,
 		if (i != 0)
 			noffset[i]= noffset[i-1]+nsize[i-1];
 	}
-	
+
 	if (used_nodes <= 1) {
 		subnode_middle(usedi, mid, subsize, submid);
 		create_octree_node(tree, node, submid, subsize, refpoints, depth+1);
@@ -807,7 +807,7 @@ void scatter_tree_build(ScatterTree *tree)
 	tree->refpoints= NULL;
 	tree->tmppoints= NULL;
 	tree->points= newpoints;
-	
+
 	/* sum radiance at nodes */
 	sum_radiance(tree, tree->root);
 }
@@ -827,7 +827,7 @@ void scatter_tree_free(ScatterTree *tree)
 	if (tree->arena) BLI_memarena_free(tree->arena);
 	if (tree->points) MEM_freeN(tree->points);
 	if (tree->refpoints) MEM_freeN(tree->refpoints);
-		
+
 	MEM_freeN(tree);
 }
 
@@ -859,7 +859,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 
 	if (re->test_break(re->tbh))
 		return;
-	
+
 	points.first= points.last= NULL;
 
 	/* TODO: this is getting a bit ugly, copying all those variables and
@@ -884,7 +884,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	BLI_rw_mutex_unlock(&re->resultmutex);
 
 	RE_TileProcessor(re);
-	
+
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if (!(re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))) {
 		RE_FreeRenderResult(re->result);
@@ -907,7 +907,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	if (!re->test_break(re->tbh)) {
 		for (totpoint=0, p=points.first; p; p=p->next)
 			totpoint += p->totpoint;
-		
+
 		co= MEM_mallocN(sizeof(*co)*totpoint, "SSSCo");
 		color= MEM_mallocN(sizeof(*color)*totpoint, "SSSColor");
 		area= MEM_mallocN(sizeof(*area)*totpoint, "SSSArea");
@@ -939,7 +939,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		error= get_render_aosss_error(&re->r, error);
 		if ((re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW)) && error < 0.5f)
 			error= 0.5f;
-		
+
 		sss->ss[0]= scatter_settings_new(mat->sss_col[0], radius[0], ior, cfac, fw, bw);
 		sss->ss[1]= scatter_settings_new(mat->sss_col[1], radius[1], ior, cfac, fw, bw);
 		sss->ss[2]= scatter_settings_new(mat->sss_col[2], radius[2], ior, cfac, fw, bw);
@@ -964,7 +964,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 void sss_add_points(Render *re, float (*co)[3], float (*color)[3], float *area, int totpoint)
 {
 	SSSPoints *p;
-	
+
 	if (totpoint > 0) {
 		p= MEM_callocN(sizeof(SSSPoints), "SSSPoints");
 
@@ -997,11 +997,11 @@ void make_sss_tree(Render *re)
 	const char *prevstr = NULL;
 
 	free_sss(re);
-	
+
 	re->sss_hash= BLI_ghash_ptr_new("make_sss_tree gh");
 
 	re->stats_draw(re->sdh, &re->i);
-	
+
 	for (mat= re->main->mat.first; mat; mat= mat->id.next) {
 		if (mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS)) {
 			if (!infostr_set) {
@@ -1013,7 +1013,7 @@ void make_sss_tree(Render *re)
 			sss_create_tree_mat(re, mat);
 		}
 	}
-	
+
 	/* XXX preview exception */
 	/* localizing preview render data is not fun for node trees :( */
 	if (re->main!=G.main) {
@@ -1029,7 +1029,7 @@ void make_sss_tree(Render *re)
 			}
 		}
 	}
-	
+
 	if (infostr_set)
 		re->i.infostr = prevstr;
 }

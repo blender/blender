@@ -73,21 +73,21 @@ static int svbvh_bb_intersect_test_simd4(const Isect *isec, const __m128 *bb_gro
 	const __m128 tmax2 = _mm_min_ps(tmax1, mul3);
 	const __m128 tmin3 = _mm_max_ps(tmin2, mul4);
 	const __m128 tmax3 = _mm_min_ps(tmax2, mul5);
-	
+
 	return _mm_movemask_ps(_mm_cmpge_ps(tmax3, tmin3));
 }
 
 static int svbvh_bb_intersect_test(const Isect *isec, const float *_bb)
 {
 	const float *bb = _bb;
-	
+
 	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
 	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
 	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
 	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
 	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
 	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
-	
+
 	RE_RC_COUNT(isec->raycounter->bb.test);
 
 	if (t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
@@ -205,12 +205,12 @@ struct Reorganize_SVBVH {
 		nodes = 0;
 		childs_per_node = 0;
 		useless_bb = 0;
-		
+
 		for (int i = 0; i < 16; i++) {
 			nodes_with_childs[i] = 0;
 		}
 	}
-	
+
 	~Reorganize_SVBVH()
 	{
 #if 0
@@ -223,7 +223,7 @@ struct Reorganize_SVBVH {
 		}
 #endif
 	}
-	
+
 	SVBVHNode *create_node(int nchilds)
 	{
 		SVBVHNode *node = (SVBVHNode *)BLI_memarena_alloc(arena, sizeof(SVBVHNode));
@@ -231,12 +231,12 @@ struct Reorganize_SVBVH {
 
 		return node;
 	}
-	
+
 	void copy_bb(float bb[6], const float old_bb[6])
 	{
 		std::copy(old_bb, old_bb + 6, bb);
 	}
-	
+
 	void prepare_for_simd(SVBVHNode *node)
 	{
 		int i = 0;
@@ -261,7 +261,7 @@ struct Reorganize_SVBVH {
 	{
 		return ((num + (amt - 1)) & ~(amt - 1));
 	}
-	
+
 	SVBVHNode *transform(OldNode *old)
 	{
 		if (is_leaf(old))
@@ -273,14 +273,14 @@ struct Reorganize_SVBVH {
 		int alloc_childs = nchilds;
 		if (nchilds % 4 > 2)
 			alloc_childs = padup(nchilds, 4);
-		
+
 		SVBVHNode *node = create_node(alloc_childs);
 
 		childs_per_node += nchilds;
 		nodes++;
 		if (nchilds < 16)
 			nodes_with_childs[nchilds]++;
-		
+
 		useless_bb += alloc_childs - nchilds;
 		while (alloc_childs > nchilds) {
 			const static float def_bb[6] = {FLT_MAX,  FLT_MAX,  FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX};
@@ -288,7 +288,7 @@ struct Reorganize_SVBVH {
 			node->child[alloc_childs] = NULL;
 			copy_bb(node->child_bb + alloc_childs * 6, def_bb);
 		}
-		
+
 		int i = nchilds;
 		for (OldNode *o_child = old->child; o_child; o_child = o_child->sibling) {
 			i--;
@@ -307,7 +307,7 @@ struct Reorganize_SVBVH {
 		assert(i == 0);
 
 		prepare_for_simd(node);
-		
+
 		return node;
 	}
 };

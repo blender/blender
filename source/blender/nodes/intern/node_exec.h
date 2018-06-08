@@ -51,17 +51,17 @@ struct bNodeStack;
 typedef struct bNodeExec {
 	struct bNode *node;				/* backpointer to node */
 	bNodeExecData data;
-	
+
 	NodeFreeExecFunction freeexecfunc; /* free function, stored in exec itself to avoid dangling node pointer access */
 } bNodeExec;
 
 /* Execution Data for each instance of node tree execution */
 typedef struct bNodeTreeExec {
 	struct bNodeTree *nodetree;		/* backpointer to node tree */
-	
+
 	int totnodes;					/* total node count */
 	struct bNodeExec *nodeexec;		/* per-node execution data */
-	
+
 	int stacksize;
 	struct bNodeStack *stack;		/* socket data stack */
 	/* only used by material and texture trees to keep one stack for each thread */

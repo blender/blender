@@ -174,7 +174,7 @@ typedef struct FontBLF {
 
 	/* angle in radians. */
 	float angle;
-	
+
 	/* blur: 3 or 5 large kernel */
 	int blur;
 

@@ -268,11 +268,11 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 {
 	float dist, uv[2];
 	int ok = 0;
-	
+
 	/* avoid self-intersection */
 	if (is->orig.ob == face->ob && is->orig.face == face->face)
 		return 0;
-		
+
 	/* check if we should intersect this face */
 	if (is->check == RE_CHECK_VLR_RENDER) {
 		if (vlr_check_intersect(is, (ObjectInstanceRen *)face->ob, (VlakRen *)face->face) == 0)
@@ -296,7 +296,7 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 	ok = isec_tri_quad(is->start, &is->isect_precalc, face, uv, &dist);
 
 	if (ok) {
-	
+
 		/* when a shadow ray leaves a face, it can be little outside the edges
 		 * of it, causing intersection to be detected in its neighbor face */
 		if (is->skip & RE_SKIP_VLR_NEIGHBOUR) {
@@ -373,19 +373,19 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 	/* setup vars used on raycast */
 	for (i = 0; i < 3; i++) {
 		isec->idot_axis[i]          = 1.0f / isec->dir[i];
-		
+
 		isec->bv_index[2 * i]       = isec->idot_axis[i] < 0.0f ? 1 : 0;
 		isec->bv_index[2 * i + 1]   = 1 - isec->bv_index[2 * i];
-		
+
 		isec->bv_index[2 * i]       = i + 3 * isec->bv_index[2 * i];
 		isec->bv_index[2 * i + 1]   = i + 3 * isec->bv_index[2 * i + 1];
 	}
 
-#ifdef RT_USE_LAST_HIT	
+#ifdef RT_USE_LAST_HIT
 	/* last hit heuristic */
 	if (isec->mode == RE_RAY_SHADOW && isec->last_hit) {
 		RE_RC_COUNT(isec->raycounter->rayshadow_last_hit.test);
-		
+
 		if (RE_rayobject_intersect(isec->last_hit, isec)) {
 			RE_RC_COUNT(isec->raycounter->raycast.hit);
 			RE_RC_COUNT(isec->raycounter->rayshadow_last_hit.hit);
@@ -474,7 +474,7 @@ void RE_rayobject_merge_bb(RayObject *r, float min[3], float max[3])
 {
 	if (RE_rayobject_isRayFace(r)) {
 		RayFace *face = (RayFace *) RE_rayobject_align(r);
-		
+
 		DO_MINMAX(face->v1, min, max);
 		DO_MINMAX(face->v2, min, max);
 		DO_MINMAX(face->v3, min, max);

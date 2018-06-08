@@ -69,7 +69,7 @@ typedef struct Isect {
 	/* for envmap and incremental view update renders */
 	float origstart[3];
 	float origdir[3];
-	
+
 	/* precomputed values to accelerate bounding box intersection */
 	int bv_index[6];
 	float idot_axis[3];
@@ -84,12 +84,12 @@ typedef struct Isect {
 	/* hit information */
 	float u, v;
 	int isect;				/* which half of quad */
-	
+
 	struct {
 		void *ob;
 		void *face;
 	} hit, orig;
-	
+
 	/* last hit optimization */
 	struct RayObject *last_hit;
 
@@ -98,7 +98,7 @@ typedef struct Isect {
 	RayTraceHint *hint, *hit_hint;
 #endif
 	RayHint *hint;
-	
+
 	/* ray counter */
 #ifdef RE_RAYCOUNTER
 	RayCounter *raycounter;

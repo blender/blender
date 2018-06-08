@@ -111,7 +111,7 @@
 #endif
 
 /* ------------------------------------------------------------------------- */
-/* tool functions/defines for ad hoc simplification and possible future 
+/* tool functions/defines for ad hoc simplification and possible future
  * cleanup      */
 /* ------------------------------------------------------------------------- */
 
@@ -178,11 +178,11 @@ static void calc_edge_stress_add(float *accum, VertRen *v1, VertRen *v2)
 {
 	float len= len_v3v3(v1->co, v2->co)/len_v3v3(v1->orco, v2->orco);
 	float *acc;
-	
+
 	acc= accum + 2*v1->index;
 	acc[0]+= len;
 	acc[1]+= 1.0f;
-	
+
 	acc= accum + 2*v2->index;
 	acc[0]+= len;
 	acc[1]+= 1.0f;
@@ -192,13 +192,13 @@ static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 {
 	float loc[3], size[3], *accum, *acc, *accumoffs, *stress;
 	int a;
-	
+
 	if (obr->totvert==0) return;
-	
+
 	BKE_mesh_texspace_get(me, loc, NULL, size);
-	
+
 	accum= MEM_callocN(2*sizeof(float)*obr->totvert, "temp accum for stress");
-	
+
 	/* de-normalize orco */
 	for (a=0; a<obr->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(obr, a);
@@ -208,7 +208,7 @@ static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 			ver->orco[2]= ver->orco[2]*size[2] +loc[2];
 		}
 	}
-	
+
 	/* add stress values */
 	accumoffs= accum;	/* so we can use vertex index */
 	for (a=0; a<obr->totvlak; a++) {
@@ -225,7 +225,7 @@ static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 			}
 		}
 	}
-	
+
 	for (a=0; a<obr->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(obr, a);
 		if (ver->orco) {
@@ -235,14 +235,14 @@ static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 				acc[0]/= acc[1];
 			stress= RE_vertren_get_stress(obr, ver, 1);
 			*stress= *acc;
-			
+
 			/* restore orcos */
 			ver->orco[0] = (ver->orco[0]-loc[0])/size[0];
 			ver->orco[1] = (ver->orco[1]-loc[1])/size[1];
 			ver->orco[2] = (ver->orco[2]-loc[2])/size[2];
 		}
 	}
-	
+
 	MEM_freeN(accum);
 }
 
@@ -254,7 +254,7 @@ static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr, int do_tangent)
 	float tang[3], *tav;
 	float *uv1, *uv2, *uv3, *uv4;
 	float uv[4][2];
-	
+
 	if (tface) {
 		uv1= tface->uv[0];
 		uv2= tface->uv[1];
@@ -272,7 +272,7 @@ static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr, int do_tangent)
 	else return;
 
 	tangent_from_uv_v3(uv1, uv2, uv3, v1->co, v2->co, v3->co, vlr->n, tang);
-	
+
 	if (do_tangent) {
 		tav= RE_vertren_get_tangent(obr, v1, 1);
 		add_v3_v3(tav, tang);
@@ -281,10 +281,10 @@ static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr, int do_tangent)
 		tav= RE_vertren_get_tangent(obr, v3, 1);
 		add_v3_v3(tav, tang);
 	}
-	
+
 	if (v4) {
 		tangent_from_uv_v3(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
-		
+
 		if (do_tangent) {
 			tav= RE_vertren_get_tangent(obr, v1, 1);
 			add_v3_v3(tav, tang);
@@ -339,7 +339,7 @@ static void GetTextureCoordinate(const SMikkTSpaceContext *pContext, float r_uv[
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
 	MTFace *tface= RE_vlakren_get_tface(pMesh->obr, vlr, pMesh->mtface_index, NULL, 0);
 	const float *coord;
-	
+
 	if (tface  != NULL) {
 		coord= tface->uv[vert_index];
 		copy_v2_v2(r_uv, coord);
@@ -419,7 +419,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_verte
 			if (vlr->v4 && is_zero_v3(vlr->v4->n)) copy_v3_v3(vlr->v4->n, vlr->n);
 		}
 	}
-	
+
 	/* normalize vertex normals */
 	for (a=0; a<obr->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(obr, a);
@@ -642,7 +642,7 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], shor
 		if (vlr->v2 != vlr->v3) {
 			if (vlr->v4)
 				normal_quad_v3(vlr->n, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-			else 
+			else
 				normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 		}
 	}
@@ -665,11 +665,11 @@ static void set_object_orco(Render *re, void *ob, float *orco)
 {
 	if (!re->orco_hash)
 		re->orco_hash = BLI_ghash_ptr_new("set_object_orco gh");
-	
+
 	BLI_ghash_insert(re->orco_hash, ob, orco);
 }
 
-static void free_mesh_orco_hash(Render *re) 
+static void free_mesh_orco_hash(Render *re)
 {
 	if (re->orco_hash) {
 		BLI_ghash_free(re->orco_hash, NULL, MEM_freeN);
@@ -681,11 +681,11 @@ static void check_material_mapto(Material *ma)
 {
 	int a;
 	ma->mapto_textured = 0;
-	
+
 	/* cache which inputs are actually textured.
 	 * this can avoid a bit of time spent iterating through all the texture slots, map inputs and map tos
 	 * every time a property which may or may not be textured is accessed */
-	
+
 	for (a=0; a<MAX_MTEX; a++) {
 		if (ma->mtex[a] && ma->mtex[a]->tex) {
 			/* currently used only in volume render, so we'll check for those flags */
@@ -723,28 +723,28 @@ static Material *give_render_material(Render *re, Object *ob, short nr)
 {
 	extern Material defmaterial;	/* material.c */
 	Material *ma;
-	
+
 	ma= give_current_material(ob, nr);
 	if (ma==NULL)
 		ma= &defmaterial;
-	
+
 	if (re->r.mode & R_SPEED) ma->texco |= NEED_UV;
-	
+
 	if (ma->material_type == MA_TYPE_VOLUME) {
 		ma->mode |= MA_TRANSP;
 		ma->mode &= ~MA_SHADBUF;
 	}
 	if ((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		re->flag |= R_ZTRA;
-	
+
 	/* for light groups and SSS */
 	ma->flag |= MA_IS_USED;
 
 	if (ma->nodetree && ma->use_nodes)
 		flag_render_node_material(re, ma->nodetree);
-	
+
 	check_material_mapto(ma);
-	
+
 	return ma;
 }
 
@@ -768,7 +768,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 	static float anor[3], avec[3];
 	int flag, i;
 	static int second=0;
-	
+
 	sub_v3_v3v3(nor, vec, vec1);
 	normalize_v3(nor);  /* nor needed as tangent */
 	cross_v3_v3v3(cross, vec, nor);
@@ -778,7 +778,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 	dx= re->winx*cross[0]*re->winmat[0][0];
 	dy= re->winy*cross[1]*re->winmat[1][1];
 	w = sqrtf(dx * dx + dy * dy) / w;
-	
+
 	if (w!=0.0f) {
 		float fac;
 		if (ma->strand_ease!=0.0f) {
@@ -807,16 +807,16 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 
 		mul_v3_fl(cross, width);
 	}
-	
+
 	if (ma->mode & MA_TANGENT_STR)
 		flag= R_SMOOTH|R_TANGENT;
 	else
 		flag= R_SMOOTH;
-	
+
 	/* only 1 pixel wide strands filled in as quads now, otherwise zbuf errors */
 	if (ma->strand_sta==1.0f)
 		flag |= R_STRAND;
-	
+
 	/* single face line */
 	if (sd->line) {
 		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
@@ -825,13 +825,13 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
-		
+
 		copy_v3_v3(vlr->v1->co, vec);
 		add_v3_v3(vlr->v1->co, cross);
 		copy_v3_v3(vlr->v1->n, nor);
 		vlr->v1->orco= sd->orco;
 		vlr->v1->accum = -1.0f;  /* accum abuse for strand texco */
-		
+
 		copy_v3_v3(vlr->v2->co, vec);
 		sub_v3_v3v3(vlr->v2->co, vlr->v2->co, cross);
 		copy_v3_v3(vlr->v2->n, nor);
@@ -851,7 +851,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		vlr->v3->accum= vlr->v4->accum;
 
 		normal_quad_v3(vlr->n, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-		
+
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
 
@@ -872,7 +872,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 			if (sd->override_uv>=0) {
 				MTFace *mtf;
 				mtf=RE_vlakren_get_tface(obr, vlr, sd->override_uv, NULL, 0);
-				
+
 				mtf->uv[0][0]=mtf->uv[3][0]=0.0f;
 				mtf->uv[1][0]=mtf->uv[2][0]=1.0f;
 
@@ -899,13 +899,13 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 
 		v1= RE_findOrAddVert(obr, obr->totvert++);
 		v2= RE_findOrAddVert(obr, obr->totvert++);
-		
+
 		copy_v3_v3(v1->co, vec);
 		add_v3_v3(v1->co, cross);
 		copy_v3_v3(v1->n, nor);
 		v1->orco= sd->orco;
 		v1->accum = -1.0f;  /* accum abuse for strand texco */
-		
+
 		copy_v3_v3(v2->co, vec);
 		sub_v3_v3v3(v2->co, v2->co, cross);
 		copy_v3_v3(v2->n, nor);
@@ -961,7 +961,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 				vlr= RE_findOrAddVlak(obr, obr->totvlak-1);
 			}
 		}
-	
+
 		copy_v3_v3(vlr->v4->co, vec);
 		add_v3_v3(vlr->v4->co, cross);
 		copy_v3_v3(vlr->v4->n, nor);
@@ -973,9 +973,9 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		copy_v3_v3(vlr->v3->n, nor);
 		vlr->v3->orco= sd->orco;
 		vlr->v3->accum= vlr->v4->accum;
-		
+
 		normal_quad_v3(vlr->n, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-		
+
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
 
@@ -996,7 +996,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 			if (sd->override_uv>=0) {
 				MTFace *mtf;
 				mtf=RE_vlakren_get_tface(obr, vlr, sd->override_uv, NULL, 0);
-				
+
 				mtf->uv[0][0]=mtf->uv[3][0]=0.0f;
 				mtf->uv[1][0]=mtf->uv[2][0]=1.0f;
 
@@ -1026,15 +1026,15 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, const float vec[3
 		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= vlr->v2;
 		vlr->v4= NULL;
-		
+
 		copy_v3_v3(vlr->v1->co, vec);
 		copy_v3_v3(vlr->v2->co, vec1);
-		
+
 		sub_v3_v3v3(vlr->n, vec, vec1);
 		normalize_v3(vlr->n);
 		copy_v3_v3(vlr->v1->n, vlr->n);
 		copy_v3_v3(vlr->v2->n, vlr->n);
-		
+
 		vlr->mat= ma;
 		vlr->ec= ME_V1V2;
 
@@ -1049,14 +1049,14 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, const float vec[3
 		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= vlr->v2;
 		vlr->v4= NULL;
-		
+
 		v1= vlr->v2; /* cycle */
 		copy_v3_v3(v1->co, vec);
-		
+
 		sub_v3_v3v3(vlr->n, vec, vec1);
 		normalize_v3(vlr->n);
 		copy_v3_v3(v1->n, vlr->n);
-		
+
 		vlr->mat= ma;
 		vlr->ec= ME_V1V2;
 	}
@@ -1117,7 +1117,7 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 	copy_v3_v3(vlr->v2->n, vlr->n);
 	copy_v3_v3(vlr->v3->n, vlr->n);
 	copy_v3_v3(vlr->v4->n, vlr->n);
-	
+
 	vlr->mat= ma;
 	vlr->ec= ME_V2V3;
 
@@ -1145,9 +1145,9 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 					zvec[bb->align] = 0.0f;
 					normalize_v3(zvec);
 				}
-				
+
 				time = saacos(dot_v3v3(zvec, axis1)) / (float)M_PI;
-				
+
 				if (dot_v3v3(zvec, axis2) < 0.0f)
 					time = 1.0f - time / 2.0f;
 				else
@@ -1206,7 +1206,7 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, ParticleBillboardData *bb, ParticleKey *state, int seed, float hasize, float *pa_co)
 {
 	float loc[3], loc0[3], loc1[3], vel[3];
-	
+
 	copy_v3_v3(loc, state->co);
 
 	if (ren_as != PART_DRAW_BB)
@@ -1245,7 +1245,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 			HaloRen *har = NULL;
 
 			har = RE_inithalo_particle(re, obr, dm, ma, loc, NULL, sd->orco, sd->uvco, hasize, 0.0, seed, pa_co);
-			
+
 			if (har) har->lay= obr->ob->lay;
 
 			break;
@@ -1263,7 +1263,7 @@ static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int 
 				MFace *mface = dm->getTessFaceData(dm, num, CD_MFACE);
 				MTFace *mtface = (MTFace*)CustomData_get_layer_n(&dm->faceData, CD_MTFACE, i);
 				mtface += num;
-				
+
 				psys_interpolate_uvs(mtface, mface->v4, fuv, sd->uvco + 2 * i);
 			}
 			else {
@@ -1332,7 +1332,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	if (part==NULL || pars==NULL || !psys_check_enabled(ob, psys, G.is_rendering))
 		return 0;
-	
+
 	if (part->ren_as==PART_DRAW_OB || part->ren_as==PART_DRAW_GR || part->ren_as==PART_DRAW_NOT)
 		return 1;
 
@@ -1384,7 +1384,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 /* 2.1 setup material stff */
 	ma= give_render_material(re, ob, part->omat);
-	
+
 #if 0  /* XXX old animation system */
 	if (ma->ipo) {
 		calc_ipo(ma->ipo, cfra);
@@ -1441,7 +1441,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		bb.totnum = totpart+totchild;
 		bb.uv_split = part->bb_uv_split;
 	}
-	
+
 /* 2.5 setup matrices */
 	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);	/* need to be that way, for imat texture */
@@ -1590,7 +1590,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 				max_k = (int)cache->segments;
 			}
-			
+
 			pa_time = psys_get_child_time(psys, cpa, cfra, &pa_birthtime, &pa_dietime);
 			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 
@@ -1868,13 +1868,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	if (sd.uvco)
 		MEM_freeN(sd.uvco);
-	
+
 	if (sd.mcol)
 		MEM_freeN(sd.mcol);
 
 	if (states)
 		MEM_freeN(states);
-	
+
 	BLI_rng_free(rng);
 
 	psys->flag &= ~PSYS_DRAWING;
@@ -1948,7 +1948,7 @@ static int verghalo(const void *a1, const void *a2)
 {
 	const HaloRen *har1= *(const HaloRen**)a1;
 	const HaloRen *har2= *(const HaloRen**)a2;
-	
+
 	if (har1->zs < har2->zs) return 1;
 	else if (har1->zs > har2->zs) return -1;
 	return 0;
@@ -1986,7 +1986,7 @@ static short test_for_displace(Render *re, Object *ob)
 	/* return 1 when this object uses displacement textures. */
 	Material *ma;
 	int i;
-	
+
 	for (i=1; i<=ob->totcol; i++) {
 		ma=give_render_material(re, ob, i);
 		/* ma->mapto is ORed total of all mapto channels */
@@ -2051,10 +2051,10 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	}
 
 	shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
-	
+
 	do_material_tex(shi, re);
-	
-	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2], 
+
+	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2],
 	//vr->co[0], vr->co[1], vr->co[2]);
 
 	displace[0]= shi->displace[0] * scale[0];
@@ -2062,22 +2062,22 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	displace[2]= shi->displace[2] * scale[2];
 
 	/* 0.5 could become button once?  */
-	vr->co[0] += displace[0]; 
+	vr->co[0] += displace[0];
 	vr->co[1] += displace[1];
 	vr->co[2] += displace[2];
-	
-	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
-	
+
+	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]);
+
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
 	 * different material... */
 	vr->flag |= 1;
-	
+
 	/* Pass sample back so displace_face can decide which way to split the quad */
 	sample  = shi->displace[0]*shi->displace[0];
 	sample += shi->displace[1]*shi->displace[1];
 	sample += shi->displace[2]*shi->displace[2];
-	
-	vr->accum=sample; 
+
+	vr->accum=sample;
 	/* Should be sqrt(sample), but I'm only looking for "bigger".  Save the cycles. */
 	return;
 }
@@ -2088,11 +2088,11 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 
 	/* Warning, This is not that nice, and possibly a bit slow,
 	 * however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
-	memset(&shi, 0, sizeof(ShadeInput)); 
+	memset(&shi, 0, sizeof(ShadeInput));
 	/* end warning! - Campbell */
-	
+
 	/* set up shadeinput struct for multitex() */
-	
+
 	/* memset above means we don't need this */
 	/*shi.osatex= 0;*/		/* signal not to use dx[] and dy[] texture AA vectors */
 
@@ -2100,7 +2100,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	shi.thread= 0;
-	
+
 	/* TODO, assign these, displacement with new bumpmap is skipped without - campbell */
 #if 0
 	/* order is not known ? */
@@ -2112,7 +2112,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
 		displace_render_vert(re, obr, &shi, vlr->v1, 0,  scale);
-	
+
 	if (!vlr->v2->flag)
 		displace_render_vert(re, obr, &shi, vlr->v2, 1, scale);
 
@@ -2123,11 +2123,11 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 		if (!vlr->v4->flag)
 			displace_render_vert(re, obr, &shi, vlr->v4, 3, scale);
 
-		/*	closest in displace value.  This will help smooth edges.   */ 
+		/*	closest in displace value.  This will help smooth edges.   */
 		if (fabsf(vlr->v1->accum - vlr->v3->accum) > fabsf(vlr->v2->accum - vlr->v4->accum)) vlr->flag |=  R_DIVIDE_24;
 		else                                                                                 vlr->flag &= ~R_DIVIDE_24;
 	}
-	
+
 	/* Recalculate the face normal  - if flipped before, flip now */
 	if (vlr->v4) {
 		normal_quad_v3(vlr->n, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
@@ -2145,7 +2145,7 @@ static void displace(Render *re, ObjectRen *obr)
 	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];//, xn
 	int i; //, texflag=0;
 	Object *obt;
-		
+
 	/* Object Size with parenting */
 	obt=obr->ob;
 	while (obt) {
@@ -2153,7 +2153,7 @@ static void displace(Render *re, ObjectRen *obr)
 		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
 		obt=obt->parent;
 	}
-	
+
 	/* Clear all flags */
 	for (i=0; i<obr->totvert; i++) {
 		vr= RE_findOrAddVert(obr, i);
@@ -2164,7 +2164,7 @@ static void displace(Render *re, ObjectRen *obr)
 		vlr=RE_findOrAddVlak(obr, i);
 		displace_render_face(re, obr, vlr, scale);
 	}
-	
+
 	/* Recalc vertex normals */
 	calc_vertexnormals(re, obr, 1, 0, 0);
 }
@@ -2232,7 +2232,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 		normalize_v3(ver->n);
 		//if (ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
-		
+
 		if (need_orco) {
 			ver->orco= orco;
 			orco+=3;
@@ -2290,10 +2290,10 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	int p1, p2, p3, p4, a;
 	int sizeu, nsizeu, sizev, nsizev;
 	int startvert, startvlak;
-	
+
 	startvert= obr->totvert;
-	nsizeu = sizeu = dl->parts; nsizev = sizev = dl->nr; 
-	
+	nsizeu = sizeu = dl->parts; nsizev = sizev = dl->nr;
+
 	data= dl->verts;
 	for (u = 0; u < sizeu; u++) {
 		v1 = RE_findOrAddVert(obr, obr->totvert++); /* save this for possible V wrapping */
@@ -2302,7 +2302,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			v1->orco= orco; orco+= 3; orcoret++;
 		}
 		mul_m4_v3(mat, v1->co);
-		
+
 		for (v = 1; v < sizev; v++) {
 			ver= RE_findOrAddVert(obr, obr->totvert++);
 			copy_v3_v3(ver->co, data); data += 3;
@@ -2320,11 +2320,11 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			}
 		}
 	}
-	
+
 	/* Done before next loop to get corner vert */
 	if (dl->flag & DL_CYCL_U) nsizev++;
 	if (dl->flag & DL_CYCL_V) nsizeu++;
-	
+
 	/* if U cyclic, add extra row at end of column */
 	if (dl->flag & DL_CYCL_V) {
 		for (v = 0; v < nsizev; v++) {
@@ -2336,47 +2336,47 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			}
 		}
 	}
-	
+
 	sizeu = nsizeu;
 	sizev = nsizev;
-	
+
 	startvlak= obr->totvlak;
-	
+
 	for (u = 0; u < sizeu - 1; u++) {
 		p1 = startvert + u * sizev; /* walk through face list */
 		p2 = p1 + 1;
 		p3 = p2 + sizev;
 		p4 = p3 - 1;
-		
+
 		for (v = 0; v < sizev - 1; v++) {
 			v1= RE_findOrAddVert(obr, p1);
 			v2= RE_findOrAddVert(obr, p2);
 			v3= RE_findOrAddVert(obr, p3);
 			v4= RE_findOrAddVert(obr, p4);
-			
+
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
-			
+
 			normal_quad_v3(n1, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-			
+
 			copy_v3_v3(vlr->n, n1);
-			
+
 			vlr->mat= matar[ dl->col];
 			vlr->ec= ME_V1V2+ME_V2V3;
 			vlr->flag= dl->rt;
-			
+
 			add_v3_v3(v1->n, n1);
 			add_v3_v3(v2->n, n1);
 			add_v3_v3(v3->n, n1);
 			add_v3_v3(v4->n, n1);
-			
+
 			p1++; p2++; p3++; p4++;
 		}
 	}
 	/* fix normals for U resp. V cyclic faces */
 	sizeu--; sizev--;  /* dec size for face array */
 	if (dl->flag & DL_CYCL_V) {
-		
+
 		for (v = 0; v < sizev; v++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, v));
@@ -2388,7 +2388,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 		}
 	}
 	if (dl->flag & DL_CYCL_U) {
-		
+
 		for (u = 0; u < sizeu; u++) {
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(u, 0));
@@ -2400,7 +2400,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 		}
 	}
 
-	/* last vertex is an extra case: 
+	/* last vertex is an extra case:
 	 *
 	 *     ^     ()----()----()----()
 	 *     |     |     |     ||     |
@@ -2412,7 +2412,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	 *     |     |     ||     |
 	 *     ()----()----()----()
 	 *     v ->
-	 *  
+	 *
 	 *  vertex [] is no longer shared, therefore distribute
 	 *  normals of the surrounding faces to all of the duplicates of []
 	 */
@@ -2434,8 +2434,8 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 		ver= RE_findOrAddVert(obr, a);
 		normalize_v3(ver->n);
 	}
-	
-	
+
+
 	return orcoret;
 }
 
@@ -2660,7 +2660,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	BKE_displist_make_curveTypes_forRender(re->scene, ob, &disp, &dm, false, true);
 	dl= disp.first;
 	if (dl==NULL) return;
-	
+
 	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
 	negative_scale = is_negative_m4(mat);
@@ -3225,7 +3225,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	/* attempt to autsmooth on original mesh, only without subsurf */
 	if (do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
 		use_original_normals= true;
-	
+
 	ma= give_render_material(re, ob, 1);
 
 
@@ -3273,7 +3273,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 					*origindex = a;
 			}
 		}
-		
+
 		if (!timeoffset) {
 			short (*lnp)[4][3] = NULL;
 #ifdef WITH_FREESTYLE
@@ -3294,7 +3294,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				obr->tangent_mask = dm->tangent_mask;
 				DM_generate_tangent_tessface_data(dm, need_nmap_tangent_concrete || need_tangent);
 			}
-			
+
 			/* still to do for keys: the correct local texture coordinate */
 
 			/* faces in order of color blocks */
@@ -3320,7 +3320,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						}
 					}
 				}
-				
+
 				/* if wire material, and we got edges, don't do the faces */
 				if (ma->material_type == MA_TYPE_WIRE) {
 					end= dm->getNumEdges(dm);
@@ -3340,10 +3340,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 					index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
 					ffa= CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
 #endif
-					
+
 					for (a=0; a<end; a++, mface++) {
 						int v1, v2, v3, v4, flag;
-						
+
 						if ( mface->mat_nr==a1 ) {
 							float len;
 							bool reverse_verts = (negative_scale != 0 && do_autosmooth == false);
@@ -3390,16 +3390,16 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							if (use_original_normals) {
 								MFace *mf= me->mface+a;
 								MVert *mv= me->mvert;
-								
+
 								if (vlr->v4)
 									len= normal_quad_v3(vlr->n, mv[mf->v4].co, mv[mf->v3].co, mv[mf->v2].co, mv[mf->v1].co);
-								else 
+								else
 									len= normal_tri_v3(vlr->n, mv[mf->v3].co, mv[mf->v2].co, mv[mf->v1].co);
 							}
 							else {
 								if (vlr->v4)
 									len= normal_quad_v3(vlr->n, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-								else 
+								else
 									len= normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 							}
 
@@ -3419,7 +3419,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 								for (index=0; index<dm->faceData.totlayer; index++) {
 									layer= &dm->faceData.layers[index];
 									name= layer->name;
-									
+
 									if (layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
 										int t;
 										mtf= RE_vlakren_get_tface(obr, vlr, mtfn++, &name, 1);
@@ -3494,7 +3494,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			if (edge_hash)
 				BLI_edgehash_free(edge_hash, NULL);
 #endif
-			
+
 			/* exception... we do edges for wire mode. potential conflict when faces exist... */
 			end= dm->getNumEdges(dm);
 			mvert= dm->getVertArray(dm);
@@ -3504,12 +3504,12 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				struct edgesort *edgetable;
 				int totedge= 0;
 				recalc_normals= 1;
-				
+
 				medge= dm->getEdgeArray(dm);
-				
+
 				/* we want edges to have UV and vcol too... */
 				edgetable= make_mesh_edge_lookup(dm, &totedge);
-				
+
 				for (a1=0; a1<end; a1++, medge++) {
 					if (medge->flag&ME_EDGERENDER) {
 						MVert *v0 = &mvert[medge->v1];
@@ -3520,10 +3520,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->v2= RE_findOrAddVert(obr, vertofs+medge->v2);
 						vlr->v3= vlr->v2;
 						vlr->v4= NULL;
-						
+
 						if (edgetable)
 							use_mesh_edge_lookup(obr, dm, medge, vlr, edgetable, totedge);
-						
+
 						xn= -(v0->no[0]+v1->no[0]);
 						yn= -(v0->no[1]+v1->no[1]);
 						zn= -(v0->no[2]+v1->no[2]);
@@ -3532,7 +3532,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 						vlr->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 						normalize_v3(vlr->n);
-						
+
 						vlr->mat= ma;
 						vlr->flag= 0;
 						vlr->ec= ME_V1V2;
@@ -3543,7 +3543,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			}
 		}
 	}
-	
+
 	if (!timeoffset) {
 		if (need_stress)
 			calc_edge_stress(re, obr, me);
@@ -3575,49 +3575,49 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[4][4])
 {
 	struct ShadBuf *shb;
 	float viewinv[4][4];
-	
+
 	/* if (la->spsi<16) return; */
-	
+
 	/* memory alloc */
 	shb= (struct ShadBuf *)MEM_callocN(sizeof(struct ShadBuf), "initshadbuf");
 	lar->shb= shb;
-	
+
 	if (shb==NULL) return;
-	
+
 	VECCOPY(shb->co, lar->co); /* int copy */
-	
+
 	/* percentage render: keep track of min and max */
 	shb->size= (lar->bufsize*re->r.size)/100;
-	
+
 	if (shb->size<512) shb->size= 512;
 	else if (shb->size > lar->bufsize) shb->size= lar->bufsize;
-	
+
 	shb->size &= ~15;	/* make sure its multiples of 16 */
-	
+
 	shb->samp= lar->samp;
 	shb->soft= lar->soft;
 	shb->shadhalostep= lar->shadhalostep;
-	
+
 	normalize_m4(mat);
 	invert_m4_m4(shb->winmat, mat);	/* winmat is temp */
-	
+
 	/* matrix: combination of inverse view and lampmat */
 	/* calculate again: the ortho-render has no correct viewinv */
 	invert_m4_m4(viewinv, re->viewmat);
 	mul_m4_m4m4(shb->viewmat, shb->winmat, viewinv);
-	
+
 	/* projection */
 	shb->d= lar->clipsta;
 	shb->clipend= lar->clipend;
-	
+
 	/* bias is percentage, made 2x larger because of correction for angle of incidence */
 	/* when a ray is closer to parallel of a face, bias value is increased during render */
 	shb->bias= (0.02f*lar->bias)*0x7FFFFFFF;
-	
+
 	/* halfway method (average of first and 2nd z) reduces bias issues */
 	if (ELEM(lar->buftype, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP))
 		shb->bias= 0.1f*shb->bias;
-	
+
 	shb->compressthresh= lar->compressthresh;
 }
 
@@ -3629,7 +3629,7 @@ void area_lamp_vectors(LampRen *lar)
 	multifac= 1.0f/sqrtf((float)lar->ray_totsamp);
 	xsize *= multifac;
 	ysize *= multifac;
-	
+
 	/* corner vectors */
 	lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
 	lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
@@ -3665,14 +3665,14 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	/* previewrender sets this to zero... prevent accidents */
 	if (la==NULL) return NULL;
-	
+
 	/* prevent only shadow from rendering light */
 	if (la->mode & LA_ONLYSHADOW)
 		if ((re->r.mode & R_SHADOW)==0)
 			return NULL;
-	
+
 	re->totlamp++;
-	
+
 	/* groups is used to unify support for lightgroups, this is the global lightgroup */
 	go= MEM_callocN(sizeof(GroupObject), "groupobject");
 	BLI_addtail(&re->lights, go);
@@ -3699,7 +3699,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->shadhalostep = la->shadhalostep;
 	lar->clipsta = la->clipsta;
 	lar->clipend = la->clipend;
-	
+
 	lar->bias = la->bias;
 	lar->compressthresh = la->compressthresh;
 
@@ -3731,25 +3731,25 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->ray_samp= la->ray_samp;
 	lar->ray_sampy= la->ray_sampy;
 	lar->ray_sampz= la->ray_sampz;
-	
+
 	lar->area_size= la->area_size;
 	lar->area_sizey= la->area_sizey;
 	lar->area_sizez= la->area_sizez;
 
 	lar->area_shape= la->area_shape;
-	
+
 	/* Annoying, lamp UI does this, but the UI might not have been used? - add here too.
 	 * make sure this matches buttons_shading.c's logic */
 	if (ELEM(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && (la->mode & LA_SHAD_RAY))
 		if (ELEM(la->type, LA_SPOT, LA_SUN, LA_LOCAL))
 			if (la->ray_samp_method == LA_SAMP_CONSTANT) la->ray_samp_method = LA_SAMP_HALTON;
-	
+
 	lar->ray_samp_method= la->ray_samp_method;
 	lar->ray_samp_type= la->ray_samp_type;
-	
+
 	lar->adapt_thresh= la->adapt_thresh;
 	lar->sunsky = NULL;
-	
+
 	if ( ELEM(lar->type, LA_SPOT, LA_LOCAL)) {
 		lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
 		lar->area_shape = LA_AREA_SQUARE;
@@ -3790,7 +3790,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		{
 			lar->sunsky = (struct SunSky*)MEM_callocN(sizeof(struct SunSky), "sunskyren");
 			lar->sunsky->effect_type = la->sun_effect_type;
-		
+
 			copy_v3_v3(vec, ob->obmat[2]);
 			normalize_v3(vec);
 
@@ -3804,7 +3804,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		}
 	}
 	else lar->ray_totsamp= 0;
-	
+
 	lar->spotsi= la->spotsize;
 	if (lar->mode & LA_HALO) {
 		if (lar->spotsi > DEG2RADF(170.0f)) lar->spotsi = DEG2RADF(170.0f);
@@ -3878,7 +3878,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	for (c=0; c<MAX_MTEX; c++) {
 		if (la->mtex[c] && la->mtex[c]->tex) {
-			if (la->mtex[c]->mapto & LAMAP_COL) 
+			if (la->mtex[c]->mapto & LAMAP_COL)
 				lar->mode |= LA_TEXTURE;
 			if (la->mtex[c]->mapto & LAMAP_SHAD)
 				lar->mode |= LA_SHAD_TEX;
@@ -3898,10 +3898,10 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			if ( (re->r.mode & R_RAYTRACE)==0)
 				lar->mode &= ~LA_SHAD_RAY;
 		}
-	
+
 
 		if (re->r.mode & R_SHADOW) {
-			
+
 			if (la->type==LA_AREA && (lar->mode & LA_SHAD_RAY) && (lar->ray_samp_method == LA_SAMP_CONSTANT)) {
 				init_jitter_plane(lar);
 			}
@@ -3911,8 +3911,8 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 				copy_m4_m4(mat, ob->obmat);
 				initshadowbuf(re, lar, mat);  /* mat is altered */
 			}
-			
-			
+
+
 			/* this is the way used all over to check for shadow */
 			if (lar->shb || (lar->mode & LA_SHAD_RAY)) {
 				LampShadowSample *ls;
@@ -3920,7 +3920,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 				int a, b;
 
 				memset(re->shadowsamplenr, 0, sizeof(re->shadowsamplenr));
-				
+
 				lar->shadsamp= MEM_mallocN(re->r.threads*sizeof(LampShadowSample), "lamp shadow sample");
 				ls= lar->shadsamp;
 
@@ -3938,7 +3938,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			}
 		}
 	}
-	
+
 	return go;
 }
 
@@ -3954,7 +3954,7 @@ static bool is_object_hidden(Render *re, Object *ob)
 {
 	if (is_object_restricted(re, ob))
 		return true;
-	
+
 	if (re->r.scemode & R_VIEWPORT_PREVIEW) {
 		/* Mesh deform cages and so on mess up the preview. To avoid the problem,
 		 * viewport doesn't show mesh object if its draw type is bounding box or wireframe.
@@ -3978,7 +3978,7 @@ static bool is_object_hidden(Render *re, Object *ob)
 static void add_lightgroup(Render *re, Group *group, int exclusive)
 {
 	GroupObject *go, *gol;
-	
+
 	group->id.tag &= ~LIB_TAG_DOIT;
 
 	/* it's a bit too many loops in loops... but will survive */
@@ -3988,7 +3988,7 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 
 		if (is_object_hidden(re, go->ob))
 			continue;
-		
+
 		if (go->ob->lay & re->lay) {
 			if (go->ob && go->ob->type==OB_LAMP) {
 				for (gol= re->lights.first; gol; gol= gol->next) {
@@ -4012,14 +4012,14 @@ static void set_material_lightgroups(Render *re)
 {
 	Group *group;
 	Material *ma;
-	
+
 	/* not for preview render */
 	if (re->scene->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))
 		return;
-	
+
 	for (group= re->main->group.first; group; group=group->id.next)
 		group->id.tag |= LIB_TAG_DOIT;
-	
+
 	/* it's a bit too many loops in loops... but will survive */
 	/* hola! materials not in use...? */
 	for (ma= re->main->mat.first; ma; ma=ma->id.next) {
@@ -4031,7 +4031,7 @@ static void set_material_lightgroups(Render *re)
 static void set_renderlayer_lightgroups(Render *re, Scene *sce)
 {
 	SceneRenderLayer *srl;
-	
+
 	for (srl= sce->r.layers.first; srl; srl= srl->next) {
 		if (srl->light_override)
 			add_lightgroup(re, srl->light_override, 0);
@@ -4050,17 +4050,17 @@ void init_render_world(Render *re)
 	};
 
 	int a;
-	
+
 	if (re->scene && re->scene->world) {
 		re->wrld = *(re->scene->world);
 
 		copy_v3_v3(re->grvec, re->viewmat[2]);
 		normalize_v3(re->grvec);
 		copy_m3_m4(re->imat, re->viewinv);
-		
+
 		for (a=0; a<MAX_MTEX; a++)
 			if (re->wrld.mtex[a] && re->wrld.mtex[a]->tex) re->wrld.skytype |= WO_SKYTEX;
-		
+
 		/* AO samples should be OSA minimum */
 		if (re->osa)
 			while (re->wrld.aosamp*re->wrld.aosamp < re->osa)
@@ -4072,13 +4072,13 @@ void init_render_world(Render *re)
 		memset(&re->wrld, 0, sizeof(World));
 		re->wrld.exp= 0.0f;
 		re->wrld.range= 1.0f;
-		
+
 		/* for mist pass */
 		re->wrld.miststa= re->clipsta;
 		re->wrld.mistdist= re->clipend-re->clipsta;
 		re->wrld.misi= 1.0f;
 	}
-	
+
 	re->wrld.linfac= 1.0f + powf((2.0f*re->wrld.exp + 0.5f), -10);
 	re->wrld.logfac= logf((re->wrld.linfac-1.0f)/re->wrld.linfac) / re->wrld.range;
 
@@ -4100,11 +4100,11 @@ static void set_phong_threshold(ObjectRen *obr)
 	VlakRen *vlr;
 	float thresh= 0.0, dot;
 	int tot=0, i;
-	
-	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger 
+
+	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger
 	 * are taken into account. This threshold is meant to work on smooth geometry, not
 	 * for extreme cases (ton) */
-	
+
 	for (i=0; i<obr->totvlak; i++) {
 		vlr= RE_findOrAddVlak(obr, i);
 		if ((vlr->flag & R_SMOOTH) && (vlr->flag & R_STRAND)==0) {
@@ -4134,7 +4134,7 @@ static void set_phong_threshold(ObjectRen *obr)
 			}
 		}
 	}
-	
+
 	if (tot) {
 		thresh/= (float)tot;
 		obr->ob->smoothresh= cosf(0.5f*(float)M_PI-saacos(thresh));
@@ -4150,14 +4150,14 @@ static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 
 	osa= re->osa;
 	trace= re->r.mode & R_RAYTRACE;
-	
+
 	for (a=obr->totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(obr, a);
 		mode= vlr->mat->mode;
 
 		if (trace && (mode & MA_TRACEBLE))
 			vlr->flag |= R_TRACEBLE;
-		
+
 		if (osa) {
 			if (mode & MA_FULL_OSA) {
 				vlr->flag |= R_FULL_OSA;
@@ -4170,7 +4170,7 @@ static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 					/* pass */
 				}
 				else if ((mode & MA_RAYMIRROR) || ((mode & MA_TRANSP) && (mode & MA_RAYTRANSP))) {
-					/* for blurry reflect/refract, better to take more samples 
+					/* for blurry reflect/refract, better to take more samples
 					 * inside the raytrace than as OSA samples */
 					if ((vlr->mat->gloss_mir == 1.0f) && (vlr->mat->gloss_tra == 1.0f))
 						vlr->flag |= R_FULL_OSA;
@@ -4183,22 +4183,22 @@ static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 /* split quads for predictable baking
  * dir 1 == (0, 1, 2) (0, 2, 3),  2 == (1, 3, 0) (1, 2, 3)
  */
-static void split_quads(ObjectRen *obr, int dir) 
+static void split_quads(ObjectRen *obr, int dir)
 {
 	VlakRen *vlr, *vlr1;
 	int a;
 
 	for (a=obr->totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(obr, a);
-		
+
 		/* test if rendering as a quad or triangle, skip wire */
 		if ((vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
-			
+
 			if (vlr->v4) {
 
 				vlr1= RE_vlakren_copy(obr, vlr);
 				vlr1->flag |= R_FACE_SPLIT;
-				
+
 				if ( dir==2 ) vlr->flag |= R_DIVIDE_24;
 				else vlr->flag &= ~R_DIVIDE_24;
 
@@ -4209,18 +4209,18 @@ static void split_quads(ObjectRen *obr, int dir)
 					vlr1->v3= vlr->v4;
 
 					vlr->v3 = vlr->v4;
-					
+
 					vlr1->flag |= R_DIVIDE_24;
 				}
 				else {
 					vlr1->v1= vlr->v1;
 					vlr1->v2= vlr->v3;
 					vlr1->v3= vlr->v4;
-					
+
 					vlr1->flag &= ~R_DIVIDE_24;
 				}
 				vlr->v4 = vlr1->v4 = NULL;
-				
+
 #ifdef WITH_FREESTYLE
 				/* Freestyle edge marks */
 				if (vlr->flag & R_DIVIDE_24) {
@@ -4260,10 +4260,10 @@ static void check_non_flat_quads(ObjectRen *obr)
 
 	for (a=obr->totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(obr, a);
-		
+
 		/* test if rendering as a quad or triangle, skip wire */
 		if (vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
-			
+
 			/* check if quad is actually triangle */
 			v1= vlr->v1;
 			v2= vlr->v2;
@@ -4298,20 +4298,20 @@ static void check_non_flat_quads(ObjectRen *obr)
 					}
 				}
 			}
-			
+
 			if (vlr->v4) {
-				
+
 				/* Face is divided along edge with the least gradient 		*/
 				/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 	*/
 				/* 		4---3		4---3 */
 				/*		|\ 1|	or  |1 /| */
 				/*		|0\ |		|/ 0| */
 				/*		1---2		1---2 	0 = orig face, 1 = new face */
-				
+
 				/* render normals are inverted in render! we calculate normal of single tria here */
 				flen= normal_tri_v3(nor, vlr->v4->co, vlr->v3->co, vlr->v1->co);
 				if (flen==0.0f) normal_tri_v3(nor, vlr->v4->co, vlr->v2->co, vlr->v1->co);
-				
+
 				xn = dot_v3v3(nor, vlr->n);
 
 				if (ABS(xn) < 0.999995f ) {  /* checked on noisy fractal grid */
@@ -4320,7 +4320,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 
 					vlr1= RE_vlakren_copy(obr, vlr);
 					vlr1->flag |= R_FACE_SPLIT;
-					
+
 					/* split direction based on vnorms */
 					normal_tri_v3(nor, vlr->v1->co, vlr->v2->co, vlr->v3->co);
 					d1 = dot_v3v3(nor, vlr->v1->n);
@@ -4338,18 +4338,18 @@ static void check_non_flat_quads(ObjectRen *obr)
 						vlr1->v3= vlr->v4;
 
 						vlr->v3 = vlr->v4;
-						
+
 						vlr1->flag |= R_DIVIDE_24;
 					}
 					else {
 						vlr1->v1= vlr->v1;
 						vlr1->v2= vlr->v3;
 						vlr1->v3= vlr->v4;
-						
+
 						vlr1->flag &= ~R_DIVIDE_24;
 					}
 					vlr->v4 = vlr1->v4 = NULL;
-					
+
 					/* new normals */
 					normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 					normal_tri_v3(vlr1->n, vlr1->v3->co, vlr1->v2->co, vlr1->v1->co);
@@ -4391,19 +4391,19 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 	int a, b;
 
 	if (obr->totvert || obr->totvlak || obr->tothalo || obr->totstrand) {
-		/* the exception below is because displace code now is in init_render_mesh call, 
+		/* the exception below is because displace code now is in init_render_mesh call,
 		 * I will look at means to have autosmooth enabled for all object types
 		 * and have it as general postprocess, like displace */
 		if (ob->type!=OB_MESH && test_for_displace(re, ob))
 			displace(re, obr);
-	
+
 		if (!timeoffset) {
 			/* phong normal interpolation can cause error in tracing
 			 * (terminator problem) */
 			ob->smoothresh= 0.0;
 			if ((re->r.mode & R_RAYTRACE) && (re->r.mode & R_SHADOW))
 				set_phong_threshold(obr);
-			
+
 			if (re->flag & R_BAKING && re->r.bake_quad_split != 0) {
 				/* Baking lets us define a quad split order */
 				split_quads(obr, re->r.bake_quad_split);
@@ -4414,7 +4414,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				if ((re->r.mode & R_SIMPLIFY && re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)
 					check_non_flat_quads(obr);
 			}
-			
+
 			set_fullsample_trace_flag(re, obr);
 
 			/* compute bounding boxes for clipping */
@@ -4428,17 +4428,17 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 
 			if (obr->strandbuf) {
 				float width;
-				
+
 				/* compute average bounding box of strandpoint itself (width) */
 				if (obr->strandbuf->flag & R_STRAND_B_UNITS)
 					obr->strandbuf->maxwidth = max_ff(obr->strandbuf->ma->strand_sta, obr->strandbuf->ma->strand_end);
 				else
 					obr->strandbuf->maxwidth= 0.0f;
-				
+
 				width= obr->strandbuf->maxwidth;
 				sbound= obr->strandbuf->bound;
 				for (b=0; b<obr->strandbuf->totbound; b++, sbound++) {
-					
+
 					INIT_MINMAX(smin, smax);
 
 					for (a=sbound->start; a<sbound->end; a++) {
@@ -4556,7 +4556,7 @@ static ObjectRen *find_dupligroup_dupli(Render *re, Object *ob, int psysindex)
 	for (obr=re->objecttable.first; obr; obr=obr->next)
 		if (obr->ob == ob && obr->psysindex == psysindex && (obr->flag & R_INSTANCEABLE))
 			return obr;
-	
+
 	return NULL;
 }
 
@@ -4697,7 +4697,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 		}
 		else
 			find_dupli_instances(re, obr, dob);
-			
+
 		for (i=1; i<=ob->totcol; i++) {
 			Material* ma = give_render_material(re, ob, i);
 			if (ma && ma->material_type == MA_TYPE_VOLUME)
@@ -4711,7 +4711,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 		for (psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
 			if (!psys_check_enabled(ob, psys, G.is_rendering))
 				continue;
-			
+
 			obr= RE_addRenderObject(re, ob, par, index, psysindex, ob->lay);
 			if ((dob && !dob->animated) || (ob->transflag & OB_RENDER_DUPLI)) {
 				obr->flag |= R_INSTANCEABLE;
@@ -4752,7 +4752,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat, mat);
 	}
-	
+
 	time= PIL_check_seconds_timer();
 	if (time - lasttime > 1.0) {
 		lasttime= time;
@@ -4785,7 +4785,7 @@ void RE_Database_Free(Render *re)
 	}
 
 	/* FREE */
-	
+
 	for (lar= re->lampren.first; lar; lar= lar->next) {
 		freeshadowbuf(lar);
 		if (lar->jitter) MEM_freeN(lar->jitter);
@@ -4793,9 +4793,9 @@ void RE_Database_Free(Render *re)
 		if (lar->sunsky) MEM_freeN(lar->sunsky);
 		curvemapping_free(lar->curfalloff);
 	}
-	
+
 	free_volume_precache(re);
-	
+
 	BLI_freelistN(&re->lampren);
 	BLI_freelistN(&re->lights);
 
@@ -4809,9 +4809,9 @@ void RE_Database_Free(Render *re)
 		end_render_textures(re);
 		free_pointdensities(re);
 	}
-	
+
 	free_camera_inside_volumes(re);
-	
+
 	if (re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);
 		re->wrld.aosphere= NULL;
@@ -4826,13 +4826,13 @@ void RE_Database_Free(Render *re)
 	}
 	if (re->r.mode & R_RAYTRACE)
 		free_render_qmcsampler(re);
-	
+
 	if (re->r.mode & R_RAYTRACE) freeraytree(re);
 
 	free_sss(re);
 	free_occ(re);
 	free_strand_surface(re);
-	
+
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.convertdone = false;
 
@@ -4860,17 +4860,17 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 			return 0;
 		}
 	}
-	
+
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
 	if (ob->type == OB_MBALL && ob!=BKE_mball_basis_find(re->eval_ctx, re->scene, ob))
 		return 0;
-	
+
 	if (nolamps && (ob->type==OB_LAMP))
 		return 0;
-	
+
 	if (onlyselected && (ob!=actob && !(ob->flag & SELECT)))
 		return 0;
-	
+
 	return 1;
 }
 
@@ -4915,7 +4915,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 
 	if (level >= MAX_DUPLI_RECUR)
 		return;
-	
+
 	if (ob->transflag & OB_DUPLIPARTS) {
 		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
 			if (ELEM(psys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
@@ -5006,7 +5006,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * See bug: [#28744] - campbell */
 	for (ob= re->main->object.first; ob; ob= ob->id.next) {
 		float mat[4][4];
-		
+
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat_ren, mat);
@@ -5134,7 +5134,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						if (obi==NULL)
 							/* can't instance, just create the object */
 							init_render_object(re, obd, ob, dob, dob_extra->obmat, timeoffset);
-						
+
 						if (dob->type != OB_DUPLIGROUP) {
 							obd->flag |= OB_DONE;
 							obd->transflag |= OB_RENDER_DUPLI;
@@ -5142,7 +5142,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 					}
 					else
 						init_render_object(re, obd, ob, dob, dob_extra->obmat, timeoffset);
-					
+
 					if (re->test_break(re->tbh)) break;
 				}
 
@@ -5188,34 +5188,34 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 
 	if (re->r.scemode & R_VIEWPORT_PREVIEW)
 		re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
-	
+
 	/* scene needs to be set to get camera */
 	camera= RE_GetCamera(re);
-	
+
 	/* per second, per object, stats print this */
 	re->i.infostr= "Preparing Scene data";
 	re->i.cfra= scene->r.cfra;
 	BLI_strncpy(re->i.scene_name, scene->id.name + 2, sizeof(re->i.scene_name));
-	
+
 	/* XXX add test if dbase was filled already? */
-	
+
 	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "render db arena");
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
 	re->lampren.first= re->lampren.last= NULL;
 
 	re->i.partsdone = false;	/* signal now in use for previewrender */
-	
+
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if (re->lay & 0xFF000000)
 		lay &= 0xFF000000;
-	
+
 	/* applies changes fully */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
 		BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene, lay);
 		render_update_anim_renderdata(re, &re->scene->r);
 	}
-	
+
 	/* if no camera, viewmat should have been set! */
 	if (use_camera_view && camera) {
 		/* called before but need to call again in case of lens animation from the
@@ -5229,10 +5229,10 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		/* force correct matrix for scaled cameras */
 		DAG_id_tag_update_ex(re->main, &camera->id, OB_RECALC_OB);
 	}
-	
+
 	/* store for incremental render, viewmat rotates dbase */
 	copy_m4_m4(re->viewmat_orig, re->viewmat);
-	
+
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
 	if (re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
@@ -5241,7 +5241,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
 				init_ao_sphere(re, &re->wrld);
 	}
-	
+
 	/* still bad... doing all */
 	init_render_textures(re);
 	copy_v3_v3(amb, &re->wrld.ambr);
@@ -5250,12 +5250,12 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, 0, 0, NULL, 0);
-	
+
 	if (!re->test_break(re->tbh)) {
 		set_material_lightgroups(re);
 		for (sce= re->scene; sce; sce= sce->set)
 			set_renderlayer_lightgroups(re, sce);
-		
+
 		/* for now some clumsy copying still */
 		re->i.totvert= re->totvert;
 		re->i.totface= re->totvlak;
@@ -5273,9 +5273,9 @@ void RE_Database_Preprocess(Render *re)
 
 		tothalo= re->tothalo;
 		sort_halos(re, tothalo);
-		
+
 		init_camera_inside_volumes(re);
-		
+
 		re->i.infostr = IFACE_("Creating Shadowbuffers");
 		re->stats_draw(re->sdh, &re->i);
 
@@ -5293,7 +5293,7 @@ void RE_Database_Preprocess(Render *re)
 			/* ENVIRONMENT MAPS */
 			if (!re->test_break(re->tbh))
 				make_envmaps(re);
-				
+
 			/* point density texture */
 			if (!re->test_break(re->tbh))
 				make_pointdensities(re);
@@ -5301,10 +5301,10 @@ void RE_Database_Preprocess(Render *re)
 			if (!re->test_break(re->tbh))
 				make_voxeldata(re);
 		}
-		
+
 		if (!re->test_break(re->tbh))
 			project_renderdata(re, projectverto, (re->r.mode & R_PANORAMA) != 0, 0, 1);
-		
+
 		/* Occlusion */
 		if ((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 			if (re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
@@ -5314,17 +5314,17 @@ void RE_Database_Preprocess(Render *re)
 		/* SSS */
 		if ((re->r.mode & R_SSS) && !re->test_break(re->tbh))
 			make_sss_tree(re);
-		
+
 		if (!re->test_break(re->tbh))
 			if (re->r.mode & R_RAYTRACE)
 				volume_precache(re);
 	}
-	
+
 	re->i.convertdone = true;
 
 	if (re->test_break(re->tbh))
 		RE_Database_Free(re);
-	
+
 	re->i.infostr = NULL;
 	re->stats_draw(re->sdh, &re->i);
 }
@@ -5339,15 +5339,15 @@ void RE_DataBase_ApplyWindow(Render *re)
 void RE_DataBase_IncrementalView(Render *re, float viewmat[4][4], int restore)
 {
 	float oldviewinv[4][4], tmat[4][4];
-	
+
 	invert_m4_m4(oldviewinv, re->viewmat_orig);
-	
+
 	/* we have to correct for the already rotated vertexcoords */
 	mul_m4_m4m4(tmat, viewmat, oldviewinv);
-	
+
 	copy_m4_m4(re->viewmat, viewmat);
 	invert_m4_m4(re->viewinv, re->viewmat);
-	
+
 	init_camera_inside_volumes(re);
 
 	env_rotate_scene(re, tmat, !restore);
@@ -5371,25 +5371,25 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 {
 	Object *camera= RE_GetCamera(re);
 	float mat[4][4];
-	
+
 	re->scene= scene;
 	re->lay= lay;
-	
+
 	/* XXX add test if dbase was filled already? */
-	
+
 	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vector render db arena");
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.totface=re->i.totvert=re->i.totstrand=re->i.totlamp=re->i.tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
-	
+
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if (re->lay & 0xFF000000)
 		lay &= 0xFF000000;
-	
+
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
 	BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene, lay);
-	
+
 	/* if no camera, viewmat should have been set! */
 	if (camera) {
 		RE_GetCameraModelMatrix(re, camera, mat);
@@ -5397,10 +5397,10 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 		invert_m4(mat);
 		RE_SetView(re, mat);
 	}
-	
+
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, 0, 0, NULL, timeoffset);
-	
+
 	if (!re->test_break(re->tbh))
 		project_renderdata(re, projectverto, (re->r.mode & R_PANORAMA) != 0, 0, 1);
 
@@ -5414,11 +5414,11 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 	static float pixelphix=0.0f, pixelphiy=0.0f, zmulx=0.0f, zmuly=0.0f;
 	static int pano= 0;
 	float div;
-	
+
 	/* initialize */
 	if (re) {
 		pano= re->r.mode & R_PANORAMA;
-		
+
 		/* precalculate amount of radians 1 pixel rotates */
 		if (pano) {
 			/* size of 1 pixel mapped to viewplane coords */
@@ -5427,21 +5427,21 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 			psize = BLI_rctf_size_x(&re->viewplane) / (float)re->winx;
 			/* x angle of a pixel */
 			pixelphix = atan(psize / re->clipsta);
-			
+
 			psize = BLI_rctf_size_y(&re->viewplane) / (float)re->winy;
 			/* y angle of a pixel */
 			pixelphiy = atan(psize / re->clipsta);
 		}
 		zmulx= re->winx/2;
 		zmuly= re->winy/2;
-		
+
 		return;
 	}
-	
+
 	/* now map hocos to screenspace, uses very primitive clip still */
 	if (ho[3]<0.1f) div= 10.0f;
 	else div= 1.0f/ho[3];
-	
+
 	/* use cylinder projection */
 	if (pano) {
 		float vec[3], ang;
@@ -5451,10 +5451,10 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 		ang= saacos(-vec[2]/sqrtf(vec[0]*vec[0] + vec[2]*vec[2]));
 		if (vec[0]<0.0f) ang= -ang;
 		zco[0]= ang/pixelphix + zmulx;
-		
+
 		ang= 0.5f*(float)M_PI - saacos(vec[1] / len_v3(vec));
 		zco[1]= ang/pixelphiy + zmuly;
-		
+
 	}
 	else {
 		zco[0]= zmulx*(1.0f+ho[0]*div);
@@ -5467,16 +5467,16 @@ static void calculate_speedvector(const float vectors[2], int step, float winsq,
 	float zco[2], len;
 
 	speedvector_project(NULL, zco, co, ho);
-	
+
 	zco[0]= vectors[0] - zco[0];
 	zco[1]= vectors[1] - zco[1];
-	
+
 	/* enable nice masks for hardly moving stuff or float inaccuracy */
 	if (zco[0]<0.1f && zco[0]>-0.1f && zco[1]<0.1f && zco[1]>-0.1f ) {
 		zco[0]= 0.0f;
 		zco[1]= 0.0f;
 	}
-	
+
 	/* maximize speed for image width, otherwise it never looks good */
 	len= zco[0]*zco[0] + zco[1]*zco[1];
 	if (len > winsq) {
@@ -5484,7 +5484,7 @@ static void calculate_speedvector(const float vectors[2], int step, float winsq,
 		zco[0]*= len;
 		zco[1]*= len;
 	}
-	
+
 	/* note; in main vecblur loop speedvec is negated again */
 	if (step) {
 		speed[2]= -zco[0];
@@ -5619,44 +5619,44 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(fsob, eModifierType_Fluidsim);
 	FluidsimSettings *fss;
 	FluidVertexVelocity *velarray = NULL;
-	
+
 	/* only one step needed */
 	if (step) return 1;
-	
+
 	if (fluidmd)
 		fss = fluidmd->fss;
 	else
 		return 0;
-	
+
 	copy_m4_m4(mat, re->viewmat);
 	invert_m4_m4(imat, mat);
 
 	/* set first vertex OK */
 	if (!fss->meshVelocities) return 0;
-	
+
 	if ( obr->totvert != fss->totvert) {
 		//fprintf(stderr, "load_fluidsimspeedvectors - modified fluidsim mesh, not using speed vectors (%d,%d)...\n", obr->totvert, fsob->fluidsimSettings->meshSurface->totvert); // DEBUG
 		return 0;
 	}
-	
+
 	velarray = fss->meshVelocities;
 
 	if (obi->flag & R_TRANSFORMED)
 		mul_m4_m4m4(winmat, re->winmat, obi->mat);
 	else
 		copy_m4_m4(winmat, re->winmat);
-	
+
 	/* (bad) HACK calculate average velocity */
 	/* better solution would be fixing getVelocityAt() in intern/elbeem/intern/solver_util.cpp
 	 * so that also small drops/little water volumes return a velocity != 0.
 	 * But I had no luck in fixing that function - DG */
 	for (a=0; a<obr->totvert; a++) {
 		for (j=0;j<3;j++) avgvel[j] += velarray[a].vel[j];
-		
+
 	}
 	for (j=0;j<3;j++) avgvel[j] /= (float)(obr->totvert);
-	
-	
+
+
 	for (a=0; a<obr->totvert; a++, vectors+=2) {
 		if ((a & 255)==0)
 			ver= obr->vertnodes[a>>8].vert;
@@ -5667,14 +5667,14 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		fsvec[3] = 0.0f;
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.0; fsvec[2] = 2.0f; // NT fixed test
 		for (j=0;j<3;j++) fsvec[j] = velarray[a].vel[j];
-		
+
 		/* (bad) HACK insert average velocity if none is there (see previous comment) */
 		if ((fsvec[0] == 0.0f) && (fsvec[1] == 0.0f) && (fsvec[2] == 0.0f)) {
 			fsvec[0] = avgvel[0];
 			fsvec[1] = avgvel[1];
 			fsvec[2] = avgvel[2];
 		}
-		
+
 		/* transform (=rotate) to cam space */
 		camco[0] = dot_v3v3(imat[0], fsvec);
 		camco[1] = dot_v3v3(imat[1], fsvec);
@@ -5683,14 +5683,14 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		/* get homogeneous coordinates */
 		projectvert(camco, winmat, hoco);
 		projectvert(ver->co, winmat, ho);
-		
+
 		/* now map hocos to screenspace, uses very primitive clip still */
 		/* use ho[3] of original vertex, xy component of vel. direction */
 		if (ho[3]<0.1f) div= 10.0f;
 		else div= 1.0f/ho[3];
 		zco[0]= zmulx*hoco[0]*div;
 		zco[1]= zmuly*hoco[1]*div;
-		
+
 		/* maximize speed as usual */
 		len= zco[0]*zco[0] + zco[1]*zco[1];
 		if (len > winsq) {
@@ -5738,7 +5738,7 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 			for (a=0; a<obr->totvert; a++, vec+=2) {
 				if ((a & 255)==0) ver= obr->vertnodes[a>>8].vert;
 				else ver++;
-				
+
 				projectvert(ver->co, winmat, ho);
 				speedvector_project(NULL, vec, ver->co, ho);
 			}
@@ -5749,7 +5749,7 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 static void free_dbase_object_vectors(ListBase *lb)
 {
 	ObjectInstanceRen *obi;
-	
+
 	for (obi= lb->first; obi; obi= obi->next)
 		if (obi->vectors)
 			MEM_freeN(obi->vectors);
@@ -5764,56 +5764,56 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	ListBase oldtable= {NULL, NULL}, newtable= {NULL, NULL};
 	ListBase strandsurface;
 	int step;
-	
+
 	re->i.infostr = IFACE_("Calculating previous frame vectors");
 	re->r.mode |= R_SPEED;
-	
+
 	speedvector_project(re, NULL, NULL, NULL);	/* initializes projection code */
-	
+
 	/* creates entire dbase */
 	database_fromscene_vectors(re, sce, lay, -1);
-	
+
 	/* copy away vertex info */
 	copy_dbase_object_vectors(re, &oldtable);
-		
+
 	/* free dbase and make the future one */
 	strandsurface= re->strandsurface;
 	memset(&re->strandsurface, 0, sizeof(ListBase));
 	re->i.convertdone = true;
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
-	
+
 	if (!re->test_break(re->tbh)) {
 		/* creates entire dbase */
 		re->i.infostr = IFACE_("Calculating next frame vectors");
-		
+
 		database_fromscene_vectors(re, sce, lay, +1);
 	}
 	/* copy away vertex info */
 	copy_dbase_object_vectors(re, &newtable);
-	
+
 	/* free dbase and make the real one */
 	strandsurface= re->strandsurface;
 	memset(&re->strandsurface, 0, sizeof(ListBase));
 	re->i.convertdone = true;
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
-	
+
 	if (!re->test_break(re->tbh)) {
 		RE_Database_FromScene(re, bmain, sce, lay, 1);
 		RE_Database_Preprocess(re);
 	}
-	
+
 	if (!re->test_break(re->tbh)) {
 		int vectorlay= get_vector_renderlayers(re->scene);
 
 		for (step= 0; step<2; step++) {
-			
+
 			if (step)
 				table= &newtable;
 			else
 				table= &oldtable;
-			
+
 			oldobi= table->first;
 			for (obi= re->instancetable.first; obi && oldobi; obi= obi->next) {
 				int ok= 1;
@@ -5859,7 +5859,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 			}
 		}
 	}
-	
+
 	free_dbase_object_vectors(&oldtable);
 	free_dbase_object_vectors(&newtable);
 
@@ -5873,7 +5873,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 			mesh->nextco= NULL;
 		}
 	}
-	
+
 	re->i.infostr = NULL;
 	re->stats_draw(re->sdh, &re->i);
 }
@@ -5911,7 +5911,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	render_copy_renderdata(&re->r, &scene->r);
 
 	RE_init_threadcount(re);
-	
+
 	re->flag |= R_BAKING;
 	re->excludeob= actob;
 	if (actob)
@@ -5927,14 +5927,14 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		re->r.mode &= ~R_SHADOW;
 		re->r.mode &= ~R_RAYTRACE;
 	}
-	
+
 	if (!actob && (type==RE_BAKE_SHADOW)) {
 		re->r.mode |= R_SHADOW;
 	}
-	
+
 	/* setup render stuff */
 	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "bake db arena");
-	
+
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
 	re->lampren.first= re->lampren.last= NULL;
@@ -5942,9 +5942,9 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if (re->lay & 0xFF000000)
 		lay &= 0xFF000000;
-	
+
 	camera= RE_GetCamera(re);
-	
+
 	/* if no camera, set unit */
 	if (camera) {
 		normalize_m4_m4(mat, camera->obmat);
@@ -5967,25 +5967,25 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
 	if (re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
-		
+
 		if (re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT))
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
 				init_ao_sphere(re, &re->wrld);
 	}
-	
+
 	/* still bad... doing all */
 	init_render_textures(re);
-	
+
 	copy_v3_v3(amb, &re->wrld.ambr);
 	init_render_materials(re->main, re->r.mode, amb, true);
-	
+
 	set_node_shader_lamp_loop(shade_material_loop);
-	
+
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, nolamps, onlyselected, actob, 0);
 
 	set_material_lightgroups(re);
-	
+
 	/* SHADOW BUFFER */
 	if (type!=RE_BAKE_LIGHT)
 		if (re->r.mode & R_SHADOW)
@@ -5995,7 +5995,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	if (!re->test_break(re->tbh))
 		if (re->r.mode & R_RAYTRACE)
 			makeraytree(re);
-	
+
 	/* point density texture */
 	if (!re->test_break(re->tbh))
 		make_pointdensities(re);

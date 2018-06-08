@@ -51,7 +51,7 @@ typedef struct SunSky {
 	float backscattered_light;
 	float skyblendfac;
 	float sky_exposure;
-	
+
 	float atm_HGg;
 
 	float atm_SunIntensity;

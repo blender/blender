@@ -79,11 +79,11 @@ template<>
 void bvh_done<VBVHTree>(VBVHTree *obj)
 {
 	rtbuild_done(obj->builder, &obj->rayobj.control);
-	
+
 	//TODO find a away to exactly calculate the needed memory
 	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vbvh arena");
 	BLI_memarena_use_malloc(arena1);
-	
+
 	//Build and optimize the tree
 	if (1) {
 		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1, &obj->rayobj.control).transform(obj->builder);
@@ -96,7 +96,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 			reorganize(root);
 			remove_useless(root, &root);
 			bvh_refit(root);
-		
+
 			pushup(root);
 			pushdown(root);
 			obj->root = root;
@@ -109,13 +109,13 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 #if 0
 		MemArena *arena2 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vbvh arena2");
 		BLI_memarena_use_malloc(arena2);
-						   
+
 		//Finds the optimal packing of this tree using a given cost model
 		//TODO this uses quite a lot of memory, find ways to reduce memory usage during building
 		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena2).transform(obj->builder);
 		VBVH_optimalPackSIMD<OVBVHNode, PackCost>(PackCost()).transform(root);
 		obj->root = Reorganize_VBVH<OVBVHNode>(arena1).transform(root);
-		
+
 		BLI_memarena_free(arena2);
 #endif
 	}
@@ -176,7 +176,7 @@ static void bfree(VBVHTree *tree)
 template<class Tree, int STACK_SIZE>
 static RayObjectAPI make_api()
 {
-	static RayObjectAPI api = 
+	static RayObjectAPI api =
 	{
 		(RE_rayobject_raycast_callback) ((int   (*)(Tree *, Isect *)) & intersect<STACK_SIZE>),
 		(RE_rayobject_add_callback)     ((void  (*)(Tree *, RayObject *)) & bvh_add<Tree>),
@@ -186,7 +186,7 @@ static RayObjectAPI make_api()
 		(RE_rayobject_cost_callback)    ((float (*)(Tree *))      & bvh_cost<Tree>),
 		(RE_rayobject_hint_bb_callback) ((void  (*)(Tree *, LCTSHint *, float *, float *)) & bvh_hint_bb<Tree>)
 	};
-	
+
 	return api;
 }
 
@@ -194,7 +194,7 @@ template<class Tree>
 RayObjectAPI *bvh_get_api(int maxstacksize)
 {
 	static RayObjectAPI bvh_api256 = make_api<Tree, 1024>();
-	
+
 	if (maxstacksize <= 1024) return &bvh_api256;
 	assert(maxstacksize <= 256);
 	return 0;

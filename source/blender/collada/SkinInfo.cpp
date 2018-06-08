@@ -121,7 +121,7 @@ void SkinInfo::borrow_skin_controller_data(const COLLADAFW::SkinControllerData *
 
 	unit_converter->dae_matrix_to_mat4_(bind_shape_matrix, skin->getBindShapeMatrix());
 }
-	
+
 void SkinInfo::free()
 {
 	joints_per_vertex.releaseMemory();
@@ -199,7 +199,7 @@ const COLLADAFW::UniqueId& SkinInfo::get_controller_uid()
 }
 
 // check if this skin controller references a joint or any descendant of it
-// 
+//
 // some nodes may not be referenced by SkinController,
 // in this case to determine if the node belongs to this armature,
 // we need to search down the tree
@@ -259,9 +259,9 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 
 		// skip joints that have invalid UID
 		if ((*it).joint_uid == COLLADAFW::UniqueId::INVALID) continue;
-		
+
 		// name group by joint node name
-		
+
 		if (joint_by_uid.find((*it).joint_uid) != joint_by_uid.end()) {
 			name = bc_get_joint_name(joint_by_uid[(*it).joint_uid]);
 		}

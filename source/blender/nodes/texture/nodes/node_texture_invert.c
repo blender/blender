@@ -33,7 +33,7 @@
 #include "node_texture_util.h"
 #include "NOD_texture.h"
 
-/* **************** INVERT ******************** */ 
+/* **************** INVERT ******************** */
 static bNodeSocketTemplate inputs[] = {
 	{ SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
 	{ -1, 0, "" }
@@ -47,13 +47,13 @@ static bNodeSocketTemplate outputs[] = {
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	float col[4];
-	
+
 	tex_input_rgba(col, in[0], p, thread);
 
 	col[0] = 1.0f - col[0];
 	col[1] = 1.0f - col[1];
 	col[2] = 1.0f - col[2];
-	
+
 	copy_v3_v3(out, col);
 	out[3] = col[3];
 }
@@ -66,10 +66,10 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 void register_node_type_tex_invert(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	nodeRegisterType(&ntype);
 }

@@ -96,7 +96,7 @@ void addAlphaUnderFloat(float dest[4], const float source[4])
 	dest[1] += (mul * source[1]);
 	dest[2] += (mul * source[2]);
 	dest[3] += (mul * source[3]);
-} 
+}
 
 
 /* ------------------------------------------------------------------------- */
@@ -112,29 +112,29 @@ void addalphaAddfacFloat(float dest[4], const float source[4], char addfac)
 	/* blend colors*/
 	c = (m * dest[0]) + source[0];
 #ifdef RE_FLOAT_COLOR_CLIPPING
-	if (c >= RE_FULL_COLOR_FLOAT) dest[0] = RE_FULL_COLOR_FLOAT; 
-	else 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[0] = RE_FULL_COLOR_FLOAT;
+	else
 #endif
 	dest[0] = c;
 
 	c = (m * dest[1]) + source[1];
 #ifdef RE_FLOAT_COLOR_CLIPPING
-	if (c >= RE_FULL_COLOR_FLOAT) dest[1] = RE_FULL_COLOR_FLOAT; 
-	else 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[1] = RE_FULL_COLOR_FLOAT;
+	else
 #endif
 	dest[1] = c;
 
 	c = (m * dest[2]) + source[2];
 #ifdef RE_FLOAT_COLOR_CLIPPING
-	if (c >= RE_FULL_COLOR_FLOAT) dest[2] = RE_FULL_COLOR_FLOAT; 
-	else 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[2] = RE_FULL_COLOR_FLOAT;
+	else
 #endif
 	dest[2] = c;
 
 	c = (m * dest[3]) + source[3];
 #ifdef RE_ALPHA_CLIPPING
-	if (c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT; 
-	else 
+	if (c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT;
+	else
 #endif
 	dest[3] = c;
 
@@ -152,7 +152,7 @@ void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int ro
 	float val, r, g, b, al;
 	unsigned int a, maskand, maskshift;
 	int j;
-	
+
 	r = col[0];
 	g = col[1];
 	b = col[2];
@@ -177,7 +177,7 @@ void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int ro
 			rb1[3] += val * al;
 		}
 		a += 3;
-		
+
 		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 		if (val != 0.0f) {
 			rb2[0] += val * r;
@@ -186,7 +186,7 @@ void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int ro
 			rb2[3] += val * al;
 		}
 		a += 3;
-		
+
 		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 		if (val != 0.0f) {
 			rb3[0] += val * r;
@@ -194,7 +194,7 @@ void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int ro
 			rb3[2] += val * b;
 			rb3[3] += val * al;
 		}
-		
+
 		rb1 += 4;
 		rb2 += 4;
 		rb3 += 4;
@@ -208,19 +208,19 @@ void mask_array(unsigned int mask, float filt[3][3])
 	unsigned int maskand = (mask & 255);
 	unsigned int maskshift = (mask >> 8);
 	int a, j;
-	
+
 	for (j = 2; j >= 0; j--) {
-		
+
 		a = j;
-		
+
 		filt[2][2 - j] = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 
 		a += 3;
-		
+
 		filt[1][2 - j] = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
-		
+
 		a += 3;
-		
+
 		filt[0][2 - j] = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 	}
 }
@@ -244,14 +244,14 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 {
 	float *fpoin[3][3];
 	float val, r, g, b, al, lfilt[3][3];
-	
+
 	r = col[0];
 	g = col[1];
 	b = col[2];
 	al = col[3];
-	
+
 	memcpy(lfilt, filt, sizeof(lfilt));
-	
+
 	fpoin[0][1] = rowbuf - 4 * row_stride;
 	fpoin[1][1] = rowbuf;
 	fpoin[2][1] = rowbuf + 4 * row_stride;
@@ -284,7 +284,7 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 		lfilt[2][1] = filt[0][1];
 		lfilt[2][2] = filt[0][2];
 	}
-	
+
 	if (x <= mask->xmin) {
 		fpoin[2][0] = fpoin[2][1];
 		fpoin[1][0] = fpoin[1][1];
@@ -303,8 +303,8 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 		lfilt[1][2] = filt[1][0];
 		lfilt[0][2] = filt[0][0];
 	}
-	
-	
+
+
 	/* loop unroll */
 #define MASKFILT(i, j)                                                        \
 	val = lfilt[i][j];                                                        \
@@ -315,7 +315,7 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 		fp[2] += val * b;                                                     \
 		fp[3] += val * al;                                                    \
 	} (void)0
-	
+
 	MASKFILT(0, 0);
 	MASKFILT(0, 1);
 	MASKFILT(0, 2);
@@ -337,38 +337,38 @@ void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row
 	float val;
 	unsigned int a, maskand, maskshift;
 	int i, j;
-	
+
 	rb2 = rowbuf - pixsize;
 	rb3 = rb2 - pixsize * row_w;
 	rb1 = rb2 + pixsize * row_w;
-	
+
 	maskand = (mask & 255);
 	maskshift = (mask >> 8);
-	
+
 	for (j = 2; j >= 0; j--) {
-		
+
 		a = j;
-		
+
 		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 		if (val != 0.0f) {
 			for (i = 0; i < pixsize; i++)
 				rb1[i] += val * in[i];
 		}
 		a += 3;
-		
+
 		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 		if (val != 0.0f) {
 			for (i = 0; i < pixsize; i++)
 				rb2[i] += val * in[i];
 		}
 		a += 3;
-		
+
 		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 		if (val != 0.0f) {
 			for (i = 0; i < pixsize; i++)
 				rb3[i] += val * in[i];
 		}
-		
+
 		rb1 += pixsize;
 		rb2 += pixsize;
 		rb3 += pixsize;

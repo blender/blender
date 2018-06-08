@@ -60,24 +60,24 @@ typedef struct RTBuilder {
 		float bb[6];
 		int selected;
 	};
-	
+
 	/* list to all primitives added in this tree */
 	struct {
 		Object *begin, *end;
 		int maxsize;
 	} primitives;
-	
+
 	/* sorted list of rayobjects */
 	struct Object **sorted_begin[3], **sorted_end[3];
 
 	/* axis used (if any) on the split method */
 	int split_axis;
-	
+
 	/* child partitions calculated during splitting */
 	int child_offset[RTBUILD_MAX_CHILDS + 1];
-	
+
 //	int child_sorted_axis; /* -1 if not sorted */
-	
+
 	float bb[6];
 
 	/* current depth */

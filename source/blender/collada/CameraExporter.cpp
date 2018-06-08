@@ -56,9 +56,9 @@ void forEachCameraObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set
 void CamerasExporter::exportCameras(Scene *sce)
 {
 	openLibrary();
-	
+
 	forEachCameraObjectInExportSet(sce, *this, this->export_settings->export_set);
-	
+
 	closeLibrary();
 }
 void CamerasExporter::operator()(Object *ob, Scene *sce)

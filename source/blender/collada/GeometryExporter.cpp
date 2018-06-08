@@ -70,14 +70,14 @@ void GeometryExporter::exportGeom(Scene *sce)
 }
 
 void GeometryExporter::operator()(Object *ob)
-{ 
+{
 	// XXX don't use DerivedMesh, Mesh instead?
-#if 0		
+#if 0
 	DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 #endif
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
-	Mesh *me = bc_get_mesh_copy( mScene, 
+	Mesh *me = bc_get_mesh_copy( mScene,
 					ob,
 					this->export_settings->export_mesh_type,
 					this->export_settings->apply_modifiers,
@@ -88,7 +88,7 @@ void GeometryExporter::operator()(Object *ob)
 	std::vector<BCPolygonNormalsIndices> norind;
 
 	// Skip if linked geometry was already exported from another reference
-	if (use_instantiation && 
+	if (use_instantiation &&
 	    exportedGeometry.find(geom_id) != exportedGeometry.end())
 	{
 		return;
@@ -104,15 +104,15 @@ void GeometryExporter::operator()(Object *ob)
 
 	// openMesh(geoId, geoName, meshId)
 	openMesh(geom_id, geom_name);
-	
+
 	// writes <source> for vertex coords
 	createVertsSource(geom_id, me);
-	
+
 	// writes <source> for normal coords
 	createNormalsSource(geom_id, me, nor);
 
 	bool has_uvs = (bool)CustomData_has_layer(&me->fdata, CD_MTFACE);
-	
+
 	// writes <source> for uv coords if mesh has uv coords
 	if (has_uvs) {
 		createTexcoordsSource(geom_id, me);
@@ -153,9 +153,9 @@ void GeometryExporter::operator()(Object *ob)
 			createPolylists(uv_image_set, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
-	
+
 	closeMesh();
-	
+
 	if (me->flag & ME_TWOSIDED) {
 		mSW->appendTextBlock("<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
 	}
@@ -184,7 +184,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 	std::string geom_id = get_geometry_id(ob, false) + "_morph_" + translate_id(kb->name);
 	std::vector<Normal> nor;
 	std::vector<BCPolygonNormalsIndices> norind;
-	
+
 	if (exportedGeometry.find(geom_id) != exportedGeometry.end())
 	{
 		return;
@@ -200,15 +200,15 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 
 	// openMesh(geoId, geoName, meshId)
 	openMesh(geom_id, geom_name);
-	
+
 	// writes <source> for vertex coords
 	createVertsSource(geom_id, me);
-	
+
 	// writes <source> for normal coords
 	createNormalsSource(geom_id, me, nor);
 
 	bool has_uvs = (bool)CustomData_has_layer(&me->fdata, CD_MTFACE);
-	
+
 	// writes <source> for uv coords if mesh has uv coords
 	if (has_uvs) {
 		createTexcoordsSource(geom_id, me);
@@ -229,7 +229,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 
 	//createLooseEdgeList(ob, me, geom_id, norind);
 
-	// XXX slow		
+	// XXX slow
 	if (ob->totcol && this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
 		for (int a = 0; a < ob->totcol; a++) {
 			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
@@ -240,9 +240,9 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 		std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
 		createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
 	}
-	
+
 	closeMesh();
-	
+
 	if (me->flag & ME_TWOSIDED) {
 		mSW->appendTextBlock("<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
 	}
@@ -261,9 +261,9 @@ void GeometryExporter::createLooseEdgeList(Object *ob,
 	std::vector<unsigned int> edge_list;
 	int index;
 
-	// Find all loose edges in Mesh 
+	// Find all loose edges in Mesh
 	// and save vertex indices in edge_list
-	for (index = 0; index < totedges; index++) 
+	for (index = 0; index < totedges; index++)
 	{
 		MEdge *edge = &medges[index];
 
@@ -284,14 +284,14 @@ void GeometryExporter::createLooseEdgeList(Object *ob,
 
 
 		COLLADASW::InputList &til = lines.getInputList();
-			
-		// creates <input> in <lines> for vertices 
+
+		// creates <input> in <lines> for vertices
 		COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
 		til.push_back(input1);
 
 		lines.prepareToAppendValues();
 
-		for (index = 0; index < edges_in_linelist; index++) 
+		for (index = 0; index < edges_in_linelist; index++)
 		{
 			lines.appendValues(edge_list[2 * index + 1]);
 			lines.appendValues(edge_list[2 * index]);
@@ -366,7 +366,7 @@ void GeometryExporter::createPolylist(short material_index,
 	// count faces with this material
 	for (i = 0; i < totpolys; i++) {
 		MPoly *p = &mpolys[i];
-		
+
 		if (p->mat_nr == material_index) {
 			faces_in_polylist++;
 			vcount_list.push_back(p->totloop);
@@ -381,14 +381,14 @@ void GeometryExporter::createPolylist(short material_index,
 		fprintf(stderr, "%s: material with index %d is not used.\n", id_name(ob).c_str(), material_index);
 		return;
 	}
-		
+
 	Material *ma = ob->totcol ? give_current_material(ob, material_index + 1) : NULL;
 	COLLADASW::PrimitivesBase *facelist = getFacelist(is_triangulated, mSW);
 
-		
+
 	// sets count attribute in <polylist>
 	facelist->setCount(faces_in_polylist);
-		
+
 	// sets material name
 	if (ma) {
 		std::string material_id = get_material_id(ma);
@@ -398,22 +398,22 @@ void GeometryExporter::createPolylist(short material_index,
 	}
 
 	COLLADASW::InputList &til = facelist->getInputList();
-		
-	// creates <input> in <polylist> for vertices 
+
+	// creates <input> in <polylist> for vertices
 	COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
-		
+
 	// creates <input> in <polylist> for normals
 	COLLADASW::Input input2(COLLADASW::InputSemantic::NORMAL, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL), 1);
-		
+
 	til.push_back(input1);
 	til.push_back(input2);
-		
+
 	// if mesh has uv coords writes <input> for TEXCOORD
 	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 	int active_uv_index = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE)-1;
 	for (i = 0; i < num_layers; i++) {
 		if (!this->export_settings->active_uv_only || i == active_uv_index) {
-			
+
 			std::string uv_name(bc_get_uvlayer_name(me, i));
 			std::string effective_id = geom_id; // (uv_name == "") ? geom_id : uv_name;
 			std::string layer_id = makeTexcoordSourceId(
@@ -421,7 +421,7 @@ void GeometryExporter::createPolylist(short material_index,
 				i, this->export_settings->active_uv_only);
 
 			/* Note: the third parameter denotes the offset of TEXCOORD in polylist elements
-			   For now this is always 2 (This may change sometime/maybe) 
+			   For now this is always 2 (This may change sometime/maybe)
 			*/
 			COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
 				makeUrl(layer_id),
@@ -447,8 +447,8 @@ void GeometryExporter::createPolylist(short material_index,
 			map_index++;
 		}
 	}
-		
-		
+
+
 	// performs the actual writing
 	prepareToAppendValues(is_triangulated, facelist, vcount_list);
 
@@ -504,7 +504,7 @@ void GeometryExporter::createPolylists(std::set<Image *> uv_images,
 			norind);
 	}
 
-	/* We msut add an additional collector for the case when 
+	/* We msut add an additional collector for the case when
 	 * some parts of the object are not textured at all.
 	 * The next call creates a polylist for all untextured polygons
 	 */
@@ -580,7 +580,7 @@ void GeometryExporter::createPolylist(std::string imageid,
 	}
 	COLLADASW::InputList &til = facelist->getInputList();
 
-	// creates <input> in <polylist> for vertices 
+	// creates <input> in <polylist> for vertices
 	COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
 
 	// creates <input> in <polylist> for normals
@@ -670,7 +670,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 #endif
 	int totverts = me->totvert;
 	MVert *verts = me->mvert;
-	
+
 	COLLADASW::FloatSourceF source(mSW);
 	source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION));
 	source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION) +
@@ -690,7 +690,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 	for (i = 0; i < totverts; i++) {
 		source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);
 	}
-	
+
 	source.finish();
 
 }
@@ -742,7 +742,7 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 				);
 			}
 		}
-	
+
 		source.finish();
 	}
 }
@@ -777,26 +777,26 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 		int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, a);
 		if (!this->export_settings->active_uv_only || layer_index == active_uv_index) {
 			MLoopUV *mloops = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, a);
-			
+
 			COLLADASW::FloatSourceF source(mSW);
 			std::string active_uv_name(bc_get_active_uvlayer_name(me));
 			std::string effective_id = geom_id; // (active_uv_name == "") ? geom_id : active_uv_name;
 			std::string layer_id = makeTexcoordSourceId(
-				effective_id, 
-				a, 
+				effective_id,
+				a,
 				this->export_settings->active_uv_only );
 
 			source.setId(layer_id);
 			source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
-			
+
 			source.setAccessorCount(totuv);
 			source.setAccessorStride(2);
 			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 			param.push_back("S");
 			param.push_back("T");
-			
+
 			source.prepareToAppendValues();
-			
+
 			for (int index = 0; index < totpoly; index++) {
 				MPoly   *mpoly = mpolys+index;
 				MLoopUV *mloop = mloops+mpoly->loopstart;
@@ -805,7 +805,7 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 										mloop[j].uv[1]);
 				}
 			}
-			
+
 			source.finish();
 		}
 	}
@@ -835,7 +835,7 @@ void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::v
 	param.push_back("X");
 	param.push_back("Y");
 	param.push_back("Z");
-	
+
 	source.prepareToAppendValues();
 
 	std::vector<Normal>::iterator it;
@@ -920,10 +920,10 @@ std::string GeometryExporter::getIdBySemantics(std::string geom_id, COLLADASW::I
 
 COLLADASW::URI GeometryExporter::getUrlBySemantics(std::string geom_id, COLLADASW::InputSemantic::Semantics type, std::string other_suffix)
 {
-	
+
 	std::string id(getIdBySemantics(geom_id, type, other_suffix));
 	return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
-	
+
 }
 
 COLLADASW::URI GeometryExporter::makeUrl(std::string id)

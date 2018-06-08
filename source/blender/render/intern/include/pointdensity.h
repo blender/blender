@@ -31,7 +31,7 @@
 
 
 #ifndef __POINTDENSITY_H__
-#define __POINTDENSITY_H__ 
+#define __POINTDENSITY_H__
 
 /**
  * Make point density kd-trees for all point density textures in the scene

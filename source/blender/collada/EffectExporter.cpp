@@ -55,7 +55,7 @@ EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettin
 bool EffectsExporter::hasEffects(Scene *sce)
 {
 	Base *base = (Base *)sce->base.first;
-	
+
 	while (base) {
 		Object *ob = base->object;
 		int a;
@@ -75,7 +75,7 @@ bool EffectsExporter::hasEffects(Scene *sce)
 void EffectsExporter::exportEffects(Scene *sce)
 {
 	this->scene = sce;
-	
+
 	if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
 		if (hasEffects(sce)) {
 				MaterialFunctor mf;
@@ -152,7 +152,7 @@ void EffectsExporter::writePhong(COLLADASW::EffectProfile &ep, Material *ma)
 void EffectsExporter::writeTextures(
         COLLADASW::EffectProfile &ep,
         std::string &key,
-        COLLADASW::Sampler *sampler, 
+        COLLADASW::Sampler *sampler,
         MTex *t, Image *ima,
         std::string &uvname )
 {
@@ -184,7 +184,7 @@ void EffectsExporter::writeTextures(
 		ep.setTransparent(createTexture(ima, uvname, sampler));
 	}
 	// extension:
-	// Normal map --> Must be stored with <extra> tag as different technique, 
+	// Normal map --> Must be stored with <extra> tag as different technique,
 	// since COLLADA doesn't support normal maps, even in current COLLADA 1.5.
 	if (t->mapto & MAP_NORM) {
 		COLLADASW::Texture texture(key);
@@ -205,7 +205,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	createTextureIndices(ma, tex_indices);
 
 	openEffect(translate_id(id_name(ma)) + "-effect");
-	
+
 	COLLADASW::EffectProfile ep(mSW);
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
@@ -229,7 +229,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			writePhong(ep, ma);
 		}
 	}
-	
+
 	// index of refraction
 	if (ma->mode & MA_RAYTRANSP) {
 		ep.setIndexOfRefraction(ma->ang, false, "index_of_refraction");
@@ -290,7 +290,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	//COLLADASW::Surface surfaces[MAX_MTEX];
 	//void *samp_surf[MAX_MTEX][2];
 	void *samp_surf[MAX_MTEX];
-	
+
 	// image to index to samp_surf map
 	// samp_surf[index] stores 2 pointers, sampler and surface
 	std::map<std::string, int> im_samp_map;
@@ -299,10 +299,10 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	for (a = 0, b = 0; a < tex_indices.size(); a++) {
 		MTex *t = ma->mtex[tex_indices[a]];
 		Image *ima = t->tex->ima;
-		
+
 		// Image not set for texture
 		if (!ima) continue;
-		
+
 		std::string key(id_name(ima));
 		key = translate_id(key);
 
@@ -317,7 +317,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 			// COLLADASW::NewParamSurface surface(mSW);
 			// surface->setParamType(COLLADASW::CSW_SURFACE_TYPE_2D);
-			
+
 			//<newparam> <sampler> <source>
 			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
 			                           key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
@@ -326,11 +326,11 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			// copy values to arrays since they will live longer
 			samplers[a] = sampler;
 			//surfaces[a] = surface;
-			
+
 			// store pointers so they can be used later when we create <texture>s
 			samp_surf[b] = &samplers[a];
 			//samp_surf[b][1] = &surfaces[a];
-			
+
 			im_samp_map[key] = b;
 			b++;
 		}
@@ -381,12 +381,12 @@ COLLADASW::ColorOrTexture EffectsExporter::createTexture(Image *ima,
                                                          COLLADASW::Sampler *sampler
                                                          /*COLLADASW::Surface *surface*/)
 {
-	
+
 	COLLADASW::Texture texture(translate_id(id_name(ima)));
 	texture.setTexcoord(uv_layer_name);
 	//texture.setSurface(*surface);
 	texture.setSampler(*sampler);
-	
+
 	COLLADASW::ColorOrTexture cot(texture);
 	return cot;
 }
@@ -398,7 +398,7 @@ COLLADASW::ColorOrTexture EffectsExporter::getcol(float r, float g, float b, flo
 	return cot;
 }
 
-//returns the array of mtex indices which have image 
+//returns the array of mtex indices which have image
 //need this for exporting textures
 void EffectsExporter::createTextureIndices(Material *ma, std::vector<int> &indices)
 {

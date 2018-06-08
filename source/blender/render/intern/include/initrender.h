@@ -31,7 +31,7 @@
 
 
 #ifndef __INITRENDER_H__
-#define __INITRENDER_H__ 
+#define __INITRENDER_H__
 
 
 /* Functions */

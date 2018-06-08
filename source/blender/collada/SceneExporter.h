@@ -102,7 +102,7 @@ private:
 	friend class ArmatureExporter;
 	void exportHierarchy(bContext *C, Scene *sce);
 	void writeNodes(bContext *C, Object *ob, Scene *sce);
-	
+
 	ArmatureExporter *arm_exporter;
 	const ExportSettings *export_settings;
 };

@@ -66,7 +66,7 @@ typedef struct ShadeResult {
 
 /* only here for quick copy */
 struct ShadeInputCopy {
-	
+
 	struct Material *mat;
 	struct VlakRen *vlr;
 	struct StrandRen *strand;
@@ -98,7 +98,7 @@ typedef struct ShadeInputCol {
 typedef struct ShadeInput {
 	/* copy from face, also to extract tria from quad */
 	/* note it mirrors a struct above for quick copy */
-	
+
 	struct Material *mat;
 	struct VlakRen *vlr;
 	struct StrandRen *strand;
@@ -114,26 +114,26 @@ typedef struct ShadeInput {
 	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
 	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
 	int mode, mode2;			/* base material mode (OR-ed result of entire node tree) */
-	
+
 	/* internal face coordinates */
 	float u, v, dx_u, dx_v, dy_u, dy_v;
 	float co[3], view[3], camera_co[3];
-	
+
 	/* copy from material, keep synced so we can do memcopy */
 	/* current size: 23*4 */
 	float r, g, b;
 	float specr, specg, specb;
 	float mirr, mirg, mirb;
 	float ambr, ambb, ambg;
-	
+
 	float amb, emit, ang, spectra, ray_mirror;
 	float alpha, refl, spec, zoffs, add;
 	float translucency;
 	/* end direct copy from material */
-	
+
 	/* individual copies: */
 	int har; /* hardness */
-	
+
 	/* texture coordinates */
 	float lo[3], gl[3], ref[3], orn[3], winco[3], vcol[4];
 	float refcol[4], displace[3];
@@ -144,7 +144,7 @@ typedef struct ShadeInput {
 	ShadeInputUV uv[8];   /* 8 = MAX_MTFACE */
 	ShadeInputCol col[8]; /* 8 = MAX_MCOL */
 	int totuv, totcol, actuv, actcol;
-	
+
 	/* dx/dy OSA coordinates */
 	float dxco[3], dyco[3];
 	float dxlo[3], dylo[3], dxgl[3], dygl[3];
@@ -154,18 +154,18 @@ typedef struct ShadeInput {
 	float dxwin[3], dywin[3];
 	float dxrefract[3], dyrefract[3];
 	float dxstrand, dystrand;
-	
+
 	/* AO is a pre-process now */
 	float ao[3], indirect[3], env[3];
-	
+
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */
 	float scanco[3];		/* original scanline coordinate without jitter */
-	
+
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
 	int volume_depth;		/* number of intersections through volumes */
-	
+
 	/* for strand shading, normal at the surface */
 	float surfnor[3], surfdist;
 
@@ -175,7 +175,7 @@ typedef struct ShadeInput {
 	bool use_world_space_shading;
 	short thread, sample;	/* sample: ShadeSample array index */
 	short nodes;			/* indicate node shading, temp hack to prevent recursion */
-	
+
 	unsigned int lay;
 	int layflag, passflag, combinedflag;
 	short object_pass_index;
@@ -185,7 +185,7 @@ typedef struct ShadeInput {
 #ifdef RE_RAYCOUNTER
 	RayCounter raycounter;
 #endif
-	
+
 } ShadeInput;
 
 typedef struct BakeImBufuserData {

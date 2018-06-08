@@ -88,7 +88,7 @@ public:
 	void transfer_uint_array_data_const(const COLLADAFW::UIntValuesArray& src, COLLADAFW::UIntValuesArray& dest);
 
 	void borrow_skin_controller_data(const COLLADAFW::SkinControllerData* skin);
-		
+
 	void free();
 
 	// using inverse bind matrices to construct armature
@@ -110,7 +110,7 @@ public:
 	const COLLADAFW::UniqueId& get_controller_uid();
 
 	// check if this skin controller references a joint or any descendant of it
-	// 
+	//
 	// some nodes may not be referenced by SkinController,
 	// in this case to determine if the node belongs to this armature,
 	// we need to search down the tree

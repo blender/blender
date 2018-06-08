@@ -68,13 +68,13 @@
 static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 {
 	int dx, part;
-	
+
 	/* after lock we test cube[1], if set the other thread has done it fine */
 	BLI_thread_lock(LOCK_IMAGE);
 	if (env->cube[1] == NULL) {
 
 		BKE_texture_envmap_free_data(env);
-	
+
 		dx = ibuf->y;
 		dx /= 2;
 		if (3 * dx == ibuf->x) {
@@ -90,27 +90,27 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 			env->ok = 0;
 			env->ima->ok = 0;
 		}
-		
+
 		if (env->ok) {
 			if (env->type == ENV_CUBE) {
 				for (part = 0; part < 6; part++) {
 					env->cube[part] = IMB_allocImBuf(dx, dx, 24, IB_rect | IB_rectfloat);
 				}
 				IMB_float_from_rect(ibuf);
-				
-				IMB_rectcpy(env->cube[0], ibuf, 
+
+				IMB_rectcpy(env->cube[0], ibuf,
 				            0, 0, 0, 0, dx, dx);
-				IMB_rectcpy(env->cube[1], ibuf, 
+				IMB_rectcpy(env->cube[1], ibuf,
 				            0, 0, dx, 0, dx, dx);
-				IMB_rectcpy(env->cube[2], ibuf, 
+				IMB_rectcpy(env->cube[2], ibuf,
 				            0, 0, 2 * dx, 0, dx, dx);
-				IMB_rectcpy(env->cube[3], ibuf, 
+				IMB_rectcpy(env->cube[3], ibuf,
 				            0, 0, 0, dx, dx, dx);
-				IMB_rectcpy(env->cube[4], ibuf, 
+				IMB_rectcpy(env->cube[4], ibuf,
 				            0, 0, dx, dx, dx, dx);
-				IMB_rectcpy(env->cube[5], ibuf, 
+				IMB_rectcpy(env->cube[5], ibuf,
 				            0, 0, 2 * dx, dx, dx, dx);
-				
+
 			}
 			else { /* ENV_PLANE */
 				env->cube[1] = IMB_dupImBuf(ibuf);
@@ -130,16 +130,16 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	Render *envre;
 	float viewscale;
 	int cuberes;
-	
+
 	envre = RE_NewRender("Envmap");
-	
+
 	env->lastsize = re->r.size;
 	cuberes = (env->cuberes * re->r.size) / 100;
 	cuberes &= 0xFFFC;
-	
+
 	/* this flag has R_ZTRA in it for example */
 	envre->flag = re->flag;
-	
+
 	/* set up renderdata */
 	render_copy_renderdata(&envre->r, &re->r);
 	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
@@ -150,7 +150,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->r.tiley = envre->r.ysch / 2;
 	envre->r.size = 100;
 	envre->r.yasp = envre->r.xasp = 1;
-	
+
 	RE_InitState(envre, NULL, &envre->r, NULL, cuberes, cuberes, NULL);
 	envre->main = re->main;
 	envre->scene = re->scene;    /* unsure about this... */
@@ -161,7 +161,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	viewscale = (env->type == ENV_PLANE) ? env->viewscale : 1.0f;
 	RE_SetEnvmapCamera(envre, env->object, viewscale, env->clipsta, env->clipend);
 	copy_m4_m4(envre->viewmat_orig, re->viewmat_orig);
-	
+
 	/* callbacks */
 	envre->display_update = re->display_update;
 	envre->duh = re->duh;
@@ -169,7 +169,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->tbh = re->tbh;
 	envre->current_scene_update = re->current_scene_update;
 	envre->suh = re->suh;
-	
+
 	/* and for the evil stuff; copy the database... */
 	envre->totvlak = re->totvlak;
 	envre->totvert = re->totvert;
@@ -185,7 +185,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->instancetable = re->instancetable;
 	envre->objectinstance = re->objectinstance;
 	envre->qmcsamplers = re->qmcsamplers;
-	
+
 	return envre;
 }
 
@@ -206,7 +206,7 @@ static void envmap_free_render_copy(Render *envre)
 	BLI_listbase_clear(&envre->instancetable);
 	envre->objectinstance = NULL;
 	envre->qmcsamplers = NULL;
-	
+
 	RE_FreeRender(envre);
 }
 
@@ -215,9 +215,9 @@ static void envmap_free_render_copy(Render *envre)
 static void envmap_transmatrix(float mat[4][4], int part)
 {
 	float tmat[4][4], eul[3], rotmat[4][4];
-	
+
 	eul[0] = eul[1] = eul[2] = 0.0;
-	
+
 	if (part == 0) {          /* neg z */
 		/* pass */
 	}
@@ -239,7 +239,7 @@ static void envmap_transmatrix(float mat[4][4], int part)
 		eul[0] = M_PI / 2.0;
 		eul[2] = -M_PI / 2.0;
 	}
-	
+
 	copy_m4_m4(tmat, mat);
 	eul_to_mat4(rotmat, eul);
 	mul_m4_m4m4(mat, tmat, rotmat);
@@ -250,15 +250,15 @@ static void env_set_imats(Render *re)
 {
 	Base *base;
 	float mat[4][4];
-	
+
 	base = re->scene->base.first;
 	while (base) {
 		mul_m4_m4m4(mat, re->viewmat, base->object->obmat);
 		invert_m4_m4(base->object->imat, mat);
-		
+
 		base = base->next;
 	}
-	
+
 }
 
 /* ------------------------------------------------------------------------- */
@@ -271,17 +271,17 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 	HaloRen *har = NULL;
 	float imat[3][3], mat_inverse[4][4], smat[4][4], tmat[4][4], cmat[3][3], tmpmat[4][4];
 	int a;
-	
+
 	if (do_rotate == 0) {
 		invert_m4_m4(tmat, mat);
 		copy_m3_m4(imat, tmat);
-		
+
 		copy_m4_m4(mat_inverse, mat);
 	}
 	else {
 		copy_m4_m4(tmat, mat);
 		copy_m3_m4(imat, mat);
-		
+
 		invert_m4_m4(mat_inverse, tmat);
 	}
 
@@ -308,13 +308,13 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 			copy_m4_m4(obi->imat, mat_inverse);
 		}
 	}
-	
+
 
 	for (obr = re->objecttable.first; obr; obr = obr->next) {
 		for (a = 0; a < obr->tothalo; a++) {
 			if ((a & 255) == 0) har = obr->bloha[a >> 8];
 			else har++;
-		
+
 			mul_m4_v3(tmat, har->co);
 		}
 
@@ -322,7 +322,7 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 		mul_m4_m4m4(obr->ob->imat_ren, re->viewmat, obr->ob->obmat);
 		invert_m4(obr->ob->imat_ren);
 	}
-	
+
 	for (lar = re->lampren.first; lar; lar = lar->next) {
 		float lamp_imat[4][4];
 
@@ -351,13 +351,13 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 			normalize_v3(lar->imat[0]);
 			normalize_v3(lar->imat[1]);
 			normalize_v3(lar->imat[2]);
-		
+
 			lar->sh_invcampos[0] = -lar->co[0];
 			lar->sh_invcampos[1] = -lar->co[1];
 			lar->sh_invcampos[2] = -lar->co[2];
 			mul_m3_v3(lar->imat, lar->sh_invcampos);
 			lar->sh_invcampos[2] *= lar->sh_zfac;
-		
+
 			if (lar->shb) {
 				if (do_rotate == 1) {
 					mul_m4_m4m4(smat, lar->shb->viewmat, mat_inverse);
@@ -367,7 +367,7 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 			}
 		}
 	}
-	
+
 	if (do_rotate) {
 		init_render_world(re);
 		env_set_imats(re);
@@ -381,7 +381,7 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	ObjectRen *obr;
 	VlakRen *vlr = NULL;
 	int a;
-	
+
 	/* invert notlay, so if face is in multiple layers it will still be visible,
 	 * unless all 'notlay' bits match the face bits.
 	 * face: 0110
@@ -389,9 +389,9 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	 * ~not: 1011
 	 * now (face & ~not) is true
 	 */
-	
+
 	notlay = ~notlay;
-	
+
 	for (obr = re->objecttable.first; obr; obr = obr->next) {
 		if ((obr->lay & notlay) == 0) {
 			for (a = 0; a < obr->totvlak; a++) {
@@ -409,7 +409,7 @@ static void env_hideobject(Render *re, Object *ob)
 	ObjectRen *obr;
 	VlakRen *vlr = NULL;
 	int a;
-	
+
 	for (obr = re->objecttable.first; obr; obr = obr->next) {
 		for (a = 0; a < obr->totvlak; a++) {
 			if ((a & 255) == 0) vlr = obr->vlaknodes[a >> 8].vlak;
@@ -426,7 +426,7 @@ static void env_showobjects(Render *re)
 	ObjectRen *obr;
 	VlakRen *vlr = NULL;
 	int a;
-	
+
 	for (obr = re->objecttable.first; obr; obr = obr->next) {
 		for (a = 0; a < obr->totvlak; a++) {
 			if ((a & 255) == 0) vlr = obr->vlaknodes[a >> 8].vlak;
@@ -447,16 +447,16 @@ static void render_envmap(Render *re, EnvMap *env)
 	float orthmat[4][4];
 	float oldviewinv[4][4], mat[4][4], tmat[4][4];
 	short part;
-	
+
 	/* need a recalc: ortho-render has no correct viewinv */
 	invert_m4_m4(oldviewinv, re->viewmat);
 
 	envre = envmap_render_copy(re, env);
-	
+
 	/* precalc orthmat for object */
 	copy_m4_m4(orthmat, env->object->obmat);
 	normalize_m4(orthmat);
-	
+
 	/* need imat later for texture imat */
 	mul_m4_m4m4(mat, re->viewmat, orthmat);
 	invert_m4_m4(tmat, mat);
@@ -465,9 +465,9 @@ static void render_envmap(Render *re, EnvMap *env)
 	for (part = 0; part < 6; part++) {
 		if (env->type == ENV_PLANE && part != 1)
 			continue;
-		
+
 		re->display_clear(re->dch, envre->result);
-		
+
 		copy_m4_m4(tmat, orthmat);
 		envmap_transmatrix(tmat, part);
 		invert_m4_m4(mat, tmat);
@@ -475,20 +475,20 @@ static void render_envmap(Render *re, EnvMap *env)
 
 		copy_m4_m4(envre->viewmat, mat);
 		copy_m4_m4(envre->viewinv, tmat);
-		
+
 		/* we have to correct for the already rotated vertexcoords */
 		mul_m4_m4m4(tmat, envre->viewmat, oldviewinv);
 		invert_m4_m4(env->imat, tmat);
-		
+
 		env_rotate_scene(envre, tmat, 1);
 		project_renderdata(envre, projectverto, 0, 0, 1);
 		env_layerflags(envre, env->notlay);
 		env_hideobject(envre, env->object);
-				
+
 		if (re->test_break(re->tbh) == 0) {
 			RE_TileProcessor(envre);
 		}
-		
+
 		/* rotate back */
 		env_showobjects(envre);
 		env_rotate_scene(envre, tmat, 0);
@@ -510,26 +510,26 @@ static void render_envmap(Render *re, EnvMap *env)
 			rect = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, "");
 			ibuf = IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect | IB_rectfloat);
 			memcpy(ibuf->rect_float, rect, ibuf->channels * ibuf->x * ibuf->y * sizeof(float));
-			
+
 			/* envmap renders without alpha */
 			alpha = ibuf->rect_float + 3;
 			for (y = ibuf->x * ibuf->y - 1; y >= 0; y--, alpha += 4)
 				*alpha = 1.0;
-			
+
 			env->cube[part] = ibuf;
 		}
-		
+
 		if (re->test_break(re->tbh)) break;
 
 	}
-	
+
 	if (re->test_break(re->tbh)) BKE_texture_envmap_free_data(env);
 	else {
 		if (envre->r.mode & R_OSA) env->ok = ENV_OSA;
 		else env->ok = ENV_NORMAL;
 		env->lastframe = re->scene->r.cfra;
 	}
-	
+
 	/* restore */
 	envmap_free_render_copy(envre);
 	env_set_imats(re);
@@ -543,16 +543,16 @@ void make_envmaps(Render *re)
 	Tex *tex;
 	bool do_init = false;
 	int depth = 0, trace;
-	
+
 	if (!(re->r.mode & R_ENVMAP)) return;
-	
+
 	/* we don't raytrace, disabling the flag will cause ray_transp render solid */
 	trace = (re->r.mode & R_RAYTRACE);
 	re->r.mode &= ~R_RAYTRACE;
 
 	re->i.infostr = IFACE_("Creating Environment maps");
 	re->stats_draw(re->sdh, &re->i);
-	
+
 	/* 5 = hardcoded max recursion level */
 	while (depth < 5) {
 		tex = re->main->tex.first;
@@ -560,27 +560,27 @@ void make_envmaps(Render *re)
 			if (tex->id.us && tex->type == TEX_ENVMAP) {
 				if (tex->env && tex->env->object) {
 					EnvMap *env = tex->env;
-					
+
 					if (env->object->lay & re->lay) {
 						if (env->stype == ENV_LOAD) {
 							float orthmat[4][4], mat[4][4], tmat[4][4];
-							
+
 							/* precalc orthmat for object */
 							copy_m4_m4(orthmat, env->object->obmat);
 							normalize_m4(orthmat);
-							
+
 							/* need imat later for texture imat */
 							mul_m4_m4m4(mat, re->viewmat, orthmat);
 							invert_m4_m4(tmat, mat);
 							copy_m3_m4(env->obimat, tmat);
 						}
 						else {
-							
+
 							/* decide if to render an envmap (again) */
 							if (env->depth >= depth) {
-								
+
 								/* set 'recalc' to make sure it does an entire loop of recalcs */
-								
+
 								if (env->ok) {
 									/* free when OSA, and old one isn't OSA */
 									if ((re->r.mode & R_OSA) && env->ok == ENV_NORMAL)
@@ -592,13 +592,13 @@ void make_envmaps(Render *re)
 									else if (env->recalc)
 										BKE_texture_envmap_free_data(env);
 								}
-								
+
 								if (env->ok == 0 && depth == 0) env->recalc = 1;
-								
+
 								if (env->ok == 0) {
 									do_init = true;
 									render_envmap(re, env);
-									
+
 									if (depth == env->depth) env->recalc = 0;
 								}
 							}
@@ -627,10 +627,10 @@ static int envcube_isect(EnvMap *env, const float vec[3], float answ[2])
 {
 	float lambda;
 	int face;
-	
+
 	if (env->type == ENV_PLANE) {
 		face = 1;
-		
+
 		lambda = 1.0f / vec[2];
 		answ[0] = env->viewscale * lambda * vec[0];
 		answ[1] = -env->viewscale * lambda * vec[1];
@@ -674,7 +674,7 @@ static int envcube_isect(EnvMap *env, const float vec[3], float answ[2])
 			answ[1] = lambda * vec[2];
 		}
 	}
-	
+
 	answ[0] = 0.5f + 0.5f * answ[0];
 	answ[1] = 0.5f + 0.5f * answ[1];
 	return face;
@@ -714,13 +714,13 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 	ImBuf *ibuf;
 	float fac, vec[3], sco[3], dxts[3], dyts[3];
 	int face, face1;
-	
+
 	env = tex->env;
 	if (env == NULL || (env->stype != ENV_LOAD && env->object == NULL)) {
 		texres->tin = 0.0;
 		return 0;
 	}
-	
+
 	if (env->stype == ENV_LOAD) {
 		env->ima = tex->ima;
 		if (env->ima && env->ima->ok) {
@@ -743,7 +743,7 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 		texres->tin = 0.0;
 		return 0;
 	}
-	
+
 	/* rotate to envmap space, if object is set */
 	copy_v3_v3(vec, texvec);
 	if (env->object) {
@@ -763,46 +763,46 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 			}
 		}
 	}
-	
+
 	face = envcube_isect(env, vec, sco);
 	ibuf = env->cube[face];
-	
+
 	if (osatex) {
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
 		imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, texres, pool, skip_load_image);
-		
+
 		/* edges? */
-		
+
 		if (texres->ta < 1.0f) {
 			TexResult texr1, texr2;
-	
+
 			texr1.nor = texr2.nor = NULL;
 			texr1.talpha = texr2.talpha = texres->talpha; /* boxclip expects this initialized */
 
 			add_v3_v3(vec, dxt);
 			face1 = envcube_isect(env, vec, sco);
 			sub_v3_v3(vec, dxt);
-			
+
 			if (face != face1) {
 				ibuf = env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr1, pool, skip_load_image);
 			}
 			else texr1.tr = texr1.tg = texr1.tb = texr1.ta = 0.0;
-			
+
 			/* here was the nasty bug! results were not zero-ed. FPE! */
-			
+
 			add_v3_v3(vec, dyt);
 			face1 = envcube_isect(env, vec, sco);
 			sub_v3_v3(vec, dyt);
-			
+
 			if (face != face1) {
 				ibuf = env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr2, pool, skip_load_image);
 			}
 			else texr2.tr = texr2.tg = texr2.tb = texr2.ta = 0.0;
-			
+
 			fac = (texres->ta + texr1.ta + texr2.ta);
 			if (fac != 0.0f) {
 				fac = 1.0f / fac;
@@ -817,6 +817,6 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 	else {
 		imagewrap(tex, NULL, ibuf, sco, texres, pool, skip_load_image);
 	}
-	
+
 	return 1;
 }

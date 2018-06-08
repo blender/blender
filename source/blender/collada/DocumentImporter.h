@@ -79,7 +79,7 @@ public:
 	std::vector<Object *> *write_node(COLLADAFW::Node*, COLLADAFW::Node*, Scene*, Object*, bool);
 	MTex* create_texture(COLLADAFW::EffectCommon*, COLLADAFW::Texture&, Material*, int, TexIndexTextureArrayMap&);
 	void write_profile_COMMON(COLLADAFW::EffectCommon*, Material*);
-	
+
 	void translate_anim_recursive(COLLADAFW::Node*, COLLADAFW::Node*, Object*);
 
 	/**
@@ -149,7 +149,7 @@ private:
 	ArmatureImporter armature_importer;
 	MeshImporter mesh_importer;
 	AnimationImporter anim_importer;
-	
+
 	/** TagsMap typedef for uid_tags_map. */
 	typedef std::map<std::string, ExtraTags*> TagsMap;
 	/** Tags map of unique id as a string and ExtraTags instance. */
@@ -165,7 +165,7 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;
 	std::vector<const COLLADAFW::VisualScene*> vscenes;
 	std::vector<Object*> libnode_ob;
-	
+
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
 	std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map;
 

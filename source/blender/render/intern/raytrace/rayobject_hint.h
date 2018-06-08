@@ -64,7 +64,7 @@ inline int hint_test_bb(HintFrustum &obj, float *Nmin, float *Nmax)
 	{
 		return HINT_DISCARD;
 	}
-	
+
 	return HINT_ACCEPT;
 }
 #endif

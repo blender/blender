@@ -34,7 +34,7 @@ extern "C" {
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h" 
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -53,7 +53,7 @@ ImagesExporter::ImagesExporter(COLLADASW::StreamWriter *sw, const ExportSettings
 {
 }
 
-void ImagesExporter::export_UV_Image(Image *image, bool use_copies) 
+void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 {
 	std::string id(id_name(image));
 	std::string translated_id(translate_id(id));
@@ -117,7 +117,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			BLI_cleanup_path(NULL, source_path);
 
 			if (use_copies) {
-			
+
 				// This image is already located on the file system.
 				// But we want to create copies here.
 				// To move images into the same export directory.
@@ -144,7 +144,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 		}
 
 		/* set name also to mNameNC. This helps other viewers import files exported from Blender better */
-		COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(export_path)), translated_id, translated_id); 
+		COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(export_path)), translated_id, translated_id);
 		img.add(mSW);
 		fprintf(stdout, "Collada export: Added image: %s\n", export_file);
 		mImages.push_back(translated_id);
@@ -200,7 +200,7 @@ void ImagesExporter::export_UV_Images()
 bool ImagesExporter::hasImages(Scene *sce)
 {
 	LinkNode *node;
-	
+
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
 

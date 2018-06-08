@@ -29,7 +29,7 @@
 
 
 #ifndef __PIXELBLENDING_H__
-#define __PIXELBLENDING_H__ 
+#define __PIXELBLENDING_H__
 
 
 /**

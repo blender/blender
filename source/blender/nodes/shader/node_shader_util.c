@@ -45,7 +45,7 @@ int sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
 	node_type_base(ntype, type, name, nclass, flag);
-	
+
 	ntype->poll = sh_node_poll_default;
 	ntype->insert_link = node_insert_link_default;
 	ntype->update_internal_links = node_update_internal_links_default;
@@ -56,11 +56,11 @@ void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, shor
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 {
 	const float *from = ns->vec;
-		
+
 	if (type_in == SOCK_FLOAT) {
 		if (ns->sockettype == SOCK_FLOAT)
 			*in = *from;
-		else 
+		else
 			*in = (from[0] + from[1] + from[2]) / 3.0f;
 	}
 	else if (type_in == SOCK_VECTOR) {
@@ -98,7 +98,7 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 	bNode *node;
 	bNodeSocket *sock;
 	int a;
-	
+
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == SH_NODE_TEXTURE) {
 			if ((r_mode & R_OSA) && node->id) {
@@ -117,15 +117,15 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 			for (a = 0, sock = node->outputs.first; sock; sock = sock->next, a++) {
 				if (sock->flag & SOCK_IN_USE) {
 					switch (a) {
-						case GEOM_OUT_GLOB: 
+						case GEOM_OUT_GLOB:
 							*texco |= TEXCO_GLOB | NEED_UV; break;
-						case GEOM_OUT_VIEW: 
+						case GEOM_OUT_VIEW:
 							*texco |= TEXCO_VIEW | NEED_UV; break;
-						case GEOM_OUT_ORCO: 
+						case GEOM_OUT_ORCO:
 							*texco |= TEXCO_ORCO | NEED_UV; break;
-						case GEOM_OUT_UV: 
+						case GEOM_OUT_UV:
 							*texco |= TEXCO_UV | NEED_UV; break;
-						case GEOM_OUT_NORMAL: 
+						case GEOM_OUT_NORMAL:
 							*texco |= TEXCO_NORM | NEED_UV; break;
 						case GEOM_OUT_VCOL:
 							*texco |= NEED_UV; *mode |= MA_VERTEXCOL; break;
@@ -141,7 +141,7 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
 	memset(gs, 0, sizeof(*gs));
-	
+
 	if (ns == NULL) {
 		/* node_get_stack() will generate NULL bNodeStack pointers for unknown/unsuported types of sockets... */
 		zero_v4(gs->vec);
@@ -155,7 +155,7 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 	else {
 		nodestack_get_vec(gs->vec, type, ns);
 		gs->link = ns->data;
-	
+
 		if (type == SOCK_FLOAT)
 			gs->type = GPU_FLOAT;
 		else if (type == SOCK_VECTOR)
@@ -189,10 +189,10 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
 {
 	bNodeSocket *sock;
 	int i;
-	
+
 	for (sock = sockets->first, i = 0; sock; sock = sock->next, i++)
 		node_gpu_stack_from_data(&gs[i], sock->type, ns[i]);
-	
+
 	gs[i].type = GPU_NONE;
 }
 
@@ -241,7 +241,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 
 	if (activetexnode)
 		return activetexnode;
-	
+
 	if (hasgroup) {
 		/* node active texture node in this tree, look inside groups */
 		for (node = ntree->nodes.first; node; node = node->next) {
@@ -252,7 +252,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 			}
 		}
 	}
-	
+
 	return inactivenode;
 }
 
@@ -271,7 +271,7 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs, sh
 
 	for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node;
-		
+
 		do_it = false;
 		/* for groups, only execute outputs for edited group */
 		if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {

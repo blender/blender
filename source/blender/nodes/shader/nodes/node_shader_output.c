@@ -44,22 +44,22 @@ static void node_shader_exec_output(void *data, int UNUSED(thread), bNode *node,
 	if (data) {
 		ShadeInput *shi = ((ShaderCallData *)data)->shi;
 		float col[4];
-		
+
 		/* stack order input sockets: col, alpha, normal */
 		nodestack_get_vec(col, SOCK_VECTOR, in[0]);
 		nodestack_get_vec(col + 3, SOCK_FLOAT, in[1]);
-		
+
 		if (shi->do_preview) {
 			BKE_node_preview_set_pixel(execdata->preview, col, shi->xs, shi->ys, shi->do_manage);
 			node->lasty = shi->ys;
 		}
-		
+
 		if (node->flag & NODE_DO_OUTPUT) {
 			ShadeResult *shr = ((ShaderCallData *)data)->shr;
-			
+
 			copy_v4_v4(shr->combined, col);
 			shr->alpha = col[3];
-			
+
 			//	copy_v3_v3(shr->nor, in[3]->vec);
 		}
 	}

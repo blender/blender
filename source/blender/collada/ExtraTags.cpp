@@ -50,7 +50,7 @@ bool ExtraTags::isProfile(std::string profile)
 bool ExtraTags::addTag(std::string tag,  std::string data)
 {
 	tags[tag] = data;
-	
+
 	return true;
 }
 

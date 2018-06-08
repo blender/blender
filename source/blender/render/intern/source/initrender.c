@@ -64,18 +64,18 @@ static void init_render_jit(Render *re)
 	static float mblur_jit[32][2];  /* simple caching */
 	static int lastjit = 0;
 	static int last_mblur_jit = 0;
-	
+
 	if (lastjit != re->r.osa || last_mblur_jit != re->r.mblur_samples) {
 		memset(jit, 0, sizeof(jit));
 		BLI_jitter_init(jit, re->r.osa);
-		
+
 		memset(mblur_jit, 0, sizeof(mblur_jit));
 		BLI_jitter_init(mblur_jit, re->r.mblur_samples);
 	}
-	
+
 	lastjit = re->r.osa;
 	memcpy(re->jit, jit, sizeof(jit));
-	
+
 	last_mblur_jit = re->r.mblur_samples;
 	memcpy(re->mblur_jit, mblur_jit, sizeof(mblur_jit));
 }
@@ -95,9 +95,9 @@ static float filt_quadratic(float x)
 static float filt_cubic(float x)
 {
 	float x2 = x * x;
-	
+
 	if (x <  0.0f) x = -x;
-	
+
 	if (x < 1.0f) return 0.5f * x * x2 - x2 + 2.0f / 3.0f;
 	if (x < 2.0f) return (2.0f - x) * (2.0f - x) * (2.0f - x) / 6.0f;
 	return 0.0f;
@@ -107,7 +107,7 @@ static float filt_cubic(float x)
 static float filt_catrom(float x)
 {
 	float x2 = x * x;
-	
+
 	if (x <  0.0f) x = -x;
 	if (x < 1.0f) return  1.5f * x2 * x - 2.5f * x2 + 1.0f;
 	if (x < 2.0f) return -0.5f * x2 * x + 2.5f * x2 - 4.0f * x + 2.0f;
@@ -137,34 +137,34 @@ static float filt_mitchell(float x) /* Mitchell & Netravali's two-param cubic */
 float RE_filter_value(int type, float x)
 {
 	float gaussfac = 1.6f;
-	
+
 	x = ABS(x);
-	
+
 	switch (type) {
 		case R_FILTER_BOX:
 			if (x > 1.0f) return 0.0f;
 			return 1.0f;
-			
+
 		case R_FILTER_TENT:
 			if (x > 1.0f) return 0.0f;
 			return 1.0f - x;
-			
+
 		case R_FILTER_GAUSS:
 		{
 			const float two_gaussfac2 = 2.0f * gaussfac * gaussfac;
 			x *= 3.0f * gaussfac;
 			return 1.0f / sqrtf((float)M_PI * two_gaussfac2) * expf(-x*x / two_gaussfac2);
 		}
-			
+
 		case R_FILTER_MITCH:
 			return filt_mitchell(x * gaussfac);
-			
+
 		case R_FILTER_QUAD:
 			return filt_quadratic(x * gaussfac);
-			
+
 		case R_FILTER_CUBIC:
 			return filt_cubic(x * gaussfac);
-			
+
 		case R_FILTER_CATROM:
 			return filt_catrom(x * gaussfac);
 	}
@@ -188,35 +188,35 @@ static float calc_weight(Render *re, float *weight, int i, int j)
 			case R_FILTER_BOX:
 				if (i == 0 && j == 0) weight[a] = 1.0;
 				break;
-			
+
 			case R_FILTER_TENT:
 				if (dist < re->r.gauss)
 					weight[a] = re->r.gauss - dist;
 				break;
-			
+
 			case R_FILTER_GAUSS:
 				x = dist * re->r.gauss;
 				weight[a] = (1.0f / expf(x * x) - 1.0f / expf(re->r.gauss * re->r.gauss * 2.25f));
 				break;
-		
+
 			case R_FILTER_MITCH:
 				weight[a] = filt_mitchell(dist * re->r.gauss);
 				break;
-		
+
 			case R_FILTER_QUAD:
 				weight[a] = filt_quadratic(dist * re->r.gauss);
 				break;
-			
+
 			case R_FILTER_CUBIC:
 				weight[a] = filt_cubic(dist * re->r.gauss);
 				break;
-			
+
 			case R_FILTER_CATROM:
 				weight[a] = filt_catrom(dist * re->r.gauss);
 				break;
-			
+
 		}
-		
+
 		totw += weight[a];
 
 	}
@@ -226,13 +226,13 @@ static float calc_weight(Render *re, float *weight, int i, int j)
 void free_sample_tables(Render *re)
 {
 	int a;
-	
+
 	if (re->samples) {
 		for (a = 0; a < 9; a++) {
 			MEM_freeN(re->samples->fmask1[a]);
 			MEM_freeN(re->samples->fmask2[a]);
 		}
-		
+
 		MEM_freeN(re->samples->centmask);
 		MEM_freeN(re->samples);
 		re->samples = NULL;
@@ -252,19 +252,19 @@ void make_sample_tables(Render *re)
 	if (firsttime) {
 		firsttime = 0;
 	}
-	
+
 	free_sample_tables(re);
-	
+
 	init_render_jit(re);    /* needed for mblur too */
-	
+
 	if (re->osa == 0) {
 		/* just prevents cpu cycles for larger render and copying */
 		re->r.filtertype = 0;
 		return;
 	}
-	
+
 	st = re->samples = MEM_callocN(sizeof(SampleTables), "sample tables");
-	
+
 	for (a = 0; a < 9; a++) {
 		st->fmask1[a] = MEM_callocN(256 * sizeof(float), "initfilt");
 		st->fmask2[a] = MEM_callocN(256 * sizeof(float), "initfilt");
@@ -280,10 +280,10 @@ void make_sample_tables(Render *re)
 		if (a &  64) st->cmask[a]++;
 		if (a & 128) st->cmask[a]++;
 	}
-	
+
 	centmasksize = (1 << re->osa);
 	st->centmask = MEM_mallocN(centmasksize, "Initfilt3");
-	
+
 	for (a = 0; a < 16; a++) {
 		st->centLut[a] = -0.45f + ((float)a) / 16.0f;
 	}
@@ -457,7 +457,7 @@ void RE_SetEnvmapCamera(Render *re, Object *cam_ob, float viewscale, float clips
 	params.sensor_fit = CAMERA_SENSOR_FIT_AUTO;
 	params.clipsta = clipsta;
 	params.clipend = clipend;
-	
+
 	/* compute matrix, viewplane, .. */
 	BKE_camera_params_compute_viewplane(&params, re->winx, re->winy, 1.0f, 1.0f);
 	BKE_camera_params_compute_matrix(&params);
@@ -523,7 +523,7 @@ void RE_GetCameraModelMatrix(Render *re, struct Object *camera, float r_mat[4][4
 void RE_parts_free(Render *re)
 {
 	RenderPart *part = re->parts.first;
-	
+
 	while (part) {
 		if (part->rectp) MEM_freeN(part->rectp);
 		if (part->rectz) MEM_freeN(part->rectz);
@@ -543,20 +543,20 @@ void RE_parts_init(Render *re, bool do_crop)
 {
 	int nr, xd, yd, partx, party, xparts, yparts;
 	int xminb, xmaxb, yminb, ymaxb;
-	
+
 	RE_parts_free(re);
-	
+
 	/* this is render info for caller, is not reset when parts are freed! */
 	re->i.totpart = 0;
 	re->i.curpart = 0;
 	re->i.partsdone = 0;
-	
+
 	/* just for readable code.. */
 	xminb = re->disprect.xmin;
 	yminb = re->disprect.ymin;
 	xmaxb = re->disprect.xmax;
 	ymaxb = re->disprect.ymax;
-	
+
 	RE_parts_clamp(re);
 
 	partx = re->partx;
@@ -564,21 +564,21 @@ void RE_parts_init(Render *re, bool do_crop)
 	/* part count */
 	xparts = (re->rectx + partx - 1) / partx;
 	yparts = (re->recty + party - 1) / party;
-	
+
 	/* calculate rotation factor of 1 pixel */
 	if (re->r.mode & R_PANORAMA)
 		re->panophi = panorama_pixel_rot(re);
-	
+
 	for (nr = 0; nr < xparts * yparts; nr++) {
 		rcti disprect;
 		int rectx, recty;
-		
+
 		xd = (nr % xparts);
 		yd = (nr - xd) / xparts;
-		
+
 		disprect.xmin = xminb + xd * partx;
 		disprect.ymin = yminb + yd * party;
-		
+
 		/* ensure we cover the entire picture, so last parts go to end */
 		if (xd < xparts - 1) {
 			disprect.xmax = disprect.xmin + partx;
@@ -586,21 +586,21 @@ void RE_parts_init(Render *re, bool do_crop)
 				disprect.xmax = xmaxb;
 		}
 		else disprect.xmax = xmaxb;
-		
+
 		if (yd < yparts - 1) {
 			disprect.ymax = disprect.ymin + party;
 			if (disprect.ymax > ymaxb)
 				disprect.ymax = ymaxb;
 		}
 		else disprect.ymax = ymaxb;
-		
+
 		rectx = BLI_rcti_size_x(&disprect);
 		recty = BLI_rcti_size_y(&disprect);
-		
+
 		/* so, now can we add this part? */
 		if (rectx > 0 && recty > 0) {
 			RenderPart *pa = MEM_callocN(sizeof(RenderPart), "new part");
-			
+
 			/* Non-box filters need 2 pixels extra to work */
 			if (do_crop && (re->r.filtertype || (re->r.mode & R_EDGE))) {
 				pa->crop = 2;

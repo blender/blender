@@ -57,7 +57,7 @@ template<>
 void bvh_done<QBVHTree>(QBVHTree *obj)
 {
 	rtbuild_done(obj->builder, &obj->rayobj.control);
-	
+
 	//TODO find a away to exactly calculate the needed memory
 	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "qbvh arena");
 	BLI_memarena_use_malloc(arena1);
@@ -75,17 +75,17 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 		BLI_memarena_free(arena2);
 		return;
 	}
-	
+
 	if (root) {
 		pushup_simd<VBVHNode, 4>(root);
 		obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
 	}
 	else
 		obj->root = NULL;
-	
+
 	//Free data
 	BLI_memarena_free(arena1);
-	
+
 	obj->node_arena = arena2;
 	obj->cost = 1.0;
 
@@ -120,7 +120,7 @@ static void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *U
 template<class Tree, int STACK_SIZE>
 static RayObjectAPI make_api()
 {
-	static RayObjectAPI api = 
+	static RayObjectAPI api =
 	{
 		(RE_rayobject_raycast_callback) ((int   (*)(Tree *, Isect *)) & intersect<STACK_SIZE>),
 		(RE_rayobject_add_callback)     ((void  (*)(Tree *, RayObject *)) & bvh_add<Tree>),
@@ -130,7 +130,7 @@ static RayObjectAPI make_api()
 		(RE_rayobject_cost_callback)    ((float (*)(Tree *))      & bvh_cost<Tree>),
 		(RE_rayobject_hint_bb_callback) ((void  (*)(Tree *, LCTSHint *, float *, float *)) & bvh_hint_bb<Tree>)
 	};
-	
+
 	return api;
 }
 
@@ -138,7 +138,7 @@ template<class Tree>
 RayObjectAPI *bvh_get_api(int maxstacksize)
 {
 	static RayObjectAPI bvh_api256 = make_api<Tree, 1024>();
-	
+
 	if (maxstacksize <= 1024) return &bvh_api256;
 	assert(maxstacksize <= 256);
 	return NULL;

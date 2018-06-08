@@ -65,11 +65,11 @@ static void reorganize_find_fittest_parent(Node *tree, Node *node, std::pair<flo
 {
 	std::queue<Node *> q;
 	q.push(tree);
-	
+
 	while (!q.empty()) {
 		Node *parent = q.front();
 		q.pop();
-		
+
 		if (parent == node) continue;
 		if (node_fits_inside(node, parent) && RE_rayobject_isAligned(parent->child) ) {
 			float pcost = bb_area(parent->bb, parent->bb + 3);
@@ -89,7 +89,7 @@ static void reorganize(Node *root)
 	while (!q.empty()) {
 		Node *node = q.front();
 		q.pop();
-		
+
 		if (RE_rayobject_isAligned(node->child)) {
 			for (Node **prev = &node->child; *prev; ) {
 				assert(RE_rayobject_isAligned(*prev));
@@ -105,12 +105,12 @@ static void reorganize(Node *root)
 				else {
 					Node *tmp = *prev;
 					*prev = (*prev)->sibling;
-					
+
 					tmp->sibling =  best.second->child;
 					best.second->child = tmp;
 				}
-			
-			
+
+
 			}
 		}
 		if (node != root) {
@@ -156,7 +156,7 @@ template<class Node>
 static void pushup(Node *parent)
 {
 	if (is_leaf(parent)) return;
-	
+
 	float p_area = bb_area(parent->bb, parent->bb + 3);
 	Node **prev = &parent->child;
 	for (Node *child = parent->child; RE_rayobject_isAligned(child) && child; ) {
@@ -180,7 +180,7 @@ static void pushup(Node *parent)
 			child = *prev;
 		}
 	}
-	
+
 	for (Node *child = parent->child; RE_rayobject_isAligned(child) && child; child = child->sibling)
 		pushup(child);
 }
@@ -192,9 +192,9 @@ template<class Node, int SSize>
 static void pushup_simd(Node *parent)
 {
 	if (is_leaf(parent)) return;
-	
+
 	int n = count_childs(parent);
-		
+
 	Node **prev = &parent->child;
 	for (Node *child = parent->child; RE_rayobject_isAligned(child) && child; ) {
 		int cn = count_childs(child);
@@ -210,7 +210,7 @@ static void pushup_simd(Node *parent)
 			child = *prev;
 		}
 	}
-		
+
 	for (Node *child = parent->child; RE_rayobject_isAligned(child) && child; child = child->sibling)
 		pushup_simd<Node, SSize>(child);
 }
@@ -225,13 +225,13 @@ static void pushdown(Node *parent)
 {
 	Node **s_child = &parent->child;
 	Node *child = parent->child;
-	
+
 	while (child && RE_rayobject_isAligned(child)) {
 		Node *next = child->sibling;
 		Node **next_s_child = &child->sibling;
-		
+
 		//assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
-		
+
 		for (Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling)
 			if (child != i && bb_fits_inside(i->bb, i->bb + 3, child->bb, child->bb + 3) && RE_rayobject_isAligned(i->child)) {
 //			todo optimize (should the one with the smallest area?)
@@ -241,14 +241,14 @@ static void pushdown(Node *parent)
 				child->sibling = i->child;
 				i->child = child;
 				next_s_child = s_child;
-			
+
 				tot_pushdown++;
 				break;
 			}
 		child = next;
 		s_child = next_s_child;
 	}
-	
+
 	for (Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling) {
 		pushdown(i);
 	}
@@ -264,12 +264,12 @@ static float bvh_refit(Node *node)
 {
 	if (is_leaf(node)) return 0;
 	if (is_leaf(node->child)) return 0;
-	
+
 	float total = 0;
-	
+
 	for (Node *child = node->child; child; child = child->sibling)
 		total += bvh_refit(child);
-		
+
 	float old_area = bb_area(node->bb, node->bb + 3);
 	INIT_MINMAX(node->bb, node->bb + 3);
 	for (Node *child = node->child; child; child = child->sibling) {
@@ -298,7 +298,7 @@ struct OVBVHNode {
 
 	OVBVHNode *child;
 	OVBVHNode *sibling;
-	
+
 	/*
 	 * Returns min cost to represent the subtree starting at the given node,
 	 * allowing it to have a given cutsize
@@ -309,7 +309,7 @@ struct OVBVHNode {
 		assert(CUT_SIZE_IS_VALID(cutsize - 1));
 		return cut_cost[cutsize - 1];
 	}
-	
+
 	/*
 	 * This saves the cut size of this child, when parent is reaching
 	 * its minimum cut with the given cut size
@@ -320,7 +320,7 @@ struct OVBVHNode {
 		assert(CUT_SIZE_IS_VALID(parent_cut_size - 1));
 		return cut_size[parent_cut_size - 1];
 	}
-	
+
 	/*
 	 * Reorganize the node based on calculated cut costs
 	 */
@@ -371,19 +371,19 @@ struct OVBVHNode {
 template<class Node, class TestCost>
 struct VBVH_optimalPackSIMD {
 	TestCost testcost;
-	
+
 	VBVH_optimalPackSIMD(TestCost testcost)
 	{
 		this->testcost = testcost;
 	}
-	
+
 	/*
 	 * calc best cut on a node
 	 */
 	struct calc_best {
 		Node *child[MAX_OPTIMIZE_CHILDS];
 		float child_hit_prob[MAX_OPTIMIZE_CHILDS];
-		
+
 		calc_best(Node *node)
 		{
 			int nchilds = 0;
@@ -398,12 +398,12 @@ struct VBVH_optimalPackSIMD {
 
 				assert(nchilds >= 2 && nchilds <= MAX_OPTIMIZE_CHILDS);
 			}
-			
-			
+
+
 			//Build DP table to find minimum cost to represent this node with a given cutsize
 			int     bt[MAX_OPTIMIZE_CHILDS + 1][MAX_CUT_SIZE + 1];     //backtrace table
 			float cost[MAX_OPTIMIZE_CHILDS + 1][MAX_CUT_SIZE + 1]; //cost table (can be reduced to float[2][MAX_CUT_COST])
-			
+
 			for (int i = 0; i <= nchilds; i++) {
 				for (int j = 0; j <= MAX_CUT_SIZE; j++) {
 					cost[i][j] = INFINITY;
@@ -411,7 +411,7 @@ struct VBVH_optimalPackSIMD {
 			}
 
 			cost[0][0] = 0;
-			
+
 			for (int i = 1; i <= nchilds; i++) {
 				for (int size = i - 1; size /*+(nchilds-i)*/ <= MAX_CUT_SIZE; size++) {
 					for (int cut = 1; cut + size /*+(nchilds-i)*/ <= MAX_CUT_SIZE; cut++) {
@@ -423,7 +423,7 @@ struct VBVH_optimalPackSIMD {
 					}
 				}
 			}
-			
+
 			/* Save the ways to archive the minimum cost with a given cutsize */
 			for (int i = nchilds; i <= MAX_CUT_SIZE; i++) {
 				node->cut_cost[i - 1] = cost[nchilds][i];
@@ -437,10 +437,10 @@ struct VBVH_optimalPackSIMD {
 			}
 		}
 	};
-	
+
 	void calc_costs(Node *node)
 	{
-		
+
 		if (RE_rayobject_isAligned(node->child) ) {
 			int nchilds = 0;
 			for (Node *child = node->child; child && RE_rayobject_isAligned(child); child = child->sibling) {
@@ -459,14 +459,14 @@ struct VBVH_optimalPackSIMD {
 				for (Node *child = node->child; child && RE_rayobject_isAligned(child); child = child->sibling) {
 					cost += ((parent_area != 0.0f) ? (bb_area(child->bb, child->bb + 3) / parent_area) : 1.0f) * child->get_cost(1);
 				}
-				
+
 				cost += testcost(nchilds);
 				node->cut_cost[0] = cost;
 				node->best_cutsize = nchilds;
 			}
 			else {
 				calc_best calc(node);
-		
+
 				//calc expected cost if we optimaly pack this node
 				for (int cutsize = nchilds; cutsize <= MAX_CUT_SIZE; cutsize++) {
 					float m = node->get_cost(cutsize) + testcost(cutsize);

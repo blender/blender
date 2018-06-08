@@ -122,13 +122,13 @@ static void DirectionToThetaPhi(float *toSun, float *theta, float *phi)
 static float PerezFunction(struct SunSky *sunsky, const float *lam, float theta, float gamma, float lvz)
 {
 	float den, num;
-	
+
 	den = ((1 + lam[0] * expf(lam[1])) *
 	       (1 + lam[2] * expf(lam[3] * sunsky->theta) + lam[4] * cosf(sunsky->theta) * cosf(sunsky->theta)));
-	
+
 	num = ((1 + lam[0] * expf(lam[1] / cosf(theta))) *
 	       (1 + lam[2] * expf(lam[3] * gamma) + lam[4] * cosf(gamma) * cosf(gamma)));
-	
+
 	return(lvz * num / den);
 }
 
@@ -166,7 +166,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float h
 	sunsky->skyblendtype = skyblendtype;
 	sunsky->sky_exposure = -sky_exposure;
 	sunsky->sky_colorspace = sky_colorspace;
-	
+
 	sunsky->toSun[0] = toSun[0];
 	sunsky->toSun[1] = toSun[1];
 	sunsky->toSun[2] = toSun[2];
@@ -186,7 +186,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float h
 
 	if (sunsky->zenith_Y <= 0)
 		sunsky->zenith_Y = 1e-6;
-	
+
 	sunsky->zenith_x =
 	    (+0.00165f * theta3 - 0.00374f * theta2 + 0.00208f * sunsky->theta + 0.0f) * T2 +
 	    (-0.02902f * theta3 + 0.06377f * theta2 - 0.03202f * sunsky->theta + 0.00394f) * T +
@@ -197,7 +197,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float h
 	    (-0.04214f * theta3 + 0.08970f * theta2 - 0.04153f * sunsky->theta + 0.00515f) * T +
 	    (+0.15346f * theta3 - 0.26756f * theta2 + 0.06669f * sunsky->theta + 0.26688f);
 
-	
+
 	sunsky->perez_Y[0] = 0.17872f * T - 1.46303f;
 	sunsky->perez_Y[1] = -0.35540f * T + 0.42749f;
 	sunsky->perez_Y[2] = -0.02266f * T + 5.32505f;
@@ -215,12 +215,12 @@ void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float h
 	sunsky->perez_y[2] = -0.00792f * T + 0.21023f;
 	sunsky->perez_y[3] = -0.04405f * T - 1.65369f;
 	sunsky->perez_y[4] = -0.01092f * T + 0.05291f;
-	
+
 	/* suggested by glome in patch [#8063] */
 	sunsky->perez_Y[0] *= sunsky->horizon_brightness;
 	sunsky->perez_x[0] *= sunsky->horizon_brightness;
 	sunsky->perez_y[0] *= sunsky->horizon_brightness;
-	
+
 	sunsky->perez_Y[1] *= sunsky->spread;
 	sunsky->perez_x[1] *= sunsky->spread;
 	sunsky->perez_y[1] *= sunsky->spread;
@@ -228,11 +228,11 @@ void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float h
 	sunsky->perez_Y[2] *= sunsky->sun_brightness;
 	sunsky->perez_x[2] *= sunsky->sun_brightness;
 	sunsky->perez_y[2] *= sunsky->sun_brightness;
-	
+
 	sunsky->perez_Y[3] *= sunsky->sun_size;
 	sunsky->perez_x[3] *= sunsky->sun_size;
 	sunsky->perez_y[3] *= sunsky->sun_size;
-	
+
 	sunsky->perez_Y[4] *= sunsky->backscattered_light;
 	sunsky->perez_x[4] *= sunsky->backscattered_light;
 	sunsky->perez_y[4] *= sunsky->backscattered_light;
@@ -269,7 +269,7 @@ void GetSkyXYZRadiance(struct SunSky *sunsky, float theta, float phi, float colo
 	}
 
 	gamma = AngleBetween(theta, phi, sunsky->theta, sunsky->phi);
-	
+
 	/* Compute xyY values */
 	x = PerezFunction(sunsky, sunsky->perez_x, theta, gamma, sunsky->zenith_x);
 	y = PerezFunction(sunsky, sunsky->perez_y, theta, gamma, sunsky->zenith_y);
@@ -277,7 +277,7 @@ void GetSkyXYZRadiance(struct SunSky *sunsky, float theta, float phi, float colo
 
 	if (sunsky->sky_exposure != 0.0f)
 		Y = 1.0 - exp(Y * sunsky->sky_exposure);
-	
+
 	X = (x / y) * Y;
 	Z = ((1 - x - y) / y) * Y;
 
@@ -326,14 +326,14 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 	float fAlpha;
 
 	int i;
-	float fLambda[3]; 
+	float fLambda[3];
 	fLambda[0] = 0.65f;
 	fLambda[1] = 0.57f;
 	fLambda[2] = 0.475f;
 
 	fAlpha = 1.3f;
 	fBeta = 0.04608365822050f * turbidity - 0.04586025928522f;
-	
+
 	m =  1.0f / (cosf(theta) + 0.15f * powf(93.885f - theta / (float)M_PI * 180.0f, -1.253f));
 
 	for (i = 0; i < 3; i++) {
@@ -371,11 +371,11 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	float c = (6.544f * T - 6.51f) * 1e-17f;
 	float K[3] = {0.685f, 0.679f, 0.670f};
 	float vBetaMieTemp[3];
-	
+
 	float fLambda[3], fLambda2[3], fLambda4[3];
 	float vLambda2[3];
 	float vLambda4[3];
-	
+
 	int i;
 
 	sunSky->atm_SunIntensity = sun_intens;
@@ -384,7 +384,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	sunSky->atm_InscatteringMultiplier = inscattf;
 	sunSky->atm_ExtinctionMultiplier = extincf;
 	sunSky->atm_DistanceMultiplier = disf;
-		
+
 	sunSky->atm_HGg = 0.8;
 
 	fLambda[0]  = 1 / 650e-9f;
@@ -415,12 +415,12 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	/* Mie scattering constants. */
 	fTemp2 = 0.434f * c * (2 * pi) * (2 * pi) * 0.5f;
 	VEC3OPF(sunSky->atm_BetaDashMie, vLambda2, *, fTemp2);
-	
+
 	fTemp3 = 0.434f * c * pi * (2 * pi) * (2 * pi);
-	
+
 	VEC3OPV(vBetaMieTemp, K, *, fLambda);
 	VEC3OPF(sunSky->atm_BetaMie, vBetaMieTemp, *, fTemp3);
-	
+
 }
 
 /**
@@ -438,19 +438,19 @@ void AtmospherePixleShader(struct SunSky *sunSky, float view[3], float s, float 
 	float Phase_1;
 	float Phase_2;
 	float sunColor[3];
-	
+
 	float E[3];
 	float E1[3];
-	
-	
+
+
 	float I[3];
 	float fTemp;
 	float vTemp1[3], vTemp2[3];
 
 	float sunDirection[3];
-	
+
 	s *= sunSky->atm_DistanceMultiplier;
-	
+
 	sunDirection[0] = sunSky->toSun[0];
 	sunDirection[1] = sunSky->toSun[1];
 	sunDirection[2] = sunSky->toSun[2];
@@ -474,7 +474,7 @@ void AtmospherePixleShader(struct SunSky *sunSky, float view[3], float s, float 
 	fTemp = 1 + sunSky->atm_HGg - 2 * sunSky->atm_HGg * costheta;
 	fTemp = fTemp * sqrtf(fTemp);
 	Phase_2 = (1 - sunSky->atm_HGg * sunSky->atm_HGg) / fTemp;
-	
+
 	VEC3OPF(vTemp1, sunSky->atm_BetaDashRay, *, Phase_1);
 	VEC3OPF(vTemp2, sunSky->atm_BetaDashMie, *, Phase_2);
 
@@ -485,7 +485,7 @@ void AtmospherePixleShader(struct SunSky *sunSky, float view[3], float s, float 
 	FOPVEC3(vTemp2, 1.0f, /, sunSky->atm_BetaRM);
 
 	VEC3OPV(I, vTemp1, *, vTemp2);
-		
+
 	VEC3OPF(I, I, *, sunSky->atm_InscatteringMultiplier);
 	VEC3OPF(E, E, *, sunSky->atm_ExtinctionMultiplier);
 

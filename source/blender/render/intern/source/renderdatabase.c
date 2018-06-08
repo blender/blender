@@ -68,8 +68,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_hash.h"
 
-#include "DNA_material_types.h" 
-#include "DNA_meshdata_types.h" 
+#include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_listBase.h"
 #include "DNA_particle_types.h"
@@ -114,10 +114,10 @@ float *RE_vertren_get_stress(ObjectRen *obr, VertRen *ver, int verify)
 {
 	float *stress;
 	int nr= ver->index>>8;
-	
+
 	stress= obr->vertnodes[nr].stress;
 	if (stress==NULL) {
-		if (verify) 
+		if (verify)
 			stress= obr->vertnodes[nr].stress= MEM_mallocN(256*RE_STRESS_ELEMS*sizeof(float), "stress table");
 		else
 			return NULL;
@@ -130,10 +130,10 @@ float *RE_vertren_get_rad(ObjectRen *obr, VertRen *ver, int verify)
 {
 	float *rad;
 	int nr= ver->index>>8;
-	
+
 	rad= obr->vertnodes[nr].rad;
 	if (rad==NULL) {
-		if (verify) 
+		if (verify)
 			rad= obr->vertnodes[nr].rad= MEM_callocN(256*RE_RAD_ELEMS*sizeof(float), "rad table");
 		else
 			return NULL;
@@ -145,10 +145,10 @@ float *RE_vertren_get_strand(ObjectRen *obr, VertRen *ver, int verify)
 {
 	float *strand;
 	int nr= ver->index>>8;
-	
+
 	strand= obr->vertnodes[nr].strand;
 	if (strand==NULL) {
-		if (verify) 
+		if (verify)
 			strand= obr->vertnodes[nr].strand= MEM_mallocN(256*RE_STRAND_ELEMS*sizeof(float), "strand table");
 		else
 			return NULL;
@@ -161,10 +161,10 @@ float *RE_vertren_get_tangent(ObjectRen *obr, VertRen *ver, int verify)
 {
 	float *tangent;
 	int nr= ver->index>>8;
-	
+
 	tangent= obr->vertnodes[nr].tangent;
 	if (tangent==NULL) {
-		if (verify) 
+		if (verify)
 			tangent= obr->vertnodes[nr].tangent= MEM_callocN(256*RE_TANGENT_ELEMS*sizeof(float), "tangent table");
 		else
 			return NULL;
@@ -178,7 +178,7 @@ float *RE_vertren_get_winspeed(ObjectInstanceRen *obi, VertRen *ver, int verify)
 {
 	float *winspeed;
 	int totvector;
-	
+
 	winspeed= obi->vectors;
 	if (winspeed==NULL) {
 		if (verify) {
@@ -212,7 +212,7 @@ VertRen *RE_vertren_copy(ObjectRen *obr, VertRen *ver)
 	float *fp1, *fp2;
 	int *int1, *int2;
 	int index= v1->index;
-	
+
 	*v1= *ver;
 	v1->index= index;
 
@@ -255,25 +255,25 @@ VertRen *RE_findOrAddVert(ObjectRen *obr, int nr)
 		return NULL;
 	}
 	a= nr>>8;
-	
+
 	if (a>=obr->vertnodeslen-1) {  /* Need to allocate more columns..., and keep last element NULL for free loop */
 		temp= obr->vertnodes;
-		
+
 		obr->vertnodes= MEM_mallocN(sizeof(VertTableNode)*(obr->vertnodeslen+TABLEINITSIZE), "vertnodes");
 		if (temp) memcpy(obr->vertnodes, temp, obr->vertnodeslen*sizeof(VertTableNode));
 		memset(obr->vertnodes+obr->vertnodeslen, 0, TABLEINITSIZE*sizeof(VertTableNode));
-		
-		obr->vertnodeslen+=TABLEINITSIZE; 
+
+		obr->vertnodeslen+=TABLEINITSIZE;
 		if (temp) MEM_freeN(temp);
 	}
-	
+
 	v= obr->vertnodes[a].vert;
 	if (v==NULL) {
 		int i;
-		
+
 		v= (VertRen *)MEM_callocN(256*sizeof(VertRen), "findOrAddVert");
 		obr->vertnodes[a].vert= v;
-		
+
 		for (i= (nr & 0xFFFFFF00), a=0; a<256; a++, i++) {
 			v[a].index= i;
 		}
@@ -371,10 +371,10 @@ float *RE_vlakren_get_surfnor(ObjectRen *obr, VlakRen *vlak, int verify)
 {
 	float *surfnor;
 	int nr= vlak->index>>8;
-	
+
 	surfnor= obr->vlaknodes[nr].surfnor;
 	if (surfnor==NULL) {
-		if (verify) 
+		if (verify)
 			surfnor= obr->vlaknodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor table");
 		else
 			return NULL;
@@ -410,10 +410,10 @@ RadFace **RE_vlakren_get_radface(ObjectRen *obr, VlakRen *vlak, int verify)
 {
 	RadFace **radface;
 	int nr= vlak->index>>8;
-	
+
 	radface= obr->vlaknodes[nr].radface;
 	if (radface==NULL) {
-		if (verify) 
+		if (verify)
 			radface = obr->vlaknodes[nr].radface= MEM_callocN(256 * RE_RADFACE_ELEMS * sizeof(void *), "radface table");
 		else
 			return NULL;
@@ -493,7 +493,7 @@ void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 {
 	/* CustomData layer names are stored per object here, because the
 	 * DerivedMesh which stores the layers is freed */
-	
+
 	CustomDataLayer *layer;
 	int numtf = 0, numcol = 0, i, mtfn, mcn;
 
@@ -533,10 +533,10 @@ VlakRen *RE_findOrAddVlak(ObjectRen *obr, int nr)
 		return obr->vlaknodes[0].vlak;
 	}
 	a= nr>>8;
-	
+
 	if (a>=obr->vlaknodeslen-1) {  /* Need to allocate more columns..., and keep last element NULL for free loop */
 		temp= obr->vlaknodes;
-		
+
 		obr->vlaknodes= MEM_mallocN(sizeof(VlakTableNode)*(obr->vlaknodeslen+TABLEINITSIZE), "vlaknodes");
 		if (temp) memcpy(obr->vlaknodes, temp, obr->vlaknodeslen*sizeof(VlakTableNode));
 		memset(obr->vlaknodes+obr->vlaknodeslen, 0, TABLEINITSIZE*sizeof(VlakTableNode));
@@ -546,7 +546,7 @@ VlakRen *RE_findOrAddVlak(ObjectRen *obr, int nr)
 	}
 
 	v= obr->vlaknodes[a].vlak;
-	
+
 	if (v==NULL) {
 		int i;
 
@@ -566,10 +566,10 @@ float *RE_strandren_get_surfnor(ObjectRen *obr, StrandRen *strand, int verify)
 {
 	float *surfnor;
 	int nr= strand->index>>8;
-	
+
 	surfnor= obr->strandnodes[nr].surfnor;
 	if (surfnor==NULL) {
-		if (verify) 
+		if (verify)
 			surfnor= obr->strandnodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor strand table");
 		else
 			return NULL;
@@ -649,10 +649,10 @@ float *RE_strandren_get_simplify(struct ObjectRen *obr, struct StrandRen *strand
 {
 	float *simplify;
 	int nr= strand->index>>8;
-	
+
 	simplify= obr->strandnodes[nr].simplify;
 	if (simplify==NULL) {
-		if (verify) 
+		if (verify)
 			simplify= obr->strandnodes[nr].simplify= MEM_callocN(256*RE_SIMPLIFY_ELEMS*sizeof(float), "simplify strand table");
 		else
 			return NULL;
@@ -664,10 +664,10 @@ int *RE_strandren_get_face(ObjectRen *obr, StrandRen *strand, int verify)
 {
 	int *face;
 	int nr= strand->index>>8;
-	
+
 	face= obr->strandnodes[nr].face;
 	if (face==NULL) {
-		if (verify) 
+		if (verify)
 			face= obr->strandnodes[nr].face= MEM_callocN(256*RE_FACE_ELEMS*sizeof(int), "face strand table");
 		else
 			return NULL;
@@ -680,7 +680,7 @@ float *RE_strandren_get_winspeed(ObjectInstanceRen *obi, StrandRen *strand, int 
 {
 	float *winspeed;
 	int totvector;
-	
+
 	winspeed= obi->vectors;
 	if (winspeed==NULL) {
 		if (verify) {
@@ -704,10 +704,10 @@ StrandRen *RE_findOrAddStrand(ObjectRen *obr, int nr)
 		return obr->strandnodes[0].strand;
 	}
 	a= nr>>8;
-	
+
 	if (a>=obr->strandnodeslen-1) {  /* Need to allocate more columns..., and keep last element NULL for free loop */
 		temp= obr->strandnodes;
-		
+
 		obr->strandnodes= MEM_mallocN(sizeof(StrandTableNode)*(obr->strandnodeslen+TABLEINITSIZE), "strandnodes");
 		if (temp) memcpy(obr->strandnodes, temp, obr->strandnodeslen*sizeof(StrandTableNode));
 		memset(obr->strandnodes+obr->strandnodeslen, 0, TABLEINITSIZE*sizeof(StrandTableNode));
@@ -717,7 +717,7 @@ StrandRen *RE_findOrAddStrand(ObjectRen *obr, int nr)
 	}
 
 	v= obr->strandnodes[a].strand;
-	
+
 	if (v==NULL) {
 		int i;
 
@@ -750,7 +750,7 @@ StrandBuffer *RE_addStrandBuffer(ObjectRen *obr, int totvert)
 ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int psysindex, int lay)
 {
 	ObjectRen *obr= MEM_callocN(sizeof(ObjectRen), "object render struct");
-	
+
 	BLI_addtail(&re->objecttable, obr);
 	obr->ob= ob;
 	obr->par= par;
@@ -764,12 +764,12 @@ ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, in
 void free_renderdata_vertnodes(VertTableNode *vertnodes)
 {
 	int a;
-	
+
 	if (vertnodes==NULL) return;
-	
+
 	for (a=0; vertnodes[a].vert; a++) {
 		MEM_freeN(vertnodes[a].vert);
-		
+
 		if (vertnodes[a].rad)
 			MEM_freeN(vertnodes[a].rad);
 		if (vertnodes[a].strand)
@@ -783,19 +783,19 @@ void free_renderdata_vertnodes(VertTableNode *vertnodes)
 		if (vertnodes[a].origindex)
 			MEM_freeN(vertnodes[a].origindex);
 	}
-	
+
 	MEM_freeN(vertnodes);
 }
 
 void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 {
 	int a;
-	
+
 	if (vlaknodes==NULL) return;
-	
+
 	for (a=0; vlaknodes[a].vlak; a++) {
 		MEM_freeN(vlaknodes[a].vlak);
-		
+
 		if (vlaknodes[a].mtface)
 			MEM_freeN(vlaknodes[a].mtface);
 		if (vlaknodes[a].mcol)
@@ -811,19 +811,19 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 		if (vlaknodes[a].radface)
 			MEM_freeN(vlaknodes[a].radface);
 	}
-	
+
 	MEM_freeN(vlaknodes);
 }
 
 static void free_renderdata_strandnodes(StrandTableNode *strandnodes)
 {
 	int a;
-	
+
 	if (strandnodes==NULL) return;
-	
+
 	for (a=0; strandnodes[a].strand; a++) {
 		MEM_freeN(strandnodes[a].strand);
-		
+
 		if (strandnodes[a].uv)
 			MEM_freeN(strandnodes[a].uv);
 		if (strandnodes[a].mcol)
@@ -837,7 +837,7 @@ static void free_renderdata_strandnodes(StrandTableNode *strandnodes)
 		if (strandnodes[a].face)
 			MEM_freeN(strandnodes[a].face);
 	}
-	
+
 	MEM_freeN(strandnodes);
 }
 
@@ -847,7 +847,7 @@ void free_renderdata_tables(Render *re)
 	ObjectRen *obr;
 	StrandBuffer *strandbuf;
 	int a=0;
-	
+
 	for (obr=re->objecttable.first; obr; obr=obr->next) {
 		if (obr->vertnodes) {
 			free_renderdata_vertnodes(obr->vertnodes);
@@ -889,7 +889,7 @@ void free_renderdata_tables(Render *re)
 
 		if (obr->mcol)
 			MEM_freeN(obr->mcol);
-			
+
 		if (obr->rayfaces) {
 			MEM_freeN(obr->rayfaces);
 			obr->rayfaces = NULL;
@@ -943,19 +943,19 @@ HaloRen *RE_findOrAddHalo(ObjectRen *obr, int nr)
 		return NULL;
 	}
 	a= nr>>8;
-	
+
 	if (a>=obr->blohalen-1) {  /* Need to allocate more columns..., and keep last element NULL for free loop */
-		//printf("Allocating %i more halo groups.  %i total.\n", 
+		//printf("Allocating %i more halo groups.  %i total.\n",
 		//	TABLEINITSIZE, obr->blohalen+TABLEINITSIZE );
 		temp=obr->bloha;
-		
+
 		obr->bloha = (HaloRen **)MEM_callocN(sizeof(void *) * (obr->blohalen + TABLEINITSIZE), "Bloha");
 		if (temp) memcpy(obr->bloha, temp, obr->blohalen*sizeof(void *));
 		memset(&(obr->bloha[obr->blohalen]), 0, TABLEINITSIZE * sizeof(void *));
 		obr->blohalen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
 		if (temp) MEM_freeN(temp);
 	}
-	
+
 	h= obr->bloha[a];
 	if (h==NULL) {
 		h= (HaloRen *)MEM_callocN(256*sizeof(HaloRen), "findOrAdHalo");
@@ -997,9 +997,9 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
 	har->xs= 0.5f*re->winx*(hoco[0]/zn);
 	har->ys= 0.5f*re->winy*(hoco[1]/zn);
 	har->zs= 0x7FFFFF*(hoco[2]/zn);
-	
-	har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
-	
+
+	har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn);
+
 	/* halovect */
 	if (vec1) {
 
@@ -1015,7 +1015,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
 		zn= len_v3v3(vec1, vec);
 
 		har->hasize= vectsize*zn + (1.0f-vectsize)*hasize;
-		
+
 		sub_v3_v3v3(har->no, vec, vec1);
 		normalize_v3(har->no);
 	}
@@ -1127,9 +1127,9 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 	har->xs= 0.5f*re->winx*(hoco[0]/zn);
 	har->ys= 0.5f*re->winy*(hoco[1]/zn);
 	har->zs= 0x7FFFFF*(hoco[2]/zn);
-	
-	har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
-	
+
+	har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn);
+
 	/* halovect */
 	if (vec1) {
 
@@ -1145,7 +1145,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 		zn= len_v3v3(vec1, vec)*0.5f;
 
 		har->hasize= vectsize*zn + (1.0f-vectsize)*hasize;
-		
+
 		sub_v3_v3v3(har->no, vec, vec1);
 		normalize_v3(har->no);
 	}
@@ -1168,7 +1168,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 
 	if ((ma->mode & MA_HALOTEX) && ma->mtex[0])
 		har->tex= 1;
-	
+
 	for (i=0; i<MAX_MTEX; i++)
 		if (ma->mtex[i] && (ma->septex & (1<<i))==0) {
 			mtex= ma->mtex[i];
@@ -1317,7 +1317,7 @@ void project_renderdata(Render *re,
 
 	if (do_pano) {
 		float panophi= xoffs;
-		
+
 		re->panosi = sinf(panophi);
 		re->panoco = cosf(panophi);
 	}
@@ -1338,11 +1338,11 @@ void project_renderdata(Render *re,
 			}
 
 			projectfunc(vec, re->winmat, hoco);
-			
+
 			/* we clip halos less critical, but not for the Z */
 			hoco[0]*= 0.5f;
 			hoco[1]*= 0.5f;
-			
+
 			if ( panotestclip(re, do_pano, hoco) ) {
 				har->miny= har->maxy= -10000;	/* that way render clips it */
 			}
@@ -1353,42 +1353,42 @@ void project_renderdata(Render *re,
 				/* bring back hocos */
 				hoco[0]*= 2.0f;
 				hoco[1]*= 2.0f;
-				
+
 				zn= hoco[3];
 				har->xs= 0.5f*re->winx*(1.0f+hoco[0]/zn); /* the 0.5 negates the previous 2...*/
 				har->ys= 0.5f*re->winy*(1.0f+hoco[1]/zn);
-			
+
 				/* this should be the zbuffer coordinate */
 				har->zs= 0x7FFFFF*(hoco[2]/zn);
 				/* taking this from the face clip functions? seems ok... */
 				har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn);
-				
+
 				vec[0]+= har->hasize;
 				projectfunc(vec, re->winmat, hoco);
 				vec[0]-= har->hasize;
 				zn= hoco[3];
 				har->rad= fabsf(har->xs- 0.5f*re->winx*(1.0f+hoco[0]/zn));
-			
+
 				/* this clip is not really OK, to prevent stars to become too large */
 				if (har->type & HA_ONLYSKY) {
 					if (har->rad>3.0f) har->rad= 3.0f;
 				}
-			
+
 				har->radsq= har->rad*har->rad;
-			
+
 				har->miny= har->ys - har->rad/re->ycor;
 				har->maxy= har->ys + har->rad/re->ycor;
-			
+
 				/* the Zd value is still not really correct for pano */
-			
+
 				vec[2] -= har->hasize;  /* z negative, otherwise it's clipped */
 				projectfunc(vec, re->winmat, hoco);
 				zn = hoco[3];
 				zn = fabsf((float)har->zs - 0x7FFFFF * (hoco[2] / zn));
 				har->zd = CLAMPIS(zn, 0, INT_MAX);
-			
+
 			}
-			
+
 		}
 	}
 }
@@ -1578,14 +1578,14 @@ int clip_render_object(float boundbox[2][3], float bounds[4], float winmat[4][4]
 		if (bounds) {
 			if      (vec[0] < bounds[0] * vec[3]) fl |= 1;
 			else if (vec[0] > bounds[1] * vec[3]) fl |= 2;
-			
+
 			if      (vec[1] > bounds[3] * vec[3]) fl |= 4;
 			else if (vec[1] < bounds[2] * vec[3]) fl |= 8;
 		}
 		else {
 			if      (vec[0] < -vec[3]) fl |= 1;
 			else if (vec[0] >  vec[3]) fl |= 2;
-			
+
 			if      (vec[1] >  vec[3]) fl |= 4;
 			else if (vec[1] < -vec[3]) fl |= 8;
 		}

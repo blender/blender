@@ -68,10 +68,10 @@ typedef struct InstanceRayObject {
 
 	void *ob; //Object represented by this instance
 	void *target_ob; //Object represented by the inner RayObject, needed to handle self-intersection
-	
+
 	float global2target[4][4];
 	float target2global[4][4];
-	
+
 } InstanceRayObject;
 
 

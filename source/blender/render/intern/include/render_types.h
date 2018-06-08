@@ -72,7 +72,7 @@ typedef struct SampleTables {
 	float centLut[16];
 	float *fmask1[9], *fmask2[9];
 	char cmask[256], *centmask;
-	
+
 } SampleTables;
 
 typedef struct QMCSampler {
@@ -91,10 +91,10 @@ typedef struct QMCSampler {
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart {
 	struct RenderPart *next, *prev;
-	
+
 	RenderResult *result;			/* result of part rendering */
 	ListBase fullresult;			/* optional full sample buffers */
-	
+
 	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
@@ -111,7 +111,7 @@ typedef struct RenderPart {
 	short crop, status;				/* crop is amount of pixels we crop, for filter */
 	short sample;					/* sample can be used by zbuffers */
 	short thread;					/* thread id */
-	
+
 	char *clipflag;					/* clipflags for part zbuffering */
 } RenderPart;
 
@@ -127,13 +127,13 @@ struct Render {
 	struct Render *next, *prev;
 	char name[RE_MAXNAME];
 	int slot;
-	
+
 	/* state settings */
 	short flag, osa, ok, result_ok;
-	
+
 	/* due to performance issues, getting initialized from color management settings once on Render initialization */
 	bool scene_color_manage;
-	
+
 	/* result of rendering */
 	RenderResult *result;
 	/* if render with single-layer option, other rendered layers are stored here */
@@ -144,7 +144,7 @@ struct Render {
 	 * write lock, all external code must use a read lock. internal code is assumed
 	 * to not conflict with writes, so no lock used for that */
 	ThreadRWMutex resultmutex;
-	
+
 	/* window size, display rect, viewplane */
 	int winx, winy;			/* buffer width and height with percentage applied
 							 * without border & crop. convert to long before multiplying together to avoid overflow. */
@@ -152,40 +152,40 @@ struct Render {
 	rctf viewplane;			/* mapped on winx winy */
 	float viewdx, viewdy;	/* size of 1 pixel */
 	float clipcrop;			/* 2 pixel boundary to prevent clip when filter used */
-	
+
 	/* final picture width and height (within disprect) */
 	int rectx, recty;
-	
-	/* real maximum size of parts after correction for minimum 
+
+	/* real maximum size of parts after correction for minimum
 	 * partx*xparts can be larger than rectx, in that case last part is smaller */
 	int partx, party;
-	
+
 	/* values for viewing */
 	float ycor; /* (scene->xasp / scene->yasp), multiplied with 'winy' */
-	
+
 	float panophi, panosi, panoco, panodxp, panodxv;
-	
+
 	/* Matrices */
 	float grvec[3];			/* for world */
 	float imat[3][3];		/* copy of viewinv */
 	float viewmat[4][4], viewinv[4][4];
 	float viewmat_orig[4][4];	/* for incremental render */
 	float winmat[4][4];
-	
+
 	/* clippping */
 	float clipsta;
 	float clipend;
-	
+
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
 	float mblur_jit[32][2];
 	ListBase *qmcsamplers;
 	int num_qmc_samplers;
-	
+
 	/* shadow counter, detect shadow-reuse for shaders */
 	int shadowsamplenr[BLENDER_MAX_THREADS];
-	
+
 	/* main, scene, and its full copy of renderdata and world */
 	struct Main *main;
 	Scene *scene;
@@ -193,13 +193,13 @@ struct Render {
 	World wrld;
 	struct Object *camera_override;
 	unsigned int lay, layer_override;
-	
+
 	ThreadRWMutex partsmutex;
 	ListBase parts;
-	
+
 	/* render engine */
 	struct RenderEngine *engine;
-	
+
 	/* octree tables and variables for raytrace */
 	struct RayObject *raytree;
 	struct RayFace *rayfaces;
@@ -209,17 +209,17 @@ struct Render {
 	/* occlusion tree */
 	void *occlusiontree;
 	ListBase strandsurface;
-	
+
 	/* use this instead of R.r.cfra */
 	float mblur_offs, field_offs;
-	
+
 	/* render database */
 	int totvlak, totvert, tothalo, totstrand, totlamp;
 	struct HaloRen **sortedhalos;
 
 	ListBase lights;	/* GroupObject pointers */
 	ListBase lampren;	/* storage, for free */
-	
+
 	ListBase objecttable;
 
 	struct ObjectInstanceRen *objectinstance;
@@ -227,7 +227,7 @@ struct Render {
 	int totinstance;
 
 	struct Image *bakebuf;
-	
+
 	struct GHash *orco_hash;
 
 	struct GHash *sss_hash;
@@ -249,7 +249,7 @@ struct Render {
 	 * example dynamic TFaces to go in the VlakRen structure.
 	 */
 	struct MemArena *memArena;
-	
+
 	/* callbacks */
 	void (*display_init)(void *handle, RenderResult *rr);
 	void *dih;
@@ -259,17 +259,17 @@ struct Render {
 	void *duh;
 	void (*current_scene_update)(void *handle, struct Scene *scene);
 	void *suh;
-	
+
 	void (*stats_draw)(void *handle, RenderStats *ri);
 	void *sdh;
 	void (*progress)(void *handle, float i);
 	void *prh;
-	
+
 	void (*draw_lock)(void *handle, int i);
 	void *dlh;
 	int (*test_break)(void *handle);
 	void *tbh;
-	
+
 	RenderStats i;
 
 	struct ReportList *reports;
@@ -289,7 +289,7 @@ typedef struct DeepSample {
 	int z;
 	float v;
 } DeepSample;
- 
+
 typedef struct ShadSampleBuf {
 	struct ShadSampleBuf *next, *prev;
 	intptr_t *zbuf;
@@ -309,7 +309,7 @@ typedef struct ShadBuf {
 	int co[3];
 	int size, bias;
 	ListBase buffers;
-	
+
 	/* irregular shadowbufer, result stored per thread */
 	struct ISBData *isb_result[BLENDER_MAX_THREADS];
 } ShadBuf;
@@ -345,7 +345,7 @@ typedef struct ObjectRen {
 	struct RayFace *rayfaces;
 	struct VlakPrimitive *rayprimitives;
 	struct ObjectInstanceRen *rayobi;
-	
+
 } ObjectRen;
 
 typedef struct ObjectInstanceRen {
@@ -365,12 +365,12 @@ typedef struct ObjectInstanceRen {
 
 	float dupliorco[3], dupliuv[2];
 	float (*duplitexmat)[4];
-	
+
 	struct VolumePrecache *volume_precache;
-	
+
 	float *vectors; /* (RE_WINSPEED_ELEMS * VertRen.index) */
 	int totvector;
-	
+
 	/* used on makeraytree */
 	struct RayObject *raytree;
 	int transform_primitives;
@@ -485,9 +485,9 @@ typedef struct StrandBuffer {
 	int overrideuv;
 	int flag, maxdepth;
 	float adaptcos, minwidth, widthfade;
-	
+
 	float maxwidth;	/* for cliptest of strands in blender unit */
-	
+
 	float winmat[4][4];
 	int winx, winy;
 } StrandBuffer;
@@ -559,7 +559,7 @@ typedef struct LampShadowSample {
 
 typedef struct LampRen {
 	struct LampRen *next, *prev;
-	
+
 	float xs, ys, dist;
 	float co[3];
 	short type;
@@ -572,7 +572,7 @@ typedef struct LampRen {
 	float vec[3];
 	float xsp, ysp, distkw, inpr;
 	float halokw, halo;
-	
+
 	short falloff_type;
 	float ld1, ld2;
 	float coeff_const, coeff_lin, coeff_quad;
@@ -601,7 +601,7 @@ typedef struct LampRen {
 	float bias;
 	/* Compression threshold for deep shadow maps */
 	float compressthresh;
-	
+
 	short ray_samp, ray_sampy, ray_sampz, ray_samp_method, ray_samp_type, area_shape, ray_totsamp;
 	short xold[BLENDER_MAX_THREADS], yold[BLENDER_MAX_THREADS];	/* last jitter table for area lights */
 	float area_size, area_sizey, area_sizez;
@@ -609,10 +609,10 @@ typedef struct LampRen {
 
 	/* sun/sky */
 	struct SunSky *sunsky;
-	
+
 	struct ShadBuf *shb;
 	float *jitter;
-	
+
 	float imat[3][3];
 	float spottexfac;
 	float sh_invcampos[3], sh_zfac;	/* sh_= spothalo */
@@ -621,13 +621,13 @@ typedef struct LampRen {
 
 	float mat[3][3];	/* 3x3 part from lampmat x viewmat */
 	float area[8][3], areasize;
-	
+
 	/* passes & node shader support: all shadow info for a pixel */
 	LampShadowSample *shadsamp;
-	
+
 	/* ray optim */
 	struct RayObject *last_hit[BLENDER_MAX_THREADS];
-	
+
 	struct MTex *mtex[MAX_MTEX];
 
 	/* threading */
@@ -658,9 +658,9 @@ typedef struct LampRen {
 #define R_FULL_OSA		8
 #define R_FACE_SPLIT	16
 /* Tells render to divide face other way. */
-#define R_DIVIDE_24		32	
+#define R_DIVIDE_24		32
 /* vertex normals are tangent or view-corrected vector, for hair strands */
-#define R_TANGENT		64		
+#define R_TANGENT		64
 #define R_TRACEBLE		128
 
 /* vlakren->freestyle_edge_mark */

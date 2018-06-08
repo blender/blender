@@ -1283,7 +1283,7 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 		}
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
-		DAG_id_tag_update(&ima->id, 0);		
+		DAG_id_tag_update(&ima->id, 0);
 	}
 }
 
