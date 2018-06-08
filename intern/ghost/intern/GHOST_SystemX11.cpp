@@ -1843,8 +1843,13 @@ convertXKey(KeySym key)
 #endif
 			/* Non US keyboard layouts: avoid 'UnknownKey' - TODO(campbell): lookup scan-codes. */
 			GXMAP(type, XK_dead_circumflex, GHOST_kKeyAccentGrave);         /* 'de' */
+			GXMAP(type, XK_masculine, GHOST_kKeyAccentGrave);               /* 'es' */
+			GXMAP(type, XK_onehalf, GHOST_kKeyAccentGrave);                 /* 'dk' */
 			GXMAP(type, XK_twosuperior, GHOST_kKeyAccentGrave);             /* 'fr' */
 			default:
+#ifdef GHOST_DEBUG
+				printf("%s: unknown key: %lu / 0x%lx\n", __func__, key, key);
+#endif
 				type = GHOST_kKeyUnknown;
 				break;
 		}
