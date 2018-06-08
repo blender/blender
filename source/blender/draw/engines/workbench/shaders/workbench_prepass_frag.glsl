@@ -43,7 +43,8 @@ void main()
 #ifdef OB_SOLID
 	diffuseColor = vec4(material_data.diffuse_color.rgb, 0.0);
 #  ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
-	specularColor = vec4(material_data.diffuse_color.rgb, material_data.matcap_texture_index);
+
+	specularColor = vec4(material_data.diffuse_color.rgb, 0.0);
 #  endif
 #endif /* OB_SOLID */
 

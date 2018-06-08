@@ -66,6 +66,7 @@ enum {
 /* view3d_header.c */
 void VIEW3D_OT_layers(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_xray_draw_option(struct wmOperatorType *ot);
+void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
 void view3d_operatortypes(void);

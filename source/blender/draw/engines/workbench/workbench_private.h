@@ -128,7 +128,8 @@ typedef struct WORKBENCH_UBO_World {
 	float light_direction_vs[4];
 	WORKBENCH_UBO_Light lights[3];
 	int num_lights;
-	int pad[3];
+	int matcap_orientation;
+	int pad[2];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
@@ -136,8 +137,7 @@ typedef struct WORKBENCH_UBO_Material {
 	float diffuse_color[4];
 	float specular_color[4];
 	float roughness;
-	int matcap_texture_index;
-	float pad[2];
+	float pad[3];
 } WORKBENCH_UBO_Material;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_Material, 16)
 

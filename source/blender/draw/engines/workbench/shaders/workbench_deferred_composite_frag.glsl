@@ -62,7 +62,11 @@ void main()
 #endif
 
 #ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
-	diffuse_color = texture(matcapImage, normal_viewport.xy / 2.0 + 0.5);
+	vec2 matcap_uv = normal_viewport.xy / 2.0 + 0.5;
+	if (world_data.matcap_orientation != 0) {
+		matcap_uv.x = 1.0 - matcap_uv.x;
+	}
+	diffuse_color = texture(matcapImage, matcap_uv);
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT

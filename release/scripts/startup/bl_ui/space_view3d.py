@@ -3520,14 +3520,16 @@ class VIEW3D_PT_shading(Panel):
             if shading.light == 'STUDIO':
                 row = col.row()
                 row.template_icon_view(shading, "studio_light")
-                op = row.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='ZOOMIN')
+                row.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='ZOOMIN')
                 if shading.studio_light_orientation == 'WORLD':
                     col.row().prop(shading, "studiolight_rot_z")
 
             elif shading.light == 'MATCAP':
                 row = col.row()
                 row.template_icon_view(shading, "matcap")
-                op = row.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='ZOOMIN')
+                sub = row.column()
+                sub.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
+                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='ZOOMIN')
 
         if shading.type == 'SOLID':
             col.separator()

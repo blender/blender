@@ -259,6 +259,33 @@ void VIEW3D_OT_toggle_xray_draw_option(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Toggle Bone selection Overlay Operator
+ * \{ */
+
+static int toggle_matcap_flip(bContext *C, wmOperator *UNUSED(op))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	v3d->shading.flag ^= V3D_SHADING_MATCAP_FLIP_X;
+	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Flip MatCap";
+	ot->description = "Flip MatCap";
+	ot->idname = "VIEW3D_OT_toggle_matcap_flip";
+
+	/* api callbacks */
+	ot->exec = toggle_matcap_flip;
+	// ot->poll = toggle_show_xray_poll;
+}
+
+/** \} */
+
 
 static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 {
