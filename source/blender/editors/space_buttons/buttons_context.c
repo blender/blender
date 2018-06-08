@@ -489,7 +489,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	}
 	/* No pinned root, use scene as initial root. */
 	else {
-		if (mainb == BCONTEXT_WORKSPACE) {
+		if (ELEM(mainb, BCONTEXT_WORKSPACE, BCONTEXT_TOOL)) {
 			RNA_id_pointer_create(&workspace->id, &path->ptr[0]);
 			path->len++;
 		}
@@ -525,6 +525,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		case BCONTEXT_WORLD:
 			found = buttons_context_path_world(path);
 			break;
+		case BCONTEXT_TOOL:
 		case BCONTEXT_WORKSPACE:
 			found = buttons_context_path_workspace(path);
 			break;

@@ -196,6 +196,7 @@ typedef enum eSpaceButtons_Context {
 	BCONTEXT_CONSTRAINT = 11,
 	BCONTEXT_BONE_CONSTRAINT = 12,
 	BCONTEXT_VIEW_LAYER = 13,
+	BCONTEXT_TOOL = 14,
 	BCONTEXT_WORKSPACE = 15,
 
 	/* always as last... */
@@ -219,12 +220,6 @@ typedef enum eSpaceButtons_Align {
 	BUT_VERTICAL = 2,
 	BUT_AUTO = 3,
 } eSpaceButtons_Align;
-
-/* SpaceButs.flag */
-typedef enum eSpaceButtons_SubType {
-	SB_SUBTYPE_DATA = 0,
-	SB_SUBTYPE_TOOL = 1,
-} eSpaceButtons_SubType;
 
 /** \} */
 
