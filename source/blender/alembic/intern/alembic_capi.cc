@@ -260,6 +260,12 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 	G.is_break = false;
 
+	DEG_graph_build_from_view_layer(data->settings.depsgraph,
+	                                data->bmain,
+	                                data->settings.scene,
+	                                data->view_layer);
+	BKE_scene_graph_update_tagged(data->settings.depsgraph, data->bmain);
+
 	try {
 		AbcExporter exporter(data->bmain, data->filename, data->settings);
 
@@ -333,13 +339,13 @@ bool ABC_export(
 	 * hardcore refactoring. */
 	new (&job->settings) ExportSettings();
 	job->settings.scene = scene;
-	job->settings.depsgraph = CTX_data_depsgraph(C);
+	job->settings.depsgraph = DEG_graph_new(scene, job->view_layer, DAG_EVAL_RENDER);
 
 	/* Sybren: for now we only export the active scene layer.
 	 * Later in the 2.8 development process this may be replaced by using
 	 * a specific collection for Alembic I/O, which can then be toggled
 	 * between "real" objects and cached Alembic files. */
-	job->settings.view_layer = CTX_data_view_layer(C);
+	job->settings.view_layer = job->view_layer;
 
 	job->settings.frame_start = params->frame_start;
 	job->settings.frame_end = params->frame_end;
