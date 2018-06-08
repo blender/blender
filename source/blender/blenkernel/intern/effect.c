@@ -219,10 +219,6 @@ ListBase *pdInitEffectors(
 	ListBase *effectors = NULL;
 
 	for (; base; base = base->next) {
-		if ((base->flag & BASE_VISIBLED) == 0) {
-			continue;
-		}
-
 		if (base->object->pd && base->object->pd->forcefield) {
 			add_object_to_effectors(&effectors, depsgraph, scene, weights, base->object, ob_src, for_simulation);
 		}

@@ -233,13 +233,12 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 	Object *parent = ctx->object;
 
 	if (ctx->collection) {
-		int collectionid = 0;
-		FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(ctx->collection, base)
+		eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(ctx->collection, ob, mode)
 		{
-			Object *ob = base->object;
-			if ((base->flag & BASE_VISIBLED) && ob != ctx->obedit && is_child(ob, parent)) {
+			if ((ob != ctx->obedit) && is_child(ob, parent)) {
 				DupliContext pctx;
-				copy_dupli_context(&pctx, ctx, ctx->object, NULL, collectionid);
+				copy_dupli_context(&pctx, ctx, ctx->object, NULL, _base_id);
 
 				/* mballs have a different dupli handling */
 				if (ob->type != OB_MBALL) {
@@ -247,9 +246,8 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 				}
 				make_child_duplis_cb(&pctx, userdata, ob);
 			}
-			collectionid++;
 		}
-		FOREACH_COLLECTION_BASE_RECURSIVE_END
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 	}
 	else {
 		int baseid = 0;
@@ -278,9 +276,7 @@ static void make_duplis_collection(const DupliContext *ctx)
 {
 	Object *ob = ctx->object;
 	Collection *collection;
-	Base *base;
 	float collection_mat[4][4];
-	int id;
 
 	if (ob->dup_group == NULL) return;
 	collection = ob->dup_group;
@@ -291,20 +287,22 @@ static void make_duplis_collection(const DupliContext *ctx)
 	mul_m4_m4m4(collection_mat, ob->obmat, collection_mat);
 	/* don't access 'ob->obmat' from now on. */
 
-	const ListBase dup_collection_objects = BKE_collection_object_cache_get(collection);
-	for (base = dup_collection_objects.first, id = 0; base; base = base->next, id++) {
-		if (base->object != ob && (base->flag & BASE_VISIBLED)) {
+	eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
+	FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(collection, cob, mode)
+	{
+		if (cob != ob) {
 			float mat[4][4];
 
 			/* collection dupli offset, should apply after everything else */
-			mul_m4_m4m4(mat, collection_mat, base->object->obmat);
+			mul_m4_m4m4(mat, collection_mat, cob->obmat);
 
-			make_dupli(ctx, base->object, mat, id);
+			make_dupli(ctx, cob, mat, _base_id);
 
 			/* recursion */
-			make_recursive_duplis(ctx, base->object, collection_mat, id);
+			make_recursive_duplis(ctx, cob, collection_mat, _base_id);
 		}
 	}
+	FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 }
 
 static const DupliGenerator gen_dupli_collection = {
@@ -822,7 +820,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 {
 	Scene *scene = ctx->scene;
 	Object *par = ctx->object;
-	bool for_render = DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER;
+	eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
+	bool for_render = mode == DAG_EVAL_RENDER;
 	bool use_texcoords = for_render;
 
 	Object *ob = NULL, **oblist = NULL, obcopy, *obcopylist = NULL;
@@ -849,7 +848,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	if (part == NULL)
 		return;
 
-	if (!psys_check_enabled(par, psys, (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER)))
+	if (!psys_check_enabled(par, psys, for_render))
 		return;
 
 	if (!for_render)
@@ -913,12 +912,12 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					totcollection += dw->count;
 			}
 			else {
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
 				{
 					(void) object;
 					totcollection++;
 				}
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 
 			/* we also copy the actual objects to restore afterwards, since
@@ -938,7 +937,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 			}
 			else {
 				a = 0;
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
 				{
 					oblist[a] = object;
 					obcopylist[a] = *object;
@@ -948,7 +947,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 						continue;
 					}
 				}
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 		}
 		else {
@@ -1038,7 +1037,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 			if (part->ren_as == PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 				b = 0;
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
 				{
 					copy_m4_m4(tmat, oblist[b]->obmat);
 
@@ -1063,7 +1062,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 					b++;
 				}
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 			else {
 				/* to give ipos in object correct offset */

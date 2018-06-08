@@ -490,9 +490,9 @@ static void scene_setSubframe(Scene *scene, float subframe)
 	scene->r.subframe = subframe;
 }
 
-static int surface_getBrushFlags(DynamicPaintSurface *surface, const ViewLayer *view_layer)
+static int surface_getBrushFlags(DynamicPaintSurface *surface, const Depsgraph *depsgraph)
 {
-	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, surface->brush_group);
+	Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, surface->brush_group);
 	Object *brushObj = NULL;
 	ModifierData *md = NULL;
 
@@ -5758,7 +5758,7 @@ static void dynamic_paint_generate_bake_data_cb(
 	}
 }
 
-static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const ViewLayer *view_layer, Object *ob)
+static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Depsgraph *depsgraph, Object *ob)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
@@ -5766,7 +5766,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Vie
 	int index;
 	bool new_bdata = false;
 	const bool do_velocity_data = ((surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) ||
-	                               (surface_getBrushFlags(surface, view_layer) & BRUSH_USES_VELOCITY));
+	                               (surface_getBrushFlags(surface, depsgraph) & BRUSH_USES_VELOCITY));
 	const bool do_accel_data = (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) != 0;
 
 	int canvasNumOfVerts = dm->getNumVerts(dm);
@@ -5912,8 +5912,7 @@ static int dynamicPaint_doStep(
 	{
 		Object *brushObj = NULL;
 		ModifierData *md = NULL;
-		ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-		Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, surface->brush_group);
+		Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, surface->brush_group);
 
 		/* backup current scene frame */
 		int scene_frame = scene->r.cfra;
@@ -6051,8 +6050,7 @@ int dynamicPaint_calculateFrame(
 		dynamicPaint_applySurfaceDisplace(surface, surface->canvas->dm);
 
 	/* update bake data */
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	dynamicPaint_generateBakeData(surface, view_layer, cObject);
+	dynamicPaint_generateBakeData(surface, depsgraph, cObject);
 
 	/* don't do substeps for first frame */
 	if (surface->substeps && (frame != surface->start_frame)) {

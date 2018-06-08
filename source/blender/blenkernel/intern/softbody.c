@@ -75,6 +75,7 @@ variables on the UI for now
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_softbody.h"
 #include "BKE_pointcache.h"
@@ -516,19 +517,17 @@ static void ccd_build_deflector_hash_single(GHash *hash, Object *ob)
 /**
  * \note collection overrides scene when not NULL.
  */
-static void ccd_build_deflector_hash(ViewLayer *view_layer, Collection *collection, Object *vertexowner, GHash *hash)
+static void ccd_build_deflector_hash(Depsgraph *depsgraph, Collection *collection, Object *vertexowner, GHash *hash)
 {
-	Object *ob;
-
 	if (!hash) return;
 
 	/* Explicit collision collection. */
-	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
+	Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, collection);
 
 	for (; base; base = base->next) {
 		/* Only proceed for mesh object in same layer. */
 		if (base->object->type == OB_MESH) {
-			ob = base->object;
+			Object *ob = base->object;
 			if (ob == vertexowner) {
 				/* If vertexowner is given  we don't want to check collision with owner object. */
 				continue;
@@ -551,19 +550,17 @@ static void ccd_update_deflector_hash_single(GHash *hash, Object *ob)
 /**
  * \note collection overrides scene when not NULL.
  */
-static void ccd_update_deflector_hash(ViewLayer *view_layer, Collection *collection, Object *vertexowner, GHash *hash)
+static void ccd_update_deflector_hash(Depsgraph *depsgraph, Collection *collection, Object *vertexowner, GHash *hash)
 {
-	Object *ob;
-
 	if ((!hash) || (!vertexowner)) return;
 
 	/* Explicit collision collection. */
-	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
+	Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, collection);
 
 	for (; base; base = base->next) {
 		/* Only proceed for mesh object in same layer. */
 		if (base->object->type == OB_MESH) {
-			ob = base->object;
+			Object *ob = base->object;
 			if (ob == vertexowner) {
 				/* If vertexowner is given  we don't want to check collision with owner object. */
 				continue;
@@ -974,9 +971,9 @@ static bool are_there_deflectors(Base *first_base)
 	return 0;
 }
 
-static int query_external_colliders(ViewLayer *view_layer, Collection *collection)
+static int query_external_colliders(Depsgraph *depsgraph, Collection *collection)
 {
-	return(are_there_deflectors(BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection)));
+	return(are_there_deflectors(BKE_collection_or_layer_objects(depsgraph, NULL, NULL, collection)));
 }
 /* --- dependency information functions*/
 
@@ -2220,7 +2217,7 @@ static void softbody_calc_forcesEx(struct Depsgraph *depsgraph, Scene *scene, Ob
 	/* gravity = sb->grav * sb_grav_force_scale(ob); */ /* UNUSED */
 
 	/* check conditions for various options */
-	do_deflector= query_external_colliders(DEG_get_evaluated_view_layer(depsgraph), sb->collision_group);
+	do_deflector= query_external_colliders(depsgraph, sb->collision_group);
 	/* do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF)); */ /* UNUSED */
 	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
@@ -2284,7 +2281,7 @@ static void softbody_calc_forces(struct Depsgraph *depsgraph, Scene *scene, Obje
 		}
 
 		/* check conditions for various options */
-		do_deflector= query_external_colliders(DEG_get_evaluated_view_layer(depsgraph), sb->collision_group);
+		do_deflector= query_external_colliders(depsgraph, sb->collision_group);
 		do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
 		do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 		do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
@@ -3495,13 +3492,11 @@ static void softbody_step(struct Depsgraph *depsgraph, Scene *scene, Object *ob,
 	 */
 	if (dtime < 0 || dtime > 10.5f) return;
 
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-
-	ccd_update_deflector_hash(view_layer, sb->collision_group, ob, sb->scratch->colliderhash);
+	ccd_update_deflector_hash(depsgraph, sb->collision_group, ob, sb->scratch->colliderhash);
 
 	if (sb->scratch->needstobuildcollider) {
-		if (query_external_colliders(view_layer, sb->collision_group)) {
-			ccd_build_deflector_hash(view_layer, sb->collision_group, ob, sb->scratch->colliderhash);
+		if (query_external_colliders(depsgraph, sb->collision_group)) {
+			ccd_build_deflector_hash(depsgraph, sb->collision_group, ob, sb->scratch->colliderhash);
 		}
 		sb->scratch->needstobuildcollider=0;
 	}

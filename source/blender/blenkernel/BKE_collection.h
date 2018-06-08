@@ -90,14 +90,13 @@ void BKE_collections_child_remove_nulls(struct Main *bmain, struct Collection *o
 bool BKE_collection_is_in_scene(struct Collection *collection);
 void BKE_collections_after_lib_link(struct Main *bmain);
 bool BKE_collection_object_cyclic_check(struct Main *bmain, struct Object *object, struct Collection *collection);
-bool BKE_collection_is_animated(struct Collection *collection, struct Object *parent);
 
 /* Object list cache. */
 
 struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
 void BKE_collection_object_cache_free(struct Collection *collection);
 
-struct Base *BKE_collection_or_layer_objects(struct Depsgraph *depsgraph,
+struct Base *BKE_collection_or_layer_objects(const struct Depsgraph *depsgraph,
                                              const struct Scene *scene,
                                              const struct ViewLayer *view_layer,
                                              struct Collection *collection);
@@ -139,13 +138,21 @@ void BKE_scene_objects_callback(struct Scene *scene, BKE_scene_objects_Cb callba
 
 /* Iteratorion over objects in collection. */
 
-#define FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(_collection, _base)               \
-	for (Base *_base = (Base*)BKE_collection_object_cache_get(_collection).first; \
-	     _base;                                                                   \
-	     _base = _base->next)                                                     \
-	{
+#define FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(_collection, _object, _mode) \
+    {                                                                                  \
+		int _base_flag = (_mode == DAG_EVAL_VIEWPORT) ?                                \
+			BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;                               \
+		int _base_id = 0;                                                              \
+		for (Base *_base = (Base*)BKE_collection_object_cache_get(_collection).first;  \
+			 _base;                                                                    \
+			 _base = _base->next, _base_id++)                                          \
+		{                                                                              \
+			if (_base->flag & _base_flag) {                                            \
+				Object *_object = _base->object;                                       \
 
-#define FOREACH_COLLECTION_BASE_RECURSIVE_END                                     \
+#define FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END                               \
+			}                                                                         \
+		}                                                                             \
 	}
 
 #define FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(_collection, _object)           \

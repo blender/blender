@@ -478,16 +478,12 @@ void DepsgraphRelationBuilder::build_collection(
 		}
 	}
 	if (object != NULL) {
-		const ListBase group_objects = BKE_collection_object_cache_get(collection);
-		const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
-			BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
-		LISTBASE_FOREACH (Base *, base, &group_objects) {
-			if ((base->flag & base_flag) == 0) {
-				continue;
-			}
-			ComponentKey dupli_transform_key(&base->object->id, DEG_NODE_TYPE_TRANSFORM);
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(collection, ob, graph_->mode)
+		{
+			ComponentKey dupli_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
 		}
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 	}
 }
 
@@ -1430,10 +1426,9 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		const ListBase group_objects = BKE_collection_object_cache_get(rbw->group);
-		LISTBASE_FOREACH (Base *, base, &group_objects) {
-			Object *object = base->object;
-			if (object == NULL || object->type != OB_MESH) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
+		{
+			if (object->type != OB_MESH) {
 				continue;
 			}
 
@@ -1481,14 +1476,14 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			/* Needed to get correct base values. */
 			add_relation(trans_op, sim_key, "Base Ob Transform -> Rigidbody Sim Eval");
 		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 
 	/* constraints */
 	if (rbw->constraints) {
-		const ListBase constraint_objects = BKE_collection_object_cache_get(rbw->constraints);
-		LISTBASE_FOREACH (Base *, base, &constraint_objects) {
-			Object *object = base->object;
-			if (object == NULL || !object->rigidbody_constraint) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, object)
+		{
+			if (!object->rigidbody_constraint) {
 				continue;
 			}
 
@@ -1508,6 +1503,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			/* - ensure that sim depends on this constraint's transform */
 			add_relation(trans_key, sim_key, "RigidBodyConstraint Transform -> RB Simulation");
 		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 }
 
