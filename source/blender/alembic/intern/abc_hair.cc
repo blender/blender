@@ -145,6 +145,7 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
 		/* underlying info for faces-only emission */
 		path = cache[p];
 
+		/* Write UV and normal vectors */
 		if (part->from == PART_FROM_FACE && mtface) {
 			const int num = pa->num_dmcache >= 0 ? pa->num_dmcache : pa->num;
 
@@ -211,7 +212,7 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
 		int steps = path->segments + 1;
 		hvertices.push_back(steps);
 
-		for (k = 0; k < steps; ++k) {
+		for (k = 0; k < steps; ++k, ++path) {
 			float vert[3];
 			copy_v3_v3(vert, path->co);
 			mul_m4_v3(inv_mat, vert);
@@ -219,7 +220,6 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
 			/* Convert Z-up to Y-up. */
 			verts.push_back(Imath::V3f(vert[0], vert[2], -vert[1]));
 
-			++path;
 		}
 	}
 }
