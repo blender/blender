@@ -1315,4 +1315,5 @@ void paste_matcopybuf(Main *bmain, Material *ma)
 void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
 {
 	DEG_debug_print_eval(depsgraph, __func__, material->id.name, material);
+	GPU_material_free(&material->gpumaterial);
 }

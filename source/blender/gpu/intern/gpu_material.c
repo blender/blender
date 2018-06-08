@@ -46,6 +46,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_rand.h"
+#include "BLI_threads.h"
 
 #include "BKE_anim.h"
 #include "BKE_colorband.h"
@@ -73,6 +74,9 @@
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_DerivedMesh.h"
 #endif
+
+static ListBase g_orphaned_mat = {NULL, NULL};
+static ThreadMutex g_orphan_lock;
 
 /* Structs */
 
@@ -143,36 +147,70 @@ enum {
 
 /* Functions */
 
+static void gpu_material_free_single(GPUMaterial *material)
+{
+	/* Cancel / wait any pending lazy compilation. */
+	DRW_deferred_shader_remove(material);
+
+	GPU_pass_free_nodes(&material->nodes);
+	GPU_inputs_free(&material->inputs);
+
+	if (material->pass)
+		GPU_pass_release(material->pass);
+
+	if (material->ubo != NULL) {
+		GPU_uniformbuffer_free(material->ubo);
+	}
+
+	if (material->sss_tex_profile != NULL) {
+		GPU_texture_free(material->sss_tex_profile);
+	}
+
+	if (material->sss_profile != NULL) {
+		GPU_uniformbuffer_free(material->sss_profile);
+	}
+}
+
 void GPU_material_free(ListBase *gpumaterial)
 {
 	for (LinkData *link = gpumaterial->first; link; link = link->next) {
 		GPUMaterial *material = link->data;
 
-		/* Cancel / wait any pending lazy compilation. */
-		DRW_deferred_shader_remove(material);
-
-		GPU_pass_free_nodes(&material->nodes);
-		GPU_inputs_free(&material->inputs);
-
-		if (material->pass)
-			GPU_pass_release(material->pass);
-
-		if (material->ubo != NULL) {
-			GPU_uniformbuffer_free(material->ubo);
+		/* TODO(fclem): Check if the thread has an ogl context. */
+		if (BLI_thread_is_main()) {
+			gpu_material_free_single(material);
+			MEM_freeN(material);
 		}
-
-		if (material->sss_tex_profile != NULL) {
-			GPU_texture_free(material->sss_tex_profile);
+		else {
+			BLI_mutex_lock(&g_orphan_lock);
+			BLI_addtail(&g_orphaned_mat, BLI_genericNodeN(material));
+			BLI_mutex_unlock(&g_orphan_lock);
 		}
-
-		if (material->sss_profile != NULL) {
-			GPU_uniformbuffer_free(material->sss_profile);
-		}
-
-		MEM_freeN(material);
 	}
-
 	BLI_freelistN(gpumaterial);
+}
+
+void GPU_material_orphans_init(void)
+{
+	BLI_mutex_init(&g_orphan_lock);
+}
+
+void GPU_material_orphans_delete(void)
+{
+	BLI_mutex_lock(&g_orphan_lock);
+	LinkData *link;
+	while ((link = BLI_pophead(&g_orphaned_mat))) {
+		gpu_material_free_single((GPUMaterial *)link->data);
+		MEM_freeN(link->data);
+		MEM_freeN(link);
+	}
+	BLI_mutex_unlock(&g_orphan_lock);
+}
+
+void GPU_material_orphans_exit(void)
+{
+	GPU_material_orphans_delete();
+	BLI_mutex_end(&g_orphan_lock);
 }
 
 GPUBuiltin GPU_get_material_builtins(GPUMaterial *material)

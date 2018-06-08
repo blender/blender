@@ -58,6 +58,7 @@ void GPU_init(void)
 	gpu_extensions_init(); /* must come first */
 
 	GPU_texture_orphans_init();
+	GPU_material_orphans_init();
 	gpu_codegen_init();
 
 	if (G.debug & G_DEBUG_GPU)
@@ -83,6 +84,7 @@ void GPU_exit(void)
 	gpu_batch_exit();
 
 	GPU_texture_orphans_exit();
+	GPU_material_orphans_exit();
 
 	if (G.debug & G_DEBUG_GPU)
 		gpu_debug_exit();
