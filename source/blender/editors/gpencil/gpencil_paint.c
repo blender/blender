@@ -46,14 +46,15 @@
 
 #include "PIL_time.h"
 
-#include "BKE_paint.h"
-#include "BKE_gpencil.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
+#include "BKE_main.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
-#include "BKE_colortools.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -111,6 +112,7 @@ typedef enum eGPencil_PaintFlags {
  *   "p" = op->customdata
  */
 typedef struct tGPsdata {
+	Main *bmain;
 	Scene *scene;       /* current scene from context */
 
 	wmWindow *win;      /* window where painting originated */
@@ -638,7 +640,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure, 
 				View3D *v3d = p->sa->spacedata.first;
 
 				view3d_region_operator_needs_opengl(p->win, p->ar);
-				ED_view3d_autodist_init(p->scene, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+				ED_view3d_autodist_init(p->bmain, p->scene, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
 			}
 
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
@@ -1240,7 +1242,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
 			View3D *v3d = p->sa->spacedata.first;
 
 			view3d_region_operator_needs_opengl(p->win, p->ar);
-			ED_view3d_autodist_init(p->scene, p->ar, v3d, 0);
+			ED_view3d_autodist_init(p->bmain, p->scene, p->ar, v3d, 0);
 		}
 	}
 
@@ -1393,6 +1395,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	}
 
 	/* pass on current scene and window */
+	p->bmain = CTX_data_main(C);
 	p->scene = CTX_data_scene(C);
 	p->win = CTX_wm_window(C);
 
@@ -1805,7 +1808,7 @@ static void gp_paint_strokeend(tGPsdata *p)
 
 		/* need to restore the original projection settings before packing up */
 		view3d_region_operator_needs_opengl(p->win, p->ar);
-		ED_view3d_autodist_init(p->scene, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+		ED_view3d_autodist_init(p->bmain, p->scene, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
 	}
 
 	/* check if doing eraser or not */

@@ -47,10 +47,11 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
+#include "BKE_main.h"
 #include "BKE_tracking.h"
-#include "BKE_action.h"
 
 #include "WM_api.h"
 
@@ -520,6 +521,7 @@ bGPDpalettecolor *ED_gpencil_stroke_getcolor(bGPdata *gpd, bGPDstroke *gps)
  */
 void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 {
+	Main *bmain = CTX_data_main(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 
@@ -543,7 +545,7 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 		view3d_operator_needs_opengl(C);
 
 		view3d_region_operator_needs_opengl(win, ar);
-		ED_view3d_autodist_init(scene, ar, v3d, 0);
+		ED_view3d_autodist_init(bmain, scene, ar, v3d, 0);
 
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {

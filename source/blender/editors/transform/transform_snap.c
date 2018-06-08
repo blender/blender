@@ -284,6 +284,8 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 
 void applyProject(TransInfo *t)
 {
+	Main *bmain = CTX_data_main(t->context);
+
 	/* XXX FLICKER IN OBJECT MODE */
 	if ((t->tsnap.project) && activeSnap(t) && (t->flag & T_NO_PROJECT) == 0) {
 		TransData *td = t->data;
@@ -316,7 +318,7 @@ void applyProject(TransInfo *t)
 				mul_m4_v3(ob->obmat, iloc);
 			}
 			else if (t->flag & T_OBJECT) {
-				BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
+				BKE_object_eval_transform_all(bmain->eval_ctx, t->scene, td->ob);
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 
@@ -359,6 +361,8 @@ void applyProject(TransInfo *t)
 
 void applyGridAbsolute(TransInfo *t)
 {
+	Main *bmain = CTX_data_main(t->context);
+
 	float grid_size = 0.0f;
 	GearsType grid_action;
 	TransData *td;
@@ -405,7 +409,7 @@ void applyGridAbsolute(TransInfo *t)
 			mul_m4_v3(obmat, iloc);
 		}
 		else if (t->flag & T_OBJECT) {
-			BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
+			BKE_object_eval_transform_all(bmain->eval_ctx, t->scene, td->ob);
 			copy_v3_v3(iloc, td->ob->obmat[3]);
 		}
 
@@ -514,6 +518,7 @@ static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
 
 static void initSnappingMode(TransInfo *t)
 {
+	Main *bmain = CTX_data_main(t->context);
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
 	Scene *scene = t->scene;
@@ -598,7 +603,7 @@ static void initSnappingMode(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->tsnap.object_context == NULL) {
 			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-			        G.main, t->scene, 0,
+			        bmain, t->scene, 0,
 			        t->ar, t->view);
 
 			ED_transform_snap_object_context_set_editmesh_callbacks(

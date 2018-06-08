@@ -144,10 +144,10 @@ void draw_motion_paths_cleanup(View3D *v3d);
 
 /* drawobject.c */
 void draw_object(
-        Scene *scene, struct ARegion *ar, View3D *v3d,
+        struct Main *bmain, Scene *scene, struct ARegion *ar, View3D *v3d,
         Base *base, const short dflag);
 void draw_object_select(
-        Scene *scene, ARegion *ar, View3D *v3d,
+        struct Main *bmain, Scene *scene, ARegion *ar, View3D *v3d,
         Base *base, const short dflag);
 
 bool draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const char dt);
@@ -203,7 +203,7 @@ void draw_sim_debug_data(Scene *scene, View3D *v3d, ARegion *ar);
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
 
 void ED_view3d_draw_depth(
-        Scene *scene,
+        struct Main *bmain, struct Scene *scene,
         struct ARegion *ar, View3D *v3d, bool alphaoverride);
 void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void ED_view3d_draw_select_loop(

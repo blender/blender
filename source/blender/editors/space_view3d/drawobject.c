@@ -2289,7 +2289,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 }
 
 #ifdef SEQUENCER_DAG_WORKAROUND
-static void ensure_curve_cache(Scene *scene, Object *object)
+static void ensure_curve_cache(Main *bmain, Scene *scene, Object *object)
 {
 	bool need_recalc = object->curve_cache == NULL;
 	/* Render thread might have freed the curve cache if the
@@ -2321,7 +2321,7 @@ static void ensure_curve_cache(Scene *scene, Object *object)
 				BKE_displist_make_curveTypes(scene, object, false);
 				break;
 			case OB_MBALL:
-				BKE_displist_make_mball(G.main->eval_ctx, scene, object);
+				BKE_displist_make_mball(bmain->eval_ctx, scene, object);
 				break;
 			case OB_LATTICE:
 				BKE_lattice_modifiers_calc(scene, object);
@@ -4729,7 +4729,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 
 	return false;
 }
-static bool drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+static bool drawDispList(Main *bmain, Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                          const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	bool retval;
@@ -4742,7 +4742,7 @@ static bool drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *ba
 	}
 
 #ifdef SEQUENCER_DAG_WORKAROUND
-	ensure_curve_cache(scene, base->object);
+	ensure_curve_cache(bmain, scene, base->object);
 #endif
 
 	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == false) {
@@ -6353,7 +6353,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 }
 
 static void draw_editnurb(
-        Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
+        Main *bmain, Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
         const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	ToolSettings *ts = scene->toolsettings;
@@ -6368,7 +6368,7 @@ static void draw_editnurb(
 	UI_GetThemeColor3ubv(TH_WIRE_EDIT, wire_col);
 	glColor3ubv(wire_col);
 
-	drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+	drawDispList(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
 	/* for shadows only show solid faces */
 	if (v3d->flag2 & V3D_RENDER_SHADOW)
@@ -6463,8 +6463,9 @@ static void draw_editfont_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 	ED_view3d_polygon_offset(rv3d, 0.0);
 }
 
-static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                          const char dt, const short dflag, const unsigned char ob_wire_col[4])
+static void draw_editfont(
+        Main *bmain, Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+        const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	Curve *cu = ob->data;
@@ -6476,11 +6477,11 @@ static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *b
 	if (cu->flag & CU_FAST) {
 		cpack(0xFFFFFF);
 		set_inverted_drawing(1);
-		drawDispList(scene, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
+		drawDispList(bmain, scene, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
 		set_inverted_drawing(0);
 	}
 	else {
-		drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+		drawDispList(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 	}
 
 	if (cu->linewidth != 0.0f) {
@@ -6772,8 +6773,9 @@ static void drawcone(const float vec[3], float radius, float height, float tmat[
 }
 
 /* return true if nothing was drawn */
-static bool drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                      const char dt, const short dflag, const unsigned char ob_wire_col[4])
+static bool drawmball(
+        Main *bmain, Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+        const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	MetaElem *ml;
@@ -6788,13 +6790,13 @@ static bool drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			UI_GetThemeColor4ubv(TH_WIRE_EDIT, wire_col);
 			glColor3ubv(wire_col);
 
-			drawDispList(scene, v3d, rv3d, base, dt, dflag, wire_col);
+			drawDispList(bmain, scene, v3d, rv3d, base, dt, dflag, wire_col);
 		}
 		ml = mb->editelems->first;
 	}
 	else {
 		if ((base->flag & OB_FROMDUPLI) == 0) {
-			drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			drawDispList(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 		}
 		ml = mb->elems.first;
 	}
@@ -7164,7 +7166,7 @@ static void drawtexspace(Object *ob)
 
 /* draws wire outline */
 static void draw_object_selected_outline(
-        Scene *scene, View3D *v3d, ARegion *ar, Base *base,
+        Main *bmain, Scene *scene, View3D *v3d, ARegion *ar, Base *base,
         const unsigned char ob_wire_col[4])
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -7176,7 +7178,7 @@ static void draw_object_selected_outline(
 		bool has_faces = false;
 
 #ifdef SEQUENCER_DAG_WORKAROUND
-		ensure_curve_cache(scene, ob);
+		ensure_curve_cache(bmain, scene, ob);
 #endif
 
 		DerivedMesh *dm = ob->derivedFinal;
@@ -7455,7 +7457,7 @@ static void draw_rigidbody_shape(Object *ob)
  * main object drawing function, draws in selection
  * \param dflag (draw flag) can be DRAW_PICKING and/or DRAW_CONSTCOLOR, DRAW_SCENESET
  */
-void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short dflag)
+void draw_object(Main *bmain, Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short dflag)
 {
 	ModifierData *md = NULL;
 	Object *ob = base->object;
@@ -7638,7 +7640,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
 			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
 				if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
-					draw_object_selected_outline(scene, v3d, ar, base, ob_wire_col);
+					draw_object_selected_outline(bmain, scene, v3d, ar, base, ob_wire_col);
 				}
 			}
 		}
@@ -7655,18 +7657,18 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			case OB_FONT:
 				cu = ob->data;
 				if (cu->editfont) {
-					draw_editfont(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					draw_editfont(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && v3d->drawtype >= OB_WIRE) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, base->object);
+						ensure_curve_cache(bmain, scene, base->object);
 #endif
 						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					empty_object = drawDispList(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 
 				break;
@@ -7676,18 +7678,18 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 				if (cu->editnurb) {
 					ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-					draw_editnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
+					draw_editnurb(bmain, scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, base->object);
+						ensure_curve_cache(bmain, scene, base->object);
 #endif
 						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					empty_object = drawDispList(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 				break;
 			case OB_MBALL:
@@ -7695,17 +7697,17 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				MetaBall *mb = ob->data;
 
 				if (mb->editelems)
-					drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					drawmball(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, base->object);
+						ensure_curve_cache(bmain, scene, base->object);
 #endif
 						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
 				else
-					empty_object = drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					empty_object = drawmball(bmain, scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				break;
 			}
 			case OB_EMPTY:
@@ -7744,7 +7746,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					}
 					else {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, ob);
+						ensure_curve_cache(bmain, scene, ob);
 #endif
 						drawlattice(v3d, ob);
 					}
@@ -8172,10 +8174,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
  * Drawing for selection picking,
  * caller must have called 'GPU_select_load_id(base->selcode)' first.
  */
-void draw_object_select(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short dflag)
+void draw_object_select(Main *bmain, Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short dflag)
 {
 	BLI_assert(dflag & DRAW_PICKING && dflag & DRAW_CONSTCOLOR);
-	draw_object(scene, ar, v3d, base, dflag);
+	draw_object(bmain, scene, ar, v3d, base, dflag);
 
 	/* we draw duplicators for selection too */
 	if ((base->object->transflag & OB_DUPLI)) {
@@ -8200,7 +8202,7 @@ void draw_object_select(Scene *scene, ARegion *ar, View3D *v3d, Base *base, cons
 			dt = tbase.object->dt;   tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
 			dtx = tbase.object->dtx; tbase.object->dtx = base->object->dtx;
 
-			draw_object(scene, ar, v3d, &tbase, dflag);
+			draw_object(bmain, scene, ar, v3d, &tbase, dflag);
 
 			tbase.object->dt = dt;
 			tbase.object->dtx = dtx;

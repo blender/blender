@@ -3326,7 +3326,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
-		        scene, camera, width, height, IB_rect, draw_flags, context->scene->r.seq_prev_type,
+		        context->bmain, scene, camera, width, height, IB_rect, draw_flags, context->scene->r.seq_prev_type,
 		        scene->r.alphamode, context->gpu_samples, viewname,
 		        context->gpu_fx, context->gpu_offscreen, err_out);
 		if (ibuf == NULL) {

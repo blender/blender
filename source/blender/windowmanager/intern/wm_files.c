@@ -323,7 +323,7 @@ static void wm_window_match_do(Main *bmain, bContext *C, ListBase *oldwmlist)
 static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 {
 	/* versioning is here */
-	UI_init_userdef();
+	UI_init_userdef(bmain);
 
 	MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
 	BKE_sound_init(bmain);
@@ -1007,7 +1007,7 @@ static void wm_history_file_update(void)
 
 
 /* screen can be NULL */
-static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, BlendThumbnail **thumb_pt)
+static ImBuf *blend_file_thumb(Main *bmain, Scene *scene, bScreen *screen, BlendThumbnail **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
@@ -1044,14 +1044,14 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, BlendThumbnail **t
 	/* gets scaled to BLEN_THUMB_SIZE */
 	if (scene->camera) {
 		ibuf = ED_view3d_draw_offscreen_imbuf_simple(
-		        scene, scene->camera,
+		        bmain, scene, scene->camera,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, OB_SOLID, R_ALPHAPREMUL, 0, NULL,
 		        NULL, NULL, err_out);
 	}
 	else {
 		ibuf = ED_view3d_draw_offscreen_imbuf(
-		        scene, v3d, ar,
+		        bmain, scene, v3d, ar,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 		        NULL, NULL, err_out);
@@ -1148,7 +1148,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	/* Main now can store a .blend thumbnail, usefull for background mode or thumbnail customization. */
 	main_thumb = thumb = CTX_data_main(C)->blen_thumb;
 	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
-		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+		ibuf_thumb = blend_file_thumb(bmain, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
 
 	/* operator now handles overwrite checks */

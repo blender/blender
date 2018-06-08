@@ -5025,6 +5025,7 @@ void paint_proj_stroke(
 
 	/* clone gets special treatment here to avoid going through image initialization */
 	if (ps_handle->is_clone_cursor_pick) {
+		Main *bmain = CTX_data_main(C);
 		Scene *scene = ps_handle->scene;
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
@@ -5033,7 +5034,7 @@ void paint_proj_stroke(
 
 		view3d_operator_needs_opengl(C);
 
-		if (!ED_view3d_autodist(scene, ar, v3d, mval_i, cursor, false, NULL))
+		if (!ED_view3d_autodist(bmain, scene, ar, v3d, mval_i, cursor, false, NULL))
 			return;
 
 		ED_region_tag_redraw(ar);
@@ -5445,6 +5446,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	ImBuf *ibuf;
 	char filename[FILE_MAX];
 
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
 	int w = settings->imapaint.screen_grab_size[0];
@@ -5460,7 +5462,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (h > maxsize) h = maxsize;
 
 	ibuf = ED_view3d_draw_offscreen_imbuf(
-	        scene, CTX_wm_view3d(C), CTX_wm_region(C),
+	        bmain, scene, CTX_wm_view3d(C), CTX_wm_region(C),
 	        w, h, IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 	        NULL, NULL, err_out);
 	if (!ibuf) {

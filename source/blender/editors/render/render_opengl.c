@@ -360,7 +360,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			draw_flags |= (draw_bgpic) ? V3D_OFSDRAW_USE_BACKGROUND : 0;
 
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
-			       scene, v3d, ar, sizex, sizey,
+			       oglrender->bmain, scene, v3d, ar, sizex, sizey,
 			       IB_rect, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
 			       oglrender->fx, oglrender->ofs, err_out);
 
@@ -372,7 +372,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		else {
 			draw_flags |= (V3D_OFSDRAW_USE_GPENCIL | V3D_OFSDRAW_USE_BACKGROUND);
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
-			        scene, scene->camera, oglrender->sizex, oglrender->sizey,
+			        oglrender->bmain, scene, scene->camera, oglrender->sizex, oglrender->sizey,
 			        IB_rect, draw_flags, OB_SOLID,
 			        alpha_mode, oglrender->ofs_samples, viewname,
 			        oglrender->fx, oglrender->ofs, err_out);

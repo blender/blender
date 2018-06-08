@@ -41,6 +41,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
@@ -151,6 +152,7 @@ static void depthdropper_exit(bContext *C, wmOperator *op)
 static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx, int my, float *r_depth)
 {
 	/* we could use some clever */
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = BKE_screen_find_area_xy(win->screen, SPACE_TYPE_ANY, mx, my);
 	Scene *scene = win->screen->scene;
@@ -183,7 +185,7 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 
 				view3d_operator_needs_opengl(C);
 
-				if (ED_view3d_autodist(scene, ar, v3d, mval, co, true, NULL)) {
+				if (ED_view3d_autodist(bmain, scene, ar, v3d, mval, co, true, NULL)) {
 					const float mval_center_fl[2] = {
 					    (float)ar->winx / 2,
 					    (float)ar->winy / 2};

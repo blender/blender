@@ -35,6 +35,7 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -589,6 +590,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 		}
 	}
 	else {
+		cdd->vc.bmain = CTX_data_main(C);
 		cdd->vc.scene = CTX_data_scene(C);
 		cdd->vc.obedit = CTX_data_edit_object(C);
 	}
@@ -1078,7 +1080,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 				/* needed or else the draw matrix can be incorrect */
 				view3d_operator_needs_opengl(C);
 
-				ED_view3d_autodist_init(cdd->vc.scene, cdd->vc.ar, cdd->vc.v3d, 0);
+				ED_view3d_autodist_init(cdd->vc.bmain, cdd->vc.scene, cdd->vc.ar, cdd->vc.v3d, 0);
 
 				if (cdd->vc.rv3d->depths) {
 					cdd->vc.rv3d->depths->damaged = true;

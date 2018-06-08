@@ -127,6 +127,7 @@ static void view3d_operator_properties_common(wmOperatorType *ot, const enum eV3
 
 typedef struct ViewOpsData {
 	/** Context pointers (assigned by #viewops_data_alloc). */
+	Main *bmain;
 	Scene *scene;
 	ScrArea *sa;
 	ARegion *ar;
@@ -216,6 +217,7 @@ static void viewops_data_alloc(bContext *C, wmOperator *op)
 
 	/* store data */
 	op->customdata = vod;
+	vod->bmain = CTX_data_main(C);
 	vod->scene = CTX_data_scene(C);
 	vod->sa = CTX_wm_area(C);
 	vod->ar = CTX_wm_region(C);
@@ -381,7 +383,7 @@ static void viewops_data_create(
 		negate_v3_v3(fallback_depth_pt, rv3d->ofs);
 
 		vod->use_dyn_ofs = ED_view3d_autodist(
-		        vod->scene, vod->ar, vod->v3d,
+		        vod->bmain, vod->scene, vod->ar, vod->v3d,
 		        event->mval, vod->dyn_ofs, true, fallback_depth_pt);
 	}
 	else {
@@ -3049,6 +3051,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 
 static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
@@ -3062,7 +3065,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
 		view3d_operator_needs_opengl(C);
 
-		if (ED_view3d_autodist(scene, ar, v3d, event->mval, new_ofs, false, NULL)) {
+		if (ED_view3d_autodist(bmain, scene, ar, v3d, event->mval, new_ofs, false, NULL)) {
 			/* pass */
 		}
 		else {
@@ -3339,6 +3342,7 @@ void VIEW3D_OT_clear_render_border(wmOperatorType *ot)
 
 static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -3372,7 +3376,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
-	ED_view3d_draw_depth(scene, ar, v3d, true);
+	ED_view3d_draw_depth(bmain, scene, ar, v3d, true);
 
 	{
 		/* avoid allocating the whole depth buffer */
@@ -4527,6 +4531,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 /* note: cannot use event->mval here (called by object_add() */
 void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -4550,7 +4555,7 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 
 	if (U.uiflag & USER_DEPTH_CURSOR) {  /* maybe this should be accessed some other way */
 		view3d_operator_needs_opengl(C);
-		if (ED_view3d_autodist(scene, ar, v3d, mval, fp, true, NULL))
+		if (ED_view3d_autodist(bmain, scene, ar, v3d, mval, fp, true, NULL))
 			depth_used = true;
 	}
 

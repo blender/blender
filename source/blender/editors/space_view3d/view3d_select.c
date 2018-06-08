@@ -109,6 +109,7 @@ void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
 	vc->ar = CTX_wm_region(C);
+	vc->bmain = CTX_data_main(C);
 	vc->scene = CTX_data_scene(C);
 	vc->v3d = CTX_wm_view3d(C);
 	vc->win = CTX_wm_window(C);

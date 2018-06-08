@@ -807,6 +807,8 @@ static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
 /* change the chain-length of auto-ik */
 void transform_autoik_update(TransInfo *t, short mode)
 {
+	Main *bmain = CTX_data_main(t->context);
+
 	short *chainlen = &t->settings->autoik_chainlen;
 	bPoseChannel *pchan;
 
@@ -842,13 +844,13 @@ void transform_autoik_update(TransInfo *t, short mode)
 	{
 		if (changed) {
 			/* TODO(sergey): Consider doing partial update only. */
-			DAG_relations_tag_update(G.main);
+			DAG_relations_tag_update(bmain);
 		}
 	}
 }
 
 /* frees temporal IKs */
-static void pose_grab_with_ik_clear(Object *ob)
+static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
 {
 	bKinematicConstraint *data;
 	bPoseChannel *pchan;
@@ -892,7 +894,7 @@ static void pose_grab_with_ik_clear(Object *ob)
 #endif
 	{
 		/* TODO(sergey): Consider doing partial update only. */
-		DAG_relations_tag_update(G.main);
+		DAG_relations_tag_update(bmain);
 	}
 }
 
@@ -1000,7 +1002,7 @@ static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
 }
 
 /* main call which adds temporal IK chains */
-static short pose_grab_with_ik(Object *ob)
+static short pose_grab_with_ik(Main *bmain, Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan, *parent;
@@ -1050,8 +1052,8 @@ static short pose_grab_with_ik(Object *ob)
 		if (!DEG_depsgraph_use_legacy())
 #endif
 		{
-			/* TODO(sergey): Consuder doing partial update only. */
-			DAG_relations_tag_update(G.main);
+			/* TODO(sergey): Consider doing partial update only. */
+			DAG_relations_tag_update(bmain);
 		}
 	}
 
@@ -1062,6 +1064,7 @@ static short pose_grab_with_ik(Object *ob)
 /* only called with pose mode active object now */
 static void createTransPose(TransInfo *t, Object *ob)
 {
+	Main *bmain = CTX_data_main(t->context);
 	bArmature *arm;
 	bPoseChannel *pchan;
 	TransData *td;
@@ -1084,7 +1087,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 
 	/* do we need to add temporal IK chains? */
 	if ((arm->flag & ARM_AUTO_IK) && t->mode == TFM_TRANSLATION) {
-		ik_on = pose_grab_with_ik(ob);
+		ik_on = pose_grab_with_ik(bmain, ob);
 		if (ik_on) t->flag |= T_AUTOIK;
 	}
 
@@ -5608,6 +5611,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 /* it deselects Bases, so we have to call the clear function always after */
 static void set_trans_object_base_flags(TransInfo *t)
 {
+	Main *bmain = CTX_data_main(t->context);
 	Scene *scene = t->scene;
 	View3D *v3d = t->view;
 
@@ -5625,13 +5629,13 @@ static void set_trans_object_base_flags(TransInfo *t)
 	BKE_scene_base_flag_to_objects(t->scene);
 
 	/* Make sure depsgraph is here. */
-	DAG_scene_relations_update(G.main, t->scene);
+	DAG_scene_relations_update(bmain, t->scene);
 
 	/* handle pending update events, otherwise they got copied below */
 	for (base = scene->base.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_ALL) {
 			/* TODO(sergey): Ideally, it's not needed. */
-			BKE_object_handle_update(G.main->eval_ctx, t->scene, base->object);
+			BKE_object_handle_update(bmain->eval_ctx, t->scene, base->object);
 		}
 	}
 
@@ -5672,7 +5676,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	}
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_flush_update(G.main, t->scene, -1, 0);
+	DAG_scene_flush_update(bmain, t->scene, -1, 0);
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
@@ -5701,6 +5705,7 @@ static bool mark_children(Object *ob)
 static int count_proportional_objects(TransInfo *t)
 {
 	int total = 0;
+	Main *bmain = CTX_data_main(t->context);
 	Scene *scene = t->scene;
 	View3D *v3d = t->view;
 	Base *base;
@@ -5749,8 +5754,8 @@ static int count_proportional_objects(TransInfo *t)
 
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_relations_update(G.main, t->scene);
-	DAG_scene_flush_update(G.main, t->scene, -1, 0);
+	DAG_scene_relations_update(bmain, t->scene);
+	DAG_scene_flush_update(bmain, t->scene, -1, 0);
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
@@ -6175,6 +6180,9 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
  * */
 void special_aftertrans_update(bContext *C, TransInfo *t)
 {
+	Main *bmain = CTX_data_main(t->context);
+	BLI_assert(bmain == CTX_data_main(C));
+
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
 	const bool canceled = (t->state == TRANS_CANCEL);
@@ -6360,7 +6368,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 				// XXX: BAD! this get gpencil datablocks directly from main db...
 				// but that's how this currently works :/
-				for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
+				for (gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
 					if (ID_REAL_USERS(gpd))
 						posttrans_gpd_clean(gpd);
 				}
@@ -6380,7 +6388,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 				// XXX: BAD! this get gpencil datablocks directly from main db...
 				// but that's how this currently works :/
-				for (mask = G.main->mask.first; mask; mask = mask->id.next) {
+				for (mask = bmain->mask.first; mask; mask = mask->id.next) {
 					if (ID_REAL_USERS(mask))
 						posttrans_mask_clean(mask);
 				}
@@ -6537,7 +6545,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 
 		if (t->mode == TFM_TRANSLATION)
-			pose_grab_with_ik_clear(ob);
+			pose_grab_with_ik_clear(bmain, ob);
 
 		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
 		if (!canceled && (t->mode != TFM_DUMMY)) {

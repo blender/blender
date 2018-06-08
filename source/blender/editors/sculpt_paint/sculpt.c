@@ -5630,7 +5630,7 @@ static int ed_object_sculptmode_flush_recalc_flag(Scene *scene, Object *ob, Mult
 }
 
 void ED_object_sculptmode_enter_ex(
-        Scene *scene, Object *ob,
+        Main *bmain, Scene *scene, Object *ob,
         ReportList *reports)
 {
 	const int mode_flag = OB_MODE_SCULPT;
@@ -5674,7 +5674,7 @@ void ED_object_sculptmode_enter_ex(
 	Paint *paint = BKE_paint_get_active_from_paintmode(scene, ePaintSculpt);
 	BKE_paint_init(scene, ePaintSculpt, PAINT_CURSOR_SCULPT);
 
-	paint_cursor_start_explicit(paint, G.main->wm.first, sculpt_poll_view3d);
+	paint_cursor_start_explicit(paint, bmain->wm.first, sculpt_poll_view3d);
 
 	/* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
 	 * As long as no data was added that is not supported. */
@@ -5730,9 +5730,10 @@ void ED_object_sculptmode_enter_ex(
 
 void ED_object_sculptmode_enter(struct bContext *C, ReportList *reports)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	ED_object_sculptmode_enter_ex(scene, ob, reports);
+	ED_object_sculptmode_enter_ex(bmain, scene, ob, reports);
 }
 
 void ED_object_sculptmode_exit_ex(
@@ -5790,6 +5791,7 @@ void ED_object_sculptmode_exit(bContext *C)
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
@@ -5805,7 +5807,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		ED_object_sculptmode_exit_ex(scene, ob);
 	}
 	else {
-		ED_object_sculptmode_enter_ex(scene, ob, op->reports);
+		ED_object_sculptmode_enter_ex(bmain, scene, ob, op->reports);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
