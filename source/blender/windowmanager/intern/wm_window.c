@@ -2028,7 +2028,7 @@ void wm_window_raise(wmWindow *win)
 
 void wm_window_swap_buffers(wmWindow *win)
 {
-	GPU_texture_delete_orphans(); /* XXX should be done elsewhere. */
+	GPU_texture_orphans_delete(); /* XXX should be done elsewhere. */
 	GHOST_SwapWindowBuffers(win->ghostwin);
 }
 

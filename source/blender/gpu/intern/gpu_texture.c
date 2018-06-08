@@ -1124,12 +1124,12 @@ void GPU_texture_free(GPUTexture *tex)
 	}
 }
 
-void GPU_texture_init_orphans(void)
+void GPU_texture_orphans_init(void)
 {
 	BLI_mutex_init(&g_orphan_lock);
 }
 
-void GPU_texture_delete_orphans(void)
+void GPU_texture_orphans_delete(void)
 {
 	BLI_mutex_lock(&g_orphan_lock);
 	LinkData *link;
@@ -1140,9 +1140,9 @@ void GPU_texture_delete_orphans(void)
 	BLI_mutex_unlock(&g_orphan_lock);
 }
 
-void GPU_texture_exit_orphans(void)
+void GPU_texture_orphans_exit(void)
 {
-	GPU_texture_delete_orphans();
+	GPU_texture_orphans_delete();
 	BLI_mutex_end(&g_orphan_lock);
 }
 
