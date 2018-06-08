@@ -5668,11 +5668,7 @@ void ED_object_sculptmode_enter_ex(
 	/* Make sure derived final from original object does not reference possibly
 	 * freed memory.
 	 */
-	if (ob->derivedFinal != NULL) {
-		ob->derivedFinal->needsFree = true;
-		ob->derivedFinal->release(ob->derivedFinal);
-		ob->derivedFinal = NULL;
-	}
+	BKE_object_free_derived_mesh_caches(ob);
 
 	sculpt_init_session(depsgraph, scene, ob);
 
@@ -5800,6 +5796,9 @@ void ED_object_sculptmode_exit_ex(
 	BKE_sculptsession_free(ob);
 
 	paint_cursor_delete_textures();
+
+	/* Never leave derived meshes behind. */
+	BKE_object_free_derived_mesh_caches(ob);
 
 	/* Flush object mode. */
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);

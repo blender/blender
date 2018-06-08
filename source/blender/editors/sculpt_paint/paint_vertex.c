@@ -59,6 +59,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -1067,6 +1068,11 @@ static void ed_vwpaintmode_enter_generic(
 	ob->mode |= mode_flag;
 	Mesh *me = BKE_mesh_from_object(ob);
 
+	/* Same as sculpt mode, make sure we don't have cached derived mesh which
+	 * points to freed arrays.
+	 */
+	BKE_object_free_derived_mesh_caches(ob);
+
 	if (mode_flag == OB_MODE_VERTEX_PAINT) {
 		const ePaintMode paint_mode = ePaintVertex;
 		ED_mesh_color_ensure(me, NULL);
@@ -1191,6 +1197,9 @@ static void ed_vwpaintmode_exit_generic(
 		ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
 		ED_mesh_mirror_topo_table(NULL, NULL, 'e');
 	}
+
+	/* Never leave derived meshes behind. */
+	BKE_object_free_derived_mesh_caches(ob);
 
 	/* Flush object mode. */
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);

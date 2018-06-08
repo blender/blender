@@ -330,16 +330,7 @@ void BKE_object_free_derived_caches(Object *ob)
 		ob->bb = NULL;
 	}
 
-	if (ob->derivedFinal) {
-		ob->derivedFinal->needsFree = 1;
-		ob->derivedFinal->release(ob->derivedFinal);
-		ob->derivedFinal = NULL;
-	}
-	if (ob->derivedDeform) {
-		ob->derivedDeform->needsFree = 1;
-		ob->derivedDeform->release(ob->derivedDeform);
-		ob->derivedDeform = NULL;
-	}
+	BKE_object_free_derived_mesh_caches(ob);
 
 	if (ob->runtime.mesh_eval != NULL) {
 		Mesh *mesh_eval = ob->runtime.mesh_eval;
@@ -363,6 +354,20 @@ void BKE_object_free_derived_caches(Object *ob)
 	}
 
 	BKE_object_free_curve_cache(ob);
+}
+
+void BKE_object_free_derived_mesh_caches(struct Object *ob)
+{
+	if (ob->derivedFinal) {
+		ob->derivedFinal->needsFree = 1;
+		ob->derivedFinal->release(ob->derivedFinal);
+		ob->derivedFinal = NULL;
+	}
+	if (ob->derivedDeform) {
+		ob->derivedDeform->needsFree = 1;
+		ob->derivedDeform->release(ob->derivedDeform);
+		ob->derivedDeform = NULL;
+	}
 }
 
 void BKE_object_free_caches(Object *object)
