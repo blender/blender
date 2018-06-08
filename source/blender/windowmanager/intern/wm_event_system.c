@@ -1610,6 +1610,36 @@ int WM_userdef_event_map(int kmitype)
 	return kmitype;
 }
 
+/**
+ * Use so we can check if 'wmEvent.type' is released in modal operators.
+ *
+ * An alternative would be to add a 'wmEvent.type_nokeymap'... or similar.
+ */
+int WM_userdef_event_type_from_keymap_type(int kmitype)
+{
+	switch (kmitype) {
+		case SELECTMOUSE:
+			return (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
+		case ACTIONMOUSE:
+			return (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
+		case EVT_TWEAK_S:
+			return (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
+		case EVT_TWEAK_A:
+			return (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
+		case EVT_TWEAK_L:
+			return LEFTMOUSE;
+		case EVT_TWEAK_M:
+			return MIDDLEMOUSE;
+		case EVT_TWEAK_R:
+			return RIGHTMOUSE;
+		case WHEELOUTMOUSE:
+			return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELUPMOUSE : WHEELDOWNMOUSE;
+		case WHEELINMOUSE:
+			return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELDOWNMOUSE : WHEELUPMOUSE;
+	}
+
+	return kmitype;
+}
 
 static int wm_eventmatch(const wmEvent *winevent, wmKeyMapItem *kmi)
 {

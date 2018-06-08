@@ -143,6 +143,7 @@ float		WM_cursor_pressure	(const struct wmWindow *win);
 
 			/* event map */
 int			WM_userdef_event_map(int kmitype);
+int			WM_userdef_event_type_from_keymap_type(int kmitype);
 
 			/* handlers */
 
