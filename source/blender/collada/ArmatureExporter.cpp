@@ -118,7 +118,7 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
 	}
 
 	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob, this->export_settings->active_uv_only);
-		
+
 	ins.add();
 	return true;
 }
@@ -147,7 +147,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 	Base *base = (Base *) sce->base.first;
 	while (base) {
 		Object *ob = base->object;
-		
+
 		if (ob->type == OB_MESH && get_assigned_armature(ob) == ob_arm) {
 			objects.push_back(ob);
 		}
@@ -265,7 +265,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 	if (!has_restmat) {
 
 		/* Have no restpose matrix stored, try old style <= Blender 2.78 */
-		
+
 		bc_create_restpose_mat(this->export_settings, bone, bone_rest_mat, bone->arm_mat, true);
 
 		if (bone->parent) {

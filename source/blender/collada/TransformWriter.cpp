@@ -119,7 +119,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob,
 		{
 			float loc[3], rot[3], scale[3];
 			bc_decompose(f_obmat, loc, rot, NULL, scale);
-			add_transform(node, loc, rot, scale); 
+			add_transform(node, loc, rot, scale);
 			break;
 		}
 	}

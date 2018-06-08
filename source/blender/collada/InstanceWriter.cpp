@@ -45,7 +45,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 {
 	for (int a = 0; a < ob->totcol; a++) {
 		Material *ma = give_current_material(ob, a + 1);
-			
+
 		COLLADASW::InstanceMaterialList& iml = bind_material.getInstanceMaterialList();
 
 		if (ma) {
@@ -54,11 +54,11 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 			std::ostringstream ostr;
 			ostr << matid;
 			COLLADASW::InstanceMaterial im(ostr.str(), COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
-			
+
 			// create <bind_vertex_input> for each uv map
 			Mesh *me = (Mesh *)ob->data;
 			int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-			
+
 			int map_index = 0;
 			int active_uv_index = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE) -1;
 			for (int b = 0; b < totlayer; b++) {
@@ -67,7 +67,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 					im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", map_index++));
 				}
 			}
-			
+
 			iml.push_back(im);
 		}
 	}

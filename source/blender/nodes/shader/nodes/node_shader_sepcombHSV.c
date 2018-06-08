@@ -48,7 +48,7 @@ static void node_shader_exec_sephsv(void *UNUSED(data), int UNUSED(thread), bNod
 {
 	float col[3];
 	nodestack_get_vec(col, SOCK_VECTOR, in[0]);
-	
+
 	rgb_to_hsv(col[0], col[1], col[2],
 	           &out[0]->vec[0], &out[1]->vec[0], &out[2]->vec[0]);
 }
@@ -90,7 +90,7 @@ static void node_shader_exec_combhsv(void *UNUSED(data), int UNUSED(thread), bNo
 	nodestack_get_vec(&h, SOCK_FLOAT, in[0]);
 	nodestack_get_vec(&s, SOCK_FLOAT, in[1]);
 	nodestack_get_vec(&v, SOCK_FLOAT, in[2]);
-	
+
 	hsv_to_rgb(h, s, v, &out[0]->vec[0], &out[0]->vec[1], &out[0]->vec[2]);
 }
 

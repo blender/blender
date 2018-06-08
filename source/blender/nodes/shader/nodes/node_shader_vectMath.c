@@ -31,7 +31,7 @@
 
 #include "node_shader_util.h"
 
-/* **************** VECTOR MATH ******************** */ 
+/* **************** VECTOR MATH ******************** */
 static bNodeSocketTemplate sh_node_vect_math_in[] = {
 	{ SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{ SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
@@ -44,32 +44,32 @@ static bNodeSocketTemplate sh_node_vect_math_out[] = {
 	{ -1, 0, "" }
 };
 
-static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out) 
-{ 
+static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
+{
 	float vec1[3], vec2[3];
-	
+
 	nodestack_get_vec(vec1, SOCK_VECTOR, in[0]);
 	nodestack_get_vec(vec2, SOCK_VECTOR, in[1]);
-	
+
 	if (node->custom1 == 0) {	/* Add */
 		out[0]->vec[0] = vec1[0] + vec2[0];
 		out[0]->vec[1] = vec1[1] + vec2[1];
 		out[0]->vec[2] = vec1[2] + vec2[2];
-		
+
 		out[1]->vec[0] = (fabsf(out[0]->vec[0]) + fabsf(out[0]->vec[1]) + fabsf(out[0]->vec[2])) / 3.0f;
 	}
 	else if (node->custom1 == 1) {	/* Subtract */
 		out[0]->vec[0] = vec1[0] - vec2[0];
 		out[0]->vec[1] = vec1[1] - vec2[1];
 		out[0]->vec[2] = vec1[2] - vec2[2];
-		
+
 		out[1]->vec[0] = (fabsf(out[0]->vec[0]) + fabsf(out[0]->vec[1]) + fabsf(out[0]->vec[2])) / 3.0f;
 	}
 	else if (node->custom1 == 2) {	/* Average */
 		out[0]->vec[0] = vec1[0] + vec2[0];
 		out[0]->vec[1] = vec1[1] + vec2[1];
 		out[0]->vec[2] = vec1[2] + vec2[2];
-		
+
 		out[1]->vec[0] = normalize_v3(out[0]->vec);
 	}
 	else if (node->custom1 == 3) {	/* Dot product */
@@ -79,7 +79,7 @@ static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), b
 		out[0]->vec[0] = (vec1[1] * vec2[2]) - (vec1[2] * vec2[1]);
 		out[0]->vec[1] = (vec1[2] * vec2[0]) - (vec1[0] * vec2[2]);
 		out[0]->vec[2] = (vec1[0] * vec2[1]) - (vec1[1] * vec2[0]);
-		
+
 		out[1]->vec[0] = normalize_v3(out[0]->vec);
 	}
 	else if (node->custom1 == 5) {	/* Normalize */
@@ -93,10 +93,10 @@ static void node_shader_exec_vect_math(void *UNUSED(data), int UNUSED(thread), b
 			out[0]->vec[1] = vec2[1];
 			out[0]->vec[2] = vec2[2];
 		}
-		
+
 		out[1]->vec[0] = normalize_v3(out[0]->vec);
 	}
-	
+
 }
 
 static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
@@ -132,7 +132,7 @@ static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 		default:
 			return false;
 	}
-	
+
 	return true;
 }
 

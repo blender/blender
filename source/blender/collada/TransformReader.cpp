@@ -54,7 +54,7 @@ void TransformReader::get_node_mat(
 	float copy[4][4];
 
 	unit_m4(mat);
-	
+
 	for (unsigned int i = 0; i < node->getTransformations().getCount(); i++) {
 
 		COLLADAFW::Transformation *tm = node->getTransformations()[i];
@@ -87,11 +87,11 @@ void TransformReader::get_node_mat(
 
 		copy_m4_m4(copy, mat);
 		mul_m4_m4m4(mat, copy, cur);
-		
+
 		if (animation_map) {
 			// AnimationList that drives this Transformation
 			const COLLADAFW::UniqueId& anim_list_id = tm->getAnimationList();
-		
+
 			// store this so later we can link animation data with ob
 			Animation anim = {ob, node, tm};
 			(*animation_map)[anim_list_id] = anim;

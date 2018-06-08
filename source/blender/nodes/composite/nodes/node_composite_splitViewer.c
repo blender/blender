@@ -49,7 +49,7 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
 	iuser->fie_ima = 2;
 	iuser->ok = 1;
 	node->custom1 = 50;  /* default 50% split */
-	
+
 	node->id = (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 

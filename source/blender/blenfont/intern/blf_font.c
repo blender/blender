@@ -553,7 +553,7 @@ static void blf_font_draw_buffer_ex(
 				width_clip -= chx + width_clip - buf_info->w;
 			if (height_clip + pen_y > buf_info->h)
 				height_clip -= pen_y + height_clip - buf_info->h;
-			
+
 			/* drawing below the image? */
 			if (pen_y < 0) {
 				yb_start += (g->pitch < 0) ? -pen_y : pen_y;

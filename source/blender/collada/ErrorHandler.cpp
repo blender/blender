@@ -53,7 +53,7 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 	   See https://github.com/KhronosGroup/OpenCOLLADA/issues/442
 	*/
 	bool isWarning = false;
-	
+
 	if (error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXPARSER) {
 		COLLADASaxFWL::SaxParserError *saxParserError = (COLLADASaxFWL::SaxParserError *) error;
 		const GeneratedSaxParser::ParserError& parserError = saxParserError->getError();

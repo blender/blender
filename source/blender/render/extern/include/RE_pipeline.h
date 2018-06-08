@@ -103,11 +103,11 @@ typedef struct RenderPass {
 /* after render, the Combined pass is in combined, for renderlayers read from files it is a real pass */
 typedef struct RenderLayer {
 	struct RenderLayer *next, *prev;
-	
+
 	/* copy of RenderData */
 	char name[RE_MAXNAME];
 	int layflag, passflag, pass_xor;
-	
+
 	/* MULTIVIEW_TODO: acolrect and scolrect are not supported by multiview at the moment.
 	 * If they are really required they should be in RenderView instead */
 
@@ -121,16 +121,16 @@ typedef struct RenderLayer {
 	void *exrhandle;
 
 	ListBase passes;
-	
+
 } RenderLayer;
 
 typedef struct RenderResult {
 	struct RenderResult *next, *prev;
-	
+
 	/* target image size */
 	int rectx, recty;
 	short crop, sample_nr;
-	
+
 	/* the following rect32, rectf and rectz buffers are for temporary storage only, for RenderResult structs
 	 * created in #RE_AcquireResultImage - which do not have RenderView */
 
@@ -140,25 +140,25 @@ typedef struct RenderResult {
 	float *rectf;
 	/* if this exists, a copy of one of layers, or result of composited layers */
 	float *rectz;
-	
+
 	/* coordinates within final image (after cropping) */
 	rcti tilerect;
 	/* offset to apply to get a border render in full image */
 	int xof, yof;
-	
+
 	/* the main buffers */
 	ListBase layers;
-	
+
 	/* multiView maps to a StringVector in OpenEXR */
 	ListBase views;  /* RenderView */
 
 	/* allowing live updates: */
 	volatile rcti renrect;
 	volatile RenderLayer *renlay;
-	
+
 	/* optional saved endresult on disk */
 	int do_exr_tile;
-	
+
 	/* for render results in Image, verify validity for sequences */
 	int framenr;
 

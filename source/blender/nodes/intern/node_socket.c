@@ -52,9 +52,9 @@ struct Main;
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp, int in_out)
 {
 	bNodeSocket *sock = nodeAddStaticSocket(ntree, node, in_out, stemp->type, stemp->subtype, stemp->identifier, stemp->name);
-	
+
 	sock->flag |= stemp->flag;
-	
+
 	/* initialize default_value */
 	switch (stemp->type) {
 		case SOCK_FLOAT:
@@ -99,14 +99,14 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struc
 			break;
 		}
 	}
-	
+
 	return sock;
 }
 
 static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in_out, ListBase *socklist, bNodeSocketTemplate *stemp)
 {
 	bNodeSocket *sock;
-	
+
 	for (sock = socklist->first; sock; sock = sock->next) {
 		if (STREQLEN(sock->name, stemp->name, NODE_MAXSTR))
 			break;
@@ -127,7 +127,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 	/* remove the new socket from the node socket list first,
 	 * will be added back after verification. */
 	BLI_remlink(socklist, sock);
-	
+
 	return sock;
 }
 
@@ -135,7 +135,7 @@ static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_ou
 {
 	bNodeSocket *sock, *nextsock;
 	bNodeSocketTemplate *stemp;
-	
+
 	/* no inputs anymore? */
 	if (stemp_first == NULL) {
 		for (sock = (bNodeSocket *)socklist->first; sock; sock = nextsock) {
@@ -155,7 +155,7 @@ static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_ou
 			nextsock = sock->next;
 			nodeRemoveSocket(ntree, node, sock);
 		}
-		
+
 		/* and we put back the verified sockets */
 		stemp = stemp_first;
 		if (socklist->first) {
@@ -199,10 +199,10 @@ void node_socket_init_default_value(bNodeSocket *sock)
 {
 	int type = sock->typeinfo->type;
 	int subtype = sock->typeinfo->subtype;
-	
+
 	if (sock->default_value)
 		return; /* already initialized */
-	
+
 	switch (type) {
 		case SOCK_FLOAT:
 		{
@@ -211,7 +211,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			dval->value = 0.0f;
 			dval->min = -FLT_MAX;
 			dval->max = FLT_MAX;
-		
+
 			sock->default_value = dval;
 			break;
 		}
@@ -222,7 +222,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			dval->value = 0;
 			dval->min = INT_MIN;
 			dval->max = INT_MAX;
-		
+
 			sock->default_value = dval;
 			break;
 		}
@@ -230,7 +230,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 		{
 			bNodeSocketValueBoolean *dval = MEM_callocN(sizeof(bNodeSocketValueBoolean), "node socket value bool");
 			dval->value = false;
-		
+
 			sock->default_value = dval;
 			break;
 		}
@@ -242,7 +242,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			copy_v3_v3(dval->value, default_value);
 			dval->min = -FLT_MAX;
 			dval->max = FLT_MAX;
-		
+
 			sock->default_value = dval;
 			break;
 		}
@@ -251,7 +251,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			static float default_value[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 			bNodeSocketValueRGBA *dval = MEM_callocN(sizeof(bNodeSocketValueRGBA), "node socket value color");
 			copy_v4_v4(dval->value, default_value);
-		
+
 			sock->default_value = dval;
 			break;
 		}
@@ -260,7 +260,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			bNodeSocketValueString *dval = MEM_callocN(sizeof(bNodeSocketValueString), "node socket value string");
 			dval->subtype = subtype;
 			dval->value[0] = '\0';
-		
+
 			sock->default_value = dval;
 			break;
 		}
@@ -272,12 +272,12 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
 	/* sanity check */
 	if (to->type != from->type)
 		return;
-	
+
 	/* make sure both exist */
 	if (!from->default_value)
 		return;
 	node_socket_init_default_value(to);
-	
+
 	switch (from->typeinfo->type) {
 		case SOCK_FLOAT:
 		{
@@ -330,7 +330,7 @@ static void standard_node_socket_interface_init_socket(bNodeTree *UNUSED(ntree),
 {
 	/* initialize the type value */
 	sock->type = sock->typeinfo->type;
-	
+
 	/* XXX socket interface 'type' value is not used really,
 	 * but has to match or the copy function will bail out
 	 */
@@ -345,12 +345,12 @@ static void standard_node_socket_interface_verify_socket(bNodeTree *UNUSED(ntree
 	/* sanity check */
 	if (sock->type != stemp->typeinfo->type)
 		return;
-	
+
 	/* make sure both exist */
 	if (!stemp->default_value)
 		return;
 	node_socket_init_default_value(sock);
-	
+
 	switch (stemp->typeinfo->type) {
 		case SOCK_FLOAT:
 		{
@@ -389,65 +389,65 @@ static void standard_node_socket_interface_from_socket(bNodeTree *UNUSED(ntree),
 static bNodeSocketType *make_standard_socket_type(int type, int subtype)
 {
 	extern void ED_init_standard_node_socket_type(bNodeSocketType *);
-	
+
 	const char *socket_idname = nodeStaticSocketType(type, subtype);
 	const char *interface_idname = nodeStaticSocketInterfaceType(type, subtype);
 	bNodeSocketType *stype;
 	StructRNA *srna;
-	
+
 	stype = MEM_callocN(sizeof(bNodeSocketType), "node socket C type");
 	BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
-	
+
 	/* set the RNA type
 	 * uses the exact same identifier as the socket type idname */
 	srna = stype->ext_socket.srna = RNA_struct_find(socket_idname);
 	BLI_assert(srna != NULL);
 	/* associate the RNA type with the socket type */
 	RNA_struct_blender_type_set(srna, stype);
-	
+
 	/* set the interface RNA type */
 	srna = stype->ext_interface.srna = RNA_struct_find(interface_idname);
 	BLI_assert(srna != NULL);
 	/* associate the RNA type with the socket type */
 	RNA_struct_blender_type_set(srna, stype);
-	
+
 	/* extra type info for standard socket types */
 	stype->type = type;
 	stype->subtype = subtype;
-	
+
 	/* XXX bad-level call! needed for setting draw callbacks */
 	ED_init_standard_node_socket_type(stype);
-	
+
 	stype->interface_init_socket = standard_node_socket_interface_init_socket;
 	stype->interface_from_socket = standard_node_socket_interface_from_socket;
 	stype->interface_verify_socket = standard_node_socket_interface_verify_socket;
-	
+
 	return stype;
 }
 
 static bNodeSocketType *make_socket_type_virtual(void)
 {
 	extern void ED_init_node_socket_type_virtual(bNodeSocketType *);
-	
+
 	const char *socket_idname = "NodeSocketVirtual";
 	bNodeSocketType *stype;
 	StructRNA *srna;
-	
+
 	stype = MEM_callocN(sizeof(bNodeSocketType), "node socket C type");
 	BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
-	
+
 	/* set the RNA type
 	 * uses the exact same identifier as the socket type idname */
 	srna = stype->ext_socket.srna = RNA_struct_find(socket_idname);
 	BLI_assert(srna != NULL);
 	/* associate the RNA type with the socket type */
 	RNA_struct_blender_type_set(srna, stype);
-	
+
 	/* extra type info for standard socket types */
 	stype->type = SOCK_CUSTOM;
-	
+
 	ED_init_node_socket_type_virtual(stype);
-	
+
 	return stype;
 }
 
@@ -455,21 +455,21 @@ static bNodeSocketType *make_socket_type_virtual(void)
 void register_standard_node_socket_types(void)
 {
 	/* draw callbacks are set in drawnode.c to avoid bad-level calls */
-	
+
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_FLOAT, PROP_NONE));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_FLOAT, PROP_UNSIGNED));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_FLOAT, PROP_PERCENTAGE));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_FLOAT, PROP_FACTOR));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_FLOAT, PROP_ANGLE));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_FLOAT, PROP_TIME));
-	
+
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_INT, PROP_NONE));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_INT, PROP_UNSIGNED));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_INT, PROP_PERCENTAGE));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_INT, PROP_FACTOR));
-	
+
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_BOOLEAN, PROP_NONE));
-	
+
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_VECTOR, PROP_NONE));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_VECTOR, PROP_TRANSLATION));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_VECTOR, PROP_DIRECTION));
@@ -477,12 +477,12 @@ void register_standard_node_socket_types(void)
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_VECTOR, PROP_ACCELERATION));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_VECTOR, PROP_EULER));
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_VECTOR, PROP_XYZ));
-	
+
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_RGBA, PROP_NONE));
-	
+
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_STRING, PROP_NONE));
-	
+
 	nodeRegisterSocketType(make_standard_socket_type(SOCK_SHADER, PROP_NONE));
-	
+
 	nodeRegisterSocketType(make_socket_type_virtual());
 }

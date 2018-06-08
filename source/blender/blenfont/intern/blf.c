@@ -172,7 +172,7 @@ static int blf_search_available(void)
 	for (i = 0; i < BLF_MAX_FONT; i++)
 		if (!global_font[i])
 			return i;
-	
+
 	return -1;
 }
 

@@ -36,7 +36,7 @@
 /* span fill in method, is also used to localize data for zbuffering */
 typedef struct ZSpan {
 	int rectx, recty;						/* range for clipping */
-	
+
 	int miny1, maxy1, miny2, maxy2;			/* actual filled in range */
 	const float *minp1, *maxp1, *minp2, *maxp2;	/* vertex pointers detect min/max range in */
 	float *span1, *span2;

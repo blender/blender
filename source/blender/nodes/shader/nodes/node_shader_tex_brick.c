@@ -54,7 +54,7 @@ static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 	NodeTexBrick *tex = MEM_callocN(sizeof(NodeTexBrick), "NodeTexBrick");
 	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
 	BKE_texture_colormapping_default(&tex->base.color_mapping);
-	
+
 	tex->offset = 0.5f;
 	tex->squash = 1.0f;
 	tex->offset_freq = 2;

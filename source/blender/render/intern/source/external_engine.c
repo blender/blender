@@ -112,11 +112,11 @@ void RE_engines_register(RenderEngineType *render_type)
 RenderEngineType *RE_engines_find(const char *idname)
 {
 	RenderEngineType *type;
-	
+
 	type = BLI_findstring(&R_engines, idname, offsetof(RenderEngineType, idname));
 	if (!type)
 		type = BLI_findstring(&R_engines, "BLENDER_EEVEE", offsetof(RenderEngineType, idname));
-	
+
 	return type;
 }
 
@@ -320,7 +320,7 @@ int RE_engine_test_break(RenderEngine *engine)
 
 	if (re)
 		return re->test_break(re->tbh);
-	
+
 	return 0;
 }
 
@@ -776,7 +776,7 @@ int RE_engine_render(Render *re, int do_all)
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
 		G.is_break = true;
-	
+
 #ifdef WITH_FREESTYLE
 	if (re->r.mode & R_EDGE_FRS)
 		RE_RenderFreestyleExternal(re);

@@ -48,7 +48,7 @@ static void node_shader_exec_valtorgb(void *UNUSED(data), int UNUSED(thread), bN
 {
 	/* stack order in: fac */
 	/* stack order out: col, alpha */
-	
+
 	if (node->storage) {
 		float fac;
 		nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);

@@ -102,7 +102,7 @@ private:
 	friend class ArmatureExporter;
 	void exportHierarchy(bContext *C, struct Depsgraph *depsgraph, Scene *sce);
 	void writeNodes(bContext *C, struct Depsgraph *depsgraph, Object *ob, Scene *sce);
-	
+
 	ArmatureExporter *arm_exporter;
 	const ExportSettings *export_settings;
 };

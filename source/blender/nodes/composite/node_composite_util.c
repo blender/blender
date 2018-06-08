@@ -52,7 +52,7 @@ void cmp_node_update_default(bNodeTree *UNUSED(ntree), bNode *node)
 void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
 	node_type_base(ntype, type, name, nclass, flag);
-	
+
 	ntype->poll = cmp_node_poll_default;
 	ntype->updatefunc = cmp_node_update_default;
 	ntype->insert_link = node_insert_link_default;

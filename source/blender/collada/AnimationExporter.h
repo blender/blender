@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-extern "C" 
+extern "C"
 {
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -100,8 +100,8 @@ public:
 
 	bool exportAnimations(Scene *sce);
 	// called for each exported object
-	void operator() (Object *ob); 
-	
+	void operator() (Object *ob);
+
 protected:
 	const ExportSettings *export_settings;
 
@@ -127,7 +127,7 @@ protected:
 	// dae_bone_animation -> add_bone_animation
 	// (blend this into dae_bone_animation)
 	void dae_bone_animation(std::vector<float> &fra, float *v, int tm_type, int axis, std::string ob_name, std::string bone_name);
-	
+
 	void dae_baked_animation(std::vector<float> &fra, Object *ob_arm, Bone *bone);
 
 	void dae_baked_object_animation(std::vector<float> &fra, Object *ob);
@@ -140,9 +140,9 @@ protected:
 
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
 	                           COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform);
-	
+
 	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool is_angle, float *values, int *length);
-	
+
 	float* get_eul_source_for_quat(Object *ob );
 
 	bool is_flat_line(std::vector<float> &values, int channel_count);
@@ -171,12 +171,12 @@ protected:
 	std::string create_interpolation_source(FCurve *fcu, const std::string& anim_id, const char *axis_name, bool *has_tangents);
 
 	std::string fake_interpolation_source(int tot, const std::string& anim_id, const char *axis_name);
-	
+
 	// for rotation, axis name is always appended and the value of append_axis is ignored
 	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	std::string get_light_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	std::string get_camera_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
-	
+
 	void find_keyframes(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name);
 	void find_keyframes(Object *ob, std::vector<float> &fra);
 	void find_sampleframes(Object *ob, std::vector<float> &fra);
@@ -185,13 +185,13 @@ protected:
 	void make_anim_frames_from_targets(Object *ob, std::vector<float> &frames );
 
 	void find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode);
-	
+
 	// enable fcurves driving a specific bone, disable all the rest
 	// if bone_name = NULL enable all fcurves
 	void enable_fcurves(bAction *act, char *bone_name);
-	
+
 	bool hasAnimations(Scene *sce);
-	
+
 	char *extract_transform_name(char *rna_path);
 
 	std::string getObjectBoneName(Object *ob, const FCurve * fcu);

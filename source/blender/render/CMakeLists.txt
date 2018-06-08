@@ -24,7 +24,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 
-set(INC 
+set(INC
 	extern/include
 	intern/include
 	../blenkernel

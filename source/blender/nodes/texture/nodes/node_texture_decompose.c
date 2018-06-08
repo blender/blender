@@ -30,7 +30,7 @@
  */
 
 
-#include "node_texture_util.h"        
+#include "node_texture_util.h"
 #include "NOD_texture.h"
 #include <math.h>
 
@@ -81,10 +81,10 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 void register_node_type_tex_decompose(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_DECOMPOSE, "Separate RGBA", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	nodeRegisterType(&ntype);
 }

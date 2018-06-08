@@ -32,7 +32,7 @@
 #include <fcntl.h>
 #include <math.h>
 #include <float.h>
-#ifndef WIN32 
+#ifndef WIN32
 #include <unistd.h>
 #else
 #include <io.h>
@@ -67,7 +67,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 {
 	int ofs = y * ibuf->x + x;
-	
+
 	if (ibuf->rect_float) {
 		if (ibuf->channels==4) {
 			const float *fp= ibuf->rect_float + 4*ofs;
@@ -105,15 +105,15 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	int xi, yi; /* original values */
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
-	
+
 	/* we need to set retval OK, otherwise texture code generates normals itself... */
 	retval= texres->nor ? 3 : 1;
-	
+
 	/* quick tests */
 	if (ibuf==NULL && ima==NULL)
 		return retval;
 	if (ima) {
-		
+
 		/* hack for icon render */
 		if (skip_load_image && !BKE_image_has_loaded_ibuf(ima))
 			return retval;
@@ -127,7 +127,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 			BKE_image_pool_release_ibuf(ima, ibuf, pool);
 		return retval;
 	}
-	
+
 	/* setup mapping */
 	if (tex->imaflag & TEX_IMAROT) {
 		fy= texvec[0];
@@ -137,10 +137,10 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		fx= texvec[0];
 		fy= texvec[1];
 	}
-	
+
 	if (tex->extend == TEX_CHECKER) {
 		int xs, ys;
-		
+
 		xs= (int)floor(fx);
 		ys= (int)floor(fy);
 		fx-= xs;
@@ -205,7 +205,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 			if (y<0) y+= ibuf->y;
 		}
 	}
-	
+
 	/* keep this before interpolation [#29761] */
 	if (ima) {
 		if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
@@ -232,7 +232,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	else { /* no filtering */
 		ibuf_get_color(&texres->tr, ibuf, x, y);
 	}
-	
+
 	if (texres->nor) {
 		if (tex->imaflag & TEX_NORMALMAP) {
 			/* qdn: normal from color
@@ -283,7 +283,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	else {
 		texres->ta = texres->tin = 1.0;
 	}
-	
+
 	if (tex->flag & TEX_NEGALPHA) {
 		texres->ta = 1.0f - texres->ta;
 	}
@@ -301,7 +301,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		BKE_image_pool_release_ibuf(ima, ibuf, pool);
 
 	BRICONTRGB;
-	
+
 	return retval;
 }
 
@@ -327,9 +327,9 @@ static void clipx_rctf_swap(rctf *stack, short *count, float x1, float x2)
 				newrct->xmin = rf->xmin+(x2-x1);
 				newrct->ymin = rf->ymin;
 				newrct->ymax = rf->ymax;
-				
+
 				if (newrct->xmin ==newrct->xmax) (*count)--;
-				
+
 				rf->xmin = x1;
 			}
 		}
@@ -489,7 +489,7 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 	else {
 		div= texres->tr= texres->tg= texres->tb= texres->ta= 0.0;
 		for (y=starty; y<=endy; y++) {
-			
+
 			muly= 1.0;
 
 			if (starty==endy) {
@@ -499,10 +499,10 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 				if (y==starty) muly= 1.0f-(rf->ymin - y);
 				if (y==endy) muly= (rf->ymax - y);
 			}
-			
+
 			if (startx==endx) {
 				mulx= muly;
-				
+
 				ibuf_get_color(col, ibuf, startx, y);
 
 				texres->ta+= mulx*col[3];
@@ -518,7 +518,7 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 					if (x==endx) mulx*= (rf->xmax - x);
 
 					ibuf_get_color(col, ibuf, x, y);
-					
+
 					if (mulx==1.0f) {
 						texres->ta+= col[3];
 						texres->tr+= col[0];
@@ -573,7 +573,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	rf->ymax = maxy*(ibuf->y);
 
 	texr.talpha= texres->talpha;	/* is read by boxsample_clip */
-	
+
 	if (imapextend) {
 		CLAMP(rf->xmin, 0.0f, ibuf->x-1);
 		CLAMP(rf->xmax, 0.0f, ibuf->x-1);
@@ -608,7 +608,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 		tot= texres->tr= texres->tb= texres->tg= texres->ta= 0.0;
 		while (count--) {
 			boxsampleclip(ibuf, rf, &texr);
-			
+
 			opp= square_rctf(rf);
 			tot+= opp;
 
@@ -629,7 +629,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 		boxsampleclip(ibuf, rf, texres);
 
 	if (texres->talpha==0) texres->ta= 1.0;
-	
+
 	if (alphaclip!=1.0f) {
 		/* premul it all */
 		texres->tr*= alphaclip;
@@ -637,7 +637,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 		texres->tb*= alphaclip;
 		texres->ta*= alphaclip;
 	}
-}	
+}
 
 /*-----------------------------------------------------------------------------------------------------------------
  * from here, some functions only used for the new filtering */
@@ -874,7 +874,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 {
 	if (tex->imaflag & TEX_MIPMAP) {
 		if ((ibuf->flags & IB_fields) == 0) {
-			
+
 			if (ibuf->mipmap[0] && (ibuf->userflags & IB_MIPMAP_INVALID)) {
 				BLI_thread_lock(LOCK_IMAGE);
 				if (ibuf->userflags & IB_MIPMAP_INVALID) {
@@ -885,7 +885,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 			}
 			if (ibuf->mipmap[0] == NULL) {
 				BLI_thread_lock(LOCK_IMAGE);
-				if (ibuf->mipmap[0] == NULL) 
+				if (ibuf->mipmap[0] == NULL)
 					IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
 				BLI_thread_unlock(LOCK_IMAGE);
 			}
@@ -895,7 +895,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 			}
 		}
 	}
-	
+
 }
 
 static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[2], float dyt[2], TexResult *texres, struct ImagePool *pool, const bool skip_load_image)
@@ -946,7 +946,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
-	
+
 	if (ima) {
 		if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
 			if ((tex->imaflag & TEX_CALCALPHA) == 0) {
@@ -1281,7 +1281,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	else
 		texres->tin = texres->ta;
 	if (tex->flag & TEX_NEGALPHA) texres->ta = 1.f - texres->ta;
-	
+
 	if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {	/* normal from color */
 		/* The invert of the red channel is to make
 		 * the normal map compliant with the outside world.
@@ -1312,7 +1312,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 		BKE_image_pool_release_ibuf(ima, ibuf, pool);
 
 	BRICONTRGB;
-	
+
 	return retval;
 }
 
@@ -1334,10 +1334,10 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres, pool, skip_load_image);
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
-	
+
 	/* we need to set retval OK, otherwise texture code generates normals itself... */
 	retval = texres->nor ? 3 : 1;
-	
+
 	/* quick tests */
 	if (ibuf==NULL && ima==NULL)
 		return retval;
@@ -1346,7 +1346,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		/* hack for icon render */
 		if (skip_load_image && !BKE_image_has_loaded_ibuf(ima))
 			return retval;
-		
+
 		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
 
 		ima->flag|= IMA_USED_FOR_RENDER;
@@ -1356,7 +1356,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 			BKE_image_pool_release_ibuf(ima, ibuf, pool);
 		return retval;
 	}
-	
+
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
 
@@ -1367,9 +1367,9 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 			}
 		}
 	}
-	
+
 	texr.talpha= texres->talpha;
-	
+
 	if (tex->imaflag & TEX_IMAROT) {
 		fy= texvec[0];
 		fx= texvec[1];
@@ -1378,7 +1378,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		fx= texvec[0];
 		fy= texvec[1];
 	}
-	
+
 	/* pixel coordinates */
 
 	minx = min_fff(dxt[0], dyt[0], dxt[0] + dyt[0]);
@@ -1389,7 +1389,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	/* tex_sharper has been removed */
 	minx= (maxx-minx)/2.0f;
 	miny= (maxy-miny)/2.0f;
-	
+
 	if (tex->imaflag & TEX_FILTER_MIN) {
 		/* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
 		float addval= (0.5f * tex->filtersize) / (float) MIN2(ibuf->x, ibuf->y);
@@ -1402,7 +1402,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	else if (tex->filtersize!=1.0f) {
 		minx*= tex->filtersize;
 		miny*= tex->filtersize;
-		
+
 		dxt[0]*= tex->filtersize;
 		dxt[1]*= tex->filtersize;
 		dyt[0]*= tex->filtersize;
@@ -1410,13 +1410,13 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	}
 
 	if (tex->imaflag & TEX_IMAROT) SWAP(float, minx, miny);
-	
+
 	if (minx>0.25f) minx= 0.25f;
 	else if (minx<0.00001f) minx= 0.00001f;	/* side faces of unit-cube */
 	if (miny>0.25f) miny= 0.25f;
 	else if (miny<0.00001f) miny= 0.00001f;
 
-	
+
 	/* repeat and clip */
 	imaprepeat= (tex->extend==TEX_REPEAT);
 	imapextend= (tex->extend==TEX_EXTEND);
@@ -1430,10 +1430,10 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 
 	if (tex->extend == TEX_CHECKER) {
 		int xs, ys, xs1, ys1, xs2, ys2, boundary;
-		
+
 		xs= (int)floor(fx);
 		ys= (int)floor(fy);
-		
+
 		/* both checkers available, no boundary exceptions, checkerdist will eat aliasing */
 		if ( (tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN) ) {
 			fx-= xs;
@@ -1447,7 +1447,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 			return retval;
 		}
 		else {
-			
+
 			xs1= (int)floor(fx-minx);
 			ys1= (int)floor(fy-miny);
 			xs2= (int)floor(fx+minx);
@@ -1479,14 +1479,14 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 				if (tex->flag & TEX_CHECKER_ODD) {
 					if ((xs1+ys) & 1) fx-= xs2;
 					else fx-= xs1;
-					
+
 					if ((ys1+xs) & 1) fy-= ys2;
 					else fy-= ys1;
 				}
 				if (tex->flag & TEX_CHECKER_EVEN) {
 					if ((xs1+ys) & 1) fx-= xs1;
 					else fx-= xs2;
-					
+
 					if ((ys1+xs) & 1) fy-= ys1;
 					else fy-= ys2;
 				}
@@ -1525,7 +1525,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 			if (fx>1.0f) fx -= (int)(fx);
 			else if (fx<0.0f) fx+= 1-(int)(fx);
 		}
-		
+
 		if (imapextend) {
 			if (fy>1.0f) fy = 1.0f;
 			else if (fy<0.0f) fy= 0.0f;
@@ -1540,18 +1540,18 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	if (tex->imaflag & TEX_MIPMAP) {
 		ImBuf *previbuf, *curibuf;
 		float bumpscale;
-		
+
 		dx = minx;
 		dy = miny;
 		maxd = max_ff(dx, dy);
 		if (maxd > 0.5f) maxd = 0.5f;
 
 		pixsize = 1.0f / (float) MIN2(ibuf->x, ibuf->y);
-		
+
 		bumpscale= pixsize/maxd;
 		if (bumpscale>1.0f) bumpscale= 1.0f;
 		else bumpscale*=bumpscale;
-		
+
 		curmap= 0;
 		previbuf= curibuf= ibuf;
 		while (curmap < IMB_MIPMAP_LEVELS && ibuf->mipmap[curmap]) {
@@ -1567,12 +1567,12 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 			if (minx < 0.5f / ibuf->x) minx = 0.5f / ibuf->x;
 			if (miny < 0.5f / ibuf->y) miny = 0.5f / ibuf->y;
 		}
-		
+
 		if (texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
 			/* a bit extra filter */
 			//minx*= 1.35f;
 			//miny*= 1.35f;
-			
+
 			boxsample(curibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
 			val1= texres->tr+texres->tg+texres->tb;
 			boxsample(curibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
@@ -1583,11 +1583,11 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 			/* don't switch x or y! */
 			texres->nor[0]= (val1-val2);
 			texres->nor[1]= (val1-val3);
-			
+
 			if (previbuf!=curibuf) {  /* interpolate */
-				
+
 				boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr, imaprepeat, imapextend);
-				
+
 				/* calc rgb */
 				dx= 2.0f*(pixsize-maxd)/pixsize;
 				if (dx>=1.0f) {
@@ -1601,16 +1601,16 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 					texres->tr= dy*texres->tr+ dx*texr.tr;
 					texres->ta= dy*texres->ta+ dx*texr.ta;
 				}
-				
+
 				val1= dy*val1+ dx*(texr.tr + texr.tg + texr.tb);
 				boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
 				val2= dy*val2+ dx*(texr.tr + texr.tg + texr.tb);
 				boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
 				val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
-				
+
 				texres->nor[0]= (val1-val2);	/* vals have been interpolated above! */
 				texres->nor[1]= (val1-val3);
-				
+
 				if (dx<1.0f) {
 					dy= 1.0f-dx;
 					texres->tb= dy*texres->tb+ dx*texr.tb;
@@ -1632,9 +1632,9 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 
 			if (previbuf!=curibuf) {  /* interpolate */
 				boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend);
-				
+
 				fx= 2.0f*(pixsize-maxd)/pixsize;
-				
+
 				if (fx>=1.0f) {
 					texres->ta= texr.ta; texres->tb= texr.tb;
 					texres->tg= texr.tg; texres->tr= texr.tr;
@@ -1672,7 +1672,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		else
 			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
 	}
-	
+
 	if (tex->imaflag & TEX_CALCALPHA) {
 		texres->ta = texres->tin = texres->ta * max_fff(texres->tr, texres->tg, texres->tb);
 	}
@@ -1681,7 +1681,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	}
 
 	if (tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
-	
+
 	if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
 		/* qdn: normal from color
 		 * The invert of the red channel is to make
@@ -1705,7 +1705,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		BKE_image_pool_release_ibuf(ima, ibuf, pool);
 
 	BRICONTRGB;
-	
+
 	return retval;
 }
 
@@ -1713,16 +1713,16 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float resu
 {
 	TexResult texres;
 	ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, NULL, pool);
-	
+
 	if (UNLIKELY(ibuf == NULL)) {
 		zero_v4(result);
 		return;
 	}
-	
+
 	texres.talpha = true; /* boxsample expects to be initialized */
 	boxsample(ibuf, fx, fy, fx + dx, fy + dy, &texres, 0, 1);
 	copy_v4_v4(result, &texres.tr);
-	
+
 	ima->flag|= IMA_USED_FOR_RENDER;
 
 	BKE_image_pool_release_ibuf(ima, ibuf, pool);
@@ -1737,11 +1737,11 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float resu
 	AFD.dyt[0] = dy; AFD.dyt[1] = dy;
 	//copy_v2_v2(AFD.dxt, dx);
 	//copy_v2_v2(AFD.dyt, dy);
-	
+
 	AFD.intpol = 1;
 	AFD.extflag = TXC_EXTD;
 
 	ewa_eval(&texres, ibuf, fx, fy, &AFD);
-	
+
 	copy_v4_v4(result, &texres.tr);
 }

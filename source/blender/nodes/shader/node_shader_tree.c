@@ -82,7 +82,7 @@ static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tre
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
-	
+
 	if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
 		if (ob) {
 			*r_from = &ob->id;
@@ -136,11 +136,11 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
 static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 {
 	bNode *node, *node_next;
-	
+
 	/* replace muted nodes and reroute nodes by internal links */
 	for (node = localtree->nodes.first; node; node = node_next) {
 		node_next = node->next;
-		
+
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
 			nodeInternalRelink(localtree, node);
 			nodeFreeNode(localtree, node);
@@ -161,9 +161,9 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 static void update(bNodeTree *ntree)
 {
 	ntreeSetOutput(ntree);
-	
+
 	ntree_update_reroute_nodes(ntree);
-	
+
 	if (ntree->update & NTREE_UPDATE_NODES) {
 		/* clean up preview cache, in case nodes have been removed */
 		BKE_node_preview_remove_unused(ntree);
@@ -175,13 +175,13 @@ bNodeTreeType *ntreeType_Shader;
 void register_node_tree_type_sh(void)
 {
 	bNodeTreeType *tt = ntreeType_Shader = MEM_callocN(sizeof(bNodeTreeType), "shader node tree type");
-	
+
 	tt->type = NTREE_SHADER;
 	strcpy(tt->idname, "ShaderNodeTree");
 	strcpy(tt->ui_name, "Shader Editor");
 	tt->ui_icon = 0;    /* defined in drawnode.c */
 	strcpy(tt->ui_description, "Shader nodes");
-	
+
 	tt->foreach_nodeclass = foreach_nodeclass;
 	tt->localize = localize;
 	tt->local_sync = local_sync;
@@ -189,9 +189,9 @@ void register_node_tree_type_sh(void)
 	tt->update = update;
 	tt->poll = shader_tree_poll;
 	tt->get_from_context = shader_get_from_context;
-	
+
 	tt->ext.srna = &RNA_ShaderNodeTree;
-	
+
 	ntreeTypeAdd(tt);
 }
 
@@ -622,19 +622,19 @@ bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context, bNod
 {
 	bNodeTreeExec *exec;
 	bNode *node;
-	
+
 	/* ensures only a single output node is enabled */
 	ntreeSetOutput(ntree);
-	
+
 	/* common base initialization */
 	exec = ntree_exec_begin(context, ntree, parent_key);
-	
+
 	/* allocate the thread stack listbase array */
 	exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
-	
+
 	for (node = exec->nodetree->nodes.first; node; node = node->next)
 		node->need_exec = 1;
-	
+
 	return exec;
 }
 
@@ -642,22 +642,22 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
 {
 	bNodeExecContext context;
 	bNodeTreeExec *exec;
-	
+
 	/* XXX hack: prevent exec data from being generated twice.
 	 * this should be handled by the renderer!
 	 */
 	if (ntree->execdata)
 		return ntree->execdata;
-	
+
 	context.previews = ntree->previews;
-	
+
 	exec = ntreeShaderBeginExecTree_internal(&context, ntree, NODE_INSTANCE_KEY_BASE);
-	
+
 	/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
 	 * which only store the ntree pointer. Should be fixed at some point!
 	 */
 	ntree->execdata = exec;
-	
+
 	return exec;
 }
 
@@ -665,18 +665,18 @@ void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec)
 {
 	bNodeThreadStack *nts;
 	int a;
-	
+
 	if (exec->threadstack) {
 		for (a = 0; a < BLENDER_MAX_THREADS; a++) {
 			for (nts = exec->threadstack[a].first; nts; nts = nts->next)
 				if (nts->stack) MEM_freeN(nts->stack);
 			BLI_freelistN(&exec->threadstack[a]);
 		}
-		
+
 		MEM_freeN(exec->threadstack);
 		exec->threadstack = NULL;
 	}
-	
+
 	ntree_exec_end(exec);
 }
 
@@ -686,7 +686,7 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec)
 		/* exec may get freed, so assign ntree */
 		bNodeTree *ntree = exec->nodetree;
 		ntreeShaderEndExecTree_internal(exec);
-		
+
 		/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
 		ntree->execdata = NULL;
 	}
@@ -699,7 +699,7 @@ bool ntreeShaderExecTree(bNodeTree *ntree, int thread)
 	bNodeThreadStack *nts = NULL;
 	bNodeTreeExec *exec = ntree->execdata;
 	int compat;
-	
+
 	/* ensure execdata is only initialized once */
 	if (!exec) {
 		BLI_thread_lock(LOCK_NODES);
@@ -709,11 +709,11 @@ bool ntreeShaderExecTree(bNodeTree *ntree, int thread)
 
 		exec = ntree->execdata;
 	}
-	
+
 	nts = ntreeGetThreadStack(exec, thread);
 	compat = ntreeExecThreadNodes(exec, nts, &scd, thread);
 	ntreeReleaseThreadStack(nts);
-	
+
 	/* if compat is zero, it has been using non-compatible nodes */
 	return compat;
 }

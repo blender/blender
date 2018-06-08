@@ -109,7 +109,7 @@ private:
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom; //< materials that have already been mapped to a geometry. A pair of geom uid and mat uid, one geometry can have several materials
-	
+
 	bool set_poly_indices(MPoly *mpoly,
 						  MLoop *mloop,
 						  int loop_index,
@@ -135,7 +135,7 @@ private:
 	bool is_nice_mesh(COLLADAFW::Mesh *mesh);
 
 	void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me);
-			
+
 	bool primitive_has_useable_normals(COLLADAFW::MeshPrimitive *mp);
 	bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
 
@@ -165,7 +165,7 @@ public:
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
 
 	virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
-	
+
 	void optimize_material_assignements();
 
 	void assign_material_to_geom(
@@ -173,8 +173,8 @@ public:
 	        std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
 	        Object *ob, const COLLADAFW::UniqueId *geom_uid,
 	        short mat_index);
-	
-	
+
+
 	Object *create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
 	                           bool isController,
 	                           std::map<COLLADAFW::UniqueId, Material*>& uid_material_map);

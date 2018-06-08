@@ -137,7 +137,7 @@
 /* here we store all renders */
 static struct {
 	ListBase renderlist;
-} RenderGlobal = {{NULL, NULL}}; 
+} RenderGlobal = {{NULL, NULL}};
 
 /* ********* alloc and free ******** */
 
@@ -424,10 +424,10 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 		if (re->result) {
 			RenderLayer *rl;
 			RenderView *rv;
-			
+
 			rr->rectx = re->result->rectx;
 			rr->recty = re->result->recty;
-			
+
 			/* actview view */
 			rv = RE_RenderViewGetById(re->result, view_id);
 			rr->have_combined = (rv->rectf != NULL);
@@ -494,7 +494,7 @@ Render *RE_NewRender(const char *name)
 	/* only one render per name exists */
 	re = RE_GetRender(name);
 	if (re == NULL) {
-		
+
 		/* new render data struct */
 		re = MEM_callocN(sizeof(Render), "new render");
 		BLI_addtail(&RenderGlobal.renderlist, re);
@@ -502,7 +502,7 @@ Render *RE_NewRender(const char *name)
 		BLI_rw_mutex_init(&re->resultmutex);
 		BLI_rw_mutex_init(&re->partsmutex);
 	}
-	
+
 	RE_InitRenderCB(re);
 
 	return re;
@@ -574,10 +574,10 @@ void RE_FreeRender(Render *re)
 	/* main dbase can already be invalid now, some database-free code checks it */
 	re->main = NULL;
 	re->scene = NULL;
-	
+
 	render_result_free(re->result);
 	render_result_free(re->pushedresult);
-	
+
 	BLI_remlink(&RenderGlobal.renderlist, re);
 	MEM_freeN(re);
 }
@@ -715,7 +715,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
 
 	re->ok = true;   /* maybe flag */
-	
+
 	re->i.starttime = PIL_check_seconds_timer();
 
 	/* copy render data and render layers for thread safety */
@@ -753,7 +753,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 	}
 
 	re->r.scemode = check_mode_full_sample(&re->r);
-	
+
 	if (single_layer) {
 		int index = BLI_findindex(render_layers, single_layer);
 		if (index != -1) {
@@ -761,7 +761,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 			re->r.scemode |= R_SINGLE_LAYER;
 		}
 	}
-		
+
 	/* if preview render, we try to keep old result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
@@ -794,7 +794,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		}
 	}
 	else {
-		
+
 		/* make empty render result, so display callbacks can initialize */
 		render_result_free(re->result);
 		re->result = MEM_callocN(sizeof(RenderResult), "new render result");
@@ -811,7 +811,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 	RE_parts_clamp(re);
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
-	
+
 	RE_init_threadcount(re);
 
 	RE_point_density_fix_linking();
@@ -925,7 +925,7 @@ void render_update_anim_renderdata(Render *re, RenderData *rd, ListBase *render_
 void RE_SetWindow(Render *re, const rctf *viewplane, float clipsta, float clipend)
 {
 	/* re->ok flag? */
-	
+
 	re->viewplane = *viewplane;
 	re->clipsta = clipsta;
 	re->clipend = clipend;
@@ -934,13 +934,13 @@ void RE_SetWindow(Render *re, const rctf *viewplane, float clipsta, float clipen
 	perspective_m4(re->winmat,
 	               re->viewplane.xmin, re->viewplane.xmax,
 	               re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
-	
+
 }
 
 void RE_SetOrtho(Render *re, const rctf *viewplane, float clipsta, float clipend)
 {
 	/* re->ok flag? */
-	
+
 	re->viewplane = *viewplane;
 	re->clipsta = clipsta;
 	re->clipend = clipend;
@@ -961,7 +961,7 @@ void RE_SetView(Render *re, float mat[4][4])
 void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)
 {
 	*r_viewplane = re->viewplane;
-	
+
 	/* make disprect zero when no border render, is needed to detect changes in 3d view render */
 	if (re->r.mode & R_BORDER) {
 		*r_disprect = re->disprect;
@@ -1028,7 +1028,7 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 #if 0
 void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 {
-	
+
 }
 #endif
 
@@ -1121,9 +1121,9 @@ static void do_render(Render *re)
 
 	/* now use renderdata and camera to set viewplane */
 	RE_SetCamera(re, camera);
-	
+
 	do_render_3d(re);
-	
+
 	/* when border render, check if we have to insert it in black */
 	render_result_uncrop(re);
 }
@@ -1136,7 +1136,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 {
 	Render *resc = RE_NewSceneRender(sce);
 	int winx = re->winx, winy = re->winy;
-	
+
 	sce->r.cfra = cfra;
 
 	BKE_scene_camera_switch_update(sce);
@@ -1146,7 +1146,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 		winx = (sce->r.size * sce->r.xsch) / 100;
 		winy = (sce->r.size * sce->r.ysch) / 100;
 	}
-	
+
 	/* initial setup */
 	RE_InitState(resc, re, &sce->r, &sce->view_layers, NULL, winx, winy, &re->disprect);
 
@@ -1157,7 +1157,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->main = re->main;
 	resc->scene = sce;
 	resc->lay = sce->lay;
-	
+
 	/* ensure scene has depsgraph, base flags etc OK */
 	BKE_scene_set_background(re->main, sce);
 
@@ -1170,7 +1170,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->sdh = re->sdh;
 	resc->current_scene_update = re->current_scene_update;
 	resc->suh = re->suh;
-	
+
 	do_render(resc);
 }
 
@@ -1179,11 +1179,11 @@ static int composite_needs_render(Scene *sce, int this_scene)
 {
 	bNodeTree *ntree = sce->nodetree;
 	bNode *node;
-	
+
 	if (ntree == NULL) return 1;
 	if (sce->use_nodes == false) return 1;
 	if ((sce->r.scemode & R_DOCOMP) == 0) return 1;
-	
+
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0)
 			if (this_scene == 0 || node->id == NULL || node->id == &sce->id)
@@ -1334,14 +1334,14 @@ static void tag_scenes_for_render(Render *re)
 {
 	bNode *node;
 	Scene *sce;
-	
+
 	for (sce = re->main->scene.first; sce; sce = sce->id.next) {
 		sce->id.tag &= ~LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
 		tag_dependend_objects_for_render(re->main, sce);
 #endif
 	}
-	
+
 #ifdef WITH_FREESTYLE
 	if (re->freestyle_bmain) {
 		for (sce = re->freestyle_bmain->scene.first; sce; sce = sce->id.next) {
@@ -1359,9 +1359,9 @@ static void tag_scenes_for_render(Render *re)
 		tag_dependend_objects_for_render(re->main, re->scene);
 #endif
 	}
-	
+
 	if (re->scene->nodetree == NULL) return;
-	
+
 	/* check for render-layers nodes using other scenes, we tag them LIB_TAG_DOIT */
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
 		node->flag &= ~NODE_TEST;
@@ -1397,7 +1397,7 @@ static void tag_scenes_for_render(Render *re)
 			}
 		}
 	}
-	
+
 }
 
 static void ntree_render_scenes(Render *re)
@@ -1406,15 +1406,15 @@ static void ntree_render_scenes(Render *re)
 	int cfra = re->scene->r.cfra;
 	Scene *restore_scene = re->scene;
 	bool scene_changed = false;
-	
+
 	if (re->scene->nodetree == NULL) return;
-	
+
 	tag_scenes_for_render(re);
 
 #ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
 	tag_collections_for_render(re);
 #endif
-	
+
 	/* now foreach render-result node tagged we do a full render */
 	/* results are stored in a way compisitor will find it */
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
@@ -1426,7 +1426,7 @@ static void ntree_render_scenes(Render *re)
 					scene_changed |= scene != restore_scene;
 					render_scene(re, scene, cfra);
 					node->flag &= ~NODE_TEST;
-					
+
 					nodeUpdate(restore_scene->nodetree, node);
 				}
 			}
@@ -1531,10 +1531,10 @@ static void do_render_composite(Render *re)
 {
 	bNodeTree *ntree = re->scene->nodetree;
 	int update_newframe = 0;
-	
+
 	/* INIT seeding, compositor can use random texture */
 	BLI_srandom(re->r.cfra);
-	
+
 	if (composite_needs_render(re->scene, 1)) {
 		/* save memory... free all cached images */
 		ntreeFreeCache(ntree);
@@ -1550,7 +1550,7 @@ static void do_render_composite(Render *re)
 
 		/* ensure new result gets added, like for regular renders */
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-		
+
 		render_result_free(re->result);
 		if ((re->r.mode & R_CROP) == 0) {
 			render_result_disprect_to_full_resolution(re);
@@ -1558,30 +1558,30 @@ static void do_render_composite(Render *re)
 		re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
 
 		BLI_rw_mutex_unlock(&re->resultmutex);
-		
+
 		/* scene render process already updates animsys */
 		update_newframe = 1;
 	}
-	
+
 	/* swap render result */
 	if (re->r.scemode & R_SINGLE_LAYER) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		render_result_single_layer_end(re);
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
-	
+
 	if (!re->test_break(re->tbh)) {
-		
+
 		if (ntree) {
 			ntreeCompositTagRender(re->scene);
 			ntreeCompositTagAnimated(ntree);
 		}
-		
+
 		if (ntree && re->scene->use_nodes && re->r.scemode & R_DOCOMP) {
 			/* checks if there are render-result nodes that need scene */
 			if ((re->r.scemode & R_SINGLE_LAYER) == 0)
 				ntree_render_scenes(re);
-			
+
 			if (!re->test_break(re->tbh)) {
 				ntree->stats_draw = render_composit_stats;
 				ntree->test_break = re->test_break;
@@ -1589,16 +1589,16 @@ static void do_render_composite(Render *re)
 				ntree->sdh = re;
 				ntree->tbh = re->tbh;
 				ntree->prh = re->prh;
-				
+
 				if (update_newframe) {
 					/* If we have consistent depsgraph now would be a time to update them. */
 				}
-				
+
 				RenderView *rv;
 				for (rv = re->result->views.first; rv; rv = rv->next) {
 					ntreeCompositExecTree(re->scene, ntree, &re->r, true, G.background == 0, &re->scene->view_settings, &re->scene->display_settings, rv->name);
 				}
-				
+
 				ntree->stats_draw = NULL;
 				ntree->test_break = NULL;
 				ntree->progress = NULL;
@@ -1651,15 +1651,15 @@ int RE_seq_render_active(Scene *scene, RenderData *rd)
 	Sequence *seq;
 
 	ed = scene->ed;
-	
+
 	if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first)
 		return 0;
-	
+
 	for (seq = ed->seqbase.first; seq; seq = seq->next) {
 		if (seq->type != SEQ_TYPE_SOUND_RAM)
 			return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -1810,18 +1810,18 @@ static void do_render_all_options(Render *re)
 			do_render_seq(re);
 			render_seq = true;
 		}
-		
+
 		re->stats_draw(re->sdh, &re->i);
 		re->display_update(re->duh, re->result, NULL);
 	}
 	else {
 		do_render_composite(re);
 	}
-	
+
 	re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
-	
+
 	re->stats_draw(re->sdh, &re->i);
-	
+
 	/* save render result stamp if needed */
 	if (re->result != NULL) {
 		camera = RE_GetCamera(re);
@@ -1975,7 +1975,7 @@ static int check_composite_output(Scene *scene)
 bool RE_is_rendering_allowed(Scene *scene, ViewLayer *single_layer, Object *camera_override, ReportList *reports)
 {
 	int scemode = check_mode_full_sample(&scene->r);
-	
+
 	if (scene->r.mode & R_BORDER) {
 		if (scene->r.border.xmax <= scene->r.border.xmin ||
 		    scene->r.border.ymax <= scene->r.border.ymin)
@@ -1984,30 +1984,30 @@ bool RE_is_rendering_allowed(Scene *scene, ViewLayer *single_layer, Object *came
 			return 0;
 		}
 	}
-	
+
 	if (scemode & (R_EXR_TILE_FILE | R_FULL_SAMPLE)) {
 		char str[FILE_MAX];
-		
+
 		render_result_exr_file_path(scene, "", 0, str);
-		
+
 		if (!BLI_file_is_writable(str)) {
 			BKE_report(reports, RPT_ERROR, "Cannot save render buffers, check the temp default path");
 			return 0;
 		}
 	}
-	
+
 	if (scemode & R_DOCOMP) {
 		if (scene->use_nodes) {
 			if (!scene->nodetree) {
 				BKE_report(reports, RPT_ERROR, "No node tree in scene");
 				return 0;
 			}
-			
+
 			if (!check_composite_output(scene)) {
 				BKE_report(reports, RPT_ERROR, "No render output node in scene");
 				return 0;
 			}
-			
+
 			if (scemode & R_FULL_SAMPLE) {
 				if (composite_needs_render(scene, 0) == 0) {
 					BKE_report(reports, RPT_ERROR, "Full sample AA not supported without 3D rendering");
@@ -2016,12 +2016,12 @@ bool RE_is_rendering_allowed(Scene *scene, ViewLayer *single_layer, Object *came
 			}
 		}
 	}
-	
+
 	/* check valid camera, without camera render is OK (compo, seq) */
 	if (!check_valid_camera(scene, camera_override, reports)) {
 		return 0;
 	}
-	
+
 	/* get panorama & ortho, only after camera is set */
 	BKE_camera_object_mode(&scene->r, camera_override ? camera_override : scene->camera);
 
@@ -2098,19 +2098,19 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 {
 	int winx, winy;
 	rcti disprect;
-	
+
 	/* r.xsch and r.ysch has the actual view window size
 	 * r.border is the clipping rect */
-	
+
 	/* calculate actual render result and display size */
 	winx = (rd->size * rd->xsch) / 100;
 	winy = (rd->size * rd->ysch) / 100;
-	
+
 	/* we always render smaller part, inserting it in larger image is compositor bizz, it uses disprect for it */
 	if (scene->r.mode & R_BORDER) {
 		disprect.xmin = rd->border.xmin * winx;
 		disprect.xmax = rd->border.xmax * winx;
-		
+
 		disprect.ymin = rd->border.ymin * winy;
 		disprect.ymax = rd->border.ymax * winy;
 	}
@@ -2119,7 +2119,7 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 		disprect.xmax = winx;
 		disprect.ymax = winy;
 	}
-	
+
 	re->main = bmain;
 	re->scene = scene;
 	re->camera_override = camera_override;
@@ -2134,7 +2134,7 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 		re->disprect = disprect;
 		return 1;
 	}
-	
+
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
 
@@ -2153,17 +2153,17 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 		ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
 		update_physics_cache(re, scene, view_layer, anim_init);
 	}
-	
+
 	if (single_layer || scene->r.scemode & R_SINGLE_LAYER) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		render_result_single_layer_begin(re);
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
-	
+
 	RE_InitState(re, NULL, &scene->r, &scene->view_layers, single_layer, winx, winy, &disprect);
 	if (!re->ok)  /* if an error was printed, abort */
 		return 0;
-	
+
 	/* initstate makes new result, have to send changed tags around */
 	ntreeCompositTagRender(re->scene);
 
@@ -2171,7 +2171,7 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 
 	re->display_init(re->dih, re->result);
 	re->display_clear(re->dch, re->result);
-	
+
 	return 1;
 }
 
@@ -2188,9 +2188,9 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *single_la
 
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.is_rendering = true;
-	
+
 	scene->r.cfra = frame;
-	
+
 	if (render_initialize_from_main(re, &scene->r, bmain, scene, single_layer,
 	                                camera_override, lay_override, 0, 0))
 	{
@@ -2473,12 +2473,12 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		/* write images as individual images or stereo */
 		ok = RE_WriteRenderViewsImage(re->reports, &rres, scene, true, name);
 	}
-	
+
 	RE_ReleaseResultImageViews(re, &rres);
 
 	render_time = re->i.lastframetime;
 	re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
-	
+
 	BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime);
 	printf(" Time: %s", name);
 
@@ -2489,7 +2489,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 
 	BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime - render_time);
 	printf(" (Saving: %s)\n", name);
-	
+
 	fputc('\n', stdout);
 	fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
 
@@ -2713,10 +2713,10 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			/* run callbacs before rendering, before the scene is updated */
 			BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
-			
+
 			do_render_all_options(re);
 			totrendered++;
-			
+
 			if (re->test_break(re->tbh) == 0) {
 				if (!G.is_break)
 					if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, NULL))
@@ -2724,7 +2724,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			}
 			else
 				G.is_break = true;
-		
+
 			if (G.is_break == true) {
 				/* remove touched file */
 				if (is_movie == false) {
@@ -2753,7 +2753,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 						}
 					}
 				}
-				
+
 				break;
 			}
 
@@ -2763,12 +2763,12 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			}
 		}
 	}
-	
+
 	/* end movie */
 	if (is_movie) {
 		re_movie_free_all(re, mh, totvideos);
 	}
-	
+
 	if (totskipped && totrendered == 0)
 		BKE_report(re->reports, RPT_INFO, "No frames rendered, skipped to not overwrite");
 
@@ -2812,16 +2812,16 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	int winx, winy;
 	bool success;
 	rcti disprect;
-	
+
 	/* calculate actual render result and display size */
 	winx = (scene->r.size * scene->r.xsch) / 100;
 	winy = (scene->r.size * scene->r.ysch) / 100;
-	
+
 	/* only in movie case we render smaller part */
 	if (scene->r.mode & R_BORDER) {
 		disprect.xmin = scene->r.border.xmin * winx;
 		disprect.xmax = scene->r.border.xmax * winx;
-		
+
 		disprect.ymin = scene->r.border.ymin * winy;
 		disprect.ymax = scene->r.border.ymax * winy;
 	}
@@ -2830,17 +2830,17 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		disprect.xmax = winx;
 		disprect.ymax = winy;
 	}
-	
+
 	if (scenode)
 		scene = scenode;
-	
+
 	/* get render: it can be called from UI with draw callbacks */
 	re = RE_GetSceneRender(scene);
 	if (re == NULL)
 		re = RE_NewSceneRender(scene);
 	RE_InitState(re, NULL, &scene->r, &scene->view_layers, NULL, winx, winy, &disprect);
 	re->scene = scene;
-	
+
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	success = render_result_exr_file_cache_read(re);
 	BLI_rw_mutex_unlock(&re->resultmutex);
@@ -2850,7 +2850,7 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	return success;
 }
 
-void RE_init_threadcount(Render *re) 
+void RE_init_threadcount(Render *re)
 {
 	re->r.threads = BKE_render_num_threads(&re->r);
 }
@@ -3014,7 +3014,7 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
 		rl->rectx = rr->rectx;
 		rl->recty = rr->recty;
 	}
-	
+
 	/* clear previous pass if exist or the new image will be over previous one*/
 	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
 	if (rp) {

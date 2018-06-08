@@ -58,7 +58,7 @@ int tex_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
 	node_type_base(ntype, type, name, nclass, flag);
-	
+
 	ntype->poll = tex_node_poll_default;
 	ntype->insert_link = node_insert_link_default;
 	ntype->update_internal_links = node_update_internal_links_default;
@@ -80,7 +80,7 @@ static void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, sho
 	TexDelegate *dg = in->data;
 	if (dg) {
 		tex_call_delegate(dg, in->vec, params, thread);
-	
+
 		if (in->hasoutput && in->sockettype == SOCK_FLOAT)
 			in->vec[1] = in->vec[2] = in->vec[0];
 	}
@@ -95,12 +95,12 @@ void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread)
 void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread)
 {
 	tex_input(out, 4, in, params, thread);
-	
+
 	if (in->hasoutput && in->sockettype == SOCK_FLOAT) {
 		out[1] = out[2] = out[0];
 		out[3] = 1;
 	}
-	
+
 	if (in->hasoutput && in->sockettype == SOCK_VECTOR) {
 		out[0] = out[0] * 0.5f + 0.5f;
 		out[1] = out[1] * 0.5f + 0.5f;
@@ -132,7 +132,7 @@ void tex_do_preview(bNodePreview *preview, const float coord[2], const float col
 	if (preview) {
 		int xs = ((coord[0] + 1.0f) * 0.5f) * preview->xsize;
 		int ys = ((coord[1] + 1.0f) * 0.5f) * preview->ysize;
-		
+
 		BKE_node_preview_set_pixel(preview, col, xs, ys, do_manage);
 	}
 }
@@ -140,7 +140,7 @@ void tex_do_preview(bNodePreview *preview, const float coord[2], const float col
 void tex_output(bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *cdata)
 {
 	TexDelegate *dg;
-	
+
 	if (node->flag & NODE_MUTED) {
 		/* do not add a delegate if the node is muted */
 		return;
@@ -175,9 +175,9 @@ void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 			}
 			else {
 				Tex *tex = (Tex *)node->id;
-				
+
 				node->custom2 = 0;
-			
+
 				node->custom1 = 1;
 				if (tex->use_nodes && tex->nodetree) {
 					ntreeTexCheckCyclics(tex->nodetree);

@@ -65,7 +65,7 @@ class ForEachMaterialFunctor
 	Functor *f;
 public:
 	ForEachMaterialFunctor(Functor*f) : f(f) {}
-	
+
 	void operator ()(Object *ob)
 	{
 		int a;

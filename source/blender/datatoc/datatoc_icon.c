@@ -386,7 +386,7 @@ int main(int argc, char **argv)
 {
 	const char *path_src;
 	const char *file_dst;
-	
+
 
 	if (argc < 3) {
 		printf("Usage: datatoc_icon <dir_icons> <data_icon_to.png>\n");

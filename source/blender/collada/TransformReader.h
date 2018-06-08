@@ -19,7 +19,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 /** \file TransformReader.h
  *  \ingroup collada
  */

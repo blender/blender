@@ -50,7 +50,7 @@ void SceneExporter::exportScene(bContext *C, Depsgraph *depsgraph, Scene *sce)
 }
 
 void SceneExporter::exportHierarchy(bContext *C, Depsgraph *depsgraph, Scene *sce)
-{	
+{
 	LinkNode *node;
 	std::vector<Object *> base_objects;
 
@@ -59,7 +59,7 @@ void SceneExporter::exportHierarchy(bContext *C, Depsgraph *depsgraph, Scene *sc
 		Object *ob = (Object *) node->link;
 		ob->id.tag |= LIB_TAG_DOIT;
 	}
-	
+
 	// Now find all exportable base ojects (highest in export hierarchy)
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *) node->link;
@@ -203,17 +203,17 @@ void SceneExporter::writeNodes(bContext *C, Depsgraph *depsgraph, Object *ob, Sc
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"rot_error",con->rot_error);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"tar_space",con->tarspace);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"lin_error",con->lin_error);
-			
-			//not ideal: add the target object name as another parameter. 
+
+			//not ideal: add the target object name as another parameter.
 			//No real mapping in the .dae
 			//Need support for multiple target objects also.
 			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 			if (cti && cti->get_constraint_targets) {
-			
+
 				bConstraintTarget *ct;
 				Object *obtar;
-			
+
 				cti->get_constraint_targets(con, &targets);
 
 				for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {

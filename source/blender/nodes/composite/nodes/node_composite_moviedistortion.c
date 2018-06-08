@@ -58,7 +58,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	Scene *scene = CTX_data_scene(C);
-	
+
 	node->id = (ID *)scene->clip;
 }
 

@@ -32,7 +32,7 @@
 
 #include "node_shader_util.h"
 
-/* **************** VALUE SQUEEZE ******************** */ 
+/* **************** VALUE SQUEEZE ******************** */
 static bNodeSocketTemplate sh_node_squeeze_in[] = {
 	{ SOCK_FLOAT, 1, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
 	{ SOCK_FLOAT, 1, N_("Width"), 1.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
@@ -48,7 +48,7 @@ static bNodeSocketTemplate sh_node_squeeze_out[] = {
 static void node_shader_exec_squeeze(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	float vec[3];
-	
+
 	nodestack_get_vec(vec, SOCK_FLOAT, in[0]);
 	nodestack_get_vec(vec + 1, SOCK_FLOAT, in[1]);
 	nodestack_get_vec(vec + 2, SOCK_FLOAT, in[2]);

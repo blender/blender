@@ -54,7 +54,7 @@ static void node_shader_exec_mix_rgb(void *UNUSED(data), int UNUSED(thread), bNo
 
 	nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
 	CLAMP(fac, 0.0f, 1.0f);
-	
+
 	nodestack_get_vec(col, SOCK_VECTOR, in[1]);
 	nodestack_get_vec(vec, SOCK_VECTOR, in[2]);
 

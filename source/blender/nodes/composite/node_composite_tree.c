@@ -59,7 +59,7 @@
 static void composite_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
 	Scene *scene = CTX_data_scene(C);
-	
+
 	*r_from = NULL;
 	*r_id = &scene->id;
 	*r_ntree = scene->nodetree;
@@ -83,7 +83,7 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
 static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	bNodeSocket *sock;
-	
+
 	for (sock = node->outputs.first; sock; sock = sock->next) {
 		if (sock->cache) {
 			sock->cache = NULL;
@@ -103,15 +103,15 @@ static void localize(bNodeTree *UNUSED(localtree), bNodeTree *ntree)
 {
 	bNode *node;
 	bNodeSocket *sock;
-	
+
 	for (node = ntree->nodes.first; node; node = node->next) {
 		/* ensure new user input gets handled ok */
 		node->need_exec = 0;
 		node->new_node->original = node;
-		
+
 		/* move over the compbufs */
 		/* right after ntreeCopyTree() oldsock pointers are valid */
-		
+
 		if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 			if (node->id) {
 				if (node->flag & NODE_DO_OUTPUT)
@@ -120,7 +120,7 @@ static void localize(bNodeTree *UNUSED(localtree), bNodeTree *ntree)
 					node->new_node->id = NULL;
 			}
 		}
-		
+
 		for (sock = node->outputs.first; sock; sock = sock->next) {
 			sock->new_sock->cache = sock->cache;
 			sock->cache = NULL;
@@ -138,10 +138,10 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 {
 	bNode *lnode;
 	bNodeSocket *lsock;
-	
+
 	/* move over the compbufs and previews */
 	BKE_node_preview_merge_tree(ntree, localtree, true);
-	
+
 	for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
 			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
@@ -161,7 +161,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 					lnode->new_node->storage = BKE_tracking_distortion_copy(lnode->storage);
 				}
 			}
-			
+
 			for (lsock = lnode->outputs.first; lsock; lsock = lsock->next) {
 				if (ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->cache = lsock->cache;
@@ -176,9 +176,9 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 static void update(bNodeTree *ntree)
 {
 	ntreeSetOutput(ntree);
-	
+
 	ntree_update_reroute_nodes(ntree);
-	
+
 	if (ntree->update & NTREE_UPDATE_NODES) {
 		/* clean up preview cache, in case nodes have been removed */
 		BKE_node_preview_remove_unused(ntree);
@@ -187,12 +187,12 @@ static void update(bNodeTree *ntree)
 
 static void composite_node_add_init(bNodeTree *UNUSED(bnodetree), bNode *bnode)
 {
-	/* Composite node will only show previews for input classes 
-	 * by default, other will be hidden 
+	/* Composite node will only show previews for input classes
+	 * by default, other will be hidden
 	 * but can be made visible with the show_preview option */
 	if (bnode->typeinfo->nclass != NODE_CLASS_INPUT) {
 		bnode->flag &= ~NODE_PREVIEW;
-	}	
+	}
 }
 
 bNodeTreeType *ntreeType_Composite;
@@ -200,13 +200,13 @@ bNodeTreeType *ntreeType_Composite;
 void register_node_tree_type_cmp(void)
 {
 	bNodeTreeType *tt = ntreeType_Composite = MEM_callocN(sizeof(bNodeTreeType), "compositor node tree type");
-	
+
 	tt->type = NTREE_COMPOSIT;
 	strcpy(tt->idname, "CompositorNodeTree");
 	strcpy(tt->ui_name, "Compositing");
 	tt->ui_icon = 0;    /* defined in drawnode.c */
 	strcpy(tt->ui_description, "Compositing nodes");
-	
+
 	tt->free_cache = free_cache;
 	tt->free_node_cache = free_node_cache;
 	tt->foreach_nodeclass = foreach_nodeclass;
@@ -216,9 +216,9 @@ void register_node_tree_type_cmp(void)
 	tt->update = update;
 	tt->get_from_context = composite_get_from_context;
 	tt->node_add_init = composite_node_add_init;
-	
+
 	tt->ext.srna = &RNA_CompositorNodeTree;
-	
+
 	ntreeTypeAdd(tt);
 }
 

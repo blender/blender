@@ -165,10 +165,10 @@ static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
 static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNodeSocket *cur)
 {
 	/* link swapping: try to find a free slot with a matching name */
-	
+
 	bNodeSocket *first = cur->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
 	bNodeSocket *sock;
-	
+
 	sock = cur->next ? cur->next : first; /* wrap around the list end */
 	while (sock != cur) {
 		if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
@@ -177,7 +177,7 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNo
 			if (link_count + 1 <= sock->limit)
 				return sock; /* found a valid free socket we can swap to */
 		}
-		
+
 		sock = sock->next ? sock->next : first; /* wrap around the list end */
 	}
 	return NULL;
@@ -187,18 +187,18 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
 	bNodeSocket *sock = link->tosock;
 	bNodeLink *tlink, *tlink_next;
-	
+
 	/* inputs can have one link only, outputs can have unlimited links */
 	if (node != link->tonode)
 		return;
-	
+
 	for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
 		bNodeSocket *new_sock;
 		tlink_next = tlink->next;
-		
+
 		if (sock != tlink->tosock)
 			continue;
-		
+
 		new_sock = node_find_linkable_socket(ntree, node, sock);
 		if (new_sock && new_sock != sock) {
 			/* redirect existing link */
@@ -287,12 +287,12 @@ static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
 	int i;
 	int sel_priority = -1;
 	bool sel_is_linked = false;
-	
+
 	for (input = node->inputs.first, i = 0; input; input = input->next, ++i) {
 		int priority = node_datatype_priority(input->type, output->type);
 		bool is_linked = (input->link != NULL);
 		bool preferred;
-		
+
 		if (nodeSocketIsHidden(input) ||                /* ignore hidden sockets */
 		    input->flag & SOCK_NO_INTERNAL_LINK ||      /* ignore if input is not allowed for internal connections */
 		    priority < 0 ||                             /* ignore incompatible types */
@@ -300,18 +300,18 @@ static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
 		{
 			continue;
 		}
-		
+
 		/* determine if this input is preferred over the currently selected */
 		preferred = (priority > sel_priority) ||    /* prefer higher datatype priority */
 		            (is_linked && !sel_is_linked);  /* prefer linked over unlinked */
-		
+
 		if (preferred) {
 			selected = input;
 			sel_is_linked = is_linked;
 			sel_priority = priority;
 		}
 	}
-	
+
 	return selected;
 }
 
@@ -319,29 +319,29 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link;
 	bNodeSocket *output, *input;
-	
+
 	/* sanity check */
 	if (!ntree)
 		return;
-	
+
 	/* use link pointer as a tag for handled sockets (for outputs is unused anyway) */
 	for (output = node->outputs.first; output; output = output->next)
 		output->link = NULL;
-	
+
 	for (link = ntree->links.first; link; link = link->next) {
 		if (nodeLinkIsHidden(link))
 			continue;
-		
+
 		output = link->fromsock;
 		if (link->fromnode != node || output->link)
 			continue;
 		if (nodeSocketIsHidden(output) || output->flag & SOCK_NO_INTERNAL_LINK)
 			continue;
 		output->link = link; /* not really used, just for tagging handled sockets */
-		
+
 		/* look for suitable input */
 		input = select_internal_link_input(node, output);
-		
+
 		if (input) {
 			bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
 			ilink->fromnode = node;
@@ -353,7 +353,7 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 			BLI_addtail(&node->internal_links, ilink);
 		}
 	}
-	
+
 	/* clean up */
 	for (output = node->outputs.first; output; output = output->next)
 		output->link = NULL;

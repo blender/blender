@@ -57,7 +57,7 @@ static std::string getActiveUVLayerName(Object *ob)
 	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 	if (num_layers)
 		return std::string(bc_CustomData_get_active_layer_name(&me->fdata, CD_MTFACE));
-		
+
 	return "";
 }
 
@@ -105,12 +105,12 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	// TODO: add back texture and extended material parameter support
 
 	openEffect(translate_id(id_name(ma)) + "-effect");
-	
+
 	COLLADASW::EffectProfile ep(mSW);
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
 	writeLambert(ep, ma);
-	
+
 	COLLADASW::ColorOrTexture cot;
 
 	// transparency
@@ -144,7 +144,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	//COLLADASW::Surface surfaces[MAX_MTEX];
 	//void *samp_surf[MAX_MTEX][2];
 	void *samp_surf[MAX_MTEX];
-	
+
 	// image to index to samp_surf map
 	// samp_surf[index] stores 2 pointers, sampler and surface
 	std::map<std::string, int> im_samp_map;
@@ -153,10 +153,10 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	for (a = 0, b = 0; a < tex_indices.size(); a++) {
 		MTex *t = ma->mtex[tex_indices[a]];
 		Image *ima = t->tex->ima;
-		
+
 		// Image not set for texture
 		if (!ima) continue;
-		
+
 		std::string key(id_name(ima));
 		key = translate_id(key);
 
@@ -171,7 +171,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 			// COLLADASW::NewParamSurface surface(mSW);
 			// surface->setParamType(COLLADASW::CSW_SURFACE_TYPE_2D);
-			
+
 			//<newparam> <sampler> <source>
 			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
 			                           key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
@@ -180,11 +180,11 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			// copy values to arrays since they will live longer
 			samplers[a] = sampler;
 			//surfaces[a] = surface;
-			
+
 			// store pointers so they can be used later when we create <texture>s
 			samp_surf[b] = &samplers[a];
 			//samp_surf[b][1] = &surfaces[a];
-			
+
 			im_samp_map[key] = b;
 			b++;
 		}
@@ -238,12 +238,12 @@ COLLADASW::ColorOrTexture EffectsExporter::createTexture(Image *ima,
                                                          COLLADASW::Sampler *sampler
                                                          /*COLLADASW::Surface *surface*/)
 {
-	
+
 	COLLADASW::Texture texture(translate_id(id_name(ima)));
 	texture.setTexcoord(uv_layer_name);
 	//texture.setSurface(*surface);
 	texture.setSampler(*sampler);
-	
+
 	COLLADASW::ColorOrTexture cot(texture);
 	return cot;
 }

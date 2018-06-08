@@ -44,37 +44,37 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(i
 	float y = p->co[1];
 	Image *ima = (Image *)node->id;
 	ImageUser *iuser = (ImageUser *)node->storage;
-	
+
 	if (ima) {
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 		if (ibuf) {
 			float xsize, ysize;
 			float xoff, yoff;
 			int px, py;
-			
+
 			const float *result;
 
 			xsize = ibuf->x / 2;
 			ysize = ibuf->y / 2;
 			xoff = yoff = -1;
-					
+
 			px = (int)( (x - xoff) * xsize);
 			py = (int)( (y - yoff) * ysize);
-		
+
 			if ( (!xsize) || (!ysize) ) return;
-			
+
 			if (!ibuf->rect_float) {
 				BLI_thread_lock(LOCK_IMAGE);
 				if (!ibuf->rect_float)
 					IMB_float_from_rect(ibuf);
 				BLI_thread_unlock(LOCK_IMAGE);
 			}
-			
+
 			while (px < 0) px += ibuf->x;
 			while (py < 0) py += ibuf->y;
 			while (px >= ibuf->x) px -= ibuf->x;
 			while (py >= ibuf->y) py -= ibuf->y;
-			
+
 			result = ibuf->rect_float + py * ibuf->x * 4 + px * 4;
 			copy_v4_v4(out, result);
 
@@ -101,7 +101,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
 void register_node_type_tex_image(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, NULL, outputs);
 	node_type_init(&ntype, init);

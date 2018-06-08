@@ -292,11 +292,11 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 
 	if (font->flags & BLF_HINTING)
 		flags &= ~FT_LOAD_NO_HINTING;
-	
+
 	if (is_sharp)
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
 	else
-		err = FT_Load_Glyph(font->face, (FT_UInt)index, flags);  
+		err = FT_Load_Glyph(font->face, (FT_UInt)index, flags);
 
 	if (err) {
 		BLI_spin_unlock(font->ft_lib_mutex);

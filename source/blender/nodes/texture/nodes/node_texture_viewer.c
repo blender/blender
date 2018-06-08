@@ -59,13 +59,13 @@ static void exec(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecD
 void register_node_type_tex_viewer(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	/* Do not allow muting viewer node. */
 	node_type_internal_links(&ntype, NULL);
-	
+
 	nodeRegisterType(&ntype);
 }

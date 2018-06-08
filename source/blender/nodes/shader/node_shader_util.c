@@ -45,7 +45,7 @@ int sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
 	node_type_base(ntype, type, name, nclass, flag);
-	
+
 	ntype->poll = sh_node_poll_default;
 	ntype->insert_link = node_insert_link_default;
 	ntype->update_internal_links = node_update_internal_links_default;
@@ -56,11 +56,11 @@ void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, shor
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 {
 	const float *from = ns->vec;
-		
+
 	if (type_in == SOCK_FLOAT) {
 		if (ns->sockettype == SOCK_FLOAT)
 			*in = *from;
-		else 
+		else
 			*in = (from[0] + from[1] + from[2]) / 3.0f;
 	}
 	else if (type_in == SOCK_VECTOR) {
@@ -94,7 +94,7 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
 	memset(gs, 0, sizeof(*gs));
-	
+
 	if (ns == NULL) {
 		/* node_get_stack() will generate NULL bNodeStack pointers for unknown/unsuported types of sockets... */
 		zero_v4(gs->vec);
@@ -107,7 +107,7 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 	else {
 		nodestack_get_vec(gs->vec, type, ns);
 		gs->link = ns->data;
-	
+
 		if (type == SOCK_FLOAT)
 			gs->type = GPU_FLOAT;
 		else if (type == SOCK_VECTOR)
@@ -140,10 +140,10 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
 {
 	bNodeSocket *sock;
 	int i;
-	
+
 	for (sock = sockets->first, i = 0; sock; sock = sock->next, i++)
 		node_gpu_stack_from_data(&gs[i], sock->type, ns[i]);
-	
+
 	gs[i].end = true;
 }
 
@@ -192,7 +192,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 
 	if (activetexnode)
 		return activetexnode;
-	
+
 	if (hasgroup) {
 		/* node active texture node in this tree, look inside groups */
 		for (node = ntree->nodes.first; node; node = node->next) {
@@ -203,7 +203,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 			}
 		}
 	}
-	
+
 	return inactivenode;
 }
 
@@ -222,7 +222,7 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs, sh
 
 	for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node;
-		
+
 		do_it = false;
 		/* for groups, only execute outputs for edited group */
 		if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {

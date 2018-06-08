@@ -158,16 +158,16 @@ public:
 	bool write_controller(const COLLADAFW::Controller* controller);
 
 	COLLADAFW::UniqueId *get_geometry_uid(const COLLADAFW::UniqueId& controller_uid);
-	
+
 	Object *get_armature_for_joint(COLLADAFW::Node *node);
 
 	void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count);
-	
+
 	// gives a world-space mat
 	bool get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint);
 
 	void set_tags_map( TagsMap& tags_map);
-	
+
 };
 
 #endif

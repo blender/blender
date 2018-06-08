@@ -105,7 +105,7 @@ void BIK_execute_tree(struct Depsgraph *depsgraph, struct Scene *scene, Object *
 		plugin->execute_tree_func(depsgraph, scene, ob, pchan, ctime);
 }
 
-void BIK_release_tree(struct Scene *scene, Object *ob, float ctime) 
+void BIK_release_tree(struct Scene *scene, Object *ob, float ctime)
 {
 	IKPlugin *plugin = get_plugin(ob->pose);
 

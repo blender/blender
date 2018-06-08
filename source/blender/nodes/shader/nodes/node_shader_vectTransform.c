@@ -28,10 +28,10 @@
 /** \file blender/nodes/shader/nodes/node_shader_vectTransform.c
  *  \ingroup shdnodes
  */
- 
+
 #include "../node_shader_util.h"
 
-/* **************** Vector Transform ******************** */ 
+/* **************** Vector Transform ******************** */
 static bNodeSocketTemplate sh_node_vect_transform_in[] = {
 	{ SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{ -1, 0, "" }
@@ -45,10 +45,10 @@ static bNodeSocketTemplate sh_node_vect_transform_out[] = {
 static void node_shader_init_vect_transform(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeShaderVectTransform *vect = MEM_callocN(sizeof(NodeShaderVectTransform), "NodeShaderVectTransform");
-	
+
 	/* Convert World into Object Space per default */
 	vect->convert_to = 1;
-	
+
 	node->storage = vect;
 }
 

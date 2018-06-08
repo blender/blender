@@ -50,9 +50,9 @@ static void init(const bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	Scene *scene = CTX_data_scene(C);
-	
+
 	node->id = (ID *)scene->clip;
-	
+
 	/* default to bilinear, see node_sampler_type_items in rna_nodetree.c */
 	node->custom1 = 1;
 }
