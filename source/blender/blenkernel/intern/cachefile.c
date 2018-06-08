@@ -89,15 +89,22 @@ void BKE_cachefile_free(CacheFile *cache_file)
 {
 	BKE_animdata_free((ID *)cache_file, false);
 
-#ifdef WITH_ALEMBIC
-	ABC_free_handle(cache_file->handle);
-#endif
-
-	/* CoW copies share the mutex, so it should only be freed if the original
-	 * CacheFile datablock is freed. */
-	if (cache_file->handle_mutex && (cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
-		BLI_mutex_free(cache_file->handle_mutex);
+	if (cache_file->id.tag & LIB_TAG_NO_MAIN) {
+		/* CoW/no-main copies reuse the existing ArchiveReader and mutex */
+		return;
 	}
+
+	if (cache_file->handle) {
+#ifdef WITH_ALEMBIC
+		ABC_free_handle(cache_file->handle);
+#endif
+		cache_file->handle = NULL;
+	}
+	if (cache_file->handle_mutex) {
+		BLI_mutex_free(cache_file->handle_mutex);
+		cache_file->handle_mutex = NULL;
+	}
+
 	BLI_freelistN(&cache_file->object_paths);
 }
 
@@ -112,8 +119,14 @@ void BKE_cachefile_free(CacheFile *cache_file)
 void BKE_cachefile_copy_data(
         Main *UNUSED(bmain), CacheFile *cache_file_dst, const CacheFile *UNUSED(cache_file_src), const int UNUSED(flag))
 {
+	if (cache_file_dst->id.tag & LIB_TAG_NO_MAIN) {
+		/* CoW/no-main copies reuse the existing ArchiveReader and mutex */
+		return;
+	}
+
 	cache_file_dst->handle = NULL;
-	BLI_listbase_clear(&cache_file_dst->object_paths);
+	cache_file_dst->handle_mutex = NULL;
+	BLI_duplicatelist(&cache_file_dst->object_paths, &cache_file_dst->object_paths);
 }
 
 CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
