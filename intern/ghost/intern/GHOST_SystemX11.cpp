@@ -1841,6 +1841,9 @@ convertXKey(KeySym key)
 			GXMAP(type, XF86XK_AudioForward, GHOST_kKeyMediaLast);
 #endif
 #endif
+			/* Non US keyboard layouts: avoid 'UnknownKey' - TODO(campbell): lookup scan-codes. */
+			GXMAP(type, XK_dead_circumflex, GHOST_kKeyAccentGrave);         /* 'de' */
+			GXMAP(type, XK_twosuperior, GHOST_kKeyAccentGrave);             /* 'fr' */
 			default:
 				type = GHOST_kKeyUnknown;
 				break;
