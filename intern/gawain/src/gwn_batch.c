@@ -179,7 +179,7 @@ int GWN_batch_vertbuf_add_ex(
 			return v;
 			}
 		}
-	
+
 	// we only make it this far if there is no room for another Gwn_VertBuf
 #if TRUST_NO_ONE
 	assert(false);

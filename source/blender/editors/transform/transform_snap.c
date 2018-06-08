@@ -270,8 +270,6 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 
 void applyProject(TransInfo *t)
 {
-	Main *bmain = CTX_data_main(t->context);
-
 	/* XXX FLICKER IN OBJECT MODE */
 	if ((t->tsnap.project) && activeSnap(t) && (t->flag & T_NO_PROJECT) == 0) {
 		float tvec[3];
