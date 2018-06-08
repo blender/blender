@@ -52,6 +52,8 @@
 
 #include "UI_resources.h"
 
+#include "GPU_glew.h"
+
 #include "buttons_intern.h"  /* own include */
 
 /* ******************** default callbacks for buttons space ***************** */
@@ -209,11 +211,11 @@ static void buttons_main_region_draw_properties(const bContext *C, SpaceButs *sb
 static void buttons_main_region_draw_tool(const bContext *C, SpaceButs *sbuts, ARegion *ar)
 {
 	const bool vertical = (sbuts->align == BUT_VERTICAL);
+	const char *contexts[3] = {NULL};
 
 	const WorkSpace *workspace = CTX_wm_workspace(C);
 	if (workspace->tools_space_type == SPACE_VIEW3D) {
 		const int mode = CTX_data_mode_enum(C);
-		const char *contexts[3] = {NULL};
 		switch (mode) {
 			case CTX_MODE_EDIT_MESH:
 				ARRAY_SET_ITEMS(contexts, ".mesh_edit");
@@ -264,6 +266,11 @@ static void buttons_main_region_draw_tool(const bContext *C, SpaceButs *sbuts, A
 	}
 	else if (workspace->tools_space_type == SPACE_IMAGE) {
 		/* TODO */
+	}
+
+	if (contexts[0] == NULL) {
+		UI_ThemeClearColor(TH_BACK);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 }
 
