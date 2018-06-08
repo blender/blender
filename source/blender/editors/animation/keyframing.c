@@ -1106,6 +1106,10 @@ short insert_keyframe(
 		}
 	}
 
+	if (ret) {
+		DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+	}
+
 	return ret;
 }
 
