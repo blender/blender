@@ -224,18 +224,6 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 	DEG_id_type_tag(bmain, ID_OB);
 }
 
-static int rna_Object_is_visible_get(PointerRNA *ptr)
-{
-	Object *ob = ptr->id.data;
-	/* The duplicators final visibility is not evaluated by depsgraph, so it's
-	 * in ob->base_flag & VISIBLED. Instead we need to take into account whether
-	 * we are rendering or not, and the ob->duplicator_visibility_flag.
-	 * However for this assessor we don't know if we are rendering, so we just
-	 * ignore the duplicator visibility
-	 */
-	return BKE_object_is_visible(ob, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE);
-}
-
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob = ptr->id.data;
@@ -2301,11 +2289,6 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_duplicator_for_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_VIEWPORT);
 	RNA_def_property_ui_text(prop, "Display Duplicator", "Make duplicator visible in the viewport");
-
-	prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_Object_is_visible_get", NULL);
-	RNA_def_property_ui_text(prop, "Visible", "Visible to camera rays, set only on objects evaluated by depsgraph");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* anim */
 	rna_def_animdata_common(srna);
