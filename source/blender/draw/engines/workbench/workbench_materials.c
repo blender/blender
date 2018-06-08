@@ -12,10 +12,10 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Mate
 	/* When in OB_TEXTURE always uyse V3D_SHADING_MATERIAL_COLOR as fallback when no texture could be determined */
 	int color_type = wpd->drawtype == OB_SOLID ? wpd->shading.color_type : V3D_SHADING_MATERIAL_COLOR;
 	static float default_diffuse_color[] = {0.8f, 0.8f, 0.8f, 1.0f};
-	static float default_specular_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	static float default_specular_color[] = {0.5f, 0.5f, 0.5f, 0.5f};
 	copy_v4_v4(data->material_data.diffuse_color, default_diffuse_color);
 	copy_v4_v4(data->material_data.specular_color, default_specular_color);
-	data->material_data.roughness = 0.25f;
+	data->material_data.roughness = 0.5f;
 
 	if (DRW_object_is_paint_mode(ob) || color_type == V3D_SHADING_SINGLE_COLOR) {
 		copy_v3_v3(data->material_data.diffuse_color, wpd->shading.single_color);
