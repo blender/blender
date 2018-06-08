@@ -78,6 +78,12 @@ const EnumPropertyItem rna_enum_navigation_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static const EnumPropertyItem rna_enum_studio_light_icons_id_items[] = {
+	{0, "DEFAULT", 0, "Default", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
 #if defined(WITH_INTERNATIONAL) || !defined(RNA_RUNTIME)
 static const EnumPropertyItem rna_enum_language_default_items[] = {
 	{0, "DEFAULT", 0, "Default (Default)", ""},
@@ -698,18 +704,36 @@ static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
 	return sl->index;
 }
 
-/* StudioLight.radiance_icon_id */
-static int rna_UserDef_studiolight_radiance_icon_id_get(PointerRNA *ptr)
+/* StudioLight.icon_id */
+static int rna_UserDef_studiolight_icon_id_get(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	return sl->radiance_icon_id;
+	if (sl->flag & (STUDIOLIGHT_ORIENTATION_VIEWNORMAL | STUDIOLIGHT_ORIENTATION_CAMERA)) {
+		return 1;
+	}
+	return 0;
 }
 
-/* StudioLight.irradiance_icon_id */
-static int rna_UserDef_studiolight_irradiance_icon_id_get(PointerRNA *ptr)
+static const EnumPropertyItem *rna_UserDef_studiolight_icon_id_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
 	StudioLight *sl = (StudioLight *)ptr->data;
-	return sl->irradiance_icon_id;
+
+	if ((sl->flag & (STUDIOLIGHT_ORIENTATION_VIEWNORMAL | STUDIOLIGHT_ORIENTATION_CAMERA)) == 0)
+	{
+		EnumPropertyItem tmp = {0, sl->name, sl->radiance_icon_id, sl->name, ""};
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	{
+		EnumPropertyItem tmp = {1, sl->name, sl->irradiance_icon_id, sl->name, ""};
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+	return item;
 }
 
 /* StudioLight.is_user_defined */
@@ -3291,15 +3315,11 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_orientation_get", "rna_UserDef_studiolight_orientation_set", NULL);
 	RNA_def_property_ui_text(prop, "Orientation", "");
 
-	prop = RNA_def_property(srna, "radiance_icon_id", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, "rna_UserDef_studiolight_radiance_icon_id_get", NULL, NULL);
+	prop = RNA_def_property(srna, "icon_id", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_icon_id_get", NULL, "rna_UserDef_studiolight_icon_id_itemf");
+	RNA_def_property_enum_items(prop, rna_enum_studio_light_icons_id_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Radiance Icon", "");
-
-	prop = RNA_def_property(srna, "irradiance_icon_id", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, "rna_UserDef_studiolight_irradiance_icon_id_get", NULL, NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Irradiance Icon", "");
+	RNA_def_property_ui_text(prop, "Preview", "Preview of the studiolight");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_name_get", "rna_UserDef_studiolight_name_length", NULL);

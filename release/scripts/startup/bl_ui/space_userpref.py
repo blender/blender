@@ -72,6 +72,10 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.addon_install", icon='FILESEL')
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
+        elif userpref.active_section == 'LIGHTS':
+            layout.operator('wm.studiolight_install', text="Install MatCap").orientation='MATCAP'
+            layout.operator('wm.studiolight_install', text="Install World HDRI").orientation='WORLD'
+            layout.operator('wm.studiolight_install', text="Install Camera HDRI").orientation='CAMERA'
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
             layout.operator("wm.theme_install")
@@ -1571,11 +1575,9 @@ class USERPREF_PT_addons(Panel):
                 row.label(text=module_name, translate=False)
 
 
-class USERPREF_PT_studiolight(Panel):
+class StudioLightPanelMixin():
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = "Lights"
     bl_region_type = 'WINDOW'
-    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -1586,33 +1588,44 @@ class USERPREF_PT_studiolight(Panel):
         box = layout.box()
         row = box.row()
 
-        op = row.operator('wm.studiolight_expand', emboss=False, text="", icon='TRIA_DOWN' if studio_light.show_expanded else 'TRIA_RIGHT')
-        op.index = studio_light.index
-
-        row.label(text=studio_light.name, icon_value=studio_light.radiance_icon_id)
+        row.template_icon_view(studio_light, "icon_id")
         op = row.operator('wm.studiolight_uninstall', text="", icon='ZOOMOUT')
         op.index = studio_light.index
 
-        if studio_light.show_expanded:
-            box.label(studio_light.path)
 
+class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
+    bl_label = "MatCaps"
 
     def draw(self, context):
         layout = self.layout
+        flow = layout.column_flow(4)
         userpref = context.user_preferences
         lights = [light for light in userpref.studio_lights if light.is_user_defined]
-        layout.label("MatCaps")
         for studio_light in filter(lambda x: x.orientation=='MATCAP', lights):
-            self.draw_studio_light(layout, studio_light)
-        layout.operator('wm.studiolight_install', text="Install Custom MatCap").orientation='MATCAP'
-        layout.label("World HDRI")
+            self.draw_studio_light(flow, studio_light)
+
+class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
+    bl_label = "World HDRI"
+
+    def draw(self, context):
+        layout = self.layout
+        flow = layout.column_flow(4)
+        userpref = context.user_preferences
+        lights = [light for light in userpref.studio_lights if light.is_user_defined]
         for studio_light in filter(lambda x: x.orientation=='WORLD', lights):
-            self.draw_studio_light(layout, studio_light)
-        layout.operator('wm.studiolight_install', text="Install Custom HDRI").orientation='WORLD'
-        layout.label("Camera HDRI")
+            self.draw_studio_light(flow, studio_light)
+
+class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
+    bl_label = "Camera HDRI"
+
+    def draw(self, context):
+        layout = self.layout
+        flow = layout.column_flow(4)
+        userpref = context.user_preferences
+        lights = [light for light in userpref.studio_lights if light.is_user_defined]
         for studio_light in filter(lambda x: x.orientation=='CAMERA', lights):
-            self.draw_studio_light(layout, studio_light)
-        layout.operator('wm.studiolight_install', text="Install Custom Camera HDRI").orientation='CAMERA'
+            self.draw_studio_light(flow, studio_light)
+
 
 
 classes = (
@@ -1635,7 +1648,9 @@ classes = (
     USERPREF_PT_input,
     USERPREF_MT_addons_online_resources,
     USERPREF_PT_addons,
-    USERPREF_PT_studiolight,
+    USERPREF_PT_studiolight_matcaps,
+    USERPREF_PT_studiolight_world,
+    USERPREF_PT_studiolight_camera,
 )
 
 if __name__ == "__main__":  # only for live edit.
