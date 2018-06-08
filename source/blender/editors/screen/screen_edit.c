@@ -1503,7 +1503,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 
 		/* use random area when we have no active one, e.g. when the
 		 * mouse is outside of the window and we open a file browser */
-		if (!sa) {
+		if (!sa || sa->global) {
 			sa = oldscreen->areabase.first;
 		}
 
