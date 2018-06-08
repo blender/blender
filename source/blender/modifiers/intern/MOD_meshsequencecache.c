@@ -103,7 +103,7 @@ static Mesh *applyModifier(
 	const float time = BKE_cachefile_time_offset(mcmd->cache_file, frame, FPS);
 	const char *err_str = NULL;
 
-	CacheFile *cache_file = mcmd->cache_file;
+	CacheFile *cache_file = (CacheFile *)DEG_get_original_id(&mcmd->cache_file->id);
 
 	BKE_cachefile_ensure_handle(G.main, cache_file);
 

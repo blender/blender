@@ -146,6 +146,9 @@ void BKE_cachefile_reload(const Main *bmain, CacheFile *cache_file)
 
 void BKE_cachefile_ensure_handle(const Main *bmain, CacheFile *cache_file)
 {
+	/* Assigning to a CoW copy is a bad idea; assign to the original instead. */
+	BLI_assert((cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0);
+
 	BLI_spin_lock(&spin);
 	if (cache_file->handle_mutex == NULL) {
 		cache_file->handle_mutex = BLI_mutex_alloc();
