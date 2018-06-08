@@ -682,12 +682,7 @@ static int rna_UserDef_studiolight_name_length(PointerRNA *ptr)
 static void rna_UserDef_studiolight_path_get(PointerRNA *ptr, char *value)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	if (sl->path) {
-		BLI_strncpy(value, sl->path, FILE_MAX);
-	}
-	else {
-		value[0] = '\0';
-	}
+	BLI_strncpy(value, sl->path, FILE_MAX);
 }
 
 static int rna_UserDef_studiolight_path_length(PointerRNA *ptr)
