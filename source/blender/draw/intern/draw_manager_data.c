@@ -799,7 +799,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp, struct
 		}
 	}
 
-	GPUUniformBuffer *ubo = GPU_material_get_uniform_buffer(material);
+	GPUUniformBuffer *ubo = GPU_material_uniform_buffer_get(material);
 	if (ubo != NULL) {
 		DRW_shgroup_uniform_block(grp, GPU_UBO_BLOCK_NAME, ubo);
 	}

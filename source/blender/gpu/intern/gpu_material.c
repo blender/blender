@@ -200,7 +200,7 @@ ListBase *GPU_material_get_inputs(GPUMaterial *material)
 	return &material->inputs;
 }
 
-GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material)
+GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material)
 {
 	return material->ubo;
 }
