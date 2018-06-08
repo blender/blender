@@ -1629,7 +1629,6 @@ class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
     sl_orientation = 'CAMERA'
 
 
-
 classes = (
     USERPREF_HT_header,
     USERPREF_PT_tabs,
