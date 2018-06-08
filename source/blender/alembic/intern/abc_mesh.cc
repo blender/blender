@@ -540,8 +540,8 @@ Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 		const int quad_method = m_settings.quad_method;
 		const int ngon_method = m_settings.ngon_method;
 
-		struct BMeshCreateParams bmcp = {.use_toolflags = false,};
-		struct BMeshFromMeshParams bmfmp = {.calc_face_normal = true,};
+		struct BMeshCreateParams bmcp = {false};
+		struct BMeshFromMeshParams bmfmp = {true, false, false, 0};
 		BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
 
 		BM_mesh_triangulate(bm, quad_method, ngon_method, tag_only, NULL, NULL, NULL);
