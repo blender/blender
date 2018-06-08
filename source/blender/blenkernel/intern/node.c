@@ -3739,43 +3739,9 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer
 	}
 }
 
-static void node_copy_default_values_list(ListBase *sockets_dst,
-                                          const ListBase *sockets_src)
-{
-	bNodeSocket *sock_dst = sockets_dst->first;
-	const bNodeSocket *sock_src = sockets_src->first;
-	while (sock_dst != NULL) {
-		node_socket_copy_default_value(sock_dst, sock_src);
-		sock_dst = sock_dst->next;
-		sock_src = sock_src->next;
-	}
-}
-
-static void node_copy_default_values(bNode *node_dst, const bNode *node_src)
-{
-	node_copy_default_values_list(&node_dst->inputs, &node_src->inputs);
-	node_copy_default_values_list(&node_dst->outputs, &node_src->outputs);
-}
-
-void BKE_nodetree_copy_default_values(bNodeTree *ntree_dst,
-                                      const bNodeTree *ntree_src)
-{
-	if (ntree_dst == ntree_src) {
-		return;
-	}
-	bNode *node_dst = ntree_dst->nodes.first;
-	const bNode *node_src = ntree_src->nodes.first;
-	while (node_dst != NULL) {
-		node_copy_default_values(node_dst, node_src);
-		node_dst = node_dst->next;
-		node_src = node_src->next;
-	}
-}
-
 void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
                                       bNodeTree *ntree_dst,
                                       const bNodeTree *ntree_src)
 {
 	DEG_debug_print_eval(depsgraph, __func__, ntree_src->id.name, ntree_dst);
-	BKE_nodetree_copy_default_values(ntree_dst, ntree_src);
 }

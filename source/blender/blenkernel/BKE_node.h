@@ -1056,9 +1056,6 @@ void free_nodesystem(void);
 
 struct Depsgraph;
 
-void BKE_nodetree_copy_default_values(struct bNodeTree *ntree_dst,
-                                      const struct bNodeTree *ntree_src);
-
 void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
                                       struct bNodeTree *ntree_dst,
                                       const struct bNodeTree *ntree_src);
