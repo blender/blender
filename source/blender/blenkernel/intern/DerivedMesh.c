@@ -3138,7 +3138,7 @@ Mesh *mesh_get_eval_final(
 	bool need_mapping;
 	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
 
-	if (!ob->derivedFinal ||
+	if (!ob->runtime.mesh_eval ||
 	    ((dataMask & ob->lastDataMask) != dataMask) ||
 	    (need_mapping != ob->lastNeedMapping))
 	{
