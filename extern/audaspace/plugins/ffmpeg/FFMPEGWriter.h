@@ -66,14 +66,19 @@ private:
 	AVCodecContext* m_codecCtx;
 
 	/**
-	 * The AVOutputFormat structure for using ffmpeg.
-	 */
-	AVOutputFormat* m_outputFmt;
-
-	/**
 	 * The AVStream structure for using ffmpeg.
 	 */
 	AVStream* m_stream;
+
+	/**
+	 * The AVPacket structure for using ffmpeg.
+	 */
+	AVPacket* m_packet;
+
+	/**
+	 * The AVFrame structure for using ffmpeg.
+	 */
+	AVFrame* m_frame;
 
 	/**
 	 * The input buffer for the format converted data before encoding.

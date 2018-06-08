@@ -80,6 +80,11 @@ private:
 	AVCodecContext* m_codecCtx;
 
 	/**
+	 * The AVFrame structure for using ffmpeg.
+	 */
+	AVFrame* m_frame;
+
+	/**
 	 * The AVIOContext to read the data from.
 	 */
 	AVIOContext* m_aviocontext;

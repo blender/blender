@@ -23,7 +23,9 @@ AUD_NAMESPACE_BEGIN
 
 FFMPEG::FFMPEG()
 {
+#if LIBAVCODEC_VERSION_MAJOR < 58
 	av_register_all();
+#endif
 }
 
 void FFMPEG::registerPlugin()

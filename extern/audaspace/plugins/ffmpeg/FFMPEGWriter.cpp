@@ -27,6 +27,10 @@ extern "C" {
 
 AUD_NAMESPACE_BEGIN
 
+#if LIBAVCODEC_VERSION_MAJOR < 58
+#define FFMPEG_OLD_CODE
+#endif
+
 void FFMPEGWriter::encode()
 {
 	sample_t* data = m_input_buffer.getBuffer();
@@ -58,82 +62,106 @@ void FFMPEGWriter::encode()
 		if(m_input_size)
 			m_convert(reinterpret_cast<data_t*>(data), reinterpret_cast<data_t*>(data), m_input_samples * m_specs.channels);
 
-	AVPacket packet;
+#ifdef FFMPEG_OLD_CODE
+	m_packet->data = nullptr;
+	m_packet->size = 0;
 
-	packet.data = nullptr;
-	packet.size = 0;
+	av_init_packet(m_packet);
 
-	av_init_packet(&packet);
-
-	AVFrame* frame = av_frame_alloc();
-	av_frame_unref(frame);
+	av_frame_unref(m_frame);
 	int got_packet;
+#endif
 
-	frame->nb_samples = m_input_samples;
-	frame->format = m_codecCtx->sample_fmt;
-	frame->channel_layout = m_codecCtx->channel_layout;
+	m_frame->nb_samples = m_input_samples;
+	m_frame->format = m_codecCtx->sample_fmt;
+	m_frame->channel_layout = m_codecCtx->channel_layout;
 
-	if(avcodec_fill_audio_frame(frame, m_specs.channels, m_codecCtx->sample_fmt, reinterpret_cast<data_t*>(data), m_input_buffer.getSize(), 0) < 0)
+	if(avcodec_fill_audio_frame(m_frame, m_specs.channels, m_codecCtx->sample_fmt, reinterpret_cast<data_t*>(data), m_input_buffer.getSize(), 0) < 0)
 		AUD_THROW(FileException, "File couldn't be written, filling the audio frame failed with ffmpeg.");
 
 	AVRational sample_time = { 1, static_cast<int>(m_specs.rate) };
-	frame->pts = av_rescale_q(m_position - m_input_samples, m_codecCtx->time_base, sample_time);
+	m_frame->pts = av_rescale_q(m_position - m_input_samples, m_codecCtx->time_base, sample_time);
 
-	if(avcodec_encode_audio2(m_codecCtx, &packet, frame, &got_packet))
+#ifdef FFMPEG_OLD_CODE
+	if(avcodec_encode_audio2(m_codecCtx, m_packet, m_frame, &got_packet))
 	{
-		av_frame_free(&frame);
 		AUD_THROW(FileException, "File couldn't be written, audio encoding failed with ffmpeg.");
 	}
 
 	if(got_packet)
 	{
-		packet.flags |= AV_PKT_FLAG_KEY;
-		packet.stream_index = m_stream->index;
-		if(av_write_frame(m_formatCtx, &packet) < 0)
+		m_packet->flags |= AV_PKT_FLAG_KEY;
+		m_packet->stream_index = m_stream->index;
+		if(av_write_frame(m_formatCtx, m_packet) < 0)
 		{
-			av_free_packet(&packet);
-			av_frame_free(&frame);
+			av_free_packet(m_packet);
 			AUD_THROW(FileException, "Frame couldn't be writen to the file with ffmpeg.");
 		}
-		av_free_packet(&packet);
+		av_free_packet(m_packet);
 	}
+#else
+	if(avcodec_send_frame(m_codecCtx, m_frame) < 0)
+		AUD_THROW(FileException, "File couldn't be written, audio encoding failed with ffmpeg.");
 
-	av_frame_free(&frame);
+	while(avcodec_receive_packet(m_codecCtx, m_packet) == 0)
+	{
+		m_packet->stream_index = m_stream->index;
+
+		if(av_write_frame(m_formatCtx, m_packet) < 0)
+			AUD_THROW(FileException, "Frame couldn't be writen to the file with ffmpeg.");
+	}
+#endif
 }
 
 void FFMPEGWriter::close()
 {
+#ifdef FFMPEG_OLD_CODE
 	int got_packet = true;
 
 	while(got_packet)
 	{
-		AVPacket packet;
+		m_packet->data = nullptr;
+		m_packet->size = 0;
 
-		packet.data = nullptr;
-		packet.size = 0;
+		av_init_packet(m_packet);
 
-		av_init_packet(&packet);
-
-		if(avcodec_encode_audio2(m_codecCtx, &packet, nullptr, &got_packet))
+		if(avcodec_encode_audio2(m_codecCtx, m_packet, nullptr, &got_packet))
 			AUD_THROW(FileException, "File end couldn't be written, audio encoding failed with ffmpeg.");
 
 		if(got_packet)
 		{
-			packet.flags |= AV_PKT_FLAG_KEY;
-			packet.stream_index = m_stream->index;
-			if(av_write_frame(m_formatCtx, &packet))
+			m_packet->flags |= AV_PKT_FLAG_KEY;
+			m_packet->stream_index = m_stream->index;
+			if(av_write_frame(m_formatCtx, m_packet))
 			{
-				av_free_packet(&packet);
+				av_free_packet(m_packet);
 				AUD_THROW(FileException, "Final frames couldn't be writen to the file with ffmpeg.");
 			}
-			av_free_packet(&packet);
+			av_free_packet(m_packet);
 		}
 	}
+#else
+	if(avcodec_send_frame(m_codecCtx, nullptr) < 0)
+		AUD_THROW(FileException, "File couldn't be written, audio encoding failed with ffmpeg.");
+
+	while(avcodec_receive_packet(m_codecCtx, m_packet) == 0)
+	{
+		m_packet->stream_index = m_stream->index;
+
+		if(av_write_frame(m_formatCtx, m_packet) < 0)
+			AUD_THROW(FileException, "Frame couldn't be writen to the file with ffmpeg.");
+	}
+#endif
 }
 
 FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate) :
 	m_position(0),
 	m_specs(specs),
+	m_formatCtx(nullptr),
+	m_codecCtx(nullptr),
+	m_stream(nullptr),
+	m_packet(nullptr),
+	m_frame(nullptr),
 	m_input_samples(0),
 	m_deinterleave(false)
 {
@@ -142,75 +170,105 @@ FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container fo
 	if(avformat_alloc_output_context2(&m_formatCtx, nullptr, formats[format], filename.c_str()) < 0)
 		AUD_THROW(FileException, "File couldn't be written, format couldn't be found with ffmpeg.");
 
-	m_outputFmt = m_formatCtx->oformat;
+	AVOutputFormat* outputFmt = m_formatCtx->oformat;
 
-	if(!m_outputFmt) {
+	if(!outputFmt) {
 		avformat_free_context(m_formatCtx);
 		AUD_THROW(FileException, "File couldn't be written, output format couldn't be found with ffmpeg.");
 	}
 
-	m_outputFmt->audio_codec = AV_CODEC_ID_NONE;
+	outputFmt->audio_codec = AV_CODEC_ID_NONE;
 
 	switch(codec)
 	{
 	case CODEC_AAC:
-		m_outputFmt->audio_codec = AV_CODEC_ID_AAC;
+		outputFmt->audio_codec = AV_CODEC_ID_AAC;
 		break;
 	case CODEC_AC3:
-		m_outputFmt->audio_codec = AV_CODEC_ID_AC3;
+		outputFmt->audio_codec = AV_CODEC_ID_AC3;
 		break;
 	case CODEC_FLAC:
-		m_outputFmt->audio_codec = AV_CODEC_ID_FLAC;
+		outputFmt->audio_codec = AV_CODEC_ID_FLAC;
 		break;
 	case CODEC_MP2:
-		m_outputFmt->audio_codec = AV_CODEC_ID_MP2;
+		outputFmt->audio_codec = AV_CODEC_ID_MP2;
 		break;
 	case CODEC_MP3:
-		m_outputFmt->audio_codec = AV_CODEC_ID_MP3;
+		outputFmt->audio_codec = AV_CODEC_ID_MP3;
 		break;
 	case CODEC_OPUS:
-		m_outputFmt->audio_codec = AV_CODEC_ID_OPUS;
+		outputFmt->audio_codec = AV_CODEC_ID_OPUS;
 		break;
 	case CODEC_PCM:
 		switch(specs.format)
 		{
 		case FORMAT_U8:
-			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_U8;
+			outputFmt->audio_codec = AV_CODEC_ID_PCM_U8;
 			break;
 		case FORMAT_S16:
-			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_S16LE;
+			outputFmt->audio_codec = AV_CODEC_ID_PCM_S16LE;
 			break;
 		case FORMAT_S24:
-			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_S24LE;
+			outputFmt->audio_codec = AV_CODEC_ID_PCM_S24LE;
 			break;
 		case FORMAT_S32:
-			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_S32LE;
+			outputFmt->audio_codec = AV_CODEC_ID_PCM_S32LE;
 			break;
 		case FORMAT_FLOAT32:
-			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_F32LE;
+			outputFmt->audio_codec = AV_CODEC_ID_PCM_F32LE;
 			break;
 		case FORMAT_FLOAT64:
-			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_F64LE;
+			outputFmt->audio_codec = AV_CODEC_ID_PCM_F64LE;
 			break;
 		default:
-			m_outputFmt->audio_codec = AV_CODEC_ID_NONE;
+			outputFmt->audio_codec = AV_CODEC_ID_NONE;
 			break;
 		}
 		break;
 	case CODEC_VORBIS:
-		m_outputFmt->audio_codec = AV_CODEC_ID_VORBIS;
+		outputFmt->audio_codec = AV_CODEC_ID_VORBIS;
 		break;
 	default:
-		m_outputFmt->audio_codec = AV_CODEC_ID_NONE;
+		outputFmt->audio_codec = AV_CODEC_ID_NONE;
+		break;
+	}
+
+	uint64_t channel_layout = 0;
+
+	switch(m_specs.channels)
+	{
+	case CHANNELS_MONO:
+		channel_layout = AV_CH_LAYOUT_MONO;
+		break;
+	case CHANNELS_STEREO:
+		channel_layout = AV_CH_LAYOUT_STEREO;
+		break;
+	case CHANNELS_STEREO_LFE:
+		channel_layout = AV_CH_LAYOUT_2POINT1;
+		break;
+	case CHANNELS_SURROUND4:
+		channel_layout = AV_CH_LAYOUT_QUAD;
+		break;
+	case CHANNELS_SURROUND5:
+		channel_layout = AV_CH_LAYOUT_5POINT0_BACK;
+		break;
+	case CHANNELS_SURROUND51:
+		channel_layout = AV_CH_LAYOUT_5POINT1_BACK;
+		break;
+	case CHANNELS_SURROUND61:
+		channel_layout = AV_CH_LAYOUT_6POINT1_BACK;
+		break;
+	case CHANNELS_SURROUND71:
+		channel_layout = AV_CH_LAYOUT_7POINT1;
 		break;
 	}
 
 	try
 	{
-		if(m_outputFmt->audio_codec == AV_CODEC_ID_NONE)
+		if(outputFmt->audio_codec == AV_CODEC_ID_NONE)
 			AUD_THROW(FileException, "File couldn't be written, audio codec not found with ffmpeg.");
 
-		AVCodec* codec = avcodec_find_encoder(m_outputFmt->audio_codec);
+		AVCodec* codec = avcodec_find_encoder(outputFmt->audio_codec);
 		if(!codec)
 			AUD_THROW(FileException, "File couldn't be written, audio encoder couldn't be found with ffmpeg.");
 
@@ -220,7 +278,14 @@ FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container fo
 
 		m_stream->id = m_formatCtx->nb_streams - 1;
 
+#ifdef FFMPEG_OLD_CODE
 		m_codecCtx = m_stream->codec;
+#else
+		m_codecCtx = avcodec_alloc_context3(codec);
+#endif
+
+		if(!m_codecCtx)
+			AUD_THROW(FileException, "File couldn't be written, context creation failed with ffmpeg.");
 
 		switch(m_specs.format)
 		{
@@ -247,7 +312,7 @@ FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container fo
 		}
 
 		if(m_formatCtx->oformat->flags & AVFMT_GLOBALHEADER)
-			m_codecCtx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+			m_codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
 		bool format_supported = false;
 
@@ -328,15 +393,24 @@ FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container fo
 
 		m_specs.rate = m_codecCtx->sample_rate;
 
-		m_codecCtx->codec_id = m_outputFmt->audio_codec;
+#ifdef FFMPEG_OLD_CODE
+		m_codecCtx->codec_id = outputFmt->audio_codec;
+#endif
+
 		m_codecCtx->codec_type = AVMEDIA_TYPE_AUDIO;
 		m_codecCtx->bit_rate = bitrate;
+		m_codecCtx->channel_layout = channel_layout;
 		m_codecCtx->channels = m_specs.channels;
 		m_stream->time_base.num = m_codecCtx->time_base.num = 1;
 		m_stream->time_base.den = m_codecCtx->time_base.den = m_codecCtx->sample_rate;
 
 		if(avcodec_open2(m_codecCtx, codec, nullptr) < 0)
 			AUD_THROW(FileException, "File couldn't be written, encoder couldn't be opened with ffmpeg.");
+
+#ifndef FFMPEG_OLD_CODE
+		if(avcodec_parameters_from_context(m_stream->codecpar, m_codecCtx) < 0)
+			AUD_THROW(FileException, "File couldn't be written, codec parameters couldn't be copied to the context.");
+#endif
 
 		int samplesize = std::max(int(AUD_SAMPLE_SIZE(m_specs)), AUD_DEVICE_SAMPLE_SIZE(m_specs));
 
@@ -346,13 +420,26 @@ FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container fo
 		if(avio_open(&m_formatCtx->pb, filename.c_str(), AVIO_FLAG_WRITE))
 			AUD_THROW(FileException, "File couldn't be written, file opening failed with ffmpeg.");
 
-		avformat_write_header(m_formatCtx, nullptr);
+		if(avformat_write_header(m_formatCtx, nullptr) < 0)
+			AUD_THROW(FileException, "File couldn't be written, writing the header failed.");
 	}
 	catch(Exception&)
 	{
+#ifndef FFMPEG_OLD_CODE
+		if(m_codecCtx)
+			avcodec_free_context(&m_codecCtx);
+#endif
 		avformat_free_context(m_formatCtx);
 		throw;
 	}
+
+#ifdef FFMPEG_OLD_CODE
+	m_packet = new AVPacket({});
+#else
+	m_packet = av_packet_alloc();
+#endif
+
+	m_frame = av_frame_alloc();
 }
 
 FFMPEGWriter::~FFMPEGWriter()
@@ -365,9 +452,26 @@ FFMPEGWriter::~FFMPEGWriter()
 
 	av_write_trailer(m_formatCtx);
 
-	avcodec_close(m_codecCtx);
+	if(m_frame)
+		av_frame_free(&m_frame);
 
-	avio_close(m_formatCtx->pb);
+	if(m_packet)
+	{
+#ifdef FFMPEG_OLD_CODE
+		delete m_packet;
+#else
+		av_packet_free(&m_packet);
+#endif
+	}
+
+#ifdef FFMPEG_OLD_CODE
+	avcodec_close(m_codecCtx);
+#else
+	if(m_codecCtx)
+		avcodec_free_context(&m_codecCtx);
+#endif
+
+	avio_closep(&m_formatCtx->pb);
 	avformat_free_context(m_formatCtx);
 }
 

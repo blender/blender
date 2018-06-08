@@ -22,37 +22,37 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avio.h>
+#include <libavutil/avutil.h>
 }
 
 AUD_NAMESPACE_BEGIN
 
+#if LIBAVCODEC_VERSION_MAJOR < 58
+#define FFMPEG_OLD_CODE
+#endif
+
 int FFMPEGReader::decode(AVPacket& packet, Buffer& buffer)
 {
-	AVFrame* frame = nullptr;
+	int buf_size = buffer.getSize();
+	int buf_pos = 0;
+
+#ifdef FFMPEG_OLD_CODE
 	int got_frame;
 	int read_length;
 	uint8_t* orig_data = packet.data;
 	int orig_size = packet.size;
 
-	int buf_size = buffer.getSize();
-	int buf_pos = 0;
-
 	while(packet.size > 0)
 	{
 		got_frame = 0;
 
-		if(!frame)
-			frame = av_frame_alloc();
-		else
-			av_frame_unref(frame);
-
-		read_length = avcodec_decode_audio4(m_codecCtx, frame, &got_frame, &packet);
+		read_length = avcodec_decode_audio4(m_codecCtx, m_frame, &got_frame, &packet);
 		if(read_length < 0)
 			break;
 
 		if(got_frame)
 		{
-			int data_size = av_samples_get_buffer_size(nullptr, m_codecCtx->channels, frame->nb_samples, m_codecCtx->sample_fmt, 1);
+			int data_size = av_samples_get_buffer_size(nullptr, m_codecCtx->channels, m_frame->nb_samples, m_codecCtx->sample_fmt, 1);
 
 			if(buf_size - buf_pos < data_size)
 			{
@@ -62,18 +62,18 @@ int FFMPEGReader::decode(AVPacket& packet, Buffer& buffer)
 
 			if(m_tointerleave)
 			{
-				int single_size = data_size / m_codecCtx->channels / frame->nb_samples;
+				int single_size = data_size / m_codecCtx->channels / m_frame->nb_samples;
 				for(int channel = 0; channel < m_codecCtx->channels; channel++)
 				{
-					for(int i = 0; i < frame->nb_samples; i++)
+					for(int i = 0; i < m_frame->nb_samples; i++)
 					{
 						std::memcpy(((data_t*)buffer.getBuffer()) + buf_pos + ((m_codecCtx->channels * i) + channel) * single_size,
-							   frame->data[channel] + i * single_size, single_size);
+							   m_frame->data[channel] + i * single_size, single_size);
 					}
 				}
 			}
 			else
-				std::memcpy(((data_t*)buffer.getBuffer()) + buf_pos, frame->data[0], data_size);
+				std::memcpy(((data_t*)buffer.getBuffer()) + buf_pos, m_frame->data[0], data_size);
 
 			buf_pos += data_size;
 		}
@@ -83,7 +83,42 @@ int FFMPEGReader::decode(AVPacket& packet, Buffer& buffer)
 
 	packet.data = orig_data;
 	packet.size = orig_size;
-	av_free(frame);
+#else
+	avcodec_send_packet(m_codecCtx, &packet);
+
+	while(true)
+	{
+		auto ret = avcodec_receive_frame(m_codecCtx, m_frame);
+
+		if(ret != 0)
+			break;
+
+		int data_size = av_samples_get_buffer_size(nullptr, m_codecCtx->channels, m_frame->nb_samples, m_codecCtx->sample_fmt, 1);
+
+		if(buf_size - buf_pos < data_size)
+		{
+			buffer.resize(buf_size + data_size, true);
+			buf_size += data_size;
+		}
+
+		if(m_tointerleave)
+		{
+			int single_size = data_size / m_codecCtx->channels / m_frame->nb_samples;
+			for(int channel = 0; channel < m_codecCtx->channels; channel++)
+			{
+				for(int i = 0; i < m_frame->nb_samples; i++)
+				{
+					std::memcpy(((data_t*)buffer.getBuffer()) + buf_pos + ((m_codecCtx->channels * i) + channel) * single_size,
+						   m_frame->data[channel] + i * single_size, single_size);
+				}
+			}
+		}
+		else
+			std::memcpy(((data_t*)buffer.getBuffer()) + buf_pos, m_frame->data[0], data_size);
+
+		buf_pos += data_size;
+	}
+#endif
 
 	return buf_pos;
 }
@@ -101,7 +136,11 @@ void FFMPEGReader::init()
 
 	for(unsigned int i = 0; i < m_formatCtx->nb_streams; i++)
 	{
+#ifdef FFMPEG_OLD_CODE
 		if((m_formatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
+#else
+		if((m_formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+#endif
 			&& (m_stream < 0))
 		{
 			m_stream=i;
@@ -112,12 +151,34 @@ void FFMPEGReader::init()
 	if(m_stream == -1)
 		AUD_THROW(FileException, "File couldn't be read, no audio stream found by ffmpeg.");
 
-	m_codecCtx = m_formatCtx->streams[m_stream]->codec;
-
 	// get a decoder and open it
-	AVCodec* aCodec = avcodec_find_decoder(m_codecCtx->codec_id);
+#ifndef FFMPEG_OLD_CODE
+	AVCodec* aCodec = avcodec_find_decoder(m_formatCtx->streams[m_stream]->codecpar->codec_id);
+
 	if(!aCodec)
 		AUD_THROW(FileException, "File couldn't be read, no decoder found with ffmpeg.");
+#endif
+
+	m_frame = av_frame_alloc();
+
+	if(!m_frame)
+		AUD_THROW(FileException, "File couldn't be read, ffmpeg frame couldn't be allocated.");
+
+#ifdef FFMPEG_OLD_CODE
+	m_codecCtx = m_formatCtx->streams[m_stream]->codec;
+
+	AVCodec* aCodec = avcodec_find_decoder(m_codecCtx->codec_id);
+#else
+	m_codecCtx = avcodec_alloc_context3(aCodec);
+#endif
+
+	if(!m_codecCtx)
+		AUD_THROW(FileException, "File couldn't be read, ffmpeg context couldn't be allocated.");
+
+#ifndef FFMPEG_OLD_CODE
+	if(avcodec_parameters_to_context(m_codecCtx, m_formatCtx->streams[m_stream]->codecpar) < 0)
+		AUD_THROW(FileException, "File couldn't be read, ffmpeg decoder parameters couldn't be copied to decoder context.");
+#endif
 
 	if(avcodec_open2(m_codecCtx, aCodec, nullptr) < 0)
 		AUD_THROW(FileException, "File couldn't be read, ffmpeg codec couldn't be opened.");
@@ -157,6 +218,8 @@ void FFMPEGReader::init()
 FFMPEGReader::FFMPEGReader(std::string filename) :
 	m_pkgbuf(),
 	m_formatCtx(nullptr),
+	m_codecCtx(nullptr),
+	m_frame(nullptr),
 	m_aviocontext(nullptr),
 	m_membuf(nullptr)
 {
@@ -177,12 +240,14 @@ FFMPEGReader::FFMPEGReader(std::string filename) :
 
 FFMPEGReader::FFMPEGReader(std::shared_ptr<Buffer> buffer) :
 		m_pkgbuf(),
+		m_codecCtx(nullptr),
+		m_frame(nullptr),
 		m_membuffer(buffer),
 		m_membufferpos(0)
 {
-	m_membuf = reinterpret_cast<data_t*>(av_malloc(FF_MIN_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
+	m_membuf = reinterpret_cast<data_t*>(av_malloc(AV_INPUT_BUFFER_MIN_SIZE + AV_INPUT_BUFFER_PADDING_SIZE));
 
-	m_aviocontext = avio_alloc_context(m_membuf, FF_MIN_BUFFER_SIZE, 0, this, read_packet, nullptr, seek_packet);
+	m_aviocontext = avio_alloc_context(m_membuf, AV_INPUT_BUFFER_MIN_SIZE, 0, this, read_packet, nullptr, seek_packet);
 
 	if(!m_aviocontext)
 	{
@@ -212,7 +277,14 @@ FFMPEGReader::FFMPEGReader(std::shared_ptr<Buffer> buffer) :
 
 FFMPEGReader::~FFMPEGReader()
 {
+	if(m_frame)
+		av_frame_free(&m_frame);
+#ifdef FFMPEG_OLD_CODE
 	avcodec_close(m_codecCtx);
+#else
+	if(m_codecCtx)
+		avcodec_free_context(&m_codecCtx);
+#endif
 	avformat_close_input(&m_formatCtx);
 }
 
@@ -312,7 +384,7 @@ void FFMPEGReader::seek(int position)
 						}
 					}
 				}
-				av_free_packet(&packet);
+				av_packet_unref(&packet);
 			}
 		}
 		else
@@ -343,7 +415,7 @@ Specs FFMPEGReader::getSpecs() const
 void FFMPEGReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	// read packages and decode them
-	AVPacket packet;
+	AVPacket packet = {};
 	int data_size = 0;
 	int pkgbuf_pos;
 	int left = length;
@@ -359,7 +431,7 @@ void FFMPEGReader::read(int& length, bool& eos, sample_t* buffer)
 		data_size = std::min(pkgbuf_pos, left * sample_size);
 		m_convert((data_t*) buf, (data_t*) m_pkgbuf.getBuffer(), data_size / AUD_FORMAT_SIZE(m_specs.format));
 		buf += data_size / AUD_FORMAT_SIZE(m_specs.format);
-		left -= data_size/sample_size;
+		left -= data_size / sample_size;
 	}
 
 	// for each frame read as long as there isn't enough data already
@@ -375,9 +447,9 @@ void FFMPEGReader::read(int& length, bool& eos, sample_t* buffer)
 			data_size = std::min(pkgbuf_pos, left * sample_size);
 			m_convert((data_t*) buf, (data_t*) m_pkgbuf.getBuffer(), data_size / AUD_FORMAT_SIZE(m_specs.format));
 			buf += data_size / AUD_FORMAT_SIZE(m_specs.format);
-			left -= data_size/sample_size;
+			left -= data_size / sample_size;
 		}
-		av_free_packet(&packet);
+		av_packet_unref(&packet);
 	}
 	// read more data than necessary?
 	if(pkgbuf_pos > data_size)
