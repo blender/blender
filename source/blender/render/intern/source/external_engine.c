@@ -497,7 +497,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
 	engine->depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
 	DEG_debug_name_set(engine->depsgraph, "RENDER");
 
-	BKE_scene_graph_update_tagged(engine->depsgraph, bmain);
+	BKE_scene_graph_update_for_newframe(engine->depsgraph, bmain);
 }
 
 static void engine_depsgraph_free(RenderEngine *engine)
