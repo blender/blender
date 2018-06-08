@@ -225,11 +225,12 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-
-			MEM_freeN(nvm);
-			op->customdata = NULL;
-
-			return OPERATOR_FINISHED;
+			if (event->val == KM_RELEASE) {
+				MEM_freeN(nvm);
+				op->customdata = NULL;
+				return OPERATOR_FINISHED;
+			}
+			break;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
