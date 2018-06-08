@@ -40,6 +40,7 @@ struct CurveMapping;
 struct MeshElemMap;
 struct GridPaintMask;
 struct Main;
+struct Mesh;
 struct MLoop;
 struct MLoopTri;
 struct MFace;
@@ -185,7 +186,8 @@ typedef struct SculptSession {
 	float *vmask;
 	
 	/* Mesh connectivity */
-	const struct MeshElemMap *pmap;
+	struct MeshElemMap *pmap;
+	int *pmap_mem;
 
 	/* BMesh for dynamic topology sculpting */
 	struct BMesh *bm;
@@ -257,6 +259,8 @@ struct MultiresModifierData *BKE_sculpt_multires_active(struct Scene *scene, str
 int BKE_sculpt_mask_layers_ensure(struct Object *ob,
                                   struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
+
+struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Object *ob, struct Mesh *me_eval_deform);
 
 enum {
 	SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),

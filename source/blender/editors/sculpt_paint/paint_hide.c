@@ -369,7 +369,6 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	PartialVisArea area;
 	PBVH *pbvh;
 	PBVHNode **nodes;
-	DerivedMesh *dm;
 	PBVHType pbvh_type;
 	float clip_planes[4][4];
 	rcti rect;
@@ -382,9 +381,9 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
 	clip_planes_from_rect(C, clip_planes, &rect);
 
-	dm = mesh_get_derived_final(depsgraph, CTX_data_scene(C), ob, CD_MASK_BAREMESH);
-	pbvh = dm->getPBVH(ob, dm);
-	ob->sculpt->pbvh = pbvh;
+	Mesh *me_eval_deform = mesh_get_eval_deform(depsgraph, CTX_data_scene(C), ob, CD_MASK_BAREMESH);
+	pbvh = BKE_sculpt_object_pbvh_ensure(ob, me_eval_deform);
+	BLI_assert(ob->sculpt->pbvh == pbvh);
 
 	get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);
 	pbvh_type = BKE_pbvh_type(pbvh);

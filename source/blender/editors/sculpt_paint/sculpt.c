@@ -5210,14 +5210,12 @@ static void sculpt_dynamic_topology_triangulate(BMesh *bm)
 void sculpt_pbvh_clear(Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
-	DerivedMesh *dm = ob->derivedFinal;
 
 	/* Clear out any existing DM and PBVH */
-	if (ss->pbvh)
+	if (ss->pbvh) {
 		BKE_pbvh_free(ss->pbvh);
+	}
 	ss->pbvh = NULL;
-	if (dm)
-		dm->getPBVH(NULL, dm);
 	BKE_object_free_derived_caches(ob);
 }
 

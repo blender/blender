@@ -1071,7 +1071,7 @@ static void ed_vwpaintmode_enter_generic(
 	/* Same as sculpt mode, make sure we don't have cached derived mesh which
 	 * points to freed arrays.
 	 */
-	BKE_object_free_derived_mesh_caches(ob);
+	BKE_object_free_derived_caches(ob);
 
 	if (mode_flag == OB_MODE_VERTEX_PAINT) {
 		const ePaintMode paint_mode = ePaintVertex;
@@ -1199,7 +1199,7 @@ static void ed_vwpaintmode_exit_generic(
 	}
 
 	/* Never leave derived meshes behind. */
-	BKE_object_free_derived_mesh_caches(ob);
+	BKE_object_free_derived_caches(ob);
 
 	/* Flush object mode. */
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
