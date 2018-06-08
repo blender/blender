@@ -60,4 +60,3 @@ vec3 get_world_specular_lights(WorldData world_data, vec4 specular_data, vec3 N,
 	}
 	return specular_light;
 }
-
