@@ -131,10 +131,10 @@ static void rna_def_text_line(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "TextLine", NULL);
 	RNA_def_struct_ui_text(srna, "Text Line", "Line of text in a Text data-block");
-	
+
 	prop = RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_TextLine_body_get", "rna_TextLine_body_length", "rna_TextLine_body_set");
 	RNA_def_property_ui_text(prop, "Line", "Text in the line");
@@ -146,12 +146,12 @@ static void rna_def_text(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "Text", "ID");
 	RNA_def_struct_ui_text(srna, "Text", "Text data-block referencing an external or packed text file");
 	RNA_def_struct_ui_icon(srna, ICON_TEXT);
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
-	
+
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Text_filename_get", "rna_Text_filename_length", "rna_Text_filename_set");
 	RNA_def_property_ui_text(prop, "File Path", "Filename of the text file");
@@ -170,7 +170,7 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISMEM);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Memory", "Text file is in memory, without a corresponding file on disk");
-	
+
 	prop = RNA_def_property(srna, "use_module", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISSCRIPT);
 	RNA_def_property_ui_text(prop, "Register",
@@ -183,7 +183,7 @@ static void rna_def_text(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "lines", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TextLine");
 	RNA_def_property_ui_text(prop, "Lines", "Lines of text");
-	
+
 	prop = RNA_def_property(srna, "current_line", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "curl");
@@ -197,7 +197,7 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Current Character",
 	                         "Index of current character in current line, and also start index of "
 	                         "character in selection if one exists");
-	
+
 	prop = RNA_def_property(srna, "current_line_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, "rna_Text_current_line_index_get", "rna_Text_current_line_index_set", NULL);
 	RNA_def_property_ui_text(prop, "Current Line Index", "Index of current TextLine in TextLine collection");
@@ -209,13 +209,13 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "TextLine");
 	RNA_def_property_ui_text(prop, "Selection End Line", "End line of selection");
-	
+
 	prop = RNA_def_property(srna, "select_end_character", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "selc");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Selection End Character",
 	                         "Index of character after end of selection in the selection end line");
-	
+
 	RNA_api_text(srna);
 }
 

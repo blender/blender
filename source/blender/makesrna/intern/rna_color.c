@@ -74,7 +74,7 @@ static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 	for (len = 0; len < CM_TOT; len++)
 		if (!cumap->cm[len].curve)
 			break;
-	
+
 	return len;
 }
 
@@ -153,30 +153,30 @@ static void rna_CurveMapping_clipmaxy_range(PointerRNA *ptr, float *min, float *
 static char *rna_ColorRamp_path(PointerRNA *ptr)
 {
 	char *path = NULL;
-	
+
 	/* handle the cases where a single data-block may have 2 ramp types */
 	if (ptr->id.data) {
 		ID *id = ptr->id.data;
-		
+
 		switch (GS(id->name)) {
 			case ID_MA: /* material has 2 cases - diffuse and specular */
 			{
 				Material *ma = (Material *)id;
-				
+
 				if (ptr->data == ma->ramp_col)
 					path = BLI_strdup("diffuse_ramp");
 				else if (ptr->data == ma->ramp_spec)
 					path = BLI_strdup("specular_ramp");
 				break;
 			}
-			
+
 			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
 				bNode *node;
 				PointerRNA node_ptr;
 				char *node_path;
-				
+
 				for (node = ntree->nodes.first; node; node = node->next) {
 					if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
 						if (node->storage == ptr->data) {
@@ -192,14 +192,14 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 				}
 				break;
 			}
-			
+
 			case ID_LS:
 			{
 				/* may be NULL */
 				path = BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
 				break;
 			}
-			
+
 			default:
 				/* everything else just uses 'color_ramp' */
 				path = BLI_strdup("color_ramp");
@@ -210,7 +210,7 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 		/* everything else just uses 'color_ramp' */
 		path = BLI_strdup("color_ramp");
 	}
-	
+
 	return path;
 }
 
@@ -220,7 +220,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 	PropertyRNA *prop;
 	char *path = NULL;
 	int index;
-	
+
 	/* helper macro for use here to try and get the path
 	 *	- this calls the standard code for getting a path to a texture...
 	 */
@@ -242,12 +242,12 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 	/* FIXME: this is a very slow way to do it, but it will have to suffice... */
 	if (ptr->id.data) {
 		ID *id = ptr->id.data;
-		
+
 		switch (GS(id->name)) {
 			case ID_MA: /* 2 cases for material - diffuse and spec */
 			{
 				Material *ma = (Material *)id;
-				
+
 				/* try diffuse first */
 				if (ma->ramp_col) {
 					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_col, &ramp_ptr);
@@ -264,7 +264,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
 				bNode *node;
-				
+
 				for (node = ntree->nodes.first; node; node = node->next) {
 					if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
 						RNA_pointer_create(id, &RNA_ColorRamp, node->storage, &ramp_ptr);
@@ -298,10 +298,10 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 			}
 		}
 	}
-	
+
 	/* cleanup the macro we defined */
 #undef COLRAMP_GETPATH
-	
+
 	return path;
 }
 
@@ -309,12 +309,12 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 {
 	if (ptr->id.data) {
 		ID *id = ptr->id.data;
-		
+
 		switch (GS(id->name)) {
 			case ID_MA:
 			{
 				Material *ma = ptr->id.data;
-				
+
 				DAG_id_tag_update(&ma->id, 0);
 				WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 				break;
@@ -349,7 +349,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 			case ID_PA:
 			{
 				ParticleSettings *part = ptr->id.data;
-				
+
 				DAG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
 				WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, part);
 			}
@@ -787,7 +787,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "CurveMapping",
 	                       "Curve mapping to map color, vector and scalar values to other values using "
 	                       "a user defined curve");
-	
+
 	prop = RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);
 	RNA_def_property_ui_text(prop, "Clip", "Force the curve view to fit a defined boundary");
@@ -854,7 +854,7 @@ static void rna_def_color_ramp_element(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "CBData");
 	RNA_def_struct_path_func(srna, "rna_ColorRampElement_path");
 	RNA_def_struct_ui_text(srna, "Color Ramp Element", "Element defining a color at a position in the color ramp");
-	
+
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 4);
@@ -919,7 +919,7 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 		{COLBAND_INTERP_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	static const EnumPropertyItem prop_mode_items[] = {
 		{COLBAND_BLEND_RGB, "RGB", 0, "RGB", ""},
 		{COLBAND_BLEND_HSV, "HSV", 0, "HSV", ""},
@@ -939,7 +939,7 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ColorBand");
 	RNA_def_struct_path_func(srna, "rna_ColorRamp_path");
 	RNA_def_struct_ui_text(srna, "Color Ramp", "Color ramp mapping a scalar value to a color");
-	
+
 	prop = RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_COLOR);
 	RNA_def_property_collection_sdna(prop, NULL, "data", "tot");
 	RNA_def_property_struct_type(prop, "ColorRampElement");
@@ -974,7 +974,7 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Total", "Total number of elements");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
 #endif
-	
+
 	func = RNA_def_function(srna, "evaluate", "rna_ColorRamp_eval");
 	RNA_def_function_ui_description(func, "Evaluate ColorRamp");
 	parm = RNA_def_float(func, "position", 1.0f, 0.0f, 1.0f, "Position", "Evaluate ColorRamp at position", 0.0f, 1.0f);
@@ -990,7 +990,7 @@ static void rna_def_histogram(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	static const EnumPropertyItem prop_mode_items[] = {
 		{HISTO_MODE_LUMA, "LUMA", 0, "Luma", "Luma"},
 		{HISTO_MODE_RGB, "RGB", 0, "RGB", "Red Green Blue"},
@@ -1003,7 +1003,7 @@ static void rna_def_histogram(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "Histogram", NULL);
 	RNA_def_struct_ui_text(srna, "Histogram", "Statistical view of the levels of color in an image");
-	
+
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, prop_mode_items);
@@ -1032,12 +1032,12 @@ static void rna_def_scopes(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "Scopes", NULL);
 	RNA_def_struct_ui_text(srna, "Scopes", "Scopes for statistical view of an image");
-	
+
 	prop = RNA_def_property(srna, "use_full_resolution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, "Scopes", "sample_full", 1);
 	RNA_def_property_ui_text(prop, "Full Sample", "Sample every pixel of the image");
 	RNA_def_property_update(prop, 0, "rna_Scopes_update");
-	
+
 	prop = RNA_def_property(srna, "accuracy", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, "Scopes", "accuracy");
 	RNA_def_property_range(prop, 0.0, 100.0);

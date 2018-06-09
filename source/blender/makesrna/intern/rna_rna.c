@@ -935,10 +935,10 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	const EnumPropertyItem *item = NULL;
 	int totitem;
 	bool free;
-	
+
 	rna_idproperty_check(&prop, ptr);
 	/* eprop = (EnumPropertyRNA *)prop; */
-	
+
 	RNA_property_enum_items_ex(
 	            NULL, ptr, prop, STREQ(iter->prop->identifier, "enum_items_static"), &item, &totitem, &free);
 	rna_iterator_array_begin(iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
@@ -1128,18 +1128,18 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Struct_identifier_get", "rna_Struct_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting");
 	RNA_def_struct_name_property(srna, prop);
-	
+
 	prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_description_get", "rna_Struct_description_length", NULL);
 	RNA_def_property_ui_text(prop, "Description", "Description of the Struct's purpose");
-	
+
 	prop = RNA_def_property(srna, "translation_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_translation_context_get",
 	                              "rna_Struct_translation_context_length", NULL);
 	RNA_def_property_ui_text(prop, "Translation Context", "Translation context of the struct's name");
-	
+
 	prop = RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
@@ -1231,7 +1231,7 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Property_identifier_get", "rna_Property_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting");
 	RNA_def_struct_name_property(srna, prop);
-		
+
 	prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_description_get", "rna_Property_description_length", NULL);
@@ -1324,7 +1324,7 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally",
 	                         "Property is optionally registered as part of type registration");
-	
+
 	prop = RNA_def_property(srna, "is_runtime", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_runtime_get", NULL);
@@ -1392,7 +1392,7 @@ static void rna_def_function(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Function_no_self_get", NULL);
 	RNA_def_property_ui_text(prop, "No Self",
 	                         "Function does not pass its self as an argument (becomes a static method in python)");
-	
+
 	prop = RNA_def_property(srna, "use_self_type", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_use_self_type_get", NULL);
@@ -1651,7 +1651,7 @@ void RNA_def_rna(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Collection Definition",
 	                       "RNA collection property to define lists, arrays and mappings");
 	rna_def_pointer_property(srna, PROP_COLLECTION);
-	
+
 	/* Function */
 	rna_def_function(brna);
 

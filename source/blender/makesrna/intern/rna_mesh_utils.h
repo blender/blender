@@ -23,7 +23,7 @@
 /** \file blender/makesrna/intern/rna_mesh_utils.h
  *  \ingroup RNA
  */
- 
+
 #ifndef __RNA_MESH_UTILS_H__
 #define __RNA_MESH_UTILS_H__
 

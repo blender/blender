@@ -161,7 +161,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 
 	if (level >= MAX_DUPLI_RECUR)
 		return;
-	
+
 	if (ob->transflag & OB_DUPLIPARTS) {
 		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 			if (ELEM(psys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
@@ -235,7 +235,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 
 		RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-		
+
 		return keyptr;
 	}
 	else {
@@ -377,7 +377,7 @@ static void rna_Object_closest_point_on_mesh(
         int *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	BVHTreeFromMesh treeData = {NULL};
-	
+
 	if (ob->derivedFinal == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for finding nearest point",
 		            ob->id.name + 2);
@@ -611,7 +611,7 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "ray_cast", "rna_Object_ray_cast");
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	
+
 	/* ray start and end */
 	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

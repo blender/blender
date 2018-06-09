@@ -168,7 +168,7 @@ static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
 	for (i = 0; i < OB_MAX_STATES; i++)
 		if (values[i])
 			tot++;
-	
+
 	if (tot == 0)
 		return;
 
@@ -246,7 +246,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	                                  "rna_Controller_actuators_length", NULL, NULL, NULL);
 
 	/* State */
-	
+
 	/* array of OB_MAX_STATES */
 	/*prop = RNA_def_property(srna, "states", PROP_BOOLEAN, PROP_LAYER_MEMBER); */
 	/*RNA_def_property_array(prop, OB_MAX_STATES); */
@@ -307,19 +307,19 @@ void RNA_def_controller(BlenderRNA *brna)
 	/* Other Controllers */
 	srna = RNA_def_struct(brna, "AndController", "Controller");
 	RNA_def_struct_ui_text(srna, "And Controller", "Controller passing on events based on a logical AND operation");
-	
+
 	srna = RNA_def_struct(brna, "OrController", "Controller");
 	RNA_def_struct_ui_text(srna, "Or Controller", "Controller passing on events based on a logical OR operation");
-	
+
 	srna = RNA_def_struct(brna, "NorController", "Controller");
 	RNA_def_struct_ui_text(srna, "Nor Controller", "Controller passing on events based on a logical NOR operation");
-	
+
 	srna = RNA_def_struct(brna, "NandController", "Controller");
 	RNA_def_struct_ui_text(srna, "Nand Controller", "Controller passing on events based on a logical NAND operation");
-	
+
 	srna = RNA_def_struct(brna, "XorController", "Controller");
 	RNA_def_struct_ui_text(srna, "Xor Controller", "Controller passing on events based on a logical XOR operation");
-	
+
 	srna = RNA_def_struct(brna, "XnorController", "Controller");
 	RNA_def_struct_ui_text(srna, "Xnor Controller", "Controller passing on events based on a logical XNOR operation");
 }

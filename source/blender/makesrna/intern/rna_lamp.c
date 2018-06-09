@@ -160,7 +160,7 @@ static void rna_Lamp_use_nodes_update(bContext *C, PointerRNA *ptr)
 
 	if (la->use_nodes && la->nodetree == NULL)
 		ED_node_shader_default(C, &la->id);
-	
+
 	rna_Lamp_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
@@ -236,12 +236,12 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 		{2, "CIE", 0, "CIE", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-		
+
 	srna = RNA_def_struct(brna, "LampSkySettings", NULL);
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_nested(brna, srna, "SunLamp");
 	RNA_def_struct_ui_text(srna, "Lamp Sky Settings", "Sky related settings for a sun lamp");
-		
+
 	prop = RNA_def_property(srna, "sky_color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sky_colorspace");
 	RNA_def_property_enum_items(prop, prop_skycolorspace_items);
@@ -253,9 +253,9 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Sky Blend Mode", "Blend mode for combining sun sky with world sky");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
-	
+
 	/* Number values */
-	
+
 	prop = RNA_def_property(srna, "horizon_brightness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Horizon Brightness", "Horizon brightness");
@@ -324,7 +324,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 
 	/* boolean */
-	
+
 	prop = RNA_def_property(srna, "use_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "sun_effect_type", LA_SUN_EFFECT_SKY);
 	RNA_def_property_ui_text(prop, "Sky", "Apply sun effect on sky");
@@ -402,10 +402,10 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_use_nodes_update");
-	
+
 	/* common */
 	rna_def_animdata_common(srna);
-	
+
 	/* textures */
 	rna_def_mtex_common(brna, srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
 	                    "rna_Lamp_active_texture_set", NULL, "LampTextureSlot", "LampTextureSlots",
@@ -430,7 +430,7 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 	RNA_def_property_enum_items(prop, prop_fallofftype_items);
 	RNA_def_property_ui_text(prop, "Falloff Type", "Intensity Decay with distance");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
-	
+
 	prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
 	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
@@ -497,7 +497,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	static const EnumPropertyItem prop_spot_ray_sampling_method_items[] = {
 		{LA_SAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", ""},
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},

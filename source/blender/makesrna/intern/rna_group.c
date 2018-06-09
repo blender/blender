@@ -83,7 +83,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	RNA_def_property_srna(cprop, "GroupObjects");
 	srna = RNA_def_struct(brna, "GroupObjects", NULL);
 	RNA_def_struct_sdna(srna, "Group");

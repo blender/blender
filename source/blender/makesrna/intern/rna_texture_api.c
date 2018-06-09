@@ -61,7 +61,7 @@ static void clear_envmap(struct EnvMap *env, bContext *C)
 	Tex *tex;
 
 	BKE_texture_envmap_free_data(env);
-	
+
 	for (tex = bmain->tex.first; tex; tex = tex->id.next)
 		if (tex->env == env) {
 			WM_event_add_notifier(C, NC_TEXTURE | NA_EDITED, tex);

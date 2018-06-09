@@ -94,7 +94,7 @@ static void rna_Boids_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 {
 	if (ptr->type == &RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem *)ptr->data;
-		
+
 		psys->recalc = PSYS_RECALC_RESET;
 
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
@@ -108,7 +108,7 @@ static void rna_Boids_reset_deps(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 {
 	if (ptr->type == &RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem *)ptr->data;
-		
+
 		psys->recalc = PSYS_RECALC_RESET;
 
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
@@ -209,10 +209,10 @@ static int particle_id_check(PointerRNA *ptr)
 static char *rna_BoidSettings_path(PointerRNA *ptr)
 {
 	BoidSettings *boids = (BoidSettings *)ptr->data;
-	
+
 	if (particle_id_check(ptr)) {
 		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
-		
+
 		if (part->boids == boids)
 			return BLI_sprintfN("boids");
 	}
@@ -416,36 +416,36 @@ static void rna_def_boidrule(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	/* data */
 	srna = RNA_def_struct(brna, "BoidRule", NULL);
 	RNA_def_struct_ui_text(srna, "Boid Rule", "");
 	RNA_def_struct_refine_func(srna, "rna_BoidRule_refine");
 	RNA_def_struct_path_func(srna, "rna_BoidRule_path");
-	
+
 	/* strings */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Boid rule name");
 	RNA_def_struct_name_property(srna, prop);
-	
+
 	/* enums */
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, rna_enum_boidrule_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-	
+
 	/* flags */
 	prop = RNA_def_property(srna, "use_in_air", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BOIDRULE_IN_AIR);
 	RNA_def_property_ui_text(prop, "In Air", "Use rule when boid is flying");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
-	
+
 	prop = RNA_def_property(srna, "use_on_land", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BOIDRULE_ON_LAND);
 	RNA_def_property_ui_text(prop, "On Land", "Use rule when boid is on land");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
-	
+
 	/*prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE); */
 	/*RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded); */
 	/*RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface"); */
