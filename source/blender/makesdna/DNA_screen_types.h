@@ -390,6 +390,7 @@ enum {
 	/*PNL_TABBED    = (1 << 3), */ /*UNUSED*/
 	PNL_OVERLAP     = (1 << 4),
 	PNL_PIN         = (1 << 5),
+	PNL_POPOVER     = (1 << 6),
 };
 
 /* Panel->snap - for snapping to screen edges */

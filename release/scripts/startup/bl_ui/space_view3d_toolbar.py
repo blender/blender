@@ -883,12 +883,13 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw_header(self, context):
+        is_popover = self.is_popover
         layout = self.layout
         layout.operator(
             "sculpt.dynamic_topology_toggle",
             icon='CHECKBOX_HLT' if context.sculpt_object.use_dynamic_topology_sculpting else 'CHECKBOX_DEHLT',
             text="",
-            emboss=False,
+            emboss=is_popover,
         )
 
     def draw(self, context):

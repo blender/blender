@@ -2044,12 +2044,23 @@ void uiItemPopoverPanel_ptr(uiLayout *layout, bContext *C, PanelType *pt, const 
 		name = CTX_IFACE_(pt->translation_context, pt->label);
 	}
 
-	if (layout->root->type == UI_LAYOUT_MENU && !icon)
+	if (layout->root->type == UI_LAYOUT_MENU && !icon) {
 		icon = ICON_BLANK1;
+	}
 
+	const bool ok = (pt->poll == NULL) || pt->poll(C, pt);
+	if (ok && (pt->draw_header != NULL)) {
+		layout = uiLayoutRow(layout, true);
+		Panel panel = {
+			.type = pt,
+			.layout = layout,
+			.flag = PNL_POPOVER,
+		};
+		pt->draw_header(C, &panel);
+	}
 	uiBut *but = ui_item_menu(layout, name, icon, ui_item_paneltype_func, pt, NULL, NULL, true);
 	but->type = UI_BTYPE_POPOVER;
-	if (pt->poll && (pt->poll(C, pt) == false)) {
+	if (!ok) {
 		but->flag |= UI_BUT_DISABLED;
 	}
 }
@@ -4236,14 +4247,19 @@ void UI_menutype_draw(bContext *C, MenuType *mt, struct uiLayout *layout)
 }
 
 
-static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout)
+static void ui_paneltype_draw_impl(
+        bContext *C, PanelType *pt, uiLayout *layout, bool show_header)
 {
 	Panel *panel = MEM_callocN(sizeof(Panel), "popover panel");
 	panel->type = pt;
-	if (pt->draw_header) {
-		panel->layout = uiLayoutRow(layout, false);
-		pt->draw_header(C, panel);
-		panel->layout = NULL;
+	panel->flag = PNL_POPOVER;
+
+	if (show_header) {
+		if (pt->draw_header) {
+			panel->layout = uiLayoutRow(layout, false);
+			pt->draw_header(C, panel);
+			panel->layout = NULL;
+		}
 	}
 
 	panel->layout = layout;
@@ -4261,7 +4277,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout)
 			if (pt_iter->poll == NULL || pt_iter->poll(C, pt_iter)) {
 				uiItemS(layout);
 				uiItemL(layout, pt_iter->label, ICON_NONE);
-				ui_paneltype_draw_impl(C, pt_iter, layout);
+				ui_paneltype_draw_impl(C, pt_iter, layout, true);
 			}
 		}
 	} while ((pt_iter = pt_iter->next));
@@ -4276,7 +4292,7 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
 		CTX_store_set(C, layout->context);
 	}
 
-	ui_paneltype_draw_impl(C, pt, layout);
+	ui_paneltype_draw_impl(C, pt, layout, false);
 
 	if (layout->context) {
 		CTX_store_set(C, NULL);
