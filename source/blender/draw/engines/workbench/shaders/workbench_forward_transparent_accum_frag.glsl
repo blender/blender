@@ -51,7 +51,7 @@ void main()
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	vec3 specular_color = get_world_specular_lights(world_data, vec4(material_data.specular_color.rgb, material_data.roughness), nor, I_vs;
+	vec3 specular_color = get_world_specular_lights(world_data, vec4(material_data.specular_color.rgb, material_data.roughness), nor, I_vs);
 #else
 	vec3 specular_color = vec3(0.0);
 #endif
