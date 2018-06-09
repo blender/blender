@@ -95,9 +95,10 @@ const char *rna_translate_ui_text(
 	return BLT_pgettext(BLT_I18NCONTEXT_DEFAULT, text);
 }
 
-static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, const char *text_ctxt,
-                        int translate, int icon, int expand, int slider, int toggle, int icon_only, int event,
-                        int full_event, int emboss, int index, int icon_value)
+static void rna_uiItemR(
+        uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, const char *text_ctxt,
+        int translate, int icon, int expand, int slider, int toggle, int icon_only, int event,
+        int full_event, int emboss, int index, int icon_value)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	int flag = 0;
@@ -125,8 +126,9 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname,
 	uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
 
-static void rna_uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
-                                const char *text_ctxt, int translate, int icon)
+static void rna_uiItemMenuEnumR(
+        uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
+        const char *text_ctxt, int translate, int icon)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -140,8 +142,9 @@ static void rna_uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const 
 	uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
 }
 
-static void rna_uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value,
-                                   const char *name, const char *text_ctxt, int translate, int icon)
+static void rna_uiItemEnumR_string(
+        uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value,
+        const char *name, const char *text_ctxt, int translate, int icon)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -157,9 +160,10 @@ static void rna_uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, con
 	uiItemEnumR_string(layout, ptr, propname, value, name, icon);
 }
 
-static void rna_uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
-                               struct PointerRNA *searchptr, const char *searchpropname,
-                               const char *name, const char *text_ctxt, int translate, int icon)
+static void rna_uiItemPointerR(
+        uiLayout *layout, struct PointerRNA *ptr, const char *propname,
+        struct PointerRNA *searchptr, const char *searchpropname,
+        const char *name, const char *text_ctxt, int translate, int icon)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -226,8 +230,9 @@ static PointerRNA rna_uiItemOMenuHold(
 }
 
 
-static void rna_uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name,
-                                const char *text_ctxt, int translate, int icon)
+static void rna_uiItemMenuEnumO(
+        uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name,
+        const char *text_ctxt, int translate, int icon)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 
@@ -242,8 +247,9 @@ static void rna_uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opnam
 	uiItemMenuEnumO_ptr(layout, C, ot, propname, name, icon);
 }
 
-static void rna_uiItemL(uiLayout *layout, const char *name, const char *text_ctxt, int translate,
-                        int icon, int icon_value)
+static void rna_uiItemL(
+        uiLayout *layout, const char *name, const char *text_ctxt, int translate,
+        int icon, int icon_value)
 {
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, NULL, translate);
@@ -255,8 +261,9 @@ static void rna_uiItemL(uiLayout *layout, const char *name, const char *text_ctx
 	uiItemL(layout, name, icon);
 }
 
-static void rna_uiItemM(uiLayout *layout, bContext *C, const char *menuname, const char *name, const char *text_ctxt,
-                        int translate, int icon, int icon_value)
+static void rna_uiItemM(
+        uiLayout *layout, bContext *C, const char *menuname, const char *name, const char *text_ctxt,
+        int translate, int icon, int icon_value)
 {
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, NULL, translate);
@@ -268,8 +275,9 @@ static void rna_uiItemM(uiLayout *layout, bContext *C, const char *menuname, con
 	uiItemM(layout, C, menuname, name, icon);
 }
 
-static void rna_uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *proptypename,
-                                const char *name, const char *text_ctxt, int translate)
+static void rna_uiTemplateAnyID(
+        uiLayout *layout, PointerRNA *ptr, const char *propname, const char *proptypename,
+        const char *name, const char *text_ctxt, int translate)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -285,8 +293,9 @@ static void rna_uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *p
 	uiTemplateAnyID(layout, ptr, propname, proptypename, name);
 }
 
-static void rna_uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *root_ptr,
-                                      const char *name, const char *text_ctxt, int translate)
+static void rna_uiTemplatePathBuilder(
+        uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *root_ptr,
+        const char *name, const char *text_ctxt, int translate)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -337,8 +346,9 @@ static const char *rna_ui_get_enum_name(bContext *C, PointerRNA *ptr, const char
 	return name;
 }
 
-static const char *rna_ui_get_enum_description(bContext *C, PointerRNA *ptr, const char *propname,
-                                               const char *identifier)
+static const char *rna_ui_get_enum_description(
+        bContext *C, PointerRNA *ptr, const char *propname,
+        const char *identifier)
 {
 	PropertyRNA *prop = NULL;
 	const EnumPropertyItem *items = NULL, *item;
