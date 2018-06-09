@@ -969,7 +969,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XKeyEvent *xke = &(xe->xkey);
 			KeySym key_sym;
-			KeySym key_sym_str;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* utf8_array[] is initial buffer used for Xutf8LookupString().
@@ -1014,6 +1013,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			 *
 			 * [1] http://cgit.freedesktop.org/xorg/lib/libX11/tree/src/KeyBind.c
 			 */
+			KeySym key_sym_str;
 			/* Mode_switch 'modifier' is AltGr - when this one or Shift are enabled, we do not want to apply
 			 * that 'forced number' hack. */
 			const unsigned int mode_switch_mask = XkbKeysymToModifiers(xke->display, XK_Mode_switch);
@@ -1098,7 +1098,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				key_sym = XLookupKeysym(xke, 0);
 			}
 
-			gkey = ghost_key_from_keysym(key_sym);
+			gkey = ghost_key_from_keysym_or_keycode(key_sym, m_xkb_descr, xke->keycode);
 
 			if (!XLookupString(xke, &ascii, 1, NULL, NULL)) {
 				ascii = '\0';
