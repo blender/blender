@@ -1044,10 +1044,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_string(func, "name", NULL, 0, "", "");
 
-	func = RNA_def_function(srna, "introspect", "uiLayoutIntrospect");
-	parm = RNA_def_string(func, "string", NULL, 1024 * 1024, "Descr", "DESCR");
-	RNA_def_function_return(func, parm);
-
 	/* color management templates */
 	func = RNA_def_function(srna, "template_colorspace_settings", "uiTemplateColorspaceSettings");
 	RNA_def_function_ui_description(func, "Item. A widget to control input color space settings.");
