@@ -57,12 +57,6 @@ void BKE_brush_sculpt_reset(struct Brush *brush);
 /* image icon function */
 struct ImBuf *get_brush_icon(struct Brush *brush);
 
-/* brush library operations used by different paint panels */
-int BKE_brush_texture_set_nr(struct Brush *brush, int nr);
-int BKE_brush_texture_delete(struct Brush *brush);
-int BKE_brush_clone_image_set_nr(struct Brush *brush, int nr);
-int BKE_brush_clone_image_delete(struct Brush *brush);
-
 /* jitter */
 void BKE_brush_jitter_pos(
         const struct Scene *scene, struct Brush *brush,
