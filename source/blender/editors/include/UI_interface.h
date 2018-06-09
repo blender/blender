@@ -979,6 +979,8 @@ bool uiLayoutGetPropSep(uiLayout *layout);
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
 uiLayout *uiLayoutColumn(uiLayout *layout, int align);
 uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align);
+uiLayout *uiLayoutGridFlow(
+        uiLayout *layout, int row_major, int num_columns, int even_columns, int even_rows, int align);
 uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutListBox(uiLayout *layout, struct uiList *ui_list, struct PointerRNA *ptr, struct PropertyRNA *prop,
                           struct PointerRNA *actptr, struct PropertyRNA *actprop);
