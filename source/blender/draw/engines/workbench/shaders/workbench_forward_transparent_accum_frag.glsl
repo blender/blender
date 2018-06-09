@@ -1,8 +1,11 @@
 #ifdef OB_TEXTURE
 uniform sampler2D image;
 #endif
+uniform mat4 ProjectionMatrix;
 uniform mat3 normalWorldMatrix;
 uniform float alpha = 0.5;
+uniform vec2 invertedViewportSize;
+uniform vec4 viewvecs[3];
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 in vec3 normal_viewport;
@@ -36,12 +39,15 @@ void main()
 	diffuse_color = texture(image, uv_interp);
 #endif /* OB_TEXTURE */
 
+	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
+	vec3 I_vs = view_vector_from_screen_uv(uv_viewport, viewvecs, ProjectionMatrix);
+
 #ifdef V3D_LIGHTING_MATCAP
 	diffuse_light = texture(matcapImage, normal_viewport.xy / 2.0 + 0.5).rgb;
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	vec3 specular_color = get_world_specular_lights(world_data, vec4(material_data.specular_color.rgb, material_data.roughness), normal_viewport, vec3(0.0, 0.0, 1.0));
+	vec3 specular_color = get_world_specular_lights(world_data, vec4(material_data.specular_color.rgb, material_data.roughness), normal_viewport, I_vs;
 #else
 	vec3 specular_color = vec3(0.0);
 #endif

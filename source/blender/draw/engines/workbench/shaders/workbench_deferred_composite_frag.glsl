@@ -1,5 +1,7 @@
 out vec4 fragColor;
 
+uniform mat4 ProjectionMatrix;
+
 uniform usampler2D objectId;
 uniform sampler2D colorBuffer;
 uniform sampler2D specularBuffer;
@@ -8,6 +10,7 @@ uniform sampler2D normalBuffer;
 uniform sampler2D cavityBuffer;
 
 uniform vec2 invertedViewportSize;
+uniform vec4 viewvecs[3];
 uniform float shadowMultiplier;
 uniform float lightMultiplier;
 uniform float shadowShift = 0.1;
@@ -61,6 +64,8 @@ void main()
 #  endif /* WORKBENCH_ENCODE_NORMALS */
 #endif
 
+	vec3 I_vs = view_vector_from_screen_uv(uv_viewport, viewvecs, ProjectionMatrix);
+
 #ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
 	vec2 matcap_uv = normal_viewport.xy / 2.0 + 0.5;
 	if (world_data.matcap_orientation != 0) {
@@ -70,8 +75,6 @@ void main()
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	/* XXX Should calculate the correct VS Incoming direction */
-	vec3 I_vs = vec3(0.0, 0.0, 1.0);
 	vec4 specular_data = texelFetch(specularBuffer, texel, 0);
 	vec3 specular_color = get_world_specular_lights(world_data, specular_data, normal_viewport, I_vs);
 #else
