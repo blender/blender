@@ -41,6 +41,7 @@ struct ARegion;
 struct ARegionType;
 struct View2D;
 struct bContext;
+struct Main;
 struct wmWindow;
 struct bNode;
 struct bNodeSocket;
@@ -157,7 +158,7 @@ void NODE_OT_group_edit(struct wmOperatorType *ot);
 
 
 /* node_relationships.c */
-bool node_connected_to_output(struct bNodeTree *ntree, struct bNode *node);
+bool node_connected_to_output(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
 
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_link_make(struct wmOperatorType *ot);

@@ -49,9 +49,9 @@
 #include "MOD_modifiertypes.h"
 
 #ifdef WITH_OCEANSIM
-static void init_cache_data(Main *bmain, Object *ob, struct OceanModifierData *omd)
+static void init_cache_data(Object *ob, struct OceanModifierData *omd)
 {
-	const char *relbase = modifier_path_relbase(bmain, ob);
+	const char *relbase = modifier_path_relbase_from_global(ob);
 
 	omd->oceancache = BKE_ocean_init_cache(omd->cachepath, relbase,
 	                                       omd->bakestart, omd->bakeend, omd->wave_scale,
@@ -448,7 +448,7 @@ static DerivedMesh *doOcean(
 	/* do ocean simulation */
 	if (omd->cached == true) {
 		if (!omd->oceancache) {
-			init_cache_data(G.main, ob, omd);
+			init_cache_data(ob, omd);
 		}
 		BKE_ocean_simulate_cache(omd->oceancache, md->scene->r.cfra);
 	}

@@ -131,9 +131,8 @@ static bool node_group_has_output_dfs(bNode *node)
 	return false;
 }
 
-static bool node_group_has_output(bNode *node)
+static bool node_group_has_output(Main *bmain, bNode *node)
 {
-	Main *bmain = G.main;
 	BLI_assert(node->type == NODE_GROUP);
 	bNodeTree *ntree = (bNodeTree *)node->id;
 	if (ntree == NULL) {
@@ -143,7 +142,7 @@ static bool node_group_has_output(bNode *node)
 	return node_group_has_output_dfs(node);
 }
 
-bool node_connected_to_output(bNodeTree *ntree, bNode *node)
+bool node_connected_to_output(Main *bmain, bNodeTree *ntree, bNode *node)
 {
 	/* Special case for drivers: if node tree has any drivers we assume it is
 	 * always to be tagged for update when node changes. Otherwise we will be
@@ -170,7 +169,7 @@ bool node_connected_to_output(bNodeTree *ntree, bNode *node)
 				return true;
 			}
 			if (ntree_check_nodes_connected(ntree, node, current_node) &&
-			    node_group_has_output(current_node))
+			    node_group_has_output(bmain, current_node))
 			{
 				return true;
 			}
@@ -313,7 +312,7 @@ static bool snode_autoconnect_input(SpaceNode *snode, bNode *node_fr, bNodeSocke
 	return true;
 }
 
-static void snode_autoconnect(SpaceNode *snode, const bool allow_multiple, const bool replace)
+static void snode_autoconnect(Main *bmain, SpaceNode *snode, const bool allow_multiple, const bool replace)
 {
 	bNodeTree *ntree = snode->edittree;
 	ListBase *nodelist = MEM_callocN(sizeof(ListBase), "items_list");
@@ -390,7 +389,7 @@ static void snode_autoconnect(SpaceNode *snode, const bool allow_multiple, const
 	}
 
 	if (numlinks > 0) {
-		ntreeUpdateTree(G.main, ntree);
+		ntreeUpdateTree(bmain, ntree);
 	}
 
 	BLI_freelistN(nodelist);
@@ -582,6 +581,7 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
 
 static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
 	bNodeLinkDrag *nldrag = op->customdata;
@@ -620,7 +620,7 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 			node_remove_extra_links(snode, link);
 
 			if (link->tonode) {
-				do_tag_update |= (do_tag_update || node_connected_to_output(ntree, link->tonode));
+				do_tag_update |= (do_tag_update || node_connected_to_output(bmain, ntree, link->tonode));
 			}
 		}
 		else {
@@ -629,7 +629,7 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 	}
 	ntree->is_updating = false;
 
-	ntreeUpdateTree(CTX_data_main(C), ntree);
+	ntreeUpdateTree(bmain, ntree);
 	snode_notify(C, snode);
 	if (do_tag_update) {
 		snode_dag_update(C, snode);
@@ -741,7 +741,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* return 1 when socket clicked */
-static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool detach)
+static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor[2], bool detach)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -775,7 +775,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 					 * using TEST flag.
 					 */
 					oplink->flag &= ~NODE_LINK_TEST;
-					if (node_connected_to_output(snode->edittree, link->tonode)) {
+					if (node_connected_to_output(bmain, snode->edittree, link->tonode)) {
 						oplink->flag |= NODE_LINK_TEST;
 					}
 
@@ -794,7 +794,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 			oplink->fromsock = sock;
 			oplink->flag |= NODE_LINK_VALID;
 			oplink->flag &= ~NODE_LINK_TEST;
-			if (node_connected_to_output(snode->edittree, node)) {
+			if (node_connected_to_output(bmain, snode->edittree, node)) {
 				oplink->flag |= NODE_LINK_TEST;
 			}
 
@@ -819,7 +819,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 					oplink->next = oplink->prev = NULL;
 					oplink->flag |= NODE_LINK_VALID;
 					oplink->flag &= ~NODE_LINK_TEST;
-					if (node_connected_to_output(snode->edittree, link->tonode)) {
+					if (node_connected_to_output(bmain, snode->edittree, link->tonode)) {
 						oplink->flag |= NODE_LINK_TEST;
 					}
 
@@ -842,7 +842,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 			oplink->tosock = sock;
 			oplink->flag |= NODE_LINK_VALID;
 			oplink->flag &= ~NODE_LINK_TEST;
-			if (node_connected_to_output(snode->edittree, node)) {
+			if (node_connected_to_output(bmain, snode->edittree, node)) {
 				oplink->flag |= NODE_LINK_TEST;
 			}
 
@@ -855,6 +855,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 
 static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
 	bNodeLinkDrag *nldrag;
@@ -865,9 +866,9 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 	                         &cursor[0], &cursor[1]);
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-	nldrag = node_link_init(snode, cursor, detach);
+	nldrag = node_link_init(bmain, snode, cursor, detach);
 
 	if (nldrag) {
 		op->customdata = nldrag;
@@ -918,12 +919,13 @@ void NODE_OT_link(wmOperatorType *ot)
 /* makes a link between selected output and input sockets */
 static int node_make_link_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	const bool replace = RNA_boolean_get(op->ptr, "replace");
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-	snode_autoconnect(snode, 1, replace);
+	snode_autoconnect(bmain, snode, 1, replace);
 
 	/* deselect sockets after linking */
 	node_deselect_all_input_sockets(snode, 0);
@@ -971,6 +973,7 @@ static bool cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 
 static int cut_links_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
 	float mcoords[256][2];
@@ -993,7 +996,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		bool found = false;
 		bNodeLink *link, *next;
 
-		ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+		ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 		for (link = snode->edittree->links.first; link; link = next) {
 			next = link->next;
@@ -1004,11 +1007,11 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 
 				if (found == false) {
 					/* TODO(sergey): Why did we kill jobs twice? */
-					ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+					ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 					found = true;
 				}
 
-				do_tag_update |= (do_tag_update || node_connected_to_output(snode->edittree, link->tonode));
+				do_tag_update |= (do_tag_update || node_connected_to_output(bmain, snode->edittree, link->tonode));
 
 				snode_update(snode, link->tonode);
 				nodeRemLink(snode->edittree, link);
@@ -1833,7 +1836,7 @@ void NODE_OT_insert_offset(wmOperatorType *ot)
 }
 
 /* assumes link with NODE_LINKFLAG_HILITE set */
-void ED_node_link_insert(ScrArea *sa)
+void ED_node_link_insert(Main *bmain, ScrArea *sa)
 {
 	bNode *node, *select;
 	SpaceNode *snode;
@@ -1873,7 +1876,7 @@ void ED_node_link_insert(ScrArea *sa)
 				snode->iofsd = iofsd;
 			}
 
-			ntreeUpdateTree(G.main, snode->edittree);   /* needed for pointers */
+			ntreeUpdateTree(bmain, snode->edittree);   /* needed for pointers */
 			snode_update(snode, select);
 			ED_node_tag_update_id(snode->id);
 		}

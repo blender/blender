@@ -165,7 +165,7 @@ void ED_node_tag_update_nodetree(Main *bmain, bNodeTree *ntree, bNode *node)
 
 	bool do_tag_update = true;
 	if (node != NULL) {
-		if (!node_connected_to_output(ntree, node)) {
+		if (!node_connected_to_output(bmain, ntree, node)) {
 			do_tag_update = false;
 		}
 	}

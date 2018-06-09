@@ -82,11 +82,11 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 		return true;
 }
 
-static void node_link_item_apply(bNode *node, NodeLinkItem *item)
+static void node_link_item_apply(Main *bmain, bNode *node, NodeLinkItem *item)
 {
 	if (node->type == NODE_GROUP) {
 		node->id = (ID *)item->ngroup;
-		ntreeUpdateTree(G.main, item->ngroup);
+		ntreeUpdateTree(bmain, item->ngroup);
 	}
 	else {
 		/* nothing to do for now */
@@ -191,6 +191,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *node_to, bNodeSocket *sock_to,
                                     int type, NodeLinkItem *item)
 {
+	Main *bmain = CTX_data_main(C);
 	bNode *node_from;
 	bNodeSocket *sock_from_tmp;
 	bNode *node_prev = NULL;
@@ -233,7 +234,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 			node_from->locy = node_to->locy - (node_from->typeinfo->height * index);
 		}
 
-		node_link_item_apply(node_from, item);
+		node_link_item_apply(bmain, node_from, item);
 	}
 
 	nodeSetActive(ntree, node_from);

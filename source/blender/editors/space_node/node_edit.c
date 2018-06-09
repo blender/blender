@@ -1102,6 +1102,7 @@ static void node_duplicate_reparent_recursive(bNode *node)
 
 static int node_duplicate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
 	bNode *node, *newnode, *lastnode;
@@ -1109,7 +1110,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
 	bool do_tag_update = false;
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 	lastnode = ntree->nodes.last;
 	for (node = ntree->nodes.first; node; node = node->next) {
@@ -1186,7 +1187,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 			node->flag &= ~NODE_ACTIVE;
 			nodeSetSelected(newnode, true);
 
-			do_tag_update |= (do_tag_update || node_connected_to_output(ntree, newnode));
+			do_tag_update |= (do_tag_update || node_connected_to_output(bmain, ntree, newnode));
 		}
 
 		/* make sure we don't copy new nodes again! */
@@ -1522,18 +1523,19 @@ void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
 
 static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	bool do_tag_update = false;
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		/* Only allow muting of nodes having a mute func! */
 		if ((node->flag & SELECT) && node->typeinfo->update_internal_links) {
 			node->flag ^= NODE_MUTED;
 			snode_update(snode, node);
-			do_tag_update |= (do_tag_update || node_connected_to_output(snode->edittree, node));
+			do_tag_update |= (do_tag_update || node_connected_to_output(bmain, snode->edittree, node));
 		}
 	}
 
@@ -1564,17 +1566,18 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 
 static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node, *next;
 	bool do_tag_update = false;
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 	for (node = snode->edittree->nodes.first; node; node = next) {
 		next = node->next;
 		if (node->flag & SELECT) {
 			/* check id user here, nodeFreeNode is called for free dbase too */
-			do_tag_update |= (do_tag_update || node_connected_to_output(snode->edittree, node));
+			do_tag_update |= (do_tag_update || node_connected_to_output(bmain, snode->edittree, node));
 			if (node->id)
 				id_us_min(node->id);
 			nodeFreeNode(snode->edittree, node);

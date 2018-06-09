@@ -431,7 +431,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 }
 
 static DerivedMesh *fluidsim_read_cache(
-        Main *bmain, Object *ob, DerivedMesh *orgdm,
+        Object *ob, DerivedMesh *orgdm,
         FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int curFrame = framenr /* - 1 */ /*scene->r.sfra*/; /* start with 0 at start frame */ 
@@ -466,7 +466,7 @@ static DerivedMesh *fluidsim_read_cache(
 	/* offset baked frame */
 	curFrame += fss->frameOffset;
 
-	BLI_path_abs(targetFile, modifier_path_relbase(bmain, ob));
+	BLI_path_abs(targetFile, modifier_path_relbase_from_global(ob));
 	BLI_path_frame(targetFile, curFrame, 0); // fixed #frame-no
 
 	/* assign material + flags to new dm
@@ -552,7 +552,7 @@ DerivedMesh *fluidsimModifier_do(
 	
 	/* try to read from cache */
 	/* if the frame is there, fine, otherwise don't do anything */
-	if ((result = fluidsim_read_cache(G.main, ob, dm, fluidmd, framenr, useRenderParams)))
+	if ((result = fluidsim_read_cache(ob, dm, fluidmd, framenr, useRenderParams)))
 		return result;
 	
 	return dm;

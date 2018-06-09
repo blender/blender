@@ -809,6 +809,18 @@ const char *modifier_path_relbase(Main *bmain, Object *ob)
 	}
 }
 
+const char *modifier_path_relbase_from_global(Object *ob)
+{
+	if (G.relbase_valid || ID_IS_LINKED(ob)) {
+		return ID_BLEND_PATH_FROM_GLOBAL(&ob->id);
+	}
+	else {
+		/* last resort, better then using "" which resolves to the current
+		 * working directory */
+		return BKE_tempdir_session();
+	}
+}
+
 /* initializes the path with either */
 void modifier_path_init(char *path, int path_maxlen, const char *name)
 {
