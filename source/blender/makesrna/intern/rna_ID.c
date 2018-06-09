@@ -156,13 +156,13 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	ID *id = (ID *)ptr->data;
-	
+
 	if (GS(id->name) == ID_VF) {
 		VFont *vfont = (VFont *)id;
 		if (BKE_vfont_is_builtin(vfont))
 			return false;
 	}
-	
+
 	return PROP_EDITABLE;
 }
 
@@ -333,7 +333,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 		if (newid) id_us_min(newid);
 		return newid;
 	}
-	
+
 	return NULL;
 }
 
@@ -817,7 +817,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "PropertyGroupItem", NULL);
 	RNA_def_struct_sdna(srna, "IDProperty");
 	RNA_def_struct_ui_text(srna, "ID Property", "Property that stores arbitrary, user defined properties");
-	
+
 	/* IDP_STRING */
 	prop = RNA_def_property(srna, "string", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT | PROP_IDPROPERTY);
@@ -903,7 +903,7 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	/* for mesh/mball/curve materials */
 	srna = RNA_def_struct(brna, "IDMaterials", NULL);
 	RNA_def_struct_sdna(srna, "ID");
@@ -1244,7 +1244,7 @@ static void rna_def_library(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Library_filepath_set");
-	
+
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Library");
 	RNA_def_property_ui_text(prop, "Parent", "");

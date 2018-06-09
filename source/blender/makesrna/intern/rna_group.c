@@ -158,7 +158,7 @@ static void rna_def_collection_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	RNA_def_property_srna(cprop, "CollectionObjects");
 	srna = RNA_def_struct(brna, "CollectionObjects", NULL);
 	RNA_def_struct_sdna(srna, "Collection");

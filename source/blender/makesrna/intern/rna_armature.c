@@ -73,13 +73,13 @@ static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value)
 	else {
 		if (value.id.data != arm) {
 			Object *ob = (Object *)value.id.data;
-			
+
 			if (GS(ob->id.name) != ID_OB || (ob->data != arm)) {
 				printf("ERROR: armature set active bone - new active doesn't come from this armature\n");
 				return;
 			}
 		}
-		
+
 		arm->act_bone = value.data;
 		arm->act_bone->flag |= BONE_SELECTED;
 	}
@@ -148,7 +148,7 @@ static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), Pointe
 static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
-	
+
 	DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
@@ -157,10 +157,10 @@ static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static void rna_Bone_update_renamed(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
-	
+
 	/* redraw view */
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
-	
+
 	/* update animation channels */
 	WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);
 }
@@ -168,7 +168,7 @@ static void rna_Bone_update_renamed(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
-	
+
 	/* 1) special updates for cases where rigs try to hook into armature drawing stuff
 	 *    e.g. Mask Modifier - 'Armature' option
 	 * 2) tag armature for copy-on-write, so that selection status (set by addons)
@@ -177,25 +177,25 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	if (id) {
 		if (GS(id->name) == ID_AR) {
 			bArmature *arm = (bArmature *)id;
-			
+
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
 				DEG_id_tag_update(id, OB_RECALC_DATA);
 			}
-			
+
 			DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
 		}
 		else if (GS(id->name) == ID_OB) {
 			Object *ob = (Object *)id;
 			bArmature *arm = (bArmature *)ob->data;
-			
+
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
 				DEG_id_tag_update(id, OB_RECALC_DATA);
 			}
-			
+
 			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 		}
 	}
-	
+
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
 	/* spaces that show animation data of the selected bone need updating */
@@ -207,7 +207,7 @@ static char *rna_Bone_path(PointerRNA *ptr)
 	ID *id = ptr->id.data;
 	Bone *bone = (Bone *)ptr->data;
 	char name_esc[sizeof(bone->name) * 2];
-	
+
 	BLI_strescape(name_esc, bone->name, sizeof(name_esc));
 
 	/* special exception for trying to get the path where ID-block is Object
@@ -218,7 +218,7 @@ static char *rna_Bone_path(PointerRNA *ptr)
 			return BLI_sprintfN("pose.bones[\"%s\"].bone", name_esc);
 		}
 	}
-	
+
 	/* from armature... */
 	return BLI_sprintfN("bones[\"%s\"]", name_esc);
 }
@@ -267,7 +267,7 @@ static void rna_bone_layer_set(int *layer, const int *values)
 	for (i = 0; i < 32; i++)
 		if (values[i])
 			tot++;
-	
+
 	if (tot == 0)
 		return;
 
@@ -281,9 +281,9 @@ static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
 {
 	bArmature *arm = (bArmature *)ptr->id.data;
 	Bone *bone = (Bone *)ptr->data;
-	
+
 	rna_bone_layer_set(&bone->layer, values);
-	
+
 	arm->layer_used = 0;
 	rna_Armature_layer_used_refresh(arm, &arm->bonebase);
 }
@@ -297,7 +297,7 @@ static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
 	for (i = 0; i < 32; i++)
 		if (values[i])
 			tot++;
-	
+
 	if (tot == 0)
 		return;
 
@@ -336,11 +336,11 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 	bArmature *arm = (bArmature *)ptr->id.data;
 	EditBone *ebone = (EditBone *)ptr->data;
 	char oldname[sizeof(ebone->name)], newname[sizeof(ebone->name)];
-	
+
 	/* need to be on the stack */
 	BLI_strncpy_utf8(newname, value, sizeof(ebone->name));
 	BLI_strncpy(oldname, ebone->name, sizeof(ebone->name));
-	
+
 	ED_armature_bone_rename(G.main, arm, oldname, newname);
 }
 
@@ -349,7 +349,7 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 	bArmature *arm = (bArmature *)ptr->id.data;
 	Bone *bone = (Bone *)ptr->data;
 	char oldname[sizeof(bone->name)], newname[sizeof(bone->name)];
-	
+
 	/* need to be on the stack */
 	BLI_strncpy_utf8(newname, value, sizeof(bone->name));
 	BLI_strncpy(oldname, bone->name, sizeof(bone->name));
@@ -415,7 +415,7 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 		/* make sure this is a valid child */
 		if (parbone == ebone)
 			return;
-			
+
 		for (pbone = parbone->parent; pbone; pbone = pbone->parent)
 			if (pbone == ebone)
 				return;
@@ -442,7 +442,7 @@ static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, Po
 	bArmature *arm = (bArmature *)ptr->id.data;
 	EditBone *ebone = (EditBone *)ptr->data;
 	EditBone *child, *eboflip;
-	
+
 	/* update our parent */
 	if (ebone->parent && ebone->flag & BONE_CONNECTED)
 		copy_v3_v3(ebone->parent->tail, ebone->head);
@@ -460,11 +460,11 @@ static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, Po
 
 			eboflip->head[0] = -ebone->head[0];
 			eboflip->tail[0] = -ebone->tail[0];
-			
+
 			/* update our parent */
 			if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
 				copy_v3_v3(eboflip->parent->tail, eboflip->head);
-			
+
 			/* update our children if necessary */
 			for (child = arm->edbo->first; child; child = child->next)
 				if (child->parent == eboflip && (child->flag & BONE_CONNECTED))
@@ -522,48 +522,48 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 		else                                                                       \
 			RNA_def_property_update(prop, 0, "rna_Armature_update_data");          \
 	} (void)0;
-	
+
 	PropertyRNA *prop;
-	
+
 	/* Roll In/Out */
 	prop = RNA_def_property(srna, "bbone_rollin", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "roll1");
 	RNA_def_property_range(prop, -M_PI * 2.0, M_PI * 2.0);
 	RNA_def_property_ui_text(prop, "Roll In", "Roll offset for the start of the B-Bone, adjusts twist");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 	prop = RNA_def_property(srna, "bbone_rollout", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "roll2");
 	RNA_def_property_range(prop, -M_PI * 2.0, M_PI * 2.0);
 	RNA_def_property_ui_text(prop, "Roll Out", "Roll offset for the end of the B-Bone, adjusts twist");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 	if (is_posebone == false) {
 		prop = RNA_def_property(srna, "use_endroll_as_inroll", PROP_BOOLEAN, PROP_NONE);
 		RNA_def_property_ui_text(prop, "Inherit End Roll", "Use Roll Out of parent bone as Roll In of its children");
 		RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ADD_PARENT_END_ROLL);
 		RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	}
-	
+
 	/* Curve X/Y Offsets */
 	prop = RNA_def_property(srna, "bbone_curveinx", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "curveInX");
 	RNA_def_property_range(prop, -5.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "In X", "X-axis handle offset for start of the B-Bone's curve, adjusts curvature");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 	prop = RNA_def_property(srna, "bbone_curveiny", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "curveInY");
 	RNA_def_property_range(prop, -5.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "In Y", "Y-axis handle offset for start of the B-Bone's curve, adjusts curvature");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 	prop = RNA_def_property(srna, "bbone_curveoutx", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "curveOutX");
 	RNA_def_property_range(prop, -5.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Out X", "X-axis handle offset for end of the B-Bone's curve, adjusts curvature");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 	prop = RNA_def_property(srna, "bbone_curveouty", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "curveOutY");
 	RNA_def_property_range(prop, -5.0f, 5.0f);
@@ -577,7 +577,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Ease In", "Length of first Bezier Handle (for B-Bones only)");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 	prop = RNA_def_property(srna, "bbone_easeout", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ease2");
 	RNA_def_property_range(prop, -5.0f, 5.0f);
@@ -592,14 +592,14 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Scale In", "Scale factor for start of the B-Bone, adjusts thickness (for tapering effects)");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 	prop = RNA_def_property(srna, "bbone_scaleout", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scaleOut");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Scale Out", "Scale factor for end of the B-Bone, adjusts thickness (for tapering effects)");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
-	
+
 #undef RNA_DEF_CURVEBONE_UPDATE
 }
 
@@ -631,23 +631,23 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Connected", "When bone has a parent, bone's head is stuck to the parent's tail");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "use_inherit_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_HINGE);
 	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone inherits rotation or scale from parent bone");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "use_envelope_multiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_MULT_VG_ENV);
 	RNA_def_property_ui_text(prop, "Multiply Vertex Group with Envelope",
 	                         "When deforming bone, multiply effects of Vertex Group weights with Envelope influence");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "use_deform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_DEFORM);
 	RNA_def_property_ui_text(prop, "Deform", "Enable Bone to deform geometry");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "use_inherit_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Inherit Scale", "Bone inherits scaling from parent bone");
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_SCALE);
@@ -657,19 +657,19 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Local Location", "Bone location is set in local space");
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_LOCAL_LOCATION);
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "use_relative_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Relative Parenting", "Object children will use relative transform, like deform");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_RELATIVE_PARENTING);
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "show_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_DRAWWIRE);
 	RNA_def_property_ui_text(prop, "Draw Wire",
 	                         "Bone is always drawn as Wireframe regardless of viewport draw mode "
 	                         "(useful for non-obstructive custom bone shapes)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+
 	/* XXX: use_cyclic_offset is deprecated in 2.5. May/may not return */
 	prop = RNA_def_property(srna, "use_cyclic_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_CYCLICOFFSET);
@@ -677,7 +677,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	                         "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)");
 	//                         "When bone doesn't have a parent, it receives cyclic offset effects");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_UNSELECTABLE);
 	RNA_def_property_ui_text(prop, "Selectable", "Bone is able to be selected");
@@ -690,13 +690,13 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Envelope Deform Distance", "Bone deformation distance (for Envelope deform only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "envelope_weight", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Envelope Deform Weight", "Bone deformation weight (for Envelope deform only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "head_radius", PROP_FLOAT, PROP_UNSIGNED);
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
@@ -705,7 +705,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	/*RNA_def_property_range(prop, 0, 1000); */
 	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Head Radius", "Radius of head of bone (for Envelope deform only)");
-	
+
 	prop = RNA_def_property(srna, "tail_radius", PROP_FLOAT, PROP_UNSIGNED);
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
@@ -714,20 +714,20 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	/*RNA_def_property_range(prop, 0, 1000); */
 	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Tail Radius", "Radius of tail of bone (for Envelope deform only)");
-	
+
 	/* b-bones deform settings */
 	prop = RNA_def_property(srna, "bbone_segments", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "segments");
 	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "B-Bone Segments", "Number of subdivisions of bone (for B-Bones only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "bbone_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xwidth");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "B-Bone Display X Width", "B-Bone X size");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "bbone_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "zwidth");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
@@ -740,13 +740,13 @@ static void rna_def_bone(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "Bone", NULL);
 	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature data-block");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	RNA_def_struct_path_func(srna, "rna_Bone_path");
 	RNA_def_struct_idprops_func(srna, "rna_Bone_idprops");
-	
+
 	/* pointers/collections */
 	/* parent (pointer) */
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
@@ -755,7 +755,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_ui_text(prop, "Parent", "Parent bone (in same Armature)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+
 	/* children (collection) */
 	prop = RNA_def_property(srna, "children", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "childbase", NULL);
@@ -779,13 +779,13 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* XXX: review whether this could be used for interesting effects... */
 	RNA_def_property_update(prop, 0, "rna_Bone_select_update");
-	
+
 	prop = RNA_def_property(srna, "select_head", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
 	RNA_def_property_ui_text(prop, "Select Head", "");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+
 	prop = RNA_def_property(srna, "select_tail", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
 	RNA_def_property_ui_text(prop, "Select Tail", "");
@@ -840,13 +840,13 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "EditBone", NULL);
 	RNA_def_struct_sdna(srna, "EditBone");
 	RNA_def_struct_idprops_func(srna, "rna_EditBone_idprops");
 	RNA_def_struct_ui_text(srna, "Edit Bone", "Editmode bone in an Armature data-block");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
-	
+
 	RNA_define_verify_sdna(0); /* not in sdna */
 
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
@@ -855,7 +855,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent edit bone (in same Armature)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+
 	prop = RNA_def_property(srna, "roll", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "roll");
 	RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 10, 2);
@@ -903,7 +903,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Head Select", "");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+
 	prop = RNA_def_property(srna, "select_tail", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
 	RNA_def_property_ui_text(prop, "Tail Select", "");
@@ -1027,7 +1027,7 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_RESTPOS, "REST", 0, "Rest Position", "Show Armature in binding pose state (no posing possible)"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	srna = RNA_def_struct(brna, "Armature", "ID");
 	RNA_def_struct_ui_text(srna, "Armature",
 	                       "Armature data-block containing a hierarchy of bones, usually used for rigging characters");
@@ -1042,7 +1042,7 @@ static void rna_def_armature(BlenderRNA *brna)
 
 	/* Animation Data */
 	rna_def_animdata_common(srna);
-	
+
 	/* Collections */
 	prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bonebase", NULL);
@@ -1064,7 +1064,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pose Position", "Show armature in binding pose or final posed state");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
@@ -1090,7 +1090,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Armature_update_layers");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	/* layer protection */
 	prop = RNA_def_property(srna, "layers_protected", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer_protected", 1);
@@ -1099,47 +1099,47 @@ static void rna_def_armature(BlenderRNA *brna)
 	                         "Protected layers in Proxy Instances are restored to Proxy settings "
 	                         "on file reload and undo");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-		
+
 	/* flag */
 	prop = RNA_def_property(srna, "show_axes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWAXES);
 	RNA_def_property_ui_text(prop, "Draw Axes", "Draw bone axes");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWNAMES);
 	RNA_def_property_ui_text(prop, "Draw Names", "Draw bone names");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "use_deform_delay", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DELAYDEFORM);
 	RNA_def_property_ui_text(prop, "Delay Deform", "Don't deform children when manipulating bones in Pose Mode");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
+
 	prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_MIRROR_EDIT);
 	RNA_def_property_ui_text(prop, "X-Axis Mirror", "Apply changes to matching bone on opposite side of X-Axis");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "use_auto_ik", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_AUTO_IK);
 	RNA_def_property_ui_text(prop, "Auto IK", "Add temporary IK constraints while grabbing bones in Pose Mode");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "show_bone_custom_shapes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ARM_NO_CUSTOM);
 	RNA_def_property_ui_text(prop, "Draw Custom Bone Shapes", "Draw bones with their custom shapes");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+
 	prop = RNA_def_property(srna, "show_group_colors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_COL_CUSTOM);
 	RNA_def_property_ui_text(prop, "Draw Bone Group Colors", "Draw bone group colors");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+
 /* XXX deprecated ....... old animviz for armatures only */
 	prop = RNA_def_property(srna, "show_only_ghost_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
@@ -1159,7 +1159,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	                         "(only for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "ghost_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsize");
 	RNA_def_property_range(prop, 1, 20);
@@ -1167,7 +1167,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	                         "Frame step for Ghosts (not for 'On Keyframes' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "ghost_frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_start_frame_set", NULL);
@@ -1176,7 +1176,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	                         "'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
+
 	prop = RNA_def_property(srna, "ghost_frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_end_frame_set", NULL);

@@ -177,7 +177,7 @@ static int rna_SequenceEditor_elements_length(PointerRNA *ptr)
 
 	/* Hack? copied from sequencer.c::reload_sequence_new_file() */
 	size_t olen = MEM_allocN_len(seq->strip->stripdata) / sizeof(struct StripElem);
-	
+
 	/* the problem with seq->strip->len and seq->len is that it's discounted from the offset (hard cut trim) */
 	return (int) olen;
 }
@@ -232,7 +232,7 @@ static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq = (Sequence *)ptr->data;
 	Scene *scene = (Scene *)ptr->id.data;
-	
+
 	BKE_sequence_translate(scene, seq, value - seq->start);
 	do_sequence_frame_change_update(scene, seq);
 }
@@ -283,7 +283,7 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq = (Sequence *)ptr->data;
 	Scene *scene = (Scene *)ptr->id.data;
-	
+
 	BKE_sequence_tx_set_final_right(seq, BKE_sequence_tx_get_final_left(seq, false) + value);
 	do_sequence_frame_change_update(scene, seq);
 }
@@ -307,7 +307,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 	Scene *scene = (Scene *)ptr->id.data;
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	ListBase *seqbase = BKE_sequence_seqbase(&ed->seqbase, seq);
-	
+
 	/* check channel increment or decrement */
 	const int channel_delta = (value >= seq->machine) ? 1 : -1;
 	seq->machine = value;
@@ -480,16 +480,16 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	Sequence *seq = (Sequence *)ptr->data;
 	char oldname[sizeof(seq->name)];
 	AnimData *adt;
-	
+
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, seq->name + 2, sizeof(seq->name) - 2);
-	
+
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(seq->name + 2, value, sizeof(seq->name) - 2);
-	
+
 	/* make sure the name is unique */
 	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
-	
+
 	/* fix all the animation data which may link to this */
 
 	/* don't rename everywhere because these are per scene */
@@ -562,7 +562,7 @@ static StructRNA *rna_Sequence_refine(struct PointerRNA *ptr)
 static char *rna_Sequence_path(PointerRNA *ptr)
 {
 	Sequence *seq = (Sequence *)ptr->data;
-	
+
 	/* sequencer data comes from scene...
 	 * TODO: would be nice to make SequenceEditor data a data-block of its own (for shorter paths)
 	 */
@@ -1121,11 +1121,11 @@ static void rna_def_strip_element(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "SequenceElement", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Element", "Sequence strip data for a single frame");
 	RNA_def_struct_sdna(srna, "StripElem");
-	
+
 	prop = RNA_def_property(srna, "filename", PROP_STRING, PROP_FILENAME);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "Name of the source file");
@@ -1146,7 +1146,7 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "SequenceCrop", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Crop", "Cropping parameters for a sequence strip");
 	RNA_def_struct_sdna(srna, "StripCrop");
@@ -1156,13 +1156,13 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Top", "Number of pixels to crop from the top");
 	RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
-	
+
 	prop = RNA_def_property(srna, "min_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "bottom");
 	RNA_def_property_ui_text(prop, "Bottom", "Number of pixels to crop from the bottom");
 	RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
-	
+
 	prop = RNA_def_property(srna, "min_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "left");
 	RNA_def_property_ui_text(prop, "Left", "Number of pixels to crop from the left side");
@@ -1182,7 +1182,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "SequenceTransform", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Transform", "Transform parameters for a sequence strip");
 	RNA_def_struct_sdna(srna, "StripTransform");
@@ -1222,16 +1222,16 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 		                                        "changes in framerate or dropouts"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Proxy", "Proxy parameters for a sequence strip");
 	RNA_def_struct_sdna(srna, "StripProxy");
-	
+
 	prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "dir");
 	RNA_def_property_ui_text(prop, "Directory", "Location to store the proxy files");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceProxy_update");
-	
+
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "Path", "Location of custom proxy file");
 	RNA_def_property_string_funcs(prop, "rna_Sequence_proxy_filepath_get", "rna_Sequence_proxy_filepath_length",
@@ -1464,7 +1464,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor");
 	RNA_def_struct_refine_func(srna, "rna_Sequence_refine");
@@ -1529,7 +1529,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Length",
 	                         "The length of the contents of this strip before the handles are applied");
-	
+
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1537,7 +1537,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_set", NULL); /* overlap tests and calc_seq_disp */
 	RNA_def_property_editable_func(prop, "rna_Sequence_frame_editable");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "frame_final_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startdisp");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1579,14 +1579,14 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Still", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
-	
+
 	prop = RNA_def_property(srna, "frame_still_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endstill");
 //	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Still", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
-	
+
 	prop = RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
 	RNA_def_property_range(prop, 1, MAXSEQ);
@@ -1606,14 +1606,14 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, blend_mode_items);
 	RNA_def_property_ui_text(prop, "Blend Mode", "Method for controlling how the strip combines with other strips");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "blend_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Blend Opacity", "Percentage of how much the strip's colors affect other strips");
 	/* stupid 0-100 -> 0-1 */
 	RNA_def_property_float_funcs(prop, "rna_Sequence_opacity_get", "rna_Sequence_opacity_set", NULL);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "effect_fader", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
@@ -1627,7 +1627,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	                         "Fade effect using the built-in default (usually make transition as long as "
 	                         "effect strip)");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 
 	prop = RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "speed_fader");
@@ -1679,7 +1679,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip");
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_SequenceEditor_meta_stack_get",
 	                                  NULL, NULL, NULL, NULL);
-	
+
 	prop = RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -1884,7 +1884,7 @@ static void rna_def_image(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "ImageSequence", "Sequence");
 	RNA_def_struct_ui_text(srna, "Image Sequence", "Sequence strip to load one or more images");
 	RNA_def_struct_sdna(srna, "Sequence");
@@ -1931,7 +1931,7 @@ static void rna_def_meta(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "MetaSequence", "Sequence");
 	RNA_def_struct_ui_text(srna, "Meta Sequence", "Sequence strip to group other strips as a single sequence strip");
 	RNA_def_struct_sdna(srna, "Sequence");
@@ -1950,7 +1950,7 @@ static void rna_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "SceneSequence", "Sequence");
 	RNA_def_struct_ui_text(srna, "Scene Sequence", "Sequence strip to used the rendered image of a scene");
 	RNA_def_struct_sdna(srna, "Sequence");
@@ -2057,7 +2057,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "MovieClipSequence", "Sequence");
 	RNA_def_struct_ui_text(srna, "MovieClip Sequence", "Sequence strip to load a video from the clip editor");
 	RNA_def_struct_sdna(srna, "Sequence");
@@ -2101,7 +2101,7 @@ static void rna_def_sound(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "SoundSequence", "Sequence");
 	RNA_def_struct_ui_text(srna, "Sound Sequence",
 	                       "Sequence strip defining a sound to be played over a period of time");
@@ -2140,7 +2140,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_AUDIO_DRAW_WAVEFORM);
 	RNA_def_property_ui_text(prop, "Draw Waveform", "Whether to draw the sound's waveform");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
-	
+
 	rna_def_input(srna);
 }
 
@@ -2160,7 +2160,7 @@ static void rna_def_effect(BlenderRNA *brna)
 static void rna_def_multicam(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
+
 	prop = RNA_def_property(srna, "multicam_source", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "multicam_source");
 	RNA_def_property_range(prop, 0, MAXSEQ - 1);
@@ -2173,7 +2173,7 @@ static void rna_def_multicam(StructRNA *srna)
 static void rna_def_wipe(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
+
 	static const EnumPropertyItem wipe_type_items[] = {
 		{0, "SINGLE", 0, "Single", ""},
 		{1, "DOUBLE", 0, "Double", ""},
@@ -2209,7 +2209,7 @@ static void rna_def_wipe(StructRNA *srna)
 	RNA_def_property_enum_items(prop, wipe_direction_items);
 	RNA_def_property_ui_text(prop, "Direction", "Wipe direction");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "transition_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "wipetype");
 	RNA_def_property_enum_items(prop, wipe_type_items);
@@ -2223,37 +2223,37 @@ static void rna_def_glow(StructRNA *srna)
 	PropertyRNA *prop;
 
 	RNA_def_struct_sdna_from(srna, "GlowVars", "effectdata");
-	
+
 	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fMini");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Minimum intensity to trigger a glow");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "clamp", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fClamp");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clamp", "Brightness limit of intensity");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "boost_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fBoost");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Boost Factor", "Brightness multiplier");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "blur_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dDist");
 	RNA_def_property_range(prop, 0.5f, 20.0f);
 	RNA_def_property_ui_text(prop, "Blur Distance", "Radius of glow effect");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dQuality");
 	RNA_def_property_range(prop, 1, 5);
 	RNA_def_property_ui_text(prop, "Quality", "Accuracy of the blur effect");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "use_only_boost", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bNoComp", 0);
 	RNA_def_property_ui_text(prop, "Only Boost", "Show the glow buffer only");
@@ -2284,43 +2284,43 @@ static void rna_def_transform(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Scale X", "Amount to scale the input in the X axis");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "scale_start_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScaleyIni");
 	RNA_def_property_ui_text(prop, "Scale Y", "Amount to scale the input in the Y axis");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "use_uniform_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uniform_scale", 0);
 	RNA_def_property_ui_text(prop, "Uniform Scale", "Scale uniformly, preserving aspect ratio");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "translate_start_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xIni");
 	RNA_def_property_ui_text(prop, "Translate X", "Amount to move the input on the X axis");
 	RNA_def_property_ui_range(prop, -4000.0f, 4000.0f, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "translate_start_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yIni");
 	RNA_def_property_ui_text(prop, "Translate Y", "Amount to move the input on the Y axis");
 	RNA_def_property_ui_range(prop, -4000.0f, 4000.0f, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "rotation_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotIni");
 	RNA_def_property_range(prop, -360.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation", "Degrees to rotate the input");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "translation_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "percent");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not meant to be animated */
 	RNA_def_property_enum_items(prop, translation_unit_items);
 	RNA_def_property_ui_text(prop, "Translation Unit", "Unit of measure to translate the input");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, interpolation_items);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not meant to be animated */
@@ -2352,7 +2352,7 @@ static void rna_def_speed_control(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Multiply Speed", "Multiply the resulting speed after the speed factor");
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
 	prop = RNA_def_property(srna, "use_as_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_INTEGRATE);
 	RNA_def_property_ui_text(prop, "Use as speed", "Interpret the value as speed instead of a frame number");

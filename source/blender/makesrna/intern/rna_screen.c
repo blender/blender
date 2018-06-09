@@ -394,10 +394,10 @@ static void rna_def_view2d_api(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	static const float view_default[2] = {0.0f, 0.0f};
 	static const int region_default[2] = {0.0f, 0.0f};
-	
+
 	func = RNA_def_function(srna, "region_to_view", "rna_View2D_region_to_view");
 	RNA_def_function_ui_description(func, "Transform region coordinates to 2D view");
 	parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "x", "Region x coordinate", -10000, 10000);
@@ -428,9 +428,9 @@ static void rna_def_view2d(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "View2D", NULL);
 	RNA_def_struct_ui_text(srna, "View2D", "Scroll and zoom for a 2D region");
 	RNA_def_struct_sdna(srna, "View2D");
-	
+
 	/* TODO more View2D properties could be exposed here (read-only) */
-	
+
 	rna_def_view2d_api(srna);
 }
 

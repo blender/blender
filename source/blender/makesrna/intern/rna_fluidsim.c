@@ -125,7 +125,7 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *psys, *next_psys;
 	ParticleSettings *part;
-	
+
 	fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 	fluidmd->fss->flag &= ~OB_FLUIDSIM_REVERSE; /* clear flag */
 
@@ -243,7 +243,7 @@ static void rna_def_fluid_mesh_vertices(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "FluidVertexVelocity", NULL);
 	RNA_def_struct_ui_text(srna, "Fluid Mesh Velocity", "Velocity of a simulated fluid mesh");
 	RNA_def_struct_ui_icon(srna, ICON_VERTEXSEL);
@@ -279,7 +279,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "threads");
 	RNA_def_property_range(prop, 0, BLENDER_MAX_THREADS);
 	RNA_def_property_ui_text(prop, "Simulation Threads", "Override number of threads for the simulation, 0 is automatic");
-	
+
 	prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolutionxyz");
 	RNA_def_property_range(prop, 1, 1024);
@@ -327,32 +327,32 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -1000.1, 1000.1);
 	RNA_def_property_ui_text(prop, "Gravity", "Gravity in X, Y and Z direction");
-	
+
 	prop = RNA_def_property(srna, "use_time_override", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_OVERRIDE_TIME);
 	RNA_def_property_ui_text(prop, "Override Time",
 	                         "Use a custom start and end time (in seconds) instead of the scene's timeline");
-	
+
 	prop = RNA_def_property(srna, "start_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animStart");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Start Time", "Simulation time of the first blender frame (in seconds)");
-	
+
 	prop = RNA_def_property(srna, "end_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animEnd");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "End Time", "Simulation time of the last blender frame (in seconds)");
-	
+
 	prop = RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frameOffset");
 	RNA_def_property_ui_text(prop, "Cache Offset", "Offset when reading baked cache");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_fluid_update");
-	
+
 	prop = RNA_def_property(srna, "simulation_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "realsize");
 	RNA_def_property_range(prop, 0.001, 10);
 	RNA_def_property_ui_text(prop, "Real World Size", "Size of the simulation domain in meters");
-	
+
 	prop = RNA_def_property(srna, "simulation_rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "animRate");
 	RNA_def_property_range(prop, 0.0, 100.0);
@@ -431,7 +431,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_text(prop, "Generate Particles", "Amount of particles to generate (0=off, 1=normal, >1=more)");
-	
+
 	/* simulated fluid mesh data */
 	prop = RNA_def_property(srna, "fluid_mesh_vertices", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "meshVelocities", "totvert");
@@ -471,7 +471,7 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 static void rna_def_fluidsim_active(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
+
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_ACTIVE);
 	RNA_def_property_ui_text(prop, "Enabled", "Object contributes to the fluid simulation");
@@ -489,7 +489,7 @@ static void rna_def_fluidsim_fluid(BlenderRNA *brna)
 
 	rna_def_fluidsim_active(srna);
 	rna_def_fluidsim_volume(srna);
-	
+
 	prop = RNA_def_property(srna, "initial_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "iniVelx");
 	RNA_def_property_array(prop, 3);
@@ -615,12 +615,12 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	                       "Fluid simulation settings for objects controlling the motion of fluid in the simulation");
 
 	rna_def_fluidsim_active(srna);
-	
+
 	prop = RNA_def_property(srna, "start_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "cpsTimeStart");
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Start Time", "Time when the control particles are activated");
-	
+
 	prop = RNA_def_property(srna, "end_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "cpsTimeEnd");
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
@@ -636,7 +636,7 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "attractforceRadius");
 	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_text(prop, "Attraction Radius", "Force field radius around the control object");
-	
+
 	prop = RNA_def_property(srna, "velocity_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "velocityforceStrength");
 	RNA_def_property_range(prop, 0.0, 10.0);

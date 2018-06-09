@@ -175,7 +175,7 @@ static char *rna_ImageUser_path(PointerRNA *ptr)
 {
 	if (ptr->id.data) {
 		/* ImageUser *iuser = ptr->data; */
-		
+
 		switch (GS(((ID *)ptr->id.data)->name)) {
 			case ID_OB:
 			case ID_TE:
@@ -190,7 +190,7 @@ static char *rna_ImageUser_path(PointerRNA *ptr)
 				break;
 		}
 	}
-	
+
 	return BLI_strdup("");
 }
 
@@ -200,7 +200,7 @@ static const EnumPropertyItem *rna_Image_source_itemf(bContext *UNUSED(C), Point
 	Image *ima = (Image *)ptr->data;
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
-	
+
 	if (ima->source == IMA_SRC_VIEWER) {
 		RNA_enum_items_add_value(&item, &totitem, image_source_items, IMA_SRC_VIEWER);
 	}
@@ -304,7 +304,7 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	ImBuf *ibuf;
 	void *lock;
 	int planes;
-	
+
 	ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
 
 	if (!ibuf)
@@ -705,7 +705,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_fields_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	
+
 
 	prop = RNA_def_property(srna, "use_view_as_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
@@ -756,7 +756,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Generated Type", "Generated image type");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	
+
 	prop = RNA_def_property(srna, "generated_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_x");
 	RNA_def_property_flag(prop, PROP_PROPORTIONAL);
@@ -764,7 +764,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Generated Width", "Generated image width");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	
+
 	prop = RNA_def_property(srna, "generated_height", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_y");
 	RNA_def_property_flag(prop, PROP_PROPORTIONAL);
@@ -772,7 +772,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Generated Height", "Generated image height");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	
+
 	prop = RNA_def_property(srna, "use_generated_float", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gen_flag", IMA_GEN_FLOAT);
 	RNA_def_property_ui_text(prop, "Float Buffer", "Generate floating point buffer");

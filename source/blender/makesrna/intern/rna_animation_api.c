@@ -52,13 +52,13 @@ static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList
 {
 	/* TODO: enable access to providing a list of overrides (dsources)? */
 	int success = ANIM_validate_keyingset(C, NULL, ks);
-	
+
 	if (success != 0) {
 		switch (success) {
 			case MODIFYKEY_INVALID_CONTEXT:
 				BKE_report(reports, RPT_ERROR, "Invalid context for keying set");
 				break;
-				
+
 			case MODIFYKEY_MISSING_TYPEINFO:
 				BKE_report(reports, RPT_ERROR, "Incomplete built-in keying set, appears to be missing type info");
 				break;
@@ -72,7 +72,7 @@ void RNA_api_keyingset(StructRNA *srna)
 {
 	FunctionRNA *func;
 	/*PropertyRNA *parm; */
-	
+
 	/* validate relative Keying Set (used to ensure paths are ok for context) */
 	func = RNA_def_function(srna, "refresh", "rna_KeyingSet_context_refresh");
 	RNA_def_function_ui_description(func,

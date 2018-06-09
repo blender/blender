@@ -291,7 +291,7 @@ static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
 
 	if (!et)
 		return;
-	
+
 	RNA_struct_free_extension(type, &et->ext);
 	RNA_struct_free(&BLENDER_RNA, type);
 	BLI_freelinkN(&R_engines, et);
@@ -332,7 +332,7 @@ static StructRNA *rna_RenderEngine_register(
 			break;
 		}
 	}
-	
+
 	/* create a new engine type */
 	et = MEM_callocN(sizeof(RenderEngineType), "python render engine");
 	memcpy(et, &dummyet, sizeof(dummyet));
@@ -790,7 +790,7 @@ static void rna_def_render_result(BlenderRNA *brna)
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	srna = RNA_def_struct(brna, "RenderResult", NULL);
 	RNA_def_struct_ui_text(srna, "Render Result", "Result of rendering, including all layers and passes");
 
@@ -890,7 +890,7 @@ static void rna_def_render_layer(BlenderRNA *brna)
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	srna = RNA_def_struct(brna, "RenderLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Render Layer", "");
 

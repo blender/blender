@@ -1447,12 +1447,12 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 		else
 			saction->action = NULL;
 	}
-	
+
 	/* Collapse summary channel and hide channel list for timeline */
 	if (saction->mode == SACTCONT_TIMELINE) {
 		saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
 	}
-	
+
 	if (sa && sa->spacedata.first == saction) {
 		ARegion *channels_region = BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
 		if (channels_region) {
@@ -1465,7 +1465,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 			ED_region_visibility_change_update(C, channels_region);
 		}
 	}
-	
+
 	/* recalculate extents of channel list */
 	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 }
@@ -3637,7 +3637,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, autosnap_items);
 	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
-	
+
 	/* displaying cache status */
 	prop = RNA_def_property(srna, "show_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_DISPLAY);

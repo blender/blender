@@ -98,7 +98,7 @@ static int rna_Operator_is_repeat(wmOperator *op, bContext *C)
 static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 {
 	WM_enum_search_invoke(C, op, NULL);
-	
+
 }
 
 static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
@@ -202,8 +202,9 @@ static int rna_Operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 	return WM_operator_props_popup(C, op, event);
 }
 
-static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, const char *idname, int type, int value,
-                                         int any, int shift, int ctrl, int alt, int oskey, int keymodifier, int head)
+static wmKeyMapItem *rna_KeyMap_item_new(
+        wmKeyMap *km, ReportList *reports, const char *idname, int type, int value,
+        int any, int shift, int ctrl, int alt, int oskey, int keymodifier, int head)
 {
 /*	wmWindowManager *wm = CTX_wm_manager(C); */
 	wmKeyMapItem *kmi = NULL;
@@ -224,24 +225,25 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, cons
 	if (oskey) modifier |= KM_OSKEY;
 
 	if (any) modifier = KM_ANY;
-	
+
 	/* create keymap item */
 	kmi = WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier);
-	
-	/* [#32437] allow scripts to define hotkeys that get added to start of keymap 
+
+	/* [#32437] allow scripts to define hotkeys that get added to start of keymap
 	 *          so that they stand a chance against catch-all defines later on
 	 */
 	if (head) {
 		BLI_remlink(&km->items, kmi);
 		BLI_addhead(&km->items, kmi);
 	}
-	
+
 	return kmi;
 }
 
-static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km, ReportList *reports, const char *propvalue_str,
-                                               int type, int value, int any, int shift, int ctrl, int alt,
-                                               int oskey, int keymodifier)
+static wmKeyMapItem *rna_KeyMap_item_new_modal(
+        wmKeyMap *km, ReportList *reports, const char *propvalue_str,
+        int type, int value, int any, int shift, int ctrl, int alt,
+        int oskey, int keymodifier)
 {
 	int modifier = 0;
 	int propvalue = 0;
@@ -694,7 +696,7 @@ void RNA_api_operator(StructRNA *srna)
 
 	parm = RNA_def_boolean(func, "result", 0, "result", ""); /* better name? */
 	RNA_def_function_return(func, parm);
-	
+
 	/* invoke */
 	func = RNA_def_function(srna, "invoke", NULL);
 	RNA_def_function_ui_description(func, "Invoke the operator");
@@ -822,7 +824,7 @@ void RNA_api_keymapitems(StructRNA *srna)
 	RNA_def_boolean(func, "alt", 0, "Alt", "");
 	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
 	RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
-	RNA_def_boolean(func, "head", 0, "At Head", 
+	RNA_def_boolean(func, "head", 0, "At Head",
 	                "Force item to be added at start (not end) of key map so that "
 	                "it doesn't get blocked by an existing key map item");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
@@ -844,7 +846,7 @@ void RNA_api_keymapitems(StructRNA *srna)
 	RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
 	RNA_def_function_return(func, parm);
-	
+
 	func = RNA_def_function(srna, "remove", "rna_KeyMap_item_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");

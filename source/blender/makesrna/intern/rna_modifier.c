@@ -427,19 +427,19 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md = ptr->data;
 	char oldname[sizeof(md->name)];
-	
+
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, md->name, sizeof(md->name));
-	
+
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(md->name, value, sizeof(md->name));
-	
+
 	/* make sure the name is truly unique */
 	if (ptr->id.data) {
 		Object *ob = ptr->id.data;
 		modifier_unique_name(&ob->modifiers, md);
 	}
-	
+
 	/* fix all the animation data which may link to this */
 	BKE_animdata_fix_paths_rename_all(NULL, "modifiers", oldname, md->name);
 }
@@ -697,7 +697,7 @@ static int rna_ShrinkwrapModifier_face_cull_get(PointerRNA *ptr)
 static void rna_ShrinkwrapModifier_face_cull_set(struct PointerRNA *ptr, int value)
 {
 	ShrinkwrapModifierData *swm = (ShrinkwrapModifierData *)ptr->data;
-	
+
 	swm->shrinkOpts =
 	    (swm->shrinkOpts & ~(MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE | MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)) | value;
 }
@@ -738,27 +738,27 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
 static void rna_OceanModifier_init_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
-	
+
 	omd->refresh |= (MOD_OCEAN_REFRESH_RESET | MOD_OCEAN_REFRESH_SIM | MOD_OCEAN_REFRESH_CLEAR_CACHE);
-	
+
 	rna_Modifier_update(bmain, scene, ptr);
 }
 
 static void rna_OceanModifier_sim_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
-	
+
 	omd->refresh |= MOD_OCEAN_REFRESH_SIM;
-	
+
 	rna_Modifier_update(bmain, scene, ptr);
 }
 
 static void rna_OceanModifier_topology_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
-	
+
 	omd->refresh |= MOD_OCEAN_REFRESH_TOPOLOGY;
-	
+
 	rna_Modifier_update(bmain, scene, ptr);
 }
 
@@ -766,9 +766,9 @@ static void rna_OceanModifier_ocean_chop_set(PointerRNA *ptr, float value)
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
 	float old_value = omd->chop_amount;
-	
+
 	omd->chop_amount = value;
-	
+
 	if ((old_value == 0.0f && value > 0.0f) ||
 	    (old_value > 0.0f && value == 0.0f))
 	{
@@ -1243,7 +1243,7 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_ControlEdges);
 	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "use_subsurf_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_SubsurfUv);
 	RNA_def_property_ui_text(prop, "Subdivide UVs", "Use subsurf to subdivide UVs");
@@ -1429,7 +1429,7 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 	                         "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_LatticeModifier_name_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 10, 2);
@@ -1503,7 +1503,7 @@ static void rna_def_modifier_build(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_BUILD_FLAG_REVERSE);
 	RNA_def_property_ui_text(prop, "Reversed", "Deconstruct the mesh instead of building it");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "use_random_order", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_BUILD_FLAG_RANDOMIZE);
 	RNA_def_property_ui_text(prop, "Randomize", "Randomize the faces or edges during build");
@@ -1549,7 +1549,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_VGROUP);
 	RNA_def_property_ui_text(prop, "Mirror Vertex Groups", "Mirror vertex groups (e.g. .R->.L)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "use_mirror_merge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MOD_MIR_NO_MERGE);
 	RNA_def_property_ui_text(prop, "Merge Vertices", "Merge vertices within the merge threshold");
@@ -1867,7 +1867,7 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_VGROUP);
 	RNA_def_property_ui_text(prop, "Use Vertex Groups", "Bind vertex groups to armature modifier");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "use_deform_preserve_volume", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_QUATERNION);
 	RNA_def_property_ui_text(prop, "Preserve Volume", "Deform rotation interpolation with quaternions");
@@ -1878,7 +1878,7 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Multi Modifier",
 	                         "Use same input as previous modifier, and mix results using overall vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group",
@@ -1942,7 +1942,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_HookModifier_object_set", NULL, NULL);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
-	
+
 	prop = RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "subtarget");
 	RNA_def_property_ui_text(prop, "Sub-Target",
@@ -2088,7 +2088,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_CONST);
 	RNA_def_property_ui_text(prop, "Constant Offset", "Add a constant offset");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "constant_offset_displace", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Constant Offset Displacement", "Value for the distance between arrayed items");
@@ -2138,7 +2138,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	                         "rotational change between arrayed items");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
-	
+
 	/* Caps */
 	prop = RNA_def_property(srna, "start_cap", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Start Cap", "Mesh object to use as a start cap");
@@ -2151,7 +2151,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_end_cap_set", NULL, "rna_Mesh_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
-	
+
 	prop = RNA_def_property(srna, "offset_u", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "uv_offset[0]");
 	RNA_def_property_range(prop, -1, 1);
@@ -2300,7 +2300,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 1, 1000, 1, 3);
 	RNA_def_property_ui_text(prop, "Vertical Aspect Ratio", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scalex");
 	RNA_def_property_flag(prop, PROP_PROPORTIONAL);
@@ -2365,7 +2365,7 @@ static void rna_def_modifier_smooth(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 30, 1, -1);
 	RNA_def_property_ui_text(prop, "Repeat", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group",
@@ -2487,7 +2487,7 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME);
 	RNA_def_property_ui_text(prop, "Preserve Volume", "Apply volume preservation after smooth");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "use_normalized", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_NORMALIZED);
 	RNA_def_property_ui_text(prop, "Normalized", "Improve and stabilize the enhanced shape");
@@ -2512,7 +2512,7 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 200, 1, -1);
 	RNA_def_property_ui_text(prop, "Repeat", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group",
@@ -2543,7 +2543,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_cast_type_items);
 	RNA_def_property_ui_text(prop, "Cast Type", "Target object shape");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object",
 	                         "Control object: if available, its location determines the center of the effect");
@@ -2565,17 +2565,17 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_Z);
 	RNA_def_property_ui_text(prop, "Z", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "use_radius_as_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_SIZE_FROM_RADIUS);
 	RNA_def_property_ui_text(prop, "From Radius", "Use radius as size of projection shape (0 = auto)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "use_transform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_USE_OB_TRANSFORM);
 	RNA_def_property_ui_text(prop, "Use transform", "Use object transform to control projection shape");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
@@ -2626,12 +2626,12 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_MeshDeformModifier_object_set", NULL, "rna_Mesh_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
-	
+
 	prop = RNA_def_property(srna, "is_bound", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_MeshDeformModifier_is_bound_get", NULL);
 	RNA_def_property_ui_text(prop, "Bound", "Whether geometry has been bound to control cage");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	
+
 	prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MDEF_INVERT_VGROUP);
 	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
@@ -2673,7 +2673,7 @@ static void rna_def_modifier_particlesystem(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "ParticleSystem Modifier", "Particle system simulation modifier");
 	RNA_def_struct_sdna(srna, "ParticleSystemModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PARTICLES);
-	
+
 	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "psys");
@@ -2877,22 +2877,22 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Cloth Modifier", "Cloth simulation modifier");
 	RNA_def_struct_sdna(srna, "ClothModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_CLOTH);
-	
+
 	prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sim_parms");
 	RNA_def_property_ui_text(prop, "Cloth Settings", "");
-	
+
 	prop = RNA_def_property(srna, "collision_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_parms");
 	RNA_def_property_ui_text(prop, "Cloth Collision Settings", "");
-	
+
 	prop = RNA_def_property(srna, "solver_result", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ClothSolverResult");
 	RNA_def_property_pointer_sdna(prop, NULL, "solver_result");
 	RNA_def_property_ui_text(prop, "Solver Result", "");
-	
+
 	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Point Cache", "");
@@ -2917,7 +2917,7 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	static const EnumPropertyItem prop_smoke_type_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{MOD_SMOKE_TYPE_DOMAIN, "DOMAIN", 0, "Domain", ""},
@@ -2925,24 +2925,24 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 		{MOD_SMOKE_TYPE_COLL, "COLLISION", 0, "Collision", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	srna = RNA_def_struct(brna, "SmokeModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Smoke Modifier", "Smoke simulation modifier");
 	RNA_def_struct_sdna(srna, "SmokeModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SMOKE);
-	
+
 	prop = RNA_def_property(srna, "domain_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "domain");
 	RNA_def_property_ui_text(prop, "Domain Settings", "");
-	
+
 	prop = RNA_def_property(srna, "flow_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "flow");
 	RNA_def_property_ui_text(prop, "Flow Settings", "");
-	
+
 	prop = RNA_def_property(srna, "coll_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll");
 	RNA_def_property_ui_text(prop, "Collision Settings", "");
-	
+
 	prop = RNA_def_property(srna, "smoke_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_smoke_type_items);
@@ -2955,16 +2955,16 @@ static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "DynamicPaintModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Dynamic Paint Modifier", "Dynamic Paint modifier");
 	RNA_def_struct_sdna(srna, "DynamicPaintModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_DYNAMICPAINT);
-	
+
 	prop = RNA_def_property(srna, "canvas_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "canvas");
 	RNA_def_property_ui_text(prop, "Canvas Settings", "");
-	
+
 	prop = RNA_def_property(srna, "brush_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "brush");
 	RNA_def_property_ui_text(prop, "Brush Settings", "");
@@ -3117,7 +3117,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 		                                "Shrink the mesh to the nearest target vertex"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	static const EnumPropertyItem shrink_face_cull_items[] = {
 		{0, "OFF", 0, "Off", "No culling"},
 		{MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, "FRONT", 0, "Front", "No projection when in front of the face"},
@@ -3193,7 +3193,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS);
 	RNA_def_property_ui_text(prop, "Z", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "subsurf_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "subsurfLevels");
 	RNA_def_property_range(prop, 0, 6);
@@ -4036,7 +4036,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	static const EnumPropertyItem geometry_items[] = {
 		{MOD_OCEAN_GEOM_GENERATE, "GENERATE", 0, "Generate",
 		                          "Generate ocean surface geometry at the specified resolution"},
@@ -4047,24 +4047,24 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 #endif
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	srna = RNA_def_struct(brna, "OceanModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Ocean Modifier", "Simulate an ocean surface");
 	RNA_def_struct_sdna(srna, "OceanModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_OCEAN);
-	
+
 	prop = RNA_def_property(srna, "geometry_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "geometry_mode");
 	RNA_def_property_enum_items(prop, geometry_items);
 	RNA_def_property_ui_text(prop, "Geometry", "Method of modifying geometry");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Size", "Surface scale factor (does not affect the height of the waves)");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, -1);
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
-	
+
 	prop = RNA_def_property(srna, "repeat_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "repeat_x");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -4072,7 +4072,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Repeat X", "Repetitions of the generated surface in X");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
-	
+
 	prop = RNA_def_property(srna, "repeat_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "repeat_y");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -4087,13 +4087,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Generate Normals",
 	                         "Output normals for bump mapping - disabling can speed up performance if its not needed");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "use_foam", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_GENERATE_FOAM);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Generate Foam", "Generate foam mask as a vertex color channel");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "resolution");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -4101,7 +4101,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 1, 32, 1, -1);
 	RNA_def_property_ui_text(prop, "Resolution", "Resolution of the generated surface");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "spatial_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "spatial_size");
 	RNA_def_property_ui_range(prop, 1, 512, 2, -1);
@@ -4109,66 +4109,66 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Spatial Size",
 	                         "Size of the simulation domain (in meters), and of the generated geometry (in BU)");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "wind_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "wind_velocity");
 	RNA_def_property_ui_text(prop, "Wind Velocity", "Wind speed");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "damping", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "damp");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Damping", "Damp reflected waves going in opposite direction to the wind");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "wave_scale_min", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "smallest_wave");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Smallest Wave", "Shortest allowed wavelength");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "wave_alignment", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "wave_alignment");
 	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_text(prop, "Wave Alignment", "How much the waves are aligned to each other");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "wave_direction", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "wave_direction");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Wave Direction", "Main direction of the waves when they are (partially) aligned");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "wave_scale", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "wave_scale");
 	RNA_def_property_ui_text(prop, "Wave Scale", "Scale of the displacement effect");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
-	
+
 	prop = RNA_def_property(srna, "depth", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "depth");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Depth", "Depth of the solid ground below the water surface");
 	RNA_def_property_ui_range(prop, 0, 250, 1, -1);
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "foam_coverage", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "foam_coverage");
 	RNA_def_property_ui_text(prop, "Foam Coverage", "Amount of generated foam");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "bake_foam_fade", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "foam_fade");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Foam Fade", "How much foam accumulates over time (baked ocean only)");
 	RNA_def_property_ui_range(prop, 0.0, 10.0, 1, -1);
 	RNA_def_property_update(prop, 0, NULL);
-	
+
 	prop = RNA_def_property(srna, "foam_layer_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "foamlayername");
 	RNA_def_property_ui_text(prop, "Foam Layer Name", "Name of the vertex color layer used for foam");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "choppiness", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "chop_amount");
 	RNA_def_property_ui_text(prop, "Choppiness",
@@ -4176,31 +4176,31 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0, 4.0, 3, -1);
 	RNA_def_property_float_funcs(prop, NULL, "rna_OceanModifier_ocean_chop_set", NULL);
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
-	
+
 	prop = RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 	RNA_def_property_ui_text(prop, "Time", "Current time of the simulation");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, -1);
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
-	
+
 	prop = RNA_def_property(srna, "random_seed", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "seed");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Random Seed", "Seed of the random generator");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "bakestart");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bake Start", "Start frame of the ocean baking");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "bakeend");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bake End", "End frame of the ocean baking");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
-	
+
 	prop = RNA_def_property(srna, "is_cached", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cached", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -4897,28 +4897,28 @@ void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	/* data */
 	srna = RNA_def_struct(brna, "Modifier", NULL);
 	RNA_def_struct_ui_text(srna, "Modifier", "Modifier affecting the geometry data of an object");
 	RNA_def_struct_refine_func(srna, "rna_Modifier_refine");
 	RNA_def_struct_path_func(srna, "rna_Modifier_path");
 	RNA_def_struct_sdna(srna, "ModifierData");
-	
+
 	/* strings */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Modifier_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Modifier name");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER | NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
-	
+
 	/* enums */
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, rna_enum_object_modifier_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-	
+
 	/* flags */
 	prop = RNA_def_property(srna, "show_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Realtime);
@@ -4927,26 +4927,26 @@ void RNA_def_modifier(BlenderRNA *brna)
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 0);
-	
+
 	prop = RNA_def_property(srna, "show_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Render);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Render", "Use modifier during render");
 	RNA_def_property_ui_icon(prop, ICON_SCENE, 0);
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
-	
+
 	prop = RNA_def_property(srna, "show_in_editmode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Editmode);
 	RNA_def_property_ui_text(prop, "Edit Mode", "Display modifier in Edit mode");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
-	
+
 	prop = RNA_def_property(srna, "show_on_cage", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_OnCage);
 	RNA_def_property_ui_text(prop, "On Cage", "Adjust edit cage to modifier result");
 	RNA_def_property_ui_icon(prop, ICON_MESH_DATA, 0);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
