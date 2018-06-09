@@ -722,11 +722,11 @@ static const EnumPropertyItem *rna_UserDef_studiolight_icon_id_itemf(
 	int totitem = 0;
 	StudioLight *sl = (StudioLight *)ptr->data;
 
-	if ((sl->flag & (STUDIOLIGHT_ORIENTATION_VIEWNORMAL | STUDIOLIGHT_ORIENTATION_CAMERA)) == 0)
-	{
+	if ((sl->flag & (STUDIOLIGHT_ORIENTATION_VIEWNORMAL | STUDIOLIGHT_ORIENTATION_CAMERA)) == 0) {
 		EnumPropertyItem tmp = {0, sl->name, sl->radiance_icon_id, sl->name, ""};
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
+
 	{
 		EnumPropertyItem tmp = {1, sl->name, sl->irradiance_icon_id, sl->name, ""};
 		RNA_enum_item_add(&item, &totitem, &tmp);
@@ -754,7 +754,7 @@ static void rna_UserDef_studiolight_show_expanded_set(PointerRNA *ptr, const boo
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
 	sl->flag ^= STUDIOLIGHT_UI_EXPANDED;
-	sl->flag |= value?STUDIOLIGHT_UI_EXPANDED: 0;
+	sl->flag |= value ? STUDIOLIGHT_UI_EXPANDED : 0;
 }
 
 
@@ -4936,9 +4936,10 @@ void RNA_def_userdef(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "studio_lights", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "StudioLight");
-	RNA_def_property_collection_funcs(prop, "rna_UserDef_studiolight_begin", "rna_iterator_listbase_next",
-									  "rna_iterator_listbase_end", "rna_iterator_listbase_get",
-									  NULL, NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(
+	        prop, "rna_UserDef_studiolight_begin", "rna_iterator_listbase_next",
+	        "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+	        NULL, NULL, NULL, NULL);
 
 	func = RNA_def_function(srna, "studio_lights_refresh", "rna_UserDef_studiolight_refresh");
 	RNA_def_function_ui_description(func, "Refresh Studio Lights");

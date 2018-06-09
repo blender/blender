@@ -439,8 +439,8 @@ void DepsgraphNodeBuilder::build_id(ID *id) {
 }
 
 void DepsgraphNodeBuilder::build_collection(
-    eDepsNode_CollectionOwner owner_type,
-	Collection *collection)
+        eDepsNode_CollectionOwner owner_type,
+        Collection *collection)
 {
 	if (built_map_.checkIsBuiltAndTag(collection)) {
 		return;
