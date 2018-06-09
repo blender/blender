@@ -4258,6 +4258,7 @@ static void ui_paneltype_draw_impl(
 		if (pt->draw_header) {
 			panel->layout = uiLayoutRow(layout, false);
 			pt->draw_header(C, panel);
+			uiItemL(panel->layout, pt->label, ICON_NONE);
 			panel->layout = NULL;
 		}
 	}
@@ -4276,8 +4277,8 @@ static void ui_paneltype_draw_impl(
 		if (pt_iter != pt && STREQ(pt_iter->parent_id, pt->idname)) {
 			if (pt_iter->poll == NULL || pt_iter->poll(C, pt_iter)) {
 				uiItemS(layout);
-				uiItemL(layout, pt_iter->label, ICON_NONE);
-				ui_paneltype_draw_impl(C, pt_iter, layout, true);
+				uiLayout *col = uiLayoutColumn(layout, false);
+				ui_paneltype_draw_impl(C, pt_iter, col, true);
 			}
 		}
 	} while ((pt_iter = pt_iter->next));
