@@ -152,7 +152,7 @@ static void meshcache_do(
 
 	/* would be nice if we could avoid doing this _every_ frame */
 	BLI_strncpy(filepath, mcmd->filepath, sizeof(filepath));
-	BLI_path_abs(filepath, ID_BLEND_PATH(G.main, (ID *)ob));
+	BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL((ID *)ob));
 
 	switch (mcmd->type) {
 		case MOD_MESHCACHE_TYPE_MDD:

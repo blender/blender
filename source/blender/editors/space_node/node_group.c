@@ -181,7 +181,7 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 /* ******************** Ungroup operator ********************** */
 
 /* returns 1 if its OK */
-static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
+static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
 	bNodeLink *link, *linkn, *tlink;
 	bNode *node, *nextnode;
@@ -200,7 +200,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	 * - ngroup (i.e. the source NodeTree) is left unscathed
 	 * - temp copy. don't change ID usercount
 	 */
-	wgroup = ntreeCopyTree_ex(ngroup, G.main, false);
+	wgroup = ntreeCopyTree_ex(ngroup, bmain, false);
 
 	/* Add the nodes into the ntree */
 	for (node = wgroup->nodes.first; node; node = nextnode) {
@@ -257,7 +257,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		bAction *waction;
 
 		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
-		waction = wgroup->adt->action = BKE_action_copy(G.main, wgroup->adt->action);
+		waction = wgroup->adt->action = BKE_action_copy(bmain, wgroup->adt->action);
 
 		/* now perform the moving */
 		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
@@ -272,13 +272,13 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 
 		/* free temp action too */
 		if (waction) {
-			BKE_libblock_free(G.main, waction);
+			BKE_libblock_free(bmain, waction);
 			wgroup->adt->action = NULL;
 		}
 	}
 
 	/* free the group tree (takes care of user count) */
-	BKE_libblock_free(G.main, wgroup);
+	BKE_libblock_free(bmain, wgroup);
 
 	/* restore external links to and from the gnode */
 	/* note: the nodes have been copied to intermediate wgroup first (so need to use new_node),
@@ -354,18 +354,19 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 
 static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	const char *node_idname = group_node_idname(C);
 	bNode *gnode;
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 	gnode = node_group_get_active(C, node_idname);
 	if (!gnode)
 		return OPERATOR_CANCELLED;
 
-	if (gnode->id && node_group_ungroup(snode->edittree, gnode)) {
-		ntreeUpdateTree(CTX_data_main(C), snode->nodetree);
+	if (gnode->id && node_group_ungroup(bmain, snode->edittree, gnode)) {
+		ntreeUpdateTree(bmain, snode->nodetree);
 	}
 	else {
 		BKE_report(op->reports, RPT_WARNING, "Cannot ungroup");

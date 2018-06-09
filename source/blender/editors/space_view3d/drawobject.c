@@ -8186,7 +8186,7 @@ void draw_object_select(Main *bmain, Scene *scene, ARegion *ar, View3D *v3d, Bas
 		Base tbase;
 
 		tbase.flag = OB_FROMDUPLI;
-		lb = object_duplilist(G.main->eval_ctx, scene, base->object);
+		lb = object_duplilist(bmain->eval_ctx, scene, base->object);
 
 		for (dob = lb->first; dob; dob = dob->next) {
 			float omat[4][4];
