@@ -1795,10 +1795,14 @@ ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode)
 	if (keycode >= xkb_descr->min_key_code && keycode <= xkb_descr->max_key_code) {
 		const char *id_str = xkb_descr->names->keys[keycode].name;
 		const uint32_t id = MAKE_ID(id_str[0], id_str[1], id_str[2], id_str[3]);
-		// printf("scancode is: %.*s\n", XkbKeyNameLength, id_str);
 		switch (id) {
 			case MAKE_ID('T', 'L', 'D', 'E'):
 				return GHOST_kKeyAccentGrave;
+#ifdef GHOST_DEBUG
+			default:
+				printf("%s unhandled keycode: %.*s\n", __func__, XkbKeyNameLength, id_str);
+				break;
+#endif
 		}
 	}
 	else {
