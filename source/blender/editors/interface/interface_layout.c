@@ -2075,10 +2075,12 @@ void uiItemPopoverPanelFromGroup(
 
 	for (PanelType *pt = art->paneltypes.first; pt; pt = pt->next) {
 		/* Causes too many panels, check context. */
-		if (/* (*context == '\0') || */ STREQ(pt->context, context)) {
-			if ((*category == '\0') || STREQ(pt->category, category)) {
-				if (pt->poll == NULL || pt->poll(C, pt)) {
-					uiItemPopoverPanel_ptr(layout, C, pt, NULL, ICON_NONE);
+		if (pt->parent_id[0] == '\0') {
+			if (/* (*context == '\0') || */ STREQ(pt->context, context)) {
+				if ((*category == '\0') || STREQ(pt->category, category)) {
+					if (pt->poll == NULL || pt->poll(C, pt)) {
+						uiItemPopoverPanel_ptr(layout, C, pt, NULL, ICON_NONE);
+					}
 				}
 			}
 		}
@@ -3828,18 +3830,11 @@ void UI_menutype_draw(bContext *C, MenuType *mt, struct uiLayout *layout)
 	}
 }
 
-/**
- * Used for popup panels only.
- */
-void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
+
+static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout)
 {
 	Panel *panel = MEM_callocN(sizeof(Panel), "popover panel");
 	panel->type = pt;
-
-	if (layout->context) {
-		CTX_store_set(C, layout->context);
-	}
-
 	if (pt->draw_header) {
 		panel->layout = uiLayoutRow(layout, false);
 		pt->draw_header(C, panel);
@@ -3850,9 +3845,36 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
 	pt->draw(C, panel);
 	panel->layout = NULL;
 
+	MEM_freeN(panel);
+
+	PanelType *pt_iter = pt;
+	while (pt_iter->prev) {
+		pt_iter = pt_iter->prev;
+	}
+	do {
+		if (pt_iter != pt && STREQ(pt_iter->parent_id, pt->idname)) {
+			if (pt_iter->poll == NULL || pt_iter->poll(C, pt_iter)) {
+				uiItemS(layout);
+				uiItemL(layout, pt_iter->label, ICON_NONE);
+				ui_paneltype_draw_impl(C, pt_iter, layout);
+			}
+		}
+	} while ((pt_iter = pt_iter->next));
+}
+
+/**
+ * Used for popup panels only.
+ */
+void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
+{
+	if (layout->context) {
+		CTX_store_set(C, layout->context);
+	}
+
+	ui_paneltype_draw_impl(C, pt, layout);
+
 	if (layout->context) {
 		CTX_store_set(C, NULL);
 	}
 
-	MEM_freeN(panel);
 }
