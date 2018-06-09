@@ -182,6 +182,17 @@ void CLOSURE_NAME(
 	/* -------------------- SCENE LAMPS LIGHTING ---------------------- */
 	/* ---------------------------------------------------------------- */
 
+#ifdef CLOSURE_GLOSSY
+	vec2 lut_uv = lut_coords(dot(N, V), roughness);
+	vec4 ltc_mat = texture(utilTex, vec3(lut_uv, 0.0)).rgba;
+#endif
+
+#ifdef CLOSURE_CLEARCOAT
+	vec2 lut_uv_clear = lut_coords(dot(C_N, V), C_roughness);
+	vec4 ltc_mat_clear = texture(utilTex, vec3(lut_uv_clear, 0.0)).rgba;
+	vec3 out_spec_clear = vec3(0.0);
+#endif
+
 	for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
 		LightData ld = lights_data[i];
 
@@ -200,14 +211,24 @@ void CLOSURE_NAME(
 	#endif
 
 	#ifdef CLOSURE_GLOSSY
-		out_spec += l_color_vis * light_specular(ld, N, V, l_vector, roughnessSquared, f0) * ld.l_spec;
+		out_spec += l_color_vis * light_specular(ld, ltc_mat, N, V, l_vector) * ld.l_spec;
 	#endif
 
 	#ifdef CLOSURE_CLEARCOAT
-		out_spec += l_color_vis * light_specular(ld, C_N, V, l_vector, C_roughnessSquared, f0) * C_intensity * ld.l_spec;
+		out_spec_clear += l_color_vis * light_specular(ld, ltc_mat_clear, C_N, V, l_vector) * C_intensity * ld.l_spec;
 	#endif
 	}
 
+#ifdef CLOSURE_GLOSSY
+	vec3 brdf_lut_lamps = texture(utilTex, vec3(lut_uv, 1.0)).rgb;
+	out_spec *= F_area(f0, brdf_lut_lamps.xy) * brdf_lut_lamps.z;
+#endif
+
+#ifdef CLOSURE_CLEARCOAT
+	vec3 brdf_lut_lamps_clear = texture(utilTex, vec3(lut_uv_clear, 1.0)).rgb;
+	out_spec_clear *= F_area(f0, brdf_lut_lamps_clear.xy) * brdf_lut_lamps_clear.z;
+	out_spec += out_spec_clear;
+#endif
 
 	/* ---------------------------------------------------------------- */
 	/* ---------------- SPECULAR ENVIRONMENT LIGHTING ----------------- */
