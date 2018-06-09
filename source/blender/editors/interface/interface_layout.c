@@ -4255,12 +4255,13 @@ static void ui_paneltype_draw_impl(
 	panel->flag = PNL_POPOVER;
 
 	if (show_header) {
+		uiLayout *row = uiLayoutRow(layout, false);
 		if (pt->draw_header) {
-			panel->layout = uiLayoutRow(layout, false);
+			panel->layout = row;
 			pt->draw_header(C, panel);
-			uiItemL(panel->layout, pt->label, ICON_NONE);
 			panel->layout = NULL;
 		}
+		uiItemL(row, pt->label, ICON_NONE);
 	}
 
 	panel->layout = layout;
