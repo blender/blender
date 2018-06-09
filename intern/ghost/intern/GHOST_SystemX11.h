@@ -34,6 +34,7 @@
 #define __GHOST_SYSTEMX11_H__
 
 #include <X11/Xlib.h>
+#include <X11/XKBlib.h> /* allow detectable autorepeate */
 
 #include "GHOST_System.h"
 #include "../GHOST_Types.h"
@@ -373,6 +374,10 @@ public:
 private:
 
 	Display *m_display;
+
+	/* Use for scancode lookups. */
+	XkbDescRec *m_xkb_descr;
+
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	XIM m_xim;
 #endif

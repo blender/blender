@@ -101,7 +101,12 @@
  * See T47228 and D1746 */
 #define USE_NON_LATIN_KB_WORKAROUND
 
-static GHOST_TKey convertXKey(KeySym key);
+static GHOST_TKey ghost_key_from_keysym(
+        const KeySym key);
+static GHOST_TKey ghost_key_from_keycode(
+        const XkbDescPtr xkb_descr, const KeyCode keycode);
+static GHOST_TKey ghost_key_from_keysym_or_keycode(
+        const KeySym key, const XkbDescPtr xkb_descr, const KeyCode keycode);
 
 /* these are for copy and select copy */
 static char *txt_cut_buffer = NULL;
@@ -117,6 +122,7 @@ GHOST_SystemX11::
 GHOST_SystemX11(
         )
     : GHOST_System(),
+      m_xkb_descr(NULL),
       m_start_time(0)
 {
 	XInitThreads();
@@ -192,6 +198,11 @@ GHOST_SystemX11(
 	use_xkb = XkbQueryExtension(m_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major, &xkb_minor);
 	if (use_xkb) {
 		XkbSetDetectableAutoRepeat(m_display, true, NULL);
+
+		m_xkb_descr = XkbGetMap(m_display, 0, XkbUseCoreKbd);
+		if (m_xkb_descr) {
+			XkbGetNames(m_display, XkbKeyNamesMask, m_xkb_descr);
+		}
 	}
 
 #ifdef WITH_XWAYLAND_HACK
@@ -248,6 +259,10 @@ GHOST_SystemX11::
 	if (m_xtablet.EraserDevice)
 		XCloseDevice(m_display, m_xtablet.EraserDevice);
 #endif /* WITH_X11_XINPUT */
+
+	if (m_xkb_descr) {
+		XkbFreeNames(m_xkb_descr, XkbKeyNamesMask, false);
+	}
 
 	XCloseDisplay(m_display);
 }
@@ -724,7 +739,7 @@ processEvents(
 									              getMilliSeconds(),
 									              GHOST_kEventKeyDown,
 									              window,
-									              convertXKey(modifiers[i]),
+									              ghost_key_from_keysym(modifiers[i]),
 									              '\0',
 									              NULL));
 								}
@@ -981,7 +996,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			 *       is unmodified (or anyone swapping the keys with xmodmap).
 			 *
 			 *     - XLookupKeysym seems to always use first defined keymap (see T47228), which generates
-			 *       keycodes unusable by convertXKey for non-latin-compatible keymaps.
+			 *       keycodes unusable by ghost_key_from_keysym for non-latin-compatible keymaps.
 			 *
 			 * To address this, we:
 			 *
@@ -1019,7 +1034,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 			/* Only allow a limited set of keys from XLookupKeysym, all others we take from XLookupString,
 			 * unless it gives unknown key... */
-			gkey = convertXKey(key_sym);
+			gkey = ghost_key_from_keysym_or_keycode(key_sym, m_xkb_descr, xke->keycode);
 			switch (gkey) {
 				case GHOST_kKeyRightAlt:
 				case GHOST_kKeyLeftAlt:
@@ -1056,10 +1071,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				case GHOST_kKeyNumpadSlash:
 					break;
 				default:
-					GHOST_TKey gkey_str = convertXKey(key_sym_str);
+				{
+					GHOST_TKey gkey_str = ghost_key_from_keysym(key_sym_str);
 					if (gkey_str != GHOST_kKeyUnknown) {
 						gkey = gkey_str;
 					}
+				}
 			}
 #else
 			/* In keyboards like latin ones,
@@ -1081,7 +1098,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				key_sym = XLookupKeysym(xke, 0);
 			}
 
-			gkey = convertXKey(key_sym);
+			gkey = ghost_key_from_keysym(key_sym);
 
 			if (!XLookupString(xke, &ascii, 1, NULL, NULL)) {
 				ascii = '\0';
@@ -1730,10 +1747,22 @@ generateWindowExposeEvents()
 	return anyProcessed;
 }
 
+static GHOST_TKey
+ghost_key_from_keysym_or_keycode(const KeySym keysym, XkbDescPtr xkb_descr, const KeyCode keycode)
+{
+	GHOST_TKey type = ghost_key_from_keysym(keysym);
+	if (type == GHOST_kKeyUnknown) {
+		if (xkb_descr) {
+			type = ghost_key_from_keycode(xkb_descr, keycode);
+		}
+	}
+	return type;
+}
+
 #define GXMAP(k, x, y) case x: k = y; break
 
 static GHOST_TKey
-convertXKey(KeySym key)
+ghost_key_from_keysym(const KeySym key)
 {
 	GHOST_TKey type;
 
@@ -1841,12 +1870,6 @@ convertXKey(KeySym key)
 			GXMAP(type, XF86XK_AudioForward, GHOST_kKeyMediaLast);
 #endif
 #endif
-			/* Non US keyboard layouts: avoid 'UnknownKey' - TODO(campbell): lookup scan-codes. */
-			GXMAP(type, XK_dead_circumflex, GHOST_kKeyAccentGrave);         /* 'de' */
-			GXMAP(type, XK_dead_grave, GHOST_kKeyAccentGrave);              /* 'us' (intl) */
-			GXMAP(type, XK_masculine, GHOST_kKeyAccentGrave);               /* 'es' */
-			GXMAP(type, XK_onehalf, GHOST_kKeyAccentGrave);                 /* 'dk' */
-			GXMAP(type, XK_twosuperior, GHOST_kKeyAccentGrave);             /* 'fr' */
 			default:
 #ifdef GHOST_DEBUG
 				printf("%s: unknown key: %lu / 0x%lx\n", __func__, key, key);
@@ -1860,6 +1883,29 @@ convertXKey(KeySym key)
 }
 
 #undef GXMAP
+
+#define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+
+static GHOST_TKey
+ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode)
+{
+	GHOST_ASSERT(XkbKeyNameLength == 4, "Name length is invalid!");
+	if (keycode >= xkb_descr->min_key_code && keycode <= xkb_descr->max_key_code) {
+		const char *id_str = xkb_descr->names->keys[keycode].name;
+		const uint32_t id = MAKE_ID(id_str[0], id_str[1], id_str[2], id_str[3]);
+		// printf("scancode is: %.*s\n", XkbKeyNameLength, id_str);
+		switch (id) {
+			case MAKE_ID('T', 'L', 'D', 'E'):
+				return GHOST_kKeyAccentGrave;
+		}
+	}
+	else {
+		GHOST_ASSERT(false, "KeyCode out of range!");
+	}
+	return GHOST_kKeyUnknown;
+}
+
+#undef MAKE_ID
 
 /* from xclip.c xcout() v0.11 */
 
