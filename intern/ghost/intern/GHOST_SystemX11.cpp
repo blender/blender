@@ -1843,6 +1843,7 @@ convertXKey(KeySym key)
 #endif
 			/* Non US keyboard layouts: avoid 'UnknownKey' - TODO(campbell): lookup scan-codes. */
 			GXMAP(type, XK_dead_circumflex, GHOST_kKeyAccentGrave);         /* 'de' */
+			GXMAP(type, XK_dead_grave, GHOST_kKeyAccentGrave);              /* 'us' (intl) */
 			GXMAP(type, XK_masculine, GHOST_kKeyAccentGrave);               /* 'es' */
 			GXMAP(type, XK_onehalf, GHOST_kKeyAccentGrave);                 /* 'dk' */
 			GXMAP(type, XK_twosuperior, GHOST_kKeyAccentGrave);             /* 'fr' */
