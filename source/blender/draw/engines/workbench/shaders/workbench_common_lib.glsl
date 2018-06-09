@@ -79,3 +79,16 @@ vec3 view_vector_from_screen_uv(vec2 uv, vec4 viewvecs[3], mat4 proj_mat)
 	             : vec3(0.0, 0.0, 1.0);
 }
 
+vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
+{
+	/* Quick creation of an orthonormal basis */
+	float a = 1.0 / (1.0 + I.z);
+	float b = -I.x * I.y * a;
+	vec3 b1 = vec3(1.0 - I.x * I.x * a, b, -I.x);
+	vec3 b2 = vec3(b, 1.0 - I.y * I.y * a, -I.y);
+	vec2 matcap_uv = vec2(dot(b1, N), dot(b2, N));
+	if (flipped) {
+		matcap_uv.x = -matcap_uv.x;
+	}
+	return matcap_uv * 0.496 + 0.5;
+}

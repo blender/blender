@@ -43,7 +43,9 @@ void main()
 	vec3 I_vs = view_vector_from_screen_uv(uv_viewport, viewvecs, ProjectionMatrix);
 
 #ifdef V3D_LIGHTING_MATCAP
-	diffuse_light = texture(matcapImage, normal_viewport.xy / 2.0 + 0.5).rgb;
+	bool flipped = world_data.matcap_orientation != 0;
+	vec2 matcap_uv = matcap_uv_compute(I_vs, normal_viewport, flipped);
+	diffuse_light = texture(matcapImage, matcap_uv).rgb;
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT

@@ -67,11 +67,9 @@ void main()
 	vec3 I_vs = view_vector_from_screen_uv(uv_viewport, viewvecs, ProjectionMatrix);
 
 #ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
-	vec2 matcap_uv = normal_viewport.xy / 2.0 + 0.5;
-	if (world_data.matcap_orientation != 0) {
-		matcap_uv.x = 1.0 - matcap_uv.x;
-	}
-	diffuse_color = texture(matcapImage, matcap_uv);
+	bool flipped = world_data.matcap_orientation != 0;
+	vec2 matcap_uv = matcap_uv_compute(I_vs, normal_viewport, flipped);
+	diffuse_color = textureLod(matcapImage, matcap_uv, 0.0);
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
