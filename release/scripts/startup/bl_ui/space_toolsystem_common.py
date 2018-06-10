@@ -425,7 +425,7 @@ class ToolSelectPanelHelper:
         return ui_gen, show_text
 
     @classmethod
-    def draw_cls(cls, layout, context, detect_layout=True, scale_y=2.0):
+    def draw_cls(cls, layout, context, detect_layout=True, scale_y=1.75):
         # Use a classmethod so it can be called outside of a panel context.
 
         # XXX, this UI isn't very nice.
