@@ -231,19 +231,32 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         sub.active = (cam.dof_object is None)
         sub.prop(cam, "dof_distance", text="Focus Distance")
 
-        col.separator()
+
+class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
+    bl_label = "Aperture"
+    bl_parent_id = "DATA_PT_camera_dof"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        cam = context.camera
+        dof_options = cam.gpu_dof
+
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
 
         if context.engine == 'BLENDER_EEVEE':
-            col = layout.column()
-            col.label("Aperture")
-            engine = context.engine
+            col = flow.column()
             col.prop(dof_options, "fstop")
             col.prop(dof_options, "blades")
+
+            col = flow.column()
             col.prop(dof_options, "rotation")
             col.prop(dof_options, "ratio")
         else:
             hq_support = dof_options.is_hq_supported
-            col = layout.column()
+            col = flow.column()
             col.label("Viewport")
             sub = col.column()
             sub.active = hq_support
@@ -449,6 +462,7 @@ classes = (
     DATA_PT_camera,
     DATA_PT_camera_stereoscopy,
     DATA_PT_camera_dof,
+    DATA_PT_camera_dof_aperture,
     DATA_PT_camera_display,
     DATA_PT_camera_safe_areas,
     DATA_PT_camera_background_image,
