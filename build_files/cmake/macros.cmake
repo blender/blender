@@ -51,7 +51,7 @@ endmacro()
 function(list_assert_duplicates
 	list_id
 	)
-	
+
 	# message(STATUS "list data: ${list_id}")
 
 	list(LENGTH list_id _len_before)
@@ -242,7 +242,7 @@ function(blender_add_lib__impl
 	# listed is helpful for IDE's (QtCreator/MSVC)
 	blender_source_group("${sources}")
 
-	#if enabled, set the FOLDER property for visual studio projects 
+	#if enabled, set the FOLDER property for visual studio projects
 	if(WINDOWS_USE_VISUAL_STUDIO_FOLDERS)
 		get_filename_component(FolderDir ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 		string(REPLACE ${CMAKE_SOURCE_DIR} "" FolderDir ${FolderDir})

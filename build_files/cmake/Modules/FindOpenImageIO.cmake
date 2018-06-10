@@ -64,7 +64,7 @@ FIND_FILE(OPENIMAGEIO_IDIFF
     bin
 )
 
-# handle the QUIETLY and REQUIRED arguments and set OPENIMAGEIO_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set OPENIMAGEIO_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenImageIO DEFAULT_MSG

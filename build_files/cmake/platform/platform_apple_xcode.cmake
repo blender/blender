@@ -51,9 +51,9 @@ string(REPLACE "/Contents/Developer" "" XCODE_BUNDLE ${XCODE_CHECK}) # truncate 
 if(${CMAKE_GENERATOR} MATCHES "Xcode")
 
 	# earlier xcode has no bundled developer dir, no sense in getting xcode path from
-	if(${XCODE_VERSION} VERSION_GREATER 4.2) 
+	if(${XCODE_VERSION} VERSION_GREATER 4.2)
 		# reduce to XCode name without dp extension
-		string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME) 
+		string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME)
 		if(${DP_NAME} MATCHES Xcode5)
 			set(XCODE_VERSION 5)
 		endif()
@@ -64,7 +64,7 @@ if(${CMAKE_GENERATOR} MATCHES "Xcode")
 		message(FATAL_ERROR "Xcode 4.3 and higher must be used with cmake 2.8-8 or higher")
 	endif()
 	### end cmake incompatibility with xcode 4.3 and higher ###
-	
+
 	if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
 		# Xcode 4 defaults to the Apple LLVM Compiler.
 		# Override the default compiler selection because Blender only compiles with gcc up to xcode 4.2
@@ -85,7 +85,7 @@ if(${XCODE_VERSION} VERSION_LESS 4.3)
 else()
 	# note: xcode-select path could be ambigous,
 	# cause /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed
-	# so i use a selfcomposed bundlepath here  
+	# so i use a selfcomposed bundlepath here
 	set(OSX_SYSROOT_PREFIX ${XCODE_BUNDLE}/Contents/Developer/Platforms/MacOSX.platform)
 	message(STATUS "OSX_SYSROOT_PREFIX: " ${OSX_SYSROOT_PREFIX})
 	set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk

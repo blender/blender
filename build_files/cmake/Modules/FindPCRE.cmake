@@ -50,7 +50,7 @@ FIND_LIBRARY(PCRE_LIBRARY
     lib64 lib
   )
 
-# handle the QUIETLY and REQUIRED arguments and set PCRE_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set PCRE_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(PCRE DEFAULT_MSG
