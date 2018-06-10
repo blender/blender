@@ -53,7 +53,7 @@ FIND_LIBRARY(PUGIXML_LIBRARY
     lib64 lib
   )
 
-# handle the QUIETLY and REQUIRED arguments and set PUGIXML_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set PUGIXML_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(PUGIXML DEFAULT_MSG

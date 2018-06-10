@@ -197,7 +197,7 @@ mark_as_advanced(WITH_BLENDER)
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
-option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON) 
+option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON)
 mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
 mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a security issue, rather than have them patch it, make a build option.
 
@@ -561,10 +561,11 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 			find_library(COMPILER_ASAN_LIBRARY asan ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES})
 		else()
 			find_library( COMPILER_ASAN_LIBRARY NAMES clang_rt.asan-x86_64
-				PATHS 	[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/7.0.0/lib/windows
-						[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/6.0.0/lib/windows
-						)
-		endif() 
+				PATHS
+				[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/7.0.0/lib/windows
+				[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/6.0.0/lib/windows
+			)
+		endif()
 		mark_as_advanced(COMPILER_ASAN_LIBRARY)
 	endif()
 endif()
@@ -1273,7 +1274,7 @@ else()
 
 		list(APPEND GL_DEFINITIONS -DGLEW_STATIC)
 
-		# This won't affect the non-experimental glew library, 
+		# This won't affect the non-experimental glew library,
 		# but is used for conditional compilation elsewhere.
 		list(APPEND GL_DEFINITIONS -DGLEW_NO_ES)
 
@@ -1565,7 +1566,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 		"/wd4267"  # conversion from 'size_t' to 'type', possible loss of data
 		"/wd4305"  # truncation from 'type1' to 'type2'
 		"/wd4800"  # forcing value to bool 'true' or 'false'
-		"/wd4828"  # The file contains a character that is illegal 
+		"/wd4828"  # The file contains a character that is illegal
 		# errors:
 		"/we4013"  # 'function' undefined; assuming extern returning int
 		"/we4133"  # incompatible pointer types

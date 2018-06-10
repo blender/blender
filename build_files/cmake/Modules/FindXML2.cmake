@@ -50,7 +50,7 @@ FIND_LIBRARY(XML2_LIBRARY
     lib64 lib
   )
 
-# handle the QUIETLY and REQUIRED arguments and set XML2_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set XML2_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(XML2 DEFAULT_MSG

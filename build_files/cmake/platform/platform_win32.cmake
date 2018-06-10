@@ -130,8 +130,8 @@ include(InstallRequiredSystemLibraries)
 
 remove_cc_flag("/MDd" "/MD")
 
-if(MSVC_CLANG) # Clangs version of cl doesn't support all flags 
-	if(NOT WITH_CXX11) # C++11 is on by default in clang-cl and can't be turned off, if c++11 is not enabled in blender repress some c++11 related warnings. 
+if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
+	if(NOT WITH_CXX11) # C++11 is on by default in clang-cl and can't be turned off, if c++11 is not enabled in blender repress some c++11 related warnings.
 		set(CXX_WARN_FLAGS "-Wno-inconsistent-missing-override")
 	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_WARN_FLAGS} /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference ")
@@ -425,7 +425,7 @@ if(WITH_OPENIMAGEIO)
 	set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
 	set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
 	set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
-	
+
 	set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
 	set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
 	set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
@@ -474,7 +474,7 @@ if(WITH_OPENVDB)
 	set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
 	set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include ${TBB_INCLUDE_DIR})
 	set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
-	
+
 endif()
 
 if(WITH_ALEMBIC)
@@ -558,7 +558,7 @@ if(WITH_OPENAL)
 	else()
 		set(OPENAL_LIBRARY ${OPENAL_LIBPATH}/wrap_oal.lib)
 	endif()
-	
+
 endif()
 
 if(WITH_CODEC_SNDFILE)
@@ -566,7 +566,7 @@ if(WITH_CODEC_SNDFILE)
 	set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
 	set(SNDFILE_LIBPATH ${SNDFILE}/lib) # TODO, deprecate
 	set(SNDFILE_LIBRARIES ${SNDFILE_LIBPATH}/libsndfile-1.lib)
-	
+
 endif()
 
 if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)

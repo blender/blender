@@ -5,7 +5,7 @@
 #   cmake -C../blender/build_files/cmake/config/blender_headless.cmake  ../blender
 #
 
-set(WITH_HEADLESS            ON  CACHE BOOL "" FORCE) 
+set(WITH_HEADLESS            ON  CACHE BOOL "" FORCE)
 set(WITH_GAMEENGINE          OFF CACHE BOOL "" FORCE)
 
 # disable audio, its possible some devs may want this but for now disable
