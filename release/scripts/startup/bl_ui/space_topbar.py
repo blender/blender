@@ -606,12 +606,16 @@ class INFO_MT_edit(Menu):
 
         layout.separator()
 
-        layout.operator("ed.undo_history")
+        layout.operator("ed.undo_history", text="Undo History...")
 
         layout.separator()
 
         layout.operator("screen.repeat_last")
-        layout.operator("screen.repeat_history")
+        layout.operator("screen.repeat_history", text="Repeat History...")
+
+        layout.separator()
+
+        layout.operator("screen.redo_last", text="Adjust Last Operation...")
 
         layout.separator()
 
