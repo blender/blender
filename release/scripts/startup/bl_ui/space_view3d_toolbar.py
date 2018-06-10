@@ -804,12 +804,16 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             if brush.sculpt_capabilities.has_jitter:
                 col.separator()
 
-                row = col.row(align=True)
+                colsub = col.split(0.5)
+                row = colsub.row(align=True)
+                row.alignment = 'RIGHT'
+                row.label("Jitter")
+                row = colsub.row(align=True)
                 row.prop(brush, "use_relative_jitter", icon_only=True)
                 if brush.use_relative_jitter:
-                    row.prop(brush, "jitter", slider=True)
+                    row.prop(brush, "jitter", slider=True, text="")
                 else:
-                    row.prop(brush, "jitter_absolute")
+                    row.prop(brush, "jitter_absolute", text="")
                 row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
             if brush.sculpt_capabilities.has_smooth_stroke:
