@@ -1462,6 +1462,10 @@ static void pchan_draw_ik_lines(bPoseChannel *pchan, const bool only_temp, const
 				bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
 				int segcount = 0;
 
+				/* don't draw if only_temp, as Spline IK chains cannot be temporary */
+				if (only_temp)
+					continue;
+
 				parchan = pchan;
 				line_start = parchan->pose_tail;
 
@@ -1489,17 +1493,24 @@ static void draw_bone_relations(
 {
 	if (g_data.passes.relationship_lines) {
 		if (ebone && ebone->parent) {
-			if ((boneflag & BONE_CONNECTED) == 0) {
-				drw_shgroup_bone_relationship_lines(ebone->head, ebone->parent->tail);
+			if (do_relations) {
+				/* Always draw for unconnected bones, regardless of selection,
+				 * since riggers will want to know about the links between bones
+				 */
+				if ((boneflag & BONE_CONNECTED) == 0) {
+					drw_shgroup_bone_relationship_lines(ebone->head, ebone->parent->tail);
+				}
 			}
 		}
 		else if (pchan && pchan->parent) {
-			/* Only draw if bone or its parent is selected - reduces viewport complexity with complex rigs */
-			if ((boneflag & BONE_SELECTED) ||
-			    (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED)))
-			{
-				if ((boneflag & BONE_CONNECTED) == 0) {
-					drw_shgroup_bone_relationship_lines(pchan->pose_head, pchan->parent->pose_tail);
+			if (do_relations) {
+				/* Only draw if bone or its parent is selected - reduces viewport complexity with complex rigs */
+				if ((boneflag & BONE_SELECTED) ||
+				    (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED)))
+				{
+					if ((boneflag & BONE_CONNECTED) == 0) {
+						drw_shgroup_bone_relationship_lines(pchan->pose_head, pchan->parent->pose_tail);
+					}
 				}
 			}
 
@@ -1523,6 +1534,7 @@ static void draw_bone_relations(
 
 static void draw_armature_edit(Object *ob)
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
 	EditBone *eBone;
 	bArmature *arm = ob->data;
 	int index;
@@ -1531,7 +1543,7 @@ static void draw_armature_edit(Object *ob)
 	update_color(ob, NULL);
 
 	const bool show_text = DRW_state_show_text();
-	const bool show_relations = true; /* TODO get value from overlays settings. */
+	const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
 	for (eBone = arm->edbo->first, index = ob->select_color; eBone; eBone = eBone->next, index += 0x10000) {
 		if (eBone->layer & arm->layer) {
@@ -1601,6 +1613,7 @@ static void draw_armature_edit(Object *ob)
 /* if const_color is NULL do pose mode coloring */
 static void draw_armature_pose(Object *ob, const float const_color[4])
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;
 	int index = -1;
@@ -1615,8 +1628,6 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 	// if (!(base->flag & OB_FROMDUPLI)) // TODO
 	{
-		const DRWContextState *draw_ctx = DRW_context_state_get();
-
 		if ((draw_ctx->object_mode & OB_MODE_POSE) || (ob == draw_ctx->object_pose)) {
 			arm->flag |= ARM_POSEMODE;
 		}
@@ -1628,7 +1639,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 	const bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_state_is_select();
 	const bool show_text = DRW_state_show_text();
-	const bool show_relations = true; /* TODO get value from overlays settings. */
+	const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
 	/* being set below */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {

@@ -2078,6 +2078,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	}
 
 	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
+	bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
 	if (do_outlines) {
 		if ((ob != draw_ctx->object_edit) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
@@ -2203,7 +2204,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 		DRW_shgroup_object_center(stl, ob, view_layer, v3d);
 
-		DRW_shgroup_relationship_lines(stl, ob);
+		if (show_relations) {
+			DRW_shgroup_relationship_lines(stl, ob);
+		}
 
 		if ((ob->dtx != 0) && theme_id == TH_UNDEFINED) {
 			theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
