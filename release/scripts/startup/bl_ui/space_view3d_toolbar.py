@@ -610,6 +610,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         toolsettings = context.tool_settings
         ipaint = toolsettings.image_paint
@@ -620,17 +621,23 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         col.active = ipaint.use_stencil_layer
 
         stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
-        col.label("UV Map")
-        col.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
+        split = col.split(0.5)
+        colsub = split.column()
+        colsub.alignment = 'RIGHT'
+        colsub.label("UV Layer")
+        split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
-        col.label("Stencil Image:")
         # todo this should be combinded into a single row
-        col.template_ID(ipaint, "stencil_image", open="image.open")
-        col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
+        split = col.split(0.5)
+        colsub = split.column()
+        colsub.alignment = 'RIGHT'
+        colsub.label("Stencil Image")
+        colsub = split.column()
+        colsub.template_ID(ipaint, "stencil_image", open="image.open")
+        colsub.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
-        col.label("Visualization:")
         row = col.row(align=True)
-        row.prop(ipaint, "stencil_color", text="")
+        row.prop(ipaint, "stencil_color", text="Display Color")
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
 
