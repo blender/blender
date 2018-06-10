@@ -253,8 +253,8 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
             col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Brush"
 
@@ -526,10 +526,10 @@ class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
             props.value = i
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Slots"
-    bl_category = "Slots"
 
     @classmethod
     def poll(cls, context):
@@ -587,10 +587,10 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         col.operator("image.save_dirty", text="Save All Images")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Mask"
-    bl_category = "Slots"
 
     @classmethod
     def poll(cls, context):
@@ -628,8 +628,8 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Overlay"
 
@@ -695,8 +695,8 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
             sub.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
@@ -720,8 +720,8 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         brush_texture_settings(col, brush, context.sculpt_object)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
@@ -743,8 +743,8 @@ class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
         brush_mask_texture_settings(col, brush)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Stroke"
     bl_options = {'DEFAULT_CLOSED'}
@@ -842,8 +842,8 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
         layout.prop(settings, "input_samples")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Curve"
     bl_options = {'DEFAULT_CLOSED'}
@@ -872,8 +872,8 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Dyntopo"
     bl_options = {'DEFAULT_CLOSED'}
@@ -924,8 +924,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.operator("sculpt.symmetrize")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
@@ -958,8 +958,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         self.unified_paint_settings(layout, context)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Symmetry/Lock"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1000,8 +1000,8 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         layout.column().prop(sculpt, "tile_offset", text="Tile Offset")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Appearance"
 
@@ -1046,8 +1046,8 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
 # ********** default tools for weight-paint ****************
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".weightpaint"
     bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Symmetry"
@@ -1059,8 +1059,8 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         draw_vpaint_symmetry(layout, wpaint)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".weightpaint"
     bl_label = "Options"
 
@@ -1090,8 +1090,8 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 # ********** default tools for vertex-paint ****************
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".vertexpaint"  # dot on purpose (access from topbar)
     bl_label = "Options"
 
@@ -1106,8 +1106,8 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
         self.unified_paint_settings(col, context)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".vertexpaint"  # dot on purpose (access from topbar)
     bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Symmetry"
@@ -1122,8 +1122,8 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
 # ********** default tools for texture-paint ****************
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "External"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1144,8 +1144,8 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
         col.operator("paint.project_image", text="Apply Camera Image")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1163,8 +1163,8 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
         row.prop(ipaint, "use_symmetry_z", text="Z", toggle=True)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
-    bl_category = "Options"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Project Paint"
 
@@ -1200,8 +1200,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         self.unified_paint_settings(layout, context)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
-    bl_category = "Options"
     bl_label = "Options"
 
     @classmethod
@@ -1226,11 +1226,11 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
             props.value = i
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
     """Default tools for particle mode"""
     bl_context = ".particlemode"
     bl_label = "Options"
-    bl_category = "Tools"
 
     def draw(self, context):
         layout = self.layout
