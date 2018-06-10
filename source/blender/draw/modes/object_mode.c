@@ -72,6 +72,8 @@ extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GPUTexture *globals_ramp; /* draw_common.c */
 extern GlobalsUboStorage ts;
 
+extern char datatoc_object_outline_prepass_vert_glsl[];
+extern char datatoc_object_outline_prepass_geom_glsl[];
 extern char datatoc_object_outline_prepass_frag_glsl[];
 extern char datatoc_object_outline_resolve_frag_glsl[];
 extern char datatoc_object_outline_detect_frag_glsl[];
@@ -250,6 +252,7 @@ static struct {
 
 	/* fullscreen shaders */
 	GPUShader *outline_prepass_sh;
+	GPUShader *outline_prepass_wire_sh;
 	GPUShader *outline_resolve_sh;
 	GPUShader *outline_resolve_aa_sh;
 	GPUShader *outline_detect_sh;
@@ -340,6 +343,11 @@ static void OBJECT_engine_init(void *vedata)
 	if (!e_data.outline_resolve_sh) {
 		/* Outline */
 		e_data.outline_prepass_sh = DRW_shader_create_3D(datatoc_object_outline_prepass_frag_glsl, NULL);
+
+		e_data.outline_prepass_wire_sh = DRW_shader_create(
+		            datatoc_object_outline_prepass_vert_glsl,
+		            datatoc_object_outline_prepass_geom_glsl,
+		            datatoc_object_outline_prepass_frag_glsl, NULL);
 
 		e_data.outline_resolve_sh = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
 
@@ -580,6 +588,7 @@ static void OBJECT_engine_free(void)
 	MEM_SAFE_FREE(e_data.empty_image_format);
 	MEM_SAFE_FREE(e_data.empty_image_wire_format);
 	DRW_SHADER_FREE_SAFE(e_data.outline_prepass_sh);
+	DRW_SHADER_FREE_SAFE(e_data.outline_prepass_wire_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_aa_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_detect_sh);
@@ -854,6 +863,7 @@ static void OBJECT_cache_init(void *vedata)
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	OBJECT_PrivateData *g_data;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
 	/* TODO : use dpi setting for enabling the second pass */
 	const bool do_outline_expand = false;
 
@@ -870,13 +880,12 @@ static void OBJECT_cache_init(void *vedata)
 
 		GPUShader *sh = e_data.outline_prepass_sh;
 
-		/* Select */
+		if (draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) {
+			sh = e_data.outline_prepass_wire_sh;
+		}
+
 		g_data->outlines_select = shgroup_outline(psl->outlines, &g_data->id_ofs_select, sh);
-
-		/* Transform */
 		g_data->outlines_transform = shgroup_outline(psl->outlines, &g_data->id_ofs_transform, sh);
-
-		/* Active */
 		g_data->outlines_active = shgroup_outline(psl->outlines, &g_data->id_ofs_active, sh);
 
 		g_data->id_ofs_select = 0;
@@ -2087,7 +2096,13 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	if (do_outlines) {
 		if ((ob != draw_ctx->object_edit) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
-			struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+			struct Gwn_Batch *geom;
+			if (v3d->shading.flag & V3D_SHADING_XRAY) {
+				geom = DRW_cache_object_edge_detection_get(ob, NULL);
+			}
+			else {
+				geom = DRW_cache_object_surface_get(ob);
+			}
 			if (geom) {
 				theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_or(stl, theme_id, NULL);
