@@ -53,15 +53,21 @@ def draw_keyframing_tools(context, layout):
 
 # Used by vertex & weight paint
 def draw_vpaint_symmetry(layout, vpaint):
-    col = layout.column(align=True)
-    col.label(text="Mirror:")
-    row = col.row(align=True)
 
+    split = layout.split()
+
+    col = split.column()
+    col.alignment = 'RIGHT'
+    col.label(text="Mirror")
+
+    col = split.column()
+    row = col.row(align=True)
     row.prop(vpaint, "use_symmetry_x", text="X", toggle=True)
     row.prop(vpaint, "use_symmetry_y", text="Y", toggle=True)
     row.prop(vpaint, "use_symmetry_z", text="Z", toggle=True)
 
     col = layout.column()
+    col.use_property_split = True
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
 
@@ -764,12 +770,11 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
 
         settings = self.paint_settings(context)
         brush = settings.brush
+        layout.use_property_split = True
 
         col = layout.column()
 
-        col.label(text="Stroke Method:")
-
-        col.prop(brush, "stroke_method", text="")
+        col.prop(brush, "stroke_method")
 
         if brush.use_anchor:
             col.separator()
@@ -894,6 +899,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
@@ -902,7 +908,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
-        sub = col.column(align=True)
+
+        sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
         if (sculpt.detail_type_method == 'CONSTANT'):
             row = sub.row(align=True)
@@ -912,16 +919,18 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             sub.prop(sculpt, "detail_percent")
         else:
             sub.prop(sculpt, "detail_size")
-        sub.prop(sculpt, "detail_refine_method", text="")
-        sub.prop(sculpt, "detail_type_method", text="")
-        col.separator()
+        sub.prop(sculpt, "detail_refine_method", text="Refine Method")
+        sub.prop(sculpt, "detail_type_method", text="Detailing")
+
         col.prop(sculpt, "use_smooth_shading")
+
+        col.separator()
+
+        col.prop(sculpt, "symmetrize_direction")
+        col.operator("sculpt.symmetrize")
         col.operator("sculpt.optimize")
         if (sculpt.detail_type_method == 'CONSTANT'):
             col.operator("sculpt.detail_flood_fill")
-        col.separator()
-        col.prop(sculpt, "symmetrize_direction")
-        col.operator("sculpt.symmetrize")
 
 
 # TODO, move to space_view3d.py
@@ -973,30 +982,50 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 
         sculpt = context.tool_settings.sculpt
 
-        col = layout.column(align=True)
-        col.label(text="Mirror:")
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Mirror")
+
+        col = split.column()
+
         row = col.row(align=True)
         row.prop(sculpt, "use_symmetry_x", text="X", toggle=True)
         row.prop(sculpt, "use_symmetry_y", text="Y", toggle=True)
         row.prop(sculpt, "use_symmetry_z", text="Z", toggle=True)
 
-        layout.column().prop(sculpt, "radial_symmetry", text="Radial")
-        layout.prop(sculpt, "use_symmetry_feather", text="Feather")
+        split = layout.split()
 
-        layout.label(text="Lock:")
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Lock")
 
-        row = layout.row(align=True)
+        col = split.column()
+
+        row = col.row(align=True)
         row.prop(sculpt, "lock_x", text="X", toggle=True)
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
 
-        layout.label(text="Tiling:")
 
-        row = layout.row(align=True)
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Tiling")
+
+        col = split.column()
+
+        row = col.row(align=True)
         row.prop(sculpt, "tile_x", text="X", toggle=True)
         row.prop(sculpt, "tile_y", text="Y", toggle=True)
         row.prop(sculpt, "tile_z", text="Z", toggle=True)
 
+        layout.use_property_split = True
+
+        layout.prop(sculpt, "use_symmetry_feather", text="Feather")
+        layout.column().prop(sculpt, "radial_symmetry", text="Radial")
         layout.column().prop(sculpt, "tile_offset", text="Tile Offset")
 
 
@@ -1156,7 +1185,14 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
         toolsettings = context.tool_settings
         ipaint = toolsettings.image_paint
 
-        col = layout.column(align=True)
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Mirror")
+
+        col = split.column()
+
         row = col.row(align=True)
         row.prop(ipaint, "use_symmetry_x", text="X", toggle=True)
         row.prop(ipaint, "use_symmetry_y", text="Y", toggle=True)
