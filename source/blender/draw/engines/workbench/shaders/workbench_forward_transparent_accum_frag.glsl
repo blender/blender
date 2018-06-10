@@ -75,7 +75,8 @@ void main()
 	 * Computer Graphics Techniques (JCGT), vol. 2, no. 2, 122–141, 2013
 	 */
 	/* Listing 4 */
-	float weight = calculate_transparent_weight(alpha);
+	float z = linear_zdepth(gl_FragCoord.z, viewvecs, ProjectionMatrix);
+	float weight = calculate_transparent_weight(z, alpha);
 	transparentAccum = vec4(shaded_color * weight, alpha);
 	revealageAccum = weight;
 }

@@ -172,6 +172,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		        psl->transparent_accum_pass);
 		DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
 		DRW_shgroup_uniform_float(grp, "alpha", &wpd->shading.xray_alpha, 1);
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 		workbench_material_set_normal_world_matrix(grp, wpd, e_data.normal_world_matrix);
 		material->object_id = engine_object_data->object_id;
 		copy_v4_v4(material->material_data.diffuse_color, material_template.material_data.diffuse_color);
@@ -185,7 +186,6 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 					DRW_shgroup_uniform_texture(grp, "matcapImage", wpd->studio_light->equirectangular_radiance_gputexture);
 				}
 				if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || MATCAP_ENABLED(wpd)) {
-					DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 					DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 				}
 				break;
