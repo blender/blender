@@ -353,6 +353,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		psl->checker_depth_pass = DRW_pass_create("Checker Depth", state);
 		grp = DRW_shgroup_create(e_data.checker_depth_sh, psl->checker_depth_pass);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+		DRW_shgroup_uniform_float_copy(grp, "threshold", 0.75f - wpd->shading.xray_alpha * 0.5f);
 	}
 }
 
