@@ -65,11 +65,11 @@ void fresnel(vec3 I, vec3 N, float ior, out float kr)
 	// kt = 1 - kr;
 }
 
-vec4 calculate_transparent_accum(vec4 premultiplied) {
-	float a = min(1.0, premultiplied.a) * 8.0 + 0.01;
+float calculate_transparent_weight(float alpha) {
+	/* Eq 10 */
+	float a = min(1.0, alpha) * 8.0 + 0.01;
 	float b = -gl_FragCoord.z * 0.95 + 1.0;
-	float w = clamp(a * a * a * 1e8 * b * b * b, 1e-2, 3e2);
-	return premultiplied * w;
+	return alpha * clamp(a * a * a * 1e8 * b * b * b, 1e-2, 3e3);
 }
 
 vec3 view_vector_from_screen_uv(vec2 uv, vec4 viewvecs[3], mat4 proj_mat)

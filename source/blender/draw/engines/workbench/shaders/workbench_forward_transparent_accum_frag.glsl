@@ -26,7 +26,7 @@ layout(std140) uniform material_block {
 };
 
 layout(location=0) out vec4 transparentAccum;
-
+layout(location=1) out float revealageAccum; /* revealage actually stored in transparentAccum.a */
 
 void main()
 {
@@ -70,7 +70,13 @@ void main()
 
 	vec3 shaded_color = diffuse_light * diffuse_color.rgb + specular_color;
 
-	vec4 premultiplied = vec4(shaded_color.rgb * alpha, alpha);
-	transparentAccum = calculate_transparent_accum(premultiplied);
+	/* Based on :
+	 * McGuire and Bavoil, Weighted Blended Order-Independent Transparency, Journal of
+	 * Computer Graphics Techniques (JCGT), vol. 2, no. 2, 122–141, 2013
+	 */
+	/* Listing 4 */
+	float weight = calculate_transparent_weight(alpha);
+	transparentAccum = vec4(shaded_color * weight, alpha);
+	revealageAccum = weight;
 }
 
