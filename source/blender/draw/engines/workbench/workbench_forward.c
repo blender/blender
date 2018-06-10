@@ -420,7 +420,10 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			workbench_material_set_normal_world_matrix(shgrp, wpd, e_data.normal_world_matrix);
 			DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
 			DRW_shgroup_uniform_block(shgrp, "material_block", material->material_ubo);
-			DRW_shgroup_uniform_float(shgrp, "alpha", &wpd->shading.xray_alpha, 1);
+			/* Hairs have lots of layer and can rapidly become the most prominent surface.
+			 * So lower their alpha artificially. */
+			float hair_alpha = wpd->shading.xray_alpha * 0.33f;
+			DRW_shgroup_uniform_float_copy(shgrp, "alpha", hair_alpha);
 			if (image) {
 				GPUTexture *tex = GPU_texture_from_blender(image, NULL, GL_TEXTURE_2D, false, false, false);
 				DRW_shgroup_uniform_texture(shgrp, "image", tex);
