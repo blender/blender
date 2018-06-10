@@ -2549,7 +2549,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 	}
-	else if (ISMOUSE(event->type) || ISKEYBOARD(event->type)) {
+	else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
 		/* All events that don't set wmEvent.prevtype must be ignored. */
 
 		/* test for CLICK events */
