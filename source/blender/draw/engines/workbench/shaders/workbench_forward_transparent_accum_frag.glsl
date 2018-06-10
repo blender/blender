@@ -42,7 +42,9 @@ void main()
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
 	vec3 I_vs = view_vector_from_screen_uv(uv_viewport, viewvecs, ProjectionMatrix);
 
+#ifdef NORMAL_VIEWPORT_PASS_ENABLED
 	vec3 nor = normalize(normal_viewport);
+#endif
 
 #ifdef V3D_LIGHTING_MATCAP
 	bool flipped = world_data.matcap_orientation != 0;
