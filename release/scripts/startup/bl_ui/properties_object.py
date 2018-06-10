@@ -49,39 +49,46 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        col = layout.column()
+
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
 
         ob = context.object
 
-        sub = col.row(align=True)
-        sub.prop(ob, "location")
-        sub.prop(ob, "lock_location", text="")
+        col = flow.column()
+        row = col.row(align=True)
+        row.prop(ob, "location")
+        row.prop(ob, "lock_location", text="")
 
         if ob.rotation_mode == 'QUATERNION':
-            sub = col.row(align=True)
-            sub.prop(ob, "rotation_quaternion", text="Rotation")
-            subsub = sub.column(align=True)
-            subsub.prop(ob, "lock_rotation_w", text="")
-            subsub.prop(ob, "lock_rotation", text="")
+            col = flow.column()
+            row = col.row(align=True)
+            row.prop(ob, "rotation_quaternion", text="Rotation")
+            sub = row.column(align=True)
+            sub.prop(ob, "lock_rotation_w", text="")
+            sub.prop(ob, "lock_rotation", text="")
         elif ob.rotation_mode == 'AXIS_ANGLE':
             # row.column().label(text="Rotation")
             #row.column().prop(pchan, "rotation_angle", text="Angle")
             #row.column().prop(pchan, "rotation_axis", text="Axis")
-            sub = col.row(align=True)
-            sub.prop(ob, "rotation_axis_angle", text="Rotation")
-            subsub = sub.column(align=True)
-            subsub.prop(ob, "lock_rotation_w", text="")
-            subsub.prop(ob, "lock_rotation", text="")
-        else:
-            sub = col.row(align=True)
-            sub.prop(ob, "rotation_euler", text="Rotation")
+            col = flow.column()
+            row = col.row(align=True)
+            row.prop(ob, "rotation_axis_angle", text="Rotation")
+
+            sub = row.column(align=True)
+            sub.prop(ob, "lock_rotation_w", text="")
             sub.prop(ob, "lock_rotation", text="")
+        else:
+            col = flow.column()
+            row = col.row(align=True)
+            row.prop(ob, "rotation_euler", text="Rotation")
+            row.prop(ob, "lock_rotation", text="")
 
-        sub = col.row(align=True)
-        sub.prop(ob, "scale")
-        sub.prop(ob, "lock_scale", text="")
+        col = flow.column()
+        row = col.row(align=True)
+        row.prop(ob, "scale")
+        row.prop(ob, "lock_scale", text="")
 
-        col.prop(ob, "rotation_mode")
+        layout.prop(ob, "rotation_mode")
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
@@ -92,24 +99,27 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=True, align=False)
 
         ob = context.object
 
-        col = layout.column()
+        col = flow.column()
+        col.prop(ob, "delta_location")
 
-        col.column().prop(ob, "delta_location")
+        col = flow.column()
         if ob.rotation_mode == 'QUATERNION':
-            col.column().prop(ob, "delta_rotation_quaternion", text="Rotation")
+            col.prop(ob, "delta_rotation_quaternion", text="Rotation")
         elif ob.rotation_mode == 'AXIS_ANGLE':
             # row.column().label(text="Rotation")
             #row.column().prop(pchan, "delta_rotation_angle", text="Angle")
             #row.column().prop(pchan, "delta_rotation_axis", text="Axis")
             #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
-            col.column().label(text="Not for Axis-Angle")
+            col.label(text="Not for Axis-Angle")
         else:
-            col.column().prop(ob, "delta_rotation_euler", text="Delta Rotation")
+            col.prop(ob, "delta_rotation_euler", text="Delta Rotation")
 
-        col.column().prop(ob, "delta_scale")
+        col = flow.column()
+        col.prop(ob, "delta_scale")
 
 
 class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
@@ -119,34 +129,33 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
 
         ob = context.object
 
-        col = layout.column()
-
+        col = flow.column()
         col.prop(ob, "parent")
-
-        sub = col.column()
+        sub = col.row(align=True)
         sub.prop(ob, "parent_type")
         parent = ob.parent
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
             sub.prop_search(ob, "parent_bone", parent.data, "bones")
         sub.active = (parent is not None)
 
-        col = col.column()
+        col = flow.column()
         col.active = (ob.parent is not None)
         col.prop(ob, "use_slow_parent")
-        sub = col.column()
+        sub = col.row(align=True)
         sub.active = (ob.use_slow_parent)
         sub.prop(ob, "slow_parent_offset", text="Offset")
 
+        col = flow.column()
         col.separator()
-
-        col = layout.column()
 
         col.prop(ob, "track_axis", text="Tracking Axis")
         col.prop(ob, "up_axis", text="Up Axis")
 
+        col = flow.column()
         col.separator()
 
         col.prop(ob, "pass_index")
@@ -206,6 +215,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
 
         obj = context.object
         obj_type = obj.type
@@ -214,41 +224,42 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE')
         is_dupli = (obj.dupli_type != 'NONE')
 
-        col = layout.column(align=True)
+        col = flow.column(align=True)
         col.prop(obj, "show_name", text="Name")
         col.prop(obj, "show_axis", text="Axis")
+
         # Makes no sense for cameras, armatures, etc.!
         # but these settings do apply to dupli instances
+        col = flow.column(align=True)
         if is_geometry or is_dupli:
-            col.prop(obj, "show_wire", text="Wire")
+            col.prop(obj, "show_wire", text="Wireframe")
         if obj_type == 'MESH' or is_dupli:
             col.prop(obj, "show_all_edges")
 
-        col = layout.column()
+        col = flow.column()
         col.prop(obj, "show_bounds", text="Bounds")
-        col = layout.column()
-        col.active = obj.show_bounds
-        col.prop(obj, "draw_bounds_type")
+        sub = col.column()
+        sub.active = obj.show_bounds
+        sub.prop(obj, "draw_bounds_type")
 
-        col = layout.column()
+        col = flow.column()
         if is_geometry:
             col.prop(obj, "show_texture_space", text="Texture Space")
             col.prop(obj.display, "show_shadows", text="Shadow")
 
         col.prop(obj, "show_x_ray", text="X-Ray")
-#        if obj_type == 'MESH' or is_empty_image:
-    #        col.prop(obj, "show_transparent", text="Transparency")
+        # if obj_type == 'MESH' or is_empty_image:
+        #    col.prop(obj, "show_transparent", text="Transparency")
 
-        col = layout.column()
+        col = flow.column()
         if is_wire:
             # wire objects only use the max. draw type for duplis
             col.active = is_dupli
         col.prop(
             obj, "draw_type",
-            text="Maximum Dupli Draw Type" if is_wire else "Maximum Dupli Draw Type",
+            text="Maximum Draw Type" if is_wire else "Maximum Draw Type",
         )
 
-        col = layout.column()
         if is_geometry or is_empty_image:
             # Only useful with object having faces/materials...
             col.prop(obj, "color")
@@ -263,39 +274,41 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 
         ob = context.object
 
-        layout.row().prop(ob, "dupli_type", expand=True)
+        row = layout.row()
+        row.prop(ob, "dupli_type", expand=True)
 
         layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
 
         if ob.dupli_type == 'FRAMES':
 
-            col = layout.column(align=True)
+            col = flow.column(align=True)
             col.prop(ob, "dupli_frames_start", text="Start")
             col.prop(ob, "dupli_frames_end", text="End")
 
-            col = layout.column(align=True)
+            col = flow.column(align=True)
             col.prop(ob, "dupli_frames_on", text="On")
             col.prop(ob, "dupli_frames_off", text="Off")
 
-            layout.prop(ob, "use_dupli_frames_speed", text="Speed")
+            col = flow.column(align=True)
+            col.prop(ob, "use_dupli_frames_speed", text="Speed")
 
         elif ob.dupli_type == 'VERTS':
             layout.prop(ob, "use_dupli_vertices_rotation", text="Rotation")
 
         elif ob.dupli_type == 'FACES':
-            col = layout.column()
+            col = flow.column()
             col.prop(ob, "use_dupli_faces_scale", text="Scale")
             sub = col.column()
             sub.active = ob.use_dupli_faces_scale
             sub.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'COLLECTION':
-            layout.prop(ob, "dupli_group", text="Collection")
+            col = flow.column()
+            col.prop(ob, "dupli_group", text="Collection")
 
         if ob.dupli_type != 'NONE' or len(ob.particle_systems):
-            layout.separator()
-
-            col = layout.column(align=True)
+            col = flow.column(align=True)
             col.prop(ob, "show_duplicator_for_viewport")
             col.prop(ob, "show_duplicator_for_render")
 
@@ -351,8 +364,8 @@ classes = (
     OBJECT_PT_relations,
     COLLECTION_MT_specials,
     OBJECT_PT_collections,
-    OBJECT_PT_display,
     OBJECT_PT_duplication,
+    OBJECT_PT_display,
     OBJECT_PT_motion_paths,
     OBJECT_PT_custom_props,
 )
