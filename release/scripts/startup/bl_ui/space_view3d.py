@@ -3607,26 +3607,28 @@ class VIEW3D_PT_overlay(Panel):
         col = layout.column()
         col.active = display_all
 
-        col.prop(view, "show_manipulator", text="Manipulators")
+        split = col.split()
 
-        col.prop(overlay, "show_text", text="Text")
-        col.prop(overlay, "show_cursor", text="3D Cursor")
-        col.prop(overlay, "show_outline_selected")
-        col.prop(overlay, "show_all_objects_origin")
-        col.prop(overlay, "show_relationship_lines")
-        col.prop(overlay, "show_motion_paths")
-        col.prop(overlay, "show_face_orientation")
+        sub = split.column()
+        sub.prop(view, "show_manipulator", text="Manipulators")
+        sub.prop(overlay, "show_text", text="Text")
+        sub.prop(overlay, "show_cursor", text="3D Cursor")
+        sub.prop(overlay, "show_outline_selected")
+        sub.prop(overlay, "show_all_objects_origin")
+
+        sub = split.column()
+        sub.prop(overlay, "show_relationship_lines")
+        sub.prop(overlay, "show_motion_paths")
+        sub.prop(overlay, "show_face_orientation")
+        sub.prop(overlay, "show_backface_culling")
+        if shading.type == "MATERIAL":
+            sub.prop(overlay, "show_look_dev")
 
         row = col.row()
         row.prop(overlay, "show_wireframes")
         sub = row.row()
         sub.active = overlay.show_wireframes
         sub.prop(overlay, "wireframe_threshold", text="")
-
-        col.prop(overlay, "show_backface_culling")
-
-        if shading.type == "MATERIAL":
-            col.prop(overlay, "show_look_dev")
 
         col = layout.column()
         col.active = display_all
@@ -3638,82 +3640,97 @@ class VIEW3D_PT_overlay(Panel):
         row.prop(overlay, "show_axis_y", text="Y", toggle=True)
         row.prop(overlay, "show_axis_z", text="Z", toggle=True)
 
-        sub = col.column(align=True)
-        sub.active = bool(overlay.show_floor or view.region_quadviews or not view.region_3d.is_perspective)
-        subsub = sub.column(align=True)
-        subsub.active = overlay.show_floor
-        subsub.prop(overlay, "grid_scale", text="Scale")
-        subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
+        if overlay.show_floor:
+            sub = col.column(align=True)
+            sub.active = bool(overlay.show_floor or view.region_quadviews or not view.region_3d.is_perspective)
+            subsub = sub.column(align=True)
+            subsub.active = overlay.show_floor
+            subsub.prop(overlay, "grid_scale", text="Scale")
+            subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
         col.prop(view, "show_reconstruction", text="Motion Tracking")
-        sub = col.column(align=True)
+        if view.show_reconstruction:
+            sub = col.column(align=True)
+            sub.active = view.show_reconstruction
+            sub.prop(view, "show_camera_path", text="Camera Path")
+            sub.prop(view, "show_bundle_names", text="3D Marker Names")
+            sub.label(text="Track Type and Size:")
+            row = sub.row(align=True)
+            row.prop(view, "tracks_draw_type", text="")
+            row.prop(view, "tracks_draw_size", text="")
 
-        sub.active = view.show_reconstruction
-        sub.prop(view, "show_camera_path", text="Camera Path")
-        sub.prop(view, "show_bundle_names", text="3D Marker Names")
-        sub.label(text="Track Type and Size:")
-        row = sub.row(align=True)
-        row.prop(view, "tracks_draw_type", text="")
-        row.prop(view, "tracks_draw_size", text="")
-        col.separator()
 
-        if context.mode == 'EDIT_MESH':
-            data = context.active_object.data
-            statvis = context.tool_settings.statvis
-            with_freestyle = bpy.app.build_options.freestyle
-            col.separator()
-            col.label(text="Edit Mesh:")
+class VIEW3D_PT_overlay_edit_mesh(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Edit Mesh"
 
-            col.prop(overlay, "show_occlude_wire")
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_MESH'
 
-            col.prop(overlay, "show_weight")
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        shading = view.shading
+        overlay = view.overlay
+        toolsettings = context.tool_settings
+        display_all = overlay.show_overlays
+        data = context.active_object.data
+        statvis = context.tool_settings.statvis
+        with_freestyle = bpy.app.build_options.freestyle
+
+        col = layout.column()
+        col.active = display_all
+
+        split = col.split()
+
+        sub = split.column()
+        sub.prop(data, "show_faces", text="Faces")
+        sub.prop(data, "show_edges", text="Edges")
+        sub.prop(data, "show_edge_crease", text="Creases")
+        sub.prop(data, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural)
+        sub.prop(data, "show_edge_bevel_weight", text="Bevel")
+        if not with_freestyle:
+            sub.prop(data, "show_edge_seams", text="Seams")
+
+        sub = split.column()
+        sub.prop(overlay, "show_occlude_wire")
+        sub.prop(data, "show_extra_edge_length", text="Edge Length")
+        sub.prop(data, "show_extra_edge_angle", text="Edge Angle")
+        sub.prop(data, "show_extra_face_area", text="Face Area")
+        sub.prop(data, "show_extra_face_angle", text="Face Angle")
+
+        if bpy.app.debug:
+            sub.prop(data, "show_extra_indices", text="Indices")
+
+        if with_freestyle:
+            col.label(text="Freestyle:")
+            row = col.row()
+            row.prop(data, "show_freestyle_edge_marks", text="Edge Marks")
+            row.prop(data, "show_freestyle_face_marks", text="Face Marks")
+            row.prop(data, "show_edge_seams", text="Seams")
+
+        col.label(text="Normals:")
+        row = col.row(align=True)
+
+        row.prop(overlay, "show_vertex_normals", text="", icon='VERTEXSEL')
+        row.prop(overlay, "show_split_normals", text="", icon='LOOPSEL')
+        row.prop(overlay, "show_face_normals", text="", icon='FACESEL')
+
+        sub = row.row(align=True)
+        sub.active = overlay.show_vertex_normals or overlay.show_face_normals or overlay.show_split_normals
+        sub.prop(overlay, "normals_length", text="Size")
+
+        col.prop(overlay, "show_weight")
+        if overlay.show_weight:
             col.label("Show Zero Weights:")
             col.row().prop(toolsettings, "vertex_group_user", expand=True)
 
-            col.label(text="Normals:")
-            row = col.row(align=True)
-
-            row.prop(overlay, "show_vertex_normals", text="", icon='VERTEXSEL')
-            row.prop(overlay, "show_split_normals", text="", icon='LOOPSEL')
-            row.prop(overlay, "show_face_normals", text="", icon='FACESEL')
-
-            sub = row.row(align=True)
-            sub.active = overlay.show_vertex_normals or overlay.show_face_normals or overlay.show_split_normals
-            sub.prop(overlay, "normals_length", text="Size")
-
-            split = col.split()
-
-            sub = split.column()
-            sub.prop(data, "show_faces", text="Faces")
-            sub.prop(data, "show_edges", text="Edges")
-            sub.prop(data, "show_edge_crease", text="Creases")
-
-            if with_freestyle:
-                sub.prop(data, "show_edge_seams", text="Seams")
-
-            sub = split.column()
-            if not with_freestyle:
-                sub.prop(data, "show_edge_seams", text="Seams")
-            sub.prop(data, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural)
-            col.prop(data, "show_edge_bevel_weight", text="Bevel")
-            if with_freestyle:
-                sub.prop(data, "show_freestyle_edge_marks", text="Edge Marks")
-                sub.prop(data, "show_freestyle_face_marks", text="Face Marks")
-
-            col.separator()
-            split = col.split()
-            sub = split.column()
-            sub.label(text="Edge Info:")
-            sub.prop(data, "show_extra_edge_length", text="Length")
-            sub.prop(data, "show_extra_edge_angle", text="Angle")
-            sub = split.column()
-            sub.label(text="Face Info:")
-            sub.prop(data, "show_extra_face_area", text="Area")
-            sub.prop(data, "show_extra_face_angle", text="Angle")
-            if bpy.app.debug:
-                sub.prop(data, "show_extra_indices", text="Indices")
-
-            col.prop(data, "show_statvis", text="Mesh Analysis")
+        col.prop(data, "show_statvis", text="Mesh Analysis")
+        if data.show_statvis:
             sub = col.column()
             sub.active = data.show_statvis
             sub.prop(statvis, "type")
@@ -3722,12 +3739,12 @@ class VIEW3D_PT_overlay(Panel):
                 row = sub.row(align=True)
                 row.prop(statvis, "overhang_min", text="")
                 row.prop(statvis, "overhang_max", text="")
-                layout.row().prop(statvis, "overhang_axis", expand=True)
+                sub.row().prop(statvis, "overhang_axis", expand=True)
             elif statvis_type == 'THICKNESS':
                 row = sub.row(align=True)
                 row.prop(statvis, "thickness_min", text="")
                 row.prop(statvis, "thickness_max", text="")
-                layout.prop(statvis, "thickness_samples")
+                sub.prop(statvis, "thickness_samples")
             elif statvis_type == 'INTERSECT':
                 pass
             elif statvis_type == 'DISTORT':
@@ -3739,43 +3756,125 @@ class VIEW3D_PT_overlay(Panel):
                 row.prop(statvis, "sharp_min", text="")
                 row.prop(statvis, "sharp_max", text="")
 
-        elif context.mode == 'EDIT_CURVE':
-            data = context.active_object.data
-            col.separator()
-            col.label(text="Edit Curve:")
-            row = col.row()
-            row.prop(data, "show_handles", text="Handles")
-            row.prop(data, "show_normal_face", text="Normals")
 
-        elif context.mode == 'POSE':
-            col.separator()
-            col.label(text="Pose Mode:")
+class VIEW3D_PT_overlay_edit_curve(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Edit Curve"
 
-            col = layout.column()
-            col.active = display_all
-            col.prop(overlay, "show_transparent_bones")
-            row = col.split(0.65)
-            row.prop(overlay, "show_bone_selection")
-            sub = row.column()
-            sub.active = display_all and overlay.show_bone_selection
-            sub.prop(overlay, "bone_selection_alpha", text="")
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_CURVE'
 
-        elif context.mode == 'EDIT_ARMATURE':
-            col.separator()
-            col.label(text="Edit Armature:")
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        data = context.active_object.data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
 
-            col = layout.column()
-            col.active = display_all
-            col.prop(overlay, "show_transparent_bones")
+        col = layout.column()
+        col.active = display_all
 
-        elif context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
-            col.separator()
-            col.label(text="Paint Mode:")
+        row = col.row()
+        row.prop(data, "show_handles", text="Handles")
+        row.prop(data, "show_normal_face", text="Normals")
 
-            if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
-                col.prop(overlay, "show_paint_wire")
 
-            col.prop(view, "show_mode_shade_override")
+class VIEW3D_PT_overlay_sculpt(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_context = ".sculpt_mode"
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Sculpt"
+
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.mode == 'SCULPT' and
+            (context.sculpt_object and context.tool_settings.sculpt)
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        toolsettings = context.tool_settings
+        sculpt = toolsettings.sculpt
+
+        layout.prop(sculpt, "show_diffuse_color")
+        layout.prop(sculpt, "show_mask")
+
+
+class VIEW3D_PT_overlay_pose(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Pose Mode"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'POSE'
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+
+        col = layout.column()
+        col.active = display_all
+        col.prop(overlay, "show_transparent_bones")
+        row = col.split(0.65)
+        row.prop(overlay, "show_bone_selection")
+        sub = row.column()
+        sub.active = display_all and overlay.show_bone_selection
+        sub.prop(overlay, "bone_selection_alpha", text="")
+
+
+class VIEW3D_PT_overlay_edit_armature(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Edit Armature"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_ARMATURE'
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+
+        col = layout.column()
+        col.active = display_all
+        col.prop(overlay, "show_transparent_bones")
+
+
+class VIEW3D_PT_overlay_paint(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Paint"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+
+        col = layout.column()
+        col.active = display_all
+
+        if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
+            col.prop(overlay, "show_paint_wire")
+
+        col.prop(view, "show_mode_shade_override")
 
 
 class VIEW3D_PT_quad_view(Panel):
@@ -4049,6 +4148,12 @@ classes = (
     VIEW3D_PT_view3d_stereo,
     VIEW3D_PT_shading,
     VIEW3D_PT_overlay,
+    VIEW3D_PT_overlay_edit_mesh,
+    VIEW3D_PT_overlay_edit_curve,
+    VIEW3D_PT_overlay_edit_armature,
+    VIEW3D_PT_overlay_pose,
+    VIEW3D_PT_overlay_paint,
+    VIEW3D_PT_overlay_sculpt,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_context_properties,
 )
