@@ -454,6 +454,7 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 						b_camera_override,
 						width, height,
 						&python_thread_state);
+		builtin_images_load();
 
 		/* Make sure all views have different noise patterns. - hardcoded value just to make it random */
 		if(view_index != 0) {
@@ -614,6 +615,7 @@ void BlenderSession::bake(BL::Depsgraph& b_depsgraph_,
 						b_camera_override,
 						width, height,
 						&python_thread_state);
+		builtin_images_load();
 	}
 
 	BakeData *bake_data = NULL;
@@ -802,6 +804,8 @@ void BlenderSession::synchronize(BL::Depsgraph& b_depsgraph_)
 		sync->sync_view(b_v3d, b_rv3d, width, height);
 	else
 		sync->sync_camera(b_render, b_camera_override, width, height, "");
+
+	builtin_images_load();
 
 	/* unlock */
 	session->scene->mutex.unlock();
@@ -1325,6 +1329,16 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 	}
 
 	return false;
+}
+
+void BlenderSession::builtin_images_load()
+{
+	/* Force builtin images to be loaded along with Blender data sync. This
+	 * is needed because we may be reading from depsgraph evaluated data which
+	 * can be freed by Blender before Cycles reads it. */
+	ImageManager *manager = session->scene->image_manager;
+	Device *device = session->device;
+	manager->device_load_builtin(device, session->scene, session->progress);
 }
 
 void BlenderSession::update_resumable_tile_manager(int num_samples)

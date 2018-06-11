@@ -166,6 +166,7 @@ protected:
 	                                float *pixels,
 	                                const size_t pixels_size,
 	                                const bool free_cache);
+	void builtin_images_load();
 
 	/* Update tile manager to reflect resumable render settings. */
 	void update_resumable_tile_manager(int num_samples);

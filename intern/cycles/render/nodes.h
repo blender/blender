@@ -265,6 +265,8 @@ public:
 	bool has_spatial_varying() { return true; }
 	bool has_object_dependency() { return true; }
 
+	void add_image();
+
 	ustring filename;
 	NodeTexVoxelSpace space;
 	InterpolationType interpolation;
