@@ -414,13 +414,20 @@ int ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int arra
 			/* set the type of the driver */
 			driver->type = type;
 
-			/* creating drivers for buttons will create the driver(s) with type
+			/* Creating drivers for buttons will create the driver(s) with type
 			 * "scripted expression" so that their values won't be lost immediately,
 			 * so here we copy those values over to the driver's expression
+			 *
+			 * If the "default dvar" option (for easier UI setup of drivers) is provided,
+			 * include "var" in the expressions too, so that the user doesn't have to edit
+			 * it to get something to happen. It should be fine to just add it to the default
+			 * value, so that we get both in the expression, even if it's a bit more confusing
+			 * that way...
 			 */
 			if (type == DRIVER_TYPE_PYTHON) {
 				PropertyType proptype = RNA_property_type(prop);
 				int array = RNA_property_array_length(&ptr, prop);
+				char *dvar_prefix = (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) ? "var + " : "";
 				char *expression = driver->expression;
 				int val, maxlen = sizeof(driver->expression);
 				float fval;
@@ -429,19 +436,22 @@ int ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int arra
 					if (!array) val = RNA_property_boolean_get(&ptr, prop);
 					else val = RNA_property_boolean_get_index(&ptr, prop, array_index);
 
-					BLI_strncpy(expression, (val) ? "True" : "False", maxlen);
+					BLI_snprintf(expression, maxlen, "%s%s", dvar_prefix, (val) ? "True" : "False");
 				}
 				else if (proptype == PROP_INT) {
 					if (!array) val = RNA_property_int_get(&ptr, prop);
 					else val = RNA_property_int_get_index(&ptr, prop, array_index);
 
-					BLI_snprintf(expression, maxlen, "%d", val);
+					BLI_snprintf(expression, maxlen, "%s%d", dvar_prefix, val);
 				}
 				else if (proptype == PROP_FLOAT) {
 					if (!array) fval = RNA_property_float_get(&ptr, prop);
 					else fval = RNA_property_float_get_index(&ptr, prop, array_index);
 
-					BLI_snprintf(expression, maxlen, "%.3f", fval);
+					BLI_snprintf(expression, maxlen, "%s%.3f", dvar_prefix, fval);
+				}
+				else if (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) {
+					BLI_strncpy(expression, "var", maxlen);
 				}
 			}
 
