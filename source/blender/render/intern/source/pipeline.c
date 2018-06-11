@@ -1338,12 +1338,11 @@ static void tag_dependend_object_for_render(Scene *scene, Object *object)
 							break;
 						case PART_DRAW_GR:
 							if (part->dup_group != NULL) {
-								FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(part->dup_group, base)
+								FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, ob)
 								{
-									Object *ob = base->object;
 									DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 								}
-								FOREACH_COLLECTION_BASE_RECURSIVE_END
+								FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 							}
 							break;
 					}

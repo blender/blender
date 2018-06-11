@@ -941,18 +941,22 @@ static void do_outliner_item_activate_tree_element(
 
 			if (extend) {
 				int sel = BA_SELECT;
-				FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(gr, base)
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(gr, object)
 				{
-					if (base->flag & BASE_SELECTED) {
+					Base *base = BKE_view_layer_base_find(view_layer, object);
+					if (base && (base->flag & BASE_SELECTED)) {
 						sel = BA_DESELECT;
 						break;
 					}
 				}
-				FOREACH_COLLECTION_BASE_RECURSIVE_END
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
 				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(gr, object)
 				{
-					ED_object_base_select(BKE_view_layer_base_find(view_layer, object), sel);
+					Base *base = BKE_view_layer_base_find(view_layer, object);
+					if (base) {
+						ED_object_base_select(base, sel);
+					}
 				}
 				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 			}
