@@ -894,12 +894,27 @@ static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
 	return PROP_EDITABLE;
 }
 
+static int rna_MaterialSlot_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))
+{
+	Object *ob = (Object *)ptr->id.data;
+	const int index = (Material **)ptr->data - ob->mat;
+	bool is_editable;
+
+	if ((ob->matbits == NULL) || ob->matbits[index]) {
+		is_editable = !ID_IS_LINKED(ob);
+	}
+	else {
+		is_editable = ob->data ? !ID_IS_LINKED(ob->data) : false;
+	}
+
+	return is_editable ? PROP_EDITABLE : 0;
+}
 
 static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	Material *ma;
-	int index = (Material **)ptr->data - ob->mat;
+	const int index = (Material **)ptr->data - ob->mat;
 
 	ma = give_current_material(ob, index + 1);
 	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
@@ -1566,6 +1581,7 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_MaterialSlot_material_editable");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_pointer_funcs(prop, "rna_MaterialSlot_material_get", "rna_MaterialSlot_material_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Material", "Material data-block used by this material slot");
@@ -1985,6 +2001,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get",
 	                               "rna_Object_active_material_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_editable_func(prop, "rna_Object_active_material_editable");
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
