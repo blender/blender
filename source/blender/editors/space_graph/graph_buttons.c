@@ -747,7 +747,7 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
 }
 
 /* UI properties panel layout for driver settings - shared for Drivers Editor and for */
-static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *fcu)
+static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *fcu, const bool is_popover)
 {
 	ChannelDriver *driver = fcu->driver;
 	DriverVar *dvar;
@@ -853,11 +853,14 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
 
 		/* copy/paste (as sub-row) */
-		row = uiLayoutRow(row, true);
-		block = uiLayoutGetBlock(row);
+		if (is_popover == false) {
+			/* only in the drivers editor proper for now, as these depend on the active F-Curve */
+			row = uiLayoutRow(row, true);
+			block = uiLayoutGetBlock(row);
 
-		uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
-		uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
+			uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
+			uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
+		}
 	}
 
 	/* loop over targets, drawing them */
@@ -985,7 +988,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	if (!graph_panel_context(C, &ale, &fcu))
 		return;
 
-	graph_draw_driver_settings_panel(pa->layout, ale->id, fcu);
+	graph_draw_driver_settings_panel(pa->layout, ale->id, fcu, false);
 
 	/* cleanup */
 	MEM_freeN(ale);
@@ -1039,7 +1042,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *pa)
 
 			/* Drivers Settings */
 			uiItemL(layout, IFACE_("Driver Settings:"), ICON_NONE);
-			graph_draw_driver_settings_panel(pa->layout, id, fcu);
+			graph_draw_driver_settings_panel(pa->layout, id, fcu, true);
 		}
 	}
 
