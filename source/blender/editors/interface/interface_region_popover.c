@@ -135,7 +135,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
 	UI_block_region_set(block, handle->region);
 	UI_block_layout_resolve(block, &width, &height);
-	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
+	UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
 #ifdef USE_UI_POPOVER_ONCE
 	if (pup->is_once) {
 		UI_block_flag_enable(block, UI_BLOCK_POPOVER_ONCE);
