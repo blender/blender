@@ -473,7 +473,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), scene);
+	ED_space_image_uv_sculpt_update(bmain, CTX_wm_manager(C), scene);
 
 	WM_msg_publish_rna_prop(mbus, &obact->id, obact, Object, mode);
 

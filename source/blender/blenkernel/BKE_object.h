@@ -258,12 +258,10 @@ void BKE_object_eval_flush_base_flags(
         struct Object *object, int base_index,
         const bool is_from_set);
 
-void BKE_object_handle_data_update(
-        struct Depsgraph *depsgraph,
+void BKE_object_handle_data_update(struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
-void BKE_object_handle_update(
-        struct Depsgraph *depsgraph,
+void BKE_object_handle_update(struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob);
 void BKE_object_handle_update_ex(
         struct Depsgraph *depsgraph,

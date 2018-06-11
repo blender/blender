@@ -43,12 +43,13 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_brush.h"
-#include "BKE_paint.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_mesh_mapping.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
+#include "BKE_main.h"
+#include "BKE_mesh_mapping.h"
+#include "BKE_paint.h"
 
 #include "DEG_depsgraph.h"
 
@@ -230,7 +231,7 @@ static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(cu
 }
 
 
-void ED_space_image_uv_sculpt_update(wmWindowManager *wm, Scene *scene)
+void ED_space_image_uv_sculpt_update(Main *bmain, wmWindowManager *wm, Scene *scene)
 {
 	ToolSettings *settings = scene->toolsettings;
 	if (settings->use_uv_sculpt) {
@@ -243,7 +244,7 @@ void ED_space_image_uv_sculpt_update(wmWindowManager *wm, Scene *scene)
 			settings->uvsculpt->paint.flags |= PAINT_SHOW_BRUSH;
 		}
 
-		BKE_paint_init(scene, ePaintSculptUV, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(bmain, scene, ePaintSculptUV, PAINT_CURSOR_SCULPT);
 
 		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
 		                                                                  brush_drawcursor_uvsculpt, NULL);

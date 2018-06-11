@@ -2108,7 +2108,8 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 	}
 }
 
-static void update_flowsfluids(struct Depsgraph *depsgraph, Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt)
+static void update_flowsfluids(
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt)
 {
 	Object **flowobjs = NULL;
 	EmissionMap *emaps = NULL;
@@ -2562,7 +2563,9 @@ static void update_effectors(struct Depsgraph *depsgraph, Scene *scene, Object *
 	pdEndEffectors(&effectors);
 }
 
-static void step(struct Depsgraph *depsgraph, Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *domain_dm, float fps)
+static void step(
+        Depsgraph *depsgraph,
+        Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *domain_dm, float fps)
 {
 	SmokeDomainSettings *sds = smd->domain;
 	/* stability values copied from wturbulence.cpp */

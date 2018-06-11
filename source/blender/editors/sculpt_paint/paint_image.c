@@ -739,7 +739,7 @@ static void toggle_paint_cursor(bContext *C, int enable)
  * purpose is to make sure the paint cursor is shown if paint
  * mode is enabled in the image editor. the paint poll will
  * ensure that the cursor is hidden when not in paint mode */
-void ED_space_image_paint_update(wmWindowManager *wm, Scene *scene)
+void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
 {
 	ToolSettings *settings = scene->toolsettings;
 	ImagePaintSettings *imapaint = &settings->imapaint;
@@ -758,7 +758,7 @@ void ED_space_image_paint_update(wmWindowManager *wm, Scene *scene)
 	}
 
 	if (enabled) {
-		BKE_paint_init(scene, ePaintTexture2D, PAINT_CURSOR_TEXTURE_PAINT);
+		BKE_paint_init(bmain, scene, ePaintTexture2D, PAINT_CURSOR_TEXTURE_PAINT);
 
 		paint_cursor_start_explicit(&imapaint->paint, wm, image_paint_poll);
 	}
@@ -1119,7 +1119,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 		ob->mode |= mode_flag;
 
-		BKE_paint_init(scene, ePaintTextureProjective, PAINT_CURSOR_TEXTURE_PAINT);
+		BKE_paint_init(bmain, scene, ePaintTextureProjective, PAINT_CURSOR_TEXTURE_PAINT);
 
 		if (U.glreslimit != 0)
 			GPU_free_images();

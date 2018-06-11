@@ -1746,13 +1746,13 @@ const char *BKE_main_blendfile_path(const Main *bmain)
 }
 
 /**
- * Return filepath of global main (G.main).
+ * Return filepath of global main (G_MAIN).
  *
- * \warning Usage is not recommended, you should always try to get a velid Main pointer from context...
+ * \warning Usage is not recommended, you should always try to get a valid Main pointer from context...
  */
 const char *BKE_main_blendfile_path_from_global(void)
 {
-	return BKE_main_blendfile_path(G.main);
+	return BKE_main_blendfile_path(G_MAIN);
 }
 
 /* ***************** ID ************************ */

@@ -55,7 +55,6 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -1062,7 +1061,8 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
  * \{ */
 
 static void ed_vwpaintmode_enter_generic(
-        Depsgraph *depsgraph, wmWindowManager *wm, Scene *scene,
+        Main *bmain, Depsgraph *depsgraph,
+        wmWindowManager *wm, Scene *scene,
         Object *ob, const eObjectMode mode_flag)
 {
 	ob->mode |= mode_flag;
@@ -1083,7 +1083,7 @@ static void ed_vwpaintmode_enter_generic(
 
 		Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
 		paint_cursor_start_explicit(paint, wm, vertex_paint_poll);
-		BKE_paint_init(scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
+		BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
 		const  ePaintMode paint_mode = ePaintWeight;
@@ -1094,7 +1094,7 @@ static void ed_vwpaintmode_enter_generic(
 
 		Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
 		paint_cursor_start_explicit(paint, wm, weight_paint_poll);
-		BKE_paint_init(scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
+		BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
 
 		/* weight paint specific */
 		ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 's');
@@ -1120,35 +1120,37 @@ static void ed_vwpaintmode_enter_generic(
 }
 
 void ED_object_vpaintmode_enter_ex(
-        Depsgraph *depsgraph, wmWindowManager *wm,
+        Main *bmain, Depsgraph *depsgraph, wmWindowManager *wm,
         Scene *scene, Object *ob)
 {
 	ed_vwpaintmode_enter_generic(
-	        depsgraph, wm, scene, ob, OB_MODE_VERTEX_PAINT);
+	        bmain, depsgraph, wm, scene, ob, OB_MODE_VERTEX_PAINT);
 }
 void ED_object_vpaintmode_enter(struct bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	ED_object_vpaintmode_enter_ex(depsgraph, wm, scene, ob);
+	ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
 }
 
 void ED_object_wpaintmode_enter_ex(
-        Depsgraph *depsgraph, wmWindowManager *wm,
+        Main *bmain, Depsgraph *depsgraph, wmWindowManager *wm,
         Scene *scene, Object *ob)
 {
 	ed_vwpaintmode_enter_generic(
-	        depsgraph, wm, scene, ob, OB_MODE_WEIGHT_PAINT);
+	        bmain, depsgraph, wm, scene, ob, OB_MODE_WEIGHT_PAINT);
 }
 void ED_object_wpaintmode_enter(struct bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	ED_object_wpaintmode_enter_ex(depsgraph, wm, scene, ob);
+	ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
 }
 
 /** \} */
@@ -1234,6 +1236,7 @@ void ED_object_wpaintmode_exit(struct bContext *C)
  */
 static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_WEIGHT_PAINT;
@@ -1254,7 +1257,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	else {
 		Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
-		ED_object_wpaintmode_enter_ex(depsgraph, wm, scene, ob);
+		ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
 	}
 
 	/* Weightpaint works by overriding colors in mesh,
@@ -2371,6 +2374,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
  */
 static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_VERTEX_PAINT;
@@ -2392,7 +2396,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	else {
 		Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
-		ED_object_vpaintmode_enter_ex(depsgraph, wm, scene, ob);
+		ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
 	}
 
 	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);

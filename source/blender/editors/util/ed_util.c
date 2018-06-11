@@ -129,7 +129,7 @@ void ED_editors_init(bContext *C)
 	{
 		Scene *sce = CTX_data_scene(C);
 		if (sce) {
-			ED_space_image_paint_update(wm, sce);
+			ED_space_image_paint_update(bmain, wm, sce);
 		}
 	}
 

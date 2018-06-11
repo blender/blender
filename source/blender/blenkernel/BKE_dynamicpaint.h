@@ -28,6 +28,7 @@
  */
 
 struct Depsgraph;
+struct Main;
 struct Scene;
 struct ViewLayer;
 
@@ -86,7 +87,9 @@ struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings 
 
 /* image sequence baking */
 int dynamicPaint_createUVSurface(struct Scene *scene, struct DynamicPaintSurface *surface, float *progress, short *do_update);
-int dynamicPaint_calculateFrame(struct DynamicPaintSurface *surface, struct Depsgraph *depsgraph, struct Scene *scene, struct Object *cObject, int frame);
+int dynamicPaint_calculateFrame(
+        struct DynamicPaintSurface *surface, struct Depsgraph *depsgraph,
+        struct Scene *scene, struct Object *cObject, int frame);
 void dynamicPaint_outputSurfaceImage(struct DynamicPaintSurface *surface, char *filename, short output_layer);
 
 /* PaintPoint state */

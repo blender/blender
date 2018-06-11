@@ -98,7 +98,9 @@ typedef struct DupliGenerator {
 static const DupliGenerator *get_dupli_generator(const DupliContext *ctx);
 
 /* create initial context for root object */
-static void init_context(DupliContext *r_ctx, Depsgraph *depsgraph, Scene *scene, Object *ob, float space_mat[4][4])
+static void init_context(
+        DupliContext *r_ctx, Depsgraph *depsgraph,
+        Scene *scene, Object *ob, float space_mat[4][4])
 {
 	r_ctx->depsgraph = depsgraph;
 	r_ctx->scene = scene;
