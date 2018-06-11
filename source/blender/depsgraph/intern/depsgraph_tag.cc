@@ -449,7 +449,17 @@ void deg_graph_node_tag_zero(Main *bmain, Depsgraph *graph, IDDepsNode *id_node)
 	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
 	{
 		if (comp_node->type == DEG_NODE_TYPE_ANIMATION) {
-			continue;
+			AnimData *adt = BKE_animdata_from_id(id);
+			/* NOTE: Animation data might be null if relations are tagged
+			 * for update.
+			 */
+			if (adt == NULL || (adt->recalc & ADT_RECALC_ANIM) == 0) {
+				/* If there is no animation, or animation is not tagged for
+				 * update yet, we don't force animation channel to be evaluated.
+				 */
+				continue;
+			}
+			id->recalc |= ID_RECALC_ANIMATION;
 		}
 		comp_node->tag_update(graph);
 	}
