@@ -556,12 +556,24 @@ def lightmap_uvpack(meshes,
 
 def unwrap(operator, context, **kwargs):
 
-    is_editmode = (context.object.mode == 'EDIT')
+    # only unwrap active object if True
+    PREF_ACT_ONLY = kwargs.pop("PREF_ACT_ONLY")
+
+    # ensure object(s) are selected if necessary and active object is set
+    if context.object is None:
+        if PREF_ACT_ONLY:
+            operator.report({'WARNING'}, "Active object not set")
+            return {'CANCELLED'}
+        elif len(context.selected_objects) == 0:
+            operator.report({'WARNING'}, "No selected objects")
+            return {'CANCELLED'}
+
+     # switch to object mode
+    is_editmode = context.object and context.object.mode == 'EDIT'
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-    PREF_ACT_ONLY = kwargs.pop("PREF_ACT_ONLY")
-
+    # define list of meshes
     meshes = []
     if PREF_ACT_ONLY:
         obj = context.scene.objects.active
@@ -576,6 +588,7 @@ def unwrap(operator, context, **kwargs):
 
     lightmap_uvpack(meshes, **kwargs)
 
+    # switch back to edit mode
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
