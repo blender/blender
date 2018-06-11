@@ -83,6 +83,7 @@
 
 #include "UI_interface.h"
 
+#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_paint.h"
@@ -5680,7 +5681,7 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain)
 
 static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = ED_object_active_context(C);
 	Scene *scene = CTX_data_scene(C);
 	Material *ma;
 	bool is_bi = BKE_scene_uses_blender_internal(scene) || BKE_scene_uses_blender_game(scene);
@@ -5772,7 +5773,7 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 {
 	char imagename[MAX_ID_NAME - 2];
 	Main *bmain = CTX_data_main(C);
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = ED_object_active_context(C);
 	Material *ma = give_current_material(ob, ob->actcol);
 	int type = RNA_enum_get(op->ptr, "type");
 
@@ -5810,7 +5811,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = texture_paint_add_texture_paint_slot_invoke;
 	ot->exec = texture_paint_add_texture_paint_slot_exec;
-	ot->poll = ED_operator_region_view3d_active;
+	ot->poll = ED_operator_object_active;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
