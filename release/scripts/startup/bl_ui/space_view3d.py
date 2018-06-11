@@ -3520,7 +3520,8 @@ class VIEW3D_PT_shading(Panel):
             if shading.light == 'STUDIO':
                 row = col.row()
                 row.template_icon_view(shading, "studio_light")
-                row.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='ZOOMIN')
+                sub = row.column()
+                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
                 if shading.studio_light_orientation == 'WORLD':
                     col.row().prop(shading, "studiolight_rot_z")
 
@@ -3529,7 +3530,7 @@ class VIEW3D_PT_shading(Panel):
                 row.template_icon_view(shading, "matcap")
                 sub = row.column()
                 sub.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
-                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='ZOOMIN')
+                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
         if shading.type == 'SOLID':
             col.separator()
@@ -3579,7 +3580,8 @@ class VIEW3D_PT_shading(Panel):
         elif shading.type in ('MATERIAL'):
             row = col.row()
             row.template_icon_view(shading, "studio_light")
-            op = row.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='ZOOMIN')
+            sub = row.column()
+            sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
             if shading.studio_light_orientation == 'WORLD':
                 col.row().prop(shading, "studiolight_rot_z")
                 col.row().prop(shading, "studiolight_background")
