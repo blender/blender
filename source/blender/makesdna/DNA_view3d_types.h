@@ -371,6 +371,7 @@ enum {
 	V3D_OVERLAY_WIREFRAMES        = (1 << 4),
 	V3D_OVERLAY_HIDE_TEXT         = (1 << 5),
 	V3D_OVERLAY_HIDE_MOTION_PATHS = (1 << 6),
+	V3D_OVERLAY_ONION_SKINS       = (1 << 7),
 };
 
 /* View3DOverlay->edit_flag */
