@@ -316,7 +316,7 @@ bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
  * are copied to all metaballs in same "group" (metaballs with same base name: MBall,
  * MBall.001, MBall.002, etc). The most important is to copy properties to the base metaball,
  * because this metaball influence polygonisation of metaballs. */
-void BKE_mball_properties_copy(EvaluationContext *eval_ctx, Scene *scene, Object *active_object)
+void BKE_mball_properties_copy(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Object *active_object)
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -328,8 +328,8 @@ void BKE_mball_properties_copy(EvaluationContext *eval_ctx, Scene *scene, Object
 
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name + 2, '.');
 
-	BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 0, NULL, NULL);
-	while (BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 1, &base, &ob)) {
+	BKE_scene_base_iter_next(bmain, eval_ctx, &iter, &sce_iter, 0, NULL, NULL);
+	while (BKE_scene_base_iter_next(bmain, eval_ctx, &iter, &sce_iter, 1, &base, &ob)) {
 		if (ob->type == OB_MBALL) {
 			if (ob != active_object) {
 				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
@@ -359,7 +359,7 @@ void BKE_mball_properties_copy(EvaluationContext *eval_ctx, Scene *scene, Object
  *
  * warning!, is_basis_mball() can fail on returned object, see long note above.
  */
-Object *BKE_mball_basis_find(EvaluationContext *eval_ctx, Scene *scene, Object *basis)
+Object *BKE_mball_basis_find(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Object *basis)
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -370,8 +370,8 @@ Object *BKE_mball_basis_find(EvaluationContext *eval_ctx, Scene *scene, Object *
 
 	BLI_split_name_num(basisname, &basisnr, basis->id.name + 2, '.');
 
-	BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 0, NULL, NULL);
-	while (BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 1, &base, &ob)) {
+	BKE_scene_base_iter_next(bmain, eval_ctx, &iter, &sce_iter, 0, NULL, NULL);
+	while (BKE_scene_base_iter_next(bmain, eval_ctx, &iter, &sce_iter, 1, &base, &ob)) {
 		if ((ob->type == OB_MBALL) && !(base->flag & OB_FROMDUPLI)) {
 			if (ob != bob) {
 				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');

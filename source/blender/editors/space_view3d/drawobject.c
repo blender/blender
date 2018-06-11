@@ -2321,7 +2321,7 @@ static void ensure_curve_cache(Main *bmain, Scene *scene, Object *object)
 				BKE_displist_make_curveTypes(scene, object, false);
 				break;
 			case OB_MBALL:
-				BKE_displist_make_mball(bmain->eval_ctx, scene, object);
+				BKE_displist_make_mball(bmain, bmain->eval_ctx, scene, object);
 				break;
 			case OB_LATTICE:
 				BKE_lattice_modifiers_calc(scene, object);
@@ -8186,7 +8186,7 @@ void draw_object_select(Main *bmain, Scene *scene, ARegion *ar, View3D *v3d, Bas
 		Base tbase;
 
 		tbase.flag = OB_FROMDUPLI;
-		lb = object_duplilist(bmain->eval_ctx, scene, base->object);
+		lb = object_duplilist(bmain, bmain->eval_ctx, scene, base->object);
 
 		for (dob = lb->first; dob; dob = dob->next) {
 			float omat[4][4];

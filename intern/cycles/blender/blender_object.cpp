@@ -567,7 +567,7 @@ void BlenderSync::sync_objects(float motion_time)
 
 				if(b_ob.is_duplicator() && !object_render_hide_duplis(b_ob)) {
 					/* dupli objects */
-					b_ob.dupli_list_create(b_scene, dupli_settings);
+					b_ob.dupli_list_create(b_data, b_scene, dupli_settings);
 
 					BL::Object::dupli_list_iterator b_dup;
 

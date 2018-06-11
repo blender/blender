@@ -876,7 +876,7 @@ Mesh *BKE_mesh_new_from_object(
 		case OB_MBALL:
 		{
 			/* metaballs don't have modifiers, so just convert to mesh */
-			Object *basis_ob = BKE_mball_basis_find(bmain->eval_ctx, sce, ob);
+			Object *basis_ob = BKE_mball_basis_find(bmain, bmain->eval_ctx, sce, ob);
 			/* todo, re-generatre for render-res */
 			/* metaball_polygonize(scene, ob) */
 
@@ -895,7 +895,7 @@ Mesh *BKE_mesh_new_from_object(
 				 */
 				EvaluationContext eval_ctx;
 				DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_RENDER);
-				BKE_displist_make_mball_forRender(&eval_ctx, sce, ob, &disp);
+				BKE_displist_make_mball_forRender(bmain, &eval_ctx, sce, ob, &disp);
 				BKE_mesh_from_metaball(&disp, tmpmesh);
 				BKE_displist_free(&disp);
 			}

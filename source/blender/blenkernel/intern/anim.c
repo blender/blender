@@ -340,7 +340,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 		 * is animated but not attached to/updatable from objects */
 		for (base = scene->base.first; base; base = base->next) {
 			/* update this object */
-			BKE_object_handle_update(G.main->eval_ctx, scene, base->object);
+			BKE_object_handle_update(G.main, G.main->eval_ctx, scene, base->object);
 			
 			/* if this is the last one we need to update, let's stop to save some time */
 			if (base == last)

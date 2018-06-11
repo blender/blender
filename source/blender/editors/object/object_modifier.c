@@ -1898,6 +1898,7 @@ static int meshdeform_poll(bContext *C)
 
 static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_MeshDeform);
@@ -1946,7 +1947,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 			BKE_lattice_modifiers_calc(scene, ob);
 		}
 		else if (ob->type == OB_MBALL) {
-			BKE_displist_make_mball(CTX_data_main(C)->eval_ctx, scene, ob);
+			BKE_displist_make_mball(bmain, bmain->eval_ctx, scene, ob);
 		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 			BKE_displist_make_curveTypes(scene, ob, 0);

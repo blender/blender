@@ -168,7 +168,7 @@ static void iter_snap_objects(
 			Object *obj = base->object;
 			if (obj->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(sctx->bmain->eval_ctx, sctx->scene, obj);
+				ListBase *lb = object_duplilist(sctx->bmain, sctx->bmain->eval_ctx, sctx->scene, obj);
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					use_obedit = obedit && dupli_ob->ob->data == obedit->data;
 					sob_callback(sctx, use_obedit, use_obedit ? obedit : dupli_ob->ob, dupli_ob->mat, data);

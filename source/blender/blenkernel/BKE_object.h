@@ -207,6 +207,7 @@ void BKE_object_eval_uber_transform(
         struct EvaluationContext *eval_ctx,
         struct Object *ob);
 void BKE_object_eval_uber_data(
+        struct Main *bmain,
         struct EvaluationContext *eval_ctx,
         struct Scene *scene,
         struct Object *ob);
@@ -223,11 +224,17 @@ void BKE_object_eval_transform_all(
         struct Object *object);
 
 void BKE_object_handle_data_update(
+        struct Main *bmain,
         struct EvaluationContext *eval_ctx,
         struct Scene *scene,
         struct Object *ob);
-void BKE_object_handle_update(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+void BKE_object_handle_update(
+        struct Main *bmain,
+        struct EvaluationContext *eval_ctx,
+        struct Scene *scene,
+        struct Object *ob);
 void BKE_object_handle_update_ex(
+        struct Main *bmain,
         struct EvaluationContext *eval_ctx,
         struct Scene *scene, struct Object *ob,
         struct RigidBodyWorld *rbw,
@@ -284,7 +291,8 @@ struct KDTree *BKE_object_as_kdtree(struct Object *ob, int *r_tot);
 bool BKE_object_modifier_use_time(struct Object *ob, struct ModifierData *md);
 
 bool BKE_object_modifier_update_subframe(
-        struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, bool update_mesh,
+        struct Main *bmain, struct EvaluationContext *eval_ctx,
+        struct Scene *scene, struct Object *ob, bool update_mesh,
         int parent_recursion, float frame,
         int type);
 

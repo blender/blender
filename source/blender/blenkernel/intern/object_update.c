@@ -39,25 +39,26 @@
 #include "BLI_math.h"
 #include "BLI_threads.h"
 
-#include "BKE_global.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_animsys.h"
 #include "BKE_displist.h"
+#include "BKE_editmesh.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
-#include "BKE_editmesh.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_material.h"
-#include "BKE_image.h"
 
 #include "DEG_depsgraph.h"
 
@@ -138,9 +139,11 @@ void BKE_object_eval_done(EvaluationContext *UNUSED(eval_ctx), Object *ob)
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
-void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
-                                   Scene *scene,
-                                   Object *ob)
+void BKE_object_handle_data_update(
+        Main *bmain,
+        EvaluationContext *eval_ctx,
+        Scene *scene,
+        Object *ob)
 {
 	ID *data_id = (ID *)ob->data;
 	AnimData *adt = BKE_animdata_from_id(data_id);
@@ -197,7 +200,7 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 			break;
 
 		case OB_MBALL:
-			BKE_displist_make_mball(eval_ctx, scene, ob);
+			BKE_displist_make_mball(bmain, eval_ctx, scene, ob);
 			break;
 
 		case OB_CURVE:
@@ -260,7 +263,7 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 					ob->transflag |= OB_DUPLIPARTS;
 				}
 
-				particle_system_update(G.main, scene, ob, psys, (eval_ctx->mode == DAG_EVAL_RENDER));
+				particle_system_update(bmain, scene, ob, psys, (eval_ctx->mode == DAG_EVAL_RENDER));
 				psys = psys->next;
 			}
 			else if (psys->flag & PSYS_DELETE) {
@@ -322,13 +325,13 @@ void BKE_object_eval_uber_transform(EvaluationContext *eval_ctx, Object *object)
 	}
 }
 
-void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
+void BKE_object_eval_uber_data(Main *bmain, EvaluationContext *eval_ctx,
                                Scene *scene,
                                Object *ob)
 {
 	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type != OB_ARMATURE);
-	BKE_object_handle_data_update(eval_ctx, scene, ob);
+	BKE_object_handle_data_update(bmain, eval_ctx, scene, ob);
 
 	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);
 }

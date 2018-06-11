@@ -74,6 +74,7 @@ typedef struct DupliContext {
 	bool animated;
 	Group *group; /* XXX child objects are selected from this group if set, could be nicer */
 
+	Main *bmain;
 	Scene *scene;
 	Object *object;
 	float space_mat[4][4];
@@ -96,9 +97,12 @@ typedef struct DupliGenerator {
 static const DupliGenerator *get_dupli_generator(const DupliContext *ctx);
 
 /* create initial context for root object */
-static void init_context(DupliContext *r_ctx, EvaluationContext *eval_ctx, Scene *scene, Object *ob, float space_mat[4][4], bool update)
+static void init_context(
+        DupliContext *r_ctx, Main *bmain, EvaluationContext *eval_ctx,
+        Scene *scene, Object *ob, float space_mat[4][4], bool update)
 {
 	r_ctx->eval_ctx = eval_ctx;
+	r_ctx->bmain = bmain;
 	r_ctx->scene = scene;
 	/* don't allow BKE_object_handle_update for viewport during render, can crash */
 	r_ctx->do_update = update && !(G.is_rendering && eval_ctx->mode != DAG_EVAL_RENDER);
@@ -306,7 +310,7 @@ static void make_duplis_group(const DupliContext *ctx)
 	if (ctx->do_update) {
 		/* note: update is optional because we don't always need object
 		 * transformations to be correct. Also fixes bug [#29616]. */
-		BKE_group_handle_recalc_and_update(ctx->eval_ctx, ctx->scene, ob, group);
+		BKE_group_handle_recalc_and_update(ctx->bmain, ctx->eval_ctx, ctx->scene, ob, group);
 	}
 
 	animated = BKE_group_is_animated(group, ob);
@@ -940,7 +944,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		/* gather list of objects or single object */
 		if (part->ren_as == PART_DRAW_GR) {
 			if (ctx->do_update) {
-				BKE_group_handle_recalc_and_update(ctx->eval_ctx, scene, par, part->dup_group);
+				BKE_group_handle_recalc_and_update(ctx->bmain, ctx->eval_ctx, scene, par, part->dup_group);
 			}
 
 			if (part->draw & PART_DRAW_COUNT_GR) {
@@ -1217,11 +1221,11 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 /* ---- ListBase dupli container implementation ---- */
 
 /* Returns a list of DupliObject */
-ListBase *object_duplilist_ex(EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update)
+ListBase *object_duplilist_ex(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update)
 {
 	ListBase *duplilist = MEM_callocN(sizeof(ListBase), "duplilist");
 	DupliContext ctx;
-	init_context(&ctx, eval_ctx, scene, ob, NULL, update);
+	init_context(&ctx, bmain, eval_ctx, scene, ob, NULL, update);
 	if (ctx.gen) {
 		ctx.duplilist = duplilist;
 		ctx.gen->make_duplis(&ctx);
@@ -1232,9 +1236,9 @@ ListBase *object_duplilist_ex(EvaluationContext *eval_ctx, Scene *scene, Object 
 
 /* note: previously updating was always done, this is why it defaults to be on
  * but there are likely places it can be called without updating */
-ListBase *object_duplilist(EvaluationContext *eval_ctx, Scene *sce, Object *ob)
+ListBase *object_duplilist(Main *bmain, EvaluationContext *eval_ctx, Scene *sce, Object *ob)
 {
-	return object_duplilist_ex(eval_ctx, sce, ob, true);
+	return object_duplilist_ex(bmain, eval_ctx, sce, ob, true);
 }
 
 void free_object_duplilist(ListBase *lb)

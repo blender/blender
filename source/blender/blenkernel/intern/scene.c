@@ -972,7 +972,7 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 }
 
 /* Used by metaballs, return *all* objects (including duplis) existing in the scene (including scene's sets) */
-int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
+int BKE_scene_base_iter_next(Main *bmain, EvaluationContext *eval_ctx, SceneBaseIter *iter,
                              Scene **scene, int val, Base **base, Object **ob)
 {
 	bool run_again = true;
@@ -1041,7 +1041,7 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							iter->duplilist = object_duplilist_ex(eval_ctx, (*scene), (*base)->object, false);
+							iter->duplilist = object_duplilist_ex(bmain, eval_ctx, (*scene), (*base)->object, false);
 							
 							iter->dupob = iter->duplilist->first;
 
@@ -1364,7 +1364,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 }
 
 /* deps hack - do extra recalcs at end */
-static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
+static void scene_depsgraph_hack(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
 		
@@ -1373,7 +1373,7 @@ static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scen
 	/* sets first, we allow per definition current scene to have
 	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
-		scene_depsgraph_hack(eval_ctx, scene->set, scene_parent);
+		scene_depsgraph_hack(bmain, eval_ctx, scene->set, scene_parent);
 	
 	for (base = scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
@@ -1388,7 +1388,7 @@ static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scen
 				recalc |= OB_RECALC_DATA;
 			
 			ob->recalc |= recalc;
-			BKE_object_handle_update(eval_ctx, scene_parent, ob);
+			BKE_object_handle_update(bmain, eval_ctx, scene_parent, ob);
 			
 			if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP)) {
 				GroupObject *go;
@@ -1397,7 +1397,7 @@ static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scen
 					if (go->ob)
 						go->ob->recalc |= recalc;
 				}
-				BKE_group_handle_recalc_and_update(eval_ctx, scene_parent, ob, ob->dup_group);
+				BKE_group_handle_recalc_and_update(bmain, eval_ctx, scene_parent, ob, ob->dup_group);
 			}
 		}
 	}
@@ -1484,6 +1484,7 @@ typedef struct StatisicsEntry {
 typedef struct ThreadedObjectUpdateState {
 	/* TODO(sergey): We might want this to be per-thread object. */
 	EvaluationContext *eval_ctx;
+	Main *bmain;
 	Scene *scene;
 	Scene *scene_parent;
 	double base_time;
@@ -1501,17 +1502,17 @@ typedef struct ThreadedObjectUpdateState {
 
 static void scene_update_object_add_task(void *node, void *user_data);
 
-static void scene_update_all_bases(EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
+static void scene_update_all_bases(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
 
 	for (base = scene->base.first; base; base = base->next) {
 		Object *object = base->object;
 
-		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world, true);
+		BKE_object_handle_update_ex(bmain, eval_ctx, scene_parent, object, scene->rigidbody_world, true);
 
 		if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
-			BKE_group_handle_recalc_and_update(eval_ctx, scene_parent, object, object->dup_group);
+			BKE_group_handle_recalc_and_update(bmain, eval_ctx, scene_parent, object, object->dup_group);
 
 		/* always update layer, so that animating layers works (joshua july 2010) */
 		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
@@ -1529,6 +1530,7 @@ static void scene_update_object_func(TaskPool * __restrict pool, void *taskdata,
 	void *node = taskdata;
 	Object *object = DAG_get_node_object(node);
 	EvaluationContext *eval_ctx = state->eval_ctx;
+	Main *bmain = state->bmain;
 	Scene *scene = state->scene;
 	Scene *scene_parent = state->scene_parent;
 
@@ -1559,7 +1561,7 @@ static void scene_update_object_func(TaskPool * __restrict pool, void *taskdata,
 		 * separately from main thread because of we've got no idea about
 		 * dependencies inside the group.
 		 */
-		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world, false);
+		BKE_object_handle_update_ex(bmain, eval_ctx, scene_parent, object, scene->rigidbody_world, false);
 
 		/* Calculate statistics. */
 		if (add_to_stats) {
@@ -1700,6 +1702,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	}
 
 	state.eval_ctx = eval_ctx;
+	state.bmain = bmain;
 	state.scene = scene;
 	state.scene_parent = scene_parent;
 
@@ -1757,7 +1760,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 #endif
 
 	if (need_singlethread_pass) {
-		scene_update_all_bases(eval_ctx, scene, scene_parent);
+		scene_update_all_bases(bmain, eval_ctx, scene, scene_parent);
 	}
 
 	if (need_free_scheduler) {
@@ -2059,7 +2062,7 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 
 #ifdef WITH_LEGACY_DEPSGRAPH
 	if (!use_new_eval) {
-		scene_depsgraph_hack(eval_ctx, sce, sce);
+		scene_depsgraph_hack(bmain, eval_ctx, sce, sce);
 	}
 #endif
 

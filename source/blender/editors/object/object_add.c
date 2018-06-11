@@ -1351,7 +1351,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		return;
 	}
 
-	lb_duplis = object_duplilist(bmain->eval_ctx, scene, base->object);
+	lb_duplis = object_duplilist(bmain, bmain->eval_ctx, scene, base->object);
 
 	dupli_gh = BLI_ghash_ptr_new(__func__);
 	if (use_hierarchy) {
@@ -1562,7 +1562,7 @@ static void convert_ensure_curve_cache(Main *bmain, Scene *scene, Object *ob)
 			BKE_displist_make_curveTypes(scene, ob, false);
 		}
 		else if (ob->type == OB_MBALL) {
-			BKE_displist_make_mball(bmain->eval_ctx, scene, ob);
+			BKE_displist_make_mball(bmain, bmain->eval_ctx, scene, ob);
 		}
 	}
 }
@@ -1648,7 +1648,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			if (ob->type == OB_MBALL && target == OB_MESH) {
 				if (BKE_mball_is_basis(ob) == false) {
 					Object *ob_basis;
-					ob_basis = BKE_mball_basis_find(bmain->eval_ctx, scene, ob);
+					ob_basis = BKE_mball_basis_find(bmain, bmain->eval_ctx, scene, ob);
 					if (ob_basis) {
 						ob_basis->flag &= ~OB_DONE;
 					}
@@ -1862,7 +1862,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			base->flag &= ~SELECT;
 			ob->flag &= ~SELECT;
 
-			baseob = BKE_mball_basis_find(bmain->eval_ctx, scene, ob);
+			baseob = BKE_mball_basis_find(bmain, bmain->eval_ctx, scene, ob);
 
 			if (ob != baseob) {
 				/* if motherball is converting it would be marked as done later */
@@ -1933,7 +1933,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					if (ob->flag & OB_DONE) {
 						Object *ob_basis = NULL;
 						if (BKE_mball_is_basis(ob) ||
-						    ((ob_basis = BKE_mball_basis_find(bmain->eval_ctx, scene, ob)) && (ob_basis->flag & OB_DONE)))
+						    ((ob_basis = BKE_mball_basis_find(bmain, bmain->eval_ctx, scene, ob)) && (ob_basis->flag & OB_DONE)))
 						{
 							ED_base_object_free_and_unlink(bmain, scene, base);
 						}

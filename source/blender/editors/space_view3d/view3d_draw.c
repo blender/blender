@@ -2115,7 +2115,7 @@ static void draw_dupli_objects_color(
 	}
 
 	tbase.flag = OB_FROMDUPLI | base->flag;
-	lb = object_duplilist(bmain->eval_ctx, scene, base->object);
+	lb = object_duplilist(bmain, bmain->eval_ctx, scene, base->object);
 	// BLI_listbase_sort(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
 
 	apply_data = duplilist_apply(base->object, scene, lb);
@@ -2632,7 +2632,7 @@ static void gpu_update_lamps_shadows_world(Main *bmain, Scene *scene, View3D *v3
 
 		if (ob->transflag & OB_DUPLI) {
 			DupliObject *dob;
-			ListBase *lb = object_duplilist(bmain->eval_ctx, scene, ob);
+			ListBase *lb = object_duplilist(bmain, bmain->eval_ctx, scene, ob);
 
 			for (dob = lb->first; dob; dob = dob->next)
 				if (dob->ob->type == OB_LAMP)

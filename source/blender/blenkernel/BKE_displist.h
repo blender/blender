@@ -57,11 +57,12 @@ enum {
 
 /* prototypes */
 
-struct Scene;
-struct Object;
-struct ListBase;
 struct DerivedMesh;
 struct EvaluationContext;
+struct ListBase;
+struct Main;
+struct Object;
+struct Scene;
 
 /* used for curves, nurbs, mball, importing */
 typedef struct DispList {
@@ -92,8 +93,8 @@ void BKE_displist_make_curveTypes(struct Scene *scene, struct Object *ob, const 
 void BKE_displist_make_curveTypes_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **r_dm_final,
                                             const bool for_orco, const bool use_render_resolution);
 void BKE_displist_make_curveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
-void BKE_displist_make_mball(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
-void BKE_displist_make_mball_forRender(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
+void BKE_displist_make_mball(struct Main *bmain, struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+void BKE_displist_make_mball_forRender(struct Main *bmain, struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 
 bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void BKE_displist_fill(struct ListBase *dispbase, struct ListBase *to, const float normal_proj[3], const bool flipnormal);

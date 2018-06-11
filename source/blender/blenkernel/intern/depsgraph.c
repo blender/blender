@@ -740,7 +740,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		}
 		case OB_MBALL: 
 		{
-			Object *mom = BKE_mball_basis_find(G.main->eval_ctx, scene, ob);
+			Object *mom = BKE_mball_basis_find(G.main, G.main->eval_ctx, scene, ob);
 			
 			if (mom != ob) {
 				node2 = dag_get_node(dag, mom);
@@ -777,7 +777,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				if (cu->family[0] != '\n') {
 					ListBase *duplilist;
 					DupliObject *dob;
-					duplilist = object_duplilist(G.main->eval_ctx, scene, ob);
+					duplilist = object_duplilist(G.main, G.main->eval_ctx, scene, ob);
 					for (dob = duplilist->first; dob; dob = dob->next) {
 						node2 = dag_get_node(dag, dob->ob);
 						dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Object Font");

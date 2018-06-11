@@ -114,7 +114,7 @@ static DerivedMesh *applyModifier(
 
 	/* dont apply dynamic paint on orco dm stack */
 	if (!(flag & MOD_APPLY_ORCO)) {
-		return dynamicPaint_Modifier_do(G.main->eval_ctx, pmd, md->scene, ob, dm);
+		return dynamicPaint_Modifier_do(G.main, G.main->eval_ctx, pmd, md->scene, ob, dm);
 	}
 	return dm;
 }

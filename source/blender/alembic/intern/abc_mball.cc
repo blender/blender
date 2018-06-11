@@ -103,7 +103,7 @@ void AbcMBallWriter::do_write()
 	 */
 	EvaluationContext eval_ctx;
 	DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_RENDER);
-	BKE_displist_make_mball_forRender(&eval_ctx, m_scene, m_object, &disp);
+	BKE_displist_make_mball_forRender(m_bmain, &eval_ctx, m_scene, m_object, &disp);
 	BKE_mesh_from_metaball(&disp, tmpmesh);
 	BKE_displist_free(&disp);
 
@@ -115,8 +115,8 @@ void AbcMBallWriter::do_write()
 	m_mesh_ob->data = NULL;
 }
 
-bool AbcMBallWriter::isBasisBall(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+bool AbcMBallWriter::isBasisBall(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	Object *basis_ob = BKE_mball_basis_find(eval_ctx, scene, ob);
+	Object *basis_ob = BKE_mball_basis_find(bmain, eval_ctx, scene, ob);
 	return ob == basis_ob;
 }

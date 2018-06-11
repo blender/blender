@@ -111,7 +111,7 @@ static bool object_is_smoke_sim(Object *ob)
 	return false;
 }
 
-static bool object_type_is_exportable(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+static bool object_type_is_exportable(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	switch (ob->type) {
 		case OB_MESH:
@@ -126,7 +126,7 @@ static bool object_type_is_exportable(EvaluationContext *eval_ctx, Scene *scene,
 		case OB_CAMERA:
 			return true;
 		case OB_MBALL:
-			return AbcMBallWriter::isBasisBall(eval_ctx, scene, ob);
+			return AbcMBallWriter::isBasisBall(bmain, eval_ctx, scene, ob);
 		default:
 			return false;
 	}
@@ -386,11 +386,11 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 		return;
 	}
 
-	if (object_type_is_exportable(eval_ctx, m_scene, ob)) {
+	if (object_type_is_exportable(m_bmain, eval_ctx, m_scene, ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
 
-	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
+	ListBase *lb = object_duplilist(m_bmain, eval_ctx, m_scene, ob);
 
 	if (lb) {
 		DupliObject *link = static_cast<DupliObject *>(lb->first);
@@ -506,7 +506,7 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object 
 
 	createShapeWriter(ob, dupliObParent);
 	
-	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
+	ListBase *lb = object_duplilist(m_bmain, eval_ctx, m_scene, ob);
 
 	if (lb) {
 		DupliObject *link = static_cast<DupliObject *>(lb->first);
@@ -551,7 +551,7 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
 
 void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 {
-	if (!object_type_is_exportable(m_bmain->eval_ctx, m_scene, ob)) {
+	if (!object_type_is_exportable(m_bmain, m_bmain->eval_ctx, m_scene, ob)) {
 		return;
 	}
 
