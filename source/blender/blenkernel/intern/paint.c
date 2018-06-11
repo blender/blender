@@ -498,7 +498,7 @@ eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
 	}
 }
 
-void BKE_paint_init(Scene *sce, ePaintMode mode, const char col[3])
+void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
 {
 	UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
 	Brush *brush;
@@ -508,10 +508,10 @@ void BKE_paint_init(Scene *sce, ePaintMode mode, const char col[3])
 	brush = BKE_paint_brush(paint);
 	if (brush == NULL) {
 		eObjectMode ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
-		brush = BKE_brush_first_search(G.main, ob_mode);
+		brush = BKE_brush_first_search(bmain, ob_mode);
 
 		if (!brush) {
-			brush = BKE_brush_add(G.main, "Brush", ob_mode);
+			brush = BKE_brush_add(bmain, "Brush", ob_mode);
 			id_us_min(&brush->id);  /* fake user only */
 		}
 		BKE_paint_brush_set(paint, brush);

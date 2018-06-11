@@ -126,11 +126,11 @@ bool ED_object_editmode_calc_active_center(struct Object *obedit, const bool sel
 
 
 void ED_object_vpaintmode_enter_ex(
-        struct wmWindowManager *wm,
+        struct Main *bmain, struct wmWindowManager *wm,
         struct Scene *scene, struct Object *ob);
 void ED_object_vpaintmode_enter(struct bContext *C);
 void ED_object_wpaintmode_enter_ex(
-        struct wmWindowManager *wm,
+        struct Main *bmain, struct wmWindowManager *wm,
         struct Scene *scene, struct Object *ob);
 void ED_object_wpaintmode_enter(struct bContext *C);
 

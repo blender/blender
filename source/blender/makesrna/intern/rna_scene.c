@@ -602,7 +602,7 @@ static void rna_GPencilBrush_name_set(PointerRNA *ptr, const char *value)
 
 static void rna_SpaceImageEditor_uv_sculpt_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	ED_space_image_uv_sculpt_update(bmain->wm.first, scene);
+	ED_space_image_uv_sculpt_update(bmain, bmain->wm.first, scene);
 }
 
 static int rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)

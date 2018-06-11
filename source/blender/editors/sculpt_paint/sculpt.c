@@ -5672,7 +5672,7 @@ void ED_object_sculptmode_enter_ex(
 	}
 
 	Paint *paint = BKE_paint_get_active_from_paintmode(scene, ePaintSculpt);
-	BKE_paint_init(scene, ePaintSculpt, PAINT_CURSOR_SCULPT);
+	BKE_paint_init(bmain, scene, ePaintSculpt, PAINT_CURSOR_SCULPT);
 
 	paint_cursor_start_explicit(paint, bmain->wm.first, sculpt_poll_view3d);
 
