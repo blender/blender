@@ -71,7 +71,8 @@ GHOST_ContextWGL::GHOST_ContextWGL(
       m_contextFlags(contextFlags),
       m_alphaBackground(alphaBackground),
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_hGLRC(NULL)
+      m_hGLRC(NULL),
+      m_init(false)
 #ifndef NDEBUG
       ,
       m_dummyVendor(NULL),
