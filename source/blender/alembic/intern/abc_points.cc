@@ -40,6 +40,8 @@ extern "C" {
 #include "BKE_scene.h"
 
 #include "BLI_math.h"
+
+#include "DEG_depsgraph_query.h"
 }
 
 using Alembic::AbcGeom::kVertexScope;
@@ -58,14 +60,12 @@ using Alembic::AbcGeom::OPointsSchema;
 
 /* ************************************************************************** */
 
-AbcPointsWriter::AbcPointsWriter(Depsgraph *depsgraph,
-                                 Scene *scene,
-                                 Object *ob,
+AbcPointsWriter::AbcPointsWriter(Object *ob,
 	                             AbcTransformWriter *parent,
 	                             uint32_t time_sampling,
 	                             ExportSettings &settings,
 	                             ParticleSystem *psys)
-    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
 {
 	m_psys = psys;
 
@@ -87,8 +87,8 @@ void AbcPointsWriter::do_write()
 	ParticleKey state;
 
 	ParticleSimulationData sim;
-	sim.depsgraph = m_depsgraph;
-	sim.scene = m_scene;
+	sim.depsgraph = m_settings.depsgraph;
+	sim.scene = m_settings.scene;
 	sim.ob = m_object;
 	sim.psys = m_psys;
 
@@ -102,7 +102,7 @@ void AbcPointsWriter::do_write()
 			continue;
 		}
 
-		state.time = BKE_scene_frame_get(m_scene);
+		state.time = DEG_get_ctime(m_settings.depsgraph);
 
 		if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
 			continue;
@@ -173,15 +173,9 @@ bool AbcPointsReader::accepts_object_type(const Alembic::AbcCoreAbstract::Object
 void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
+	Mesh *read_mesh = this->read_mesh(mesh, sample_sel, 0, NULL);
 
-	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, sample_sel, 0, NULL);
-
-	if (ndm != dm) {
-		dm->release(dm);
-	}
-
-	DM_to_mesh(ndm, mesh, m_object, CD_MASK_MESH, true);
+	BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, CD_MASK_MESH, true);
 
 	if (m_settings->validate_meshes) {
 		BKE_mesh_validate(mesh, false, false);
@@ -218,23 +212,35 @@ void read_points_sample(const IPointsSchema &schema,
 	read_mverts(config.mvert, positions, vnormals);
 }
 
-DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm,
-                                               const ISampleSelector &sample_sel,
-                                               int /*read_flag*/,
-                                               const char ** /*err_str*/)
+struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
+                                        const ISampleSelector &sample_sel,
+                                        int /*read_flag*/,
+                                        const char **err_str)
 {
-	const IPointsSchema::Sample sample = m_schema.getValue(sample_sel);
+	IPointsSchema::Sample sample;
+	try {
+		sample = m_schema.getValue(sample_sel);
+	}
+	catch(Alembic::Util::Exception &ex) {
+		*err_str = "Error reading points sample; more detail on the console";
+		printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
+			   m_iobject.getFullName().c_str(),
+			   m_schema.getName().c_str(),
+			   sample_sel.getRequestedTime(),
+			   ex.what());
+		return existing_mesh;
+	}
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
 
-	DerivedMesh *new_dm = NULL;
+	Mesh *new_mesh = NULL;
 
-	if (dm->getNumVerts(dm) != positions->size()) {
-		new_dm = CDDM_new(positions->size(), 0, 0, 0, 0);
+	if (existing_mesh->totvert != positions->size()) {
+		new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0, 0);
 	}
 
-	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	CDStreamConfig config = get_config(new_mesh ? new_mesh : existing_mesh);
 	read_points_sample(m_schema, sample_sel, config);
 
-	return new_dm ? new_dm : dm;
+	return new_mesh ? new_mesh : existing_mesh;
 }

@@ -2762,14 +2762,19 @@ static void write_soops(WriteData *wd, SpaceOops *so)
 	}
 }
 
+static void write_panel_list(WriteData *wd, ListBase *lb)
+{
+	for (Panel *pa = lb->first; pa; pa = pa->next) {
+		writestruct(wd, DATA, Panel, 1, pa);
+		write_panel_list(wd, &pa->children);
+	}
+}
+
 static void write_area_regions(WriteData *wd, ScrArea *area)
 {
 	for (ARegion *region = area->regionbase.first; region; region = region->next) {
 		write_region(wd, region, area->spacetype);
-
-		for (Panel *pa = region->panels.first; pa; pa = pa->next) {
-			writestruct(wd, DATA, Panel, 1, pa);
-		}
+		write_panel_list(wd, &region->panels);
 
 		for (PanelCategoryStack *pc_act = region->panels_category_active.first; pc_act; pc_act = pc_act->next) {
 			writestruct(wd, DATA, PanelCategoryStack, 1, pc_act);
@@ -4088,7 +4093,7 @@ bool BLO_write_file(
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
 				 * print an error, don't try make the absolute in this case. */
-				BKE_bpath_absolute_convert(mainvar, G.main->name, NULL);
+				BKE_bpath_absolute_convert(mainvar, BKE_main_blendfile_path_from_global(), NULL);
 			}
 		}
 	}

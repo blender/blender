@@ -37,7 +37,7 @@
 struct _ScrollBar {
 	int rect[2][2];
 	float thumbpos, thumbpct;
-	
+
 	int inset;
 	int minthumb;
 
@@ -48,7 +48,7 @@ struct _ScrollBar {
 static int scrollbar_get_thumbH(ScrollBar *sb)
 {
 	int scrollable_h = rect_height(sb->rect) - 2 * sb->inset;
-	
+
 	return clamp_i(sb->thumbpct * scrollable_h, sb->minthumb, scrollable_h);
 }
 
@@ -56,7 +56,7 @@ static int scrollbar_get_thumbableH(ScrollBar *sb)
 {
 	int scrollable_h = rect_height(sb->rect) - 2 * sb->inset;
 	int thumb_h = scrollbar_get_thumbH(sb);
-	
+
 	return scrollable_h - thumb_h;
 }
 
@@ -76,7 +76,7 @@ ScrollBar *scrollbar_new(int inset, int minthumb)
 	ScrollBar *sb = MEM_callocN(sizeof(*sb), "scrollbar_new");
 	sb->inset = inset;
 	sb->minthumb = minthumb;
-	
+
 	return sb;
 }
 

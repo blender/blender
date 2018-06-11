@@ -62,10 +62,11 @@ ArmatureExporter::ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSett
 }
 
 // write bone nodes
-void ArmatureExporter::add_armature_bones(Depsgraph *depsgraph, Object *ob_arm,
+void ArmatureExporter::add_armature_bones(bContext *C, Depsgraph *depsgraph, Object *ob_arm,
                                           Scene *sce, SceneExporter *se,
                                           std::list<Object *>& child_objects)
 {
+	Main *bmain = CTX_data_main(C);
 	// write bone nodes
 
 	bArmature * armature = (bArmature *)ob_arm->data;
@@ -77,11 +78,11 @@ void ArmatureExporter::add_armature_bones(Depsgraph *depsgraph, Object *ob_arm,
 	for (Bone *bone = (Bone *)armature->bonebase.first; bone; bone = bone->next) {
 		// start from root bones
 		if (!bone->parent)
-			add_bone_node(depsgraph, bone, ob_arm, sce, se, child_objects);
+			add_bone_node(C, depsgraph, bone, ob_arm, sce, se, child_objects);
 	}
 
 	if (!is_edited) {
-		ED_armature_from_edit(armature);
+		ED_armature_from_edit(bmain, armature);
 		ED_armature_edit_free(armature);
 	}
 }
@@ -117,7 +118,7 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
 	}
 
 	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob, this->export_settings->active_uv_only);
-		
+
 	ins.add();
 	return true;
 }
@@ -146,7 +147,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 	Base *base = (Base *) sce->base.first;
 	while (base) {
 		Object *ob = base->object;
-		
+
 		if (ob->type == OB_MESH && get_assigned_armature(ob) == ob_arm) {
 			objects.push_back(ob);
 		}
@@ -157,7 +158,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 #endif
 
 // parent_mat is armature-space
-void ArmatureExporter::add_bone_node(Depsgraph *depsgraph, Bone *bone, Object *ob_arm, Scene *sce,
+void ArmatureExporter::add_bone_node(bContext *C, Depsgraph *depsgraph, Bone *bone, Object *ob_arm, Scene *sce,
                                      SceneExporter *se,
                                      std::list<Object *>& child_objects)
 {
@@ -231,7 +232,7 @@ void ArmatureExporter::add_bone_node(Depsgraph *depsgraph, Bone *bone, Object *o
 						mul_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
 					}
 
-					se->writeNodes(depsgraph, *i, sce);
+					se->writeNodes(C, depsgraph, *i, sce);
 
 					copy_m4_m4((*i)->parentinv, backup_parinv);
 					child_objects.erase(i++);
@@ -240,13 +241,13 @@ void ArmatureExporter::add_bone_node(Depsgraph *depsgraph, Bone *bone, Object *o
 			}
 
 			for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-				add_bone_node(depsgraph, child, ob_arm, sce, se, child_objects);
+				add_bone_node(C, depsgraph, child, ob_arm, sce, se, child_objects);
 			}
 			node.end();
 		}
 		else {
 			for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-				add_bone_node(depsgraph, child, ob_arm, sce, se, child_objects);
+				add_bone_node(C, depsgraph, child, ob_arm, sce, se, child_objects);
 			}
 		}
 }
@@ -264,7 +265,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 	if (!has_restmat) {
 
 		/* Have no restpose matrix stored, try old style <= Blender 2.78 */
-		
+
 		bc_create_restpose_mat(this->export_settings, bone, bone_rest_mat, bone->arm_mat, true);
 
 		if (bone->parent) {

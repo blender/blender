@@ -943,6 +943,39 @@ void ImageManager::device_update_slot(Device *device,
 	}
 }
 
+void ImageManager::device_load_builtin(Device *device,
+                                       Scene *scene,
+                                       Progress& progress)
+{
+	/* Load only builtin images, Blender needs this to load evaluated
+	 * scene data from depsgraph before it is freed. */
+	if(!need_update) {
+		return;
+	}
+
+	TaskPool pool;
+	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
+		for(size_t slot = 0; slot < images[type].size(); slot++) {
+			if(!images[type][slot])
+				continue;
+
+			if(images[type][slot]->need_load) {
+				if(images[type][slot]->builtin_data) {
+					pool.push(function_bind(&ImageManager::device_load_image,
+					                        this,
+					                        device,
+					                        scene,
+					                        (ImageDataType)type,
+					                        slot,
+					                        &progress));
+				}
+			}
+		}
+	}
+
+	pool.wait_work();
+}
+
 void ImageManager::device_free_builtin(Device *device)
 {
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {

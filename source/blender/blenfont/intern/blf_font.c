@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -553,7 +553,7 @@ static void blf_font_draw_buffer_ex(
 				width_clip -= chx + width_clip - buf_info->w;
 			if (height_clip + pen_y > buf_info->h)
 				height_clip -= pen_y + height_clip - buf_info->h;
-			
+
 			/* drawing below the image? */
 			if (pen_y < 0) {
 				yb_start += (g->pitch < 0) ? -pen_y : pen_y;

@@ -77,7 +77,7 @@ bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath)
 
 	BLI_strncpy(str, filepath, sizeof(str));
 
-	path = /*bmain ? bmain->name :*/ G.main->name;
+	path = BKE_main_blendfile_path(bmain);
 
 	BLI_path_abs(str, path);
 
@@ -96,7 +96,7 @@ bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, b
 	char str[FILE_MAX], strtest[FILE_MAX];
 
 	BLI_strncpy(str, filepath, sizeof(str));
-	BLI_path_abs(str, bmain->name);
+	BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
 	/* first search an identical filepath */
 	for (sound = bmain->sound.first; sound; sound = sound->id.next) {

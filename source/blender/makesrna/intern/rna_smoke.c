@@ -243,7 +243,7 @@ static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
 	float *density;
 
 	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
-	
+
 	if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt)
 		density = smoke_turbulence_get_density(sds->wt);
 	else
@@ -326,12 +326,12 @@ static void rna_SmokeModifier_flame_grid_get(PointerRNA *ptr, float *values)
 	float *flame;
 
 	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
-	
+
 	if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt)
 		flame = smoke_turbulence_get_flame(sds->wt);
 	else
 		flame = smoke_get_flame(sds->fluid);
-	
+
 	if (flame)
 		memcpy(values, flame, size * sizeof(float));
 	else
@@ -973,7 +973,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -10, 10, 1, 1);
 	RNA_def_property_ui_text(prop, "Temp. Diff.", "Temperature difference to ambient temperature");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
-	
+
 	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "psys");
 	RNA_def_property_struct_type(prop, "ParticleSystem");

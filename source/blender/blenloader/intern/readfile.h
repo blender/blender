@@ -169,14 +169,14 @@ void blo_do_version_old_trackto_to_constraints(struct Object *ob);
 void blo_do_versions_view3d_split_250(struct View3D *v3d, struct ListBase *regions);
 void blo_do_versions_key_uidgen(struct Key *key);
 
-void blo_do_versions_pre250(struct FileData *fd, struct Library *lib, struct Main *main);
-void blo_do_versions_250(struct FileData *fd, struct Library *lib, struct Main *main);
-void blo_do_versions_260(struct FileData *fd, struct Library *lib, struct Main *main);
-void blo_do_versions_270(struct FileData *fd, struct Library *lib, struct Main *main);
-void blo_do_versions_280(struct FileData *fd, struct Library *lib, struct Main *main);
+void blo_do_versions_pre250(struct FileData *fd, struct Library *lib, struct Main *bmain);
+void blo_do_versions_250(struct FileData *fd, struct Library *lib, struct Main *bmain);
+void blo_do_versions_260(struct FileData *fd, struct Library *lib, struct Main *bmain);
+void blo_do_versions_270(struct FileData *fd, struct Library *lib, struct Main *bmain);
+void blo_do_versions_280(struct FileData *fd, struct Library *lib, struct Main *bmain);
 
-void do_versions_after_linking_270(struct Main *main);
-void do_versions_after_linking_280(struct Main *main);
+void do_versions_after_linking_270(struct Main *bmain);
+void do_versions_after_linking_280(struct Main *bmain);
 
 #endif
 

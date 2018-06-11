@@ -36,10 +36,11 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
 
-        layout.prop(ob, "empty_draw_type", text="Display")
+        layout.prop(ob, "empty_draw_type", text="Display As")
 
         if ob.empty_draw_type == 'IMAGE':
             layout.template_ID(ob, "data", open="image.open", unlink="object.unlink_data")
@@ -49,9 +50,11 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
             row = layout.row(align=True)
 
             layout.prop(ob, "color", text="Transparency", index=3, slider=True)
-            row = layout.row(align=True)
-            row.prop(ob, "empty_image_offset", text="Offset X", index=0)
-            row.prop(ob, "empty_image_offset", text="Offset Y", index=1)
+            col = layout.col(align=True)
+            col.prop(ob, "empty_image_offset", text="Offset X", index=0)
+            col.prop(ob, "empty_image_offset", text="Y", index=1)
+
+        layout.separator()
 
         layout.prop(ob, "empty_draw_size", text="Size")
 

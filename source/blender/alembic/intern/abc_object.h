@@ -44,8 +44,6 @@ protected:
 	Object *m_object;
 	ExportSettings &m_settings;
 
-	Depsgraph *m_depsgraph;
-	Scene *m_scene;
 	uint32_t m_time_sampling;
 
 	Imath::Box3d m_bounds;
@@ -57,9 +55,7 @@ protected:
 	std::string m_name;
 
 public:
-	AbcObjectWriter(Depsgraph *depsgraph,
-	                Scene *scene,
-	                Object *ob,
+	AbcObjectWriter(Object *ob,
 	                uint32_t time_sampling,
 	                ExportSettings &settings,
 	                AbcObjectWriter *parent = NULL);
@@ -124,7 +120,7 @@ static bool has_animations(Schema &schema, ImportSettings *settings)
 
 /* ************************************************************************** */
 
-struct DerivedMesh;
+struct Mesh;
 
 using Alembic::AbcCoreAbstract::chrono_t;
 
@@ -180,10 +176,10 @@ public:
 
 	virtual void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) = 0;
 
-	virtual DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                                      const Alembic::Abc::ISampleSelector &sample_sel,
-	                                      int read_flag,
-	                                      const char **err_str);
+	virtual struct Mesh *read_mesh(struct Mesh *mesh,
+	                               const Alembic::Abc::ISampleSelector &sample_sel,
+	                               int read_flag,
+	                               const char **err_str);
 
 	/** Reads the object matrix and sets up an object transform if animated. */
 	void setupObjectTransform(const float time);

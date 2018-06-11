@@ -1,0 +1,13 @@
+diff -Naur external_openal_original/CMakeLists.txt external_openal/CMakeLists.txt
+--- external_openal_original/CMakeLists.txt	2016-01-24 20:12:39 -0700
++++ external_openal/CMakeLists.txt	2018-06-02 12:16:52 -0600
+@@ -885,7 +885,8 @@
+ OPTION(ALSOFT_REQUIRE_MMDEVAPI "Require MMDevApi backend" OFF)
+ IF(HAVE_WINDOWS_H)
+     # Check MMSystem backend
+-    CHECK_INCLUDE_FILES("windows.h;mmsystem.h" HAVE_MMSYSTEM_H -D_WIN32_WINNT=0x0502)
++    set(CMAKE_REQUIRED_FLAGS "-D_WIN32_WINNT=0x0502")
++    CHECK_INCLUDE_FILES("windows.h;mmsystem.h" HAVE_MMSYSTEM_H)
+     IF(HAVE_MMSYSTEM_H)
+         CHECK_SHARED_FUNCTION_EXISTS(waveOutOpen "windows.h;mmsystem.h" winmm "" HAVE_LIBWINMM)
+         IF(HAVE_LIBWINMM)

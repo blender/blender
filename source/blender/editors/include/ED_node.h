@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -86,7 +86,7 @@ float ED_node_grid_size(void);
 
 /* node_relationships.c */
 void ED_node_link_intersect_test(struct ScrArea *sa, int test);
-void ED_node_link_insert(struct ScrArea *sa);
+void ED_node_link_insert(struct Main *bmain, struct ScrArea *sa);
 
 /* node_edit.c */
 void ED_node_set_tree_type(struct SpaceNode *snode, struct bNodeTreeType *typeinfo);
@@ -107,7 +107,7 @@ void ED_node_composite_job(const struct bContext *C, struct bNodeTree *nodetree,
 void ED_operatormacros_node(void);
 
 /* node_view.c */
-bool ED_space_node_color_sample(struct SpaceNode *snode, struct ARegion *ar, int mval[2], float r_col[3]);
+bool ED_space_node_color_sample(struct Main *bmain, struct SpaceNode *snode, struct ARegion *ar, int mval[2], float r_col[3]);
 
 #endif /* __ED_NODE_H__ */
 

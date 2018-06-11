@@ -158,7 +158,7 @@ typedef enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 11, 13, 14, 15, 30 */
+ * FREE FLAGS: 2, 9, 11, 13, 14, 15, 30 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -175,15 +175,6 @@ typedef enum PropertyFlag {
 	 * properties are animatable by default except for pointers
 	 * and collections */
 	PROP_ANIMATABLE              = (1 << 1),
-
-	/* Means the property can be overriden by a local 'proxy' of some linked datablock. */
-	PROP_OVERRIDABLE_STATIC      = (1 << 2),
-	/* The property supports insertion (collections only). */
-	PROP_OVERRIDABLE_STATIC_INSERTION = (1 << 9),
-
-	/* Forbid usage of this property in comparison (& hence override) code.
-	 * Useful e.g. for collections of data like mesh's geometry, particles, etc. */
-	PROP_NO_COMPARISON           = (1 << 3),
 
 	/* This flag means when the property's widget is in 'textedit' mode, it will be updated
 	 * after every typed char, instead of waiting final validation. Used e.g. for text searchbox.
@@ -252,6 +243,27 @@ typedef enum PropertyFlag {
 	PROP_ENUM_NO_CONTEXT         = (1 << 24), /* for enum that shouldn't be contextual */
 	PROP_ENUM_NO_TRANSLATE       = (1 << 29), /* for enums not to be translated (e.g. viewlayers' names in nodes) */
 } PropertyFlag;
+
+/* Flags related to comparing and overriding RNA properties. Make sure enums are updated with these */
+/* FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above. */
+typedef enum PropertyOverrideFlag {
+	/* Means the property can be overriden by a local 'proxy' of some linked datablock. */
+	PROPOVERRIDE_OVERRIDABLE_STATIC = (1 << 0),
+
+	/* Forbid usage of this property in comparison (& hence override) code.
+	 * Useful e.g. for collections of data like mesh's geometry, particles, etc. */
+	PROPOVERRIDE_NO_COMPARISON = (1 << 1),
+
+	/*** Collections-related ***/
+
+	/* The property supports insertion (collections only). */
+	PROPOVERRIDE_STATIC_INSERTION = (1 << 10),
+
+	/* Only use indices to compare items in the property, never names (collections only). */
+	/* Useful when nameprop of the items is generated from other data
+	 * (e.g. name of material slots is actually name of assigned material). */
+	PROPOVERRIDE_NO_PROP_NAME = (1 << 11),
+} PropertyOverrideFlag;
 
 /* Function parameters flags.
  * WARNING: 16bits only. */

@@ -40,10 +40,11 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_hash_mm2a.h"
-#include "BLI_linklist.h"
+#include "BLI_link_utils.h"
 #include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
+#include "BLI_threads.h"
 
 #include "PIL_time.h"
 
@@ -75,39 +76,54 @@ static char *glsl_material_library = NULL;
  * same for 2 different Materials. Unused GPUPasses are free by Garbage collection.
  **/
 
-static LinkNode *pass_cache = NULL; /* GPUPass */
+/* Only use one linklist that contains the GPUPasses grouped by hash. */
+static GPUPass *pass_cache = NULL;
+static SpinLock pass_cache_spin;
 
-static uint32_t gpu_pass_hash(const char *vert, const char *geom, const char *frag, const char *defs)
+static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs)
 {
 	BLI_HashMurmur2A hm2a;
 	BLI_hash_mm2a_init(&hm2a, 0);
-	BLI_hash_mm2a_add(&hm2a, (unsigned char *)frag, strlen(frag));
-	BLI_hash_mm2a_add(&hm2a, (unsigned char *)vert, strlen(vert));
+	BLI_hash_mm2a_add(&hm2a, (unsigned char *)frag_gen, strlen(frag_gen));
 	if (defs)
 		BLI_hash_mm2a_add(&hm2a, (unsigned char *)defs, strlen(defs));
-	if (geom)
-		BLI_hash_mm2a_add(&hm2a, (unsigned char *)geom, strlen(geom));
 
 	return BLI_hash_mm2a_end(&hm2a);
 }
 
-/* Search by hash then by exact string match. */
-static GPUPass *gpu_pass_cache_lookup(
-        const char *vert, const char *geom, const char *frag, const char *defs, uint32_t hash)
+/* Search by hash only. Return first pass with the same hash.
+ * There is hash collision if (pass->next && pass->next->hash == hash) */
+static GPUPass *gpu_pass_cache_lookup(uint32_t hash)
 {
-	for (LinkNode *ln = pass_cache; ln; ln = ln->next) {
-		GPUPass *pass = (GPUPass *)ln->link;
+	BLI_spin_lock(&pass_cache_spin);
+	/* Could be optimized with a Lookup table. */
+	for (GPUPass *pass = pass_cache; pass; pass = pass->next) {
 		if (pass->hash == hash) {
-			/* Note: Could be made faster if that becomes a real bottleneck. */
-			if ((defs != NULL) && (strcmp(pass->defines, defs) != 0)) { /* Pass */ }
-			else if ((geom != NULL) && (strcmp(pass->geometrycode, geom) != 0)) { /* Pass */ }
-			else if ((strcmp(pass->fragmentcode, frag) == 0) &&
-			         (strcmp(pass->vertexcode, vert) == 0))
-			{
-				return pass;
-			}
+			BLI_spin_unlock(&pass_cache_spin);
+			return pass;
 		}
 	}
+	BLI_spin_unlock(&pass_cache_spin);
+	return NULL;
+}
+
+/* Check all possible passes with the same hash. */
+static GPUPass *gpu_pass_cache_resolve_collision(
+        GPUPass *pass, const char *vert, const char *geom, const char *frag, const char *defs, uint32_t hash)
+{
+	BLI_spin_lock(&pass_cache_spin);
+	/* Collision, need to strcmp the whole shader. */
+	for (; pass && (pass->hash == hash); pass = pass->next) {
+		if ((defs != NULL) && (strcmp(pass->defines, defs) != 0)) { /* Pass */ }
+		else if ((geom != NULL) && (strcmp(pass->geometrycode, geom) != 0)) { /* Pass */ }
+		else if ((strcmp(pass->fragmentcode, frag) == 0) &&
+		         (strcmp(pass->vertexcode, vert) == 0))
+		{
+			BLI_spin_unlock(&pass_cache_spin);
+			return pass;
+		}
+	}
+	BLI_spin_unlock(&pass_cache_spin);
 	return NULL;
 }
 
@@ -159,7 +175,7 @@ static int gpu_str_prefix(const char *str, const char *prefix)
 		str++;
 		prefix++;
 	}
-	
+
 	return (*prefix == '\0');
 }
 
@@ -278,7 +294,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 	GPUFunction *function;
 	char *name, *prototypes;
 	int a;
-	
+
 	/* automatically generate function prototypes to add to the top of the
 	 * generated code, to avoid have to add the actual code & recompile all */
 	ghi = BLI_ghashIterator_new(hash);
@@ -656,7 +672,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 
 	/* Handle the UBO block separately. */
 	if ((material != NULL) && !BLI_listbase_is_empty(&ubo_inputs)) {
-		GPU_material_create_uniform_buffer(material, &ubo_inputs);
+		GPU_material_uniform_buffer_create(material, &ubo_inputs);
 
 		/* Inputs are sorted */
 		BLI_dynstr_appendf(ds, "\nlayout (std140) uniform %s {\n", GPU_UBO_BLOCK_NAME);
@@ -716,7 +732,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 
 	for (node = nodes->first; node; node = node->next) {
 		BLI_dynstr_appendf(ds, "\t%s(", node->name);
-		
+
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_TEX) {
 				BLI_dynstr_appendf(ds, "samp%d", input->texid);
@@ -895,6 +911,15 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	GPUInput *input;
 	char *code;
 
+	/* Hairs uv and col attribs are passed by bufferTextures. */
+	BLI_dynstr_append(ds,
+	    "#ifdef HAIR_SHADER\n"
+	    "#define DEFINE_ATTRIB(type, attr) uniform samplerBuffer attr\n"
+	    "#else\n"
+	    "#define DEFINE_ATTRIB(type, attr) in type attr\n"
+	    "#endif\n"
+	);
+
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
@@ -905,12 +930,12 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 					BLI_dynstr_appendf(ds, "uniform vec3 OrcoTexCoFactors[2];\n");
 				}
 				else if (input->attribname[0] == '\0') {
-					BLI_dynstr_appendf(ds, "in %s %s;\n", GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype));
+					BLI_dynstr_appendf(ds, "DEFINE_ATTRIB(%s, %s);\n", GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype));
 					BLI_dynstr_appendf(ds, "#define att%d %s\n", input->attribid, attrib_prefix_get(input->attribtype));
 				}
 				else {
 					unsigned int hash = BLI_ghashutil_strhash_p(input->attribname);
-					BLI_dynstr_appendf(ds, "in %s %s%u;\n",
+					BLI_dynstr_appendf(ds, "DEFINE_ATTRIB(%s, %s%u);\n",
 						GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);
 					BLI_dynstr_appendf(ds, "#define att%d %s%u\n",
 						input->attribid, attrib_prefix_get(input->attribtype), hash);
@@ -932,6 +957,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	BLI_dynstr_append(ds,
 	    "#define ATTRIB\n"
 	    "uniform mat3 NormalMatrix;\n"
+	    "uniform mat4 ModelMatrixInverse;\n"
 	    "vec3 srgb_to_linear_attrib(vec3 c) {\n"
 	    "\tc = max(c, vec3(0.0));\n"
 	    "\tvec3 c1 = c * (1.0 / 12.92);\n"
@@ -940,7 +966,40 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	    "}\n\n"
 	);
 
+	/* Prototype because defined later. */
+	BLI_dynstr_append(ds,
+	    "vec2 hair_get_customdata_vec2(const samplerBuffer);\n"
+	    "vec3 hair_get_customdata_vec3(const samplerBuffer);\n"
+	    "vec4 hair_get_customdata_vec4(const samplerBuffer);\n"
+	    "vec3 hair_get_strand_pos(void);\n"
+	    "\n"
+	);
+
 	BLI_dynstr_append(ds, "void pass_attrib(in vec3 position) {\n");
+
+	BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
+
+	for (node = nodes->first; node; node = node->next) {
+		for (input = node->inputs.first; input; input = input->next) {
+			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+				if (input->attribtype == CD_TANGENT) {
+					/* Not supported by hairs */
+					BLI_dynstr_appendf(ds, "\tvar%d%s = vec4(0.0);\n",
+					                   input->attribid, use_geom ? "g" : "");
+				}
+				else if (input->attribtype == CD_ORCO) {
+					BLI_dynstr_appendf(ds, "\tvar%d%s = OrcoTexCoFactors[0] + (ModelMatrixInverse * vec4(hair_get_strand_pos(), 1.0)).xyz * OrcoTexCoFactors[1];\n",
+					                   input->attribid, use_geom ? "g" : "");
+				}
+				else {
+					BLI_dynstr_appendf(ds, "\tvar%d%s = hair_get_customdata_%s(att%d);\n",
+					                   input->attribid, use_geom ? "g" : "", GPU_DATATYPE_STR[input->type], input->attribid);
+				}
+			}
+		}
+	}
+
+	BLI_dynstr_append(ds, "#else /* MESH_SHADER */\n");
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
@@ -973,6 +1032,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 			}
 		}
 	}
+	BLI_dynstr_append(ds, "#endif /* HAIR_SHADER */\n");
 
 	BLI_dynstr_append(ds, "}\n");
 
@@ -1055,12 +1115,12 @@ void GPU_code_generate_glsl_lib(void)
 
 /* GPU pass binding/unbinding */
 
-GPUShader *GPU_pass_shader(GPUPass *pass)
+GPUShader *GPU_pass_shader_get(GPUPass *pass)
 {
 	return pass->shader;
 }
 
-static void gpu_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListBase *nodes)
+void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListBase *nodes)
 {
 	GPUNode *node;
 	GPUInput *next, *input;
@@ -1102,8 +1162,12 @@ static void gpu_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs
 				if (input->bindtex)
 					extract = 1;
 			}
-			else if (input->dynamicvec)
+			else if (input->dynamictype == GPU_DYNAMIC_UBO) {
+				/* Don't extract UBOs */
+			}
+			else if (input->dynamicvec) {
 				extract = 1;
+			}
 
 			if (extract)
 				input->shaderloc = GPU_shader_get_uniform(shader, input->shadername);
@@ -1186,7 +1250,7 @@ void GPU_pass_unbind(GPUPass *pass, ListBase *inputs)
 		if (input->ima || input->prv)
 			input->tex = NULL;
 	}
-	
+
 	GPU_shader_unbind();
 }
 
@@ -1207,7 +1271,7 @@ static void gpu_node_link_free(GPUNodeLink *link)
 
 	if (link->users < 0)
 		fprintf(stderr, "GPU_node_link_free: negative refcount\n");
-	
+
 	if (link->users == 0) {
 		if (link->output)
 			link->output->link = NULL;
@@ -1248,7 +1312,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 			return;
 		}
 	}
-	
+
 	input = MEM_callocN(sizeof(GPUInput), "GPUInput");
 	input->node = node;
 
@@ -1639,10 +1703,10 @@ GPUNodeLink *GPU_cube_map(Image *ima, ImageUser *iuser, bool is_data)
 GPUNodeLink *GPU_image_preview(PreviewImage *prv)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-	
+
 	link->image = GPU_NODE_LINK_IMAGE_PREVIEW;
 	link->ptr1 = prv;
-	
+
 	return link;
 }
 
@@ -1826,7 +1890,7 @@ static void gpu_nodes_tag(GPUNodeLink *link)
 	node = link->output->node;
 	if (node->tag)
 		return;
-	
+
 	node->tag = true;
 	for (input = node->inputs.first; input; input = input->next)
 		if (input->link)
@@ -1852,16 +1916,25 @@ void GPU_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 	}
 }
 
+static bool gpu_pass_is_valid(GPUPass *pass)
+{
+	/* Shader is not null if compilation is successful,
+	 * refcount is positive if compilation as not yet been done. */
+	return (pass->shader != NULL || pass->refcount > 0);
+}
+
 GPUPass *GPU_generate_pass_new(
         GPUMaterial *material,
-        GPUNodeLink *frag_outlink, struct GPUVertexAttribs *attribs,
-        ListBase *nodes, ListBase *inputs,
-        const char *vert_code, const char *geom_code,
-        const char *frag_lib, const char *defines)
+        GPUNodeLink *frag_outlink,
+        struct GPUVertexAttribs *attribs,
+        ListBase *nodes,
+        const char *vert_code,
+        const char *geom_code,
+        const char *frag_lib,
+        const char *defines)
 {
 	char *vertexcode, *geometrycode, *fragmentcode;
-	GPUShader *shader;
-	GPUPass *pass;
+	GPUPass *pass = NULL, *pass_hash = NULL;
 
 	/* prune unused nodes */
 	GPU_nodes_prune(nodes, frag_outlink);
@@ -1870,6 +1943,24 @@ GPUPass *GPU_generate_pass_new(
 
 	/* generate code */
 	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output);
+
+	/* Cache lookup: Reuse shaders already compiled */
+	uint32_t hash = gpu_pass_hash(fragmentgen, defines);
+	pass_hash = gpu_pass_cache_lookup(hash);
+
+	if (pass_hash && (pass_hash->next == NULL || pass_hash->next->hash != hash)) {
+		/* No collision, just return the pass. */
+		MEM_freeN(fragmentgen);
+		if (!gpu_pass_is_valid(pass_hash)) {
+			/* Shader has already been created but failed to compile. */
+			return NULL;
+		}
+		pass_hash->refcount += 1;
+		return pass_hash;
+	}
+
+	/* Either the shader is not compiled or there is a hash collision...
+	 * continue generating the shader strings. */
 	char *tmp = BLI_strdupcat(frag_lib, glsl_material_library);
 
 	vertexcode = code_generate_vertex(nodes, vert_code, (geom_code != NULL));
@@ -1879,51 +1970,62 @@ GPUPass *GPU_generate_pass_new(
 	MEM_freeN(fragmentgen);
 	MEM_freeN(tmp);
 
-	/* Cache lookup: Reuse shaders already compiled */
-	uint32_t hash = gpu_pass_hash(vertexcode, geometrycode, fragmentcode, defines);
-	pass = gpu_pass_cache_lookup(vertexcode, geometrycode, fragmentcode, defines, hash);
+	if (pass_hash) {
+		/* Cache lookup: Reuse shaders already compiled */
+		pass = gpu_pass_cache_resolve_collision(pass_hash, vertexcode, geometrycode, fragmentcode, defines, hash);
+	}
+
 	if (pass) {
 		/* Cache hit. Reuse the same GPUPass and GPUShader. */
-		shader = pass->shader;
-		pass->refcount += 1;
+		if (!gpu_pass_is_valid(pass)) {
+			/* Shader has already been created but failed to compile. */
+			return NULL;
+		}
 
 		MEM_SAFE_FREE(vertexcode);
 		MEM_SAFE_FREE(fragmentcode);
 		MEM_SAFE_FREE(geometrycode);
+
+		pass->refcount += 1;
 	}
 	else {
-		/* Cache miss. (Re)compile the shader. */
-		shader = GPU_shader_create(vertexcode,
-		                           fragmentcode,
-		                           geometrycode,
-		                           NULL,
-		                           defines);
-
 		/* We still create a pass even if shader compilation
 		 * fails to avoid trying to compile again and again. */
 		pass = MEM_callocN(sizeof(GPUPass), "GPUPass");
-		pass->shader = shader;
+		pass->shader = NULL;
 		pass->refcount = 1;
 		pass->hash = hash;
 		pass->vertexcode = vertexcode;
 		pass->fragmentcode = fragmentcode;
 		pass->geometrycode = geometrycode;
-		pass->libcode = glsl_material_library;
 		pass->defines = (defines) ? BLI_strdup(defines) : NULL;
+		pass->compiled = false;
 
-		BLI_linklist_prepend(&pass_cache, pass);
+		BLI_spin_lock(&pass_cache_spin);
+		if (pass_hash != NULL) {
+			/* Add after the first pass having the same hash. */
+			pass->next = pass_hash->next;
+			pass_hash->next = pass;
+		}
+		else {
+			/* No other pass have same hash, just prepend to the list. */
+			BLI_LINKS_PREPEND(pass_cache, pass);
+		}
+		BLI_spin_unlock(&pass_cache_spin);
 	}
 
-	/* did compilation failed ? */
-	if (!shader) {
-		gpu_nodes_free(nodes);
-		/* Pass will not be used. Don't increment refcount. */
-		pass->refcount--;
-		return NULL;
-	}
-	else {
-		gpu_nodes_extract_dynamic_inputs(shader, inputs, nodes);
-		return pass;
+	return pass;
+}
+
+void GPU_pass_compile(GPUPass *pass)
+{
+	if (!pass->compiled) {
+		pass->shader = GPU_shader_create(pass->vertexcode,
+		                                 pass->fragmentcode,
+		                                 pass->geometrycode,
+		                                 NULL,
+		                                 pass->defines);
+		pass->compiled = true;
 	}
 }
 
@@ -1962,23 +2064,36 @@ void GPU_pass_cache_garbage_collect(void)
 
 	lasttime = ctime;
 
-	LinkNode *next, **prev_ln = &pass_cache;
-	for (LinkNode *ln = pass_cache; ln; ln = next) {
-		GPUPass *pass = (GPUPass *)ln->link;
-		next = ln->next;
+	BLI_spin_lock(&pass_cache_spin);
+	GPUPass *next, **prev_pass = &pass_cache;
+	for (GPUPass *pass = pass_cache; pass; pass = next) {
+		next = pass->next;
 		if (pass->refcount == 0) {
-			gpu_pass_free(pass);
 			/* Remove from list */
-			MEM_freeN(ln);
-			*prev_ln = next;
+			*prev_pass = next;
+			gpu_pass_free(pass);
 		}
 		else {
-			prev_ln = &ln->next;
+			prev_pass = &pass->next;
 		}
 	}
+	BLI_spin_unlock(&pass_cache_spin);
+}
+
+void GPU_pass_cache_init(void)
+{
+	BLI_spin_init(&pass_cache_spin);
 }
 
 void GPU_pass_cache_free(void)
 {
-	BLI_linklist_free(pass_cache, (LinkNodeFreeFP)gpu_pass_free);
+	BLI_spin_lock(&pass_cache_spin);
+	while (pass_cache) {
+		GPUPass *next = pass_cache->next;
+		gpu_pass_free(pass_cache);
+		pass_cache = next;
+	}
+	BLI_spin_unlock(&pass_cache_spin);
+
+	BLI_spin_end(&pass_cache_spin);
 }

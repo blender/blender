@@ -54,23 +54,18 @@ class DATA_PT_metaball(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         mball = context.meta_ball
 
-        split = layout.split()
-
-        col = split.column()
+        col = layout.column()
         col.label(text="Resolution:")
         sub = col.column(align=True)
-        sub.prop(mball, "resolution", text="View")
+        sub.prop(mball, "resolution", text="Resolution View")
         sub.prop(mball, "render_resolution", text="Render")
 
-        col = split.column()
-        col.label(text="Settings:")
         col.prop(mball, "threshold", text="Threshold")
-
-        layout.label(text="Update:")
-        layout.row().prop(mball, "update_method", expand=True)
+        col.prop(mball, "update_method")
 
 
 class DATA_PT_mball_texture_space(DataButtonsPanel, Panel):
@@ -80,14 +75,15 @@ class DATA_PT_mball_texture_space(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         mball = context.meta_ball
 
         layout.prop(mball, "use_auto_texspace")
 
-        row = layout.row()
-        row.column().prop(mball, "texspace_location", text="Location")
-        row.column().prop(mball, "texspace_size", text="Size")
+        col = layout.column()
+        col.prop(mball, "texspace_location")
+        col.prop(mball, "texspace_size")
 
 
 class DATA_PT_metaball_element(DataButtonsPanel, Panel):
@@ -99,35 +95,33 @@ class DATA_PT_metaball_element(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         metaelem = context.meta_ball.elements.active
 
-        layout.prop(metaelem, "type")
+        col = layout.column()
 
-        split = layout.split()
+        col.prop(metaelem, "type")
 
-        col = split.column(align=True)
-        col.label(text="Settings:")
+        col.separator()
+
         col.prop(metaelem, "stiffness", text="Stiffness")
         col.prop(metaelem, "use_negative", text="Negative")
         col.prop(metaelem, "hide", text="Hide")
 
-        col = split.column(align=True)
+        sub = col.column(align=True)
 
         if metaelem.type in {'CUBE', 'ELLIPSOID'}:
-            col.label(text="Size:")
-            col.prop(metaelem, "size_x", text="X")
-            col.prop(metaelem, "size_y", text="Y")
-            col.prop(metaelem, "size_z", text="Z")
+            sub.prop(metaelem, "size_x", text="Size X")
+            sub.prop(metaelem, "size_y", text="Y")
+            sub.prop(metaelem, "size_z", text="Z")
 
         elif metaelem.type == 'TUBE':
-            col.label(text="Size:")
-            col.prop(metaelem, "size_x", text="X")
+            sub.prop(metaelem, "size_x", text="Size X")
 
         elif metaelem.type == 'PLANE':
-            col.label(text="Size:")
-            col.prop(metaelem, "size_x", text="X")
-            col.prop(metaelem, "size_y", text="Y")
+            sub.prop(metaelem, "size_x", text="Size X")
+            sub.prop(metaelem, "size_y", text="Y")
 
 
 class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, Panel):

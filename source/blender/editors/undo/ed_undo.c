@@ -57,6 +57,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_toolsystem.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -106,7 +107,6 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	CLOG_INFO(&LOG, 1, "name='%s', step=%d", undoname, step);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
-	// Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 
 	/* undo during jobs are running can easily lead to freeing data using by jobs,
@@ -134,6 +134,9 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	WM_event_add_notifier(C, NC_WM | ND_UNDO, NULL);
+
+	Main *bmain = CTX_data_main(C);
+	WM_toolsystem_refresh_screen_all(bmain);
 
 	if (win) {
 		win->addmousemove = true;

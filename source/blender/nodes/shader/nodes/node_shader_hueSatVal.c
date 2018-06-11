@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -52,7 +52,7 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat
 {
 	if (fac != 0.0f && (hue != 0.5f || sat != 1.0f || val != 1.0f)) {
 		float col[3], hsv[3], mfac = 1.0f - fac;
-		
+
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv + 1, hsv + 2);
 		hsv[0] += (hue - 0.5f);
 		if (hsv[0] > 1.0f) hsv[0] -= 1.0f; else if (hsv[0] < 0.0f) hsv[0] += 1.0f;

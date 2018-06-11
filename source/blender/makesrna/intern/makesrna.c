@@ -290,7 +290,7 @@ static void rna_sortlist(ListBase *listbase, int (*cmp)(const void *, const void
 	Link *link;
 	void **array;
 	int a, size;
-	
+
 	if (listbase->first == listbase->last)
 		return;
 
@@ -497,7 +497,7 @@ static int rna_enum_bitmask(PropertyRNA *prop)
 			if (eprop->item[a].identifier[0])
 				mask |= eprop->item[a].value;
 	}
-	
+
 	return mask;
 }
 
@@ -1416,7 +1416,7 @@ static void rna_set_raw_property(PropertyDefRNA *dp, PropertyRNA *prop)
 		return;
 	if (!dp->dnatype || !dp->dnaname || !dp->dnastructname)
 		return;
-	
+
 	if (STREQ(dp->dnatype, "char")) {
 		prop->rawtype = PROP_RAW_CHAR;
 		prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
@@ -1677,7 +1677,7 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
 			if (sprop->maxlength) {
 				fprintf(f, "#define %s_%s_MAX %d\n\n", srna->identifier, prop->identifier, sprop->maxlength);
 			}
-			
+
 			fprintf(f, "void %sget(PointerRNA *ptr, char *value);\n", func);
 			fprintf(f, "int %slength(PointerRNA *ptr);\n", func);
 			fprintf(f, "void %sset(PointerRNA *ptr, const char *value);\n", func);
@@ -1733,7 +1733,7 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 	if (prop->flag & PROP_IDPROPERTY || prop->flag_internal & PROP_INTERN_BUILTIN) {
 		return;
 	}
-	
+
 	/* disabled for now to avoid msvc compiler error due to large file size */
 #if 0
 	if (prop->name && prop->description && prop->description[0] != '\0')
@@ -2259,7 +2259,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	fprintf(f, "\n{\n");
 
 	/* variable definitions */
-	
+
 	if (func->flag & FUNC_USE_SELF_ID) {
 		fprintf(f, "\tstruct ID *_selfid;\n");
 	}
@@ -2301,7 +2301,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		/* for dynamic parameters we pass an additional int for the length of the parameter */
 		if (flag & PROP_DYNAMIC)
 			fprintf(f, "\tint %s%s_len;\n", pout ? "*" : "", dparm->prop->identifier);
-		
+
 		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop),
 		        ptrstr, dparm->prop->identifier);
 	}
@@ -2317,7 +2317,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	if (func->flag & FUNC_USE_SELF_ID) {
 		fprintf(f, "\t_selfid = (struct ID *)_ptr->id.data;\n");
 	}
-	
+
 	if ((func->flag & FUNC_NO_SELF) == 0) {
 		if (dsrna->dnafromprop) fprintf(f, "\t_self = (struct %s *)_ptr->data;\n", dsrna->dnafromname);
 		else if (dsrna->dnaname) fprintf(f, "\t_self = (struct %s *)_ptr->data;\n", dsrna->dnaname);
@@ -2886,7 +2886,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 {
 	char *strnest = (char *)"", *errnest = (char *)"";
 	int len, freenest = 0;
-	
+
 	if (nest != NULL) {
 		len = strlen(nest);
 
@@ -3056,7 +3056,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	else fprintf(f, "NULL,\n");
 	fprintf(f, "\t%d, ", prop->magic);
 	rna_print_c_string(f, prop->identifier);
-	fprintf(f, ", %d, %d, %d, %d, ", prop->flag, prop->flag_parameter, prop->flag_internal, prop->tags);
+	fprintf(f, ", %d, %d, %d, %d, %d, ", prop->flag, prop->flag_override, prop->flag_parameter, prop->flag_internal, prop->tags);
 	rna_print_c_string(f, prop->name); fprintf(f, ",\n\t");
 	rna_print_c_string(f, prop->description); fprintf(f, ",\n\t");
 	fprintf(f, "%d, ", prop->icon);
@@ -3441,7 +3441,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;
 	FunctionDefRNA *dfunc;
-	
+
 	fprintf(f,
 	        "\n"
 	        "/* Automatically generated struct definitions for the Data API.\n"
@@ -3940,7 +3940,7 @@ static void rna_generate_header_cpp(BlenderRNA *UNUSED(brna), FILE *f)
 	fprintf(f,
 	        "/* Automatically generated classes for the Data API.\n"
 	        " * Do not edit manually, changes will be overwritten. */\n\n");
-	
+
 	fprintf(f, "#include \"RNA_blender.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");
 	fprintf(f, "#include \"RNA_access.h\"\n");

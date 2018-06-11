@@ -450,7 +450,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 	struct Gwn_Batch *geom;
 
 	if (ob->type == OB_MESH) {
-		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob)) {
+		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob)) {
 			const Mesh *me = ob->data;
 			bool do_occlude_wire = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
 			bool do_show_weight = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) != 0;
@@ -512,10 +512,13 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			if (me->drawflag & (ME_DRAWEXTRA_EDGELEN |
 			                    ME_DRAWEXTRA_FACEAREA |
 			                    ME_DRAWEXTRA_FACEANG |
-			                    ME_DRAWEXTRA_EDGEANG))
+			                    ME_DRAWEXTRA_EDGEANG |
+			                    ME_DRAWEXTRA_INDICES))
 			{
-				DRW_edit_mesh_mode_text_measure_stats(
-				       draw_ctx->ar, v3d, ob, &scene->unit);
+				if (DRW_state_show_text()) {
+					DRW_edit_mesh_mode_text_measure_stats(
+					       draw_ctx->ar, v3d, ob, &scene->unit);
+				}
 			}
 		}
 	}

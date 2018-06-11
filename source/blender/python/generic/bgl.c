@@ -866,7 +866,7 @@ static PyObject *Buffer_slice(Buffer *self, int begin, int end)
 {
 	PyObject *list;
 	int count;
-	
+
 	if (begin < 0) begin = 0;
 	if (end > self->dimensions[0]) end = self->dimensions[0];
 	if (begin > end) begin = end;
@@ -914,11 +914,11 @@ static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq)
 {
 	PyObject *item;
 	int count, err = 0;
-	
+
 	if (begin < 0) begin = 0;
 	if (end > self->dimensions[0]) end = self->dimensions[0];
 	if (begin > end) begin = end;
-	
+
 	if (!PySequence_Check(seq)) {
 		PyErr_Format(PyExc_TypeError,
 		             "buffer[:] = value, invalid assignment. "
@@ -934,7 +934,7 @@ static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq)
 		             "Expected: %d (given: %d)", count, end - begin);
 		return -1;
 	}
-	
+
 	for (count = begin; count < end; count++) {
 		item = PySequence_GetItem(seq, count - begin);
 		if (item) {

@@ -255,8 +255,8 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 	}
 	else {
 		BLI_split_file_part(filepath, filename, sizeof(filename));
-		pf = newPackedFile(NULL, filepath, bmain->name);
-		temp_pf = newPackedFile(NULL, filepath, bmain->name);
+		pf = newPackedFile(NULL, filepath, BKE_main_blendfile_path(bmain));
+		temp_pf = newPackedFile(NULL, filepath, BKE_main_blendfile_path(bmain));
 		
 		is_builtin = false;
 	}
@@ -301,7 +301,7 @@ VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *
 	char str[FILE_MAX], strtest[FILE_MAX];
 
 	BLI_strncpy(str, filepath, sizeof(str));
-	BLI_path_abs(str, bmain->name);
+	BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
 	/* first search an identical filepath */
 	for (vfont = bmain->vfont.first; vfont; vfont = vfont->id.next) {

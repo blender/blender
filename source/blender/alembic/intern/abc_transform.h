@@ -43,8 +43,7 @@ public:
 	Object *m_proxy_from;
 
 public:
-	AbcTransformWriter(Depsgraph *depsgraph,
-	                   Object *ob,
+	AbcTransformWriter(Object *ob,
 	                   const Alembic::AbcGeom::OObject &abc_parent,
 	                   AbcTransformWriter *parent,
 	                   unsigned int time_sampling,

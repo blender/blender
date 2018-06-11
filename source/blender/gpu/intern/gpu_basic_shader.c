@@ -169,7 +169,7 @@ void GPU_basic_shaders_init(void)
 void GPU_basic_shaders_exit(void)
 {
 	int i;
-	
+
 	for (i = 0; i < GPU_SHADER_OPTION_COMBINATIONS; i++)
 		if (GPU_MATERIAL_STATE.cached_shaders[i])
 			GPU_shader_free(GPU_MATERIAL_STATE.cached_shaders[i]);
@@ -238,7 +238,7 @@ static GPUShader *gpu_basic_shader(int options)
 			geom_glsl,
 			NULL,
 			defines);
-		
+
 		if (shader) {
 			/* set texture map to first texture unit */
 			if (options & (GPU_SHADER_TEXTURE_2D | GPU_SHADER_TEXTURE_RECT)) {

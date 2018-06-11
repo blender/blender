@@ -88,6 +88,20 @@ static void mesh_calc_normals_vert_fallback(MVert *mverts, int numVerts)
 	}
 }
 
+/* TODO(Sybren): we can probably rename this to BKE_mesh_calc_normals_mapping(),
+ * and remove the function of the same name below, as that one doesn't seem to be
+ * called anywhere. */
+void BKE_mesh_calc_normals_mapping_simple(struct Mesh *mesh)
+{
+	const bool only_face_normals = CustomData_is_referenced_layer(&mesh->vdata, CD_MVERT);
+
+	BKE_mesh_calc_normals_mapping_ex(
+	            mesh->mvert, mesh->totvert,
+	            mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL,
+	            mesh->mface, mesh->totface, NULL, NULL,
+	            only_face_normals);
+}
+
 /* Calculate vertex and face normals, face normals are returned in *r_faceNors if non-NULL
  * and vertex normals are stored in actual mverts.
  */

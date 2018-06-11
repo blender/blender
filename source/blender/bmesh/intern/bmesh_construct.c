@@ -712,7 +712,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 	/* safety check */
 	BLI_assert(i == bm_old->totvert);
-	
+
 	BM_ITER_MESH_INDEX (e, &iter, bm_old, BM_EDGES_OF_MESH, i) {
 		e_new = BM_edge_create(bm_new,
 		                       vtable[BM_elem_index_get(e->v1)],
@@ -730,7 +730,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 	/* safety check */
 	BLI_assert(i == bm_old->totedge);
-	
+
 	BM_ITER_MESH_INDEX (f, &iter, bm_old, BM_FACES_OF_MESH, i) {
 		BM_elem_index_set(f, i); /* set_inline */
 

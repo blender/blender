@@ -3142,7 +3142,7 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MVERT_SKIN_ROOT);
 	RNA_def_property_ui_text(prop, "Root", "Vertex is a root for rotation calculations and armature generation");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-	
+
 	prop = RNA_def_property(srna, "use_loose", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MVERT_SKIN_LOOSE);
 	RNA_def_property_ui_text(prop, "Loose", "If vertex has multiple adjacent edges, it is hulled to them directly");

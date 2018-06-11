@@ -143,7 +143,7 @@ protected:
 
 	/** A stack with events. */
 	typedef std::deque<GHOST_IEvent *> TEventStack;
-	
+
 	/** The event stack. */
 	std::deque<GHOST_IEvent *> m_events;
 	std::deque<GHOST_IEvent *> m_handled_events;

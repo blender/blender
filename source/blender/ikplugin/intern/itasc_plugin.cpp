@@ -881,7 +881,7 @@ static int convert_channels(struct Depsgraph *depsgraph, IK_Scene *ikscene, Pose
 		ikchan->owner = ikscene->blArmature;
 
 		// the constraint and channels must be applied before we build the iTaSC scene,
-		// this is because some of the pose data (e.g. pose head) don't have corresponding 
+		// this is because some of the pose data (e.g. pose head) don't have corresponding
 		// joint angles and can't be applied to the iTaSC armature dynamically
 		if (!(pchan->flag & POSE_DONE))
 			BKE_pose_where_is_bone(depsgraph, ikscene->blscene, ikscene->blArmature, pchan, ctime, 1);

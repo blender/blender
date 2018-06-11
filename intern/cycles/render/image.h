@@ -80,6 +80,10 @@ public:
 	                        int flat_slot,
 	                        Progress *progress);
 	void device_free(Device *device);
+
+	void device_load_builtin(Device *device,
+	                         Scene *scene,
+	                         Progress& progress);
 	void device_free_builtin(Device *device);
 
 	void set_osl_texture_system(void *texture_system);

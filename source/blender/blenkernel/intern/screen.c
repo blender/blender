@@ -69,13 +69,19 @@ static void spacetype_free(SpaceType *st)
 	for (art = st->regiontypes.first; art; art = art->next) {
 		BLI_freelistN(&art->drawcalls);
 
-		for (pt = art->paneltypes.first; pt; pt = pt->next)
-			if (pt->ext.free)
+		for (pt = art->paneltypes.first; pt; pt = pt->next) {
+			if (pt->ext.free) {
 				pt->ext.free(pt->ext.data);
+			}
 
-		for (ht = art->headertypes.first; ht; ht = ht->next)
-			if (ht->ext.free)
+			BLI_freelistN(&pt->children);
+		}
+
+		for (ht = art->headertypes.first; ht; ht = ht->next) {
+			if (ht->ext.free) {
 				ht->ext.free(ht->ext.data);
+			}
+		}
 
 		BLI_freelistN(&art->paneltypes);
 		BLI_freelistN(&art->headertypes);
@@ -169,10 +175,35 @@ void BKE_spacedata_freelist(ListBase *lb)
 	BLI_freelistN(lb);
 }
 
+static void panel_list_copy(ListBase *newlb, const ListBase *lb)
+{
+	BLI_listbase_clear(newlb);
+	BLI_duplicatelist(newlb, lb);
+
+	/* copy panel pointers */
+	Panel *newpa = newlb->first;
+	Panel *pa = lb->first;
+	for (; newpa; newpa = newpa->next, pa = pa->next) {
+		newpa->activedata = NULL;
+
+		Panel *newpatab = newlb->first;
+		Panel *patab = lb->first;
+		while (newpatab) {
+			if (newpa->paneltab == patab) {
+				newpa->paneltab = newpatab;
+				break;
+			}
+			newpatab = newpatab->next;
+			patab = patab->next;
+		}
+
+		panel_list_copy(&newpa->children, &pa->children);
+	}
+}
+
 ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 {
 	ARegion *newar = MEM_dupallocN(ar);
-	Panel *pa, *newpa, *patab;
 	
 	newar->prev = newar->next = NULL;
 	BLI_listbase_clear(&newar->handlers);
@@ -199,25 +230,10 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	if (ar->v2d.tab_offset)
 		newar->v2d.tab_offset = MEM_dupallocN(ar->v2d.tab_offset);
 	
-	BLI_listbase_clear(&newar->panels);
-	BLI_duplicatelist(&newar->panels, &ar->panels);
+	panel_list_copy(&newar->panels, &ar->panels);
 
 	BLI_listbase_clear(&newar->ui_previews);
 	BLI_duplicatelist(&newar->ui_previews, &ar->ui_previews);
-
-	/* copy panel pointers */
-	for (newpa = newar->panels.first; newpa; newpa = newpa->next) {
-		patab = newar->panels.first;
-		pa = ar->panels.first;
-		while (patab) {
-			if (newpa->paneltab == pa) {
-				newpa->paneltab = patab;
-				break;
-			}
-			patab = patab->next;
-			pa = pa->next;
-		}
-	}
 	
 	return newar;
 }
@@ -329,6 +345,19 @@ void BKE_region_callback_free_manipulatormap_set(void (*callback)(struct wmManip
 	region_free_manipulatormap_callback = callback;
 }
 
+static void panel_list_free(ListBase *lb)
+{
+	Panel *pa, *pa_next;
+	for (pa = lb->first; pa; pa = pa_next) {
+		pa_next = pa->next;
+		if (pa->activedata) {
+			MEM_freeN(pa->activedata);
+		}
+		panel_list_free(&pa->children);
+		MEM_freeN(pa);
+	}
+}
+
 /* not region itself */
 void BKE_area_region_free(SpaceType *st, ARegion *ar)
 {
@@ -351,16 +380,7 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		ar->v2d.tab_offset = NULL;
 	}
 
-	if (!BLI_listbase_is_empty(&ar->panels)) {
-		Panel *pa, *pa_next;
-		for (pa = ar->panels.first; pa; pa = pa_next) {
-			pa_next = pa->next;
-			if (pa->activedata) {
-				MEM_freeN(pa->activedata);
-			}
-			MEM_freeN(pa);
-		}
-	}
+	panel_list_free(&ar->panels);
 
 	for (uilst = ar->ui_lists.first; uilst; uilst = uilst->next) {
 		if (uilst->dyn_data) {

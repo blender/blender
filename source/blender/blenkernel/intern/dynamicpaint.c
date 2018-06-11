@@ -3216,7 +3216,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 	BKE_image_path_ensure_ext_from_imtype(output_file, format);
 
 	/* Validate output file path	*/
-	BLI_path_abs(output_file, G.main->name);
+	BLI_path_abs(output_file, BKE_main_blendfile_path_from_global());
 	BLI_make_existing_file(output_file);
 
 	/* Init image buffer	*/
@@ -3645,7 +3645,7 @@ static void dynamic_paint_brush_velocity_compute_cb(
 }
 
 static void dynamicPaint_brushMeshCalculateVelocity(
-        struct Depsgraph *depsgraph, Scene *scene,
+        Depsgraph *depsgraph, Scene *scene,
         Object *ob, DynamicPaintBrushSettings *brush, Vec3f **brushVel, float timescale)
 {
 	float prev_obmat[4][4];
@@ -3710,7 +3710,8 @@ static void dynamicPaint_brushMeshCalculateVelocity(
 }
 
 /* calculate velocity for object center point */
-static void dynamicPaint_brushObjectCalculateVelocity(struct Depsgraph *depsgraph, Scene *scene, Object *ob, Vec3f *brushVel, float timescale)
+static void dynamicPaint_brushObjectCalculateVelocity(
+        Depsgraph *depsgraph, Scene *scene, Object *ob, Vec3f *brushVel, float timescale)
 {
 	float prev_obmat[4][4];
 	float cur_loc[3] = {0.0f}, prev_loc[3] = {0.0f};
@@ -4096,7 +4097,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 	}
 }
 
-static int dynamicPaint_paintMesh(struct Depsgraph *depsgraph, DynamicPaintSurface *surface,
+static int dynamicPaint_paintMesh(Depsgraph *depsgraph, DynamicPaintSurface *surface,
                                   DynamicPaintBrushSettings *brush,
                                   Object *brushOb,
                                   Scene *scene,
@@ -4584,7 +4585,7 @@ static void dynamic_paint_paint_single_point_cb_ex(
 }
 
 static int dynamicPaint_paintSinglePoint(
-        struct Depsgraph *depsgraph, DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
+        Depsgraph *depsgraph, DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
         Object *brushOb, Scene *scene, float timescale)
 {
 	PaintSurfaceData *sData = surface->data;
@@ -5882,7 +5883,9 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Vie
 /*
  * Do Dynamic Paint step. Paints scene brush objects of current state/frame to the surface.
  */
-static int dynamicPaint_doStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, DynamicPaintSurface *surface, float timescale, float subframe)
+static int dynamicPaint_doStep(
+        Depsgraph *depsgraph, Scene *scene,
+        Object *ob, DynamicPaintSurface *surface, float timescale, float subframe)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
@@ -5961,7 +5964,7 @@ static int dynamicPaint_doStep(struct Depsgraph *depsgraph, Scene *scene, Object
 					    psys_check_enabled(brushObj, brush->psys, G.is_rendering))
 					{
 						/* Paint a particle system */
-						BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt,
+						BKE_animsys_evaluate_animdata(depsgraph, scene, &brush->psys->part->id, brush->psys->part->adt,
 						                              BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 						dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);
 					}

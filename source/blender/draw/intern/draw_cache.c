@@ -26,6 +26,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -111,6 +112,17 @@ void DRW_shape_cache_free(void)
 	}
 }
 
+void DRW_shape_cache_reset(void)
+{
+	uint i = sizeof(SHC) / sizeof(Gwn_Batch *);
+	Gwn_Batch **batch = (Gwn_Batch **)&SHC;
+	while (i--) {
+		if (*batch) {
+			gwn_batch_vao_cache_clear(*batch);
+		}
+		batch++;
+	}
+}
 
 /* -------------------------------------------------------------------- */
 
@@ -502,12 +514,35 @@ Gwn_Batch *DRW_cache_object_wire_outline_get(Object *ob)
 	}
 }
 
-/* Returns a buffer texture. */
 Gwn_Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
 	switch (ob->type) {
 		case OB_MESH:
 			return DRW_cache_mesh_edge_detection_get(ob, r_is_manifold);
+
+		/* TODO, should match 'DRW_cache_object_surface_get' */
+		default:
+			return NULL;
+	}
+}
+
+/* Returns a buffer texture. */
+void DRW_cache_object_face_wireframe_get(
+        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count)
+{
+	switch (ob->type) {
+		case OB_MESH:
+			DRW_mesh_batch_cache_get_wireframes_face_texbuf((Mesh *)ob->data, r_vert_tx, r_faceid_tx, r_tri_count);
+
+		/* TODO, should match 'DRW_cache_object_surface_get' */
+	}
+}
+
+Gwn_Batch *DRW_cache_object_loose_edges_get(struct Object *ob)
+{
+	switch (ob->type) {
+		case OB_MESH:
+			return DRW_cache_mesh_loose_edges_get(ob);
 
 		/* TODO, should match 'DRW_cache_object_surface_get' */
 		default:
@@ -553,6 +588,8 @@ Gwn_Batch **DRW_cache_object_surface_material_get(
 			return DRW_cache_surf_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
 		case OB_FONT:
 			return DRW_cache_text_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
+		case OB_MBALL:
+			return DRW_cache_mball_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
 		default:
 			return NULL;
 	}
@@ -2183,7 +2220,8 @@ Gwn_Batch *DRW_cache_bone_stick_get(void)
 			GWN_indexbuf_add_generic_vert(&elb, v++);
 		}
 
-		SHC.drw_bone_stick = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, GWN_indexbuf_build(&elb), GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_stick = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, GWN_indexbuf_build(&elb),
+		                                         GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 #undef CIRCLE_RESOL
 	}
 	return SHC.drw_bone_stick;
@@ -2601,6 +2639,14 @@ Gwn_Batch *DRW_cache_mesh_surface_get(Object *ob)
 	return DRW_mesh_batch_cache_get_triangles_with_normals(me);
 }
 
+Gwn_Batch *DRW_cache_mesh_loose_edges_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_loose_edges_with_normals(me);
+}
+
 Gwn_Batch *DRW_cache_mesh_surface_weights_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
@@ -2770,6 +2816,14 @@ Gwn_Batch *DRW_cache_mball_surface_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MBALL);
 	return DRW_metaball_batch_cache_get_triangles_with_normals(ob);
+}
+
+Gwn_Batch **DRW_cache_mball_surface_shaded_get(
+        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
+{
+	BLI_assert(ob->type == OB_MBALL);
+	MetaBall *mb = ob->data;
+	return DRW_metaball_batch_cache_get_surface_shaded(ob, mb, gpumat_array, gpumat_array_len);
 }
 
 /** \} */

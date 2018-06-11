@@ -40,7 +40,7 @@ struct Image;
 struct ImageUser;
 struct PreviewImage;
 struct Gwn_VertBuf;
-	
+
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;
 
@@ -156,7 +156,10 @@ GPUTexture *GPU_texture_create_3D(
         int w, int h, int d, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_cube(
         int w, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_from_vertbuf(struct Gwn_VertBuf *vert);
+GPUTexture *GPU_texture_create_from_vertbuf(
+        struct Gwn_VertBuf *vert);
+GPUTexture *GPU_texture_create_buffer(
+        GPUTextureFormat data_type, const uint buffer);
 
 GPUTexture *GPU_texture_from_blender(
         struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data, double time, int mipmap);
@@ -169,6 +172,11 @@ void GPU_invalid_tex_bind(int mode);
 void GPU_invalid_tex_free(void);
 
 void GPU_texture_free(GPUTexture *tex);
+
+void GPU_texture_orphans_init(void);
+void GPU_texture_orphans_exit(void);
+/* This has to be called from a thread with an ogl context bound. */
+void GPU_texture_orphans_delete(void);
 
 void GPU_texture_ref(GPUTexture *tex);
 void GPU_texture_bind(GPUTexture *tex, int number);

@@ -36,8 +36,8 @@ from .properties_paint_common import (
 
 
 class View3DPanel:
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
 
 
 # **************** standard tool clusters ******************
@@ -53,15 +53,21 @@ def draw_keyframing_tools(context, layout):
 
 # Used by vertex & weight paint
 def draw_vpaint_symmetry(layout, vpaint):
-    col = layout.column(align=True)
-    col.label(text="Mirror:")
-    row = col.row(align=True)
 
+    split = layout.split()
+
+    col = split.column()
+    col.alignment = 'RIGHT'
+    col.label(text="Mirror")
+
+    col = split.column()
+    row = col.row(align=True)
     row.prop(vpaint, "use_symmetry_x", text="X", toggle=True)
     row.prop(vpaint, "use_symmetry_y", text="Y", toggle=True)
     row.prop(vpaint, "use_symmetry_z", text="Z", toggle=True)
 
     col = layout.column()
+    col.use_property_split = True
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
 
@@ -69,8 +75,8 @@ def draw_vpaint_symmetry(layout, vpaint):
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
-    bl_category = ""
-    bl_context = ".mesh_edit" # dot on purpose (access from topbar)
+    bl_category = "Options"
+    bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
     bl_label = "Mesh Options"
 
     @classmethod
@@ -101,9 +107,10 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 
 # ********** default tools for editmode_curve ****************
 
+
 class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = ".curve_edit" # dot on purpose (access from topbar)
+    bl_context = ".curve_edit"  # dot on purpose (access from topbar)
     bl_label = "Curve Stroke"
 
     def draw(self, context):
@@ -155,8 +162,6 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
                 colsub.prop(cps, "surface_plane", expand=True)
 
 
-
-
 # ********** default tools for editmode_armature ****************
 
 
@@ -175,7 +180,7 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = ".posemode" # dot on purpose (access from topbar)
+    bl_context = ".posemode"  # dot on purpose (access from topbar)
     bl_label = "Pose Options"
 
     def draw(self, context):
@@ -188,13 +193,13 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
 
 
 class View3DPaintPanel(UnifiedPaintPanel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
 
 
 class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Missing Data"
 
     @classmethod
@@ -254,8 +259,8 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
             col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Brush"
 
@@ -527,10 +532,10 @@ class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
             props.value = i
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Slots"
-    bl_category = "Slots"
 
     @classmethod
     def poll(cls, context):
@@ -588,10 +593,10 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         col.operator("image.save_dirty", text="Save All Images")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Mask"
-    bl_category = "Slots"
 
     @classmethod
     def poll(cls, context):
@@ -605,6 +610,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         toolsettings = context.tool_settings
         ipaint = toolsettings.image_paint
@@ -615,22 +621,28 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         col.active = ipaint.use_stencil_layer
 
         stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
-        col.label("UV Map")
-        col.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
+        split = col.split(0.5)
+        colsub = split.column()
+        colsub.alignment = 'RIGHT'
+        colsub.label("UV Layer")
+        split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
-        col.label("Stencil Image:")
         # todo this should be combinded into a single row
-        col.template_ID(ipaint, "stencil_image", open="image.open")
-        col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
+        split = col.split(0.5)
+        colsub = split.column()
+        colsub.alignment = 'RIGHT'
+        colsub.label("Stencil Image")
+        colsub = split.column()
+        colsub.template_ID(ipaint, "stencil_image", open="image.open")
+        colsub.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
-        col.label("Visualization:")
         row = col.row(align=True)
-        row.prop(ipaint, "stencil_color", text="")
+        row.prop(ipaint, "stencil_color", text="Display Color")
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Overlay"
 
@@ -696,8 +708,8 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
             sub.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
@@ -721,9 +733,9 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         brush_texture_settings(col, brush, context.sculpt_object)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
-    bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -744,8 +756,8 @@ class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
         brush_mask_texture_settings(col, brush)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Stroke"
     bl_options = {'DEFAULT_CLOSED'}
@@ -765,12 +777,11 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
 
         settings = self.paint_settings(context)
         brush = settings.brush
+        layout.use_property_split = True
 
         col = layout.column()
 
-        col.label(text="Stroke Method:")
-
-        col.prop(brush, "stroke_method", text="")
+        col.prop(brush, "stroke_method")
 
         if brush.use_anchor:
             col.separator()
@@ -800,12 +811,16 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             if brush.sculpt_capabilities.has_jitter:
                 col.separator()
 
-                row = col.row(align=True)
+                colsub = col.split(0.5)
+                row = colsub.row(align=True)
+                row.alignment = 'RIGHT'
+                row.label("Jitter")
+                row = colsub.row(align=True)
                 row.prop(brush, "use_relative_jitter", icon_only=True)
                 if brush.use_relative_jitter:
-                    row.prop(brush, "jitter", slider=True)
+                    row.prop(brush, "jitter", slider=True, text="")
                 else:
-                    row.prop(brush, "jitter_absolute")
+                    row.prop(brush, "jitter_absolute", text="")
                 row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
             if brush.sculpt_capabilities.has_smooth_stroke:
@@ -843,8 +858,8 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
         layout.prop(settings, "input_samples")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Curve"
     bl_options = {'DEFAULT_CLOSED'}
@@ -873,8 +888,8 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Dyntopo"
     bl_options = {'DEFAULT_CLOSED'}
@@ -884,16 +899,18 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw_header(self, context):
+        is_popover = self.is_popover
         layout = self.layout
         layout.operator(
-                "sculpt.dynamic_topology_toggle",
-                icon='CHECKBOX_HLT' if context.sculpt_object.use_dynamic_topology_sculpting else 'CHECKBOX_DEHLT',
-                text="",
-                emboss=False,
-                )
+            "sculpt.dynamic_topology_toggle",
+            icon='CHECKBOX_HLT' if context.sculpt_object.use_dynamic_topology_sculpting else 'CHECKBOX_DEHLT',
+            text="",
+            emboss=is_popover,
+        )
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
@@ -902,7 +919,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
-        sub = col.column(align=True)
+
+        sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
         if (sculpt.detail_type_method == 'CONSTANT'):
             row = sub.row(align=True)
@@ -912,20 +930,22 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             sub.prop(sculpt, "detail_percent")
         else:
             sub.prop(sculpt, "detail_size")
-        sub.prop(sculpt, "detail_refine_method", text="")
-        sub.prop(sculpt, "detail_type_method", text="")
-        col.separator()
+        sub.prop(sculpt, "detail_refine_method", text="Refine Method")
+        sub.prop(sculpt, "detail_type_method", text="Detailing")
+
         col.prop(sculpt, "use_smooth_shading")
+
+        col.separator()
+
+        col.prop(sculpt, "symmetrize_direction")
+        col.operator("sculpt.symmetrize")
         col.operator("sculpt.optimize")
         if (sculpt.detail_type_method == 'CONSTANT'):
             col.operator("sculpt.detail_flood_fill")
-        col.separator()
-        col.prop(sculpt, "symmetrize_direction")
-        col.operator("sculpt.symmetrize")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
@@ -958,8 +978,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         self.unified_paint_settings(layout, context)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Symmetry/Lock"
     bl_options = {'DEFAULT_CLOSED'}
@@ -973,35 +993,55 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 
         sculpt = context.tool_settings.sculpt
 
-        col = layout.column(align=True)
-        col.label(text="Mirror:")
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Mirror")
+
+        col = split.column()
+
         row = col.row(align=True)
         row.prop(sculpt, "use_symmetry_x", text="X", toggle=True)
         row.prop(sculpt, "use_symmetry_y", text="Y", toggle=True)
         row.prop(sculpt, "use_symmetry_z", text="Z", toggle=True)
 
-        layout.column().prop(sculpt, "radial_symmetry", text="Radial")
-        layout.prop(sculpt, "use_symmetry_feather", text="Feather")
+        split = layout.split()
 
-        layout.label(text="Lock:")
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Lock")
 
-        row = layout.row(align=True)
+        col = split.column()
+
+        row = col.row(align=True)
         row.prop(sculpt, "lock_x", text="X", toggle=True)
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
 
-        layout.label(text="Tiling:")
 
-        row = layout.row(align=True)
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Tiling")
+
+        col = split.column()
+
+        row = col.row(align=True)
         row.prop(sculpt, "tile_x", text="X", toggle=True)
         row.prop(sculpt, "tile_y", text="Y", toggle=True)
         row.prop(sculpt, "tile_z", text="Z", toggle=True)
 
+        layout.use_property_split = True
+
+        layout.prop(sculpt, "use_symmetry_feather", text="Feather")
+        layout.column().prop(sculpt, "radial_symmetry", text="Radial")
         layout.column().prop(sculpt, "tile_offset", text="Tile Offset")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Appearance"
 
@@ -1046,8 +1086,8 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
 # ********** default tools for weight-paint ****************
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".weightpaint"
     bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Symmetry"
@@ -1059,8 +1099,8 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         draw_vpaint_symmetry(layout, wpaint)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".weightpaint"
     bl_label = "Options"
 
@@ -1090,8 +1130,8 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 # ********** default tools for vertex-paint ****************
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
-    bl_category = "Options"
     bl_context = ".vertexpaint"  # dot on purpose (access from topbar)
     bl_label = "Options"
 
@@ -1106,8 +1146,8 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
         self.unified_paint_settings(col, context)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
     bl_context = ".vertexpaint"  # dot on purpose (access from topbar)
     bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Symmetry"
@@ -1122,9 +1162,9 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
 # ********** default tools for texture-paint ****************
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
-    bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "External"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1144,9 +1184,9 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
         col.operator("paint.project_image", text="Apply Camera Image")
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
-    bl_category = "Tools"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1156,16 +1196,23 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
         toolsettings = context.tool_settings
         ipaint = toolsettings.image_paint
 
-        col = layout.column(align=True)
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Mirror")
+
+        col = split.column()
+
         row = col.row(align=True)
         row.prop(ipaint, "use_symmetry_x", text="X", toggle=True)
         row.prop(ipaint, "use_symmetry_y", text="Y", toggle=True)
         row.prop(ipaint, "use_symmetry_z", text="Z", toggle=True)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
-    bl_category = "Options"
-    bl_context = ".imagepaint" # dot on purpose (access from topbar)
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Project Paint"
 
     @classmethod
@@ -1200,8 +1247,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         self.unified_paint_settings(layout, context)
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
-    bl_category = "Options"
     bl_label = "Options"
 
     @classmethod
@@ -1226,11 +1273,11 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
             props.value = i
 
 
+# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
     """Default tools for particle mode"""
     bl_context = ".particlemode"
     bl_label = "Options"
-    bl_category = "Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -1343,6 +1390,8 @@ class VIEW3D_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
     bl_space_type = 'VIEW_3D'
 
 # Grease Pencil drawingcurves
+
+
 class VIEW3D_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
     bl_space_type = 'VIEW_3D'
 

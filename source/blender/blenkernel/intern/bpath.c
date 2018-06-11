@@ -325,7 +325,7 @@ void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportLis
 	struct BPathFind_Data data = {NULL};
 	const int flag = BKE_BPATH_TRAVERSE_ABS | BKE_BPATH_TRAVERSE_RELOAD_EDITED;
 
-	data.basedir = bmain->name;
+	data.basedir = BKE_main_blendfile_path(bmain);
 	data.reports = reports;
 	data.searchdir = searchpath;
 	data.find_all = find_all;
@@ -442,7 +442,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 							    /* image may have been painted onto (and not saved, T44543) */
 							    !BKE_image_is_dirty(ima))
 							{
-								BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+								BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
 								BKE_image_walk_all_users(bmain, ima, bpath_traverse_image_user_cb);
 							}
 						}
@@ -643,7 +643,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			/* keep packedfile paths always relative to the blend */
 			if (lib->packedfile == NULL) {
 				if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
-					BKE_library_filepath_set(lib, lib->name);
+					BKE_library_filepath_set(bmain, lib, lib->name);
 				}
 			}
 			break;

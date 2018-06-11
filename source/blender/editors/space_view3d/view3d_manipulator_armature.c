@@ -134,7 +134,10 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmManipulatorGro
 		const bArmature *arm = ob->data;
 		if (arm->drawtype == ARM_B_BONE) {
 			if (arm->act_bone && arm->act_bone->segments > 1) {
-				return true;
+				View3D *v3d = CTX_wm_view3d(C);
+				if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+					return true;
+				}
 			}
 		}
 	}

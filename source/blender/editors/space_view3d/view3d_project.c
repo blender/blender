@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -57,13 +57,13 @@
 void ED_view3d_project_float_v2_m4(const ARegion *ar, const float co[3], float r_co[2], float mat[4][4])
 {
 	float vec4[4];
-	
+
 	copy_v3_v3(vec4, co);
 	vec4[3] = 1.0;
 	/* r_co[0] = IS_CLIPPED; */ /* always overwritten */
-	
+
 	mul_m4_v4(mat, vec4);
-	
+
 	if (vec4[3] > FLT_EPSILON) {
 		r_co[0] = (float)(ar->winx / 2.0f) + (ar->winx / 2.0f) * vec4[0] / vec4[3];
 		r_co[1] = (float)(ar->winy / 2.0f) + (ar->winy / 2.0f) * vec4[1] / vec4[3];
@@ -79,13 +79,13 @@ void ED_view3d_project_float_v2_m4(const ARegion *ar, const float co[3], float r
 void ED_view3d_project_float_v3_m4(const ARegion *ar, const float vec[3], float r_co[3], float mat[4][4])
 {
 	float vec4[4];
-	
+
 	copy_v3_v3(vec4, vec);
 	vec4[3] = 1.0;
 	/* r_co[0] = IS_CLIPPED; */ /* always overwritten */
-	
+
 	mul_m4_v4(mat, vec4);
-	
+
 	if (vec4[3] > FLT_EPSILON) {
 		r_co[0] = (float)(ar->winx / 2.0f) + (ar->winx / 2.0f) * vec4[0] / vec4[3];
 		r_co[1] = (float)(ar->winy / 2.0f) + (ar->winy / 2.0f) * vec4[1] / vec4[3];
@@ -551,10 +551,10 @@ void ED_view3d_win_to_delta(const ARegion *ar, const float mval[2], float out[3]
 {
 	RegionView3D *rv3d = ar->regiondata;
 	float dx, dy;
-	
+
 	dx = 2.0f * mval[0] * zfac / ar->winx;
 	dy = 2.0f * mval[1] * zfac / ar->winy;
-	
+
 	out[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy);
 	out[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy);
 	out[2] = (rv3d->persinv[0][2] * dx + rv3d->persinv[1][2] * dy);

@@ -92,9 +92,6 @@ class AbcExporter {
 
 	unsigned int m_trans_sampling_index, m_shape_sampling_index;
 
-	Scene *m_scene;
-	Depsgraph *m_depsgraph;
-
 	ArchiveWriter *m_writer;
 
 	/* mapping from name to transform writer */
@@ -104,8 +101,7 @@ class AbcExporter {
 	std::vector<AbcObjectWriter *> m_shapes;
 
 public:
-	AbcExporter(Main *bmain, Scene *scene, Depsgraph *depsgraph,
-	            const char *filename, ExportSettings &settings);
+	AbcExporter(Main *bmain, const char *filename, ExportSettings &settings);
 	~AbcExporter();
 
 	void operator()(float &progress, bool &was_canceled);
@@ -119,12 +115,12 @@ protected:
 private:
 	Alembic::Abc::TimeSamplingPtr createTimeSampling(double step);
 
-	void createTransformWritersHierarchy(Depsgraph *depsgraph);
-	AbcTransformWriter * createTransformWriter(Depsgraph *depsgraph, Object *ob,  Object *parent, Object *dupliObParent);
-	void exploreTransform(Depsgraph *depsgraph, Base *ob_base, Object *parent, Object *dupliObParent);
-	void exploreObject(Depsgraph *depsgraph, Base *ob_base, Object *dupliObParent);
-	void createShapeWriters(Depsgraph *depsgraph);
-	void createShapeWriter(Base *ob_base, Object *dupliObParent);
+	void createTransformWritersHierarchy();
+	AbcTransformWriter * createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
+	void exploreTransform(Base *ob_base, Object *parent, Object *dupliObParent);
+	void exploreObject(Base *ob_base, Object *dupliObParent);
+	void createShapeWriters();
+	void createShapeWriter(Object *ob, Object *dupliObParent);
 	void createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform);
 
 	AbcTransformWriter *getXForm(const std::string &name);

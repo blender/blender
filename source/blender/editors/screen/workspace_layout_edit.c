@@ -46,6 +46,7 @@
  * Empty screen, with 1 dummy area without spacedata. Uses window size.
  */
 WorkSpaceLayout *ED_workspace_layout_add(
+        Main *bmain,
         WorkSpace *workspace,
         wmWindow *win,
         const char *name)
@@ -54,12 +55,13 @@ WorkSpaceLayout *ED_workspace_layout_add(
 	rcti screen_rect;
 
 	WM_window_screen_rect_calc(win, &screen_rect);
-	screen = screen_add(name, &screen_rect);
+	screen = screen_add(bmain, name, &screen_rect);
 
 	return BKE_workspace_layout_add(workspace, screen, name);
 }
 
 WorkSpaceLayout *ED_workspace_layout_duplicate(
+        Main *bmain,
         WorkSpace *workspace, const WorkSpaceLayout *layout_old,
         wmWindow *win)
 {
@@ -72,7 +74,7 @@ WorkSpaceLayout *ED_workspace_layout_duplicate(
 		return NULL; /* XXX handle this case! */
 	}
 
-	layout_new = ED_workspace_layout_add(workspace, win, name);
+	layout_new = ED_workspace_layout_add(bmain, workspace, win, name);
 	screen_new = BKE_workspace_layout_screen_get(layout_new);
 	screen_data_copy(screen_new, screen_old);
 

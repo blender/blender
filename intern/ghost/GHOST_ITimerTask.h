@@ -39,11 +39,11 @@
 /**
  * Interface for a timer task.
  * Timer tasks are created by the system and can be installed by the system.
- * After installation, the timer callback-procedure or "timerProc" will be called 
+ * After installation, the timer callback-procedure or "timerProc" will be called
  * periodically. You should not need to inherit this class. It is passed to the
  * application in the timer-callback.<br>
  * <br>
- * Note that GHOST processes timers in the UI thread. You should ask GHOST 
+ * Note that GHOST processes timers in the UI thread. You should ask GHOST
  * process messages in order for the timer-callbacks to be called.
  * \see GHOST_ISystem#installTimer
  * \see GHOST_TimerProcPtr
@@ -77,7 +77,7 @@ public:
 	 * \return The timer user data.
 	 */
 	virtual GHOST_TUserDataPtr getUserData() const = 0;
-	
+
 	/**
 	 * Changes the time user data.
 	 * \param userData: The timer user data.

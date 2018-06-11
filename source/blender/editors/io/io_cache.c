@@ -60,7 +60,7 @@ static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 		char filepath[FILE_MAX];
 		Main *bmain = CTX_data_main(C);
 
-		BLI_strncpy(filepath, bmain->name, sizeof(filepath));
+		BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
 		BLI_replace_extension(filepath, sizeof(filepath), ".abc");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}

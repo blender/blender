@@ -255,56 +255,70 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
         psys = context.particle_system
         part = particle_get_settings(context)
 
+        layout.use_property_split = True
+
         layout.enabled = particle_panel_enabled(context, psys) and (psys is None or not psys.has_multiple_caches)
 
-        row = layout.row()
-        row.active = part.emit_from == 'VERT' or part.distribution != 'GRID'
-        row.prop(part, "count")
+        col = layout.column()
+        col.active = part.emit_from == 'VERT' or part.distribution != 'GRID'
+        col.prop(part, "count")
 
         if part.type == 'HAIR':
-            row.prop(part, "hair_length")
+            col.prop(part, "hair_length")
             if not part.use_advanced_hair:
                 row = layout.row()
-                row.prop(part, "use_modifier_stack")
+                col.prop(part, "use_modifier_stack")
                 return
 
         if part.type != 'HAIR':
-            split = layout.split()
 
-            col = split.column(align=True)
-            col.prop(part, "frame_start")
-            col.prop(part, "frame_end")
+            col = layout.column()
 
-            col = split.column(align=True)
+            sub = col.column(align=True)
+            sub.prop(part, "frame_start", text="Frame Start")
+            sub.prop(part, "frame_end", text="End")
+
             col.prop(part, "lifetime")
-            col.prop(part, "lifetime_random", slider=True)
+            col.prop(part, "lifetime_random", slider=True, text="Lifetime Randomness")
 
-        layout.label(text="Emit From:")
-        layout.row().prop(part, "emit_from", expand=True)
 
-        row = layout.row()
+class PARTICLE_PT_emission_source(ParticleButtonsPanel, Panel):
+    bl_label = "Source"
+    bl_parent_id = "PARTICLE_PT_emission"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        part = particle_get_settings(context)
+
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.prop(part, "emit_from")
+        col.prop(part, "use_modifier_stack")
+        if part.emit_from == 'FACE' or part.emit_from == 'VOLUME':
+            col.prop(part, "distribution")
+
         if part.emit_from == 'VERT':
-            row.prop(part, "use_emit_random")
+            col.prop(part, "use_emit_random", text="Random Order")
         elif part.distribution == 'GRID':
-            row.prop(part, "invert_grid")
-            row.prop(part, "hexagonal_grid")
+            col.label(text="Grid")
+            col.prop(part, "invert_grid")
+            col.prop(part, "hexagonal_grid")
         else:
-            row.prop(part, "use_emit_random")
-            row.prop(part, "use_even_distribution")
+            col.prop(part, "use_emit_random")
+            col.prop(part, "use_even_distribution")
 
         if part.emit_from == 'FACE' or part.emit_from == 'VOLUME':
-            layout.row().prop(part, "distribution", expand=True)
 
-            row = layout.row()
             if part.distribution == 'JIT':
-                row.prop(part, "userjit", text="Particles/Face")
-                row.prop(part, "jitter_factor", text="Jittering Amount", slider=True)
+                col.prop(part, "userjit", text="Particles/Face")
+                col.prop(part, "jitter_factor", text="Jittering Amount", slider=True)
             elif part.distribution == 'GRID':
-                row.prop(part, "grid_resolution")
-                row.prop(part, "grid_random", text="Random", slider=True)
-
-        row = layout.row()
-        row.prop(part, "use_modifier_stack")
+                col.prop(part, "grid_resolution")
+                col.prop(part, "grid_random", text="Random", slider=True)
 
 
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
@@ -332,6 +346,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         psys = context.particle_system
 
         if not psys.cloth:
+            layout.label(text="Hair dynamics disabled")
             return
 
         cloth_md = psys.cloth
@@ -345,44 +360,20 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         row.operator("particle.hair_dynamics_preset_add", text="", icon='ZOOMIN')
         row.operator("particle.hair_dynamics_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
-        split = layout.column()
+        layout.use_property_split = True
 
-        col = split.column()
-        col.label(text="Structure")
-        col.prop(cloth, "mass")
-        sub = col.column(align=True)
-        subsub = sub.row(align=True)
-        subsub.prop(cloth, "bending_stiffness", text="Stiffness")
-        subsub.prop(psys.settings, "bending_random", text="Random")
-        sub.prop(cloth, "bending_damping", text="Damping")
-        # XXX has no noticeable effect with stiff hair structure springs
-        #col.prop(cloth, "spring_damping", text="Damping")
+        layout.separator()
 
-        split.separator()
+        col = layout.column()
+        col.prop(cloth, "quality", text="Quality Steps", slider=True)
+        col.prop(psys.settings, "show_hair_grid", text="Display Hair Grid")
 
-        col = split.column()
-        col.label(text="Volume")
-        col.prop(cloth, "air_damping", text="Air Drag")
-        col.prop(cloth, "internal_friction", slider=True)
-        sub = col.column(align=True)
-        sub.prop(cloth, "density_target", text="Density Target")
-        sub.prop(cloth, "density_strength", slider=True, text="Strength")
-        col.prop(cloth, "voxel_cell_size")
+        layout.separator()
 
-        split.separator()
+        col = layout.column()
+        col.prop(cloth, "pin_stiffness", text="Pin Goal Strength")
 
-        col = split.column()
-        col.label(text="Pinning")
-        col.prop(cloth, "pin_stiffness", text="Goal Strength")
-
-        split.separator()
-
-        col = split.column()
-        col.label(text="Quality:")
-        col.prop(cloth, "quality", text="Steps", slider=True)
-
-        row = col.row()
-        row.prop(psys.settings, "show_hair_grid", text="HairGrid")
+        layout.separator()
 
         if result:
             box = layout.box()
@@ -403,6 +394,71 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
             box.label("Iterations: %d .. %d (avg. %d)" %
                       (result.min_iterations, result.max_iterations, result.avg_iterations))
             box.label("Error: %.5f .. %.5f (avg. %.5f)" % (result.min_error, result.max_error, result.avg_error))
+
+
+class PARTICLE_PT_hair_dynamics_structure(ParticleButtonsPanel, Panel):
+    bl_label = "Structure"
+    bl_parent_id = "PARTICLE_PT_hair_dynamics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.particle_system.cloth is not None
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        cloth_md = psys.cloth
+        cloth = cloth_md.settings
+        result = cloth_md.solver_result
+
+        layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
+
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.prop(cloth, "mass")
+        sub = col.column(align=True)
+        sub.prop(cloth, "bending_stiffness", text="Stiffness")
+        sub.prop(psys.settings, "bending_random", text="Random")
+        col.prop(cloth, "bending_damping", text="Damping")
+        # XXX has no noticeable effect with stiff hair structure springs
+        #col.prop(cloth, "spring_damping", text="Damping")
+
+
+class PARTICLE_PT_hair_dynamics_volume(ParticleButtonsPanel, Panel):
+    bl_label = "Volume"
+    bl_parent_id = "PARTICLE_PT_hair_dynamics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.particle_system.cloth is not None
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        cloth_md = psys.cloth
+        cloth = cloth_md.settings
+        result = cloth_md.solver_result
+
+        layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
+
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.prop(cloth, "air_damping", text="Air Drag")
+        col.prop(cloth, "internal_friction", slider=True)
+        col.prop(cloth, "voxel_cell_size")
+
+        col.separator()
+
+        col.prop(cloth, "density_target", text="Density Target")
+        col.prop(cloth, "density_strength", slider=True, text="Density Strength")
 
 
 class PARTICLE_PT_cache(ParticleButtonsPanel, Panel):
@@ -459,31 +515,29 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
         part = particle_get_settings(context)
 
         layout.enabled = particle_panel_enabled(context, psys)
+        layout.use_property_split = True
 
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Emitter Geometry:")
+        col = layout.column()
         col.prop(part, "normal_factor")
         sub = col.column(align=True)
-        sub.prop(part, "tangent_factor")
-        sub.prop(part, "tangent_phase", slider=True)
+        sub.prop(part, "tangent_factor", text="Tangent")
+        sub.prop(part, "tangent_phase", slider=True, text="Tangent Phase")
 
-        col = split.column()
-        col.label(text="Emitter Object:")
-        col.prop(part, "object_align_factor", text="")
+        col.separator()
 
-        layout.label(text="Other:")
-        row = layout.row()
+        col.prop(part, "object_align_factor")
+
+        col.separator()
+
         if part.emit_from == 'PARTICLE':
-            row.prop(part, "particle_factor")
+            col.prop(part, "particle_factor")
         else:
-            row.prop(part, "object_factor", slider=True)
-        row.prop(part, "factor_random")
+            col.prop(part, "object_factor", slider=True)
+        col.prop(part, "factor_random", text="Randomize")
 
-        #if part.type=='REACTOR':
-        #    sub.prop(part, "reactor_factor")
-        #    sub.prop(part, "reaction_shape", slider=True)
+        # if part.type=='REACTOR':
+        #     sub.prop(part, "reactor_factor")
+        #     sub.prop(part, "reaction_shape", slider=True)
 
 
 class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
@@ -522,32 +576,46 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
             part = context.space_data.pin_id
 
         layout.enabled = particle_panel_enabled(context, psys) and part.use_rotations
+        layout.use_property_split = True
 
-        layout.label(text="Initial Orientation:")
+        col = layout.column()
 
-        split = layout.split()
+        col.prop(part, "rotation_mode")
+        col.prop(part, "rotation_factor_random", slider=True, text="Randomize")
 
-        col = split.column(align=True)
-        col.prop(part, "rotation_mode", text="")
-        col.prop(part, "rotation_factor_random", slider=True, text="Random")
+        col.separator()
 
-        col = split.column(align=True)
         col.prop(part, "phase_factor", slider=True)
-        col.prop(part, "phase_factor_random", text="Random", slider=True)
+        col.prop(part, "phase_factor_random", text="Randomize Phase ", slider=True)
 
         if part.type != 'HAIR':
-            layout.label(text="Angular Velocity:")
-
-            split = layout.split()
-
-            col = split.column(align=True)
-            col.prop(part, "angular_velocity_mode", text="")
-            sub = col.column(align=True)
-            sub.active = part.angular_velocity_mode != 'NONE'
-            sub.prop(part, "angular_velocity_factor", text="")
-
-            col = split.column()
             col.prop(part, "use_dynamic_rotation")
+
+
+class PARTICLE_PT_rotation_angular_velocity(ParticleButtonsPanel, Panel):
+    bl_label = "Angular Velocity"
+    bl_parent_id = "PARTICLE_PT_rotation"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        if psys:
+            part = psys.settings
+        else:
+            part = context.space_data.pin_id
+
+        layout.enabled = particle_panel_enabled(context, psys) and part.use_rotations
+        layout.use_property_split = True
+
+        col = layout.column()
+
+        col.prop(part, "angular_velocity_mode", text="Axis")
+        sub = col.column(align=True)
+        sub.active = part.angular_velocity_mode != 'NONE'
+        sub.prop(part, "angular_velocity_factor", text="Amount")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
@@ -568,127 +636,87 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         psys = context.particle_system
         part = particle_get_settings(context)
 
         layout.enabled = particle_panel_enabled(context, psys)
 
-        layout.row().prop(part, "physics_type", expand=True)
+        layout.prop(part, "physics_type")
 
-        row = layout.row()
+        col = layout.column()
         if part.physics_type != 'NO':
-            col = row.column(align=True)
+            col = col.column()
             col.prop(part, "mass")
             col.prop(part, "use_multiply_size_mass", text="Multiply mass with size")
 
-        if part.physics_type in {'NEWTON', 'FLUID'}:
-            split = layout.split()
+        if part.physics_type == 'FLUID':
+            fluid = part.fluid
 
-            col = split.column()
-            col.label(text="Forces:")
-            col.prop(part, "brownian_factor")
-            col.prop(part, "drag_factor", slider=True)
-            col.prop(part, "damping", slider=True)
+            col.label(text="Fluid")
+            col.prop(fluid, "solver")
+            col.prop(fluid, "stiffness", text="Stiffness")
+            col.prop(fluid, "linear_viscosity", text="Viscosity")
+            col.prop(fluid, "buoyancy", text="Buoyancy", slider=True)
 
-            col = split.column()
-            col.label(text="Integration:")
-            col.prop(part, "integrator", text="")
-            col.prop(part, "timestep")
-            sub = col.row()
-            sub.prop(part, "subframes")
-            supports_courant = part.physics_type == 'FLUID'
-            subsub = sub.row()
-            subsub.enabled = supports_courant
-            subsub.prop(part, "use_adaptive_subframes", text="")
-            if supports_courant and part.use_adaptive_subframes:
-                col.prop(part, "courant_target", text="Threshold")
+            col.label(text="Advanced")
 
-            row = layout.row()
-            row.prop(part, "use_size_deflect")
-            row.prop(part, "use_die_on_collision")
+            if fluid.solver == 'DDR':
+                sub = col.column()
+                sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
+                sub.prop(fluid, "factor_repulsion")
 
-            layout.prop(part, "collision_group")
+                sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
+                sub.prop(fluid, "factor_stiff_viscosity")
 
-            if part.physics_type == 'FLUID':
-                fluid = part.fluid
+            sub = col.column()
+            sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
+            sub.prop(fluid, "factor_radius")
 
-                split = layout.split()
-                sub = split.row()
-                sub.prop(fluid, "solver", expand=True)
+            sub.prop(fluid, "rest_density", slider=fluid.use_factor_density)
+            sub.prop(fluid, "use_factor_density")
 
-                split = layout.split()
+            if fluid.solver == 'CLASSICAL':
+                # With the classical solver, it is possible to calculate the
+                # spacing between particles when the fluid is at rest. This
+                # makes it easier to set stable initial conditions.
+                particle_volume = part.mass / fluid.rest_density
+                spacing = pow(particle_volume, 1.0 / 3.0)
 
-                col = split.column()
-                col.label(text="Fluid Properties:")
-                col.prop(fluid, "stiffness", text="Stiffness")
-                col.prop(fluid, "linear_viscosity", text="Viscosity")
-                col.prop(fluid, "buoyancy", text="Buoyancy", slider=True)
+                sub.label(text="Spacing: %g" % spacing)
 
-                col = split.column()
-                col.label(text="Advanced:")
+            elif fluid.solver == 'DDR':
 
-                if fluid.solver == 'DDR':
-                    sub = col.row()
-                    sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
-                    sub.prop(fluid, "factor_repulsion", text="")
+                col.label(text="Springs")
+                col.prop(fluid, "spring_force", text="Force")
+                col.prop(fluid, "use_viscoelastic_springs")
 
-                    sub = col.row()
-                    sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
-                    sub.prop(fluid, "factor_stiff_viscosity", text="")
+                sub = col.column()
+                sub.active = fluid.use_viscoelastic_springs
+                sub.prop(fluid, "yield_ratio", slider=True)
+                sub.prop(fluid, "plasticity", slider=True)
 
-                sub = col.row()
-                sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
-                sub.prop(fluid, "factor_radius", text="")
+                col.label(text="Advanced")
+                sub = col.column()
+                sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
+                sub.prop(fluid, "factor_rest_length", text="")
 
-                sub = col.row()
-                sub.prop(fluid, "rest_density", slider=fluid.use_factor_density)
-                sub.prop(fluid, "use_factor_density", text="")
-
-                if fluid.solver == 'CLASSICAL':
-                    # With the classical solver, it is possible to calculate the
-                    # spacing between particles when the fluid is at rest. This
-                    # makes it easier to set stable initial conditions.
-                    particle_volume = part.mass / fluid.rest_density
-                    spacing = pow(particle_volume, 1.0 / 3.0)
-                    sub = col.row()
-                    sub.label(text="Spacing: %g" % spacing)
-
-                elif fluid.solver == 'DDR':
-                    split = layout.split()
-
-                    col = split.column()
-                    col.label(text="Springs:")
-                    col.prop(fluid, "spring_force", text="Force")
-                    col.prop(fluid, "use_viscoelastic_springs")
-                    sub = col.column(align=True)
-                    sub.active = fluid.use_viscoelastic_springs
-                    sub.prop(fluid, "yield_ratio", slider=True)
-                    sub.prop(fluid, "plasticity", slider=True)
-
-                    col = split.column()
-                    col.label(text="Advanced:")
-                    sub = col.row()
-                    sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
-                    sub.prop(fluid, "factor_rest_length", text="")
-                    col.label(text="")
-                    sub = col.column()
-                    sub.active = fluid.use_viscoelastic_springs
-                    sub.prop(fluid, "use_initial_rest_length")
-                    sub.prop(fluid, "spring_frames", text="Frames")
+                sub = col.column()
+                sub.active = fluid.use_viscoelastic_springs
+                sub.prop(fluid, "use_initial_rest_length")
+                sub.prop(fluid, "spring_frames", text="Frames")
 
         elif part.physics_type == 'KEYED':
-            split = layout.split()
-            sub = split.column()
 
-            row = layout.row()
-            col = row.column()
-            col.active = not psys.use_keyed_timing
-            col.prop(part, "keyed_loops", text="Loops")
+            sub = col.column()
+            sub.active = not psys.use_keyed_timing
+            sub.prop(part, "keyed_loops", text="Loops")
             if psys:
-                row.prop(psys, "use_keyed_timing", text="Use Timing")
+                col.prop(psys, "use_keyed_timing", text="Use Timing")
 
-            layout.label(text="Keys:")
+            col.label(text="Keys")
+
         elif part.physics_type == 'BOIDS':
             boids = part.boids
 
@@ -786,6 +814,93 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                     sub.prop(key, "system", text="System")
 
 
+class PARTICLE_PT_physics_deflection(ParticleButtonsPanel, Panel):
+    bl_label = "Deflection"
+    bl_parent_id = "PARTICLE_PT_physics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.physics_type in {'NEWTON', 'FLUID'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        layout.enabled = particle_panel_enabled(context, psys)
+
+        col = layout.column()
+        col.prop(part, "use_size_deflect")
+        col.prop(part, "use_die_on_collision")
+
+        col.prop(part, "collision_group")
+
+
+class PARTICLE_PT_physics_forces(ParticleButtonsPanel, Panel):
+    bl_label = "Forces"
+    bl_parent_id = "PARTICLE_PT_physics"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.physics_type == 'NEWTON'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        layout.enabled = particle_panel_enabled(context, psys)
+
+        col = layout.column()
+
+        col.prop(part, "brownian_factor")
+        col.prop(part, "drag_factor", slider=True)
+        col.prop(part, "damping", slider=True)
+
+
+class PARTICLE_PT_physics_integration(ParticleButtonsPanel, Panel):
+    bl_label = "Integration"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "PARTICLE_PT_physics"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.physics_type == 'NEWTON'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        layout.enabled = particle_panel_enabled(context, psys)
+
+        col = layout.column()
+
+        col.prop(part, "integrator")
+        col.prop(part, "timestep")
+        sub = col.row()
+        sub.prop(part, "subframes")
+        supports_courant = part.physics_type == 'FLUID'
+        subsub = sub.row()
+        subsub.enabled = supports_courant
+        subsub.prop(part, "use_adaptive_subframes", text="")
+        if supports_courant and part.use_adaptive_subframes:
+            col.prop(part, "courant_target", text="Threshold")
+
+
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
     bl_label = "Boid Brain"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
@@ -811,7 +926,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
 
         # Currently boids can only use the first state so these are commented out for now.
         #row = layout.row()
-        #row.template_list("UI_UL_list", "particle_boids", boids, "states",
+        # row.template_list("UI_UL_list", "particle_boids", boids, "states",
         #                  boids, "active_boid_state_index", compact="True")
         #col = row.row()
         #sub = col.row(align=True)
@@ -904,175 +1019,387 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         psys = context.particle_system
         part = particle_get_settings(context)
 
-        if psys:
-            row = layout.row()
-            if part.render_type in {'OBJECT', 'GROUP'}:
-                row.enabled = False
-            row.prop(part, "material_slot", text="")
-            row.prop(psys, "parent")
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(part, "use_parent_particles")
-
-        col = split.column()
-        col.prop(part, "show_unborn")
-        col.prop(part, "use_dead")
-
-        layout.row().prop(part, "render_type", expand=True)
-
-        split = layout.split()
-
-        col = split.column()
-
-        if part.render_type == 'LINE':
-            col.prop(part, "line_length_tail")
-            col.prop(part, "line_length_head")
-
-            split.prop(part, "use_velocity_length")
-        elif part.render_type == 'PATH':
-            col.prop(part, "use_strand_primitive")
-            sub = col.column()
-            sub.active = (part.use_strand_primitive is False)
-            sub.prop(part, "use_render_adaptive")
-            sub = col.column()
-            sub.active = part.use_render_adaptive or part.use_strand_primitive is True
-            sub.prop(part, "adaptive_angle")
-            sub = col.column()
-            sub.active = (part.use_render_adaptive is True and part.use_strand_primitive is False)
-            sub.prop(part, "adaptive_pixel")
-            col.prop(part, "use_hair_bspline")
-            col.prop(part, "render_step", text="Steps")
-
-            col = split.column()
-            col.label(text="Timing:")
-            col.prop(part, "use_absolute_path_time")
-
-            if part.type == 'HAIR' or psys.point_cache.is_baked:
-                col.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
-            else:
-                col.prop(part, "trail_count")
-
-            col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
-            col.prop(part, "length_random", text="Random", slider=True)
-
-        elif part.render_type == 'OBJECT':
-            col.prop(part, "dupli_object")
-            sub = col.row()
-            sub.prop(part, "use_global_dupli")
-            sub.prop(part, "use_rotation_dupli")
-            sub.prop(part, "use_scale_dupli")
-        elif part.render_type == 'GROUP':
-            col.prop(part, "dupli_group")
-            split = layout.split()
-
-            col = split.column()
-            col.prop(part, "use_whole_group")
-            sub = col.column()
-            sub.active = (part.use_whole_group is False)
-            sub.prop(part, "use_group_pick_random")
-            sub.prop(part, "use_group_count")
-
-            col = split.column()
-            sub = col.column()
-            sub.active = (part.use_whole_group is False)
-            sub.prop(part, "use_global_dupli")
-            sub.prop(part, "use_rotation_dupli")
-            sub.prop(part, "use_scale_dupli")
-
-            if part.use_group_count and not part.use_whole_group:
-                row = layout.row()
-                row.template_list("UI_UL_list", "particle_dupli_weights", part, "dupli_weights",
-                                  part, "active_dupliweight_index")
-
-                col = row.column()
-                sub = col.row()
-                subsub = sub.column(align=True)
-                subsub.operator("particle.dupliob_copy", icon='ZOOMIN', text="")
-                subsub.operator("particle.dupliob_remove", icon='ZOOMOUT', text="")
-                subsub.operator("particle.dupliob_move_up", icon='TRIA_UP', text="")
-                subsub.operator("particle.dupliob_move_down", icon='TRIA_DOWN', text="")
-
-                weight = part.active_dupliweight
-                if weight:
-                    row = layout.row()
-                    row.prop(weight, "count")
-
-        elif part.render_type == 'BILLBOARD':
-            ob = context.object
-
-            col.label(text="Align:")
-
-            row = layout.row()
-            row.prop(part, "billboard_align", expand=True)
-            row.prop(part, "lock_billboard", text="Lock")
-            row = layout.row()
-            row.prop(part, "billboard_object")
-
-            row = layout.row()
-            col = row.column(align=True)
-            col.label(text="Tilt:")
-            col.prop(part, "billboard_tilt", text="Angle", slider=True)
-            col.prop(part, "billboard_tilt_random", text="Random", slider=True)
-            col = row.column()
-            col.prop(part, "billboard_offset")
-
-            row = layout.row()
-            col = row.column()
-            col.prop(part, "billboard_size", text="Scale")
-            if part.billboard_align == 'VEL':
-                col = row.column(align=True)
-                col.label("Velocity Scale:")
-                col.prop(part, "billboard_velocity_head", text="Head")
-                col.prop(part, "billboard_velocity_tail", text="Tail")
-
-            if psys:
-                col = layout.column()
-                col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_layers")
-                col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_layers")
-
-            split = layout.split(percentage=0.33)
-            split.label(text="Split UVs:")
-            split.prop(part, "billboard_uv_split", text="Number of splits")
-
-            if psys:
-                col = layout.column()
-                col.active = part.billboard_uv_split > 1
-                col.prop_search(psys, "billboard_split_uv", ob.data, "uv_layers")
-
-            row = col.row()
-            row.label(text="Animate:")
-            row.prop(part, "billboard_animation", text="")
-            row.label(text="Offset:")
-            row.prop(part, "billboard_offset_split", text="")
-
-        if part.render_type == 'HALO' or part.render_type == 'LINE' or part.render_type == 'BILLBOARD':
-            row = layout.row()
-            col = row.column()
-            col.prop(part, "trail_count")
-            if part.trail_count > 1:
-                col.prop(part, "use_absolute_path_time", text="Length in Frames")
-                col = row.column()
-                col.prop(part, "path_end", text="Length", slider=not part.use_absolute_path_time)
-                col.prop(part, "length_random", text="Random", slider=True)
-            else:
-                col = row.column()
-                col.label(text="")
+        layout.prop(part, "render_type", text="Render As")
 
         if part.type == 'EMITTER' or \
-           (part.render_type in {'OBJECT', 'GROUP'} and part.type == 'HAIR'):
-            row = layout.row(align=True)
-            row.prop(part, "particle_size")
-            row.prop(part, "size_random", slider=True)
+           (part.render_type in {'OBJECT', 'COLLECTION'} and part.type == 'HAIR'):
+            if part.render_type not in {'NONE'}:
+
+                col = layout.column(align=True)
+                col.prop(part, "particle_size", text="Scale")
+                col.prop(part, "size_random", slider=True, text="Scale Randomness")
+
+        if psys:
+            col = layout.column()
+            if part.render_type not in {'OBJECT', 'COLLECTION', 'NONE'}:
+                # col.enabled = False
+                col.prop(part, "material_slot", text="Material")
+                col.prop(psys, "parent", text="Coordinate System")
+
+
+class PARTICLE_PT_render_extra(ParticleButtonsPanel, Panel):
+    bl_label = "Extra"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type != 'NONE'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col = layout.column()
+        col.prop(part, "use_parent_particles", text="Parent Particles")
+        col.prop(part, "show_unborn", text="Unborn")
+        col.prop(part, "use_dead", text="Dead")
+
+
+class PARTICLE_PT_render_line(ParticleButtonsPanel, Panel):
+    bl_label = "Line"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'LINE'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col.separator()
+        sub = col.column(align=True)
+        sub.prop(part, "line_length_tail", text="Length Tail")
+        sub.prop(part, "line_length_head", text="Head")
+        col.prop(part, "use_velocity_length", text="Velocity Length")
+
+
+class PARTICLE_PT_render_path(ParticleButtonsPanel, Panel):
+    bl_label = "Path"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'PATH'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col.prop(part, "use_strand_primitive")
+        sub = col.column()
+        sub.active = (part.use_strand_primitive is False)
+        sub.prop(part, "use_render_adaptive")
+        sub = col.column()
+        sub.active = part.use_render_adaptive or part.use_strand_primitive is True
+        sub.prop(part, "adaptive_angle")
+        sub = col.column()
+        sub.active = (part.use_render_adaptive is True and part.use_strand_primitive is False)
+        sub.prop(part, "adaptive_pixel")
+        col.prop(part, "use_hair_bspline")
+        col.prop(part, "render_step", text="Steps")
+
+
+class PARTICLE_PT_render_path_timing(ParticleButtonsPanel, Panel):
+    bl_label = "Timing"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'PATH'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col.prop(part, "use_absolute_path_time")
+
+        if part.type == 'HAIR' or psys.point_cache.is_baked:
+            col.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
+        else:
+            col.prop(part, "trail_count")
+
+        col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
+        col.prop(part, "length_random", text="Random", slider=True)
+
+
+class PARTICLE_PT_render_object(ParticleButtonsPanel, Panel):
+    bl_label = "Object"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'OBJECT'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col.prop(part, "dupli_object", text="Instance Object")
+        sub = col.column()
+        sub.prop(part, "use_global_dupli", text="Global Coordinates")
+        sub.prop(part, "use_rotation_dupli", text="Object Rotation")
+        sub.prop(part, "use_scale_dupli", text="Object Scale")
+
+
+class PARTICLE_PT_render_collection(ParticleButtonsPanel, Panel):
+    bl_label = "Collection"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'COLLECTION'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col.prop(part, "dupli_group")
+
+        col.prop(part, "use_whole_group")
+        sub = col.column()
+        sub.active = (part.use_whole_group is False)
+        sub.prop(part, "use_group_pick_random")
+        sub.prop(part, "use_global_dupli", text="Global Coordinates")
+        sub.prop(part, "use_rotation_dupli", text="Object Rotation")
+        sub.prop(part, "use_scale_dupli", text="Object Scale")
+
+
+class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
+    bl_label = "Use Count"
+    bl_parent_id = "PARTICLE_PT_render_collection"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'COLLECTION'
+
+    def draw_header(self, context):
+        layout = self.layout
+        part = particle_get_settings(context)
+
+        layout.active = not part.use_whole_group
+
+        layout.prop(part, "use_group_count", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        layout.active = part.use_group_count and not part.use_whole_group
+
+        row = layout.row()
+        row.template_list("UI_UL_list", "particle_dupli_weights", part, "dupli_weights",
+                          part, "active_dupliweight_index")
+
+        col = row.column()
+        sub = col.row()
+        subsub = sub.column(align=True)
+        subsub.operator("particle.dupliob_copy", icon='ZOOMIN', text="")
+        subsub.operator("particle.dupliob_remove", icon='ZOOMOUT', text="")
+        subsub.operator("particle.dupliob_move_up", icon='TRIA_UP', text="")
+        subsub.operator("particle.dupliob_move_down", icon='TRIA_DOWN', text="")
+
+        weight = part.active_dupliweight
+        if weight:
+            row = layout.row()
+            row.prop(weight, "count")
+
+
+class PARTICLE_PT_render_billboards_alignment(ParticleButtonsPanel, Panel):
+    bl_label = "Billboard Alignment"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'BILLBOARD'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col.prop(part, "billboard_align", text="Align To")
+        col.prop(part, "lock_billboard", text="Lock Axis")
+        col.prop(part, "billboard_object")
+
+
+class PARTICLE_PT_render_billboards_tilt(ParticleButtonsPanel, Panel):
+    bl_label = "Billboard Tilt"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'BILLBOARD'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        sub = col.column(align=True)
+        sub.prop(part, "billboard_tilt", text="Angle", slider=True)
+        sub.prop(part, "billboard_tilt_random", text="Random", slider=True)
+
+        sub = col.column(align=True)
+        sub.prop(part, "billboard_offset")
+        col.prop(part, "billboard_size", text="Scale")
+        if part.billboard_align == 'VEL':
+            col = col.column(align=True)
+            col.prop(part, "billboard_velocity_head", text="Velocity ScaleHead")
+            col.prop(part, "billboard_velocity_tail", text="Tail")
+
+
+class PARTICLE_PT_render_billboards_uv(ParticleButtonsPanel, Panel):
+    bl_label = "Billboard UVs"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type == 'BILLBOARD'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        ob = context.object
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        if psys:
+            col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_layers")
+            col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_layers")
+
+        col.prop(part, "billboard_uv_split", text="Split UVs")
+
+        if psys:
+            sub = col.column()
+            sub.active = part.billboard_uv_split > 1
+            sub.prop_search(psys, "billboard_split_uv", ob.data, "uv_layers")
+
+        sub.prop(part, "billboard_animation")
+        sub.prop(part, "billboard_offset_split")
+
+
+class PARTICLE_PT_render_trails(ParticleButtonsPanel, Panel):
+    bl_label = "Trails"
+    bl_parent_id = "PARTICLE_PT_render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.render_type in {'HALO', 'LINE', 'BILLBOARD'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        col = layout.column()
+
+        col.prop(part, "trail_count")
+
+        sub = col.column()
+        sub.active = (part.trail_count > 1)
+        sub.prop(part, "use_absolute_path_time", text="Length in Frames")
+        sub.prop(part, "path_end", text="Length", slider=not part.use_absolute_path_time)
+        sub.prop(part, "length_random", text="Random Length", slider=True)
 
 
 class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
-    bl_label = "Display"
+    bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
@@ -1086,52 +1413,51 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         psys = context.particle_system
         part = particle_get_settings(context)
 
-        row = layout.row()
-        row.prop(part, "draw_method", expand=True)
-        row.prop(part, "show_guide_hairs")
+        layout.prop(part, "draw_method", text="Display As")
 
         if part.draw_method == 'NONE' or (part.render_type == 'NONE' and part.draw_method == 'RENDER'):
             return
 
         path = (part.render_type == 'PATH' and part.draw_method == 'RENDER') or part.draw_method == 'PATH'
 
-        row = layout.row()
-        row.prop(part, "draw_percentage", slider=True)
+        layout.separator()
+
+        col = layout.column()
+        col.prop(part, "draw_color", text="Color")
+        if part.draw_color in {'VELOCITY', 'ACCELERATION'}:
+            col.prop(part, "color_maximum", text="Fade Distance")
+
+        col = layout.column()
+
+        if path:
+            col.prop(part, "draw_step", text="Strand Steps")
+        col.prop(part, "draw_percentage", slider=True, text="Amount")
         if part.draw_method != 'RENDER' or part.render_type == 'HALO':
-            row.prop(part, "draw_size")
-        else:
-            row.label(text="")
+            col.prop(part, "draw_size", text="Size")
 
         if part.draw_percentage != 100 and psys is not None:
             if part.type == 'HAIR':
                 if psys.use_hair_dynamics and psys.point_cache.is_baked is False:
-                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
+                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking")
             else:
                 phystype = part.physics_type
                 if phystype != 'NO' and phystype != 'KEYED' and psys.point_cache.is_baked is False:
-                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
+                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking")
+        else:
+            layout.row().label(text="")
 
-        row = layout.row()
-        col = row.column()
+        col = layout.column()
+        col.prop(part, "show_guide_hairs", text="Guide Hairs")
         col.prop(part, "show_size")
         col.prop(part, "show_velocity")
         col.prop(part, "show_number")
         if part.physics_type == 'BOIDS':
             col.prop(part, "show_health")
-
-        col = row.column(align=True)
-        col.label(text="Color:")
-        col.prop(part, "draw_color", text="")
-        sub = col.row(align=True)
-        sub.active = (part.draw_color in {'VELOCITY', 'ACCELERATION'})
-        sub.prop(part, "color_maximum", text="Max")
-
-        if path:
-            col.prop(part, "draw_step")
 
 
 class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
@@ -1151,37 +1477,91 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
 
         layout.row().prop(part, "child_type", expand=True)
 
+        layout.use_property_split = True
+
         if part.child_type == 'NONE':
             return
 
-        row = layout.row()
+        col = layout.column()
 
-        col = row.column(align=True)
-        col.prop(part, "child_nbr", text="Display")
-        col.prop(part, "rendered_child_count", text="Render")
+        sub = col.column(align=True)
+        sub.prop(part, "child_nbr", text="Display Amount")
+        sub.prop(part, "rendered_child_count", text="Render Amount")
+
+        col.separator()
+
+        col.prop(part, "child_length", slider=True)
+        col.prop(part, "child_length_threshold", slider=True)
+        if psys:
+            col.prop(psys, "child_seed", text="Seed")
+
+        col.separator()
 
         if part.child_type == 'INTERPOLATED':
-            col = row.column()
-            if psys:
-                col.prop(psys, "child_seed", text="Seed")
             col.prop(part, "virtual_parents", slider=True)
             col.prop(part, "create_long_hair_children")
         else:
-            col = row.column(align=True)
-            col.prop(part, "child_size", text="Size")
-            col.prop(part, "child_size_random", text="Random")
+            col.separator()
+            sub = col.column(align=True)
+            sub.prop(part, "child_size", text="Size")
+            sub.prop(part, "child_size_random", text="Randomize Size", slider=True)
 
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Effects:")
-
-        sub = col.column(align=True)
         if part.child_type == 'SIMPLE':
-            sub.prop(part, "twist")
-            sub.prop(part, "use_twist_curve")
-            if part.use_twist_curve:
-                sub.template_curve_mapping(part, "twist_curve")
+            col.separator()
+            col.prop(part, "child_radius", text="Radius")
+            col.prop(part, "child_roundness", text="Roundness", slider=True)
+        elif part.virtual_parents > 0.0:
+            sub = col.column(align=True)
+            sub.label(text="Parting not available with virtual parents")
+
+
+class PARTICLE_PT_children_parting(ParticleButtonsPanel, Panel):
+    bl_label = "Parting"
+    bl_parent_id = "PARTICLE_PT_children"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.child_type == 'INTERPOLATED'
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        layout.use_property_split = True
+
+        col = layout.column()
+        col.prop(part, "child_parting_factor", text="Parting", slider=True)
+        col.prop(part, "child_parting_min", text="Min")
+        col.prop(part, "child_parting_max", text="Max")
+
+
+class PARTICLE_PT_children_clumping(ParticleButtonsPanel, Panel):
+    bl_label = "Clumping"
+    bl_parent_id = "PARTICLE_PT_children"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.child_type != 'NONE'
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        layout.use_property_split = True
+
+        col = layout.column()
+
+        sub = col.column()
 
         sub.prop(part, "use_clump_curve")
         if part.use_clump_curve:
@@ -1195,28 +1575,33 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         subsub.enabled = part.use_clump_noise
         subsub.prop(part, "clump_noise_size")
 
-        sub = col.column(align=True)
-        sub.prop(part, "child_length", slider=True)
-        sub.prop(part, "child_length_threshold", slider=True)
-
         if part.child_type == 'SIMPLE':
-            sub = col.column(align=True)
-            sub.prop(part, "child_radius", text="Radius")
-            sub.prop(part, "child_roundness", text="Roundness", slider=True)
-            if psys:
-                sub.prop(psys, "child_seed", text="Seed")
-        elif part.virtual_parents > 0.0:
-            sub = col.column(align=True)
-            sub.label(text="Parting not")
-            sub.label(text="available with")
-            sub.label(text="virtual parents")
-        else:
-            sub = col.column(align=True)
-            sub.prop(part, "child_parting_factor", text="Parting", slider=True)
-            sub.prop(part, "child_parting_min", text="Min")
-            sub.prop(part, "child_parting_max", text="Max")
+            sub.prop(part, "twist")
+            sub.prop(part, "use_twist_curve")
+            if part.use_twist_curve:
+                sub.template_curve_mapping(part, "twist_curve")
 
-        col = split.column()
+
+class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
+    bl_label = "Roughness"
+    bl_parent_id = "PARTICLE_PT_children"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.child_type != 'NONE'
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        layout.use_property_split = True
+
+        col = layout.column()
 
         col.prop(part, "use_roughness_curve")
         if part.use_roughness_curve:
@@ -1225,8 +1610,6 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
             sub.prop(part, "roughness_1", text="Roughness")
             sub.prop(part, "roughness_1_size", text="Size")
         else:
-            col.label(text="Roughness:")
-
             sub = col.column(align=True)
             sub.prop(part, "roughness_1", text="Uniform")
             sub.prop(part, "roughness_1_size", text="Size")
@@ -1240,31 +1623,55 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
             sub.prop(part, "roughness_2_size", text="Size")
             sub.prop(part, "roughness_2_threshold", slider=True)
 
-        layout.row().label(text="Kink:")
-        layout.row().prop(part, "kink", expand=True)
 
-        split = layout.split()
-        split.active = part.kink != 'NO'
+class PARTICLE_PT_children_kink(ParticleButtonsPanel, Panel):
+    bl_label = "Kink"
+    bl_parent_id = "PARTICLE_PT_children"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.child_type != 'NONE'
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        layout.use_property_split = True
+
+        col = layout.column()
+
+        col.prop(part, "kink", text="Kink Type")
+        col = layout.column()
+        col.active = part.kink != 'NO'
 
         if part.kink == 'SPIRAL':
-            col = split.column()
-            sub = col.column(align=True)
-            sub.prop(part, "kink_amplitude", text="Radius")
-            sub.prop(part, "kink_amplitude_random", text="Random", slider=True)
-            sub = col.column(align=True)
+
+            sub = col.column()
+            sub.prop(part, "kink_amplitude", text="Amplitude")
+            sub.prop(part, "kink_amplitude_random", text="Randomize Amplitude", slider=True)
+
+            col.separator()
+
+            sub = col.column()
             sub.prop(part, "kink_axis")
-            sub.prop(part, "kink_axis_random", text="Random", slider=True)
-            col = split.column(align=True)
+            sub.prop(part, "kink_axis_random", text="Randomize Axis", slider=True)
+
+            col.separator()
+
             col.prop(part, "kink_frequency", text="Frequency")
             col.prop(part, "kink_shape", text="Shape", slider=True)
             col.prop(part, "kink_extra_steps", text="Steps")
-        else:
-            col = split.column()
+
+        elif part.kink in {'CURL', 'RADIAL', 'WAVE', 'BRAID', 'WAVE'}:
             sub = col.column(align=True)
             sub.prop(part, "kink_amplitude")
             sub.prop(part, "kink_amplitude_clump", text="Clump", slider=True)
             col.prop(part, "kink_flat", slider=True)
-            col = split.column(align=True)
             col.prop(part, "kink_frequency")
             col.prop(part, "kink_shape", slider=True)
 
@@ -1337,6 +1744,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
         psys = context.particle_system
@@ -1428,6 +1836,35 @@ class PARTICLE_PT_textures(ParticleButtonsPanel, Panel):
             layout.template_ID(slot, "texture", new="texture.new")
 
 
+class PARTICLE_PT_hair_shape(ParticleButtonsPanel, Panel):
+    bl_label = "Hair Shape"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.particle_system is None:
+            return False
+        return particle_panel_poll(cls, context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = psys.settings
+
+        layout.prop(part, "shape", text="Strand Shape")
+
+        col = layout.column(align=True)
+        col.prop(part, "root_radius", text="Radius Root")
+        col.prop(part, "tip_radius", text="Tip")
+
+        col = layout.column()
+        col.prop(part, "radius_scale", text="Radius Scaling")
+        col.prop(part, "use_close_tip")
+
+
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     _context_path = "particle_system.settings"
@@ -1440,15 +1877,37 @@ classes = (
     PARTICLE_UL_particle_systems,
     PARTICLE_PT_context_particles,
     PARTICLE_PT_emission,
+    PARTICLE_PT_emission_source,
     PARTICLE_PT_hair_dynamics,
+    PARTICLE_PT_hair_dynamics_structure,
+    PARTICLE_PT_hair_dynamics_volume,
     PARTICLE_PT_cache,
     PARTICLE_PT_velocity,
     PARTICLE_PT_rotation,
+    PARTICLE_PT_rotation_angular_velocity,
     PARTICLE_PT_physics,
+    PARTICLE_PT_physics_forces,
+    PARTICLE_PT_physics_deflection,
+    PARTICLE_PT_physics_integration,
     PARTICLE_PT_boidbrain,
     PARTICLE_PT_render,
+    PARTICLE_PT_render_line,
+    PARTICLE_PT_render_path,
+    PARTICLE_PT_render_path_timing,
+    PARTICLE_PT_render_object,
+    PARTICLE_PT_render_collection,
+    PARTICLE_PT_render_collection_use_count,
+    PARTICLE_PT_render_billboards_tilt,
+    PARTICLE_PT_render_billboards_uv,
+    PARTICLE_PT_render_trails,
+    PARTICLE_PT_render_extra,
     PARTICLE_PT_draw,
     PARTICLE_PT_children,
+    PARTICLE_PT_children_parting,
+    PARTICLE_PT_children_clumping,
+    PARTICLE_PT_children_roughness,
+    PARTICLE_PT_children_kink,
+    PARTICLE_PT_hair_shape,
     PARTICLE_PT_field_weights,
     PARTICLE_PT_force_fields,
     PARTICLE_PT_vertexgroups,

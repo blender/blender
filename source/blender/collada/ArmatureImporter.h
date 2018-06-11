@@ -130,8 +130,8 @@ private:
 	ArmatureJoints& get_armature_joints(Object *ob_arm);
 #endif
 
-	Object *create_armature_bones(SkinInfo& skin);
-	void create_armature_bones(std::vector<Object *> &arm_objs);
+	Object *create_armature_bones(Main *bmain, SkinInfo& skin);
+	void create_armature_bones(Main *bmain, std::vector<Object *> &arm_objs);
 
 	/** TagsMap typedef for uid_tags_map. */
 	typedef std::map<std::string, ExtraTags*> TagsMap;
@@ -158,16 +158,16 @@ public:
 	bool write_controller(const COLLADAFW::Controller* controller);
 
 	COLLADAFW::UniqueId *get_geometry_uid(const COLLADAFW::UniqueId& controller_uid);
-	
+
 	Object *get_armature_for_joint(COLLADAFW::Node *node);
 
 	void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count);
-	
+
 	// gives a world-space mat
 	bool get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint);
 
 	void set_tags_map( TagsMap& tags_map);
-	
+
 };
 
 #endif

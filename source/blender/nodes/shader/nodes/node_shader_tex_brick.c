@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -54,7 +54,7 @@ static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 	NodeTexBrick *tex = MEM_callocN(sizeof(NodeTexBrick), "NodeTexBrick");
 	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
 	BKE_texture_colormapping_default(&tex->base.color_mapping);
-	
+
 	tex->offset = 0.5f;
 	tex->squash = 1.0f;
 	tex->offset_freq = 2;

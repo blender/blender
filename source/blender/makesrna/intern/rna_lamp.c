@@ -105,7 +105,7 @@ static void rna_Lamp_use_nodes_update(bContext *C, PointerRNA *ptr)
 
 	if (la->use_nodes && la->nodetree == NULL)
 		ED_node_shader_default(C, &la->id);
-	
+
 	rna_Lamp_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
@@ -155,6 +155,13 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "Light color");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
+	prop = RNA_def_property(srna, "specular_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "spec_fac");
+	RNA_def_property_range(prop, 0.0f, 9999.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01, 2);
+	RNA_def_property_ui_text(prop, "Specular Factor", "Specular reflection multiplier");
+	RNA_def_property_update(prop, 0, "rna_Lamp_update");
+
 	/* nodes */
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
@@ -166,7 +173,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_use_nodes_update");
-	
+
 	/* common */
 	rna_def_animdata_common(srna);
 }
@@ -189,7 +196,7 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 	RNA_def_property_enum_items(prop, prop_fallofftype_items);
 	RNA_def_property_ui_text(prop, "Falloff Type", "Intensity Decay with distance");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
-	
+
 	prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
 	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
@@ -310,13 +317,6 @@ static void rna_def_lamp_shadow(StructRNA *srna, int sun)
 	RNA_def_property_ui_text(prop, "Contact Shadow", "Use screen space raytracing to have correct shadowing "
 	                                                 "near occluder, or for small features that does not appear "
 	                                                 "in shadow maps");
-	RNA_def_property_update(prop, 0, "rna_Lamp_update");
-
-	prop = RNA_def_property(srna, "specular_factor", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "spec_fac");
-	RNA_def_property_range(prop, 0.0f, 9999.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01, 2);
-	RNA_def_property_ui_text(prop, "Specular Factor", "Specular reflection multiplier");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop = RNA_def_property(srna, "contact_shadow_distance", PROP_FLOAT, PROP_DISTANCE);

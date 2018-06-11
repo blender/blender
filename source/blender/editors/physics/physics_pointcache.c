@@ -256,9 +256,9 @@ static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 		for (pid = pidlist.first; pid; pid = pid->next) {
 			ptcache_free_bake(pid->cache);
 		}
-		
+
 		BLI_freelistN(&pidlist);
-		
+
 		WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 	}
 	FOREACH_SCENE_OBJECT_END;
@@ -274,7 +274,7 @@ void PTCACHE_OT_bake_all(wmOperatorType *ot)
 	ot->name = "Bake All Physics";
 	ot->description = "Bake all physics";
 	ot->idname = "PTCACHE_OT_bake_all";
-	
+
 	/* api callbacks */
 	ot->exec = ptcache_bake_exec;
 	ot->invoke = ptcache_bake_invoke;
@@ -293,7 +293,7 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 	ot->name = "Free All Physics Bakes";
 	ot->idname = "PTCACHE_OT_free_bake_all";
 	ot->description = "Free all baked caches of all objects in the current scene";
-	
+
 	/* api callbacks */
 	ot->exec = ptcache_free_bake_all_exec;
 	ot->poll = ptcache_bake_all_poll;
@@ -309,7 +309,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ptr.id.data;
 
 	ptcache_free_bake(cache);
-	
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
@@ -319,9 +319,9 @@ static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *UNUSED(op))
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
 	Object *ob= ptr.id.data;
-	
+
 	cache->flag |= PTCACHE_BAKED;
-	
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
@@ -332,7 +332,7 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
 	ot->name = "Bake Physics";
 	ot->description = "Bake physics";
 	ot->idname = "PTCACHE_OT_bake";
-	
+
 	/* api callbacks */
 	ot->exec = ptcache_bake_exec;
 	ot->invoke = ptcache_bake_invoke;
@@ -351,7 +351,7 @@ void PTCACHE_OT_free_bake(wmOperatorType *ot)
 	ot->name = "Free Physics Bake";
 	ot->description = "Free physics bake";
 	ot->idname = "PTCACHE_OT_free_bake";
-	
+
 	/* api callbacks */
 	ot->exec = ptcache_free_bake_exec;
 	ot->poll = ptcache_poll;
@@ -365,7 +365,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 	ot->name = "Bake From Cache";
 	ot->description = "Bake from cache";
 	ot->idname = "PTCACHE_OT_bake_from_cache";
-	
+
 	/* api callbacks */
 	ot->exec = ptcache_bake_from_cache_exec;
 	ot->poll = ptcache_poll;
@@ -418,7 +418,7 @@ void PTCACHE_OT_add(wmOperatorType *ot)
 	ot->name = "Add New Cache";
 	ot->description = "Add new cache";
 	ot->idname = "PTCACHE_OT_add";
-	
+
 	/* api callbacks */
 	ot->exec = ptcache_add_new_exec;
 	ot->poll = ptcache_poll;
@@ -432,7 +432,7 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
 	ot->name = "Delete Current Cache";
 	ot->description = "Delete current cache";
 	ot->idname = "PTCACHE_OT_remove";
-	
+
 	/* api callbacks */
 	ot->exec = ptcache_remove_exec;
 	ot->poll = ptcache_poll;

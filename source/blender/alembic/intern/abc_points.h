@@ -38,9 +38,7 @@ class AbcPointsWriter : public AbcObjectWriter {
 	ParticleSystem *m_psys;
 
 public:
-	AbcPointsWriter(Depsgraph *depsgraph,
-	                Scene *scene,
-	                Object *ob,
+	AbcPointsWriter(Object *ob,
 	                AbcTransformWriter *parent,
 	                uint32_t time_sampling,
 	                ExportSettings &settings,
@@ -65,10 +63,10 @@ public:
 
 	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                              const Alembic::Abc::ISampleSelector &sample_sel,
-	                              int read_flag,
-	                              const char **err_str);
+	struct Mesh *read_mesh(struct Mesh *existing_mesh,
+	                       const Alembic::Abc::ISampleSelector &sample_sel,
+	                       int read_flag,
+	                       const char **err_str);
 };
 
 void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,

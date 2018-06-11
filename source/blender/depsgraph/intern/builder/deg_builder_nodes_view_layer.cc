@@ -67,8 +67,16 @@ namespace DEG {
 
 void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 {
+	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
+
 	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
-		build_collection(lc->collection);
+		if (lc->collection->flag & restrict_flag) {
+			continue;
+		}
+		if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
+			build_collection(DEG_COLLECTION_OWNER_SCENE, lc->collection);
+		}
 		build_layer_collections(&lc->layer_collections);
 	}
 }
@@ -88,13 +96,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	scene_ = scene;
 	view_layer_ = view_layer;
 	/* Get pointer to a CoW version of scene ID. */
-	Scene *scene_cow;
-	if (DEG_depsgraph_use_copy_on_write()) {
-		scene_cow = get_cow_datablock(scene);
-	}
-	else {
-		scene_cow = scene;
-	}
+	Scene *scene_cow = get_cow_datablock(scene);
 	/* Scene objects. */
 	int select_color = 1;
 	/* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
@@ -102,10 +104,14 @@ void DepsgraphNodeBuilder::build_view_layer(
 	 * tricks here iterating over the view layer.
 	 */
 	int base_index = 0;
+	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+		BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
 	LISTBASE_FOREACH(Base *, base, &view_layer->object_bases) {
 		/* object itself */
-		build_object(base_index, base->object, linked_state);
-		base->object->select_color = select_color++;
+		if (base->flag & base_flag) {
+			build_object(base_index, base->object, linked_state);
+			base->object->select_color = select_color++;
+		}
 		++base_index;
 	}
 	build_layer_collections(&view_layer->layer_collections);

@@ -21,6 +21,16 @@ in vec3 worldNormal;
 in vec3 viewNormal;
 #endif
 
+#ifdef HAIR_SHADER
+in vec3 hairTangent; /* world space */
+in float hairThickTime;
+in float hairThickness;
+in float hairTime;
+flat in int hairStrandID;
+
+uniform int hairThicknessRes = 1;
+#endif
+
 #endif /* LIT_SURFACE_UNIFORM */
 
 /** AUTO CONFIG
@@ -168,27 +178,20 @@ void CLOSURE_NAME(
 
 	vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
 
-#ifdef HAIR_SHADER
-	/* Random normal distribution on the hair surface. */
-	vec3 T = normalize(worldNormal); /* meh, TODO fix worldNormal misnaming. */
-	vec3 B = normalize(cross(V, T));
-	N = cross(T, B); /* Normal facing view */
-	/* We want a cosine distribution. */
-	float cos_theta = rand.x * 2.0 - 1.0;
-	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
-	N = N * sin_theta + B * cos_theta;
-
-#  ifdef CLOSURE_GLOSSY
-	/* Hair random normal does not work with SSR :(.
-	 * It just create self reflection feedback (which is beautifful btw)
-	 * but not correct. */
-	ssr_id = NO_SSR; /* Force bypass */
-#  endif
-#endif
-
 	/* ---------------------------------------------------------------- */
 	/* -------------------- SCENE LAMPS LIGHTING ---------------------- */
 	/* ---------------------------------------------------------------- */
+
+#ifdef CLOSURE_GLOSSY
+	vec2 lut_uv = lut_coords(dot(N, V), roughness);
+	vec4 ltc_mat = texture(utilTex, vec3(lut_uv, 0.0)).rgba;
+#endif
+
+#ifdef CLOSURE_CLEARCOAT
+	vec2 lut_uv_clear = lut_coords(dot(C_N, V), C_roughness);
+	vec4 ltc_mat_clear = texture(utilTex, vec3(lut_uv_clear, 0.0)).rgba;
+	vec3 out_spec_clear = vec3(0.0);
+#endif
 
 	for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
 		LightData ld = lights_data[i];
@@ -208,14 +211,24 @@ void CLOSURE_NAME(
 	#endif
 
 	#ifdef CLOSURE_GLOSSY
-		out_spec += l_color_vis * light_specular(ld, N, V, l_vector, roughnessSquared, f0) * ld.l_spec;
+		out_spec += l_color_vis * light_specular(ld, ltc_mat, N, V, l_vector) * ld.l_spec;
 	#endif
 
 	#ifdef CLOSURE_CLEARCOAT
-		out_spec += l_color_vis * light_specular(ld, C_N, V, l_vector, C_roughnessSquared, f0) * C_intensity * ld.l_spec;
+		out_spec_clear += l_color_vis * light_specular(ld, ltc_mat_clear, C_N, V, l_vector) * C_intensity * ld.l_spec;
 	#endif
 	}
 
+#ifdef CLOSURE_GLOSSY
+	vec3 brdf_lut_lamps = texture(utilTex, vec3(lut_uv, 1.0)).rgb;
+	out_spec *= F_area(f0, brdf_lut_lamps.xy) * brdf_lut_lamps.z;
+#endif
+
+#ifdef CLOSURE_CLEARCOAT
+	vec3 brdf_lut_lamps_clear = texture(utilTex, vec3(lut_uv_clear, 1.0)).rgb;
+	out_spec_clear *= F_area(f0, brdf_lut_lamps_clear.xy) * brdf_lut_lamps_clear.z;
+	out_spec += out_spec_clear;
+#endif
 
 	/* ---------------------------------------------------------------- */
 	/* ---------------- SPECULAR ENVIRONMENT LIGHTING ----------------- */
@@ -392,12 +405,6 @@ void CLOSURE_NAME(
 	}
 
 	out_spec += spec_accum.rgb * ssr_spec * spec_occlu * float(specToggle);
-
-#  ifdef HAIR_SHADER
-	/* Hack: Overide spec color so that ssr will not be computed
-	 * even if ssr_id match the active ssr. */
-	ssr_spec = vec3(0.0);
-#  endif
 #endif
 
 #ifdef CLOSURE_REFRACTION

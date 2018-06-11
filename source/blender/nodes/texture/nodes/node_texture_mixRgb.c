@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -49,16 +49,16 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 {
 	float fac  = tex_input_value(in[0], p, thread);
 	float col1[4], col2[4];
-	
+
 	tex_input_rgba(col1, in[1], p, thread);
 	tex_input_rgba(col2, in[2], p, thread);
 
 	/* use alpha */
 	if (node->custom2 & 1)
 		fac *= col2[3];
-	
+
 	CLAMP(fac, 0.0f, 1.0f);
-	
+
 	copy_v4_v4(out, col1);
 	ramp_blend(node->custom1, out, fac, col2);
 }
@@ -71,11 +71,11 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 void register_node_type_tex_mix_rgb(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_label(&ntype, node_blend_label);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	nodeRegisterType(&ntype);
 }

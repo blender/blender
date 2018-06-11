@@ -467,8 +467,8 @@ void test_object_modifiers(struct Object *ob);
 void modifier_mdef_compact_influences(struct ModifierData *md);
 
 void        modifier_path_init(char *path, int path_maxlen, const char *name);
-const char *modifier_path_relbase(struct Object *ob);
-
+const char *modifier_path_relbase(struct Main *bmain, struct Object *ob);
+const char *modifier_path_relbase_from_global(struct Object *ob);
 
 /* wrappers for modifier callbacks that ensure valid normals */
 
@@ -557,9 +557,8 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(
         struct ModifierData *md, const struct ModifierEvalContext *ctx,
         struct BMEditMesh *editData, struct DerivedMesh *dm);
 
-struct Mesh *BKE_modifier_get_evaluated_mesh_from_object(
-        const struct ModifierEvalContext *ctx,
-        struct Object *ob);
+struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(
+        struct Object *ob_eval, bool *r_free_mesh);
 
 #endif
 

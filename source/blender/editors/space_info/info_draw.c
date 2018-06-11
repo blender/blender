@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -236,7 +236,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, Re
                                         int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
 	int ret = 0;
-	
+
 	View2D *v2d = &ar->v2d;
 
 	TextViewContext tvc = {0};
@@ -260,7 +260,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, Re
 	tvc.winx = ar->winx - V2D_SCROLL_WIDTH;
 
 	ret = textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
-	
+
 	return ret;
 }
 

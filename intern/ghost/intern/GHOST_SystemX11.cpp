@@ -101,7 +101,12 @@
  * See T47228 and D1746 */
 #define USE_NON_LATIN_KB_WORKAROUND
 
-static GHOST_TKey convertXKey(KeySym key);
+static GHOST_TKey ghost_key_from_keysym(
+        const KeySym key);
+static GHOST_TKey ghost_key_from_keycode(
+        const XkbDescPtr xkb_descr, const KeyCode keycode);
+static GHOST_TKey ghost_key_from_keysym_or_keycode(
+        const KeySym key, const XkbDescPtr xkb_descr, const KeyCode keycode);
 
 /* these are for copy and select copy */
 static char *txt_cut_buffer = NULL;
@@ -117,11 +122,11 @@ GHOST_SystemX11::
 GHOST_SystemX11(
         )
     : GHOST_System(),
+      m_xkb_descr(NULL),
       m_start_time(0)
 {
-	XInitThreads();
 	m_display = XOpenDisplay(NULL);
-	
+
 	if (!m_display) {
 		std::cerr << "Unable to open a display" << std::endl;
 		abort(); /* was return before, but this would just mean it will crash later */
@@ -179,19 +184,24 @@ GHOST_SystemX11(
 	if (gettimeofday(&tv, NULL) == -1) {
 		GHOST_ASSERT(false, "Could not instantiate timer!");
 	}
-	
+
 	/* Taking care not to overflow the tv.tv_sec * 1000 */
 	m_start_time = GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
-	
-	
+
+
 	/* use detectable autorepeate, mac and windows also do this */
 	int use_xkb;
 	int xkb_opcode, xkb_event, xkb_error;
 	int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;
-	
+
 	use_xkb = XkbQueryExtension(m_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major, &xkb_minor);
 	if (use_xkb) {
 		XkbSetDetectableAutoRepeat(m_display, true, NULL);
+
+		m_xkb_descr = XkbGetMap(m_display, 0, XkbUseCoreKbd);
+		if (m_xkb_descr) {
+			XkbGetNames(m_display, XkbKeyNamesMask, m_xkb_descr);
+		}
 	}
 
 #ifdef WITH_XWAYLAND_HACK
@@ -244,10 +254,14 @@ GHOST_SystemX11::
 	/* close tablet devices */
 	if (m_xtablet.StylusDevice)
 		XCloseDevice(m_display, m_xtablet.StylusDevice);
-	
+
 	if (m_xtablet.EraserDevice)
 		XCloseDevice(m_display, m_xtablet.EraserDevice);
 #endif /* WITH_X11_XINPUT */
+
+	if (m_xkb_descr) {
+		XkbFreeNames(m_xkb_descr, XkbKeyNamesMask, false);
+	}
 
 	XCloseDisplay(m_display);
 }
@@ -285,7 +299,7 @@ getMilliSeconds() const
 	/* Taking care not to overflow the tv.tv_sec * 1000 */
 	return GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000 - m_start_time;
 }
-	
+
 GHOST_TUns8
 GHOST_SystemX11::
 getNumDisplays() const
@@ -358,9 +372,9 @@ createWindow(const STR_String& title,
 		const GHOST_TEmbedderWindowID parentWindow)
 {
 	GHOST_WindowX11 *window = NULL;
-	
+
 	if (!m_display) return 0;
-	
+
 	window = new GHOST_WindowX11(this, m_display, title,
 	                             left, top, width, height,
 	                             state, parentWindow, type,
@@ -386,7 +400,7 @@ createWindow(const STR_String& title,
 	return window;
 }
 
-bool GHOST_SystemX11::supportsNativeDialogs(void) 
+bool GHOST_SystemX11::supportsNativeDialogs(void)
 {
 	return false;
 }
@@ -516,7 +530,7 @@ GHOST_SystemX11::
 findGhostWindow(
 		Window xwind) const
 {
-	
+
 	if (xwind == 0) return NULL;
 
 	/* It is not entirely safe to do this as the backptr may point
@@ -528,7 +542,7 @@ findGhostWindow(
 
 	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
 	vector<GHOST_IWindow *>::const_iterator win_end = win_vec.end();
-	
+
 	for (; win_it != win_end; ++win_it) {
 		GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
 		if (window->getXWindow() == xwind) {
@@ -536,14 +550,14 @@ findGhostWindow(
 		}
 	}
 	return NULL;
-	
+
 }
 
 static void SleepTillEvent(Display *display, GHOST_TInt64 maxSleep)
 {
 	int fd = ConnectionNumber(display);
 	fd_set fds;
-	
+
 	FD_ZERO(&fds);
 	FD_SET(fd, &fds);
 
@@ -555,7 +569,7 @@ static void SleepTillEvent(Display *display, GHOST_TInt64 maxSleep)
 
 		tv.tv_sec = maxSleep / 1000;
 		tv.tv_usec = (maxSleep - tv.tv_sec * 1000) * 1000;
-	
+
 		select(fd + 1, &fds, NULL, NULL, &tv);
 	}
 }
@@ -618,15 +632,15 @@ processEvents(
 {
 	/* Get all the current events -- translate them into
 	 * ghost events and call base class pushEvent() method. */
-	
+
 	bool anyProcessed = false;
-	
+
 	do {
 		GHOST_TimerManager *timerMgr = getTimerManager();
-		
+
 		if (waitForEvent && m_dirty_windows.empty() && !XPending(m_display)) {
 			GHOST_TUns64 next = timerMgr->nextFireTime();
-			
+
 			if (next == GHOST_kFireTimeNever) {
 				SleepTillEvent(m_display, -1);
 			}
@@ -637,11 +651,11 @@ processEvents(
 					SleepTillEvent(m_display, next - getMilliSeconds());
 			}
 		}
-		
+
 		if (timerMgr->fireTimers(getMilliSeconds())) {
 			anyProcessed = true;
 		}
-		
+
 		while (XPending(m_display)) {
 			XEvent xevent;
 			XNextEvent(m_display, &xevent);
@@ -669,10 +683,8 @@ processEvents(
 			}
 
 			/* dispatch event to XIM server */
-			if ((XFilterEvent(&xevent, (Window)NULL) == True) && (xevent.type != KeyRelease)) {
-				/* do nothing now, the event is consumed by XIM.
-				 * however, KeyRelease event should be processed
-				 * here, otherwise modifiers remain activated.   */
+			if ((XFilterEvent(&xevent, (Window)NULL) == True)) {
+				/* do nothing now, the event is consumed by XIM. */
 				continue;
 			}
 #endif
@@ -726,7 +738,7 @@ processEvents(
 									              getMilliSeconds(),
 									              GHOST_kEventKeyDown,
 									              window,
-									              convertXKey(modifiers[i]),
+									              ghost_key_from_keysym(modifiers[i]),
 									              '\0',
 									              NULL));
 								}
@@ -738,7 +750,7 @@ processEvents(
 #endif  /* USE_UNITY_WORKAROUND */
 
 		}
-		
+
 		if (generateWindowExposeEvents()) {
 			anyProcessed = true;
 		}
@@ -748,9 +760,9 @@ processEvents(
 			anyProcessed = true;
 		}
 #endif
-		
+
 	} while (waitForEvent && !anyProcessed);
-	
+
 	return anyProcessed;
 }
 
@@ -956,7 +968,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XKeyEvent *xke = &(xe->xkey);
 			KeySym key_sym;
-			KeySym key_sym_str;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* utf8_array[] is initial buffer used for Xutf8LookupString().
@@ -971,7 +982,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 #else
 			char *utf8_buf = NULL;
 #endif
-			
+
 			GHOST_TEventType type = (xke->type == KeyPress) ?  GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 
 			GHOST_TKey gkey;
@@ -983,7 +994,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			 *       is unmodified (or anyone swapping the keys with xmodmap).
 			 *
 			 *     - XLookupKeysym seems to always use first defined keymap (see T47228), which generates
-			 *       keycodes unusable by convertXKey for non-latin-compatible keymaps.
+			 *       keycodes unusable by ghost_key_from_keysym for non-latin-compatible keymaps.
 			 *
 			 * To address this, we:
 			 *
@@ -1001,6 +1012,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			 *
 			 * [1] http://cgit.freedesktop.org/xorg/lib/libX11/tree/src/KeyBind.c
 			 */
+			KeySym key_sym_str;
 			/* Mode_switch 'modifier' is AltGr - when this one or Shift are enabled, we do not want to apply
 			 * that 'forced number' hack. */
 			const unsigned int mode_switch_mask = XkbKeysymToModifiers(xke->display, XK_Mode_switch);
@@ -1021,7 +1033,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 			/* Only allow a limited set of keys from XLookupKeysym, all others we take from XLookupString,
 			 * unless it gives unknown key... */
-			gkey = convertXKey(key_sym);
+			gkey = ghost_key_from_keysym_or_keycode(key_sym, m_xkb_descr, xke->keycode);
 			switch (gkey) {
 				case GHOST_kKeyRightAlt:
 				case GHOST_kKeyLeftAlt:
@@ -1058,10 +1070,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				case GHOST_kKeyNumpadSlash:
 					break;
 				default:
-					GHOST_TKey gkey_str = convertXKey(key_sym_str);
+				{
+					GHOST_TKey gkey_str = ghost_key_from_keysym(key_sym_str);
 					if (gkey_str != GHOST_kKeyUnknown) {
 						gkey = gkey_str;
 					}
+				}
 			}
 #else
 			/* In keyboards like latin ones,
@@ -1083,8 +1097,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				key_sym = XLookupKeysym(xke, 0);
 			}
 
-			gkey = convertXKey(key_sym);
-			
+			gkey = ghost_key_from_keysym_or_keycode(key_sym, m_xkb_descr, xke->keycode);
+
 			if (!XLookupString(xke, &ascii, 1, NULL, NULL)) {
 				ascii = '\0';
 			}
@@ -1178,7 +1192,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			if (utf8_buf != utf8_array)
 				free(utf8_buf);
 #endif
-			
+
 			break;
 		}
 
@@ -1187,7 +1201,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XButtonEvent & xbe = xe->xbutton;
 			GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
-			GHOST_TEventType type = (xbe.type == ButtonPress) ? 
+			GHOST_TEventType type = (xbe.type == ButtonPress) ?
 			                        GHOST_kEventButtonDown : GHOST_kEventButtonUp;
 
 			/* process wheel mouse events and break, only pass on press events */
@@ -1201,7 +1215,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					g_event = new GHOST_EventWheel(getMilliSeconds(), window, -1);
 				break;
 			}
-			
+
 			/* process rest of normal mouse buttons */
 			if (xbe.button == Button1)
 				gbmask = GHOST_kButtonMaskLeft;
@@ -1233,13 +1247,13 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			    );
 			break;
 		}
-			
+
 		/* change of size, border, layer etc. */
 		case ConfigureNotify:
 		{
 			/* XConfigureEvent & xce = xe->xconfigure; */
 
-			g_event = new 
+			g_event = new
 			          GHOST_Event(
 			    getMilliSeconds(),
 			    GHOST_kEventWindowSize,
@@ -1255,10 +1269,10 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 			/* TODO: make sure this is the correct place for activate/deactivate */
 			// printf("X: focus %s for window %d\n", xfe.type == FocusIn ? "in" : "out", (int) xfe.window);
-		
+
 			/* May have to look at the type of event and filter some out. */
 
-			GHOST_TEventType gtype = (xfe.type == FocusIn) ? 
+			GHOST_TEventType gtype = (xfe.type == FocusIn) ?
 			                         GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate;
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
@@ -1271,7 +1285,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			}
 #endif
 
-			g_event = new 
+			g_event = new
 			          GHOST_Event(
 			    getMilliSeconds(),
 			    gtype,
@@ -1285,7 +1299,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XClientMessageEvent & xcme = xe->xclient;
 
 			if (((Atom)xcme.data.l[0]) == m_atom.WM_DELETE_WINDOW) {
-				g_event = new 
+				g_event = new
 				          GHOST_Event(
 				    getMilliSeconds(),
 				    GHOST_kEventWindowClose,
@@ -1329,14 +1343,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 			break;
 		}
-		
+
 		case DestroyNotify:
 			::exit(-1);
 		/* We're not interested in the following things.(yet...) */
 		case NoExpose:
 		case GraphicsExpose:
 			break;
-		
+
 		case EnterNotify:
 		case LeaveNotify:
 		{
@@ -1349,7 +1363,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			 */
 			XCrossingEvent &xce = xe->xcrossing;
 			if (xce.mode == NotifyNormal) {
-				g_event = new 
+				g_event = new
 				          GHOST_EventCursor(
 				    getMilliSeconds(),
 				    GHOST_kEventCursorMove,
@@ -1397,18 +1411,18 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XEvent nxe;
 			Atom target, utf8_string, string, compound_text, c_string;
 			XSelectionRequestEvent *xse = &xe->xselectionrequest;
-			
+
 			target = XInternAtom(m_display, "TARGETS", False);
 			utf8_string = XInternAtom(m_display, "UTF8_STRING", False);
 			string = XInternAtom(m_display, "STRING", False);
 			compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
 			c_string = XInternAtom(m_display, "C_STRING", False);
-			
+
 			/* support obsolete clients */
 			if (xse->property == None) {
 				xse->property = xse->target;
 			}
-			
+
 			nxe.xselection.type = SelectionNotify;
 			nxe.xselection.requestor = xse->requestor;
 			nxe.xselection.property = xse->property;
@@ -1416,7 +1430,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			nxe.xselection.selection = xse->selection;
 			nxe.xselection.target = xse->target;
 			nxe.xselection.time = xse->time;
-			
+
 			/* Check to see if the requestor is asking for String */
 			if (xse->target == utf8_string ||
 			    xse->target == string ||
@@ -1447,13 +1461,13 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				/* Change property to None because we do not support anything but STRING */
 				nxe.xselection.property = None;
 			}
-			
+
 			/* Send the event to the client 0 0 == False, SelectionNotify */
 			XSendEvent(m_display, xse->requestor, 0, 0, &nxe);
 			XFlush(m_display);
 			break;
 		}
-		
+
 		default:
 		{
 #ifdef WITH_X11_XINPUT
@@ -1584,7 +1598,7 @@ getButtons(
 	}
 	else {
 		return GHOST_kFailure;
-	}	
+	}
 
 	return GHOST_kSuccess;
 }
@@ -1688,7 +1702,7 @@ setCursorPosition(
 #endif
 
 	XSync(m_display, 0); /* Sync to process all requests */
-	
+
 	return GHOST_kSuccess;
 }
 
@@ -1699,7 +1713,7 @@ addDirtyWindow(
 		GHOST_WindowX11 *bad_wind)
 {
 	GHOST_ASSERT((bad_wind != NULL), "addDirtyWindow() NULL ptr trapped (window)");
-	
+
 	m_dirty_windows.push_back(bad_wind);
 }
 
@@ -1711,7 +1725,7 @@ generateWindowExposeEvents()
 	vector<GHOST_WindowX11 *>::iterator w_start = m_dirty_windows.begin();
 	vector<GHOST_WindowX11 *>::const_iterator w_end = m_dirty_windows.end();
 	bool anyProcessed = false;
-	
+
 	for (; w_start != w_end; ++w_start) {
 		GHOST_Event *g_event = new
 		                       GHOST_Event(
@@ -1721,7 +1735,7 @@ generateWindowExposeEvents()
 		    );
 
 		(*w_start)->validate();
-		
+
 		if (g_event) {
 			pushEvent(g_event);
 			anyProcessed = true;
@@ -1732,10 +1746,22 @@ generateWindowExposeEvents()
 	return anyProcessed;
 }
 
+static GHOST_TKey
+ghost_key_from_keysym_or_keycode(const KeySym keysym, XkbDescPtr xkb_descr, const KeyCode keycode)
+{
+	GHOST_TKey type = ghost_key_from_keysym(keysym);
+	if (type == GHOST_kKeyUnknown) {
+		if (xkb_descr) {
+			type = ghost_key_from_keycode(xkb_descr, keycode);
+		}
+	}
+	return type;
+}
+
 #define GXMAP(k, x, y) case x: k = y; break
 
 static GHOST_TKey
-convertXKey(KeySym key)
+ghost_key_from_keysym(const KeySym key)
 {
 	GHOST_TKey type;
 
@@ -1844,6 +1870,9 @@ convertXKey(KeySym key)
 #endif
 #endif
 			default:
+#ifdef GHOST_DEBUG
+				printf("%s: unknown key: %lu / 0x%lx\n", __func__, key, key);
+#endif
 				type = GHOST_kKeyUnknown;
 				break;
 		}
@@ -1853,6 +1882,33 @@ convertXKey(KeySym key)
 }
 
 #undef GXMAP
+
+#define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+
+static GHOST_TKey
+ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode)
+{
+	GHOST_ASSERT(XkbKeyNameLength == 4, "Name length is invalid!");
+	if (keycode >= xkb_descr->min_key_code && keycode <= xkb_descr->max_key_code) {
+		const char *id_str = xkb_descr->names->keys[keycode].name;
+		const uint32_t id = MAKE_ID(id_str[0], id_str[1], id_str[2], id_str[3]);
+		switch (id) {
+			case MAKE_ID('T', 'L', 'D', 'E'):
+				return GHOST_kKeyAccentGrave;
+#ifdef GHOST_DEBUG
+			default:
+				printf("%s unhandled keycode: %.*s\n", __func__, XkbKeyNameLength, id_str);
+				break;
+#endif
+		}
+	}
+	else {
+		GHOST_ASSERT(false, "KeyCode out of range!");
+	}
+	return GHOST_kKeyUnknown;
+}
+
+#undef MAKE_ID
 
 /* from xclip.c xcout() v0.11 */
 
@@ -2110,12 +2166,12 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 		unsigned char *tmp_data = (unsigned char *) malloc(sel_len + 1);
 		memcpy((char *)tmp_data, (char *)sel_buf, sel_len);
 		tmp_data[sel_len] = '\0';
-		
+
 		if (sseln == m_atom.STRING)
 			XFree(sel_buf);
 		else
 			free(sel_buf);
-		
+
 		return tmp_data;
 	}
 	return(NULL);
@@ -2156,7 +2212,7 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 }
 
 #ifdef WITH_XDND
-GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType, 
+GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
 		GHOST_TDragnDropTypes draggedObjectType,
 		GHOST_IWindow *window,
 		int mouseX, int mouseY,
@@ -2322,7 +2378,7 @@ void GHOST_SystemX11::refreshXInputDevices()
 
 			for (int i = 0; i < device_count; ++i) {
 				char *device_type = device_info[i].type ? XGetAtomName(m_display, device_info[i].type) : NULL;
-				
+
 //				printf("Tablet type:'%s', name:'%s', index:%d\n", device_type, device_info[i].name, i);
 
 
@@ -2355,7 +2411,7 @@ void GHOST_SystemX11::refreshXInputDevices()
 
 								break;
 							}
-						
+
 							ici = (XAnyClassPtr)(((char *)ici) + ici->length);
 						}
 					}

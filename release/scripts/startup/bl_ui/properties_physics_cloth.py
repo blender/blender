@@ -257,6 +257,7 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
         cloth = context.cloth.settings
         effector_weights_ui(self, context, cloth.effector_weights, 'CLOTH')
 
+
 classes = (
     CLOTH_MT_presets,
     PHYSICS_PT_cloth,

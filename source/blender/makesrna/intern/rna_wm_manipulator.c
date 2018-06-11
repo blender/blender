@@ -74,6 +74,7 @@
 /** \name Manipulator API
  * \{ */
 
+#ifdef WITH_PYTHON
 static void rna_manipulator_draw_cb(
         const struct bContext *C, struct wmManipulator *mpr)
 {
@@ -237,6 +238,8 @@ static void rna_manipulator_select_refresh_cb(
 	mgroup->type->ext.call((bContext *)NULL, &mpr_ptr, func, &list);
 	RNA_parameter_list_free(&list);
 }
+
+#endif  /* WITH_PYTHON */
 
 /* just to work around 'const char *' warning and to ensure this is a python op */
 static void rna_Manipulator_bl_idname_set(PointerRNA *ptr, const char *value)

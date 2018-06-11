@@ -16,9 +16,8 @@ extern "C" {
 class TestableAbcExporter : public AbcExporter {
 public:
 	TestableAbcExporter(Main *bmain,
-	                    Scene *scene, Depsgraph *depsgraph,
 	                    const char *filename, ExportSettings &settings)
-	    : AbcExporter(bmain, scene, depsgraph, filename, settings)
+	    : AbcExporter(bmain, filename, settings)
 	{
 	}
 
@@ -57,7 +56,10 @@ protected:
 
 		/* TODO(sergey): Pass scene layer somehow? */
 		ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
-		depsgraph = DEG_graph_new(&scene, view_layer, DAG_EVAL_VIEWPORT);
+		settings.depsgraph = depsgraph = DEG_graph_new(&scene, view_layer, DAG_EVAL_VIEWPORT);
+
+		settings.scene = &scene;
+		settings.view_layer = view_layer;
 
 		exporter = NULL;
 	}
@@ -72,7 +74,7 @@ protected:
 	// Call after setting up the settings.
 	void createExporter()
 	{
-		exporter = new TestableAbcExporter(bmain, &scene, depsgraph, "somefile.abc", settings);
+		exporter = new TestableAbcExporter(bmain, "somefile.abc", settings);
 	}
 };
 

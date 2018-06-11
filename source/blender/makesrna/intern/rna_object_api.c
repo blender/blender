@@ -218,7 +218,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 
 		RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-		
+
 		return keyptr;
 	}
 	else {
@@ -355,7 +355,7 @@ static void rna_Object_closest_point_on_mesh(
         int *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	BVHTreeFromMesh treeData = {NULL};
-	
+
 	if (ob->derivedFinal == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for finding nearest point",
 		            ob->id.name + 2);
@@ -445,10 +445,10 @@ void rna_Object_dm_info(struct Object *ob, int type, char *result)
 }
 #endif /* NDEBUG */
 
-static int rna_Object_update_from_editmode(Object *ob)
+static int rna_Object_update_from_editmode(Object *ob, Main *bmain)
 {
 	/* fail gracefully if we aren't in edit-mode. */
-	return ED_object_editmode_load(ob);
+	return ED_object_editmode_load(bmain, ob);
 }
 #else /* RNA_RUNTIME */
 
@@ -591,7 +591,7 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "ray_cast", "rna_Object_ray_cast");
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	
+
 	/* ray start and end */
 	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -676,6 +676,7 @@ void RNA_api_object(StructRNA *srna)
 
 	func = RNA_def_function(srna, "update_from_editmode", "rna_Object_update_from_editmode");
 	RNA_def_function_ui_description(func, "Load the objects edit-mode data into the object data");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	parm = RNA_def_boolean(func, "result", 0, "", "Success");
 	RNA_def_function_return(func, parm);
 

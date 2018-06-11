@@ -265,7 +265,7 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 
 /* Add given channel into (active) group 
  *	- assumes that channel is not linked to anything anymore
- *	- always adds at the end of the group 
+ *	- always adds at the end of the group
  */
 void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 {	
@@ -582,7 +582,9 @@ void BKE_pose_copy_data_ex(bPose **dst, const bPose *src, const int flag, const 
 		if (copy_constraints) {
 			BKE_constraints_copy_ex(&listb, &pchan->constraints, flag, true);  // BKE_constraints_copy NULLs listb
 			pchan->constraints = listb;
-			pchan->mpath = NULL; /* motion paths should not get copied yet... */
+
+			/* XXX: This is needed for motionpath drawing to work. Dunno why it was setting to null before... */
+			pchan->mpath = animviz_copy_motionpath(pchan->mpath);
 		}
 		
 		if (pchan->prop) {
@@ -912,7 +914,7 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 
 
 /* checks for IK constraint, Spline IK, and also for Follow-Path constraint.
- * can do more constraints flags later 
+ * can do more constraints flags later
  */
 /* pose should be entirely OK */
 void BKE_pose_update_constraint_flags(bPose *pose)
@@ -1386,7 +1388,7 @@ void BKE_pose_tag_recalc(Main *bmain, bPose *pose)
 }
 
 /* For the calculation of the effects of an Action at the given frame on an object 
- * This is currently only used for the Action Constraint 
+ * This is currently only used for the Action Constraint
  */
 void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
 {
@@ -1452,7 +1454,7 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 		adt.action = act;
 		
 		/* execute effects of Action on to workob (or it's PoseChannels) */
-		BKE_animsys_evaluate_animdata(NULL, &workob->id, &adt, cframe, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(NULL, NULL, &workob->id, &adt, cframe, ADT_RECALC_ANIM);
 	}
 }
 

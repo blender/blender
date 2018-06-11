@@ -62,7 +62,7 @@
 #include "COLLADASWInstanceNode.h"
 #include "COLLADASWBaseInputElement.h"
 
-extern "C" 
+extern "C"
 {
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -180,8 +180,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
 
-
-int DocumentExporter::exportCurrentScene(Scene *sce)
+int DocumentExporter::exportCurrentScene(bContext *C, Scene *sce)
 {
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
@@ -258,14 +257,14 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 #endif
 	asset.getContributor().mAuthoringTool = version_buf;
 	asset.add();
-	
+
 	LinkNode *export_set = this->export_settings->export_set;
 	// <library_cameras>
 	if (bc_has_object_type(export_set, OB_CAMERA)) {
 		CamerasExporter ce(writer, this->export_settings);
 		ce.exportCameras(sce);
 	}
-	
+
 	// <library_lights>
 	if (bc_has_object_type(export_set, OB_LAMP)) {
 		LightsExporter le(writer, this->export_settings);
@@ -275,11 +274,11 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 	// <library_images>
 	ImagesExporter ie(writer, this->export_settings);
 	ie.exportImages(sce);
-	
+
 	// <library_effects>
 	EffectsExporter ee(writer, this->export_settings);
 	ee.exportEffects(sce);
-	
+
 	// <library_materials>
 	MaterialsExporter me(writer, this->export_settings);
 	me.exportMaterials(sce);
@@ -293,7 +292,7 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 	// <library_controllers>
 	ArmatureExporter arm_exporter(writer, this->export_settings);
 	ControllerExporter controller_exporter(writer, this->export_settings);
-	if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys) 
+	if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys)
 	{
 		controller_exporter.export_controllers(depsgraph, sce);
 	}
@@ -307,14 +306,14 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 		AnimationExporter ae(depsgraph, writer, this->export_settings);
 		ae.exportAnimations(sce);
 	}
-	se.exportScene(depsgraph, sce);
-	
+	se.exportScene(C, depsgraph, sce);
+
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));
 	COLLADASW::Scene scene(writer, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
 	                                           scene_name));
 	scene.add();
-	
+
 	// close <Collada>
 	writer->endDocument();
 	delete writer;

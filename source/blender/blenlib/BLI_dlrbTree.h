@@ -32,7 +32,7 @@
  */
 
 /* Double-Linked Red-Black Tree Implementation:
- * 
+ *
  * This is simply a Red-Black Tree implementation whose nodes can later
  * be arranged + retrieved as elements in a Double-Linked list (i.e. ListBase).
  * The Red-Black Tree implementation is based on the methods defined by Wikipedia.

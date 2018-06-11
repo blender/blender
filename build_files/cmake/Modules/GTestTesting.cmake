@@ -32,6 +32,7 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 		                      ${EXTRA_LIBS}
 		                      ${PLATFORM_LINKLIBS}
 		                      bf_testing_main
+		                      bf_intern_eigen
 		                      bf_intern_guardedalloc
 		                      extern_gtest
 		                      extern_gmock

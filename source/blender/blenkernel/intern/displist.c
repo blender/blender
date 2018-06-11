@@ -37,6 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
@@ -51,8 +52,11 @@
 #include "BKE_displist.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mball_tessellate.h"
+#include "BKE_mesh.h"
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_anim.h"
@@ -925,7 +929,7 @@ static void curve_calc_modifiers_post(
 	Curve *cu = ob->data;
 	int required_mode = 0, totvert = 0;
 	const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
-	DerivedMesh *dm = NULL, *ndm;
+	Mesh *modified = NULL, *mesh_applied;
 	float (*vertCos)[3] = NULL;
 	int useCache = !for_render;
 	ModifierApplyFlag app_flag = 0;
@@ -963,23 +967,21 @@ static void curve_calc_modifiers_post(
 			continue;
 
 		if (mti->type == eModifierTypeType_OnlyDeform ||
-		    (mti->type == eModifierTypeType_DeformOrConstruct && !dm))
+		    (mti->type == eModifierTypeType_DeformOrConstruct && !modified))
 		{
-			if (dm) {
+			if (modified) {
 				if (!vertCos) {
-					totvert = dm->getNumVerts(dm);
-					vertCos = MEM_mallocN(sizeof(*vertCos) * totvert, "dfmv");
-					dm->getVertCos(dm, vertCos);
+					vertCos = BKE_mesh_vertexCos_get(modified, &totvert);
 				}
 
-				modifier_deformVerts_DM_deprecated(md, &mectx_deform, dm, vertCos, totvert);
+				modifier_deformVerts(md, &mectx_deform, modified, vertCos, totvert);
 			}
 			else {
 				if (!vertCos) {
 					vertCos = displist_get_allverts(dispbase, &totvert);
 				}
 
-				modifier_deformVerts_DM_deprecated(md, &mectx_deform, NULL, vertCos, totvert);
+				modifier_deformVerts(md, &mectx_deform, NULL, vertCos, totvert);
 			}
 		}
 		else {
@@ -991,13 +993,17 @@ static void curve_calc_modifiers_post(
 				break;
 			}
 
-			if (dm) {
+			if (modified) {
 				if (vertCos) {
-					DerivedMesh *tdm = CDDM_copy(dm);
-					dm->release(dm);
-					dm = tdm;
+					Mesh *temp_mesh;
+					BKE_id_copy_ex(NULL, &modified->id, (ID **)&temp_mesh,
+					               LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
+					               LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW,
+					               false);
+					BKE_id_free(NULL, modified);
+					modified = temp_mesh;
 
-					CDDM_apply_vert_coords(dm, vertCos);
+					BKE_mesh_apply_vert_coords(modified, vertCos);
 				}
 			}
 			else {
@@ -1009,7 +1015,7 @@ static void curve_calc_modifiers_post(
 					curve_to_filledpoly(cu, nurb, dispbase);
 				}
 
-				dm = CDDM_from_curve_displist(ob, dispbase);
+				modified = BKE_mesh_new_nomain_from_curve_displist(ob, dispbase);
 			}
 
 			if (vertCos) {
@@ -1018,26 +1024,31 @@ static void curve_calc_modifiers_post(
 				vertCos = NULL;
 			}
 
-			ndm = modwrap_applyModifier(md, &mectx_apply, dm);
+			mesh_applied = modifier_applyModifier(md, &mectx_apply, modified);
 
-			if (ndm) {
+			if (mesh_applied) {
 				/* Modifier returned a new derived mesh */
 
-				if (dm && dm != ndm) /* Modifier  */
-					dm->release(dm);
-				dm = ndm;
+				if (modified && modified != mesh_applied) /* Modifier  */
+					BKE_id_free(NULL, modified);
+				modified = mesh_applied;
 			}
 		}
 	}
 
 	if (vertCos) {
-		if (dm) {
-			DerivedMesh *tdm = CDDM_copy(dm);
-			dm->release(dm);
-			dm = tdm;
+		if (modified) {
+			Mesh *temp_mesh;
+			BKE_id_copy_ex(NULL, &modified->id, (ID **)&temp_mesh,
+			               LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
+			               LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW,
+			               false);
+			BKE_id_free(NULL, modified);
+			modified = temp_mesh;
 
-			CDDM_apply_vert_coords(dm, vertCos);
-			CDDM_calc_normals_mapping(dm);
+			BKE_mesh_apply_vert_coords(modified, vertCos);
+			BKE_mesh_calc_normals_mapping_simple(modified);
+
 			MEM_freeN(vertCos);
 		}
 		else {
@@ -1048,22 +1059,27 @@ static void curve_calc_modifiers_post(
 	}
 
 	if (r_dm_final) {
-		if (dm) {
+		if (modified) {
 			/* see: mesh_calc_modifiers */
-			if (dm->getNumTessFaces(dm) == 0) {
-				dm->recalcTessellation(dm);
+			if (modified->totface == 0) {
+				BKE_mesh_tessface_calc(modified);
 			}
 			/* Even if tessellation is not needed, some modifiers might have modified CD layers
 			 * (like mloopcol or mloopuv), hence we have to update those. */
-			else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-				DM_update_tessface_data(dm);
+			else if (modified->runtime.cd_dirty_vert & CD_MASK_TESSLOOPNORMAL) {
+				BKE_mesh_tessface_calc(modified);
 			}
 
-			if (dm->type == DM_TYPE_CDDM) {
-				CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
-			}
+			/* XXX2.8(Sybren): make sure the face normals are recalculated as well */
+			BKE_mesh_ensure_normals(modified);
+
+			(*r_dm_final) = CDDM_from_mesh_ex(modified, CD_DUPLICATE, CD_MASK_MESH);
+			BKE_id_free(NULL, modified);
 		}
-		(*r_dm_final) = dm;
+		else {
+			(*r_dm_final) = NULL;
+		}
+
 	}
 }
 
@@ -1095,6 +1111,8 @@ static void displist_surf_indices(DispList *dl)
 	}
 }
 
+/* XXX2.8(Sybren): unused function; impossible to test after porting to Mesh */
+#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
 static DerivedMesh *create_orco_dm(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	DerivedMesh *dm;
@@ -1138,7 +1156,10 @@ static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
 	else
 		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
 }
+#endif
 
+/* XXX2.8(Sybren): unused function; impossible to test after porting to Mesh */
+#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
 static void curve_calc_orcodm(
         Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm_final,
         const bool for_render, const bool use_render_resolution)
@@ -1208,6 +1229,7 @@ static void curve_calc_orcodm(
 
 	orcodm->release(orcodm);
 }
+#endif
 
 void BKE_displist_make_surf(
         Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *dispbase,
@@ -1816,6 +1838,8 @@ void BKE_displist_make_curveTypes_forOrco(
 }
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
+/* XXX2.8(Sybren): can be removed once DerivedMesh port is done */
+#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
 float *BKE_displist_make_orco(
         Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm_final,
         const bool for_render,
@@ -1838,6 +1862,7 @@ float *BKE_displist_make_orco(
 
 	return orco;
 }
+#endif
 
 void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 {

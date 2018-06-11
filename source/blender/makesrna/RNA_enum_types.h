@@ -245,4 +245,7 @@ const EnumPropertyItem *RNA_movieclip_local_itemf(struct bContext *C, struct Poi
 const EnumPropertyItem *RNA_mask_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 const EnumPropertyItem *RNA_mask_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 
+/* Non confirming, utility function. */
+const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(struct bContext *C, bool *r_free);
+
 #endif /* __RNA_ENUM_TYPES_H__ */

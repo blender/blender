@@ -19,8 +19,8 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import (
-        Panel,
-        )
+    Panel,
+)
 
 from rna_prop_ui import PropertyPanel
 
@@ -51,7 +51,7 @@ class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
 
         import addon_utils
         addon_map = {mod.__name__: mod for mod in addon_utils.modules()}
-        owner_ids = {owner_id.name  for owner_id in workspace.owner_ids}
+        owner_ids = {owner_id.name for owner_id in workspace.owner_ids}
 
         for addon in userpref.addons:
             module_name = addon.module
@@ -85,7 +85,6 @@ class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
                 row.label(module_name)
 
 
-
 class WORKSPACE_PT_custom_props(WorkSpaceButtonsPanel, PropertyPanel, Panel):
     _context_path = "workspace"
     _property_type = bpy.types.WorkSpace
@@ -100,4 +99,3 @@ if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
-

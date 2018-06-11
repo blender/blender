@@ -179,7 +179,7 @@ class OUTLINER_MT_collection(Menu):
         layout.operator("outliner.collection_instance", text="Instance to Scene")
         if space.display_mode != 'VIEW_LAYER':
             layout.operator("outliner.collection_link", text="Link to Scene")
-        layout.operator("outliner.id_operation", text="Unlink").type='UNLINK'
+        layout.operator("outliner.id_operation", text="Unlink").type = 'UNLINK'
 
         if space.display_mode == 'VIEW_LAYER':
             layout.separator()
@@ -206,20 +206,20 @@ class OUTLINER_MT_object(Menu):
 
         space = context.space_data
 
-        layout.operator("outliner.object_operation", text="Delete").type='DELETE'
+        layout.operator("outliner.object_operation", text="Delete").type = 'DELETE'
         if space.display_mode == 'VIEW_LAYER' and not space.use_filter_collection:
-            layout.operator("outliner.object_operation", text="Delete Hierarchy").type='DELETE_HIERARCHY'
+            layout.operator("outliner.object_operation", text="Delete Hierarchy").type = 'DELETE_HIERARCHY'
 
         layout.separator()
 
-        layout.operator("outliner.object_operation", text="Select").type='SELECT'
-        layout.operator("outliner.object_operation", text="Select Hierarchy").type='SELECT_HIERARCHY'
-        layout.operator("outliner.object_operation", text="Deselect").type='DESELECT'
+        layout.operator("outliner.object_operation", text="Select").type = 'SELECT'
+        layout.operator("outliner.object_operation", text="Select Hierarchy").type = 'SELECT_HIERARCHY'
+        layout.operator("outliner.object_operation", text="Deselect").type = 'DESELECT'
 
         layout.separator()
 
         if not (space.display_mode == 'VIEW_LAYER' and not space.use_filter_collection):
-            layout.operator("outliner.id_operation", text="Unlink").type='UNLINK'
+            layout.operator("outliner.id_operation", text="Unlink").type = 'UNLINK'
             layout.separator()
 
         layout.operator_menu_enum("outliner.id_operation", 'type', text="ID Data")

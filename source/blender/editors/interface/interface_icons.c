@@ -1252,7 +1252,7 @@ static void icon_draw_size(
 		/* We need to flush widget base first to ensure correct ordering. */
 		UI_widgetbase_draw_cache_flush();
 
-#ifdef USE_TOOLBAR_HACK
+#ifdef USE_UI_TOOLBAR_HACK
 		/* TODO(campbell): scale icons up for toolbar, we need a way to detect larger buttons and do this automatic. */
 		{
 			float scale = (float)ICON_DEFAULT_HEIGHT_TOOLBAR / (float)ICON_DEFAULT_HEIGHT;
@@ -1371,7 +1371,8 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		int tool = PAINT_TOOL_DRAW, mode = 0;
 		ScrArea *sa = CTX_wm_area(C);
 		char space_type = sa->spacetype;
-		if (space_type == SPACE_TOPBAR) {
+		/* When in an unsupported space. */
+		if (!ELEM(space_type, SPACE_VIEW3D, SPACE_IMAGE)) {
 			space_type = workspace->tools_space_type;
 		}
 

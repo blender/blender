@@ -18,7 +18,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# --env-system-scripts allows to run without the install target. 
+# --env-system-scripts allows to run without the install target.
 
 # Use '--write-blend=/tmp/test.blend' to view output
 
@@ -43,7 +43,7 @@ else()
 	set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender)
 endif()
 
-# for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no 
+# for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no
 set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 
 

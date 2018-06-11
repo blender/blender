@@ -39,12 +39,12 @@ void wm_init_cursor_data(void);
 /* old cursors */
 enum {
 	CURSOR_FACESEL = BC_GHOST_CURSORS,
-	CURSOR_WAIT, 
-	CURSOR_EDIT, 
-	CURSOR_X_MOVE, 
-	CURSOR_Y_MOVE, 
-	CURSOR_HELP, 
-	CURSOR_STD, 
+	CURSOR_WAIT,
+	CURSOR_EDIT,
+	CURSOR_X_MOVE,
+	CURSOR_Y_MOVE,
+	CURSOR_HELP,
+	CURSOR_STD,
 	CURSOR_NONE,
 	CURSOR_PENCIL,
 	CURSOR_COPY
@@ -57,21 +57,21 @@ typedef struct BCursor {
 	char *small_bm;
 	char *small_mask;
 
-	char small_sizex; 
-	char small_sizey; 
-	char small_hotx; 
-	char small_hoty; 
+	char small_sizex;
+	char small_sizey;
+	char small_hotx;
+	char small_hoty;
 
-	char *big_bm; 
+	char *big_bm;
 	char *big_mask;
 
-	char big_sizex; 
-	char big_sizey; 
-	char big_hotx; 
-	char big_hoty; 
+	char big_sizex;
+	char big_sizey;
+	char big_hotx;
+	char big_hoty;
 
-	char fg_color; 
-	char bg_color; 
+	char fg_color;
+	char bg_color;
 
 } BCursor;
 
@@ -101,7 +101,7 @@ enum {
 
 enum {
 	BC_BLACK = 0,
-	BC_WHITE, 
+	BC_WHITE,
 	BC_RED,
 	BC_BLUE,
 	BC_GREEN,

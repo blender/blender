@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -66,6 +66,7 @@ enum {
 /* view3d_header.c */
 void VIEW3D_OT_layers(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_xray_draw_option(struct wmOperatorType *ot);
+void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
 void view3d_operatortypes(void);
@@ -134,7 +135,8 @@ void VIEW3D_OT_ruler(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object_backbufsel(
-        struct Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene,
+        View3D *v3d, RegionView3D *rv3d, struct Object *ob,
         short select_mode);
 
 int view3d_effective_drawtype(const struct View3D *v3d);

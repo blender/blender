@@ -45,10 +45,10 @@
  *
  * - blenlib is written in C.
  * - The posix-compliance may move to a separate lib that deals with
- *   platform dependencies. (There are other platform-dependent 
+ *   platform dependencies. (There are other platform-dependent
  *   fixes as well.)
  * - The file i/o has some redundant code. It should be cleaned.
- * 
+ *
  * \subsection dependencies Dependencies
  *
  * - The blenlib uses type defines from \ref DNA, and functions from

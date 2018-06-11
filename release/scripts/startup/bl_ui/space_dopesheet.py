@@ -118,7 +118,7 @@ class DOPESHEET_HT_header(Header):
 
         row = layout.row(align=True)
         row.template_header()
-        
+
         # XXX: perhaps our mode menu can be retired eventually when we get editor submodes in the main menu?
         layout.prop(st, "mode", text="")
 
@@ -179,12 +179,13 @@ class DOPESHEET_HT_editor_buttons(Header):
                 row.prop(st.dopesheet, "filter_text", text="")
                 row.prop(st.dopesheet, "use_multi_word_filter", text="")
 
+        layout.separator_spacer()
+
         row = layout.row(align=True)
-        row.prop(toolsettings, "use_proportional_action",
-                 text="", icon_only=True)
-        if toolsettings.use_proportional_action:
-            row.prop(toolsettings, "proportional_edit_falloff",
-                     text="", icon_only=True)
+        row.prop(toolsettings, "use_proportional_action", text="", icon_only=True)
+        sub = row.row(align=True)
+        sub.active = toolsettings.use_proportional_action
+        sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':
@@ -425,11 +426,11 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         layout.operator("anim.channels_editable_toggle")
 
         # XXX: to be enabled when these are ready for use!
-        #layout.separator()
-        #layout.operator("anim.channels_expand")
-        #layout.operator("anim.channels_collapse")
+        # layout.separator()
+        # layout.operator("anim.channels_expand")
+        # layout.operator("anim.channels_collapse")
 
-        #layout.separator()
+        # layout.separator()
         #layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
@@ -450,9 +451,9 @@ class DOPESHEET_MT_gpencil_frame(Menu):
         layout.separator()
         layout.operator("action.keyframe_type")
 
-        #layout.separator()
-        #layout.operator("action.copy")
-        #layout.operator("action.paste")
+        # layout.separator()
+        # layout.operator("action.copy")
+        # layout.operator("action.paste")
 
 
 class DOPESHEET_MT_delete(Menu):
@@ -469,6 +470,66 @@ class DOPESHEET_MT_delete(Menu):
         layout.operator("action.clean", text="Clean Channels").channels = True
 
 
+class DOPESHEET_MT_specials(Menu):
+    bl_label = "Dope Sheet Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("action.copy", text="Copy")
+        layout.operator("action.paste", text="Paste")
+        layout.operator("action.paste", text="Paste Flipped").flipped = True
+
+        layout.separator()
+
+        layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
+        layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("action.easing_type", "type", text="Easing Type")
+
+        layout.separator()
+
+        layout.operator("action.keyframe_insert").type = 'SEL'
+        layout.operator("action.duplicate_move")
+        layout.operator("action.delete")
+
+        layout.separator()
+
+        layout.operator_menu_enum("action.mirror", "type", text="Mirror")
+        layout.operator_menu_enum("action.snap", "type", text="Snap")
+
+
+class DOPESHEET_MT_channel_specials(Menu):
+    bl_label = "Dope Sheet Channel Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
+        layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
+        layout.separator()
+        layout.operator("anim.channels_setting_enable", text="Protect Channels").type = 'PROTECT'
+        layout.operator("anim.channels_setting_disable", text="Unprotect Channels").type = 'PROTECT'
+
+        layout.separator()
+        layout.operator("anim.channels_group")
+        layout.operator("anim.channels_ungroup")
+
+        layout.separator()
+        layout.operator("anim.channels_editable_toggle")
+        layout.operator_menu_enum("action.extrapolation_type", "type", text="Extrapolation Mode")
+
+        layout.separator()
+        layout.operator("anim.channels_expand")
+        layout.operator("anim.channels_collapse")
+
+        layout.separator()
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+
+        layout.separator()
+
+        layout.operator("anim.channels_delete")
+
+
 classes = (
     DOPESHEET_HT_header,
     DOPESHEET_HT_editor_buttons,
@@ -482,6 +543,8 @@ classes = (
     DOPESHEET_MT_gpencil_channel,
     DOPESHEET_MT_gpencil_frame,
     DOPESHEET_MT_delete,
+    DOPESHEET_MT_specials,
+    DOPESHEET_MT_channel_specials,
 )
 
 if __name__ == "__main__":  # only for live edit.

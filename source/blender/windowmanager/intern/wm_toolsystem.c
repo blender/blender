@@ -186,7 +186,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 		Main *bmain = CTX_data_main(C);
 
 		/* Currently only brush data-blocks supported. */
-		struct Brush *brush = (struct Brush *)BKE_libblock_find_name(ID_BR, tref_rt->data_block);
+		struct Brush *brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, tref_rt->data_block);
 
 		if (brush) {
 			wmWindowManager *wm = bmain->wm.first;
@@ -461,23 +461,52 @@ static void toolsystem_refresh_screen_from_active_tool(
 	}
 }
 
-static void toolsystem_reinit_with_toolref(
-        bContext *C, WorkSpace *workspace, bToolRef *tref)
+bToolRef *WM_toolsystem_ref_set_by_name(
+        bContext *C, WorkSpace *workspace, const bToolKey *tkey,
+        const char *name, bool cycle)
 {
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
 	/* On startup, Python operatores are not yet loaded. */
 	if (ot == NULL) {
-		return;
+		return NULL;
 	}
 	PointerRNA op_props;
 	WM_operator_properties_create_ptr(&op_props, ot);
-	RNA_string_set(&op_props, "name", tref->idname);
-	RNA_enum_set(&op_props, "space_type", tref->space_type);
+	RNA_string_set(&op_props, "name", name);
+
+	/* Will get from context if not set. */
+	bToolKey tkey_from_context;
+	if (tkey == NULL) {
+		Scene *scene = CTX_data_scene(C);
+		ScrArea *sa = CTX_wm_area(C);
+		WM_toolsystem_key_from_context(workspace, scene, sa, &tkey_from_context);
+		tkey = &tkey_from_context;
+	}
+
+	RNA_enum_set(&op_props, "space_type", tkey->space_type);
+	RNA_boolean_set(&op_props, "cycle", cycle);
+
 	WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
 	WM_operator_properties_free(&op_props);
 
-	Main *bmain = CTX_data_main(C);
-	toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
+	bToolRef *tref = WM_toolsystem_ref_find(workspace, tkey);
+
+	if (tref) {
+		Main *bmain = CTX_data_main(C);
+		toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
+	}
+
+	return (tref && STREQ(tref->idname, name)) ? tref : NULL;
+}
+
+static void toolsystem_reinit_with_toolref(
+        bContext *C, WorkSpace *workspace, bToolRef *tref)
+{
+	bToolKey tkey = {
+		.space_type = tref->space_type,
+		.mode = tref->mode,
+	};
+	WM_toolsystem_ref_set_by_name(C, workspace, &tkey, tref->idname, false);
 }
 
 /**
@@ -512,7 +541,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
 bool WM_toolsystem_active_tool_is_brush(const bContext *C)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	return tref_rt->data_block[0] != '\0';
+	return tref_rt && (tref_rt->data_block[0] != '\0');
 }
 
 /* Follow wmMsgNotifyFn spec */

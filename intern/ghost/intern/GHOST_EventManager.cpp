@@ -127,7 +127,7 @@ GHOST_TSuccess GHOST_EventManager::addConsumer(GHOST_IEventConsumer *consumer)
 {
 	GHOST_TSuccess success;
 	GHOST_ASSERT(consumer, "invalid consumer");
-	
+
 	// Check to see whether the consumer is already in our list
 	TConsumerVector::const_iterator iter = std::find(m_consumers.begin(), m_consumers.end(), consumer);
 

@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,7 +48,7 @@ static void node_shader_exec_valtorgb(void *UNUSED(data), int UNUSED(thread), bN
 {
 	/* stack order in: fac */
 	/* stack order out: col, alpha */
-	
+
 	if (node->storage) {
 		float fac;
 		nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);

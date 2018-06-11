@@ -59,11 +59,11 @@
 /* Contents of this File:
  *
  * This file contains methods shared between Pose Slide and Pose Lib;
- * primarily the functions in question concern Animato <-> Pose 
+ * primarily the functions in question concern Animato <-> Pose
  * convenience functions, such as applying/getting pose values
  * and/or inserting keyframes for these.
  */
-/* *********************************************** */ 
+/* *********************************************** */
 /* FCurves <-> PoseChannels Links */
 
 /* helper for poseAnim_mapping_get() -> get the relevant F-Curves per PoseChannel */
@@ -71,25 +71,25 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 {
 	ListBase curves = {NULL, NULL};
 	int transFlags = action_get_item_transforms(act, ob, pchan, &curves);
-	
+
 	pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
-	
+
 	/* check if any transforms found... */
 	if (transFlags) {
 		/* make new linkage data */
 		tPChanFCurveLink *pfl = MEM_callocN(sizeof(tPChanFCurveLink), "tPChanFCurveLink");
 		PointerRNA ptr;
-		
+
 		pfl->fcurves = curves;
 		pfl->pchan = pchan;
-		
+
 		/* get the RNA path to this pchan - this needs to be freed! */
 		RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan, &ptr);
 		pfl->pchan_path = RNA_path_from_ID_to_struct(&ptr);
-		
+
 		/* add linkage data to operator data */
 		BLI_addtail(pfLinks, pfl);
-		
+
 		/* set pchan's transform flags */
 		if (transFlags & ACT_TRANS_LOC)
 			pchan->flag |= POSE_LOC;
@@ -99,7 +99,7 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 			pchan->flag |= POSE_SIZE;
 		if (transFlags & ACT_TRANS_BBONE)
 			pchan->flag |= POSE_BBONE_SHAPE;
-			
+
 		/* store current transforms */
 		copy_v3_v3(pfl->oldloc, pchan->loc);
 		copy_v3_v3(pfl->oldrot, pchan->eul);
@@ -107,7 +107,7 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 		copy_qt_qt(pfl->oldquat, pchan->quat);
 		copy_v3_v3(pfl->oldaxis, pchan->rotAxis);
 		pfl->oldangle = pchan->rotAngle;
-		
+
 		/* store current bbone values */
 		pfl->roll1 = pchan->roll1;
 		pfl->roll2 = pchan->roll2;
@@ -119,18 +119,18 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 		pfl->ease2 = pchan->ease2;
 		pfl->scaleIn = pchan->scaleIn;
 		pfl->scaleOut = pchan->scaleOut;
-		
+
 		/* make copy of custom properties */
 		if (pchan->prop && (transFlags & ACT_TRANS_PROP))
 			pfl->oldprops = IDP_CopyProperty(pchan->prop);
 	}
-} 
+}
 
 
 /* get sets of F-Curves providing transforms for the bones in the Pose  */
 void poseAnim_mapping_get(bContext *C, ListBase *pfLinks, Object *ob, bAction *act)
-{	
-	/* for each Pose-Channel which gets affected, get the F-Curves for that channel 
+{
+	/* for each Pose-Channel which gets affected, get the F-Curves for that channel
 	 * and set the relevant transform flags...
 	 */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
@@ -138,7 +138,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks, Object *ob, bAction *a
 		fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);
 	}
 	CTX_DATA_END;
-	
+
 	/* if no PoseChannels were found, try a second pass, doing visible ones instead
 	 * i.e. if nothing selected, do whole pose
 	 */
@@ -148,7 +148,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks, Object *ob, bAction *a
 			fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);
 		}
 		CTX_DATA_END;
-		
+
 	}
 }
 
@@ -156,23 +156,23 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks, Object *ob, bAction *a
 void poseAnim_mapping_free(ListBase *pfLinks)
 {
 	tPChanFCurveLink *pfl, *pfln = NULL;
-		
+
 	/* free the temp pchan links and their data */
 	for (pfl = pfLinks->first; pfl; pfl = pfln) {
 		pfln = pfl->next;
-		
+
 		/* free custom properties */
 		if (pfl->oldprops) {
 			IDP_FreeProperty(pfl->oldprops);
 			MEM_freeN(pfl->oldprops);
 		}
-		
+
 		/* free list of F-Curve reference links */
 		BLI_freelistN(&pfl->fcurves);
-		
+
 		/* free pchan RNA Path */
 		MEM_freeN(pfl->pchan_path);
-		
+
 		/* free link itself */
 		BLI_freelinkN(pfLinks, pfl);
 	}
@@ -185,8 +185,8 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	bArmature *arm = (bArmature *)ob->data;
-	
-	/* old optimize trick... this enforces to bypass the depgraph 
+
+	/* old optimize trick... this enforces to bypass the depgraph
 	 *	- note: code copied from transform_generics.c -> recalcData()
 	 */
 	/* FIXME: shouldn't this use the builtin stuff? */
@@ -194,7 +194,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 	else
 		BKE_pose_where_is(depsgraph, scene, ob);
-	
+
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE); /* otherwise animation doesn't get updated */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 }
@@ -203,11 +203,11 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 void poseAnim_mapping_reset(ListBase *pfLinks)
 {
 	tPChanFCurveLink *pfl;
-	
+
 	/* iterate over each pose-channel affected, restoring all channels to their original values */
 	for (pfl = pfLinks->first; pfl; pfl = pfl->next) {
 		bPoseChannel *pchan = pfl->pchan;
-		
+
 		/* just copy all the values over regardless of whether they changed or not */
 		copy_v3_v3(pchan->loc, pfl->oldloc);
 		copy_v3_v3(pchan->eul, pfl->oldrot);
@@ -215,7 +215,7 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
 		copy_qt_qt(pchan->quat, pfl->oldquat);
 		copy_v3_v3(pchan->rotAxis, pfl->oldaxis);
 		pchan->rotAngle = pfl->oldangle;
-		
+
 		/* store current bbone values */
 		pchan->roll1 = pfl->roll1;
 		pchan->roll2 = pfl->roll2;
@@ -227,7 +227,7 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
 		pchan->ease2 = pfl->ease2;
 		pchan->scaleIn = pfl->scaleIn;
 		pchan->scaleOut = pfl->scaleOut;
-		
+
 		/* just overwrite values of properties from the stored copies (there should be some) */
 		if (pfl->oldprops)
 			IDP_SyncGroupValues(pfl->pchan->prop, pfl->oldprops);
@@ -242,26 +242,26 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, Object *ob, ListBa
 		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 		ListBase dsources = {NULL, NULL};
 		tPChanFCurveLink *pfl;
-		
+
 		/* iterate over each pose-channel affected, tagging bones to be keyed */
-		/* XXX: here we already have the information about what transforms exist, though 
+		/* XXX: here we already have the information about what transforms exist, though
 		 * it might be easier to just overwrite all using normal mechanisms
 		 */
 		for (pfl = pfLinks->first; pfl; pfl = pfl->next) {
 			bPoseChannel *pchan = pfl->pchan;
-			
+
 			/* add datasource override for the PoseChannel, to be used later */
-			ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
-			
+			ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan);
+
 			/* clear any unkeyed tags */
 			if (pchan->bone)
 				pchan->bone->flag &= ~BONE_UNKEYED;
 		}
-		
+
 		/* insert keyframes for all relevant bones in one go */
 		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cframe);
 		BLI_freelistN(&dsources);
-		
+
 		/* do the bone paths
 		 *	- only do this if keyframes should have been added
 		 *	- do not calculate unless there are paths already to update...
@@ -275,25 +275,25 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, Object *ob, ListBa
 
 /* ------------------------- */
 
-/* find the next F-Curve for a PoseChannel with matching path... 
+/* find the next F-Curve for a PoseChannel with matching path...
  *	- path is not just the pfl rna_path, since that path doesn't have property info yet
  */
 LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path)
 {
 	LinkData *first = (prev) ? prev->next : (fcuLinks) ? fcuLinks->first : NULL;
 	LinkData *ld;
-	
+
 	/* check each link to see if the linked F-Curve has a matching path */
 	for (ld = first; ld; ld = ld->next) {
 		FCurve *fcu = (FCurve *)ld->data;
-		
+
 		/* check if paths match */
 		if (STREQ(path, fcu->rna_path))
 			return ld;
 	}
-	
+
 	/* none found */
 	return NULL;
 }
 
-/* *********************************************** */  
+/* *********************************************** */

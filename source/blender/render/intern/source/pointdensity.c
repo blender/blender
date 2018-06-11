@@ -102,7 +102,7 @@ static void point_data_pointers(PointDensity *pd,
 	const int totpoint = pd->totpoints;
 	float *data = pd->point_data;
 	int offset = 0;
-	
+
 	if (data_used & POINT_DATA_VEL) {
 		if (r_data_velocity)
 			*r_data_velocity = data + offset;
@@ -112,7 +112,7 @@ static void point_data_pointers(PointDensity *pd,
 		if (r_data_velocity)
 			*r_data_velocity = NULL;
 	}
-	
+
 	if (data_used & POINT_DATA_LIFE) {
 		if (r_data_life)
 			*r_data_life = data + offset;
@@ -122,7 +122,7 @@ static void point_data_pointers(PointDensity *pd,
 		if (r_data_life)
 			*r_data_life = NULL;
 	}
-	
+
 	if (data_used & POINT_DATA_COLOR) {
 		if (r_data_color)
 			*r_data_color = data + offset;
@@ -283,19 +283,19 @@ static void pointdensity_cache_vertex_color(PointDensity *pd, Object *UNUSED(ob)
 	const MLoopCol *mcol;
 	char layername[MAX_CUSTOMDATA_LAYER_NAME];
 	int i;
-	
+
 	BLI_assert(data_color);
-	
+
 	if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPCOL))
 		return;
 	CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPCOL, pd->vertex_attribute_name, layername);
 	mcol = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPCOL, layername);
 	if (!mcol)
 		return;
-	
+
 	/* Stores the number of MLoops using the same vertex, so we can normalize colors. */
 	int *mcorners = MEM_callocN(sizeof(int) * pd->totpoints, "point density corner count");
-	
+
 	for (i = 0; i < totloop; i++) {
 		int v = mloop[i].v;
 
@@ -310,7 +310,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd, Object *UNUSED(ob)
 
 		++mcorners[v];
 	}
-	
+
 	/* Normalize colors by averaging over mcorners.
 	 * All the corners share the same vertex, ie. occupy the same point in space.
 	 */
@@ -318,7 +318,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd, Object *UNUSED(ob)
 		if (mcorners[i] > 0)
 			mul_v3_fl(&data_color[i*3], 1.0f / mcorners[i]);
 	}
-	
+
 	MEM_freeN(mcorners);
 }
 
@@ -328,9 +328,9 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd, Object *ob, Mesh 
 	const MDeformVert *mdef, *dv;
 	int mdef_index;
 	int i;
-	
+
 	BLI_assert(data_color);
-	
+
 	mdef = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
 	if (!mdef)
 		return;
@@ -339,11 +339,11 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd, Object *ob, Mesh 
 		mdef_index = ob->actdef - 1;
 	if (mdef_index < 0)
 		return;
-	
+
 	for (i = 0, dv = mdef; i < totvert; ++i, ++dv, data_color += 3) {
 		MDeformWeight *dw;
 		int j;
-		
+
 		for (j = 0, dw = dv->dw; j < dv->totweight; ++j, ++dw) {
 			if (dw->def_nr == mdef_index) {
 				copy_v3_fl(data_color, dw->weight);
@@ -357,9 +357,9 @@ static void pointdensity_cache_vertex_normal(PointDensity *pd, Object *UNUSED(ob
 {
 	MVert *mvert = mesh->mvert, *mv;
 	int i;
-	
+
 	BLI_assert(data_color);
-	
+
 	for (i = 0, mv = mvert; i < pd->totpoints; i++, mv++, data_color += 3) {
 		normal_short_to_float_v3(data_color, mv->no);
 	}
@@ -413,7 +413,7 @@ static void pointdensity_cache_object(PointDensity *pd,
 
 		BLI_bvhtree_insert(pd->point_tree, i, co, 1);
 	}
-	
+
 	switch (pd->ob_color_source) {
 		case TEX_PD_COLOR_VERTCOL:
 			pointdensity_cache_vertex_color(pd, ob, mesh, data_color);
@@ -506,7 +506,7 @@ static float density_falloff(PointDensityRangeData *pdr, int index, float square
 {
 	const float dist = (pdr->squared_radius - squared_dist) / pdr->squared_radius * 0.5f;
 	float density = 0.0f;
-	
+
 	switch (pdr->falloff_type) {
 		case TEX_PD_FALLOFF_STD:
 			density = dist;
@@ -536,12 +536,12 @@ static float density_falloff(PointDensityRangeData *pdr, int index, float square
 				density = dist;
 			break;
 	}
-	
+
 	if (pdr->density_curve && dist != 0.0f) {
 		curvemapping_initialize(pdr->density_curve);
 		density = curvemapping_evaluateF(pdr->density_curve, 0, density / dist) * dist;
 	}
-	
+
 	return density;
 }
 
@@ -666,7 +666,7 @@ static void pointdensity_color(PointDensity *pd, TexResult *texres, float age, c
 
 	if (pd->source == TEX_PD_PSYS) {
 		float rgba[4];
-		
+
 		switch (pd->color_source) {
 			case TEX_PD_COLOR_PARTAGE:
 				if (pd->coba) {
@@ -681,7 +681,7 @@ static void pointdensity_color(PointDensity *pd, TexResult *texres, float age, c
 			case TEX_PD_COLOR_PARTSPEED:
 			{
 				float speed = len_v3(vec) * pd->speed_scale;
-				
+
 				if (pd->coba) {
 					if (BKE_colorband_evaluate(pd->coba, speed, rgba)) {
 						texres->talpha = true;
@@ -704,7 +704,7 @@ static void pointdensity_color(PointDensity *pd, TexResult *texres, float age, c
 	}
 	else {
 		float rgba[4];
-		
+
 		switch (pd->ob_color_source) {
 			case TEX_PD_COLOR_VERTCOL:
 				texres->talpha = true;

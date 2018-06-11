@@ -32,6 +32,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_listbase.h"
+#include "BLI_threads.h"
 
 #include "BKE_global.h"
 
@@ -48,6 +50,9 @@ static struct GPUTextureGlobal {
 	GPUTexture *invalid_tex_2D;
 	GPUTexture *invalid_tex_3D;
 } GG = {NULL, NULL, NULL};
+
+static ListBase g_orphaned_tex = {NULL, NULL};
+static ThreadMutex g_orphan_lock;
 
 /* Maximum number of FBOs a texture can be attached to. */
 #define GPU_TEX_MAX_FBO_ATTACHED 8
@@ -187,6 +192,7 @@ static GLenum gpu_texture_get_format(
 			break;
 		case GPU_RG32F:
 		case GPU_RGBA16F:
+		case GPU_RGBA16:
 			*bytesize = 16;
 			break;
 		case GPU_RGB16F:
@@ -202,6 +208,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_R11F_G11F_B10F:
 		case GPU_R32F:
 		case GPU_R32UI:
+		case GPU_R32I:
 			*bytesize = 4;
 			break;
 		case GPU_DEPTH_COMPONENT24:
@@ -227,6 +234,7 @@ static GLenum gpu_texture_get_format(
 		/* Formats texture & renderbuffer */
 		case GPU_RGBA32F: return GL_RGBA32F;
 		case GPU_RGBA16F: return GL_RGBA16F;
+		case GPU_RGBA16: return GL_RGBA16;
 		case GPU_RG32F: return GL_RG32F;
 		case GPU_RGB16F: return GL_RGB16F;
 		case GPU_RG16F: return GL_RG16F;
@@ -235,6 +243,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_RGBA8: return GL_RGBA8;
 		case GPU_R32F: return GL_R32F;
 		case GPU_R32UI: return GL_R32UI;
+		case GPU_R32I: return GL_R32I;
 		case GPU_R16F: return GL_R16F;
 		case GPU_R16I: return GL_R16I;
 		case GPU_R16UI: return GL_R16UI;
@@ -263,6 +272,7 @@ static int gpu_texture_get_component_count(GPUTextureFormat format)
 	switch (format) {
 		case GPU_RGBA8:
 		case GPU_RGBA16F:
+		case GPU_RGBA16:
 		case GPU_RGBA32F:
 			return 4;
 		case GPU_RGB16F:
@@ -613,7 +623,7 @@ static GPUTexture *GPU_texture_cube_create(
 }
 
 /* Special buffer textures. data_type must be compatible with the buffer content. */
-static GPUTexture *GPU_texture_create_buffer(GPUTextureFormat data_type, const GLuint buffer)
+GPUTexture *GPU_texture_create_buffer(GPUTextureFormat data_type, const GLuint buffer)
 {
 	GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->number = -1;
@@ -726,10 +736,10 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 {
 	GPUTexture *tex = prv->gputexture[0];
 	GLuint bindcode = 0;
-	
+
 	if (tex)
 		bindcode = tex->bindcode;
-	
+
 	/* this binds a texture, so that's why we restore it to 0 */
 	if (bindcode == 0) {
 		GPU_create_gl_tex(&bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], GL_TEXTURE_2D, mipmap, 0, NULL);
@@ -748,9 +758,9 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 	tex->target_base = GL_TEXTURE_2D;
 	tex->format = -1;
 	tex->components = -1;
-	
+
 	prv->gputexture[0] = tex;
-	
+
 	if (!glIsTexture(tex->bindcode)) {
 		GPU_print_error_debug("Blender Texture Not Loaded");
 	}
@@ -760,13 +770,13 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 		glBindTexture(GL_TEXTURE_2D, tex->bindcode);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
-		
+
 		tex->w = w;
 		tex->h = h;
 	}
-	
+
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
+
 	return tex;
 
 }
@@ -1078,13 +1088,23 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat)
 		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, repeat);
 }
 
+static void gpu_texture_delete(GPUTexture *tex)
+{
+	if (tex->bindcode && !tex->fromblender)
+		glDeleteTextures(1, &tex->bindcode);
+
+	gpu_texture_memory_footprint_remove(tex);
+
+	MEM_freeN(tex);
+}
+
 void GPU_texture_free(GPUTexture *tex)
 {
 	tex->refcount--;
 
 	if (tex->refcount < 0)
 		fprintf(stderr, "GPUTexture: negative refcount\n");
-	
+
 	if (tex->refcount == 0) {
 		for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
 			if (tex->fb[i] != NULL) {
@@ -1092,13 +1112,38 @@ void GPU_texture_free(GPUTexture *tex)
 			}
 		}
 
-		if (tex->bindcode && !tex->fromblender)
-			glDeleteTextures(1, &tex->bindcode);
-
-		gpu_texture_memory_footprint_remove(tex);
-
-		MEM_freeN(tex);
+		/* TODO(fclem): Check if the thread has an ogl context. */
+		if (BLI_thread_is_main()) {
+			gpu_texture_delete(tex);
+		}
+		else {
+			BLI_mutex_lock(&g_orphan_lock);
+			BLI_addtail(&g_orphaned_tex, BLI_genericNodeN(tex));
+			BLI_mutex_unlock(&g_orphan_lock);
+		}
 	}
+}
+
+void GPU_texture_orphans_init(void)
+{
+	BLI_mutex_init(&g_orphan_lock);
+}
+
+void GPU_texture_orphans_delete(void)
+{
+	BLI_mutex_lock(&g_orphan_lock);
+	LinkData *link;
+	while ((link = BLI_pophead(&g_orphaned_tex))) {
+		gpu_texture_delete((GPUTexture *)link->data);
+		MEM_freeN(link);
+	}
+	BLI_mutex_unlock(&g_orphan_lock);
+}
+
+void GPU_texture_orphans_exit(void)
+{
+	GPU_texture_orphans_delete();
+	BLI_mutex_end(&g_orphan_lock);
 }
 
 void GPU_texture_ref(GPUTexture *tex)

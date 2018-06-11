@@ -36,7 +36,7 @@
 #include "GHOST_Types.h"
 
 #ifdef __cplusplus
-extern "C" { 
+extern "C" {
 #endif
 
 /**
@@ -103,7 +103,7 @@ extern GHOST_TUns64 GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle);
 
 /**
  * Installs a timer.
- * Note that, on most operating systems, messages need to be processed in order 
+ * Note that, on most operating systems, messages need to be processed in order
  * for the timer callbacks to be invoked.
  * \param systemhandle The handle to the system
  * \param delay The time to wait for the first call to the timerProc (in milliseconds)
@@ -165,7 +165,7 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
 
 /**
  * Create a new window.
- * The new window is added to the list of windows managed. 
+ * The new window is added to the list of windows managed.
  * Never explicitly delete the window, use disposeWindow() instead.
  * \param systemhandle The handle to the system
  * \param title The name of the window (displayed in the title bar of the window if the OS supports it).
@@ -218,7 +218,7 @@ extern GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandl
  * \param windowhandle The handle to the window
  * \param userdata The window user data.
  */
-extern void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, 
+extern void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle,
                                     GHOST_TUserDataPtr userdata);
 
 /**
@@ -488,7 +488,7 @@ extern GHOST_TEventType GHOST_GetEventType(GHOST_EventHandle eventhandle);
 extern GHOST_TUns64 GHOST_GetEventTime(GHOST_EventHandle eventhandle);
 
 /**
- * Returns the window this event was generated on, 
+ * Returns the window this event was generated on,
  * or NULL if it is a 'system' event.
  * \param eventhandle The handle to the event
  * \return The generating window.
@@ -566,7 +566,7 @@ extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle,
 /**
  * Returns the title displayed in the title bar. The title
  * should be free'd with free().
- * 
+ *
  * \param windowhandle The handle to the window
  * \return The title, free with free().
  */

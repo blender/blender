@@ -75,20 +75,20 @@ static void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 {
 	KeyBlock *kb = ptr->data;
 	char oldname[sizeof(kb->name)];
-	
+
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, kb->name, sizeof(kb->name));
-	
+
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(kb->name, value, sizeof(kb->name));
-	
+
 	/* make sure the name is truly unique */
 	if (ptr->id.data) {
 		Key *key = rna_ShapeKey_find_key(ptr->id.data);
 		BLI_uniquename(&key->block, kb, CTX_DATA_(BLT_I18NCONTEXT_ID_SHAPEKEY, "Key"), '.',
 		               offsetof(KeyBlock, name), sizeof(kb->name));
 	}
-	
+
 	/* fix all the animation data which may link to this */
 	BKE_animdata_fix_paths_rename_all(NULL, "key_blocks", oldname, kb->name);
 }
@@ -131,7 +131,7 @@ static void rna_ShapeKey_slider_min_set(PointerRNA *ptr, float value)
 {
 	KeyBlock *data = (KeyBlock *)ptr->data;
 	float min, max, softmin, softmax;
-	
+
 	rna_ShapeKey_slider_min_range(ptr, &min, &max, &softmin, &softmax);
 	CLAMP(value, min, max);
 	data->slidermin = value;
@@ -150,7 +150,7 @@ static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 {
 	KeyBlock *data = (KeyBlock *)ptr->data;
 	float min, max, softmin, softmax;
-	
+
 	rna_ShapeKey_slider_max_range(ptr, &min, &max, &softmin, &softmax);
 	CLAMP(value, min, max);
 	data->slidermax = value;
@@ -274,7 +274,7 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
 
 	if (key && value < key->totkey)
 		kb = BLI_findlink(&key->block, value);
-	
+
 	RNA_pointer_create(id, &RNA_ShapeKey, kb, &ptr);
 
 	return ptr;
@@ -288,7 +288,7 @@ int rna_object_shapekey_index_set(ID *id, PointerRNA value, int current)
 		int a = BLI_findindex(&key->block, value.data);
 		if (a != -1) return a;
 	}
-	
+
 	return current;
 }
 
@@ -411,17 +411,17 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
 	Curve *cu;
 	Nurb *nu;
 	int tot = kb->totelem, size = key->elemsize;
-	
+
 	if (GS(key->from->name) == ID_CU) {
 		cu = (Curve *)key->from;
 		nu = cu->nurb.first;
-		
+
 		if (nu->bezt) {
 			tot /= 3;
 			size *= 3;
 		}
 	}
-	
+
 	rna_iterator_array_begin(iter, (void *)kb->data, size, tot, 0, NULL);
 }
 
@@ -432,15 +432,15 @@ static int rna_ShapeKey_data_length(PointerRNA *ptr)
 	Curve *cu;
 	Nurb *nu;
 	int tot = kb->totelem;
-	
+
 	if (GS(key->from->name) == ID_CU) {
 		cu = (Curve *)key->from;
 		nu = cu->nurb.first;
-		
+
 		if (nu->bezt)
 			tot /= 3;
 	}
-	
+
 	return tot;
 }
 
@@ -450,11 +450,11 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 	StructRNA *type;
 	Curve *cu;
 	Nurb *nu;
-	
+
 	if (GS(key->from->name) == ID_CU) {
 		cu = (Curve *)key->from;
 		nu = cu->nurb.first;
-		
+
 		if (nu->bezt)
 			type = &RNA_ShapeKeyBezierPoint;
 		else
@@ -462,7 +462,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 	}
 	else
 		type = &RNA_ShapeKeyPoint;
-	
+
 	return rna_pointer_inherit_refine(&iter->parent, type, rna_iterator_array_get(iter));
 }
 
@@ -496,11 +496,11 @@ static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *p
 static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
 {
 	KeyBlock *kb;
-	
+
 	/* sanity checks */
 	if (ELEM(NULL, key, point))
 		return NULL;
-	
+
 	/* we'll need to manually search through the keyblocks and check
 	 * if the point is somewhere in the middle of each block's data
 	 */
@@ -508,7 +508,7 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
 		if (kb->data) {
 			float *start = (float *)kb->data;
 			float *end;
-			
+
 			/* easy cases first */
 			if ((start == NULL) || (start > point)) {
 				/* there's no chance point is in array */
@@ -518,12 +518,12 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
 				/* exact match - point is first in array */
 				return kb;
 			}
-			
+
 			/* determine where end of array is
 			 *	- elemsize is in bytes, so use (char *) cast to get array in terms of bytes
 			 */
 			end = (float *)((char *)start + (key->elemsize * kb->totelem));
-			
+
 			/* if point's address is less than the end, then it is somewhere between start and end, so in array */
 			if (end > point) {
 				/* we've found the owner of the point data */
@@ -531,7 +531,7 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
 			}
 		}
 	}
-	
+
 	return NULL;
 }
 
@@ -543,18 +543,18 @@ static int rna_ShapeKeyPoint_get_index(Key *key, KeyBlock *kb, float *point)
 	 */
 	char *start = (char *)kb->data;
 	char *pt = (char *)point;
-	
+
 	return (int)(pt - start) / key->elemsize;
 }
 
 static int rna_ShapeKeyBezierPoint_get_index(KeyBlock *kb, float *point)
 {
 	float *start = (float *)kb->data;
-	
+
 	/* Unlike with rna_ShapeKeyPoint_get_index(), we cannot use key->elemsize here
 	 * since the default value for curves (16) is actually designed for BPoints
 	 * (i.e. NURBS Surfaces). The magic number "12" here was found by empirical
-	 * testing on a 64-bit system, and is similar to what's used for meshes and 
+	 * testing on a 64-bit system, and is similar to what's used for meshes and
 	 * lattices. For more details, see T38013
 	 */
 	return (int)(point - start) / 12;
@@ -566,21 +566,21 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 	Key *key = rna_ShapeKey_find_key(ptr->id.data);
 	KeyBlock *kb;
 	float *point = (float *)ptr->data;
-	
+
 	/* if we can get a key block, we can construct a path */
 	kb = rna_ShapeKeyData_find_keyblock(key, point);
-	
+
 	if (kb) {
 		char name_esc_kb[sizeof(kb->name) * 2];
 		int index;
-		
+
 		if (ptr->type == &RNA_ShapeKeyBezierPoint)
 			index = rna_ShapeKeyBezierPoint_get_index(kb, point);
 		else
 			index = rna_ShapeKeyPoint_get_index(key, kb, point);
 
 		BLI_strescape(name_esc_kb, kb->name, sizeof(name_esc_kb));
-		
+
 		if (GS(id->name) == ID_KE)
 			return BLI_sprintfN("key_blocks[\"%s\"].data[%d]", name_esc_kb, index);
 		else
@@ -690,7 +690,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_ShapeKey_frame_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Frame", "Frame for absolute keys");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
-	
+
 	/* for now, this is editable directly, as users can set this even if they're not animating them
 	 * (to test results) */
 	prop = RNA_def_property(srna, "value", PROP_FLOAT, PROP_FACTOR);

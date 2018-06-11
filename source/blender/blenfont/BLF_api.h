@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -124,7 +124,7 @@ void BLF_boundbox_ex(int fontid, const char *str, size_t len, struct rctf *box, 
 void BLF_boundbox(int fontid, const char *str, size_t len, struct rctf *box) ATTR_NONNULL();
 
 /* The next both function return the width and height
- * of the string, using the current font and both value 
+ * of the string, using the current font and both value
  * are multiplied by the aspect of the font.
  */
 float BLF_width_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);

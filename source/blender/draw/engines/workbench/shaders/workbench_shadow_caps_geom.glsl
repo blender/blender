@@ -6,9 +6,9 @@
 
 #ifdef DOUBLE_MANIFOLD
 #  ifdef USE_INVOC_EXT
-#    define invoc_ct 4
+#    define invoc_ct 2
 #  else
-#    define vert_ct 12
+#    define vert_ct 6
 #  endif
 #else
 #  ifdef USE_INVOC_EXT
@@ -39,17 +39,17 @@ vec4 get_pos(int v, bool backface)
 	return (backface) ? vData[v].backPosition : vData[v].frontPosition;
 }
 
-void emit_cap(const bool front)
+void emit_cap(const bool front, bool reversed)
 {
 	if (front) {
 		gl_Position = vData[0].frontPosition; EmitVertex();
-		gl_Position = vData[1].frontPosition; EmitVertex();
-		gl_Position = vData[2].frontPosition; EmitVertex();
+		gl_Position = vData[reversed ? 2 : 1].frontPosition; EmitVertex();
+		gl_Position = vData[reversed ? 1 : 2].frontPosition; EmitVertex();
 	}
 	else {
 		gl_Position = vData[0].backPosition; EmitVertex();
-		gl_Position = vData[2].backPosition; EmitVertex();
-		gl_Position = vData[1].backPosition; EmitVertex();
+		gl_Position = vData[reversed ? 1 : 2].backPosition; EmitVertex();
+		gl_Position = vData[reversed ? 2 : 1].backPosition; EmitVertex();
 	}
 	EndPrimitive();
 }
@@ -64,17 +64,22 @@ void main()
 
 	bool backface = facing > 0.0;
 
+#ifdef DOUBLE_MANIFOLD
+	/* In case of non manifold geom, we only increase/decrease
+	 * the stencil buffer by one but do every faces as they were facing the light. */
+	bool invert = backface;
+#else
+	const bool invert = false;
 	if (!backface) {
+#endif
 #ifdef USE_INVOC_EXT
 		bool do_front = (gl_InvocationID & 1) == 0;
-		emit_cap(do_front);
+		emit_cap(do_front, invert);
 #else
-		emit_cap(true);
-		emit_cap(false);
-#  ifdef DOUBLE_MANIFOLD
-		emit_cap(true);
-		emit_cap(false);
-#  endif
+		emit_cap(true, invert);
+		emit_cap(false, invert);
 #endif
+#ifndef DOUBLE_MANIFOLD
 	}
+#endif
 }

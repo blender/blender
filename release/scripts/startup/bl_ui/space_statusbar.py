@@ -73,7 +73,6 @@ class STATUSBAR_HT_header(Header):
             return
 
 
-
 classes = (
     STATUSBAR_HT_header,
 )

@@ -39,18 +39,18 @@ SceneExporter::SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm,
 {
 }
 
-void SceneExporter::exportScene(Depsgraph *depsgraph, Scene *sce)
+void SceneExporter::exportScene(bContext *C, Depsgraph *depsgraph, Scene *sce)
 {
 	// <library_visual_scenes> <visual_scene>
 	std::string id_naming = id_name(sce);
 	openVisualScene(translate_id(id_naming), id_naming);
-	exportHierarchy(depsgraph, sce);
+	exportHierarchy(C, depsgraph, sce);
 	closeVisualScene();
 	closeLibrary();
 }
 
-void SceneExporter::exportHierarchy(Depsgraph *depsgraph, Scene *sce)
-{	
+void SceneExporter::exportHierarchy(bContext *C, Depsgraph *depsgraph, Scene *sce)
+{
 	LinkNode *node;
 	std::vector<Object *> base_objects;
 
@@ -59,7 +59,7 @@ void SceneExporter::exportHierarchy(Depsgraph *depsgraph, Scene *sce)
 		Object *ob = (Object *) node->link;
 		ob->id.tag |= LIB_TAG_DOIT;
 	}
-	
+
 	// Now find all exportable base ojects (highest in export hierarchy)
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *) node->link;
@@ -81,13 +81,13 @@ void SceneExporter::exportHierarchy(Depsgraph *depsgraph, Scene *sce)
 		Object *ob = base_objects[index];
 		if (bc_is_marked(ob)) {
 			bc_remove_mark(ob);
-			writeNodes(depsgraph, ob, sce);
+			writeNodes(C, depsgraph, ob, sce);
 		}
 	}
 }
 
 
-void SceneExporter::writeNodes(Depsgraph *depsgraph, Object *ob, Scene *sce)
+void SceneExporter::writeNodes(bContext *C, Depsgraph *depsgraph, Object *ob, Scene *sce)
 {
 	// Add associated armature first if available
 	bool armature_exported = false;
@@ -96,7 +96,7 @@ void SceneExporter::writeNodes(Depsgraph *depsgraph, Object *ob, Scene *sce)
 		armature_exported = bc_is_in_Export_set(this->export_settings->export_set, ob_arm);
 		if (armature_exported && bc_is_marked(ob_arm)) {
 			bc_remove_mark(ob_arm);
-			writeNodes(depsgraph, ob_arm, sce);
+			writeNodes(C, depsgraph, ob_arm, sce);
 			armature_exported = true;
 		}
 	}
@@ -155,7 +155,7 @@ void SceneExporter::writeNodes(Depsgraph *depsgraph, Object *ob, Scene *sce)
 
 	// <instance_controller>
 	else if (ob->type == OB_ARMATURE) {
-		arm_exporter->add_armature_bones(depsgraph, ob, sce, this, child_objects);
+		arm_exporter->add_armature_bones(C, depsgraph, ob, sce, this, child_objects);
 	}
 
 	// <instance_camera>
@@ -203,17 +203,17 @@ void SceneExporter::writeNodes(Depsgraph *depsgraph, Object *ob, Scene *sce)
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"rot_error",con->rot_error);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"tar_space",con->tarspace);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"lin_error",con->lin_error);
-			
-			//not ideal: add the target object name as another parameter. 
+
+			//not ideal: add the target object name as another parameter.
 			//No real mapping in the .dae
 			//Need support for multiple target objects also.
 			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 			if (cti && cti->get_constraint_targets) {
-			
+
 				bConstraintTarget *ct;
 				Object *obtar;
-			
+
 				cti->get_constraint_targets(con, &targets);
 
 				for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
@@ -234,7 +234,7 @@ void SceneExporter::writeNodes(Depsgraph *depsgraph, Object *ob, Scene *sce)
 	for (std::list<Object *>::iterator i = child_objects.begin(); i != child_objects.end(); ++i) {
 		if (bc_is_marked(*i)) {
 			bc_remove_mark(*i);
-			writeNodes(depsgraph, *i, sce);
+			writeNodes(C, depsgraph, *i, sce);
 		}
 	}
 

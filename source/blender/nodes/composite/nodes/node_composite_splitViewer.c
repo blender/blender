@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,6 +33,7 @@
 #include "node_composite_util.h"
 
 #include "BKE_image.h"
+#include "BKE_global.h"
 
 /* **************** SPLIT VIEWER ******************** */
 static bNodeSocketTemplate cmp_node_splitviewer_in[] = {
@@ -49,8 +50,8 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
 	iuser->fie_ima = 2;
 	iuser->ok = 1;
 	node->custom1 = 50;  /* default 50% split */
-	
-	node->id = (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+
+	node->id = (ID *)BKE_image_verify_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
 void register_node_type_cmp_splitviewer(void)

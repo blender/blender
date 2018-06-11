@@ -121,7 +121,9 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	char drawname[64];					/* panelname is identifier for restoring location */
-	int ofsx, ofsy, sizex, sizey;
+	int ofsx, ofsy;                     /* offset within the region */
+	int sizex, sizey;                   /* panel size including children */
+	int blocksizex, blocksizey;         /* panel size excluding children */
 	short labelofs, pad;
 	short flag, runtime_flag;
 	short control;
@@ -129,6 +131,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	int sortorder;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
+	ListBase children;          /* sub panels */
 } Panel;
 
 
@@ -274,11 +277,12 @@ typedef struct ScrArea {
 	 * SPACE_EMPTY. Also, versioning uses it to nicely replace deprecated
 	 * editors. It's been there for ages, name doesn't fit any more... */
 	char butspacetype;  /* eSpace_Type (SPACE_FOO) */
+	short butspacetype_subtype;
 
 	short winx, winy;				/* size */
 
-	short headertype DNA_DEPRECATED;/* OLD! 0=no header, 1= down, 2= up */
-	short do_refresh;				/* private, for spacetype refresh callback */
+	char headertype DNA_DEPRECATED;/* OLD! 0=no header, 1= down, 2= up */
+	char do_refresh;				/* private, for spacetype refresh callback */
 	short flag;
 	short region_active_win;		/* index of last used region of 'RGN_TYPE_WINDOW'
 									 * runtime variable, updated by executing operators */
@@ -386,6 +390,7 @@ enum {
 	/*PNL_TABBED    = (1 << 3), */ /*UNUSED*/
 	PNL_OVERLAP     = (1 << 4),
 	PNL_PIN         = (1 << 5),
+	PNL_POPOVER     = (1 << 6),
 };
 
 /* Panel->snap - for snapping to screen edges */

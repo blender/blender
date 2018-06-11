@@ -23,7 +23,7 @@ class TestArray(unittest.TestCase):
         test.farr= (1.0, 2.0, 3.0)
         test.iarr= (7, 8, 9)
         test.barr= (False, True, False)
-    
+
     # test access
     # test slice access, negative indices
     def test_access(self):
@@ -40,7 +40,7 @@ class TestArray(unittest.TestCase):
     def test_access_fail(self):
         for arr in (test.farr, test.iarr, test.barr):
             self.assertRaises(IndexError, lambda : arr[4])
-    
+
     # test assignment of a whole array
     def test_assign_array(self):
         # should accept int as float
@@ -83,7 +83,7 @@ class TestArray(unittest.TestCase):
             for i in range(len(arr)):
                 val= rand_func()
                 arr[i] = val
-                
+
                 self.assertEqual(arr[i], val)
 
         # float prop should accept also int
@@ -92,7 +92,7 @@ class TestArray(unittest.TestCase):
             test.farr[i] = val
             self.assertEqual(test.farr[i], float(val))
 
-        # 
+        #
 
     def test_assign_item_fail(self):
         def assign_bad_index(arr):
@@ -100,12 +100,12 @@ class TestArray(unittest.TestCase):
 
         def assign_bad_type(arr):
             arr[1] = "123"
-            
+
         for arr in [test.farr, test.iarr, test.barr]:
             self.assertRaises(IndexError, assign_bad_index, arr)
 
         # not testing bool because bool allows not only (True|False)
-        for arr in [test.farr, test.iarr]:    
+        for arr in [test.farr, test.iarr]:
             self.assertRaises(TypeError, assign_bad_type, arr)
 
     def test_dynamic_assign_array(self):
@@ -118,7 +118,7 @@ class TestArray(unittest.TestCase):
 
     def test_dynamic_assign_array_fail(self):
         # could also test too big length here
-        
+
         def assign_empty_list(arr):
             setattr(test, arr, ())
 
@@ -236,7 +236,7 @@ def make_random_array(len, rand_func):
     arr= []
     for i in range(len):
         arr.append(rand_func())
-        
+
     return arr
 
 def make_random_2d_array(dimsize, rand_func):

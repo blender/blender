@@ -42,6 +42,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -101,7 +102,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 /* -------------------------------------------------------------------- */
 /* Poll functions. */
 
-static int collections_editor_poll(bContext *C)
+int ED_outliner_collections_editor_poll(bContext *C)
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
 	return (so != NULL) && ELEM(so->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
@@ -178,7 +179,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_new_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -261,7 +262,7 @@ void OUTLINER_OT_collection_delete(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_delete_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -333,7 +334,7 @@ void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_objects_select_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -348,7 +349,7 @@ void OUTLINER_OT_collection_objects_deselect(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_objects_select_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -427,7 +428,7 @@ void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_duplicate_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -477,7 +478,7 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_link_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -540,7 +541,7 @@ void OUTLINER_OT_collection_instance(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_instance_exec;
-	ot->poll = collections_editor_poll;
+	ot->poll = ED_outliner_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -694,4 +695,22 @@ void OUTLINER_OT_collection_include_set(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/**
+ * Populates the \param objects ListBase with all the outliner selected objects
+ * We store it as (Object *)LinkData->data
+ * \param objects expected to be empty
+ */
+void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	struct ObjectsSelectedData data = {{NULL}};
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
+	LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
+		TreeElement *ten_selected = (TreeElement *)link->data;
+		Object *ob = (Object *)TREESTORE(ten_selected)->id;
+		BLI_addtail(objects, BLI_genericNodeN(ob));
+	}
+	BLI_freelistN(&data.objects_selected_array);
 }

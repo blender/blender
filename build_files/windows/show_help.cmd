@@ -23,7 +23,13 @@ echo - buildir [newdir] ^(override default build folder^)
 echo - x86 ^(override host auto-detect and build 32 bit code^)
 echo - x64 ^(override host auto-detect and build 64 bit code^)
 echo - 2013 ^(build with visual studio 2013^)
-echo - 2015 ^(build with visual studio 2015^) [EXPERIMENTAL]
-echo - 2017 ^(build with visual studio 2017^) [EXPERIMENTAL]
-echo - 2017pre ^(build with visual studio 2017 pre-release^) [EXPERIMENTAL]
+echo.
+echo Experimental options
+echo - 2015 ^(build with visual studio 2015^)
+echo - 2017 ^(build with visual studio 2017^)
+echo - 2017pre ^(build with visual studio 2017 pre-release^)
+echo - 2017b ^(build with visual studio 2017 Build Tools^)
+echo - clang ^(enable building with clang^)
+echo - asan ^(enable asan when building with clang^)
+echo - ninja ^(enable building with ninja instead of msbuild^)
 echo.

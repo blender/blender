@@ -62,14 +62,16 @@ class DATA_PT_speaker(DataButtonsPanel, Panel):
 
         speaker = context.speaker
 
-        split = layout.split(percentage=0.75)
+        layout.template_ID(speaker, "sound", open="sound.open_mono")
 
-        split.template_ID(speaker, "sound", open="sound.open_mono")
-        split.prop(speaker, "muted")
+        layout.use_property_split = True
 
-        row = layout.row()
-        row.prop(speaker, "volume")
-        row.prop(speaker, "pitch")
+        layout.prop(speaker, "muted")
+
+        col = layout.column()
+        col.active = not speaker.muted
+        col.prop(speaker, "volume", slider=True)
+        col.prop(speaker, "pitch")
 
 
 class DATA_PT_distance(DataButtonsPanel, Panel):
@@ -79,20 +81,20 @@ class DATA_PT_distance(DataButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+
         speaker = context.speaker
+        layout.active = not speaker.muted
 
-        split = layout.split()
-
-        col = split.column()
-        col.label("Volume:")
-        col.prop(speaker, "volume_min", text="Minimum")
-        col.prop(speaker, "volume_max", text="Maximum")
+        col = layout.column()
+        sub = col.column(align=True)
+        sub.prop(speaker, "volume_min", slider=True, text="Volume Min")
+        sub.prop(speaker, "volume_max", slider=True, text="Max")
         col.prop(speaker, "attenuation")
 
-        col = split.column()
-        col.label("Distance:")
-        col.prop(speaker, "distance_max", text="Maximum")
-        col.prop(speaker, "distance_reference", text="Reference")
+        col.separator()
+        col.prop(speaker, "distance_max", text="Max Distance")
+        col.prop(speaker, "distance_reference", text="Distance Reference")
 
 
 class DATA_PT_cone(DataButtonsPanel, Panel):
@@ -102,18 +104,20 @@ class DATA_PT_cone(DataButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+
         speaker = context.speaker
+        layout.active = not speaker.muted
 
-        split = layout.split()
+        col = layout.column()
 
-        col = split.column()
-        col.label("Angle:")
-        col.prop(speaker, "cone_angle_outer", text="Outer")
-        col.prop(speaker, "cone_angle_inner", text="Inner")
+        sub = col.column(align=True)
+        sub.prop(speaker, "cone_angle_outer", text="Angle Outer")
+        sub.prop(speaker, "cone_angle_inner", text="Inner")
 
-        col = split.column()
-        col.label("Volume:")
-        col.prop(speaker, "cone_volume_outer", text="Outer")
+        col.separator()
+
+        col.prop(speaker, "cone_volume_outer", slider=True)
 
 
 class DATA_PT_custom_props_speaker(DataButtonsPanel, PropertyPanel, Panel):

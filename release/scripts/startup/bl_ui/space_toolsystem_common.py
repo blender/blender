@@ -262,8 +262,8 @@ class ToolSelectPanelHelper:
             for item, index in ToolSelectPanelHelper._tools_flatten_with_tool_index(cls.tools_from_context(context)):
                 if item is not None:
                     if item.text == text:
-                        return (item, index)
-        return None, -1
+                        return (cls, item, index)
+        return None, None, -1
 
     @staticmethod
     def _tool_active_from_context(context, space_type, mode=None, create=False):
@@ -339,9 +339,7 @@ class ToolSelectPanelHelper:
     # - None: Signal to finish (complete any final operations, e.g. add padding).
 
     @staticmethod
-    def _layout_generator_single_column(layout):
-        scale_y = 2.0
-
+    def _layout_generator_single_column(layout, scale_y):
         col = layout.column(align=True)
         col.scale_y = scale_y
         is_sep = False
@@ -355,9 +353,8 @@ class ToolSelectPanelHelper:
             is_sep = yield col
 
     @staticmethod
-    def _layout_generator_multi_columns(layout, column_count):
-        scale_y = 2.0
-        scale_x = 2.2
+    def _layout_generator_multi_columns(layout, column_count, scale_y):
+        scale_x = scale_y * 1.1
         column_last = column_count - 1
 
         col = layout.column(align=True)
@@ -394,7 +391,7 @@ class ToolSelectPanelHelper:
             column_index += 1
 
     @staticmethod
-    def _layout_generator_detect_from_region(layout, region):
+    def _layout_generator_detect_from_region(layout, region, scale_y):
         """
         Choose an appropriate layout for the toolbar.
         """
@@ -421,15 +418,14 @@ class ToolSelectPanelHelper:
                 column_count = 1
 
         if column_count == 1:
-            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout)
+            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout, scale_y=scale_y)
         else:
-            ui_gen = ToolSelectPanelHelper._layout_generator_multi_columns(layout, column_count=column_count)
+            ui_gen = ToolSelectPanelHelper._layout_generator_multi_columns(layout, column_count=column_count, scale_y=scale_y)
 
         return ui_gen, show_text
 
-
     @classmethod
-    def draw_cls(cls, layout, context, detect_layout=True):
+    def draw_cls(cls, layout, context, detect_layout=True, scale_y=1.75):
         # Use a classmethod so it can be called outside of a panel context.
 
         # XXX, this UI isn't very nice.
@@ -445,9 +441,9 @@ class ToolSelectPanelHelper:
         )
 
         if detect_layout:
-            ui_gen, show_text = cls._layout_generator_detect_from_region(layout, context.region)
+            ui_gen, show_text = cls._layout_generator_detect_from_region(layout, context.region, scale_y)
         else:
-            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout)
+            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout, scale_y)
             show_text = True
 
         # Start iteration
@@ -564,20 +560,60 @@ class WM_MT_toolsystem_submenu(Menu):
             ).name = item.text
 
 
+def _activate_by_item(context, space_type, item, index):
+    tool = ToolSelectPanelHelper._tool_active_from_context(context, space_type, create=True)
+    tool.setup(
+        name=item.text,
+        keymap=item.keymap[0].name if item.keymap is not None else "",
+        cursor=item.cursor or 'DEFAULT',
+        manipulator_group=item.widget or "",
+        data_block=item.data_block or "",
+        index=index,
+    )
+
+
 def activate_by_name(context, space_type, text):
-    item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
-    if item is not None:
-        tool = ToolSelectPanelHelper._tool_active_from_context(context, space_type, create=True)
-        tool.setup(
-            name=text,
-            keymap=item.keymap[0].name if item.keymap is not None else "",
-            cursor=item.cursor or 'DEFAULT',
-            manipulator_group=item.widget or "",
-            data_block=item.data_block or "",
-            index=index,
-        )
-        return True
-    return False
+    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    if item is None:
+        return False
+    _activate_by_item(context, space_type, item, index)
+    return True
+
+
+def activate_by_name_or_cycle(context, space_type, text, offset=1):
+
+    # Only cycle when the active tool is activated again.
+    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    if item is None:
+        return False
+
+    tool_active = ToolSelectPanelHelper._tool_active_from_context(context, space_type)
+    text_active = getattr(tool_active, "name", None)
+
+    text_current = ""
+    for item_group in cls.tools_from_context(context):
+        if type(item_group) is tuple:
+            index_current = cls._tool_group_active.get(item_group[0].text, 0)
+            ok = False
+            for i, sub_item in enumerate(item_group):
+                if sub_item.text == text:
+                    text_current = item_group[index_current].text
+                    break
+            if text_current:
+                break
+
+    if text_current == "":
+        return activate_by_name(context, space_type, text)
+    if text_active != text_current:
+        return activate_by_name(context, space_type, text_current)
+
+    index_found = (tool_active.index + offset) % len(item_group)
+
+    cls._tool_group_active[item_group[0].text] = index_found
+
+    item_found = item_group[index_found]
+    _activate_by_item(context, space_type, item_found, index_found)
+    return True
 
 
 def keymap_from_context(context, space_type):
@@ -593,10 +629,6 @@ def keymap_from_context(context, space_type):
         keymap = keyconf.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY')
     for kmi in keymap.keymap_items:
         keymap.keymap_items.remove(kmi)
-
-
-    kmi_search = wm.keyconfigs.find_item_from_operator(idname="wm.toolbar")[1]
-    kmi_search_type = None if not kmi_search else kmi_search.type
 
     items = []
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
@@ -637,16 +669,9 @@ def keymap_from_context(context, space_type):
                     )
                     kmi.properties.name = item.text
 
-                    # Disallow overlap
-                    if kmi_search_type == kmi_found_type:
-                        kmi_search_type = None
-
-    # Support double-tap for search.
-    if kmi_search_type:
-        keymap.keymap_items.new("wm.search_menu", type=kmi_search_type, value='PRESS')
-
     wm.keyconfigs.update()
     return keymap
+
 
 classes = (
     WM_MT_toolsystem_submenu,

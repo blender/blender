@@ -58,6 +58,7 @@
 #include "BKE_collection.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
@@ -705,7 +706,8 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
 
 /* --------------------- */
 
-static void rigidbody_constraint_set_limits(RigidBodyCon *rbc, void (*set_limits)(rbConstraint*,int,float,float))
+static void rigidbody_constraint_set_limits(
+        RigidBodyCon *rbc, void (*set_limits)(rbConstraint *, int, float, float))
 {
 	if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
 		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);
@@ -1435,14 +1437,14 @@ static void rigidbody_update_simulation(struct Depsgraph *depsgraph, Scene *scen
 	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
-static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
+static void rigidbody_update_simulation_post_step(ViewLayer *view_layer, RigidBodyWorld *rbw)
 {
-	FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(rbw->group, base)
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, ob)
 	{
-		Object *ob = base->object;
+		Base *base = BKE_view_layer_base_find(view_layer, ob);
 		RigidBodyOb *rbo = ob->rigidbody_object;
 		/* Reset kinematic state for transformed objects. */
-		if (rbo && (base->flag & BASE_SELECTED) && (G.moving & G_TRANSFORM_OBJ)) {
+		if (rbo && base && (base->flag & BASE_SELECTED) && (G.moving & G_TRANSFORM_OBJ)) {
 			RB_body_set_kinematic_state(rbo->physics_object, rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
 			RB_body_set_mass(rbo->physics_object, RBO_GET_MASS(rbo));
 			/* Deactivate passive objects so they don't interfere with deactivation of active objects. */
@@ -1450,7 +1452,7 @@ static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 				RB_body_deactivate(rbo->physics_object);
 		}
 	}
-	FOREACH_COLLECTION_BASE_RECURSIVE_END
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
 bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
@@ -1646,7 +1648,8 @@ void BKE_rigidbody_do_simulation(struct Depsgraph *depsgraph, Scene *scene, floa
 		/* step simulation by the requested timestep, steps per second are adjusted to take time scale into account */
 		RB_dworld_step_simulation(rbw->physics_world, timestep, INT_MAX, 1.0f / (float)rbw->steps_per_second * min_ff(rbw->time_scale, 1.0f));
 
-		rigidbody_update_simulation_post_step(rbw);
+		ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+		rigidbody_update_simulation_post_step(view_layer, rbw);
 
 		/* write cache for current frame */
 		BKE_ptcache_validate(cache, (int)ctime);

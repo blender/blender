@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -429,16 +429,16 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_show_active);
 	WM_operatortype_append(OUTLINER_OT_show_hierarchy);
 	WM_operatortype_append(OUTLINER_OT_scroll_page);
-	
+
 	WM_operatortype_append(OUTLINER_OT_selected_toggle);
 	WM_operatortype_append(OUTLINER_OT_expanded_toggle);
-	
+
 	WM_operatortype_append(OUTLINER_OT_keyingset_add_selected);
 	WM_operatortype_append(OUTLINER_OT_keyingset_remove_selected);
-	
+
 	WM_operatortype_append(OUTLINER_OT_drivers_add_selected);
 	WM_operatortype_append(OUTLINER_OT_drivers_delete_selected);
-	
+
 	WM_operatortype_append(OUTLINER_OT_orphans_purge);
 
 	WM_operatortype_append(OUTLINER_OT_parent_drop);
@@ -516,46 +516,49 @@ void outliner_keymap(wmKeyConfig *keyconf)
 
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_select_border", BKEY, KM_PRESS, 0, 0);
-	
+
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "all", false);
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "all", true);
-	
+
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OUTLINER_OT_operation", RIGHTMOUSE, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_drag_drop", EVT_TWEAK_L, KM_ANY, 0, 0);
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_show_hierarchy", HOMEKEY, KM_PRESS, 0, 0);
-	
+
 	WM_keymap_add_item(keymap, "OUTLINER_OT_show_active", PERIODKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OUTLINER_OT_show_active", PADPERIOD, KM_PRESS, 0, 0);
-	
+
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_scroll_page", PAGEDOWNKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "up", false);
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_scroll_page", PAGEUPKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "up", true);
-	
+
 	WM_keymap_add_item(keymap, "OUTLINER_OT_show_one_level", PADPLUSKEY, KM_PRESS, 0, 0); /* open */
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_show_one_level", PADMINUS, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "open", false); /* close */
-	
+
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_selected_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_expanded_toggle", AKEY, KM_PRESS, KM_SHIFT, 0);
-	
+
 	/* keying sets - only for databrowse */
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_keyingset_add_selected", KKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_keyingset_remove_selected", KKEY, KM_PRESS, KM_ALT, 0);
-	
+
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete", IKEY, KM_PRESS, KM_ALT, 0);
-	
+
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_add_selected", DKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_new", CKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete", XKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_verify_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
 
 	outliner_item_drag_drop_modal_keymap(keyconf);
 }

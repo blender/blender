@@ -285,7 +285,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 		for (dvar = driver->variables.first, i = 0; dvar; dvar = dvar->next) {
 			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_FromString(dvar->name));
 		}
-		
+
 		driver->flag &= ~DRIVER_FLAG_RENAMEVAR;
 	}
 	else {
@@ -342,7 +342,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 				fprintf(stderr, "\nBPY_driver_eval() - Error while evaluating PyDriver:\n");
 				targets_ok = 0;
 			}
-			
+
 			fprintf(stderr, "\tBPY_driver_eval() - couldn't add variable '%s' to namespace\n", dvar->name);
 			// BPy_errors_to_report(NULL); // TODO - reports
 			PyErr_Print();

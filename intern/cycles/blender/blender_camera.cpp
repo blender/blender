@@ -90,7 +90,7 @@ struct BlenderCamera {
 static void blender_camera_init(BlenderCamera *bcam,
                                 BL::RenderSettings& b_render)
 {
-	memset(bcam, 0, sizeof(BlenderCamera));
+	memset((void *)bcam, 0, sizeof(BlenderCamera));
 
 	bcam->type = CAMERA_PERSPECTIVE;
 	bcam->zoom = 1.0f;

@@ -66,7 +66,8 @@ float DEG_get_ctime(const Depsgraph *graph);
 /* ********************* DEG evaluated data ******************* */
 
 /* Check if given ID type was tagged for update. */
-bool DEG_id_type_tagged(struct Main *bmain, short id_type);
+bool DEG_id_type_updated(const struct Depsgraph *depsgraph, short id_type);
+bool DEG_id_type_any_updated(const struct Depsgraph *depsgraph);
 
 /* Get additional evaluation flags for the given ID. */
 short DEG_get_eval_flags_for_id(const struct Depsgraph *graph, struct ID *id);
@@ -96,7 +97,7 @@ struct Object *DEG_get_original_object(struct Object *object);
 /* Get original version of given evaluated ID datablock. */
 struct ID *DEG_get_original_id(struct ID *id);
 
-/* ************************ DEG iterators ********************* */
+/* ************************ DEG object iterators ********************* */
 
 enum {
 	DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY   = (1 << 0),
@@ -106,14 +107,8 @@ enum {
 	DEG_ITER_OBJECT_FLAG_DUPLI             = (1 << 4),
 };
 
-typedef enum eDepsObjectIteratorMode {
-	DEG_ITER_OBJECT_MODE_VIEWPORT = 0,
-	DEG_ITER_OBJECT_MODE_RENDER   = 1,
-} eDepsObjectIteratorMode;
-
 typedef struct DEGObjectIterData {
 	struct Depsgraph *graph;
-	eDepsObjectIteratorMode mode;
 	int flag;
 
 	struct Scene *scene;
@@ -151,11 +146,10 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
  * Although they are available they have no overrides (collection_properties)
  * and will crash if you try to access it.
  */
-#define DEG_OBJECT_ITER_BEGIN(graph_, instance_, mode_, flag_)                    \
+#define DEG_OBJECT_ITER_BEGIN(graph_, instance_, flag_)                           \
 	{                                                                             \
 		DEGObjectIterData data_ = {                                               \
 			graph_,                                                               \
-			mode_,                                                                \
 			flag_                                                                 \
 		};                                                                        \
                                                                                   \
@@ -171,8 +165,8 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 /**
   * Depsgraph objects iterator for draw manager and final render
   */
-#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(graph_, instance_, mode_) \
-	DEG_OBJECT_ITER_BEGIN(graph_, instance_, mode_,                       \
+#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(graph_, instance_)        \
+	DEG_OBJECT_ITER_BEGIN(graph_, instance_,                              \
 	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |                        \
 	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |                         \
 	        DEG_ITER_OBJECT_FLAG_VISIBLE |                                \
@@ -180,6 +174,21 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
 #define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END                             \
 	DEG_OBJECT_ITER_END
+
+
+/* ************************ DEG ID iterators ********************* */
+
+typedef struct DEGIDIterData {
+	struct Depsgraph *graph;
+	bool only_updated;
+
+	size_t id_node_index;
+	size_t num_id_nodes;
+} DEGIDIterData;
+
+void DEG_iterator_ids_begin(struct BLI_Iterator *iter, DEGIDIterData *data);
+void DEG_iterator_ids_next(struct BLI_Iterator *iter);
+void DEG_iterator_ids_end(struct BLI_Iterator *iter);
 
 /* ************************ DEG traversal ********************* */
 

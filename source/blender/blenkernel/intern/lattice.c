@@ -211,8 +211,10 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 		/* works best if we force to linear type (endpoints match) */
 		lt->typeu = lt->typev = lt->typew = KEY_LINEAR;
 
-		/* prevent using deformed locations */
-		BKE_displist_free(&ltOb->curve_cache->disp);
+		if (ltOb->curve_cache) {
+			/* prevent using deformed locations */
+			BKE_displist_free(&ltOb->curve_cache->disp);
+		}
 
 		copy_m4_m4(mat, ltOb->obmat);
 		unit_m4(ltOb->obmat);
@@ -418,10 +420,11 @@ void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float
 	int defgrp_index = -1;
 	float co_prev[3], weight_blend = 0.0f;
 	MDeformVert *dvert = BKE_lattice_deform_verts_get(ob);
+	float *__restrict latticedata = lattice_deform_data->latticedata;
 
 
 	if (lt->editlatt) lt = lt->editlatt->latt;
-	if (lattice_deform_data->latticedata == NULL) return;
+	if (latticedata == NULL) return;
 
 	if (lt->vgroup[0] && dvert) {
 		defgrp_index = defgroup_name_index(ob, lt->vgroup);
@@ -502,7 +505,7 @@ void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float
 								idx_u = idx_v;
 							}
 
-							madd_v3_v3fl(co, &lattice_deform_data->latticedata[idx_u * 3], u);
+							madd_v3_v3fl(co, &latticedata[idx_u * 3], u);
 
 							if (defgrp_index != -1)
 								weight_blend += (u * defvert_find_weight(dvert + idx_u, defgrp_index));
@@ -1054,7 +1057,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		modifier_deformVerts_DM_deprecated(md, &mectx, NULL, vertexCos, numVerts);
 	}
 
-	if (ob->id.tag & LIB_TAG_COPY_ON_WRITE) {
+	if (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) {
 		if (vertexCos) {
 			BKE_lattice_vertexcos_apply(ob, vertexCos);
 			MEM_freeN(vertexCos);

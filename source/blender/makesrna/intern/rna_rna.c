@@ -595,7 +595,7 @@ static int rna_Property_overridable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-	return (prop->flag & PROP_OVERRIDABLE_STATIC) != 0;
+	return (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_STATIC) != 0;
 }
 
 static int rna_Property_use_output_get(PointerRNA *ptr)
@@ -945,10 +945,10 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	const EnumPropertyItem *item = NULL;
 	int totitem;
 	bool free;
-	
+
 	rna_idproperty_check(&prop, ptr);
 	/* eprop = (EnumPropertyRNA *)prop; */
-	
+
 	RNA_property_enum_items_ex(
 	            NULL, ptr, prop, STREQ(iter->prop->identifier, "enum_items_static"), &item, &totitem, &free);
 	rna_iterator_array_begin(iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
@@ -1121,7 +1121,7 @@ static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key
 /* Ensures it makes sense to go inside the pointers to compare their content
  * (if they are IDs, or have different names or RNA type, then this would be meaningless). */
 static bool rna_property_override_diff_propptr_validate_diffing(
-        PointerRNA *propptr_a, PointerRNA *propptr_b,
+        PointerRNA *propptr_a, PointerRNA *propptr_b, const bool no_prop_name,
         bool *r_is_id, bool *r_is_null, bool *r_is_type_diff,
         char **r_propname_a, char *propname_a_buff, size_t propname_a_buff_size,
         char **r_propname_b, char *propname_b_buff, size_t propname_b_buff_size)
@@ -1129,7 +1129,7 @@ static bool rna_property_override_diff_propptr_validate_diffing(
 	BLI_assert(propptr_a != NULL);
 
 	bool is_valid_for_diffing = true;
-	const bool do_force_name = r_propname_a != NULL;
+	const bool do_force_name = !no_prop_name && r_propname_a != NULL;
 
 	if (do_force_name) {
 		BLI_assert(r_propname_a != NULL);
@@ -1165,7 +1165,7 @@ static bool rna_property_override_diff_propptr_validate_diffing(
 	/* We do a generic quick first comparison checking for "name" and/or "type" properties.
 	 * We assume that is any of those are false, then we are not handling the same data.
 	 * This helps a lot in static override case, especially to detect inserted items in collections. */
-	if (is_valid_for_diffing || do_force_name) {
+	if (!no_prop_name && (is_valid_for_diffing || do_force_name)) {
 		PropertyRNA *nameprop_a = RNA_struct_name_property(propptr_a->type);
 		PropertyRNA *nameprop_b = (propptr_b != NULL) ? RNA_struct_name_property(propptr_b->type) : NULL;
 
@@ -1222,7 +1222,8 @@ static bool rna_property_override_diff_propptr_validate_diffing(
 
 /* Used for both Pointer and Collection properties. */
 static int rna_property_override_diff_propptr(
-        PointerRNA *propptr_a, PointerRNA *propptr_b, eRNACompareMode mode, const bool no_ownership,
+        PointerRNA *propptr_a, PointerRNA *propptr_b,
+        eRNACompareMode mode, const bool no_ownership, const bool no_prop_name,
         IDOverrideStatic *override, const char *rna_path, const int flags, bool *r_override_changed)
 {
 	const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 && rna_path != NULL;
@@ -1232,7 +1233,7 @@ static int rna_property_override_diff_propptr(
 	bool is_type_diff = false;
 	/* If false, it means that the whole data itself is different, so no point in going inside of it at all! */
 	bool is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(
-	                                propptr_a, propptr_b, &is_id, &is_null, &is_type_diff,
+	                                propptr_a, propptr_b, no_prop_name, &is_id, &is_null, &is_type_diff,
 	                                NULL, NULL, 0, NULL, NULL, 0);
 
 	if (is_id) {
@@ -1538,8 +1539,9 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				PointerRNA propptr_a = RNA_property_pointer_get(ptr_a, prop_a);
 				PointerRNA propptr_b = RNA_property_pointer_get(ptr_b, prop_b);
 				const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
+				const bool no_prop_name = (RNA_property_override_flag(prop_a) & PROPOVERRIDE_NO_PROP_NAME) != 0;
 				return rna_property_override_diff_propptr(
-				            &propptr_a, &propptr_b, mode, no_ownership,
+				            &propptr_a, &propptr_b, mode, no_ownership, no_prop_name,
 				            override, rna_path, flags, r_override_changed);
 			}
 			break;
@@ -1549,7 +1551,8 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 		{
 			/* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
 			 * and that we never remove anything. */
-			const bool use_insertion = (RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC_INSERTION) && do_create;
+			const bool use_insertion = (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) && do_create;
+			const bool no_prop_name = (RNA_property_override_flag(prop_a) & PROPOVERRIDE_NO_PROP_NAME) != 0;
 			bool equals = true;
 			bool abort = false;
 			bool is_first_insert = true;
@@ -1590,16 +1593,18 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 					/* If false, it means that the whole data itself is different, so no point in going inside of it at all! */
 					if (iter_b.valid) {
 						is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(
-						                                &iter_a.ptr, &iter_b.ptr, &is_id, &is_null, &is_type_diff,
-						                                &propname_a, buff_a, sizeof(buff_a),
-						                                &propname_b, buff_b, sizeof(buff_b));
+						                           &iter_a.ptr, &iter_b.ptr, no_prop_name,
+						                           &is_id, &is_null, &is_type_diff,
+						                           &propname_a, buff_a, sizeof(buff_a),
+						                           &propname_b, buff_b, sizeof(buff_b));
 					}
 					else {
 						is_valid_for_diffing = false;
 						if (is_valid_for_insertion) {
 							/* We still need propname from 'a' item... */
 							rna_property_override_diff_propptr_validate_diffing(
-							            &iter_a.ptr, NULL, &is_id, &is_null, &is_type_diff,
+							            &iter_a.ptr, NULL, no_prop_name,
+							            &is_id, &is_null, &is_type_diff,
 							            &propname_a, buff_a, sizeof(buff_a),
 							            &propname_b, buff_b, sizeof(buff_b));
 						}
@@ -1615,7 +1620,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						printf("Checking %s, %s [%d] vs %s [%d]; diffing: %d; insert: %d (could be used: %d, do_create: %d)\n",
 						       rna_path, propname_a ? propname_a : "", idx_a, propname_b ? propname_b : "", idx_b,
 						       is_valid_for_diffing, is_valid_for_insertion,
-						       (RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC_INSERTION) != 0, do_create);
+						       (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) != 0, do_create);
 					}
 #endif
 
@@ -1685,7 +1690,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						if (equals || do_create) {
 							const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
 							const int eq = rna_property_override_diff_propptr(
-							              &iter_a.ptr, &iter_b.ptr, mode, no_ownership,
+							              &iter_a.ptr, &iter_b.ptr, mode, no_ownership, no_prop_name,
 							              override, extended_rna_path, flags, r_override_changed);
 							equals = equals && eq;
 						}
@@ -2248,18 +2253,18 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Struct_identifier_get", "rna_Struct_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting");
 	RNA_def_struct_name_property(srna, prop);
-	
+
 	prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_description_get", "rna_Struct_description_length", NULL);
 	RNA_def_property_ui_text(prop, "Description", "Description of the Struct's purpose");
-	
+
 	prop = RNA_def_property(srna, "translation_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_translation_context_get",
 	                              "rna_Struct_translation_context_length", NULL);
 	RNA_def_property_ui_text(prop, "Translation Context", "Translation context of the struct's name");
-	
+
 	prop = RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
@@ -2351,7 +2356,7 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Property_identifier_get", "rna_Property_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting");
 	RNA_def_struct_name_property(srna, prop);
-		
+
 	prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_description_get", "rna_Property_description_length", NULL);
@@ -2449,7 +2454,7 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally",
 	                         "Property is optionally registered as part of type registration");
-	
+
 	prop = RNA_def_property(srna, "is_runtime", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_runtime_get", NULL);
@@ -2517,7 +2522,7 @@ static void rna_def_function(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Function_no_self_get", NULL);
 	RNA_def_property_ui_text(prop, "No Self",
 	                         "Function does not pass its self as an argument (becomes a static method in python)");
-	
+
 	prop = RNA_def_property(srna, "use_self_type", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_use_self_type_get", NULL);
@@ -2776,7 +2781,7 @@ void RNA_def_rna(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Collection Definition",
 	                       "RNA collection property to define lists, arrays and mappings");
 	rna_def_pointer_property(srna, PROP_COLLECTION);
-	
+
 	/* Function */
 	rna_def_function(brna);
 

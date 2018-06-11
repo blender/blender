@@ -32,6 +32,8 @@ extern "C" {
 #include "BLI_math.h"
 
 #include "BKE_object.h"
+
+#include "DEG_depsgraph_query.h"
 }
 
 using Alembic::AbcGeom::OObject;
@@ -57,13 +59,12 @@ static bool has_parent_camera(Object *ob)
 
 /* ************************************************************************** */
 
-AbcTransformWriter::AbcTransformWriter(Depsgraph *depsgraph,
-                                       Object *ob,
+AbcTransformWriter::AbcTransformWriter(Object *ob,
                                        const OObject &abc_parent,
                                        AbcTransformWriter *parent,
                                        unsigned int time_sampling,
                                        ExportSettings &settings)
-    : AbcObjectWriter(depsgraph, NULL, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
     , m_proxy_from(NULL)
 {
 	m_is_animated = hasAnimation(m_object);
@@ -81,29 +82,31 @@ AbcTransformWriter::AbcTransformWriter(Depsgraph *depsgraph,
 
 void AbcTransformWriter::do_write()
 {
+	Object *ob_eval = DEG_get_evaluated_object(m_settings.depsgraph, m_object);
+
 	if (m_first_frame) {
 		m_visibility = Alembic::AbcGeom::CreateVisibilityProperty(m_xform, m_xform.getSchema().getTimeSampling());
 	}
 
-	m_visibility.set(!(m_object->restrictflag & OB_RESTRICT_VIEW));
+	m_visibility.set(!(ob_eval->restrictflag & OB_RESTRICT_VIEW));
 
 	if (!m_first_frame && !m_is_animated) {
 		return;
 	}
 
 	float yup_mat[4][4];
-	create_transform_matrix(m_object, yup_mat,
+	create_transform_matrix(ob_eval, yup_mat,
 	                        m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD,
 	                        m_proxy_from);
 
 	/* Only apply rotation to root camera, parenting will propagate it. */
-	if (m_object->type == OB_CAMERA && (!m_inherits_xform || !has_parent_camera(m_object))) {
+	if (ob_eval->type == OB_CAMERA && (!m_inherits_xform || !has_parent_camera(ob_eval))) {
 		float rot_mat[4][4];
 		axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
 		mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
 	}
 
-	if (!m_object->parent || !m_inherits_xform) {
+	if (!ob_eval->parent || !m_inherits_xform) {
 		/* Only apply scaling to root objects, parenting will propagate it. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, m_settings.global_scale);

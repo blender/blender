@@ -49,6 +49,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_curve.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
@@ -373,6 +374,7 @@ static Mesh *arrayModifier_doArray(
 	int first_chunk_start, first_chunk_nverts, last_chunk_start, last_chunk_nverts;
 
 	Mesh *result, *start_cap_mesh = NULL, *end_cap_mesh = NULL;
+	bool start_cap_mesh_free, end_cap_mesh_free;
 
 	int *vgroup_start_cap_remap = NULL;
 	int vgroup_start_cap_remap_len = 0;
@@ -390,7 +392,7 @@ static Mesh *arrayModifier_doArray(
 		vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(
 		                             amd->start_cap, ctx->object, &vgroup_start_cap_remap_len);
 
-		start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_object(ctx, amd->start_cap);
+		start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(amd->start_cap, &start_cap_mesh_free);
 		if (start_cap_mesh) {
 			start_cap_nverts = start_cap_mesh->totvert;
 			start_cap_nedges = start_cap_mesh->totedge;
@@ -402,7 +404,7 @@ static Mesh *arrayModifier_doArray(
 		vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(
 		                           amd->end_cap, ctx->object, &vgroup_end_cap_remap_len);
 
-		end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_object(ctx, amd->end_cap);
+		end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(amd->end_cap, &end_cap_mesh_free);
 		if (end_cap_mesh) {
 			end_cap_nverts = end_cap_mesh->totvert;
 			end_cap_nedges = end_cap_mesh->totedge;
@@ -736,6 +738,12 @@ static Mesh *arrayModifier_doArray(
 	}
 	if (vgroup_end_cap_remap) {
 		MEM_freeN(vgroup_end_cap_remap);
+	}
+	if (start_cap_mesh != NULL && start_cap_mesh_free) {
+		BKE_id_free(NULL, start_cap_mesh);
+	}
+	if (end_cap_mesh != NULL && end_cap_mesh_free) {
+		BKE_id_free(NULL, end_cap_mesh);
 	}
 
 	return result;

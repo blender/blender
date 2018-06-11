@@ -66,9 +66,9 @@ static float filt_quadratic(float x)
 static float filt_cubic(float x)
 {
 	float x2 = x * x;
-	
+
 	if (x <  0.0f) x = -x;
-	
+
 	if (x < 1.0f) return 0.5f * x * x2 - x2 + 2.0f / 3.0f;
 	if (x < 2.0f) return (2.0f - x) * (2.0f - x) * (2.0f - x) / 6.0f;
 	return 0.0f;
@@ -78,7 +78,7 @@ static float filt_cubic(float x)
 static float filt_catrom(float x)
 {
 	float x2 = x * x;
-	
+
 	if (x <  0.0f) x = -x;
 	if (x < 1.0f) return  1.5f * x2 * x - 2.5f * x2 + 1.0f;
 	if (x < 2.0f) return -0.5f * x2 * x + 2.5f * x2 - 4.0f * x + 2.0f;
@@ -108,34 +108,34 @@ static float filt_mitchell(float x) /* Mitchell & Netravali's two-param cubic */
 float RE_filter_value(int type, float x)
 {
 	float gaussfac = 1.6f;
-	
+
 	x = ABS(x);
-	
+
 	switch (type) {
 		case R_FILTER_BOX:
 			if (x > 1.0f) return 0.0f;
 			return 1.0f;
-			
+
 		case R_FILTER_TENT:
 			if (x > 1.0f) return 0.0f;
 			return 1.0f - x;
-			
+
 		case R_FILTER_GAUSS:
 		{
 			const float two_gaussfac2 = 2.0f * gaussfac * gaussfac;
 			x *= 3.0f * gaussfac;
 			return 1.0f / sqrtf((float)M_PI * two_gaussfac2) * expf(-x*x / two_gaussfac2);
 		}
-			
+
 		case R_FILTER_MITCH:
 			return filt_mitchell(x * gaussfac);
-			
+
 		case R_FILTER_QUAD:
 			return filt_quadratic(x * gaussfac);
-			
+
 		case R_FILTER_CUBIC:
 			return filt_cubic(x * gaussfac);
-			
+
 		case R_FILTER_CATROM:
 			return filt_catrom(x * gaussfac);
 	}
@@ -221,20 +221,20 @@ void RE_parts_init(Render *re)
 {
 	int nr, xd, yd, partx, party, xparts, yparts;
 	int xminb, xmaxb, yminb, ymaxb;
-	
+
 	RE_parts_free(re);
-	
+
 	/* this is render info for caller, is not reset when parts are freed! */
 	re->i.totpart = 0;
 	re->i.curpart = 0;
 	re->i.partsdone = 0;
-	
+
 	/* just for readable code.. */
 	xminb = re->disprect.xmin;
 	yminb = re->disprect.ymin;
 	xmaxb = re->disprect.xmax;
 	ymaxb = re->disprect.ymax;
-	
+
 	RE_parts_clamp(re);
 
 	partx = re->partx;
@@ -242,17 +242,17 @@ void RE_parts_init(Render *re)
 	/* part count */
 	xparts = (re->rectx + partx - 1) / partx;
 	yparts = (re->recty + party - 1) / party;
-	
+
 	for (nr = 0; nr < xparts * yparts; nr++) {
 		rcti disprect;
 		int rectx, recty;
-		
+
 		xd = (nr % xparts);
 		yd = (nr - xd) / xparts;
-		
+
 		disprect.xmin = xminb + xd * partx;
 		disprect.ymin = yminb + yd * party;
-		
+
 		/* ensure we cover the entire picture, so last parts go to end */
 		if (xd < xparts - 1) {
 			disprect.xmax = disprect.xmin + partx;
@@ -260,21 +260,21 @@ void RE_parts_init(Render *re)
 				disprect.xmax = xmaxb;
 		}
 		else disprect.xmax = xmaxb;
-		
+
 		if (yd < yparts - 1) {
 			disprect.ymax = disprect.ymin + party;
 			if (disprect.ymax > ymaxb)
 				disprect.ymax = ymaxb;
 		}
 		else disprect.ymax = ymaxb;
-		
+
 		rectx = BLI_rcti_size_x(&disprect);
 		recty = BLI_rcti_size_y(&disprect);
-		
+
 		/* so, now can we add this part? */
 		if (rectx > 0 && recty > 0) {
 			RenderPart *pa = MEM_callocN(sizeof(RenderPart), "new part");
-			
+
 			pa->disprect = disprect;
 			pa->rectx = rectx;
 			pa->recty = recty;

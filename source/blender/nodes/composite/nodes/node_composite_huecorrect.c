@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -47,14 +47,14 @@ static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	CurveMapping *cumapping = node->storage = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	int c;
-	
+
 	cumapping->preset = CURVE_PRESET_MID9;
-	
+
 	for (c = 0; c < 3; c++) {
 		CurveMap *cuma = &cumapping->cm[c];
 		curvemap_reset(cuma, &cumapping->clipr, cumapping->preset, CURVEMAP_SLOPE_POSITIVE);
 	}
-	
+
 	/* default to showing Saturation */
 	cumapping->cur = 1;
 }

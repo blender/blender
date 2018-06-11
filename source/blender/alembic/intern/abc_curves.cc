@@ -37,8 +37,8 @@ extern "C" {
 
 #include "BLI_listbase.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 
 #include "ED_curve.h"
@@ -71,13 +71,11 @@ using Alembic::AbcGeom::OV2fGeomParam;
 
 /* ************************************************************************** */
 
-AbcCurveWriter::AbcCurveWriter(Depsgraph *depsgraph,
-                               Scene *scene,
-                               Object *ob,
+AbcCurveWriter::AbcCurveWriter(Object *ob,
                                AbcTransformWriter *parent,
                                uint32_t time_sampling,
                                ExportSettings &settings)
-    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
 {
 	OCurves curves(parent->alembicXform(), m_name, m_time_sampling);
 	m_schema = curves.getSchema();
@@ -258,9 +256,21 @@ void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 
 /* ************************************************************************** */
 
-void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const ISampleSelector &sample_sel)
+void AbcCurveReader::read_curve_sample(Curve *cu, const ICurvesSchema &schema, const ISampleSelector &sample_sel)
 {
-	ICurvesSchema::Sample smp = schema.getValue(sample_sel);
+	ICurvesSchema::Sample smp;
+	try {
+		smp = schema.getValue(sample_sel);
+	}
+	catch(Alembic::Util::Exception &ex) {
+		printf("Alembic: error reading curve sample for '%s/%s' at time %f: %s\n",
+		       m_iobject.getFullName().c_str(),
+		       schema.getName().c_str(),
+		       sample_sel.getRequestedTime(),
+		       ex.what());
+		return;
+	}
+
 	const Int32ArraySamplePtr num_vertices = smp.getCurvesNumVertices();
 	const P3fArraySamplePtr positions = smp.getPositions();
 	const FloatArraySamplePtr weights = smp.getPositionWeights();
@@ -400,18 +410,31 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const ISampleSele
 	}
 }
 
-/* NOTE: Alembic only stores data about control points, but the DerivedMesh
+/* NOTE: Alembic only stores data about control points, but the Mesh
  * passed from the cache modifier contains the displist, which has more data
  * than the control points, so to avoid corrupting the displist we modify the
- * object directly and create a new DerivedMesh from that. Also we might need to
+ * object directly and create a new Mesh from that. Also we might need to
  * create new or delete existing NURBS in the curve.
  */
-DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh * /*dm*/,
-                                              const ISampleSelector &sample_sel,
-                                              int /*read_flag*/,
-                                              const char ** /*err_str*/)
+Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
+                                const ISampleSelector &sample_sel,
+                                int /*read_flag*/,
+                                const char **err_str)
 {
-	const ICurvesSchema::Sample sample = m_curves_schema.getValue(sample_sel);
+	ICurvesSchema::Sample sample;
+
+	try {
+		sample = m_curves_schema.getValue(sample_sel);
+	}
+	catch(Alembic::Util::Exception &ex) {
+		*err_str = "Error reading curve sample; more detail on the console";
+		printf("Alembic: error reading curve sample for '%s/%s' at time %f: %s\n",
+			   m_iobject.getFullName().c_str(),
+			   m_curves_schema.getName().c_str(),
+			   sample_sel.getRequestedTime(),
+			   ex.what());
+		return existing_mesh;
+	}
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
 	const Int32ArraySamplePtr num_vertices = sample.getCurvesNumVertices();
@@ -450,5 +473,5 @@ DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh * /*dm*/,
 		}
 	}
 
-	return CDDM_from_curve(m_object);
+	return BKE_mesh_new_nomain_from_curve(m_object);
 }

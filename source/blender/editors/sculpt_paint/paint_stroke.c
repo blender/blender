@@ -126,7 +126,7 @@ typedef struct PaintStroke {
 
 	float zoom_2d;
 	int pen_flip;
-	
+
 	/* line constraint */
 	bool constrain_line;
 	float constrained_pos[2];
@@ -735,10 +735,10 @@ PaintStroke *paint_stroke_new(bContext *C,
 	/* initialize here */
 	ups->overlap_factor = 1.0;
 	ups->stroke_active = true;
-	
+
 	zero_v3(ups->average_stroke_accum);
 	ups->average_stroke_counter = 0;
-	
+
 	/* initialize here to avoid initialization conflict with threaded strokes */
 	curvemapping_initialize(br->curve);
 	if (p->flags & PAINT_USE_CAVITY_MASK)
@@ -928,11 +928,11 @@ static void paint_stroke_sample_average(const PaintStroke *stroke,
                                         PaintSample *average)
 {
 	int i;
-	
+
 	memset(average, 0, sizeof(*average));
 
 	BLI_assert(stroke->num_samples > 0);
-	
+
 	for (i = 0; i < stroke->num_samples; i++) {
 		add_v2_v2(average->mouse, stroke->samples[i].mouse);
 		average->pressure += stroke->samples[i].pressure;
@@ -1096,17 +1096,17 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
 	if (stroke->constrain_line) {
 		float line[2];
 		float angle, len, res;
-		
+
 		sub_v2_v2v2(line, mouse, stroke->last_mouse_position);
 		angle = atan2f(line[1], line[0]);
 		len = len_v2(line);
-		
+
 		/* divide angle by PI/4 */
 		angle = 4.0f * angle / (float)M_PI;
-		
+
 		/* now take residue */
 		res = angle - floorf(angle);
-		
+
 		/* residue decides how close we are at a certain angle */
 		if (res <= 0.5f) {
 			angle = floorf(angle) * (float)M_PI_4;
@@ -1114,7 +1114,7 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
 		else {
 			angle = (floorf(angle) + 1.0f) * (float)M_PI_4;
 		}
-		
+
 		mouse[0] = stroke->constrained_pos[0] = len * cosf(angle) + stroke->last_mouse_position[0];
 		mouse[1] = stroke->constrained_pos[1] = len * sinf(angle) + stroke->last_mouse_position[1];
 	}
@@ -1209,12 +1209,12 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	else if (br->flag & BRUSH_LINE) {
 		if (event->alt)
 			stroke->constrain_line = true;
-		else 
+		else
 			stroke->constrain_line = false;
 
 		copy_v2_fl2(mouse, event->mval[0], event->mval[1]);
 		paint_stroke_line_constrain(stroke, mouse);
-		
+
 		if (stroke->stroke_started && (first_modal || (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)))) {
 			if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) || (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
 				copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);

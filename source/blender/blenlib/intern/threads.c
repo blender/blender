@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -70,29 +70,29 @@ static void *thread_tls_data;
 static TaskScheduler *task_scheduler = NULL;
 
 /* ********** basic thread control API ************ 
- * 
+ *
  * Many thread cases have an X amount of jobs, and only an Y amount of
  * threads are useful (typically amount of cpus)
  *
  * This code can be used to start a maximum amount of 'thread slots', which
- * then can be filled in a loop with an idle timer. 
+ * then can be filled in a loop with an idle timer.
  *
  * A sample loop can look like this (pseudo c);
  *
  *     ListBase lb;
  *     int maxthreads = 2;
  *     int cont = 1;
- * 
+ *
  *     BLI_threadpool_init(&lb, do_something_func, maxthreads);
- * 
+ *
  *     while (cont) {
  *         if (BLI_available_threads(&lb) && !(escape loop event)) {
  *             // get new job (data pointer)
- *             // tag job 'processed 
+ *             // tag job 'processed
  *             BLI_threadpool_insert(&lb, job);
  *         }
  *         else PIL_sleep_ms(50);
- *         
+ *
  *         // find if a job is ready, this the do_something_func() should write in job somewhere
  *         cont = 0;
  *         for (go over all jobs)
@@ -103,13 +103,13 @@ static TaskScheduler *task_scheduler = NULL;
  *             }
  *             else cont = 1;
  *         }
- *         // conditions to exit loop 
+ *         // conditions to exit loop
  *         if (if escape loop event) {
  *             if (BLI_available_threadslots(&lb) == maxthreads)
  *                 break;
  *         }
  *     }
- * 
+ *
  *     BLI_threadpool_end(&lb);
  *
  ************************************************ */

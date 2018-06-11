@@ -510,6 +510,17 @@ void update_particle_system_orig_pointers(const Object *object_orig,
 	}
 }
 
+void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
+{
+	bPoseChannel *pchan_cow = (bPoseChannel *) pose_cow->chanbase.first;
+	bPoseChannel *pchan_orig = (bPoseChannel *) pose_orig->chanbase.first;
+	while (pchan_orig != NULL) {
+		pchan_cow->orig_pchan = pchan_orig;
+		pchan_cow = pchan_cow->next;
+		pchan_orig = pchan_orig->next;
+	}
+}
+
 /* Do some special treatment of data transfer from original ID to it's
  * CoW complementary part.
  *
@@ -527,13 +538,17 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			 */
 			Object *object_cow = (Object *)id_cow;
 			const Object *object_orig = (const Object *)id_orig;
-			(void) object_cow;  /* Ignored for release builds. */
 			BLI_assert(object_cow->derivedFinal == NULL);
 			BLI_assert(object_cow->derivedDeform == NULL);
 			object_cow->mode = object_orig->mode;
+			object_cow->sculpt = object_orig->sculpt;
+			if (object_cow->type == OB_MESH) {
+				object_cow->runtime.mesh_orig = (Mesh *)object_cow->data;
+			}
 			if (object_cow->type == OB_ARMATURE) {
 				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
 				                             object_cow->pose);
+				update_pose_orig_pointers(object_orig->pose, object_cow->pose);
 			}
 			update_particle_system_orig_pointers(object_orig, object_cow);
 			break;
@@ -542,6 +557,7 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			break;
 	}
 	update_edit_mode_pointers(depsgraph, id_orig, id_cow);
+	BKE_animsys_update_driver_array(id_cow);
 }
 
 /* This callback is used to validate that all nested ID datablocks are
@@ -693,6 +709,77 @@ static void deg_update_copy_on_write_animation(const Depsgraph *depsgraph,
 	                            IDWALK_NOP);
 }
 
+typedef struct ObjectRuntimeBackup {
+	CurveCache *curve_cache;
+	Object_Runtime runtime;
+	short base_flag;
+} ObjectRuntimeBackup;
+
+/* Make a backup of object's evaluation runtime data, additionally
+ * male object to be safe for free without invalidating backed up
+ * pointers.
+ */
+static void deg_backup_object_runtime(
+        Object *object,
+        ObjectRuntimeBackup *object_runtime_backup)
+{
+	/* Store evaluated mesh, and make sure we don't free it. */
+	Mesh *mesh_eval = object->runtime.mesh_eval;
+	object_runtime_backup->runtime = object->runtime;
+	BKE_object_runtime_reset(object);
+	/* Object update will override actual object->data to an evaluated version.
+	 * Need to make sure we don't have data set to evaluated one before free
+	 * anything.
+	 */
+	if (mesh_eval != NULL && object->data == mesh_eval) {
+		object->data = object->runtime.mesh_orig;
+	}
+	/* Store curve cache and make sure we don't free it. */
+	object_runtime_backup->curve_cache = object->curve_cache;
+	object->curve_cache = NULL;
+	/* Make a backup of base flags. */
+	object_runtime_backup->base_flag = object->base_flag;
+}
+
+static void deg_restore_object_runtime(
+        Object *object,
+        const ObjectRuntimeBackup *object_runtime_backup)
+{
+	Mesh *mesh_orig = object->runtime.mesh_orig;
+	object->runtime = object_runtime_backup->runtime;
+	object->runtime.mesh_orig = mesh_orig;
+	if (object->runtime.mesh_eval != NULL) {
+		if (object->id.recalc & ID_RECALC_GEOMETRY) {
+			/* If geometry is tagged for update it means, that part of
+			 * evaluated mesh are not valid anymore. In this case we can not
+			 * have any "persistent" pointers to point to an invalid data.
+			 *
+			 * We restore object's data datablock to an original copy of
+			 * that datablock.
+			 */
+			object->data = mesh_orig;
+		}
+		else {
+			Mesh *mesh_eval = object->runtime.mesh_eval;
+			/* Do same thing as object update: override actual object data
+			 * pointer with evaluated datablock.
+			 */
+			if (object->type == OB_MESH) {
+				object->data = mesh_eval;
+				/* Evaluated mesh simply copied edit_btmesh pointer from
+				 * original mesh during update, need to make sure no dead
+				 * pointers are left behind.
+				*/
+				mesh_eval->edit_btmesh = mesh_orig->edit_btmesh;
+			}
+		}
+	}
+	if (object_runtime_backup->curve_cache != NULL) {
+		object->curve_cache = object_runtime_backup->curve_cache;
+	}
+	object->base_flag = object_runtime_backup->base_flag;
+}
+
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        const IDDepsNode *id_node)
 {
@@ -714,11 +801,12 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * Copy-on-Write components in a way that only needed parts are being
 	 * copied over.
 	 */
+	/* TODO(sergey): Wrap GPU material backup and object runtime backup to a
+	 * generic backup structure.
+	 */
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
-	Mesh *mesh_evaluated = NULL;
-	CurveCache *curve_cache = NULL;
-	short base_flag = 0;
+	ObjectRuntimeBackup object_runtime_backup = {NULL};
 	if (check_datablock_expanded(id_cow)) {
 		switch (id_type) {
 			case ID_MA:
@@ -753,28 +841,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				break;
 			}
 			case ID_OB:
-			{
-				Object *object = (Object *)id_cow;
-				/* Store evaluated mesh, make sure we don't free it. */
-				mesh_evaluated = object->mesh_evaluated;
-				object->mesh_evaluated = NULL;
-				/* Currently object update will override actual object->data
-				 * to an evaluated version. Need to make sure we don't have
-				 * data set to evaluated one before free anything.
-				 */
-				if (mesh_evaluated != NULL) {
-					if (object->data == mesh_evaluated) {
-						object->data = mesh_evaluated->id.orig_id;
-					}
-				}
-				/* Store curve cache and make sure we don't free it. */
-				curve_cache = object->curve_cache;
-				object->curve_cache = NULL;
-
-				/* Make a backup of base flags. */
-				base_flag = object->base_flag;
+				deg_backup_object_runtime((Object *)id_cow,
+				                          &object_runtime_backup);
 				break;
-			}
 			default:
 				break;
 		}
@@ -790,26 +859,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 		*gpumaterial_ptr = gpumaterial_backup;
 	}
 	if (id_type == ID_OB) {
-		Object *object = (Object *)id_cow;
-		if (mesh_evaluated != NULL) {
-			object->mesh_evaluated = mesh_evaluated;
-			/* Do same thing as object update: override actual object data
-			 * pointer with evaluated datablock.
-			 */
-			if (object->type == OB_MESH) {
-				object->data = mesh_evaluated;
-				/* Evaluated mesh simply copied edit_btmesh pointer from
-				 * original mesh during update, need to make sure no dead
-				 * pointers are left behind.
-				 */
-				mesh_evaluated->edit_btmesh =
-				        ((Mesh *)mesh_evaluated->id.orig_id)->edit_btmesh;
-			}
-		}
-		if (curve_cache != NULL) {
-			object->curve_cache = curve_cache;
-		}
-		object->base_flag = base_flag;
+		deg_restore_object_runtime((Object *)id_cow, &object_runtime_backup);
 	}
 	return id_cow;
 }
@@ -916,6 +966,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			 */
 			Object *ob_cow = (Object *)id_cow;
 			ob_cow->data = NULL;
+			ob_cow->sculpt = NULL;
 			break;
 		}
 		default:
@@ -960,8 +1011,8 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow)
 void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
 {
 	BLI_assert(id_cow != id_orig);
-	BLI_assert((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0);
-	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
+	BLI_assert((id_orig->tag & LIB_TAG_COPIED_ON_WRITE) == 0);
+	id_cow->tag |= LIB_TAG_COPIED_ON_WRITE;
 	id_cow->orig_id = (ID *)id_orig;
 }
 

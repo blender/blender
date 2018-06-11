@@ -150,9 +150,9 @@ typedef struct uiWidgetStateColors {
 typedef struct uiPanelColors {
 	char header[4];
 	char back[4];
+	char sub_back[4];
 	short show_header;
 	short show_back;
-	int pad;
 } uiPanelColors;
 
 typedef struct uiGradientColors {
@@ -617,6 +617,7 @@ typedef enum eUserPref_Section {
 	USER_SECTION_THEME		= 4,
 	USER_SECTION_INPUT		= 5,
 	USER_SECTION_ADDONS 	= 6,
+	USER_SECTION_LIGHT 	= 7,
 } eUserPref_Section;
 
 /* UserDef.flag */

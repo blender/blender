@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -82,28 +82,28 @@ ARegion *sequencer_has_buttons_region(ScrArea *sa)
 
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
 	if (ar) return ar;
-	
+
 	/* add subdiv level; after header */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
 	if (ar == NULL) return NULL;
-	
+
 	arnew = MEM_callocN(sizeof(ARegion), "buttons for sequencer");
-	
+
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype = RGN_TYPE_UI;
 	arnew->alignment = RGN_ALIGN_RIGHT;
-	
+
 	arnew->flag = RGN_FLAG_HIDDEN;
-	
+
 	return arnew;
 }
 
 static ARegion *sequencer_find_region(ScrArea *sa, short type)
 {
 	ARegion *ar = NULL;
-	
+
 	for (ar = sa->regionbase.first; ar; ar = ar->next)
 		if (ar->regiontype == type)
 			return ar;
@@ -117,7 +117,7 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
 {
 	ARegion *ar;
 	SpaceSeq *sseq;
-	
+
 	sseq = MEM_callocN(sizeof(SpaceSeq), "initsequencer");
 	sseq->spacetype = SPACE_SEQ;
 	sseq->chanshown = 0;
@@ -127,19 +127,19 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for sequencer");
-	
+
 	BLI_addtail(&sseq->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_TOP;
-	
+
 	/* buttons/list view */
 	ar = MEM_callocN(sizeof(ARegion), "buttons for sequencer");
-	
+
 	BLI_addtail(&sseq->regionbase, ar);
 	ar->regiontype = RGN_TYPE_UI;
 	ar->alignment = RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
-	
+
 	/* preview region */
 	/* NOTE: if you change values here, also change them in sequencer_init_preview_region */
 	ar = MEM_callocN(sizeof(ARegion), "preview region for sequencer");
@@ -166,26 +166,26 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for sequencer");
-	
+
 	BLI_addtail(&sseq->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
-	
-	
+
+
 	/* seq space goes from (0,8) to (0, efra) */
-	
+
 	ar->v2d.tot.xmin = 0.0f;
 	ar->v2d.tot.ymin = 0.0f;
 	ar->v2d.tot.xmax = scene->r.efra;
 	ar->v2d.tot.ymax = 8.0f;
-	
+
 	ar->v2d.cur = ar->v2d.tot;
-	
+
 	ar->v2d.min[0] = 10.0f;
 	ar->v2d.min[1] = 0.5f;
-	
+
 	ar->v2d.max[0] = MAXFRAMEF;
 	ar->v2d.max[1] = MAXSEQ;
-	
+
 	ar->v2d.minzoom = 0.01f;
 	ar->v2d.maxzoom = 100.0f;
 
@@ -200,7 +200,7 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 /* not spacelink itself */
 static void sequencer_free(SpaceLink *sl)
-{	
+{
 	SpaceSeq *sseq = (SpaceSeq *) sl;
 	SequencerScopes *scopes = &sseq->scopes;
 
@@ -226,7 +226,7 @@ static void sequencer_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
-	
+
 }
 
 static void sequencer_refresh(const bContext *C, ScrArea *sa)
@@ -330,7 +330,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
 static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 {
 	SpaceSeq *sseqn = MEM_dupallocN(sl);
-	
+
 	/* clear or remove stuff from old */
 // XXX	sseq->gpd = gpencil_data_duplicate(sseq->gpd, false);
 
@@ -418,7 +418,7 @@ static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 		char dir[FILE_MAX], file[FILE_MAX];
 
 		BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
-		
+
 		RNA_string_set(drop->ptr, "directory", dir);
 
 		RNA_collection_clear(drop->ptr, "files");

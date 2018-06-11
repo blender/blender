@@ -43,8 +43,8 @@ class MASK_UL_layers(UIList):
 
 class MASK_PT_mask:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'UI'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'UI'
     bl_label = "Mask Settings"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -66,8 +66,8 @@ class MASK_PT_mask:
 
 class MASK_PT_layers:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'UI'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'UI'
     bl_label = "Mask Layers"
 
     @classmethod
@@ -114,8 +114,8 @@ class MASK_PT_layers:
 
 class MASK_PT_spline:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'UI'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'UI'
     bl_label = "Active Spline"
 
     @classmethod
@@ -148,8 +148,8 @@ class MASK_PT_spline:
 
 class MASK_PT_point:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'UI'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'UI'
     bl_label = "Active Point"
 
     @classmethod
@@ -203,8 +203,8 @@ class MASK_PT_point:
 
 class MASK_PT_display:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'UI'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'UI'
     bl_label = "Mask Display"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -229,8 +229,8 @@ class MASK_PT_display:
 
 class MASK_PT_transforms:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'TOOLS'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'TOOLS'
     bl_label = "Transforms"
     bl_category = "Mask"
     bl_options = {'DEFAULT_CLOSED'}
@@ -253,8 +253,8 @@ class MASK_PT_transforms:
 
 class MASK_PT_tools:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'TOOLS'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'TOOLS'
     bl_label = "Mask Tools"
     bl_category = "Mask"
 
@@ -291,8 +291,8 @@ class MASK_PT_tools:
 
 class MASK_PT_add:
     # subclasses must define...
-    #~ bl_space_type = 'CLIP_EDITOR'
-    #~ bl_region_type = 'TOOLS'
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'TOOLS'
     bl_label = "Add"
     bl_category = "Mask"
 

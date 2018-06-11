@@ -230,9 +230,7 @@ static void find_iobject(const IObject &object, IObject &ret,
 }
 
 struct ExportJobData {
-	Scene *scene;
 	ViewLayer *view_layer;
-	Depsgraph *depsgraph;
 	Main *bmain;
 
 	char filename[1024];
@@ -262,10 +260,16 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 	G.is_break = false;
 
-	try {
-		Scene *scene = data->scene;
-		AbcExporter exporter(data->bmain, scene, data->depsgraph, data->filename, data->settings);
+	DEG_graph_build_from_view_layer(data->settings.depsgraph,
+	                                data->bmain,
+	                                data->settings.scene,
+	                                data->view_layer);
+	BKE_scene_graph_update_tagged(data->settings.depsgraph, data->bmain);
 
+	try {
+		AbcExporter exporter(data->bmain, data->filename, data->settings);
+
+		Scene *scene = data->settings.scene; /* for the CFRA macro */
 		const int orig_frame = CFRA;
 
 		data->was_canceled = false;
@@ -274,7 +278,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 		if (CFRA != orig_frame) {
 			CFRA = orig_frame;
 
-			BKE_scene_graph_update_for_newframe(data->depsgraph, data->bmain);
+			BKE_scene_graph_update_for_newframe(data->settings.depsgraph, data->bmain);
 		}
 
 		data->export_ok = !data->was_canceled;
@@ -313,9 +317,7 @@ bool ABC_export(
 {
 	ExportJobData *job = static_cast<ExportJobData *>(MEM_mallocN(sizeof(ExportJobData), "ExportJobData"));
 
-	job->scene = scene;
 	job->view_layer = CTX_data_view_layer(C);
-	job->depsgraph = CTX_data_depsgraph(C);
 	job->bmain = CTX_data_main(C);
 	job->export_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
@@ -336,14 +338,14 @@ bool ABC_export(
 	 * do bigger refactor and maybe there is a better way which does not involve
 	 * hardcore refactoring. */
 	new (&job->settings) ExportSettings();
-	job->settings.scene = job->scene;
-	job->settings.depsgraph = job->depsgraph;
+	job->settings.scene = scene;
+	job->settings.depsgraph = DEG_graph_new(scene, job->view_layer, DAG_EVAL_RENDER);
 
 	/* Sybren: for now we only export the active scene layer.
 	 * Later in the 2.8 development process this may be replaced by using
 	 * a specific collection for Alembic I/O, which can then be toggled
 	 * between "real" objects and cached Alembic files. */
-	job->settings.view_layer = CTX_data_view_layer(C);
+	job->settings.view_layer = job->view_layer;
 
 	job->settings.frame_start = params->frame_start;
 	job->settings.frame_end = params->frame_end;
@@ -387,7 +389,7 @@ bool ABC_export(
 	if (as_background_job) {
 		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
 		                            CTX_wm_window(C),
-		                            job->scene,
+		                            job->settings.scene,
 		                            "Alembic Export",
 		                            WM_JOB_PROGRESS,
 		                            WM_JOB_TYPE_ALEMBIC);
@@ -960,12 +962,12 @@ void ABC_get_transform(CacheReader *reader, float r_mat[4][4], float time, float
 
 /* ************************************************************************** */
 
-DerivedMesh *ABC_read_mesh(CacheReader *reader,
-                           Object *ob,
-                           DerivedMesh *dm,
-                           const float time,
-                           const char **err_str,
-                           int read_flag)
+Mesh *ABC_read_mesh(CacheReader *reader,
+                    Object *ob,
+                    Mesh *existing_mesh,
+                    const float time,
+                    const char **err_str,
+                    int read_flag)
 {
 	AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
 	IObject iobject = abc_reader->iobject();
@@ -984,7 +986,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 	/* kFloorIndex is used to be compatible with non-interpolating
 	 * properties; they use the floor. */
 	ISampleSelector sample_sel(time, ISampleSelector::kFloorIndex);
-	return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+	return abc_reader->read_mesh(existing_mesh, sample_sel, read_flag, err_str);
 }
 
 /* ************************************************************************** */

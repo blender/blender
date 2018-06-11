@@ -153,7 +153,7 @@ static void external_draw_scene_do(void *vedata)
 	if (!rv3d->render_engine) {
 		RenderEngineType *engine_type = draw_ctx->engine_type;
 
-		if (!(engine_type->view_update && engine_type->render_to_view)) {
+		if (!(engine_type->view_update && engine_type->view_draw)) {
 			return;
 		}
 
@@ -170,7 +170,7 @@ static void external_draw_scene_do(void *vedata)
 
 	/* Render result draw. */
 	type = rv3d->render_engine->type;
-	type->render_to_view(rv3d->render_engine, draw_ctx->evil_C);
+	type->view_draw(rv3d->render_engine, draw_ctx->evil_C);
 
 	gpuPopProjectionMatrix();
 

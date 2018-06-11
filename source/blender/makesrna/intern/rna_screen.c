@@ -58,6 +58,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 
 #include "BKE_global.h"
 #include "BKE_workspace.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
@@ -145,7 +146,7 @@ static const EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C), PointerR
 
 	/* +1 to skip SPACE_EMPTY */
 	for (const EnumPropertyItem *item_from = rna_enum_space_type_items + 1; item_from->identifier; item_from++) {
-		if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR)) {
+		if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR, SPACE_USERPREF)) {
 			continue;
 		}
 		RNA_enum_item_add(&item, &totitem, item_from);
@@ -166,7 +167,7 @@ static int rna_Area_type_get(PointerRNA *ptr)
 
 static void rna_Area_type_set(PointerRNA *ptr, int value)
 {
-	if (ELEM(value, SPACE_TOPBAR, SPACE_STATUSBAR)) {
+	if (ELEM(value, SPACE_TOPBAR, SPACE_STATUSBAR, SPACE_USERPREF)) {
 		/* Special case: An area can not be set to show the top-bar editor (or
 		 * other global areas). However it should still be possible to identify
 		 * its type from Python. */
@@ -212,6 +213,75 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 			break;
 		}
 	}
+}
+
+
+static const EnumPropertyItem *rna_Area_ui_type_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+	/* +1 to skip SPACE_EMPTY */
+	for (const EnumPropertyItem *item_from = rna_enum_space_type_items + 1; item_from->identifier; item_from++) {
+		if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR, SPACE_USERPREF)) {
+			continue;
+		}
+
+		SpaceType *st = item_from->identifier[0] ? BKE_spacetype_from_id(item_from->value) : NULL;
+		int totitem_prev = totitem;
+		if (st && st->space_subtype_item_extend != NULL) {
+			st->space_subtype_item_extend(C, &item, &totitem);
+			while (totitem_prev < totitem) {
+				item[totitem_prev++].value |= item_from->value << 16;
+			}
+		}
+		else {
+			RNA_enum_item_add(&item, &totitem, item_from);
+			item[totitem_prev++].value = item_from->value << 16;
+		}
+	}
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static int rna_Area_ui_type_get(PointerRNA *ptr)
+{
+	int value = rna_Area_type_get(ptr) << 16;
+	ScrArea *sa = ptr->data;
+	if (sa->type->space_subtype_item_extend != NULL) {
+		value |= sa->type->space_subtype_get(sa);
+	}
+	return value;
+}
+
+static void rna_Area_ui_type_set(PointerRNA *ptr, int value)
+{
+	ScrArea *sa = ptr->data;
+	const int space_type = value >> 16;
+	SpaceType *st = BKE_spacetype_from_id(space_type);
+
+	rna_Area_type_set(ptr, space_type);
+
+	if (st && st->space_subtype_item_extend != NULL) {
+		sa->butspacetype_subtype = value & 0xffff;
+	}
+}
+
+static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
+{
+	ScrArea *sa = ptr->data;
+	SpaceType *st = BKE_spacetype_from_id(sa->butspacetype);
+
+	rna_Area_type_update(C, ptr);
+
+	if ((sa->type == st) && (st->space_subtype_item_extend != NULL)) {
+		st->space_subtype_set(sa, sa->butspacetype_subtype);
+	}
+	sa->butspacetype_subtype = 0;
 }
 
 static void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float result[2])
@@ -284,6 +354,15 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Area_type_update");
 
+	prop = RNA_def_property(srna, "ui_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);  /* infact dummy */
+	RNA_def_property_enum_default(prop, 0);
+	RNA_def_property_enum_funcs(prop, "rna_Area_ui_type_get", "rna_Area_ui_type_set", "rna_Area_ui_type_itemf");
+	RNA_def_property_ui_text(prop, "Editor Type", "Current editor type for this area");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, 0, "rna_Area_ui_type_update");
+
 	prop = RNA_def_property(srna, "x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "totrct.xmin");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -315,10 +394,10 @@ static void rna_def_view2d_api(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	static const float view_default[2] = {0.0f, 0.0f};
 	static const int region_default[2] = {0.0f, 0.0f};
-	
+
 	func = RNA_def_function(srna, "region_to_view", "rna_View2D_region_to_view");
 	RNA_def_function_ui_description(func, "Transform region coordinates to 2D view");
 	parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "x", "Region x coordinate", -10000, 10000);
@@ -349,9 +428,9 @@ static void rna_def_view2d(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "View2D", NULL);
 	RNA_def_struct_ui_text(srna, "View2D", "Scroll and zoom for a 2D region");
 	RNA_def_struct_sdna(srna, "View2D");
-	
+
 	/* TODO more View2D properties could be exposed here (read-only) */
-	
+
 	rna_def_view2d_api(srna);
 }
 

@@ -156,13 +156,13 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	ID *id = (ID *)ptr->data;
-	
+
 	if (GS(id->name) == ID_VF) {
 		VFont *vfont = (VFont *)id;
 		if (BKE_vfont_is_builtin(vfont))
 			return false;
 	}
-	
+
 	return PROP_EDITABLE;
 }
 
@@ -333,7 +333,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 		if (newid) id_us_min(newid);
 		return newid;
 	}
-	
+
 	return NULL;
 }
 
@@ -456,7 +456,7 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
 	short *totcol = give_totcolp_id(id);
 	Material *mat_id = assign_ptr->id.data;
 	if (totcol && (key >= 0 && key < *totcol)) {
-		assign_material_id(id, mat_id, key + 1);
+		assign_material_id(G.main, id, mat_id, key + 1);
 		return 1;
 	}
 	else {
@@ -512,7 +512,7 @@ static void rna_IDMaterials_clear_id(ID *id, Main *bmain, int remove_material_sl
 static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Library *lib = (Library *)ptr->data;
-	BKE_library_filepath_set(lib, value);
+	BKE_library_filepath_set(G.main, lib, value);
 }
 
 /* ***** ImagePreview ***** */
@@ -797,27 +797,6 @@ static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ImagePreview, prv_img);
 }
 
-static int rna_ID_is_updated_get(PointerRNA *ptr)
-{
-	ID *id = (ID *)ptr->data;
-	/* TODO(sergey): Do we need to limit some of flags here? */
-	return ((id->recalc & ID_RECALC_ALL) != 0);
-}
-
-static int rna_ID_is_updated_data_get(PointerRNA *ptr)
-{
-	ID *id = (ID *)ptr->data;
-	if (GS(id->name) != ID_OB) {
-		return 0;
-	}
-	Object *object = (Object *)id;
-	ID *data = object->data;
-	if (data == NULL) {
-		return 0;
-	}
-	return ((data->recalc & ID_RECALC_ALL) != 0);
-}
-
 static IDProperty *rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr, bool UNUSED(create))
 {
 	if (ptr == NULL) {
@@ -838,7 +817,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "PropertyGroupItem", NULL);
 	RNA_def_struct_sdna(srna, "IDProperty");
 	RNA_def_struct_ui_text(srna, "ID Property", "Property that stores arbitrary, user defined properties");
-	
+
 	/* IDP_STRING */
 	prop = RNA_def_property(srna, "string", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT | PROP_IDPROPERTY);
@@ -924,7 +903,7 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	
+
 	/* for mesh/mball/curve materials */
 	srna = RNA_def_struct(brna, "IDMaterials", NULL);
 	RNA_def_struct_sdna(srna, "ID");
@@ -1170,16 +1149,6 @@ static void rna_def_ID(BlenderRNA *brna)
 	                         "Tools can use this to tag data for their own purposes "
 	                         "(initial state is undefined)");
 
-	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_ID_is_updated_get", NULL);
-	RNA_def_property_ui_text(prop, "Is Updated", "Data-block is tagged for recalculation");
-
-	prop = RNA_def_property(srna, "is_updated_data", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_ID_is_updated_data_get", NULL);
-	RNA_def_property_ui_text(prop, "Is Updated Data", "Data-block data is tagged for recalculation");
-
 	prop = RNA_def_property(srna, "is_library_indirect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_INDIRECT);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1275,7 +1244,7 @@ static void rna_def_library(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Library_filepath_set");
-	
+
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Library");
 	RNA_def_property_ui_text(prop, "Parent", "");

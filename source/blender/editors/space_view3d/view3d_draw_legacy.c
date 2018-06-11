@@ -1032,7 +1032,7 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 static bool view3d_main_region_do_render_draw(const Scene *scene)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	return (type && type->view_update && type->render_to_view);
+	return (type && type->view_update && type->view_draw);
 }
 
 bool ED_view3d_calc_render_border(const Scene *scene, Depsgraph *depsgraph, View3D *v3d, ARegion *ar, rcti *rect)

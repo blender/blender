@@ -54,9 +54,9 @@ LightsExporter::LightsExporter(COLLADASW::StreamWriter *sw, const ExportSettings
 void LightsExporter::exportLights(Scene *sce)
 {
 	openLibrary();
-	
+
 	forEachLampObjectInExportSet(sce, *this, this->export_settings->export_set);
-	
+
 	closeLibrary();
 }
 
@@ -67,11 +67,11 @@ void LightsExporter::operator()(Object *ob)
 	std::string la_name(id_name(la));
 	COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
 	float d, constatt, linatt, quadatt;
-	
+
 	d = la->dist;
-	
+
 	constatt = 1.0f;
-	
+
 	if (la->falloff_type == LA_FALLOFF_INVLINEAR) {
 		linatt = 1.0f / d;
 		quadatt = 0.0f;
@@ -80,7 +80,7 @@ void LightsExporter::operator()(Object *ob)
 		linatt = 0.0f;
 		quadatt = 1.0f / (d * d);
 	}
-	
+
 	// sun
 	if (la->type == LA_SUN) {
 		COLLADASW::DirectionalLight cla(mSW, la_id, la_name);
@@ -130,7 +130,7 @@ void LightsExporter::operator()(Object *ob)
 		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
-	
+
 }
 
 bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
@@ -164,6 +164,6 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
 	cla.addExtraTechniqueParameter("blender", "area_size", la->area_size);
 	cla.addExtraTechniqueParameter("blender", "area_sizey", la->area_sizey);
 	cla.addExtraTechniqueParameter("blender", "area_sizez", la->area_sizez);
-	
+
 	return true;
 }

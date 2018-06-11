@@ -141,7 +141,7 @@ static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 static void bm_log_vert_id_set(BMLog *log, BMVert *v, uint id)
 {
 	void *vid = SET_UINT_IN_POINTER(id);
-	
+
 	BLI_ghash_reinsert(log->id_to_elem, vid, v, NULL, NULL);
 	BLI_ghash_reinsert(log->elem_to_id, v, vid, NULL, NULL);
 }
@@ -654,17 +654,21 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
  */
 BMLogEntry *BM_log_entry_add(BMLog *log)
 {
-	BMLogEntry *entry, *next;
-
+	/* WARNING: this is now handled by the UndoSystem: BKE_UNDOSYS_TYPE_SCULPT
+	 * freeing here causes unnecesssary complications. */
+	BMLogEntry *entry;
+#if 0
 	/* Delete any entries after the current one */
 	entry = log->current_entry;
 	if (entry) {
+		BMLogEntry *next;
 		for (entry = entry->next; entry; entry = next) {
 			next = entry->next;
 			bm_log_entry_free(entry);
 			BLI_freelinkN(&log->entries, entry);
 		}
 	}
+#endif
 
 	/* Create and append the new entry */
 	entry = bm_log_entry_create();
@@ -906,7 +910,7 @@ void BM_log_face_added(BMLog *log, BMFace *f)
 /* Log a vertex as removed from the BMesh
  *
  * A couple things can happen here:
- * 
+ *
  * If the vertex was added as part of the current log entry, then it's
  * deleted and forgotten about entirely. Its unique ID is returned to
  * the unused pool.
@@ -950,7 +954,7 @@ void BM_log_vert_removed(BMLog *log, BMVert *v, const int cd_vert_mask_offset)
 /* Log a face as removed from the BMesh
  *
  * A couple things can happen here:
- * 
+ *
  * If the face was added as part of the current log entry, then it's
  * deleted and forgotten about entirely. Its unique ID is returned to
  * the unused pool.

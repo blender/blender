@@ -62,88 +62,63 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
         bone = context.bone
+
+        col = layout.column()
 
         if bone and ob:
             pchan = ob.pose.bones[bone.name]
-
-            row = layout.row()
-            col = row.column()
-            col.prop(pchan, "location")
             col.active = not (bone.parent and bone.use_connect)
 
-            col = row.column()
+            sub = col.row(align=True)
+            sub.prop(pchan, "location")
+            sub.prop(pchan, "lock_location", text="")
+
+            col = layout.column()
             if pchan.rotation_mode == 'QUATERNION':
-                col.prop(pchan, "rotation_quaternion", text="Rotation")
+                sub = col.row(align=True)
+                sub.prop(pchan, "rotation_quaternion", text="Rotation")
+                subsub = sub.column(align=True)
+                subsub.prop(pchan, "lock_rotation_w", text="")
+                subsub.prop(pchan, "lock_rotation", text="")
             elif pchan.rotation_mode == 'AXIS_ANGLE':
-                #col.label(text="Rotation")
+                # col.label(text="Rotation")
                 #col.prop(pchan, "rotation_angle", text="Angle")
                 #col.prop(pchan, "rotation_axis", text="Axis")
-                col.prop(pchan, "rotation_axis_angle", text="Rotation")
+                sub = col.row(align=True)
+                sub.prop(pchan, "rotation_axis_angle", text="Rotation")
+                subsub = sub.column(align=True)
+                subsub.prop(pchan, "lock_rotation_w", text="")
+                subsub.prop(pchan, "lock_rotation", text="")
             else:
-                col.prop(pchan, "rotation_euler", text="Rotation")
+                sub = col.row(align=True)
+                sub.prop(pchan, "rotation_euler", text="Rotation")
+                sub.prop(pchan, "lock_rotation", text="")
 
-            row.column().prop(pchan, "scale")
+            col = layout.column()
+            sub = col.row(align=True)
+            sub.prop(pchan, "scale")
+            sub.prop(pchan, "lock_scale", text="")
 
-            layout.prop(pchan, "rotation_mode")
+            col = layout.column()
+            col.prop(pchan, "rotation_mode")
 
         elif context.edit_bone:
             bone = context.edit_bone
-            row = layout.row()
-            row.column().prop(bone, "head")
-            row.column().prop(bone, "tail")
+            col = layout.column()
+            col.prop(bone, "head")
+            col.prop(bone, "tail")
 
-            col = row.column()
-            sub = col.column(align=True)
-            sub.label(text="Roll:")
-            sub.prop(bone, "roll", text="")
-            sub.label()
-            sub.prop(bone, "lock")
+            col = layout.column()
+            col.prop(bone, "roll")
+            col.prop(bone, "lock")
 
-
-class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
-    bl_label = "Transform Locks"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        return ob and ob.mode == 'POSE' and context.bone
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-        bone = context.bone
-        pchan = ob.pose.bones[bone.name]
-
-        split = layout.split(percentage=0.1)
-
-        col = split.column(align=True)
-        col.label(text="")
-        col.label(text="X:")
-        col.label(text="Y:")
-        col.label(text="Z:")
-
-        col = split.column()
-        col.active = not (bone.parent and bone.use_connect)
-        col.prop(pchan, "lock_location", text="Location")
-
-        col = split.column()
-        col.prop(pchan, "lock_rotation", text="Rotation")
-
-        col = split.column()
-        col.prop(pchan, "lock_scale", text="Scale")
-
-        if pchan.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
-            row = layout.row()
-            row.prop(pchan, "lock_rotations_4d", text="Lock Rotation")
-
-            sub = row.row()
-            sub.active = pchan.lock_rotations_4d
-            sub.prop(pchan, "lock_rotation_w", text="W")
+            col = layout.column()
+            col.prop(bone, "tail_radius")
+            col.prop(bone, "envelope_distance")
 
 
 class BONE_PT_curved(BoneButtonsPanel, Panel):
@@ -166,54 +141,52 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
             bbone = bone
 
         layout = self.layout
+        layout.use_property_split = True
+
         layout.prop(bone, "bbone_segments", text="Segments")
 
         col = layout.column()
         col.active = bone.bbone_segments > 1
 
-        row = col.row()
-        sub = row.column(align=True)
-        sub.label(text="Curve XY Offsets:")
-        sub.prop(bbone, "bbone_curveinx", text="In X")
-        sub.prop(bbone, "bbone_curveoutx", text="Out X")
-        sub.prop(bbone, "bbone_curveiny", text="In Y")
-        sub.prop(bbone, "bbone_curveouty", text="Out Y")
+        col = layout.column(align=True)
+        col.prop(bbone, "bbone_curveinx", text="Curve In X")
+        col.prop(bbone, "bbone_curveiny", text="In Y")
 
-        sub = row.column(align=True)
-        sub.label("Roll:")
-        sub.prop(bbone, "bbone_rollin", text="In")
-        sub.prop(bbone, "bbone_rollout", text="Out")
-        sub.prop(bone, "use_endroll_as_inroll")
+        col = layout.column(align=True)
+        col.prop(bbone, "bbone_curveoutx", text="Curve Out X")
+        col.prop(bbone, "bbone_curveouty", text="Out Y")
 
-        row = col.row()
-        sub = row.column(align=True)
-        sub.label(text="Scale:")
-        sub.prop(bbone, "bbone_scalein", text="In")
-        sub.prop(bbone, "bbone_scaleout", text="Out")
+        col = layout.column(align=True)
+        col.prop(bbone, "bbone_rollin", text="Roll In")
+        col.prop(bbone, "bbone_rollout", text="Out")
+        col.prop(bone, "use_endroll_as_inroll")
 
-        sub = row.column(align=True)
-        sub.label("Easing:")
-        sub.prop(bbone, "bbone_easein", text="In")
-        sub.prop(bbone, "bbone_easeout", text="Out")
+        col = layout.column(align=True)
+        col.prop(bbone, "bbone_scalein", text="Scale In")
+        col.prop(bbone, "bbone_scaleout", text="Out")
+
+        col = layout.column(align=True)
+        col.prop(bbone, "bbone_easein", text="Ease In")
+        col.prop(bbone, "bbone_easeout", text="Out")
 
         if pchan:
             layout.separator()
 
             col = layout.column()
+            col.use_property_split = False
             col.prop(pchan, "use_bbone_custom_handles")
 
-            row = col.row()
-            row.active = pchan.use_bbone_custom_handles
+            col = layout.column(align=True)
+            col.active = pchan.use_bbone_custom_handles
+            col.use_property_split = True
 
-            sub = row.column(align=True)
-            sub.label(text="In:")
-            sub.prop_search(pchan, "bbone_custom_handle_start", ob.pose, "bones", text="")
-            sub.prop(pchan, "use_bbone_relative_start_handle", text="Relative")
+            sub = col.column()
+            sub.prop_search(pchan, "bbone_custom_handle_start", ob.pose, "bones", text="Custom Handle Start")
+            sub.prop_search(pchan, "bbone_custom_handle_end", ob.pose, "bones", text="End")
 
-            sub = row.column(align=True)
-            sub.label(text="Out:")
-            sub.prop_search(pchan, "bbone_custom_handle_end", ob.pose, "bones", text="")
-            sub.prop(pchan, "use_bbone_relative_end_handle", text="Relative")
+            sub = col.column(align=True)
+            sub.prop(pchan, "use_bbone_relative_start_handle", text="Relative Handle Start")
+            sub.prop(pchan, "use_bbone_relative_end_handle", text="End")
 
 
 class BONE_PT_relations(BoneButtonsPanel, Panel):
@@ -221,6 +194,7 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
         bone = context.bone
@@ -232,26 +206,22 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         elif bone is None:
             bone = context.edit_bone
 
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Layers:")
+        col = layout.column()
+        col.use_property_split = False
         col.prop(bone, "layers", text="")
+        col.use_property_split = True
+        col = layout.column()
 
         col.separator()
 
-        if ob and pchan:
-            col.label(text="Bone Group:")
-            col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="")
-            col.label(text="Object Children:")
-            col.prop(bone, "use_relative_parent")
-
-        col = split.column()
-        col.label(text="Parent:")
         if context.bone:
-            col.prop(bone, "parent", text="")
+            col.prop(bone, "parent")
         else:
-            col.prop_search(bone, "parent", arm, "edit_bones", text="")
+            col.prop_search(bone, "parent", arm, "edit_bones")
+
+        if ob and pchan:
+            col.prop(bone, "use_relative_parent")
+            col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="Bone Group")
 
         sub = col.column()
         sub.active = (bone.parent is not None)
@@ -274,6 +244,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         # note. this works ok in edit-mode but isn't
         # all that useful so disabling for now.
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
         bone = context.bone
@@ -285,23 +256,20 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
             bone = context.edit_bone
 
         if bone:
-            split = layout.split()
 
-            col = split.column()
+            col = layout.column()
             col.prop(bone, "hide", text="Hide")
             sub = col.column()
             sub.active = bool(pchan and pchan.custom_shape)
             sub.prop(bone, "show_wire", text="Wireframe")
 
             if pchan:
-                col = split.column()
-
-                col.label(text="Custom Shape:")
-                col.prop(pchan, "custom_shape", text="")
+                col = layout.column()
+                col.prop(pchan, "custom_shape")
                 if pchan.custom_shape:
                     col.prop(pchan, "use_custom_shape_bone_size", text="Bone Size")
                     col.prop(pchan, "custom_shape_scale", text="Scale")
-                    col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones", text="At")
+                    col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones")
 
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
@@ -315,80 +283,82 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
         bone = context.bone
         pchan = ob.pose.bones[bone.name]
 
-        row = layout.row()
-
         active = pchan.is_in_ik_chain
 
-        split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_x", text="X")
-        split.active = active
-        row = split.row()
-        row.prop(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
-        row.active = pchan.lock_ik_x is False and active
+        col = layout.column()
+        col.prop(pchan, "ik_stretch", slider=True)
+        col.active = active
 
-        split = layout.split(percentage=0.25)
-        sub = split.row()
+        layout.separator()
 
-        sub.prop(pchan, "use_ik_limit_x", text="Limit")
+        col = layout.column(align=True)
+
+        col.prop(pchan, "lock_ik_x", text="Lock IK X")
+        col.prop(pchan, "lock_ik_y", text="Y")
+        col.prop(pchan, "lock_ik_z", text="Z")
+
+        col = layout.column(align=True)
+
+        sub = col.column(align=True)
         sub.active = pchan.lock_ik_x is False and active
-        sub = split.row(align=True)
-        sub.prop(pchan, "ik_min_x", text="")
-        sub.prop(pchan, "ik_max_x", text="")
-        sub.active = pchan.lock_ik_x is False and pchan.use_ik_limit_x and active
-
-        split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_y", text="Y")
-        split.active = active
-        row = split.row()
-        row.prop(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
-        row.active = pchan.lock_ik_y is False and active
-
-        split = layout.split(percentage=0.25)
-        sub = split.row()
-
-        sub.prop(pchan, "use_ik_limit_y", text="Limit")
+        sub.prop(pchan, "ik_stiffness_x", text="Stiffness X", slider=True)
+        sub = col.column(align=True)
         sub.active = pchan.lock_ik_y is False and active
+        sub.prop(pchan, "ik_stiffness_y", text="Y", slider=True)
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_z is False and active
+        sub.prop(pchan, "ik_stiffness_z", text="Z", slider=True)
 
-        sub = split.row(align=True)
-        sub.prop(pchan, "ik_min_y", text="")
-        sub.prop(pchan, "ik_max_y", text="")
+        col = layout.column(align=True)
+
+        sub = col.column()
+        sub.active = pchan.lock_ik_x is False and active
+        sub.prop(pchan, "use_ik_limit_x", text="Limit X")
+
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_x is False and pchan.use_ik_limit_x and active
+        sub.prop(pchan, "ik_min_x", text="Min")
+        sub.prop(pchan, "ik_max_x", text="Max")
+
+        col.separator()
+
+        sub = col.column()
+        sub.active = pchan.lock_ik_y is False and active
+        sub.prop(pchan, "use_ik_limit_y", text="Limit Y")
+
+        sub = col.column(align=True)
         sub.active = pchan.lock_ik_y is False and pchan.use_ik_limit_y and active
+        sub.prop(pchan, "ik_min_y", text="Min")
+        sub.prop(pchan, "ik_max_y", text="Max")
 
-        split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_z", text="Z")
-        split.active = active
-        sub = split.row()
-        sub.prop(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
+        col.separator()
+
+        sub = col.column()
         sub.active = pchan.lock_ik_z is False and active
+        sub.prop(pchan, "use_ik_limit_z", text="Limit Z")
 
-        split = layout.split(percentage=0.25)
-        sub = split.row()
-
-        sub.prop(pchan, "use_ik_limit_z", text="Limit")
-        sub.active = pchan.lock_ik_z is False and active
-        sub = split.row(align=True)
-        sub.prop(pchan, "ik_min_z", text="")
-        sub.prop(pchan, "ik_max_z", text="")
+        sub = col.column(align=True)
         sub.active = pchan.lock_ik_z is False and pchan.use_ik_limit_z and active
+        sub.prop(pchan, "ik_min_z", text="Min")
+        sub.prop(pchan, "ik_max_z", text="Max")
 
-        split = layout.split(percentage=0.25)
-        split.label(text="Stretch:")
-        sub = split.row()
-        sub.prop(pchan, "ik_stretch", text="", slider=True)
-        sub.active = active
+        col.separator()
 
         if ob.pose.ik_solver == 'ITASC':
-            split = layout.split()
-            col = split.column()
+
+            col = layout.column()
             col.prop(pchan, "use_ik_rotation_control", text="Control Rotation")
             col.active = active
-            col = split.column()
-            col.prop(pchan, "ik_rotation_weight", text="Weight", slider=True)
+
+            col = layout.column()
+
+            col.prop(pchan, "ik_rotation_weight", text="IK Rotation Weight", slider=True)
             col.active = active
             # not supported yet
             #row = layout.row()
@@ -410,6 +380,7 @@ class BONE_PT_deform(BoneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         bone = context.bone
 
@@ -418,17 +389,15 @@ class BONE_PT_deform(BoneButtonsPanel, Panel):
 
         layout.active = bone.use_deform
 
-        row = layout.row()
+        col = layout.column()
+        col.prop(bone, "envelope_distance", text="Envelope Distance")
+        col.prop(bone, "envelope_weight", text="Envelope Weight")
+        col.prop(bone, "use_envelope_multiply", text="Envelope Multiply")
 
-        col = row.column(align=True)
-        col.label(text="Envelope:")
-        col.prop(bone, "envelope_distance", text="Distance")
-        col.prop(bone, "envelope_weight", text="Weight")
-        col.prop(bone, "use_envelope_multiply", text="Multiply")
+        col.separator()
 
-        col = row.column(align=True)
-        col.label(text="Envelope Radius:")
-        col.prop(bone, "head_radius", text="Head")
+        col = layout.column(align=True)
+        col.prop(bone, "head_radius", text="Radius Head")
         col.prop(bone, "tail_radius", text="Tail")
 
 
@@ -448,7 +417,6 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
 classes = (
     BONE_PT_context_bone,
     BONE_PT_transform,
-    BONE_PT_transform_locks,
     BONE_PT_curved,
     BONE_PT_relations,
     BONE_PT_display,

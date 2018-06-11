@@ -52,10 +52,10 @@ struct Main;
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart {
 	struct RenderPart *next, *prev;
-	
+
 	RenderResult *result;			/* result of part rendering */
 	ListBase fullresult;			/* optional full sample buffers */
-	
+
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
 	int nr;							/* nr is partnr */
@@ -74,10 +74,10 @@ struct Render {
 	struct Render *next, *prev;
 	char name[RE_MAXNAME];
 	int slot;
-	
+
 	/* state settings */
 	short flag, ok, result_ok;
-	
+
 	/* result of rendering */
 	RenderResult *result;
 	/* if render with single-layer option, other rendered layers are stored here */
@@ -88,29 +88,29 @@ struct Render {
 	 * write lock, all external code must use a read lock. internal code is assumed
 	 * to not conflict with writes, so no lock used for that */
 	ThreadRWMutex resultmutex;
-	
+
 	/* window size, display rect, viewplane */
 	int winx, winy;			/* buffer width and height with percentage applied
 							 * without border & crop. convert to long before multiplying together to avoid overflow. */
 	rcti disprect;			/* part within winx winy */
 	rctf viewplane;			/* mapped on winx winy */
-	
+
 	/* final picture width and height (within disprect) */
 	int rectx, recty;
-	
-	/* real maximum size of parts after correction for minimum 
+
+	/* real maximum size of parts after correction for minimum
 	 * partx*xparts can be larger than rectx, in that case last part is smaller */
 	int partx, party;
-	
+
 	/* Camera transform, only used by Freestyle. */
 	float viewmat[4][4], viewinv[4][4];
 	float viewmat_orig[4][4];	/* for incremental render */
 	float winmat[4][4];
-	
+
 	/* clippping */
 	float clipsta;
 	float clipend;
-	
+
 	/* main, scene, and its full copy of renderdata and world */
 	struct Main *main;
 	Scene *scene;
@@ -119,13 +119,13 @@ struct Render {
 	int active_view_layer;
 	struct Object *camera_override;
 	unsigned int lay, layer_override;
-	
+
 	ThreadRWMutex partsmutex;
 	ListBase parts;
-	
+
 	/* render engine */
 	struct RenderEngine *engine;
-	
+
 #ifdef WITH_FREESTYLE
 	struct Main *freestyle_bmain;
 	ListBase freestyle_renders;
@@ -140,23 +140,27 @@ struct Render {
 	void *duh;
 	void (*current_scene_update)(void *handle, struct Scene *scene);
 	void *suh;
-	
+
 	void (*stats_draw)(void *handle, RenderStats *ri);
 	void *sdh;
 	void (*progress)(void *handle, float i);
 	void *prh;
-	
+
 	void (*draw_lock)(void *handle, int i);
 	void *dlh;
 	int (*test_break)(void *handle);
 	void *tbh;
-	
+
 	RenderStats i;
 
 	struct ReportList *reports;
 
 	void **movie_ctx_arr;
 	char viewname[MAX_NAME];
+
+	/* TODO replace by a whole draw manager. */
+	void *gl_context;
+	void *gwn_context;
 };
 
 /* **************** defines ********************* */

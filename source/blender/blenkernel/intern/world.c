@@ -53,6 +53,8 @@
 #include "BKE_node.h"
 #include "BKE_world.h"
 
+#include "DEG_depsgraph.h"
+
 #include "GPU_material.h"
 
 /** Free (or release) any data used by this world (does not free the world itself). */
@@ -161,13 +163,10 @@ void BKE_world_make_local(Main *bmain, World *wrld, const bool lib_local)
 	BKE_id_make_local_generic(bmain, &wrld->id, true, lib_local);
 }
 
-void BKE_world_eval(struct Depsgraph *UNUSED(depsgraph), World *world)
+void BKE_world_eval(struct Depsgraph *depsgraph, World *world)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
-		printf("%s on %s (%p)\n", __func__, world->id.name, world);
-	}
+	DEG_debug_print_eval(depsgraph, __func__, world->id.name, world);
 	if (!BLI_listbase_is_empty(&world->gpumaterial)) {
 		world->update_flag = 1;
-		GPU_material_uniform_buffer_tag_dirty(&world->gpumaterial);
 	}
 }

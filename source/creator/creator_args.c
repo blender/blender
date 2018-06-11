@@ -586,9 +586,8 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
 	BLI_argsPrintArgDoc(ba, "--");
 
-	printf("\n");
-	printf("Experimental Features:\n");
-	BLI_argsPrintArgDoc(ba, "--disable-copy-on-write");
+	//printf("\n");
+	//printf("Experimental Features:\n");
 
 	/* Other options _must_ be last (anything not handled will show here) */
 	printf("\n");
@@ -1289,16 +1288,6 @@ static int arg_handle_threads_set(int argc, const char **argv, void *UNUSED(data
 	}
 }
 
-static const char arg_handle_use_copy_on_write_doc[] =
-"\n\tUse new dependency graph"
-;
-static int arg_handle_use_copy_on_write(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
-{
-	printf("Disabling copy on write. Only use for testing whether something else is at fault\n");
-	DEG_depsgraph_disable_copy_on_write();
-	return 0;
-}
-
 static const char arg_handle_verbosity_set_doc[] =
 "<verbose>\n"
 "\tSet logging verbosity level."
@@ -1604,8 +1593,9 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
 
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
+		Main *bmain = CTX_data_main(C);
 		/* Make the path absolute because its needed for relative linked blends to be found */
-		struct Text *text = (struct Text *)BKE_libblock_find_name(ID_TXT, argv[1]);
+		struct Text *text = (struct Text *)BKE_libblock_find_name(bmain, ID_TXT, argv[1]);
 		bool ok;
 
 		if (text) {
@@ -1895,8 +1885,6 @@ void main_args_setup(bContext *C, bArgs *ba)
 	            CB_EX(arg_handle_debug_mode_generic_set, gpumem), (void *)G_DEBUG_GPU_MEM);
 	BLI_argsAdd(ba, 1, NULL, "--debug-gpu-shaders",
 	            CB_EX(arg_handle_debug_mode_generic_set, gpumem), (void *)G_DEBUG_GPU_SHADERS);
-
-	BLI_argsAdd(ba, 1, NULL, "--disable-copy-on-write", CB(arg_handle_use_copy_on_write), NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", CB(arg_handle_verbosity_set), NULL);
 

@@ -225,8 +225,8 @@ static void meshdeform_vert_task(
 	const MDeformVert *dvert = data->dvert;
 	const int defgrp_index = data->defgrp_index;
 	const int *offsets = mmd->bindoffsets;
-	const MDefInfluence *influences = mmd->bindinfluences;
-	/*const*/ float (*dco)[3] = data->dco;
+	const MDefInfluence *__restrict influences = mmd->bindinfluences;
+	/*const*/ float (*__restrict dco)[3] = data->dco;
 	float (*vertexCos)[3] = data->vertexCos;
 	float co[3];
 	float weight, totweight, fac = 1.0f;
@@ -253,11 +253,12 @@ static void meshdeform_vert_task(
 		totweight = meshdeform_dynamic_bind(mmd, dco, co);
 	}
 	else {
-		int a;
 		totweight = 0.0f;
 		zero_v3(co);
+		int start = offsets[iter];
+		int end = offsets[iter + 1];
 
-		for (a = offsets[iter]; a < offsets[iter + 1]; a++) {
+		for (int a = start; a < end; a++) {
 			weight = influences[a].weight;
 			madd_v3_v3fl(co, dco[influences[a].vertex], weight);
 			totweight += weight;
@@ -275,10 +276,12 @@ static void meshdeform_vert_task(
 }
 
 static void meshdeformModifier_do(
-        ModifierData *md, Depsgraph *depsgraph, Object *ob, Mesh *mesh,
+        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
+	Object *ob = ctx->object;
+
 	Mesh *cagemesh;
 	MDeformVert *dvert = NULL;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
@@ -301,29 +304,9 @@ static void meshdeformModifier_do(
 	 *
 	 * We'll support this case once granular dependency graph is landed.
 	 */
-	if (mmd->object->mode & OB_MODE_EDIT) {
-		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
-		cagemesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
-		free_cagemesh = true;
-	}
-	else {
-		ModifierEvalContext ctx = {
-		    .depsgraph = depsgraph,
-		    .flag = md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0,
-		};
-		cagemesh = BKE_modifier_get_evaluated_mesh_from_object(&ctx, ob);
-	}
-
-	/* if we don't have one computed, use derivedmesh from data
-	 * without any modifiers */
-	if (!cagemesh) {
-		cagemesh = get_mesh(mmd->object, NULL, NULL, NULL, false, false);
-		if (cagemesh) {
-			free_cagemesh = true;
-		}
-	}
+	cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(mmd->object, &free_cagemesh);
 	
-	if (!cagemesh) {
+	if (cagemesh == NULL) {
 		modifier_setError(md, "Cannot get mesh from cage object");
 		return;
 	}
@@ -412,7 +395,9 @@ static void meshdeformModifier_do(
 	/* release cage derivedmesh */
 	MEM_freeN(dco);
 	MEM_freeN(cagecos);
-	if (free_cagemesh) BKE_id_free(NULL, cagemesh);
+	if (cagemesh != NULL && free_cagemesh) {
+		BKE_id_free(NULL, cagemesh);
+	}
 }
 
 static void deformVerts(
@@ -425,7 +410,7 @@ static void deformVerts(
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
-	meshdeformModifier_do(md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
+	meshdeformModifier_do(md, ctx, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src && mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
@@ -441,7 +426,7 @@ static void deformVertsEM(
 {
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
-	meshdeformModifier_do(md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
+	meshdeformModifier_do(md, ctx, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src && mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);

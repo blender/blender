@@ -143,6 +143,23 @@ typedef struct ObjectDisplay {
 	int flag;
 } ObjectDisplay;
 
+/* Not saved in file! */
+typedef struct Object_Runtime {
+	/* Original mesh pointer, before object->data was changed to point
+	 * to mesh_eval.
+	 * Is assigned by dependency graph's copy-on-write evaluation.
+	 */
+	struct Mesh *mesh_orig;
+	/* Mesh structure created during object evaluation.
+	 * It has all modifiers applied.
+	 */
+	struct Mesh *mesh_eval;
+	/* Mesh structure created during object evaluation.
+	 * It has deforemation only modifiers applied on it.
+	 */
+	struct Mesh *mesh_deform_eval;
+} Object_Runtime;
+
 typedef struct Object {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
@@ -299,10 +316,8 @@ typedef struct Object {
 	int pad6;
 	int select_color;
 
-	/* Mesh structure created during object evaluation.
-	 * It has all modifiers applied.
-	 */
-	struct Mesh *mesh_evaluated;
+	/* Runtime evaluation data. */
+	Object_Runtime runtime;
 
 	/* Object Display */
 	struct ObjectDisplay display;
@@ -326,26 +341,6 @@ typedef struct ObHook {
 	short type, active;		/* active is only first hook, for button menu */
 	float force;
 } ObHook;
-
-/* runtime only, but include here for rna access */
-typedef struct DupliObject {
-	struct DupliObject *next, *prev;
-	struct Object *ob;
-	float mat[4][4];
-	float orco[3], uv[2];
-
-	short type; /* from Object.transflag */
-	char no_draw, animated;
-
-	/* persistent identifier for a dupli object, for inter-frame matching of
-	 * objects with motion blur, or inter-update matching for syncing */
-	int persistent_id[16]; /* 2*MAX_DUPLI_RECUR */
-
-	/* particle this dupli was generated from */
-	struct ParticleSystem *particle_system;
-	unsigned int random_id;
-	unsigned int pad;
-} DupliObject;
 
 /* **************** OBJECT ********************* */
 
@@ -388,6 +383,10 @@ enum {
 	(ELEM(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
 	(ELEM(_type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE))
+
+/** Matches #OB_TYPE_SUPPORT_EDITMODE. */
+#define OB_DATA_SUPPORT_EDITMODE(_type) \
+	(ELEM(_type, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \

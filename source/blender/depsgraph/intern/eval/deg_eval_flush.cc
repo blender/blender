@@ -313,16 +313,6 @@ static void graph_clear_operation_func(
 	node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE);
 }
 
-static void graph_clear_id_node_func(
-        void *__restrict data_v,
-        const int i,
-        const ParallelRangeTLS *__restrict /*tls*/)
-{
-	Depsgraph *graph = (Depsgraph *)data_v;
-	IDDepsNode *id_node = graph->id_nodes[i];
-	id_node->id_cow->recalc &= ~ID_RECALC_ALL;
-}
-
 /* Clear tags from all operation nodes. */
 void deg_graph_clear_tags(Depsgraph *graph)
 {
@@ -335,17 +325,6 @@ void deg_graph_clear_tags(Depsgraph *graph)
 		BLI_task_parallel_range(0, num_operations,
 		                        graph,
 		                        graph_clear_operation_func,
-		                        &settings);
-	}
-	/* Go over all ID nodes nodes, clearing tags. */
-	{
-		const int num_id_nodes = graph->id_nodes.size();
-		ParallelRangeSettings settings;
-		BLI_parallel_range_settings_defaults(&settings);
-		settings.min_iter_per_thread = 1024;
-		BLI_task_parallel_range(0, num_id_nodes,
-		                        graph,
-		                        graph_clear_id_node_func,
 		                        &settings);
 	}
 	/* Clear any entry tags which haven't been flushed. */

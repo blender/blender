@@ -112,14 +112,6 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 
 void IDDepsNode::init_copy_on_write(ID *id_cow_hint)
 {
-	/* Early output for non-copy-on-write case: we keep CoW pointer same as
-	 * an original one.
-	 */
-	if (!DEG_depsgraph_use_copy_on_write()) {
-		UNUSED_VARS(id_cow_hint);
-		id_cow = id_orig;
-		return;
-	}
 	/* Create pointer as early as possible, so we can use it for function
 	 * bindings. Rest of data we'll be copying to the new datablock when
 	 * it is actually needed.

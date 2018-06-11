@@ -957,7 +957,7 @@ static int editsource_text_edit(
 	}
 
 	if (text == NULL) {
-		text = BKE_text_load(bmain, filepath, bmain->name);
+		text = BKE_text_load(bmain, filepath, BKE_main_blendfile_path(bmain));
 		id_us_ensure_real(&text->id);
 	}
 

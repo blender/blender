@@ -26,7 +26,6 @@
 #include "abc_customdata.h"
 #include "abc_object.h"
 
-struct DerivedMesh;
 struct Mesh;
 struct ModifierData;
 
@@ -50,9 +49,7 @@ class AbcMeshWriter : public AbcObjectWriter {
 	bool m_is_subd;
 
 public:
-	AbcMeshWriter(Depsgraph *depsgraph,
-	              Scene *scene,
-	              Object *ob,
+	AbcMeshWriter(Object *ob,
 	              AbcTransformWriter *parent,
 	              uint32_t time_sampling,
 	              ExportSettings &settings);
@@ -65,29 +62,28 @@ private:
 
 	bool isAnimated() const;
 
-	void writeMesh(DerivedMesh *dm);
-	void writeSubD(DerivedMesh *dm);
+	void writeMesh(struct Mesh *mesh);
+	void writeSubD(struct Mesh *mesh);
 
-	void getMeshInfo(DerivedMesh *dm, std::vector<float> &points,
+	void getMeshInfo(struct Mesh *mesh, std::vector<float> &points,
 	                 std::vector<int32_t> &facePoints,
 	                 std::vector<int32_t> &faceCounts,
 	                 std::vector<int32_t> &creaseIndices,
 	                 std::vector<int32_t> &creaseLengths,
 	                 std::vector<float> &creaseSharpness);
 
-	DerivedMesh *getFinalMesh();
-	void freeMesh(DerivedMesh *dm);
+	struct Mesh *getFinalMesh(bool &r_needsfree);
 
-	void getMaterialIndices(DerivedMesh *dm, std::vector<int32_t> &indices);
+	void getMaterialIndices(struct Mesh *mesh, std::vector<int32_t> &indices);
 
-	void writeArbGeoParams(DerivedMesh *dm);
-	void getGeoGroups(DerivedMesh *dm, std::map<std::string, std::vector<int32_t> > &geoGroups);
+	void writeArbGeoParams(struct Mesh *mesh);
+	void getGeoGroups(struct Mesh *mesh, std::map<std::string, std::vector<int32_t> > &geoGroups);
 	
 	/* fluid surfaces support */
-	void getVelocities(DerivedMesh *dm, std::vector<Imath::V3f> &vels);
+	void getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels);
 
 	template <typename Schema>
-	void writeFaceSets(DerivedMesh *dm, Schema &schema);
+	void writeFaceSets(struct Mesh *mesh, Schema &schema);
 };
 
 /* ************************************************************************** */
@@ -106,10 +102,10 @@ public:
 	                       const char **err_str) const;
 	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                              const Alembic::Abc::ISampleSelector &sample_sel,
-	                              int read_flag,
-	                              const char **err_str);
+	struct Mesh *read_mesh(struct Mesh *existing_mesh,
+	                       const Alembic::Abc::ISampleSelector &sample_sel,
+	                       int read_flag,
+	                       const char **err_str);
 
 private:
 	void readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_start,
@@ -136,10 +132,10 @@ public:
 	                         const Object *const ob,
 	                         const char **err_str) const;
 	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                              const Alembic::Abc::ISampleSelector &sample_sel,
-	                              int read_flag,
-	                              const char **err_str);
+	struct Mesh *read_mesh(struct Mesh *existing_mesh,
+	                       const Alembic::Abc::ISampleSelector &sample_sel,
+	                       int read_flag,
+	                       const char **err_str);
 };
 
 /* ************************************************************************** */
@@ -148,6 +144,6 @@ void read_mverts(MVert *mverts,
                  const Alembic::AbcGeom::P3fArraySamplePtr &positions,
                  const Alembic::AbcGeom::N3fArraySamplePtr &normals);
 
-CDStreamConfig get_config(DerivedMesh *dm);
+CDStreamConfig get_config(struct Mesh *mesh);
 
 #endif  /* __ABC_MESH_H__ */

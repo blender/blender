@@ -36,13 +36,7 @@ class TIME_HT_editor_buttons(Header):
         toolsettings = context.tool_settings
         screen = context.screen
 
-        layout.separator()   # XXX: This should be dynamic (e.g. layout.separator(stretch=1.0))
-        layout.separator()
-        layout.separator()
-        layout.separator()
-        layout.separator()
-        layout.separator()
-        layout.separator()
+        layout.separator_spacer()
 
         row = layout.row(align=True)
         row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
@@ -67,13 +61,7 @@ class TIME_HT_editor_buttons(Header):
         row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
-        layout.separator()  # XXX: This should be dynamic (e.g. layout.separator(stretch=1.0))
-        layout.separator()
-        layout.separator()
-        layout.separator()
-        layout.separator()
-        layout.separator()
-        layout.separator()
+        layout.separator_spacer()
 
         row = layout.row()
         row.scale_x = 0.95
@@ -81,9 +69,6 @@ class TIME_HT_editor_buttons(Header):
             row.prop(scene, "frame_float", text="")
         else:
             row.prop(scene, "frame_current", text="")
-
-        layout.separator()
-        layout.separator()
 
         row = layout.row(align=True)
         row.prop(scene, "use_preview_range", text="", toggle=True)
@@ -106,8 +91,6 @@ class TIME_MT_editor_menus(Menu):
 
     @staticmethod
     def draw_menus(layout, context):
-        layout.menu("TIME_MT_view")
-        layout.menu("TIME_MT_marker")
         layout.popover(space_type='DOPESHEET_EDITOR',
                        region_type='HEADER',
                        panel_type="TIME_PT_playback",
@@ -116,6 +99,9 @@ class TIME_MT_editor_menus(Menu):
                        region_type='HEADER',
                        panel_type="TIME_PT_keyframing_settings",
                        text="Keying")
+        layout.menu("TIME_MT_view")
+        layout.menu("TIME_MT_marker")
+
 
 class TIME_MT_marker(Menu):
     bl_label = "Marker"
@@ -217,6 +203,7 @@ def marker_menu_generic(layout):
 
 ###################################
 
+
 class TimelinePanelButtons:
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_region_type = 'UI'
@@ -292,7 +279,7 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
         col = layout.column(align=True)
         col.label("New Keyframe Type:")
         col.prop(toolsettings, "keyframe_type", text="")
-        
+
         col = layout.column(align=True)
         col.label("Auto Keyframing:")
         row = col.row()

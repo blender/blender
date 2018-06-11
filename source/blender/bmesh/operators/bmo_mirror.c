@@ -57,13 +57,13 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *slot_targetmap;
 
 	ototvert = bm->totvert;
-	
+
 	BMO_slot_mat4_get(op->slots_in, "matrix", mtx);
 	invert_m4_m4(imtx, mtx);
-	
+
 	BMO_op_initf(bm, &dupeop, op->flag, "duplicate geom=%s", op, "geom");
 	BMO_op_exec(bm, &dupeop);
-	
+
 	BMO_slot_buffer_flag_enable(bm, dupeop.slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW);
 
 	/* create old -> new mappin */
@@ -74,7 +74,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_callf(bm, op->flag, "transform verts=%fv matrix=%m4", ELE_NEW, mtx);
 	BMO_op_callf(bm, op->flag, "scale verts=%fv vec=%v", ELE_NEW, scale);
 	BMO_op_callf(bm, op->flag, "transform verts=%fv matrix=%m4", ELE_NEW, imtx);
-	
+
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 
 	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
@@ -87,7 +87,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 		}
 		v = BM_iter_step(&iter);
 	}
-	
+
 	if (mirror_u || mirror_v) {
 		BMFace *f;
 		BMLoop *l;
@@ -109,7 +109,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_op_exec(bm, &weldop);
-	
+
 	BMO_op_finish(bm, &weldop);
 	BMO_op_finish(bm, &dupeop);
 

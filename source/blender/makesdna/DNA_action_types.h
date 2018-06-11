@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -61,7 +61,8 @@ typedef struct bMotionPathVert {
 /* bMotionPathVert->flag */
 typedef enum eMotionPathVert_Flag {
 	/* vert is selected */
-	MOTIONPATH_VERT_SEL     = (1 << 0)
+	MOTIONPATH_VERT_SEL     = (1 << 0),
+	MOTIONPATH_VERT_KEY     = (1 << 1),
 } eMotionPathVert_Flag;
 
 /* ........ */
@@ -79,6 +80,12 @@ typedef struct bMotionPath {
 	float color[3];	            /* optional custom color */
 	int line_thickness;         /* line thickness */
 	int flag;                   /* baking settings - eMotionPath_Flag */
+
+	/* Used for drawing. */
+	struct Gwn_VertBuf *points_vbo;
+	struct Gwn_Batch *batch_line;
+	struct Gwn_Batch *batch_points;
+	void *pad;
 } bMotionPath;
 
 /* bMotionPath->flag */
@@ -199,8 +206,8 @@ typedef struct bPoseChannelDrawData {
 
 /* PoseChannel 
  *
- * A PoseChannel stores the results of Actions and transform information 
- * with respect to the restposition of Armature bones 
+ * A PoseChannel stores the results of Actions and transform information
+ * with respect to the restposition of Armature bones
  */
 typedef struct bPoseChannel {
 	struct bPoseChannel *next, *prev;
@@ -277,6 +284,9 @@ typedef struct bPoseChannel {
 	void        *temp;              /* use for outliner */
 	/* Runtime data for color and bbone segment matrix. */
 	bPoseChannelDrawData *draw_data;
+
+	/* Points to an original pose channel. */
+	struct bPoseChannel *orig_pchan;
 } bPoseChannel;
 
 
@@ -489,14 +499,14 @@ typedef enum eItasc_Solver {
 
 /* Action-Channel Group (agrp)
  *
- * These are stored as a list per-Action, and are only used to 
- * group that Action's channels in an Animation Editor. 
+ * These are stored as a list per-Action, and are only used to
+ * group that Action's channels in an Animation Editor.
  *
  * Even though all FCurves live in a big list per Action, each group they are in also
  * holds references to the achans within that list which belong to it. Care must be taken to
  * ensure that action-groups never end up being the sole 'owner' of a channel.
- * 
- * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
+ *
+ * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used
  * primarily to color bones in the 3d-view. There are other benefits too, but those are mostly related
  * to Action-Groups.
  *
@@ -543,13 +553,13 @@ typedef enum eActionGroup_Flag {
 
 /* Action - reusable F-Curve 'bag'  (act) 
  *
- * This contains F-Curves that may affect settings from more than one ID blocktype and/or 
- * datablock (i.e. sub-data linked/used directly to the ID block that the animation data is linked to), 
+ * This contains F-Curves that may affect settings from more than one ID blocktype and/or
+ * datablock (i.e. sub-data linked/used directly to the ID block that the animation data is linked to),
  * but with the restriction that the other unrelated data (i.e. data that is not directly used or linked to
  * by the source ID block).
  *
- * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data), that 
- * affects a group of related settings (as defined by the user). 
+ * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data), that
+ * affects a group of related settings (as defined by the user).
  */
 typedef struct bAction {
 	ID id;              /* ID-serialisation for relinking */
@@ -667,10 +677,10 @@ typedef enum eDopeSheet_Flag {
 typedef struct SpaceAction {
 	struct SpaceLink *next, *prev;
 	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-
-	short blockhandler[8];
+	char spacetype;
+	char link_flag;
+	char _pad0[6];
+	/* End 'SpaceLink' header. */
 
 	View2D v2d DNA_DEPRECATED;  /* copied to region */
 	
@@ -764,14 +774,14 @@ typedef enum eTimeline_Cache_Flag {
 
 /* WARNING: Action Channels are now deprecated... they were part of the old animation system!
  *        (ONLY USED FOR DO_VERSIONS...)
- * 
- * Action Channels belong to Actions. They are linked with an IPO block, and can also own 
- * Constraint Channels in certain situations. 
+ *
+ * Action Channels belong to Actions. They are linked with an IPO block, and can also own
+ * Constraint Channels in certain situations.
  *
  * Action-Channels can only belong to one group at a time, but they still live the Action's
  * list of achans (to preserve backwards compatibility, and also minimize the code
  * that would need to be recoded). Grouped achans are stored at the start of the list, according
- * to the position of the group in the list, and their position within the group. 
+ * to the position of the group in the list, and their position within the group.
  */
 typedef struct bActionChannel {
 	struct bActionChannel   *next, *prev;

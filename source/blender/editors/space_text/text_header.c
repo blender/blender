@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -54,21 +54,21 @@ static ARegion *text_has_properties_region(ScrArea *sa)
 
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
 	if (ar) return ar;
-	
+
 	/* add subdiv level; after header */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
 	if (ar == NULL) return NULL;
-	
+
 	arnew = MEM_callocN(sizeof(ARegion), "properties region");
-	
+
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype = RGN_TYPE_UI;
 	arnew->alignment = RGN_ALIGN_LEFT;
-	
+
 	arnew->flag = RGN_FLAG_HIDDEN;
-	
+
 	return arnew;
 }
 
@@ -81,7 +81,7 @@ static int text_properties_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = text_has_properties_region(sa);
-	
+
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
@@ -94,7 +94,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 	ot->name = "Properties";
 	ot->description = "Toggle the properties region visibility";
 	ot->idname = "TEXT_OT_properties";
-	
+
 	/* api callbacks */
 	ot->exec = text_properties_exec;
 	ot->poll = text_properties_poll;
@@ -105,15 +105,15 @@ static int text_text_search_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = text_has_properties_region(sa);
 	SpaceText *st = CTX_wm_space_text(C);
-	
+
 	if (ar) {
 		if (ar->flag & RGN_FLAG_HIDDEN)
 			ED_region_toggle_hidden(C, ar);
-		
+
 		/* cannot send a button activate yet for case when region wasn't visible yet */
 		/* flag gets checked and cleared in main draw callback */
 		st->flags |= ST_FIND_ACTIVATE;
-		
+
 		ED_region_tag_redraw(ar);
 	}
 	return OPERATOR_FINISHED;
@@ -126,7 +126,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 	ot->name = "Find";
 	ot->description = "Start searching text";
 	ot->idname = "TEXT_OT_start_find";
-	
+
 	/* api callbacks */
 	ot->exec = text_text_search_exec;
 	ot->poll = text_properties_poll;

@@ -41,11 +41,11 @@ class GHOST_DropTargetWin32 : public IDropTarget
 {
 public:
 	/* IUnknownd implementation.
-	 * Enables clients to get pointers to other interfaces on a given object 
+	 * Enables clients to get pointers to other interfaces on a given object
 	 * through the QueryInterface method, and manage the existence of the object
-	 * through the AddRef and Release methods. All other COM interfaces are 
-	 * inherited, directly or indirectly, from IUnknown. Therefore, the three 
-	 * methods in IUnknown are the first entries in the VTable for every interface. 
+	 * through the AddRef and Release methods. All other COM interfaces are
+	 * inherited, directly or indirectly, from IUnknown. Therefore, the three
+	 * methods in IUnknown are the first entries in the VTable for every interface.
 	 */
 	HRESULT __stdcall QueryInterface(REFIID riid, void **ppvObj);
 	ULONG __stdcall AddRef(void);
@@ -56,20 +56,20 @@ public:
 	 *   provide drag-and-drop operations in your application. It contains methods
 	 *   used in any application that can be a target for data during a
 	 *   drag-and-drop operation. A drop-target application is responsible for:
-	 * 
+	 *
 	 *  - Determining the effect of the drop on the target application.
 	 *  - Incorporating any valid dropped data when the drop occurs.
 	 *  - Communicating target feedback to the source so the source application
 	 *	  can provide appropriate visual feedback such as setting the cursor.
 	 *  - Implementing drag scrolling.
 	 *  - Registering and revoking its application windows as drop targets.
-	 * 
-	 * The IDropTarget interface contains methods that handle all these 
-	 * responsibilities except registering and revoking the application window 
-	 * as a drop target, for which you must call the RegisterDragDrop and the 
+	 *
+	 * The IDropTarget interface contains methods that handle all these
+	 * responsibilities except registering and revoking the application window
+	 * as a drop target, for which you must call the RegisterDragDrop and the
 	 * RevokeDragDrop functions.
 	 */
-	
+
 	HRESULT __stdcall DragEnter(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
 	HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
 	HRESULT __stdcall DragLeave(void);
@@ -133,7 +133,7 @@ private:
 
 	/**
 	 * Convert Unicode to ANSI, replacing unconvertable chars with '?'.
-	 * The ANSI codepage is the system default codepage, 
+	 * The ANSI codepage is the system default codepage,
 	 * and can change from system to system.
 	 * \param in LPCWSTR.
 	 * \param out char *. Is set to NULL on failure.

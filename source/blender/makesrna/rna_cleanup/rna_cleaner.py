@@ -19,7 +19,7 @@ def font_bold(mystring):
     font_bold = "\033[1m"
     font_reset = "\033[0;0m"
     return font_bold + mystring + font_reset
-    
+
 
 def usage():
     """
@@ -102,30 +102,30 @@ def get_props_from_txt(input_filename):
     """
     If the file is *.txt, the script assumes it is formatted as outlined in this script docstring
     """
-    
+
     file=open(input_filename,'r')
     file_lines=file.readlines()
     file.close()
 
     props_list=[]
     props_length_max=[0,0,0,0,0,0,0,0]
-    
+
     done_text = "+"
     done = 0
     tot = 0
-    
+
     for iii, line in enumerate(file_lines):
-        
+
         # debug
         #print(line)
         line_strip = line.strip()
         # empty line or comment
         if not line_strip:
             continue
-            
+
         if line_strip == "EOF":
             break
-        
+
         if line.startswith("#"):
             line = line[1:]
 
@@ -162,18 +162,18 @@ def get_props_from_txt(input_filename):
 
         # changed
         changed = check_if_changed(bfrom, bto)
-        
+
         # lists formatting
         props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
         props_list.append(props)
         props_length_max=list(map(max,zip(props_length_max,list(map(len,props)))))
-        
+
         if done_text in comment:
             done += 1
         tot += 1
-    
+
     print("Total done %.2f" % (done / tot * 100.0) )
-    
+
     return (props_list,props_length_max)
 
 
@@ -181,7 +181,7 @@ def get_props_from_py(input_filename):
     """
     If the file is *.py, the script assumes it contains a python list (as "rna_api=[...]")
     This means that this script executes the text in the py file with an exec(text).
-    """    
+    """
     # adds the list "rna_api" to this function's scope
     rna_api = __import__(input_filename[:-3]).rna_api
 
@@ -205,7 +205,7 @@ def get_props(input_filename):
         props_list,props_length_max = get_props_from_py(input_filename)
     return (props_list,props_length_max)
 
-        
+
 def sort(props_list, sort_priority):
     """
     reminder
@@ -221,7 +221,7 @@ def sort(props_list, sort_priority):
             props_list = sorted(props_list, key=lambda p: p[i], reverse=True)
         else:
             props_list = sorted(props_list, key=lambda p: p[i])
-        
+
     print ('\nSorted by %s.' % font_bold(sort_priority))
     return props_list
 
@@ -260,11 +260,11 @@ def write_files(basename, props_list, props_length_max):
     props_list = [['NOTE', 'CHANGED', 'CLASS', 'FROM', 'TO', 'KEYWORD-CHECK', 'TYPE', 'DESCRIPTION']] + props_list
     for props in props_list:
         #txt
-        
+
         # quick way we can tell if it changed
         if props[3] == props[4]: txt += "#"
         else: txt += " "
-    
+
         if props[0] != '': txt +=  '%s * ' % props[0]   # comment
         txt +=  '%s.%s -> %s:   %s  "%s"\n' % tuple(props[2:5] + props[6:])   # skipping keyword-check
         # rna_api
@@ -279,7 +279,7 @@ def write_files(basename, props_list, props_length_max):
     f_txt.write(txt)
     f_py.write("rna_api = [\n%s]\n" % py)
     f_rna.write("rna_api = [\n%s]\n" % rna)
-    
+
     # write useful py script, wont hurt
     f_py.write("\n'''\n")
     f_py.write("for p_note, p_changed, p_class, p_from, p_to, p_check, p_type, p_desc in rna_api:\n")

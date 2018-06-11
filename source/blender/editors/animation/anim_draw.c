@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -75,7 +75,7 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 	const float time = scene->r.cfra + scene->r.subframe;
 	const float cfra = (float)(time * scene->r.framelen);
 	const bool show_time = (flag & DRAWCFRA_UNIT_SECONDS) != 0;
-	
+
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 	unsigned char col[4];
 	float color[4];
@@ -83,13 +83,13 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 	char numstr[32] = "  t  ";  /* t is the character to start replacing from */
 	float hlen;
 	int slen;
-	
+
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_scale_get(v2d, &xscale, NULL);
 	gpuPushMatrix();
 	gpuScale2f(1.0f / xscale, 1.0f);
-	
-	/* get timecode string 
+
+	/* get timecode string
 	 *	- padding on str-buf passed so that it doesn't sit on the frame indicator
 	 */
 	if (show_time) {
@@ -101,7 +101,7 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 
 	slen = UI_fontstyle_string_width(fstyle, numstr) - 1;
 	hlen = slen * 0.5f;
-	
+
 	/* get starting coordinates for drawing */
 	x = cfra * xscale;
 	y = -0.1f * U.widget_unit;
@@ -163,7 +163,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 {
 	Scene *scene = CTX_data_scene(C);
-	
+
 	/* only draw this if preview range is set */
 	if (PRVRANGEON) {
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -243,10 +243,10 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 	/* sanity checks */
 	if (ac == NULL)
 		return NULL;
-	
+
 	/* abort if rendering - we may get some race condition issues... */
 	if (G.is_rendering) return NULL;
-	
+
 	/* apart from strictly keyframe-related contexts, this shouldn't even happen */
 	// XXX: nla and channel here may not be necessary...
 	if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_SHAPEKEY, ANIMCONT_DOPESHEET,
@@ -259,7 +259,7 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 				return ale->adt;
 		}
 	}
-	
+
 	/* cannot handle... */
 	return NULL;
 }
@@ -272,15 +272,15 @@ static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
 	AnimData *adt = (AnimData *)ked->data;
 	short only_keys = (short)ked->i1;
-	
+
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
 		bezt->vec[0][0] = BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], NLATIME_CONVERT_UNMAP);
 		bezt->vec[2][0] = BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], NLATIME_CONVERT_UNMAP);
 	}
-	
+
 	bezt->vec[1][0] = BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], NLATIME_CONVERT_UNMAP);
-	
+
 	return 0;
 }
 
@@ -290,41 +290,41 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
 	AnimData *adt = (AnimData *)ked->data;
 	short only_keys = (short)ked->i1;
-	
+
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
 		bezt->vec[0][0] = BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], NLATIME_CONVERT_MAP);
 		bezt->vec[2][0] = BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], NLATIME_CONVERT_MAP);
 	}
-	
+
 	bezt->vec[1][0] = BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], NLATIME_CONVERT_MAP);
-	
+
 	return 0;
 }
 
 
-/* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve 
- *	- restore = whether to map points back to non-mapped time 
+/* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve
+ *	- restore = whether to map points back to non-mapped time
  *  - only_keys = whether to only adjust the location of the center point of beztriples
  */
 void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys)
 {
 	KeyframeEditData ked = {{NULL}};
 	KeyframeEditFunc map_cb;
-	
-	/* init edit data 
+
+	/* init edit data
 	 *	- AnimData is stored in 'data'
 	 *	- only_keys is stored in 'i1'
 	 */
 	ked.data = (void *)adt;
 	ked.i1 = (int)only_keys;
-	
+
 	/* get editing callback */
 	if (restore)
 		map_cb = bezt_nlamapping_restore;
 	else
 		map_cb = bezt_nlamapping_apply;
-	
+
 	/* apply to F-Curve */
 	ANIM_fcurve_keyframes_loop(&ked, fcu, NULL, map_cb, NULL);
 }
@@ -503,7 +503,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
 	if (id && fcu && fcu->rna_path) {
 		PointerRNA ptr, id_ptr;
 		PropertyRNA *prop;
-		
+
 		/* get RNA property that F-Curve affects */
 		RNA_id_pointer_create(id, &id_ptr);
 		if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
@@ -517,7 +517,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
 						return RAD2DEGF(1.0f);  /* radians to degrees */
 				}
 			}
-			
+
 			/* TODO: other rotation types here as necessary */
 		}
 	}

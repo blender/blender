@@ -35,11 +35,11 @@
 #include <stdio.h>
 
 #include "DNA_scene_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
 
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_layer.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
@@ -52,7 +52,7 @@
 
 static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *UNUSED(derivedData),
+        Mesh *UNUSED(derivedData),
         float (*vertexCos)[3],
         int numVerts)
 {
@@ -86,14 +86,14 @@ ModifierTypeInfo modifierType_Softbody = {
 
 	/* copyData */          NULL,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,

@@ -152,6 +152,7 @@ static bool vertex_paint_from_weight(Object *ob)
 	}
 
 	/* TODO: respect selection. */
+	/* TODO: Do we want to take weights from evaluated mesh instead? 2.7x was not doing it anyway... */
 	mp = me->mpoly;
 	vgroup_active = ob->actdef - 1;
 	for (int i = 0; i < me->totpoly; i++, mp++) {

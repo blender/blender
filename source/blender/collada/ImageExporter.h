@@ -45,7 +45,7 @@ class ImagesExporter: COLLADASW::LibraryImages
 {
 public:
 	ImagesExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
-	
+
 	void exportImages(Scene *sce);
 	void operator()(Material *ma, Object *ob);
 private:

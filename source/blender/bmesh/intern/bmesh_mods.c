@@ -66,7 +66,7 @@ bool BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
 	/* logic for 3 or more is identical */
 	const int len = BM_vert_edge_count_at_most(v, 3);
-	
+
 	if (len == 1) {
 		BM_vert_kill(bm, v); /* will kill edges too */
 		return true;
@@ -110,7 +110,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 	if (!BM_vert_is_manifold(v)) {
 		return false;
 	}
-	
+
 	if (v->e) {
 		/* v->e we keep, what else */
 		e = v->e;
@@ -124,7 +124,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 			len++;
 		} while (e != v->e);
 	}
-	
+
 	/* this code for handling 2 and 3-valence verts
 	 * may be totally bad */
 	if (keepedge == NULL && len == 3) {
@@ -200,7 +200,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 		if (!e) {
 			return false;
 		}
-		
+
 		if (e->l) {
 			/* get remaining two faces */
 			if (e->l != e->l->radial_next) {
@@ -286,13 +286,13 @@ BMFace *BM_face_split(
 	if (cd_loop_mdisp_offset != -1) {
 		f_tmp = BM_face_copy(bm, bm, f, false, false);
 	}
-	
+
 #ifdef USE_BMESH_HOLES
 	f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, r_l, NULL, example, no_double);
 #else
 	f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, r_l, example, no_double);
 #endif
-	
+
 	if (f_new) {
 		/* handle multires update */
 		if (cd_loop_mdisp_offset != -1) {
@@ -368,7 +368,7 @@ BMFace *BM_face_split_n(
 	}
 
 	f_tmp = BM_face_copy(bm, bm, f, true, true);
-	
+
 #ifdef USE_BMESH_HOLES
 	f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, &l_new, NULL, example, false);
 #else
@@ -600,13 +600,13 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 	if (cd_loop_mdisp_offset != -1) {
 		BMLoop *l;
 		int i;
-		
+
 		l = e->l;
 		do {
 			BLI_array_append(oldfaces, l->f);
 			l = l->radial_next;
 		} while (l != e->l);
-		
+
 		/* flag existing faces so we can differentiate oldfaces from new faces */
 		for (i = 0; i < BLI_array_len(oldfaces); i++) {
 			BM_ELEM_API_FLAG_ENABLE(oldfaces[i], _FLAG_OVERLAP);
@@ -647,7 +647,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 			for (j = 0; j < 2; j++) {
 				BMEdge *e1 = j ? e_new : e;
 				BMLoop *l;
-				
+
 				l = e1->l;
 
 				if (UNLIKELY(!l)) {
@@ -669,31 +669,31 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 				} while (l != e1->l);
 			}
 		}
-		
+
 		/* destroy the old faces */
 		for (i = 0; i < BLI_array_len(oldfaces); i++) {
 			BM_face_verts_kill(bm, oldfaces[i]);
 		}
-		
+
 		/* fix boundaries a bit, doesn't work too well quite yet */
 #if 0
 		for (j = 0; j < 2; j++) {
 			BMEdge *e1 = j ? e_new : e;
 			BMLoop *l, *l2;
-			
+
 			l = e1->l;
 			if (UNLIKELY(!l)) {
 				BMESH_ASSERT(0);
 				break;
 			}
-			
+
 			do {
 				BM_face_multires_bounds_smooth(bm, l->f);
 				l = l->radial_next;
 			} while (l != e1->l);
 		}
 #endif
-		
+
 		BLI_array_free(oldfaces);
 	}
 
@@ -710,7 +710,7 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr)
 	int i;
 	float percent;
 	BMVert *v_new = NULL;
-	
+
 	for (i = 0; i < numcuts; i++) {
 		percent = 1.0f / (float)(numcuts + 1 - i);
 		v_new = BM_edge_split(bm, e, e->v2, NULL, percent);
@@ -734,7 +734,7 @@ bool BM_face_validate(BMFace *face, FILE *err)
 	BMLoop *l;
 	int i, j;
 	bool ret = true;
-	
+
 	if (face->len == 2) {
 		fprintf(err, "warning: found two-edged face. face ptr: %p\n", face);
 		fflush(err);
@@ -765,7 +765,7 @@ bool BM_face_validate(BMFace *face, FILE *err)
 			}
 		}
 	}
-	
+
 	BLI_array_free(verts);
 	return ret;
 }

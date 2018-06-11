@@ -33,10 +33,12 @@
 #include "intern/builder/deg_builder_map.h"
 #include "intern/depsgraph_types.h"
 
-#include "DEG_depsgraph.h"  /* used for DEG_depsgraph_use_copy_on_write() */
+#include "DEG_depsgraph.h"
 
 struct Base;
+struct bArmature;
 struct CacheFile;
+struct Camera;
 struct bGPdata;
 struct ListBase;
 struct GHash;
@@ -45,7 +47,9 @@ struct Image;
 struct FCurve;
 struct Collection;
 struct Key;
+struct Lamp;
 struct LayerCollection;
+struct LightProbe;
 struct Main;
 struct Material;
 struct Mask;
@@ -92,12 +96,7 @@ struct DepsgraphNodeBuilder {
 	/* For a given COW datablock get corresponding original one. */
 	template<typename T>
 	T *get_orig_datablock(const T *cow) const {
-		if (DEG_depsgraph_use_copy_on_write()) {
-			return (T *)cow->id.orig_id;
-		}
-		else {
-			return (T *)cow;
-		}
+		return (T *)cow->id.orig_id;
 	}
 
 	void begin_build();
@@ -160,9 +159,10 @@ struct DepsgraphNodeBuilder {
 	void build_id(ID* id);
 	void build_layer_collections(ListBase *lb);
 	void build_view_layer(Scene *scene,
-	                       ViewLayer *view_layer,
-	                       eDepsNode_LinkedState_Type linked_state);
-	void build_collection(Collection *collection);
+	                      ViewLayer *view_layer,
+	                      eDepsNode_LinkedState_Type linked_state);
+	void build_collection(eDepsNode_CollectionOwner owner_type,
+	                      Collection *collection);
 	void build_object(int base_index,
 	                  Object *object,
 	                  eDepsNode_LinkedState_Type linked_state);
@@ -170,6 +170,11 @@ struct DepsgraphNodeBuilder {
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);
 	void build_object_data(Object *object);
+	void build_object_data_camera(Object *object);
+	void build_object_data_geometry(Object *object);
+	void build_object_data_geometry_datablock(ID *obdata);
+	void build_object_data_lamp(Object *object);
+	void build_object_data_lightprobe(Object *object);
 	void build_object_transform(Object *object);
 	void build_object_constraints(Object *object);
 	void build_pose_constraints(Object *object, bPoseChannel *pchan, int pchan_index);
@@ -178,7 +183,7 @@ struct DepsgraphNodeBuilder {
 	void build_particle_settings(ParticleSettings *part);
 	void build_cloth(Object *object);
 	void build_animdata(ID *id);
-	void build_driver(ID *id, FCurve *fcurve);
+	void build_driver(ID *id, FCurve *fcurve, int driver_index);
 	void build_driver_variables(ID *id, FCurve *fcurve);
 	void build_driver_id_property(ID *id, const char *rna_path);
 	void build_ik_pose(Object *object,
@@ -189,10 +194,10 @@ struct DepsgraphNodeBuilder {
 	                         bConstraint *con);
 	void build_rig(Object *object);
 	void build_proxy_rig(Object *object);
+	void build_armature(bArmature *armature);
 	void build_shapekeys(Key *key);
-	void build_obdata_geom(Object *object);
-	void build_camera(Object *object);
-	void build_lamp(Object *object);
+	void build_camera(Camera *camera);
+	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);
 	void build_texture(Tex *tex);
@@ -203,7 +208,7 @@ struct DepsgraphNodeBuilder {
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
-	void build_lightprobe(Object *object);
+	void build_lightprobe(LightProbe *probe);
 
 protected:
 	struct SavedEntryTag {

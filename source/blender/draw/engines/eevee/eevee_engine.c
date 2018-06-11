@@ -129,35 +129,40 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool is_active = (ob == draw_ctx->obact);
+	bool cast_shadow = false;
+
 	if (is_active) {
 		if (DRW_object_is_mode_shade(ob) == true) {
 			return;
 		}
 	}
 
-	if (DRW_check_object_visible_within_active_context(ob) == false) {
-		return;
+	if (ob->base_flag & BASE_VISIBLED) {
+		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
 	}
 
-	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
-		bool cast_shadow;
-
-		EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
-
-		if (cast_shadow) {
-			EEVEE_lights_cache_shcaster_object_add(sldata, ob);
+	if (DRW_check_object_visible_within_active_context(ob)) {
+		if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
+			EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
+		}
+		else if (!USE_SCENE_LIGHT(draw_ctx->v3d)) {
+			/* do not add any scene light sources to the cache */
+		}
+		else if (ob->type == OB_LIGHTPROBE) {
+			if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
+				/* TODO: Special case for dupli objects because we cannot save the object pointer. */
+			}
+			else {
+				EEVEE_lightprobes_cache_add(sldata, ob);
+			}
+		}
+		else if (ob->type == OB_LAMP) {
+			EEVEE_lights_cache_add(sldata, ob);
 		}
 	}
-	else if (ob->type == OB_LIGHTPROBE) {
-		if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
-			/* TODO: Special case for dupli objects because we cannot save the object pointer. */
-		}
-		else {
-			EEVEE_lightprobes_cache_add(sldata, ob);
-		}
-	}
-	else if (ob->type == OB_LAMP) {
-		EEVEE_lights_cache_add(sldata, ob);
+
+	if (cast_shadow) {
+		EEVEE_lights_cache_shcaster_object_add(sldata, ob);
 	}
 }
 
@@ -187,6 +192,7 @@ static void eevee_draw_background(void *vedata)
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+
 	/* Sort transparents before the loop. */
 	DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
@@ -312,7 +318,7 @@ static void eevee_draw_background(void *vedata)
 	/* LookDev */
 	EEVEE_lookdev_draw_background(vedata);
 	/* END */
-	
+
 
 	/* Tonemapping and transfer result to default framebuffer. */
 	GPU_framebuffer_bind(dfbl->default_fb);
@@ -367,20 +373,18 @@ static void eevee_view_update(void *vedata)
 static void eevee_id_object_update(void *UNUSED(vedata), Object *object)
 {
 	/* This is a bit mask of components which update is to be ignored. */
-	const int ignore_updates = ID_RECALC_COLLECTIONS;
-	const int allowed_updates = ~ignore_updates;
 	EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(object);
-	if (ped != NULL && (ped->engine_data.recalc & allowed_updates) != 0) {
+	if (ped != NULL && ped->engine_data.recalc != 0) {
 		ped->need_full_update = true;
 		ped->engine_data.recalc = 0;
 	}
 	EEVEE_LampEngineData *led = EEVEE_lamp_data_get(object);
-	if (led != NULL && (led->engine_data.recalc & allowed_updates) != 0) {
+	if (led != NULL && led->engine_data.recalc != 0) {
 		led->need_update = true;
 		led->engine_data.recalc = 0;
 	}
 	EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(object);
-	if (oedata != NULL && (oedata->engine_data.recalc & allowed_updates) != 0) {
+	if (oedata != NULL && oedata->engine_data.recalc != 0) {
 		oedata->need_update = true;
 		oedata->engine_data.recalc = 0;
 	}

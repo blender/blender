@@ -140,15 +140,15 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan_eval;
 				bArmature *arm_eval = ob_eval->data;
-				
+
 				invert_m4_m4(ob_eval->imat, ob_eval->obmat);
-				
+
 				for (pchan_eval = ob_eval->pose->chanbase.first; pchan_eval; pchan_eval = pchan_eval->next) {
 					if (pchan_eval->bone->flag & BONE_SELECTED) {
 						if (pchan_eval->bone->layer & arm_eval->layer) {
 							if ((pchan_eval->bone->flag & BONE_CONNECTED) == 0) {
 								float nLoc[3];
-								
+
 								/* get nearest grid point to snap to */
 								copy_v3_v3(nLoc, pchan_eval->pose_mat[3]);
 								/* We must operate in world space! */
@@ -158,10 +158,10 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 								vec[2] = gridf * floorf(0.5f + nLoc[2] / gridf);
 								/* Back in object space... */
 								mul_m4_v3(ob_eval->imat, vec);
-								
+
 								/* Get location of grid point in pose space. */
 								BKE_armature_loc_pose_to_bone(pchan_eval, vec, vec);
-								
+
 								/* adjust location on the original pchan*/
 								bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, pchan_eval->name);
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
@@ -181,18 +181,18 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 				}
 				ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
-				
+
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				vec[0] = -ob_eval->obmat[3][0] + gridf * floorf(0.5f + ob_eval->obmat[3][0] / gridf);
 				vec[1] = -ob_eval->obmat[3][1] + gridf * floorf(0.5f + ob_eval->obmat[3][1] / gridf);
 				vec[2] = -ob_eval->obmat[3][2] + gridf * floorf(0.5f + ob_eval->obmat[3][2] / gridf);
-				
+
 				if (ob->parent) {
 					float originmat[3][3];
 					BKE_object_where_is_calc_ex(depsgraph, scene, NULL, ob, originmat);
-					
+
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
 				}
@@ -202,7 +202,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 					ob->loc[1] = ob_eval->loc[1] + vec[1];
 				if ((ob->protectflag & OB_LOCK_LOCZ) == 0)
 					ob->loc[2] = ob_eval->loc[2] + vec[2];
-				
+
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
 
@@ -213,7 +213,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -223,11 +223,11 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 	ot->name = "Snap Selection to Grid";
 	ot->description = "Snap selected item(s) to nearest grid division";
 	ot->idname = "VIEW3D_OT_snap_selected_to_grid";
-	
+
 	/* api callbacks */
 	ot->exec = snap_sel_to_grid_exec;
 	ot->poll = ED_operator_region_view3d_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -262,7 +262,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 	if (obedit) {
 		float snap_target_local[3];
-		
+
 		if (ED_transverts_check_obedit(obedit))
 			ED_transverts_create_from_obedit(&tvs, obedit, 0);
 		if (tvs.transverts_tot == 0)
@@ -270,7 +270,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 		copy_m3_m4(bmat, obedit->obmat);
 		invert_m3_m3(imat, bmat);
-		
+
 		/* get the cursor in object space */
 		sub_v3_v3v3(snap_target_local, snap_target_global, obedit->obmat[3]);
 		mul_m3_v3(imat, snap_target_local);
@@ -291,7 +291,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 				copy_v3_v3(tv->loc, snap_target_local);
 			}
 		}
-		
+
 		ED_transverts_update_obedit(&tvs, obedit);
 		ED_transverts_free(&tvs);
 	}
@@ -423,7 +423,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -445,11 +445,11 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	ot->name = "Snap Selection to Cursor";
 	ot->description = "Snap selected item(s) to cursor";
 	ot->idname = "VIEW3D_OT_snap_selected_to_cursor";
-	
+
 	/* api callbacks */
 	ot->exec = snap_selected_to_cursor_exec;
 	ot->poll = ED_operator_view3d_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -500,7 +500,7 @@ static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	curs[0] = gridf * floorf(0.5f + curs[0] / gridf);
 	curs[1] = gridf * floorf(0.5f + curs[1] / gridf);
 	curs[2] = gridf * floorf(0.5f + curs[2] / gridf);
-	
+
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);  /* hrm */
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 
@@ -513,18 +513,18 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 	ot->name = "Snap Cursor to Grid";
 	ot->description = "Snap cursor to nearest grid division";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_grid";
-	
+
 	/* api callbacks */
 	ot->exec = snap_curs_to_grid_exec;
 	ot->poll = ED_operator_region_view3d_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* **************************************************** */
 
-static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
+static void bundle_midpoint(Depsgraph *depsgraph, Scene *scene, Object *ob, float vec[3])
 {
 	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
 	MovieTracking *tracking;
@@ -539,7 +539,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 	copy_m4_m4(cammat, ob->obmat);
 
-	BKE_tracking_get_camera_object_matrix(scene, ob, mat);
+	BKE_tracking_get_camera_object_matrix(depsgraph, scene, ob, mat);
 
 	INIT_MINMAX(min, max);
 
@@ -578,7 +578,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 {
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -602,7 +602,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 
 		Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
 		copy_m3_m4(bmat, obedit_eval->obmat);
-		
+
 		tv = tvs.transverts;
 		for (a = 0; a < tvs.transverts_tot; a++, tv++) {
 			copy_v3_v3(vec, tv->loc);
@@ -611,7 +611,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 			add_v3_v3(centroid, vec);
 			minmax_v3v3_v3(min, max, vec);
 		}
-		
+
 		if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEAN) {
 			mul_v3_fl(centroid, 1.0f / (float)tvs.transverts_tot);
 			copy_v3_v3(cursor, centroid);
@@ -650,7 +650,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 				if (ob_eval->type == OB_CAMERA) {
 					/* snap to bundles should happen only when bundles are visible */
 					if (v3d->flag2 & V3D_SHOW_RECONSTRUCTION) {
-						bundle_midpoint(scene, DEG_get_original_object(ob_eval), vec);
+						bundle_midpoint(depsgraph, scene, DEG_get_original_object(ob_eval), vec);
 					}
 				}
 
@@ -701,11 +701,11 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 	ot->name = "Snap Cursor to Selected";
 	ot->description = "Snap cursor to center of selected item(s)";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_selected";
-	
+
 	/* api callbacks */
 	ot->exec = snap_curs_to_sel_exec;
 	ot->poll = ED_operator_view3d_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -761,7 +761,7 @@ static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	float *curs;
-	
+
 	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	if (snap_calc_active_center(C, false, curs)) {
@@ -781,11 +781,11 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 	ot->name = "Snap Cursor to Active";
 	ot->description = "Snap cursor to active item";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_active";
-	
+
 	/* api callbacks */
 	ot->exec = snap_curs_to_active_exec;
 	ot->poll = ED_operator_view3d_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -800,7 +800,7 @@ static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	zero_v3(curs);
-	
+
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 
@@ -813,11 +813,11 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 	ot->name = "Snap Cursor to Center";
 	ot->description = "Snap cursor to the Center";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_center";
-	
+
 	/* api callbacks */
 	ot->exec = snap_curs_to_center_exec;
 	ot->poll = ED_operator_view3d_active;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -847,12 +847,12 @@ bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 
 	if (ED_transverts_check_obedit(obedit))
 		ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS);
-	
+
 	if (tvs.transverts_tot == 0)
 		return false;
 
 	copy_m3_m4(bmat, obedit->obmat);
-	
+
 	tv = tvs.transverts;
 	for (a = 0; a < tvs.transverts_tot; a++, tv++) {
 		copy_v3_v3(vec, (tv->flag & TX_VERT_USE_MAPLOC) ? tv->maploc : tv->loc);
@@ -861,8 +861,8 @@ bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 		add_v3_v3(centroid, vec);
 		minmax_v3v3_v3(min, max, vec);
 	}
-	
+
 	ED_transverts_free(&tvs);
-	
+
 	return true;
 }

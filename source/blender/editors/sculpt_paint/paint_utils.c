@@ -221,10 +221,10 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
 	prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, 
+	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL,
 	             "Stroke Mode",
 	             "Action taken when a paint stroke is made");
-	
+
 }
 
 /* 3D Paint */
@@ -436,7 +436,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 	CLAMP(x, 0, ar->winx);
 	CLAMP(y, 0, ar->winy);
-	
+
 	if (use_palette) {
 		if (!palette) {
 			palette = BKE_palette_add(CTX_data_main(C), "Palette");
@@ -459,7 +459,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 		if (ob) {
 			Mesh *me = (Mesh *)ob->data;
-			Mesh *me_eval = BKE_object_get_evaluated_mesh(depsgraph, ob);  /* Or shall we just do ob_eval->mesh_evaluated ? */
+			Mesh *me_eval = BKE_object_get_evaluated_mesh(depsgraph, ob);  /* Or shall we just do ob_eval->mesh_eval ? */
 
 			ViewContext vc;
 			const int mval[2] = {x, y};
@@ -473,12 +473,12 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 				if (imapaint_pick_face(&vc, mval, &faceindex, totpoly)) {
 					Image *image;
-					
-					if (use_material) 
+
+					if (use_material)
 						image = imapaint_face_image(ob_eval, me_eval, faceindex);
 					else
 						image = imapaint->canvas;
-					
+
 					if (image) {
 						ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 						if (ibuf && ibuf->rect) {
@@ -486,16 +486,16 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 							float u, v;
 							imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
 							sample_success = true;
-							
+
 							u = fmodf(uv[0], 1.0f);
 							v = fmodf(uv[1], 1.0f);
-							
+
 							if (u < 0.0f) u += 1.0f;
 							if (v < 0.0f) v += 1.0f;
-							
+
 							u = u * ibuf->x;
 							v = v * ibuf->y;
-							
+
 							if (ibuf->rect_float) {
 								float rgba_f[4];
 								bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
@@ -521,7 +521,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 								}
 							}
 						}
-					
+
 						BKE_image_release_ibuf(image, ibuf, NULL);
 					}
 				}
@@ -542,7 +542,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 		glReadBuffer(GL_BACK);
 	}
 	cp = (unsigned char *)&col;
-	
+
 	if (use_palette) {
 		rgb_uchar_to_float(color->rgb, cp);
 	}

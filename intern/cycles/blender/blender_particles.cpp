@@ -28,11 +28,11 @@ CCL_NAMESPACE_BEGIN
 /* Utilities */
 
 bool BlenderSync::sync_dupli_particle(BL::Object& b_ob,
-                                      BL::DepsgraphIter& b_dup,
+                                      BL::DepsgraphObjectInstance& b_instance,
                                       Object *object)
 {
 	/* test if this dupli was generated from a particle sytem */
-	BL::ParticleSystem b_psys = b_dup.particle_system();
+	BL::ParticleSystem b_psys = b_instance.particle_system();
 	if(!b_psys)
 		return false;
 
@@ -43,7 +43,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object& b_ob,
 		return false;
 
 	/* don't handle child particles yet */
-	BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_dup.persistent_id();
+	BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_instance.persistent_id();
 
 	if(persistent_id[0] >= b_psys.particles.length())
 		return false;
@@ -53,7 +53,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object& b_ob,
 	ParticleSystem *psys;
 
 	bool first_use = !particle_system_map.is_used(key);
-	bool need_update = particle_system_map.sync(&psys, b_ob, b_dup.object(), key);
+	bool need_update = particle_system_map.sync(&psys, b_ob, b_instance.object(), key);
 
 	/* no update needed? */
 	if(!need_update && !object->mesh->need_update && !scene->object_manager->need_update)

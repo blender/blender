@@ -70,18 +70,6 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
-static bool use_copy_on_write = true;
-
-bool DEG_depsgraph_use_copy_on_write(void)
-{
-	return use_copy_on_write;
-}
-
-void DEG_depsgraph_disable_copy_on_write(void)
-{
-	use_copy_on_write = false;
-}
-
 namespace DEG {
 
 static DEG_EditorUpdateIDCb deg_editor_update_id_cb = NULL;
@@ -104,12 +92,14 @@ Depsgraph::Depsgraph(Scene *scene,
     view_layer(view_layer),
     mode(mode),
     ctime(BKE_scene_frame_get(scene)),
-    scene_cow(NULL)
+    scene_cow(NULL),
+    is_active(false)
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
 	entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
 	debug_flags = G.debug;
+	memset(id_type_updated, 0, sizeof(id_type_updated));
 }
 
 Depsgraph::~Depsgraph()
@@ -320,7 +310,7 @@ IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 
 IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 {
-	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) == 0);
+	BLI_assert((id->tag & LIB_TAG_COPIED_ON_WRITE) == 0);
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
 		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_ID_REF);
@@ -340,7 +330,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 void Depsgraph::clear_id_nodes()
 {
 	/* Free memory used by ID nodes. */
-	if (use_copy_on_write) {
+	{
 		/* Stupid workaround to ensure we free IDs in a proper order. */
 		foreach (IDDepsNode *id_node, id_nodes) {
 			if (id_node->id_cow == NULL) {
@@ -510,7 +500,7 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 		 * We try to enforce that in debug builds, for for release we play a bit
 		 * safer game here.
 		 */
-		if ((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0) {
+		if ((id_orig->tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
 			/* TODO(sergey): This is nice sanity check to have, but it fails
 			 * in following situations:
 			 *
@@ -598,6 +588,34 @@ void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
 {
 	DEG::deg_editor_update_id_cb = id_func;
 	DEG::deg_editor_update_scene_cb = scene_func;
+}
+
+bool DEG_is_active(const struct Depsgraph *depsgraph)
+{
+	if (depsgraph == NULL) {
+		/* Happens for such cases as work object in what_does_obaction(),
+		 * and sine render pipeline parts. Shouldn't really be accepting
+		 * NULL depsgraph, but is quite hard to get proper one in those
+		 * cases.
+		 */
+		return false;
+	}
+	const DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
+	return deg_graph->is_active;
+}
+
+void DEG_make_active(struct Depsgraph *depsgraph)
+{
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	deg_graph->is_active = true;
+	/* TODO(sergey): Copy data from evaluated state to original. */
+}
+
+void DEG_make_inactive(struct Depsgraph *depsgraph)
+{
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	deg_graph->is_active = false;
 }
 
 /* Evaluation and debug */

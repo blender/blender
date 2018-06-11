@@ -69,7 +69,7 @@ void main(void)
 		return;
 
 	/* Don't outline if concave edge. */
-	if (dot(n0, v13) > 0.0)
+	if (dot(n0, v13) > 0.0001)
 		return;
 
 	vec2 thick = vColSize[0].w * (lineThickness / viewportSize);

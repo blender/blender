@@ -171,7 +171,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;
 	}
-	
+
 	/* same logic as BKE_appdir_folder_id_create(), but best leave it up to the script author to create */
 	path = BKE_appdir_folder_id(folder_id, subdir);
 

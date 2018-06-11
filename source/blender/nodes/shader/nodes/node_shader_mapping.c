@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -56,7 +56,7 @@ static void node_shader_exec_mapping(void *UNUSED(data), int UNUSED(thread), bNo
 {
 	TexMapping *texmap = node->storage;
 	float *vec = out[0]->vec;
-	
+
 	/* stack order input:  vector */
 	/* stack order output: vector */
 	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
@@ -105,7 +105,7 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 void register_node_type_sh_mapping(void)
 {
 	static bNodeType ntype;
-	
+
 	sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_mapping_in, sh_node_mapping_out);
@@ -114,6 +114,6 @@ void register_node_type_sh_mapping(void)
 	node_type_storage(&ntype, "TexMapping", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_initexec_mapping, NULL, node_shader_exec_mapping);
 	node_type_gpu(&ntype, gpu_shader_mapping);
-	
+
 	nodeRegisterType(&ntype);
 }

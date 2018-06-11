@@ -41,6 +41,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_ocean.h"
 
@@ -49,7 +51,7 @@
 #ifdef WITH_OCEANSIM
 static void init_cache_data(Object *ob, struct OceanModifierData *omd)
 {
-	const char *relbase = modifier_path_relbase(ob);
+	const char *relbase = modifier_path_relbase_from_global(ob);
 
 	omd->oceancache = BKE_ocean_init_cache(omd->cachepath, relbase,
 	                                       omd->bakestart, omd->bakeend, omd->wave_scale,

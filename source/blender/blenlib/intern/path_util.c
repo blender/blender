@@ -83,7 +83,7 @@ static bool BLI_path_is_abs(const char *name);
  * \param tail  Optional area to return copy of part of string following digits, or from dot if no digits.
  * \param numlen  Optional to return number of digits found.
  */
-int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *numlen)
+int BLI_stringdec(const char *string, char *head, char *tail, ushort *r_num_len)
 {
 	uint nums = 0, nume = 0;
 	int i;
@@ -93,8 +93,12 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 	const uint lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
 	uint name_end = string_len;
 
-	while (name_end > lslash_len && string[--name_end] != '.') {} /* name ends at dot if present */
-	if (name_end == lslash_len && string[name_end] != '.') name_end = string_len;
+	while (name_end > lslash_len && string[--name_end] != '.') {
+		/* name ends at dot if present */
+	}
+	if (name_end == lslash_len && string[name_end] != '.') {
+		name_end = string_len;
+	}
 
 	for (i = name_end - 1; i >= (int)lslash_len; i--) {
 		if (isdigit(string[i])) {
@@ -113,25 +117,35 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 	}
 
 	if (found_digit) {
-		if (tail) strcpy(tail, &string[nume + 1]);
-		if (head) {
-			strcpy(head, string);
-			head[nums] = 0;
+		const long long int ret = strtoll(&(string[nums]), NULL, 10);
+		if (ret >= INT_MIN && ret <= INT_MAX) {
+			if (tail) {
+				strcpy(tail, &string[nume + 1]);
+			}
+			if (head) {
+				strcpy(head, string);
+				head[nums] = 0;
+			}
+			if (r_num_len) {
+				*r_num_len = nume - nums + 1;
+			}
+			return (int)ret;
 		}
-		if (numlen) *numlen = nume - nums + 1;
-		return ((int)atoi(&(string[nums])));
 	}
-	else {
-		if (tail) strcpy(tail, string + name_end);
-		if (head) {
-			/* name_end points to last character of head,
-			 * make it +1 so null-terminator is nicely placed
-			 */
-			BLI_strncpy(head, string, name_end + 1);
-		}
-		if (numlen) *numlen = 0;
-		return 0;
+
+	if (tail) {
+		strcpy(tail, string + name_end);
 	}
+	if (head) {
+		/* name_end points to last character of head,
+		 * make it +1 so null-terminator is nicely placed
+		 */
+		BLI_strncpy(head, string, name_end + 1);
+	}
+	if (r_num_len) {
+		*r_num_len = 0;
+	}
+	return 0;
 }
 
 
@@ -1745,7 +1759,7 @@ bool BLI_path_name_at_index(const char *path, const int index, int *r_offset, in
 #if 0
 /**
  * Produce image export path.
- * 
+ *
  * Returns:
  * 0        if image filename is empty or if destination path
  *          matches image path (i.e. both are the same file).
@@ -1759,12 +1773,12 @@ bool BLI_path_name_at_index(const char *path, const int index, int *r_offset, in
  * - if an image is "below" current .blend file directory:
  *   rebuild the same dir structure in dest_dir
  *
- *   Example: 
+ *   Example:
  *   src : //textures/foo/bar.png
  *   dest: [dest_dir]/textures/foo/bar.png.
  *
  * - if an image is not "below" current .blend file directory,
- *   disregard it's path and copy it into the destination  
+ *   disregard it's path and copy it into the destination
  *   directory.
  *
  *   Example:

@@ -315,7 +315,7 @@ public:
 	 * \return The current status.
 	 */
 	virtual bool getFullScreen(void) = 0;
-	
+
 	/**
 	 * Native pixel size support (MacBook 'retina').
 	 */

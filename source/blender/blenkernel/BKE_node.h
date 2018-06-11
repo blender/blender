@@ -87,7 +87,7 @@ struct bNodeInstanceHash;
 
 /** Compact definition of a node socket.
  * Can be used to quickly define a list of static sockets for a node,
- * which are added to each new node of that type. 
+ * which are added to each new node of that type.
  *
  * \deprecated This struct is used by C nodes to define templates as simple
  * static struct lists. These are converted to the new template collections
@@ -293,7 +293,7 @@ typedef struct bNodeTreeType {
 	/* calls allowing threaded composite */
 	void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
 	void (*local_sync)(struct bNodeTree *localtree, struct bNodeTree *ntree);
-	void (*local_merge)(struct bNodeTree *localtree, struct bNodeTree *ntree);
+	void (*local_merge)(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 	/* Tree update. Overrides nodetype->updatetreefunc! */
 	void (*update)(struct bNodeTree *ntree);
@@ -345,7 +345,7 @@ void              ntreeUserIncrefID(struct bNodeTree *ntree);
 void              ntreeUserDecrefID(struct bNodeTree *ntree);
 
 
-struct bNodeTree *ntreeFromID(struct ID *id);
+struct bNodeTree *ntreeFromID(const struct ID *id);
 
 void              ntreeMakeLocal(struct Main *bmain, struct bNodeTree *ntree, bool id_in_mainlist, const bool lib_local);
 struct bNode     *ntreeFindType(const struct bNodeTree *ntree, int type);
@@ -371,7 +371,7 @@ int             ntreeOutputExists(struct bNode *node, struct bNodeSocket *testso
 void            ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable);
 struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
 void            ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
-void            ntreeLocalMerge(struct bNodeTree *localtree, struct bNodeTree *ntree);
+void            ntreeLocalMerge(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 /** \} */
 
@@ -1055,9 +1055,6 @@ void free_nodesystem(void);
 /* evaluation support, */
 
 struct Depsgraph;
-
-void BKE_nodetree_copy_default_values(struct bNodeTree *ntree_dst,
-                                      const struct bNodeTree *ntree_src);
 
 void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
                                       struct bNodeTree *ntree_dst,

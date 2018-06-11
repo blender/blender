@@ -60,7 +60,7 @@ class AbstractFFmpegSequencerTest(AbstractFFmpegTest):
 class FPSDetectionTest(AbstractFFmpegSequencerTest):
     def test_T51153(self):
         self.assertAlmostEqual(
-            self.get_movie_file_fps('T51153_bad_clip_2.mts'), 
+            self.get_movie_file_fps('T51153_bad_clip_2.mts'),
             29.97,
             places=2)
 

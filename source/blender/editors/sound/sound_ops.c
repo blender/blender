@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -375,7 +375,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	specs.rate = scene->r.ffcodecdata.audio_mixrate;
 
 	BLI_strncpy(filename, path, sizeof(filename));
-	BLI_path_abs(filename, bmain->name);
+	BLI_path_abs(filename, BKE_main_blendfile_path(bmain));
 
 	if (split)
 		result = AUD_mixdown_per_channel(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA + 1) * specs.rate / FPS,

@@ -38,6 +38,7 @@
 #include "MOD_modifiertypes.h"
 
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 
 #include <assert.h>
 #include <stdlib.h>

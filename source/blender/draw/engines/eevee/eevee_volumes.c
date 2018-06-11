@@ -65,7 +65,6 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_bsdf_direct_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
@@ -92,7 +91,6 @@ static void eevee_create_shader_volumes(void)
 	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_bsdf_direct_lib_glsl,
 	        datatoc_octahedron_lib_glsl,
 	        datatoc_irradiance_lib_glsl,
 	        datatoc_lamps_lib_glsl,

@@ -84,16 +84,16 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 	GLfloat angle, da;
 	GLfloat u, v, len;
 	const double pi = 3.14159264;
-	
+
 	r0 = inner_radius;
 	r1 = (float)(outer_radius - tooth_depth / 2.0);
 	r2 = (float)(outer_radius + tooth_depth / 2.0);
-	
+
 	da = (float)(2.0 * pi / teeth / 4.0);
-	
+
 	glShadeModel(GL_FLAT);
 	glNormal3f(0.0, 0.0, 1.0);
-	
+
 	/* draw front face */
 	glBegin(GL_QUAD_STRIP);
 	for (i = 0; i <= teeth; i++) {
@@ -104,7 +104,7 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 		glVertex3f((float)(r1 * cos(angle + 3 * da)), (float)(r1 * sin(angle + 3 * da)), (float)(width * 0.5));
 	}
 	glEnd();
-	
+
 	/* draw front sides of teeth */
 	glBegin(GL_QUADS);
 	da = (float)(2.0 * pi / teeth / 4.0);
@@ -116,9 +116,9 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 		glVertex3f((float)(r1 * cos(angle + 3 * da)), (float)(r1 * sin(angle + 3 * da)), (float)(width * 0.5));
 	}
 	glEnd();
-	
+
 	glNormal3f(0.0, 0.0, -1.0);
-	
+
 	/* draw back face */
 	glBegin(GL_QUAD_STRIP);
 	for (i = 0; i <= teeth; i++) {
@@ -129,7 +129,7 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 		glVertex3f((float)(r0 * cos(angle)), (float)(r0 * sin(angle)), (float)(-width * 0.5));
 	}
 	glEnd();
-	
+
 	/* draw back sides of teeth */
 	glBegin(GL_QUADS);
 	da = (float)(2.0 * pi / teeth / 4.0);
@@ -141,7 +141,7 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 		glVertex3f((float)(r1 * cos(angle)), (float)(r1 * sin(angle)), (float)(-width * 0.5));
 	}
 	glEnd();
-	
+
 	/* draw outward faces of teeth */
 	glBegin(GL_QUAD_STRIP);
 	for (i = 0; i < teeth; i++) {
@@ -169,9 +169,9 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 	glVertex3f((float)(r1 * cos(0.0)), (float)(r1 * sin(0.0)), (float)(width * 0.5));
 	glVertex3f((float)(r1 * cos(0.0)), (float)(r1 * sin(0.0)), (float)(-width * 0.5));
 	glEnd();
-	
+
 	glShadeModel(GL_SMOOTH);
-	
+
 	/* draw inside radius cylinder */
 	glBegin(GL_QUAD_STRIP);
 	for (i = 0; i <= teeth; i++) {
@@ -191,13 +191,13 @@ static void drawGearGL(int id)
 	static GLfloat ared[4] = { 0.8f, 0.1f, 0.0f, 1.0f };
 	static GLfloat agreen[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 	static GLfloat ablue[4] = { 0.2f, 0.2f, 1.0f, 1.0f };
-	
+
 	glLightfv(GL_LIGHT0, GL_POSITION, pos);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_DEPTH_TEST);
-	
+
 	switch (id)
 	{
 		case 1:
@@ -222,32 +222,32 @@ static void drawGearGL(int id)
 static void drawGL(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	glPushMatrix();
-	
+
 	glRotatef(view_rotx, 1.0, 0.0, 0.0);
 	glRotatef(view_roty, 0.0, 1.0, 0.0);
 	glRotatef(view_rotz, 0.0, 0.0, 1.0);
-	
+
 	glPushMatrix();
 	glTranslatef(-3.0, -2.0, 0.0);
 	glRotatef(fAngle, 0.0, 0.0, 1.0);
 	drawGearGL(1);
 	glPopMatrix();
-	
+
 	glPushMatrix();
 	glTranslatef(3.1f, -2.0f, 0.0f);
 	glRotatef((float)(-2.0 * fAngle - 9.0), 0.0, 0.0, 1.0);
 	drawGearGL(2);
 	glPopMatrix();
-	
+
 	glPushMatrix();
 	glTranslatef(-3.1f, 2.2f, -1.8f);
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 	glRotatef((float)(2.0 * fAngle - 2.0), 0.0, 0.0, 1.0);
 	drawGearGL(3);
 	glPopMatrix();
-	
+
 	glPopMatrix();
 }
 
@@ -256,13 +256,13 @@ static void setViewPortGL(GHOST_WindowHandle hWindow)
 {
 	GHOST_RectangleHandle hRect = NULL;
 	GLfloat w, h;
-	
+
 	GHOST_ActivateWindowDrawingContext(hWindow);
 	hRect = GHOST_GetClientBounds(hWindow);
-	
+
 	w = (float)GHOST_GetWidthRectangle(hRect) / (float)GHOST_GetHeightRectangle(hRect);
 	h = 1.0;
-	
+
 	glViewport(0, 0, GHOST_GetWidthRectangle(hRect), GHOST_GetHeightRectangle(hRect));
 
 	glMatrixMode(GL_PROJECTION);
@@ -272,7 +272,7 @@ static void setViewPortGL(GHOST_WindowHandle hWindow)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(0.0, 0.0, -40.0);
-	
+
 	glClearColor(.2f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -290,7 +290,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 	GHOST_TEventWheelData *wheelData = NULL;
 	GHOST_DisplaySetting setting;
 	GHOST_WindowHandle window = GHOST_GetEventWindow(hEvent);
-	
+
 	switch (GHOST_GetEventType(hEvent))
 	{
 #if 0
@@ -316,7 +316,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 
 		case GHOST_kEventKeyUp:
 			break;
-		
+
 		case GHOST_kEventKeyDown:
 		{
 			keyData = (GHOST_TEventKeyData *)GHOST_GetEventData(hEvent);
@@ -391,7 +391,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 
 						sprintf(ntitle, "%s-", title);
 						GHOST_SetTitle(sMainWindow, ntitle);
-						
+
 						free(ntitle);
 						free(title);
 					}
@@ -402,7 +402,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 			}
 		}
 		break;
-		
+
 		case GHOST_kEventWindowClose:
 		{
 			GHOST_WindowHandle window2 = GHOST_GetEventWindow(hEvent);
@@ -420,7 +420,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 			}
 		}
 		break;
-		
+
 		case GHOST_kEventWindowActivate:
 			handled = 0;
 			break;
@@ -437,7 +437,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 			GHOST_SwapWindowBuffers(window2);
 		}
 		break;
-		
+
 		default:
 			handled = 0;
 			break;
@@ -456,7 +456,7 @@ int main(int argc, char **argv)
 	/* Create the system */
 	shSystem = GHOST_CreateSystem();
 	GHOST_AddEventConsumer(shSystem, consumer);
-	
+
 	if (shSystem)
 	{
 		/* Create the main window */
@@ -471,7 +471,7 @@ int main(int argc, char **argv)
 			printf("could not create main window\n");
 			exit(-1);
 		}
-		
+
 		/* Create a secondary window */
 		sSecondaryWindow = GHOST_CreateWindow(
 		        shSystem,
@@ -485,7 +485,7 @@ int main(int argc, char **argv)
 			printf("could not create secondary window\n");
 			exit(-1);
 		}
-		
+
 		/* Install a timer to have the gears running */
 		sGearsTimer = GHOST_InstallTimer(shSystem,
 		                                 0,
@@ -496,7 +496,7 @@ int main(int argc, char **argv)
 		/* Enter main loop */
 		while (!sExitRequested)
 		{
-			if (!GHOST_ProcessEvents(shSystem, 0)) 
+			if (!GHOST_ProcessEvents(shSystem, 0))
 			{
 #ifdef WIN32
 				/* If there were no events, be nice to other applications */
@@ -519,7 +519,7 @@ int main(int argc, char **argv)
 
 	/* Dispose the system */
 	GHOST_DisposeSystem(shSystem);
-	
+
 	return 0;
 }
 

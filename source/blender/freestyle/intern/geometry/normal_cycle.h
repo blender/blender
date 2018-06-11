@@ -21,9 +21,9 @@
  *   Contact: Bruno Levy
  *      levy@loria.fr
  *      ISA Project
- *      LORIA, INRIA Lorraine, 
+ *      LORIA, INRIA Lorraine,
  *      Campus Scientifique, BP 239
- *      54506 VANDOEUVRE LES NANCY CEDEX 
+ *      54506 VANDOEUVRE LES NANCY CEDEX
  *      FRANCE
  *
  * Contributor(s): none yet.

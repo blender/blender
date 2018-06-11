@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -78,15 +78,15 @@ ARegion *nla_has_buttons_region(ScrArea *sa)
 
 	/* is error! */
 	if (ar == NULL) return NULL;
-	
+
 	arnew = MEM_callocN(sizeof(ARegion), "buttons for nla");
-	
+
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype = RGN_TYPE_UI;
 	arnew->alignment = RGN_ALIGN_RIGHT;
-	
+
 	arnew->flag = RGN_FLAG_HIDDEN;
-	
+
 	return arnew;
 }
 
@@ -98,58 +98,58 @@ static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
 {
 	ARegion *ar;
 	SpaceNla *snla;
-	
+
 	snla = MEM_callocN(sizeof(SpaceNla), "initnla");
 	snla->spacetype = SPACE_NLA;
-	
+
 	/* allocate DopeSheet data for NLA Editor */
 	snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
 	snla->ads->source = (ID *)scene;
-	
+
 	/* set auto-snapping settings */
 	snla->autosnap = SACTSNAP_FRAME;
-	
+
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for nla");
-	
+
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_TOP;
-	
+
 	/* channel list region */
 	ar = MEM_callocN(sizeof(ARegion), "channel list for nla");
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype = RGN_TYPE_CHANNELS;
 	ar->alignment = RGN_ALIGN_LEFT;
-	
+
 	/* only need to set these settings since this will use the 'stack' configuration */
 	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
 	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
-	
+
 	/* ui buttons */
 	ar = MEM_callocN(sizeof(ARegion), "buttons region for nla");
-	
+
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype = RGN_TYPE_UI;
 	ar->alignment = RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
-	
+
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for nla");
-	
+
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
-	
+
 	ar->v2d.tot.xmin = (float)(SFRA - 10);
 	ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
 	ar->v2d.tot.xmax = (float)(EFRA + 10);
 	ar->v2d.tot.ymax = 0.0f;
-	
+
 	ar->v2d.cur = ar->v2d.tot;
-	
+
 	ar->v2d.min[0] = 0.0f;
 	ar->v2d.min[1] = 0.0f;
-	
+
 	ar->v2d.max[0] = MAXFRAMEF;
 	ar->v2d.max[1] = 10000.0f;
 
@@ -161,15 +161,15 @@ static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
 	ar->v2d.keepofs = V2D_KEEPOFS_Y;
 	ar->v2d.align = V2D_ALIGN_NO_POS_Y;
 	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
-	
+
 	return (SpaceLink *)snla;
 }
 
 /* not spacelink itself */
 static void nla_free(SpaceLink *sl)
-{	
+{
 	SpaceNla *snla = (SpaceNla *) sl;
-	
+
 	if (snla->ads) {
 		BLI_freelistN(&snla->ads->chanbase);
 		MEM_freeN(snla->ads);
@@ -181,7 +181,7 @@ static void nla_free(SpaceLink *sl)
 static void nla_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceNla *snla = (SpaceNla *)sa->spacedata.first;
-	
+
 	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (snla->ads == NULL) {
 		snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
@@ -194,10 +194,10 @@ static void nla_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 static SpaceLink *nla_duplicate(SpaceLink *sl)
 {
 	SpaceNla *snlan = MEM_dupallocN(sl);
-	
+
 	/* clear or remove stuff from old */
 	snlan->ads = MEM_dupallocN(snlan->ads);
-	
+
 	return (SpaceLink *)snlan;
 }
 
@@ -205,12 +205,12 @@ static SpaceLink *nla_duplicate(SpaceLink *sl)
 static void nla_channel_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
+
 	/* ensure the 2d view sync works - main region has bottom scroller */
 	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
-	
+
 	/* own keymap */
 	/* own channels map first to override some channel keymaps */
 	keymap = WM_keymap_find(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
@@ -218,7 +218,7 @@ static void nla_channel_region_init(wmWindowManager *wm, ARegion *ar)
 	/* now generic channels map for everything else that can apply */
 	keymap = WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	
+
 	keymap = WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
@@ -229,21 +229,21 @@ static void nla_channel_region_draw(const bContext *C, ARegion *ar)
 	bAnimContext ac;
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
-	
+
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	UI_view2d_view_ortho(v2d);
-	
+
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
 		draw_nla_channel_list(C, &ac, ar);
 	}
-	
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
-	
+
 	/* scrollers */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
@@ -255,9 +255,9 @@ static void nla_channel_region_draw(const bContext *C, ARegion *ar)
 static void nla_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
-	
+
 	/* own keymap */
 	keymap = WM_keymap_find(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
@@ -275,59 +275,59 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	short unit = 0, cfra_flag = 0;
-	
+
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	UI_view2d_view_ortho(v2d);
-	
+
 	/* time grid */
 	unit = (snla->flag & SNLA_DRAWTIME) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
 	grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
-	
+
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
-	
+
 	/* start and end frame */
 	ANIM_draw_framerange(scene, v2d);
-	
+
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
 		/* strips and backdrops */
 		draw_nla_main_data(&ac, snla, ar);
-		
+
 		/* text draw cached, in pixelspace now */
 		UI_view2d_text_cache_draw(ar);
 	}
-	
+
 	UI_view2d_view_ortho(v2d);
-	
+
 	/* current frame */
 	if (snla->flag & SNLA_DRAWTIME) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
 	ANIM_draw_cfra(C, v2d, cfra_flag);
-	
+
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	ED_markers_draw(C, DRAW_MARKERS_MARGIN);
-	
+
 	/* preview range */
 	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d, 0);
-	
+
 	/* callback */
 	UI_view2d_view_ortho(v2d);
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
-	
+
 	/* scrollers */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
-	
+
 	/* draw current frame number-indicator on top of scrollers */
 	if ((snla->flag & SNLA_NODRAWCFRANUM) == 0) {
 		UI_view2d_view_orthoSpecial(ar, v2d, 1);
@@ -351,9 +351,9 @@ static void nla_header_region_draw(const bContext *C, ARegion *ar)
 static void nla_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
+
 	ED_region_panels_init(wm, ar);
-	
+
 	keymap = WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
@@ -541,7 +541,7 @@ static void nla_channel_region_message_subscribe(
 		.user_data = ar,
 		.notify = ED_region_do_msg_notify_tag_redraw,
 	};
-	
+
 	/* All dopesheet filter settings, etc. affect the drawing of this editor,
 	 * so just whitelist the entire struct for updates
 	 */
@@ -603,7 +603,7 @@ static void nla_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scen
 static void nla_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
 {
 	SpaceNla *snla = (SpaceNla *)slink;
-	
+
 	if (snla->ads) {
 		if ((ID *)snla->ads->filter_grp == old_id) {
 			snla->ads->filter_grp = (Collection *)new_id;
@@ -619,10 +619,10 @@ void ED_spacetype_nla(void)
 {
 	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype nla");
 	ARegionType *art;
-	
+
 	st->spaceid = SPACE_NLA;
 	strncpy(st->name, "NLA", BKE_ST_MAXNAME);
-	
+
 	st->new = nla_new;
 	st->free = nla_free;
 	st->init = nla_init;
@@ -642,31 +642,31 @@ void ED_spacetype_nla(void)
 	art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_MARKERS | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
-	
+
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
-	
+
 	art->init = nla_header_region_init;
 	art->draw = nla_header_region_draw;
-	
+
 	BLI_addhead(&st->regiontypes, art);
-	
+
 	/* regions: channels */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->prefsizex = 200;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
-	
+
 	art->init = nla_channel_region_init;
 	art->draw = nla_channel_region_draw;
 	art->listener = nla_channel_region_listener;
 	art->message_subscribe = nla_channel_region_message_subscribe;
-	
+
 	BLI_addhead(&st->regiontypes, art);
-	
+
 	/* regions: UI buttons */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_UI;
@@ -675,11 +675,11 @@ void ED_spacetype_nla(void)
 	art->listener = nla_region_listener;
 	art->init = nla_buttons_region_init;
 	art->draw = nla_buttons_region_draw;
-	
+
 	BLI_addhead(&st->regiontypes, art);
 
 	nla_buttons_register(art);
-	
-	
+
+
 	BKE_spacetype_register(st);
 }

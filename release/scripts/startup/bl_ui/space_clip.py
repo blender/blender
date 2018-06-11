@@ -57,14 +57,16 @@ class CLIP_HT_header(Header):
         sc = context.space_data
         clip = sc.clip
 
-        CLIP_MT_tracking_editor_menus.draw_collapsible(context, layout)
-
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
+
+        CLIP_MT_tracking_editor_menus.draw_collapsible(context, layout)
 
         if clip:
             tracking = clip.tracking
             active_object = tracking.objects.active
+
+            layout.separator_spacer()
 
             if sc.view == 'CLIP':
                 layout.prop(sc, "pivot_point", text="", icon_only=True)
@@ -122,14 +124,15 @@ class CLIP_HT_header(Header):
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
 
+            layout.separator_spacer()
+
             layout.prop(sc, "pivot_point", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(toolsettings, "use_proportional_edit_mask",
-                     text="", icon_only=True)
-            if toolsettings.use_proportional_edit_mask:
-                row.prop(toolsettings, "proportional_edit_falloff",
-                         text="", icon_only=True)
+            row.prop(toolsettings, "use_proportional_edit_mask", text="", icon_only=True)
+            sub = row.row(align=True)
+            sub.active = toolsettings.use_proportional_edit_mask
+            sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
     def draw(self, context):
         layout = self.layout
@@ -1018,9 +1021,11 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
         if clip.use_proxy_custom_directory:
             col.prop(clip.proxy, "directory")
 
-        col.operator("clip.rebuild_proxy",
-                     text="Build Proxy / Timecode" if clip.source == 'MOVIE'
-                                                   else "Build Proxy")
+        col.operator(
+            "clip.rebuild_proxy",
+            text="Build Proxy / Timecode" if clip.source == 'MOVIE'
+            else "Build Proxy"
+        )
 
         if clip.source == 'MOVIE':
             col2 = col.column()
@@ -1188,6 +1193,7 @@ class CLIP_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
 # Grease Pencil drawing curves
 class CLIP_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'
+
 
 class CLIP_MT_view(Menu):
     bl_label = "View"

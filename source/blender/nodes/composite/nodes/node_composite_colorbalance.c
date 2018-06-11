@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -52,7 +52,7 @@ void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeColorBalance *n = node->storage;
 	int c;
-	
+
 	for (c = 0; c < 3; ++c) {
 		n->slope[c] = (2.0f - n->lift[c]) * n->gain[c];
 		n->offset[c] = (n->lift[c] - 1.0f) * n->gain[c];
@@ -64,7 +64,7 @@ void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeColorBalance *n = node->storage;
 	int c;
-	
+
 	for (c = 0; c < 3; ++c) {
 		float d = n->slope[c] + n->offset[c];
 		n->lift[c] = (d != 0.0f ? n->slope[c] + 2.0f * n->offset[c] / d : 0.0f);

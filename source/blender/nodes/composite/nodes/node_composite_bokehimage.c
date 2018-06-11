@@ -54,7 +54,7 @@ static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
 void register_node_type_cmp_bokehimage(void)
 {
 	static bNodeType ntype;
-	
+
 	cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, NULL, cmp_node_bokehimage_out);
 	node_type_init(&ntype, node_composit_init_bokehimage);

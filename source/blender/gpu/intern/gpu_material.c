@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,6 +46,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_rand.h"
+#include "BLI_threads.h"
 
 #include "BKE_anim.h"
 #include "BKE_colorband.h"
@@ -74,6 +75,9 @@
 #  include "BKE_DerivedMesh.h"
 #endif
 
+static ListBase g_orphaned_mat = {NULL, NULL};
+static ThreadMutex g_orphan_lock;
+
 /* Structs */
 
 struct GPUMaterial {
@@ -87,7 +91,7 @@ struct GPUMaterial {
 
 	const void *engine_type;   /* attached engine type */
 	int options;    /* to identify shader variations (shadow, probe, world background...) */
-	
+
 	/* for creating the material */
 	ListBase nodes;
 	GPUNodeLink *outlink;
@@ -127,10 +131,11 @@ struct GPUMaterial {
 	/* Eevee SSS */
 	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
 	GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
-	float *sss_radii; /* UBO containing SSS profile. */
+	float sss_enabled;
+	float sss_radii[3];
 	int sss_samples;
-	short int *sss_falloff;
-	float *sss_sharpness;
+	short int sss_falloff;
+	float sss_sharpness;
 	bool sss_dirty;
 };
 
@@ -142,36 +147,70 @@ enum {
 
 /* Functions */
 
+static void gpu_material_free_single(GPUMaterial *material)
+{
+	/* Cancel / wait any pending lazy compilation. */
+	DRW_deferred_shader_remove(material);
+
+	GPU_pass_free_nodes(&material->nodes);
+	GPU_inputs_free(&material->inputs);
+
+	if (material->pass)
+		GPU_pass_release(material->pass);
+
+	if (material->ubo != NULL) {
+		GPU_uniformbuffer_free(material->ubo);
+	}
+
+	if (material->sss_tex_profile != NULL) {
+		GPU_texture_free(material->sss_tex_profile);
+	}
+
+	if (material->sss_profile != NULL) {
+		GPU_uniformbuffer_free(material->sss_profile);
+	}
+}
+
 void GPU_material_free(ListBase *gpumaterial)
 {
 	for (LinkData *link = gpumaterial->first; link; link = link->next) {
 		GPUMaterial *material = link->data;
 
-		/* Cancel / wait any pending lazy compilation. */
-		DRW_deferred_shader_remove(material);
-
-		GPU_pass_free_nodes(&material->nodes);
-		GPU_inputs_free(&material->inputs);
-
-		if (material->pass)
-			GPU_pass_release(material->pass);
-
-		if (material->ubo != NULL) {
-			GPU_uniformbuffer_free(material->ubo);
+		/* TODO(fclem): Check if the thread has an ogl context. */
+		if (BLI_thread_is_main()) {
+			gpu_material_free_single(material);
+			MEM_freeN(material);
 		}
-
-		if (material->sss_tex_profile != NULL) {
-			GPU_texture_free(material->sss_tex_profile);
+		else {
+			BLI_mutex_lock(&g_orphan_lock);
+			BLI_addtail(&g_orphaned_mat, BLI_genericNodeN(material));
+			BLI_mutex_unlock(&g_orphan_lock);
 		}
-
-		if (material->sss_profile != NULL) {
-			GPU_uniformbuffer_free(material->sss_profile);
-		}
-
-		MEM_freeN(material);
 	}
-
 	BLI_freelistN(gpumaterial);
+}
+
+void GPU_material_orphans_init(void)
+{
+	BLI_mutex_init(&g_orphan_lock);
+}
+
+void GPU_material_orphans_delete(void)
+{
+	BLI_mutex_lock(&g_orphan_lock);
+	LinkData *link;
+	while ((link = BLI_pophead(&g_orphaned_mat))) {
+		gpu_material_free_single((GPUMaterial *)link->data);
+		MEM_freeN(link->data);
+		MEM_freeN(link);
+	}
+	BLI_mutex_unlock(&g_orphan_lock);
+}
+
+void GPU_material_orphans_exit(void)
+{
+	GPU_material_orphans_delete();
+	BLI_mutex_end(&g_orphan_lock);
 }
 
 GPUBuiltin GPU_get_material_builtins(GPUMaterial *material)
@@ -199,7 +238,7 @@ ListBase *GPU_material_get_inputs(GPUMaterial *material)
 	return &material->inputs;
 }
 
-GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material)
+GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material)
 {
 	return material->ubo;
 }
@@ -208,22 +247,9 @@ GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material)
  * Create dynamic UBO from parameters
  * \param ListBase of BLI_genericNodeN(GPUInput)
  */
-void GPU_material_create_uniform_buffer(GPUMaterial *material, ListBase *inputs)
+void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 {
 	material->ubo = GPU_uniformbuffer_dynamic_create(inputs, NULL);
-}
-
-void GPU_material_uniform_buffer_tag_dirty(ListBase *gpumaterials)
-{
-	for (LinkData *link = gpumaterials->first; link; link = link->next) {
-		GPUMaterial *material = link->data;
-		if (material->ubo != NULL) {
-			GPU_uniformbuffer_tag_dirty(material->ubo);
-		}
-		if (material->sss_profile != NULL) {
-			material->sss_dirty = true;
-		}
-	}
 }
 
 /* Eevee Subsurface scattering. */
@@ -328,7 +354,7 @@ static float eval_integral(float x0, float x1, short falloff_type, float sharpne
 #undef INTEGRAL_RESOLUTION
 
 static void compute_sss_kernel(
-        GPUSssKernelData *kd, float *radii, int sample_ct, int falloff_type, float sharpness)
+        GPUSssKernelData *kd, float radii[3], int sample_ct, int falloff_type, float sharpness)
 {
 	float rad[3];
 	/* Minimum radius */
@@ -483,12 +509,13 @@ static void compute_sss_translucence_kernel(
 }
 #undef INTEGRAL_RESOLUTION
 
-void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short *falloff_type, float *sharpness)
+void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], short *falloff_type, float *sharpness)
 {
-	material->sss_radii = radii;
-	material->sss_falloff = falloff_type;
-	material->sss_sharpness = sharpness;
+	copy_v3_v3(material->sss_radii, radii);
+	material->sss_falloff = (falloff_type) ? *falloff_type : 0.0;
+	material->sss_sharpness = (sharpness) ? *sharpness : 0.0;
 	material->sss_dirty = true;
+	material->sss_enabled = true;
 
 	/* Update / Create UBO */
 	if (material->sss_profile == NULL) {
@@ -498,25 +525,25 @@ void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short 
 
 struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct, GPUTexture **tex_profile)
 {
-	if (material->sss_radii == NULL)
+	if (!material->sss_enabled)
 		return NULL;
 
 	if (material->sss_dirty || (material->sss_samples != sample_ct)) {
 		GPUSssKernelData kd;
 
-		float sharpness = (material->sss_sharpness != NULL) ? *material->sss_sharpness : 0.0f;
+		float sharpness = material->sss_sharpness;
 
 		/* XXX Black magic but it seems to fit. Maybe because we integrate -1..1 */
 		sharpness *= 0.5f;
 
-		compute_sss_kernel(&kd, material->sss_radii, sample_ct, *material->sss_falloff, sharpness);
+		compute_sss_kernel(&kd, material->sss_radii, sample_ct, material->sss_falloff, sharpness);
 
 		/* Update / Create UBO */
 		GPU_uniformbuffer_update(material->sss_profile, &kd);
 
 		/* Update / Create Tex */
 		float *translucence_profile;
-		compute_sss_translucence_kernel(&kd, 64, *material->sss_falloff, sharpness, &translucence_profile);
+		compute_sss_translucence_kernel(&kd, 64, material->sss_falloff, sharpness, &translucence_profile);
 
 		if (material->sss_tex_profile != NULL) {
 			GPU_texture_free(material->sss_tex_profile);
@@ -602,7 +629,8 @@ GPUMaterial *GPU_material_from_nodetree_find(
  * so only do this when they are needed.
  */
 GPUMaterial *GPU_material_from_nodetree(
-        Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, const void *engine_type, int options)
+        Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, const void *engine_type, int options,
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
 {
 	LinkData *link;
 	bool has_volume_output, has_surface_output;
@@ -631,11 +659,38 @@ GPUMaterial *GPU_material_from_nodetree(
 		 * generated VBOs are ready to accept the future shader. */
 		GPU_nodes_prune(&mat->nodes, mat->outlink);
 		GPU_nodes_get_vertex_attributes(&mat->nodes, &mat->attribs);
-		mat->status = GPU_MAT_QUEUED;
+		/* Create source code and search pass cache for an already compiled version. */
+		mat->pass = GPU_generate_pass_new(mat,
+		                      mat->outlink,
+		                      &mat->attribs,
+		                      &mat->nodes,
+		                      vert_code,
+		                      geom_code,
+		                      frag_lib,
+		                      defines);
+
+		if (mat->pass == NULL) {
+			/* We had a cache hit and the shader has already failed to compile. */
+			mat->status = GPU_MAT_FAILED;
+		}
+		else {
+			GPUShader *sh = GPU_pass_shader_get(mat->pass);
+			if (sh != NULL) {
+				/* We had a cache hit and the shader is already compiled. */
+				mat->status = GPU_MAT_SUCCESS;
+				GPU_nodes_extract_dynamic_inputs(sh, &mat->inputs, &mat->nodes);
+			}
+			else {
+				mat->status = GPU_MAT_QUEUED;
+			}
+		}
+	}
+	else {
+		mat->status = GPU_MAT_FAILED;
 	}
 
 	/* note that even if building the shader fails in some way, we still keep
-	 * it to avoid trying to compile again and again, and simple do not use
+	 * it to avoid trying to compile again and again, and simply do not use
 	 * the actual shader on drawing */
 
 	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
@@ -645,17 +700,26 @@ GPUMaterial *GPU_material_from_nodetree(
 	return mat;
 }
 
-void GPU_material_generate_pass(
-        GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+void GPU_material_compile(GPUMaterial *mat)
 {
-	BLI_assert(mat->pass == NULL); /* Only run once! */
-	if (mat->outlink) {
-		mat->pass = GPU_generate_pass_new(
-		        mat, mat->outlink, &mat->attribs, &mat->nodes, &mat->inputs, vert_code, geom_code, frag_lib, defines);
-		mat->status = (mat->pass) ? GPU_MAT_SUCCESS : GPU_MAT_FAILED;
+	/* Only run once! */
+	BLI_assert(mat->status == GPU_MAT_QUEUED);
+	BLI_assert(mat->pass);
+
+	/* NOTE: The shader may have already been compiled here since we are
+	 * sharing GPUShader across GPUMaterials. In this case it's a no-op. */
+	GPU_pass_compile(mat->pass);
+	GPUShader *sh = GPU_pass_shader_get(mat->pass);
+
+	if (sh != NULL) {
+		mat->status = GPU_MAT_SUCCESS;
+		GPU_nodes_extract_dynamic_inputs(sh, &mat->inputs, &mat->nodes);
 	}
 	else {
 		mat->status = GPU_MAT_FAILED;
+		GPU_pass_free_nodes(&mat->nodes);
+		GPU_pass_release(mat->pass);
+		mat->pass = NULL;
 	}
 }
 
@@ -670,6 +734,6 @@ void GPU_materials_free(void)
 
 	for (wo = G.main->world.first; wo; wo = wo->id.next)
 		GPU_material_free(&wo->gpumaterial);
-	
+
 	GPU_material_free(&defmaterial.gpumaterial);
 }

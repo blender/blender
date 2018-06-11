@@ -49,15 +49,19 @@
 #include "intern/nodes/deg_node_operation.h"
 
 struct Base;
+struct bArmature;
 struct bGPdata;
 struct CacheFile;
+struct Camera;
 struct ListBase;
 struct GHash;
 struct ID;
 struct FCurve;
 struct Collection;
 struct Key;
+struct Lamp;
 struct LayerCollection;
+struct LightProbe;
 struct Main;
 struct Mask;
 struct Material;
@@ -197,10 +201,17 @@ struct DepsgraphRelationBuilder
 	void build_id(ID *id);
 	void build_layer_collections(ListBase *lb);
 	void build_view_layer(Scene *scene, ViewLayer *view_layer);
-	void build_collection(Object *object, Collection *collection);
+	void build_collection(eDepsNode_CollectionOwner owner_type,
+	                      Object *object,
+	                      Collection *collection);
 	void build_object(Base *base, Object *object);
 	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);
+	void build_object_data_camera(Object *object);
+	void build_object_data_geometry(Object *object);
+	void build_object_data_geometry_datablock(ID *obdata);
+	void build_object_data_lamp(Object *object);
+	void build_object_data_lightprobe(Object *object);
 	void build_object_parent(Object *object);
 	void build_constraints(ID *id,
 	                       eDepsNode_Type component_type,
@@ -239,10 +250,10 @@ struct DepsgraphRelationBuilder
 	                         RootPChanMap *root_map);
 	void build_rig(Object *object);
 	void build_proxy_rig(Object *object);
-	void build_shapekeys(ID *obdata, Key *key);
-	void build_obdata_geom(Object *object);
-	void build_camera(Object *object);
-	void build_lamp(Object *object);
+	void build_shapekeys(Key *key);
+	void build_armature(bArmature *armature);
+	void build_camera(Camera *camera);
+	void build_lamp(Lamp *lamp);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);
 	void build_texture(Tex *tex);
@@ -251,7 +262,7 @@ struct DepsgraphRelationBuilder
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
-	void build_lightprobe(Object *object);
+	void build_lightprobe(LightProbe *probe);
 
 	void build_nested_datablock(ID *owner, ID *id);
 	void build_nested_nodetree(ID *owner, bNodeTree *ntree);

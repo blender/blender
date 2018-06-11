@@ -318,7 +318,7 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!clip)
 		return OPERATOR_CANCELLED;
 
-	BKE_movieclip_reload(clip);
+	BKE_movieclip_reload(CTX_data_main(C), clip);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
@@ -1315,7 +1315,7 @@ static void proxy_endjob(void *pjv)
 
 	if (pj->clip->source == MCLIP_SRC_MOVIE) {
 		/* Timecode might have changed, so do a full reload to deal with this. */
-		BKE_movieclip_reload(pj->clip);
+		BKE_movieclip_reload(pj->main, pj->clip);
 	}
 	else {
 		/* For image sequences we'll preserve original cache. */

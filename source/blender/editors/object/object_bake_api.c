@@ -276,7 +276,7 @@ static void refresh_images(BakeImages *bake_images)
 		Image *ima = bake_images->data[i].image;
 		if (ima->ok == IMA_OK_LOADED) {
 			GPU_free_image(ima);
-			DEG_id_tag_update(&ima->id, 0);		
+			DEG_id_tag_update(&ima->id, 0);
 		}
 	}
 }
@@ -625,7 +625,7 @@ static size_t initialize_internal_images(BakeImages *bake_images, ReportList *re
 /* create new mesh with edit mode changes and modifiers applied */
 static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph, Main *bmain, Scene *scene, Object *ob)
 {
-	ED_object_editmode_load(ob);
+	ED_object_editmode_load(bmain, ob);
 
 	Mesh *me = BKE_mesh_new_from_object(depsgraph, bmain, scene, ob, 1, 0, 0);
 	if (me->flag & ME_AUTOSMOOTH) {
@@ -1021,7 +1021,8 @@ cage_cleanup:
 				BakeData *bake = &scene->r.bake;
 				char name[FILE_MAX];
 
-				BKE_image_path_from_imtype(name, filepath, bmain->name, 0, bake->im_format.imtype, true, false, NULL);
+				BKE_image_path_from_imtype(name, filepath, BKE_main_blendfile_path(bmain),
+				                           0, bake->im_format.imtype, true, false, NULL);
 
 				if (is_automatic_name) {
 					BLI_path_suffix(name, FILE_MAX, ob_low->id.name + 2, "_");

@@ -45,8 +45,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "DEG_depsgraph_query.h"
-
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -56,6 +54,11 @@
 
 static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob && ob->type == OB_LAMP) {
@@ -82,18 +85,16 @@ static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmManipulator
 
 static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
 	wmManipulator *mpr = wwrapper->manipulator;
 	Object *ob = CTX_data_active_object(C);
-	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	Lamp *la = ob->data;
 	float dir[3];
 
-	negate_v3_v3(dir, ob_eval->obmat[2]);
+	negate_v3_v3(dir, ob->obmat[2]);
 
 	WM_manipulator_set_matrix_rotation_from_z_axis(mpr, dir);
-	WM_manipulator_set_matrix_location(mpr, ob_eval->obmat[3]);
+	WM_manipulator_set_matrix_location(mpr, ob->obmat[3]);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	PointerRNA lamp_ptr;
@@ -155,8 +156,12 @@ static void manipulator_area_lamp_prop_matrix_set(
 
 static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
-	Object *ob = CTX_data_active_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
 
+	Object *ob = CTX_data_active_object(C);
 	if (ob && ob->type == OB_LAMP) {
 		Lamp *la = ob->data;
 		return (la->type == LA_AREA);
@@ -183,13 +188,11 @@ static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulator
 static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
-	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	Lamp *la = ob_eval->data;
+	Lamp *la = ob->data;
 	wmManipulator *mpr = wwrapper->manipulator;
 
-	copy_m4_m4(mpr->matrix_basis, ob_eval->obmat);
+	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 
 	int flag = ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE;
 	if (ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_DISK)) {
@@ -232,6 +235,11 @@ void VIEW3D_WGT_lamp_area(wmManipulatorGroupType *wgt)
 
 static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob != NULL) {
@@ -272,12 +280,10 @@ static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmManipulat
 static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
-	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	wmManipulator *mpr = wwrapper->manipulator;
 
-	copy_m4_m4(mpr->matrix_basis, ob_eval->obmat);
+	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 	unit_m4(mpr->matrix_offset);
 	mpr->matrix_offset[3][2] = -2.4f / mpr->scale_basis;
 	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);

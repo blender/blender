@@ -15,8 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
@@ -39,7 +39,7 @@
  * is evaluating.
  *
  * The edge is detected by finding the closest point on the direct line between the two nearest flap-corners.
- * this edge is interpolated with a full circle. 
+ * this edge is interpolated with a full circle.
  * Result of this edge detection is stored as the distance between the center of the image and the edge.
  *
  * catadioptric lenses are simulated to interpolate between the center of the image and the distance of the edge.

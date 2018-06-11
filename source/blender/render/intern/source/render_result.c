@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -95,7 +95,7 @@ void render_result_free(RenderResult *res)
 		if (rl->acolrect) MEM_freeN(rl->acolrect);
 		if (rl->scolrect) MEM_freeN(rl->scolrect);
 		if (rl->display_buffer) MEM_freeN(rl->display_buffer);
-		
+
 		while (rl->passes.first) {
 			RenderPass *rpass = rl->passes.first;
 			if (rpass->rect) MEM_freeN(rpass->rect);
@@ -128,13 +128,13 @@ void render_result_free(RenderResult *res)
 void render_result_free_list(ListBase *lb, RenderResult *rr)
 {
 	RenderResult *rrnext;
-	
+
 	for (; rr; rr = rrnext) {
 		rrnext = rr->next;
-		
+
 		if (lb && lb->first)
 			BLI_remlink(lb, rr);
-		
+
 		render_result_free(rr);
 	}
 }
@@ -206,7 +206,7 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 	const int view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
 	RenderPass *rpass = MEM_callocN(sizeof(RenderPass), name);
 	size_t rectsize = ((size_t)rr->rectx) * rr->recty * channels;
-	
+
 	rpass->channels = channels;
 	rpass->rectx = rl->rectx;
 	rpass->recty = rl->recty;
@@ -216,7 +216,7 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 	BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
 	BLI_strncpy(rpass->view, viewname, sizeof(rpass->view));
 	set_pass_full_name(rpass->fullname, rpass->name, -1, rpass->view, rpass->chan_id);
-	
+
 	if (rl->exrhandle) {
 		int a;
 		for (a = 0; a < channels; a++) {
@@ -227,13 +227,13 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 	else {
 		float *rect;
 		int x;
-		
+
 		rpass->rect = MEM_mapallocN(sizeof(float) * rectsize, name);
 		if (rpass->rect == NULL) {
 			MEM_freeN(rpass);
 			return NULL;
 		}
-		
+
 		if (STREQ(rpass->name, RE_PASSNAME_VECTOR)) {
 			/* initialize to max speed */
 			rect = rpass->rect;
@@ -267,13 +267,13 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	RenderLayer *rl;
 	RenderView *rv;
 	int rectx, recty;
-	
+
 	rectx = BLI_rcti_size_x(partrct);
 	recty = BLI_rcti_size_y(partrct);
-	
+
 	if (rectx <= 0 || recty <= 0)
 		return NULL;
-	
+
 	rr = MEM_callocN(sizeof(RenderResult), "new render result");
 	rr->rectx = rectx;
 	rr->recty = recty;
@@ -286,7 +286,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	rr->tilerect.xmax = partrct->xmax - re->disprect.xmin;
 	rr->tilerect.ymin = partrct->ymin - re->disprect.ymin;
 	rr->tilerect.ymax = partrct->ymax - re->disprect.ymin;
-	
+
 	if (savebuffers) {
 		rr->do_exr_tile = true;
 	}
@@ -304,14 +304,14 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
-		
+
 		BLI_strncpy(rl->name, view_layer->name, sizeof(rl->name));
 		rl->layflag = view_layer->layflag;
 		rl->passflag = view_layer->passflag; /* for debugging: view_layer->passflag | SCE_PASS_RAYHITS; */
 		rl->pass_xor = view_layer->pass_xor;
 		rl->rectx = rectx;
 		rl->recty = recty;
-		
+
 		if (rr->do_exr_tile) {
 			rl->display_buffer = MEM_mapallocN((size_t)rectx * recty * sizeof(unsigned int),
 			                                   "Combined display space rgba");
@@ -412,7 +412,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
-		
+
 		rl->rectx = rectx;
 		rl->recty = recty;
 
@@ -439,15 +439,15 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		/* note, this has to be in sync with scene.c */
 		rl->layflag = 0x7FFF;    /* solid ztra halo strand */
 		rl->passflag = SCE_PASS_COMBINED;
-		
+
 		re->active_view_layer = 0;
 	}
-	
+
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
 	/* XXX obsolete? I now use it for drawing border render offset (ton) */
 	rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
 	rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
-	
+
 	return rr;
 }
 
@@ -554,7 +554,7 @@ static void *ml_addlayer_cb(void *base, const char *str)
 {
 	RenderResult *rr = base;
 	RenderLayer *rl;
-	
+
 	rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 	BLI_addtail(&rr->layers, rl);
 
@@ -676,7 +676,7 @@ RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace
 
 	rr->rectx = rectx;
 	rr->recty = recty;
-	
+
 	IMB_exr_multilayer_convert(exrhandle, rr, ml_addview_cb, ml_addlayer_cb, ml_addpass_cb);
 
 	for (rl = rr->layers.first; rl; rl = rl->next) {
@@ -695,7 +695,7 @@ RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace
 			}
 		}
 	}
-	
+
 	return rr;
 }
 
@@ -740,16 +740,16 @@ static void do_merge_tile(RenderResult *rr, RenderResult *rrpart, float *target,
 {
 	int y, tilex, tiley;
 	size_t ofs, copylen;
-	
+
 	copylen = tilex = rrpart->rectx;
 	tiley = rrpart->recty;
-	
+
 	if (rrpart->crop) { /* filters add pixel extra */
 		tile += pixsize * (rrpart->crop + ((size_t)rrpart->crop) * tilex);
-		
+
 		copylen = tilex - 2 * rrpart->crop;
 		tiley -= 2 * rrpart->crop;
-		
+
 		ofs = (((size_t)rrpart->tilerect.ymin) + rrpart->crop) * rr->rectx + (rrpart->tilerect.xmin + rrpart->crop);
 		target += pixsize * ofs;
 	}
@@ -776,7 +776,7 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
 {
 	RenderLayer *rl, *rlp;
 	RenderPass *rpass, *rpassp;
-	
+
 	for (rl = rr->layers.first; rl; rl = rl->next) {
 		rlp = RE_GetRenderLayer(rrpart, rl->name);
 		if (rlp) {
@@ -956,7 +956,7 @@ void render_result_single_layer_begin(Render *re)
 
 	/* officially pushed result should be NULL... error can happen with do_seq */
 	RE_FreeRenderResult(re->pushedresult);
-	
+
 	re->pushedresult = re->result;
 	re->result = NULL;
 }
@@ -980,10 +980,10 @@ void render_result_single_layer_end(Render *re)
 	if (re->pushedresult->rectx == re->result->rectx && re->pushedresult->recty == re->result->recty) {
 		/* find which layer in re->pushedresult should be replaced */
 		rl = re->result->layers.first;
-		
+
 		/* render result should be empty after this */
 		BLI_remlink(&re->result->layers, rl);
-		
+
 		/* reconstruct render result layers */
 		for (nr = 0, view_layer = re->view_layers.first; view_layer; view_layer = view_layer->next, nr++) {
 			if (nr == re->active_view_layer) {
@@ -1010,9 +1010,9 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 	RenderLayer *rlp, *rl;
 	RenderPass *rpassp;
 	int offs, partx, party;
-	
+
 	BLI_thread_lock(LOCK_IMAGE);
-	
+
 	for (rlp = rrpart->layers.first; rlp; rlp = rlp->next) {
 		rl = RE_GetRenderLayer(rr, rlp->name);
 
@@ -1042,7 +1042,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 				                    xstride, xstride * rrpart->rectx, rpassp->rect + a + xstride * offs);
 			}
 		}
-		
+
 	}
 
 	party = rrpart->tilerect.ymin + rrpart->crop;
@@ -1068,7 +1068,7 @@ void render_result_save_empty_result_tiles(Render *re)
 	RenderPart *pa;
 	RenderResult *rr;
 	RenderLayer *rl;
-	
+
 	for (rr = re->result; rr; rr = rr->next) {
 		for (rl = rr->layers.first; rl; rl = rl->next) {
 			for (pa = re->parts.first; pa; pa = pa->next) {
@@ -1112,7 +1112,7 @@ void render_result_exr_file_end(Render *re)
 
 		rr->do_exr_tile = false;
 	}
-	
+
 	render_result_free_list(&re->fullresult, re->result);
 	re->result = NULL;
 
@@ -1130,8 +1130,8 @@ void render_result_exr_file_merge(RenderResult *rr, RenderResult *rrpart, const 
 void render_result_exr_file_path(Scene *scene, const char *layname, int sample, char *filepath)
 {
 	char name[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100];
-	const char *fi = BLI_path_basename(G.main->name);
-	
+	const char *fi = BLI_path_basename(BKE_main_blendfile_path_from_global());
+
 	if (sample == 0) {
 		BLI_snprintf(name, sizeof(name), "%s_%s_%s.exr", fi, scene->id.name + 2, layname);
 	}
@@ -1194,7 +1194,7 @@ int render_result_exr_file_read_path(RenderResult *rr, RenderLayer *rl_single, c
 	for (rl = rr->layers.first; rl; rl = rl->next) {
 		if (rl_single && rl_single != rl)
 			continue;
-		
+
 		/* passes are allocated in sync */
 		for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
 			const int xstride = rpass->channels;
@@ -1224,10 +1224,11 @@ static void render_result_exr_file_cache_path(Scene *sce, const char *root, char
 	char path_hexdigest[33];
 
 	/* If root is relative, use either current .blend file dir, or temp one if not saved. */
-	if (G.main->name[0]) {
-		BLI_split_dirfile(G.main->name, dirname, filename, sizeof(dirname), sizeof(filename));
+	const char *blendfile_path = BKE_main_blendfile_path_from_global();
+	if (blendfile_path[0] != '\0') {
+		BLI_split_dirfile(blendfile_path, dirname, filename, sizeof(dirname), sizeof(filename));
 		BLI_replace_extension(filename, sizeof(filename), "");  /* strip '.blend' */
-		BLI_hash_md5_buffer(G.main->name, strlen(G.main->name), path_digest);
+		BLI_hash_md5_buffer(blendfile_path, strlen(blendfile_path), path_digest);
 	}
 	else {
 		BLI_strncpy(dirname, BKE_tempdir_base(), sizeof(dirname));
@@ -1291,7 +1292,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd, const int vi
 
 	/* float factor for random dither, imbuf takes care of it */
 	ibuf->dither = rd->dither_intensity;
-	
+
 	/* prepare to gamma correct to sRGB color space
 	 * note that sequence editor can generate 8bpc render buffers
 	 */
@@ -1332,7 +1333,7 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), I
 
 		if (!rv->rectf)
 			rv->rectf = MEM_mallocN(4 * sizeof(float) * rr->rectx * rr->recty, "render_seq rectf");
-		
+
 		memcpy(rv->rectf, ibuf->rect_float, 4 * sizeof(float) * rr->rectx * rr->recty);
 
 		/* TSK! Since sequence render doesn't free the *rr render result, the old rect32

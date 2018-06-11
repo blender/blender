@@ -76,7 +76,7 @@ public:
 	    ) const;
 
 	/**
-	 * Returns the current setting for this display device. 
+	 * Returns the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param index	  The setting index to be returned.
 	 * \param setting The setting of the display device with this index.
@@ -90,7 +90,7 @@ public:
 	    ) const;
 
 	/**
-	 * Returns the current setting for this display device. 
+	 * Returns the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param setting The current setting of the display device with this index.
 	 * \return Indication of success.
@@ -102,7 +102,7 @@ public:
 	    ) const;
 
 	/**
-	 * Changes the current setting for this display device. 
+	 * Changes the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param setting The current setting of the display device with this index.
 	 * \return Indication of success.
@@ -119,5 +119,5 @@ private:
 };
 
 
-#endif // 
+#endif //
 

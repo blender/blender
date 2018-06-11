@@ -233,7 +233,7 @@ static bool particle_undosys_poll(struct bContext *C)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
-	
+
 	return (edit != NULL);
 }
 

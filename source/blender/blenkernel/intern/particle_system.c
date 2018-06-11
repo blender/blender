@@ -74,8 +74,10 @@
 #include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_main.h"
 #include "BKE_particle.h"
 
 #include "BKE_collection.h"
@@ -995,7 +997,7 @@ static void evaluate_emitter_anim(struct Depsgraph *depsgraph, Scene *scene, Obj
 		evaluate_emitter_anim(depsgraph, scene, ob->parent, cfra);
 	
 	/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
-	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
+	BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
 	BKE_object_where_is_calc_time(depsgraph, scene, ob, cfra);
 }
 
@@ -1447,7 +1449,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 }
 
 /*********************************************************************************************************
- *                    SPH fluid physics 
+ *                    SPH fluid physics
  *
  * In theory, there could be unlimited implementation of SPH simulators
  *
@@ -3043,6 +3045,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim, int totpoint, in
 	if (!mesh) {
 		*r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
 		CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, mesh->totvert);
+		BKE_mesh_update_customdata_pointers(mesh, false);
 	}
 	mvert = mesh->mvert;
 	medge = mesh->medge;
@@ -3804,8 +3807,9 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
 	}
 }
 
-static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
-{	
+static void particles_fluid_step(
+        Main *bmain, ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
+{
 	ParticleSystem *psys = sim->psys;
 	if (psys->particles) {
 		MEM_freeN(psys->particles);
@@ -3835,7 +3839,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra), 
 			// ok, start loading
 			BLI_join_dirfile(filename, sizeof(filename), fss->surfdataPath, OB_FLUIDSIM_SURF_PARTICLES_FNAME);
 
-			BLI_path_abs(filename, modifier_path_relbase(sim->ob));
+			BLI_path_abs(filename, modifier_path_relbase(bmain, sim->ob));
 
 			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no 
 
@@ -3909,7 +3913,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra), 
 		} // fluid sim particles done
 	}
 #else
-	UNUSED_VARS(use_render_params);
+	UNUSED_VARS(bmain, use_render_params);
 #endif // WITH_MOD_FLUID
 }
 
@@ -4146,7 +4150,7 @@ void psys_check_boid_data(ParticleSystem *psys)
 		}
 }
 
-static void fluid_default_settings(ParticleSettings *part)
+void BKE_particlesettings_fluid_default_settings(ParticleSettings *part)
 {
 	SPHFluidSettings *fluid = part->fluid;
 
@@ -4178,24 +4182,12 @@ static void psys_prepare_physics(ParticleSimulationData *sim)
 		sim->psys->flag &= ~PSYS_KEYED;
 	}
 
-	if (part->phystype == PART_PHYS_BOIDS && part->boids == NULL) {
-		BoidState *state;
-
-		part->boids = MEM_callocN(sizeof(BoidSettings), "Boid Settings");
-		boid_default_settings(part->boids);
-
-		state = boid_new_state(part->boids);
-		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Separate));
-		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Flock));
-
-		((BoidRule*)state->rules.first)->flag |= BOIDRULE_CURRENT;
-
-		state->flag |= BOIDSTATE_CURRENT;
-		BLI_addtail(&part->boids->states, state);
+	/* RNA Update must ensure this is true. */
+	if (part->phystype == PART_PHYS_BOIDS) {
+		BLI_assert(part->boids != NULL);
 	}
-	else if (part->phystype == PART_PHYS_FLUID && part->fluid == NULL) {
-		part->fluid = MEM_callocN(sizeof(SPHFluidSettings), "SPH Fluid Settings");
-		fluid_default_settings(part);
+	else if (part->phystype == PART_PHYS_FLUID) {
+		BLI_assert(part->fluid != NULL);
 	}
 
 	psys_check_boid_data(sim->psys);
@@ -4225,6 +4217,18 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 	if (!psys_check_enabled(ob, psys, use_render_params))
 		return;
 
+	if (DEG_is_active(depsgraph)) {
+		if (psys->orig_psys != NULL && psys->orig_psys->edit != NULL) {
+			psys_cache_edit_paths(
+			        depsgraph,
+			        (Scene *)DEG_get_original_id(&scene->id),
+			        DEG_get_original_object(ob),
+			        psys->orig_psys->edit,
+			        DEG_get_ctime(depsgraph),
+			        DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+		}
+	}
+
 	cfra = DEG_get_ctime(depsgraph);
 
 	sim.depsgraph = depsgraph;
@@ -4249,7 +4253,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 	}
 
 	/* execute drivers only, as animation has already been done */
-	BKE_animsys_evaluate_animdata(scene, &part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
+	BKE_animsys_evaluate_animdata(depsgraph, scene, &part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
 
 	/* to verify if we need to restore object afterwards */
 	psys->flag &= ~PSYS_OB_ANIM_RESTORE;
@@ -4288,7 +4292,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 				for (i=0; i<=part->hair_step; i++) {
 					hcfra=100.0f*(float)i/(float)psys->part->hair_step;
 					if ((part->flag & PART_HAIR_REGROW)==0)
-						BKE_animsys_evaluate_animdata(scene, &part->id, part->adt, hcfra, ADT_RECALC_ANIM);
+						BKE_animsys_evaluate_animdata(depsgraph, scene, &part->id, part->adt, hcfra, ADT_RECALC_ANIM);
 					system_step(&sim, hcfra, use_render_params);
 					psys->cfra = hcfra;
 					psys->recalc = 0;
@@ -4307,7 +4311,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 		}
 		case PART_FLUID:
 		{
-			particles_fluid_step(&sim, (int)cfra, use_render_params);
+			particles_fluid_step(G.main  /* Yuck :/ */, &sim, (int)cfra, use_render_params);
 			break;
 		}
 		default:

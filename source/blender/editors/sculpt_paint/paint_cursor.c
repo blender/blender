@@ -262,7 +262,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 	target = (primary) ? &primary_snap : &secondary_snap;
 
-	refresh = 
+	refresh =
 	    !target->overlay_texture ||
 	    (invalid != 0) ||
 	    !same_tex_snap(target, mtex, vc, col, zoom);
@@ -1001,7 +1001,7 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 			else
 				projected_radius = BKE_brush_size_get(vc->scene, brush);
 		}
-	
+
 		/* convert brush radius from 2D to 3D */
 		unprojected_radius = paint_calc_object_space_radius(vc, location,
 		                                                    projected_radius);

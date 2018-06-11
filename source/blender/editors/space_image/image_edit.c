@@ -41,6 +41,7 @@
 #include "BKE_image.h"
 #include "BKE_editmesh.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -63,7 +64,7 @@ Image *ED_space_image(SpaceImage *sima)
 }
 
 /* called to assign images to UV faces */
-void ED_space_image_set(SpaceImage *sima, Scene *UNUSED(scene), Object *obedit, Image *ima)
+void ED_space_image_set(Main *bmain, SpaceImage *sima, Scene *UNUSED(scene), Object *obedit, Image *ima)
 {
 	/* change the space ima after because uvedit_face_visible_test uses the space ima
 	 * to check if the face is displayed in UV-localview */
@@ -76,7 +77,7 @@ void ED_space_image_set(SpaceImage *sima, Scene *UNUSED(scene), Object *obedit, 
 	}
 
 	if (sima->image)
-		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+		BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 
 	id_us_ensure_real((ID *)sima->image);
 
@@ -322,7 +323,7 @@ void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *s
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	
+
 	/* scope update can be expensive, don't update during paint modes */
 	if (sima->mode == SI_MODE_PAINT)
 		return;
@@ -338,7 +339,7 @@ void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *s
 			return;
 		}
 	}
-	
+
 	scopes_update(&sima->scopes, ibuf, use_view_settings ? &scene->view_settings : NULL, &scene->display_settings);
 }
 

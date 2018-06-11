@@ -69,7 +69,7 @@ public:
 	GHOST_TSuccess getNumDisplaySettings(GHOST_TUns8 display, GHOST_TInt32& numSettings) const;
 
 	/**
-	 * Returns the current setting for this display device. 
+	 * Returns the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param index	  The setting index to be returned.
 	 * \param setting The setting of the display device with this index.
@@ -78,7 +78,7 @@ public:
 	GHOST_TSuccess getDisplaySetting(GHOST_TUns8 display, GHOST_TInt32 index, GHOST_DisplaySetting& setting) const;
 
 	/**
-	 * Returns the current setting for this display device. 
+	 * Returns the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param setting The current setting of the display device with this index.
 	 * \return Indication of success.
@@ -86,14 +86,14 @@ public:
 	GHOST_TSuccess getCurrentDisplaySetting(GHOST_TUns8 display, GHOST_DisplaySetting& setting) const;
 
 	/**
-	 * Changes the current setting for this display device. 
+	 * Changes the current setting for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param setting The current setting of the display device with this index.
 	 * \return Indication of success.
 	 */
 	GHOST_TSuccess setCurrentDisplaySetting(GHOST_TUns8 display, const GHOST_DisplaySetting& setting);
 
-protected:	
+protected:
 	//Do not cache values as OS X supports screen hot plug
 	/** Cached number of displays. */
 	//CGDisplayCount m_numDisplays;

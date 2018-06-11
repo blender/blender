@@ -22,6 +22,7 @@ from bpy.types import (
     Header,
     Menu,
     Panel,
+    Operator,
 )
 from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
@@ -52,7 +53,8 @@ class USERPREF_HT_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        layout.template_header()
+        # No need to show type selector.
+        # layout.template_header()
 
         userpref = context.user_preferences
 
@@ -70,6 +72,10 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.addon_install", icon='FILESEL')
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
+        elif userpref.active_section == 'LIGHTS':
+            layout.operator('wm.studiolight_install', text="Install MatCap").orientation='MATCAP'
+            layout.operator('wm.studiolight_install', text="Install World HDRI").orientation='WORLD'
+            layout.operator('wm.studiolight_install', text="Install Camera HDRI").orientation='CAMERA'
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
             layout.operator("wm.theme_install")
@@ -139,7 +145,6 @@ class USERPREF_MT_app_templates(Menu):
             layout.separator()
             layout.operator_context = 'INVOKE_DEFAULT'
             props = layout.operator("wm.app_template_install")
-
 
     def draw(self, context):
         self.draw_ex(context, use_splash=False, use_default=True, use_install=True)
@@ -281,19 +286,20 @@ class USERPREF_PT_interface(Panel):
         row.separator()
 
         col = row.column()
-        #Toolbox doesn't exist yet
-        #col.label(text="Toolbox:")
+        # Toolbox doesn't exist yet
+        # col.label(text="Toolbox:")
         #col.prop(view, "show_column_layout")
         #col.label(text="Open Toolbox Delay:")
         #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
         col.prop(view, "show_manipulator")
-        col.prop(view, "show_manipulator_navigate")
-        ## Currently not working
+        # Currently not working
         # col.prop(view, "show_manipulator_shaded")
         sub = col.column()
         sub.active = view.show_manipulator
         sub.prop(view, "manipulator_size", text="Size")
+
+        col.prop(view, "show_manipulator_navigate")
 
         col.separator()
         col.separator()
@@ -324,7 +330,6 @@ class USERPREF_PT_interface(Panel):
         col.label(text="Options intended for use with app-templates only.")
         col.prop(view, "show_layout_ui")
         col.prop(view, "show_view3d_cursor")
-
 
 
 class USERPREF_PT_edit(Panel):
@@ -410,7 +415,7 @@ class USERPREF_PT_edit(Panel):
 
         sub = col.column()
 
-        #~ sub.active = edit.use_keyframe_insert_auto # incorrect, time-line can enable
+        # ~ sub.active = edit.use_keyframe_insert_auto # incorrect, time-line can enable
         sub.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
 
         col.separator()
@@ -1215,7 +1220,7 @@ class USERPREF_PT_input(Panel):
 
         #sub.prop(inputs, "use_mouse_mmb_paste")
 
-        #col.separator()
+        # col.separator()
 
         sub = col.column()
         sub.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
@@ -1330,7 +1335,7 @@ class USERPREF_PT_addons(Panel):
         'OFFICIAL': 'FILE_BLEND',
         'COMMUNITY': 'POSE_DATA',
         'TESTING': 'MOD_EXPLODE',
-        }
+    }
 
     @classmethod
     def poll(cls, context):
@@ -1408,7 +1413,6 @@ class USERPREF_PT_addons(Panel):
                 sub_col.label("    " + addon_file)
                 sub_col.label("    " + addon_path)
 
-
         if addon_utils.error_encoding:
             self.draw_error(
                 col,
@@ -1433,11 +1437,11 @@ class USERPREF_PT_addons(Panel):
 
             # check if addon should be visible with current filters
             if ((filter == "All") or
-                (filter == info["category"]) or
-                (filter == "Enabled" and is_enabled) or
-                (filter == "Disabled" and not is_enabled) or
-                (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
-            ):
+                        (filter == info["category"]) or
+                        (filter == "Enabled" and is_enabled) or
+                    (filter == "Disabled" and not is_enabled) or
+                    (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
+                    ):
                 if search and search not in info["name"].lower():
                     if info["author"]:
                         if search not in info["author"].lower():
@@ -1571,6 +1575,60 @@ class USERPREF_PT_addons(Panel):
                 row.label(text=module_name, translate=False)
 
 
+class StudioLightPanelMixin():
+    bl_space_type = 'USER_PREFERENCES'
+    bl_region_type = 'WINDOW'
+
+    @classmethod
+    def poll(cls, context):
+        userpref = context.user_preferences
+        return (userpref.active_section == 'LIGHTS')
+
+    def _get_lights(self, userpref):
+        return [light for light in userpref.studio_lights if light.is_user_defined and light.orientation == self.sl_orientation]
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        userpref = context.user_preferences
+        lights = self._get_lights(userpref)
+        row.label("({})".format(len(lights)))
+
+    def draw(self, context):
+        layout = self.layout
+        userpref = context.user_preferences
+        lights = self._get_lights(userpref)
+        if lights:
+            flow = layout.column_flow(4)
+            for studio_light in lights:
+                self.draw_studio_light(flow, studio_light)
+        else:
+            layout.label("No custom {} configured".format(self.bl_label))
+
+    def draw_studio_light(self, layout, studio_light):
+        box = layout.box()
+        row = box.row()
+
+        row.template_icon_view(studio_light, "icon_id")
+        op = row.operator('wm.studiolight_uninstall', text="", icon='ZOOMOUT')
+        op.index = studio_light.index
+
+
+class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
+    bl_label = "MatCaps"
+    sl_orientation = 'MATCAP'
+
+
+class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
+    bl_label = "World HDRI"
+    sl_orientation = 'WORLD'
+
+
+class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
+    bl_label = "Camera HDRI"
+    sl_orientation = 'CAMERA'
+
+
 classes = (
     USERPREF_HT_header,
     USERPREF_PT_tabs,
@@ -1591,6 +1649,9 @@ classes = (
     USERPREF_PT_input,
     USERPREF_MT_addons_online_resources,
     USERPREF_PT_addons,
+    USERPREF_PT_studiolight_matcaps,
+    USERPREF_PT_studiolight_world,
+    USERPREF_PT_studiolight_camera,
 )
 
 if __name__ == "__main__":  # only for live edit.

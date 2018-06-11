@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,7 +43,7 @@
 void register_node_type_cmp_group(void)
 {
 	static bNodeType ntype;
-	
+
 	/* NB: cannot use sh_node_type_base for node group, because it would map the node type
 	 * to the shared NODE_GROUP integer type id.
 	 */
@@ -56,7 +56,7 @@ void register_node_type_cmp_group(void)
 	ntype.ext.srna = RNA_struct_find("CompositorNodeGroup");
 	BLI_assert(ntype.ext.srna != NULL);
 	RNA_struct_blender_type_set(ntype.ext.srna, &ntype);
-	
+
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 140, 60, 400);
 	node_type_label(&ntype, node_group_label);

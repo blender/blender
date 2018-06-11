@@ -359,6 +359,7 @@ static void recalcData_actedit(TransInfo *t)
 
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+	ac.bmain = CTX_data_main(t->context);
 	ac.scene = t->scene;
 	ac.view_layer = t->view_layer;
 	ac.obact = OBACT(view_layer);
@@ -386,7 +387,7 @@ static void recalcData_actedit(TransInfo *t)
 		if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
 			for (ale = anim_data.first; ale; ale = ale->next) {
 				/* set refresh tags for objects using this animation */
-				ANIM_list_elem_update(t->scene, ale);
+				ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
 			}
 		}
 
@@ -409,6 +410,7 @@ static void recalcData_graphedit(TransInfo *t)
 
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+	ac.bmain = CTX_data_main(t->context);
 	ac.scene = t->scene;
 	ac.view_layer = t->view_layer;
 	ac.obact = OBACT(view_layer);
@@ -445,7 +447,7 @@ static void recalcData_graphedit(TransInfo *t)
 		 * BUT only if realtime updates are enabled
 		 */
 		if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
-			ANIM_list_elem_update(t->scene, ale);
+			ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
 	}
 
 	/* do resort and other updates? */
@@ -1954,7 +1956,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 			bPoseChannel *pchan = BKE_pose_channel_active(ob);
 			if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
 				copy_v3_v3(r_center, pchan->pose_head);
-				mul_m4_v3(tc->obedit->obmat, r_center);
+				mul_m4_v3(ob->obmat, r_center);
 				ok = true;
 			}
 		}

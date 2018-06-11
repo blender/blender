@@ -1273,7 +1273,7 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
-	
+
 	/* currnt frame indicator */
 	if (sc->flag & SC_SHOW_SECONDS) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
@@ -1320,7 +1320,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
-	
+
 	/* currnt frame number indicator */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	ANIM_draw_cfra_number(C, v2d, cfra_flag);

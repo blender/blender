@@ -59,7 +59,7 @@ public:
 	~BlenderSync();
 
 	/* sync */
-	bool sync_recalc();
+	void sync_recalc(BL::Depsgraph& b_depsgraph);
 	void sync_data(BL::RenderSettings& b_render,
 	               BL::Depsgraph& b_depsgraph,
 	               BL::SpaceView3D& b_v3d,
@@ -126,7 +126,7 @@ private:
 	                 bool motion,
 	                 int motion_step = 0);
 	Object *sync_object(BL::Depsgraph& b_depsgraph,
-	                    BL::Depsgraph::duplis_iterator& b_dupli_iter,
+	                    BL::DepsgraphObjectInstance& b_instance,
 	                    uint layer_flag,
 	                    float motion_time,
 	                    bool hide_tris,
@@ -151,7 +151,7 @@ private:
 
 	/* particles */
 	bool sync_dupli_particle(BL::Object& b_ob,
-	                         BL::DepsgraphIter& b_dup,
+	                         BL::DepsgraphObjectInstance& b_instance,
 	                         Object *object);
 
 	/* Images. */

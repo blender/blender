@@ -35,6 +35,8 @@
 
 #include "WM_types.h"
 
+#include "BKE_global.h"
+
 #include "ED_screen.h"
 
 #include "GPU_framebuffer.h"

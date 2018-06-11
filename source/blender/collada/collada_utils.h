@@ -92,8 +92,8 @@ extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
 extern bool bc_is_root_bone(Bone *aBone, bool deform_bones_only);
 extern int  bc_get_active_UVLayer(Object *ob);
 
-extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement); 
-extern std::string bc_url_encode(std::string data); 
+extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement);
+extern std::string bc_url_encode(std::string data);
 extern void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene);
 extern void bc_match_scale(std::vector<Object *> *objects_done, UnitConverter &unit_converter, bool scale_to_scene);
 
@@ -135,8 +135,8 @@ class BCPolygonNormalsIndices
 		normal_indices.push_back(index);
 	}
 
-	unsigned int operator[](unsigned int i) { 
-		return normal_indices[i]; 
+	unsigned int operator[](unsigned int i) {
+		return normal_indices[i];
 	}
 
 };

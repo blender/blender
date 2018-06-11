@@ -60,7 +60,7 @@ public:
 		m_keyEventData.utf8_buf[0] = '\0';
 		m_data = &m_keyEventData;
 	}
-	
+
 	/**
 	 * Constructor.
 	 * \param msec	The time this event was generated.
@@ -82,7 +82,7 @@ public:
 		else m_keyEventData.utf8_buf[0] = '\0';
 		m_data = &m_keyEventData;
 	}
-		
+
 protected:
 	/** The key event data. */
 	GHOST_TEventKeyData m_keyEventData;

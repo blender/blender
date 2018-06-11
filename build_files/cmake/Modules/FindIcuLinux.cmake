@@ -115,7 +115,7 @@ if(Boost_USE_STATIC_LIBS)
   set(CMAKE_FIND_LIBRARY_SUFFIXES ${_icu_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
 endif()
 
-# handle the QUIETLY and REQUIRED arguments and set ICU_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set ICU_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Icu DEFAULT_MSG

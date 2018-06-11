@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  * - Blender Foundation, 2003-2009
  * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
  *
@@ -593,11 +593,12 @@ void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixe
 /*********************** sequencer pipeline functions *************************/
 
 void BKE_sequencer_new_render_data(
-        Main *bmain, Scene *scene, int rectx, int recty,
+        Main *bmain, struct Depsgraph *depsgraph, Scene *scene, int rectx, int recty,
         int preview_render_size, int for_render,
         SeqRenderData *r_context)
 {
 	r_context->bmain = bmain;
+	r_context->depsgraph = depsgraph;
 	r_context->scene = scene;
 	r_context->rectx = rectx;
 	r_context->recty = recty;
@@ -897,7 +898,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
 
 			BLI_join_dirfile(path, sizeof(path), seq->strip->dir,
 			                 seq->strip->stripdata->name);
-			BLI_path_abs(path, G.main->name);
+			BLI_path_abs(path, BKE_main_blendfile_path_from_global());
 
 			BKE_sequence_free_anim(seq);
 
@@ -1462,6 +1463,7 @@ typedef struct SeqIndexBuildContext {
 	int view_id;
 
 	Main *bmain;
+	Depsgraph *depsgraph;
 	Scene *scene;
 	Sequence *seq, *orig_seq;
 } SeqIndexBuildContext;
@@ -1544,7 +1546,7 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 
 	BLI_join_dirfile(name, sizeof(name),
 	                 seq->strip->dir, seq->strip->stripdata->name);
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 
 	proxy = seq->strip->proxy;
 
@@ -1561,7 +1563,7 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 		else {
 			BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
 		}
-		BLI_path_abs(dir, G.main->name);
+		BLI_path_abs(dir, BKE_main_blendfile_path_from_global());
 	}
 
 	if (is_multiview && seq->views_format == R_IMF_VIEWS_INDIVIDUAL) {
@@ -1689,7 +1691,7 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 			return false;
 		}
 		BLI_path_append(dir, sizeof(dir), fname);
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 	}
 	else if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
@@ -1721,7 +1723,7 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 	{
 		char fname[FILE_MAXFILE];
 		BLI_join_dirfile(fname, PROXY_MAXFILE, dir, proxy->file);
-		BLI_path_abs(fname, G.main->name);
+		BLI_path_abs(fname, BKE_main_blendfile_path_from_global());
 		if (suffix[0] != '\0') {
 			/* TODO(sergey): This will actually append suffix after extension
 			 * which is weird but how was originally coded in multiview branch.
@@ -1747,7 +1749,7 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####%s", dir, render_size, suffix);
 	}
 
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 	BLI_path_frame(name, frameno, 0);
 
 	strcat(name, ".jpg");
@@ -1892,7 +1894,7 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, con
 			char path[FILE_MAX];
 			BLI_join_dirfile(path, sizeof(path), seq->strip->dir,
 			                 seq->strip->stripdata->name);
-			BLI_path_abs(path, G.main->name);
+			BLI_path_abs(path, BKE_main_blendfile_path_from_global());
 			BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
 		}
 		else {
@@ -1950,7 +1952,9 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
 	return num_views;
 }
 
-void BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq, struct GSet *file_list, ListBase *queue)
+void BKE_sequencer_proxy_rebuild_context(
+        Main *bmain, Depsgraph *depsgraph, Scene *scene,
+        Sequence *seq, struct GSet *file_list, ListBase *queue)
 {
 	SeqIndexBuildContext *context;
 	Sequence *nseq;
@@ -1982,6 +1986,7 @@ void BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *se
 		context->overwrite = (nseq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
 
 		context->bmain = bmain;
+		context->depsgraph = depsgraph;
 		context->scene = scene;
 		context->orig_seq = seq;
 		context->seq = nseq;
@@ -2035,7 +2040,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 	/* fail safe code */
 
 	BKE_sequencer_new_render_data(
-	        bmain, context->scene,
+	        bmain, context->depsgraph, context->scene,
 	        (scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f,
 	        (scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f, 100,
 	        false,
@@ -2841,7 +2846,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context, Sequence *seq
 
 	if (s_elem) {
 		BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 	}
 
 	flag = IB_rect | IB_metadata;
@@ -3131,7 +3136,7 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
 
 		/* anim-data */
 		adt = BKE_animdata_from_id(&mask->id);
-		BKE_animsys_evaluate_animdata(context->scene, &mask_temp->id, adt, nr, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(context->depsgraph, context->scene, &mask_temp->id, adt, nr, ADT_RECALC_ANIM);
 
 		maskbuf = MEM_mallocN(sizeof(float) * context->rectx * context->recty, __func__);
 
@@ -3511,7 +3516,7 @@ static ImBuf *do_render_strip_uncached(
 				ibuf = seq_render_scene_strip(context, seq, nr, cfra);
 
 				/* Scene strips update all animation, so we need to restore original state.*/
-				BKE_animsys_evaluate_all_animation(context->bmain, context->scene, cfra);
+				BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, context->scene, cfra);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 			}
@@ -5146,7 +5151,7 @@ void BKE_sequence_init_colorspace(Sequence *seq)
 		ImBuf *ibuf;
 
 		BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 
 		/* initialize input color space */
 		if (seq->type == SEQ_TYPE_IMAGE) {
@@ -5314,6 +5319,7 @@ static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_
 
 Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C); /* only for sound */
 	char path[sizeof(seq_load->path)];
 
@@ -5328,7 +5334,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	int i;
 
 	BLI_strncpy(path, seq_load->path, sizeof(path));
-	BLI_path_abs(path, G.main->name);
+	BLI_path_abs(path, BKE_main_blendfile_path(bmain));
 
 	anim_arr = MEM_callocN(sizeof(struct anim *) * totfiles, "Video files");
 

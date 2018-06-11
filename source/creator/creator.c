@@ -459,7 +459,9 @@ int main(
 	WM_keymap_init(C);
 
 	/* Called on load, however Python is not yet initialized, so call again here. */
-	WM_toolsystem_init(C);
+	if (!G.background) {
+		WM_toolsystem_init(C);
+	}
 
 #ifdef WITH_FREESTYLE
 	/* initialize Freestyle */

@@ -90,11 +90,11 @@ public:
 
 	/**
 	 * Finds the soonest time the next timer would fire.
-	 * \return The soonest time the next timer would fire, 
+	 * \return The soonest time the next timer would fire,
 	 * or GHOST_kFireTimeNever if no timers exist.
 	 */
 	GHOST_TUns64 nextFireTime();
-	
+
 	/**
 	 * Checks all timer tasks to see if they are expired and fires them if needed.
 	 * \param time The current time.

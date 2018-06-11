@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -181,11 +181,11 @@ void ED_view3d_smooth_view_ex(
 		ED_view3d_from_object(ob_camera_eval, sms.dst.ofs, sms.dst.quat, &sms.dst.dist, &sms.dst.lens);
 		sms.to_camera = true; /* restore view3d values in end */
 	}
-	
+
 	/* skip smooth viewing for render engine draw */
 	if (smooth_viewtx && v3d->drawtype != OB_RENDER) {
 		bool changed = false; /* zero means no difference */
-		
+
 		if (sview->camera_old != sview->camera)
 			changed = true;
 		else if (sms.dst.dist != rv3d->dist)
@@ -196,7 +196,7 @@ void ED_view3d_smooth_view_ex(
 			changed = true;
 		else if (!equals_v4v4(sms.dst.quat, rv3d->viewquat))
 			changed = true;
-		
+
 		/* The new view is different from the old one
 		 * so animate the view */
 		if (changed) {
@@ -214,10 +214,10 @@ void ED_view3d_smooth_view_ex(
 			}
 
 			sms.time_allowed = (double)smooth_viewtx / 1000.0;
-			
+
 			/* if this is view rotation only
 			 * we can decrease the time allowed by
-			 * the angle between quats 
+			 * the angle between quats
 			 * this means small rotations wont lag */
 			if (sview->quat && !sview->ofs && !sview->dist) {
 				/* scale the time allowed by the rotation */
@@ -235,7 +235,7 @@ void ED_view3d_smooth_view_ex(
 			}
 
 			rv3d->rflag |= RV3D_NAVIGATING;
-			
+
 			/* not essential but in some cases the caller will tag the area for redraw,
 			 * and in that case we can get a flicker of the 'org' user view but we want to see 'src' */
 			view3d_smooth_view_state_restore(&sms.src, v3d, rv3d);
@@ -254,7 +254,7 @@ void ED_view3d_smooth_view_ex(
 			ok = true;
 		}
 	}
-	
+
 	/* if we get here nothing happens */
 	if (ok == false) {
 		if (sms.to_camera == false) {
@@ -298,15 +298,15 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool 
 	RegionView3D *rv3d = ar->regiondata;
 	struct SmoothView3DStore *sms = rv3d->sms;
 	float step, step_inv;
-	
+
 	if (sms->time_allowed != 0.0)
 		step = (float)((rv3d->smooth_timer->duration) / sms->time_allowed);
 	else
 		step = 1.0f;
-	
+
 	/* end timer */
 	if (step >= 1.0f) {
-		
+
 		/* if we went to camera, store the original */
 		if (sms->to_camera) {
 			rv3d->persp = RV3D_CAMOB;
@@ -318,14 +318,14 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool 
 			ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
 			ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
 		}
-		
+
 		if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
 			rv3d->view = sms->org_view;
 		}
 
 		MEM_freeN(rv3d->sms);
 		rv3d->sms = NULL;
-		
+
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
 		rv3d->smooth_timer = NULL;
 		rv3d->rflag &= ~RV3D_NAVIGATING;
@@ -344,7 +344,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool 
 		else {
 			interp_v3_v3v3(rv3d->ofs, sms->src.ofs,  sms->dst.ofs,  step);
 		}
-		
+
 		rv3d->dist = sms->dst.dist * step + sms->src.dist * step_inv;
 		v3d->lens  = sms->dst.lens * step + sms->src.lens * step_inv;
 
@@ -356,7 +356,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool 
 		/* Event handling won't know if a UI item has been moved under the pointer. */
 		WM_event_add_mousemove(C);
 	}
-	
+
 	if (sync_boxview && (rv3d->viewlock & RV3D_BOXVIEW)) {
 		view3d_boxview_copy(CTX_wm_area(C), ar);
 	}
@@ -456,9 +456,9 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 
 	DEG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
-	
+
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, v3d->camera);
-	
+
 	return OPERATOR_FINISHED;
 
 }
@@ -488,11 +488,11 @@ void VIEW3D_OT_camera_to_view(wmOperatorType *ot)
 	ot->name = "Align Camera To View";
 	ot->description = "Set camera view to active view";
 	ot->idname = "VIEW3D_OT_camera_to_view";
-	
+
 	/* api callbacks */
 	ot->exec = view3d_camera_to_view_exec;
 	ot->poll = view3d_camera_to_view_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -659,7 +659,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 		}
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, scene);
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -677,11 +677,11 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 	ot->name = "Set Active Object as Camera";
 	ot->description = "Set the active object as the active camera for this view or scene";
 	ot->idname = "VIEW3D_OT_object_as_camera";
-	
+
 	/* api callbacks */
 	ot->exec = view3d_setobjectascamera_exec;
 	ot->poll = ED_operator_rv3d_user_region_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -701,7 +701,7 @@ void view3d_winmatrix_set(Depsgraph *depsgraph, ARegion *ar, const View3D *v3d, 
 	rctf viewplane;
 	float clipsta, clipend;
 	bool is_ortho;
-	
+
 	is_ortho = ED_view3d_viewplane_get(depsgraph, v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
 	rv3d->is_persp = !is_ortho;
 
@@ -778,13 +778,13 @@ void view3d_viewmatrix_set(
 		/* should be moved to better initialize later on XXX */
 		if (rv3d->viewlock & RV3D_LOCKED)
 			ED_view3d_lock(rv3d);
-		
+
 		quat_to_mat4(rv3d->viewmat, rv3d->viewquat);
 		if (rv3d->persp == RV3D_PERSP) rv3d->viewmat[3][2] -= rv3d->dist;
 		if (v3d->ob_centre) {
 			Object *ob_eval = DEG_get_evaluated_object(depsgraph, v3d->ob_centre);
 			float vec[3];
-			
+
 			copy_v3_v3(vec, ob_eval->obmat[3]);
 			if (ob_eval->type == OB_ARMATURE && v3d->ob_centre_bone[0]) {
 				bPoseChannel *pchan = BKE_pose_channel_find_name(ob_eval->pose, v3d->ob_centre_bone);
@@ -908,7 +908,7 @@ int view3d_opengl_select(
         eV3DSelectMode select_mode)
 {
 	struct bThemeState theme_state;
-	Depsgraph *graph = vc->depsgraph;
+	Depsgraph *depsgraph = vc->depsgraph;
 	Scene *scene = vc->scene;
 	View3D *v3d = vc->v3d;
 	ARegion *ar = vc->ar;
@@ -975,7 +975,7 @@ int view3d_opengl_select(
 
 	/* Important we use the 'viewmat' and don't re-calculate since
 	 * the object & bone view locking takes 'rect' into account, see: T51629. */
-	ED_view3d_draw_setup_view(vc->win, graph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
+	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
@@ -984,7 +984,7 @@ int view3d_opengl_select(
 
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_set(vc->rv3d);
-	
+
 
 #ifdef WITH_OPENGL_LEGACY
 	if (IS_VIEWPORT_LEGACY(vc->v3d)) {
@@ -1012,7 +1012,7 @@ int view3d_opengl_select(
 			.gpu_select_mode = gpu_select_mode,
 		};
 		DRW_draw_select_loop(
-		        graph, ar, v3d,
+		        depsgraph, ar, v3d,
 		        use_obedit_skip, use_nearest, &rect,
 		        drw_select_loop_pass, &drw_select_loop_user_data);
 		hits = drw_select_loop_user_data.hits;
@@ -1020,13 +1020,13 @@ int view3d_opengl_select(
 #endif /* WITH_OPENGL_LEGACY */
 
 	G.f &= ~G_PICKSEL;
-	ED_view3d_draw_setup_view(vc->win, graph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
-	
+	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
+
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;
 		glDisable(GL_DEPTH_TEST);
 	}
-	
+
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_disable();
 
@@ -1052,28 +1052,28 @@ finally:
 int ED_view3d_view_layer_set(int lay, const int *values, int *active)
 {
 	int i, tot = 0;
-	
+
 	/* ensure we always have some layer selected */
 	for (i = 0; i < 20; i++)
 		if (values[i])
 			tot++;
-	
+
 	if (tot == 0)
 		return lay;
-	
+
 	for (i = 0; i < 20; i++) {
-		
+
 		if (active) {
 			/* if this value has just been switched on, make that layer active */
 			if (values[i] && (lay & (1 << i)) == 0) {
 				*active = (1 << i);
 			}
 		}
-			
+
 		if (values[i]) lay |= (1 << i);
 		else lay &= ~(1 << i);
 	}
-	
+
 	/* ensure always an active layer */
 	if (active && (lay & *active) == 0) {
 		for (i = 0; i < 20; i++) {
@@ -1083,7 +1083,7 @@ int ED_view3d_view_layer_set(int lay, const int *values, int *active)
 			}
 		}
 	}
-	
+
 	return lay;
 }
 

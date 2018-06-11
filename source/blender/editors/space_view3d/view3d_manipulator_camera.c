@@ -47,8 +47,6 @@
 #include "WM_types.h"
 #include "WM_message.h"
 
-#include "DEG_depsgraph_query.h"
-
 #include "view3d_intern.h"  /* own include */
 
 
@@ -65,6 +63,11 @@ struct CameraWidgetGroup {
 
 static bool WIDGETGROUP_camera_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	Object *ob = CTX_data_active_object(C);
 	if (ob && ob->type == OB_CAMERA) {
 		Camera *camera = ob->data;
@@ -78,9 +81,7 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmManipulatorGroupType *U
 
 static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgroup)
 {
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
-	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	float dir[3];
 
 	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
@@ -88,7 +89,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 	struct CameraWidgetGroup *camgroup = MEM_callocN(sizeof(struct CameraWidgetGroup), __func__);
 	mgroup->customdata = camgroup;
 
-	negate_v3_v3(dir, ob_eval->obmat[2]);
+	negate_v3_v3(dir, ob->obmat[2]);
 
 	/* dof distance */
 	{
@@ -128,28 +129,26 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 	if (!mgroup->customdata)
 		return;
 
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	struct CameraWidgetGroup *camgroup = mgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
-	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	Camera *ca = ob_eval->data;
+	Camera *ca = ob->data;
 	PointerRNA camera_ptr;
 	float dir[3];
 
 	const float ob_scale_inv[3] = {
-		1.0f / len_v3(ob_eval->obmat[0]),
-		1.0f / len_v3(ob_eval->obmat[1]),
-		1.0f / len_v3(ob_eval->obmat[2]),
+		1.0f / len_v3(ob->obmat[0]),
+		1.0f / len_v3(ob->obmat[1]),
+		1.0f / len_v3(ob->obmat[2]),
 	};
 	const float ob_scale_uniform_inv = (ob_scale_inv[0] + ob_scale_inv[1] + ob_scale_inv[2]) / 3.0f;
 
 	RNA_pointer_create(&ca->id, &RNA_Camera, ca, &camera_ptr);
 
-	negate_v3_v3(dir, ob_eval->obmat[2]);
+	negate_v3_v3(dir, ob->obmat[2]);
 
 	if (ca->flag & CAM_SHOWLIMITS) {
-		WM_manipulator_set_matrix_location(camgroup->dop_dist, ob_eval->obmat[3]);
-		WM_manipulator_set_matrix_rotation_from_yz_axis(camgroup->dop_dist, ob_eval->obmat[1], dir);
+		WM_manipulator_set_matrix_location(camgroup->dop_dist, ob->obmat[3]);
+		WM_manipulator_set_matrix_rotation_from_yz_axis(camgroup->dop_dist, ob->obmat[1], dir);
 		WM_manipulator_set_scale(camgroup->dop_dist, ca->drawsize);
 		WM_manipulator_set_flag(camgroup->dop_dist, WM_MANIPULATOR_HIDDEN, false);
 
@@ -186,8 +185,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		aspect[1] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? aspy / aspx : 1.0f;
 
 		unit_m4(widget->matrix_basis);
-		WM_manipulator_set_matrix_location(widget, ob_eval->obmat[3]);
-		WM_manipulator_set_matrix_rotation_from_yz_axis(widget, ob_eval->obmat[1], dir);
+		WM_manipulator_set_matrix_location(widget, ob->obmat[3]);
+		WM_manipulator_set_matrix_rotation_from_yz_axis(widget, ob->obmat[1], dir);
 
 		if (is_ortho) {
 			scale_matrix = ca->ortho_scale * 0.5f;
@@ -358,9 +357,13 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupTy
 		}
 	}
 
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return false;
+	}
+
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
-	View3D *v3d = CTX_wm_view3d(C);
 	if (rv3d->persp == RV3D_CAMOB) {
 		if (scene->r.mode & R_BORDER) {
 			/* TODO: support overrides. */

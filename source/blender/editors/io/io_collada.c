@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -60,14 +60,17 @@
 #include "io_collada.h"
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{	
+{
+	Main *bmain = CTX_data_main(C);
+
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
+		const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-		if (G.main->name[0] == 0)
+		if (blendfile_path[0] == '\0')
 			BLI_strncpy(filepath, "untitled", sizeof(filepath));
 		else
-			BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+			BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
 
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
@@ -164,8 +167,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	limit_precision = RNA_boolean_get(op->ptr, "limit_precision");
 	keep_bind_info = RNA_boolean_get(op->ptr, "keep_bind_info");
 
+	Main *bmain = CTX_data_main(C);
+
 	/* get editmode results */
-	ED_object_editmode_load(CTX_data_edit_object(C));
+	ED_object_editmode_load(bmain, CTX_data_edit_object(C));
 
 	Scene *scene = CTX_data_scene(C);
 
@@ -200,9 +205,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;
 	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
-	export_count = collada_export(CTX_data_depsgraph(C),
-		scene,
-		&export_settings
+	export_count = collada_export(
+	                   C,
+	                   CTX_data_depsgraph(C),
+	                   scene,
+	                   &export_settings
 	);
 
 	if (export_count == 0) {
@@ -584,8 +591,8 @@ void WM_OT_collada_import(wmOperatorType *ot)
 		0,
 		INT_MAX);
 
-	RNA_def_boolean(ot->srna, 
-		"keep_bind_info", 0, "Keep Bind Info", 
+	RNA_def_boolean(ot->srna,
+		"keep_bind_info", 0, "Keep Bind Info",
 		"Store Bindpose information in custom bone properties for later use during Collada export");
 
 }

@@ -422,6 +422,43 @@ class IMAGE_MT_uvs_select_mode(Menu):
             props.data_path = "tool_settings.uv_select_mode"
 
 
+class IMAGE_MT_specials(Menu):
+    bl_label = "UV Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+
+        # UV Edit Mode
+        if sima.show_uvedit:
+            layout.operator("uv.unwrap")
+            layout.operator("uv.follow_active_quads")
+
+            layout.separator()
+
+            layout.operator("uv.pin").clear = False
+            layout.operator("uv.pin", text="Unpin").clear = True
+
+            layout.separator()
+
+            layout.operator("uv.weld")
+            layout.operator("uv.stitch")
+
+            layout.separator()
+
+            layout.operator_enum("uv.align", "axis")  # W, 2/3/4
+
+            layout.separator()
+
+            layout.operator("transform.mirror", text="Mirror X").constraint_axis[0] = True
+            layout.operator("transform.mirror", text="Mirror Y").constraint_axis[1] = True
+
+            layout.separator()
+
+            layout.menu("IMAGE_MT_uvs_snap")
+
+
 class IMAGE_HT_header(Header):
     bl_space_type = 'IMAGE_EDITOR'
 
@@ -443,8 +480,6 @@ class IMAGE_HT_header(Header):
 
         layout.prop(sima, "mode", text="")
 
-        MASK_MT_editor_menus.draw_collapsible(context, layout)
-
         layout.template_ID(sima, "image", new="image.new", open="image.open")
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
@@ -452,8 +487,6 @@ class IMAGE_HT_header(Header):
         if show_maskedit:
             row = layout.row()
             row.template_ID(sima, "mask", new="mask.new")
-
-        layout.prop(sima, "pivot_point", icon_only=True)
 
         # uv editing
         if show_uvedit:
@@ -467,10 +500,25 @@ class IMAGE_HT_header(Header):
                 layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", icon_only=True)
 
+        MASK_MT_editor_menus.draw_collapsible(context, layout)
+
+        layout.separator_spacer()
+
+        if show_uvedit or show_maskedit or mode == 'PAINT':
+            layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
+
+        if show_uvedit:
+            uvedit = sima.uv_editor
+
+            mesh = context.edit_object.data
+            layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
+
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_edit", icon_only=True)
-            if toolsettings.proportional_edit != 'DISABLED':
-                row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+            # if toolsettings.proportional_edit != 'DISABLED':
+            sub = row.row(align=True)
+            sub.active = toolsettings.proportional_edit != 'DISABLED'
+            sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
@@ -478,8 +526,7 @@ class IMAGE_HT_header(Header):
             if toolsettings.snap_uv_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
 
-            mesh = context.edit_object.data
-            layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
+        layout.prop(sima, "pivot_point", icon_only=True)
 
         if ima:
             if ima.is_stereo_3d:
@@ -498,9 +545,6 @@ class IMAGE_HT_header(Header):
                 row.operator("image.record_composite", icon='REC')
             if ima.type == 'COMPOSITE' and ima.source in {'MOVIE', 'SEQUENCE'}:
                 row.operator("image.play_composite", icon='PLAY')
-
-        if show_uvedit or show_maskedit or mode == 'PAINT':
-            layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
 
 
 class MASK_MT_editor_menus(Menu):
@@ -583,6 +627,7 @@ class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_category = 'Mask'
+
 
 class IMAGE_PT_tools_mask_add(MASK_PT_add, Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -1127,8 +1172,6 @@ class IMAGE_PT_uv_sculpt(Panel, ImagePaintPanel):
         col.prop(uvsculpt, "show_brush")
 
 
-
-
 class IMAGE_PT_options_uvs(Panel, UVToolsPanel):
     bl_label = "UV Options"
     bl_category = "Options"
@@ -1308,6 +1351,7 @@ classes = (
     IMAGE_MT_uvs_mirror,
     IMAGE_MT_uvs_weldalign,
     IMAGE_MT_uvs_select_mode,
+    IMAGE_MT_specials,
     IMAGE_HT_header,
     MASK_MT_editor_menus,
     IMAGE_PT_mask,

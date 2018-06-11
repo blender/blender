@@ -156,7 +156,7 @@ BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *da
 			return false;
 			break;
 	}
-	
+
 	iter->begin(iter);
 
 	return true;

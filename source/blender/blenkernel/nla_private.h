@@ -33,6 +33,8 @@
 #ifndef __NLA_PRIVATE_H__
 #define __NLA_PRIVATE_H__
 
+struct Depsgraph;
+
 /* --------------- NLA Evaluation DataTypes ----------------------- */
 
 /* used for list of strips to accumulate at current time */
@@ -81,8 +83,8 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode);
 /* --------------- NLA Evaluation (very-private stuff) ----------------------- */
 /* these functions are only defined here to avoid problems with the order in which they get defined... */
 
-NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short index, float ctime);
-void nlastrip_evaluate(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes);
+NlaEvalStrip *nlastrips_ctime_get_strip(struct Depsgraph *depsgraph, ListBase *list, ListBase *strips, short index, float ctime);
+void nlastrip_evaluate(struct Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes);
 void nladata_flush_channels(ListBase *channels);
 
 #endif  /* __NLA_PRIVATE_H__ */

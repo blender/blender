@@ -58,16 +58,12 @@ using Alembic::AbcGeom::OStringProperty;
 
 /* ************************************************************************** */
 
-AbcObjectWriter::AbcObjectWriter(Depsgraph *depsgraph,
-                                 Scene *scene,
-                                 Object *ob,
+AbcObjectWriter::AbcObjectWriter(Object *ob,
                                  uint32_t time_sampling,
                                  ExportSettings &settings,
                                  AbcObjectWriter *parent)
     : m_object(ob)
     , m_settings(settings)
-    , m_depsgraph(depsgraph)
-    , m_scene(scene)
     , m_time_sampling(time_sampling)
     , m_first_frame(true)
 {
@@ -248,12 +244,12 @@ Imath::M44d get_matrix(const IXformSchema &schema, const float time)
 	return s0.getMatrix();
 }
 
-DerivedMesh *AbcObjectReader::read_derivedmesh(DerivedMesh *dm,
-                                               const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
-                                               int UNUSED(read_flag),
-                                               const char **UNUSED(err_str))
+struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
+                                        const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
+                                        int UNUSED(read_flag),
+                                        const char **UNUSED(err_str))
 {
-	return dm;
+	return existing_mesh;
 }
 
 void AbcObjectReader::setupObjectTransform(const float time)

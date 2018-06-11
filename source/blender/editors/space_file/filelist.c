@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,7 +43,7 @@
 #else
 #  include <io.h>
 #  include <direct.h>
-#endif   
+#endif
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -188,13 +188,13 @@ void folderlist_free(ListBase *folderlist)
 
 ListBase *folderlist_duplicate(ListBase *folderlist)
 {
-	
+
 	if (folderlist) {
 		ListBase *folderlistn = MEM_callocN(sizeof(*folderlistn), __func__);
 		FolderList *folder;
-		
+
 		BLI_duplicatelist(folderlistn, folderlist);
-		
+
 		for (folder = folderlistn->first; folder; folder = folder->next) {
 			folder->foldername = MEM_dupallocN(folder->foldername);
 		}
@@ -404,7 +404,7 @@ static int compare_direntry_generic(const FileListInternEntry *entry1, const Fil
 	if (FILENAME_IS_CURRENT(entry2->relpath)) return 1;
 	if (FILENAME_IS_PARENT(entry1->relpath)) return -1;
 	if (FILENAME_IS_PARENT(entry2->relpath)) return 1;
-	
+
 	return 0;
 }
 
@@ -436,7 +436,7 @@ static int compare_date(void *UNUSED(user_data), const void *a1, const void *a2)
 	if ((ret = compare_direntry_generic(entry1, entry2))) {
 		return ret;
 	}
-	
+
 	time1 = (int64_t)entry1->st.st_mtime;
 	time2 = (int64_t)entry2->st.st_mtime;
 	if (time1 < time2) return 1;
@@ -459,7 +459,7 @@ static int compare_size(void *UNUSED(user_data), const void *a1, const void *a2)
 	if ((ret = compare_direntry_generic(entry1, entry2))) {
 		return ret;
 	}
-	
+
 	size1 = entry1->st.st_size;
 	size2 = entry2->st.st_size;
 	if (size1 < size2) return 1;
@@ -1347,7 +1347,7 @@ void filelist_free(struct FileList *filelist)
 		printf("Attempting to delete empty filelist.\n");
 		return;
 	}
-	
+
 	filelist_clear_ex(filelist, false, false);  /* No need to clear cache & selection_state, we free them anyway. */
 	filelist_cache_free(&filelist->filelist_cache);
 
@@ -1419,7 +1419,7 @@ void filelist_setdir(struct FileList *filelist, char *r_dir)
 {
 	BLI_assert(strlen(r_dir) < FILE_MAX_LIBEXTRA);
 
-	BLI_cleanup_dir(G.main->name, r_dir);
+	BLI_cleanup_dir(BKE_main_blendfile_path_from_global(), r_dir);
 	const bool is_valid_path = filelist->checkdirf(filelist, r_dir, true);
 	BLI_assert(is_valid_path);
 	UNUSED_VARS_NDEBUG(is_valid_path);
@@ -1555,7 +1555,7 @@ FileDirEntry *filelist_file(struct FileList *filelist, int index)
 int filelist_file_findpath(struct FileList *filelist, const char *filename)
 {
 	int fidx = -1;
-	
+
 	if (filelist->filelist.nbr_entries_filtered < 0) {
 		return fidx;
 	}
@@ -1950,17 +1950,17 @@ static bool file_is_blend_backup(const char *str)
 	}
 	else {
 		const char *loc;
-		
+
 		if (a > b + 1)
 			b++;
-		
+
 		/* allow .blend1 .blend2 .blend32 */
 		loc = BLI_strcasestr(str + a - b, ".blend");
-		
+
 		if (loc)
 			retval = 1;
 	}
-	
+
 	return (retval);
 }
 
@@ -2024,7 +2024,7 @@ static int file_extension_type(const char *dir, const char *relpath)
 int ED_file_extension_icon(const char *path)
 {
 	const int type = ED_path_extension_type(path);
-	
+
 	switch (type) {
 		case FILE_TYPE_BLENDER:
 			return ICON_FILE_BLEND;
@@ -2313,13 +2313,13 @@ static int filelist_readjob_list_lib(const char *root, ListBase *entries, const 
 #if 0
 /* Kept for reference here, in case we want to add back that feature later. We do not need it currently. */
 /* Code ***NOT*** updated for job stuff! */
-static void filelist_readjob_main_rec(struct FileList *filelist)
+static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
 {
 	ID *id;
 	FileDirEntry *files, *firstlib = NULL;
 	ListBase *lb;
 	int a, fake, idcode, ok, totlib, totbl;
-	
+
 	// filelist->type = FILE_MAIN; // XXX TODO: add modes to filebrowser
 
 	BLI_assert(filelist->filelist.entries == NULL);
@@ -2375,7 +2375,7 @@ static void filelist_readjob_main_rec(struct FileList *filelist)
 		/* make files */
 		idcode = groupname_to_code(filelist->filelist.root);
 
-		lb = which_libbase(G.main, idcode);
+		lb = which_libbase(bmain, idcode);
 		if (lb == NULL) return;
 
 		filelist->filelist.nbr_entries = 0;
@@ -2394,7 +2394,7 @@ static void filelist_readjob_main_rec(struct FileList *filelist)
 		}
 
 		files = filelist->filelist.entries;
-		
+
 		if (!(filelist->filter_data.flags & FLF_HIDE_PARENT)) {
 			files->entry->relpath = BLI_strdup(FILENAME_PARENT);
 			files->typeflag |= FILE_TYPE_DIR;
@@ -2700,13 +2700,14 @@ static void filelist_readjob_free(void *flrjv)
 
 void filelist_readjob_start(FileList *filelist, const bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	wmJob *wm_job;
 	FileListReadJob *flrj;
 
 	/* prepare job data */
 	flrj = MEM_callocN(sizeof(*flrj), __func__);
 	flrj->filelist = filelist;
-	BLI_strncpy(flrj->main_name, G.main->name, sizeof(flrj->main_name));
+	BLI_strncpy(flrj->main_name, BKE_main_blendfile_path(bmain), sizeof(flrj->main_name));
 
 	filelist->flags &= ~(FL_FORCE_RESET | FL_IS_READY);
 	filelist->flags |= FL_IS_PENDING;

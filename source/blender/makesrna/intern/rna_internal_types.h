@@ -206,6 +206,8 @@ struct PropertyRNA {
 	const char *identifier;
 	/* various options */
 	int flag;
+	/* various override options */
+	int flag_override;
 	/* Function parameters flags. */
 	short flag_parameter;
 	/* Internal ("private") flags. */

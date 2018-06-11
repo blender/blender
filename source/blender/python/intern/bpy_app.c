@@ -253,10 +253,10 @@ static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *clos
 		PyErr_SetString(PyExc_TypeError, "bpy.app.debug can only be True/False");
 		return -1;
 	}
-	
+
 	if (param)  G.debug |=  flag;
 	else        G.debug &= ~flag;
-	
+
 	return 0;
 }
 
@@ -307,7 +307,7 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 		PyErr_SetString(PyExc_TypeError, "bpy.app.debug_value can only be set to a whole number");
 		return -1;
 	}
-	
+
 	G.debug_value = param;
 
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -406,7 +406,7 @@ static void py_struct_seq_getset_init(void)
 PyObject *BPY_app_struct(void)
 {
 	PyObject *ret;
-	
+
 	PyStructSequence_InitType(&BlenderAppType, &app_info_desc);
 
 	ret = make_app_info();

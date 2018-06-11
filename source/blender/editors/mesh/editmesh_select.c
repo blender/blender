@@ -678,10 +678,10 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		{
 			FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_EDGE);
 			ED_view3d_backbuf_validate_with_select_mode(vc, select_mode);
-			
+
 			index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
 			eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
-			
+
 			FAKE_SELECT_MODE_END(vc, fake_select_mode);
 		}
 
@@ -1061,7 +1061,7 @@ static bool unified_findnearest(
 
 	mval_prev[0] = vc->mval[0];
 	mval_prev[1] = vc->mval[1];
-	
+
 	/* Only one element type will be non-null. */
 	BLI_assert(((hit.v.ele != NULL) + (hit.e.ele != NULL) + (hit.f.ele != NULL)) <= 1);
 

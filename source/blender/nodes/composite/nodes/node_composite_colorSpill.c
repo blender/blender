@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -57,7 +57,7 @@ static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node
 void register_node_type_cmp_color_spill(void)
 {
 	static bNodeType ntype;
-	
+
 	cmp_node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE, 0);
 	node_type_socket_templates(&ntype, cmp_node_color_spill_in, cmp_node_color_spill_out);
 	node_type_init(&ntype, node_composit_init_color_spill);

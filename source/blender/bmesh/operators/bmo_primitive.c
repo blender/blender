@@ -940,7 +940,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 
 		BMO_slot_buffer_flag_enable(bm, bmop.slots_out, "geom.out", BM_VERT, VERT_MARK);
 		BMO_op_callf(bm, op->flag, "rotate cent=%v matrix=%m3 verts=%S", vec, cmat, &bmop, "geom.out");
-		
+
 		prevop = bmop;
 	}
 
@@ -1041,7 +1041,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		v3 = eva[icoface[a][2]];
 
 		f = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, BM_CREATE_NOP);
-		
+
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			BMO_edge_flag_enable(bm, l->e, EDGE_MARK);
 		}
@@ -1296,10 +1296,10 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
 	float vec[3], mat[4][4], phi, phid;
 	int a;
-	
+
 	if (!segs)
 		return;
-	
+
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
@@ -1308,7 +1308,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		zero_v3(vec);
 		mul_m4_v3(mat, vec);
-		
+
 		cent1 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 		BMO_vert_flag_enable(bm, cent1, VERT_MARK);
 	}
@@ -1322,17 +1322,17 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 		v1 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 
 		BMO_vert_flag_enable(bm, v1, VERT_MARK);
-		
+
 		if (lastv1)
 			BM_edge_create(bm, v1, lastv1, NULL, BM_CREATE_NOP);
-		
+
 		if (a && cap_ends) {
 			BMFace *f;
-			
+
 			f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, BM_CREATE_NOP);
 			BMO_face_flag_enable(bm, f, FACE_NEW);
 		}
-		
+
 		if (!firstv1)
 			firstv1 = v1;
 
@@ -1346,7 +1346,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 
 	if (cap_ends) {
 		BMFace *f;
-		
+
 		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, BM_CREATE_NOP);
 		BMO_face_flag_enable(bm, f, FACE_NEW);
 
@@ -1354,11 +1354,11 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 			BM_mesh_calc_uvs_circle(bm, mat, radius, FACE_NEW, cd_loop_uv_offset);
 		}
 	}
-	
+
 	if (!cap_tris) {
 		BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
 	}
-	
+
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }
 
@@ -1421,10 +1421,10 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 	int a;
-	
+
 	if (!segs)
 		return;
-	
+
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
@@ -1435,13 +1435,13 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 		vec[0] = vec[1] = 0.0f;
 		vec[2] = -depth;
 		mul_m4_v3(mat, vec);
-		
+
 		cent1 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 
 		vec[0] = vec[1] = 0.0f;
 		vec[2] = depth;
 		mul_m4_v3(mat, vec);
-		
+
 		cent2 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 
 		BMO_vert_flag_enable(bm, cent1, VERT_MARK);
@@ -1522,7 +1522,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	if (!cap_tris) {
 		BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
 	}
-	
+
 	BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.000001);
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }

@@ -175,7 +175,7 @@ UNSET(_IS_INC_CONF_DEF)
 UNSET(_IS_LIB_DEF)
 UNSET(_IS_LIB_PATH_DEF)
 
-# handle the QUIETLY and REQUIRED arguments and SET PYTHONLIBSUNIX_FOUND to TRUE IF 
+# handle the QUIETLY and REQUIRED arguments and SET PYTHONLIBSUNIX_FOUND to TRUE IF
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(PythonLibsUnix  DEFAULT_MSG

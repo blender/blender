@@ -688,6 +688,13 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph,
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 		mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
 	}
+	if (DEG_is_active(depsgraph)) {
+		bPoseChannel *pchan_orig = pchan->orig_pchan;
+		copy_m4_m4(pchan_orig->pose_mat, pchan->pose_mat);
+		copy_m4_m4(pchan_orig->chan_mat, pchan->chan_mat);
+		copy_v3_v3(pchan_orig->pose_head, pchan->pose_mat[3]);
+		BKE_pose_where_is_bone_tail(pchan_orig);
+	}
 }
 
 void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,

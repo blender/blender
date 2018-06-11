@@ -1042,19 +1042,19 @@ fail:
 }
 
 /**
- * Writes any delayed frames in the encoder. This function is called before 
+ * Writes any delayed frames in the encoder. This function is called before
  * closing the encoder.
  *
  * <p>
- * Since an encoder may use both past and future frames to predict 
- * inter-frames (H.264 B-frames, for example), it can output the frames 
+ * Since an encoder may use both past and future frames to predict
+ * inter-frames (H.264 B-frames, for example), it can output the frames
  * in a different order from the one it was given.
  * For example, when sending frames 1, 2, 3, 4 to the encoder, it may write
  * them in the order 1, 4, 2, 3 - first the two frames used for prediction,
- * and then the bidirectionally-predicted frames. What this means in practice 
- * is that the encoder may not immediately produce one output frame for each 
- * input frame. These delayed frames must be flushed before we close the 
- * stream. We do this by calling avcodec_encode_video with NULL for the last 
+ * and then the bidirectionally-predicted frames. What this means in practice
+ * is that the encoder may not immediately produce one output frame for each
+ * input frame. These delayed frames must be flushed before we close the
+ * stream. We do this by calling avcodec_encode_video with NULL for the last
  * parameter.
  * </p>
  */
@@ -1127,7 +1127,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context, char *string, RenderData
 	}
 
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.main->name);
+	BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
 	BLI_make_existing_file(string);
 

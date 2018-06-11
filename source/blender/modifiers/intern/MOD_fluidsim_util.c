@@ -48,6 +48,7 @@
 
 #include "BKE_fluidsim.h" /* ensure definitions here match */
 #include "BKE_cdderivedmesh.h"
+#include "BKE_main.h"
 #ifdef WITH_MOD_FLUID
 #  include "BKE_global.h"
 #endif
@@ -465,7 +466,7 @@ static DerivedMesh *fluidsim_read_cache(
 	/* offset baked frame */
 	curFrame += fss->frameOffset;
 
-	BLI_path_abs(targetFile, modifier_path_relbase(ob));
+	BLI_path_abs(targetFile, modifier_path_relbase_from_global(ob));
 	BLI_path_frame(targetFile, curFrame, 0); // fixed #frame-no
 
 	/* assign material + flags to new dm

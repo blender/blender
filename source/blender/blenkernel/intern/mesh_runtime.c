@@ -35,13 +35,22 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"
 #include "BLI_threads.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 
+#ifdef USE_DERIVEDMESH
+#include "BKE_DerivedMesh.h"
+#endif
+
+/* -------------------------------------------------------------------- */
+/** \name Mesh Runtime Struct Utils
+ * \{ */
 
 static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 
@@ -145,8 +154,9 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
 }
 
 /* This is a copy of DM_verttri_from_looptri(). */
-void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri, const MLoop *mloop,
-                                           const MLoopTri *looptri, int looptri_num)
+void BKE_mesh_runtime_verttri_from_looptri(
+        MVertTri *r_verttri, const MLoop *mloop,
+        const MLoopTri *looptri, int looptri_num)
 {
 	int i;
 	for (i = 0; i < looptri_num; i++) {
@@ -192,6 +202,12 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 	MEM_SAFE_FREE(mesh->runtime.looptris.array);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mesh Batch Cache Callbacks
+ * \{ */
+
 /* Draw Engine */
 void (*BKE_mesh_batch_cache_dirty_cb)(Mesh *me, int mode) = NULL;
 void (*BKE_mesh_batch_cache_free_cb)(Mesh *me) = NULL;
@@ -208,3 +224,5 @@ void BKE_mesh_batch_cache_free(Mesh *me)
 		BKE_mesh_batch_cache_free_cb(me);
 	}
 }
+
+/** \} */

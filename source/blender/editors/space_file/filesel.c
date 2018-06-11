@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -96,11 +96,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	FileSelectParams *params;
 	wmOperator *op = sfile->op;
 
+	const char *blendfile_path = BKE_main_blendfile_path_from_global();
+
 	/* create new parameters if necessary */
 	if (!sfile->params) {
 		sfile->params = MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
-		BLI_split_dirfile(G.main->name, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
+		BLI_split_dirfile(blendfile_path, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 		sfile->params->filter_glob[0] = '\0';
 		/* set the default thumbnails size */
 		sfile->params->thumbnail_size = 128;
@@ -149,8 +151,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		if (params->dir[0]) {
-			BLI_cleanup_dir(G.main->name, params->dir);
-			BLI_path_abs(params->dir, G.main->name);
+			BLI_cleanup_dir(blendfile_path, params->dir);
+			BLI_path_abs(params->dir, blendfile_path);
 		}
 
 		if (is_directory == true && is_filename == false && is_filepath == false && is_files == false) {
@@ -224,7 +226,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else {
 			params->flag &= ~FILE_HIDE_DOT;
 		}
-		
+
 
 		if (params->type == FILE_LOADLIB) {
 			params->flag |= RNA_boolean_get(op->ptr, "link") ? FILE_LINK : 0;
@@ -283,8 +285,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		sfile->folders_prev = folderlist_new();
 
 	if (!sfile->params->dir[0]) {
-		if (G.main->name[0]) {
-			BLI_split_dir_part(G.main->name, sfile->params->dir, sizeof(sfile->params->dir));
+		if (blendfile_path[0] != '\0') {
+			BLI_split_dir_part(blendfile_path, sfile->params->dir, sizeof(sfile->params->dir));
 		}
 		else {
 			const char *doc_path = BKE_appdir_folder_default();
@@ -366,12 +368,12 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 
 	if (layout == NULL)
 		return sel;
-	
+
 	colmin = (rect->xmin) / (layout->tile_w + 2 * layout->tile_border_x);
 	rowmin = (rect->ymin) / (layout->tile_h + 2 * layout->tile_border_y);
 	colmax = (rect->xmax) / (layout->tile_w + 2 * layout->tile_border_x);
 	rowmax = (rect->ymax) / (layout->tile_h + 2 * layout->tile_border_y);
-	
+
 	if (is_inside(colmin, rowmin, layout->columns, layout->rows) ||
 	    is_inside(colmax, rowmax, layout->columns, layout->rows) )
 	{
@@ -380,12 +382,12 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 		CLAMP(colmax, 0, layout->columns - 1);
 		CLAMP(rowmax, 0, layout->rows - 1);
 	}
-	
+
 	if ((colmin > layout->columns - 1) || (rowmin > layout->rows - 1)) {
 		sel.first = -1;
 	}
 	else {
-		if (layout->flag & FILE_LAYOUT_HOR) 
+		if (layout->flag & FILE_LAYOUT_HOR)
 			sel.first = layout->rows * colmin + rowmin;
 		else
 			sel.first = colmin + layout->columns * rowmin;
@@ -394,7 +396,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 		sel.last = -1;
 	}
 	else {
-		if (layout->flag & FILE_LAYOUT_HOR) 
+		if (layout->flag & FILE_LAYOUT_HOR)
 			sel.last = layout->rows * colmax + rowmax;
 		else
 			sel.last = colmax + layout->columns * rowmax;
@@ -410,14 +412,14 @@ int ED_fileselect_layout_offset(FileLayout *layout, int x, int y)
 
 	if (layout == NULL)
 		return -1;
-	
+
 	offsetx = (x) / (layout->tile_w + 2 * layout->tile_border_x);
 	offsety = (y) / (layout->tile_h + 2 * layout->tile_border_y);
-	
+
 	if (offsetx > layout->columns - 1) return -1;
 	if (offsety > layout->rows - 1) return -1;
-	
-	if (layout->flag & FILE_LAYOUT_HOR) 
+
+	if (layout->flag & FILE_LAYOUT_HOR)
 		active_file = layout->rows * offsetx + offsety;
 	else
 		active_file = offsetx + layout->columns * offsety;
@@ -611,12 +613,12 @@ void ED_file_change_dir(bContext *C)
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file)
 {
 	int match = 0;
-	
+
 	int i;
 	FileDirEntry *file;
 	int n = filelist_files_ensure(sfile->files);
 
-	/* select any file that matches the pattern, this includes exact match 
+	/* select any file that matches the pattern, this includes exact match
 	 * if the user selects a single file by entering the filename
 	 */
 	for (i = 0; i < n; i++) {
@@ -645,7 +647,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 
 		DIR *dir;
 		struct dirent *de;
-		
+
 		BLI_split_dir_part(str, dirname, sizeof(dirname));
 
 		dir = opendir(dirname);
@@ -660,7 +662,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 				else {
 					char path[FILE_MAX];
 					BLI_stat_t status;
-					
+
 					BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
 					if (BLI_stat(path, &status) == 0) {
@@ -726,7 +728,7 @@ void ED_fileselect_exit(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
 
 	folderlist_free(sfile->folders_prev);
 	folderlist_free(sfile->folders_next);
-	
+
 	if (sfile->files) {
 		ED_fileselect_clear(wm, sa, sfile);
 		filelist_free(sfile->files);

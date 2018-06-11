@@ -51,7 +51,8 @@ int collada_import(bContext *C, ImportSettings *import_settings)
 	return (imp.import())? 1:0;
 }
 
-int collada_export(Depsgraph *depsgraph,
+int collada_export(bContext *C,
+                   Depsgraph *depsgraph,
                    Scene *sce,
                    ExportSettings *export_settings)
 {
@@ -80,7 +81,7 @@ int collada_export(Depsgraph *depsgraph,
 	}
 
 	DocumentExporter exporter(depsgraph, export_settings);
-	int status = exporter.exportCurrentScene(sce);
+	int status = exporter.exportCurrentScene(C, sce);
 
 	BLI_linklist_free(export_settings->export_set, NULL);
 

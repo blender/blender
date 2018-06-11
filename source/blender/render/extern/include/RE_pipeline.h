@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -103,11 +103,11 @@ typedef struct RenderPass {
 /* after render, the Combined pass is in combined, for renderlayers read from files it is a real pass */
 typedef struct RenderLayer {
 	struct RenderLayer *next, *prev;
-	
+
 	/* copy of RenderData */
 	char name[RE_MAXNAME];
 	int layflag, passflag, pass_xor;
-	
+
 	/* MULTIVIEW_TODO: acolrect and scolrect are not supported by multiview at the moment.
 	 * If they are really required they should be in RenderView instead */
 
@@ -121,16 +121,16 @@ typedef struct RenderLayer {
 	void *exrhandle;
 
 	ListBase passes;
-	
+
 } RenderLayer;
 
 typedef struct RenderResult {
 	struct RenderResult *next, *prev;
-	
+
 	/* target image size */
 	int rectx, recty;
 	short crop, sample_nr;
-	
+
 	/* the following rect32, rectf and rectz buffers are for temporary storage only, for RenderResult structs
 	 * created in #RE_AcquireResultImage - which do not have RenderView */
 
@@ -140,25 +140,25 @@ typedef struct RenderResult {
 	float *rectf;
 	/* if this exists, a copy of one of layers, or result of composited layers */
 	float *rectz;
-	
+
 	/* coordinates within final image (after cropping) */
 	rcti tilerect;
 	/* offset to apply to get a border render in full image */
 	int xof, yof;
-	
+
 	/* the main buffers */
 	ListBase layers;
-	
+
 	/* multiView maps to a StringVector in OpenEXR */
 	ListBase views;  /* RenderView */
 
 	/* allowing live updates: */
 	volatile rcti renrect;
 	volatile RenderLayer *renlay;
-	
+
 	/* optional saved endresult on disk */
 	int do_exr_tile;
-	
+
 	/* for render results in Image, verify validity for sequences */
 	int framenr;
 
@@ -310,6 +310,11 @@ void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, fl
 void RE_draw_lock_cb		(struct Render *re, void *handle, void (*f)(void *handle, int));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
 void RE_current_scene_update_cb(struct Render *re, void *handle, void (*f)(void *handle, struct Scene *scene));
+
+void  RE_gl_context_create(Render *re);
+void  RE_gl_context_destroy(Render *re);
+void *RE_gl_context_get(Render *re);
+void *RE_gwn_context_get(Render *re);
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);

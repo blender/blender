@@ -64,7 +64,7 @@ static BMVert *bmo_vert_copy(
 
 	/* Mark the vert for output */
 	BMO_vert_flag_enable(bm_dst, v_dst, DUPE_NEW);
-	
+
 	return v_dst;
 }
 
@@ -103,7 +103,7 @@ static BMEdge *bmo_edge_copy(
 	/* Lookup v1 and v2 */
 	e_dst_v1 = BLI_ghash_lookup(vhash, e_src->v1);
 	e_dst_v2 = BLI_ghash_lookup(vhash, e_src->v2);
-	
+
 	/* Create a new edge */
 	e_dst = BM_edge_create(bm_dst, e_dst_v1, e_dst_v2, NULL, BM_CREATE_SKIP_CD);
 	BMO_slot_map_elem_insert(op, slot_edgemap_out, e_src, e_dst);
@@ -124,7 +124,7 @@ static BMEdge *bmo_edge_copy(
 
 	/* Mark the edge for output */
 	BMO_edge_flag_enable(bm_dst, e_dst, DUPE_NEW);
-	
+
 	return e_dst;
 }
 
@@ -164,7 +164,7 @@ static BMFace *bmo_face_copy(
 
 	/* Copy attributes */
 	BM_elem_attrs_copy(bm_src, bm_dst, f_src, f_dst);
-	
+
 	/* copy per-loop custom data */
 	l_iter_src = l_first_src;
 	l_iter_dst = BM_FACE_FIRST_LOOP(f_dst);
@@ -192,7 +192,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 	BMVert *v = NULL, *v2;
 	BMEdge *e = NULL;
 	BMFace *f = NULL;
-	
+
 	BMIter viter, eiter, fiter;
 	GHash *vhash, *ehash;
 
@@ -286,7 +286,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 			BMO_face_flag_enable(bm_src, f, DUPE_DONE);
 		}
 	}
-	
+
 	/* free pointer hashes */
 	BLI_ghash_free(vhash, NULL, NULL);
 	BLI_ghash_free(ehash, NULL, NULL);
@@ -326,7 +326,7 @@ void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator *dupeop = op;
 	BMesh *bm_dst = BMO_slot_ptr_get(op->slots_in, "dest");
-	
+
 	if (!bm_dst)
 		bm_dst = bm;
 
@@ -335,7 +335,7 @@ void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 
 	/* use the internal copy function */
 	bmo_mesh_copy(dupeop, bm_dst, bm);
-	
+
 	/* Output */
 	/* First copy the input buffers to output buffers - original data */
 	BMO_slot_copy(dupeop, slots_in,  "geom",
@@ -393,11 +393,11 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 
 	/* initialize our sub-operator */
 	BMO_op_init(bm, &dupeop, op->flag, "duplicate");
-	
+
 	BMO_slot_copy(splitop, slots_in, "geom",
 	              &dupeop, slots_in, "geom");
 	BMO_op_exec(bm, &dupeop);
-	
+
 	BMO_slot_buffer_flag_enable(bm, splitop->slots_in, "geom", BM_ALL_NOLOOP, SPLIT_INPUT);
 
 	if (use_only_faces) {

@@ -155,7 +155,7 @@
  * also note that the id _must_ have a library - campbell */
 void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 {
-	const char *bpath_user_data[2] = {bmain->name, lib->filepath};
+	const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath};
 
 	BKE_bpath_traverse_id(bmain, id,
 	                      BKE_bpath_relocate_visitor,
@@ -1737,18 +1737,31 @@ void BKE_main_thumbnail_create(struct Main *bmain)
 	bmain->blen_thumb->height = BLEN_THUMB_SIZE;
 }
 
+/**
+ * Return filepath of given \a main.
+ */
+const char *BKE_main_blendfile_path(const Main *bmain)
+{
+	return bmain->name;
+}
+
+/**
+ * Return filepath of global main (G_MAIN).
+ *
+ * \warning Usage is not recommended, you should always try to get a valid Main pointer from context...
+ */
+const char *BKE_main_blendfile_path_from_global(void)
+{
+	return BKE_main_blendfile_path(G_MAIN);
+}
+
 /* ***************** ID ************************ */
-ID *BKE_libblock_find_name_ex(struct Main *bmain, const short type, const char *name)
+ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *name)
 {
 	ListBase *lb = which_libbase(bmain, type);
 	BLI_assert(lb != NULL);
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
-ID *BKE_libblock_find_name(const short type, const char *name)
-{
-	return BKE_libblock_find_name_ex(G.main, type, name);
-}
-
 
 void id_sort_by_name(ListBase *lb, ID *id)
 {
@@ -2078,7 +2091,7 @@ static void library_make_local_copying_check(ID *id, GSet *loop_tags, MainIDRela
 
 /** Make linked datablocks local.
  *
- * \param bmain Almost certainly G.main.
+ * \param bmain Almost certainly global main.
  * \param lib If not NULL, only make local datablocks from this library.
  * \param untagged_only If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
  * \param set_fake If true, set fake user on all localized datablocks (except group and objects ones).
@@ -2510,7 +2523,7 @@ void BKE_id_ui_prefix(char name[MAX_ID_NAME + 1], const ID *id)
 	strcpy(name + 3, id->name + 2);
 }
 
-void BKE_library_filepath_set(Library *lib, const char *filepath)
+void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
 {
 	/* in some cases this is used to update the absolute path from the
 	 * relative */
@@ -2529,8 +2542,8 @@ void BKE_library_filepath_set(Library *lib, const char *filepath)
 		 * since making local could cause this to be directly linked - campbell
 		 */
 		/* Never make paths relative to parent lib - reading code (blenloader) always set *all* lib->name relative to
-		 * current G.main, not to their parent for indirectly linked ones. */
-		const char *basepath = G.main->name;
+		 * current main, not to their parent for indirectly linked ones. */
+		const char *basepath = BKE_main_blendfile_path(bmain);
 		BLI_path_abs(lib->filepath, basepath);
 	}
 }

@@ -21,7 +21,7 @@
  */
 
 /** \file blender/bmesh/operators/bmo_create.c
- *  \ingroup bmesh 
+ *  \ingroup bmesh
  *
  * Create faces or edges (Fkey by default).
  */
@@ -66,7 +66,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 				break;
 		}
 	}
-	
+
 	/* --- Support Edge Creation ---
 	 * simple case when we only have 2 verts selected.
 	 */

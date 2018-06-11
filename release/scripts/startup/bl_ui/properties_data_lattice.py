@@ -57,24 +57,31 @@ class DATA_PT_lattice(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         lat = context.lattice
 
-        row = layout.row()
-        row.prop(lat, "points_u")
-        row.prop(lat, "interpolation_type_u", text="")
+        col = layout.column()
 
-        row = layout.row()
-        row.prop(lat, "points_v")
-        row.prop(lat, "interpolation_type_v", text="")
+        sub = col.column(align=True)
+        sub.prop(lat, "points_u", text="Resolution U")
+        sub.prop(lat, "points_v", text="V")
+        sub.prop(lat, "points_w", text="W")
 
-        row = layout.row()
-        row.prop(lat, "points_w")
-        row.prop(lat, "interpolation_type_w", text="")
+        col.separator()
 
-        row = layout.row()
-        row.prop(lat, "use_outside")
-        row.prop_search(lat, "vertex_group", context.object, "vertex_groups", text="")
+        sub = col.column(align=True)
+        sub.prop(lat, "interpolation_type_u", text="Interpolation U")
+        sub.prop(lat, "interpolation_type_v", text="V")
+        sub.prop(lat, "interpolation_type_w", text="W")
+
+        col.separator()
+
+        col.prop(lat, "use_outside")
+
+        col.separator()
+
+        col.prop_search(lat, "vertex_group", context.object, "vertex_groups")
 
 
 class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, Panel):

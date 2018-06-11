@@ -183,6 +183,12 @@ static void particle_cache_populate(void *vedata, Object *object)
 	Object *object_orig = DEG_get_original_object(object);
 	PTCacheEdit *edit = PE_create_current(
 	        draw_ctx->depsgraph, scene_orig, object_orig);
+	if (edit == NULL) {
+		/* Happens when trying to edit particles in EMITTER mode without
+		 * having them cached.
+		 */
+		return;
+	}
 	/* NOTE: We need to pass evaluated particle system, which we need
 	 * to find first.
 	 */

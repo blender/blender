@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -109,9 +109,9 @@ void file_filename_enter_handle(bContext *C, void *arg_unused, void *arg_but);
 int file_highlight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
 
 void file_sfile_filepath_set(struct SpaceFile *sfile, const char *filepath);
-void file_sfile_to_operator_ex(struct wmOperator *op, struct SpaceFile *sfile, char *filepath);
-void file_sfile_to_operator(struct wmOperator *op, struct SpaceFile *sfile);
-void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);
+void file_sfile_to_operator_ex(bContext *C, struct wmOperator *op, struct SpaceFile *sfile, char *filepath);
+void file_sfile_to_operator(bContext *C, struct wmOperator *op, struct SpaceFile *sfile);
+void file_operator_to_sfile(bContext *C, struct SpaceFile *sfile, struct wmOperator *op);
 
 
 /* filesel.c */

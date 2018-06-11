@@ -26,6 +26,7 @@
 #include "abc_object.h"
 
 class AbcMeshWriter;
+struct EvaluationContext;
 struct Main;
 struct MetaBall;
 struct Object;
@@ -42,8 +43,6 @@ class AbcMBallWriter : public AbcObjectWriter {
 public:
 	AbcMBallWriter(
 	        Main *bmain,
-	        Depsgraph *depsgraph,
-	        Scene *scene,
 	        Object *ob,
 	        AbcTransformWriter *parent,
 	        uint32_t time_sampling,

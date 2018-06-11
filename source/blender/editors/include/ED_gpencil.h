@@ -87,7 +87,7 @@ typedef struct tGPDinterpolate {
 	void *draw_handle_screen; /* handle for drawing strokes while operator is running screen stuff */
 } tGPDinterpolate;
 
-/* Temporary 'Stroke Point' data 
+/* Temporary 'Stroke Point' data
  *
  * Used as part of the 'stroke cache' used during drawing of new strokes
  */

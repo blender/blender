@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -115,7 +115,7 @@ typedef struct TreeElement {
 #define TREESTORE_ID_TYPE(_id) \
 	(ELEM(GS((_id)->name), ID_SCE, ID_LI, ID_OB, ID_ME, ID_CU, ID_MB, ID_NT, ID_MA, ID_TE, ID_IM, ID_LT, ID_LA, ID_CA) || \
 	 ELEM(GS((_id)->name), ID_KE, ID_WO, ID_SPK, ID_GR, ID_AR, ID_AC, ID_BR, ID_PA, ID_GD, ID_LS, ID_LP) || \
-	 ELEM(GS((_id)->name), ID_SCR, ID_WM, ID_TXT, ID_VF, ID_SO, ID_CF, ID_PAL, ID_WS))  /* Only in 'blendfile' mode ... :/ */
+	 ELEM(GS((_id)->name), ID_SCR, ID_WM, ID_TXT, ID_VF, ID_SO, ID_CF, ID_PAL, ID_MC, ID_WS))  /* Only in 'blendfile' mode ... :/ */
 
 /* TreeElement->flag */
 enum {
@@ -143,7 +143,7 @@ typedef enum {
 	OL_SETSEL_EXTEND   = 2,  /* select the item and extend (also toggles selection) */
 } eOLSetState;
 
-/* get TreeStoreElem associated with a TreeElement 
+/* get TreeStoreElem associated with a TreeElement
  * < a: (TreeElement) tree element to find stored element for
  */
 #define TREESTORE(a) ((a)->store_elem)
@@ -170,13 +170,13 @@ typedef enum {
  * Are we looking for something in the outliner?
  * If so finding matches in child items makes it more useful
  *
- * - We want to flag parents to act as being open to filter child matches 
+ * - We want to flag parents to act as being open to filter child matches
  * - and also flag matches so we can highlight them
  * - Flags are stored in TreeStoreElem->flag
  * - Flag options defined in DNA_outliner_types.h
  * - SO_SEARCH_RECURSIVE defined in DNA_space_types.h
  *
- * - NOT in datablocks view - searching all datablocks takes way too long 
+ * - NOT in datablocks view - searching all datablocks takes way too long
  *   to be useful
  * - not searching into RNA items helps but isn't the complete solution
  */

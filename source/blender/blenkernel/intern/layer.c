@@ -1206,8 +1206,7 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
 	}
 
 	while (base) {
-		if ((base->flag & BASE_SELECTED) != 0 &&
-		    (base->object->type == data->base_active->object->type) &&
+		if ((base->object->type == data->base_active->object->type) &&
 		    (base != data->base_active) &&
 		    (base->object->mode & data->object_mode))
 		{
@@ -1264,6 +1263,16 @@ void BKE_layer_eval_view_layer(
 		}
 		/* Store base in the array. */
 		view_layer->object_bases_array[base_index++] = base;
+	}
+	if (view_layer == DEG_get_evaluated_view_layer(depsgraph)) {
+		ViewLayer *view_layer_orig = DEG_get_input_view_layer(depsgraph);
+		Base *base_orig = view_layer_orig->object_bases.first;
+		const Base *base_eval = view_layer->object_bases.first;
+		while (base_orig != NULL) {
+			base_orig->flag = base_eval->flag;
+			base_orig = base_orig->next;
+			base_eval = base_eval->next;
+		}
 	}
 }
 

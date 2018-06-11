@@ -116,6 +116,7 @@ public:
 
 private:
 	void initContextGLXEW();
+	GHOST_TSuccess initContext();
 
 	Display *m_display;
 	GLXFBConfig m_fbconfig;
@@ -128,6 +129,7 @@ private:
 	const int m_contextResetNotificationStrategy;
 
 	GLXContext m_context;
+	bool m_init;
 
 	/** The first created OpenGL context (for sharing display lists) */
 	static GLXContext s_sharedContext;

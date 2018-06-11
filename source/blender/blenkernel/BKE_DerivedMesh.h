@@ -38,18 +38,18 @@
  * There are three main mesh data structures in Blender:
  * #Mesh, #CDDerivedMesh and #BMesh.
  *
- * These, and a few others, all implement DerivedMesh interfaces, 
- * which contains unified drawing interfaces, a few utility interfaces, 
- * and a bunch of read-only interfaces intended mostly for conversion from 
+ * These, and a few others, all implement DerivedMesh interfaces,
+ * which contains unified drawing interfaces, a few utility interfaces,
+ * and a bunch of read-only interfaces intended mostly for conversion from
  * one format to another.
  *
  * All Mesh structures in blender make use of CustomData, which is used to store
  * per-element attributes and interpolate them (e.g. uvs, vcols, vgroups, etc).
- * 
+ *
  * Mesh is the "serialized" structure, used for storing object-mode mesh data
  * and also for saving stuff to disk.  It's interfaces are also what DerivedMesh
  * uses to communicate with.
- * 
+ *
  * CDDM is a little mesh library, that uses Mesh data structures in the backend.
  * It's mostly used for modifiers, and has the advantages of not taking much
  * resources.
@@ -398,19 +398,19 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
  * freed, see BKE_customdata.h for the different options
  */
 void DM_add_vert_layer(
-        struct DerivedMesh *dm, int type, int alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_edge_layer(
-        struct DerivedMesh *dm, int type, int alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_tessface_layer(
-        struct DerivedMesh *dm, int type, int alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_loop_layer(
-        DerivedMesh *dm, int type, int alloctype,
+        DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 void DM_add_poly_layer(
-        struct DerivedMesh *dm, int type, int alloctype,
+        struct DerivedMesh *dm, int type, eCDAllocType alloctype,
         void *layer);
 
 /* custom data access functions
@@ -531,12 +531,6 @@ DMCoNo *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int totcos);
 
 /* */
-DerivedMesh *mesh_get_derived_final(
-        struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, CustomDataMask dataMask);
-DerivedMesh *mesh_get_derived_deform(
-        struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, CustomDataMask dataMask);
 
 DerivedMesh *mesh_create_derived_for_modifier(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,

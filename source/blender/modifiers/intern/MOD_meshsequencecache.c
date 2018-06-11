@@ -31,13 +31,13 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_cachefile.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -87,23 +87,23 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (mcmd->cache_file == NULL) || (mcmd->object_path[0] == '\0');
 }
 
-static DerivedMesh *applyModifier(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+        Mesh *mesh)
 {
 #ifdef WITH_ALEMBIC
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 
 	/* Only used to check whether we are operating on org data or not... */
 	Mesh *me = (ctx->object->type == OB_MESH) ? ctx->object->data : NULL;
-	DerivedMesh *org_dm = dm;
+	Mesh *org_mesh = mesh;
 
-	Scene *scene = md->scene;
-	const float frame = BKE_scene_frame_get(scene);
+	Scene *scene = md->scene; /* for FPS macro */
+	const float frame = DEG_get_ctime(ctx->depsgraph);
 	const float time = BKE_cachefile_time_offset(mcmd->cache_file, frame, FPS);
 	const char *err_str = NULL;
 
-	CacheFile *cache_file = mcmd->cache_file;
+	CacheFile *cache_file = (CacheFile *)DEG_get_original_id(&mcmd->cache_file->id);
 
 	BKE_cachefile_ensure_handle(G.main, cache_file);
 
@@ -114,39 +114,44 @@ static DerivedMesh *applyModifier(
 		                                               mcmd->object_path);
 		if (!mcmd->reader) {
 			modifier_setError(md, "Could not create Alembic reader for file %s", cache_file->filepath);
-			return dm;
+			return mesh;
 		}
 	}
 
 	if (me != NULL) {
-		MVert *mvert = dm->getVertArray(dm);
-		MEdge *medge = dm->getEdgeArray(dm);
-		MPoly *mpoly = dm->getPolyArray(dm);
+		MVert *mvert = mesh->mvert;
+		MEdge *medge = mesh->medge;
+		MPoly *mpoly = mesh->mpoly;
 		if ((me->mvert == mvert) || (me->medge == medge) || (me->mpoly == mpoly)) {
 			/* We need to duplicate data here, otherwise we'll modify org mesh, see T51701. */
-			dm = CDDM_copy(dm);
+			BKE_id_copy_ex(NULL, &mesh->id, (ID **)&mesh,
+			               LIB_ID_CREATE_NO_MAIN |
+			               LIB_ID_CREATE_NO_USER_REFCOUNT |
+			               LIB_ID_CREATE_NO_DEG_TAG |
+			               LIB_ID_COPY_NO_PREVIEW,
+			               false);
 		}
 	}
 
-	DerivedMesh *result = ABC_read_mesh(mcmd->reader,
-	                                    ctx->object,
-	                                    dm,
-	                                    time,
-	                                    &err_str,
-	                                    mcmd->read_flag);
+	Mesh *result = ABC_read_mesh(mcmd->reader,
+	                             ctx->object,
+	                             mesh,
+	                             time,
+	                             &err_str,
+	                             mcmd->read_flag);
 
 	if (err_str) {
 		modifier_setError(md, "%s", err_str);
 	}
 
-	if (!ELEM(result, NULL, dm) && (dm != org_dm)) {
-		dm->release(dm);
-		dm = org_dm;
+	if (!ELEM(result, NULL, mesh) && (mesh != org_mesh)) {
+		BKE_id_free(NULL, mesh);
+		mesh = org_mesh;
 	}
 
-	return result ? result : dm;
+	return result ? result : mesh;
 #else
-	return dm;
+	return mesh;
 	UNUSED_VARS(ctx, md);
 #endif
 }
@@ -190,14 +195,14 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

@@ -865,7 +865,7 @@ class TransformsToDeltasAnim(Operator):
 
 
 class DupliOffsetFromCursor(Operator):
-    """Set offset used for DupliGroup based on cursor position"""
+    """Set offset used for collection instances based on cursor position"""
     bl_idname = "object.dupli_offset_from_cursor"
     bl_label = "Set Offset From Cursor"
     bl_options = {'INTERNAL', 'UNDO'}
@@ -876,9 +876,9 @@ class DupliOffsetFromCursor(Operator):
 
     def execute(self, context):
         scene = context.scene
-        group = context.group
+        collection = context.collection
 
-        group.dupli_offset = scene.cursor_location
+        collection.dupli_offset = scene.cursor_location
 
         return {'FINISHED'}
 

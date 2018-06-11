@@ -36,7 +36,7 @@
 #include "GPU_select.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
- 
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_rect.h"
@@ -337,7 +337,7 @@ void gpu_select_pick_begin(
 		}
 
 		float viewport[4];
-		glGetFloatv(GL_SCISSOR_BOX, viewport);
+		glGetFloatv(GL_VIEWPORT, viewport);
 
 		ps->src.clip_rect = *input;
 		ps->src.rect_len = rect_len;

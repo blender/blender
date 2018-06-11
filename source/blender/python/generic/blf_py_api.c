@@ -307,7 +307,7 @@ static PyObject *py_blf_rotation(PyObject *UNUSED(self), PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "if:blf.rotation", &fontid, &angle))
 		return NULL;
-		
+
 	BLF_rotation(fontid, angle);
 
 	Py_RETURN_NONE;

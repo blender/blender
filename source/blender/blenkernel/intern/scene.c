@@ -942,20 +942,19 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 /* called from creator_args.c */
 Scene *BKE_scene_set_name(Main *bmain, const char *name)
 {
-	Scene *sce = (Scene *)BKE_libblock_find_name_ex(bmain, ID_SCE, name);
+	Scene *sce = (Scene *)BKE_libblock_find_name(bmain, ID_SCE, name);
 	if (sce) {
 		BKE_scene_set_background(bmain, sce);
-		printf("Scene switch for render: '%s' in file: '%s'\n", name, bmain->name);
+		printf("Scene switch for render: '%s' in file: '%s'\n", name, BKE_main_blendfile_path(bmain));
 		return sce;
 	}
 
-	printf("Can't find scene: '%s' in file: '%s'\n", name, bmain->name);
+	printf("Can't find scene: '%s' in file: '%s'\n", name, BKE_main_blendfile_path(bmain));
 	return NULL;
 }
 
 /* Used by metaballs, return *all* objects (including duplis) existing in the scene (including scene's sets) */
-int BKE_scene_base_iter_next(
-        Depsgraph *depsgraph, SceneBaseIter *iter,
+int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
         Scene **scene, int val, Base **base, Object **ob)
 {
 	bool run_again = true;
@@ -1029,7 +1028,7 @@ int BKE_scene_base_iter_next(
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of collection_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							iter->duplilist = object_duplilist_ex(depsgraph, (*scene), (*base)->object, false);
+							iter->duplilist = object_duplilist(depsgraph, (*scene), (*base)->object);
 							
 							iter->dupob = iter->duplilist->first;
 
@@ -1229,7 +1228,7 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 }
 
 /* This function is needed to cope with fractional frames - including two Blender rendering features
- * mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. 
+ * mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering.
  */
 float BKE_scene_frame_get(const Scene *scene)
 {
@@ -1268,10 +1267,10 @@ void BKE_scene_frame_set(struct Scene *scene, double cfra)
 #define POSE_ANIMATION_WORKAROUND
 
 #ifdef POSE_ANIMATION_WORKAROUND
-static void scene_armature_depsgraph_workaround(Main *bmain)
+static void scene_armature_depsgraph_workaround(Main *bmain, Depsgraph *depsgraph)
 {
 	Object *ob;
-	if (BLI_listbase_is_empty(&bmain->armature) || !DEG_id_type_tagged(bmain, ID_OB)) {
+	if (BLI_listbase_is_empty(&bmain->armature) || !DEG_id_type_updated(depsgraph, ID_OB)) {
 		return;
 	}
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
@@ -1293,7 +1292,7 @@ static bool check_rendered_viewport_visible(Main *bmain)
 		Scene *scene = window->scene;
 		RenderEngineType *type = RE_engines_find(scene->r.engine);
 
-		if (type->draw_engine || !type->render_to_view) {
+		if (type->draw_engine || !type->render) {
 			continue;
 		}
 
@@ -1373,7 +1372,7 @@ void BKE_scene_graph_update_tagged(Depsgraph *depsgraph,
 	/* Inform editors about possible changes. */
 	DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
 	/* Clear recalc flags. */
-	DEG_ids_clear_recalc(bmain);
+	DEG_ids_clear_recalc(bmain, depsgraph);
 }
 
 /* applies changes right away, does all sets too */
@@ -1399,10 +1398,10 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph,
 	 *
 	 * TODO(sergey): Make this a depsgraph node?
 	 */
-	BKE_cachefile_update_frame(bmain, scene, ctime,
+	BKE_cachefile_update_frame(bmain, depsgraph, scene, ctime,
 	                           (((double)scene->r.frs_sec) / (double)scene->r.frs_sec_base));
 #ifdef POSE_ANIMATION_WORKAROUND
-	scene_armature_depsgraph_workaround(bmain);
+	scene_armature_depsgraph_workaround(bmain, depsgraph);
 #endif
 	/* Update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed.
@@ -1415,7 +1414,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph,
 	/* Inform editors about possible changes. */
 	DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
 	/* clear recalc flags */
-	DEG_ids_clear_recalc(bmain);
+	DEG_ids_clear_recalc(bmain, depsgraph);
 }
 
 /* return default view */

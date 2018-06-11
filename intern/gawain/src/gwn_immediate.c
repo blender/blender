@@ -47,7 +47,7 @@ typedef struct {
 
 	GLuint vbo_id;
 	GLuint vao_id;
-	
+
 	GLuint bound_program;
 	const Gwn_ShaderInterface* shader_interface;
 	Gwn_AttrBinding attrib_binding;

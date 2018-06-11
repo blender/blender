@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -107,16 +107,16 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, con
 {
 	NodeImageMultiFile *nimf = node->storage;
 	bNodeSocket *sock = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, NULL, name);
-	
+
 	/* create format data for the input socket */
 	NodeImageMultiFileSocket *sockdata = MEM_callocN(sizeof(NodeImageMultiFileSocket), "socket image format");
 	sock->storage = sockdata;
-	
+
 	BLI_strncpy_utf8(sockdata->path, name, sizeof(sockdata->path));
 	ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
 	BLI_strncpy_utf8(sockdata->layer, name, sizeof(sockdata->layer));
 	ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
-	
+
 	if (im_format) {
 		sockdata->format = *im_format;
 		if (BKE_imtype_is_movie(sockdata->format.imtype)) {
@@ -129,7 +129,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, con
 	sockdata->use_node_format = true;
 
 	nimf->active_input = BLI_findindex(&node->inputs, sock);
-	
+
 	return sock;
 }
 
@@ -138,16 +138,16 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
 	NodeImageMultiFile *nimf = node->storage;
 	bNodeSocket *sock = BLI_findlink(&node->inputs, nimf->active_input);
 	int totinputs = BLI_listbase_count(&node->inputs);
-	
+
 	if (!sock)
 		return 0;
-	
+
 	if (nimf->active_input == totinputs - 1)
 		--nimf->active_input;
-	
+
 	/* free format data */
 	MEM_freeN(sock->storage);
-	
+
 	nodeRemoveSocket(ntree, node, sock);
 	return 1;
 }
@@ -175,7 +175,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
 	NodeImageMultiFile *nimf = MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
 	ImageFormatData *format = NULL;
 	node->storage = nimf;
-	
+
 	if (scene) {
 		RenderData *rd = &scene->r;
 
@@ -184,7 +184,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
 		if (BKE_imtype_is_movie(nimf->format.imtype)) {
 			nimf->format.imtype = R_IMF_IMTYPE_OPENEXR;
 		}
-		
+
 		format = &nimf->format;
 	}
 	else
@@ -197,21 +197,21 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
 static void free_output_file(bNode *node)
 {
 	bNodeSocket *sock;
-	
+
 	/* free storage data in sockets */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
 		MEM_freeN(sock->storage);
 	}
-	
+
 	MEM_freeN(node->storage);
 }
 
 static void copy_output_file(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode *src_node)
 {
 	bNodeSocket *src_sock, *dest_sock;
-	
+
 	dest_node->storage = MEM_dupallocN(src_node->storage);
-	
+
 	/* duplicate storage data in sockets */
 	for (src_sock = src_node->inputs.first, dest_sock = dest_node->inputs.first; src_sock && dest_sock; src_sock = src_sock->next, dest_sock = dest_sock->next) {
 		dest_sock->storage = MEM_dupallocN(src_sock->storage);
@@ -222,7 +222,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock, *sock_next;
 	PointerRNA ptr;
-	
+
 	/* XXX fix for #36706: remove invalid sockets added with bpy API.
 	 * This is not ideal, but prevents crashes from missing storage.
 	 * FileOutput node needs a redesign to support this properly.
@@ -237,9 +237,9 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
 		sock_next = sock->next;
 		nodeRemoveSocket(ntree, node, sock);
 	}
-	
+
 	cmp_node_update_default(ntree, node);
-	
+
 	/* automatically update the socket type based on linked input */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
 		if (sock->link) {

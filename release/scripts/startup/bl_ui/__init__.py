@@ -88,7 +88,7 @@ _modules = [
     "space_userpref",
     "space_view3d",
     "space_view3d_toolbar",
-    ]
+]
 
 import bpy
 
@@ -167,6 +167,8 @@ def unregister():
 
 # Define a default UIList, when a list does not need any custom drawing...
 # Keep in sync with its #defined name in UI_interface.h
+
+
 class UI_UL_list(bpy.types.UIList):
     # These are common filtering or ordering operations (same as the default C ones!).
     @staticmethod

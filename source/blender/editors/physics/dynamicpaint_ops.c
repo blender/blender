@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -102,7 +102,7 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
 	ot->name = "Add Surface Slot";
 	ot->idname = "DPAINT_OT_surface_slot_add";
 	ot->description = "Add a new Dynamic Paint surface slot";
-	
+
 	/* api callbacks */
 	ot->exec = surface_slot_add_exec;
 	ot->poll = ED_operator_object_active_editable;
@@ -150,7 +150,7 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
 	ot->name = "Remove Surface Slot";
 	ot->idname = "DPAINT_OT_surface_slot_remove";
 	ot->description = "Remove the selected surface slot";
-	
+
 	/* api callbacks */
 	ot->exec = surface_slot_remove_exec;
 	ot->poll = ED_operator_object_active_editable;
@@ -181,7 +181,7 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
 		if (!dynamicPaint_createType(pmd, type, scene))
 			return OPERATOR_CANCELLED;
 	}
-	
+
 	/* update dependency */
 	DEG_id_tag_update(&cObject->id, OB_RECALC_DATA);
 	DEG_relations_tag_update(CTX_data_main(C));
@@ -198,14 +198,14 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 	ot->name = "Toggle Type Active";
 	ot->idname = "DPAINT_OT_type_toggle";
 	ot->description = "Toggle whether given type is active or not";
-	
+
 	/* api callbacks */
 	ot->exec = type_toggle_exec;
 	ot->poll = ED_operator_object_active_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* properties */
 	prop = RNA_def_enum(ot->srna, "type", rna_enum_prop_dynamicpaint_type_items, MOD_DYNAMICPAINT_TYPE_CANVAS, "Type", "");
 	ot->prop = prop;
@@ -225,7 +225,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		int exists = dynamicPaint_outputLayerExists(surface, ob, output);
 		const char *name;
-		
+
 		if (output == 0)
 			name = surface->output_name;
 		else
@@ -235,7 +235,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 			if (!exists)
 				ED_mesh_color_add(ob->data, name, true);
-			else 
+			else
 				ED_mesh_color_remove_named(ob->data, name);
 		}
 		/* Vertex Weight Layer */
@@ -265,14 +265,14 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 	ot->name = "Toggle Output Layer";
 	ot->idname = "DPAINT_OT_output_toggle";
 	ot->description = "Add or remove Dynamic Paint output data layer";
-	
+
 	/* api callbacks */
 	ot->exec = output_toggle_exec;
 	ot->poll = ED_operator_object_active_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "output", prop_output_toggle_types, 0, "Output Toggle", "");
 }
@@ -509,7 +509,7 @@ void DPAINT_OT_bake(wmOperatorType *ot)
 	ot->name = "Dynamic Paint Bake";
 	ot->description = "Bake dynamic paint image sequence surface";
 	ot->idname = "DPAINT_OT_bake";
-	
+
 	/* api callbacks */
 	ot->exec = dynamicpaint_bake_exec;
 	ot->poll = ED_operator_object_active_editable;

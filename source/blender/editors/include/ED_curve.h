@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -32,15 +32,16 @@
 #define __ED_CURVE_H__
 
 struct bContext;
+struct BezTriple;
+struct BPoint;
+struct Curve;
+struct EditNurb;
+struct Main;
 struct Nurb;
 struct Object;
 struct Text;
 struct wmOperator;
 struct wmKeyConfig;
-struct Curve;
-struct EditNurb;
-struct BezTriple;
-struct BPoint;
 struct UndoType;
 
 /* curve_ops.c */
@@ -51,7 +52,7 @@ void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 /* editcurve.c */
 struct ListBase *object_editcurve_get(struct Object *ob);
 
-void    ED_curve_editnurb_load(struct Object *obedit);
+void    ED_curve_editnurb_load(struct Main *bmain, struct Object *obedit);
 void    ED_curve_editnurb_make(struct Object *obedit);
 void    ED_curve_editnurb_free(struct Object *obedit);
 

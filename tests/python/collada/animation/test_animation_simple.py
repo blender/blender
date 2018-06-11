@@ -113,37 +113,37 @@ class MeshExportTest4(AbstractColladaTest):
         test = "suzannes_parent_inverse_sample_10_matrix"
         reference_dae = self.testdir / Path("%s.dae" % test)
         outfile       = tempdir / Path("%s_out.dae" % test)
-        
+
         bpy.ops.wm.collada_export(filepath="%s" % str(outfile),
-            check_existing=True, 
-            filemode=8, 
-            display_type='DEFAULT', 
-            sort_method='FILE_SORT_ALPHA', 
-            apply_modifiers=True, 
-            export_mesh_type=0, 
-            export_mesh_type_selection='view', 
-            selected=True, 
-            include_children=True, 
-            include_armatures=True, 
-            include_shapekeys=False, 
-            deform_bones_only=False, 
-            include_animations=True, 
-            sample_animations=True, 
-            sampling_rate=10, 
-            active_uv_only=False, 
-            use_texture_copies=True, 
-            triangulate=False, 
-            use_object_instantiation=True, 
-            use_blender_profile=True, 
-            sort_by_name=False, 
-            export_transformation_type=0, 
-            export_transformation_type_selection='matrix', 
-            export_texture_type=0, 
-            export_texture_type_selection='mat', 
-            open_sim=False, 
-            limit_precision=True, 
+            check_existing=True,
+            filemode=8,
+            display_type='DEFAULT',
+            sort_method='FILE_SORT_ALPHA',
+            apply_modifiers=True,
+            export_mesh_type=0,
+            export_mesh_type_selection='view',
+            selected=True,
+            include_children=True,
+            include_armatures=True,
+            include_shapekeys=False,
+            deform_bones_only=False,
+            include_animations=True,
+            sample_animations=True,
+            sampling_rate=10,
+            active_uv_only=False,
+            use_texture_copies=True,
+            triangulate=False,
+            use_object_instantiation=True,
+            use_blender_profile=True,
+            sort_by_name=False,
+            export_transformation_type=0,
+            export_transformation_type_selection='matrix',
+            export_texture_type=0,
+            export_texture_type_selection='mat',
+            open_sim=False,
+            limit_precision=True,
             keep_bind_info=False)
-        
+
         # Now check the resulting Collada file.
         if not self.checkdae(reference_dae, outfile):
             self.fail()
@@ -154,37 +154,37 @@ class MeshExportTest3(AbstractColladaTest):
         test = "suzannes_parent_inverse_sample_10_channels"
         reference_dae = self.testdir / Path("%s.dae" % test)
         outfile       = tempdir / Path("%s_out.dae" % test)
-        
+
         bpy.ops.wm.collada_export(filepath="%s" % str(outfile),
-            check_existing=True, 
-            filemode=8, 
-            display_type='DEFAULT', 
-            sort_method='FILE_SORT_ALPHA', 
-            apply_modifiers=True, 
-            export_mesh_type=0, 
-            export_mesh_type_selection='view', 
-            selected=True, 
-            include_children=True, 
-            include_armatures=True, 
-            include_shapekeys=False, 
-            deform_bones_only=False, 
-            include_animations=True, 
-            sample_animations=True, 
-            sampling_rate=10, 
-            active_uv_only=False, 
-            use_texture_copies=True, 
-            triangulate=False, 
-            use_object_instantiation=True, 
-            use_blender_profile=True, 
-            sort_by_name=False, 
-            export_transformation_type=0, 
-            export_transformation_type_selection='transrotloc', 
-            export_texture_type=0, 
-            export_texture_type_selection='mat', 
-            open_sim=False, 
-            limit_precision=True, 
+            check_existing=True,
+            filemode=8,
+            display_type='DEFAULT',
+            sort_method='FILE_SORT_ALPHA',
+            apply_modifiers=True,
+            export_mesh_type=0,
+            export_mesh_type_selection='view',
+            selected=True,
+            include_children=True,
+            include_armatures=True,
+            include_shapekeys=False,
+            deform_bones_only=False,
+            include_animations=True,
+            sample_animations=True,
+            sampling_rate=10,
+            active_uv_only=False,
+            use_texture_copies=True,
+            triangulate=False,
+            use_object_instantiation=True,
+            use_blender_profile=True,
+            sort_by_name=False,
+            export_transformation_type=0,
+            export_transformation_type_selection='transrotloc',
+            export_texture_type=0,
+            export_texture_type_selection='mat',
+            open_sim=False,
+            limit_precision=True,
             keep_bind_info=False)
-        
+
         # Now check the resulting Collada file.
         if not self.checkdae(reference_dae, outfile):
             self.fail()
@@ -195,37 +195,37 @@ class MeshExportTest2(AbstractColladaTest):
         test = "suzannes_parent_inverse_keyframes_matrix"
         reference_dae = self.testdir / Path("%s.dae" % test)
         outfile       = tempdir / Path("%s_out.dae" % test)
-        
+
         bpy.ops.wm.collada_export(filepath="%s" % str(outfile),
-            check_existing=True, 
-            filemode=8, 
-            display_type='DEFAULT', 
-            sort_method='FILE_SORT_ALPHA', 
-            apply_modifiers=True, 
-            export_mesh_type=0, 
-            export_mesh_type_selection='view', 
-            selected=True, 
-            include_children=True, 
-            include_armatures=True, 
-            include_shapekeys=False, 
-            deform_bones_only=False, 
-            include_animations=True, 
-            sample_animations=False, 
-            sampling_rate=1, 
-            active_uv_only=False, 
-            use_texture_copies=True, 
-            triangulate=False, 
-            use_object_instantiation=True, 
-            use_blender_profile=True, 
-            sort_by_name=False, 
-            export_transformation_type=0, 
-            export_transformation_type_selection='matrix', 
-            export_texture_type=0, 
-            export_texture_type_selection='mat', 
-            open_sim=False, 
-            limit_precision=True, 
+            check_existing=True,
+            filemode=8,
+            display_type='DEFAULT',
+            sort_method='FILE_SORT_ALPHA',
+            apply_modifiers=True,
+            export_mesh_type=0,
+            export_mesh_type_selection='view',
+            selected=True,
+            include_children=True,
+            include_armatures=True,
+            include_shapekeys=False,
+            deform_bones_only=False,
+            include_animations=True,
+            sample_animations=False,
+            sampling_rate=1,
+            active_uv_only=False,
+            use_texture_copies=True,
+            triangulate=False,
+            use_object_instantiation=True,
+            use_blender_profile=True,
+            sort_by_name=False,
+            export_transformation_type=0,
+            export_transformation_type_selection='matrix',
+            export_texture_type=0,
+            export_texture_type_selection='mat',
+            open_sim=False,
+            limit_precision=True,
             keep_bind_info=False)
-        
+
         # Now check the resulting Collada file.
         if not self.checkdae(reference_dae, outfile):
             self.fail()
@@ -236,42 +236,42 @@ class MeshExportTest1(AbstractColladaTest):
         test = "suzannes_parent_inverse_keyframes_channels"
         reference_dae = self.testdir / Path("%s.dae" % test)
         outfile       = tempdir / Path("%s_out.dae" % test)
-        
+
         bpy.ops.wm.collada_export(filepath="%s" % str(outfile),
-            check_existing=True, 
-            filemode=8, 
-            display_type='DEFAULT', 
-            sort_method='FILE_SORT_ALPHA', 
-            apply_modifiers=True, 
-            export_mesh_type=0, 
-            export_mesh_type_selection='view', 
-            selected=True, 
-            include_children=True, 
-            include_armatures=True, 
-            include_shapekeys=False, 
-            deform_bones_only=False, 
-            include_animations=True, 
-            sample_animations=False, 
-            sampling_rate=1, 
-            active_uv_only=False, 
-            use_texture_copies=True, 
-            triangulate=False, 
-            use_object_instantiation=True, 
-            use_blender_profile=True, 
-            sort_by_name=False, 
-            export_transformation_type=0, 
-            export_transformation_type_selection='transrotloc', 
-            export_texture_type=0, 
-            export_texture_type_selection='mat', 
-            open_sim=False, 
-            limit_precision=True, 
+            check_existing=True,
+            filemode=8,
+            display_type='DEFAULT',
+            sort_method='FILE_SORT_ALPHA',
+            apply_modifiers=True,
+            export_mesh_type=0,
+            export_mesh_type_selection='view',
+            selected=True,
+            include_children=True,
+            include_armatures=True,
+            include_shapekeys=False,
+            deform_bones_only=False,
+            include_animations=True,
+            sample_animations=False,
+            sampling_rate=1,
+            active_uv_only=False,
+            use_texture_copies=True,
+            triangulate=False,
+            use_object_instantiation=True,
+            use_blender_profile=True,
+            sort_by_name=False,
+            export_transformation_type=0,
+            export_transformation_type_selection='transrotloc',
+            export_texture_type=0,
+            export_texture_type_selection='mat',
+            open_sim=False,
+            limit_precision=True,
             keep_bind_info=False)
-        
+
         # Now check the resulting Collada file.
         if not self.checkdae(reference_dae, outfile):
             self.fail()
 
-            
+
 if __name__ == '__main__':
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     parser = argparse.ArgumentParser()

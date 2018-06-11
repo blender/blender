@@ -179,9 +179,9 @@ GHOST_DisplayManager::findMatch(
 			best = score;
 		}
 	}
-	
+
 	match = m_settings[display][found];
-	
+
 	GHOST_PRINT("GHOST_DisplayManager::findMatch(): settings of match:\n");
 	GHOST_PRINT("  setting.xPixels=" << match.xPixels << "\n");
 	GHOST_PRINT("  setting.yPixels=" << match.yPixels << "\n");

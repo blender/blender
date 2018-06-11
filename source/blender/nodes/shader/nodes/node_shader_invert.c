@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,7 +34,7 @@
 
 
 
-/* **************** INVERT ******************** */ 
+/* **************** INVERT ******************** */
 static bNodeSocketTemplate sh_node_invert_in[] = {
 	{ SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{ SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
@@ -46,18 +46,18 @@ static bNodeSocketTemplate sh_node_invert_out[] = {
 	{ -1, 0, "" }
 };
 
-static void node_shader_exec_invert(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, 
+static void node_shader_exec_invert(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in,
                                     bNodeStack **out)
 {
 	float col[3], icol[3], fac;
 
 	nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
 	nodestack_get_vec(col, SOCK_VECTOR, in[1]);
-	
+
 	icol[0] = 1.0f - col[0];
 	icol[1] = 1.0f - col[1];
 	icol[2] = 1.0f - col[2];
-	
+
 	/* if fac, blend result against original input */
 	if (fac < 1.0f)
 		interp_v3_v3v3(out[0]->vec, col, icol, fac);

@@ -42,13 +42,11 @@ extern "C" {
 
 AbcMBallWriter::AbcMBallWriter(
         Main *bmain,
-        Depsgraph *depsgraph,
-        Scene *scene,
         Object *ob,
         AbcTransformWriter *parent,
         uint32_t time_sampling,
         ExportSettings &settings)
-    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(ob, time_sampling, settings, parent)
     , m_bmain(bmain)
 {
 	m_is_animated = isAnimated();
@@ -58,8 +56,7 @@ AbcMBallWriter::AbcMBallWriter(
 	                             sizeof(CurveCache),
 	                             "CurveCache for AbcMBallWriter");
 
-	m_mesh_writer = new AbcMeshWriter(depsgraph, scene, m_mesh_ob, parent,
-	                                  time_sampling, settings);
+	m_mesh_writer = new AbcMeshWriter(m_mesh_ob, parent, time_sampling, settings);
 	m_mesh_writer->setIsAnimated(m_is_animated);
 }
 
@@ -101,7 +98,7 @@ void AbcMBallWriter::do_write()
 	 *               only contains for_render flag. As soon as CoW is
 	 *               implemented, this is to be rethinked.
 	 */
-	BKE_displist_make_mball_forRender(m_depsgraph, m_scene, m_object, &disp);
+	BKE_displist_make_mball_forRender(m_settings.depsgraph, m_settings.scene, m_object, &disp);
 	BKE_mesh_from_metaball(&disp, tmpmesh);
 	BKE_displist_free(&disp);
 

@@ -659,7 +659,9 @@ static ShaderNode *add_node(Scene *scene,
 			image->animated = b_image_node.image_user().use_auto_refresh();
 			image->use_alpha = b_image.use_alpha();
 
+			/* TODO: restore */
 			/* TODO(sergey): Does not work properly when we change builtin type. */
+#if 0
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(
 				        image->filename.string(),
@@ -668,6 +670,7 @@ static ShaderNode *add_node(Scene *scene,
 				        get_image_extension(b_image_node),
 				        image->use_alpha);
 			}
+#endif
 		}
 		image->color_space = (NodeImageColorSpace)b_image_node.color_space();
 		image->projection = (NodeImageProjection)b_image_node.projection();
@@ -707,7 +710,9 @@ static ShaderNode *add_node(Scene *scene,
 			env->animated = b_env_node.image_user().use_auto_refresh();
 			env->use_alpha = b_image.use_alpha();
 
+			/* TODO: restore */
 			/* TODO(sergey): Does not work properly when we change builtin type. */
+#if 0
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(
 				        env->filename.string(),
@@ -716,6 +721,7 @@ static ShaderNode *add_node(Scene *scene,
 				        EXTENSION_REPEAT,
 				        env->use_alpha);
 			}
+#endif
 		}
 		env->color_space = (NodeImageColorSpace)b_env_node.color_space();
 		env->interpolation = get_image_interpolation(b_env_node);
@@ -856,9 +862,11 @@ static ShaderNode *add_node(Scene *scene,
 		point_density->space = (NodeTexVoxelSpace)b_point_density_node.space();
 		point_density->interpolation = get_image_interpolation(b_point_density_node);
 		point_density->builtin_data = b_point_density_node.ptr.data;
+		point_density->image_manager = scene->image_manager;
 
 		/* TODO(sergey): Use more proper update flag. */
 		if(true) {
+			point_density->add_image();
 			b_point_density_node.cache_point_density(b_depsgraph);
 			scene->image_manager->tag_reload_image(
 			        point_density->filename.string(),
@@ -1238,33 +1246,32 @@ void BlenderSync::sync_materials(BL::Depsgraph& b_depsgraph, bool update_all)
 	TaskPool pool;
 	set<Shader*> updated_shaders;
 
-	/* material loop */
-	BL::BlendData::materials_iterator b_mat_orig;
-	for(b_data.materials.begin(b_mat_orig);
-	    b_mat_orig != b_data.materials.end();
-	    ++b_mat_orig)
-	{
-		/* TODO(sergey): Iterate over evaluated data rather than using mapping. */
-		BL::Material b_mat_(b_depsgraph.id_eval_get(*b_mat_orig));
-		BL::Material *b_mat = &b_mat_;
+	BL::Depsgraph::ids_iterator b_id;
+	for(b_depsgraph.ids.begin(b_id); b_id != b_depsgraph.ids.end(); ++b_id) {
+		if (!b_id->is_a(&RNA_Material)) {
+			continue;
+		}
+
+		BL::Material b_mat(*b_id);
 		Shader *shader;
 
 		/* test if we need to sync */
-		if(shader_map.sync(&shader, *b_mat) || update_all) {
+		if(shader_map.sync(&shader, b_mat) || shader->need_sync_object || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
 
-			shader->name = b_mat->name().c_str();
-			shader->pass_id = b_mat->pass_index();
+			shader->name = b_mat.name().c_str();
+			shader->pass_id = b_mat.pass_index();
+			shader->need_sync_object = false;
 
 			/* create nodes */
-			if(b_mat->use_nodes() && b_mat->node_tree()) {
-				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
+			if(b_mat.use_nodes() && b_mat.node_tree()) {
+				BL::ShaderNodeTree b_ntree(b_mat.node_tree());
 
 				add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
 			}
 			else {
 				DiffuseBsdfNode *diffuse = new DiffuseBsdfNode();
-				diffuse->color = get_float3(b_mat->diffuse_color());
+				diffuse->color = get_float3(b_mat.diffuse_color());
 				graph->add(diffuse);
 
 				ShaderNode *out = graph->output();
@@ -1272,7 +1279,7 @@ void BlenderSync::sync_materials(BL::Depsgraph& b_depsgraph, bool update_all)
 			}
 
 			/* settings */
-			PointerRNA cmat = RNA_pointer_get(&b_mat->ptr, "cycles");
+			PointerRNA cmat = RNA_pointer_get(&b_mat.ptr, "cycles");
 			shader->use_mis = get_boolean(cmat, "sample_as_light");
 			shader->use_transparent_shadow = get_boolean(cmat, "use_transparent_shadow");
 			shader->heterogeneous_volume = !get_boolean(cmat, "homogeneous_volume");
@@ -1412,41 +1419,39 @@ void BlenderSync::sync_lamps(BL::Depsgraph& b_depsgraph, bool update_all)
 {
 	shader_map.set_default(scene->default_light);
 
-	/* lamp loop */
-	BL::BlendData::lamps_iterator b_lamp_orig;
-	for(b_data.lamps.begin(b_lamp_orig);
-	    b_lamp_orig != b_data.lamps.end();
-	    ++b_lamp_orig)
-	{
-		/* TODO(sergey): Iterate over evaluated data rather than using mapping. */
-		BL::Lamp b_lamp_(b_depsgraph.id_eval_get(*b_lamp_orig));
-		BL::Lamp *b_lamp = &b_lamp_;
+	BL::Depsgraph::ids_iterator b_id;
+	for(b_depsgraph.ids.begin(b_id); b_id != b_depsgraph.ids.end(); ++b_id) {
+		if (!b_id->is_a(&RNA_Lamp)) {
+			continue;
+		}
+
+		BL::Lamp b_lamp(*b_id);
 		Shader *shader;
 
 		/* test if we need to sync */
-		if(shader_map.sync(&shader, *b_lamp) || update_all) {
+		if(shader_map.sync(&shader, b_lamp) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
 
 			/* create nodes */
-			if(b_lamp->use_nodes() && b_lamp->node_tree()) {
-				shader->name = b_lamp->name().c_str();
+			if(b_lamp.use_nodes() && b_lamp.node_tree()) {
+				shader->name = b_lamp.name().c_str();
 
-				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
+				BL::ShaderNodeTree b_ntree(b_lamp.node_tree());
 
 				add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
 			}
 			else {
 				float strength = 1.0f;
 
-				if(b_lamp->type() == BL::Lamp::type_POINT ||
-				   b_lamp->type() == BL::Lamp::type_SPOT ||
-				   b_lamp->type() == BL::Lamp::type_AREA)
+				if(b_lamp.type() == BL::Lamp::type_POINT ||
+				   b_lamp.type() == BL::Lamp::type_SPOT ||
+				   b_lamp.type() == BL::Lamp::type_AREA)
 				{
 					strength = 100.0f;
 				}
 
 				EmissionNode *emission = new EmissionNode();
-				emission->color = get_float3(b_lamp->color());
+				emission->color = get_float3(b_lamp.color());
 				emission->strength = strength;
 				graph->add(emission);
 

@@ -28,7 +28,7 @@
 /* Implementation based in part off the paper "B-Mesh: A Fast Modeling
  * System for Base Meshes of 3D Articulated Shapes" (Zhongping Ji,
  * Ligang Liu, Yigang Wang)
- * 
+ *
  * Note that to avoid confusion with Blender's BMesh data structure,
  * this tool is renamed as the Skin modifier.
  *
@@ -36,7 +36,7 @@
  * http://www.math.zju.edu.cn/ligangliu/CAGD/Projects/BMesh/
  *
  * The main missing features in this code compared to the paper are:
- * 
+ *
  * + No mesh evolution. The paper suggests iteratively subsurfing the
  *   skin output and adapting the output to better conform with the
  *   spheres of influence surrounding each vertex.

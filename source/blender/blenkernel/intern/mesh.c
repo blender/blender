@@ -46,6 +46,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -543,12 +544,13 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 
 	me_dst->mat = MEM_dupallocN(me_src->mat);
 
-	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, CD_DUPLICATE, me_dst->totvert);
-	CustomData_copy(&me_src->edata, &me_dst->edata, mask, CD_DUPLICATE, me_dst->totedge);
-	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, CD_DUPLICATE, me_dst->totloop);
-	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask, CD_DUPLICATE, me_dst->totpoly);
+	const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
+	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, alloc_type, me_dst->totvert);
+	CustomData_copy(&me_src->edata, &me_dst->edata, mask, alloc_type, me_dst->totedge);
+	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, alloc_type, me_dst->totloop);
+	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask, alloc_type, me_dst->totpoly);
 	if (do_tessface) {
-		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask, CD_DUPLICATE, me_dst->totface);
+		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask, alloc_type, me_dst->totface);
 	}
 	else {
 		mesh_tessface_clear_intern(me_dst, false);
@@ -580,6 +582,34 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	}
 }
 
+/* Custom data layer functions; those assume that totXXX are set correctly. */
+static void mesh_ensure_cdlayers_primary(Mesh *mesh, bool do_tessface)
+{
+	if (!CustomData_get_layer(&mesh->vdata, CD_MVERT))
+		CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
+	if (!CustomData_get_layer(&mesh->edata, CD_MEDGE))
+		CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
+	if (!CustomData_get_layer(&mesh->ldata, CD_MLOOP))
+		CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
+	if (!CustomData_get_layer(&mesh->pdata, CD_MPOLY))
+		CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
+
+	if (do_tessface && !CustomData_get_layer(&mesh->fdata, CD_MFACE))
+		CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_CALLOC, NULL, mesh->totface);
+}
+static void mesh_ensure_cdlayers_origindex(Mesh *mesh, bool do_tessface)
+{
+	if (!CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totvert);
+	if (!CustomData_get_layer(&mesh->edata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totedge);
+	if (!CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CALLOC, NULL,  mesh->totpoly);
+
+	if (do_tessface && !CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX))
+		CustomData_add_layer(&mesh->fdata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
+}
+
 Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int loops_len, int polys_len)
 {
 	Mesh *mesh = BKE_libblock_alloc(
@@ -597,27 +627,15 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int lo
 	copy_vn_i(mesh->ldata.typemap, CD_NUMTYPES, -1);
 	copy_vn_i(mesh->pdata.typemap, CD_NUMTYPES, -1);
 
-	CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, verts_len);
-	CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_CALLOC, NULL, edges_len);
-	CustomData_add_layer(&mesh->fdata, CD_ORIGINDEX, CD_CALLOC, NULL, tessface_len);
-	CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, polys_len);
-
-	CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, verts_len);
-	CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, edges_len);
-	CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_CALLOC, NULL, tessface_len);
-	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, loops_len);
-	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, polys_len);
-
-	mesh->mvert = CustomData_get_layer(&mesh->vdata, CD_MVERT);
-	mesh->medge = CustomData_get_layer(&mesh->edata, CD_MEDGE);
-	mesh->mface = CustomData_get_layer(&mesh->fdata, CD_MFACE);
-	mesh->mloop = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-	mesh->mpoly = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
-
 	mesh->totvert = verts_len;
 	mesh->totedge = edges_len;
+	mesh->totface = tessface_len;
 	mesh->totloop = loops_len;
 	mesh->totpoly = polys_len;
+
+	mesh_ensure_cdlayers_primary(mesh, true);
+	mesh_ensure_cdlayers_origindex(mesh, true);
+	BKE_mesh_update_customdata_pointers(mesh, false);
 
 	return mesh;
 }
@@ -637,6 +655,7 @@ static Mesh *mesh_new_nomain_from_template_ex(
 
 	me_dst->totvert = verts_len;
 	me_dst->totedge = edges_len;
+	me_dst->totface = tessface_len;
 	me_dst->totloop = loops_len;
 	me_dst->totpoly = polys_len;
 
@@ -651,14 +670,11 @@ static Mesh *mesh_new_nomain_from_template_ex(
 		mesh_tessface_clear_intern(me_dst, false);
 	}
 
+	/* The destination mesh should at least have valid primary CD layers,
+	 * even in cases where the source mesh does not. */
+	mesh_ensure_cdlayers_primary(me_dst, do_tessface);
+	mesh_ensure_cdlayers_origindex(me_dst, false);
 	BKE_mesh_update_customdata_pointers(me_dst, false);
-
-	if (!CustomData_get_layer(&me_dst->vdata, CD_ORIGINDEX))
-		CustomData_add_layer(&me_dst->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, verts_len);
-	if (!CustomData_get_layer(&me_dst->edata, CD_ORIGINDEX))
-		CustomData_add_layer(&me_dst->edata, CD_ORIGINDEX, CD_CALLOC, NULL, edges_len);
-	if (!CustomData_get_layer(&me_dst->pdata, CD_ORIGINDEX))
-		CustomData_add_layer(&me_dst->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, polys_len);
 
 	return me_dst;
 }
@@ -1026,7 +1042,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
 	else return NULL;
 }
 
-void BKE_mesh_assign_object(Object *ob, Mesh *me)
+void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
 {
 	Mesh *old = NULL;
 
@@ -1042,7 +1058,7 @@ void BKE_mesh_assign_object(Object *ob, Mesh *me)
 		id_us_plus((ID *)me);
 	}
 	
-	test_object_materials(ob, (ID *)me);
+	test_object_materials(bmain, ob, (ID *)me);
 
 	test_object_modifiers(ob);
 }

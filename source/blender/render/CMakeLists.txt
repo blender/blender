@@ -24,7 +24,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 
-set(INC 
+set(INC
 	extern/include
 	intern/include
 	../blenkernel
@@ -44,7 +44,7 @@ set(INC
 )
 
 set(INC_SYS
-
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

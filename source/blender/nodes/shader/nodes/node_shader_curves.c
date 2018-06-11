@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,7 +48,7 @@ static bNodeSocketTemplate sh_node_curve_vec_out[] = {
 static void node_shader_exec_curve_vec(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	float vec[3];
-	
+
 	/* stack order input:  vec */
 	/* stack order output: vec */
 	nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
@@ -102,7 +102,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data), int UNUSED(thread), b
 {
 	float vec[3];
 	float fac;
-	
+
 	/* stack order input:  vec */
 	/* stack order output: vec */
 	nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);

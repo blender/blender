@@ -31,7 +31,7 @@
 
 #include "GPU_batch.h"
 
-#define MAX_INSTANCE_DATA_SIZE 48 /* Can be adjusted for more */
+#define MAX_INSTANCE_DATA_SIZE 64 /* Can be adjusted for more */
 
 typedef struct DRWInstanceData DRWInstanceData;
 typedef struct DRWInstanceDataList DRWInstanceDataList;
@@ -39,9 +39,8 @@ typedef struct DRWInstanceDataList DRWInstanceDataList;
 struct DRWShadingGroup;
 
 void *DRW_instance_data_next(DRWInstanceData *idata);
-void *DRW_instance_data_get(DRWInstanceData *idata);
 DRWInstanceData *DRW_instance_data_request(
-        DRWInstanceDataList *idatalist, uint attrib_size, uint instance_group);
+        DRWInstanceDataList *idatalist, uint attrib_size);
 
 void DRW_batching_buffer_request(
         DRWInstanceDataList *idatalist, Gwn_VertFormat *format, Gwn_PrimType type, struct DRWShadingGroup *shgroup,

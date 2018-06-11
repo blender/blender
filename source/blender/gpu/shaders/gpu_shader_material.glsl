@@ -1,9 +1,12 @@
 
 uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewMatrixInverse;
 uniform mat3 NormalMatrix;
+
+#ifndef ATTRIB
+uniform mat4 ModelMatrixInverse;
+#endif
 
 /* Old glsl mode compat. */
 
@@ -2476,6 +2479,23 @@ void node_bevel(float radius, vec3 N, out vec3 result)
 	result = N;
 }
 
+void node_hair_info(out float is_strand, out float intercept, out float thickness, out vec3 tangent, out float random)
+{
+#ifdef HAIR_SHADER
+	is_strand = 1.0;
+	intercept = hairTime;
+	thickness = hairThickness;
+	tangent = normalize(hairTangent);
+	random = wang_hash_noise(uint(hairStrandID)); /* TODO: could be precomputed per strand instead. */
+#else
+	is_strand = 0.0;
+	intercept = 0.0;
+	thickness = 0.0;
+	tangent = vec3(1.0);
+	random = 0.0;
+#endif
+}
+
 void node_displacement_object(float height, float midlevel, float scale, vec3 N, mat4 obmat, out vec3 result)
 {
 	N = (vec4(N, 0.0) * obmat).xyz;
@@ -2538,7 +2558,23 @@ void node_output_world(Closure surface, Closure volume, out Closure result)
 /* EEVEE output */
 void world_normals_get(out vec3 N)
 {
+#ifdef HAIR_SHADER
+	vec3 B = normalize(cross(worldNormal, hairTangent));
+	float cos_theta;
+	if (hairThicknessRes == 1) {
+		vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
+		/* Random cosine normal distribution on the hair surface. */
+		cos_theta = rand.x * 2.0 - 1.0;
+	}
+	else {
+		/* Shade as a cylinder. */
+		cos_theta = hairThickTime / hairThickness;
+	}
+	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
+	N = normalize(worldNormal * sin_theta + B * cos_theta);
+#else
 	N = gl_FrontFacing ? worldNormal : -worldNormal;
+#endif
 }
 
 void node_eevee_specular(

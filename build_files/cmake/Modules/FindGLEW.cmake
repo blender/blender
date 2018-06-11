@@ -49,7 +49,7 @@ FIND_LIBRARY(GLEW_LIBRARY
     lib64 lib
   )
 
-# handle the QUIETLY and REQUIRED arguments and set GLEW_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set GLEW_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Glew DEFAULT_MSG

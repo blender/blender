@@ -190,25 +190,25 @@ void BKE_image_alpha_mode_from_extension(struct Image *image);
 /* returns a new image or NULL if it can't load */
 struct Image *BKE_image_load(struct Main *bmain, const char *filepath);
 /* returns existing Image when filename/type is same (frame optional) */
-struct Image *BKE_image_load_exists_ex(const char *filepath, bool *r_exists);
-struct Image *BKE_image_load_exists(const char *filepath);
+struct Image *BKE_image_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists);
+struct Image *BKE_image_load_exists(struct Main *bmain, const char *filepath);
 
 /* adds image, adds ibuf, generates color or pattern */
 struct Image *BKE_image_add_generated(
         struct Main *bmain, unsigned int width, unsigned int height, const char *name,
         int depth, int floatbuf, short gen_type, const float color[4], const bool stereo3d);
 /* adds image from imbuf, owns imbuf */
-struct Image *BKE_image_add_from_imbuf(struct ImBuf *ibuf, const char *name);
+struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, const char *name);
 
 /* for reload, refresh, pack */
 void BKE_image_init_imageuser(struct Image *ima, struct ImageUser *iuser);
-void BKE_image_signal(struct Image *ima, struct ImageUser *iuser, int signal);
+void BKE_image_signal(struct Main *bmain, struct Image *ima, struct ImageUser *iuser, int signal);
 
 void BKE_image_walk_all_users(const struct Main *mainp, void *customdata,
                               void callback(struct Image *ima, struct ImageUser *iuser, void *customdata));
 
 /* ensures an Image exists for viewing nodes or render */
-struct Image *BKE_image_verify_viewer(int type, const char *name);
+struct Image *BKE_image_verify_viewer(struct Main *bmain, int type, const char *name);
 /* ensures the view node cache is compatible with the scene views */
 void BKE_image_verify_viewer_views(const struct RenderData *rd, struct Image *ima, struct ImageUser *iuser);
 
@@ -242,27 +242,27 @@ void BKE_image_backup_render(struct Scene *scene, struct Image *ima, bool free_c
 bool BKE_image_save_openexr_multiview(struct Image *ima, struct ImBuf *ibuf, const char *filepath, const int flags);
 
 /* goes over all textures that use images */
-void    BKE_image_free_all_textures(void);
+void    BKE_image_free_all_textures(struct Main *bmain);
 
 /* does one image! */
 void    BKE_image_free_anim_ibufs(struct Image *ima, int except_frame);
 
 /* does all images with type MOVIE or SEQUENCE */
-void BKE_image_all_free_anim_ibufs(int except_frame);
+void BKE_image_all_free_anim_ibufs(struct Main *bmain, int except_frame);
 
 void BKE_image_memorypack(struct Image *ima);
 void BKE_image_packfiles(struct ReportList *reports, struct Image *ima, const char *basepath);
 void BKE_image_packfiles_from_mem(struct ReportList *reports, struct Image *ima, char *data, const size_t data_len);
 
 /* prints memory statistics for images */
-void BKE_image_print_memlist(void);
+void BKE_image_print_memlist(struct Main *bmain);
 
 /* empty image block, of similar type and filename */
 void BKE_image_copy_data(struct Main *bmain, struct Image *ima_dst, const struct Image *ima_src, const int flag);
 struct Image *BKE_image_copy(struct Main *bmain, const struct Image *ima);
 
 /* merge source into dest, and free source */
-void BKE_image_merge(struct Image *dest, struct Image *source);
+void BKE_image_merge(struct Main *bmain, struct Image *dest, struct Image *source);
 
 /* scale the image */
 bool BKE_image_scale(struct Image *image, int width, int height);

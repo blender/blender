@@ -979,7 +979,7 @@ float dist_squared_to_projected_aabb_simple(
 
 /* Adapted from "Real-Time Collision Detection" by Christer Ericson,
  * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
- * 
+ *
  * Set 'r' to the point in triangle (a, b, c) closest to point 'p' */
 void closest_on_tri_to_point_v3(float r[3], const float p[3],
                                 const float a[3], const float b[3], const float c[3])

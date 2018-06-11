@@ -61,11 +61,11 @@
  * This is a faster version by taking Shawn Cokus's optimization,
  * Matthe Bellew's simplification, Isaku Wada's real version.
  *
- * Before using, initialize the state by using init_genrand(seed) 
+ * Before using, initialize the state by using init_genrand(seed)
  * or init_by_array(init_key, key_length).
  *
  * Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
- * All rights reserved.                          
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -78,8 +78,8 @@
  *      notice, this list of conditions and the following disclaimer in the
  *      documentation and/or other materials provided with the distribution.
  *
- *   3. The names of its contributors may not be used to endorse or promote 
- *      products derived from this software without specific prior written 
+ *   3. The names of its contributors may not be used to endorse or promote
+ *      products derived from this software without specific prior written
  *      permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -671,7 +671,7 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *
 
 	if (mathutils_array_parse(vec, 3, 3, value, "hybrid_multi_fractal: invalid 'position' arg") == -1)
 		return NULL;
-	
+
 	return PyFloat_FromDouble(mg_HybridMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, nb));
 }
 

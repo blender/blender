@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -52,7 +52,7 @@ static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack *
 	float nabla = tex_input_value(in[1], p, thread);
 	float val;
 	float nor[3];
-	
+
 	TexParams np = *p;
 	np.co = new_co;
 
@@ -66,7 +66,7 @@ static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack *
 	new_co[0] = co[0];
 	new_co[1] = co[1] + nabla;
 	nor[1] = tex_input_value(in[0], &np, thread);
-	
+
 	new_co[1] = co[1];
 	new_co[2] = co[2] + nabla;
 	nor[2] = tex_input_value(in[0], &np, thread);
@@ -75,7 +75,7 @@ static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack *
 	out[1] = val - nor[1];
 	out[2] = val - nor[2];
 }
-static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out) 
+static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out)
 {
 	tex_output(node, execdata, in, out[0], &normalfn, data);
 }
@@ -83,10 +83,10 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 void register_node_type_tex_valtonor(void)
 {
 	static bNodeType ntype;
-	
+
 	tex_node_type_base(&ntype, TEX_NODE_VALTONOR, "Value to Normal", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+
 	nodeRegisterType(&ntype);
 }

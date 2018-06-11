@@ -53,7 +53,7 @@
 
 void RNA_api_action(StructRNA *UNUSED(srna))
 {
-	
+
 }
 
 #endif

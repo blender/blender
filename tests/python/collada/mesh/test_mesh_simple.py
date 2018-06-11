@@ -113,7 +113,7 @@ class MeshExportTest(AbstractColladaTest):
         test = "mesh_simple_001"
         reference_dae = self.testdir / Path("%s.dae" % test)
         outfile       = tempdir / Path("%s_out.dae" % test)
-        
+
         bpy.ops.wm.collada_export(filepath="%s" % str(outfile),
             check_existing=True,
             filemode=8,
@@ -141,7 +141,7 @@ class MeshExportTest(AbstractColladaTest):
             open_sim=False,
             limit_precision=False,
             keep_bind_info=False)
-        
+
         # Now check the resulting Collada file.
         if not self.checkdae(reference_dae, outfile):
             self.fail()

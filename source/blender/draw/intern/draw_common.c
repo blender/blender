@@ -92,6 +92,10 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_NURB_SEL_ULINE, ts.colorNurbSelUline);
 	UI_GetThemeColor4fv(TH_ACTIVE_SPLINE, ts.colorActiveSpline);
 
+	UI_GetThemeColor4fv(TH_BONE_POSE, ts.colorBonePose);
+
+	UI_GetThemeColor4fv(TH_CFRAME, ts.colorCurrentFrame);
+
 	/* Grid */
 	UI_GetThemeColorShade4fv(TH_GRID, 10, ts.colorGrid);
 	/* emphasise division lines lighter instead of darker, if background is darker than grid */
@@ -153,6 +157,10 @@ void DRW_globals_update(void)
 
 /* ********************************* SHGROUP ************************************* */
 
+extern char datatoc_animviz_mpath_lines_vert_glsl[];
+extern char datatoc_animviz_mpath_lines_geom_glsl[];
+extern char datatoc_animviz_mpath_points_vert_glsl[];
+
 extern char datatoc_armature_axes_vert_glsl[];
 extern char datatoc_armature_sphere_solid_vert_glsl[];
 extern char datatoc_armature_sphere_solid_frag_glsl[];
@@ -167,7 +175,12 @@ extern char datatoc_armature_shape_outline_vert_glsl[];
 extern char datatoc_armature_shape_outline_geom_glsl[];
 extern char datatoc_armature_stick_vert_glsl[];
 extern char datatoc_armature_stick_frag_glsl[];
+
+extern char datatoc_common_globals_lib_glsl[];
+
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
+extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
+extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
 
 extern char datatoc_object_mball_handles_vert_glsl[];
 
@@ -181,6 +194,9 @@ static struct {
 	struct GPUShader *bone_sphere;
 	struct GPUShader *bone_sphere_outline;
 	struct GPUShader *bone_stick;
+
+	struct GPUShader *mpath_line_sh;
+	struct GPUShader *mpath_points_sh;
 
 	struct GPUShader *mball_handles;
 } g_shaders = {NULL};
@@ -690,6 +706,33 @@ DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 
 	return grp;
+}
+
+struct GPUShader *mpath_line_shader_get(void)
+{
+	if (g_shaders.mpath_line_sh == NULL) {
+		g_shaders.mpath_line_sh = DRW_shader_create_with_lib(
+		        datatoc_animviz_mpath_lines_vert_glsl,
+		        datatoc_animviz_mpath_lines_geom_glsl,
+		        datatoc_gpu_shader_3D_smooth_color_frag_glsl,
+		        datatoc_common_globals_lib_glsl,
+		        NULL);
+	}
+	return g_shaders.mpath_line_sh;
+}
+
+
+struct GPUShader *mpath_points_shader_get(void)
+{
+	if (g_shaders.mpath_points_sh == NULL) {
+		g_shaders.mpath_points_sh = DRW_shader_create_with_lib(
+		        datatoc_animviz_mpath_points_vert_glsl,
+		        NULL,
+		        datatoc_gpu_shader_point_varying_color_frag_glsl,
+		        datatoc_common_globals_lib_glsl,
+		        NULL);
+	}
+	return g_shaders.mpath_points_sh;
 }
 
 /* ******************************************** COLOR UTILS *********************************************** */

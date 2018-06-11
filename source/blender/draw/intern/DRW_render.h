@@ -282,7 +282,7 @@ typedef enum {
 	DRW_STATE_BLEND_PREMUL  = (1 << 21), /* Use that if color is already premult by alpha. */
 	DRW_STATE_WIRE_SMOOTH   = (1 << 22),
 	DRW_STATE_TRANS_FEEDBACK = (1 << 23),
-	DRW_STATE_TRANSPARENT_REVEALAGE = (1 << 24),
+	DRW_STATE_BLEND_OIT     = (1 << 24),
 
 	DRW_STATE_WRITE_STENCIL          = (1 << 27),
 	DRW_STATE_WRITE_STENCIL_SHADOW_PASS   = (1 << 28),
@@ -329,6 +329,7 @@ DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(
         struct GPUShader *shader, DRWPass *pass, struct Gwn_VertBuf *tf_target);
 
+
 typedef void (DRWCallGenerateFn)(
         DRWShadingGroup *shgroup,
         void (*draw_fn)(DRWShadingGroup *shgroup, struct Gwn_Batch *geom),
@@ -343,7 +344,15 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *batc
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4]);
-void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob);
+void DRW_shgroup_call_range_add(
+        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4], uint v_sta, uint v_count);
+void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, unsigned int point_count, float (*obmat)[4]);
+void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, unsigned int line_count, float (*obmat)[4]);
+void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, unsigned int tria_count, float (*obmat)[4]);
+void DRW_shgroup_call_object_procedural_triangles_culled_add(DRWShadingGroup *shgroup, uint tria_count, struct Object *ob);
+void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob, bool bypass_culling);
+#define DRW_shgroup_call_object_add(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, false)
+#define DRW_shgroup_call_object_add_no_cull(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, true)
 void DRW_shgroup_call_object_add_with_callback(
         DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob,
         DRWCallVisibilityFn *callback, void *user_data);
@@ -438,10 +447,10 @@ struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
 void DRW_viewport_request_redraw(void);
 
-void DRW_render_to_image(struct RenderEngine *engine, struct Depsgraph *graph);
+void DRW_render_to_image(struct RenderEngine *engine, struct Depsgraph *depsgraph);
 void DRW_render_object_iter(
-	void *vedata, struct RenderEngine *engine, struct Depsgraph *graph,
-	void (*callback)(void *vedata, struct Object *ob, struct RenderEngine *engine, struct Depsgraph *graph));
+	void *vedata, struct RenderEngine *engine, struct Depsgraph *depsgraph,
+	void (*callback)(void *vedata, struct Object *ob, struct RenderEngine *engine, struct Depsgraph *depsgraph));
 void DRW_render_instance_buffer_finish(void);
 
 /* ViewLayers */
@@ -498,6 +507,7 @@ bool DRW_culling_box_test(BoundBox *bbox);
 bool DRW_culling_plane_test(float plane[4]);
 
 void DRW_culling_frustum_corners_get(BoundBox *corners);
+void DRW_culling_frustum_planes_get(float planes[6][4]);
 
 /* Selection */
 void DRW_select_load_id(uint id);
@@ -513,8 +523,6 @@ bool DRW_state_is_opengl_render(void);
 bool DRW_state_show_text(void);
 bool DRW_state_draw_support(void);
 bool DRW_state_draw_background(void);
-
-enum eDepsObjectIteratorMode DRW_iterator_mode_get(void);
 
 struct DRWTextStore *DRW_state_text_cache_get(void);
 

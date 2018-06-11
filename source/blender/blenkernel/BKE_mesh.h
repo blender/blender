@@ -34,6 +34,9 @@
 /* defines BLI_INLINE */
 #include "BLI_utildefines.h"
 
+/* defines CustomDataMask */
+#include "BKE_customdata.h"
+
 struct ID;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;
@@ -46,9 +49,11 @@ struct LinkNode;
 struct BLI_Stack;
 struct MemArena;
 struct BMesh;
+struct KeyBlock;
 struct MLoopTri;
 struct Main;
 struct Mesh;
+struct ModifierData;
 struct MPoly;
 struct MLoop;
 struct MFace;
@@ -127,7 +132,7 @@ float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void   BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
-void BKE_mesh_assign_object(struct Object *ob, struct Mesh *me);
+void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
 int  BKE_mesh_nurbs_to_mdata(
         struct Object *ob, struct MVert **r_allvert, int *r_totvert,
@@ -140,10 +145,10 @@ int BKE_mesh_nurbs_displist_to_mdata(
         struct MLoop **r_allloop, struct MPoly **r_allpoly,
         struct MLoopUV **r_alluv, int *r_totloop, int *r_totpoly);
 void BKE_mesh_from_nurbs_displist(
-        struct Object *ob, struct ListBase *dispbase, const bool use_orco_uv, const char *obdata_name);
-void BKE_mesh_from_nurbs(struct Object *ob);
-void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblist, const int edge_users_test);
-void BKE_mesh_to_curve(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
+        struct Main *bmain, struct Object *ob, struct ListBase *dispbase, const bool use_orco_uv, const char *obdata_name, bool temporary);
+void BKE_mesh_from_nurbs(struct Main *bmain, struct Object *ob);
+void BKE_mesh_to_curve_nurblist(const struct Mesh *me, struct ListBase *nurblist, const int edge_users_test);
+void BKE_mesh_to_curve(struct Main *bmain, struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_mesh_material_index_remove(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
@@ -168,6 +173,15 @@ void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 struct Mesh *BKE_mesh_new_from_object(
         struct Depsgraph *depsgraph, struct Main *bmain, struct Scene *sce, struct Object *ob,
         const bool apply_modifiers, const bool calc_tessface, const bool calc_undeformed);
+struct Mesh *BKE_mesh_create_derived_for_modifier(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
+        struct ModifierData *md, int build_shapekey_layers);
+
+/* Copies a nomain-Mesh into an existing Mesh. */
+void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct Object *ob,
+                             CustomDataMask mask, bool take_ownership);
+void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct KeyBlock *kb);
+
 
 /* vertex level transformations & checks (no derived mesh) */
 
@@ -192,23 +206,10 @@ void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
 void BKE_mesh_apply_vert_coords(struct Mesh *mesh, float (*vertCoords)[3]);
 
-/* *** mesh_runtime.c *** */
-void                   BKE_mesh_runtime_reset(struct Mesh *mesh);
-int                    BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
-void                   BKE_mesh_runtime_looptri_recalc(struct Mesh *mesh);
-const struct MLoopTri *BKE_mesh_runtime_looptri_ensure(struct Mesh *mesh);
-bool                   BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh);
-bool                   BKE_mesh_runtime_clear_edit_data(struct Mesh *mesh);
-void                   BKE_mesh_runtime_clear_geometry(struct Mesh *mesh);
-void                   BKE_mesh_runtime_clear_cache(struct Mesh *mesh);
-
-void BKE_mesh_runtime_verttri_from_looptri(
-        struct MVertTri *r_verttri,
-        const struct MLoop *mloop, const struct MLoopTri *looptri, int looptri_num);
-
 
 /* *** mesh_evaluate.c *** */
 
+void BKE_mesh_calc_normals_mapping_simple(struct Mesh *me);
 void BKE_mesh_calc_normals_mapping(
         struct MVert *mverts, int numVerts,
         const struct MLoop *mloop, const struct MPoly *mpolys, int numLoops, int numPolys, float (*r_polyNors)[3],

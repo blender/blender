@@ -629,6 +629,14 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #  define UNLIKELY(x)     (x)
 #endif
 
+/* Expands to an integer constant expression evaluating to a close upper bound
+ * on the number the number of decimal digits in a value expressible in the
+ * integer type given by the argument (if it is a type name) or the the integer
+ * type of the argument (if it is an expression). The meaning of the resulting
+ * expression is unspecified for other arguments.
+ * i.e: DECIMAL_DIGITS_BOUND(uchar) is equal to 3. */
+#define DECIMAL_DIGITS_BOUND(t) (241 * sizeof(t) / 100 + 1)
+
 #ifdef __cplusplus
 }
 #endif

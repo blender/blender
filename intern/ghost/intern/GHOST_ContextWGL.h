@@ -140,6 +140,7 @@ private:
 	        bool needStencil,
 	        bool sRGB,
 	        int  swapMethod);
+	GHOST_TSuccess initContext();
 
 	void initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD);
 
@@ -149,6 +150,7 @@ private:
 
 	HWND m_hWnd;
 	HDC  m_hDC;
+	bool m_init;
 
 	const int m_contextProfileMask;
 	const int m_contextMajorVersion;
@@ -158,7 +160,7 @@ private:
 	const int m_contextResetNotificationStrategy;
 
 	HGLRC m_hGLRC;
-	
+
 #ifndef NDEBUG
 	const char *m_dummyVendor;
 	const char *m_dummyRenderer;

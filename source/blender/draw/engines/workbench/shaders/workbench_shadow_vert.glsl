@@ -3,6 +3,7 @@
 uniform mat4 ModelViewProjectionMatrix;
 
 uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);
+uniform float lightDistance = 1e4;
 
 in vec3 pos;
 
@@ -16,5 +17,5 @@ void main()
 {
 	vData.pos = pos;
 	vData.frontPosition = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	vData.backPosition  = ModelViewProjectionMatrix * vec4(pos + lightDirection * INFINITE, 1.0);
+	vData.backPosition  = ModelViewProjectionMatrix * vec4(pos + lightDirection * lightDistance, 1.0);
 }

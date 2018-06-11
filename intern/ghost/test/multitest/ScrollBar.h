@@ -29,7 +29,7 @@ typedef struct _ScrollBar ScrollBar;
 
 
 	/***/
-	
+
 ScrollBar*	scrollbar_new				(int inset, int minthumb);
 
 int			scrollbar_is_scrolling		(ScrollBar *sb);

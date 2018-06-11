@@ -41,6 +41,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_nla.h"
 
 #include "DEG_depsgraph.h"
@@ -226,6 +227,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
 void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 {
+	Main *bmain = CTX_data_main(C);
 	ID *id;
 	bAction *action;
 	FCurve *fcu;
@@ -277,7 +279,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			 *       because a button may control all items of an array at once.
 			 *       E.g., color wheels (see T42567). */
 			BLI_assert((fcu->array_index == but->rnaindex) || (but->rnaindex == -1));
-			insert_keyframe(depsgraph, reports, id, action,
+			insert_keyframe(bmain, depsgraph, reports, id, action,
 			                ((fcu->grp) ? (fcu->grp->name) : (NULL)),
 			                fcu->rna_path, but->rnaindex, cfra, ts->keyframe_type, flag);
 

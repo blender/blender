@@ -40,7 +40,7 @@ extern "C" {
 struct BLI_mempool;
 
 /* Task Scheduler
- * 
+ *
  * Central scheduler that holds running threads ready to execute tasks. A single
  * queue holds the task from all pools.
  *

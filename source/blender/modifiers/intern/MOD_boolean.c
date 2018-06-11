@@ -170,24 +170,27 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
+	Mesh *result;
+
 	Mesh *mesh_other;
+	bool mesh_other_free;
 
 	if (!bmd->object)
 		return mesh;
 
-	mesh_other = BKE_modifier_get_evaluated_mesh_from_object(ctx, bmd->object);
+	Object *ob_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_eval, &mesh_other_free);
 	if (mesh_other) {
-		Mesh *result;
-		Object *object_eval = DEG_get_evaluated_object(ctx->depsgraph, ctx->object);
-		Object *other_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
+		Object *object = ctx->object;
+		Object *other = bmd->object;
 
 		/* when one of objects is empty (has got no faces) we could speed up
 		 * calculation a bit returning one of objects' derived meshes (or empty one)
 		 * Returning mesh is depended on modifiers operation (sergey) */
-		result = get_quick_mesh(object_eval, mesh, other_eval, mesh_other, bmd->operation);
+		result = get_quick_mesh(object, mesh, other, mesh_other, bmd->operation);
 
 		if (result == NULL) {
-			const bool is_flip = (is_negative_m4(object_eval->obmat) != is_negative_m4(other_eval->obmat));
+			const bool is_flip = (is_negative_m4(object->obmat) != is_negative_m4(other->obmat));
 
 			BMesh *bm;
 			const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_other);
@@ -234,8 +237,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 					float imat[4][4];
 					float omat[4][4];
 
-					invert_m4_m4(imat, object_eval->obmat);
-					mul_m4_m4m4(omat, imat, other_eval->obmat);
+					invert_m4_m4(imat, object->obmat);
+					mul_m4_m4m4(omat, imat, other->obmat);
 
 					BMVert *eve;
 					i = 0;
@@ -257,11 +260,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 							negate_m3(nmat);
 						}
 
-						const short ob_src_totcol = other_eval->totcol;
+						const short ob_src_totcol = other->totcol;
 						short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
 
 						/* Using original (not evaluated) object here since we are writing to it. */
-						BKE_material_remap_object_calc(ctx->object, other_eval, material_remap);
+						BKE_material_remap_object_calc(ctx->object, other, material_remap);
 
 						BMFace *efa;
 						i = 0;
@@ -321,19 +324,19 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 #ifdef DEBUG_TIME
 			TIMEIT_END(boolean_bmesh);
 #endif
-
-			return result;
 		}
 
 		/* if new mesh returned, return it; otherwise there was
 		 * an error, so delete the modifier object */
-		if (result)
-			return result;
-		else
+		if (result == NULL)
 			modifier_setError(md, "Cannot execute boolean operation");
 	}
 
-	return mesh;
+	if (mesh_other != NULL && mesh_other_free) {
+		BKE_id_free(NULL, mesh_other);
+	}
+
+	return result;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))

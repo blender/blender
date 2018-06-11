@@ -30,7 +30,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 #include "BLI_sys_types.h" // for intptr_t support
 
 typedef void ParamHandle;	/* handle to a set of charts */
@@ -77,7 +77,7 @@ void param_delete(ParamHandle *chart);
  * - lscm is divided in three steps:
  * - begin: compute matrix and it's factorization (expensive)
  * - solve using pinned coordinates (cheap)
- * - end: clean up 
+ * - end: clean up
  * - uv coordinates are allowed to change within begin/end, for
  *   quick re-solving
  */

@@ -231,7 +231,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
-		
+
 		BLF_color3ubv(blf_mono_font, green);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  G:%-.5f", fp[1]);
@@ -242,7 +242,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
-		
+
 		BLF_color3ubv(blf_mono_font, blue);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  B:%-.5f", fp[2]);
@@ -253,7 +253,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
-		
+
 		if (channels == 4) {
 			BLF_color3ub(blf_mono_font, 255, 255, 255);
 			if (fp)
@@ -287,7 +287,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 			dx += BLF_width(blf_mono_font, str, sizeof(str));
 		}
 	}
-	
+
 	/* color rectangle */
 	if (channels == 1) {
 		if (fp) {
@@ -384,7 +384,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 			rgb_to_hsv((float)cp[0] / 255.0f, (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, &hue, &sat, &val);
 			rgb_to_yuv((float)cp[0] / 255.0f, (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, &lum, &u, &v, BLI_YUV_ITU_BT709);
 		}
-		
+
 		BLI_snprintf(str, sizeof(str), "V:%-.4f", val);
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -561,7 +561,7 @@ void draw_image_grease_pencil(bContext *C, bool onlyv2d)
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */
 		//SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
-		
+
 		/* draw grease-pencil ('screen' strokes) */
 		ED_gpencil_draw_view2d(C, 0);
 	}
@@ -647,10 +647,10 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	/* XXX can we do this in refresh? */
 #if 0
 	what_image(sima);
-	
+
 	if (sima->image) {
 		ED_image_get_aspect(sima->image, &xuser_asp, &yuser_asp);
-		
+
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
 		if (sima->image->type == IMA_TYPE_COMPOSITE) {
 			ImageUser *iuser = ntree_get_active_iuser(scene->nodetree);

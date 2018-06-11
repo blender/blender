@@ -165,6 +165,7 @@ void main() {
 		grouped_samples_accum(cos, concentric[28], concentric[29], concentric[30], concentric[31], accum);
 		grouped_samples_accum(cos, concentric[32], concentric[33], concentric[34], concentric[35], accum);
 	}
+#ifdef HIGH_BLUR
 	if (shadowSampleCount > 36) {
 		grouped_samples_accum(cos, concentric[36], concentric[37], concentric[38], concentric[39], accum);
 		grouped_samples_accum(cos, concentric[40], concentric[41], concentric[42], concentric[43], accum);
@@ -230,6 +231,7 @@ void main() {
 		grouped_samples_accum(cos, concentric[248], concentric[249], concentric[250], concentric[251], accum);
 		grouped_samples_accum(cos, concentric[252], concentric[253], concentric[254], concentric[255], accum);
 	}
+#endif
 
 #ifdef ESM
 	accum.x = ln_space_prefilter(1.0, accum.x, 1.0, accum.y);

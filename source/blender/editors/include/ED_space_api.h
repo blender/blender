@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -60,7 +60,7 @@ void ED_spacetype_clip(void);
 void ED_spacetype_statusbar(void);
 void ED_spacetype_topbar(void);
 
-/* calls for instancing and freeing spacetype static data 
+/* calls for instancing and freeing spacetype static data
  * called in WM_init_exit */
 /* in space_file.c */
 void ED_file_init(void);
@@ -70,7 +70,7 @@ void ED_file_exit(void);
 #define REGION_DRAW_POST_PIXEL  1
 #define REGION_DRAW_PRE_VIEW    2
 
-void *ED_region_draw_cb_activate(struct ARegionType *, 
+void *ED_region_draw_cb_activate(struct ARegionType *,
                                  void (*draw)(const struct bContext *, struct ARegion *, void *),
                                  void *custumdata, int type);
 void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);

@@ -42,7 +42,7 @@
 #include "GHOST_Window.h"
 
 
-GHOST_WindowManager::GHOST_WindowManager() : 
+GHOST_WindowManager::GHOST_WindowManager() :
 	m_fullScreenWindow(0),
 	m_activeWindow(0),
 	m_activeWindowBeforeFullScreen(0)
@@ -61,7 +61,7 @@ GHOST_TSuccess GHOST_WindowManager::addWindow(GHOST_IWindow *window)
 	GHOST_TSuccess success = GHOST_kFailure;
 	if (window) {
 		if (!getWindowFound(window)) {
-			// Store the pointer to the window 
+			// Store the pointer to the window
 			m_windows.push_back(window);
 			success = GHOST_kSuccess;
 		}
@@ -170,7 +170,7 @@ GHOST_TSuccess GHOST_WindowManager::setActiveWindow(GHOST_IWindow *window)
 	}
 	return success;
 }
-	
+
 
 GHOST_IWindow *GHOST_WindowManager::getActiveWindow(void) const
 {
@@ -200,7 +200,7 @@ GHOST_IWindow *GHOST_WindowManager::getWindowAssociatedWithOSWindow(void *osWind
 		if ((*iter)->getOSWindow() == osWindow)
 			return *iter;
 	}
-	
+
 	return NULL;
 }
 
@@ -208,7 +208,7 @@ bool GHOST_WindowManager::getAnyModifiedState()
 {
 	bool isAnyModified = false;
 	std::vector<GHOST_IWindow *>::iterator iter;
-	
+
 	for (iter = m_windows.begin(); iter != m_windows.end(); ++iter) {
 		if ((*iter)->getModifiedState())
 			isAnyModified = true;

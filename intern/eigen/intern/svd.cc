@@ -37,6 +37,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <Eigen/Dense>
 
 #include "svd.h"
 
@@ -50,6 +51,8 @@ using Eigen::ComputeThinV;
 using Eigen::MatrixXf;
 using Eigen::VectorXf;
 using Eigen::Map;
+
+using Eigen::Matrix4f;
 
 void EIG_svd_square_matrix(const int size, const float *matrix, float *r_U, float *r_S, float *r_V)
 {

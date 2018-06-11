@@ -941,6 +941,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
         for con in context.pose_bone.constraints:
             self.draw_constraint(context, con)
 
+
 classes = (
     OBJECT_PT_constraints,
     BONE_PT_constraints,

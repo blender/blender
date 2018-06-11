@@ -46,6 +46,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_editmesh.h"
 #include "BKE_curve.h"
@@ -289,7 +290,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	 * this derivedmesh is just original mesh. it's the multires subsurf dm
 	 * that this is actually for, to support a pbvh on a modified mesh */
 	if (!cddm->pbvh && ob->type == OB_MESH) {
-		Mesh *me = ob->data;
+		Mesh *me = BKE_object_get_original_mesh(ob);
 		const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 		MLoopTri *looptri;
 		bool deformed;
@@ -324,7 +325,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 			totvert = deformdm->getNumVerts(deformdm);
 			vertCos = MEM_malloc_arrayN(totvert, sizeof(float[3]), "cdDM_getPBVH vertCos");
 			deformdm->getVertCos(deformdm, vertCos);
-			BKE_pbvh_apply_vertCos(cddm->pbvh, vertCos);
+			BKE_pbvh_apply_vertCos(cddm->pbvh, vertCos, totvert);
 			MEM_freeN(vertCos);
 		}
 	}
@@ -597,7 +598,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 	return CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_MESH);
 }
 
-DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, int alloctype, CustomDataMask mask)
+DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, eCDAllocType alloctype, CustomDataMask mask)
 {
 	CDDerivedMesh *cddm = cdDM_create(__func__);
 	DerivedMesh *dm = &cddm->dm;

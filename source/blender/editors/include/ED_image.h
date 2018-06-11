@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +17,7 @@
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -43,7 +43,7 @@ struct ViewLayer;
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
-void          ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
+void          ED_space_image_set(struct Main *bmain, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
 struct Mask  *ED_space_image_get_mask(struct SpaceImage *sima);
 void          ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 
@@ -60,8 +60,8 @@ void ED_space_image_get_uv_aspect(struct SpaceImage *sima, float *aspx, float *a
 
 void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *sima, struct ImBuf *ibuf, bool use_view_settings);
 
-void ED_space_image_paint_update(struct wmWindowManager *wm, struct Scene *scene);
-void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct Scene *scene);
+void ED_space_image_paint_update(struct Main *bmain, struct wmWindowManager *wm, struct Scene *scene);
+void ED_space_image_uv_sculpt_update(struct Main *bmain, struct wmWindowManager *wm, struct Scene *scene);
 
 void ED_image_get_uv_aspect(struct Image *ima, struct ImageUser *iuser, float *aspx, float *aspy);
 void ED_image_mouse_pos(struct SpaceImage *sima, struct ARegion *ar, const int mval[2], float co[2]);

@@ -1,3 +1,4 @@
+
 #define M_PI 3.14159265358979323846
 
 uniform float backgroundAlpha;
@@ -7,10 +8,10 @@ uniform mat4 ViewMatrixInverse;
 #ifdef LOOKDEV
 uniform mat3 StudioLightMatrix;
 uniform sampler2D image;
+uniform float studioLightBackground = 1.0;
 in vec3 viewPosition;
-#else
-uniform vec3 color;
 #endif
+uniform vec3 color;
 
 out vec4 FragColor;
 
@@ -35,8 +36,9 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 	float v = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5;
 
 	/* Fix pole bleeding */
-	float half_width = 0.5 / float(textureSize(ima, 0).x);
-	v = clamp(v, half_width, 1.0 - half_width);
+	float width = float(textureSize(ima, 0).x);
+	float texel_width = 1.0 / width;
+	v = clamp(v, texel_width, 1.0 - texel_width);
 
 	/* Fix u = 0 seam */
 	/* This is caused by texture filtering, since uv don't have smooth derivatives
@@ -48,10 +50,13 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 void main() {
 #ifdef LOOKDEV
 	vec3 worldvec;
-	vec4 color;
+	vec4 background_color;
 	background_transform_to_world(viewPosition, worldvec);
-	node_tex_environment_equirectangular(StudioLightMatrix * worldvec, image, color);
+	node_tex_environment_equirectangular(StudioLightMatrix * worldvec, image, background_color);
+	background_color.rgb = mix(color, background_color.rgb, studioLightBackground);
+#else
+	vec3 background_color = color;
 #endif
 
-	FragColor = vec4(clamp(color.rgb, vec3(0.0), vec3(1e10)), backgroundAlpha);
+	FragColor = vec4(clamp(background_color.rgb, vec3(0.0), vec3(1e10)), backgroundAlpha);
 }

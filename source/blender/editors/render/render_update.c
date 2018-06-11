@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -111,12 +111,12 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 
 	CTX_wm_manager_set(C, bmain->wm.first);
 	wm = bmain->wm.first;
-	
+
 	for (win = wm->windows.first; win; win = win->next) {
 		bScreen *sc = WM_window_get_active_screen(win);
 		ScrArea *sa;
 		ARegion *ar;
-		
+
 		CTX_wm_window_set(C, win);
 
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
@@ -220,22 +220,22 @@ static void render_engine_flag_changed(Main *bmain, int update_flag)
 	bScreen *sc;
 	ScrArea *sa;
 	ARegion *ar;
-	
+
 	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
-			
+
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
 				RegionView3D *rv3d;
-				
+
 				if (ar->regiontype != RGN_TYPE_WINDOW)
 					continue;
-				
+
 				rv3d = ar->regiondata;
 				if (rv3d->render_engine)
 					rv3d->render_engine->update_flag |= update_flag;
-				
+
 			}
 		}
 	}

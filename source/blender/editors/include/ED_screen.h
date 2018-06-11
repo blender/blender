@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -79,7 +79,7 @@ void    ED_region_tag_refresh_ui(struct ARegion *ar);
 void    ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
 void    ED_region_panels(
             const struct bContext *C, struct ARegion *ar,
-            const char *context, int contextnr,
+            const char *contexts[], int contextnr,
             const bool vertical);
 void    ED_region_header_init(struct ARegion *ar);
 void    ED_region_header(const struct bContext *C, struct ARegion *ar);
@@ -94,6 +94,7 @@ void    ED_region_image_metadata_draw(int x, int y, struct ImBuf *ibuf, const rc
 void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
 float	ED_region_blend_alpha(struct ARegion *ar);
 void	ED_region_visible_rect(struct ARegion *ar, struct rcti *rect);
+bool    ED_region_is_overlap(int spacetype, int regiontype);
 
 int     ED_region_snap_size_test(const struct ARegion *ar);
 bool    ED_region_snap_size_apply(struct ARegion *ar, int snap_flag);
@@ -159,7 +160,7 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
 	     vert_name = (vert_name == (win)->global_areas.vertbase.last) ? (screen)->vertbase.first : vert_name->next)
 
 /* screens */
-void    ED_screens_initialize(struct wmWindowManager *wm);
+void    ED_screens_initialize(struct Main *bmain, struct wmWindowManager *wm);
 void    ED_screen_draw_edges(struct wmWindow *win);
 void    ED_screen_draw_join_shape(struct ScrArea *sa1, struct ScrArea *sa2);
 void    ED_screen_draw_split_preview(struct ScrArea *sa, const int dir, const float fac);
@@ -210,10 +211,12 @@ void ED_workspace_view_layer_unset(
         const struct Main *bmain, struct Scene *scene,
         const ViewLayer *layer_unset, ViewLayer *layer_new) ATTR_NONNULL(1, 2);
 struct WorkSpaceLayout *ED_workspace_layout_add(
+        struct Main *bmain,
         struct WorkSpace *workspace,
         struct wmWindow *win,
         const char *name) ATTR_NONNULL();
 struct WorkSpaceLayout *ED_workspace_layout_duplicate(
+        struct Main *bmain,
         struct WorkSpace *workspace, const struct WorkSpaceLayout *layout_old,
         struct wmWindow *win) ATTR_NONNULL();
 bool ED_workspace_layout_delete(

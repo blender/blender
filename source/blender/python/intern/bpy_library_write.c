@@ -107,7 +107,7 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 	}
 
 	BLI_strncpy(filepath_abs, filepath, FILE_MAX);
-	BLI_path_abs(filepath_abs, G.main->name);
+	BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
 
 	BKE_blendfile_write_partial_begin(bmain_src);
 

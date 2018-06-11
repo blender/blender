@@ -41,9 +41,9 @@ extern "C" {
 
 /**
  * Drag & drop event
- * 
+ *
  * The dragging sequence is performed in four phases:
- * 
+ *
  * <li> Start sequence (GHOST_kEventDraggingEntered) that tells a drag'n'drop operation has started.
  * Already gives the object data type, and the entering mouse location
  *
@@ -93,13 +93,13 @@ public:
 		m_dragnDropEventData.data = data;
 		m_data = &m_dragnDropEventData;
 	}
-	
+
 	~GHOST_EventDragnDrop()
 	{
 		//Free the dropped object data
 		if (m_dragnDropEventData.data == NULL)
 			return;
-		
+
 		switch (m_dragnDropEventData.dataType) {
 			case GHOST_kDragnDropTypeBitmap:
 				IMB_freeImBuf((ImBuf *)m_dragnDropEventData.data);
@@ -108,10 +108,10 @@ public:
 			{
 				GHOST_TStringArray *strArray = (GHOST_TStringArray *)m_dragnDropEventData.data;
 				int i;
-				
+
 				for (i = 0; i < strArray->count; i++)
 					free(strArray->strings[i]);
-				
+
 				free(strArray->strings);
 				free(strArray);
 			}
@@ -124,8 +124,8 @@ public:
 				break;
 		}
 	}
-	
-	
+
+
 
 protected:
 	/** The x,y-coordinates of the cursor position. */

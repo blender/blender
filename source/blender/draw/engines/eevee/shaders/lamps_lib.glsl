@@ -249,55 +249,70 @@ float light_visibility(LightData ld, vec3 W,
 	return vis;
 }
 
+#ifdef USE_LTC
 float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 {
-#ifdef USE_LTC
-	if (ld.l_type == SUN) {
-		return direct_diffuse_unit_disc(ld, N, V);
-	}
-	else if (ld.l_type == AREA_RECT) {
-		return direct_diffuse_rectangle(ld, N, V, l_vector);
+	if (ld.l_type == AREA_RECT) {
+		vec3 corners[4];
+		corners[0] = normalize((l_vector.xyz + ld.l_right * -ld.l_sizex) + ld.l_up *  ld.l_sizey);
+		corners[1] = normalize((l_vector.xyz + ld.l_right * -ld.l_sizex) + ld.l_up * -ld.l_sizey);
+		corners[2] = normalize((l_vector.xyz + ld.l_right *  ld.l_sizex) + ld.l_up * -ld.l_sizey);
+		corners[3] = normalize((l_vector.xyz + ld.l_right *  ld.l_sizex) + ld.l_up *  ld.l_sizey);
+
+		return ltc_evaluate_quad(corners, N);
 	}
 	else if (ld.l_type == AREA_ELLIPSE) {
-		return direct_diffuse_ellipse(ld, N, V, l_vector);
+		vec3 points[3];
+		points[0] = (l_vector.xyz + ld.l_right * -ld.l_sizex) + ld.l_up * -ld.l_sizey;
+		points[1] = (l_vector.xyz + ld.l_right *  ld.l_sizex) + ld.l_up * -ld.l_sizey;
+		points[2] = (l_vector.xyz + ld.l_right *  ld.l_sizex) + ld.l_up *  ld.l_sizey;
+
+		return ltc_evaluate_disk(N, V, mat3(1.0), points);
 	}
 	else {
-		return direct_diffuse_sphere(ld, N, l_vector);
+		float radius = ld.l_radius;
+		radius /= (ld.l_type == SUN) ? 1.0 : l_vector.w;
+		vec3 L = (ld.l_type == SUN) ? -ld.l_forward : (l_vector.xyz / l_vector.w);
+
+		return ltc_evaluate_disk_simple(radius, dot(N, L));
 	}
-#else
-	if (ld.l_type == SUN) {
-		return direct_diffuse_sun(ld, N);
-	}
-	else {
-		return direct_diffuse_point(N, l_vector);
-	}
-#endif
 }
 
-vec3 light_specular(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
+float light_specular(LightData ld, vec4 ltc_mat, vec3 N, vec3 V, vec4 l_vector)
 {
-#ifdef USE_LTC
-	if (ld.l_type == SUN) {
-		return direct_ggx_unit_disc(ld, N, V, roughness, f0);
-	}
-	else if (ld.l_type == AREA_RECT) {
-		return direct_ggx_rectangle(ld, N, V, l_vector, roughness, f0);
-	}
-	else if (ld.l_type == AREA_ELLIPSE) {
-		return direct_ggx_ellipse(ld, N, V, l_vector, roughness, f0);
-	}
-	else {
-		return direct_ggx_sphere(ld, N, V, l_vector, roughness, f0);
-	}
-#else
-	if (ld.l_type == SUN) {
-		return direct_ggx_sun(ld, N, V, roughness, f0);
+	if (ld.l_type == AREA_RECT) {
+		vec3 corners[4];
+		corners[0] = (l_vector.xyz + ld.l_right * -ld.l_sizex) + ld.l_up *  ld.l_sizey;
+		corners[1] = (l_vector.xyz + ld.l_right * -ld.l_sizex) + ld.l_up * -ld.l_sizey;
+		corners[2] = (l_vector.xyz + ld.l_right *  ld.l_sizex) + ld.l_up * -ld.l_sizey;
+		corners[3] = (l_vector.xyz + ld.l_right *  ld.l_sizex) + ld.l_up *  ld.l_sizey;
+
+		ltc_transform_quad(N, V, ltc_matrix(ltc_mat), corners);
+
+		return ltc_evaluate_quad(corners, vec3(0.0, 0.0, 1.0));
 	}
 	else {
-		return direct_ggx_point(N, V, l_vector, roughness, f0);
+		bool is_ellipse = (ld.l_type == AREA_ELLIPSE);
+		float radius_x = is_ellipse ? ld.l_sizex : ld.l_radius;
+		float radius_y = is_ellipse ? ld.l_sizey : ld.l_radius;
+
+		vec3 L = (ld.l_type == SUN) ? -ld.l_forward : l_vector.xyz;
+		vec3 Px = ld.l_right;
+		vec3 Py = ld.l_up;
+
+		if (ld.l_type == SPOT || ld.l_type == POINT) {
+			make_orthonormal_basis(l_vector.xyz / l_vector.w, Px, Py);
+		}
+
+		vec3 points[3];
+		points[0] = (L + Px * -radius_x) + Py * -radius_y;
+		points[1] = (L + Px *  radius_x) + Py * -radius_y;
+		points[2] = (L + Px *  radius_x) + Py *  radius_y;
+
+		return ltc_evaluate_disk(N, V, ltc_matrix(ltc_mat), points);
 	}
-#endif
 }
+#endif
 
 #define MAX_SSS_SAMPLES 65
 #define SSS_LUT_SIZE 64.0

@@ -65,7 +65,7 @@ void DRW_debug_polygon_v3(const float (*v)[3], const int vert_len, const float c
 	BLI_assert(vert_len > 1);
 
 	for (int i = 0; i < vert_len; ++i) {
-		DRW_debug_line_v3v3(v[i], v[(i+1)%vert_len], color);
+		DRW_debug_line_v3v3(v[i], v[(i + 1) % vert_len], color);
 	}
 }
 

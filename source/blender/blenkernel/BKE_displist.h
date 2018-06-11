@@ -57,11 +57,12 @@ enum {
 
 /* prototypes */
 
-struct Scene;
-struct Object;
-struct ListBase;
 struct Depsgraph;
 struct DerivedMesh;
+struct ListBase;
+struct Main;
+struct Object;
+struct Scene;
 
 /* used for curves, nurbs, mball, importing */
 typedef struct DispList {

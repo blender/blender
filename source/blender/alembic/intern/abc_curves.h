@@ -36,9 +36,7 @@ class AbcCurveWriter : public AbcObjectWriter {
 	Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
 
 public:
-	AbcCurveWriter(Depsgraph *depsgraph,
-	               Scene *scene,
-	               Object *ob,
+	AbcCurveWriter(Object *ob,
 	               AbcTransformWriter *parent,
 	               uint32_t time_sampling,
 	               ExportSettings &settings);
@@ -60,16 +58,17 @@ public:
 	                         const char **err_str) const;
 
 	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                              const Alembic::Abc::ISampleSelector &sample_sel,
-	                              int read_flag,
-	                              const char **err_str);
+	struct Mesh *read_mesh(struct Mesh *existing_mesh,
+	                       const Alembic::Abc::ISampleSelector &sample_sel,
+	                       int read_flag,
+	                       const char **err_str);
+
+	void read_curve_sample(Curve *cu,
+	                       const Alembic::AbcGeom::ICurvesSchema &schema,
+	                       const Alembic::Abc::ISampleSelector &sample_selector);
+
 };
 
 /* ************************************************************************** */
-
-void read_curve_sample(Curve *cu,
-                       const Alembic::AbcGeom::ICurvesSchema &schema,
-                       const Alembic::Abc::ISampleSelector &sample_selector);
 
 #endif  /* __ABC_CURVES_H__ */

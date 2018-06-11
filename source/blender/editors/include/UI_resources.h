@@ -21,7 +21,7 @@
  * The Original Code is: all of this file.
  *
  * Contributor(s): none yet.
- * 
+ *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
@@ -56,7 +56,7 @@ typedef enum ThemeColorID {
 
 	TH_THEMEUI,
 // common colors among spaces
-	
+
 	TH_BACK,
 	TH_TEXT,
 	TH_TEXT_HI,
@@ -65,22 +65,23 @@ typedef enum ThemeColorID {
 	TH_TAB_INACTIVE,
 	TH_TAB_BACK,
 	TH_TAB_OUTLINE,
-	
+
 	TH_HEADER,
 	TH_HEADERDESEL,
 	TH_HEADER_TEXT,
 	TH_HEADER_TEXT_HI,
-	
+
 	/* panels */
 	TH_PANEL_HEADER,
 	TH_PANEL_BACK,
+	TH_PANEL_SUB_BACK,
 	TH_PANEL_SHOW_HEADER,
 	TH_PANEL_SHOW_BACK,
-	
+
 	TH_BUTBACK,
 	TH_BUTBACK_TEXT,
 	TH_BUTBACK_TEXT_HI,
-	
+
 	TH_SHADE1,
 	TH_SHADE2,
 	TH_HILITE,
@@ -141,14 +142,14 @@ typedef enum ThemeColorID {
 	TH_SYNTAX_D,
 	TH_SYNTAX_N,
 	TH_SYNTAX_S,
-	
+
 	TH_BONE_SOLID,
 	TH_BONE_POSE,
 	TH_BONE_POSE_ACTIVE,
-	
+
 	TH_STRIP,
 	TH_STRIP_SELECT,
-	
+
 	TH_KEYTYPE_KEYFRAME, /* KEYTYPES */
 	TH_KEYTYPE_KEYFRAME_SELECT,
 	TH_KEYTYPE_EXTREME,
@@ -157,15 +158,15 @@ typedef enum ThemeColorID {
 	TH_KEYTYPE_BREAKDOWN_SELECT,
 	TH_KEYTYPE_JITTER,
 	TH_KEYTYPE_JITTER_SELECT,
-	
+
 	TH_KEYBORDER,
 	TH_KEYBORDER_SELECT,
-	
+
 	TH_LAMP,
 	TH_SPEAKER,
 	TH_CAMERA,
 	TH_EMPTY,
-	
+
 	TH_NODE,
 	TH_NODE_INPUT,
 	TH_NODE_OUTPUT,
@@ -183,14 +184,14 @@ typedef enum ThemeColorID {
 	TH_NODE_FRAME,
 	TH_NODE_MATTE,
 	TH_NODE_DISTORT,
-	
+
 	TH_CONSOLE_OUTPUT,
 	TH_CONSOLE_INPUT,
 	TH_CONSOLE_INFO,
 	TH_CONSOLE_ERROR,
 	TH_CONSOLE_CURSOR,
 	TH_CONSOLE_SELECT,
-	
+
 	TH_SEQ_MOVIE,
 	TH_SEQ_MOVIECLIP,
 	TH_SEQ_MASK,
@@ -205,20 +206,20 @@ typedef enum ThemeColorID {
 
 	TH_EDGE_SHARP,
 	TH_EDITMESH_ACTIVE,
-	
+
 	TH_HANDLE_VERTEX,
 	TH_HANDLE_VERTEX_SELECT,
 	TH_HANDLE_VERTEX_SIZE,
-	
+
 	TH_GP_VERTEX,
 	TH_GP_VERTEX_SELECT,
 	TH_GP_VERTEX_SIZE,
-	
+
 	TH_DOPESHEET_CHANNELOB,
 	TH_DOPESHEET_CHANNELSUBOB,
-	
+
 	TH_PREVIEW_BACK,
-	
+
 	TH_EDGE_CREASE,
 
 	TH_DRAWEXTRA_EDGELEN,
@@ -259,20 +260,20 @@ typedef enum ThemeColorID {
 	TH_SELECT_HIGHLIGHT, /* highlight color for selected outliner item */
 
 	TH_SKIN_ROOT,
-	
+
 	TH_ANIM_ACTIVE,   /* active action */
 	TH_ANIM_INACTIVE, /* no active action */
-	
+
 	TH_NLA_TWEAK,        /* 'tweaking' track in NLA */
 	TH_NLA_TWEAK_DUPLI,  /* error/warning flag for other strips referencing dupli strip */
-	
+
 	TH_NLA_TRANSITION,
 	TH_NLA_TRANSITION_SEL,
 	TH_NLA_META,
 	TH_NLA_META_SEL,
 	TH_NLA_SOUND,
 	TH_NLA_SOUND_SEL,
-	
+
 	TH_WIDGET_EMBOSS,
 
 	TH_EDITOR_OUTLINE,
@@ -302,7 +303,7 @@ typedef enum ThemeColorID {
 	TH_INFO_DEBUG,
 	TH_INFO_DEBUG_TEXT,
 	TH_VIEW_OVERLAY,
-	
+
 	TH_V3D_CLIPPING_BORDER,
 
 	TH_METADATA_BG,

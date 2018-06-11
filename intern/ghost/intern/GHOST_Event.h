@@ -60,7 +60,7 @@ public:
 	 * \return The event type.
 	 */
 	GHOST_TEventType getType()
-	{ 
+	{
 		return m_type;
 	}
 
@@ -74,7 +74,7 @@ public:
 	}
 
 	/**
-	 * Returns the window this event was generated on, 
+	 * Returns the window this event was generated on,
 	 * or NULL if it is a 'system' event.
 	 * \return The generating window.
 	 */

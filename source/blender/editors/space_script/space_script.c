@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -66,33 +66,33 @@ static SpaceLink *script_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sc
 {
 	ARegion *ar;
 	SpaceScript *sscript;
-	
+
 	sscript = MEM_callocN(sizeof(SpaceScript), "initscript");
 	sscript->spacetype = SPACE_SCRIPT;
-	
-	
+
+
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for script");
-	
+
 	BLI_addtail(&sscript->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_TOP;
-	
+
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for script");
-	
+
 	BLI_addtail(&sscript->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
-	
+
 	/* channel list region XXX */
 
-	
+
 	return (SpaceLink *)sscript;
 }
 
 /* not spacelink itself */
 static void script_free(SpaceLink *sl)
-{	
+{
 	SpaceScript *sscript = (SpaceScript *) sl;
 
 #ifdef WITH_PYTHON
@@ -116,9 +116,9 @@ static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 static SpaceLink *script_duplicate(SpaceLink *sl)
 {
 	SpaceScript *sscriptn = MEM_dupallocN(sl);
-	
+
 	/* clear or remove stuff from old */
-	
+
 	return (SpaceLink *)sscriptn;
 }
 
@@ -128,9 +128,9 @@ static SpaceLink *script_duplicate(SpaceLink *sl)
 static void script_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
-	
+
 	/* own keymap */
 	keymap = WM_keymap_find(wm->defaultconf, "Script", SPACE_SCRIPT, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
@@ -145,12 +145,12 @@ static void script_main_region_draw(const bContext *C, ARegion *ar)
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	UI_view2d_view_ortho(v2d);
-		
+
 	/* data... */
 	// BPY_script_exec(C, "/root/blender-svn/blender25/test.py", NULL);
-	
+
 #ifdef WITH_PYTHON
 	if (sscript->script) {
 		// BPY_run_script_space_draw(C, sscript);
@@ -158,10 +158,10 @@ static void script_main_region_draw(const bContext *C, ARegion *ar)
 #else
 	(void)sscript;
 #endif
-	
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
-	
+
 	/* scrollers? */
 }
 
@@ -190,17 +190,17 @@ void ED_spacetype_script(void)
 {
 	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype script");
 	ARegionType *art;
-	
+
 	st->spaceid = SPACE_SCRIPT;
 	strncpy(st->name, "Script", BKE_ST_MAXNAME);
-	
+
 	st->new = script_new;
 	st->free = script_free;
 	st->init = script_init;
 	st->duplicate = script_duplicate;
 	st->operatortypes = script_operatortypes;
 	st->keymap = script_keymap;
-	
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype script region");
 	art->regionid = RGN_TYPE_WINDOW;
@@ -210,19 +210,19 @@ void ED_spacetype_script(void)
 	art->keymapflag = ED_KEYMAP_VIEW2D |   ED_KEYMAP_UI | ED_KEYMAP_FRAMES; // XXX need to further test this ED_KEYMAP_UI is needed for button interaction
 
 	BLI_addhead(&st->regiontypes, art);
-	
+
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype script region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
-	
+
 	art->init = script_header_region_init;
 	art->draw = script_header_region_draw;
-	
+
 	BLI_addhead(&st->regiontypes, art);
-	
-	
+
+
 	BKE_spacetype_register(st);
 }
 

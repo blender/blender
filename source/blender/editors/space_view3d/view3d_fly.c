@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -151,7 +151,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_DECELERATE);
 
 	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, FLY_MODAL_SPEED);
-	
+
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_PAN_ENABLE);
 	/* XXX - Bug in the event system, middle mouse release doesnt work */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, FLY_MODAL_PAN_DISABLE);
@@ -550,12 +550,12 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 			case FLY_MODAL_CONFIRM:
 				fly->state = FLY_CONFIRM;
 				break;
-				
+
 			/* speed adjusting with mousepan (trackpad) */
 			case FLY_MODAL_SPEED:
 			{
 				float fac = 0.02f * (event->prevy - event->y);
-				
+
 				/* allowing to brake immediate */
 				if (fac > 0.0f && fly->speed < 0.0f)
 					fly->speed = 0.0f;
@@ -563,7 +563,7 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 					fly->speed = 0.0f;
 				else
 					fly->speed += fly->grid * fac;
-				
+
 				break;
 			}
 			case FLY_MODAL_ACCELERATE:

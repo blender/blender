@@ -95,7 +95,7 @@ NodeGroup *BlenderFileLoader::Load()
 	int id = 0;
 
 	DEG_OBJECT_ITER_BEGIN(
-	        depsgraph, ob, DEG_ITER_OBJECT_MODE_RENDER,
+	        depsgraph, ob,
 	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
 	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
 	        DEG_ITER_OBJECT_FLAG_VISIBLE |
@@ -546,7 +546,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
 		if (mat) {
 			tmpMat.setLine(mat->line_col[0], mat->line_col[1], mat->line_col[2], mat->line_col[3]);
-			tmpMat.setDiffuse(mat->r, mat->g, mat->b, mat->alpha);
+			tmpMat.setDiffuse(mat->r, mat->g, mat->b, 1.0f);
 			tmpMat.setSpecular(mat->specr, mat->specg, mat->specb, 1.0f);
 			tmpMat.setShininess(128.f);
 			tmpMat.setPriority(mat->line_priority);
