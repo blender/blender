@@ -442,7 +442,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 							    /* image may have been painted onto (and not saved, T44543) */
 							    !BKE_image_is_dirty(ima))
 							{
-								BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+								BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
 								BKE_image_walk_all_users(bmain, ima, bpath_traverse_image_user_cb);
 							}
 						}

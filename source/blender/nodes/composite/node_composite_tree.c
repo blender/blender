@@ -134,7 +134,7 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	BKE_node_preview_sync_tree(ntree, localtree);
 }
 
-static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
+static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 {
 	bNode *lnode;
 	bNodeSocket *lsock;
@@ -147,7 +147,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
 					/* image_merge does sanity check for pointers */
-					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
+					BKE_image_merge(bmain, (Image *)lnode->new_node->id, (Image *)lnode->id);
 				}
 			}
 			else if (lnode->type == CMP_NODE_MOVIEDISTORTION) {

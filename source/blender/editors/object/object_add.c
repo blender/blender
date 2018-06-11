@@ -1570,7 +1570,7 @@ static void convert_ensure_curve_cache(Main *bmain, Scene *scene, Object *ob)
 static void curvetomesh(Main *bmain, Scene *scene, Object *ob)
 {
 	convert_ensure_curve_cache(bmain, scene, ob);
-	BKE_mesh_from_nurbs(ob); /* also does users */
+	BKE_mesh_from_nurbs(bmain, ob); /* also does users */
 
 	if (ob->type == OB_MESH) {
 		BKE_object_free_modifiers(ob, 0);
@@ -1724,7 +1724,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob = ob;
 			}
 
-			BKE_mesh_to_curve(scene, newob);
+			BKE_mesh_to_curve(bmain, scene, newob);
 
 			if (newob->type == OB_CURVE) {
 				BKE_object_free_modifiers(newob, 0);   /* after derivedmesh calls! */

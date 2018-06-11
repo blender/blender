@@ -622,7 +622,7 @@ int unpackImage(Main *bmain, ReportList *reports, Image *ima, int how)
 	}
 
 	if (ret_value == RET_OK) {
-		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
 	}
 
 	return(ret_value);

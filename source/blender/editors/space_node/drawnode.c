@@ -3234,6 +3234,7 @@ void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
 
 void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeInstanceKey parent_key)
 {
+	Main *bmain = CTX_data_main(C);
 	bNodeInstanceKey active_viewer_key = (snode->nodetree ? snode->nodetree->active_viewer_key : NODE_INSTANCE_KEY_NONE);
 	Image *ima;
 	void *lock;
@@ -3245,7 +3246,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if (parent_key.value != active_viewer_key.value)
 		return;
 
-	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 	if (ibuf) {
 		float x, y;

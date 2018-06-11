@@ -338,7 +338,7 @@ static Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char 
 
 	errno = 0;
 	if (check_existing) {
-		ima = BKE_image_load_exists(filepath);
+		ima = BKE_image_load_exists(bmain, filepath);
 	}
 	else {
 		ima = BKE_image_load(bmain, filepath);

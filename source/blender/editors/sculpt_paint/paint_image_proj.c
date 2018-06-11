@@ -5473,7 +5473,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	image = BKE_image_add_from_imbuf(ibuf, "image_view");
+	image = BKE_image_add_from_imbuf(bmain, ibuf, "image_view");
 
 	/* Drop reference to ibuf so that the image owns it */
 	IMB_freeImBuf(ibuf);
@@ -5744,7 +5744,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 
 		if (ima) {
 			BKE_texpaint_slot_refresh_cache(scene, ma);
-			BKE_image_signal(ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
+			BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 			WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 			DAG_id_tag_update(&ma->id, 0);
 			ED_area_tag_redraw(CTX_wm_area(C));

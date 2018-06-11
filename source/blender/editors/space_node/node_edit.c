@@ -87,6 +87,7 @@ enum {
 };
 
 typedef struct CompoJob {
+	Main *bmain;
 	Scene *scene;
 	bNodeTree *ntree;
 	bNodeTree *localtree;
@@ -182,7 +183,7 @@ static void compo_freejob(void *cjv)
 	CompoJob *cj = cjv;
 
 	if (cj->localtree) {
-		ntreeLocalMerge(cj->localtree, cj->ntree);
+		ntreeLocalMerge(cj->bmain, cj->localtree, cj->ntree);
 	}
 	MEM_freeN(cj);
 }
@@ -266,6 +267,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 {
 	wmJob *wm_job;
 	CompoJob *cj;
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 
 	/* to fix bug: [#32272] */
@@ -277,13 +279,14 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	G.is_break = false;
 #endif
 
-	BKE_image_backup_render(scene, BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), false);
+	BKE_image_backup_render(scene, BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result"), false);
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing",
 	                     WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS, WM_JOB_TYPE_COMPOSITE);
 	cj = MEM_callocN(sizeof(CompoJob), "compo job");
 
 	/* customdata for preview thread */
+	cj->bmain = bmain;
 	cj->scene = scene;
 	cj->ntree = nodetree;
 	cj->recalc_flags = compo_get_recalc_flags(C);
@@ -687,7 +690,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 					ED_node_tag_update_nodetree(bmain, ntree, node);
 
 				/* addnode() doesnt link this yet... */
-				node->id = (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+				node->id = (ID *)BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
 			else if (node->type == CMP_NODE_R_LAYERS) {
 				Scene *scene;
@@ -2501,13 +2504,14 @@ static void viewer_border_corner_to_backdrop(SpaceNode *snode, ARegion *ar, int 
 
 static int viewer_border_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Image *ima;
 	void *lock;
 	ImBuf *ibuf;
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf) {

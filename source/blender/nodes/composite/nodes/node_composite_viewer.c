@@ -33,6 +33,7 @@
 #include "node_composite_util.h"
 
 #include "BKE_image.h"
+#include "BKE_global.h"
 
 
 /* **************** VIEWER ******************** */
@@ -53,7 +54,7 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
 	node->custom3 = 0.5f;
 	node->custom4 = 0.5f;
 
-	node->id = (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	node->id = (ID *)BKE_image_verify_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
 void register_node_type_cmp_viewer(void)

@@ -1175,14 +1175,14 @@ static int image_sequence_get_len(ListBase *frames, int *ofs)
 }
 
 static Image *image_open_single(
-        wmOperator *op, const char *filepath, const char *relbase,
+        Main *bmain, wmOperator *op, const char *filepath, const char *relbase,
         bool is_relative_path, bool use_multiview, int frame_seq_len)
 {
 	bool exists = false;
 	Image *ima = NULL;
 
 	errno = 0;
-	ima = BKE_image_load_exists_ex(filepath, &exists);
+	ima = BKE_image_load_exists_ex(bmain, filepath, &exists);
 
 	if (!ima) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -1263,7 +1263,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 			}
 
 			Image *ima_range = image_open_single(
-			         op, filepath_range, BKE_main_blendfile_path(bmain),
+			         bmain, op, filepath_range, BKE_main_blendfile_path(bmain),
 			         is_relative_path, use_multiview, frame_range_seq_len);
 
 			/* take the first image */
@@ -1278,7 +1278,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	else {
 		/* for drag & drop etc. */
 		ima = image_open_single(
-		        op, filepath, BKE_main_blendfile_path(bmain),
+		        bmain, op, filepath, BKE_main_blendfile_path(bmain),
 		        is_relative_path, use_multiview, 1);
 	}
 
@@ -1343,7 +1343,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	/* XXX unpackImage frees image buffers */
 	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-	BKE_image_signal(ima, iuser, IMA_SIGNAL_RELOAD);
+	BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
 	MEM_freeN(op->customdata);
@@ -1515,6 +1515,7 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
 
 static int image_replace_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	char str[FILE_MAX];
 
@@ -1528,7 +1529,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 
 	if (sima->image->source == IMA_SRC_GENERATED) {
 		sima->image->source = IMA_SRC_FILE;
-		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
+		BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
 	}
 
 	if (BLI_testextensie_array(str, imb_ext_movie))
@@ -1540,7 +1541,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	BKE_icon_changed(BKE_icon_id_ensure(&sima->image->id));
-	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
+	BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, sima->image);
 
 	return OPERATOR_FINISHED;
@@ -1731,7 +1732,7 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 }
 
 static void save_image_post(
-        wmOperator *op, ImBuf *ibuf, Image *ima, int ok, int save_copy,
+        Main *bmain, wmOperator *op, ImBuf *ibuf, Image *ima, int ok, int save_copy,
         const char *relbase, int relative, int do_newpath, const char *filepath)
 {
 	if (ok) {
@@ -1777,7 +1778,7 @@ static void save_image_post(
 			if (!BKE_color_managed_colorspace_settings_equals(&old_colorspace_settings,
 			                                                  &ima->colorspace_settings))
 			{
-				BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
+				BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
 			}
 		}
 	}
@@ -1808,6 +1809,7 @@ static void save_imbuf_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
  */
 static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveImageOptions *simopts, bool do_newpath)
 {
+	Main *bmain = CTX_data_main(C);
 	Image *ima = ED_space_image(sima);
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
@@ -1885,7 +1887,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
 			/* save render result */
 			ok = RE_WriteRenderResult(op->reports, rr, simopts->filepath, imf, NULL, sima->iuser.layer);
-			save_image_post(op, ibuf, ima, ok, true, relbase, relative, do_newpath, simopts->filepath);
+			save_image_post(bmain, op, ibuf, ima, ok, true, relbase, relative, do_newpath, simopts->filepath);
 			ED_space_image_release_buffer(sima, ibuf, lock);
 		}
 		/* regular mono pipeline */
@@ -1898,7 +1900,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 				ok = BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, imf, save_copy);
 				save_imbuf_post(ibuf, colormanaged_ibuf);
 			}
-			save_image_post(op, ibuf, ima, ok, (is_exr_rr ? true : save_copy), relbase, relative, do_newpath, simopts->filepath);
+			save_image_post(bmain, op, ibuf, ima, ok, (is_exr_rr ? true : save_copy), relbase, relative, do_newpath, simopts->filepath);
 			ED_space_image_release_buffer(sima, ibuf, lock);
 		}
 		/* individual multiview images */
@@ -1920,7 +1922,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 				if (is_exr_rr) {
 					BKE_scene_multiview_view_filepath_get(&scene->r, simopts->filepath, view, filepath);
 					ok_view = RE_WriteRenderResult(op->reports, rr, filepath, imf, view, -1);
-					save_image_post(op, ibuf, ima, ok_view, true, relbase, relative, do_newpath, filepath);
+					save_image_post(bmain, op, ibuf, ima, ok_view, true, relbase, relative, do_newpath, filepath);
 				}
 				else {
 					/* copy iuser to get the correct ibuf for this view */
@@ -1941,7 +1943,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 					colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
 					ok_view = BKE_imbuf_write_as(colormanaged_ibuf, filepath, &simopts->im_format, save_copy);
 					save_imbuf_post(ibuf, colormanaged_ibuf);
-					save_image_post(op, ibuf, ima, ok_view, true, relbase, relative, do_newpath, filepath);
+					save_image_post(bmain, op, ibuf, ima, ok_view, true, relbase, relative, do_newpath, filepath);
 					BKE_image_release_ibuf(sima->image, ibuf, lock);
 				}
 				ok &= ok_view;
@@ -1955,7 +1957,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		else if (simopts->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
 			if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
 				ok = RE_WriteRenderResult(op->reports, rr, simopts->filepath, imf, NULL, -1);
-				save_image_post(op, ibuf, ima, ok, true, relbase, relative, do_newpath, simopts->filepath);
+				save_image_post(bmain, op, ibuf, ima, ok, true, relbase, relative, do_newpath, simopts->filepath);
 				ED_space_image_release_buffer(sima, ibuf, lock);
 			}
 			else {
@@ -2333,6 +2335,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 
 static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Image *ima = CTX_data_edit_image(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 
@@ -2343,7 +2346,7 @@ static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	// XXX other users?
-	BKE_image_signal(ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_RELOAD);
+	BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_RELOAD);
 	DAG_id_tag_update(&ima->id, 0);
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
@@ -2482,7 +2485,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	BKE_image_signal(ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
+	BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 
@@ -3604,7 +3607,7 @@ static int image_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima;
 
-	ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
+	ima = BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
 	if (sima->image == NULL) {
 		ED_space_image_set(bmain, sima, scene, NULL, ima);
 	}

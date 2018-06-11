@@ -38,6 +38,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 
 #include "RNA_access.h"
@@ -131,6 +132,7 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
 void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
 {
 	/* we could use some clever */
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = BKE_screen_find_area_xy(win->screen, SPACE_TYPE_ANY, mx, my);
 	const char *display_device = CTX_data_scene(C)->display_settings.display_device;
@@ -156,7 +158,7 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
 				int mval[2] = {mx - ar->winrct.xmin,
 				               my - ar->winrct.ymin};
 
-				if (ED_space_node_color_sample(snode, ar, mval, r_col)) {
+				if (ED_space_node_color_sample(bmain, snode, ar, mval, r_col)) {
 					return;
 				}
 			}

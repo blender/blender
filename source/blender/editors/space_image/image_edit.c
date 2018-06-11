@@ -78,7 +78,7 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Scene *scene, Object *obe
 	}
 
 	if (sima->image)
-		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+		BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 
 	id_us_ensure_real((ID *)sima->image);
 

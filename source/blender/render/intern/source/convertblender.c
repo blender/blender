@@ -4779,7 +4779,7 @@ void RE_Database_Free(Render *re)
 	/* statistics for debugging render memory usage */
 	if ((G.debug & G_DEBUG) && (G.is_rendering)) {
 		if ((re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
-			BKE_image_print_memlist();
+			BKE_image_print_memlist(re->main);
 			MEM_printmemlist_stats();
 		}
 	}
@@ -4841,7 +4841,7 @@ void RE_Database_Free(Render *re)
 	if (re->scene)
 		if (re->scene->r.scemode & R_FREE_IMAGE)
 			if ((re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0)
-				BKE_image_free_all_textures();
+				BKE_image_free_all_textures(re->main);
 
 	if (re->memArena) {
 		BLI_memarena_free(re->memArena);
