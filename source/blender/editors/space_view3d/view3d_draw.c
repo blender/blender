@@ -777,8 +777,13 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 	const float k = U.rvisize * U.pixelsize;  /* axis size */
 	const int bright = - 20 * (10 - U.rvibright);  /* axis alpha offset (rvibright has range 0-10) */
 
-	const float startx = rect->xmin + k + 1.0f;  /* axis center in screen coordinates, x=y */
-	const float starty = rect->ymin + k + 1.0f;
+	/* Axis center in screen coordinates.
+	 *
+	 * - Unit size offset so small text doesn't draw outside the screen
+	 * - Extra X offset because of the panel expander.
+	 */
+	const float startx = rect->xmax - (k + UI_UNIT_X * 1.5);
+	const float starty = rect->ymax - (k + UI_UNIT_Y);
 
 	float axis_pos[3][2];
 	unsigned char axis_col[3][4];
@@ -1079,7 +1084,6 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 
 	char info[300];
 	char *s = info;
-	short offset = 1.5f * UI_UNIT_X + rect->xmin;
 
 	s += sprintf(s, "(%d)", cfra);
 
@@ -1170,10 +1174,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		s += sprintf(s, " <%s>", markern);
 	}
 
-	if (U.uiflag & USER_SHOW_ROTVIEWICON)
-		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
-
-	BLF_draw_default(offset, rect->ymin + 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
+	BLF_draw_default(rect->xmin + UI_UNIT_X, rect->ymax - (2 * U.widget_unit), 0.0f, info, sizeof(info));
 }
 
 /* ******************** view loop ***************** */
@@ -1204,7 +1205,9 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	BLF_batch_draw_begin();
 
 	if (((U.uiflag & USER_SHOW_ROTVIEWICON) != 0) &&
-	    (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
+	    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+	    /* No need to display manipulator and this info. */
+	    ((U.manipulator_flag & USER_MANIPULATOR_DRAW_NAVIGATE) == 0))
 	{
 		draw_view_axis(rv3d, &rect);
 	}
