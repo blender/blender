@@ -189,9 +189,9 @@ static void rna_Image_unpack(Image *image, Main *bmain, ReportList *reports, int
 	}
 }
 
-static void rna_Image_reload(Image *image)
+static void rna_Image_reload(Image *image, Main *bmain)
 {
-	BKE_image_signal(image, NULL, IMA_SIGNAL_RELOAD);
+	BKE_image_signal(bmain, image, NULL, IMA_SIGNAL_RELOAD);
 }
 
 static void rna_Image_update(Image *image, ReportList *reports)
@@ -335,6 +335,7 @@ void RNA_api_image(StructRNA *srna)
 	RNA_def_enum(func, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "method", "How to unpack");
 
 	func = RNA_def_function(srna, "reload", "rna_Image_reload");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Reload the image from its source path");
 
 	func = RNA_def_function(srna, "update", "rna_Image_update");

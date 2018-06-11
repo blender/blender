@@ -293,7 +293,7 @@ typedef struct bNodeTreeType {
 	/* calls allowing threaded composite */
 	void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
 	void (*local_sync)(struct bNodeTree *localtree, struct bNodeTree *ntree);
-	void (*local_merge)(struct bNodeTree *localtree, struct bNodeTree *ntree);
+	void (*local_merge)(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 	/* Tree update. Overrides nodetype->updatetreefunc! */
 	void (*update)(struct bNodeTree *ntree);
@@ -371,7 +371,7 @@ int             ntreeOutputExists(struct bNode *node, struct bNodeSocket *testso
 void            ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable);
 struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
 void            ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
-void            ntreeLocalMerge(struct bNodeTree *localtree, struct bNodeTree *ntree);
+void            ntreeLocalMerge(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 /** \} */
 

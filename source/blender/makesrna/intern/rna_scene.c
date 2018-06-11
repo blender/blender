@@ -1981,7 +1981,7 @@ static void rna_GPUDOFSettings_update(Main *UNUSED(bmain), Scene *scene, Pointer
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
-static void rna_Stereo3dFormat_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Stereo3dFormat_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
 
@@ -1996,7 +1996,7 @@ static void rna_Stereo3dFormat_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 		ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 		if (ibuf) {
-			BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+			BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_FREE);
 		}
 		BKE_image_release_ibuf(ima, ibuf, lock);
 	}

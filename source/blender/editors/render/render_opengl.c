@@ -705,8 +705,8 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->re = RE_NewSceneRender(scene);
 
 	/* create image and image user */
-	oglrender->ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
-	BKE_image_signal(oglrender->ima, NULL, IMA_SIGNAL_FREE);
+	oglrender->ima = BKE_image_verify_viewer(oglrender->bmain, IMA_TYPE_R_RESULT, "Render Result");
+	BKE_image_signal(oglrender->bmain, oglrender->ima, NULL, IMA_SIGNAL_FREE);
 	BKE_image_backup_render(oglrender->scene, oglrender->ima, true);
 
 	oglrender->iuser.scene = scene;

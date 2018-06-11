@@ -50,6 +50,7 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
@@ -118,7 +119,7 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 }
 
 
-static bool wm_draw_region_stereo_set(ScrArea *sa, ARegion *ar, eStereoViews sview)
+static bool wm_draw_region_stereo_set(Main *bmain, ScrArea *sa, ARegion *ar, eStereoViews sview)
 {
 	/* We could detect better when stereo is actually needed, by inspecting the
 	 * image in the image editor and sequencer. */
@@ -149,7 +150,7 @@ static bool wm_draw_region_stereo_set(ScrArea *sa, ARegion *ar, eStereoViews svi
 		{
 			SpaceNode *snode = sa->spacedata.first;
 			if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
-				Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+				Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 				ima->eye = sview;
 				return true;
 			}
@@ -488,6 +489,7 @@ GPUViewport *WM_draw_region_get_bound_viewport(ARegion *ar)
 
 static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	bScreen *screen = WM_window_get_active_screen(win);
 
@@ -512,7 +514,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 				CTX_wm_region_set(C, ar);
 				bool use_viewport = wm_region_use_viewport(sa, ar);
 
-				if (stereo && wm_draw_region_stereo_set(sa, ar, STEREO_LEFT_ID)) {
+				if (stereo && wm_draw_region_stereo_set(bmain, sa, ar, STEREO_LEFT_ID)) {
 					wm_draw_region_buffer_create(ar, true, use_viewport);
 
 					for (int view = 0; view < 2; view++) {
@@ -522,7 +524,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 						}
 						else {
 							sview = STEREO_RIGHT_ID;
-							wm_draw_region_stereo_set(sa, ar, sview);
+							wm_draw_region_stereo_set(bmain, sa, ar, sview);
 						}
 
 						wm_draw_region_bind(ar, view);

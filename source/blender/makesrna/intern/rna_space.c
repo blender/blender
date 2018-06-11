@@ -920,7 +920,7 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	Scene *scene = ED_screen_scene_find_with_window(sc, G.main->wm.first, &win);
 	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-	ED_space_image_set(sima, scene, obedit, (Image *)value.data);
+	ED_space_image_set(G.main, sima, scene, obedit, (Image *)value.data);
 }
 
 static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr, PointerRNA value)

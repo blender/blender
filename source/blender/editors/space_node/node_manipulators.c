@@ -31,6 +31,7 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"
@@ -140,13 +141,14 @@ static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmManipu
 
 static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
+	Main *bmain = CTX_data_main(C);
 	wmManipulator *cage = ((wmManipulatorWrapper *)mgroup->customdata)->manipulator;
 	const ARegion *ar = CTX_wm_region(C);
 	/* center is always at the origin */
 	const float origin[3] = {ar->winx / 2, ar->winy / 2};
 
 	void *lock;
-	Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf) {
@@ -340,11 +342,12 @@ static void WIDGETGROUP_node_crop_draw_prepare(const bContext *C, wmManipulatorG
 
 static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
+	Main *bmain = CTX_data_main(C);
 	struct NodeCropWidgetGroup *crop_group = mgroup->customdata;
 	wmManipulator *mpr = crop_group->border;
 
 	void *lock;
-	Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf) {
@@ -451,11 +454,12 @@ static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmManipulator
 
 static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
+	Main *bmain = CTX_data_main(C);
 	struct NodeSunBeamsWidgetGroup *sbeam_group = mgroup->customdata;
 	wmManipulator *mpr = sbeam_group->manipulator;
 
 	void *lock;
-	Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf) {
@@ -563,10 +567,11 @@ static void WIDGETGROUP_node_corner_pin_draw_prepare(const bContext *C, wmManipu
 
 static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
+	Main *bmain = CTX_data_main(C);
 	struct NodeCornerPinWidgetGroup *cpin_group = mgroup->customdata;
 
 	void *lock;
-	Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf) {

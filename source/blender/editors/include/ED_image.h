@@ -43,7 +43,7 @@ struct ViewLayer;
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
-void          ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
+void          ED_space_image_set(struct Main *bmain, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
 struct Mask  *ED_space_image_get_mask(struct SpaceImage *sima);
 void          ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 

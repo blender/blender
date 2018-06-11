@@ -22,6 +22,7 @@
 
 #include "COM_CompositorOperation.h"
 #include "BLI_listbase.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 
 extern "C" {
@@ -109,7 +110,7 @@ void CompositorOperation::deinitExecution()
 		}
 
 		BLI_thread_lock(LOCK_DRAW_IMAGE);
-		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+		BKE_image_signal(G.main, BKE_image_verify_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
 		BLI_thread_unlock(LOCK_DRAW_IMAGE);
 	}
 	else {

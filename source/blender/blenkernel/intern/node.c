@@ -2050,11 +2050,11 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 
 /* merge local tree results back, and free local tree */
 /* we have to assume the editor already changed completely */
-void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
+void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 {
 	if (ntree && localtree) {
 		if (ntree->typeinfo->local_merge)
-			ntree->typeinfo->local_merge(localtree, ntree);
+			ntree->typeinfo->local_merge(bmain, localtree, ntree);
 		
 		ntreeFreeTree(localtree);
 		MEM_freeN(localtree);

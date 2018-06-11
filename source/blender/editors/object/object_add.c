@@ -1635,10 +1635,10 @@ static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Objec
 	}
 }
 
-static void curvetomesh(Depsgraph *depsgraph, Scene *scene, Object *ob)
+static void curvetomesh(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	convert_ensure_curve_cache(depsgraph, scene, ob);
-	BKE_mesh_from_nurbs(ob); /* also does users */
+	BKE_mesh_from_nurbs(bmain, ob); /* also does users */
 
 	if (ob->type == OB_MESH) {
 		BKE_object_free_modifiers(ob, 0);
@@ -1785,7 +1785,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob = ob;
 			}
 
-			BKE_mesh_to_curve(depsgraph, scene, newob);
+			BKE_mesh_to_curve(bmain, depsgraph, scene, newob);
 
 			if (newob->type == OB_CURVE) {
 				BKE_object_free_modifiers(newob, 0);   /* after derivedmesh calls! */
@@ -1887,7 +1887,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			BKE_curve_curve_dimension_update(cu);
 
 			if (target == OB_MESH) {
-				curvetomesh(depsgraph, scene, newob);
+				curvetomesh(bmain, depsgraph, scene, newob);
 
 				/* meshes doesn't use displist */
 				BKE_object_free_curve_cache(newob);
@@ -1911,7 +1911,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					newob = ob;
 				}
 
-				curvetomesh(depsgraph, scene, newob);
+				curvetomesh(bmain, depsgraph, scene, newob);
 
 				/* meshes doesn't use displist */
 				BKE_object_free_curve_cache(newob);

@@ -544,9 +544,9 @@ Mesh *BKE_mesh_new_nomain_from_curve(Object *ob)
 }
 
 /* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use_orco_uv, const char *obdata_name, bool temporary)
+void BKE_mesh_from_nurbs_displist(
+        Main *bmain, Object *ob, ListBase *dispbase, const bool use_orco_uv, const char *obdata_name, bool temporary)
 {
-	Main *bmain = G.main;
 	Object *ob1;
 	DerivedMesh *dm = ob->derivedFinal;
 	Mesh *me;
@@ -642,7 +642,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 	}
 }
 
-void BKE_mesh_from_nurbs(Object *ob)
+void BKE_mesh_from_nurbs(Main *bmain, Object *ob)
 {
 	Curve *cu = (Curve *) ob->data;
 	bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
@@ -652,7 +652,7 @@ void BKE_mesh_from_nurbs(Object *ob)
 		disp = ob->curve_cache->disp;
 	}
 
-	BKE_mesh_from_nurbs_displist(ob, &disp, use_orco_uv, cu->id.name, false);
+	BKE_mesh_from_nurbs_displist(bmain, ob, &disp, use_orco_uv, cu->id.name, false);
 }
 
 typedef struct EdgeLink {
@@ -812,7 +812,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 	}
 }
 
-void BKE_mesh_to_curve(Depsgraph *depsgraph, Scene *scene, Object *ob)
+void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	/* make new mesh data from the original copy */
 	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_MESH);
@@ -823,7 +823,7 @@ void BKE_mesh_to_curve(Depsgraph *depsgraph, Scene *scene, Object *ob)
 	BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 1);
 
 	if (nurblist.first) {
-		Curve *cu = BKE_curve_add(G.main, ob->id.name + 2, OB_CURVE);
+		Curve *cu = BKE_curve_add(bmain, ob->id.name + 2, OB_CURVE);
 		cu->flag |= CU_3D;
 
 		cu->nurb = nurblist;
@@ -929,7 +929,7 @@ Mesh *BKE_mesh_new_from_object(
 
 			/* convert object type to mesh */
 			uv_from_orco = (tmpcu->flag & CU_UV_ORCO) != 0;
-			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco, tmpcu->id.name + 2, true);
+			BKE_mesh_from_nurbs_displist(bmain, tmpobj, &dispbase, uv_from_orco, tmpcu->id.name + 2, true);
 
 			tmpmesh = tmpobj->data;
 

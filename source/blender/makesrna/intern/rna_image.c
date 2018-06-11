@@ -92,12 +92,12 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 
 	if (value != ima->source) {
 		ima->source = value;
-		BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
+		BKE_image_signal(G.main, ima, NULL, IMA_SIGNAL_SRC_CHANGE);
 		DEG_id_tag_update(&ima->id, 0);
 	}
 }
 
-static void rna_Image_fields_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Image_fields_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
 	ImBuf *ibuf;
@@ -112,36 +112,36 @@ static void rna_Image_fields_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 		if ((ima->flag & IMA_FIELDS) && !(ibuf->flags & IB_fields)) nr = 1;
 
 		if (nr)
-			BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+			BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_FREE);
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-static void rna_Image_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Image_reload_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+	BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
 	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 	DEG_id_tag_update(&ima->id, 0);
 }
 
-static void rna_Image_generated_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Image_generated_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+	BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_FREE);
 }
 
-static void rna_Image_colormanage_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Image_colormanage_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
+	BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
 	DEG_id_tag_update(&ima->id, 0);
 	WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 }
 
-static void rna_Image_views_format_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
 	ImBuf *ibuf;
@@ -152,7 +152,7 @@ static void rna_Image_views_format_update(Main *UNUSED(bmain), Scene *scene, Poi
 	if (ibuf) {
 		ImageUser iuser = {NULL};
 		iuser.scene = scene;
-		BKE_image_signal(ima, &iuser, IMA_SIGNAL_FREE);
+		BKE_image_signal(bmain, ima, &iuser, IMA_SIGNAL_FREE);
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);

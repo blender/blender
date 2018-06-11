@@ -304,6 +304,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 
 static int node_add_file_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	Image *ima;
@@ -343,7 +344,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	 * to get proper image source.
 	 */
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
 		WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 	}
 

@@ -37,6 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_report.h"
 
@@ -131,6 +132,7 @@ static ScrArea *find_area_image_empty(bContext *C)
 /* new window uses x,y to set position */
 ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	wmWindow *win = NULL;
 	ScrArea *sa = NULL;
@@ -213,7 +215,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 	sima = sa->spacedata.first;
 
 	/* get the correct image, and scale it */
-	sima->image = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
+	sima->image = BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
 
 
 	/* if we're rendering to full screen, set appropriate hints on image editor

@@ -141,7 +141,7 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	BKE_node_preview_sync_tree(ntree, localtree);
 }
 
-static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
+static void local_merge(Main *UNUSED(bmain), bNodeTree *localtree, bNodeTree *ntree)
 {
 	BKE_node_preview_merge_tree(ntree, localtree, true);
 }

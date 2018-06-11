@@ -1109,7 +1109,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 							if (!sima->pin) {
 								Object *obedit = CTX_data_edit_object(C);
-								ED_space_image_set(sima, scene, obedit, ima);
+								ED_space_image_set(bmain, sima, scene, obedit, ima);
 							}
 						}
 					}

@@ -1421,7 +1421,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
 		errno = 0;
 
 		if (idcode == ID_IM) {
-			id = (ID *)BKE_image_load_exists_ex(path, &exists);
+			id = (ID *)BKE_image_load_exists_ex(bmain, path, &exists);
 		}
 		else {
 			BLI_assert(0);

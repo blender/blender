@@ -1085,7 +1085,7 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
 		workpath = imagepath.c_str();
 	}
 
-	Image *ima = BKE_image_load_exists(workpath);
+	Image *ima = BKE_image_load_exists(CTX_data_main(mContext), workpath);
 	if (!ima) {
 		fprintf(stderr, "Cannot create image: %s\n", workpath);
 		return true;
