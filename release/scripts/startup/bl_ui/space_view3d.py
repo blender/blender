@@ -3522,12 +3522,12 @@ class VIEW3D_PT_shading(Panel):
                 row.template_icon_view(shading, "studio_light")
                 sub = row.column()
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
-                if shading.studio_light_orientation == 'WORLD':
+                if shading.selected_studio_light.orientation == 'WORLD':
                     col.row().prop(shading, "studiolight_rot_z")
 
             elif shading.light == 'MATCAP':
                 row = col.row()
-                row.template_icon_view(shading, "matcap")
+                row.template_icon_view(shading, "studio_light")
                 sub = row.column()
                 sub.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
@@ -3582,7 +3582,7 @@ class VIEW3D_PT_shading(Panel):
             row.template_icon_view(shading, "studio_light")
             sub = row.column()
             sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
-            if shading.studio_light_orientation == 'WORLD':
+            if shading.selected_studio_light.orientation == 'WORLD':
                 col.row().prop(shading, "studiolight_rot_z")
                 col.row().prop(shading, "studiolight_background")
             col.prop(shading, "use_scene_light")
