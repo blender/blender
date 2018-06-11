@@ -1406,7 +1406,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 	const bool is_default_mode_shader = is_sculpt_mode;
 
 	/* First get materials for this mesh. */
-	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
 		const int materials_len = MAX2(1, (is_sculpt_mode_draw ? 1 : ob->totcol));
 
 		struct DRWShadingGroup **shgrp_array = BLI_array_alloca(shgrp_array, materials_len);
@@ -1484,6 +1484,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 		        &auto_layer_count);
 		if (mat_geom) {
 			for (int i = 0; i < materials_len; ++i) {
+				if (mat_geom[i] == NULL) {
+					continue;
+				}
 				EEVEE_ObjectEngineData *oedata = NULL;
 				Material *ma = give_current_material(ob, i + 1);
 

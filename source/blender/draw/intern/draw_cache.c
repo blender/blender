@@ -26,6 +26,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -576,6 +577,8 @@ Gwn_Batch **DRW_cache_object_surface_material_get(
 			return DRW_cache_surf_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
 		case OB_FONT:
 			return DRW_cache_text_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
+		case OB_MBALL:
+			return DRW_cache_mball_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
 		default:
 			return NULL;
 	}
@@ -2802,6 +2805,14 @@ Gwn_Batch *DRW_cache_mball_surface_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MBALL);
 	return DRW_metaball_batch_cache_get_triangles_with_normals(ob);
+}
+
+Gwn_Batch **DRW_cache_mball_surface_shaded_get(
+        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
+{
+	BLI_assert(ob->type == OB_MBALL);
+	MetaBall *mb = ob->data;
+	return DRW_metaball_batch_cache_get_surface_shaded(ob, mb, gpumat_array, gpumat_array_len);
 }
 
 /** \} */

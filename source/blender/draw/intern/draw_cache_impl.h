@@ -73,6 +73,7 @@ struct Gwn_Batch **DRW_curve_batch_cache_get_surface_shaded(
 
 /* Metaball */
 struct Gwn_Batch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
+struct Gwn_Batch **DRW_metaball_batch_cache_get_surface_shaded(struct Object *ob, struct MetaBall *mb, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 
 /* Curve (Font) */
 struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_cursor(struct Curve *cu);
