@@ -1956,7 +1956,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 			bPoseChannel *pchan = BKE_pose_channel_active(ob);
 			if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
 				copy_v3_v3(r_center, pchan->pose_head);
-				mul_m4_v3(tc->obedit->obmat, r_center);
+				mul_m4_v3(ob->obmat, r_center);
 				ok = true;
 			}
 		}
