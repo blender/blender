@@ -858,7 +858,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
 
 		/* add driver variable - add using eyedropper */
-		/* TODO... */
+		/* XXX: will this operator work like this? */
+		uiItemO(row, "", ICON_EYEDROPPER, "UI_OT_eyedropper_driver");
 	}
 	else {
 		/* add driver variable */
