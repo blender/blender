@@ -1891,7 +1891,7 @@ static void ed_panel_draw(const bContext *C,
  * Matching against any of these strings will draw the panel.
  * Can be NULL to skip context checks.
  */
-void ED_region_panels_layout(
+void ED_region_panels_layout_ex(
         const bContext *C, ARegion *ar,
         const char *contexts[], int contextnr, const bool vertical)
 {
@@ -2097,12 +2097,19 @@ void ED_region_panels_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
-void ED_region_panels(
+void ED_region_panels_ex(
         const bContext *C, ARegion *ar,
         const char *contexts[], int contextnr, const bool vertical)
 {
 	/* TODO: remove? */
-	ED_region_panels_layout(C, ar, contexts, contextnr, vertical);
+	ED_region_panels_layout_ex(C, ar, contexts, contextnr, vertical);
+	ED_region_panels_draw(C, ar);
+}
+
+void ED_region_panels(const bContext *C, ARegion *ar)
+{
+	/* TODO: remove? */
+	ED_region_panels_layout_ex(C, ar, NULL, -1, true);
 	ED_region_panels_draw(C, ar);
 }
 

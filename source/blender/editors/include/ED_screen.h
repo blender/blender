@@ -78,12 +78,16 @@ void    ED_region_tag_redraw_no_rebuild(struct ARegion *ar);
 void    ED_region_tag_refresh_ui(struct ARegion *ar);
 
 void ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
+void ED_region_panels_ex(
+        const struct bContext *C, struct ARegion *ar,
+        const char *contexts[], int contextnr, const bool vertical);
 void ED_region_panels(
+        const struct bContext *C, struct ARegion *ar);
+void ED_region_panels_layout_ex(
         const struct bContext *C, struct ARegion *ar,
         const char *contexts[], int contextnr, const bool vertical);
 void ED_region_panels_layout(
-        const struct bContext *C, struct ARegion *ar,
-        const char *contexts[], int contextnr, const bool vertical);
+        const struct bContext *C, struct ARegion *ar);
 void ED_region_panels_draw(
         const struct bContext *C, struct ARegion *ar);
 

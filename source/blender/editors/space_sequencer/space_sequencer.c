@@ -708,7 +708,7 @@ static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void sequencer_buttons_region_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void sequencer_buttons_region_listener(

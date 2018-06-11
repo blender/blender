@@ -752,7 +752,7 @@ static void action_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void action_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void action_region_listener(

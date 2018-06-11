@@ -203,9 +203,7 @@ static void buttons_main_region_layout_properties(const bContext *C, SpaceButs *
 			break;
 	}
 
-	if (contexts[0]) {
-		ED_region_panels(C, ar, contexts, sbuts->mainb, vertical);
-	}
+	ED_region_panels_layout_ex(C, ar, contexts, sbuts->mainb, vertical);
 }
 
 static void buttons_main_region_layout_tool(const bContext *C, SpaceButs *sbuts, ARegion *ar)
@@ -265,7 +263,7 @@ static void buttons_main_region_layout_tool(const bContext *C, SpaceButs *sbuts,
 		/* TODO */
 	}
 
-	ED_region_panels_layout(C, ar, contexts, -1, vertical);
+	ED_region_panels_layout_ex(C, ar, contexts, -1, vertical);
 }
 
 static void buttons_main_region_layout(const bContext *C, ARegion *ar)
