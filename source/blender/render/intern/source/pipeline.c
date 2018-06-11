@@ -768,7 +768,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 	/* if preview render, we try to keep old result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
-	if (re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW)) {
+	if (re->r.scemode & R_BUTS_PREVIEW) {
 		if (had_freestyle || (re->r.mode & R_EDGE_FRS)) {
 			/* freestyle manipulates render layers so always have to free */
 			render_result_free(re->result);
@@ -805,10 +805,6 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		re->result->recty = re->recty;
 		render_result_view_new(re->result, "");
 	}
-
-	eEvaluationMode mode = (re->r.scemode & R_VIEWPORT_PREVIEW) ? DAG_EVAL_PREVIEW : DAG_EVAL_RENDER;
-	/* This mode should have been set in the Depsgraph immediately when it was created. */
-	(void)mode;
 
 	/* ensure renderdatabase can use part settings correct */
 	RE_parts_clamp(re);

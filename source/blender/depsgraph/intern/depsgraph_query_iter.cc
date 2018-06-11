@@ -212,7 +212,6 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	data->id_node_index = 0;
 	data->num_id_nodes = num_id_nodes;
 	eEvaluationMode eval_mode = DEG_get_mode(depsgraph);
-	/* Viewport rendered mode is DAG_EVAL_PREVIEW but still treated as viewport. */
 	data->visibility_check = (eval_mode == DAG_EVAL_RENDER)
 	                         ? OB_VISIBILITY_CHECK_FOR_RENDER
 	                         : OB_VISIBILITY_CHECK_FOR_VIEWPORT;
