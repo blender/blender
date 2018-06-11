@@ -182,7 +182,10 @@ public:
 
 	BVHReference& operator=(const BVHReference &arg) {
 		if(&arg != this) {
-			memcpy(this, &arg, sizeof(BVHReference));
+			/* TODO(sergey): Check if it is still faster to memcpy() with
+			 * modern compilers.
+			 */
+			memcpy((void *)this, &arg, sizeof(BVHReference));
 		}
 		return *this;
 	}

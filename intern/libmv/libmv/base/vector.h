@@ -121,7 +121,7 @@ class vector {
   void reserve(unsigned int size) {
     if (size > size_) {
       T *data = static_cast<T *>(allocate(size));
-      memcpy(data, data_, sizeof(*data)*size_);
+      memcpy(static_cast<void *>(data), data_, sizeof(*data)*size_);
       allocator_.deallocate(data_, capacity_);
       data_ = data;
       capacity_ = size;

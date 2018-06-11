@@ -65,13 +65,13 @@ CCL_NAMESPACE_BEGIN
 static void copy_matrix(OSL::Matrix44& m, const Transform& tfm)
 {
 	ProjectionTransform t = projection_transpose(ProjectionTransform(tfm));
-	memcpy(&m, &t, sizeof(m));
+	memcpy((void *)&m, &t, sizeof(m));
 }
 
 static void copy_matrix(OSL::Matrix44& m, const ProjectionTransform& tfm)
 {
 	ProjectionTransform t = projection_transpose(tfm);
-	memcpy(&m, &t, sizeof(m));
+	memcpy((void *)&m, &t, sizeof(m));
 }
 
 /* static ustrings */

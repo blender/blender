@@ -75,7 +75,7 @@ ccl_device_inline ShaderClosure *bsdf_alloc_osl(ShaderData *sd, int size, float3
 	if(!sc)
 		return NULL;
 
-	memcpy(sc, data, size);
+	memcpy((void *)sc, data, size);
 
 	float sample_weight = fabsf(average(weight));
 	sc->weight = weight;

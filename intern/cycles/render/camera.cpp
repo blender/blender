@@ -176,7 +176,7 @@ Camera::Camera()
 	need_flags_update = true;
 	previous_need_motion = -1;
 
-	memset(&kernel_camera, 0, sizeof(kernel_camera));
+	memset((void *)&kernel_camera, 0, sizeof(kernel_camera));
 }
 
 Camera::~Camera()

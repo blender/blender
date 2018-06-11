@@ -251,7 +251,7 @@ static inline Transform get_transform(const BL::Array<float, 16>& array)
 
 	/* We assume both types to be just 16 floats, and transpose because blender
 	 * use column major matrix order while we use row major. */
-	memcpy(&projection, &array, sizeof(float)*16);
+	memcpy((void *)&projection, &array, sizeof(float)*16);
 	projection = projection_transpose(projection);
 
 	/* Drop last row, matrix is assumed to be affine transform. */

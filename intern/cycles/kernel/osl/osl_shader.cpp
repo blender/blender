@@ -53,7 +53,7 @@ void OSLShader::thread_init(KernelGlobals *kg, KernelGlobals *kernel_globals, OS
 	OSL::ShadingSystem *ss = kg->osl->ss;
 	OSLThreadData *tdata = new OSLThreadData();
 
-	memset(&tdata->globals, 0, sizeof(OSL::ShaderGlobals));
+	memset((void *)&tdata->globals, 0, sizeof(OSL::ShaderGlobals));
 	tdata->globals.tracedata = &tdata->tracedata;
 	tdata->globals.flipHandedness = false;
 	tdata->osl_thread_info = ss->create_thread_info();
