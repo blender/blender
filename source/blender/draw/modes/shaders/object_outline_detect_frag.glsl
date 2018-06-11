@@ -51,6 +51,12 @@ void main()
 	id.w = texelFetchOffset(outlineId, texel, 0, ivec2( 1,  0)).r;
 #endif
 
+#ifdef WIRE
+	/* We want only 2px outlines. */
+	/* TODO optimize, don't sample if we don't need to. */
+	id.xy = uvec2(ref_id);
+#endif
+
 	bool outline = any(notEqual(id, uvec4(ref_id)));
 
 	ivec2 depth_texel = texel;

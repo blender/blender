@@ -256,6 +256,7 @@ static struct {
 	GPUShader *outline_resolve_sh;
 	GPUShader *outline_resolve_aa_sh;
 	GPUShader *outline_detect_sh;
+	GPUShader *outline_detect_wire_sh;
 	GPUShader *outline_fade_sh;
 
 	/* regular shaders */
@@ -363,6 +364,14 @@ static void OBJECT_engine_init(void *vedata)
 		            datatoc_object_outline_detect_frag_glsl,
 		            datatoc_common_globals_lib_glsl,
 		            "#extension GL_ARB_texture_gather : enable\n");
+
+		e_data.outline_detect_wire_sh = DRW_shader_create_with_lib(
+		            datatoc_common_fullscreen_vert_glsl, NULL,
+		            datatoc_object_outline_detect_frag_glsl,
+		            datatoc_common_globals_lib_glsl,
+		            "#define WIRE\n"
+		            "#extension GL_ARB_texture_gather : enable\n");
+
 
 		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
 
@@ -592,6 +601,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_aa_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_detect_sh);
+	DRW_SHADER_FREE_SAFE(e_data.outline_detect_wire_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_fade_sh);
 	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_sh);
 	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_wire_sh);
@@ -926,7 +936,8 @@ static void OBJECT_cache_init(void *vedata)
 
 		psl->outlines_search = DRW_pass_create("Outlines Detect Pass", state);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_detect_sh, psl->outlines_search);
+		GPUShader *sh = (xray_enabled) ? e_data.outline_detect_wire_sh : e_data.outline_detect_sh;
+		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->outlines_search);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineId", &e_data.outlines_id_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &e_data.outlines_depth_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
