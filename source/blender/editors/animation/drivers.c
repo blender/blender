@@ -427,7 +427,7 @@ int ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int arra
 			if (type == DRIVER_TYPE_PYTHON) {
 				PropertyType proptype = RNA_property_type(prop);
 				int array = RNA_property_array_length(&ptr, prop);
-				char *dvar_prefix = (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) ? "var + " : "";
+				const char *dvar_prefix = (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) ? "var + " : "";
 				char *expression = driver->expression;
 				int val, maxlen = sizeof(driver->expression);
 				float fval;
@@ -900,7 +900,7 @@ static int add_driver_button_menu_invoke(bContext *C, wmOperator *op, const wmEv
 	}
 }
 
-void ANIM_OT_driver_button_add_menu(wmOperatorType *ot)
+static void UNUSED_FUNCTION(ANIM_OT_driver_button_add_menu)(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Driver Menu";
