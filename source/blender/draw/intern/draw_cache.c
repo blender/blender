@@ -112,6 +112,17 @@ void DRW_shape_cache_free(void)
 	}
 }
 
+void DRW_shape_cache_reset(void)
+{
+	uint i = sizeof(SHC) / sizeof(Gwn_Batch *);
+	Gwn_Batch **batch = (Gwn_Batch **)&SHC;
+	while (i--) {
+		if (*batch) {
+			gwn_batch_vao_cache_clear(*batch);
+		}
+		batch++;
+	}
+}
 
 /* -------------------------------------------------------------------- */
 

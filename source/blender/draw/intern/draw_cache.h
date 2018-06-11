@@ -33,6 +33,7 @@ struct Object;
 struct PTCacheEdit;
 
 void DRW_shape_cache_free(void);
+void DRW_shape_cache_reset(void);
 
 /* 3D cursor */
 struct Gwn_Batch *DRW_cache_cursor_get(bool crosshair_lines);
