@@ -1684,7 +1684,7 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdat
 	remove_animdata &= ntree && !(ntree->flag & NTREE_IS_LOCALIZED);
 	
 	/* extra free callback */
-	if (use_api_free_cb && node->typeinfo != NULL && node->typeinfo->freefunc_api) {
+	if (use_api_free_cb && node->typeinfo->freefunc_api) {
 		PointerRNA ptr;
 		RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
 		
@@ -1711,7 +1711,7 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdat
 			BKE_animdata_fix_paths_remove((ID *)ntree, prefix);
 		}
 
-		if (node->typeinfo != NULL && ntree->typeinfo->free_node_cache)
+		if (ntree->typeinfo->free_node_cache)
 			ntree->typeinfo->free_node_cache(ntree, node);
 		
 		/* texture node has bad habit of keeping exec data around */
@@ -1721,7 +1721,7 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdat
 		}
 	}
 
-	if (node->typeinfo != NULL && node->typeinfo->freefunc) {
+	if (node->typeinfo->freefunc) {
 		node->typeinfo->freefunc(node);
 	}
 
