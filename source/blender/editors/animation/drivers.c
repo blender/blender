@@ -806,7 +806,7 @@ static const EnumPropertyItem *driver_mapping_type_itemsf(bContext *C, PointerRN
 }
 
 
-/* Add Driver Button Operator ------------------------ */
+/* Add Driver (With Menu) Button Operator ------------------------ */
 
 static int add_driver_button_poll(bContext *C)
 {
@@ -855,7 +855,7 @@ static int add_driver_button_none(bContext *C, wmOperator *op, short mapping_typ
 	}
 }
 
-static int add_driver_button_exec(bContext *C, wmOperator *op)
+static int add_driver_button_menu_exec(bContext *C, wmOperator *op)
 {
 	short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
 	if (ELEM(mapping_type, CREATEDRIVER_MAPPING_NONE, CREATEDRIVER_MAPPING_NONE_ALL)) {
@@ -874,13 +874,13 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 }
 
 /* Show menu or create drivers */
-static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int add_driver_button_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	PropertyRNA *prop;
 
 	if ((prop = RNA_struct_find_property(op->ptr, "mapping_type")) && RNA_property_is_set(op->ptr, prop)) {
 		/* Mapping Type is Set - Directly go into creating drivers */
-		return add_driver_button_exec(C, op);
+		return add_driver_button_menu_exec(C, op);
 	}
 	else {
 		/* Show menu */
@@ -890,19 +890,16 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
 	}
 }
 
-void ANIM_OT_driver_button_add(wmOperatorType *ot)
+void ANIM_OT_driver_button_add_menu(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Driver";
-	ot->idname = "ANIM_OT_driver_button_add";
+	ot->name = "Add Driver Menu";
+	ot->idname = "ANIM_OT_driver_button_add_menu";
 	ot->description = "Add driver(s) for the property(s) represented by the highlighted button";
 
 	/* callbacks */
-	/* NOTE: No exec, as we need all these to use the current context info
-	 * (especially the eyedropper, which is interactive)
-	 */
-	ot->invoke = add_driver_button_invoke;
-	ot->exec = add_driver_button_exec;
+	ot->invoke = add_driver_button_menu_invoke;
+	ot->exec = add_driver_button_menu_exec;
 	ot->poll = add_driver_button_poll;
 
 	/* flags */
@@ -912,6 +909,59 @@ void ANIM_OT_driver_button_add(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "mapping_type", prop_driver_create_mapping_types, 0,
 	                        "Mapping Type", "Method used to match target and driven properties");
 	RNA_def_enum_funcs(ot->prop, driver_mapping_type_itemsf);
+}
+
+/* Add Driver Button Operator ------------------------ */
+
+static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	PointerRNA ptr = {{NULL}};
+	PropertyRNA *prop = NULL;
+	int index;
+
+	/* try to find driver using property retrieved from UI */
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+
+	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
+		/* 1) Create a new "empty" driver for this property */
+		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+		short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
+		short success = 0;
+
+		if (path) {
+			success += ANIM_add_driver(op->reports, ptr.id.data, path, index, flags, DRIVER_TYPE_PYTHON);
+			MEM_freeN(path);
+		}
+
+		if (success) {
+			/* send updates */
+			UI_context_update_anim_flag(C);
+			DEG_relations_tag_update(CTX_data_main(C));
+			WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);
+		}
+
+		/* 2) Show editing panel for setting up this driver */
+		/* TODO: Use a different one from the editing popever, so we can have the single/all toggle? */
+		UI_popover_panel_invoke(C, SPACE_IPO, RGN_TYPE_UI, "GRAPH_PT_drivers_popover", true, op->reports);
+	}
+
+	return OPERATOR_INTERFACE;
+}
+
+void ANIM_OT_driver_button_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Driver";
+	ot->idname = "ANIM_OT_driver_button_add";
+	ot->description = "Add driver for the property under the cursor";
+
+	/* callbacks */
+	/* NOTE: No exec, as we need all these to use the current context info */
+	ot->invoke = add_driver_button_invoke;
+	ot->poll = add_driver_button_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
 /* Remove Driver Button Operator ------------------------ */

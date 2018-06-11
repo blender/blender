@@ -6792,16 +6792,8 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		else if (is_anim) {
 			uiItemS(layout);
 
-			if (is_array_component) {
-				uiItemMenuEnumO(layout, C, "ANIM_OT_driver_button_add", "mapping_type",
-				                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Drivers"),
-				                ICON_DRIVER);
-			}
-			else {
-				uiItemMenuEnumO(layout, C, "ANIM_OT_driver_button_add", "mapping_type",
-				                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
-				                ICON_DRIVER);
-			}
+			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
+			        ICON_DRIVER, "ANIM_OT_driver_button_add");
 
 			if (ANIM_driver_can_paste()) {
 				uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
