@@ -271,7 +271,7 @@ bool BKE_image_scale(struct Image *image, int width, int height);
 bool BKE_image_has_alpha(struct Image *image);
 
 /* check if texture has gpu texture code */
-bool BKE_image_has_opengl_texture(struct Image *ima);
+bool BKE_image_has_bindcode(struct Image *ima);
 
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *width, int *height);
 void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float size[2]);

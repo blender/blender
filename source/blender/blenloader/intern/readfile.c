@@ -1681,6 +1681,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 		if (ima->cache == NULL) {
 			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 			for (i = 0; i < TEXTARGET_COUNT; i++) {
+				ima->bindcode[i] = 0;
 				ima->gputexture[i] = NULL;
 			}
 			ima->rr = NULL;
@@ -3915,6 +3916,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 	if (!ima->cache) {
 		ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 		for (int i = 0; i < TEXTARGET_COUNT; i++) {
+			ima->bindcode[i] = 0;
 			ima->gputexture[i] = NULL;
 		}
 		ima->rr = NULL;
