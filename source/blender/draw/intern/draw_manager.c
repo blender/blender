@@ -1464,8 +1464,24 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 		WM_init_opengl();
 	}
 
+	void *re_gl_context = RE_gl_context_get(render);
+	void *re_gwn_context = NULL;
+
 	/* Changing Context */
-	DRW_opengl_context_enable();
+	if (re_gl_context != NULL) {
+		/* TODO get rid of the blocking. Only here because of the static global DST. */
+		BLI_mutex_lock(&DST.gl_context_mutex);
+		WM_opengl_context_activate(re_gl_context);
+		re_gwn_context = RE_gwn_context_get(render);
+		if (GWN_context_active_get() == NULL) {
+			GWN_context_active_set(re_gwn_context);
+		}
+		DRW_shape_cache_reset(); /* XXX fix that too. */
+	}
+	else {
+		DRW_opengl_context_enable();
+	}
+
 	/* IMPORTANT: We dont support immediate mode in render mode!
 	 * This shall remain in effect until immediate mode supports
 	 * multiple threads. */
@@ -1533,7 +1549,17 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	GPU_framebuffer_restore();
 
 	/* Changing Context */
-	DRW_opengl_context_disable();
+	if (re_gl_context != NULL) {
+		DRW_shape_cache_reset(); /* XXX fix that too. */
+		glFlush();
+		GWN_context_active_set(NULL);
+		WM_opengl_context_release(re_gl_context);
+		/* TODO get rid of the blocking. */
+		BLI_mutex_unlock(&DST.gl_context_mutex);
+	}
+	else {
+		DRW_opengl_context_disable();
+	}
 
 #ifdef DEBUG
 	/* Avoid accidental reuse. */

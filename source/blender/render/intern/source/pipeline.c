@@ -94,6 +94,9 @@
 #include "RE_pipeline.h"
 #include "RE_render_ext.h"
 
+#include "../../../windowmanager/WM_api.h" /* XXX */
+#include "../../../intern/gawain/gawain/gwn_context.h"
+
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"
 #endif
@@ -1020,6 +1023,40 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 	re->tbh = handle;
 }
 
+/* ********* GL Context ******** */
+
+void RE_gl_context_create(Render *re)
+{
+	/* Needs to be created in the main ogl thread. */
+	re->gl_context = WM_opengl_context_create();
+}
+
+void RE_gl_context_destroy(Render *re)
+{
+	/* Needs to be called from the thread which used the ogl context for rendering. */
+	if (re->gwn_context) {
+		GWN_context_active_set(re->gwn_context);
+		GWN_context_discard(re->gwn_context);
+		re->gwn_context = NULL;
+	}
+	if (re->gl_context) {
+		WM_opengl_context_dispose(re->gl_context);
+		re->gl_context = NULL;
+	}
+}
+
+void *RE_gl_context_get(Render *re)
+{
+	return re->gl_context;
+}
+
+void *RE_gwn_context_get(Render *re)
+{
+	if (re->gwn_context == NULL) {
+		re->gwn_context = GWN_context_create();
+	}
+	return re->gwn_context;
+}
 
 /* ********* add object data (later) ******** */
 
@@ -2224,6 +2261,9 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *single_la
 
 	BLI_callback_exec(re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
+	/* Destroy the opengl context in the correct thread. */
+	RE_gl_context_destroy(re);
+
 	/* UGLY WARNING */
 	G.is_rendering = false;
 }
@@ -2778,6 +2818,9 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 	BLI_callback_exec(re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 	BKE_sound_reset_scene_specs(scene);
+
+	/* Destroy the opengl context in the correct thread. */
+	RE_gl_context_destroy(re);
 
 	/* UGLY WARNING */
 	G.is_rendering = false;

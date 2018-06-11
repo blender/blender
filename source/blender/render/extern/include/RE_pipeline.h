@@ -311,6 +311,11 @@ void RE_draw_lock_cb		(struct Render *re, void *handle, void (*f)(void *handle, 
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
 void RE_current_scene_update_cb(struct Render *re, void *handle, void (*f)(void *handle, struct Scene *scene));
 
+void  RE_gl_context_create(Render *re);
+void  RE_gl_context_destroy(Render *re);
+void *RE_gl_context_get(Render *re);
+void *RE_gwn_context_get(Render *re);
+
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
 
