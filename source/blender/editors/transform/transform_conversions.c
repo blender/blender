@@ -1255,7 +1255,7 @@ static void createTransArmatureVerts(TransInfo *t)
 		bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
 		int total_mirrored = 0, i;
 		int oldtot;
-		BoneInitData *bid;
+		BoneInitData *bid = NULL;
 
 		tc->data_len = 0;
 		for (ebo = edbo->first; ebo; ebo = ebo->next) {

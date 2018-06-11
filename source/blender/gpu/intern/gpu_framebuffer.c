@@ -175,7 +175,7 @@ void gpu_framebuffer_module_exit(void)
     BLI_thread_local_delete(g_currentfb);
 }
 
-static uint gpu_framebuffer_current_get()
+static uint gpu_framebuffer_current_get(void)
 {
 	return GET_UINT_FROM_POINTER(BLI_thread_local_get(g_currentfb));
 }
