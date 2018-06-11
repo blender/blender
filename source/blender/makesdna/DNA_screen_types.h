@@ -309,6 +309,12 @@ typedef struct ScrArea {
 	ScrArea_Runtime runtime;
 } ScrArea;
 
+
+typedef struct ARegion_Runtime {
+	/* Panel category to use between 'layout' and 'draw'. */
+	const char *category;
+} ARegion_Runtime;
+
 typedef struct ARegion {
 	struct ARegion *next, *prev;
 	
@@ -347,6 +353,8 @@ typedef struct ARegion {
 
 	char *headerstr;			/* use this string to draw info */
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
+
+	ARegion_Runtime runtime;
 } ARegion;
 
 /* area->flag */
