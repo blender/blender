@@ -2227,8 +2227,8 @@ void uiItemSpacer(uiLayout *layout)
 		return;
 	}
 
-	if (block->direction != UI_DIR_RIGHT) {
-		printf("Error: separator_spacer() only supported in horizontal blocks\n.");
+	if (block->direction & UI_DIR_RIGHT) {
+		printf("Error: separator_spacer() only supported in horizontal blocks.\n");
 		return;
 	}
 
