@@ -426,7 +426,7 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 		return NULL;
 	
 	/* See if this channel exists */
-	chan = BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
+	chan = BKE_pose_channel_find_name(pose, name);
 	if (chan) {
 		return chan;
 	}
@@ -454,7 +454,9 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 	chan->protectflag = OB_LOCK_ROT4D;  /* lock by components by default */
 	
 	BLI_addtail(&pose->chanbase, chan);
-	BKE_pose_channels_hash_free(pose);
+	if (pose->chanhash) {
+		BLI_ghash_insert(pose->chanhash, chan->name, chan);
+	}
 	
 	return chan;
 }
