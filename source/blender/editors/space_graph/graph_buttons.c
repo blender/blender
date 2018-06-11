@@ -1019,6 +1019,12 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *pa)
 		                                &ptr, prop, index,
 		                                NULL, NULL, &driven, &special);
 
+		/* Hack: Force all buttons in this panel to be able to know the driver button
+		 * this panel is getting spawned from, so that things like the "Open Drivers Editor"
+		 * button will work.
+		 */
+		uiLayoutSetContextFromBut(layout, but);
+
 		/* Populate Panel - With a combination of the contents of the Driven and Driver panels */
 		if (fcu) {
 			ID *id = ptr.id.data;
