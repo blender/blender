@@ -161,6 +161,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(
 GPUTexture *GPU_texture_create_buffer(
         GPUTextureFormat data_type, const uint buffer);
 
+GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode);
 GPUTexture *GPU_texture_from_blender(
         struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data, double time, int mipmap);
 GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);

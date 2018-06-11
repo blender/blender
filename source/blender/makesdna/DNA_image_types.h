@@ -118,7 +118,6 @@ typedef struct Image {
 	/* texture page */
 	short tpageflag;
 	short pad2;
-	unsigned int bindcode[2]; /* only for current image... 2 = TEXTARGET_COUNT */
 	unsigned int pad3;
 
 	struct PackedFile *packedfile DNA_DEPRECATED; /* deprecated */

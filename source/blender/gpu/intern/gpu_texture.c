@@ -79,7 +79,6 @@ struct GPUTexture {
 	GLenum target_base; /* same as target, (but no multisample)
 	                     * use it for unbinding */
 	GLuint bindcode;    /* opengl identifier for texture */
-	int fromblender;    /* we got the texture from Blender */
 
 	GPUTextureFormat format;
 	GPUTextureFormatFlag format_flag;
@@ -673,39 +672,21 @@ GPUTexture *GPU_texture_create_buffer(GPUTextureFormat data_type, const GLuint b
 	return tex;
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget, bool is_data, double UNUSED(time), int mipmap)
+GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
 {
-	int gputt;
-	/* this binds a texture, so that's why to restore it to 0 */
-	GLint bindcode = GPU_verify_image(ima, iuser, textarget, 0, mipmap, is_data);
-
 	/* see GPUInput::textarget: it can take two values - GL_TEXTURE_2D and GL_TEXTURE_CUBE_MAP
 	 * these values are correct for glDisable, so textarget can be safely used in
 	 * GPU_texture_bind/GPU_texture_unbind through tex->target_base */
 	/* (is any of this obsolete now that we don't glEnable/Disable textures?) */
-	if (textarget == GL_TEXTURE_2D)
-		gputt = TEXTARGET_TEXTURE_2D;
-	else
-		gputt = TEXTARGET_TEXTURE_CUBE_MAP;
-
-	if (ima->gputexture[gputt]) {
-		ima->gputexture[gputt]->bindcode = bindcode;
-		glBindTexture(textarget, 0);
-		return ima->gputexture[gputt];
-	}
-
 	GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->bindcode = bindcode;
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = textarget;
 	tex->target_base = textarget;
-	tex->fromblender = 1;
 	tex->format = -1;
 	tex->components = -1;
 	tex->samples = 0;
-
-	ima->gputexture[gputt] = tex;
 
 	if (!glIsTexture(tex->bindcode)) {
 		GPU_print_error_debug("Blender Texture Not Loaded");
@@ -725,9 +706,8 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
 		glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_HEIGHT, &h);
 		tex->w = w;
 		tex->h = h;
+		glBindTexture(textarget, 0);
 	}
-
-	glBindTexture(textarget, 0);
 
 	return tex;
 }
@@ -1090,7 +1070,7 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat)
 
 static void gpu_texture_delete(GPUTexture *tex)
 {
-	if (tex->bindcode && !tex->fromblender)
+	if (tex->bindcode)
 		glDeleteTextures(1, &tex->bindcode);
 
 	gpu_texture_memory_footprint_remove(tex);

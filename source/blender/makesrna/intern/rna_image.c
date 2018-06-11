@@ -67,6 +67,7 @@ static const EnumPropertyItem image_source_items[] = {
 #include "BKE_global.h"
 
 #include "GPU_draw.h"
+#include "GPU_texture.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -296,6 +297,13 @@ static void rna_Image_resolution_set(PointerRNA *ptr, const float *values)
 	}
 
 	BKE_image_release_ibuf(im, ibuf, lock);
+}
+
+static int rna_Image_bindcode_get(PointerRNA *ptr)
+{
+	Image *ima = (Image *)ptr->data;
+	GPUTexture *tex = ima->gputexture[TEXTARGET_TEXTURE_2D];
+	return (tex) ? GPU_texture_opengl_bindcode(tex) : 0;
 }
 
 static int rna_Image_depth_get(PointerRNA *ptr)
@@ -796,7 +804,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "bindcode", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_sdna(prop, NULL, "bindcode");
+	RNA_def_property_int_funcs(prop, "rna_Image_bindcode_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bindcode", "OpenGL bindcode");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
