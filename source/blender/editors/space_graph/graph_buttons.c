@@ -778,6 +778,9 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 		uiItemL(row, valBuf, ICON_NONE);
 	}
 
+	uiItemS(layout);
+	uiItemS(layout);
+
 	/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 	if (driver->type == DRIVER_TYPE_PYTHON) {
 		bool bpy_data_expr_error = (strstr(driver->expression, "bpy.data.") != NULL);
@@ -841,26 +844,38 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 		}
 	}
 
+	uiItemS(layout);
+
 	/* add/copy/paste driver variables */
-	{
+	if (is_popover) {
+		/* add driver variable - add blank */
+		row = uiLayoutRow(layout, true);
+		block = uiLayoutGetBlock(row);
+		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Input Variable"),
+		                       0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
+		                       NULL, 0.0, 0.0, 0, 0,
+		                       TIP_("Add a Driver Variable to keep track an input used by the driver"));
+		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
+
+		/* add driver variable - add using eyedropper */
+		/* TODO... */
+	}
+	else {
 		/* add driver variable */
 		row = uiLayoutRow(layout, false);
 		block = uiLayoutGetBlock(row);
 		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Input Variable"),
-	                           0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
-	                           NULL, 0.0, 0.0, 0, 0,
-	                           TIP_("Driver variables ensure that all dependencies will be accounted for, eusuring that drivers will update correctly"));
+		                       0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
+		                       NULL, 0.0, 0.0, 0, 0,
+		                       TIP_("Driver variables ensure that all dependencies will be accounted for, eusuring that drivers will update correctly"));
 		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
 
 		/* copy/paste (as sub-row) */
-		if (is_popover == false) {
-			/* only in the drivers editor proper for now, as these depend on the active F-Curve */
-			row = uiLayoutRow(row, true);
-			block = uiLayoutGetBlock(row);
+		row = uiLayoutRow(row, true);
+		block = uiLayoutGetBlock(row);
 
-			uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
-			uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
-		}
+		uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
+		uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
 	}
 
 	/* loop over targets, drawing them */
@@ -950,6 +965,9 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 			uiItemL(row, valBuf, ICON_NONE);
 		}
 	}
+
+	uiItemS(layout);
+	uiItemS(layout);
 
 	/* XXX: This should become redundant. But sometimes the flushing fails, so keep this around for a while longer as a "last resort" */
 	row = uiLayoutRow(layout, true);
