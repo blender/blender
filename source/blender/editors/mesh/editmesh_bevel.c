@@ -30,6 +30,7 @@
 
 #include "BLI_string.h"
 #include "BLI_math.h"
+#include "BLI_linklist_stack.h"
 
 #include "BLT_translation.h"
 
@@ -38,6 +39,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_unit.h"
 #include "BKE_layer.h"
+#include "BKE_mesh.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -134,6 +136,88 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 	}
 }
 
+static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_strength, int hnmode)
+{
+	BKE_editmesh_lnorspace_update(em);
+	BM_normals_loops_edges_tag(em->bm, true);
+	int cd_clnors_offset = CustomData_get_offset(&em->bm->ldata, CD_CUSTOMLOOPNORMAL);
+
+	BMesh *bm = em->bm;
+	BMFace *f;
+	BMLoop *l, *l_cur, *l_first;
+	BMIter fiter;
+
+	BMOpSlot *nslot = BMO_slot_get(bmop->slots_out, "normals.out");
+
+	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
+		l_cur = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			if (BM_elem_flag_test(l_cur->v, BM_ELEM_SELECT) && (!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) ||
+				(!BM_elem_flag_test(l_cur, BM_ELEM_TAG) && BM_loop_check_cyclic_smooth_fan(l_cur))))
+			{
+				if (!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) && !BM_elem_flag_test(l_cur->prev->e, BM_ELEM_TAG)) {
+					const int loop_index = BM_elem_index_get(l_cur);
+					short *clnors = BM_ELEM_CD_GET_VOID_P(l_cur, cd_clnors_offset);
+					BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[loop_index], f->no, clnors);
+				}
+				else {
+					BMVert *v_pivot = l_cur->v;
+					float *calc_n = BLI_ghash_lookup(nslot->data.ghash, v_pivot);
+
+					BMEdge *e_next;
+					const BMEdge *e_org = l_cur->e;
+					BMLoop *lfan_pivot, *lfan_pivot_next;
+
+					lfan_pivot = l_cur;
+					e_next = lfan_pivot->e;
+					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
+					float cn_wght[3] = { 0.0f, 0.0f, 0.0f }, cn_unwght[3] = { 0.0f, 0.0f, 0.0f };
+
+					while (true) {
+						lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
+						if (lfan_pivot_next) {
+							BLI_assert(lfan_pivot_next->v == v_pivot);
+						}
+						else {
+							e_next = (lfan_pivot->e == e_next) ? lfan_pivot->prev->e : lfan_pivot->e;
+						}
+						BLI_SMALLSTACK_PUSH(loops, lfan_pivot);
+						float cur[3];
+						mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
+						add_v3_v3(cn_wght, cur);
+						if(BM_elem_flag_test(lfan_pivot->f, BM_ELEM_SELECT))
+							add_v3_v3(cn_unwght, cur);
+
+						if (!BM_elem_flag_test(e_next, BM_ELEM_TAG) || (e_next == e_org)) {
+							break;
+						}
+						lfan_pivot = lfan_pivot_next;
+					}
+
+					normalize_v3(cn_wght);
+					normalize_v3(cn_unwght);
+					if (calc_n) {
+						mul_v3_fl(calc_n, face_strength);
+						mul_v3_fl(cn_wght, 1.0f - face_strength);
+						add_v3_v3(calc_n, cn_wght);
+						normalize_v3(calc_n);
+					}
+					while ((l = BLI_SMALLSTACK_POP(loops))) {
+						const int l_index = BM_elem_index_get(l);
+						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
+						if (calc_n) {
+							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], calc_n, clnors);
+						}
+						else
+							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], cn_unwght, clnors);
+					}
+					BLI_ghash_remove(nslot->data.ghash, v_pivot, NULL, MEM_freeN);
+				}
+			}
+		} while ((l_cur = l_cur->next) != l_first);
+	}
+}
+
 static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -226,6 +310,8 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const bool loop_slide = RNA_boolean_get(op->ptr, "loop_slide");
 	const bool mark_seam = RNA_boolean_get(op->ptr, "mark_seam");
 	const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
+	const float strength = RNA_float_get(op->ptr, "strength");
+	const int hnmode = RNA_enum_get(op->ptr, "hnmode");
 
 
 	for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
@@ -242,9 +328,9 @@ static bool edbm_bevel_calc(wmOperator *op)
 
 		EDBM_op_init(em, &bmop, op,
 			"bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
-			"material=%i loop_slide=%b mark_seam=%b mark_sharp=%b",
+			"material=%i loop_slide=%b mark_seam=%b mark_sharp=%b strength=%f hnmode=%i",
 			BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
-			clamp_overlap, material, loop_slide, mark_seam, mark_sharp);
+			clamp_overlap, material, loop_slide, mark_seam, mark_sharp, strength, hnmode);
 
 		BMO_op_exec(em->bm, &bmop);
 
@@ -254,6 +340,8 @@ static bool edbm_bevel_calc(wmOperator *op)
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
 		}
+
+		bevel_harden_normals(em, &bmop, strength, hnmode);
 
 		/* no need to de-select existing geometry */
 		if (!EDBM_op_finish(em, &bmop, op, true)) {
@@ -663,6 +751,12 @@ void MESH_OT_bevel(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL},
 	};
 
+	static EnumPropertyItem harden_normals_items[] = {
+		{ BEVEL_HN_FACE, "HN_FACE", 0, "Face Area", "Use faces as weight" },
+		{ BEVEL_HN_ADJ, "HN_ADJ", 0, "Vertex average", "Use adjacent vertices as weight" },
+		{ 0, NULL, 0, NULL, NULL },
+	};
+
 	/* identifiers */
 	ot->name = "Bevel";
 	ot->description = "Edge Bevel";
@@ -692,4 +786,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mark_sharp", false, "Mark Sharp", "Mark beveled edges as sharp");
 	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material",
 		"Material for bevel faces (-1 means use adjacent faces)", -1, 100);
+	RNA_def_float(ot->srna, "strength", 0.5f, 0.0f, 1.0f, "Normal Strength", "Strength of calculated normal", 0.0f, 1.0f);
+	RNA_def_enum(ot->srna, "hnmode", harden_normals_items, BEVEL_HN_FACE, "Normal Mode", "Weighting mode for Harden Normals");
 }

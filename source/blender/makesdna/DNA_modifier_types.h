@@ -334,6 +334,8 @@ typedef struct BevelModifierData {
 	/* if the MOD_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
 	float bevel_angle;
 	/* if the MOD_BEVEL_VWEIGHT option is set, this will be the name of the vert group, MAX_VGROUP_NAME */
+	int hnmode;
+	float strength;
 	char defgrp_name[64];
 } BevelModifierData;
 
@@ -369,6 +371,12 @@ enum {
 enum {
 	MOD_BEVEL_MARK_SEAM	 = (1 << 0),
 	MOD_BEVEL_MARK_SHARP = (1 << 1),
+};
+
+/* BevelModifierData->hnmode */
+enum {
+	MOD_BEVEL_HN_FACE,
+	MOD_BEVEL_HN_ADJ,
 };
 
 typedef struct SmokeModifierData {

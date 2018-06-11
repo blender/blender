@@ -1225,6 +1225,41 @@ void BM_lnorspace_update(BMesh *bm)
 	}
 }
 
+void BM_normals_loops_edges_tag(BMesh *bm, const bool do_edges)
+{
+	BMFace *f;
+	BMEdge *e;
+	BMIter fiter, eiter;
+	BMLoop *l_curr, *l_first;
+
+	if (do_edges) {
+		int index_edge;
+		BM_ITER_MESH_INDEX(e, &eiter, bm, BM_EDGES_OF_MESH, index_edge) {
+			BMLoop *l_a, *l_b;
+
+			BM_elem_index_set(e, index_edge);  /* set_inline */
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
+			if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+				if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && l_a->v != l_b->v) {
+					BM_elem_flag_enable(e, BM_ELEM_TAG);
+				}
+			}
+		}
+		bm->elem_index_dirty &= ~BM_EDGE;
+	}
+
+	int index_face, index_loop = 0;
+	BM_ITER_MESH_INDEX(f, &fiter, bm, BM_FACES_OF_MESH, index_face) {
+		BM_elem_index_set(f, index_face);  /* set_inline */
+		l_curr = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			BM_elem_index_set(l_curr, index_loop++);  /* set_inline */
+			BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
+		} while ((l_curr = l_curr->next) != l_first);
+	}
+	bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
+}
+
 /**
 * Auxillary function only used by rebuild to detect if any spaces were not marked as invalid.
 * Reports error if any of the lnor spaces change after rebuilding, meaning that all the possible

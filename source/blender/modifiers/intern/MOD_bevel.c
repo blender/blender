@@ -169,7 +169,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
-	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp);
+	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp, bmd->hnmode, NULL);
 
 	result = BKE_bmesh_to_mesh_nomain(bm, &(struct BMeshToMeshParams){0});
 

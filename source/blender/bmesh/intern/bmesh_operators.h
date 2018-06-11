@@ -127,6 +127,11 @@ enum {
 	BEVEL_AMT_PERCENT
 };
 
+enum {
+	BEVEL_HN_FACE,
+	BEVEL_HN_ADJ,
+};
+
 extern const BMOpDefine *bmo_opdefines[];
 extern const int         bmo_opdefines_total;
 

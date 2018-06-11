@@ -37,6 +37,7 @@
 
 #include "BLI_array.h"
 #include "BLI_alloca.h"
+#include "BLI_bitmap.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -207,6 +208,7 @@ typedef struct BevelParams {
 	const struct MDeformVert *dvert; /* vertex group array, maybe set if vertex_only */
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
 	int mat_nr;             /* if >= 0, material number for bevel; else material comes from adjacent faces */
+	int hnmode;
 } BevelParams;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -1646,6 +1648,76 @@ static void bevel_extend_edge_data(BevVert *bv)
 		else
 			bcur = bcur->next;
 	} while (bcur != start);
+}
+
+static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, BMOperator *op)
+{
+	int mode = 1;
+
+	VMesh *vm = bv->vmesh;
+	BoundVert *bcur = vm->boundstart, *bstart = bcur;
+	int ns = vm->seg, ns2 = ns / 2;
+
+	BMEdge *e;
+	BMIter eiter;
+
+	BMOpSlot *nslot = BMO_slot_get(op->slots_out, "normals.out");
+	float n_final[3] = { 0.0f, 0.0f, 0.0f };
+
+	if (bp->hnmode == BEVEL_HN_FACE) {
+		BLI_bitmap *faces = BLI_BITMAP_NEW(bm->totface, __func__);
+		BM_ITER_ELEM(e, &eiter, bv->v, BM_EDGES_OF_VERT) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+
+				BMFace *f_a, *f_b;
+				BM_edge_face_pair(e, &f_a, &f_b);
+
+				if (f_a && !BLI_BITMAP_TEST(faces, BM_elem_index_get(f_a))) {
+					int f_area = BM_face_calc_area(f_a);
+					float f_no[3];
+					copy_v3_v3(f_no, f_a->no);
+					mul_v3_fl(f_no, f_area);
+					add_v3_v3(n_final, f_no);
+					BLI_BITMAP_ENABLE(faces, BM_elem_index_get(f_a));
+				}
+				if (f_b && !BLI_BITMAP_TEST(faces, BM_elem_index_get(f_b))) {
+					int f_area = BM_face_calc_area(f_b);
+					float f_no[3];
+					copy_v3_v3(f_no, f_b->no);
+					mul_v3_fl(f_no, f_area);
+					add_v3_v3(n_final, f_no);
+					BLI_BITMAP_ENABLE(faces, BM_elem_index_get(f_b));
+				}
+			}
+		}
+		MEM_freeN(faces);
+		normalize_v3(n_final);
+	}
+	else if (bp->hnmode == BEVEL_HN_ADJ) {
+		BM_ITER_ELEM(e, &eiter, bv->v, BM_EDGES_OF_VERT) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+				if (e->v1 == bv->v) {
+					add_v3_v3(n_final, e->v2->no);
+				}
+				else {
+					add_v3_v3(n_final, e->v1->no);
+				}
+			}
+		}
+		normalize_v3(n_final);
+	}
+
+	do {
+		if (BMO_slot_map_contains(nslot, bcur->nv.v) != true) {
+
+			float(*custom_normal) = MEM_callocN(sizeof(*custom_normal) * 3, __func__);
+			add_v3_v3(custom_normal, n_final);
+			normalize_v3(custom_normal);
+
+			BMO_slot_map_insert(op, nslot, bcur->nv.v, custom_normal);
+		}
+		bcur = bcur->next;
+	} while (bcur != bstart);
 }
 
 /* Set the any_seam property for a BevVert and all its BoundVerts */
@@ -5482,7 +5554,8 @@ void BM_mesh_bevel(
         const float segments, const float profile,
         const bool vertex_only, const bool use_weights, const bool limit_offset,
         const struct MDeformVert *dvert, const int vertex_group, const int mat,
-        const bool loop_slide, const bool mark_seam, const bool mark_sharp)
+        const bool loop_slide, const bool mark_seam, const bool mark_sharp,
+		const int hnmode, BMOperator *op)
 {
 	BMIter iter;
 	BMVert *v, *v_next;
@@ -5505,6 +5578,7 @@ void BM_mesh_bevel(
 	bp.mat_nr = mat;
 	bp.mark_seam = mark_seam;
 	bp.mark_sharp = mark_sharp;
+	bp.hnmode = hnmode;
 
 	if (profile >= 0.999f) {  /* r ~ 692, so PRO_SQUARE_R is 1e4 */
 		bp.pro_super_r = PRO_SQUARE_R;
@@ -5561,6 +5635,13 @@ void BM_mesh_bevel(
 			}
 		}
 
+		GHASH_ITER(giter, bp.vert_hash) {
+			bv = BLI_ghashIterator_getValue(&giter);
+			bevel_extend_edge_data(bv);
+			if(bm->use_toolflags)
+				bevel_harden_normals_mode(bm, &bp, bv, op);
+		}
+
 		/* Rebuild face polygons around affected vertices */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
@@ -5571,9 +5652,7 @@ void BM_mesh_bevel(
 
 		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				BevVert *bv = find_bevvert(&bp, v);
-				BLI_assert(bv != NULL);
-				bevel_extend_edge_data(bv);
+				BLI_assert(find_bevvert(&bp, v) != NULL);
 				BM_vert_kill(bm, v);
 			}
 		}

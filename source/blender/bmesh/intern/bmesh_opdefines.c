@@ -1738,12 +1738,15 @@ static BMOpDefine bmo_bevel_def = {
 	 {"loop_slide", BMO_OP_SLOT_BOOL},      /* prefer to slide along edges to having even widths */
 	 {"mark_seam", BMO_OP_SLOT_BOOL},
 	 {"mark_sharp", BMO_OP_SLOT_BOOL},
+	 {"strength", BMO_OP_SLOT_FLT},
+	 {"hnmode", BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
 	/* slots_out */
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
 	 {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* output edges */
 	 {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* output verts */
+	 {"normals.out", BMO_OP_SLOT_MAPPING},
 	 {{'\0'}},
 	},
 

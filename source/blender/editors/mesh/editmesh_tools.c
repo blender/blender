@@ -7426,41 +7426,6 @@ void MESH_OT_point_normals(struct wmOperatorType *ot)
 
 /********************** Split/Merge Loop Normals **********************/
 
-static void normals_splitmerge_loops_edges_tag(BMesh *bm, const bool do_edges)
-{
-	BMFace *f;
-	BMEdge *e;
-	BMIter fiter, eiter;
-	BMLoop *l_curr, *l_first;
-
-	if (do_edges) {
-		int index_edge;
-		BM_ITER_MESH_INDEX(e, &eiter, bm, BM_EDGES_OF_MESH, index_edge) {
-			BMLoop *l_a, *l_b;
-
-			BM_elem_index_set(e, index_edge);  /* set_inline */
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
-			if (BM_edge_loop_pair(e, &l_a, &l_b)) {
-				if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && l_a->v != l_b->v) {
-					BM_elem_flag_enable(e, BM_ELEM_TAG);
-				}
-			}
-		}
-		bm->elem_index_dirty &= ~BM_EDGE;
-	}
-
-	int index_face, index_loop = 0;
-	BM_ITER_MESH_INDEX(f, &fiter, bm, BM_FACES_OF_MESH, index_face) {
-		BM_elem_index_set(f, index_face);  /* set_inline */
-		l_curr = l_first = BM_FACE_FIRST_LOOP(f);
-		do {
-			BM_elem_index_set(l_curr, index_loop++);  /* set_inline */
-			BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
-		} while ((l_curr = l_curr->next) != l_first);
-	}
-	bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
-}
-
 static void normals_merge(BMesh *bm, BMLoopNorEditDataArray *lnors_ed_arr)
 {
 	BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
@@ -7469,7 +7434,7 @@ static void normals_merge(BMesh *bm, BMLoopNorEditDataArray *lnors_ed_arr)
 
 	BLI_assert(bm->lnor_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR);
 
-	normals_splitmerge_loops_edges_tag(bm, false);
+	BM_normals_loops_edges_tag(bm, false);
 
 	for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {
 		if (BM_elem_flag_test(lnor_ed->loop, BM_ELEM_TAG)) {
@@ -7512,7 +7477,7 @@ static void normals_split(BMesh *bm)
 
 	BLI_assert(bm->lnor_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR);
 
-	normals_splitmerge_loops_edges_tag(bm, true);
+	BM_normals_loops_edges_tag(bm, true);
 
 	const int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
@@ -7695,7 +7660,7 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
 		weight = (weight - 1) * 25;
 	}
 
-	normals_splitmerge_loops_edges_tag(bm, true);
+	BM_normals_loops_edges_tag(bm, true);
 
 	Heap *loop_weight = BLI_heap_new();
 

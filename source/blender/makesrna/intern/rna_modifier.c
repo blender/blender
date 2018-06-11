@@ -3028,6 +3028,12 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_harden_normals_items[] = {
+		{ MOD_BEVEL_HN_FACE, "HN_FACE", 0, "Face Area", "Use faces as weight" },
+		{ MOD_BEVEL_HN_ADJ, "HN_ADJ", 0, "Vertex average", "Use adjacent vertices as weight" },
+		{ 0, NULL, 0, NULL, NULL },
+	};
+
 	srna = RNA_def_struct(brna, "BevelModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Bevel Modifier", "Bevel modifier to make edges and vertices more rounded");
 	RNA_def_struct_sdna(srna, "BevelModifierData");
@@ -3113,6 +3119,17 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "mark_sharp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edge_flags", MOD_BEVEL_MARK_SHARP);
 	RNA_def_property_ui_text(prop, "Mark Sharp", "Mark beveled edges as sharp");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "hnmode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_harden_normals_items);
+	RNA_def_property_ui_text(prop, "Normal Mode", "Weighting mode for Harden Normals");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_range(prop, 0, 10, 1, 2);
+	RNA_def_property_ui_text(prop, "Normal Strength", "Strength of calculated normal");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
