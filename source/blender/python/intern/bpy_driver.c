@@ -48,6 +48,8 @@
 
 #include "bpy_driver.h"
 
+#include "BPY_extern.h"
+
 extern void BPY_update_rna_module(void);
 
 #define USE_RNA_AS_PYOBJECT
@@ -196,8 +198,12 @@ static void pydriver_error(ChannelDriver *driver)
  * (new)note: checking if python is running is not threadsafe [#28114]
  * now release the GIL on python operator execution instead, using
  * PyEval_SaveThread() / PyEval_RestoreThread() so we don't lock up blender.
+ *
+ * For copy-on-write we always cache expressions and write errors in the
+ * original driver, otherwise these would get freed while editing. Due to
+ * the GIL this is thread-safe.
  */
-float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, const float evaltime)
+float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, ChannelDriver *driver_orig, const float evaltime)
 {
 	PyObject *driver_vars = NULL;
 	PyObject *retval = NULL;
@@ -213,7 +219,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 	int i;
 
 	/* get the py expression to be evaluated */
-	expr = driver->expression;
+	expr = driver_orig->expression;
 	if (expr[0] == '\0')
 		return 0.0f;
 
@@ -249,47 +255,47 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 	/* update global namespace */
 	bpy_pydriver_namespace_update_frame(evaltime);
 
-	if (driver->flag & DRIVER_FLAG_USE_SELF) {
+	if (driver_orig->flag & DRIVER_FLAG_USE_SELF) {
 		bpy_pydriver_namespace_update_self(anim_rna);
 	}
 	else {
 		bpy_pydriver_namespace_clear_self();
 	}
 
-	if (driver->expr_comp == NULL)
-		driver->flag |= DRIVER_FLAG_RECOMPILE;
+	if (driver_orig->expr_comp == NULL)
+		driver_orig->flag |= DRIVER_FLAG_RECOMPILE;
 
 	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
-	if (driver->flag & DRIVER_FLAG_RECOMPILE) {
-		Py_XDECREF(driver->expr_comp);
-		driver->expr_comp = PyTuple_New(2);
+	if (driver_orig->flag & DRIVER_FLAG_RECOMPILE) {
+		Py_XDECREF(driver_orig->expr_comp);
+		driver_orig->expr_comp = PyTuple_New(2);
 
 		expr_code = Py_CompileString(expr, "<bpy driver>", Py_eval_input);
-		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 0, expr_code);
+		PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, expr_code);
 
-		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
-		driver->flag |= DRIVER_FLAG_RENAMEVAR; /* maybe this can be removed but for now best keep until were sure */
+		driver_orig->flag &= ~DRIVER_FLAG_RECOMPILE;
+		driver_orig->flag |= DRIVER_FLAG_RENAMEVAR; /* maybe this can be removed but for now best keep until were sure */
 	}
 	else {
-		expr_code = PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 0);
+		expr_code = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 0);
 	}
 
-	if (driver->flag & DRIVER_FLAG_RENAMEVAR) {
+	if (driver_orig->flag & DRIVER_FLAG_RENAMEVAR) {
 		/* may not be set */
-		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
+		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
 		Py_XDECREF(expr_vars);
 
-		expr_vars = PyTuple_New(BLI_listbase_count(&driver->variables));
-		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 1, expr_vars);
+		expr_vars = PyTuple_New(BLI_listbase_count(&driver_orig->variables));
+		PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 1, expr_vars);
 
-		for (dvar = driver->variables.first, i = 0; dvar; dvar = dvar->next) {
+		for (dvar = driver_orig->variables.first, i = 0; dvar; dvar = dvar->next) {
 			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_FromString(dvar->name));
 		}
 
-		driver->flag &= ~DRIVER_FLAG_RENAMEVAR;
+		driver_orig->flag &= ~DRIVER_FLAG_RENAMEVAR;
 	}
 	else {
-		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
+		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
 	}
 
 	/* add target values to a dict that will be used as '__locals__' dict */

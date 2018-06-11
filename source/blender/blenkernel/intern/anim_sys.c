@@ -3017,7 +3017,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 			PathResolvedRNA anim_rna;
 			if (animsys_store_rna_setting(&id_ptr, NULL, fcu->rna_path, fcu->array_index, &anim_rna)) {
 				const float ctime = DEG_get_ctime(depsgraph);
-				const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
+				const float curval = evaluate_fcurve_driver(&anim_rna, fcu, driver_orig, ctime);
 				ok = animsys_write_rna_setting(&anim_rna, curval);
 				if (ok && DEG_is_active(depsgraph)) {
 					animsys_write_orig_anim_rna(&id_ptr, NULL, fcu, curval);

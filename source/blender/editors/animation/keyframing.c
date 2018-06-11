@@ -954,7 +954,7 @@ bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRN
 
 		if (RNA_path_resolved_create(&ptr, prop, fcu->array_index, &anim_rna)) {
 			/* for making it easier to add corrective drivers... */
-			cfra = evaluate_driver(&anim_rna, fcu->driver, cfra);
+			cfra = evaluate_driver(&anim_rna, fcu->driver, fcu->driver, cfra);
 		}
 		else {
 			cfra = 0.0f;

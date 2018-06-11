@@ -108,7 +108,8 @@ bool  driver_get_variable_property(
         struct ChannelDriver *driver, struct DriverTarget *dtar,
         struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index);
 
-float evaluate_driver(struct PathResolvedRNA *anim_rna, struct ChannelDriver *driver, const float evaltime);
+float evaluate_driver(struct PathResolvedRNA *anim_rna, struct ChannelDriver *driver,
+                      struct ChannelDriver *driver_orig, const float evaltime);
 
 /* ************** F-Curve Modifiers *************** */
 
@@ -282,7 +283,8 @@ void correct_bezpart(float v1[2], float v2[2], float v3[2], float v4[2]);
 
 /* evaluate fcurve */
 float evaluate_fcurve(struct FCurve *fcu, float evaltime);
-float evaluate_fcurve_driver(struct PathResolvedRNA *anim_rna, struct FCurve *fcu, float evaltime);
+float evaluate_fcurve_driver(struct PathResolvedRNA *anim_rna, struct FCurve *fcu,
+                             struct ChannelDriver *driver_orig, float evaltime);
 /* evaluate fcurve and store value */
 float calculate_fcurve(struct PathResolvedRNA *anim_rna, struct FCurve *fcu, float evaltime);
 

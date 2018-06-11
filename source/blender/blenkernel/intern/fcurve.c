@@ -1922,13 +1922,14 @@ float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  *  - has to return a float value
+ *  - driver_orig is where we cache Python expressions, in case of COW
  */
-float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, const float evaltime)
+float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, ChannelDriver *driver_orig, const float evaltime)
 {
 	DriverVar *dvar;
 	
 	/* check if driver can be evaluated */
-	if (driver->flag & DRIVER_FLAG_INVALID)
+	if (driver_orig->flag & DRIVER_FLAG_INVALID)
 		return 0.0f;
 	
 	switch (driver->type) {
@@ -1998,8 +1999,8 @@ float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, const fl
 		{
 #ifdef WITH_PYTHON
 			/* check for empty or invalid expression */
-			if ( (driver->expression[0] == '\0') ||
-			     (driver->flag & DRIVER_FLAG_INVALID) )
+			if ( (driver_orig->expression[0] == '\0') ||
+			     (driver_orig->flag & DRIVER_FLAG_INVALID) )
 			{
 				driver->curval = 0.0f;
 			}
@@ -2009,7 +2010,7 @@ float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, const fl
 				 */
 				BLI_mutex_lock(&python_driver_lock);
 
-				driver->curval = BPY_driver_exec(anim_rna, driver, evaltime);
+				driver->curval = BPY_driver_exec(anim_rna, driver, driver_orig, evaltime);
 
 				BLI_mutex_unlock(&python_driver_lock);
 			}
@@ -2705,7 +2706,7 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 	return evaluate_fcurve_ex(fcu, evaltime, 0.0);
 }
 
-float evaluate_fcurve_driver(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
+float evaluate_fcurve_driver(PathResolvedRNA *anim_rna, FCurve *fcu, ChannelDriver *driver_orig, float evaltime)
 {
 	BLI_assert(fcu->driver != NULL);
 	float cvalue = 0.0f;
@@ -2715,7 +2716,7 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna, FCurve *fcu, float evalt
 	 */
 	if (fcu->driver) {
 		/* evaltime now serves as input for the curve */
-		evaltime = evaluate_driver(anim_rna, fcu->driver, evaltime);
+		evaltime = evaluate_driver(anim_rna, fcu->driver, driver_orig, evaltime);
 
 		/* only do a default 1-1 mapping if it's unlikely that anything else will set a value... */
 		if (fcu->totvert == 0) {
@@ -2762,7 +2763,7 @@ float calculate_fcurve(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
 		/* calculate and set curval (evaluates driver too if necessary) */
 		float curval;
 		if (fcu->driver) {
-			curval = evaluate_fcurve_driver(anim_rna, fcu, evaltime);
+			curval = evaluate_fcurve_driver(anim_rna, fcu, fcu->driver, evaltime);
 		}
 		else {
 			curval = evaluate_fcurve(fcu, evaltime);
