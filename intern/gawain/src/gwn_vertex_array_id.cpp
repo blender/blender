@@ -18,7 +18,7 @@
 #include <mutex>
 #include <unordered_set>
 
-#if TRUST_NO_ONE
+#if 0
 extern "C" {
 extern int BLI_thread_is_main(void); // Blender-specific function
 }
@@ -68,7 +68,8 @@ static void clear_orphans(Gwn_Context* ctx)
 Gwn_Context* GWN_context_create(void)
 	{
 #if TRUST_NO_ONE
-	assert(thread_is_main());
+	/* We cannot rely on this anymore. */
+	// assert(thread_is_main());
 #endif
 	Gwn_Context* ctx = new Gwn_Context;
 	glGenVertexArrays(1, &ctx->default_vao);
