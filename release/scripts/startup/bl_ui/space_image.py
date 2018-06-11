@@ -480,8 +480,6 @@ class IMAGE_HT_header(Header):
 
         layout.prop(sima, "mode", text="")
 
-        MASK_MT_editor_menus.draw_collapsible(context, layout)
-
         layout.template_ID(sima, "image", new="image.new", open="image.open")
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
@@ -489,8 +487,6 @@ class IMAGE_HT_header(Header):
         if show_maskedit:
             row = layout.row()
             row.template_ID(sima, "mask", new="mask.new")
-
-        layout.prop(sima, "pivot_point", icon_only=True)
 
         # uv editing
         if show_uvedit:
@@ -504,10 +500,25 @@ class IMAGE_HT_header(Header):
                 layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", icon_only=True)
 
+        MASK_MT_editor_menus.draw_collapsible(context, layout)
+
+        layout.separator_spacer()
+
+        if show_uvedit or show_maskedit or mode == 'PAINT':
+            layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
+
+        if show_uvedit:
+            uvedit = sima.uv_editor
+
+            mesh = context.edit_object.data
+            layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
+
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_edit", icon_only=True)
-            if toolsettings.proportional_edit != 'DISABLED':
-                row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+            # if toolsettings.proportional_edit != 'DISABLED':
+            sub = row.row(align=True)
+            sub.active = toolsettings.proportional_edit != 'DISABLED'
+            sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
@@ -515,8 +526,7 @@ class IMAGE_HT_header(Header):
             if toolsettings.snap_uv_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
 
-            mesh = context.edit_object.data
-            layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
+        layout.prop(sima, "pivot_point", icon_only=True)
 
         if ima:
             if ima.is_stereo_3d:
@@ -535,9 +545,6 @@ class IMAGE_HT_header(Header):
                 row.operator("image.record_composite", icon='REC')
             if ima.type == 'COMPOSITE' and ima.source in {'MOVIE', 'SEQUENCE'}:
                 row.operator("image.play_composite", icon='PLAY')
-
-        if show_uvedit or show_maskedit or mode == 'PAINT':
-            layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
 
 
 class MASK_MT_editor_menus(Menu):

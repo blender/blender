@@ -179,12 +179,13 @@ class DOPESHEET_HT_editor_buttons(Header):
                 row.prop(st.dopesheet, "filter_text", text="")
                 row.prop(st.dopesheet, "use_multi_word_filter", text="")
 
+        layout.separator_spacer()
+
         row = layout.row(align=True)
-        row.prop(toolsettings, "use_proportional_action",
-                 text="", icon_only=True)
-        if toolsettings.use_proportional_action:
-            row.prop(toolsettings, "proportional_edit_falloff",
-                     text="", icon_only=True)
+        row.prop(toolsettings, "use_proportional_action", text="", icon_only=True)
+        sub = row.row(align=True)
+        sub.active = toolsettings.use_proportional_action
+        sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':

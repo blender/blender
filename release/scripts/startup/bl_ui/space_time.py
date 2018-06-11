@@ -70,9 +70,6 @@ class TIME_HT_editor_buttons(Header):
         else:
             row.prop(scene, "frame_current", text="")
 
-        layout.separator()
-        layout.separator()
-
         row = layout.row(align=True)
         row.prop(scene, "use_preview_range", text="", toggle=True)
         sub = row.row(align=True)
@@ -94,8 +91,6 @@ class TIME_MT_editor_menus(Menu):
 
     @staticmethod
     def draw_menus(layout, context):
-        layout.menu("TIME_MT_view")
-        layout.menu("TIME_MT_marker")
         layout.popover(space_type='DOPESHEET_EDITOR',
                        region_type='HEADER',
                        panel_type="TIME_PT_playback",
@@ -104,6 +99,8 @@ class TIME_MT_editor_menus(Menu):
                        region_type='HEADER',
                        panel_type="TIME_PT_keyframing_settings",
                        text="Keying")
+        layout.menu("TIME_MT_view")
+        layout.menu("TIME_MT_marker")
 
 
 class TIME_MT_marker(Menu):

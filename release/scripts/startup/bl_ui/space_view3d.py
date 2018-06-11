@@ -58,20 +58,6 @@ class VIEW3D_HT_header(Header):
         shading_type = view.shading.type
         shading_item = bpy.types.View3DShading.bl_rna.properties['type'].enum_items[shading_type]
 
-        row = layout.row(align=True)
-        row.prop(shading, "type", text="", expand=True)
-
-        sub = row.row(align=True)
-        sub.enabled = shading.type != 'RENDERED'
-        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading")
-
-        row = layout.row(align=True)
-        row.prop(overlay, "show_overlays", icon="WIRE", text="")
-
-        sub = row.row(align=True)
-        sub.active = overlay.show_overlays
-        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay")
-
         if obj:
             # Set above:
             # mode = obj.mode
@@ -108,6 +94,22 @@ class VIEW3D_HT_header(Header):
             row.prop(context.tool_settings.gpencil_sculpt, "selection_alpha", slider=True)
 
         VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
+
+        layout.separator_spacer()
+
+        row = layout.row(align=True)
+        row.prop(shading, "type", text="", expand=True)
+
+        sub = row.row(align=True)
+        sub.enabled = shading.type != 'RENDERED'
+        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading")
+
+        row = layout.row(align=True)
+        row.prop(overlay, "show_overlays", icon="WIRE", text="")
+
+        sub = row.row(align=True)
+        sub.active = overlay.show_overlays
+        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay")
 
 
 class VIEW3D_MT_editor_menus(Menu):

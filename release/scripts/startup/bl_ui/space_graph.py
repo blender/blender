@@ -48,13 +48,13 @@ class GRAPH_HT_header(Header):
         sub.active = st.use_normalization
         sub.prop(st, "use_auto_normalization", icon='FILE_REFRESH', text="", toggle=True)
 
-        row = layout.row(align=True)
+        layout.separator_spacer()
 
-        row.prop(toolsettings, "use_proportional_fcurve",
-                 text="", icon_only=True)
-        if toolsettings.use_proportional_fcurve:
-            row.prop(toolsettings, "proportional_edit_falloff",
-                     text="", icon_only=True)
+        row = layout.row(align=True)
+        row.prop(toolsettings, "use_proportional_fcurve", text="", icon_only=True)
+        sub = row.row(align=True)
+        sub.active = toolsettings.use_proportional_fcurve
+        sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         layout.prop(st, "auto_snap", text="")
         layout.prop(st, "pivot_point", icon_only=True)
