@@ -864,6 +864,7 @@ static void OBJECT_cache_init(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	OBJECT_PrivateData *g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0);
 	/* TODO : use dpi setting for enabling the second pass */
 	const bool do_outline_expand = false;
 
@@ -880,7 +881,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		GPUShader *sh = e_data.outline_prepass_sh;
 
-		if (draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) {
+		if (xray_enabled) {
 			sh = e_data.outline_prepass_wire_sh;
 		}
 
@@ -917,7 +918,8 @@ static void OBJECT_cache_init(void *vedata)
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR;
 		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
-		static float alphaOcclu = 0.35f;
+		/* Don't occlude the "outline" detection pass if in xray mode (too much flickering). */
+		float alphaOcclu = (xray_enabled) ? 1.0f : 0.35f;
 		/* Reminder : bool uniforms need to be 4 bytes. */
 		static const int bTrue = true;
 		static const int bFalse = false;
@@ -929,7 +931,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &e_data.outlines_depth_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_float(grp, "alphaOcclu", &alphaOcclu, 1);
+		DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", alphaOcclu);
 		DRW_shgroup_uniform_int(grp, "idOffsets", &stl->g_data->id_ofs_active, 3);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
