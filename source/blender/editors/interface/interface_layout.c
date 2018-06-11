@@ -2216,6 +2216,26 @@ void uiItemS(uiLayout *layout)
 	uiDefBut(block, (is_menu) ? UI_BTYPE_SEPR_LINE : UI_BTYPE_SEPR, 0, "", 0, 0, space, space, NULL, 0.0, 0.0, 0, 0, "");
 }
 
+/* Flexible spacing. */
+void uiItemSpacer(uiLayout *layout)
+{
+	uiBlock *block = layout->root->block;
+	bool is_menu = ui_block_is_menu(block);
+
+	if (is_menu) {
+		printf("Error: separator_spacer() not supported in menus.\n");
+		return;
+	}
+
+	if (block->direction != UI_DIR_RIGHT) {
+		printf("Error: separator_spacer() only supported in horizontal blocks\n.");
+		return;
+	}
+
+	UI_block_layout_set_current(block, layout);
+	uiDefBut(block, UI_BTYPE_SEPR_SPACER, 0, "", 0, 0, 0.3f * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+}
+
 /* level items */
 void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg)
 {
@@ -2599,7 +2619,7 @@ static bool ui_item_is_radial_displayable(uiItem *item)
 static bool ui_item_is_radial_drawable(uiButtonItem *bitem)
 {
 
-	if (ELEM(bitem->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE))
+	if (ELEM(bitem->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_SEPR_SPACER))
 		return false;
 
 	return true;

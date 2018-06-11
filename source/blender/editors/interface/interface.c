@@ -86,6 +86,9 @@
 
 #include "interface_intern.h"
 
+/* prototypes. */
+static void ui_but_to_pixelrect(struct rcti *rect, const struct ARegion *ar, struct uiBlock *block, struct uiBut *but);
+
 /* avoid unneeded calls to ui_but_value_get */
 #define UI_BUT_VALUE_UNSET DBL_MAX
 #define UI_GET_BUT_VALUE_INIT(_but, _value) if (_value == DBL_MAX) {  (_value) = ui_but_value_get(_but); } (void)0
@@ -225,6 +228,39 @@ void ui_region_to_window(const ARegion *ar, int *x, int *y)
 	*y += ar->winrct.ymin;
 }
 
+static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
+{
+	int sepr_flex_len = 0;
+	for (uiBut *but = block->buttons.first; but; but = but->next) {
+		if (but->type == UI_BTYPE_SEPR_SPACER) {
+			sepr_flex_len++;
+		}
+	}
+
+	if (sepr_flex_len == 0) {
+		return;
+	}
+
+	rcti rect;
+	ui_but_to_pixelrect(&rect, region, block, block->buttons.last);
+	const float buttons_width = (float)rect.xmax + UI_HEADER_OFFSET_START;
+	const float region_width = (float)region->sizex * U.dpi_fac;
+
+	if (region_width <= buttons_width) {
+		return;
+	}
+
+	const float spacing = ((region_width - buttons_width) / (float)sepr_flex_len);
+	float offset = 0;
+	for (uiBut *but = block->buttons.first; but; but = but->next) {
+		BLI_rctf_translate(&but->rect, offset, 0);
+		if (but->type == UI_BTYPE_SEPR_SPACER) {
+			offset += spacing;
+		}
+	}
+	ui_block_bounds_calc(block);
+}
+
 static void ui_update_window_matrix(const wmWindow *window, const ARegion *region, uiBlock *block)
 {
 	/* window matrix and aspect */
@@ -283,7 +319,7 @@ static void ui_block_bounds_calc_text(uiBlock *block, float offset)
 	UI_fontstyle_set(&style->widget);
 
 	for (init_col_bt = bt = block->buttons.first; bt; bt = bt->next) {
-		if (!ELEM(bt->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+		if (!ELEM(bt->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_SEPR_SPACER)) {
 			j = BLF_width(style->widget.uifont_id, bt->drawstr, sizeof(bt->drawstr));
 
 			if (j > i)
@@ -1182,6 +1218,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 {
 	wmWindow *window = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
+	ARegion *region = CTX_wm_region(C);
 	uiBut *but;
 
 	BLI_assert(block->active);
@@ -1257,6 +1294,8 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 	if (block->flag & UI_BUT_ALIGN) {
 		UI_block_align_end(block);
 	}
+
+	ui_update_flexible_spacing(region, block);
 
 	block->endblock = 1;
 }
@@ -3225,7 +3264,8 @@ static uiBut *ui_def_but(
 	         UI_BTYPE_BLOCK, UI_BTYPE_BUT, UI_BTYPE_LABEL,
 	         UI_BTYPE_PULLDOWN, UI_BTYPE_ROUNDBOX, UI_BTYPE_LISTBOX,
 	         UI_BTYPE_BUT_MENU, UI_BTYPE_SCROLL, UI_BTYPE_GRIP,
-	         UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE) ||
+	         UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE,
+	         UI_BTYPE_SEPR_SPACER) ||
 	    (but->type >= UI_BTYPE_SEARCH_MENU))
 	{
 		/* pass */

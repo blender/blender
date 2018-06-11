@@ -4423,6 +4423,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 			case UI_BTYPE_SEPR:
 			case UI_BTYPE_SEPR_LINE:
+			case UI_BTYPE_SEPR_SPACER:
 				break;
 
 			case UI_BTYPE_BUT:

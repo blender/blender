@@ -7177,6 +7177,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			/* quiet warnings for unhandled types */
 		case UI_BTYPE_SEPR:
 		case UI_BTYPE_SEPR_LINE:
+		case UI_BTYPE_SEPR_SPACER:
 		case UI_BTYPE_EXTRA:
 			break;
 	}

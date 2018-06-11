@@ -2102,7 +2102,7 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 	Header header = {NULL};
 	int maxco, xco, yco;
 	int headery = ED_area_headersize();
-	const int start_ofs = 0.4f * UI_UNIT_X;
+	const int start_ofs = UI_HEADER_OFFSET_START;
 	bool region_layout_based = ar->flag & RGN_FLAG_DYNAMIC_SIZE;
 
 	/* set view2d view matrix for scrolling (without scrollers) */

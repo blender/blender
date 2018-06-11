@@ -305,7 +305,8 @@ typedef enum {
 	UI_BTYPE_NODE_SOCKET            = (53 << 9),
 	UI_BTYPE_SEPR                   = (54 << 9),
 	UI_BTYPE_SEPR_LINE              = (55 << 9),
-	UI_BTYPE_GRIP                   = (56 << 9),  /* resize handle (resize uilist) */
+	UI_BTYPE_SEPR_SPACER            = (56 << 9),  /* Dynamically fill available space. */
+	UI_BTYPE_GRIP                   = (57 << 9),  /* resize handle (resize uilist) */
 } eButType;
 
 #define BUTTYPE     (63 << 9)
@@ -904,6 +905,7 @@ void UI_exit(void);
 #define UI_ITEM_O_DEPRESS       (1 << 9)
 #define UI_ITEM_R_COMPACT       (1 << 10)
 
+#define UI_HEADER_OFFSET_START ((void)0, 0.4f * UI_UNIT_X)
 
 /* uiLayoutOperatorButs flags */
 enum {
@@ -1126,6 +1128,7 @@ void uiItemLDrag(uiLayout *layout, struct PointerRNA *ptr, const char *name, int
 void uiItemM(uiLayout *layout, struct bContext *C, const char *menuname, const char *name, int icon); /* menu */
 void uiItemV(uiLayout *layout, const char *name, int icon, int argval); /* value */
 void uiItemS(uiLayout *layout); /* separator */
+void uiItemSpacer(uiLayout *layout); /* Special separator. */
 
 void uiItemPopoverPanel_ptr(
         uiLayout *layout, struct bContext *C,

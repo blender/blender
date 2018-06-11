@@ -111,7 +111,7 @@ enum {
 bool ui_but_can_align(const uiBut *but)
 {
 	const bool btype_can_align = !ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N,
-	                                   UI_BTYPE_TAB, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE);
+	                                   UI_BTYPE_TAB, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_SEPR_SPACER);
 	return (btype_can_align && (BLI_rctf_size_x(&but->rect) > 0.0f) && (BLI_rctf_size_y(&but->rect) > 0.0f));
 }
 
@@ -499,7 +499,8 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
 
 bool ui_but_can_align(uiBut *but)
 {
-	return !ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE);
+	return !ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N,
+	             UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_SEPR_SPACER);
 }
 
 static bool buts_are_horiz(uiBut *but1, uiBut *but2)
