@@ -71,7 +71,7 @@ typedef struct DRWShaderCompiler {
 	DRWDeferredShader *mat_compiling;
 	ThreadMutex compilation_lock;
 
-	void *ogl_context;
+	void *gl_context;
 
 	int shaders_done; /* To compute progress. */
 } DRWShaderCompiler;
@@ -93,9 +93,9 @@ static void drw_deferred_shader_queue_free(ListBase *queue)
 static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop, short *do_update, float *progress)
 {
 	DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
-	void *ogl_context = comp->ogl_context;
+	void *gl_context = comp->gl_context;
 
-	WM_opengl_context_activate(ogl_context);
+	WM_opengl_context_activate(gl_context);
 
 	while (true) {
 		BLI_spin_lock(&comp->list_lock);
@@ -134,7 +134,7 @@ static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop,
 		drw_deferred_shader_free(comp->mat_compiling);
 	}
 
-	WM_opengl_context_release(ogl_context);
+	WM_opengl_context_release(gl_context);
 }
 
 static void drw_deferred_shader_compilation_free(void *custom_data)
@@ -146,9 +146,9 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 	BLI_spin_end(&comp->list_lock);
 	BLI_mutex_end(&comp->compilation_lock);
 
-	if (comp->ogl_context) {
+	if (comp->gl_context) {
 		/* Only destroy if the job owns the context. */
-		WM_opengl_context_dispose(comp->ogl_context);
+		WM_opengl_context_dispose(comp->gl_context);
 	}
 
 	MEM_freeN(comp);
@@ -189,16 +189,16 @@ static void drw_deferred_shader_add(GPUMaterial *mat)
 		BLI_movelisttolist(&comp->queue, &old_comp->queue);
 		BLI_spin_unlock(&old_comp->list_lock);
 		/* Do not recreate context, just pass ownership. */
-		comp->ogl_context = old_comp->ogl_context;
-		old_comp->ogl_context = NULL;
+		comp->gl_context = old_comp->gl_context;
+		old_comp->gl_context = NULL;
 	}
 
 	BLI_addtail(&comp->queue, dsh);
 
 	/* Create only one context. */
-	if (comp->ogl_context == NULL) {
-		comp->ogl_context = WM_opengl_context_create();
-		WM_opengl_context_activate(DST.ogl_context);
+	if (comp->gl_context == NULL) {
+		comp->gl_context = WM_opengl_context_create();
+		WM_opengl_context_activate(DST.gl_context);
 	}
 
 	WM_jobs_customdata_set(wm_job, comp, drw_deferred_shader_compilation_free);

@@ -369,11 +369,11 @@ typedef struct DRWManager {
 
 	/* ---------- Nothing after this point is cleared after use ----------- */
 
-	/* ogl_context serves as the offset for clearing only
+	/* gl_context serves as the offset for clearing only
 	 * the top portion of the struct so DO NOT MOVE IT! */
-	void *ogl_context;                /* Unique ghost context used by the draw manager. */
+	void *gl_context;                /* Unique ghost context used by the draw manager. */
 	Gwn_Context *gwn_context;
-	ThreadMutex ogl_context_mutex;    /* Mutex to lock the drw manager and avoid concurent context usage. */
+	ThreadMutex gl_context_mutex;    /* Mutex to lock the drw manager and avoid concurent context usage. */
 
 	/** GPU Resource State: Memory storage between drawing. */
 	struct {
