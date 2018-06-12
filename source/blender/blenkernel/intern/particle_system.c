@@ -2061,6 +2061,7 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 	ParticleSettings *part = sim->psys->part;
 	ParticleData *pa = efdata->pa;
 	EffectedPoint epoint;
+	RNG *rng = sim->rng;
 
 	/* add effectors */
 	pd_point_from_particle(efdata->sim, efdata->pa, state, &epoint);
@@ -2076,9 +2077,9 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 
 	/* brownian force */
 	if (part->brownfac != 0.0f) {
-		force[0] += (BLI_frand()-0.5f) * part->brownfac;
-		force[1] += (BLI_frand()-0.5f) * part->brownfac;
-		force[2] += (BLI_frand()-0.5f) * part->brownfac;
+		force[0] += (BLI_rng_get_float(rng)-0.5f) * part->brownfac;
+		force[1] += (BLI_rng_get_float(rng)-0.5f) * part->brownfac;
+		force[2] += (BLI_rng_get_float(rng)-0.5f) * part->brownfac;
 	}
 
 	if (part->flag & PART_ROT_DYN && epoint.ave)
@@ -2649,16 +2650,17 @@ static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRay
 
 	return hit->index >= 0;
 }
-static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeRayHit *hit, int kill, int dynamic_rotation)
+static int collision_response(ParticleSimulationData *sim, ParticleData *pa, ParticleCollision *col, BVHTreeRayHit *hit, int kill, int dynamic_rotation)
 {
 	ParticleCollisionElement *pce = &col->pce;
 	PartDeflect *pd = col->hit->pd;
+	RNG *rng = sim->rng;
 	float co[3];										/* point of collision */
 	float x = hit->dist/col->original_ray_length;		/* location factor of collision between this iteration */
 	float f = col->f + x * (1.0f - col->f);				/* time factor of collision between timestep */
 	float dt1 = (f - col->f) * col->total_time;			/* time since previous collision (in seconds) */
 	float dt2 = (1.0f - f) * col->total_time;			/* time left after collision (in seconds) */
-	int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0; /* did particle pass through the collision surface? */
+	int through = (BLI_rng_get_float(rng) < pd->pdef_perm) ? 1 : 0; /* did particle pass through the collision surface? */
 
 	/* calculate exact collision location */
 	interp_v3_v3v3(co, col->co1, col->co2, x);
@@ -2683,8 +2685,8 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 		float v0_tan[3];/* tangential component of v0 */
 		float vc_tan[3];/* tangential component of collision surface velocity */
 		float v0_dot, vc_dot;
-		float damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_frand() - 0.5f);
-		float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_frand() - 0.5f);
+		float damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_rng_get_float(rng) - 0.5f);
+		float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_rng_get_float(rng) - 0.5f);
 		float distance, nor[3], dot;
 
 		CLAMP(damp,0.0f, 1.0f);
@@ -2894,7 +2896,7 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
 
 			if (collision_count == PARTICLE_COLLISION_MAX_COLLISIONS)
 				collision_fail(pa, &col);
-			else if (collision_response(pa, &col, &hit, part->flag & PART_DIE_ON_COL, part->flag & PART_ROT_DYN)==0)
+			else if (collision_response(sim, pa, &col, &hit, part->flag & PART_DIE_ON_COL, part->flag & PART_ROT_DYN)==0)
 				return;
 		}
 		else
@@ -3502,7 +3504,6 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part=psys->part;
-	RNG *rng;
 	BoidBrainData bbd;
 	ParticleTexture ptex;
 	PARTICLE_P;
@@ -3530,7 +3531,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	/* for now do both, boids us 'rng' */
-	rng = BLI_rng_new_srandom(31415926 + (int)cfra + psys->seed);
+	sim->rng = BLI_rng_new_srandom(31415926 + (int)cfra + psys->seed);
 
 	psys_update_effectors(sim);
 
@@ -3547,7 +3548,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			bbd.cfra = cfra;
 			bbd.dfra = dfra;
 			bbd.timestep = timestep;
-			bbd.rng = rng;
+			bbd.rng = sim->rng;
 
 			psys_update_particle_tree(psys, cfra);
 
@@ -3743,8 +3744,10 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	free_collider_cache(&sim->colliders);
-	BLI_rng_free(rng);
+	BLI_rng_free(sim->rng);
+	sim->rng = NULL;
 }
+
 static void update_children(ParticleSimulationData *sim, const bool use_render_params)
 {
 	if ((sim->psys->part->type == PART_HAIR) && (sim->psys->flag & PSYS_HAIR_DONE)==0)

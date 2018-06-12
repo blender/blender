@@ -90,6 +90,8 @@ typedef struct ParticleSimulationData {
 	 * maximum value per time step is important. Only sph_integrate makes use of
 	 * this at the moment. Other solvers could, too. */
 	float courant_num;
+	/* Only valid during dynamics_step(). */
+	struct RNG* rng;
 } ParticleSimulationData;
 
 typedef struct SPHData {
