@@ -458,9 +458,6 @@ void BKE_scene_free(Scene *sce)
 
 	BKE_animdata_free((ID *)sce, false);
 
-	/* check all sequences */
-	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
-
 	sce->basact = NULL;
 	BLI_freelistN(&sce->base);
 	BKE_sequencer_editing_free(sce, false);
