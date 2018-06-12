@@ -2061,17 +2061,19 @@ void ED_region_panels_layout_ex(
 		 * Can't use x/y values calculated above because they're not using the real height of panels,
 		 * instead they calculate offsets for the next panel to start drawing. */
 		Panel *panel = ar->panels.last;
-		int size_dyn[2] = {
-			UI_UNIT_X * 12,
-			UI_panel_size_y(panel),
-		};
-		/* region size is layout based and needs to be updated */
-		if ((ar->sizex != size_dyn[0]) ||
-		    (ar->sizey != size_dyn[1]))
-		{
-			ar->sizex = size_dyn[0];
-			ar->sizey = size_dyn[1];
-			sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+		if (panel != NULL) {
+			int size_dyn[2] = {
+				UI_UNIT_X * 12,
+				UI_panel_size_y(panel),
+			};
+			/* region size is layout based and needs to be updated */
+			if ((ar->sizex != size_dyn[0]) ||
+			    (ar->sizey != size_dyn[1]))
+			{
+				ar->sizex = size_dyn[0];
+				ar->sizey = size_dyn[1];
+				sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+			}
 		}
 	}
 	else if (vertical) {
