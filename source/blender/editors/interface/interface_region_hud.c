@@ -73,7 +73,9 @@ static bool last_redo_poll(const bContext *C)
 		return false;
 	}
 	bool success = false;
-	if (!WM_operator_check_ui_empty(op->type)) {
+	if (WM_operator_repeat_check(C, op) &&
+	    WM_operator_check_ui_empty(op->type) == false)
+	{
 		success = WM_operator_poll((bContext *)C, op->type);
 	}
 	return success;
