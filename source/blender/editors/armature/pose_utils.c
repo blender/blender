@@ -41,6 +41,7 @@
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
+#include "BKE_main.h"
 
 #include "BKE_context.h"
 
@@ -235,6 +236,8 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
 /* perform autokeyframing after changes were made + confirmed */
 void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float cframe)
 {
+	Main *bmain = CTX_data_main(C);
+
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
@@ -266,7 +269,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, Object *ob, ListBa
 		 */
 		if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
 			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
-			ED_pose_recalculate_paths(scene, ob);
+			ED_pose_recalculate_paths(bmain, scene, ob);
 		}
 	}
 }

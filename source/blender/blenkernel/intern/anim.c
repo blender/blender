@@ -281,7 +281,7 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
  */
 
 /* tweak the object ordering to trick depsgraph into making MotionPath calculations run faster */
-static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
+static void motionpaths_calc_optimise_depsgraph(Main *bmain, Scene *scene, ListBase *targets)
 {
 	Base *base, *baseNext;
 	MPathTarget *mpt;
@@ -308,23 +308,23 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 	}
 	
 	/* "brew me a list that's sorted a bit faster now depsy" */
-	DAG_scene_relations_rebuild(G.main, scene);
+	DAG_scene_relations_rebuild(bmain, scene);
 }
 
 /* update scene for current frame */
-static void motionpaths_calc_update_scene(Scene *scene)
+static void motionpaths_calc_update_scene(Main *bmain, Scene *scene)
 {
 #if 1 // 'production' optimizations always on
 	/* rigid body simulation needs complete update to work correctly for now */
 	/* RB_TODO investigate if we could avoid updating everything */
 	if (BKE_scene_check_rigidbody_active(scene)) {
-		BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay);
+		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, scene->lay);
 	}
 	else { /* otherwise we can optimize by restricting updates */
 		Base *base, *last = NULL;
 		
 		/* only stuff that moves or needs display still */
-		DAG_scene_update_flags(G.main, scene, scene->lay, true, false);
+		DAG_scene_update_flags(bmain, scene, scene->lay, true, false);
 		
 		/* find the last object with the tag 
 		 * - all those afterwards are assumed to not be relevant for our calculations
@@ -340,7 +340,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 		 * is animated but not attached to/updatable from objects */
 		for (base = scene->base.first; base; base = base->next) {
 			/* update this object */
-			BKE_object_handle_update(G.main, G.main->eval_ctx, scene, base->object);
+			BKE_object_handle_update(bmain, bmain->eval_ctx, scene, base->object);
 			
 			/* if this is the last one we need to update, let's stop to save some time */
 			if (base == last)
@@ -353,7 +353,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	 *    that doesn't force complete update, but for now, this is the
 	 *    most accurate way!
 	 */
-	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay); /* XXX this is the best way we can get anything moving */
+	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, scene->lay); /* XXX this is the best way we can get anything moving */
 #endif
 }
 
@@ -404,7 +404,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
  *	- recalc: whether we need to
  */
 /* TODO: include reports pointer? */
-void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
+void animviz_calc_motionpaths(Main *bmain, Scene *scene, ListBase *targets)
 {
 	MPathTarget *mpt;
 	int sfra, efra;
@@ -430,12 +430,12 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	
 	/* optimize the depsgraph for faster updates */
 	/* TODO: whether this is used should depend on some setting for the level of optimizations used */
-	motionpaths_calc_optimise_depsgraph(scene, targets);
+	motionpaths_calc_optimise_depsgraph(bmain, scene, targets);
 	
 	/* calculate path over requested range */
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
 		/* update relevant data for new frame */
-		motionpaths_calc_update_scene(scene);
+		motionpaths_calc_update_scene(bmain, scene);
 		
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(scene, targets);
@@ -443,7 +443,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	
 	/* reset original environment */
 	CFRA = cfra;
-	motionpaths_calc_update_scene(scene);
+	motionpaths_calc_update_scene(bmain, scene);
 	
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {

@@ -1255,6 +1255,7 @@ void OBJECT_OT_forcefield_toggle(wmOperatorType *ot)
  */
 void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 {
+	Main *bmain = CTX_data_main(C);
 	ListBase targets = {NULL, NULL};
 
 	/* loop over objects in scene */
@@ -1267,7 +1268,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	CTX_DATA_END;
 
 	/* recalculate paths, then free */
-	animviz_calc_motionpaths(scene, &targets);
+	animviz_calc_motionpaths(bmain, scene, &targets);
 	BLI_freelistN(&targets);
 }
 

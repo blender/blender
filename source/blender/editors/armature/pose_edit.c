@@ -168,7 +168,7 @@ static bool pose_has_protected_selected(Object *ob, short warn)
  *
  * To be called from various tools that do incremental updates
  */
-void ED_pose_recalculate_paths(Scene *scene, Object *ob)
+void ED_pose_recalculate_paths(Main *bmain, Scene *scene, Object *ob)
 {
 	ListBase targets = {NULL, NULL};
 
@@ -177,7 +177,7 @@ void ED_pose_recalculate_paths(Scene *scene, Object *ob)
 	animviz_get_object_motionpaths(ob, &targets);
 
 	/* recalculate paths, then free */
-	animviz_calc_motionpaths(scene, &targets);
+	animviz_calc_motionpaths(bmain, scene, &targets);
 	BLI_freelistN(&targets);
 }
 
@@ -212,6 +212,7 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEven
  */
 static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	Scene *scene = CTX_data_scene(C);
 
@@ -240,7 +241,7 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 
 	/* calculate the bones that now have motionpaths... */
 	/* TODO: only make for the selected bones? */
-	ED_pose_recalculate_paths(scene, ob);
+	ED_pose_recalculate_paths(bmain, scene, ob);
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -288,6 +289,7 @@ static int pose_update_paths_poll(bContext *C)
 
 static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	Scene *scene = CTX_data_scene(C);
 
@@ -296,7 +298,7 @@ static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* calculate the bones that now have motionpaths... */
 	/* TODO: only make for the selected bones? */
-	ED_pose_recalculate_paths(scene, ob);
+	ED_pose_recalculate_paths(bmain, scene, ob);
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);

@@ -502,6 +502,7 @@ void POSE_OT_copy(wmOperatorType *ot)
 
 static int pose_paste_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	Scene *scene = CTX_data_scene(C);
 	bPoseChannel *chan;
@@ -570,7 +571,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 
 	/* Recalculate paths if any of the bones have paths... */
 	if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
-		ED_pose_recalculate_paths(scene, ob);
+		ED_pose_recalculate_paths(bmain, scene, ob);
 	}
 
 	/* Notifiers for updates, */
@@ -754,6 +755,7 @@ static void pchan_clear_transforms(bPoseChannel *pchan)
 static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
                                              void (*clear_func)(bPoseChannel *), const char default_ksName[])
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	short autokey = 0;
@@ -797,7 +799,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 
 		/* now recalculate paths */
 		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
-			ED_pose_recalculate_paths(scene, ob);
+			ED_pose_recalculate_paths(bmain, scene, ob);
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

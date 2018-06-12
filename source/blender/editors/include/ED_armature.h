@@ -203,7 +203,7 @@ bool ED_object_posemode_enter_ex(struct Object *ob);
 bool ED_object_posemode_enter(struct bContext *C, struct Object *ob);
 void ED_pose_deselect_all(struct Object *ob, int select_mode, const bool ignore_visibility);
 void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
-void ED_pose_recalculate_paths(struct Scene *scene, struct Object *ob);
+void ED_pose_recalculate_paths(struct Main *bmain, struct Scene *scene, struct Object *ob);
 struct Object *ED_pose_object_from_context(struct bContext *C);
 
 /* sketch */
