@@ -112,7 +112,7 @@ void psys_init_rng(void)
 static void get_child_modifier_parameters(ParticleSettings *part, ParticleThreadContext *ctx,
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
 static void get_cpa_texture(Mesh *mesh, ParticleSystem *psys, ParticleSettings *part, ParticleData *par,
-							int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra);
+                            int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra);
 
 /* few helpers for countall etc. */
 int count_particles(ParticleSystem *psys)
