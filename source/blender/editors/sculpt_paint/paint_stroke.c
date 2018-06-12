@@ -409,7 +409,7 @@ static bool paint_brush_update(bContext *C,
 	if ((do_random || do_random_mask) && stroke->rng == NULL) {
 		/* Lazy initialization. */
 		uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-		rng_seed ^= (uint)(brush);
+		rng_seed ^= (uint)GET_INT_FROM_POINTER(brush);
 		stroke->rng = BLI_rng_new(rng_seed);
 	}
 

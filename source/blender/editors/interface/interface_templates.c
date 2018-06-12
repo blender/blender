@@ -2266,7 +2266,7 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname,
 	value = RNA_property_enum_get(ptr, prop);
 	RNA_enum_icon_from_value(items, value, &icon);
 
-	
+
 	if (RNA_property_editable(ptr, prop)) {
 		cb_args = MEM_callocN(sizeof(IconViewMenuArgs), __func__);
 		cb_args->ptr = *ptr;
