@@ -2051,6 +2051,7 @@ static void mesh_calc_modifiers(
 	ModifierApplyFlag app_flags = useRenderParams ? MOD_APPLY_RENDER : 0;
 	ModifierApplyFlag deform_app_flags = app_flags;
 
+	BLI_assert((me->id.tag & LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT) == 0);
 
 	if (useCache)
 		app_flags |= MOD_APPLY_USECACHE;
