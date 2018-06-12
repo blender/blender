@@ -1480,13 +1480,13 @@ static void region_update_rect(ARegion *ar)
 /**
  * Call to move a popup window (keep OpenGL context free!)
  */
-void ED_region_update_rect(bContext *UNUSED(C), ARegion *ar)
+void ED_region_update_rect(ARegion *ar)
 {
 	region_update_rect(ar);
 }
 
 /* externally called for floating regions like menus */
-void ED_region_init(bContext *UNUSED(C), ARegion *ar)
+void ED_region_init(ARegion *ar)
 {
 	/* refresh can be called before window opened */
 	region_subwindow(ar);

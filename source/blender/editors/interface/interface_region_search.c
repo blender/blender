@@ -625,7 +625,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
 	}
 
 	/* adds subwindow */
-	ED_region_init(C, ar);
+	ED_region_init(ar);
 
 	/* notify change and redraw */
 	ED_region_tag_redraw(ar);

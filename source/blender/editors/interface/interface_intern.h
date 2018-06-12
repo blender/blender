@@ -652,7 +652,7 @@ void ui_pie_menu_level_create(
         const EnumPropertyItem *items, int totitem, int context, int flag);
 
 /* interface_region_popup.c */
-void ui_popup_translate(struct bContext *C, struct ARegion *ar, const int mdiff[2]);
+void ui_popup_translate(struct ARegion *ar, const int mdiff[2]);
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 void ui_popup_block_scrolltest(struct uiBlock *block);
 

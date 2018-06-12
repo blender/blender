@@ -9136,7 +9136,7 @@ static int ui_handle_menu_event(
 
 				add_v2_v2v2_int(menu->popup_create_vars.event_xy, menu->popup_create_vars.event_xy, mdiff);
 
-				ui_popup_translate(C, ar, mdiff);
+				ui_popup_translate(ar, mdiff);
 			}
 
 			return retval;

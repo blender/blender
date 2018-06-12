@@ -63,13 +63,13 @@
 /**
  * Translate any popup regions (so we can drag them).
  */
-void ui_popup_translate(bContext *C, ARegion *ar, const int mdiff[2])
+void ui_popup_translate(ARegion *ar, const int mdiff[2])
 {
 	uiBlock *block;
 
 	BLI_rcti_translate(&ar->winrct, UNPACK2(mdiff));
 
-	ED_region_update_rect(C, ar);
+	ED_region_update_rect(ar);
 
 	ED_region_tag_redraw(ar);
 
@@ -625,7 +625,7 @@ uiBlock *ui_popup_block_refresh(
 	ui_popup_block_scrolltest(block);
 
 	/* adds subwindow */
-	ED_region_init(C, ar);
+	ED_region_init(ar);
 
 	/* get winmat now that we actually have the subwindow */
 	wmGetProjectionMatrix(block->winmat, &ar->winrct);
@@ -633,7 +633,7 @@ uiBlock *ui_popup_block_refresh(
 	/* notify change and redraw */
 	ED_region_tag_redraw(ar);
 
-	ED_region_update_rect(C, ar);
+	ED_region_update_rect(ar);
 
 #ifdef DEBUG
 	window->eventstate = event_back;
