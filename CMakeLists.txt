@@ -227,8 +227,6 @@ option(WITH_SYSTEM_BULLET "Use the systems bullet library (currently unsupported
 mark_as_advanced(WITH_SYSTEM_BULLET)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ${_init_OPENCOLORIO})
 
-option(WITH_CLAY_ENGINE    "Enable Clay engine" ON)
-
 # Compositor
 option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
 

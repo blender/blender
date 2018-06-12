@@ -187,10 +187,6 @@ if(WITH_PYTHON)
 	)
 endif()
 
-if(WITH_CLAY_ENGINE)
-	add_definitions(-DWITH_CLAY_ENGINE)
-endif()
-
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()

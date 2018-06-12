@@ -451,49 +451,6 @@ static void icon_verify_datatoc(IconImage *iimg)
 	}
 }
 
-static void init_matcap_icons(void)
-{
-	/* dynamic allocation now, tucking datatoc pointers in DrawInfo */
-#define INIT_MATCAP_ICON(icon_id, name)                                       \
-	{                                                                         \
-		unsigned char *rect = (unsigned char *)datatoc_ ##name## _jpg;        \
-		int size = datatoc_ ##name## _jpg_size;                               \
-		DrawInfo *di;                                                         \
-		                                                                      \
-		di = def_internal_icon(NULL, icon_id, 0, 0, 96, ICON_TYPE_BUFFER);   \
-		di->data.buffer.image->datatoc_rect = rect;                           \
-		di->data.buffer.image->datatoc_size = size;                           \
-	} (void)0
-
-	INIT_MATCAP_ICON(ICON_MATCAP_01, mc01);
-	INIT_MATCAP_ICON(ICON_MATCAP_02, mc02);
-	INIT_MATCAP_ICON(ICON_MATCAP_03, mc03);
-	INIT_MATCAP_ICON(ICON_MATCAP_04, mc04);
-	INIT_MATCAP_ICON(ICON_MATCAP_05, mc05);
-	INIT_MATCAP_ICON(ICON_MATCAP_06, mc06);
-	INIT_MATCAP_ICON(ICON_MATCAP_07, mc07);
-	INIT_MATCAP_ICON(ICON_MATCAP_08, mc08);
-	INIT_MATCAP_ICON(ICON_MATCAP_09, mc09);
-	INIT_MATCAP_ICON(ICON_MATCAP_10, mc10);
-	INIT_MATCAP_ICON(ICON_MATCAP_11, mc11);
-	INIT_MATCAP_ICON(ICON_MATCAP_12, mc12);
-	INIT_MATCAP_ICON(ICON_MATCAP_13, mc13);
-	INIT_MATCAP_ICON(ICON_MATCAP_14, mc14);
-	INIT_MATCAP_ICON(ICON_MATCAP_15, mc15);
-	INIT_MATCAP_ICON(ICON_MATCAP_16, mc16);
-	INIT_MATCAP_ICON(ICON_MATCAP_17, mc17);
-	INIT_MATCAP_ICON(ICON_MATCAP_18, mc18);
-	INIT_MATCAP_ICON(ICON_MATCAP_19, mc19);
-	INIT_MATCAP_ICON(ICON_MATCAP_20, mc20);
-	INIT_MATCAP_ICON(ICON_MATCAP_21, mc21);
-	INIT_MATCAP_ICON(ICON_MATCAP_22, mc22);
-	INIT_MATCAP_ICON(ICON_MATCAP_23, mc23);
-	INIT_MATCAP_ICON(ICON_MATCAP_24, mc24);
-
-#undef INIT_MATCAP_ICON
-
-}
-
 static void init_internal_icons(void)
 {
 //	bTheme *btheme = UI_GetTheme();
@@ -850,7 +807,6 @@ void UI_icons_init(int first_dyn_id)
 	init_iconfile_list(&iconfilelist);
 	init_internal_icons();
 	init_brush_icons();
-	init_matcap_icons();
 #endif
 }
 

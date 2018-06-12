@@ -91,7 +91,6 @@ set(SRC
 	modes/pose_mode.c
 	modes/sculpt_mode.c
 	engines/basic/basic_engine.c
-	engines/clay/clay_engine.c
 	engines/eevee/eevee_bloom.c
 	engines/eevee/eevee_data.c
 	engines/eevee/eevee_depth_of_field.c
@@ -134,26 +133,11 @@ set(SRC
 	modes/draw_mode_engines.h
 	modes/edit_mesh_mode_intern.h
 	engines/basic/basic_engine.h
-	engines/clay/clay_engine.h
 	engines/eevee/eevee_engine.h
 	engines/eevee/eevee_lut.h
 	engines/eevee/eevee_private.h
 	engines/external/external_engine.h
 )
-
-if(WITH_CLAY_ENGINE)
-	add_definitions(-DWITH_CLAY_ENGINE)
-endif()
-
-data_to_c_simple(engines/clay/shaders/clay_frag.glsl SRC)
-data_to_c_simple(engines/clay/shaders/clay_fxaa.glsl SRC)
-data_to_c_simple(engines/clay/shaders/clay_copy.glsl SRC)
-data_to_c_simple(engines/clay/shaders/clay_prepass_frag.glsl SRC)
-data_to_c_simple(engines/clay/shaders/clay_vert.glsl SRC)
-data_to_c_simple(engines/clay/shaders/clay_particle_vert.glsl SRC)
-data_to_c_simple(engines/clay/shaders/clay_particle_strand_frag.glsl SRC)
-data_to_c_simple(engines/clay/shaders/ssao_alchemy.glsl SRC)
-data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
 
 data_to_c_simple(engines/eevee/shaders/ambient_occlusion_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/default_frag.glsl SRC)

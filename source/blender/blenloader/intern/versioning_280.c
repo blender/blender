@@ -1444,15 +1444,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		if (!MAIN_VERSION_ATLEAST(bmain, 280, 15)) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-				scene->display.matcap_icon = 1;
-				scene->display.matcap_type = CLAY_MATCAP_NONE;
-				scene->display.matcap_hue = 0.5f;
-				scene->display.matcap_saturation = 0.5f;
-				scene->display.matcap_value = 0.5f;
 				scene->display.matcap_ssao_distance = 0.2f;
 				scene->display.matcap_ssao_attenuation = 1.0f;
-				scene->display.matcap_ssao_factor_cavity = 1.0f;
-				scene->display.matcap_ssao_factor_edge = 1.0f;
 				scene->display.matcap_ssao_samples = 16;
 			}
 

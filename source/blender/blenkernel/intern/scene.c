@@ -110,7 +110,6 @@
 
 #include "bmesh.h"
 
-const char *RE_engine_id_BLENDER_CLAY = "BLENDER_CLAY";
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
 const char *RE_engine_id_CYCLES = "CYCLES";
@@ -808,15 +807,8 @@ void BKE_scene_init(Scene *sce)
 	copy_v3_v3(sce->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
 	sce->display.shadow_shift = 0.1;
 
-	sce->display.matcap_icon = 1;
-	sce->display.matcap_type = CLAY_MATCAP_NONE;
-	sce->display.matcap_hue = 0.5f;
-	sce->display.matcap_saturation = 0.5f;
-	sce->display.matcap_value = 0.5f;
 	sce->display.matcap_ssao_distance = 0.2f;
 	sce->display.matcap_ssao_attenuation = 1.0f;
-	sce->display.matcap_ssao_factor_cavity = 1.0f;
-	sce->display.matcap_ssao_factor_edge = 1.0f;
 	sce->display.matcap_ssao_samples = 16;
 
 	/* SceneEEVEE */

@@ -54,16 +54,6 @@ typedef struct TexPaintSlot {
 	int pad;
 } TexPaintSlot;
 
-/* Clay engine */
-
-/* MaterialRuntimeClay.flag */
-#define CLAY_OUTDATED		1
-
-/* MaterialEngineSettingsClay.type */
-#define CLAY_MATCAP_NONE		0
-#define CLAY_MATCAP_SIMPLE		1
-#define CLAY_MATCAP_COMPLETE	2
-
 typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 

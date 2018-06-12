@@ -35,7 +35,7 @@ class DataButtonsPanel:
 class DATA_PT_context_lightprobe(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -52,7 +52,7 @@ class DATA_PT_context_lightprobe(DataButtonsPanel, Panel):
 
 class DATA_PT_lightprobe(DataButtonsPanel, Panel):
     bl_label = "Probe"
-    COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -114,7 +114,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
     bl_label = "Custom Parallax"
-    COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -144,7 +144,7 @@ class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
 
 class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
     bl_label = "Display"
-    COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout

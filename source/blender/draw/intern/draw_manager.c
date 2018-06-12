@@ -76,7 +76,6 @@
 #include "draw_cache_impl.h"
 
 #include "draw_mode_engines.h"
-#include "engines/clay/clay_engine.h"
 #include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
 #include "engines/workbench/workbench_engine.h"
@@ -2068,9 +2067,6 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 
 void DRW_engines_register(void)
 {
-#ifdef WITH_CLAY_ENGINE
-	RE_engines_register(&DRW_engine_viewport_clay_type);
-#endif
 	RE_engines_register(&DRW_engine_viewport_eevee_type);
 	RE_engines_register(&DRW_engine_viewport_workbench_type);
 
@@ -2165,10 +2161,6 @@ void DRW_engines_free(void)
 	MEM_SAFE_FREE(DST.RST.bound_ubo_slots);
 
 	DRW_opengl_context_disable();
-
-#ifdef WITH_CLAY_ENGINE
-	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
-#endif
 }
 
 /** \} */

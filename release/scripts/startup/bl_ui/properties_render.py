@@ -391,7 +391,7 @@ class RENDER_UL_renderviews(UIList):
 
 class RENDER_PT_stereoscopy(RenderButtonsPanel, Panel):
     bl_label = "Stereoscopy"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
@@ -430,28 +430,6 @@ class RENDER_PT_stereoscopy(RenderButtonsPanel, Panel):
             row = layout.row()
             row.label(text="Camera Suffix:")
             row.prop(rv, "camera_suffix", text="")
-
-
-class RENDER_PT_clay_settings(RenderButtonsPanel, Panel):
-    bl_label = "Clay Settings"
-    COMPAT_ENGINES = {'BLENDER_CLAY'}
-
-    def draw(self, context):
-        layout = self.layout
-        props = context.scene.display
-
-        col = layout.column()
-        col.template_icon_view(props, "matcap_icon")
-        col.prop(props, "matcap_rotation")
-        col.prop(props, "matcap_hue")
-        col.prop(props, "matcap_saturation")
-        col.prop(props, "matcap_value")
-        col.prop(props, "matcap_ssao_samples")
-        col.prop(props, "matcap_ssao_factor_cavity")
-        col.prop(props, "matcap_ssao_factor_edge")
-        col.prop(props, "matcap_ssao_distance")
-        col.prop(props, "matcap_ssao_attenuation")
-        col.prop(props, "matcap_hair_brightness_randomness")
 
 
 class RENDER_PT_eevee_ambient_occlusion(RenderButtonsPanel, Panel):
@@ -796,7 +774,6 @@ classes = (
     RENDER_UL_renderviews,
     RENDER_PT_stereoscopy,
     RENDER_PT_hair,
-    RENDER_PT_clay_settings,
     RENDER_PT_eevee_sampling,
     RENDER_PT_eevee_film,
     RENDER_PT_eevee_shadows,
