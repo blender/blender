@@ -172,6 +172,10 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 			BKE_editmesh_tessface_calc(em);
 		}
 
+		if (em->ob) {
+			DEG_id_tag_update(&((Mesh *)em->ob->data)->id, DEG_TAG_COPY_ON_WRITE);
+		}
+
 		return false;
 	}
 	else {
