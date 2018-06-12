@@ -182,7 +182,7 @@ static void studiolight_create_equierectangular_radiance_gputexture(StudioLight 
 		char error[256];
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
 		ImBuf *ibuf = sl->equirectangular_radiance_buffer;
-		sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA8, ibuf->rect_float, error);
+		sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
 		GPUTexture *tex = sl->equirectangular_radiance_gputexture;
 		GPU_texture_bind(tex, 0);
 		GPU_texture_filter_mode(tex, true);
