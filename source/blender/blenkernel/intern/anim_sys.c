@@ -314,25 +314,27 @@ bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const bool do_act
 	return true;
 }
 
-void BKE_animdata_copy_id_action(ID *id, const bool set_newid)
+void BKE_animdata_copy_id_action(Main *bmain, ID *id, const bool set_newid)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	if (adt) {
 		if (adt->action) {
 			id_us_min((ID *)adt->action);
-			adt->action = set_newid ? ID_NEW_SET(adt->action, BKE_action_copy(G.main, adt->action)) :
-			                          BKE_action_copy(G.main, adt->action);
+			adt->action = set_newid ? ID_NEW_SET(adt->action, BKE_action_copy(bmain, adt->action)) :
+			                          BKE_action_copy(bmain, adt->action);
 		}
 		if (adt->tmpact) {
 			id_us_min((ID *)adt->tmpact);
-			adt->tmpact = set_newid ? ID_NEW_SET(adt->tmpact, BKE_action_copy(G.main, adt->tmpact)) :
-			                          BKE_action_copy(G.main, adt->tmpact);
+			adt->tmpact = set_newid ? ID_NEW_SET(adt->tmpact, BKE_action_copy(bmain, adt->tmpact)) :
+			                          BKE_action_copy(bmain, adt->tmpact);
 		}
 	}
 }
 
 /* Merge copies of the data from the src AnimData into the destination AnimData */
-void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes action_mode, bool fix_drivers)
+void BKE_animdata_merge_copy(
+        Main *bmain, ID *dst_id, ID *src_id,
+        eAnimData_MergeCopy_Modes action_mode, bool fix_drivers)
 {
 	AnimData *src = BKE_animdata_from_id(src_id);
 	AnimData *dst = BKE_animdata_from_id(dst_id);
@@ -350,8 +352,8 @@ void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes a
 	/* handle actions... */
 	if (action_mode == ADT_MERGECOPY_SRC_COPY) {
 		/* make a copy of the actions */
-		dst->action = BKE_action_copy(G.main, src->action);
-		dst->tmpact = BKE_action_copy(G.main, src->tmpact);
+		dst->action = BKE_action_copy(bmain, src->action);
+		dst->tmpact = BKE_action_copy(bmain, src->tmpact);
 	}
 	else if (action_mode == ADT_MERGECOPY_SRC_REF) {
 		/* make a reference to it */
@@ -366,7 +368,7 @@ void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes a
 	if (src->nla_tracks.first) {
 		ListBase tracks = {NULL, NULL};
 		
-		BKE_nla_tracks_copy(G.main, &tracks, &src->nla_tracks);
+		BKE_nla_tracks_copy(bmain, &tracks, &src->nla_tracks);
 		BLI_movelisttolist(&dst->nla_tracks, &tracks);
 	}
 	
@@ -503,7 +505,8 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
  * animation data is based off "basepath", creating new AnimData and
  * associated data as necessary
  */
-void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths)
+void BKE_animdata_separate_by_basepath(
+        Main *bmain, ID *srcID, ID *dstID, ListBase *basepaths)
 {
 	AnimData *srcAdt = NULL, *dstAdt = NULL;
 	LinkData *ld;
@@ -529,7 +532,7 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 	if (srcAdt->action) {
 		/* set up an action if necessary, and name it in a similar way so that it can be easily found again */
 		if (dstAdt->action == NULL) {
-			dstAdt->action = BKE_action_add(G.main, srcAdt->action->id.name + 2);
+			dstAdt->action = BKE_action_add(bmain, srcAdt->action->id.name + 2);
 		}
 		else if (dstAdt->action == srcAdt->action) {
 			printf("Argh! Source and Destination share animation! ('%s' and '%s' both use '%s') Making new empty action\n",
@@ -537,7 +540,7 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 			
 			/* TODO: review this... */
 			id_us_min(&dstAdt->action->id);
-			dstAdt->action = BKE_action_add(G.main, dstAdt->action->id.name + 2);
+			dstAdt->action = BKE_action_add(bmain, dstAdt->action->id.name + 2);
 		}
 			
 		/* loop over base paths, trying to fix for each one... */
@@ -1074,20 +1077,20 @@ static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, void *wrapper_data)
 }
 
 /* apply the given callback function on all F-Curves attached to data in main database */
-void BKE_fcurves_main_cb(Main *mainptr, ID_FCurve_Edit_Callback func, void *user_data)
+void BKE_fcurves_main_cb(Main *bmain, ID_FCurve_Edit_Callback func, void *user_data)
 {
 	/* Wrap F-Curve operation stuff to pass to the general AnimData-level func */
 	AllFCurvesCbWrapper wrapper = {func, user_data};
 	
 	/* Use the AnimData-based function so that we don't have to reimplement all that stuff */
-	BKE_animdata_main_cb(mainptr, adt_apply_all_fcurves_cb, &wrapper);
+	BKE_animdata_main_cb(bmain, adt_apply_all_fcurves_cb, &wrapper);
 }
 
 
 /* Whole Database Ops -------------------------------------------- */
 
 /* apply the given callback function on all data in main database */
-void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *user_data)
+void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *user_data)
 {
 	ID *id;
 
@@ -1111,67 +1114,67 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 	} (void)0
 	
 	/* nodes */
-	ANIMDATA_IDS_CB(mainptr->nodetree.first);
+	ANIMDATA_IDS_CB(bmain->nodetree.first);
 	
 	/* textures */
-	ANIMDATA_NODETREE_IDS_CB(mainptr->tex.first, Tex);
+	ANIMDATA_NODETREE_IDS_CB(bmain->tex.first, Tex);
 	
 	/* lamps */
-	ANIMDATA_NODETREE_IDS_CB(mainptr->lamp.first, Lamp);
+	ANIMDATA_NODETREE_IDS_CB(bmain->lamp.first, Lamp);
 	
 	/* materials */
-	ANIMDATA_NODETREE_IDS_CB(mainptr->mat.first, Material);
+	ANIMDATA_NODETREE_IDS_CB(bmain->mat.first, Material);
 	
 	/* cameras */
-	ANIMDATA_IDS_CB(mainptr->camera.first);
+	ANIMDATA_IDS_CB(bmain->camera.first);
 	
 	/* shapekeys */
-	ANIMDATA_IDS_CB(mainptr->key.first);
+	ANIMDATA_IDS_CB(bmain->key.first);
 	
 	/* metaballs */
-	ANIMDATA_IDS_CB(mainptr->mball.first);
+	ANIMDATA_IDS_CB(bmain->mball.first);
 	
 	/* curves */
-	ANIMDATA_IDS_CB(mainptr->curve.first);
+	ANIMDATA_IDS_CB(bmain->curve.first);
 	
 	/* armatures */
-	ANIMDATA_IDS_CB(mainptr->armature.first);
+	ANIMDATA_IDS_CB(bmain->armature.first);
 	
 	/* lattices */
-	ANIMDATA_IDS_CB(mainptr->latt.first);
+	ANIMDATA_IDS_CB(bmain->latt.first);
 	
 	/* meshes */
-	ANIMDATA_IDS_CB(mainptr->mesh.first);
+	ANIMDATA_IDS_CB(bmain->mesh.first);
 	
 	/* particles */
-	ANIMDATA_IDS_CB(mainptr->particle.first);
+	ANIMDATA_IDS_CB(bmain->particle.first);
 
 	/* speakers */
-	ANIMDATA_IDS_CB(mainptr->speaker.first);
+	ANIMDATA_IDS_CB(bmain->speaker.first);
 
 	/* movie clips */
-	ANIMDATA_IDS_CB(mainptr->movieclip.first);
+	ANIMDATA_IDS_CB(bmain->movieclip.first);
 
 	/* objects */
-	ANIMDATA_IDS_CB(mainptr->object.first);
+	ANIMDATA_IDS_CB(bmain->object.first);
 
 	/* masks */
-	ANIMDATA_IDS_CB(mainptr->mask.first);
+	ANIMDATA_IDS_CB(bmain->mask.first);
 	
 	/* worlds */
-	ANIMDATA_NODETREE_IDS_CB(mainptr->world.first, World);
+	ANIMDATA_NODETREE_IDS_CB(bmain->world.first, World);
 
 	/* scenes */
-	ANIMDATA_NODETREE_IDS_CB(mainptr->scene.first, Scene);
+	ANIMDATA_NODETREE_IDS_CB(bmain->scene.first, Scene);
 
 	/* line styles */
-	ANIMDATA_IDS_CB(mainptr->linestyle.first);
+	ANIMDATA_IDS_CB(bmain->linestyle.first);
 	
 	/* grease pencil */
-	ANIMDATA_IDS_CB(mainptr->gpencil.first);
+	ANIMDATA_IDS_CB(bmain->gpencil.first);
 
 	/* cache files */
-	ANIMDATA_IDS_CB(mainptr->cachefiles.first);
+	ANIMDATA_IDS_CB(bmain->cachefiles.first);
 }
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
@@ -1181,7 +1184,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 /* TODO: use BKE_animdata_main_cb for looping over all data  */
 void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const char *oldName, const char *newName)
 {
-	Main *mainptr = G.main;
+	Main *bmain = G.main;  /* XXX UGLY! */
 	ID *id;
 	
 	/* macro for less typing 
@@ -1207,67 +1210,67 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const cha
 	} (void)0
 	
 	/* nodes */
-	RENAMEFIX_ANIM_IDS(mainptr->nodetree.first);
+	RENAMEFIX_ANIM_IDS(bmain->nodetree.first);
 	
 	/* textures */
-	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->tex.first, Tex);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->tex.first, Tex);
 	
 	/* lamps */
-	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->lamp.first, Lamp);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->lamp.first, Lamp);
 	
 	/* materials */
-	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->mat.first, Material);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->mat.first, Material);
 	
 	/* cameras */
-	RENAMEFIX_ANIM_IDS(mainptr->camera.first);
+	RENAMEFIX_ANIM_IDS(bmain->camera.first);
 	
 	/* shapekeys */
-	RENAMEFIX_ANIM_IDS(mainptr->key.first);
+	RENAMEFIX_ANIM_IDS(bmain->key.first);
 	
 	/* metaballs */
-	RENAMEFIX_ANIM_IDS(mainptr->mball.first);
+	RENAMEFIX_ANIM_IDS(bmain->mball.first);
 	
 	/* curves */
-	RENAMEFIX_ANIM_IDS(mainptr->curve.first);
+	RENAMEFIX_ANIM_IDS(bmain->curve.first);
 	
 	/* armatures */
-	RENAMEFIX_ANIM_IDS(mainptr->armature.first);
+	RENAMEFIX_ANIM_IDS(bmain->armature.first);
 	
 	/* lattices */
-	RENAMEFIX_ANIM_IDS(mainptr->latt.first);
+	RENAMEFIX_ANIM_IDS(bmain->latt.first);
 	
 	/* meshes */
-	RENAMEFIX_ANIM_IDS(mainptr->mesh.first);
+	RENAMEFIX_ANIM_IDS(bmain->mesh.first);
 	
 	/* particles */
-	RENAMEFIX_ANIM_IDS(mainptr->particle.first);
+	RENAMEFIX_ANIM_IDS(bmain->particle.first);
 
 	/* speakers */
-	RENAMEFIX_ANIM_IDS(mainptr->speaker.first);
+	RENAMEFIX_ANIM_IDS(bmain->speaker.first);
 
 	/* movie clips */
-	RENAMEFIX_ANIM_IDS(mainptr->movieclip.first);
+	RENAMEFIX_ANIM_IDS(bmain->movieclip.first);
 
 	/* objects */
-	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
+	RENAMEFIX_ANIM_IDS(bmain->object.first);
 
 	/* masks */
-	RENAMEFIX_ANIM_IDS(mainptr->mask.first);
+	RENAMEFIX_ANIM_IDS(bmain->mask.first);
 	
 	/* worlds */
-	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->world.first, World);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->world.first, World);
 	
 	/* linestyles */
-	RENAMEFIX_ANIM_IDS(mainptr->linestyle.first);
+	RENAMEFIX_ANIM_IDS(bmain->linestyle.first);
 	
 	/* grease pencil */
-	RENAMEFIX_ANIM_IDS(mainptr->gpencil.first);
+	RENAMEFIX_ANIM_IDS(bmain->gpencil.first);
 
 	/* cache files */
-	RENAMEFIX_ANIM_IDS(mainptr->cachefiles.first);
+	RENAMEFIX_ANIM_IDS(bmain->cachefiles.first);
 	
 	/* scenes */
-	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->scene.first, Scene);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->scene.first, Scene);
 }
 
 /* *********************************** */ 

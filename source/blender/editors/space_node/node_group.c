@@ -260,7 +260,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 		waction = wgroup->adt->action = BKE_action_copy(bmain, wgroup->adt->action);
 
 		/* now perform the moving */
-		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
+		BKE_animdata_separate_by_basepath(bmain, &wgroup->id, &ntree->id, &anim_basepaths);
 
 		/* paths + their wrappers need to be freed */
 		for (ld = anim_basepaths.first; ld; ld = ldn) {
@@ -397,7 +397,8 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 /* ******************** Separate operator ********************** */
 
 /* returns 1 if its OK */
-static int node_group_separate_selected(bNodeTree *ntree, bNodeTree *ngroup, float offx, float offy, int make_copy)
+static int node_group_separate_selected(
+        Main *bmain, bNodeTree *ntree, bNodeTree *ngroup, float offx, float offy, int make_copy)
 {
 	bNodeLink *link, *link_next;
 	bNode *node, *node_next, *newnode;
@@ -492,7 +493,7 @@ static int node_group_separate_selected(bNodeTree *ntree, bNodeTree *ngroup, flo
 		LinkData *ld, *ldn = NULL;
 
 		/* now perform the moving */
-		BKE_animdata_separate_by_basepath(&ngroup->id, &ntree->id, &anim_basepaths);
+		BKE_animdata_separate_by_basepath(bmain, &ngroup->id, &ntree->id, &anim_basepaths);
 
 		/* paths + their wrappers need to be freed */
 		for (ld = anim_basepaths.first; ld; ld = ldn) {
@@ -524,12 +525,13 @@ static const EnumPropertyItem node_group_separate_types[] = {
 
 static int node_group_separate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ngroup, *nparent;
 	int type = RNA_enum_get(op->ptr, "type");
 	float offx, offy;
 
-	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 	/* are we inside of a group? */
 	ngroup = snode->edittree;
@@ -543,13 +545,13 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 
 	switch (type) {
 		case NODE_GS_COPY:
-			if (!node_group_separate_selected(nparent, ngroup, offx, offy, 1)) {
+			if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, 1)) {
 				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
 			break;
 		case NODE_GS_MOVE:
-			if (!node_group_separate_selected(nparent, ngroup, offx, offy, 0)) {
+			if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, 0)) {
 				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
@@ -681,6 +683,7 @@ static int node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, 
 
 static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree, bNode *gnode)
 {
+	Main *bmain = CTX_data_main(C);
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeLink *link, *linkn;
 	bNode *node, *nextn;
@@ -742,7 +745,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 	if (ntree->adt) {
 		LinkData *ld, *ldn = NULL;
 
-		BKE_animdata_separate_by_basepath(&ntree->id, &ngroup->id, &anim_basepaths);
+		BKE_animdata_separate_by_basepath(bmain, &ntree->id, &ngroup->id, &anim_basepaths);
 
 		/* paths + their wrappers need to be freed */
 		for (ld = anim_basepaths.first; ld; ld = ldn) {

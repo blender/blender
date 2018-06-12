@@ -1891,7 +1891,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 						/* Needed to remap texcomesh below. */
 						me = ob->data = ID_NEW_SET(ob->data, BKE_mesh_copy(bmain, ob->data));
 						if (me->key)  /* We do not need to set me->key->id.newid here... */
-							BKE_animdata_copy_id_action((ID *)me->key, false);
+							BKE_animdata_copy_id_action(bmain, (ID *)me->key, false);
 						break;
 					case OB_MBALL:
 						ob->data = ID_NEW_SET(ob->data, BKE_mball_copy(bmain, ob->data));
@@ -1903,12 +1903,12 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 						ID_NEW_REMAP(cu->bevobj);
 						ID_NEW_REMAP(cu->taperobj);
 						if (cu->key)  /* We do not need to set cu->key->id.newid here... */
-							BKE_animdata_copy_id_action((ID *)cu->key, false);
+							BKE_animdata_copy_id_action(bmain, (ID *)cu->key, false);
 						break;
 					case OB_LATTICE:
 						ob->data = lat = ID_NEW_SET(ob->data, BKE_lattice_copy(bmain, ob->data));
 						if (lat->key)  /* We do not need to set lat->key->id.newid here... */
-							BKE_animdata_copy_id_action((ID *)lat->key, false);
+							BKE_animdata_copy_id_action(bmain, (ID *)lat->key, false);
 						break;
 					case OB_ARMATURE:
 						DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1929,7 +1929,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 				 * AnimData structure, which is not what we want.
 				 *                                             (sergey)
 				 */
-				BKE_animdata_copy_id_action((ID *)ob->data, false);
+				BKE_animdata_copy_id_action(bmain, (ID *)ob->data, false);
 
 				id_us_min(id);
 			}
@@ -1943,7 +1943,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 	}
 }
 
-static void single_object_action_users(Scene *scene, const int flag)
+static void single_object_action_users(Main *bmain, Scene *scene, const int flag)
 {
 	Object *ob;
 	Base *base;
@@ -1952,7 +1952,7 @@ static void single_object_action_users(Scene *scene, const int flag)
 		ob = base->object;
 		if (!ID_IS_LINKED(ob) && (flag == 0 || (base->flag & SELECT)) ) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-			BKE_animdata_copy_id_action(&ob->id, false);
+			BKE_animdata_copy_id_action(bmain, &ob->id, false);
 		}
 	}
 }
@@ -1975,7 +1975,7 @@ static void single_mat_users(Main *bmain, Scene *scene, const int flag, const bo
 
 					if (ma->id.us > 1) {
 						man = BKE_material_copy(bmain, ma);
-						BKE_animdata_copy_id_action(&man->id, false);
+						BKE_animdata_copy_id_action(bmain, &man->id, false);
 
 						man->id.us = 0;
 						assign_material(bmain, ob, man, a, BKE_MAT_ASSIGN_USERPREF);
@@ -1986,7 +1986,7 @@ static void single_mat_users(Main *bmain, Scene *scene, const int flag, const bo
 									if (tex->id.us > 1) {
 										id_us_min(&tex->id);
 										tex = BKE_texture_copy(bmain, tex);
-										BKE_animdata_copy_id_action(&tex->id, false);
+										BKE_animdata_copy_id_action(bmain, &tex->id, false);
 										man->mtex[b]->tex = tex;
 									}
 								}
@@ -2013,7 +2013,7 @@ static void do_single_tex_user(Main *bmain, Tex **from)
 	}
 	else if (tex->id.us > 1) {
 		texn = ID_NEW_SET(tex, BKE_texture_copy(bmain, tex));
-		BKE_animdata_copy_id_action(&texn->id, false);
+		BKE_animdata_copy_id_action(bmain, &texn->id, false);
 		tex->id.newid = (ID *)texn;
 		id_us_min(&tex->id);
 		*from = texn;
@@ -2100,7 +2100,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 
 	if (full) {
 		single_obdata_users(bmain, scene, 0);
-		single_object_action_users(scene, 0);
+		single_object_action_users(bmain, scene, 0);
 		single_mat_users_expand(bmain);
 		single_tex_users_expand(bmain);
 	}
@@ -2438,7 +2438,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 		single_mat_users(scene, flag, true);
 #endif
 	if (RNA_boolean_get(op->ptr, "animation")) {
-		single_object_action_users(scene, flag);
+		single_object_action_users(bmain, scene, flag);
 	}
 
 	BKE_main_id_clear_newpoins(bmain);
