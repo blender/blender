@@ -404,8 +404,9 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *ar)
 	/* pixel space */
 	wmOrtho2_region_pixelspace(ar);
 
-	if (data->noback == false)
-		ui_draw_search_back(NULL, NULL, &data->bbox);  /* style not used yet */
+	if (data->noback == false) {
+		ui_draw_widget_back(UI_WTYPE_BOX, true, &data->bbox);
+	}
 
 	/* draw text */
 	if (data->items.totitem) {
@@ -681,8 +682,9 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 	/* pixel space */
 	wmOrtho2_region_pixelspace(ar);
 
-	if (data->noback == false)
-		ui_draw_search_back(NULL, NULL, &data->bbox);  /* style not used yet */
+	if (data->noback == false) {
+		ui_draw_widget_back(UI_WTYPE_BOX, true, &data->bbox);
+	}
 
 	/* draw text */
 	if (data->items.totitem) {

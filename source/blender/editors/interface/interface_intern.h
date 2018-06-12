@@ -757,8 +757,9 @@ void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_popover_back(ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_pie_center(uiBlock *block);
 uiWidgetColors *ui_tooltip_get_theme(void);
+
+void ui_draw_widget_back(uiWidgetTypeEnum type, bool use_shadow, const rcti *rect);
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *block, rcti *rect);
-void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
 /* theme color init */
