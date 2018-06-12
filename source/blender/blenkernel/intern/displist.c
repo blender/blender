@@ -1573,7 +1573,7 @@ static void do_makeDispListCurveTypes(
 		}
 
 		if (ob->type == OB_FONT) {
-			BKE_vfont_to_curve_nubase(G.main, ob, FO_EDIT, &nubase);
+			BKE_vfont_to_curve_nubase(ob, FO_EDIT, &nubase);
 		}
 		else {
 			BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));

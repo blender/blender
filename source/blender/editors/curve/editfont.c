@@ -246,7 +246,6 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 
 static void text_update_edited(bContext *C, Object *obedit, int mode)
 {
-	struct Main *bmain = CTX_data_main(C);
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
 
@@ -259,7 +258,7 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 	}
 	else {
 		/* depsgraph runs above, but since we're not tagging for update, call direct */
-		BKE_vfont_to_curve(bmain, obedit, mode);
+		BKE_vfont_to_curve(obedit, mode);
 	}
 
 	cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
@@ -982,16 +981,14 @@ static int move_cursor(bContext *C, int type, const bool select)
 	/* apply virtical cursor motion to position immediately
 	 * otherwise the selection will lag behind */
 	if (FO_CURS_IS_MOTION(cursmove)) {
-		struct Main *bmain = CTX_data_main(C);
-		BKE_vfont_to_curve(bmain, obedit, cursmove);
+		BKE_vfont_to_curve(obedit, cursmove);
 		cursmove = FO_CURS;
 	}
 
 	if (select == 0) {
 		if (ef->selstart) {
-			struct Main *bmain = CTX_data_main(C);
 			ef->selstart = ef->selend = 0;
-			BKE_vfont_to_curve(bmain, obedit, FO_SELCHANGE);
+			BKE_vfont_to_curve(obedit, FO_SELCHANGE);
 		}
 	}
 
