@@ -76,7 +76,7 @@ struct AnimData *BKE_animdata_copy(struct Main *bmain, struct AnimData *adt, con
 bool BKE_animdata_copy_id(struct Main *bmain, struct ID *id_to, struct ID *id_from, const bool do_action, const bool do_id_user);
 
 /* Copy AnimData Actions */
-void BKE_animdata_copy_id_action(struct ID *id, const bool set_newid);
+void BKE_animdata_copy_id_action(struct Main *bmain, struct ID *id, const bool set_newid);
 
 /* Merge copies of data from source AnimData block */
 typedef enum eAnimData_MergeCopy_Modes {
@@ -90,7 +90,9 @@ typedef enum eAnimData_MergeCopy_Modes {
 	ADT_MERGECOPY_SRC_REF  = 2
 } eAnimData_MergeCopy_Modes;
 
-void BKE_animdata_merge_copy(struct ID *dst_id, struct ID *src_id, eAnimData_MergeCopy_Modes action_mode, bool fix_drivers);
+void BKE_animdata_merge_copy(
+        struct Main *bmain, struct ID *dst_id, struct ID *src_id,
+        eAnimData_MergeCopy_Modes action_mode, bool fix_drivers);
 
 /* ************************************* */
 /* KeyingSets API */
@@ -141,7 +143,8 @@ void BKE_animdata_fix_paths_remove(struct ID *id, const char *path);
 /* -------------------------------------- */
 
 /* Move animation data from src to destination if it's paths are based on basepaths */
-void BKE_animdata_separate_by_basepath(struct ID *srcID, struct ID *dstID, struct ListBase *basepaths);
+void BKE_animdata_separate_by_basepath(
+        struct Main *bmain, struct ID *srcID, struct ID *dstID, struct ListBase *basepaths);
 
 /* Move F-Curves from src to destination if it's path is based on basepath */
 void action_move_fcurves_by_basepath(struct bAction *srcAct, struct bAction *dstAct, const char basepath[]);

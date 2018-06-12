@@ -5724,10 +5724,10 @@ static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int cfra)
 	}
 }
 
-void BKE_sequencer_all_free_anim_ibufs(int cfra)
+void BKE_sequencer_all_free_anim_ibufs(Main *bmain, int cfra)
 {
 	BKE_sequencer_cache_cleanup();
-	for (Scene *scene = G.main->scene.first;
+	for (Scene *scene = bmain->scene.first;
 	     scene != NULL;
 	     scene = scene->id.next)
 	{

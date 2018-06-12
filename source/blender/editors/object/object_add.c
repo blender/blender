@@ -2098,7 +2098,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 
 		/* duplicates using userflags */
 		if (dupflag & USER_DUP_ACT) {
-			BKE_animdata_copy_id_action(&obn->id, true);
+			BKE_animdata_copy_id_action(bmain, &obn->id, true);
 		}
 
 		if (dupflag & USER_DUP_MAT) {
@@ -2112,7 +2112,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					id_us_min(id);
 
 					if (dupflag & USER_DUP_ACT) {
-						BKE_animdata_copy_id_action(&obn->mat[a]->id, true);
+						BKE_animdata_copy_id_action(bmain, &obn->mat[a]->id, true);
 					}
 				}
 			}
@@ -2128,7 +2128,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					}
 
 					if (dupflag & USER_DUP_ACT) {
-						BKE_animdata_copy_id_action(&psys->part->id, true);
+						BKE_animdata_copy_id_action(bmain, &psys->part->id, true);
 					}
 
 					id_us_min(id);
@@ -2256,9 +2256,9 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 			}
 
 			if (dupflag & USER_DUP_ACT) {
-				BKE_animdata_copy_id_action((ID *)obn->data, true);
+				BKE_animdata_copy_id_action(bmain, (ID *)obn->data, true);
 				if (key) {
-					BKE_animdata_copy_id_action((ID *)key, true);
+					BKE_animdata_copy_id_action(bmain, (ID *)key, true);
 				}
 			}
 

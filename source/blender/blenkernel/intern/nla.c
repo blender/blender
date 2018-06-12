@@ -54,9 +54,10 @@
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
-#include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_nla.h"
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Special.h>
@@ -162,7 +163,7 @@ void BKE_nla_tracks_free(ListBase *tracks)
  *
  * \param use_same_action When true, the existing action is used (instead of being duplicated)
  */
-NlaStrip *BKE_nlastrip_copy(NlaStrip *strip, const bool use_same_action)
+NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_action)
 {
 	NlaStrip *strip_d;
 	NlaStrip *cs, *cs_d;
@@ -183,7 +184,7 @@ NlaStrip *BKE_nlastrip_copy(NlaStrip *strip, const bool use_same_action)
 		}
 		else {
 			/* use a copy of the action instead (user count shouldn't have changed yet) */
-			strip_d->act = BKE_action_copy(G.main, strip_d->act);
+			strip_d->act = BKE_action_copy(bmain, strip_d->act);
 		}
 	}
 		
@@ -195,7 +196,7 @@ NlaStrip *BKE_nlastrip_copy(NlaStrip *strip, const bool use_same_action)
 	BLI_listbase_clear(&strip_d->strips);
 	
 	for (cs = strip->strips.first; cs; cs = cs->next) {
-		cs_d = BKE_nlastrip_copy(cs, use_same_action);
+		cs_d = BKE_nlastrip_copy(bmain, cs, use_same_action);
 		BLI_addtail(&strip_d->strips, cs_d);
 	}
 	
@@ -204,7 +205,7 @@ NlaStrip *BKE_nlastrip_copy(NlaStrip *strip, const bool use_same_action)
 }
 
 /* Copy NLA Track */
-NlaTrack *BKE_nlatrack_copy(NlaTrack *nlt, const bool use_same_actions)
+NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, const bool use_same_actions)
 {
 	NlaStrip *strip, *strip_d;
 	NlaTrack *nlt_d;
@@ -221,7 +222,7 @@ NlaTrack *BKE_nlatrack_copy(NlaTrack *nlt, const bool use_same_actions)
 	BLI_listbase_clear(&nlt_d->strips);
 	
 	for (strip = nlt->strips.first; strip; strip = strip->next) {
-		strip_d = BKE_nlastrip_copy(strip, use_same_actions);
+		strip_d = BKE_nlastrip_copy(bmain, strip, use_same_actions);
 		BLI_addtail(&nlt_d->strips, strip_d);
 	}
 	
@@ -230,7 +231,7 @@ NlaTrack *BKE_nlatrack_copy(NlaTrack *nlt, const bool use_same_actions)
 }
 
 /* Copy all NLA data */
-void BKE_nla_tracks_copy(ListBase *dst, ListBase *src)
+void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src)
 {
 	NlaTrack *nlt, *nlt_d;
 	
@@ -245,7 +246,7 @@ void BKE_nla_tracks_copy(ListBase *dst, ListBase *src)
 	for (nlt = src->first; nlt; nlt = nlt->next) {
 		/* make a copy, and add the copy to the destination list */
 		// XXX: we need to fix this sometime
-		nlt_d = BKE_nlatrack_copy(nlt, true);
+		nlt_d = BKE_nlatrack_copy(bmain, nlt, true);
 		BLI_addtail(dst, nlt_d);
 	}
 }
