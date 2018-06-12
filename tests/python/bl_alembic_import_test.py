@@ -93,6 +93,7 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertIsNone(objects['locator2'].parent)
 
         # Shouldn't have inherited the ABC parent's transform.
+        loc2 = bpy.context.depsgraph.id_eval_get(objects['locator2'])
         x, y, z = objects['locator2'].matrix_world.to_translation()
         self.assertAlmostEqual(0, x)
         self.assertAlmostEqual(0, y)
@@ -102,7 +103,8 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertEqual(objects['locator2'], objects['locatorShape2'].parent)
 
         # Should have inherited its ABC parent's transform.
-        x, y, z = objects['locatorShape2'].matrix_world.to_translation()
+        locshp2 = bpy.context.depsgraph.id_eval_get(objects['locatorShape2'])
+        x, y, z = locshp2.matrix_world.to_translation()
         self.assertAlmostEqual(0, x)
         self.assertAlmostEqual(0, y)
         self.assertAlmostEqual(2, z)
@@ -143,6 +145,7 @@ class SimpleImportTest(AbstractAlembicTest):
 
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(10)
+        cube = bpy.context.depsgraph.id_eval_get(cube)
         x, y, z = cube.matrix_world.to_euler('XYZ')
         self.assertAlmostEqual(x, 0)
         self.assertAlmostEqual(y, 0)
@@ -153,6 +156,7 @@ class SimpleImportTest(AbstractAlembicTest):
         bpy.data.cache_files[fname].filepath = relpath
         bpy.context.scene.frame_set(10)
 
+        cube = bpy.context.depsgraph.id_eval_get(cube)
         x, y, z = cube.matrix_world.to_euler('XYZ')
         self.assertAlmostEqual(x, 0)
         self.assertAlmostEqual(y, 0)
@@ -165,6 +169,7 @@ class SimpleImportTest(AbstractAlembicTest):
         if args.with_legacy_depsgraph:
             bpy.context.scene.frame_set(10)
 
+        cube = bpy.context.depsgraph.id_eval_get(cube)
         x, y, z = cube.matrix_world.to_euler('XYZ')
         self.assertAlmostEqual(x, math.pi / 2, places=5)
         self.assertAlmostEqual(y, 0)
