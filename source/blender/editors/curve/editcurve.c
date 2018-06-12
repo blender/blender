@@ -5803,7 +5803,7 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	/* properties */
 	prop = RNA_def_enum(ot->srna, "type", curve_delete_type_items, 0, "Type", "Which elements to delete");
 	RNA_def_enum_funcs(prop, rna_curve_delete_type_itemf);
-
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	ot->prop = prop;
 }
 

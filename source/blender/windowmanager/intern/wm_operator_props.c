@@ -130,7 +130,9 @@ void WM_operator_properties_filesel(
 static void wm_operator_properties_select_action_ex(wmOperatorType *ot, int default_action,
                                                     const EnumPropertyItem *select_actions)
 {
-	RNA_def_enum(ot->srna, "action", select_actions, default_action, "Action", "Selection action to execute");
+	PropertyRNA *prop;
+	prop = RNA_def_enum(ot->srna, "action", select_actions, default_action, "Action", "Selection action to execute");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 void WM_operator_properties_select_action(wmOperatorType *ot, int default_action)

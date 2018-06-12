@@ -560,17 +560,20 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	}
 
 	if (flags & P_GPENCIL_EDIT) {
-		RNA_def_boolean(ot->srna, "gpencil_strokes", 0, "Edit Grease Pencil", "Edit selected Grease Pencil strokes");
+		prop = RNA_def_boolean(ot->srna, "gpencil_strokes", 0, "Edit Grease Pencil", "Edit selected Grease Pencil strokes");
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	}
 
 	if (flags & P_CURSOR_EDIT) {
-		RNA_def_boolean(ot->srna, "cursor_transform", 0, "Transform Cursor", "");
+		prop = RNA_def_boolean(ot->srna, "cursor_transform", 0, "Transform Cursor", "");
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	}
 
 	if ((flags & P_OPTIONS) && !(flags & P_NO_TEXSPACE)) {
-		RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Texture Space", "Edit Object data texture space");
+		prop = RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Texture Space", "Edit Object data texture space");
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 		prop = RNA_def_boolean(ot->srna, "remove_on_cancel", 0, "Remove on Cancel", "Remove elements on cancel");
-		RNA_def_property_flag(prop, PROP_HIDDEN);
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	}
 
 	if (flags & P_CORRECT_UV) {

@@ -98,13 +98,13 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
 	const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
-	if (RNA_boolean_get(op->ptr, "quadtri") &&
+	if (RNA_boolean_get(op->ptr, "ngon") &&
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT)
 	{
 		RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
 	}
 	const int quad_corner_type = RNA_enum_get(op->ptr, "quadcorner");
-	const bool use_quad_tri = RNA_boolean_get(op->ptr, "quadtri");
+	const bool use_quad_tri = !RNA_boolean_get(op->ptr, "ngon");
 	const int seed = RNA_int_get(op->ptr, "seed");
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -170,7 +170,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 	WM_operatortype_props_advanced_begin(ot);
 
-	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
+	RNA_def_boolean(ot->srna, "ngon", true, "Create N-Gons", "When disabled, newly created faces are limited to 3-4 sided faces");
 	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_CORNER_STRAIGHT_CUT,
 	             "Quad Corner Type", "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
 
@@ -512,6 +512,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 	/* props */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, MESH_DELETE_VERT,
 	                        "Type", "Method used for deleting mesh data");
+	RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -1030,7 +1031,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	WM_operatortype_props_advanced_begin(ot);
 }
@@ -1103,7 +1104,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "use_verts", false, "Vertices",
 	                       "Consider vertices instead of edges to select which edges to (un)tag as sharp");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -6829,7 +6830,7 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -6912,7 +6913,7 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
