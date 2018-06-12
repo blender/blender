@@ -897,7 +897,7 @@ static void screen_refresh_headersizes(void)
 	SpaceType *st;
 
 	for (st = lb->first; st; st = st->next) {
-		ARegionType *art = BKE_regiontype_from_id_or_first(st, RGN_TYPE_HEADER);
+		ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_HEADER);
 		if (art) art->prefsizey = ED_area_headersize();
 	}
 }

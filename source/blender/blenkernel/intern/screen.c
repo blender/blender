@@ -197,7 +197,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	
 	/* use optional regiondata callback */
 	if (ar->regiondata) {
-		ARegionType *art = BKE_regiontype_from_id_or_first(st, ar->regiontype);
+		ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
 
 		if (art && art->duplicate)
 			newar->regiondata = art->duplicate(ar->regiondata);
@@ -307,7 +307,7 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 	uiList *uilst;
 
 	if (st) {
-		ARegionType *art = BKE_regiontype_from_id_or_first(st, ar->regiontype);
+		ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
 		
 		if (art && art->free)
 			art->free(ar);
