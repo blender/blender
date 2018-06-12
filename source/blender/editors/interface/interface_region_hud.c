@@ -236,7 +236,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 	ED_area_type_hud_clear(wm, sa);
 
 	ARegionType *art = BKE_regiontype_from_id(sa->type, RGN_TYPE_HUD);
-	if (art == NULL) {
+	if ((art == NULL) || (art->regionid != RGN_TYPE_HUD)) {
 		return;
 	}
 
