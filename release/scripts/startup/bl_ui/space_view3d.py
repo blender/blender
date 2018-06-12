@@ -498,8 +498,8 @@ class VIEW3D_MT_view(Menu):
         layout = self.layout
         view = context.space_data
 
-        layout.operator("view3d.toolshelf", icon='MENU_PANEL', text="Show Toolbar")
-        layout.operator("view3d.properties", icon='MENU_PANEL', text="Show Sidebar")
+        layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+        layout.operator("view3d.properties", icon='MENU_PANEL')
 
         layout.separator()
 

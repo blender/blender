@@ -91,7 +91,7 @@ static int text_properties_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Properties";
+	ot->name = "Toggle Sidebar";
 	ot->description = "Toggle the properties region visibility";
 	ot->idname = "TEXT_OT_properties";
 

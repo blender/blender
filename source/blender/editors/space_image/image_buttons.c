@@ -1313,7 +1313,7 @@ static int image_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_properties(wmOperatorType *ot)
 {
-	ot->name = "Properties";
+	ot->name = "Toggle Sidebar";
 	ot->idname = "IMAGE_OT_properties";
 	ot->description = "Toggle the properties region visibility";
 
@@ -1337,7 +1337,7 @@ static int image_scopes_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_toolshelf(wmOperatorType *ot)
 {
-	ot->name = "Tool Shelf";
+	ot->name = "Toggle Toolbar";
 	ot->idname = "IMAGE_OT_toolshelf";
 	ot->description = "Toggles tool shelf display";
 

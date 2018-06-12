@@ -190,7 +190,7 @@ static int view3d_toolshelf_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 {
-	ot->name = "Tool Shelf";
+	ot->name = "Toggle Toolbar";
 	ot->description = "Toggles tool shelf display";
 	ot->idname = "VIEW3D_OT_toolshelf";
 
