@@ -116,7 +116,7 @@ static SpaceLink *action_new(const ScrArea *sa, const Scene *scene)
 
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 
 	/* channel list region */
 	ar = MEM_callocN(sizeof(ARegion), "channel region for action");
