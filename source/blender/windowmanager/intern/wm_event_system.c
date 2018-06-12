@@ -843,6 +843,7 @@ static bool wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
 static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat, const bool store)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
+	enum { NOP, SET, CLEAR, } hud_status = NOP;
 
 	op->customdata = NULL;
 
@@ -854,10 +855,15 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 	 * called from operators that already do an undo push. usually
 	 * this will happen for python operators that call C operators */
 	if (wm->op_undo_depth == 0) {
-		if (op->type->flag & OPTYPE_UNDO)
+		if (op->type->flag & OPTYPE_UNDO) {
 			ED_undo_push_op(C, op);
-		else if (op->type->flag & OPTYPE_UNDO_GROUPED)
+			hud_status = CLEAR;
+		}
+		else if (op->type->flag & OPTYPE_UNDO_GROUPED) {
 			ED_undo_grouped_push_op(C, op);
+			hud_status = CLEAR;
+		}
+
 	}
 
 	if (repeat == 0) {
@@ -875,15 +881,25 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 			WM_operator_region_active_win_set(C);
 
 			/* Show the redo panel. */
-			{
-				ScrArea *sa = CTX_wm_area(C);
-				if (sa) {
-					ED_area_type_hud_ensure(C, sa);
-				}
-			}
+			hud_status = SET;
 		}
 		else {
 			WM_operator_free(op);
+		}
+	}
+
+	if (hud_status != NOP) {
+		if (hud_status == SET) {
+			ScrArea *sa = CTX_wm_area(C);
+			if (sa) {
+				ED_area_type_hud_ensure(C, sa);
+			}
+		}
+		else if (hud_status == CLEAR) {
+			ED_area_type_hud_clear(wm, NULL);
+		}
+		else {
+			BLI_assert(0);
 		}
 	}
 }

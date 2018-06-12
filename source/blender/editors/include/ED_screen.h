@@ -320,6 +320,7 @@ void ED_region_cache_draw_cached_segments(const struct ARegion *ar, const int nu
 
 /* interface_region_hud.c */
 struct ARegionType *ED_area_type_hud(int space_type);
+void ED_area_type_hud_clear(struct wmWindowManager *wm, ScrArea *sa_keep);
 void ED_area_type_hud_ensure(struct bContext *C, struct ScrArea *sa);
 
 /* default keymaps, bitflags */

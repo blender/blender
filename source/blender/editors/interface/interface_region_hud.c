@@ -210,27 +210,30 @@ static ARegion *hud_region_add(ScrArea *sa)
 	return ar;
 }
 
-void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
+void ED_area_type_hud_clear(wmWindowManager *wm, ScrArea *sa_keep)
 {
-	/* We only want one at a time. */
-	Main *bmain = CTX_data_main(C);
-	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-		for (wmWindow *win = wm->windows.first; win; win = win->next) {
-			bScreen *screen = WM_window_get_active_screen(win);
-			for (ScrArea *sa_iter = screen->areabase.first; sa_iter; sa_iter = sa_iter->next) {
-				if (sa != sa_iter) {
-					for (ARegion *ar = sa_iter->regionbase.first; ar; ar = ar->next) {
-						if (ar->regiontype == RGN_TYPE_HUD) {
-							if ((ar->flag & RGN_FLAG_HIDDEN) == 0) {
-								ar->flag |= RGN_FLAG_HIDDEN;
-								ED_region_tag_redraw(ar);
-							}
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		bScreen *screen = WM_window_get_active_screen(win);
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			if (sa != sa_keep) {
+				for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+					if (ar->regiontype == RGN_TYPE_HUD) {
+						if ((ar->flag & RGN_FLAG_HIDDEN) == 0) {
+							ar->flag |= RGN_FLAG_HIDDEN;
+							ED_region_tag_redraw(ar);
+							ED_area_tag_redraw(sa);
 						}
 					}
 				}
 			}
 		}
 	}
+}
+
+void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	ED_area_type_hud_clear(wm, sa);
 
 	ARegionType *art = BKE_regiontype_from_id(sa->type, RGN_TYPE_HUD);
 	if (art == NULL) {
@@ -241,6 +244,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 	ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_HUD);
 	if (!last_redo_poll(C)) {
 		if (ar) {
+			ED_region_tag_redraw(ar);
 			ar->flag |= RGN_FLAG_HIDDEN;
 		}
 		return;
