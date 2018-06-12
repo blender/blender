@@ -86,13 +86,13 @@ struct VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath);
 
 void BKE_vfont_make_local(struct Main *bmain, struct VFont *vfont, const bool lib_local);
 
-bool BKE_vfont_to_curve_ex(struct Main *bmain, struct Object *ob, struct Curve *cu, int mode,
+bool BKE_vfont_to_curve_ex(struct Object *ob, struct Curve *cu, int mode,
                            struct ListBase *r_nubase,
                            const wchar_t **r_text, int *r_text_len, bool *r_text_free,
                            struct CharTrans **r_chartransdata);
-bool BKE_vfont_to_curve_nubase(struct Main *bmain, struct Object *ob, int mode,
+bool BKE_vfont_to_curve_nubase(struct Object *ob, int mode,
                                struct ListBase *r_nubase);
-bool BKE_vfont_to_curve(struct Main *bmain, struct Object *ob, int mode);
+bool BKE_vfont_to_curve(struct Object *ob, int mode);
 
 int BKE_vfont_select_get(struct Object *ob, int *r_start, int *r_end);
 void BKE_vfont_select_clamp(struct Object *ob);
