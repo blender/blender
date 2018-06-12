@@ -242,7 +242,6 @@ void BKE_object_handle_data_update(
 	if (!(ob->mode & OB_MODE_EDIT) && ob->particlesystem.first) {
 		const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 		ParticleSystem *tpsys, *psys;
-		DerivedMesh *dm;
 		ob->transflag &= ~OB_DUPLIPARTS;
 		psys = ob->particlesystem.first;
 		while (psys) {
@@ -266,18 +265,6 @@ void BKE_object_handle_data_update(
 			}
 			else
 				psys = psys->next;
-		}
-
-		if (use_render_params && ob->transflag & OB_DUPLIPARTS) {
-			/* this is to make sure we get render level duplis in groups:
-			 * the derivedmesh must be created before init_render_mesh,
-			 * since object_duplilist does dupliparticles before that */
-			CustomDataMask data_mask = CD_MASK_BAREMESH | CD_MASK_MFACE | CD_MASK_MTFACE | CD_MASK_MCOL;
-			dm = mesh_create_derived_render(depsgraph, scene, ob, data_mask);
-			dm->release(dm);
-
-			for (psys = ob->particlesystem.first; psys; psys = psys->next)
-				psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 		}
 	}
 
