@@ -262,17 +262,6 @@ class TOPBAR_HT_lower_bar(Header):
 
         layout.prop(scene, "transform_orientation", text="")
 
-        # Command Settings (redo)
-        op = context.active_operator
-        row = layout.row()
-        row.enabled = op is not None
-        row.popover(
-            space_type='TOPBAR',
-            region_type='HEADER',
-            panel_type="TOPBAR_PT_redo",
-            text=op.name + " Settings" if op else "Command Settings",
-        )
-
 
 class _draw_left_context_mode:
     @staticmethod
