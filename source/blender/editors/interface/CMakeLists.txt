@@ -58,6 +58,7 @@ set(SRC
 	interface_panel.c
 	interface_regions.c
 	interface_region_color_picker.c
+	interface_region_hud.c
 	interface_region_menu_pie.c
 	interface_region_menu_popup.c
 	interface_region_popover.c

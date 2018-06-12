@@ -1565,5 +1565,9 @@ void ED_spacetype_view3d(void)
 	art->message_subscribe = view3d_header_region_message_subscribe;
 	BLI_addhead(&st->regiontypes, art);
 
+	/* regions: hud */
+	art = ED_area_type_hud(st->spaceid);
+	BLI_addhead(&st->regiontypes, art);
+
 	BKE_spacetype_register(st);
 }

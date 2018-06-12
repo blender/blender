@@ -1096,7 +1096,6 @@ void ED_spacetype_image(void)
 	art->init = image_main_region_init;
 	art->draw = image_main_region_draw;
 	art->listener = image_main_region_listener;
-
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: listview/buttons */
@@ -1132,6 +1131,10 @@ void ED_spacetype_image(void)
 	art->init = image_header_region_init;
 	art->draw = image_header_region_draw;
 
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: hud */
+	art = ED_area_type_hud(st->spaceid);
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);

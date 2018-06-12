@@ -318,6 +318,10 @@ void ED_region_cache_draw_background(const struct ARegion *ar);
 void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y);
 void ED_region_cache_draw_cached_segments(const struct ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra);
 
+/* interface_region_hud.c */
+struct ARegionType *ED_area_type_hud(int space_type);
+void ED_area_type_hud_ensure(struct bContext *C, struct ScrArea *sa);
+
 /* default keymaps, bitflags */
 #define ED_KEYMAP_UI        1
 #define ED_KEYMAP_VIEW2D    2

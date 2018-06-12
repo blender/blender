@@ -873,6 +873,14 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 
 			wm_operator_register(C, op);
 			WM_operator_region_active_win_set(C);
+
+			/* Show the redo panel. */
+			{
+				ScrArea *sa = CTX_wm_area(C);
+				if (sa) {
+					ED_area_type_hud_ensure(C, sa);
+				}
+			}
 		}
 		else {
 			WM_operator_free(op);
