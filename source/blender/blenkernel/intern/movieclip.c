@@ -171,7 +171,7 @@ static void get_sequence_fname(const MovieClip *clip,
 		BLI_strncpy(name, clip->name, sizeof(clip->name));
 	}
 
-	BLI_path_abs(name, ID_BLEND_PATH(G.main, &clip->id));
+	BLI_path_abs(name, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
 }
 
 /* supposed to work with sequences only */
@@ -261,7 +261,7 @@ static void movieclip_open_anim_file(MovieClip *clip)
 
 	if (!clip->anim) {
 		BLI_strncpy(str, clip->name, FILE_MAX);
-		BLI_path_abs(str, ID_BLEND_PATH(G.main, &clip->id));
+		BLI_path_abs(str, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
 
 		/* FIXME: make several stream accessible in image editor, too */
 		clip->anim = openanim(str, IB_rect, 0, clip->colorspace_settings.name);
@@ -1300,7 +1300,7 @@ void BKE_movieclip_reload(Main *bmain, MovieClip *clip)
 	 */
 	{
 		Scene *scene;
-		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
+		for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 			if (scene->nodetree) {
 				nodeUpdateID(scene->nodetree, &clip->id);
 			}
@@ -1568,7 +1568,7 @@ void BKE_movieclip_filename_for_frame(MovieClip *clip, MovieClipUser *user, char
 	}
 	else {
 		BLI_strncpy(name, clip->name, FILE_MAX);
-		BLI_path_abs(name, ID_BLEND_PATH(G.main, &clip->id));
+		BLI_path_abs(name, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
 	}
 }
 

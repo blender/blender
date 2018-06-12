@@ -1057,7 +1057,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
 			/* if selected, split the strip at its midpoint */
 			if (strip->flag & NLASTRIP_FLAG_SELECT) {
 				/* make a copy (assume that this is possible) */
-				nstrip = BKE_nlastrip_copy(strip, linked);
+				nstrip = BKE_nlastrip_copy(ac.bmain, strip, linked);
 
 				/* in case there's no space in the track above, or we haven't got a reference to it yet, try adding */
 				if (BKE_nlatrack_add_strip(nlt->next, nstrip) == 0) {
@@ -1207,7 +1207,7 @@ void NLA_OT_delete(wmOperatorType *ot)
 //  - variable-length splits?
 
 /* split a given Action-Clip strip */
-static void nlaedit_split_strip_actclip(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, float cfra)
+static void nlaedit_split_strip_actclip(Main *bmain, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, float cfra)
 {
 	NlaStrip *nstrip;
 	float splitframe, splitaframe;
@@ -1242,7 +1242,7 @@ static void nlaedit_split_strip_actclip(AnimData *adt, NlaTrack *nlt, NlaStrip *
 	/* make a copy (assume that this is possible) and append
 	 * it immediately after the current strip
 	 */
-	nstrip = BKE_nlastrip_copy(strip, true);
+	nstrip = BKE_nlastrip_copy(bmain, strip, true);
 	BLI_insertlinkafter(&nlt->strips, strip, nstrip);
 
 	/* set the endpoint of the first strip and the start of the new strip
@@ -1303,7 +1303,7 @@ static int nlaedit_split_exec(bContext *C, wmOperator *UNUSED(op))
 				/* splitting method depends on the type of strip */
 				switch (strip->type) {
 					case NLASTRIP_TYPE_CLIP: /* action-clip */
-						nlaedit_split_strip_actclip(adt, nlt, strip, (float)ac.scene->r.cfra);
+						nlaedit_split_strip_actclip(ac.bmain, adt, nlt, strip, (float)ac.scene->r.cfra);
 						break;
 
 					case NLASTRIP_TYPE_META: /* meta-strips need special handling */

@@ -284,7 +284,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action)
 	}
 
 	/* duplicate NLA data */
-	BKE_nla_tracks_copy(&dadt->nla_tracks, &adt->nla_tracks);
+	BKE_nla_tracks_copy(bmain, &dadt->nla_tracks, &adt->nla_tracks);
 	
 	/* duplicate drivers (F-Curves) */
 	copy_fcurves(&dadt->drivers, &adt->drivers);
@@ -366,7 +366,7 @@ void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes a
 	if (src->nla_tracks.first) {
 		ListBase tracks = {NULL, NULL};
 		
-		BKE_nla_tracks_copy(&tracks, &src->nla_tracks);
+		BKE_nla_tracks_copy(G.main, &tracks, &src->nla_tracks);
 		BLI_movelisttolist(&dst->nla_tracks, &tracks);
 	}
 	
