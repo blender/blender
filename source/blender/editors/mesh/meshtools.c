@@ -366,7 +366,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	else if (haskey) {
 		/* add a new key-block and add to the mesh */
-		key = me->key = BKE_key_add((ID *)me);
+		key = me->key = BKE_key_add(bmain, (ID *)me);
 		key->type = KEY_RELATIVE;
 	}
 
@@ -598,6 +598,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = (Mesh *)ob->data;
@@ -631,7 +632,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 
 	if (key == NULL) {
-		key = me->key = BKE_key_add((ID *)me);
+		key = me->key = BKE_key_add(bmain, (ID *)me);
 		key->type = KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialize it with the existing mesh */

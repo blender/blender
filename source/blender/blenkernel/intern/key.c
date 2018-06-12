@@ -102,12 +102,12 @@ void BKE_key_free_nolib(Key *key)
 	}
 }
 
-Key *BKE_key_add(ID *id)    /* common function */
+Key *BKE_key_add(Main *bmain, ID *id)    /* common function */
 {
 	Key *key;
 	char *el;
 	
-	key = BKE_libblock_alloc(G.main, ID_KE, "Key", 0);
+	key = BKE_libblock_alloc(bmain, ID_KE, "Key", 0);
 	
 	key->type = KEY_NORMAL;
 	key->from = id;

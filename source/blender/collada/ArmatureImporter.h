@@ -145,7 +145,7 @@ public:
 	// here we add bones to armatures, having armatures previously created in write_controller
 	void make_armatures(bContext *C, std::vector<Object *> &objects_to_scale);
 
-	void make_shape_keys();
+	void make_shape_keys(bContext *C);
 
 #if 0
 	// link with meshes, create vertex groups, assign weights

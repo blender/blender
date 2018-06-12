@@ -520,7 +520,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	return 1;
 }
 
-static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+static int modifier_apply_shape(Main *bmain, ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -560,7 +560,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		}
 
 		if (key == NULL) {
-			key = me->key = BKE_key_add((ID *)me);
+			key = me->key = BKE_key_add(bmain, (ID *)me);
 			key->type = KEY_RELATIVE;
 			/* if that was the first key block added, then it was the basis.
 			 * Initialize it with the mesh, and add another for the modifier */
@@ -667,7 +667,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	return 1;
 }
 
-int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
+int ED_object_modifier_apply(Main *bmain, ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
 {
 	int prev_mode;
 
@@ -695,7 +695,7 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	md->mode |= eModifierMode_Realtime;
 
 	if (mode == MODIFIER_APPLY_SHAPE) {
-		if (!modifier_apply_shape(reports, scene, ob, md)) {
+		if (!modifier_apply_shape(bmain, reports, scene, ob, md)) {
 			md->mode = prev_mode;
 			return 0;
 		}
@@ -998,12 +998,13 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 
 static int modifier_apply_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int apply_as = RNA_enum_get(op->ptr, "apply_as");
 
-	if (!md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as)) {
+	if (!md || !ED_object_modifier_apply(bmain, op->reports, scene, ob, md, apply_as)) {
 		return OPERATOR_CANCELLED;
 	}
 
