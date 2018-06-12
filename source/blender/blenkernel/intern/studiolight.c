@@ -375,7 +375,7 @@ BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(
 
 static void studiolight_calculate_specular_irradiance(StudioLight *sl, float color[3], const float normal[3])
 {
-	const float specular = 4.0f;
+	const float specular = 1.0f;
 	int hits = 0;
 	copy_v3_fl(color, 0.0f);
 
@@ -400,16 +400,12 @@ static void studiolight_calculate_specular_irradiance(StudioLight *sl, float col
 	studiolight_evaluate_specular_radiance_buffer(
 	        sl->radiance_cubemap_buffers[STUDIOLIGHT_Z_NEG], specular, normal, color, &hits, 0, 1, 2, -0.5);
 
-	if (hits) {
-		mul_v3_fl(color, specular / hits);
-	}
-	else {
-		copy_v3_fl3(color, 1.0, 0.0, 1.0);
-	}
+	mul_v3_fl(color, 1.0/ M_PI);
 }
 
 static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
 {
+#if 1
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		ImBuf *ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path_irr, 0, NULL);
@@ -420,6 +416,7 @@ static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
 			return true;
 		}
 	}
+#endif
 	return false;
 }
 
@@ -748,12 +745,12 @@ void BKE_studiolight_init(void)
 	sl = studiolight_create();
 	BLI_strncpy(sl->name, "INTERNAL_01", FILE_MAXFILE);
 	sl->flag = STUDIOLIGHT_INTERNAL | STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA;
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 1.5f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_NEG], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 0.8f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_NEG], 0.05f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.2f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.1f);
+	copy_v3_fl3(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.1f, 0.0f, 0.0f);
 	BLI_addtail(&studiolights, sl);
 
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
