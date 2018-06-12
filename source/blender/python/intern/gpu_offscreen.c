@@ -169,6 +169,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	MatrixObject *py_mat_modelview, *py_mat_projection;
 	PyObject *py_scene, *py_region, *py_view3d;
 
+	struct Main *bmain = G.main;  /* XXX UGLY! */
 	Scene *scene;
 	View3D *v3d;
 	ARegion *ar;
@@ -194,14 +195,14 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	fx_settings = v3d->fx_settings;  /* full copy */
 
-	ED_view3d_draw_offscreen_init(G.main, scene, v3d);
+	ED_view3d_draw_offscreen_init(bmain, scene, v3d);
 
 	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
 
 	GPU_offscreen_bind(self->ofs, true); /* bind */
 
 	ED_view3d_draw_offscreen(
-	        scene, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
+	        bmain, scene, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
 	        (float(*)[4])py_mat_modelview->matrix, (float(*)[4])py_mat_projection->matrix,
 	        false, true, true, "",
 	        fx, &fx_settings,
