@@ -147,7 +147,7 @@ static void hud_region_layout(const bContext *C, ARegion *ar)
 
 	int size_y = ar->sizey;
 
-	ED_region_panels_layout_ex(C, ar, NULL, -1, true);
+	ED_region_panels_layout(C, ar);
 
 	if (ar->panels.first && (ar->sizey != size_y)) {
 		View2D *v2d = &ar->v2d;

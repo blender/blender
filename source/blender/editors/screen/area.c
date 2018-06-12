@@ -2121,6 +2121,10 @@ void ED_region_panels_layout_ex(
 		ar->runtime.category = category;
 	}
 }
+void ED_region_panels_layout(const bContext *C, ARegion *ar)
+{
+	ED_region_panels_layout_ex(C, ar, NULL, -1, true);
+}
 
 void ED_region_panels_draw(const bContext *C, ARegion *ar)
 {
@@ -2166,7 +2170,7 @@ void ED_region_panels_ex(
 void ED_region_panels(const bContext *C, ARegion *ar)
 {
 	/* TODO: remove? */
-	ED_region_panels_layout_ex(C, ar, NULL, -1, true);
+	ED_region_panels_layout(C, ar);
 	ED_region_panels_draw(C, ar);
 }
 
