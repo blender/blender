@@ -60,9 +60,28 @@ extern "C" {
 #  include "intern/eval/deg_eval_copy_on_write.h"
 #endif
 
+// If defined, all working data will be set to an invalid state, helping
+// to catch issues when areas accessing data which is considered to be no
+// longer available.
+#undef INVALIDATE_WORK_DATA
+
+#ifndef NDEBUG
+#  define INVALIDATE_WORK_DATA
+#endif
+
 /* ************************ DEG ITERATORS ********************* */
 
 namespace {
+
+void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
+{
+#ifdef INVALIDATE_WORK_DATA
+	BLI_assert(data != NULL);
+	memset(&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
+#else
+	(void) data;
+#endif
+}
 
 void verify_id_proeprties_freed(DEGObjectIterData *data)
 {
@@ -219,6 +238,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	data->visibility_check = (eval_mode == DAG_EVAL_RENDER)
 	                         ? OB_VISIBILITY_CHECK_FOR_RENDER
 	                         : OB_VISIBILITY_CHECK_FOR_VIEWPORT;
+	deg_invalidate_iterator_work_data(data);
 
 	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
 	deg_iterator_objects_step(iter, id_node);
@@ -246,6 +266,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 				data->dupli_list = NULL;
 				data->dupli_object_next = NULL;
 				data->dupli_object_current = NULL;
+				deg_invalidate_iterator_work_data(data);
 			}
 		}
 
@@ -262,18 +283,13 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 
 void DEG_iterator_objects_end(BLI_Iterator *iter)
 {
-#ifndef NDEBUG
 	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
-
-	if (data) {
+	if (data != NULL) {
 		/* Force crash in case the iterator data is referenced and accessed down
 		 * the line. (T51718)
 		 */
-		memset(&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
+		deg_invalidate_iterator_work_data(data);
 	}
-#else
-	(void) iter;
-#endif
 }
 
 /* ************************ DEG ID ITERATOR ********************* */
