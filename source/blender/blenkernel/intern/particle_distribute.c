@@ -433,7 +433,7 @@ static int distribute_binary_search(float *sum, int n, float value)
 
 /* the max number if calls to rng_* funcs within psys_thread_distribute_particle
  * be sure to keep up to date if this changes */
-#define PSYS_RND_DIST_SKIP 2
+#define PSYS_RND_DIST_SKIP 3
 
 /* note: this function must be thread safe, for from == PART_FROM_CHILD */
 #define ONLY_WORKING_WITH_PA_VERTS 0
@@ -487,8 +487,10 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 	}
 #endif
 	
-	if (rng_skip_tot > 0) /* should never be below zero */
+	BLI_assert(rng_skip_tot > 0);  /* should never be below zero */
+	if (rng_skip_tot > 0) {
 		BLI_rng_skip(thread->rng, rng_skip_tot);
+	}
 }
 
 static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, int p) {
@@ -528,9 +530,11 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
 			break;
 	}
 	pa->foffset= 0.0f;
-	
-	if (rng_skip_tot > 0) /* should never be below zero */
+
+	BLI_assert(rng_skip_tot > 0);  /* should never be below zero */
+	if (rng_skip_tot > 0) {
 		BLI_rng_skip(thread->rng, rng_skip_tot);
+	}
 }
 
 static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, int p) {
@@ -618,13 +622,16 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 				pa->foffset *= ctx->jit[p % (2 * ctx->jitlevel)];
 				break;
 			case PART_DISTR_RAND:
-				pa->foffset *= BLI_frand();
+				pa->foffset *= BLI_rng_get_float(thread->rng);
+				rng_skip_tot--;
 				break;
 		}
 	}
 	
-	if (rng_skip_tot > 0) /* should never be below zero */
+	BLI_assert(rng_skip_tot > 0); /* should never be below zero */
+	if (rng_skip_tot > 0) {
 		BLI_rng_skip(thread->rng, rng_skip_tot);
+	}
 }
 
 static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, int p) {
