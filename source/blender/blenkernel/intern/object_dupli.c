@@ -581,7 +581,7 @@ static const DupliGenerator gen_dupli_verts = {
 };
 
 /* OB_DUPLIVERTS - FONT */
-static Object *find_family_object(const char *family, size_t family_len, unsigned int ch, GHash *family_gh)
+static Object *find_family_object(Main *bmain, const char *family, size_t family_len, unsigned int ch, GHash *family_gh)
 {
 	Object **ob_pt;
 	Object *ob;
@@ -598,7 +598,7 @@ static Object *find_family_object(const char *family, size_t family_len, unsigne
 		ch_utf8[ch_utf8_len] = '\0';
 		ch_utf8_len += 1;  /* compare with null terminator */
 
-		for (ob = G.main->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (STREQLEN(ob->id.name + 2 + family_len, ch_utf8, ch_utf8_len)) {
 				if (STREQLEN(ob->id.name + 2, family, family_len)) {
 					break;
@@ -655,7 +655,7 @@ static void make_duplis_font(const DupliContext *ctx)
 	/* advance matching BLI_strncpy_wchar_from_utf8 */
 	for (a = 0; a < text_len; a++, ct++) {
 
-		ob = find_family_object(cu->family, family_len, (unsigned int)text[a], family_gh);
+		ob = find_family_object(ctx->bmain, cu->family, family_len, (unsigned int)text[a], family_gh);
 		if (ob) {
 			vec[0] = fsize * (ct->xof - xof);
 			vec[1] = fsize * (ct->yof - yof);

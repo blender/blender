@@ -3384,18 +3384,18 @@ LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectS
 /**
  * return all groups this object is apart of, caller must free.
  */
-struct LinkNode *BKE_object_groups(Object *ob)
+struct LinkNode *BKE_object_groups(Main *bmain, Object *ob)
 {
 	LinkNode *group_linknode = NULL;
 	Group *group = NULL;
-	while ((group = BKE_group_object_find(group, ob))) {
+	while ((group = BKE_group_object_find(bmain, group, ob))) {
 		BLI_linklist_prepend(&group_linknode, group);
 	}
 
 	return group_linknode;
 }
 
-void BKE_object_groups_clear(Scene *scene, Base *base, Object *object)
+void BKE_object_groups_clear(Main *bmain, Scene *scene, Base *base, Object *object)
 {
 	Group *group = NULL;
 
@@ -3405,8 +3405,8 @@ void BKE_object_groups_clear(Scene *scene, Base *base, Object *object)
 		base = BKE_scene_base_find(scene, object);
 	}
 
-	while ((group = BKE_group_object_find(group, base->object))) {
-		BKE_group_object_unlink(group, object, scene, base);
+	while ((group = BKE_group_object_find(bmain, group, base->object))) {
+		BKE_group_object_unlink(bmain, group, object, scene, base);
 	}
 }
 

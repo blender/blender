@@ -132,7 +132,7 @@ void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob)
 
 	BKE_rigidbody_remove_object(scene, ob);
 	if (rbw)
-		BKE_group_object_unlink(rbw->group, ob, scene, NULL);
+		BKE_group_object_unlink(bmain, rbw->group, ob, scene, NULL);
 
 	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);

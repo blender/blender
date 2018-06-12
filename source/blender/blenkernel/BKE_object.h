@@ -283,8 +283,9 @@ typedef enum eObjectSet {
 
 struct LinkNode *BKE_object_relational_superset(
         struct Scene *scene, eObjectSet objectSet, eObRelationTypes includeFilter);
-struct LinkNode *BKE_object_groups(struct Object *ob);
-void             BKE_object_groups_clear(struct Scene *scene, struct Base *base, struct Object *object);
+struct LinkNode *BKE_object_groups(struct Main *bmain, struct Object *ob);
+void             BKE_object_groups_clear(
+        struct Main *bmain, struct Scene *scene, struct Base *base, struct Object *object);
 
 struct KDTree *BKE_object_as_kdtree(struct Object *ob, int *r_tot);
 

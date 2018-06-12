@@ -223,11 +223,11 @@ bool BKE_group_object_cyclic_check(Main *bmain, Object *object, Group *group)
 	return group_object_cyclic_check_internal(object, group);
 }
 
-bool BKE_group_object_unlink(Group *group, Object *object, Scene *scene, Base *base)
+bool BKE_group_object_unlink(Main *bmain, Group *group, Object *object, Scene *scene, Base *base)
 {
 	if (group_object_unlink_internal(group, object)) {
 		/* object can be NULL */
-		if (object && BKE_group_object_find(NULL, object) == NULL) {
+		if (object && BKE_group_object_find(bmain, NULL, object) == NULL) {
 			if (scene && base == NULL)
 				base = BKE_scene_base_find(scene, object);
 
@@ -253,12 +253,12 @@ bool BKE_group_object_exists(Group *group, Object *ob)
 	}
 }
 
-Group *BKE_group_object_find(Group *group, Object *ob)
+Group *BKE_group_object_find(Main *bmain, Group *group, Object *ob)
 {
 	if (group)
 		group = group->id.next;
 	else
-		group = G.main->group.first;
+		group = bmain->group.first;
 	
 	while (group) {
 		if (BKE_group_object_exists(group, ob))

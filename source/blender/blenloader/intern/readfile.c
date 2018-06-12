@@ -7582,9 +7582,9 @@ static void direct_link_group(FileData *fd, Group *group)
 	group->preview = direct_link_preview_image(fd, group->preview);
 }
 
-static void lib_link_group(FileData *fd, Main *main)
+static void lib_link_group(FileData *fd, Main *bmain)
 {
-	for (Group *group = main->group.first; group; group = group->id.next) {
+	for (Group *group = bmain->group.first; group; group = group->id.next) {
 		if (group->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(group->id.properties, fd);
 			
@@ -7601,7 +7601,7 @@ static void lib_link_group(FileData *fd, Main *main)
 			if (add_us) {
 				id_us_ensure_real(&group->id);
 			}
-			BKE_group_object_unlink(group, NULL, NULL, NULL);	/* removes NULL entries */
+			BKE_group_object_unlink(bmain, group, NULL, NULL, NULL);	/* removes NULL entries */
 
 			group->id.tag &= ~LIB_TAG_NEED_LINK;
 		}

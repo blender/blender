@@ -65,7 +65,8 @@ static void rna_Group_objects_link(Group *group, bContext *C, ReportList *report
 
 static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
 {
-	if (!BKE_group_object_unlink(group, object, CTX_data_scene(C), NULL)) {
+	Main *bmain = CTX_data_main(C);
+	if (!BKE_group_object_unlink(bmain, group, object, CTX_data_scene(C), NULL)) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in group '%s'", object->id.name + 2, group->id.name + 2);
 		return;
 	}

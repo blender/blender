@@ -1550,7 +1550,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 	/* avoid searching all groups in source object each time */
 	if (type == MAKE_LINKS_GROUP) {
-		ob_groups = BKE_object_groups(ob_src);
+		ob_groups = BKE_object_groups(bmain, ob_src);
 	}
 
 	CTX_DATA_BEGIN (C, Base *, base_dst, selected_editable_bases)
@@ -1598,7 +1598,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						LinkNode *group_node;
 
 						/* first clear groups */
-						BKE_object_groups_clear(scene, base_dst, ob_dst);
+						BKE_object_groups_clear(bmain, scene, base_dst, ob_dst);
 
 						/* now add in the groups from the link nodes */
 						for (group_node = ob_groups; group_node; group_node = group_node->next) {

@@ -65,6 +65,7 @@
 /* can be called with C == NULL */
 static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob;
 	EnumPropertyItem *item = NULL, item_tmp = {0};
 	int totitem = 0;
@@ -82,7 +83,7 @@ static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA
 
 		/* if 2 or more groups, add option to add to all groups */
 		group = NULL;
-		while ((group = BKE_group_object_find(group, ob)))
+		while ((group = BKE_group_object_find(bmain, group, ob)))
 			count++;
 
 		if (count >= 2) {
@@ -94,7 +95,7 @@ static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA
 
 		/* add groups */
 		group = NULL;
-		while ((group = BKE_group_object_find(group, ob))) {
+		while ((group = BKE_group_object_find(bmain, group, ob))) {
 			item_tmp.identifier = item_tmp.name = group->id.name + 2;
 			/* item_tmp.icon = ICON_ARMATURE_DATA; */
 			item_tmp.value = i;
@@ -110,11 +111,11 @@ static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA
 }
 
 /* get the group back from the enum index, quite awkward and UI specific */
-static Group *group_object_active_find_index(Object *ob, const int group_object_index)
+static Group *group_object_active_find_index(Main *bmain, Object *ob, const int group_object_index)
 {
 	Group *group = NULL;
 	int i = 0;
-	while ((group = BKE_group_object_find(group, ob))) {
+	while ((group = BKE_group_object_find(bmain, group, ob))) {
 		if (i == group_object_index) {
 			break;
 		}
@@ -130,7 +131,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	int single_group_index = RNA_enum_get(op->ptr, "group");
-	Group *single_group = group_object_active_find_index(ob, single_group_index);
+	Group *single_group = group_object_active_find_index(bmain, ob, single_group_index);
 	Group *group;
 	bool is_cycle = false;
 	bool updated = false;
@@ -203,7 +204,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 	int single_group_index = RNA_enum_get(op->ptr, "group");
-	Group *single_group = group_object_active_find_index(ob, single_group_index);
+	Group *single_group = group_object_active_find_index(bmain, ob, single_group_index);
 	Group *group;
 	bool ok = false;
 
@@ -221,7 +222,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 			/* Remove groups from selected objects */
 			CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 			{
-				BKE_group_object_unlink(group, base->object, scene, base);
+				BKE_group_object_unlink(bmain, group, base->object, scene, base);
 				ok = 1;
 			}
 			CTX_DATA_END;
@@ -268,7 +269,7 @@ static int group_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op))
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
-		BKE_object_groups_clear(scene, base, base->object);
+		BKE_object_groups_clear(bmain, scene, base, base->object);
 	}
 	CTX_DATA_END;
 
@@ -299,7 +300,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	int single_group_index = RNA_enum_get(op->ptr, "group");
-	Group *single_group = group_object_active_find_index(ob, single_group_index);
+	Group *single_group = group_object_active_find_index(bmain, ob, single_group_index);
 	Group *group;
 	bool updated = false;
 
@@ -315,7 +316,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 		/* now remove all selected objects from the group */
 		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 		{
-			BKE_group_object_unlink(group, base->object, scene, base);
+			BKE_group_object_unlink(bmain, group, base->object, scene, base);
 			updated = true;
 		}
 		CTX_DATA_END;
@@ -490,6 +491,7 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 
 static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_context(C);
 	Group *group = CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
@@ -497,7 +499,7 @@ static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!ob || !group)
 		return OPERATOR_CANCELLED;
 
-	BKE_group_object_unlink(group, ob, scene, NULL); /* base will be used if found */
+	BKE_group_object_unlink(bmain, group, ob, scene, NULL); /* base will be used if found */
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
