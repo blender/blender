@@ -279,28 +279,10 @@ static void ensure_rng_thread_safe(void)
 	// BLI_assert(BLI_thread_is_main());
 }
 
-void BLI_srandom(unsigned int seed)
-{
-	ensure_rng_thread_safe();
-	BLI_rng_srandom(&theBLI_rng, seed);
-}
-
-int BLI_rand(void)
-{
-	ensure_rng_thread_safe();
-	return BLI_rng_get_int(&theBLI_rng);
-}
-
 float BLI_frand(void)
 {
 	ensure_rng_thread_safe();
 	return BLI_rng_get_float(&theBLI_rng);
-}
-
-void BLI_frand_unit_v3(float v[3])
-{
-	ensure_rng_thread_safe();
-	BLI_rng_get_float_unit_v3(&theBLI_rng, v);
 }
 
 float BLI_hash_frand(unsigned int seed)
