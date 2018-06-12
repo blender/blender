@@ -449,9 +449,6 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 {
 	BKE_animdata_free((ID *)sce, false);
 
-	/* check all sequences */
-	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
-
 	BKE_sequencer_editing_free(sce, do_id_user);
 
 	BKE_keyingsets_free(&sce->keyingsets);
