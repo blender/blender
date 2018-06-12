@@ -82,6 +82,7 @@ typedef struct StudioLight {
 	int flag;
 	char name[FILE_MAXFILE];
 	char path[FILE_MAX];
+	char *path_irr;
 	int irradiance_icon_id;
 	int radiance_icon_id;
 	int index;

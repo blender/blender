@@ -42,6 +42,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rand.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "DNA_listBase.h"
 
@@ -55,8 +56,8 @@
 
 /* Statics */
 static ListBase studiolights;
-#define STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE 8
-#define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 32
+#define STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE 16
+#define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 64
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH (STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * 2)
 
 static const char *STUDIOLIGHT_CAMERA_FOLDER = "studiolights/camera/";
@@ -71,26 +72,29 @@ static void studiolight_free(struct StudioLight *sl)
 			IMB_freeImBuf(sl->radiance_cubemap_buffers[index]);
 			sl->radiance_cubemap_buffers[index] = NULL;
 		}
-
-		if (sl->equirectangular_radiance_gputexture) {
-			GPU_texture_free(sl->equirectangular_radiance_gputexture);
-			sl->equirectangular_radiance_gputexture = NULL;
-		}
-
-		if (sl->equirectangular_irradiance_gputexture) {
-			GPU_texture_free(sl->equirectangular_irradiance_gputexture);
-			sl->equirectangular_irradiance_gputexture = NULL;
-		}
-
-		if (sl->equirectangular_radiance_buffer) {
-			IMB_freeImBuf(sl->equirectangular_radiance_buffer);
-			sl->equirectangular_radiance_buffer = NULL;
-		}
-
-		if (sl->equirectangular_irradiance_buffer) {
-			IMB_freeImBuf(sl->equirectangular_irradiance_buffer);
-			sl->equirectangular_irradiance_buffer = NULL;
-		}
+	}
+	if (sl->equirectangular_radiance_gputexture) {
+		GPU_texture_free(sl->equirectangular_radiance_gputexture);
+		sl->equirectangular_radiance_gputexture = NULL;
+	}
+	
+	if (sl->equirectangular_irradiance_gputexture) {
+		GPU_texture_free(sl->equirectangular_irradiance_gputexture);
+		sl->equirectangular_irradiance_gputexture = NULL;
+	}
+	
+	if (sl->equirectangular_radiance_buffer) {
+		IMB_freeImBuf(sl->equirectangular_radiance_buffer);
+		sl->equirectangular_radiance_buffer = NULL;
+	}
+	
+	if (sl->equirectangular_irradiance_buffer) {
+		IMB_freeImBuf(sl->equirectangular_irradiance_buffer);
+		sl->equirectangular_irradiance_buffer = NULL;
+	}
+	if (sl->path_irr) {
+		MEM_freeN(sl->path_irr);
+		sl->path_irr = NULL;
 	}
 	MEM_freeN(sl);
 }
@@ -100,6 +104,7 @@ static struct StudioLight *studiolight_create(void)
 	struct StudioLight *sl = MEM_callocN(sizeof(*sl), __func__);
 	sl->path[0] = 0x00;
 	sl->name[0] = 0x00;
+	sl->path_irr = NULL;
 	sl->flag = 0;
 	sl->index = BLI_listbase_count(&studiolights);
 	sl->radiance_icon_id = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_RADIANCE);
@@ -403,9 +408,26 @@ static void studiolight_calculate_specular_irradiance(StudioLight *sl, float col
 	}
 }
 
+static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
+{
+	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
+		ImBuf *ibuf = NULL;
+		ibuf = IMB_loadiffname(sl->path_irr, 0, NULL);
+		if (ibuf) {
+			IMB_float_from_rect(ibuf);
+			sl->equirectangular_irradiance_buffer = ibuf;
+			sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED;
+			return true;
+		}
+	}
+	return false;
+}
+
 static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
+		/* check for cached irr file */
+		
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED);
 
 		float *colbuf = MEM_mallocN(STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH * STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * sizeof(float[4]), __func__);
@@ -427,10 +449,10 @@ static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *
 		        STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH,
 		        STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT);
 		MEM_freeN(colbuf);
-#if 0
-		IMB_saveiff(sl->equirectangular_irradiance_buffer, "/tmp/studiolight_specular_irradiance.png", IB_rectfloat);
-#endif
 
+		if (sl->flag | STUDIOLIGHT_USER_DEFINED) {
+			IMB_saveiff(sl->equirectangular_irradiance_buffer, sl->path_irr, IB_rectfloat);
+		}
 	}
 	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED;
 }
@@ -486,6 +508,7 @@ static void studiolight_add_files_from_datafolder(const int folder_id, const cha
 					sl->flag = STUDIOLIGHT_EXTERNAL_FILE | flag;
 					BLI_strncpy(sl->name, filename, FILE_MAXFILE);
 					BLI_strncpy(sl->path, path, FILE_MAXFILE);
+					sl->path_irr = BLI_string_joinN(path, ".irr");
 					BLI_addtail(&studiolights, sl);
 				}
 			}
@@ -604,7 +627,7 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size)
 
 static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 {
-	if (/*!(sl->flag & STUDIOLIGHT_EXTERNAL_FILE)*/ 1) {
+	if (!(sl->flag & STUDIOLIGHT_EXTERNAL_FILE)) {
 
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
@@ -830,7 +853,9 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 		studiolight_create_equierectangular_irradiance_gputexture(sl);
 	}
 	if ((flag & STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED)) {
-		studiolight_calculate_irradiance_equirectangular_image(sl);
+		if (!studiolight_load_irradiance_equirectangular_image(sl)) {
+			studiolight_calculate_irradiance_equirectangular_image(sl);
+		}
 	}
 }
 
