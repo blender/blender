@@ -173,7 +173,8 @@ class VIEW3D_HT_header(Header):
                 text=""
             )
 
-        layout.prop(scene, "transform_orientation", text="")
+        if mode in {'OBJECT', 'EDIT', 'POSE'}:
+            layout.prop(scene, "transform_orientation", text="")
 
         layout.separator()
 

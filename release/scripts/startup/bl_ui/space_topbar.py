@@ -269,11 +269,6 @@ class TOPBAR_PT_snapping(Panel):
             if 'VOLUME' in snap_elements:
                 col.prop(toolsettings, "use_snap_peel_object")
 
-        # Auto-Merge Editing
-        if obj:
-            if (object_mode == 'EDIT' and obj.type == 'MESH'):
-                col.prop(toolsettings, "use_mesh_automerge", icon='AUTOMERGE_ON')
-
 
 class INFO_MT_editor_menus(Menu):
     bl_idname = "INFO_MT_editor_menus"
