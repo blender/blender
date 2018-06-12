@@ -45,14 +45,11 @@ class VIEW3D_HT_header(Header):
 
         mode = 'OBJECT' if obj is None else obj.mode
 
-        # Testing move mode to topbar.
-        '''
         act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
         del act_mode_item
 
         layout.template_header_3D_mode()
-        '''
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         shading_type = view.shading.type
@@ -97,6 +94,90 @@ class VIEW3D_HT_header(Header):
 
         layout.separator_spacer()
 
+        # Mode & Transform Settings
+        object_mode = 'OBJECT' if obj is None else obj.mode
+        scene = context.scene
+
+        # Pivot & Orientation
+        pivot_point = context.tool_settings.transform_pivot_point
+        act_pivot_point = bpy.types.ToolSettings.bl_rna.properties['transform_pivot_point'].enum_items[pivot_point]
+
+        if obj:
+            # Proportional editing
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
+
+                sub = row.row(align=True)
+                sub.active = toolsettings.proportional_edit != 'DISABLED'
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
+            elif object_mode in {'EDIT', 'PARTICLE_EDIT'}:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
+                sub = row.row(align=True)
+                sub.active = toolsettings.proportional_edit != 'DISABLED'
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
+            elif object_mode == 'OBJECT':
+                row = layout.row(align=True)
+                row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
+                sub = row.row(align=True)
+                sub.active = toolsettings.use_proportional_edit_objects
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+        else:
+            # Proportional editing
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
+                sub = row.row(align=True)
+                sub.active = toolsettings.proportional_edit != 'DISABLED'
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
+        # Snap
+        show_snap = False
+        if obj is None:
+            show_snap = True
+        else:
+            if object_mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+                show_snap = True
+            else:
+
+                from .properties_paint_common import UnifiedPaintPanel
+                paint_settings = UnifiedPaintPanel.paint_settings(context)
+
+                if paint_settings:
+                    brush = paint_settings.brush
+                    if brush and brush.stroke_method == 'CURVE':
+                        show_snap = True
+
+        if show_snap:
+            snap_items = bpy.types.ToolSettings.bl_rna.properties['snap_elements'].enum_items
+            for elem in toolsettings.snap_elements:
+                # TODO: Display multiple icons.
+                # (Currently only one of the enabled modes icons is displayed)
+                icon = snap_items[elem].icon
+                break
+            else:
+                icon = 'NONE'
+
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_snap", text="")
+
+            sub = row.row(align=True)
+            sub.popover(
+                space_type='TOPBAR',
+                region_type='HEADER',
+                panel_type="TOPBAR_PT_snapping",
+                icon=icon,
+                text=""
+            )
+
+        layout.prop(scene, "transform_orientation", text="")
+
+        layout.separator()
+
+        # Viewport Settings
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
 
@@ -126,54 +207,56 @@ class VIEW3D_MT_editor_menus(Menu):
         edit_object = context.edit_object
         gp_edit = context.gpencil_data and context.gpencil_data.use_stroke_edit_mode
 
-        layout.menu("VIEW3D_MT_view")
+        # Use aligned row to squeeze out a bit more space.
+        row = layout.row(align=True)
+        row.menu("VIEW3D_MT_view")
 
         # Select Menu
         if gp_edit:
-            layout.menu("VIEW3D_MT_select_gpencil")
+            row.menu("VIEW3D_MT_select_gpencil")
         elif mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             mesh = obj.data
             if mesh.use_paint_mask:
-                layout.menu("VIEW3D_MT_select_paint_mask")
+                row.menu("VIEW3D_MT_select_paint_mask")
             elif mesh.use_paint_mask_vertex and mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
-                layout.menu("VIEW3D_MT_select_paint_mask_vertex")
+                row.menu("VIEW3D_MT_select_paint_mask_vertex")
         elif mode_string != 'SCULPT':
-            layout.menu("VIEW3D_MT_select_%s" % mode_string.lower())
+            row.menu("VIEW3D_MT_select_%s" % mode_string.lower())
 
         if gp_edit:
             pass
         elif mode_string == 'OBJECT':
-            layout.menu("INFO_MT_add", text="Add")
+            row.menu("INFO_MT_add", text="Add")
         elif mode_string == 'EDIT_MESH':
-            layout.menu("INFO_MT_mesh_add", text="Add")
+            row.menu("INFO_MT_mesh_add", text="Add")
         elif mode_string == 'EDIT_CURVE':
-            layout.menu("INFO_MT_curve_add", text="Add")
+            row.menu("INFO_MT_curve_add", text="Add")
         elif mode_string == 'EDIT_SURFACE':
-            layout.menu("INFO_MT_surface_add", text="Add")
+            row.menu("INFO_MT_surface_add", text="Add")
         elif mode_string == 'EDIT_METABALL':
-            layout.menu("INFO_MT_metaball_add", text="Add")
+            row.menu("INFO_MT_metaball_add", text="Add")
         elif mode_string == 'EDIT_ARMATURE':
-            layout.menu("INFO_MT_edit_armature_add", text="Add")
+            row.menu("INFO_MT_edit_armature_add", text="Add")
 
         if gp_edit:
-            layout.menu("VIEW3D_MT_edit_gpencil")
+            row.menu("VIEW3D_MT_edit_gpencil")
         elif edit_object:
-            layout.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
+            row.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
 
             if mode_string == 'EDIT_MESH':
-                layout.menu("VIEW3D_MT_edit_mesh_vertices")
-                layout.menu("VIEW3D_MT_edit_mesh_edges")
-                layout.menu("VIEW3D_MT_edit_mesh_faces")
+                row.menu("VIEW3D_MT_edit_mesh_vertices")
+                row.menu("VIEW3D_MT_edit_mesh_edges")
+                row.menu("VIEW3D_MT_edit_mesh_faces")
 
         elif obj:
             if mode_string != 'PAINT_TEXTURE':
-                layout.menu("VIEW3D_MT_%s" % mode_string.lower())
+                row.menu("VIEW3D_MT_%s" % mode_string.lower())
             if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
-                layout.menu("VIEW3D_MT_brush")
+                row.menu("VIEW3D_MT_brush")
             if mode_string == 'SCULPT':
-                layout.menu("VIEW3D_MT_hide_mask")
+                row.menu("VIEW3D_MT_hide_mask")
         else:
-            layout.menu("VIEW3D_MT_object")
+            row.menu("VIEW3D_MT_object")
 
 
 # ********** Menu **********

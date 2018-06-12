@@ -91,20 +91,6 @@ class TOPBAR_HT_lower_bar(Header):
 
     def draw_left(self, context):
         layout = self.layout
-        layer = context.view_layer
-        object = layer.objects.active
-
-        # Object Mode
-        # -----------
-        object_mode = 'OBJECT' if object is None else object.mode
-        act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[object_mode]
-
-        layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
-
-        layout.template_header_3D_mode()
-
-    def draw_center(self, context):
-        layout = self.layout
         mode = context.mode
 
         # Active Tool
@@ -143,6 +129,9 @@ class TOPBAR_HT_lower_bar(Header):
         elif mode == 'PARTICLE':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
 
+    def draw_center(self, context):
+        pass
+
     def draw_right(self, context):
         layout = self.layout
 
@@ -168,99 +157,6 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".posemode", category="")
         elif mode == 'PARTICLE':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
-
-        # 3D View Options, tsk. maybe users aren't always using 3D view?
-        toolsettings = context.tool_settings
-        scene = context.scene
-        obj = context.active_object
-
-        object_mode = 'OBJECT' if obj is None else obj.mode
-
-        # Pivot & Orientation
-        pivot_point = context.tool_settings.transform_pivot_point
-        act_pivot_point = bpy.types.ToolSettings.bl_rna.properties['transform_pivot_point'].enum_items[pivot_point]
-
-        row = layout.row(align=True)
-        row.popover(
-            space_type='TOPBAR',
-            region_type='HEADER',
-            panel_type="TOPBAR_PT_pivot_point",
-            icon=act_pivot_point.icon,
-            text="",
-        )
-
-        if obj:
-            # Proportional editing
-            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-
-                sub = row.row(align=True)
-                sub.active = toolsettings.proportional_edit != 'DISABLED'
-                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-
-            elif object_mode in {'EDIT', 'PARTICLE_EDIT'}:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                sub = row.row(align=True)
-                sub.active = toolsettings.proportional_edit != 'DISABLED'
-                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-
-            elif object_mode == 'OBJECT':
-                row = layout.row(align=True)
-                row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
-                sub = row.row(align=True)
-                sub.active = toolsettings.use_proportional_edit_objects
-                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-        else:
-            # Proportional editing
-            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                sub = row.row(align=True)
-                sub.active = toolsettings.proportional_edit != 'DISABLED'
-                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-
-        # Snap
-        show_snap = False
-        if obj is None:
-            show_snap = True
-        else:
-            if object_mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
-                show_snap = True
-            else:
-
-                from .properties_paint_common import UnifiedPaintPanel
-                paint_settings = UnifiedPaintPanel.paint_settings(context)
-
-                if paint_settings:
-                    brush = paint_settings.brush
-                    if brush and brush.stroke_method == 'CURVE':
-                        show_snap = True
-
-        if show_snap:
-            snap_items = bpy.types.ToolSettings.bl_rna.properties['snap_elements'].enum_items
-            for elem in toolsettings.snap_elements:
-                # TODO: Display multiple icons.
-                # (Currently only one of the enabled modes icons is displayed)
-                icon = snap_items[elem].icon
-                break
-            else:
-                icon = 'NONE'
-
-            row = layout.row(align=True)
-            row.prop(toolsettings, "use_snap", text="")
-
-            sub = row.row(align=True)
-            sub.popover(
-                space_type='TOPBAR',
-                region_type='HEADER',
-                panel_type="TOPBAR_PT_snapping",
-                icon=icon,
-                text=""
-            )
-
-        layout.prop(scene, "transform_orientation", text="")
 
 
 class _draw_left_context_mode:
