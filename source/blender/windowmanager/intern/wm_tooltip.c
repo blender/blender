@@ -41,6 +41,8 @@ void WM_tooltip_timer_init(
         bContext *C, wmWindow *win, ARegion *ar,
         wmTooltipInitFn init)
 {
+	WM_tooltip_timer_clear(C, win);
+
 	bScreen *screen = WM_window_get_active_screen(win);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	if (screen->tool_tip == NULL) {

@@ -2386,8 +2386,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				if (event->type == MOUSEMOVE && !wm_manipulatormap_modal_get(mmap)) {
 					int part;
 					mpr = wm_manipulatormap_highlight_find(mmap, C, event, &part);
-					wm_manipulatormap_highlight_set(mmap, C, mpr, part);
-					if (mpr != NULL) {
+					if (wm_manipulatormap_highlight_set(mmap, C, mpr, part) && mpr != NULL) {
 						WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_manipulatormap_tooltip_init);
 					}
 				}
