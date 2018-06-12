@@ -1564,9 +1564,6 @@ static void do_render_composite(Render *re)
 	bNodeTree *ntree = re->scene->nodetree;
 	int update_newframe = 0;
 
-	/* INIT seeding, compositor can use random texture */
-	BLI_srandom(re->r.cfra);
-
 	if (composite_needs_render(re->scene, 1)) {
 		/* save memory... free all cached images */
 		ntreeFreeCache(ntree);
