@@ -62,7 +62,9 @@ extern "C" {
 
 /* ************************ DEG ITERATORS ********************* */
 
-static void verify_id_proeprties_freed(DEGObjectIterData *data)
+namespace {
+
+void verify_id_proeprties_freed(DEGObjectIterData *data)
 {
 	if (data->dupli_object_current == NULL) {
 		// We didn't enter duplication yet, so we can't have any dangling
@@ -86,7 +88,7 @@ static void verify_id_proeprties_freed(DEGObjectIterData *data)
 	temp_dupli_object->id.properties = NULL;
 }
 
-static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
+bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
 	while (data->dupli_object_next != NULL) {
@@ -137,7 +139,7 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 	return false;
 }
 
-static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
+void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 {
 	/* Set it early in case we need to exit and we are running from within a loop. */
 	iter->skip = true;
@@ -191,6 +193,8 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	iter->skip = false;
 }
 
+}  // namespace
+
 void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 {
 	Depsgraph *depsgraph = data->graph;
@@ -217,7 +221,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	                         : OB_VISIBILITY_CHECK_FOR_VIEWPORT;
 
 	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
-	DEG_iterator_objects_step(iter, id_node);
+	deg_iterator_objects_step(iter, id_node);
 
 	if (iter->skip) {
 		DEG_iterator_objects_next(iter);
@@ -252,7 +256,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 		}
 
 		DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
-		DEG_iterator_objects_step(iter, id_node);
+		deg_iterator_objects_step(iter, id_node);
 	} while (iter->skip);
 }
 
