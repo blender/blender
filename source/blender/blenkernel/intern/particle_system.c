@@ -3529,7 +3529,6 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		return;
 	}
 
-	BLI_srandom(31415926 + (int)cfra + psys->seed);
 	/* for now do both, boids us 'rng' */
 	rng = BLI_rng_new_srandom(31415926 + (int)cfra + psys->seed);
 
