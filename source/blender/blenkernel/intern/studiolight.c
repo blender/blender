@@ -627,7 +627,10 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size)
 
 static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 {
-	if (!(sl->flag & STUDIOLIGHT_EXTERNAL_FILE)) {
+#if 0
+	if (!(sl->flag & STUDIOLIGHT_EXTERNAL_FILE))
+#endif
+	{
 
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
@@ -678,6 +681,7 @@ static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 		}
 		return rect;
 	}
+#if 0
 	else {
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED);
 
@@ -730,6 +734,7 @@ static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 		}
 		return rect;
 	}
+#endif
 }
 
 /* API */
