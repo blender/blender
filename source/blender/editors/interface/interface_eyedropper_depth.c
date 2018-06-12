@@ -94,7 +94,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 	ARegionType *art;
 
 	st = BKE_spacetype_from_id(SPACE_VIEW3D);
-	art = BKE_regiontype_from_id(st, RGN_TYPE_WINDOW);
+	art = BKE_regiontype_from_id_or_first(st, RGN_TYPE_WINDOW);
 
 	op->customdata = ddr = MEM_callocN(sizeof(DepthDropper), "DepthDropper");
 

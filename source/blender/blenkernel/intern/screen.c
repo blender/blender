@@ -107,7 +107,7 @@ SpaceType *BKE_spacetype_from_id(int spaceid)
 	return NULL;
 }
 
-ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
+ARegionType *BKE_regiontype_from_id_or_first(SpaceType *st, int regionid)
 {
 	ARegionType *art;
 	
@@ -117,6 +117,18 @@ ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
 	
 	printf("Error, region type %d missing in - name:\"%s\", id:%d\n", regionid, st->name, st->spaceid);
 	return st->regiontypes.first;
+}
+
+ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
+{
+	ARegionType *art;
+	
+	for (art = st->regiontypes.first; art; art = art->next) {
+		if (art->regionid == regionid) {
+			return art;
+		}
+	}
+	return NULL;
 }
 
 
@@ -185,7 +197,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	
 	/* use optional regiondata callback */
 	if (ar->regiondata) {
-		ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
+		ARegionType *art = BKE_regiontype_from_id_or_first(st, ar->regiontype);
 
 		if (art && art->duplicate)
 			newar->regiondata = art->duplicate(ar->regiondata);
@@ -295,7 +307,7 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 	uiList *uilst;
 
 	if (st) {
-		ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
+		ARegionType *art = BKE_regiontype_from_id_or_first(st, ar->regiontype);
 		
 		if (art && art->free)
 			art->free(ar);

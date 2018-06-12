@@ -226,7 +226,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 			}
 			else {
 				SpaceType *st = BKE_spacetype_from_id(spaceid);
-				ARegionType *art = BKE_regiontype_from_id(st, cb_regiontype);
+				ARegionType *art = BKE_regiontype_from_id_or_first(st, cb_regiontype);
 
 				handle = ED_region_draw_cb_activate(art, cb_region_draw, (void *)args, cb_event);
 				Py_INCREF(args);
@@ -289,7 +289,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 			}
 			else {
 				SpaceType *st = BKE_spacetype_from_id(spaceid);
-				ARegionType *art = BKE_regiontype_from_id(st, cb_regiontype);
+				ARegionType *art = BKE_regiontype_from_id_or_first(st, cb_regiontype);
 
 				ED_region_draw_cb_exit(art, handle);
 			}
