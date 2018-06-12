@@ -836,6 +836,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	float (*obmat)[4];
 	int a, b, hair = 0;
 	int totpart, totchild, totcollection = 0 /*, pa_num */;
+	RNG *rng;
 
 	int no_draw_flag = PARS_UNEXIST;
 
@@ -857,7 +858,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	totpart = psys->totpart;
 	totchild = psys->totchild;
 
-	BLI_srandom((unsigned int)(31415926 + psys->seed));
+	rng = BLI_rng_new_srandom(31415926u + (unsigned int)psys->seed);
 
 	if ((for_render || part->draw_as == PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 		ParticleSimulationData sim = {NULL};
@@ -992,7 +993,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 				/* for collections, pick the object based on settings */
 				if (part->draw & PART_DRAW_RAND_GR)
-					b = BLI_rand() % totcollection;
+					b = BLI_rng_get_int(rng) % totcollection;
 				else
 					b = a % totcollection;
 
@@ -1131,6 +1132,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		end_latt_deform(psys->lattice_deform_data);
 		psys->lattice_deform_data = NULL;
 	}
+
+	BLI_rng_free(rng);
 }
 
 static void make_duplis_particles(const DupliContext *ctx)
