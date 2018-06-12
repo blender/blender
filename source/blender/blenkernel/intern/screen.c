@@ -114,7 +114,7 @@ SpaceType *BKE_spacetype_from_id(int spaceid)
 	return NULL;
 }
 
-ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
+ARegionType *BKE_regiontype_from_id_or_first(SpaceType *st, int regionid)
 {
 	ARegionType *art;
 	
@@ -124,6 +124,18 @@ ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
 	
 	printf("Error, region type %d missing in - name:\"%s\", id:%d\n", regionid, st->name, st->spaceid);
 	return st->regiontypes.first;
+}
+
+ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
+{
+	ARegionType *art;
+	
+	for (art = st->regiontypes.first; art; art = art->next) {
+		if (art->regionid == regionid) {
+			return art;
+		}
+	}
+	return NULL;
 }
 
 

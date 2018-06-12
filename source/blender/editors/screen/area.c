@@ -1455,7 +1455,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	}
 
 	for (ar = sa->regionbase.first; ar; ar = ar->next)
-		ar->type = BKE_regiontype_from_id(sa->type, ar->regiontype);
+		ar->type = BKE_regiontype_from_id_or_first(sa->type, ar->regiontype);
 
 	/* area sizes */
 	area_calc_totrct(sa, &window_rect);
