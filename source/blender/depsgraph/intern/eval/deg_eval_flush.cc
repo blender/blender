@@ -34,9 +34,13 @@
 
 // TODO(sergey): Use some sort of wrapper.
 #include <deque>
+#include <cmath>
+
+#include "BKE_object.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_ghash.h"
 
@@ -54,6 +58,17 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "util/deg_util_foreach.h"
+
+// Invalidate datablock data when update is flushed on it.
+//
+// The idea of this is to help catching cases when area is accessing data which
+// is not yet evaluated, which could happen due to missing relations. The issue
+// is that usually that data will be kept from previous frame, and it looks to
+// be plausible.
+//
+// This ensures that data does not look plausible, making it much easier to
+// catch usage of invalid state.
+#undef INVALIDATE_ON_FLUSH
 
 namespace DEG {
 
@@ -255,6 +270,72 @@ void flush_editors_id_update(Main *bmain,
 	}
 }
 
+#ifdef INVALIDATE_ON_FLUSH
+void invalidate_tagged_evaluated_transform(ID *id)
+{
+	const ID_Type id_type = GS(id->name);
+	switch (id_type) {
+		case ID_OB:
+		{
+			Object *object = (Object *)id;
+			copy_vn_fl((float *)object->obmat, 16, NAN);
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+void invalidate_tagged_evaluated_geometry(ID *id)
+{
+	const ID_Type id_type = GS(id->name);
+	switch (id_type) {
+		case ID_OB:
+		{
+			Object *object = (Object *)id;
+			BKE_object_free_derived_caches(object);
+			break;
+		}
+		default:
+			break;
+	}
+}
+#endif
+
+void invalidate_tagged_evaluated_data(Depsgraph *graph)
+{
+#ifdef INVALIDATE_ON_FLUSH
+	foreach (IDDepsNode *id_node, graph->id_nodes) {
+		if (id_node->done != ID_STATE_MODIFIED) {
+			continue;
+		}
+		ID *id_cow = id_node->id_cow;
+		if (!deg_copy_on_write_is_expanded(id_cow)) {
+			continue;
+		}
+		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+		{
+			if (comp_node->done != COMPONENT_STATE_DONE) {
+				continue;
+			}
+			switch (comp_node->type) {
+				case DEG_TAG_TRANSFORM:
+					invalidate_tagged_evaluated_transform(id_cow);
+					break;
+				case DEG_TAG_GEOMETRY:
+					invalidate_tagged_evaluated_geometry(id_cow);
+					break;
+				default:
+					break;
+			}
+		}
+		GHASH_FOREACH_END();
+	}
+#else
+	(void) graph;
+#endif
+}
+
 }  // namespace
 
 /* Flush updates from tagged nodes outwards until all affected nodes
@@ -300,6 +381,10 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	}
 	/* Inform editors about all changes. */
 	flush_editors_id_update(bmain, graph, &update_ctx);
+	/* Reset evaluation result tagged which is tagged for update to some state
+	 * which is obvious to catch.
+	 */
+	invalidate_tagged_evaluated_data(graph);
 }
 
 static void graph_clear_operation_func(
