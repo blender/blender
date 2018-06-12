@@ -857,11 +857,15 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 	if (wm->op_undo_depth == 0) {
 		if (op->type->flag & OPTYPE_UNDO) {
 			ED_undo_push_op(C, op);
-			hud_status = CLEAR;
+			if (repeat == 0) {
+				hud_status = CLEAR;
+			}
 		}
 		else if (op->type->flag & OPTYPE_UNDO_GROUPED) {
 			ED_undo_grouped_push_op(C, op);
-			hud_status = CLEAR;
+			if (repeat == 0) {
+				hud_status = CLEAR;
+			}
 		}
 
 	}
