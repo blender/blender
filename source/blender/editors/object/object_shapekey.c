@@ -78,8 +78,9 @@
 
 static void ED_object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
 {
+	Main *bmain = CTX_data_main(C);
 	KeyBlock *kb;
-	if ((kb = BKE_object_shapekey_insert(ob, NULL, from_mix))) {
+	if ((kb = BKE_object_shapekey_insert(bmain, ob, NULL, from_mix))) {
 		Key *key = BKE_key_from_object(ob);
 		/* for absolute shape keys, new keys may not be added last */
 		ob->shapenr = BLI_findindex(&key->block, kb) + 1;

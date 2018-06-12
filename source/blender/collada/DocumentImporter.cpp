@@ -244,7 +244,7 @@ void DocumentImporter::finish()
 
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext, *objects_to_scale);
-	armature_importer.make_shape_keys();
+	armature_importer.make_shape_keys(mContext);
 	DEG_relations_tag_update(bmain);
 
 #if 0

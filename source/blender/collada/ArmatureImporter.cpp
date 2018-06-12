@@ -856,8 +856,9 @@ bool ArmatureImporter::write_controller(const COLLADAFW::Controller *controller)
 	return true;
 }
 
-void ArmatureImporter::make_shape_keys()
+void ArmatureImporter::make_shape_keys(bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	std::vector<COLLADAFW::MorphController *>::iterator mc;
 	float weight;
 
@@ -873,7 +874,7 @@ void ArmatureImporter::make_shape_keys()
 
 			Mesh *source_me = (Mesh *)source_ob->data;
 			//insert key to source mesh
-			Key *key = source_me->key = BKE_key_add((ID *)source_me);
+			Key *key = source_me->key = BKE_key_add(bmain, (ID *)source_me);
 			key->type = KEY_RELATIVE;
 			KeyBlock *kb;
 
