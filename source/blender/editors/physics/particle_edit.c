@@ -56,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -117,7 +118,7 @@ int PE_hair_poll(bContext *C)
 	if (!scene || !ob || !(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		return 0;
 	}
-	edit= PE_get_current(scene, ob);
+	edit = PE_get_current(scene, ob);
 
 	return (edit && edit->psys);
 }
@@ -364,6 +365,7 @@ typedef struct PEData {
 	ViewContext vc;
 
 	const bContext *context;
+	Main *bmain;
 	Scene *scene;
 	ViewLayer *view_layer;
 	Object *ob;
@@ -400,6 +402,7 @@ static void PE_set_data(bContext *C, PEData *data)
 {
 	memset(data, 0, sizeof(*data));
 
+	data->bmain = CTX_data_main(C);
 	data->scene = CTX_data_scene(C);
 	data->view_layer = CTX_data_view_layer(C);
 	data->ob = CTX_data_active_object(C);
@@ -1638,8 +1641,6 @@ static int select_random_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
 	int type;
-	Scene *scene;
-	Object *ob;
 
 	/* used by LOOP_VISIBLE_POINTS, LOOP_VISIBLE_KEYS and LOOP_KEYS */
 	PTCacheEdit *edit;
@@ -1657,9 +1658,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	data.select_action = SEL_SELECT;
-	scene = CTX_data_scene(C);
-	ob = CTX_data_active_object(C);
-	edit = PE_get_current(scene, ob);
+	edit = PE_get_current(data.scene, data.ob);
 
 	rng = BLI_rng_new_srandom(seed);
 
@@ -3798,6 +3797,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 
 static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 {
+	Main *bmain = CTX_data_main(C);
 	BrushEdit *bedit= op->customdata;
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene= bedit->scene;
@@ -4677,7 +4677,6 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	}
 	scale_points_to_length(edit, average_length);
-
 
 	PE_update_object(depsgraph, scene, ob, 1);
 	if (edit->psys) {

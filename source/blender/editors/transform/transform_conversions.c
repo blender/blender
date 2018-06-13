@@ -2120,7 +2120,6 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 void flushTransParticles(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
 		Scene *scene = t->scene;
 		ViewLayer *view_layer = t->view_layer;
 		Object *ob = OBACT(view_layer);
