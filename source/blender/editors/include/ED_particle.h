@@ -45,15 +45,15 @@ void PE_free_ptcache_edit(struct PTCacheEdit *edit);
 int PE_start_edit(struct PTCacheEdit *edit);
 
 /* access */
-struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
-struct PTCacheEdit *PE_create_current(struct Scene *scene, struct Object *ob);
-void PE_current_changed(struct Scene *scene, struct Object *ob);
-int PE_minmax(struct Scene *scene, float min[3], float max[3]);
+struct PTCacheEdit *PE_get_current(struct Main *bmain, struct Scene *scene, struct Object *ob);
+struct PTCacheEdit *PE_create_current(struct Main *bmain, struct Scene *scene, struct Object *ob);
+void PE_current_changed(struct Main *bmain, struct Scene *scene, struct Object *ob);
+int PE_minmax(struct Main *bmain, struct Scene *scene, float min[3], float max[3]);
 struct ParticleEditSettings *PE_settings(struct Scene *scene);
 
 /* update calls */
 void PE_hide_keys_time(struct Scene *scene, struct PTCacheEdit *edit, float cfra);
-void PE_update_object(struct Scene *scene, struct Object *ob, int useflag);
+void PE_update_object(struct Main *bmain, struct Scene *scene, struct Object *ob, int useflag);
 
 /* selection tools */
 int PE_mouse_particles(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);

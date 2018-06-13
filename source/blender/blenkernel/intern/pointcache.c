@@ -1648,7 +1648,7 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 	pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
-void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
+void BKE_ptcache_ids_from_object(Main *bmain, ListBase *lb, Object *ob, Scene *scene, int duplis)
 {
 	PTCacheID *pid;
 	ParticleSystem *psys;
@@ -1719,12 +1719,12 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 	if (scene && (duplis-- > 0) && (ob->transflag & OB_DUPLI)) {
 		ListBase *lb_dupli_ob;
 		/* don't update the dupli groups, we only want their pid's */
-		if ((lb_dupli_ob = object_duplilist_ex(G.main, G.main->eval_ctx, scene, ob, false))) {
+		if ((lb_dupli_ob = object_duplilist_ex(bmain, bmain->eval_ctx, scene, ob, false))) {
 			DupliObject *dob;
 			for (dob= lb_dupli_ob->first; dob; dob= dob->next) {
 				if (dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
 					ListBase lb_dupli_pid;
-					BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
+					BKE_ptcache_ids_from_object(bmain, &lb_dupli_pid, dob->ob, scene, duplis);
 					BLI_movelisttolist(lb, &lb_dupli_pid);
 					if (lb_dupli_pid.first)
 						printf("Adding Dupli\n");
@@ -3572,7 +3572,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 				/* get all pids from the object and search for smoke low res */
 				ListBase pidlist2;
 				PTCacheID *pid2;
-				BKE_ptcache_ids_from_object(&pidlist2, pid->ob, scene, MAX_DUPLI_RECUR);
+				BKE_ptcache_ids_from_object(bmain, &pidlist2, pid->ob, scene, MAX_DUPLI_RECUR);
 				for (pid2=pidlist2.first; pid2; pid2=pid2->next) {
 					if (pid2->type == PTCACHE_TYPE_SMOKE_DOMAIN) {
 						if (pid2->cache && !(pid2->cache->flag & PTCACHE_BAKED)) {
@@ -3607,7 +3607,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	else {
 		for (SETLOOPER(scene, sce_iter, base)) {
 			/* cache/bake everything in the scene */
-			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
+			BKE_ptcache_ids_from_object(bmain, &pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 			for (pid=pidlist.first; pid; pid=pid->next) {
 				cache = pid->cache;
@@ -3661,7 +3661,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	stime = ptime = PIL_check_seconds_timer();
 
 	for (int fr = CFRA; fr <= endframe; fr += baker->quick_step, CFRA = fr) {
-		BKE_scene_update_for_newframe(G.main->eval_ctx, bmain, scene, scene->lay);
+		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, scene->lay);
 
 		if (baker->update_progress) {
 			float progress = ((float)(CFRA - startframe)/(float)(endframe - startframe));
@@ -3717,7 +3717,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	}
 	else {
 		for (SETLOOPER(scene, sce_iter, base)) {
-			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
+			BKE_ptcache_ids_from_object(bmain, &pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 			for (pid=pidlist.first; pid; pid=pid->next) {
 				/* skip hair particles */

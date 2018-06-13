@@ -44,10 +44,11 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_main.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_context.h"
 #include "BKE_undo_system.h"
 
 #include "ED_object.h"
@@ -228,24 +229,27 @@ typedef struct ParticleUndoStep {
 
 static bool particle_undosys_poll(struct bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
-	PTCacheEdit *edit = PE_get_current(scene, ob);
+	PTCacheEdit *edit = PE_get_current(bmain, scene, ob);
 	return (edit != NULL);
 }
 
 static bool particle_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 {
+	Main *bmain = CTX_data_main(C);
 	ParticleUndoStep *us = (ParticleUndoStep *)us_p;
 	us->scene_ref.ptr = CTX_data_scene(C);
 	us->object_ref.ptr = us->scene_ref.ptr->basact->object;
-	PTCacheEdit *edit = PE_get_current(us->scene_ref.ptr, us->object_ref.ptr);
+	PTCacheEdit *edit = PE_get_current(bmain, us->scene_ref.ptr, us->object_ref.ptr);
 	undoptcache_from_editcache(&us->data, edit);
 	return true;
 }
 
 static void particle_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
 {
+	Main *bmain = CTX_data_main(C);
 	/* TODO(campbell): undo_system: use low-level API to set mode. */
 	ED_object_mode_set(C, OB_MODE_PARTICLE_EDIT);
 	BLI_assert(particle_undosys_poll(C));
@@ -253,7 +257,7 @@ static void particle_undosys_step_decode(struct bContext *C, UndoStep *us_p, int
 	ParticleUndoStep *us = (ParticleUndoStep *)us_p;
 	Scene *scene = us->scene_ref.ptr;
 	Object *ob = us->object_ref.ptr;
-	PTCacheEdit *edit = PE_get_current(scene, ob);
+	PTCacheEdit *edit = PE_get_current(bmain, scene, ob);
 	if (edit) {
 		undoptcache_to_editcache(&us->data, edit);
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

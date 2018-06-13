@@ -97,7 +97,7 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
 }
 
-static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
+static void time_draw_cache(Main *bmain, SpaceTime *stime, Object *ob, Scene *scene)
 {
 	PTCacheID *pid;
 	ListBase pidlist;
@@ -108,7 +108,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 	if (!(stime->cache_display & TIME_CACHE_DISPLAY) || (!ob))
 		return;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
+	BKE_ptcache_ids_from_object(bmain, &pidlist, ob, scene, 0);
 
 	/* iterate over pointcaches on the active object,
 	 * add spacetimecache and vertex array for each */
@@ -569,6 +569,7 @@ static void time_main_region_init(wmWindowManager *wm, ARegion *ar)
 static void time_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	SpaceTime *stime = CTX_wm_space_time(C);
 	Object *obact = CTX_data_active_object(C);
@@ -610,7 +611,7 @@ static void time_main_region_draw(const bContext *C, ARegion *ar)
 	ED_markers_draw(C, 0);
 
 	/* caches */
-	time_draw_cache(stime, obact, scene);
+	time_draw_cache(bmain, stime, obact, scene);
 
 	/* callback */
 	UI_view2d_view_ortho(v2d);

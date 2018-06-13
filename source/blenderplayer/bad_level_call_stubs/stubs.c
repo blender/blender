@@ -417,8 +417,8 @@ void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *name) RET
 char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry) RET_NULL
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name) RET_NONE
 
-struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob) RET_NULL
-void PE_current_changed(struct Scene *scene, struct Object *ob) RET_NONE
+struct PTCacheEdit *PE_get_current(struct Main *bmain, struct Scene *scene, struct Object *ob) RET_NULL
+void PE_current_changed(struct Main *bmain, struct Scene *scene, struct Object *ob) RET_NONE
 
 /* rna keymap */
 struct wmKeyMap *WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap) RET_NULL

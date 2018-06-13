@@ -752,11 +752,11 @@ static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int val
 	psys_set_current_num(ob, value);
 }
 
-static void rna_Object_particle_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_Object_particle_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 
-	PE_current_changed(scene, ob);
+	PE_current_changed(bmain, scene, ob);
 }
 
 /* rotation - axis-angle */

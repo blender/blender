@@ -40,8 +40,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_paint.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_paint.h"
 
 #include "ED_image.h"
 
@@ -103,10 +104,11 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_pointcache.h"
-#include "BKE_particle.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_global.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"
@@ -152,10 +154,10 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, NULL);
 }
 
-static void rna_ParticleEdit_redo(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_ParticleEdit_redo(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;
-	PTCacheEdit *edit = PE_get_current(scene, ob);
+	PTCacheEdit *edit = PE_get_current(bmain, scene, ob);
 
 	if (!edit)
 		return;
@@ -190,7 +192,8 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerR
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 #if 0
-	PTCacheEdit *edit = PE_get_current(scene, ob);
+	Main *bmain = CTX_data_main(C);
+	PTCacheEdit *edit = PE_get_current(bmain, scene, ob);
 	ParticleSystem *psys = edit ? edit->psys : NULL;
 #else
 	/* use this rather than PE_get_current() - because the editing cache is
@@ -215,14 +218,14 @@ static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
-	return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
+	return (pset->object && pset->scene && PE_get_current(G.main, pset->scene, pset->object));
 }
 static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
 	if (pset->scene) {
-		PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
+		PTCacheEdit *edit = PE_get_current(G.main, pset->scene, pset->object);
 
 		return (edit && edit->psys);
 	}

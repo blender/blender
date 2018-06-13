@@ -544,7 +544,7 @@ void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
 
 /************************ connect/disconnect hair operators *********************/
 
-static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
+static void disconnect_hair(Main *bmain, Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	ParticleEditSettings *pset= PE_settings(scene);
@@ -590,11 +590,12 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	if (ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_PUFF))
 		pset->brushtype = PE_BRUSH_NONE;
 
-	PE_update_object(scene, ob, 0);
+	PE_update_object(bmain, scene, ob, 0);
 }
 
 static int disconnect_hair_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_context(C);
 	ParticleSystem *psys= NULL;
@@ -605,12 +606,12 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 
 	if (all) {
 		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-			disconnect_hair(scene, ob, psys);
+			disconnect_hair(bmain, scene, ob, psys);
 		}
 	}
 	else {
 		psys = psys_get_current(ob);
-		disconnect_hair(scene, ob, psys);
+		disconnect_hair(bmain, scene, ob, psys);
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -636,7 +637,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 /* from/to_world_space : whether from/to particles are in world or hair space
  * from/to_mat : additional transform for from/to particles (e.g. for using object space copying)
  */
-static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
+static bool remap_hair_emitter(Main *bmain, Scene *scene, Object *ob, ParticleSystem *psys,
                                Object *target_ob, ParticleSystem *target_psys, PTCacheEdit *target_edit,
                                float from_mat[4][4], float to_mat[4][4], bool from_global, bool to_global)
 {
@@ -822,19 +823,20 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 
 	psys_free_path_cache(target_psys, target_edit);
 
-	PE_update_object(scene, target_ob, 0);
+	PE_update_object(bmain, scene, target_ob, 0);
 
 	return true;
 }
 
-static bool connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
+static bool connect_hair(Main *bmain, Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	bool ok;
 
 	if (!psys)
 		return false;
 
-	ok = remap_hair_emitter(scene, ob, psys, ob, psys, psys->edit, ob->obmat, ob->obmat, psys->flag & PSYS_GLOBAL_HAIR, false);
+	ok = remap_hair_emitter(bmain, scene, ob, psys, ob, psys, psys->edit,
+	                        ob->obmat, ob->obmat, psys->flag & PSYS_GLOBAL_HAIR, false);
 	psys->flag &= ~PSYS_GLOBAL_HAIR;
 
 	return ok;
@@ -842,6 +844,7 @@ static bool connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 static int connect_hair_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_context(C);
 	ParticleSystem *psys= NULL;
@@ -853,12 +856,12 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 
 	if (all) {
 		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-			any_connected |= connect_hair(scene, ob, psys);
+			any_connected |= connect_hair(bmain, scene, ob, psys);
 		}
 	}
 	else {
 		psys = psys_get_current(ob);
-		any_connected |= connect_hair(scene, ob, psys);
+		any_connected |= connect_hair(bmain, scene, ob, psys);
 	}
 
 	if (!any_connected) {
@@ -894,7 +897,7 @@ typedef enum eCopyParticlesSpace {
 	PAR_COPY_SPACE_WORLD    = 1,
 } eCopyParticlesSpace;
 
-static void copy_particle_edit(Scene *scene, Object *ob, ParticleSystem *psys, ParticleSystem *psys_from)
+static void copy_particle_edit(Main *bmain, Scene *scene, Object *ob, ParticleSystem *psys, ParticleSystem *psys_from)
 {
 	PTCacheEdit *edit_from = psys_from->edit, *edit;
 	ParticleData *pa;
@@ -941,7 +944,7 @@ static void copy_particle_edit(Scene *scene, Object *ob, ParticleSystem *psys, P
 
 	recalc_lengths(edit);
 	recalc_emitter_field(ob, psys);
-	PE_update_object(scene, ob, true);
+	PE_update_object(bmain, scene, ob, true);
 }
 
 static void remove_particle_systems_from_object(Object *ob_to)
@@ -1051,7 +1054,7 @@ static bool copy_particle_systems_to_object(Main *bmain,
 		DM_ensure_tessface(psmd->dm_final);
 
 		if (psys_from->edit)
-			copy_particle_edit(scene, ob_to, psys, psys_from);
+			copy_particle_edit(bmain, scene, ob_to, psys, psys_from);
 
 		if (duplicate_settings) {
 			id_us_min(&psys->part->id);
@@ -1085,7 +1088,9 @@ static bool copy_particle_systems_to_object(Main *bmain,
 				break;
 		}
 		if (ob_from != ob_to) {
-			remap_hair_emitter(scene, ob_from, psys_from, ob_to, psys, psys->edit, from_mat, to_mat, psys_from->flag & PSYS_GLOBAL_HAIR, psys->flag & PSYS_GLOBAL_HAIR);
+			remap_hair_emitter(
+			            bmain, scene, ob_from, psys_from, ob_to, psys, psys->edit,
+			            from_mat, to_mat, psys_from->flag & PSYS_GLOBAL_HAIR, psys->flag & PSYS_GLOBAL_HAIR);
 		}
 
 		/* tag for recalc */

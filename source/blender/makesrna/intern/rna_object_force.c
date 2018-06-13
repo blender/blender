@@ -95,13 +95,14 @@ static const EnumPropertyItem empty_vortex_shape_items[] = {
 #include "DNA_texture_types.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
-#include "BKE_depsgraph.h"
 
 #include "ED_object.h"
 
-static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Cache_change(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointCache *cache = (PointCache *)ptr->data;
@@ -113,7 +114,7 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 	cache->flag |= PTCACHE_OUTDATED;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(bmain, &pidlist, ob, NULL, 0);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
@@ -132,7 +133,7 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Cache_toggle_disk_cache(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointCache *cache = (PointCache *)ptr->data;
@@ -142,7 +143,7 @@ static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene
 	if (!ob)
 		return;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(bmain, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache)
@@ -158,7 +159,7 @@ static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Cache_idname_change(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointCache *cache = (PointCache *)ptr->data;
@@ -171,7 +172,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 
 	/* TODO: check for proper characters */
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(bmain, &pidlist, ob, NULL, 0);
 
 	if (cache->flag & PTCACHE_EXTERNAL) {
 		for (pid = pidlist.first; pid; pid = pid->next) {
@@ -239,7 +240,7 @@ static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, 
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
 
 	*min = 0;
 	*max = 0;
@@ -262,7 +263,7 @@ static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
 	ListBase pidlist;
 	int num = 0;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {
@@ -283,7 +284,7 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {
@@ -306,7 +307,7 @@ static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max,
 	*min = 1;
 	*max = 20;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {

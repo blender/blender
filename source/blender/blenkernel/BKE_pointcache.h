@@ -274,7 +274,8 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, struct Object *ob, struct DynamicPaintSurface *surface);
 void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, struct Object *ob, struct RigidBodyWorld *rbw);
 
-void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob, struct Scene *scene, int duplis);
+void BKE_ptcache_ids_from_object(
+        struct Main *bmain, struct ListBase *lb, struct Object *ob, struct Scene *scene, int duplis);
 
 /***************** Global funcs ****************************/
 void BKE_ptcache_remove(void);

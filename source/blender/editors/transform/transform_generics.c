@@ -75,6 +75,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_paint.h"
@@ -734,6 +735,7 @@ static void recalcData_spaceclip(TransInfo *t)
 /* helper for recalcData() - for object transforms, typically in the 3D view */
 static void recalcData_objects(TransInfo *t)
 {
+	Main *bmain = CTX_data_main(t->context);
 	Base *base = t->scene->basact;
 
 	if (t->obedit) {
@@ -921,7 +923,7 @@ static void recalcData_objects(TransInfo *t)
 		else
 			BKE_pose_where_is(t->scene, ob);
 	}
-	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
+	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(bmain, t->scene, base->object)) {
 		if (t->state != TRANS_CANCEL) {
 			applyProject(t);
 		}

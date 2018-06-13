@@ -3586,11 +3586,11 @@ bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
 }
 
 /* set "ignore cache" flag for all caches on this object */
-static void object_cacheIgnoreClear(Object *ob, int state)
+static void object_cacheIgnoreClear(Main *bmain, Object *ob, int state)
 {
 	ListBase pidlist;
 	PTCacheID *pid;
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(bmain, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache) {
@@ -3667,9 +3667,9 @@ bool BKE_object_modifier_update_subframe(
 	if (update_mesh) {
 		/* ignore cache clear during subframe updates
 		 *  to not mess up cache validity */
-		object_cacheIgnoreClear(ob, 1);
+		object_cacheIgnoreClear(bmain, ob, 1);
 		BKE_object_handle_update(bmain, eval_ctx, scene, ob);
-		object_cacheIgnoreClear(ob, 0);
+		object_cacheIgnoreClear(bmain, ob, 0);
 	}
 	else
 		BKE_object_where_is_calc_time(scene, ob, frame);
