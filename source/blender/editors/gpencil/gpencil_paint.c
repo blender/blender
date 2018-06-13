@@ -1387,6 +1387,7 @@ static void gp_init_palette(tGPsdata *p)
 /* (re)init new painting data */
 static bool gp_session_initdata(bContext *C, tGPsdata *p)
 {
+	Main *bmain = CTX_data_main(C);
 	bGPdata **gpd_ptr = NULL;
 	ScrArea *curarea = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1537,7 +1538,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	else {
 		/* if no existing GPencil block exists, add one */
 		if (*gpd_ptr == NULL)
-			*gpd_ptr = BKE_gpencil_data_addnew("GPencil");
+			*gpd_ptr = BKE_gpencil_data_addnew(bmain, "GPencil");
 		p->gpd = *gpd_ptr;
 	}
 

@@ -185,7 +185,7 @@ typedef struct PTCacheID {
 } PTCacheID;
 
 typedef struct PTCacheBaker {
-	struct Main *main;
+	struct Main *bmain;
 	struct Scene *scene;
 	struct ViewLayer *view_layer;
 	struct Depsgraph *depsgraph;

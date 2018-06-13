@@ -164,7 +164,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 {
 	PTCacheBaker *baker = MEM_callocN(sizeof(PTCacheBaker), "PTCacheBaker");
 
-	baker->main = CTX_data_main(C);
+	baker->bmain = CTX_data_main(C);
 	baker->scene = CTX_data_scene(C);
 	baker->view_layer = CTX_data_view_layer(C);
 	baker->depsgraph = CTX_data_depsgraph(C);

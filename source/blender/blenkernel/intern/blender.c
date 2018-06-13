@@ -81,9 +81,9 @@ char versionstr[48] = "";
 /* only to be called on exit blender */
 void BKE_blender_free(void)
 {
-	/* samples are in a global list..., also sets G.main->sound->sample NULL */
-	BKE_main_free(G.main);
-	G.main = NULL;
+	/* samples are in a global list..., also sets G_MAIN->sound->sample NULL */
+	BKE_main_free(G_MAIN);
+	G_MAIN = NULL;
 
 	if (G.log.file != NULL) {
 		fclose(G.log.file);
@@ -125,7 +125,7 @@ void BKE_blender_globals_init(void)
 	
 	U.savetime = 1;
 
-	G.main = BKE_main_new();
+	G_MAIN = BKE_main_new();
 
 	strcpy(G.ima, "//");
 
@@ -142,9 +142,9 @@ void BKE_blender_globals_init(void)
 
 void BKE_blender_globals_clear(void)
 {
-	BKE_main_free(G.main);          /* free all lib data */
+	BKE_main_free(G_MAIN);          /* free all lib data */
 
-	G.main = NULL;
+	G_MAIN = NULL;
 }
 
 /***/

@@ -1509,7 +1509,7 @@ static void action_to_animato(ID *id, bAction *act, ListBase *groups, ListBase *
  * This assumes that AnimData has been added already. Separation of drivers
  * from animation data is accomplished here too...
  */
-static void ipo_to_animdata(ID *id, Ipo *ipo, char actname[], char constname[], Sequence *seq)
+static void ipo_to_animdata(Main *bmain, ID *id, Ipo *ipo, char actname[], char constname[], Sequence *seq)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	ListBase anim = {NULL, NULL};
@@ -1544,7 +1544,7 @@ static void ipo_to_animdata(ID *id, Ipo *ipo, char actname[], char constname[], 
 			
 			BLI_snprintf(nameBuf, sizeof(nameBuf), "CDA:%s", ipo->id.name + 2);
 			
-			adt->action = BKE_action_add(G.main, nameBuf);
+			adt->action = BKE_action_add(bmain, nameBuf);
 			if (G.debug & G_DEBUG) printf("\t\tadded new action - '%s'\n", nameBuf);
 		}
 		
@@ -1680,19 +1680,19 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
  * clear which datablocks have yet to be converted, and also prevent freeing errors when we exit.
  */
 // XXX currently done after all file reading... 
-void do_versions_ipos_to_animato(Main *main)
+void do_versions_ipos_to_animato(Main *bmain)
 {
 	ListBase drivers = {NULL, NULL};
 	ID *id;
 	
-	if (main == NULL) {
+	if (bmain == NULL) {
 		printf("Argh! Main is NULL in do_versions_ipos_to_animato()\n");
 		return;
 	}
 		
 	/* only convert if version is right */
-	if (main->versionfile >= 250) {
-		printf("WARNING: Animation data too new to convert (Version %d)\n", main->versionfile);
+	if (bmain->versionfile >= 250) {
+		printf("WARNING: Animation data too new to convert (Version %d)\n", bmain->versionfile);
 		return;
 	}
 	else if (G.debug & G_DEBUG)
@@ -1701,7 +1701,7 @@ void do_versions_ipos_to_animato(Main *main)
 	/* ----------- Animation Attached to Data -------------- */
 	
 	/* objects */
-	for (id = main->object.first; id; id = id->next) {
+	for (id = bmain->object.first; id; id = id->next) {
 		Object *ob = (Object *)id;
 		bPoseChannel *pchan;
 		bConstraint *con;
@@ -1716,7 +1716,7 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* IPO first to take into any non-NLA'd Object Animation */
 			if (ob->ipo) {
-				ipo_to_animdata(id, ob->ipo, NULL, NULL, NULL);
+				ipo_to_animdata(bmain, id, ob->ipo, NULL, NULL, NULL);
 				
 				id_us_min(&ob->ipo->id);
 				ob->ipo = NULL;
@@ -1750,7 +1750,7 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* IPO second... */
 			if (ob->ipo) {
-				ipo_to_animdata(id, ob->ipo, NULL, NULL, NULL);
+				ipo_to_animdata(bmain, id, ob->ipo, NULL, NULL, NULL);
 				id_us_min(&ob->ipo->id);
 				ob->ipo = NULL;
 			}
@@ -1770,7 +1770,7 @@ void do_versions_ipos_to_animato(Main *main)
 						/* although this was the constraint's local IPO, we still need to provide pchan + con 
 						 * so that drivers can be added properly...
 						 */
-						ipo_to_animdata(id, con->ipo, pchan->name, con->name, NULL);
+						ipo_to_animdata(bmain, id, con->ipo, pchan->name, con->name, NULL);
 						id_us_min(&con->ipo->id);
 						con->ipo = NULL;
 					}
@@ -1790,7 +1790,7 @@ void do_versions_ipos_to_animato(Main *main)
 				/* although this was the constraint's local IPO, we still need to provide con 
 				 * so that drivers can be added properly...
 				 */
-				ipo_to_animdata(id, con->ipo, NULL, con->name, NULL);
+				ipo_to_animdata(bmain, id, con->ipo, NULL, con->name, NULL);
 				id_us_min(&con->ipo->id);
 				con->ipo = NULL;
 			}
@@ -1810,7 +1810,7 @@ void do_versions_ipos_to_animato(Main *main)
 				
 				/* convert Constraint Channel's IPO data */
 				if (conchan->ipo) {
-					ipo_to_animdata(id, conchan->ipo, NULL, conchan->name, NULL);
+					ipo_to_animdata(bmain, id, conchan->ipo, NULL, conchan->name, NULL);
 					id_us_min(&conchan->ipo->id);
 					conchan->ipo = NULL;
 				}
@@ -1829,7 +1829,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* shapekeys */
-	for (id = main->key.first; id; id = id->next) {
+	for (id = bmain->key.first; id; id = id->next) {
 		Key *key = (Key *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting key %s\n", id->name + 2);
@@ -1843,7 +1843,7 @@ void do_versions_ipos_to_animato(Main *main)
 			AnimData *adt = BKE_animdata_add_id(id);
 			
 			/* Convert Shapekey data... */
-			ipo_to_animdata(id, key->ipo, NULL, NULL, NULL);
+			ipo_to_animdata(bmain, id, key->ipo, NULL, NULL, NULL);
 			
 			if (adt->action)
 				adt->action->idroot = key->ipo->blocktype;
@@ -1854,7 +1854,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* materials */
-	for (id = main->mat.first; id; id = id->next) {
+	for (id = bmain->mat.first; id; id = id->next) {
 		Material *ma = (Material *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting material %s\n", id->name + 2);
@@ -1865,7 +1865,7 @@ void do_versions_ipos_to_animato(Main *main)
 			AnimData *adt = BKE_animdata_add_id(id);
 			
 			/* Convert Material data... */
-			ipo_to_animdata(id, ma->ipo, NULL, NULL, NULL);
+			ipo_to_animdata(bmain, id, ma->ipo, NULL, NULL, NULL);
 			
 			if (adt->action)
 				adt->action->idroot = ma->ipo->blocktype;
@@ -1876,7 +1876,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* worlds */
-	for (id = main->world.first; id; id = id->next) {
+	for (id = bmain->world.first; id; id = id->next) {
 		World *wo = (World *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting world %s\n", id->name + 2);
@@ -1887,7 +1887,7 @@ void do_versions_ipos_to_animato(Main *main)
 			AnimData *adt = BKE_animdata_add_id(id);
 			
 			/* Convert World data... */
-			ipo_to_animdata(id, wo->ipo, NULL, NULL, NULL);
+			ipo_to_animdata(bmain, id, wo->ipo, NULL, NULL, NULL);
 			
 			if (adt->action)
 				adt->action->idroot = wo->ipo->blocktype;
@@ -1898,7 +1898,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* sequence strips */
-	for (id = main->scene.first; id; id = id->next) {
+	for (id = bmain->scene.first; id; id = id->next) {
 		Scene *scene = (Scene *)id;
 		Editing *ed = scene->ed;
 		if (ed && ed->seqbasep) {
@@ -1938,7 +1938,7 @@ void do_versions_ipos_to_animato(Main *main)
 				icu->adrcode = adrcode;
 				
 				/* convert IPO */
-				ipo_to_animdata((ID *)scene, seq->ipo, NULL, NULL, seq);
+				ipo_to_animdata(bmain, (ID *)scene, seq->ipo, NULL, NULL, seq);
 				
 				if (adt->action)
 					adt->action->idroot = ID_SCE;  /* scene-rooted */
@@ -1952,7 +1952,7 @@ void do_versions_ipos_to_animato(Main *main)
 
 
 	/* textures */
-	for (id = main->tex.first; id; id = id->next) {
+	for (id = bmain->tex.first; id; id = id->next) {
 		Tex *te = (Tex *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting texture %s\n", id->name + 2);
@@ -1963,7 +1963,7 @@ void do_versions_ipos_to_animato(Main *main)
 			AnimData *adt = BKE_animdata_add_id(id);
 			
 			/* Convert Texture data... */
-			ipo_to_animdata(id, te->ipo, NULL, NULL, NULL);
+			ipo_to_animdata(bmain, id, te->ipo, NULL, NULL, NULL);
 			
 			if (adt->action)
 				adt->action->idroot = te->ipo->blocktype;
@@ -1974,7 +1974,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* cameras */
-	for (id = main->camera.first; id; id = id->next) {
+	for (id = bmain->camera.first; id; id = id->next) {
 		Camera *ca = (Camera *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting camera %s\n", id->name + 2);
@@ -1985,7 +1985,7 @@ void do_versions_ipos_to_animato(Main *main)
 			AnimData *adt = BKE_animdata_add_id(id);
 			
 			/* Convert Camera data... */
-			ipo_to_animdata(id, ca->ipo, NULL, NULL, NULL);
+			ipo_to_animdata(bmain, id, ca->ipo, NULL, NULL, NULL);
 			
 			if (adt->action)
 				adt->action->idroot = ca->ipo->blocktype;
@@ -1996,7 +1996,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* lamps */
-	for (id = main->lamp.first; id; id = id->next) {
+	for (id = bmain->lamp.first; id; id = id->next) {
 		Lamp *la = (Lamp *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting lamp %s\n", id->name + 2);
@@ -2007,7 +2007,7 @@ void do_versions_ipos_to_animato(Main *main)
 			AnimData *adt = BKE_animdata_add_id(id);
 			
 			/* Convert Lamp data... */
-			ipo_to_animdata(id, la->ipo, NULL, NULL, NULL);
+			ipo_to_animdata(bmain, id, la->ipo, NULL, NULL, NULL);
 			
 			if (adt->action)
 				adt->action->idroot = la->ipo->blocktype;
@@ -2018,7 +2018,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* curves */
-	for (id = main->curve.first; id; id = id->next) {
+	for (id = bmain->curve.first; id; id = id->next) {
 		Curve *cu = (Curve *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting curve %s\n", id->name + 2);
@@ -2029,7 +2029,7 @@ void do_versions_ipos_to_animato(Main *main)
 			AnimData *adt = BKE_animdata_add_id(id);
 			
 			/* Convert Curve data... */
-			ipo_to_animdata(id, cu->ipo, NULL, NULL, NULL);
+			ipo_to_animdata(bmain, id, cu->ipo, NULL, NULL, NULL);
 			
 			if (adt->action)
 				adt->action->idroot = cu->ipo->blocktype;
@@ -2051,7 +2051,7 @@ void do_versions_ipos_to_animato(Main *main)
 	 */
 	
 	/* actions */
-	for (id = main->action.first; id; id = id->next) {
+	for (id = bmain->action.first; id; id = id->next) {
 		bAction *act = (bAction *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting action %s\n", id->name + 2);
@@ -2065,7 +2065,7 @@ void do_versions_ipos_to_animato(Main *main)
 	}
 	
 	/* ipo's */
-	for (id = main->ipo.first; id; id = id->next) {
+	for (id = bmain->ipo.first; id; id = id->next) {
 		Ipo *ipo = (Ipo *)id;
 		
 		if (G.debug & G_DEBUG) printf("\tconverting ipo %s\n", id->name + 2);
@@ -2075,7 +2075,7 @@ void do_versions_ipos_to_animato(Main *main)
 			bAction *new_act;
 			
 			/* add a new action for this, and convert all data into that action */
-			new_act = BKE_action_add(main, id->name + 2);
+			new_act = BKE_action_add(bmain, id->name + 2);
 			ipo_to_animato(NULL, ipo, NULL, NULL, NULL, NULL, &new_act->curves, &drivers);
 			new_act->idroot = ipo->blocktype;
 		}

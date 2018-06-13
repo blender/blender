@@ -3536,7 +3536,7 @@ void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene, ViewLayer *view_laye
 	PTCacheBaker baker;
 
 	memset(&baker, 0, sizeof(baker));
-	baker.main = bmain;
+	baker.bmain = bmain;
 	baker.scene = scene;
 	baker.view_layer = view_layer;
 	baker.bake = 0;
@@ -3562,7 +3562,7 @@ static void ptcache_dt_to_str(char *str, double dtime)
 /* if bake is not given run simulations to current frame */
 void BKE_ptcache_bake(PTCacheBaker *baker)
 {
-	Main *bmain = baker->main;
+	Main *bmain = baker->bmain;
 	Scene *scene = baker->scene;
 	ViewLayer *view_layer = baker->view_layer;
 	struct Depsgraph *depsgraph = baker->depsgraph;

@@ -52,14 +52,15 @@
 #include "DNA_view3d_types.h"
 #include "DNA_gpencil_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_colortools.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -83,6 +84,7 @@
 /* add new datablock - wrapper around API */
 static int gp_data_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -95,7 +97,7 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 		bGPdata *gpd = (*gpd_ptr);
 
 		id_us_min(&gpd->id);
-		*gpd_ptr = BKE_gpencil_data_addnew(DATA_("GPencil"));
+		*gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
 
 		/* if not exist brushes, create a new set */
 		if (ts) {
@@ -183,6 +185,7 @@ void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 /* add new layer - wrapper around API */
 static int gp_layer_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -192,7 +195,7 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	if (*gpd_ptr == NULL)
-		*gpd_ptr = BKE_gpencil_data_addnew(DATA_("GPencil"));
+		*gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
 
 	/* if not exist brushes, create a new set */
 	if (ts) {
@@ -1376,6 +1379,7 @@ void GPENCIL_OT_brush_select(wmOperatorType *ot)
 /* add new palette - wrapper around API */
 static int gp_palette_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
 	/* if there's no existing Grease-Pencil data there, add some */
@@ -1384,7 +1388,7 @@ static int gp_palette_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	if (*gpd_ptr == NULL)
-		*gpd_ptr = BKE_gpencil_data_addnew(DATA_("GPencil"));
+		*gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
 
 	/* add new palette now */
 	BKE_gpencil_palette_addnew(*gpd_ptr, DATA_("GP_Palette"), true);
@@ -1588,6 +1592,7 @@ void GPENCIL_OT_palette_lock_layer(wmOperatorType *ot)
 /* add new palette - wrapper around API */
 static int gp_palettecolor_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
 	/* if there's no existing Grease-Pencil data there, add some */
@@ -1596,7 +1601,7 @@ static int gp_palettecolor_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	if (*gpd_ptr == NULL)
-		*gpd_ptr = BKE_gpencil_data_addnew(DATA_("GPencil"));
+		*gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
 
 	/* verify palette */
 	bGPDpalette *palette = BKE_gpencil_palette_getactive(*gpd_ptr);

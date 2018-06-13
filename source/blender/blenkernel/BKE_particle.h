@@ -331,9 +331,10 @@ void psys_particle_on_emitter(struct ParticleSystemModifierData *psmd, int distr
                               float utan[3], float vtan[3], float orco[3]);
 struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct ParticleSystem *psys);
 
-struct ModifierData *object_add_particle_system(struct Scene *scene, struct Object *ob, const char *name);
-void object_remove_particle_system(struct Scene *scene, struct Object *ob);
-struct ParticleSettings *BKE_particlesettings_add(struct Main *main, const char *name);
+struct ModifierData *object_add_particle_system(
+        struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name);
+void object_remove_particle_system(struct Main *bmain, struct Scene *scene, struct Object *ob);
+struct ParticleSettings *BKE_particlesettings_add(struct Main *bmain, const char *name);
 void BKE_particlesettings_copy_data(
         struct Main *bmain, struct ParticleSettings *part_dst, const struct ParticleSettings *part_src,
         const int flag);

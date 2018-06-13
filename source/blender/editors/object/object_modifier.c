@@ -119,7 +119,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		/* don't need to worry about the new modifier's name, since that is set to the number
 		 * of particle systems which shouldn't have too many duplicates
 		 */
-		new_md = object_add_particle_system(scene, ob, name);
+		new_md = object_add_particle_system(bmain, scene, ob, name);
 	}
 	else {
 		/* get new modifier data to add */

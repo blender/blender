@@ -2975,7 +2975,7 @@ void psys_mat_hair_to_global(Object *ob, Mesh *mesh, short from, ParticleData *p
 /************************************************/
 /*			ParticleSettings handling			*/
 /************************************************/
-ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *name)
+ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, const char *name)
 {
 	ParticleSystem *psys;
 	ModifierData *md;
@@ -2992,7 +2992,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 	psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 	BLI_addtail(&ob->particlesystem, psys);
 
-	psys->part = BKE_particlesettings_add(NULL, DATA_("ParticleSettings"));
+	psys->part = BKE_particlesettings_add(bmain, DATA_("ParticleSettings"));
 
 	if (BLI_listbase_count_at_most(&ob->particlesystem, 2) > 1)
 		BLI_snprintf(psys->name, sizeof(psys->name), DATA_("ParticleSystem %i"), BLI_listbase_count(&ob->particlesystem));
@@ -3015,12 +3015,12 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 	psys->flag = PSYS_CURRENT;
 	psys->cfra = BKE_scene_frame_get_from_ctime(scene, CFRA + 1);
 
-	DEG_relations_tag_update(G.main);
+	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	return md;
 }
-void object_remove_particle_system(Scene *UNUSED(scene), Object *ob)
+void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob)
 {
 	ParticleSystem *psys = psys_get_current(ob);
 	ParticleSystemModifierData *psmd;
@@ -3061,7 +3061,7 @@ void object_remove_particle_system(Scene *UNUSED(scene), Object *ob)
 	else
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 
-	DEG_relations_tag_update(G.main);
+	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	
 	/* Flush object mode. */
@@ -3155,14 +3155,11 @@ static void default_particle_settings(ParticleSettings *part)
 }
 
 
-ParticleSettings *BKE_particlesettings_add(Main *main, const char *name)
+ParticleSettings *BKE_particlesettings_add(Main *bmain, const char *name)
 {
 	ParticleSettings *part;
 
-	if (main == NULL)
-		main = G.main;
-
-	part = BKE_libblock_alloc(main, ID_PA, name, 0);
+	part = BKE_libblock_alloc(bmain, ID_PA, name, 0);
 	
 	default_particle_settings(part);
 

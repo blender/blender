@@ -116,7 +116,7 @@ static void setup_app_data(
         bContext *C, BlendFileData *bfd,
         const char *filepath, ReportList *reports)
 {
-	Main *bmain = G.main;  /* Valid usage */
+	Main *bmain = G_MAIN;
 	Scene *curscene = NULL;
 	const bool is_startup = (bfd->filename[0] == '\0');
 	const bool recover = (G.fileflags & G_FILE_RECOVER) != 0;
@@ -207,7 +207,7 @@ static void setup_app_data(
 			win->scene = curscene;
 		}
 
-		/* BKE_blender_globals_clear will free G.main, here we can still restore pointers */
+		/* BKE_blender_globals_clear will free G_MAIN, here we can still restore pointers */
 		blo_lib_link_restore(bfd->main, CTX_wm_manager(C), curscene, cur_view_layer);
 		if (win) {
 			curscene = win->scene;
@@ -230,14 +230,14 @@ static void setup_app_data(
 		}
 	}
 
-	/* free G.main Main database */
+	/* free G_MAIN Main database */
 //	CTX_wm_manager_set(C, NULL);
 	BKE_blender_globals_clear();
 
 	/* clear old property update cache, in case some old references are left dangling */
 	RNA_property_update_cache_free();
 
-	bmain = G.main = bfd->main;
+	bmain = G_MAIN = bfd->main;
 
 	CTX_data_main_set(C, bmain);
 

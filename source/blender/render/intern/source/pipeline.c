@@ -1892,7 +1892,7 @@ static void update_physics_cache(Render *re, Scene *scene, ViewLayer *view_layer
 	PTCacheBaker baker;
 
 	memset(&baker, 0, sizeof(baker));
-	baker.main = re->main;
+	baker.bmain = re->main;
 	baker.scene = scene;
 	baker.view_layer = view_layer;
 	baker.depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
