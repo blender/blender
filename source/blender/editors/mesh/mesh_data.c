@@ -605,7 +605,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 
 	if (exitmode) {
-		EDBM_mesh_load(obedit);
+		EDBM_mesh_load(bmain, obedit);
 		EDBM_mesh_free(me->edit_btmesh);
 		MEM_freeN(me->edit_btmesh);
 		me->edit_btmesh = NULL;
