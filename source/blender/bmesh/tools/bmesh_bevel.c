@@ -3647,6 +3647,17 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 	odd = ns % 2;
 	BLI_assert(n >= 3 && ns > 1);
 
+	/* Add support for profiles in vertex only in-plane bevels */
+	if (bp->vertex_only) {
+		v = bv->vmesh->boundstart;
+		do {
+			Profile *pro = &v->profile;
+			pro->super_r = bp->pro_super_r;
+			copy_v3_v3(pro->midco, bv->v->co);
+			calculate_profile(bp, v);
+			v = v->next;
+		} while (v != bv->vmesh->boundstart);
+	}
 
 	vpipe = pipe_test(bv);
 
