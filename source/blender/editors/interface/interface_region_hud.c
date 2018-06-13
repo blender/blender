@@ -261,6 +261,9 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 	ED_region_init(ar);
 	ED_region_tag_redraw(ar);
 
+	/* Reset zoom level (not well supported). */
+	ar->v2d.cur = (rctf){.xmax = ar->winx, .ymax = ar->winy};
+
 	/* Let 'ED_area_update_region_sizes' do the work of placing the region.
 	 * Otherwise we could set the 'ar->winrct' & 'ar->winx/winy' here. */
 	if (init) {
@@ -271,8 +274,10 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 			sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
 		}
 		ar->flag &= ~RGN_FLAG_HIDDEN;
-
 	}
+
+	/* XXX, should be handled in more general way. */
+	ar->visible = !((ar->flag & RGN_FLAG_HIDDEN) || (ar->flag & RGN_FLAG_TOO_SMALL));
 
 	/* We shouldn't need to do this every time :S */
 	/* XXX, this is evil! - it also makes the menu show on first draw. :( */
