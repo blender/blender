@@ -1238,9 +1238,14 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
  * Custom handler for manipulator widgets
  */
 static int manipulator_modal(
-        bContext *C, wmManipulator *widget, const wmEvent *UNUSED(event),
+        bContext *C, wmManipulator *widget, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
+	/* Avoid unnecessary updates, partially address: T55458. */
+	if (ELEM(event->type, TIMER, INBETWEEN_MOUSEMOVE)) {
+		return OPERATOR_RUNNING_MODAL;
+	}
+
 	const ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
