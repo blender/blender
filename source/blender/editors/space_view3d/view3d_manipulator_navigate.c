@@ -55,9 +55,9 @@
 /* Size of main icon. */
 #define MANIPULATOR_SIZE 64
 /* Factor for size of smaller button. */
-#define MANIPULATOR_MINI_FAC 0.5f
+#define MANIPULATOR_MINI_FAC 0.35f
 /* How much mini buttons offset from the primary. */
-#define MANIPULATOR_MINI_OFFSET_FAC 0.6666f
+#define MANIPULATOR_MINI_OFFSET_FAC 0.42f
 
 
 enum {
@@ -309,8 +309,8 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGr
 		rect_visible.ymax - icon_offset,
 	};
 	const float co[2] = {
-		rect_visible.xmax - ((show_rotate || show_fixed_offset) ? (icon_offset * 2.2f) : (icon_offset_mini * 0.75f)),
-		rect_visible.ymax - icon_offset_mini * 0.66f,
+		rect_visible.xmax - ((show_rotate || show_fixed_offset) ? (icon_offset * 2.0f) : (icon_offset_mini * 0.75f)),
+		rect_visible.ymax - icon_offset_mini * 0.75f,
 	};
 
 	wmManipulator *mpr;
