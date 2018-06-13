@@ -2193,13 +2193,12 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 	Header header = {NULL};
 	int maxco, xco, yco;
 	int headery = ED_area_headersize();
-	const int start_ofs = UI_HEADER_OFFSET_START;
 	bool region_layout_based = ar->flag & RGN_FLAG_DYNAMIC_SIZE;
 
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(&ar->v2d);
 
-	xco = maxco = start_ofs;
+	xco = maxco = UI_HEADER_OFFSET;
 	yco = headery + (ar->winy - headery) / 2 - floor(0.2f * UI_UNIT_Y);
 
 	/* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
@@ -2230,7 +2229,7 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 		if (xco > maxco)
 			maxco = xco;
 
-		int new_sizex = (maxco + start_ofs) / UI_DPI_FAC;
+		int new_sizex = (maxco + UI_HEADER_OFFSET) / UI_DPI_FAC;
 
 		if (region_layout_based && (ar->sizex != new_sizex)) {
 			/* region size is layout based and needs to be updated */
@@ -2243,8 +2242,12 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 		UI_block_end(C, block);
 	}
 
+	if (!region_layout_based) {
+		maxco += UI_HEADER_OFFSET;
+	}
+
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + (region_layout_based ? 0 : UI_UNIT_X + 80), headery);
+	UI_view2d_totRect_set(&ar->v2d, maxco, headery);
 
 	/* restore view matrix */
 	UI_view2d_view_restore(C);

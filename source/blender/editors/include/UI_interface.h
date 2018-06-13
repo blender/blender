@@ -906,7 +906,7 @@ void UI_exit(void);
 #define UI_ITEM_O_DEPRESS       (1 << 9)
 #define UI_ITEM_R_COMPACT       (1 << 10)
 
-#define UI_HEADER_OFFSET_START ((void)0, 0.4f * UI_UNIT_X)
+#define UI_HEADER_OFFSET ((void)0, 0.2f * UI_UNIT_X)
 
 /* uiLayoutOperatorButs flags */
 enum {

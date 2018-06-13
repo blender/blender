@@ -243,7 +243,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 
 	rcti rect;
 	ui_but_to_pixelrect(&rect, region, block, block->buttons.last);
-	const float buttons_width = (float)rect.xmax + UI_HEADER_OFFSET_START;
+	const float buttons_width = (float)rect.xmax + 2 * UI_HEADER_OFFSET;
 	const float region_width = (float)region->sizex * U.dpi_fac;
 
 	if (region_width <= buttons_width) {
