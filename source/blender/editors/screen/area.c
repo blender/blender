@@ -2063,7 +2063,7 @@ void ED_region_panels_layout_ex(
 		Panel *panel = ar->panels.last;
 		if (panel != NULL) {
 			int size_dyn[2] = {
-				UI_UNIT_X * 12,
+				UI_UNIT_X * ((panel->flag & PNL_CLOSED) ? 8 : 14),
 				UI_panel_size_y(panel),
 			};
 			/* region size is layout based and needs to be updated */

@@ -1578,12 +1578,16 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 #endif
 
 	if (WM_operator_repeat_check(C, op)) {
+		int layout_flags = 0;
+		if (block->panel == NULL) {
+			layout_flags = UI_TEMPLATE_OP_PROPS_SHOW_TITLE;
+		}
 #if 0
 		bool has_advanced = false;
 #endif
 
 		UI_block_func_set(block, ED_undo_operator_repeat_cb, op, NULL);
-		template_operator_redo_property_buts_draw(C, op, layout, UI_TEMPLATE_OP_PROPS_COMPACT, NULL /* &has_advanced */ );
+		template_operator_redo_property_buts_draw(C, op, layout, layout_flags, NULL /* &has_advanced */ );
 		UI_block_func_set(block, NULL, NULL, NULL); /* may want to reset to old state instead of NULLing all */
 
 #if 0
@@ -3951,6 +3955,8 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 		PointerRNA ptr;
 
 		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+		uiLayoutSetPropSep(layout, true);
 
 		/* main draw call */
 		return_info = uiDefAutoButsRNA(layout, &ptr, check_prop, label_align, (flag & UI_TEMPLATE_OP_PROPS_COMPACT));
