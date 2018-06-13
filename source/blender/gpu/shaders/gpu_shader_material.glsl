@@ -8,38 +8,6 @@ uniform mat3 NormalMatrix;
 uniform mat4 ModelMatrixInverse;
 #endif
 
-/* Old glsl mode compat. */
-
-#ifndef CLOSURE_DEFAULT
-
-struct Closure {
-	vec3 radiance;
-	float opacity;
-};
-
-#define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0)
-
-Closure closure_mix(Closure cl1, Closure cl2, float fac)
-{
-	Closure cl;
-	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
-	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
-	return cl;
-}
-
-Closure closure_add(Closure cl1, Closure cl2)
-{
-	Closure cl;
-	cl.radiance = cl1.radiance + cl2.radiance;
-	cl.opacity = cl1.opacity + cl2.opacity;
-	return cl;
-}
-
-Closure nodetree_exec(void); /* Prototype */
-
-#endif /* CLOSURE_DEFAULT */
-
-
 /* Converters */
 
 float convert_rgba_to_float(vec4 color)

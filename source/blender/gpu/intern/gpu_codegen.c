@@ -416,15 +416,26 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 		else if (from == GPU_FLOAT)
 			BLI_dynstr_appendf(ds, "vec3(%s, %s, %s)", name, name, name);
 	}
-	else {
+	else if (to == GPU_VEC4) {
 		if (from == GPU_VEC3)
 			BLI_dynstr_appendf(ds, "vec4(%s, 1.0)", name);
 		else if (from == GPU_VEC2)
 			BLI_dynstr_appendf(ds, "vec4(%s.r, %s.r, %s.r, %s.g)", name, name, name, name);
 		else if (from == GPU_FLOAT)
 			BLI_dynstr_appendf(ds, "vec4(%s, %s, %s, 1.0)", name, name, name);
-		else /* can happen with closure */
-			BLI_dynstr_append(ds, name);
+	}
+	else if (to == GPU_CLOSURE) {
+		if (from == GPU_VEC4)
+			BLI_dynstr_appendf(ds, "closure_emission(%s.rgb)", name);
+		else if (from == GPU_VEC3)
+			BLI_dynstr_appendf(ds, "closure_emission(%s.rgb)", name);
+		else if (from == GPU_VEC2)
+			BLI_dynstr_appendf(ds, "closure_emission(%s.rrr)", name);
+		else if (from == GPU_FLOAT)
+			BLI_dynstr_appendf(ds, "closure_emission(vec3(%s, %s, %s))", name, name, name);
+	}
+	else {
+		BLI_dynstr_append(ds, name);
 	}
 }
 

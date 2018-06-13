@@ -232,8 +232,8 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 	}
 
 	if(from->type() != to->type()) {
-		/* for closures we can't do automatic conversion */
-		if(from->type() == SocketType::CLOSURE || to->type() == SocketType::CLOSURE) {
+		/* can't do automatic conversion from closure */
+		if(from->type() == SocketType::CLOSURE) {
 			fprintf(stderr, "Cycles shader graph connect: can only connect closure to closure "
 			        "(%s.%s to %s.%s).\n",
 			        from->parent->name.c_str(), from->name().c_str(),
@@ -242,7 +242,17 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 		}
 
 		/* add automatic conversion node in case of type mismatch */
-		ShaderNode *convert = add(new ConvertNode(from->type(), to->type(), true));
+		ShaderNode *convert;
+
+		if (to->type() == SocketType::CLOSURE) {
+			EmissionNode *emission = new EmissionNode();
+			emission->color = make_float3(1.0f, 1.0f, 1.0f);
+			emission->strength = 1.0f;
+			convert = add(emission);
+		}
+		else {
+			convert = add(new ConvertNode(from->type(), to->type(), true));
+		}
 
 		connect(from, convert->inputs[0]);
 		connect(convert->outputs[0], to);

@@ -268,7 +268,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR | OPTYPE_UNDO_GROUPED;
-	ot->undo_group = "FRAME_CHANGE";
+	ot->undo_group = "Frame Change";
 
 	/* rna */
 	ot->prop = RNA_def_float(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
