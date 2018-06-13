@@ -95,7 +95,11 @@ vec3 getVertexColor(int v)
 	if ((vData[v].x & (VERTEX_ACTIVE | VERTEX_SELECTED)) != 0)
 		return colorEdgeSelect.rgb;
 	else
+#ifdef EDGE_SELECTION
 		return colorWireEdit.rgb;
+#else
+		return colorWireInactive.rgb;
+#endif
 }
 
 vec4 getClipData(vec2 pos[3], ivec2 vidx)

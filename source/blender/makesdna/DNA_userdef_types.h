@@ -253,7 +253,7 @@ typedef struct ThemeSpace {
 	
 	char view_overlay[4];
 
-	char wire[4], wire_edit[4], select[4];
+	char wire[4], wire_edit[4], wire_inactive[4], select[4];
 	char lamp[4], speaker[4], empty[4], camera[4];
 	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4], vertex_bevel[4], vertex_unreferenced[4];
@@ -361,6 +361,7 @@ typedef struct ThemeSpace {
 
 	char metadatabg[4];
 	char metadatatext[4];
+	int pad;
 } ThemeSpace;
 
 

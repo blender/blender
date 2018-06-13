@@ -10,7 +10,6 @@
  * TODO Refine the range to only affect GPUs. */
 
 uniform float faceAlphaMod;
-
 flat in vec3 edgesCrease;
 flat in vec3 edgesBweight;
 flat in vec4 faceColor;
@@ -181,10 +180,13 @@ void main()
 #ifdef VERTEX_SELECTION
 			colorDistEdge(vec4(vertexColor, 1.0), innerEdge);
 #else
+#  ifdef EDGE_SELECTION
 			vec4 inner_edge_color = colorWireEdit;
 			inner_edge_color = ((flag[v] & EDGE_SELECTED) != 0) ? colorEdgeSelect : inner_edge_color;
 			inner_edge_color = ((flag[v] & EDGE_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : inner_edge_color;
-
+#  else
+			vec4 inner_edge_color = colorWireInactive;
+#  endif
 			colorDistEdge(inner_edge_color, innerEdge);
 #endif
 		}

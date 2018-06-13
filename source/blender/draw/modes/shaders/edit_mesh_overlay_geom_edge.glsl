@@ -76,7 +76,11 @@ vec3 getVertexColor(int v)
 	if ((vData[v].x & (VERTEX_ACTIVE | VERTEX_SELECTED)) != 0)
 		return colorEdgeSelect.rgb;
 	else
+#ifdef EDGE_SELECTION
 		return colorWireEdit.rgb;
+#else
+		return colorWireInactive.rgb;
+#endif
 }
 
 void doVertex(int v, vec4 pos)
