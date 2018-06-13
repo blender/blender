@@ -98,19 +98,20 @@ class VIEW3D_HT_header(Header):
         object_mode = 'OBJECT' if obj is None else obj.mode
         scene = context.scene
 
-        # Pivot & Orientation
-        pivot_point = tool_settings.transform_pivot_point
-        act_pivot_point = bpy.types.ToolSettings.bl_rna.properties['transform_pivot_point'].enum_items[pivot_point]
-        row = layout.row(align=True)
-        row.popover(
-            space_type='TOPBAR',
-            region_type='HEADER',
-            panel_type="TOPBAR_PT_pivot_point",
-            icon=act_pivot_point.icon,
-            text="",
-        )
+        # Orientation & Pivot
         if object_mode in {'OBJECT', 'EDIT', 'POSE'}:
             layout.prop(scene, "transform_orientation", text="")
+
+            pivot_point = tool_settings.transform_pivot_point
+            act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
+            row = layout.row(align=True)
+            row.popover(
+                space_type='TOPBAR',
+                region_type='HEADER',
+                panel_type="TOPBAR_PT_pivot_point",
+                icon=act_pivot_point.icon,
+                text="",
+            )
 
         if obj:
             # Proportional editing
@@ -183,7 +184,7 @@ class VIEW3D_HT_header(Header):
                 text=""
             )
 
-        layout.separator()
+        layout.separator_spacer()
 
         # Viewport Settings
         row = layout.row(align=True)
