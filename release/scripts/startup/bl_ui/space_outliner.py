@@ -186,7 +186,7 @@ class OUTLINER_MT_collection(Menu):
             layout.menu("OUTLINER_MT_collection_view_layer")
 
         layout.separator()
-        layout.operator_menu_enum("outliner.id_operation", 'type', text="ID Data")
+        layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
 
 
 class OUTLINER_MT_collection_new(Menu):
@@ -222,7 +222,7 @@ class OUTLINER_MT_object(Menu):
             layout.operator("outliner.id_operation", text="Unlink").type = 'UNLINK'
             layout.separator()
 
-        layout.operator_menu_enum("outliner.id_operation", 'type', text="ID Data")
+        layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
 
 
 class OUTLINER_PT_filter(Panel):
