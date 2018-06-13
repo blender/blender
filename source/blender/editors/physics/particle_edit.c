@@ -4028,8 +4028,11 @@ static int brush_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded
-			brush_edit_exit(op);
-			return OPERATOR_FINISHED;
+			if (event->val == KM_RELEASE) {
+				brush_edit_exit(op);
+				return OPERATOR_FINISHED;
+			}
+			break;
 		case MOUSEMOVE:
 			brush_edit_apply_event(C, op, event);
 			break;
