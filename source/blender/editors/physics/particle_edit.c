@@ -3797,7 +3797,6 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 
 static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 {
-	Main *bmain = CTX_data_main(C);
 	BrushEdit *bedit= op->customdata;
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene= bedit->scene;

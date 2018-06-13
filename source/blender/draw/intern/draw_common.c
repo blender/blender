@@ -65,7 +65,7 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_VERTEX_SELECT, ts.colorVertexSelect);
 	UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, ts.colorEditMeshActive);
 	UI_GetThemeColor4fv(TH_EDGE_SELECT, ts.colorEdgeSelect);
-	
+
 	UI_GetThemeColor4fv(TH_EDGE_SEAM, ts.colorEdgeSeam);
 	UI_GetThemeColor4fv(TH_EDGE_SHARP, ts.colorEdgeSharp);
 	UI_GetThemeColor4fv(TH_EDGE_CREASE, ts.colorEdgeCrease);
