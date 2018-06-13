@@ -320,7 +320,10 @@ static int collection_objects_select_exec(bContext *C, wmOperator *op)
 	}
 
 	BKE_layer_collection_objects_select(view_layer, layer_collection, deselect);
-	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+
+	Scene *scene = CTX_data_scene(C);
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
 }

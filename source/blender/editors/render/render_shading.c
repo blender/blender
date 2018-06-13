@@ -303,6 +303,7 @@ static int material_slot_de_select(bContext *C, bool select)
 		}
 	}
 
+	DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;

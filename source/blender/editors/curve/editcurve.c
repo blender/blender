@@ -2896,7 +2896,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DEG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	BKE_curve_nurb_vert_active_validate(obedit->data);
 
@@ -2959,7 +2959,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DEG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4413,6 +4413,7 @@ bool ED_curve_editnurb_select_pick(bContext *C, const int mval[2], bool extend, 
 			BKE_curve_nurb_active_set(cu, nu);
 		}
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return true;
@@ -5300,6 +5301,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 	if (BLI_listbase_is_empty(&newnurb) == false) {
 		BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	else {
@@ -6148,6 +6150,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	DEG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 

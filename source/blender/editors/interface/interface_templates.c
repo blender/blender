@@ -500,6 +500,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					Main *bmain = CTX_data_main(C);
 					Scene *scene = CTX_data_scene(C);
 					ED_object_single_user(bmain, scene, (struct Object *)id);
+					DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 					WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 					DEG_relations_tag_update(bmain);
 				}

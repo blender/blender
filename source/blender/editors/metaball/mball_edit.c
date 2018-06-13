@@ -154,6 +154,7 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 			break;
 	}
 
+	DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 
 	return OPERATOR_FINISHED;
@@ -335,6 +336,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	if (changed) {
+		DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
 
@@ -403,6 +405,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 
 		BLI_rng_free(rng);
 
+		DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
 	MEM_freeN(objects);
@@ -670,6 +673,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 
 			mb->lastelem = ml_act;
 
+			DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 
 			return true;

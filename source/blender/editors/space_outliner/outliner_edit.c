@@ -63,6 +63,7 @@
 #include "BKE_scene.h"
 #include "BKE_material.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "../blenloader/BLO_readfile.h"
@@ -901,6 +902,7 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	else
 		outliner_set_flag(&soops->tree, TSE_SELECTED, 1);
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	ED_region_tag_redraw_no_rebuild(ar);
 
@@ -2169,6 +2171,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		DEG_relations_tag_update(bmain);
 
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 
 		return OPERATOR_FINISHED;

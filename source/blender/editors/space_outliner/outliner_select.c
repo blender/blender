@@ -81,6 +81,7 @@ static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *vi
 
 	if (obact == NULL) {
 		ED_object_base_activate(C, base);
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		obact = base->object;
 		use_all = true;
@@ -104,6 +105,7 @@ static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *vi
 			}
 			if (ok) {
 				ED_object_base_select(base, (ob->mode & OB_MODE_EDIT) ? BA_SELECT : BA_DESELECT);
+				DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 				WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 			}
 		}
@@ -118,6 +120,7 @@ static void do_outliner_activate_pose(bContext *C, ViewLayer *view_layer, Base *
 	if (obact == NULL) {
 		ED_object_base_activate(C, base);
 		Scene *scene = CTX_data_scene(C);
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		obact = base->object;
 		use_all = true;
@@ -144,6 +147,7 @@ static void do_outliner_activate_pose(bContext *C, ViewLayer *view_layer, Base *
 				ED_object_base_select(base, (ob->mode & OB_MODE_POSE) ? BA_SELECT : BA_DESELECT);
 
 				Scene *scene = CTX_data_scene(C);
+				DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 				WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 			}
@@ -297,6 +301,7 @@ static eOLDrawState tree_element_set_active_object(
 
 		if (set != OL_SETSEL_NONE) {
 			ED_object_base_activate(C, base); /* adds notifier */
+			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 
@@ -976,6 +981,7 @@ static void do_outliner_item_activate_tree_element(
 				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 			}
 
+			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 		else if (OB_DATA_SUPPORT_EDITMODE(te->idcode)) {
@@ -1176,6 +1182,7 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 		outliner_item_border_select(scene, &rectf, te, select);
 	}
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	ED_region_tag_redraw(ar);
 

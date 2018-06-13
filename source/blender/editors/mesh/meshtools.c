@@ -593,6 +593,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;
@@ -671,6 +672,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;

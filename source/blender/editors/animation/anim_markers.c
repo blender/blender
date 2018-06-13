@@ -76,6 +76,8 @@
 #include "ED_transform.h"
 #include "ED_types.h"
 
+#include "DEG_depsgraph.h"
+
 /* ************* Marker API **************** */
 
 /* helper function for getting the list of markers to work on */
@@ -1196,6 +1198,7 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
 			}
 		}
 
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	}
 #else

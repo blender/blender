@@ -145,6 +145,8 @@ void clip_view_center_to_point(SpaceClip *sc, float x, float y);
 
 void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
+void clip_on_marker_selection_changed(struct bContext *C);
+
 /* tracking_ops.c */
 struct MovieTrackingTrack *tracking_marker_check_slide(struct bContext *C, const struct wmEvent *event,
                                                        int *area_r, int *action_r, int *corner_r);

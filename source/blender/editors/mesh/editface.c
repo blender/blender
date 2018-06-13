@@ -52,6 +52,8 @@
 
 #include "GPU_draw.h"
 
+#include "DEG_depsgraph.h"
+
 /* own include */
 
 /* copy the face flags, most importantly selection from the mesh to the final derived mesh,
@@ -382,6 +384,7 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	/* image window redraw */
 
 	paintface_flush_flags(ob, SELECT);
+	DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
 	return true;

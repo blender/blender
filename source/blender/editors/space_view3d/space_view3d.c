@@ -820,7 +820,6 @@ static void view3d_main_region_listener(
 					break;
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
-					DEG_id_tag_update((ID *)&scene->id, DEG_TAG_SELECT_UPDATE);
 					ATTR_FALLTHROUGH;
 				case ND_FRAME:
 				case ND_TRANSFORM:
@@ -875,18 +874,6 @@ static void view3d_main_region_listener(
 				case ND_SELECT:
 				{
 					WM_manipulatormap_tag_refresh(mmap);
-
-					ID *ob_data = wmn->reference;
-					if (ob_data == NULL) {
-						BLI_assert(wmn->window); // Use `WM_event_add_notifier` instead of `WM_main_add_notifier`
-						ViewLayer *view_layer = WM_window_get_active_view_layer(wmn->window);
-						ob_data = OBEDIT_FROM_VIEW_LAYER(view_layer)->data;
-					}
-					if (ob_data) {
-						BLI_assert(OB_DATA_SUPPORT_ID(GS(ob_data->name)));
-						/* TODO(sergey): Notifiers shouldn't really be doing DEG tags. */
-						DEG_id_tag_update(ob_data, DEG_TAG_SELECT_UPDATE);
-					}
 					ATTR_FALLTHROUGH;
 				}
 				case ND_DATA:

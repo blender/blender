@@ -403,6 +403,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	ED_armature_from_edit(bmain, arm);
 	ED_armature_edit_free(arm);
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;
