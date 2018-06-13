@@ -101,6 +101,16 @@ class VIEW3D_HT_header(Header):
         # Pivot & Orientation
         pivot_point = context.tool_settings.transform_pivot_point
         act_pivot_point = bpy.types.ToolSettings.bl_rna.properties['transform_pivot_point'].enum_items[pivot_point]
+        row = layout.row(align=True)
+        row.popover(
+            space_type='TOPBAR',
+            region_type='HEADER',
+            panel_type="TOPBAR_PT_pivot_point",
+            icon=act_pivot_point.icon,
+            text="",
+        )
+        if object_mode in {'OBJECT', 'EDIT', 'POSE'}:
+            layout.prop(scene, "transform_orientation", text="")
 
         if obj:
             # Proportional editing
@@ -172,9 +182,6 @@ class VIEW3D_HT_header(Header):
                 icon=icon,
                 text=""
             )
-
-        if mode in {'OBJECT', 'EDIT', 'POSE'}:
-            layout.prop(scene, "transform_orientation", text="")
 
         layout.separator()
 
