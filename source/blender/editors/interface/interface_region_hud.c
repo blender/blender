@@ -174,7 +174,12 @@ static void hud_region_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	if ((ar->flag & RGN_FLAG_HIDDEN) == 0) {
-		ui_draw_widget_back(UI_WTYPE_BOX, false, &(rcti){.xmax = ar->winx, .ymax = ar->winy});
+		float color[4];
+		UI_GetThemeColor4fv(TH_BUTBACK, color);
+		if ((U.uiflag2 & USER_REGION_OVERLAP) == 0) {
+			color[3] = 1.0f;
+		}
+		ui_draw_widget_back_color(UI_WTYPE_BOX, false, &(rcti){.xmax = ar->winx, .ymax = ar->winy}, color);
 		ED_region_panels_draw(C, ar);
 	}
 }

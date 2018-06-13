@@ -4919,7 +4919,9 @@ uiWidgetColors *ui_tooltip_get_theme(void)
 /**
  * Generic drawing for background.
  */
-void ui_draw_widget_back(uiWidgetTypeEnum type, bool use_shadow, const rcti *rect)
+void ui_draw_widget_back_color(
+        uiWidgetTypeEnum type, bool use_shadow, const rcti *rect,
+        const float color[4])
 {
 	uiWidgetType *wt = widget_type(type);
 
@@ -4931,7 +4933,14 @@ void ui_draw_widget_back(uiWidgetTypeEnum type, bool use_shadow, const rcti *rec
 
 	rcti rect_copy = *rect;
 	wt->state(wt, 0);
+	if (color) {
+		rgba_float_to_uchar((unsigned char *)wt->wcol.inner, color);
+	}
 	wt->draw(&wt->wcol, &rect_copy, 0, UI_CNR_ALL);
+}
+void ui_draw_widget_back(uiWidgetTypeEnum type, bool use_shadow, const rcti *rect)
+{
+	ui_draw_widget_back_color(type, use_shadow, rect, NULL);
 }
 
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *UNUSED(block), rcti *rect)
