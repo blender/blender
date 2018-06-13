@@ -170,13 +170,14 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
-	Mesh *result;
+	Mesh *result = mesh;
 
 	Mesh *mesh_other;
 	bool mesh_other_free;
 
-	if (!bmd->object)
-		return mesh;
+	if (!bmd->object) {
+		return result;
+	}
 
 	Object *ob_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
 	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_eval, &mesh_other_free);
