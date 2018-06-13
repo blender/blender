@@ -959,11 +959,13 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
+			if (event->val == KM_RELEASE) {
+				node_resize_exit(C, op, false);
+				ED_node_post_apply_transform(C, snode->edittree);
 
-			node_resize_exit(C, op, false);
-			ED_node_post_apply_transform(C, snode->edittree);
-
-			return OPERATOR_FINISHED;
+				return OPERATOR_FINISHED;
+			}
+			break;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
