@@ -3516,7 +3516,7 @@ void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene)
 	PTCacheBaker baker;
 
 	memset(&baker, 0, sizeof(baker));
-	baker.main = bmain;
+	baker.bmain = bmain;
 	baker.scene = scene;
 	baker.bake = 0;
 	baker.render = 0;
@@ -3541,7 +3541,7 @@ static void ptcache_dt_to_str(char *str, double dtime)
 /* if bake is not given run simulations to current frame */
 void BKE_ptcache_bake(PTCacheBaker *baker)
 {
-	Main *bmain = baker->main;
+	Main *bmain = baker->bmain;
 	Scene *scene = baker->scene;
 	Scene *sce_iter; /* SETLOOPER macro only */
 	Base *base;

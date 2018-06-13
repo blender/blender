@@ -163,7 +163,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 {
 	PTCacheBaker *baker = MEM_callocN(sizeof(PTCacheBaker), "PTCacheBaker");
 
-	baker->main = CTX_data_main(C);
+	baker->bmain = CTX_data_main(C);
 	baker->scene = CTX_data_scene(C);
 	baker->bake = RNA_boolean_get(op->ptr, "bake");
 	baker->render = 0;

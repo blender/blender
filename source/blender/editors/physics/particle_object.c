@@ -77,13 +77,14 @@ static float I[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0
 
 static int particle_system_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob= ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
 
 	if (!scene || !ob)
 		return OPERATOR_CANCELLED;
 
-	object_add_particle_system(scene, ob, NULL);
+	object_add_particle_system(bmain, scene, ob, NULL);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
@@ -108,6 +109,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 
 static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
 	int mode_orig;
@@ -116,7 +118,7 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	mode_orig = ob->mode;
-	object_remove_particle_system(scene, ob);
+	object_remove_particle_system(bmain, scene, ob);
 
 	/* possible this isn't the active object
 	 * object_remove_particle_system() clears the mode on the last psys
