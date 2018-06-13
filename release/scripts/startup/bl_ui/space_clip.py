@@ -144,7 +144,7 @@ class CLIP_HT_header(Header):
 
         layout.prop(sc, "mode", text="")
         if sc.mode == 'TRACKING':
-            layout.prop(sc, "view", text="", icon_only=True)
+            layout.prop(sc, "view", text="")
             self._draw_tracking(context)
         else:
             self._draw_masking(context)
