@@ -1985,7 +1985,7 @@ static uiBut *ui_item_menu(
 	h = UI_UNIT_Y;
 
 	if (layout->root->type == UI_LAYOUT_HEADER) { /* ugly .. */
-		if (icon == ICON_NONE) {
+		if (icon == ICON_NONE && force_menu) {
 			/* pass */
 		}
 		else if (force_menu) {
