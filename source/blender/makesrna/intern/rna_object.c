@@ -278,7 +278,7 @@ static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
 		/* exit/enter editmode to get new shape */
 		switch (ob->type) {
 			case OB_MESH:
-				EDBM_mesh_load(ob);
+				EDBM_mesh_load(bmain, ob);
 				EDBM_mesh_make(ob, scene->toolsettings->selectmode, true);
 
 				DEG_id_tag_update(ob->data, 0);

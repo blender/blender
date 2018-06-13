@@ -43,6 +43,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_report.h"
@@ -330,7 +331,7 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
  * \warning This can invalidate the #DerivedMesh cache of other objects (for linked duplicates).
  * Most callers should run #DEG_id_tag_update on \a ob->data, see: T46738, T46913
  */
-void EDBM_mesh_load(Object *ob)
+void EDBM_mesh_load(Main *bmain, Object *ob)
 {
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh->bm;
@@ -342,7 +343,7 @@ void EDBM_mesh_load(Object *ob)
 	}
 
 	BM_mesh_bm_to_me(
-	        bm, me, (&(struct BMeshToMeshParams){
+	        bmain, bm, me, (&(struct BMeshToMeshParams){
 	            .calc_object_remap = true,
 	        }));
 

@@ -4531,12 +4531,12 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			if (me->totface && !me->totpoly) {
 				/* temporarily switch main so that reading from
 				 * external CustomData works */
-				Main *gmain = G.main;
-				G.main = main;
+				Main *gmain = G_MAIN;
+				G_MAIN = main;
 				
 				BKE_mesh_do_versions_convert_mfaces_to_mpolys(me);
 				
-				G.main = gmain;
+				G_MAIN = gmain;
 			}
 
 			/*
@@ -10336,7 +10336,7 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
 /**
  * Initialize the BlendHandle for linking library data.
  *
- * \param mainvar The current main database, e.g. G.main or CTX_data_main(C).
+ * \param mainvar The current main database, e.g. G_MAIN or CTX_data_main(C).
  * \param bh A blender file handle as returned by \a BLO_blendhandle_from_file or \a BLO_blendhandle_from_memory.
  * \param filepath Used for relative linking, copied to the \a lib->name.
  * \return the library Main, to be passed to \a BLO_library_append_named_part as \a mainl.

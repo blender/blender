@@ -38,6 +38,7 @@
 #include "bmesh.h"
 #include "intern/bmesh_operators_private.h"
 
+#include "BKE_global.h"
 
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
@@ -72,7 +73,7 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
 
 	BM_mesh_bm_to_me(
-	        bm, me,
+	        G.main, bm, me,
 	        (&(struct BMeshToMeshParams){
 	            .calc_object_remap = true,
 	        }));

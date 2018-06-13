@@ -511,8 +511,8 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
 	/* BM_mesh_validate(em->bm); */ /* for troubleshooting */
 
 	BM_mesh_bm_to_me(
-	        em->bm, &um->me, (&(struct BMeshToMeshParams){
-	            /* Undo code should not be manipulating 'G.main->object' hooks/vertex-parent. */
+	        NULL, em->bm, &um->me, (&(struct BMeshToMeshParams){
+	            /* Undo code should not be manipulating 'G_MAIN->object' hooks/vertex-parent. */
 	            .calc_object_remap = false,
 	            .cd_mask_extra = CD_MASK_SHAPE_KEYINDEX,
 	        }));

@@ -318,7 +318,7 @@ static bool object_hook_index_array(Main *bmain, Scene *scene, Object *obedit,
 
 			BMEditMesh *em;
 
-			EDBM_mesh_load(obedit);
+			EDBM_mesh_load(bmain, obedit);
 			EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
 
 			DEG_id_tag_update(obedit->data, 0);

@@ -3642,7 +3642,7 @@ static Base *mesh_separate_tagged(Main *bmain, Scene *scene, ViewLayer *view_lay
 
 	BM_mesh_normals_update(bm_new);
 
-	BM_mesh_bm_to_me(bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
+	BM_mesh_bm_to_me(bmain, bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
 
 	BM_mesh_free(bm_new);
 	((Mesh *)base_new->object->data)->edit_btmesh = NULL;
@@ -3955,7 +3955,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 					if (retval_iter) {
 						BM_mesh_bm_to_me(
-						        bm_old, me,
+						        bmain, bm_old, me,
 						        (&(struct BMeshToMeshParams){
 						            .calc_object_remap = true,
 						        }));

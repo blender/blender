@@ -4091,7 +4091,7 @@ bool BLO_write_file(
 			if (G.relbase_valid) {
 				/* blend may not have been saved before. Tn this case
 				 * we should not have any relative paths, but if there
-				 * is somehow, an invalid or empty G.main->name it will
+				 * is somehow, an invalid or empty G_MAIN->name it will
 				 * print an error, don't try make the absolute in this case. */
 				BKE_bpath_absolute_convert(mainvar, BKE_main_blendfile_path_from_global(), NULL);
 			}
@@ -4099,7 +4099,7 @@ bool BLO_write_file(
 	}
 
 	if (write_flags & G_FILE_RELATIVE_REMAP) {
-		/* note, making relative to something OTHER then G.main->name */
+		/* note, making relative to something OTHER then G_MAIN->name */
 		BKE_bpath_relative_convert(mainvar, filepath, NULL);
 	}
 

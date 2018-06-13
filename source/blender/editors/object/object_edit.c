@@ -191,7 +191,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 			return false;
 		}
 
-		EDBM_mesh_load(obedit);
+		EDBM_mesh_load(bmain, obedit);
 
 		if (freedata) {
 			EDBM_mesh_free(me->edit_btmesh);
