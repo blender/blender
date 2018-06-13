@@ -936,7 +936,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.view_overlay, 0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	rgba_char_args_set(btheme->tv3d.wire_edit,  0x0, 0x0, 0x0, 255);
-	rgba_char_args_set(btheme->tv3d.wire_inactive, 128, 128, 128, 255);
+	rgba_char_args_set(btheme->tv3d.wire_inactive, 32, 32, 32, 255);
 	rgba_char_args_set(btheme->tv3d.lamp,       0, 0, 0, 40);
 	rgba_char_args_set(btheme->tv3d.speaker,    0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.camera,    0, 0, 0, 255);
@@ -3054,7 +3054,7 @@ void init_userdef_do_versions(Main *bmain)
 
 		for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
 			if (btheme->tv3d.wire_inactive[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.wire_inactive,  128, 128, 128, 255);
+				rgba_char_args_set(btheme->tv3d.wire_inactive,  32, 32, 32, 255);
 			}
 		}
 	}
