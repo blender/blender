@@ -75,6 +75,13 @@ const ivec3 clipPointIdx[6] = ivec3[6](
 	ivec3(2, 1, 0)
 );
 
+const vec4 stipple_matrix[4] = vec4[4](
+	vec4(1.0, 0.0, 0.0, 0.0),
+	vec4(0.0, 0.0, 0.0, 0.0),
+	vec4(0.0, 0.0, 1.0, 0.0),
+	vec4(0.0, 0.0, 0.0, 0.0)
+);
+
 void colorDist(vec4 color, float dist)
 {
 	FragColor = (dist < 0) ? color : FragColor;
@@ -138,7 +145,15 @@ void main()
 
 	/* First */
 	FragColor = faceColor;
-	FragColor.a *= faceAlphaMod;
+
+	if ((flag[0] & FACE_ACTIVE) != 0) {
+		int x = int(gl_FragCoord.x) & 0x3; /* mod 4 */
+		int y = int(gl_FragCoord.y) & 0x3; /* mod 4 */
+		FragColor *= stipple_matrix[x][y];
+	}
+	else {
+		FragColor.a *= faceAlphaMod;
+	}
 
 	/* Edges */
 	for (int v = 0; v < 3; ++v) {
