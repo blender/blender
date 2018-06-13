@@ -30,8 +30,13 @@
 
 #include "intern/builder/deg_builder.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_ID.h"
+
+extern "C" {
+#include "BKE_animsys.h"
+}
 
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_types.h"
@@ -53,12 +58,17 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 	foreach (IDDepsNode *id_node, graph->id_nodes) {
 		ID *id = id_node->id_orig;
 		id_node->finalize_build(graph);
+		int flag = DEG_TAG_TRANSFORM | DEG_TAG_GEOMETRY;
 		if ((id->recalc & ID_RECALC_ALL)) {
-			DEG_id_tag_update_ex(bmain, id_node->id_orig, 0);
+			AnimData *adt = BKE_animdata_from_id(id);
+			if (adt != NULL && (adt->recalc & ADT_RECALC_ANIM) != 0) {
+				flag |= DEG_TAG_TIME;
+			}
 		}
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
-			DEG_id_tag_update_ex(bmain, id_node->id_orig, DEG_TAG_COPY_ON_WRITE);
+			flag |= DEG_TAG_COPY_ON_WRITE;
 		}
+		DEG_id_tag_update_ex(bmain, id_node->id_orig, flag);
 	}
 }
 
