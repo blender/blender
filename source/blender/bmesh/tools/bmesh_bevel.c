@@ -5146,7 +5146,7 @@ static void find_even_superellipse_chords_general(int seg, float r, double *xval
 	double sum;
 	double temp;
 
-	bool precision_reached;
+	bool precision_reached = true; /* Exception: var used without being initialized */
 	bool seg_odd = seg % 2;
 	bool rbig;
 
