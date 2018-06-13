@@ -29,9 +29,9 @@
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION         280
 #define BLENDER_SUBVERSION      17
-/* Several breakages with 270, e.g. constraint deg vs rad */
-#define BLENDER_MINVERSION      270
-#define BLENDER_MINSUBVERSION   6
+/* Several breakages with 280, e.g. collections vs layers */
+#define BLENDER_MINVERSION      280
+#define BLENDER_MINSUBVERSION   0
 
 /* used by packaging tools */
 /* can be left blank, otherwise a,b,c... etc with no quotes */
