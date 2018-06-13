@@ -2252,10 +2252,10 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 
 void ED_region_header_draw(const bContext *C, ARegion *ar)
 {
-	UI_view2d_view_ortho(&ar->v2d);
-
 	/* clear */
 	region_clear_color(C, ar, region_background_color_id(C, ar));
+
+	UI_view2d_view_ortho(&ar->v2d);
 
 	/* View2D matrix might have changed due to dynamic sized regions. */
 	UI_blocklist_update_window_matrix(C, &ar->uiblocks);
