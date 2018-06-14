@@ -133,15 +133,39 @@ static void hud_panels_register(ARegionType *art, int space_type, int region_typ
 /** \name Callbacks for Floating Region
  * \{ */
 
+struct HudRegionData {
+	short regionid;
+};
+
 static void hud_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	ED_region_panels_init(wm, ar);
 	UI_region_handlers_add(&ar->handlers);
+	ar->flag |= RGN_FLAG_TEMP_REGIONDATA;
+}
+
+static void hud_region_free(ARegion *ar)
+{
+	MEM_SAFE_FREE(ar->regiondata);
 }
 
 static void hud_region_layout(const bContext *C, ARegion *ar)
 {
-	if (!last_redo_poll(C)) {
+	bool ok = false;
+
+	{
+		struct HudRegionData *hrd = ar->regiondata;
+		if (hrd != NULL) {
+			ScrArea *sa = CTX_wm_area(C);
+			ARegion *ar_op = (hrd->regionid != -1) ? BKE_area_find_region_type(sa, hrd->regionid) : NULL;
+			ARegion *ar_prev = CTX_wm_region(C);
+			CTX_wm_region_set((bContext *)C, ar_op);
+			ok = last_redo_poll(C);
+			CTX_wm_region_set((bContext *)C, ar_prev);
+		}
+	}
+
+	if (!ok) {
 		ED_region_tag_redraw(ar);
 		ar->flag |= RGN_FLAG_HIDDEN;
 		return;
@@ -192,6 +216,7 @@ ARegionType *ED_area_type_hud(int space_type)
 	art->layout = hud_region_layout;
 	art->draw = hud_region_draw;
 	art->init = hud_region_init;
+	art->free = hud_region_free;
 
 	hud_panels_register(art, space_type, art->regionid);
 
@@ -281,6 +306,22 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 			sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
 		}
 		ar->flag &= ~RGN_FLAG_HIDDEN;
+	}
+
+	{
+		ARegion *ar_op = CTX_wm_region(C);
+		BLI_assert((ar_op == NULL) || (ar_op->regiontype != RGN_TYPE_HUD));
+		struct HudRegionData *hrd = ar->regiondata;
+		if (hrd == NULL) {
+			hrd = MEM_callocN(sizeof(*hrd), __func__);
+			ar->regiondata = hrd;
+		}
+		if (ar_op) {
+			hrd->regionid = ar_op->regiontype;
+		}
+		else {
+			hrd->regionid = -1;
+		}
 	}
 
 	/* XXX, should be handled in more general way. */
