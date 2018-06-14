@@ -275,7 +275,6 @@ typedef struct MPathTarget {
 	 * that provide all the coordinates we want to save off)
 	 */
 	Object *ob_eval;             /* evaluated object */
-	bPoseChannel *pchan_eval;    /* evaluated posechannel (if applicable) */
 } MPathTarget;
 
 /* ........ */
@@ -348,9 +347,6 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		bMotionPath *mpath = mpt->mpath;
 		bMotionPathVert *mpv;
 		
-		Object *ob_eval = mpt->ob_eval;
-		bPoseChannel *pchan_eval = mpt->pchan_eval;
-		
 		/* current frame must be within the range the cache works for 
 		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
 		 */
@@ -361,8 +357,17 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		/* get the relevant cache vert to write to */
 		mpv = mpath->points + (CFRA - mpath->start_frame);
 		
+		Object *ob_eval = mpt->ob_eval;
+
+		/* Lookup evaluated pose channel, here because the depsgraph
+		 * evaluation can change them so they are not cached in mpt. */
+		bPoseChannel *pchan_eval = NULL;
+		if (mpt->pchan) {
+			pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, mpt->pchan->name);
+		}
+
 		/* pose-channel or object path baking? */
-		if (mpt->pchan_eval) {
+		if (pchan_eval) {
 			/* heads or tails */
 			if (mpath->flag & MOTIONPATH_FLAG_BHEAD) {
 				copy_v3_v3(mpv->co, pchan_eval->pose_head);
@@ -425,9 +430,6 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	// TODO: Create a copy of background depsgraph that only contain these entities, and only evaluates them..
 	for (mpt = targets->first; mpt; mpt = mpt->next) {
 		mpt->ob_eval = DEG_get_evaluated_object(depsgraph, mpt->ob);
-		if (mpt->pchan) {
-			mpt->pchan_eval = BKE_pose_channel_find_name(mpt->ob_eval->pose, mpt->pchan->name);
-		}
 
 		AnimData *adt = BKE_animdata_from_id(&mpt->ob_eval->id);
 
