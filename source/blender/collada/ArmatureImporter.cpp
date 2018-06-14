@@ -54,8 +54,9 @@ static const char *bc_get_joint_name(T *node)
 }
 
 
-ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, const ImportSettings *import_settings) :
+ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Main *bmain, Scene *sce, const ImportSettings *import_settings) :
 	TransformReader(conv),
+	m_bmain(bmain),
 	scene(sce),
 	unit_converter(conv),
 	import_settings(import_settings),
@@ -409,7 +410,7 @@ Object *ArmatureImporter::get_empty_for_leaves()
 {
 	if (empty) return empty;
 
-	empty = bc_add_object(scene, OB_EMPTY, NULL);
+	empty = bc_add_object(m_bmain, scene, OB_EMPTY, NULL);
 	empty->empty_drawtype = OB_EMPTY_SPHERE;
 
 	return empty;
@@ -584,7 +585,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo& skin)
 		ob_arm = skin.set_armature(shared);
 	}
 	else {
-		ob_arm = skin.create_armature(scene);  //once for every armature
+		ob_arm = skin.create_armature(m_bmain, scene);  //once for every armature
 	}
 
 	// enter armature edit mode

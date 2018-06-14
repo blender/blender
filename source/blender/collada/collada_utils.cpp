@@ -133,30 +133,23 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	return true;
 }
 
-Main *bc_get_main()
+EvaluationContext *bc_get_evaluation_context(Main *bmain)
 {
-	return G.main;
-}
-
-EvaluationContext *bc_get_evaluation_context()
-{
-	Main *bmain = G.main;
 	return bmain->eval_ctx;
 }
 
-void bc_update_scene(Scene *scene, float ctime)
+void bc_update_scene(Main *bmain, Scene *scene, float ctime)
 {
 	BKE_scene_frame_set(scene, ctime);
-	Main *bmain = bc_get_main();
-	EvaluationContext *ev_context = bc_get_evaluation_context();
+	EvaluationContext *ev_context = bc_get_evaluation_context(bmain);
 	BKE_scene_update_for_newframe(ev_context, bmain, scene, scene->lay);
 }
 
-Object *bc_add_object(Scene *scene, int type, const char *name)
+Object *bc_add_object(Main *bmain, Scene *scene, int type, const char *name)
 {
-	Object *ob = BKE_object_add_only_object(G.main, type, name);
+	Object *ob = BKE_object_add_only_object(bmain, type, name);
 
-	ob->data = BKE_object_obdata_add_from_type(G.main, type, name);
+	ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
 	ob->lay = scene->lay;
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
@@ -165,7 +158,8 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	return ob;
 }
 
-Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
+Mesh *bc_get_mesh_copy(
+        Main *bmain, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
 {
 	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;
@@ -189,7 +183,7 @@ Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh
 		dm = mesh_create_derived((Mesh *)ob->data, NULL);
 	}
 
-	tmpmesh = BKE_mesh_add(G.main, "ColladaMesh"); // name is not important here
+	tmpmesh = BKE_mesh_add(bmain, "ColladaMesh"); // name is not important here
 	DM_to_mesh(dm, tmpmesh, ob, CD_MASK_MESH, true);
 	tmpmesh->flag = mesh->flag;
 

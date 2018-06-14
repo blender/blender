@@ -72,12 +72,13 @@ class GeometryExporter : COLLADASW::LibraryGeometries
 
 	Normal n;
 
+	Main *m_bmain;
 	Scene *mScene;
 
 public:
 	GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
-	void exportGeom(Scene *sce);
+	void exportGeom(Main *bmain, Scene *sce);
 
 	void operator()(Object *ob);
 

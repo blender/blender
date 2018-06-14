@@ -91,6 +91,7 @@ private:
 
 	UnitConverter *unitconverter;
 
+	Main *m_bmain;
 	Scene *scene;
 	ArmatureImporter *armature_importer;
 
@@ -159,7 +160,7 @@ private:
 
 public:
 
-	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce);
+	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Main *bmain, Scene *sce);
 
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
 

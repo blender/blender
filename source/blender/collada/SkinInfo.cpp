@@ -159,9 +159,9 @@ void SkinInfo::set_controller(const COLLADAFW::SkinController *co)
 }
 
 // called from write_controller
-Object *SkinInfo::create_armature(Scene *scene)
+Object *SkinInfo::create_armature(Main *bmain, Scene *scene)
 {
-	ob_arm = bc_add_object(scene, OB_ARMATURE, NULL);
+	ob_arm = bc_add_object(bmain, scene, OB_ARMATURE, NULL);
 	return ob_arm;
 }
 

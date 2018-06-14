@@ -99,7 +99,7 @@ public:
 	void set_controller(const COLLADAFW::SkinController* co);
 
 	// called from write_controller
-	Object *create_armature(Scene *scene);
+	Object *create_armature(Main *bmain, Scene *scene);
 
 	Object* set_armature(Object *ob_arm);
 

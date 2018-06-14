@@ -207,7 +207,11 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 
 }
 
-MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {
+MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Main *bmain, Scene *sce) :
+    unitconverter(unitconv),
+    m_bmain(bmain),
+    scene(sce),
+    armature_importer(arm) {
 }
 
 bool MeshImporter::set_poly_indices(MPoly *mpoly, MLoop *mloop, int loop_index, unsigned int *indices, int loop_count)
@@ -1077,7 +1081,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	// Attention! This temporaly assigns material to object on purpose!
 	// See note above.
 	ob->actcol=0;
-	assign_material(G.main, ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT);
+	assign_material(m_bmain, ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT);
 
 	COLLADAFW::TextureCoordinateBindingArray& tex_array =
 	    cmaterial.getTextureCoordinateBindingArray();
@@ -1160,7 +1164,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	const char *name = (id.length()) ? id.c_str() : NULL;
 
 	// add object
-	Object *ob = bc_add_object(scene, OB_MESH, name);
+	Object *ob = bc_add_object(m_bmain, scene, OB_MESH, name);
 	bc_set_mark(ob); // used later for material assignement optimization
 
 
@@ -1172,11 +1176,11 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	Mesh *old_mesh = (Mesh *)ob->data;
 	Mesh *new_mesh = uid_mesh_map[*geom_uid];
 
-	BKE_mesh_assign_object(G.main, ob, new_mesh);
+	BKE_mesh_assign_object(m_bmain, ob, new_mesh);
 	BKE_mesh_calc_normals(new_mesh);
 
 	id_us_plus(&old_mesh->id);  /* Because BKE_mesh_assign_object would have already decreased it... */
-	BKE_libblock_free_us(G.main, old_mesh);
+	BKE_libblock_free_us(m_bmain, old_mesh);
 
 	char layername[100];
 	layername[0] = '\0';
@@ -1219,7 +1223,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	}
 
 	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
-	Mesh *me = BKE_mesh_add(G.main, (char *)str_geom_id.c_str());
+	Mesh *me = BKE_mesh_add(m_bmain, (char *)str_geom_id.c_str());
 	id_us_min(&me->id); // is already 1 here, but will be set later in BKE_mesh_assign_object
 
 	// store the Mesh pointer to link it later with an Object

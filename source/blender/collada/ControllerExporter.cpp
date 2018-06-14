@@ -107,8 +107,9 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 	return true;
 }
 
-void ControllerExporter::export_controllers(Scene *sce)
+void ControllerExporter::export_controllers(Main *bmain, Scene *sce)
 {
+	m_bmain = bmain;
 	scene = sce;
 
 	openLibrary();
@@ -200,7 +201,9 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
-	me = bc_get_mesh_copy(scene,
+	me = bc_get_mesh_copy(
+				m_bmain,
+				scene,
 				ob,
 				this->export_settings->export_mesh_type,
 				this->export_settings->apply_modifiers,
@@ -291,7 +294,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
 	add_vertex_weights_element(weights_source_id, joints_source_id, vcounts, joints);
 
-	BKE_libblock_free_us(G.main, me);
+	BKE_libblock_free_us(m_bmain, me);
 
 	closeSkin();
 	closeController();
@@ -302,7 +305,9 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
-	me = bc_get_mesh_copy(scene,
+	me = bc_get_mesh_copy(
+				m_bmain,
+				scene,
 				ob,
 				this->export_settings->export_mesh_type,
 				this->export_settings->apply_modifiers,
@@ -327,7 +332,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, morph_weights_id)));
 	targets.add();
 
-	BKE_libblock_free_us(G.main, me);
+	BKE_libblock_free_us(m_bmain, me);
 
 
 	//support for animations

@@ -65,11 +65,12 @@ public:
 
 	bool add_instance_controller(Object *ob);
 
-	void export_controllers(Scene *sce);
+	void export_controllers(Main *bmain, Scene *sce);
 
 	void operator()(Object *ob);
 
 private:
+	Main *m_bmain;
 	Scene *scene;
 	UnitConverter converter;
 	const ExportSettings *export_settings;

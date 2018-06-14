@@ -183,6 +183,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 
 int DocumentExporter::exportCurrentScene(bContext *C, const EvaluationContext *eval_ctx, Scene *sce)
 {
+	Main *bmain = CTX_data_main(C);
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
 
@@ -287,7 +288,7 @@ int DocumentExporter::exportCurrentScene(bContext *C, const EvaluationContext *e
 	// <library_geometries>
 	if (bc_has_object_type(export_set, OB_MESH)) {
 		GeometryExporter ge(writer, this->export_settings);
-		ge.exportGeom(sce);
+		ge.exportGeom(bmain, sce);
 	}
 
 	// <library_controllers>
@@ -295,7 +296,7 @@ int DocumentExporter::exportCurrentScene(bContext *C, const EvaluationContext *e
 	ControllerExporter controller_exporter(writer, this->export_settings);
 	if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys)
 	{
-		controller_exporter.export_controllers(sce);
+		controller_exporter.export_controllers(bmain, sce);
 	}
 
 	// <library_visual_scenes>
@@ -305,7 +306,7 @@ int DocumentExporter::exportCurrentScene(bContext *C, const EvaluationContext *e
 	if (this->export_settings->include_animations) {
 		// <library_animations>
 		AnimationExporter ae(writer, this->export_settings);
-		ae.exportAnimations(sce);
+		ae.exportAnimations(bmain, sce);
 	}
 	se.exportScene(C, sce);
 
