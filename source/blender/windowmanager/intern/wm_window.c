@@ -2318,13 +2318,14 @@ void *WM_opengl_context_create(void)
 	 * So we should call this function only on the main thread.
 	 */
 	BLI_assert(BLI_thread_is_main());
-	BLI_assert(GPU_framebuffer_current_get() == 0);
+	// BLI_assert(GPU_framebuffer_current_get() == 0);
 	return GHOST_CreateOpenGLContext(g_system);
 }
 
 void WM_opengl_context_dispose(void *context)
 {
-	BLI_assert(GPU_framebuffer_current_get() == 0);
+	// BLI_assert(BLI_thread_is_main());
+	// BLI_assert(GPU_framebuffer_current_get() == 0);
 	GHOST_DisposeOpenGLContext(g_system, (GHOST_ContextHandle)context);
 }
 
