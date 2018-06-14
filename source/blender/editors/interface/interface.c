@@ -250,12 +250,35 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 		return;
 	}
 
-	const float spacing = ((region_width - buttons_width) / (float)sepr_flex_len);
-	float offset = 0;
+	/* We could get rid of this loop if we agree on a max number of spacer */
+	int *spacers_pos = alloca(sizeof(*spacers_pos) * (size_t)sepr_flex_len);
+	int i = 0;
+	for (uiBut *but = block->buttons.first; but; but = but->next) {
+		if (but->type == UI_BTYPE_SEPR_SPACER) {
+			ui_but_to_pixelrect(&rect, region, block, but);
+			spacers_pos[i] = rect.xmax + UI_HEADER_OFFSET;
+			i++;
+		}
+	}
+
+	const float segment_width = region_width / (float)sepr_flex_len;
+	float offset = 0, remaining_space = region_width - buttons_width;
+	i = 0;
 	for (uiBut *but = block->buttons.first; but; but = but->next) {
 		BLI_rctf_translate(&but->rect, offset, 0);
 		if (but->type == UI_BTYPE_SEPR_SPACER) {
-			offset += spacing;
+			/* How much the next block overlap with the current segment */
+			int overlap = (i == sepr_flex_len - 1) ? buttons_width - spacers_pos[i]
+			                                       : (spacers_pos[i+1] - spacers_pos[i]) / 2;
+			int segment_end = segment_width * (i+1);
+			int spacer_end = segment_end - overlap;
+			int spacer_sta = spacers_pos[i] + offset;
+			if (spacer_end > spacer_sta) {
+				float step = min_ff(remaining_space, spacer_end - spacer_sta);
+				remaining_space -= step;
+				offset += step;
+			}
+			i++;
 		}
 	}
 	ui_block_bounds_calc(block);
