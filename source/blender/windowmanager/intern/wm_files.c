@@ -472,7 +472,6 @@ void wm_file_read_report(bContext *C, Main *bmain)
  */
 static void wm_file_read_post(bContext *C, const bool is_startup_file, const bool use_userdef)
 {
-	Main *bmain = CTX_data_main(C);
 	bool addons_loaded = false;
 	wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -484,6 +483,8 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	CTX_wm_window_set(C, wm->windows.first);
 
 	ED_editors_init(C);
+
+	Main *bmain = CTX_data_main(C);
 	DEG_on_visible_update(bmain, true);
 
 #ifdef WITH_PYTHON
