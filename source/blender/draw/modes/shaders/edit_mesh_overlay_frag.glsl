@@ -94,7 +94,10 @@ float distToEdge(vec2 o, vec2 dir)
 #ifdef ANTI_ALIASING
 void colorDistEdge(vec4 color, float dist)
 {
+	/* May not work if color.a is not 1.0. */
+	FragColor.rgb *= FragColor.a;
 	FragColor = mix(color, FragColor, clamp(dist, 0.0, 1.0));
+	FragColor.rgb /= FragColor.a;
 }
 #else
 #define colorDistEdge colorDist
