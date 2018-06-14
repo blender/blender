@@ -227,7 +227,7 @@ static void wm_window_match_keep_current_wm(
 		for (wmWindow *win = wm->windows.first; win; win = win->next) {
 			WorkSpace *workspace;
 
-			BKE_workspace_layout_find_global(G.main, screen, &workspace);
+			BKE_workspace_layout_find_global(bmain, screen, &workspace);
 			BKE_workspace_active_set(win->workspace_hook, workspace);
 			win->scene = CTX_data_scene(C);
 

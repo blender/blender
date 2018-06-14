@@ -232,7 +232,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 	wm_ghostwindow_destroy(wm, win);
 
-	BKE_workspace_instance_hook_free(G.main, win->workspace_hook);
+	BKE_workspace_instance_hook_free(G_MAIN, win->workspace_hook);
 	MEM_freeN(win->stereo3d_format);
 
 	MEM_freeN(win);
@@ -1236,7 +1236,7 @@ void wm_window_reset_drawable(void)
 {
 	BLI_assert(BLI_thread_is_main());
 	BLI_assert(GPU_framebuffer_current_get() == 0);
-	wmWindowManager *wm = G.main->wm.first;
+	wmWindowManager *wm = G_MAIN->wm.first;
 
 	if (wm == NULL)
 		return;
