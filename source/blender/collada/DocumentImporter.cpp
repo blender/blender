@@ -412,7 +412,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 	Main *bmain = CTX_data_main(mContext);
 	Object *obn = BKE_object_copy(bmain, source_ob);
 	DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-	BKE_collection_object_add_from(G.main, sce, source_ob, obn);
+	BKE_collection_object_add_from(bmain, sce, source_ob, obn);
 
 	if (instance_node) {
 		anim_importer.read_node_transform(instance_node, obn);
