@@ -197,12 +197,13 @@ float3 background_map_sample(KernelGlobals *kg, float randu, float randv, float 
 	/* for the following, the CDF values are actually a pair of floats, with the
 	 * function value as X and the actual CDF as Y.  The last entry's function
 	 * value is the CDF total. */
-	int res = kernel_data.integrator.pdf_background_res;
-	int cdf_count = res + 1;
+	int res_x = kernel_data.integrator.pdf_background_res_x;
+	int res_y = kernel_data.integrator.pdf_background_res_y;
+	int cdf_width = res_x + 1;
 
 	/* this is basically std::lower_bound as used by pbrt */
 	int first = 0;
-	int count = res;
+	int count = res_y;
 
 	while(count > 0) {
 		int step = count >> 1;
@@ -217,24 +218,24 @@ float3 background_map_sample(KernelGlobals *kg, float randu, float randv, float 
 	}
 
 	int index_v = max(0, first - 1);
-	kernel_assert(index_v >= 0 && index_v < res);
+	kernel_assert(index_v >= 0 && index_v < res_y);
 
 	float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
 	float2 cdf_next_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v + 1);
-	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res);
+	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res_y);
 
 	/* importance-sampled V direction */
 	float dv = inverse_lerp(cdf_v.y, cdf_next_v.y, randv);
-	float v = (index_v + dv) / res;
+	float v = (index_v + dv) / res_y;
 
 	/* this is basically std::lower_bound as used by pbrt */
 	first = 0;
-	count = res;
+	count = res_x;
 	while(count > 0) {
 		int step = count >> 1;
 		int middle = first + step;
 
-		if(kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + middle).y < randu) {
+		if(kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_width + middle).y < randu) {
 			first = middle + 1;
 			count -= step + 1;
 		}
@@ -243,15 +244,15 @@ float3 background_map_sample(KernelGlobals *kg, float randu, float randv, float 
 	}
 
 	int index_u = max(0, first - 1);
-	kernel_assert(index_u >= 0 && index_u < res);
+	kernel_assert(index_u >= 0 && index_u < res_x);
 
-	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + index_u);
-	float2 cdf_next_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + index_u + 1);
-	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + res);
+	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_width + index_u);
+	float2 cdf_next_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_width + index_u + 1);
+	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_width + res_x);
 
 	/* importance-sampled U direction */
 	float du = inverse_lerp(cdf_u.y, cdf_next_u.y, randu);
-	float u = (index_u + du) / res;
+	float u = (index_u + du) / res_x;
 
 	/* compute pdf */
 	float denom = cdf_last_u.x * cdf_last_v.x;
@@ -277,19 +278,21 @@ ccl_device
 float background_map_pdf(KernelGlobals *kg, float3 direction)
 {
 	float2 uv = direction_to_equirectangular(direction);
-	int res = kernel_data.integrator.pdf_background_res;
+	int res_x = kernel_data.integrator.pdf_background_res_x;
+	int res_y = kernel_data.integrator.pdf_background_res_y;
+	int cdf_width = res_x + 1;
 
 	float sin_theta = sinf(uv.y * M_PI_F);
 
 	if(sin_theta == 0.0f)
 		return 0.0f;
 
-	int index_u = clamp(float_to_int(uv.x * res), 0, res - 1);
-	int index_v = clamp(float_to_int(uv.y * res), 0, res - 1);
+	int index_u = clamp(float_to_int(uv.x * res_x), 0, res_x - 1);
+	int index_v = clamp(float_to_int(uv.y * res_y), 0, res_y - 1);
 
 	/* pdfs in V direction */
-	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + res);
-	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res);
+	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_width + res_x);
+	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res_y);
 
 	float denom = cdf_last_u.x * cdf_last_v.x;
 
@@ -297,7 +300,7 @@ float background_map_pdf(KernelGlobals *kg, float3 direction)
 		return 0.0f;
 
 	/* pdfs in U direction */
-	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + index_u);
+	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_width + index_u);
 	float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
 
 	return (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);

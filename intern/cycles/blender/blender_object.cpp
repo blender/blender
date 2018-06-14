@@ -242,7 +242,15 @@ void BlenderSync::sync_background_light(bool use_portal)
 	if(b_world) {
 		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 		PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
-		bool sample_as_light = get_boolean(cworld, "sample_as_light");
+
+		enum SamplingMethod {
+			SAMPLING_NONE = 0,
+			SAMPLING_AUTOMATIC,
+			SAMPLING_MANUAL,
+			SAMPLING_NUM
+		};
+		int sampling_method = get_enum(cworld, "sampling_method", SAMPLING_NUM, SAMPLING_AUTOMATIC);
+		bool sample_as_light = (sampling_method != SAMPLING_NONE);
 
 		if(sample_as_light || use_portal) {
 			/* test if we need to sync */
@@ -254,7 +262,12 @@ void BlenderSync::sync_background_light(bool use_portal)
 			    b_world.ptr.data != world_map)
 			{
 				light->type = LIGHT_BACKGROUND;
-				light->map_resolution  = get_int(cworld, "sample_map_resolution");
+				if(sampling_method == SAMPLING_MANUAL) {
+					light->map_resolution = get_int(cworld, "sample_map_resolution");
+				}
+				else {
+					light->map_resolution = 0;
+				}
 				light->shader = scene->default_background;
 				light->use_mis = sample_as_light;
 				light->max_bounces = get_int(cworld, "max_bounces");

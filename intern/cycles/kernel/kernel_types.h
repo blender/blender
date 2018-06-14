@@ -1272,6 +1272,11 @@ typedef struct KernelFilm {
 	int pass_denoising_clean;
 	int denoising_flags;
 
+	float3 xyz_to_r;
+	float3 xyz_to_g;
+	float3 xyz_to_b;
+	float3 rgb_to_y;
+
 	int pad1, pad2, pad3;
 
 #ifdef __KERNEL_DEBUG__
@@ -1306,7 +1311,8 @@ typedef struct KernelIntegrator {
 	int num_all_lights;
 	float pdf_triangles;
 	float pdf_lights;
-	int pdf_background_res;
+	int pdf_background_res_x;
+	int pdf_background_res_y;
 	float light_inv_rr_threshold;
 
 	/* light portals */
@@ -1368,6 +1374,8 @@ typedef struct KernelIntegrator {
 	int start_sample;
 
 	int max_closures;
+
+	int pad1, pad2, pad3;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

@@ -94,6 +94,25 @@ device_memory *ImageManager::image_memory(int flat_slot)
 	   return img->mem;
 }
 
+bool ImageManager::get_image_metadata(int flat_slot,
+                                      ImageMetaData& metadata)
+{
+	if(flat_slot == -1) {
+		return false;
+	}
+
+	ImageDataType type;
+	int slot = flattened_slot_to_type_index(flat_slot, &type);
+
+	Image *img = images[type][slot];
+	if(img) {
+		metadata = img->metadata;
+		return true;
+	}
+
+	return false;
+}
+
 bool ImageManager::get_image_metadata(const string& filename,
                                       void *builtin_data,
                                       ImageMetaData& metadata)
@@ -329,7 +348,7 @@ int ImageManager::add_image(const string& filename,
 	img = new Image();
 	img->filename = filename;
 	img->builtin_data = builtin_data;
-	img->builtin_free_cache = metadata.builtin_free_cache;
+	img->metadata = metadata;
 	img->need_load = true;
 	img->animated = animated;
 	img->frame = frame;
@@ -417,11 +436,7 @@ void ImageManager::tag_reload_image(const string& filename,
 }
 
 bool ImageManager::file_load_image_generic(Image *img,
-                                           ImageInput **in,
-                                           int &width,
-                                           int &height,
-                                           int &depth,
-                                           int &components)
+                                           ImageInput **in)
 {
 	if(img->filename == "")
 		return false;
@@ -449,28 +464,15 @@ bool ImageManager::file_load_image_generic(Image *img,
 			*in = NULL;
 			return false;
 		}
-
-		width = spec.width;
-		height = spec.height;
-		depth = spec.depth;
-		components = spec.nchannels;
 	}
 	else {
 		/* load image using builtin images callbacks */
 		if(!builtin_image_info_cb || !builtin_image_pixels_cb)
 			return false;
-
-		ImageMetaData metadata;
-		builtin_image_info_cb(img->filename, img->builtin_data, metadata);
-
-		width = metadata.width;
-		height = metadata.height;
-		depth = metadata.depth;
-		components = metadata.channels;
 	}
 
 	/* we only handle certain number of components */
-	if(!(components >= 1 && components <= 4)) {
+	if(!(img->metadata.channels >= 1 && img->metadata.channels <= 4)) {
 		if(*in) {
 			(*in)->close();
 			delete *in;
@@ -493,10 +495,16 @@ bool ImageManager::file_load_image(Image *img,
 {
 	const StorageType alpha_one = (FileFormat == TypeDesc::UINT8)? 255 : 1;
 	ImageInput *in = NULL;
-	int width, height, depth, components;
-	if(!file_load_image_generic(img, &in, width, height, depth, components)) {
+	if(!file_load_image_generic(img, &in)) {
 		return false;
 	}
+
+	/* Get metadata. */
+	int width = img->metadata.width;
+	int height = img->metadata.height;
+	int depth = img->metadata.depth;
+	int components = img->metadata.channels;
+
 	/* Read RGBA pixels. */
 	vector<StorageType> pixels_storage;
 	StorageType *pixels;
@@ -557,14 +565,14 @@ bool ImageManager::file_load_image(Image *img,
 			                              img->builtin_data,
 			                              (float*)&pixels[0],
 			                              num_pixels * components,
-			                              img->builtin_free_cache);
+			                              img->metadata.builtin_free_cache);
 		}
 		else if(FileFormat == TypeDesc::UINT8) {
 			builtin_image_pixels_cb(img->filename,
 			                        img->builtin_data,
 			                        (uchar*)&pixels[0],
 			                        num_pixels * components,
-			                        img->builtin_free_cache);
+			                        img->metadata.builtin_free_cache);
 		}
 		else {
 			/* TODO(dingto): Support half for ImBuf. */

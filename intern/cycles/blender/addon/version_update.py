@@ -377,10 +377,6 @@ def do_versions(self):
         for world in bpy.data.worlds:
             cworld = world.cycles
 
-            # World MIS
-            if not cworld.is_property_set("sample_as_light"):
-                cworld.sample_as_light = False
-
             # World MIS Samples
             if not cworld.is_property_set("samples"):
                 cworld.samples = 4
@@ -444,3 +440,12 @@ def do_versions(self):
                 part.tip_radius = cpart.get("tip_width", 0.0)
                 part.radius_scale = cpart.get("radius_scale", 0.01)
                 part.use_close_tip = cpart.get("use_closetip", True)
+
+    for world in bpy.data.worlds:
+        cworld = world.cycles
+        # World MIS
+        if not cworld.is_property_set("sampling_method"):
+            if cworld.get("sample_as_light", False):
+                cworld.sampling_method = 'MANUAL'
+            else:
+                cworld.sampling_method = 'NONE'

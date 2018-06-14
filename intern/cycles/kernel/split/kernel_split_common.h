@@ -23,6 +23,7 @@
 #include "kernel/split/kernel_split_data.h"
 
 #include "kernel/kernel_globals.h"
+#include "kernel/kernel_color.h"
 
 #ifdef __OSL__
 #  include "kernel/osl/osl_shader.h"

@@ -141,6 +141,10 @@ void BlenderSession::create_session()
 	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2, _3, _4, _5);
 	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2, _3, _4, _5);
 
+#ifdef WITH_OCIO
+	scene->film->set_color_config(OCIO_getCurrentConfig());
+#endif
+
 	session->scene = scene;
 
 	/* There is no single depsgraph to use for the entire render.

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "render/film.h"
 #include "render/image.h"
 #include "render/integrator.h"
 #include "render/light.h"
@@ -1670,7 +1671,8 @@ RGBToBWNode::RGBToBWNode()
 void RGBToBWNode::constant_fold(const ConstantFolder& folder)
 {
 	if(folder.all_inputs_constant()) {
-		folder.make_constant(linear_rgb_to_gray(color));
+		float val = folder.scene->shader_manager->linear_rgb_to_gray(color);
+		folder.make_constant(val);
 	}
 }
 
@@ -1766,7 +1768,8 @@ void ConvertNode::constant_fold(const ConstantFolder& folder)
 			if(to == SocketType::FLOAT) {
 				if(from == SocketType::COLOR) {
 					/* color to float */
-					folder.make_constant(linear_rgb_to_gray(value_color));
+					float val = folder.scene->shader_manager->linear_rgb_to_gray(value_color);
+					folder.make_constant(val);
 				}
 				else {
 					/* vector/point/normal to float */

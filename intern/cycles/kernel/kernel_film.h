@@ -22,9 +22,9 @@ ccl_device float4 film_map(KernelGlobals *kg, float4 irradiance, float scale)
 	float4 result = irradiance*scale;
 
 	/* conversion to srgb */
-	result.x = color_scene_linear_to_srgb(result.x*exposure);
-	result.y = color_scene_linear_to_srgb(result.y*exposure);
-	result.z = color_scene_linear_to_srgb(result.z*exposure);
+	result.x = color_linear_to_srgb(result.x*exposure);
+	result.y = color_linear_to_srgb(result.y*exposure);
+	result.z = color_linear_to_srgb(result.z*exposure);
 
 	/* clamp since alpha might be > 1.0 due to russian roulette */
 	result.w = saturate(result.w);

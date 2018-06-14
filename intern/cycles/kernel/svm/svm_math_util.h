@@ -138,6 +138,8 @@ ccl_static_constant float blackbody_table_b[6][4] = {
 
 ccl_device float3 svm_math_blackbody_color(float t)
 {
+	/* TODO(lukas): Reimplement in XYZ. */
+
 	if(t >= 12000.0f) {
 		return make_float3(0.826270103f, 0.994478524f, 1.56626022f);
 	}

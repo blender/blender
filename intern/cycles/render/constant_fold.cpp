@@ -22,8 +22,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ConstantFolder::ConstantFolder(ShaderGraph *graph, ShaderNode *node, ShaderOutput *output)
-: graph(graph), node(node), output(output)
+ConstantFolder::ConstantFolder(ShaderGraph *graph, ShaderNode *node, ShaderOutput *output, Scene *scene)
+: graph(graph), node(node), output(output), scene(scene)
 {
 }
 

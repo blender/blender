@@ -18,8 +18,10 @@
 #include "device/device.h"
 #include "render/integrator.h"
 #include "render/film.h"
+#include "render/graph.h"
 #include "render/light.h"
 #include "render/mesh.h"
+#include "render/nodes.h"
 #include "render/object.h"
 #include "render/scene.h"
 #include "render/shader.h"
@@ -32,12 +34,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-static void shade_background_pixels(Device *device, DeviceScene *dscene, int res, vector<float3>& pixels, Progress& progress)
+static void shade_background_pixels(Device *device, DeviceScene *dscene, int width, int height, vector<float3>& pixels, Progress& progress)
 {
 	/* create input */
-	int width = res;
-	int height = res;
-
 	device_vector<uint4> d_input(device, "background_input", MEM_READ_ONLY);
 	device_vector<float4> d_output(device, "background_output", MEM_READ_WRITE);
 
@@ -121,7 +120,7 @@ NODE_DEFINE(Light)
 	SOCKET_FLOAT(sizev, "Size V", 1.0f);
 	SOCKET_BOOLEAN(round, "Round", false);
 
-	SOCKET_INT(map_resolution, "Map Resolution", 512);
+	SOCKET_INT(map_resolution, "Map Resolution", 0);
 
 	SOCKET_FLOAT(spot_angle, "Spot Angle", M_PI_4_F);
 	SOCKET_FLOAT(spot_smooth, "Spot Smooth", 0.0f);
@@ -482,40 +481,41 @@ void LightManager::device_update_distribution(Device *, DeviceScene *dscene, Sce
 
 static void background_cdf(int start,
                            int end,
-                           int res,
-                           int cdf_count,
+                           int res_x,
+                           int res_y,
                            const vector<float3> *pixels,
                            float2 *cond_cdf)
 {
+	int cdf_width = res_x+1;
 	/* Conditional CDFs (rows, U direction). */
 	for(int i = start; i < end; i++) {
-		float sin_theta = sinf(M_PI_F * (i + 0.5f) / res);
-		float3 env_color = (*pixels)[i * res];
+		float sin_theta = sinf(M_PI_F * (i + 0.5f) / res_y);
+		float3 env_color = (*pixels)[i * res_x];
 		float ave_luminance = average(env_color);
 
-		cond_cdf[i * cdf_count].x = ave_luminance * sin_theta;
-		cond_cdf[i * cdf_count].y = 0.0f;
+		cond_cdf[i * cdf_width].x = ave_luminance * sin_theta;
+		cond_cdf[i * cdf_width].y = 0.0f;
 
-		for(int j = 1; j < res; j++) {
-			env_color = (*pixels)[i * res + j];
+		for(int j = 1; j < res_x; j++) {
+			env_color = (*pixels)[i * res_x + j];
 			ave_luminance = average(env_color);
 
-			cond_cdf[i * cdf_count + j].x = ave_luminance * sin_theta;
-			cond_cdf[i * cdf_count + j].y = cond_cdf[i * cdf_count + j - 1].y + cond_cdf[i * cdf_count + j - 1].x / res;
+			cond_cdf[i * cdf_width + j].x = ave_luminance * sin_theta;
+			cond_cdf[i * cdf_width + j].y = cond_cdf[i * cdf_width + j - 1].y + cond_cdf[i * cdf_width + j - 1].x / res_x;
 		}
 
-		float cdf_total = cond_cdf[i * cdf_count + res - 1].y + cond_cdf[i * cdf_count + res - 1].x / res;
+		float cdf_total = cond_cdf[i * cdf_width + res_x - 1].y + cond_cdf[i * cdf_width + res_x - 1].x / res_x;
 		float cdf_total_inv = 1.0f / cdf_total;
 
 		/* stuff the total into the brightness value for the last entry, because
 		 * we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
-		cond_cdf[i * cdf_count + res].x = cdf_total;
+		cond_cdf[i * cdf_width + res_x].x = cdf_total;
 
 		if(cdf_total > 0.0f)
-			for(int j = 1; j < res; j++)
-				cond_cdf[i * cdf_count + j].y *= cdf_total_inv;
+			for(int j = 1; j < res_x; j++)
+				cond_cdf[i * cdf_width + j].y *= cdf_total_inv;
 
-		cond_cdf[i * cdf_count + res].y = 1.0f;
+		cond_cdf[i * cdf_width + res_x].y = 1.0f;
 	}
 }
 
@@ -537,7 +537,8 @@ void LightManager::device_update_background(Device *device,
 
 	/* no background light found, signal renderer to skip sampling */
 	if(!background_light || !background_light->is_enabled) {
-		kintegrator->pdf_background_res = 0;
+		kintegrator->pdf_background_res_x = 0;
+		kintegrator->pdf_background_res_y = 0;
 		return;
 	}
 
@@ -546,41 +547,62 @@ void LightManager::device_update_background(Device *device,
 	assert(kintegrator->use_direct_light);
 
 	/* get the resolution from the light's size (we stuff it in there) */
-	int res = background_light->map_resolution;
-	kintegrator->pdf_background_res = res;
-
-	assert(res > 0);
+	int2 res = make_int2(background_light->map_resolution, background_light->map_resolution/2);
+	/* If the resolution isn't set manually, try to find an environment texture. */
+	if (res.x == 0) {
+		Shader *shader = (scene->background->shader) ? scene->background->shader : scene->default_background;
+		foreach(ShaderNode *node, shader->graph->nodes) {
+			if(node->type == EnvironmentTextureNode::node_type) {
+				EnvironmentTextureNode *env = (EnvironmentTextureNode*) node;
+				ImageMetaData metadata;
+				if(env->image_manager && env->image_manager->get_image_metadata(env->slot, metadata)) {
+					res.x = max(res.x, metadata.width);
+					res.y = max(res.y, metadata.height);
+				}
+			}
+		}
+		if (res.x > 0 && res.y > 0) {
+			VLOG(2) << "Automatically set World MIS resolution to " << res.x << " by " << res.y << "\n";
+		}
+	}
+	/* If it's still unknown, just use the default. */
+	if (res.x == 0 || res.y == 0) {
+		res = make_int2(1024, 512);
+		VLOG(2) << "Setting World MIS resolution to default\n";
+	}
+	kintegrator->pdf_background_res_x = res.x;
+	kintegrator->pdf_background_res_y = res.y;
 
 	vector<float3> pixels;
-	shade_background_pixels(device, dscene, res, pixels, progress);
+	shade_background_pixels(device, dscene, res.x, res.y, pixels, progress);
 
 	if(progress.get_cancel())
 		return;
 
 	/* build row distributions and column distribution for the infinite area environment light */
-	int cdf_count = res + 1;
-	float2 *marg_cdf = dscene->light_background_marginal_cdf.alloc(cdf_count);
-	float2 *cond_cdf = dscene->light_background_conditional_cdf.alloc(cdf_count * cdf_count);
+	int cdf_width = res.x+1;
+	float2 *marg_cdf = dscene->light_background_marginal_cdf.alloc(res.y + 1);
+	float2 *cond_cdf = dscene->light_background_conditional_cdf.alloc(cdf_width * res.y);
 
 	double time_start = time_dt();
-	if(res < 512) {
+	if(max(res.x, res.y) < 512) {
 		/* Small enough resolution, faster to do single-threaded. */
-		background_cdf(0, res, res, cdf_count, &pixels, cond_cdf);
+		background_cdf(0, res.x, res.x, res.y, &pixels, cond_cdf);
 	}
 	else {
 		/* Threaded evaluation for large resolution. */
 		const int num_blocks = TaskScheduler::num_threads();
-		const int chunk_size = res / num_blocks;
+		const int chunk_size = res.y / num_blocks;
 		int start_row = 0;
 		TaskPool pool;
 		for(int i = 0; i < num_blocks; ++i) {
 			const int current_chunk_size =
 			    (i != num_blocks - 1) ? chunk_size
-			                          : (res - i * chunk_size);
+			                          : (res.y - i * chunk_size);
 			pool.push(function_bind(&background_cdf,
 			                        start_row, start_row + current_chunk_size,
-			                        res,
-			                        cdf_count,
+			                        res.x,
+			                        res.y,
 			                        &pixels,
 			                        cond_cdf));
 			start_row += current_chunk_size;
@@ -589,22 +611,22 @@ void LightManager::device_update_background(Device *device,
 	}
 
 	/* marginal CDFs (column, V direction, sum of rows) */
-	marg_cdf[0].x = cond_cdf[res].x;
+	marg_cdf[0].x = cond_cdf[res.x].x;
 	marg_cdf[0].y = 0.0f;
 
-	for(int i = 1; i < res; i++) {
-		marg_cdf[i].x = cond_cdf[i * cdf_count + res].x;
-		marg_cdf[i].y = marg_cdf[i - 1].y + marg_cdf[i - 1].x / res;
+	for(int i = 1; i < res.y; i++) {
+		marg_cdf[i].x = cond_cdf[i * cdf_width + res.x].x;
+		marg_cdf[i].y = marg_cdf[i - 1].y + marg_cdf[i - 1].x / res.y;
 	}
 
-	float cdf_total = marg_cdf[res - 1].y + marg_cdf[res - 1].x / res;
-	marg_cdf[res].x = cdf_total;
+	float cdf_total = marg_cdf[res.y - 1].y + marg_cdf[res.y - 1].x / res.y;
+	marg_cdf[res.y].x = cdf_total;
 
 	if(cdf_total > 0.0f)
-		for(int i = 1; i < res; i++)
+		for(int i = 1; i < res.y; i++)
 			marg_cdf[i].y /= cdf_total;
 
-	marg_cdf[res].y = 1.0f;
+	marg_cdf[res.y].y = 1.0f;
 
 	VLOG(2) << "Background MIS build time " << time_dt() - time_start << "\n";
 
