@@ -62,6 +62,7 @@ extern "C" {
 class ArmatureImporter : private TransformReader
 {
 private:
+	Main *m_bmain;
 	Scene *scene;
 	ViewLayer *view_layer;
 	UnitConverter *unit_converter;
@@ -138,7 +139,8 @@ private:
 	TagsMap uid_tags_map;
 public:
 
-	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, ViewLayer *view_layer, const ImportSettings *import_settings);
+	ArmatureImporter(
+	        UnitConverter *conv, MeshImporterBase *mesh, Main *bmain, Scene *sce, ViewLayer *view_layer, const ImportSettings *import_settings);
 	~ArmatureImporter();
 
 	void add_root_joint(COLLADAFW::Node *node, Object *parent);

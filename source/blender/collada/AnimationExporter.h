@@ -84,6 +84,7 @@ struct Depsgraph;
 class AnimationExporter: COLLADASW::LibraryAnimations
 {
 private:
+	Main *m_bmain;
 	Scene *scene;
 	Depsgraph *depsgraph;
 	COLLADASW::StreamWriter *sw;
@@ -98,7 +99,8 @@ public:
 		this->sw = sw;
 	}
 
-	bool exportAnimations(Scene *sce);
+	bool exportAnimations(Main *bmain, Scene *sce);
+
 	// called for each exported object
 	void operator() (Object *ob);
 

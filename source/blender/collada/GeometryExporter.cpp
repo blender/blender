@@ -57,11 +57,12 @@ GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSett
 {
 }
 
-void GeometryExporter::exportGeom(struct Depsgraph *depsgraph, Scene *sce)
+void GeometryExporter::exportGeom(Main *bmain, struct Depsgraph *depsgraph, Scene *sce)
 {
 	openLibrary();
 
 	mDepsgraph = depsgraph;
+	m_bmain = bmain;
 	mScene = sce;
 	GeometryFunctor gf;
 	gf.forEachMeshObjectInExportSet<GeometryExporter>(sce, *this, this->export_settings->export_set);
@@ -77,7 +78,10 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
-	Mesh *me = bc_get_mesh_copy(mDepsgraph, mScene,
+	Mesh *me = bc_get_mesh_copy(
+					m_bmain,
+					mDepsgraph,
+					mScene,
 					ob,
 					this->export_settings->export_mesh_type,
 					this->export_settings->apply_modifiers,
@@ -166,7 +170,7 @@ void GeometryExporter::operator()(Object *ob)
 		}
 	}
 
-	BKE_libblock_free_us(G.main, me);
+	BKE_libblock_free_us(m_bmain, me);
 
 }
 

@@ -66,12 +66,13 @@ public:
 
 	bool add_instance_controller(Object *ob);
 
-	void export_controllers(struct Depsgraph *depsgraph, Scene *sce);
+	void export_controllers(Main *bmain, Depsgraph *depsgraph, Scene *sce);
 
 	void operator()(Object *ob);
 
 private:
-	struct Depsgraph *depsgraph;
+	Depsgraph *depsgraph;
+	Main *m_bmain;
 	Scene *scene;
 	UnitConverter converter;
 	const ExportSettings *export_settings;

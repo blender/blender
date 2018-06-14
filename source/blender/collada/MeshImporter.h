@@ -90,6 +90,7 @@ private:
 
 	UnitConverter *unitconverter;
 
+	Main *m_bmain;
 	Scene *scene;
 	ViewLayer *view_layer;
 
@@ -160,7 +161,7 @@ private:
 
 public:
 
-	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce, ViewLayer *view_layer);
+	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Main *bmain, Scene *sce, ViewLayer *view_layer);
 
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
 
