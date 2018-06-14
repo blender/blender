@@ -542,9 +542,8 @@ static wmManipulator *manipulator_find_intersected_3d(
 
 	int hotspot_radii[] = {
 		3 * U.pixelsize,
-#if 0 /* We may want to enable when selection doesn't run on mousemove! */
-		7 * U.pixelsize,
-#endif
+		/* This runs on mouse move, careful doing too many tests! */
+		10 * U.pixelsize,
 	};
 
 	*r_part = 0;
