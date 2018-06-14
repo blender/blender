@@ -31,6 +31,7 @@ private:
 	 * Cached reference to the inputProgram
 	 */
 	SocketReader *m_inputProgram;
+	struct RNG *m_rng;
 	
 	bool m_fit;
 	bool m_jitter;
