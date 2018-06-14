@@ -54,6 +54,10 @@ out vec4 FragColor;
 #define VERTEX_SELECTED (1 << (1 + 8))
 #define FACE_ACTIVE     (1 << (2 + 8))
 
+#define LARGE_EDGE_SIZE 3.0
+#define LARGE_EDGE_SIZE_ACTIVE_FACE 5.0
+
+
 /* Style Parameters in pixel */
 
 /* Array to retrieve vert/edge indices */
@@ -73,13 +77,6 @@ const ivec3 clipPointIdx[6] = ivec3[6](
 	ivec3(1, 2, 0),
 	ivec3(1, 2, 0),
 	ivec3(2, 1, 0)
-);
-
-const vec4 stipple_matrix[4] = vec4[4](
-	vec4(1.0, 0.0, 0.0, 0.0),
-	vec4(0.0, 0.0, 0.0, 0.0),
-	vec4(0.0, 0.0, 1.0, 0.0),
-	vec4(0.0, 0.0, 0.0, 0.0)
 );
 
 void colorDist(vec4 color, float dist)
@@ -145,27 +142,25 @@ void main()
 
 	/* First */
 	FragColor = faceColor;
-
-	if ((flag[0] & FACE_ACTIVE) != 0) {
-		int x = int(gl_FragCoord.x) & 0x3; /* mod 4 */
-		int y = int(gl_FragCoord.y) & 0x3; /* mod 4 */
-		FragColor *= stipple_matrix[x][y];
-	}
-	else {
-		FragColor.a *= faceAlphaMod;
-	}
+	FragColor.a *= faceAlphaMod;
 
 	/* Edges */
 	for (int v = 0; v < 3; ++v) {
 		if ((flag[v] & EDGE_EXISTS) != 0) {
 			/* Outer large edge */
-			float largeEdge = e[v] - sizeEdge * 3.0;
+			float largeEdge = e[v] - sizeEdge * LARGE_EDGE_SIZE;
 
 			vec4 large_edge_color = vec4(0.0);
 			large_edge_color = ((flag[v] & EDGE_SHARP) != 0) ? colorEdgeSharp : large_edge_color;
 			large_edge_color = (edgesCrease[v] > 0.0) ? vec4(colorEdgeCrease.rgb, edgesCrease[v]) : large_edge_color;
 			large_edge_color = (edgesBweight[v] > 0.0) ? vec4(colorEdgeBWeight.rgb, edgesBweight[v]) : large_edge_color;
 			large_edge_color = ((flag[v] & EDGE_SEAM) != 0) ? colorEdgeSeam : large_edge_color;
+
+			if ((flag[0] & FACE_ACTIVE) != 0)
+			{
+				large_edge_color = colorEditMeshActive;
+				largeEdge = e[v] - sizeEdge * LARGE_EDGE_SIZE_ACTIVE_FACE;
+			}
 
 			if (large_edge_color.a != 0.0) {
 				colorDistEdge(large_edge_color, largeEdge);
@@ -183,7 +178,8 @@ void main()
 #  ifdef EDGE_SELECTION
 			vec4 inner_edge_color = colorWireEdit;
 			inner_edge_color = ((flag[v] & EDGE_SELECTED) != 0) ? colorEdgeSelect : inner_edge_color;
-			inner_edge_color = ((flag[v] & EDGE_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : inner_edge_color;
+			inner_edge_color = ((flag[v] & EDGE_ACTIVE) != 0) ? vec4(colorEditMeshActive.rgb, 1.0) : inner_edge_color;
+
 #  else
 			vec4 inner_edge_color = colorWireInactive;
 #  endif

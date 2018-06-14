@@ -167,7 +167,7 @@ void main()
 
 	/* Face */
 	if ((vData[0].x & FACE_ACTIVE) != 0)
-		faceColor = colorEditMeshActive;
+		faceColor = colorFaceSelect;
 	else if ((vData[0].x & FACE_SELECTED) != 0)
 		faceColor = colorFaceSelect;
 	else

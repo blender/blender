@@ -156,29 +156,29 @@ static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, b
 
 	if (selectmode & SCE_SELECT_VERTEX)
 	{
-		BLI_dynstr_appendf(ds, "#define VERTEX_SELECTION\n");
+		BLI_dynstr_append(ds, "#define VERTEX_SELECTION\n");
 	}
 
 	if (selectmode & SCE_SELECT_EDGE)
 	{
-		BLI_dynstr_appendf(ds, "#define EDGE_SELECTION\n");
+		BLI_dynstr_append(ds, "#define EDGE_SELECTION\n");
 	}
 
 	if (selectmode & SCE_SELECT_FACE)
 	{
-		BLI_dynstr_appendf(ds, "#define FACE_SELECTION\n");
+		BLI_dynstr_append(ds, "#define FACE_SELECTION\n");
 	}
 
 	if (!fast_mode)
 	{
-		BLI_dynstr_appendf(ds, "#define EDGE_FIX\n");
+		BLI_dynstr_append(ds, "#define EDGE_FIX\n");
 	}
 
 	if (anti_alias)
 	{
-		BLI_dynstr_appendf(ds, "#define ANTI_ALIASING\n");
+		BLI_dynstr_append(ds, "#define ANTI_ALIASING\n");
 	}
-	BLI_dynstr_appendf(ds, "#define VERTEX_FACING\n");
+	BLI_dynstr_append(ds, "#define VERTEX_FACING\n");
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -213,7 +213,6 @@ static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D 
 			        datatoc_edit_mesh_overlay_frag_glsl,
 			        datatoc_common_globals_lib_glsl,
 			        defines);
-
 			MEM_freeN(defines);
 		}
 		return e_data.overlay_tri_sh_cache[index];
