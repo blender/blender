@@ -489,7 +489,9 @@ enum {
 	/* Force delayed reinit of region size data, so that region size is calculated
 	 * just big enough to show all its content (if enough space is available).
 	 * Note that only ED_region_header supports this right now. */
-	RGN_FLAG_DYNAMIC_SIZE     = (1 << 2),
+	RGN_FLAG_DYNAMIC_SIZE       = (1 << 2),
+	/* Region data is NULL'd on read, never written. */
+	RGN_FLAG_TEMP_REGIONDATA    = (1 << 3),
 };
 
 /* region do_draw */

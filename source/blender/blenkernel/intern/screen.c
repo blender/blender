@@ -233,10 +233,15 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	if (ar->regiondata) {
 		ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
 
-		if (art && art->duplicate)
+		if (art && art->duplicate) {
 			newar->regiondata = art->duplicate(ar->regiondata);
-		else
+		}
+		else if (ar->flag & RGN_FLAG_TEMP_REGIONDATA) {
+			newar->regiondata = NULL;
+		}
+		else {
 			newar->regiondata = MEM_dupallocN(ar->regiondata);
+		}
 	}
 
 	if (ar->v2d.tab_offset)
