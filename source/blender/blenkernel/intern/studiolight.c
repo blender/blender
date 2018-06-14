@@ -107,8 +107,7 @@ static struct StudioLight *studiolight_create(int flag)
 	sl->path_irr = NULL;
 	sl->flag = flag;
 	sl->index = BLI_listbase_count(&studiolights);
-	if (flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL)
-	{
+	if (flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL) {
 		sl->icon_id_matcap = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP);
 		sl->icon_id_matcap_flipped = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP_FLIPPED);
 	}
@@ -428,7 +427,7 @@ static void studiolight_calculate_specular_irradiance(StudioLight *sl, float col
 	studiolight_evaluate_specular_radiance_buffer(
 	        sl->radiance_cubemap_buffers[STUDIOLIGHT_Z_NEG], normal, color, 0, 1, 2, -0.5);
 
-	mul_v3_fl(color, 1.0/ M_PI);
+	mul_v3_fl(color, 1.0 / M_PI);
 }
 
 static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
@@ -640,17 +639,17 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size, bool fli
 	for (int y = 0; y < icon_size; y++) {
 		fy = y * ibuf->y / icon_size;
 		for (int x = 0; x < icon_size; x++) {
-			if (flipped)
-			{
+			if (flipped) {
 				fx = ibuf->x - (x * ibuf->x / icon_size) - 1;
 			}
 			else {
 				fx = x * ibuf->x / icon_size;
 			}
 			nearest_interpolation_color(ibuf, NULL, color, fx, fy);
-			rect[offset++] = rgb_to_cpack(linearrgb_to_srgb(color[0]),
-			                              linearrgb_to_srgb(color[1]),
-			                              linearrgb_to_srgb(color[2])) | alphamask;
+			rect[offset++] = rgb_to_cpack(
+			        linearrgb_to_srgb(color[0]),
+			        linearrgb_to_srgb(color[1]),
+			        linearrgb_to_srgb(color[2])) | alphamask;
 		}
 	}
 	return rect;
@@ -850,8 +849,7 @@ struct ListBase *BKE_studiolight_listbase(void)
 
 uint *BKE_studiolight_preview(StudioLight *sl, int icon_size, int icon_id_type)
 {
-	switch(icon_id_type)
-	{
+	switch (icon_id_type) {
 		case STUDIOLIGHT_ICON_ID_TYPE_RADIANCE:
 		default:
 			return studiolight_radiance_preview(sl, icon_size);

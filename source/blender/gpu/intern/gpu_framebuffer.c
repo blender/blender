@@ -44,7 +44,7 @@
 
 #include "intern/gpu_private.h"
 
-static ThreadLocal(void*) g_currentfb;
+static ThreadLocal(void *) g_currentfb;
 
 typedef enum {
 	GPU_FB_DEPTH_ATTACHMENT = 0,

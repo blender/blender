@@ -719,7 +719,7 @@ static const EnumPropertyItem *rna_View3DShading_light_itemf(
 static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	char* dna_storage = v3d->shading.studio_light;
+	char *dna_storage = v3d->shading.studio_light;
 
 	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
 	if (v3d->drawtype == OB_SOLID && v3d->shading.light == V3D_LIGHTING_MATCAP) {
@@ -737,7 +737,7 @@ static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	char* dna_storage = v3d->shading.studio_light;
+	char *dna_storage = v3d->shading.studio_light;
 
 	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
 	if (v3d->drawtype == OB_SOLID && v3d->shading.light == V3D_LIGHTING_MATCAP) {

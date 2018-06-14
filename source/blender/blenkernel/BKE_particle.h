@@ -91,7 +91,7 @@ typedef struct ParticleSimulationData {
 	 * this at the moment. Other solvers could, too. */
 	float courant_num;
 	/* Only valid during dynamics_step(). */
-	struct RNG* rng;
+	struct RNG *rng;
 } ParticleSimulationData;
 
 typedef struct SPHData {

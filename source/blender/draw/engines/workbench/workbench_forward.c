@@ -476,7 +476,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				struct Gwn_Batch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
 				if (materials_len > 0 && geom_array) {
 					for (int i = 0; i < materials_len; i++) {
-						if(geom_array[i] == NULL) {
+						if (geom_array[i] == NULL) {
 							continue;
 						}
 
@@ -524,14 +524,13 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				        ob, gpumat_array, materials_len, NULL, NULL, NULL);
 				if (mat_geom) {
 					for (int i = 0; i < materials_len; ++i) {
-						if(mat_geom[i] == NULL) {
+						if (mat_geom[i] == NULL) {
 							continue;
 						}
 
 						Material *mat = give_current_material(ob, i + 1);
 						material = get_or_create_material_data(vedata, ob, mat, NULL, OB_SOLID);
-						if (is_sculpt_mode)
-						{
+						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
 							DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 						}
