@@ -828,7 +828,7 @@ wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf, const char *idname, const Enu
 
 	if (!items) {
 		/* init modal items from default config */
-		wmWindowManager *wm = G.main->wm.first;
+		wmWindowManager *wm = G_MAIN->wm.first;
 		if (wm->defaultconf) {
 			wmKeyMap *defaultkm = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, 0, 0);
 

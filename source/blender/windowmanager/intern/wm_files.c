@@ -153,8 +153,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	wmWindowManager *wm;
 	wmWindow *win, *active_win;
 
-	*wmlist = G.main->wm;
-	BLI_listbase_clear(&G.main->wm);
+	*wmlist = G_MAIN->wm;
+	BLI_listbase_clear(&G_MAIN->wm);
 
 	active_win = CTX_wm_window(C);
 
@@ -440,12 +440,12 @@ void WM_file_autoexec_init(const char *filepath)
 	}
 }
 
-void wm_file_read_report(bContext *C)
+void wm_file_read_report(bContext *C, Main *bmain)
 {
 	ReportList *reports = NULL;
 	Scene *sce;
 
-	for (sce = G.main->scene.first; sce; sce = sce->id.next) {
+	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 		if (sce->r.engine[0] &&
 		    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
 		{
@@ -472,6 +472,7 @@ void wm_file_read_report(bContext *C)
  */
 static void wm_file_read_post(bContext *C, const bool is_startup_file, const bool use_userdef)
 {
+	Main *bmain = CTX_data_main(C);
 	bool addons_loaded = false;
 	wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -483,7 +484,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	CTX_wm_window_set(C, wm->windows.first);
 
 	ED_editors_init(C);
-	DEG_on_visible_update(CTX_data_main(C), true);
+	DEG_on_visible_update(bmain, true);
 
 #ifdef WITH_PYTHON
 	if (is_startup_file) {
@@ -513,8 +514,8 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	WM_operatortype_last_properties_clear_all();
 
 	/* important to do before NULL'ing the context */
-	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
-	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
+	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
+	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
 
 #if 1
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
@@ -525,7 +526,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	/* report any errors.
 	 * currently disabled if addons aren't yet loaded */
 	if (addons_loaded) {
-		wm_file_read_report(C);
+		wm_file_read_report(C, bmain);
 	}
 
 	if (!G.background) {
@@ -535,7 +536,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 		else {
 			BKE_undosys_stack_clear(wm->undo_stack);
 		}
-		BKE_undosys_stack_init_from_main(wm->undo_stack, CTX_data_main(C));
+		BKE_undosys_stack_init_from_main(wm->undo_stack, bmain);
 		BKE_undosys_stack_init_from_context(wm->undo_stack, C);
 	}
 
@@ -677,7 +678,7 @@ int wm_homefile_read(
         bool use_factory_settings, bool use_empty_data, bool use_userdef,
         const char *filepath_startup_override, const char *app_template_override)
 {
-	Main *bmain = G.main;  /* Context does not always have valid main pointer here... */
+	Main *bmain = G_MAIN;  /* Context does not always have valid main pointer here... */
 	ListBase wmbase;
 	bool success = false;
 
@@ -1099,7 +1100,7 @@ bool write_crash_blend(void)
 
 	BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
 	BLI_replace_extension(path, sizeof(path), "_crash.blend");
-	if (BLO_write_file(G.main, path, fileflags, NULL, NULL)) {
+	if (BLO_write_file(G_MAIN, path, fileflags, NULL, NULL)) {
 		printf("written: %s\n", path);
 		return 1;
 	}
@@ -1234,7 +1235,7 @@ void wm_autosave_location(char *filepath)
 	const char *savedir;
 #endif
 
-	if (G.main && G.relbase_valid) {
+	if (G_MAIN && G.relbase_valid) {
 		const char *basename = BLI_path_basename(BKE_main_blendfile_path_from_global());
 		int len = strlen(basename) - 6;
 		BLI_snprintf(path, sizeof(path), "%.*s.blend", len, basename);
@@ -1384,7 +1385,7 @@ void wm_open_init_use_scripts(wmOperator *op, bool use_prefs)
 
 void WM_file_tag_modified(void)
 {
-	wmWindowManager *wm = G.main->wm.first;
+	wmWindowManager *wm = G_MAIN->wm.first;
 	if (wm->file_saved) {
 		wm->file_saved = 0;
 		/* notifier that data changed, for save-over warning or header */
@@ -1401,6 +1402,7 @@ void WM_file_tag_modified(void)
  */
 static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	char filepath[FILE_MAX];
@@ -1413,7 +1415,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* check current window and close it if temp */
 	if (win && WM_window_is_temp_screen(win))
@@ -1431,7 +1433,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	/*  force save as regular blend file */
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
 
-	if (BLO_write_file(CTX_data_main(C), filepath, fileflags | G_FILE_USERPREFS, op->reports, NULL) == 0) {
+	if (BLO_write_file(bmain, filepath, fileflags | G_FILE_USERPREFS, op->reports, NULL) == 0) {
 		printf("fail\n");
 		return OPERATOR_CANCELLED;
 	}
@@ -1440,7 +1442,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
 	G.save_over = 0;
 
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_POST);
+	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_POST);
 
 	return OPERATOR_FINISHED;
 }

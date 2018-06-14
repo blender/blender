@@ -1567,6 +1567,7 @@ enum {
 enum {
 	MOD_NORMALEDIT_INVERT_VGROUP            = (1 << 0),
 	MOD_NORMALEDIT_USE_DIRECTION_PARALLEL   = (1 << 1),
+	MOD_NORMALEDIT_NO_POLYNORS_FIX             = (1 << 2),
 };
 
 /* NormalEditModifierData.mix_mode */

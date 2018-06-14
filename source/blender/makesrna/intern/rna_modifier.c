@@ -4840,6 +4840,14 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
 	RNA_def_property_subtype(prop, PROP_ANGLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "no_polynors_fix", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_NORMALEDIT_NO_POLYNORS_FIX);
+	RNA_def_property_boolean_default(prop, false);
+	RNA_def_property_ui_text(prop, "Lock Polygon Normals",
+	                         "Do not flip polygons when their normals are not consistent "
+	                         "with their newly computed custom vertex normals");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for selecting/weighting the affected areas");
