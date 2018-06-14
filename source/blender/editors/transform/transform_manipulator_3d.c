@@ -1320,6 +1320,14 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 			case MAN_AXIS_SCALE_X:
 			case MAN_AXIS_SCALE_Y:
 			case MAN_AXIS_SCALE_Z:
+				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
+					int draw_options = 0;
+					if ((man->twtype & (V3D_MANIP_ROTATE | V3D_MANIP_SCALE)) == 0) {
+						draw_options |= ED_MANIPULATOR_ARROW_DRAW_FLAG_STEM;
+					}
+					RNA_enum_set(axis->ptr, "draw_options", draw_options);
+				}
+
 				WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
 				break;
 			case MAN_AXIS_ROT_X:
@@ -1353,6 +1361,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 				}
 				else if (axis_idx == MAN_AXIS_ROT_C) {
 					WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_VALUE, true);
+					WM_manipulator_set_scale(axis, 1.2f);
 				}
 				else {
 					WM_manipulator_set_scale(axis, 0.2f);
@@ -1452,6 +1461,13 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 
 				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
 				RNA_float_set(axis->ptr, "length", len);
+
+				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
+					if (man->twtype & V3D_MANIP_ROTATE) {
+						/* Avoid rotate and translate arrows overlap. */
+						start_co[2] += 0.215f;
+					}
+				}
 				WM_manipulator_set_matrix_offset_location(axis, start_co);
 				WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
 				break;
