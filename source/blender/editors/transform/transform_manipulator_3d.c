@@ -254,16 +254,18 @@ static bool manipulator_is_axis_visible(
         const RegionView3D *rv3d, const int twtype,
         const float idot[3], const int axis_type, const int axis_idx)
 {
-	bool is_plane = false;
-	const uint aidx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
-	/* don't draw axis perpendicular to the view */
-	if (aidx_norm < 3) {
-		float idot_axis = idot[aidx_norm];
-		if (is_plane) {
-			idot_axis = 1.0f - idot_axis;
-		}
-		if (idot_axis < g_tw_axis_range[is_plane].min) {
-			return false;
+	if ((axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) == 0) {
+		bool is_plane = false;
+		const uint aidx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
+		/* don't draw axis perpendicular to the view */
+		if (aidx_norm < 3) {
+			float idot_axis = idot[aidx_norm];
+			if (is_plane) {
+				idot_axis = 1.0f - idot_axis;
+			}
+			if (idot_axis < g_tw_axis_range[is_plane].min) {
+				return false;
+			}
 		}
 	}
 
@@ -340,24 +342,30 @@ static void manipulator_get_axis_color(
 	const float alpha_hi = 1.0f;
 	float alpha_fac;
 
-	bool is_plane = false;
-	const int axis_idx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
-	/* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
-	if (axis_idx_norm < 3) {
-		const float idot_min = g_tw_axis_range[is_plane].min;
-		const float idot_max = g_tw_axis_range[is_plane].max;
-		float idot_axis = idot[axis_idx_norm];
-		if (is_plane) {
-			idot_axis = 1.0f - idot_axis;
-		}
-		alpha_fac = (
-		        (idot_axis > idot_max) ?
-		        1.0f : (idot_axis < idot_min) ?
-		        0.0f : ((idot_axis - idot_min) / (idot_max - idot_min)));
-	}
-	else {
+	if (axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) {
+		/* Never fade rotation rings. */
 		/* trackball rotation axis is a special case, we only draw a slight overlay */
 		alpha_fac = (axis_idx == MAN_AXIS_ROT_T) ? 0.1f : 1.0f;
+	}
+	else {
+		bool is_plane = false;
+		const int axis_idx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
+		/* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
+		if (axis_idx_norm < 3) {
+			const float idot_min = g_tw_axis_range[is_plane].min;
+			const float idot_max = g_tw_axis_range[is_plane].max;
+			float idot_axis = idot[axis_idx_norm];
+			if (is_plane) {
+				idot_axis = 1.0f - idot_axis;
+			}
+			alpha_fac = (
+			        (idot_axis > idot_max) ?
+			        1.0f : (idot_axis < idot_min) ?
+			        0.0f : ((idot_axis - idot_min) / (idot_max - idot_min)));
+		}
+		else {
+			alpha_fac = 1.0f;
+		}
 	}
 
 	switch (axis_idx) {
