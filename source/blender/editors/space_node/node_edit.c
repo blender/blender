@@ -656,6 +656,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 					if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree))
 						GPU_material_free(&wo->gpumaterial);
 
+				ED_node_tag_update_nodetree(bmain, ntree, node);
 				WM_main_add_notifier(NC_IMAGE, NULL);
 			}
 
