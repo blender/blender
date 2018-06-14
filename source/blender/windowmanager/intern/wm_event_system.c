@@ -1007,14 +1007,7 @@ int WM_operator_call_notest(bContext *C, wmOperator *op)
  */
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
-	const OperatorRepeatContextHandle *context_info;
-	int retval;
-
-	context_info = ED_operator_repeat_prepare_context(C, op);
-	retval = wm_operator_exec(C, op, true, true);
-	ED_operator_repeat_reset_context(C, context_info);
-
-	return retval;
+	return wm_operator_exec(C, op, true, true);
 }
 /**
  * \return true if #WM_operator_repeat can run

@@ -165,9 +165,6 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	int tot = 0;
 
-	op->execution_area = CTX_wm_area(C);
-	op->execution_region = CTX_wm_region(C);
-
 	BLI_addtail(&wm->operators, op);
 
 	/* only count registered operators */
