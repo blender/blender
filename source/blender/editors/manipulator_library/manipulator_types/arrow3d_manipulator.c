@@ -303,9 +303,9 @@ static int manipulator_arrow_modal(
 
 	/* set the property for the operator and call its modal function */
 	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
-		const int draw_options = RNA_enum_get(arrow->manipulator.ptr, "draw_options");
-		const bool constrained = (draw_options & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0;
-		const bool inverted = (draw_options & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0;
+		const int transform_flag = RNA_enum_get(arrow->manipulator.ptr, "transform");
+		const bool constrained = (transform_flag & ED_MANIPULATOR_ARROW_XFORM_FLAG_CONSTRAINED) != 0;
+		const bool inverted = (transform_flag & ED_MANIPULATOR_ARROW_XFORM_FLAG_INVERTED) != 0;
 		const bool use_precision = (tweak_flag & WM_MANIPULATOR_TWEAK_PRECISE) != 0;
 		float value = manipulator_value_from_offset(data, inter, ofs_new, constrained, inverted, use_precision);
 
@@ -363,9 +363,9 @@ static int manipulator_arrow_invoke(
 static void manipulator_arrow_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-	const int draw_options = RNA_enum_get(arrow->manipulator.ptr, "draw_options");
-	const bool constrained = (draw_options & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0;
-	const bool inverted = (draw_options & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0;
+	const int transform_flag = RNA_enum_get(arrow->manipulator.ptr, "transform");
+	const bool constrained = (transform_flag & ED_MANIPULATOR_ARROW_XFORM_FLAG_CONSTRAINED) != 0;
+	const bool inverted = (transform_flag & ED_MANIPULATOR_ARROW_XFORM_FLAG_INVERTED) != 0;
 	manipulator_property_data_update(mpr, &arrow->data, mpr_prop, constrained, inverted);
 }
 
@@ -448,21 +448,21 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 	wt->struct_size = sizeof(ArrowManipulator3D);
 
 	/* rna */
-	static EnumPropertyItem rna_enum_draw_style[] = {
+	static EnumPropertyItem rna_enum_draw_style_items[] = {
 		{ED_MANIPULATOR_ARROW_STYLE_NORMAL, "NORMAL", 0, "Normal", ""},
 		{ED_MANIPULATOR_ARROW_STYLE_CROSS, "CROSS", 0, "Cross", ""},
 		{ED_MANIPULATOR_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
 		{ED_MANIPULATOR_ARROW_STYLE_CONE, "CONE", 0, "Cone", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_MANIPULATOR_ARROW_STYLE_INVERTED, "INVERT", 0, "Inverted", ""},
-		{ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED, "CONSTRAIN", 0, "Constrained", ""},
+	static EnumPropertyItem rna_enum_transform_items[] = {
+		{ED_MANIPULATOR_ARROW_XFORM_FLAG_INVERTED, "INVERT", 0, "Inverted", ""},
+		{ED_MANIPULATOR_ARROW_XFORM_FLAG_CONSTRAINED, "CONSTRAIN", 0, "Constrained", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_ARROW_STYLE_NORMAL, "Draw Style", "");
-	RNA_def_enum_flag(wt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
+	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style_items, ED_MANIPULATOR_ARROW_STYLE_NORMAL, "Draw Style", "");
+	RNA_def_enum_flag(wt->srna, "transform", rna_enum_transform_items, 0, "Transform", "");
 
 	RNA_def_float(wt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
 	RNA_def_float_vector(wt->srna, "aspect", 2, NULL, 0, FLT_MAX, "Aspect", "Cone/box style only", 0.0f, FLT_MAX);

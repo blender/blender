@@ -75,9 +75,9 @@ enum {
 
 enum {
 	/* inverted offset during interaction - if set it also sets constrained below */
-	ED_MANIPULATOR_ARROW_STYLE_INVERTED      = (1 << 3),
+	ED_MANIPULATOR_ARROW_XFORM_FLAG_INVERTED      = (1 << 3),
 	/* clamp arrow interaction to property width */
-	ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED   = (1 << 4),
+	ED_MANIPULATOR_ARROW_XFORM_FLAG_CONSTRAINED   = (1 << 4),
 };
 
 void ED_manipulator_arrow3d_set_ui_range(struct wmManipulator *mpr, const float min, const float max);

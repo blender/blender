@@ -109,7 +109,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 		mpr = camgroup->focal_len = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 		mpr->flag |= WM_MANIPULATOR_DRAW_NO_SCALE;
 		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
-		RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
+		RNA_enum_set(mpr->ptr, "transform",  ED_MANIPULATOR_ARROW_XFORM_FLAG_CONSTRAINED);
 
 		UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
 		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
@@ -117,7 +117,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 		mpr = camgroup->ortho_scale = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 		mpr->flag |= WM_MANIPULATOR_DRAW_NO_SCALE;
 		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
-		RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
+		RNA_enum_set(mpr->ptr, "transform",  ED_MANIPULATOR_ARROW_XFORM_FLAG_CONSTRAINED);
 
 		UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
 		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
