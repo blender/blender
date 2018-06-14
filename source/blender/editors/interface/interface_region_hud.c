@@ -267,7 +267,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 	ED_region_tag_redraw(ar);
 
 	/* Reset zoom level (not well supported). */
-	ar->v2d.cur = (rctf){.xmax = ar->winx, .ymax = ar->winy};
+	ar->v2d.cur = ar->v2d.tot = (rctf){.xmax = ar->winx, .ymax = ar->winy};
 
 	/* Let 'ED_area_update_region_sizes' do the work of placing the region.
 	 * Otherwise we could set the 'ar->winrct' & 'ar->winx/winy' here. */
