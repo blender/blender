@@ -107,8 +107,15 @@
 #define MAN_SCALE_C		(MAN_SCALE_X | MAN_SCALE_Y | MAN_SCALE_Z)
 
 /* threshold for testing view aligned manipulator axis */
-#define TW_AXIS_DOT_MIN 0.02f
-#define TW_AXIS_DOT_MAX 0.1f
+struct {
+	float min, max;
+} g_tw_axis_range[2] = {
+	/* Regular range */
+	{0.02f, 0.1f},
+	/* Use a different range because we flip the dot product,
+	 * also the view aligned planes are harder to see so hiding early is preferred. */
+	{0.175f,  0.25f},
+};
 
 /* axes as index */
 enum {
@@ -255,7 +262,7 @@ static bool manipulator_is_axis_visible(
 		if (is_plane) {
 			idot_axis = 1.0f - idot_axis;
 		}
-		if (idot_axis < TW_AXIS_DOT_MIN) {
+		if (idot_axis < g_tw_axis_range[is_plane].min) {
 			return false;
 		}
 	}
@@ -337,13 +344,16 @@ static void manipulator_get_axis_color(
 	const int axis_idx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
 	/* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
 	if (axis_idx_norm < 3) {
+		const float idot_min = g_tw_axis_range[is_plane].min;
+		const float idot_max = g_tw_axis_range[is_plane].max;
 		float idot_axis = idot[axis_idx_norm];
 		if (is_plane) {
 			idot_axis = 1.0f - idot_axis;
 		}
-		alpha_fac = (idot_axis > TW_AXIS_DOT_MAX) ?
-		        1.0f : (idot_axis < TW_AXIS_DOT_MIN) ?
-		        0.0f : ((idot_axis - TW_AXIS_DOT_MIN) / (TW_AXIS_DOT_MAX - TW_AXIS_DOT_MIN));
+		alpha_fac = (
+		        (idot_axis > idot_max) ?
+		        1.0f : (idot_axis < idot_min) ?
+		        0.0f : ((idot_axis - idot_min) / (idot_max - idot_min)));
 	}
 	else {
 		/* trackball rotation axis is a special case, we only draw a slight overlay */
