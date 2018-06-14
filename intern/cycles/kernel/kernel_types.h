@@ -1306,7 +1306,8 @@ typedef struct KernelIntegrator {
 	int num_all_lights;
 	float pdf_triangles;
 	float pdf_lights;
-	int pdf_background_res;
+	int pdf_background_res_x;
+	int pdf_background_res_y;
 	float light_inv_rr_threshold;
 
 	/* light portals */
@@ -1368,6 +1369,8 @@ typedef struct KernelIntegrator {
 	int start_sample;
 
 	int max_closures;
+
+	int pad1, pad2, pad3;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

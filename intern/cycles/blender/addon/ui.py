@@ -1214,11 +1214,13 @@ class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
         col = split.column()
 
         col.label(text="Surface:")
-        col.prop(cworld, "sample_as_light", text="Multiple Importance")
+        col.prop(cworld, "sampling_method", text="Sampling")
 
         sub = col.column(align=True)
-        sub.active = cworld.sample_as_light
-        sub.prop(cworld, "sample_map_resolution")
+        sub.active = cworld.sampling_method != 'NONE'
+        subsub = sub.row(align=True)
+        subsub.active = cworld.sampling_method == 'MANUAL'
+        subsub.prop(cworld, "sample_map_resolution")
         if use_branched_path(context):
             subsub = sub.row(align=True)
             subsub.active = use_sample_all_lights(context)

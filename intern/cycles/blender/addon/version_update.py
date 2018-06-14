@@ -377,10 +377,6 @@ def do_versions(self):
         for world in bpy.data.worlds:
             cworld = world.cycles
 
-            # World MIS
-            if not cworld.is_property_set("sample_as_light"):
-                cworld.sample_as_light = False
-
             # World MIS Samples
             if not cworld.is_property_set("samples"):
                 cworld.samples = 4
@@ -431,3 +427,12 @@ def do_versions(self):
     if bpy.data.version <= (2, 79, 3):
         # Switch to squared roughness convention
         square_roughness_nodes_insert()
+
+    for world in bpy.data.worlds:
+        cworld = world.cycles
+        # World MIS
+        if not cworld.is_property_set("sampling_method"):
+            if cworld.get("sample_as_light", False):
+                cworld.sampling_method = 'MANUAL'
+            else:
+                cworld.sampling_method = 'NONE'
