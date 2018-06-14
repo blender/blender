@@ -110,6 +110,7 @@ bool ED_rigidbody_object_add(Main *bmain, Scene *scene, Object *ob, int type, Re
 	}
 	if (rbw->group == NULL) {
 		rbw->group = BKE_collection_add(bmain, NULL, "RigidBodyWorld");
+		id_fake_user_set(&rbw->group->id);
 	}
 
 	/* make rigidbody object settings */
