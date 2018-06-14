@@ -268,9 +268,11 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 		BLI_rctf_translate(&but->rect, offset, 0);
 		if (but->type == UI_BTYPE_SEPR_SPACER) {
 			/* How much the next block overlap with the current segment */
-			int overlap = (i == sepr_flex_len - 1) ? buttons_width - spacers_pos[i]
-			                                       : (spacers_pos[i+1] - spacers_pos[i]) / 2;
-			int segment_end = segment_width * (i+1);
+			int overlap = (
+			        (i == sepr_flex_len - 1) ?
+			        buttons_width - spacers_pos[i] :
+			        (spacers_pos[i + 1] - spacers_pos[i]) / 2);
+			int segment_end = segment_width * (i + 1);
 			int spacer_end = segment_end - overlap;
 			int spacer_sta = spacers_pos[i] + offset;
 			if (spacer_end > spacer_sta) {
