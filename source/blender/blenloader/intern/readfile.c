@@ -1646,9 +1646,9 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 				oldnewmap_insert(fd->imamap, ima->gputexture[a], ima->gputexture[a], 0);
 		if (ima->rr)
 			oldnewmap_insert(fd->imamap, ima->rr, ima->rr, 0);
-		for (a=0; a < IMA_MAX_RENDER_SLOT; a++)
-			if (ima->renders[a])
-				oldnewmap_insert(fd->imamap, ima->renders[a], ima->renders[a], 0);
+			LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots)
+				if (slot->render)
+					oldnewmap_insert(fd->imamap, slot->render, slot->render, 0);
 	}
 	for (; sce; sce = sce->id.next) {
 		if (sce->nodetree && sce->nodetree->previews) {
@@ -1685,8 +1685,8 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 			}
 			ima->rr = NULL;
 		}
-		for (i = 0; i < IMA_MAX_RENDER_SLOT; i++)
-			ima->renders[i] = newimaadr(fd, ima->renders[i]);
+		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots)
+			slot->render = newimaadr(fd, slot->render);
 		
 		for (i = 0; i < TEXTARGET_COUNT; i++)
 			ima->gputexture[i] = newimaadr(fd, ima->gputexture[i]);
@@ -3921,14 +3921,16 @@ static void direct_link_image(FileData *fd, Image *ima)
 	}
 	
 	/* undo system, try to restore render buffers */
+	link_list(fd, &(ima->renderslots));
 	if (fd->imamap) {
 		int a;
 		
-		for (a = 0; a < IMA_MAX_RENDER_SLOT; a++)
-			ima->renders[a] = newimaadr(fd, ima->renders[a]);
+		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots)
+			slot->render = newimaadr(fd, slot->render);
 	}
 	else {
-		memset(ima->renders, 0, sizeof(ima->renders));
+		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots)
+			slot->render = NULL;
 		ima->last_render_slot = ima->render_slot;
 	}
 

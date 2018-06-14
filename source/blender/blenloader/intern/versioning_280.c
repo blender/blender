@@ -60,6 +60,7 @@
 #include "BKE_customdata.h"
 #include "BKE_freestyle.h"
 #include "BKE_idprop.h"
+#include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -1582,6 +1583,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							View3D *v3d = (View3D *)sl;
 							v3d->overlay.bone_selection_alpha = 0.5f;
 						}
+					}
+				}
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "Image", "ListBase", "renderslot")) {
+			for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
+				if (ima->type == IMA_TYPE_R_RESULT) {
+					for (int i = 0; i < 8; i++) {
+						RenderSlot *slot = MEM_callocN(sizeof(RenderSlot), "Image Render Slot Init");
+						BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", i+1);
+						BLI_addtail(&ima->renderslots, slot);
 					}
 				}
 			}

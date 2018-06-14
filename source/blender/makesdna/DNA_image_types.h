@@ -80,7 +80,9 @@ typedef struct ImagePackedFile {
 } ImagePackedFile;
 
 typedef struct RenderSlot {
+	struct RenderSlot *next, *prev;
 	char name[64];  /* 64 = MAX_NAME */
+	struct RenderResult *render;
 } RenderSlot;
 
 /* iuser->flag */
@@ -108,7 +110,7 @@ typedef struct Image {
 	ListBase anims;
 	struct RenderResult *rr;
 
-	struct RenderResult *renders[8]; /* IMA_MAX_RENDER_SLOT */
+	ListBase renderslots;
 	short render_slot, last_render_slot;
 
 	int flag;
@@ -148,8 +150,6 @@ typedef struct Image {
 	char views_format;
 	ListBase views;  /* ImageView */
 	struct Stereo3dFormat *stereo3d_format;
-
-	RenderSlot render_slots[8];  /* 8 = IMA_MAX_RENDER_SLOT */
 } Image;
 
 
@@ -191,7 +191,6 @@ enum {
 
 /* render */
 #define IMA_MAX_RENDER_TEXT		512
-#define IMA_MAX_RENDER_SLOT		8
 
 /* gen_flag */
 #define IMA_GEN_FLOAT		1

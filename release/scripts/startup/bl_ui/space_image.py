@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 import math
-from bpy.types import Header, Menu, Panel
+from bpy.types import Header, Menu, Panel, UIList
 from .properties_paint_common import (
     UnifiedPaintPanel,
     brush_texture_settings,
@@ -724,10 +724,41 @@ class IMAGE_PT_view_properties(Panel):
             row.active = uvedit.show_other_objects
             row.prop(uvedit, "other_uv_filter", text="Filter")
 
-        if show_render and ima:
-            layout.separator()
-            render_slot = ima.render_slots.active
-            layout.prop(render_slot, "name", text="Slot Name")
+
+class IMAGE_UL_render_slots(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        slot = item
+        layout.prop(slot, "name", text="", emboss=False)
+
+
+class IMAGE_PT_render_slots(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Render Slots"
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        return (sima and sima.image and sima.show_render)
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        ima = sima.image
+
+        row = layout.row()
+
+        col = row.column()
+        col.template_list("IMAGE_UL_render_slots", "render_slots", ima, "render_slots", ima.render_slots, "active_index", rows=3)
+
+        col = row.column(align=True)
+        col.operator("image.add_render_slot", icon='ZOOMIN', text="")
+        col.operator("image.remove_render_slot", icon='ZOOMOUT', text="")
+
+        col.separator()
+
+        col.operator("image.clear_render_slot", icon='X', text="")
 
 
 class IMAGE_PT_tools_transform_uvs(Panel, UVToolsPanel):
@@ -1361,6 +1392,8 @@ classes = (
     IMAGE_PT_active_mask_spline,
     IMAGE_PT_active_mask_point,
     IMAGE_PT_image_properties,
+    IMAGE_UL_render_slots,
+    IMAGE_PT_render_slots,
     IMAGE_PT_view_properties,
     IMAGE_PT_tools_transform_uvs,
     IMAGE_PT_tools_align_uvs,

@@ -330,6 +330,14 @@ RenderResult *RE_AcquireResultWrite(Render *re)
 	return NULL;
 }
 
+void RE_ClearResult(Render *re)
+{
+	if (re) {
+		render_result_free(re->result);
+		re->result = NULL;
+	}
+}
+
 void RE_SwapResult(Render *re, RenderResult **rr)
 {
 	/* for keeping render buffers */

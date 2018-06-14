@@ -296,6 +296,12 @@ void BKE_image_file_format_set(struct Image *image, int ftype, const struct ImbF
 bool BKE_image_has_loaded_ibuf(struct Image *image);
 struct ImBuf *BKE_image_get_ibuf_with_name(struct Image *image, const char *name);
 struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);
+
+struct RenderSlot *BKE_image_add_renderslot(struct Image *ima, const char *name);
+bool BKE_image_remove_renderslot(struct Image *ima, struct ImageUser *iuser, int slot);
+struct RenderSlot *BKE_image_get_renderslot(struct Image *ima, int slot);
+bool BKE_image_clear_renderslot(struct Image *ima, struct ImageUser *iuser, int slot);
+
 #ifdef __cplusplus
 }
 #endif
