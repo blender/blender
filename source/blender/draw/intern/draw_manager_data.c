@@ -768,7 +768,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp, struct
 		if (input->ima) {
 			double time = 0.0; /* TODO make time variable */
 			GPUTexture *tex = GPU_texture_from_blender(
-			        input->ima, input->iuser, input->textarget, input->image_isdata, time, 1);
+			        input->ima, input->iuser, input->textarget, input->image_isdata, time);
 
 			if (input->bindtex) {
 				DRW_shgroup_uniform_texture(grp, input->shadername, tex);

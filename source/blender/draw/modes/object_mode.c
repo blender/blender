@@ -799,7 +799,7 @@ static void DRW_shgroup_empty_image(
 	struct EmptyImageShadingGroupData *empty_image_data;
 
 	GPUTexture *tex = ob->data ?
-	        GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, false, false) : NULL;
+	        GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, 0.0f) : NULL;
 	void **val_p;
 
 	/* Create on demand, 'tex' may be NULL. */
