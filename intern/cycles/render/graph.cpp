@@ -243,18 +243,27 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 
 		/* add automatic conversion node in case of type mismatch */
 		ShaderNode *convert;
+		ShaderInput *convert_in;
 
 		if (to->type() == SocketType::CLOSURE) {
 			EmissionNode *emission = new EmissionNode();
 			emission->color = make_float3(1.0f, 1.0f, 1.0f);
 			emission->strength = 1.0f;
 			convert = add(emission);
+			/* Connect float inputs to Strength to save an additional Falue->Color conversion. */
+			if(from->type() == SocketType::FLOAT) {
+				convert_in = convert->input("Strength");
+			}
+			else {
+				convert_in = convert->input("Color");
+			}
 		}
 		else {
 			convert = add(new ConvertNode(from->type(), to->type(), true));
+			convert_in = convert->inputs[0];
 		}
 
-		connect(from, convert->inputs[0]);
+		connect(from, convert_in);
 		connect(convert->outputs[0], to);
 	}
 	else {
