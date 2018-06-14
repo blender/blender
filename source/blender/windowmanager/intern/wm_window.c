@@ -502,7 +502,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 			char str[sizeof(((Main *)NULL)->name) + 24];
 			BLI_snprintf(str, sizeof(str), "Blender%s [%s%s]", wm->file_saved ? "" : "*",
 			             BKE_main_blendfile_path_from_global(),
-			             G.main->recovered ? " (Recovered)" : "");
+			             G_MAIN->recovered ? " (Recovered)" : "");
 			GHOST_SetTitle(win->ghostwin, str);
 		}
 		else

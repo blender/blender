@@ -31,6 +31,7 @@
 #ifndef __WM_FILES_H__
 #define __WM_FILES_H__
 
+struct Main;
 struct wmOperatorType;
 
 /* wm_files.c */
@@ -39,7 +40,7 @@ int			wm_homefile_read(
         struct bContext *C, struct ReportList *reports,
         bool use_factory_settings, bool use_empty_data, bool use_userdef,
         const char *filepath_startup_override, const char *app_template_override);
-void		wm_file_read_report(bContext *C);
+void		wm_file_read_report(bContext *C, struct Main *bmain);
 
 void        WM_OT_save_homefile(struct wmOperatorType *ot);
 void        WM_OT_userpref_autoexec_path_add(struct wmOperatorType *ot);

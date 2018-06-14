@@ -260,7 +260,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	/* allow a path of "", this is what happens when making a new file */
 #if 0
 	if (BKE_main_blendfile_path_from_global()[0] == '\0')
-		BLI_make_file_string("/", G.main->name, BKE_appdir_folder_default(), "untitled.blend");
+		BLI_make_file_string("/", G_MAIN->name, BKE_appdir_folder_default(), "untitled.blend");
 #endif
 
 	BLI_strncpy(G.lib, BKE_main_blendfile_path_from_global(), sizeof(G.lib));
@@ -278,6 +278,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 		/* that prevents loading both the kept session, and the file on the command line */
 	}
 	else {
+		Main *bmain = CTX_data_main(C);
 		/* note, logic here is from wm_file_read_post,
 		 * call functions that depend on Python being initialized. */
 
@@ -288,10 +289,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 		 * note that recovering the last session does its own callbacks. */
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
-		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
-		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
+		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
+		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
 
-		wm_file_read_report(C);
+		wm_file_read_report(C, bmain);
 
 		if (!G.background) {
 			CTX_wm_window_set(C, NULL);
