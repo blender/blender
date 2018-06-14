@@ -552,7 +552,7 @@ void DepsgraphNodeBuilder::build_object_flags(
 	const bool is_from_set = (linked_state == DEG_ID_LINKED_VIA_SET);
 	/* TODO(sergey): Is this really best component to be used? */
 	add_operation_node(&object->id,
-	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                   DEG_NODE_TYPE_OBJECT_FROM_LAYER,
 	                   function_bind(BKE_object_eval_flush_base_flags,
 	                                 _1,
 	                                 scene_cow,

@@ -142,7 +142,7 @@ void depsgraph_select_tag_to_component_opcode(
 		*operation_code = DEG_OPCODE_VIEW_LAYER_EVAL;
 	}
 	else if (id_type == ID_OB) {
-		*component_type = DEG_NODE_TYPE_LAYER_COLLECTIONS;
+		*component_type = DEG_NODE_TYPE_OBJECT_FROM_LAYER;
 		*operation_code = DEG_OPCODE_OBJECT_BASE_FLAGS;
 	}
 	else {
@@ -162,7 +162,7 @@ void depsgraph_base_flags_tag_to_component_opcode(
 		*operation_code = DEG_OPCODE_VIEW_LAYER_EVAL;
 	}
 	else if (id_type == ID_OB) {
-		*component_type = DEG_NODE_TYPE_LAYER_COLLECTIONS;
+		*component_type = DEG_NODE_TYPE_OBJECT_FROM_LAYER;
 		*operation_code = DEG_OPCODE_OBJECT_BASE_FLAGS;
 	}
 }

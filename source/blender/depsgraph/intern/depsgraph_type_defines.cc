@@ -92,6 +92,7 @@ const char *nodeTypeAsString(eDepsNode_Type type)
 		STRINGIFY_TYPE(SEQUENCER);
 		STRINGIFY_TYPE(LAYER_COLLECTIONS);
 		STRINGIFY_TYPE(COPY_ON_WRITE);
+		STRINGIFY_TYPE(OBJECT_FROM_LAYER);
 		/* **** Evaluation-Related Outer Types (with Subdata) **** */
 		STRINGIFY_TYPE(EVAL_POSE);
 		STRINGIFY_TYPE(BONE);

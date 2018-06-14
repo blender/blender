@@ -606,7 +606,7 @@ void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
 	                                 DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                                 DEG_OPCODE_VIEW_LAYER_EVAL);
 	OperationKey object_flags_key(&object->id,
-	                              DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                              DEG_NODE_TYPE_OBJECT_FROM_LAYER,
 	                              DEG_OPCODE_OBJECT_BASE_FLAGS);
 	add_relation(view_layer_done_key, object_flags_key, "Base flags flush");
 }

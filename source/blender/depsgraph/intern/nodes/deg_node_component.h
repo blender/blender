@@ -182,6 +182,7 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Sequencer);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Shading);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ShadingParameters);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Transform);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(ObjectFromLayer);
 
 /* Bone Component */
 struct BoneComponentDepsNode : public ComponentDepsNode {
