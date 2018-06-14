@@ -243,7 +243,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				svm_node_geometry(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_CONVERT:
-				svm_node_convert(sd, stack, node.y, node.z, node.w);
+				svm_node_convert(kg, sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_TEX_COORD:
 				svm_node_tex_coord(kg, sd, path_flag, stack, node, &offset);
@@ -465,7 +465,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				svm_node_wireframe(kg, sd, stack, node);
 				break;
 			case NODE_WAVELENGTH:
-				svm_node_wavelength(sd, stack, node.y, node.z);
+				svm_node_wavelength(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_BLACKBODY:
 				svm_node_blackbody(kg, sd, stack, node.y, node.z);

@@ -59,7 +59,7 @@ ccl_device float3 sky_radiance_old(KernelGlobals *kg, float3 dir,
 
 	/* convert to RGB */
 	float3 xyz = xyY_to_xyz(x, y, Y);
-	return xyz_to_rgb(xyz.x, xyz.y, xyz.z);
+	return xyz_to_rgb(kg, xyz);
 }
 
 /*
@@ -102,7 +102,7 @@ ccl_device float3 sky_radiance_new(KernelGlobals *kg, float3 dir,
 	float z = sky_radiance_internal(config_z, theta, gamma) * radiance_z;
 
 	/* convert to RGB and adjust strength */
-	return xyz_to_rgb(x, y, z) * (M_2PI_F/683);
+	return xyz_to_rgb(kg, make_float3(x, y, z)) * (M_2PI_F/683);
 }
 
 ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)

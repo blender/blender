@@ -40,6 +40,9 @@ roles:
   # Non-color data
   data: Non-Color
 
+  # CIE XYZ color space
+  XYZ: XYZ
+
 displays:
   sRGB:
     - !<View> {name: Default, colorspace: sRGB}
@@ -188,8 +191,7 @@ colorspaces:
     allocationvars: [-8.5, 5]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear}
-        - !<FileTransform> {src: aces_to_xyz.spimtx, interpolation: linear}
+        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
 
   - !<ColorSpace>
     name: rrt_xyz

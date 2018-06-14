@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Conversion Nodes */
 
-ccl_device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint from, uint to)
+ccl_device void svm_node_convert(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint from, uint to)
 {
 	switch(type) {
 		case NODE_CONVERT_FI: {
@@ -33,13 +33,13 @@ ccl_device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint f
 		}
 		case NODE_CONVERT_CF: {
 			float3 f = stack_load_float3(stack, from);
-			float g = linear_rgb_to_gray(f);
+			float g = linear_rgb_to_gray(kg, f);
 			stack_store_float(stack, to, g);
 			break;
 		}
 		case NODE_CONVERT_CI: {
 			float3 f = stack_load_float3(stack, from);
-			int i = (int)linear_rgb_to_gray(f);
+			int i = (int)linear_rgb_to_gray(kg, f);
 			stack_store_int(stack, to, i);
 			break;
 		}

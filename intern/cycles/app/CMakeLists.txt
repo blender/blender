@@ -80,6 +80,10 @@ macro(cycles_target_link_libraries target)
 	if(WITH_CYCLES_OPENSUBDIV)
 		target_link_libraries(${target} ${OPENSUBDIV_LIBRARIES})
 	endif()
+	if(WITH_OPENCOLORIO)
+		link_directories(${OPENCOLORIO_LIBPATH})
+		target_link_libraries(${target} ${OPENCOLORIO_LIBRARIES})
+	endif()
 	target_link_libraries(
 		${target}
 		${OPENIMAGEIO_LIBRARIES}
