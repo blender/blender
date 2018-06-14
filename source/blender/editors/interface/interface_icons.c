@@ -1444,6 +1444,19 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
 			return ICON_FILE_IMAGE;
 	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_StudioLight)) {
+		StudioLight *sl = (StudioLight *)ptr->data;
+		switch (sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS)
+		{
+			case STUDIOLIGHT_ORIENTATION_CAMERA:
+				return sl->icon_id_irradiance;
+			case STUDIOLIGHT_ORIENTATION_WORLD:
+			default:
+				return sl->icon_id_radiance;
+			case STUDIOLIGHT_ORIENTATION_VIEWNORMAL:
+				return sl->icon_id_matcap;
+		}
+	}
 
 	/* get icon from ID */
 	if (id) {

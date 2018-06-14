@@ -1609,7 +1609,7 @@ class StudioLightPanelMixin():
         box = layout.box()
         row = box.row()
 
-        row.template_icon_view(studio_light, "icon_id")
+        row.template_icon(layout.icon(studio_light), scale=6.0)
         op = row.operator('wm.studiolight_uninstall', text="", icon='ZOOMOUT')
         op.index = studio_light.index
 

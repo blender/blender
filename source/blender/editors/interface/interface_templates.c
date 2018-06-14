@@ -2185,6 +2185,19 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 	MEM_freeN(cb);
 }
 
+/********************* Icon Template ************************/
+/**
+ * \param icon_scale: Scale of the icon, 1x == button height.
+ */
+void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
+{
+	uiBlock *block;
+	uiBut *but;
+
+	block = uiLayoutAbsoluteBlock(layout);
+	but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, ICON_X, 0, 0, UI_UNIT_X * icon_scale, UI_UNIT_Y * icon_scale, NULL, 0.0, 0.0, 0.0, 0.0, "");
+	ui_def_but_icon(but, icon_value, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+}
 
 /********************* Icon viewer Template ************************/
 typedef struct IconViewMenuArgs {

@@ -99,16 +99,23 @@ static void studiolight_free(struct StudioLight *sl)
 	MEM_freeN(sl);
 }
 
-static struct StudioLight *studiolight_create(void)
+static struct StudioLight *studiolight_create(int flag)
 {
 	struct StudioLight *sl = MEM_callocN(sizeof(*sl), __func__);
 	sl->path[0] = 0x00;
 	sl->name[0] = 0x00;
 	sl->path_irr = NULL;
-	sl->flag = 0;
+	sl->flag = flag;
 	sl->index = BLI_listbase_count(&studiolights);
-	sl->radiance_icon_id = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_RADIANCE);
-	sl->irradiance_icon_id = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE);
+	if (flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL)
+	{
+		sl->icon_id_matcap = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP);
+		sl->icon_id_matcap_flipped = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP_FLIPPED);
+	}
+	else {
+		sl->icon_id_radiance = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_RADIANCE);
+		sl->icon_id_irradiance = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE);
+	}
 
 	for (int index = 0 ; index < 6 ; index ++) {
 		sl->radiance_cubemap_buffers[index] = NULL;
@@ -522,8 +529,7 @@ static void studiolight_add_files_from_datafolder(const int folder_id, const cha
 				const char *filename = dir[i].relname;
 				const char *path = dir[i].path;
 				if (BLI_testextensie_array(filename, imb_ext_image)) {
-					sl = studiolight_create();
-					sl->flag = STUDIOLIGHT_EXTERNAL_FILE | flag;
+					sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
 					BLI_strncpy(sl->name, filename, FILE_MAXFILE);
 					BLI_strncpy(sl->path, path, FILE_MAXFILE);
 					sl->path_irr = BLI_string_joinN(path, ".irr");
@@ -620,7 +626,7 @@ static uint *studiolight_radiance_preview(StudioLight *sl, int icon_size)
 	return rect;
 }
 
-static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size)
+static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size, bool flipped)
 {
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
 
@@ -630,10 +636,17 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size)
 	float fx, fy;
 	int offset = 0;
 	ImBuf *ibuf = sl->equirectangular_radiance_buffer;
+
 	for (int y = 0; y < icon_size; y++) {
+		fy = y * ibuf->y / icon_size;
 		for (int x = 0; x < icon_size; x++) {
-			fx = x * ibuf->x / icon_size;
-			fy = y * ibuf->y / icon_size;
+			if (flipped)
+			{
+				fx = ibuf->x - (x * ibuf->x / icon_size) - 1;
+			}
+			else {
+				fx = x * ibuf->x / icon_size;
+			}
 			nearest_interpolation_color(ibuf, NULL, color, fx, fy);
 			rect[offset++] = rgb_to_cpack(linearrgb_to_srgb(color[0]),
 			                              linearrgb_to_srgb(color[1]),
@@ -763,9 +776,8 @@ void BKE_studiolight_init(void)
 	/* order studio lights by name */
 	/* Also reserve icon space for it. */
 	/* Add default studio light */
-	sl = studiolight_create();
+	sl = studiolight_create(STUDIOLIGHT_INTERNAL | STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA);
 	BLI_strncpy(sl->name, "INTERNAL_01", FILE_MAXFILE);
-	sl->flag = STUDIOLIGHT_INTERNAL | STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA;
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 1.5f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_NEG], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 0.8f);
@@ -838,16 +850,17 @@ struct ListBase *BKE_studiolight_listbase(void)
 
 uint *BKE_studiolight_preview(StudioLight *sl, int icon_size, int icon_id_type)
 {
-	if (icon_id_type == STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE) {
-		if (sl->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL) {
-			return studiolight_matcap_preview(sl, icon_size);
-		}
-		else {
+	switch(icon_id_type)
+	{
+		case STUDIOLIGHT_ICON_ID_TYPE_RADIANCE:
+		default:
+			return studiolight_radiance_preview(sl, icon_size);
+		case STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE:
 			return studiolight_irradiance_preview(sl, icon_size);
-		}
-	}
-	else {
-		return studiolight_radiance_preview(sl, icon_size);
+		case STUDIOLIGHT_ICON_ID_TYPE_MATCAP:
+			return studiolight_matcap_preview(sl, icon_size, false);
+		case STUDIOLIGHT_ICON_ID_TYPE_MATCAP_FLIPPED:
+			return studiolight_matcap_preview(sl, icon_size, true);
 	}
 }
 
