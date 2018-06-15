@@ -82,6 +82,7 @@ set(SRC_HEADERS
 	kernel_accumulate.h
 	kernel_bake.h
 	kernel_camera.h
+	kernel_color.h
 	kernel_compat_cpu.h
 	kernel_compat_cuda.h
 	kernel_compat_opencl.h

@@ -1272,12 +1272,12 @@ typedef struct KernelFilm {
 	int pass_denoising_clean;
 	int denoising_flags;
 
+	int pad1, pad2, pad3;
+
 	float3 xyz_to_r;
 	float3 xyz_to_g;
 	float3 xyz_to_b;
 	float3 rgb_to_y;
-
-	int pad1, pad2, pad3;
 
 #ifdef __KERNEL_DEBUG__
 	int pass_bvh_traversed_nodes;
