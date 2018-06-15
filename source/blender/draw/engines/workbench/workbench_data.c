@@ -36,6 +36,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
 	WORKBENCH_UBO_World *wd = &wpd->world_data;
 	wd->matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) > 0;
+	wd->background_alpha = 1.0f;
 
 	if ((v3d->flag3 & V3D_SHOW_WORLD) &&
 	    (scene->world != NULL))

@@ -32,7 +32,7 @@ void main()
 
 #ifndef V3D_SHADING_OBJECT_OUTLINE
 	if (object_id == NO_OBJECT_ID) {
-		fragColor = vec4(background_color(world_data, uv_viewport.y), 0.0);
+		fragColor = vec4(background_color(world_data, uv_viewport.y), world_data.background_alpha);
 		return;
 	}
 #else /* !V3D_SHADING_OBJECT_OUTLINE */
@@ -41,10 +41,10 @@ void main()
 	if (object_id == NO_OBJECT_ID) {
 		vec3 background = background_color(world_data, uv_viewport.y);
 		if (object_outline == 0.0) {
-			fragColor = vec4(background, 0.0);
+			fragColor = vec4(background, world_data.background_alpha);
 		}
 		else {
-			fragColor = vec4(mix(world_data.object_outline_color.rgb, background, object_outline), 1.0-object_outline);
+			fragColor = vec4(mix(world_data.object_outline_color.rgb, background, object_outline), clamp(world_data.background_alpha, 1.0, object_outline));
 		}
 		return;
 	}

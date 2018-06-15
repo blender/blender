@@ -124,7 +124,8 @@ typedef struct WORKBENCH_UBO_World {
 	WORKBENCH_UBO_Light lights[3];
 	int num_lights;
 	int matcap_orientation;
-	int pad[2];
+	float background_alpha;
+	int pad[1];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 

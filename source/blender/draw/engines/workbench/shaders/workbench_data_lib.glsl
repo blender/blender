@@ -17,7 +17,8 @@ struct WorldData {
 	LightData lights[3];
 	int num_lights;
 	int matcap_orientation;
-	int pad[2];
+	float background_alpha;
+	int pad[1];
 };
 
 struct MaterialData {
