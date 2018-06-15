@@ -2598,203 +2598,235 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	if (vg_length)
 		MEM_freeN(vg_length);
 }
+
+typedef struct CacheEditrPathsIterData {
+	Object *object;
+	PTCacheEdit *edit;
+	ParticleSystemModifierData *psmd;
+	ParticleData *pa;
+	int segments;
+	bool use_weight;
+	float sel_col[3];
+	float nosel_col[3];
+} CacheEditrPathsIterData;
+
+static void psys_cache_edit_paths_iter(
+        void *__restrict iter_data_v,
+        const int iter,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
+{
+	CacheEditrPathsIterData *iter_data = (CacheEditrPathsIterData *)iter_data_v;
+	PTCacheEdit *edit = iter_data->edit;
+	PTCacheEditPoint *point = &edit->points[iter];
+	if (edit->totcached && !(point->flag & PEP_EDIT_RECALC)) {
+		return;
+	}
+	if (point->totkey == 0) {
+		return;
+	}
+	Object *ob = iter_data->object;
+	ParticleSystem *psys = edit->psys;
+	ParticleCacheKey **cache = edit->pathcache;
+	ParticleSystemModifierData *psmd = iter_data->psmd;
+	ParticleData *pa = iter_data->pa ? iter_data->pa + iter : NULL;
+	PTCacheEditKey *ekey = point->keys;
+	const int segments = iter_data->segments;
+	const bool use_weight = iter_data->use_weight;
+
+	float birthtime = 0.0f, dietime = 0.0f;
+	float hairmat[4][4], rotmat[3][3], prev_tangent[3] = {0.0f, 0.0f, 0.0f};
+
+	ParticleInterpolationData pind;
+	pind.keyed = 0;
+	pind.cache = NULL;
+	pind.epoint = point;
+	pind.bspline = psys ? (psys->part->flag & PART_HAIR_BSPLINE) : 0;
+	pind.mesh = NULL;
+
+	/* should init_particle_interpolation set this ? */
+	if (use_weight) {
+		pind.hkey[0] = NULL;
+		/* pa != NULL since the weight brush is only available for hair */
+		pind.hkey[0] = pa->hair;
+		pind.hkey[1] = pa->hair + 1;
+	}
+
+	memset(cache[iter], 0, sizeof(*cache[iter]) * (segments + 1));
+
+	cache[iter]->segments = segments;
+
+	/*--get the first data points--*/
+	init_particle_interpolation(ob, psys, pa, &pind);
+
+	if (psys) {
+		psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, pa, hairmat);
+		copy_v3_v3(rotmat[0], hairmat[2]);
+		copy_v3_v3(rotmat[1], hairmat[1]);
+		copy_v3_v3(rotmat[2], hairmat[0]);
+	}
+
+	birthtime = pind.birthtime;
+	dietime = pind.dietime;
+
+	if (birthtime >= dietime) {
+		cache[iter]->segments = -1;
+		return;
+	}
+
+	/*--interpolate actual path from data points--*/
+	ParticleCacheKey *ca;
+	int k;
+	float t, time = 0.0f, keytime = 0.0f;
+	for (k = 0, ca = cache[iter]; k <= segments; k++, ca++) {
+		time = (float)k / (float)segments;
+		t = birthtime + time * (dietime - birthtime);
+		ParticleKey result;
+		result.time = -t;
+		do_particle_interpolation(psys, iter, pa, t, &pind, &result);
+		copy_v3_v3(ca->co, result.co);
+
+		/* non-hair points are already in global space */
+		if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
+			mul_m4_v3(hairmat, ca->co);
+
+			if (k) {
+				cache_key_incremental_rotation(ca, ca - 1, ca - 2, prev_tangent, k);
+
+				if (k == segments)
+					copy_qt_qt(ca->rot, (ca - 1)->rot);
+
+				/* set velocity */
+				sub_v3_v3v3(ca->vel, ca->co, (ca - 1)->co);
+
+				if (k == 1)
+					copy_v3_v3((ca - 1)->vel, ca->vel);
+			}
+		}
+		else {
+			ca->vel[0] = ca->vel[1] = 0.0f;
+			ca->vel[2] = 1.0f;
+		}
+
+		/* selection coloring in edit mode */
+		if (use_weight) {
+			if (k == 0) {
+				weight_to_rgb(ca->col, pind.hkey[1]->weight);
+			}
+			else {
+				/* warning: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
+				float real_t;
+				if (result.time < 0.0f) {
+					real_t = -result.time;
+				}
+				else {
+					real_t = pind.hkey[0]->time + t * (pind.hkey[0][pa->totkey - 1].time - pind.hkey[0]->time);
+				}
+
+				while (pind.hkey[1]->time < real_t) {
+					pind.hkey[1]++;
+				}
+				pind.hkey[0] = pind.hkey[1] - 1;
+				/* end copy */
+
+
+				float w1[3], w2[3];
+				keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+
+				weight_to_rgb(w1, pind.hkey[0]->weight);
+				weight_to_rgb(w2, pind.hkey[1]->weight);
+
+				interp_v3_v3v3(ca->col, w1, w2, keytime);
+			}
+		}
+		else {
+			if ((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT) {
+				if ((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT) {
+					copy_v3_v3(ca->col, iter_data->sel_col);
+				}
+				else {
+					keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+					interp_v3_v3v3(ca->col, iter_data->sel_col, iter_data->nosel_col, keytime);
+				}
+			}
+			else {
+				if ((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT) {
+					keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+					interp_v3_v3v3(ca->col, iter_data->nosel_col, iter_data->sel_col, keytime);
+				}
+				else {
+					copy_v3_v3(ca->col, iter_data->nosel_col);
+				}
+			}
+		}
+
+		ca->time = t;
+	}
+	if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
+		/* First rotation is based on emitting face orientation.
+		 * This is way better than having flipping rotations resulting
+		 * from using a global axis as a rotation pole (vec_to_quat()).
+		 * It's not an ideal solution though since it disregards the
+		 * initial tangent, but taking that in to account will allow
+		 * the possibility of flipping again. -jahka
+		 */
+		mat3_to_quat_is_ok(cache[iter]->rot, rotmat);
+	}
+}
+
 void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
 {
-	ParticleCacheKey *ca, **cache = edit->pathcache;
+	ParticleCacheKey **cache = edit->pathcache;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
 	
-	PTCacheEditPoint *point = NULL;
-	PTCacheEditKey *ekey = NULL;
-
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 
 	ParticleData *pa = psys ? psys->particles : NULL;
 
-	ParticleInterpolationData pind;
-	ParticleKey result;
-	
-	float birthtime = 0.0f, dietime = 0.0f;
-	float t, time = 0.0f, keytime = 0.0f /*, frs_sec */;
-	float hairmat[4][4], rotmat[3][3], prev_tangent[3] = {0.0f, 0.0f, 0.0f};
-	int k, i;
 	int segments = 1 << pset->draw_step;
 	int totpart = edit->totpoint, recalc_set = 0;
-	float sel_col[3];
-	float nosel_col[3];
 
 	segments = MAX2(segments, 4);
 
 	if (!cache || edit->totpoint != edit->totcached) {
-		/* clear out old and create new empty path cache */
+		/* Clear out old and create new empty path cache. */
 		psys_free_path_cache(edit->psys, edit);
 		cache = edit->pathcache = psys_alloc_path_cache_buffers(&edit->pathcachebufs, totpart, segments + 1);
-
-		/* set flag for update (child particles check this too) */
-		for (i = 0, point = edit->points; i < totpart; i++, point++)
+		/* Set flag for update (child particles check this too). */
+		int i;
+		PTCacheEditPoint *point;
+		for (i = 0, point = edit->points; i < totpart; i++, point++) {
 			point->flag |= PEP_EDIT_RECALC;
+		}
 		recalc_set = 1;
 	}
 
-	/* frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f; */ /* UNUSED */
-
 	const bool use_weight = (pset->brushtype == PE_BRUSH_WEIGHT) && (psys != NULL) && (psys->particles != NULL);
+
+	CacheEditrPathsIterData iter_data;
+	iter_data.object = ob;
+	iter_data.edit = edit;
+	iter_data.psmd = psmd;
+	iter_data.pa = pa;
+	iter_data.segments = segments;
+	iter_data.use_weight = use_weight;
 
 	if (use_weight) {
 		; /* use weight painting colors now... */
 	}
 	else {
-		sel_col[0] = (float)edit->sel_col[0] / 255.0f;
-		sel_col[1] = (float)edit->sel_col[1] / 255.0f;
-		sel_col[2] = (float)edit->sel_col[2] / 255.0f;
-		nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
-		nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
-		nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
+		iter_data.sel_col[0] = (float)edit->sel_col[0] / 255.0f;
+		iter_data.sel_col[1] = (float)edit->sel_col[1] / 255.0f;
+		iter_data.sel_col[2] = (float)edit->sel_col[2] / 255.0f;
+		iter_data.nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
+		iter_data.nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
+		iter_data.nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
 	}
 
-	/*---first main loop: create all actual particles' paths---*/
-	for (i = 0, point = edit->points; i < totpart; i++, pa += pa ? 1 : 0, point++) {
-		if (edit->totcached && !(point->flag & PEP_EDIT_RECALC))
-			continue;
-
-		if (point->totkey == 0)
-			continue;
-
-		ekey = point->keys;
-
-		pind.keyed = 0;
-		pind.cache = NULL;
-		pind.epoint = point;
-		pind.bspline = psys ? (psys->part->flag & PART_HAIR_BSPLINE) : 0;
-		pind.mesh = NULL;
-
-
-		/* should init_particle_interpolation set this ? */
-		if (use_weight) {
-			pind.hkey[0] = NULL;
-			/* pa != NULL since the weight brush is only available for hair */
-			pind.hkey[0] = pa->hair;
-			pind.hkey[1] = pa->hair + 1;
-		}
-
-
-		memset(cache[i], 0, sizeof(*cache[i]) * (segments + 1));
-
-		cache[i]->segments = segments;
-
-		/*--get the first data points--*/
-		init_particle_interpolation(ob, psys, pa, &pind);
-
-		if (psys) {
-			psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, pa, hairmat);
-			copy_v3_v3(rotmat[0], hairmat[2]);
-			copy_v3_v3(rotmat[1], hairmat[1]);
-			copy_v3_v3(rotmat[2], hairmat[0]);
-		}
-
-		birthtime = pind.birthtime;
-		dietime = pind.dietime;
-
-		if (birthtime >= dietime) {
-			cache[i]->segments = -1;
-			continue;
-		}
-
-		/*--interpolate actual path from data points--*/
-		for (k = 0, ca = cache[i]; k <= segments; k++, ca++) {
-			time = (float)k / (float)segments;
-			t = birthtime + time * (dietime - birthtime);
-			result.time = -t;
-			do_particle_interpolation(psys, i, pa, t, &pind, &result);
-			copy_v3_v3(ca->co, result.co);
-
-			/* non-hair points are already in global space */
-			if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
-				mul_m4_v3(hairmat, ca->co);
-
-				if (k) {
-					cache_key_incremental_rotation(ca, ca - 1, ca - 2, prev_tangent, k);
-
-					if (k == segments)
-						copy_qt_qt(ca->rot, (ca - 1)->rot);
-
-					/* set velocity */
-					sub_v3_v3v3(ca->vel, ca->co, (ca - 1)->co);
-
-					if (k == 1)
-						copy_v3_v3((ca - 1)->vel, ca->vel);
-				}
-			}
-			else {
-				ca->vel[0] = ca->vel[1] = 0.0f;
-				ca->vel[2] = 1.0f;
-			}
-
-			/* selection coloring in edit mode */
-			if (use_weight) {
-				if (k == 0) {
-					weight_to_rgb(ca->col, pind.hkey[1]->weight);
-				}
-				else {
-					/* warning: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
-					float real_t;
-					if (result.time < 0.0f) {
-						real_t = -result.time;
-					}
-					else {
-						real_t = pind.hkey[0]->time + t * (pind.hkey[0][pa->totkey - 1].time - pind.hkey[0]->time);
-					}
-
-					while (pind.hkey[1]->time < real_t) {
-						pind.hkey[1]++;
-					}
-					pind.hkey[0] = pind.hkey[1] - 1;
-					/* end copy */
-
-
-					float w1[3], w2[3];
-					keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-
-					weight_to_rgb(w1, pind.hkey[0]->weight);
-					weight_to_rgb(w2, pind.hkey[1]->weight);
-
-					interp_v3_v3v3(ca->col, w1, w2, keytime);
-				}
-			}
-			else {
-				if ((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT) {
-					if ((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT) {
-						copy_v3_v3(ca->col, sel_col);
-					}
-					else {
-						keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-						interp_v3_v3v3(ca->col, sel_col, nosel_col, keytime);
-					}
-				}
-				else {
-					if ((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT) {
-						keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-						interp_v3_v3v3(ca->col, nosel_col, sel_col, keytime);
-					}
-					else {
-						copy_v3_v3(ca->col, nosel_col);
-					}
-				}
-			}
-
-			ca->time = t;
-		}
-		if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
-			/* First rotation is based on emitting face orientation.
-			 * This is way better than having flipping rotations resulting
-			 * from using a global axis as a rotation pole (vec_to_quat()).
-			 * It's not an ideal solution though since it disregards the
-			 * initial tangent, but taking that in to account will allow
-			 * the possibility of flipping again. -jahka
-			 */
-			mat3_to_quat_is_ok(cache[i]->rot, rotmat);
-		}
-	}
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+	BLI_task_parallel_range(0, edit->totpoint, &iter_data, psys_cache_edit_paths_iter, &settings);
 
 	edit->totcached = totpart;
 
@@ -2811,8 +2843,11 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 
 	/* clear recalc flag if set here */
 	if (recalc_set) {
-		for (i = 0, point = edit->points; i < totpart; i++, point++)
+		PTCacheEditPoint *point;
+		int i;
+		for (i = 0, point = edit->points; i < totpart; i++, point++) {
 			point->flag &= ~PEP_EDIT_RECALC;
+		}
 	}
 }
 /************************************************/
