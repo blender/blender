@@ -4739,10 +4739,12 @@ bool BKE_image_remove_renderslot(Image *ima, ImageUser *iuser, int index)
 	RenderSlot *current_last_slot = BLI_findlink(&ima->renderslots, ima->last_render_slot);
 
 	RenderSlot *next_slot;
-	if (current_slot == remove_slot)
-		next_slot = BLI_findlink(&ima->renderslots, (index == num_slots-1)? index-1 : index+1);
-	else
+	if (current_slot == remove_slot) {
+		next_slot = BLI_findlink(&ima->renderslots, (index == num_slots - 1) ? index - 1 : index + 1);
+	}
+	else {
 		next_slot = current_slot;
+	}
 
 	/* If the slot to be removed is the slot with the last render, make another slot the last render slot. */
 	if (remove_slot == current_last_slot) {

@@ -1435,7 +1435,7 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 		id = RNA_pointer_get(ptr, "texture").data;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_DynamicPaintSurface)) {
-		DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
+		DynamicPaintSurface *surface = ptr->data;
 
 		if (surface->format == MOD_DPAINT_SURFACE_F_PTEX)
 			return ICON_TEXTURE_SHADED;
@@ -1445,9 +1445,8 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 			return ICON_FILE_IMAGE;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_StudioLight)) {
-		StudioLight *sl = (StudioLight *)ptr->data;
-		switch (sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS)
-		{
+		StudioLight *sl = ptr->data;
+		switch (sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS) {
 			case STUDIOLIGHT_ORIENTATION_CAMERA:
 				return sl->icon_id_irradiance;
 			case STUDIOLIGHT_ORIENTATION_WORLD:

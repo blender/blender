@@ -1318,11 +1318,11 @@ typedef struct ParticleDrawSource {
 } ParticleDrawSource;
 
 static void drw_particle_get_hair_source(
-    Object *object,
-    ParticleSystem *psys,
-	ModifierData *md,
-	PTCacheEdit *edit,
-	ParticleDrawSource *r_draw_source)
+        Object *object,
+        ParticleSystem *psys,
+        ModifierData *md,
+        PTCacheEdit *edit,
+        ParticleDrawSource *r_draw_source)
 {
 	r_draw_source->object = object;
 	r_draw_source->psys = psys;

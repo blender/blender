@@ -194,20 +194,21 @@ static void studiolight_create_equierectangular_radiance_gputexture(StudioLight 
 		ImBuf *ibuf = sl->equirectangular_radiance_buffer;
 
 		if (sl->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL) {
-			sl->gpu_matcap_3components = MEM_callocN(sizeof(float) * ibuf->x * ibuf->y * 3, __func__);
-			
-			float* offset4 = ibuf->rect_float;
-			float* offset3 = sl->gpu_matcap_3components;
-			for (int i = 0 ; i < ibuf->x * ibuf->y; i ++)
-			{
+			sl->gpu_matcap_3components = MEM_callocN(sizeof(float[3]) * ibuf->x * ibuf->y, __func__);
+
+			float *offset4 = ibuf->rect_float;
+			float *offset3 = sl->gpu_matcap_3components;
+			for (int i = 0 ; i < ibuf->x * ibuf->y; i++) {
 				copy_v3_v3(offset3, offset4);
 				offset3 += 3;
 				offset4 += 4;
 			}
-			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_R11F_G11F_B10F, sl->gpu_matcap_3components, error);
+			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(
+			        ibuf->x, ibuf->y, GPU_R11F_G11F_B10F, sl->gpu_matcap_3components, error);
 		}
 		else {
-			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
+			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(
+			        ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
 			GPUTexture *tex = sl->equirectangular_radiance_gputexture;
 			GPU_texture_bind(tex, 0);
 			GPU_texture_filter_mode(tex, true);
@@ -224,7 +225,8 @@ static void studiolight_create_equierectangular_irradiance_gputexture(StudioLigh
 		char error[256];
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED);
 		ImBuf *ibuf = sl->equirectangular_irradiance_buffer;
-		sl->equirectangular_irradiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
+		sl->equirectangular_irradiance_gputexture = GPU_texture_create_2D(
+		        ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
 		GPUTexture *tex = sl->equirectangular_irradiance_gputexture;
 		GPU_texture_bind(tex, 0);
 		GPU_texture_filter_mode(tex, true);

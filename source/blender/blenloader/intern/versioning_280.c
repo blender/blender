@@ -1592,7 +1592,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				if (ima->type == IMA_TYPE_R_RESULT) {
 					for (int i = 0; i < 8; i++) {
 						RenderSlot *slot = MEM_callocN(sizeof(RenderSlot), "Image Render Slot Init");
-						BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", i+1);
+						BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", i + 1);
 						BLI_addtail(&ima->renderslots, slot);
 					}
 				}
