@@ -2325,7 +2325,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	/* Flush stdout to be sure python callbacks are printing stuff after blender. */
 	fflush(stdout);
 
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
+	BLI_callback_exec(re->main, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime - render_time);
 	printf(" (Saving: %s)\n", name);
