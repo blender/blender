@@ -1274,10 +1274,12 @@ typedef struct KernelFilm {
 
 	int pad1, pad2, pad3;
 
-	float3 xyz_to_r;
-	float3 xyz_to_g;
-	float3 xyz_to_b;
-	float3 rgb_to_y;
+	/* XYZ to rendering color space transform. float4 instead of float3 to
+	 * ensure consistent padding/alignment across devices. */
+	float4 xyz_to_r;
+	float4 xyz_to_g;
+	float4 xyz_to_b;
+	float4 rgb_to_y;
 
 #ifdef __KERNEL_DEBUG__
 	int pass_bvh_traversed_nodes;

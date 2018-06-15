@@ -562,10 +562,10 @@ void ShaderManager::device_update_common(Device *device,
 	/* film */
 	KernelFilm *kfilm = &dscene->data.film;
 	/* color space, needs to be here because e.g. displacement shaders could depend on it */
-	kfilm->xyz_to_r = xyz_to_r;
-	kfilm->xyz_to_g = xyz_to_g;
-	kfilm->xyz_to_b = xyz_to_b;
-	kfilm->rgb_to_y = rgb_to_y;
+	kfilm->xyz_to_r = float3_to_float4(xyz_to_r);
+	kfilm->xyz_to_g = float3_to_float4(xyz_to_g);
+	kfilm->xyz_to_b = float3_to_float4(xyz_to_b);
+	kfilm->rgb_to_y = float3_to_float4(rgb_to_y);
 }
 
 void ShaderManager::device_free_common(Device *, DeviceScene *dscene, Scene *scene)
