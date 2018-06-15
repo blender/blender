@@ -32,13 +32,13 @@
 
 static ListBase callback_slots[BLI_CB_EVT_TOT] = {{NULL}};
 
-void BLI_callback_exec(struct Main *main, struct ID *self, eCbEvent evt)
+void BLI_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt)
 {
 	ListBase *lb = &callback_slots[evt];
 	bCallbackFuncStore *funcstore;
 
 	for (funcstore = lb->first; funcstore; funcstore = funcstore->next) {
-		funcstore->func(main, self, funcstore->arg);
+		funcstore->func(bmain, self, funcstore->arg);
 	}
 }
 
