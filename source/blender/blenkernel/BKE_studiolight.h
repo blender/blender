@@ -98,6 +98,7 @@ typedef struct StudioLight {
 	ImBuf *radiance_cubemap_buffers[6];
 	struct GPUTexture *equirectangular_radiance_gputexture;
 	struct GPUTexture *equirectangular_irradiance_gputexture;
+	float *gpu_matcap_3components; /* 3 channel buffer for GPU_R11F_G11F_B10F */
 } StudioLight;
 
 void BKE_studiolight_init(void);

@@ -96,6 +96,10 @@ static void studiolight_free(struct StudioLight *sl)
 		MEM_freeN(sl->path_irr);
 		sl->path_irr = NULL;
 	}
+	if (sl->gpu_matcap_3components) {
+		MEM_freeN(sl->gpu_matcap_3components);
+		sl->gpu_matcap_3components = NULL;
+	}
 	MEM_freeN(sl);
 }
 
@@ -188,12 +192,28 @@ static void studiolight_create_equierectangular_radiance_gputexture(StudioLight 
 		char error[256];
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
 		ImBuf *ibuf = sl->equirectangular_radiance_buffer;
-		sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
-		GPUTexture *tex = sl->equirectangular_radiance_gputexture;
-		GPU_texture_bind(tex, 0);
-		GPU_texture_filter_mode(tex, true);
-		GPU_texture_wrap_mode(tex, true);
-		GPU_texture_unbind(tex);
+
+		if (sl->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL) {
+			sl->gpu_matcap_3components = MEM_callocN(sizeof(float) * ibuf->x * ibuf->y * 3, __func__);
+			
+			float* offset4 = ibuf->rect_float;
+			float* offset3 = sl->gpu_matcap_3components;
+			for (int i = 0 ; i < ibuf->x * ibuf->y; i ++)
+			{
+				copy_v3_v3(offset3, offset4);
+				offset3 += 3;
+				offset4 += 4;
+			}
+			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_R11F_G11F_B10F, sl->gpu_matcap_3components, error);
+		}
+		else {
+			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
+			GPUTexture *tex = sl->equirectangular_radiance_gputexture;
+			GPU_texture_bind(tex, 0);
+			GPU_texture_filter_mode(tex, true);
+			GPU_texture_wrap_mode(tex, true);
+			GPU_texture_unbind(tex);
+		}
 	}
 	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE;
 }
