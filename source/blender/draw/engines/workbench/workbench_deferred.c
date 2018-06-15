@@ -427,7 +427,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	{
 		psl->effect_fxaa_pass = DRW_pass_create("Effect FXAA", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_fxaa_sh, psl->effect_fxaa_pass);
-		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.composite_buffer_tx);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.effect_buffer_tx);
 		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
@@ -895,10 +895,13 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 
 	if (FXAA_ENABLED(wpd)) {
 		GPU_framebuffer_bind(fbl->effect_fb);
-		DRW_draw_pass(psl->effect_fxaa_pass);
+		DRW_transform_to_display(e_data.composite_buffer_tx);
 
+		/* TODO: when rendering the fxaa pass should be done in display space
+		Currently we do not support rendering in the workbench
+		*/
 		GPU_framebuffer_bind(dfbl->color_only_fb);
-		DRW_transform_to_display(e_data.effect_buffer_tx);
+		DRW_draw_pass(psl->effect_fxaa_pass);
 	}
 	else {
 		GPU_framebuffer_bind(dfbl->color_only_fb);
