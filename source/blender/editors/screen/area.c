@@ -2090,6 +2090,7 @@ void ED_region_panels_layout_ex(
 				ar->sizey = size_dyn[1];
 				sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
 			}
+			y = ABS(ar->sizey - 1);
 		}
 	}
 	else if (vertical) {
