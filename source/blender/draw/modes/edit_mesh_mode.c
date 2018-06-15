@@ -179,7 +179,7 @@ static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, b
 	BLI_dynstr_free(ds);
 	return str;
 }
-static char *EDIT_MESH_sh_lib()
+static char *EDIT_MESH_sh_lib(void)
 {
 	char *str = NULL;
 	DynStr *ds = BLI_dynstr_new();
