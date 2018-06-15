@@ -191,7 +191,7 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 	        bm,
 	        em->looptris, em->tottri,
 	        test_fn, NULL,
-	        use_self, use_separate_all, true, true, true,
+	        use_self, use_separate_all, true, true, true, true,
 	        -1,
 	        eps);
 
@@ -281,7 +281,7 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 	        bm,
 	        em->looptris, em->tottri,
 	        test_fn, NULL,
-	        false, false, true, true, true,
+	        false, false, true, true, false, true,
 	        boolean_operation,
 	        eps);
 
