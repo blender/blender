@@ -832,13 +832,13 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 }
 
 /* file read, set all screens, ... */
-void ED_screens_initialize(Main *UNUSED(bmain), wmWindowManager *wm)
+void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
 {
 	wmWindow *win;
 
 	for (win = wm->windows.first; win; win = win->next) {
 		if (WM_window_get_active_workspace(win) == NULL) {
-			WM_window_set_active_workspace(win, G.main->workspaces.first);
+			WM_window_set_active_workspace(win, bmain->workspaces.first);
 		}
 
 		if (BLI_listbase_is_empty(&win->global_areas.areabase)) {

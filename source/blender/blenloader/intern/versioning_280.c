@@ -114,7 +114,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		else {
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
 		}
-		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
+		BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
 		BKE_workspace_view_layer_set(workspace, layer, scene);
 	}
 }
