@@ -41,7 +41,7 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                  const Ray *ray,
                                  LocalIntersection *local_isect,
                                  int local_object,
@@ -70,7 +70,11 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	int object = OBJECT_NONE;
 	float isect_t = ray->t;
 
-	local_isect->num_hits = 0;
+	if(local_isect) {
+		local_isect->num_hits = 0;
+	}
+
+	kernel_assert((local_isect == NULL) == (max_hits == 0));
 
 	const int object_flag = kernel_tex_fetch(__object_flag, local_object);
 	if(!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
@@ -194,16 +198,18 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						/* intersect ray against primitive */
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
-							triangle_intersect_local(kg,
-							                         local_isect,
-							                         P,
-							                         dir,
-							                         object,
-							                         local_object,
-							                         prim_addr,
-							                         isect_t,
-							                         lcg_state,
-							                         max_hits);
+							if(triangle_intersect_local(kg,
+							                            local_isect,
+							                            P,
+							                            dir,
+							                            object,
+							                            local_object,
+							                            prim_addr,
+							                            isect_t,
+							                            lcg_state,
+							                            max_hits)) {
+								return true;
+							}
 						}
 						break;
 					}
@@ -212,17 +218,19 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						/* intersect ray against primitive */
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
-							motion_triangle_intersect_local(kg,
-							                                local_isect,
-							                                P,
-							                                dir,
-							                                ray->time,
-							                                object,
-							                                local_object,
-							                                prim_addr,
-							                                isect_t,
-							                                lcg_state,
-							                                max_hits);
+							if(motion_triangle_intersect_local(kg,
+							                                   local_isect,
+							                                   P,
+							                                   dir,
+							                                   ray->time,
+							                                   object,
+							                                   local_object,
+							                                   prim_addr,
+							                                   isect_t,
+							                                   lcg_state,
+							                                   max_hits)) {
+								return true;
+							}
 						}
 						break;
 					}
@@ -234,9 +242,11 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			}
 		} while(node_addr != ENTRYPOINT_SENTINEL);
 	} while(node_addr != ENTRYPOINT_SENTINEL);
+
+	return false;
 }
 
-ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
                                          LocalIntersection *local_isect,
                                          int local_object,
@@ -262,6 +272,7 @@ ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
 			                                   max_hits);
 	}
 	kernel_assert(!"Should not happen");
+	return false;
 }
 
 #undef BVH_FUNCTION_NAME

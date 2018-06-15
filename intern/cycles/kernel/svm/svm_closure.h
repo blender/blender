@@ -996,24 +996,6 @@ ccl_device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 nod
 	sd->flag |= SD_HOLDOUT;
 }
 
-ccl_device void svm_node_closure_ambient_occlusion(ShaderData *sd, float *stack, uint4 node)
-{
-	uint mix_weight_offset = node.y;
-
-	if(stack_valid(mix_weight_offset)) {
-		float mix_weight = stack_load_float(stack, mix_weight_offset);
-
-		if(mix_weight == 0.0f)
-			return;
-
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_AMBIENT_OCCLUSION_ID, sd->svm_closure_weight * mix_weight);
-	}
-	else
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_AMBIENT_OCCLUSION_ID, sd->svm_closure_weight);
-
-	sd->flag |= SD_AO;
-}
-
 /* Closure Nodes */
 
 ccl_device_inline void svm_node_closure_store_weight(ShaderData *sd, float3 weight)

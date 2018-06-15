@@ -2785,9 +2785,10 @@ void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out ve
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_ambient_occlusion(vec4 color, out vec4 result)
+void node_ambient_occlusion(vec4 color, float distance, vec3 normal, out vec4 result_color, out float result_ao)
 {
-	result = color;
+	result_color = color;
+	result_ao = 1.0;
 }
 
 /* emission */

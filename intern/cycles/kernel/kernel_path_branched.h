@@ -526,7 +526,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 
 #ifdef __AO__
 		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion || (sd.flag & SD_AO)) {
+		if(kernel_data.integrator.use_ambient_occlusion) {
 			kernel_branched_path_ao(kg, &sd, emission_sd, L, &state, throughput);
 		}
 #endif  /* __AO__ */
