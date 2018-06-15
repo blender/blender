@@ -47,7 +47,7 @@ out vec4 FragColor;
 /* Vertex flag is shifted and combined with the edge flag */
 #define FACE_ACTIVE     (1 << (2 + 8))
 
-#define LARGE_EDGE_SIZE 3.0
+#define LARGE_EDGE_SIZE 2.0
 
 
 /* Style Parameters in pixel */
@@ -154,7 +154,7 @@ void main()
 			/* Inner thin edge */
 			float innerEdge = e[v] - sizeEdge;
 #ifdef ANTI_ALIASING
-			innerEdge += 0.125;
+			innerEdge += 0.4;
 #endif
 
 #ifdef VERTEX_SELECTION
