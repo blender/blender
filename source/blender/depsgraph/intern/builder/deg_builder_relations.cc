@@ -1426,6 +1426,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
+		build_collection(DEG_COLLECTION_OWNER_OBJECT, NULL, rbw->group);
+
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 		{
 			if (object->type != OB_MESH) {
@@ -1446,6 +1448,13 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			OperationKey trans_op(&object->id, DEG_NODE_TYPE_TRANSFORM, trans_opcode);
 
 			add_relation(sim_key, rbo_key, "Rigidbody Sim Eval -> RBO Sync");
+
+			/* Geometry must be known to create the rigid body. RBO_MESH_BASE uses the non-evaluated
+			 * mesh, so then the evaluation is unnecessary. */
+			if (object->rigidbody_object->mesh_source != RBO_MESH_BASE) {
+				ComponentKey geom_key(&object->id, DEG_NODE_TYPE_GEOMETRY);
+				add_relation(geom_key, init_key, "Object Geom Eval -> Rigidbody Rebuild");
+			}
 
 			/* if constraints exist, those depend on the result of the rigidbody sim
 			 * - This allows constraints to modify the result of the sim (i.e. clamping)

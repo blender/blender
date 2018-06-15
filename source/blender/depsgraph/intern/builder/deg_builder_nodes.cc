@@ -897,6 +897,8 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
+		build_collection(DEG_COLLECTION_OWNER_OBJECT, rbw->group);
+
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 		{
 			if (object->type != OB_MESH)

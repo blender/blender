@@ -327,27 +327,33 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 	return id_node;
 }
 
+void Depsgraph::clear_id_nodes_conditional(const std::function <bool (ID_Type id_type)>& filter)
+{
+	foreach (IDDepsNode *id_node, id_nodes) {
+		if (id_node->id_cow == NULL) {
+			/* This means builder "stole" ownership of the copy-on-written
+			 * datablock for her own dirty needs.
+			 */
+			continue;
+		}
+		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
+			continue;
+		}
+		const ID_Type id_type = GS(id_node->id_cow->name);
+		if (filter(id_type)) {
+			id_node->destroy();
+		}
+	}
+}
+
 void Depsgraph::clear_id_nodes()
 {
 	/* Free memory used by ID nodes. */
-	{
-		/* Stupid workaround to ensure we free IDs in a proper order. */
-		foreach (IDDepsNode *id_node, id_nodes) {
-			if (id_node->id_cow == NULL) {
-				/* This means builder "stole" ownership of the copy-on-written
-				 * datablock for her own dirty needs.
-				 */
-				continue;
-			}
-			if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
-				continue;
-			}
-			const ID_Type id_type = GS(id_node->id_cow->name);
-			if (id_type != ID_PA) {
-				id_node->destroy();
-			}
-		}
-	}
+
+	/* Stupid workaround to ensure we free IDs in a proper order. */
+	clear_id_nodes_conditional([](ID_Type id_type) { return id_type == ID_SCE; });
+	clear_id_nodes_conditional([](ID_Type id_type) { return id_type != ID_PA; });
+
 	foreach (IDDepsNode *id_node, id_nodes) {
 		OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
 	}
