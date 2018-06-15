@@ -363,7 +363,7 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
 	 * cycles.
 	 */
 #if 0
-	for (Object *other_object = G.main->object.first;
+	for (Object *other_object = bmain->object.first;
 	     other_object != NULL;
 	     other_object = other_object->id.next)
 	{

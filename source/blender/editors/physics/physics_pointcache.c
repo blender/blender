@@ -140,7 +140,7 @@ static void ptcache_job_endjob(void *customdata)
 	G.is_rendering = false;
 	BKE_spacedata_draw_locks(false);
 
-	WM_set_locked_interface(G.main->wm.first, false);
+	WM_set_locked_interface(G_MAIN->wm.first, false);
 
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
 	WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, job->baker->pid.ob);

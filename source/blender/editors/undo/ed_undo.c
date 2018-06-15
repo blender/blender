@@ -205,7 +205,7 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
  */
 UndoStack *ED_undo_stack_get(void)
 {
-	wmWindowManager *wm = G.main->wm.first;
+	wmWindowManager *wm = G_MAIN->wm.first;
 	return wm->undo_stack;
 }
 
