@@ -296,8 +296,10 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 		ARegion *ar;
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->regiondata)
+			if ((ar->regiontype == RGN_TYPE_WINDOW) && ar->regiondata) {
 				ED_view3d_stop_render_preview(wm, ar);
+				break;
+			}
 		}
 	}
 }
