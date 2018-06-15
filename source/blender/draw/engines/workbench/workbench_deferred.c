@@ -65,6 +65,7 @@ static struct {
 	struct GPUShader *shadow_pass_manifold_sh;
 	struct GPUShader *shadow_caps_sh;
 	struct GPUShader *shadow_caps_manifold_sh;
+	struct GPUShader *effect_fxaa_sh;
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
@@ -72,6 +73,7 @@ static struct {
 	struct GPUTexture *specular_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
+	struct GPUTexture *effect_buffer_tx; /* ref only, not alloced */
 
 	SceneDisplay display; /* world light direction for shadows */
 	float light_direction_vs[3];
@@ -84,6 +86,8 @@ static struct {
 } e_data = {{NULL}};
 
 /* Shaders */
+extern char datatoc_common_fxaa_lib_glsl[];
+extern char datatoc_common_fullscreen_vert_glsl[];
 extern char datatoc_common_hair_lib_glsl[];
 
 extern char datatoc_workbench_prepass_vert_glsl[];
@@ -100,6 +104,7 @@ extern char datatoc_workbench_background_lib_glsl[];
 extern char datatoc_workbench_cavity_lib_glsl[];
 extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
+extern char datatoc_workbench_effect_fxaa_frag_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
@@ -317,6 +322,12 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		char *cavity_frag = workbench_build_cavity_frag();
 		e_data.cavity_sh = DRW_shader_create_fullscreen(cavity_frag, NULL);
 		MEM_freeN(cavity_frag);
+
+		e_data.effect_fxaa_sh = DRW_shader_create_with_lib(
+		        datatoc_common_fullscreen_vert_glsl, NULL,
+		        datatoc_workbench_effect_fxaa_frag_glsl,
+		        datatoc_common_fxaa_lib_glsl,
+		        NULL);
 	}
 
 	if (!stl->g_data) {
@@ -335,6 +346,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		e_data.cavity_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
 		e_data.specular_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
+		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
+		e_data.effect_buffer_tx = DRW_texture_pool_query_2D(
 		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 
 		if (NORMAL_ENCODING_ENABLED()) {
@@ -360,6 +373,10 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		GPU_framebuffer_ensure_config(&fbl->composite_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 			GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
+		});
+		GPU_framebuffer_ensure_config(&fbl->effect_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(e_data.effect_buffer_tx),
 		});
 	}
 
@@ -406,6 +423,14 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		DRW_shgroup_uniform_block(grp, "samples_block", e_data.sampling_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
+	
+	{
+		psl->effect_fxaa_pass = DRW_pass_create("Effect FXAA", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_fxaa_sh, psl->effect_fxaa_pass);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.composite_buffer_tx);
+		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+	}
 }
 
 void workbench_deferred_engine_free()
@@ -425,6 +450,7 @@ void workbench_deferred_engine_free()
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_manifold_sh);
 
+	DRW_SHADER_FREE_SAFE(e_data.effect_fxaa_sh);
 }
 
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
@@ -867,8 +893,18 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->composite_pass);
 	}
 
-	GPU_framebuffer_bind(dfbl->color_only_fb);
-	DRW_transform_to_display(e_data.composite_buffer_tx);
+	if (FXAA_ENABLED(wpd)) {
+		GPU_framebuffer_bind(fbl->effect_fb);
+		DRW_draw_pass(psl->effect_fxaa_pass);
+
+		GPU_framebuffer_bind(dfbl->color_only_fb);
+		DRW_transform_to_display(e_data.effect_buffer_tx);
+	}
+	else {
+		GPU_framebuffer_bind(dfbl->color_only_fb);
+		DRW_transform_to_display(e_data.composite_buffer_tx);
+	}
+
 
 	workbench_private_data_free(wpd);
 }

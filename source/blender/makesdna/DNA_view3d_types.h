@@ -353,6 +353,7 @@ enum {
 	V3D_SHADING_SPECULAR_HIGHLIGHT  = (1 << 4),
 	V3D_SHADING_CAVITY              = (1 << 5),
 	V3D_SHADING_MATCAP_FLIP_X       = (1 << 6),
+	V3D_SHADING_EFFECT_FXAA         = (1 << 7),
 };
 
 /* View3DShading->single_color_type */
