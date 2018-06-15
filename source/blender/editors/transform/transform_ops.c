@@ -45,6 +45,7 @@
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 #include "WM_types.h"
 
 #include "UI_interface.h"
@@ -166,6 +167,9 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 	BIF_selectTransformOrientationValue(scene, orientation);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+	WM_msg_publish_rna_prop(mbus, &scene->id, scene, Scene, transform_orientation);
 
 	return OPERATOR_FINISHED;
 }
