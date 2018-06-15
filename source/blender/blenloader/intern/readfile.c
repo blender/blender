@@ -3923,10 +3923,9 @@ static void direct_link_image(FileData *fd, Image *ima)
 	/* undo system, try to restore render buffers */
 	link_list(fd, &(ima->renderslots));
 	if (fd->imamap) {
-		int a;
-		
-		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots)
+		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots) {
 			slot->render = newimaadr(fd, slot->render);
+		}
 	}
 	else {
 		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots)

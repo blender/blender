@@ -319,7 +319,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
 		/* keep in sync with logic in view3d_panel_operator_redo() */
 		ARegion *ar_orig = CTX_wm_region(C);
 		ARegion *ar_win = BKE_area_find_region_active_win(CTX_wm_area(C));
-		
+
 		if (ar_win) {
 			CTX_wm_region_set(C, ar_win);
 		}
