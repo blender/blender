@@ -2825,6 +2825,10 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
 	writestruct(wd, DATA, ARegion, 1, ar);
 
 	if (ar->regiondata) {
+		if (ar->flag & RGN_FLAG_TEMP_REGIONDATA) {
+			return;
+		}
+
 		switch (spacetype) {
 			case SPACE_VIEW3D:
 				if (ar->regiontype == RGN_TYPE_WINDOW) {

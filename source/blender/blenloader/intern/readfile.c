@@ -6817,11 +6817,12 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 
 					/* free render engines for now */
 					for (ar = sa->regionbase.first; ar; ar = ar->next) {
-						RegionView3D *rv3d= ar->regiondata;
-						
-						if (rv3d && rv3d->render_engine) {
-							RE_engine_free(rv3d->render_engine);
-							rv3d->render_engine = NULL;
+						if (ar->regiontype == RGN_TYPE_WINDOW) {
+							RegionView3D *rv3d = ar->regiondata;
+							if (rv3d && rv3d->render_engine) {
+								RE_engine_free(rv3d->render_engine);
+								rv3d->render_engine = NULL;
+							}
 						}
 					}
 				}
@@ -7049,6 +7050,10 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 
 	if (spacetype == SPACE_EMPTY) {
 		/* unkown space type, don't leak regiondata */
+		ar->regiondata = NULL;
+	}
+	else if (ar->flag & RGN_FLAG_TEMP_REGIONDATA) {
+		/* Runtime data, don't use. */
 		ar->regiondata = NULL;
 	}
 	else {

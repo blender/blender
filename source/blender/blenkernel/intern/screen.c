@@ -68,13 +68,17 @@ static void spacetype_free(SpaceType *st)
 	for (art = st->regiontypes.first; art; art = art->next) {
 		BLI_freelistN(&art->drawcalls);
 
-		for (pt = art->paneltypes.first; pt; pt = pt->next)
-			if (pt->ext.free)
+		for (pt = art->paneltypes.first; pt; pt = pt->next) {
+			if (pt->ext.free) {
 				pt->ext.free(pt->ext.data);
+			}
+		}
 
-		for (ht = art->headertypes.first; ht; ht = ht->next)
-			if (ht->ext.free)
+		for (ht = art->headertypes.first; ht; ht = ht->next) {
+			if (ht->ext.free) {
 				ht->ext.free(ht->ext.data);
+			}
+		}
 
 		BLI_freelistN(&art->paneltypes);
 		BLI_freelistN(&art->headertypes);
@@ -199,10 +203,15 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	if (ar->regiondata) {
 		ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
 
-		if (art && art->duplicate)
+		if (art && art->duplicate) {
 			newar->regiondata = art->duplicate(ar->regiondata);
-		else
+		}
+		else if (ar->flag & RGN_FLAG_TEMP_REGIONDATA) {
+			newar->regiondata = NULL;
+		}
+		else {
 			newar->regiondata = MEM_dupallocN(ar->regiondata);
+		}
 	}
 
 	if (ar->v2d.tab_offset)
