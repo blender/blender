@@ -881,8 +881,6 @@ enum ShaderDataFlag {
 	SD_EXTINCTION      = (1 << 6),
 	/* Shader has have volume phase (scatter) closure. */
 	SD_SCATTER         = (1 << 7),
-	/* Shader has AO closure. */
-	SD_AO              = (1 << 8),
 	/* Shader has transparent closure. */
 	SD_TRANSPARENT     = (1 << 9),
 	/* BSDF requires LCG for evaluation. */
@@ -895,7 +893,6 @@ enum ShaderDataFlag {
 	                    SD_HOLDOUT |
 	                    SD_EXTINCTION |
 	                    SD_SCATTER |
-	                    SD_AO |
 	                    SD_BSDF_NEEDS_LCG),
 
 	/* Shader flags. */

@@ -310,8 +310,6 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_background_params(), closure_background_prepare);
 	register_closure(ss, "holdout", id++,
 		closure_holdout_params(), closure_holdout_prepare);
-	register_closure(ss, "ambient_occlusion", id++,
-		closure_ambient_occlusion_params(), closure_ambient_occlusion_prepare);
 	register_closure(ss, "diffuse_ramp", id++,
 		closure_bsdf_diffuse_ramp_params(), closure_bsdf_diffuse_ramp_prepare);
 	register_closure(ss, "phong_ramp", id++,

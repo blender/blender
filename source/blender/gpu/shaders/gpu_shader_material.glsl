@@ -1203,14 +1203,12 @@ void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Cl
 	result.ssr_id = REFRACT_CLOSURE_FLAG;
 }
 
-void node_ambient_occlusion(vec4 color, vec3 vN, out Closure result)
+void node_ambient_occlusion(vec4 color, float distance, vec3 normal, out vec4 result_color, out float result_ao)
 {
 	vec3 bent_normal;
 	vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
-	float final_ao = occlusion_compute(normalize(worldNormal), viewPosition, 1.0, rand, bent_normal);
-	result = CLOSURE_DEFAULT;
-	result.ssr_normal = normal_encode(vN, viewCameraVec);
-	result.radiance = final_ao * color.rgb;
+	result_ao = occlusion_compute(normalize(normal), viewPosition, 1.0, rand, bent_normal);
+	result_color = result_ao * color;
 }
 
 #endif /* VOLUMETRICS */

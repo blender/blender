@@ -4398,6 +4398,27 @@ static void def_sh_bevel(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
+static void def_sh_ambient_occlusion(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "custom1");
+	RNA_def_property_range(prop, 1, 128);
+	RNA_def_property_ui_text(prop, "Samples", "Number of rays to trace per shader evaluation");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "inside", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", SHD_AO_INSIDE);
+	RNA_def_property_ui_text(prop, "Inside", "Trace rays towards the inside of the object");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "only_local", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", SHD_AO_LOCAL);
+	RNA_def_property_ui_text(prop, "Only Local", "Only consider the object itself when computing AO");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_sh_subsurface(StructRNA *srna)
 {
 	static const EnumPropertyItem prop_subsurface_falloff_items[] = {

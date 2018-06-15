@@ -160,6 +160,7 @@ set(SRC_CLOSURE_HEADERS
 
 set(SRC_SVM_HEADERS
 	svm/svm.h
+	svm/svm_ao.h
 	svm/svm_attribute.h
 	svm/svm_bevel.h
 	svm/svm_blackbody.h

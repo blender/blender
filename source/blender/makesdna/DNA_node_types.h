@@ -1043,6 +1043,9 @@ typedef struct NodeSunBeams {
 #define SHD_SPACE_BLENDER_OBJECT	3
 #define SHD_SPACE_BLENDER_WORLD		4
 
+#define SHD_AO_INSIDE				1
+#define SHD_AO_LOCAL				2
+
 /* math node clamp */
 #define SHD_MATH_CLAMP		1
 

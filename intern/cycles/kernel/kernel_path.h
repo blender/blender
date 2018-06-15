@@ -491,7 +491,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 #ifdef __AO__
 		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion || (sd->flag & SD_AO)) {
+		if(kernel_data.integrator.use_ambient_occlusion) {
 			kernel_path_ao(kg, sd, emission_sd, L, state, throughput, make_float3(0.0f, 0.0f, 0.0f));
 		}
 #endif  /* __AO__ */
@@ -661,7 +661,7 @@ ccl_device_forceinline void kernel_path_integrate(
 
 #ifdef __AO__
 		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion || (sd.flag & SD_AO)) {
+		if(kernel_data.integrator.use_ambient_occlusion) {
 			kernel_path_ao(kg, &sd, emission_sd, L, state, throughput, shader_bsdf_alpha(kg, &sd));
 		}
 #endif  /* __AO__ */

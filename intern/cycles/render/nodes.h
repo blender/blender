@@ -540,12 +540,16 @@ public:
 	SHADER_NODE_CLASS(AmbientOcclusionNode)
 
 	bool has_spatial_varying() { return true; }
-	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
-	virtual ClosureType get_closure_type() { return CLOSURE_AMBIENT_OCCLUSION_ID; }
+	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
+	virtual bool has_raytrace() { return true; }
 
-	float3 normal_osl;
 	float3 color;
-	float surface_mix_weight;
+	float distance;
+	float3 normal;
+	int samples;
+
+	bool only_local;
+	bool inside;
 };
 
 class VolumeNode : public ShaderNode {

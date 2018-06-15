@@ -551,7 +551,12 @@ static ShaderNode *add_node(Scene *scene,
 		node = new EmissionNode();
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeAmbientOcclusion)) {
-		node = new AmbientOcclusionNode();
+		BL::ShaderNodeAmbientOcclusion b_ao_node(b_node);
+		AmbientOcclusionNode *ao = new AmbientOcclusionNode();
+		ao->samples = b_ao_node.samples();
+		ao->inside = b_ao_node.inside();
+		ao->only_local = b_ao_node.only_local();
+		node = ao;
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeVolumeScatter)) {
 		node = new ScatterVolumeNode();

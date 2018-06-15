@@ -1493,7 +1493,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 	}
-	{
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 18)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "roughness")) {
 			for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
 				if (mat->use_nodes) {
