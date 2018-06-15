@@ -404,6 +404,12 @@ void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
 		object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLED);
 	}
 
+	/* Copy to original object datablock if needed. */
+	if (DEG_is_active(depsgraph)) {
+		Object *object_orig = DEG_get_original_object(object);
+		object_orig->base_flag = object->base_flag;
+	}
+
 	if (object->mode == OB_MODE_PARTICLE_EDIT) {
 		for (ParticleSystem *psys = object->particlesystem.first;
 		     psys != NULL;
