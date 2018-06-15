@@ -36,9 +36,6 @@ out float facing;
 noperspective out vec2 eData1;
 flat out vec2 eData2[3];
 
-#define VERTEX_ACTIVE   (1 << 0)
-#define VERTEX_SELECTED (1 << 1)
-
 #define FACE_ACTIVE     (1 << 2)
 #define FACE_SELECTED   (1 << 3)
 
@@ -71,22 +68,10 @@ float dist(vec2 pos[3], vec2 vpos, int v)
 	return abs(dot(vpos - e1, orthogonal));
 }
 
-vec3 getVertexColor(int v)
-{
-	if ((vData[v].x & (VERTEX_ACTIVE | VERTEX_SELECTED)) != 0)
-		return colorEdgeSelect.rgb;
-	else
-#ifdef EDGE_SELECTION
-		return colorWireEdit.rgb;
-#else
-		return colorWireInactive.rgb;
-#endif
-}
-
 void doVertex(int v, vec4 pos)
 {
 #ifdef VERTEX_SELECTION
-	vertexColor = getVertexColor(v);
+	vertexColor = EDIT_MESH_vertex_color(vData[v].x).rgb;
 #endif
 
 #ifdef VERTEX_FACING

@@ -44,18 +44,10 @@ flat in vec2 eData2[3];
 
 out vec4 FragColor;
 
-#define EDGE_EXISTS     (1 << 0)
-#define EDGE_ACTIVE     (1 << 1)
-#define EDGE_SELECTED   (1 << 2)
-#define EDGE_SEAM       (1 << 3)
-#define EDGE_SHARP      (1 << 4)
 /* Vertex flag is shifted and combined with the edge flag */
-#define VERTEX_ACTIVE   (1 << (0 + 8))
-#define VERTEX_SELECTED (1 << (1 + 8))
 #define FACE_ACTIVE     (1 << (2 + 8))
 
 #define LARGE_EDGE_SIZE 3.0
-#define LARGE_EDGE_SIZE_ACTIVE_FACE 5.0
 
 
 /* Style Parameters in pixel */
@@ -153,17 +145,7 @@ void main()
 			/* Outer large edge */
 			float largeEdge = e[v] - sizeEdge * LARGE_EDGE_SIZE;
 
-			vec4 large_edge_color = vec4(0.0);
-			large_edge_color = ((flag[v] & EDGE_SHARP) != 0) ? colorEdgeSharp : large_edge_color;
-			large_edge_color = (edgesCrease[v] > 0.0) ? vec4(colorEdgeCrease.rgb, edgesCrease[v]) : large_edge_color;
-			large_edge_color = (edgesBweight[v] > 0.0) ? vec4(colorEdgeBWeight.rgb, edgesBweight[v]) : large_edge_color;
-			large_edge_color = ((flag[v] & EDGE_SEAM) != 0) ? colorEdgeSeam : large_edge_color;
-
-			if ((flag[0] & FACE_ACTIVE) != 0)
-			{
-				large_edge_color = colorEditMeshActive;
-				largeEdge = e[v] - sizeEdge * LARGE_EDGE_SIZE_ACTIVE_FACE;
-			}
+			vec4 large_edge_color = EDIT_MESH_edge_color_outer(flag[v], (flag[0]& FACE_ACTIVE) != 0, edgesCrease[v], edgesBweight[v]);
 
 			if (large_edge_color.a != 0.0) {
 				colorDistEdge(large_edge_color, largeEdge);
@@ -178,14 +160,7 @@ void main()
 #ifdef VERTEX_SELECTION
 			colorDistEdge(vec4(vertexColor, 1.0), innerEdge);
 #else
-#  ifdef EDGE_SELECTION
-			vec4 inner_edge_color = colorWireEdit;
-			inner_edge_color = ((flag[v] & EDGE_SELECTED) != 0) ? colorEdgeSelect : inner_edge_color;
-			inner_edge_color = ((flag[v] & EDGE_ACTIVE) != 0) ? vec4(colorEditMeshActive.rgb, 1.0) : inner_edge_color;
-
-#  else
-			vec4 inner_edge_color = colorWireInactive;
-#  endif
+			vec4 inner_edge_color = EDIT_MESH_edge_color_inner(flag[v], (flag[0]& FACE_ACTIVE) != 0);
 			colorDistEdge(inner_edge_color, innerEdge);
 #endif
 		}
@@ -197,8 +172,8 @@ void main()
 		float size = p[v] - sizeVertex;
 
 		vec4 point_color = colorVertex;
-		point_color = ((flag[v] & VERTEX_SELECTED) != 0) ? colorVertexSelect : point_color;
-		point_color = ((flag[v] & VERTEX_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : point_color;
+		point_color = ((flag[v] & EDGE_VERTEX_SELECTED) != 0) ? colorVertexSelect : point_color;
+		point_color = ((flag[v] & EDGE_VERTEX_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : point_color;
 
 		colorDist(point_color, size);
 	}

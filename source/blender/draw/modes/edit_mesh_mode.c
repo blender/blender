@@ -45,6 +45,7 @@
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
 
+extern char datatoc_edit_mesh_overlay_common_lib_glsl[];
 extern char datatoc_edit_mesh_overlay_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_geom_tri_glsl[];
@@ -178,6 +179,18 @@ static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, b
 	BLI_dynstr_free(ds);
 	return str;
 }
+static char *EDIT_MESH_sh_lib()
+{
+	char *str = NULL;
+	DynStr *ds = BLI_dynstr_new();
+
+	BLI_dynstr_append(ds, datatoc_common_globals_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_edit_mesh_overlay_common_lib_glsl);
+
+	str = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+	return str;
+}
 
 static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D *rv3d, bool fast_mode, bool looseedge)
 {
@@ -185,12 +198,14 @@ static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D 
 	if (looseedge) {
 		if (!e_data.overlay_loose_edge_sh_cache[index]) {
 			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true);
+			char *lib = EDIT_MESH_sh_lib();
 			e_data.overlay_loose_edge_sh_cache[index] = DRW_shader_create_with_lib(
 			        datatoc_edit_mesh_overlay_vert_glsl,
 			        datatoc_edit_mesh_overlay_geom_edge_glsl,
 			        datatoc_edit_mesh_overlay_frag_glsl,
-			        datatoc_common_globals_lib_glsl,
+			        lib,
 			        defines);
+			MEM_freeN(lib);
 			MEM_freeN(defines);
 		}
 		return e_data.overlay_loose_edge_sh_cache[index];
@@ -198,12 +213,14 @@ static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D 
 	else {
 		if (!e_data.overlay_tri_sh_cache[index]) {
 			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true);
+			char *lib = EDIT_MESH_sh_lib();
 			e_data.overlay_tri_sh_cache[index] = DRW_shader_create_with_lib(
 			        datatoc_edit_mesh_overlay_vert_glsl,
 			        datatoc_edit_mesh_overlay_geom_tri_glsl,
 			        datatoc_edit_mesh_overlay_frag_glsl,
-			        datatoc_common_globals_lib_glsl,
+			        lib,
 			        defines);
+			MEM_freeN(lib);
 			MEM_freeN(defines);
 		}
 		return e_data.overlay_tri_sh_cache[index];
@@ -232,11 +249,13 @@ static void EDIT_MESH_engine_init(void *vedata)
 	}
 
 	if (!e_data.overlay_vert_sh) {
+		char *lib = EDIT_MESH_sh_lib();
 		e_data.overlay_vert_sh = DRW_shader_create_with_lib(
 		        datatoc_edit_mesh_overlay_loosevert_vert_glsl, NULL,
 		        datatoc_edit_mesh_overlay_frag_glsl,
-		        datatoc_common_globals_lib_glsl,
+		        lib,
 		        "#define VERTEX_SELECTION\n");
+		MEM_freeN(lib);
 	}
 	if (!e_data.overlay_facedot_sh) {
 		e_data.overlay_facedot_sh = DRW_shader_create_with_lib(
