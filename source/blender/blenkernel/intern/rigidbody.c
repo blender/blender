@@ -48,13 +48,13 @@
 
 #include "DNA_ID.h"
 #include "DNA_group_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_collection.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -62,6 +62,7 @@
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
@@ -235,16 +236,18 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob, const int UNUSED(f
 /* Setup Utilities - Validate Sim Instances */
 
 /* get the appropriate DerivedMesh based on rigid body mesh source */
-static DerivedMesh *rigidbody_get_mesh(Object *ob)
+static Mesh *rigidbody_get_mesh(Object *ob)
 {
+	/* TODO(Sybren): turn this into a switch statement */
 	if (ob->rigidbody_object->mesh_source == RBO_MESH_DEFORM) {
-		return ob->derivedDeform;
+		return ob->runtime.mesh_deform_eval;
 	}
 	else if (ob->rigidbody_object->mesh_source == RBO_MESH_FINAL) {
-		return ob->derivedFinal;
+		return ob->runtime.mesh_eval;
 	}
 	else {
-		return CDDM_from_mesh(ob->data);
+		BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
+		return ob->data;
 	}
 }
 
@@ -252,14 +255,14 @@ static DerivedMesh *rigidbody_get_mesh(Object *ob)
 static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob, float margin, bool *can_embed)
 {
 	rbCollisionShape *shape = NULL;
-	DerivedMesh *dm = NULL;
+	Mesh *mesh = NULL;
 	MVert *mvert = NULL;
 	int totvert = 0;
 
 	if (ob->type == OB_MESH && ob->data) {
-		dm = rigidbody_get_mesh(ob);
-		mvert   = (dm) ? dm->getVertArray(dm) : NULL;
-		totvert = (dm) ? dm->getNumVerts(dm) : 0;
+		mesh = rigidbody_get_mesh(ob);
+		mvert   = (mesh) ? mesh->mvert : NULL;
+		totvert = (mesh) ? mesh->totvert : 0;
 	}
 	else {
 		printf("ERROR: cannot make Convex Hull collision shape for non-Mesh object\n");
@@ -272,9 +275,6 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob, fl
 		printf("ERROR: no vertices to define Convex Hull collision shape with\n");
 	}
 
-	if (dm && ob->rigidbody_object->mesh_source == RBO_MESH_BASE)
-		dm->release(dm);
-
 	return shape;
 }
 
@@ -286,24 +286,24 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 	rbCollisionShape *shape = NULL;
 
 	if (ob->type == OB_MESH) {
-		DerivedMesh *dm = NULL;
+		Mesh *mesh = NULL;
 		MVert *mvert;
 		const MLoopTri *looptri;
 		int totvert;
 		int tottri;
 		const MLoop *mloop;
 		
-		dm = rigidbody_get_mesh(ob);
+		mesh = rigidbody_get_mesh(ob);
 
 		/* ensure mesh validity, then grab data */
-		if (dm == NULL)
+		if (mesh == NULL)
 			return NULL;
 
-		mvert   = dm->getVertArray(dm);
-		totvert = dm->getNumVerts(dm);
-		looptri = dm->getLoopTriArray(dm);
-		tottri = dm->getNumLoopTri(dm);
-		mloop = dm->getLoopArray(dm);
+		mvert   = mesh->mvert;
+		totvert = mesh->totvert;
+		looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+		tottri = mesh->runtime.looptris.len;
+		mloop = mesh->mloop;
 
 		/* sanity checking - potential case when no data will be present */
 		if ((totvert == 0) || (tottri == 0)) {
@@ -352,11 +352,6 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 			else {
 				shape = RB_shape_new_gimpact_mesh(mdata);
 			}
-		}
-
-		/* cleanup temp data */
-		if (ob->rigidbody_object->mesh_source == RBO_MESH_BASE) {
-			dm->release(dm);
 		}
 	}
 	else {
@@ -520,29 +515,24 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 		case RB_SHAPE_TRIMESH:
 		{
 			if (ob->type == OB_MESH) {
-				DerivedMesh *dm = rigidbody_get_mesh(ob);
+				Mesh *mesh = rigidbody_get_mesh(ob);
 				MVert *mvert;
 				const MLoopTri *lt = NULL;
 				int totvert, tottri = 0;
 				const MLoop *mloop = NULL;
 				
 				/* ensure mesh validity, then grab data */
-				if (dm == NULL)
+				if (mesh == NULL)
 					return;
 			
-				mvert   = dm->getVertArray(dm);
-				totvert = dm->getNumVerts(dm);
-				lt = dm->getLoopTriArray(dm);
-				tottri = dm->getNumLoopTri(dm);
-				mloop = dm->getLoopArray(dm);
+				mvert   = mesh->mvert;
+				totvert = mesh->totvert;
+				lt = BKE_mesh_runtime_looptri_ensure(mesh);
+				tottri = mesh->runtime.looptris.len;
+				mloop = mesh->mloop;
 				
 				if (totvert > 0 && tottri > 0) {
 					BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
-				}
-				
-				/* cleanup temp data */
-				if (ob->rigidbody_object->mesh_source == RBO_MESH_BASE) {
-					dm->release(dm);
 				}
 			}
 			else {
@@ -603,29 +593,24 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 		case RB_SHAPE_TRIMESH:
 		{
 			if (ob->type == OB_MESH) {
-				DerivedMesh *dm = rigidbody_get_mesh(ob);
+				Mesh *mesh = rigidbody_get_mesh(ob);
 				MVert *mvert;
 				const MLoopTri *looptri;
 				int totvert, tottri;
 				const MLoop *mloop;
 				
 				/* ensure mesh validity, then grab data */
-				if (dm == NULL)
+				if (mesh == NULL)
 					return;
 			
-				mvert   = dm->getVertArray(dm);
-				totvert = dm->getNumVerts(dm);
-				looptri = dm->getLoopTriArray(dm);
-				tottri = dm->getNumLoopTri(dm);
-				mloop = dm->getLoopArray(dm);
+				mvert   = mesh->mvert;
+				totvert = mesh->totvert;
+				looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+				tottri = mesh->runtime.looptris.len;
+				mloop = mesh->mloop;
 				
 				if (totvert > 0 && tottri > 0) {
 					BKE_mesh_calc_volume(mvert, totvert, looptri, tottri, mloop, NULL, r_center);
-				}
-				
-				/* cleanup temp data */
-				if (ob->rigidbody_object->mesh_source == RBO_MESH_BASE) {
-					dm->release(dm);
 				}
 			}
 			break;
@@ -1255,10 +1240,10 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Scene *scene, RigidBod
 		return;
 
 	if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
-		DerivedMesh *dm = ob->derivedDeform;
-		if (dm) {
-			MVert *mvert = dm->getVertArray(dm);
-			int totvert = dm->getNumVerts(dm);
+		Mesh *mesh = ob->runtime.mesh_deform_eval;
+		if (mesh) {
+			MVert *mvert = mesh->mvert;
+			int totvert = mesh->totvert;
 			BoundBox *bb = BKE_object_boundbox_get(ob);
 
 			RB_shape_trimesh_update(rbo->physics_shape, (float *)mvert, totvert, sizeof(MVert), bb->vec[0], bb->vec[6]);
