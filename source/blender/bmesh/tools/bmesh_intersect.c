@@ -237,7 +237,7 @@ static void face_edges_add(
 #ifdef USE_NET
 static void face_edges_split(
         BMesh *bm, BMFace *f, struct LinkBase *e_ls_base,
-        bool use_island_connect,
+        bool use_island_connect, bool use_partial_connect,
         MemArena *mem_arena_edgenet)
 {
 	uint i;
@@ -262,7 +262,7 @@ static void face_edges_split(
 		if (BM_face_split_edgenet_connect_islands(
 		        bm, f,
 		        edge_arr, edge_arr_len,
-		        false,
+		        use_partial_connect,
 		        mem_arena_edgenet,
 		        &edge_arr_holes, &edge_arr_holes_len))
 		{
@@ -980,7 +980,7 @@ bool BM_mesh_intersect(
         struct BMLoop *(*looptris)[3], const int looptris_tot,
         int (*test_fn)(BMFace *f, void *user_data), void *user_data,
         const bool use_self, const bool use_separate, const bool use_dissolve, const bool use_island_connect,
-        const bool use_edge_tag, const int boolean_mode,
+        const bool use_partial_connect, const bool use_edge_tag, const int boolean_mode,
         const float eps)
 {
 	struct ISectState s;
@@ -1491,7 +1491,7 @@ bool BM_mesh_intersect(
 
 			BLI_assert(BM_elem_index_get(f) == f_index);
 
-			face_edges_split(bm, f, e_ls_base, use_island_connect, mem_arena_edgenet);
+			face_edges_split(bm, f, e_ls_base, use_island_connect, use_partial_connect, mem_arena_edgenet);
 
 			BLI_memarena_clear(mem_arena_edgenet);
 		}

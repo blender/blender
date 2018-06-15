@@ -310,6 +310,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 				        use_dissolve,
 				        use_island_connect,
 				        false,
+				        false,
 				        bmd->operation,
 				        bmd->double_threshold);
 

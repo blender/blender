@@ -2508,19 +2508,17 @@ void BM_vert_separate_hflag(
 	}
 }
 
-void BM_vert_separate_wire_hflag(
+void BM_vert_separate_tested_edges(
         BMesh *UNUSED(bm), BMVert *v_dst, BMVert *v_src,
-        const char hflag)
+        bool (*testfn)(BMEdge *, void *arg), void *arg)
 {
 	LinkNode *edges_hflag = NULL;
 	BMEdge *e_iter, *e_first;
 
 	e_iter = e_first = v_src->e;
 	do {
-		if (BM_elem_flag_test(e_iter, hflag)) {
-			if (BM_edge_is_wire(e_iter)) {
-				BLI_linklist_prepend_alloca(&edges_hflag, e_iter);
-			}
+		if (testfn(e_iter, arg)) {
+			BLI_linklist_prepend_alloca(&edges_hflag, e_iter);
 		}
 	} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_src)) != e_first);
 
