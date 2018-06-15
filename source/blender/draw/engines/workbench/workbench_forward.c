@@ -306,7 +306,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	e_data.transparent_revealage_tx = DRW_texture_pool_query_2D(
 	        size[0], size[1], GPU_R16F, &draw_engine_workbench_transparent);
 	e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
-	        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
+	        size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_transparent);
 
 	GPU_framebuffer_ensure_config(&fbl->object_outline_fb, {
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
