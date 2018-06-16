@@ -706,33 +706,26 @@ static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 
 		uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
 		int icon_center = icon_size / 2;
-		float sphere_radius = icon_center * 0.9;
+		float pixel_size = 1.0f / (float)icon_size;
 
 		int offset = 0;
+		const float diameter = 0.95f;
 		for (int y = 0; y < icon_size; y++) {
-			float dy = y - icon_center;
+			float dy = (y + 0.5f) / (float)icon_size;
+			dy = dy / diameter - (1.0f - diameter) / 2.0f;
 			for (int x = 0; x < icon_size; x++) {
-				float dx = x - icon_center;
-				/* calculate aliasing */
-				float alias = 0;
-				const float alias_step = 0.333;
-				for (float ay = dy - 0.5; ay < dy + 0.5; ay += alias_step) {
-					for (float ax = dx - 0.5; ax < dx + 0.5; ax += alias_step) {
-						if (sqrt(ay * ay + ax * ax) < sphere_radius) {
-							alias += alias_step * alias_step;
-						}
-					}
-				}
+				float dx = (x + 0.5f) / (float)icon_size;
+				dx = dx / diameter - (1.0f - diameter) / 2.0f;
+
 				uint pixelresult = 0x0;
-				uint alias_i = clamp_i(alias * 256, 0, 255);
-				if (alias_i != 0) {
+				uint alphamask = alpha_circle_mask(dx, dy, 0.5f - pixel_size, 0.5f);
+				if (alphamask != 0) {
 					/* calculate normal */
-					uint alias_mask = alias_i << 24;
 					float normal[3];
-					normal[0] = dx / sphere_radius;
-					normal[1] = dy / sphere_radius;
-					normal[2] = sqrt(-(normal[0] * normal[0]) - (normal[1] * normal[1]) + 1);
-					normalize_v3(normal);
+					normal[0] = dx * 2.0f - 1.0f;
+					normal[1] = dy * 2.0f - 1.0f;
+					float dist = len_v2(normal);
+					normal[2] = sqrtf(1.0f - dist*dist);
 
 					float color[3];
 					mul_v3_v3fl(color, sl->diffuse_light[STUDIOLIGHT_X_POS], clamp_f(normal[0], 0.0, 1.0));
@@ -744,7 +737,7 @@ static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 					pixelresult = rgb_to_cpack(
 					        linearrgb_to_srgb(color[0]),
 					        linearrgb_to_srgb(color[1]),
-					        linearrgb_to_srgb(color[2])) | alias_mask;
+					        linearrgb_to_srgb(color[2])) | alphamask;
 				}
 				rect[offset++] = pixelresult;
 			}
