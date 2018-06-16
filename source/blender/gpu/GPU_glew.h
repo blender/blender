@@ -32,10 +32,12 @@
 #ifndef __GPU_GLEW_H__
 #define __GPU_GLEW_H__
 
-#include "glew-mx.h"
+#if defined(WITH_OPENGL)
+	#include "glew-mx.h"
 
-#ifndef WITH_LEGACY_OPENGL
-#include "GPU_legacy_stubs.h"
+	#ifndef WITH_LEGACY_OPENGL
+		#include "GPU_legacy_stubs.h"
+	#endif
 #endif
 
 #endif /* __GPU_GLEW_H__ */
