@@ -963,6 +963,16 @@ static void rna_UILayout_property_split_set(PointerRNA *ptr, int value)
 	uiLayoutSetPropSep(ptr->data, value);
 }
 
+static int rna_UILayout_property_decorate_get(PointerRNA *ptr)
+{
+	return uiLayoutGetPropDecorate(ptr->data);
+}
+
+static void rna_UILayout_property_decorate_set(PointerRNA *ptr, int value)
+{
+	uiLayoutSetPropDecorate(ptr->data, value);
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_ui_layout(BlenderRNA *brna)
@@ -1030,6 +1040,9 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_property_split", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_property_split_get", "rna_UILayout_property_split_set");
+
+	prop = RNA_def_property(srna, "use_property_decorate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_property_decorate_get", "rna_UILayout_property_decorate_set");
 }
 
 static void rna_def_panel(BlenderRNA *brna)

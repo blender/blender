@@ -101,6 +101,23 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 			but->flag |= UI_BUT_DRIVEN;
 		}
 	}
+
+	if (but->next && UI_but_is_decorator(but->next)) {
+		uiBut *but_decor = but->next;
+		int flag = but->flag;
+		if (flag & UI_BUT_DRIVEN) {
+			but_decor->icon = ICON_AUTO;
+		}
+		else if (flag & UI_BUT_ANIMATED_KEY) {
+			but_decor->icon = ICON_SPACE2;
+		}
+		else if (flag & UI_BUT_ANIMATED) {
+			but_decor->icon = ICON_SPACE3;
+		}
+		else {
+			but_decor->icon = ICON_DOT;
+		}
+	}
 }
 
 /**
@@ -298,4 +315,36 @@ void ui_but_anim_paste_driver(bContext *C)
 {
 	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
+{
+	uiBut *but = arg_but;
+	but = but->prev;
+
+	/* FIXME(campbell), swapping active pointer is weak. */
+	SWAP(struct uiHandleButtonData *, but->active, but->next->active);
+
+	if (but->flag & UI_BUT_DRIVEN) {
+		/* pass */
+		/* TODO: report? */
+	}
+	else if (but->flag & UI_BUT_ANIMATED_KEY) {
+		PointerRNA props_ptr;
+		wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
+		WM_operator_properties_create_ptr(&props_ptr, ot);
+		RNA_boolean_set(&props_ptr, "all", false);
+		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
+	}
+	else {
+		PointerRNA props_ptr;
+		wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
+		WM_operator_properties_create_ptr(&props_ptr, ot);
+		RNA_boolean_set(&props_ptr, "all", false);
+		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
+	}
+
+	SWAP(struct uiHandleButtonData *, but->active, but->next->active);
 }

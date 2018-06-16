@@ -814,6 +814,7 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);
 bool ui_but_anim_expression_set(uiBut *but, const char *str);
 bool ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
+void ui_but_anim_decorate_cb(struct bContext *C, void *arg_but, void *arg_dummy);
 
 /* interface_eyedropper.c */
 struct wmKeyMap *eyedropper_modal_keymap(struct wmKeyConfig *keyconf);

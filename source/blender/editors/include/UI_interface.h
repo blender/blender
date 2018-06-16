@@ -964,6 +964,7 @@ void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 void uiLayoutSetEmboss(uiLayout *layout, char emboss);
 void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
+void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 
 int uiLayoutGetOperatorContext(uiLayout *layout);
 bool uiLayoutGetActive(uiLayout *layout);
@@ -976,6 +977,7 @@ float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 int uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
+bool uiLayoutGetPropDecorate(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
@@ -1257,5 +1259,7 @@ void UI_widgetbase_draw_cache_end(void);
 #define USE_UI_POPOVER_ONCE
 
 bool UI_but_is_tool(const uiBut *but);
+#define UI_but_is_decorator(but) \
+	((but)->func == ui_but_anim_decorate_cb)
 
 #endif  /* __UI_INTERFACE_H__ */
