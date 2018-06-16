@@ -173,7 +173,7 @@ static void studiolight_calculate_radiance_buffer(
 	}
 }
 
-static void studiolight_load_equierectangular_image(StudioLight *sl)
+static void studiolight_load_equirectangular_image(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		ImBuf *ibuf = NULL;
@@ -186,7 +186,7 @@ static void studiolight_load_equierectangular_image(StudioLight *sl)
 	sl->flag |= STUDIOLIGHT_EXTERNAL_IMAGE_LOADED;
 }
 
-static void studiolight_create_equierectangular_radiance_gputexture(StudioLight *sl)
+static void studiolight_create_equirectangular_radiance_gputexture(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		char error[256];
@@ -219,7 +219,7 @@ static void studiolight_create_equierectangular_radiance_gputexture(StudioLight 
 	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE;
 }
 
-static void studiolight_create_equierectangular_irradiance_gputexture(StudioLight *sl)
+static void studiolight_create_equirectangular_irradiance_gputexture(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		char error[256];
@@ -891,7 +891,7 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 	}
 
 	if ((flag & STUDIOLIGHT_EXTERNAL_IMAGE_LOADED)) {
-		studiolight_load_equierectangular_image(sl);
+		studiolight_load_equirectangular_image(sl);
 	}
 	if ((flag & STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED)) {
 		studiolight_calculate_radiance_cubemap_buffers(sl);
@@ -900,13 +900,13 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 		studiolight_calculate_diffuse_light(sl);
 	}
 	if ((flag & STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE)) {
-		studiolight_create_equierectangular_radiance_gputexture(sl);
+		studiolight_create_equirectangular_radiance_gputexture(sl);
 	}
 	if ((flag & STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED)) {
 		studiolight_calculate_light_direction(sl);
 	}
 	if ((flag & STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_GPUTEXTURE)) {
-		studiolight_create_equierectangular_irradiance_gputexture(sl);
+		studiolight_create_equirectangular_irradiance_gputexture(sl);
 	}
 	if ((flag & STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED)) {
 		if (!studiolight_load_irradiance_equirectangular_image(sl)) {
