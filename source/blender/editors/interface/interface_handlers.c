@@ -1267,6 +1267,28 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 
 #ifdef USE_DRAG_TOGGLE
 
+/* Helpers that wrap boolean functions, to support different kinds of buttons. */
+
+static bool ui_drag_toggle_but_is_supported(const uiBut *but)
+{
+	if (ui_but_is_bool(but)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+static bool ui_drag_toggle_but_is_pushed(uiBut *but)
+{
+	if (ui_but_is_bool(but)) {
+		return ui_but_is_pushed(but);
+	}
+	else {
+		return false;
+	}
+}
+
 typedef struct uiDragToggleHandle {
 	/* init */
 	bool is_init;
@@ -1304,10 +1326,9 @@ static bool ui_drag_toggle_set_xy_xy(
 				if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
 
 					/* execute the button */
-					if (ui_but_is_bool(but) && but->type == but_type_start) {
+					if (ui_drag_toggle_but_is_supported(but) && but->type == but_type_start) {
 						/* is it pressed? */
-						bool is_set_but = ui_but_is_pushed(but);
-						BLI_assert(ui_but_is_bool(but) == true);
+						bool is_set_but = ui_drag_toggle_but_is_pushed(but);
 						if (is_set_but != is_set) {
 							UI_but_execute(C, but);
 							if (do_check) {
@@ -1437,7 +1458,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 
 static bool ui_but_is_drag_toggle(const uiBut *but)
 {
-	return ((ui_but_is_bool(but) == true) &&
+	return ((ui_drag_toggle_but_is_supported(but) == true) &&
 	        /* menu check is importnt so the button dragged over isn't removed instantly */
 	        (ui_block_is_menu(but->block) == false));
 }
@@ -1745,7 +1766,7 @@ static bool ui_but_drag_init(
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 		data->cancel = true;
 #ifdef USE_DRAG_TOGGLE
-		if (ui_but_is_bool(but)) {
+		if (ui_drag_toggle_but_is_supported(but)) {
 			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
 			ARegion *ar_prev;
 
@@ -1753,7 +1774,7 @@ static bool ui_but_drag_init(
 			 * typically 'button_activate_exit()' handles this */
 			ui_apply_but_autokey(C, but);
 
-			drag_info->is_set = ui_but_is_pushed(but);
+			drag_info->is_set = ui_drag_toggle_but_is_pushed(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
 			drag_info->but_type_start = but->type;
@@ -3585,10 +3606,50 @@ static uiBut *ui_but_list_row_text_activate(
 
 /* ***************** events for different button types *************** */
 
+#ifdef USE_DRAG_TOGGLE
+/* Shared by any button that supports drag-toggle. */
+static bool ui_do_but_ANY_drag_toggle(
+        bContext *C, uiBut *but,
+        uiHandleButtonData *data, const wmEvent *event,
+        int *r_retval)
+{
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_but_is_drag_toggle(but)) {
+#if 0		/* UNUSED */
+			data->togdual = event->ctrl;
+			data->togonly = !event->shift;
+#endif
+			ui_apply_but(C, but->block, but, data, true);
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			*r_retval = WM_UI_HANDLER_BREAK;
+			return true;
+		}
+	}
+	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
+		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
+		data->applied = false;
+		*r_retval = ui_do_but_EXIT(C, but, data, event);
+		return true;
+	}
+	return false;
+}
+#endif  /* USE_DRAG_TOGGLE */
+
 static int ui_do_but_BUT(
         bContext *C, uiBut *but,
         uiHandleButtonData *data, const wmEvent *event)
 {
+#ifdef USE_DRAG_TOGGLE
+	{
+		int retval;
+		if (ui_do_but_ANY_drag_toggle(C, but, data, event, &retval)) {
+			return retval;
+		}
+	}
+#endif
+
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
@@ -3836,25 +3897,14 @@ static int ui_do_but_TOG(
         uiHandleButtonData *data, const wmEvent *event)
 {
 #ifdef USE_DRAG_TOGGLE
-	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_but_is_drag_toggle(but)) {
-#if 0		/* UNUSED */
-			data->togdual = event->ctrl;
-			data->togonly = !event->shift;
-#endif
-			ui_apply_but(C, but->block, but, data, true);
-			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
-			data->dragstartx = event->x;
-			data->dragstarty = event->y;
-			return WM_UI_HANDLER_BREAK;
+	{
+		int retval;
+		if (ui_do_but_ANY_drag_toggle(C, but, data, event, &retval)) {
+			return retval;
 		}
 	}
-	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
-		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
-		data->applied = false;
-		return ui_do_but_EXIT(C, but, data, event);
-	}
 #endif
+
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 #if 0		/* UNUSED */
