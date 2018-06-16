@@ -607,45 +607,40 @@ static uint alpha_circle_mask(float u, float v, float inner_edge, float outer_ed
 	return mask << 24;
 }
 
+#define STUDIOLIGHT_DIAMETER 0.95f
+
 static uint *studiolight_radiance_preview(StudioLight *sl, int icon_size)
 {
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
 
 	uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
-	int icon_center = icon_size / 2;
-	float sphere_radius = icon_center * 0.9;
+	float pixel_size = 1.0f / (float)icon_size;
 
 	int offset = 0;
 	for (int y = 0; y < icon_size; y++) {
-		float dy = y - icon_center;
+		float dy = (y + 0.5f) / (float)icon_size;
+		dy = dy / STUDIOLIGHT_DIAMETER - (1.0f - STUDIOLIGHT_DIAMETER) / 2.0f;
 		for (int x = 0; x < icon_size; x++) {
-			float dx = x - icon_center;
-			/* calculate aliasing */
-			float alias = 0;
-			const float alias_step = 0.333;
-			for (float ay = dy - 0.5; ay < dy + 0.5; ay += alias_step) {
-				for (float ax = dx - 0.5; ax < dx + 0.5; ax += alias_step) {
-					if (sqrt(ay * ay + ax * ax) < sphere_radius) {
-						alias += alias_step * alias_step;
-					}
-				}
-			}
+			float dx = (x + 0.5f) / (float)icon_size;
+			dx = dx / STUDIOLIGHT_DIAMETER - (1.0f - STUDIOLIGHT_DIAMETER) / 2.0f;
+
 			uint pixelresult = 0x0;
-			uint alias_i = clamp_i(alias * 256, 0, 255);
-			if (alias_i != 0) {
-				/* calculate normal */
-				uint alias_mask = alias_i << 24;
-				float incoming[3];
-				copy_v3_fl3(incoming, 0.0, 1.0, 0.0);
+			uint alphamask = alpha_circle_mask(dx, dy, 0.5f - pixel_size, 0.5f);
+			if (alphamask != 0) {
+				float incoming[3] = {0.0f, 0.0f, -1.0f};
 
 				float normal[3];
-				normal[0] = dx / sphere_radius;
-				normal[2] = dy / sphere_radius;
-				normal[1] = -sqrt(-(normal[0] * normal[0]) - (normal[2] * normal[2]) + 1);
-				normalize_v3(normal);
+				normal[0] = dx * 2.0f - 1.0f;
+				normal[1] = dy * 2.0f - 1.0f;
+				float dist = len_v2(normal);
+				normal[2] = sqrtf(1.0f - dist*dist);
 
 				float direction[3];
 				reflect_v3_v3v3(direction, incoming, normal);
+
+				/* We want to see horizon not poles. */
+				SWAP(float, direction[1], direction[2]);
+				direction[1] = -direction[1];
 
 				float color[4];
 				studiolight_calculate_radiance(sl->equirectangular_radiance_buffer, color, direction);
@@ -653,7 +648,7 @@ static uint *studiolight_radiance_preview(StudioLight *sl, int icon_size)
 				pixelresult = rgb_to_cpack(
 				        linearrgb_to_srgb(color[0]),
 				        linearrgb_to_srgb(color[1]),
-				        linearrgb_to_srgb(color[2])) | alias_mask;
+				        linearrgb_to_srgb(color[2])) | alphamask;
 			}
 			rect[offset++] = pixelresult;
 		}
@@ -672,13 +667,12 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size, bool fli
 	int offset = 0;
 	ImBuf *ibuf = sl->equirectangular_radiance_buffer;
 
-	const float diameter = 0.95f;
 	for (int y = 0; y < icon_size; y++) {
 		fy = (y + 0.5f) / (float)icon_size;
-		fy = fy / diameter - (1.0f - diameter) / 2.0f;
+		fy = fy / STUDIOLIGHT_DIAMETER - (1.0f - STUDIOLIGHT_DIAMETER) / 2.0f;
 		for (int x = 0; x < icon_size; x++) {
 			fx = (x + 0.5f) / (float)icon_size;
-			fx = fx / diameter - (1.0f - diameter) / 2.0f;
+			fx = fx / STUDIOLIGHT_DIAMETER - (1.0f - STUDIOLIGHT_DIAMETER) / 2.0f;
 			if (flipped) {
 				fx = 1.0f - fx;
 			}
@@ -705,17 +699,15 @@ static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
 		uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
-		int icon_center = icon_size / 2;
 		float pixel_size = 1.0f / (float)icon_size;
 
 		int offset = 0;
-		const float diameter = 0.95f;
 		for (int y = 0; y < icon_size; y++) {
 			float dy = (y + 0.5f) / (float)icon_size;
-			dy = dy / diameter - (1.0f - diameter) / 2.0f;
+			dy = dy / STUDIOLIGHT_DIAMETER - (1.0f - STUDIOLIGHT_DIAMETER) / 2.0f;
 			for (int x = 0; x < icon_size; x++) {
 				float dx = (x + 0.5f) / (float)icon_size;
-				dx = dx / diameter - (1.0f - diameter) / 2.0f;
+				dx = dx / STUDIOLIGHT_DIAMETER - (1.0f - STUDIOLIGHT_DIAMETER) / 2.0f;
 
 				uint pixelresult = 0x0;
 				uint alphamask = alpha_circle_mask(dx, dy, 0.5f - pixel_size, 0.5f);
