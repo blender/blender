@@ -27,12 +27,12 @@ typedef struct Gwn_IndexBuf {
 	unsigned index_ct;
 #if GWN_TRACK_INDEX_RANGE
 	Gwn_IndexBufType index_type;
-	GLenum gl_index_type;
+	uint32_t gl_index_type;
 	unsigned min_index;
 	unsigned max_index;
 	unsigned base_index;
 #endif
-	GLuint vbo_id; // 0 indicates not yet sent to VRAM
+	uint32_t vbo_id; // 0 indicates not yet sent to VRAM
 	bool use_prim_restart;
 } Gwn_IndexBuf;
 

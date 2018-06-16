@@ -31,11 +31,11 @@ typedef struct Gwn_Batch {
 	Gwn_VertBuf* verts[GWN_BATCH_VBO_MAX_LEN]; // verts[0] is required, others can be NULL
 	Gwn_VertBuf* inst; // instance attribs
 	Gwn_IndexBuf* elem; // NULL if element list not needed
-	GLenum gl_prim_type;
+	uint32_t gl_prim_type;
 
 	// cached values (avoid dereferencing later)
-	GLuint vao_id;
-	GLuint program;
+	uint32_t vao_id;
+	uint32_t program;
 	const struct Gwn_ShaderInterface* interface;
 
 	// book-keeping
@@ -52,13 +52,13 @@ typedef struct Gwn_Batch {
 		// Static handle count
 		struct {
 			const struct Gwn_ShaderInterface* interfaces[GWN_BATCH_VAO_STATIC_LEN];
-			GLuint vao_ids[GWN_BATCH_VAO_STATIC_LEN];
+			uint32_t vao_ids[GWN_BATCH_VAO_STATIC_LEN];
 		} static_vaos;
 		// Dynamic handle count
 		struct {
 			unsigned count;
 			const struct Gwn_ShaderInterface** interfaces;
-			GLuint* vao_ids;
+			uint32_t* vao_ids;
 		} dynamic_vaos;
 	};
 
@@ -95,8 +95,8 @@ int GWN_batch_vertbuf_add_ex(Gwn_Batch*, Gwn_VertBuf*, bool own_vbo);
 #define GWN_batch_vertbuf_add(batch, verts) \
 	GWN_batch_vertbuf_add_ex(batch, verts, false)
 
-void GWN_batch_program_set_no_use(Gwn_Batch*, GLuint program, const Gwn_ShaderInterface*);
-void GWN_batch_program_set(Gwn_Batch*, GLuint program, const Gwn_ShaderInterface*);
+void GWN_batch_program_set_no_use(Gwn_Batch*, uint32_t program, const Gwn_ShaderInterface*);
+void GWN_batch_program_set(Gwn_Batch*, uint32_t program, const Gwn_ShaderInterface*);
 // Entire batch draws with one shader program, but can be redrawn later with another program.
 // Vertex shader's inputs must be compatible with the batch's vertex format.
 

@@ -283,7 +283,7 @@ static GLuint batch_vao_get(Gwn_Batch *batch)
 	return new_vao;
 	}
 
-void GWN_batch_program_set_no_use(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInterface* shaderface)
+void GWN_batch_program_set_no_use(Gwn_Batch* batch, uint32_t program, const Gwn_ShaderInterface* shaderface)
 	{
 #if TRUST_NO_ONE
 	assert(glIsProgram(shaderface->program));
@@ -295,7 +295,7 @@ void GWN_batch_program_set_no_use(Gwn_Batch* batch, GLuint program, const Gwn_Sh
 	batch->vao_id = batch_vao_get(batch);
 	}
 
-void GWN_batch_program_set(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInterface* shaderface)
+void GWN_batch_program_set(Gwn_Batch* batch, uint32_t program, const Gwn_ShaderInterface* shaderface)
 	{
 	GWN_batch_program_set_no_use(batch, program, shaderface);
 	GWN_batch_program_use_begin(batch); // hack! to make Batch_Uniform* simpler
