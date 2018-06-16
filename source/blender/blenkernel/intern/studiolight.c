@@ -672,10 +672,13 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size, bool fli
 	int offset = 0;
 	ImBuf *ibuf = sl->equirectangular_radiance_buffer;
 
+	const float diameter = 0.95f;
 	for (int y = 0; y < icon_size; y++) {
 		fy = (y + 0.5f) / (float)icon_size;
+		fy = fy / diameter - (1.0f - diameter) / 2.0f;
 		for (int x = 0; x < icon_size; x++) {
 			fx = (x + 0.5f) / (float)icon_size;
+			fx = fx / diameter - (1.0f - diameter) / 2.0f;
 			if (flipped) {
 				fx = 1.0f - fx;
 			}
