@@ -593,6 +593,20 @@ static int studiolight_cmp(const void *a, const void *b)
 }
 
 /* icons */
+
+/* Takes normalized uvs as parameter (range from 0 to 1).
+ * inner_edge and outer_edge are distances (from the center)
+ * in uv space for the alpha mask falloff. */
+static uint alpha_circle_mask(float u, float v, float inner_edge, float outer_edge)
+{
+	/* Coords from center. */
+	float co[2] = {u - 0.5f, v - 0.5f};
+	float dist = len_v2(co);
+	float alpha = 1.0f + (inner_edge - dist) / (outer_edge - inner_edge);
+	uint mask = (uint)floorf(255.0f * min_ff(max_ff(alpha, 0.0f), 1.0f));
+	return mask << 24;
+}
+
 static uint *studiolight_radiance_preview(StudioLight *sl, int icon_size)
 {
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
@@ -652,22 +666,23 @@ static uint *studiolight_matcap_preview(StudioLight *sl, int icon_size, bool fli
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
 
 	uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
-	const uint alphamask = 0xff000000;
 	float color[4];
 	float fx, fy;
+	float pixel_size = 1.0f / (float)icon_size;
 	int offset = 0;
 	ImBuf *ibuf = sl->equirectangular_radiance_buffer;
 
 	for (int y = 0; y < icon_size; y++) {
-		fy = y * ibuf->y / icon_size;
+		fy = (y + 0.5f) / (float)icon_size;
 		for (int x = 0; x < icon_size; x++) {
+			fx = (x + 0.5f) / (float)icon_size;
 			if (flipped) {
-				fx = ibuf->x - (x * ibuf->x / icon_size) - 1;
+				fx = 1.0f - fx;
 			}
-			else {
-				fx = x * ibuf->x / icon_size;
-			}
-			nearest_interpolation_color(ibuf, NULL, color, fx, fy);
+			nearest_interpolation_color(ibuf, NULL, color, fx * ibuf->x, fy * ibuf->y);
+
+			uint alphamask = alpha_circle_mask(fx, fy, 0.5f - pixel_size, 0.5f);
+
 			rect[offset++] = rgb_to_cpack(
 			        linearrgb_to_srgb(color[0]),
 			        linearrgb_to_srgb(color[1]),
