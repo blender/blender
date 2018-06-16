@@ -52,47 +52,15 @@ out float facing;
 #endif
 
 /* See fragment shader */
-noperspective out vec2 eData1;
-flat out vec2 eData2[3];
+flat out vec2 ssPos[3];
 
 #define FACE_ACTIVE     (1 << 2)
 #define FACE_SELECTED   (1 << 3)
-
-/* Table 1. Triangle Projection Cases */
-const ivec4 clipPointsIdx[6] = ivec4[6](
-	ivec4(0, 1, 2, 2),
-	ivec4(0, 2, 1, 1),
-	ivec4(0, 0, 1, 2),
-	ivec4(1, 2, 0, 0),
-	ivec4(1, 1, 0, 2),
-	ivec4(2, 2, 0, 1)
-);
 
 /* project to screen space */
 vec2 proj(vec4 pos)
 {
 	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
-}
-
-float dist(vec2 pos[3], vec2 vpos, int v)
-{
-	/* endpoints of opposite edge */
-	vec2 e1 = pos[(v + 1) % 3];
-	vec2 e2 = pos[(v + 2) % 3];
-	/* Edge normalized vector */
-	vec2 dir = normalize(e2 - e1);
-	/* perpendicular to dir */
-	vec2 orthogonal = vec2(-dir.y, dir.x);
-
-	return abs(dot(vpos - e1, orthogonal));
-}
-
-vec4 getClipData(vec2 pos[3], ivec2 vidx)
-{
-	vec2 A = pos[vidx.x];
-	vec2 Adir = normalize(A - pos[vidx.y]);
-
-	return vec4(A, Adir);
 }
 
 void doVertex(int v)
@@ -127,21 +95,6 @@ void doLoopStrip(int v, vec3 offset)
 
 void main()
 {
-	/* First we detect which case we are in */
-	clipCase = 0;
-
-	/* if perspective */
-	if (ProjectionMatrix[3][3] == 0.0) {
-		/* See Table 1. Triangle Projection Cases  */
-		clipCase += int(pPos[0].z / pPos[0].w < -1 || vPos[0].z > 0.0) * 4;
-		clipCase += int(pPos[1].z / pPos[1].w < -1 || vPos[1].z > 0.0) * 2;
-		clipCase += int(pPos[2].z / pPos[2].w < -1 || vPos[2].z > 0.0) * 1;
-	}
-
-	/* If triangle is behind nearplane, early out */
-	if (clipCase == 7)
-		return;
-
 	/* Edge */
 	ivec3 eflag; vec3 ecrease, ebweight;
 	for (int v = 0; v < 3; ++v) {
@@ -159,138 +112,97 @@ void main()
 		faceColor = colorFace;
 
 	/* Vertex */
-	vec2 pos[3] = vec2[3](proj(pPos[0]), proj(pPos[1]), proj(pPos[2]));
+	vec2 pos[3];
+	ssPos[0] = pos[0] = proj(pPos[0]);
+	ssPos[1] = pos[1] = proj(pPos[1]);
+	ssPos[2] = pos[2] = proj(pPos[2]);
 
-	/* Simple case : compute edge distances in geometry shader */
-	if (clipCase == 0) {
-
-		/* Packing screen positions and 2 distances */
-		eData2[0] = pos[2];
-		eData2[1] = pos[1];
-		eData2[2] = pos[0];
-
-		/* Only pass the first 2 distances */
-		for (int v = 0; v < 2; ++v) {
-			eData1[v] = dist(pos, pos[v], v);
-			doVertex(v);
-			eData1[v] = 0.0;
-		}
-
-		/* and the last vertex */
-		doVertex(2);
+	doVertex(0);
+	doVertex(1);
+	doVertex(2);
 
 #ifdef EDGE_FIX
-		vec2 fixvec[6];
-		vec2 fixvecaf[6];
-		vec2 cornervec[3];
+	vec2 fixvec[6];
+	vec2 fixvecaf[6];
+	vec2 cornervec[3];
 
-		/* This fix the case when 2 vertices are perfectly aligned
-		 * and corner vectors have nowhere to go.
-		 * ie: length(cornervec[i]) == 0 */
-		const float epsilon = 1e-2; /* in pixel so not that much */
-		const vec2 bias[3] = vec2[3](
-			vec2( epsilon,  epsilon),
-			vec2(-epsilon,  epsilon),
-			vec2(     0.0, -epsilon)
-		);
+	/* This fix the case when 2 vertices are perfectly aligned
+	 * and corner vectors have nowhere to go.
+	 * ie: length(cornervec[i]) == 0 */
+	const float epsilon = 1e-2; /* in pixel so not that much */
+	const vec2 bias[3] = vec2[3](
+		vec2( epsilon,  epsilon),
+		vec2(-epsilon,  epsilon),
+		vec2(     0.0, -epsilon)
+	);
 
-		for (int i = 0; i < 3; ++i) {
-			int i1 = (i + 1) % 3;
-			int i2 = (i + 2) % 3;
+	for (int i = 0; i < 3; ++i) {
+		int i1 = (i + 1) % 3;
+		int i2 = (i + 2) % 3;
 
-			vec2 v1 = pos[i] + bias[i];
-			vec2 v2 = pos[i1] + bias[i1];
-			vec2 v3 = pos[i2] + bias[i2];
+		vec2 v1 = ssPos[i] + bias[i];
+		vec2 v2 = ssPos[i1] + bias[i1];
+		vec2 v3 = ssPos[i2] + bias[i2];
 
-			/* Edge normalized vector */
-			vec2 dir = normalize(v2 - v1);
-			vec2 dir2 = normalize(v3 - v1);
+		/* Edge normalized vector */
+		vec2 dir = normalize(v2 - v1);
+		vec2 dir2 = normalize(v3 - v1);
 
-			cornervec[i] = -normalize(dir + dir2);
+		cornervec[i] = -normalize(dir + dir2);
 
-			/* perpendicular to dir */
-			vec2 perp = vec2(-dir.y, dir.x);
+		/* perpendicular to dir */
+		vec2 perp = vec2(-dir.y, dir.x);
 
-			/* Backface case */
-			if (dot(perp, dir2) > 0) {
-				perp = -perp;
-			}
-
-			/* Make it view independent */
-			perp *= sizeEdgeFix / viewportSize;
-			cornervec[i] *= sizeEdgeFix / viewportSize;
-			fixvec[i] = fixvecaf[i] = perp;
-
-			/* Perspective */
-			if (ProjectionMatrix[3][3] == 0.0) {
-				/* vPos[i].z is negative and we don't want
-				 * our fixvec to be flipped */
-				fixvec[i] *= -vPos[i].z;
-				fixvecaf[i] *= -vPos[i1].z;
-				cornervec[i] *= -vPos[i].z;
-			}
+		/* Backface case */
+		if (dot(perp, dir2) > 0) {
+			perp = -perp;
 		}
 
-		/* to not let face color bleed */
-		faceColor.a = 0.0;
+		/* Make it view independent */
+		perp *= sizeEdgeFix / viewportSize;
+		cornervec[i] *= sizeEdgeFix / viewportSize;
+		fixvec[i] = fixvecaf[i] = perp;
 
-		/* we don't want other edges : make them far */
-		eData1 = vec2(1e10);
-		eData2[0] = vec2(1e10);
+		/* Perspective */
+		if (ProjectionMatrix[3][3] == 0.0) {
+			/* vPos[i].z is negative and we don't want
+			 * our fixvec to be flipped */
+			fixvec[i] *= -vPos[i].z;
+			fixvecaf[i] *= -vPos[i1].z;
+			cornervec[i] *= -vPos[i].z;
+		}
+	}
 
-		/* Start with the same last vertex to create a
-		 * degenerate triangle in order to "create"
-		 * a new triangle strip */
-		for (int i = 2; i < 5; ++i) {
-			int vbe = (i - 1) % 3;
-			int vaf = (i + 1) % 3;
-			int v = i % 3;
+	/* to not let face color bleed */
+	faceColor.a = 0.0;
 
-			/* Position of the "hidden" third vertex */
-			eData2[0] = pos[vbe];
-			doLoopStrip(v, vec3(fixvec[v], Z_OFFSET));
+	/* Start with the same last vertex to create a
+	 * degenerate triangle in order to "create"
+	 * a new triangle strip */
+	for (int i = 2; i < 5; ++i) {
+		int vbe = (i - 1) % 3;
+		int vaf = (i + 1) % 3;
+		int v = i % 3;
 
-			/* Now one triangle only shade one edge
-			 * so we use the edge distance calculated
-			 * in the fragment shader, the third edge;
-			 * we do this because we need flat interp to
-			 * draw a continuous triangle strip */
-			eData2[1] = pos[vaf];
-			eData2[2] = pos[v];
-			flag[0] = (vData[v].x << 8);
-			flag[1] = (vData[vaf].x << 8);
-			flag[2] = eflag[vbe];
-			edgesCrease[2] = ecrease[vbe];
-			edgesBweight[2] = ebweight[vbe];
+		doLoopStrip(v, vec3(fixvec[v], Z_OFFSET));
 
-			doLoopStrip(vaf, vec3(fixvecaf[v], Z_OFFSET));
+		/* Only shade the edge that we are currently drawing.
+		 * (fix corner bleeding) */
+		flag[vbe] |= (EDGE_EXISTS & eflag[vbe]);
+		flag[vaf] &= ~EDGE_EXISTS;
+		flag[v]   &= ~EDGE_EXISTS;
+		doLoopStrip(vaf, vec3(fixvecaf[v], Z_OFFSET));
 
-			/* corner vertices should not draw edges but draw point only */
-			flag[2] = (vData[vbe].x << 8);
+		/* corner vertices should not draw edges but draw point only */
+		flag[vbe] &= ~EDGE_EXISTS;
 #ifdef VERTEX_SELECTION
-			doLoopStrip(vaf, vec3(cornervec[vaf], Z_OFFSET));
-#endif
-		}
-
-		/* finish the loop strip */
-		doLoopStrip(2, vec3(fixvec[2], Z_OFFSET));
+		doLoopStrip(vaf, vec3(cornervec[vaf], Z_OFFSET));
 #endif
 	}
-	/* Harder case : compute visible edges vectors */
-	else {
-		ivec4 vindices = clipPointsIdx[clipCase - 1];
 
-		vec4 tmp;
-		tmp = getClipData(pos, vindices.xz);
-		eData1 = tmp.xy;
-		eData2[0] = tmp.zw;
-		tmp = getClipData(pos, vindices.yw);
-		eData2[1] = tmp.xy;
-		eData2[2] = tmp.zw;
-
-		for (int v = 0; v < 3; ++v)
-			doVertex(v);
-	}
+	/* finish the loop strip */
+	doLoopStrip(2, vec3(fixvec[2], Z_OFFSET));
+#endif
 
 	EndPrimitive();
 }

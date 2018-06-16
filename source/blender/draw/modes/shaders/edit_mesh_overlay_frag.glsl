@@ -10,11 +10,11 @@
  * TODO Refine the range to only affect GPUs. */
 
 uniform float faceAlphaMod;
+
 flat in vec3 edgesCrease;
 flat in vec3 edgesBweight;
 flat in vec4 faceColor;
 flat in ivec3 flag;
-flat in int clipCase;
 #ifdef VERTEX_SELECTION
 in vec3 vertexColor;
 #endif
@@ -22,25 +22,7 @@ in vec3 vertexColor;
 in float facing;
 #endif
 
-/* We use a vec4[2] interface to pass edge data
- * (without fragmenting memory accesses)
- *
- * There are 2 cases :
- *
- * - Simple case : geometry shader return edge distances
- *   in the first 2 components of the first vec4.
- *   This needs noperspective interpolation.
- *   The rest is filled with vertex screen positions.
- *   eData2[0] actually contain v2
- *   eData2[1] actually contain v1
- *   eData2[2] actually contain v0
- *
- * - Hard case : two 2d edge corner are described by each
- *   vec4 as origin and direction. This is constant over
- *   the triangle and use to detect the correct case. */
-
-noperspective in vec2 eData1;
-flat in vec2 eData2[3];
+flat in vec2 ssPos[3];
 
 out vec4 FragColor;
 
@@ -49,38 +31,21 @@ out vec4 FragColor;
 
 #define LARGE_EDGE_SIZE 2.0
 
-
 /* Style Parameters in pixel */
 
-/* Array to retrieve vert/edge indices */
-const ivec3 clipEdgeIdx[6] = ivec3[6](
-	ivec3(1, 0, 2),
-	ivec3(2, 0, 1),
-	ivec3(2, 1, 0),
-	ivec3(2, 1, 0),
-	ivec3(2, 0, 1),
-	ivec3(1, 0, 2)
-);
-
-const ivec3 clipPointIdx[6] = ivec3[6](
-	ivec3(0, 1, 2),
-	ivec3(0, 2, 1),
-	ivec3(0, 2, 1),
-	ivec3(1, 2, 0),
-	ivec3(1, 2, 0),
-	ivec3(2, 1, 0)
-);
+void distToEdgeAndPoint(vec2 dir, vec2 ori, out float edge, out float point)
+{
+	dir = normalize(dir.xy);
+	vec2 of = gl_FragCoord.xy - ori;
+	point = dot(of, of);
+	float dof = dot(dir, of);
+	edge = sqrt(abs(point - dof * dof));
+	point = sqrt(point);
+}
 
 void colorDist(vec4 color, float dist)
 {
 	FragColor = (dist < 0) ? color : FragColor;
-}
-
-float distToEdge(vec2 o, vec2 dir)
-{
-	vec2 af = gl_FragCoord.xy - o;
-	float daf = dot(dir, af);
-	return sqrt(abs(dot(af, af) - daf * daf));
 }
 
 #ifdef ANTI_ALIASING
@@ -99,42 +64,13 @@ void main()
 	vec3 e, p;
 
 	/* Step 1 : Computing Distances */
-
-	if (clipCase == 0) {
-		e.xy = eData1;
-
-		/* computing missing distance */
-		vec2 dir = normalize(eData2[2] - eData2[1]);
-		e.z = distToEdge(eData2[2], dir);
-
-		p.x = distance(eData2[2], gl_FragCoord.xy);
-		p.y = distance(eData2[1], gl_FragCoord.xy);
-		p.z = distance(eData2[0], gl_FragCoord.xy);
-	}
-	else {
-		ivec3 eidxs = clipEdgeIdx[clipCase - 1];
-		ivec3 pidxs = clipPointIdx[clipCase - 1];
-
-		e[eidxs.x] = distToEdge(eData1, eData2[0]);
-		e[eidxs.y] = distToEdge(eData2[1], eData2[2]);
-
-		/* Three edges visible cases */
-		if (clipCase == 1 || clipCase == 2 || clipCase == 4) {
-			e[eidxs.z] = distToEdge(eData1, normalize(eData2[1] - eData1));
-			p[pidxs.y] = distance(eData2[1], gl_FragCoord.xy);
-		}
-		else {
-			e[eidxs.z] = 1e10; /* off screen */
-			p[pidxs.y] = 1e10; /* off screen */
-		}
-
-		p[pidxs.x] = distance(eData1, gl_FragCoord.xy);
-		p[pidxs.z] = 1e10; /* off screen */
-	}
+	distToEdgeAndPoint((ssPos[1] - ssPos[0]) + 1e-8, ssPos[0], e.z, p.x);
+	distToEdgeAndPoint((ssPos[2] - ssPos[1]) + 1e-8, ssPos[1], e.x, p.y);
+	distToEdgeAndPoint((ssPos[0] - ssPos[2]) + 1e-8, ssPos[2], e.y, p.z);
 
 	/* Step 2 : coloring (order dependant) */
 
-	/* First */
+	/* Face */
 	FragColor = faceColor;
 	FragColor.a *= faceAlphaMod;
 

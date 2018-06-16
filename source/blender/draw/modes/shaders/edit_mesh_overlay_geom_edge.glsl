@@ -24,7 +24,6 @@ flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
 flat out vec4 faceColor;
 flat out ivec3 flag;
-flat out int clipCase;
 #ifdef VERTEX_SELECTION
 out vec3 vertexColor;
 #endif
@@ -33,39 +32,15 @@ out float facing;
 #endif
 
 /* See fragment shader */
-noperspective out vec2 eData1;
-flat out vec2 eData2[3];
+flat out vec2 ssPos[3];
 
 #define FACE_ACTIVE     (1 << 2)
 #define FACE_SELECTED   (1 << 3)
-
-/* Table 1. Triangle Projection Cases */
-const ivec4 clipPointsIdx[6] = ivec4[6](
-	ivec4(0, 1, 2, 2),
-	ivec4(0, 2, 1, 1),
-	ivec4(0, 0, 1, 2),
-	ivec4(1, 2, 0, 0),
-	ivec4(1, 1, 0, 2),
-	ivec4(2, 2, 0, 1)
-);
 
 /* project to screen space */
 vec2 proj(vec4 pos)
 {
 	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
-}
-
-float dist(vec2 pos[3], vec2 vpos, int v)
-{
-	/* endpoints of opposite edge */
-	vec2 e1 = pos[(v + 1) % 3];
-	vec2 e2 = pos[(v + 2) % 3];
-	/* Edge normalized vector */
-	vec2 dir = normalize(e2 - e1);
-	/* perpendicular to dir */
-	vec2 orthogonal = vec2(-dir.y, dir.x);
-
-	return abs(dot(vpos - e1, orthogonal));
 }
 
 void doVertex(int v, vec4 pos)
@@ -85,8 +60,6 @@ void doVertex(int v, vec4 pos)
 
 void main()
 {
-	clipCase = 0;
-
 	/* Face */
 	faceColor = vec4(0.0);
 
@@ -117,19 +90,16 @@ void main()
 	}
 
 	/* Edge / Vert data */
-	eData1 = vec2(1e10);
-	eData2[0] = vec2(1e10);
-	eData2[2] = pos[0];
-	eData2[1] = pos[1];
-	flag[0] = (vData[0].x << 8);
+	ssPos[0] = ssPos[2] = pos[0];
+	ssPos[1] = pos[1];
+	flag[0] = flag[2] = (vData[0].x << 8);
 	flag[1] = (vData[1].x << 8);
-	flag[2] = 0;
 
 	doVertex(0, pPos[0] + vec4(-dirs1.xy, 0.0, 0.0));
 	doVertex(0, pPos[0] + vec4( dirs1.zw, 0.0, 0.0));
 	doVertex(0, pPos[0] + vec4(-dirs1.zw, 0.0, 0.0));
 
-	flag[2] = vData[0].y | (vData[0].x << 8);
+	flag[2] |= vData[0].y;
 	edgesCrease[2] = vData[0].z / 255.0;
 	edgesBweight[2] = vData[0].w / 255.0;
 
