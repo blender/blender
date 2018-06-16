@@ -3,10 +3,10 @@ if "%GIT%" == "" (
 	goto EOF
 )
 cd "%BLENDER_DIR%"
-for /f "delims=" %%i in ('%GIT% rev-parse HEAD') do echo Branch_hash=%%i
+for /f "delims=" %%i in ('"%GIT%" rev-parse HEAD') do echo Branch_hash=%%i
 cd "%BLENDER_DIR%/release/datafiles/locale"
-for /f "delims=" %%i in ('%GIT% rev-parse HEAD') do echo Locale_hash=%%i
+for /f "delims=" %%i in ('"%GIT%" rev-parse HEAD') do echo Locale_hash=%%i
 cd "%BLENDER_DIR%/release/scripts/addons"
-for /f "delims=" %%i in ('%GIT% rev-parse HEAD') do echo Addons_Hash=%%i
+for /f "delims=" %%i in ('"%GIT%" rev-parse HEAD') do echo Addons_Hash=%%i
 cd "%BLENDER_DIR%"
 :EOF

@@ -16,6 +16,11 @@ if errorlevel 1 goto EOF
 call "%BLENDER_DIR%\build_files\windows\find_dependencies.cmd"
 if errorlevel 1 goto EOF
 
+if "%BUILD_SHOW_HASHES%" == "1" (
+	call "%BLENDER_DIR%\build_files\windows\show_hashes.cmd"
+	goto EOF
+)
+
 if "%SHOW_HELP%" == "1" (
 	call "%BLENDER_DIR%\build_files\windows\show_help.cmd"
 	goto EOF
