@@ -44,6 +44,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "PIL_time.h"
+
 #include "BLT_translation.h"
 
 #include "DNA_scene_types.h"
@@ -138,6 +140,8 @@ typedef struct tGP_BrushEditData {
 	/* Timer for in-place accumulation of brush effect */
 	wmTimer *timer;
 	bool timerTick; /* is this event from a timer */
+
+	RNG *rng;
 } tGP_BrushEditData;
 
 
@@ -658,7 +662,7 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 	 * as well as the strength of the brush
 	 */
 	const float inf = gp_brush_influence_calc(gso, radius, co) / 2.0f;
-	const float fac = BLI_frand() * inf;
+	const float fac = BLI_rng_get_float(gso->rng) * inf;
 	/* need one flag enabled by default */
 	if ((gso->settings->flag & (GP_BRUSHEDIT_FLAG_APPLY_POSITION |
 	                            GP_BRUSHEDIT_FLAG_APPLY_STRENGTH |
@@ -685,7 +689,7 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 		svec[1] =  mvec[0];
 
 		/* scale the displacement by the random displacement, and apply */
-		if (BLI_frand() > 0.5f) {
+		if (BLI_rng_get_float(gso->rng) > 0.5f) {
 			mul_v2_fl(svec, -fac);
 		}
 		else {
@@ -724,7 +728,7 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 	}
 	/* apply random to strength */
 	if (gso->settings->flag & GP_BRUSHEDIT_FLAG_APPLY_STRENGTH) {
-		if (BLI_frand() > 0.5f) {
+		if (BLI_rng_get_float(gso->rng) > 0.5f) {
 			pt->strength += fac;
 		}
 		else {
@@ -735,7 +739,7 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 	}
 	/* apply random to thickness (use pressure) */
 	if (gso->settings->flag & GP_BRUSHEDIT_FLAG_APPLY_THICKNESS) {
-		if (BLI_frand() > 0.5f) {
+		if (BLI_rng_get_float(gso->rng) > 0.5f) {
 			pt->pressure += fac;
 		}
 		else {
@@ -1061,6 +1065,10 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 
 	gso->brush_type = gso->settings->brushtype;
 
+	/* Random generator, only init once. */
+	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+	rng_seed ^= GET_UINT_FROM_POINTER(gso);
+	gso->rng = BLI_rng_new(rng_seed);
 
 	gso->is_painting = false;
 	gso->first = true;
@@ -1161,6 +1169,10 @@ static void gpsculpt_brush_exit(bContext *C, wmOperator *op)
 	/* unregister timer (only used for realtime) */
 	if (gso->timer) {
 		WM_event_remove_timer(CTX_wm_manager(C), win, gso->timer);
+	}
+
+	if (gso->rng != NULL) {
+		BLI_rng_free(gso->rng);
 	}
 
 	/* disable cursor and headerprints */

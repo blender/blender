@@ -169,6 +169,8 @@ typedef struct tGPsdata {
 	short straight[2];   /* 1: line horizontal, 2: line vertical, other: not defined, second element position */
 	int lock_axis;       /* lock drawing to one axis */
 
+	RNG *rng;
+
 	short keymodifier;   /* key used for invoking the operator */
 } tGPsdata;
 
@@ -408,7 +410,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 }
 
 /* apply jitter to stroke */
-static void gp_brush_jitter(bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const int mval[2], int r_mval[2])
+static void gp_brush_jitter(
+        bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const int mval[2], int r_mval[2], RNG *rng)
 {
 	float pressure = pt->pressure;
 	float tmp_pressure = pt->pressure;
@@ -417,7 +420,7 @@ static void gp_brush_jitter(bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const
 		tmp_pressure = curvef * brush->draw_sensitivity;
 	}
 	const float exfactor = (brush->draw_jitter + 2.0f) * (brush->draw_jitter + 2.0f); /* exponential value */
-	const float fac = BLI_frand() * exfactor * tmp_pressure;
+	const float fac = BLI_rng_get_float(rng) * exfactor * tmp_pressure;
 	/* Jitter is applied perpendicular to the mouse movement vector (2D space) */
 	float mvec[2], svec[2];
 	/* mouse movement in ints -> floats */
@@ -434,7 +437,7 @@ static void gp_brush_jitter(bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const
 	svec[0] = -mvec[1];
 	svec[1] = mvec[0];
 	/* scale the displacement by the random, and apply */
-	if (BLI_frand() > 0.5f) {
+	if (BLI_rng_get_float(rng) > 0.5f) {
 		mul_v2_fl(svec, -fac);
 	}
 	else {
@@ -550,7 +553,7 @@ static short gp_stroke_addpoint(
 		/* Apply jitter to position */
 		if (brush->draw_jitter > 0.0f) {
 			int r_mval[2];
-			gp_brush_jitter(gpd, brush, pt, mval, r_mval);
+			gp_brush_jitter(gpd, brush, pt, mval, r_mval, p->rng);
 			copy_v2_v2_int(&pt->x, r_mval);
 		}
 		else {
@@ -560,11 +563,11 @@ static short gp_stroke_addpoint(
 		if ((brush->draw_random_press > 0.0f) && (brush->flag & GP_BRUSH_USE_RANDOM_PRESSURE)) {
 			float curvef = curvemapping_evaluateF(brush->cur_sensitivity, 0, pressure);
 			float tmp_pressure = curvef * brush->draw_sensitivity;
-			if (BLI_frand() > 0.5f) {
-				pt->pressure -= tmp_pressure * brush->draw_random_press * BLI_frand();
+			if (BLI_rng_get_float(p->rng) > 0.5f) {
+				pt->pressure -= tmp_pressure * brush->draw_random_press * BLI_rng_get_float(p->rng);
 			}
 			else {
-				pt->pressure += tmp_pressure * brush->draw_random_press * BLI_frand();
+				pt->pressure += tmp_pressure * brush->draw_random_press * BLI_rng_get_float(p->rng);
 			}
 			CLAMP(pt->pressure, GPENCIL_STRENGTH_MIN, 1.0f);
 		}
@@ -588,11 +591,11 @@ static short gp_stroke_addpoint(
 
 		/* apply randomness to color strength */
 		if ((brush->draw_random_press > 0.0f) && (brush->flag & GP_BRUSH_USE_RANDOM_STRENGTH)) {
-			if (BLI_frand() > 0.5f) {
-				pt->strength -= pt->strength * brush->draw_random_press * BLI_frand();
+			if (BLI_rng_get_float(p->rng) > 0.5f) {
+				pt->strength -= pt->strength * brush->draw_random_press * BLI_rng_get_float(p->rng);
 			}
 			else {
-				pt->strength += pt->strength * brush->draw_random_press * BLI_frand();
+				pt->strength += pt->strength * brush->draw_random_press * BLI_rng_get_float(p->rng);
 			}
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 		}
@@ -978,7 +981,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		}
 		/* apply randomness to stroke */
 		if (brush->draw_random_sub > 0.0f) {
-			gp_randomize_stroke(gps, brush);
+			gp_randomize_stroke(gps, brush, p->rng);
 		}
 
 		/* smooth stroke after subdiv - only if there's something to do
@@ -1583,6 +1586,11 @@ static tGPsdata *gp_session_initpaint(bContext *C)
 	 */
 	p->radius = U.gp_eraser;
 
+	/* Random generator, only init once. */
+	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+	rng_seed ^= GET_UINT_FROM_POINTER(p);
+	p->rng = BLI_rng_new(rng_seed);
+
 	/* return context data for running paint operator */
 	return p;
 }
@@ -1608,6 +1616,14 @@ static void gp_session_cleanup(tGPsdata *p)
 	gpd->sbuffer_sflag = 0;
 	p->inittime = 0.0;
 }
+
+static void gp_session_free(tGPsdata *p) {
+	if (p->rng != NULL) {
+		BLI_rng_free(p->rng);
+	}
+	MEM_freeN(p);
+}
+
 
 /* init new stroke */
 static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Depsgraph *depsgraph)
@@ -1949,9 +1965,7 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 		/* cleanup */
 		gp_paint_cleanup(p);
 		gp_session_cleanup(p);
-
-		/* finally, free the temp data */
-		MEM_freeN(p);
+		gp_session_free(p);
 	}
 
 	op->customdata = NULL;
