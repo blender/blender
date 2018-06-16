@@ -1275,7 +1275,7 @@ static bool ui_drag_toggle_but_is_supported(const uiBut *but)
 		return true;
 	}
 	else if (UI_but_is_decorator(but)) {
-		return ELEM(but->icon, ICON_SPACE2, ICON_SPACE3, ICON_DOT);
+		return ELEM(but->icon, ICON_SPACE2, ICON_SPACE3, ICON_DOT, ICON_LIBRARY_DATA_OVERRIDE);
 	}
 	else {
 		return false;
@@ -8223,6 +8223,10 @@ void UI_context_update_anim_flag(const bContext *C)
 			for (but = block->buttons.first; but; but = but->next) {
 				ui_but_anim_flag(but, (scene) ? scene->r.cfra : 0.0f);
 				ui_but_override_flag(but);
+				if (UI_but_is_decorator(but)) {
+					ui_but_anim_decorate_update_from_flag(but);
+				}
+
 				ED_region_tag_redraw(ar);
 
 				if (but->active) {

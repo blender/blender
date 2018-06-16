@@ -1272,6 +1272,9 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 
 		ui_but_anim_flag(but, (scene) ? scene->r.cfra : 0.0f);
 		ui_but_override_flag(but);
+		if (UI_but_is_decorator(but)) {
+			ui_but_anim_decorate_update_from_flag(but);
+		}
 	}
 
 

@@ -101,22 +101,26 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 			but->flag |= UI_BUT_DRIVEN;
 		}
 	}
+}
 
-	if (but->next && UI_but_is_decorator(but->next)) {
-		uiBut *but_decor = but->next;
-		int flag = but->flag;
-		if (flag & UI_BUT_DRIVEN) {
-			but_decor->icon = ICON_AUTO;
-		}
-		else if (flag & UI_BUT_ANIMATED_KEY) {
-			but_decor->icon = ICON_SPACE2;
-		}
-		else if (flag & UI_BUT_ANIMATED) {
-			but_decor->icon = ICON_SPACE3;
-		}
-		else {
-			but_decor->icon = ICON_DOT;
-		}
+void ui_but_anim_decorate_update_from_flag(uiBut *but)
+{
+	BLI_assert(UI_but_is_decorator(but) && but->prev);
+	int flag = but->prev->flag;
+	if (flag & UI_BUT_DRIVEN) {
+		but->icon = ICON_AUTO;
+	}
+	else if (flag & UI_BUT_ANIMATED_KEY) {
+		but->icon = ICON_SPACE2;
+	}
+	else if (flag & UI_BUT_ANIMATED) {
+		but->icon = ICON_SPACE3;
+	}
+	else if (flag & UI_BUT_OVERRIDEN) {
+		but->icon = ICON_LIBRARY_DATA_OVERRIDE;
+	}
+	else {
+		but->icon = ICON_DOT;
 	}
 }
 
