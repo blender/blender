@@ -1274,6 +1274,9 @@ static bool ui_drag_toggle_but_is_supported(const uiBut *but)
 	if (ui_but_is_bool(but)) {
 		return true;
 	}
+	else if (UI_but_is_decorator(but)) {
+		return ELEM(but->icon, ICON_SPACE2, ICON_SPACE3, ICON_DOT);
+	}
 	else {
 		return false;
 	}
@@ -1283,6 +1286,9 @@ static bool ui_drag_toggle_but_is_pushed(uiBut *but)
 {
 	if (ui_but_is_bool(but)) {
 		return ui_but_is_pushed(but);
+	}
+	else if (UI_but_is_decorator(but)) {
+		return (but->icon == ICON_SPACE2);
 	}
 	else {
 		return false;

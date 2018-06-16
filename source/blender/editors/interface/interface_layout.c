@@ -1709,6 +1709,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 				        block, UI_BTYPE_BUT, 0, ICON_DOT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 				        NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Animate property"));
 				UI_but_func_set(but, ui_but_anim_decorate_cb, but, NULL);
+				but->flag |= UI_BUT_DRAG_LOCK;
 			}
 			else {
 				/* We may show other information here in future, for now use empty space. */
