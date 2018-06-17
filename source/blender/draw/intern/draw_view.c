@@ -732,6 +732,9 @@ void DRW_draw_cursor(void)
 			GWN_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
 
 			GWN_batch_draw(cursor_batch);
+
+			glDisable(GL_BLEND);
+			glDisable(GL_LINE_SMOOTH);
 		}
 	}
 }
