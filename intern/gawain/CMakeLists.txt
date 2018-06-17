@@ -1,5 +1,5 @@
 # WITH_OPENGL limits the visibility of the opengl headers to just gawain and bg_gpu,
-# to more easily highlight codepadths in other libraries that need to be refactored, 
+# to more easily highlight codepadths in other libraries that need to be refactored,
 # bf_intern_gawain is allowed to have opengl regardless of this option.
 
 if(NOT WITH_OPENGL)

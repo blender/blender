@@ -633,7 +633,7 @@ static uint *studiolight_radiance_preview(StudioLight *sl, int icon_size)
 				normal[0] = dx * 2.0f - 1.0f;
 				normal[1] = dy * 2.0f - 1.0f;
 				float dist = len_v2(normal);
-				normal[2] = sqrtf(1.0f - dist*dist);
+				normal[2] = sqrtf(1.0f - SQUARE(dist));
 
 				float direction[3];
 				reflect_v3_v3v3(direction, incoming, normal);
@@ -717,7 +717,7 @@ static uint *studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 					normal[0] = dx * 2.0f - 1.0f;
 					normal[1] = dy * 2.0f - 1.0f;
 					float dist = len_v2(normal);
-					normal[2] = sqrtf(1.0f - dist*dist);
+					normal[2] = sqrtf(1.0f - SQUARE(dist));
 
 					float color[3];
 					mul_v3_v3fl(color, sl->diffuse_light[STUDIOLIGHT_X_POS], clamp_f(normal[0], 0.0, 1.0));

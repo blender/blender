@@ -423,7 +423,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		DRW_shgroup_uniform_block(grp, "samples_block", e_data.sampling_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
-	
+
 	{
 		psl->effect_fxaa_pass = DRW_pass_create("Effect FXAA", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_fxaa_sh, psl->effect_fxaa_pass);
