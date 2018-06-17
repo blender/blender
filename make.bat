@@ -31,7 +31,7 @@ if "%BUILD_UPDATE%" == "1" (
 	goto EOF
 )
 
-call "%BLENDER_DIR%\build_files\windows\detect_architecture.cmd" 
+call "%BLENDER_DIR%\build_files\windows\detect_architecture.cmd"
 
 if "%BUILD_VS_YEAR%" == "" (
 	call "%BLENDER_DIR%\build_files\windows\autodetect_msvc.cmd"
@@ -47,27 +47,27 @@ if "%BUILD_VS_YEAR%" == "" (
 	)
 )
 
-call "%BLENDER_DIR%\build_files\windows\set_build_dir.cmd" 
+call "%BLENDER_DIR%\build_files\windows\set_build_dir.cmd"
 
 echo Building blender with VS%BUILD_VS_YEAR% for %BUILD_ARCH% in %BUILD_DIR%
 
-call "%BLENDER_DIR%\build_files\windows\check_libraries.cmd" 
+call "%BLENDER_DIR%\build_files\windows\check_libraries.cmd"
 if errorlevel 1 goto EOF
 
-call "%BLENDER_DIR%\build_files\windows\check_submodules.cmd" 
+call "%BLENDER_DIR%\build_files\windows\check_submodules.cmd"
 if errorlevel 1 goto EOF
 
 if "%BUILD_WITH_NINJA%" == "" (
-	call "%BLENDER_DIR%\build_files\windows\configure_msbuild.cmd" 
+	call "%BLENDER_DIR%\build_files\windows\configure_msbuild.cmd"
 	if errorlevel 1 goto EOF
 
-	call "%BLENDER_DIR%\build_files\windows\build_msbuild.cmd" 
+	call "%BLENDER_DIR%\build_files\windows\build_msbuild.cmd"
 	if errorlevel 1 goto EOF
 ) else (
-	call "%BLENDER_DIR%\build_files\windows\configure_ninja.cmd" 
+	call "%BLENDER_DIR%\build_files\windows\configure_ninja.cmd"
 	if errorlevel 1 goto EOF
 
-	call "%BLENDER_DIR%\build_files\windows\build_ninja.cmd" 
+	call "%BLENDER_DIR%\build_files\windows\build_ninja.cmd"
 	if errorlevel 1 goto EOF
 )
 

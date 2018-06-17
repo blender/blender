@@ -75,7 +75,7 @@ macro(PREFIX_FIND_LIB prefix libname libpath_var liblist_var cachelist_var)
   # Handle new library names for OpenEXR 2.1 build via cmake
   string(REPLACE "." "_" _ILMBASE_VERSION ${ILMBASE_VERSION})
   string(SUBSTRING ${_ILMBASE_VERSION} 0 3 _ILMBASE_VERSION )
-  
+
   find_library(${tmp_prefix}_LIBRARY_RELEASE
     NAMES ${libname} ${libname}-${_ILMBASE_VERSION}
     HINTS ${${libpath_var}}
@@ -177,7 +177,7 @@ if(ILMBASE_INCLUDE_DIR)
              "\\1" XYZ ${ILMBASE_BUILD_SPECIFICATION})
       set("ILMBASE_VERSION" ${XYZ} CACHE STRING "Version of ILMBase lib")
     else()
-      # Old versions (before 2.0?) do not have any version string, just assuming 2.0 should be fine though. 
+      # Old versions (before 2.0?) do not have any version string, just assuming 2.0 should be fine though.
       message(WARNING "Could not determine ILMBase library version, assuming 2.0.")
       set("ILMBASE_VERSION" "2.0" CACHE STRING "Version of ILMBase lib")
     endif()

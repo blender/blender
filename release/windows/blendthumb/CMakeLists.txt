@@ -26,17 +26,18 @@
 #-----------------------------------------------------------------------------
 cmake_minimum_required(VERSION 2.8)
 project(BlendThumb)
- 
+
 #Bring the headers, such as Student.h into the project
 include_directories(${ZLIB_INCLUDE})
- 
+
 #Can manually add the sources using the set command as follows:
-set(SOURCES  src/BlenderThumb.cpp
-						 src/BlendThumb.def
-						 src/BlendThumb.rc
-						 src/Dll.cpp
+set(SRC
+	src/BlenderThumb.cpp
+	src/BlendThumb.def
+	src/BlendThumb.rc
+	src/Dll.cpp
 )
- 
-add_library(BlendThumb SHARED ${SOURCES})
+
+add_library(BlendThumb SHARED ${SRC})
 target_link_libraries(BlendThumb ${ZLIB_LIBS})
 install (TARGETS BlendThumb DESTINATION bin)
