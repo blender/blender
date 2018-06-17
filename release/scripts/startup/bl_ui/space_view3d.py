@@ -65,8 +65,9 @@ class VIEW3D_HT_header(Header):
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if ((shading.type not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
-                    (mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
+            if ((((shading.type not in {'SOLID', 'TEXTURED'}) or not shading.show_xray) and
+                (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
+                (mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
                 row = layout.row()
                 row.prop(view, "use_occlude_geometry", text="")
 
