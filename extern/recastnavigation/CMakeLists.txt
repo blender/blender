@@ -25,7 +25,7 @@
 
 remove_cc_flag_unsigned_char()
 
-set(INC 
+set(INC
 	Recast/Include
 	Detour/Include
 )
@@ -34,7 +34,7 @@ set(INC_SYS
 
 )
 
-set(SRC 
+set(SRC
 	recast-capi.cpp
 	recast-capi.h
 

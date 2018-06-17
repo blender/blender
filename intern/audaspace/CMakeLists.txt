@@ -294,7 +294,7 @@ if(WITH_JACK)
 
 		jack/AUD_JackDevice.h
 		jack/AUD_JackLibrary.h
-	)	
+	)
 
 	if(WITH_JACK_DYNLOAD)
 		add_definitions(-DWITH_JACK_DYNLOAD)
