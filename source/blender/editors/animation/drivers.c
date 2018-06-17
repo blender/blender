@@ -449,6 +449,7 @@ int ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int arra
 					else fval = RNA_property_float_get_index(&ptr, prop, array_index);
 
 					BLI_snprintf(expression, maxlen, "%s%.3f", dvar_prefix, fval);
+					BLI_str_rstrip_float_zero(expression, '\0');
 				}
 				else if (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) {
 					BLI_strncpy(expression, "var", maxlen);
