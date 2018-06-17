@@ -51,10 +51,10 @@ typedef struct bConstraintOb {
 	struct Scene *scene;        /* for system time, part of deglobalization, code nicer later with local time (ton) */
 	struct Object *ob;          /* if pchan, then armature that it comes from, otherwise constraint owner */
 	struct bPoseChannel *pchan; /* pose channel that owns the constraints being evaluated */
-	
+
 	float matrix[4][4];         /* matrix where constraints are accumulated + solved */
 	float startmat[4][4];       /* original matrix (before constraint solving) */
-	
+
 	short type;                 /* type of owner  */
 	short rotOrder;             /* rotation order for constraint owner (as defined in eEulerRotationOrders in BLI_math.h) */
 } bConstraintOb;
@@ -83,7 +83,7 @@ typedef struct bConstraintTypeInfo {
 	short size;             /* size in bytes of the struct */
 	char name[32];          /* name of constraint in interface */
 	char structName[32];    /* name of struct for SDNA */
-	
+
 	/* data management function pointers - special handling */
 	/* free any data that is allocated separately (optional) */
 	void (*free_data)(struct bConstraint *con);
@@ -93,13 +93,13 @@ typedef struct bConstraintTypeInfo {
 	void (*copy_data)(struct bConstraint *con, struct bConstraint *src);
 	/* set settings for data that will be used for bConstraint.data (memory already allocated using MEM_callocN) */
 	void (*new_data)(void *cdata);
-	
+
 	/* target handling function pointers */
 	/* for multi-target constraints: return that list; otherwise make a temporary list (returns number of targets) */
 	int (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
 	/* for single-target constraints only: flush data back to source data, and the free memory used */
 	void (*flush_constraint_targets)(struct bConstraint *con, struct ListBase *list, bool no_copy);
-	
+
 	/* evaluation */
 	/* set the ct->matrix for the given constraint target (at the given ctime) */
 	void (*get_target_matrix)(struct bConstraint *con, struct bConstraintOb *cob, struct bConstraintTarget *ct, float ctime);

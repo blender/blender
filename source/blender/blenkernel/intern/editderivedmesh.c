@@ -1093,7 +1093,7 @@ static void emDM_drawMappedFaces(
 
 			efa = ltri[0]->f;
 			drawSmooth = lnors || ((flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : BM_elem_flag_test(efa, BM_ELEM_SMOOTH));
-			
+
 			draw_option = (setDrawOptions ?
 			                   setDrawOptions(userData, BM_elem_index_get(efa)) :
 			                   DM_DRAW_OPTION_NORMAL);
@@ -1120,7 +1120,7 @@ static void emDM_drawMappedFaces(
 					}
 					prev_mat_nr = efa->mat_nr;
 				}
-				
+
 				if (draw_option == DM_DRAW_OPTION_STIPPLE) { /* enabled with stipple */
 
 					if (poly_prev != GL_ZERO) glEnd();

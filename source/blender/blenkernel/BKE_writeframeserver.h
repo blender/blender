@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-struct RenderData;	
+struct RenderData;
 struct ReportList;
 struct Scene;
 

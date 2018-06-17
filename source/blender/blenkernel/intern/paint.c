@@ -160,7 +160,7 @@ Paint *BKE_paint_get_active(Scene *sce)
 {
 	if (sce) {
 		ToolSettings *ts = sce->toolsettings;
-		
+
 		if (sce->basact && sce->basact->object) {
 			switch (sce->basact->object->mode) {
 				case OB_MODE_SCULPT:
@@ -601,7 +601,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,
 {
 	int factor = BKE_ccg_factor(level, gpm->level);
 	int gridsize = BKE_ccg_gridsize(gpm->level);
-	
+
 	return gpm->data[(y * factor) * gridsize + (x * factor)];
 }
 

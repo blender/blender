@@ -177,5 +177,5 @@ bool DAG_is_acyclic(struct Scene *scene);
 #ifdef __cplusplus
 }
 #endif
-		
+
 #endif

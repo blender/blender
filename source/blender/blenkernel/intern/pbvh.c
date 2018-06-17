@@ -133,7 +133,7 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 	BB vb;
 
 	BB_reset(&vb);
-	
+
 	if (node->flag & PBVH_Leaf) {
 		PBVHVertexIter vd;
 
@@ -184,10 +184,10 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 	for (;; ) {
 		for (; prim_bbc[prim_indices[i]].bcentroid[axis] < mid; i++) ;
 		for (; mid < prim_bbc[prim_indices[j]].bcentroid[axis]; j--) ;
-		
+
 		if (!(i < j))
 			return i;
-		
+
 		SWAP(int, prim_indices[i], prim_indices[j]);
 		i++;
 	}
@@ -217,7 +217,7 @@ static int partition_indices_material(PBVH *bvh, int lo, int hi)
 			for (; grid_materials_match(first, &flagmats[indices[i]]); i++) ;
 			for (; !grid_materials_match(first, &flagmats[indices[j]]); j--) ;
 		}
-		
+
 		if (!(i < j))
 			return i;
 
@@ -389,7 +389,7 @@ static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
 
 	/* Still need vb for searches */
 	update_vb(bvh, &bvh->nodes[node_index], prim_bbc, offset, count);
-		
+
 	if (bvh->looptri)
 		build_mesh_leaf_node(bvh, bvh->nodes + node_index);
 	else {
@@ -1293,7 +1293,7 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *
 	}
 
 	pbvh_iter_end(&iter);
-	
+
 	const int tot = BLI_gset_len(face_set);
 	if (tot == 0) {
 		*r_totface = 0;
@@ -1396,7 +1396,7 @@ void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
 {
 	BLI_assert(node->flag & PBVH_Leaf);
-	
+
 	if (fully_hidden)
 		node->flag |= PBVH_FullyHidden;
 	else
@@ -1421,7 +1421,7 @@ void BKE_pbvh_node_num_verts(
         int *r_uniquevert, int *r_totvert)
 {
 	int tot;
-	
+
 	switch (bvh->type) {
 		case PBVH_GRIDS:
 			tot = node->totprim * bvh->gridkey.grid_area;
@@ -2059,7 +2059,7 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 {
 	float vmin[3], vmax[3];
 	PlaneAABBIsect ret = ISECT_INSIDE;
-	
+
 	for (int i = 0; i < 4; ++i) {
 		for (int axis = 0; axis < 3; ++axis) {
 			if (planes[i][axis] > 0) {
@@ -2071,7 +2071,7 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 				vmax[axis] = bb_min[axis];
 			}
 		}
-		
+
 		if (dot_v3v3(planes[i], vmin) + planes[i][3] > 0)
 			return ISECT_OUTSIDE;
 		else if (dot_v3v3(planes[i], vmax) + planes[i][3] >= 0)
@@ -2087,7 +2087,7 @@ bool BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 	/* BKE_pbvh_node_get_BB */
 	bb_min = node->vb.bmin;
 	bb_max = node->vb.bmax;
-	
+
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_OUTSIDE;
 }
 
@@ -2097,7 +2097,7 @@ bool BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
 	/* BKE_pbvh_node_get_BB */
 	bb_min = node->vb.bmin;
 	bb_max = node->vb.bmax;
-	
+
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
 }
 
@@ -2322,22 +2322,22 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	const int *vert_indices;
 	int *grid_indices;
 	int totgrid, gridsize, uniq_verts, totvert;
-	
+
 	vi->grid = NULL;
 	vi->no = NULL;
 	vi->fno = NULL;
 	vi->mvert = NULL;
-	
+
 	BKE_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids);
 	BKE_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);
 	BKE_pbvh_node_get_verts(bvh, node, &vert_indices, &verts);
 	vi->key = &bvh->gridkey;
-	
+
 	vi->grids = grids;
 	vi->grid_indices = grid_indices;
 	vi->totgrid = (grids) ? totgrid : 1;
 	vi->gridsize = gridsize;
-	
+
 	if (mode == PBVH_ITER_ALL)
 		vi->totvert = totvert;
 	else

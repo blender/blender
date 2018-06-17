@@ -47,7 +47,7 @@ typedef struct {
 	const char *name, *plural;
 
 	const char *i18n_context;
-	
+
 	int flags;
 #define IDTYPE_FLAGS_ISLINKABLE (1 << 0)
 } IDType;
@@ -99,7 +99,7 @@ static IDType idtypes[] = {
 /* -1 for ID_ID */
 BLI_STATIC_ASSERT((ARRAY_SIZE(idtypes) - 1 == MAX_LIBARRAY), "Missing IDType");
 
-static IDType *idtype_from_name(const char *str) 
+static IDType *idtype_from_name(const char *str)
 {
 	int i = ARRAY_SIZE(idtypes);
 
@@ -118,7 +118,7 @@ static IDType *idtype_from_code(short idcode)
 	while (i--)
 		if (idcode == idtypes[i].code)
 			return &idtypes[i];
-	
+
 	return NULL;
 }
 

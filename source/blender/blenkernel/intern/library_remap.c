@@ -1004,7 +1004,7 @@ void BKE_libblock_free(Main *bmain, void *idv)
 void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 {
 	ID *id = idv;
-	
+
 	id_us_min(id);
 
 	/* XXX This is a temp (2.77) hack so that we keep same behavior as in 2.76 regarding groups when deleting an object.
@@ -1020,7 +1020,7 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 
 	if (id->us == 0) {
 		BKE_libblock_unlink(bmain, id, false, false);
-		
+
 		BKE_libblock_free(bmain, id);
 	}
 }

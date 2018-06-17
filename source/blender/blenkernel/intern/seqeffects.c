@@ -127,7 +127,7 @@ static ImBuf *prepare_effect_imbufs(const SeqRenderData *context, ImBuf *ibuf1, 
 	else {
 		out = IMB_allocImBuf(x, y, 32, IB_rect);
 	}
-	
+
 	if (out->rect_float) {
 		if (ibuf1 && !ibuf1->rect_float) {
 			BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf1, true);
@@ -140,7 +140,7 @@ static ImBuf *prepare_effect_imbufs(const SeqRenderData *context, ImBuf *ibuf1, 
 		if (ibuf3 && !ibuf3->rect_float) {
 			BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf3, true);
 		}
-	
+
 		IMB_colormanagement_assign_float_colorspace(out, scene->sequencer_colorspace_settings.name);
 	}
 	else {
@@ -369,7 +369,7 @@ static void do_alphaunder_effect_byte(
 					tempc[1] = (fac * rt1[1] + rt2[1]);
 					tempc[2] = (fac * rt1[2] + rt2[2]);
 					tempc[3] = (fac * rt1[3] + rt2[3]);
-					
+
 					premul_float_to_straight_uchar(rt, tempc);
 				}
 			}
@@ -384,10 +384,10 @@ static void do_alphaunder_effect_byte(
 		while (x--) {
 			straight_uchar_to_premul_float(rt1, cp1);
 			straight_uchar_to_premul_float(rt2, cp2);
-			
+
 			if      (rt2[3] <= 0.0f && fac4 >= 1.0f) *((unsigned int *) rt) = *((unsigned int *) cp1);
 			else if (rt2[3] >= 1.0f)                 *((unsigned int *) rt) = *((unsigned int *) cp2);
-			else {				
+			else {
 				fac = (fac4 * (1.0f - rt2[3]));
 
 				if (fac <= 0) *((unsigned int *)rt) = *((unsigned int *)cp2);
@@ -396,7 +396,7 @@ static void do_alphaunder_effect_byte(
 					tempc[1] = (fac * rt1[1] + rt2[1]);
 					tempc[2] = (fac * rt1[2] + rt2[2]);
 					tempc[3] = (fac * rt1[3] + rt2[3]);
-					
+
 					premul_float_to_straight_uchar(rt, tempc);
 				}
 			}
@@ -628,7 +628,7 @@ static float gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
 static float gamfactor_table[RE_GAMMA_TABLE_SIZE];
 static float inv_gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
 static float inv_gamfactor_table[RE_GAMMA_TABLE_SIZE];
-static float color_domain_table[RE_GAMMA_TABLE_SIZE + 1]; 
+static float color_domain_table[RE_GAMMA_TABLE_SIZE + 1];
 static float color_step;
 static float inv_color_step;
 static float valid_gamma;
@@ -642,7 +642,7 @@ static void makeGammaTables(float gamma)
 	valid_gamma       = gamma;
 	valid_inv_gamma   = 1.0f / gamma;
 	color_step        = 1.0f / RE_GAMMA_TABLE_SIZE;
-	inv_color_step    = (float) RE_GAMMA_TABLE_SIZE; 
+	inv_color_step    = (float) RE_GAMMA_TABLE_SIZE;
 
 	/* We could squeeze out the two range tables to gain some memory */
 	for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
@@ -674,7 +674,7 @@ static float gammaCorrect(float c)
 {
 	int i;
 	float res;
-	
+
 	i = floorf(c * inv_color_step);
 	/* Clip to range [0, 1]: outside, just do the complete calculation.
 	 * We may have some performance problems here. Stretching up the LUT
@@ -685,7 +685,7 @@ static float gammaCorrect(float c)
 	else if (i >= RE_GAMMA_TABLE_SIZE) res =  powf(c,  valid_gamma);
 	else                               res =  gamma_range_table[i] +
 	                                          ((c - color_domain_table[i]) * gamfactor_table[i]);
-	
+
 	return res;
 }
 
@@ -710,17 +710,17 @@ static void gamtabs(float gamma)
 {
 	float val, igamma = 1.0f / gamma;
 	int a;
-	
+
 	/* gamtab: in short, out short */
 	for (a = 0; a < 65536; a++) {
 		val = a;
 		val /= 65535.0f;
-		
+
 		if (gamma == 2.0f)
 			val = sqrtf(val);
 		else if (gamma != 1.0f)
 			val = powf(val, igamma);
-		
+
 		gamtab[a] = (65535.99f * val);
 	}
 	/* inverse gamtab1 : in byte, out short */
@@ -1317,7 +1317,7 @@ BLI_INLINE void apply_blend_function_byte(
 	rt1 = rect1;
 	rt2 = rect2;
 	rt = out;
-	while (y--) {		
+	while (y--) {
 		for (x = xo; x > 0; x--) {
 			achannel = rt2[3];
 			rt2[3] = (unsigned int) achannel * facf0;
@@ -1331,7 +1331,7 @@ BLI_INLINE void apply_blend_function_byte(
 		if (y == 0) {
 			break;
 		}
-		y--;		
+		y--;
 		for (x = xo; x > 0; x--) {
 			achannel = rt2[3];
 			rt2[3] = (unsigned int) achannel * facf1;
@@ -1356,7 +1356,7 @@ BLI_INLINE void apply_blend_function_float(
 	rt1 = rect1;
 	rt2 = rect2;
 	rt = out;
-	while (y--) {		
+	while (y--) {
 		for (x = xo; x > 0; x--) {
 			achannel = rt2[3];
 			rt2[3] = achannel * facf0;
@@ -1370,7 +1370,7 @@ BLI_INLINE void apply_blend_function_float(
 		if (y == 0) {
 			break;
 		}
-		y--;		
+		y--;
 		for (x = xo; x > 0; x--) {
 			achannel = rt2[3];
 			rt2[3] = achannel * facf1;
@@ -1771,7 +1771,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			/* case DO_CROSS_WIPE: */
 			/* BOX WIPE IS NOT WORKING YET */
 #if 0
-		case DO_BOX_WIPE: 
+		case DO_BOX_WIPE:
       if (!wipe->forward)
         facf0 = 1.0f - facf0;  /* Go the other direction */
 
@@ -1852,7 +1852,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			else output = in_band(hwidth, fabsf(temp2 - pointdist), 1, 1);
 
 			if (!wipe->forward) output = 1 - output;
-			
+
 			break;
 	}
 	if (output < 0) output = 0;
@@ -2053,7 +2053,7 @@ static void init_transform_effect(Sequence *seq)
 	transform->yIni = 0.0f;
 
 	transform->rotIni = 0.0f;
-	
+
 	transform->interpolation = 1;
 	transform->percent = 1;
 	transform->uniform_scale = 0;
@@ -2085,7 +2085,7 @@ static void transform_image(
 
 	xo = x;
 	yo = y;
-	
+
 	/* Rotate */
 	s = sinf(rotate);
 	c = cosf(rotate);
@@ -2128,7 +2128,7 @@ static void do_transform(Scene *scene, Sequence *seq, float UNUSED(facf0), int x
 {
 	TransformVars *transform = (TransformVars *) seq->effectdata;
 	float scale_x, scale_y, translate_x, translate_y, rotate_radians;
-	
+
 	/* Scale */
 	if (transform->uniform_scale) {
 		scale_x = scale_y = transform->ScalexIni;
@@ -2292,7 +2292,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 			index = (x + (height - 1 - y) * width) * 4;
 			copy_v4_v4(temp + index, curColor2);
 		}
-	
+
 		/* Do the main body */
 		for (y = halfWidth; y < height - halfWidth; y++) {
 			fy = 0;
@@ -2461,12 +2461,12 @@ static ImBuf *do_glow_effect(
 static void init_solid_color(Sequence *seq)
 {
 	SolidColorVars *cv;
-	
+
 	if (seq->effectdata)
 		MEM_freeN(seq->effectdata);
 
 	seq->effectdata = MEM_callocN(sizeof(SolidColorVars), "solidcolor");
-	
+
 	cv = (SolidColorVars *)seq->effectdata;
 	cv->col[0] = cv->col[1] = cv->col[2] = 0.5;
 }
@@ -2520,7 +2520,7 @@ static ImBuf *do_solid_color(
 		col1[2] = facf1 * cv->col[2] * 255;
 
 		rect = (unsigned char *)out->rect;
-		
+
 		for (y = 0; y < out->y; y++) {
 			for (x = 0; x < out->x; x++, rect += 4) {
 				rect[0] = col0[0];
@@ -2553,7 +2553,7 @@ static ImBuf *do_solid_color(
 		col1[2] = facf1 * cv->col[2];
 
 		rect_float = out->rect_float;
-		
+
 		for (y = 0; y < out->y; y++) {
 			for (x = 0; x < out->x; x++, rect_float += 4) {
 				rect_float[0] = col0[0];
@@ -2622,7 +2622,7 @@ static ImBuf *do_multicam(
 	else {
 		out = i;
 	}
-	
+
 	return out;
 }
 
@@ -2697,7 +2697,7 @@ static ImBuf *do_adjustment(
 	else {
 		out = i;
 	}
-	
+
 	return out;
 }
 
@@ -2876,7 +2876,7 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool for
 				facf *= seq->seq1->len;
 			}
 			facf *= v->globalSpeed;
-			
+
 			if (facf >= seq->seq1->len) {
 				facf = seq->seq1->len - 1;
 			}

@@ -286,7 +286,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 		int totvert;
 		int tottri;
 		const MLoop *mloop;
-		
+
 		dm = rigidbody_get_mesh(ob);
 
 		/* ensure mesh validity, then grab data */
@@ -309,7 +309,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 
 			/* init mesh data for collision shape */
 			mdata = RB_trimesh_data_new(tottri, totvert);
-			
+
 			RB_trimesh_add_vertices(mdata, (float *)mvert, totvert, sizeof(MVert));
 
 			/* loop over all faces, adding them as triangles to the collision shape
@@ -328,7 +328,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 					RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(vtri));
 				}
 			}
-			
+
 			RB_trimesh_finish(mdata);
 
 			/* construct collision shape
@@ -519,21 +519,21 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 				const MLoopTri *lt = NULL;
 				int totvert, tottri = 0;
 				const MLoop *mloop = NULL;
-				
+
 				/* ensure mesh validity, then grab data */
 				if (dm == NULL)
 					return;
-			
+
 				mvert   = dm->getVertArray(dm);
 				totvert = dm->getNumVerts(dm);
 				lt = dm->getLoopTriArray(dm);
 				tottri = dm->getNumLoopTri(dm);
 				mloop = dm->getLoopArray(dm);
-				
+
 				if (totvert > 0 && tottri > 0) {
 					BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
 				}
-				
+
 				/* cleanup temp data */
 				if (ob->rigidbody_object->mesh_source == RBO_MESH_BASE) {
 					dm->release(dm);
@@ -602,21 +602,21 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 				const MLoopTri *looptri;
 				int totvert, tottri;
 				const MLoop *mloop;
-				
+
 				/* ensure mesh validity, then grab data */
 				if (dm == NULL)
 					return;
-			
+
 				mvert   = dm->getVertArray(dm);
 				totvert = dm->getNumVerts(dm);
 				looptri = dm->getLoopTriArray(dm);
 				tottri = dm->getNumLoopTri(dm);
 				mloop = dm->getLoopArray(dm);
-				
+
 				if (totvert > 0 && tottri > 0) {
 					BKE_mesh_calc_volume(mvert, totvert, looptri, tottri, mloop, NULL, r_center);
 				}
-				
+
 				/* cleanup temp data */
 				if (ob->rigidbody_object->mesh_source == RBO_MESH_BASE) {
 					dm->release(dm);
@@ -1332,7 +1332,7 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, bool 
 	/* XXX TODO For rebuild: remove all constraints first.
 	 * Otherwise we can end up deleting objects that are still
 	 * referenced by constraints, corrupting bullet's internal list.
-	 * 
+	 *
 	 * Memory management needs redesign here, this is just a dirty workaround.
 	 */
 	if (rebuild && rbw->constraints) {
@@ -1394,7 +1394,7 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, bool 
 			rigidbody_update_sim_ob(scene, rbw, ob, rbo);
 		}
 	}
-	
+
 	/* update constraints */
 	if (rbw->constraints == NULL) /* no constraints, move on */
 		return;

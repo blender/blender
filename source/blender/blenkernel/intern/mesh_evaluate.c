@@ -165,7 +165,7 @@ void BKE_mesh_calc_normals_mapping_ex(
 	/* if (fnors != r_faceNors) MEM_freeN(fnors); */ /* NO NEED TO ALLOC YET */
 
 	fnors = pnors = NULL;
-	
+
 }
 
 typedef struct MeshCalcNormalsData {
@@ -178,7 +178,7 @@ typedef struct MeshCalcNormalsData {
 } MeshCalcNormalsData;
 
 static void mesh_calc_normals_poly_cb(
-        void *__restrict userdata, 
+        void *__restrict userdata,
         const int pidx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
@@ -189,7 +189,7 @@ static void mesh_calc_normals_poly_cb(
 }
 
 static void mesh_calc_normals_poly_prepare_cb(
-        void *__restrict userdata, 
+        void *__restrict userdata,
         const int pidx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
@@ -378,14 +378,14 @@ void BKE_mesh_calc_normals_tessface(
 	for (i = 0; i < numVerts; i++) {
 		MVert *mv = &mverts[i];
 		float *no = tnorms[i];
-		
+
 		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
 			normalize_v3_v3(no, mv->co);
 		}
 
 		normal_float_to_short_v3(mv->no, no);
 	}
-	
+
 cleanup:
 	MEM_freeN(tnorms);
 
@@ -2442,19 +2442,19 @@ static bool mesh_calc_center_centroid_ex(
 	const MLoopTri *lt;
 	float totweight;
 	int i;
-	
+
 	zero_v3(r_center);
-	
+
 	if (looptri_num == 0)
 		return false;
-	
+
 	totweight = 0.0f;
 	for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
 		const MVert *v1 = &mverts[mloop[lt->tri[0]].v];
 		const MVert *v2 = &mverts[mloop[lt->tri[1]].v];
 		const MVert *v3 = &mverts[mloop[lt->tri[2]].v];
 		float area;
-		
+
 		area = area_tri_v3(v1->co, v2->co, v3->co);
 		madd_v3_v3fl(r_center, v1->co, area);
 		madd_v3_v3fl(r_center, v2->co, area);
@@ -2463,9 +2463,9 @@ static bool mesh_calc_center_centroid_ex(
 	}
 	if (totweight == 0.0f)
 		return false;
-	
+
 	mul_v3_fl(r_center, 1.0f / (3.0f * totweight));
-	
+
 	return true;
 }
 
@@ -2485,18 +2485,18 @@ void BKE_mesh_calc_volume(
 	float center[3];
 	float totvol;
 	int i;
-	
+
 	if (r_volume)
 		*r_volume = 0.0f;
 	if (r_center)
 		zero_v3(r_center);
-	
+
 	if (looptri_num == 0)
 		return;
-	
+
 	if (!mesh_calc_center_centroid_ex(mverts, mverts_num, looptri, looptri_num, mloop, center))
 		return;
-	
+
 	totvol = 0.0f;
 
 	for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
@@ -2504,7 +2504,7 @@ void BKE_mesh_calc_volume(
 		const MVert *v2 = &mverts[mloop[lt->tri[1]].v];
 		const MVert *v3 = &mverts[mloop[lt->tri[2]].v];
 		float vol;
-		
+
 		vol = volume_tetrahedron_signed_v3(center, v1->co, v2->co, v3->co);
 		if (r_volume) {
 			totvol += vol;
@@ -2516,7 +2516,7 @@ void BKE_mesh_calc_volume(
 			madd_v3_v3fl(r_center, v3->co, vol);
 		}
 	}
-	
+
 	/* Note: Depending on arbitrary centroid position,
 	 * totvol can become negative even for a valid mesh.
 	 * The true value is always the positive value.

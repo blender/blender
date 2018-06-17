@@ -50,10 +50,10 @@
 
 void BKE_bproperty_free(bProperty *prop)
 {
-	
+
 	if (prop->poin && prop->poin != &prop->data) MEM_freeN(prop->poin);
 	MEM_freeN(prop);
-	
+
 }
 
 void BKE_bproperty_free_list(ListBase *lb)
@@ -68,7 +68,7 @@ void BKE_bproperty_free_list(ListBase *lb)
 bProperty *BKE_bproperty_copy(const bProperty *prop)
 {
 	bProperty *propn;
-	
+
 	propn = MEM_dupallocN(prop);
 	if (prop->poin && prop->poin != &prop->data) {
 		propn->poin = MEM_dupallocN(prop->poin);
@@ -90,19 +90,19 @@ void BKE_bproperty_copy_list(ListBase *lbn, const ListBase *lbo)
 		BLI_addtail(lbn, propn);
 		prop = prop->next;
 	}
-	
-	
+
+
 }
 
 void BKE_bproperty_init(bProperty *prop)
 {
 	/* also use when property changes type */
-	
+
 	if (prop->poin && prop->poin != &prop->data) MEM_freeN(prop->poin);
 	prop->poin = NULL;
-	
+
 	prop->data = 0;
-	
+
 	switch (prop->type) {
 		case GPROP_BOOL:
 		case GPROP_INT:
@@ -125,7 +125,7 @@ bProperty *BKE_bproperty_new(int type)
 	prop->type = type;
 
 	BKE_bproperty_init(prop);
-	
+
 	strcpy(prop->name, "prop");
 
 	return prop;
@@ -156,7 +156,7 @@ int BKE_bproperty_cmp(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 	float fvalue, ftest;
-	
+
 	switch (prop->type) {
 		case GPROP_BOOL:
 			if (BLI_strcasecmp(str, "true") == 0) {
@@ -168,7 +168,7 @@ int BKE_bproperty_cmp(bProperty *prop, const char *str)
 				else return 1;
 			}
 		/* no break, do GPROP_int too! */
-		
+
 		case GPROP_INT:
 			return prop->data - atoi(str);
 
@@ -185,7 +185,7 @@ int BKE_bproperty_cmp(bProperty *prop, const char *str)
 		case GPROP_STRING:
 			return strcmp(prop->poin, str);
 	}
-	
+
 	return 0;
 }
 #endif
@@ -211,7 +211,7 @@ void BKE_bproperty_set(bProperty *prop, const char *str)
 			strcpy(prop->poin, str); /* TODO - check size? */
 			break;
 	}
-	
+
 }
 
 void BKE_bproperty_add(bProperty *prop, const char *str)

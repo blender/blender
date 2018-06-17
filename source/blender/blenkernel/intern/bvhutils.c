@@ -76,7 +76,7 @@ float bvhtree_sphereray_tri_intersection(
         const BVHTreeRay *ray, float radius, const float m_dist,
         const float v0[3], const float v1[3], const float v2[3])
 {
-	
+
 	float idist;
 	float p1[3];
 	float hit_point[3];
@@ -107,7 +107,7 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 	t2 = vert[face->v3].co;
 	t3 = face->v4 ? vert[face->v4].co : NULL;
 
-	
+
 	do {
 		float nearest_tmp[3], dist_sq;
 
@@ -191,7 +191,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	t2 = vert[face->v3].co;
 	t3 = face->v4 ? vert[face->v4].co : NULL;
 
-	
+
 	do {
 		float dist;
 		if (ray->radius == 0.0f)
@@ -284,7 +284,7 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float co[3
 
 	closest_to_line_segment_v3(nearest_tmp, co, t0, t1);
 	dist_sq = len_squared_v3v3(nearest_tmp, co);
-	
+
 	if (dist_sq < nearest->dist_sq) {
 		nearest->index = index;
 		nearest->dist_sq = dist_sq;

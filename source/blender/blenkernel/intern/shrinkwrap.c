@@ -163,7 +163,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		OUT_OF_MEMORY();
 		return;
 	}
-	
+
 	/* Setup nearest */
 	nearest.index = -1;
 	nearest.dist_sq = FLT_MAX;

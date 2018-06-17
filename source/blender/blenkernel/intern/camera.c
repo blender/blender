@@ -139,7 +139,7 @@ void BKE_camera_object_mode(RenderData *rd, Object *cam_ob)
 /* get the camera's dof value, takes the dof object into account */
 float BKE_camera_object_dof_distance(Object *ob)
 {
-	Camera *cam = (Camera *)ob->data; 
+	Camera *cam = (Camera *)ob->data;
 	if (ob->type != OB_CAMERA)
 		return 0.0f;
 	if (cam->dof_ob) {

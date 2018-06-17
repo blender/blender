@@ -164,7 +164,7 @@ void texttool_suggest_prefix(const char *prefix, const int prefix_len)
 		suggestions.lastmatch = suggestions.last;
 		return;
 	}
-	
+
 	first = last = NULL;
 	for (match = suggestions.first; match; match = match->next) {
 		cmp = BLI_strncasecmp(prefix, match->name, prefix_len);

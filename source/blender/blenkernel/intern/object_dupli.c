@@ -126,7 +126,7 @@ static void init_context(
 static void copy_dupli_context(DupliContext *r_ctx, const DupliContext *ctx, Object *ob, float mat[4][4], int index, bool animated)
 {
 	*r_ctx = *ctx;
-	
+
 	r_ctx->animated |= animated; /* object animation makes all children animated */
 
 	/* XXX annoying, previously was done by passing an ID* argument, this at least is more explicit */
@@ -1281,7 +1281,7 @@ DupliApplyData *duplilist_apply(Object *ob, Scene *scene, ListBase *duplilist)
 {
 	DupliApplyData *apply_data = NULL;
 	int num_objects = BLI_listbase_count(duplilist);
-	
+
 	if (num_objects > 0) {
 		DupliObject *dob;
 		int i;
@@ -1302,7 +1302,7 @@ DupliApplyData *duplilist_apply(Object *ob, Scene *scene, ListBase *duplilist)
 			/* copy obmat from duplis */
 			copy_m4_m4(apply_data->extra[i].obmat, dob->ob->obmat);
 			copy_m4_m4(dob->ob->obmat, dob->mat);
-			
+
 			/* copy layers from the main duplicator object */
 			apply_data->extra[i].lay = dob->ob->lay;
 			dob->ob->lay = ob->lay;
@@ -1322,7 +1322,7 @@ void duplilist_restore(ListBase *duplilist, DupliApplyData *apply_data)
 	for (dob = duplilist->last, i = apply_data->num_objects - 1; dob; dob = dob->prev, --i) {
 		copy_m4_m4(dob->ob->obmat, apply_data->extra[i].obmat);
 		dob->ob->transflag &= ~OB_DUPLICALCDERIVED;
-		
+
 		dob->ob->lay = apply_data->extra[i].lay;
 	}
 }

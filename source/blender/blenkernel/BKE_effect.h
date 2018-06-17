@@ -97,7 +97,7 @@ typedef struct EffectorCache {
 	struct Object *ob;
 	struct ParticleSystem *psys;
 	struct SurfaceModifierData *surmd;
-	
+
 	struct PartDeflect *pd;
 
 	/* precalculated for guides */
@@ -167,10 +167,10 @@ unsigned int BKE_sim_debug_data_hash_combine(unsigned int kx, unsigned int ky);
 typedef struct SimDebugElement {
 	unsigned int category_hash;
 	unsigned int hash;
-	
+
 	int type;
 	float color[3];
-	
+
 	float v1[3], v2[3];
 	char str[64];
 } SimDebugElement;

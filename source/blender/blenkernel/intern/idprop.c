@@ -86,7 +86,7 @@ IDProperty *IDP_NewIDPArray(const char *name)
 	prop->type = IDP_IDPARRAY;
 	prop->len = 0;
 	BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
-	
+
 	return prop;
 }
 
@@ -113,14 +113,14 @@ IDProperty *IDP_CopyIDPArray(const IDProperty *array, const int flag)
 		memcpy(GETPROP(narray, i), tmp, sizeof(IDProperty));
 		MEM_freeN(tmp);
 	}
-	
+
 	return narray;
 }
 
 static void IDP_FreeIDPArray(IDProperty *prop, const bool do_id_user)
 {
 	int i;
-	
+
 	BLI_assert(prop->type == IDP_IDPARRAY);
 
 	for (i = 0; i < prop->len; i++)
@@ -472,7 +472,7 @@ static IDProperty *IDP_CopyID(const IDProperty *prop, const int flag)
 static IDProperty *IDP_CopyGroup(const IDProperty *prop, const int flag)
 {
 	IDProperty *newp, *link;
-	
+
 	BLI_assert(prop->type == IDP_GROUP);
 	newp = idp_generic_copy(prop, flag);
 	newp->len = prop->len;
@@ -1024,7 +1024,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 
 	prop->type = type;
 	BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
-	
+
 	return prop;
 }
 

@@ -277,7 +277,7 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, int subdivLevels, CCGAllocatorIFC *a
 		ss->fMap = ccg_ehash_new(0, &ss->allocatorIFC, ss->allocator);
 
 		ss->meshIFC = *ifc;
-		
+
 		ss->subdivLevels = subdivLevels;
 		ss->numGrids = 0;
 		ss->allowEdgeCreation = 0;
@@ -489,8 +489,8 @@ CCGError ccgSubSurf_initFullSync(CCGSubSurf *ss)
 
 	ss->currentAge++;
 
-	ss->oldVMap = ss->vMap; 
-	ss->oldEMap = ss->eMap; 
+	ss->oldVMap = ss->vMap;
+	ss->oldEMap = ss->eMap;
 	ss->oldFMap = ss->fMap;
 
 	ss->vMap = ccg_ehash_new(0, &ss->allocatorIFC, ss->allocator);
@@ -592,7 +592,7 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertDa
 	void **prevp;
 	CCGVert *v = NULL;
 	short seamflag = (seam) ? Vert_eSeam : 0;
-	
+
 	if (ss->syncState == eSyncState_Partial) {
 		v = ccg_ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
 		if (!v) {
@@ -937,7 +937,7 @@ void ccgSubSurf__effectedFaceNeighbours(CCGSubSurf *ss, CCGFace **faces, int num
 			for (j = 0; j < v->numFaces; j++)
 				if (!(v->faces[j]->flags & Face_eEffected))
 					break;
-			
+
 			if (j == v->numFaces) {
 				arrayV[numV++] = v;
 				v->flags |= Vert_eEffected;
@@ -952,7 +952,7 @@ void ccgSubSurf__effectedFaceNeighbours(CCGSubSurf *ss, CCGFace **faces, int num
 			for (j = 0; j < e->numFaces; j++)
 				if (!(e->faces[j]->flags & Face_eEffected))
 					break;
-			
+
 			if (j == e->numFaces) {
 				e->flags |= Edge_eEffected;
 				arrayE[numE++] = e;
@@ -1550,11 +1550,11 @@ int ccgSubSurf_getNumFinalFaces(const CCGSubSurf *ss)
 void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level)
 {
 	key->level = level;
-	
+
 	key->elem_size = ss->meshIFC.vertDataSize;
 	key->has_normals = ss->calcVertNormals;
 	key->num_layers = ss->meshIFC.numLayers;
-	
+
 	/* if normals are present, always the last three floats of an
 	 * element */
 	if (key->has_normals)

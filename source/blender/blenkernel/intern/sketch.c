@@ -374,65 +374,65 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 	marked = MEM_callocN(nb_points, "marked array");
 	marked[start] = 1;
 	marked[end] = 1;
-	
+
 	work = 1;
-	
+
 	/* while still reducing */
 	while (work) {
 		int ls, le;
 		work = 0;
-		
+
 		ls = start;
 		le = start + 1;
-		
+
 		/* while not over interval */
 		while (ls < end) {
 			int max_i = 0;
 			short v1[2];
 			float max_dist = 16; /* more than 4 pixels */
-			
+
 			/* find the next marked point */
 			while (marked[le] == 0) {
 				le++;
 			}
-			
+
 			/* perpendicular vector to ls-le */
-			v1[1] = old_points[le].p2d[0] - old_points[ls].p2d[0]; 
-			v1[0] = old_points[ls].p2d[1] - old_points[le].p2d[1]; 
-			
+			v1[1] = old_points[le].p2d[0] - old_points[ls].p2d[0];
+			v1[0] = old_points[ls].p2d[1] - old_points[le].p2d[1];
+
 
 			for (i = ls + 1; i < le; i++) {
 				float mul;
 				float dist;
 				short v2[2];
-				
-				v2[0] = old_points[i].p2d[0] - old_points[ls].p2d[0]; 
+
+				v2[0] = old_points[i].p2d[0] - old_points[ls].p2d[0];
 				v2[1] = old_points[i].p2d[1] - old_points[ls].p2d[1];
-				
+
 				if (v2[0] == 0 && v2[1] == 0) {
 					continue;
 				}
 
 				mul = (float)(v1[0] * v2[0] + v1[1] * v2[1]) / (float)(v2[0] * v2[0] + v2[1] * v2[1]);
-				
+
 				dist = mul * mul * (v2[0] * v2[0] + v2[1] * v2[1]);
-				
+
 				if (dist > max_dist) {
 					max_dist = dist;
 					max_i = i;
 				}
 			}
-			
+
 			if (max_i != 0) {
 				work = 1;
 				marked[max_i] = 1;
 			}
-			
+
 			ls = le;
 			le = ls + 1;
 		}
 	}
-	
+
 
 	/* adding points after range */
 	for (i = start; i <= end; i++) {

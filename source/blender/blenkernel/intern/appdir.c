@@ -83,18 +83,18 @@ const char *BKE_appdir_folder_default(void)
 	if (uput_getenv("HOME", documentfolder, MAXPATHLEN)) {
 		if (BLI_is_dir(documentfolder)) return documentfolder;
 	}
-				
+
 	/* add user profile support for WIN 2K / NT.
 	 * This is %APPDATA%, which translates to either
 	 * %USERPROFILE%\Application Data or since Vista
 	 * to %USERPROFILE%\AppData\Roaming
 	 */
 	hResult = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentfolder);
-		
+
 	if (hResult == S_OK) {
 		if (BLI_is_dir(documentfolder)) return documentfolder;
 	}
-		
+
 	return NULL;
 #endif /* WIN32 */
 }
@@ -120,7 +120,7 @@ static bool test_path(
         const char *path_base, const char *path_sep, const char *folder_name)
 {
 	char tmppath[FILE_MAX];
-	
+
 	if (path_sep) {
 		BLI_join_dirfile(tmppath, sizeof(tmppath), path_base, path_sep);
 	}
@@ -161,7 +161,7 @@ static bool test_env_path(char *path, const char *envvar)
 {
 	const char *env = envvar ? getenv(envvar) : NULL;
 	if (!env) return false;
-	
+
 	if (BLI_is_dir(env)) {
 		BLI_strncpy(path, env, FILE_MAX);
 #ifdef PATH_DEBUG
@@ -193,7 +193,7 @@ static bool get_path_local(
         const char *folder_name, const char *subfolder_name, const int ver)
 {
 	char relfolder[FILE_MAX];
-	
+
 #ifdef PATH_DEBUG
 	printf("%s...\n", __func__);
 #endif
@@ -276,11 +276,11 @@ static bool get_path_user(
 
 	if (!user_path[0])
 		return false;
-	
+
 #ifdef PATH_DEBUG
 	printf("%s: %s\n", __func__, user_path);
 #endif
-	
+
 	if (subfolder_name) {
 		return test_path(targetpath, targetpath_len, user_path, folder_name, subfolder_name);
 	}
@@ -334,14 +334,14 @@ static bool get_path_system(
 	system_base_path = (const char *)GHOST_getSystemDir(ver, blender_version_decimal(ver));
 	if (system_base_path)
 		BLI_strncpy(system_path, system_base_path, FILE_MAX);
-	
+
 	if (!system_path[0])
 		return false;
-	
+
 #ifdef PATH_DEBUG
 	printf("%s: %s\n", __func__, system_path);
 #endif
-	
+
 	if (subfolder_name) {
 		/* try $BLENDERPATH/folder_name/subfolder_name */
 		return test_path(targetpath, targetpath_len, system_path, folder_name, subfolder_name);
@@ -371,16 +371,16 @@ const char *BKE_appdir_folder_id_ex(
 			if (get_path_local(path, path_len, "datafiles", subfolder, ver)) break;
 			if (get_path_system(path, path_len, "datafiles", subfolder, "BLENDER_SYSTEM_DATAFILES", ver)) break;
 			return NULL;
-			
+
 		case BLENDER_USER_DATAFILES:
 			if (get_path_user(path, path_len, "datafiles", subfolder, "BLENDER_USER_DATAFILES", ver)) break;
 			return NULL;
-			
+
 		case BLENDER_SYSTEM_DATAFILES:
 			if (get_path_local(path, path_len, "datafiles", subfolder, ver)) break;
 			if (get_path_system(path, path_len, "datafiles", subfolder, "BLENDER_SYSTEM_DATAFILES", ver)) break;
 			return NULL;
-			
+
 		case BLENDER_USER_AUTOSAVE:
 			if (get_path_user(path, path_len, "autosave", subfolder, "BLENDER_USER_DATAFILES", ver)) break;
 			return NULL;
@@ -388,16 +388,16 @@ const char *BKE_appdir_folder_id_ex(
 		case BLENDER_USER_CONFIG:
 			if (get_path_user(path, path_len, "config", subfolder, "BLENDER_USER_CONFIG", ver)) break;
 			return NULL;
-			
+
 		case BLENDER_USER_SCRIPTS:
 			if (get_path_user(path, path_len, "scripts", subfolder, "BLENDER_USER_SCRIPTS", ver)) break;
 			return NULL;
-			
+
 		case BLENDER_SYSTEM_SCRIPTS:
 			if (get_path_local(path, path_len, "scripts", subfolder, ver)) break;
 			if (get_path_system(path, path_len, "scripts", subfolder, "BLENDER_SYSTEM_SCRIPTS", ver)) break;
 			return NULL;
-			
+
 		case BLENDER_SYSTEM_PYTHON:
 			if (get_path_local(path, path_len, "python", subfolder, ver)) break;
 			if (get_path_system(path, path_len, "python", subfolder, "BLENDER_SYSTEM_PYTHON", ver)) break;
@@ -407,7 +407,7 @@ const char *BKE_appdir_folder_id_ex(
 			BLI_assert(0);
 			break;
 	}
-	
+
 	return path;
 }
 
@@ -460,14 +460,14 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
 	/* only for user folders */
 	if (!ELEM(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_SCRIPTS, BLENDER_USER_AUTOSAVE))
 		return NULL;
-	
+
 	path = BKE_appdir_folder_id(folder_id, subfolder);
-	
+
 	if (!path) {
 		path = BKE_appdir_folder_id_user_notest(folder_id, subfolder);
 		if (path) BLI_dir_create_recursive(path);
 	}
-	
+
 	return path;
 }
 
@@ -739,8 +739,8 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 	if (userdir && BLI_is_dir(userdir)) {
 		BLI_strncpy(fullname, userdir, maxlen);
 	}
-	
-	
+
+
 #ifdef WIN32
 	if (fullname[0] == '\0') {
 		const char *tmp = getenv("TEMP"); /* Windows */
@@ -756,7 +756,7 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 			BLI_strncpy(fullname, tmp, maxlen);
 		}
 	}
-	
+
 	if (fullname[0] == '\0') {
 		const char *tmp = getenv("TMPDIR");
 		if (tmp && BLI_is_dir(tmp)) {
@@ -764,7 +764,7 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 		}
 	}
 #endif
-	
+
 	if (fullname[0] == '\0') {
 		BLI_strncpy(fullname, "/tmp/", maxlen);
 	}

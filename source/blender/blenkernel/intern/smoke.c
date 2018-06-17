@@ -1810,7 +1810,7 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 				int zn = z - new_shift[2];
 				int index;
 				float max_den;
-				
+
 				/* skip if cell already belongs to new area */
 				if (xn >= min[0] && xn <= max[0] && yn >= min[1] && yn <= max[1] && zn >= min[2] && zn <= max[2])
 					continue;

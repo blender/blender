@@ -221,8 +221,8 @@ void CustomData_copy_data_named(const struct CustomData *source,
                           struct CustomData *dest, int source_index,
                           int dest_index, int count);
 void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
-void CustomData_bmesh_copy_data(const struct CustomData *source, 
-                                struct CustomData *dest, void *src_block, 
+void CustomData_bmesh_copy_data(const struct CustomData *source,
+                                struct CustomData *dest, void *src_block,
                                 void **dest_block);
 
 /* frees data in a CustomData object
@@ -348,9 +348,9 @@ void CustomData_bmesh_free_block_data(struct CustomData *data, void *block);
 
 /* copy custom data to/from layers as in mesh/derivedmesh, to editmesh
  * blocks of data. the CustomData's must not be compatible */
-void CustomData_to_bmesh_block(const struct CustomData *source, 
+void CustomData_to_bmesh_block(const struct CustomData *source,
                                struct CustomData *dest, int src_index, void **dest_block, bool use_default_init);
-void CustomData_from_bmesh_block(const struct CustomData *source, 
+void CustomData_from_bmesh_block(const struct CustomData *source,
                                  struct CustomData *dest, void *src_block, int dest_index);
 
 void CustomData_file_write_prepare(

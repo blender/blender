@@ -72,7 +72,7 @@ void BKE_world_free(World *wrld)
 	}
 
 	GPU_material_free(&wrld->gpumaterial);
-	
+
 	BKE_icon_id_delete((struct ID *)wrld);
 	BKE_previewimg_free(&wrld->preview);
 }
@@ -101,7 +101,7 @@ void BKE_world_init(World *wrld)
 	wrld->aobias = 0.05f;
 	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
 	wrld->ao_approx_error = 0.25f;
-	
+
 	wrld->preview = NULL;
 	wrld->miststa = 5.0f;
 	wrld->mistdist = 25.0f;
@@ -168,9 +168,9 @@ World *BKE_world_localize(World *wrld)
 
 	World *wrldn;
 	int a;
-	
+
 	wrldn = BKE_libblock_copy_nolib(&wrld->id, false);
-	
+
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (wrld->mtex[a]) {
 			wrldn->mtex[a] = MEM_mallocN(sizeof(MTex), __func__);
@@ -180,11 +180,11 @@ World *BKE_world_localize(World *wrld)
 
 	if (wrld->nodetree)
 		wrldn->nodetree = ntreeLocalize(wrld->nodetree);
-	
+
 	wrldn->preview = NULL;
-	
+
 	BLI_listbase_clear(&wrldn->gpumaterial);
-	
+
 	return wrldn;
 }
 

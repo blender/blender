@@ -115,7 +115,7 @@ void free_matcopybuf(void);
 void copy_matcopybuf(struct Main *bmain, struct Material *ma);
 void paste_matcopybuf(struct Main *bmain, struct Material *ma);
 
-/* handle backward compatibility for tface/materials called from doversion */	
+/* handle backward compatibility for tface/materials called from doversion */
 int do_version_tface(struct Main *main);
 
 #ifdef __cplusplus

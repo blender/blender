@@ -44,25 +44,25 @@
 BulletSoftBody *bsbNew(void)
 {
 	BulletSoftBody *bsb;
-	
+
 	bsb = MEM_callocN(sizeof(BulletSoftBody), "bulletsoftbody");
-		
+
 	bsb->flag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
 	bsb->linStiff = 0.5f;
 	bsb->angStiff = 1.0f;
 	bsb->volume = 1.0f;
 
-	
+
 	bsb->viterations	=	0;
 	bsb->piterations	=	2;
 	bsb->diterations	=	0;
 	bsb->citerations	=	4;
-	
+
 	bsb->kSRHR_CL		=	0.1f;
 	bsb->kSKHR_CL		=	1.f;
 	bsb->kSSHR_CL		=	0.5f;
 	bsb->kSR_SPLT_CL	=	0.5f;
-	
+
 	bsb->kSK_SPLT_CL	=	0.5f;
 	bsb->kSS_SPLT_CL	=	0.5f;
 	bsb->kVCF			=	1;
@@ -80,7 +80,7 @@ BulletSoftBody *bsbNew(void)
 
 	bsb->kSHR			=	1.0f;
 	bsb->kAHR			=	0.7f;
-	
+
 	bsb->collisionflags = 0;
 	//bsb->collisionflags = OB_BSB_COL_CL_RS + OB_BSB_COL_CL_SS;
 	bsb->numclusteriterations = 64;

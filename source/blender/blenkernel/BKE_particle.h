@@ -60,7 +60,7 @@ struct LinkNode;
 struct KDTree;
 struct RNG;
 struct BVHTreeRay;
-struct BVHTreeRayHit; 
+struct BVHTreeRayHit;
 struct EdgeHash;
 
 #define PARTICLE_COLLISION_MAX_COLLISIONS 10
@@ -192,7 +192,7 @@ typedef struct ParticleCollisionElement {
 
 	/* values interpolated from original data*/
 	float x0[3], x1[3], x2[3], p[3];
-	
+
 	/* results for found intersection point */
 	float nor[3], vel[3], uv[2];
 

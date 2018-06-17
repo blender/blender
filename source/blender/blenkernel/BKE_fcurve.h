@@ -66,7 +66,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 
 /* ************** F-Curve Drivers ***************** */
 
-/* With these iterators for convenience, the variables "tarIndex" and "dtar" can be 
+/* With these iterators for convenience, the variables "tarIndex" and "dtar" can be
  * accessed directly from the code using them, but it is not recommended that their
  * values be changed to point at other slots...
  */
@@ -77,14 +77,14 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 		DriverTarget *dtar = &dvar->targets[0]; \
 		int tarIndex = 0; \
 		for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++)
-		 
+
 /* convenience looper over USED driver targets only */
 #define DRIVER_TARGETS_USED_LOOPER(dvar) \
 	{ \
 		DriverTarget *dtar = &dvar->targets[0]; \
 		int tarIndex = 0; \
 		for (; tarIndex < dvar->num_targets; tarIndex++, dtar++)
-		
+
 /* tidy up for driver targets loopers */
 #define DRIVER_TARGETS_LOOPER_END \
 }
@@ -133,7 +133,7 @@ typedef struct FModifierTypeInfo {
 	short requires;         /* eFMI_Requirement_Flags */
 	char  name[64];          /* name of modifier in interface */
 	char  structName[64];    /* name of struct for SDNA */
-	
+
 	/* data management function pointers - special handling */
 	/* free any data that is allocated separately (optional) */
 	void (*free_data)(struct FModifier *fcm);
@@ -143,7 +143,7 @@ typedef struct FModifierTypeInfo {
 	void (*new_data)(void *mdata);
 	/* verifies that the modifier settings are valid */
 	void (*verify_data)(struct FModifier *fcm);
-	
+
 	/* evaluation */
 	/* evaluate time that the modifier requires the F-Curve to be evaluated at */
 	float (*evaluate_modifier_time)(struct FCurve *fcu, struct FModifier *fcm, float cvalue, float evaltime);
@@ -229,7 +229,7 @@ struct FCurve *iter_step_fcurve(struct FCurve *fcu_iter, const char rna_path[]);
 /* high level function to get an fcurve from C without having the rna */
 struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, const char *prop_name, int index, bool *r_driven);
 
-/* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated 
+/* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated
  *	e.g.  numMatches = list_find_data_fcurves(matches, &act->curves, "pose.bones[", "MyFancyBone");
  */
 int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName);
@@ -290,7 +290,7 @@ float calculate_fcurve(struct PathResolvedRNA *anim_rna, struct FCurve *fcu, flo
 
 /* -------- Defines --------  */
 
-/* Basic signature for F-Curve sample-creation function 
+/* Basic signature for F-Curve sample-creation function
  *	- fcu: the F-Curve being operated on
  *	- data: pointer to some specific data that may be used by one of the callbacks
  */
@@ -303,7 +303,7 @@ float fcurve_samplingcb_evalcurve(struct FCurve *fcu, void *data, float evaltime
 
 /* -------- Main Methods --------  */
 
-/* Main API function for creating a set of sampled curve data, given some callback function 
+/* Main API function for creating a set of sampled curve data, given some callback function
  * used to retrieve the values to store.
  */
 void fcurve_store_samples(struct FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb);

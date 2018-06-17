@@ -1,4 +1,4 @@
-/* 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ typedef struct OceanResult {
 	float disp[3];
 	float normal[3];
 	float foam;
-	
+
 	/* raw eigenvalues/vectors */
 	float Jminus;
 	float Jplus;
@@ -47,25 +47,25 @@ typedef struct OceanCache {
 	struct ImBuf **ibufs_disp;
 	struct ImBuf **ibufs_foam;
 	struct ImBuf **ibufs_norm;
-	
+
 	const char *bakepath;
 	const char *relbase;
-	
+
 	/* precalculated for time range */
 	float *time;
-	
+
 	/* constant for time range */
 	float wave_scale;
 	float chop_amount;
 	float foam_coverage;
 	float foam_fade;
-	
+
 	int start;
 	int end;
 	int duration;
 	int resolution_x;
 	int resolution_y;
-	
+
 	int baked;
 } OceanCache;
 
@@ -93,7 +93,7 @@ struct OceanCache *BKE_ocean_init_cache(
         int start, int end, float wave_scale,
         float chop_amount, float foam_coverage, float foam_fade, int resolution);
 void BKE_ocean_simulate_cache(struct OceanCache *och, int frame);
-	
+
 void BKE_ocean_bake(struct Ocean *o, struct OceanCache *och, void (*update_cb)(void *, float progress, int *cancel), void *update_cb_data);
 void BKE_ocean_cache_eval_uv(struct OceanCache *och, struct OceanResult *ocr, int f, float u, float v);
 void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, int f, int i, int j);

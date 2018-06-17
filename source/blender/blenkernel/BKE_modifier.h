@@ -197,7 +197,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * The derivedData argument should always be non-NULL; the modifier
 	 * should read the object data from the derived object instead of the
-	 * actual object data. 
+	 * actual object data.
 	 *
 	 * The useRenderParams argument indicates if the modifier is being
 	 * applied in the service of the renderer which may alter quality
@@ -217,7 +217,7 @@ typedef struct ModifierTypeInfo {
 
 	/* Like applyModifier but called during editmode (for supporting
 	 * modifiers).
-	 * 
+	 *
 	 * The derived object that is returned must support the operations that
 	 * are expected from editmode objects. The same qualifications regarding
 	 * derivedData apply as for applyModifier.
@@ -232,7 +232,7 @@ typedef struct ModifierTypeInfo {
 
 	/* Initialize new instance data for this modifier type, this function
 	 * should set modifier variables to their default values.
-	 * 
+	 *
 	 * This function is optional.
 	 */
 	void (*initData)(struct ModifierData *md);
@@ -273,7 +273,7 @@ typedef struct ModifierTypeInfo {
 	bool (*isDisabled)(struct ModifierData *md, int userRenderParams);
 
 	/* Add the appropriate relations to the DEP graph depending on the
-	 * modifier data. 
+	 * modifier data.
 	 *
 	 * This function is optional.
 	 */
@@ -299,7 +299,7 @@ typedef struct ModifierTypeInfo {
 	/* True when a deform modifier uses normals, the requiredDataMask
 	 * cant be used here because that refers to a normal layer where as
 	 * in this case we need to know if the deform modifier uses normals.
-	 * 
+	 *
 	 * this is needed because applying 2 deform modifiers will give the
 	 * second modifier bogus normals.
 	 * */

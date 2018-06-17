@@ -80,10 +80,10 @@ void BKE_animdata_copy_id_action(struct Main *bmain, struct ID *id, const bool s
 typedef enum eAnimData_MergeCopy_Modes {
 	/* Keep destination action */
 	ADT_MERGECOPY_KEEP_DST = 0,
-	
+
 	/* Use src action (make a new copy) */
 	ADT_MERGECOPY_SRC_COPY = 1,
-	
+
 	/* Use src action (but just reference the existing version) */
 	ADT_MERGECOPY_SRC_REF  = 2
 } eAnimData_MergeCopy_Modes;
