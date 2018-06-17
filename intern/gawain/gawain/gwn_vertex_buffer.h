@@ -34,7 +34,7 @@ typedef struct Gwn_VertBuf {
 	unsigned vertex_ct;    // number of verts we want to draw
 	unsigned vertex_alloc; // number of verts data
 	bool dirty;
-	uchar* data; // NULL indicates data in VRAM (unmapped)
+	unsigned char* data; // NULL indicates data in VRAM (unmapped)
 	uint32_t vbo_id; // 0 indicates not yet allocated
 	Gwn_UsageType usage; // usage hint for GL optimisation
 } Gwn_VertBuf;
@@ -71,17 +71,17 @@ void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf*, unsigned a_idx, unsigned stride,
 typedef struct Gwn_VertBufRaw {
 	unsigned size;
 	unsigned stride;
-	uchar* data;
-	uchar* data_init;
+	unsigned char* data;
+	unsigned char* data_init;
 #if TRUST_NO_ONE
 	// Only for overflow check
-	uchar* _data_end;
+	unsigned char* _data_end;
 #endif
 } Gwn_VertBufRaw;
 
 GWN_INLINE void *GWN_vertbuf_raw_step(Gwn_VertBufRaw *a)
 	{
-	uchar* data = a->data;
+	unsigned char* data = a->data;
 	a->data += a->stride;
 #if TRUST_NO_ONE
 	assert(data < a->_data_end);
