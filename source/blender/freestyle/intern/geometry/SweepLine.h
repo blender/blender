@@ -216,7 +216,7 @@ struct binary_rule
 
 
 template<class T, class Point>
-class SweepLine 
+class SweepLine
 {
 public:
 	SweepLine() {}
@@ -231,7 +231,7 @@ public:
 		}
 	}
 
-	inline void process(Point& p, vector<Segment<T, Point>*>& segments, 
+	inline void process(Point& p, vector<Segment<T, Point>*>& segments,
 #if 0
 	                    binary_rule<Segment<T, Point>,Segment<T, Point> >& binrule = \
 	                            binary_rule<Segment<T, Point>, Segment<T, Point> >(),

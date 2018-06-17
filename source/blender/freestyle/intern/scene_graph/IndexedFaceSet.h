@@ -90,7 +90,7 @@ public:
 	 *        - TRIANGLES     : the face indices describe single triangles
 	 *      If iCopy != 0, the array is copied; you must desallocate iFaceStyle. Else you must not.
 	 *    iVIndices,
-	 *      Array of vertices indices. 
+	 *      Array of vertices indices.
 	 *      The integers contained in this array must be multiple of 3.
 	 *      If iCopy != 0, the array is copied; you must desallocate iVIndices. Else you must not.
 	 *    iVISize

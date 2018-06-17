@@ -109,7 +109,7 @@ private:
 	int _level;
 
 public:
-	/*! Builds the functor from name of the 
+	/*! Builds the functor from name of the
 	 *  Map that must be read.
 	 *  \param iMapName
 	 *    The name of the map.
@@ -171,7 +171,7 @@ private:
 	int _level;
 
 public:
-	/*! Builds the functor 
+	/*! Builds the functor
 	 *  \param level
 	 *    The level of the pyramid from which the pixel must be read.
 	 */
@@ -199,7 +199,7 @@ private:
 	float _step;
 
 public:
-	/*! Builds the functor 
+	/*! Builds the functor
 	 *  \param level
 	 *    The level of the pyramid from which the pixel must be read.
 	 */

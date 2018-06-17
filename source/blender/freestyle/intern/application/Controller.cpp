@@ -471,11 +471,11 @@ void Controller::ComputeViewMap()
 
 	// retrieve the 3D viewpoint and transformations information
 	//----------------------------------------------------------
-	// Save the viewpoint context at the view level in order 
+	// Save the viewpoint context at the view level in order
 	// to be able to restore it later:
 
 	// Restore the context of view:
-	// we need to perform all these operations while the 
+	// we need to perform all these operations while the
 	// 3D context is on.
 	Vec3f vp(UNPACK3(g_freestyle.viewpoint));
 

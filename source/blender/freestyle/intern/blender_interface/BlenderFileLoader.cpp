@@ -668,7 +668,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		}
 	}
 
-	// We might have several times the same vertex. We want a clean 
+	// We might have several times the same vertex. We want a clean
 	// shape with no real-vertex. Here, we are making a cleaning pass.
 	float *cleanVertices = NULL;
 	unsigned int cvSize;

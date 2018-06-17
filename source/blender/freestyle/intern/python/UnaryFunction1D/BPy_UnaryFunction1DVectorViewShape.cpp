@@ -97,16 +97,16 @@ static int UnaryFunction1DVectorViewShape___init__(BPy_UnaryFunction1DVectorView
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
-	
+
 	if (!obj) {
 		self->uf1D_vectorviewshape = new UnaryFunction1D< std::vector<ViewShape*> >();
 	}
 	else {
 		self->uf1D_vectorviewshape = new UnaryFunction1D< std::vector<ViewShape*> >(IntegrationType_from_BPy_IntegrationType(obj));
 	}
-	
+
 	self->uf1D_vectorviewshape->py_uf1D = (PyObject *)self;
-	
+
 	return 0;
 }
 
@@ -149,7 +149,7 @@ static PyObject *UnaryFunction1DVectorViewShape___call__(BPy_UnaryFunction1DVect
 		ViewShape *v = self->uf1D_vectorviewshape->result[i];
 		PyList_SET_ITEM(list, i, v ? BPy_ViewShape_from_ViewShape(*v) : (Py_INCREF(Py_None), Py_None));
 	}
-	
+
 	return list;
 }
 

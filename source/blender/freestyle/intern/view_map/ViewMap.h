@@ -218,7 +218,7 @@ public:
 	 *    iB2D
 	 *      The x,y,z 2D coordinates of the projection of iB3D
 	 *    iFEdgeB
-	 *      The second FEdge   
+	 *      The second FEdge
 	 *    id
 	 *      The id that must be given to that TVertex
 	 */
@@ -650,7 +650,7 @@ public:
 /**********************************/
 /*                                */
 /*                                */
-/*             NonTVertex         */ 
+/*             NonTVertex         */
 /*                                */
 /*                                */
 /**********************************/
@@ -1643,7 +1643,7 @@ void ViewShape::SplitEdge(FEdge *fe, const vector<TVertex*>& iViewVertices, vect
 	ViewEdge *vEdge = fe->viewedge();
 
 	// We first need to sort the view vertices from farther to closer to fe->vertexA
-	SVertex *sv, *sv2; 
+	SVertex *sv, *sv2;
 	ViewVertex *vva, *vvb;
 	vector<TVertex*>::const_iterator vv, vvend;
 	for (vv = iViewVertices.begin(), vvend = iViewVertices.end(); vv != vvend; vv++) {
@@ -1685,7 +1685,7 @@ void ViewShape::SplitEdge(FEdge *fe, const vector<TVertex*>& iViewVertices, vect
 		if ((vva == 0) || (vvb == 0)) { // that means we're dealing with a closed viewedge (loop)
 			// remove the chain that was starting by the fedge A of vEdge (which is different from fe !!!!)
 			shape->RemoveEdgeFromChain(vEdge->fedgeA());
-			// we set 
+			// we set
 			vEdge->setA(*vv);
 			vEdge->setB(*vv);
 			vEdge->setFEdgeA(newEdge);

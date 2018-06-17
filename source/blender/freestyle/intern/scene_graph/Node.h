@@ -104,7 +104,7 @@ public:
 
 protected:
 
-private: 
+private:
 	BBox<Vec3r> _BBox;
 
 #ifdef WITH_CXX_GUARDEDALLOC

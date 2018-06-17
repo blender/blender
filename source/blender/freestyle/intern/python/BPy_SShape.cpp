@@ -232,11 +232,11 @@ static PyObject *SShape_vertices_get(BPy_SShape *self, void *UNUSED(closure))
 	vector< SVertex * >::iterator it;
 	PyObject *py_vertices = PyList_New(vertices.size());
 	unsigned int i = 0;
-	
+
 	for (it = vertices.begin(); it != vertices.end(); it++) {
 		PyList_SET_ITEM(py_vertices, i++, BPy_SVertex_from_SVertex(*(*it)));
 	}
-	
+
 	return py_vertices;
 }
 
@@ -252,11 +252,11 @@ static PyObject *SShape_edges_get(BPy_SShape *self, void *UNUSED(closure))
 	vector< FEdge * >::iterator it;
 	PyObject *py_edges = PyList_New(edges.size());
 	unsigned int i = 0;
-	
+
 	for (it = edges.begin(); it != edges.end(); it++) {
 		PyList_SET_ITEM(py_edges, i++, Any_BPy_FEdge_from_FEdge(*(*it)));
 	}
-	
+
 	return py_edges;
 }
 

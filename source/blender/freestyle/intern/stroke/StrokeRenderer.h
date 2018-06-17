@@ -112,7 +112,7 @@ protected:
 	static string _patterns_path;
 	static string _brushes_path;
 	unsigned int _defaultTextureId;
-	
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TextureManager")
 #endif

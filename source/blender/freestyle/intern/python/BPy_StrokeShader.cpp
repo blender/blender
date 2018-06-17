@@ -216,7 +216,7 @@ static PyObject *StrokeShader_shade(BPy_StrokeShader *self, PyObject *args, PyOb
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Stroke_Type, &py_s))
 		return NULL;
-	
+
 	if (typeid(*(self->ss)) == typeid(StrokeShader)) {
 		PyErr_SetString(PyExc_TypeError, "shade method not properly overridden");
 		return NULL;

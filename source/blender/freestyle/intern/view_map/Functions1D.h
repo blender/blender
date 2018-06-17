@@ -101,7 +101,7 @@ public:
 	}
 
 	/*! The operator ().
-	 *  \param inter 
+	 *  \param inter
 	 *    The Interface1D on which we wish to evaluate the function.
 	 *  \return the result of the function of type T.
 	 */

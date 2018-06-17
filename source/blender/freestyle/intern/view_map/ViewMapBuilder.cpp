@@ -1004,7 +1004,7 @@ ViewMap *ViewMapBuilder::BuildViewMap(WingedEdge& we, visibility_algo iAlgo, rea
 	computeInitialViewEdges(we);
 
 	// Detects cusps
-	computeCusps(_ViewMap); 
+	computeCusps(_ViewMap);
 
 	// Compute intersections
 	ComputeIntersections(_ViewMap, sweep_line, epsilon);
@@ -1059,7 +1059,7 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], r
 		cout << "Origin: [" << prosceniumOrigin[0] << ", " << prosceniumOrigin[1] << "]"<< endl;
 	}
 
-	// A separate occluder proscenium will also be maintained, starting out the same as the viewport proscenium, and 
+	// A separate occluder proscenium will also be maintained, starting out the same as the viewport proscenium, and
 	// expanding as necessary so that it encompasses the center point of at least one feature edge in each retained view
 	// edge.
 	// The occluder proscenium will be used later to cull occluding triangles before they are inserted into the Grid.
@@ -1182,7 +1182,7 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], r
 			FEdge *festart = (*ve)->fedgeA();
 			FEdge *fe = festart;
 			do {
-				// If not (already) visible and center point inside occluder proscenium, 
+				// If not (already) visible and center point inside occluder proscenium,
 				if (!fe->isInImage() && insideProscenium(occluderProscenium, fe->center2d())) {
 					// Use the feature edge for visibility determination
 					fe->setIsInImage(true);
@@ -2286,7 +2286,7 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
 	for (fe = ioEdges.begin(), fend = ioEdges.end(); fe != fend; fe++)
 		(*fe)->userdata = NULL;
 
-	// list containing the new edges resulting from splitting operations. 
+	// list containing the new edges resulting from splitting operations.
 	vector<FEdge*> newEdges;
 
 	// retrieve the intersected edges:

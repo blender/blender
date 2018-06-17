@@ -95,7 +95,7 @@ namespace MatrixUtil {
 		// Ugly Fortran-porting trick: indices for v are between 1 and n
 		v--;
 
-		// Step 3 : compute the weight of the non diagonal terms 
+		// Step 3 : compute the weight of the non diagonal terms
 		ij = 1;
 		a_norm = 0.0;
 		for (i = 1; i <= n; i++) {
@@ -240,7 +240,7 @@ namespace MatrixUtil {
 			index[i] = jj;
 		}
 
-		// Step 7: save the eigen vectors 
+		// Step 7: save the eigen vectors
 
 		// back from Fortran to to C++
 		v++;

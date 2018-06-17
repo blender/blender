@@ -741,7 +741,7 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 #if 0
 	_averageTextureAlpha = 0.5; //default value
 	if (_strokeType == OIL_STROKE)
-		_averageTextureAlpha = 0.75; 
+		_averageTextureAlpha = 0.75;
 	if (_strokeType >= NO_BLEND_STROKE)
 		_averageTextureAlpha = 1.0;
 #endif

@@ -128,7 +128,7 @@ public:
 	void Clear();
 
 	/* Erases the layers */
-	virtual void Erase(); 
+	virtual void Erase();
 
 	/* Reads a pixel area from the canvas */
 	virtual void readColorPixels(int x, int y, int w, int h, RGBImage& oImage) const = 0;

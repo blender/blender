@@ -150,21 +150,21 @@ public:
 		Vec<T, N> res(v);
 		res += *this;
 		return res;
-	} 
+	}
 
 	inline Vec<T, N> operator-(const Vec<T, N>& v) const
 	{
 		Vec<T, N> res(*this);
 		res -= v;
 		return res;
-	} 
+	}
 
 	inline Vec<T, N> operator*(const typename Vec<T, N>::value_type r) const
 	{
 		Vec<T, N> res(*this);
 		res *= r;
 		return res;
-	} 
+	}
 
 	inline Vec<T, N> operator/(const typename Vec<T, N>::value_type r) const
 	{
@@ -172,7 +172,7 @@ public:
 		if (r)
 			res /= r;
 		return res;
-	} 
+	}
 
 	// dot product
 	inline value_type operator*(const Vec<T, N>& v) const
@@ -181,7 +181,7 @@ public:
 		for (unsigned int i = 0; i < N; i++)
 			sum += (*this)[i] * v[i];
 		return sum;
-	} 
+	}
 
 	template <class U>
 	inline Vec<T, N>& operator=(const Vec<U, N>& v)
@@ -255,7 +255,7 @@ public:
 			if (this->_coord[i] == v[i])
 				continue;
 		}
-		return false;  
+		return false;
 	}
 
 	inline bool operator>(const Vec<T, N>& v) const
@@ -268,7 +268,7 @@ public:
 			if (this->_coord[i] == v[i])
 				continue;
 		}
-		return false;  
+		return false;
 	}
 
 protected:

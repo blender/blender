@@ -222,7 +222,7 @@ static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void *UN
 {
 	PyObject *item;
 	vector< ViewVertex *> v;
-	
+
 	if (!PyList_Check(value)) {
 		PyErr_SetString(PyExc_TypeError, "value must be a list of ViewVertex objects");
 		return -1;

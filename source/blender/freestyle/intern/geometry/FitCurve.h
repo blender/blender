@@ -90,7 +90,7 @@ public:
 	 *      Control points of the sets of bezier curve segments.
 	 *      Each segment is made of 4 points (polynomial degree of curve = 3)
 	 *    error
-	 *      max error tolerance between resulting curve and input data 
+	 *      max error tolerance between resulting curve and input data
 	 */
 	void FitCurve(std::vector<Vec2d>& data, std::vector<Vec2d>& oCurve, double error);
 

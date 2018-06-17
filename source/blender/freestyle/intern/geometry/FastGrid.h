@@ -32,7 +32,7 @@
 
 namespace Freestyle {
 
-/*! Class to define a regular grid used for ray casting computations 
+/*! Class to define a regular grid used for ray casting computations
  *  We don't use a hashtable here. The grid is explicitly stored for faster computations.
  *  However, this might result in significant increase in memory usage (compared to the regular grid)
  */

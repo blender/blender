@@ -565,7 +565,7 @@ public:
 	 *    \param iBegin
 	 *      The iterator pointing to the first vertex.
 	 *    \param iEnd
-	 *      The iterator pointing to the end of the vertex list. 
+	 *      The iterator pointing to the end of the vertex list.
 	 */
 	template<class InputVertexIterator>
 	Stroke(InputVertexIterator iBegin, InputVertexIterator iEnd);
@@ -601,7 +601,7 @@ public:
 	 *  Resamples the curve with a given sampling.
 	 *  If this sampling is < to the actual sampling value, no resampling is done.
 	 *  \param iSampling
-	 *    The new sampling value.  
+	 *    The new sampling value.
 	 */
 	int Resample(float iSampling);
 
@@ -609,7 +609,7 @@ public:
 	 */
 	void RemoveAllVertices();
 
-	/*! Removes the stroke vertex iVertex 
+	/*! Removes the stroke vertex iVertex
 	 *  from the stroke.
 	 *  The length and curvilinear abscissa are updated
 	 *  consequently.

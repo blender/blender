@@ -61,7 +61,7 @@ public:
 protected:
 	real _maxThickness;
 	real _minThickness;
-	Vec2f _orientation; 
+	Vec2f _orientation;
 	bool _clamp;
 };
 

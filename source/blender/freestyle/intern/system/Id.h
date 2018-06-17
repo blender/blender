@@ -78,7 +78,7 @@ public:
 		_first = iBrother._first;
 		_second = iBrother._second;
 		return *this;
-	} 
+	}
 
 	/*! Returns the first Id number */
 	id_type getFirst() const

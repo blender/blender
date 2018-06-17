@@ -341,7 +341,7 @@ PyDoc_STRVAR(SVertex_normals_doc,
 
 static PyObject *SVertex_normals_get(BPy_SVertex *self, void *UNUSED(closure))
 {
-	PyObject *py_normals; 
+	PyObject *py_normals;
 	set< Vec3r > normals = self->sv->normals();
 	set< Vec3r >::iterator it;
 	py_normals = PyList_New(normals.size());

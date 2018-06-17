@@ -314,7 +314,7 @@ static PyObject *Stroke_stroke_vertices_size(BPy_Stroke *self)
 	return PyLong_FromLong(self->s->strokeVerticesSize());
 }
 
-static PyMethodDef BPy_Stroke_methods[] = {	
+static PyMethodDef BPy_Stroke_methods[] = {
 	{"compute_sampling", (PyCFunction)Stroke_compute_sampling, METH_VARARGS | METH_KEYWORDS,
 	                     Stroke_compute_sampling_doc},
 	{"resample", (PyCFunction)Stroke_resample, METH_VARARGS | METH_KEYWORDS, Stroke_resample_doc},

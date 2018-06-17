@@ -73,7 +73,7 @@ T closestPointToSegment(const T& P, const T& A, const T& B, real& distance)
 
 	distance = PPb.norm();
 	return Pb; // closest point lies on AB
-} 
+}
 
 inline Vec3r closestPointOnPolygon(const Vec3r& point, const Polygon3r& poly)
 {
