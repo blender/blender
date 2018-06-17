@@ -72,6 +72,8 @@ static bool BLI_path_is_abs(const char *name);
 
 #endif  /* WIN32 */
 
+// #define DEBUG_STRSIZE
+
 /* implementation */
 
 /**
@@ -658,6 +660,9 @@ void BLI_path_rel(char *file, const char *relfile)
  */
 bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
 {
+#ifdef DEBUG_STRSIZE
+	memset(string, 0xff, sizeof(*string) * maxlen);
+#endif
 	const size_t string_len = strlen(string);
 	const size_t suffix_len = strlen(suffix);
 	const size_t sep_len = strlen(sep);
@@ -1045,6 +1050,9 @@ bool BLI_path_abs(char *path, const char *basepath)
  */
 bool BLI_path_cwd(char *path, const size_t maxlen)
 {
+#ifdef DEBUG_STRSIZE
+	memset(path, 0xff, sizeof(*path) * maxlen);
+#endif
 	bool wasrelative = true;
 	const int filelen = strlen(path);
 	
@@ -1132,6 +1140,9 @@ bool BLI_path_program_search(
         char *fullname, const size_t maxlen,
         const char *name)
 {
+#ifdef DEBUG_STRSIZE
+	memset(fullname, 0xff, sizeof(*fullname) * maxlen);
+#endif
 	const char *path;
 	bool retval = false;
 
@@ -1434,6 +1445,9 @@ bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
  */
 bool BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 {
+#ifdef DEBUG_STRSIZE
+	memset(path, 0xff, sizeof(*path) * maxlen);
+#endif
 	const size_t path_len = strlen(path);
 	const size_t ext_len = strlen(ext);
 	ssize_t a;
@@ -1460,6 +1474,9 @@ bool BLI_replace_extension(char *path, size_t maxlen, const char *ext)
  */
 bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
 {
+#ifdef DEBUG_STRSIZE
+	memset(path, 0xff, sizeof(*path) * maxlen);
+#endif
 	const size_t path_len = strlen(path);
 	const size_t ext_len = strlen(ext);
 	ssize_t a;
@@ -1488,6 +1505,9 @@ bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
 
 bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename)
 {
+#ifdef DEBUG_STRSIZE
+	memset(filepath, 0xff, sizeof(*filepath) * maxlen);
+#endif
 	char *c = (char *)BLI_last_slash(filepath);
 	if (!c || ((c - filepath) < maxlen - (strlen(filename) + 1))) {
 		strcpy(c ? &c[1] : filepath, filename);
@@ -1504,6 +1524,10 @@ bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename)
  * */
 void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen)
 {
+#ifdef DEBUG_STRSIZE
+	memset(dir, 0xff, sizeof(*dir) * dirlen);
+	memset(file, 0xff, sizeof(*file) * filelen);
+#endif
 	const char *lslash_str = BLI_last_slash(string);
 	const size_t lslash = lslash_str ? (size_t)(lslash_str - string) + 1 : 0;
 
@@ -1563,6 +1587,9 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__re
  */
 void BLI_join_dirfile(char *__restrict dst, const size_t maxlen, const char *__restrict dir, const char *__restrict file)
 {
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxlen);
+#endif
 	size_t dirlen = BLI_strnlen(dir, maxlen);
 
 	/* args can't match */
@@ -1603,6 +1630,9 @@ void BLI_join_dirfile(char *__restrict dst, const size_t maxlen, const char *__r
  */
 size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path, ...)
 {
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * dst_len);
+#endif
 	if (UNLIKELY(dst_len == 0)) {
 		return 0;
 	}
