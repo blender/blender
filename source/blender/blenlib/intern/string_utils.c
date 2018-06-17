@@ -404,7 +404,7 @@ char *BLI_string_join_arrayN(
 	for (uint i = 0; i < strings_len; i++) {
 		total_len += strlen(strings[i]);
 	}
-	char *result = MEM_mallocN(sizeof(char) * total_len, __func__); 
+	char *result = MEM_mallocN(sizeof(char) * total_len, __func__);
 	char *c = result;
 	for (uint i = 0; i < strings_len; i++) {
 		c += BLI_strcpy_rlen(c, strings[i]);
@@ -426,7 +426,7 @@ char *BLI_string_join_array_by_sep_charN(
 		total_len = 1;
 	}
 
-	char *result = MEM_mallocN(sizeof(char) * total_len, __func__); 
+	char *result = MEM_mallocN(sizeof(char) * total_len, __func__);
 	char *c = result;
 	if (strings_len != 0) {
 		for (uint i = 0; i < strings_len; i++) {
@@ -455,7 +455,7 @@ char *BLI_string_join_array_by_sep_char_with_tableN(
 		total_len = 1;
 	}
 
-	char *result = MEM_mallocN(sizeof(char) * total_len, __func__); 
+	char *result = MEM_mallocN(sizeof(char) * total_len, __func__);
 	char *c = result;
 	if (strings_len != 0) {
 		for (uint i = 0; i < strings_len; i++) {

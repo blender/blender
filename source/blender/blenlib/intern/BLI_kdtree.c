@@ -123,7 +123,7 @@ static uint kdtree_balance(KDTreeNode *nodes, uint totnode, uint axis, const uin
 		return KD_NODE_UNSET;
 	else if (totnode == 1)
 		return 0 + ofs;
-	
+
 	/* quicksort style sorting around median */
 	left = 0;
 	right = totnode - 1;
@@ -238,7 +238,7 @@ int BLI_kdtree_find_nearest(
 		if (root->right != KD_NODE_UNSET)
 			stack[cur++] = root->right;
 	}
-	
+
 	while (cur--) {
 		const KDTreeNode *node = &nodes[stack[cur]];
 
@@ -448,7 +448,7 @@ int BLI_kdtree_find_nearest_n__normal(
 
 	cur_dist = squared_distance(root->co, co, nor);
 	add_nearest(r_nearest, &found, n, root->index, cur_dist, root->co);
-	
+
 	if (co[root->d] < root->co[root->d]) {
 		if (root->right != KD_NODE_UNSET)
 			stack[cur++] = root->right;

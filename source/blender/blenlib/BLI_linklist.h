@@ -24,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BLI_LINKLIST_H__
 #define __BLI_LINKLIST_H__
 

@@ -51,9 +51,9 @@ typedef void (*AxialSymmetry)(struct BNode *root_node, struct BNode *node1, stru
 typedef struct BGraph {
 	ListBase arcs;
 	ListBase nodes;
-	
+
 	float length;
-	
+
 	/* function pointer to deal with custom fonctionnality */
 	FreeArc         free_arc;
 	FreeNode        free_node;
@@ -68,7 +68,7 @@ typedef struct BNode {
 
 	int degree;
 	struct BArc **arcs;
-	
+
 	int subgraph_index;
 
 	int symmetry_level;
@@ -114,17 +114,17 @@ typedef struct BArcIterator {
 	NextNFct nextN;
 	PreviousFct previous;
 	StoppedFct stopped;
-	
+
 	float *p, *no;
 	float size;
-	
+
 	int length;
 	int index;
 } BArcIterator;
 
 /* Helper structure for radial symmetry */
 typedef struct RadialArc {
-	struct BArc *arc; 
+	struct BArc *arc;
 	float n[3]; /* normalized vector joining the nodes of the arc */
 } RadialArc;
 

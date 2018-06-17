@@ -58,7 +58,7 @@
 typedef struct DynStrElem DynStrElem;
 struct DynStrElem {
 	DynStrElem *next;
-	
+
 	char *str;
 };
 
@@ -81,7 +81,7 @@ DynStr *BLI_dynstr_new(void)
 	ds->elems = ds->last = NULL;
 	ds->curlen = 0;
 	ds->memarena = NULL;
-	
+
 	return ds;
 }
 
@@ -115,11 +115,11 @@ void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
 {
 	DynStrElem *dse = dynstr_alloc(ds, sizeof(*dse));
 	int cstrlen = strlen(cstr);
-	
+
 	dse->str = dynstr_alloc(ds, cstrlen + 1);
 	memcpy(dse->str, cstr, cstrlen + 1);
 	dse->next = NULL;
-	
+
 	if (!ds->last)
 		ds->last = ds->elems = dse;
 	else

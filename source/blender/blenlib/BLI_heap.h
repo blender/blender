@@ -17,7 +17,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BLI_HEAP_H__
 #define __BLI_HEAP_H__
 

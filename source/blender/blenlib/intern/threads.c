@@ -69,7 +69,7 @@ static void *thread_tls_data;
 /* We're using one global task scheduler for all kind of tasks. */
 static TaskScheduler *task_scheduler = NULL;
 
-/* ********** basic thread control API ************ 
+/* ********** basic thread control API ************
  *
  * Many thread cases have an X amount of jobs, and only an Y amount of
  * threads are useful (typically amount of cpus)
@@ -189,10 +189,10 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
 
 	if (threadbase != NULL && tot > 0) {
 		BLI_listbase_clear(threadbase);
-	
+
 		if (tot > RE_MAX_THREAD) tot = RE_MAX_THREAD;
 		else if (tot < 1) tot = 1;
-	
+
 		for (a = 0; a < tot; a++) {
 			ThreadSlot *tslot = MEM_callocN(sizeof(ThreadSlot), "threadslot");
 			BLI_addtail(threadbase, tslot);
@@ -219,7 +219,7 @@ int BLI_available_threads(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	int counter = 0;
-	
+
 	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail)
 			counter++;
@@ -232,7 +232,7 @@ int BLI_threadpool_available_thread_index(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	int counter = 0;
-	
+
 	for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
 		if (tslot->avail)
 			return counter;
@@ -261,7 +261,7 @@ int BLI_thread_is_main(void)
 void BLI_threadpool_insert(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
-	
+
 	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail) {
 			tslot->avail = 0;
@@ -276,7 +276,7 @@ void BLI_threadpool_insert(ListBase *threadbase, void *callerdata)
 void BLI_threadpool_remove(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
-	
+
 	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->callerdata == callerdata) {
 			pthread_join(tslot->pthread, NULL);
@@ -290,7 +290,7 @@ void BLI_threadpool_remove_index(ListBase *threadbase, int index)
 {
 	ThreadSlot *tslot;
 	int counter = 0;
-	
+
 	for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
 		if (counter == index && tslot->avail == 0) {
 			pthread_join(tslot->pthread, NULL);
@@ -304,7 +304,7 @@ void BLI_threadpool_remove_index(ListBase *threadbase, int index)
 void BLI_threadpool_clear(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
-	
+
 	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail == 0) {
 			pthread_join(tslot->pthread, NULL);
@@ -317,9 +317,9 @@ void BLI_threadpool_clear(ListBase *threadbase)
 void BLI_threadpool_end(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
-	
+
 	/* only needed if there's actually some stuff to end
-	 * this way we don't end up decrementing thread_levels on an empty threadbase 
+	 * this way we don't end up decrementing thread_levels on an empty threadbase
 	 * */
 	if (threadbase && (BLI_listbase_is_empty(threadbase) == false)) {
 		for (tslot = threadbase->first; tslot; tslot = tslot->next) {
@@ -355,7 +355,7 @@ int BLI_system_thread_count(void)
 		SYSTEM_INFO info;
 		GetSystemInfo(&info);
 		t = (int) info.dwNumberOfProcessors;
-#else 
+#else
 #   ifdef __APPLE__
 		int mib[2];
 		size_t len;
@@ -694,11 +694,11 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 	pthread_mutex_lock(&queue->mutex);
 	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait)
 		pthread_cond_wait(&queue->push_cond, &queue->mutex);
-	
+
 	/* if we have something, pop it */
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
-		
+
 		if (BLI_gsqueue_is_empty(queue->queue))
 			pthread_cond_broadcast(&queue->finish_cond);
 	}
@@ -764,11 +764,11 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 	/* if we have something, pop it */
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
-		
+
 		if (BLI_gsqueue_is_empty(queue->queue))
 			pthread_cond_broadcast(&queue->finish_cond);
 	}
-	
+
 	pthread_mutex_unlock(&queue->mutex);
 
 	return work;

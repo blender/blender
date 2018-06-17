@@ -312,7 +312,7 @@ void BLI_thread_srandom(int thread, unsigned int seed)
 {
 	if (thread >= BLENDER_MAX_THREADS)
 		thread = 0;
-	
+
 	BLI_rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
 	seed = BLI_rng_get_uint(&rng_tab[thread]);
 	BLI_rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
@@ -338,11 +338,11 @@ RNG_THREAD_ARRAY *BLI_rng_threaded_new(void)
 {
 	unsigned int i;
 	RNG_THREAD_ARRAY *rngarr = MEM_mallocN(sizeof(RNG_THREAD_ARRAY), "random_array");
-	
+
 	for (i = 0; i < BLENDER_MAX_THREADS; i++) {
 		BLI_rng_srandom(&rngarr->rng_tab[i], (unsigned int)clock());
 	}
-	
+
 	return rngarr;
 }
 

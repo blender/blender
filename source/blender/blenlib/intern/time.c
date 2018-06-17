@@ -39,7 +39,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-double PIL_check_seconds_timer(void) 
+double PIL_check_seconds_timer(void)
 {
 	static int hasperfcounter = -1; /* (-1 == unknown) */
 	static double perffreq;
@@ -89,7 +89,7 @@ void PIL_sleep_ms(int ms)
 #include <unistd.h>
 #include <sys/time.h>
 
-double PIL_check_seconds_timer(void) 
+double PIL_check_seconds_timer(void)
 {
 	struct timeval tv;
 	struct timezone tz;
@@ -115,7 +115,7 @@ void PIL_sleep_ms(int ms)
 		sleep(ms / 1000);
 		ms = (ms % 1000);
 	}
-	
+
 	usleep(ms * 1000);
 }
 

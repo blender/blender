@@ -317,7 +317,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 		vert->used = false;
 		vert->index = i++;
 		box->v[BL] = vert++;
-		
+
 		vert->trb = vert->brb = vert->tlb =
 		            vert->isect_cache[0] = vert->isect_cache[1] =
 		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
@@ -326,7 +326,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 		vert->used = false;
 		vert->index = i++;
 		box->v[TR] = vert++;
-		
+
 		vert->trb = vert->blb = vert->tlb =
 		            vert->isect_cache[0] = vert->isect_cache[1] =
 		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
@@ -335,7 +335,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 		vert->used = false;
 		vert->index = i++;
 		box->v[TL] = vert++;
-		
+
 		vert->trb = vert->blb = vert->brb =
 		            vert->isect_cache[0] = vert->isect_cache[1] =
 		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
@@ -406,7 +406,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 
 			/* This vert has a free quadrant
 			 * Test if we can place the box here
-			 * vert->free & quad_flags[j] - Checks 
+			 * vert->free & quad_flags[j] - Checks
 			 * */
 
 			for (j = 0; (j < 4) && isect; j++) {
@@ -434,7 +434,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 					 * with any other boxes
 					 * Assume no intersection... */
 					isect = false;
-					
+
 					if ( /* Constrain boxes to positive X/Y values */
 					    box_xmin_get(box) < 0.0f || box_ymin_get(box) < 0.0f ||
 					    /* check for last intersected */
@@ -494,8 +494,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 						/* Mask free flags for verts that are
 						 * on the bottom or side so we don't get
 						 * boxes outside the given rectangle ares
-						 * 
-						 * We can do an else/if here because only the first 
+						 *
+						 * We can do an else/if here because only the first
 						 * box can be at the very bottom left corner */
 						if (box_xmin_get(box) <= 0) {
 							box->v[TL]->free &= ~(TLF | BLF);
@@ -508,7 +508,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 
 						/* The following block of code does a logical
 						 * check with 2 adjacent boxes, its possible to
-						 * flag verts on one or both of the boxes 
+						 * flag verts on one or both of the boxes
 						 * as being used by checking the width or
 						 * height of both boxes */
 						if (vert->tlb && vert->trb && (box == vert->tlb || box == vert->trb)) {

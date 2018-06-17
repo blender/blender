@@ -47,7 +47,7 @@ void BLI_freeNode(BGraph *graph, BNode *node)
 	if (node->arcs) {
 		MEM_freeN(node->arcs);
 	}
-	
+
 	if (graph->free_node) {
 		graph->free_node(node);
 	}
@@ -76,7 +76,7 @@ void BLI_removeArc(BGraph *graph, BArc *arc)
 void BLI_flagNodes(BGraph *graph, int flag)
 {
 	BNode *node;
-	
+
 	for (node = graph->nodes.first; node; node = node->next) {
 		node->flag = flag;
 	}
@@ -85,7 +85,7 @@ void BLI_flagNodes(BGraph *graph, int flag)
 void BLI_flagArcs(BGraph *graph, int flag)
 {
 	BArc *arc;
-	
+
 	for (arc = graph->arcs.first; arc; arc = arc->next) {
 		arc->flag = flag;
 	}
@@ -106,9 +106,9 @@ void BLI_buildAdjacencyList(BGraph *graph)
 		if (node->arcs != NULL) {
 			MEM_freeN(node->arcs);
 		}
-		
+
 		node->arcs = MEM_callocN((node->degree) * sizeof(BArc *), "adjacency list");
-		
+
 		/* temporary use to indicate the first index available in the lists */
 		node->flag = 0;
 	}
@@ -132,9 +132,9 @@ void BLI_rebuildAdjacencyListForNode(BGraph *graph, BNode *node)
 	if (node->arcs != NULL) {
 		MEM_freeN(node->arcs);
 	}
-	
+
 	node->arcs = MEM_callocN((node->degree) * sizeof(BArc *), "adjacency list");
-	
+
 	/* temporary use to indicate the first index available in the lists */
 	node->flag = 0;
 
@@ -167,13 +167,13 @@ void BLI_freeAdjacencyList(BGraph *graph)
 bool BLI_hasAdjacencyList(BGraph *graph)
 {
 	BNode *node;
-	
+
 	for (node = graph->nodes.first; node; node = node->next) {
 		if (node->arcs == NULL) {
 			return false;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -188,10 +188,10 @@ void BLI_replaceNodeInArc(BGraph *graph, BArc *arc, BNode *node_src, BNode *node
 		arc->tail = node_src;
 		node_src->degree++;
 	}
-	
+
 	if (arc->head == arc->tail) {
 		node_src->degree -= 2;
-		
+
 		graph->free_arc(arc);
 		BLI_freelinkN(&graph->arcs, arc);
 	}
@@ -204,10 +204,10 @@ void BLI_replaceNodeInArc(BGraph *graph, BArc *arc, BNode *node_src, BNode *node
 void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced)
 {
 	BArc *arc, *next_arc;
-	
+
 	for (arc = graph->arcs.first; arc; arc = next_arc) {
 		next_arc = arc->next;
-		
+
 		if (arc->head == node_replaced) {
 			arc->head = node_src;
 			node_replaced->degree--;
@@ -219,15 +219,15 @@ void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced)
 			node_replaced->degree--;
 			node_src->degree++;
 		}
-		
+
 		if (arc->head == arc->tail) {
 			node_src->degree -= 2;
-			
+
 			graph->free_arc(arc);
 			BLI_freelinkN(&graph->arcs, arc);
 		}
 	}
-	
+
 	if (node_replaced->degree == 0) {
 		BLI_removeNode(graph, node_replaced);
 	}
@@ -237,7 +237,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 {
 	const float limit_sq = limit * limit;
 	BNode *node_src, *node_replaced;
-	
+
 	for (node_src = graph->nodes.first; node_src; node_src = node_src->next) {
 		for (node_replaced = graph->nodes.first; node_replaced; node_replaced = node_replaced->next) {
 			if (node_replaced != node_src && len_squared_v3v3(node_replaced->p, node_src->p) <= limit_sq) {
@@ -245,7 +245,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 			}
 		}
 	}
-	
+
 }
 
 BNode *BLI_FindNodeByPosition(BGraph *graph, const float p[3], const float limit)
@@ -253,7 +253,7 @@ BNode *BLI_FindNodeByPosition(BGraph *graph, const float p[3], const float limit
 	const float limit_sq = limit * limit;
 	BNode *closest_node = NULL, *node;
 	float min_distance = 0.0f;
-	
+
 	for (node = graph->nodes.first; node; node = node->next) {
 		float distance = len_squared_v3v3(p, node->p);
 		if (distance <= limit_sq && (closest_node == NULL || distance < min_distance)) {
@@ -261,7 +261,7 @@ BNode *BLI_FindNodeByPosition(BGraph *graph, const float p[3], const float limit
 			min_distance = distance;
 		}
 	}
-	
+
 	return closest_node;
 }
 /************************************* SUBGRAPH DETECTION **********************************************/
@@ -271,15 +271,15 @@ static void flagSubgraph(BNode *node, int subgraph)
 	if (node->subgraph_index == 0) {
 		BArc *arc;
 		int i;
-		
+
 		node->subgraph_index = subgraph;
-		
+
 		for (i = 0; i < node->degree; i++) {
 			arc = node->arcs[i];
 			flagSubgraph(BLI_otherNode(arc, node), subgraph);
 		}
 	}
-} 
+}
 
 int BLI_FlagSubgraphs(BGraph *graph)
 {
@@ -289,18 +289,18 @@ int BLI_FlagSubgraphs(BGraph *graph)
 	if (BLI_hasAdjacencyList(graph) == 0) {
 		BLI_buildAdjacencyList(graph);
 	}
-	
+
 	for (node = graph->nodes.first; node; node = node->next) {
 		node->subgraph_index = 0;
 	}
-	
+
 	for (node = graph->nodes.first; node; node = node->next) {
 		if (node->subgraph_index == 0) {
 			subgraph++;
 			flagSubgraph(node, subgraph);
 		}
 	}
-	
+
 	return subgraph;
 }
 
@@ -320,7 +320,7 @@ void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph)
 static bool detectCycle(BNode *node, BArc *src_arc)
 {
 	bool value = false;
-	
+
 	if (node->flag == 0) {
 		int i;
 
@@ -329,7 +329,7 @@ static bool detectCycle(BNode *node, BArc *src_arc)
 
 		for (i = 0; i < node->degree && value == 0; i++) {
 			BArc *arc = node->arcs[i];
-			
+
 			/* don't go back on the source arc */
 			if (arc != src_arc) {
 				value = detectCycle(BLI_otherNode(arc, node), arc);
@@ -339,7 +339,7 @@ static bool detectCycle(BNode *node, BArc *src_arc)
 	else {
 		value = true;
 	}
-	
+
 	return value;
 }
 
@@ -347,9 +347,9 @@ bool BLI_isGraphCyclic(BGraph *graph)
 {
 	BNode *node;
 	bool value = false;
-	
+
 	/* NEED TO CHECK IF ADJACENCY LIST EXIST */
-	
+
 	/* Mark all nodes as not visited */
 	BLI_flagNodes(graph, 0);
 
@@ -360,20 +360,20 @@ bool BLI_isGraphCyclic(BGraph *graph)
 			value = value || detectCycle(node, NULL);
 		}
 	}
-	
+
 	return value;
 }
 
 BArc *BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 {
 	BArc *nextArc;
-	
+
 	for (nextArc = graph->arcs.first; nextArc; nextArc = nextArc->next) {
 		if (arc != nextArc && (nextArc->head == v || nextArc->tail == v)) {
 			break;
 		}
 	}
-	
+
 	return nextArc;
 }
 
@@ -382,9 +382,9 @@ BArc *BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 static int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 {
 	int depth = 0;
-	
+
 	node->flag = 1;
-	
+
 	if (include_root) {
 		BNode *newNode = BLI_otherNode(rootArc, node);
 		return subtreeShape(newNode, rootArc, 0);
@@ -396,18 +396,18 @@ static int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 		}
 		else {
 			int i;
-	
+
 			for (i = 0; i < node->degree; i++) {
 				BArc *arc = node->arcs[i];
 				BNode *newNode = BLI_otherNode(arc, node);
-				
+
 				/* stop immediate and cyclic backtracking */
 				if (arc != rootArc && newNode->flag == 0) {
 					depth += subtreeShape(newNode, arc, 0);
 				}
 			}
 		}
-		
+
 		return SHAPE_RADIX * depth + 1;
 	}
 }
@@ -428,13 +428,13 @@ float BLI_subtreeLength(BNode *node)
 	for (i = 0; i < node->degree; i++) {
 		BArc *arc = node->arcs[i];
 		BNode *other_node = BLI_otherNode(arc, node);
-		
+
 		if (other_node->flag != 0) {
-			float subgraph_length = arc->length + BLI_subtreeLength(other_node); 
+			float subgraph_length = arc->length + BLI_subtreeLength(other_node);
 			length = MAX2(length, subgraph_length);
 		}
 	}
-	
+
 	return length;
 }
 
@@ -443,12 +443,12 @@ void BLI_calcGraphLength(BGraph *graph)
 	float length = 0;
 	int nb_subgraphs;
 	int i;
-	
+
 	nb_subgraphs = BLI_FlagSubgraphs(graph);
-	
+
 	for (i = 1; i <= nb_subgraphs; i++) {
 		BNode *node;
-		
+
 		for (node = graph->nodes.first; node; node = node->next) {
 			/* start on an external node  of the subgraph */
 			if (node->subgraph_index == i && node->degree == 1) {
@@ -458,7 +458,7 @@ void BLI_calcGraphLength(BGraph *graph)
 			}
 		}
 	}
-	
+
 	graph->length = length;
 }
 
@@ -469,7 +469,7 @@ static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level
 void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 {
 	float dv[3], pv[3];
-	
+
 	sub_v3_v3v3(dv, v, center);
 	project_v3_v3v3(pv, dv, axis);
 	mul_v3_fl(pv, -2);
@@ -481,7 +481,7 @@ static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring,
 	const float limit_sq = limit * limit;
 	int symmetric = 1;
 	int i;
-	
+
 	/* sort ring by angle */
 	for (i = 0; i < total - 1; i++) {
 		float minAngle = FLT_MAX;
@@ -520,13 +520,13 @@ static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring,
 
 		add_v3_v3v3(tangent, ring[i].n, ring[j].n);
 		cross_v3_v3v3(normal, tangent, axis);
-		
+
 		node1 = BLI_otherNode(ring[i].arc, root_node);
 		node2 = BLI_otherNode(ring[j].arc, root_node);
 
 		copy_v3_v3(p, node2->p);
 		BLI_mirrorAlongAxis(p, root_node->p, normal);
-		
+
 		/* check if it's within limit before continuing */
 		if (len_squared_v3v3(node1->p, p) > limit_sq) {
 			symmetric = 0;
@@ -539,7 +539,7 @@ static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring,
 		copy_v3_v3(root_node->symmetry_axis, axis);
 		root_node->symmetry_flag |= SYM_PHYSICAL;
 		root_node->symmetry_flag |= SYM_RADIAL;
-		
+
 		/* FLAG SYMMETRY GROUP */
 		for (i = 0; i < total; i++) {
 			ring[i].arc->symmetry_group = group;
@@ -567,7 +567,7 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 	/* total the number of arcs in the symmetry ring */
 	for (i = 0; i < root_node->degree; i++) {
 		BArc *connectedArc = root_node->arcs[i];
-		
+
 		/* depth is store as a negative in flag. symmetry level is positive */
 		if (connectedArc->symmetry_level == -depth) {
 			total++;
@@ -580,7 +580,7 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 	/* fill in the ring */
 	for (i = 0; i < root_node->degree; i++) {
 		BArc *connectedArc = root_node->arcs[i];
-		
+
 		/* depth is store as a negative in flag. symmetry level is positive */
 		if (connectedArc->symmetry_level == -depth) {
 			BNode *otherNode = BLI_otherNode(connectedArc, root_node);
@@ -608,14 +608,14 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 
 		for (j = i - 1; j >= 0; j--) {
 			BArc *arc1, *arc2;
-			
+
 			arc1 = ring[j].arc;
 			arc2 = ring[j + 1].arc;
-			
+
 			if (arc1->length > arc2->length) {
 				/* swap with smaller */
 				RadialArc tmp;
-				
+
 				tmp = ring[j + 1];
 				ring[j + 1] = ring[j];
 				ring[j] = tmp;
@@ -629,11 +629,11 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 	/* Dispatch to specific symmetry tests */
 	first = 0;
 	group = 0;
-	
+
 	for (i = 1; i < total; i++) {
 		int dispatch = 0;
 		int last = i - 1;
-		
+
 		if (fabsf(ring[first].arc->length - ring[i].arc->length) > limit) {
 			dispatch = 1;
 		}
@@ -645,9 +645,9 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 			last = i;
 			dispatch = 1;
 		}
-		
+
 		if (dispatch) {
-			int sub_total = last - first + 1; 
+			int sub_total = last - first + 1;
 
 			group += 1;
 
@@ -658,32 +658,32 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 			else if (sub_total == 2) {
 				BArc *arc1, *arc2;
 				BNode *node1, *node2;
-				
+
 				arc1 = ring[first].arc;
 				arc2 = ring[last].arc;
-				
+
 				node1 = BLI_otherNode(arc1, root_node);
 				node2 = BLI_otherNode(arc2, root_node);
-				
+
 				testAxialSymmetry(graph, root_node, node1, node2, arc1, arc2, axis, limit, group);
 			}
 			else if (sub_total != total) /* allocate a new sub ring if needed */ {
 				RadialArc *sub_ring = MEM_callocN(sizeof(RadialArc) * sub_total, "radial symmetry ring");
 				int sub_i;
-				
+
 				/* fill in the sub ring */
 				for (sub_i = 0; sub_i < sub_total; sub_i++) {
 					sub_ring[sub_i] = ring[first + sub_i];
 				}
-				
+
 				testRadialSymmetry(graph, root_node, sub_ring, sub_total, axis, limit, group);
-			
+
 				MEM_freeN(sub_ring);
 			}
 			else if (sub_total == total) {
 				testRadialSymmetry(graph, root_node, ring, total, axis, limit, group);
 			}
-			
+
 			first = i;
 		}
 	}
@@ -695,11 +695,11 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 static void flagAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc, int group)
 {
 	float vec[3];
-	
+
 	arc->symmetry_group = group;
-	
+
 	sub_v3_v3v3(vec, end_node->p, root_node->p);
-	
+
 	if (dot_v3v3(vec, root_node->symmetry_axis) < 0) {
 		arc->symmetry_flag |= SYM_SIDE_NEGATIVE;
 	}
@@ -719,9 +719,9 @@ static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNo
 	sub_v3_v3v3(p, root_node->p, node2->p);
 	cross_v3_v3v3(vec, p, axis);
 	add_v3_v3(vec, nor);
-	
+
 	cross_v3_v3v3(nor, vec, axis);
-	
+
 	if (fabsf(nor[0]) > fabsf(nor[1]) && fabsf(nor[0]) > fabsf(nor[2]) && nor[0] < 0) {
 		negate_v3(nor);
 	}
@@ -731,11 +731,11 @@ static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNo
 	else if (fabsf(nor[2]) > fabsf(nor[1]) && fabsf(nor[2]) > fabsf(nor[0]) && nor[2] < 0) {
 		negate_v3(nor);
 	}
-	
+
 	/* mirror node2 along axis */
 	copy_v3_v3(p, node2->p);
 	BLI_mirrorAlongAxis(p, root_node->p, nor);
-	
+
 	/* check if it's within limit before continuing */
 	if (len_squared_v3v3(node1->p, p) <= limit_sq) {
 		/* mark node as symmetric physically */
@@ -746,7 +746,7 @@ static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNo
 		/* flag side on arcs */
 		flagAxialSymmetry(root_node, node1, arc1, group);
 		flagAxialSymmetry(root_node, node2, arc2, group);
-		
+
 		if (graph->axial_symmetry) {
 			graph->axial_symmetry(root_node, node1, node2, arc1, arc2);
 		}
@@ -761,13 +761,13 @@ static void handleAxialSymmetry(BGraph *graph, BNode *root_node, int depth, floa
 	BArc *arc1 = NULL, *arc2 = NULL;
 	BNode *node1 = NULL, *node2 = NULL;
 	int i;
-	
+
 	/* mark topological symmetry */
 	root_node->symmetry_flag |= SYM_TOPOLOGICAL;
 
 	for (i = 0; i < root_node->degree; i++) {
 		BArc *connectedArc = root_node->arcs[i];
-		
+
 		/* depth is store as a negative in flag. symmetry level is positive */
 		if (connectedArc->symmetry_level == -depth) {
 			if (arc1 == NULL) {
@@ -781,12 +781,12 @@ static void handleAxialSymmetry(BGraph *graph, BNode *root_node, int depth, floa
 			}
 		}
 	}
-	
+
 	/* shouldn't happen, but just to be sure */
 	if (node1 == NULL || node2 == NULL) {
 		return;
 	}
-	
+
 	testAxialSymmetry(graph, root_node, node1, node2, arc1, arc2, axis, limit, 1);
 }
 
@@ -795,13 +795,13 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	float axis[3] = {0, 0, 0};
 	int count = 0;
 	int i;
-	
+
 	/* count the number of branches in this symmetry group
 	 * and determinate the axis of symmetry
 	 */
 	for (i = 0; i < node->degree; i++) {
 		BArc *connectedArc = node->arcs[i];
-		
+
 		/* depth is store as a negative in flag. symmetry level is positive */
 		if (connectedArc->symmetry_level == -depth) {
 			count++;
@@ -822,11 +822,11 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	else {
 		handleRadialSymmetry(graph, node, depth, axis, limit);
 	}
-		
+
 	/* markdown secondary symetries */
 	for (i = 0; i < node->degree; i++) {
 		BArc *connectedArc = node->arcs[i];
-		
+
 		if (connectedArc->symmetry_level == -depth) {
 			/* markdown symmetry for branches corresponding to the depth */
 			markdownSymmetryArc(graph, connectedArc, node, level + 1, limit);
@@ -841,16 +841,16 @@ static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level
 	/* if arc is null, we start straight from a node */
 	if (arc) {
 		arc->symmetry_level = level;
-		
+
 		node = BLI_otherNode(arc, node);
 	}
-	
+
 	for (i = 0; i < node->degree; i++) {
 		BArc *connectedArc = node->arcs[i];
-		
+
 		if (connectedArc != arc) {
 			BNode *connectedNode = BLI_otherNode(connectedArc, node);
-			
+
 			/* symmetry level is positive value, negative values is subtree depth */
 			connectedArc->symmetry_level = -BLI_subtreeShape(graph, connectedNode, connectedArc, 0);
 		}
@@ -861,17 +861,17 @@ static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level
 	for (i = 0; i < node->degree; i++) {
 		int issymmetryAxis = 0;
 		BArc *connectedArc = node->arcs[i];
-		
+
 		/* only arcs not already marked as symetric */
 		if (connectedArc->symmetry_level < 0) {
 			int j;
-			
+
 			/* true by default */
 			issymmetryAxis = 1;
-			
+
 			for (j = 0; j < node->degree; j++) {
 				BArc *otherArc = node->arcs[j];
-				
+
 				/* different arc, same depth */
 				if (otherArc != connectedArc && otherArc->symmetry_level == connectedArc->symmetry_level) {
 					/* not on the symmetry axis */
@@ -880,7 +880,7 @@ static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level
 				}
 			}
 		}
-		
+
 		/* arc could be on the symmetry axis */
 		if (issymmetryAxis == 1) {
 			/* no arc as been marked previously, keep this one */
@@ -893,17 +893,17 @@ static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level
 			}
 		}
 	}
-	
+
 	/* go down the arc continuing the symmetry axis */
 	if (arc) {
 		markdownSymmetryArc(graph, arc, node, level, limit);
 	}
 
-	
+
 	/* secondary symmetry */
 	for (i = 0; i < node->degree; i++) {
 		BArc *connectedArc = node->arcs[i];
-		
+
 		/* only arcs not already marked as symetric and is not the next arc on the symmetry axis */
 		if (connectedArc->symmetry_level < 0) {
 			/* subtree depth is store as a negative value in the symmetry */
@@ -916,34 +916,34 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 {
 	BNode *node;
 	BArc *arc;
-	
+
 	if (root_node == NULL) {
 		return;
 	}
-	
+
 	if (BLI_isGraphCyclic(graph)) {
 		return;
 	}
-	
+
 	/* mark down all arcs as non-symetric */
 	BLI_flagArcs(graph, 0);
-	
+
 	/* mark down all nodes as not on the symmetry axis */
 	BLI_flagNodes(graph, 0);
 
 	node = root_node;
-	
+
 	/* sanity check REMOVE ME */
 	if (node->degree > 0) {
 		arc = node->arcs[0];
-		
+
 		if (node->degree == 1) {
 			markdownSymmetryArc(graph, arc, node, 1, limit);
 		}
 		else {
 			markdownSymmetryArc(graph, NULL, node, 1, limit);
 		}
-		
+
 
 
 		/* mark down non-symetric arcs */
@@ -973,13 +973,13 @@ void *IT_head(void *arg)
 void *IT_tail(void *arg)
 {
 	BArcIterator *iter = (BArcIterator *)arg;
-	return iter->tail(iter); 
+	return iter->tail(iter);
 }
 
 void *IT_peek(void *arg, int n)
 {
 	BArcIterator *iter = (BArcIterator *)arg;
-	
+
 	if (iter->index + n < 0) {
 		return iter->head(iter);
 	}

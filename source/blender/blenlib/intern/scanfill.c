@@ -100,7 +100,7 @@ typedef struct ScanFillVertLink {
 static int vergscdata(const void *a1, const void *a2)
 {
 	const ScanFillVertLink *x1 = a1, *x2 = a2;
-	
+
 	if      (x1->vert->xy[1] < x2->vert->xy[1]) return  1;
 	else if (x1->vert->xy[1] > x2->vert->xy[1]) return -1;
 	else if (x1->vert->xy[0] > x2->vert->xy[0]) return  1;
@@ -117,7 +117,7 @@ static int vergpoly(const void *a1, const void *a2)
 	else if (x1->min_xy[0] < x2->min_xy[0]) return -1;
 	else if (x1->min_xy[1] > x2->min_xy[1]) return  1;
 	else if (x1->min_xy[1] < x2->min_xy[1]) return -1;
-	
+
 	return 0;
 }
 
@@ -126,7 +126,7 @@ static int vergpoly(const void *a1, const void *a2)
 ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
 {
 	ScanFillVert *sf_v;
-	
+
 	sf_v = BLI_memarena_alloc(sf_ctx->arena, sizeof(ScanFillVert));
 
 	BLI_addtail(&sf_ctx->fillvertbase, sf_v);
@@ -151,7 +151,7 @@ ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, S
 
 	sf_ed = BLI_memarena_alloc(sf_ctx->arena, sizeof(ScanFillEdge));
 	BLI_addtail(&sf_ctx->filledgebase, sf_ed);
-	
+
 	sf_ed->v1 = v1;
 	sf_ed->v2 = v2;
 
@@ -171,7 +171,7 @@ static void addfillface(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert 
 
 	sf_tri = BLI_memarena_alloc(sf_ctx->arena, sizeof(ScanFillFace));
 	BLI_addtail(&sf_ctx->fillfacebase, sf_tri);
-	
+
 	sf_tri->v1 = v1;
 	sf_tri->v2 = v2;
 	sf_tri->v3 = v3;
@@ -402,7 +402,7 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 							if (dist < SF_EPSILON_SQ) {
 								/* new edge */
 								ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
-								
+
 								/* printf("fill: vertex near edge %x\n", eve); */
 								ed1->poly_nr = eed->poly_nr;
 								eed->v1 = eve;
@@ -435,7 +435,7 @@ static void splitlist(ScanFillContext *sf_ctx, ListBase *tempve, ListBase *tempe
 		}
 
 	}
-	
+
 	for (eed = temped->first; eed; eed = eed_next) {
 		eed_next = eed->next;
 		if (eed->poly_nr == nr) {
@@ -592,7 +592,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 		while (sc->edge_first) { /* for as long there are edges */
 			ed1 = sc->edge_first;
 			ed2 = ed1->next;
-			
+
 			/* commented out... the ESC here delivers corrupted memory (and doesnt work during grab) */
 			/* if (callLocalInterruptCallBack()) break; */
 			if (totface >= maxface) {
@@ -614,14 +614,14 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 				float angle_best_cos = -1.0f;
 				float miny;
 				bool firsttime = false;
-				
+
 				v1 = ed1->v2;
 				v2 = ed1->v1;
 				v3 = ed2->v2;
-				
+
 				/* this happens with a serial of overlapping edges */
 				if (v1 == v2 || v2 == v3) break;
-				
+
 				/* printf("test verts %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u); */
 				miny = min_ff(v1->xy[1], v3->xy[1]);
 				sc1 = sc + 1;
@@ -633,10 +633,10 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 							if (testedgeside(v2->xy, v3->xy, sc1->vert->xy)) {
 								if (testedgeside(v3->xy, v1->xy, sc1->vert->xy)) {
 									/* point is in triangle */
-									
+
 									/* because multiple points can be inside triangle (concave holes) */
 									/* we continue searching and pick the one with sharpest corner */
-									
+
 									if (best_sc == NULL) {
 										/* even without holes we need to keep checking [#35861] */
 										best_sc = sc1;
@@ -659,7 +659,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 						}
 					}
 				}
-					
+
 				if (best_sc) {
 					/* make new edge, and start over */
 					/* printf("add new edge %d %d and start again\n", v2->tmp.u, best_sc->vert->tmp.u); */
@@ -697,10 +697,10 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 					ed3->f = SF_EDGE_INTERNAL;
 					ed3->v1->edge_tot++;
 					ed3->v2->edge_tot++;
-					
+
 					/* printf("add new edge %x %x\n", v1, v3); */
 					sc1 = addedgetoscanlist(scdata, ed3, verts);
-					
+
 					if (sc1) {  /* ed3 already exists: remove if a boundary */
 						/* printf("Edge exists\n"); */
 						ed3->v1->edge_tot--;
@@ -1033,7 +1033,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	 * - eve->poly_nr  :polynumber
 	 * - eve->edge_tot :amount of edges connected to vertex
 	 * - eve->tmp.v    :store! original vertex number
-	 * 
+	 *
 	 * - eed->f        :1 = boundary edge (optionally set by caller)
 	 * - eed->poly_nr  :poly number
 	 */
@@ -1069,10 +1069,10 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	}
 
 	/* STEP 4: FIND HOLES OR BOUNDS, JOIN THEM
-	 *  ( bounds just to divide it in pieces for optimization, 
+	 *  ( bounds just to divide it in pieces for optimization,
 	 *    the edgefill itself has good auto-hole detection)
 	 * WATCH IT: ONLY WORKS WITH SORTED POLYS!!! */
-	
+
 	if ((flag & BLI_SCANFILL_CALC_HOLES) && (poly > 1)) {
 		unsigned short *polycache, *pc;
 
@@ -1092,7 +1092,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 		pf = pflist;
 		for (a = 0; a < poly; a++, pf++) {
 			for (c = (unsigned short)(a + 1); c < poly; c++) {
-				
+
 				/* if 'a' inside 'c': join (bbox too)
 				 * Careful: 'a' can also be inside another poly.
 				 */
@@ -1102,7 +1102,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 				}
 				/* only for optimize! */
 				/* else if (pf->max_xy[0] < (pflist+c)->min[cox]) break; */
-				
+
 			}
 			while (pc != polycache) {
 				pc--;
