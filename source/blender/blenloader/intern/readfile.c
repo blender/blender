@@ -1368,7 +1368,7 @@ void blo_freefiledata(FileData *fd)
 bool BLO_has_bfile_extension(const char *str)
 {
 	const char *ext_test[4] = {".blend", ".ble", ".blend.gz", NULL};
-	return BLI_testextensie_array(str, ext_test);
+	return BLI_path_extension_check_array(str, ext_test);
 }
 
 /**

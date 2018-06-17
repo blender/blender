@@ -703,7 +703,7 @@ bool BLI_parent_dir(char *path)
 	BLI_join_dirfile(tmp, sizeof(tmp), path, parent_dir);
 	BLI_cleanup_dir(NULL, tmp); /* does all the work of normalizing the path for us */
 
-	if (!BLI_testextensie(tmp, parent_dir)) {
+	if (!BLI_path_extension_check(tmp, parent_dir)) {
 		strcpy(path, tmp);  /* We assume pardir is always shorter... */
 		return true;
 	}
@@ -1353,7 +1353,7 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
 	BLI_path_native_slash(string);
 }
 
-static bool testextensie_ex(const char *str, const size_t str_len,
+static bool path_extension_check_ex(const char *str, const size_t str_len,
                             const char *ext, const size_t ext_len)
 {
 	BLI_assert(strlen(str) == str_len);
@@ -1364,12 +1364,12 @@ static bool testextensie_ex(const char *str, const size_t str_len,
 }
 
 /* does str end with ext. */
-bool BLI_testextensie(const char *str, const char *ext)
+bool BLI_path_extension_check(const char *str, const char *ext)
 {
-	return testextensie_ex(str, strlen(str), ext, strlen(ext));
+	return path_extension_check_ex(str, strlen(str), ext, strlen(ext));
 }
 
-bool BLI_testextensie_n(const char *str, ...)
+bool BLI_path_extension_check_n(const char *str, ...)
 {
 	const size_t str_len = strlen(str);
 
@@ -1380,7 +1380,7 @@ bool BLI_testextensie_n(const char *str, ...)
 	va_start(args, str);
 
 	while ((ext = (const char *) va_arg(args, void *))) {
-		if (testextensie_ex(str, str_len, ext, strlen(ext))) {
+		if (path_extension_check_ex(str, str_len, ext, strlen(ext))) {
 			ret = true;
 			break;
 		}
@@ -1392,13 +1392,13 @@ bool BLI_testextensie_n(const char *str, ...)
 }
 
 /* does str end with any of the suffixes in *ext_array. */
-bool BLI_testextensie_array(const char *str, const char **ext_array)
+bool BLI_path_extension_check_array(const char *str, const char **ext_array)
 {
 	const size_t str_len = strlen(str);
 	int i = 0;
 
 	while (ext_array[i]) {
-		if (testextensie_ex(str, str_len, ext_array[i], strlen(ext_array[i]))) {
+		if (path_extension_check_ex(str, str_len, ext_array[i], strlen(ext_array[i]))) {
 			return true;
 		}
 
@@ -1412,7 +1412,7 @@ bool BLI_testextensie_array(const char *str, const char **ext_array)
  *  '*.zip;*.py;*.exe'
  * does str match any of the semicolon-separated glob patterns in fnmatch.
  */
-bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
+bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
 {
 	const char *ext_step = ext_fnmatch;
 	char pattern[16];
@@ -1443,7 +1443,7 @@ bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
  * Removes any existing extension on the end of \a path and appends \a ext.
  * \return false if there was no room.
  */
-bool BLI_replace_extension(char *path, size_t maxlen, const char *ext)
+bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext)
 {
 #ifdef DEBUG_STRSIZE
 	memset(path, 0xff, sizeof(*path) * maxlen);
@@ -1472,7 +1472,7 @@ bool BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 /**
  * Strip's trailing '.'s and adds the extension only when needed
  */
-bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
+bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
 {
 #ifdef DEBUG_STRSIZE
 	memset(path, 0xff, sizeof(*path) * maxlen);

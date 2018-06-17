@@ -150,7 +150,7 @@ static void filepath_avi(char *string, RenderData *rd, bool preview, const char 
 	BLI_make_existing_file(string);
 
 	if (rd->scemode & R_EXTENSION) {
-		if (!BLI_testextensie(string, ".avi")) {
+		if (!BLI_path_extension_check(string, ".avi")) {
 			BLI_path_frame_range(string, sfra, efra, 4);
 			strcat(string, ".avi");
 		}

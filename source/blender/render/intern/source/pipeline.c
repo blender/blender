@@ -2157,7 +2157,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 					ImageFormatData imf = rd->im_format;
 					imf.imtype = R_IMF_IMTYPE_JPEG90;
 
-					if (BLI_testextensie(name, ".exr"))
+					if (BLI_path_extension_check(name, ".exr"))
 						name[strlen(name) - 4] = 0;
 					BKE_image_path_ensure_ext_from_imformat(name, &imf);
 
@@ -2212,7 +2212,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 				ImageFormatData imf = rd->im_format;
 				imf.imtype = R_IMF_IMTYPE_JPEG90;
 
-				if (BLI_testextensie(name, ".exr"))
+				if (BLI_path_extension_check(name, ".exr"))
 					name[strlen(name) - 4] = 0;
 
 				BKE_image_path_ensure_ext_from_imformat(name, &imf);

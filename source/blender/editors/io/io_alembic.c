@@ -86,7 +86,7 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 			BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
 		}
 
-		BLI_replace_extension(filepath, sizeof(filepath), ".abc");
+		BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}
 
@@ -284,8 +284,8 @@ static bool wm_alembic_export_check(bContext *UNUSED(C), wmOperator *op)
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
 
-	if (!BLI_testextensie(filepath, ".abc")) {
-		BLI_ensure_extension(filepath, FILE_MAX, ".abc");
+	if (!BLI_path_extension_check(filepath, ".abc")) {
+		BLI_path_extension_ensure(filepath, FILE_MAX, ".abc");
 		RNA_string_set(op->ptr, "filepath", filepath);
 		return true;
 	}
