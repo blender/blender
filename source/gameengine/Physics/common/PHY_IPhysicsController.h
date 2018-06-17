@@ -61,7 +61,7 @@ class PHY_IPhysicsController : public PHY_IController
 		/**
 		 * WriteMotionStateToDynamics ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
 		 */
-		
+
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly)=0;
 		virtual	void		WriteDynamicsToMotionState()=0;
 		virtual class PHY_IMotionState* GetMotionState() = 0;
@@ -108,7 +108,7 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual MT_Vector3	GetVelocity(const MT_Point3& pos)=0;
 		virtual	MT_Vector3	GetLocalInertia()=0;
 
-		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
+		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted
 		virtual	void		SetRigidBody(bool rigid)=0;
 
 		virtual PHY_IPhysicsController*	GetReplica() {return 0;}
@@ -124,7 +124,7 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual void  SetLinVelocityMin(float val) = 0;
 		virtual float GetLinVelocityMax() const=0;
 		virtual void  SetLinVelocityMax(float val) = 0;
-		
+
 		virtual void SetAngularVelocityMin(float val) = 0;
 		virtual float GetAngularVelocityMin() const = 0;
 		virtual void SetAngularVelocityMax(float val) = 0;

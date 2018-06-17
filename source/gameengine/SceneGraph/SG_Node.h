@@ -28,7 +28,7 @@
 /** \file SG_Node.h
  *  \ingroup bgesg
  */
- 
+
 #ifndef __SG_NODE_H__
 #define __SG_NODE_H__
 
@@ -68,7 +68,7 @@ public:
 		SG_Node* child
 	);
 
-	/** 
+	/**
 	 * Remove a child node from this object. This just removes the child
 	 * pointer from the list of children - it does not destroy the child.
 	 * This does not inform the child that this node is no longer it's parent.
@@ -87,13 +87,13 @@ public:
 	IsAncessor(
 		const SG_Node* child
 	) const;
-	/** 
+	/**
 	 * Get the current list of children. Do not use this interface for
 	 * adding or removing children please use the methods of this class for
 	 * that.
 	 * \return a reference to the list of children of this node.
 	 */
-	
+
 	NodeList& GetSGChildren()
 	{
 		return this->m_children;
@@ -109,7 +109,7 @@ public:
 		return this->m_children;
 	}
 
-	/** 
+	/**
 	 * Clear the list of children associated with this node
 	 */
 
@@ -121,14 +121,14 @@ public:
 	/**
 	 * return the parent of this node if it exists.
 	 */
-		
-	SG_Node* GetSGParent() const 
-	{ 
+
+	SG_Node* GetSGParent() const
+	{
 		return m_SGparent;
 	}
 
 	/**
-	 * Set the parent of this node. 
+	 * Set the parent of this node.
 	 */
 
 	void SetSGParent(SG_Node* parent)
@@ -139,9 +139,9 @@ public:
 	/**
 	 * Return the top node in this node's Scene graph hierarchy
 	 */
-	
-	const 
-		SG_Node* 
+
+	const
+		SG_Node*
 	GetRootSGParent(
 	) const;
 
@@ -251,7 +251,7 @@ public:
 		void
 	Destruct(
 	);
-	
+
 private:
 
 		void

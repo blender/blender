@@ -22,12 +22,12 @@
 #include "EXP_Expression.h"
 #include "EXP_Value.h"	// Added by ClassView
 
-class CConstExpr : public CExpression  
+class CConstExpr : public CExpression
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (CConstExpr,CExpression)
 public:
 	virtual bool MergeExpression(CExpression* otherexpr);
-	
+
 	void BroadcastOperators(VALUE_OPERATOR op);
 
 	virtual unsigned char GetExpressionID();
@@ -40,7 +40,7 @@ public:
 	CConstExpr(CValue* constval);
 	CConstExpr();
 	virtual ~CConstExpr();
-			
+
 
 private:
 	CValue* m_value;

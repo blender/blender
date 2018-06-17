@@ -45,7 +45,7 @@
 class BL_ShapeActionActuator;
 struct Key;
 
-class BL_DeformableGameObject : public KX_GameObject  
+class BL_DeformableGameObject : public KX_GameObject
 {
 public:
 	CValue*		GetReplica();
@@ -80,7 +80,7 @@ public:
 	bool SetActiveAction(class BL_ShapeActionActuator *act, short priority, double curtime);
 
 	bool GetShape(vector<float> &shape);
-	
+
 	virtual void	SetDeformer(class RAS_Deformer* deformer);
 	virtual class RAS_Deformer* GetDeformer()
 	{
@@ -88,9 +88,9 @@ public:
 	}
 
 public:
-	
+
 protected:
-	
+
 	RAS_Deformer		*m_pDeformer;
 
 	class BL_ShapeActionActuator *m_activeAct;

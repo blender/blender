@@ -83,7 +83,7 @@ public:
 	GLuint domefacesId[7];      /* ID of the images -- room for 7 images, using only 4 for 180deg x 360deg dome,
 	                             * 6 for panoramic and +1 for warp mesh */
 	GLuint dlistId;             /* ID of the Display Lists of the images (used as an offset) */
-	
+
 	typedef struct {
 		double u[3], v[3];
 		MT_Vector3 verts[3]; //three verts
@@ -108,7 +108,7 @@ public:
 
 	vector <DomeFace> cubetop, cubebottom, cuberight, cubeleft, cubefront, cubeback; //for fisheye
 	vector <DomeFace> cubeleftback, cuberightback; //for panorama
-	
+
 	int nfacestop, nfacesbottom, nfacesleft, nfacesright, nfacesfront, nfacesback;
 	int nfacesleftback, nfacesrightback;
 
@@ -145,7 +145,7 @@ public:
 	void CreateGLImages(void);
 	void ClearGLImages(void);//called on resize
 	bool CreateDL(void); //create Display Lists
-	void ClearDL(void);  //remove Display Lists 
+	void ClearDL(void);  //remove Display Lists
 	bool CreateFBO(void);//create FBO (for warp mesh)
 	void ClearFBO(void); //remove FBO
 
@@ -169,7 +169,7 @@ protected:
 	float m_radangle;	//the angle of the fisheye in radians
 	float m_resbuffer;	//the resolution of the buffer
 	short m_tilt;		//the dome tilt (camera rotation on horizontal axis)
-	
+
 	RAS_Rect m_viewport;
 
 	MT_Matrix4x4 m_projmat;
@@ -187,8 +187,8 @@ protected:
 	RAS_IRenderTools* m_rendertools;
 	/// engine
 	KX_KetsjiEngine* m_engine;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_Dome")
 #endif

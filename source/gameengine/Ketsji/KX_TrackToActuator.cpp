@@ -50,7 +50,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj, 
+KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
                                        SCA_IObject *ob,
                                        int time,
                                        bool allow3D,
@@ -64,15 +64,15 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 	m_trackflag = trackflag;
 	m_upflag = upflag;
 	m_parentobj = 0;
-	
+
 	if (m_object)
 		m_object->RegisterActuator(this);
 
 	{
 		// if the object is vertex parented, don't check parent orientation as the link is broken
 		if (!((KX_GameObject*)gameobj)->IsVertexParent()) {
-			m_parentobj = ((KX_GameObject*)gameobj)->GetParent(); // check if the object is parented 
-			if (m_parentobj) {  
+			m_parentobj = ((KX_GameObject*)gameobj)->GetParent(); // check if the object is parented
+			if (m_parentobj) {
 				// if so, store the initial local rotation
 				// this is needed to revert the effect of the parent inverse node (TBC)
 				m_parentlocalmat = m_parentobj->GetSGNode()->GetLocalOrientation();
@@ -91,26 +91,26 @@ static MT_Matrix3x3 EulToMat3(float eul[3])
 {
 	MT_Matrix3x3 mat;
 	float ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
-	
+
 	ci = cosf(eul[0]);
 	cj = cosf(eul[1]);
 	ch = cosf(eul[2]);
 	si = sinf(eul[0]);
 	sj = sinf(eul[1]);
 	sh = sinf(eul[2]);
-	cc = ci*ch; 
-	cs = ci*sh; 
-	sc = si*ch; 
+	cc = ci*ch;
+	cs = ci*sh;
+	sc = si*ch;
 	ss = si*sh;
 
-	mat[0][0] = cj*ch; 
-	mat[1][0] = sj*sc-cs; 
+	mat[0][0] = cj*ch;
+	mat[1][0] = sj*sc-cs;
 	mat[2][0] = sj*cc+ss;
-	mat[0][1] = cj*sh; 
-	mat[1][1] = sj*ss+cc; 
+	mat[0][1] = cj*sh;
+	mat[1][1] = sj*ss+cc;
 	mat[2][1] = sj*cs-sc;
-	mat[0][2] = -sj;	 
-	mat[1][2] = cj*si;    
+	mat[0][2] = -sj;
+	mat[1][2] = cj*si;
 	mat[2][2] = cj*ci;
 
 	return mat;
@@ -141,7 +141,7 @@ static void Mat3ToEulOld(MT_Matrix3x3 mat, float eul[3])
 static void compatible_eulFast(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
-	
+
 	/* angular difference of 360 degrees */
 
 	dx = eul[0] - oldrot[0];
@@ -168,11 +168,11 @@ static MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, in
 	Mat3ToEulOld(oldmat, oldeul);
 	Mat3ToEulOld(mat, eul);
 	compatible_eulFast(eul, oldeul);
-	
+
 	eul[0] = (m_time * oldeul[0] + eul[0]) / (1.0f + m_time);
 	eul[1] = (m_time * oldeul[1] + eul[1]) / (1.0f + m_time);
 	eul[2] = (m_time * oldeul[2] + eul[2]) / (1.0f + m_time);
-	
+
 	return EulToMat3(eul);
 }
 
@@ -322,13 +322,13 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 
 		mat = vectomat(dir, m_trackflag, m_upflag, m_allow3D);
 		oldmat = curobj->NodeGetWorldOrientation();
-		
+
 		/* erwin should rewrite this! */
 		mat = matrix3x3_interpol(oldmat, mat, m_time);
-		
+
 		/* check if the model is parented and calculate the child transform */
 		if (m_parentobj) {
-				
+
 			MT_Point3 localpos;
 			localpos = curobj->GetSGNode()->GetLocalPosition();
 			// Get the inverse of the parent matrix
@@ -410,18 +410,18 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 {
 	KX_TrackToActuator* actuator = static_cast<KX_TrackToActuator*>(self);
 	KX_GameObject *gameobj;
-		
+
 	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &gameobj, true, "actuator.object = value: KX_TrackToActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
-		
+
 	if (actuator->m_object != NULL)
 		actuator->m_object->UnregisterActuator(actuator);
 
 	actuator->m_object = (SCA_IObject*) gameobj;
-		
+
 	if (actuator->m_object)
 		actuator->m_object->RegisterActuator(actuator);
-		
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

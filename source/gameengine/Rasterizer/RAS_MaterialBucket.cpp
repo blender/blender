@@ -117,7 +117,7 @@ RAS_MeshSlot::RAS_MeshSlot(const RAS_MeshSlot& slot) : SG_QList()
 	m_endindex = slot.m_endindex;
 
 	for (it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
-		// don't copy display arrays for now because it breaks python 
+		// don't copy display arrays for now because it breaks python
 		// access to vertices, but we'll need a solution if we want to
 		// join display arrays for reducing draw calls.
 		//*it = new RAS_DisplayArray(**it);
@@ -215,7 +215,7 @@ void RAS_MeshSlot::SetDisplayArray(int numverts)
 {
 	RAS_DisplayArrayList::iterator it;
 	RAS_DisplayArray *darray = NULL;
-	
+
 	for (it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
 		darray = *it;
 
@@ -247,7 +247,7 @@ void RAS_MeshSlot::SetDisplayArray(int numverts)
 			darray->m_type = RAS_DisplayArray::TRIANGLE;
 		else if (numverts == 4)
 			darray->m_type = RAS_DisplayArray::QUAD;
-		
+
 		m_endarray = m_displayArrays.size()-1;
 		m_endvertex = 0;
 		m_endindex = 0;
@@ -265,7 +265,7 @@ int RAS_MeshSlot::AddVertex(const RAS_TexVert& tv)
 {
 	RAS_DisplayArray *darray;
 	int offset;
-	
+
 	darray = m_currentArray;
 	darray->m_vertex.push_back(tv);
 	offset = darray->m_vertex.size()-1;
@@ -366,7 +366,7 @@ bool RAS_MeshSlot::Equals(RAS_MeshSlot *target)
 		return false;
 	if (m_bObjectColor && !(m_RGBAcolor == target->m_RGBAcolor))
 		return false;
-	
+
 	return true;
 }
 
@@ -382,7 +382,7 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 
 	if (!Equals(target))
 		return false;
-	
+
 	MT_Vector3 co(&m_OpenGLMatrix[12]);
 	MT_Vector3 targetco(&target->m_OpenGLMatrix[12]);
 
@@ -394,7 +394,7 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 	targetmat.invert();
 
 	MT_Matrix4x4 transform = targetmat*mat;
-	
+
 	// m_mesh, clientobj
 	m_joinSlot = target;
 	m_joinInvTransform = transform;
@@ -407,7 +407,7 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 	for (begin(mit); !end(mit); next(mit))
 		for (i=mit.startvertex; i<mit.endvertex; i++)
 			mit.vertex[i].Transform(transform, ntransform);
-	
+
 	/* We know we'll need a list at least this big, reserve in advance */
 	target->m_displayArrays.reserve(target->m_displayArrays.size() + m_displayArrays.size());
 
@@ -426,7 +426,7 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 		target->m_DisplayList->Release();
 		target->m_DisplayList = NULL;
 	}
-	
+
 	return true;
 #if 0
 	return false;
@@ -517,9 +517,9 @@ bool RAS_MeshSlot::IsCulled()
 
 struct RAS_MaterialBucket::less
 {
-	bool operator()(const RAS_MaterialBucket* x, const RAS_MaterialBucket* y) const 
-	{ 
-		return *x->GetPolyMaterial() < *y->GetPolyMaterial(); 
+	bool operator()(const RAS_MaterialBucket* x, const RAS_MaterialBucket* y) const
+	{
+		return *x->GetPolyMaterial() < *y->GetPolyMaterial();
 	}
 };
 
@@ -535,7 +535,7 @@ RAS_MaterialBucket::~RAS_MaterialBucket()
 }
 
 RAS_IPolyMaterial* RAS_MaterialBucket::GetPolyMaterial() const
-{ 
+{
 	return m_material;
 }
 
@@ -554,7 +554,7 @@ RAS_MeshSlot* RAS_MaterialBucket::AddMesh(int numverts)
 	RAS_MeshSlot *ms;
 
 	m_meshSlots.push_back(RAS_MeshSlot());
-	
+
 	ms = &m_meshSlots.back();
 	ms->init(this, numverts);
 
@@ -564,7 +564,7 @@ RAS_MeshSlot* RAS_MaterialBucket::AddMesh(int numverts)
 RAS_MeshSlot* RAS_MaterialBucket::CopyMesh(RAS_MeshSlot *ms)
 {
 	m_meshSlots.push_back(RAS_MeshSlot(*ms));
-	
+
 	return &m_meshSlots.back();
 }
 
@@ -593,7 +593,7 @@ list<RAS_MeshSlot>::iterator RAS_MaterialBucket::msEnd()
 bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty)
 {
 	bool uselights;
-	
+
 	if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && !m_material->CastsShadows())
 		return false;
 
@@ -602,10 +602,10 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 
 	if (!rasty->SetMaterial(*m_material))
 		return false;
-	
+
 	uselights= m_material->UsesLighting(rasty);
 	rasty->ProcessLighting(uselights, cameratrans);
-	
+
 	return true;
 }
 
@@ -619,7 +619,7 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 			ms.m_mesh->SetMeshModified(true);
 	//	KX_ReInstanceShapeFromMesh(ms.m_mesh); // Recompute the physics mesh. (Can't call KX_* from RAS_)
 	}
-	
+
 	if (IsZSort() && rasty->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID)
 		ms.m_mesh->SortPolygons(ms, cameratrans*MT_Transform(ms.m_OpenGLMatrix));
 
@@ -665,7 +665,7 @@ void RAS_MaterialBucket::Optimize(MT_Scalar distance)
 	/* TODO: still have to check before this works correct:
 	 * - lightlayer, frontface, text, billboard
 	 * - make it work with physics */
-	
+
 #if 0
 	list<RAS_MeshSlot>::iterator it;
 	list<RAS_MeshSlot>::iterator jt;

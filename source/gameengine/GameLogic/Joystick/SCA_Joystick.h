@@ -68,16 +68,16 @@ class SCA_Joystick
 #endif
 	int				m_joyindex;
 
-	/** 
+	/**
 	 *support for JOYAXIS_MAX axes (in pairs)
 	 */
 	int m_axis_array[JOYAXIS_MAX];
 
-	/** 
+	/**
 	 *support for JOYHAT_MAX hats (each is a direction)
 	 */
 	int m_hat_array[JOYHAT_MAX];
-	
+
 	/**
 	 * Precision or range of the axes
 	 */
@@ -86,15 +86,15 @@ class SCA_Joystick
 	/**
 	 * max # of buttons avail
 	 */
-	
+
 	int 			m_axismax;
 	int 			m_buttonmax;
 	int 			m_hatmax;
-	
+
 	/** is the joystick initialized ?*/
 	bool			m_isinit;
 
-	
+
 	/** is triggered for each event type */
 	bool			m_istrig_axis;
 	bool			m_istrig_button;
@@ -112,7 +112,7 @@ class SCA_Joystick
 #if 0 /* not used yet */
 	void OnBallMotion(SDL_Event *sdl_event) {}
 #endif
-		
+
 #endif /* WITH_SDL */
 	/**
 	 * Open the joystick
@@ -142,13 +142,13 @@ class SCA_Joystick
 	SCA_Joystick(short int index);
 
 	~SCA_Joystick();
-	
+
 public:
 
 	static SCA_Joystick *GetInstance(short int joyindex);
 	static void HandleEvents(void);
 	void ReleaseInstance();
-	
+
 
 	/*
 	 */
@@ -182,11 +182,11 @@ public:
 	bool IsTrigAxis(void) {
 		return m_istrig_axis;
 	}
-	
+
 	bool IsTrigButton(void) {
 		return m_istrig_button;
 	}
-	
+
 	bool IsTrigHat(void) {
 		return m_istrig_hat;
 	}
@@ -198,7 +198,7 @@ public:
 	int GetNumberOfAxes(void);
 	int GetNumberOfButtons(void);
 	int GetNumberOfHats(void);
-	
+
 	/**
 	 * Test if the joystick is connected
 	 */

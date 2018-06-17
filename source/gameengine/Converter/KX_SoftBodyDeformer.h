@@ -68,7 +68,7 @@ public:
 	}
 	virtual bool UpdateBuckets(void)
 	{
-		// this is to update the mesh slots outside the rasterizer, 
+		// this is to update the mesh slots outside the rasterizer,
 		// no need to do it for this deformer, it's done in any case in Apply()
 		return false;
 	}

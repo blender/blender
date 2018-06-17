@@ -89,7 +89,7 @@ CValue*		KX_LightObject::GetReplica()
 	KX_LightObject* replica = new KX_LightObject(*this);
 
 	replica->ProcessReplica();
-	
+
 	replica->m_lightobj = m_lightobj->Clone();
 	replica->m_lightobj->m_light = replica;
 	m_rasterizer->AddLight(replica->m_lightobj);
@@ -470,7 +470,7 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 		PyErr_SetString(PyExc_ValueError, "light.type= val: KX_LightObject, expected an int between 0 and 2");
 		return PY_SET_ATTR_FAIL;
 	}
-	
+
 	switch (val) {
 		case 0:
 			self->m_lightobj->m_type = self->m_lightobj->LIGHT_SPOT;

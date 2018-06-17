@@ -34,7 +34,7 @@ pre: false
 effect: constructs a new CIntValue
 */
 {
-	
+
 #ifdef DEBUG_
 	m_textval = "Int illegal constructor";
 #endif
@@ -59,13 +59,13 @@ CIntValue::CIntValue(cInt innie,const char *name,AllocationTYPE alloctype)
 {
 	m_int = innie;
 	SetName(name);
-	
+
 	if (alloctype==CValue::STACKVALUE)
 	{
 		CValue::DisableRefCount();
 	}
 	m_pstrRep=NULL;
-	
+
 }
 
 
@@ -118,7 +118,7 @@ object and val
 CValue* CIntValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val)
 {
 	CValue *ret;
-	
+
 	switch (dtype) {
 		case VALUE_EMPTY_TYPE:
 		case VALUE_INT_TYPE:
@@ -312,7 +312,7 @@ const STR_String & CIntValue::GetText()
 	if (!m_pstrRep)
 		m_pstrRep=new STR_String();
 	m_pstrRep->Format("%lld",m_int);
-	
+
 	return *m_pstrRep;
 }
 
@@ -323,15 +323,15 @@ CValue* CIntValue::GetReplica()
 	CIntValue* replica = new CIntValue(*this);
 	replica->ProcessReplica();
 	replica->m_pstrRep = NULL;
-	
+
 	return replica;
 }
 
 
 
 void CIntValue::SetValue(CValue* newval)
-{ 	
-	m_int = (cInt)newval->GetNumber(); 
+{
+	m_int = (cInt)newval->GetNumber();
 	SetModified(true);
 }
 

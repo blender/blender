@@ -48,7 +48,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr, 
+SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
                                  int startx,int starty,
                                  short int mousemode,
                                  SCA_IObject* gameobj)
@@ -69,7 +69,7 @@ void SCA_MouseSensor::Init()
 	m_reset = true;
 }
 
-SCA_MouseSensor::~SCA_MouseSensor() 
+SCA_MouseSensor::~SCA_MouseSensor()
 {
 	/* Nothing to be done here. */
 }
@@ -78,8 +78,8 @@ void SCA_MouseSensor::UpdateHotkey(void *self)
 {
 	// gosh, this function is so damn stupid
 	// its here because of a design mistake in the mouse sensor, it should only
-	// have 3 trigger modes (button, wheel, move), and let the user set the 
-	// hotkey separately, like the other sensors. but instead it has a mode for 
+	// have 3 trigger modes (button, wheel, move), and let the user set the
+	// hotkey separately, like the other sensors. but instead it has a mode for
 	// each friggin key and i have to update the hotkey based on it... genius!
 	SCA_MouseSensor* sensor = reinterpret_cast<SCA_MouseSensor*>(self);
 
@@ -121,21 +121,21 @@ bool SCA_MouseSensor::IsPositiveTrigger()
 	bool result = (m_val != 0);
 	if (m_invert)
 		result = !result;
-		
+
 	return result;
 }
 
 
 
 short int SCA_MouseSensor::GetModeKey()
-{ 
+{
 	return m_mousemode;
 }
 
 
 
 SCA_IInputDevice::KX_EnumInputs SCA_MouseSensor::GetHotKey()
-{ 
+{
 	return m_hotkey;
 }
 
@@ -195,22 +195,22 @@ bool SCA_MouseSensor::Evaluate()
 			{
 				m_val = 1;
 				result = true;
-			} 
+			}
 			else if (eventX.m_status == SCA_InputEvent::KX_JUSTRELEASED ||
 			         eventY.m_status == SCA_InputEvent::KX_JUSTRELEASED )
 			{
 				m_val = 0;
 				result = true;
-			} 
+			}
 			else //KX_NO_IMPUTSTATUS
-			{ 
+			{
 				if (m_val == 1)
 				{
 					m_val = 0;
 					result = true;
 				}
 			}
-			
+
 			break;
 		}
 	default:
@@ -251,19 +251,19 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 	if (PyLong_Check(value))
 	{
 		SCA_IInputDevice::KX_EnumInputs button = (SCA_IInputDevice::KX_EnumInputs)PyLong_AsLong(value);
-		
+
 		if ((button < SCA_IInputDevice::KX_LEFTMOUSE) ||
 		    (button > SCA_IInputDevice::KX_RIGHTMOUSE))
 		{
 			PyErr_SetString(PyExc_ValueError, "sensor.getButtonStatus(int): Mouse Sensor, invalid button specified!");
 			return NULL;
 		}
-		
+
 		SCA_IInputDevice* mousedev = ((SCA_MouseManager *)m_eventmgr)->GetInputDevice();
 		const SCA_InputEvent& event = mousedev->GetEventValue(button);
 		return PyLong_FromLong(event.m_status);
 	}
-	
+
 	Py_RETURN_NONE;
 }
 

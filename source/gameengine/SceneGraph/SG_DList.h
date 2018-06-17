@@ -28,7 +28,7 @@
 /** \file SG_DList.h
  *  \ingroup bgesg
  */
- 
+
 #ifndef __SG_DLIST_H__
 #define __SG_DLIST_H__
 
@@ -214,8 +214,8 @@ public:
 	{
 		return this;
 	}
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SG_DList")
 #endif

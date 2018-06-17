@@ -41,7 +41,7 @@ void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 {
 	if (sdl_event->jaxis.axis >= JOYAXIS_MAX)
 		return;
-	
+
 	m_axis_array[sdl_event->jaxis.axis] = sdl_event->jaxis.value;
 	m_istrig_axis = 1;
 }
@@ -68,7 +68,7 @@ void SCA_Joystick::OnButtonDown(SDL_Event* sdl_event)
 	//if (sdl_event->jbutton.button > m_buttonmax) /* unsigned int so always above 0 */
 	//	return;
 	// sdl_event->jbutton.button;
-	
+
 	m_istrig_button = 1;
 }
 
@@ -93,17 +93,17 @@ void SCA_Joystick::HandleEvents(void)
 		if (SCA_Joystick::m_instance[i])
 			SCA_Joystick::m_instance[i]->OnNothing(&sdl_event);
 	}
-	
+
 	while (SDL_PollEvent(&sdl_event)) {
 		/* Note! m_instance[sdl_event.jaxis.which]
 		 * will segfault if over JOYINDEX_MAX, not too nice but what are the chances? */
-		
+
 		/* Note!, with buttons, this wont care which button is pressed,
 		 * only to set 'm_istrig_button', actual pressed buttons are detected by SDL_JoystickGetButton */
-		
+
 		/* Note!, if you manage to press and release a button within 1 logic tick
 		 * it wont work as it should */
-		
+
 		switch (sdl_event.type) {
 			case SDL_JOYAXISMOTION:
 				SCA_Joystick::m_instance[sdl_event.jaxis.which]->OnAxisMotion(&sdl_event);

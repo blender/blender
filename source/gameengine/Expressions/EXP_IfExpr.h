@@ -21,7 +21,7 @@
 
 #include "EXP_Expression.h"
 
-class CIfExpr : public CExpression  
+class CIfExpr : public CExpression
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (CIfExpr,CExpression)
 
@@ -32,11 +32,11 @@ public:
 	virtual bool MergeExpression(CExpression* otherexpr);
 	CIfExpr(CExpression *guard, CExpression *e1, CExpression *e2);
 	CIfExpr();
-	
+
 	virtual unsigned char GetExpressionID();
 	virtual ~CIfExpr();
 	virtual CValue* Calculate();
-	
+
 	virtual bool		IsInside(float x,float y,float z,bool bBorderInclude=true);
 	virtual bool		NeedsRecalculated();
 

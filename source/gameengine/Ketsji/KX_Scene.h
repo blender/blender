@@ -121,7 +121,7 @@ protected:
 
 	/**
 	 * The list of objects which have been removed during the
-	 * course of one frame. They are actually destroyed in 
+	 * course of one frame. They are actually destroyed in
 	 * LogicEndFrame() via a call to RemoveObject().
 	 */
 	CListValue*	m_euthanasyobjects;
@@ -131,7 +131,7 @@ protected:
 	CListValue*			m_lightlist;
 	CListValue*			m_inactivelist;	// all objects that are not in the active layer
 	CListValue*			m_animatedlist; // all animated objects
-	
+
 	SG_QList			m_sghead;		// list of nodes that needs scenegraph update
 										// the Dlist is not object that must be updated
 										// the Qlist is for objects that needs to be rescheduled
@@ -180,7 +180,7 @@ protected:
 	 * The name of the scene
 	 */
 	STR_String	m_sceneName;
-	
+
 	/**
 	 * stores the world-settings for a scene
 	 */
@@ -217,23 +217,23 @@ protected:
 
 	/**
 	 * Another temporary variable outstaying its welcome
-	 * used in AddReplicaObject to keep a record of all added 
-	 * objects. Logic can only be updated when all objects 
+	 * used in AddReplicaObject to keep a record of all added
+	 * objects. Logic can only be updated when all objects
 	 * have been updated. This stores a list of the new objects.
 	 */
 	std::vector<KX_GameObject*>	m_logicHierarchicalGameObjects;
-	
+
 	/**
-	 * This temporary variable will contain the list of 
+	 * This temporary variable will contain the list of
 	 * object that can be added during group instantiation.
-	 * objects outside this list will not be added (can 
+	 * objects outside this list will not be added (can
 	 * happen with children that are outside the group).
 	 * Used in AddReplicaObject. If the list is empty, it
 	 * means don't care.
 	 */
 	std::set<CValue*>	m_groupGameObjects;
-	
-	/** 
+
+	/**
 	 * Pointer to system variable passed in in constructor
 	 * only used in constructor so we do not need to keep it
 	 * around in this class.
@@ -261,15 +261,15 @@ protected:
 	 * Toggle to enable or disable activity culling.
 	 */
 	bool m_activity_culling;
-	
+
 	/**
 	 * Toggle to enable or disable culling via DBVT broadphase of Bullet.
 	 */
 	bool m_dbvt_culling;
-	
+
 	/**
 	 * Occlusion culling resolution
-	 */ 
+	 */
 	int m_dbvt_occlusion_res;
 
 	/**
@@ -278,12 +278,12 @@ protected:
 
 	RAS_FrameSettings m_frame_settings;
 
-	/** 
+	/**
 	 * This scenes viewport into the game engine
 	 * canvas.Maintained externally, initially [0,0] -> [0,0]
 	 */
 	RAS_Rect m_viewport;
-	
+
 	/**
 	 * Visibility testing functions.
 	 */
@@ -331,8 +331,8 @@ public:
 	void UpdateParents(double curtime);
 	void DupliGroupRecurse(CValue* gameobj, int level);
 	bool IsObjectInGroup(CValue* gameobj)
-	{ 
-		return (m_groupGameObjects.empty() || 
+	{
+		return (m_groupGameObjects.empty() ||
 				m_groupGameObjects.find(gameobj) != m_groupGameObjects.end());
 	}
 	void AddObjectDebugProperties(class KX_GameObject* gameobj);
@@ -346,7 +346,7 @@ public:
 	void RemoveObject(CValue* gameobj);
 	void RemoveDupliGroup(CValue *gameobj);
 	void DelayedRemoveObject(CValue* gameobj);
-	
+
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 	                 void* meshob, bool use_gfx, bool use_phys);
@@ -396,13 +396,13 @@ public:
 	/** Font Routines */
 
 	/** Find a font in the scene by pointer. */
-		KX_FontObject*              
+		KX_FontObject*
 	FindFont(
 		KX_FontObject*
 	);
 
 	/** Add a camera to this scene. */
-		void                    
+		void
 	AddFont(
 		KX_FontObject*
 	);
@@ -417,22 +417,22 @@ public:
 		std::list<class KX_Camera*>*
 	GetCameras(
 	);
- 
+
 
 	/** Find a camera in the scene by pointer. */
-		KX_Camera*              
+		KX_Camera*
 	FindCamera(
 		KX_Camera*
 	);
 
 	/** Find a scene in the scene by name. */
-		KX_Camera*              
+		KX_Camera*
 	FindCamera(
 		STR_String&
 	);
 
 	/** Add a camera to this scene. */
-		void                    
+		void
 	AddCamera(
 		KX_Camera*
 	);
@@ -442,7 +442,7 @@ public:
 	GetActiveCamera(
 	);
 
-	/** 
+	/**
 	 * Set this camera to be the active camera in the scene. If the
 	 * camera is not present in the camera list, it will be added
 	 */
@@ -505,7 +505,7 @@ public:
 	);
 
 	/**
-	 * Return a const reference to the framing 
+	 * Return a const reference to the framing
 	 * type set by the above call.
 	 * The contents are not guaranteed to be sensible
 	 * if you don't call the above function.
@@ -517,18 +517,18 @@ public:
 	) const;
 
 	/**
-	 * Store the current scene's viewport on the 
+	 * Store the current scene's viewport on the
 	 * game engine canvas.
 	 */
 	void SetSceneViewport(const RAS_Rect &viewport);
 
 	/**
 	 * Get the current scene's viewport on the
-	 * game engine canvas. This maintained 
+	 * game engine canvas. This maintained
 	 * externally in KX_GameEngine
 	 */
 	const RAS_Rect& GetSceneViewport() const;
-	
+
 	/**
 	 * \section Accessors to different scenes of this scene
 	 */
@@ -550,7 +550,7 @@ public:
 	static SG_Callbacks	m_callbacks;
 
 	const STR_String& GetName();
-	
+
 	// Suspend the entire scene.
 	void Suspend();
 
@@ -565,7 +565,7 @@ public:
 	bool IsActivedLodHysteresis();
 	void SetLodHysteresisValue(int hysteresisvalue);
 	int GetLodHysteresisValue();
-	
+
 	// Update the activity box settings for objects in this scene, if needed.
 	void UpdateObjectActivity(void);
 
@@ -584,7 +584,7 @@ public:
 	bool GetDbvtCulling() { return m_dbvt_culling; }
 	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; }
 	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; }
-	
+
 	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
 
 	class PHY_IPhysicsEnvironment*		GetPhysicsEnvironment()
@@ -598,7 +598,7 @@ public:
 	MT_Vector3 GetGravity();
 
 	short GetAnimationFPS();
-	
+
 	/**
 	 * Sets the node tree for this scene.
 	 */
@@ -646,7 +646,7 @@ public:
 	static int			pyattr_set_gravity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	virtual PyObject *py_repr(void) { return PyUnicode_From_STR_String(GetName()); }
-	
+
 	/* getitem/setitem */
 	static PyMappingMethods	Mapping;
 	static PySequenceMethods	Sequence;
@@ -655,7 +655,7 @@ public:
 	 * Run the registered python drawing functions.
 	 */
 	void RunDrawingCallbacks(PyObject *cb_list);
-	
+
 	PyObject *GetPreDrawCB() { return m_draw_call_pre; }
 	PyObject *GetPostDrawCB() { return m_draw_call_post; }
 	PyObject *GetPreDrawSetupCB() { return m_draw_setup_call_pre; }
@@ -663,16 +663,16 @@ public:
 
 	/**
 	 * Sets the time the scene was suspended
-	 */ 
+	 */
 	void setSuspendedTime(double suspendedtime);
 	/**
 	 * Returns the "curtime" the scene was suspended
-	 */ 
+	 */
 	double getSuspendedTime();
 	/**
 	 * Sets the difference between the local time of the scene (when it
 	 * was running and not suspended) and the "curtime"
-	 */ 
+	 */
 	void setSuspendedDelta(double suspendeddelta);
 	/**
 	 * Returns the difference between the local time of the scene (when it

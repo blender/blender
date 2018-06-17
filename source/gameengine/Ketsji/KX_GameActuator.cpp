@@ -50,7 +50,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-KX_GameActuator::KX_GameActuator(SCA_IObject *gameobj, 
+KX_GameActuator::KX_GameActuator(SCA_IObject *gameobj,
 								   int mode,
 								   const STR_String& filename,
 								   const STR_String& loadinganimationname,
@@ -68,7 +68,7 @@ KX_GameActuator::KX_GameActuator(SCA_IObject *gameobj,
 
 
 KX_GameActuator::~KX_GameActuator()
-{ 
+{
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
@@ -78,7 +78,7 @@ CValue* KX_GameActuator::GetReplica()
 {
 	KX_GameActuator* replica = new KX_GameActuator(*this);
 	replica->ProcessReplica();
-	
+
 	return replica;
 }
 
@@ -138,10 +138,10 @@ bool KX_GameActuator::Update()
 				char *marshal_buffer = NULL;
 				unsigned int marshal_length;
 				FILE *fp = NULL;
-				
+
 				pathGamePythonConfig(mashal_path);
 				marshal_length = saveGamePythonConfig(&marshal_buffer);
-				
+
 				if (marshal_length && marshal_buffer) {
 					fp = fopen(mashal_path, "wb");
 					if (fp) {
@@ -171,9 +171,9 @@ bool KX_GameActuator::Update()
 				int marshal_length;
 				FILE *fp = NULL;
 				int result;
-				
+
 				pathGamePythonConfig(mashal_path);
-				
+
 				fp = fopen(mashal_path, "rb");
 				if (fp) {
 					// obtain file size:
@@ -185,17 +185,17 @@ bool KX_GameActuator::Update()
 						break;
 					}
 					rewind(fp);
-					
+
 					marshal_buffer = (char*) malloc (sizeof(char)*marshal_length);
-					
+
 					result = fread (marshal_buffer, 1, marshal_length, fp);
-					
+
 					if (result == marshal_length) {
 						loadGamePythonConfig(marshal_buffer, marshal_length);
 					} else {
 						printf("warning: could not read all of '%s'\n", mashal_path);
 					}
-					
+
 					free(marshal_buffer);
 					fclose(fp);
 				} else {
@@ -219,7 +219,7 @@ bool KX_GameActuator::Update()
 	default:
 		; /* do nothing? this is an internal error !!! */
 	}
-	
+
 	return false;
 }
 

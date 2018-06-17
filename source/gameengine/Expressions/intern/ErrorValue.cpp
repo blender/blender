@@ -82,7 +82,7 @@ ret: a new object containing the result of applying operator op to this
 			break;
 		}
 	}
-	
+
 	return errorval;
 }
 
@@ -122,7 +122,7 @@ const STR_String & CErrorValue::GetText()
 
 
 CValue* CErrorValue::GetReplica()
-{ 
+{
 	// who would want a copy of an error ?
 	trace ("Error: ErrorValue::GetReplica() not implemented yet");
 	assertd(false);

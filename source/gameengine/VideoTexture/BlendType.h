@@ -43,7 +43,7 @@ public:
 	/// check blender type and return pointer to contained object or NULL (if type is not valid)
 	PyObj *checkType(PyObject *obj)
 	{
-		// if pointer to type isn't set 
+		// if pointer to type isn't set
 		if (m_objType == NULL)
 		{
 			// compare names of type

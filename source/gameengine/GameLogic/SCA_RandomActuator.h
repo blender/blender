@@ -41,11 +41,11 @@ class SCA_RandomActuator : public SCA_IActuator
 	Py_Header
 	/** Property to assign to */
 	STR_String m_propname;
-	
-	/** First parameter. The meaning of the parameters depends on the        
+
+	/** First parameter. The meaning of the parameters depends on the
 	 *  distribution */
 	float m_parameter1;
-	/** Second parameter. The meaning of the parameters depends on the        
+	/** Second parameter. The meaning of the parameters depends on the
 	 *  distribution */
 	float m_parameter2;
 
@@ -60,7 +60,7 @@ class SCA_RandomActuator : public SCA_IActuator
 
 	/** apply constraints for the chosen distribution to the parameters */
 	void enforceConstraints(void);
-	
+
  public:
 
 	enum KX_RANDOMACT_MODE {
@@ -79,7 +79,7 @@ class SCA_RandomActuator : public SCA_IActuator
 	};
 	/** distribution type */
 	KX_RANDOMACT_MODE m_distribution;
-	
+
 	SCA_RandomActuator(class SCA_IObject* gameobj,
 					  long seed,
 					  KX_RANDOMACT_MODE mode,
@@ -88,12 +88,12 @@ class SCA_RandomActuator : public SCA_IActuator
 					  const STR_String &propName);
 	virtual ~SCA_RandomActuator();
 	virtual bool Update();
-	
+
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
 
 #ifdef WITH_PYTHON
-	
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

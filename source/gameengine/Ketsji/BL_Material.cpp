@@ -108,7 +108,7 @@ void BL_Material::SetSharedMaterial(bool v)
 {
 	if ((v && num_users == -1) || num_users > 1 )
 		share = true;
-	else 
+	else
 		share = false;
 }
 

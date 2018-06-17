@@ -30,7 +30,7 @@ CConstExpr::CConstExpr()
 
 
 
-CConstExpr::CConstExpr(CValue* constval) 
+CConstExpr::CConstExpr(CValue* constval)
 /*
 pre:
 effect: constructs a CConstExpr cointing the value constval
@@ -73,7 +73,7 @@ ret: a new object containing the value of the stored CValue
 
 
 void CConstExpr::ClearModified()
-{ 
+{
 	if (m_value)
 	{
 		m_value->SetModified(false);

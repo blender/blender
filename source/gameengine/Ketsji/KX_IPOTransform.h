@@ -59,16 +59,16 @@ public:
 	const MT_Point3&	 GetPosition()    const { return m_position; 	}
 	const MT_Vector3&    GetEulerAngles() const { return m_eulerAngles;	}
 	const MT_Vector3&    GetScaling()     const { return m_scaling;	}
-	
+
 	MT_Vector3&          GetDeltaPosition()     { return m_deltaPosition; }
 	MT_Vector3&          GetDeltaEulerAngles()  { return m_deltaEulerAngles; }
 	MT_Vector3&          GetDeltaScaling()      { return m_deltaScaling; }
-	
+
 	void SetPosition(const MT_Point3& pos)      { m_position = pos; 	}
 	void SetEulerAngles(const MT_Vector3& eul)  { m_eulerAngles = eul;	}
 	void SetScaling(const MT_Vector3& scaling)  { m_scaling = scaling;	}
-	
-	void ClearDeltaStuff() { 
+
+	void ClearDeltaStuff() {
 		m_deltaPosition.setValue(0.0f, 0.0f, 0.0f);
 		m_deltaEulerAngles.setValue(0.0f, 0.0f, 0.0f);
 		m_deltaScaling.setValue(0.0f, 0.0f, 0.0f);

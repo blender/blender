@@ -70,9 +70,9 @@ PyObject *BL_ArmatureConstraint::py_repr(void)
 #endif // WITH_PYTHON
 
 BL_ArmatureConstraint::BL_ArmatureConstraint(
-	BL_ArmatureObject *armature, 
+	BL_ArmatureObject *armature,
 	bPoseChannel *posechannel,
-	bConstraint *constraint, 
+	bConstraint *constraint,
 	KX_GameObject* target,
 	KX_GameObject* subtarget)
 	: PyObjectPlus(), m_constraint(constraint), m_posechannel(posechannel), m_armature(armature)
@@ -282,7 +282,7 @@ PyAttributeDef BL_ArmatureConstraint::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("ik_flag",BL_ArmatureConstraint,py_attr_getattr),
 	KX_PYATTRIBUTE_RW_FUNCTION("ik_dist",BL_ArmatureConstraint,py_attr_getattr,py_attr_setattr),
 	KX_PYATTRIBUTE_RW_FUNCTION("ik_mode",BL_ArmatureConstraint,py_attr_getattr,py_attr_setattr),
-	
+
 	{ NULL }	//Sentinel
 };
 
@@ -368,7 +368,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 		PyErr_SetString(PyExc_AttributeError, "constraint is NULL");
 		return PY_SET_ATTR_FAIL;
 	}
-	
+
 	switch (attr_order) {
 	case BCA_ENFORCE:
 		dval = PyFloat_AsDouble(value);

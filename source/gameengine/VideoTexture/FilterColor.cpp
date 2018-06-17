@@ -47,7 +47,7 @@ static PyGetSetDef filterGrayGetSets[] =
 
 // define python type
 PyTypeObject FilterGrayType =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterGray",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
@@ -97,7 +97,7 @@ FilterColor::FilterColor (void)
 	// reset color matrix to identity
 	for (int r = 0; r < 4; ++r)
 		for (int c = 0; c < 5; ++c)
-			m_matrix[r][c] = (r == c) ? 256 : 0; 
+			m_matrix[r][c] = (r == c) ? 256 : 0;
 }
 
 // set color matrix
@@ -106,7 +106,7 @@ void FilterColor::setMatrix (ColorMatrix & mat)
 	// copy matrix
 	for (int r = 0; r < 4; ++r)
 		for (int c = 0; c < 5; ++c)
-			m_matrix[r][c] = mat[r][c]; 
+			m_matrix[r][c] = mat[r][c];
 }
 
 
@@ -169,7 +169,7 @@ static int setMatrix(PyFilter *self, PyObject *value, void *closure)
 
 // attributes structure
 static PyGetSetDef filterColorGetSets[] =
-{ 
+{
 	{(char*)"matrix", (getter)getMatrix, (setter)setMatrix, (char*)"matrix [4][5] for color calculation", NULL},
 	// attributes from FilterBase class
 	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
@@ -178,7 +178,7 @@ static PyGetSetDef filterColorGetSets[] =
 
 // define python type
 PyTypeObject FilterColorType =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterColor",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
@@ -302,7 +302,7 @@ static int setLevels(PyFilter *self, PyObject *value, void *closure)
 
 // attributes structure
 static PyGetSetDef filterLevelGetSets[] =
-{ 
+{
 	{(char*)"levels", (getter)getLevels, (setter)setLevels, (char*)"levels matrix [4] (min, max)", NULL},
 	// attributes from FilterBase class
 	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
@@ -311,7 +311,7 @@ static PyGetSetDef filterLevelGetSets[] =
 
 // define python type
 PyTypeObject FilterLevelType =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterLevel",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/

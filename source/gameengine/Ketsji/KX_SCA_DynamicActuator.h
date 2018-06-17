@@ -56,11 +56,11 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 	~KX_SCA_DynamicActuator(
 	);
 
-		CValue* 
+		CValue*
 	GetReplica(
 	);
 
-	virtual bool 
+	virtual bool
 	Update();
 
 	//Python Interface
@@ -71,6 +71,6 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 		KX_DYN_DISABLE_RIGID_BODY,
 		KX_DYN_SET_MASS,
 	};
-}; 
+};
 
 #endif

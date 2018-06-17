@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
  */
 
 /** \file KX_SG_BoneParentNodeRelationship.h
@@ -32,14 +32,14 @@
 
 #ifndef __KX_SG_BONEPARENTNODERELATIONSHIP_H__
 #define __KX_SG_BONEPARENTNODERELATIONSHIP_H__
- 
+
 #include "SG_Spatial.h"
 #include "SG_ParentRelation.h"
 
 struct Bone;
 
 /**
- *  Bone parent relationship parents a child SG_Spatial frame to a 
+ *  Bone parent relationship parents a child SG_Spatial frame to a
  *  bone in an armature object.
  */
 class KX_BoneParentRelation : public SG_ParentRelation
@@ -54,7 +54,7 @@ public :
 	 * to a Blender struct Bone - this should be fixed if
 	 */
 
-	static 
+	static
 		KX_BoneParentRelation *
 	New(Bone* bone
 	);

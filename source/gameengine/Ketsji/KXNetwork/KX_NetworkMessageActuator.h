@@ -58,8 +58,8 @@ public:
 
 	virtual bool Update();
 	virtual CValue* GetReplica();
-	virtual void Replace_NetworkScene(NG_NetworkScene *val) 
-	{ 
+	virtual void Replace_NetworkScene(NG_NetworkScene *val)
+	{
 		m_networkscene= val;
 	};
 

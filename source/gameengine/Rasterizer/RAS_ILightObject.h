@@ -54,7 +54,7 @@ public:
 	int		m_layer;
 	void	*m_scene;
 	void	*m_light;
-	
+
 	float	m_energy;
 	float	m_distance;
 	float	m_shadowclipstart;
@@ -74,7 +74,7 @@ public:
 	float	m_spotblend;
 
 	LightType	m_type;
-	
+
 	bool	m_nodiffuse;
 	bool	m_nospecular;
 	bool	m_glsl;

@@ -47,9 +47,9 @@ public:
 
 	void DrawFontText();
 
-	/** 
+	/**
 	 * Inherited from CValue -- return a new copy of this
-	 * instance allocated on the heap. Ownership of the new 
+	 * instance allocated on the heap. Ownership of the new
 	 * object belongs with the caller.
 	 */
 	virtual	CValue* GetReplica();

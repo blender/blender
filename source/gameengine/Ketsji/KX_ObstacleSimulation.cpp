@@ -230,7 +230,7 @@ void KX_ObstacleSimulation::AddObstaclesForNavMesh(KX_NavMeshObject* navmeshobj)
 				if (poly->n[j]) continue;
 				const float* vj = navmesh->getVertex(poly->v[j]);
 				const float* vi = navmesh->getVertex(poly->v[i]);
-		
+
 				KX_Obstacle* obstacle = CreateObstacle(navmeshobj);
 				obstacle->m_type = KX_OBSTACLE_NAV_MESH;
 				obstacle->m_shape = KX_OBSTACLE_SEGMENT;
@@ -292,7 +292,7 @@ KX_Obstacle* KX_ObstacleSimulation::GetObstacle(KX_GameObject* gameobj)
 	return NULL;
 }
 
-void KX_ObstacleSimulation::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+void KX_ObstacleSimulation::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 										MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle)
 {
 }
@@ -383,7 +383,7 @@ KX_ObstacleSimulationTOI::KX_ObstacleSimulationTOI(MT_Scalar levelHeight, bool e
 }
 
 
-void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
                                                       MT_Vector3& velocity, MT_Scalar maxDeltaSpeed, MT_Scalar maxDeltaAngle)
 {
 	int nobs = m_obstacles.size();
@@ -433,7 +433,7 @@ KX_ObstacleSimulationTOI_rays::KX_ObstacleSimulationTOI_rays(MT_Scalar levelHeig
 }
 
 
-void KX_ObstacleSimulationTOI_rays::sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+void KX_ObstacleSimulationTOI_rays::sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 										const float maxDeltaAngle)
 {
 	MT_Vector2 vel(activeObst->dvel[0], activeObst->dvel[1]);
@@ -580,7 +580,7 @@ void KX_ObstacleSimulationTOI_rays::sampleRVO(KX_Obstacle* activeObst, KX_NavMes
 
 ///////////********* TOI_cells**********/////////////////
 
-static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
                            KX_Obstacles& obstacles,  float levelHeight, const float vmax,
                            const float* spos, const float cs, const int nspos, float* res,
                            float maxToi, float velWeight, float curVelWeight, float sideWeight,
@@ -596,7 +596,7 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 	}
 
 	float activeObstPos[2];
-	vset(activeObstPos, activeObst->m_pos.x(), activeObst->m_pos.y()); 
+	vset(activeObstPos, activeObst->m_pos.x(), activeObst->m_pos.y());
 	/* adist = vdot(adir, activeObstPos); */
 
 	float minPenalty = FLT_MAX;
@@ -630,7 +630,7 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 
 				// Side
 				// NOTE: dp, and dv are constant over the whole calculation,
-				// they can be precomputed per object. 
+				// they can be precomputed per object.
 				const float* pa = activeObstPos;
 				float pb[2];
 				vset(pb, ob->m_pos.x(), ob->m_pos.y());
@@ -739,7 +739,7 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 	}
 }
 
-void KX_ObstacleSimulationTOI_cells::sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+void KX_ObstacleSimulationTOI_cells::sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 					   const float maxDeltaAngle)
 {
 	vset(activeObst->nvel, 0.f, 0.f);
@@ -771,7 +771,7 @@ void KX_ObstacleSimulationTOI_cells::sampleRVO(KX_Obstacle* activeObst, KX_NavMe
 				}
 			}
 		}
-		processSamples(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, vmax, spos, cs/2, 
+		processSamples(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, vmax, spos, cs/2,
 			nspos,  activeObst->nvel, m_maxToi, m_velWeight, m_curVelWeight, m_collisionWeight, m_toiWeight);
 	}
 	else

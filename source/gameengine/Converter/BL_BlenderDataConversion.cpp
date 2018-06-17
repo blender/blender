@@ -185,7 +185,7 @@ static bool default_light_mode = 0;
 static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 {
 	std::map<int, SCA_IInputDevice::KX_EnumInputs> m;
-		
+
 	/* The reverse table. In order to not confuse ourselves, we      */
 	/* immediately convert all events that come in to KX codes.      */
 	m[LEFTMOUSE			] =	SCA_IInputDevice::KX_LEFTMOUSE;
@@ -195,136 +195,136 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 	m[WHEELDOWNMOUSE	] =	SCA_IInputDevice::KX_WHEELDOWNMOUSE;
 	m[MOUSEX			] = SCA_IInputDevice::KX_MOUSEX;
 	m[MOUSEY			] =	SCA_IInputDevice::KX_MOUSEY;
-		
-	// TIMERS                                                                                                  
-		
-	m[TIMER0			] = SCA_IInputDevice::KX_TIMER0;                  
-	m[TIMER1			] = SCA_IInputDevice::KX_TIMER1;                  
-	m[TIMER2			] = SCA_IInputDevice::KX_TIMER2;                  
-		
-	// SYSTEM                                                                                                  
-		
+
+	// TIMERS
+
+	m[TIMER0			] = SCA_IInputDevice::KX_TIMER0;
+	m[TIMER1			] = SCA_IInputDevice::KX_TIMER1;
+	m[TIMER2			] = SCA_IInputDevice::KX_TIMER2;
+
+	// SYSTEM
+
 #if 0
 	/* **** XXX **** */
-	m[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
-	m[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
-	m[REDRAW			] = SCA_IInputDevice::KX_REDRAW;                  
-	m[INPUTCHANGE		] = SCA_IInputDevice::KX_INPUTCHANGE;                  
-	m[QFULL				] = SCA_IInputDevice::KX_QFULL;                  
-	m[WINFREEZE			] = SCA_IInputDevice::KX_WINFREEZE;                  
-	m[WINTHAW			] = SCA_IInputDevice::KX_WINTHAW;                  
-	m[WINCLOSE			] = SCA_IInputDevice::KX_WINCLOSE;                  
-	m[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
-	m[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
+	m[KEYBD				] = SCA_IInputDevice::KX_KEYBD;
+	m[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;
+	m[REDRAW			] = SCA_IInputDevice::KX_REDRAW;
+	m[INPUTCHANGE		] = SCA_IInputDevice::KX_INPUTCHANGE;
+	m[QFULL				] = SCA_IInputDevice::KX_QFULL;
+	m[WINFREEZE			] = SCA_IInputDevice::KX_WINFREEZE;
+	m[WINTHAW			] = SCA_IInputDevice::KX_WINTHAW;
+	m[WINCLOSE			] = SCA_IInputDevice::KX_WINCLOSE;
+	m[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;
+	m[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;
 	/* **** XXX **** */
 #endif
-		
-	// standard keyboard                                                                                       
-		
-	m[AKEY				] = SCA_IInputDevice::KX_AKEY;                  
-	m[BKEY				] = SCA_IInputDevice::KX_BKEY;                  
-	m[CKEY				] = SCA_IInputDevice::KX_CKEY;                  
-	m[DKEY				] = SCA_IInputDevice::KX_DKEY;                  
-	m[EKEY				] = SCA_IInputDevice::KX_EKEY;                  
-	m[FKEY				] = SCA_IInputDevice::KX_FKEY;                  
-	m[GKEY				] = SCA_IInputDevice::KX_GKEY;                  
-	m[HKEY				] = SCA_IInputDevice::KX_HKEY;                  
-	m[IKEY				] = SCA_IInputDevice::KX_IKEY;                  
-	m[JKEY				] = SCA_IInputDevice::KX_JKEY;                  
-	m[KKEY				] = SCA_IInputDevice::KX_KKEY;                  
-	m[LKEY				] = SCA_IInputDevice::KX_LKEY;                  
-	m[MKEY				] = SCA_IInputDevice::KX_MKEY;                  
-	m[NKEY				] = SCA_IInputDevice::KX_NKEY;                  
-	m[OKEY				] = SCA_IInputDevice::KX_OKEY;                  
-	m[PKEY				] = SCA_IInputDevice::KX_PKEY;                  
-	m[QKEY				] = SCA_IInputDevice::KX_QKEY;                  
-	m[RKEY				] = SCA_IInputDevice::KX_RKEY;                  
-	m[SKEY				] = SCA_IInputDevice::KX_SKEY;                  
-	m[TKEY				] = SCA_IInputDevice::KX_TKEY;                  
-	m[UKEY				] = SCA_IInputDevice::KX_UKEY;                  
-	m[VKEY				] = SCA_IInputDevice::KX_VKEY;                  
-	m[WKEY				] = SCA_IInputDevice::KX_WKEY;                  
-	m[XKEY				] = SCA_IInputDevice::KX_XKEY;                  
-	m[YKEY				] = SCA_IInputDevice::KX_YKEY;                  
-	m[ZKEY				] = SCA_IInputDevice::KX_ZKEY;                  
-		
-	m[ZEROKEY			] = SCA_IInputDevice::KX_ZEROKEY;                  
-	m[ONEKEY			] = SCA_IInputDevice::KX_ONEKEY;                  
-	m[TWOKEY			] = SCA_IInputDevice::KX_TWOKEY;                  
-	m[THREEKEY			] = SCA_IInputDevice::KX_THREEKEY;                  
-	m[FOURKEY			] = SCA_IInputDevice::KX_FOURKEY;                  
-	m[FIVEKEY			] = SCA_IInputDevice::KX_FIVEKEY;                  
-	m[SIXKEY			] = SCA_IInputDevice::KX_SIXKEY;                  
-	m[SEVENKEY			] = SCA_IInputDevice::KX_SEVENKEY;                  
-	m[EIGHTKEY			] = SCA_IInputDevice::KX_EIGHTKEY;                  
-	m[NINEKEY			] = SCA_IInputDevice::KX_NINEKEY;                  
-		
-	m[CAPSLOCKKEY		] = SCA_IInputDevice::KX_CAPSLOCKKEY;                  
-		
-	m[LEFTCTRLKEY		] = SCA_IInputDevice::KX_LEFTCTRLKEY;                  
-	m[LEFTALTKEY		] = SCA_IInputDevice::KX_LEFTALTKEY;                  
-	m[RIGHTALTKEY		] = SCA_IInputDevice::KX_RIGHTALTKEY;                  
-	m[RIGHTCTRLKEY		] = SCA_IInputDevice::KX_RIGHTCTRLKEY;                  
-	m[RIGHTSHIFTKEY		] = SCA_IInputDevice::KX_RIGHTSHIFTKEY;                  
-	m[LEFTSHIFTKEY		] = SCA_IInputDevice::KX_LEFTSHIFTKEY;                  
-		
-	m[ESCKEY			] = SCA_IInputDevice::KX_ESCKEY;                  
-	m[TABKEY			] = SCA_IInputDevice::KX_TABKEY;                  
-	m[RETKEY			] = SCA_IInputDevice::KX_RETKEY;                  
-	m[SPACEKEY			] = SCA_IInputDevice::KX_SPACEKEY;                  
-	m[LINEFEEDKEY		] = SCA_IInputDevice::KX_LINEFEEDKEY;                  
-	m[BACKSPACEKEY		] = SCA_IInputDevice::KX_BACKSPACEKEY;                  
-	m[DELKEY			] = SCA_IInputDevice::KX_DELKEY;                  
-	m[SEMICOLONKEY		] = SCA_IInputDevice::KX_SEMICOLONKEY;                  
-	m[PERIODKEY			] = SCA_IInputDevice::KX_PERIODKEY;                  
-	m[COMMAKEY			] = SCA_IInputDevice::KX_COMMAKEY;                  
-	m[QUOTEKEY			] = SCA_IInputDevice::KX_QUOTEKEY;                  
-	m[ACCENTGRAVEKEY	] = SCA_IInputDevice::KX_ACCENTGRAVEKEY;                  
-	m[MINUSKEY			] = SCA_IInputDevice::KX_MINUSKEY;                  
+
+	// standard keyboard
+
+	m[AKEY				] = SCA_IInputDevice::KX_AKEY;
+	m[BKEY				] = SCA_IInputDevice::KX_BKEY;
+	m[CKEY				] = SCA_IInputDevice::KX_CKEY;
+	m[DKEY				] = SCA_IInputDevice::KX_DKEY;
+	m[EKEY				] = SCA_IInputDevice::KX_EKEY;
+	m[FKEY				] = SCA_IInputDevice::KX_FKEY;
+	m[GKEY				] = SCA_IInputDevice::KX_GKEY;
+	m[HKEY				] = SCA_IInputDevice::KX_HKEY;
+	m[IKEY				] = SCA_IInputDevice::KX_IKEY;
+	m[JKEY				] = SCA_IInputDevice::KX_JKEY;
+	m[KKEY				] = SCA_IInputDevice::KX_KKEY;
+	m[LKEY				] = SCA_IInputDevice::KX_LKEY;
+	m[MKEY				] = SCA_IInputDevice::KX_MKEY;
+	m[NKEY				] = SCA_IInputDevice::KX_NKEY;
+	m[OKEY				] = SCA_IInputDevice::KX_OKEY;
+	m[PKEY				] = SCA_IInputDevice::KX_PKEY;
+	m[QKEY				] = SCA_IInputDevice::KX_QKEY;
+	m[RKEY				] = SCA_IInputDevice::KX_RKEY;
+	m[SKEY				] = SCA_IInputDevice::KX_SKEY;
+	m[TKEY				] = SCA_IInputDevice::KX_TKEY;
+	m[UKEY				] = SCA_IInputDevice::KX_UKEY;
+	m[VKEY				] = SCA_IInputDevice::KX_VKEY;
+	m[WKEY				] = SCA_IInputDevice::KX_WKEY;
+	m[XKEY				] = SCA_IInputDevice::KX_XKEY;
+	m[YKEY				] = SCA_IInputDevice::KX_YKEY;
+	m[ZKEY				] = SCA_IInputDevice::KX_ZKEY;
+
+	m[ZEROKEY			] = SCA_IInputDevice::KX_ZEROKEY;
+	m[ONEKEY			] = SCA_IInputDevice::KX_ONEKEY;
+	m[TWOKEY			] = SCA_IInputDevice::KX_TWOKEY;
+	m[THREEKEY			] = SCA_IInputDevice::KX_THREEKEY;
+	m[FOURKEY			] = SCA_IInputDevice::KX_FOURKEY;
+	m[FIVEKEY			] = SCA_IInputDevice::KX_FIVEKEY;
+	m[SIXKEY			] = SCA_IInputDevice::KX_SIXKEY;
+	m[SEVENKEY			] = SCA_IInputDevice::KX_SEVENKEY;
+	m[EIGHTKEY			] = SCA_IInputDevice::KX_EIGHTKEY;
+	m[NINEKEY			] = SCA_IInputDevice::KX_NINEKEY;
+
+	m[CAPSLOCKKEY		] = SCA_IInputDevice::KX_CAPSLOCKKEY;
+
+	m[LEFTCTRLKEY		] = SCA_IInputDevice::KX_LEFTCTRLKEY;
+	m[LEFTALTKEY		] = SCA_IInputDevice::KX_LEFTALTKEY;
+	m[RIGHTALTKEY		] = SCA_IInputDevice::KX_RIGHTALTKEY;
+	m[RIGHTCTRLKEY		] = SCA_IInputDevice::KX_RIGHTCTRLKEY;
+	m[RIGHTSHIFTKEY		] = SCA_IInputDevice::KX_RIGHTSHIFTKEY;
+	m[LEFTSHIFTKEY		] = SCA_IInputDevice::KX_LEFTSHIFTKEY;
+
+	m[ESCKEY			] = SCA_IInputDevice::KX_ESCKEY;
+	m[TABKEY			] = SCA_IInputDevice::KX_TABKEY;
+	m[RETKEY			] = SCA_IInputDevice::KX_RETKEY;
+	m[SPACEKEY			] = SCA_IInputDevice::KX_SPACEKEY;
+	m[LINEFEEDKEY		] = SCA_IInputDevice::KX_LINEFEEDKEY;
+	m[BACKSPACEKEY		] = SCA_IInputDevice::KX_BACKSPACEKEY;
+	m[DELKEY			] = SCA_IInputDevice::KX_DELKEY;
+	m[SEMICOLONKEY		] = SCA_IInputDevice::KX_SEMICOLONKEY;
+	m[PERIODKEY			] = SCA_IInputDevice::KX_PERIODKEY;
+	m[COMMAKEY			] = SCA_IInputDevice::KX_COMMAKEY;
+	m[QUOTEKEY			] = SCA_IInputDevice::KX_QUOTEKEY;
+	m[ACCENTGRAVEKEY	] = SCA_IInputDevice::KX_ACCENTGRAVEKEY;
+	m[MINUSKEY			] = SCA_IInputDevice::KX_MINUSKEY;
 	m[PLUSKEY			] = SCA_IInputDevice::KX_PLUSKEY;
 	m[SLASHKEY			] = SCA_IInputDevice::KX_SLASHKEY;
-	m[BACKSLASHKEY		] = SCA_IInputDevice::KX_BACKSLASHKEY;                  
-	m[EQUALKEY			] = SCA_IInputDevice::KX_EQUALKEY;                  
-	m[LEFTBRACKETKEY	] = SCA_IInputDevice::KX_LEFTBRACKETKEY;                  
-	m[RIGHTBRACKETKEY	] = SCA_IInputDevice::KX_RIGHTBRACKETKEY;                  
-		
-	m[LEFTARROWKEY		] = SCA_IInputDevice::KX_LEFTARROWKEY;                  
-	m[DOWNARROWKEY		] = SCA_IInputDevice::KX_DOWNARROWKEY;                  
-	m[RIGHTARROWKEY		] = SCA_IInputDevice::KX_RIGHTARROWKEY;                  
-	m[UPARROWKEY		] = SCA_IInputDevice::KX_UPARROWKEY;                  
-		
-	m[PAD2				] = SCA_IInputDevice::KX_PAD2;                  
-	m[PAD4				] = SCA_IInputDevice::KX_PAD4;                  
-	m[PAD6				] = SCA_IInputDevice::KX_PAD6;                  
-	m[PAD8				] = SCA_IInputDevice::KX_PAD8;                  
-		
-	m[PAD1				] = SCA_IInputDevice::KX_PAD1;                  
-	m[PAD3				] = SCA_IInputDevice::KX_PAD3;                  
-	m[PAD5				] = SCA_IInputDevice::KX_PAD5;                  
-	m[PAD7				] = SCA_IInputDevice::KX_PAD7;                  
-	m[PAD9				] = SCA_IInputDevice::KX_PAD9;                  
-		
-	m[PADPERIOD			] = SCA_IInputDevice::KX_PADPERIOD;                  
-	m[PADSLASHKEY		] = SCA_IInputDevice::KX_PADSLASHKEY;                  
-	m[PADASTERKEY		] = SCA_IInputDevice::KX_PADASTERKEY;                  
-		
-	m[PAD0				] = SCA_IInputDevice::KX_PAD0;                  
-	m[PADMINUS			] = SCA_IInputDevice::KX_PADMINUS;                  
-	m[PADENTER			] = SCA_IInputDevice::KX_PADENTER;                  
-	m[PADPLUSKEY		] = SCA_IInputDevice::KX_PADPLUSKEY;                  
-		
-		
-	m[F1KEY				] = SCA_IInputDevice::KX_F1KEY;                  
-	m[F2KEY				] = SCA_IInputDevice::KX_F2KEY;                  
-	m[F3KEY				] = SCA_IInputDevice::KX_F3KEY;                  
-	m[F4KEY				] = SCA_IInputDevice::KX_F4KEY;                  
-	m[F5KEY				] = SCA_IInputDevice::KX_F5KEY;                  
-	m[F6KEY				] = SCA_IInputDevice::KX_F6KEY;                  
-	m[F7KEY				] = SCA_IInputDevice::KX_F7KEY;                  
-	m[F8KEY				] = SCA_IInputDevice::KX_F8KEY;                  
-	m[F9KEY				] = SCA_IInputDevice::KX_F9KEY;                  
-	m[F10KEY			] = SCA_IInputDevice::KX_F10KEY;                  
-	m[F11KEY			] = SCA_IInputDevice::KX_F11KEY;                  
+	m[BACKSLASHKEY		] = SCA_IInputDevice::KX_BACKSLASHKEY;
+	m[EQUALKEY			] = SCA_IInputDevice::KX_EQUALKEY;
+	m[LEFTBRACKETKEY	] = SCA_IInputDevice::KX_LEFTBRACKETKEY;
+	m[RIGHTBRACKETKEY	] = SCA_IInputDevice::KX_RIGHTBRACKETKEY;
+
+	m[LEFTARROWKEY		] = SCA_IInputDevice::KX_LEFTARROWKEY;
+	m[DOWNARROWKEY		] = SCA_IInputDevice::KX_DOWNARROWKEY;
+	m[RIGHTARROWKEY		] = SCA_IInputDevice::KX_RIGHTARROWKEY;
+	m[UPARROWKEY		] = SCA_IInputDevice::KX_UPARROWKEY;
+
+	m[PAD2				] = SCA_IInputDevice::KX_PAD2;
+	m[PAD4				] = SCA_IInputDevice::KX_PAD4;
+	m[PAD6				] = SCA_IInputDevice::KX_PAD6;
+	m[PAD8				] = SCA_IInputDevice::KX_PAD8;
+
+	m[PAD1				] = SCA_IInputDevice::KX_PAD1;
+	m[PAD3				] = SCA_IInputDevice::KX_PAD3;
+	m[PAD5				] = SCA_IInputDevice::KX_PAD5;
+	m[PAD7				] = SCA_IInputDevice::KX_PAD7;
+	m[PAD9				] = SCA_IInputDevice::KX_PAD9;
+
+	m[PADPERIOD			] = SCA_IInputDevice::KX_PADPERIOD;
+	m[PADSLASHKEY		] = SCA_IInputDevice::KX_PADSLASHKEY;
+	m[PADASTERKEY		] = SCA_IInputDevice::KX_PADASTERKEY;
+
+	m[PAD0				] = SCA_IInputDevice::KX_PAD0;
+	m[PADMINUS			] = SCA_IInputDevice::KX_PADMINUS;
+	m[PADENTER			] = SCA_IInputDevice::KX_PADENTER;
+	m[PADPLUSKEY		] = SCA_IInputDevice::KX_PADPLUSKEY;
+
+
+	m[F1KEY				] = SCA_IInputDevice::KX_F1KEY;
+	m[F2KEY				] = SCA_IInputDevice::KX_F2KEY;
+	m[F3KEY				] = SCA_IInputDevice::KX_F3KEY;
+	m[F4KEY				] = SCA_IInputDevice::KX_F4KEY;
+	m[F5KEY				] = SCA_IInputDevice::KX_F5KEY;
+	m[F6KEY				] = SCA_IInputDevice::KX_F6KEY;
+	m[F7KEY				] = SCA_IInputDevice::KX_F7KEY;
+	m[F8KEY				] = SCA_IInputDevice::KX_F8KEY;
+	m[F9KEY				] = SCA_IInputDevice::KX_F9KEY;
+	m[F10KEY			] = SCA_IInputDevice::KX_F10KEY;
+	m[F11KEY			] = SCA_IInputDevice::KX_F11KEY;
 	m[F12KEY			] = SCA_IInputDevice::KX_F12KEY;
 	m[F13KEY			] = SCA_IInputDevice::KX_F13KEY;
 	m[F14KEY			] = SCA_IInputDevice::KX_F14KEY;
@@ -336,11 +336,11 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 
 	m[OSKEY				] = SCA_IInputDevice::KX_OSKEY;
 
-	m[PAUSEKEY			] = SCA_IInputDevice::KX_PAUSEKEY;                  
-	m[INSERTKEY			] = SCA_IInputDevice::KX_INSERTKEY;                  
-	m[HOMEKEY			] = SCA_IInputDevice::KX_HOMEKEY;                  
-	m[PAGEUPKEY			] = SCA_IInputDevice::KX_PAGEUPKEY;                  
-	m[PAGEDOWNKEY		] = SCA_IInputDevice::KX_PAGEDOWNKEY;                  
+	m[PAUSEKEY			] = SCA_IInputDevice::KX_PAUSEKEY;
+	m[INSERTKEY			] = SCA_IInputDevice::KX_INSERTKEY;
+	m[HOMEKEY			] = SCA_IInputDevice::KX_HOMEKEY;
+	m[PAGEUPKEY			] = SCA_IInputDevice::KX_PAGEUPKEY;
+	m[PAGEDOWNKEY		] = SCA_IInputDevice::KX_PAGEDOWNKEY;
 	m[ENDKEY			] = SCA_IInputDevice::KX_ENDKEY;
 
 	return m;
@@ -360,13 +360,13 @@ static unsigned int KX_rgbaint2uint_new(unsigned int icol)
 		unsigned int integer;
 		unsigned char cp[4];
 	} out_color, in_color;
-	
+
 	in_color.integer = icol;
 	out_color.cp[0] = in_color.cp[3]; // red
 	out_color.cp[1] = in_color.cp[2]; // green
 	out_color.cp[2] = in_color.cp[1]; // blue
 	out_color.cp[3] = in_color.cp[0]; // alpha
-	
+
 	return out_color.integer;
 }
 
@@ -386,7 +386,7 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 	out_color.cp[1] = in_color.cp[2]; // green
 	out_color.cp[2] = in_color.cp[1]; // blue
 	out_color.cp[3] = in_color.cp[0]; // alpha
-	
+
 	return out_color.integer;
 }
 
@@ -487,19 +487,19 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 	int unit = 0;
 	if (tface)
 	{
-			
+
 		uvs[0][0].setValue(tface->uv[0]);
 		uvs[1][0].setValue(tface->uv[1]);
 		uvs[2][0].setValue(tface->uv[2]);
 
-		if (mface->v4) 
+		if (mface->v4)
 			uvs[3][0].setValue(tface->uv[3]);
 	}
 	else
 	{
 		uvs[0][0] = uvs[1][0] = uvs[2][0] = uvs[3][0] = MT_Point2(0.f, 0.f);
 	}
-	
+
 	vector<STR_String> found_layers;
 
 	for (int vind = 0; vind<MAXTEX; vind++)
@@ -513,12 +513,12 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 
 		//If no UVSet is specified, try grabbing one from the UV/Image editor
 		if (map.uvCoName.IsEmpty() && tface)
-		{			
+		{
 			uvs[0][unit].setValue(tface->uv[0]);
 			uvs[1][unit].setValue(tface->uv[1]);
 			uvs[2][unit].setValue(tface->uv[2]);
 
-			if (mface->v4) 
+			if (mface->v4)
 				uvs[3][unit].setValue(tface->uv[3]);
 
 			++unit;
@@ -537,7 +537,7 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 				uvs[1][unit].setValue(layer.face->uv[1]);
 				uvs[2][unit].setValue(layer.face->uv[2]);
 
-				if (mface->v4) 
+				if (mface->v4)
 					uvs[3][unit].setValue(layer.face->uv[3]);
 				else
 					uvs[3][unit].setValue(0.0f, 0.0f);
@@ -565,7 +565,7 @@ static bool ConvertMaterial(
 	const bool validmat  = (mat != NULL);
 	const bool validface = (tface != NULL);
 	const bool use_vcol  = GetMaterialUseVColor(mat, glslmat);
-	
+
 	material->IdMode = DEFAULT_BLENDER;
 	material->glslmat = (validmat) ? glslmat: false;
 	material->materialindex = mface->mat_nr;
@@ -685,7 +685,7 @@ static bool ConvertMaterial(
 					if (mat->septex & (1 << i)) {
 						// If this texture slot isn't in use, set it to disabled to prevent multi-uv problems
 						material->mapping[i].mapping = DISABLE;
-					} 
+					}
 					else {
 						material->mapping[i].mapping |= (mttmp->texco & TEXCO_REFL) ? USEREFL : 0;
 
@@ -728,7 +728,7 @@ static bool ConvertMaterial(
 						material->mapping[i].projplane[2] = mttmp->projz;
 					}
 					/// --------------------------------
-					
+
 					switch (mttmp->blendtype) {
 					case MTEX_BLEND:
 						material->blend_mode[i] = BLEND_MIX;
@@ -913,10 +913,10 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 		if (ma && (ma->mode & MA_FACETEXTURE) == 0)
 			converter->CachePolyMaterial(scene, ma, polymat);
 	}
-	
+
 	// see if a bucket was reused or a new one was created
 	// this way only one KX_BlenderMaterial object has to exist per bucket
-	bool bucketCreated; 
+	bool bucketCreated;
 	RAS_MaterialBucket* bucket = scene->FindBucket(polymat, bucketCreated);
 
 	// this is needed to free up memory afterwards.
@@ -1087,7 +1087,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 
 			/* mark face as flat, so vertices are split */
 			bool flat = (mface->flag & ME_SMOOTH) == 0;
-				
+
 			int nverts = (mface->v4)? 4: 3;
 
 			RAS_Polygon *poly = meshobj->AddPolygon(bucket, nverts);
@@ -1105,7 +1105,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 				meshobj->AddVertex(poly,3,pt[3],uvs[3],tan[3],rgb[3],no[3],flat,mface->v4);
 		}
 
-		if (tface) 
+		if (tface)
 			tface++;
 		if (mcol)
 			mcol+=4;
@@ -1134,27 +1134,27 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 
 	if (layers)
 		delete []layers;
-	
+
 	dm->release(dm);
 
 	converter->RegisterGameMesh(meshobj, mesh);
 	return meshobj;
 }
 
-	
-	
+
+
 static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blenderobject)
 {
 	PHY_MaterialProps *materialProps = new PHY_MaterialProps;
-	
+
 	MT_assert(materialProps && "Create physics material properties failed");
-		
+
 	Material* blendermat = give_current_material(blenderobject, 1);
-		
+
 	if (blendermat)
 	{
 		MT_assert(0.0f <= blendermat->reflect && blendermat->reflect <= 1.0f);
-	
+
 		materialProps->m_restitution = blendermat->reflect;
 		materialProps->m_friction = blendermat->friction;
 		materialProps->m_fh_spring = blendermat->fh;
@@ -1172,38 +1172,38 @@ static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blender
 		materialProps->m_fh_normal = false;
 
 	}
-	
+
 	return materialProps;
 }
 
 static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blenderobject)
 {
 	PHY_ShapeProps *shapeProps = new PHY_ShapeProps;
-	
+
 	MT_assert(shapeProps);
-		
+
 	shapeProps->m_mass = blenderobject->mass;
-	
+
 //  This needs to be fixed in blender. For now, we use:
-	
+
 // in Blender, inertia stands for the size value which is equivalent to
 // the sphere radius
 	shapeProps->m_inertia = blenderobject->formfactor;
-	
+
 	MT_assert(0.0f <= blenderobject->damping && blenderobject->damping <= 1.0f);
 	MT_assert(0.0f <= blenderobject->rdamping && blenderobject->rdamping <= 1.0f);
-	
+
 	shapeProps->m_lin_drag = 1.0f - blenderobject->damping;
 	shapeProps->m_ang_drag = 1.0f - blenderobject->rdamping;
-	
-	shapeProps->m_friction_scaling[0] = blenderobject->anisotropicFriction[0]; 
+
+	shapeProps->m_friction_scaling[0] = blenderobject->anisotropicFriction[0];
 	shapeProps->m_friction_scaling[1] = blenderobject->anisotropicFriction[1];
 	shapeProps->m_friction_scaling[2] = blenderobject->anisotropicFriction[2];
 	shapeProps->m_do_anisotropic = ((blenderobject->gameflag & OB_ANISOTROPIC_FRICTION) != 0);
-	
-	shapeProps->m_do_fh     = (blenderobject->gameflag & OB_DO_FH) != 0; 
+
+	shapeProps->m_do_fh     = (blenderobject->gameflag & OB_DO_FH) != 0;
 	shapeProps->m_do_rot_fh = (blenderobject->gameflag & OB_ROT_FH) != 0;
-	
+
 //	velocity clamping XXX
 	shapeProps->m_clamp_vel_min = blenderobject->min_vel;
 	shapeProps->m_clamp_vel_max = blenderobject->max_vel;
@@ -1219,12 +1219,12 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	return shapeProps;
 }
 
-	
-	
-	
-		
+
+
+
+
 //////////////////////////////////////////////////////////
-	
+
 
 
 static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
@@ -1235,36 +1235,36 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	float mloc[3], msize[3];
 	float radius_sq=0.0f, vert_radius_sq, *co;
 	int a;
-	
+
 	if (me->bb==0) {
 		me->bb = BKE_boundbox_alloc_unit();
 	}
 	bb= me->bb;
-	
+
 	INIT_MINMAX(min, max);
 
 	if (!loc) loc= mloc;
 	if (!size) size= msize;
-	
+
 	mvert= me->mvert;
 	for (a = 0; a<me->totvert; a++, mvert++) {
 		co = mvert->co;
-		
+
 		/* bounds */
 		minmax_v3v3_v3(min, max, co);
-		
+
 		/* radius */
 
 		vert_radius_sq = len_squared_v3(co);
 		if (vert_radius_sq > radius_sq)
 			radius_sq = vert_radius_sq;
 	}
-		
+
 	if (me->totvert) {
 		loc[0] = (min[0] + max[0]) / 2.0f;
 		loc[1] = (min[1] + max[1]) / 2.0f;
 		loc[2] = (min[2] + max[2]) / 2.0f;
-		
+
 		size[0] = (max[0] - min[0]) / 2.0f;
 		size[1] = (max[1] - min[1]) / 2.0f;
 		size[2] = (max[2] - min[2]) / 2.0f;
@@ -1273,10 +1273,10 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 		loc[0] = loc[1] = loc[2] = 0.0f;
 		size[0] = size[1] = size[2] = 0.0f;
 	}
-		
+
 	bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = loc[0]-size[0];
 	bb->vec[4][0] = bb->vec[5][0] = bb->vec[6][0] = bb->vec[7][0] = loc[0]+size[0];
-		
+
 	bb->vec[0][1] = bb->vec[1][1] = bb->vec[4][1] = bb->vec[5][1] = loc[1]-size[1];
 	bb->vec[2][1] = bb->vec[3][1] = bb->vec[6][1] = bb->vec[7][1] = loc[1]+size[1];
 
@@ -1377,8 +1377,8 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	PHY_ShapeProps* shapeprops =
 			CreateShapePropsFromBlenderObject(blenderobject);
 
-	
-	PHY_MaterialProps* smmaterial = 
+
+	PHY_MaterialProps* smmaterial =
 		CreateMaterialFromBlenderObject(blenderobject);
 
 	DerivedMesh* dm = NULL;
@@ -1415,7 +1415,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 {
 	RAS_ILightObject *lightobj = rasterizer->CreateLight();
 	KX_LightObject *gamelight;
-	
+
 	lightobj->m_att1 = la->att1;
 	lightobj->m_att2 = (la->mode & LA_QUAD) ? la->att2 : 0.0f;
 	lightobj->m_coeff_const = la->coeff_const;
@@ -1438,10 +1438,10 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 	lightobj->m_layer = layerflag;
 	lightobj->m_spotblend = la->spotblend;
 	lightobj->m_spotsize = la->spotsize;
-	
+
 	lightobj->m_nodiffuse = (la->mode & LA_NO_DIFF) != 0;
 	lightobj->m_nospecular = (la->mode & LA_NO_SPEC) != 0;
-	
+
 	bool glslmat = converter->GetGLSLMaterials();
 
 	// in GLSL NEGATIVE LAMP is handled inside the lamp update function
@@ -1453,7 +1453,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 			lightobj->m_color[2] = -lightobj->m_color[2];
 		}
 	}
-		
+
 	if (la->type==LA_SUN) {
 		lightobj->m_type = RAS_ILightObject::LIGHT_SUN;
 	} else if (la->type==LA_SPOT) {
@@ -1464,7 +1464,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rasterizer,
 		lightobj, glslmat);
-	
+
 	return gamelight;
 }
 
@@ -1473,29 +1473,29 @@ static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_Blen
 	Camera* ca = static_cast<Camera*>(ob->data);
 	RAS_CameraData camdata(ca->lens, ca->ortho_scale, ca->sensor_x, ca->sensor_y, ca->sensor_fit, ca->shiftx, ca->shifty, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, ca->YF_dofdist);
 	KX_Camera *gamecamera;
-	
+
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
 	gamecamera->SetName(ca->id.name + 2);
-	
+
 	return gamecamera;
 }
 
 static KX_GameObject *gameobject_from_blenderobject(
-								Object *ob, 
-								KX_Scene *kxscene, 
+								Object *ob,
+								KX_Scene *kxscene,
 								RAS_IRasterizer *rendertools,
 								KX_BlenderSceneConverter *converter,
-								bool libloading) 
+								bool libloading)
 {
 	KX_GameObject *gameobj = NULL;
 	Scene *blenderscene = kxscene->GetBlenderScene();
-	
+
 	switch (ob->type) {
 	case OB_LAMP:
 	{
 		KX_LightObject* gamelight = gamelight_from_blamp(ob, static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);
 		gameobj = gamelight;
-		
+
 		if (blenderscene->lay & ob->lay)
 		{
 			gamelight->AddRef();
@@ -1504,26 +1504,26 @@ static KX_GameObject *gameobject_from_blenderobject(
 
 		break;
 	}
-	
+
 	case OB_CAMERA:
 	{
 		KX_Camera* gamecamera = gamecamera_from_bcamera(ob, kxscene, converter);
 		gameobj = gamecamera;
-		
+
 		//don't add a reference: the camera list in kxscene->m_cameras is not released at the end
 		//gamecamera->AddRef();
 		kxscene->AddCamera(gamecamera);
-		
+
 		break;
 	}
-	
+
 	case OB_MESH:
 	{
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
 		float center[3], extents[3];
 		float radius = my_boundbox_mesh((Mesh*) ob->data, center, extents);
 		RAS_MeshObject* meshobj = BL_ConvertMesh(mesh,ob,kxscene,converter, libloading);
-		
+
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
 
@@ -1535,7 +1535,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		}
 
 		gameobj = new BL_DeformableGameObject(ob,kxscene,KX_Scene::m_callbacks);
-	
+
 		// set transformation
 		gameobj->AddMesh(meshobj);
 
@@ -1560,10 +1560,10 @@ static KX_GameObject *gameobject_from_blenderobject(
 				kxscene->SetLodHysteresisValue(blenderscene->gm.scehysteresis);
 			}
 		}
-	
+
 		// for all objects: check whether they want to
 		// respond to updates
-		bool ignoreActivityCulling =  
+		bool ignoreActivityCulling =
 			((ob->gameflag2 & OB_NEVER_DO_ACTIVITY_CULLING)!=0);
 		gameobj->SetIgnoreActivityCulling(ignoreActivityCulling);
 		gameobj->SetOccluder((ob->gameflag & OB_OCCLUDER) != 0, false);
@@ -1572,7 +1572,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		// that requires it
 		Material *mat= NULL;
 		bool bUseObjectColor=false;
-		
+
 		for (int i=0;i<mesh->totcol;i++) {
 			mat=mesh->mat[i];
 			if (!mat) break;
@@ -1583,7 +1583,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		}
 		if (bUseObjectColor)
 			gameobj->SetObjectColor(ob->col);
-	
+
 		// two options exists for deform: shape keys and armature
 		// only support relative shape key
 		bool bHasShapeKey = mesh->key != NULL && mesh->key->type==KEY_RELATIVE;
@@ -1598,8 +1598,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 																kxscene->GetBlenderScene(), ob,	meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		} else if (bHasShapeKey) {
-			// not that we can have shape keys without dvert! 
-			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
+			// not that we can have shape keys without dvert!
+			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj,
 															ob, meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		} else if (bHasArmature) {
@@ -1619,16 +1619,16 @@ static KX_GameObject *gameobject_from_blenderobject(
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 #endif
 		}
-		
+
 		MT_Point3 min = MT_Point3(center) - MT_Vector3(extents);
 		MT_Point3 max = MT_Point3(center) + MT_Vector3(extents);
 		SG_BBox bbox = SG_BBox(min, max);
 		gameobj->GetSGNode()->SetBBox(bbox);
 		gameobj->GetSGNode()->SetRadius(radius);
-	
+
 		break;
 	}
-	
+
 	case OB_ARMATURE:
 	{
 		bArmature *arm = (bArmature*)ob->data;
@@ -1642,7 +1642,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;
 	}
-	
+
 	case OB_EMPTY:
 	{
 		gameobj = new KX_EmptyObject(kxscene,KX_Scene::m_callbacks);
@@ -1672,7 +1672,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 #endif
 
 	}
-	if (gameobj) 
+	if (gameobj)
 	{
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
@@ -1691,13 +1691,13 @@ static bPoseChannel *get_active_posechannel2(Object *ob)
 {
 	bArmature *arm= (bArmature*)ob->data;
 	bPoseChannel *pchan;
-	
+
 	/* find active */
 	for (pchan= (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (pchan->bone && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer))
 			return pchan;
 	}
-	
+
 	return NULL;
 }
 
@@ -1707,14 +1707,14 @@ static ListBase *get_active_constraints2(Object *ob)
 		return NULL;
 
   // XXX - shouldnt we care about the pose data and not the mode???
-	if (ob->mode & OB_MODE_POSE) { 
+	if (ob->mode & OB_MODE_POSE) {
 		bPoseChannel *pchan;
 
 		pchan = get_active_posechannel2(ob);
 		if (pchan)
 			return &pchan->constraints;
 	}
-	else 
+	else
 		return &ob->constraints;
 
 	return NULL;
@@ -1753,7 +1753,7 @@ static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
 		if (gameobje->GetName()==busc)
 			return gameobje;
 	}
-	
+
 	return 0;
 
 }
@@ -1945,11 +1945,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		} else {
 			frame_type = RAS_FrameSettings::e_frame_scale;
 		}
-		
+
 		aspect_width  = (int)(blenderscene->r.xsch * blenderscene->r.xasp);
 		aspect_height = (int)(blenderscene->r.ysch * blenderscene->r.yasp);
 	}
-	
+
 	RAS_FrameSettings frame_settings(
 		frame_type,
 		blenderscene->gm.framing.col[0],
@@ -1961,33 +1961,33 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	kxscene->SetFramingType(frame_settings);
 
 	kxscene->SetGravity(MT_Vector3(0,0, -blenderscene->gm.gravity));
-	
+
 	/* set activity culling parameters */
 	kxscene->SetActivityCulling( (blenderscene->gm.mode & WO_ACTIVITY_CULLING) != 0);
 	kxscene->SetActivityCullingRadius(blenderscene->gm.activityBoxRadius);
 	kxscene->SetDbvtCulling((blenderscene->gm.mode & WO_DBVT_CULLING) != 0);
-	
+
 	// no occlusion culling by default
 	kxscene->SetDbvtOcclusionRes(0);
 
 	int activeLayerBitInfo = blenderscene->lay;
-	
+
 	// list of all object converted, active and inactive
 	CListValue*	sumolist = new CListValue();
-	
+
 	vector<parentChildLink> vec_parent_child;
-	
+
 	CListValue* objectlist = kxscene->GetObjectList();
 	CListValue* inactivelist = kxscene->GetInactiveList();
 	CListValue* parentlist = kxscene->GetRootParentList();
-	
+
 	SCA_LogicManager* logicmgr = kxscene->GetLogicManager();
 	SCA_TimeEventManager* timemgr = kxscene->GetTimeEventManager();
-	
+
 	CListValue* logicbrick_conversionlist = new CListValue();
-	
+
 	//SG_TreeFactory tf;
-	
+
 	// Convert actions to actionmap
 	bAction *curAct;
 	for (curAct = (bAction*)maggie->action.first; curAct; curAct=(bAction*)curAct->id.next)
@@ -2009,9 +2009,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		allblobj.insert(blenderobject);
 
 		KX_GameObject* gameobj = gameobject_from_blenderobject(
-										base->object, 
-										kxscene, 
-										rendertools, 
+										base->object,
+										kxscene,
+										rendertools,
 										converter,
 										libloading);
 
@@ -2061,9 +2061,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						allblobj.insert(blenderobject);
 						groupobj.insert(blenderobject);
 						KX_GameObject* gameobj = gameobject_from_blenderobject(
-														blenderobject, 
-														kxscene, 
-														rendertools, 
+														blenderobject,
+														kxscene,
+														rendertools,
 														converter,
 														libloading);
 
@@ -2097,7 +2097,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	// non-camera objects not supported as camera currently
 	if (blenderscene->camera && blenderscene->camera->type == OB_CAMERA) {
 		KX_Camera *gamecamera= (KX_Camera*) converter->FindGameObject(blenderscene->camera);
-		
+
 		if (gamecamera)
 			kxscene->SetActiveCamera(gamecamera);
 	}
@@ -2109,7 +2109,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		Object* blenderobj = *oit;
 		if (blenderobj->type==OB_MESH) {
 			Mesh *me = (Mesh*)blenderobj->data;
-	
+
 			if (me->dvert) {
 				BL_DeformableGameObject *obj = (BL_DeformableGameObject*)converter->FindGameObject(blenderobj);
 
@@ -2121,14 +2121,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 		}
 	}
-	
+
 	// create hierarchy information
 	int i;
 	vector<parentChildLink>::iterator pcit;
-	
+
 	for (pcit = vec_parent_child.begin();!(pcit==vec_parent_child.end());++pcit)
 	{
-	
+
 		struct Object* blenderchild = pcit->m_blenderchild;
 		struct Object* blenderparent = blenderchild->parent;
 		KX_GameObject* parentobj = converter->FindGameObject(blenderparent);
@@ -2138,7 +2138,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 		if (!parentobj || objectlist->SearchValue(childobj) != objectlist->SearchValue(parentobj))
 		{
-			// special case: the parent and child object are not in the same layer. 
+			// special case: the parent and child object are not in the same layer.
 			// This weird situation is used in Apricot for test purposes.
 			// Resolve it by not converting the child
 			childobj->GetSGNode()->DisconnectFromParent();
@@ -2158,11 +2158,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 					obj->Release();
 			}
 			childrenlist->Release();
-			
+
 			// now destroy recursively
 			converter->UnregisterGameObject(childobj); // removing objects during conversion make sure this runs too
 			kxscene->RemoveObject(childobj);
-			
+
 			continue;
 		}
 
@@ -2192,7 +2192,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 					KX_BoneParentRelation *bone_parent_relation = KX_BoneParentRelation::New(parent_bone);
 					pcit->m_gamechildnode->SetParentRelation(bone_parent_relation);
 				}
-			
+
 				break;
 			}
 			case PARSKEL: // skinned - ignore
@@ -2203,11 +2203,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				// unhandled
 				break;
 		}
-	
+
 		parentobj->	GetSGNode()->AddChild(pcit->m_gamechildnode);
 	}
 	vec_parent_child.clear();
-	
+
 	// find 'root' parents (object that has not parents in SceneGraph)
 	for (i=0;i<sumolist->GetCount();++i)
 	{
@@ -2226,7 +2226,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		for (i=0; i<sumolist->GetCount();i++)
 		{
 			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-			if (gameobj->GetMeshCount() > 0) 
+			if (gameobj->GetMeshCount() > 0)
 			{
 				MT_Point3 box[2];
 				gameobj->GetSGNode()->BBox().getmm(box, MT_Transform::Identity());
@@ -2322,7 +2322,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				continue;
 
 			bRigidBodyJointConstraint *dat = (bRigidBodyJointConstraint *)curcon->data;
-					
+
 			/* Skip if no target or a child object is selected or constraints are deactivated */
 			if (!dat->tar || dat->child || (curcon->flag & CONSTRAINT_OFF))
 				continue;
@@ -2336,7 +2336,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if (libloading)
 				continue;
 
-			/* Skipped already converted constraints. 
+			/* Skipped already converted constraints.
 			 * This will happen when a group instance is made from a linked group instance
 			 * and both are on the active layer. */
 			if (bl_isConstraintInList(gameobj, convertedlist))
@@ -2356,7 +2356,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	set<KX_GameObject*>::iterator gobit;
 	for (gobit = convertedlist.begin(); gobit != convertedlist.end(); gobit++)
 		(*gobit)->Release();
-		
+
 	convertedlist.clear();
 	sumolist->Release();
 
@@ -2440,7 +2440,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	}
 
 	logicbrick_conversionlist->Release();
-	
+
 	// Calculate the scene btree -
 	// too slow - commented out.
 	//kxscene->SetNodeTree(tf.MakeTree());

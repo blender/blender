@@ -55,7 +55,7 @@ pre:
 effect: constructs a new CFloatValue containing value fl
 */
 {
-	
+
 	m_float = fl;
 	SetName(name);
 	if (alloctype==CValue::STACKVALUE)
@@ -119,7 +119,7 @@ ret: a new object containing the result of applying operator op to val and
 */
 {
 	CValue *ret;
-	
+
 	switch (dtype) {
 		case VALUE_INT_TYPE:
 		{
@@ -293,8 +293,8 @@ int CFloatValue::GetValueType()
 
 
 void CFloatValue::SetValue(CValue* newval)
-{ 	
-	m_float = (float)newval->GetNumber(); 
+{
+	m_float = (float)newval->GetNumber();
 	SetModified(true);
 }
 
@@ -312,7 +312,7 @@ const STR_String & CFloatValue::GetText()
 
 
 CValue* CFloatValue::GetReplica()
-{ 
+{
 	CFloatValue* replica = new CFloatValue(*this);
 	replica->m_pstrRep = NULL; /* should be in CFloatValue::ProcessReplica() but its not defined, no matter */
 	replica->ProcessReplica();

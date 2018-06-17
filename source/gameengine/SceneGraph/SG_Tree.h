@@ -24,18 +24,18 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 /** \file SG_Tree.h
  *  \ingroup bgesg
  */
- 
+
 #ifndef __SG_TREE_H__
 #define __SG_TREE_H__
- 
+
 #include "MT_Point3.h"
 #include "SG_BBox.h"
 
-#include <set> 
+#include <set>
 
 class SG_Node;
 
@@ -44,7 +44,7 @@ class SG_Node;
  * SG_Tree.
  * Holds a binary tree of SG_Nodes.
  */
-class SG_Tree 
+class SG_Tree
 {
 	SG_Tree* m_left;
 	SG_Tree* m_right;
@@ -56,27 +56,27 @@ class SG_Tree
 public:
 	SG_Tree();
 	SG_Tree(SG_Tree* left, SG_Tree* right);
-	
+
 	SG_Tree(SG_Node* client);
 	~SG_Tree();
-	
+
 	/**
 	 * Computes the volume of the bounding box.
 	 */
 	MT_Scalar volume() const;
-	
+
 	/**
 	 * Prints the tree (for debugging.)
 	 */
 	void dump() const;
-	
+
 	/**
 	 * Returns the left node.
 	 */
 	SG_Tree *Left() const;
 	SG_Tree *Right() const;
 	SG_Node *Client() const;
-	
+
 	SG_Tree* Find(SG_Node *node);
 	/**
 	 * Gets the eight corners of this treenode's bounding box,
@@ -90,20 +90,20 @@ public:
 	 * Get the tree node's bounding box.
 	 */
 	const SG_BBox& BBox() const;
-	
+
 	/**
 	 * Test if the given bounding box is inside this bounding box.
 	 */
 	bool inside(const MT_Point3 &point) const;
-	
+
 	void SetLeft(SG_Tree *left);
 	void SetRight(SG_Tree *right);
 
 	MT_Point3 Center() const { return m_center; }
 	MT_Scalar Radius() { return m_radius; }
-	
+
 	//friend class SG_TreeFactory;
-	
+
 	struct greater
 	{
 		bool operator()(const SG_Tree *a, const SG_Tree *b)
@@ -111,9 +111,9 @@ public:
 			return a->volume() > b->volume();
 		}
 	};
-	
-	
-	
+
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SG_Tree")
 #endif
@@ -127,14 +127,14 @@ public:
  *  cf building an optimized Huffman tree.
  *  \warning O(n^3)!!!
  */
-class SG_TreeFactory 
+class SG_TreeFactory
 {
 	typedef std::multiset<SG_Tree*, SG_Tree::greater> TreeSet;
 	TreeSet m_objects;
 public:
 	SG_TreeFactory();
 	~SG_TreeFactory();
-	
+
 	/**
 	 *  Add a node to be added to the tree.
 	 */
@@ -146,15 +146,15 @@ public:
 	 *  the Add method.
 	 */
 	SG_Tree* MakeTreeUp();
-	
+
 	/**
 	 *  Build the tree from the set of nodes top down.
 	 */
 	SG_Tree* MakeTreeDown(SG_BBox &bbox);
-	
+
 	SG_Tree* MakeTree();
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SG_TreeFactory")
 #endif

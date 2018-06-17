@@ -45,7 +45,7 @@ class KX_VisibilityActuator : public SCA_IActuator
 	bool m_recursive;
 
  public:
-	
+
 	KX_VisibilityActuator(
 		SCA_IObject* gameobj,
 		bool visible,

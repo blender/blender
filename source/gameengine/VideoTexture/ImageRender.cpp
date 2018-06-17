@@ -314,7 +314,7 @@ bool ImageRender::Render()
 			            shift_y,
 			            aspect_ratio,
 			            frustum);
-			
+
 			projmat = m_rasterizer->GetFrustumMatrix(
 			            frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar);
 		}
@@ -323,7 +323,7 @@ bool ImageRender::Render()
 
 	MT_Transform camtrans(m_camera->GetWorldToCamera());
 	MT_Matrix4x4 viewmat(camtrans);
-	
+
 	m_rasterizer->SetViewMatrix(viewmat, m_camera->NodeGetWorldOrientation(), m_camera->NodeGetWorldPosition(), m_camera->NodeGetLocalScaling(), m_camera->GetCameraData()->m_perspective);
 	m_camera->SetModelviewMatrix(viewmat);
 	// restore the stereo mode now that the matrix is computed
@@ -545,7 +545,7 @@ static PyMethodDef imageRenderMethods[] =
 };
 // attributes structure
 static PyGetSetDef imageRenderGetSets[] =
-{ 
+{
 	{(char*)"background", (getter)getBackground, (setter)setBackground, (char*)"background color", NULL},
 	// attribute from ImageViewport
 	{(char*)"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, (char*)"size of render area", NULL},
@@ -631,10 +631,10 @@ static int ImageMirror_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 			scenePtr = static_cast<KX_Scene*>BGE_PROXY_REF(scene);
 		else
 			THRWEXCP(SceneInvalid, S_OK);
-		
+
 		if (scenePtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(SceneInvalid, S_OK);
-		
+
 		// get observer pointer
 		KX_GameObject * observerPtr (NULL);
 		if (observer != NULL && PyObject_TypeCheck(observer, &KX_GameObject::Type))
@@ -643,7 +643,7 @@ static int ImageMirror_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 			observerPtr = static_cast<KX_Camera*>BGE_PROXY_REF(observer);
 		else
 			THRWEXCP(ObserverInvalid, S_OK);
-		
+
 		if (observerPtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(ObserverInvalid, S_OK);
 
@@ -653,7 +653,7 @@ static int ImageMirror_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 			mirrorPtr = static_cast<KX_GameObject*>BGE_PROXY_REF(mirror);
 		else
 			THRWEXCP(MirrorInvalid, S_OK);
-		
+
 		if (mirrorPtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(MirrorInvalid, S_OK);
 
@@ -706,7 +706,7 @@ static int setClip(PyImage *self, PyObject *value, void *closure)
 
 // attributes structure
 static PyGetSetDef imageMirrorGetSets[] =
-{ 
+{
 	{(char*)"clip", (getter)getClip, (setter)setClip, (char*)"clipping distance", NULL},
 	// attribute from ImageRender
 	{(char*)"background", (getter)getBackground, (setter)setBackground, (char*)"background color", NULL},

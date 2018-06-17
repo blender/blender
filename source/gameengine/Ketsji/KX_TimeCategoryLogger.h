@@ -116,9 +116,9 @@ public:
 	virtual double GetAverage(void);
 
 protected:
-	/**  
+	/**
 	 * Disposes loggers.
-	 */  
+	 */
 	virtual void DisposeLoggers(void);
 
 	/** Storage for the loggers. */

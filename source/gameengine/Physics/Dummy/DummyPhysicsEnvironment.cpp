@@ -62,8 +62,8 @@ void DummyPhysicsEnvironment::EndFrame()
 bool		DummyPhysicsEnvironment::ProceedDeltaTime(double  curTime,float timeStep,float interval)
 {
 	//step physics simulation, typically perform
-	
-	//collision detection 
+
+	//collision detection
 	//solve constraints
 	//integrate solution
 	// return true if an update was done.
@@ -72,7 +72,7 @@ bool		DummyPhysicsEnvironment::ProceedDeltaTime(double  curTime,float timeStep,f
 void		DummyPhysicsEnvironment::SetFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)
 {
 }
- 
+
 float		DummyPhysicsEnvironment::GetFixedTimeStep()
 {
 	return 0.f;
@@ -100,7 +100,7 @@ int			DummyPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ct
 			float axis2X,float axis2Y,float axis2Z,int flag
 		)
 {
-	
+
 	int constraintid = 0;
 	return constraintid;
 

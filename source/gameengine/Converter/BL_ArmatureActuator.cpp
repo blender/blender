@@ -41,8 +41,8 @@
 /**
  * This class is the conversion of the Pose channel constraint.
  * It makes a link between the pose constraint and the KX scene.
- * The main purpose is to give access to the constraint target 
- * to link it to a game object. 
+ * The main purpose is to give access to the constraint target
+ * to link it to a game object.
  * It also allows to activate/deactivate constraints during the game.
  * Later it will also be possible to create constraint on the fly
  */
@@ -242,18 +242,18 @@ int BL_ArmatureActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBU
 	BL_ArmatureActuator* actuator = static_cast<BL_ArmatureActuator*>(self);
 	KX_GameObject* &target = (!strcmp(attrdef->m_name, "target")) ? actuator->m_gametarget : actuator->m_gamesubtarget;
 	KX_GameObject *gameobj;
-		
+
 	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &gameobj, true, "actuator.object = value: BL_ArmatureActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
-		
+
 	if (target != NULL)
 		target->UnregisterActuator(actuator);
 
 	target = gameobj;
-		
+
 	if (target)
 		target->RegisterActuator(actuator);
-		
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

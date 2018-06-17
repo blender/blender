@@ -46,7 +46,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr, 
+SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr,
                                    SCA_IObject* gameobj,
                                    int startseed)
     : SCA_ISensor(gameobj,eventmgr)
@@ -57,7 +57,7 @@ SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr,
 
 
 
-SCA_RandomSensor::~SCA_RandomSensor() 
+SCA_RandomSensor::~SCA_RandomSensor()
 {
 	m_basegenerator->Release();
 }
@@ -89,7 +89,7 @@ void SCA_RandomSensor::ProcessReplica()
 
 
 bool SCA_RandomSensor::IsPositiveTrigger()
-{ 
+{
 	return (m_invert !=m_lastdraw);
 }
 

@@ -92,7 +92,7 @@ bool KX_SoftBodyDeformer::Apply(class RAS_IPolyMaterial *polymat)
 	slot = *mmat->m_slots[(void*)m_gameobj];
 
 	// for each array
-	for (slot->begin(it); !slot->end(it); slot->next(it)) 
+	for (slot->begin(it); !slot->end(it); slot->next(it))
 	{
 		btSoftBody::tNodeArray&   nodes(softBody->m_nodes);
 

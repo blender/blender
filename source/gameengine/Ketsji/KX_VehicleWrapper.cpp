@@ -73,13 +73,13 @@ static bool raise_exc_wheel(PHY_IVehicle *vehicle, int i, const char *method)
 
 PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
 {
-	
+
 	PyObject *pylistPos,*pylistDir,*pylistAxleDir;
 	PyObject *wheelGameObject;
 	float suspensionRestLength,wheelRadius;
 	int hasSteering;
 
-	
+
 	if (PyArg_ParseTuple(args,"OOOOffi:addWheel",&wheelGameObject,&pylistPos,&pylistDir,&pylistAxleDir,&suspensionRestLength,&wheelRadius,&hasSteering))
 	{
 		KX_GameObject *gameOb;
@@ -107,7 +107,7 @@ PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
 
 			//someone reverse some conventions inside Bullet (axle winding)
 			attachAxle = -attachAxle;
-			
+
 			if (wheelRadius <= 0) {
 				PyErr_SetString(PyExc_AttributeError,
 				                "addWheel(...) Unable to add wheel. wheelRadius must be positive.");
@@ -117,7 +117,7 @@ PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
 			PHY_IMotionState *motionState = new KX_MotionState(gameOb->GetSGNode());
 			m_vehicle->AddWheel(motionState,attachPos,attachDir,attachAxle,suspensionRestLength,wheelRadius,hasSteering);
 		}
-		
+
 	} else {
 		return NULL;
 	}
@@ -127,7 +127,7 @@ PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
 
 PyObject *KX_VehicleWrapper::PyGetWheelPosition(PyObject *args)
 {
-	
+
 	int wheelIndex;
 
 	if (PyArg_ParseTuple(args,"i:getWheelPosition",&wheelIndex))

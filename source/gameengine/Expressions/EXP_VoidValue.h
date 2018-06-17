@@ -39,7 +39,7 @@
 //
 // Void value, used to transport *any* type of data
 //
-class CVoidValue : public CPropValue  
+class CVoidValue : public CPropValue
 {
 	//PLUGIN_DECLARE_SERIAL (CVoidValue,CValue)
 
@@ -67,12 +67,12 @@ public:
 
 	/// Value replication
 	virtual CValue*		GetReplica();
-	
+
 	/// Data members
 	bool				m_bDeleteOnDestruct;
 	void*				m_pAnything;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CVoidValue")
 #endif

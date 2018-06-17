@@ -125,7 +125,7 @@ PyObject* SCA_PythonJoystick::pyattr_get_num_x(void *self_v, const KX_PYATTRIBUT
 PyObject* SCA_PythonJoystick::pyattr_get_active_buttons(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonJoystick* self = static_cast<SCA_PythonJoystick*>(self_v);
-	
+
 	const int button_number = self->m_joystick->GetNumberOfButtons();
 
 	PyObject *list = PyList_New(0);
@@ -145,25 +145,25 @@ PyObject* SCA_PythonJoystick::pyattr_get_active_buttons(void *self_v, const KX_P
 PyObject* SCA_PythonJoystick::pyattr_get_hat_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonJoystick* self = static_cast<SCA_PythonJoystick*>(self_v);
-	
+
 	int hat_index = self->m_joystick->GetNumberOfHats();
 	PyObject *list = PyList_New(hat_index);
-	
+
 	while (hat_index--) {
 		PyList_SET_ITEM(list, hat_index, PyLong_FromLong(self->m_joystick->GetHat(hat_index)));
 	}
-	
+
 	return list;
 }
 
 PyObject* SCA_PythonJoystick::pyattr_get_axis_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonJoystick* self = static_cast<SCA_PythonJoystick*>(self_v);
-	
+
 	int axis_index = self->m_joystick->GetNumberOfAxes();
 	PyObject *list = PyList_New(axis_index);
 	int position;
-	
+
 	while (axis_index--) {
 		position = self->m_joystick->GetAxisPosition(axis_index);
 
@@ -175,7 +175,7 @@ PyObject* SCA_PythonJoystick::pyattr_get_axis_values(void *self_v, const KX_PYAT
 		else
 			PyList_SET_ITEM(list, axis_index, PyFloat_FromDouble(position/(double)SHRT_MAX));
 	}
-	
+
 	return list;
 }
 

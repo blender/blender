@@ -190,7 +190,7 @@ bool ImageBase::setSource (const char *id, PyImage *source)
 			if (newSrc != NULL) m_sources.push_back(newSrc);
 		}
 		// otherwise source wasn't set
-		else 
+		else
 			return false;
 	// source was set
 	return true;
@@ -436,7 +436,7 @@ PyObject *Image_getImage(PyImage *self, char *mode)
 	try
 	{
 		unsigned int * image = self->m_image->getImage();
-		if (image) 
+		if (image)
 		{
 			// build BGL buffer
 			int dimensions = self->m_image->getBuffSize();
@@ -457,7 +457,7 @@ PyObject *Image_getImage(PyImage *self, char *mode)
 				dimensions /= sizeof(float);
 				buffer = BGL_MakeBuffer( GL_FLOAT, 1, &dimensions, image);
 			}
-			else 
+			else
 			{
 				int i, c, ncolor, pixels;
 				int offset[4];
@@ -826,7 +826,7 @@ static void Image_releaseBuffer(PyImage *self, Py_buffer *buffer)
 	self->m_image->m_exports--;
 }
 
-PyBufferProcs imageBufferProcs = 
+PyBufferProcs imageBufferProcs =
 {
 	(getbufferproc)Image_getbuffer,
 	(releasebufferproc)Image_releaseBuffer

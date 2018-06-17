@@ -181,7 +181,7 @@ bool BL_ShapeDeformer::Update(void)
 	if (m_lastShapeUpdate != m_gameobj->GetLastFrame()) {
 		/* the key coefficient have been set already, we just need to blend the keys */
 		Object* blendobj = m_gameobj->GetBlendObject();
-		
+
 		/* we will blend the key directly in m_transverts array: it is used by armature as the start position */
 		/* m_key can be NULL in case of Modifier deformer */
 		if (m_key) {
@@ -199,9 +199,9 @@ bool BL_ShapeDeformer::Update(void)
 			m_bDynamic = true;
 		}
 
-		// Don't release the weight array as in Blender, it will most likely be reusable on next frame 
+		// Don't release the weight array as in Blender, it will most likely be reusable on next frame
 		// The weight array are ultimately deleted when the skin mesh is destroyed
-		   
+
 		/* Update the current frame */
 		m_lastShapeUpdate=m_gameobj->GetLastFrame();
 
@@ -215,7 +215,7 @@ bool BL_ShapeDeformer::Update(void)
 
 	// non dynamic deformer = Modifer without armature and shape keys, no need to create storage
 	if (!bSkinUpdate && bShapeUpdate && m_bDynamic) {
-		// this means that there is no armature, we still need to 
+		// this means that there is no armature, we still need to
 		// update the normal (was not done after shape key calculation)
 
 #ifdef __NLA_DEFNORMALS

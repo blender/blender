@@ -44,7 +44,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj, 
+KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj,
 								   int mode,
 								   KX_Scene *scene,
 								   KX_KetsjiEngine* ketsjiEngine,
@@ -64,7 +64,7 @@ KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj,
 
 
 KX_SceneActuator::~KX_SceneActuator()
-{ 
+{
 	if (m_camera)
 		m_camera->UnregisterActuator(this);
 } /* end of destructor */
@@ -142,10 +142,10 @@ bool KX_SceneActuator::Update()
 	default:
 		break;
 	}
-	
+
 	if (!m_nextSceneName.Length())
 		return false;
-	
+
 	switch (m_mode)
 	{
 	case KX_SCENE_SET_SCENE:
@@ -183,7 +183,7 @@ bool KX_SceneActuator::Update()
 	default:
 		; /* do nothing? this is an internal error !!! */
 	}
-	
+
 	return false;
 }
 
@@ -261,7 +261,7 @@ PyObject *KX_SceneActuator::pyattr_get_camera(void *self, const struct KX_PYATTR
 	KX_SceneActuator* actuator = static_cast<KX_SceneActuator*>(self);
 	if (!actuator->m_camera)
 		Py_RETURN_NONE;
-	
+
 	return actuator->m_camera->GetProxy();
 }
 
@@ -269,13 +269,13 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 {
 	KX_SceneActuator* actuator = static_cast<KX_SceneActuator*>(self);
 	KX_Camera *camOb;
-	
+
 	if (!ConvertPythonToCamera(value, &camOb, true, "actu.camera = value: KX_SceneActuator"))
 		return PY_SET_ATTR_FAIL;
-	
+
 	if (actuator->m_camera)
 		actuator->m_camera->UnregisterActuator(actuator);
-	
+
 	if (camOb==NULL) {
 		actuator->m_camera= NULL;
 	}
@@ -283,7 +283,7 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 		actuator->m_camera = camOb;
 		actuator->m_camera->RegisterActuator(actuator);
 	}
-	
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

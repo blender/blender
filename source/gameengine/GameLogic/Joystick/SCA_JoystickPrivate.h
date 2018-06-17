@@ -24,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 /** \file SCA_JoystickPrivate.h
  *  \ingroup gamelogic
  */

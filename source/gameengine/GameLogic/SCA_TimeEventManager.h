@@ -41,7 +41,7 @@ using namespace std;
 class SCA_TimeEventManager : public SCA_EventManager
 {
 	vector<CValue*>		m_timevalues; // values that need their time updated regularly
-	
+
 public:
 	SCA_TimeEventManager(class SCA_LogicManager* logicmgr);
 	virtual ~SCA_TimeEventManager();

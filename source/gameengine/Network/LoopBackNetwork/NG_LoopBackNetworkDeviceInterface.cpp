@@ -87,7 +87,7 @@ void NG_LoopBackNetworkDeviceInterface::SendNetworkMessage(NG_NetworkMessage* nw
 vector<NG_NetworkMessage*> NG_LoopBackNetworkDeviceInterface::RetrieveNetworkMessages()
 {
 	vector<NG_NetworkMessage*> messages;
-	
+
 	std::deque<NG_NetworkMessage*>::iterator mesit=m_messages[m_currentQueue].begin();
 	for (; !(mesit == m_messages[m_currentQueue].end()); ++mesit)
 	{

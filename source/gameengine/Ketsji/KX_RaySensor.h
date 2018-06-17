@@ -81,9 +81,9 @@ public:
 	/// \see KX_RayCast
 	bool NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data));
 
-	virtual void		Replace_IScene(SCA_IScene *val) 
-	{ 	
-		m_scene= static_cast<KX_Scene *>(val); 
+	virtual void		Replace_IScene(SCA_IScene *val)
+	{
+		m_scene= static_cast<KX_Scene *>(val);
 	}
 
 	//Python Interface
@@ -96,12 +96,12 @@ public:
 		KX_RAY_AXIS_NEG_Y = 4,
 		KX_RAY_AXIS_NEG_Z = 5,
 	};
-	
+
 #ifdef WITH_PYTHON
 
 	/* Attributes */
 	static PyObject *pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	
+
 #endif  /* WITH_PYTHON */
 
 };

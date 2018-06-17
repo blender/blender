@@ -75,21 +75,21 @@ private:
 		floattype,
 		stringtype
 	};		// all kinds of constants
-	
+
 	int sym,					// current symbol
 		opkind,					// kind of operator, if symbol is an operator
 		constkind;				// kind of operator, if symbol is a constant
-	
+
 	char ch;					// current character
 	int chcount;				// index to character in input string
 	CExpression *errmsg;		// contains a errormessage, if scanner error
-	
+
 	STR_String text,				// contains a copy of the original text
 		const_as_string;		// string representation of the symbol, if symbol is a constant
 	bool boolvalue;				// value of the boolean, if symbol is a constant of type boolean
 	CValue*	m_identifierContext;// context in which identifiers are looked up
-	
-	
+
+
 	void ScanError(const char *str);
 	CExpression* Error(const char *str);
 	void NextCh();
@@ -107,8 +107,8 @@ private:
 	int Priority(int optor);
 	CExpression *Ex(int i);
 	CExpression *Expr();
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CParser")
 #endif

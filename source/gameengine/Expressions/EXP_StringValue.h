@@ -21,10 +21,10 @@
 
 #include "EXP_Value.h"
 
-class CStringValue : public CPropValue  
+class CStringValue : public CPropValue
 {
 
-	
+
 	//PLUGIN_DECLARE_SERIAL(CStringValue,CValue)
 public:
 	/// Construction / destruction
@@ -37,7 +37,7 @@ public:
 	virtual const STR_String &	GetText();
 	virtual double		GetNumber();
 	virtual int			GetValueType();
-	
+
 	virtual	CValue*		Calc(VALUE_OPERATOR op, CValue *val);
 	virtual	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	virtual void		SetValue(CValue* newval) { 	m_strString = newval->GetText(); SetModified(true);	}

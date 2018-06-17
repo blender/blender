@@ -31,7 +31,7 @@
 /** \file SG_Controller.h
  *  \ingroup bgesg
  */
- 
+
 #ifndef __SG_CONTROLLER_H__
 #define __SG_CONTROLLER_H__
 
@@ -40,7 +40,7 @@
 /**
  * A scenegraph controller
  */
-class SG_Controller 
+class SG_Controller
 {
 public:
 	SG_Controller(
@@ -48,18 +48,18 @@ public:
 		m_pObject(NULL) {
 	}
 
-	virtual 
+	virtual
 	~SG_Controller(
 	) {};
 
-	virtual 
+	virtual
 		bool
 	Update(
 		double time
 	)=0;
 
-	virtual 
-		void 
+	virtual
+		void
 	SetObject (
 		SG_IObject* object
 	);
@@ -68,7 +68,7 @@ public:
 	ClearObject(
 	);
 
-	virtual 
+	virtual
 		void
 	SetSimulatedTime(
 		double time
@@ -84,8 +84,8 @@ public:
 	 * Hacky way of passing options to specific controllers
 	 * \param option An integer identifying the option.
 	 * \param value  The value of this option.
-	 * \attention This has been placed here to give sca-elements 
-	 * \attention some control over the controllers. This is 
+	 * \attention This has been placed here to give sca-elements
+	 * \attention some control over the controllers. This is
 	 * \attention necessary because the identity of the controller
 	 * \attention is lost on the way here.
 	 */
@@ -97,8 +97,8 @@ public:
 	)=0;
 
 	/**
-	 * Option-identifiers: SG_CONTR_<controller-type>_<option>. 
-	 * Options only apply to a specific controller type. The 
+	 * Option-identifiers: SG_CONTR_<controller-type>_<option>.
+	 * Options only apply to a specific controller type. The
 	 * semantics are defined by whoever uses the setting.
 	 */
 	enum SG_Controller_option {

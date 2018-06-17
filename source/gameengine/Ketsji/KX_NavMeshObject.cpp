@@ -78,7 +78,7 @@ KX_NavMeshObject::KX_NavMeshObject(void* sgReplicationInfo, SG_Callbacks callbac
 :	KX_GameObject(sgReplicationInfo, callbacks)
 ,	m_navMesh(NULL)
 {
-	
+
 }
 
 KX_NavMeshObject::~KX_NavMeshObject()
@@ -110,7 +110,7 @@ void KX_NavMeshObject::ProcessReplica()
 
 bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 									   unsigned short* &polys, int& npolys, unsigned short *&dmeshes,
-									   float *&dvertices, int &ndvertsuniq, unsigned short *&dtris, 
+									   float *&dvertices, int &ndvertsuniq, unsigned short *&dtris,
 									   int& ndtris, int &vertsPerPoly)
 {
     DerivedMesh* dm = mesh_create_derived_no_virtual(GetScene()->GetBlenderScene(), GetBlenderObject(),
@@ -278,7 +278,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		ndtris = npolys;
 	}
 	dm->release(dm);
-	
+
 	return true;
 }
 
@@ -301,8 +301,8 @@ bool KX_NavMeshObject::BuildNavMesh()
 	unsigned short *polys = NULL, *dtris = NULL, *dmeshes = NULL;
 	int nverts = 0, npolys = 0, ndvertsuniq = 0, ndtris = 0;
 	int vertsPerPoly = 0;
-	if (!BuildVertIndArrays(vertices, nverts, polys, npolys, 
-							dmeshes, dvertices, ndvertsuniq, dtris, ndtris, vertsPerPoly ) 
+	if (!BuildVertIndArrays(vertices, nverts, polys, npolys,
+							dmeshes, dvertices, ndvertsuniq, dtris, ndtris, vertsPerPoly )
 			|| vertsPerPoly<3)
 	{
 		printf("Can't build navigation mesh data for object:%s\n", m_name.ReadPtr());
@@ -314,7 +314,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 		}
 		return false;
 	}
-	
+
 	MT_Point3 pos;
 	if (dmeshes==NULL)
 	{
@@ -333,7 +333,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 		delete[] vertices;
 		return false;
 	}
-	
+
 	float cs = 0.2f;
 
 	if (!nverts || !npolys)
@@ -424,8 +424,8 @@ bool KX_NavMeshObject::BuildNavMesh()
 
 	header->nnodes = createBVTree(vertsi, nverts, polys, npolys, vertsPerPoly,
 								cs, cs, npolys*2, navNodes);
-	
-	
+
+
 	if (dmeshes==NULL)
 	{
 		//create fake detail meshes
@@ -496,18 +496,18 @@ void KX_NavMeshObject::DrawNavMesh(NavMeshRenderMode renderMode)
 	if (!m_navMesh)
 		return;
 	MT_Vector3 color(0.f, 0.f, 0.f);
-	
+
 	switch (renderMode)
 	{
 	case RM_POLYS :
-	case RM_WALLS : 
+	case RM_WALLS :
 		for (int pi=0; pi<m_navMesh->getPolyCount(); pi++)
 		{
 			const dtStatPoly* poly = m_navMesh->getPoly(pi);
 
 			for (int i = 0, j = (int)poly->nv-1; i < (int)poly->nv; j = i++)
 			{
-				if (poly->n[j] && renderMode==RM_WALLS) 
+				if (poly->n[j] && renderMode==RM_WALLS)
 					continue;
 				const float* vif = m_navMesh->getVertex(poly->v[i]);
 				const float* vjf = m_navMesh->getVertex(poly->v[j]);
@@ -519,7 +519,7 @@ void KX_NavMeshObject::DrawNavMesh(NavMeshRenderMode renderMode)
 			}
 		}
 		break;
-	case RM_TRIS : 
+	case RM_TRIS :
 		for (int i = 0; i < m_navMesh->getPolyDetailCount(); ++i)
 		{
 			const dtStatPoly* p = m_navMesh->getPoly(i);
@@ -561,7 +561,7 @@ MT_Point3 KX_NavMeshObject::TransformToLocalCoords(const MT_Point3& wpos)
 	MT_Matrix3x3 orientation = NodeGetWorldOrientation();
 	const MT_Vector3& scaling = NodeGetWorldScaling();
 	orientation.scale(scaling[0], scaling[1], scaling[2]);
-	MT_Transform worldtr(NodeGetWorldPosition(), orientation); 
+	MT_Transform worldtr(NodeGetWorldPosition(), orientation);
 	MT_Transform invworldtr;
 	invworldtr.invert(worldtr);
 	MT_Point3 lpos = invworldtr(wpos);
@@ -573,7 +573,7 @@ MT_Point3 KX_NavMeshObject::TransformToWorldCoords(const MT_Point3& lpos)
 	MT_Matrix3x3 orientation = NodeGetWorldOrientation();
 	const MT_Vector3& scaling = NodeGetWorldScaling();
 	orientation.scale(scaling[0], scaling[1], scaling[2]);
-	MT_Transform worldtr(NodeGetWorldPosition(), orientation); 
+	MT_Transform worldtr(NodeGetWorldPosition(), orientation);
 	MT_Point3 wpos = worldtr(lpos);
 	return wpos;
 }
@@ -694,7 +694,7 @@ KX_PYMETHODDEF_DOC(KX_NavMeshObject, findPath,
 	MT_Point3 from, to;
 	if (!PyVecTo(ob_from, from) || !PyVecTo(ob_to, to))
 		return NULL;
-	
+
 	float path[MAX_PATH_LEN*3];
 	int pathLen = FindPath(from, to, path, MAX_PATH_LEN);
 	PyObject *pathList = PyList_New( pathLen );

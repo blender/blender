@@ -36,7 +36,7 @@
  * Implementation of classes defined in KX_SG_NodeRelationships.h
  */
 
-/** 
+/**
  * first of all KX_NormalParentRelation
  */
 
@@ -100,7 +100,7 @@ KX_NormalParentRelation(
 	// nothing to do
 }
 
-/** 
+/**
  * Next KX_VertexParentRelation
  */
 
@@ -111,8 +111,8 @@ New(
 ) {
 	return new KX_VertexParentRelation();
 }
-		
-/** 
+
+/**
  * Method inherited from KX_ParentRelation
  */
 
@@ -130,18 +130,18 @@ UpdateChildCoordinates(
 		return false;
 
 	child->SetWorldScale(child->GetLocalScale());
-	
+
 	if (parent)
 		child->SetWorldPosition(child->GetLocalPosition()+parent->GetWorldPosition());
 	else
 		child->SetWorldPosition(child->GetLocalPosition());
-	
+
 	child->SetWorldOrientation(child->GetLocalOrientation());
 	child->ClearModified();
 	return true; //parent != NULL;
 }
 
-/** 
+/**
  * Method inherited from KX_ParentRelation
  */
 
@@ -178,7 +178,7 @@ New(
 	return new 	KX_SlowParentRelation(relaxation);
 }
 
-/** 
+/**
  * Method inherited from KX_ParentRelation
  */
 
@@ -199,11 +199,11 @@ UpdateChildCoordinates(
 	const MT_Matrix3x3 & child_rotation = child->GetLocalOrientation();
 
 	// the childs world locations which we will update.
-	
+
 	MT_Vector3 child_w_scale;
 	MT_Point3 child_w_pos;
 	MT_Matrix3x3 child_w_rotation;
-		
+
 	if (parent) {
 
 		// This is a slow parent relation
@@ -220,7 +220,7 @@ UpdateChildCoordinates(
 		child_n_scale = p_world_scale * child_scale;
 		child_n_rotation = p_world_rotation * child_rotation;
 
-		child_n_pos = p_world_pos + p_world_scale * 
+		child_n_pos = p_world_pos + p_world_scale *
 			(p_world_rotation * child_pos);
 
 
@@ -232,7 +232,7 @@ UpdateChildCoordinates(
 			child_w_pos = child->GetWorldPosition();
 			child_w_rotation = child->GetWorldOrientation();
 
-			// now 'interpolate' the normal coordinates with the last 
+			// now 'interpolate' the normal coordinates with the last
 			// world coordinates to get the new world coordinates.
 
 			MT_Scalar weight = MT_Scalar(1)/(m_relax + 1);
@@ -248,7 +248,7 @@ UpdateChildCoordinates(
 			child_w_rotation = child_n_rotation;
 			m_initialized = true;
 		}
-			
+
 	} else {
 
 		child_w_scale = child_scale;
@@ -262,11 +262,11 @@ UpdateChildCoordinates(
 	child->ClearModified();
 	// this node must always be updated, so reschedule it for next time
 	child->ActivateRecheduleUpdateCallback();
-	
+
 	return true; //parent != NULL;
 }
 
-/** 
+/**
  * Method inherited from KX_ParentRelation
  */
 

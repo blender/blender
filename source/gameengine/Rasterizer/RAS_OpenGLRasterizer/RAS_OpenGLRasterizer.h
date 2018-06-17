@@ -79,7 +79,7 @@ struct OglDebugShape
 class RAS_OpenGLRasterizer : public RAS_IRasterizer
 {
 	RAS_ICanvas *m_2DCanvas;
-	
+
 	/* fogging vars */
 	bool m_fogenabled;
 
@@ -87,7 +87,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float m_greenback;
 	float m_blueback;
 	float m_alphaback;
-	
+
 	float m_ambr;
 	float m_ambg;
 	float m_ambb;
@@ -200,7 +200,7 @@ public:
 
 	virtual const MT_Point3& GetCameraPosition();
 	virtual bool GetCameraOrtho();
-	
+
 	virtual void SetFog(short type, float start, float dist, float intensity, float color[3]);
 	virtual void EnableFog(bool enable);
 	virtual void DisplayFog();
@@ -215,7 +215,7 @@ public:
 
 	virtual MT_Matrix4x4 GetFrustumMatrix(
 	        float left, float right, float bottom, float top,
-	        float frustnear, float frustfar, 
+	        float frustnear, float frustfar,
 	        float focallength, bool perspective);
 	virtual MT_Matrix4x4 GetOrthoMatrix(
 	        float left, float right, float bottom, float top,
@@ -268,7 +268,7 @@ public:
 
 	const MT_Matrix4x4 &GetViewMatrix() const;
 	const MT_Matrix4x4 &GetViewInvMatrix() const;
-	
+
 	virtual void EnableMotionBlur(float motionblurvalue);
 	virtual void DisableMotionBlur();
 	virtual float GetMotionBlurValue() { return m_motionblurvalue; }
@@ -279,13 +279,13 @@ public:
 			m_motionblur = 0;
 		else if (newstate > 2)
 			m_motionblur = 2;
-		else 
+		else
 			m_motionblur = newstate;
 	}
 
 	virtual void SetAlphaBlend(int alphablend);
 	virtual void SetFrontFace(bool ccw);
-	
+
 	virtual void SetAnisotropicFiltering(short level);
 	virtual short GetAnisotropicFiltering();
 

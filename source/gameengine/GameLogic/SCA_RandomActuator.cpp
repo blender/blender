@@ -47,7 +47,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj, 
+SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
                                        long seed,
                                        SCA_RandomActuator::KX_RANDOMACT_MODE mode,
                                        float para1,
@@ -62,14 +62,14 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 	m_base = new SCA_RandomNumberGenerator(seed);
 	m_counter = 0;
 	enforceConstraints();
-} 
+}
 
 
 
 SCA_RandomActuator::~SCA_RandomActuator()
 {
 	m_base->Release();
-} 
+}
 
 
 
@@ -112,7 +112,7 @@ bool SCA_RandomActuator::Update()
 	break;
 	case KX_RANDOMACT_BOOL_UNIFORM: {
 		/* flip a coin */
-		bool res; 
+		bool res;
 		if (m_counter > 31) {
 			m_previous = m_base->Draw();
 			res = ((m_previous & 0x1) == 0);
@@ -138,7 +138,7 @@ bool SCA_RandomActuator::Update()
 	break;
 	case KX_RANDOMACT_INT_UNIFORM: {
 		/* uniform (toss a die) */
-		int res; 
+		int res;
 		/* The [0, 1] interval is projected onto the [min, max+1] domain,    */
 		/* and then rounded.                                                 */
 		res = (int)floor( ((m_parameter2 - m_parameter1 + 1) * m_base->DrawFloat()) + m_parameter1);
@@ -267,7 +267,7 @@ void SCA_RandomActuator::enforceConstraints()
 		; /* Nothing to be done here. We allow uniform distro's to have      */
 		/* 'funny' domains, i.e. max < min. This does not give problems.     */
 		break;
-	case KX_RANDOMACT_BOOL_BERNOUILLI: 
+	case KX_RANDOMACT_BOOL_BERNOUILLI:
 		/* clamp to [0, 1] */
 		if (m_parameter1 < 0.0) {
 			m_parameter1 = 0.0;
@@ -275,19 +275,19 @@ void SCA_RandomActuator::enforceConstraints()
 			m_parameter1 = 1.0;
 		}
 		break;
-	case KX_RANDOMACT_INT_POISSON: 
+	case KX_RANDOMACT_INT_POISSON:
 		/* non-negative */
 		if (m_parameter1 < 0.0) {
 			m_parameter1 = 0.0;
 		}
 		break;
-	case KX_RANDOMACT_FLOAT_NORMAL: 
+	case KX_RANDOMACT_FLOAT_NORMAL:
 		/* standard dev. is non-negative */
 		if (m_parameter2 < 0.0) {
 			m_parameter2 = 0.0;
 		}
 		break;
-	case KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL: 
+	case KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL:
 		/* halflife must be non-negative */
 		if (m_parameter1 < 0.0) {
 			m_parameter1 = 0.0;
@@ -375,22 +375,22 @@ int SCA_RandomActuator::pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_
 KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolConst,
 "setBoolConst(value)\n"
 "\t- value: 0 or 1\n"
-"\tSet this generator to produce a constant boolean value.\n") 
+"\tSet this generator to produce a constant boolean value.\n")
 {
 	int paraArg;
 	if (!PyArg_ParseTuple(args, "i:setBoolConst", &paraArg)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_BOOL_CONST;
 	m_parameter1 = (paraArg) ? 1.0 : 0.0;
-	
+
 	Py_RETURN_NONE;
 }
 /* 12. setBoolUniform, */
 KX_PYMETHODDEF_DOC_NOARGS(SCA_RandomActuator, setBoolUniform,
 "setBoolUniform()\n"
-"\tSet this generator to produce true and false, each with 50%% chance of occurring\n") 
+"\tSet this generator to produce true and false, each with 50%% chance of occurring\n")
 {
 	/* no args */
 	m_distribution = KX_RANDOMACT_BOOL_UNIFORM;
@@ -407,7 +407,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolBernouilli,
 	if (!PyArg_ParseTuple(args, "f:setBoolBernouilli", &paraArg)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_BOOL_BERNOUILLI;
 	m_parameter1 = paraArg;
 	enforceConstraints();
@@ -417,13 +417,13 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolBernouilli,
 KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntConst,
 "setIntConst(value)\n"
 "\t- value: integer\n"
-"\tAlways return value\n") 
+"\tAlways return value\n")
 {
 	int paraArg;
 	if (!PyArg_ParseTuple(args, "i:setIntConst", &paraArg)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_INT_CONST;
 	m_parameter1 = paraArg;
 	enforceConstraints();
@@ -441,7 +441,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntUniform,
 	if (!PyArg_ParseTuple(args, "ii:setIntUniform", &paraArg1, &paraArg2)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_INT_UNIFORM;
 	m_parameter1 = paraArg1;
 	m_parameter2 = paraArg2;
@@ -460,7 +460,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntPoisson,
 	if (!PyArg_ParseTuple(args, "f:setIntPoisson", &paraArg)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_INT_POISSON;
 	m_parameter1 = paraArg;
 	enforceConstraints();
@@ -476,7 +476,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatConst,
 	if (!PyArg_ParseTuple(args, "f:setFloatConst", &paraArg)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_FLOAT_CONST;
 	m_parameter1 = paraArg;
 	enforceConstraints();
@@ -494,7 +494,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatUniform,
 	if (!PyArg_ParseTuple(args, "ff:setFloatUniform", &paraArg1, &paraArg2)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_FLOAT_UNIFORM;
 	m_parameter1 = paraArg1;
 	m_parameter2 = paraArg2;
@@ -513,7 +513,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNormal,
 	if (!PyArg_ParseTuple(args, "ff:setFloatNormal", &paraArg1, &paraArg2)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_FLOAT_NORMAL;
 	m_parameter1 = paraArg1;
 	m_parameter2 = paraArg2;
@@ -521,7 +521,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNormal,
 	Py_RETURN_NONE;
 }
 /* 20. setFloatNegativeExponential, */
-KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential, 
+KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential,
 "setFloatNegativeExponential(half_life)\n"
 "\t- half_life: float\n"
 "\tReturn negative-exponentially distributed numbers. The half-life 'time'\n"
@@ -531,7 +531,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential,
 	if (!PyArg_ParseTuple(args, "f:setFloatNegativeExponential", &paraArg)) {
 		return NULL;
 	}
-	
+
 	m_distribution = KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL;
 	m_parameter1 = paraArg;
 	enforceConstraints();

@@ -23,20 +23,20 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
  */
- 
+
 /** \file KX_SG_NodeRelationships.h
  *  \ingroup ketsji
- *  \section KX_SG_NodeRelationships   
- * This file provides common concrete implementations of 
+ *  \section KX_SG_NodeRelationships
+ * This file provides common concrete implementations of
  * SG_ParentRelation used by the game engine. These are
  * KX_SlowParentRelation a slow parent relationship.
- * KX_NormalParentRelation a normal parent relationship where 
+ * KX_NormalParentRelation a normal parent relationship where
  * orientation and position are inherited from the parent by
  * the child.
- * KX_VertexParentRelation only location information is 
- * inherited by the child. 
+ * KX_VertexParentRelation only location information is
+ * inherited by the child.
  */
 
 #ifndef __KX_SG_NODERELATIONSHIPS_H__
@@ -54,12 +54,12 @@ public :
 	 * on the heap.
 	 */
 
-	static 
+	static
 		KX_NormalParentRelation *
 	New(
 	);
 
-	/** 
+	/**
 	 * Method inherited from KX_ParentRelation
 	 */
 
@@ -70,10 +70,10 @@ public :
 		bool& parentUpdated
 	);
 
-	/** 
+	/**
 	 * Method inherited from KX_ParentRelation
 	 */
-	
+
 		SG_ParentRelation *
 	NewCopy(
 	);
@@ -103,12 +103,12 @@ public :
 	 * on the heap.
 	 */
 
-	static 
+	static
 		KX_VertexParentRelation *
 	New(
 	);
 
-	/** 
+	/**
 	 * Method inherited from KX_ParentRelation
 	 */
 
@@ -119,10 +119,10 @@ public :
 		bool& parentUpdated
 	);
 
-	/** 
+	/**
 	 * Method inherited from KX_ParentRelation
 	 */
-	
+
 		SG_ParentRelation *
 	NewCopy(
 	);
@@ -132,7 +132,7 @@ public :
 
 		bool
 	IsVertexRelation(
-	) { 
+	) {
 		return true;
 	}
 
@@ -158,13 +158,13 @@ public :
 	 * on the heap.
 	 */
 
-	static 
+	static
 		KX_SlowParentRelation *
 	New(
 		MT_Scalar relaxation
 	);
 
-	/** 
+	/**
 	 * Method inherited from KX_ParentRelation
 	 */
 
@@ -175,10 +175,10 @@ public :
 		bool& parentUpdated
 	);
 
-	/** 
+	/**
 	 * Method inherited from KX_ParentRelation
 	 */
-	
+
 		SG_ParentRelation *
 	NewCopy(
 	);
@@ -186,7 +186,7 @@ public :
 		MT_Scalar
 	GetTimeOffset(
 	) { return m_relax; }
-	
+
 		void
 	SetTimeOffset(
 		MT_Scalar relaxation
@@ -194,10 +194,10 @@ public :
 
 	~KX_SlowParentRelation(
 	);
-	
+
 		bool
 	IsSlowRelation(
-	) { 
+	) {
 		return true;
 	}
 
@@ -217,7 +217,7 @@ private :
 	 * time we update spatial data of the child. This is done
 	 * by just doing a normal parent relation the first time
 	 * UpdateChildCoordinates is called and then doing the
-	 * slow parent relation 
+	 * slow parent relation
 	 */
 
 	bool m_initialized;

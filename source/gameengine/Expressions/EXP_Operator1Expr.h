@@ -21,7 +21,7 @@
 
 #include "EXP_Expression.h"
 
-class COperator1Expr : public CExpression  
+class COperator1Expr : public CExpression
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (COperator1Expr,CExpression)
 
@@ -43,9 +43,9 @@ public:
 	COperator1Expr(VALUE_OPERATOR op, CExpression *lhs);
 	COperator1Expr();
 	virtual ~COperator1Expr();
-	
-	
-	
+
+
+
 private:
 	VALUE_OPERATOR m_op;
 	CExpression * m_lhs;

@@ -33,7 +33,7 @@
 #include "EXP_IdentifierExpr.h"
 
 // this is disable at the moment, I expected a memleak from it, but the error-cleanup was the reason
-// well, looks we don't need it anyway, until maybe the Curved Surfaces are integrated into CSG 
+// well, looks we don't need it anyway, until maybe the Curved Surfaces are integrated into CSG
 // cool things like (IF(LOD==1,CCurvedValue,IF(LOD==2,CCurvedValue2)) etc...
 #include "EXP_IfExpr.h"
 
@@ -185,7 +185,7 @@ void CParser::NextSym()
 	//   sets the global variable constkind to the kind of operator
 	// if it is a reference to a cell
 	//   sets the global variable cellcoord to the kind of operator
-	
+
 	errmsg = NULL;
 	while (ch == ' ' || ch == 0x9)
 		NextCh();
@@ -303,7 +303,7 @@ void CParser::NextSym()
 			} else if (((ch >= 'a') && (ch <= 'z'))
 			           || ((ch >= 'A') && (ch <= 'Z')))
 			{ // reserved word?
-				
+
 				start = chcount;
 				CharRep();
 				GrabString(start);
@@ -421,7 +421,7 @@ CExpression *CParser::Ex(int i)
 	// returns an CExpression, containing the parsed input
 	CExpression *e1 = NULL, *e2 = NULL;
 	int opkind2;
-	
+
 	if (i < NUM_PRIORITY) {
 		e1 = Ex(i + 1);
 		while ((sym == opsym) && (Priority(opkind) == i)) {
@@ -522,7 +522,7 @@ CExpression *CParser::Ex(int i)
 				{
 					e1 = new CIdentifierExpr(const_as_string,m_identifierContext);
 					NextSym();
-					
+
 					break;
 				}
 				case errorsym:
@@ -536,7 +536,7 @@ CExpression *CParser::Ex(int i)
 						errmsgval->Release();
 
 						//e1 = Error(errmsg->Calculate()->GetText());//new CConstExpr(errmsg->Calculate());
-						
+
 						if ( !(errmsg->Release()) )
 						{
 							errmsg=NULL;
@@ -569,19 +569,19 @@ CExpression *CParser::Expr()
 
 CExpression* CParser::ProcessText
 (const char *intext) {
-	
+
 	// and parses the string in intext and returns it.
-	
-	
+
+
 	CExpression* expr;
 	text = intext;
-	
-	
+
+
 	chcount = 0;
 	if (text.Length() == 0) {
 		return NULL;
 	}
-	
+
 	ch = text[0];
 	/* if (ch != '=') {
 	 * expr = new CConstExpr(new CStringValue(text));
@@ -599,7 +599,7 @@ CExpression* CParser::ProcessText
 	}
 	if (errmsg)
 		errmsg->Release();
-	
+
 	return expr;
 }
 
@@ -609,7 +609,7 @@ float CParser::GetFloat(STR_String& txt)
 {
 	// returns parsed text into a float
 	// empty string returns -1
-	
+
 //	AfxMessageBox("parsed string="+txt);
 	CValue* val=NULL;
 	float result=-1;
@@ -619,9 +619,9 @@ float CParser::GetFloat(STR_String& txt)
 	if (expr) {
 		val = expr->Calculate();
 		result=(float)val->GetNumber();
-		
-		
-	
+
+
+
 		val->Release();
 		expr->Release();
 	}
@@ -632,10 +632,10 @@ float CParser::GetFloat(STR_String& txt)
 
 CValue* CParser::GetValue(STR_String& txt, bool bFallbackToText)
 {
-	// returns parsed text into a value, 
+	// returns parsed text into a value,
 	// empty string returns NULL value !
 	// if bFallbackToText then unparsed stuff is put into text
-	
+
 	CValue* result=NULL;
 	CExpression* expr = ProcessText(txt);
 	if (expr) {

@@ -92,9 +92,9 @@ KX_FontObject::KX_FontObject(void* sgReplicationInfo,
 	m_fsize = text->fsize;
 	m_line_spacing = text->linedist;
 	m_offset = MT_Vector3(text->xof, text->yof, 0);
-	
+
 	m_fontid = GetFontId(text->vfont);
-	
+
 	/* initialize the color with the object color and store it in the KX_Object class
 	 * This is a workaround waiting for the fix:
 	 * [#25487] BGE: Object Color only works when it has a keyed frame */
@@ -128,19 +128,19 @@ int GetFontId(VFont *vfont)
 	if (vfont->packedfile) {
 		packedfile= vfont->packedfile;
 		fontid= BLF_load_mem(vfont->name, (unsigned char*)packedfile->data, packedfile->size);
-		
+
 		if (fontid == -1) {
 			printf("ERROR: packed font \"%s\" could not be loaded.\n", vfont->name);
 			fontid = BLF_load("default");
 		}
 		return fontid;
 	}
-	
+
 	/* once we have packed working we can load the builtin font	*/
 	const char *filepath = vfont->name;
 	if (BKE_vfont_is_builtin(vfont)) {
 		fontid = BLF_load("default");
-		
+
 		/* XXX the following code is supposed to work (after you add get_builtin_packedfile to BKE_font.h )
 		 * unfortunately it's crashing on blf_glyph.c:173 because gc->glyph_width_max is 0
 		 */
@@ -150,18 +150,18 @@ int GetFontId(VFont *vfont)
 
 		return BLF_load("default");
 	}
-	
+
 	/* convert from absolute to relative */
 	char expanded[256]; // font names can be bigger than FILE_MAX (240)
 	BLI_strncpy(expanded, filepath, 256);
 	BLI_path_abs(expanded, G.main->name);
-	
+
 	fontid = BLF_load(expanded);
 
 	/* fallback */
 	if (fontid == -1)
 		fontid = BLF_load("default");
-	
+
 	return fontid;
 }
 

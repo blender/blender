@@ -33,7 +33,7 @@
 
 #ifdef _MSC_VER
 #  pragma warning (disable:4786)
-#endif 
+#endif
 
 #include <vector>
 //#include "CTR_Map.h"
@@ -73,7 +73,7 @@ typedef std::map<class SCA_ISensor*,controllerlist > sensormap_t;
 class SCA_LogicManager
 {
 	vector<class SCA_EventManager*>		m_eventmanagers;
-	
+
 	// SG_DList: Head of objects having activated actuators
 	//           element: SCA_IObject::m_activeActuators
 	SG_DList							m_activeActuators;
@@ -99,7 +99,7 @@ public:
 							 class SCA_ISensor* sensor);
 	void	RegisterToActuator(SCA_IController* controller,
 							   class SCA_IActuator* actuator);
-	
+
 	void	BeginFrame(double curtime, double fixedtime);
 	void	UpdateFrame(double curtime, bool frame);
 	void	EndFrame();
@@ -113,7 +113,7 @@ public:
 	void	AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor);
 	SCA_EventManager*	FindEventManager(int eventmgrtype);
 	vector<class SCA_EventManager*>	GetEventManagers() { return m_eventmanagers; }
-	
+
 	void	RemoveGameObject(const STR_String& gameobjname);
 
 	/**
@@ -122,14 +122,14 @@ public:
 	void	RemoveSensor(SCA_ISensor* sensor);
 	void	RemoveController(SCA_IController* controller);
 	void	RemoveActuator(SCA_IActuator* actuator);
-	
+
 
 	// for the scripting... needs a FactoryManager later (if we would have time... ;)
 	void	RegisterMeshName(const STR_String& meshname,void* mesh);
 	void	UnregisterMeshName(const STR_String& meshname,void* mesh);
 	CTR_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; }
 	CTR_Map<STR_HashedString,void*>&	GetActionMap() { return m_mapStringToActions; }
-	
+
 	void	RegisterActionName(const STR_String& actname,void* action);
 
 	void*	GetActionByName (const STR_String& actname);
@@ -144,8 +144,8 @@ public:
 	void	RegisterGameObj(void* blendobj, CValue* gameobj);
 	void	UnregisterGameObj(void* blendobj, CValue* gameobj);
 	CValue*	FindGameObjByBlendObj(void* blendobj);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SCA_LogicManager")
 #endif

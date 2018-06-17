@@ -90,7 +90,7 @@ CExpression* CIdentifierExpr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlin
 
 
 
-void CIdentifierExpr::ClearModified() 
+void CIdentifierExpr::ClearModified()
 {
 	assertd(false); // not implemented yet
 }

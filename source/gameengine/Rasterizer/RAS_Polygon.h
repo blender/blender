@@ -57,7 +57,7 @@ class RAS_Polygon
 	unsigned char				m_edgecode;
 	unsigned char				m_polyflags;
 #endif
-	
+
 public:
 	enum {
 		VISIBLE = 1,
@@ -67,7 +67,7 @@ public:
 
 	RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray* darray, int numvert);
 	virtual ~RAS_Polygon() {};
-	
+
 	int					VertexCount();
 	RAS_TexVert*		GetVertex(int i);
 
@@ -78,7 +78,7 @@ public:
 	// - Not used yet!
 /*	int					GetEdgeCode();
 	void				SetEdgeCode(int edgecode); */
-	
+
 	bool				IsVisible();
 	void				SetVisible(bool visible);
 

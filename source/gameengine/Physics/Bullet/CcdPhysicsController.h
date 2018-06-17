@@ -4,8 +4,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -63,11 +63,11 @@ class btCollisionShape;
 class CcdShapeConstructionInfo
 {
 public:
-	struct UVco 
+	struct UVco
 	{
 		float uv[2];
 	};
-	
+
 	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope);
 
 	CcdShapeConstructionInfo() :
@@ -90,7 +90,7 @@ public:
 	~CcdShapeConstructionInfo();
 
 	CcdShapeConstructionInfo* AddRef()
-	{ 
+	{
 		m_refCount++;
 		return this;
 	}
@@ -131,7 +131,7 @@ public:
 			CcdShapeConstructionInfo* childInfo = m_shapeArray.at(i);
 			if ((userData == NULL || userData == childInfo->m_userData) &&
 				(childInfo == shapeInfo ||
-				 (childInfo->m_shapeType == PHY_SHAPE_PROXY && 
+				 (childInfo->m_shapeType == PHY_SHAPE_PROXY &&
 				  childInfo->m_shapeProxy == shapeInfo)))
 				return i;
 		}
@@ -177,10 +177,10 @@ public:
 	btAlignedObjectArray<btScalar>	m_vertexArray;	// Contains both vertex array for polytope shape and
 											// triangle array for concave mesh shape. Each vertex is 3 consecutive values
 											// In this case a triangle is made of 3 consecutive points
-	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
+	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
-	
+
 	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indices
 											// quads turn into 2 tris
 
@@ -194,8 +194,8 @@ public:
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
 	int						m_refCount;		// this class is shared between replicas
-											// keep track of users so that we can release it 
-	RAS_MeshObject*	m_meshObject;			// Keep a pointer to the original mesh 
+											// keep track of users so that we can release it
+	RAS_MeshObject*	m_meshObject;			// Keep a pointer to the original mesh
 	// The list of vertexes and indexes for the triangle mesh, shared between Bullet shape.
 	btTriangleIndexVertexArray *m_triangleIndexVertexArray;
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
@@ -302,8 +302,8 @@ struct CcdConstructionInfo
 	btVector3	m_linearFactor;
 	btVector3	m_angularFactor;
 	btScalar	m_mass;
-	btScalar	m_clamp_vel_min;  
-	btScalar	m_clamp_vel_max;  
+	btScalar	m_clamp_vel_min;
+	btScalar	m_clamp_vel_max;
 	btScalar	m_clamp_angvel_min;  // Minimum angular velocity, in radians/sec.
 	btScalar	m_clamp_angvel_max;  // Maximum angular velocity, in radians/sec.
 	btScalar	m_restitution;
@@ -377,7 +377,7 @@ struct CcdConstructionInfo
 	class btCollisionShape*	m_collisionShape;
 	class PHY_IMotionState*	m_MotionState;
 	class CcdShapeConstructionInfo* m_shapeInfo;
-	
+
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
 	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
 	bool	m_do_anisotropic;
@@ -387,10 +387,10 @@ struct CcdConstructionInfo
 	bool		m_do_rot_fh;             ///< Should the object have an angular Fh spring?
 	btScalar	m_fh_spring;             ///< Spring constant (both linear and angular)
 	btScalar	m_fh_damping;            ///< Damping factor (linear and angular) in range [0, 1]
-	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.    
+	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.
 	bool		m_fh_normal;             ///< Should the object slide off slopes?
 	float		m_radius;//for fh backwards compatibility
-	
+
 	///m_contactProcessingThreshold allows to process contact points with positive distance
 	///normally only contacts with negative distance (penetration) are solved
 	///however, rigid body stacking is more stable when positive contacts are still passed into the constraint solver
@@ -476,7 +476,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 protected:
 	btCollisionObject* m_object;
 	BlenderBulletCharacterController* m_characterController;
-	
+
 
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
@@ -514,7 +514,7 @@ protected:
 	bool CreateSoftbody();
 	bool CreateCharacterController();
 
-	bool Register()	{ 
+	bool Register()	{
 		return (m_registerCount++ == 0) ? true : false;
 	}
 	bool Unregister() {
@@ -535,9 +535,9 @@ protected:
 	void ForceWorldTransform(const btMatrix3x3& mat, const btVector3& pos);
 
 	public:
-	
+
 		int				m_collisionDelay;
-	
+
 
 		CcdPhysicsController (const CcdConstructionInfo& ci);
 
@@ -572,7 +572,7 @@ protected:
 
 		CcdShapeConstructionInfo* GetShapeInfo() { return m_shapeInfo; }
 
-		btCollisionShape*	GetCollisionShape() { 
+		btCollisionShape*	GetCollisionShape() {
 			return m_object->getCollisionShape();
 		}
 		////////////////////////////////////
@@ -594,7 +594,7 @@ protected:
 		/**
 		 * WriteMotionStateToDynamics ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
 		 */
-		
+
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly);
 		virtual	void		WriteDynamicsToMotionState();
 
@@ -614,7 +614,7 @@ protected:
 
 		virtual	MT_Scalar	GetMass();
 		virtual void	SetMass(MT_Scalar newmass);
-		
+
 		// physics methods
 		virtual void		ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulsein, bool local);
 		virtual void		ApplyTorque(const MT_Vector3& torque,bool local);
@@ -636,10 +636,10 @@ protected:
 		virtual MT_Vector3	GetVelocity(const MT_Point3& posin);
 		virtual	MT_Vector3	GetLocalInertia();
 
-		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
+		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted
 		virtual	void		SetRigidBody(bool rigid);
 
-		
+
 		virtual void		ResolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 		virtual void		RefreshCollisions();
 		virtual void		SuspendDynamics(bool ghost);
@@ -654,7 +654,7 @@ protected:
 		virtual	void				SetNewClientInfo(void* clientinfo);
 		virtual PHY_IPhysicsController*	GetReplica();
 		virtual PHY_IPhysicsController* GetReplicaForSensors();
-		
+
 		///There should be no 'SetCollisionFilterGroup' method, as changing this during run-time is will result in errors
 		short int	GetCollisionFilterGroup() const
 		{
@@ -667,7 +667,7 @@ protected:
 		}
 
 		virtual void CalcXform() {}
-		virtual void SetMargin(float margin) 
+		virtual void SetMargin(float margin)
 		{
 			if (m_collisionShape) {
 				m_collisionShape->setMargin(margin);
@@ -676,16 +676,16 @@ protected:
 					((btScaledBvhTriangleMeshShape *)m_collisionShape)->getChildShape()->setMargin(margin);
 			}
 		}
-		virtual float GetMargin() const 
+		virtual float GetMargin() const
 		{
 			return (m_collisionShape) ? m_collisionShape->getMargin() : 0.f;
 		}
-		virtual float GetRadius() const 
-		{ 
+		virtual float GetRadius() const
+		{
 			// this is not the actual shape radius, it's only used for Fh support
 			return m_cci.m_radius;
 		}
-		virtual void  SetRadius(float margin) 
+		virtual void  SetRadius(float margin)
 		{
 			if (m_collisionShape && m_collisionShape->getShapeType() == SPHERE_SHAPE_PROXYTYPE)
 			{
@@ -694,21 +694,21 @@ protected:
 			}
 			m_cci.m_radius = margin;
 		}
-		
+
 		// velocity clamping
-		virtual void SetLinVelocityMin(float val) 
+		virtual void SetLinVelocityMin(float val)
 		{
 			m_cci.m_clamp_vel_min= val;
 		}
-		virtual float GetLinVelocityMin() const 
+		virtual float GetLinVelocityMin() const
 		{
 			return m_cci.m_clamp_vel_min;
 		}
-		virtual void SetLinVelocityMax(float val) 
+		virtual void SetLinVelocityMax(float val)
 		{
 			m_cci.m_clamp_vel_max= val;
 		}
-		virtual float GetLinVelocityMax() const 
+		virtual float GetLinVelocityMax() const
 		{
 			return m_cci.m_clamp_vel_max;
 		}
@@ -811,18 +811,18 @@ class	DefaultMotionState : public PHY_IMotionState
 		virtual void	GetWorldPosition(float& posX,float& posY,float& posZ);
 		virtual void	GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
 		virtual void	GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
-		
+
 		virtual void	SetWorldPosition(float posX,float posY,float posZ);
 		virtual	void	SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
 		virtual void	GetWorldOrientation(float* ori);
 		virtual void	SetWorldOrientation(const float* ori);
-		
+
 		virtual	void	CalculateWorldTransformations();
-		
+
 		btTransform	m_worldTransform;
 		btVector3		m_localScaling;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:DefaultMotionState")
 #endif

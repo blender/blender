@@ -80,7 +80,7 @@ PyObject *BL_ArmatureChannel::NewProxy(bool py_owns)
 #endif // WITH_PYTHON
 
 BL_ArmatureChannel::BL_ArmatureChannel(
-	BL_ArmatureObject *armature, 
+	BL_ArmatureObject *armature,
 	bPoseChannel *posechannel)
 	: PyObjectPlus(), m_posechannel(posechannel), m_armature(armature)
 {
@@ -106,7 +106,7 @@ PyAttributeDef BL_ArmatureChannel::Attributes[] = {
 	// Keep these attributes in order of BCA_ defines!!! used by py_attr_getattr and py_attr_setattr
 	KX_PYATTRIBUTE_RO_FUNCTION("bone",BL_ArmatureChannel,py_attr_getattr),
 	KX_PYATTRIBUTE_RO_FUNCTION("parent",BL_ArmatureChannel,py_attr_getattr),
-	
+
 	{ NULL }	//Sentinel
 };
 
@@ -190,7 +190,7 @@ int BL_ArmatureChannel::py_attr_setattr(void *self_v, const struct KX_PYATTRIBUT
 		PyErr_SetString(PyExc_AttributeError, "channel is NULL");
 		return PY_SET_ATTR_FAIL;
 	}
-	
+
 	switch (attr_order) {
 	default:
 		break;
@@ -396,13 +396,13 @@ PyTypeObject BL_ArmatureBone::Type = {
 };
 
 // not used since this class is never instantiated
-PyObject *BL_ArmatureBone::GetProxy() 
-{ 
-	return NULL; 
+PyObject *BL_ArmatureBone::GetProxy()
+{
+	return NULL;
 }
-PyObject *BL_ArmatureBone::NewProxy(bool py_owns) 
-{ 
-	return NULL; 
+PyObject *BL_ArmatureBone::NewProxy(bool py_owns)
+{
+	return NULL;
 }
 
 PyObject *BL_ArmatureBone::py_bone_repr(PyObject *self)

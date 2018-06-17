@@ -73,7 +73,7 @@ bool BL_DeformableGameObject::SetActiveAction(BL_ShapeActionActuator *act, short
 		m_activeAct = act;
 		m_activePriority = priority;
 		m_lastframe = curtime;
-	
+
 		return true;
 	}
 	else {
@@ -91,7 +91,7 @@ bool BL_DeformableGameObject::GetShape(vector<float> &shape)
 		// this check is normally superfluous: a shape deformer can only be created if the mesh
 		// has relative keys
 		Key* key = shape_deformer->GetKey();
-		if (key && key->type==KEY_RELATIVE) 
+		if (key && key->type==KEY_RELATIVE)
 		{
 			KeyBlock *kb;
 			for (kb = (KeyBlock *)key->block.first; kb; kb = (KeyBlock *)kb->next)

@@ -70,12 +70,12 @@ SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
 	m_skipped_ticks = 0;
 	m_state = false;
 	m_prev_state = false;
-	
+
 	m_eventmgr = eventmgr;
 }
 
 
-SCA_ISensor::~SCA_ISensor()  
+SCA_ISensor::~SCA_ISensor()
 {
 	// intentionally empty
 }
@@ -89,18 +89,18 @@ void SCA_ISensor::ProcessReplica()
 bool SCA_ISensor::IsPositiveTrigger()
 {
 	bool result = false;
-	
+
 	if (m_eventval) {
 		result = (m_eventval->GetNumber() != 0.0);
 	}
 	if (m_invert) {
 		result = !result;
 	}
-	
+
 	return result;
 }
 
-void SCA_ISensor::SetPulseMode(bool posmode, 
+void SCA_ISensor::SetPulseMode(bool posmode,
                                bool negmode,
                                int skippedticks)
 {
@@ -153,7 +153,7 @@ void SCA_ISensor::Init()
 void SCA_ISensor::DecLink()
 {
 	m_links--;
-	if (m_links < 0) 
+	if (m_links < 0)
 	{
 		printf("Warning: sensor %s has negative m_links: %d\n", m_name.Ptr(), m_links);
 		m_links = 0;
@@ -203,8 +203,8 @@ void SCA_ISensor::UnlinkController(SCA_IController* controller)
 			return;
 		}
 	}
-	printf("Missing link from sensor %s:%s to controller %s:%s\n", 
-		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+	printf("Missing link from sensor %s:%s to controller %s:%s\n",
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(),
 		controller->GetParent()->GetName().ReadPtr(), controller->GetName().ReadPtr());
 }
 
@@ -237,7 +237,7 @@ void SCA_ISensor::ActivateControllers(class SCA_LogicManager* logicmgr)
 
 void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 {
-	
+
 	// calculate if a __triggering__ is wanted
 	// don't evaluate a sensor that is not connected to any controller
 	if (m_links && !m_suspended) {
@@ -270,7 +270,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 						result = true;
 					}
 					m_pos_ticks = 0;
-				} 
+				}
 			}
 			// negative pulse doesn't make sense in tap mode, skip
 			if (m_neg_pulsemode && !m_tap)
@@ -304,8 +304,8 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 		}
 		if (!result && m_level)
 		{
-			// This level sensor is connected to at least one controller that was just made 
-			// active but it did not generate an event yet, do it now to those controllers only 
+			// This level sensor is connected to at least one controller that was just made
+			// active but it did not generate an event yet, do it now to those controllers only
 			for (vector<SCA_IController*>::const_iterator c= m_linkedcontrollers.begin();
 				c!=m_linkedcontrollers.end();++c)
 			{
@@ -314,7 +314,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 					logicmgr->AddTriggeredController(contr, this);
 			}
 		}
-	} 
+	}
 }
 
 #ifdef WITH_PYTHON
@@ -400,18 +400,18 @@ PyObject *SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF 
 {
 	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	int status = 0;
-	if (self->GetState()) 
+	if (self->GetState())
 	{
-		if (self->GetState() == self->GetPrevState()) 
+		if (self->GetState() == self->GetPrevState())
 		{
 			status = 2;
 		}
-		else 
+		else
 		{
 			status = 1;
 		}
 	}
-	else if (self->GetState() != self->GetPrevState()) 
+	else if (self->GetState() != self->GetPrevState())
 	{
 		status = 3;
 	}

@@ -53,9 +53,9 @@ typedef std::vector<SCA_IObject *>		 SCA_ObjectList;
 
 class SCA_IObject :	public CValue
 {
-	
+
 	Py_Header
-	
+
 protected:
 	friend class KX_StateActuator;
 	friend class SCA_IActuator;
@@ -110,7 +110,7 @@ protected:
 	SG_QList*				m_firstState;
 
 public:
-	
+
 	SCA_IObject();
 	virtual ~SCA_IObject();
 
@@ -148,7 +148,7 @@ public:
 	}
 	void RegisterActuator(SCA_IActuator* act);
 	void UnregisterActuator(SCA_IActuator* act);
-	
+
 	void RegisterObject(SCA_IObject* objs);
 	void UnregisterObject(SCA_IObject* objs);
 	/**
@@ -165,7 +165,7 @@ public:
 	void SetCurrentTime(float currentTime) {}
 
 	virtual void ReParentLogic();
-	
+
 	/**
 	 * Set whether or not to ignore activity culling requests
 	 */
@@ -187,7 +187,7 @@ public:
 	 * Suspend all progress.
 	 */
 	void Suspend(void);
-	
+
 	/**
 	 * Resume progress
 	 */
@@ -216,7 +216,7 @@ public:
 //	const class MT_Point3&	ConvertPythonPylist(PyObject *pylist);
 
 	virtual int GetGameObjectType() {return -1;}
-	
+
 	typedef enum ObjectTypes {
 		OBJ_ARMATURE=0,
 		OBJ_CAMERA=1,

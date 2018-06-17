@@ -32,7 +32,7 @@
 
 
 #include <math.h>
- 
+
 #include "SG_BBox.h"
 #include "SG_Tree.h"
 #include "SG_Node.h"
@@ -65,7 +65,7 @@ SG_Tree::SG_Tree(SG_Tree* left, SG_Tree* right) :
 	m_center = (m_bbox.m_min + m_bbox.m_max)/2.0f;
 	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
-	
+
 SG_Tree::SG_Tree(SG_Node* client) :
 		m_left(NULL),
 		m_right(NULL),
@@ -77,15 +77,15 @@ SG_Tree::SG_Tree(SG_Node* client) :
 	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 
-SG_Tree::~SG_Tree() 
+SG_Tree::~SG_Tree()
 {
 }
-	
+
 MT_Scalar SG_Tree::volume() const
 {
 	return m_bbox.volume();
 }
-	
+
 void SG_Tree::dump() const
 {
 	if (m_left)
@@ -117,27 +117,27 @@ SG_Tree* SG_Tree::Find(SG_Node *node)
 {
 	if (m_client_object == node)
 		return this;
-	
+
 	SG_Tree *left = m_left, *right = m_right;
-	
+
 	if (left && right)
 	{
 		if (right->m_bbox.intersects(node->BBox()))
 			std::swap(left, right);
 	}
-		
+
 	if (left)
 	{
 		SG_Tree* ret = left->Find(node);
 		if (ret) return ret;
 	}
-	
+
 	if (right)
 	{
 		SG_Tree* ret = right->Find(node);
 		if (ret) return ret;
 	}
-	
+
 	return NULL;
 }
 
@@ -185,7 +185,7 @@ class HalfArray
 public:
 	HalfArray() {}
 	~HalfArray() {}
-	
+
 	void resize(unsigned int size)
 	{
 		m_array.resize(size);
@@ -194,13 +194,13 @@ public:
 			m_array[i].resize(size - i);
 		}
 	}
-	
+
 	T& operator() (unsigned int x, unsigned int y)
 	{
 		assert(x >= y);
 		return m_array[y][x - y];
 	}
-	
+
 	void erase_column (unsigned int x)
 	{
 		for (unsigned int y = 0; y <= x; y++)
@@ -215,7 +215,7 @@ public:
 			m_array[y].erase(m_array[y].begin() + x - y);
 		}
 	}
-	
+
 	void erase_row (unsigned int y)
 	{
 		m_array.erase(m_array.begin() + y);
@@ -229,7 +229,7 @@ SG_TreeFactory::SG_TreeFactory()
 SG_TreeFactory::~SG_TreeFactory()
 {
 }
-	
+
 void SG_TreeFactory::Add(SG_Node* client)
 {
 	if (client)
@@ -247,7 +247,7 @@ SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
 		return NULL;
 	if (m_objects.size() == 1)
 		return *m_objects.begin();
-		
+
 	TreeSet::iterator it = m_objects.begin();
 	SG_Tree *root = *it;
 	if (m_objects.size() == 2)
@@ -255,7 +255,7 @@ SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
 		root->SetRight(*(++it));
 		return root;
 	}
-		
+
 	if (m_objects.size() == 3)
 	{
 		root->SetLeft(*(++it));
@@ -265,26 +265,26 @@ SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
 
 	if (bbox.volume() < 1.0f)
 		return MakeTreeUp();
-		
+
 	SG_TreeFactory lefttree;
 	SG_TreeFactory righttree;
-	
+
 	SG_BBox left, right;
 	int hasleft = 0, hasright = 0;
 	bbox.split(left, right);
-	
+
 	if (left.test(root->BBox()) == SG_BBox::INSIDE)
 	{
 		lefttree.Add(root);
 		root = NULL;
 	}
-	
+
 	if (root && right.test(root->BBox()) == SG_BBox::INSIDE)
 	{
 		righttree.Add(root);
 		root = NULL;
 	}
-	
+
 	for (++it; it != m_objects.end(); ++it)
 	{
 		switch (left.test((*it)->BBox()))
@@ -312,15 +312,15 @@ SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
 		}
 	}
 	std::cout << "Left: " << hasleft << " Right: " << hasright << " Count: " << m_objects.size() << std::endl;
-	
+
 	SG_Tree *leftnode = NULL;
 	if (hasleft)
 		leftnode = lefttree.MakeTreeDown(left);
-	
+
 	SG_Tree *rightnode = NULL;
 	if (hasright)
 		rightnode = righttree.MakeTreeDown(right);
-		
+
 	if (!root)
 		root = new SG_Tree(leftnode, rightnode);
 	else
@@ -343,14 +343,14 @@ SG_Tree* SG_TreeFactory::MakeTree()
 	SG_BBox bbox((*it)->BBox());
 	for (++it; it != m_objects.end(); ++it)
 		bbox += (*it)->BBox();
-	
+
 	return MakeTreeDown(bbox);
 }
 
 SG_Tree* SG_TreeFactory::MakeTreeUp()
 {
 	unsigned int num_objects = m_objects.size();
-	
+
 	if (num_objects < 1)
 		return NULL;
 	if (num_objects < 2)
@@ -358,7 +358,7 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 
 	HalfArray<SG_Tree*> sizes;
 	sizes.resize(num_objects);
-	
+
 	unsigned int x, y;
 	TreeSet::iterator xit, yit;
 	for ( y = 0, yit = m_objects.begin(); y < num_objects; y++, ++yit)
@@ -368,7 +368,7 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 		for ( x = y+1, ++xit; x < num_objects; x++, ++xit)
 		{
 			sizes(x, y) = new SG_Tree(*xit, *yit);
-			
+
 		}
 	}
 	while (num_objects > 2)
@@ -391,10 +391,10 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 				}
 			}
 		}
-		
+
 		/* Remove other bboxes that contain the two bboxes */
 		sizes.delete_column(miny);
-		
+
 		for ( x = miny + 1; x < num_objects; x++)
 		{
 			if (x == minx)
@@ -402,7 +402,7 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 			delete sizes(x, miny);
 		}
 		sizes.erase_row(miny);
-		
+
 		num_objects--;
 		minx--;
 		sizes(minx, minx) = min;

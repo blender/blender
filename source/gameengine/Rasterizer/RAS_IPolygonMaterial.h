@@ -74,7 +74,7 @@ class RAS_IPolyMaterial
 	//todo: remove these variables from this interface/protocol class
 protected:
 	STR_HashedString		m_texturename;
-	STR_HashedString		m_materialname; //also needed for touchsensor  
+	STR_HashedString		m_materialname; //also needed for touchsensor
 	int						m_tile;
 	int						m_tilexrep,m_tileyrep;
 	int						m_drawingmode;
@@ -83,7 +83,7 @@ protected:
 	bool					m_zsort;
 	bool					m_light;
 	int						m_materialindex;
-	
+
 	unsigned int			m_polymatid;
 	static unsigned int		m_newpolymatid;
 
@@ -95,7 +95,7 @@ public:
 	float				m_shininess;
 	MT_Vector3			m_specular;
 	float				m_specularity;
-	
+
 	/** Used to store caching information for materials. */
 	typedef void* TCachingInfo;
 
@@ -131,7 +131,7 @@ public:
 					struct GameSettings* game);
 
 	virtual ~RAS_IPolyMaterial() {}
- 
+
 	/**
 	 * Returns the caching information for this material,
 	 * This can be used to speed up the rasterizing process.
@@ -146,9 +146,9 @@ public:
 	 * \param rasty			The rasterizer in which the material should be active.
 	 * \param cachingInfo	The information about the material used to speed up rasterizing.
 	 */
-	virtual bool Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const 
-	{ 
-		return false; 
+	virtual bool Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const
+	{
+		return false;
 	}
 	virtual void ActivateMeshSlot(const class RAS_MeshSlot & ms, RAS_IRasterizer* rasty) const {}
 

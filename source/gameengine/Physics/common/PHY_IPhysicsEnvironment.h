@@ -65,7 +65,7 @@ struct PHY_RayCastResult
 	PHY_IPhysicsController* m_controller;
 	MT_Vector3			m_hitPoint;
 	MT_Vector3			m_hitNormal;
-	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 
+	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers)
 	int						m_polygon;		// index of the polygon hit by the ray,
 											// only if m_meshObject != NULL
 	int                     m_hitUVOK;		// !=0 if UV coordinate in m_hitUV is valid
@@ -73,8 +73,8 @@ struct PHY_RayCastResult
 };
 
 /**
- * This class replaces the ignoreController parameter of rayTest function. 
- * It allows more sophisticated filtering on the physics controller before computing the ray intersection to save CPU. 
+ * This class replaces the ignoreController parameter of rayTest function.
+ * It allows more sophisticated filtering on the physics controller before computing the ray intersection to save CPU.
  * It is only used to its full extend by the Ccd physics environment (Bullet).
  */
 class PHY_IRayCastFilterCallback
@@ -95,7 +95,7 @@ public:
 
 	virtual void reportHit(PHY_RayCastResult* result) = 0;
 
-	PHY_IRayCastFilterCallback(PHY_IPhysicsController* ignoreController, bool faceNormal=false, bool faceUV=false) 
+	PHY_IRayCastFilterCallback(PHY_IPhysicsController* ignoreController, bool faceNormal=false, bool faceUV=false)
 		:m_ignoreController(ignoreController),
 		m_faceNormal(faceNormal),
 		m_faceUV(faceUV)
@@ -195,10 +195,10 @@ class PHY_IPhysicsEnvironment
 		//These two methods are *solely* used to create controllers for sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const MT_Vector3& position) =0;
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight)=0;
-		
+
 		virtual void	SetConstraintParam(int constraintId,int param,float value,float value1) = 0;
 		virtual float	GetConstraintParam(int constraintId,int param) = 0;
-		
+
 		virtual void	ExportFile(const char* filename) {};
 
 		virtual void MergeEnvironment(PHY_IPhysicsEnvironment *other_env) = 0;

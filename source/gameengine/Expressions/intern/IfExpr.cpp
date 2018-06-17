@@ -104,10 +104,10 @@ bool CIfExpr::IsInside(float x,float y,float z,bool bBorderInclude)
 	assertd(false);
 	return false;
 }
-	
 
 
-bool CIfExpr::NeedsRecalculated() 
+
+bool CIfExpr::NeedsRecalculated()
 {
 	return  (m_guard->NeedsRecalculated() ||
 		m_e1->NeedsRecalculated() ||

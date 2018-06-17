@@ -39,7 +39,7 @@ KX_VisibilityActuator::KX_VisibilityActuator(
 	bool visible,
 	bool occlusion,
 	bool recursive
-	) 
+	)
 	: SCA_IActuator(gameobj, KX_ACT_VISIBILITY),
 	  m_visible(visible),
 	  m_occlusion(occlusion),
@@ -69,12 +69,12 @@ bool
 KX_VisibilityActuator::Update()
 {
 	bool bNegativeEvent = IsNegativeEvent();
-	
+
 	RemoveAllEvents();
 	if (bNegativeEvent) return false;
 
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
-	
+
 	obj->SetVisible(m_visible, m_recursive);
 	obj->SetOccluder(m_occlusion, m_recursive);
 	obj->UpdateBuckets(m_recursive);

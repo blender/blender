@@ -92,7 +92,7 @@ void RAS_2DFilterManager::PrintShaderErrors(unsigned int shader, const char *tas
 
 	if (errorprinted)
 		return;
-	
+
 	errorprinted= true;
 
 	glGetInfoLogARB(shader, sizeof(log), &length, log);
@@ -130,7 +130,7 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 		PrintShaderErrors(fShader, "compile", shadersource);
 		goto fail;
 	}
-		
+
 	program = glCreateProgramObjectARB();
 	glAttachObjectARB(program, fShader);
 
@@ -141,7 +141,7 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 		PrintShaderErrors(fShader, "link", shadersource);
 		goto fail;
 	}
-	
+
 	glValidateProgramARB(program);
 	glGetObjectParameterivARB(program, GL_VALIDATE_STATUS, &success);
 	if (!success) {
@@ -255,7 +255,7 @@ void RAS_2DFilterManager::StartShaderProgram(int passindex)
 			glUniform1iARB(uniformLoc, 2);
 		}
 	}
-	
+
 	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_TextureCoordinateOffset");
 	if (uniformLoc != -1)
 	{
@@ -316,7 +316,7 @@ void RAS_2DFilterManager::FreeTextures()
 void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 {
 	FreeTextures();
-	
+
 	glGenTextures(1, (GLuint*)&texname[0]);
 	glBindTexture(GL_TEXTURE_2D, texname[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGBA,
@@ -374,7 +374,7 @@ void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 
 	GLfloat	xInc = 1.0f / (GLfloat)texturewidth;
 	GLfloat yInc = 1.0f / (GLfloat)textureheight;
-	
+
 	for (i = 0; i < 3; i++)
 	{
 		for (j = 0; j < 3; j++)
@@ -395,7 +395,7 @@ void RAS_2DFilterManager::UpdateCanvasTextureCoord(const int viewport[4])
 	 */
 	canvascoord[0] = (GLfloat) viewport[0] / -viewport[2];
 	canvascoord[1] = (GLfloat) (texturewidth - viewport[0]) / viewport[2];
- 
+
 	canvascoord[2] = (GLfloat) viewport[1] / -viewport[3];
 	canvascoord[3] = (GLfloat)(textureheight - viewport[1]) / viewport[3];
 }
@@ -435,7 +435,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		UpdateCanvasTextureCoord(viewport);
 		need_tex_update = true;
 	}
-	
+
 	if (need_tex_update)
 	{
 		SetupTextures(need_depth, need_luminance);
@@ -447,7 +447,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
 		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, viewport[0], viewport[1], viewport[2], viewport[3], 0);
 	}
-	
+
 	if (need_luminance) {
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
@@ -458,7 +458,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	glActiveTextureARB(GL_TEXTURE0);
 
 	// We do this to make side-by-side stereo rendering work correctly with 2D filters. It would probably be nicer to just set the viewport,
-	// but it can be easier for writing shaders to have the coordinates for the whole screen instead of just part of the screen. 
+	// but it can be easier for writing shaders to have the coordinates for the whole screen instead of just part of the screen.
 	RAS_Rect scissor_rect = canvas->GetDisplayArea();
 
 	glScissor(scissor_rect.GetLeft() + viewport[0],
@@ -470,7 +470,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	// in case the previous material was wire
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// if the last rendered face had alpha add it would messes with the color of the plane we apply 2DFilter to
-	glDisable(GL_BLEND); 
+	glDisable(GL_BLEND);
 	// fix for [#34523] alpha buffer is now available for all OSs
 	glDisable(GL_ALPHA_TEST);
 
@@ -540,7 +540,7 @@ void RAS_2DFilterManager::EnableFilter(vector<STR_String>& propNames, void* game
 		texflag[pass] = 0;
 		return;
 	}
-	
+
 	if (mode == RAS_2DFILTER_CUSTOMFILTER)
 	{
 		if (m_filters[pass])

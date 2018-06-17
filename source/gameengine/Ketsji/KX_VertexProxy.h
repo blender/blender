@@ -96,7 +96,7 @@ public:
 	KX_PYMETHOD_O(KX_VertexProxy,SetXYZ);
 	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetUV1);
 	KX_PYMETHOD_O(KX_VertexProxy,SetUV1);
-	
+
 	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetUV2);
 	KX_PYMETHOD_VARARGS(KX_VertexProxy,SetUV2);
 

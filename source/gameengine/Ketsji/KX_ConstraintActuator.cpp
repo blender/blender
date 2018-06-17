@@ -49,7 +49,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj, 
+KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 											 int posDampTime,
 											 int rotDampTime,
 											 float minBound,
@@ -113,7 +113,7 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 } /* End of constructor */
 
 KX_ConstraintActuator::~KX_ConstraintActuator()
-{ 
+{
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
@@ -121,7 +121,7 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo *client, KX_RayCast *resu
 {
 
 	m_hitObject = client->m_gameobject;
-	
+
 	bool bFound = false;
 
 	if (m_property.IsEmpty())
@@ -339,7 +339,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				if (!pe) {
 					std::cout << "WARNING: Constraint actuator " << GetName() << ":  There is no physics environment!" << std::endl;
 					goto CHECK_TIME;
-				}	 
+				}
 				if (!spc) {
 					// the object is not physical, we probably want to avoid hitting its own parent
 					KX_GameObject *parent = obj->GetParent();
@@ -353,7 +353,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					MT_Vector3 newnormal = callback.m_hitNormal;
 					// compute new position & orientation
 					if ((m_option & (KX_ACT_CONSTRAINT_NORMAL|KX_ACT_CONSTRAINT_DISTANCE)) == 0) {
-						// if none option is set, the actuator does nothing but detect ray 
+						// if none option is set, the actuator does nothing but detect ray
 						// (works like a sensor)
 						goto CHECK_TIME;
 					}
@@ -398,7 +398,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					goto CHECK_TIME;
 				}
 			}
-			break; 
+			break;
 		case KX_ACT_CONSTRAINT_FHPX:
 		case KX_ACT_CONSTRAINT_FHPY:
 		case KX_ACT_CONSTRAINT_FHPZ:
@@ -451,7 +451,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				if (!pe) {
 					std::cout << "WARNING: Constraint actuator " << GetName() << ":  There is no physics environment!" << std::endl;
 					goto CHECK_TIME;
-				}	 
+				}
 				if (!spc || !spc->IsDynamic()) {
 					// the object is not dynamic, it won't support setting speed
 					goto CHECK_TIME;
@@ -468,7 +468,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				{
 					MT_Vector3 newnormal = callback.m_hitNormal;
 					// compute new position & orientation
-					MT_Scalar distance = (callback.m_hitPoint-position).length()-spc->GetRadius(); 
+					MT_Scalar distance = (callback.m_hitPoint-position).length()-spc->GetRadius();
 					// estimate the velocity of the hit point
 					MT_Point3 relativeHitPoint;
 					relativeHitPoint = (callback.m_hitPoint-m_hitObject->NodeGetWorldPosition());
@@ -502,7 +502,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				// don't set the position with this constraint
 				goto CHECK_TIME;
 			}
-			break; 
+			break;
 		case KX_ACT_CONSTRAINT_LOCX:
 		case KX_ACT_CONSTRAINT_LOCY:
 		case KX_ACT_CONSTRAINT_LOCZ:
@@ -541,8 +541,8 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 	return result;
 } /* end of KX_ConstraintActuator::Update(double curtime,double deltatime)   */
 
-void KX_ConstraintActuator::Clamp(MT_Scalar &var, 
-								  float min, 
+void KX_ConstraintActuator::Clamp(MT_Scalar &var,
+								  float min,
 								  float max) {
 	if (var < min) {
 		var = min;
@@ -552,7 +552,7 @@ void KX_ConstraintActuator::Clamp(MT_Scalar &var,
 }
 
 
-bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE m) 
+bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE m)
 {
 	bool res = false;
 

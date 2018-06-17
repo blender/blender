@@ -62,18 +62,18 @@ public:
 	RAS_ICanvas();
 	virtual ~RAS_ICanvas();
 
-	virtual 
-		void 
+	virtual
+		void
 	Init(
 	) = 0;
 
-	virtual 
-		void 
+	virtual
+		void
 	BeginFrame(
 	)=0;
 
-	virtual 
-		void 
+	virtual
+		void
 	EndFrame(
 	)=0;
 
@@ -86,8 +86,8 @@ public:
 	 *
 	 */
 
-	virtual 
-		bool 
+	virtual
+		bool
 	BeginDraw(
 	)=0;
 
@@ -95,18 +95,18 @@ public:
 	 * Unitializes the canvas for drawing.
 	 */
 
-	virtual 
-		void 
+	virtual
+		void
 	EndDraw(
 	)=0;
 
 
 	/// probably needs some arguments for PS2 in future
-	virtual 
-		void 
+	virtual
+		void
 	SwapBuffers(
 	)=0;
-	
+
 	virtual
 		void
 	SetSwapInterval(
@@ -118,15 +118,15 @@ public:
 	GetSwapInterval(
 		int& intervalOut
 	)=0;
- 
-	virtual 
-		void 
+
+	virtual
+		void
 	ClearBuffer(
 		int type
 	)=0;
 
-	virtual 
-		void 
+	virtual
+		void
 	ClearColor(
 		float r,
 		float g,
@@ -134,13 +134,13 @@ public:
 		float a
 	)=0;
 
-	virtual 
-		int	 
+	virtual
+		int
 	GetWidth(
 	) const = 0;
 
-	virtual 
-		int	 
+	virtual
+		int
 	GetHeight(
 	) const = 0;
 
@@ -183,7 +183,7 @@ public:
 	) = 0;
 
 	/**
-	 * Set the visible view-port 
+	 * Set the visible view-port
 	 */
 
 	virtual
@@ -212,14 +212,14 @@ public:
 		const int*
 	GetViewPort() = 0;
 
-	virtual 
-		void 
+	virtual
+		void
 	SetMouseState(
 		RAS_MouseState mousestate
 	)=0;
 
-	virtual 
-		void 
+	virtual
+		void
 	SetMousePosition(
 		int x,
 		int y
@@ -232,8 +232,8 @@ public:
 		return m_mousestate;
 	}
 
-	virtual 
-		void 
+	virtual
+		void
 	MakeScreenShot(
 		const char* filename
 	)=0;
@@ -241,7 +241,7 @@ public:
 	virtual void GetDisplayDimensions(int &width, int &height) = 0;
 
 	virtual
-		void 
+		void
 	ResizeWindow(
 		int width,
 		int height
@@ -257,8 +257,8 @@ public:
 		bool
 	GetFullScreen()=0;
 
-		
-	
+
+
 protected:
 	RAS_MouseState m_mousestate;
 	int m_frame;  /// frame number for screenshots.

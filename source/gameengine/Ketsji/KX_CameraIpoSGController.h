@@ -55,7 +55,7 @@ private:
 
 	double		        m_ipotime;
 public:
-	KX_CameraIpoSGController() : 
+	KX_CameraIpoSGController() :
 				m_modify_lens(false),
 				m_modify_clipstart(false),
 				m_modify_clipend(false),
@@ -87,8 +87,8 @@ public:
 		m_modify_clipstart = modify;
 	}
 	void	AddInterpolator(KX_IInterpolator* interp);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_CameraIpoSGController")
 #endif

@@ -46,7 +46,7 @@ static MT_Point2 g_pt2;
 
 class RAS_TexVert
 {
-	
+
 	float			m_localxyz[3];	// 3*4 = 12
 	float			m_uvs[8][2];	// 8*2*4=64		//8 = MAX_UNIT
 	unsigned int	m_rgba;			//        4
@@ -69,7 +69,7 @@ public:
 
 	short getFlag() const;
 	unsigned int getUnit() const;
-	
+
 	RAS_TexVert()// :m_xyz(0,0,0),m_uv(0,0),m_rgba(0)
 	{}
 	RAS_TexVert(const MT_Point3& xyz,
@@ -85,19 +85,19 @@ public:
 		return m_uvs[unit];
 	};
 
-	const float* getXYZ() const { 
+	const float* getXYZ() const {
 		return m_localxyz;
 	};
-	
+
 	const float* getNormal() const {
 		return m_normal;
 	}
-	
+
 	short int getSoftBodyIndex() const
 	{
 		return m_softBodyIndex;
 	}
-	
+
 	void	setSoftBodyIndex(short int sbIndex)
 	{
 		m_softBodyIndex = sbIndex;
@@ -125,7 +125,7 @@ public:
 	void				SetTangent(const MT_Vector3& tangent);
 	void				SetFlag(const short flag);
 	void				SetUnit(const unsigned u);
-	
+
 	void				SetRGBA(const MT_Vector4& rgba);
 	const MT_Point3&	xyz();
 

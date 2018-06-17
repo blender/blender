@@ -14,7 +14,7 @@
 
 class PHY_ICharacter
 {
-public:	
+public:
 	virtual ~PHY_ICharacter() {};
 
 	virtual void Jump()= 0;
@@ -22,7 +22,7 @@ public:
 
 	virtual float GetGravity()= 0;
 	virtual void SetGravity(float gravity)= 0;
-	
+
 	virtual unsigned char GetMaxJumps() = 0;
 	virtual void SetMaxJumps(unsigned char maxJumps) = 0;
 

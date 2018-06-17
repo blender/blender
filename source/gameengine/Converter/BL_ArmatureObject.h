@@ -49,7 +49,7 @@ class MT_Matrix4x4;
 struct Object;
 class KX_BlenderSceneConverter;
 
-class BL_ArmatureObject : public KX_GameObject  
+class BL_ArmatureObject : public KX_GameObject
 {
 	Py_Header
 public:
@@ -80,11 +80,11 @@ public:
 	void RestorePose();
 
 	bool UpdateTimestep(double curtime);
-	
+
 	struct bArmature *GetArmature() { return (bArmature*)m_objArma->data; }
 	const struct bArmature * GetArmature() const { return (bArmature*)m_objArma->data; }
 	const struct Scene * GetScene() const { return m_scene; }
-	
+
 	Object* GetArmatureObject() {return m_objArma;}
 	Object* GetOrigArmatureObject() {return m_origObjArma;}
 
@@ -106,7 +106,7 @@ public:
 	/// Retrieve the pose matrix for the specified bone.
 	/// Returns true on success.
 	bool GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix);
-	
+
 	/// Returns the bone length.  The end of the bone is in the local y direction.
 	float GetBoneLength(Bone* bone) const;
 
@@ -130,7 +130,7 @@ protected:
 	Object				*m_origObjArma;
 	struct bPose		*m_pose;
 	struct bPose		*m_armpose;
-	struct Scene		*m_scene; // need for BKE_pose_where_is 
+	struct Scene		*m_scene; // need for BKE_pose_where_is
 	double	m_lastframe;
 	double  m_timestep;		// delta since last pose evaluation.
 	int		m_vert_deform_type;

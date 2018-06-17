@@ -40,7 +40,7 @@
 class SCA_MouseSensor : public SCA_ISensor
 {
 	Py_Header
-	
+
 	/**
 	 * Use SCA_IInputDevice values to encode the mouse mode for now.
 	 */
@@ -51,12 +51,12 @@ class SCA_MouseSensor : public SCA_ISensor
 	 */
 	bool m_triggermode;
 	/**
-	 * Remember the last state update 
+	 * Remember the last state update
 	 */
 	int m_val;
 
 	SCA_IInputDevice::KX_EnumInputs m_hotkey;
-	
+
 	/**
 	 * valid x coordinate, MUST be followed by y coordinate
 	 */
@@ -66,7 +66,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	 * valid y coordinate
 	 */
 	short m_y;
-	
+
  public:
 	/**
 	 * Allowable modes for the trigger status of the mouse sensor.
@@ -86,7 +86,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	};
 
 	bool isValid(KX_MOUSESENSORMODE);
-	
+
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
 	                int startx,int starty,
 	                short int mousemode,
@@ -109,7 +109,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
+
 	static int UpdateHotkeyPy(void *self, const PyAttributeDef *);
 
 	// get button status

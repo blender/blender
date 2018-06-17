@@ -264,7 +264,7 @@ static int mathutils_world_generic_check(BaseMathObject *bmo)
 	KX_WorldInfo *self = static_cast<KX_WorldInfo*>BGE_PROXY_REF(bmo->cb_user);
 	if (self == NULL)
 		return -1;
-		
+
 	return 0;
 }
 
@@ -399,10 +399,10 @@ PyObject *KX_WorldInfo::pyattr_get_mist_typeconst(void *self_v, const KX_PYATTRI
 
 	if (!strcmp(type, "KX_MIST_QUADRATIC")) {
 		retvalue = PyLong_FromLong(KX_MIST_QUADRATIC);
-	} 
+	}
 	else if (!strcmp(type, "KX_MIST_LINEAR")) {
 		retvalue = PyLong_FromLong(KX_MIST_LINEAR);
-	} 
+	}
 	else if (!strcmp(type, "KX_MIST_INV_QUADRATIC")) {
 		retvalue = PyLong_FromLong(KX_MIST_INV_QUADRATIC);
 	}

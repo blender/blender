@@ -428,7 +428,7 @@ mBufferCacheSize(cacheSize)
 	// do it once
 	if (!mGPUDirectInitialized) {
 #ifdef WIN32
-		// In windows, AMD_pinned_memory option is not available, 
+		// In windows, AMD_pinned_memory option is not available,
 		// we must use special DVP API only available for Quadro cards
 		const char* renderer = (const char *)glGetString(GL_RENDERER);
 		mHasDvp = (strstr(renderer, "Quadro") != NULL);
@@ -722,7 +722,7 @@ VideoDeckLink::~VideoDeckLink ()
 		}
 		mDLInput = NULL;
 	}
-	
+
 	if (mpAllocator)
 	{
 		// if the device was properly cleared, this should be 0
@@ -768,7 +768,7 @@ void VideoDeckLink::openCam (char *format, short camIdx)
 	BMDTimeValue					frameDuration;
 	BMDTimeScale					frameTimescale;
 	IDeckLink*						pDL;
-	uint32_t displayFlags, inputFlags; 
+	uint32_t displayFlags, inputFlags;
 	char *pPixel, *p3D, *pEnd, *pSize;
 	size_t len;
 	int i, modeIdx, cacheSize;
@@ -845,7 +845,7 @@ void VideoDeckLink::openCam (char *format, short camIdx)
 	if (!mDLInput)
 		THRWEXCP(VideoDeckLinkOpenCard, S_OK);
 
-	
+
 	// check if display mode and pixel format are supported
 	if (mDLInput->GetDisplayModeIterator(&pDLDisplayModeIterator) != S_OK)
 		THRWEXCP(DeckLinkInternalError, S_OK);
@@ -966,7 +966,7 @@ void VideoDeckLink::openCam (char *format, short camIdx)
 
 	if (mDLInput->EnableVideoInput(mDisplayMode, mPixelFormat, ((mUse3D) ? bmdVideoInputDualStream3D : bmdVideoInputFlagDefault)) != S_OK)
 		// this shouldn't failed, we tested above
-		THRWEXCP(DeckLinkInternalError, S_OK); 
+		THRWEXCP(DeckLinkInternalError, S_OK);
 
 	// just in case it is needed to capture from certain cards, we don't check error because we don't need audio
 	mDLInput->EnableAudioInput(bmdAudioSampleRate48kHz, bmdAudioSampleType16bitInteger, 2);
@@ -1085,7 +1085,7 @@ void VideoDeckLink::calcImage (unsigned int texId, double ts)
 					mpAllocator->TransferBuffer(videoPixels, &mTextureDesc, texId);
 				}
 			}
-		} 
+		}
 		catch (Exception &) {
 			pFrame->Release();
 			throw;
@@ -1134,7 +1134,7 @@ static int VideoDeckLink_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 	// get parameters
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|h",
 		const_cast<char**>(kwlist), &format, &capt))
-		return -1; 
+		return -1;
 
 	try {
 		// create video object
@@ -1177,7 +1177,7 @@ static PyGetSetDef videoGetSets[] =
 
 // python type declaration
 PyTypeObject VideoDeckLinkType =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.VideoDeckLink",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/

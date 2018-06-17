@@ -70,7 +70,7 @@ PyMethodDef CValue::Methods[] = {
 /*#define CVALUE_DEBUG*/
 #ifdef CVALUE_DEBUG
 int gRefCount;
-struct SmartCValueRef 
+struct SmartCValueRef
 {
 	CValue *m_ref;
 	int m_count;
@@ -92,7 +92,7 @@ std::vector<SmartCValueRef> gRefList;
 
 CValue::CValue()
 		: PyObjectPlus(),
-	
+
 m_pNamedPropertyArray(NULL),
 m_refcount(1)
 /*
@@ -148,7 +148,7 @@ STR_String CValue::op2str(VALUE_OPERATOR op)
 {
 	//pre:
 	//ret: the stringrepresentation of operator op
-	
+
 	STR_String opmsg;
 	switch (op) {
 	case VALUE_MOD_OPERATOR:
@@ -225,7 +225,7 @@ void CValue::SetProperty(const STR_String & name,CValue* ioProperty)
 	else { // Make sure we have a property array
 		m_pNamedPropertyArray = new std::map<STR_String,CValue *>;
 	}
-	
+
 	// Add property at end of array
 	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
 }
@@ -247,7 +247,7 @@ void CValue::SetProperty(const char* name,CValue* ioProperty)
 	else { // Make sure we have a property array
 		m_pNamedPropertyArray = new std::map<STR_String,CValue *>;
 	}
-	
+
 	// Add property at end of array
 	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
 }
@@ -293,7 +293,7 @@ float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
 {
 	CValue *property = GetProperty(inName);
 	if (property)
-		return property->GetNumber(); 
+		return property->GetNumber();
 	else
 		return defnumber;
 }
@@ -316,7 +316,7 @@ bool CValue::RemoveProperty(const char *inName)
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -328,7 +328,7 @@ vector<STR_String> CValue::GetPropertyNames()
 	vector<STR_String> result;
 	if (!m_pNamedPropertyArray) return result;
 	result.reserve(m_pNamedPropertyArray->size());
-	
+
 	std::map<STR_String,CValue*>::iterator it;
 	for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 	{
@@ -369,7 +369,7 @@ void CValue::SetPropertiesModified(bool inModified)
 {
 	if (!m_pNamedPropertyArray) return;
 	std::map<STR_String,CValue*>::iterator it;
-	
+
 	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
 		((*it).second)->SetModified(inModified);
 }
@@ -383,11 +383,11 @@ bool CValue::IsAnyPropertyModified()
 {
 	if (!m_pNamedPropertyArray) return false;
 	std::map<STR_String,CValue*>::iterator it;
-	
+
 	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
 		if (((*it).second)->IsModified())
 			return true;
-	
+
 	return false;
 }
 
@@ -471,7 +471,7 @@ void CValue::DisableRefCount()
 void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 {
 	m_refcount = 1;
-	
+
 #ifdef DEBUG
 	//gRefCountValue++;
 #endif
@@ -518,7 +518,7 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 		if (tempresult)
 		{
 			result=tempresult->FindIdentifier(rightstring);
-		} 
+		}
 	} else
 	{
 		result = GetProperty(identifiername);
@@ -666,7 +666,7 @@ void CValue::SetColorOperator(VALUE_OPERATOR op)
 	/* intentionally empty */
 }
 void CValue::SetValue(CValue* newval)
-{ 
+{
 	// no one should get here
 	assertd(newval->GetNumber() == 10121969);
 }

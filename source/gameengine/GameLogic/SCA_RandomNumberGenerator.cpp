@@ -2,8 +2,8 @@
  *  \ingroup gamelogic
  */
 /**
- * Generate random numbers that can be used by other components. We 
- * convert to different types/distributions elsewhere. This just 
+ * Generate random numbers that can be used by other components. We
+ * convert to different types/distributions elsewhere. This just
  * delivers a clean, random bitvector.
  *
  */
@@ -29,7 +29,7 @@
 /* See the GNU Library General Public License for more details.    */
 /* You should have received a copy of the GNU Library General      */
 /* Public License along with this library; if not, write to the    */
-/* Free Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA   */ 
+/* Free Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA   */
 /* 02110-1301, USA                                                 */
 
 /* Copyright (C) 1997 Makoto Matsumoto and Takuji Nishimura.       */
@@ -39,14 +39,14 @@
 #include <limits.h>
 #include "SCA_RandomNumberGenerator.h"
 
-/* Period parameters */  
+/* Period parameters */
 #define N 624
 #define M 397
 #define MATRIX_A 0x9908b0df   /* constant vector a */
 #define UPPER_MASK 0x80000000 /* most significant w-r bits */
 #define LOWER_MASK 0x7fffffff /* least significant r bits */
 
-/* Tempering parameters */   
+/* Tempering parameters */
 #define TEMPERING_MASK_B 0x9d2c5680
 #define TEMPERING_MASK_C 0xefc60000
 #define TEMPERING_SHIFT_U(y)  (y >> 11)
@@ -79,8 +79,8 @@ void SCA_RandomNumberGenerator::SetStartVector(void)
 }
 
 long SCA_RandomNumberGenerator::GetSeed() { return m_seed; }
-void SCA_RandomNumberGenerator::SetSeed(long newseed) 
-{ 
+void SCA_RandomNumberGenerator::SetSeed(long newseed)
+{
 	m_seed = newseed;
 	SetStartVector();
 }

@@ -28,7 +28,7 @@
 /** \file SG_QList.h
  *  \ingroup bgesg
  */
- 
+
 #ifndef __SG_QLIST_H__
 #define __SG_QLIST_H__
 

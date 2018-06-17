@@ -216,7 +216,7 @@ private:
 	HRESULT _ReleaseBuffer(void* buffer);
 
 	uint32_t							mRefCount;
-	// protect the cache and the allocated map, 
+	// protect the cache and the allocated map,
 	// not the pinnedBuffer map as it is only used from main thread
 	pthread_mutex_t						mMutex;
 	std::map<void*, uint32_t>			mAllocatedSize;

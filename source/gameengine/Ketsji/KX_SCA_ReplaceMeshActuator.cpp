@@ -43,7 +43,7 @@
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_MeshProxy.h"
 
-#include "EXP_PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h"
 
 #ifdef WITH_PYTHON
 
@@ -100,10 +100,10 @@ int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYAT
 {
 	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
 	RAS_MeshObject* new_mesh;
-	
+
 	if (!ConvertPythonToMesh(actuator->GetLogicManager(), value, &new_mesh, true, "actuator.mesh = value: KX_SCA_ReplaceMeshActuator"))
 		return PY_SET_ATTR_FAIL;
-	
+
 	actuator->m_mesh = new_mesh;
 	return PY_SET_ATTR_SUCCESS;
 }
@@ -138,7 +138,7 @@ KX_SCA_ReplaceMeshActuator::KX_SCA_ReplaceMeshActuator(SCA_IObject *gameobj,
 
 
 KX_SCA_ReplaceMeshActuator::~KX_SCA_ReplaceMeshActuator()
-{ 
+{
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
@@ -163,7 +163,7 @@ bool KX_SCA_ReplaceMeshActuator::Update()
 
 CValue* KX_SCA_ReplaceMeshActuator::GetReplica()
 {
-	KX_SCA_ReplaceMeshActuator* replica = 
+	KX_SCA_ReplaceMeshActuator* replica =
 		new KX_SCA_ReplaceMeshActuator(*this);
 
 	if (replica == NULL)

@@ -104,8 +104,8 @@ private:
 	int					m_activecam;
 	bool				m_bFixedTime;
 	bool				m_useExternalClock;
-	
-	
+
+
 	bool				m_firstframe;
 	int					m_currentFrame;
 
@@ -135,10 +135,10 @@ private:
 	STR_String			m_exitstring;
 
 	float			m_cameraZoom;
-	
+
 	bool			m_overrideCam;
 	STR_String		m_overrideSceneName;
-	
+
 	bool			m_overrideCamUseOrtho;
 	MT_CmMatrix4x4	m_overrideCamProjMat;
 	MT_CmMatrix4x4	m_overrideCamViewMat;
@@ -169,7 +169,7 @@ private:
 
 	/** Time logger. */
 	KX_TimeCategoryLogger*	m_logger;
-	
+
 	/** Labels for profiling display. */
 	static const char		m_profileLabels[tc_numCategories][15];
 	/** Last estimated framerate */
@@ -244,7 +244,7 @@ public:
 	TaskScheduler*			GetTaskScheduler() { return m_taskscheduler; }
 
 	/// Dome functions
-	void			InitDome(short res, short mode, short angle, float resbuf, short tilt, struct Text* text); 
+	void			InitDome(short res, short mode, short angle, float resbuf, short tilt, struct Text* text);
 	void			EndDome();
 	void			RenderDome();
 	bool			m_usedome;
@@ -253,7 +253,7 @@ public:
 	bool			NextFrame();
 	void			Render();
 	void			RenderShadowBuffers(KX_Scene *scene);
-	
+
 	void			StartEngine(bool clearIpo);
 	void			StopEngine();
 	void			Export(const STR_String& filename);
@@ -277,9 +277,9 @@ public:
 
 	/// Sets zoom for camera objects, useful only with extend and scale framing mode.
 	void SetCameraZoom(float camzoom);
-	
+
 	void EnableCameraOverride(const STR_String& forscene);
-	
+
 	void SetCameraOverrideUseOrtho(bool useOrtho);
 	void SetCameraOverrideProjectionMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat);
@@ -290,17 +290,17 @@ public:
 
 	// Update animations for object in this scene
 	void UpdateAnimations(KX_Scene *scene);
-	
+
 	/**
 	 * Sets display of all frames.
 	 * \param bUseFixedTime	New setting for display all frames.
-	 */ 
+	 */
 	void SetUseFixedTime(bool bUseFixedTime);
 
 	/**
 	 * Returns display of all frames.
 	 * \return Current setting for display all frames.
-	 */ 
+	 */
 	bool GetUseFixedTime(void) const;
 
 	/**
@@ -391,7 +391,7 @@ public:
 	static double GetAverageFrameRate();
 
 	/**
-	 * Gets the time scale multiplier 
+	 * Gets the time scale multiplier
 	 */
 	double GetTimeScale() const;
 
@@ -459,7 +459,7 @@ public:
 	 * \param frameRate		Display for frame rate on or off.
 	 * \param profile		Display for individual components on or off.
 	 * \param properties	Display of scene object debug properties on or off.
-	 */ 
+	 */
 	void SetTimingDisplay(bool frameRate, bool profile, bool properties);
 
 	/**
@@ -467,33 +467,33 @@ public:
 	 * \param frameRate		Display for frame rate on or off.
 	 * \param profile		Display for individual components on or off.
 	 * \param properties	Display of scene object debug properties on or off.
-	 */ 
+	 */
 	void GetTimingDisplay(bool& frameRate, bool& profile, bool& properties) const;
 
-	/** 
+	/**
 	 * Sets cursor hiding on every frame.
 	 * \param hideCursor Turns hiding on or off.
 	 */
 	void SetHideCursor(bool hideCursor);
 
-	/** 
+	/**
 	 * Returns the current setting for cursor hiding.
 	 * \return The current setting for cursor hiding.
 	 */
 	bool GetHideCursor(void) const;
 
-	/** 
+	/**
 	 * Enables/disables the use of the framing bar color of the Blender file's scenes.
 	 * \param overrideFrameColor The new setting.
 	 */
 	void SetUseOverrideFrameColor(bool overrideFrameColor);
 
-	/** 
+	/**
 	 * Check if the frame color is being overridden.
 	 */
-	bool GetUseOverrideFrameColor(void) const; 
+	bool GetUseOverrideFrameColor(void) const;
 
-	/** 
+	/**
 	 * Set the color used for framing bar color instead of the one in the Blender file's scenes.
 	 * \param r Red component of the override color.
 	 * \param g Green component of the override color.
@@ -501,7 +501,7 @@ public:
 	 */
 	void SetOverrideFrameColor(float r, float g, float b, float a);
 
-	/** 
+	/**
 	 * Returns the color used for framing bar color instead of the one in the Blender file's scenes.
 	 * \param r Red component of the override color.
 	 * \param g Green component of the override color.
@@ -539,12 +539,12 @@ protected:
 	void			AddScheduledScenes(void);
 	void			ReplaceScheduledScenes(void);
 	void			PostProcessScene(class KX_Scene* scene);
-	
+
 	bool			BeginFrame();
 	void			ClearFrame();
 	void			EndFrame();
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_KetsjiEngine")
 #endif

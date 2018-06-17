@@ -56,7 +56,7 @@ class CBrokenLinkInfo
 		CBrokenLinkInfo(CExpression** pmemexpr,CExpression* expr)
 			:m_pmemExpr(pmemexpr),
 			m_pExpr(expr)
-		 { 
+		 {
 			assertd(pmemexpr);
 			m_bRestored=false;
 		};
@@ -64,15 +64,15 @@ class CBrokenLinkInfo
 		virtual ~CBrokenLinkInfo();
 		void RestoreLink();
 		void BreakLink();
-		
-		
+
+
 	// members vars
 	private:
 	CExpression** m_pmemExpr;
 	CExpression* m_pExpr;
 	bool		m_bRestored;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CBrokenLinkInfo")
 #endif
@@ -85,7 +85,7 @@ class CBrokenLinkInfo
 
 
 
-class CExpression  
+class CExpression
 {
 public:
 	enum {
@@ -104,7 +104,7 @@ public:
 	virtual bool MergeExpression(CExpression* otherexpr) = 0;
 	CExpression();
 
-	
+
 	virtual				CValue* Calculate() = 0;	//pure virtual
 	virtual	unsigned char GetExpressionID() = 0;
 	//virtual bool		IsInside(float x,float y,float z,bool bBorderInclude=true) = 0;		//pure virtual
@@ -120,21 +120,21 @@ public:
 		//gRefCountExpr++;
 		assertd(m_refcount < 255);
 #endif
-		m_refcount++; 
+		m_refcount++;
 		return this;
 	};
-	virtual CExpression* Release(CExpression* complicatedtrick=NULL) { 
+	virtual CExpression* Release(CExpression* complicatedtrick=NULL) {
 #ifdef DEBUG
 		//gRefCountExpr--;
 #endif
-		if (--m_refcount < 1) 
+		if (--m_refcount < 1)
 		{
 			delete this;
 		} //else
 		//	return this;
 		return complicatedtrick;
 	};
-	
+
 
 protected:
 

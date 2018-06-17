@@ -38,7 +38,7 @@
 #include "MT_Point3.h"
 #include "MT_Vector3.h"
 
-class RAS_MeshObject; 
+class RAS_MeshObject;
 struct KX_ClientObjectInfo;
 
 /**
@@ -80,23 +80,23 @@ public:
 	 */
 	virtual bool RayHit(KX_ClientObjectInfo* client) = 0;
 
-	/** 
+	/**
 	 *  Callback wrapper.
 	 *
 	 *  Construct with KX_RayCast::Callback<MyClass, MyDataClass>(this, data)
 	 *  and pass to KX_RayCast::RayTest
 	 */
 	template<class T, class dataT> class Callback;
-	
+
 	/// Public interface.
 	/// Implement bool RayHit in your class to receive ray callbacks.
 	static bool RayTest(
-		PHY_IPhysicsEnvironment* physics_environment, 
-		const MT_Point3& frompoint, 
-		const MT_Point3& topoint, 
+		PHY_IPhysicsEnvironment* physics_environment,
+		const MT_Point3& frompoint,
+		const MT_Point3& topoint,
 		KX_RayCast& callback);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_RayCast")
 #endif
@@ -119,7 +119,7 @@ public:
 		data(_data)
 	{
 	}
-	
+
 	~Callback() {}
 
 	virtual bool RayHit(KX_ClientObjectInfo* client)
@@ -130,7 +130,7 @@ public:
 	virtual	bool needBroadphaseRayCast(PHY_IPhysicsController* controller)
 	{
 		KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(controller->GetNewClientInfo());
-		
+
 		if (!info)
 		{
 			MT_assert(info && "Physics controller with no client object info");
@@ -138,12 +138,12 @@ public:
 		}
 		return self->NeedRayCast(info, data);
 	}
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_RayCast::Callback")
 #endif
 };
-	
+
 
 #endif

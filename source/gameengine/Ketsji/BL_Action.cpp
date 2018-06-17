@@ -59,10 +59,10 @@ extern "C" {
 #include "BLI_threads.h" // for lock
 
 /* Lock to solve animation thread issues.
- * A spin lock is better than a mutex in case of short wait 
+ * A spin lock is better than a mutex in case of short wait
  * because spin lock stop the thread by a loop contrary to mutex
  * which switch all memory, process.
- */ 
+ */
 static SpinLock BL_ActionLock;
 
 BL_Action::BL_Action(class KX_GameObject* gameobj)
@@ -232,7 +232,7 @@ bool BL_Action::Play(const char* name,
 		m_obj->GetSGNode()->AddSGController(sg_contr);
 		sg_contr->SetObject(m_obj->GetSGNode());
 	}
-	
+
 	m_ipo_flags = ipo_flags;
 	InitIPO();
 
@@ -246,7 +246,7 @@ bool BL_Action::Play(const char* name,
 	{
 		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
 		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
-		
+
 		if (shape_deformer && shape_deformer->GetKey())
 		{
 			obj->GetShape(m_blendinshape);
@@ -270,7 +270,7 @@ bool BL_Action::Play(const char* name,
 	m_blendstart = 0.f;
 	m_speed = playback_speed;
 	m_layer_weight = layer_weight;
-	
+
 	m_done = false;
 	m_initializedTime = false;
 
@@ -314,7 +314,7 @@ const char *BL_Action::GetName()
 		return "";
 	}
 
-	            
+
 }
 
 void BL_Action::SetFrame(float frame)
@@ -324,7 +324,7 @@ void BL_Action::SetFrame(float frame)
 		frame = min(m_startframe, m_endframe);
 	else if (frame > max(m_startframe, m_endframe))
 		frame = max(m_startframe, m_endframe);
-	
+
 	m_localframe = frame;
 	m_calc_localtime = false;
 }
@@ -363,7 +363,7 @@ void BL_Action::IncrementBlending(float curtime)
 	// Setup m_blendstart if we need to
 	if (m_blendstart == 0.f)
 		m_blendstart = curtime;
-	
+
 	// Bump the blend frame
 	m_blendframe = (curtime - m_blendstart)*(float)KX_KetsjiEngine::GetAnimFrameRate();
 
@@ -378,10 +378,10 @@ void BL_Action::BlendShape(Key* key, float srcweight, std::vector<float>& blends
 	vector<float>::const_iterator it;
 	float dstweight;
 	KeyBlock *kb;
-	
+
 	dstweight = 1.0F - srcweight;
 	//printf("Dst: %f\tSrc: %f\n", srcweight, dstweight);
-	for (it=blendshape.begin(), kb = (KeyBlock *)key->block.first; 
+	for (it=blendshape.begin(), kb = (KeyBlock *)key->block.first;
 	     kb && it != blendshape.end();
 	     kb = (KeyBlock *)kb->next, it++)
 	{

@@ -100,7 +100,7 @@ public:
 			}
 		}
 	}
-	
+
 
 #ifdef WITH_PYTHON
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

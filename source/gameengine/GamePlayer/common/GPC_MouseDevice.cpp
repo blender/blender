@@ -47,13 +47,13 @@ GPC_MouseDevice::~GPC_MouseDevice()
 bool GPC_MouseDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 {
 	const SCA_InputEvent & inevent =  m_eventStatusTables[m_currentTable][inputcode];
-	bool pressed = (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED || 
+	bool pressed = (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
 		inevent.m_status == SCA_InputEvent::KX_ACTIVE);
 	return pressed;
 }
 
 
-/** 
+/**
  * NextFrame toggles currentTable with previousTable,
  * and copies relevant event information from previous to current table
  * (pressed keys need to be remembered).
@@ -61,7 +61,7 @@ bool GPC_MouseDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 void GPC_MouseDevice::NextFrame()
 {
 	SCA_IInputDevice::NextFrame();
-	
+
 	// Convert just pressed events into regular (active) events
 	int previousTable = 1-m_currentTable;
 	for (int mouseevent= KX_BEGINMOUSE; mouseevent< KX_ENDMOUSEBUTTONS; mouseevent++) {
@@ -156,7 +156,7 @@ bool GPC_MouseDevice::ConvertMoveEvent(int x, int y)
 bool GPC_MouseDevice::ConvertEvent(KX_EnumInputs kxevent, int eventval, unsigned int unicode)
 {
 	bool result = true;
-	
+
 	// Only process it, if it's a mouse event
 	if (kxevent > KX_BEGINMOUSE && kxevent < KX_ENDMOUSE) {
 		int previousTable = 1-m_currentTable;
@@ -180,7 +180,7 @@ bool GPC_MouseDevice::ConvertEvent(KX_EnumInputs kxevent, int eventval, unsigned
 					} else
 					{
 						m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_ACTIVE;
-						
+
 					}
 					break;
 				}
@@ -189,8 +189,8 @@ bool GPC_MouseDevice::ConvertEvent(KX_EnumInputs kxevent, int eventval, unsigned
 					m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
 				}
 			}
-			
-		} 
+
+		}
 		else {
 			switch (m_eventStatusTables[previousTable][kxevent].m_status)
 			{

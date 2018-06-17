@@ -1,5 +1,5 @@
 /*
- * Simulation for obstacle avoidance behavior 
+ * Simulation for obstacle avoidance behavior
  * (based on Cane Project - http://code.google.com/p/cane  by Mikko Mononen (c) 2009)
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -35,13 +35,13 @@ class KX_NavMeshObject;
 
 enum KX_OBSTACLE_TYPE
 {
-	KX_OBSTACLE_OBJ, 
+	KX_OBSTACLE_OBJ,
 	KX_OBSTACLE_NAV_MESH,
 };
 
 enum KX_OBSTACLE_SHAPE
 {
-	KX_OBSTACLE_CIRCLE, 
+	KX_OBSTACLE_CIRCLE,
 	KX_OBSTACLE_SEGMENT,
 };
 
@@ -53,7 +53,7 @@ struct KX_Obstacle
 	MT_Point3 m_pos;
 	MT_Point3 m_pos2;
 	MT_Scalar m_rad;
-	
+
 	float vel[2];
 	float pvel[2];
 	float dvel[2];
@@ -61,7 +61,7 @@ struct KX_Obstacle
 	float hvel[VEL_HIST_SIZE*2];
 	int hhead;
 
-	
+
 	KX_GameObject* m_gameObj;
 };
 typedef std::vector<KX_Obstacle*> KX_Obstacles;
@@ -87,7 +87,7 @@ public:
 	void AddObstaclesForNavMesh(KX_NavMeshObject* navmesh);
 	KX_Obstacle* GetObstacle(KX_GameObject* gameobj);
 	void UpdateObstacles();
-	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 	                                    MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
 
 };
@@ -102,18 +102,18 @@ protected:
 	float m_toiWeight;				// Sample selection TOI weight
 	float m_collisionWeight;		// Sample selection collision weight
 
-	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 							const float maxDeltaAngle) = 0;
 public:
 	KX_ObstacleSimulationTOI(MT_Scalar levelHeight, bool enableVisualization);
-	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 		MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
 };
 
 class KX_ObstacleSimulationTOI_rays: public KX_ObstacleSimulationTOI
 {
 protected:
-	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 							const float maxDeltaAngle);
 public:
 	KX_ObstacleSimulationTOI_rays(MT_Scalar levelHeight, bool enableVisualization);
@@ -125,7 +125,7 @@ protected:
 	float m_bias;
 	bool m_adaptive;
 	int m_sampleRadius;
-	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj,
 							const float maxDeltaAngle);
 public:
 	KX_ObstacleSimulationTOI_cells(MT_Scalar levelHeight, bool enableVisualization);

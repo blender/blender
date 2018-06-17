@@ -64,7 +64,7 @@ typedef vector<KX_VertexArray *> vecVertexArray;
 typedef vector<KX_IndexArray *> vecIndexArrays;
 
 /**
- * 3D rendering device context interface. 
+ * 3D rendering device context interface.
  */
 class RAS_IRasterizer
 {
@@ -275,7 +275,7 @@ public:
 	 * SwapBuffers swaps the back buffer with the front buffer.
 	 */
 	virtual void SwapBuffers() = 0;
-	
+
 	// Drawing Functions
 	/**
 	 * IndexPrimitives: Renders primitives from mesh slot.
@@ -286,7 +286,7 @@ public:
 	 * IndexPrimitives_3DText will render text into the polygons.
 	 */
 	virtual void IndexPrimitives_3DText(class RAS_MeshSlot &ms, class RAS_IPolyMaterial *polymat) = 0;
- 
+
 	virtual void SetProjectionMatrix(MT_CmMatrix4x4 &mat) = 0;
 
 	/* This one should become our final version, methinks. */
@@ -316,7 +316,7 @@ public:
 	virtual void EnableFog(bool enable) = 0;
 
 	virtual void SetBackColor(float color[3]) = 0;
-	
+
 	/**
 	 * \param drawingmode = KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
 	 */
@@ -374,7 +374,7 @@ public:
 	 * Sets the specular color component of the lighting equation.
 	 */
 	virtual void SetSpecularity(float specX, float specY, float specZ, float specval) = 0;
-	
+
 	/**
 	 * Sets the specular exponent component of the lighting equation.
 	 */
@@ -387,9 +387,9 @@ public:
 
 	/**
 	 * Sets the emissive color component of the lighting equation.
-	 */ 
+	 */
 	virtual void SetEmissive(float eX, float eY, float eZ, float e) = 0;
-	
+
 	virtual void SetAmbientColor(float color[3]) = 0;
 	virtual void SetAmbient(float factor) = 0;
 
@@ -397,12 +397,12 @@ public:
 	 * Sets a polygon offset.  z depth will be: z1 = mult*z0 + add
 	 */
 	virtual void	SetPolygonOffset(float mult, float add) = 0;
-	
+
 	virtual void DrawDebugLine(SCA_IScene *scene, const MT_Vector3 &from, const MT_Vector3 &to, const MT_Vector3& color) = 0;
 	virtual void DrawDebugCircle(SCA_IScene *scene, const MT_Vector3 &center, const MT_Scalar radius,
 								 const MT_Vector3 &color, const MT_Vector3 &normal, int nsector) = 0;
 	virtual void FlushDebugShapes(SCA_IScene *scene) = 0;
-	
+
 	virtual void SetTexCoordNum(int num) = 0;
 	virtual void SetAttribNum(int num) = 0;
 	virtual void SetTexCoord(TexCoGen coords, int unit) = 0;
@@ -413,10 +413,10 @@ public:
 
 	virtual bool QueryLists() { return false; }
 	virtual bool QueryArrays() { return false; }
-	
+
 	virtual void EnableMotionBlur(float motionblurvalue) = 0;
 	virtual void DisableMotionBlur() = 0;
-	
+
 	virtual float GetMotionBlurValue() = 0;
 	virtual int GetMotionBlurState() = 0;
 	virtual void SetMotionBlurState(int newstate) = 0;

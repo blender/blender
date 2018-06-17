@@ -39,8 +39,8 @@
 class KX_IScalarInterpolator {
 public:
 	virtual ~KX_IScalarInterpolator() {}
-	
-	virtual float GetValue(float currentTime) const = 0; 
+
+	virtual float GetValue(float currentTime) const = 0;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

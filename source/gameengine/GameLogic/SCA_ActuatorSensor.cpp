@@ -96,7 +96,7 @@ bool SCA_ActuatorSensor::Evaluate()
 	{
 		bool result = m_actuator->IsActive();
 		bool reset = m_reset && m_level;
-		
+
 		m_reset = false;
 		if (m_lastresult != result || m_midresult != result)
 		{

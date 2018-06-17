@@ -187,7 +187,7 @@ static struct PyModuleDef VideoTexture_module_def = {
 PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 {
 	PyObject *m;
-	
+
 	// initialize GL extensions
 	//bgl::InitExtensions(0);
 
@@ -197,9 +197,9 @@ PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 
 	if (!pyImageTypes.ready())
 		return NULL;
-	if (!pyFilterTypes.ready()) 
+	if (!pyFilterTypes.ready())
 		return NULL;
-	if (PyType_Ready(&TextureType) < 0) 
+	if (PyType_Ready(&TextureType) < 0)
 		return NULL;
 #ifdef WITH_GAMEENGINE_DECKLINK
 	if (PyType_Ready(&DeckLinkType) < 0)
@@ -209,7 +209,7 @@ PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 	m = PyModule_Create(&VideoTexture_module_def);
 	PyDict_SetItemString(PySys_GetObject("modules"), VideoTexture_module_def.m_name, m);
 
-	if (m == NULL) 
+	if (m == NULL)
 		return NULL;
 
 	// initialize classes
@@ -259,7 +259,7 @@ PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 
 	// init last error description
 	Exception::m_lastError = "";
-	
+
 	return m;
 }
 

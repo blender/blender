@@ -36,7 +36,7 @@
 #include "MEM_guardedalloc.h"
 #endif
 
-/** 
+/**
  * \section interface class.
  * RAS_Rect just encodes a simple rectangle.
  * \note Should be part of a generic library

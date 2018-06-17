@@ -82,7 +82,7 @@ protected:
 	 * Storage for the modelview matrix that is passed to the
 	 * rasterizer. */
 	MT_Matrix4x4 m_modelview_matrix;
-	
+
 	/**
 	 * true if the view frustum (modelview/projection matrix)
 	 * has changed - the clip planes (m_planes) will have to be
@@ -93,23 +93,23 @@ protected:
 	 * true if the frustum planes have been normalized.
 	 */
 	bool         m_normalized;
-	
+
 	/**
 	 * View Frustum clip planes.
 	 */
 	MT_Vector4   m_planes[6];
-	
+
 	/**
 	 * This camera is frustum culling.
 	 * Some cameras (ie if the game was started from a non camera view should not cull.)
 	 */
 	bool         m_frustum_culling;
-	
+
 	/**
 	 * true if this camera has a valid projection matrix.
 	 */
 	bool         m_set_projection_matrix;
-	
+
 	/**
 	 * The center point of the frustum.
 	 */
@@ -150,10 +150,10 @@ public:
 
 	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, bool delete_node = false);
 	virtual ~KX_Camera();
-	
-	/** 
+
+	/**
 	 * Inherited from CValue -- return a new copy of this
-	 * instance allocated on the heap. Ownership of the new 
+	 * instance allocated on the heap. Ownership of the new
 	 * object belongs with the caller.
 	 */
 	virtual	CValue*
@@ -172,26 +172,26 @@ public:
 
 	/* I want the camera orientation as well. */
 	const MT_Quaternion GetCameraOrientation() const;
-		
+
 	/** Sets the projection matrix that is used by the rasterizer. */
 	void				SetProjectionMatrix(const MT_Matrix4x4 & mat);
 
 	/** Sets the modelview matrix that is used by the rasterizer. */
 	void				SetModelviewMatrix(const MT_Matrix4x4 & mat);
-		
+
 	/** Gets the projection matrix that is used by the rasterizer. */
 	const MT_Matrix4x4&		GetProjectionMatrix() const;
-	
+
 	/** returns true if this camera has been set a projection matrix. */
 	bool				hasValidProjectionMatrix() const;
-	
+
 	/** Sets the validity of the projection matrix.  Call this if you change camera
 	 *  data (eg lens, near plane, far plane) and require the projection matrix to be
 	 *  recalculated.
 	 */
 	void				InvalidateProjectionMatrix(bool valid = false);
-	
-	/** Gets the modelview matrix that is used by the rasterizer. 
+
+	/** Gets the modelview matrix that is used by the rasterizer.
 	 *  \warning If the Camera is a dynamic object then this method may return garbage.  Use GetWorldToCamera() instead.
 	 */
 	const MT_Matrix4x4&		GetModelviewMatrix() const;
@@ -218,7 +218,7 @@ public:
 	float				GetFocalLength() const;
 	/** Gets all camera data. */
 	RAS_CameraData*		GetCameraData();
-	
+
 	/**
 	 * Tests if the given sphere is inside this camera's view frustum.
 	 *
@@ -239,42 +239,42 @@ public:
 	 * \return true if the given point is inside or on the view frustum; false if it is outside.
 	 */
 	bool PointInsideFrustum(const MT_Point3& x);
-	
+
 	/**
 	 * Gets this camera's culling status.
 	 */
 	bool GetFrustumCulling() const;
-	
+
 	/**
 	 * Sets this camera's viewport status.
 	 */
 	void EnableViewport(bool viewport);
-	
+
 	/**
 	 * Sets this camera's viewport.
 	 */
 	void SetViewport(int left, int bottom, int right, int top);
-	
+
 	/**
 	 * Gets this camera's viewport status.
 	 */
 	bool GetViewport() const;
-	
+
 	/**
 	 * Gets this camera's viewport left.
 	 */
 	int GetViewportLeft() const;
-	
+
 	/**
 	 * Gets this camera's viewport bottom.
 	 */
 	int GetViewportBottom() const;
-	
+
 	/**
 	 * Gets this camera's viewport right.
 	 */
 	int GetViewportRight() const;
-	
+
 	/**
 	 * Gets this camera's viewport top.
 	 */
@@ -286,17 +286,17 @@ public:
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, sphereInsideFrustum);
 	KX_PYMETHOD_DOC_O(KX_Camera, boxInsideFrustum);
 	KX_PYMETHOD_DOC_O(KX_Camera, pointInsideFrustum);
-	
+
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getCameraToWorld);
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getWorldToCamera);
-	
+
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);
 
 	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenRay);
-	
+
 	static PyObject*	pyattr_get_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
@@ -317,14 +317,14 @@ public:
 
 	static PyObject*	pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	
+
 	static PyObject*	pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	
+
 	static PyObject*	pyattr_get_modelview_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_camera_to_world(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_world_to_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	
+
 	static PyObject*	pyattr_get_INSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

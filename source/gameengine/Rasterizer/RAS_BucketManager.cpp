@@ -97,7 +97,7 @@ RAS_BucketManager::~RAS_BucketManager()
 
 	for (it = m_AlphaBuckets.begin(); it != m_AlphaBuckets.end(); it++)
 		delete(*it);
-	
+
 	m_SolidBuckets.clear();
 	m_AlphaBuckets.clear();
 }
@@ -130,7 +130,7 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 			slots[i++].set(ms, bucket, pnorm);
 		}
 	}
-		
+
 	if (alpha)
 		sort(slots.begin(), slots.end(), backtofront());
 	else
@@ -149,7 +149,7 @@ void RAS_BucketManager::RenderAlphaBuckets(const MT_Transform& cameratrans, RAS_
 		rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
 
 	OrderBuckets(cameratrans, m_AlphaBuckets, slots, true);
-	
+
 	for (sit=slots.begin(); sit!=slots.end(); ++sit) {
 		rasty->SetClientObject(sit->m_ms->m_clientObj);
 
@@ -201,7 +201,7 @@ void RAS_BucketManager::RenderSolidBuckets(const MT_Transform& cameratrans, RAS_
 		}
 #endif
 	}
-	
+
 	/* this code draws meshes order front-to-back instead to reduce overdraw.
 	 * it turned out slower due to much material state switching, a more clever
 	 * algorithm might do better. */
@@ -248,7 +248,7 @@ void RAS_BucketManager::Renderbuckets(const MT_Transform& cameratrans, RAS_IRast
 			}
 		}
 	}
-	
+
 
 	rasty->SetClientObject(NULL);
 }
@@ -262,11 +262,11 @@ RAS_MaterialBucket *RAS_BucketManager::FindBucket(RAS_IPolyMaterial *material, b
 	for (it = m_SolidBuckets.begin(); it != m_SolidBuckets.end(); it++)
 		if (*(*it)->GetPolyMaterial() == *material)
 			return *it;
-	
+
 	for (it = m_AlphaBuckets.begin(); it != m_AlphaBuckets.end(); it++)
 		if (*(*it)->GetPolyMaterial() == *material)
 			return *it;
-	
+
 	RAS_MaterialBucket *bucket = new RAS_MaterialBucket(material);
 	bucketCreated = true;
 
@@ -274,14 +274,14 @@ RAS_MaterialBucket *RAS_BucketManager::FindBucket(RAS_IPolyMaterial *material, b
 		m_AlphaBuckets.push_back(bucket);
 	else
 		m_SolidBuckets.push_back(bucket);
-	
+
 	return bucket;
 }
 
 void RAS_BucketManager::OptimizeBuckets(MT_Scalar distance)
 {
 	BucketList::iterator bit;
-	
+
 	distance = 10.0f;
 
 	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit)
@@ -305,7 +305,7 @@ void RAS_BucketManager::ReleaseDisplayLists(RAS_IPolyMaterial *mat)
 			}
 		}
 	}
-	
+
 	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
 		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
 			for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
@@ -328,7 +328,7 @@ void RAS_BucketManager::ReleaseMaterials(RAS_IPolyMaterial * mat)
 			(*bit)->GetPolyMaterial()->ReleaseMaterial();
 		}
 	}
-	
+
 	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
 		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
 			(*bit)->GetPolyMaterial()->ReleaseMaterial();

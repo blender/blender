@@ -74,20 +74,20 @@ public:
 	/**
 	 * \section Methods inherited from abstract base class RAS_ICanvas.
 	 */
-	
-		int 
+
+		int
 	GetWidth(
 	) const {
 		return m_width;
 	}
-	
-		int 
+
+		int
 	GetHeight(
 	) const {
 		return m_height;
 	}
 
-	const 
+	const
 		RAS_Rect &
 	GetDisplayArea(
 	) const {
@@ -100,24 +100,24 @@ public:
 	) {
 		m_displayarea= *rect;
 	};
-	
+
 		RAS_Rect &
 	GetWindowArea(
 	) {
 		return m_displayarea;
 	}
 
-		void 
+		void
 	BeginFrame(
 	) {};
 
 	/**
 	 * Draws overlay banners and progress bars.
 	 */
-		void 
+		void
 	EndFrame(
 	) {};
-	
+
 	void SetViewPort(int x1, int y1, int x2, int y2);
 	void UpdateViewPort(int x1, int y1, int x2, int y2);
 	const int *GetViewPort();
@@ -128,7 +128,7 @@ public:
 	 * \section Methods inherited from abstract base class RAS_ICanvas.
 	 * Semantics are not yet honored.
 	 */
-	
+
 	void SetMouseState(RAS_MouseState mousestate)
 	{
 		// not yet

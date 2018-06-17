@@ -161,7 +161,7 @@ void BL_ConvertControllers(
 				// When libloading, this is delayed to KX_Scene::MergeScene_LogicBrick to avoid GIL issues
 				if (!libloading)
 					pyctrl->SetNamespace(converter->GetPyNamespace());
-				
+
 				if (pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
 					if (pycont->text)
 					{
@@ -174,12 +174,12 @@ void BL_ConvertControllers(
 							pyctrl->SetScriptName(pycont->text->id.name+2);
 							MEM_freeN(buf);
 						}
-						
+
 					}
 				}
 				else {
 					/* let the controller print any warnings here when importing */
-					pyctrl->SetScriptText(STR_String(pycont->module)); 
+					pyctrl->SetScriptText(STR_String(pycont->module));
 					pyctrl->SetScriptName(pycont->module); /* will be something like module.func so using it as the name is OK */
 
 					if (pycont->flag & CONT_PY_DEBUG) {
@@ -193,7 +193,7 @@ void BL_ConvertControllers(
 			}
 			default:
 			{
-				
+
 			}
 		}
 
@@ -216,7 +216,7 @@ void BL_ConvertControllers(
 			gamecontroller->SetName(bcontr->name);
 			gamecontroller->SetLogicManager(logicmgr);
 			gameobj->AddController(gamecontroller);
-			
+
 			converter->RegisterGameController(gamecontroller, bcontr);
 
 #ifdef WITH_PYTHON
@@ -231,7 +231,7 @@ void BL_ConvertControllers(
 					/* We cant do this because importing runs the script which could end up accessing
 					 * internal BGE functions, this is unstable while we're converting the scene.
 					 * This is a pity because its useful to see errors at startup but cant help it */
-					
+
 					// pyctrl->Import();
 				}
 			}
@@ -243,7 +243,7 @@ void BL_ConvertControllers(
 		}
 		else if (gamecontroller)
 			gamecontroller->Release();
-		
+
 		bcontr = bcontr->next;
 	}
 

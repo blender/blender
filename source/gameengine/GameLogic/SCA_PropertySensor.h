@@ -63,7 +63,7 @@ public:
 	};
 
 	const STR_String S_KX_PROPSENSOR_EQ_STRING;
-	
+
 	SCA_PropertySensor(class SCA_EventManager* eventmgr,
 					  SCA_IObject* gameobj,
 					  const STR_String& propname,

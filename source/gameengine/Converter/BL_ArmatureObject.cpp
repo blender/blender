@@ -67,13 +67,13 @@ extern "C" {
 
 #include "MT_Matrix4x4.h"
 
-/** 
+/**
  * Move here pose function for game engine so that we can mix with GE objects
  * Principle is as follow:
  * Use Blender structures so that BKE_pose_where_is can be used unchanged
  * Copy the constraint so that they can be enabled/disabled/added/removed at runtime
  * Don't copy the constraints for the pose used by the Action actuator, it does not need them.
- * Scan the constraint structures so that the KX equivalent of target objects are identified and 
+ * Scan the constraint structures so that the KX equivalent of target objects are identified and
  * stored in separate list.
  * When it is about to evaluate the pose, set the KX object position in the obmat of the corresponding
  * Blender objects and restore after the evaluation.
@@ -83,7 +83,7 @@ static void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	bPose *out;
 	bPoseChannel *pchan, *outpchan;
 	GHash *ghash;
-	
+
 	/* the game engine copies the current armature pose and then swaps
 	 * the object pose pointer. this makes it possible to change poses
 	 * without affecting the original blender data. */
@@ -97,7 +97,7 @@ static void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 		*dst=NULL;
 		return;
 	}
-	
+
 	out= (bPose*)MEM_dupallocN(src);
 	out->chanhash = NULL;
 	out->agroups.first= out->agroups.last= NULL;
@@ -167,14 +167,14 @@ static void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode
 	} else {
 		dstweight = 1.0f;
 	}
-	
+
 	schan= (bPoseChannel *)src->chanbase.first;
 	for (dchan = (bPoseChannel *)dst->chanbase.first; dchan; dchan=(bPoseChannel *)dchan->next, schan= (bPoseChannel *)schan->next) {
 		// always blend on all channels since we don't know which one has been set
 		/* quat interpolation done separate */
 		if (schan->rotmode == ROT_MODE_QUAT) {
 			float dquat[4], squat[4];
-			
+
 			copy_qt_qt(dquat, dchan->quat);
 			copy_qt_qt(squat, schan->quat);
 			// Normalize quaternions so that interpolation/multiplication result is correct.
@@ -187,7 +187,7 @@ static void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode
 				mul_fac_qt_fl(squat, srcweight);
 				mul_qt_qtqt(dchan->quat, dquat, squat);
 			}
-			
+
 			normalize_qt(dchan->quat);
 		}
 
@@ -195,7 +195,7 @@ static void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode
 			/* blending for loc and scale are pretty self-explanatory... */
 			dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
 			dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
-			
+
 			/* euler-rotation interpolation done here instead... */
 			// FIXME: are these results decent?
 			if (schan->rotmode)
@@ -209,14 +209,14 @@ static void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode
 			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
 	}
-	
+
 	/* this pose is now in src time */
 	dst->ctime= src->ctime;
 }
 
 BL_ArmatureObject::BL_ArmatureObject(
-				void* sgReplicationInfo, 
-				SG_Callbacks callbacks, 
+				void* sgReplicationInfo,
+				SG_Callbacks callbacks,
 				Object *armature,
 				Scene *scene,
 				int vert_deform_type)
@@ -375,7 +375,7 @@ void BL_ArmatureObject::LoadChannels()
 	if (m_poseChannels.Empty()) {
 		bPoseChannel* pchan;
 		BL_ArmatureChannel* proxy;
-	
+
 		m_channelNumber = 0;
 		for (pchan = (bPoseChannel *)m_pose->chanbase.first; pchan; pchan=(bPoseChannel *)pchan->next) {
 			proxy = new BL_ArmatureChannel(this, pchan);
@@ -389,7 +389,7 @@ BL_ArmatureChannel* BL_ArmatureObject::GetChannel(bPoseChannel* pchan)
 {
 	LoadChannels();
 	SG_DList::iterator<BL_ArmatureChannel> cit(m_poseChannels);
-	for (cit.begin(); !cit.end(); ++cit) 
+	for (cit.begin(); !cit.end(); ++cit)
 	{
 		BL_ArmatureChannel* channel = *cit;
 		if (channel->m_posechannel == pchan)
@@ -402,7 +402,7 @@ BL_ArmatureChannel* BL_ArmatureObject::GetChannel(const char* str)
 {
 	LoadChannels();
 	SG_DList::iterator<BL_ArmatureChannel> cit(m_poseChannels);
-	for (cit.begin(); !cit.end(); ++cit) 
+	for (cit.begin(); !cit.end(); ++cit)
 	{
 		BL_ArmatureChannel* channel = *cit;
 		if (!strcmp(channel->m_posechannel->name, str))
@@ -535,11 +535,11 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 {
 	/* If the caller supplies a null pose, create a new one. */
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
-		
+
 	if (!*pose) {
 		/* probably not to good of an idea to
-		 * duplicate everything, but it clears up 
-		 * a crash and memory leakage when 
+		 * duplicate everything, but it clears up
+		 * a crash and memory leakage when
 		 * &BL_ActionActuator::m_pose is freed
 		 */
 		game_copy_pose(pose, m_pose, 0);
@@ -674,7 +674,7 @@ PyObject *BL_ArmatureObject::pyattr_get_channels(void *self_v, const KX_PYATTRIB
 							 NULL))->NewProxy(true);
 }
 
-KX_PYMETHODDEF_DOC_NOARGS(BL_ArmatureObject, update, 
+KX_PYMETHODDEF_DOC_NOARGS(BL_ArmatureObject, update,
 						  "update()\n"
 						  "Make sure that the armature will be updated on next graphic frame.\n"
 						  "This is automatically done if a KX_ArmatureActuator with mode run is active\n"

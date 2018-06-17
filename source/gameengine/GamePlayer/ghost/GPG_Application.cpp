@@ -86,7 +86,7 @@ extern "C"
 #include "NG_LoopBackNetworkDeviceInterface.h"
 
 #include "GPC_MouseDevice.h"
-#include "GPG_Canvas.h" 
+#include "GPG_Canvas.h"
 #include "GPG_KeyboardDevice.h"
 #include "GPG_System.h"
 
@@ -108,24 +108,24 @@ static GHOST_ISystem* fSystem = 0;
 static const int kTimerFreq = 10;
 
 GPG_Application::GPG_Application(GHOST_ISystem* system)
-	: m_startSceneName(""), 
+	: m_startSceneName(""),
 	  m_startScene(0),
 	  m_maggie(0),
 	  m_kxStartScene(NULL),
 	  m_exitRequested(0),
-	  m_system(system), 
-	  m_mainWindow(0), 
-	  m_frameTimer(0), 
+	  m_system(system),
+	  m_mainWindow(0),
+	  m_frameTimer(0),
 	  m_cursor(GHOST_kStandardCursorFirstCursor),
-	  m_engineInitialized(0), 
-	  m_engineRunning(0), 
+	  m_engineInitialized(0),
+	  m_engineRunning(0),
 	  m_isEmbedded(false),
 	  m_ketsjiengine(0),
-	  m_kxsystem(0), 
-	  m_keyboard(0), 
-	  m_mouse(0), 
+	  m_kxsystem(0),
+	  m_keyboard(0),
+	  m_mouse(0),
 	  m_canvas(0),
-	  m_rasterizer(0), 
+	  m_rasterizer(0),
 	  m_sceneconverter(0),
 	  m_networkdevice(0),
 	  m_blendermat(0),
@@ -164,7 +164,7 @@ bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene, Globa
 		m_startScene = scene;
 		result = true;
 	}
-	
+
 	/* Python needs these */
 	m_argc= argc;
 	m_argv= argv;
@@ -190,8 +190,8 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 	switch (uMsg)
 	{
 		case WM_MOUSEMOVE:
-		{ 
-			POINT pt; 
+		{
+			POINT pt;
 			GetCursorPos(&pt);
 			LONG dx = scr_save_mouse_pos.x - pt.x;
 			LONG dy = scr_save_mouse_pos.y - pt.y;
@@ -203,9 +203,9 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 			scr_save_mouse_pos = pt;
 			break;
 		}
-		case WM_LBUTTONDOWN: 
-		case WM_MBUTTONDOWN: 
-		case WM_RBUTTONDOWN: 
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
 		case WM_KEYDOWN:
 			close = true;
 	}
@@ -432,7 +432,7 @@ bool GPG_Application::startFullScreen(
 bool GPG_Application::StartGameEngine(int stereoMode)
 {
 	bool success = initEngine(m_mainWindow, stereoMode);
-	
+
 	if (success)
 		success = startEngine();
 
@@ -464,7 +464,7 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 		case GHOST_kEventButtonUp:
 			handled = handleButton(event, false);
 			break;
-			
+
 		case GHOST_kEventWheel:
 			handled = handleWheel(event);
 			break;
@@ -534,7 +534,7 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 			}
 			}
 			break;
-		
+
 		default:
 			handled = false;
 			break;
@@ -574,7 +574,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		SYS_SystemHandle syshandle = SYS_GetSystem();
 		if (!syshandle)
 			return false;
-		
+
 		// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
 		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);
 		GameData *gm= &m_startScene->gm;
@@ -606,7 +606,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_canvas->Init();
 		if (gm->flag & GAME_SHOW_MOUSE)
 			m_canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
-		
+
 		RAS_STORAGE_TYPE raster_storage = RAS_AUTO_STORAGE;
 
 		if (gm->raster_storage == RAS_STORE_VBO) {
@@ -625,7 +625,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		/* Stereo parameters - Eye Separation from the UI - stereomode from the command-line/UI */
 		m_rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) stereoMode);
 		m_rasterizer->SetEyeSeparation(m_startScene->gm.eyeseparation);
-		
+
 		if (!m_rasterizer)
 			goto initFailed;
 
@@ -635,26 +635,26 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_keyboard = new GPG_KeyboardDevice();
 		if (!m_keyboard)
 			goto initFailed;
-			
+
 		m_mouse = new GPC_MouseDevice();
 		if (!m_mouse)
 			goto initFailed;
-			
+
 		// create a networkdevice
 		m_networkdevice = new NG_LoopBackNetworkDeviceInterface();
 		if (!m_networkdevice)
 			goto initFailed;
-			
+
 		BKE_sound_init(m_maggie);
 
 		// create a ketsjisystem (only needed for timing and stuff)
 		m_kxsystem = new GPG_System (m_system);
 		if (!m_kxsystem)
 			goto initFailed;
-		
+
 		// create the ketsjiengine
 		m_ketsjiengine = new KX_KetsjiEngine(m_kxsystem);
-		
+
 		// set the devices
 		m_ketsjiengine->SetKeyboardDevice(m_keyboard);
 		m_ketsjiengine->SetMouseDevice(m_mouse);
@@ -705,7 +705,7 @@ bool GPG_Application::startEngine(void)
 	if (m_engineRunning) {
 		return false;
 	}
-	
+
 	// Temporary hack to disable banner display for NaN approved content.
 	/*
 	m_canvas->SetBannerDisplayEnabled(true);
@@ -721,7 +721,7 @@ bool GPG_Application::startEngine(void)
 	return false;
 	}
 	*/
-	
+
 	// create a scene converter, create and convert the stratingscene
 	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie, m_ketsjiengine);
 	if (m_sceneconverter)
@@ -744,7 +744,7 @@ bool GPG_Application::startEngine(void)
 			m_kxStartScenename,
 			m_startScene,
 			m_canvas);
-		
+
 #ifdef WITH_PYTHON
 			// some python things
 			PyObject *gameLogic, *gameLogic_keys;
@@ -771,7 +771,7 @@ bool GPG_Application::startEngine(void)
 			m_rasterizer,
 			m_canvas);
 		m_ketsjiengine->AddScene(m_kxStartScene);
-		
+
 		// Create a timer that is used to kick the engine
 		if (!m_frameTimer) {
 			m_frameTimer = m_system->installTimer(0, kTimerFreq, frameTimerProc, m_mainWindow);
@@ -779,19 +779,19 @@ bool GPG_Application::startEngine(void)
 		m_rasterizer->Init();
 		m_ketsjiengine->StartEngine(true);
 		m_engineRunning = true;
-		
+
 		// Set the animation playback rate for ipo's and actions
 		// the framerate below should patch with FPS macro defined in blendef.h
 		// Could be in StartEngine set the framerate, we need the scene to do this
 		Scene *scene= m_kxStartScene->GetBlenderScene(); // needed for macro
 		m_ketsjiengine->SetAnimFrameRate(FPS);
 	}
-	
+
 	if (!m_engineRunning)
 	{
 		stopEngine();
 	}
-	
+
 	return m_engineRunning;
 }
 
@@ -809,7 +809,7 @@ void GPG_Application::stopEngine()
 
 	m_pyGlobalDictString_Length = saveGamePythonConfig(&m_pyGlobalDictString);
 #endif
-	
+
 	m_ketsjiengine->StopEngine();
 	m_networkdevice->Disconnect();
 
@@ -836,7 +836,7 @@ void GPG_Application::EngineNextFrame()
 
 		// first check if we want to exit
 		m_exitRequested = m_ketsjiengine->GetExitCode();
-		
+
 		// kick the engine
 		bool renderFrame = m_ketsjiengine->NextFrame();
 		if (renderFrame && m_mainWindow)
@@ -907,7 +907,7 @@ bool GPG_Application::handleWheel(GHOST_IEvent* event)
 {
 	bool handled = false;
 	MT_assert(event);
-	if (m_mouse) 
+	if (m_mouse)
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
 		GHOST_TEventWheelData* wheelData = static_cast<GHOST_TEventWheelData*>(eventData);
@@ -926,7 +926,7 @@ bool GPG_Application::handleButton(GHOST_IEvent* event, bool isDown)
 {
 	bool handled = false;
 	MT_assert(event);
-	if (m_mouse) 
+	if (m_mouse)
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
 		GHOST_TEventButtonData* buttonData = static_cast<GHOST_TEventButtonData*>(eventData);

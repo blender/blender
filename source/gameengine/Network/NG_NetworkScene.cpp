@@ -95,7 +95,7 @@ void NG_NetworkScene::proceed(double curtime)
 		message->AddRef();
 		tmplist->push_back(message);
 		tmplist = NULL;
-		
+
 		tmplistptr = m_messagesBySubject[message->GetSubject()];
 		// if there is already a vector of messages, append, else create
 		// a new vector and insert into map
@@ -167,7 +167,7 @@ bool NG_NetworkScene::ConstraintsAreValid(
 
 	vector<NG_NetworkMessage*>* fromlist = (fromlistptr ? *fromlistptr : NULL);
 	vector<NG_NetworkMessage*>* subjectlist = (subjectlistptr ? *subjectlistptr : NULL);
-	
+
 	return (
 		( from.IsEmpty()    || (!fromlist ? false    : (!(std::find(fromlist->begin(), fromlist->end(), message)       == fromlist->end())))
 		) &&
@@ -209,7 +209,7 @@ vector<NG_NetworkMessage*> NG_NetworkScene::FindMessages(
 						message->AddRef();
 						foundmessages.push_back(message);
 					}
-				} 
+				}
 			}
 			// TODO find intersection of messages (that are in other 2 maps)
 			if (spamallowed) {
@@ -223,11 +223,11 @@ vector<NG_NetworkMessage*> NG_NetworkScene::FindMessages(
 							message->AddRef();
 							foundmessages.push_back(message);
 						}
-					} 
+					}
 				}
 			}
 		}
-	} 
+	}
 	return foundmessages;
 }
 

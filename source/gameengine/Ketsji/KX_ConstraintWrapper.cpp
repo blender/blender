@@ -60,23 +60,23 @@ PyObject *KX_ConstraintWrapper::PyGetParam(PyObject *args, PyObject *kwds)
 {
 	int dof;
 	float value;
-	
+
 	if (!PyArg_ParseTuple(args,"i:getParam",&dof))
 		return NULL;
-	
+
 	value = m_physenv->GetConstraintParam(m_constraintId,dof);
 	return PyFloat_FromDouble(value);
-	
+
 }
 
 PyObject *KX_ConstraintWrapper::PySetParam(PyObject *args, PyObject *kwds)
 {
 	int dof;
 	float minLimit,maxLimit;
-	
+
 	if (!PyArg_ParseTuple(args,"iff:setParam",&dof,&minLimit,&maxLimit))
 		return NULL;
-	
+
 	m_physenv->SetConstraintParam(m_constraintId,dof,minLimit,maxLimit);
 	Py_RETURN_NONE;
 }

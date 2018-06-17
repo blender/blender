@@ -62,7 +62,7 @@ protected:
 public:
 	KX_ListSlot() { m_refcount = 1; }
 	virtual ~KX_ListSlot() {}
-	virtual int Release() { 
+	virtual int Release() {
 		if (--m_refcount > 0)
 			return m_refcount;
 		delete this;
@@ -92,7 +92,7 @@ public:
 	/* LINE currently isn't used */
 	enum { LINE = 2, TRIANGLE = 3, QUAD = 4 } m_type;
 	//RAS_MeshSlot *m_origSlot;
-	
+
 	/* Number of RAS_MeshSlot using this array */
 	int m_users;
 
@@ -146,7 +146,7 @@ public:
 	RAS_MeshSlot();
 	RAS_MeshSlot(const RAS_MeshSlot& slot);
 	virtual ~RAS_MeshSlot();
-	
+
 	void init(RAS_MaterialBucket *bucket, int numverts);
 
 	struct iterator {
@@ -218,7 +218,7 @@ class RAS_MaterialBucket
 public:
 	RAS_MaterialBucket(RAS_IPolyMaterial* mat);
 	virtual ~RAS_MaterialBucket();
-	
+
 	/* Bucket Sorting */
 	struct less;
 	typedef set<RAS_MaterialBucket*, less> Set;
@@ -227,11 +227,11 @@ public:
 	RAS_IPolyMaterial*		GetPolyMaterial() const;
 	bool					IsAlpha() const;
 	bool					IsZSort() const;
-		
+
 	/* Rendering */
 	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty);
 	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_MeshSlot &ms);
-	
+
 	/* Mesh Slot Access */
 	list<RAS_MeshSlot>::iterator msBegin();
 	list<RAS_MeshSlot>::iterator msEnd();
@@ -257,7 +257,7 @@ private:
 	list<RAS_MeshSlot>			m_meshSlots;			// all the mesh slots
 	RAS_IPolyMaterial*			m_material;
 	SG_DList					m_activeMeshSlotsHead;	// only those which must be rendered
-	
+
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_MaterialBucket")

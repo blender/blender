@@ -56,24 +56,24 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 	/// Object will be added to the following scene
 	SCA_IScene*	m_scene;
 
-	/// Linear velocity upon creation of the object. 
+	/// Linear velocity upon creation of the object.
 	float  m_linear_velocity[3];
-	/// Apply the velocity locally 
+	/// Apply the velocity locally
 	bool m_localLinvFlag;
-	
-	/// Angular velocity upon creation of the object. 
+
+	/// Angular velocity upon creation of the object.
 	float  m_angular_velocity[3];
-	/// Apply the velocity locally 
-	bool m_localAngvFlag; 
-	
-	
-	
-	
+	/// Apply the velocity locally
+	bool m_localAngvFlag;
+
+
+
+
 	SCA_IObject*	m_lastCreatedObject;
-	
+
 public:
 
-	/** 
+	/**
 	 * This class also has the default constructors
 	 * available. Use with care!
 	 */
@@ -91,11 +91,11 @@ public:
 
 	~KX_SCA_AddObjectActuator(void);
 
-		CValue* 
+		CValue*
 	GetReplica(
 	);
 
-	virtual void 
+	virtual void
 	ProcessReplica();
 
 	virtual void Replace_IScene(SCA_IScene *val)
@@ -103,13 +103,13 @@ public:
 		m_scene= val;
 	};
 
-	virtual bool 
+	virtual bool
 	UnlinkObject(SCA_IObject* clientobj);
 
-	virtual void 
+	virtual void
 	Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 
-	virtual bool 
+	virtual bool
 	Update();
 
 		SCA_IObject *
@@ -125,7 +125,7 @@ public:
 	static PyObject *pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject *pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
-	
+
 #endif  /* WITH_PYTHON */
 
 }; /* end of class KX_SCA_AddObjectActuator : public KX_EditObjectActuator */

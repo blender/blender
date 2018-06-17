@@ -7,8 +7,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -105,7 +105,7 @@ void BlenderBulletCharacterController::jump()
 {
 	if (!canJump())
 		return;
-		
+
 	m_verticalVelocity = m_jumpSpeed;
 	m_wasJumping = true;
 	m_jumps++;
@@ -151,7 +151,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 		m_shapeInfo->AddRef();
 
 	m_bulletChildShape = NULL;
-	
+
 	m_bulletMotionState = 0;
 	m_characterController = 0;
 	m_savedCollisionFlags = 0;
@@ -160,7 +160,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_savedMass = 0.0f;
 	m_savedDyna = false;
 	m_suspended = false;
-	
+
 	CreateRigidbody();
 }
 
@@ -279,7 +279,7 @@ bool CcdPhysicsController::CreateSoftbody()
 	rbci.m_angularDamping = m_cci.m_angularDamping;
 	rbci.m_friction = m_cci.m_friction;
 	rbci.m_restitution = m_cci.m_restitution;
-	
+
 	btVector3 p(0.0f,0.0f,0.0f);// = getOrigin();
 	//btSoftBody*	psb=btSoftBodyHelpers::CreateRope(worldInfo,	btVector3(-10,0,i*0.25),btVector3(10,0,i*0.25),	16,1+2);
 	btSoftBody* psb  = 0;
@@ -296,7 +296,7 @@ bool CcdPhysicsController::CreateSoftbody()
 			HullLibrary		hlib;  /*??*/
 			hdsc.mMaxVertices=nvertices;
 			hlib.CreateConvexHull(hdsc,hres);
-			
+
 			psb = new btSoftBody(&worldInfo, (int)hres.mNumOutputVertices,
 			                     &hres.m_OutputVertices[0], 0);
 			for (int i = 0; i < (int)hres.mNumFaces; ++i) {
@@ -356,7 +356,7 @@ bool CcdPhysicsController::CreateSoftbody()
 				int indexstride;
 				PHY_ScalarType indexType;
 				trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
-				
+
 				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris,false);
 			}
 		}
@@ -376,7 +376,7 @@ bool CcdPhysicsController::CreateSoftbody()
 		psb->updateBounds();
 	}
 	m_object = psb;
-	
+
 	//btSoftBody::Material*	pm=psb->appendMaterial();
 	btSoftBody::Material*	pm=psb->m_materials[0];
 	pm->m_kLST				=	m_cci.m_soft_linStiff;
@@ -440,7 +440,7 @@ bool CcdPhysicsController::CreateSoftbody()
 	{
 		psb->setPose(true,false);
 	}
-	
+
 	psb->randomizeConstraints();
 
 	if (m_cci.m_soft_collisionflags & (CCD_BSB_COL_CL_RS+CCD_BSB_COL_CL_SS))
@@ -449,7 +449,7 @@ bool CcdPhysicsController::CreateSoftbody()
 	}
 
 	psb->setTotalMass(m_cci.m_mass);
-	
+
 	psb->setCollisionFlags(0);
 
 	///create a mapping between graphics mesh vertices and soft body vertices
@@ -473,7 +473,7 @@ bool CcdPhysicsController::CreateSoftbody()
 				for (slot->begin(it); !slot->end(it); slot->next(it))
 				{
 					int index = 0;
-					for (i=it.startvertex; i<it.endvertex; i++,index++) 
+					for (i=it.startvertex; i<it.endvertex; i++,index++)
 					{
 						RAS_TexVert* vertex = &it.vertex[i];
 						//search closest index, and store it in vertex
@@ -487,7 +487,7 @@ bool CcdPhysicsController::CreateSoftbody()
 							if (distSqr<maxDistSqr)
 							{
 								maxDistSqr = distSqr;
-								
+
 								vertex->setSoftBodyIndex(n);
 							}
 						}
@@ -520,7 +520,7 @@ bool CcdPhysicsController::CreateCharacterController()
 {
 	if (!m_cci.m_bCharacter)
 		return false;
- 
+
 	m_object = new btPairCachingGhostObject();
 	m_object->setCollisionShape(m_collisionShape);
 	m_object->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
@@ -556,11 +556,11 @@ void CcdPhysicsController::CreateRigidbody()
 	rbci.m_friction = m_cci.m_friction;
 	rbci.m_restitution = m_cci.m_restitution;
 	m_object = new btRigidBody(rbci);
-	
+
 	//
 	// init the rigidbody properly
 	//
-	
+
 	//setMassProps this also sets collisionFlags
 	//convert collision flags!
 	//special case: a near/radar sensor controller should not be defined static or it will
@@ -594,7 +594,7 @@ void CcdPhysicsController::CreateRigidbody()
 	{
 		m_object->setAnisotropicFriction(m_cci.m_anisotropicFriction);
 	}
-		
+
 }
 
 static void DeleteBulletShape(btCollisionShape* shape, bool free)
@@ -738,7 +738,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 	btSoftBody* sb = GetSoftBody();
 	if (sb)
 	{
-		if (sb->m_pose.m_bframe) 
+		if (sb->m_pose.m_bframe)
 		{
 			btVector3 worldPos = sb->m_pose.m_com;
 			btQuaternion worldquat;
@@ -747,7 +747,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 			m_MotionState->SetWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 			m_MotionState->SetWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 		}
-		else 
+		else
 		{
 			btVector3 aabbMin,aabbMax;
 			sb->getAabb(aabbMin,aabbMax);
@@ -784,10 +784,10 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		m_MotionState->getWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 		btTransform oldTrans = m_body->getCenterOfMassTransform();
 		btTransform newTrans(worldquat,worldPos);
-				
+
 		SetCenterOfMassTransform(newTrans);
 		//need to keep track of previous position for friction effects...
-		
+
 		m_MotionState->calculateWorldTransformations();
 */
 		float scale[3];
@@ -802,7 +802,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		/**
 		 * WriteMotionStateToDynamics synchronizes dynas, kinematic and deformable entities (and do 'late binding')
 		 */
-		
+
 void		CcdPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 {
 	btTransform& xform = CcdPhysicsController::GetTransformFromMotionState(m_MotionState);
@@ -835,13 +835,13 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 			// new shape has no scaling, apply initial scaling
 			//m_collisionShape->setMargin(m_cci.m_margin);
 			m_collisionShape->setLocalScaling(m_cci.m_scaling);
-			
+
 			if (m_cci.m_mass)
 				m_collisionShape->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
 		}
 	}
 
-	// load some characterists that are not 
+	// load some characterists that are not
 	btRigidBody* oldbody = GetRigidBody();
 	m_object = 0;
 	CreateRigidbody();
@@ -873,7 +873,7 @@ void	CcdPhysicsController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *
 	// can safely assume CCD environment
 	CcdPhysicsEnvironment *physicsEnv = static_cast<CcdPhysicsEnvironment*>(env);
 
-	if (m_cci.m_physicsEnv != physicsEnv) 
+	if (m_cci.m_physicsEnv != physicsEnv)
 	{
 		// since the environment is changing, we must also move the controler to the
 		// new environment. Note that we don't handle sensor explicitly: this
@@ -934,7 +934,7 @@ void		CcdPhysicsController::RelativeTranslate(const MT_Vector3& dlocin,bool loca
 
 		btVector3 dloc(dlocin.x(), dlocin.y(), dlocin.z());
 		btTransform xform = m_object->getWorldTransform();
-	
+
 		if (local)
 			dloc = xform.getBasis()*dloc;
 
@@ -966,8 +966,8 @@ void		CcdPhysicsController::RelativeRotate(const MT_Matrix3x3& rotval,bool local
 		GetWorldOrientation(currentOrn);
 
 		btTransform xform = m_object->getWorldTransform();
-		
-		xform.setBasis(xform.getBasis()*(local ? 
+
+		xform.setBasis(xform.getBasis()*(local ?
 		drotmat : (currentOrn.inverse() * drotmat * currentOrn)));
 
 		SetCenterOfMassTransform(xform);
@@ -1141,15 +1141,15 @@ void		CcdPhysicsController::SetScaling(const MT_Vector3& scale)
 		{
 			m_object->activate(true); // without this, sleeping objects scale wont be applied in bullet if python changes the scale - Campbell.
 			m_object->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
-			
+
 			//printf("no inertia recalc for fixed objects with mass=0\n");
 			btRigidBody* body = GetRigidBody();
 			if (body && m_cci.m_mass)
 			{
 				body->getCollisionShape()->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
 				body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
-			} 
-			
+			}
+
 		}
 	}
 }
@@ -1202,13 +1202,13 @@ void CcdPhysicsController::SetMass(MT_Scalar newmass)
 			handle->m_collisionFilterMask);
 	}
 }
-		
+
 		// physics methods
 void		CcdPhysicsController::ApplyTorque(const MT_Vector3&  torquein,bool local)
 {
 	btVector3 torque(torquein.x(),torquein.y(),torquein.z());
 	btTransform xform = m_object->getWorldTransform();
-	
+
 
 	if (m_object && torque.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
@@ -1239,15 +1239,15 @@ void		CcdPhysicsController::ApplyTorque(const MT_Vector3&  torquein,bool local)
 				body->setAngularFactor(tmpFac);
 				body->applyTorque(torque);
 				body->setAngularFactor(angFac);
-			} 
-		} 
+			}
+		}
 	}
 }
 
 void		CcdPhysicsController::ApplyForce(const MT_Vector3& forcein,bool local)
 {
 	btVector3 force(forcein.x(),forcein.y(),forcein.z());
-	
+
 
 	if (m_object && force.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
@@ -1259,7 +1259,7 @@ void		CcdPhysicsController::ApplyForce(const MT_Vector3& forcein,bool local)
 			return;
 		}
 		btTransform xform = m_object->getWorldTransform();
-		
+
 		if (local)
 		{
 			force	= xform.getBasis()*force;
@@ -1324,7 +1324,7 @@ void		CcdPhysicsController::SetLinearVelocity(const MT_Vector3& lin_vel,bool loc
 				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 			return;
 		}
-		
+
 		btSoftBody* soft = GetSoftBody();
 		if (soft)
 		{
@@ -1360,7 +1360,7 @@ void		CcdPhysicsController::ApplyImpulse(const MT_Point3& attach, const MT_Vecto
 				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 			return;
 		}
-		
+
 		btTransform xform = m_object->getWorldTransform();
 
 		if (local)
@@ -1377,7 +1377,7 @@ void		CcdPhysicsController::ApplyImpulse(const MT_Point3& attach, const MT_Vecto
 		btRigidBody* body = GetRigidBody();
 		if (body)
 			body->applyImpulse(impulse,pos);
-			
+
 	}
 
 }
@@ -1479,7 +1479,7 @@ MT_Vector3 CcdPhysicsController::GetLocalInertia()
 	return inertia;
 }
 
-		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
+		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted
 void		CcdPhysicsController::SetRigidBody(bool rigid)
 {
 	btRigidBody* body = GetRigidBody();
@@ -1677,7 +1677,7 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplicaForSensors()
 	{
 		// This situation does not normally happen
 		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin, m_cci.m_bGimpact, !m_cci.m_bSoft);
-	} 
+	}
 	else if (m_collisionShape)
 	{
 		switch (m_collisionShape->getShapeType())
@@ -1741,7 +1741,7 @@ void CcdPhysicsController::ReplicateConstraints(KX_GameObject *replica, std::vec
 {
 	if (replica->GetConstraints().size() == 0 || !replica->GetPhysicsController())
 		return;
-		
+
 	PHY_IPhysicsEnvironment *physEnv = GetPhysicsEnvironment();
 
 	vector<bRigidBodyJointConstraint*> constraints = replica->GetConstraints();
@@ -1751,7 +1751,7 @@ void CcdPhysicsController::ReplicateConstraints(KX_GameObject *replica, std::vec
 	for (consit = constraints.begin(); consit != constraints.end(); ++consit) {
 		/* Try to find the constraint targets in the list of group objects. */
 		bRigidBodyJointConstraint *dat = (*consit);
-		vector<KX_GameObject*>::iterator memit; 
+		vector<KX_GameObject*>::iterator memit;
 		for (memit = constobj.begin(); memit != constobj.end(); ++memit) {
 			KX_GameObject *member = (*memit);
 			/* If the group member is the actual target for the constraint. */
@@ -1801,7 +1801,7 @@ void	DefaultMotionState::GetWorldOrientation(float& quatIma0,float& quatIma1,flo
 	quatIma2 = quat.z();
 	quatReal = quat[3];
 }
-		
+
 void	DefaultMotionState::GetWorldOrientation(float* ori)
 {
 	m_worldTransform.getBasis().getOpenGLSubMatrix(ori);
@@ -1822,7 +1822,7 @@ void	DefaultMotionState::SetWorldOrientation(float quatIma0,float quatIma1,float
 	btQuaternion orn(quatIma0,quatIma1,quatIma2,quatReal);
 	m_worldTransform.setRotation( orn );
 }
-		
+
 void	DefaultMotionState::CalculateWorldTransformations()
 {
 
@@ -2505,7 +2505,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
 		return m_shapeProxy->CreateBulletShape(margin, useGimpact, useBvh);
 
-	switch (m_shapeType) 
+	switch (m_shapeType)
 	{
 	default:
 		break;
@@ -2541,10 +2541,10 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 		break;
 
 	case PHY_SHAPE_MESH:
-		// Let's use the latest btScaledBvhTriangleMeshShape: it allows true sharing of 
-		// triangle mesh information between duplicates => drastic performance increase when 
-		// duplicating complex mesh objects. 
-		// BUT it causes a small performance decrease when sharing is not required: 
+		// Let's use the latest btScaledBvhTriangleMeshShape: it allows true sharing of
+		// triangle mesh information between duplicates => drastic performance increase when
+		// duplicating complex mesh objects.
+		// BUT it causes a small performance decrease when sharing is not required:
 		// 9 multiplications/additions and one function call for each triangle that passes the mid phase filtering
 		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
 		// and btScaledBvhTriangleMeshShape otherwise.
@@ -2648,7 +2648,7 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 	if (m_triangleIndexVertexArray)
 		delete m_triangleIndexVertexArray;
 	m_vertexArray.clear();
-	if (m_shapeType == PHY_SHAPE_MESH && m_meshObject != NULL) 
+	if (m_shapeType == PHY_SHAPE_MESH && m_meshObject != NULL)
 	{
 		std::map<RAS_MeshObject*,CcdShapeConstructionInfo*>::iterator mit = m_meshShapeMap.find(m_meshObject);
 		if (mit != m_meshShapeMap.end() && mit->second == this)

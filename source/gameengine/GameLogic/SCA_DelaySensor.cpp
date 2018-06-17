@@ -85,7 +85,7 @@ CValue* SCA_DelaySensor::GetReplica()
 
 
 bool SCA_DelaySensor::IsPositiveTrigger()
-{ 
+{
 	return (m_invert ? !m_lastResult : m_lastResult);
 }
 

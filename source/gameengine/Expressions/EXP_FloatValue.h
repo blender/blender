@@ -21,7 +21,7 @@
 
 #include "EXP_Value.h"
 
-class CFloatValue : public CPropValue 
+class CFloatValue : public CPropValue
 {
 	//PLUGIN_DECLARE_SERIAL (CFloatValue,CValue)
 public:

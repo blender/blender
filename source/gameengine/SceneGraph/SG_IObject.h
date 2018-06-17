@@ -28,7 +28,7 @@
 /** \file SG_IObject.h
  *  \ingroup bgesg
  */
- 
+
 #ifndef __SG_IOBJECT_H__
 #define __SG_IOBJECT_H__
 
@@ -63,7 +63,7 @@ inline void SG_SetActiveStage(SG_Stage stage)
 {
 	gSG_Stage = stage;
 }
-	
+
 
 
 class SG_Controller;
@@ -109,13 +109,13 @@ typedef bool (*SG_RescheduleUpdateCallback)(
  * with replicated nodes and their children.
  * The second is called when a node is destroyed and again
  * is their for synchronization purposes
- * These callbacks may both be NULL. 
- * The efficacy of this approach has not been proved some 
+ * These callbacks may both be NULL.
+ * The efficacy of this approach has not been proved some
  * alternatives might be to perform all replication and destruction
- * externally. 
+ * externally.
  * To define a class interface rather than a simple function
- * call back so that replication information can be transmitted from 
- * parent->child. 
+ * call back so that replication information can be transmitted from
+ * parent->child.
  */
 struct	SG_Callbacks
 {
@@ -135,7 +135,7 @@ struct	SG_Callbacks
 		SG_UpdateTransformCallback updatefunc,
 		SG_ScheduleUpdateCallback schedulefunc,
 		SG_RescheduleUpdateCallback reschedulefunc
-	): 
+	):
 		m_replicafunc(repfunc),
 		m_destructionfunc(destructfunc),
 		m_updatefunc(updatefunc),
@@ -168,12 +168,12 @@ public:
 
 
 	/**
-	 * Add a pointer to a controller allocated on the heap, to 
-	 * this node. This memory for this controller becomes the 
+	 * Add a pointer to a controller allocated on the heap, to
+	 * this node. This memory for this controller becomes the
 	 * responsibility of this class. It will be deleted when
 	 * this object is deleted.
 	 */
-	
+
 		void
 	AddSGController(
 		SG_Controller* cont
@@ -189,45 +189,45 @@ public:
 		SG_Controller* cont
 	);
 
-	/** 
-	 * Clear the array of pointers to controllers associated with 
+	/**
+	 * Clear the array of pointers to controllers associated with
 	 * this node. This does not delete the controllers themselves!
 	 * This should be used very carefully to avoid memory
 	 * leaks.
 	 */
-	
+
 		void
 	RemoveAllControllers(
-	); 
+	);
 
 	/// Needed for replication
 
-	/** 
-	 * Return a reference to this node's controller list. 
+	/**
+	 * Return a reference to this node's controller list.
 	 * Whilst we don't wish to expose full control of the container
 	 * to the user we do allow them to call non_const methods
 	 * on pointers in the container. C++ topic: how to do this in
-	 * using STL? 
+	 * using STL?
 	 */
 
 	SGControllerList& GetSGControllerList()
-	{ 
-		return m_SGcontrollers; 
+	{
+		return m_SGcontrollers;
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	SG_Callbacks& GetCallBackFunctions()
 	{
 		return m_callbacks;
 	}
-	
+
 	/**
 	 * Get the client object associated with this
 	 * node. This interface allows you to associate
 	 * arbitrary external objects with this node. They are
-	 * passed to the callback functions when they are 
+	 * passed to the callback functions when they are
 	 * activated so you can synchronize these external objects
 	 * upon replication and destruction
 	 * This may be NULL.
@@ -239,17 +239,17 @@ public:
 	}
 
 	inline void* GetSGClientObject()
-	{ 
+	{
 		return m_SGclientObject;
 	}
 
 	/**
-	 * Set the client object for this node. This is just a 
-	 * pointer to an object allocated that should exist for 
+	 * Set the client object for this node. This is just a
+	 * pointer to an object allocated that should exist for
 	 * the duration of the lifetime of this object, or until
 	 * this function is called again.
 	 */
-	
+
 	void SetSGClientObject(void* clientObject)
 	{
 		m_SGclientObject = clientObject;
@@ -271,15 +271,15 @@ public:
 	}
 
 
-	/** 
+	/**
 	 * Set the current simulation time for this node.
 	 * The implementation of this function runs through
 	 * the nodes list of controllers and calls their SetSimulatedTime methods
 	 */
- 
+
 	void SetControllerTime(double time);
-	
-	virtual 
+
+	virtual
 		void
 	Destruct(
 	) = 0;
@@ -316,7 +316,7 @@ protected :
 			delete this;
 		}
 	}
-	
+
 		void
 	ActivateUpdateTransformCallback(
 	)

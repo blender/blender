@@ -40,21 +40,21 @@
 #include <float.h>
 #include "KX_GameObject.h"
 
-#include "EXP_PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
 KX_CameraActuator::KX_CameraActuator(
-	SCA_IObject* gameobj, 
+	SCA_IObject* gameobj,
 	SCA_IObject *obj,
 	float hght,
 	float minhght,
 	float maxhght,
 	short axis,
 	float damping
-): 
+):
 	SCA_IActuator(gameobj, KX_ACT_CAMERA),
 	m_ob (obj),
 	m_height (hght),
@@ -73,7 +73,7 @@ KX_CameraActuator::~KX_CameraActuator()
 		m_ob->UnregisterActuator(this);
 }
 
-	CValue* 
+	CValue*
 KX_CameraActuator::
 GetReplica(
 ) {
@@ -126,7 +126,7 @@ static void Kx_VecUpMat3(float vec[3], float mat[3][3], short axis)
 
 	float inp;
 	short cox = 0, coy = 0, coz = 0;
-	
+
 	/* up range has no meaning, is not really up!
 	 * see: VecUpMat3old
 	 */
@@ -163,7 +163,7 @@ static void Kx_VecUpMat3(float vec[3], float mat[3][3], short axis)
 		mat[coz][1] = 0.0f;
 		mat[coz][2] = 0.0f;
 	}
-	
+
 	inp = mat[coz][2];
 	mat[coy][0] =      - inp * mat[coz][0];
 	mat[coy][1] =      - inp * mat[coz][1];
@@ -175,7 +175,7 @@ static void Kx_VecUpMat3(float vec[3], float mat[3][3], short axis)
 		mat[coy][1] = 1.f;
 		mat[coy][2] = 0.f;
 	}
-	
+
 	cross_v3_v3v3(mat[cox], mat[coy], mat[coz]);
 }
 
@@ -186,9 +186,9 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 
-	if (bNegativeEvent || !m_ob) 
+	if (bNegativeEvent || !m_ob)
 		return false;
-	
+
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	MT_Point3 from = obj->NodeGetWorldPosition();
 	MT_Matrix3x3 frommat = obj->NodeGetWorldOrientation();
@@ -200,7 +200,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	float inp, fac; //, factor = 0.0; /* some factor...                                    */
 	float mindistsq, maxdistsq, distsq;
 	float mat[3][3];
-	
+
 	/* The rules:                                                            */
 	/* CONSTRAINT 1: not implemented */
 	/* CONSTRAINT 2: can camera see actor?              */
@@ -287,7 +287,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	from[0] += fac * fp1[0];
 	from[1] += fac * fp1[1];
 	from[2] += fac * fp1[2];
-	
+
 	/* only for it lies: cross test and perpendicular bites up */
 	if (inp < 0.0f) {
 		/* Don't do anything if the cross product is too small.
@@ -313,14 +313,14 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 
 	if (distsq > maxdistsq) {
 		distsq = 0.15f * (distsq - maxdistsq) / distsq;
-		
+
 		from[0] += distsq*rc[0];
 		from[1] += distsq*rc[1];
 		from[2] += distsq*rc[2];
 	}
 	else if (distsq < mindistsq) {
 		distsq = 0.15f * (mindistsq - distsq) / mindistsq;
-		
+
 		from[0] -= distsq*rc[0];
 		from[1] -= distsq*rc[1];
 		from[2] -= distsq*rc[2];
@@ -332,14 +332,14 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	rc[1] = (lookat[1]-from[1]);
 	rc[2] = (lookat[2]-from[2]);
 	Kx_VecUpMat3(rc, mat, 3);	/* y up Track -z */
-	
+
 
 
 
 	/* now set the camera position and rotation */
-	
+
 	obj->NodeSetLocalPosition(from);
-	
+
 	actormat[0][0] = mat[0][0]; actormat[0][1] = mat[1][0]; actormat[0][2] = mat[2][0];
 	actormat[1][0] = mat[0][1]; actormat[1][1] = mat[1][1]; actormat[1][2] = mat[2][1];
 	actormat[2][0] = mat[0][2]; actormat[2][1] = mat[1][2]; actormat[2][2] = mat[2][2];
@@ -410,16 +410,16 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 {
 	KX_CameraActuator* self = static_cast<KX_CameraActuator*>(self_v);
 	KX_GameObject *gameobj;
-	
+
 	if (!ConvertPythonToGameObject(self->GetLogicManager(), value, &gameobj, true, "actuator.object = value: KX_CameraActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
-	
+
 	if (self->m_ob)
 		self->m_ob->UnregisterActuator(self);
 
 	if ((self->m_ob = (SCA_IObject*)gameobj))
 		self->m_ob->RegisterActuator(self);
-	
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

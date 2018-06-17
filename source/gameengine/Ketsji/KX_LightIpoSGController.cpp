@@ -49,13 +49,13 @@ bool KX_LightIpoSGController::Update(double currentTime)
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);//currentTime);
 		}
-		
+
 		RAS_ILightObject *lightobj;
 
 		SG_Spatial* ob = (SG_Spatial*)m_pObject;
 		KX_LightObject* kxlight = (KX_LightObject*) ob->GetSGClientObject();
 		lightobj = kxlight->GetLightData();
-		//lightobj = (KX_Light*) 
+		//lightobj = (KX_Light*)
 
 		if (m_modify_energy) {
 			lightobj->m_energy = m_energy;
@@ -107,7 +107,7 @@ SG_Controller*	KX_LightIpoSGController::GetReplica(class SG_Node* destnode)
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}
-	
+
 	return iporeplica;
 }
 
@@ -118,5 +118,5 @@ KX_LightIpoSGController::~KX_LightIpoSGController()
 	for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 		delete (*i);
 	}
-	
+
 }

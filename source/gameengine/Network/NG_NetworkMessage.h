@@ -128,8 +128,8 @@ public:
 	int GetMessageID() {
 		return m_uniqueMessageID;
 	}
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:NG_NetworkMessage")
 #endif

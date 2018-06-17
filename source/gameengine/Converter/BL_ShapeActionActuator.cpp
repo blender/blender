@@ -66,9 +66,9 @@ BL_ShapeActionActuator::BL_ShapeActionActuator(SCA_IObject* gameobj,
 					short	playtype,
 					short	blendin,
 					short	priority,
-					float	stride) 
+					float	stride)
 	: SCA_IActuator(gameobj, KX_ACT_SHAPEACTION),
-		
+
 	m_lastpos(0, 0, 0),
 	m_blendframe(0),
 	m_flag(0),
@@ -110,7 +110,7 @@ void BL_ShapeActionActuator::SetBlendTime(float newtime)
 	m_blendframe = newtime;
 }
 
-CValue* BL_ShapeActionActuator::GetReplica() 
+CValue* BL_ShapeActionActuator::GetReplica()
 {
 	BL_ShapeActionActuator* replica = new BL_ShapeActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
@@ -124,7 +124,7 @@ bool BL_ShapeActionActuator::ClampLocalTime()
 		{
 			m_localtime = m_startframe;
 			return true;
-		} 
+		}
 		else if (m_localtime > m_endframe)
 		{
 			m_localtime = m_endframe;
@@ -148,7 +148,7 @@ bool BL_ShapeActionActuator::ClampLocalTime()
 void BL_ShapeActionActuator::SetStartTime(float curtime)
 {
 	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
-	
+
 	if (!(m_flag & ACT_FLAG_REVERSE))
 		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_KetsjiEngine::GetAnimFrameRate();
 	else
@@ -158,7 +158,7 @@ void BL_ShapeActionActuator::SetStartTime(float curtime)
 void BL_ShapeActionActuator::SetLocalTime(float curtime)
 {
 	float delta_time = (curtime - m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
-	
+
 	if (m_endframe < m_startframe)
 		delta_time = -delta_time;
 
@@ -173,10 +173,10 @@ void BL_ShapeActionActuator::BlendShape(Key* key, float srcweight)
 	vector<float>::const_iterator it;
 	float dstweight;
 	KeyBlock *kb;
-	
+
 	dstweight = 1.0F - srcweight;
 
-	for (it=m_blendshape.begin(), kb = (KeyBlock *)key->block.first; 
+	for (it=m_blendshape.begin(), kb = (KeyBlock *)key->block.first;
 	     kb && it != m_blendshape.end();
 	     kb = (KeyBlock *)kb->next, it++)
 	{
@@ -195,7 +195,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	float newweight;
 
 	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
-	
+
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !
 	if (frame)
@@ -203,10 +203,10 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 		bNegativeEvent = m_negevent;
 		bPositiveEvent = m_posevent;
 		RemoveAllEvents();
-		
+
 		if (bPositiveEvent)
 			m_flag |= ACT_FLAG_ACTIVE;
-		
+
 		if (bNegativeEvent)
 		{
 			if (!(m_flag & ACT_FLAG_ACTIVE))
@@ -214,13 +214,13 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 			m_flag &= ~ACT_FLAG_ACTIVE;
 		}
 	}
-	
+
 	/*	This action can only be attached to a deform object */
 	BL_DeformableGameObject *obj = (BL_DeformableGameObject*)GetParent();
 	float length = m_endframe - m_startframe;
-	
+
 	priority = m_priority;
-	
+
 	/* Determine pre-incrementation behavior and set appropriate flags */
 	switch (m_playtype) {
 	case ACT_ACTION_MOTION:
@@ -302,15 +302,15 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	default:
 		break;
 	}
-	
+
 	/* Perform increment */
 	if (keepgoing) {
 		if (m_playtype == ACT_ACTION_MOTION) {
 			MT_Point3	newpos;
 			MT_Point3	deltapos;
-			
+
 			newpos = obj->NodeGetWorldPosition();
-			
+
 			/* Find displacement */
 			deltapos = newpos-m_lastpos;
 			m_localtime += (length/m_stridelength) * deltapos.length();
@@ -320,7 +320,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 			SetLocalTime(curtime);
 		}
 	}
-	
+
 	/* Check if a wrapping response is needed */
 	if (length) {
 		if (m_localtime < m_startframe || m_localtime > m_endframe)
@@ -331,7 +331,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	}
 	else
 		m_localtime = m_startframe;
-	
+
 	/* Perform post-increment tasks */
 	switch (m_playtype) {
 	case ACT_ACTION_FROM_PROP:
@@ -339,7 +339,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 			CValue* propval = GetParent()->GetProperty(m_propname);
 			if (propval)
 				m_localtime = propval->GetNumber();
-			
+
 			if (bNegativeEvent) {
 				keepgoing=false;
 			}
@@ -353,7 +353,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 		if (wrap) {
 			if (!(m_flag & ACT_FLAG_REVERSE))
 				m_localtime = m_endframe;
-			else 
+			else
 				m_localtime = m_startframe;
 
 			m_flag &= ~ACT_FLAG_LOCKINPUT;
@@ -394,7 +394,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 		keepgoing = false;
 		break;
 	}
-	
+
 	/* Set the property if its defined */
 	if (m_framepropname[0] != '\0') {
 		CValue* propowner = GetParent();
@@ -407,10 +407,10 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 		}
 		newval->Release();
 	}
-	
+
 	if (bNegativeEvent)
 		m_blendframe=0.0f;
-	
+
 	/* Apply the pose if necessary*/
 	if (apply) {
 
@@ -429,7 +429,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 			}
 			else {
 				ListBase tchanbase= {NULL, NULL};
-			
+
 				if (m_blendin && m_blendframe==0.0f) {
 					// this is the start of the blending, remember the startup shape
 					obj->GetShape(m_blendshape);
@@ -448,7 +448,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 				if (0) { // XXX !execute_ipochannels(&tchanbase)) {
 					// no update, this is possible if action does not match the keys, stop the action
 					keepgoing = false;
-				} 
+				}
 				else {
 					// the key have changed, apply blending if needed
 					if (m_blendin && (m_blendframe<m_blendin)) {
@@ -470,7 +470,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 			m_blendframe = 0.0f;
 		}
 	}
-	
+
 	if (!keepgoing) {
 		m_blendframe = 0.0f;
 	}
@@ -544,7 +544,7 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 
 	bAction *action= NULL;
 	STR_String val = _PyUnicode_AsString(value);
-	
+
 	if (val != "")
 	{
 		action= (bAction*)self->GetLogicManager()->GetActionByName(val);
@@ -554,7 +554,7 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 			return PY_SET_ATTR_FAIL;
 		}
 	}
-	
+
 	self->SetAction(action);
 	return PY_SET_ATTR_SUCCESS;
 

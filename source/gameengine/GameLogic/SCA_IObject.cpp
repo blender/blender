@@ -60,7 +60,7 @@ SCA_IObject::~SCA_IObject()
 		(*its)->Delete();
 		//((CValue*)(*its))->Release();
 	}
-	SCA_ControllerList::iterator itc; 
+	SCA_ControllerList::iterator itc;
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)
 	{
 		//Use Delete for controller to ensure proper cleaning (expression controller)
@@ -250,7 +250,7 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 
 void SCA_IObject::Suspend()
 {
-	if ((!m_ignore_activity_culling) 
+	if ((!m_ignore_activity_culling)
 		&& (!m_suspended)) {
 		m_suspended = true;
 		/* flag suspend for all sensors */
@@ -286,8 +286,8 @@ void SCA_IObject::SetState(unsigned int state)
 	// 1) set the new state bits that are 1
 	// 2) clr the new state bits that are 0
 	// This to ensure continuity if a sensor is attached to two states
-	// that are switching state: no need to deactive and reactive the sensor 
-	
+	// that are switching state: no need to deactive and reactive the sensor
+
 	tmpstate = m_state | state;
 	if (tmpstate != m_state)
 	{

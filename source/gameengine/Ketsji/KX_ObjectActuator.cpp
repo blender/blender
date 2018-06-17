@@ -57,7 +57,7 @@ KX_ObjectActuator(
 	const MT_Vector3& angV,
 	const short damping,
 	const KX_LocalFlags& flag
-) : 
+) :
 	SCA_IActuator(gameobj, KX_ACT_OBJECT),
 	m_force(force),
 	m_torque(torque),
@@ -109,17 +109,17 @@ KX_ObjectActuator::~KX_ObjectActuator()
 
 bool KX_ObjectActuator::Update()
 {
-	
+
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
-		
-	KX_GameObject *parent = static_cast<KX_GameObject *>(GetParent()); 
+
+	KX_GameObject *parent = static_cast<KX_GameObject *>(GetParent());
 	PHY_ICharacter *character = parent->GetScene()->GetPhysicsEnvironment()->GetCharacterController(parent);
 
 	if (bNegativeEvent) {
 		// If we previously set the linear velocity we now have to inform
 		// the physics controller that we no longer wish to apply it and that
-		// it should reconcile the externally set velocity with it's 
+		// it should reconcile the externally set velocity with it's
 		// own velocity.
 		if (m_active_combined_velocity) {
 			if (parent)
@@ -142,14 +142,14 @@ bool KX_ObjectActuator::Update()
 		m_error_accumulator.setValue(0.0f,0.0f,0.0f);
 		m_previous_error.setValue(0.0f,0.0f,0.0f);
 		m_jumping = false;
-		return false; 
+		return false;
 
 	} else if (parent)
 	{
-		if (m_bitLocalFlag.ServoControl) 
+		if (m_bitLocalFlag.ServoControl)
 		{
 			// In this mode, we try to reach a target speed using force
-			// As we don't know the friction, we must implement a generic 
+			// As we don't know the friction, we must implement a generic
 			// servo control to achieve the speed in a configurable
 			// v = current velocity
 			// V = target velocity
@@ -182,7 +182,7 @@ bool KX_ObjectActuator::Update()
 			m_force = m_pid.x()*e+m_pid.y()*I+m_pid.z()*dv;
 			// to automatically adapt the PID coefficient to mass;
 			m_force *= mass;
-			if (m_bitLocalFlag.Torque) 
+			if (m_bitLocalFlag.Torque)
 			{
 				if (m_force[0] > m_dloc[0])
 				{
@@ -194,7 +194,7 @@ bool KX_ObjectActuator::Update()
 					I[0] = m_error_accumulator[0];
 				}
 			}
-			if (m_bitLocalFlag.DLoc) 
+			if (m_bitLocalFlag.DLoc)
 			{
 				if (m_force[1] > m_dloc[1])
 				{
@@ -206,7 +206,7 @@ bool KX_ObjectActuator::Update()
 					I[1] = m_error_accumulator[1];
 				}
 			}
-			if (m_bitLocalFlag.DRot) 
+			if (m_bitLocalFlag.DRot)
 			{
 				if (m_force[2] > m_dloc[2])
 				{
@@ -325,7 +325,7 @@ bool KX_ObjectActuator::Update()
 				}
 			}
 		}
-		
+
 	}
 	return true;
 }
@@ -573,7 +573,7 @@ PyObject *KX_ObjectActuator::pyattr_get_forceLimitX(void *self_v, const KX_PYATT
 	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(self->m_drot[0]));
 	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(self->m_dloc[0]));
 	PyList_SET_ITEM(retVal, 2, PyBool_FromLong(self->m_bitLocalFlag.Torque));
-	
+
 	return retVal;
 }
 
@@ -609,7 +609,7 @@ PyObject *KX_ObjectActuator::pyattr_get_forceLimitY(void *self_v, const KX_PYATT
 	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(self->m_drot[1]));
 	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(self->m_dloc[1]));
 	PyList_SET_ITEM(retVal, 2, PyBool_FromLong(self->m_bitLocalFlag.DLoc));
-	
+
 	return retVal;
 }
 
@@ -645,7 +645,7 @@ PyObject *KX_ObjectActuator::pyattr_get_forceLimitZ(void *self_v, const KX_PYATT
 	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(self->m_drot[2]));
 	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(self->m_dloc[2]));
 	PyList_SET_ITEM(retVal, 2, PyBool_FromLong(self->m_bitLocalFlag.DRot));
-	
+
 	return retVal;
 }
 
@@ -678,7 +678,7 @@ PyObject *KX_ObjectActuator::pyattr_get_reference(void *self, const struct KX_PY
 	KX_ObjectActuator* actuator = static_cast<KX_ObjectActuator*>(self);
 	if (!actuator->m_reference)
 		Py_RETURN_NONE;
-	
+
 	return actuator->m_reference->GetProxy();
 }
 
@@ -686,13 +686,13 @@ int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIB
 {
 	KX_ObjectActuator* actuator = static_cast<KX_ObjectActuator*>(self);
 	KX_GameObject *refOb;
-	
+
 	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &refOb, true, "actu.reference = value: KX_ObjectActuator"))
 		return PY_SET_ATTR_FAIL;
-	
+
 	if (actuator->m_reference)
 		actuator->m_reference->UnregisterActuator(actuator);
-	
+
 	if (refOb==NULL) {
 		actuator->m_reference= NULL;
 	}
@@ -700,7 +700,7 @@ int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIB
 		actuator->m_reference = refOb;
 		actuator->m_reference->RegisterActuator(actuator);
 	}
-	
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

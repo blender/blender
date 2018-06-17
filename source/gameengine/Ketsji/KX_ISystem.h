@@ -50,7 +50,7 @@ class KX_ISystem
 public:
 	KX_ISystem() {};
 	virtual ~KX_ISystem() {};
-	
+
 	virtual double GetTimeInSeconds()=0;
 
 

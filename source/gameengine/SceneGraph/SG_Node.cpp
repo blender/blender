@@ -70,17 +70,17 @@ SG_Node* SG_Node::GetSGReplica()
 	if (replica == NULL) return NULL;
 
 	ProcessSGReplica(&replica);
-	
+
 	return replica;
 }
 
-	void 
+	void
 SG_Node::
 ProcessSGReplica(
 	SG_Node** replica
 ) {
 	// Apply the replication call back function.
-	if (!ActivateReplicationCallback(*replica)) 
+	if (!ActivateReplicationCallback(*replica))
 	{
 		delete (*replica);
 		*replica = NULL;
@@ -94,7 +94,7 @@ ProcessSGReplica(
 	{
 		// if this node has children, the replica has too, so clear and clone children
 		(*replica)->ClearSGChildren();
-	
+
 		NodeList::iterator childit;
 		for (childit = m_children.begin();childit!=m_children.end();++childit)
 		{
@@ -107,7 +107,7 @@ ProcessSGReplica(
 	// not worth to keep, they will just take up CPU
 	// This can happen in partial replication of hierarchy
 	// during group duplication.
-	if ((*replica)->m_children.empty() && 
+	if ((*replica)->m_children.empty() &&
 		(*replica)->GetSGClientObject() == NULL)
 	{
 		delete (*replica);
@@ -116,16 +116,16 @@ ProcessSGReplica(
 }
 
 
-	void 
+	void
 SG_Node::
 Destruct()
 {
 	// Not entirely sure what Destruct() expects to happen.
 	// I think it probably means just to call the DestructionCallback
 	// in the right order on all the children - rather than free any memory
-	
+
 	// We'll delete m_parent_relation now anyway.
-	
+
 	delete(m_parent_relation);
 	m_parent_relation = NULL;
 
@@ -142,7 +142,7 @@ Destruct()
 	ActivateDestructionCallback();
 }
 
-const 
+const
 	SG_Node *
 SG_Node::
 GetRootSGParent(
@@ -152,11 +152,11 @@ GetRootSGParent(
 
 bool SG_Node::IsAncessor(const SG_Node* child) const
 {
-	return (!child->m_SGparent) ? false : 
+	return (!child->m_SGparent) ? false :
 		(child->m_SGparent == this) ? true : IsAncessor(child->m_SGparent);
 }
 
-	void 
+	void
 SG_Node::
 DisconnectFromParent(
 ) {
@@ -192,7 +192,7 @@ void SG_Node::UpdateWorldData(double time, bool parentUpdated)
 	//	return;
 
 	if (UpdateSpatialData(GetSGParent(),time,parentUpdated))
-		// to update the 
+		// to update the
 		ActivateUpdateTransformCallback();
 
 	// The node is updated, remove it from the update list

@@ -311,7 +311,7 @@ public:
 
 	/// get image size
 	short * getSize (void)
-	{ 
+	{
 		static short defSize [] = {0, 0};
 		return m_source != NULL ? m_source->m_image->getSize() : defSize;
 	}
@@ -379,7 +379,7 @@ int Image_setZbuff(PyImage *self, PyObject *value, void *closure);
 PyObject *Image_getDepth(PyImage *self, void *closure);
 // set depth
 int Image_setDepth(PyImage *self, PyObject *value, void *closure);
- 
+
 // get pixel filter object
 PyObject *Image_getFilter(PyImage *self, void *closure);
 // set pixel filter object

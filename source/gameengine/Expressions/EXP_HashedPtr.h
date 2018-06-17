@@ -49,8 +49,8 @@ public:
 	{
 		return rhs.m_valptr == lhs.m_valptr;
 	}
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CHashedPtr")
 #endif

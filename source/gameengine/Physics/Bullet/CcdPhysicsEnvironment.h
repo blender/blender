@@ -4,8 +4,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -72,7 +72,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 protected:
 	btIDebugDraw*	m_debugDrawer;
-	
+
 	class btDefaultCollisionConfiguration* m_collisionConfiguration;
 	class btBroadphaseInterface*		m_broadphase;	// broadphase for dynamic world
 	// for culling only
@@ -81,7 +81,7 @@ protected:
 
 	//solver iterations
 	int	m_numIterations;
-	
+
 	//timestep subdivisions
 	int	m_numTimeSubSteps;
 
@@ -183,9 +183,9 @@ protected:
 			const btVector3& angularMaxLimits,int flags
 			);
 
-		
+
 		virtual void	SetConstraintParam(int constraintId,int param,float value,float value1);
-		
+
 		virtual float	GetConstraintParam(int constraintId,int param);
 
 		virtual void RemoveConstraintById(int constraintid);
@@ -223,7 +223,7 @@ protected:
 		//These two methods are used *solely* to create controllers for Near/Radar sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const MT_Vector3& position);
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
-	
+
 
 		virtual int	GetNumContactPoints();
 
@@ -232,7 +232,7 @@ protected:
 		//////////////////////
 		//CcdPhysicsEnvironment interface
 		////////////////////////
-	
+
 		void	AddCcdPhysicsController(CcdPhysicsController* ctrl);
 
 		bool	RemoveCcdPhysicsController(CcdPhysicsController* ctrl);
@@ -247,7 +247,7 @@ protected:
 
 		void	RemoveCcdGraphicController(CcdGraphicController* ctrl);
 
-		/** 
+		/**
 		 * Update all physics controllers shape which use the same shape construction info.
 		 * Call RecreateControllerShape on controllers which use the same shape
 		 * construction info that argument shapeInfo.
@@ -259,7 +259,7 @@ protected:
 		btDbvtBroadphase*	GetCullingTree() { return m_cullingTree; }
 
 		btDispatcher*	GetDispatcher();
-		
+
 
 		bool	IsSatCollisionDetectionEnabled() const
 		{
@@ -271,17 +271,17 @@ protected:
 			m_enableSatCollisionDetection = enableSat;
 		}
 
-	
+
 		const btPersistentManifold*	GetManifold(int index) const;
 
-	
+
 		void	SyncMotionStates(float timeStep);
 
 		class	btSoftRigidDynamicsWorld*	GetDynamicsWorld()
 		{
 			return m_dynamicsWorld;
 		}
-	
+
 		class btConstraintSolver*	GetConstraintSolver();
 
 		void MergeEnvironment(PHY_IPhysicsEnvironment *other_env);
@@ -304,24 +304,24 @@ protected:
 		                                    bRigidBodyJointConstraint *dat);
 
 	protected:
-		
-		
+
+
 
 		std::set<CcdPhysicsController*> m_controllers;
 
 		PHY_ResponseCallback	m_triggerCallbacks[PHY_NUM_RESPONSE];
 		void*			m_triggerCallbacksUserPtrs[PHY_NUM_RESPONSE];
-		
+
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		//use explicit btSoftRigidDynamicsWorld/btDiscreteDynamicsWorld* so that we have access to 
-		//btDiscreteDynamicsWorld::addRigidBody(body,filter,group) 
-		//so that we can set the body collision filter/group at the time of creation 
+		//use explicit btSoftRigidDynamicsWorld/btDiscreteDynamicsWorld* so that we have access to
+		//btDiscreteDynamicsWorld::addRigidBody(body,filter,group)
+		//so that we can set the body collision filter/group at the time of creation
 		//and not afterwards (breaks the collision system for radar/near sensor)
 		//Ideally we would like to have access to this function from the btDynamicsWorld interface
 		//class	btDynamicsWorld*	m_dynamicsWorld;
 		class	btSoftRigidDynamicsWorld*	m_dynamicsWorld;
-		
+
 		class btConstraintSolver*	m_solver;
 
 		class btOverlappingPairCache* m_ownPairCache;
@@ -336,7 +336,7 @@ protected:
 
 		virtual void	ExportFile(const char* filename);
 
-		
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CcdPhysicsEnvironment")
 #endif

@@ -49,7 +49,7 @@ protected:
 	// Damp time (int),
 	int m_posDampTime;
 	int m_rotDampTime;
-	// min (float) 
+	// min (float)
 	float m_minimumBound;
 	// max (float)
 	float m_maximumBound;
@@ -78,7 +78,7 @@ protected:
 	 */
 	void Clamp(MT_Scalar &var, float min, float max);
 
-	
+
  public:
 	 //  m_locrot
 	enum KX_CONSTRAINTTYPE {

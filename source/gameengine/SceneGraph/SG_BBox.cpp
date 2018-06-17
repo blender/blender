@@ -32,10 +32,10 @@
 
 
 #include <math.h>
- 
+
 #include "SG_BBox.h"
 #include "SG_Node.h"
- 
+
 SG_BBox::SG_BBox() :
 	m_min(0.0f, 0.0f, 0.0f),
 	m_max(0.0f, 0.0f, 0.0f)
@@ -81,12 +81,12 @@ SG_BBox& SG_BBox::operator +=(const MT_Point3 &point)
 		m_min[1] = point[1];
 	else if (point[1] > m_max[1])
 		m_max[1] = point[1];
-	
+
 	if (point[2] < m_min[2])
 		m_min[2] = point[2];
 	else if (point[2] > m_max[2])
 		m_max[2] = point[2];
-		
+
 	return *this;
 }
 
@@ -94,7 +94,7 @@ SG_BBox& SG_BBox::operator += (const SG_BBox &bbox)
 {
 	*this += bbox.m_min;
 	*this += bbox.m_max;
-	
+
 	return *this;
 }
 
@@ -162,7 +162,7 @@ bool SG_BBox::outside(const SG_BBox& other) const
 SG_BBox::intersect SG_BBox::test(const SG_BBox& other) const
 {
 	bool point1(inside(other.m_min)), point2(inside(other.m_max));
-	
+
 	return point1?(point2?INSIDE:INTERSECT):(point2?INTERSECT:OUTSIDE);
 }
 
@@ -211,7 +211,7 @@ void SG_BBox::split(SG_BBox &left, SG_BBox &right) const
 			left.m_max[0] = m_max[0];
 			left.m_max[1] = m_min[1] + sizey/2.0f;
 			left.m_max[2] = m_max[2];
-			
+
 			right.m_min[0] = m_min[0];
 			right.m_min[1] = m_min[1] + sizey/2.0f;
 			right.m_min[2] = m_min[2];
@@ -223,7 +223,7 @@ void SG_BBox::split(SG_BBox &left, SG_BBox &right) const
 			left.m_max[0] = m_max[0];
 			left.m_max[1] = m_max[1];
 			left.m_max[2] = m_min[2] + sizez/2.0f;
-		
+
 			right.m_min[0] = m_min[0];
 			right.m_min[1] = m_min[1];
 			right.m_min[2] = m_min[2] + sizez/2.0f;
@@ -237,7 +237,7 @@ void SG_BBox::split(SG_BBox &left, SG_BBox &right) const
 			left.m_max[0] = m_min[0] + sizex/2.0f;
 			left.m_max[1] = m_max[1];
 			left.m_max[2] = m_max[2];
-			
+
 			right.m_min[0] = m_min[0] + sizex/2.0f;
 			right.m_min[1] = m_min[1];
 			right.m_min[2] = m_min[2];
@@ -249,7 +249,7 @@ void SG_BBox::split(SG_BBox &left, SG_BBox &right) const
 			left.m_max[0] = m_max[0];
 			left.m_max[1] = m_max[1];
 			left.m_max[2] = m_min[2] + sizez/2.0f;
-		
+
 			right.m_min[0] = m_min[0];
 			right.m_min[1] = m_min[1];
 			right.m_min[2] = m_min[2] + sizez/2.0f;
@@ -257,6 +257,6 @@ void SG_BBox::split(SG_BBox &left, SG_BBox &right) const
 			std::cout << "splitz" << std::endl;
 		}
 	}
-	
+
 	//std::cout << "Left: " << left.m_min << " -> " << left.m_max << " Right: " << right.m_min << " -> " << right.m_max << std::endl;
 }

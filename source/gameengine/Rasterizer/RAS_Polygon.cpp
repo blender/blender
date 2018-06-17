@@ -78,7 +78,7 @@ void RAS_Polygon::SetEdgeCode(int edgecode)
 	m_edgecode = edgecode;
 }*/
 
-	
+
 bool RAS_Polygon::IsVisible()
 {
 	return (m_polyflags & VISIBLE) != 0;

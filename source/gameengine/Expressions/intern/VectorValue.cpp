@@ -36,51 +36,51 @@
 CVectorValue::CVectorValue(float x,float y,float z, AllocationTYPE alloctype)
 {
 	SetCustomFlag1(false);//FancyOutput=false;
-	
+
 	if (alloctype == STACKVALUE)
 	{
 		CValue::DisableRefCount();
 	};
-	
+
 	m_vec[KX_X] = m_transformedvec[KX_X] = x;
 	m_vec[KX_Y] = m_transformedvec[KX_Y] = y;
 	m_vec[KX_Z] = m_transformedvec[KX_Z] = z;
-	
+
 }
 CVectorValue::CVectorValue(double vec[3], const char *name,AllocationTYPE alloctype)
 {
-	
+
 	SetCustomFlag1(false);//FancyOutput=false;
-	
+
 	m_vec[KX_X] = m_transformedvec[KX_X] = vec[KX_X];
 	m_vec[KX_Y] = m_transformedvec[KX_Y] = vec[KX_Y];
 	m_vec[KX_Z] = m_transformedvec[KX_Z] = vec[KX_Z];
-		
+
 	if (alloctype == STACKVALUE)
 	{
 		CValue::DisableRefCount();
-		
+
 	}
-	
+
 	SetName(name);
 }
 
 CVectorValue::CVectorValue(double vec[3], AllocationTYPE alloctype)
 {
-	
+
 	SetCustomFlag1(false);//FancyOutput=false;
-	
+
 	m_vec[KX_X] = m_transformedvec[KX_X] = vec[KX_X];
 	m_vec[KX_Y] = m_transformedvec[KX_Y] = vec[KX_Y];
 	m_vec[KX_Z] = m_transformedvec[KX_Z] = vec[KX_Z];
-	
+
 	if (alloctype == STACKVALUE)
 	{
 		CValue::DisableRefCount();
-		
+
 	}
-	
-	
+
+
 }
 CVectorValue::~CVectorValue()
 {
@@ -95,7 +95,7 @@ CVectorValue::~CVectorValue()
 CValue* CVectorValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val)
 {
 	CValue *ret = NULL;
-	
+
 	switch (op) {
 		case VALUE_ADD_OPERATOR:
 		{
@@ -122,7 +122,7 @@ CValue* CVectorValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue
 		{
 			switch (dtype)
 			{
-				
+
 				case VALUE_EMPTY_TYPE:
 				case VALUE_VECTOR_TYPE:
 				{
@@ -152,7 +152,7 @@ CValue* CVectorValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue
 			ret = new CErrorValue(val->GetText() + op2str(op) +	GetText());
 	}
 
-	
+
 	return ret;
 }
 
@@ -174,7 +174,7 @@ double* CVectorValue::GetVector3(bool bGetTransformedVec)
 {
 	if (bGetTransformedVec)
 		return m_transformedvec;
-	// else 
+	// else
 	return m_vec;
 }
 
@@ -187,19 +187,19 @@ void CVectorValue::SetVector(double newvec[])
 	m_vec[KX_X] = m_transformedvec[KX_X] = newvec[KX_X];
 	m_vec[KX_Y] = m_transformedvec[KX_Y] = newvec[KX_Y];
 	m_vec[KX_Z] = m_transformedvec[KX_Z] = newvec[KX_Z];
-	
+
 	SetModified(true);
 }
 
 
 void CVectorValue::SetValue(CValue *newval)
 {
-	
+
 	double* newvec = ((CVectorValue*)newval)->GetVector3();
 	m_vec[KX_X] = m_transformedvec[KX_X] = newvec[KX_X];
 	m_vec[KX_Y] = m_transformedvec[KX_Y] = newvec[KX_Y];
 	m_vec[KX_Z] = m_transformedvec[KX_Z] = newvec[KX_Z];
-	
+
 	SetModified(true);
 }
 

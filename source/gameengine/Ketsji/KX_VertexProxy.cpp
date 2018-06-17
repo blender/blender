@@ -183,7 +183,7 @@ PyObject *KX_VertexProxy::pyattr_get_UV(void *self_v, const KX_PYATTRIBUTE_DEF *
 PyObject *KX_VertexProxy::pyattr_get_uvs(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
-	
+
 	PyObject* uvlist = PyList_New(RAS_TexVert::MAX_UNIT);
 	for (int i=0; i<RAS_TexVert::MAX_UNIT; ++i)
 	{
@@ -431,7 +431,7 @@ int KX_VertexProxy::pyattr_set_uvs(void *self_v, const struct KX_PYATTRIBUTE_DEF
 				return PY_SET_ATTR_FAIL;
 			}
 		}
-		
+
 		self->m_mesh->SetMeshModified(true);
 		return PY_SET_ATTR_SUCCESS;
 	}

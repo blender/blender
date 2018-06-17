@@ -75,7 +75,7 @@ class SCA_KeyboardSensor : public SCA_ISensor
 	 * Log the keystrokes from the current input buffer.
 	 */
 	void LogKeystrokes(void);
-	
+
 	/**
 	 * Adds this key-code to the target prop.
 	 */
@@ -85,7 +85,7 @@ class SCA_KeyboardSensor : public SCA_ISensor
 	 * Tests whether shift is pressed.
 	 */
 	bool IsShifted(void);
-	
+
 public:
 	SCA_KeyboardSensor(class SCA_KeyboardManager* keybdmgr,
 					   short int hotkey,
@@ -111,11 +111,11 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	// KeyEvents: 
+	// KeyEvents:
 	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,getEventList);
-	// KeyStatus: 
+	// KeyStatus:
 	KX_PYMETHOD_DOC_O(SCA_KeyboardSensor,getKeyStatus);
-	
+
 	static PyObject*	pyattr_get_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 #endif
 };

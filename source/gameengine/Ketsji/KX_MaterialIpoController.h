@@ -32,7 +32,7 @@ private:
 	double		        m_ipotime;
 	dword				m_matname_hash;
 public:
-	KX_MaterialIpoController(dword matname_hash) : 
+	KX_MaterialIpoController(dword matname_hash) :
 				m_modified(true),
 				m_ipotime(0.0),
 				m_matname_hash(matname_hash)
@@ -44,7 +44,7 @@ public:
 		m_ipotime = time;
 		m_modified = true;
 	}
-	
+
 		void
 	SetOption(
 		int option,

@@ -50,7 +50,7 @@ class KX_SteeringActuator : public SCA_IActuator
 	float m_acceleration;
 	float m_turnspeed;
 	KX_ObstacleSimulation* m_simulation;
-	
+
 	double m_updateTime;
 	KX_Obstacle* m_obstacle;
 	bool m_isActive;
@@ -79,10 +79,10 @@ public:
 
 	KX_SteeringActuator(class SCA_IObject* gameobj,
 						int mode,
-						KX_GameObject *target, 
+						KX_GameObject *target,
 						KX_GameObject *navmesh,
 						float distance,
-						float velocity, 
+						float velocity,
 						float acceleration,
 						float turnspeed,
 						bool  isSelfTerminated,
@@ -114,7 +114,7 @@ public:
 	static PyObject *pyattr_get_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int       pyattr_set_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject *pyattr_get_steeringVec(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
-	
+
 
 #endif  /* WITH_PYTHON */
 

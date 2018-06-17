@@ -88,7 +88,7 @@ CValue* SCA_ILogicBrick::Calc(VALUE_OPERATOR op, CValue *val)
 	temp->Release();
 
 	return result;
-} 
+}
 
 
 
@@ -107,7 +107,7 @@ CValue* SCA_ILogicBrick::CalcFinal(VALUE_DATA_TYPE dtype,
 
 
 const STR_String& SCA_ILogicBrick::GetText()
-{ 
+{
 	if (m_name.Length())
 		return m_name;
 
@@ -137,8 +137,8 @@ void SCA_ILogicBrick::SetName(const char *name)
 
 bool SCA_ILogicBrick::LessComparedTo(SCA_ILogicBrick* other)
 {
-	return (this->m_Execute_Ueber_Priority < other->m_Execute_Ueber_Priority) 
-		|| ((this->m_Execute_Ueber_Priority == other->m_Execute_Ueber_Priority) && 
+	return (this->m_Execute_Ueber_Priority < other->m_Execute_Ueber_Priority)
+		|| ((this->m_Execute_Ueber_Priority == other->m_Execute_Ueber_Priority) &&
 		(this->m_Execute_Priority < other->m_Execute_Priority));
 }
 
@@ -178,7 +178,7 @@ CValue* SCA_ILogicBrick::GetEvent()
 	{
 		return m_eventval->AddRef();
 	}
-	
+
 	return NULL;
 }
 
@@ -244,10 +244,10 @@ PyObject *SCA_ILogicBrick::pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_D
 {
 	SCA_ILogicBrick* self = static_cast<SCA_ILogicBrick*>(self_v);
 	CValue* parent = self->GetParent();
-	
+
 	if (parent)
 		return parent->GetProxy();
-	
+
 	Py_RETURN_NONE;
 }
 

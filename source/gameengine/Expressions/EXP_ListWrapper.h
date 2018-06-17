@@ -31,7 +31,7 @@
 
 #include "EXP_Value.h"
 
-class CListWrapper : public CValue  
+class CListWrapper : public CValue
 {
 	Py_Header
 private:

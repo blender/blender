@@ -180,7 +180,7 @@ bool RAS_OpenGLLight::HasShadowBuffer()
 int RAS_OpenGLLight::GetShadowBindCode()
 {
 	GPULamp *lamp;
-	
+
 	if ((lamp = GetGPULamp()))
 		return GPU_lamp_shadow_bind_code(lamp);
 	return -1;

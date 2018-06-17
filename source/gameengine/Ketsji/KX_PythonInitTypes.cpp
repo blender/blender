@@ -156,7 +156,7 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 		PyType_Ready(tp);
 		PyDict_SetItemString(dict, tp->tp_name, reinterpret_cast<PyObject *>(tp));
 	}
-	
+
 }
 
 

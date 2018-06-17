@@ -112,9 +112,9 @@ void Video_open(VideoBase *self, char *file, short captureID)
 	if (file == NULL) THRWEXCP(SourceVideoEmpty, S_OK);
 
 	// open video file or capture device
-	if (captureID >= 0) 
+	if (captureID >= 0)
 		self->openCam(file, captureID);
-	else 
+	else
 		self->openFile(file);
 }
 

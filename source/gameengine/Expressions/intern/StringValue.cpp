@@ -41,14 +41,14 @@ CStringValue::CStringValue(const char *txt,const char *name,AllocationTYPE alloc
 {
 	m_strString = txt;
 	SetName(name);
-	
+
 	if (alloctype==CValue::STACKVALUE)
 	{
 		CValue::DisableRefCount();
-		
+
 	}
-	
-	
+
+
 }
 
 
@@ -71,7 +71,7 @@ CValue* CStringValue::Calc(VALUE_OPERATOR op, CValue *val)
 CValue* CStringValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val)
 {
 	CValue *ret;
-	
+
 	if (op == VALUE_ADD_OPERATOR) {
 		if (dtype == VALUE_ERROR_TYPE)
 			ret = new CErrorValue(val->GetText() + op2str(op) +	GetText());
@@ -138,7 +138,7 @@ bool CStringValue::IsEqual(const STR_String & other)
 }
 
 CValue* CStringValue::GetReplica()
-{ 
+{
 	CStringValue* replica = new CStringValue(*this);
 	replica->ProcessReplica();
 	return replica;

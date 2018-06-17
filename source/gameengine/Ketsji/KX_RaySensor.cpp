@@ -79,7 +79,7 @@ void KX_RaySensor::Init()
 	m_reset = true;
 }
 
-KX_RaySensor::~KX_RaySensor() 
+KX_RaySensor::~KX_RaySensor()
 {
 	/* Nothing to be done here. */
 }
@@ -103,7 +103,7 @@ bool KX_RaySensor::IsPositiveTrigger()
 
 	if (m_invert)
 		result = !result;
-	
+
 	return result;
 }
 
@@ -148,7 +148,7 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void 
 		m_hitNormal[0] = result->m_hitNormal[0];
 		m_hitNormal[1] = result->m_hitNormal[1];
 		m_hitNormal[2] = result->m_hitNormal[2];
-			
+
 		m_hitMaterial = hitMaterial;
 	}
 	// no multi-hit search yet
@@ -196,7 +196,7 @@ bool KX_RaySensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;
-	m_rayHit = false; 
+	m_rayHit = false;
 	m_hitObject = NULL;
 	m_hitPosition[0] = 0;
 	m_hitPosition[1] = 0;
@@ -205,12 +205,12 @@ bool KX_RaySensor::Evaluate()
 	m_hitNormal[0] = 1;
 	m_hitNormal[1] = 0;
 	m_hitNormal[2] = 0;
-	
+
 	KX_GameObject* obj = (KX_GameObject*)GetParent();
 	MT_Point3 frompoint = obj->NodeGetWorldPosition();
 	MT_Matrix3x3 matje = obj->NodeGetWorldOrientation();
 	MT_Matrix3x3 invmat = matje.inverse();
-	
+
 	MT_Vector3 todir;
 	m_reset = false;
 	switch (m_axis)
@@ -271,16 +271,16 @@ bool KX_RaySensor::Evaluate()
 		std::cout << "WARNING: Ray sensor " << GetName() << ":  There is no physics environment!" << std::endl;
 		std::cout << "         Check universe for malfunction." << std::endl;
 		return false;
-	} 
+	}
 
 	PHY_IPhysicsController *spc = obj->GetPhysicsController();
 	KX_GameObject *parent = obj->GetParent();
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();
-	
+
 
 	PHY_IPhysicsEnvironment* physics_environment = this->m_scene->GetPhysicsEnvironment();
-	
+
 
 	KX_RayCast::Callback<KX_RaySensor, void> callback(this, spc);
 	KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback);

@@ -77,12 +77,12 @@ public:
 protected:
 	class RAS_MeshObject*		m_pMeshObject;
 	struct Mesh*				m_bmesh;
-	
+
 	// this is so m_transverts doesn't need to be converted
 	// before deformation
 	float						(*m_transverts)[3];
 	float 						(*m_transnors)[3];
-	struct Object*				m_objMesh; 
+	struct Object*				m_objMesh;
 	// --
 	int							m_tvtot;
 	BL_DeformableGameObject*	m_gameobj;

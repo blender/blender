@@ -60,19 +60,19 @@ private :
 	//const MT_Scalar m_minHeight;
 	/** max (float), */
 	//const MT_Scalar m_maxHeight;
-	
+
 	/** height (float), */
 	float m_height;
-	
+
 	/** min (float), */
 	float m_minHeight;
-	
+
 	/** max (float), */
 	float m_maxHeight;
-	
+
 	/** axis the camera tries to get behind: +x/+y/-x/-y */
 	short m_axis;
-	
+
 	/** damping (float), */
 	float m_damping;
 
@@ -81,11 +81,11 @@ private :
 
 	/* parse x or y to a toggle pick */
 	bool string2axischoice(const char *axisString);
-	
+
  public:
 	static STR_String X_AXIS_STRING;
 	static STR_String Y_AXIS_STRING;
-	
+
 	/**
 	 * Set the bool toggle to true to use x lock, false for y lock
 	 */
@@ -109,7 +109,7 @@ private :
 	/** Methods Inherited from  CValue */
 	CValue* GetReplica();
 	virtual void ProcessReplica();
-	
+
 
 	/** Methods inherited from SCA_IActuator */
 	virtual bool Update(

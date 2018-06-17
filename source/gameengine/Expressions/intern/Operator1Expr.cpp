@@ -63,7 +63,7 @@ ret: a new object containing the result of applying the operator m_op to the
 	ret = empty->Calc(m_op, temp);
 	empty->Release();
 	temp->Release();
-	
+
 	return ret;
 }
 
@@ -74,10 +74,10 @@ bool COperator1Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 	bool result = true;
 	switch (m_op)
 	{
-		
+
 	case VALUE_ADD_OPERATOR:
 		{
-			
+
 			if (m_lhs)
 			{
 				result = result || m_lhs->IsInside(x,y,z,bBorderInclude);
@@ -116,7 +116,7 @@ CExpression* COperator1Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlink
 			// changed
 			//numchanges++;
 			newlhs->AddRef();
-			
+
 			//m_lhs->Release();
 			brokenlinks.push_back(new CBrokenLinkInfo(&m_lhs,m_lhs));
 
@@ -129,7 +129,7 @@ CExpression* COperator1Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlink
 
 		return Release();
 	}
-	
+
 }
 
 void COperator1Expr::BroadcastOperators(VALUE_OPERATOR op)
@@ -145,7 +145,7 @@ bool COperator1Expr::MergeExpression(CExpression *otherexpr)
 {
 	if (m_lhs)
 		return m_lhs->MergeExpression(otherexpr);
-	
+
 	assertd(false); // should not get here, expression is not compatible for merge
 	return false;
 }

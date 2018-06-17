@@ -42,7 +42,7 @@ class KX_RadarSensor : public KX_NearSensor
 {
  protected:
 	Py_Header
-		
+
 	float		m_coneradius;
 
 	/**
@@ -60,7 +60,7 @@ class KX_RadarSensor : public KX_NearSensor
 	 * The previous direction of the cone (origin to bottom plane).
 	 */
 	float       m_cone_target[3];
-	
+
 public:
 
 	KX_RadarSensor(SCA_EventManager* eventmgr,

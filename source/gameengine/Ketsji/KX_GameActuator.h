@@ -75,7 +75,7 @@ protected:
 	virtual CValue* GetReplica();
 
 	virtual bool Update();
-	
+
 	virtual void Replace_IScene(SCA_IScene *val)
 	{
 		m_scene= val;
@@ -84,7 +84,7 @@ protected:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
+
 }; /* end of class KX_GameActuator */
 
 #endif

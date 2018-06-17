@@ -106,19 +106,19 @@ short int SCA_KeyboardSensor::GetHotkey()
 
 
 bool SCA_KeyboardSensor::IsPositiveTrigger()
-{ 
+{
 	bool result = (m_val != 0);
 
 	if (m_invert)
 		result = !result;
-		
+
 	return result;
 }
 
 
 
 bool SCA_KeyboardSensor::TriggerOnAllKeys()
-{ 
+{
 	return m_bAllKeys;
 }
 
@@ -131,7 +131,7 @@ bool SCA_KeyboardSensor::Evaluate()
 	bool qual	   = true;
 	bool qual_change = false;
 	short int m_val_orig = m_val;
-	
+
 	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 	//  	cerr << "SCA_KeyboardSensor::Eval event, sensing for "<< m_hotkey << " at device " << inputdev << "\n";
 
@@ -157,8 +157,8 @@ bool SCA_KeyboardSensor::Evaluate()
 		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
-			switch (inevent.m_status) 
-			{ 
+			switch (inevent.m_status)
+			{
 			case SCA_InputEvent::KX_JUSTACTIVATED:
 				justactivated = true;
 				break;
@@ -216,10 +216,10 @@ bool SCA_KeyboardSensor::Evaluate()
 	//		cerr << "======= SCA_KeyboardSensor::Evaluate:: peeking at key status" << endl;
 		const SCA_InputEvent & inevent = inputdev->GetEventValue(
 			(SCA_IInputDevice::KX_EnumInputs) m_hotkey);
-	
+
 	//		cerr << "======= SCA_KeyboardSensor::Evaluate:: status: " << inevent.m_status << endl;
-		
-		
+
+
 		/* Check qualifier keys
 		 * - see if the qualifiers we request are pressed - 'qual' true/false
 		 * - see if the qualifiers we request changed their state - 'qual_change' true/false
@@ -260,12 +260,12 @@ bool SCA_KeyboardSensor::Evaluate()
 			}
 		}
 		/* done reading qualifiers */
-		
+
 		if (inevent.m_status == SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
 			if (m_val == 1)
 			{
-				// this situation may occur after a scene suspend: the keyboard release 
+				// this situation may occur after a scene suspend: the keyboard release
 				// event was not captured, produce now the event off
 				m_val = 0;
 				result = true;
@@ -282,14 +282,14 @@ bool SCA_KeyboardSensor::Evaluate()
 				{
 					m_val = 0;
 					result = true;
-				} else 
+				} else
 				{
 					if (inevent.m_status == SCA_InputEvent::KX_ACTIVE)
 					{
 						if (m_val == 0)
 						{
 							m_val = 1;
-							if (m_level) 
+							if (m_level)
 							{
 								result = true;
 							}
@@ -298,14 +298,14 @@ bool SCA_KeyboardSensor::Evaluate()
 				}
 			}
 		}
-		
+
 		/* Modify the key state based on qual(s)
 		 * Tested carefully. don't touch unless your really sure.
 		 * note, this will only change the results if key modifiers are set.
 		 *
 		 * When all modifiers and keys are positive
 		 *  - pulse true
-		 * 
+		 *
 		 * When ANY of the modifiers or main key become inactive,
 		 *  - pulse false
 		 */
@@ -322,9 +322,9 @@ bool SCA_KeyboardSensor::Evaluate()
 			}
 		}
 		/* done with key quals */
-		
+
 	}
-	
+
 	if (reset)
 		// force an event
 		result = true;
@@ -371,21 +371,21 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex, int unicode)
 		}
 	}
 }
-	
+
 /**
  * Tests whether shift is pressed
  */
 bool SCA_KeyboardSensor::IsShifted(void)
 {
 	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
-	
-	if ( (inputdev->GetEventValue(SCA_IInputDevice::KX_RIGHTSHIFTKEY).m_status 
+
+	if ( (inputdev->GetEventValue(SCA_IInputDevice::KX_RIGHTSHIFTKEY).m_status
 		  == SCA_InputEvent::KX_ACTIVE)
-		 || (inputdev->GetEventValue(SCA_IInputDevice::KX_RIGHTSHIFTKEY).m_status 
+		 || (inputdev->GetEventValue(SCA_IInputDevice::KX_RIGHTSHIFTKEY).m_status
 			 == SCA_InputEvent::KX_JUSTACTIVATED)
-		 || (inputdev->GetEventValue(SCA_IInputDevice::KX_LEFTSHIFTKEY).m_status 
+		 || (inputdev->GetEventValue(SCA_IInputDevice::KX_LEFTSHIFTKEY).m_status
 			 == SCA_InputEvent::KX_ACTIVE)
-		 || (inputdev->GetEventValue(SCA_IInputDevice::KX_LEFTSHIFTKEY).m_status 
+		 || (inputdev->GetEventValue(SCA_IInputDevice::KX_LEFTSHIFTKEY).m_status
 			 == SCA_InputEvent::KX_JUSTACTIVATED)
 		) {
 		return true;
@@ -395,7 +395,7 @@ bool SCA_KeyboardSensor::IsShifted(void)
 	}
 }
 
-void SCA_KeyboardSensor::LogKeystrokes(void) 
+void SCA_KeyboardSensor::LogKeystrokes(void)
 {
 	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 	int num = inputdev->GetNumActiveEvents();
@@ -403,7 +403,7 @@ void SCA_KeyboardSensor::LogKeystrokes(void)
 	/* weird loop, this one... */
 	if (num > 0)
 	{
-		
+
 		int index = 0;
 		/* Check on all keys whether they were pushed. This does not
 		 * untangle the ordering, so don't type too fast :) */
@@ -436,16 +436,16 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 		PyErr_SetString(PyExc_ValueError, "sensor.getKeyStatus(int): Keyboard Sensor, expected an int");
 		return NULL;
 	}
-	
+
 	SCA_IInputDevice::KX_EnumInputs keycode = (SCA_IInputDevice::KX_EnumInputs)PyLong_AsLong(value);
-	
+
 	if ((keycode < SCA_IInputDevice::KX_BEGINKEY) ||
 	    (keycode > SCA_IInputDevice::KX_ENDKEY))
 	{
 		PyErr_SetString(PyExc_AttributeError, "sensor.getKeyStatus(int): Keyboard Sensor, invalid keycode specified!");
 		return NULL;
 	}
-	
+
 	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 	const SCA_InputEvent & inevent = inputdev->GetEventValue(keycode);
 	return PyLong_FromLong(inevent.m_status);
@@ -497,11 +497,11 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 PyObject *SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_KeyboardSensor* self = static_cast<SCA_KeyboardSensor*>(self_v);
-	
+
 	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)self->m_eventmgr)->GetInputDevice();
 
 	PyObject *resultlist = PyList_New(0);
-	
+
 	for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 	{
 		const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
@@ -526,42 +526,42 @@ PyObject *SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 char ToCharacter(int keyIndex, bool shifted)
 {
 	/* numerals */
-	if ( (keyIndex >= SCA_IInputDevice::KX_ZEROKEY) 
+	if ( (keyIndex >= SCA_IInputDevice::KX_ZEROKEY)
 		 && (keyIndex <= SCA_IInputDevice::KX_NINEKEY) ) {
 		if (shifted) {
 			char numshift[] = ")!@#$%^&*(";
-			return numshift[keyIndex - '0']; 
+			return numshift[keyIndex - '0'];
 		} else {
-			return keyIndex - SCA_IInputDevice::KX_ZEROKEY + '0'; 
+			return keyIndex - SCA_IInputDevice::KX_ZEROKEY + '0';
 		}
 	}
-	
+
 	/* letters... always lowercase... is that desirable? */
-	if ( (keyIndex >= SCA_IInputDevice::KX_AKEY) 
+	if ( (keyIndex >= SCA_IInputDevice::KX_AKEY)
 		 && (keyIndex <= SCA_IInputDevice::KX_ZKEY) ) {
 		if (shifted) {
-			return keyIndex - SCA_IInputDevice::KX_AKEY + 'A'; 
+			return keyIndex - SCA_IInputDevice::KX_AKEY + 'A';
 		} else {
-			return keyIndex - SCA_IInputDevice::KX_AKEY + 'a'; 
+			return keyIndex - SCA_IInputDevice::KX_AKEY + 'a';
 		}
 	}
-	
+
 	if (keyIndex == SCA_IInputDevice::KX_SPACEKEY) {
 		return ' ';
 	}
 	if (keyIndex == SCA_IInputDevice::KX_RETKEY || keyIndex == SCA_IInputDevice::KX_PADENTER) {
 		return '\n';
 	}
-	
-	
+
+
 	if (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) {
 		return '*';
 	}
-	
+
 	if (keyIndex == SCA_IInputDevice::KX_TABKEY) {
 		return '\t';
 	}
-	
+
 	/* comma to period */
 	char commatoperiod[] = ",-.";
 	char commatoperiodshifted[] = "<_>";
@@ -586,11 +586,11 @@ char ToCharacter(int keyIndex, bool shifted)
 			return commatoperiod[2];
 		}
 	}
-	
+
 	/* semicolon to rightbracket */
 	char semicolontorightbracket[] = ";\'`/\\=[]";
 	char semicolontorightbracketshifted[] = ":\"~\?|+{}";
-	if ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY) 
+	if ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY)
 		&& (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY)) {
 		if (shifted) {
 			return semicolontorightbracketshifted[keyIndex - SCA_IInputDevice::KX_SEMICOLONKEY];
@@ -598,11 +598,11 @@ char ToCharacter(int keyIndex, bool shifted)
 			return semicolontorightbracket[keyIndex - SCA_IInputDevice::KX_SEMICOLONKEY];
 		}
 	}
-	
+
 	/* keypad2 to padplus */
 	char pad2topadplus[] = "246813579. 0- +";
-	if ((keyIndex >= SCA_IInputDevice::KX_PAD2) 
-		&& (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) { 
+	if ((keyIndex >= SCA_IInputDevice::KX_PAD2)
+		&& (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) {
 		return pad2topadplus[keyIndex - SCA_IInputDevice::KX_PAD2];
 	}
 
@@ -617,33 +617,33 @@ char ToCharacter(int keyIndex, bool shifted)
  * keycodes. */
 bool IsPrintable(int keyIndex)
 {
-	/* only print 
+	/* only print
 	 * - numerals: KX_ZEROKEY to KX_NINEKEY
-	 * - alphas:   KX_AKEY to KX_ZKEY. 
+	 * - alphas:   KX_AKEY to KX_ZKEY.
 	 * - specials: KX_RETKEY, KX_PADASTERKEY, KX_PADCOMMAKEY to KX_PERIODKEY,
 	 *             KX_TABKEY, KX_SEMICOLONKEY to KX_RIGHTBRACKETKEY,
 	 *             KX_PAD2 to KX_PADPLUSKEY
-	 * - delete and backspace: also printable in the sense that they modify 
+	 * - delete and backspace: also printable in the sense that they modify
 	 *                         the string
 	 * - retkey: should this be printable?
 	 * - virgule: prints a space... don't know which key that's supposed
 	 *   to be...
 	 */
-	if ( ((keyIndex >= SCA_IInputDevice::KX_ZEROKEY) 
+	if ( ((keyIndex >= SCA_IInputDevice::KX_ZEROKEY)
 		  && (keyIndex <= SCA_IInputDevice::KX_NINEKEY))
-		 || ((keyIndex >= SCA_IInputDevice::KX_AKEY) 
-			 && (keyIndex <= SCA_IInputDevice::KX_ZKEY)) 
-		 || (keyIndex == SCA_IInputDevice::KX_SPACEKEY) 
+		 || ((keyIndex >= SCA_IInputDevice::KX_AKEY)
+			 && (keyIndex <= SCA_IInputDevice::KX_ZKEY))
+		 || (keyIndex == SCA_IInputDevice::KX_SPACEKEY)
 		 || (keyIndex == SCA_IInputDevice::KX_RETKEY)
 		 || (keyIndex == SCA_IInputDevice::KX_PADENTER)
-		 || (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) 
-		 || (keyIndex == SCA_IInputDevice::KX_TABKEY) 
-		 || ((keyIndex >= SCA_IInputDevice::KX_COMMAKEY) 
-			 && (keyIndex <= SCA_IInputDevice::KX_PERIODKEY)) 
-		 || ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY) 
-			 && (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY)) 
-		 || ((keyIndex >= SCA_IInputDevice::KX_PAD2) 
-			 && (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) 
+		 || (keyIndex == SCA_IInputDevice::KX_PADASTERKEY)
+		 || (keyIndex == SCA_IInputDevice::KX_TABKEY)
+		 || ((keyIndex >= SCA_IInputDevice::KX_COMMAKEY)
+			 && (keyIndex <= SCA_IInputDevice::KX_PERIODKEY))
+		 || ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY)
+			 && (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY))
+		 || ((keyIndex >= SCA_IInputDevice::KX_PAD2)
+			 && (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY))
 		 || (keyIndex == SCA_IInputDevice::KX_DELKEY)
 		 || (keyIndex == SCA_IInputDevice::KX_BACKSPACEKEY)
 		)

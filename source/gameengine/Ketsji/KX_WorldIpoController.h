@@ -57,7 +57,7 @@ private:
 	double		        m_ipotime;
 
 public:
-	KX_WorldIpoController() : 
+	KX_WorldIpoController() :
 				m_modify_mist_start(false),
 				m_modify_mist_dist(false),
 				m_modify_mist_intensity(false),
@@ -72,7 +72,7 @@ public:
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 
 	virtual bool Update(double time);
-	
+
 	virtual void SetSimulatedTime(double time) {
 		m_ipotime = time;
 		m_modified = true;
@@ -107,8 +107,8 @@ public:
 	};
 
 	void	AddInterpolator(KX_IInterpolator* interp);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_WorldIpoController")
 #endif

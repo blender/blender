@@ -87,7 +87,7 @@ public:
 	~ExceptionID (void) {}
 
 private:
-	// not allowed 
+	// not allowed
 	ExceptionID (const ExceptionID & obj) throw() {}
 	ExceptionID & operator= (const ExceptionID & obj) throw() { return *this; }
 };
@@ -149,7 +149,7 @@ private:
 
 
 // class Exception
-class Exception : public std::exception  
+class Exception : public std::exception
 {
 public:
 	// constructor

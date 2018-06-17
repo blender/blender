@@ -78,7 +78,7 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 		if (sensor->GetState()) sensorresult = true;
 		is++;
 	}
-	
+
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{

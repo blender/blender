@@ -37,7 +37,7 @@
 class SCA_PropertyActuator : public SCA_IActuator
 {
 	Py_Header
-	
+
 	enum KX_ACT_PROP_MODE {
 		KX_ACT_PROP_NODEF = 0,
 		KX_ACT_PROP_ASSIGN,
@@ -47,10 +47,10 @@ class SCA_PropertyActuator : public SCA_IActuator
 		KX_ACT_PROP_LEVEL,
 		KX_ACT_PROP_MAX
 	};
-	
+
 	/**check whether this value is valid */
 	bool isValid(KX_ACT_PROP_MODE mode);
-	
+
 	int			m_type;
 	STR_String	m_propname;
 	STR_String	m_exprtxt;
@@ -70,7 +70,7 @@ public:
 
 	~SCA_PropertyActuator();
 
-		CValue* 
+		CValue*
 	GetReplica(
 	);
 
@@ -78,13 +78,13 @@ public:
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
 	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 
-	virtual bool 
+	virtual bool
 	Update();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
+
 };
 
 #endif  /* __KX_PROPERTYACTUATOR_DOC */

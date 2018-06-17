@@ -136,7 +136,7 @@ struct DerivedMesh* BL_ModifierDeformer::GetPhysicsMesh()
 	/* we need to compute the deformed mesh taking into account the current
 	 * shape and skin deformers, we cannot just call mesh_create_derived_physics()
 	 * because that would use the m_transvers already deformed previously by BL_ModifierDeformer::Update(),
-	 * so restart from scratch by forcing a full update the shape/skin deformers 
+	 * so restart from scratch by forcing a full update the shape/skin deformers
 	 * (will do nothing if there is no such deformer) */
 	BL_ShapeDeformer::ForceUpdate();
 	BL_ShapeDeformer::Update();

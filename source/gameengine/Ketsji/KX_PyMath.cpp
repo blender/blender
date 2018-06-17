@@ -50,7 +50,7 @@
 bool PyOrientationTo(PyObject *pyval, MT_Matrix3x3 &rot, const char *error_prefix)
 {
 	int size= PySequence_Size(pyval);
-	
+
 	if (size == 4)
 	{
 		MT_Quaternion qrot;
@@ -69,13 +69,13 @@ bool PyOrientationTo(PyObject *pyval, MT_Matrix3x3 &rot, const char *error_prefi
 			return true;
 		}
 		PyErr_Clear();
-		
+
 		if (PyMatTo(pyval, rot))
 		{
 			return true;
 		}
 	}
-	
+
 	PyErr_Format(PyExc_TypeError, "%s, could not set the orientation from a 3x3 matrix, quaternion or euler sequence", error_prefix);
 	return false;
 }
@@ -105,7 +105,7 @@ PyObject *PyObjectFrom(const MT_Matrix4x4 &mat)
 	PyObject *collist = PyList_New(4);
 	PyObject *col;
 	int i;
-	
+
 	for (i=0; i < 4; i++) {
 		col = PyList_New(4);
 		PyList_SET_ITEM(col, 0, PyFloat_FromDouble(mat[0][i]));
@@ -114,7 +114,7 @@ PyObject *PyObjectFrom(const MT_Matrix4x4 &mat)
 		PyList_SET_ITEM(col, 3, PyFloat_FromDouble(mat[3][i]));
 		PyList_SET_ITEM(collist, i, col);
 	}
-	
+
 	return collist;
 #endif
 }
@@ -129,7 +129,7 @@ PyObject *PyObjectFrom(const MT_Matrix3x3 &mat)
 	PyObject *collist = PyList_New(3);
 	PyObject *col;
 	int i;
-	
+
 	for (i=0; i < 3; i++) {
 		col = PyList_New(3);
 		PyList_SET_ITEM(col, 0, PyFloat_FromDouble(mat[0][i]));
@@ -137,7 +137,7 @@ PyObject *PyObjectFrom(const MT_Matrix3x3 &mat)
 		PyList_SET_ITEM(col, 2, PyFloat_FromDouble(mat[2][i]));
 		PyList_SET_ITEM(collist, i, col);
 	}
-	
+
 	return collist;
 #endif
 }

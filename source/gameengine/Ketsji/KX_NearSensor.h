@@ -65,7 +65,7 @@ public:
 			const STR_String& touchedpropname,
 			class KX_Scene* scene);
 #endif
-	virtual ~KX_NearSensor(); 
+	virtual ~KX_NearSensor();
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
@@ -96,7 +96,7 @@ public:
 			sensor->m_ResetMargin = sensor->m_Margin;
 
 		sensor->SetPhysCtrlRadius();
-			
+
 		return 0;
 	}
 

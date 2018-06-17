@@ -290,7 +290,7 @@ static Py_ssize_t listvalue_bufferlen(PyObject *self)
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL)
 		return 0;
-	
+
 	return (Py_ssize_t)list->GetCount();
 }
 
@@ -298,24 +298,24 @@ static PyObject *listvalue_buffer_item(PyObject *self, Py_ssize_t index)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	CValue *cval;
-	
+
 	if (list==NULL) {
 		PyErr_SetString(PyExc_SystemError, "val = CList[i], " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-	
+
 	int count = list->GetCount();
-	
+
 	if (index < 0)
 		index = count+index;
-	
+
 	if (index < 0 || index >= count) {
 		PyErr_SetString(PyExc_IndexError, "CList[i]: Python ListIndex out of range in CValueList");
 		return NULL;
 	}
-	
+
 	cval= list->GetValue(index);
-	
+
 	PyObject *pyobj = cval->ConvertValueToPython();
 	if (pyobj)
 		return pyobj;
@@ -360,7 +360,7 @@ static PyObject *listvalue_mapping_subscript(PyObject *self, PyObject *key)
 		PyErr_SetString(PyExc_SystemError, "value = CList[i], " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-	
+
 	if (PyUnicode_Check(key)) {
 		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(key));
 		if (item) {
@@ -403,37 +403,37 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 {
 	CListValue *listval= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	Py_ssize_t i, numitems, numitems_orig;
-	
+
 	if (listval==NULL) {
 		PyErr_SetString(PyExc_SystemError, "CList+other, " BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-	
+
 	numitems_orig= listval->GetCount();
-	
+
 	// for now, we support CListValue concatenated with items
 	// and CListValue concatenated to Python Lists
 	// and CListValue concatenated with another CListValue
-	
+
 	/* Shallow copy, don't use listval->GetReplica(), it will screw up with KX_GameObjects */
 	CListValue* listval_new = new CListValue();
-	
+
 	if (PyList_Check(other))
 	{
 		CValue* listitemval;
 		bool error = false;
-		
+
 		numitems = PyList_GET_SIZE(other);
-		
+
 		/* copy the first part of the list */
 		listval_new->Resize(numitems_orig + numitems);
 		for (i=0;i<numitems_orig;i++)
 			listval_new->SetValue(i, listval->GetValue(i)->AddRef());
-		
+
 		for (i=0;i<numitems;i++)
 		{
 			listitemval = listval->ConvertPythonToValue(PyList_GET_ITEM(other, i), true, "cList + pyList: CListValue, ");
-			
+
 			if (listitemval) {
 				listval_new->SetValue(i+numitems_orig, listitemval);
 			} else {
@@ -441,13 +441,13 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 				break;
 			}
 		}
-		
+
 		if (error) {
 			listval_new->Resize(numitems_orig+i); /* resize so we don't try release NULL pointers */
 			listval_new->Release();
-			return NULL; /* ConvertPythonToValue above sets the error */ 
+			return NULL; /* ConvertPythonToValue above sets the error */
 		}
-	
+
 	}
 	else if (PyObject_TypeCheck(other, &CListValue::Type)) {
 		// add items from otherlist to this list
@@ -457,18 +457,18 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 			PyErr_SetString(PyExc_SystemError, "CList+other, " BGE_PROXY_ERROR_MSG);
 			return NULL;
 		}
-		
+
 		numitems = otherval->GetCount();
-		
+
 		/* copy the first part of the list */
 		listval_new->Resize(numitems_orig + numitems); /* resize so we don't try release NULL pointers */
 		for (i=0;i<numitems_orig;i++)
 			listval_new->SetValue(i, listval->GetValue(i)->AddRef());
-		
+
 		/* now copy the other part of the list */
 		for (i=0;i<numitems;i++)
 			listval_new->SetValue(i+numitems_orig, otherval->GetValue(i)->AddRef());
-		
+
 	}
 	return listval_new->NewProxy(true); /* python owns this list */
 }
@@ -476,12 +476,12 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
 {
 	CListValue *self = static_cast<CListValue *>(BGE_PROXY_REF(self_v));
-	
+
 	if (self == NULL) {
 		PyErr_SetString(PyExc_SystemError, "val in CList, " BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
-	
+
 	if (PyUnicode_Check(value)) {
 		if (self->FindValue((const char *)_PyUnicode_AsString(value))) {
 			return 1;
@@ -492,9 +492,9 @@ static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
 		for (int i=0; i < self->GetCount(); i++)
 			if (self->GetValue(i) == item) // Com
 				return 1;
-		
+
 	} // not using CheckEqual
-	
+
 	return 0;
 }
 

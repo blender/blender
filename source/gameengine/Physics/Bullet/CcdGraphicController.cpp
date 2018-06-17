@@ -7,8 +7,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -95,8 +95,8 @@ void CcdGraphicController::GetAabb(btVector3& aabbMin, btVector3& aabbMax)
 
 	btVector3 localHalfExtents = btScalar(0.5f)*(localAabbMax-localAabbMin);
 	btVector3 localCenter = btScalar(0.5f)*(localAabbMax+localAabbMin);
-	
-	btMatrix3x3 abs_b = rot.absolute();  
+
+	btMatrix3x3 abs_b = rot.absolute();
 	btVector3 center = rot*localCenter + pos;
 	btVector3 extent = abs_b*localHalfExtents;
 	aabbMin = center - extent;
@@ -105,7 +105,7 @@ void CcdGraphicController::GetAabb(btVector3& aabbMin, btVector3& aabbMax)
 
 bool CcdGraphicController::SetGraphicTransform()
 {
-	if (!m_handle) 
+	if (!m_handle)
 		return false;
 	btVector3 aabbMin;
 	btVector3 aabbMax;
@@ -121,7 +121,7 @@ PHY_IGraphicController* CcdGraphicController::GetReplica(class PHY_IMotionState*
 	replica->m_motionState = motionState;
 	replica->m_newClientInfo = NULL;
 	replica->m_handle = NULL;
-	// don't add the graphic controller now: work around a bug in Bullet with rescaling, 
+	// don't add the graphic controller now: work around a bug in Bullet with rescaling,
 	// (the scale of the controller is not yet defined).
 	//m_phyEnv->addCcdGraphicController(replica);
 	return replica;

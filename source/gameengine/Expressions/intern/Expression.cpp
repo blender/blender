@@ -50,21 +50,21 @@ CBrokenLinkInfo::~CBrokenLinkInfo()
 void CBrokenLinkInfo::RestoreLink()
 {
 
-	
+
 	assertd(m_pExpr);
 
 	if (m_pExpr)
 	{
 		if (!m_bRestored) {
 			m_bRestored=true;
-			
+
 		}
 		if (*m_pmemExpr)
 		{
 			(*m_pmemExpr)->Release();
 		}
 		*m_pmemExpr = m_pExpr;
-		
+
 //		m_pExpr=NULL;
 	}
 }

@@ -111,7 +111,7 @@ void RAS_StorageVA::IndexPrimitives(class RAS_MeshSlot& ms)
 		// here the actual drawing takes places
 		glDrawElements(drawmode, it.totindex, GL_UNSIGNED_SHORT, it.index);
 	}
-	
+
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	if (!wireframe) {
@@ -192,7 +192,7 @@ void RAS_StorageVA::EnableTextures(bool enable)
 		texco_num = *m_texco_num;
 		attrib = m_attrib;
 		attrib_num = *m_attrib_num;
-		
+
 		memcpy(m_last_texco, m_texco, sizeof(RAS_IRasterizer::TexCoGen)*(*m_texco_num));
 		m_last_texco_num = *m_texco_num;
 		memcpy(m_last_attrib, m_attrib, sizeof(RAS_IRasterizer::TexCoGen)*(*m_attrib_num));

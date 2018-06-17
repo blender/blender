@@ -47,7 +47,7 @@ public:
 	SCA_ActuatorSensor(class SCA_EventManager* eventmgr,
 					  SCA_IObject* gameobj,
 					  const STR_String& actname);
-	
+
 	virtual ~SCA_ActuatorSensor();
 	virtual CValue* GetReplica();
 	virtual void Init();
@@ -63,7 +63,7 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	static int CheckActuator(void *self, const PyAttributeDef*);
-	
+
 #endif  /* WITH_PYTHON */
 };
 

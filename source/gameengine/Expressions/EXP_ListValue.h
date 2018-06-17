@@ -21,7 +21,7 @@
 
 #include "EXP_Value.h"
 
-class CListValue : public CPropValue  
+class CListValue : public CPropValue
 {
 	Py_Header
 	//PLUGIN_DECLARE_SERIAL (CListValue,CValue)
@@ -48,7 +48,7 @@ public:
 	bool RemoveValue(CValue* val);
 	void SetReleaseOnDestruct(bool bReleaseContents);
 	bool SearchValue(CValue* val);
-	
+
 	CValue* FindValue(const STR_String & name);
 	CValue* FindValue(const char *name);
 
@@ -81,7 +81,7 @@ public:
 	KX_PYMETHOD_VARARGS(CListValue,get);
 	KX_PYMETHOD_O(CListValue,from_id);
 #endif
-	
+
 private:
 
 	std::vector<CValue*> m_pValueArray;

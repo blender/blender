@@ -38,9 +38,9 @@
  * Derived from work by
  * David Redish
  * graduate student
- * Computer Science Department 
+ * Computer Science Department
  * Carnegie Mellon University (CMU)
- * Center for the Neural Basis of Cognition (CNBC) 
+ * Center for the Neural Basis of Cognition (CNBC)
  * http://www.python.org/doc/PyCPP.html
  *
  * ----------------------------- */
@@ -141,7 +141,7 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-	return self_plus->py_repr();  
+	return self_plus->py_repr();
 }
 
 
@@ -420,7 +420,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 						return PyFloat_FromDouble(*val);
 					} else {
 						// vector, verify size
-						if (attrdef->m_size != attrdef->m_imax*sizeof(float)) 
+						if (attrdef->m_size != attrdef->m_imax*sizeof(float))
 						{
 							return NULL;
 						}
@@ -437,7 +437,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 					}
 				} else {
 					// matrix case
-					if (attrdef->m_size != attrdef->m_imax*attrdef->m_imin*sizeof(float)) 
+					if (attrdef->m_size != attrdef->m_imax*attrdef->m_imin*sizeof(float))
 					{
 						return NULL;
 					}
@@ -530,11 +530,11 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 	size_t bufferSize = 0;
 	PyObject *item = NULL;	// to store object that must be dereferenced in case of error
 	PyObject *list = NULL;	// to store object that must be dereferenced in case of error
-	
+
 	ptr += attrdef->m_offset;
 	if (attrdef->m_length > 1)
 	{
-		if (!PySequence_Check(value)) 
+		if (!PySequence_Check(value))
 		{
 			PyErr_Format(PyExc_TypeError, "expected a sequence for attribute \"%s\"", attrdef->m_name);
 			return PY_SET_ATTR_FAIL;
@@ -544,10 +544,10 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 			PyErr_Format(PyExc_TypeError, "incorrect number of elements in sequence for attribute \"%s\"", attrdef->m_name);
 			return PY_SET_ATTR_FAIL;
 		}
-		switch (attrdef->m_type) 
+		switch (attrdef->m_type)
 		{
 		case KX_PYATTRIBUTE_TYPE_FUNCTION:
-			if (attrdef->m_setFunction == NULL) 
+			if (attrdef->m_setFunction == NULL)
 			{
 				PyErr_Format(PyExc_AttributeError, "function attribute without function for attribute \"%s\", report to blender.org", attrdef->m_name);
 				return PY_SET_ATTR_FAIL;
@@ -582,16 +582,16 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		for (int i=0; i<attrdef->m_length; i++)
 		{
 			item = PySequence_GetItem(value, i); /* new ref */
-			switch (attrdef->m_type) 
+			switch (attrdef->m_type)
 			{
 			case KX_PYATTRIBUTE_TYPE_BOOL:
 				{
 					bool *var = reinterpret_cast<bool*>(ptr);
 					ptr += sizeof(bool);
-					if (PyLong_Check(item)) 
+					if (PyLong_Check(item))
 					{
 						*var = (PyLong_AsLong(item) != 0);
-					} 
+					}
 					else if (PyBool_Check(item))
 					{
 						*var = (item == Py_True);
@@ -607,7 +607,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				{
 					short int *var = reinterpret_cast<short int*>(ptr);
 					ptr += sizeof(short int);
-					if (PyLong_Check(item)) 
+					if (PyLong_Check(item))
 					{
 						int val = PyLong_AsLong(item);
 						if (attrdef->m_clamp)
@@ -643,7 +643,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				{
 					int *var = reinterpret_cast<int*>(ptr);
 					ptr += sizeof(int);
-					if (PyLong_Check(item)) 
+					if (PyLong_Check(item))
 					{
 						int val = PyLong_AsLong(item);
 						if (attrdef->m_clamp)
@@ -709,7 +709,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				// if the checing function didnt set an error then set a generic one here so we don't set an error with no exception
 				if (PyErr_Occurred()==0)
 					PyErr_Format(PyExc_AttributeError, "type check error for attribute \"%s\", reasion unknown", attrdef->m_name);
-				
+
 				// post check returned an error, restore values
 			UNDO_AND_ERROR:
 				if (undoBuffer)
@@ -741,7 +741,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		{
 			// post check function is provided, prepare undo buffer
 			sourceBuffer = ptr;
-			switch (attrdef->m_type) 
+			switch (attrdef->m_type)
 			{
 			case KX_PYATTRIBUTE_TYPE_BOOL:
 				bufferSize = sizeof(bool);
@@ -785,16 +785,16 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				}
 			}
 		}
-			
-		switch (attrdef->m_type) 
+
+		switch (attrdef->m_type)
 		{
 		case KX_PYATTRIBUTE_TYPE_BOOL:
 			{
 				bool *var = reinterpret_cast<bool*>(ptr);
-				if (PyLong_Check(value)) 
+				if (PyLong_Check(value))
 				{
 					*var = (PyLong_AsLong(value) != 0);
-				} 
+				}
 				else if (PyBool_Check(value))
 				{
 					*var = (value == Py_True);
@@ -809,10 +809,10 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_FLAG:
 			{
 				bool bval;
-				if (PyLong_Check(value)) 
+				if (PyLong_Check(value))
 				{
 					bval = (PyLong_AsLong(value) != 0);
-				} 
+				}
 				else if (PyBool_Check(value))
 				{
 					bval = (value == Py_True);
@@ -852,7 +852,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_SHORT:
 			{
 				short int *var = reinterpret_cast<short int*>(ptr);
-				if (PyLong_Check(value)) 
+				if (PyLong_Check(value))
 				{
 					int val = PyLong_AsLong(value);
 					if (attrdef->m_clamp)
@@ -887,7 +887,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_INT:
 			{
 				int *var = reinterpret_cast<int*>(ptr);
-				if (PyLong_Check(value)) 
+				if (PyLong_Check(value))
 				{
 					int val = PyLong_AsLong(value);
 					if (attrdef->m_clamp)
@@ -914,14 +914,14 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_FLOAT:
 			{
 				float *var = reinterpret_cast<float*>(ptr);
-				if (attrdef->m_imin != 0) 
+				if (attrdef->m_imin != 0)
 				{
-					if (attrdef->m_size != attrdef->m_imin*attrdef->m_imax*sizeof(float)) 
+					if (attrdef->m_size != attrdef->m_imin*attrdef->m_imax*sizeof(float))
 					{
 						PyErr_Format(PyExc_TypeError, "internal error: incorrect field size for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;
 					}
-					if (!PySequence_Check(value) || PySequence_Size(value) != attrdef->m_imin) 
+					if (!PySequence_Check(value) || PySequence_Size(value) != attrdef->m_imin)
 					{
 						PyErr_Format(PyExc_TypeError, "expected a sequence of [%d][%d] floats for attribute \"%s\"", attrdef->m_imin, attrdef->m_imax, attrdef->m_name);
 						goto FREE_AND_ERROR;
@@ -929,7 +929,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 					for (int i=0; i<attrdef->m_imin; i++)
 					{
 						PyObject *list = PySequence_GetItem(value, i); /* new ref */
-						if (!PySequence_Check(list) || PySequence_Size(list) != attrdef->m_imax) 
+						if (!PySequence_Check(list) || PySequence_Size(list) != attrdef->m_imax)
 						{
 							PyErr_Format(PyExc_TypeError, "expected a sequence of [%d][%d] floats for attribute \"%s\"", attrdef->m_imin, attrdef->m_imax, attrdef->m_name);
 							goto RESTORE_AND_ERROR;
@@ -949,15 +949,15 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 						Py_DECREF(list);
 						list = NULL;
 					}
-				} 
-				else if (attrdef->m_imax != 0) 
+				}
+				else if (attrdef->m_imax != 0)
 				{
-					if (attrdef->m_size != attrdef->m_imax*sizeof(float)) 
+					if (attrdef->m_size != attrdef->m_imax*sizeof(float))
 					{
 						PyErr_Format(PyExc_TypeError, "internal error: incorrect field size for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;
 					}
-					if (!PySequence_Check(value) || PySequence_Size(value) != attrdef->m_imax) 
+					if (!PySequence_Check(value) || PySequence_Size(value) != attrdef->m_imax)
 					{
 						PyErr_Format(PyExc_TypeError, "expected a sequence of [%d] floats for attribute \"%s\"", attrdef->m_imax, attrdef->m_name);
 						goto FREE_AND_ERROR;
@@ -973,7 +973,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 						item = NULL;
 						++var;
 					}
-				} 
+				}
 				else
 				{
 					if (!py_check_attr_float(var, value, attrdef))
@@ -983,7 +983,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 			}
 		case KX_PYATTRIBUTE_TYPE_VECTOR:
 			{
-				if (!PySequence_Check(value) || PySequence_Size(value) != 3) 
+				if (!PySequence_Check(value) || PySequence_Size(value) != 3)
 				{
 					PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
@@ -1018,7 +1018,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 			}
 		case KX_PYATTRIBUTE_TYPE_CHAR:
 			{
-				if (PyUnicode_Check(value)) 
+				if (PyUnicode_Check(value))
 				{
 					Py_ssize_t val_size;
 					const char *val = _PyUnicode_AsStringAndSize(value, &val_size);
@@ -1035,7 +1035,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *var = reinterpret_cast<STR_String*>(ptr);
-				if (PyUnicode_Check(value)) 
+				if (PyUnicode_Check(value))
 				{
 					Py_ssize_t val_len;
 					const char *val = _PyUnicode_AsStringAndSize(value, &val_len); /* XXX, should be 'const' but we do a silly trick to have a shorter string */
@@ -1134,7 +1134,7 @@ PyObject *PyObjectPlus::GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 	}
 	//PyObject_Print(self->m_proxy, stdout, 0);
 	//printf("ref %d\n", self->m_proxy->ob_refcnt);
-	
+
 	BGE_PROXY_REF(self->m_proxy) = self; /* Its possible this was set to NULL, so set it back here */
 	BGE_PROXY_PTR(self->m_proxy) = ptr;
 	Py_INCREF(self->m_proxy); /* we own one, thos ones fore the return */
@@ -1143,13 +1143,13 @@ PyObject *PyObjectPlus::GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 
 PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr, bool py_owns)
 {
-	if (!self) 
+	if (!self)
 	{
 		// in case of proxy without reference to game object
 		PyObject *proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
 		BGE_PROXY_PYREF(proxy) = false;
 		BGE_PROXY_PYOWNS(proxy) = py_owns;
-		BGE_PROXY_REF(proxy) = NULL; 
+		BGE_PROXY_REF(proxy) = NULL;
 		BGE_PROXY_PTR(proxy) = ptr;
 #ifdef USE_WEAKREFS
 		BGE_PROXY_WKREF(proxy) = NULL;
@@ -1168,9 +1168,9 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 			Py_INCREF(self->m_proxy);
 			return self->m_proxy;
 		}
-		
+
 	}
-	
+
 	GetProxyPlus_Ext(self, tp, ptr);
 	if (py_owns) {
 		BGE_PROXY_PYOWNS(self->m_proxy) = py_owns;
@@ -1204,7 +1204,7 @@ void PyObjectPlus::ClearDeprecationWarning()
 {
 	WarnLink *wlink_next;
 	WarnLink *wlink = GetDeprecationWarningLinkFirst();
-	
+
 	while (wlink) {
 		wlink->warn_done= false; /* no need to NULL the link, its cleared before adding to the list next time round */
 		wlink_next= reinterpret_cast<WarnLink *>(wlink->link);

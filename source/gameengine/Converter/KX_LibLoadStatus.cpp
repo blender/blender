@@ -148,7 +148,7 @@ void KX_LibLoadStatus::AddProgress(float progress)
 
 #ifdef WITH_PYTHON
 
-PyMethodDef KX_LibLoadStatus::Methods[] = 
+PyMethodDef KX_LibLoadStatus::Methods[] =
 {
 	{NULL} //Sentinel
 };
@@ -189,7 +189,7 @@ PyTypeObject KX_LibLoadStatus::Type = {
 PyObject* KX_LibLoadStatus::pyattr_get_onfinish(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LibLoadStatus* self = static_cast<KX_LibLoadStatus*>(self_v);
-	
+
 	if (self->m_finish_cb) {
 		Py_INCREF(self->m_finish_cb);
 		return self->m_finish_cb;
@@ -219,7 +219,7 @@ int KX_LibLoadStatus::pyattr_set_onfinish(void *self_v, const KX_PYATTRIBUTE_DEF
 PyObject* KX_LibLoadStatus::pyattr_get_onprogress(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LibLoadStatus* self = static_cast<KX_LibLoadStatus*>(self_v);
-	
+
 	if (self->m_progress_cb) {
 		Py_INCREF(self->m_progress_cb);
 		return self->m_progress_cb;

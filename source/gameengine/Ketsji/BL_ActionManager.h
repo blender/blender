@@ -81,14 +81,14 @@ public:
 
 	/**
 	 * Gets the name of the current action
-	 */        
+	 */
 	const char *GetActionName(short layer);
 
 	/**
 	 * Sets the current frame of an action
 	 */
 	void SetActionFrame(short layer, float frame);
-	
+
 	/**
 	 * Gets the currently running action on the given layer
 	 */

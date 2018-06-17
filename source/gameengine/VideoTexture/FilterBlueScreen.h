@@ -78,7 +78,7 @@ protected:
 		unsigned int dist = (unsigned int)(difRed * difRed + difGreen * difGreen
 			+ difBlue * difBlue);
 		// condition for fully transparent color
-		if (m_squareLimits[0] >= dist) 
+		if (m_squareLimits[0] >= dist)
 			// return color with zero alpha
 			VT_A(val) = 0;
 		// condition for fully opaque color

@@ -89,7 +89,7 @@ BL_MeshDeformer::~BL_MeshDeformer()
 	if (m_transnors)
 		delete [] m_transnors;
 }
- 
+
 void BL_MeshDeformer::ProcessReplica()
 {
 	m_transverts = NULL;
@@ -146,7 +146,7 @@ void BL_MeshDeformer::RecalcNormals()
 				const float *co2 = m_transverts[v2.getOrigIndex()];
 				const float *co3 = m_transverts[v3.getOrigIndex()];
 				const float *co4 = NULL;
-				
+
 				/* compute face normal */
 				float fnor[3], n1[3], n2[3];
 
@@ -230,7 +230,7 @@ void BL_MeshDeformer::VerifyStorage()
 			delete [] m_transverts;
 		if (m_transnors)
 			delete [] m_transnors;
-		
+
 		m_transverts=new float[m_bmesh->totvert][3];
 		m_transnors=new float[m_bmesh->totvert][3];
 		m_tvtot = m_bmesh->totvert;

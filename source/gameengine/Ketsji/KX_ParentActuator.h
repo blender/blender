@@ -39,17 +39,17 @@
 class KX_ParentActuator : public SCA_IActuator
 {
 	Py_Header
-	
+
 	/** Mode */
 	int m_mode;
-	
+
 	/** option */
 	bool	m_addToCompound;
 	bool	m_ghost;
 	/** Object to set as parent */
 	SCA_IObject *m_ob;
-	
-	
+
+
 
 public:
 	enum KX_PARENTACT_MODE
@@ -68,12 +68,12 @@ public:
 						SCA_IObject *ob);
 	virtual ~KX_ParentActuator();
 	virtual bool Update();
-	
+
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
 	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
-	
+
 #ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
@@ -83,7 +83,7 @@ public:
 	/* These are used to get and set m_ob */
 	static PyObject *pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	
+
 #endif  /* WITH_PYTHON */
 
 }; /* end of class KX_ParentActuator : public SCA_PropertyActuator */

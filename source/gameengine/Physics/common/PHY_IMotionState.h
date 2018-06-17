@@ -52,14 +52,14 @@ class	PHY_IMotionState
 		// ori = array 12 floats, [0..3] = first column + 0, [4..7] = second column, [8..11] = third column
 		virtual void	GetWorldOrientation(float* ori)=0;
 		virtual	void	SetWorldOrientation(const float* ori)=0;
-		
+
 		virtual void	SetWorldPosition(float posX,float posY,float posZ)=0;
 		virtual	void	SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)=0;
 
 
 		virtual	void	CalculateWorldTransformations()=0;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_IMotionState")
 #endif

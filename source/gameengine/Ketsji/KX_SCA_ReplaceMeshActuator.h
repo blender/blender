@@ -49,13 +49,13 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	// mesh reference (mesh to replace)
 	RAS_MeshObject* m_mesh;
 	SCA_IScene*	 m_scene;
-	bool m_use_gfx; 
+	bool m_use_gfx;
 	bool m_use_phys;
 
  public:
 	KX_SCA_ReplaceMeshActuator(
-		SCA_IObject* gameobj, 
-		RAS_MeshObject *mesh, 
+		SCA_IObject* gameobj,
+		RAS_MeshObject *mesh,
 		SCA_IScene* scene,
 		bool use_gfx,
 		bool use_phys
@@ -64,11 +64,11 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	~KX_SCA_ReplaceMeshActuator(
 	);
 
-		CValue* 
+		CValue*
 	GetReplica(
 	);
 
-	virtual bool 
+	virtual bool
 	Update();
 
 	void	InstantReplaceMesh();
@@ -91,6 +91,6 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 
 #endif  /* WITH_PYTHON */
 
-}; 
+};
 
 #endif  /* __KX_SCA_REPLACEMESHACTUATOR_H__ */

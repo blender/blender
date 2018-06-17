@@ -47,13 +47,13 @@ using namespace std;
 class SCA_KeyboardManager : public SCA_EventManager
 {
 	class	SCA_IInputDevice*				m_inputDevice;
-	
+
 public:
 	SCA_KeyboardManager(class SCA_LogicManager* logicmgr,class SCA_IInputDevice* inputdev);
 	virtual ~SCA_KeyboardManager();
 
 	bool			IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
-	
+
 	virtual void 	NextFrame();
 	SCA_IInputDevice* GetInputDevice();
 

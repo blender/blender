@@ -23,16 +23,16 @@ public:
 	KX_VehicleWrapper(PHY_IVehicle* vehicle,class PHY_IPhysicsEnvironment* physenv);
 	virtual ~KX_VehicleWrapper ();
 	int			getConstraintId();
-	
+
 #ifdef WITH_PYTHON
-	
+
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,AddWheel);
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetNumWheels);
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetWheelOrientationQuaternion);
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetWheelRotation);
-	
+
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetWheelPosition);
-	
+
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetConstraintId);
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetConstraintType);
 
@@ -45,11 +45,11 @@ public:
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetTyreFriction);
 
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSuspensionStiffness);
-	
+
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSuspensionDamping);
-	
+
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSuspensionCompression);
-	
+
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetRollInfluence);
 #endif  /* WITH_PYTHON */
 

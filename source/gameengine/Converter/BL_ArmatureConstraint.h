@@ -46,7 +46,7 @@ struct Object;
 struct bPose;
 
 /**
- * SG_DList : element of controlled constraint list 
+ * SG_DList : element of controlled constraint list
  *            head = BL_ArmatureObject::m_controlledConstraints
  * SG_QList : not used
  */
@@ -69,9 +69,9 @@ private:
 	struct bPose*	m_subpose;
 
 public:
-	BL_ArmatureConstraint(class BL_ArmatureObject *armature, 
-						struct bPoseChannel *posechannel, 
-						struct bConstraint *constraint, 
+	BL_ArmatureConstraint(class BL_ArmatureObject *armature,
+						struct bPoseChannel *posechannel,
+						struct bConstraint *constraint,
 						KX_GameObject* target,
 						KX_GameObject* subtarget);
 	virtual ~BL_ArmatureConstraint();

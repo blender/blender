@@ -35,7 +35,7 @@
 
 #include "DNA_material_types.h"
 
-void  RAS_IPolyMaterial::Initialize( 
+void  RAS_IPolyMaterial::Initialize(
 				const STR_String& texname,
 				const STR_String& matname,
 				int materialindex,
@@ -69,7 +69,7 @@ void  RAS_IPolyMaterial::Initialize(
 	m_drawingmode = ConvertFaceMode(game, image);
 }
 
-RAS_IPolyMaterial::RAS_IPolyMaterial() 
+RAS_IPolyMaterial::RAS_IPolyMaterial()
 		: m_texturename("__Dummy_Texture_Name__"),
 		m_materialname("__Dummy_Material_Name__"),
 		m_tile(0),
@@ -180,7 +180,7 @@ bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
 {
 	if (Equals(rhs))
 		return false;
-		
+
 	return m_polymatid < rhs.m_polymatid;
 }
 
@@ -205,7 +205,7 @@ int RAS_IPolyMaterial::GetDrawingMode() const
 }
 
 const STR_String& RAS_IPolyMaterial::GetMaterialName() const
-{ 
+{
 	return m_materialname;
 }
 
@@ -273,7 +273,7 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 	else {
 		dolights = m_light;
 	}
-	
+
 	return dolights;
 }
 

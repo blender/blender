@@ -39,7 +39,7 @@
 class SCA_JoystickSensor :public SCA_ISensor
 {
 	Py_Header
-	
+
 	/**
 	 * Axis 1-JOYAXIS_MAX, MUST be followed by m_axisf
 	 */
@@ -112,11 +112,11 @@ public:
 					   int hat, int hatf, bool allevents);
 	virtual ~SCA_JoystickSensor();
 	virtual CValue* GetReplica();
-	
+
 	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
-	
+
 	short int GetJoyIndex(void) {
 		return m_joyindex;
 	}
@@ -139,7 +139,7 @@ public:
 	static PyObject*	pyattr_get_num_buttons(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_num_hats(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_connected(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	
+
 
 	/* attribute check */
 	static int CheckAxis(void *self, const PyAttributeDef*)
@@ -160,7 +160,7 @@ public:
 			sensor->m_hat = JOYHAT_MAX;
 		return 0;
 	}
-	
+
 #endif  /* WITH_PYTHON */
 
 };

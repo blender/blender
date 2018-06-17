@@ -34,7 +34,7 @@
 
 #include <cstdlib>
 
-/** 
+/**
  * NextFrame toggles currentTable with previousTable,
  * and copies relevant event information from previous to current table
  * (pressed keys need to be remembered).
@@ -60,7 +60,7 @@ void GPC_KeyboardDevice::NextFrame()
 
 
 
-/** 
+/**
  * ConvertBPEvent translates Windows keyboard events into ketsji kbd events.
  * Extra event information is stored, like ramp-mode (just released/pressed)
  */
@@ -100,7 +100,7 @@ bool GPC_KeyboardDevice::ConvertEvent(int incode, int val, unsigned int unicode)
 					m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
 				}
 			}
-			
+
 		} else
 		{
 

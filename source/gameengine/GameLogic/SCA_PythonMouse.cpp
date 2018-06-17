@@ -95,7 +95,7 @@ PyAttributeDef SCA_PythonMouse::Attributes[] = {
 PyObject *SCA_PythonMouse::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonMouse* self = static_cast<SCA_PythonMouse*>(self_v);
-	
+
 	for (int i = SCA_IInputDevice::KX_BEGINMOUSE; i <= SCA_IInputDevice::KX_ENDMOUSE; i++) {
 		const SCA_InputEvent &inevent = self->m_mouse->GetEventValue((SCA_IInputDevice::KX_EnumInputs)i);
 		PyObject *key   = PyLong_FromLong(i);
@@ -115,10 +115,10 @@ PyObject *SCA_PythonMouse::pyattr_get_active_events(void *self_v, const KX_PYATT
 	SCA_PythonMouse* self = static_cast<SCA_PythonMouse*>(self_v);
 
 	PyDict_Clear(self->m_event_dict);
-	
+
 	for (int i = SCA_IInputDevice::KX_BEGINMOUSE; i <= SCA_IInputDevice::KX_ENDMOUSE; i++) {
 		const SCA_InputEvent &inevent = self->m_mouse->GetEventValue((SCA_IInputDevice::KX_EnumInputs)i);
-		
+
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS) {
 
 			PyObject *key   = PyLong_FromLong(i);

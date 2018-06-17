@@ -41,7 +41,7 @@
 
 struct Scene;
 
-class KX_ISceneConverter 
+class KX_ISceneConverter
 {
 
 public:
@@ -93,8 +93,8 @@ public:
 	virtual bool GetCacheMaterials()=0;
 
 	virtual struct Scene* GetBlenderSceneForName(const STR_String& name)=0;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_ISceneConverter")
 #endif

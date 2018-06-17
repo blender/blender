@@ -120,7 +120,7 @@ static int setDepth(PyFilter *self, PyObject *value, void *closure)
 
 // attributes structure
 static PyGetSetDef filterNormalGetSets[] =
-{ 
+{
 	{(char*)"colorIdx", (getter)getColor, (setter)setColor, (char*)"index of color used to calculate normal (0 - red, 1 - green, 2 - blue)", NULL},
 	{(char*)"depth", (getter)getDepth, (setter)setDepth, (char*)"depth of relief", NULL},
 	// attributes from FilterBase class
@@ -130,7 +130,7 @@ static PyGetSetDef filterNormalGetSets[] =
 
 // define python type
 PyTypeObject FilterNormalType =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterNormal",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/

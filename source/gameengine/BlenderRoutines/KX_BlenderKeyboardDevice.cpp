@@ -33,7 +33,7 @@
 #ifdef _MSC_VER
    /* annoying warnings about truncated STL debug info */
 #  pragma warning (disable:4786)
-#endif 
+#endif
 
 #include "KX_BlenderKeyboardDevice.h"
 #include "KX_KetsjiEngine.h"
@@ -55,7 +55,7 @@ KX_BlenderKeyboardDevice::~KX_BlenderKeyboardDevice()
 bool KX_BlenderKeyboardDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 {
 	const SCA_InputEvent & inevent =  m_eventStatusTables[m_currentTable][inputcode];
-	bool pressed = (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED || 
+	bool pressed = (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
 		inevent.m_status == SCA_InputEvent::KX_ACTIVE);
 	return pressed;
 }
@@ -72,7 +72,7 @@ bool KX_BlenderKeyboardDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputco
 void	KX_BlenderKeyboardDevice::NextFrame()
 {
 	SCA_IInputDevice::NextFrame();
-	
+
 	// now convert justpressed keyevents into regular (active) keyevents
 	int previousTable = 1-m_currentTable;
 	for (int keyevent= KX_BEGINKEY; keyevent<= KX_ENDKEY;keyevent++)
@@ -94,7 +94,7 @@ void	KX_BlenderKeyboardDevice::NextFrame()
 bool KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode, short val, unsigned int unicode)
 {
 	bool result = false;
-	
+
 	// convert event
 	KX_EnumInputs kxevent = this->ToNative(incode);
 
@@ -122,7 +122,7 @@ bool KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode, short 
 					break;
 				}
 			case SCA_InputEvent::KX_ACTIVE:
-			
+
 				{
 					m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_ACTIVE;
 					break;
@@ -137,7 +137,7 @@ bool KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode, short 
 					m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
 				}
 			}
-			
+
 		} else if (val == KM_RELEASE)
 		{
 			// blender eventval == 0

@@ -42,15 +42,15 @@ void RAS_CalcTexMatrix(RAS_TexVert p[3],MT_Point3& origin,MT_Vector3& udir,MT_Ve
 	normal.normalize();
 
 	// determine which coordinate we drop, ie. max coordinate in the normal
-	
+
 
 	int ZCOORD = normal.closestAxis();
 	int XCOORD = (ZCOORD+1)%3;
 	int YCOORD = (ZCOORD+2)%3;
-		
+
 	// ax+by+cz+d=0
 	MT_Scalar d = -p[0].xyz().dot(normal);
-	
+
 
 	MT_Matrix3x3 mat3(	p[0].getUV(0)[0],p[0].getUV(0)[1],	1,
 						p[1].getUV(0)[0],p[1].getUV(0)[1],	1,
@@ -64,7 +64,7 @@ void RAS_CalcTexMatrix(RAS_TexVert p[3],MT_Point3& origin,MT_Vector3& udir,MT_Ve
 	MT_Vector3 p123y(p[0].xyz()[YCOORD],p[1].xyz()[YCOORD],p[2].xyz()[YCOORD]);
 	MT_Vector3 resulty = mat3inv*p123y;
 
-	// normal[ZCOORD] is not zero, because it's chosen to be maximal (absolute), and normal has length 1, 
+	// normal[ZCOORD] is not zero, because it's chosen to be maximal (absolute), and normal has length 1,
 	// so at least on of the coords is <> 0
 
 	//droppedvalue udir.dot(normal) =0
@@ -81,7 +81,7 @@ void RAS_CalcTexMatrix(RAS_TexVert p[3],MT_Point3& origin,MT_Vector3& udir,MT_Ve
 	origin[XCOORD] = resultx.z();
 	origin[YCOORD] = resulty.z();
 	origin[ZCOORD] = droppedvalue;
-	
+
 
 }
 
@@ -103,7 +103,7 @@ int main()
 	RAS_TexVert p1(pxyz1,puv1);
 	RAS_TexVert p2(pxyz2,puv2);
 
-	RAS_TexVert vertices[3] = 
+	RAS_TexVert vertices[3] =
 	{
 		p0,
 		p1,

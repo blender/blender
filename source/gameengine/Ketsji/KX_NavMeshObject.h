@@ -40,12 +40,12 @@ class KX_NavMeshObject: public KX_GameObject
 
 protected:
 	dtStatNavMesh* m_navMesh;
-	
+
 	bool BuildVertIndArrays(float *&vertices, int& nverts,
-							unsigned short* &polys, int& npolys, unsigned short *&dmeshes, 
-							float *&dvertices, int &ndvertsuniq, unsigned short* &dtris, 
+							unsigned short* &polys, int& npolys, unsigned short *&dmeshes,
+							float *&dvertices, int &ndvertsuniq, unsigned short* &dtris,
 							int& ndtris, int &vertsPerPoly);
-	
+
 public:
 	KX_NavMeshObject(void* sgReplicationInfo, SG_Callbacks callbacks);
 	~KX_NavMeshObject();

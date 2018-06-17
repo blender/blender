@@ -26,7 +26,7 @@
 #define KX_Z 2
 
 
-class CVectorValue : public CPropValue  
+class CVectorValue : public CPropValue
 {
 	//PLUGIN_DECLARE_SERIAL(CVectorValue,CValue)
 
@@ -38,14 +38,14 @@ public:
 	virtual double* GetVector3(bool bGetTransformedVec=false);
 	virtual double		GetNumber();
 	virtual int			GetValueType();
-	
+
 	CValue*		Calc(VALUE_OPERATOR op, CValue *val) {
 		return val->CalcFinal(VALUE_VECTOR_TYPE, op, this);
 	}
-	
+
 	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
-	
-	
+
+
 	CVectorValue(double vec[3], const char *name,AllocationTYPE alloctype=CValue::HEAPVALUE);
 	CVectorValue() {};
 
@@ -54,7 +54,7 @@ public:
 	virtual ~CVectorValue();
 	//virtual bool ExportT3D(File *txtfile,bool bNoName=false);
 	void AddConfigurationData(CValue* menuvalue);
-	
+
 
 
 	virtual CValue* GetReplica();
@@ -70,14 +70,14 @@ public:
 
 	void SnapPosition(const double snapvec[])
 	{
-		
+
 		if (snapvec[KX_X] >= 1)
 			SnapPoint(m_vec[KX_X],snapvec[KX_X]);
 		if (snapvec[KX_Y] >= 1)
 			SnapPoint(m_vec[KX_Y],snapvec[KX_Y]);
 		if (snapvec[KX_Z] >= 1)
 			SnapPoint(m_vec[KX_Z],snapvec[KX_Z]);
-			
+
 	}
 #endif
 

@@ -70,10 +70,10 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 	//m_client_info->m_auxilary_info = NULL;
 	//sumoObj->setClientObject(&m_client_info);
 }
-			
+
 KX_RadarSensor::~KX_RadarSensor()
 {
-	
+
 }
 
 CValue* KX_RadarSensor::GetReplica()
@@ -96,7 +96,7 @@ void KX_RadarSensor::SynchronizeTransform()
 	// is the geometry correctly converted?
 
 	// a collision cone is oriented
-	// center the cone correctly 
+	// center the cone correctly
 	// depends on the radar 'axis'
 	switch (m_axis)
 	{
@@ -146,7 +146,7 @@ void KX_RadarSensor::SynchronizeTransform()
 		{
 		}
 	}
-	
+
 	//Using a temp variable to translate MT_Point3 to float[3].
 	//float[3] works better for the Python interface.
 	MT_Point3 temp = trans.getOrigin();
@@ -224,7 +224,7 @@ PyObject *KX_RadarSensor::pyattr_get_angle(void *self_v, const KX_PYATTRIBUTE_DE
 	// The original angle from the gui was converted, so we recalculate the value here to maintain
 	// consistency between Python and the gui
 	return PyFloat_FromDouble(MT_degrees(atan(self->m_coneradius / self->m_coneheight)) * 2);
-	
+
 }
 
 #endif // WITH_PYTHON

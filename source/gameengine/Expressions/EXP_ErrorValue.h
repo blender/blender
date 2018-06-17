@@ -21,7 +21,7 @@
 
 #include "EXP_Value.h"
 
-class CErrorValue : public CPropValue  
+class CErrorValue : public CPropValue
 {
 
 public:

@@ -144,7 +144,7 @@ protected:
 
 	/// width of capture in pixel
 	short m_captWidth;
-	
+
 	/// height of capture in pixel
 	short m_captHeight;
 
@@ -181,7 +181,7 @@ protected:
 	/// in case of caching, put the frame back in free queue
 	void releaseFrame(AVFrame* frame);
 
-	/// start thread to load the video file/capture/stream 
+	/// start thread to load the video file/capture/stream
 	bool startCache();
 	void stopCache();
 
@@ -211,7 +211,7 @@ private:
 
 inline VideoFFmpeg *getFFmpeg(PyImage *self)
 {
-	return static_cast<VideoFFmpeg*>(self->m_image); 
+	return static_cast<VideoFFmpeg*>(self->m_image);
 }
 
 #endif  /* WITH_FFMPEG */

@@ -78,7 +78,7 @@ CValue* SCA_AlwaysSensor::GetReplica()
 
 
 bool SCA_AlwaysSensor::IsPositiveTrigger()
-{ 
+{
 	return (m_invert ? false : true);
 }
 
@@ -90,7 +90,7 @@ bool SCA_AlwaysSensor::Evaluate()
 		//return true;
 	/* even nicer ;) */
 		//return false;
-	
+
 	/* nicest ! */
 	bool result = m_alwaysresult;
 	m_alwaysresult = false;

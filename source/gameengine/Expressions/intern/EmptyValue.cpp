@@ -58,7 +58,7 @@ CValue *CEmptyValue::Calc(VALUE_OPERATOR op, CValue *val)
  */
 {
 	return val->CalcFinal(VALUE_EMPTY_TYPE, op, this);
-	
+
 }
 
 
@@ -107,7 +107,7 @@ bool CEmptyValue::IsInside(CValue* testpoint,bool bBorderInclude)
 
 
 double*	CEmptyValue::GetVector3(bool bGetTransformedVec)
-{ 
+{
 	assertd(false); // don't get vector from me
 	return ZeroVector();
 }
@@ -125,7 +125,7 @@ const STR_String & CEmptyValue::GetText()
 
 
 CValue* CEmptyValue::GetReplica()
-{ 
+{
 	CEmptyValue* replica = new CEmptyValue(*this);
 	replica->ProcessReplica();
 	return replica;

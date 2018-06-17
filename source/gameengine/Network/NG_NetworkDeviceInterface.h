@@ -70,10 +70,10 @@ public:
 	 * read NG_NetworkMessage from library buffer, may be
 	 * irrelevant for loopbackdevices
 	 */
-	
+
 	virtual std::vector<NG_NetworkMessage*> RetrieveNetworkMessages()=0;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:NG_NetworkDeviceInterface")
 #endif

@@ -32,7 +32,7 @@
 #ifdef _MSC_VER
    /* annoying warnings about truncated STL debug info */
 #  pragma warning (disable:4786)
-#endif 
+#endif
 
 #include "KX_BlenderMouseDevice.h"
 
@@ -52,7 +52,7 @@ KX_BlenderMouseDevice::~KX_BlenderMouseDevice()
 bool KX_BlenderMouseDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 {
 	const SCA_InputEvent & inevent =  m_eventStatusTables[m_currentTable][inputcode];
-	bool pressed = (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED || 
+	bool pressed = (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
 		inevent.m_status == SCA_InputEvent::KX_ACTIVE);
 	return pressed;
 }
@@ -70,7 +70,7 @@ bool KX_BlenderMouseDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 void	KX_BlenderMouseDevice::NextFrame()
 {
 	SCA_IInputDevice::NextFrame();
-	
+
 	// now convert justpressed keyevents into regular (active) keyevents
 	int previousTable = 1-m_currentTable;
 	for (int mouseevent= KX_BEGINMOUSE; mouseevent< KX_ENDMOUSEBUTTONS;mouseevent++)
@@ -90,13 +90,13 @@ void	KX_BlenderMouseDevice::NextFrame()
 		if (oldevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
 			oldevent.m_status == SCA_InputEvent::KX_ACTIVE	)
 		{
-			
+
 			m_eventStatusTables[m_currentTable][mousemove].m_status = SCA_InputEvent::KX_JUSTRELEASED;
 		} else
 		{
 			if (oldevent.m_status == SCA_InputEvent::KX_JUSTRELEASED)
 			{
-				
+
 				m_eventStatusTables[m_currentTable][mousemove].m_status = SCA_InputEvent::KX_NO_INPUTSTATUS;
 			}
 		}
@@ -111,7 +111,7 @@ void	KX_BlenderMouseDevice::NextFrame()
 bool KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode, short val, unsigned int unicode)
 {
 	bool result = false;
-	
+
 	// convert event
 	KX_EnumInputs kxevent = this->ToNative(incode);
 	int previousTable = 1-m_currentTable;
@@ -125,7 +125,7 @@ bool KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode, short val
 
 			switch (m_eventStatusTables[previousTable][kxevent].m_status)
 			{
-			
+
 			case SCA_InputEvent::KX_ACTIVE:
 			case SCA_InputEvent::KX_JUSTACTIVATED:
 				{
@@ -142,7 +142,7 @@ bool KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode, short val
 					m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
 				}
 			}
-			
+
 		} else if (val == KM_RELEASE)
 		{
 			// blender eventval == 0
@@ -168,7 +168,7 @@ bool KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode, short val
 
 		switch (m_eventStatusTables[previousTable][kxevent].m_status)
 		{
-			
+
 		case SCA_InputEvent::KX_ACTIVE:
 		case SCA_InputEvent::KX_JUSTACTIVATED:
 			{

@@ -51,7 +51,7 @@ struct SCA_DebugProp
 	~SCA_DebugProp();
 };
 
-class SCA_IScene 
+class SCA_IScene
 {
 	std::vector<SCA_DebugProp*> m_debugList;
 public:
@@ -63,7 +63,7 @@ public:
 	virtual void	RemoveObject(class CValue* gameobj)=0;
 	virtual void	DelayedRemoveObject(class CValue* gameobj)=0;
 	//virtual void	DelayedReleaseObject(class CValue* gameobj)=0;
-	
+
 	virtual void	ReplaceMesh(class CValue* gameobj,
 								void* meshobj, bool use_gfx, bool use_phys)=0;
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
@@ -74,8 +74,8 @@ public:
 	void			RemoveDebugProperty(class CValue *gameobj, const STR_String &name);
 	void			RemoveObjectDebugProperties(class CValue* gameobj);
 
-	virtual void	Update2DFilter(std::vector<STR_String>& propNames, void* gameObj, 
-									RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, 
+	virtual void	Update2DFilter(std::vector<STR_String>& propNames, void* gameObj,
+									RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode,
 									int pass, STR_String& text) {}
 
 

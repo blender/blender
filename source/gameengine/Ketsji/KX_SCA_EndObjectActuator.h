@@ -52,11 +52,11 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 
 	~KX_SCA_EndObjectActuator();
 
-		CValue* 
+		CValue*
 	GetReplica(
 	);
 
-	virtual bool 
+	virtual bool
 	Update();
 
 	virtual void Replace_IScene(SCA_IScene *val)
@@ -67,7 +67,7 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
+
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 
 #endif

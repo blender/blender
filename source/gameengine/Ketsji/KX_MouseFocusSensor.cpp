@@ -60,7 +60,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr, 
+KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
                                          int startx,
                                          int starty,
 										 short int mousemode,
@@ -91,7 +91,7 @@ void KX_MouseFocusSensor::Init()
 	m_hitObject = 0;
 	m_hitObject_Last = NULL;
 	m_reset = true;
-	
+
 	m_hitPosition.setValue(0,0,0);
 	m_prevTargetPoint.setValue(0,0,0);
 	m_prevSourcePoint.setValue(0,0,0);
@@ -110,12 +110,12 @@ bool KX_MouseFocusSensor::Evaluate()
 		/* Focus behavior required. Test mouse-on. The rest is
 		 * equivalent to handling a key. */
 		obHasFocus = ParentObjectHasFocus();
-		
+
 		if (!obHasFocus) {
 			m_positive_event = false;
 			if (m_mouse_over_in_previous_frame) {
 				result = true;
-			} 
+			}
 		} else {
 			m_positive_event = true;
 			if (!m_mouse_over_in_previous_frame) {
@@ -124,7 +124,7 @@ bool KX_MouseFocusSensor::Evaluate()
 			else if (m_bTouchPulse && (m_hitObject != m_hitObject_Last)) {
 				result = true;
 			}
-		} 
+		}
 		if (reset) {
 			// force an event
 			result = true;
@@ -140,14 +140,14 @@ bool KX_MouseFocusSensor::Evaluate()
 
 	m_mouse_over_in_previous_frame = obHasFocus;
 	m_hitObject_Last = (void *)m_hitObject;
-					   
+
 	return result;
 }
 
 bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *result, void *UNUSED(data))
 {
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
-	
+
 	/* Is this me? In the ray test, there are a lot of extra checks
 	 * for aliasing artifacts from self-hits. That doesn't happen
 	 * here, so a simple test suffices. Or does the camera also get
@@ -188,9 +188,9 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *r
 			m_hitNormal = result->m_hitNormal;
 			m_hitUV = result->m_hitUV;
 			return true;
-		}		
+		}
 	}
-	
+
 	return true;     // object must be visible to trigger
 	//return false;  // occluded objects can trigger
 }
@@ -238,7 +238,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 {
 	/* All screen handling in the gameengine is done by GL,
 	 * specifically the model/view and projection parts. The viewport
-	 * part is in the creator. 
+	 * part is in the creator.
 	 *
 	 * The theory is this:
 	 * WCS - world coordinates
@@ -262,13 +262,13 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 * Inverting (blender y is flipped!):
 	 *
 	 * xn = 2(xwin - x_lb)/width - 1.0
-	 * yn = 2(ywin - y_lb)/height - 1.0 
+	 * yn = 2(ywin - y_lb)/height - 1.0
 	 *    = 2(height - y_blender - y_lb)/height - 1.0
 	 *    = 1.0 - 2(y_blender - y_lb)/height
 	 *
 	 * */
-	 
-	
+
+
 	/* Because we don't want to worry about resize events, camera
 	 * changes and all that crap, we just determine this over and
 	 * over. Stop whining. We have lots of other calculations to do
@@ -276,12 +276,12 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 * canvas, the test is irrelevant. The 1.0 makes sure the
 	 * calculations don't bomb. Maybe we should explicitly guard for
 	 * division by 0.0...*/
-	
+
 	RAS_Rect area, viewport;
 	short m_y_inv = m_kxengine->GetCanvas()->GetHeight()-m_y;
-	
+
 	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
-	
+
 	/* Check if the mouse is in the viewport */
 	if ((	m_x < viewport.m_x2 &&	// less than right
 			m_x > viewport.m_x1 &&	// more than then left
@@ -293,37 +293,37 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 
 	float height = float(viewport.m_y2 - viewport.m_y1 + 1);
 	float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
-	
+
 	float x_lb = float(viewport.m_x1);
 	float y_lb = float(viewport.m_y1);
 
 	MT_Vector4 frompoint;
 	MT_Vector4 topoint;
-	
+
 	/* m_y_inv - inverting for a bounds check is only part of it, now make relative to view bounds */
 	m_y_inv = (viewport.m_y2 - m_y_inv) + viewport.m_y1;
-	
-	
+
+
 	/* There's some strangeness I don't fully get here... These values
 	 * _should_ be wrong! - see from point Z values */
-	
-	
-	/*	build the from and to point in normalized device coordinates 
+
+
+	/*	build the from and to point in normalized device coordinates
 	 *	Normalized device coordinates are [-1,1] in x, y, z
 	 *
-	 *	The actual z coordinates used don't have to be exact just infront and 
+	 *	The actual z coordinates used don't have to be exact just infront and
 	 *	behind of the near and far clip planes.
-	 */ 
+	 */
 	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0f,
 						1.0f - (2 * (m_y_inv - y_lb) / height),
 						-1.0f,
 						1.0f );
-	
+
 	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0f,
 						1.0f - (2 * (m_y_inv-y_lb) / height),
 						1.0f,
 						1.0f );
-	
+
 	/* camera to world  */
 	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cam->GetCameraToWorld());
 
@@ -339,16 +339,16 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 * clipend = - (topoint[2] / topoint[3]) */
 	frompoint = camcs_wcs_matrix * frompoint;
 	topoint   = camcs_wcs_matrix * topoint;
-	
+
 	/* from hom wcs to 3d wcs: */
 	m_prevSourcePoint.setValue(	frompoint[0]/frompoint[3],
 								frompoint[1]/frompoint[3],
-								frompoint[2]/frompoint[3]); 
-	
+								frompoint[2]/frompoint[3]);
+
 	m_prevTargetPoint.setValue(	topoint[0]/topoint[3],
 								topoint[1]/topoint[3],
-								topoint[2]/topoint[3]); 
-	
+								topoint[2]/topoint[3]);
+
 	/* 2. Get the object from PhysicsEnvironment */
 	/* Shoot! Beware that the first argument here is an
 	 * ignore-object. We don't ignore anything... */
@@ -357,12 +357,12 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 
 	// get UV mapping
 	KX_RayCast::Callback<KX_MouseFocusSensor, void> callback(this,physics_controller,NULL,false,true);
-	 
+
 	KX_RayCast::RayTest(physics_environment, m_prevSourcePoint, m_prevTargetPoint, callback);
-	
+
 	if (m_hitObject)
 		return true;
-	
+
 	return false;
 }
 
@@ -371,23 +371,23 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	m_hitObject = 0;
 	m_hitPosition.setValue(0,0,0);
 	m_hitNormal.setValue(1,0,0);
-	
+
 	KX_Camera *cam= m_kxscene->GetActiveCamera();
-	
+
 	if (ParentObjectHasFocusCamera(cam))
 		return true;
 
 	list<class KX_Camera*>* cameras = m_kxscene->GetCameras();
 	list<KX_Camera*>::iterator it = cameras->begin();
-	
+
 	while (it != cameras->end()) {
 		if (((*it) != cam) && (*it)->GetViewport())
 			if (ParentObjectHasFocusCamera(*it))
 				return true;
-		
+
 		it++;
 	}
-	
+
 	return false;
 }
 
@@ -489,10 +489,10 @@ PyObject *KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_P
 PyObject *KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
-	
+
 	if (self->m_hitObject)
 		return self->m_hitObject->GetProxy();
-	
+
 	Py_RETURN_NONE;
 }
 

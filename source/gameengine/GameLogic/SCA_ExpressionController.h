@@ -51,7 +51,7 @@ public:
 	virtual CValue* GetReplica();
 	virtual void Trigger(SCA_LogicManager* logicmgr);
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
-	/** 
+	/**
 	 *  used to release the expression cache
 	 *  so that self references are removed before the controller itself is released
 	 */

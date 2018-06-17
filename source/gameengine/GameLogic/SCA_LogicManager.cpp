@@ -104,12 +104,12 @@ void SCA_LogicManager::RegisterGameMeshName(const STR_String& gamemeshname, void
 
 
 
-void SCA_LogicManager::RegisterGameObj(void* blendobj, CValue* gameobj) 
+void SCA_LogicManager::RegisterGameObj(void* blendobj, CValue* gameobj)
 {
 	m_map_blendobj_to_gameobj.insert(CHashedPtr(blendobj), gameobj);
 }
 
-void SCA_LogicManager::UnregisterGameObj(void* blendobj, CValue* gameobj) 
+void SCA_LogicManager::UnregisterGameObj(void* blendobj, CValue* gameobj)
 {
 	void **obp = m_map_blendobj_to_gameobj[CHashedPtr(blendobj)];
 	if (obp && (CValue*)(*obp) == gameobj)
@@ -120,7 +120,7 @@ CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 {
 	STR_HashedString mn = gameobjname;
 	CValue** gameptr = m_mapStringToGameObjects[mn];
-	
+
 	if (gameptr)
 		return *gameptr;
 
@@ -128,7 +128,7 @@ CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 }
 
 
-CValue* SCA_LogicManager::FindGameObjByBlendObj(void* blendobj) 
+CValue* SCA_LogicManager::FindGameObjByBlendObj(void* blendobj)
 {
 	void **obp= m_map_blendobj_to_gameobj[CHashedPtr(blendobj)];
 	return obp?(CValue*)(*obp):NULL;
@@ -136,7 +136,7 @@ CValue* SCA_LogicManager::FindGameObjByBlendObj(void* blendobj)
 
 
 
-void* SCA_LogicManager::FindBlendObjByGameMeshName(const STR_String& gamemeshname) 
+void* SCA_LogicManager::FindBlendObjByGameMeshName(const STR_String& gamemeshname)
 {
 	STR_HashedString mn = gamemeshname;
 	void **obp= m_map_gamemeshname_to_blendobj[mn];
@@ -225,15 +225,15 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 			if (!actua->Update(curtime, frame))
 			{
 				// this actuator is not active anymore, remove
-				actua->QDelink(); 
-				actua->SetActive(false); 
+				actua->QDelink();
+				actua->SetActive(false);
 			} else if (actua->IsNoLink())
 			{
 				// This actuator has no more links but it still active
 				// make sure it will get a negative event on next frame to stop it
 				// Do this check after Update() rather than before to make sure
 				// that all the actuators that are activated at same time than a state
-				// actuator have a chance to execute. 
+				// actuator have a chance to execute.
 				bool event = false;
 				actua->RemoveAllEvents();
 				actua->AddEvent(event);

@@ -74,9 +74,9 @@ BL_ActionActuator::BL_ActionActuator(SCA_IObject *gameobj,
 					float	layer_weight,
 					short	ipo_flags,
 					short	end_reset,
-					float	stride) 
+					float	stride)
 	: SCA_IActuator(gameobj, KX_ACT_ACTION),
-		
+
 	m_lastpos(0, 0, 0),
 	m_blendframe(0),
 	m_flag(0),
@@ -112,7 +112,7 @@ void BL_ActionActuator::ProcessReplica()
 
 	m_localtime=m_startframe;
 	m_lastUpdate=-1;
-	
+
 }
 
 void BL_ActionActuator::SetBlendTime(float newtime)
@@ -128,7 +128,7 @@ void BL_ActionActuator::SetLocalTime(float curtime)
 		dt = -dt;
 
 	m_localtime = m_startframe + dt;
-	
+
 	// Handle wrap around
 	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
 	{
@@ -198,7 +198,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			// We handle ping pong ourselves to increase compabitility
 			// with files made prior to animation changes from GSoC 2011.
 			playtype = BL_Action::ACT_MODE_PLAY;
-		
+
 			if (m_flag & ACT_FLAG_REVERSE)
 			{
 				start = m_endframe;
@@ -220,8 +220,8 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 
 	if (m_flag & ACT_FLAG_CONTINUE)
 		bUseContinue = true;
-	
-	
+
+
 	// Handle events
 	if (frame)
 	{
@@ -265,7 +265,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			return false;
 		}
 	}
-	
+
 	// If a different action is playing, we've been overruled and are no longer active
 	if (obj->GetCurrentAction(m_layer) != m_action && !obj->IsActionDone(m_layer))
 		m_flag &= ~ACT_FLAG_ACTIVE;
@@ -320,7 +320,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 
 				m_flag |= ACT_FLAG_PLAY_END;
 				break;
-	
+
 			case ACT_ACTION_FLIPPER:
 				// Convert into a play action and play back to the beginning
 				float temp = end;
@@ -365,19 +365,19 @@ PyObject *BL_ActionActuator::PyGetChannel(PyObject *value)
 		PyErr_SetString(PyExc_NotImplementedError, "actuator.getChannel(): Only armatures support channels");
 		return NULL;
 	}
-	
+
 	if (!string) {
 		PyErr_SetString(PyExc_TypeError, "expected a single string");
 		return NULL;
 	}
-	
+
 	bPoseChannel *pchan;
-	
+
 	if (m_userpose==NULL && m_pose==NULL) {
 		BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
 		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 	}
-	
+
 	// BKE_pose_channel_find_name accounts for NULL pose, run on both in case one exists but
 	// the channel doesnt
 	if (		!(pchan=BKE_pose_channel_find_name(m_userpose, string)) &&
@@ -388,19 +388,19 @@ PyObject *BL_ActionActuator::PyGetChannel(PyObject *value)
 	}
 
 	PyObject *ret = PyTuple_New(3);
-	
-	PyObject *list = PyList_New(3); 
+
+	PyObject *list = PyList_New(3);
 	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(pchan->loc[0]));
 	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(pchan->loc[1]));
 	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(pchan->loc[2]));
 	PyTuple_SET_ITEM(ret, 0, list);
-	
+
 	list = PyList_New(3);
 	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(pchan->size[0]));
 	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(pchan->size[1]));
 	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(pchan->size[2]));
 	PyTuple_SET_ITEM(ret, 1, list);
-	
+
 	list = PyList_New(4);
 	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(pchan->quat[0]));
 	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(pchan->quat[1]));
@@ -440,7 +440,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		PyErr_SetString(PyExc_NotImplementedError, "actuator.setChannel(): Only armatures support channels");
 		return NULL;
 	}
-	
+
 	if (PyTuple_Size(args)==2) {
 		if (!PyArg_ParseTuple(args,"sO:setChannel", &string, &pymat)) // matrix
 			return NULL;
@@ -453,18 +453,18 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		PyErr_SetString(PyExc_ValueError, "Expected a string and a 4x4 matrix (2 args) or a string and loc/size/quat sequences (4 args)");
 		return NULL;
 	}
-	
+
 	if (pymat) {
 		float matrix[4][4];
 		MT_Matrix4x4 mat;
-		
+
 		if (!PyMatTo(pymat, mat))
 			return NULL;
-		
+
 		mat.getValue((float*)matrix);
-		
+
 		BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
-		
+
 		if (!m_userpose) {
 			if (!m_pose)
 				obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
@@ -472,7 +472,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		}
 		// pchan= BKE_pose_channel_verify(m_userpose, string); // adds the channel if its not there.
 		pchan= BKE_pose_channel_find_name(m_userpose, string); // adds the channel if its not there.
-		
+
 		if (pchan) {
 			copy_v3_v3(pchan->loc, matrix[3]);
 			mat4_to_size(pchan->size, matrix);
@@ -483,10 +483,10 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		MT_Vector3 loc;
 		MT_Vector3 size;
 		MT_Quaternion quat;
-		
+
 		if (!PyVecTo(pyloc, loc) || !PyVecTo(pysize, size) || !PyQuatTo(pyquat, quat))
 			return NULL;
-		
+
 		// same as above
 		if (!m_userpose) {
 			if (!m_pose)
@@ -495,7 +495,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		}
 		// pchan= BKE_pose_channel_verify(m_userpose, string);
 		pchan= BKE_pose_channel_find_name(m_userpose, string); // adds the channel if its not there.
-		
+
 		// for some reason loc.setValue(pchan->loc) fails
 		if (pchan) {
 			pchan->loc[0] = loc[0]; pchan->loc[1] = loc[1]; pchan->loc[2] = loc[2];
@@ -503,12 +503,12 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 			pchan->quat[0] = quat[3]; pchan->quat[1] = quat[0]; pchan->quat[2] = quat[1]; pchan->quat[3] = quat[2]; /* notice xyzw -> wxyz is intentional */
 		}
 	}
-	
+
 	if (pchan==NULL) {
 		PyErr_SetString(PyExc_ValueError, "Channel could not be found, use the 'channelNames' attribute to get a list of valid channels");
 		return NULL;
 	}
-	
+
 	Py_RETURN_NONE;
 #endif
 }
@@ -572,7 +572,7 @@ PyObject *BL_ActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUT
 int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
-	
+
 	if (!PyUnicode_Check(value))
 	{
 		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, expected the string name of the action");
@@ -581,7 +581,7 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 
 	bAction *action= NULL;
 	STR_String val = _PyUnicode_AsString(value);
-	
+
 	if (val != "")
 	{
 		action= (bAction*)self->GetLogicManager()->GetActionByName(val);
@@ -591,7 +591,7 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 			return PY_SET_ATTR_FAIL;
 		}
 	}
-	
+
 	self->SetAction(action);
 	return PY_SET_ATTR_SUCCESS;
 
@@ -606,7 +606,7 @@ PyObject *BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	PyObject *ret= PyList_New(0);
 	PyObject *item;
-	
+
 	if (self->GetParent()->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)
 	{
 		PyErr_SetString(PyExc_NotImplementedError, "actuator.channelNames: Only armatures support channels");
@@ -614,7 +614,7 @@ PyObject *BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 	}
 
 	bPose *pose= ((BL_ArmatureObject*)self->GetParent())->GetOrigPose();
-	
+
 	if (pose) {
 		bPoseChannel *pchan;
 		for (pchan= (bPoseChannel *)pose->chanbase.first; pchan; pchan= (bPoseChannel *)pchan->next) {
@@ -623,7 +623,7 @@ PyObject *BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 			Py_DECREF(item);
 		}
 	}
-	
+
 	return ret;
 #endif
 }
@@ -637,12 +637,12 @@ PyObject *BL_ActionActuator::pyattr_get_use_continue(void *self_v, const KX_PYAT
 int BL_ActionActuator::pyattr_set_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
-	
+
 	if (PyObject_IsTrue(value))
 		self->m_flag |= ACT_FLAG_CONTINUE;
 	else
 		self->m_flag &= ~ACT_FLAG_CONTINUE;
-	
+
 	return PY_SET_ATTR_SUCCESS;
 }
 
@@ -655,9 +655,9 @@ PyObject *BL_ActionActuator::pyattr_get_frame(void *self_v, const KX_PYATTRIBUTE
 int BL_ActionActuator::pyattr_set_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
-	
+
 	((KX_GameObject*)self->m_gameobj)->SetActionFrame(self->m_layer, PyFloat_AsDouble(value));
-	
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

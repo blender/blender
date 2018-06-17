@@ -51,8 +51,8 @@ public:
 	enum EVENT_MANAGER_TYPE {
 		KEYBOARD_EVENTMGR = 0,
 		MOUSE_EVENTMGR,
-		ALWAYS_EVENTMGR, 
-		TOUCH_EVENTMGR, 
+		ALWAYS_EVENTMGR,
+		TOUCH_EVENTMGR,
 		PROPERTY_EVENTMGR,
 		TIME_EVENTMGR,
 		RANDOM_EVENTMGR,
@@ -65,7 +65,7 @@ public:
 
 	SCA_EventManager(SCA_LogicManager* logicmgr, EVENT_MANAGER_TYPE mgrtype);
 	virtual ~SCA_EventManager();
-	
+
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void	NextFrame(double curtime, double fixedtime);
 	virtual void	NextFrame();

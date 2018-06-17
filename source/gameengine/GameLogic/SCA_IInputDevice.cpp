@@ -111,7 +111,7 @@ void SCA_IInputDevice::NextFrame()
 	m_currentTable = 1 - m_currentTable;
 
 	//	cerr << "SCA_IInputDevice::NextFrame " << GetNumActiveEvents() << endl;
-	
+
 	for (int i=0;i<SCA_IInputDevice::KX_MAX_KEYS;i++)
 	{
 		switch (m_eventStatusTables[1 - m_currentTable][i].m_status)

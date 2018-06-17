@@ -83,11 +83,11 @@ extern "C"
 
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
-	
+
 #ifdef __APPLE__
 	int GHOST_HACK_getFirstFile(char buf[]);
 #endif
-	
+
 // For BLF
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -161,7 +161,7 @@ typedef enum {
 static ScreenSaverMode scr_saver_mode = SCREEN_SAVER_MODE_NONE;
 static HWND scr_saver_hwnd = NULL;
 
-static BOOL scr_saver_init(int argc, char **argv) 
+static BOOL scr_saver_init(int argc, char **argv)
 {
 	scr_saver_mode = SCREEN_SAVER_MODE_NONE;
 	scr_saver_hwnd = NULL;
@@ -232,7 +232,7 @@ static void usage(const char* program, bool isBlenderPlayer)
 	printf("Default values are set in the blend file.\n\n");
 	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
-	printf("       --Optional parameters--\n"); 
+	printf("       --Optional parameters--\n");
 	printf("       w = window width\n");
 	printf("       h = window height\n");
 	printf("       l = window left coordinate\n");
@@ -303,7 +303,7 @@ static void get_filename(int argc, char **argv, char *filename)
 	int srclen = ::strlen(argv[0]);
 	int len = 0;
 	char *gamefile = NULL;
-	
+
 	filename[0] = '\0';
 
 	if (argc > 1) {
@@ -317,21 +317,21 @@ static void get_filename(int argc, char **argv, char *filename)
 			}
 		}
 	}
-	
+
 	srclen -= ::strlen("MacOS/blenderplayer");
 	if (srclen > 0) {
-		len = srclen + ::strlen("Resources/game.blend"); 
+		len = srclen + ::strlen("Resources/game.blend");
 		gamefile = new char [len + 1];
 		::strcpy(gamefile, argv[0]);
 		::strcpy(gamefile + srclen, "Resources/game.blend");
 		//::printf("looking for file: %s\n", filename);
-		
+
 		if (BLI_exists(gamefile))
 			BLI_strncpy(filename, gamefile, FILE_MAX);
 
 		delete [] gamefile;
 	}
-	
+
 #else
 	filename[0] = '\0';
 
@@ -346,7 +346,7 @@ static BlendFileData *load_game_data(const char *progname, char *filename = NULL
 	BlendFileData *bfd = NULL;
 
 	BKE_reports_init(&reports, RPT_STORE);
-	
+
 	/* try to load ourself, will only work if we are a runtime */
 	if (BLO_is_a_runtime(progname)) {
 		bfd= BLO_read_runtime(progname, &reports);
@@ -357,7 +357,7 @@ static BlendFileData *load_game_data(const char *progname, char *filename = NULL
 	} else {
 		bfd= BLO_read_from_file(progname, &reports, BLO_READ_SKIP_NONE);
 	}
-	
+
 	if (!bfd && filename) {
 		bfd = load_game_data(filename);
 		if (!bfd) {
@@ -367,7 +367,7 @@ static BlendFileData *load_game_data(const char *progname, char *filename = NULL
 	}
 
 	BKE_reports_clear(&reports);
-	
+
 	return bfd;
 }
 
@@ -397,9 +397,9 @@ static int GPG_PyNextFrame(void *state0)
 	int exitcode;
 	STR_String exitstring;
 	bool run = GPG_NextFrame(state->system, state->app, exitcode, exitstring, state->gs);
-	if (run) return 0;  
+	if (run) return 0;
 	else {
-		if (exitcode) 
+		if (exitcode)
 			fprintf(stderr, "Exit code %d: %s\n", exitcode, exitstring.ReadPtr());
 		return 1;
 	}
@@ -447,7 +447,7 @@ int main(
 	bool samplesParFound = false;
 	GHOST_TUns16 aasamples = 0;
 	int alphaBackground = 0;
-	
+
 #ifdef WIN32
 	char **argv;
 	int argv_num;
@@ -488,7 +488,7 @@ int main(
 
 	BKE_appdir_program_path_init(argv[0]);
 	BKE_tempdir_init(NULL);
-	
+
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
 	BLI_threadapi_init();
@@ -498,7 +498,7 @@ int main(
 	RNA_init();
 
 	init_nodesystem();
-	
+
 	BKE_blender_globals_init();
 
 	// We load our own G.main, so free the one that BKE_blender_globals_init() gives us
@@ -584,7 +584,7 @@ int main(
 		printf("Num of arguments is: %i\n", validArguments-1); //-1 because i starts at 1
 #endif
 
-	for (i = 1; (i < validArguments) && !error 
+	for (i = 1; (i < validArguments) && !error
 #ifdef WIN32
 		&& scr_saver_mode == SCREEN_SAVER_MODE_NONE
 #endif
@@ -601,7 +601,7 @@ int main(
 				argc_py_clamped= i;
 				break;
 			}
-			
+
 			switch (argv[i][1])
 			{
 			case 'g': //game engine options (show_framerate, fixedtime, etc)
@@ -823,16 +823,16 @@ int main(
 						i++;
 						if (!strcmp(argv[i], "fisheye"))
 							domeMode = DOME_FISHEYE;
-							
+
 						else if (!strcmp(argv[i], "truncatedfront"))
 							domeMode = DOME_TRUNCATED_FRONT;
-							
+
 						else if (!strcmp(argv[i], "truncatedrear"))
 							domeMode = DOME_TRUNCATED_REAR;
-							
+
 						else if (!strcmp(argv[i], "cubemap"))
 							domeMode = DOME_ENVMAP;
-							
+
 						else if (!strcmp(argv[i], "sphericalpanoramic"))
 							domeMode = DOME_PANORAM_SPH;
 
@@ -867,7 +867,7 @@ int main(
 		error = true;
 		printf("error: window size too small.\n");
 	}
-	
+
 	if (error )
 	{
 		usage(argv[0], isBlenderPlayer);
@@ -882,15 +882,15 @@ int main(
 		if (GHOST_ISystem::createSystem() == GHOST_kSuccess) {
 			GHOST_ISystem* system = GHOST_ISystem::getSystem();
 			assertd(system);
-			
+
 			if (!fullScreenWidth || !fullScreenHeight)
 				system->getMainDisplayDimensions(fullScreenWidth, fullScreenHeight);
 			// process first batch of events. If the user
 			// drops a file on top off the blenderplayer icon, we
 			// receive an event with the filename
-			
+
 			system->processEvents(0);
-			
+
 			// this bracket is needed for app (see below) to get out
 			// of scope before GHOST_ISystem::disposeSystem() is called.
 			{
@@ -905,7 +905,7 @@ int main(
 				get_filename(argc_py_clamped, argv, filename);
 				if (filename[0])
 					BLI_path_cwd(filename, sizeof(filename));
-				
+
 
 				// fill the GlobalSettings with the first scene files
 				// those may change during the game and persist after using Game Actuator
@@ -914,16 +914,16 @@ int main(
 				do {
 					// Read the Blender file
 					BlendFileData *bfd;
-					
+
 					// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file
 					if (exitcode == KX_EXIT_REQUEST_START_OTHER_GAME)
 					{
 						char basedpath[FILE_MAX];
-						
+
 						// base the actuator filename relative to the last file
 						BLI_strncpy(basedpath, exitstring.Ptr(), sizeof(basedpath));
 						BLI_path_abs(basedpath, pathname);
-						
+
 						bfd = load_game_data(basedpath);
 
 						if (!bfd) {
@@ -942,7 +942,7 @@ int main(
 #if defined(DEBUG)
 					printf("Game data loaded from %s\n", filename);
 #endif
-					
+
 					if (!bfd) {
 						usage(argv[0], isBlenderPlayer);
 						error = true;
@@ -970,9 +970,9 @@ int main(
 
 						//Seg Fault; icon.c gIcons == 0
 						BKE_icons_init(1);
-						
+
 						titlename = maggie->name;
-						
+
 						// Check whether the game should be displayed full-screen
 						if ((!fullScreenParFound) && (!windowParFound)) {
 							// Only use file settings when command line did not override
@@ -991,8 +991,8 @@ int main(
 								windowHeight = scene->gm.yplay;
 							}
 						}
-						
-						
+
+
 						// Check whether the game should be displayed in stereo (dome included)
 						if (!stereoParFound) {
 							// Only use file settings when command line did not override
@@ -1028,7 +1028,7 @@ int main(
 									scene->gm.dome.warptext = domeText;
 							}
 						}
-						
+
 						//					GPG_Application app (system, maggie, startscenename);
 						app.SetGameEngineData(maggie, scene, &gs, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
@@ -1061,7 +1061,7 @@ int main(
 								// on Mac's we'll show the executable name instead of the 'game.blend' name
 								char tempname[1024], *appstring;
 								::strcpy(tempname, titlename);
-								
+
 								appstring = strstr(tempname, ".app/");
 								if (appstring) {
 									appstring[2] = 0;
@@ -1074,7 +1074,7 @@ int main(
 								vector<STR_String> parts = path.Explode('/');
 #else  // WIN32
 								vector<STR_String> parts = path.Explode('\\');
-#endif // WIN32                        
+#endif // WIN32
 								STR_String title;
 								if (parts.size()) {
 									title = parts[parts.size()-1];
@@ -1114,10 +1114,10 @@ int main(
 							app.StartGameEngine(stereomode);
 							exitcode = KX_EXIT_REQUEST_NO_REQUEST;
 						}
-						
+
 						// Add the application as event consumer
 						system->addEventConsumer(&app);
-						
+
 						// Enter main loop
 						bool run = true;
 						char *python_main = NULL;

@@ -54,7 +54,7 @@ using namespace std;
 #endif
 
 enum VALUE_OPERATOR {
-	
+
 	VALUE_MOD_OPERATOR,			// %
 	VALUE_ADD_OPERATOR,			// +
 	VALUE_SUB_OPERATOR,			// -
@@ -94,14 +94,14 @@ enum VALUE_DATA_TYPE {
 //extern int gRefCountValue;		// debugonly variable to check if all CValue Refences are Dereferenced at programexit
 #endif
 
-struct HashableInt 
+struct HashableInt
 {
 	HashableInt(int id)															: mData(id) { }
 
 	unsigned long				Hash() const											{ return 0;} ////}gHash(&mData, sizeof(int));}
-	
+
 	bool				operator==(HashableInt rhs)								{ return mData == rhs.mData; }
-	
+
 	int					mData;
 };
 
@@ -137,7 +137,7 @@ struct ValueFlags {
 	unsigned short CustomFlag1 : 1;
 	unsigned short CustomFlag2 : 1;
 
-	
+
 };
 
 /**
@@ -151,8 +151,8 @@ public:
 	virtual ~CAction() {
 	};
 	virtual void Execute() const =0;
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CAction")
 #endif
@@ -169,11 +169,11 @@ public:
  *
  * Together with CExpression, CValue and it's derived classes can be used to
  * parse expressions into a parsetree with error detecting/correcting capabilities
- * also expandable by a CFactory pluginsystem 
+ * also expandable by a CFactory pluginsystem
  *
  * Base class for all editor functionality, flexible object type that allows
  * calculations and uses reference counting for memory management.
- * 
+ *
  * Features:
  * - Reference Counting (AddRef() / Release())
  * - Calculations (Calc() / CalcFinal())
@@ -182,10 +182,10 @@ public:
  * - Property system (SetProperty() / GetProperty() / FindIdentifier())
  * - Replication (GetReplica())
  * - Flags (IsSelected() / IsModified() / SetSelected()...)
- * 
+ *
  * - Some small editor-specific things added
  * - A helperclass CompressorArchive handles the serialization
- * 
+ *
  */
 class CValue  : public PyObjectPlus
 
@@ -196,7 +196,7 @@ public:
 		STACKVALUE		= 0,
 		HEAPVALUE		= 1
 	};
-	
+
 	enum DrawTYPE {
 		STARTFRAME		= 0,
 		ENDFRAME		= 1,
@@ -219,20 +219,20 @@ public:
 	}
 
 	virtual CValue *ConvertPythonToValue(PyObject *pyobj, const bool do_type_exception, const char *error_prefix);
-	
+
 	static PyObject *pyattr_get_name(void *self, const KX_PYATTRIBUTE_DEF *attrdef);
-	
+
 	virtual PyObject *ConvertKeysToPython( void );
 #endif  /* WITH_PYTHON */
 
-	
-	
+
+
 	// Expression Calculation
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val) = 0;
 	virtual CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val) = 0;
 	virtual void		SetOwnerExpression(class CExpression* expr);
 
-	
+
 
 	void				Execute(const CAction& a)
 	{
@@ -241,8 +241,8 @@ public:
 
 	/// Reference Counting
 	int GetRefCount()
-	{ 
-		return m_refcount; 
+	{
+		return m_refcount;
 	}
 
 	// Add a reference to this value
@@ -254,7 +254,7 @@ public:
 #ifdef DEBUG
 		//gRefCountValue++;
 #endif
-		m_refcount++; 
+		m_refcount++;
 		return this;
 	}
 
@@ -277,7 +277,7 @@ public:
 		{
 			// Reference count reached 0, delete ourselves and return 0
 	//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
-			
+
 			delete this;
 			return 0;
 		}
@@ -321,9 +321,9 @@ public:
 	virtual CValue*		GetReplica() =0;
 	virtual void			ProcessReplica();
 	//virtual CValue*		Copy() = 0;
-	
+
 	STR_String				op2str(VALUE_OPERATOR op);
-		
+
 	// setting / getting flags
 	inline void			SetSelected(bool bSelected)								{ m_ValFlags.Selected = bSelected; }
 	virtual void		SetModified(bool bModified)								{ m_ValFlags.Modified = bModified; }
@@ -331,7 +331,7 @@ public:
 	inline void			SetReleaseRequested(bool bReleaseRequested)				{ m_ValFlags.ReleaseRequested=bReleaseRequested; }
 	inline void			SetError(bool err)										{ m_ValFlags.Error=err; }
 	inline void			SetVisible (bool vis)									{ m_ValFlags.Visible=vis; }
-																				
+
 	virtual bool		IsModified()											{ return m_ValFlags.Modified; }
 	inline bool			IsError()												{ return m_ValFlags.Error; }
 	virtual bool		IsAffected()											{ return m_ValFlags.Affected || m_ValFlags.Modified; }
@@ -392,7 +392,7 @@ public:                                                                        \
 ////////////////////////////////////////////////////////////////////////////////
 
 // CPropValue is a CValue derived class, that implements the identification (String name)
-// SetName() / GetName(), 
+// SetName() / GetName(),
 // normal classes should derive from CPropValue, real lightweight classes straight from CValue
 
 
@@ -405,22 +405,22 @@ public:
 
 	{
 	}
-	
+
 	virtual ~CPropValue()
 	{
 	}
-	
+
 	virtual void			SetName(const char *name) {
 		m_strNewName = name;
 	}
-	
+
 	virtual STR_String&			GetName() {
 		//STR_String namefromprop = GetPropertyText("Name");
 		//if (namefromprop.Length() > 0)
 		//	return namefromprop;
 		return m_strNewName;
 	}						// name of Value
-	
+
 protected:
 	STR_String					m_strNewName;				    // Identification
 

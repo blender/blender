@@ -85,17 +85,17 @@ void SCA_MouseManager::NextFrame()
 			// coordinates
 			if (!mousesensor->IsSuspended())
 			{
-				const SCA_InputEvent& event1 = 
+				const SCA_InputEvent& event1 =
 					m_mousedevice->GetEventValue(SCA_IInputDevice::KX_MOUSEX);
-				const SCA_InputEvent& event2 = 
+				const SCA_InputEvent& event2 =
 					m_mousedevice->GetEventValue(SCA_IInputDevice::KX_MOUSEY);
 
 				int mx = this->m_canvas->GetMouseX(event1.m_eventval);
 				int my = this->m_canvas->GetMouseY(event2.m_eventval);
-				
+
 				mousesensor->setX(mx);
 				mousesensor->setY(my);
-				
+
 				mousesensor->Activate(m_logicmgr);
 			}
 		}
@@ -107,6 +107,6 @@ bool SCA_MouseManager::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 	/* We should guard for non-mouse events maybe? A rather silly side       */
 	/* effect here is that position-change events are considered presses as  */
 	/* well.                                                                 */
-	
+
 	return m_mousedevice->IsPressed(inputcode);
 }

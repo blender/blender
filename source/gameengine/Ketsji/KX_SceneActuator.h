@@ -39,7 +39,7 @@
 class KX_SceneActuator : public SCA_IActuator
 {
 	Py_Header
-	
+
 	int							m_mode;
 	// (restart) has become a toggle internally... not in the interface though
 	bool						m_restart;
@@ -49,7 +49,7 @@ class KX_SceneActuator : public SCA_IActuator
 	class	KX_KetsjiEngine*	m_KetsjiEngine;
 	/** The scene to switch to. */
 	STR_String					m_nextSceneName;
-	
+
 	// (Set Camera) Object
 	class KX_Camera*			m_camera;
 
@@ -57,7 +57,7 @@ class KX_SceneActuator : public SCA_IActuator
 	class KX_Scene* FindScene(const char* sceneName);
 	/** Is this a valid camera? */
 	class KX_Camera* FindCamera(const char* cameraName);
-	
+
  public:
 	enum SCA_SceneActuatorMode
 	{
@@ -72,7 +72,7 @@ class KX_SceneActuator : public SCA_IActuator
 		KX_SCENE_RESUME,
 		KX_SCENE_MAX
 	};
-	
+
 	KX_SceneActuator(SCA_IObject* gameobj,
 					 int mode,
 					 KX_Scene* scene,
@@ -87,7 +87,7 @@ class KX_SceneActuator : public SCA_IActuator
 	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 
 	virtual bool Update();
-	
+
 #ifdef WITH_PYTHON
 
 	virtual void Replace_IScene(SCA_IScene *val)
@@ -98,7 +98,7 @@ class KX_SceneActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
+
 	static PyObject *pyattr_get_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 

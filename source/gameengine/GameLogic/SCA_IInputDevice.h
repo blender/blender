@@ -39,12 +39,12 @@
 #include "MEM_guardedalloc.h"
 #endif
 
-class SCA_InputEvent 
+class SCA_InputEvent
 {
-	
+
 public:
 	enum SCA_EnumInputs {
-	
+
 		KX_NO_INPUTSTATUS = 0,
 		KX_JUSTACTIVATED,
 		KX_ACTIVE,
@@ -68,25 +68,25 @@ public:
 #define MOUSEX		MOUSEMOVE
 #define MOUSEY		ACTIONMOUSE
 
-class SCA_IInputDevice 
+class SCA_IInputDevice
 {
 
-	
+
 public:
 
 	SCA_IInputDevice();
 	virtual ~SCA_IInputDevice();
 
 	enum KX_EnumInputs {
-	
+
 		KX_NOKEY = 0,
-	
-		// TIMERS 
-	
+
+		// TIMERS
+
 		KX_TIMER0,
 		KX_TIMER1,
 		KX_TIMER2,
-	
+
 		// SYSTEM
 
 		/* Moved to avoid clashes with KX_RETKEY */
@@ -104,8 +104,8 @@ public:
 		KX_WINQUIT,
 		KX_Q_FIRSTTIME,
 		/* sequence ends on 16 */
-	
-		// standard keyboard 
+
+		// standard keyboard
 
 		/* Because of the above preamble, KX_BEGINKEY is 15 ! This
 		 * means that KX_RETKEY on 13d (0Dh)) will double up with
@@ -131,7 +131,7 @@ public:
 		KX_PERIODKEY = 46,
 		KX_PLUSKEY = 47,
 		KX_ZEROKEY = 48,
-		
+
 		KX_ONEKEY,		// =49
 		KX_TWOKEY,
 		KX_THREEKEY,
@@ -168,64 +168,64 @@ public:
 		KX_XKEY, // =120
 		KX_YKEY,
 		KX_ZKEY, // =122
-	
-		
-		
+
+
+
 		KX_CAPSLOCKKEY, // 123
-		
+
 		KX_LEFTCTRLKEY,	// 124
 		KX_LEFTALTKEY,
 		KX_RIGHTALTKEY,
 		KX_RIGHTCTRLKEY,
 		KX_RIGHTSHIFTKEY,
 		KX_LEFTSHIFTKEY,// 129
-		
+
 		KX_ESCKEY, // 130
 		KX_TABKEY, //131
-		
-		
+
+
 		KX_LINEFEEDKEY,	 // 132
 		KX_BACKSPACEKEY,
 		KX_DELKEY,
 		KX_SEMICOLONKEY, // 135
-		
-		
+
+
 		KX_QUOTEKEY,		//136
 		KX_ACCENTGRAVEKEY,	//137
-		
+
 		KX_SLASHKEY,		//138
 		KX_BACKSLASHKEY,
 		KX_EQUALKEY,
 		KX_LEFTBRACKETKEY,
 		KX_RIGHTBRACKETKEY,	// 142
-		
+
 		KX_LEFTARROWKEY, // 145
 		KX_DOWNARROWKEY,
 		KX_RIGHTARROWKEY,
 		KX_UPARROWKEY,		// 148
-	
+
 		KX_PAD2	,
 		KX_PAD4	,
 		KX_PAD6	,
 		KX_PAD8	,
-		
+
 		KX_PAD1	,
 		KX_PAD3	,
 		KX_PAD5	,
 		KX_PAD7	,
 		KX_PAD9	,
-		
+
 		KX_PADPERIOD,
 		KX_PADSLASHKEY,
-		
-		
-		
+
+
+
 		KX_PAD0	,
 		KX_PADMINUS,
 		KX_PADENTER,
 		KX_PADPLUSKEY,
-		
-		
+
+
 		KX_F1KEY ,
 		KX_F2KEY ,
 		KX_F3KEY ,
@@ -247,7 +247,7 @@ public:
 		KX_F19KEY,
 
 		KX_OSKEY,
-		
+
 		KX_PAUSEKEY,
 		KX_INSERTKEY,
 		KX_HOMEKEY ,
@@ -257,41 +257,41 @@ public:
 
 		// MOUSE
 		KX_BEGINMOUSE,
-		
+
 		KX_BEGINMOUSEBUTTONS,
 
 		KX_LEFTMOUSE,
 		KX_MIDDLEMOUSE,
 		KX_RIGHTMOUSE,
-		
+
 		KX_ENDMOUSEBUTTONS,
-		
+
 		KX_WHEELUPMOUSE,
 		KX_WHEELDOWNMOUSE,
 
 		KX_MOUSEX,
 		KX_MOUSEY,
-	
+
 		KX_ENDMOUSE,
 
 
 
 		KX_MAX_KEYS
-		
+
 	}; // enum
 
 
 protected:
-	/**  
+	/**
 	 * m_eventStatusTables are two tables that contain current and previous
 	 * status of all events
 	 */
 
 	SCA_InputEvent	m_eventStatusTables[2][SCA_IInputDevice::KX_MAX_KEYS];
-	/**  
+	/**
 	 * m_currentTable is index for m_keyStatusTable that toggle between 0 or 1
 	 */
-	int				m_currentTable; 
+	int				m_currentTable;
 	void			ClearStatusTable(int tableid);
 
 public:
@@ -307,9 +307,9 @@ public:
 	 * Get the number of remapping events (just_activated, just_released)
 	 */
 	virtual int		GetNumJustEvents();
-	
+
 	virtual void		HookEscape();
-	
+
 	/**
 	 * Next frame: we calculate the new key states. This goes as follows:
 	 *

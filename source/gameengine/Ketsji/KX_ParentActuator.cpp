@@ -37,13 +37,13 @@
 #include "KX_GameObject.h"
 #include "KX_PythonInit.h"
 
-#include "EXP_PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-KX_ParentActuator::KX_ParentActuator(SCA_IObject *gameobj, 
+KX_ParentActuator::KX_ParentActuator(SCA_IObject *gameobj,
 									 int mode,
 									 bool addToCompound,
 									 bool ghost,
@@ -56,7 +56,7 @@ KX_ParentActuator::KX_ParentActuator(SCA_IObject *gameobj,
 {
 	if (m_ob)
 		m_ob->RegisterActuator(this);
-} 
+}
 
 
 
@@ -64,7 +64,7 @@ KX_ParentActuator::~KX_ParentActuator()
 {
 	if (m_ob)
 		m_ob->UnregisterActuator(this);
-} 
+}
 
 
 
@@ -127,7 +127,7 @@ bool KX_ParentActuator::Update()
 			obj->RemoveParent(scene);
 			break;
 	};
-	
+
 	return false;
 }
 
@@ -185,18 +185,18 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 {
 	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
 	KX_GameObject *gameobj;
-		
+
 	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &gameobj, true, "actuator.object = value: KX_ParentActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
-		
+
 	if (actuator->m_ob != NULL)
 		actuator->m_ob->UnregisterActuator(actuator);
 
 	actuator->m_ob = (SCA_IObject*) gameobj;
-		
+
 	if (actuator->m_ob)
 		actuator->m_ob->RegisterActuator(actuator);
-		
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

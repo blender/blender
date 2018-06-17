@@ -40,7 +40,7 @@
 #include "BL_DeformableGameObject.h"
 #include <vector>
 
-class BL_ShapeDeformer : public BL_SkinDeformer  
+class BL_ShapeDeformer : public BL_SkinDeformer
 {
 public:
 	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,

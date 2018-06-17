@@ -53,7 +53,7 @@ KX_SCA_EndObjectActuator::KX_SCA_EndObjectActuator(SCA_IObject *gameobj,
 
 
 KX_SCA_EndObjectActuator::~KX_SCA_EndObjectActuator()
-{ 
+{
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
@@ -68,7 +68,7 @@ bool KX_SCA_EndObjectActuator::Update()
 	if (bNegativeEvent)
 		return false; // do nothing on negative events
 	m_scene->DelayedRemoveObject(GetParent());
-	
+
 	return false;
 }
 
@@ -76,7 +76,7 @@ bool KX_SCA_EndObjectActuator::Update()
 
 CValue* KX_SCA_EndObjectActuator::GetReplica()
 {
-	KX_SCA_EndObjectActuator* replica = 
+	KX_SCA_EndObjectActuator* replica =
 		new KX_SCA_EndObjectActuator(*this);
 	if (replica == NULL) return NULL;
 

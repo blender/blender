@@ -38,7 +38,7 @@
 #include "KX_SCA_AddObjectActuator.h"
 #include "SCA_IScene.h"
 #include "KX_GameObject.h"
-#include "EXP_PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -52,11 +52,11 @@ KX_SCA_AddObjectActuator::KX_SCA_AddObjectActuator(SCA_IObject *gameobj,
 												   bool linv_local,
 												   const float *angvel,
 												   bool angv_local)
-	: 
+	:
 	SCA_IActuator(gameobj, KX_ACT_ADD_OBJECT),
 	m_OriginalObject(original),
 	m_scene(scene),
-	
+
 	m_localLinvFlag(linv_local),
 	m_localAngvFlag(angv_local)
 {
@@ -72,17 +72,17 @@ KX_SCA_AddObjectActuator::KX_SCA_AddObjectActuator(SCA_IObject *gameobj,
 
 	m_lastCreatedObject = NULL;
 	m_timeProp = time;
-} 
+}
 
 
 
 KX_SCA_AddObjectActuator::~KX_SCA_AddObjectActuator()
-{ 
+{
 	if (m_OriginalObject)
 		m_OriginalObject->UnregisterActuator(this);
 	if (m_lastCreatedObject)
 		m_lastCreatedObject->UnregisterActuator(this);
-} 
+}
 
 
 
@@ -91,26 +91,26 @@ bool KX_SCA_AddObjectActuator::Update()
 	//bool result = false;	/*unused*/
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
-	
+
 	if (bNegativeEvent) return false; // do nothing on negative events
 
 	InstantAddObject();
 
-	
+
 	return false;
 }
 
 
 
 
-SCA_IObject* KX_SCA_AddObjectActuator::GetLastCreatedObject() const 
+SCA_IObject* KX_SCA_AddObjectActuator::GetLastCreatedObject() const
 {
 	return m_lastCreatedObject;
 }
 
 
 
-CValue* KX_SCA_AddObjectActuator::GetReplica() 
+CValue* KX_SCA_AddObjectActuator::GetReplica()
 {
 	KX_SCA_AddObjectActuator* replica = new KX_SCA_AddObjectActuator(*this);
 
@@ -215,18 +215,18 @@ int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYAT
 {
 	KX_SCA_AddObjectActuator* actuator = static_cast<KX_SCA_AddObjectActuator*>(self);
 	KX_GameObject *gameobj;
-		
+
 	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &gameobj, true, "actuator.object = value: KX_SCA_AddObjectActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
-		
+
 	if (actuator->m_OriginalObject != NULL)
 		actuator->m_OriginalObject->UnregisterActuator(actuator);
 
 	actuator->m_OriginalObject = (SCA_IObject*)gameobj;
-		
+
 	if (actuator->m_OriginalObject)
 		actuator->m_OriginalObject->RegisterActuator(actuator);
-		
+
 	return PY_SET_ATTR_SUCCESS;
 }
 
@@ -272,7 +272,7 @@ void	KX_SCA_AddObjectActuator::InstantAddObject()
 			m_lastCreatedObject->UnregisterActuator(this);
 			m_lastCreatedObject = NULL;
 		}
-		
+
 		m_lastCreatedObject = replica;
 		// no reference
 		//m_lastCreatedObject->AddRef();

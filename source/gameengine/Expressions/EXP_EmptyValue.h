@@ -23,7 +23,7 @@
 
 class CListValue;
 
-class CEmptyValue : public CPropValue  
+class CEmptyValue : public CPropValue
 {
 	//PLUGIN_DECLARE_SERIAL (CEmptyValue,CValue)
 public:

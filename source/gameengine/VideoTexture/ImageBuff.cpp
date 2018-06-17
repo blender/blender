@@ -61,12 +61,12 @@ static int ImageBuff_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 
 	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// create source object
-	if (self->m_image != NULL) 
+	if (self->m_image != NULL)
 		delete self->m_image;
 	image = new ImageBuff();
 	self->m_image = image;
 
-	if (PyArg_ParseTuple(args, "hh|bO!:ImageBuff", &width, &height, &color, &PyBool_Type, &py_scale)) 
+	if (PyArg_ParseTuple(args, "hh|bO!:ImageBuff", &width, &height, &color, &PyBool_Type, &py_scale))
 	{
 		// initialize image buffer
 		image->setScale(py_scale == Py_True);
@@ -206,12 +206,12 @@ static bool testPyBuffer(Py_buffer *buffer, int width, int height, unsigned int 
 	{
 		PyErr_SetString(PyExc_ValueError, "Buffer must be an array of bytes");
 		return false;
-	} 
+	}
 	if (buffer->len != width*height*pixsize)
 	{
 		PyErr_SetString(PyExc_ValueError, "Buffer hasn't the correct size");
 		return false;
-	} 
+	}
 	// multi dimension are ok as long as there is no hole in the memory
 	Py_ssize_t size = buffer->itemsize;
 	for (int i=buffer->ndim-1; i>=0 ; i--)
@@ -243,7 +243,7 @@ static bool testBGLBuffer(Buffer *buffer, int width, int height, unsigned int pi
 	{
 		PyErr_SetString(PyExc_ValueError, "Buffer hasn't the correct size");
 		return false;
-	} 
+	}
 	return true;
 }
 
@@ -296,7 +296,7 @@ static PyObject *load(PyImage *self, PyObject *args)
 		// check if buffer size is correct
 		if (testPyBuffer(&buffer, width, height, pixSize))
 		{
-			try 
+			try
 			{
 				// if correct, load image
 				getImageBuff(self)->load((unsigned char*)buffer.buf, width, height);

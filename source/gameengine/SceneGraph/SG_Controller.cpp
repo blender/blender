@@ -31,7 +31,7 @@
 
 #include "SG_Controller.h"
 
-	void 
+	void
 SG_Controller::
 SetObject(SG_IObject* obj)
 {

@@ -137,7 +137,7 @@ static int setLimits(PyFilter *self, PyObject *value, void *closure)
 
 // attributes structure
 static PyGetSetDef filterBSGetSets[] =
-{ 
+{
 	{(char*)"color", (getter)getColor, (setter)setColor, (char*)"blue screen color", NULL},
 	{(char*)"limits", (getter)getLimits, (setter)setLimits, (char*)"blue screen color limits", NULL},
 	// attributes from FilterBase class
@@ -147,7 +147,7 @@ static PyGetSetDef filterBSGetSets[] =
 
 // define python type
 PyTypeObject FilterBlueScreenType =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterBlueScreen",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/

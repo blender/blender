@@ -39,7 +39,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	   class KX_KetsjiEngine* kxengine,
 	   int activeLayerBitInfo,
 	   bool isInActiveLayer,
-	   class RAS_ICanvas* canvas, 
+	   class RAS_ICanvas* canvas,
 	   class KX_BlenderSceneConverter* converter);
 
 #endif  /* __KX_CONVERTSENSORS_H__ */

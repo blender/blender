@@ -63,7 +63,7 @@ private:
 	int				mAlphaBlend;
 	GPUMaterial     *mGPUMat;
 
-	bool			VerifyShader() 
+	bool			VerifyShader()
 	{
 		return (NULL != mGPUMat);
 	}
@@ -86,8 +86,8 @@ public:
 	int GetAlphaBlend();
 
 	bool Equals(BL_BlenderShader *blshader);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BL_BlenderShader")
 #endif

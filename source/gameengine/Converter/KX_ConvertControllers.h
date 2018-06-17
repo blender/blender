@@ -39,7 +39,7 @@ void BL_ConvertControllers(
 	class KX_GameObject* gameobj,
 	class SCA_LogicManager* logicmgr,
 	int activeLayerBitInfo,
-	bool isInActiveLayer, 
+	bool isInActiveLayer,
 	class KX_BlenderSceneConverter* converter,
 	bool libloading
 );

@@ -59,14 +59,14 @@ bool	KX_TouchEventManager::NewHandleCollision(void* object1, void* object2, cons
 
 	PHY_IPhysicsController* obj1 = static_cast<PHY_IPhysicsController*>(object1);
 	PHY_IPhysicsController* obj2 = static_cast<PHY_IPhysicsController*>(object2);
-	
+
 	m_newCollisions.insert(NewCollision(obj1, obj2, coll_data));
-		
+
 	return false;
 }
 
 
-bool	 KX_TouchEventManager::newCollisionResponse(void *client_data, 
+bool	 KX_TouchEventManager::newCollisionResponse(void *client_data,
 							void *object1,
 							void *object2,
 							const PHY_CollData *coll_data)
@@ -76,7 +76,7 @@ bool	 KX_TouchEventManager::newCollisionResponse(void *client_data,
 	return false;
 }
 
-bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data, 
+bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 							void *object1,
 							void *object2,
 							const PHY_CollData *coll_data)
@@ -118,13 +118,13 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 		break;
 	case KX_ClientObjectInfo::OBSENSOR:
 	case KX_ClientObjectInfo::OBACTORSENSOR:
-		// this object may have multiple collision sensors, 
+		// this object may have multiple collision sensors,
 		// check is any of them is interested in this object
 		for (std::list<SCA_ISensor*>::iterator it = info1->m_sensors.begin();
 			it != info1->m_sensors.end();
 			++it)
 		{
-			if ((*it)->GetSensorType() == SCA_ISensor::ST_TOUCH) 
+			if ((*it)->GetSensorType() == SCA_ISensor::ST_TOUCH)
 			{
 				KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*it);
 				if (touchsensor->BroadPhaseSensorFilterCollision(object1, object2))
@@ -178,7 +178,7 @@ void KX_TouchEventManager::NextFrame()
 		SG_DList::iterator<KX_TouchSensor> it(m_sensors);
 		for (it.begin();!it.end();++it)
 			(*it)->SynchronizeTransform();
-		
+
 		for (std::set<NewCollision>::iterator cit = m_newCollisions.begin(); cit != m_newCollisions.end(); ++cit)
 		{
 			// Controllers
@@ -215,9 +215,9 @@ void KX_TouchEventManager::NextFrame()
 
 			delete cit->colldata;
 		}
-			
+
 		m_newCollisions.clear();
-			
+
 		for (it.begin();!it.end();++it)
 			(*it)->Activate(m_logicmgr);
 	}

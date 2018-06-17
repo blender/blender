@@ -95,7 +95,7 @@ KX_SCA_DynamicActuator::KX_SCA_DynamicActuator(SCA_IObject *gameobj,
 
 
 KX_SCA_DynamicActuator::~KX_SCA_DynamicActuator()
-{ 
+{
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
@@ -111,7 +111,7 @@ bool KX_SCA_DynamicActuator::Update()
 
 	if (bNegativeEvent)
 		return false; // do nothing on negative events
-	
+
 	if (!obj)
 		return false; // object not accessible, shouldnt happen
 	controller = obj->GetPhysicsController();
@@ -146,7 +146,7 @@ bool KX_SCA_DynamicActuator::Update()
 
 CValue* KX_SCA_DynamicActuator::GetReplica()
 {
-	KX_SCA_DynamicActuator* replica = 
+	KX_SCA_DynamicActuator* replica =
 		new KX_SCA_DynamicActuator(*this);
 
 	if (replica == NULL)

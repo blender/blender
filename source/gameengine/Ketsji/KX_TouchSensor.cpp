@@ -87,10 +87,10 @@ bool KX_TouchSensor::Evaluate()
 	if (reset)
 		// force an event
 		result = true;
-	
+
 	if (m_bTouchPulse) { /* pulse on changes to the colliders */
 		int count = m_colliders->GetCount();
-		
+
 		if (m_bLastCount!=count || m_bColliderHash!=m_bLastColliderHash) {
 			m_bLastCount = count;
 			m_bLastColliderHash= m_bColliderHash;
@@ -110,16 +110,16 @@ m_hitMaterial("")
 {
 //	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
 //	m_resptable = touchmgr->GetResponseTable();
-	
+
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 
 	m_colliders = new CListValue();
-	
+
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
 	//client_info->m_gameobject = gameobj;
 	//client_info->m_auxilary_info = NULL;
 	client_info->m_sensors.push_back(this);
-	
+
 	m_physCtrl = gameobj->GetPhysicsController();
 	MT_assert( !gameobj->GetPhysicsController() || m_physCtrl );
 	Init();
@@ -142,7 +142,7 @@ KX_TouchSensor::~KX_TouchSensor()
 	m_colliders->Release();
 }
 
-CValue* KX_TouchSensor::GetReplica() 
+CValue* KX_TouchSensor::GetReplica()
 {
 	KX_TouchSensor* replica = new KX_TouchSensor(*this);
 	replica->ProcessReplica();
@@ -162,12 +162,12 @@ void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 	PHY_IPhysicsController *sphy = ((KX_GameObject*)parent)->GetPhysicsController();
 	if (sphy)
 		m_physCtrl = sphy;
-	
+
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
 	//client_info->m_gameobject = gameobj;
 	//client_info->m_auxilary_info = NULL;
-	
+
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
 }
@@ -217,7 +217,7 @@ bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
 		(my_client_info->m_type == KX_ClientObjectInfo::OBACTORSENSOR &&
 		 client_info->m_type != KX_ClientObjectInfo::ACTOR))	// only with actor objects
 		return false;
-		
+
 	bool found = m_touchedpropname.IsEmpty();
 	if (!found)
 	{
@@ -244,21 +244,21 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 	KX_GameObject* parent = (KX_GameObject*)GetParent();
 
 	// need the mapping from PHY_IPhysicsController to gameobjects now
-	
-	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*> (object1 == m_physCtrl? 
+
+	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*> (object1 == m_physCtrl?
 					((PHY_IPhysicsController*)object2)->GetNewClientInfo():
 					((PHY_IPhysicsController*)object1)->GetNewClientInfo());
 
-	KX_GameObject* gameobj = ( client_info ? 
-			client_info->m_gameobject : 
+	KX_GameObject* gameobj = ( client_info ?
+			client_info->m_gameobject :
 			NULL);
-	
-	// add the same check as in SCA_ISensor::Activate(), 
+
+	// add the same check as in SCA_ISensor::Activate(),
 	// we don't want to record collision when the sensor is not active.
 	if (m_links && !m_suspended &&
 		gameobj && (gameobj != parent) && client_info->isActor())
 	{
-		
+
 		bool found = m_touchedpropname.IsEmpty();
 		bool hitMaterial = false;
 		if (!found)
@@ -283,7 +283,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 		{
 			if (!m_colliders->SearchValue(gameobj)) {
 				m_colliders->Add(gameobj->AddRef());
-				
+
 				if (m_bTouchPulse)
 					m_bColliderHash += (uint_ptr)(static_cast<void *>(&gameobj));
 			}
@@ -292,8 +292,8 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			m_hitMaterial = hitMaterial;
 			//printf("KX_TouchSensor::HandleCollision\n");
 		}
-		
-	} 
+
+	}
 	return false; // was DT_CONTINUE but this was defined in sumo as false.
 }
 
@@ -344,7 +344,7 @@ PyAttributeDef KX_TouchSensor::Attributes[] = {
 PyObject *KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_TouchSensor* self = static_cast<KX_TouchSensor*>(self_v);
-	
+
 	if (self->m_hitObject)
 		return self->m_hitObject->GetProxy();
 	else

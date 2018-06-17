@@ -58,24 +58,24 @@ public:
 		m_type(type),
 		m_gameobject(gameobject)
 	{}
-	
+
 	KX_ClientObjectInfo(const KX_ClientObjectInfo &copy) :
 		  m_type(copy.m_type),
 		  m_gameobject(copy.m_gameobject)
 	{
 	}
-	
+
 	virtual ~KX_ClientObjectInfo() {}
-	
-	virtual bool hasCollisionCallback() 
+
+	virtual bool hasCollisionCallback()
 	{
 		return m_sensors.size() != 0;
 	}
-	
+
 	bool isActor() { return m_type <= ACTOR; }
 	bool isSensor() { return m_type >= SENSOR && m_type <= OBACTORSENSOR; }
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_ClientObjectInfo")
 #endif

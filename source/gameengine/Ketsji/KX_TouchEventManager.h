@@ -69,29 +69,29 @@ class KX_TouchEventManager : public SCA_EventManager
 	};
 
 	PHY_IPhysicsEnvironment*	m_physEnv;
-	
+
 	std::set<NewCollision> m_newCollisions;
-	
-	
-	static bool newCollisionResponse(void *client_data, 
+
+
+	static bool newCollisionResponse(void *client_data,
 						void *object1,
 						void *object2,
 						const PHY_CollData *coll_data);
 
-	static bool newBroadphaseResponse(void *client_data, 
+	static bool newBroadphaseResponse(void *client_data,
 						void *object1,
 						void *object2,
 						const PHY_CollData *coll_data);
 
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,
-						const PHY_CollData * coll_data); 
+						const PHY_CollData * coll_data);
 
 
 
 
 
 public:
-	KX_TouchEventManager(class SCA_LogicManager* logicmgr,  
+	KX_TouchEventManager(class SCA_LogicManager* logicmgr,
 		PHY_IPhysicsEnvironment* physEnv);
 	virtual void NextFrame();
 	virtual void	EndFrame();
@@ -100,7 +100,7 @@ public:
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 	PHY_IPhysicsEnvironment *GetPhysicsEnvironment() { return m_physEnv; }
 
-	
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_TouchEventManager")
 #endif

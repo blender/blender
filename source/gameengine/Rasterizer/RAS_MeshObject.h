@@ -107,7 +107,7 @@ public:
 	Mesh*				GetMesh() { return m_mesh; }
 
 	/* mesh construction */
-	
+
 	virtual RAS_Polygon*	AddPolygon(RAS_MaterialBucket *bucket, int numverts);
 	virtual void			AddVertex(RAS_Polygon *poly, int i,
 							const MT_Point3& xyz,
@@ -127,7 +127,7 @@ public:
 
 	int					NumPolygons();
 	RAS_Polygon*		GetPolygon(int num) const;
-	
+
 	/* buckets */
 	virtual void		AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer);
 
@@ -137,7 +137,7 @@ public:
 	/* colors */
 	void				DebugColor(unsigned int abgr);
 	void 				SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba);
-	
+
 	/* polygon sorting by Z for alpha */
 	void				SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transform);
 

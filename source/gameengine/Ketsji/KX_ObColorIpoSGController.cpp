@@ -54,10 +54,10 @@ bool KX_ObColorIpoSGController::Update(double currentTime)
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);
 		}
-		
+
 
 		kxgameobj->SetObjectColor(m_rgba);
-		
+
 
 		m_modified=false;
 	}
@@ -95,7 +95,7 @@ SG_Controller*	KX_ObColorIpoSGController::GetReplica(class SG_Node* destnode)
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}
-	
+
 	return iporeplica;
 }
 
@@ -106,5 +106,5 @@ KX_ObColorIpoSGController::~KX_ObColorIpoSGController()
 	for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 		delete (*i);
 	}
-	
+
 }

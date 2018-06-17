@@ -45,8 +45,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  class KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
 							  class RAS_IRasterizer* rendertools,
-							  class RAS_ICanvas* canvas, 
-							  class KX_BlenderSceneConverter* sceneconverter, 
+							  class RAS_ICanvas* canvas,
+							  class KX_BlenderSceneConverter* sceneconverter,
 							  bool alwaysUseExpandFraming,
 							  bool libloading=false
 							  );

@@ -47,7 +47,7 @@ public:
 		m_ipos[1] = ipos[1];
 		m_ipos[2] = ipos[2];
 	}
-	
+
 	virtual void Execute(float currentTime) const;
 
 private:

@@ -42,7 +42,7 @@
 #include "KX_GameObject.h" // ConvertPythonToGameObject()
 #include "KX_PythonInit.h"
 
-#include "EXP_PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h"
 
 #ifdef WITH_BULLET
 #  include "LinearMath/btIDebugDraw.h"
@@ -163,7 +163,7 @@ static PyObject *gPySetGravity(PyObject *self,
 	else {
 		return NULL;
 	}
-	
+
 	Py_RETURN_NONE;
 }
 
@@ -177,14 +177,14 @@ static PyObject *gPySetDebugMode(PyObject *self,
 		if (PHY_GetActiveEnvironment())
 		{
 			PHY_GetActiveEnvironment()->SetDebugMode(mode);
-			
+
 		}
-		
+
 	}
 	else {
 		return NULL;
 	}
-	
+
 	Py_RETURN_NONE;
 }
 
@@ -446,7 +446,7 @@ static PyObject *gPyGetVehicleConstraint(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			
+
 			PHY_IVehicle* vehicle = PHY_GetActiveEnvironment()->GetVehicleConstraint(constraintid);
 			if (vehicle)
 			{
@@ -478,7 +478,7 @@ static PyObject* gPyGetCharacter(PyObject* self,
 
 	if (PHY_GetActiveEnvironment())
 	{
-			
+
 		PHY_ICharacter* character= PHY_GetActiveEnvironment()->GetCharacterController(ob);
 		if (character)
 		{
@@ -590,7 +590,7 @@ static PyObject *gPyRemoveConstraint(PyObject *self,
 	else {
 		return NULL;
 	}
-	
+
 	Py_RETURN_NONE;
 }
 

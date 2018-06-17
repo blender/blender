@@ -94,7 +94,7 @@ void RAS_TexVert::SetUV(int index, const float uv[2])
 }
 
 void RAS_TexVert::SetRGBA(const unsigned int rgba)
-{ 
+{
 	m_rgba = rgba;
 }
 

@@ -48,7 +48,7 @@
 #include "RAS_Deformer.h"
 
 
-class BL_SkinDeformer : public BL_MeshDeformer  
+class BL_SkinDeformer : public BL_MeshDeformer
 {
 public:
 //	void SetArmatureController (BL_ArmatureController *cont);
@@ -76,13 +76,13 @@ public:
 	bool Update (void);
 	bool UpdateInternal (bool shape_applied);
 	bool Apply (class RAS_IPolyMaterial *polymat);
-	bool UpdateBuckets(void) 
+	bool UpdateBuckets(void)
 	{
 		// update the deformer and all the mesh slots; Apply() does it well, so just call it.
 		return Apply(NULL);
 	}
 	bool PoseUpdated(void)
-		{ 
+		{
 			if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()) {
 				return true;
 			}

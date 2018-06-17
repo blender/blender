@@ -43,7 +43,7 @@
 
 // define python type
 PyTypeObject FilterRGB24Type =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterRGB24",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
@@ -88,7 +88,7 @@ PyTypeObject FilterRGB24Type =
 
 // define python type
 PyTypeObject FilterRGBA32Type =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterRGBA32",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
@@ -133,7 +133,7 @@ PyTypeObject FilterRGBA32Type =
 
 // define python type
 PyTypeObject FilterBGR24Type =
-{ 
+{
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"VideoTexture.FilterBGR24",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/

@@ -203,7 +203,7 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE GetBytes(void **buffer) { return mpLeftEye->GetBytes(buffer); }
 	virtual HRESULT STDMETHODCALLTYPE GetTimecode(BMDTimecodeFormat format,IDeckLinkTimecode **timecode)
 		{ return mpLeftEye->GetTimecode(format, timecode); }
-	virtual HRESULT STDMETHODCALLTYPE GetAncillaryData(IDeckLinkVideoFrameAncillary **ancillary) 
+	virtual HRESULT STDMETHODCALLTYPE GetAncillaryData(IDeckLinkVideoFrameAncillary **ancillary)
 		{ return mpLeftEye->GetAncillaryData(ancillary); }
 	// IDeckLinkVideoFrame3DExtensions
 	virtual BMDVideo3DPackingFormat STDMETHODCALLTYPE Get3DPackingFormat(void)
@@ -385,8 +385,8 @@ static int DeckLink_init(DeckLink *self, PyObject *args, PyObject *kwds)
 	// get parameters
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|hs",
 		const_cast<char**>(kwlist), &cardIdx, &format))
-		return -1; 
-	
+		return -1;
+
 	try {
 		if (format == NULL) {
 			THRWEXCP(AutoDetectionNotAvail, S_OK);
@@ -488,9 +488,9 @@ static int DeckLink_init(DeckLink *self, PyObject *args, PyObject *kwds)
 		}
 	}
 	catch (Exception & exp)
-	{ 
+	{
 		printf("DeckLink: exception when opening card %d: %s\n", cardIdx, exp.what());
-		exp.report(); 
+		exp.report();
 		// normally, the object should be deallocated
 		return -1;
 	}
@@ -531,7 +531,7 @@ static PyObject *DeckLink_refresh(DeckLink *self, PyObject *args)
 	// no use to do it if we are still in the same rendering frame.
 	// We find this out by looking at the engine current clock time
 	KX_KetsjiEngine* engine = KX_GetActiveEngine();
-	if (engine->GetClockTime() != self->m_lastClock) 
+	if (engine->GetClockTime() != self->m_lastClock)
 	{
 		self->m_lastClock = engine->GetClockTime();
 		// set source refresh
@@ -757,7 +757,7 @@ static PyMethodDef decklinkMethods[] =
 
 // class DeckLink attributes
 static PyGetSetDef decklinkGetSets[] =
-{ 
+{
 	{ (char*)"source", (getter)DeckLink_getSource, (setter)DeckLink_setSource, (char*)"source of decklink (left eye)", NULL},
 	{ (char*)"right", (getter)DeckLink_getRight, (setter)DeckLink_setRight, (char*)"source of decklink (right eye)", NULL },
 	{ (char*)"keying", (getter)DeckLink_getKeying, (setter)DeckLink_setKeying, (char*)"whether keying is enabled (frame is alpha-composited with passthrough output)", NULL },

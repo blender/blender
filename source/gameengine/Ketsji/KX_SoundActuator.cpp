@@ -172,7 +172,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	// do nothing on negative events, otherwise sounds are played twice!
 	bool bNegativeEvent = IsNegativeEvent();
 	bool bPositiveEvent = m_posevent;
-	
+
 	RemoveAllEvents();
 
 	if (!m_sound)
@@ -221,10 +221,10 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 		// remember that we tried to stop the actuator
 		m_isplaying = false;
 	}
-	
+
 #if 1
 	// Warning: when de-activating the actuator, after a single negative event this runs again with...
-	// m_posevent==false && m_posevent==false, in this case IsNegativeEvent() returns false 
+	// m_posevent==false && m_posevent==false, in this case IsNegativeEvent() returns false
 	// and assumes this is a positive event.
 	// check that we actually have a positive event so as not to play sounds when being disabled.
 	else if (bPositiveEvent)  /* <- added since 2.49 */
@@ -506,7 +506,7 @@ int KX_SoundActuator::pyattr_set_3d_property(void *self, const struct KX_PYATTRI
 	} else {
 		return PY_SET_ATTR_FAIL;
 	}
-	
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

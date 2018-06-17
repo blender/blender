@@ -22,9 +22,9 @@
 
 #include "EXP_Value.h"
 
-typedef long long cInt; 
+typedef long long cInt;
 
-class CIntValue : public CPropValue  
+class CIntValue : public CPropValue
 {
 	//PLUGIN_DECLARE_SERIAL (CIntValue,CValue)
 
@@ -32,14 +32,14 @@ public:
 	virtual const STR_String& GetText();
 	virtual double			GetNumber();
 	virtual int				GetValueType();
-	
+
 	cInt GetInt();
 	CIntValue();
 	CIntValue(cInt innie);
 	CIntValue(cInt innie,
 	          const char *name,
 	          AllocationTYPE alloctype=CValue::HEAPVALUE);
-	
+
 	virtual	CValue* Calc(VALUE_OPERATOR op,
 						 CValue *val);
 

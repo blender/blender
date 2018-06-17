@@ -37,7 +37,7 @@
 #include "DNA_actuator_types.h"
 #include "MT_Point3.h"
 
-class BL_ActionActuator : public SCA_IActuator  
+class BL_ActionActuator : public SCA_IActuator
 {
 public:
 	Py_Header
@@ -61,11 +61,11 @@ public:
 	virtual	bool Update(double curtime, bool frame);
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
-	
+
 	void SetBlendTime(float newtime);
 	void SetLocalTime(float curtime);
 	void ResetStartTime(float curtime);
-	
+
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
@@ -112,7 +112,7 @@ public:
 		}
 	}
 #endif  /* WITH_PYTHON */
-	
+
 protected:
 	MT_Point3	m_lastpos;
 	float	m_blendframe;
@@ -125,7 +125,7 @@ protected:
 	float	m_starttime;
 	/** The current time of the action */
 	float	m_localtime;
-	
+
 	float	m_lastUpdate;
 	float	m_blendin;
 	float	m_blendstart;

@@ -39,8 +39,8 @@ SCA_DebugProp::SCA_DebugProp(): m_obj(NULL)
 
 SCA_DebugProp::~SCA_DebugProp()
 {
-	if (m_obj) 
-		m_obj->Release(); 
+	if (m_obj)
+		m_obj->Release();
 }
 
 SCA_IScene::SCA_IScene()
@@ -64,7 +64,7 @@ SCA_IScene::~SCA_IScene()
 }
 
 
-std::vector<SCA_DebugProp*>& SCA_IScene::GetDebugProperties() 
+std::vector<SCA_DebugProp*>& SCA_IScene::GetDebugProperties()
 {
 	return m_debugList;
 }
@@ -129,7 +129,7 @@ void SCA_IScene::RemoveDebugProperty(class CValue *gameobj,
 
 
 void SCA_IScene::RemoveObjectDebugProperties(class CValue* gameobj)
-{	
+{
 	vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
 	while (it != m_debugList.end()) {
 		CValue* debugobj = (*it)->m_obj;

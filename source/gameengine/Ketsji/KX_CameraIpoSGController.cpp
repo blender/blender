@@ -49,11 +49,11 @@ bool KX_CameraIpoSGController::Update(double currentTime)
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);
 		}
-		
+
 		SG_Spatial* ob = (SG_Spatial*)m_pObject;
 		KX_Camera* kxcamera = (KX_Camera*) ob->GetSGClientObject();
 		RAS_CameraData* camdata = kxcamera->GetCameraData();
-		
+
 		if (m_modify_lens)
 			camdata->m_lens = m_lens;
 
@@ -62,7 +62,7 @@ bool KX_CameraIpoSGController::Update(double currentTime)
 
 		if (m_modify_clipend)
 			camdata->m_clipend = m_clipend;
-		
+
 		if (m_modify_lens || m_modify_clipstart || m_modify_clipend)
 			kxcamera->InvalidateProjectionMatrix();
 
@@ -102,7 +102,7 @@ SG_Controller*	KX_CameraIpoSGController::GetReplica(class SG_Node* destnode)
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}
-	
+
 	return iporeplica;
 }
 
@@ -113,13 +113,13 @@ KX_CameraIpoSGController::~KX_CameraIpoSGController()
 	for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 		delete (*i);
 	}
-	
+
 }
 
 	void
 KX_CameraIpoSGController::SetOption(
 	int option,
-	int value) 
+	int value)
 {
 	/* Setting options */
 

@@ -36,19 +36,19 @@ bool KX_MaterialIpoController::Update(double currentTime)
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);
 		}
-		
+
 
 		SG_Spatial* ob = (SG_Spatial*)m_pObject;
 		KX_GameObject* kxgameobj= (KX_GameObject*) ob->GetSGClientObject();
 
 		//kxgameobj->SetObjectColor(m_rgba);
-		kxgameobj->UpdateMaterialData( 
+		kxgameobj->UpdateMaterialData(
 			m_matname_hash,
-			m_rgba, 
-			m_specrgb, 
-			m_hard, 
-			m_spec, 
-			m_ref, 
+			m_rgba,
+			m_specrgb,
+			m_hard,
+			m_spec,
+			m_ref,
 			m_emit,
 			m_alpha
 		);
@@ -89,7 +89,7 @@ SG_Controller*	KX_MaterialIpoController::GetReplica(class SG_Node* destnode)
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}
-	
+
 	return iporeplica;
 }
 
@@ -100,6 +100,6 @@ KX_MaterialIpoController::~KX_MaterialIpoController()
 	for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 		delete (*i);
 	}
-	
+
 }
 

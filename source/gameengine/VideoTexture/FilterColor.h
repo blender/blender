@@ -149,7 +149,7 @@ protected:
 		if (col <= levels[idx][0]) col = 0;
 		else if (col >= levels[idx][1]) col = 0xFF;
 		else col = (((col - levels[idx][0]) << 8) / levels[idx][2]) & 0xFF;
-		return col; 
+		return col;
 	}
 
 	/// filter pixel template, source int buffer

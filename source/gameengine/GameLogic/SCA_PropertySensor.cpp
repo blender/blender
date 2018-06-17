@@ -86,7 +86,7 @@ CValue* SCA_PropertySensor::GetReplica()
 	// m_range_expr must be recalculated on replica!
 	replica->ProcessReplica();
 	replica->Init();
-	
+
 	return replica;
 }
 
@@ -113,7 +113,7 @@ bool SCA_PropertySensor::Evaluate()
 {
 	bool result = CheckPropertyCondition();
 	bool reset = m_reset && m_level;
-	
+
 	m_reset = false;
 	if (m_lastresult!=result)
 	{
@@ -147,7 +147,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 					m_checkpropval.Upper();
 				}
 				result = (testprop == m_checkpropval);
-				
+
 				/* Patch: floating point values cant use strings usefully since you can have "0.0" == "0.0000"
 				 * this could be made into a generic Value class function for comparing values with a string.
 				 */
@@ -155,7 +155,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 					float f;
 					if (sscanf(m_checkpropval.ReadPtr(), "%f", &f) == 1) {
 						result = (f == ((CFloatValue *)orgprop)->GetFloat());
-					} 
+					}
 					else {
 						/* error */
 					}
@@ -215,7 +215,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 	case KX_PROPSENSOR_CHANGED:
 		{
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
-				
+
 			if (!orgprop->IsError())
 			{
 				if (m_previoustext != orgprop->GetText())

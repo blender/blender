@@ -37,7 +37,7 @@ class KX_EmptyObject : public KX_GameObject
 {
 public:
 	KX_EmptyObject(void* sgReplicationInfo,SG_Callbacks callbacks) :
-	KX_GameObject(sgReplicationInfo,callbacks) 
+	KX_GameObject(sgReplicationInfo,callbacks)
 	{};
 	virtual ~KX_EmptyObject();
 

@@ -48,7 +48,7 @@ struct wmWindow;
 struct wmWindowManager;
 
 /**
- * 2D Blender device context abstraction. 
+ * 2D Blender device context abstraction.
  * The connection from 3d rendercontext to 2d Blender surface embedding.
  */
 
@@ -63,17 +63,17 @@ private:
 
 public:
 	/* Construct a new canvas.
-	 * 
+	 *
 	 * \param area The Blender ARegion to run the game within.
 	 */
 	KX_BlenderCanvas(struct wmWindowManager *wm, struct wmWindow* win, RAS_Rect &rect, struct ARegion* ar);
 	~KX_BlenderCanvas();
 
-		void 
+		void
 	Init(
 	);
-	
-		void 
+
+		void
 	SwapBuffers(
 	);
 
@@ -89,7 +89,7 @@ public:
 
 	void GetDisplayDimensions(int &width, int &height);
 
-		void 
+		void
 	ResizeWindow(
 		int width,
 		int height
@@ -107,11 +107,11 @@ public:
 	BeginFrame(
 	);
 
-		void 
+		void
 	EndFrame(
 	);
 
-		void 
+		void
 	ClearColor(
 		float r,
 		float g,
@@ -119,16 +119,16 @@ public:
 		float a
 	);
 
-		void 
+		void
 	ClearBuffer(
 		int type
 	);
 
-		int 
+		int
 	GetWidth(
 	) const;
 
-		int 
+		int
 	GetHeight(
 	) const;
 
@@ -180,27 +180,27 @@ public:
 		const int*
 	GetViewPort();
 
-		void 
+		void
 	SetMouseState(
 		RAS_MouseState mousestate
 	);
 
-		void 
+		void
 	SetMousePosition(
 		int x,
 		int y
 	);
 
-		void 
+		void
 	MakeScreenShot(
 		const char* filename
 	);
-	
-		bool 
+
+		bool
 	BeginDraw(
 	);
 
-		void 
+		void
 	EndDraw(
 	);
 

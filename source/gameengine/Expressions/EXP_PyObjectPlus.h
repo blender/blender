@@ -115,9 +115,9 @@ typedef struct PyObjectPlus_Proxy {
 #define BGE_PROXY_FROM_REF_BORROW(_self) _bge_proxy_from_ref_borrow((void *)_self)
 
 
-// This must be the first line of each 
+// This must be the first line of each
 // PyC++ class
-// AttributesPtr correspond to attributes of proxy generic pointer 
+// AttributesPtr correspond to attributes of proxy generic pointer
 // each PyC++ class must be registered in KX_PythonInitTypes.cpp
 #define __Py_Header                                                           \
 public:                                                                       \
@@ -362,9 +362,9 @@ typedef struct KX_PYATTRIBUTE_DEF {
 	const char *m_name;				// name of the python attribute
 	KX_PYATTRIBUTE_TYPE m_type;		// type of value
 	KX_PYATTRIBUTE_ACCESS m_access;	// read/write access or read-only
-	int m_imin;						// minimum value in case of integer attributes 
+	int m_imin;						// minimum value in case of integer attributes
 									// (for string: minimum string length, for flag: mask value, for float: matrix row size)
-	int m_imax;						// maximum value in case of integer attributes 
+	int m_imax;						// maximum value in case of integer attributes
 									// (for string: maximum string length, for flag: 1 if flag is negative, float: vector/matrix col size)
 	float m_fmin;					// minimum value in case of float attributes
 	float m_fmax;					// maximum value in case of float attributes
@@ -500,7 +500,7 @@ typedef struct KX_PYATTRIBUTE_DEF {
 #define KX_PYATTRIBUTE_STRING_RO(name, object, field) \
 	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, false, offsetof(object, field), 0, 1 , NULL, NULL, NULL, {NULL, NULL, NULL, NULL, &((object *)0)->field, NULL, NULL} }
 
-// only for char [] array 
+// only for char [] array
 #define KX_PYATTRIBUTE_CHAR_RW(name, object, field) \
 	{ name, KX_PYATTRIBUTE_TYPE_CHAR, KX_PYATTRIBUTE_RW, 0, 0, 0.f, 0.f, true, false, offsetof(object, field), sizeof(((object *)0)->field), 1, NULL, NULL, NULL, {NULL, NULL, NULL, NULL, NULL, NULL, ((object *)0)->field} }
 #define KX_PYATTRIBUTE_CHAR_RW_CHECK(name, object, field, function) \
@@ -558,7 +558,7 @@ public: \
 // By making SG_QList the ultimate parent for PyObjectPlus objects, it
 // allows to put them in 2 different dynamic lists at the same time
 // The use of these links is interesting because they free of memory allocation
-// but it's very important not to mess up with them. If you decide that 
+// but it's very important not to mess up with them. If you decide that
 // the SG_QList or SG_DList component is used for something for a certain class,
 // they cannot can be used for anything else at a parent level!
 // What these lists are and what they are used for must be carefully documented
@@ -569,12 +569,12 @@ public: \
 class PyObjectPlus : public SG_QList
 {				// The PyObjectPlus abstract class
 	Py_Header							// Always start with Py_Header
-	
+
 public:
 	PyObjectPlus();
-	
+
 	virtual ~PyObjectPlus();					// destructor
-	
+
 #ifdef WITH_PYTHON
 	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
 
@@ -595,7 +595,7 @@ public:
 
 	static PyObject*		py_get_attrdef(PyObject *self_py, const PyAttributeDef *attrdef);
 	static int				py_set_attrdef(PyObject *self_py, PyObject *value, const PyAttributeDef *attrdef);
-	
+
 	/* Kindof dumb, always returns True, the false case is checked for, before this function gets accessed */
 	static PyObject*	pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
@@ -612,13 +612,13 @@ public:
 	static	void			SetDeprecationWarningFirst(WarnLink* wlink);
 	static	void			SetDeprecationWarningLinkLast(WarnLink* wlink);
 	static void			NullDeprecationWarning();
-	
+
 	/** enable/disable display of deprecation warnings */
 	static void			SetDeprecationWarnings(bool ignoreDeprecationWarnings);
 	/** Shows a deprecation warning */
 	static void			ShowDeprecationWarning_func(const char *method, const char *prop);
 	static void			ClearDeprecationWarning();
-	
+
 #endif
 
 	void	InvalidateProxy();

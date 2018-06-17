@@ -70,13 +70,13 @@ protected:
 	/// filter pixel, source byte buffer
 	virtual unsigned int filter (unsigned char *src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val)
-	{ 
-		if ((intptr_t(src)&0x3) == 0) 
+	{
+		if ((intptr_t(src)&0x3) == 0)
 			return *(unsigned int*)src;
-		else 
+		else
 		{
-			VT_RGBA(val,src[0],src[1],src[2],src[3]); 
-			return val; 
+			VT_RGBA(val,src[0],src[1],src[2],src[3]);
+			return val;
 		}
 	}
 };

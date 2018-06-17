@@ -43,7 +43,7 @@
 struct DerivedMesh;
 struct Object;
 
-class BL_ModifierDeformer : public BL_ShapeDeformer  
+class BL_ModifierDeformer : public BL_ShapeDeformer
 {
 public:
 	static bool HasCompatibleDeformer(Object *ob);

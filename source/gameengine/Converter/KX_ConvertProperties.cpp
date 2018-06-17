@@ -65,7 +65,7 @@ void BL_ConvertTextProperty(Object* object, KX_FontObject* fontobj,SCA_TimeEvent
 
 void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventManager* timemgr,SCA_IScene* scene, bool isInActiveLayer)
 {
-	
+
 	bProperty* prop = (bProperty*)object->prop.first;
 	CValue* propval;
 	bool show_debug_info;
@@ -108,8 +108,8 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 				float floatprop = *((float*)&prop->data);
 
 				CValue* timeval = new CFloatValue(floatprop);
-				// set a subproperty called 'timer' so that 
-				// we can register the replica of this property 
+				// set a subproperty called 'timer' so that
+				// we can register the replica of this property
 				// at the time a game object is replicated (AddObjectActuator triggers this)
 				CValue *bval = new CBoolValue(true);
 				timeval->SetProperty("timer",bval);
@@ -118,7 +118,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 				{
 					timemgr->AddTimeProperty(timeval);
 				}
-				
+
 				propval = timeval;
 				gameobj->SetProperty(prop->name,timeval);
 
@@ -128,7 +128,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 				// todo make an assert etc.
 			}
 		}
-		
+
 		if (propval)
 		{
 			if (show_debug_info && isInActiveLayer)
@@ -138,7 +138,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			// done with propval, release it
 			propval->Release();
 		}
-		
+
 #ifdef WITH_PYTHON
 		/* Warn if we double up on attributes, this isn't quite right since it wont find inherited attributes however there arnt many */
 		for (PyAttributeDef *attrdef = KX_GameObject::Attributes; attrdef->m_name; attrdef++) {

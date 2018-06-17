@@ -149,18 +149,18 @@ ComputeBestFitViewRect(
 	const float design_aspect_ratio,
 	RAS_Rect &viewport
 ) {
-	// try and honour the aspect ratio when setting the 
+	// try and honour the aspect ratio when setting the
 	// drawable area. If we don't do this we are liable
 	// to get a lot of distortion in the rendered image.
-	
+
 	int width = availableViewport.GetWidth();
 	int height = availableViewport.GetHeight();
 	float window_aspect = float(width)/float(height);
 
 	if (window_aspect < design_aspect_ratio) {
-		int v_height = (int)(width / design_aspect_ratio); 
-		int left_over = (height - v_height) / 2; 
-			
+		int v_height = (int)(width / design_aspect_ratio);
+		int left_over = (height - v_height) / 2;
+
 		viewport.SetLeft(availableViewport.GetLeft());
 		viewport.SetBottom(availableViewport.GetBottom() + left_over);
 		viewport.SetRight(availableViewport.GetLeft() + width);
@@ -168,7 +168,7 @@ ComputeBestFitViewRect(
 
 	} else {
 		int v_width = (int)(height * design_aspect_ratio);
-		int left_over = (width - v_width) / 2; 
+		int left_over = (width - v_width) / 2;
 
 		viewport.SetLeft(availableViewport.GetLeft() + left_over);
 		viewport.SetBottom(availableViewport.GetBottom());
@@ -195,7 +195,7 @@ ComputeViewport(
 	float design_aspect_ratio = float(1);
 
 	if (design_height == float(0)) {
-		// well this is ill defined 
+		// well this is ill defined
 		// lets just scale the thing
 
 		type = RAS_FrameSettings::e_frame_scale;
@@ -223,7 +223,7 @@ ComputeViewport(
 				design_aspect_ratio,
 				viewport
 			);
-		
+
 			break;
 		}
 		default :
@@ -254,14 +254,14 @@ ComputeFrustum(
 	float design_aspect_ratio = float(1);
 
 	if (design_height == float(0)) {
-		// well this is ill defined 
+		// well this is ill defined
 		// lets just scale the thing
 
 		type = RAS_FrameSettings::e_frame_scale;
 	} else {
 		design_aspect_ratio = design_width/design_height;
 	}
-	
+
 	ComputeDefaultFrustum(
 		camnear,
 		camfar,
@@ -317,7 +317,7 @@ ComputeFrustum(
 			frustum.x2 *= x_scale;
 			frustum.y1 *= y_scale;
 			frustum.y2 *= y_scale;
-	
+
 			break;
 		}
 		case RAS_FrameSettings::e_frame_scale :
@@ -350,14 +350,14 @@ RAS_FramingManager::
 	float design_aspect_ratio = float(1);
 
 	if (design_height == float(0)) {
-		// well this is ill defined 
+		// well this is ill defined
 		// lets just scale the thing
 		type = RAS_FrameSettings::e_frame_scale;
 	} else {
 		design_aspect_ratio = design_width/design_height;
 	}
 
-	
+
 	ComputeDefaultOrtho(
 		camnear,
 		camfar,
@@ -411,7 +411,7 @@ RAS_FramingManager::
 			frustum.x2 *= x_scale;
 			frustum.y1 *= y_scale;
 			frustum.y2 *= y_scale;
-	
+
 			break;
 		}
 		case RAS_FrameSettings::e_frame_scale :
@@ -419,7 +419,7 @@ RAS_FramingManager::
 		default :
 			break;
 	}
-	
+
 }
 
 

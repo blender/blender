@@ -180,7 +180,7 @@ void KX_Dome::SetViewPort(const int viewport[4])
 {
 	if (canvaswidth != m_viewport.GetWidth() || canvasheight != m_viewport.GetHeight())
 	{
-		m_viewport.SetLeft(viewport[0]); 
+		m_viewport.SetLeft(viewport[0]);
 		m_viewport.SetBottom(viewport[1]);
 		m_viewport.SetRight(viewport[2]);
 		m_viewport.SetTop(viewport[3]);
@@ -237,7 +237,7 @@ void KX_Dome::CalculateImageSize(void)
 
 	m_buffersize = (canvaswidth > canvasheight?canvasheight:canvaswidth);
 	m_buffersize = (int)(m_buffersize*m_resbuffer); //reduce buffer size for better performance
-	
+
 	int i = 0;
 	while ((1 << i) <= m_buffersize)
 		i++;
@@ -315,7 +315,7 @@ bool KX_Dome::CreateDL()
 			glEndList();
 		}
 
-		//clearing the vectors 
+		//clearing the vectors
 		cubetop.clear();
 		cubebottom.clear();
 		cuberight.clear();
@@ -591,9 +591,9 @@ void KX_Dome::CreateMeshDome180(void)
 	cubebottom[0].v[2] = 0.0;
 
 	nfacesbottom = 1;
-	
+
 	/* Left face - two triangles */
-	
+
 	cubeleft[0].verts[0][0] = (float)(-M_SQRT2) / 2.0f;
 	cubeleft[0].verts[0][1] = 0.0f;
 	cubeleft[0].verts[0][2] = -0.5f;
@@ -632,7 +632,7 @@ void KX_Dome::CreateMeshDome180(void)
 	cubeleft[1].v[2] = uv_ratio;
 
 	nfacesleft = 2;
-	
+
 	/* Right face - two triangles */
 	cuberight[0].verts[0][0] = 0.0f;
 	cuberight[0].verts[0][1] = (float)M_SQRT2 / 2.0f;
@@ -672,7 +672,7 @@ void KX_Dome::CreateMeshDome180(void)
 	cuberight[1].v[2] = uv_ratio;
 
 	nfacesright = 2;
-	
+
 	//Refine a triangular mesh by bisecting each edge forms 3 new triangles for each existing triangle on each iteration
 	//Could be made more efficient for drawing if the triangles were ordered in a fan. Not that important since we are using DisplayLists
 
@@ -750,7 +750,7 @@ void KX_Dome::CreateMeshDome250(void)
 
 	uv_height = uv_ratio * (       (verts_height / 2.0f) + 0.5f);
 	uv_base   = uv_ratio * (1.0f - ((verts_height / 2.0f) + 0.5f));
-	
+
 	//creating faces for the env mapcube 180deg Dome
 	// Front Face - 2 triangles
 	cubefront[0].verts[0][0] =-1.0f;
@@ -1133,7 +1133,7 @@ void KX_Dome::CreateMeshPanorama(void)
 	nfacesleftback = 2;
 
 	/* Left face - two triangles */
-	
+
 	cubeleft[0].verts[0][0] = (float)(-M_SQRT2);
 	cubeleft[0].verts[0][1] = 0.0f;
 	cubeleft[0].verts[0][2] = -1.0f;
@@ -1172,7 +1172,7 @@ void KX_Dome::CreateMeshPanorama(void)
 	cubeleft[1].v[2] = uv_ratio;
 
 	nfacesleft = 2;
-	
+
 	/* Right face - two triangles */
 	cuberight[0].verts[0][0] = 0.0f;
 	cuberight[0].verts[0][1] = (float)M_SQRT2;
@@ -1212,7 +1212,7 @@ void KX_Dome::CreateMeshPanorama(void)
 	cuberight[1].v[2] = uv_ratio;
 
 	nfacesright = 2;
-	
+
 	/* Right Back  (-135deg) face - two triangles */
 	cuberightback[0].verts[0][0] = (float)M_SQRT2;
 	cuberightback[0].verts[0][1] = 0.0f;
@@ -1435,7 +1435,7 @@ void KX_Dome::SplitFace(vector <DomeFace>& face, int *nfaces)
 void KX_Dome::CalculateFrustum(KX_Camera *cam)
 {
 #if 0
-	// manually creating a 90deg Field of View Frustum 
+	// manually creating a 90deg Field of View Frustum
 
 	// the original formula:
 	top = tan(fov*3.14159f/30.0f)) * near [for fov in degrees]
@@ -1462,7 +1462,7 @@ void KX_Dome::CalculateFrustum(KX_Camera *cam)
 	m_frustum.x2 = top;
 	m_frustum.y1 = -top;
 	m_frustum.y2 = top;
-	
+
 	m_projmat = m_rasterizer->GetFrustumMatrix(
 	m_frustum.x1, m_frustum.x2, m_frustum.y1, m_frustum.y2, m_frustum.camnear, m_frustum.camfar);
 }
@@ -1479,7 +1479,7 @@ void KX_Dome::CalculateCameraOrientation()
 	MT_Scalar c = cosf(deg45);
 	MT_Scalar s = sinf(deg45);
 
-	if (m_angle <= 180 && (m_mode == DOME_FISHEYE 
+	if (m_angle <= 180 && (m_mode == DOME_FISHEYE
 		|| m_mode == DOME_TRUNCATED_FRONT
 		|| m_mode == DOME_TRUNCATED_REAR)) {
 
@@ -1504,7 +1504,7 @@ void KX_Dome::CalculateCameraOrientation()
 						s, 0.0f, c);
 
 	} else if (m_mode == DOME_ENVMAP || (m_angle > 180 && (m_mode == DOME_FISHEYE
-		|| m_mode == DOME_TRUNCATED_FRONT 
+		|| m_mode == DOME_TRUNCATED_FRONT
 		|| m_mode == DOME_TRUNCATED_REAR))) {
 
 		m_locRot[0] = MT_Matrix3x3( // 90deg - Top
@@ -1526,7 +1526,7 @@ void KX_Dome::CalculateCameraOrientation()
 						 0.0f, 0.0f,-1.0f,
 						 0.0f, 1.0f, 0.0f,
 						 1.0f, 0.0f, 0.0f);
-						
+
 		m_locRot[4] = MT_Matrix3x3( // 0deg - Front
 						1.0f, 0.0f, 0.0f,
 						0.0f, 1.0f, 0.0f,
@@ -1539,7 +1539,7 @@ void KX_Dome::CalculateCameraOrientation()
 
 	} else if (m_mode == DOME_PANORAM_SPH) {
 
-		m_locRot[0] = MT_Matrix3x3( // Top 
+		m_locRot[0] = MT_Matrix3x3( // Top
 						c, s, 0.0f,
 						0.0f,0.0f, -1.0f,
 						-s, c, 0.0f);
@@ -1658,7 +1658,7 @@ void KX_Dome::DrawEnvMap(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	// Making the viewport always square 
+	// Making the viewport always square
 
 	int can_width = m_viewport.GetRight();
 	int can_height = m_viewport.GetTop();
@@ -1677,7 +1677,7 @@ void KX_Dome::DrawEnvMap(void)
 			ortho_height = 2.0f / 3;
 			ortho_width = (float)can_width/can_height * ortho_height;
 		}
-		
+
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0f, 10.0f);
 	}
 
@@ -1788,7 +1788,7 @@ void KX_Dome::DrawDomeFisheye(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	// Making the viewport always square 
+	// Making the viewport always square
 
 	int can_width = m_viewport.GetRight();
 	int can_height = m_viewport.GetTop();
@@ -1808,7 +1808,7 @@ void KX_Dome::DrawDomeFisheye(void)
 				ortho_width = (float)can_width/can_height;
 				ortho_height = 1.0f;
 			}
-			
+
 			glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0f, 10.0f);
 		}
 	}
@@ -1884,7 +1884,7 @@ void KX_Dome::DrawPanorama(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	// Making the viewport always square 
+	// Making the viewport always square
 
 	int can_width = m_viewport.GetRight();
 	int can_height = m_viewport.GetTop();
@@ -1905,7 +1905,7 @@ void KX_Dome::DrawPanorama(void)
 			ortho_width = (float)can_width / can_height * 0.5f;
 			ortho_height = 0.5f;
 		}
-		
+
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0f, 10.0f);
 	}
 
@@ -1968,7 +1968,7 @@ void KX_Dome::DrawDomeWarped(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	// Making the viewport always square 
+	// Making the viewport always square
 	int can_width = m_viewport.GetRight();
 	int can_height = m_viewport.GetTop();
 

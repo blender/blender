@@ -49,7 +49,7 @@ struct RAS_MeshObject::polygonSlot
 {
 	float m_z;
 	int m_index[4];
-	
+
 	polygonSlot() {}
 
 	/* pnorm is the normal from the plane equation that the distance from is
@@ -79,7 +79,7 @@ struct RAS_MeshObject::polygonSlot
 			indexarray[offset+i] = m_index[i];
 	}
 };
-	
+
 struct RAS_MeshObject::backtofront
 {
 	bool operator()(const polygonSlot &a, const polygonSlot &b) const
@@ -147,12 +147,12 @@ int RAS_MeshObject::NumMaterials()
 }
 
 const STR_String& RAS_MeshObject::GetMaterialName(unsigned int matid)
-{ 
+{
 	RAS_MeshMaterial* mmat = GetMeshMaterial(matid);
 
 	if (mmat)
 		return mmat->m_bucket->GetPolyMaterial()->GetMaterialName();
-	
+
 	return s_emptyname;
 }
 
@@ -182,8 +182,8 @@ RAS_Polygon* RAS_MeshObject::GetPolygon(int num) const
 	return m_Polygons[num];
 }
 
-	
-	
+
+
 
 	list<RAS_MeshMaterial>::iterator GetFirstMaterial();
 	list<RAS_MeshMaterial>::iterator GetLastMaterial();
@@ -216,9 +216,9 @@ STR_String& RAS_MeshObject::GetName()
 
 
 const STR_String& RAS_MeshObject::GetTextureName(unsigned int matid)
-{ 
+{
 	RAS_MeshMaterial* mmat = GetMeshMaterial(matid);
-	
+
 	if (mmat)
 		return mmat->m_bucket->GetPolyMaterial()->GetTextureName();
 
@@ -321,7 +321,7 @@ void RAS_MeshObject::AddVertex(RAS_Polygon *poly, int i,
 	RAS_DisplayArray *darray;
 	RAS_MeshSlot *slot;
 	int offset;
-	
+
 	mmat = GetMeshMaterial(poly->GetMaterial()->GetPolyMaterial());
 	slot = mmat->m_baseslot;
 	darray = slot->CurrentDisplayArray();
@@ -373,7 +373,7 @@ int RAS_MeshObject::NumVertices(RAS_IPolyMaterial* mat)
 	slot = mmat->m_baseslot;
 	for (slot->begin(it); !slot->end(it); slot->next(it))
 		len += it.endvertex - it.startvertex;
-	
+
 	return len;
 }
 
@@ -390,7 +390,7 @@ RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
 
 	if (!mmat)
 		return NULL;
-	
+
 	slot = mmat->m_baseslot;
 	len = 0;
 	for (slot->begin(it); !slot->end(it); slot->next(it)) {
@@ -399,7 +399,7 @@ RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
 		else
 			return &it.vertex[index - len];
 	}
-	
+
 	return NULL;
 }
 
@@ -416,22 +416,22 @@ void RAS_MeshObject::AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* 
 	list<RAS_MeshMaterial>::iterator mit;
 
 	for (it = m_materials.begin();it!=m_materials.end();++it) {
-		/* always copy from the base slot, which is never removed 
+		/* always copy from the base slot, which is never removed
 		 * since new objects can be created with the same mesh data */
 		if (deformer && !deformer->UseVertexArray())
 		{
-			// HACK! 
+			// HACK!
 			// this deformer doesn't use vertex array => derive mesh
 			// we must keep only the mesh slots that have unique material id
 			// this is to match the derived mesh drawing function
 			// Need a better solution in the future: scan the derive mesh and create vertex array
 			RAS_IPolyMaterial* curmat = it->m_bucket->GetPolyMaterial();
-			if (curmat->GetFlag() & RAS_BLENDERGLSL) 
+			if (curmat->GetFlag() & RAS_BLENDERGLSL)
 			{
 				for (mit = m_materials.begin(); mit != it; ++mit)
 				{
 					RAS_IPolyMaterial* mat = mit->m_bucket->GetPolyMaterial();
-					if ((mat->GetFlag() & RAS_BLENDERGLSL) && 
+					if ((mat->GetFlag() & RAS_BLENDERGLSL) &&
 						mat->GetMaterialIndex() == curmat->GetMaterialIndex())
 						// no need to convert current mesh slot
 						break;
@@ -451,7 +451,7 @@ void RAS_MeshObject::AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* 
 void RAS_MeshObject::RemoveFromBuckets(void *clientobj)
 {
 	list<RAS_MeshMaterial>::iterator it;
-	
+
 	for (it = m_materials.begin();it!=m_materials.end();++it) {
 		RAS_MeshSlot **msp = it->m_slots[clientobj];
 
@@ -485,7 +485,7 @@ void RAS_MeshObject::EndConversion()
 //void RAS_MeshObject::Transform(const MT_Transform& trans)
 //{
 	//m_trans.translate(MT_Vector3(0,0,1));//.operator *=(trans);
-	
+
 //	for (int i=0;i<m_Polygons.size();i++)
 //	{
 //		m_Polygons[i]->Transform(trans);
@@ -508,7 +508,7 @@ void RAS_MeshObject::SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transfor
 	// Limitations: sorting is quite simple, and handles many
 	// cases wrong, partially due to polygons being sorted per
 	// bucket.
-	// 
+	//
 	// a) mixed triangles/quads are sorted wrong
 	// b) mixed materials are sorted wrong
 	// c) more than 65k faces are sorted wrong
@@ -569,5 +569,5 @@ void RAS_MeshObject::SchedulePolygons(int drawingmode)
 	{
 		m_bModified = false;
 		m_bMeshModified = true;
-	} 
+	}
 }

@@ -373,7 +373,7 @@ bool BL_Shader::LinkProgram()
 			goto programError;
 		}
 	}
-	
+
 	if (!tmpFrag && !tmpVert) {
 		spit("---- No shader given ----");
 		goto programError;

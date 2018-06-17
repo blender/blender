@@ -76,14 +76,14 @@ public:
 	}
 
 	virtual void NextFrame();
-	
+
 	virtual KX_EnumInputs ToNative(int incode)
 	{
 		return m_reverseKeyTranslateTable[incode];
 	}
 
 	virtual bool ConvertEvent(int incode, int val, unsigned int unicode);
-	
+
 	virtual void HookEscape();
 };
 

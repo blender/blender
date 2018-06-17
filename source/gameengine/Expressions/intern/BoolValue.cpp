@@ -103,7 +103,7 @@ this object
 */
 {
 	CValue *ret;
-	
+
 	switch (dtype) {
 		case VALUE_EMPTY_TYPE:
 		case VALUE_BOOL_TYPE:
@@ -204,7 +204,7 @@ CValue* CBoolValue::GetReplica()
 {
 	CBoolValue* replica = new CBoolValue(*this);
 	replica->ProcessReplica();
-	
+
 	return replica;
 }
 

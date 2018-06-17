@@ -71,7 +71,7 @@ void SCA_NANDController::Trigger(SCA_LogicManager* logicmgr)
 			break;
 		}
 	}
-	
+
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{

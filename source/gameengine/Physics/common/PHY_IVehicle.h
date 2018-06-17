@@ -19,7 +19,7 @@ class PHY_IVehicle
 {
 public:
 	virtual ~PHY_IVehicle() {};
-	
+
 	virtual void	AddWheel(
 			PHY_IMotionState* motionState,
 			MT_Vector3	connectionPoint,
@@ -32,7 +32,7 @@ public:
 
 
 	virtual	int		GetNumWheels() const = 0;
-	
+
 	virtual void	GetWheelPosition(int wheelIndex,float& posX,float& posY,float& posZ) const = 0;
 	virtual void	GetWheelOrientationQuaternion(int wheelIndex,float& quatX,float& quatY,float& quatZ,float& quatW) const = 0;
 	virtual float	GetWheelRotation(int wheelIndex) const = 0;
@@ -49,13 +49,13 @@ public:
 	virtual	void	ApplyBraking(float braking,int wheelIndex) = 0;
 
 	virtual	void	SetWheelFriction(float friction,int wheelIndex) = 0;
-	
+
 	virtual	void	SetSuspensionStiffness(float suspensionStiffness,int wheelIndex) = 0;
-	
+
 	virtual	void	SetSuspensionDamping(float suspensionStiffness,int wheelIndex) = 0;
-	
+
 	virtual	void	SetSuspensionCompression(float suspensionStiffness,int wheelIndex) = 0;
-	
+
 	virtual	void	SetRollInfluence(float rollInfluence,int wheelIndex) = 0;
 
 	virtual void	SetCoordinateSystem(int rightIndex,int upIndex,int forwardIndex) =0;

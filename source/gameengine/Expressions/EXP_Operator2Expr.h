@@ -23,7 +23,7 @@
 #include "EXP_Expression.h"
 #include "EXP_Value.h"	// Added by ClassView
 
-class COperator2Expr : public CExpression  
+class COperator2Expr : public CExpression
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (COperator2Expr,CExpression)
 
@@ -36,7 +36,7 @@ public:
 	//virtual bool IsLeftInside(float x,float y,float z,bool bBorderInclude);
 	//virtual bool IsRightInside(float x,float y,float z,bool bBorderInclude);
 	bool NeedsRecalculated();
-	void	ClearModified() { 
+	void	ClearModified() {
 		if (m_lhs)
 			m_lhs->ClearModified();
 		if (m_rhs)
@@ -47,12 +47,12 @@ public:
 	COperator2Expr();
 	virtual ~COperator2Expr();
 
-	
+
 protected:
 	CExpression * m_rhs;
 	CExpression * m_lhs;
 	CValue* m_cached_calculate; // cached result
-	
+
 private:
 	VALUE_OPERATOR m_op;
 

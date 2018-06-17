@@ -38,7 +38,7 @@ KX_StateActuator::KX_StateActuator(
 	SCA_IObject* gameobj,
 	int operation,
 	unsigned int mask
-	) 
+	)
 	: SCA_IActuator(gameobj, KX_ACT_STATE),
 	  m_operation(operation),
 	  m_mask(mask)
@@ -79,9 +79,9 @@ KX_StateActuator::Update()
 	if (bNegativeEvent) return false;
 
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
-	
+
 	objMask = obj->GetState();
-	switch (m_operation) 
+	switch (m_operation)
 	{
 	case OP_CPY:
 		objMask = m_mask;

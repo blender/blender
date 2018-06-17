@@ -28,7 +28,7 @@
 /** \file SG_Spatial.h
  *  \ingroup bgesg
  */
- 
+
 #ifndef __SG_SPATIAL_H__
 #define __SG_SPATIAL_H__
 
@@ -44,7 +44,7 @@ class SG_Node;
 class SG_ParentRelation;
 
 /**
- * SG_Spatial contains spatial information (local & world position, rotation 
+ * SG_Spatial contains spatial information (local & world position, rotation
  * and scaling) for a Scene graph node.
  * It also contains a link to the node's parent.
  */
@@ -59,18 +59,18 @@ protected:
 	MT_Point3		m_worldPosition;
 	MT_Matrix3x3		m_worldRotation;
 	MT_Vector3		m_worldScaling;
-	
+
 	SG_ParentRelation *	m_parent_relation;
-	
+
 	SG_BBox			m_bbox;
 	MT_Scalar		m_radius;
 	bool			m_modified;
 	bool			m_ogldirty;		// true if the openGL matrix for this object must be recomputed
 
 public:
-	inline void ClearModified() 
-	{ 
-		m_modified = false; 
+	inline void ClearModified()
+	{
+		m_modified = false;
 		m_ogldirty = true;
 	}
 	inline void SetModified()
@@ -82,15 +82,15 @@ public:
 	{
 		m_ogldirty = false;
 	}
-	/** 
+	/**
 	 * Define the relationship this node has with it's parent
 	 * node. You should pass an unshared instance of an SG_ParentRelation
 	 * allocated on the heap to this method. Ownership of this
-	 * instance is assumed by this class. 
-	 * You may call this function several times in the lifetime 
-	 * of a node to change the relationship dynamically. 
+	 * instance is assumed by this class.
+	 * You may call this function several times in the lifetime
+	 * of a node to change the relationship dynamically.
 	 * You must call this method before the first call to UpdateSpatialData().
-	 * An assertion will be fired at run-time in debug if this is not 
+	 * An assertion will be fired at run-time in debug if this is not
 	 * the case.
 	 * The relation is activated only if no controllers of this object
 	 * updated the coordinates of the child.
@@ -100,7 +100,7 @@ public:
 	SetParentRelation(
 		SG_ParentRelation *relation
 	);
-	
+
 	SG_ParentRelation * GetParentRelation()
 	{
 		return m_parent_relation;
@@ -111,12 +111,12 @@ public:
 
 	/**
 	 * Apply a translation relative to the current position.
-	 * if local then the translation is assumed to be in the 
+	 * if local then the translation is assumed to be in the
 	 * local coordinates of this object. If not then the translation
-	 * is assumed to be in global coordinates. In this case 
-	 * you must provide a pointer to the parent of this object if it 
+	 * is assumed to be in global coordinates. In this case
+	 * you must provide a pointer to the parent of this object if it
 	 * exists otherwise if there is no parent set it to NULL
-	 */ 
+	 */
 
 		void
 	RelativeTranslate(
@@ -136,7 +136,7 @@ public:
 		m_worldPosition = trans;
 	}
 
-	
+
 		void
 	RelativeRotate(
 		const MT_Matrix3x3& rot,
@@ -156,7 +156,7 @@ public:
 		SetModified();
 	}
 
-	void SetWorldOrientation(const MT_Matrix3x3& rot) 
+	void SetWorldOrientation(const MT_Matrix3x3& rot)
 	{
 		m_worldRotation = rot;
 	}
@@ -174,7 +174,7 @@ public:
 	}
 
 	void SetWorldScale(const MT_Vector3& scale)
-	{ 
+	{
 		m_worldScaling = scale;
 	}
 
@@ -242,20 +242,20 @@ public:
 	bool inside(const MT_Point3 &point) const;
 	void getBBox(MT_Point3 *box) const;
 	void getAABBox(MT_Point3 *box) const;
-	
+
 	MT_Scalar Radius() const { return m_radius; }
 	void SetRadius(MT_Scalar radius) { m_radius = radius; }
 	bool IsModified() { return m_modified; }
 	bool IsDirty() { return m_ogldirty; }
-	
+
 protected:
 	friend class SG_Controller;
 	friend class KX_BoneParentRelation;
 	friend class KX_VertexParentRelation;
 	friend class KX_SlowParentRelation;
 	friend class KX_NormalParentRelation;
-	
-	/** 
+
+	/**
 	 * Protected constructor this class is not
 	 * designed for direct instantiation
 	 */
@@ -273,12 +273,12 @@ protected:
 
 	virtual ~SG_Spatial();
 
-	/** 
+	/**
 	 * Update the world coordinates of this spatial node. This also informs
-	 * any controllers to update this object. 
-	 */ 
+	 * any controllers to update this object.
+	 */
 
-		bool 
+		bool
 	UpdateSpatialData(
 		const SG_Spatial *parent,
 		double time,

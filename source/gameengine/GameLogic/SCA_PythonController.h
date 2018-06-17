@@ -52,7 +52,7 @@ class SCA_PythonController : public SCA_IController
 	bool					m_debug;	/* use with SCA_PYEXEC_MODULE for reloading every logic run */
 	int						m_mode;
 
-	
+
  protected:
 	STR_String				m_scriptText;
 	STR_String				m_scriptName;
@@ -61,7 +61,7 @@ class SCA_PythonController : public SCA_IController
 	PyObject*				m_pythonfunction;	/* for SCA_PYEXEC_MODULE only */
 #endif
 	std::vector<class SCA_ISensor*>		m_triggeredSensors;
- 
+
  public:
 	enum SCA_PyExecMode
 	{
@@ -81,7 +81,7 @@ class SCA_PythonController : public SCA_IController
 
 	virtual CValue* GetReplica();
 	virtual void  Trigger(class SCA_LogicManager* logicmgr);
-  
+
 	void	SetScriptText(const STR_String& text);
 	void	SetScriptName(const STR_String& name);
 #ifdef WITH_PYTHON
@@ -94,7 +94,7 @@ class SCA_PythonController : public SCA_IController
 	bool	Compile();
 	bool	Import();
 	void	ErrorPrint(const char *error_msg);
-	
+
 #ifdef WITH_PYTHON
 	static const char *sPyGetCurrentController__doc__;
 	static PyObject   *sPyGetCurrentController(PyObject *self);
@@ -103,13 +103,13 @@ class SCA_PythonController : public SCA_IController
 	                                        PyObject *args);
 	static SCA_IActuator* LinkedActuatorFromPy(PyObject *value);
 
-		
+
 	KX_PYMETHOD_O(SCA_PythonController,Activate);
 	KX_PYMETHOD_O(SCA_PythonController,DeActivate);
 	KX_PYMETHOD_O(SCA_PythonController,SetScript);
 	KX_PYMETHOD_NOARGS(SCA_PythonController,GetScript);
 
-	
+
 	static PyObject*	pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 #endif

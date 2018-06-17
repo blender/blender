@@ -110,7 +110,7 @@ SG_Controller*	KX_WorldIpoController::GetReplica(class SG_Node* destnode)
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}
-	
+
 	return iporeplica;
 }
 
@@ -121,5 +121,5 @@ KX_WorldIpoController::~KX_WorldIpoController()
 	for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 		delete (*i);
 	}
-	
+
 }

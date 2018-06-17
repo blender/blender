@@ -38,8 +38,8 @@
 /**
  * This class is the conversion of the Pose channel constraint.
  * It makes a link between the pose constraint and the KX scene.
- * The main purpose is to give access to the constraint target 
- * to link it to a game object. 
+ * The main purpose is to give access to the constraint target
+ * to link it to a game object.
  * It also allows to activate/deactivate constraints during the game.
  * Later it will also be possible to create constraint on the fly
  */
@@ -69,7 +69,7 @@ public:
 	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 	virtual bool Update(double curtime, bool frame);
 	virtual void ReParent(SCA_IObject* parent);
-	
+
 #ifdef WITH_PYTHON
 
 	/* These are used to get and set m_target */

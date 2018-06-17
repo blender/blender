@@ -81,7 +81,7 @@ public:
 	virtual double		GetNumber();
 	virtual STR_String&	GetName();
 	virtual void		SetName(const char *);
-		
+
 	bool				IsActive()
 	{
 		return m_bActive;
@@ -101,7 +101,7 @@ public:
 	}
 
 	// insert in a QList at position corresponding to m_Execute_Priority
-	// inside a longer list that contains elements of other objects. 
+	// inside a longer list that contains elements of other objects.
 	// Sorting is done only between the elements of the same object.
 	// head is the head of the combined list
 	// current points to the first element of the object in the list, NULL if none yet
@@ -138,7 +138,7 @@ public:
 
 #ifdef WITH_PYTHON
 	// python methods
-	
+
 	static PyObject*	pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 	// check that attribute is a property
@@ -152,14 +152,14 @@ public:
 	};
 
 
-protected: 
+protected:
 	/* Some conversions to go with the bool type. */
 	/** Convert a KX_TRUE, KX_FALSE in Python to a c++ value. */
 	bool PyArgToBool(int boolArg);
 
 	/** Convert a a c++ value to KX_TRUE, KX_FALSE in Python. */
 	PyObject *BoolToPyArg(bool);
-	
+
 #endif  /* WITH_PYTHON */
 
 };

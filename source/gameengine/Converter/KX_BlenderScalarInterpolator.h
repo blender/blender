@@ -46,7 +46,7 @@ public:
 		{}
 
 	virtual ~BL_ScalarInterpolator() {}
-	
+
 	virtual float GetValue(float currentTime) const;
 	struct FCurve *GetFCurve() { return m_fcu; }
 

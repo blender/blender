@@ -44,7 +44,7 @@ public:
 private:
 	BucketList m_SolidBuckets;
 	BucketList m_AlphaBuckets;
-	
+
 	struct sortedmeshslot;
 	struct backtofront;
 	struct fronttoback;
@@ -57,7 +57,7 @@ public:
 
 	RAS_MaterialBucket* FindBucket(RAS_IPolyMaterial *material, bool &bucketCreated);
 	void OptimizeBuckets(MT_Scalar distance);
-	
+
 	void ReleaseDisplayLists(RAS_IPolyMaterial *material = NULL);
 	void ReleaseMaterials(RAS_IPolyMaterial *material = NULL);
 

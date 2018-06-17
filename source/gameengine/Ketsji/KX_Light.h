@@ -58,7 +58,7 @@ public:
 	virtual ~KX_LightObject();
 	virtual CValue*		GetReplica();
 	RAS_ILightObject*	GetLightData() { return m_lightobj;}
-	
+
 	void UpdateScene(class KX_Scene *kxscene);
 	virtual void SetLayer(int layer);
 

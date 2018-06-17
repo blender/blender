@@ -82,7 +82,7 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 		m_navmesh->RegisterActuator(this);
 	if (m_target)
 		m_target->RegisterActuator(this);
-	
+
 	if (m_simulation)
 		m_obstacle = m_simulation->GetObstacle((KX_GameObject*)gameobj);
 	KX_GameObject* parent = ((KX_GameObject*)gameobj)->GetParent();
@@ -92,7 +92,7 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 	}
 	else
 		m_parentlocalmat.setIdentity();
-} 
+}
 
 KX_SteeringActuator::~KX_SteeringActuator()
 {
@@ -100,7 +100,7 @@ KX_SteeringActuator::~KX_SteeringActuator()
 		m_navmesh->UnregisterActuator(this);
 	if (m_target)
 		m_target->UnregisterActuator(this);
-} 
+}
 
 CValue* KX_SteeringActuator::GetReplica()
 {
@@ -166,7 +166,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 	{
 		double delta =  curtime - m_updateTime;
 		m_updateTime = curtime;
-		
+
 		if (m_posevent && !m_isActive)
 		{
 			delta = 0.0;
@@ -222,7 +222,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 
 					static const MT_Scalar WAYPOINT_RADIUS(0.25f);
 
-					if (m_pathUpdateTime<0 || (m_pathUpdatePeriod>=0 && 
+					if (m_pathUpdateTime<0 || (m_pathUpdatePeriod>=0 &&
 												curtime - m_pathUpdateTime>((double)m_pathUpdatePeriod/1000.0)))
 					{
 						m_pathUpdateTime = curtime;
@@ -248,7 +248,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 						m_steerVec = waypoint - mypos;
 						apply_steerforce = true;
 
-						
+
 						if (m_enableVisualization)
 						{
 							//debug draw
@@ -256,7 +256,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 							m_navmesh->DrawPath(m_path, m_pathLen, PATH_COLOR);
 						}
 					}
-					
+
 				}
 				break;
 		}
@@ -308,7 +308,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 				m_obstacle->dvel[0] = 0.f;
 				m_obstacle->dvel[1] = 0.f;
 			}
-			
+
 		}
 
 		if (terminate && m_isSelfTerminated)
@@ -428,7 +428,7 @@ void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 	MT_Vector3 up(0,0,1);
 	MT_Vector3 left;
 	MT_Matrix3x3 mat;
-	
+
 	if (m_navmesh && m_normalUp)
 	{
 		dtStatNavMesh* navmesh =  m_navmesh->GetNavMesh();
@@ -489,16 +489,16 @@ void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 	}
 
 	mat.setValue (
-		left[0], dir[0],up[0], 
+		left[0], dir[0],up[0],
 		left[1], dir[1],up[1],
 		left[2], dir[2],up[2]
 	);
 
-	
-	
+
+
 	KX_GameObject* parentObject = curobj->GetParent();
 	if (parentObject)
-	{ 
+	{
 		MT_Point3 localpos;
 		localpos = curobj->GetSGNode()->GetLocalPosition();
 		MT_Matrix3x3 parentmatinv;

@@ -7,8 +7,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -347,7 +347,7 @@ class CcdOverlapFilterCallBack : public btOverlapFilterCallback
 private:
 	class CcdPhysicsEnvironment* m_physEnv;
 public:
-	CcdOverlapFilterCallBack(CcdPhysicsEnvironment* env) : 
+	CcdOverlapFilterCallBack(CcdPhysicsEnvironment* env) :
 		m_physEnv(env)
 	{
 	}
@@ -769,7 +769,7 @@ public:
 		m_owner(owner),
 		m_parent(parent)
 	{
-		
+
 	}
 
 	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
@@ -791,7 +791,7 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 	std::set<CcdPhysicsController*>::iterator it;
 	// Add epsilon to the tick rate for numerical stability
 	int numIter = (int)(interval*(KX_KetsjiEngine::GetTicRate() + 0.001f));
-	
+
 	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
 	{
 		CcdPhysicsController* ctrl = (*it);
@@ -817,7 +817,7 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 			//btVector3	rayToWorld = rayFromWorld + body->getCenterOfMassTransform().getBasis() * rayDirLocal;
 			//ray always points down the z axis in world space...
 			btVector3	rayToWorld = rayFromWorld + rayDirLocal;
-			
+
 			ClosestRayResultCallbackNotMe	resultCallback(rayFromWorld,rayToWorld,body,parentBody);
 
 			m_dynamicsWorld->rayTest(rayFromWorld,rayToWorld,resultCallback);
@@ -840,8 +840,8 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 					float distance = resultCallback.m_closestHitFraction*rayDirLocal.length()-ctrl->GetConstructionInfo().m_radius;
 					if (distance >= hitObjShapeProps.m_fh_distance)
 						continue;
-					
-					
+
+
 
 					//btVector3 ray_dir = cl_object->getCenterOfMassTransform().getBasis()* rayDirLocal.normalized();
 					btVector3 ray_dir = rayDirLocal.normalized();
@@ -856,7 +856,7 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 							        rayDirLocal * resultCallback.m_closestHitFraction;
 
 
-								
+
 
 							lspot -= hit_object->getCenterOfMassPosition();
 							btVector3 rel_vel = cl_object->getLinearVelocity() - hit_object->getVelocityInLocalPoint(lspot);
@@ -865,16 +865,16 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 
 							btScalar i_spring = spring_extent * hitObjShapeProps.m_fh_spring;
 							btScalar i_damp =   rel_vel_ray * hitObjShapeProps.m_fh_damping;
-							
-							cl_object->setLinearVelocity(cl_object->getLinearVelocity() + (-(i_spring + i_damp) * ray_dir)); 
-							if (hitObjShapeProps.m_fh_normal) 
+
+							cl_object->setLinearVelocity(cl_object->getLinearVelocity() + (-(i_spring + i_damp) * ray_dir));
+							if (hitObjShapeProps.m_fh_normal)
 							{
 								cl_object->setLinearVelocity(cl_object->getLinearVelocity()+(i_spring + i_damp) *(normal - normal.dot(ray_dir) * ray_dir));
 							}
-							
+
 							btVector3 lateral = rel_vel - rel_vel_ray * ray_dir;
-							
-							
+
+
 							if (ctrl->GetConstructionInfo().m_do_anisotropic) {
 								//Bullet basis contains no scaling/shear etc.
 								const btMatrix3x3& lcs = cl_object->getCenterOfMassTransform().getBasis();
@@ -885,34 +885,34 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 							}
 
 							btScalar rel_vel_lateral = lateral.length();
-							
+
 							if (rel_vel_lateral > SIMD_EPSILON) {
 								btScalar friction_factor = hit_object->getFriction();//cl_object->getFriction();
 
 								btScalar max_friction = friction_factor * btMax(btScalar(0.0f), i_spring);
-								
+
 								btScalar rel_mom_lateral = rel_vel_lateral / cl_object->getInvMass();
-								
+
 								btVector3 friction = (rel_mom_lateral > max_friction) ?
 									-lateral * (max_friction / rel_vel_lateral) :
 									-lateral;
-								
+
 									cl_object->applyCentralImpulse(friction);
 							}
 						}
 
-						
+
 						if (ctrl->GetConstructionInfo().m_do_rot_fh) {
 							btVector3 up2 = cl_object->getWorldTransform().getBasis().getColumn(2);
 
 							btVector3 t_spring = up2.cross(normal) * hitObjShapeProps.m_fh_spring;
 							btVector3 ang_vel = cl_object->getAngularVelocity();
-							
+
 							// only rotations that tilt relative to the normal are damped
 							ang_vel -= ang_vel.dot(normal) * normal;
-							
-							btVector3 t_damp = ang_vel * hitObjShapeProps.m_fh_damping;  
-							
+
+							btVector3 t_damp = ang_vel * hitObjShapeProps.m_fh_damping;
+
 							cl_object->setAngularVelocity(cl_object->getAngularVelocity() + (t_spring - t_damp));
 						}
 					}
@@ -1014,8 +1014,8 @@ void		CcdPhysicsEnvironment::SetSolverType(int solverType)
 			{
 
 				m_solver = new btSequentialImpulseConstraintSolver();
-				
-				
+
+
 				break;
 			}
 		}
@@ -1073,18 +1073,18 @@ int			CcdPhysicsEnvironment::CreateUniversalD6Constraint(
 
 	//we could either add some logic to recognize ball-socket and hinge, or let that up to the user
 	//perhaps some warning or hint that hinge/ball-socket is more efficient?
-	
-	
+
+
 	btGeneric6DofConstraint* genericConstraint = 0;
 	CcdPhysicsController* ctrl0 = (CcdPhysicsController*) ctrlRef;
 	CcdPhysicsController* ctrl1 = (CcdPhysicsController*) ctrlOther;
-	
+
 	btRigidBody* rb0 = ctrl0->GetRigidBody();
 	btRigidBody* rb1 = ctrl1->GetRigidBody();
 
 	if (rb1)
 	{
-		
+
 
 		bool useReferenceFrameA = true;
 		genericConstraint = new btGeneric6DofSpringConstraint(
@@ -1100,7 +1100,7 @@ int			CcdPhysicsEnvironment::CreateUniversalD6Constraint(
 		//No, we can use a fixed rigidbody in above code, rather than unnecessary duplation of code
 
 	}
-	
+
 	if (genericConstraint)
 	{
 	//	m_constraints.push_back(genericConstraint);
@@ -1182,7 +1182,7 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 		{
 			m_hitTriangleShape = rayResult.m_collisionObject->getCollisionShape();
 			m_hitTriangleIndex = rayResult.m_localShapeInfo->m_triangleIndex;
-		} else 
+		} else
 		{
 			m_hitTriangleShape = NULL;
 			m_hitTriangleIndex = 0;
@@ -1194,7 +1194,7 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 
 static bool GetHitTriangle(btCollisionShape* shape, CcdShapeConstructionInfo* shapeInfo, int hitTriangleIndex, btVector3 triangle[])
 {
-	// this code is copied from Bullet 
+	// this code is copied from Bullet
 	const unsigned char *vertexbase;
 	int numverts;
 	PHY_ScalarType type;
@@ -1284,7 +1284,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallbac
 							break;
 					}
 				}
-				if (shape == rayCallback.m_hitTriangleShape && 
+				if (shape == rayCallback.m_hitTriangleShape &&
 					rayCallback.m_hitTriangleIndex < shapeInfo->m_polygonIndexArray.size())
 				{
 					// save original collision shape triangle for soft body
@@ -1319,7 +1319,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallbac
 							v1 = softBody->m_faces[hitTriangleIndex].m_n[0]->m_x;
 							v2 = softBody->m_faces[hitTriangleIndex].m_n[1]->m_x;
 							v3 = softBody->m_faces[hitTriangleIndex].m_n[2]->m_x;
-						} else 
+						} else
 						{
 							// for rigid body we must apply the world transform
 							triangleOK = GetHitTriangle(shape, shapeInfo, hitTriangleIndex, triangle);
@@ -1355,12 +1355,12 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallbac
 						result.m_hitUV[1] = baryCo.getX()*uvCo[0].uv[1] + baryCo.getY()*uvCo[1].uv[1] + baryCo.getZ()*uvCo[2].uv[1];
 						result.m_hitUVOK = 1;
 					}
-						
+
 					// Bullet returns the normal from "outside".
 					// If the user requests the real normal, compute it now
 					if (filterCallback.m_faceNormal)
 					{
-						if (shape->isSoftBody()) 
+						if (shape->isSoftBody())
 						{
 							// we can get the real normal directly from the body
 							const btSoftBody* softBody = static_cast<const btSoftBody*>(rayCallback.m_collisionObject);
@@ -1371,7 +1371,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallbac
 								triangleOK = GetHitTriangle(shape, shapeInfo, hitTriangleIndex, triangle);
 							if (triangleOK)
 							{
-								btVector3 triangleNormal; 
+								btVector3 triangleNormal;
 								triangleNormal = (triangle[1]-triangle[0]).cross(triangle[2]-triangle[0]);
 								rayCallback.m_hitNormalWorld = rayCallback.m_collisionObject->getWorldTransform().getBasis()*triangleNormal;
 							}
@@ -1399,7 +1399,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallbac
 	return result.m_controller;
 }
 
-// Handles occlusion culling. 
+// Handles occlusion culling.
 // The implementation is based on the CDTestFramework
 struct OcclusionBuffer
 {
@@ -1438,7 +1438,7 @@ struct OcclusionBuffer
 	btScalar m_offsets[2];
 	btScalar m_wtc[16]; // world to clip transform
 	btScalar m_mtc[16]; // model to clip transform
-	// constructor: size=largest dimension of the buffer. 
+	// constructor: size=largest dimension of the buffer.
 	// Buffer size depends on aspect ratio
 	OcclusionBuffer()
 	{
@@ -1488,7 +1488,7 @@ struct OcclusionBuffer
 		m_offsets[0] = m_scales[0] + 0.5f;
 		m_offsets[1] = m_scales[1] + 0.5f;
 		// prepare matrix
-		// at this time of the rendering, the modelview matrix is the 
+		// at this time of the rendering, the modelview matrix is the
 		// world to camera transformation and the projection matrix is
 		// camera to clip transformation. combine both so that
 		CMmat4mul(m_wtc, projection, modelview);
@@ -1508,7 +1508,7 @@ struct OcclusionBuffer
 		if (!m_buffer) {
 			m_buffer = (btScalar *)calloc(1, newsize);
 			m_bufferSize = newsize;
-		} 
+		}
 		else {
 			// buffer exists already, just clears it
 			memset(m_buffer, 0, newsize);
@@ -1687,7 +1687,7 @@ struct OcclusionBuffer
 		else if (width == 1) {
 			// Degenerated in at least 2 vertical lines
 			// The algorithm below doesn't work when face has a single pixel width
-			// We cannot use general formulas because the plane is degenerated. 
+			// We cannot use general formulas because the plane is degenerated.
 			// We have to interpolate along the 3 edges that overlaps and process each pixel.
 			// sort the y coord to make formula simpler
 			int ytmp;
@@ -1752,7 +1752,7 @@ struct OcclusionBuffer
 		else if (height == 1) {
 			// Degenerated in at least 2 horizontal lines
 			// The algorithm below doesn't work when face has a single pixel width
-			// We cannot use general formulas because the plane is degenerated. 
+			// We cannot use general formulas because the plane is degenerated.
 			// We have to interpolate along the 3 edges that overlaps and process each pixel.
 			int xtmp;
 			btScalar ztmp;
@@ -1846,7 +1846,7 @@ struct OcclusionBuffer
 		}
 		return false;
 	}
-	// clip than write or check a polygon 
+	// clip than write or check a polygon
 	template <const int NP, typename POLICY>
 	inline bool clipDraw(const btVector4 *p,
 						 const float face,
@@ -1864,7 +1864,7 @@ struct OcclusionBuffer
 		return earlyexit;
 	}
 	// add a triangle (in model coordinate)
-	// face =  0.f if face is double side, 
+	// face =  0.f if face is double side,
 	//      =  1.f if face is single sided and scale is positive
 	//      = -1.f if face is single sided and scale is negative
 	void appendOccluderM(const float *a,
@@ -2054,12 +2054,12 @@ void CcdPhysicsEnvironment::GetContactPoint(int i,float& hitX,float& hitY,float&
 
 
 btBroadphaseInterface*	CcdPhysicsEnvironment::GetBroadphase()
-{ 
-	return m_dynamicsWorld->getBroadphase(); 
+{
+	return m_dynamicsWorld->getBroadphase();
 }
 
 btDispatcher*	CcdPhysicsEnvironment::GetDispatcher()
-{ 
+{
 	return m_dynamicsWorld->getDispatcher();
 }
 
@@ -2096,7 +2096,7 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 	//first delete scene, then dispatcher, because pairs have to release manifolds on the dispatcher
 	//delete m_dispatcher;
 	delete m_dynamicsWorld;
-	
+
 
 	if (NULL != m_ownPairCache)
 		delete m_ownPairCache;
@@ -2141,10 +2141,10 @@ float	CcdPhysicsEnvironment::GetConstraintParam(int constraintId,int param)
 	{
 	case PHY_GENERIC_6DOF_CONSTRAINT:
 		{
-			
+
 			switch (param)
 			{
-			case 0:	case 1: case 2: 
+			case 0:	case 1: case 2:
 				{
 					//param = 0..2 are linear constraint values
 					btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
@@ -2183,7 +2183,7 @@ void	CcdPhysicsEnvironment::SetConstraintParam(int constraintId,int param,float 
 	{
 	case PHY_GENERIC_6DOF_CONSTRAINT:
 		{
-			
+
 			switch (param)
 			{
 			case 0:	case 1: case 2: case 3: case 4: case 5:
@@ -2473,7 +2473,7 @@ bool CcdOverlapFilterCallBack::needBroadphaseCollision(btBroadphaseProxy* proxy0
 	// additional check for sensor object
 	if (proxy0->m_collisionFilterGroup & btBroadphaseProxy::SensorTrigger)
 	{
-		// this is a sensor object, the other one can't be a sensor object because 
+		// this is a sensor object, the other one can't be a sensor object because
 		// they exclude each other in the above test
 		assert(!(proxy1->m_collisionFilterGroup & btBroadphaseProxy::SensorTrigger));
 		colObj0 = (btCollisionObject*)proxy0->m_clientObject;
@@ -2530,7 +2530,7 @@ PHY_ICharacter* CcdPhysicsEnvironment::GetCharacterController(KX_GameObject *ob)
 
 PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radius,const MT_Vector3& position)
 {
-	
+
 	CcdConstructionInfo	cinfo;
 	memset(&cinfo, 0, sizeof(cinfo)); /* avoid uninitialized values */
 	cinfo.m_collisionShape = new btSphereShape(radius); // memory leak! The shape is not deleted by Bullet and we cannot add it to the KX_Scene.m_shapes list
@@ -2550,7 +2550,7 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 	motionState->m_worldTransform.setOrigin(btVector3(position[0],position[1],position[2]));
 
 	CcdPhysicsController* sphereController = new CcdPhysicsController(cinfo);
-	
+
 	return sphereController;
 }
 
@@ -2592,7 +2592,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 	btRigidBody* rb0 = c0 ? c0->GetRigidBody() : 0;
 	btRigidBody* rb1 = c1 ? c1->GetRigidBody() : 0;
 
-	
+
 
 
 	bool rb0static = rb0 ? rb0->isStaticOrKinematicObject() : true;
@@ -2606,7 +2606,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 
 	btVector3 pivotInA(pivotX,pivotY,pivotZ);
 
-	
+
 
 	//it might be a soft body, let's try
 	btSoftBody* sb0 = c0 ? c0->GetSoftBody() : 0;
@@ -2658,7 +2658,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				}
 			default:
 				{
-				
+
 				}
 			};
 			*/
@@ -2674,7 +2674,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				}
 			}
 
-			
+
 		}
 		return 0;//can't remove soft body anchors yet
 	}
@@ -2719,7 +2719,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				}
 			default:
 				{
-					
+
 
 				}
 			};*/
@@ -2735,7 +2735,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 					sb1->setMass(node,0.f);
 				}
 			}
-			
+
 
 		}
 		return 0;//can't remove soft body anchors yet
@@ -2743,15 +2743,15 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 
 	if (rb0static && rb1static)
 	{
-		
+
 		return 0;
 	}
-	
+
 
 	if (!rb0)
 		return 0;
 
-	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : 
+	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) :
 		rb0->getCenterOfMassTransform() * pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
 
@@ -2801,13 +2801,13 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 			{
 				btTransform frameInA;
 				btTransform frameInB;
-				
+
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
 				if (axis1.length() == 0.0f)
 				{
 					btPlaneSpace1( axisInA, axis1, axis2 );
 				}
-				
+
 				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
 					                          axisInA.y(), axis1.y(), axis2.y(),
 											  axisInA.z(), axis1.z(), axis2.z() );
@@ -2816,7 +2816,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				btTransform inv = rb1->getCenterOfMassTransform().inverse();
 
 				btTransform globalFrameA = rb0->getCenterOfMassTransform() * frameInA;
-				
+
 				frameInB = inv  * globalFrameA;
 				bool useReferenceFrameA = true;
 
@@ -2830,7 +2830,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				static btRigidBody s_fixedObject2( 0,0,0);
 				btTransform frameInA;
 				btTransform frameInB;
-				
+
 				btVector3 axis1, axis2;
 				btPlaneSpace1( axisInA, axis1, axis2 );
 
@@ -2859,7 +2859,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				genericConstraint->setUserConstraintType(type);
 				//64 bit systems can't cast pointer to int. could use size_t instead.
 				return genericConstraint->getUserConstraintId();
-			} 
+			}
 
 			break;
 		}
@@ -2870,18 +2870,18 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 
 			btConeTwistConstraint* coneTwistContraint = 0;
 
-			
+
 			if (rb1)
 			{
 				btTransform frameInA;
 				btTransform frameInB;
-				
+
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
 				if (axis1.length() == 0.0f)
 				{
 					btPlaneSpace1( axisInA, axis1, axis2 );
 				}
-				
+
 				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
 					                          axisInA.y(), axis1.y(), axis2.y(),
 											  axisInA.z(), axis1.z(), axis2.z() );
@@ -2890,9 +2890,9 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				btTransform inv = rb1->getCenterOfMassTransform().inverse();
 
 				btTransform globalFrameA = rb0->getCenterOfMassTransform() * frameInA;
-				
+
 				frameInB = inv  * globalFrameA;
-				
+
 				coneTwistContraint = new btConeTwistConstraint(	*rb0,*rb1,
 					frameInA,frameInB);
 
@@ -2902,7 +2902,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				static btRigidBody s_fixedObject2( 0,0,0);
 				btTransform frameInA;
 				btTransform frameInB;
-				
+
 				btVector3 axis1, axis2;
 				btPlaneSpace1( axisInA, axis1, axis2 );
 
@@ -2930,7 +2930,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				coneTwistContraint->setUserConstraintType(type);
 				//64 bit systems can't cast pointer to int. could use size_t instead.
 				return coneTwistContraint->getUserConstraintId();
-			} 
+			}
 
 
 
@@ -2953,26 +2953,26 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				// having btHingeConstraint fill in the blanks any way it wants to.
 				btTransform frameInA;
 				btTransform frameInB;
-				
+
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
 				if (axis1.length() == 0.0f)
 				{
 					btPlaneSpace1( axisInA, axis1, axis2 );
 				}
-				
+
 				// Internally btHingeConstraint's hinge-axis is z
 				frameInA.getBasis().setValue( axis1.x(), axis2.x(), axisInA.x(),
 											axis1.y(), axis2.y(), axisInA.y(),
 											axis1.z(), axis2.z(), axisInA.z() );
-											
+
 				frameInA.setOrigin( pivotInA );
 
 				btTransform inv = rb1->getCenterOfMassTransform().inverse();
 
 				btTransform globalFrameA = rb0->getCenterOfMassTransform() * frameInA;
-				
+
 				frameInB = inv  * globalFrameA;
-				
+
 				hinge = new btHingeConstraint(*rb0,*rb1,frameInA,frameInB);
 
 
@@ -2982,7 +2982,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 
 				btTransform frameInA;
 				btTransform frameInB;
-				
+
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
 				if (axis1.length() == 0.0f)
 				{
@@ -3055,7 +3055,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float conera
 	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE | btCollisionObject::CF_STATIC_OBJECT;
 	DefaultMotionState* motionState = new DefaultMotionState();
 	cinfo.m_MotionState = motionState;
-	
+
 	// we will add later the possibility to select the filter from option
 	cinfo.m_collisionFilterMask = CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter;
 	cinfo.m_collisionFilterGroup = CcdConstructionInfo::SensorFilter;
@@ -3068,7 +3068,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float conera
 
 	return sphereController;
 }
-	
+
 float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
 {
 	// For soft body constraints
@@ -3092,8 +3092,8 @@ float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
 void	CcdPhysicsEnvironment::ExportFile(const char* filename)
 {
 	btDefaultSerializer*	serializer = new btDefaultSerializer();
-	
-		
+
+
 	for (int i=0;i<m_dynamicsWorld->getNumCollisionObjects();i++)
 	{
 

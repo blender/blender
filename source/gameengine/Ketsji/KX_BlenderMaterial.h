@@ -55,30 +55,30 @@ public:
 		return (void*) this;
 	}
 
-	virtual 
+	virtual
 	bool Activate(
-		RAS_IRasterizer* rasty, 
+		RAS_IRasterizer* rasty,
 		TCachingInfo& cachingInfo
 	) const;
-	
-	virtual 
+
+	virtual
 	void ActivateMeshSlot(
-		const RAS_MeshSlot & ms, 
-		RAS_IRasterizer* rasty 
+		const RAS_MeshSlot & ms,
+		RAS_IRasterizer* rasty
 	) const;
-	
+
 	void ActivateMat(
 		RAS_IRasterizer* rasty,
 		TCachingInfo& cachingInfo
 	)const;
 
 	void ActivatShaders(
-		RAS_IRasterizer* rasty, 
+		RAS_IRasterizer* rasty,
 		TCachingInfo& cachingInfo
 	)const;
 
 	void ActivateBlenderShaders(
-		RAS_IRasterizer* rasty, 
+		RAS_IRasterizer* rasty,
 		TCachingInfo& cachingInfo
 	)const;
 
@@ -86,11 +86,11 @@ public:
 	Image* GetBlenderImage() const;
 	MTexPoly *GetMTexPoly() const;
 	unsigned int* GetMCol() const;
-	BL_Texture * getTex (unsigned int idx) { 
-		return (idx < MAXTEX) ? mTextures + idx : NULL; 
+	BL_Texture * getTex (unsigned int idx) {
+		return (idx < MAXTEX) ? mTextures + idx : NULL;
 	}
-	Image * getImage (unsigned int idx) { 
-		return (idx < MAXTEX && mMaterial) ? mMaterial->img[idx] : NULL; 
+	Image * getImage (unsigned int idx) {
+		return (idx < MAXTEX && mMaterial) ? mMaterial->img[idx] : NULL;
 	}
 	unsigned int* getBlendFunc() {
 		return mBlendFunc;
@@ -101,7 +101,7 @@ public:
 		MT_Scalar hard, MT_Scalar spec,
 		MT_Scalar ref, MT_Scalar emit, MT_Scalar alpha
 	);
-	
+
 	virtual void Replace_IScene(SCA_IScene *val);
 
 	BL_Material *GetBLMaterial();

@@ -65,18 +65,18 @@ void	KX_MotionState::GetWorldOrientation(float& quatIma0,float& quatIma1,float& 
 	quatIma2 = orn[2];
 	quatReal = orn[3];
 }
-	
+
 void	KX_MotionState::GetWorldOrientation(float* ori)
 {
 	const MT_Matrix3x3& mat = m_node->GetWorldOrientation();
 	mat.getValue(ori);
 }
-	
+
 void	KX_MotionState::SetWorldOrientation(const float* ori)
 {
 	m_node->SetLocalOrientation(ori);
 }
-	
+
 void	KX_MotionState::SetWorldPosition(float posX,float posY,float posZ)
 {
 	m_node->SetLocalPosition(MT_Point3(posX,posY,posZ));
@@ -103,4 +103,4 @@ void	KX_MotionState::CalculateWorldTransformations()
 	//m_node->ComputeWorldTransforms(NULL, parentUpdated);
 }
 
- 
+

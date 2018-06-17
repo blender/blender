@@ -42,7 +42,7 @@ SG_IObject(
 	void* clientobj,
 	void* clientinfo,
 	SG_Callbacks& callbacks
-): 
+):
 	SG_QList(),
 	m_SGclientObject(clientobj),
 	m_SGclientInfo(clientinfo)
@@ -57,12 +57,12 @@ SG_IObject(
 	SG_QList(),
 	m_SGclientObject(other.m_SGclientObject),
 	m_SGclientInfo(other.m_SGclientInfo),
-	m_callbacks(other.m_callbacks) 
+	m_callbacks(other.m_callbacks)
 {
 	//nothing to do
 }
 
-	void 
+	void
 SG_IObject::
 AddSGController(
 	SG_Controller* cont
@@ -83,8 +83,8 @@ RemoveSGController(
 	void
 SG_IObject::
 RemoveAllControllers(
-) { 
-	m_SGcontrollers.clear(); 
+) {
+	m_SGcontrollers.clear();
 }
 
 void SG_IObject::SetControllerTime(double time)

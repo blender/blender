@@ -59,10 +59,10 @@ SCA_Joystick::SCA_Joystick(short int index)
 {
 	for (int i=0; i < JOYAXIS_MAX; i++)
 		m_axis_array[i] = 0;
-	
+
 	for (int i=0; i < JOYHAT_MAX; i++)
 		m_hat_array[i] = 0;
-	
+
 #ifdef WITH_SDL
 	m_private = new PrivateData();
 #endif
@@ -94,7 +94,7 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 		return NULL;
 	}
 
-	if (m_refCount == 0) 
+	if (m_refCount == 0)
 	{
 		int i;
 
@@ -124,9 +124,9 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 			JOYSTICK_ECHO("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
 		}
-		
+
 		m_joynum = SDL_NumJoysticks();
-		
+
 		for (i = 0; i < m_joynum; i++) {
 			m_instance[i] = new SCA_Joystick(i);
 			m_instance[i]->CreateJoystickDevice();
@@ -189,7 +189,7 @@ bool SCA_Joystick::aAxisPairDirectionIsPositive(int axis, int dir)
 		res = pGetAxis(axis, 1);
 	else /* JOYAXIS_LEFT || JOYAXIS_RIGHT */
 		res = pGetAxis(axis, 0);
-	
+
 	if (dir==JOYAXIS_DOWN || dir==JOYAXIS_RIGHT)
 		return (res > m_prec) ? true : false;
 	else /* JOYAXIS_UP || JOYAXIS_LEFT */
@@ -273,7 +273,7 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		if (m_joyindex>=m_joynum) {
 			/* don't print a message, because this is done anyway */
 			//JOYSTICK_ECHO("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
-			
+
 			/* Need this so python args can return empty lists */
 			m_axismax = m_buttonmax = m_hatmax = 0;
 			return false;
@@ -282,9 +282,9 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		m_private->m_joystick = SDL_JoystickOpen(m_joyindex);
 		SDL_JoystickEventState(SDL_ENABLE);
 		m_isinit = true;
-		
+
 		JOYSTICK_ECHO("Joystick " << m_joyindex << " initialized");
-		
+
 		/* must run after being initialized */
 		m_axismax     = SDL_JoystickNumAxes(m_private->m_joystick);
 		m_buttonmax   = SDL_JoystickNumButtons(m_private->m_joystick);
@@ -292,12 +292,12 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 
 		if      (m_axismax > JOYAXIS_MAX) m_axismax = JOYAXIS_MAX;  /* very unlikely */
 		else if (m_axismax < 0)           m_axismax = 0;
-		
+
 		if      (m_hatmax > JOYHAT_MAX) m_hatmax = JOYHAT_MAX;  /* very unlikely */
 		else if (m_hatmax < 0)          m_hatmax = 0;
-		
+
 		if (m_buttonmax < 0) m_buttonmax = 0;
-		
+
 	}
 	return true;
 #endif /* WITH_SDL */
@@ -355,7 +355,7 @@ int SCA_Joystick::pAxisTest(int axisnum)
 	 * than what a short can hold. In other words, abs(MIN_SHORT) > MAX_SHRT. */
 	int i1 = m_axis_array[(axisnum * 2)];
 	int i2 = m_axis_array[(axisnum * 2) + 1];
-	
+
 	/* long winded way to do:
 	 * return max_ff(absf(i1), absf(i2))
 	 * ...avoid abs from math.h */

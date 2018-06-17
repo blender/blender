@@ -167,14 +167,14 @@ protected:
 
 	bool m_blendermat;
 	bool m_blenderglslmat;
-	
+
 	/*
 	 * GameLogic.globalDict as a string so that loading new blend files can use the same dict.
 	 * Do this because python starts/stops when loading blend files.
 	 */
 	char* m_pyGlobalDictString;
 	int m_pyGlobalDictString_Length;
-	
+
 	/* argc and argv need to be passed on to python */
 	int		m_argc;
 	char**	m_argv;

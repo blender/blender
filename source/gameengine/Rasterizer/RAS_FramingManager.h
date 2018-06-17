@@ -43,27 +43,27 @@ class RAS_Rect;
  * This is a value type describing the framing used
  * by a particular scene in the game engine.
  * Each KX_Scene contains a RAS_FrameSetting describing
- * how the frustum and viewport are to be modified 
+ * how the frustum and viewport are to be modified
  * depending on the canvas size.
  *
  * e_frame_scale means that the viewport is set to the current
- * canvas size. If the view frustum aspect ratio is different 
+ * canvas size. If the view frustum aspect ratio is different
  * to the canvas aspect this will lead to stretching.
  *
- * e_frame_extend means that the best fit viewport will be 
+ * e_frame_extend means that the best fit viewport will be
  * computed based upon the design aspect ratio
- * and the view frustum will be adjusted so that 
+ * and the view frustum will be adjusted so that
  * more of the scene is visible.
  *
  * e_frame_bars means that the best fit viewport will be
  * be computed based upon the design aspect ratio.
  */
 
-class RAS_FrameSettings 
+class RAS_FrameSettings
 {
 public :
 	/**
-	 * enum defining the policy to use 
+	 * enum defining the policy to use
 	 * in each axis.
 	 */
 	enum RAS_FrameType {
@@ -71,7 +71,7 @@ public :
 		e_frame_extend,
 		e_frame_bars
 	};
-	
+
 	/**
 	 * Constructor
 	 */
@@ -82,7 +82,7 @@ public :
 		float bar_g,
 		float bar_b,
 		unsigned int design_aspect_width,
-		unsigned int design_aspect_height 
+		unsigned int design_aspect_height
 	):
 		m_frame_type(frame_type),
 		m_bar_r(bar_r),
@@ -121,13 +121,13 @@ public :
 	) {
 		m_frame_type = type;
 	};
-	
+
 		float
 	BarRed(
 	) const {
 		return m_bar_r;
 	};
-		
+
 		float
 	BarGreen(
 	) const {
@@ -165,7 +165,7 @@ private :
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_FrameSettings")
 #endif
-}; 
+};
 
 struct RAS_FrameFrustum
 {
@@ -193,8 +193,8 @@ enum RAS_SensorFit
 /**
  * \section RAS_FramingManager
  * This class helps to compute a view frustum
- * and a viewport rectangle given the 
- * above settings and a description of the 
+ * and a viewport rectangle given the
+ * above settings and a description of the
  * current canvas dimensions.
  *
  * You do not have to instantiate this class
@@ -219,10 +219,10 @@ public :
 		RAS_Rect &viewport
 	);
 
-	
+
 	/**
 	 * compute a frustum given a valid viewport,
-	 * RAS_FrameSettings, canvas description 
+	 * RAS_FrameSettings, canvas description
 	 * and camera description
 	 */
 

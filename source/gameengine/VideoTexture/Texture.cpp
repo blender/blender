@@ -94,7 +94,7 @@ void loadTexture(unsigned int texId, unsigned int *texture, short *size,
 			glTexImage2D(GL_TEXTURE_2D, i,  GL_RGBA,  mip->x, mip->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
 		}
 		IMB_freeImBuf(ibuf);
-	} 
+	}
 	else
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -147,7 +147,7 @@ short getMaterialID(PyObject *obj, const char *name)
 		// get material
 		RAS_IPolyMaterial * mat = getMaterial(obj, matID);
 		// if material is not available, report that no material was found
-		if (mat == NULL) 
+		if (mat == NULL)
 			break;
 		// name is a material name if it starts with MA and a UV texture name if it starts with IM
 		if (name[0] == 'I' && name[1] == 'M') {
@@ -227,7 +227,7 @@ static int Texture_init(Texture *self, PyObject *args, PyObject *kwds)
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|hhO!",
 		const_cast<char**>(kwlist), &obj, &matID, &texID, &TextureType,
 		&texObj))
-		return -1; 
+		return -1;
 
 	// if parameters are available
 	if (obj != NULL)
@@ -241,7 +241,7 @@ static int Texture_init(Texture *self, PyObject *args, PyObject *kwds)
 			if (mat != NULL)
 			{
 				// is it blender material or polygon material
-				if (mat->GetFlag() & RAS_BLENDERGLSL) 
+				if (mat->GetFlag() & RAS_BLENDERGLSL)
 				{
 					self->m_imgTexture = static_cast<KX_BlenderMaterial*>(mat)->getImage(texID);
 					self->m_useMatTexture = false;
@@ -331,7 +331,7 @@ static PyObject *Texture_refresh(Texture *self, PyObject *args)
 	// no use to do it if we are still in the same rendering frame.
 	// We find this out by looking at the engine current clock time
 	KX_KetsjiEngine* engine = KX_GetActiveEngine();
-	if (engine->GetClockTime() != self->m_lastClock) 
+	if (engine->GetClockTime() != self->m_lastClock)
 	{
 		self->m_lastClock = engine->GetClockTime();
 		// set source refresh
@@ -481,7 +481,7 @@ static PyMethodDef textureMethods[] =
 
 // class Texture attributes
 static PyGetSetDef textureGetSets[] =
-{ 
+{
 	{(char*)"source", (getter)Texture_getSource, (setter)Texture_setSource, (char*)"source of texture", NULL},
 	{(char*)"mipmap", (getter)Texture_getMipmap, (setter)Texture_setMipmap, (char*)"mipmap texture", NULL},
 	{(char*)"bindId", (getter)Texture_getBindId, NULL, (char*)"OpenGL Bind Name", NULL},

@@ -97,7 +97,7 @@ bool PyMatTo(PyObject *pymat, T& mat)
 		unsigned int rows = PySequence_Size(pymat);
 		if (rows != Size(mat))
 			return false;
-			
+
 		for (unsigned int row = 0; noerror && row < rows; row++)
 		{
 			PyObject *pyrow = PySequence_GetItem(pymat, row); /* new ref */
@@ -120,12 +120,12 @@ bool PyMatTo(PyObject *pymat, T& mat)
 			}
 			Py_DECREF(pyrow);
 		}
-	} else 
+	} else
 		noerror = false;
-	
+
 	if (noerror==false)
 		PyErr_SetString(PyExc_TypeError, "could not be converted to a matrix (sequence of sequences)");
-	
+
 	return noerror;
 }
 
@@ -137,7 +137,7 @@ bool PyVecTo(PyObject *pyval, T& vec)
 {
 #ifdef USE_MATHUTILS
 	/* no need for BaseMath_ReadCallback() here, reading the sequences will do this */
-	
+
 	if (VectorObject_Check(pyval)) {
 		VectorObject *pyvec= (VectorObject *)pyval;
 		if (BaseMath_ReadCallback(pyvec) == -1) {
@@ -183,15 +183,15 @@ bool PyVecTo(PyObject *pyval, T& vec)
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
 			return false;
 		}
-		
+
 		for (unsigned int x = 0; x < numitems; x++)
 			vec[x] = PyFloat_AsDouble(PyTuple_GET_ITEM(pyval, x)); /* borrow ref */
-		
+
 		if (PyErr_Occurred()) {
 			PyErr_SetString(PyExc_AttributeError, "one or more of the items in the sequence was not a float");
 			return false;
 		}
-		
+
 		return true;
 	}
 	else if (PyObject_TypeCheck(pyval, (PyTypeObject *)&PyObjectPlus::Type)) {
@@ -200,7 +200,7 @@ bool PyVecTo(PyObject *pyval, T& vec)
 		 * the parent list each time only to discover its not a sequence.
 		 * GameObjects are often used as an alternative to vectors so this is a common case
 		 * better to do a quick check for it, likely the error below will be ignored.
-		 * 
+		 *
 		 * This is not 'correct' since we have proxy type CListValues's which could
 		 * contain floats/ints but there no cases of CValueLists being this way
 		 */
@@ -213,24 +213,24 @@ bool PyVecTo(PyObject *pyval, T& vec)
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
 			return false;
 		}
-		
+
 		for (unsigned int x = 0; x < numitems; x++) {
 			PyObject *item = PySequence_GetItem(pyval, x); /* new ref */
 			vec[x] = PyFloat_AsDouble(item);
 			Py_DECREF(item);
 		}
-		
+
 		if (PyErr_Occurred()) {
 			PyErr_SetString(PyExc_AttributeError, "one or more of the items in the sequence was not a float");
 			return false;
 		}
-		
+
 		return true;
 	}
 	else {
 		PyErr_Format(PyExc_AttributeError, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
 	}
-	
+
 	return false;
 }
 

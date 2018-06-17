@@ -49,7 +49,7 @@ bool SCA_IActuator::Update(double curtime, bool frame)
 {
 	if (frame)
 		return Update();
-	
+
 	return true;
 }
 
@@ -99,7 +99,7 @@ SCA_IActuator::~SCA_IActuator()
 void SCA_IActuator::DecLink()
 {
 	m_links--;
-	if (m_links < 0) 
+	if (m_links < 0)
 	{
 		printf("Warning: actuator %s has negative m_links: %d\n", m_name.Ptr(), m_links);
 		m_links = 0;
@@ -123,8 +123,8 @@ void SCA_IActuator::UnlinkController(SCA_IController* controller)
 			return;
 		}
 	}
-	printf("Missing link from actuator %s:%s to controller %s:%s\n", 
-		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+	printf("Missing link from actuator %s:%s to controller %s:%s\n",
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(),
 		controller->GetParent()->GetName().ReadPtr(), controller->GetName().ReadPtr());
 }
 

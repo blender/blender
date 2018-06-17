@@ -50,9 +50,9 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 {
 
 	Py_Header
-	
+
  public:
-	
+
 	KX_MouseFocusSensor(class SCA_MouseManager* eventmgr,
 						int startx,
 						int starty,
@@ -81,7 +81,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 
 
 	/**
-	 * \attention Overrides default evaluate. 
+	 * \attention Overrides default evaluate.
 	 */
 	virtual bool Evaluate();
 	virtual void Init();
@@ -96,13 +96,13 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	bool RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void *UNUSED(data));
 	/// \see KX_RayCast
 	bool NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data));
-	
+
 	const MT_Point3& RaySource() const;
 	const MT_Point3& RayTarget() const;
 	const MT_Point3& HitPosition() const;
 	const MT_Vector3& HitNormal() const;
 	const MT_Vector2& HitUV() const;
-	
+
 #ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
@@ -117,7 +117,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	static PyObject*	pyattr_get_hit_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_hit_normal(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_hit_uv(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-		
+
 #endif  /* WITH_PYTHON */
 
 	/* --------------------------------------------------------------------- */
@@ -139,7 +139,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * Flags whether changes in hit object should trigger a pulse
 	 */
 	bool m_bTouchPulse;
-	
+
 	/**
 	 * Flags get through other objects
 	 */
@@ -164,7 +164,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * Tests whether the object is in mouse focus for this camera
 	 */
 	bool ParentObjectHasFocusCamera(KX_Camera *cam);
-	
+
 	/**
 	 * Tests whether the object is in mouse focus in this scene.
 	 */

@@ -59,7 +59,7 @@ protected:
 	STR_String				m_touchedpropname;
 	bool					m_bFindMaterial;
 	bool					m_bTouchPulse;		/* changes in the colliding objects trigger pulses */
-	
+
 	class PHY_IPhysicsController*	m_physCtrl;
 
 	bool					m_bCollision;
@@ -74,7 +74,7 @@ protected:
 	SCA_IObject*		    m_hitObject;
 	class CListValue*		m_colliders;
 	STR_String				m_hitMaterial;
-	
+
 public:
 	KX_TouchSensor(class SCA_EventManager* eventmgr,
 		class KX_GameObject* gameobj,
@@ -89,7 +89,7 @@ public:
 	virtual bool Evaluate();
 	virtual void Init();
 	virtual void ReParent(SCA_IObject* parent);
-	
+
 	virtual void RegisterSumo(KX_TouchEventManager* touchman);
 	virtual void UnregisterSumo(KX_TouchEventManager* touchman);
 	virtual void UnregisterToManager();
@@ -107,14 +107,14 @@ public:
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2) { return true; }
 	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2);
 	virtual sensortype GetSensorType() { return ST_TOUCH; }
-  
+
 
 	virtual bool IsPositiveTrigger() {
 		bool result = m_bTriggered;
 		if (m_invert) result = !result;
 		return result;
 	}
-	
+
 	virtual void EndFrame();
 
 	class PHY_IPhysicsController* GetPhysicsController() { return m_physCtrl; }
@@ -127,12 +127,12 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
+
 	static PyObject*	pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 #endif
-	
+
 };
 
 #endif  /* __KX_TOUCHSENSOR_H__ */

@@ -74,8 +74,8 @@ class SCA_RandomNumberGenerator {
 		if (--m_refcount == 0)
 			delete this;
 	}
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SCA_RandomNumberGenerator")
 #endif

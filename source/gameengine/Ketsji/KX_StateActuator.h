@@ -39,7 +39,7 @@
 /*
  * Use of SG_DList : element of actuator being deactivated
  *                   Head: SCA_LogicManager::m_removedActuators
- * Use of SG_QList : element of global activated state actuator list 
+ * Use of SG_QList : element of global activated state actuator list
  *                   Head: KX_StateActuator::m_stateActuatorHead
  */
 class KX_StateActuator : public SCA_IActuator
@@ -64,7 +64,7 @@ class KX_StateActuator : public SCA_IActuator
 	int				m_mask;
 
  public:
-	
+
 	KX_StateActuator(
 		SCA_IObject* gameobj,
 		int operation,

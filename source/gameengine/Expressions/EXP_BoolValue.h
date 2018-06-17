@@ -26,7 +26,7 @@
  * Is used by parser when an expression tree is build containing booleans.
  */
 
-class CBoolValue : public CPropValue  
+class CBoolValue : public CPropValue
 {
 
 	//PLUGIN_DECLARE_SERIAL(CBoolValue,CValue)
@@ -44,10 +44,10 @@ public:
 	virtual int			GetValueType();
 	bool				GetBool();
 	virtual void		SetValue(CValue* newval);
-	
+
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val);
 	virtual CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
-	
+
 	void				Configure(CValue* menuvalue);
 	virtual CValue*		GetReplica();
 #ifdef WITH_PYTHON

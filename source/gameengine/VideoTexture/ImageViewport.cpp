@@ -61,7 +61,7 @@ ImageViewport::ImageViewport (PyRASOffScreen *offscreen) : m_alpha(false), m_tex
 		m_viewport[2] = rect.GetWidth();
 		m_viewport[3] = rect.GetHeight();
 	}
-	
+
 	//glGetIntegerv(GL_VIEWPORT, m_viewport);
 	// create buffer for viewport image
 	// Warning: this buffer is also used to get the depth buffer as an array of
@@ -102,7 +102,7 @@ void ImageViewport::setWhole (bool whole)
 void ImageViewport::setCaptureSize (short size[2])
 {
 	m_whole = false;
-	if (size == NULL) 
+	if (size == NULL)
 		size = m_capSize;
 	for (int idx = 0; idx < 2; ++idx)
 	{
@@ -406,7 +406,7 @@ static PyMethodDef imageViewportMethods[] =
 };
 // attributes structure
 static PyGetSetDef imageViewportGetSets[] =
-{ 
+{
 	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to capture", NULL},
 	{(char*)"position", (getter)ImageViewport_getPosition, (setter)ImageViewport_setPosition, (char*)"upper left corner of captured area", NULL},
 	{(char*)"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, (char*)"size of viewport area being captured", NULL},

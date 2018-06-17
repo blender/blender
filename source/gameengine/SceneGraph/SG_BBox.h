@@ -29,16 +29,16 @@
  *  \ingroup bgesg
  *  \brief Bounding Box
  */
- 
+
 #ifndef __SG_BBOX_H__
 #define __SG_BBOX_H__
- 
+
 #include "MT_Scalar.h"
 #include "MT_Point3.h"
 #include "MT_Vector3.h"
 #include "MT_Transform.h"
 
-#include <vector> 
+#include <vector>
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -71,7 +71,7 @@ public:
 	 * Enlarges the bounding box to contain the specified bound box.
 	 */
 	SG_BBox& operator +=(const SG_BBox &bbox);
-	
+
 	SG_BBox operator + (const SG_BBox &bbox2) const;
 #if 0
 	/**
@@ -88,12 +88,12 @@ public:
 	 * Computes the volume of the bounding box.
 	 */
 	MT_Scalar volume() const;
-	
+
 	/**
 	 * Test if the given point is inside this bounding box.
 	 */
 	bool inside(const MT_Point3 &point) const;
-	
+
 	/**
 	 * Test if the given bounding box is inside this bounding box.
 	 */
@@ -103,17 +103,17 @@ public:
 	 * Test if the given bounding box is outside this bounding box.
 	 */
 	bool outside(const SG_BBox &other) const;
-	
+
 	/**
 	 * Test if the given bounding box intersects this bounding box.
 	 */
 	bool intersects(const SG_BBox &other) const;
-	
+
 	/**
 	 * Test the given bounding box with this bounding box.
 	 */
 	intersect test(const SG_BBox &other) const;
-	
+
 	/**
 	 * Get the eight points that define this bounding box.
 	 *
@@ -127,11 +127,11 @@ public:
 	 * \param world a world transform to be applied.
 	 */
 	void getaa(MT_Point3 *box, const MT_Transform &world) const;
-	
+
 	void getmm(MT_Point3 *box, const MT_Transform &world) const;
 
 	void split(SG_BBox &left, SG_BBox &right) const;
-	
+
 	friend class SG_Tree;
 
 

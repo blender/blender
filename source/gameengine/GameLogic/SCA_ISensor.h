@@ -40,7 +40,7 @@
 
 /**
  * Interface Class for all logic Sensors. Implements
- * pulsemode,pulsefrequency 
+ * pulsemode,pulsefrequency
  * Use of SG_DList element: link sensors to their respective event manager
  *                          Head: SCA_EventManager::m_sensors
  * Use of SG_QList element: not used
@@ -126,7 +126,7 @@ public:
 	void SetPulseMode(bool posmode,
 					  bool negmode,
 					  int skippedticks);
-	
+
 	/** Set inversion of pulses on or off. */
 	void SetInvert(bool inv);
 	/** set the level detection on or off */
@@ -156,13 +156,13 @@ public:
 
 	/** Is this sensor switched off? */
 	bool IsSuspended();
-	
+
 	/** get the state of the sensor: positive or negative */
 	bool GetState()
 	{
 		return m_state;
 	}
-	
+
 	/** get the previous state of the sensor: positive or negative */
 	bool GetPrevState()
 	{
@@ -189,13 +189,13 @@ public:
 	void IncLink()
 		{ if (!m_links++) RegisterToManager(); }
 	void DecLink();
-	bool IsNoLink() const 
+	bool IsNoLink() const
 		{ return !m_links; }
 
 #ifdef WITH_PYTHON
 	/* Python functions: */
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,reset);
-	
+
 	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -206,13 +206,13 @@ public:
 
 	static int          pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	
+
 	enum SensorStatus {
 		KX_SENSOR_INACTIVE = 0,
 		KX_SENSOR_JUST_ACTIVATED,
 		KX_SENSOR_ACTIVE,
 		KX_SENSOR_JUST_DEACTIVATED
-	
+
 	};
 #endif  /* WITH_PYTHON */
 };

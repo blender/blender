@@ -79,7 +79,7 @@ static BL_InterpolatorList *GetAdtList(struct bAction *for_act, KX_BlenderSceneC
 		adtList = new BL_InterpolatorList(for_act);
 		converter->RegisterInterpolatorList(adtList, for_act);
 	}
-			
+
 	return adtList;
 }
 
@@ -112,13 +112,13 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 	}
 
 	BL_InterpolatorList *adtList= GetAdtList(action, converter);
-		
+
 	// For each active channel in the adtList add an
 	// interpolator to the game object.
-		
+
 	KX_IInterpolator *interpolator;
 	KX_IScalarInterpolator *interp;
-		
+
 	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator("location", i))) {
 			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetPosition()[i]), interp);
@@ -161,7 +161,7 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 			ipocontr->SetIPOChannelActive(OB_DSIZE_X+i, true);
 		}
 	}
-		
+
 
 	return ipocontr;
 }
@@ -203,10 +203,10 @@ SG_Controller *BL_CreateLampIPO(struct bAction *action, KX_GameObject*  lightobj
 
 	// For each active channel in the adtList add an
 	// interpolator to the game object.
-		
+
 	KX_IInterpolator *interpolator;
 	KX_IScalarInterpolator *interp;
-		
+
 	if ((interp= adtList->GetScalarInterpolator("energy", 0))) {
 		interpolator= new KX_ScalarInterpolator(&ipocontr->m_energy, interp);
 		ipocontr->AddInterpolator(interpolator);
@@ -218,7 +218,7 @@ SG_Controller *BL_CreateLampIPO(struct bAction *action, KX_GameObject*  lightobj
 		ipocontr->AddInterpolator(interpolator);
 		ipocontr->SetModifyDist(true);
 	}
-		
+
 	for (int i=0; i<3; i++) {
 		if ((interp = adtList->GetScalarInterpolator("color", i))) {
 			interpolator= new KX_ScalarInterpolator(&ipocontr->m_col_rgb[i], interp);
@@ -244,10 +244,10 @@ SG_Controller *BL_CreateCameraIPO(struct bAction *action, KX_GameObject*  camera
 
 	// For each active channel in the adtList add an
 	// interpolator to the game object.
-		
+
 	KX_IInterpolator *interpolator;
 	KX_IScalarInterpolator *interp;
-		
+
 	if ((interp = adtList->GetScalarInterpolator("lens", 0))) {
 		interpolator= new KX_ScalarInterpolator(&ipocontr->m_lens, interp);
 		ipocontr->AddInterpolator(interpolator);
@@ -349,7 +349,7 @@ SG_Controller *BL_CreateMaterialIpo(
 	struct bAction *action,
 	Material* blendermaterial,
 	dword matname_hash,
-	KX_GameObject* gameobj,  
+	KX_GameObject* gameobj,
 	KX_BlenderSceneConverter *converter
 	)
 {

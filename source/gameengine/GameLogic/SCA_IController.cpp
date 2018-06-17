@@ -48,9 +48,9 @@ SCA_IController::SCA_IController(SCA_IObject* gameobj)
 	m_justActivated(false)
 {
 }
-	
 
-	
+
+
 SCA_IController::~SCA_IController()
 {
 	//UnlinkAllActuators();
@@ -77,7 +77,7 @@ void SCA_IController::UnlinkAllSensors()
 	std::vector<class SCA_ISensor*>::iterator sensit;
 	for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
 	{
-		if (IsActive()) 
+		if (IsActive())
 		{
 			(*sensit)->DecLink();
 		}
@@ -93,7 +93,7 @@ void SCA_IController::UnlinkAllActuators()
 	std::vector<class SCA_IActuator*>::iterator actit;
 	for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)
 	{
-		if (IsActive()) 
+		if (IsActive())
 		{
 			(*actit)->DecLink();
 		}
@@ -127,8 +127,8 @@ void	SCA_IController::UnlinkActuator(class SCA_IActuator* actua)
 			return;
 		}
 	}
-	printf("Missing link from controller %s:%s to actuator %s:%s\n", 
-		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+	printf("Missing link from controller %s:%s to actuator %s:%s\n",
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(),
 		actua->GetParent()->GetName().ReadPtr(), actua->GetName().ReadPtr());
 }
 
@@ -157,8 +157,8 @@ void SCA_IController::UnlinkSensor(class SCA_ISensor* sensor)
 			return;
 		}
 	}
-	printf("Missing link from controller %s:%s to sensor %s:%s\n", 
-		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+	printf("Missing link from controller %s:%s to sensor %s:%s\n",
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(),
 		sensor->GetParent()->GetName().ReadPtr(), sensor->GetName().ReadPtr());
 }
 
@@ -168,9 +168,9 @@ void SCA_IController::ApplyState(unsigned int state)
 	std::vector<class SCA_IActuator*>::iterator actit;
 	std::vector<class SCA_ISensor*>::iterator sensit;
 
-	if (m_statemask & state) 
+	if (m_statemask & state)
 	{
-		if (!IsActive()) 
+		if (!IsActive())
 		{
 			// reactive the controller, all the links to actuator are valid again
 			for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)

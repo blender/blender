@@ -39,7 +39,7 @@
 #include <vector>
 
 struct Key;
-class BL_ShapeActionActuator : public SCA_IActuator  
+class BL_ShapeActionActuator : public SCA_IActuator
 {
 public:
 	Py_Header
@@ -57,10 +57,10 @@ public:
 	virtual	bool Update(double curtime, bool frame);
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
-	
+
 	void SetBlendTime (float newtime);
 	void BlendShape(struct Key* key, float weight);
-	
+
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
@@ -127,7 +127,7 @@ protected:
 	float	m_starttime;
 	/** The current time of the action */
 	float	m_localtime;
-	
+
 	float	m_lastUpdate;
 	float	m_blendin;
 	float	m_blendstart;

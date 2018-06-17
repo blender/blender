@@ -49,7 +49,7 @@ class KX_TrackToActuator : public SCA_IActuator
 	int m_time;
 	int	m_trackflag;
 	int m_upflag;
-	
+
 	MT_Matrix3x3 m_parentlocalmat;
 	KX_GameObject* m_parentobj;
 
@@ -90,7 +90,7 @@ class KX_TrackToActuator : public SCA_IActuator
 	/* These are used to get and set m_ob */
 	static PyObject *pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int       pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	
+
 #endif  /* WITH_PYTHON */
 
 }; /* end of class KX_TrackToActuator : public KX_EditObjectActuator */

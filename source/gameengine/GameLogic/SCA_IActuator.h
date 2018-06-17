@@ -92,7 +92,7 @@ public:
 		KX_ACT_MOUSE,
 	};
 
-	SCA_IActuator(SCA_IObject* gameobj, KX_ACTUATOR_TYPE type); 
+	SCA_IActuator(SCA_IObject* gameobj, KX_ACTUATOR_TYPE type);
 
 	/**
 	 * UnlinkObject(...)
@@ -105,11 +105,11 @@ public:
 
 	/**
 	 * Update(...)
-	 * Update the actuator based upon the events received since 
+	 * Update the actuator based upon the events received since
 	 * the last call to Update, the current time and deltatime the
 	 * time elapsed in this frame ?
 	 * It is the responsibility of concrete Actuators to clear
-	 * their event's. This is usually done in the Update() method via 
+	 * their event's. This is usually done in the Update() method via
 	 * a call to RemoveAllEvents()
 	 */
 
@@ -117,9 +117,9 @@ public:
 	virtual bool Update(double curtime, bool frame);
 	virtual bool Update();
 
-	/** 
+	/**
 	 * Add an event to an actuator.
-	 */ 
+	 */
 	//void AddEvent(CValue* event)
 	void AddEvent(bool event)
 	{
@@ -131,7 +131,7 @@ public:
 
 	virtual void ProcessReplica();
 
-	/** 
+	/**
 	 * Return true if all the current events
 	 * are negative. The definition of negative event is
 	 * not immediately clear. But usually refers to key-up events
@@ -159,7 +159,7 @@ public:
 	virtual void DecLink();
 	bool IsNoLink() const { return !m_links; }
 	bool IsType(KX_ACTUATOR_TYPE type) { return m_type == type; }
-	
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SCA_IActuator")
 #endif

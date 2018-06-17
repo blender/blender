@@ -108,7 +108,7 @@ static BlendFileData *load_game_data(const char *filename)
 {
 	ReportList reports;
 	BlendFileData *bfd;
-	
+
 	BKE_reports_init(&reports, RPT_STORE);
 	bfd= BLO_read_from_file(filename, &reports, BLO_READ_SKIP_USERDEF);
 
@@ -202,13 +202,13 @@ static int BL_KetsjiPyNextFrame(void *state0)
 {
 	BL_KetsjiNextFrameState *state = (BL_KetsjiNextFrameState *) state0;
 	return BL_KetsjiNextFrame(
-		state->ketsjiengine, 
-		state->C, 
-		state->win, 
-		state->scene, 
+		state->ketsjiengine,
+		state->C,
+		state->win,
+		state->scene,
 		state->ar,
-		state->keyboarddevice, 
-		state->mousedevice, 
+		state->keyboarddevice,
+		state->mousedevice,
 		state->draw_letterbox);
 }
 #endif
@@ -246,7 +246,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
 	PyGILState_STATE gilstate = PyGILState_Ensure();
-	
+
 	PyObject *pyGlobalDict = PyDict_New(); /* python utility storage, spans blend file loading */
 #endif
 
@@ -276,14 +276,14 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		bool restrictAnimFPS = (startscene->gm.flag & GAME_RESTRICT_ANIM_UPDATES) != 0;
 
 		short drawtype = v3d->drawtype;
-		
+
 		/* we do not support material mode in game engine, force change to texture mode */
 		if (drawtype == OB_MATERIAL) drawtype = OB_TEXTURE;
 		if (animation_record) usefixed= false; /* override since you don't want to run full-speed for sim recording */
 
 		// create the canvas and rasterizer
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(wm, win, area_rect, ar);
-		
+
 		// default mouse state set on render panel
 		if (mouse_state)
 			canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
@@ -316,11 +316,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 		RAS_IRasterizer::MipmapOption mipmapval = rasterizer->GetMipmapping();
 
-		
+
 		// create the inputdevices
 		KX_BlenderKeyboardDevice* keyboarddevice = new KX_BlenderKeyboardDevice();
 		KX_BlenderMouseDevice* mousedevice = new KX_BlenderMouseDevice();
-		
+
 		// create a networkdevice
 		NG_NetworkDeviceInterface* networkdevice = new
 			NG_LoopBackNetworkDeviceInterface();
@@ -328,10 +328,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		//
 		// create a ketsji/blendersystem (only needed for timing and stuff)
 		KX_BlenderSystem* kxsystem = new KX_BlenderSystem();
-		
+
 		// create the ketsjiengine
 		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
-		
+
 		// set the devices
 		ketsjiengine->SetKeyboardDevice(keyboarddevice);
 		ketsjiengine->SetMouseDevice(mousedevice);
@@ -382,7 +382,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		{
 			exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 			if (bfd) BLO_blendfiledata_free(bfd);
-			
+
 			char basedpath[FILE_MAX];
 			// base the actuator filename with respect
 			// to the original file working directory
@@ -396,18 +396,18 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			// that happened to be loaded first
 			BLI_path_abs(basedpath, pathname);
 			bfd = load_game_data(basedpath);
-			
+
 			// if it wasn't loaded, try it forced relative
 			if (!bfd)
 			{
 				// just add "//" in front of it
 				char temppath[FILE_MAX] = "//";
 				BLI_strncpy(temppath + 2, basedpath, FILE_MAX - 2);
-				
+
 				BLI_path_abs(temppath, pathname);
 				bfd = load_game_data(temppath);
 			}
-			
+
 			// if we got a loaded blendfile, proceed
 			if (bfd)
 			{
@@ -435,7 +435,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		{
 			int startFrame = scene->r.cfra;
 			ketsjiengine->SetAnimRecordMode(animation_record, startFrame);
-			
+
 			// Quad buffered needs a special window.
 			if (scene->gm.stereoflag == STEREO_ENABLED) {
 				if (scene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
@@ -446,7 +446,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 			rasterizer->SetBackColor(scene->gm.framing.col);
 		}
-		
+
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
 			if (rv3d->persp != RV3D_CAMOB)
@@ -458,7 +458,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
 				ketsjiengine->SetCameraOverrideLens(v3d->lens);
 			}
-			
+
 			// create a scene converter, create and convert the startingscene
 			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
@@ -471,7 +471,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				sceneconverter->SetGLSLMaterials(true);
 			if (scene->gm.flag & GAME_NO_MATERIAL_CACHING)
 				sceneconverter->SetCacheMaterials(false);
-					
+
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
@@ -509,19 +509,19 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				    rasterizer,
 					canvas);
 				ketsjiengine->AddScene(startscene);
-				
+
 				// init the rasterizer
 				rasterizer->Init();
-				
+
 				// start the engine
 				ketsjiengine->StartEngine(true);
-				
+
 
 				// Set the animation playback rate for ipo's and actions
 				// the framerate below should patch with FPS macro defined in blendef.h
 				// Could be in StartEngine set the framerate, we need the scene to do this
 				ketsjiengine->SetAnimFrameRate(FPS);
-				
+
 #ifdef WITH_PYTHON
 				char *python_main = NULL;
 				pynextframestate.state = NULL;
@@ -545,7 +545,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 						ketsjinextframestate.keyboarddevice = keyboarddevice;
 						ketsjinextframestate.mousedevice = mousedevice;
 						ketsjinextframestate.draw_letterbox = draw_letterbox;
-			
+
 						pynextframestate.state = &ketsjinextframestate;
 						pynextframestate.func = &BL_KetsjiPyNextFrame;
 						printf("Yielding control to Python script '%s'...\n", python_main);
@@ -577,9 +577,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				// inside the GameLogic dictionary when the python interpreter is finalized.
 				// which allows the scene to safely delete them :)
 				// see: (space.c)->start_game
-				
+
 				//PyDict_Clear(PyModule_GetDict(gameLogic));
-				
+
 				// Keep original items, means python plugins will autocomplete members
 				PyObject *gameLogic_keys_new = PyDict_Keys(PyModule_GetDict(gameLogic));
 				const Py_ssize_t numitems= PyList_GET_SIZE(gameLogic_keys_new);
@@ -624,7 +624,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			// set mipmap setting back to its original value
 			rasterizer->SetMipmapping(mipmapval);
 		}
-		
+
 		// clean up some stuff
 		if (ketsjiengine)
 		{
@@ -665,9 +665,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 		// stop all remaining playing sounds
 		AUD_Device_stopAll(BKE_sound_get_device());
-	
+
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
-	
+
 	if (bfd) BLO_blendfiledata_free(bfd);
 
 	BLI_strncpy(G.main->name, oldsce, sizeof(G.main->name));

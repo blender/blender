@@ -56,7 +56,7 @@ class KX_IpoSGController : public SG_Controller
 
 	/** Ipo must be applied in local coordinate rather than in global coordinates (used for force and Add mode)*/
 	bool m_ipo_local;
-	
+
 	/** Were settings altered since the last update? */
 	bool m_modified;
 

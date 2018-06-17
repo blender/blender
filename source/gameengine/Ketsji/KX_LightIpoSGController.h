@@ -55,7 +55,7 @@ private:
 
 	double		        m_ipotime;
 public:
-	KX_LightIpoSGController() : 
+	KX_LightIpoSGController() :
 				m_modify_energy(false),
 				m_modify_color(false),
 				m_modify_dist(false),
@@ -68,7 +68,7 @@ public:
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 
 	virtual bool Update(double time);
-	
+
 	virtual void SetSimulatedTime(double time) {
 		m_ipotime = time;
 		m_modified = true;
@@ -95,8 +95,8 @@ public:
 	};
 
 	void	AddInterpolator(KX_IInterpolator* interp);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_LightIpoSGController")
 #endif

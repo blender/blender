@@ -41,7 +41,7 @@
 #include "RAS_BucketManager.h"
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
- 
+
 BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lightlayer)
 :
 	mMat(ma),
@@ -97,7 +97,7 @@ int BL_BlenderShader::GetAttribNum()
 	for (i = 0; i < attribs.totlayer; i++)
 		if (attribs.layer[i].glindex+1 > enabled)
 			enabled= attribs.layer[i].glindex+1;
-	
+
 	if (enabled > BL_MAX_ATTRIB)
 		enabled = BL_MAX_ATTRIB;
 
@@ -114,7 +114,7 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 
 	if (!VerifyShader())
 		return;
-	
+
 	gpumat = mGPUMat;
 	if (ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED || (ras->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW &&
 			mat->alphablend != GEMAT_SOLID && !ras->GetUsingOverrideShader())) {

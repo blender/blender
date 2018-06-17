@@ -28,7 +28,7 @@
 //////////////////////////////////////////////////////////////////////
 
 COperator2Expr::COperator2Expr(VALUE_OPERATOR op, CExpression *lhs, CExpression *rhs)
-: 	
+:
 m_rhs(rhs),
 m_lhs(lhs),
 m_cached_calculate(NULL),
@@ -51,7 +51,7 @@ pre:
 effect: constucts an empty COperator2Expr
 */
 {
-	
+
 }
 
 COperator2Expr::~COperator2Expr()
@@ -66,7 +66,7 @@ effect: deletes the object
 		m_rhs->Release();
 	if (m_cached_calculate)
 		m_cached_calculate->Release();
-	
+
 }
 CValue* COperator2Expr::Calculate()
 /*
@@ -75,11 +75,11 @@ ret: a new object containing the result of applying operator m_op to m_lhs
 and m_rhs
 */
 {
-	
+
 	bool leftmodified,rightmodified;
 	leftmodified = m_lhs->NeedsRecalculated();
 	rightmodified = m_rhs->NeedsRecalculated();
-	
+
 	// if no modifications on both left and right subtree, and result is already calculated
 	// then just return cached result...
 	if (!leftmodified && !rightmodified && (m_cached_calculate))
@@ -87,30 +87,30 @@ and m_rhs
 		// not modified, just return m_cached_calculate
 	} else {
 		// if not yet calculated, or modified...
-		
-		
+
+
 		if (m_cached_calculate) {
 			m_cached_calculate->Release();
 			m_cached_calculate=NULL;
 		}
-		
+
 		CValue* ffleft = m_lhs->Calculate();
 		CValue* ffright = m_rhs->Calculate();
-		
+
 		ffleft->SetOwnerExpression(this);//->m_pOwnerExpression=this;
 		ffright->SetOwnerExpression(this);//->m_pOwnerExpression=this;
-		
+
 		m_cached_calculate = ffleft->Calc(m_op,ffright);
-		
+
 		//if (m_cached_calculate)
 		//	m_cached_calculate->Action(CValue::SETOWNEREXPR,&CVoidValue(this,false,CValue::STACKVALUE));
 
 		ffleft->Release();
 		ffright->Release();
 	}
-	
+
 	return m_cached_calculate->AddRef();
-	
+
 }
 
 #if 0
@@ -118,7 +118,7 @@ bool COperator2Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 {
 	bool inside;
 	inside = false;
-	
+
 	switch (m_op) {
 		case VALUE_ADD_OPERATOR:
 		{
@@ -164,7 +164,7 @@ bool COperator2Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 			// not yet implemented, only add or sub csg operations
 		}
 	}
-	
+
 	return inside;
 }
 
@@ -193,7 +193,7 @@ bool COperator2Expr::NeedsRecalculated()
 	return m_lhs->NeedsRecalculated();
 	//modleft = m_lhs->NeedsRecalculated();
 	//return (modleft || modright);
-	
+
 }
 
 
@@ -213,7 +213,7 @@ CExpression* COperator2Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlink
 /*
 	if (m_cached_calculate)
 		m_cached_calculate->Action(CValue::REFRESH_CACHE);
-	
+
 	CExpression* newlhs = m_lhs->CheckLink(brokenlinks);
 	CExpression* newrhs = m_rhs->CheckLink(brokenlinks);
 
@@ -235,11 +235,11 @@ CExpression* COperator2Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlink
 	if (m_lhs && m_rhs) {
 		return this;
 	}
-	
+
 	AddRef();
-	if (m_lhs) 
+	if (m_lhs)
 		return Release(m_lhs->AddRef());
-	
+
 	if (m_rhs)
 		return Release(m_rhs->AddRef());
 /

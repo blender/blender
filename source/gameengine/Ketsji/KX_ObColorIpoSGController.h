@@ -40,7 +40,7 @@ class KX_ObColorIpoSGController : public SG_Controller
 {
 public:
 	MT_Vector4			m_rgba;
-	
+
 
 private:
 	T_InterpolatorList	m_interpolators;
@@ -48,7 +48,7 @@ private:
 
 	double		        m_ipotime;
 public:
-	KX_ObColorIpoSGController() : 
+	KX_ObColorIpoSGController() :
 				m_modified(true),
 				m_ipotime(0.0)
 		{}
@@ -59,7 +59,7 @@ public:
 		m_ipotime = time;
 		m_modified = true;
 	}
-	
+
 		void
 	SetOption(
 		int option,
@@ -70,8 +70,8 @@ public:
 
 
 	void	AddInterpolator(KX_IInterpolator* interp);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_ObColorIpoSGController")
 #endif

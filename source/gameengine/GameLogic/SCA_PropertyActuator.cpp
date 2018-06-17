@@ -89,9 +89,9 @@ bool SCA_PropertyActuator::Update()
 
 	CParser parser;
 	parser.SetContext( propowner->AddRef());
-	
+
 	CExpression* userexpr= NULL;
-	
+
 	if (m_type==KX_ACT_PROP_TOGGLE)
 	{
 		/* don't use */
@@ -127,7 +127,7 @@ bool SCA_PropertyActuator::Update()
 
 		case KX_ACT_PROP_ASSIGN:
 			{
-				
+
 				CValue* newval = userexpr->Calculate();
 				CValue* oldprop = propowner->GetProperty(m_propname);
 				if (oldprop)
@@ -184,11 +184,11 @@ bool SCA_PropertyActuator::Update()
 
 		userexpr->Release();
 	}
-	
+
 	return result;
 }
 
-	bool 
+	bool
 
 SCA_PropertyActuator::
 
@@ -203,7 +203,7 @@ isValid(
 }
 
 
-	CValue* 
+	CValue*
 
 SCA_PropertyActuator::
 

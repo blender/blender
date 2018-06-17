@@ -78,7 +78,7 @@ public:
 	int blend_mode[MAXTEX];
 
 	int num_enabled;
-	
+
 	BL_Mapping	mapping[MAXTEX];
 	STR_String	imageId[MAXTEX];
 
@@ -93,8 +93,8 @@ public:
 	void SetSharedMaterial(bool v);
 	bool IsShared();
 	void SetUsers(int num);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BL_Material")
 #endif

@@ -112,7 +112,7 @@ PyAttributeDef SCA_PythonKeyboard::Attributes[] = {
 PyObject *SCA_PythonKeyboard::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonKeyboard* self = static_cast<SCA_PythonKeyboard*>(self_v);
-	
+
 	for (int i = SCA_IInputDevice::KX_BEGINKEY; i <= SCA_IInputDevice::KX_ENDKEY; i++) {
 		const SCA_InputEvent & inevent = self->m_keyboard->GetEventValue((SCA_IInputDevice::KX_EnumInputs)i);
 		PyObject *key   = PyLong_FromLong(i);
@@ -132,10 +132,10 @@ PyObject *SCA_PythonKeyboard::pyattr_get_active_events(void *self_v, const KX_PY
 	SCA_PythonKeyboard* self = static_cast<SCA_PythonKeyboard*>(self_v);
 
 	PyDict_Clear(self->m_event_dict);
-	
+
 	for (int i = SCA_IInputDevice::KX_BEGINKEY; i <= SCA_IInputDevice::KX_ENDKEY; i++) {
 		const SCA_InputEvent & inevent = self->m_keyboard->GetEventValue((SCA_IInputDevice::KX_EnumInputs)i);
-		
+
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS) {
 			PyObject *key   = PyLong_FromLong(i);
 			PyObject *value = PyLong_FromLong(inevent.m_status);

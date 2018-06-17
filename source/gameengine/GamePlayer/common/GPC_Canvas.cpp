@@ -43,7 +43,7 @@
 GPC_Canvas::GPC_Canvas(
 	int width,
 	int height
-) : 
+) :
 	m_width(width),
 	m_height(height)
 {
@@ -88,13 +88,13 @@ void GPC_Canvas::SetViewPort(int x1, int y1, int x2, int y2)
 			the width,height is calculated including both pixels
 			therefore: max - min + 1
 		*/
-		
+
 		/* XXX, nasty, this needs to go somewhere else,
 		 * but where... definitely need to clean up this
 		 * whole canvas/rendertools mess.
 		 */
 	glEnable(GL_SCISSOR_TEST);
-	
+
 	m_viewport[0] = x1;
 	m_viewport[1] = y1;
 	m_viewport[2] = x2-x1 + 1;

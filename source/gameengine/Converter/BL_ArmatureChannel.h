@@ -56,7 +56,7 @@ private:
 	BL_ArmatureObject* m_armature;
 
 public:
-	BL_ArmatureChannel(class BL_ArmatureObject *armature, 
+	BL_ArmatureChannel(class BL_ArmatureObject *armature,
 						struct bPoseChannel *posechannel);
 	virtual ~BL_ArmatureChannel();
 

@@ -109,8 +109,8 @@ class KX_ObjectActuator : public SCA_IActuator
 	KX_LocalFlags	m_bitLocalFlag;
 	KX_GameObject*  m_reference;
 	// A hack bool -- oh no sorry everyone
-	// This bool is used to check if we have informed 
-	// the physics object that we are no longer 
+	// This bool is used to check if we have informed
+	// the physics object that we are no longer
 	// setting linear velocity.
 
 	bool m_active_combined_velocity;
@@ -129,9 +129,9 @@ public:
 		KX_OBJECT_ACT_ANGULAR_VELOCITY,
 		KX_OBJECT_ACT_MAX
 	};
-		
+
 	/**
-	 * Check whether this is a valid vector mode 
+	 * Check whether this is a valid vector mode
 	 */
 	bool isValid(KX_OBJECT_ACT_VEC_TYPE type);
 
@@ -155,7 +155,7 @@ public:
 
 	void SetForceLoc(const double force[3])	{ /*m_force=force;*/ }
 	void UpdateFuzzyFlags()
-		{ 
+		{
 			m_bitLocalFlag.ZeroForce = MT_fuzzyZero(m_force);
 			m_bitLocalFlag.ZeroTorque = MT_fuzzyZero(m_torque);
 			m_bitLocalFlag.ZeroDLoc = MT_fuzzyZero(m_dloc);

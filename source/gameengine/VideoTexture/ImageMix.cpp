@@ -83,7 +83,7 @@ void ImageMix::calcImage(unsigned int texId, double ts)
 			// set its offset
 			getImageSourceMix(*it)->setOffset(m_sources[0]->getImageBuf());
 		// otherwise don't calculate image
-		else 
+		else
 			return;
 	// if there is only single source
 	if (m_sources.size() == 1)
