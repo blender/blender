@@ -1724,7 +1724,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			BLI_insertlinkafter(&block->buttons, but_decorate, but);
 			but_decorate = but->next;
 		}
-		BLI_assert(len ? i == len : i == 1);
+		BLI_assert(len ? (ELEM(i, 1, len)) : i == 1);
 	}
 #endif  /* UI_PROP_DECORATE */
 

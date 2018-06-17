@@ -337,7 +337,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
 		PointerRNA props_ptr;
 		wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
 		WM_operator_properties_create_ptr(&props_ptr, ot);
-		RNA_boolean_set(&props_ptr, "all", false);
+		RNA_boolean_set(&props_ptr, "all", but->rnaindex == -1);
 		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
 		WM_operator_properties_free(&props_ptr);
 	}
@@ -345,7 +345,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
 		PointerRNA props_ptr;
 		wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
 		WM_operator_properties_create_ptr(&props_ptr, ot);
-		RNA_boolean_set(&props_ptr, "all", false);
+		RNA_boolean_set(&props_ptr, "all", but->rnaindex == -1);
 		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
 		WM_operator_properties_free(&props_ptr);
 	}
