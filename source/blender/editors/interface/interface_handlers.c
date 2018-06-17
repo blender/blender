@@ -5240,12 +5240,12 @@ static int ui_do_but_COLOR(
 			rgb_to_hsv_compat_v(col, hsv);
 
 			if (event->type == WHEELDOWNMOUSE)
-				hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
+				hsv[2] = clamp_f(hsv[2] - 0.05f, 0.0f, 1.0f);
 			else if (event->type == WHEELUPMOUSE)
-				hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
+				hsv[2] = clamp_f(hsv[2] + 0.05f, 0.0f, 1.0f);
 			else {
 				float fac = 0.005 * (event->y - event->prevy);
-				hsv[2] = CLAMPIS(hsv[2] + fac, 0.0f, 1.0f);
+				hsv[2] = clamp_f(hsv[2] + fac, 0.0f, 1.0f);
 			}
 
 			hsv_to_rgb_v(hsv, data->vec);
@@ -5963,12 +5963,12 @@ static int ui_do_but_HSVCIRCLE(
 		}
 		/* XXX hardcoded keymap check.... */
 		else if (event->type == WHEELDOWNMOUSE) {
-			hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
+			hsv[2] = clamp_f(hsv[2] - 0.05f, 0.0f, 1.0f);
 			ui_but_hsv_set(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if (event->type == WHEELUPMOUSE) {
-			hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
+			hsv[2] = clamp_f(hsv[2] + 0.05f, 0.0f, 1.0f);
 			ui_but_hsv_set(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}

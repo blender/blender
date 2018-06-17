@@ -38,6 +38,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_deform.h"
@@ -555,7 +556,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
 					return -1;
 				}
 
-				dw->weight = CLAMPIS(f, 0.0f, 1.0f);
+				dw->weight = clamp_f(f, 0.0f, 1.0f);
 			}
 		}
 		else {

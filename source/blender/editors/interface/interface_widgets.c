@@ -2305,7 +2305,7 @@ void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float 
 	else
 		radius_t = hsv[1];
 
-	radius = CLAMPIS(radius_t, 0.0f, 1.0f) * radius;
+	radius = clamp_f(radius_t, 0.0f, 1.0f) * radius;
 	*xpos = centx + cosf(-ang) * radius;
 	*ypos = centy + sinf(-ang) * radius;
 }

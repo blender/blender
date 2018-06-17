@@ -1136,7 +1136,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 				ret = -1;
 			}
 			else {
-				*(float *)value = CLAMPIS(tmp_val, 0.0f, 1.0f);
+				*(float *)value = clamp_f(tmp_val, 0.0f, 1.0f);
 			}
 			break;
 		}
@@ -1148,7 +1148,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 				ret = -1;
 			}
 			else {
-				*(float *)value = CLAMPIS(tmp_val, 0.0f, 1.0f);
+				*(float *)value = clamp_f(tmp_val, 0.0f, 1.0f);
 			}
 			break;
 		}
