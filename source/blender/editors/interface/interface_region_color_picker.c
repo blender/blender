@@ -585,7 +585,7 @@ static int ui_colorpicker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *blo
 
 				ui_rgb_to_color_picker_compat_v(rgb, hsv);
 
-				hsv[2] = CLAMPIS(hsv[2] + add, 0.0f, 1.0f);
+				hsv[2] = clamp_f(hsv[2] + add, 0.0f, 1.0f);
 				ui_color_picker_to_rgb_v(hsv, rgb);
 
 				if (use_display_colorspace)
