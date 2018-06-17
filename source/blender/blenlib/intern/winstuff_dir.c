@@ -119,16 +119,16 @@ struct dirent *readdir(DIR *dp)
 		MEM_freeN(dp->direntry.d_name);
 		dp->direntry.d_name = NULL;
 	}
-		
+
 	if (dp->handle == INVALID_HANDLE_VALUE) {
 		wchar_t *path_16 = alloc_utf16_from_8(dp->path, 0);
 		dp->handle = FindFirstFileW(path_16, &(dp->data));
 		free(path_16);
 		if (dp->handle == INVALID_HANDLE_VALUE)
 			return NULL;
-			
+
 		dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
-		
+
 		return &dp->direntry;
 	}
 	else if (FindNextFileW(dp->handle, &(dp->data))) {
@@ -147,7 +147,7 @@ int closedir(DIR *dp)
 	if (dp->handle != INVALID_HANDLE_VALUE) FindClose(dp->handle);
 
 	MEM_freeN(dp);
-	
+
 	return 0;
 }
 

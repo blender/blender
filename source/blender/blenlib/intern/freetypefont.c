@@ -445,7 +445,7 @@ static int check_freetypefont(PackedFile *pf)
 			}
 		}
 	}
-	
+
 	return success;
 }
 
@@ -470,14 +470,14 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	}
 
 	success = check_freetypefont(pf);
-	
+
 	if (success) {
 		vfd = objfnt_to_ftvfontdata(pf);
 	}
 
 	/* free Freetype */
 	FT_Done_FreeType(library);
-	
+
 	return vfd;
 }
 

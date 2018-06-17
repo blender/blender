@@ -24,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BLI_DYNSTR_H__
 #define __BLI_DYNSTR_H__
 

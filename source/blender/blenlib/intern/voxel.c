@@ -48,11 +48,11 @@ BLI_INLINE float D(float *data, const int res[3], int x, int y, int z)
 float BLI_voxel_sample_nearest(float *data, const int res[3], const float co[3])
 {
 	int xi, yi, zi;
-	
+
 	xi = (int)(co[0] * (float)res[0]);
 	yi = (int)(co[1] * (float)res[1]);
 	zi = (int)(co[2] * (float)res[2]);
-	
+
 	return D(data, res, xi, yi, zi);
 }
 
@@ -76,13 +76,13 @@ BLI_INLINE int64_t _clamp(int a, int b, int c)
 float BLI_voxel_sample_trilinear(float *data, const int res[3], const float co[3])
 {
 	if (data) {
-	
+
 		const float xf = co[0] * (float)res[0] - 0.5f;
 		const float yf = co[1] * (float)res[1] - 0.5f;
 		const float zf = co[2] * (float)res[2] - 0.5f;
-		
+
 		const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
-	
+
 		const int64_t xc[2] = {
 		    _clamp(x,     0, res[0] - 1),
 		    _clamp(x + 1, 0, res[0] - 1),
@@ -95,20 +95,20 @@ float BLI_voxel_sample_trilinear(float *data, const int res[3], const float co[3
 		    _clamp(z,     0, res[2] - 1) * res[0] * res[1],
 		    _clamp(z + 1, 0, res[2] - 1) * res[0] * res[1],
 		};
-	
+
 		const float dx = xf - (float)x;
 		const float dy = yf - (float)y;
 		const float dz = zf - (float)z;
-		
+
 		const float u[2] = {1.f - dx, dx};
 		const float v[2] = {1.f - dy, dy};
 		const float w[2] = {1.f - dz, dz};
-	
+
 		return w[0] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] )
 		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] ) )
 		     + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] )
 		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] ) );
-	
+
 	}
 	return 0.f;
 }

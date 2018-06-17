@@ -63,7 +63,7 @@ char *BLI_strdupn(const char *str, const size_t len)
 	char *n = MEM_mallocN(len + 1, "strdup");
 	memcpy(n, str, len);
 	n[len] = '\0';
-	
+
 	return n;
 }
 
@@ -91,7 +91,7 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 	const size_t str1_len = strlen(str1);
 	const size_t str2_len = strlen(str2) + 1;
 	char *str, *s;
-	
+
 	str = MEM_mallocN(str1_len + str2_len, "strdupcat");
 	s = str;
 
@@ -425,55 +425,55 @@ char *BLI_str_replaceN(const char *__restrict str, const char *__restrict substr
 
 	BLI_assert(substr_old[0] != '\0');
 
-	/* while we can still find a match for the old substring that we're searching for, 
+	/* while we can still find a match for the old substring that we're searching for,
 	 * keep dicing and replacing
 	 */
 	while ((match = strstr(str, substr_old))) {
 		/* the assembly buffer only gets created when we actually need to rebuild the string */
 		if (ds == NULL)
 			ds = BLI_dynstr_new();
-			
-		/* if the match position does not match the current position in the string, 
+
+		/* if the match position does not match the current position in the string,
 		 * copy the text up to this position and advance the current position in the string
 		 */
 		if (str != match) {
 			/* add the segment of the string from str to match to the buffer, then restore the value at match
 			 */
 			BLI_dynstr_nappend(ds, str, (match - str));
-			
+
 			/* now our current position should be set on the start of the match */
 			str = match;
 		}
-		
+
 		/* add the replacement text to the accumulation buffer */
 		BLI_dynstr_append(ds, substr_new);
-		
+
 		/* advance the current position of the string up to the end of the replaced segment */
 		str += len_old;
 	}
-	
+
 	/* finish off and return a new string that has had all occurrences of */
 	if (ds) {
 		char *str_new;
-		
-		/* add what's left of the string to the assembly buffer 
+
+		/* add what's left of the string to the assembly buffer
 		 * - we've been adjusting str to point at the end of the replaced segments
 		 */
 		BLI_dynstr_append(ds, str);
-		
+
 		/* convert to new c-string (MEM_malloc'd), and free the buffer */
 		str_new = BLI_dynstr_get_cstring(ds);
 		BLI_dynstr_free(ds);
-		
+
 		return str_new;
 	}
 	else {
-		/* just create a new copy of the entire string - we avoid going through the assembly buffer 
+		/* just create a new copy of the entire string - we avoid going through the assembly buffer
 		 * for what should be a bit more efficiency...
 		 */
 		return BLI_strdup(str);
 	}
-} 
+}
 
 /**
  * In-place replace every \a src to \a dst in \a str.
@@ -497,7 +497,7 @@ void BLI_str_replace_char(char *str, char src, char dst)
  *
  * \retval True if the strings are equal, false otherwise.
  */
-int BLI_strcaseeq(const char *a, const char *b) 
+int BLI_strcaseeq(const char *a, const char *b)
 {
 	return (BLI_strcasecmp(a, b) == 0);
 }
@@ -509,7 +509,7 @@ char *BLI_strcasestr(const char *s, const char *find)
 {
 	register char c, sc;
 	register size_t len;
-	
+
 	if ((c = *find++) != 0) {
 		c = tolower(c);
 		len = strlen(find);
@@ -654,16 +654,16 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 	int tiebreaker = 0;
 
 	/* if both chars are numeric, to a left_number_strcmp().
-	 * then increase string deltas as long they are 
+	 * then increase string deltas as long they are
 	 * numeric, else do a tolower and char compare */
 
 	while (1) {
 		c1 = tolower(s1[d1]);
 		c2 = tolower(s2[d2]);
-		
+
 		if (isdigit(c1) && isdigit(c2)) {
 			int numcompare = left_number_strcmp(s1 + d1, s2 + d2, &tiebreaker);
-			
+
 			if (numcompare != 0)
 				return numcompare;
 
@@ -673,11 +673,11 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 			d2++;
 			while (isdigit(s2[d2]))
 				d2++;
-			
+
 			c1 = tolower(s1[d1]);
 			c2 = tolower(s2[d2]);
 		}
-	
+
 		/* first check for '.' so "foo.bar" comes before "foo 1.bar" */
 		if (c1 == '.' && c2 != '.')
 			return -1;
@@ -698,7 +698,7 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 
 	if (tiebreaker)
 		return tiebreaker;
-	
+
 	/* we might still have a different string because of lower/upper case, in
 	 * that case fall back to regular string comparison */
 	return strcmp(s1, s2);
@@ -851,7 +851,7 @@ int BLI_str_index_in_array(const char *__restrict str, const char **__restrict s
 bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t slength)
 {
 	size_t elength = strlen(end);
-	
+
 	if (elength < slength) {
 		const char *iter = &str[slength - elength];
 		while (*iter) {

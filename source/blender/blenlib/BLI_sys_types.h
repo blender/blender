@@ -87,7 +87,7 @@ typedef unsigned short ushort;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 }
 #endif
 
