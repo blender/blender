@@ -130,6 +130,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
         rd = scene.render
@@ -169,6 +170,7 @@ class RENDER_PT_frame_remapping(RenderButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         rd = context.scene.render
 
@@ -684,6 +686,7 @@ class RENDER_PT_eevee_sampling(RenderButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
         props = scene.eevee
