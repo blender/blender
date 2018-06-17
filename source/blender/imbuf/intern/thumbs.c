@@ -223,7 +223,7 @@ static bool uri_from_filename(const char *path, char *uri)
 {
 	char orig_uri[URI_MAX];
 	const char *dirstart = path;
-	
+
 #ifdef WIN32
 	{
 		char vol[3];

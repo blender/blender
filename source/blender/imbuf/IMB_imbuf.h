@@ -217,7 +217,7 @@ void IMB_blend_color_byte(unsigned char dst[4], unsigned char src1[4],
 void IMB_blend_color_float(float dst[4], float src1[4], float src2[4],
 	IMB_BlendMode mode);
 
-void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx, 
+void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 	int *desty, int *srcx, int *srcy, int *width, int *height);
 void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
@@ -322,7 +322,7 @@ int IMB_anim_get_preseek(struct anim *anim);
 
 struct ImBuf *IMB_anim_absolute(
 	struct anim *anim, int position,
-	IMB_Timecode_Type tc        /* = 1 = IMB_TC_RECORD_RUN */, 
+	IMB_Timecode_Type tc        /* = 1 = IMB_TC_RECORD_RUN */,
 	IMB_Proxy_Size preview_size /* = 0 = IMB_PROXY_NONE */);
 
 /**
@@ -433,7 +433,7 @@ bool IMB_isfloat(struct ImBuf *ibuf);
 void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
 
-/* create char buffer, color corrected if necessary, for ImBufs that lack one */ 
+/* create char buffer, color corrected if necessary, for ImBufs that lack one */
 void IMB_rect_from_float(struct ImBuf *ibuf);
 /* Create char buffer for part of the image, color corrected if necessary,
  * Changed part will be stored in buffer. This is expected to be used for texture painting updates */

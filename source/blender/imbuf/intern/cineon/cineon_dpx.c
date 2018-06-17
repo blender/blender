@@ -106,7 +106,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		printf("DPX/Cineon: saving in memory is not supported.\n");
 		return 0;
 	}
-	
+
 	logImageSetVerbose((G.debug & G_DEBUG) ? 1 : 0);
 
 	depth = (ibuf->planes + 7) >> 3;

@@ -144,7 +144,7 @@ void IMB_thumb_overlay_blend(unsigned int *thumb, int width, int height, float a
 	{
 		int x, y;
 		int stride_x = (margin_r - margin_l) - 2;
-		
+
 		for (y = 0; y < height; y++) {
 			for (x = 0; x < width; x++, px += 4) {
 				int hline = 0, vline = 0;

@@ -19,11 +19,11 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
 	..
 	../..

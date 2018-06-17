@@ -15,11 +15,11 @@ short imb_saveopenexr(struct ImBuf *ibuf, char *myfile, int flags);
 /* Used to test if its the correct format
 int IMB_is_openexr(void *buf);
 
-Step 2: 
+Step 2:
 Add your hooks to read and write the image format these go in
 	writeimage.c and readimage.c  just look at how the others are done
 
-Step 3: 
+Step 3:
 Add in IS_openexr to blender/source/blender/imbuf/IMB_imbuf_types.h
 Add in R_openexr to source/blender/makesdna/DNA_scene_types.h
 
@@ -36,11 +36,11 @@ blender/source/blender/src/filesel.c
 blender/source/blender/src/screendump.c
 and add your extension so that your format gets recognized in the thumbnails.
 
-Step 6: 
+Step 6:
 Alter the build process:
 For cmake you need to edit blender/source/blender/imbuf/CMakeLists.txt
 and add in your additional files to source_files.
-If you have any external library info you will also need to add that 
+If you have any external library info you will also need to add that
 to the various build processes.
 
 Step 7:

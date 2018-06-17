@@ -2448,7 +2448,7 @@ const char *IMB_colormanagement_view_get_default_name(const char *display_name)
 {
 	ColorManagedDisplay *display = colormanage_display_get_named(display_name);
 	ColorManagedView *view = NULL;
-	
+
 	if (display)
 		view = colormanage_view_get_default(display);
 

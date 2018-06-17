@@ -54,7 +54,7 @@ void IMB_flipy(struct ImBuf *ibuf)
 		top = ibuf->rect;
 		bottom = top + ((y - 1) * x);
 		line = MEM_mallocN(x * sizeof(int), "linebuf");
-	
+
 		y >>= 1;
 
 		for (; y > 0; y--) {
@@ -96,7 +96,7 @@ void IMB_flipx(struct ImBuf *ibuf)
 {
 	int x, y, xr, xl, yi;
 	float px_f[4];
-	
+
 	if (ibuf == NULL) return;
 
 	x = ibuf->x;
@@ -109,7 +109,7 @@ void IMB_flipx(struct ImBuf *ibuf)
 			}
 		}
 	}
-	
+
 	if (ibuf->rect_float) {
 		for (yi = y - 1; yi >= 0; yi--) {
 			for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {

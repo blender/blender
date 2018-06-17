@@ -130,7 +130,7 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 	unsigned short col;
 	double xppm, yppm;
 	bool top_to_bottom = false;
-	
+
 	(void)size; /* unused */
 
 	if (checkbmp(mem) == 0) return(NULL);
@@ -248,7 +248,7 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 					rect[0] = bmp[2];
 					rect[1] = bmp[1];
 					rect[2] = bmp[0];
-					
+
 					rect[3] = 255;
 					rect += 4; bmp += 3;
 				}
@@ -277,7 +277,7 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 		ibuf->ppm[1] = yppm;
 		ibuf->ftype = IMB_FTYPE_BMP;
 	}
-	
+
 	return(ibuf);
 }
 
@@ -297,7 +297,7 @@ static int putShortLSB(unsigned short us, FILE *ofile)
 {
 	putc((us >> 0) & 0xFF, ofile);
 	return putc((us >> 8) & 0xFF, ofile);
-} 
+}
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
 int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
@@ -306,7 +306,7 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	size_t bytesize, extrabytes, ptr;
 	uchar *data;
 	FILE *ofile;
-	
+
 	(void)flags; /* unused */
 
 	extrabytes = (4 - ibuf->x * 3 % 4) % 4;

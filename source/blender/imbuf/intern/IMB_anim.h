@@ -103,7 +103,7 @@ struct anim {
 	int frs_sec;
 	double frs_sec_base;
 	int x, y;
-	
+
 	/* for number */
 	char name[1024];
 	/* for sequence */
@@ -113,12 +113,12 @@ struct anim {
 	void *movie;
 	void *track;
 	void *params;
-	int orientation; 
+	int orientation;
 	size_t framesize;
 	int interlacing;
 	int preseek;
 	int streamindex;
-	
+
 	/* avi */
 	struct _AviMovie *avi;
 
@@ -153,7 +153,7 @@ struct anim {
 
 	int proxies_tried;
 	int indices_tried;
-	
+
 	struct anim *proxy_anim[IMB_PROXY_MAX_SLOT];
 	struct anim_index *curr_idx[IMB_TC_MAX_SLOT];
 

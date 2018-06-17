@@ -69,7 +69,7 @@ public:
 	operator unsigned int () const {
 		return u;
 	}
-	
+
 	union {
 		struct {
 			unsigned char b, g, r, a;
@@ -85,7 +85,7 @@ public:
 	Color16() { }
 	Color16(const Color16 & c) : u(c.u) { }
 	explicit Color16(unsigned short U) : u(U) { }
-	
+
 	union {
 		struct {
 			unsigned short b : 5;
