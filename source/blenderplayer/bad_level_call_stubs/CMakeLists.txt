@@ -27,7 +27,7 @@
 # this warning on generated files gets annoying
 remove_strict_flags()
 
-set(INC 
+set(INC
 	.
 	..
 	../../blender/blenlib
@@ -39,7 +39,7 @@ set(INC
 )
 
 set(INC_SYS
-	
+
 )
 
 set(SRC

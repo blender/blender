@@ -94,9 +94,9 @@ endif()
 # if(UNIX)
 	# Sort libraries
 	set(BLENDER_SORTED_LIBS
-		ge_player_ghost 
-		ge_player_common 
-		bf_intern_string 
+		ge_player_ghost
+		ge_player_common
+		bf_intern_string
 		bf_intern_ghost
 		bf_rna
 		bf_blenkernel
@@ -106,37 +106,37 @@ endif()
 		bf_blenloader
 		ge_blen_routines
 		bf_editor_datafiles
-		ge_converter 
-		ge_logic_ketsji 
-		ge_phys_bullet 
+		ge_converter
+		ge_logic_ketsji
+		ge_phys_bullet
 		ge_phys_dummy
-		ge_logic 
-		ge_rasterizer 
-		ge_oglrasterizer 
-		ge_logic_expressions 
+		ge_logic
+		ge_rasterizer
+		ge_oglrasterizer
+		ge_logic_expressions
 		ge_scenegraph
 		bf_ikplugin
 		bf_intern_itasc
 		bf_intern_iksolver
 		bf_intern_smoke
 		bf_modifiers
-		bf_intern_moto 
+		bf_intern_moto
 		bf_nodes
 		bf_gpu
 		bf_imbuf
-		bf_avi 
-		ge_logic_network 
-		ge_logic_ngnetwork 
-		ge_logic_loopbacknetwork 
-		extern_bullet 
-		bf_intern_guardedalloc 
-		bf_intern_memutil 
+		bf_avi
+		ge_logic_network
+		ge_logic_ngnetwork
+		ge_logic_loopbacknetwork
+		extern_bullet
+		bf_intern_guardedalloc
+		bf_intern_memutil
 		bf_python_ext
 		bf_python_mathutils
 		bf_python_bmesh
 		bf_intern_utfconv
 		bf_imbuf_cineon
-		bf_imbuf_openexr 
+		bf_imbuf_openexr
 		bf_imbuf_openimageio
 		extern_openjpeg
 		bf_imbuf_dds

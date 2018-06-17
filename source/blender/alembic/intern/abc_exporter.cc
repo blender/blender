@@ -396,7 +396,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 		DupliObject *link = static_cast<DupliObject *>(lb->first);
 		Object *dupli_ob = NULL;
 		Object *dupli_parent = NULL;
-		
+
 		for (; link; link = link->next) {
 			/* This skips things like custom bone shapes. */
 			if (m_settings.renderable_only && link->no_draw) {
@@ -505,7 +505,7 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object 
 	}
 
 	createShapeWriter(ob, dupliObParent);
-	
+
 	ListBase *lb = object_duplilist(m_bmain, eval_ctx, m_scene, ob);
 
 	if (lb) {
@@ -563,7 +563,7 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 	else {
 		name = get_object_dag_path_name(ob, dupliObParent);
 	}
-	
+
 	AbcTransformWriter *xform = getXForm(name);
 
 	if (!xform) {
