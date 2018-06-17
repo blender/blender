@@ -130,7 +130,7 @@ static void sig_handle_crash(int signum)
 			}
 			else {
 				BLI_strncpy(fname, G_MAIN->name, sizeof(fname));
-				BLI_replace_extension(fname, sizeof(fname), ".crash.blend");
+				BLI_path_extension_replace(fname, sizeof(fname), ".crash.blend");
 			}
 
 			printf("Writing: %s\n", fname);
@@ -151,7 +151,7 @@ static void sig_handle_crash(int signum)
 	}
 	else {
 		BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->name));
-		BLI_replace_extension(fname, sizeof(fname), ".crash.txt");
+		BLI_path_extension_replace(fname, sizeof(fname), ".crash.txt");
 	}
 
 	printf("Writing: %s\n", fname);

@@ -232,7 +232,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 		char filepath[FILE_MAX] = "//screen";
 		if (G.relbase_valid) {
 			BLI_strncpy(filepath, BKE_main_blendfile_path_from_global(), sizeof(filepath));
-			BLI_replace_extension(filepath, sizeof(filepath), "");  /* strip '.blend' */
+			BLI_path_extension_replace(filepath, sizeof(filepath), "");  /* strip '.blend' */
 		}
 		RNA_string_set(op->ptr, "filepath", filepath);
 

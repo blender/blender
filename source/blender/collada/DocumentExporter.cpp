@@ -169,7 +169,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 	BLI_make_file_string(NULL, tempfile, tempdir, name);
 
 	if (extension) {
-		BLI_ensure_extension(tempfile, FILE_MAX, extension);
+		BLI_path_extension_ensure(tempfile, FILE_MAX, extension);
 	}
 
 	COLLADABU::NativeString native_filename =

@@ -928,7 +928,7 @@ Render *Controller::RenderStrokes(Render *re, bool render)
 
 void Controller::InsertStyleModule(unsigned index, const char *iFileName)
 {
-	if (!BLI_testextensie(iFileName, ".py")) {
+	if (!BLI_path_extension_check(iFileName, ".py")) {
 		cerr << "Error: Cannot load \"" << string(iFileName) << "\", unknown extension" << endl;
 		return;
 	}

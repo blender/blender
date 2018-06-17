@@ -612,7 +612,7 @@ static void init_iconfile_list(struct ListBase *list)
 		if ((dir[i].type & S_IFREG)) {
 			const char *filename = dir[i].relname;
 
-			if (BLI_testextensie(filename, ".png")) {
+			if (BLI_path_extension_check(filename, ".png")) {
 				/* loading all icons on file start is overkill & slows startup
 				 * its possible they change size after blender load anyway. */
 #if 0

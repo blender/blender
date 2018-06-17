@@ -81,12 +81,12 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen);
 #endif
 bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *name);
 
-bool BLI_testextensie(const char *str, const char *ext) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-bool BLI_testextensie_n(const char *str, ...) ATTR_NONNULL(1) ATTR_SENTINEL(0);
-bool BLI_testextensie_array(const char *str, const char **ext_array) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-bool BLI_replace_extension(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
-bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
+bool BLI_path_extension_check(const char *str, const char *ext) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check_n(const char *str, ...) ATTR_NONNULL(1) ATTR_SENTINEL(0);
+bool BLI_path_extension_check_array(const char *str, const char **ext_array) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
+bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);

@@ -650,7 +650,7 @@ static PyObject *gPyGetBlendFileList(PyObject *, PyObject *args)
 	}
 	
 	while ((dirp = readdir(dp)) != NULL) {
-		if (BLI_testextensie(dirp->d_name, ".blend")) {
+		if (BLI_path_extension_check(dirp->d_name, ".blend")) {
 			value = PyC_UnicodeFromByte(dirp->d_name);
 			PyList_Append(list, value);
 			Py_DECREF(value);
@@ -2926,7 +2926,7 @@ void pathGamePythonConfig(char *path)
 	BLI_strncpy(path, gp_GamePythonPathOrig, sizeof(gp_GamePythonPathOrig));
 
 	/* replace extension */
-	if (BLI_testextensie(path, ".blend")) {
+	if (BLI_path_extension_check(path, ".blend")) {
 		strcpy(path+(len-6), ".bgeconf");
 	} else {
 		strcpy(path+len, ".bgeconf");

@@ -198,7 +198,7 @@ bool BKE_cachefile_filepath_get(
 		char ext[32];
 		BLI_path_frame_strip(r_filepath, true, ext);
 		BLI_path_frame(r_filepath, frame, frame_len);
-		BLI_ensure_extension(r_filepath, FILE_MAX, ext);
+		BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
 
 		/* TODO(kevin): store sequence range? */
 		return BLI_exists(r_filepath);

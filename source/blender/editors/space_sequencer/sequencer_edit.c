@@ -3894,7 +3894,7 @@ static int sequencer_export_subtitles_invoke(bContext *C, wmOperator *op, const 
 		else
 			BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
 
-		BLI_replace_extension(filepath, sizeof(filepath), ".srt");
+		BLI_path_extension_replace(filepath, sizeof(filepath), ".srt");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}
 
@@ -3919,7 +3919,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
 	}
 
 	RNA_string_get(op->ptr, "filepath", filepath);
-	BLI_ensure_extension(filepath, sizeof(filepath), ".srt");
+	BLI_path_extension_ensure(filepath, sizeof(filepath), ".srt");
 
 	/* Avoid File write exceptions */
 	if (!BLI_exists(filepath)) {

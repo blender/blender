@@ -454,10 +454,10 @@ static bool sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
 		prop = RNA_struct_find_property(op->ptr, "filepath");
 		RNA_property_string_get(op->ptr, prop, filepath);
 
-		if (BLI_testextensie_array(filepath, snd_ext_sound))
-			check = BLI_replace_extension(filepath, FILE_MAX, extension);
+		if (BLI_path_extension_check_array(filepath, snd_ext_sound))
+			check = BLI_path_extension_replace(filepath, FILE_MAX, extension);
 		else
-			check = BLI_ensure_extension(filepath, FILE_MAX, extension);
+			check = BLI_path_extension_ensure(filepath, FILE_MAX, extension);
 
 		if (!check)
 			return check;

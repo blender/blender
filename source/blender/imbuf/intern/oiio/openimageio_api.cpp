@@ -179,7 +179,7 @@ int imb_is_a_photoshop(const char *filename)
 		NULL
 	};
 
-	return BLI_testextensie_array(filename, photoshop_extension);
+	return BLI_path_extension_check_array(filename, photoshop_extension);
 }
 
 int imb_save_photoshop(struct ImBuf *ibuf, const char * /*name*/, int flags)

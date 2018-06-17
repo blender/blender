@@ -1087,7 +1087,7 @@ bool write_crash_blend(void)
 	int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on crash file */
 
 	BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
-	BLI_replace_extension(path, sizeof(path), "_crash.blend");
+	BLI_path_extension_replace(path, sizeof(path), "_crash.blend");
 	if (BLO_write_file(G_MAIN, path, fileflags, NULL, NULL)) {
 		printf("written: %s\n", path);
 		return 1;
@@ -2116,9 +2116,9 @@ static bool blend_save_check(bContext *UNUSED(C), wmOperator *op)
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
 	if (!BLO_has_bfile_extension(filepath)) {
-		/* some users would prefer BLI_replace_extension(),
+		/* some users would prefer BLI_path_extension_replace(),
 		 * we keep getting nitpicking bug reports about this - campbell */
-		BLI_ensure_extension(filepath, FILE_MAX, ".blend");
+		BLI_path_extension_ensure(filepath, FILE_MAX, ".blend");
 		RNA_string_set(op->ptr, "filepath", filepath);
 		return true;
 	}

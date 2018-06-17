@@ -1532,7 +1532,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 		BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
 	}
 
-	if (BLI_testextensie_array(str, imb_ext_movie))
+	if (BLI_path_extension_check_array(str, imb_ext_movie))
 		sima->image->source = IMA_SRC_MOVIE;
 	else
 		sima->image->source = IMA_SRC_FILE;

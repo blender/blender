@@ -71,7 +71,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 		else
 			BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
 
-		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
+		BLI_path_extension_replace(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}
 
@@ -118,7 +118,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	}
 
 	RNA_string_get(op->ptr, "filepath", filepath);
-	BLI_ensure_extension(filepath, sizeof(filepath), ".dae");
+	BLI_path_extension_ensure(filepath, sizeof(filepath), ".dae");
 
 
 	/* Avoid File write exceptions in Collada */
@@ -336,8 +336,8 @@ static bool wm_collada_export_check(bContext *UNUSED(C), wmOperator *op)
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
 
-	if (!BLI_testextensie(filepath, ".dae")) {
-		BLI_ensure_extension(filepath, FILE_MAX, ".dae");
+	if (!BLI_path_extension_check(filepath, ".dae")) {
+		BLI_path_extension_ensure(filepath, FILE_MAX, ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
 		return true;
 	}
