@@ -60,16 +60,6 @@ bool BLI_path_name_at_index(
         const char *__restrict path, const int index,
         int *__restrict r_offset, int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
-#if 0
-typedef enum bli_rebase_state {
-	BLI_REBASE_NO_SRCDIR = 0,
-	BLI_REBASE_OK        = 1,
-	BLI_REBASE_IDENTITY  = 2
-} bli_rebase_state;
-
-int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir);
-#endif
-
 const char *BLI_last_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 int         BLI_add_slash(char *string) ATTR_NONNULL();
 void        BLI_del_slash(char *string) ATTR_NONNULL();
