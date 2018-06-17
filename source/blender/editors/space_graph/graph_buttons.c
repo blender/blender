@@ -782,7 +782,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 
 		/* errors? */
 		if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
-			uiItemL(col, IFACE_("ERROR: Python auto-execution disabled"), ICON_CANCEL);
+			uiItemL(col, IFACE_("WARNING: Python expressions limited for security"), ICON_ERROR);
 		}
 		else if (driver->flag & DRIVER_FLAG_INVALID) {
 			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_CANCEL);
