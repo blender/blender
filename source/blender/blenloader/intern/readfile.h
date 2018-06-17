@@ -64,23 +64,23 @@ typedef struct FileData {
 
 	// now only in use for library appending
 	char relabase[FILE_MAX];
-	
+
 	// variables needed for reading from stream
 	char headerdone;
 	int inbuffer;
-	
+
 	// gzip stream for memory decompression
 	z_stream strm;
-	
+
 	// general reading variables
 	struct SDNA *filesdna;
 	const struct SDNA *memsdna;
 	const char *compflags;  /* array of eSDNA_StructCompare */
-	
+
 	int fileversion;
 	int id_name_offs;       /* used to retrieve ID names from (bhead+1) */
 	int globalf, fileflags; /* for do_versions patching */
-	
+
 	eBLOReadSkip skip_flags;  /* skip some data-blocks */
 
 	struct OldNewMap *datamap;
@@ -90,13 +90,13 @@ typedef struct FileData {
 	struct OldNewMap *movieclipmap;
 	struct OldNewMap *soundmap;
 	struct OldNewMap *packedmap;
-	
+
 	struct BHeadSort *bheadmap;
 	int tot_bheadmap;
 
 	/* see: USE_GHASH_BHEAD */
 	struct GHash *bhead_idname_hash;
-	
+
 	ListBase *mainlist;
 	ListBase *old_mainlist;  /* Used for undo. */
 

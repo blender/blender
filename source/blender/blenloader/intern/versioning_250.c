@@ -670,7 +670,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup, 
 {
 //	bNodeSocketType *stype = ntreeGetSocketType(type);
 	bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
-	
+
 	BLI_strncpy(gsock->name, name, sizeof(gsock->name));
 	gsock->type = type;
 
@@ -680,14 +680,14 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup, 
 	/* assign new unique index */
 	gsock->own_index = ngroup->cur_index++;
 	gsock->limit = (in_out==SOCK_IN ? 0xFFF : 1);
-	
+
 //	if (stype->value_structsize > 0)
 //		gsock->default_value = MEM_callocN(stype->value_structsize, "default socket value");
-	
+
 	BLI_addtail(in_out==SOCK_IN ? &ngroup->inputs : &ngroup->outputs, gsock);
-	
+
 	ngroup->update |= (in_out==SOCK_IN ? NTREE_UPDATE_GROUP_IN : NTREE_UPDATE_GROUP_OUT);
-	
+
 	return gsock;
 }
 
@@ -703,10 +703,10 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
 	bNodeSocketValueFloat *valfloat;
 	bNodeSocketValueVector *valvector;
 	bNodeSocketValueRGBA *valrgba;
-	
+
 	if (sock->default_value)
 		return;
-	
+
 	switch (sock->type) {
 		case SOCK_FLOAT:
 			valfloat = sock->default_value = MEM_callocN(sizeof(bNodeSocketValueFloat), "default socket value");
@@ -2352,13 +2352,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 		bNode *node;
 		bNodeSocket *sock, *gsock;
 		bNodeLink *link;
-		
+
 		/* node sockets are not exposed automatically any more,
 		 * this mimics the old behavior by adding all unlinked sockets to groups.
 		 */
 		for (ntree=bmain->nodetree.first; ntree; ntree=ntree->id.next) {
 			/* this adds copies and links from all unlinked internal sockets to group inputs/outputs. */
-			
+
 			/* first make sure the own_index for new sockets is valid */
 			for (node=ntree->nodes.first; node; node=node->next) {
 				for (sock = node->inputs.first; sock; sock = sock->next)
@@ -2368,17 +2368,17 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 					if (sock->own_index >= ntree->cur_index)
 						ntree->cur_index = sock->own_index+1;
 			}
-			
+
 			/* add ntree->inputs/ntree->outputs sockets for all unlinked sockets in the group tree. */
 			for (node=ntree->nodes.first; node; node=node->next) {
 				for (sock = node->inputs.first; sock; sock = sock->next) {
 					if (!sock->link && !nodeSocketIsHidden(sock)) {
-						
+
 						gsock = do_versions_node_group_add_socket_2_56_2(ntree, sock->name, sock->type, SOCK_IN);
-						
+
 						/* initialize the default socket value */
 						copy_v4_v4(gsock->ns.vec, sock->ns.vec);
-						
+
 						/* XXX nodeAddLink does not work with incomplete (node==NULL) links any longer,
 						 * have to create these directly here. These links are updated again in subsequent do_version!
 						 */
@@ -2389,17 +2389,17 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 						link->tonode = node;
 						link->tosock = sock;
 						ntree->update |= NTREE_UPDATE_LINKS;
-						
+
 						sock->link = link;
 					}
 				}
 				for (sock = node->outputs.first; sock; sock = sock->next) {
 					if (nodeCountSocketLinks(ntree, sock)==0 && !nodeSocketIsHidden(sock)) {
 						gsock = do_versions_node_group_add_socket_2_56_2(ntree, sock->name, sock->type, SOCK_OUT);
-						
+
 						/* initialize the default socket value */
 						copy_v4_v4(gsock->ns.vec, sock->ns.vec);
-						
+
 						/* XXX nodeAddLink does not work with incomplete (node==NULL) links any longer,
 						 * have to create these directly here. These links are updated again in subsequent do_version!
 						 */
@@ -2410,12 +2410,12 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 						link->tonode = NULL;
 						link->tosock = gsock;
 						ntree->update |= NTREE_UPDATE_LINKS;
-						
+
 						gsock->link = link;
 					}
 				}
 			}
-			
+
 			/* XXX The external group node sockets needs to adjust their own_index to point at
 			 * associated ntree inputs/outputs internal sockets. However, this can only happen
 			 * after lib-linking (needs access to internal node group tree)!
@@ -2721,19 +2721,19 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 			FOREACH_NODETREE(bmain, ntree, id) {
 				bNode *node;
 				bNodeSocket *sock;
-				
+
 				for (node=ntree->nodes.first; node; node=node->next) {
 					for (sock = node->inputs.first; sock; sock = sock->next)
 						do_versions_socket_default_value_259(sock);
 					for (sock = node->outputs.first; sock; sock = sock->next)
 						do_versions_socket_default_value_259(sock);
 				}
-				
+
 				for (sock = ntree->inputs.first; sock; sock = sock->next)
 					do_versions_socket_default_value_259(sock);
 				for (sock = ntree->outputs.first; sock; sock = sock->next)
 					do_versions_socket_default_value_259(sock);
-				
+
 				ntree->update |= NTREE_UPDATE;
 			}
 			FOREACH_NODETREE_END

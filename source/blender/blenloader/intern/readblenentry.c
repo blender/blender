@@ -68,10 +68,10 @@
 #endif
 
 /* local prototypes --------------------- */
-void BLO_blendhandle_print_sizes(BlendHandle *, void *); 
+void BLO_blendhandle_print_sizes(BlendHandle *, void *);
 
 /* Access routines used by filesel. */
-	 
+
 /**
  * Open a blendhandle from a file path.
  *
@@ -104,7 +104,7 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize)
 	return bh;
 }
 
-void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) 
+void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 {
 	FileData *fd = (FileData *) bh;
 	BHead *bhead;
@@ -117,7 +117,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 			const short *sp = fd->filesdna->structs[bhead->SDNAnr];
 			const char *name = fd->filesdna->types[sp[0]];
 			char buf[4];
-			
+
 			buf[0] = (bhead->code >> 24) & 0xFF;
 			buf[1] = (bhead->code >> 16) & 0xFF;
 			buf[2] = (bhead->code >> 8) & 0xFF;
@@ -127,7 +127,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 			buf[1] = buf[1] ? buf[1] : ' ';
 			buf[2] = buf[2] ? buf[2] : ' ';
 			buf[3] = buf[3] ? buf[3] : ' ';
-			
+
 			fprintf(fp, "['%.4s', '%s', %d, %ld ],\n", buf, name, bhead->nr, (long int)(bhead->len + sizeof(BHead)));
 		}
 	}
@@ -225,7 +225,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							new_prv->rect[0] = NULL;
 							new_prv->w[0] = new_prv->h[0] = 0;
 						}
-						
+
 						if (prv->rect[1] && prv->w[1] && prv->h[1]) {
 							unsigned int *rect = NULL;
 							size_t len = new_prv->w[1] * new_prv->h[1] * sizeof(unsigned int);
@@ -255,7 +255,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 			new_prv = NULL;
 			prv = NULL;
 		}
-		
+
 	}
 
 	*tot_prev = tot;
@@ -274,7 +274,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 	GSet *gathered = BLI_gset_ptr_new("linkable_groups gh");
 	LinkNode *names = NULL;
 	BHead *bhead;
-	
+
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
 		if (bhead->code == ENDB) {
 			break;
@@ -282,18 +282,18 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 		else if (BKE_idcode_is_valid(bhead->code)) {
 			if (BKE_idcode_is_linkable(bhead->code)) {
 				const char *str = BKE_idcode_to_name(bhead->code);
-				
+
 				if (BLI_gset_add(gathered, (void *)str)) {
 					BLI_linklist_prepend(&names, strdup(str));
 				}
 			}
 		}
 	}
-	
+
 	BLI_gset_free(gathered, NULL);
-	
+
 	return names;
-}		
+}
 
 /**
  * Close and free a blendhandle. The handle becomes invalid after this call.
@@ -303,7 +303,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 void BLO_blendhandle_close(BlendHandle *bh)
 {
 	FileData *fd = (FileData *) bh;
-	
+
 	blo_freefiledata(fd);
 }
 
@@ -323,7 +323,7 @@ BlendFileData *BLO_read_from_file(
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
-		
+
 	fd = blo_openblenderfile(filepath, reports);
 	if (fd) {
 		fd->reports = reports;
@@ -350,7 +350,7 @@ BlendFileData *BLO_read_from_memory(
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
-		
+
 	fd = blo_openblendermemory(mem, memsize,  reports);
 	if (fd) {
 		fd->reports = reports;
@@ -375,13 +375,13 @@ BlendFileData *BLO_read_from_memfile(
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 	ListBase old_mainlist;
-	
+
 	fd = blo_openblendermemfile(memfile, reports);
 	if (fd) {
 		fd->reports = reports;
 		fd->skip_flags = skip_flags;
 		BLI_strncpy(fd->relabase, filename, sizeof(fd->relabase));
-		
+
 		/* clear ob->proxy_from pointers in old main */
 		blo_clear_proxy_pointers_from_lib(oldmain);
 
@@ -389,26 +389,26 @@ BlendFileData *BLO_read_from_memfile(
 		blo_split_main(&old_mainlist, oldmain);
 		/* add the library pointers in oldmap lookup */
 		blo_add_library_pointer_map(&old_mainlist, fd);
-		
+
 		/* makes lookup of existing images in old main */
 		blo_make_image_pointer_map(fd, oldmain);
-		
+
 		/* makes lookup of existing video clips in old main */
 		blo_make_movieclip_pointer_map(fd, oldmain);
 
 		/* make lookups of existing sound data in old main */
 		blo_make_sound_pointer_map(fd, oldmain);
-		
+
 		/* removed packed data from this trick - it's internal data that needs saves */
-		
+
 		bfd = blo_read_file_internal(fd, filename);
-		
+
 		/* ensures relinked images are not freed */
 		blo_end_image_pointer_map(fd, oldmain);
-		
+
 		/* ensures relinked movie clips are not freed */
 		blo_end_movieclip_pointer_map(fd, oldmain);
-		
+
 		/* ensures relinked sounds are not freed */
 		blo_end_sound_pointer_map(fd, oldmain);
 
@@ -467,7 +467,7 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
 	if (bfd->main) {
 		BKE_main_free(bfd->main);
 	}
-	
+
 	if (bfd->user) {
 		MEM_freeN(bfd->user);
 	}

@@ -172,7 +172,7 @@ static void do_version_constraints_stretch_to_limits(ListBase *lb)
 static void do_version_action_editor_properties_region(ListBase *regionbase)
 {
 	ARegion *ar;
-	
+
 	for (ar = regionbase->first; ar; ar = ar->next) {
 		if (ar->regiontype == RGN_TYPE_UI) {
 			/* already exists */
@@ -181,13 +181,13 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
 		else if (ar->regiontype == RGN_TYPE_WINDOW) {
 			/* add new region here */
 			ARegion *arnew = MEM_callocN(sizeof(ARegion), "buttons for action");
-			
+
 			BLI_insertlinkbefore(regionbase, ar, arnew);
-			
+
 			arnew->regiontype = RGN_TYPE_UI;
 			arnew->alignment = RGN_ALIGN_RIGHT;
 			arnew->flag = RGN_FLAG_HIDDEN;
-			
+
 			return;
 		}
 	}
@@ -198,7 +198,7 @@ static void do_version_bones_super_bbone(ListBase *lb)
 	for (Bone *bone = lb->first; bone; bone = bone->next) {
 		bone->scaleIn = 1.0f;
 		bone->scaleOut = 1.0f;
-		
+
 		do_version_bones_super_bbone(&bone->childbase);
 	}
 }
@@ -290,7 +290,7 @@ static void do_versions_compositor_render_passes(bNodeTree *ntree)
 static char *replace_bbone_easing_rnapath(char *old_path)
 {
 	char *new_path = NULL;
-	
+
 	/* NOTE: This will break paths for any bones/custom-properties
 	 * which happen be named after the bbone property id's
 	 */
@@ -298,7 +298,7 @@ static char *replace_bbone_easing_rnapath(char *old_path)
 		new_path = BLI_str_replaceN(old_path, "bbone_in", "bbone_easein");
 	else if (strstr(old_path, "bbone_out"))
 		new_path = BLI_str_replaceN(old_path, "bbone_out", "bbone_easeout");
-	
+
 	if (new_path) {
 		MEM_freeN(old_path);
 		return new_path;
@@ -314,7 +314,7 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id), FCurve *fcu, void
 	if (fcu->rna_path) {
 		fcu->rna_path = replace_bbone_easing_rnapath(fcu->rna_path);
 	}
-	
+
 	/* Driver -> Driver Vars (for bbone_in/out) */
 	if (fcu->driver) {
 		for (DriverVar *dvar = fcu->driver->variables.first; dvar; dvar = dvar->next) {
@@ -327,13 +327,13 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id), FCurve *fcu, void
 			DRIVER_TARGETS_LOOPER_END;
 		}
 	}
-	
+
 	/* FModifiers -> Stepped (for frame_start/end) */
 	if (fcu->modifiers.first) {
 		for (FModifier *fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
 			if (fcm->type == FMODIFIER_TYPE_STEPPED) {
 				FMod_Stepped *data = fcm->data;
-				
+
 				/* Modifier doesn't work if the modifier's copy of start/end frame are both 0
 				 * as those were only getting written to the fcm->data copy (T52009)
 				 */
@@ -694,7 +694,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
-	
+
 	if (!MAIN_VERSION_ATLEAST(bmain, 273, 3)) {
 		ParticleSettings *part;
 		for (part = bmain->particle.first; part; part = part->id.next) {
@@ -1122,63 +1122,63 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 276, 4)) {
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			ToolSettings *ts = scene->toolsettings;
-			
+
 			if (ts->gp_sculpt.brush[0].size == 0) {
 				GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
 				GP_EditBrush_Data *brush;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_SMOOTH];
 				brush->size = 25;
 				brush->strength = 0.3f;
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_THICKNESS];
 				brush->size = 25;
 				brush->strength = 0.5f;
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
 				brush->size = 50;
 				brush->strength = 0.3f;
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_PUSH];
 				brush->size = 25;
 				brush->strength = 0.3f;
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_TWIST];
 				brush->size = 50;
 				brush->strength = 0.3f; // XXX?
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_PINCH];
 				brush->size = 50;
 				brush->strength = 0.5f; // XXX?
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMIZE];
 				brush->size = 25;
 				brush->strength = 0.5f;
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-				
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_CLONE];
 				brush->size = 50;
 				brush->strength = 1.0f;
 			}
-			
+
 			if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "gpencil_v3d_align")) {
 #if 0 /* XXX: Cannot do this, as we get random crashes... */
 				if (scene->gpd) {
 					bGPdata *gpd = scene->gpd;
-					
+
 					/* Copy over the settings stored in the GP datablock linked to the scene, for minimal disruption */
 					ts->gpencil_v3d_align = 0;
-					
+
 					if (gpd->flag & GP_DATA_VIEWALIGN)    ts->gpencil_v3d_align |= GP_PROJECT_VIEWSPACE;
 					if (gpd->flag & GP_DATA_DEPTH_VIEW)   ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_VIEW;
 					if (gpd->flag & GP_DATA_DEPTH_STROKE) ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_STROKE;
-					
+
 					if (gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS)
 						ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_STROKE_ENDPOINTS;
 				}
@@ -1187,17 +1187,17 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
 				}
 #endif
-				
+
 				ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
 				ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
 				ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
 				ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
 			}
 		}
-		
+
 		for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
 			bool enabled = false;
-			
+
 			/* Ensure that the datablock's onionskinning toggle flag
 			 * stays in sync with the status of the actual layers
 			 */
@@ -1206,7 +1206,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					enabled = true;
 				}
 			}
-			
+
 			if (enabled)
 				gpd->flag |= GP_DATA_SHOW_ONIONSKINS;
 			else
@@ -1327,7 +1327,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						do_version_action_editor_properties_region(&saction->regionbase);
 					}
 				}
-				
+
 				/* active spacedata info must be handled too... */
 				if (sa->spacetype == SPACE_ACTION) {
 					do_version_action_editor_properties_region(&sa->regionbase);
@@ -1349,7 +1349,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						/* see do_version_bones_super_bbone()... */
 						pchan->scaleIn = 1.0f;
 						pchan->scaleOut = 1.0f;
-						
+
 						/* also make sure some legacy (unused for over a decade) flags are unset,
 						 * so that we can reuse them for stuff that matters now...
 						 * (i.e. POSE_IK_MAT, (unknown/unused x 4), POSE_HAS_IK)
@@ -1469,19 +1469,19 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							/* set color attributes */
 							copy_v4_v4(palcolor->color, gpl->color);
 							copy_v4_v4(palcolor->fill, gpl->fill);
-							
+
 							if (gpl->flag & GP_LAYER_HIDE)       palcolor->flag |= PC_COLOR_HIDE;
 							if (gpl->flag & GP_LAYER_LOCKED)     palcolor->flag |= PC_COLOR_LOCKED;
 							if (gpl->flag & GP_LAYER_ONIONSKIN)  palcolor->flag |= PC_COLOR_ONIONSKIN;
 							if (gpl->flag & GP_LAYER_VOLUMETRIC) palcolor->flag |= PC_COLOR_VOLUMETRIC;
 							if (gpl->flag & GP_LAYER_HQ_FILL)    palcolor->flag |= PC_COLOR_HQ_FILL;
-							
+
 							/* set layer opacity to 1 */
 							gpl->opacity = 1.0f;
-							
+
 							/* set tint color */
 							ARRAY_SET_ITEMS(gpl->tintcolor, 0.0f, 0.0f, 0.0f, 0.0f);
-							
+
 							/* flush relevant layer-settings to strokes */
 							for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 								for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
@@ -1490,7 +1490,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 									gps->palcolor = NULL;
 									gps->flag |= GP_STROKE_RECALC_COLOR;
 									gps->thickness = gpl->thickness;
-									
+
 									/* set alpha strength to 1 */
 									for (int i = 0; i < gps->totpoints; i++) {
 										gps->points[i].strength = 1.0f;
@@ -1498,7 +1498,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 								}
 							}
 						}
-						
+
 						/* set thickness to 0 (now it is a factor to override stroke thickness) */
 						gpl->thickness = 0.0f;
 					}
@@ -1843,7 +1843,7 @@ void do_versions_after_linking_270(Main *bmain)
 			}
 		} FOREACH_NODETREE_END
 	}
-	
+
 	if (!MAIN_VERSION_ATLEAST(bmain, 279, 2)) {
 		/* B-Bones (bbone_in/out -> bbone_easein/out) + Stepped FMod Frame Start/End fix */
 		/* if (!DNA_struct_elem_find(fd->filesdna, "Bone", "float", "bbone_easein")) */

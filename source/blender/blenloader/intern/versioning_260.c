@@ -2654,10 +2654,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
-	
+
 	if (!MAIN_VERSION_ATLEAST(bmain, 269, 9)) {
 		Object *ob;
-		
+
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			for (md = ob->modifiers.first; md; md = md->next) {
