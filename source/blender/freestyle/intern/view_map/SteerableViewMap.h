@@ -48,7 +48,7 @@ class FEdge;
 class ImagePyramid;
 class GrayImage;
 
-/*! This class checks for every FEdge in which steerable it belongs and stores the mapping allowing to retrieve 
+/*! This class checks for every FEdge in which steerable it belongs and stores the mapping allowing to retrieve
  *  this information from the FEdge Id.
  */
 class SteerableViewMap

@@ -35,7 +35,7 @@ public:
 	 * Default constructor
 	 */
 	AlphaOverKeyOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */

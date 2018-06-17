@@ -66,7 +66,7 @@ void DisplaceSimpleOperation::executePixelSampled(float output[4], float x, floa
 	this->m_inputScaleYProgram->readSampled(inScale, x, y, sampler);
 	float ys = inScale[0];
 
-	/* clamp x and y displacement to triple image resolution - 
+	/* clamp x and y displacement to triple image resolution -
 	 * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
 	CLAMP(xs, -this->m_width_x4, this->m_width_x4);
 	CLAMP(ys, -this->m_height_x4, this->m_height_x4);

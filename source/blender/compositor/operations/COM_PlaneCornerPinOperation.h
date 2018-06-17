@@ -37,15 +37,15 @@
 class PlaneCornerPinMaskOperation : public PlaneDistortMaskOperation {
 private:
 	bool m_corners_ready;
-	
+
 public:
 	PlaneCornerPinMaskOperation();
-	
+
 	void initExecution();
 	void deinitExecution();
-	
+
 	void *initializeTileData(rcti *rect);
-	
+
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
 
@@ -53,15 +53,15 @@ public:
 class PlaneCornerPinWarpImageOperation : public PlaneDistortWarpImageOperation {
 private:
 	bool m_corners_ready;
-	
+
 public:
 	PlaneCornerPinWarpImageOperation();
-	
+
 	void initExecution();
 	void deinitExecution();
-	
+
 	void *initializeTileData(rcti *rect);
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 

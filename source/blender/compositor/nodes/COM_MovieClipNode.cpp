@@ -46,7 +46,7 @@ void MovieClipNode::convertToOperations(NodeConverter &converter, const Composit
 	NodeOutput *offsetYMovieClip = this->getOutputSocket(3);
 	NodeOutput *scaleMovieClip = this->getOutputSocket(4);
 	NodeOutput *angleMovieClip = this->getOutputSocket(5);
-	
+
 	bNode *editorNode = this->getbNode();
 	MovieClip *movieClip = (MovieClip *)editorNode->id;
 	MovieClipUser *movieClipUser = (MovieClipUser *)editorNode->storage;
@@ -59,7 +59,7 @@ void MovieClipNode::convertToOperations(NodeConverter &converter, const Composit
 		else
 			ibuf = BKE_movieclip_get_ibuf_flag(movieClip, movieClipUser, movieClip->flag, MOVIECLIP_CACHE_SKIP);
 	}
-	
+
 	// always connect the output image
 	MovieClipOperation *operation = new MovieClipOperation();
 	operation->setMovieClip(movieClip);
@@ -76,7 +76,7 @@ void MovieClipNode::convertToOperations(NodeConverter &converter, const Composit
 	alphaOperation->setMovieClipUser(movieClipUser);
 	alphaOperation->setFramenumber(context.getFramenumber());
 	alphaOperation->setCacheFrame(cacheFrame);
-	
+
 	converter.addOperation(alphaOperation);
 	converter.mapOutputSocket(alphaMovieClip, alphaOperation->getOutputSocket());
 
@@ -99,7 +99,7 @@ void MovieClipNode::convertToOperations(NodeConverter &converter, const Composit
 	converter.addOutputValue(offsetYMovieClip, loc[1]);
 	converter.addOutputValue(scaleMovieClip, scale);
 	converter.addOutputValue(angleMovieClip, angle);
-	
+
 	if (ibuf) {
 		IMB_freeImBuf(ibuf);
 	}

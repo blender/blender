@@ -103,7 +103,7 @@ PyLongObject _BPy_MediumType_OPAQUE_MEDIUM = {
 //-------------------MODULE INITIALIZATION--------------------------------
 
 int MediumType_Init(PyObject *module)
-{	
+{
 	if (module == NULL)
 		return -1;
 

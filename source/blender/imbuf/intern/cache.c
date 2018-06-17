@@ -280,7 +280,7 @@ static ImGlobalTile *imb_global_cache_get_tile(ImBuf *ibuf, int tx, int ty, ImGl
 	lookuptile.tx = tx;
 	lookuptile.ty = ty;
 	gtile = BLI_ghash_lookup(GLOBAL_CACHE.tilehash, &lookuptile);
-	
+
 	if (gtile) {
 		/* found tile. however it may be in the process of being loaded
 		 * by another thread, in that case we do stupid busy loop waiting

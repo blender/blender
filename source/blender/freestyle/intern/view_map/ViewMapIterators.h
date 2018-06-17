@@ -30,7 +30,7 @@
 
 #include "ViewMap.h"
 
-#include "../system/Iterator.h" //soc 
+#include "../system/Iterator.h" //soc
 
 namespace Freestyle {
 

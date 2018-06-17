@@ -132,7 +132,7 @@ void ExecutionSystem::execute()
 	editingtree->stats_draw(editingtree->sdh, IFACE_("Compositing | Initializing execution"));
 
 	DebugInfo::execute_started(this);
-	
+
 	unsigned int order = 0;
 	for (vector<NodeOperation *>::iterator iter = this->m_operations.begin(); iter != this->m_operations.end(); ++iter) {
 		NodeOperation *operation = *iter;

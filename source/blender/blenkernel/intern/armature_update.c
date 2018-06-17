@@ -117,7 +117,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		/* only happens on reload file, but violates depsgraph still... fix! */
 		if (ELEM(NULL,  ikData->tar->curve_cache, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
 			BKE_displist_make_curveTypes(depsgraph, scene, ikData->tar, 0);
-			
+
 			/* path building may fail in EditMode after removing verts [#33268]*/
 			if (ELEM(NULL, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
 				/* BLI_assert(cu->path != NULL); */
@@ -427,21 +427,21 @@ static void splineik_evaluate_bone(
 			{
 				/* improved volume preservation based on the Stretch To constraint */
 				float final_scale;
-				
+
 				/* as the basis for volume preservation, we use the inverse scale factor... */
 				if (fabsf(scaleFac) != 0.0f) {
 					/* NOTE: The method here is taken wholesale from the Stretch To constraint */
 					float bulge = powf(1.0f / fabsf(scaleFac), ikData->bulge);
-					
+
 					if (bulge > 1.0f) {
 						if (ikData->flag & CONSTRAINT_SPLINEIK_USE_BULGE_MAX) {
 							float bulge_max = max_ff(ikData->bulge_max, 1.0f);
 							float hard = min_ff(bulge, bulge_max);
-							
+
 							float range = bulge_max - 1.0f;
 							float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
 							float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / (float)M_PI_2;
-							
+
 							bulge = interpf(soft, hard, ikData->bulge_smooth);
 						}
 					}
@@ -449,15 +449,15 @@ static void splineik_evaluate_bone(
 						if (ikData->flag & CONSTRAINT_SPLINEIK_USE_BULGE_MIN) {
 							float bulge_min = CLAMPIS(ikData->bulge_min, 0.0f, 1.0f);
 							float hard = max_ff(bulge, bulge_min);
-							
+
 							float range = 1.0f - bulge_min;
 							float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
 							float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / (float)M_PI_2;
-							
+
 							bulge = interpf(soft, hard, ikData->bulge_smooth);
 						}
 					}
-					
+
 					/* compute scale factor for xz axes from this value */
 					final_scale = sqrtf(bulge);
 				}
@@ -465,7 +465,7 @@ static void splineik_evaluate_bone(
 					/* no scaling, so scale factor is simple */
 					final_scale = 1.0f;
 				}
-				
+
 				/* apply the scaling (assuming normalised scale) */
 				mul_v3_fl(poseMat[0], final_scale);
 				mul_v3_fl(poseMat[2], final_scale);

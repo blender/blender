@@ -229,15 +229,15 @@ void BKE_text_init(Text *ta)
 	tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line = (char *) MEM_mallocN(1, "textline_string");
 	tmp->format = NULL;
-	
+
 	tmp->line[0] = 0;
 	tmp->len = 0;
-				
+
 	tmp->next = NULL;
 	tmp->prev = NULL;
-				
+
 	BLI_addhead(&ta->lines, tmp);
-	
+
 	ta->curl = ta->lines.first;
 	ta->curc = 0;
 	ta->sell = ta->lines.first;
@@ -270,18 +270,18 @@ int txt_extended_ascii_as_utf8(char **str)
 		added++;
 		i += bad_char + 1;
 	}
-	
+
 	if (added != 0) {
 		char *newstr = MEM_mallocN(length + added + 1, "text_line");
 		ptrdiff_t mi = 0;
 		i = 0;
-		
+
 		while ((*str)[i]) {
 			if ((bad_char = BLI_utf8_invalid_byte((*str) + i, length - i)) == -1) {
 				memcpy(newstr + mi, (*str) + i, length - i + 1);
 				break;
 			}
-			
+
 			memcpy(newstr + mi, (*str) + i, bad_char);
 
 			BLI_str_utf8_from_unicode((*str)[i + bad_char], newstr + mi + bad_char);
@@ -292,7 +292,7 @@ int txt_extended_ascii_as_utf8(char **str)
 		MEM_freeN(*str);
 		*str = newstr;
 	}
-	
+
 	return added;
 }
 
@@ -389,7 +389,7 @@ bool BKE_text_reload(Text *text)
 
 	BLI_strncpy(filepath_abs, text->name, FILE_MAX);
 	BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
-	
+
 	buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
 	if (buffer == NULL) {
 		return false;
@@ -424,7 +424,7 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	BLI_strncpy(filepath_abs, file, FILE_MAX);
 	if (relpath) /* can be NULL (bg mode) */
 		BLI_path_abs(filepath_abs, relpath);
-	
+
 	buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
 	if (buffer == NULL) {
 		return false;
@@ -454,9 +454,9 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	else {
 		ta->mtime = 0;
 	}
-	
+
 	text_from_buf(ta, buffer, buffer_len);
-	
+
 	MEM_freeN(buffer);
 
 	return ta;
@@ -605,7 +605,7 @@ static void make_new_line(TextLine *line, char *newline)
 {
 	if (line->line) MEM_freeN(line->line);
 	if (line->format) MEM_freeN(line->format);
-	
+
 	line->line = newline;
 	line->len = strlen(newline);
 	line->format = NULL;
@@ -616,16 +616,16 @@ static TextLine *txt_new_line(const char *str)
 	TextLine *tmp;
 
 	if (!str) str = "";
-	
+
 	tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line = MEM_mallocN(strlen(str) + 1, "textline_string");
 	tmp->format = NULL;
-	
+
 	strcpy(tmp->line, str);
-	
+
 	tmp->len = strlen(str);
 	tmp->next = tmp->prev = NULL;
-	
+
 	return tmp;
 }
 
@@ -636,29 +636,29 @@ static TextLine *txt_new_linen(const char *str, int n)
 	tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line = MEM_mallocN(n + 1, "textline_string");
 	tmp->format = NULL;
-	
+
 	BLI_strncpy(tmp->line, (str) ? str : "", n + 1);
-	
+
 	tmp->len = strlen(tmp->line);
 	tmp->next = tmp->prev = NULL;
-	
+
 	return tmp;
 }
 
 void txt_clean_text(Text *text)
-{	
+{
 	TextLine **top, **bot;
 
 	if (!text->lines.first) {
 		if (text->lines.last) text->lines.first = text->lines.last;
 		else text->lines.first = text->lines.last = txt_new_line(NULL);
 	}
-	
+
 	if (!text->lines.last) text->lines.last = text->lines.first;
 
 	top = (TextLine **) &text->lines.first;
 	bot = (TextLine **) &text->lines.last;
-	
+
 	while ((*top)->prev) *top = (*top)->prev;
 	while ((*bot)->next) *bot = (*bot)->next;
 
@@ -796,7 +796,7 @@ void txt_move_up(Text *text, const bool sel)
 		int column = txt_utf8_offset_to_column((*linep)->line, *charp);
 		*linep = (*linep)->prev;
 		*charp = txt_utf8_column_to_offset((*linep)->line, column);
-		
+
 	}
 	else {
 		txt_move_bol(text, sel);
@@ -888,7 +888,7 @@ void txt_move_left(Text *text, const bool sel)
 		if (text->flags & TXT_TABSTOSPACES) {
 			tabsize = txt_calc_tab_left(*linep, *charp);
 		}
-		
+
 		if (tabsize) {
 			(*charp) -= tabsize;
 		}
@@ -924,7 +924,7 @@ void txt_move_right(Text *text, const bool sel)
 		if (text->flags & TXT_TABSTOSPACES) {
 			tabsize = txt_calc_tab_right(*linep, *charp);
 		}
-		
+
 		if (tabsize) {
 			(*charp) += tabsize;
 		}
@@ -932,7 +932,7 @@ void txt_move_right(Text *text, const bool sel)
 			(*charp) += BLI_str_utf8_size((*linep)->line + *charp);
 		}
 	}
-	
+
 	if (!sel) txt_pop_sel(text);
 }
 
@@ -948,7 +948,7 @@ void txt_jump_left(Text *text, const bool sel, const bool use_init_step)
 	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
 	                         charp, STRCUR_DIR_PREV,
 	                         STRCUR_JUMP_DELIM, use_init_step);
-	
+
 	if (!sel) txt_pop_sel(text);
 }
 
@@ -960,11 +960,11 @@ void txt_jump_right(Text *text, const bool sel, const bool use_init_step)
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
-	
+
 	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
 	                         charp, STRCUR_DIR_NEXT,
 	                         STRCUR_JUMP_DELIM, use_init_step);
-	
+
 	if (!sel) txt_pop_sel(text);
 }
 
@@ -976,7 +976,7 @@ void txt_move_bol(Text *text, const bool sel)
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else txt_curs_cur(text, &linep, &charp);
 	if (!*linep) return;
-	
+
 	*charp = 0;
 
 	if (!sel) txt_pop_sel(text);
@@ -1041,7 +1041,7 @@ void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else txt_curs_cur(text, &linep, &charp);
 	if (!*linep) return;
-	
+
 	*linep = text->lines.first;
 	for (i = 0; i < line; i++) {
 		if ((*linep)->next) *linep = (*linep)->next;
@@ -1050,7 +1050,7 @@ void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
 	if (ch > (unsigned int)((*linep)->len))
 		ch = (unsigned int)((*linep)->len);
 	*charp = ch;
-	
+
 	if (!sel) txt_pop_sel(text);
 }
 
@@ -1062,7 +1062,7 @@ static void txt_curs_swap(Text *text)
 {
 	TextLine *tmpl;
 	int tmpc;
-		
+
 	tmpl = text->curl;
 	text->curl = text->sell;
 	text->sell = tmpl;
@@ -1079,7 +1079,7 @@ static void txt_pop_first(Text *text)
 	{
 		txt_curs_swap(text);
 	}
-	
+
 	txt_pop_sel(text);
 }
 
@@ -1090,7 +1090,7 @@ static void txt_pop_last(Text *text)
 	{
 		txt_curs_swap(text);
 	}
-	
+
 	txt_pop_sel(text);
 }
 
@@ -1104,7 +1104,7 @@ void txt_order_cursors(Text *text, const bool reverse)
 {
 	if (!text->curl) return;
 	if (!text->sell) return;
-	
+
 	/* Flip so text->curl is before/after text->sell */
 	if (reverse == false) {
 		if ((txt_get_span(text->curl, text->sell) < 0) ||
@@ -1136,7 +1136,7 @@ static void txt_delete_sel(Text *text, TextUndoBuf *utxt)
 	if (!text->sell) return;
 
 	if (!txt_has_sel(text)) return;
-	
+
 	txt_order_cursors(text, false);
 
 	if (!undoing) {
@@ -1152,15 +1152,15 @@ static void txt_delete_sel(Text *text, TextUndoBuf *utxt)
 	buf[text->curc + (text->sell->len - text->selc)] = 0;
 
 	make_new_line(text->curl, buf);
-	
+
 	tmpl = text->sell;
 	while (tmpl != text->curl) {
 		tmpl = tmpl->prev;
 		if (!tmpl) break;
-		
+
 		txt_delete_line(text, tmpl->next);
 	}
-	
+
 	text->sell = text->curl;
 	text->selc = text->curc;
 }
@@ -1169,7 +1169,7 @@ void txt_sel_all(Text *text)
 {
 	text->curl = text->lines.first;
 	text->curc = 0;
-	
+
 	text->sell = text->lines.last;
 	text->selc = text->sell->len;
 }
@@ -1190,7 +1190,7 @@ void txt_sel_clear(Text *text)
 void txt_sel_line(Text *text)
 {
 	if (!text->curl) return;
-	
+
 	text->curc = 0;
 	text->sell = text->curl;
 	text->selc = text->sell->len;
@@ -1213,7 +1213,7 @@ char *txt_to_buf(Text *text)
 
 	linef = text->lines.first;
 	charf = 0;
-		
+
 	linel = text->lines.last;
 	charl = linel->len;
 
@@ -1221,7 +1221,7 @@ char *txt_to_buf(Text *text)
 		length = charl - charf;
 
 		buf = MEM_mallocN(length + 2, "text buffer");
-		
+
 		BLI_strncpy(buf, linef->line + charf, length + 1);
 		buf[length] = 0;
 	}
@@ -1229,37 +1229,37 @@ char *txt_to_buf(Text *text)
 		length = linef->len - charf;
 		length += charl;
 		length += 2; /* For the 2 '\n' */
-		
+
 		tmp = linef->next;
 		while (tmp && tmp != linel) {
 			length += tmp->len + 1;
 			tmp = tmp->next;
 		}
-		
+
 		buf = MEM_mallocN(length + 1, "cut buffer");
 
 		strncpy(buf, linef->line + charf, linef->len - charf);
 		length = linef->len - charf;
-		
+
 		buf[length++] = '\n';
-		
+
 		tmp = linef->next;
 		while (tmp && tmp != linel) {
 			strncpy(buf + length, tmp->line, tmp->len);
 			length += tmp->len;
-			
+
 			buf[length++] = '\n';
-			
+
 			tmp = tmp->next;
 		}
 		strncpy(buf + length, linel->line, charl);
 		length += charl;
-		
+
 		/* python compiler wants an empty end line */
 		buf[length++] = '\n';
 		buf[length] = 0;
 	}
-	
+
 	return buf;
 }
 
@@ -1269,11 +1269,11 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 	const char *s = NULL;
 
 	if (!text->curl || !text->sell) return 0;
-	
+
 	txt_order_cursors(text, false);
 
 	tl = startl = text->sell;
-	
+
 	if (match_case) s = strstr(&tl->line[text->selc], findstr);
 	else s = BLI_strcasestr(&tl->line[text->selc], findstr);
 	while (!s) {
@@ -1290,7 +1290,7 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 		if (tl == startl)
 			break;
 	}
-	
+
 	if (s) {
 		int newl = txt_get_span(text->lines.first, tl);
 		int newc = (int)(s - tl->line);
@@ -1311,10 +1311,10 @@ char *txt_sel_to_buf(Text *text)
 
 	if (!text->curl) return NULL;
 	if (!text->sell) return NULL;
-	
+
 	if (text->curl == text->sell) {
 		linef = linel = text->curl;
-		
+
 		if (text->curc < text->selc) {
 			charf = text->curc;
 			charl = text->selc;
@@ -1334,7 +1334,7 @@ char *txt_sel_to_buf(Text *text)
 	else {
 		linef = text->curl;
 		linel = text->sell;
-		
+
 		charf = text->curc;
 		charl = text->selc;
 	}
@@ -1343,39 +1343,39 @@ char *txt_sel_to_buf(Text *text)
 		length = charl - charf;
 
 		buf = MEM_mallocN(length + 1, "sel buffer");
-		
+
 		BLI_strncpy(buf, linef->line + charf, length + 1);
 	}
 	else {
 		length += linef->len - charf;
 		length += charl;
 		length++; /* For the '\n' */
-		
+
 		tmp = linef->next;
 		while (tmp && tmp != linel) {
 			length += tmp->len + 1;
 			tmp = tmp->next;
 		}
-		
+
 		buf = MEM_mallocN(length + 1, "sel buffer");
-		
+
 		strncpy(buf, linef->line + charf, linef->len - charf);
 		length = linef->len - charf;
-		
+
 		buf[length++] = '\n';
-		
+
 		tmp = linef->next;
 		while (tmp && tmp != linel) {
 			strncpy(buf + length, tmp->line, tmp->len);
 			length += tmp->len;
-			
+
 			buf[length++] = '\n';
-			
+
 			tmp = tmp->next;
 		}
 		strncpy(buf + length, linel->line, charl);
 		length += charl;
-		
+
 		buf[length] = 0;
 	}
 
@@ -1393,11 +1393,11 @@ void txt_insert_buf(Text *text, TextUndoBuf *utxt, const char *in_buffer)
 	if (!in_buffer) return;
 
 	txt_delete_sel(text, utxt);
-	
+
 	len = strlen(in_buffer);
 	buffer = BLI_strdupn(in_buffer, len);
 	len += txt_extended_ascii_as_utf8(&buffer);
-	
+
 	if (!undoing) {
 		txt_undo_add_blockop(text, utxt, UNDO_IBLOCK, buffer);
 	}
@@ -1407,7 +1407,7 @@ void txt_insert_buf(Text *text, TextUndoBuf *utxt, const char *in_buffer)
 	while (buffer[i] && buffer[i] != '\n') {
 		txt_add_raw_char(text, utxt, BLI_str_utf8_as_unicode_step(buffer, &i));
 	}
-	
+
 	if (buffer[i] == '\n') {
 		txt_split_curline(text, utxt);
 		i++;
@@ -1492,16 +1492,16 @@ void txt_print_undo(Text *text)
 	int op;
 	const char *ops;
 	int linep, charp;
-	
+
 	dump_buffer(text);
-	
+
 	printf("---< Undo Buffer >---\n");
-	
+
 	printf("UndoPosition is %d\n", utxt->pos);
-	
+
 	while (i <= utxt->pos) {
 		op = utxt->buf[i];
-		
+
 		if (op == UNDO_INSERT_1) {
 			ops = "Insert ascii ";
 		}
@@ -1559,7 +1559,7 @@ void txt_print_undo(Text *text)
 		else {
 			ops = "Unknown";
 		}
-		
+
 		printf("Op (%o) at %d = %s", op, i, ops);
 		if (op >= UNDO_INSERT_1 && op <= UNDO_DEL_4) {
 			i++;
@@ -1600,14 +1600,14 @@ void txt_print_undo(Text *text)
 			linep = linep + (utxt->buf[i] << 8); i++;
 			linep = linep + (utxt->buf[i] << 16); i++;
 			linep = linep + (utxt->buf[i] << 24); i++;
-			
+
 			printf(" (length %d) <", linep);
-			
+
 			while (linep > 0) {
 				putchar(utxt->buf[i]);
 				linep--; i++;
 			}
-			
+
 			linep = utxt->buf[i]; i++;
 			linep = linep + (utxt->buf[i] << 8); i++;
 			linep = linep + (utxt->buf[i] << 16); i++;
@@ -1624,7 +1624,7 @@ void txt_print_undo(Text *text)
 			linep = linep + (utxt->buf[i] << 8); i++;
 			linep = linep + (utxt->buf[i] << 16); i++;
 			linep = linep + (utxt->buf[i] << 24); i++;
-			
+
 			printf("to <%d, %d> ", linep, charp);
 
 			charp = utxt->buf[i]; i++;
@@ -1634,17 +1634,17 @@ void txt_print_undo(Text *text)
 			linep = linep + (utxt->buf[i] << 8); i++;
 			linep = linep + (utxt->buf[i] << 16); i++;
 			linep = linep + (utxt->buf[i] << 24); i++;
-			
+
 			printf("from <%d, %d>", linep, charp);
 		}
-		
+
 		printf(" %d\n",  i);
 		i++;
 	}
 }
 #endif
 
-static void txt_undo_store_uint16(char *undo_buf, int *undo_pos, unsigned short value) 
+static void txt_undo_store_uint16(char *undo_buf, int *undo_pos, unsigned short value)
 {
 	undo_buf[*undo_pos] = (value) & 0xff;
 	(*undo_pos)++;
@@ -1652,7 +1652,7 @@ static void txt_undo_store_uint16(char *undo_buf, int *undo_pos, unsigned short 
 	(*undo_pos)++;
 }
 
-static void txt_undo_store_uint32(char *undo_buf, int *undo_pos, unsigned int value) 
+static void txt_undo_store_uint32(char *undo_buf, int *undo_pos, unsigned int value)
 {
 	undo_buf[*undo_pos] = (value) & 0xff;
 	(*undo_pos)++;
@@ -1736,7 +1736,7 @@ static void txt_undo_add_charop(Text *text, TextUndoBuf *utxt, int op_start, uns
 {
 	char utf8[BLI_UTF8_MAX];
 	size_t i, utf8_size = BLI_str_utf8_from_unicode(c, utf8);
-	
+
 	if (utf8_size < 4 && 0) {
 		if (!max_undo_test(utxt, 2 + 6 + utf8_size + 1)) {
 			return;
@@ -1770,7 +1770,7 @@ static void txt_undo_add_charop(Text *text, TextUndoBuf *utxt, int op_start, uns
 		/* 1 byte */
 		utxt->buf[utxt->pos] = op_start + 3;
 	}
-	
+
 	txt_undo_end(text, utxt);
 }
 
@@ -1869,10 +1869,10 @@ static unsigned int txt_undo_read_unicode(const char *undo_buf, int *undo_pos, s
 {
 	unsigned int unicode;
 	char utf8[BLI_UTF8_MAX + 1];
-	
+
 	switch (bytes) {
 		case 1: /* ascii */
-			unicode = undo_buf[*undo_pos]; (*undo_pos)--; 
+			unicode = undo_buf[*undo_pos]; (*undo_pos)--;
 			break;
 		case 2: /* 2-byte symbol */
 			utf8[2] = '\0';
@@ -1896,7 +1896,7 @@ static unsigned int txt_undo_read_unicode(const char *undo_buf, int *undo_pos, s
 			unicode = 0;
 			break;
 	}
-	
+
 	return unicode;
 }
 
@@ -1945,10 +1945,10 @@ static unsigned int txt_redo_read_unicode(const char *undo_buf, int *undo_pos, s
 {
 	unsigned int unicode;
 	char utf8[BLI_UTF8_MAX + 1];
-	
+
 	switch (bytes) {
 		case 1: /* ascii */
-			unicode = undo_buf[*undo_pos]; (*undo_pos)++; 
+			unicode = undo_buf[*undo_pos]; (*undo_pos)++;
 			break;
 		case 2: /* 2-byte symbol */
 			utf8[0] = undo_buf[*undo_pos]; (*undo_pos)++;
@@ -1972,7 +1972,7 @@ static unsigned int txt_redo_read_unicode(const char *undo_buf, int *undo_pos, s
 			unicode = 0;
 			break;
 	}
-	
+
 	return unicode;
 }
 
@@ -1986,7 +1986,7 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 	unsigned short curc, selc;
 	unsigned short charp;
 	char *buf;
-	
+
 	if (utxt->pos < 0) {
 		return;
 	}
@@ -1994,21 +1994,21 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 	utxt->pos--;
 
 	undoing = 1;
-	
+
 	switch (op) {
 		case UNDO_INSERT_1:
 		case UNDO_INSERT_2:
 		case UNDO_INSERT_3:
 		case UNDO_INSERT_4:
 			utxt->pos -= op - UNDO_INSERT_1 + 1;
-			
+
 			/* get and restore the cursors */
 			txt_undo_read_cur(utxt->buf, &utxt->pos, &curln, &curc);
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, curln, curc, 1);
-			
+
 			txt_delete_char(text, utxt);
-			
+
 			utxt->pos--;
 			break;
 
@@ -2018,12 +2018,12 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 		case UNDO_BS_4:
 			charp = op - UNDO_BS_1 + 1;
 			uni_char = txt_undo_read_unicode(utxt->buf, &utxt->pos, charp);
-			
+
 			/* get and restore the cursors */
 			txt_undo_read_cur(utxt->buf, &utxt->pos, &curln, &curc);
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, curln, curc, 1);
-			
+
 			txt_add_char(text, utxt, uni_char);
 
 			utxt->pos--;
@@ -2069,7 +2069,7 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 
 			/* move cur to location that needs buff inserted */
 			txt_move_to(text, curln, curc, 0);
-			
+
 			txt_insert_buf(text, utxt, buf);
 			MEM_freeN(buf);
 
@@ -2078,7 +2078,7 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 			txt_move_to(text, selln, selc, 1);
 
 			utxt->pos--;
-			
+
 			break;
 		}
 		case UNDO_IBLOCK:
@@ -2086,7 +2086,7 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 			int i;
 			/* length of the string in the buffer */
 			linep = txt_undo_read_uint32(utxt->buf, &utxt->pos);
-			
+
 			/* txt_backspace_char removes utf8-characters, not bytes */
 			buf = MEM_mallocN(linep + 1, "iblock buffer");
 			for (i = 0; i < linep; i++) {
@@ -2096,29 +2096,29 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 			buf[i] = 0;
 			linep = BLI_strlen_utf8(buf);
 			MEM_freeN(buf);
-			
+
 			/* skip over the length that was stored again */
 			utxt->pos -= 4;
 
 			/* get and restore the cursors */
 			txt_undo_read_cursors(utxt->buf, &utxt->pos, &curln, &curc, &selln, &selc);
-			
+
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, selln, selc, 1);
-			
+
 			if ((curln == selln) && (curc == selc)) {
 				/* disable tabs to spaces since moving right may involve skipping multiple spaces */
 				prev_flags = text->flags;
 				text->flags &= ~TXT_TABSTOSPACES;
-				
+
 				for (i = 0; i < linep; i++)
 					txt_move_right(text, 1);
-				
+
 				text->flags = prev_flags;
 			}
-			
+
 			txt_delete_selected(text, utxt);
-			
+
 			utxt->pos--;
 			break;
 		}
@@ -2131,7 +2131,7 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 			txt_undo_read_cursors(utxt->buf, &utxt->pos, &curln, &curc, &selln, &selc);
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, selln, selc, 1);
-			
+
 			if (op == UNDO_INDENT) {
 				txt_unindent(text, utxt);
 			}
@@ -2147,7 +2147,7 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 			else if (op == UNDO_MOVE_LINES_DOWN) {
 				txt_move_lines(text, utxt, TXT_MOVE_LINE_UP);
 			}
-			
+
 			utxt->pos--;
 			break;
 		case UNDO_UNINDENT:
@@ -2196,10 +2196,10 @@ void txt_do_undo(Text *text, TextUndoBuf *utxt)
 		default:
 			//XXX error("Undo buffer error - resetting");
 			utxt->pos = -1;
-			
+
 			break;
 	}
-	
+
 	undoing = 0;
 }
 
@@ -2212,15 +2212,15 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 	unsigned int uni_uchar;
 	unsigned int curln, selln;
 	unsigned short curc, selc;
-	
+
 	utxt->pos++;
 	op = utxt->buf[utxt->pos];
-	
+
 	if (!op) {
 		utxt->pos--;
 		return;
 	}
-	
+
 	undoing = 1;
 
 	switch (op) {
@@ -2229,12 +2229,12 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 		case UNDO_INSERT_3:
 		case UNDO_INSERT_4:
 			utxt->pos++;
-			
+
 			/* get and restore the cursors */
 			txt_redo_read_cur(utxt->buf, &utxt->pos, &curln, &curc);
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, curln, curc, 1);
-			
+
 			charp = op - UNDO_INSERT_1 + 1;
 			uni_uchar = txt_redo_read_unicode(utxt->buf, &utxt->pos, charp);
 
@@ -2253,7 +2253,7 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 			txt_move_to(text, curln, curc, 1);
 
 			utxt->pos += op - UNDO_BS_1 + 1;
-			
+
 			/* move right so we backspace the correct char */
 			txt_move_right(text, 0);
 			txt_backspace_char(text, utxt);
@@ -2270,7 +2270,7 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 			txt_redo_read_cur(utxt->buf, &utxt->pos, &curln, &curc);
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, curln, curc, 1);
-			
+
 			utxt->pos += op - UNDO_DEL_1 + 1;
 
 			txt_delete_char(text, utxt);
@@ -2287,12 +2287,12 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 
 			/* length of the block */
 			linep = txt_redo_read_uint32(utxt->buf, &utxt->pos);
-			
+
 			utxt->pos += linep;
 
 			/* skip over the length that was stored again */
 			utxt->pos += 4;
-			
+
 			txt_delete_sel(text, utxt);
 
 			break;
@@ -2312,7 +2312,7 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 			memcpy(buf, &utxt->buf[utxt->pos], linep);
 			utxt->pos += linep;
 			buf[linep] = 0;
-			
+
 			txt_insert_buf(text, utxt, buf);
 			MEM_freeN(buf);
 
@@ -2320,7 +2320,7 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 			utxt->pos += 4;
 
 			break;
-			
+
 		case UNDO_INDENT:
 		case UNDO_COMMENT:
 		case UNDO_UNCOMMENT:
@@ -2389,15 +2389,15 @@ void txt_do_redo(Text *text, TextUndoBuf *utxt)
 		default:
 			//XXX error("Undo buffer error - resetting");
 			utxt->pos = -1;
-			
+
 			break;
 	}
-	
+
 	undoing = 0;
 }
 
 /**************************/
-/* Line editing functions */ 
+/* Line editing functions */
 /**************************/
 
 void txt_split_curline(Text *text, TextUndoBuf *utxt)
@@ -2410,13 +2410,13 @@ void txt_split_curline(Text *text, TextUndoBuf *utxt)
 	txt_delete_sel(text, utxt);
 
 	if (!undoing) txt_undo_add_charop(text, utxt, UNDO_INSERT_1, '\n');
-	
+
 	/* Make the two half strings */
 
 	left = MEM_mallocN(text->curc + 1, "textline_string");
 	if (text->curc) memcpy(left, text->curl->line, text->curc);
 	left[text->curc] = 0;
-	
+
 	right = MEM_mallocN(text->curl->len - text->curc + 1, "textline_string");
 	memcpy(right, text->curl->line + text->curc, text->curl->len - text->curc + 1);
 
@@ -2424,7 +2424,7 @@ void txt_split_curline(Text *text, TextUndoBuf *utxt)
 	if (text->curl->format) MEM_freeN(text->curl->format);
 
 	/* Make the new TextLine */
-	
+
 	ins = MEM_mallocN(sizeof(TextLine), "textline");
 	ins->line = left;
 	ins->format = NULL;
@@ -2433,14 +2433,14 @@ void txt_split_curline(Text *text, TextUndoBuf *utxt)
 	text->curl->line = right;
 	text->curl->format = NULL;
 	text->curl->len = text->curl->len - text->curc;
-	
+
 	BLI_insertlinkbefore(&text->lines, text->curl, ins);
-	
+
 	text->curc = 0;
-	
+
 	txt_make_dirty(text);
 	txt_clean_text(text);
-	
+
 	txt_pop_sel(text);
 }
 
@@ -2449,7 +2449,7 @@ static void txt_delete_line(Text *text, TextLine *line)
 	if (!text->curl) return;
 
 	BLI_remlink(&text->lines, line);
-	
+
 	if (line->line) MEM_freeN(line->line);
 	if (line->format) MEM_freeN(line->format);
 
@@ -2462,21 +2462,21 @@ static void txt_delete_line(Text *text, TextLine *line)
 static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 {
 	char *tmp, *s;
-	
+
 	if (!linea || !lineb) return;
 
 
 	tmp = MEM_mallocN(linea->len + lineb->len + 1, "textline_string");
-	
+
 	s = tmp;
 	s += BLI_strcpy_rlen(s, linea->line);
 	s += BLI_strcpy_rlen(s, lineb->line);
 	(void)s;
 
 	make_new_line(linea, tmp);
-	
+
 	txt_delete_line(text, lineb);
-	
+
 	txt_make_dirty(text);
 	txt_clean_text(text);
 }
@@ -2484,16 +2484,16 @@ static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 void txt_duplicate_line(Text *text, TextUndoBuf *utxt)
 {
 	TextLine *textline;
-	
+
 	if (!text->curl) return;
-	
+
 	if (text->curl == text->sell) {
 		textline = txt_new_line(text->curl->line);
 		BLI_insertlinkafter(&text->lines, text->curl, textline);
-		
+
 		txt_make_dirty(text);
 		txt_clean_text(text);
-		
+
 		if (!undoing) txt_undo_add_op(text, utxt, UNDO_DUPLICATE);
 	}
 }
@@ -2520,7 +2520,7 @@ void txt_delete_char(Text *text, TextUndoBuf *utxt)
 	else { /* Just deleting a char */
 		size_t c_len = 0;
 		c = BLI_str_utf8_as_unicode_and_size(text->curl->line + text->curc, &c_len);
-		
+
 		memmove(text->curl->line + text->curc, text->curl->line + text->curc + c_len, text->curl->len - text->curc - c_len + 1);
 
 		text->curl->len -= c_len;
@@ -2530,7 +2530,7 @@ void txt_delete_char(Text *text, TextUndoBuf *utxt)
 
 	txt_make_dirty(text);
 	txt_clean_text(text);
-	
+
 	if (!undoing) txt_undo_add_charop(text, utxt, UNDO_DEL_1, c);
 }
 
@@ -2544,9 +2544,9 @@ void txt_delete_word(Text *text, TextUndoBuf *utxt)
 void txt_backspace_char(Text *text, TextUndoBuf *utxt)
 {
 	unsigned int c = '\n';
-	
+
 	if (!text->curl) return;
-	
+
 	if (txt_has_sel(text)) { /* deleting a selection */
 		txt_delete_sel(text, utxt);
 		txt_make_dirty(text);
@@ -2554,10 +2554,10 @@ void txt_backspace_char(Text *text, TextUndoBuf *utxt)
 	}
 	else if (text->curc == 0) { /* Appending two lines */
 		if (!text->curl->prev) return;
-		
+
 		text->curl = text->curl->prev;
 		text->curc = text->curl->len;
-		
+
 		txt_combine_lines(text, text->curl, text->curl->next);
 		txt_pop_sel(text);
 	}
@@ -2565,7 +2565,7 @@ void txt_backspace_char(Text *text, TextUndoBuf *utxt)
 		size_t c_len = 0;
 		const char *prev = BLI_str_prev_char_utf8(text->curl->line + text->curc);
 		c = BLI_str_utf8_as_unicode_and_size(prev, &c_len);
-		
+
 		/* source and destination overlap, don't use memcpy() */
 		memmove(text->curl->line + text->curc - c_len,
 		        text->curl->line + text->curc,
@@ -2579,7 +2579,7 @@ void txt_backspace_char(Text *text, TextUndoBuf *utxt)
 
 	txt_make_dirty(text);
 	txt_clean_text(text);
-	
+
 	if (!undoing) txt_undo_add_charop(text, utxt, UNDO_BS_1, c);
 }
 
@@ -2616,7 +2616,7 @@ static bool txt_add_char_intern(Text *text, TextUndoBuf *utxt, unsigned int add,
 		txt_split_curline(text, utxt);
 		return true;
 	}
-	
+
 	/* insert spaces rather than tabs */
 	if (add == '\t' && replace_tabs) {
 		txt_convert_tab_to_spaces(text, utxt);
@@ -2624,23 +2624,23 @@ static bool txt_add_char_intern(Text *text, TextUndoBuf *utxt, unsigned int add,
 	}
 
 	txt_delete_sel(text, utxt);
-	
+
 	if (!undoing) txt_undo_add_charop(text, utxt, UNDO_INSERT_1, add);
 
 	add_len = BLI_str_utf8_from_unicode(add, ch);
-	
+
 	tmp = MEM_mallocN(text->curl->len + add_len + 1, "textline_string");
-	
+
 	memcpy(tmp, text->curl->line, text->curc);
 	memcpy(tmp + text->curc, ch, add_len);
 	memcpy(tmp + text->curc + add_len, text->curl->line + text->curc, text->curl->len - text->curc + 1);
 
 	make_new_line(text->curl, tmp);
-		
+
 	text->curc += add_len;
 
 	txt_pop_sel(text);
-	
+
 	txt_make_dirty(text);
 	txt_clean_text(text);
 
@@ -2675,10 +2675,10 @@ bool txt_replace_char(Text *text, TextUndoBuf *utxt, unsigned int add)
 	if (text->curc == text->curl->len || txt_has_sel(text) || add == '\n') {
 		return txt_add_char(text, utxt, add);
 	}
-	
+
 	del = BLI_str_utf8_as_unicode_and_size(text->curl->line + text->curc, &del_size);
 	add_size = BLI_str_utf8_from_unicode(add, ch);
-	
+
 	if (add_size > del_size) {
 		char *tmp = MEM_mallocN(text->curl->len + add_size - del_size + 1, "textline_string");
 		memcpy(tmp, text->curl->line, text->curc);
@@ -2690,11 +2690,11 @@ bool txt_replace_char(Text *text, TextUndoBuf *utxt, unsigned int add)
 		char *tmp = text->curl->line;
 		memmove(tmp + text->curc + add_size, tmp + text->curc + del_size, text->curl->len - text->curc - del_size + 1);
 	}
-	
+
 	memcpy(text->curl->line + text->curc, ch, add_size);
 	text->curc += add_size;
 	text->curl->len += add_size - del_size;
-	
+
 	txt_pop_sel(text);
 	txt_make_dirty(text);
 	txt_clean_text(text);
@@ -2749,7 +2749,7 @@ static void txt_select_prefix(Text *text, const char *add)
 			txt_make_dirty(text);
 			txt_clean_text(text);
 		}
-		
+
 		if (text->curl == text->sell) {
 			text->selc += indentlen;
 			break;
@@ -2766,7 +2766,7 @@ static void txt_select_prefix(Text *text, const char *add)
 		text->curl = text->curl->prev;
 		num--;
 	}
-	
+
 	/* caller must handle undo */
 }
 
@@ -2816,10 +2816,10 @@ static void txt_select_unprefix(
 				(*r_line_index_mask_len) += 1;
 			}
 		}
-	
+
 		txt_make_dirty(text);
 		txt_clean_text(text);
-		
+
 		if (text->curl == text->sell) {
 			if (changed)
 				text->selc = MAX2(text->selc - indentlen, 0);
@@ -2830,7 +2830,7 @@ static void txt_select_unprefix(
 			num++;
 
 		}
-		
+
 	}
 
 	if (unindented_first)
@@ -2898,7 +2898,7 @@ void txt_unindent(Text *text, TextUndoBuf *utxt)
 	const char *prefix = (text->flags & TXT_TABSTOSPACES) ? tab_to_spaces : "\t";
 	ListBase line_index_mask;
 	int line_index_mask_len;
-	
+
 	if (ELEM(NULL, text->curl, text->sell)) {
 		return;
 	}
@@ -2919,13 +2919,13 @@ void txt_move_lines(struct Text *text, TextUndoBuf *utxt, const int direction)
 	BLI_assert(ELEM(direction, TXT_MOVE_LINE_UP, TXT_MOVE_LINE_DOWN));
 
 	if (!text->curl || !text->sell) return;
-	
+
 	txt_order_cursors(text, false);
 
 	line_other =  (direction == TXT_MOVE_LINE_DOWN) ? text->sell->next : text->curl->prev;
-	
+
 	if (!line_other) return;
-		
+
 	BLI_remlink(&text->lines, line_other);
 
 	if (direction == TXT_MOVE_LINE_DOWN) {
@@ -2937,7 +2937,7 @@ void txt_move_lines(struct Text *text, TextUndoBuf *utxt, const int direction)
 
 	txt_make_dirty(text);
 	txt_clean_text(text);
-	
+
 	if (!undoing) {
 		txt_undo_add_op(text, utxt, (direction == TXT_MOVE_LINE_DOWN) ? UNDO_MOVE_LINES_DOWN : UNDO_MOVE_LINES_UP);
 	}
@@ -2967,7 +2967,7 @@ int txt_setcurr_tab_spaces(Text *text, int space)
 		/* if we find a ':' on this line, then add a tab but not if it is:
 		 *  1) in a comment
 		 *  2) within an identifier
-		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414] 
+		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414]
 		 */
 		int a;
 		bool is_indent = false;

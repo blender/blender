@@ -95,7 +95,7 @@ ViewShape *ViewMap::viewShape(unsigned id)
 
 void ViewMap::AddViewShape(ViewShape *iVShape)
 {
-	_shapeIdToIndex[iVShape->getId().getFirst()] = _VShapes.size(); 
+	_shapeIdToIndex[iVShape->getId().getFirst()] = _VShapes.size();
 	_VShapes.push_back(iVShape);
 }
 
@@ -305,13 +305,13 @@ static bool ViewEdgeComp(ViewVertex::directedViewEdge& dve1, ViewVertex::directe
 	if (v1.y() > 0) {
 		if (v2.y() < 0)
 			return true;
-		else 
+		else
 			return (v1.x() > v2.x());
 	}
 	else {
 		if (v2.y() > 0)
 			return false;
-		else 
+		else
 			return (v1.x() < v2.x());
 	}
 	return false;
@@ -387,7 +387,7 @@ void TVertex::setBackEdgeB(ViewEdge *iBackEdgeB, bool incoming)
 
 void TVertex::Replace(ViewEdge *iOld, ViewEdge *iNew)
 {
-	// theoritically, we only replace edges for which this 
+	// theoritically, we only replace edges for which this
 	// view vertex is the B vertex
 	if ((iOld == _FrontEdgeA.first) && (_FrontEdgeA.first->B() == this)) {
 		_FrontEdgeA.first = iNew;
@@ -501,7 +501,7 @@ ViewVertexInternal::orientedViewEdgeIterator TVertex::edgesIterator(ViewEdge *iE
 /**********************************/
 /*                                */
 /*                                */
-/*             NonTVertex         */ 
+/*             NonTVertex         */
 /*                                */
 /*                                */
 /**********************************/

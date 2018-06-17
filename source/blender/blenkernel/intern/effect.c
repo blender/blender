@@ -314,7 +314,7 @@ void pd_point_from_particle(ParticleSimulationData *sim, ParticleData *pa, Parti
 	point->index = pa - sim->psys->particles;
 	point->size = pa->size;
 	point->charge = 0.0f;
-	
+
 	if (part->pd && part->pd->forcefield == PFIELD_CHARGE)
 		point->charge += part->pd->f_strength;
 
@@ -373,7 +373,7 @@ void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, Effecte
 
 // triangle - ray callback function
 static void eff_tri_ray_hit(void *UNUSED(userData), int UNUSED(index), const BVHTreeRay *UNUSED(ray), BVHTreeRayHit *hit)
-{	
+{
 	/* whenever we hit a bounding box, we don't check further */
 	hit->dist = -1;
 	hit->index = 1;
@@ -387,7 +387,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 	ColliderCache *col;
 	float norm[3], len = 0.0;
 	float visibility = 1.0, absorption = 0.0;
-	
+
 	if (!(eff->pd->flag & PFIELD_VISIBILITY))
 		return visibility;
 
@@ -399,7 +399,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 
 	negate_v3_v3(norm, efd->vec_to_point);
 	len = normalize_v3(norm);
-	
+
 	/* check all collision objects */
 	for (col = colls->first; col; col = col->next) {
 		CollisionModifierData *collmd = col->collmd;
@@ -422,7 +422,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 
 				/* visibility is only between 0 and 1, calculated from 1-absorption */
 				visibility *= CLAMPIS(1.0f-absorption, 0.0f, 1.0f);
-				
+
 				if (visibility <= 0.0f)
 					break;
 			}
@@ -431,7 +431,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 
 	if (!colliders)
 		free_collider_cache(&colls);
-	
+
 	return visibility;
 }
 
@@ -442,11 +442,11 @@ static float wind_func(struct RNG *rng, float strength)
 	float force = BLI_rng_get_float(rng) + 1.0f;
 	float ret;
 	float sign = 0;
-	
+
 	sign = ((float)random > 64.0f) ? 1.0f: -1.0f; // dividing by 2 is not giving equal sign distribution
-	
+
 	ret = sign*((float)random / force)*strength/128.0f;
-	
+
 	return ret;
 }
 
@@ -539,7 +539,7 @@ int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], floa
 		if (surface_vel) {
 			const MLoop *mloop = surmd->bvhtree->loop;
 			const MLoopTri *lt = &surmd->bvhtree->looptri[nearest.index];
-			
+
 			copy_v3_v3(surface_vel, surmd->v[mloop[lt->tri[0]].v].co);
 			add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[1]].v].co);
 			add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[2]].v].co);
@@ -621,7 +621,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 			efd->nor[0] = 1.f;
 			efd->nor[1] = efd->nor[2] = 0.f;
 			mul_qt_v3(state.rot, efd->nor);
-		
+
 			if (real_velocity)
 				copy_v3_v3(efd->vel, state.vel);
 
@@ -694,9 +694,9 @@ static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoin
 	}
 	else if (eff->psys) {
 		*tot = eff->psys->totpart;
-		
+
 		if (eff->pd->forcefield == PFIELD_CHARGE) {
-			/* Only the charge of the effected particle is used for 
+			/* Only the charge of the effected particle is used for
 			 * interaction, not fall-offs. If the fall-offs aren't the
 			 * same this will be unphysical, but for animation this
 			 * could be the wanted behavior. If you want physical
@@ -858,10 +858,10 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 				/* new vortex force */
 				cross_v3_v3v3(temp, efd->nor2, efd->vec_to_point2);
 				mul_v3_fl(temp, strength * efd->falloff);
-				
+
 				cross_v3_v3v3(force, efd->nor2, temp);
 				mul_v3_fl(force, strength * efd->falloff);
-				
+
 				madd_v3_v3fl(temp, point->vel, -point->vel_to_sec);
 				add_v3_v3(force, temp);
 			}
@@ -889,7 +889,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 			break;
 		case PFIELD_LENNARDJ:
 			fac = pow((efd->size + point->size) / efd->distance, 6.0);
-			
+
 			fac = - fac * (1.0f - fac) / efd->distance;
 
 			/* limit the repulsive term drastically to avoid huge forces */
@@ -994,7 +994,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
-	
+
 	if (effectors) for (eff = effectors->first; eff; eff=eff->next) {
 		/* object effectors were fully checked to be OK to evaluate! */
 
@@ -1003,7 +1003,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 		for (; p<tot; p+=step) {
 			if (get_effector_data(eff, &efd, point, 0)) {
 				efd.falloff= effector_falloff(eff, &efd, point, weights);
-				
+
 				if (efd.falloff > 0.0f)
 					efd.falloff *= eff_calc_visibility(colliders, eff, &efd, point);
 
@@ -1018,7 +1018,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 					copy_v3_v3(temp1, force);
 
 					do_physical_effector(eff, &efd, point, force);
-					
+
 					/* for softbody backward compatibility */
 					if (point->flag & PE_WIND_AS_SPEED && impulse) {
 						sub_v3_v3v3(temp2, force, temp1);
@@ -1131,14 +1131,14 @@ void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[
 {
 	unsigned int category_hash = BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
-	
+
 	if (!_sim_debug_data) {
 		if (G.debug & G_DEBUG_SIMDATA)
 			BKE_sim_debug_data_set_enabled(true);
 		else
 			return;
 	}
-	
+
 	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = type;
 	elem->category_hash = category_hash;
@@ -1158,7 +1158,7 @@ void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[
 		BLI_strncpy(elem->str, str, sizeof(elem->str));
 	else
 		elem->str[0] = '\0';
-	
+
 	debug_data_insert(_sim_debug_data, elem);
 }
 
@@ -1167,7 +1167,7 @@ void BKE_sim_debug_data_remove_element(unsigned int hash)
 	SimDebugElement dummy;
 	if (!_sim_debug_data)
 		return;
-	
+
 	dummy.hash = hash;
 	BLI_ghash_remove(_sim_debug_data->gh, &dummy, NULL, debug_element_free);
 }
@@ -1176,7 +1176,7 @@ void BKE_sim_debug_data_clear(void)
 {
 	if (!_sim_debug_data)
 		return;
-	
+
 	if (_sim_debug_data->gh)
 		BLI_ghash_clear(_sim_debug_data->gh, NULL, debug_element_free);
 }
@@ -1184,17 +1184,17 @@ void BKE_sim_debug_data_clear(void)
 void BKE_sim_debug_data_clear_category(const char *category)
 {
 	int category_hash = (int)BLI_ghashutil_strhash_p(category);
-	
+
 	if (!_sim_debug_data)
 		return;
-	
+
 	if (_sim_debug_data->gh) {
 		GHashIterator iter;
 		BLI_ghashIterator_init(&iter, _sim_debug_data->gh);
 		while (!BLI_ghashIterator_done(&iter)) {
 			const SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 			BLI_ghashIterator_step(&iter); /* removing invalidates the current iterator, so step before removing */
-			
+
 			if (elem->category_hash == category_hash)
 				BLI_ghash_remove(_sim_debug_data->gh, elem, NULL, debug_element_free);
 		}

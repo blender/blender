@@ -94,7 +94,7 @@ public:
 	 *  \param pred
 	 *           The predicate on the ViewEdge that expresses the stopping condition.
 	 */
-	static int chain(ViewEdgeInternal::ViewEdgeIterator& it, UnaryPredicate1D& pred);  
+	static int chain(ViewEdgeInternal::ViewEdgeIterator& it, UnaryPredicate1D& pred);
 
 	/*! Builds a set of chains from the current set of ViewEdges.
 	 *  Each ViewEdge of the current list potentially starts a new chain. The chaining operator then iterates over

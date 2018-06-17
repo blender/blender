@@ -64,7 +64,7 @@
 void BLO_memfile_free(MemFile *memfile)
 {
 	MemFileChunk *chunk;
-	
+
 	while ((chunk = BLI_pophead(&memfile->chunks))) {
 		if (chunk->is_identical == false) {
 			MEM_freeN((void *)chunk->buf);
@@ -79,7 +79,7 @@ void BLO_memfile_free(MemFile *memfile)
 void BLO_memfile_merge(MemFile *first, MemFile *second)
 {
 	MemFileChunk *fc, *sc;
-	
+
 	fc = first->chunks.first;
 	sc = second->chunks.first;
 	while (fc || sc) {
@@ -92,7 +92,7 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 		if (fc) fc = fc->next;
 		if (sc) sc = sc->next;
 	}
-	
+
 	BLO_memfile_free(first);
 }
 

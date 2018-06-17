@@ -34,7 +34,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#ifndef WIN32 
+#ifndef WIN32
 #include <unistd.h>
 #else
 #include <io.h>
@@ -90,14 +90,14 @@ int seekPackedFile(PackedFile *pf, int offset, int whence)
 
 	return(oldseek);
 }
-	
+
 void rewindPackedFile(PackedFile *pf)
 {
 	seekPackedFile(pf, 0, SEEK_SET);
 }
 
 int readPackedFile(PackedFile *pf, void *data, int size)
-{ 
+{
 	if ((pf != NULL) && (size >= 0) && (data != NULL)) {
 		if (size + pf->seek > pf->size) {
 			size = pf->size - pf->seek;
@@ -125,7 +125,7 @@ int countPackedFiles(Main *bmain)
 	VFont *vf;
 	bSound *sound;
 	int count = 0;
-	
+
 	/* let's check if there are packed files... */
 	for (ima = bmain->image.first; ima; ima = ima->id.next)
 		if (BKE_image_has_packedfile(ima))
@@ -167,7 +167,7 @@ PackedFile *newPackedFileMemory(void *mem, int memlen)
 	PackedFile *pf = MEM_callocN(sizeof(*pf), "PackedFile");
 	pf->data = mem;
 	pf->size = memlen;
-	
+
 	return pf;
 }
 
@@ -177,14 +177,14 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	int file, filelen;
 	char name[FILE_MAX];
 	void *data;
-	
+
 	/* render result has no filename and can be ignored
 	 * any other files with no name can be ignored too */
 	if (filename[0] == '\0')
 		return NULL;
 
 	//XXX waitcursor(1);
-	
+
 	/* convert relative filenames to absolute filenames */
 
 	BLI_strncpy(name, filename, sizeof(name));
@@ -219,7 +219,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	}
 
 	//XXX waitcursor(0);
-		
+
 	return (pf);
 }
 
@@ -230,7 +230,7 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
 	VFont *vfont;
 	bSound *sound;
 	int tot = 0;
-	
+
 	for (ima = bmain->image.first; ima; ima = ima->id.next) {
 		if (BKE_image_has_packedfile(ima) == false && !ID_IS_LINKED(ima)) {
 			if (ima->source == IMA_SRC_FILE) {
@@ -257,7 +257,7 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
 			tot++;
 		}
 	}
-	
+
 	if (tot > 0)
 		BKE_reportf(reports, RPT_INFO, "Packed %d files", tot);
 	else if (verbose)
@@ -275,7 +275,7 @@ static char *find_new_name(char *name)
 	char tempname[FILE_MAX];
 	char *newname;
 	size_t len;
-	
+
 	if (fop_exists(name)) {
 		for (number = 1; number <= 999; number++) {
 			BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", name, number);
@@ -300,12 +300,12 @@ int writePackedFile(
 	char name[FILE_MAX];
 	char tempname[FILE_MAX];
 /*      void *data; */
-	
+
 	if (guimode) {} //XXX  waitcursor(1);
-	
+
 	BLI_strncpy(name, filename, sizeof(name));
 	BLI_path_abs(name, ref_file_name);
-	
+
 	if (BLI_exists(name)) {
 		for (number = 1; number <= 999; number++) {
 			BLI_snprintf(tempname, sizeof(tempname), "%s.%03d_", name, number);
@@ -317,10 +317,10 @@ int writePackedFile(
 			}
 		}
 	}
-	
+
 	/* make sure the path to the file exists... */
 	BLI_make_existing_file(name);
-	
+
 	file = BLI_open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Error creating file '%s'", name);
@@ -334,10 +334,10 @@ int writePackedFile(
 		else {
 			BKE_reportf(reports, RPT_INFO, "Saved packed file to: %s", name);
 		}
-		
+
 		close(file);
 	}
-	
+
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
 			if (BLI_rename(tempname, name) != 0) {
@@ -350,7 +350,7 @@ int writePackedFile(
 			}
 		}
 	}
-	
+
 	if (guimode) {} //XXX waitcursor(0);
 
 	return (ret_value);
@@ -370,10 +370,10 @@ int checkPackedFile(const char *ref_file_name, const char *filename, PackedFile 
 	int ret_val, i, len, file;
 	char buf[4096];
 	char name[FILE_MAX];
-	
+
 	BLI_strncpy(name, filename, sizeof(name));
 	BLI_path_abs(name, ref_file_name);
-	
+
 	if (BLI_stat(name, &st) == -1) {
 		ret_val = PF_NOFILE;
 	}
@@ -408,11 +408,11 @@ int checkPackedFile(const char *ref_file_name, const char *filename, PackedFile 
 					}
 				}
 			}
-			
+
 			close(file);
 		}
 	}
-	
+
 	return(ret_val);
 }
 
@@ -430,7 +430,7 @@ char *unpackFile(
 {
 	char *newname = NULL;
 	const char *temp = NULL;
-	
+
 	if (pf != NULL) {
 		switch (how) {
 			case -1:
@@ -484,12 +484,12 @@ char *unpackFile(
 				printf("unpackFile: unknown return_value %d\n", how);
 				break;
 		}
-		
+
 		if (temp) {
 			newname = BLI_strdup(temp);
 		}
 	}
-	
+
 	return newname;
 }
 
@@ -539,7 +539,7 @@ int unpackVFont(Main *bmain, ReportList *reports, VFont *vfont, int how)
 	char localname[FILE_MAX], absname[FILE_MAX];
 	char *newname;
 	int ret_value = RET_ERROR;
-	
+
 	if (vfont != NULL) {
 		unpack_generate_paths(vfont->name, (ID *)vfont, absname, localname, sizeof(absname), sizeof(localname));
 		newname = unpackFile(reports, BKE_main_blendfile_path(bmain), absname, localname, vfont->packedfile, how);
@@ -551,7 +551,7 @@ int unpackVFont(Main *bmain, ReportList *reports, VFont *vfont, int how)
 			MEM_freeN(newname);
 		}
 	}
-	
+
 	return (ret_value);
 }
 
@@ -576,7 +576,7 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 			ret_value = RET_OK;
 		}
 	}
-	
+
 	return(ret_value);
 }
 
@@ -633,16 +633,16 @@ int unpackLibraries(Main *bmain, ReportList *reports)
 	Library *lib;
 	char *newname;
 	int ret_value = RET_ERROR;
-	
+
 	for (lib = bmain->library.first; lib; lib = lib->id.next) {
 		if (lib->packedfile && lib->name[0]) {
-			
+
 			newname = unpackFile(reports, BKE_main_blendfile_path(bmain), lib->filepath, lib->filepath, lib->packedfile, PF_WRITE_ORIGINAL);
 			if (newname != NULL) {
 				ret_value = RET_OK;
-				
+
 				printf("Unpacked .blend library: %s\n", newname);
-				
+
 				freePackedFile(lib->packedfile);
 				lib->packedfile = NULL;
 
@@ -650,24 +650,24 @@ int unpackLibraries(Main *bmain, ReportList *reports)
 			}
 		}
 	}
-	
+
 	return(ret_value);
 }
 
 void packLibraries(Main *bmain, ReportList *reports)
 {
 	Library *lib;
-	
+
 	/* test for relativenss */
 	for (lib = bmain->library.first; lib; lib = lib->id.next)
 		if (!BLI_path_is_rel(lib->name))
 			break;
-	
+
 	if (lib) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot pack absolute file: '%s'", lib->name);
 		return;
 	}
-	
+
 	for (lib = bmain->library.first; lib; lib = lib->id.next)
 		if (lib->packedfile == NULL)
 			lib->packedfile = newPackedFile(reports, lib->name, BKE_main_blendfile_path(bmain));

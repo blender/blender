@@ -135,7 +135,7 @@ class GetCompleteViewMapDensityF1D : public UnaryFunction1D<double>
 public:
 	/*! Builds the functor.
 	 *  \param level
-	 *    The level of the pyramid from which 
+	 *    The level of the pyramid from which
 	 *    the pixel must be read.
 	 *  \param iType
 	 *    The integration method used to compute

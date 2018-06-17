@@ -81,11 +81,11 @@ class NodeOperation : public SocketReader {
 public:
 	typedef std::vector<NodeOperationInput*> Inputs;
 	typedef std::vector<NodeOperationOutput*> Outputs;
-	
+
 private:
 	Inputs m_inputs;
 	Outputs m_outputs;
-	
+
 	/**
 	 * @brief the index of the input socket that will be used to determine the resolution
 	 */
@@ -115,7 +115,7 @@ private:
 	 * @see NodeOperation.getMutex retrieve a pointer to this mutex.
 	 */
 	ThreadMutex m_mutex;
-	
+
 	/**
 	 * @brief reference to the editing bNodeTree, used for break and update callback
 	 */
@@ -125,21 +125,21 @@ private:
 	 * @brief set to truth when resolution for this operation is set
 	 */
 	bool m_isResolutionSet;
-	
+
 public:
 	virtual ~NodeOperation();
-	
+
 	unsigned int getNumberOfInputSockets() const { return m_inputs.size(); }
 	unsigned int getNumberOfOutputSockets() const { return m_outputs.size(); }
 	NodeOperationOutput *getOutputSocket(unsigned int index) const;
 	NodeOperationOutput *getOutputSocket() const { return getOutputSocket(0); }
 	NodeOperationInput *getInputSocket(unsigned int index) const;
-	
+
 	/** Check if this is an input operation
 	 * An input operation is an operation that only has output sockets and no input sockets
 	 */
 	bool isInputOperation() const { return m_inputs.empty(); }
-	
+
 	/**
 	 * @brief determine the resolution of this node
 	 * @note this method will not set the resolution, this is the responsibility of the caller
@@ -167,7 +167,7 @@ public:
 
 	void setbNodeTree(const bNodeTree *tree) { this->m_btree = tree; }
 	virtual void initExecution();
-	
+
 	/**
 	 * @brief when a chunk is executed by a CPUDevice, this method is called
 	 * @ingroup execution
@@ -231,7 +231,7 @@ public:
 			this->m_isResolutionSet = true;
 		}
 	}
-	
+
 
 	void getConnectedInputSockets(Inputs *sockets);
 
@@ -288,14 +288,14 @@ public:
 	 * @see ExecutionGroup.addOperation
 	 */
 	bool isOpenCL() const { return this->m_openCL; }
-	
+
 	virtual bool isViewerOperation() const { return false; }
 	virtual bool isPreviewOperation() const { return false; }
 	virtual bool isFileOutputOperation() const { return false; }
 	virtual bool isProxyOperation() const { return false; }
-	
+
 	virtual bool useDatatypeConversion() const { return true; }
-	
+
 	inline bool isBreaked() const {
 		return this->m_btree->test_break(this->m_btree->tbh);
 	}
@@ -319,7 +319,7 @@ protected:
 	void initMutex();
 	void lockMutex();
 	void unlockMutex();
-	
+
 	/**
 	 * @brief set whether this operation is complex
 	 *
@@ -345,35 +345,35 @@ protected:
 class NodeOperationInput {
 private:
 	NodeOperation *m_operation;
-	
+
 	/** Datatype of this socket. Is used for automatically data transformation.
 	 * @section data-conversion
 	 */
 	DataType m_datatype;
-	
+
 	/** Resize mode of this socket */
 	InputResizeMode m_resizeMode;
-	
+
 	/** Connected output */
 	NodeOperationOutput *m_link;
-	
+
 public:
 	NodeOperationInput(NodeOperation *op, DataType datatype, InputResizeMode resizeMode = COM_SC_CENTER);
-	
+
 	NodeOperation &getOperation() const { return *m_operation; }
 	DataType getDataType() const { return m_datatype; }
-	
+
 	void setLink(NodeOperationOutput *link) { m_link = link; }
 	NodeOperationOutput *getLink() const { return m_link; }
 	bool isConnected() const { return m_link; }
-	
+
 	void setResizeMode(InputResizeMode resizeMode) { this->m_resizeMode = resizeMode; }
 	InputResizeMode getResizeMode() const { return this->m_resizeMode; }
-	
+
 	SocketReader *getReader();
-	
+
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
 #endif
@@ -383,18 +383,18 @@ public:
 class NodeOperationOutput {
 private:
 	NodeOperation *m_operation;
-	
+
 	/** Datatype of this socket. Is used for automatically data transformation.
 	 * @section data-conversion
 	 */
 	DataType m_datatype;
-	
+
 public:
 	NodeOperationOutput(NodeOperation *op, DataType datatype);
-	
+
 	NodeOperation &getOperation() const { return *m_operation; }
 	DataType getDataType() const { return m_datatype; }
-	
+
 	/**
 	 * @brief determine the resolution of this data going through this socket
 	 * @param resolution the result of this operation

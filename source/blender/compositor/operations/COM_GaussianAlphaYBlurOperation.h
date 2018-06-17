@@ -36,12 +36,12 @@ private:
 	void updateGauss();
 public:
 	GaussianAlphaYBlurOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * @brief initialize the execution
 	 */
@@ -51,7 +51,7 @@ public:
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void *initializeTileData(rcti *rect);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 

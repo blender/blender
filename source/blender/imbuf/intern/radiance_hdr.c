@@ -256,7 +256,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 			/* read in and decode the actual data */
 			sline = (RGBE *)MEM_mallocN(sizeof(*sline) * width, __func__);
 			rect_float = ibuf->rect_float;
-			
+
 			for (size_t y = 0; y < height; y++) {
 				ptr = freadcolrs(sline, ptr, width, mem_eof);
 				if (ptr == NULL) {
@@ -274,11 +274,11 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 			}
 			MEM_freeN(sline);
 			if (oriY[0] == '-') IMB_flipy(ibuf);
-			
+
 			if (flags & IB_rect) {
 				IMB_rect_from_float(ibuf);
 			}
-			
+
 			return ibuf;
 		}
 		//else printf("Data not found!\n");
@@ -385,9 +385,9 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 	float *fp = NULL;
 	size_t width = ibuf->x, height = ibuf->y;
 	unsigned char *cp = NULL;
-	
+
 	(void)flags; /* unused */
-	
+
 	if (file == NULL) {
 		return 0;
 	}
@@ -398,7 +398,7 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 		cp = (unsigned char *)ibuf->rect + ibuf->channels * (height - 1) * width;
 	if (ibuf->rect_float)
 		fp = ibuf->rect_float + ibuf->channels * (height - 1) * width;
-	
+
 	for (size_t y = 0; y < height; y++) {
 		if (fwritecolrs(file, width, ibuf->channels, cp, fp) < 0) {
 			fclose(file);

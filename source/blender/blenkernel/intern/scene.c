@@ -136,10 +136,10 @@ static void remove_sequencer_fcurves(Scene *sce)
 
 	if (adt && adt->action) {
 		FCurve *fcu, *nextfcu;
-		
+
 		for (fcu = adt->action->curves.first; fcu; fcu = nextfcu) {
 			nextfcu = fcu->next;
-			
+
 			if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
 				action_groups_remove_channel(adt->action, fcu);
 				free_fcurve(fcu);
@@ -479,10 +479,10 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.views);
-	
+
 	BKE_toolsettings_free(sce->toolsettings);
 	sce->toolsettings = NULL;
-	
+
 	BKE_scene_free_depsgraph_hash(sce);
 
 	MEM_SAFE_FREE(sce->fps_info);
@@ -532,7 +532,7 @@ void BKE_scene_init(Scene *sce)
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(sce, id));
 
 	sce->lay = sce->layact = 1;
-	
+
 	sce->r.mode = R_OSA;
 	sce->r.cfra = 1;
 	sce->r.sfra = 1;
@@ -615,7 +615,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.border.ymax = 1.0f;
 
 	sce->r.preview_start_resolution = 64;
-	
+
 	sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
 	sce->r.unit_line_thickness = 1.0f;
 
@@ -639,7 +639,7 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
 	sce->toolsettings->autokey_mode = U.autokey_mode;
 
-	
+
 	sce->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEAN;
 	sce->toolsettings->snap_mode = SCE_SNAP_MODE_INCREMENT;
 	sce->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
@@ -740,22 +740,22 @@ void BKE_scene_init(Scene *sce)
 	copy_v2_fl2(sce->safe_areas.action_center, 15.0f / 100.0f, 5.0f / 100.0f);
 
 	sce->preview = NULL;
-	
+
 	/* GP Sculpt brushes */
 	{
 		GP_BrushEdit_Settings *gset = &sce->toolsettings->gp_sculpt;
 		GP_EditBrush_Data *gp_brush;
-		
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_SMOOTH];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.3f;
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE;
-		
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_THICKNESS];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.5f;
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-		
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_STRENGTH];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.5f;
@@ -765,28 +765,28 @@ void BKE_scene_init(Scene *sce)
 		gp_brush->size = 50;
 		gp_brush->strength = 0.3f;
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-		
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_PUSH];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.3f;
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-		
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_TWIST];
 		gp_brush->size = 50;
 		gp_brush->strength = 0.3f; // XXX?
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-		
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_PINCH];
 		gp_brush->size = 50;
 		gp_brush->strength = 0.5f; // XXX?
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
-		
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMIZE];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.5f;
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
 	}
-	
+
 	/* GP Stroke Placement */
 	sce->toolsettings->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
 	sce->toolsettings->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
@@ -909,10 +909,10 @@ Object *BKE_scene_object_find_by_name(Scene *scene, const char *name)
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
 	Object *ob;
-	
+
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
 	BKE_scene_validate_setscene(bmain, scene);
-	
+
 	/* deselect objects (for dataselect) */
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		ob->flag &= ~SELECT;
@@ -947,7 +947,7 @@ int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
         Scene **scene, int val, Base **base, Object **ob)
 {
 	bool run_again = true;
-	
+
 	/* init */
 	if (val == 0) {
 		iter->phase = F_START;
@@ -1006,19 +1006,19 @@ int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
 					}
 				}
 			}
-			
+
 			if (*base == NULL) {
 				iter->phase = F_START;
 			}
 			else {
 				if (iter->phase != F_DUPLI) {
 					if (depsgraph && (*base)->object->transflag & OB_DUPLI) {
-						/* collections cannot be duplicated for mballs yet, 
-						 * this enters eternal loop because of 
+						/* collections cannot be duplicated for mballs yet,
+						 * this enters eternal loop because of
 						 * makeDispListMBall getting called inside of collection_duplilist */
 						if ((*base)->object->dup_group == NULL) {
 							iter->duplilist = object_duplilist(depsgraph, (*scene), (*base)->object);
-							
+
 							iter->dupob = iter->duplilist->first;
 
 							if (!iter->dupob) {
@@ -1051,13 +1051,13 @@ int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
 				else if (iter->phase == F_DUPLI) {
 					iter->phase = F_SCENE;
 					(*base)->flag_legacy &= ~OB_FROMDUPLI;
-					
+
 					if (iter->dupli_refob) {
 						/* Restore last object's real matrix. */
 						copy_m4_m4(iter->dupli_refob->obmat, iter->omat);
 						iter->dupli_refob = NULL;
 					}
-					
+
 					free_object_duplilist(iter->duplilist);
 					iter->duplilist = NULL;
 					run_again = true;
@@ -1203,7 +1203,7 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 
 	if (sce->set == NULL) return true;
 	totscene = BLI_listbase_count(&bmain->scene);
-	
+
 	for (a = 0, sce_iter = sce; sce_iter->set; sce_iter = sce_iter->set, a++) {
 		/* more iterations than scenes means we have a cycle */
 		if (a > totscene) {
@@ -1230,7 +1230,7 @@ float BKE_scene_frame_get_from_ctime(const Scene *scene, const float frame)
 	float ctime = frame;
 	ctime += scene->r.subframe;
 	ctime *= scene->r.framelen;
-	
+
 	return ctime;
 }
 
@@ -1610,7 +1610,7 @@ int BKE_render_num_threads(const RenderData *rd)
 		threads = rd->threads;
 	else
 		threads = BLI_system_thread_count();
-	
+
 	return max_ii(threads, 1);
 }
 

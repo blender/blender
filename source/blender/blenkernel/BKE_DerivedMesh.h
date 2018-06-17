@@ -264,12 +264,12 @@ struct DerivedMesh {
 	CustomData *(*getTessFaceDataLayout)(DerivedMesh * dm);
 	CustomData *(*getLoopDataLayout)(DerivedMesh * dm);
 	CustomData *(*getPolyDataLayout)(DerivedMesh * dm);
-	
+
 	/** Copies all customdata for an element source into dst at index dest */
 	void (*copyFromVertCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
 	void (*copyFromEdgeCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
 	void (*copyFromFaceCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
-	
+
 	/** Optional grid access for subsurf */
 	int (*getNumGrids)(DerivedMesh *dm);
 	int (*getGridSize)(DerivedMesh *dm);
@@ -278,7 +278,7 @@ struct DerivedMesh {
 	void (*getGridKey)(DerivedMesh *dm, struct CCGKey *key);
 	DMFlagMat *(*getGridFlagMats)(DerivedMesh * dm);
 	unsigned int **(*getGridHidden)(DerivedMesh * dm);
-	
+
 
 	/** Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new

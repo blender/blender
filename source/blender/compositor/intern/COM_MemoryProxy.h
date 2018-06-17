@@ -42,17 +42,17 @@ private:
 	 * @brief reference to the ouput operation of the executiongroup
 	 */
 	WriteBufferOperation *m_writeBufferOperation;
-	
+
 	/**
 	 * @brief reference to the executor. the Execution group that can fill a chunk
 	 */
 	ExecutionGroup *m_executor;
-	
+
 	/**
 	 * @brief datatype of this MemoryProxy
 	 */
 	/* DataType m_datatype; */ /* UNUSED */
-	
+
 	/**
 	 * @brief channel information of this buffer
 	 */
@@ -70,7 +70,7 @@ private:
 
 public:
 	MemoryProxy(DataType type);
-	
+
 	/**
 	 * @brief set the ExecutionGroup that can be scheduled to calculate a certain chunk.
 	 * @param group the ExecutionGroup to set

@@ -54,10 +54,10 @@
 #include "MEM_guardedalloc.h"
 
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
-	
+
 	surmd->bvhtree = NULL;
 }
 
@@ -77,7 +77,7 @@ static void freeData(ModifierData *md)
 		}
 
 		MEM_SAFE_FREE(surmd->x);
-		
+
 		MEM_SAFE_FREE(surmd->v);
 	}
 }
@@ -95,7 +95,7 @@ static void deformVerts(
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 	const int cfra = (int)DEG_get_ctime(ctx->depsgraph);
-	
+
 	if (surmd->mesh) {
 		BKE_id_free(NULL, surmd->mesh);
 	}
@@ -112,7 +112,7 @@ static void deformVerts(
 		        false);
 	}
 	else surmd->mesh = get_mesh(ctx->object, NULL, NULL, NULL, false, false);
-	
+
 	if (!ctx->object->pd) {
 		printf("SurfaceModifier deformVerts: Should not happen!\n");
 		return;
@@ -126,7 +126,7 @@ static void deformVerts(
 
 		BKE_mesh_apply_vert_coords(surmd->mesh, vertexCos);
 		BKE_mesh_calc_normals(surmd->mesh);
-		
+
 		numverts = surmd->mesh->totvert;
 
 		if (numverts != surmd->numverts ||
@@ -160,7 +160,7 @@ static void deformVerts(
 				v->co[0] = v->co[1] = v->co[2] = 0.0f;
 			else
 				sub_v3_v3v3(v->co, vec, x->co);
-			
+
 			copy_v3_v3(x->co, vec);
 		}
 

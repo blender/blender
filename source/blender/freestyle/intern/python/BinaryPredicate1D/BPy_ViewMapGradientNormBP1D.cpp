@@ -35,7 +35,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-//ViewMapGradientNormBP1D(int level, IntegrationType iType=MEAN, float sampling=2.0) 
+//ViewMapGradientNormBP1D(int level, IntegrationType iType=MEAN, float sampling=2.0)
 
 static char ViewMapGradientNormBP1D___doc__[] =
 "Class hierarchy: :class:`freestyle.types.BinaryPredicate1D` > :class:`ViewMapGradientNormBP1D`\n"

@@ -35,7 +35,7 @@ void BrightnessNode::convertToOperations(NodeConverter &converter, const Composi
 	BrightnessOperation *operation = new BrightnessOperation();
 	operation->setUsePremultiply((bnode->custom1 & 1) != 0);
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 	converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));

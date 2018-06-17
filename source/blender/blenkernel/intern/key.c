@@ -106,14 +106,14 @@ Key *BKE_key_add(Main *bmain, ID *id)    /* common function */
 {
 	Key *key;
 	char *el;
-	
+
 	key = BKE_libblock_alloc(bmain, ID_KE, "Key", 0);
-	
+
 	key->type = KEY_NORMAL;
 	key->from = id;
 
 	key->uidgen = 1;
-	
+
 	/* XXX the code here uses some defines which will soon be deprecated... */
 	switch (GS(id->name)) {
 		case ID_ME:
@@ -150,7 +150,7 @@ Key *BKE_key_add(Main *bmain, ID *id)    /* common function */
 		default:
 			break;
 	}
-	
+
 	return key;
 }
 
@@ -192,24 +192,24 @@ Key *BKE_key_copy_nolib(Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
-	
+
 	keyn = MEM_dupallocN(key);
 
 	keyn->adt = NULL;
 
 	BLI_duplicatelist(&keyn->block, &key->block);
-	
+
 	kb = key->block.first;
 	kbn = keyn->block.first;
 	while (kbn) {
-		
+
 		if (kbn->data) kbn->data = MEM_dupallocN(kbn->data);
 		if (kb == key->refkey) keyn->refkey = kbn;
-		
+
 		kbn = kbn->next;
 		kb = kb->next;
 	}
-	
+
 	return keyn;
 }
 
@@ -223,7 +223,7 @@ void BKE_key_sort(Key *key)
 	KeyBlock *kb;
 	KeyBlock *kb2;
 
-	/* locate the key which is out of position */ 
+	/* locate the key which is out of position */
 	for (kb = key->block.first; kb; kb = kb->next)
 		if ((kb->next) && (kb->pos > kb->next->pos))
 			break;
@@ -232,7 +232,7 @@ void BKE_key_sort(Key *key)
 	if (kb) {
 		kb = kb->next; /* next key is the out-of-order one */
 		BLI_remlink(&key->block, kb);
-		
+
 		/* find the right location and insert before */
 		for (kb2 = key->block.first; kb2; kb2 = kb2->next) {
 			if (kb2->pos > kb->pos) {
@@ -251,7 +251,7 @@ void BKE_key_sort(Key *key)
 void key_curve_position_weights(float t, float data[4], int type)
 {
 	float t2, t3, fc;
-	
+
 	if (type == KEY_LINEAR) {
 		data[0] =          0.0f;
 		data[1] = -t     + 1.0f;
@@ -293,7 +293,7 @@ void key_curve_position_weights(float t, float data[4], int type)
 void key_curve_tangent_weights(float t, float data[4], int type)
 {
 	float t2, fc;
-	
+
 	if (type == KEY_LINEAR) {
 		data[0] = 0.0f;
 		data[1] = -1.0f;
@@ -332,7 +332,7 @@ void key_curve_tangent_weights(float t, float data[4], int type)
 void key_curve_normal_weights(float t, float data[4], int type)
 {
 	float fc;
-	
+
 	if (type == KEY_LINEAR) {
 		data[0] = 0.0f;
 		data[1] = 0.0f;
@@ -415,7 +415,7 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float t[4], int cycl)
 		t[3] = k[3]->pos;
 		k1 = k[3];
 	}
-	
+
 	while (t[2] < fac) {    /* find correct location */
 		if (k1->next == NULL) {
 			if (cycl) {
@@ -441,7 +441,7 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float t[4], int cycl)
 
 		if (ofs > 2.1f + lastpos) break;
 	}
-	
+
 	bsplinetype = 0;
 	if (k[1]->type == KEY_BSPLINE || k[2]->type == KEY_BSPLINE) bsplinetype = 1;
 
@@ -499,7 +499,7 @@ static void flerp(int tot, float *in, float *f0, float *f1, float *f2, float *f3
 static void rel_flerp(int tot, float *in, float *ref, float *out, float fac)
 {
 	int a;
-	
+
 	for (a = 0; a < tot; a++) {
 		in[a] -= fac * (ref[a] - out[a]);
 	}
@@ -588,7 +588,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 		return;
 
 	if (end > tot) end = tot;
-	
+
 	if (tot != kb->totelem) {
 		ktot = 0.0;
 		flagflo = 1;
@@ -605,9 +605,9 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 
 	/* this exception is needed curves with multiple splines */
 	if (start != 0) {
-		
+
 		poin += poinsize * start;
-		
+
 		if (flagflo) {
 			ktot += start * kd;
 			a = (int)floor(ktot);
@@ -620,13 +620,13 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 			k1 += start * key->elemsize;
 		}
 	}
-	
+
 	if (mode == KEY_MODE_BEZTRIPLE) {
 		elemstr[0] = 1;
 		elemstr[1] = IPO_BEZTRIPLE;
 		elemstr[2] = 0;
 	}
-	
+
 	/* just do it here, not above! */
 	elemsize = key->elemsize;
 	if (mode == KEY_MODE_BEZTRIPLE) elemsize *= 3;
@@ -668,7 +668,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 			poin += *ofsp;
 			cp += 2; ofsp++;
 		}
-		
+
 		/* are we going to be nasty? */
 		if (flagflo) {
 			ktot += kd;
@@ -682,7 +682,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 			k1 += elemsize;
 			kref += elemsize;
 		}
-		
+
 		if (mode == KEY_MODE_BEZTRIPLE) {
 			a += 2;
 		}
@@ -748,13 +748,13 @@ void BKE_key_evaluate_relative(const int start, int end, const int tot, char *ba
 
 	/* step 1 init */
 	cp_key(start, end, tot, basispoin, key, actkb, key->refkey, NULL, mode);
-	
+
 	/* step 2: do it */
-	
+
 	for (kb = key->block.first, keyblock_index = 0; kb; kb = kb->next, keyblock_index++) {
 		if (kb != key->refkey) {
 			float icuval = kb->curval;
-			
+
 			/* only with value, and no difference allowed */
 			if (!(kb->flag & KEYBLOCK_MUTE) && icuval != 0.0f && kb->totelem == tot) {
 				KeyBlock *refb;
@@ -764,7 +764,7 @@ void BKE_key_evaluate_relative(const int start, int end, const int tot, char *ba
 				/* reference now can be any block */
 				refb = BLI_findlink(&key->block, kb->relative);
 				if (refb == NULL) continue;
-				
+
 				poin = basispoin;
 				from = key_block_get_data(key, actkb, kb, &freefrom);
 				reffrom = key_block_get_data(key, actkb, refb, &freereffrom);
@@ -772,18 +772,18 @@ void BKE_key_evaluate_relative(const int start, int end, const int tot, char *ba
 				poin += start * poinsize;
 				reffrom += key->elemsize * start;  // key elemsize yes!
 				from += key->elemsize * start;
-				
+
 				for (b = start; b < end; b++) {
-				
+
 					weight = weights ? (*weights * icuval) : icuval;
-					
+
 					cp = key->elemstr;
 					if (mode == KEY_MODE_BEZTRIPLE) cp = elemstr;
-					
+
 					ofsp = ofs;
-					
+
 					while (cp[0]) {  /* (cp[0] == amount) */
-						
+
 						switch (cp[1]) {
 							case IPO_FLOAT:
 								rel_flerp(3, (float *)poin, (float *)reffrom, (float *)from, weight);
@@ -803,14 +803,14 @@ void BKE_key_evaluate_relative(const int start, int end, const int tot, char *ba
 						}
 
 						poin += *ofsp;
-						
+
 						cp += 2;
 						ofsp++;
 					}
-					
+
 					reffrom += elemsize;
 					from += elemsize;
-					
+
 					if (mode == KEY_MODE_BEZTRIPLE) b += 2;
 					if (weights) weights++;
 				}
@@ -837,7 +837,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 
 	if (!key_pointer_size(key, mode, &poinsize, &ofs[0]))
 		return;
-	
+
 	if (end > tot) end = tot;
 
 	k1 = key_block_get_data(key, actkb, k[0], &freek1);
@@ -891,7 +891,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 	if (start != 0) {
 
 		poin += poinsize * start;
-		
+
 		if (flagdo & 1) {
 			if (flagflo & 1) {
 				k1tot += start * k1d;
@@ -957,10 +957,10 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 	if (mode == KEY_MODE_BEZTRIPLE) elemsize *= 3;
 
 	for (a = start; a < end; a++) {
-	
+
 		cp = key->elemstr;
 		if (mode == KEY_MODE_BEZTRIPLE) cp = elemstr;
-		
+
 		ofsp = ofs;
 
 		while (cp[0]) {  /* (cp[0] == amount) */
@@ -984,7 +984,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 					BLI_assert(!"invalid 'cp[1]'");
 					return;
 			}
-			
+
 			poin += *ofsp;
 			cp += 2;
 			ofsp++;
@@ -1038,7 +1038,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 				k4 += elemsize;
 			}
 		}
-		
+
 		if (mode == KEY_MODE_BEZTRIPLE) a += 2;
 	}
 
@@ -1055,10 +1055,10 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
 	BMIter iter;
 	BMVert *eve;
 	int totvert = 0, defgrp_index = 0;
-	
+
 	/* no vgroup string set? */
 	if (vgroup[0] == 0) return NULL;
-	
+
 	/* gather dvert and totvert */
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
@@ -1073,9 +1073,9 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
 		dvert = lt->dvert;
 		totvert = lt->pntsu * lt->pntsv * lt->pntsw;
 	}
-	
+
 	if (dvert == NULL) return NULL;
-	
+
 	/* find the group (weak loop-in-loop) */
 	defgrp_index = defgroup_name_index(ob, vgroup);
 	if (defgrp_index != -1) {
@@ -1197,7 +1197,7 @@ static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float 
 {
 	Nurb *nu;
 	int a, step;
-	
+
 	for (a = 0, nu = cu->nurb.first; nu; nu = nu->next, a += step) {
 		if (nu->bp) {
 			step = nu->pntsu * nu->pntsv;
@@ -1217,7 +1217,7 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
 {
 	Nurb *nu;
 	int a, step;
-	
+
 	for (a = 0, nu = cu->nurb.first; nu; nu = nu->next, a += step) {
 		if (nu->bp) {
 			step = nu->pntsu * nu->pntsv;
@@ -1263,7 +1263,7 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 	KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
 	float t[4];
 	int flag;
-	
+
 	if (key->type == KEY_RELATIVE) {
 		float **per_keyblock_weights;
 		per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, NULL);
@@ -1272,7 +1272,7 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 	}
 	else {
 		const float ctime_scaled = key->ctime / 100.0f;
-		
+
 		flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
 		if (flag == 0) {
@@ -1331,7 +1331,7 @@ float *BKE_key_evaluate_object_ex(
 	/* if nothing to interpolate, cancel */
 	if (tot == 0 || size == 0)
 		return NULL;
-	
+
 	/* allocate array */
 	if (arr == NULL) {
 		out = MEM_callocN(size, "BKE_key_evaluate_object out");
@@ -1346,11 +1346,11 @@ float *BKE_key_evaluate_object_ex(
 
 	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
 	key->from = (ID *)ob->data;
-		
+
 	if (ob->shapeflag & OB_SHAPE_LOCK) {
 		/* shape locked, copy the locked shape instead of blending */
 		KeyBlock *kb = BLI_findlink(&key->block, ob->shapenr - 1);
-		
+
 		if (kb && (kb->flag & KEYBLOCK_MUTE))
 			kb = key->refkey;
 
@@ -1358,7 +1358,7 @@ float *BKE_key_evaluate_object_ex(
 			kb = key->block.first;
 			ob->shapenr = 1;
 		}
-		
+
 		if (OB_TYPE_SUPPORT_VGROUP(ob->type)) {
 			float *weights = get_weights_array(ob, kb->vgroup, NULL);
 
@@ -1370,13 +1370,13 @@ float *BKE_key_evaluate_object_ex(
 			cp_cu_key(ob->data, key, actkb, kb, 0, tot, out, tot);
 	}
 	else {
-		
+
 		if (ob->type == OB_MESH) do_mesh_key(ob, key, out, tot);
 		else if (ob->type == OB_LATTICE) do_latt_key(ob, key, out, tot);
 		else if (ob->type == OB_CURVE) do_curve_key(ob, key, out, tot);
 		else if (ob->type == OB_SURF) do_curve_key(ob, key, out, tot);
 	}
-	
+
 	if (r_totelem) {
 		*r_totelem = tot;
 	}
@@ -1451,14 +1451,14 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 	KeyBlock *kb;
 	float curpos = -0.1;
 	int tot;
-	
+
 	kb = key->block.last;
 	if (kb) curpos = kb->pos;
-	
+
 	kb = MEM_callocN(sizeof(KeyBlock), "Keyblock");
 	BLI_addtail(&key->block, kb);
 	kb->type = KEY_CARDINAL;
-	
+
 	tot = BLI_listbase_count(&key->block);
 	if (name) {
 		BLI_strncpy(kb->name, name, sizeof(kb->name));
@@ -1476,7 +1476,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 
 	key->totkey++;
 	if (key->totkey == 1) key->refkey = kb;
-	
+
 	kb->slidermin = 0.0f;
 	kb->slidermax = 1.0f;
 
@@ -1523,10 +1523,10 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
 }
 
 /* only the active keyblock */
-KeyBlock *BKE_keyblock_from_object(Object *ob) 
+KeyBlock *BKE_keyblock_from_object(Object *ob)
 {
 	Key *key = BKE_key_from_object(ob);
-	
+
 	if (key) {
 		KeyBlock *kb = BLI_findlink(&key->block, ob->shapenr - 1);
 		return kb;
@@ -1538,7 +1538,7 @@ KeyBlock *BKE_keyblock_from_object(Object *ob)
 KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
 {
 	Key *key = BKE_key_from_object(ob);
-	
+
 	if (key)
 		return key->refkey;
 
@@ -1550,18 +1550,18 @@ KeyBlock *BKE_keyblock_from_key(Key *key, int index)
 {
 	KeyBlock *kb;
 	int i;
-	
+
 	if (key) {
 		kb = key->block.first;
-		
+
 		for (i = 1; i < key->totkey; i++) {
 			kb = kb->next;
-			
+
 			if (index == i)
 				return kb;
 		}
 	}
-	
+
 	return NULL;
 }
 
@@ -1585,23 +1585,23 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
 	kb_dst->slidermax  = kb_src->slidermax;
 }
 
-/* Get RNA-Path for 'value' setting of the given ShapeKey 
+/* Get RNA-Path for 'value' setting of the given ShapeKey
  * NOTE: the user needs to free the returned string once they're finish with it
  */
 char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
-	
+
 	/* sanity checks */
 	if (ELEM(NULL, key, kb))
 		return NULL;
-	
+
 	/* create the RNA pointer */
 	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &ptr);
 	/* get pointer to the property too */
 	prop = RNA_struct_find_property(&ptr, "value");
-	
+
 	/* return the path */
 	return RNA_path_from_ID_to_property(&ptr, prop);
 }
@@ -1689,7 +1689,7 @@ void BKE_keyblock_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *n
 			}
 		}
 		else {
-			
+
 			;
 			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a; a--, fp += 4, bp++) {
 				copy_v3_v3(fp, bp->vec);

@@ -28,7 +28,7 @@
 //  Purpose          : Class to define the text rendering of a stroke
 //                     Format:
 //                     x y width height // bbox
-//                     //list of vertices : 
+//                     //list of vertices :
 //                     t x y z t1 t2 r g b alpha ...
 //                      ...
 //  Date of creation : 01/14/2005

@@ -414,7 +414,7 @@ NodeOperation *Converter::convertDataType(NodeOperationOutput *from, NodeOperati
 {
 	DataType fromDatatype = from->getDataType();
 	DataType toDatatype = to->getDataType();
-	
+
 	if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
 		return new ConvertValueToColorOperation();
 	}
@@ -433,7 +433,7 @@ NodeOperation *Converter::convertDataType(NodeOperationOutput *from, NodeOperati
 	else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_COLOR) {
 		return new ConvertVectorToColorOperation();
 	}
-	
+
 	return NULL;
 }
 

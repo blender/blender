@@ -49,7 +49,7 @@ ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& sourc
 }
 
 ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, unsigned numCells)
-: GridDensityProvider(source), numCells(numCells) 
+: GridDensityProvider(source), numCells(numCells)
 {
 	real proscenium[4];
 	calculateOptimalProscenium(source, proscenium);

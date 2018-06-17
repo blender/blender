@@ -199,7 +199,7 @@ void CulledOccluderSource::cullViewEdges(ViewMap& viewMap, bool extensiveFEdgeSe
 			fe = fe->nextEdge();
 		}
 
-		// If bestOccluderTarget was not found inside the occluder proscenium, 
+		// If bestOccluderTarget was not found inside the occluder proscenium,
 		// we need to expand the occluder proscenium to include it.
 		if ((*ve)->isInImage() && bestOccluderTarget != NULL && ! bestOccluderTargetFound) {
 			// Expand occluder proscenium to enclose bestOccluderTarget
@@ -249,7 +249,7 @@ void CulledOccluderSource::cullViewEdges(ViewMap& viewMap, bool extensiveFEdgeSe
 			FEdge *festart = (*ve)->fedgeA();
 			FEdge *fe = festart;
 			do {
-				// If not (already) visible and center point inside occluder proscenium, 
+				// If not (already) visible and center point inside occluder proscenium,
 				if (!fe->isInImage() && insideProscenium(occluderProscenium, fe->center2d())) {
 					// Use the feature edge for visibility determination
 					fe->setIsInImage(true);

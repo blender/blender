@@ -486,7 +486,7 @@ static PyModuleDef module_definition = {
 PyObject *Freestyle_Init(void)
 {
 	PyObject *module;
-	
+
 	// initialize modules
 	module = PyModule_Create(&module_definition);
 	if (!module)
@@ -509,9 +509,9 @@ PyObject *Freestyle_Init(void)
 	else {
 		printf("Freestyle: couldn't find 'scripts/freestyle/modules', Freestyle won't work properly.\n");
 	}
-	
+
 	// attach its classes (adding the object types to the module)
-	
+
 	// those classes have to be initialized before the others
 	MediumType_Init(module);
 	Nature_Init(module);

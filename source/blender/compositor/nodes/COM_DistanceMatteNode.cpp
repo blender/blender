@@ -35,27 +35,27 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter, const Comp
 {
 	bNode *editorsnode = getbNode();
 	NodeChroma *storage = (NodeChroma *)editorsnode->storage;
-	
+
 	NodeInput *inputSocketImage = this->getInputSocket(0);
 	NodeInput *inputSocketKey = this->getInputSocket(1);
 	NodeOutput *outputSocketImage = this->getOutputSocket(0);
 	NodeOutput *outputSocketMatte = this->getOutputSocket(1);
-	
+
 	SetAlphaOperation *operationAlpha = new SetAlphaOperation();
 	converter.addOperation(operationAlpha);
-	
+
 	/* work in RGB color space */
 	NodeOperation *operation;
 	if (storage->channel == 1) {
 		DistanceRGBMatteOperation *matte = new DistanceRGBMatteOperation();
 		matte->setSettings(storage);
 		converter.addOperation(matte);
-		
+
 		converter.mapInputSocket(inputSocketImage, matte->getInputSocket(0));
 		converter.mapInputSocket(inputSocketImage, operationAlpha->getInputSocket(0));
-		
+
 		converter.mapInputSocket(inputSocketKey, matte->getInputSocket(1));
-		
+
 		operation = matte;
 	}
 	/* work in YCbCr color space */
@@ -63,27 +63,27 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter, const Comp
 		DistanceYCCMatteOperation *matte = new DistanceYCCMatteOperation();
 		matte->setSettings(storage);
 		converter.addOperation(matte);
-		
+
 		ConvertRGBToYCCOperation *operationYCCImage = new ConvertRGBToYCCOperation();
 		ConvertRGBToYCCOperation *operationYCCMatte = new ConvertRGBToYCCOperation();
 		operationYCCImage->setMode(BLI_YCC_ITU_BT709);
 		operationYCCMatte->setMode(BLI_YCC_ITU_BT709);
 		converter.addOperation(operationYCCImage);
 		converter.addOperation(operationYCCMatte);
-		
+
 		converter.mapInputSocket(inputSocketImage, operationYCCImage->getInputSocket(0));
 		converter.addLink(operationYCCImage->getOutputSocket(), matte->getInputSocket(0));
 		converter.addLink(operationYCCImage->getOutputSocket(), operationAlpha->getInputSocket(0));
-		
+
 		converter.mapInputSocket(inputSocketKey, operationYCCMatte->getInputSocket(0));
 		converter.addLink(operationYCCMatte->getOutputSocket(), matte->getInputSocket(1));
-		
+
 		operation = matte;
 	}
-	
+
 	converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket(0));
 	converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
-	
+
 	if (storage->channel != 1) {
 		ConvertYCCToRGBOperation *inv_convert = new ConvertYCCToRGBOperation();
 		inv_convert->setMode(BLI_YCC_ITU_BT709);

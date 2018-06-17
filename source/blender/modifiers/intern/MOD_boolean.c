@@ -346,7 +346,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 	CustomDataMask dataMask = CD_MASK_MTFACE | CD_MASK_MEDGE;
 
 	dataMask |= CD_MASK_MDEFORMVERT;
-	
+
 	return dataMask;
 }
 

@@ -24,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 /** \file DNA_ipo_types.h
  *  \ingroup DNA
  *  \deprecated
@@ -32,7 +32,7 @@
  *   which has (as of 2.50) been replaced with a completely new system by Joshua Leung (aligorith). All defines,
  *   etc. are only still maintained to provide backwards compatibility for old files.
  */
- 
+
 #ifndef __DNA_IPO_TYPES_H__
 #define __DNA_IPO_TYPES_H__
 
@@ -53,7 +53,7 @@
 typedef struct IpoDriver {
 	struct Object *ob;			/* target/driver ob */
 	short blocktype, adrcode;	/* sub-channel to use */
-	
+
 	short type, flag;			/* driver settings */
 	char name[128];				/* bone, or python expression here */
 } IpoDriver;
@@ -63,7 +63,7 @@ typedef struct IpoDriver {
 /* IPO Curve */
 typedef struct IpoCurve {
 	struct IpoCurve *next,  *prev;
-	
+
 	struct BPoint *bp;					/* array of BPoints (sizeof(BPoint) * totvert) - i.e. baked/imported data */
 	struct BezTriple *bezt;				/* array of BezTriples (sizeof(BezTriple) * totvert)  - i.e. user-editable keyframes  */
 
@@ -75,10 +75,10 @@ typedef struct IpoCurve {
 	short flag, rt;						/* flag= settings; rt= ??? */
 	float ymin, ymax;					/* minimum/maximum y-extents for curve */
 	unsigned int bitmask;				/* ??? */
-	
+
 	float slide_min, slide_max;			/* minimum/maximum values for sliders (in action editor) */
 	float curval;						/* value of ipo-curve for current frame */
-	
+
 	IpoDriver *driver;					/* pointer to ipo-driver for this curve */
 } IpoCurve;
 
@@ -87,10 +87,10 @@ typedef struct IpoCurve {
 /* IPO Data-Block */
 typedef struct Ipo {
 	ID id;
-	
+
 	ListBase curve;				/* A list of IpoCurve structs in a linked list. */
 	rctf cur;					/* Rect defining extents of keyframes? */
-	
+
 	short blocktype, showkey;	/* blocktype: self-explanatory; showkey: either 0 or 1 (show vertical yellow lines for editing) */
 	short muteipo, pad;			/* muteipo: either 0 or 1 (whether ipo block is muted) */
 } Ipo;
@@ -475,7 +475,7 @@ typedef struct Ipo {
 #define IPO_LIN			1
 #define IPO_BEZ			2
 	/* not used yet */
-#define IPO_MIXED		3 
+#define IPO_MIXED		3
 
 /* icu->extrap */
 #define IPO_HORIZ		0
@@ -496,7 +496,7 @@ typedef struct Ipo {
 /* ---------- IPO Drivers ----------- */
 
 /* offset in driver->name for finding second posechannel for rot-diff  */
-#define DRIVER_NAME_OFFS	32 
+#define DRIVER_NAME_OFFS	32
 
 /* driver->type */
 #define	IPO_DRIVER_TYPE_NORMAL 		0

@@ -45,13 +45,13 @@ class Node {
 public:
 	typedef std::vector<NodeInput *> Inputs;
 	typedef std::vector<NodeOutput *> Outputs;
-	
+
 private:
 	/**
 	 * @brief stores the reference to the SDNA bNode struct
 	 */
 	bNodeTree *m_editorNodeTree;
-	
+
 	/**
 	 * @brief stores the reference to the SDNA bNode struct
 	 */
@@ -82,7 +82,7 @@ protected:
 	 * @brief get access to the vector of input sockets
 	 */
 	const Inputs &getInputSockets() const { return this->m_inputsockets; }
-	
+
 	/**
 	 * @brief get access to the vector of input sockets
 	 */
@@ -101,14 +101,14 @@ public:
 	 * @brief get the reference to the SDNA bNodeTree struct
 	 */
 	bNodeTree *getbNodeTree() const {return m_editorNodeTree;}
-	
+
 	/**
 	 * @brief set the reference to the bNode
 	 * @note used in Node instances to receive the storage/settings and complex node for highlight during execution
 	 * @param bNode
 	 */
 	void setbNode(bNode *node) {this->m_editorNode = node;}
-	
+
 	/**
 	 * @brief set the reference to the bNodeTree
 	 * @param bNodeTree
@@ -131,35 +131,35 @@ public:
 	 * the index of the needed outputsocket
 	 */
 	NodeOutput *getOutputSocket(const unsigned int index) const;
-	
+
 	/**
 	 * get the reference to the first outputsocket
 	 * @param index
 	 * the index of the needed outputsocket
 	 */
 	inline NodeOutput *getOutputSocket() const { return getOutputSocket(0); }
-	
+
 	/**
 	 * get the reference to a certain inputsocket
 	 * @param index
 	 * the index of the needed inputsocket
 	 */
 	NodeInput *getInputSocket(const unsigned int index) const;
-	
+
 	/** Check if this is an input node
 	 * An input node is a node that only has output sockets and no input sockets
 	 */
 	bool isInputNode() const { return m_inputsockets.empty(); }
-	
+
 	/**
 	 * @brief Is this node in the active group (the group that is being edited)
 	 * @param isInActiveGroup
 	 */
 	void setIsInActiveGroup(bool value) { this->m_inActiveGroup = value; }
-	
+
 	/**
 	 * @brief Is this node part of the active group
-	 * the active group is the group that is currently being edited. When no group is edited, 
+	 * the active group is the group that is currently being edited. When no group is edited,
 	 * the active group will be the main tree (all nodes that are not part of a group will be active)
 	 * @return bool [false:true]
 	 */
@@ -174,7 +174,7 @@ public:
 	 * @param context reference to the CompositorContext
 	 */
 	virtual void convertToOperations(NodeConverter &converter, const CompositorContext &context) const = 0;
-	
+
 	/**
 	 * Create dummy warning operation, use when we can't get the source data.
 	 */
@@ -185,10 +185,10 @@ public:
 	 * into valid outputs, without this the compositor system gets confused and crashes, see [#32490]
 	 */
 	void convertToOperations_invalid(NodeConverter *compiler) const;
-	
+
 	void setInstanceKey(bNodeInstanceKey instance_key) { m_instanceKey = instance_key; }
 	bNodeInstanceKey getInstanceKey() const { return m_instanceKey; }
-	
+
 protected:
 	/**
 	 * @brief add an NodeInput to the collection of inputsockets
@@ -197,7 +197,7 @@ protected:
 	 */
 	void addInputSocket(DataType datatype);
 	void addInputSocket(DataType datatype, bNodeSocket *socket);
-	
+
 	/**
 	 * @brief add an NodeOutput to the collection of outputsockets
 	 * @note may only be called in an constructor
@@ -205,7 +205,7 @@ protected:
 	 */
 	void addOutputSocket(DataType datatype);
 	void addOutputSocket(DataType datatype, bNodeSocket *socket);
-	
+
 	bNodeSocket *getEditorInputSocket(int editorNodeInputSocketIndex);
 	bNodeSocket *getEditorOutputSocket(int editorNodeOutputSocketIndex);
 };
@@ -219,26 +219,26 @@ class NodeInput {
 private:
 	Node *m_node;
 	bNodeSocket *m_editorSocket;
-	
+
 	DataType m_datatype;
-	
+
 	/**
 	 * @brief link connected to this NodeInput.
 	 * An input socket can only have a single link
 	 */
 	NodeOutput *m_link;
-	
+
 public:
 	NodeInput(Node *node, bNodeSocket *b_socket, DataType datatype);
-	
+
 	Node *getNode() const { return this->m_node; }
 	DataType getDataType() const { return m_datatype; }
 	bNodeSocket *getbNodeSocket() const { return this->m_editorSocket; }
-	
+
 	void setLink(NodeOutput *link);
 	bool isLinked() const { return m_link; }
 	NodeOutput *getLink() { return m_link; }
-	
+
 	float getEditorValueFloat();
 	void getEditorValueColor(float *value);
 	void getEditorValueVector(float *value);
@@ -253,16 +253,16 @@ class NodeOutput {
 private:
 	Node *m_node;
 	bNodeSocket *m_editorSocket;
-	
+
 	DataType m_datatype;
-	
+
 public:
 	NodeOutput(Node *node, bNodeSocket *b_socket, DataType datatype);
-	
+
 	Node *getNode() const { return this->m_node; }
 	DataType getDataType() const { return m_datatype; }
 	bNodeSocket *getbNodeSocket() const { return this->m_editorSocket; }
-	
+
 	float getEditorValueFloat();
 	void getEditorValueColor(float *value);
 	void getEditorValueVector(float *value);

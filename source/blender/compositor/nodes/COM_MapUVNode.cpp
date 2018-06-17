@@ -31,7 +31,7 @@ MapUVNode::MapUVNode(bNode *editorNode) : Node(editorNode)
 void MapUVNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bNode *node = this->getbNode();
-	
+
 	MapUVOperation *operation = new MapUVOperation();
 	operation->setAlpha((float)node->custom1);
 	operation->setResolutionInputSocketIndex(1);

@@ -40,7 +40,7 @@ void GlareNode::convertToOperations(NodeConverter &converter, const CompositorCo
 {
 	bNode *node = this->getbNode();
 	NodeGlare *glare = (NodeGlare *)node->storage;
-	
+
 	GlareBaseOperation *glareoperation = NULL;
 	switch (glare->type) {
 		default:
@@ -59,17 +59,17 @@ void GlareNode::convertToOperations(NodeConverter &converter, const CompositorCo
 	}
 	BLI_assert(glareoperation);
 	glareoperation->setGlareSettings(glare);
-	
+
 	GlareThresholdOperation *thresholdOperation = new GlareThresholdOperation();
 	thresholdOperation->setGlareSettings(glare);
-	
+
 	SetValueOperation *mixvalueoperation = new SetValueOperation();
 	mixvalueoperation->setValue(0.5f + glare->mix * 0.5f);
-	
+
 	MixGlareOperation *mixoperation = new MixGlareOperation();
 	mixoperation->setResolutionInputSocketIndex(1);
 	mixoperation->getInputSocket(2)->setResizeMode(COM_SC_FIT);
-	
+
 	converter.addOperation(glareoperation);
 	converter.addOperation(thresholdOperation);
 	converter.addOperation(mixvalueoperation);
@@ -77,7 +77,7 @@ void GlareNode::convertToOperations(NodeConverter &converter, const CompositorCo
 
 	converter.mapInputSocket(getInputSocket(0), thresholdOperation->getInputSocket(0));
 	converter.addLink(thresholdOperation->getOutputSocket(), glareoperation->getInputSocket(0));
-	
+
 	converter.addLink(mixvalueoperation->getOutputSocket(), mixoperation->getInputSocket(0));
 	converter.mapInputSocket(getInputSocket(0), mixoperation->getInputSocket(1));
 	converter.addLink(glareoperation->getOutputSocket(), mixoperation->getInputSocket(2));

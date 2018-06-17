@@ -53,11 +53,11 @@ void MixBaseOperation::executePixelSampled(float output[4], float x, float y, Pi
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
-	
+
 	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
 	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
 	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
-	
+
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
@@ -147,7 +147,7 @@ void MixBlendOperation::executePixelSampled(float output[4], float x, float y, P
 	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
 	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 	value = inputValue[0];
-	
+
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}

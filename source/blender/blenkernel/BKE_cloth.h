@@ -68,7 +68,7 @@ typedef struct ClothHairData {
 
 typedef struct ClothSolverResult {
 	int status;
-	
+
 	int max_iterations, min_iterations;
 	float avg_iterations;
 	float max_error, min_error, avg_error;
@@ -139,7 +139,7 @@ typedef struct ClothSpring {
 	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
 	float 	stiffness;	/* stiffness factor from the vertex groups */
 	float editrestlen;
-	
+
 	/* angular bending spring target and derivatives */
 	float target[3];
 }
@@ -204,7 +204,7 @@ struct CollPair;
 typedef struct ColliderContacts {
 	struct Object *ob;
 	struct CollisionModifierData *collmd;
-	
+
 	struct CollPair *collisions;
 	int totcollisions;
 } ColliderContacts;

@@ -917,7 +917,7 @@ static float *getLinToLogLut(LogImageFile *logImage, LogImageElement logElement)
 	float gain, negativeFilmGamma, offset, step;
 	unsigned int lutsize = (unsigned int)(logElement.maxValue + 1);
 	unsigned int i;
-	
+
 	lut = MEM_mallocN(sizeof(float) * lutsize, "getLinToLogLut");
 
 	negativeFilmGamma = 0.6;
@@ -927,7 +927,7 @@ static float *getLinToLogLut(LogImageFile *logImage, LogImageElement logElement)
 
 	for (i = 0; i < lutsize; i++)
 		lut[i] = (logImage->referenceWhite + log10f(powf((i + offset) / gain, 1.7f / logImage->gamma)) / (step / negativeFilmGamma)) / logElement.maxValue;
-	
+
 	return lut;
 }
 
@@ -938,7 +938,7 @@ static float *getLogToLinLut(LogImageFile *logImage, LogImageElement logElement)
 	/* float filmGamma; unused */
 	unsigned int lutsize = (unsigned int)(logElement.maxValue + 1);
 	unsigned int i;
-	
+
 	lut = MEM_mallocN(sizeof(float) * lutsize, "getLogToLinLut");
 
 	/* Building the Log -> Lin LUT */

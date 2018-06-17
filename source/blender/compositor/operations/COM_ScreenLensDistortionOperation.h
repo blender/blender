@@ -32,10 +32,10 @@ private:
 	 */
 	SocketReader *m_inputProgram;
 	struct RNG *m_rng;
-	
+
 	bool m_fit;
 	bool m_jitter;
-	
+
 	float m_dispersion;
 	float m_distortion;
 	bool m_dispersion_const;
@@ -48,31 +48,31 @@ private:
 	float m_sc, m_cx, m_cy;
 public:
 	ScreenLensDistortionOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void setFit(bool fit) { m_fit = fit; }
 	void setJitter(bool jitter) { m_jitter = jitter; }
-	
+
 	/** Set constant distortion value */
 	void setDistortion(float distortion);
 	/** Set constant dispersion value */
 	void setDispersion(float dispersion);
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 private:

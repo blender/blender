@@ -108,7 +108,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 		osz++;                                   // increment outer edge size
 		lres[x] = 3;                             // flag pixel as outer edge
 	}
-	
+
 	/* Test the TOP row of pixels in buffer, except corners */
 	for (x = t - 1; x >= (t - rw) + 2; x--) {
 		// test if inner mask is filled
@@ -128,7 +128,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 			lres[x] = 3;                         // flag pixel as outer edge
 		}
 	}
-	
+
 	/* Test the BOTTOM row of pixels in buffer, except corners */
 	for (x = rw - 2; x; x--) {
 		// test if inner mask is filled
@@ -167,7 +167,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 			lres[x] = 3;                         // flag pixel as outer edge
 		}
 	}
-	
+
 	/* Test the RIGHT edge of pixels in buffer, except corners */
 	for (x = t - rw; x > rw; x -= rw) {
 		// test if inner mask is filled
@@ -187,7 +187,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 			lres[x] = 3;                         // flag pixel as outer edge
 		}
 	}
-	
+
 	rsize[0] = isz;  // fill in our return sizes for edges + fill
 	rsize[1] = osz;
 	rsize[2] = gsz;
@@ -321,7 +321,7 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 			}
 		}
 	}
-	
+
 	/* Test the BOTTOM row of pixels in buffer, except corners */
 	for (x = rw - 2; x; x--) {
 		// test if inner mask is filled
@@ -372,7 +372,7 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 			}
 		}
 	}
-	
+
 	/* Test the RIGHT edge of pixels in buffer, except corners */
 	for (x = t - rw; x > rw; x -= rw) {
 		// test if inner mask is filled
@@ -398,7 +398,7 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 			}
 		}
 	}
-	
+
 	rsize[0] = isz;  // fill in our return sizes for edges + fill
 	rsize[1] = osz;
 	rsize[2] = gsz;
@@ -479,7 +479,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 		osz++;                                   // increment outer edge size
 		lres[x] = 3;                             // flag pixel as outer edge
 	}
-	
+
 	/* Test the TOP row of pixels in buffer, except corners */
 	for (x = t - 1; x >= (t - rw) + 2; x--) {
 		// test if inner mask is filled
@@ -498,7 +498,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 			lres[x] = 3;                         // flag pixel as outer edge
 		}
 	}
-	
+
 	/* Test the BOTTOM row of pixels in buffer, except corners */
 	for (x = rw - 2; x; x--) {
 		// test if inner mask is filled
@@ -535,7 +535,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 			lres[x] = 3;                         // flag pixel as outer edge
 		}
 	}
-	
+
 	/* Test the RIGHT edge of pixels in buffer, except corners */
 	for (x = t - rw; x > rw; x -= rw) {
 		// test if inner mask is filled
@@ -554,7 +554,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 			lres[x] = 3;                         // flag pixel as outer edge
 		}
 	}
-	
+
 	rsize[0] = isz;  // fill in our return sizes for edges + fill
 	rsize[1] = osz;
 	rsize[2] = gsz;
@@ -683,7 +683,7 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 			}
 		}
 	}
-	
+
 	/* Test the BOTTOM row of pixels in buffer, except corners */
 	for (x = rw - 2; x; x--) {
 		// test if inner mask is filled
@@ -732,7 +732,7 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 			}
 		}
 	}
-	
+
 	/* Test the RIGHT edge of pixels in buffer, except corners */
 	for (x = t - rw; x > rw; x -= rw) {
 		// test if inner mask is filled
@@ -757,7 +757,7 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 			}
 		}
 	}
-	
+
 	rsize[0] = isz;  // fill in our return sizes for edges + fill
 	rsize[1] = osz;
 	rsize[2] = gsz;
@@ -801,7 +801,7 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 						lres[a] = 2;             // flag pixel as gradient
 					}
 				}
-				
+
 			}
 			else {
 				if (!limask[pix_nextCol] || !limask[pix_prevCol] || !limask[pix_nextRow] || !limask[pix_prevRow]) {
@@ -819,7 +819,7 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 			pix_nextCol--;
 		}
 	}
-	
+
 	rsize[0] = in_isz;  // fill in our return sizes for edges + fill
 	rsize[1] = in_osz;
 	rsize[2] = in_gsz;
@@ -863,7 +863,7 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 						lres[a] = 2;             // flag pixel as gradient
 					}
 				}
-				
+
 			}
 			else {
 				if ((!limask[pix_nextCol] && lomask[pix_nextCol]) ||
@@ -885,7 +885,7 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 			pix_nextCol--;
 		}
 	}
-	
+
 	rsize[0] = in_isz;  // fill in our return sizes for edges + fill
 	rsize[1] = in_osz;
 	rsize[2] = in_gsz;
@@ -897,7 +897,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	int a;                             // a = temporary pixel index buffer loop counter
 	unsigned int ud;                   // ud = unscaled edge distance
 	unsigned int dmin;                 // dmin = minimum edge distance
-	
+
 	unsigned int rsl;                  // long used for finding fast 1.0/sqrt
 	unsigned int gradientFillOffset;
 	unsigned int innerAccum = 0;       // for looping inner edge pixel indexes, represents current position from offset
@@ -999,7 +999,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 			}
 		}
 	}
-	
+
 }
 
 static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *gbuf, unsigned int isz, unsigned int osz, unsigned int gsz, unsigned int innerEdgeOffset, unsigned int outerEdgeOffset)
@@ -1010,7 +1010,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 	unsigned int rsl;                  // long used for finding fast 1.0/sqrt
 	float rsf;                         // float used for finding fast 1.0/sqrt
 	const float rsopf = 1.5f;          // constant float used for finding fast 1.0/sqrt
-	
+
 	unsigned int gradientFillOffset;
 	unsigned int t;
 	unsigned int ud;                   // ud = unscaled edge distance
@@ -1019,7 +1019,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 	float idist;                       // idist = current inner edge distance
 	int dx;                            // dx = X-delta (used for distance proportion calculation)
 	int dy;                            // dy = Y-delta (used for distance proportion calculation)
-	
+
 	/*
 	 * The general algorithm used to color each gradient pixel is:
 	 *
@@ -1057,7 +1057,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 	 *  G = gradient pixel
 	 *  |
 	 *  I = inside edge pixel
-	 * 
+	 *
 	 *   __
 	 *  *note that IO does not need to be a straight line, in fact
 	 *  many cases can arise where straight lines do not work
@@ -1120,14 +1120,14 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 		 * proportion is already the correct intensity, and does not need to be
 		 * subtracted from 1.0 like it would have if we used real distances.
 		 */
-		
+
 		/*
 		 * Here we reconstruct the pixel's memory location in the CompBuf by
 		 * Pixel Index = Pixel Column + ( Pixel Row * Row Width )
 		 */
 		res[gbuf[gradientFillOffset + 1] + (gbuf[gradientFillOffset] * rw)] = (idist / (idist + odist));    //set intensity
 	}
-	
+
 }
 
 // end of copy
@@ -1137,31 +1137,31 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 	unsigned int *lres;                // lres = unsigned int pointer to output pixel buffer (for bit operations)
 	unsigned int *limask;              // limask = unsigned int pointer to inner mask (for bit operations)
 	unsigned int *lomask;              // lomask = unsigned int pointer to outer mask (for bit operations)
-	
+
 	int rw;                            // rw = pixel row width
 	int t;                             // t = total number of pixels in buffer - 1 (used for loop starts)
 	int fsz;                           // size of the frame
-	
+
 	unsigned int isz = 0;                // size (in pixels) of inside edge pixel index buffer
 	unsigned int osz = 0;                // size (in pixels) of outside edge pixel index buffer
 	unsigned int gsz = 0;                // size (in pixels) of gradient pixel index buffer
 	unsigned int rsize[3];               // size storage to pass to helper functions
 	unsigned int innerEdgeOffset = 0;    // offset into final buffer where inner edge pixel indexes start
 	unsigned int outerEdgeOffset = 0;    // offset into final buffer where outer edge pixel indexes start
-	
+
 	unsigned short *gbuf;              // gradient/inner/outer pixel location index buffer
-	
+
 	if (true) {                    // if both input sockets have some data coming in...
-		
+
 		rw = this->getWidth();                   // width of a row of pixels
 		t = (rw * this->getHeight()) - 1;        // determine size of the frame
 		memset(res, 0, sizeof(float) * (t + 1)); // clear output buffer (not all pixels will be written later)
-		
+
 		lres = (unsigned int *)res;      // unsigned int pointer to output buffer (for bit level ops)
 		limask = (unsigned int *)imask;   // unsigned int pointer to input mask (for bit level ops)
 		lomask = (unsigned int *)omask;   // unsigned int pointer to output mask (for bit level ops)
-		
-		
+
+
 		/*
 		 * The whole buffer is broken up into 4 parts. The four CORNERS, the FIRST and LAST rows, the
 		 * LEFT and RIGHT edges (excluding the corner pixels), and all OTHER rows.
@@ -1213,17 +1213,17 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 			// detect edges in all non-border pixels in the buffer
 			do_allEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
 		}
-		
+
 		isz = rsize[0];                          // set edge and gradient buffer sizes once again...
 		osz = rsize[1];                          // the sizes in rsize[] may have been modified
 		gsz = rsize[2];                          // by the do_*EdgeDetection() function.
-		
+
 		fsz = gsz + isz + osz;                                   // calculate size of pixel index buffer needed
 		gbuf = (unsigned short *)MEM_callocN(sizeof(unsigned short) * fsz * 2, "DEM"); // allocate edge/gradient pixel index buffer
-		
+
 		do_createEdgeLocationBuffer(t, rw, lres, res, gbuf, &innerEdgeOffset, &outerEdgeOffset, isz, gsz);
 		do_fillGradientBuffer(rw, res, gbuf, isz, osz, gsz, innerEdgeOffset, outerEdgeOffset);
-		
+
 		MEM_freeN(gbuf);                         // free the gradient index buffer
 	}
 }
@@ -1267,7 +1267,7 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cachedInstance)
 		return this->m_cachedInstance;
-	
+
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
 		MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect);

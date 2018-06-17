@@ -56,7 +56,7 @@ void GaussianAlphaYBlurOperation::initExecution()
 	if (this->m_sizeavailable) {
 		float rad = max_ff(m_size * m_data.sizey, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
-		
+
 		m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 		m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, m_filtersize, m_falloff);
 	}
@@ -68,7 +68,7 @@ void GaussianAlphaYBlurOperation::updateGauss()
 		updateSize();
 		float rad = max_ff(m_size * m_data.sizey, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
-		
+
 		m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 	}
 
@@ -76,7 +76,7 @@ void GaussianAlphaYBlurOperation::updateGauss()
 		updateSize();
 		float rad = max_ff(m_size * m_data.sizey, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
-		
+
 		m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, m_filtersize, m_falloff);
 	}
 }

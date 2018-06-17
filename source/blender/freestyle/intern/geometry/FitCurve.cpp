@@ -61,7 +61,7 @@ static double V2SquaredLength(Vector2 *a)
 }
 
 /* returns length of input vector */
-static double V2Length(Vector2 *a) 
+static double V2Length(Vector2 *a)
 {
 	return (sqrt(V2SquaredLength(a)));
 }
@@ -96,7 +96,7 @@ static Vector2 *V2Add(Vector2 *a, Vector2 *b, Vector2 *c)
 	(*c)[0] = (*a)[0] + (*b)[0];
 	(*c)[1] = (*a)[1] + (*b)[1];
 	return c;
-} 
+}
 
 /* normalizes the input vector and returns it */
 static Vector2 *V2Normalize(Vector2 *v)

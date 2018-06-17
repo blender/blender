@@ -173,7 +173,7 @@ public:
 	// Accessors:
 	bool orthographicProjection() const;
 	const Vec3r& viewpoint() const;
-	bool enableQI() const; 
+	bool enableQI() const;
 
 private:
 	void getCellCoordinates(const Vec3r& point, unsigned& x, unsigned& y);
@@ -317,7 +317,7 @@ inline void SphericalGrid::Iterator::reportDepth(Vec3r origin, Vec3r u, real t)
 		// If the current occluder is the best occludee so far, save it.
 		if (! _foundOccludee || _occludeeDepth > depth) {
 			markCurrentOccludeeCandidate(depth);
-		} 
+		}
 	}
 	else {
 #if SPHERICAL_GRID_LOGGING

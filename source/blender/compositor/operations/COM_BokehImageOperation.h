@@ -61,27 +61,27 @@ private:
 	 * @brief precalced center of the image
 	 */
 	float m_center[2];
-	
+
 	/**
 	 * @brief 1.0-rounding
 	 */
 	float m_inverseRounding;
-	
+
 	/**
 	 * @brief distance of a full circle lens
 	 */
 	float m_circularDistance;
-	
+
 	/**
 	 * @brief radius when the first flap starts
 	 */
 	float m_flapRad;
-	
+
 	/**
 	 * @brief radians of a single flap
 	 */
 	float m_flapRadAdd;
-	
+
 	/**
 	 * @brief should the m_data field by deleted when this operation is finished
 	 */
@@ -95,7 +95,7 @@ private:
 	 * @param distance the lens distance is used to simulate lens shifts
 	 */
 	void detemineStartPointOfFlap(float r[2], int flapNumber, float distance);
-	
+
 	/**
 	 * @brief Determine if a coordinate is inside the bokeh image
 	 *
@@ -112,17 +112,17 @@ public:
 	 * @brief the inner loop of this program
 	 */
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	/**
 	 * @brief Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * @brief Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	/**
 	 * @brief determine the resolution of this operation. currently fixed at [COM_BLUR_BOKEH_PIXELS, COM_BLUR_BOKEH_PIXELS]
 	 * @param resolution
@@ -135,7 +135,7 @@ public:
 	 * @param data
 	 */
 	void setData(NodeBokehImage *data) { this->m_data = data; }
-	
+
 	/**
 	 * @brief deleteDataOnFinish
 	 *

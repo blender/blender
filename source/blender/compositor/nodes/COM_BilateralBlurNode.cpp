@@ -36,7 +36,7 @@ void BilateralBlurNode::convertToOperations(NodeConverter &converter, const Comp
 	BilateralBlurOperation *operation = new BilateralBlurOperation();
 	operation->setQuality(context.getQuality());
 	operation->setData(data);
-	
+
 	converter.addOperation(operation);
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));

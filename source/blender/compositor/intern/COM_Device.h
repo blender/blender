@@ -34,11 +34,11 @@ class Device {
 
 public:
 	/**
-	 * @brief Declaration of the virtual destructor 
+	 * @brief Declaration of the virtual destructor
 	 * @note resolve warning gcc 4.7
 	 */
 	virtual ~Device() {}
-	
+
 	/**
 	 * @brief initialize the device
 	 */

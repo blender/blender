@@ -61,10 +61,10 @@ NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter, RenderLaye
 	operation->setRenderLayer(rl);
 	operation->setImageUser(user);
 	operation->setFramenumber(framenumber);
-	
+
 	converter.addOperation(operation);
 	converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
-	
+
 	return operation;
 }
 
@@ -189,10 +189,10 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			operation->setRenderData(context.getRenderData());
 			operation->setViewName(context.getViewName());
 			converter.addOperation(operation);
-			
+
 			if (outputStraightAlpha) {
 				NodeOperation *alphaConvertOperation = new ConvertPremulToStraightOperation();
-				
+
 				converter.addOperation(alphaConvertOperation);
 				converter.mapOutputSocket(outputImage, alphaConvertOperation->getOutputSocket());
 				converter.addLink(operation->getOutputSocket(0), alphaConvertOperation->getInputSocket(0));
@@ -200,10 +200,10 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			else {
 				converter.mapOutputSocket(outputImage, operation->getOutputSocket());
 			}
-			
+
 			converter.addPreview(operation->getOutputSocket());
 		}
-		
+
 		if (numberOfOutputs > 1) {
 			NodeOutput *alphaImage = this->getOutputSocket(1);
 			ImageAlphaOperation *alphaOperation = new ImageAlphaOperation();
@@ -213,7 +213,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			alphaOperation->setRenderData(context.getRenderData());
 			alphaOperation->setViewName(context.getViewName());
 			converter.addOperation(alphaOperation);
-			
+
 			converter.mapOutputSocket(alphaImage, alphaOperation->getOutputSocket());
 		}
 		if (numberOfOutputs > 2) {
@@ -225,7 +225,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			depthOperation->setRenderData(context.getRenderData());
 			depthOperation->setViewName(context.getViewName());
 			converter.addOperation(depthOperation);
-			
+
 			converter.mapOutputSocket(depthImage, depthOperation->getOutputSocket());
 		}
 		if (numberOfOutputs > 3) {

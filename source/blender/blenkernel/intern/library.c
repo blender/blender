@@ -142,7 +142,7 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-/* GS reads the memory pointed at in a specific ordering. 
+/* GS reads the memory pointed at in a specific ordering.
  * only use this definition, makes little and big endian systems
  * work fine, in conjunction with MAKE_ID */
 
@@ -768,7 +768,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 {
 	ID *newid = NULL;
 	PointerRNA idptr;
-	
+
 	if (id) {
 		/* if property isn't editable, we're going to have an extra block hanging around until we save */
 		if (RNA_property_editable(ptr, prop)) {
@@ -784,12 +784,12 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 				RNA_id_pointer_create(newid, &idptr);
 				RNA_property_pointer_set(ptr, prop, idptr);
 				RNA_property_update(C, ptr, prop);
-				
+
 				return true;
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -1079,9 +1079,9 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[INDEX_ID_TE] = &(main->tex);
 	lb[INDEX_ID_MA] = &(main->mat);
 	lb[INDEX_ID_VF] = &(main->vfont);
-	
+
 	/* Important!: When adding a new object type,
-	 * the specific data should be inserted here 
+	 * the specific data should be inserted here
 	 */
 
 	lb[INDEX_ID_AR] = &(main->armature);
@@ -1114,7 +1114,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[INDEX_ID_WS]  = &(main->workspaces); /* before wm, so it's freed after it! */
 	lb[INDEX_ID_WM]  = &(main->wm);
 	lb[INDEX_ID_MSK] = &(main->mask);
-	
+
 	lb[INDEX_ID_NULL] = NULL;
 
 	return (MAX_LIBARRAY - 1);
@@ -1409,7 +1409,7 @@ void *BKE_id_new_nomain(const short type, const char *name)
 static void id_copy_animdata(Main *bmain, ID *id, const bool do_action)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
-	
+
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
 		iat->adt = BKE_animdata_copy(bmain, iat->adt, do_action, true); /* could be set to false, need to investigate */
@@ -1528,7 +1528,7 @@ void BKE_main_free(Main *mainvar)
 	while (a--) {
 		ListBase *lb = lbarray[a];
 		ID *id;
-		
+
 		while ( (id = lb->first) ) {
 #if 1
 			BKE_libblock_free_ex(mainvar, id, false, false);
@@ -1767,11 +1767,11 @@ ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *nam
 void id_sort_by_name(ListBase *lb, ID *id)
 {
 	ID *idtest;
-	
+
 	/* insert alphabetically */
 	if (lb->first != lb->last) {
 		BLI_remlink(lb, id);
-		
+
 		idtest = lb->first;
 		while (idtest) {
 			if (BLI_strcasecmp(idtest->name, id->name) > 0 || (idtest->lib && !id->lib)) {
@@ -1785,7 +1785,7 @@ void id_sort_by_name(ListBase *lb, ID *id)
 			BLI_addtail(lb, id);
 		}
 	}
-	
+
 }
 
 /**
@@ -1795,9 +1795,9 @@ void id_sort_by_name(ListBase *lb, ID *id)
 static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 {
 	ID *idtest = NULL;
-	
+
 	for (idtest = lb->first; idtest; idtest = idtest->next) {
-		/* if idtest is not a lib */ 
+		/* if idtest is not a lib */
 		if (id != idtest && !ID_IS_LINKED(idtest)) {
 			/* do not test alphabetic! */
 			/* optimized */
@@ -1806,7 +1806,7 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 			}
 		}
 	}
-	
+
 	return idtest;
 }
 
@@ -1895,8 +1895,8 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 		 * or 1 greater than the largest used number if all those low ones are taken.
 		 * We can't be bothered to look for the lowest unused number beyond (MAX_IN_USE - 1). */
 
-		/* If the original name has no numeric suffix, 
-		 * rather than just chopping and adding numbers, 
+		/* If the original name has no numeric suffix,
+		 * rather than just chopping and adding numbers,
 		 * shave off the end chars until we have a unique name.
 		 * Check the null terminators match as well so we don't get Cube.000 -> Cube.00 */
 		if (nr == 0 && name[left_len] == '\0') {
@@ -1907,7 +1907,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 
 			len = left_len - 1;
 			idtest = is_dupid(lb, id, name);
-			
+
 			while (idtest && len > 1) {
 				name[len--] = '\0';
 				idtest = is_dupid(lb, id, name);
@@ -1915,7 +1915,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 			if (idtest == NULL) return true;
 			/* otherwise just continue and use a number suffix */
 		}
-		
+
 		if (nr > 999 && left_len > (MAX_ID_NAME - 8)) {
 			/* this would overflow name buffer */
 			left[MAX_ID_NAME - 8] = 0;
@@ -1978,7 +1978,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 #endif
 
 	id_sort_by_name(lb, id);
-	
+
 	return result;
 }
 
@@ -2493,7 +2493,7 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
 
 	lb = which_libbase(bmain, GS(name));
 	if (lb == NULL) return;
-	
+
 	/* search for id */
 	idtest = BLI_findstring(lb, name + 2, offsetof(ID, name) + 2);
 

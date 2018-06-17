@@ -162,10 +162,10 @@ typedef struct Object_Runtime {
 
 typedef struct Object {
 	ID id;
-	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
 
 	struct SculptSession *sculpt;
-	
+
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */
 	char parsubstr[64];	/* String describing subobject info, MAX_ID_NAME-2 */
@@ -180,13 +180,13 @@ typedef struct Object {
 	struct bAction *poselib;
 	struct bPose *pose;  /* pose data, armature objects only */
 	void *data;  /* pointer to objects data - an 'ID' or NULL */
-	
+
 	struct bGPdata *gpd;	/* Grease Pencil data */
-	
+
 	bAnimVizSettings avs;	/* settings for visualization of object-transform animation */
 	bMotionPath *mpath;		/* motion path cache for this object */
 	void *pad1;
-	
+
 	ListBase constraintChannels  DNA_DEPRECATED; // XXX deprecated... old animation system
 	ListBase effect  DNA_DEPRECATED;             // XXX deprecated... keep for readfile
 	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
@@ -201,7 +201,7 @@ typedef struct Object {
 	char *matbits;			/* a boolean field, with each byte 1 if corresponding material is linked to object */
 	int totcol;				/* copy of mesh, curve & meta struct member of same name (keep in sync) */
 	int actcol;				/* currently selected material in the UI */
-	
+
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
 	float size[3];              /* scale in fact */
@@ -218,18 +218,18 @@ typedef struct Object {
 	                    /* note: this isn't assured to be valid as with 'obmat',
 	                     *       before using this value you should do...
 	                     *       invert_m4_m4(ob->imat, ob->obmat); */
-	
+
 	/* Previously 'imat' was used at render time, but as other places use it too
 	 * the interactive ui of 2.5 creates problems. So now only 'imat_ren' should
 	 * be used when ever the inverse of ob->obmat * re->viewmat is needed! - jahka
 	 */
 	float imat_ren[4][4];
-	
+
 	unsigned int lay;	/* copy of Base's layer in the scene */
 
 	short flag;			/* copy of Base */
 	short colbits DNA_DEPRECATED;		/* deprecated, use 'matbits' */
-	
+
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
 	short nlaflag;				/* used for DopeSheet filtering settings (expanded/collapsed) */
@@ -277,7 +277,7 @@ typedef struct Object {
 	ListBase nlastrips  DNA_DEPRECATED;			// XXX deprecated... old animation system
 	ListBase hooks  DNA_DEPRECATED;				// XXX deprecated... old animation system
 	ListBase particlesystem;	/* particle systems */
-	
+
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
 	struct Collection *dup_group;	/* object duplicator for group */
@@ -300,7 +300,7 @@ typedef struct Object {
 
 	ListBase gpulamp;		/* runtime, for glsl lamp display only */
 	ListBase pc_ids;
-	
+
 	struct RigidBodyOb *rigidbody_object;		/* settings for Bullet rigid body */
 	struct RigidBodyCon *rigidbody_constraint;	/* settings for Bullet constraint */
 
@@ -327,13 +327,13 @@ typedef struct Object {
 /* Warning, this is not used anymore because hooks are now modifiers */
 typedef struct ObHook {
 	struct ObHook *next, *prev;
-	
+
 	struct Object *parent;
 	float parentinv[4][4];	/* matrix making current transform unmodified */
 	float mat[4][4];		/* temp matrix while hooking */
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */
-	
+
 	char name[64];	/* MAX_NAME */
 
 	int *indexar;

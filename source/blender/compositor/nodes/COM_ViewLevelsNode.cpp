@@ -36,12 +36,12 @@ void ViewLevelsNode::convertToOperations(NodeConverter &converter, const Composi
 	NodeInput *input = this->getInputSocket(0);
 	if (input->isLinked()) {
 		// add preview to inputSocket;
-		
+
 		/* calculate mean operation */
 		{
 			CalculateMeanOperation *operation = new CalculateMeanOperation();
 			operation->setSetting(this->getbNode()->custom1);
-			
+
 			converter.addOperation(operation);
 			converter.mapInputSocket(input, operation->getInputSocket(0));
 			converter.mapOutputSocket(this->getOutputSocket(0), operation->getOutputSocket());
@@ -51,7 +51,7 @@ void ViewLevelsNode::convertToOperations(NodeConverter &converter, const Composi
 		{
 			CalculateStandardDeviationOperation *operation = new CalculateStandardDeviationOperation();
 			operation->setSetting(this->getbNode()->custom1);
-			
+
 			converter.addOperation(operation);
 			converter.mapInputSocket(input, operation->getInputSocket(0));
 			converter.mapOutputSocket(this->getOutputSocket(1), operation->getOutputSocket());

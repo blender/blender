@@ -216,7 +216,7 @@ static Mesh *uvprojectModifier_do(
 	/* convert coords to world space */
 	for (i = 0, co = coords; i < numVerts; ++i, ++co)
 		mul_m4_v3(ob->obmat, *co);
-	
+
 	/* if only one projector, project coords to UVs */
 	if (num_projectors == 1 && projectors[0].uci == NULL)
 		for (i = 0, co = coords; i < numVerts; ++i, ++co)

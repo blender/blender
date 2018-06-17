@@ -45,7 +45,7 @@ public:
 
 	float getDeltaX() { return this->m_deltaX * this->m_factorX; }
 	float getDeltaY() { return this->m_deltaY * this->m_factorY; }
-	
+
 	inline void ensureDelta() {
 		if (!this->m_isDeltaSet) {
 			float tempDelta[4];

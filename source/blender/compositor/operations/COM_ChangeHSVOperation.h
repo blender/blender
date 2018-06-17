@@ -41,10 +41,10 @@ public:
 	 * Default constructor
 	 */
 	ChangeHSVOperation();
-	
+
 	void initExecution();
 	void deinitExecution();
-	
+
 	/**
 	 * the inner loop of this program
 	 */

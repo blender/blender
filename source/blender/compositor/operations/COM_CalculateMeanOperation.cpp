@@ -96,7 +96,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 	for (int i = 0, offset = 0; i < size; i++, offset += 4) {
 		if (buffer[offset + 3] > 0) {
 			pixels++;
-	
+
 			switch (this->m_setting) {
 				case 1:
 				{

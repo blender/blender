@@ -154,7 +154,7 @@ typedef struct BoidState {
 	ListBase actions;
 	char name[32];
 	int id, flag;
-	
+
 	/* rules */
 	int ruleset_type;
 	float rule_fuzziness;

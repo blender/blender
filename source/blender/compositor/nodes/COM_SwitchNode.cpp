@@ -30,12 +30,12 @@ SwitchNode::SwitchNode(bNode *editorNode) : Node(editorNode)
 void SwitchNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bool condition = this->getbNode()->custom1;
-	
+
 	NodeOperationOutput *result;
 	if (!condition)
 		result = converter.addInputProxy(getInputSocket(0), false);
 	else
 		result = converter.addInputProxy(getInputSocket(1), false);
-	
+
 	converter.mapOutputSocket(getOutputSocket(0), result);
 }

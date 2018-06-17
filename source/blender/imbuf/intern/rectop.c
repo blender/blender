@@ -167,13 +167,13 @@ void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], IMB_Blend
 
 /* clipping */
 
-void IMB_rectclip(ImBuf *dbuf, ImBuf *sbuf, int *destx, 
+void IMB_rectclip(ImBuf *dbuf, ImBuf *sbuf, int *destx,
                   int *desty, int *srcx, int *srcy, int *width, int *height)
 {
 	int tmp;
 
 	if (dbuf == NULL) return;
-	
+
 	if (*destx < 0) {
 		*srcx -= *destx;
 		*width += *destx;
@@ -213,14 +213,14 @@ void IMB_rectclip(ImBuf *dbuf, ImBuf *sbuf, int *destx,
 	}
 }
 
-static void imb_rectclip3(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, int *destx, 
+static void imb_rectclip3(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, int *destx,
                           int *desty, int *origx, int *origy, int *srcx, int *srcy,
                           int *width, int *height)
 {
 	int tmp;
 
 	if (dbuf == NULL) return;
-	
+
 	if (*destx < 0) {
 		*srcx -= *destx;
 		*origx -= *destx;
@@ -286,7 +286,7 @@ static void imb_rectclip3(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, int *destx,
 
 /* copy and blend */
 
-void IMB_rectcpy(ImBuf *dbuf, ImBuf *sbuf, int destx, 
+void IMB_rectcpy(ImBuf *dbuf, ImBuf *sbuf, int destx,
                  int desty, int srcx, int srcy, int width, int height)
 {
 	IMB_rectblend(dbuf, dbuf, sbuf, NULL, NULL, NULL, 0, destx, desty, destx, desty, srcx, srcy, width, height, IMB_BLEND_COPY, false);
@@ -786,20 +786,20 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
 	if (drect->rect) {
 		unsigned int *rrect = drect->rect;
 		char ccol[4];
-		
+
 		ccol[0] = (int)(col[0] * 255);
 		ccol[1] = (int)(col[1] * 255);
 		ccol[2] = (int)(col[2] * 255);
 		ccol[3] = (int)(col[3] * 255);
-		
+
 		num = drect->x * drect->y;
 		for (; num > 0; num--)
 			*rrect++ = *((unsigned int *)ccol);
 	}
-	
+
 	if (drect->rect_float) {
 		float *rrectf = drect->rect_float;
-		
+
 		num = drect->x * drect->y;
 		for (; num > 0; num--) {
 			*rrectf++ = col[0];
@@ -821,7 +821,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	float aich; /* alpha, inverted, ai/255.0 - Convert char to float at the same time */
 	if ((!rect && !rectf) || (!col) || col[3] == 0.0f)
 		return;
-	
+
 	/* sanity checks for coords */
 	CLAMP(x1, 0, width);
 	CLAMP(x2, 0, width);
@@ -831,18 +831,18 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	if (x1 > x2) SWAP(int, x1, x2);
 	if (y1 > y2) SWAP(int, y1, y2);
 	if (x1 == x2 || y1 == y2) return;
-	
+
 	a = col[3];
 	ai = 1 - a;
 	aich = ai / 255.0f;
 
 	if (rect) {
-		unsigned char *pixel; 
+		unsigned char *pixel;
 		unsigned char chr = 0, chg = 0, chb = 0;
 		float fr = 0, fg = 0, fb = 0;
 
 		const int alphaint = unit_float_to_uchar_clamp(a);
-		
+
 		if (a == 1.0f) {
 			chr = unit_float_to_uchar_clamp(col[0]);
 			chg = unit_float_to_uchar_clamp(col[1]);
@@ -874,7 +874,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 			}
 		}
 	}
-	
+
 	if (rectf) {
 		float col_conv[4];
 		float *pixel;

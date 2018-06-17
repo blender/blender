@@ -184,7 +184,7 @@ typedef struct SculptSession {
 	int totvert, totpoly;
 	struct KeyBlock *kb;
 	float *vmask;
-	
+
 	/* Mesh connectivity */
 	struct MeshElemMap *pmap;
 	int *pmap_mem;
@@ -210,7 +210,7 @@ typedef struct SculptSession {
 
 	/* Partial redraw */
 	bool partial_redraw;
-	
+
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_side, *texcache, texcache_actual;
 	struct ImagePool *tex_pool;

@@ -37,7 +37,7 @@ void DirectionalBlurNode::convertToOperations(NodeConverter &converter, const Co
 	operation->setQuality(context.getQuality());
 	operation->setData(data);
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

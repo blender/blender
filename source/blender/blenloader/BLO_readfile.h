@@ -164,7 +164,7 @@ struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
 struct Main *BLO_main_from_memfile(struct MemFile *memfile, struct Main *bmain, struct Scene **r_scene);
 
 #ifdef __cplusplus
-} 
+}
 #endif
 
 #endif  /* __BLO_READFILE_H__ */

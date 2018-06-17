@@ -141,7 +141,7 @@ static ushort getshort(MFileOffset *inf)
 static uint getlong(MFileOffset *mofs)
 {
 	const uchar *buf;
-	
+
 	buf = MFILE_DATA(mofs);
 	MFILE_STEP(mofs, 4);
 
@@ -220,13 +220,13 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 {
 	int len;
 	int *zval;
-	
+
 	if (BIG_LONG(1) == 1) return;
 	if (ibuf->zbuf == NULL) return;
-	
+
 	len = ibuf->x * ibuf->y;
 	zval = ibuf->zbuf;
-	
+
 	while (len--) {
 		zval[0] = BIG_LONG(zval[0]);
 		zval++;
@@ -301,7 +301,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 		if (ibuf) ibuf->ftype = IMB_FTYPE_IMAGIC;
 		return(ibuf);
 	}
-	
+
 	if (rle) {
 		size_t tablen = (size_t)ysize * (size_t)zsize * sizeof(int);
 		MFILE_SEEK(inf, HEADER_SIZE);
@@ -316,7 +316,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 
 		readtab(inf, starttab, tablen);
 		readtab(inf, lengthtab, tablen);
-	
+
 		/* check data order */
 		cur = 0;
 		badorder = 0;
@@ -331,9 +331,9 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 			if (badorder)
 				break;
 		}
-	
+
 		if (bpp == 1) {
-			
+
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
 			if (!ibuf) {
 				goto fail_rle;
@@ -341,7 +341,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 			if (ibuf->planes > 32) ibuf->planes = 32;
 			base = ibuf->rect;
 			zbase = (uint *)ibuf->zbuf;
-			
+
 			if (badorder) {
 				for (size_t z = 0; z < zsize; z++) {
 					lptr = base;
@@ -382,18 +382,18 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 					zptr = zptr_next;
 				}
 			}
-			
+
 
 		}
 		else {  /* bpp == 2 */
-			
+
 			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
 			if (!ibuf) {
 				goto fail_rle;
 			}
 
 			fbase = ibuf->rect_float;
-			
+
 			if (badorder) {
 				for (size_t z = 0; z < zsize; z++) {
 					fptr = fbase;
@@ -414,7 +414,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 				float *fptr_next = fptr + (xsize * 4);
 
 				for (size_t y = 0; y < ysize; y++) {
-				
+
 					for (size_t z = 0; z < zsize; z++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
@@ -442,7 +442,7 @@ fail_rle:
 		if (UNLIKELY((p) > mem_end)) { dirty_flag |= DIRTY_FLAG_EOF; goto fail_uncompressed; } ((void)0)
 
 		if (bpp == 1) {
-			
+
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
 			if (!ibuf) {
 				goto fail_uncompressed;
@@ -451,12 +451,12 @@ fail_rle:
 
 			base = ibuf->rect;
 			zbase = (uint *)ibuf->zbuf;
-			
+
 			MFILE_SEEK(inf, HEADER_SIZE);
 			rledat = MFILE_DATA(inf);
-			
+
 			for (size_t z = 0; z < zsize; z++) {
-				
+
 				if (z < 4) lptr = base;
 				else if (z < 8) lptr = zbase;
 
@@ -469,10 +469,10 @@ fail_rle:
 					lptr += xsize;
 				}
 			}
-			
+
 		}
 		else {  /* bpp == 2 */
-			
+
 			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
 			if (!ibuf) {
 				goto fail_uncompressed;
@@ -482,9 +482,9 @@ fail_rle:
 
 			MFILE_SEEK(inf, HEADER_SIZE);
 			rledat = MFILE_DATA(inf);
-			
+
 			for (size_t z = 0; z < zsize; z++) {
-				
+
 				fptr = fbase;
 
 				for (size_t y = 0; y < ysize; y++) {
@@ -496,7 +496,7 @@ fail_rle:
 					fptr += xsize * 4;
 				}
 			}
-			
+
 		}
 #undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
 fail_uncompressed:
@@ -507,7 +507,7 @@ fail_uncompressed:
 
 	if (bpp == 1) {
 		uchar *rect;
-		
+
 		if (image.zsize == 1) {
 			rect = (uchar *) ibuf->rect;
 			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
@@ -533,10 +533,10 @@ fail_uncompressed:
 				rect += 4;
 			}
 		}
-		
+
 	}
 	else {  /* bpp == 2 */
-		
+
 		if (image.zsize == 1) {
 			fbase = ibuf->rect_float;
 			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
@@ -562,11 +562,11 @@ fail_uncompressed:
 				fbase += 4;
 			}
 		}
-		
+
 		if (flags & IB_rect) {
 			IMB_rect_from_float(ibuf);
 		}
-		
+
 	}
 
 	if (dirty_flag) {
@@ -816,10 +816,10 @@ static int output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *
 	goodwrite *= writeheader(outf, image);
 	fseek(outf, HEADER_SIZE + (2 * tablen), SEEK_SET);
 	pos = HEADER_SIZE + (2 * tablen);
-	
+
 	for (y = 0; y < ysize; y++) {
 		for (z = 0; z < zsize; z++) {
-			
+
 			if (zsize == 1) {
 				lumrow((uchar *)lptr, (uchar *)lumbuf, xsize);
 				len = compressrow((uchar *)lumbuf, rlebuf, CHANOFFSET(z), xsize);
@@ -939,7 +939,7 @@ int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags)
 
 	zsize = (ibuf->planes + 7) >> 3;
 	if (flags & IB_zbuf &&  ibuf->zbuf != NULL) zsize = 8;
-	
+
 	IMB_convert_rgba_to_abgr(ibuf);
 	test_endian_zbuf(ibuf);
 

@@ -60,7 +60,7 @@
 static void initData(ModifierData *md)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	
+
 	amd->deformflag = ARM_DEF_VGROUP;
 }
 
@@ -120,7 +120,7 @@ static void deformVerts(
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
-	
+
 	armature_deform_verts(amd->object, ctx->object, mesh, vertexCos, NULL,
 	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
 

@@ -53,7 +53,7 @@ int Director_BPy_UnaryFunction1D___call__(void *uf1D, void *py_uf1D, Interface1D
 
 // UnaryPredicate0D: __call__
 int Director_BPy_UnaryPredicate0D___call__(UnaryPredicate0D *up0D, Interface0DIterator& if0D_it);
-	
+
 // UnaryPredicate1D: __call__
 int Director_BPy_UnaryPredicate1D___call__(UnaryPredicate1D *up1D, Interface1D& if1D);
 

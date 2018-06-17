@@ -55,7 +55,7 @@ enum {
 
 typedef struct CurveMap {
 	short totpoint, flag;
-	
+
 	float range;					/* quick multiply value for reading table */
 	float mintable, maxtable;		/* the x-axis range for the table */
 	float ext_in[2], ext_out[2];	/* for extrapolated curves, the direction vector */
@@ -74,13 +74,13 @@ typedef struct CurveMapping {
 	int flag, cur;					/* cur; for buttons, to show active curve */
 	int preset;
 	int changed_timestamp;
-	
+
 	rctf curr, clipr;				/* current rect, clip rect (is default rect too) */
-	
+
 	CurveMap cm[4];					/* max 4 builtin curves per mapping struct now */
 	float black[3], white[3];		/* black/white point (black[0] abused for current frame) */
 	float bwmul[3];					/* black/white point multiply value, for speed */
-	
+
 	float sample[3];				/* sample values, if flag set it draws line and intersection */
 } CurveMapping;
 

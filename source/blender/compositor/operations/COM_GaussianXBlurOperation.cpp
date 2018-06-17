@@ -170,7 +170,7 @@ void GaussianXBlurOperation::deinitExecution()
 bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	
+
 	if (!this->m_sizeavailable) {
 		rcti sizeInput;
 		sizeInput.xmin = 0;

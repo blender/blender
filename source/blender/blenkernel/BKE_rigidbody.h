@@ -29,7 +29,7 @@
  *  \ingroup blenkernel
  *  \brief API for Blender-side Rigid Body stuff
  */
- 
+
 
 #ifndef __BKE_RIGIDBODY_H__
 #define __BKE_RIGIDBODY_H__

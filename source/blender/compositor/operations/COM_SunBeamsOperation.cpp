@@ -61,7 +61,7 @@ template <int fxu, int fxv, int fyu, int fyv>
 struct BufferLineAccumulator {
 
 	/* utility functions implementing the matrix transform to/from sector space */
-	
+
 	static inline void buffer_to_sector(const float source[2], int x, int y, int &u, int &v)
 	{
 		int x0 = (int)source[0];
@@ -155,9 +155,9 @@ struct BufferLineAccumulator {
 		float v, dv;
 		float falloff_factor;
 		float border[4];
-		
+
 		zero_v4(output);
-		
+
 		if ((int)(co[0] - source[0]) == 0 && (int)(co[1] - source[1]) == 0) {
 			copy_v4_v4(output, input->getBuffer() + COM_NUM_CHANNELS_COLOR * ((int)source[0] + input->getWidth() * (int)source[1]));
 			return;
@@ -174,7 +174,7 @@ struct BufferLineAccumulator {
 		for (int i = 0; i < num; i++) {
 			float weight = 1.0f - (float)i * falloff_factor;
 			weight *= weight;
-			
+
 			/* range check, use last valid color when running beyond the image border */
 			if (x >= rect.xmin && x < rect.xmax && y >= rect.ymin && y < rect.ymax) {
 				madd_v4_v4fl(output, buffer, buffer[3] * weight);
@@ -184,7 +184,7 @@ struct BufferLineAccumulator {
 			else {
 				madd_v4_v4fl(output, border, border[3] * weight);
 			}
-			
+
 			/* TODO implement proper filtering here, see
 			 * https://en.wikipedia.org/wiki/Lanczos_resampling
 			 * https://en.wikipedia.org/wiki/Sinc_function

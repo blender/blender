@@ -56,18 +56,18 @@
 
 #include "MOD_util.h"
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	ClothModifierData *clmd = (ClothModifierData *) md;
-	
+
 	clmd->sim_parms = MEM_callocN(sizeof(ClothSimSettings), "cloth sim parms");
 	clmd->coll_parms = MEM_callocN(sizeof(ClothCollSettings), "cloth coll parms");
 	clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
-	
+
 	/* check for alloc failing */
 	if (!clmd->sim_parms || !clmd->coll_parms || !clmd->point_cache)
 		return;
-	
+
 	cloth_init(clmd);
 }
 
@@ -78,7 +78,7 @@ static void deformVerts(
 {
 	Mesh *mesh_src;
 	ClothModifierData *clmd = (ClothModifierData *) md;
-	
+
 	/* check for alloc failing */
 	if (!clmd->sim_parms || !clmd->coll_parms) {
 		initData(md);
@@ -166,7 +166,7 @@ static void copyData(const ModifierData *md, ModifierData *target)
 
 	if (tclmd->coll_parms)
 		MEM_freeN(tclmd->coll_parms);
-	
+
 	BKE_ptcache_free_list(&tclmd->ptcaches);
 	tclmd->point_cache = NULL;
 
@@ -189,13 +189,13 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 static void freeData(ModifierData *md)
 {
 	ClothModifierData *clmd = (ClothModifierData *) md;
-	
+
 	if (clmd) {
 		if (G.debug_value > 0)
 			printf("clothModifier_freeData\n");
-		
+
 		cloth_free_modifier_extern(clmd);
-		
+
 		if (clmd->sim_parms) {
 			if (clmd->sim_parms->effector_weights)
 				MEM_freeN(clmd->sim_parms->effector_weights);
@@ -203,13 +203,13 @@ static void freeData(ModifierData *md)
 		}
 		if (clmd->coll_parms)
 			MEM_freeN(clmd->coll_parms);
-		
+
 		BKE_ptcache_free_list(&clmd->ptcaches);
 		clmd->point_cache = NULL;
-		
+
 		if (clmd->hairdata)
 			MEM_freeN(clmd->hairdata);
-		
+
 		if (clmd->solver_result)
 			MEM_freeN(clmd->solver_result);
 	}

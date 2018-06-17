@@ -51,7 +51,7 @@
 #include "MOD_util.h"
 
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	psmd->psys = NULL;
@@ -115,7 +115,7 @@ static void deformVerts(
 		psys = psmd->psys;
 	else
 		return;
-	
+
 	if (!psys_check_enabled(ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0))
 		return;
 

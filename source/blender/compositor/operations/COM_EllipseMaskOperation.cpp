@@ -48,18 +48,18 @@ void EllipseMaskOperation::executePixelSampled(float output[4], float x, float y
 {
 	float inputMask[4];
 	float inputValue[4];
-	
+
 	float rx = x / this->getWidth();
 	float ry = y / this->getHeight();
-	
+
 	const float dy = (ry - this->m_data->y) / this->m_aspectRatio;
 	const float dx = rx - this->m_data->x;
 	rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
 	ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
-	
+
 	this->m_inputMask->readSampled(inputMask, x, y, sampler);
 	this->m_inputValue->readSampled(inputValue, x, y, sampler);
-	
+
 	const float halfHeight = (this->m_data->height) / 2.0f;
 	const float halfWidth = this->m_data->width / 2.0f;
 	float sx = rx - this->m_data->x;
@@ -68,9 +68,9 @@ void EllipseMaskOperation::executePixelSampled(float output[4], float x, float y
 	float sy = ry - this->m_data->y;
 	sy *= sy;
 	const float ty = halfHeight * halfHeight;
-	
+
 	bool inside = ((sx / tx) + (sy / ty)) < 1.0f;
-	
+
 	switch (this->m_maskType) {
 		case CMP_NODE_MASKTYPE_ADD:
 			if (inside) {

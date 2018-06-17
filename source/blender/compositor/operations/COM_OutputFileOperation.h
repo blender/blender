@@ -37,10 +37,10 @@ class OutputSingleLayerOperation : public NodeOperation {
 protected:
 	const RenderData *m_rd;
 	const bNodeTree *m_tree;
-	
+
 	ImageFormatData *m_format;
 	char m_path[FILE_MAX];
-	
+
 	float *m_outputBuffer;
 	DataType m_datatype;
 	SocketReader *m_imageInput;
@@ -52,7 +52,7 @@ protected:
 public:
 	OutputSingleLayerOperation(const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
 	                           const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings, const char *viewName);
-	
+
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	bool isOutputOperation(bool /*rendering*/) const { return true; }
 	void initExecution();
@@ -65,11 +65,11 @@ public:
 /* extra info for OpenEXR layers */
 struct OutputOpenExrLayer {
 	OutputOpenExrLayer(const char *name, DataType datatype, bool use_layer);
-	
+
 	char name[EXR_TOT_MAXNAME - 2];
 	DataType datatype;
 	bool use_layer;
-	
+
 	/* internals */
 	float *outputBuffer;
 	SocketReader *imageInput;
@@ -79,22 +79,22 @@ struct OutputOpenExrLayer {
 class OutputOpenExrMultiLayerOperation : public NodeOperation {
 protected:
 	typedef std::vector<OutputOpenExrLayer> LayerList;
-	
+
 	const RenderData *m_rd;
 	const bNodeTree *m_tree;
-	
+
 	char m_path[FILE_MAX];
 	char m_exr_codec;
 	bool m_exr_half_float;
 	LayerList m_layers;
 	const char *m_viewName;
-	
+
 public:
 	OutputOpenExrMultiLayerOperation(const RenderData *rd, const bNodeTree *tree, const char *path,
 	                                 char exr_codec, bool exr_half_float, const char *viewName);
-	
+
 	void add_layer(const char *name, DataType datatype, bool use_layer);
-	
+
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	bool isOutputOperation(bool /*rendering*/) const { return true; }
 	void initExecution();

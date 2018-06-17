@@ -35,7 +35,7 @@ private:
 	void updateGauss();
 public:
 	GaussianYBlurOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
@@ -55,7 +55,7 @@ public:
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void *initializeTileData(rcti *rect);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 

@@ -35,12 +35,12 @@ void ColorCurveNode::convertToOperations(NodeConverter &converter, const Composi
 		ColorCurveOperation *operation = new ColorCurveOperation();
 		operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
 		converter.addOperation(operation);
-		
+
 		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
 		converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
-		
+
 		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 	}
 	else {
@@ -52,7 +52,7 @@ void ColorCurveNode::convertToOperations(NodeConverter &converter, const Composi
 		operation->setWhiteLevel(col);
 		operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
 		converter.addOperation(operation);
-		
+
 		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());

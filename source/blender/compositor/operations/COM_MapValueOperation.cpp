@@ -46,7 +46,7 @@ void MapValueOperation::executePixelSampled(float output[4], float x, float y, P
 	if (texmap->flag & TEXMAP_CLIP_MAX)
 		if (value > texmap->max[0])
 			value = texmap->max[0];
-	
+
 	output[0] = value;
 }
 

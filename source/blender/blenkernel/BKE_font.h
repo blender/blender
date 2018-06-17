@@ -58,7 +58,7 @@ typedef struct EditFontSelBox {
 typedef struct EditFont {
 	wchar_t *textbuf;
 	struct CharInfo *textbufinfo;
-	
+
 	/* array of rectangles & rotation */
 	float textcurs[4][2];
 	EditFontSelBox *selboxes;
@@ -68,7 +68,7 @@ typedef struct EditFont {
 	 * a copy of these is kept in Curve, but use these in editmode */
 	int len, pos;
 	int selstart, selend;
-	
+
 } EditFont;
 
 
@@ -76,7 +76,7 @@ bool BKE_vfont_is_builtin(struct VFont *vfont);
 void BKE_vfont_builtin_register(void *mem, int size);
 
 void BKE_vfont_free_data(struct VFont *vfont);
-void BKE_vfont_free(struct VFont *sc); 
+void BKE_vfont_free(struct VFont *sc);
 void BKE_vfont_init(struct VFont *vfont);
 void BKE_vfont_copy_data(struct Main *bmain, struct VFont *vfont_dst, const struct VFont *vfont_src, const int flag);
 struct VFont *BKE_vfont_builtin_get(void);

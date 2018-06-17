@@ -81,7 +81,7 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4], float x
 	z = inputValue[0];
 	if (z != 0.0f) {
 		float iZ = (1.0f / z);
-		
+
 		// bug #6656 part 2b, do not rescale
 #if 0
 		bcrad = 0.5f * fabs(aperture * (dof_sp * (cam_invfdist - iZ) - 1.0f));

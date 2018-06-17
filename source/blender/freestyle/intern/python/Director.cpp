@@ -325,7 +325,7 @@ int Director_BPy_UnaryFunction1D___call__(void *uf1D, void *py_uf1D, Interface1D
 			vec.push_back(b);
 		}
 		((UnaryFunction1D< vector<ViewShape*> > *)uf1D)->result = vec;
-	} 
+	}
 	Py_DECREF(result);
 	return 0;
 }

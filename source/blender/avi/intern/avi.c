@@ -210,7 +210,7 @@ bool AVI_is_avi(char *name)
 {
 	FILE *fp;
 	int ret;
-	
+
 	fp = BLI_fopen(name, "rb");
 	if (fp == NULL)
 		return 0;
@@ -237,7 +237,7 @@ bool AVI_is_avi(const char *name)
 	AviMainHeader header;
 	AviBitmapInfoHeader bheader;
 	int movie_tracks = 0;
-	
+
 	DEBUG_PRINT("opening movie\n");
 
 	movie.type = AVI_MOVIE_READ;
@@ -267,7 +267,7 @@ bool AVI_is_avi(const char *name)
 		fclose(movie.fp);
 		return 0;
 	}
-	
+
 	movie.header->MicroSecPerFrame = GET_FCC(movie.fp);
 	movie.header->MaxBytesPerSec = GET_FCC(movie.fp);
 	movie.header->PaddingGranularity = GET_FCC(movie.fp);
@@ -292,7 +292,7 @@ bool AVI_is_avi(const char *name)
 		fclose(movie.fp);
 		return 0;
 	}
-	
+
 	movie.streams = (AviStreamRec *) MEM_calloc_arrayN(movie.header->Streams, sizeof(AviStreamRec), "moviestreams");
 
 	for (temp = 0; temp < movie.header->Streams; temp++) {
@@ -304,7 +304,7 @@ bool AVI_is_avi(const char *name)
 		    !(movie.streams[temp].sh.size = GET_FCC(movie.fp)))
 		{
 			DEBUG_PRINT("bad stream header information\n");
-			
+
 			MEM_freeN(movie.streams);
 			fclose(movie.fp);
 			return 0;
@@ -314,7 +314,7 @@ bool AVI_is_avi(const char *name)
 		movie.streams[temp].sh.Handler = GET_FCC(movie.fp);
 
 		fcca = movie.streams[temp].sh.Handler;
-		
+
 		if (movie.streams[temp].sh.Type == FCC("vids")) {
 			if (fcca == FCC("DIB ") ||
 			    fcca == FCC("RGB ") ||
@@ -334,7 +334,7 @@ bool AVI_is_avi(const char *name)
 			}
 			movie_tracks++;
 		}
-		
+
 		movie.streams[temp].sh.Flags = GET_FCC(movie.fp);
 		movie.streams[temp].sh.Priority = GET_TCC(movie.fp);
 		movie.streams[temp].sh.Language = GET_TCC(movie.fp);
@@ -365,10 +365,10 @@ bool AVI_is_avi(const char *name)
 			j = movie.streams[temp].sf_size - (sizeof(AviBitmapInfoHeader) - 8);
 			if (j >= 0) {
 				AviBitmapInfoHeader *bi;
-				
+
 				movie.streams[temp].sf = &bheader;
 				bi = (AviBitmapInfoHeader *) movie.streams[temp].sf;
-				
+
 				bi->fcc = FCC("strf");
 				bi->size = movie.streams[temp].sf_size;
 				bi->Size = GET_FCC(movie.fp);
@@ -382,7 +382,7 @@ bool AVI_is_avi(const char *name)
 				bi->YPelsPerMeter = GET_FCC(movie.fp);
 				bi->ClrUsed = GET_FCC(movie.fp);
 				bi->ClrImportant = GET_FCC(movie.fp);
-				
+
 				fcca = bi->Compression;
 
 				if (movie.streams[temp].format == AVI_FORMAT_AVI_RGB) {
@@ -418,7 +418,7 @@ bool AVI_is_avi(const char *name)
 			temp = GET_FCC(movie.fp);
 			if (temp < 0 || ftell(movie.fp) > movie.size) {
 				DEBUG_PRINT("incorrect size in header or error in AVI\n");
-				
+
 				MEM_freeN(movie.streams);
 				fclose(movie.fp);
 				return 0;
@@ -428,19 +428,19 @@ bool AVI_is_avi(const char *name)
 
 		fseek(movie.fp, -4L, SEEK_CUR);
 	}
-	
+
 	MEM_freeN(movie.streams);
 	fclose(movie.fp);
 
 	/* at least one video track is needed */
-	return (movie_tracks != 0); 
+	return (movie_tracks != 0);
 
 }
 
 AviError AVI_open_movie(const char *name, AviMovie *movie)
 {
 	int temp, fcca, size, j;
-	
+
 	DEBUG_PRINT("opening movie\n");
 
 	memset(movie, 0, sizeof(AviMovie));
@@ -470,7 +470,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 		DEBUG_PRINT("bad initial header info\n");
 		return AVI_ERROR_FORMAT;
 	}
-	
+
 	movie->header->MicroSecPerFrame = GET_FCC(movie->fp);
 	movie->header->MaxBytesPerSec = GET_FCC(movie->fp);
 	movie->header->PaddingGranularity = GET_FCC(movie->fp);
@@ -494,7 +494,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 		DEBUG_PRINT("Number of streams should be in range 1-65536\n");
 		return AVI_ERROR_FORMAT;
 	}
-	
+
 	movie->streams = (AviStreamRec *) MEM_calloc_arrayN(movie->header->Streams, sizeof(AviStreamRec), "moviestreams");
 
 	for (temp = 0; temp < movie->header->Streams; temp++) {
@@ -513,7 +513,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 		movie->streams[temp].sh.Handler = GET_FCC(movie->fp);
 
 		fcca = movie->streams[temp].sh.Handler;
-		
+
 		if (movie->streams[temp].sh.Type == FCC("vids")) {
 			if (fcca == FCC("DIB ") ||
 			    fcca == FCC("RGB ") ||
@@ -530,7 +530,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 				return AVI_ERROR_COMPRESSION;
 			}
 		}
-		
+
 		movie->streams[temp].sh.Flags = GET_FCC(movie->fp);
 		movie->streams[temp].sh.Priority = GET_TCC(movie->fp);
 		movie->streams[temp].sh.Language = GET_TCC(movie->fp);
@@ -559,11 +559,11 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 			j = movie->streams[temp].sf_size - (sizeof(AviBitmapInfoHeader) - 8);
 			if (j >= 0) {
 				AviBitmapInfoHeader *bi;
-				
+
 				movie->streams[temp].sf = MEM_mallocN(sizeof(AviBitmapInfoHeader), "streamformat");
-				
+
 				bi = (AviBitmapInfoHeader *) movie->streams[temp].sf;
-				
+
 				bi->fcc = FCC("strf");
 				bi->size = movie->streams[temp].sf_size;
 				bi->Size = GET_FCC(movie->fp);
@@ -577,7 +577,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 				bi->YPelsPerMeter = GET_FCC(movie->fp);
 				bi->ClrUsed = GET_FCC(movie->fp);
 				bi->ClrImportant = GET_FCC(movie->fp);
-				
+
 				fcca = bi->Compression;
 
 				if (movie->streams[temp].format ==
@@ -617,7 +617,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 			}
 			fseek(movie->fp, temp, SEEK_CUR);
 		}
-		
+
 		fseek(movie->fp, -4L, SEEK_CUR);
 	}
 
@@ -645,7 +645,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 
 	movie->movi_offset = ftell(movie->fp);
 	movie->read_offset = movie->movi_offset;
-	
+
 	/* Read in the index if the file has one, otherwise create one */
 	if (movie->header->Flags & AVIF_HASINDEX) {
 		fseek(movie->fp, size - 4, SEEK_CUR);
@@ -668,7 +668,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 			movie->entries[temp].Flags = GET_FCC(movie->fp);
 			movie->entries[temp].Offset = GET_FCC(movie->fp);
 			movie->entries[temp].Size = GET_FCC(movie->fp);
-			
+
 			if (AVI_DEBUG) {
 				printf("Index entry %04d: ChunkId:%s Flags:%d Offset:%d Size:%d\n",
 				       temp, fcc_to_char(movie->entries[temp].ChunkId), movie->entries[temp].Flags,
@@ -696,7 +696,7 @@ void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
 	int cur_frame = -1, i = 0, rewind = 1;
 	void *buffer;
 
-	/* Retrieve the record number of the desired frame in the index 
+	/* Retrieve the record number of the desired frame in the index
 	 * If a chunk has Size 0 we need to rewind to previous frame */
 	while (rewind && frame > -1) {
 		i = 0;
@@ -732,7 +732,7 @@ void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
 
 		return NULL;
 	}
-	
+
 	buffer = avi_format_convert(movie, stream, buffer, movie->streams[stream].format, format, &size);
 
 	return buffer;
@@ -780,7 +780,7 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 		return AVI_ERROR_OPEN;
 
 	movie->offset_table = (int64_t *) MEM_mallocN((1 + streams * 2) * sizeof(int64_t), "offsettable");
-	
+
 	for (i = 0; i < 1 + streams * 2; i++)
 		movie->offset_table[i] = -1L;
 
@@ -1009,7 +1009,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
 	for (stream = 0; stream < movie->header->Streams; stream++) {
 		unsigned int tbuf = 0;
-		
+
 		format = va_arg(ap, AviFormat);
 		buffer = va_arg(ap, void *);
 		size_t size = va_arg(ap, int);
@@ -1023,9 +1023,9 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
 		chunk.fcc = avi_get_data_id(format, stream);
 		chunk.size = size;
-		
+
 		if (size % 4) chunk.size += 4 - size % 4;
-		
+
 		awrite(movie, &chunk, 1, sizeof(AviChunk), movie->fp, AVI_CHUNK);
 
 		/* Write the index entry for this data chunk */

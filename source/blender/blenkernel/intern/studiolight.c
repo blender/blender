@@ -77,17 +77,17 @@ static void studiolight_free(struct StudioLight *sl)
 		GPU_texture_free(sl->equirectangular_radiance_gputexture);
 		sl->equirectangular_radiance_gputexture = NULL;
 	}
-	
+
 	if (sl->equirectangular_irradiance_gputexture) {
 		GPU_texture_free(sl->equirectangular_irradiance_gputexture);
 		sl->equirectangular_irradiance_gputexture = NULL;
 	}
-	
+
 	if (sl->equirectangular_radiance_buffer) {
 		IMB_freeImBuf(sl->equirectangular_radiance_buffer);
 		sl->equirectangular_radiance_buffer = NULL;
 	}
-	
+
 	if (sl->equirectangular_irradiance_buffer) {
 		IMB_freeImBuf(sl->equirectangular_irradiance_buffer);
 		sl->equirectangular_irradiance_buffer = NULL;
@@ -398,7 +398,7 @@ static float texel_coord_solid_angle(float a_U, float a_V, int a_Size)
 }
 
 BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(
-        ImBuf *radiance_buffer, const float normal[3], float color[3], 
+        ImBuf *radiance_buffer, const float normal[3], float color[3],
         int xoffset, int yoffset, int zoffset, float zvalue)
 {
 	if (radiance_buffer == NULL) {
@@ -473,7 +473,7 @@ static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		/* check for cached irr file */
-		
+
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED);
 
 		float *colbuf = MEM_mallocN(STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH * STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * sizeof(float[4]), __func__);

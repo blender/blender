@@ -145,7 +145,7 @@ static int get_next_free_id(void)
 	/* if we haven't used up the int number range, we just return the next int */
 	if (gNextIconId >= gFirstIconId)
 		return gNextIconId++;
-	
+
 	/* now we try to find the smallest icon id not stored in the gIcons hash */
 	while (BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(startId)) && startId >= gFirstIconId)
 		startId++;
@@ -243,7 +243,7 @@ void BKE_previewimg_freefunc(void *link)
 			if (prv->gputexture[i])
 				GPU_texture_free(prv->gputexture[i]);
 		}
-		
+
 		MEM_freeN(prv);
 	}
 }
@@ -509,11 +509,11 @@ void BKE_icon_changed(const int icon_id)
 	BLI_assert(BLI_thread_is_main());
 
 	Icon *icon = NULL;
-	
+
 	if (!icon_id || G.background) return;
 
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
-	
+
 	if (icon) {
 		/* We *only* expect ID-tied icons here, not non-ID icon/preview! */
 		BLI_assert(icon->id_type != 0);
@@ -640,7 +640,7 @@ Icon *BKE_icon_get(const int icon_id)
 	Icon *icon = NULL;
 
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
-	
+
 	if (!icon) {
 		printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return NULL;

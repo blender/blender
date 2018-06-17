@@ -41,7 +41,7 @@ using namespace Geometry;
 class NodeLight : public Node
 {
 public:
-	NodeLight(); 
+	NodeLight();
 	NodeLight(NodeLight& iBrother);
 
 	virtual ~NodeLight() {}

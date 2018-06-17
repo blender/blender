@@ -96,7 +96,7 @@ static bCallbackFuncStore load_post_callback_funcstore = {
 };
 
 //=======================================================
-//   Initialization 
+//   Initialization
 //=======================================================
 
 void FRS_initialize()
@@ -133,7 +133,7 @@ void FRS_exit()
 }
 
 //=======================================================
-//   Rendering 
+//   Rendering
 //=======================================================
 
 static void init_view(Render *re)

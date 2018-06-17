@@ -34,7 +34,7 @@ struct bSound;
 
 typedef struct Speaker {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
 
 	struct bSound *sound;
 

@@ -45,7 +45,7 @@ private:
 
 	const ColorManagedViewSettings *m_viewSettings;
 	const ColorManagedDisplaySettings *m_displaySettings;
-	
+
 	SocketReader *m_imageInput;
 	SocketReader *m_alphaInput;
 	SocketReader *m_depthInput;

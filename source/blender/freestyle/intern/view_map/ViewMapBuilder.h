@@ -159,7 +159,7 @@ public:
 	/*! Builds the scene view map returns the list the view map
 	 *  it is up to the caller to delete this ViewMap
 	 *    iWRoot
-	 *      The root group node containing the WEdge structured scene 
+	 *      The root group node containing the WEdge structured scene
 	 */
 	ViewMap *BuildViewMap(WingedEdge& we, visibility_algo iAlgo, real epsilon, const BBox<Vec3r>& bbox,
 	                      unsigned int sceneNumFaces);
@@ -180,7 +180,7 @@ public:
 
 	/*! Computes the 2D scene silhouette edges visibility
 	 *    iGrid
-	 *      For the Ray Casting algorithm. 
+	 *      For the Ray Casting algorithm.
 	 */
 	void ComputeEdgesVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox, unsigned int sceneNumFaces,
 	                            visibility_algo iAlgo = ray_casting, real epsilon = 1.0e-6);

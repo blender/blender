@@ -333,7 +333,7 @@ int main(
 #endif
 
 	main_callback_setup();
-	
+
 #if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE)
 	/* patch to ignore argument finder gives us (pid?) */
 	if (argc == 2 && STREQLEN(argv[1], "-psn_", 5)) {
@@ -348,7 +348,7 @@ int main(
 		}
 	}
 #endif
-	
+
 #ifdef __FreeBSD__
 	fpsetmask(0);
 #endif
@@ -370,7 +370,7 @@ int main(
 
 	BKE_brush_system_init();
 	RE_texture_rng_init();
-	
+
 
 	BLI_callback_global_init();
 
@@ -418,7 +418,7 @@ int main(
 	/* Initialize ffmpeg if built in, also needed for bg mode if videos are
 	 * rendered via ffmpeg */
 	BKE_sound_init_once();
-	
+
 	init_def_material();
 
 	if (G.background == 0) {
@@ -454,7 +454,7 @@ int main(
 #else
 	printf("\n* WARNING * - Blender compiled without Python!\nthis is not intended for typical usage\n\n");
 #endif
-	
+
 	CTX_py_init_set(C, 1);
 	WM_keymap_init(C);
 
@@ -472,7 +472,7 @@ int main(
 	/* OK we are ready for it */
 #ifndef WITH_PYTHON_MODULE
 	main_args_setup_post(C, ba);
-	
+
 	if (G.background == 0) {
 		if (!G.file_loaded)
 			if (U.uiflag2 & USER_KEEP_SESSION)

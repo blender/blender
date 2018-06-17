@@ -38,7 +38,7 @@ extern "C" {
 
 /* generic blender movie support, could move to own module */
 
-struct RenderData;	
+struct RenderData;
 struct ReportList;
 struct Scene;
 

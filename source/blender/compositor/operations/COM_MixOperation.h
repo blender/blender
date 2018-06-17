@@ -50,23 +50,23 @@ protected:
 			CLAMP(color[3], 0.0f, 1.0f);
 		}
 	}
-	
+
 public:
 	/**
 	 * Default constructor
 	 */
 	MixBaseOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
@@ -74,7 +74,7 @@ public:
 
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
-	
+
 	void setUseValueAlphaMultiply(const bool value) { this->m_valueAlphaMultiply = value; }
 	inline bool useValueAlphaMultiply() { return this->m_valueAlphaMultiply; }
 	void setUseClamp(bool value) { this->m_useClamp = value; }

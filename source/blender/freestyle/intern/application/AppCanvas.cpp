@@ -64,7 +64,7 @@ void AppCanvas::setViewer(AppView *iViewer)
 	_pViewer = iViewer;
 }
 
-int AppCanvas::width() const 
+int AppCanvas::width() const
 {
 	return _pViewer->width();
 }
@@ -84,7 +84,7 @@ float AppCanvas::thickness() const
 	return _pViewer->thickness();
 }
 
-BBox<Vec3r> AppCanvas::scene3DBBox() const 
+BBox<Vec3r> AppCanvas::scene3DBBox() const
 {
 	return _pViewer->scene3DBBox();
 }

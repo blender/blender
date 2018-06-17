@@ -284,7 +284,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
 		pbvh_show_mask_set(cddm->pbvh, ob->sculpt->show_mask);
 	}
-		
+
 
 	/* always build pbvh from original mesh, and only use it for drawing if
 	 * this derivedmesh is just original mesh. it's the multires subsurf dm
@@ -305,7 +305,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		        me->mvert,
 		        me->totloop, me->totpoly,
 		        looptri);
-		
+
 		BKE_pbvh_build_mesh(
 		        cddm->pbvh,
 		        me->mpoly, me->mloop,
@@ -434,7 +434,7 @@ static void cdDM_foreachMappedFaceCenter(
 		else {
 			orig = i;
 		}
-		
+
 		ml = &cddm->mloop[mp->loopstart];
 		BKE_mesh_calc_poly_center(mp, ml, mvert, cent);
 
@@ -723,7 +723,7 @@ static void loops_to_customdata_corners(
 
 	for (i = 0; i < numUV; i++) {
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
-	
+
 		for (j = 0; j < 3; j++) {
 			l = l3[j];
 			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
@@ -733,7 +733,7 @@ static void loops_to_customdata_corners(
 
 	for (i = 0; i < numCol; i++) {
 		mcol = CustomData_get_n(facedata, CD_MCOL, cdindex, i);
-		
+
 		for (j = 0; j < 3; j++) {
 			l = l3[j];
 			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
@@ -780,18 +780,18 @@ static DerivedMesh *cddm_from_bmesh_ex(
 	int *index, add_orig;
 	CustomDataMask mask;
 	unsigned int i, j;
-	
+
 	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
 	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
-	
+
 	dm->deformedOnly = 1;
-	
+
 	/* don't add origindex layer if one already exists */
 	add_orig = !CustomData_has_layer(&bm->pdata, CD_ORIGINDEX);
 
 	mask = use_mdisps ? CD_MASK_DERIVEDMESH | CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
-	
+
 	/* don't process shapekeys, we only feed them through the modifier stack as needed,
 	 * e.g. for applying modifiers or the like*/
 	mask &= ~CD_MASK_SHAPEKEY;
@@ -882,7 +882,7 @@ static DerivedMesh *cddm_from_bmesh_ex(
 			test_index_face(mf, &dm->faceData, i, 3);
 		}
 	}
-	
+
 	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
 	j = 0;
 	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
@@ -1585,7 +1585,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 			newv[i] = 0;
 		}
 	}
-	
+
 	/* now link target vertices to destination indices */
 	for (i = 0; i < totvert; i++) {
 		if (vtargetmap[i] != -1) {
@@ -1622,7 +1622,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 			newe[i] = -1;
 		}
 	}
-	
+
 	if (merge_mode == CDDM_MERGE_VERTS_DUMP_IF_EQUAL) {
 		/* In this mode, we need to determine,  whenever a poly' vertices are all mapped */
 		/* if the targets already make up a poly, in which case the new poly is dropped */
@@ -1663,7 +1663,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	mv = cddm->mvert;
 	for (i = 0; i < totpoly; i++, mp++) {
 		MPoly *mp_new;
-		
+
 		ml = cddm->mloop + mp->loopstart;
 
 		/* check faces with all vertices merged */
@@ -1867,7 +1867,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		mp_new->totloop = c;
 		BLI_assert(mp_new->totloop >= 3);
 		mp_new->loopstart = STACK_SIZE(mloop) - c;
-		
+
 		STACK_PUSH(oldp, i);
 	}  /* end of the loop that tests polys   */
 
@@ -1878,11 +1878,11 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		BLI_gset_free(poly_gset, NULL);
 		MEM_freeN(poly_keys);
 	}
-	
+
 	/*create new cddm*/
 	cddm2 = (CDDerivedMesh *)CDDM_from_template(
 	        (DerivedMesh *)cddm, STACK_SIZE(mvert), STACK_SIZE(medge), 0, STACK_SIZE(mloop), STACK_SIZE(mpoly));
-	
+
 	/*update edge indices and copy customdata*/
 	med = medge;
 	for (i = 0; i < cddm2->dm.numEdgeData; i++, med++) {
@@ -1896,7 +1896,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 
 		CustomData_copy_data(&dm->edgeData, &cddm2->dm.edgeData, olde[i], i, 1);
 	}
-	
+
 	/*update loop indices and copy customdata*/
 	ml = mloop;
 	for (i = 0; i < cddm2->dm.numLoopData; i++, ml++) {
@@ -1906,19 +1906,19 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 
 		CustomData_copy_data(&dm->loopData, &cddm2->dm.loopData, oldl[i], i, 1);
 	}
-	
+
 	/*copy vertex customdata*/
 	mv = mvert;
 	for (i = 0; i < cddm2->dm.numVertData; i++, mv++) {
 		CustomData_copy_data(&dm->vertData, &cddm2->dm.vertData, oldv[i], i, 1);
 	}
-	
+
 	/*copy poly customdata*/
 	mp = mpoly;
 	for (i = 0; i < cddm2->dm.numPolyData; i++, mp++) {
 		CustomData_copy_data(&dm->polyData, &cddm2->dm.polyData, oldp[i], i, 1);
 	}
-	
+
 	/*copy over data.  CustomData_add_layer can do this, need to look it up.*/
 	memcpy(cddm2->mvert, mvert, sizeof(MVert) * STACK_SIZE(mvert));
 	memcpy(cddm2->medge, medge, sizeof(MEdge) * STACK_SIZE(medge));
@@ -1946,7 +1946,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	/*free old derivedmesh*/
 	dm->needsFree = 1;
 	dm->release(dm);
-	
+
 	return (DerivedMesh *)cddm2;
 }
 #endif
@@ -1966,7 +1966,7 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	for (i = 0; i < numFaces; i++, mf++) {
 		BLI_edgeset_add(eh, mf->v1, mf->v2);
 		BLI_edgeset_add(eh, mf->v2, mf->v3);
-		
+
 		if (mf->v4) {
 			BLI_edgeset_add(eh, mf->v3, mf->v4);
 			BLI_edgeset_add(eh, mf->v4, mf->v1);
@@ -2212,7 +2212,7 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 void CDDM_set_mvert(DerivedMesh *dm, MVert *mvert)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-	
+
 	if (!CustomData_has_layer(&dm->vertData, CD_MVERT))
 		CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, mvert, dm->numVertData);
 

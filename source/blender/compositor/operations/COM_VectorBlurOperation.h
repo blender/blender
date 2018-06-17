@@ -34,27 +34,27 @@ private:
 	SocketReader *m_inputImageProgram;
 	SocketReader *m_inputSpeedProgram;
 	SocketReader *m_inputZProgram;
-	
+
 	/**
 	 * @brief settings of the glare node.
 	 */
 	NodeBlurData *m_settings;
-	
+
 	float *m_cachedInstance;
 
 public:
 	VectorBlurOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
@@ -65,9 +65,9 @@ public:
 	void setVectorBlurSettings(NodeBlurData *settings) { this->m_settings = settings; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 protected:
-	
+
 	void generateVectorBlur(float *data, MemoryBuffer *inputImage, MemoryBuffer *inputSpeed, MemoryBuffer *inputZ);
-	
-	
+
+
 };
 #endif

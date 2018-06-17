@@ -109,7 +109,7 @@ unsigned long long IMB_indexer_get_seek_pos_dts(
 	struct anim_index *idx, int frameno_index);
 
 int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno);
-unsigned long long IMB_indexer_get_pts(struct anim_index *idx, 
+unsigned long long IMB_indexer_get_pts(struct anim_index *idx,
                                        int frame_index);
 int IMB_indexer_get_duration(struct anim_index *idx);
 

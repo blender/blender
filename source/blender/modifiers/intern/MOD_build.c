@@ -116,7 +116,7 @@ static Mesh *applyModifier(
 		MPoly *mpoly, *mp;
 		MLoop *ml, *mloop;
 		uintptr_t hash_num, hash_num_alt;
-		
+
 		if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
 			BLI_array_randomize(faceMap, sizeof(*faceMap),
 			                    numPoly_src, bmd->seed);
@@ -254,7 +254,7 @@ static Mesh *applyModifier(
 
 	mpoly_dst = result->mpoly;
 	ml_dst = result->mloop;
-	
+
 	/* copy the faces across, remapping indices */
 	k = 0;
 	for (i = 0; i < numFaces_dst; i++) {
@@ -279,7 +279,7 @@ static Mesh *applyModifier(
 	BLI_ghash_free(vertHash, NULL, NULL);
 	BLI_ghash_free(edgeHash, NULL, NULL);
 	BLI_ghash_free(edgeHash2, NULL, NULL);
-	
+
 	MEM_freeN(vertMap);
 	MEM_freeN(edgeMap);
 	MEM_freeN(faceMap);

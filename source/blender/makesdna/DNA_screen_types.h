@@ -79,7 +79,7 @@ typedef struct bScreen {
 	char skip_handling;					/* set to delay screen handling after switching back from maximized area */
 	char scrubbing;						/* set when scrubbing to avoid some costly updates */
 	char pad[3];
-	
+
 	struct ARegion *active_region;		/* active region that has mouse focus */
 
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
@@ -266,7 +266,7 @@ typedef struct ScrArea_Runtime {
 
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
-	
+
 	ScrVert *v1, *v2, *v3, *v4;		/* ordered (bl, tl, tr, br) */
 	bScreen *full;			/* if area==full, this is the parent */
 
@@ -287,7 +287,7 @@ typedef struct ScrArea {
 	short region_active_win;		/* index of last used region of 'RGN_TYPE_WINDOW'
 									 * runtime variable, updated by executing operators */
 	char temp, pad;
-	
+
 	struct SpaceType *type;		/* callbacks for this space type */
 
 	/* Non-NULL if this area is global. */
@@ -317,28 +317,28 @@ typedef struct ARegion_Runtime {
 
 typedef struct ARegion {
 	struct ARegion *next, *prev;
-	
+
 	View2D v2d;					/* 2D-View scrolling/zoom info (most regions are 2d anyways) */
 	rcti winrct;				/* coordinates of region */
 	rcti drawrct;				/* runtime for partial redraw, same or smaller than winrct */
 	short winx, winy;			/* size */
-	
+
 	short visible;              /* region is currently visible on screen */
 	short regiontype;			/* window, header, etc. identifier for drawing */
 	short alignment;			/* how it should split */
 	short flag;					/* hide, ... */
-	
+
 	float fsize;				/* current split size in float (unused) */
 	short sizex, sizey;			/* current split size in pixels (if zero it uses regiontype) */
-	
+
 	short do_draw;				/* private, cached notifier events */
 	short do_draw_overlay;		/* private, cached notifier events */
 	short overlap;				/* private, set for indicate drawing overlapped */
 	short flagfullscreen;		/* temporary copy of flag settings for clean fullscreen */
 	short pad1, pad2;
-	
+
 	struct ARegionType *type;	/* callbacks for this region type */
-	
+
 	ListBase uiblocks;			/* uiBlock */
 	ListBase panels;			/* Panel */
 	ListBase panels_category_active;	/* Stack of panel categories */

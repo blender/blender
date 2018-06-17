@@ -97,7 +97,7 @@ public:
 		return *this;
 	}
 
-	virtual ~Rep() 
+	virtual ~Rep()
 	{
 		if (0 != _FrsMaterial) {
 			delete _FrsMaterial;

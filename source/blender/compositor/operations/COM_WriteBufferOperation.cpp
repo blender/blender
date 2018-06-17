@@ -131,7 +131,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti * /*re
 
 	cl_mem clOutputBuffer = clCreateImage2D(device->getContext(), CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-	
+
 	// STEP 2
 	list<cl_mem> *clMemToCleanUp = new list<cl_mem>();
 	clMemToCleanUp->push_back(clOutputBuffer);
@@ -151,7 +151,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti * /*re
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	error = clEnqueueReadImage(device->getQueue(), clOutputBuffer, CL_TRUE, origin, region, 0, 0, outputFloatBuffer, 0, NULL, NULL);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-	
+
 	this->getMemoryProxy()->getBuffer()->copyContentFrom(outputBuffer);
 
 	// STEP 4

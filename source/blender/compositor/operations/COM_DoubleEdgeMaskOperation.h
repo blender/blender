@@ -43,12 +43,12 @@ public:
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
@@ -57,7 +57,7 @@ public:
 	void *initializeTileData(rcti *rect);
 
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	
+
 	void setAdjecentOnly(bool adjecentOnly) { this->m_adjecentOnly = adjecentOnly; }
 	void setKeepInside(bool keepInside) { this->m_keepInside = keepInside; }
 };

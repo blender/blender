@@ -53,14 +53,14 @@ void ColorBalanceASCCDLOperation::executePixelSampled(float output[4], float x, 
 {
 	float inputColor[4];
 	float value[4];
-	
+
 	this->m_inputValueOperation->readSampled(value, x, y, sampler);
 	this->m_inputColorOperation->readSampled(inputColor, x, y, sampler);
-	
+
 	float fac = value[0];
 	fac = min(1.0f, fac);
 	const float mfac = 1.0f - fac;
-	
+
 	output[0] = mfac * inputColor[0] + fac * colorbalance_cdl(inputColor[0], this->m_offset[0], this->m_power[0], this->m_slope[0]);
 	output[1] = mfac * inputColor[1] + fac * colorbalance_cdl(inputColor[1], this->m_offset[1], this->m_power[1], this->m_slope[1]);
 	output[2] = mfac * inputColor[2] + fac * colorbalance_cdl(inputColor[2], this->m_offset[2], this->m_power[2], this->m_slope[2]);

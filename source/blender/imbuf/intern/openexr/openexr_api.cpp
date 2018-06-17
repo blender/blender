@@ -912,7 +912,7 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
 
 			for (size_t i = 0; i < channels.size(); i++) {
 				IMB_exr_add_channel(data, NULL, channels[i].name.c_str(), channels[i].view.c_str(), 0, 0, NULL, false);
-		
+
 				echan = (ExrChannel *)data->channels.last;
 				echan->m->name = channels[i].name;
 				echan->m->view = channels[i].view;
@@ -1274,7 +1274,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 	const char *token;
 	char tokenbuf[EXR_TOT_MAXNAME];
 	int len;
-	
+
 	/* some multilayers have the combined buffer with names A B G R saved */
 	if (name[1] == 0) {
 		echan->chan_id = name[0];

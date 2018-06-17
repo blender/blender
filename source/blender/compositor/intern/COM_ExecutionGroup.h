@@ -65,89 +65,89 @@ typedef enum ChunkExecutionState {
 class ExecutionGroup {
 public:
 	typedef std::vector<NodeOperation*> Operations;
-	
+
 private:
 	// fields
-	
+
 	/**
 	 * @brief list of operations in this ExecutionGroup
 	 */
 	Operations m_operations;
-	
+
 	/**
 	 * @brief is this ExecutionGroup an input ExecutionGroup
 	 * an input execution group is a group that is at the end of the calculation (the output is important for the user)
 	 */
 	int m_isOutput;
-	
+
 	/**
 	 * @brief Width of the output
 	 */
 	unsigned int m_width;
-	
+
 	/**
 	 * @brief Height of the output
 	 */
 	unsigned int m_height;
-	
+
 	/**
 	 * @brief size of a single chunk, being Width or of height
 	 * a chunk is always a square, except at the edges of the MemoryBuffer
 	 */
 	unsigned int m_chunkSize;
-	
+
 	/**
 	 * @brief number of chunks in the x-axis
 	 */
 	unsigned int m_numberOfXChunks;
-	
+
 	/**
 	 * @brief number of chunks in the y-axis
 	 */
 	unsigned int m_numberOfYChunks;
-	
+
 	/**
 	 * @brief total number of chunks
 	 */
 	unsigned int m_numberOfChunks;
-	
+
 	/**
 	 * @brief contains this ExecutionGroup a complex NodeOperation.
 	 */
 	bool m_complex;
-	
+
 	/**
 	 * @brief can this ExecutionGroup be scheduled on an OpenCLDevice
 	 */
 	bool m_openCL;
-	
+
 	/**
 	 * @brief Is this Execution group SingleThreaded
 	 */
 	bool m_singleThreaded;
-	
+
 	/**
 	 * @brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
 	 * @note this is used to construct the MemoryBuffers that will be passed during execution.
 	 */
 	unsigned int m_cachedMaxReadBufferOffset;
-	
+
 	/**
 	 * @brief a cached vector of all read operations in the execution group.
 	 */
 	Operations m_cachedReadOperations;
-	
+
 	/**
 	 * @brief reference to the original bNodeTree, this field is only set for the 'top' execution group.
 	 * @note can only be used to call the callbacks for progress, status and break
 	 */
 	const bNodeTree *m_bTree;
-	
+
 	/**
 	 * @brief total number of chunks that have been calculated for this ExecutionGroup
 	 */
 	unsigned int m_chunksFinished;
-	
+
 	/**
 	 * @brief the chunkExecutionStates holds per chunk the execution state. this state can be
 	 *   - COM_ES_NOT_SCHEDULED: not scheduled
@@ -155,7 +155,7 @@ private:
 	 *   - COM_ES_EXECUTED: executed
 	 */
 	ChunkExecutionState *m_chunkExecutionStates;
-	
+
 	/**
 	 * @brief indicator when this ExecutionGroup has valid Operations in its vector for Execution
 	 * @note When building the ExecutionGroup Operations are added via recursion. First a WriteBufferOperations is added, then the
@@ -184,7 +184,7 @@ private:
 	 * @param operation the operation to be added
 	 */
 	bool canContainOperation(NodeOperation *operation);
-		
+
 	/**
 	 * @brief calculate the actual chunk size of this execution group.
 	 * @note A chunk size is an unsigned int that is both the height and width of a chunk.
@@ -192,21 +192,21 @@ private:
 	 * @note by the calling method.
 	 */
 	unsigned int determineChunkSize();
-	
-	
+
+
 	/**
 	 * @brief Determine the rect (minx, maxx, miny, maxy) of a chunk at a position.
 	 * @note Only gives useful results ater the determination of the chunksize
 	 * @see determineChunkSize()
 	 */
 	void determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk) const;
-	
+
 	/**
 	 * @brief determine the number of chunks, based on the chunkSize, width and height.
 	 * @note The result are stored in the fields numberOfChunks, numberOfXChunks, numberOfYChunks
 	 */
 	void determineNumberOfChunks();
-	
+
 	/**
 	 * @brief try to schedule a specific chunk.
 	 * @note scheduling succeeds when all input requirements are met and the chunks hasn't been scheduled yet.
@@ -236,7 +236,7 @@ private:
 	 * @param chunknumber
 	 */
 	bool scheduleChunk(unsigned int chunkNumber);
-	
+
 	/**
 	 * @brief determine the area of interest of a certain input area
 	 * @note This method only evaluates a single ReadBufferOperation
@@ -250,7 +250,7 @@ private:
 public:
 	// constructors
 	ExecutionGroup();
-	
+
 	// methods
 	/**
 	 * @brief add an operation to this ExecutionGroup
@@ -261,7 +261,7 @@ public:
 	 * @return True if the operation was successfully added
 	 */
 	bool addOperation(NodeOperation *operation);
-	
+
 	/**
 	 * @brief is this ExecutionGroup an output ExecutionGroup
 	 * @note An OutputExecution group are groups containing a
@@ -281,47 +281,47 @@ public:
 	 * @param resolution
 	 */
 	void determineResolution(unsigned int resolution[2]);
-	
+
 	/**
 	 * @brief set the resolution of this executiongroup
 	 * @param resolution
 	 */
 	void setResolution(unsigned int resolution[2]) { this->m_width = resolution[0]; this->m_height = resolution[1]; }
-	
+
 	/**
 	 * @brief get the width of this execution group
 	 */
 	unsigned int getWidth() const { return m_width; }
-	
+
 	/**
 	 * @brief get the height of this execution group
 	 */
 	unsigned int getHeight() const { return m_height; }
-	
+
 	/**
 	 * @brief does this ExecutionGroup contains a complex NodeOperation
 	 */
 	bool isComplex() const { return m_complex; }
-	
-	
+
+
 	/**
 	 * @brief get the output operation of this ExecutionGroup
 	 * @return NodeOperation *output operation
 	 */
 	NodeOperation *getOutputOperation() const;
-	
+
 	/**
 	 * @brief compose multiple chunks into a single chunk
 	 * @return Memorybuffer *consolidated chunk
 	 */
 	MemoryBuffer *constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *output);
-	
+
 	/**
 	 * @brief initExecution is called just before the execution of the whole graph will be done.
 	 * @note The implementation will calculate the chunkSize of this execution group.
 	 */
 	void initExecution();
-	
+
 	/**
 	 * @brief get all inputbuffers needed to calculate an chunk
 	 * @note all inputbuffers must be executed
@@ -352,14 +352,14 @@ public:
 	 * @param memorybuffers
 	 */
 	void finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers);
-	
+
 	/**
 	 * @brief deinitExecution is called just after execution the whole graph.
 	 * @note It will release all needed resources
 	 */
 	void deinitExecution();
-	
-	
+
+
 	/**
 	 * @brief schedule an ExecutionGroup
 	 * @note this method will return when all chunks have been calculated, or the execution has breaked (by user)
@@ -375,7 +375,7 @@ public:
 	 * @param system
 	 */
 	void execute(ExecutionSystem *system);
-	
+
 	/**
 	 * @brief this method determines the MemoryProxy's where this execution group depends on.
 	 * @note After this method determineDependingAreaOfInterest can be called to determine
@@ -383,7 +383,7 @@ public:
 	 * @param memoryProxies result
 	 */
 	void determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies);
-	
+
 	/**
 	 * @brief Determine the rect (minx, maxx, miny, maxy) of a chunk.
 	 * @note Only gives useful results ater the determination of the chunksize

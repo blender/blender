@@ -89,7 +89,7 @@ PyObject *Vector_from_Vec3f(Vec3f& vec)
 	float vec_data[3]; // because vec->_coord is protected
 	vec_data[0] = vec.x();
 	vec_data[1] = vec.y();
-	vec_data[2] = vec.z(); 
+	vec_data[2] = vec.z();
 	return Vector_CreatePyObject(vec_data, 3, NULL);
 }
 
@@ -356,7 +356,7 @@ PyObject *BPy_SShape_from_SShape(SShape& ss)
 	PyObject *py_ss = SShape_Type.tp_new(&SShape_Type, 0, 0);
 	((BPy_SShape *)py_ss)->ss = &ss;
 	((BPy_SShape *)py_ss)->borrowed = true;
-	return py_ss;	
+	return py_ss;
 }
 
 PyObject *BPy_ViewShape_from_ViewShape(ViewShape& vs)

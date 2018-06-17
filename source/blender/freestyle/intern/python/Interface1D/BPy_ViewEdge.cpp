@@ -182,7 +182,7 @@ PyDoc_STRVAR(ViewEdge_viewshape_doc,
 ":type: :class:`ViewShape`");
 
 static PyObject *ViewEdge_viewshape_get(BPy_ViewEdge *self, void *UNUSED(closure))
-{	
+{
 	ViewShape *vs = self->ve->viewShape();
 	if (vs)
 		return BPy_ViewShape_from_ViewShape(*vs);

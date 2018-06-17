@@ -37,7 +37,7 @@ NodeLight::NodeLight() : Node()
 		_number = 7;
 	}
 	else {
-		_number = numberOfLights; 
+		_number = numberOfLights;
 		numberOfLights++;
 	}
 
@@ -61,7 +61,7 @@ NodeLight::NodeLight(NodeLight& iBrother) : Node(iBrother)
 		_number = 7;
 	}
 	else {
-		_number = numberOfLights; 
+		_number = numberOfLights;
 		numberOfLights++;
 	}
 

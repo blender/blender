@@ -284,7 +284,7 @@ static int load(istream& in, FEdge *fe)
 		load(in, v);
 		fesharp->setNormalB(v);
 
-		// Materials 
+		// Materials
 		READ(matindex);
 		fesharp->setaFrsMaterialIndex(matindex);
 		READ(matindex);

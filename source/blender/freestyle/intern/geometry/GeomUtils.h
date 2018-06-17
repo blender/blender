@@ -174,7 +174,7 @@ void fromWorldToImage(const Vec3r& p, Vec3r& q, const real model_view_matrix[4][
  */
 void fromWorldToImage(const Vec3r& p, Vec3r& q, const real transform[4][4], const int viewport[4]);
 
-/*! Projects from world coordinates to camera coordinates 
+/*! Projects from world coordinates to camera coordinates
  *  Returns the point's coordinates expressed in the camera's
  *  coordinates system.
  *  p
@@ -220,7 +220,7 @@ void fromRetinaToImage(const Vec3r& p, Vec3r& q, const int viewport[4]);
  */
 void fromImageToRetina(const Vec3r& p, Vec3r& q, const int viewport[4]);
 
-/*! computes the coordinates of q in the camera coordinates system, 
+/*! computes the coordinates of q in the camera coordinates system,
  *  using the known z coordinates of the 3D point.
  *  That means that this method does not inverse any matrices,
  *  it only computes X and Y from x,y and Z)

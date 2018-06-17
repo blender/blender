@@ -87,7 +87,7 @@ float *InpaintSimpleOperation::get_pixel(int x, int y)
 	        x * COM_NUM_CHANNELS_COLOR];
 }
 
-int InpaintSimpleOperation::mdist(int x, int y) 
+int InpaintSimpleOperation::mdist(int x, int y)
 {
 	int width = this->getWidth();
 
@@ -103,7 +103,7 @@ bool InpaintSimpleOperation::next_pixel(int &x, int &y, int & curr, int iters)
 	if (curr >= this->m_area_size) {
 		return false;
 	}
-	
+
 	int r = this->m_pixelorder[curr++];
 
 	x = r % width;
@@ -112,11 +112,11 @@ bool InpaintSimpleOperation::next_pixel(int &x, int &y, int & curr, int iters)
 	if (this->mdist(x, y) > iters) {
 		return false;
 	}
-	
+
 	return true;
 }
 
-void InpaintSimpleOperation::calc_manhatten_distance() 
+void InpaintSimpleOperation::calc_manhatten_distance()
 {
 	int width = this->getWidth();
 	int height = this->getHeight();
@@ -131,9 +131,9 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 			/* no need to clamp here */
 			if (this->get_pixel(i, j)[3] < 1.0f) {
 				r = width + height;
-				if (i > 0) 
+				if (i > 0)
 					r = min_ii(r, m[j * width + i - 1] + 1);
-				if (j > 0) 
+				if (j > 0)
 					r = min_ii(r, m[(j - 1) * width + i] + 1);
 			}
 			m[j * width + i] = r;
@@ -143,27 +143,27 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 	for (int j = height - 1; j >= 0; j--) {
 		for (int i = width - 1; i >= 0; i--) {
 			int r = m[j * width + i];
-			
-			if (i + 1 < width) 
+
+			if (i + 1 < width)
 				r = min_ii(r, m[j * width + i + 1] + 1);
-			if (j + 1 < height) 
+			if (j + 1 < height)
 				r = min_ii(r, m[(j + 1) * width + i] + 1);
-			
+
 			m[j * width + i] = r;
-			
+
 			offsets[r]++;
 		}
 	}
-	
+
 	offsets[0] = 0;
-	
+
 	for (int i = 1; i < width + height + 1; i++) {
 		offsets[i] += offsets[i - 1];
 	}
-	
+
 	this->m_area_size = offsets[width + height];
 	this->m_pixelorder = (int *)MEM_mallocN(sizeof(int) * this->m_area_size, __func__);
-	
+
 	for (int i = 0; i < width * height; i++) {
 		if (m[i] > 0) {
 			this->m_pixelorder[offsets[m[i] - 1]++] = i;
@@ -230,7 +230,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 		int curr = 0;
 		int x, y;
 
-	
+
 		while (this->next_pixel(x, y, curr, this->m_iterations)) {
 			this->pix_step(x, y);
 		}
@@ -275,12 +275,12 @@ bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/, 
 	}
 	else {
 		rcti newInput;
-	
+
 		newInput.xmax = getWidth();
 		newInput.xmin = 0;
 		newInput.ymax = getHeight();
 		newInput.ymin = 0;
-	
+
 		return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 	}
 }

@@ -44,7 +44,7 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter, const Compos
 	NodeInput *imageInput = this->getInputSocket(0);
 	MovieClip *clip = (MovieClip *)editorNode->id;
 	bool invert = (editorNode->custom2 & CMP_NODEFLAG_STABILIZE_INVERSE) != 0;
-	
+
 	ScaleOperation *scaleOperation = new ScaleOperation();
 	scaleOperation->setSampler((PixelSampler)editorNode->custom1);
 	RotateOperation *rotateOperation = new RotateOperation();
@@ -85,18 +85,18 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter, const Compos
 	converter.addOperation(translateOperation);
 	converter.addOperation(rotateOperation);
 	converter.addOperation(psoperation);
-	
+
 	converter.mapInputSocket(imageInput, scaleOperation->getInputSocket(0));
 	converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
 	converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
-	
+
 	converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
 	converter.addLink(angleAttribute->getOutputSocket(), rotateOperation->getInputSocket(1));
 
 	converter.addLink(rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
 	converter.addLink(xAttribute->getOutputSocket(), translateOperation->getInputSocket(1));
 	converter.addLink(yAttribute->getOutputSocket(), translateOperation->getInputSocket(2));
-	
+
 	converter.addLink(translateOperation->getOutputSocket(), psoperation->getInputSocket(0));
 	converter.mapOutputSocket(getOutputSocket(), psoperation->getOutputSocket());
 }

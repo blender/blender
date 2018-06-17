@@ -104,12 +104,12 @@ void animviz_settings_init(bAnimVizSettings *avs)
 /* ------------------- */
 
 /* Free the given motion path's cache */
-void animviz_free_motionpath_cache(bMotionPath *mpath) 
+void animviz_free_motionpath_cache(bMotionPath *mpath)
 {
 	/* sanity check */
-	if (mpath == NULL) 
+	if (mpath == NULL)
 		return;
-		
+
 	/* free the path if necessary */
 	if (mpath->points)
 		MEM_freeN(mpath->points);
@@ -117,13 +117,13 @@ void animviz_free_motionpath_cache(bMotionPath *mpath)
 	GWN_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
 	GWN_BATCH_DISCARD_SAFE(mpath->batch_line);
 	GWN_BATCH_DISCARD_SAFE(mpath->batch_points);
-	
+
 	/* reset the relevant parameters */
 	mpath->points = NULL;
 	mpath->length = 0;
 }
 
-/* Free the given motion path instance and its data 
+/* Free the given motion path instance and its data
  * NOTE: this frees the motion path given!
  */
 void animviz_free_motionpath(bMotionPath *mpath)
@@ -131,10 +131,10 @@ void animviz_free_motionpath(bMotionPath *mpath)
 	/* sanity check */
 	if (mpath == NULL)
 		return;
-	
+
 	/* free the cache first */
 	animviz_free_motionpath_cache(mpath);
-	
+
 	/* now the instance itself */
 	MEM_freeN(mpath);
 }
@@ -174,11 +174,11 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 {
 	bAnimVizSettings *avs;
 	bMotionPath *mpath, **dst;
-	
+
 	/* sanity checks */
 	if (ELEM(NULL, scene, ob))
 		return NULL;
-		
+
 	/* get destination data */
 	if (pchan) {
 		/* paths for posechannel - assume that posechannel belongs to the object */
@@ -206,9 +206,9 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 	 */
 	if (*dst != NULL) {
 		int expected_length = avs->path_ef - avs->path_sf;
-		
+
 		mpath = *dst;
-		
+
 		/* path is "valid" if length is valid, but must also be of the same length as is being requested */
 		if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0)) {
 			/* outer check ensures that we have some curve data for this path */
@@ -227,13 +227,13 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 		mpath = MEM_callocN(sizeof(bMotionPath), "bMotionPath");
 		*dst = mpath;
 	}
-	
+
 	/* set settings from the viz settings */
 	mpath->start_frame = avs->path_sf;
 	mpath->end_frame = avs->path_ef;
-	
+
 	mpath->length = mpath->end_frame - mpath->start_frame;
-	
+
 	if (avs->path_bakeflag & MOTIONPATH_BAKE_HEADS)
 		mpath->flag |= MOTIONPATH_FLAG_BHEAD;
 	else
@@ -249,10 +249,10 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 
 	/* allocate a cache */
 	mpath->points = MEM_callocN(sizeof(bMotionPathVert) * mpath->length, "bMotionPathVerts");
-	
+
 	/* tag viz settings as currently having some path(s) which use it */
 	avs->path_bakeflag |= MOTIONPATH_BAKE_HAS_PATHS;
-	
+
 	/* return it */
 	return mpath;
 }
@@ -262,15 +262,15 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 /* Motion path needing to be baked (mpt) */
 typedef struct MPathTarget {
 	struct MPathTarget *next, *prev;
-	
+
 	bMotionPath *mpath;         /* motion path in question */
 
 	DLRBT_Tree keys;         /* temp, to know where the keyframes are */
-	
+
 	/* Original (Source Objects) */
 	Object *ob;                 /* source object */
 	bPoseChannel *pchan;        /* source posechannel (if applicable) */
-	
+
 	/* "Evaluated" Copies (these come from the background COW copie
 	 * that provide all the coordinates we want to save off)
 	 */
@@ -286,28 +286,28 @@ typedef struct MPathTarget {
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;
-	
+
 	/* object itself first */
 	if ((ob->avs.recalc & ANIMVIZ_RECALC_PATHS) && (ob->mpath)) {
 		/* new target for object */
 		mpt = MEM_callocN(sizeof(MPathTarget), "MPathTarget Ob");
 		BLI_addtail(targets, mpt);
-		
+
 		mpt->mpath = ob->mpath;
 		mpt->ob = ob;
 	}
-	
+
 	/* bones */
 	if ((ob->pose) && (ob->pose->avs.recalc & ANIMVIZ_RECALC_PATHS)) {
 		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
-		
+
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			if ((pchan->bone) && (arm->layer & pchan->bone->layer) && (pchan->mpath)) {
 				/* new target for bone */
 				mpt = MEM_callocN(sizeof(MPathTarget), "MPathTarget PoseBone");
 				BLI_addtail(targets, mpt);
-				
+
 				mpt->mpath = pchan->mpath;
 				mpt->ob = ob;
 				mpt->pchan = pchan;
@@ -341,22 +341,22 @@ static void motionpaths_calc_update_scene(Main *bmain,
 static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 {
 	MPathTarget *mpt;
-	
+
 	/* for each target, check if it can be baked on the current frame */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {
 		bMotionPath *mpath = mpt->mpath;
 		bMotionPathVert *mpv;
-		
-		/* current frame must be within the range the cache works for 
+
+		/* current frame must be within the range the cache works for
 		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
 		 */
 		if ((CFRA < mpath->start_frame) || (CFRA >= mpath->end_frame)) {
 			continue;
 		}
-		
+
 		/* get the relevant cache vert to write to */
 		mpv = mpath->points + (CFRA - mpath->start_frame);
-		
+
 		Object *ob_eval = mpt->ob_eval;
 
 		/* Lookup evaluated pose channel, here because the depsgraph
@@ -375,7 +375,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 			else {
 				copy_v3_v3(mpv->co, pchan_eval->pose_tail);
 			}
-			
+
 			/* result must be in worldspace */
 			mul_m4_v3(ob_eval->obmat, mpv->co);
 		}
@@ -393,7 +393,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	}
 }
 
-/* Perform baking of the given object's and/or its bones' transforms to motion paths 
+/* Perform baking of the given object's and/or its bones' transforms to motion paths
  *	- scene: current scene
  *	- ob: object whose flagged motionpaths should get calculated
  *	- recalc: whether we need to
@@ -404,15 +404,15 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	MPathTarget *mpt;
 	int sfra, efra;
 	int cfra;
-	
+
 	/* sanity check */
 	if (ELEM(NULL, targets, targets->first))
 		return;
-	
+
 	/* set frame values */
 	cfra = CFRA;
 	sfra = efra = cfra;
-	
+
 	/* TODO: this method could be improved...
 	 * 1) max range for standard baking
 	 * 2) minimum range for recalc baking (i.e. between keyframes, but how?) */
@@ -422,8 +422,8 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		efra = MAX2(efra, mpt->mpath->end_frame);
 	}
 	if (efra <= sfra) return;
-	
-	
+
+
 	/* get copies of objects/bones to get the calculated results from
 	 * (for copy-on-write evaluation), so that we actually get some results
 	 */
@@ -471,23 +471,23 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(scene, targets);
 	}
-	
+
 	/* reset original environment */
 	// XXX: Soon to be obsolete
 	CFRA = cfra;
 	motionpaths_calc_update_scene(bmain, depsgraph);
-	
+
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {
 		bAnimVizSettings *avs;
 		bMotionPath *mpath = mpt->mpath;
-		
+
 		/* get pointer to animviz settings for each target */
 		if (mpt->pchan)
 			avs = &mpt->ob->pose->avs;
 		else
 			avs = &mpt->ob->avs;
-		
+
 		/* clear the flag requesting recalculation of targets */
 		avs->recalc &= ~ANIMVIZ_RECALC_PATHS;
 
@@ -504,7 +504,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 /* ******************************************************************** */
 /* Curve Paths - for curve deforms and/or curve following */
 
-/* free curve path data 
+/* free curve path data
  * NOTE: frees the path itself!
  * NOTE: this is increasingly inaccurate with non-uniform BevPoint subdivisions [#24633]
  */
@@ -514,7 +514,7 @@ void free_path(Path *path)
 	MEM_freeN(path);
 }
 
-/* calculate a curve-deform path for a curve 
+/* calculate a curve-deform path for a curve
  *  - only called from displist.c -> do_makeDispListCurveTypes
  */
 void calc_curvepath(Object *ob, ListBase *nurbs)
@@ -527,17 +527,17 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 	float *fp, *dist, *maxdist, xyz[3];
 	float fac, d = 0, fac1, fac2;
 	int a, tot, cycl = 0;
-	
+
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
-	
+
 	if (ob == NULL || ob->type != OB_CURVE) {
 		return;
 	}
 
 	if (ob->curve_cache->path) free_path(ob->curve_cache->path);
 	ob->curve_cache->path = NULL;
-	
+
 	/* weak! can only use first curve */
 	bl = ob->curve_cache->bev.first;
 	if (bl == NULL || !bl->nr) {
@@ -547,18 +547,18 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 	nu = nurbs->first;
 
 	ob->curve_cache->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
-	
+
 	/* if POLY: last vertice != first vertice */
 	cycl = (bl->poly != -1);
-	
+
 	tot = cycl ? bl->nr : bl->nr - 1;
-	
+
 	path->len = tot + 1;
 	/* exception: vector handle paths and polygon paths should be subdivided at least a factor resolu */
 	if (path->len < nu->resolu * SEGMENTSU(nu)) {
 		path->len = nu->resolu * SEGMENTSU(nu);
 	}
-	
+
 	dist = (float *)MEM_mallocN(sizeof(float) * (tot + 1), "calcpathdist");
 
 	/* all lengths in *dist */
@@ -571,13 +571,13 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 			sub_v3_v3v3(xyz, bevpfirst->vec, bevp->vec);
 		else
 			sub_v3_v3v3(xyz, (bevp + 1)->vec, bevp->vec);
-		
+
 		*fp = *(fp - 1) + len_v3(xyz);
 		bevp++;
 	}
-	
+
 	path->totdist = *fp;
-	
+
 	/* the path verts  in path->data */
 	/* now also with TILT value */
 	pp = path->data = (PathPoint *)MEM_callocN(sizeof(PathPoint) * path->len, "pathdata");
@@ -592,11 +592,11 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 	maxdist = dist + tot;
 	fac = 1.0f / ((float)path->len - 1.0f);
 	fac = fac * path->totdist;
-	
+
 	for (a = 0; a < path->len; a++) {
-		
+
 		d = ((float)a) * fac;
-		
+
 		/* we're looking for location (distance) 'd' in the array */
 		if (LIKELY(tot > 0)) {
 			while ((fp < maxdist) && (d >= *fp)) {
@@ -622,10 +622,10 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 		pp->weight = fac1 * bevp->weight + fac2 * bevpn->weight;
 		interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);
 		normalize_qt(pp->quat);
-		
+
 		pp++;
 	}
-	
+
 	MEM_freeN(dist);
 }
 
@@ -669,7 +669,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	}
 	path = ob->curve_cache->path;
 	pp = path->data;
-	
+
 	/* test for cyclic */
 	bl = ob->curve_cache->bev.first;
 	if (!bl) return 0;
@@ -680,7 +680,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	BLI_assert(cycl || ctime >= 0.0f);
 
 	ctime *= (path->len - 1);
-	
+
 	s1 = (int)floor(ctime);
 	fac = (float)(s1 + 1) - ctime;
 

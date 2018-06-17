@@ -83,15 +83,15 @@ static int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f *self, PyObjec
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
-	
+
 	if (!obj)
 		self->uf1D_vec3f = new UnaryFunction1D<Vec3f>();
 	else {
 		self->uf1D_vec3f = new UnaryFunction1D<Vec3f>(IntegrationType_from_BPy_IntegrationType(obj));
 	}
-	
+
 	self->uf1D_vec3f->py_uf1D = (PyObject *)self;
-	
+
 	return 0;
 }
 

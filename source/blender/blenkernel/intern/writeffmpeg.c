@@ -231,7 +231,7 @@ static AVFrame *alloc_picture(int pix_fmt, int width, int height)
 	AVFrame *f;
 	uint8_t *buf;
 	int size;
-	
+
 	/* allocate space for the struct */
 	f = av_frame_alloc();
 	if (!f) return NULL;
@@ -511,7 +511,7 @@ static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char 
 	if (!rd->ffcodecdata.properties) {
 		return;
 	}
-	
+
 	prop = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, prop_name);
 	if (!prop) {
 		return;
@@ -540,13 +540,13 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 	st->id = 0;
 
 	/* Set up the codec context */
-	
+
 	c = st->codec;
 	c->codec_id = codec_id;
 	c->codec_type = AVMEDIA_TYPE_VIDEO;
 
 	/* Get some values from the current render settings */
-	
+
 	c->width = rectx;
 	c->height = recty;
 
@@ -563,7 +563,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 		c->time_base.den = rd->frs_sec * 100000;
 		c->time_base.num = ((double) rd->frs_sec_base) * 100000;
 	}
-	
+
 	c->gop_size = context->ffmpeg_gop_size;
 	c->max_b_frames = context->ffmpeg_max_b_frames;
 
@@ -617,11 +617,11 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 
 	/* Deprecated and not doing anything since July 2015, deleted in recent ffmpeg */
 	//c->me_method = ME_EPZS;
-	
+
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec)
 		return NULL;
-	
+
 	/* Be sure to use the correct pixel format(e.g. RGB, YUV) */
 
 	if (codec->pix_fmts) {
@@ -643,7 +643,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 		c->qmin = 10;
 		c->qmax = 51;
 	}
-	
+
 	/* Keep lossless encodes in the RGB domain. */
 	if (codec_id == AV_CODEC_ID_HUFFYUV) {
 		if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
@@ -681,7 +681,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 		PRINT("Using global header\n");
 		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
-	
+
 	/* xasp & yasp got float lately... */
 
 	st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q(((double) rd->xasp / (double) rd->yasp), 255);
@@ -879,7 +879,7 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 	        name, context->ffmpeg_type, context->ffmpeg_codec, context->ffmpeg_audio_codec,
 	        context->ffmpeg_video_bitrate, context->ffmpeg_audio_bitrate,
 	        context->ffmpeg_gop_size, context->ffmpeg_autosplit, rectx, recty);
-	
+
 	exts = get_file_extensions(context->ffmpeg_type);
 	if (!exts) {
 		BKE_report(reports, RPT_ERROR, "No valid formats found");
@@ -967,7 +967,7 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 			goto fail;
 		}
 	}
-	
+
 	if (context->ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = AV_CODEC_ID_PCM_S16LE;
 		if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
@@ -975,7 +975,7 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 			goto fail;
 		}
 	}
-	
+
 	if (fmt->video_codec != AV_CODEC_ID_NONE) {
 		context->video_stream = alloc_video_stream(context, rd, fmt->video_codec, of, rectx, recty, error, sizeof(error));
 		PRINT("alloc video stream %p\n", context->video_stream);
@@ -1061,14 +1061,14 @@ fail:
 static void flush_ffmpeg(FFMpegContext *context)
 {
 	int ret = 0;
-	
+
 	AVCodecContext *c = context->video_stream->codec;
 	/* get the delayed frames */
 	while (1) {
 		int got_output;
 		AVPacket packet = { 0 };
 		av_init_packet(&packet);
-		
+
 		ret = avcodec_encode_video2(c, &packet, NULL, &got_output);
 		if (ret < 0) {
 			fprintf(stderr, "Error encoding delayed frame %d\n", ret);
@@ -1294,11 +1294,11 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 		PRINT("Flushing delayed frames...\n");
 		flush_ffmpeg(context);
 	}
-	
+
 	if (context->outfile) {
 		av_write_trailer(context->outfile);
 	}
-	
+
 	/* Close the video codec */
 
 	if (context->video_stream != NULL && context->video_stream->codec != NULL) {
@@ -1360,7 +1360,7 @@ void BKE_ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
 {
 	struct IDProperty *prop = (struct IDProperty *) prop_;
 	IDProperty *group;
-	
+
 	if (!rd->ffcodecdata.properties) {
 		return;
 	}
@@ -1379,17 +1379,17 @@ static IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, con
 	IDPropertyTemplate val;
 	int idp_type;
 	char name[256];
-	
+
 	val.i = 0;
 
 	avcodec_get_context_defaults3(&c, NULL);
 
 	if (!rd->ffcodecdata.properties) {
-		rd->ffcodecdata.properties = IDP_New(IDP_GROUP, &val, "ffmpeg"); 
+		rd->ffcodecdata.properties = IDP_New(IDP_GROUP, &val, "ffmpeg");
 	}
 
 	group = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, type);
-	
+
 	if (!group) {
 		group = IDP_New(IDP_GROUP, &val, type);
 		IDP_AddToGroup(rd->ffcodecdata.properties, group);
@@ -1449,7 +1449,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	char *name;
 	char *param;
 	IDProperty *prop = NULL;
-	
+
 	avcodec_get_context_defaults3(&c, NULL);
 
 	BLI_strncpy(name_, str, sizeof(name_));
@@ -1466,7 +1466,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 		*param++ = '\0';
 		while (*param == ' ') param++;
 	}
-	
+
 	o = av_opt_find(&c, name, NULL, 0, AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ);
 	if (!o) {
 		PRINT("Ignoring unknown expert option %s\n", str);
@@ -1487,7 +1487,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	else {
 		prop = BKE_ffmpeg_property_add(rd, (char *) type, o, NULL);
 	}
-		
+
 
 	if (!prop) {
 		return 0;

@@ -39,7 +39,7 @@ class CurvePoint_const_traits : public Const_traits<CurvePoint*>
 public:
 	typedef deque<CurvePoint*> vertex_container;
 	typedef vertex_container::const_iterator vertex_container_iterator;
-	typedef SVertex vertex_type; 
+	typedef SVertex vertex_type;
 };
 
 class CurvePoint_nonconst_traits : public Nonconst_traits<CurvePoint*>
@@ -47,7 +47,7 @@ class CurvePoint_nonconst_traits : public Nonconst_traits<CurvePoint*>
 public:
 	typedef deque<CurvePoint*> vertex_container;
 	typedef vertex_container::iterator vertex_container_iterator;
-	typedef SVertex vertex_type; 
+	typedef SVertex vertex_type;
 };
 
 /**********************************/
@@ -325,7 +325,7 @@ protected:
 		}
 	}
 
-	virtual void decrement() 
+	virtual void decrement()
 	{
 		if (_Point != 0) {
 			delete _Point;

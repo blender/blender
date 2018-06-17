@@ -102,7 +102,7 @@ public: // Implementation of Interface0D
 		return _Point3D.z();
 	}
 
-	/*!  Returns the 3D point. */ 
+	/*!  Returns the 3D point. */
 	virtual Vec3r getPoint3D() const
 	{
 		return _Point3D;
@@ -126,7 +126,7 @@ public: // Implementation of Interface0D
 		return _Point2D.z();
 	}
 
-	/*!  Returns the 2D point. */ 
+	/*!  Returns the 2D point. */
 	virtual Vec2r getPoint2D() const
 	{
 		return Vec2r(_Point2D.x(), _Point2D.y());
@@ -144,16 +144,16 @@ public: // Implementation of Interface0D
 	/*! Returns the nature of the vertex .*/
 	virtual Nature::VertexNature getNature() const;
 
-	/*! Cast the Interface0D in SVertex if it can be. */ 
+	/*! Cast the Interface0D in SVertex if it can be. */
 	virtual SVertex *castToSVertex();
 
-	/*! Cast the Interface0D in ViewVertex if it can be. */ 
+	/*! Cast the Interface0D in ViewVertex if it can be. */
 	virtual ViewVertex *castToViewVertex();
 
-	/*! Cast the Interface0D in NonTVertex if it can be. */ 
+	/*! Cast the Interface0D in NonTVertex if it can be. */
 	virtual NonTVertex *castToNonTVertex();
 
-	/*! Cast the Interface0D in TVertex if it can be. */ 
+	/*! Cast the Interface0D in TVertex if it can be. */
 	virtual TVertex *castToTVertex();
 
 public:
@@ -163,7 +163,7 @@ private:
 	Id _Id;
 	Vec3r _Point3D;
 	Vec3r _Point2D;
-	set<Vec3r> _Normals; 
+	set<Vec3r> _Normals;
 	vector<FEdge*> _FEdges; // the edges containing this vertex
 	SShape *_Shape;  // the shape to which belongs the vertex
 	ViewVertex *_pViewVertex; // The associated viewvertex, in case there is one.
@@ -1291,10 +1291,10 @@ protected:
 	unsigned _FrsMaterialIndex;
 #if 0
 	bool _hasVisibilityPoint;
-	Vec3r _VisibilityPointA;  // The edge on which the visibility will be computed represented 
+	Vec3r _VisibilityPointA;  // The edge on which the visibility will be computed represented
 	Vec3r _VisibilityPointB;  // using its 2 extremity points A and B
 #endif
-	void *_Face; // In case of exact silhouette, Face is the WFace crossed by Fedge 
+	void *_Face; // In case of exact silhouette, Face is the WFace crossed by Fedge
 	              // NOT HANDLED BY THE COPY CONSTRUCTEUR
 	bool _FaceMark;
 
@@ -1418,7 +1418,7 @@ private:
 	const char *_Name;
 	const char *_LibraryPath;
 	BBox<Vec3r> _BBox;
-	vector<FrsMaterial> _FrsMaterials;  
+	vector<FrsMaterial> _FrsMaterials;
 
 	float _importance;
 

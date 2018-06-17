@@ -55,7 +55,7 @@ public:
 	void setSettings(NodeColorspill *nodeColorSpill) { this->m_settings = nodeColorSpill; }
 	void setSpillChannel(int channel) { this->m_spillChannel = channel; }
 	void setSpillMethod(int method) { this->m_spillMethod = method; }
-	
+
 	float calculateMapValue(float fac, float *input);
 };
 

@@ -33,7 +33,7 @@ private:
 	SocketReader *m_inputColorProgram;
 
 	float m_alpha;
-	
+
 public:
 	MapUVOperation();
 
@@ -53,7 +53,7 @@ public:
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */

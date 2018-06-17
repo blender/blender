@@ -78,7 +78,7 @@ typedef struct ClothSimSettings {
 	float	vel_damping; /* damp the velocity to speed up getting to the resting position */
 	float	shrink_min;  /* min amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
 	float	shrink_max;  /* max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
-	
+
 	/* XXX various hair stuff
 	 * should really be separate, this struct is a horrible mess already
 	 */

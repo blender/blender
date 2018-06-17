@@ -55,13 +55,13 @@
 static void initData(ModifierData *md)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
-	
+
 	fluidsim_init(fluidmd);
 }
 static void freeData(ModifierData *md)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
-	
+
 	fluidsim_free(fluidmd);
 }
 
@@ -69,7 +69,7 @@ static void copyData(const ModifierData *md, ModifierData *target)
 {
 	const FluidsimModifierData *fluidmd = (const FluidsimModifierData *) md;
 	FluidsimModifierData *tfluidmd = (FluidsimModifierData *) target;
-	
+
 	if (fluidmd->fss) {
 		tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
 		if (tfluidmd->fss && (tfluidmd->fss->meshVelocities != NULL)) {
@@ -91,11 +91,11 @@ static DerivedMesh *applyModifier(
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	DerivedMesh *result = NULL;
-	
+
 	/* check for alloc failing */
 	if (!fluidmd->fss) {
 		initData(md);
-		
+
 		if (!fluidmd->fss) {
 			return dm;
 		}
