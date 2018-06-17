@@ -55,7 +55,7 @@ public:
 	 * @brief Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void *initializeTileData(rcti *rect);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 

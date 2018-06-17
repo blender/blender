@@ -41,17 +41,17 @@ void DifferenceMatteNode::convertToOperations(NodeConverter &converter, const Co
 	DifferenceMatteOperation *operationSet = new DifferenceMatteOperation();
 	operationSet->setSettings((NodeChroma *)editorNode->storage);
 	converter.addOperation(operationSet);
-	
+
 	converter.mapInputSocket(inputSocket, operationSet->getInputSocket(0));
 	converter.mapInputSocket(inputSocket2, operationSet->getInputSocket(1));
 	converter.mapOutputSocket(outputSocketMatte, operationSet->getOutputSocket(0));
 
 	SetAlphaOperation *operation = new SetAlphaOperation();
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 	converter.addLink(operationSet->getOutputSocket(), operation->getInputSocket(1));
 	converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
-	
+
 	converter.addPreview(operation->getOutputSocket());
 }

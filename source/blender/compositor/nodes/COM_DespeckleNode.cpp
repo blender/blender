@@ -35,15 +35,15 @@ void DespeckleNode::convertToOperations(NodeConverter &converter, const Composit
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeInput *inputImageSocket = this->getInputSocket(1);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
-	
+
 	DespeckleOperation *operation = new DespeckleOperation();
 	operation->setThreshold(editorNode->custom3);
 	operation->setThresholdNeighbor(editorNode->custom4);
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(inputImageSocket, operation->getInputSocket(0));
 	converter.mapInputSocket(inputSocket, operation->getInputSocket(1));
 	converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
-	
+
 	converter.addPreview(operation->getOutputSocket(0));
 }

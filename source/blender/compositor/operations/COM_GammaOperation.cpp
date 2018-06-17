@@ -41,7 +41,7 @@ void GammaOperation::executePixelSampled(float output[4], float x, float y, Pixe
 {
 	float inputValue[4];
 	float inputGamma[4];
-	
+
 	this->m_inputProgram->readSampled(inputValue, x, y, sampler);
 	this->m_inputGammaProgram->readSampled(inputGamma, x, y, sampler);
 	const float gamma = inputGamma[0];
@@ -49,7 +49,7 @@ void GammaOperation::executePixelSampled(float output[4], float x, float y, Pixe
 	output[0] = inputValue[0] > 0.0f ? powf(inputValue[0], gamma) : inputValue[0];
 	output[1] = inputValue[1] > 0.0f ? powf(inputValue[1], gamma) : inputValue[1];
 	output[2] = inputValue[2] > 0.0f ? powf(inputValue[2], gamma) : inputValue[2];
-	
+
 	output[3] = inputValue[3];
 }
 

@@ -114,7 +114,7 @@ class ExecutionSystem {
 public:
 	typedef std::vector<NodeOperation*> Operations;
 	typedef std::vector<ExecutionGroup*> Groups;
-	
+
 private:
 	/**
 	 * @brief the context used during execution
@@ -136,7 +136,7 @@ private: //methods
 	 * find all execution group with output nodes
 	 */
 	void findOutputExecutionGroup(vector<ExecutionGroup *> *result, CompositorPriority priority) const;
-	
+
 	/**
 	 * find all execution group with output nodes
 	 */

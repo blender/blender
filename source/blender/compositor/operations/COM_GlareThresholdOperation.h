@@ -57,7 +57,7 @@ public:
 	void setGlareSettings(NodeGlare *settings) {
 		this->m_settings = settings;
 	}
-	
+
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
 #endif

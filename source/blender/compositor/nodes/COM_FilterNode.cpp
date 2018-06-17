@@ -38,7 +38,7 @@ void FilterNode::convertToOperations(NodeConverter &converter, const CompositorC
 	NodeInput *inputImageSocket = this->getInputSocket(1);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
 	ConvolutionFilterOperation *operation = NULL;
-	
+
 	switch (this->getbNode()->custom1) {
 		case CMP_FILT_SOFT:
 			operation = new ConvolutionFilterOperation();
@@ -74,10 +74,10 @@ void FilterNode::convertToOperations(NodeConverter &converter, const CompositorC
 			break;
 	}
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(inputImageSocket, operation->getInputSocket(0));
 	converter.mapInputSocket(inputSocket, operation->getInputSocket(1));
 	converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
-	
+
 	converter.addPreview(operation->getOutputSocket(0));
 }

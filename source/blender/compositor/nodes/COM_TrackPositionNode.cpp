@@ -63,7 +63,7 @@ void TrackPositionNode::convertToOperations(NodeConverter &converter, const Comp
 	bNode *editorNode = this->getbNode();
 	MovieClip *clip = (MovieClip *) editorNode->id;
 	NodeTrackPosData *trackpos_data = (NodeTrackPosData *) editorNode->storage;
-	
+
 	NodeOutput *outputX = this->getOutputSocket(0);
 	NodeOutput *outputY = this->getOutputSocket(1);
 	NodeOutput *outputSpeed = this->getOutputSocket(2);

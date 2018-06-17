@@ -50,10 +50,10 @@ void RenderLayersProg::initExecution()
 	Scene *scene = this->getScene();
 	Render *re = (scene) ? RE_GetSceneRender(scene) : NULL;
 	RenderResult *rr = NULL;
-	
+
 	if (re)
 		rr = RE_AcquireResultRead(re);
-	
+
 	if (rr) {
 		SceneRenderLayer *srl = (SceneRenderLayer *)BLI_findlink(&scene->r.layers, getLayerId());
 		if (srl) {
@@ -181,13 +181,13 @@ void RenderLayersProg::determineResolution(unsigned int resolution[2], unsigned 
 	Scene *sce = this->getScene();
 	Render *re = (sce) ? RE_GetSceneRender(sce) : NULL;
 	RenderResult *rr = NULL;
-	
+
 	resolution[0] = 0;
 	resolution[1] = 0;
-	
+
 	if (re)
 		rr = RE_AcquireResultRead(re);
-	
+
 	if (rr) {
 		SceneRenderLayer *srl   = (SceneRenderLayer *)BLI_findlink(&sce->r.layers, getLayerId());
 		if (srl) {
@@ -198,7 +198,7 @@ void RenderLayersProg::determineResolution(unsigned int resolution[2], unsigned 
 			}
 		}
 	}
-	
+
 	if (re)
 		RE_ReleaseResult(re);
 

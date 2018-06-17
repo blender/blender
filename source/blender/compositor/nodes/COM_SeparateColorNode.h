@@ -30,7 +30,7 @@ class SeparateColorNode : public Node {
 public:
 	SeparateColorNode(bNode *editorNode);
 	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
-	
+
 protected:
 	virtual NodeOperation *getColorConverter(const CompositorContext &context) const = 0;
 };
@@ -40,7 +40,7 @@ public:
 	SeparateRGBANode(bNode *editorNode) :
 	    SeparateColorNode(editorNode)
 	{}
-	
+
 	NodeOperation *getColorConverter(const CompositorContext &context) const;
 };
 
@@ -49,7 +49,7 @@ public:
 	SeparateHSVANode(bNode *editorNode) :
 	    SeparateColorNode(editorNode)
 	{}
-	
+
 	NodeOperation *getColorConverter(const CompositorContext &context) const;
 };
 
@@ -58,7 +58,7 @@ public:
 	SeparateYCCANode(bNode *editorNode) :
 	    SeparateColorNode(editorNode)
 	{}
-	
+
 	NodeOperation *getColorConverter(const CompositorContext &context) const;
 };
 
@@ -67,7 +67,7 @@ public:
 	SeparateYUVANode(bNode *editorNode) :
 	    SeparateColorNode(editorNode)
 	{}
-	
+
 	NodeOperation *getColorConverter(const CompositorContext &context) const;
 };
 

@@ -40,10 +40,10 @@ public:
 	 * Default constructor
 	 */
 	ZCombineOperation();
-	
+
 	void initExecution();
 	void deinitExecution();
-	
+
 	/**
 	 * the inner loop of this program
 	 */

@@ -54,7 +54,7 @@ Node::Node(bNode *editorNode, bool create_sockets) :
 			DataType dt = COM_DT_VALUE;
 			if (input->type == SOCK_RGBA) dt = COM_DT_COLOR;
 			if (input->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
-			
+
 			this->addInputSocket(dt, input);
 			input = input->next;
 		}
@@ -63,7 +63,7 @@ Node::Node(bNode *editorNode, bool create_sockets) :
 			DataType dt = COM_DT_VALUE;
 			if (output->type == SOCK_RGBA) dt = COM_DT_COLOR;
 			if (output->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
-			
+
 			this->addOutputSocket(dt, output);
 			output = output->next;
 		}
@@ -96,7 +96,7 @@ void Node::addInputSocket(DataType datatype, bNodeSocket *bSocket)
 void Node::addOutputSocket(DataType datatype)
 {
 	this->addOutputSocket(datatype, NULL);
-	
+
 }
 void Node::addOutputSocket(DataType datatype, bNodeSocket *bSocket)
 {

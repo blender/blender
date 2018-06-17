@@ -42,14 +42,14 @@ void ColorRampNode::convertToOperations(NodeConverter &converter, const Composit
 	ColorRampOperation *operation = new ColorRampOperation();
 	operation->setColorBand((ColorBand *)editorNode->storage);
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
-	
+
 	SeparateChannelOperation *operation2 = new SeparateChannelOperation();
 	operation2->setChannel(3);
 	converter.addOperation(operation2);
-	
+
 	converter.addLink(operation->getOutputSocket(), operation2->getInputSocket(0));
 	converter.mapOutputSocket(outputSocketAlpha, operation2->getOutputSocket());
 }

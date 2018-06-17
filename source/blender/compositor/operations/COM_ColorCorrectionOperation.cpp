@@ -50,7 +50,7 @@ void ColorCorrectionOperation::executePixelSampled(float output[4], float x, flo
 	float inputMask[4];
 	this->m_inputImage->readSampled(inputImageColor, x, y, sampler);
 	this->m_inputMask->readSampled(inputMask, x, y, sampler);
-	
+
 	float level = (inputImageColor[0] + inputImageColor[1] + inputImageColor[2]) / 3.0f;
 	float contrast = this->m_data->master.contrast;
 	float saturation = this->m_data->master.saturation;
@@ -58,11 +58,11 @@ void ColorCorrectionOperation::executePixelSampled(float output[4], float x, flo
 	float gain = this->m_data->master.gain;
 	float lift = this->m_data->master.lift;
 	float r, g, b;
-	
+
 	float value = inputMask[0];
 	value = min(1.0f, value);
 	const float mvalue = 1.0f - value;
-	
+
 	float levelShadows = 0.0;
 	float levelMidtones = 0.0;
 	float levelHighlights = 0.0;
@@ -92,7 +92,7 @@ void ColorCorrectionOperation::executePixelSampled(float output[4], float x, flo
 	gamma *= (levelShadows * this->m_data->shadows.gamma) + (levelMidtones * this->m_data->midtones.gamma) + (levelHighlights * this->m_data->highlights.gamma);
 	gain *= (levelShadows * this->m_data->shadows.gain) + (levelMidtones * this->m_data->midtones.gain) + (levelHighlights * this->m_data->highlights.gain);
 	lift += (levelShadows * this->m_data->shadows.lift) + (levelMidtones * this->m_data->midtones.lift) + (levelHighlights * this->m_data->highlights.lift);
-	
+
 	float invgamma = 1.0f / gamma;
 	float luma = IMB_colormanagement_get_luminance(inputImageColor);
 
@@ -103,21 +103,21 @@ void ColorCorrectionOperation::executePixelSampled(float output[4], float x, flo
 	r = (luma + saturation * (r - luma));
 	g = (luma + saturation * (g - luma));
 	b = (luma + saturation * (b - luma));
-	
+
 	r = 0.5f + ((r - 0.5f) * contrast);
 	g = 0.5f + ((g - 0.5f) * contrast);
 	b = 0.5f + ((b - 0.5f) * contrast);
-	
+
 	r = powf(r * gain + lift, invgamma);
 	g = powf(g * gain + lift, invgamma);
 	b = powf(b * gain + lift, invgamma);
-	
-	
+
+
 	// mix with mask
 	r = mvalue * inputImageColor[0] + value * r;
 	g = mvalue * inputImageColor[1] + value * g;
 	b = mvalue * inputImageColor[2] + value * b;
-	
+
 	if (this->m_redChannelEnabled) {
 		output[0] = r;
 	}

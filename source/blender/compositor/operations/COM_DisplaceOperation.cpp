@@ -92,7 +92,7 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
 	float xs = col[0];
 	m_inputScaleYProgram->readSampled(col, xy[0], xy[1], COM_PS_NEAREST);
 	float ys = col[0];
-	/* clamp x and y displacement to triple image resolution - 
+	/* clamp x and y displacement to triple image resolution -
 	 * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
 	CLAMP(xs, -m_width_x4, m_width_x4);
 	CLAMP(ys, -m_height_x4, m_height_x4);
@@ -102,7 +102,7 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
 
 	/* Estimate partial derivatives using 1-pixel offsets */
 	const float epsilon[2] = { 1.0f, 1.0f };
-	
+
 	zero_v2(r_deriv[0]);
 	zero_v2(r_deriv[1]);
 

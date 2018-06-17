@@ -34,7 +34,7 @@ void VectorCurveNode::convertToOperations(NodeConverter &converter, const Compos
 	VectorCurveOperation *operation = new VectorCurveOperation();
 	operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

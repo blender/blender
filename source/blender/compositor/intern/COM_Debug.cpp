@@ -118,7 +118,7 @@ void DebugInfo::execution_group_finished(const ExecutionGroup *group)
 int DebugInfo::graphviz_operation(const ExecutionSystem *system, const NodeOperation *operation, const ExecutionGroup *group, char *str, int maxlen)
 {
 	int len = 0;
-	
+
 	std::string fillcolor = "gainsboro";
 	if (operation->isViewerOperation()) {
 		const ViewerOperation *viewer = (const ViewerOperation *)operation;
@@ -141,14 +141,14 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system, const NodeOpera
 	else if (operation->isWriteBufferOperation()) {
 		fillcolor = "darkorange";
 	}
-	
+
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// OPERATION: %p\r\n", operation);
 	if (group)
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p_%p\"", operation, group);
 	else
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p\"", operation);
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, " [fillcolor=%s,style=filled,shape=record,label=\"{", fillcolor.c_str());
-	
+
 	int totinputs = operation->getNumberOfInputSockets();
 	if (totinputs != 0) {
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{");
@@ -173,11 +173,11 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system, const NodeOpera
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}");
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
 	}
-	
+
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "%s\\n(%s)", m_op_names[operation].c_str(), typeid(*operation).name());
-	
+
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, " (%u,%u)", operation->getWidth(), operation->getHeight());
-	
+
 	int totoutputs = operation->getNumberOfOutputSockets();
 	if (totoutputs != 0) {
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
@@ -204,7 +204,7 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system, const NodeOpera
 	}
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\"]");
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\r\n");
-	
+
 	return len;
 }
 
@@ -233,7 +233,7 @@ int DebugInfo::graphviz_legend_group(const char *name, const char *color, const 
 int DebugInfo::graphviz_legend(char *str, int maxlen)
 {
 	int len = 0;
-	
+
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{\r\n");
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "rank = sink;\r\n");
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Legend [shape=none, margin=0, label=<\r\n");
@@ -266,12 +266,12 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 {
 	char strbuf[64];
 	int len = 0;
-	
+
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "digraph compositorexecution {\r\n");
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "ranksep=1.5\r\n");
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "rankdir=LR\r\n");
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "splines=false\r\n");
-	
+
 #if 0
 	for (ExecutionSystem::Operations::const_iterator it = system->m_operations.begin();
 	     it != system->m_operations.end(); ++it) {
@@ -279,13 +279,13 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// OPERATION: %s\r\n", node->getbNode()->typeinfo->ui_name);
 	}
 #endif
-	
+
 	int totops = system->m_operations.size();
 	int totgroups = system->m_groups.size();
 	std::map<NodeOperation *, std::vector<std::string> > op_groups;
 	for (int i = 0; i < totgroups; ++i) {
 		const ExecutionGroup *group = system->m_groups[i];
-		
+
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// GROUP: %d\r\n", i);
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "subgraph cluster_%d{\r\n", i);
 		/* used as a check for executing group */
@@ -302,41 +302,41 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "color=black\r\n");
 			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=chartreuse4\r\n");
 		}
-		
+
 		for (ExecutionGroup::Operations::const_iterator it = group->m_operations.begin(); it != group->m_operations.end(); ++it) {
 			NodeOperation *operation = *it;
-			
+
 			sprintf(strbuf, "_%p", group);
 			op_groups[operation].push_back(std::string(strbuf));
-			
+
 			len += graphviz_operation(system, operation, group, str + len, maxlen > len ? maxlen - len : 0);
 		}
-		
+
 //		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "//  OUTPUTOPERATION: %p\r\n", group->getOutputOperation());
 //		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, " O_%p\r\n", group->getOutputOperation());
 		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
 	}
-	
+
 	/* operations not included in any group */
 	for (int j = 0; j < totops; ++j) {
 		NodeOperation *operation = system->m_operations[j];
 		if (op_groups.find(operation) != op_groups.end())
 			continue;
-		
+
 		op_groups[operation].push_back(std::string(""));
-		
+
 		len += graphviz_operation(system, operation, 0, str + len, maxlen > len ? maxlen - len : 0);
 	}
-	
+
 	for (int i = 0; i < totops; i++) {
 		NodeOperation *operation = system->m_operations[i];
-		
+
 		if (operation->isReadBufferOperation()) {
 			ReadBufferOperation *read = (ReadBufferOperation *)operation;
 			WriteBufferOperation *write = read->getMemoryProxy()->getWriteBufferOperation();
 			std::vector<std::string> &read_groups = op_groups[read];
 			std::vector<std::string> &write_groups = op_groups[write];
-			
+
 			for (int k = 0; k < write_groups.size(); ++k) {
 				for (int l = 0; l < read_groups.size(); ++l) {
 					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p%s\" -> \"O_%p%s\" [style=dotted]\r\n", write, write_groups[k].c_str(), read, read_groups[l].c_str());
@@ -344,17 +344,17 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 			}
 		}
 	}
-	
+
 	for (int i = 0; i < totops; i++) {
 		NodeOperation *op = system->m_operations[i];
-		
+
 		for (NodeOperation::Inputs::const_iterator it = op->m_inputs.begin(); it != op->m_inputs.end(); ++it) {
 			NodeOperationInput *to = *it;
 			NodeOperationOutput *from = to->getLink();
-			
+
 			if (!from)
 				continue;
-			
+
 			std::string color;
 			switch (from->getDataType()) {
 				case COM_DT_VALUE:
@@ -367,12 +367,12 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 					color = "orange";
 					break;
 			}
-			
+
 			NodeOperation *to_op = &to->getOperation();
 			NodeOperation *from_op = &from->getOperation();
 			std::vector<std::string> &from_groups = op_groups[from_op];
 			std::vector<std::string> &to_groups = op_groups[to_op];
-			
+
 			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// CONNECTION: %p.%p -> %p.%p\r\n",
 			                from_op, from, to_op, to);
 			for (int k = 0; k < from_groups.size(); ++k) {
@@ -385,11 +385,11 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 			}
 		}
 	}
-	
+
 	len += graphviz_legend(str + len, maxlen > len ? maxlen - len : 0);
-	
+
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
-	
+
 	return (len < maxlen);
 }
 
@@ -399,11 +399,11 @@ void DebugInfo::graphviz(const ExecutionSystem *system)
 	if (graphviz_system(system, str, sizeof(str) - 1)) {
 		char basename[FILE_MAX];
 		char filename[FILE_MAX];
-		
+
 		BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", m_file_index);
 		BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), basename);
 		++m_file_index;
-		
+
 		FILE *fp = BLI_fopen(filename, "wb");
 		fputs(str, fp);
 		fclose(fp);

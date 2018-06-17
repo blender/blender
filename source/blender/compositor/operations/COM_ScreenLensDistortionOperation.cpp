@@ -59,10 +59,10 @@ void ScreenLensDistortionOperation::initExecution()
 {
 	this->m_inputProgram = this->getInputSocketReader(0);
 	this->initMutex();
-	
+
 	this->m_cx = 0.5f * (float)getWidth();
 	this->m_cy = 0.5f * (float)getHeight();
-	
+
 	/* if both are constant, init variables once */
 	if (m_distortion_const && m_dispersion_const) {
 		updateVariables(m_distortion, m_dispersion);
@@ -80,7 +80,7 @@ void *ScreenLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 	 */
 	if (!m_variables_ready) {
 		this->lockMutex();
-		
+
 		if (!m_distortion_const) {
 			float result[4];
 			getInputSocketReader(1)->readSampled(result, 0, 0, COM_PS_NEAREST);
@@ -91,13 +91,13 @@ void *ScreenLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 			getInputSocketReader(2)->readSampled(result, 0, 0, COM_PS_NEAREST);
 			m_dispersion = result[0];
 		}
-		
+
 		updateVariables(m_distortion, m_dispersion);
 		m_variables_ready = true;
-		
+
 		this->unlockMutex();
 	}
-	
+
 	return buffer;
 }
 
@@ -123,7 +123,7 @@ bool ScreenLensDistortionOperation::get_delta(float r_sq, float k4, const float 
 	}
 	else
 		return false;
-	
+
 }
 
 void ScreenLensDistortionOperation::accumulate(MemoryBuffer *buffer,
@@ -133,7 +133,7 @@ void ScreenLensDistortionOperation::accumulate(MemoryBuffer *buffer,
                                                float sum[4], int count[3]) const
 {
 	float color[4];
-	
+
 	float dsf = len_v2v2(delta[a], delta[b]) + 1.0f;
 	int ds = m_jitter ? (dsf < 4.0f ? 2 : (int)sqrtf(dsf)) : (int)dsf;
 	float sd = 1.0f / (float)ds;
@@ -144,11 +144,11 @@ void ScreenLensDistortionOperation::accumulate(MemoryBuffer *buffer,
 	for (float z = 0; z < ds; ++z) {
 		float tz = (z + (m_jitter ? BLI_frand() : 0.5f)) * sd;
 		float t = 1.0f - (k4 + tz * dk4) * r_sq;
-		
+
 		float xy[2];
 		distort_uv(uv, t, xy);
 		buffer->readBilinear(color, xy[0], xy[1]);
-		
+
 		sum[a] += (1.0f - tz) * color[a];
 		sum[b] += (tz       ) * color[b];
 		count[a]++;
@@ -175,11 +175,11 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 	if (valid_r && valid_g && valid_b) {
 		accumulate(buffer, 0, 1, uv_dot, uv, delta, sum, count);
 		accumulate(buffer, 1, 2, uv_dot, uv, delta, sum, count);
-		
+
 		if (count[0]) output[0] = 2.0f * sum[0] / (float)count[0];
 		if (count[1]) output[1] = 2.0f * sum[1] / (float)count[1];
 		if (count[2]) output[2] = 2.0f * sum[2] / (float)count[2];
-		
+
 		/* set alpha */
 		output[3] = 1.0f;
 	}
@@ -200,7 +200,7 @@ void ScreenLensDistortionOperation::determineUV(float result[6], float x, float 
 	float uv[2];
 	get_uv(xy, uv);
 	float uv_dot = len_squared_v2(uv);
-	
+
 	copy_v2_v2(result + 0, xy);
 	copy_v2_v2(result + 2, xy);
 	copy_v2_v2(result + 4, xy);
@@ -216,7 +216,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti * /*in
 	newInputValue.ymin = 0;
 	newInputValue.xmax = 2;
 	newInputValue.ymax = 2;
-	
+
 	NodeOperation *operation = getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&newInputValue, readOperation, output) ) {
 		return true;
@@ -226,7 +226,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti * /*in
 	if (operation->determineDependingAreaOfInterest(&newInputValue, readOperation, output) ) {
 		return true;
 	}
-	
+
 	/* XXX the original method of estimating the area-of-interest does not work
 	 * it assumes a linear increase/decrease of mapped coordinates, which does not
 	 * yield correct results for the area and leaves uninitialized buffer areas.
@@ -234,7 +234,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti * /*in
 	 */
 #if 1
 	rcti imageInput;
-	
+
 	operation = getInputOperation(0);
 	imageInput.xmax = operation->getWidth();
 	imageInput.xmin = 0;
@@ -248,9 +248,9 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti * /*in
 #else
 	rcti newInput;
 	const float margin = 2;
-	
+
 	BLI_rcti_init_minmax(&newInput);
-	
+
 	if (m_dispersion_const && m_distortion_const) {
 		/* update from fixed distortion/dispersion */
 #define UPDATE_INPUT(x, y) \
@@ -284,7 +284,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti * /*in
 			newInput.xmax = max_ffff(newInput.xmax, coords[0], coords[2], coords[4]); \
 			newInput.ymax = max_ffff(newInput.ymax, coords[1], coords[3], coords[5]); \
 		} (void)0
-		
+
 		if (m_distortion_const) {
 			/* update from fixed distortion */
 			UPDATE_INPUT(input->xmin, input->xmax, m_distortion);

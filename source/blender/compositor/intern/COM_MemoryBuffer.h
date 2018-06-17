@@ -64,29 +64,29 @@ private:
 	 * @brief proxy of the memory (same for all chunks in the same buffer)
 	 */
 	MemoryProxy *m_memoryProxy;
-	
+
 	/**
 	 * @brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
 	 */
 	DataType m_datatype;
-	
-	
+
+
 	/**
 	 * @brief region of this buffer inside relative to the MemoryProxy
 	 */
 	rcti m_rect;
-	
+
 	/**
 	 * brief refers to the chunknumber within the executiongroup where related to the MemoryProxy
 	 * @see memoryProxy
 	 */
 	unsigned int m_chunkNumber;
-	
+
 	/**
 	 * @brief state of the buffer
 	 */
 	MemoryBufferState m_state;
-	
+
 	/**
 	 * @brief the actual float buffer/data
 	 */
@@ -106,7 +106,7 @@ public:
 	 * @brief construct new MemoryBuffer for a chunk
 	 */
 	MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect);
-	
+
 	/**
 	 * @brief construct new temporarily MemoryBuffer for an area
 	 */
@@ -121,7 +121,7 @@ public:
 	 * @brief destructor
 	 */
 	~MemoryBuffer();
-	
+
 	/**
 	 * @brief read the ChunkNumber of this MemoryBuffer
 	 */
@@ -134,7 +134,7 @@ public:
 	 * @note buffer should already be available in memory
 	 */
 	float *getBuffer() { return this->m_buffer; }
-	
+
 	/**
 	 * @brief after execution the state will be set to available by calling this method
 	 */
@@ -142,14 +142,14 @@ public:
 	{
 		this->m_state = COM_MB_AVAILABLE;
 	}
-	
+
 	inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
 	{
 		int w = this->m_width;
 		int h = this->m_height;
 		x = x - m_rect.xmin;
 		y = y - m_rect.ymin;
-		
+
 		switch (extend_x) {
 			case COM_MB_CLIP:
 				break;
@@ -161,7 +161,7 @@ public:
 				x = (x >= 0.0f ? (x % w) : (x % w) + w);
 				break;
 		}
-		
+
 		switch (extend_y) {
 			case COM_MB_CLIP:
 				break;
@@ -174,7 +174,7 @@ public:
 				break;
 		}
 	}
-	
+
 	inline void wrap_pixel(float &x, float &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
 	{
 		float w = (float)this->m_width;
@@ -249,7 +249,7 @@ public:
 		float *buffer = &this->m_buffer[offset];
 		memcpy(result, buffer, sizeof(float) * this->m_num_channels);
 	}
-	
+
 	void writePixel(int x, int y, const float color[4]);
 	void addPixel(int x, int y, const float color[4]);
 	inline void readBilinear(float *result, float x, float y,
@@ -271,12 +271,12 @@ public:
 	}
 
 	void readEWA(float *result, const float uv[2], const float derivatives[2][2]);
-	
+
 	/**
 	 * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
 	 */
 	inline const bool isTemporarily() const { return this->m_state == COM_MB_TEMPORARILY; }
-	
+
 	/**
 	 * @brief add the content from otherBuffer to this MemoryBuffer
 	 * @param otherBuffer source buffer
@@ -285,29 +285,29 @@ public:
 	 *       uninitialized values in areas where the buffers don't overlap.
 	 */
 	void copyContentFrom(MemoryBuffer *otherBuffer);
-	
+
 	/**
 	 * @brief get the rect of this MemoryBuffer
 	 */
 	rcti *getRect() { return &this->m_rect; }
-	
+
 	/**
 	 * @brief get the width of this MemoryBuffer
 	 */
 	int getWidth() const;
-	
+
 	/**
 	 * @brief get the height of this MemoryBuffer
 	 */
 	int getHeight() const;
-	
+
 	/**
 	 * @brief clear the buffer. Make all pixels black transparent.
 	 */
 	void clear();
-	
+
 	MemoryBuffer *duplicate();
-	
+
 	float getMaximumValue();
 	float getMaximumValue(rcti *rect);
 private:

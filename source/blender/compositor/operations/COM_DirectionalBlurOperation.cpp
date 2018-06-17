@@ -102,8 +102,8 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
 }
 
 void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
-                                       MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
-                                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+                                       MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
+                                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
                                        list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
 	cl_kernel directionalBlurKernel = device->COM_clCreateKernel("directionalBlurKernel", NULL);
@@ -113,7 +113,7 @@ void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
 	cl_float2 centerpix = {{this->m_center_x_pix, this->m_center_y_pix}};
 	cl_float lsc = this->m_sc;
 	cl_float lrot = this->m_rot;
-	
+
 	device->COM_clAttachMemoryBufferToKernelParameter(directionalBlurKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
 	device->COM_clAttachOutputMemoryBufferToKernelParameter(directionalBlurKernel, 1, clOutputBuffer);
 	device->COM_clAttachMemoryBufferOffsetToKernelParameter(directionalBlurKernel, 2, outputMemoryBuffer);
@@ -122,7 +122,7 @@ void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
 	clSetKernelArg(directionalBlurKernel, 5, sizeof(cl_float), &lrot);
 	clSetKernelArg(directionalBlurKernel, 6, sizeof(cl_float2), &ltxy);
 	clSetKernelArg(directionalBlurKernel, 7, sizeof(cl_float2), &centerpix);
-	
+
 	device->COM_clEnqueueRange(directionalBlurKernel, outputMemoryBuffer, 8, this);
 }
 

@@ -52,9 +52,9 @@ NodeOperationOutput *KeyingNode::setupPreBlur(NodeConverter &converter, NodeInpu
 	ConvertRGBToYCCOperation *convertRGBToYCCOperation = new ConvertRGBToYCCOperation();
 	convertRGBToYCCOperation->setMode(BLI_YCC_ITU_BT709);
 	converter.addOperation(convertRGBToYCCOperation);
-	
+
 	converter.mapInputSocket(inputImage, convertRGBToYCCOperation->getInputSocket(0));
-	
+
 	CombineChannelsOperation *combineOperation = new CombineChannelsOperation();
 	converter.addOperation(combineOperation);
 
@@ -62,9 +62,9 @@ NodeOperationOutput *KeyingNode::setupPreBlur(NodeConverter &converter, NodeInpu
 		SeparateChannelOperation *separateOperation = new SeparateChannelOperation();
 		separateOperation->setChannel(channel);
 		converter.addOperation(separateOperation);
-		
+
 		converter.addLink(convertRGBToYCCOperation->getOutputSocket(0), separateOperation->getInputSocket(0));
-		
+
 		if (channel == 0 || channel == 3) {
 			converter.addLink(separateOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 		}
@@ -73,24 +73,24 @@ NodeOperationOutput *KeyingNode::setupPreBlur(NodeConverter &converter, NodeInpu
 			blurXOperation->setSize(size);
 			blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
 			converter.addOperation(blurXOperation);
-			
+
 			KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 			blurYOperation->setSize(size);
 			blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
 			converter.addOperation(blurYOperation);
-			
+
 			converter.addLink(separateOperation->getOutputSocket(), blurXOperation->getInputSocket(0));
 			converter.addLink(blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
 			converter.addLink(blurYOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 		}
 	}
-	
+
 	ConvertYCCToRGBOperation *convertYCCToRGBOperation = new ConvertYCCToRGBOperation();
 	convertYCCToRGBOperation->setMode(BLI_YCC_ITU_BT709);
 	converter.addOperation(convertYCCToRGBOperation);
-	
+
 	converter.addLink(combineOperation->getOutputSocket(0), convertYCCToRGBOperation->getInputSocket(0));
-	
+
 	return convertYCCToRGBOperation->getOutputSocket(0);
 }
 
@@ -100,15 +100,15 @@ NodeOperationOutput *KeyingNode::setupPostBlur(NodeConverter &converter, NodeOpe
 	blurXOperation->setSize(size);
 	blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
 	converter.addOperation(blurXOperation);
-	
+
 	KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 	blurYOperation->setSize(size);
 	blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
 	converter.addOperation(blurYOperation);
-	
+
 	converter.addLink(postBlurInput, blurXOperation->getInputSocket(0));
 	converter.addLink(blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
-	
+
 	return blurYOperation->getOutputSocket();
 }
 
@@ -124,9 +124,9 @@ NodeOperationOutput *KeyingNode::setupDilateErode(NodeConverter &converter, Node
 		dilateErodeOperation->setDistance(-distance);
 	}
 	converter.addOperation(dilateErodeOperation);
-	
+
 	converter.addLink(dilateErodeInput, dilateErodeOperation->getInputSocket(0));
-	
+
 	return dilateErodeOperation->getOutputSocket(0);
 }
 
@@ -154,7 +154,7 @@ NodeOperationOutput *KeyingNode::setupFeather(NodeConverter &converter, const Co
 	operationx->setSubtract(distance < 0);
 	operationx->setFalloff(falloff);
 	converter.addOperation(operationx);
-	
+
 	GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
 	operationy->setData(&data);
 	operationy->setQuality(quality);
@@ -176,10 +176,10 @@ NodeOperationOutput *KeyingNode::setupDespill(NodeConverter &converter, NodeOper
 	despillOperation->setDespillFactor(factor);
 	despillOperation->setColorBalance(colorBalance);
 	converter.addOperation(despillOperation);
-	
+
 	converter.addLink(despillInput, despillOperation->getInputSocket(0));
 	converter.mapInputSocket(inputScreen, despillOperation->getInputSocket(1));
-	
+
 	return despillOperation->getOutputSocket(0);
 }
 
@@ -193,9 +193,9 @@ NodeOperationOutput *KeyingNode::setupClip(NodeConverter &converter, NodeOperati
 	clipOperation->setClipWhite(clipWhite);
 	clipOperation->setIsEdgeMatte(edgeMatte);
 	converter.addOperation(clipOperation);
-	
+
 	converter.addLink(clipInput, clipOperation->getInputSocket(0));
-	
+
 	return clipOperation->getOutputSocket(0);
 }
 
@@ -203,7 +203,7 @@ void KeyingNode::convertToOperations(NodeConverter &converter, const CompositorC
 {
 	bNode *editorNode = this->getbNode();
 	NodeKeyingData *keying_data = (NodeKeyingData *) editorNode->storage;
-	
+
 	NodeInput *inputImage = this->getInputSocket(0);
 	NodeInput *inputScreen = this->getInputSocket(1);
 	NodeInput *inputGarbageMatte = this->getInputSocket(2);
@@ -212,14 +212,14 @@ void KeyingNode::convertToOperations(NodeConverter &converter, const CompositorC
 	NodeOutput *outputMatte = this->getOutputSocket(1);
 	NodeOutput *outputEdges = this->getOutputSocket(2);
 	NodeOperationOutput *postprocessedMatte = NULL, *postprocessedImage = NULL, *edgesMatte = NULL;
-	
+
 	/* keying operation */
 	KeyingOperation *keyingOperation = new KeyingOperation();
 	keyingOperation->setScreenBalance(keying_data->screen_balance);
 	converter.addOperation(keyingOperation);
-	
+
 	converter.mapInputSocket(inputScreen, keyingOperation->getInputSocket(1));
-	
+
 	if (keying_data->blur_pre) {
 		/* chroma preblur operation for input of keying operation  */
 		NodeOperationOutput *preBluredImage = setupPreBlur(converter, inputImage, keying_data->blur_pre);
@@ -228,53 +228,53 @@ void KeyingNode::convertToOperations(NodeConverter &converter, const CompositorC
 	else {
 		converter.mapInputSocket(inputImage, keyingOperation->getInputSocket(0));
 	}
-	
+
 	postprocessedMatte = keyingOperation->getOutputSocket();
-	
+
 	/* black / white clipping */
 	if (keying_data->clip_black > 0.0f || keying_data->clip_white < 1.0f) {
 		postprocessedMatte = setupClip(converter, postprocessedMatte,
 		                               keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
 		                               keying_data->clip_black, keying_data->clip_white, false);
 	}
-	
+
 	/* output edge matte */
 	edgesMatte = setupClip(converter, postprocessedMatte,
 	                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
 	                       keying_data->clip_black, keying_data->clip_white, true);
-	
+
 	/* apply garbage matte */
 	if (inputGarbageMatte->isLinked()) {
 		SetValueOperation *valueOperation = new SetValueOperation();
 		valueOperation->setValue(1.0f);
 		converter.addOperation(valueOperation);
-		
+
 		MathSubtractOperation *subtractOperation = new MathSubtractOperation();
 		converter.addOperation(subtractOperation);
-		
+
 		MathMinimumOperation *minOperation = new MathMinimumOperation();
 		converter.addOperation(minOperation);
-		
+
 		converter.addLink(valueOperation->getOutputSocket(), subtractOperation->getInputSocket(0));
 		converter.mapInputSocket(inputGarbageMatte, subtractOperation->getInputSocket(1));
-		
+
 		converter.addLink(subtractOperation->getOutputSocket(), minOperation->getInputSocket(0));
 		converter.addLink(postprocessedMatte, minOperation->getInputSocket(1));
-		
+
 		postprocessedMatte = minOperation->getOutputSocket();
 	}
-	
+
 	/* apply core matte */
 	if (inputCoreMatte->isLinked()) {
 		MathMaximumOperation *maxOperation = new MathMaximumOperation();
 		converter.addOperation(maxOperation);
-		
+
 		converter.mapInputSocket(inputCoreMatte, maxOperation->getInputSocket(0));
 		converter.addLink(postprocessedMatte, maxOperation->getInputSocket(1));
-		
+
 		postprocessedMatte = maxOperation->getOutputSocket();
 	}
-	
+
 	/* apply blur on matte if needed */
 	if (keying_data->blur_post)
 		postprocessedMatte = setupPostBlur(converter, postprocessedMatte, keying_data->blur_post);
@@ -293,7 +293,7 @@ void KeyingNode::convertToOperations(NodeConverter &converter, const CompositorC
 	/* set alpha channel to output image */
 	SetAlphaOperation *alphaOperation = new SetAlphaOperation();
 	converter.addOperation(alphaOperation);
-	
+
 	converter.mapInputSocket(inputImage, alphaOperation->getInputSocket(0));
 	converter.addLink(postprocessedMatte, alphaOperation->getInputSocket(1));
 

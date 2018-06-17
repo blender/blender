@@ -64,7 +64,7 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/, Read
 {
 	rcti imageInput;
 	if (this->m_cachedInstance) return false;
-	
+
 	NodeOperation *operation = getInputOperation(0);
 	imageInput.xmax = operation->getWidth();
 	imageInput.xmin = 0;

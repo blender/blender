@@ -61,7 +61,7 @@ void PreviewOperation::verifyPreview(bNodeInstanceHash *previews, bNodeInstanceK
 void PreviewOperation::initExecution()
 {
 	this->m_input = getInputSocketReader(0);
-	
+
 	if (this->getWidth() == (unsigned int)this->m_preview->xsize &&
 	    this->getHeight() == (unsigned int)this->m_preview->ysize)
 	{
@@ -98,7 +98,7 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 		for (int x = rect->xmin; x < rect->xmax; x++) {
 			float rx = floor(x / this->m_divider);
 			float ry = floor(y / this->m_divider);
-	
+
 			color[0] = 0.0f;
 			color[1] = 0.0f;
 			color[2] = 0.0f;
@@ -137,7 +137,7 @@ void PreviewOperation::determineResolution(unsigned int resolution[2], unsigned 
 	}
 	width = width * this->m_divider;
 	height = height * this->m_divider;
-	
+
 	resolution[0] = width;
 	resolution[1] = height;
 }

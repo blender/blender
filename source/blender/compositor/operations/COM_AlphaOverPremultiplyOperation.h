@@ -35,7 +35,7 @@ public:
 	 * Default constructor
 	 */
 	AlphaOverPremultiplyOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */

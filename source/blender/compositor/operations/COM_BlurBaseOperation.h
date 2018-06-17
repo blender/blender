@@ -62,12 +62,12 @@ public:
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void setData(const NodeBlurData *data);
 
 	void setSize(float size) { this->m_size = size; this->m_sizeavailable = true; }

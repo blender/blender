@@ -54,11 +54,11 @@ void LuminanceMatteOperation::executePixelSampled(float output[4], float x, floa
 	const float luminance = IMB_colormanagement_get_luminance(inColor);
 
 	float alpha;
-	
+
 	/* one line thread-friend algorithm:
 	 * output[0] = min(inputValue[3], min(1.0f, max(0.0f, ((luminance - low) / (high - low))));
 	 */
-		
+
 	/* test range */
 	if (luminance > high) {
 		alpha = 1.0f;

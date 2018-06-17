@@ -38,55 +38,55 @@ void SeparateColorNode::convertToOperations(NodeConverter &converter, const Comp
 	NodeOutput *outputGSocket = this->getOutputSocket(1);
 	NodeOutput *outputBSocket = this->getOutputSocket(2);
 	NodeOutput *outputASocket = this->getOutputSocket(3);
-	
+
 	NodeOperation *color_conv = getColorConverter(context);
 	if (color_conv) {
 		converter.addOperation(color_conv);
-		
+
 		converter.mapInputSocket(imageSocket, color_conv->getInputSocket(0));
 	}
-	
+
 	{
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(0);
 		converter.addOperation(operation);
-		
+
 		if (color_conv)
 			converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
 		else
 			converter.mapInputSocket(imageSocket, operation->getInputSocket(0));
 		converter.mapOutputSocket(outputRSocket, operation->getOutputSocket(0));
 	}
-	
+
 	{
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(1);
 		converter.addOperation(operation);
-		
+
 		if (color_conv)
 			converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
 		else
 			converter.mapInputSocket(imageSocket, operation->getInputSocket(0));
 		converter.mapOutputSocket(outputGSocket, operation->getOutputSocket(0));
 	}
-	
+
 	{
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(2);
 		converter.addOperation(operation);
-		
+
 		if (color_conv)
 			converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
 		else
 			converter.mapInputSocket(imageSocket, operation->getInputSocket(0));
 		converter.mapOutputSocket(outputBSocket, operation->getOutputSocket(0));
 	}
-	
+
 	{
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(3);
 		converter.addOperation(operation);
-		
+
 		if (color_conv)
 			converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
 		else

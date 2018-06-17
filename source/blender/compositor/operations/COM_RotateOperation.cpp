@@ -62,7 +62,7 @@ inline void RotateOperation::ensureDegree()
 		}
 		this->m_cosine = cos(rad);
 		this->m_sine = sin(rad);
-		
+
 		this->m_isDegreeSet = true;
 	}
 }
@@ -82,12 +82,12 @@ bool RotateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOp
 {
 	ensureDegree();
 	rcti newInput;
-	
+
 	const float dxmin = input->xmin - this->m_centerX;
 	const float dymin = input->ymin - this->m_centerY;
 	const float dxmax = input->xmax - this->m_centerX;
 	const float dymax = input->ymax - this->m_centerY;
-	
+
 	const float x1 = this->m_centerX + (this->m_cosine * dxmin + this->m_sine * dymin);
 	const float x2 = this->m_centerX + (this->m_cosine * dxmax + this->m_sine * dymin);
 	const float x3 = this->m_centerX + (this->m_cosine * dxmin + this->m_sine * dymax);
@@ -100,11 +100,11 @@ bool RotateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOp
 	const float maxx = max(x1, max(x2, max(x3, x4)));
 	const float miny = min(y1, min(y2, min(y3, y4)));
 	const float maxy = max(y1, max(y2, max(y3, y4)));
-	
+
 	newInput.xmax = ceil(maxx) + 1;
 	newInput.xmin = floor(minx) - 1;
 	newInput.ymax = ceil(maxy) + 1;
 	newInput.ymin = floor(miny) - 1;
-	
+
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

@@ -70,7 +70,7 @@ void FastGaussianBlurOperation::initExecution()
 	BlurBaseOperation::initMutex();
 }
 
-void FastGaussianBlurOperation::deinitExecution() 
+void FastGaussianBlurOperation::deinitExecution()
 {
 	if (this->m_iirgaus) {
 		delete this->m_iirgaus;
@@ -90,7 +90,7 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 		int c;
 		this->m_sx = this->m_data.sizex * this->m_size / 2.0f;
 		this->m_sy = this->m_data.sizey * this->m_size / 2.0f;
-		
+
 		if ((this->m_sx == this->m_sy) && (this->m_sx > 0.0f)) {
 			for (c = 0; c < COM_NUM_CHANNELS_COLOR; ++c)
 				IIR_gauss(copy, this->m_sx, c, 3);
@@ -121,18 +121,18 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 	unsigned int i;
 	float *buffer = src->getBuffer();
 	const unsigned int num_channels = src->get_num_channels();
-	
+
 	// <0.5 not valid, though can have a possibly useful sort of sharpening effect
 	if (sigma < 0.5f) return;
-	
+
 	if ((xy < 1) || (xy > 3)) xy = 3;
-	
+
 	// XXX The YVV macro defined below explicitly expects sources of at least 3x3 pixels,
 	//     so just skiping blur along faulty direction if src's def is below that limit!
 	if (src_width < 3) xy &= ~1;
 	if (src_height < 3) xy &= ~2;
 	if (xy < 1) return;
-	
+
 	// see "Recursive Gabor Filtering" by Young/VanVliet
 	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
 	if (sigma >= 3.556f)
@@ -148,7 +148,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 	// 0 & 3 unchanged
 	cf[3] = q2 * q / sc;
 	cf[0] = 1.0 - cf[1] - cf[2] - cf[3];
-	
+
 	// Triggs/Sdika border corrections,
 	// it seems to work, not entirely sure if it is actually totally correct,
 	// Besides J.M.Geusebroek's anigauss.c (see http://www.science.uva.nl/~mark),
@@ -166,7 +166,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 	tsM[6] = sc * (cf[3] * cf[1] + cf[2] + cf[1] * cf[1] - cf[2] * cf[2]);
 	tsM[7] = sc * (cf[1] * cf[2] + cf[3] * cf[2] * cf[2] - cf[1] * cf[3] * cf[3] - cf[3] * cf[3] * cf[3] - cf[3] * cf[2] + cf[3]);
 	tsM[8] = sc * (cf[3] * (cf[1] + cf[3] * cf[2]));
-	
+
 #define YVV(L)                                                                          \
 {                                                                                       \
 	W[0] = cf[0] * X[0] + cf[1] * X[0] + cf[2] * X[0] + cf[3] * X[0];                   \
@@ -189,7 +189,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 		Y[i] = cf[0] * W[i] + cf[1] * Y[i + 1] + cf[2] * Y[i + 2] + cf[3] * Y[i + 3];   \
 	}                                                                                   \
 } (void)0
-	
+
 	// intermediate buffers
 	sz = max(src_width, src_height);
 	X = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss X buf");
@@ -230,12 +230,12 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 			}
 		}
 	}
-	
+
 	MEM_freeN(X);
 	MEM_freeN(W);
 	MEM_freeN(Y);
 #undef YVV
-	
+
 }
 
 
@@ -260,7 +260,7 @@ void FastGaussianBlurValueOperation::executePixel(float output[4], int x, int y,
 bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	
+
 	if (this->m_iirgaus) {
 		return false;
 	}
@@ -279,7 +279,7 @@ void FastGaussianBlurValueOperation::initExecution()
 	initMutex();
 }
 
-void FastGaussianBlurValueOperation::deinitExecution() 
+void FastGaussianBlurValueOperation::deinitExecution()
 {
 	if (this->m_iirgaus) {
 		delete this->m_iirgaus;

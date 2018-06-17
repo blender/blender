@@ -58,7 +58,7 @@ void MapRangeOperation::executePixelSampled(float output[4], float x, float y, P
 	this->m_sourceMaxOperation->readSampled(inputs + 2, x, y, sampler);
 	this->m_destMinOperation->readSampled(inputs + 3, x, y, sampler);
 	this->m_destMaxOperation->readSampled(inputs + 4, x, y, sampler);
-	
+
 	value = inputs[0];
 	source_min = inputs[1];
 	source_max = inputs[2];

@@ -36,13 +36,13 @@ void EllipseMaskNode::convertToOperations(NodeConverter &converter, const Compos
 {
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
-	
+
 	EllipseMaskOperation *operation;
 	operation = new EllipseMaskOperation();
 	operation->setData((NodeEllipseMask *)this->getbNode()->storage);
 	operation->setMaskType(this->getbNode()->custom1);
 	converter.addOperation(operation);
-	
+
 	if (inputSocket->isLinked()) {
 		converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 		converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
@@ -68,6 +68,6 @@ void EllipseMaskNode::convertToOperations(NodeConverter &converter, const Compos
 		converter.addLink(scaleOperation->getOutputSocket(0), operation->getInputSocket(0));
 		converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 	}
-	
+
 	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 }

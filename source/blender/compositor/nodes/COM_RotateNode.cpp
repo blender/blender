@@ -39,10 +39,10 @@ void RotateNode::convertToOperations(NodeConverter &converter, const CompositorC
 	RotateOperation *operation = new RotateOperation();
 	SetSamplerOperation *sampler = new SetSamplerOperation();
 	sampler->setSampler((PixelSampler)this->getbNode()->custom1);
-	
+
 	converter.addOperation(sampler);
 	converter.addOperation(operation);
-	
+
 	converter.addLink(sampler->getOutputSocket(), operation->getInputSocket(0));
 	converter.mapInputSocket(inputSocket, sampler->getInputSocket(0));
 	converter.mapInputSocket(inputDegreeSocket, operation->getInputSocket(1));

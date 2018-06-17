@@ -56,9 +56,9 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		operationfgb->setData(data);
 		operationfgb->setExtendBounds(extend_bounds);
 		converter.addOperation(operationfgb);
-		
+
 		converter.mapInputSocket(getInputSocket(1), operationfgb->getInputSocket(1));
-		
+
 		input_operation = operationfgb;
 		output_operation = operationfgb;
 	}
@@ -67,12 +67,12 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		SetValueOperation *zero = new SetValueOperation();
 		zero->setValue(0.0f);
 		clamp->setUseClamp(true);
-		
+
 		converter.addOperation(clamp);
 		converter.addOperation(zero);
 		converter.mapInputSocket(getInputSocket(1), clamp->getInputSocket(0));
 		converter.addLink(zero->getOutputSocket(), clamp->getInputSocket(1));
-		
+
 		GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
 		operationx->setData(data);
 		operationx->setQuality(quality);
@@ -80,10 +80,10 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		operationx->setFalloff(PROP_SMOOTH);
 		operationx->setSubtract(false);
 		operationx->setExtendBounds(extend_bounds);
-		
+
 		converter.addOperation(operationx);
 		converter.addLink(clamp->getOutputSocket(), operationx->getInputSocket(0));
-		
+
 		GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
 		operationy->setData(data);
 		operationy->setQuality(quality);
@@ -94,7 +94,7 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 
 		converter.addOperation(operationy);
 		converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
-		
+
 		GaussianBlurReferenceOperation *operation = new GaussianBlurReferenceOperation();
 		operation->setData(data);
 		operation->setQuality(quality);
@@ -102,7 +102,7 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 
 		converter.addOperation(operation);
 		converter.addLink(operationy->getOutputSocket(), operation->getInputSocket(1));
-		
+
 		output_operation = operation;
 		input_operation = operation;
 	}
@@ -115,7 +115,7 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 
 		converter.addOperation(operationx);
 		converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1));
-		
+
 		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
 		operationy->setData(data);
 		operationy->setQuality(quality);
@@ -156,18 +156,18 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
 		converter.addOperation(correct);
 		converter.addOperation(inverse);
-		
+
 		converter.mapInputSocket(getInputSocket(0), correct->getInputSocket(0));
 		converter.addLink(correct->getOutputSocket(), input_operation->getInputSocket(0));
 		converter.addLink(output_operation->getOutputSocket(), inverse->getInputSocket(0));
 		converter.mapOutputSocket(getOutputSocket(), inverse->getOutputSocket());
-		
+
 		converter.addPreview(inverse->getOutputSocket());
 	}
 	else {
 		converter.mapInputSocket(getInputSocket(0), input_operation->getInputSocket(0));
 		converter.mapOutputSocket(getOutputSocket(), output_operation->getOutputSocket());
-		
+
 		converter.addPreview(output_operation->getOutputSocket());
 	}
 }

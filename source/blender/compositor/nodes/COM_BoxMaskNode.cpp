@@ -36,13 +36,13 @@ void BoxMaskNode::convertToOperations(NodeConverter &converter, const Compositor
 {
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
-	
+
 	BoxMaskOperation *operation;
 	operation = new BoxMaskOperation();
 	operation->setData((NodeBoxMask *)this->getbNode()->storage);
 	operation->setMaskType(this->getbNode()->custom1);
 	converter.addOperation(operation);
-	
+
 	if (inputSocket->isLinked()) {
 		converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 		converter.mapOutputSocket(outputSocket, operation->getOutputSocket());

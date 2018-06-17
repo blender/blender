@@ -36,7 +36,7 @@ ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode)
 void ScaleNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *bnode = this->getbNode();
-	
+
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeInput *inputXSocket = this->getInputSocket(1);
 	NodeInput *inputYSocket = this->getInputSocket(2);
@@ -47,7 +47,7 @@ void ScaleNode::convertToOperations(NodeConverter &converter, const CompositorCo
 		{
 			ScaleOperation *operation = new ScaleOperation();
 			converter.addOperation(operation);
-			
+
 			converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 			converter.mapInputSocket(inputXSocket, operation->getInputSocket(1));
 			converter.mapInputSocket(inputYSocket, operation->getInputSocket(2));
@@ -62,10 +62,10 @@ void ScaleNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			SetValueOperation *scaleFactorOperation = new SetValueOperation();
 			scaleFactorOperation->setValue(context.getRenderData()->size / 100.0f);
 			converter.addOperation(scaleFactorOperation);
-			
+
 			ScaleOperation *operation = new ScaleOperation();
 			converter.addOperation(operation);
-			
+
 			converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 			converter.addLink(scaleFactorOperation->getOutputSocket(), operation->getInputSocket(1));
 			converter.addLink(scaleFactorOperation->getOutputSocket(), operation->getInputSocket(2));

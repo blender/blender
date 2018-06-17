@@ -35,6 +35,6 @@ void ValueNode::convertToOperations(NodeConverter &converter, const CompositorCo
 	NodeOutput *output = this->getOutputSocket(0);
 	operation->setValue(output->getEditorValueFloat());
 	converter.addOperation(operation);
-	
+
 	converter.mapOutputSocket(output, operation->getOutputSocket());
 }

@@ -70,18 +70,18 @@ void GaussianBokehBlurOperation::updateGauss()
 		}
 		radxf = this->m_size * (float)this->m_data.sizex;
 		CLAMP(radxf, 0.0f, width / 2.0f);
-	
+
 		/* vertical */
 		radyf = this->m_size * (float)this->m_data.sizey;
 		CLAMP(radyf, 0.0f, height / 2.0f);
-	
+
 		this->m_radx = ceil(radxf);
 		this->m_rady = ceil(radyf);
-		
+
 		int ddwidth = 2 * this->m_radx + 1;
 		int ddheight = 2 * this->m_rady + 1;
 		n = ddwidth * ddheight;
-	
+
 		/* create a full filter image */
 		ddgauss = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 		dgauss = ddgauss;
@@ -94,7 +94,7 @@ void GaussianBokehBlurOperation::updateGauss()
 				float fi = (float)i * facx;
 				float dist = sqrt(fj * fj + fi * fi);
 				*dgauss = RE_filter_value(this->m_data.filtertype, dist);
-				
+
 				sum += *dgauss;
 			}
 		}
@@ -109,7 +109,7 @@ void GaussianBokehBlurOperation::updateGauss()
 			int center = m_rady * ddwidth + m_radx;
 			ddgauss[center] = 1.0f;
 		}
-		
+
 		this->m_gausstab = ddgauss;
 	}
 }
@@ -175,7 +175,7 @@ bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(rcti *input, R
 	sizeInput.xmax = 5;
 	sizeInput.ymax = 5;
 	NodeOperation *operation = this->getInputOperation(1);
-	
+
 	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
 		return true;
 	}
@@ -233,8 +233,8 @@ void GaussianBlurReferenceOperation::initExecution()
 				break;
 		}
 	}
-	
-	
+
+
 	/* horizontal */
 	m_filtersizex = (float)this->m_data.sizex;
 	int imgx = getWidth() / 2;
@@ -307,7 +307,7 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
 		for (i = minyr; i < maxyr; i++, srcd += COM_NUM_CHANNELS_COLOR * imgx) {
 			src = srcd;
 			for (j = minxr; j < maxxr; j++, src += COM_NUM_CHANNELS_COLOR) {
-			
+
 				val = gausstabcenty[i] * gausstabcentx[j];
 				sum += val;
 				rval += val * src[0];
@@ -340,7 +340,7 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(rcti *inpu
 {
 	rcti newInput;
 	NodeOperation *operation = this->getInputOperation(1);
-	
+
 	if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
 		return true;
 	}

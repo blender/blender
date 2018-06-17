@@ -49,7 +49,7 @@ void GlareThresholdOperation::initExecution()
 void GlareThresholdOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	const float threshold = this->m_settings->threshold;
-	
+
 	this->m_inputProgram->readSampled(output, x, y, sampler);
 	if (IMB_colormanagement_get_luminance(output) >= threshold) {
 		output[0] -= threshold;

@@ -57,11 +57,11 @@ protected:
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	
+
 	virtual ImBuf *getImBuf();
 
 public:
-	
+
 	void initExecution();
 	void deinitExecution();
 	void setImage(Image *image) { this->m_image = image; }

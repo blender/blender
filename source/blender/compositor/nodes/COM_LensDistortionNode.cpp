@@ -37,7 +37,7 @@ void LensDistortionNode::convertToOperations(NodeConverter &converter, const Com
 	if (data->proj) {
 		ProjectorLensDistortionOperation *operation = new ProjectorLensDistortionOperation();
 		converter.addOperation(operation);
-		
+
 		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(1));
 		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
@@ -51,9 +51,9 @@ void LensDistortionNode::convertToOperations(NodeConverter &converter, const Com
 			operation->setDistortion(getInputSocket(1)->getEditorValueFloat());
 		if (!getInputSocket(2)->isLinked())
 			operation->setDispersion(getInputSocket(2)->getEditorValueFloat());
-		
+
 		converter.addOperation(operation);
-		
+
 		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
