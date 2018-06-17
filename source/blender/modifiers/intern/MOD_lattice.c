@@ -114,7 +114,7 @@ static void deformVerts(
 
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
-	
+
 	lattice_deform_verts(lmd->object, ob, derivedData,
 	                     vertexCos, numVerts, lmd->name, lmd->strength);
 }

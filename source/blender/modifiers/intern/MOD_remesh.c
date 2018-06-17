@@ -96,7 +96,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 	{
 		return NULL;
 	}
-	
+
 	output->dm = CDDM_new(totvert, 0, 0, 4 * totquad, totquad);
 	return output;
 }
@@ -105,9 +105,9 @@ static void dualcon_add_vert(void *output_v, const float co[3])
 {
 	DualConOutput *output = output_v;
 	DerivedMesh *dm = output->dm;
-	
+
 	assert(output->curvert < dm->getNumVerts(dm));
-	
+
 	copy_v3_v3(CDDM_get_verts(dm)[output->curvert].co, co);
 	output->curvert++;
 }
@@ -119,17 +119,17 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 	MLoop *mloop;
 	MPoly *cur_poly;
 	int i;
-	
+
 	assert(output->curface < dm->getNumPolys(dm));
 
 	mloop = CDDM_get_loops(dm);
 	cur_poly = CDDM_get_poly(dm, output->curface);
-	
+
 	cur_poly->loopstart = output->curface * 4;
 	cur_poly->totloop = 4;
 	for (i = 0; i < 4; i++)
 		mloop[output->curface * 4 + i].v = vert_indices[i];
-	
+
 	output->curface++;
 }
 
@@ -164,7 +164,7 @@ static DerivedMesh *applyModifier(
 			mode = DUALCON_SHARP_FEATURES;
 			break;
 	}
-	
+
 	output = dualcon(&input,
 	                 dualcon_alloc_output,
 	                 dualcon_add_vert,
@@ -181,7 +181,7 @@ static DerivedMesh *applyModifier(
 	if (rmd->flag & MOD_REMESH_SMOOTH_SHADING) {
 		MPoly *mpoly = CDDM_get_polys(result);
 		int i, totpoly = result->getNumPolys(result);
-		
+
 		/* Apply smooth shading to output faces */
 		for (i = 0; i < totpoly; i++) {
 			mpoly[i].flag |= ME_SMOOTH;

@@ -93,17 +93,17 @@ static DerivedMesh *applyModifier(
 
 	if (useRenderParams || !(flag & MOD_APPLY_USECACHE)) {
 		DerivedMesh *cddm;
-		
+
 		cddm = CDDM_copy(result);
 
 		/* copy hidden/masks to vertices */
 		if (!useRenderParams) {
 			struct MDisps *mdisps;
 			struct GridPaintMask *grid_paint_mask;
-			
+
 			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
 			grid_paint_mask = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
-			
+
 			if (mdisps) {
 				subsurf_copy_grid_hidden(result, me->mpoly,
 				                         cddm->getVertArray(cddm),

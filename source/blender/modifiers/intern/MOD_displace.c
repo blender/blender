@@ -150,7 +150,7 @@ static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContex
 		dag_add_relation(ctx->forest, curNode, ctx->obNode,
 		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
 	}
-	
+
 
 	if (dmd->texmapping == MOD_DISP_MAP_GLOBAL ||
 	    (ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&

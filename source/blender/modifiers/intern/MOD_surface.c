@@ -49,10 +49,10 @@
 #include "MEM_guardedalloc.h"
 
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
-	
+
 	surmd->bvhtree = NULL;
 }
 
@@ -72,7 +72,7 @@ static void freeData(ModifierData *md)
 		}
 
 		MEM_SAFE_FREE(surmd->x);
-		
+
 		MEM_SAFE_FREE(surmd->v);
 	}
 }
@@ -90,14 +90,14 @@ static void deformVerts(
         ModifierApplyFlag UNUSED(flag))
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
-	
+
 	if (surmd->dm)
 		surmd->dm->release(surmd->dm);
 
 	/* if possible use/create DerivedMesh */
 	if (derivedData) surmd->dm = CDDM_copy(derivedData);
 	else surmd->dm = get_dm(ob, NULL, NULL, NULL, false, false);
-	
+
 	if (!ob->pd) {
 		printf("SurfaceModifier deformVerts: Should not happen!\n");
 		return;
@@ -111,7 +111,7 @@ static void deformVerts(
 
 		CDDM_apply_vert_coords(surmd->dm, vertexCos);
 		CDDM_calc_normals(surmd->dm);
-		
+
 		numverts = surmd->dm->getNumVerts(surmd->dm);
 
 		if (numverts != surmd->numverts ||
@@ -145,7 +145,7 @@ static void deformVerts(
 				v->co[0] = v->co[1] = v->co[2] = 0.0f;
 			else
 				sub_v3_v3v3(v->co, vec, x->co);
-			
+
 			copy_v3_v3(x->co, vec);
 		}
 

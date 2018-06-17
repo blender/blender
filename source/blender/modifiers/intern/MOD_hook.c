@@ -52,7 +52,7 @@
 
 #include "MOD_util.h"
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	HookModifierData *hmd = (HookModifierData *) md;
 
@@ -117,7 +117,7 @@ static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContex
 
 	if (hmd->object) {
 		DagNode *curNode = dag_get_node(ctx->forest, hmd->object);
-		
+
 		if (hmd->subtarget[0])
 			dag_add_relation(ctx->forest, curNode, ctx->obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Hook Modifier");
 		else
@@ -272,7 +272,7 @@ static void deformVerts_do(
 	float dmat[4][4];
 	int i, *index_pt;
 	struct HookData_cb hd;
-	
+
 	if (hmd->curfalloff == NULL) {
 		/* should never happen, but bad lib linking could cause it */
 		hmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -321,7 +321,7 @@ static void deformVerts_do(
 
 	/* Regarding index range checking below.
 	 *
-	 * This should always be true and I don't generally like 
+	 * This should always be true and I don't generally like
 	 * "paranoid" style code like this, but old files can have
 	 * indices that are out of range because old blender did
 	 * not correct them on exit editmode. - zr
@@ -332,13 +332,13 @@ static void deformVerts_do(
 	}
 	else if (hmd->indexar) { /* vertex indices? */
 		const int *origindex_ar;
-		
+
 		/* if DerivedMesh is present and has original index data, use it */
 		if (dm && (origindex_ar = dm->getVertDataArray(dm, CD_ORIGINDEX))) {
 			for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
 				if (*index_pt < numVerts) {
 					int j;
-					
+
 					for (j = 0; j < numVerts; j++) {
 						if (origindex_ar[j] == *index_pt) {
 							hook_co_apply(&hd, j);

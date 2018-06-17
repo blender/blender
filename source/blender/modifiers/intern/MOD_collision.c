@@ -49,10 +49,10 @@
 
 #include "MOD_modifiertypes.h"
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
-	
+
 	collmd->x = NULL;
 	collmd->xnew = NULL;
 	collmd->current_x = NULL;
@@ -68,7 +68,7 @@ static void initData(ModifierData *md)
 static void freeData(ModifierData *md)
 {
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
-	
+
 	if (collmd) {  /* Seriously? */
 		if (collmd->bvhtree) {
 			BLI_bvhtree_free(collmd->bvhtree);
@@ -105,30 +105,30 @@ static void deformVerts(
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	DerivedMesh *dm = NULL;
 	MVert *tempVert = NULL;
-	
+
 	/* if possible use/create DerivedMesh */
 	if (derivedData) dm = CDDM_copy(derivedData);
 	else if (ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data);
-	
+
 	if (!ob->pd) {
 		printf("CollisionModifier deformVerts: Should not happen!\n");
 		return;
 	}
-	
+
 	if (dm) {
 		float current_time = 0;
 		unsigned int mvert_num = 0;
 
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
-		
+
 		current_time = BKE_scene_frame_get(md->scene);
-		
+
 		if (G.debug_value > 0)
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
-		
+
 		mvert_num = dm->getNumVerts(dm);
-		
+
 		if (current_time > collmd->time_xnew) {
 			unsigned int i;
 
@@ -144,7 +144,7 @@ static void deformVerts(
 					/* we save global positions */
 					mul_m4_v3(ob->obmat, collmd->x[i].co);
 				}
-				
+
 				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
 				collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
 				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
@@ -201,9 +201,9 @@ static void deformVerts(
 						        collmd->tri, collmd->tri_num,
 						        ob->pd->pdef_sboft);
 					}
-			
+
 				}
-				
+
 				/* happens on file load (ONLY when i decomment changes in readfile.c) */
 				if (!collmd->bvhtree) {
 					collmd->bvhtree = bvhtree_build_from_mvert(
@@ -226,7 +226,7 @@ static void deformVerts(
 			else if (mvert_num != collmd->mvert_num) {
 				freeData((ModifierData *)collmd);
 			}
-			
+
 		}
 		else if (current_time < collmd->time_xnew) {
 			freeData((ModifierData *)collmd);
@@ -237,7 +237,7 @@ static void deformVerts(
 			}
 		}
 	}
-	
+
 	if (dm)
 		dm->release(dm);
 }

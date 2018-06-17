@@ -168,7 +168,7 @@ static bool dependsOnNormals(ModifierData *md)
 
 	if (smd->target && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
 		return (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL);
-	
+
 	return false;
 }
 

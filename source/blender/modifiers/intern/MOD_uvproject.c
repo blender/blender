@@ -177,7 +177,7 @@ static DerivedMesh *uvprojectModifier_do(
 		projectors[i].uci = NULL;
 
 		if (projectors[i].ob->type == OB_CAMERA) {
-			
+
 			cam = (Camera *)projectors[i].ob->data;
 			if (cam->type == CAM_PANO) {
 				projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob, NULL, aspx, aspy);
@@ -241,7 +241,7 @@ static DerivedMesh *uvprojectModifier_do(
 	/* convert coords to world space */
 	for (i = 0, co = coords; i < numVerts; ++i, ++co)
 		mul_m4_v3(ob->obmat, *co);
-	
+
 	/* if only one projector, project coords to UVs */
 	if (num_projectors == 1 && projectors[0].uci == NULL)
 		for (i = 0, co = coords; i < numVerts; ++i, ++co)
@@ -322,7 +322,7 @@ static DerivedMesh *uvprojectModifier_do(
 	}
 
 	MEM_freeN(coords);
-	
+
 	if (free_uci) {
 		int j;
 		for (j = 0; j < num_projectors; ++j) {

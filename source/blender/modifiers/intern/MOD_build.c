@@ -106,11 +106,11 @@ static DerivedMesh *applyModifier(
 
 	frac = (BKE_scene_frame_get(md->scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
-	
+
 	if (bmd->flag & MOD_BUILD_FLAG_REVERSE) {
 		frac = 1.0f - frac;
 	}
-	
+
 	numFaces_dst = numPoly_src * frac;
 	numEdges_dst = numEdge_src * frac;
 
@@ -120,7 +120,7 @@ static DerivedMesh *applyModifier(
 		MLoop *ml, *mloop;
 		MEdge *medge;
 		uintptr_t hash_num, hash_num_alt;
-		
+
 		if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
 			BLI_array_randomize(faceMap, sizeof(*faceMap),
 			                    numPoly_src, bmd->seed);
@@ -198,7 +198,7 @@ static DerivedMesh *applyModifier(
 		/* get the set of edges that will be in the new mesh */
 		for (i = 0; i < numEdges_dst; i++) {
 			j = BLI_ghash_len(edgeHash);
-			
+
 			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(j),
 			                 SET_INT_IN_POINTER(edgeMap[i]));
 			BLI_ghash_insert(edgeHash2,  SET_INT_IN_POINTER(edgeMap[i]),
@@ -240,39 +240,39 @@ static DerivedMesh *applyModifier(
 		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
 		*dest = source;
 	}
-	
+
 	/* copy the edges across, remapping indices */
 	for (i = 0; i < BLI_ghash_len(edgeHash); i++) {
 		MEdge source;
 		MEdge *dest;
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(i)));
-		
+
 		source = medge_src[oldIndex];
 		dest = CDDM_get_edge(result, i);
-		
+
 		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
 		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
-		
+
 		DM_copy_edge_data(dm, result, oldIndex, i, 1);
 		*dest = source;
 	}
 
 	mpoly_dst = CDDM_get_polys(result);
 	/* mloop_dst = */ ml_dst = CDDM_get_loops(result);
-	
+
 	/* copy the faces across, remapping indices */
 	k = 0;
 	for (i = 0; i < numFaces_dst; i++) {
 		MPoly *source;
 		MPoly *dest;
-		
+
 		source = mpoly_src + faceMap[i];
 		dest = mpoly_dst + i;
 		DM_copy_poly_data(dm, result, faceMap[i], i, 1);
-		
+
 		*dest = *source;
 		dest->loopstart = k;
-		
+
 		DM_copy_loop_data(dm, result, source->loopstart, dest->loopstart, dest->totloop);
 
 		ml_src = mloop_src + source->loopstart;
@@ -285,7 +285,7 @@ static DerivedMesh *applyModifier(
 	BLI_ghash_free(vertHash, NULL, NULL);
 	BLI_ghash_free(edgeHash, NULL, NULL);
 	BLI_ghash_free(edgeHash2, NULL, NULL);
-	
+
 	MEM_freeN(vertMap);
 	MEM_freeN(edgeMap);
 	MEM_freeN(faceMap);

@@ -227,7 +227,7 @@ static void get_vert2ob_distance(
  */
 static float get_ob2ob_distance(const Object *ob, const Object *obr)
 {
-	return len_v3v3(ob->obmat[3], obr->obmat[3]); 
+	return len_v3v3(ob->obmat[3], obr->obmat[3]);
 }
 
 /**

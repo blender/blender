@@ -47,10 +47,10 @@
 
 #include "MOD_modifiertypes.h"
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
-	
+
 	pmd->canvas = NULL;
 	pmd->brush = NULL;
 	pmd->type = MOD_DYNAMICPAINT_TYPE_CANVAS;
@@ -60,7 +60,7 @@ static void copyData(const ModifierData *md, ModifierData *target)
 {
 	const DynamicPaintModifierData *pmd  = (const DynamicPaintModifierData *)md;
 	DynamicPaintModifierData *tpmd = (DynamicPaintModifierData *)target;
-	
+
 	dynamicPaint_Modifier_copy(pmd, tpmd);
 }
 
@@ -79,7 +79,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 		for (; surface; surface = surface->next) {
 			/* tface */
-			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ || 
+			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ ||
 			    surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE)
 			{
 				dataMask |= CD_MASK_MLOOPUV | CD_MASK_MTEXPOLY;

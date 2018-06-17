@@ -96,7 +96,7 @@ static void copyData(const ModifierData *md, ModifierData *target)
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
-{	
+{
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
 
@@ -327,7 +327,7 @@ static void meshdeformModifier_do(
 		if (cagedm)
 			cagedm->needsFree = 1;
 	}
-	
+
 	if (!cagedm) {
 		modifier_setError(md, "Cannot get mesh from cage object");
 		return;
@@ -465,7 +465,7 @@ void modifier_mdef_compact_influences(ModifierData *md)
 	weights = mmd->bindweights;
 	if (!weights)
 		return;
-	
+
 	totvert = mmd->totvert;
 	totcagevert = mmd->totcagevert;
 
@@ -511,7 +511,7 @@ void modifier_mdef_compact_influences(ModifierData *md)
 	}
 
 	mmd->bindoffsets[b] = totinfluence;
-	
+
 	/* free */
 	MEM_freeN(mmd->bindweights);
 	mmd->bindweights = NULL;

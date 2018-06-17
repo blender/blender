@@ -268,7 +268,7 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 	BMO_ITER (v, &oiter, op.slots_out, "geom_interior.out", BM_VERT) {
 		for (i = 0; i < totframe; i++) {
 			Frame *frame = frames[i];
-			
+
 			if (!frame->detached) {
 				for (j = 0; j < 4; j++) {
 					if (frame->verts[j] == v) {
@@ -294,7 +294,7 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 			frame->detached = true;
 		}
 	}
-	
+
 	/* Remove triangles that would fill the original frames -- skip if
 	 * frame is partially detached */
 	BM_mesh_elem_hflag_disable_all(bm, BM_ALL_NOLOOP, BM_ELEM_TAG, false);
@@ -449,7 +449,7 @@ static void node_frames_init(SkinNode *nf, int totframe)
 
 	nf->totframe = totframe;
 	memset(nf->frames, 0, sizeof(nf->frames));
-	
+
 	nf->flag = 0;
 	for (i = 0; i < 2; i++)
 		nf->seam_edges[i] = -1;
@@ -465,7 +465,7 @@ static void create_frame(
 
 	mul_v3_v3fl(ry, mat[1], radius[0]);
 	mul_v3_v3fl(rz, mat[2], radius[1]);
-	
+
 	add_v3_v3v3(frame->co[3], co, ry);
 	add_v3_v3v3(frame->co[3], frame->co[3], rz);
 
@@ -680,7 +680,7 @@ static void build_emats_stack(
 
 	/* Mark edge as visited */
 	BLI_BITMAP_ENABLE(visited_e, e);
-	
+
 	/* Process edge */
 
 	parent_is_branch = ((emap[parent_v].count > 2) ||
@@ -937,14 +937,14 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 			/* Interpolate vertex group weights */
 			for (k = 0; k < totvgroup; k++) {
 				float weight;
-				
+
 				vg = &vgroups[k];
 				weight = interpf(vg->w2, vg->w1, t);
 
 				if (weight > 0)
 					defvert_add_index_notest(&outdvert[v], vg->def_nr, weight);
 			}
-			
+
 			outedge->v1 = u;
 			outedge->v2 = v;
 			u = v;
@@ -952,7 +952,7 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 
 		if (vgroups)
 			MEM_freeN(vgroups);
-		
+
 		/* Link up to final vertex */
 		outedge->v1 = u;
 		outedge->v2 = e->v2;
@@ -976,7 +976,7 @@ static void add_poly(
 {
 	BMVert *verts[4] = {v1, v2, v3, v4};
 	BMFace *f;
-	
+
 	BLI_assert(v1 != v2 && v1 != v3 && v1 != v4);
 	BLI_assert(v2 != v3 && v2 != v4);
 	BLI_assert(v3 != v4);
@@ -1063,7 +1063,7 @@ static void output_frames(
 					dv = CustomData_bmesh_get(&bm->vdata,
 					                          v->head.data,
 					                          CD_MDEFORMVERT);
-					
+
 					BLI_assert(dv->totweight == 0);
 					defvert_copy(dv, input_dvert);
 				}
@@ -1093,14 +1093,14 @@ static int isect_ray_poly(const float ray_start[3],
 	BMIter iter;
 	float best_dist = FLT_MAX;
 	bool hit = false;
-	
+
 	BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
 		if (!v_first)
 			v_first = v;
 		else if (v_prev != v_first) {
 			float dist;
 			bool curhit;
-			
+
 			curhit = isect_ray_tri_v3(ray_start, ray_dir,
 			                          v_first->co, v_prev->co, v->co,
 			                          &dist, NULL);
@@ -1161,7 +1161,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		f = NULL;
 		BM_ITER_ELEM (vf, &iter, v_safe, BM_FACES_OF_VERT) {
 			bool wrong_face = false;
-			
+
 			for (i = 0; i < orig_len; i++) {
 				if (orig_verts[i] == v_merge) {
 					orig_verts[i] = NULL;
@@ -1259,7 +1259,7 @@ static void skin_choose_quad_bridge_order(BMVert *a[4], BMVert *b[4],
 	shortest_len = FLT_MAX;
 	for (i = 0; i < 8; i++) {
 		float len = 0;
-		
+
 		/* Get total edge length for this configuration */
 		for (j = 0; j < 4; j++)
 			len += len_squared_v3v3(a[j]->co, b[orders[i][j]]->co);
@@ -1307,7 +1307,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		/* Need at least four ring edges, so subdivide longest edge if
 		 * face is a triangle */
 		longest_edge = BM_face_find_longest_loop(split_face)->e;
-		
+
 		BM_mesh_elem_hflag_disable_all(bm, BM_EDGE, BM_ELEM_TAG, false);
 		BM_elem_flag_enable(longest_edge, BM_ELEM_TAG);
 
@@ -1513,7 +1513,7 @@ static void skin_merge_close_frame_verts(SkinNode *skin_nodes, int totvert,
 {
 	Frame **hull_frames;
 	int v, tothullframe;
-	
+
 	for (v = 0; v < totvert; v++) {
 		/* Only check branch nodes */
 		if (!skin_nodes[v].totframe) {
@@ -1529,11 +1529,11 @@ static void skin_merge_close_frame_verts(SkinNode *skin_nodes, int totvert,
 static void skin_update_merged_vertices(SkinNode *skin_nodes, int totvert)
 {
 	int v;
-	
+
 	for (v = 0; v < totvert; ++v) {
 		SkinNode *sn = &skin_nodes[v];
 		int i, j;
-		
+
 		for (i = 0; i < sn->totframe; i++) {
 			Frame *f = &sn->frames[i];
 
@@ -1553,19 +1553,19 @@ static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes,
                                    int totvert)
 {
 	int v;
-	
+
 	for (v = 0; v < totvert; v++) {
 		SkinNode *sn = &skin_nodes[v];
 		int j;
-		
+
 		for (j = 0; j < sn->totframe; j++) {
 			Frame *f = &sn->frames[j];
 
 			if (f->detached) {
 				BMFace *target_face;
-				
+
 				skin_hole_detach_partially_attached_frame(bm, f);
-				
+
 				target_face = skin_hole_target_face(bm, f);
 				if (target_face)
 					skin_fix_hole_no_good_verts(bm, f, target_face);
@@ -1578,14 +1578,14 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes,
                                   int totvert)
 {
 	int v;
-	
+
 	for (v = 0; v < totvert; ++v) {
 		SkinNode *sn = &skin_nodes[v];
 		/* Assuming here just two frames */
 		if (sn->flag & SEAM_FRAME) {
 			BMVert *v_order[4];
 			int i, order[4];
-			
+
 			skin_choose_quad_bridge_order(sn->frames[0].verts,
 			                              sn->frames[1].verts,
 			                              order);
@@ -1630,7 +1630,7 @@ static void skin_output_connections(SkinOutput *so, SkinNode *skin_nodes,
                                     int totedge)
 {
 	int e;
-	
+
 	for (e = 0; e < totedge; e++) {
 		SkinNode *a, *b;
 		a = &skin_nodes[medge[e].v1];
@@ -1646,7 +1646,7 @@ static void skin_output_connections(SkinOutput *so, SkinNode *skin_nodes,
 					fr[0]++;
 				if ((b->flag & SEAM_FRAME) && (e != b->seam_edges[0]))
 					fr[1]++;
-			
+
 				skin_choose_quad_bridge_order(fr[0]->verts, fr[1]->verts, order);
 				for (i = 0; i < 4; i++)
 					v_order[i] = fr[1]->verts[order[i]];
@@ -1729,15 +1729,15 @@ static bool skin_output_branch_hulls(SkinOutput *so, SkinNode *skin_nodes,
 {
 	bool result = true;
 	int v;
-	
+
 	for (v = 0; v < totvert; v++) {
 		SkinNode *sn = &skin_nodes[v];
-		
+
 		/* Branch node hulls */
 		if (!sn->totframe) {
 			Frame **hull_frames;
 			int tothullframe;
-			
+
 			hull_frames = collect_hull_frames(v, skin_nodes,
 			                                  emap, medge,
 			                                  &tothullframe);
@@ -1765,7 +1765,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 	        &bm_mesh_allocsize_default,
 	        &((struct BMeshCreateParams){.use_toolflags = true,}));
 	so.mat_nr = 0;
-	
+
 	/* BMESH_TODO: bumping up the stack level (see MOD_array.c) */
 	BM_mesh_elem_toolflags_ensure(so.bm);
 	BMO_push(so.bm, NULL);
@@ -1878,7 +1878,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 
 	if (!bm)
 		return NULL;
-	
+
 	result = CDDM_from_bmesh(bm, false);
 	BM_mesh_free(bm);
 
@@ -1912,7 +1912,7 @@ static DerivedMesh *final_skin(SkinModifierData *smd,
 static void initData(ModifierData *md)
 {
 	SkinModifierData *smd = (SkinModifierData *) md;
-	
+
 	/* Enable in editmode by default */
 	md->mode |= eModifierMode_Editmode;
 

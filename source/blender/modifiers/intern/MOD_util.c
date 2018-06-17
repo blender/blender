@@ -186,7 +186,7 @@ DerivedMesh *get_dm(
 			CDDM_apply_vert_coords(dm, vertexCos);
 			dm->dirty |= DM_DIRTY_NORMALS;
 		}
-		
+
 		if (use_orco) {
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
 		}

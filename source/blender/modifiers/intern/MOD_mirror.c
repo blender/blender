@@ -200,7 +200,7 @@ static DerivedMesh *doMirrorOnAxis(
 			vtmap_b++;
 		}
 	}
-	
+
 	/* handle shape keys */
 	totshape = CustomData_number_of_layers(&result->vertData, CD_SHAPEKEY);
 	for (a = 0; a < totshape; a++) {
@@ -209,14 +209,14 @@ static DerivedMesh *doMirrorOnAxis(
 			mul_m4_v3(mtx, cos[i]);
 		}
 	}
-	
+
 	/* adjust mirrored edge vertex indices */
 	me = CDDM_get_edges(result) + maxEdges;
 	for (i = 0; i < maxEdges; i++, me++) {
 		me->v1 += maxVerts;
 		me->v2 += maxVerts;
 	}
-	
+
 	/* adjust mirrored poly loopstart indices, and reverse loop order (normals) */
 	mp = CDDM_get_polys(result) + maxPolys;
 	ml = CDDM_get_loops(result);
@@ -236,7 +236,7 @@ static DerivedMesh *doMirrorOnAxis(
 			ml2[j].e = ml2[j + 1].e;
 		}
 		ml2[mp->totloop - 1].e = e;
-		
+
 		mp->loopstart += maxLoops;
 	}
 
@@ -274,7 +274,7 @@ static DerivedMesh *doMirrorOnAxis(
 		int *flip_map = NULL, flip_map_len = 0;
 
 		flip_map = defgroup_flip_map(ob, &flip_map_len, false);
-		
+
 		if (flip_map) {
 			for (i = 0; i < maxVerts; dvert++, i++) {
 				/* merged vertices get both groups, others get flipped */
@@ -336,7 +336,7 @@ static DerivedMesh *applyModifier(
 
 	if (result != derivedData)
 		result->dirty |= DM_DIRTY_NORMALS;
-	
+
 	return result;
 }
 

@@ -31,7 +31,7 @@
 /** \file blender/modifiers/intern/MOD_bevel.c
  *  \ingroup modifiers
  */
- 
+
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"

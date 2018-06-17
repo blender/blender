@@ -67,7 +67,7 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	CastModifierData *cmd = (CastModifierData *) md;
 	short flag;
-	
+
 	flag = cmd->flag & (MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z);
 
 	if ((cmd->fac == 0.0f) || flag == 0) return true;
@@ -137,7 +137,7 @@ static void sphere_do(
 	flag = cmd->flag;
 	type = cmd->type; /* projection type: sphere or cylinder */
 
-	if (type == MOD_CAST_TYPE_CYLINDER) 
+	if (type == MOD_CAST_TYPE_CYLINDER)
 		flag &= ~MOD_CAST_Z;
 
 	ctrl_ob = cmd->object;

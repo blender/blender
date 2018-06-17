@@ -57,10 +57,10 @@
 
 #include "MOD_modifiertypes.h"
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
-	
+
 	smd->domain = NULL;
 	smd->flow = NULL;
 	smd->coll = NULL;
@@ -72,14 +72,14 @@ static void copyData(const ModifierData *md, ModifierData *target)
 {
 	const SmokeModifierData *smd  = (const SmokeModifierData *)md;
 	SmokeModifierData *tsmd = (SmokeModifierData *)target;
-	
+
 	smokeModifier_copy(smd, tsmd);
 }
 
 static void freeData(ModifierData *md)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
-	
+
 	smokeModifier_free(smd);
 }
 

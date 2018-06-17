@@ -164,7 +164,7 @@ static void smoothModifier_do(
 
 				/* fp is the sum of uctmp[i] verts, so must be averaged */
 				facw = 0.0f;
-				if (uctmp[i]) 
+				if (uctmp[i])
 					facw = f / (float)uctmp[i];
 
 				if (flag & MOD_SMOOTH_X)
@@ -185,7 +185,7 @@ static void smoothModifier_do(
 
 				/* fp is the sum of uctmp[i] verts, so must be averaged */
 				facw = 0.0f;
-				if (uctmp[i]) 
+				if (uctmp[i])
 					facw = fac / (float)uctmp[i];
 
 				if (flag & MOD_SMOOTH_X)
