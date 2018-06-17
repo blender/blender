@@ -129,6 +129,7 @@ set(SRC
 	BLI_array_store.h
 	BLI_array_store_utils.h
 	BLI_array_utils.h
+	BLI_assert.h
 	BLI_astar.h
 	BLI_bitmap.h
 	BLI_bitmap_draw_2d.h
@@ -164,6 +165,7 @@ set(SRC
 	BLI_kdtree.h
 	BLI_lasso_2d.h
 	BLI_link_utils.h
+	BLI_linklist.h
 	BLI_linklist_lockfree.h
 	BLI_linklist_stack.h
 	BLI_listbase.h
