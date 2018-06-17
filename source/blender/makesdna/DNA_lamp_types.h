@@ -47,30 +47,30 @@ struct MTex;
 
 typedef struct Lamp {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
-	
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+
 	short type, flag;
 	int mode;
-	
+
 	short colormodel, totex;
 	float r, g, b, k;
 	float shdwr, shdwg, shdwb, shdwpad;
-	
+
 	float energy, dist, spotsize, spotblend;
 	float haint;
-	
-	
+
+
 	float att1, att2;	/* Quad1 and Quad2 attenuation */
 	float coeff_const, coeff_lin, coeff_quad, coeff_pad;
 	struct CurveMapping *curfalloff;
 	short falloff_type;
 	short pad2;
-	
+
 	float clipsta, clipend;
 	float bias, soft, compressthresh, bleedbias, pad5;
 	short bufsize, samp, buffers, filtertype;
 	char bufflag, buftype;
-	
+
 	short ray_samp, ray_sampy, ray_sampz;
 	short ray_samp_type;
 	short area_shape;
@@ -78,10 +78,10 @@ typedef struct Lamp {
 	float adapt_thresh;
 	short ray_samp_method;
 	short shadowmap_type;
-	
+
 	/* texact is for buttons */
 	short texact, shadhalostep;
-	
+
 	/* sun/sky */
 	short sun_effect_type;
 	short skyblendtype;
@@ -117,7 +117,7 @@ typedef struct Lamp {
 
 /* flag */
 #define LA_DS_EXPAND	1
-	/* NOTE: this must have the same value as MA_DS_SHOW_TEXS, 
+	/* NOTE: this must have the same value as MA_DS_SHOW_TEXS,
 	 * otherwise anim-editors will not read correctly
 	 */
 #define LA_DS_SHOW_TEXS	4

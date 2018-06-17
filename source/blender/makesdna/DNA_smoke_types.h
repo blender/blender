@@ -174,7 +174,7 @@ typedef struct SmokeDomainSettings {
 	int flags; /* show up-res or low res, etc */
 	int viewsettings;
 	short noise; /* noise type: wave, curl, anisotropic */
-	short diss_percent; 
+	short diss_percent;
 	int diss_speed;/* in frames */
 	float strength;
 	int res_wt[3];

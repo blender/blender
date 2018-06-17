@@ -63,7 +63,7 @@ typedef struct VolumeSettings {
 	float density_scale;
 	float depth_cutoff;
 	float asymmetry;
-	
+
 	short stepsize_type;
 	short shadeflag;
 	short shade_type;
@@ -92,8 +92,8 @@ typedef struct TexPaintSlot {
 
 typedef struct Material {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
-	
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+
 	short material_type, flag;
 	/* note, keep this below synced with render_types.h */
 	float r, g, b;
@@ -104,7 +104,7 @@ typedef struct Material {
 	float alpha, ref, spec, zoffs, add;
 	float translucency;
 	/* end synced with render_types.h */
-	
+
 	struct VolumeSettings vol;
 	struct GameSettings game;
 
@@ -115,7 +115,7 @@ typedef struct Material {
 	short ray_depth, ray_depth_tra;
 	short har;
 	char seed1, seed2;
-	
+
 	float gloss_mir, gloss_tra;
 	short samp_gloss_mir, samp_gloss_tra;
 	float adapt_thresh_mir, adapt_thresh_tra;
@@ -123,7 +123,7 @@ typedef struct Material {
 	float dist_mir;
 	short fadeto_mir;
 	short shade_flag;		/* like Cubic interpolation */
-		
+
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	int mode2, mode2_l;		/* additional mode flags */
 	short flarec, starc, linec, ringc;
@@ -131,16 +131,16 @@ typedef struct Material {
 	float strand_sta, strand_end, strand_ease, strand_surfnor;
 	float strand_min, strand_widthfade;
 	char strand_uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
-	
+
 	float sbias;			/* shadow bias to prevent terminator prob */
 	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */
 	float shad_alpha;		/* in use for irregular shadowbuffer */
 	int	septex;
-	
+
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
 	short pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
-	
+
 	/* mapping */
 	char mapflag, pad;
 
@@ -155,7 +155,7 @@ typedef struct Material {
 
 	/* runtime - OR'd from 'mtex' */
 	short texco, mapto;
-	
+
 	/* ramp colors */
 	struct ColorBand *ramp_col;
 	struct ColorBand *ramp_spec;
@@ -253,7 +253,7 @@ typedef struct Material {
 		/* for dopesheet */
 #define MA_DS_EXPAND	2
 		/* for dopesheet (texture stack expander)
-		 * NOTE: this must have the same value as other texture stacks, 
+		 * NOTE: this must have the same value as other texture stacks,
 		 * otherwise anim-editors will not read correctly
 		 */
 #define MA_DS_SHOW_TEXS	4
@@ -369,8 +369,8 @@ typedef struct Material {
 #define MA_RAMP_SAT			13
 #define MA_RAMP_VAL			14
 #define MA_RAMP_COLOR		15
-#define MA_RAMP_SOFT        16 
-#define MA_RAMP_LINEAR      17 
+#define MA_RAMP_SOFT        16
+#define MA_RAMP_LINEAR      17
 
 /* texco */
 #define TEXCO_ORCO		1

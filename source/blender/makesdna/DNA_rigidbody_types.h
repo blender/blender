@@ -52,23 +52,23 @@ typedef struct RigidBodyWorld {
 
 	struct Group *group;		/* Group containing objects to use for Rigid Bodies */
 	struct Object **objects;	/* Array to access group objects by index, only used at runtime */
-	
+
 	struct Group *constraints;	/* Group containing objects to use for Rigid Body Constraints*/
 
 	int pad;
 	float ltime;				/* last frame world was evaluated for (internal) */
-	
+
 	/* cache */
 	struct PointCache *pointcache;
 	struct ListBase ptcaches;
 	int numbodies;              /* number of objects in rigid body group */
-	
+
 	short steps_per_second;		/* number of simulation steps thaken per second */
 	short num_solver_iterations;/* number of constraint solver iterations made per simulation step */
-	
+
 	int flag;					/* (eRigidBodyWorld_Flag) settings for this RigidBodyWorld */
 	float time_scale;			/* used to speed up or slow down the simulation */
-	
+
 	/* References to Physics Sim objects. Exist at runtime only ---------------------- */
 	void *physics_world;		/* Physics sim world (i.e. btDiscreteDynamicsWorld) */
 } RigidBodyWorld;
@@ -96,30 +96,30 @@ typedef struct RigidBodyOb {
 	/* References to Physics Sim objects. Exist at runtime only */
 	void *physics_object;	/* Physics object representation (i.e. btRigidBody) */
 	void *physics_shape;	/* Collision shape used by physics sim (i.e. btCollisionShape) */
-	
+
 	/* General Settings for this RigidBodyOb */
 	short type;				/* (eRigidBodyOb_Type) role of RigidBody in sim  */
-	short shape;			/* (eRigidBody_Shape) collision shape to use */ 
-	
+	short shape;			/* (eRigidBody_Shape) collision shape to use */
+
 	int flag;				/* (eRigidBodyOb_Flag) */
 	int col_groups;			/* Collision groups that determines wich rigid bodies can collide with each other */
 	short mesh_source;		/* (eRigidBody_MeshSource) mesh source for mesh based collision shapes */
 	short pad;
-	
+
 	/* Physics Parameters */
 	float mass;				/* how much object 'weighs' (i.e. absolute 'amount of stuff' it holds) */
-	
+
 	float friction;			/* resistance of object to movement */
 	float restitution;		/* how 'bouncy' object is when it collides */
-	
-	float margin;			/* tolerance for detecting collisions */ 
-	
+
+	float margin;			/* tolerance for detecting collisions */
+
 	float lin_damping;		/* damping for linear velocities */
 	float ang_damping;		/* damping for angular velocities */
-	
+
 	float lin_sleep_thresh;	/* deactivation threshold for linear velocities */
 	float ang_sleep_thresh;	/* deactivation threshold for angular velocities */
-	
+
 	float orn[4];			/* rigid body orientation */
 	float pos[3];			/* rigid body position */
 	float pad1;
@@ -166,12 +166,12 @@ typedef enum eRigidBody_Shape {
 	RB_SHAPE_CYLINDER,
 		/* cone (i.e. party hat) */
 	RB_SHAPE_CONE,
-	
+
 		/* convex hull (minimal shrinkwrap encompassing all verts) */
 	RB_SHAPE_CONVEXH,
 		/* triangulated mesh */
 	RB_SHAPE_TRIMESH,
-	
+
 		/* concave mesh approximated using primitives */
 	//RB_SHAPE_COMPOUND,
 } eRigidBody_Shape;

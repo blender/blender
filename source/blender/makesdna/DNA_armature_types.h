@@ -67,17 +67,17 @@ typedef struct Bone {
 	float        dist, weight;           /*  dist, weight: for non-deformgroup deforms */
 	float        xwidth, length, zwidth; /*  width: for block bones. keep in this order, transform! */
 	float        rad_head, rad_tail;     /* radius for head/tail sphere, defining deform as well, parent->rad_tip overrides rad_head */
-	
+
 	float        roll1, roll2;           /* curved bones settings - these define the "restpose" for a curved bone */
 	float		 curveInX, curveInY;
 	float		 curveOutX, curveOutY;
 	float        ease1, ease2;        /* length of bezier handles */
 	float		 scaleIn, scaleOut;
-	
+
 	float        size[3];        /*  patch for upward compat, UNUSED! */
 	int          layer;          /* layers that bone appears on */
 	short        segments;       /*  for B-bones */
-	
+
 	short		 pad1;
 
 } Bone;
@@ -213,7 +213,7 @@ typedef enum eBone_Flag {
 	BONE_NO_LOCAL_LOCATION      = (1 << 22),  /* bone location is in armature space */
 	BONE_RELATIVE_PARENTING     = (1 << 23),  /* object child will use relative transform (like deform) */
 	BONE_ADD_PARENT_END_ROLL    = (1 << 24)   /* it will add the parent end roll to the inroll */
-	
+
 } eBone_Flag;
 
 #define MAXBONENAME 64

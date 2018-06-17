@@ -53,23 +53,23 @@ typedef struct bConstraintChannel {
 /* A Constraint */
 typedef struct bConstraint {
 	struct bConstraint *next, *prev;
-	
+
 	void		*data;		/*	Constraint data	(a valid constraint type) */
 	short		type;		/*	Constraint type	*/
 	short		flag;		/*	Flag - General Settings	*/
-	
+
 	char 		ownspace;	/* 	Space that owner should be evaluated in 	*/
 	char		tarspace;	/* 	Space that target should be evaluated in (only used if 1 target) */
-	
+
 	char		name[64];	/*	Constraint name, MAX_NAME */
-	
+
 	short		pad;
-	
+
 	float		enforce;	/* 	Amount of influence exherted by constraint (0.0-1.0) */
 	float		headtail;	/*	Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail*/
-	
+
 	struct Ipo *ipo    DNA_DEPRECATED;		/* local influence ipo or driver */  /* old animation system, deprecated for 2.5 */
-	
+
 	/* below are readonly fields that are set at runtime by the solver for use in the GE (only IK atm) */
 	float       lin_error;		/* residual error on constraint expressed in blender unit*/
 	float       rot_error;		/* residual error on constraint expressed in radiant */
@@ -87,9 +87,9 @@ typedef struct bConstraintTarget {
 
 	struct Object *tar;			/* object to use as target */
 	char subtarget[64];		/* subtarget - pchan or vgroup name, MAX_ID_NAME-2 */
-	
+
 	float matrix[4][4];		/* matrix used during constraint solving - should be cleared before each use */
-	
+
 	short space;			/* space that target should be evaluated in (overrides bConstraint->tarspace) */
 	short flag;				/* runtime settings (for editor, etc.) */
 	short type;				/* type of target (eConstraintObType) */
@@ -111,15 +111,15 @@ typedef enum eConstraintObType {
 
 
 /* Python Script Constraint */
-typedef struct bPythonConstraint {	
+typedef struct bPythonConstraint {
 	struct Text *text;		/* text-buffer (containing script) to execute */
 	IDProperty *prop;		/* 'id-properties' used to store custom properties for constraint */
-	
+
 	int flag;				/* general settings/state indicators accessed by bitmapping */
 	int tarnum;				/* number of targets - usually only 1-3 are needed */
-	
+
 	ListBase targets;		/* a list of targets that this constraint has (bConstraintTarget-s) */
-	
+
 	struct Object *tar;		/* target from previous implementation (version-patch sets this to NULL on file-load) */
 	char subtarget[64];		/* subtarger from previous implentation (version-patch sets this to "" on file-load), MAX_ID_NAME-2 */
 } bPythonConstraint;
@@ -155,7 +155,7 @@ typedef enum eConstraint_IK_Type {
 } eConstraint_IK_Type;
 
 
-/* Spline IK Constraint 
+/* Spline IK Constraint
  * Aligns 'n' bones to the curvature defined by the curve,
  * with the chain ending on the bone that owns this constraint,
  * and starting on the nth parent.
@@ -163,16 +163,16 @@ typedef enum eConstraint_IK_Type {
 typedef struct bSplineIKConstraint {
 		/* target(s) */
 	struct Object *tar;		/* curve object (with follow path enabled) which drives the bone chain */
-	
+
 		/* binding details */
 	float 		*points;	/* array of numpoints items, denoting parametric positions along curve that joints should follow */
 	short 		numpoints;	/* number of points to bound in points array */
 	short		chainlen;	/* number of bones ('n') that are in the chain */
-	
+
 		/* settings */
 	short flag;				/* general settings for constraint */
 	short xzScaleMode;		/* method used for determining the x & z scaling of the bones */
-	
+
 		/* volume preservation settings */
 	float		bulge;
 	float		bulge_min;
@@ -276,12 +276,12 @@ typedef struct bDampTrackConstraint {
 /* Follow Path constraints */
 typedef struct bFollowPathConstraint {
 	struct Object		*tar;		/* Must be path object */
-	
+
 	float		offset; 		/* Offset in time on the path (in frames), when NOT using 'fixed position' */
 	float 		offset_fac;		/* Parametric offset factor defining position along path, when using 'fixed position' */
-	
+
 	int			followflag;
-	
+
 	short		trackflag;
 	short		upflag;
 } bFollowPathConstraint;
@@ -290,7 +290,7 @@ typedef struct bFollowPathConstraint {
 typedef struct bStretchToConstraint {
 	struct Object		*tar;
 	int			flag;
-	int			volmode; 
+	int			volmode;
 	int			plane;
 	float		orglength;
 	float		bulge;
@@ -340,11 +340,11 @@ typedef struct bChildOfConstraint {
 typedef struct bTransformConstraint {
 	struct Object 		*tar;			/* target (i.e. 'driver' object/bone) */
 	char 		subtarget[64];		/* MAX_ID_NAME-2 */
-	
+
 	short		from, to;		/* can be loc(0), rot(1) or size(2) */
 	char		map[3];			/* defines which target-axis deform is copied by each owner-axis */
 	char		expo;			/* extrapolate motion? if 0, confine to ranges */
-	
+
 	float		from_min[3];	/* from_min/max defines range of target transform 	*/
 	float		from_max[3];	/* 	to map on to to_min/max range. 			*/
 	float		to_min[3];		/* range of motion on owner caused by target  */
@@ -369,12 +369,12 @@ typedef struct bPivotConstraint {
 	struct Object 		*tar;			/* target object (optional) */
 	char		subtarget[64];		/* subtarget name (optional), MAX_ID_NAME-2 */
 	float 		offset[3];		/* offset from the target to use, regardless of whether it exists */
-	
+
 	/* Rotation-driven activation:
 	 *	This option provides easier one-stop setups for footrolls
 	 */
 	short 		rotAxis;		/* rotation axes to consider for this (ePivotConstraint_Axis) */
-	
+
 	/* General flags */
 	short 		flag;			/* ePivotConstraint_Flag */
 } bPivotConstraint;
@@ -411,10 +411,10 @@ typedef struct bSizeLimitConstraint {
 typedef struct bDistLimitConstraint {
 	struct Object 		*tar;
 	char 		subtarget[64];		/* MAX_ID_NAME-2 */
-	
+
 	float 		dist;			/* distance (radius of clamping sphere) from target */
 	float		soft;			/* distance from clamping-sphere to start applying 'fade' */
-	
+
 	short		flag;			/* settings */
 	short 		mode;			/* how to limit in relation to clamping sphere */
 	int 		pad;
@@ -466,7 +466,7 @@ typedef struct bTransformCacheConstraint {
 
 /* ------------------------------------------ */
 
-/* bConstraint->type 
+/* bConstraint->type
  * 	- Do not ever change the order of these, or else files could get
  * 	  broken as their correct value cannot be resolved
  */
@@ -486,7 +486,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_ACTION = 12,
 	CONSTRAINT_TYPE_LOCKTRACK = 13,			/* New Tracking constraint that locks an axis in place - theeth */
 	CONSTRAINT_TYPE_DISTLIMIT = 14,			/* limit distance */
-	CONSTRAINT_TYPE_STRETCHTO = 15,			/* claiming this to be mine :) is in tuhopuu bjornmose */ 
+	CONSTRAINT_TYPE_STRETCHTO = 15,			/* claiming this to be mine :) is in tuhopuu bjornmose */
 	CONSTRAINT_TYPE_MINMAX = 16,  			/* floor constraint */
 	CONSTRAINT_TYPE_RIGIDBODYJOINT = 17,		/* rigidbody constraint */
 	CONSTRAINT_TYPE_CLAMPTO = 18, 			/* clampto constraint */
@@ -501,21 +501,21 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_CAMERASOLVER = 27,		/* Camera Solver Constraint */
 	CONSTRAINT_TYPE_OBJECTSOLVER = 28,		/* Object Solver Constraint */
 	CONSTRAINT_TYPE_TRANSFORM_CACHE = 29,	/* Transform Cache Constraint */
-	
+
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
-} eBConstraint_Types; 
+} eBConstraint_Types;
 
 /* bConstraint->flag */
 /* flags 0x2 (1<<1) and 0x8 (1<<3) were used in past */
 /* flag 0x20 (1<<5) was used to indicate that a constraint was evaluated using a 'local' hack for posebones only  */
 typedef enum eBConstraint_Flags {
 		/* expand for UI */
-	CONSTRAINT_EXPAND =		(1<<0), 
+	CONSTRAINT_EXPAND =		(1<<0),
 		/* pre-check for illegal object name or bone name */
-	CONSTRAINT_DISABLE = 	(1<<2), 
+	CONSTRAINT_DISABLE = 	(1<<2),
 		/* to indicate which Ipo should be shown, maybe for 3d access later too */
-	CONSTRAINT_ACTIVE = 	(1<<4), 
+	CONSTRAINT_ACTIVE = 	(1<<4),
 		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
 	CONSTRAINT_SPACEONCE = 	(1<<6),
 		/* influence ipo is on constraint itself, not in action channel */
@@ -532,8 +532,8 @@ typedef enum eBConstraint_Flags {
 typedef enum eBConstraint_SpaceTypes {
 		/* default for all - worldspace */
 	CONSTRAINT_SPACE_WORLD = 0,
-		/* for objects (relative to parent/without parent influence), 
-		 * for bones (along normals of bone, without parent/restpositions) 
+		/* for objects (relative to parent/without parent influence),
+		 * for bones (along normals of bone, without parent/restpositions)
 		 */
 	CONSTRAINT_SPACE_LOCAL = 1,
 		/* for posechannels - pose space  */
@@ -576,12 +576,12 @@ typedef enum eCopyLocation_Flags {
 	LOCLIKE_Z_INVERT	= (1<<6),
 	LOCLIKE_OFFSET		= (1<<7)
 } eCopyLocation_Flags;
- 
+
 /* bSizeLikeConstraint.flag */
 typedef enum eCopyScale_Flags {
 	SIZELIKE_X		= (1<<0),
 	SIZELIKE_Y		= (1<<1),
-	SIZELIKE_Z		= (1<<2), 
+	SIZELIKE_Z		= (1<<2),
 	SIZELIKE_OFFSET = (1<<3)
 } eCopyScale_Flags;
 
@@ -602,7 +602,7 @@ typedef enum eSameVolume_Modes {
 /* bActionConstraint.flag */
 typedef enum eActionConstraint_Flags {
 	/* Bones use "object" part of target action, instead of "same bone name" part */
-	ACTCON_BONE_USE_OBJECT_ACTION = (1 << 0), 
+	ACTCON_BONE_USE_OBJECT_ACTION = (1 << 0),
 } eActionConstraint_Flags;
 
 /* Locked-Axis Values (Locked Track) */
@@ -704,7 +704,7 @@ typedef enum eSplineIK_Flags {
 	CONSTRAINT_SPLINEIK_EVENSPLITS		= (1 << 3),
 	/* don't adjust the x and z scaling of the bones by the curve radius */
 	CONSTRAINT_SPLINEIK_NO_CURVERAD		= (1 << 4),
-	
+
 	/* for "volumetric" xz scale mode, limit the minimum or maximum scale values */
 	CONSTRAINT_SPLINEIK_USE_BULGE_MIN 	= (1 << 5),
 	CONSTRAINT_SPLINEIK_USE_BULGE_MAX 	= (1 << 6),
@@ -769,7 +769,7 @@ typedef enum eDistLimit_Modes {
 	LIMITDIST_OUTSIDE   = 1,
 	LIMITDIST_ONSURFACE = 2
 } eDistLimit_Modes;
-	
+
 /* python constraint -> flag */
 typedef enum ePyConstraint_Flags {
 	PYCON_USETARGETS	= (1<<0),
@@ -795,14 +795,14 @@ typedef enum eChildOf_Flags {
 typedef enum ePivotConstraint_Axis {
 	/* do not consider this activity-clamping */
 	PIVOTCON_AXIS_NONE = -1,
-	
+
 	/* consider -ve x-axis rotations */
 	PIVOTCON_AXIS_X_NEG = 0,
 	/* consider -ve y-axis rotations */
 	PIVOTCON_AXIS_Y_NEG = 1,
 	/* consider -ve z-axis rotations */
 	PIVOTCON_AXIS_Z_NEG = 2,
-	
+
 	/* consider +ve x-axis rotations */
 	PIVOTCON_AXIS_X = 3,
 	/* consider +ve y-axis rotations */

@@ -79,7 +79,7 @@ typedef struct BGpic {
 /* ********************************* */
 
 typedef struct RegionView3D {
-	
+
 	float winmat[4][4];			/* GL_PROJECTION matrix */
 	float viewmat[4][4];		/* GL_MODELVIEW matrix */
 	float viewinv[4][4];		/* inverse of viewmat */
@@ -162,10 +162,10 @@ typedef struct View3D {
 
 	unsigned int lay_prev; /* for active layer toggle */
 	unsigned int lay_used; /* used while drawing */
-	
+
 	short persp  DNA_DEPRECATED;
 	short view   DNA_DEPRECATED;
-	
+
 	struct Object *camera, *ob_centre;
 	rctf render_border;
 
@@ -173,12 +173,12 @@ typedef struct View3D {
 	struct BGpic *bgpic  DNA_DEPRECATED; /* deprecated, use bgpicbase, only kept for do_versions(...) */
 
 	struct View3D *localvd; /* allocated backup of its self while in localview */
-	
+
 	char ob_centre_bone[64];		/* optional string for armature bone to define center, MAXBONENAME */
-	
+
 	unsigned int lay;
 	int layact;
-	
+
 	/**
 	 * The drawing mode for the 3d display. Set to OB_BOUNDBOX, OB_WIRE, OB_SOLID,
 	 * OB_TEXTURE, OB_MATERIAL or OB_RENDER */
@@ -186,7 +186,7 @@ typedef struct View3D {
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
 	short scenelock, around;
 	short flag, flag2;
-	
+
 	float lens, grid;
 	float near, far;
 	float ofs[3]  DNA_DEPRECATED;			/* XXX deprecated */
@@ -200,9 +200,9 @@ typedef struct View3D {
 
 	/* transform widget info */
 	char twtype, twmode, twflag;
-	
+
 	short flag3;
-	
+
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw_transp;
 	struct ListBase afterdraw_xray;

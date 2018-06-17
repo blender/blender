@@ -51,8 +51,8 @@ struct MTex;
  * data and modeling data. */
 typedef struct World {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
-	
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+
 	short colormodel, totex;
 	short texact, mistype;
 
@@ -77,7 +77,7 @@ typedef struct World {
 	 * Radius of the activity bubble, in Manhattan length. Objects
 	 * outside the box are activity-culled. */
 	float activityBoxRadius; // XXX moved to scene->gamedata in 2.5
-	
+
 	short skytype;
 	/**
 	 * Some world modes
@@ -86,22 +86,22 @@ typedef struct World {
 	 * bit 2: (reserved) depth of field
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 4: ambient occlusion
-	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustum culling 
+	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustum culling
 	 */
 	short mode;												// partially moved to scene->gamedata in 2.5
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */	// XXX moved to scene->gamedata in 2.5
 	short physicsEngine;	/* here it's aligned */					// XXX moved to scene->gamedata in 2.5
 	short ticrate, maxlogicstep, physubstep, maxphystep;	// XXX moved to scene->gamedata in 2.5
-	
+
 	float misi, miststa, mistdist, misthi;
-	
+
 	float starr  DNA_DEPRECATED, starg  DNA_DEPRECATED, starb  DNA_DEPRECATED, stark  DNA_DEPRECATED; /* Deprecated */
 	float starsize DNA_DEPRECATED, starmindist DNA_DEPRECATED;
 	float stardist DNA_DEPRECATED, starcolnoise DNA_DEPRECATED;
-	
+
 	/* unused now: DOF */
 	short dofsta, dofend, dofmin, dofmax;
-	
+
 	/* ambient occlusion */
 	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
@@ -110,14 +110,14 @@ typedef struct World {
 	float ao_indirect_energy, ao_env_energy, ao_pad2;
 	short ao_indirect_bounces, ao_pad;
 	short ao_samp_method, ao_gather_method, ao_approx_passes;
-	
+
 	/* assorted settings (in the middle of ambient occlusion settings for padding reasons) */
 	short flag;
-	
+
 	/* ambient occlusion (contd...) */
 	float *aosphere, *aotables;
-	
-	
+
+
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct MTex *mtex[18];		/* MAX_MTEX */
 	short pr_texture, use_nodes, pad[2];
@@ -195,7 +195,7 @@ enum {
 
 /* flag */
 #define WO_DS_EXPAND	(1<<0)
-	/* NOTE: this must have the same value as MA_DS_SHOW_TEXS, 
+	/* NOTE: this must have the same value as MA_DS_SHOW_TEXS,
 	 * otherwise anim-editors will not read correctly
 	 */
 #define WO_DS_SHOW_TEXS	(1<<2)

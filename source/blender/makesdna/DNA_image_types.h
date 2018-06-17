@@ -98,12 +98,12 @@ enum {
 
 typedef struct Image {
 	ID id;
-	
+
 	char name[1024];			/* file path, 1024 = FILE_MAX */
-	
+
 	struct MovieCache *cache;	/* not written in file */
 	struct GPUTexture *gputexture[2]; /* not written in file 2 = TEXTARGET_COUNT */
-	
+
 	/* sources from: */
 	ListBase anims;
 	struct RenderResult *rr;
@@ -122,7 +122,7 @@ typedef struct Image {
 	unsigned int bindcode[2]; /* only for current image... 2 = TEXTARGET_COUNT */
 	char pad1[4];
 	unsigned int *repbind;	/* for repeat of parts of images */
-	
+
 	struct PackedFile *packedfile DNA_DEPRECATED; /* deprecated */
 	struct ListBase packedfiles;
 	struct PreviewImage *preview;
@@ -133,13 +133,13 @@ typedef struct Image {
 	short animspeed;
 
 	short ok;
-	
+
 	/* for generated images */
 	int gen_x, gen_y;
 	char gen_type, gen_flag;
 	short gen_depth;
 	float gen_color[4];
-	
+
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;
 
@@ -188,7 +188,7 @@ enum {
 #define IMA_TWINANIM		2
 #define IMA_COLCYCLE		4	/* Depreciated */
 #define IMA_MIPMAP_COMPLETE 8   /* all mipmap levels in OpenGL texture set? */
-#define IMA_CLAMP_U			16 
+#define IMA_CLAMP_U			16
 #define IMA_CLAMP_V			32
 #define IMA_TPAGE_REFRESH	64
 #define IMA_GLBIND_IS_DATA	128 /* opengl image texture bound as non-color data */

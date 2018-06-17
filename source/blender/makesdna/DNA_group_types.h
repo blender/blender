@@ -50,7 +50,7 @@ typedef struct GroupObject {
 
 typedef struct Group {
 	ID id;
-	
+
 	ListBase gobject;	/* GroupObject */
 
 	struct PreviewImage *preview;

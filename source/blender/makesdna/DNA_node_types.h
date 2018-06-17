@@ -85,36 +85,36 @@ typedef struct bNodeStack {
 
 typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev, *new_sock;
-	
+
 	IDProperty *prop;			/* user-defined properties */
-	
+
 	char identifier[64];		/* unique identifier for mapping */
-	
+
 	char name[64];	/* MAX_NAME */
-	
+
 	/* XXX deprecated, only used for the Image and OutputFile nodes,
 	 * should be removed at some point.
 	 */
 	void *storage;				/* custom storage */
-	
+
 	short type, flag;
 	short limit;				/* max. number of links */
 	short in_out;				/* input/output type */
 	struct bNodeSocketType *typeinfo;	/* runtime type information */
 	char idname[64];			/* runtime type identifier */
-	
+
 	float locx, locy;
-	
+
 	void *default_value;		/* default input value used for unlinked sockets */
-	
+
 	/* execution data */
 	short stack_index;			/* local stack index */
 	/* XXX deprecated, kept for forward compatibility */
 	short stack_type  DNA_DEPRECATED;
 	char draw_shape, pad[3];
-	
+
 	void *cache;				/* cached data from execution */
-	
+
 	/* internal data to retrieve relations and groups
 	 * DEPRECATED, now uses the generic identifier string instead
 	 */
@@ -123,7 +123,7 @@ typedef struct bNodeSocket {
 	int to_index  DNA_DEPRECATED;
 	/* XXX deprecated, still forward compatible since verification restores pointer from matching own_index. */
 	struct bNodeSocket *groupsock  DNA_DEPRECATED;
-	
+
 	struct bNodeLink *link;		/* a link pointer, set in ntreeUpdateTree */
 
 	/* XXX deprecated, socket input values are stored in default_value now. kept for forward compatibility */
@@ -174,10 +174,10 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 
 	IDProperty *prop;		/* user-defined properties */
-	
+
 	struct bNodeType *typeinfo;	/* runtime type information */
 	char idname[64];			/* runtime type identifier */
-	
+
 	char name[64];	/* MAX_NAME */
 	int flag;
 	short type, pad;
@@ -186,23 +186,23 @@ typedef struct bNode {
 	short stack_index;		/* for groupnode, offset in global caller stack */
 	short nr;				/* number of this node in list, used for UI exec events */
 	float color[3];			/* custom user-defined color */
-	
+
 	ListBase inputs, outputs;
 	struct bNode *parent;	/* parent node */
 	struct ID *id;			/* optional link to libdata */
 	void *storage;			/* custom data, must be struct, for storage in file */
 	struct bNode *original;	/* the original node in the tree (for localized tree) */
 	ListBase internal_links; /* list of cached internal links (input to output), for muted nodes and operators */
-	
+
 	float locx, locy;		/* root offset for drawing (parent space) */
 	float width, height;	/* node custom width and height */
 	float miniwidth;		/* node width if hidden */
 	float offsetx, offsety;	/* additional offset from loc */
 	float anim_init_locx;	/* initial locx for insert offset animation */
 	float anim_ofsx;		/* offset that will be added to locx for insert offset animation */
-	
+
 	int update;				/* update flags */
-	
+
 	char label[64];			/* custom user-defined label, MAX_NAME */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
@@ -287,7 +287,7 @@ typedef struct bNodeInstanceKey {
  */
 typedef struct bNodeInstanceHashEntry {
 	bNodeInstanceKey key;
-	
+
 	/* tags for cleaning the cache */
 	short tag;
 	short pad;
@@ -296,7 +296,7 @@ typedef struct bNodeInstanceHashEntry {
 
 typedef struct bNodePreview {
 	bNodeInstanceHashEntry hash_entry;	/* must be first */
-	
+
 	unsigned char *rect;
 	short xsize, ysize;
 	int pad;
@@ -305,10 +305,10 @@ typedef struct bNodePreview {
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
-	
+
 	bNode *fromnode, *tonode;
 	bNodeSocket *fromsock, *tosock;
-	
+
 	int flag;
 	int pad;
 } bNodeLink;
@@ -335,41 +335,41 @@ typedef struct bNodeLink {
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {
 	ID id;
-	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
-	
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
+
 	struct bNodeTreeType *typeinfo;	/* runtime type information */
 	char idname[64];				/* runtime type identifier */
-	
+
 	struct StructRNA *interface_type;	/* runtime RNA type of the group interface */
-	
+
 	struct bGPdata *gpd;		/* grease pencil data */
 	float view_center[2];		/* node tree stores own offset for consistent editor view */
-	
+
 	ListBase nodes, links;
-	
+
 	int type, init;					/* set init on fileread */
-	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always 
+	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always
 									 * will increase this counter */
 	int flag;
 	int update;						/* update flags */
 	short is_updating;				/* flag to prevent reentrant update calls */
 	short done;						/* generic temporary flag for recursion check (DFS/BFS) */
 	int pad2;
-	
+
 	int nodetype DNA_DEPRECATED;	/* specific node type this tree is used for */
 
 	short edit_quality;				/* Quality setting when editing */
 	short render_quality;				/* Quality setting when rendering */
 	int chunksize;					/* tile size for compositor engine */
-	
+
 	rctf viewer_border;
-	
+
 	/* Lists of bNodeSocket to hold default values and own_index.
 	 * Warning! Don't make links to these sockets, input/output nodes are used for that.
 	 * These sockets are used only for generating external interfaces.
 	 */
 	ListBase inputs, outputs;
-	
+
 	/* Node preview hash table
 	 * Only available in base node trees (e.g. scene->node_tree)
 	 */
@@ -379,7 +379,7 @@ typedef struct bNodeTree {
 	 */
 	bNodeInstanceKey active_viewer_key;
 	int pad;
-	
+
 	/* execution data */
 	/* XXX It would be preferable to completely move this data out of the underlying node tree,
 	 * so node tree execution could finally run independent of the tree itself. This would allow node trees
@@ -388,7 +388,7 @@ typedef struct bNodeTree {
 	 * as long as necessary, even while the tree is being modified.
 	 */
 	struct bNodeTreeExec *execdata;
-	
+
 	/* callbacks */
 	void (*progress)(void *, float progress);
 	/** \warning may be called by different threads */
@@ -398,7 +398,7 @@ typedef struct bNodeTree {
 	void *tbh, *prh, *sdh, *udh;
 
 	void *duplilock;
-	
+
 } bNodeTree;
 
 /* ntree->type, index */
@@ -628,7 +628,7 @@ typedef struct NodeImageMultiFileSocket {
 	int pad1;
 	char path[1024];		/* 1024 = FILE_MAX */
 	ImageFormatData format;
-	
+
 	/* multilayer output */
 	char layer[30];		/* EXR_TOT_MAXNAME-2 ('.' and channel char are appended) */
 	char pad2[2];
@@ -700,7 +700,7 @@ typedef struct NodeColorBalance {
 	float power[3];
 	float offset_basis;
 	char _pad[4];
-	
+
 	/* LGG parameters */
 	float lift[3];
 	float gamma[3];

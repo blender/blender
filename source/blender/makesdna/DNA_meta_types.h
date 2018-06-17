@@ -57,34 +57,34 @@ typedef struct MetaElem {
 	float rad2;             /* temp field, used only while processing */
 	float s;                /* stiffness, how much of the element to fill */
 	float len;              /* old, only used for backwards compat. use dimensions now */
-	
+
 	float *mat, *imat;      /* matrix and inverted matrix */
-	
+
 } MetaElem;
 
 typedef struct MetaBall {
 	ID id;
 	struct AnimData *adt;
-	
+
 	ListBase elems;
 	ListBase disp;
 	ListBase *editelems;		/* not saved in files, note we use pointer for editmode check */
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 
 	/* material of the mother ball will define the material used of all others */
-	struct Material **mat; 
+	struct Material **mat;
 
 	char flag, flag2;			/* flag is enum for updates, flag2 is bitflags for settings */
 	short totcol;
 	short texflag, pad; /* used to store MB_AUTOSPACE */
-	
+
 	/* texture space, copied as one block in editobject.c */
 	float loc[3];
 	float size[3];
 	float rot[3];
-	
+
 	float wiresize, rendersize; /* display and render res */
-	
+
 	/* bias elements to have an offset volume.
 	 * mother ball changes will effect other objects thresholds,
 	 * but these may also have their own thresh as an offset */

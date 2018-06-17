@@ -130,9 +130,9 @@ typedef struct bIpoActuator {
 	float sta, end;
 	char name[64];		/* MAX_NAME */
 	char frameProp[64];	/* Set this property to the actions current frame, MAX_NAME */
-	
+
 	short pad1, pad2, pad3, pad4;
-	
+
 } bIpoActuator;
 
 typedef struct bCameraActuator {
@@ -157,10 +157,10 @@ typedef struct bGroupActuator {
 	short flag, type;
 	int sta, end;
 	char name[64];		/* property or groupkey, MAX_NAME */
-	
+
 	short pad[3], cur, butsta, butend;/* not referenced, can remove? */
 	/* struct Group *group;		not used, remove */
-	
+
 } bGroupActuator;
 
 /* I added a few extra fields here, to facilitate conversions                */
@@ -191,8 +191,8 @@ typedef struct bGameActuator {
 } bGameActuator;
 
 typedef struct bVisibilityActuator {
-	/** bit 0: Is this object visible? 
-	 ** bit 1: Apply recursively  
+	/** bit 0: Is this object visible?
+	 ** bit 1: Apply recursively
 	 ** bit 2: Is this object an occluder? */
 	int flag;
 } bVisibilityActuator;
@@ -263,7 +263,7 @@ typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
 	/**
-	 * Tells what type of actuator data \ref data holds. 
+	 * Tells what type of actuator data \ref data holds.
 	 */
 	short flag;
 	short otype, go;
@@ -334,8 +334,8 @@ typedef struct bActuator {
 #define ACT_SHOW		1
 #define ACT_DEL			2
 #define ACT_NEW			4
-#define ACT_LINKED		8	
-#define ACT_VISIBLE		16	
+#define ACT_LINKED		8
+#define ACT_VISIBLE		16
 #define ACT_PIN			32
 #define ACT_DEACTIVATE  64
 
@@ -378,7 +378,7 @@ typedef struct bActuator {
 #define ACT_IPOFORCE        (1 << 0)
 #define ACT_IPOEND          (1 << 1)
 #define ACT_IPOLOCAL		(1 << 2)
-#define ACT_IPOCHILD        (1 << 4)	
+#define ACT_IPOCHILD        (1 << 4)
 #define ACT_IPOADD			(1 << 5)
 
 /* property actuator->type */

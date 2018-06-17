@@ -153,7 +153,7 @@ typedef struct Library {
 	char filepath[1024];
 
 	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
-	
+
 	struct PackedFile *packedfile;
 
 	/* Temp data needed by read/write code. */

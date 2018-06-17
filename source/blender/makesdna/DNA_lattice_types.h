@@ -52,22 +52,22 @@ typedef struct EditLatt {
 typedef struct Lattice {
 	ID id;
 	struct AnimData *adt;
-	
+
 	short pntsu, pntsv, pntsw, flag;
 	short opntsu, opntsv, opntsw, pad2;
 	char typeu, typev, typew, pad3;
 	int actbp; /* active element index, unset with LT_ACTBP_NONE */
 
 	float fu, fv, fw, du, dv, dw;
-	
+
 	struct BPoint *def;
-	
+
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
-	
+
 	struct MDeformVert *dvert;
 	char vgroup[64]; /* multiply the influence, MAX_VGROUP_NAME */
-	
+
 	struct EditLatt *editlatt;
 } Lattice;
 

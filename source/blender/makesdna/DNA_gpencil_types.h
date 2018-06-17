@@ -54,7 +54,7 @@ typedef struct bGPDspoint {
 typedef enum eGPDspoint_Flag {
 	/* stroke point is selected (for editing) */
 	GP_SPOINT_SELECT	= (1 << 0),
-	
+
 	/* stroke point is tagged (for some editing operation) */
 	GP_SPOINT_TAG       = (1 << 1),
 } eGPSPoint_Flag;
@@ -168,7 +168,7 @@ typedef struct bGPDstroke {
 	short flag, pad[2];     /* various settings about this stroke */
 
 	double inittime;		/* Init time of stroke */
-	/* The pointer to color is only used during drawing, but not saved 
+	/* The pointer to color is only used during drawing, but not saved
 	 * colorname is the join with the palette, but when draw, the pointer is update if the value is NULL
 	 * to speed up the drawing
 	 */
@@ -203,11 +203,11 @@ typedef enum eGPDstroke_Flag {
  */
 typedef struct bGPDframe {
 	struct bGPDframe *next, *prev;
-	
+
 	ListBase strokes;	/* list of the simplified 'strokes' that make up the frame's data */
-	
+
 	int framenum;		/* frame number of this frame */
-	
+
 	short flag;			/* temp settings */
 	short key_type;		/* keyframe type (eBezTriple_KeyframeType) */
 } bGPDframe;
@@ -223,30 +223,30 @@ typedef enum eGPDframe_Flag {
 /* Grease-Pencil Annotations - 'Layer' */
 typedef struct bGPDlayer {
 	struct bGPDlayer *next, *prev;
-	
+
 	ListBase frames;		/* list of annotations to display for frames (bGPDframe list) */
 	bGPDframe *actframe;	/* active frame (should be the frame that is currently being displayed) */
-	
+
 	short flag;				/* settings for layer */
 	short thickness;		/* current thickness to apply to strokes */
-	
+
 	short gstep;			/* Ghosts Before: max number of ghost frames to show between active frame and the one before it (0 = only the ghost itself) */
 	short gstep_next;		/* Ghosts After:  max number of ghost frames to show after active frame and the following it    (0 = only the ghost itself) */
-	
+
 	float gcolor_prev[3];	/* optional color for ghosts before the active frame */
 	float gcolor_next[3];	/* optional color for ghosts after the active frame */
-	
+
 	float color[4];			/* Color for strokes in layers (replaced by palettecolor). Only used for ruler (which uses GPencil internally) */
 	float fill[4];			/* Fill color for strokes in layers.  Not used and replaced by palettecolor fill */
-	
+
 	char info[128];			/* optional reference info about this layer (i.e. "director's comments, 12/3")
 							 * this is used for the name of the layer  too and kept unique. */
-	
+
 	struct Object *parent;  /* parent object */
 	float inverse[4][4];    /* inverse matrix (only used if parented) */
 	char parsubstr[64];     /* String describing subobject info, MAX_ID_NAME-2 */
 	short partype, pad;
-	
+
 	float tintcolor[4];     /* Color used to tint layer, alpha value is used as factor */
 	float opacity;          /* Opacity of the layer */
 } bGPDlayer;
@@ -287,13 +287,13 @@ typedef enum eGPDlayer_Flag {
 typedef struct bGPdata {
 	ID id;					/* Grease Pencil data is a datablock */
 	struct AnimData *adt;   /* animation data - for animating draw settings */
-	
+
 	/* saved Grease-Pencil data */
 	ListBase layers;		/* bGPDlayers */
 	int flag;				/* settings for this datablock */
 
-	/* not-saved stroke buffer data (only used during paint-session) 
-	 * 	- buffer must be initialized before use, but freed after 
+	/* not-saved stroke buffer data (only used during paint-session)
+	 * 	- buffer must be initialized before use, but freed after
 	 *	  whole paint operation is over
 	 */
 	short sbuffer_size;			/* number of elements currently in cache */
@@ -315,29 +315,29 @@ typedef struct bGPdata {
 typedef enum eGPdata_Flag {
 	/* don't allow painting to occur at all */
 	/* GP_DATA_LMBPLOCK  = (1 << 0), */
-	
+
 	/* show debugging info in viewport (i.e. status print) */
 	GP_DATA_DISPINFO	= (1 << 1),
 	/* in Action Editor, show as expanded channel */
 	GP_DATA_EXPAND		= (1 << 2),
-	
+
 	/* is the block overriding all clicks? */
 	/* GP_DATA_EDITPAINT = (1 << 3), */
-	
+
 /* ------------------------------------------------ DEPRECATED */
 	/* new strokes are added in viewport space */
 	GP_DATA_VIEWALIGN	= (1 << 4),
-	
+
 	/* Project into the screen's Z values */
 	GP_DATA_DEPTH_VIEW	= (1 << 5),
 	GP_DATA_DEPTH_STROKE = (1 << 6),
 
 	GP_DATA_DEPTH_STROKE_ENDPOINTS = (1 << 7),
 /* ------------------------------------------------ DEPRECATED */
-	
+
 	/* Stroke Editing Mode - Toggle to enable alternative keymap for easier editing of stroke points */
 	GP_DATA_STROKE_EDITMODE	= (1 << 8),
-	
+
 	/* Convenience/cache flag to make it easier to quickly toggle onion skinning on/off */
 	GP_DATA_SHOW_ONIONSKINS = (1 << 9),
 	/* Draw a green and red point to indicate start and end of the stroke */

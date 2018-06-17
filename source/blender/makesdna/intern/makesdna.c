@@ -226,7 +226,7 @@ static int add_type(const char *str, int len)
 {
 	int nr;
 	char *cp;
-	
+
 	/* first do validity check */
 	if (str[0] == 0) {
 		return -1;
@@ -236,7 +236,7 @@ static int add_type(const char *str, int len)
 		 * 'struct SomeStruct* somevar;' <-- correct but we cant handle right now. */
 		return -1;
 	}
-	
+
 	/* search through type array */
 	for (nr = 0; nr < nr_types; nr++) {
 		if (strcmp(str, types[nr]) == 0) {
@@ -248,7 +248,7 @@ static int add_type(const char *str, int len)
 			return nr;
 		}
 	}
-	
+
 	/* append new type */
 	if (nr_types == 0) {
 		cp = typedata;
@@ -261,13 +261,13 @@ static int add_type(const char *str, int len)
 	typelens_native[nr_types] = len;
 	typelens_32[nr_types] = len;
 	typelens_64[nr_types] = len;
-	
+
 	if (nr_types >= maxnr) {
 		printf("too many types\n");
 		return nr_types - 1;
 	}
 	nr_types++;
-	
+
 	return nr_types - 1;
 }
 
@@ -288,7 +288,7 @@ static int add_name(const char *str)
 	const char *name;
 
 	additional_slen_offset = 0;
-	
+
 	if (str[0] == 0 /*  || (str[1] == 0) */) return -1;
 
 	if (str[0] == '(' && str[1] == '*') {
@@ -306,7 +306,7 @@ static int add_name(const char *str)
 			buf[i] = str[i];
 			i++;
 		}
-		
+
 		/* Another number we need is the extra slen offset. This extra
 		 * offset is the overshoot after a space. If there is no
 		 * space, no overshoot should be calculated. */
@@ -322,7 +322,7 @@ static int add_name(const char *str)
 		if (debugSDNA > 3) printf("seen %c ( %d)\n"
 			                      "special after offset%d\n",
 			                      str[j], str[j], j);
-				
+
 		if (!isfuncptr) {
 			/* multidimensional array pointer case */
 			if (str[j] == 0) {
@@ -332,7 +332,7 @@ static int add_name(const char *str)
 				printf("Error during tokening multidim array pointer\n");
 		}
 		else if (str[j] == 0) {
-			if (debugSDNA > 3) printf("offsetting for space\n"); 
+			if (debugSDNA > 3) printf("offsetting for space\n");
 			/* get additional offset */
 			k = 0;
 			while (str[j] != ')') {
@@ -349,7 +349,7 @@ static int add_name(const char *str)
 		else {
 			printf("Error during tokening function pointer argument list\n");
 		}
-				
+
 		/*
 		 * Put )(void) at the end? Maybe )(). Should check this with
 		 * old sdna. Actually, sometimes )(), sometimes )(void...)
@@ -363,7 +363,7 @@ static int add_name(const char *str)
 		 *
 		 * */
 		buf[i] = 0;
-		if (debugSDNA > 3) printf("Name before chomping: %s\n", buf); 
+		if (debugSDNA > 3) printf("Name before chomping: %s\n", buf);
 		if ((strncmp(buf, "(*headdraw", 10) == 0) ||
 		    (strncmp(buf, "(*windraw", 9) == 0) )
 		{
@@ -390,14 +390,14 @@ static int add_name(const char *str)
 		/* normal field: old code */
 		name = str;
 	}
-	
+
 	/* search name array */
 	for (nr = 0; nr < nr_names; nr++) {
 		if (strcmp(name, names[nr]) == 0) {
 			return nr;
 		}
 	}
-	
+
 	/* append new type */
 	if (nr_names == 0) {
 		cp = namedata;
@@ -407,13 +407,13 @@ static int add_name(const char *str)
 	}
 	strcpy(cp, name);
 	names[nr_names] = cp;
-	
+
 	if (nr_names >= maxnr) {
 		printf("too many names\n");
 		return nr_names - 1;
 	}
 	nr_names++;
-	
+
 	return nr_names - 1;
 }
 
@@ -430,16 +430,16 @@ static short *add_struct(int namecode)
 		len = sp[1];
 		structs[nr_structs] = sp + 2 * len + 2;
 	}
-	
+
 	sp = structs[nr_structs];
 	sp[0] = namecode;
-	
+
 	if (nr_structs >= maxnr) {
 		printf("too many structs\n");
 		return sp;
 	}
 	nr_structs++;
-	
+
 	return sp;
 }
 
@@ -447,14 +447,14 @@ static int preprocess_include(char *maindata, int len)
 {
 	int a, newlen, comment = 0;
 	char *cp, *temp, *md;
-	
+
 	/* note: len + 1, last character is a dummy to prevent
 	 * comparisons using uninitialized memory */
 	temp = MEM_mallocN(len + 1, "preprocess_include");
 	temp[len] = ' ';
 
 	memcpy(temp, maindata, len);
-	
+
 	/* remove all c++ comments */
 	/* replace all enters/tabs/etc with spaces */
 	cp = temp;
@@ -470,7 +470,7 @@ static int preprocess_include(char *maindata, int len)
 		if (comment || *cp < 32 || *cp > 128) *cp = 32;
 		cp++;
 	}
-	
+
 
 	/* data from temp copy to maindata, remove comments and double spaces */
 	cp = temp;
@@ -479,7 +479,7 @@ static int preprocess_include(char *maindata, int len)
 	comment = 0;
 	a = len;
 	while (a--) {
-		
+
 		if (cp[0] == '/' && cp[1] == '*') {
 			comment = 1;
 			cp[0] = cp[1] = 32;
@@ -511,7 +511,7 @@ static int preprocess_include(char *maindata, int len)
 		}
 		cp++;
 	}
-	
+
 	MEM_freeN(temp);
 	return newlen;
 }
@@ -552,7 +552,7 @@ static void *read_file_data(const char *filename, int *r_len)
 		fclose(fp);
 		return NULL;
 	}
-	
+
 	fclose(fp);
 	return data;
 }
@@ -566,7 +566,7 @@ static int convert_include(const char *filename)
 	short *structpoin, *sp;
 	char *maindata, *mainend, *md, *md1;
 	bool skip_struct;
-	
+
 	md = maindata = read_file_data(filename, &filelen);
 	if (filelen == -1) {
 		fprintf(stderr, "Can't read file %s\n", filename);
@@ -580,12 +580,12 @@ static int convert_include(const char *filename)
 	count = 0;
 	skip_struct = false;
 	while (count < filelen) {
-		
+
 		/* code for skipping a struct: two hashes on 2 lines. (preprocess added a space) */
 		if (md[0] == '#' && md[1] == ' ' && md[2] == '#') {
 			skip_struct = true;
 		}
-		
+
 		if (md[0] == '{') {
 			md[0] = 0;
 			if (skip_struct) {
@@ -596,7 +596,7 @@ static int convert_include(const char *filename)
 				md1 = md - 2;
 				while (*md1 != 32) md1--;       /* to beginning of word */
 				md1++;
-				
+
 				/* we've got a struct name when... */
 				if (strncmp(md1 - 7, "struct", 6) == 0) {
 
@@ -615,22 +615,22 @@ static int convert_include(const char *filename)
 					md1 = md + 1;
 					while (*md1 != '}') {
 						if (md1 > mainend) break;
-						
+
 						if (*md1 == ',' || *md1 == ' ') *md1 = 0;
 						md1++;
 					}
-					
+
 					/* read types and names until first character that is not '}' */
 					md1 = md + 1;
 					while (*md1 != '}') {
 						if (md1 > mainend) break;
-						
+
 						/* skip when it says 'struct' or 'unsigned' or 'const' */
 						if (*md1) {
 							if (strncmp(md1, "struct", 6) == 0) md1 += 7;
 							if (strncmp(md1, "unsigned", 8) == 0) md1 += 9;
 							if (strncmp(md1, "const", 5) == 0) md1 += 6;
-							
+
 							/* we've got a type! */
 							type = add_type(md1, 0);
 							if (type == -1) {
@@ -642,11 +642,11 @@ static int convert_include(const char *filename)
 
 							md1 += strlen(md1);
 
-							
+
 							/* read until ';' */
 							while (*md1 != ';') {
 								if (md1 > mainend) break;
-								
+
 								if (*md1) {
 									/* We've got a name. slen needs
 									 * correction for function
@@ -665,11 +665,11 @@ static int convert_include(const char *filename)
 
 										structpoin[1]++;
 										sp += 2;
-																					
+
 										md1 += slen;
 										break;
 									}
-									
+
 
 									name = add_name(md1);
 									slen += additional_slen_offset;
@@ -680,7 +680,7 @@ static int convert_include(const char *filename)
 
 									structpoin[1]++;
 									sp += 2;
-									
+
 									md1 += slen;
 								}
 								md1++;
@@ -697,7 +697,7 @@ static int convert_include(const char *filename)
 		count++;
 		md++;
 	}
-	
+
 	MEM_freeN(maindata);
 
 	return 0;
@@ -707,7 +707,7 @@ static int arraysize(const char *str)
 {
 	int a, mul = 1;
 	const char *cp = NULL;
-	
+
 	for (a = 0; str[a]; a++) {
 		if (str[a] == '[') {
 			cp = &(str[a + 1]);
@@ -718,7 +718,7 @@ static int arraysize(const char *str)
 			mul *= atoi(cp);
 		}
 	}
-	
+
 	return mul;
 }
 
@@ -752,7 +752,7 @@ static int calculate_structlens(int firststruct)
 	while (unknown) {
 		lastunknown = unknown;
 		unknown = 0;
-		
+
 		/* check all structs... */
 		for (int a = 0; a < nr_structs; a++) {
 			const short *structpoin = structs[a];
@@ -760,13 +760,13 @@ static int calculate_structlens(int firststruct)
 
 			/* when length is not known... */
 			if (typelens_native[structtype] == 0) {
-				
+
 				const short *sp = structpoin + 2;
 				int len_native = 0;
 				int len_32 = 0;
 				int len_64 = 0;
 				bool has_pointer = false;
-				
+
 				/* check all elements in struct */
 				for (int b = 0; b < structpoin[1]; b++, sp += 2) {
 					int type = sp[0];
@@ -838,7 +838,7 @@ static int calculate_structlens(int firststruct)
 								dna_error = 1;
 							}
 						}
-						
+
 						/* Check 2-4-8 aligned. */
 						if (!check_field_alignment(firststruct, structtype, type, len_32, cp, "32 bit")) {
 							dna_error = 1;
@@ -850,7 +850,7 @@ static int calculate_structlens(int firststruct)
 						len_native += mul * typelens_native[type];
 						len_32 += mul * typelens_32[type];
 						len_64 += mul * typelens_64[type];
-						
+
 					}
 					else {
 						len_native = 0;
@@ -859,7 +859,7 @@ static int calculate_structlens(int firststruct)
 						break;
 					}
 				}
-				
+
 				if (len_native == 0) {
 					unknown++;
 				}
@@ -876,30 +876,30 @@ static int calculate_structlens(int firststruct)
 							dna_error = 1;
 						}
 					}
-					
+
 					if (len_native % 4) {
 						fprintf(stderr, "Sizeerror 4 in struct: %s (add %d bytes)\n",
 						       types[structtype], len_native % 4);
 						dna_error = 1;
 					}
-					
+
 				}
 			}
 		}
-		
+
 		if (unknown == lastunknown) break;
 	}
-	
+
 	if (unknown) {
 		fprintf(stderr, "ERROR: still %d structs unknown\n", unknown);
 
 		if (debugSDNA) {
 			fprintf(stderr, "*** Known structs :\n");
-			
+
 			for (int a = 0; a < nr_structs; a++) {
 				const short *structpoin = structs[a];
 				const int    structtype = structpoin[0];
-				
+
 				/* length unknown */
 				if (typelens_native[structtype] != 0) {
 					fprintf(stderr, "  %s\n", types[structtype]);
@@ -907,9 +907,9 @@ static int calculate_structlens(int firststruct)
 			}
 		}
 
-			
+
 		fprintf(stderr, "*** Unknown structs :\n");
-			
+
 		for (int a = 0; a < nr_structs; a++) {
 			const short *structpoin = structs[a];
 			const int    structtype = structpoin[0];
@@ -935,7 +935,7 @@ static void dna_write(FILE *file, const void *pntr, const int size)
 	const char *data;
 
 	data = (const char *)pntr;
-	
+
 	for (i = 0; i < size; i++) {
 		fprintf(file, "%d, ", data[i]);
 		linelength++;
@@ -956,7 +956,7 @@ void printStructLengths(void)
 	while (unknown) {
 		/*lastunknown = unknown;*/ /*UNUSED*/
 		unknown = 0;
-		
+
 		/* check all structs... */
 		for (a = 0; a < nr_structs; a++) {
 			structpoin = structs[a];
@@ -978,17 +978,17 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	/* it a bit. Hope this is enough :) -nzc-                                */
 	char str[SDNA_MAX_FILENAME_LENGTH], *cp;
 	int firststruct;
-	
+
 	if (debugSDNA > 0) {
 		fflush(stdout);
 		printf("Running makesdna at debug level %d\n", debugSDNA);
 	}
-		
+
 	/* the longest known struct is 50k, so we assume 100k is sufficent! */
 	namedata = MEM_callocN(maxdata, "namedata");
 	typedata = MEM_callocN(maxdata, "typedata");
 	structdata = MEM_callocN(maxdata, "structdata");
-	
+
 	/* a maximum of 5000 variables, must be sufficient? */
 	names = MEM_callocN(sizeof(char *) * maxnr, "names");
 	types = MEM_callocN(sizeof(char *) * maxnr, "types");
@@ -1023,12 +1023,12 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 
 	/* the defines above shouldn't be output in the padding file... */
 	firststruct = nr_types;
-	
+
 	/* add all include files defined in the global array                     */
 	/* Since the internal file+path name buffer has limited length, I do a   */
 	/* little test first...                                                  */
 	/* Mind the breaking condition here!                                     */
-	if (debugSDNA) printf("\tStart of header scan:\n"); 
+	if (debugSDNA) printf("\tStart of header scan:\n");
 	for (i = 0; *(includefiles[i]) != '\0'; i++) {
 		sprintf(str, "%s%s", baseDirectory, includefiles[i]);
 		if (debugSDNA) printf("\t|-- Converting %s\n", str);
@@ -1036,7 +1036,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 			return (1);
 		}
 	}
-	if (debugSDNA) printf("\tFinished scanning %d headers.\n", i); 
+	if (debugSDNA) printf("\tFinished scanning %d headers.\n", i);
 
 	if (calculate_structlens(firststruct)) {
 		/* error */
@@ -1054,13 +1054,13 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 			printf(" %s\n", names[a]);
 		}
 		printf("\n");
-		
+
 		sp = typelens_native;
 		for (a = 0; a < nr_types; a++, sp++) {
 			printf(" %s %d\n", types[a], *sp);
 		}
 		printf("\n");
-		
+
 		for (a = 0; a < nr_structs; a++) {
 			sp = structs[a];
 			printf(" struct %s elems: %d size: %d\n", types[sp[0]], sp[1], typelens_native[sp[0]]);
@@ -1076,63 +1076,63 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	/* file writing */
 
 	if (debugSDNA > 0) printf("Writing file ... ");
-		
+
 	if (nr_names == 0 || nr_structs == 0) {
 		/* pass */
 	}
 	else {
 		dna_write(file, "SDNA", 4);
-		
+
 		/* write names */
 		dna_write(file, "NAME", 4);
 		len = nr_names;
 		dna_write(file, &len, 4);
-		
+
 		/* calculate size of datablock with strings */
 		cp = names[nr_names - 1];
 		cp += strlen(names[nr_names - 1]) + 1;         /* +1: null-terminator */
 		len = (intptr_t) (cp - (char *) names[0]);
 		len = (len + 3) & ~3;
 		dna_write(file, names[0], len);
-		
+
 		/* write TYPES */
 		dna_write(file, "TYPE", 4);
 		len = nr_types;
 		dna_write(file, &len, 4);
-	
+
 		/* calculate datablock size */
 		cp = types[nr_types - 1];
 		cp += strlen(types[nr_types - 1]) + 1;     /* +1: null-terminator */
 		len = (intptr_t) (cp - (char *) types[0]);
 		len = (len + 3) & ~3;
-		
+
 		dna_write(file, types[0], len);
-		
+
 		/* WRITE TYPELENGTHS */
 		dna_write(file, "TLEN", 4);
-		
+
 		len = 2 * nr_types;
 		if (nr_types & 1) len += 2;
 		dna_write(file, typelens_native, len);
-		
+
 		/* WRITE STRUCTS */
 		dna_write(file, "STRC", 4);
 		len = nr_structs;
 		dna_write(file, &len, 4);
-	
+
 		/* calc datablock size */
 		sp = structs[nr_structs - 1];
 		sp += 2 + 2 * (sp[1]);
 		len = (intptr_t) ((char *) sp - (char *) structs[0]);
 		len = (len + 3) & ~3;
-		
+
 		dna_write(file, structs[0], len);
-	
+
 		/* a simple dna padding test */
 		if (0) {
 			FILE *fp;
 			int a;
-			
+
 			fp = fopen("padding.c", "w");
 			if (fp == NULL) {
 				/* pass */
@@ -1160,7 +1160,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		}
 		/*	end end padding test */
 	}
-	
+
 	/* write a simple enum with all structs offsets,
 	 * should only be accessed via SDNA_TYPE_FROM_STRUCT macro */
 	{
@@ -1174,7 +1174,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		fprintf(file_offsets, "\tSDNA_TYPE_MAX = %d,\n", nr_structs);
 		fprintf(file_offsets, "};\n");
 	}
-	
+
 	MEM_freeN(namedata);
 	MEM_freeN(typedata);
 	MEM_freeN(structdata);
@@ -1186,7 +1186,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	MEM_freeN(structs);
 
 	if (debugSDNA > 0) printf("done.\n");
-	
+
 	return(0);
 }
 
@@ -1254,7 +1254,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-		
+
 	return(return_status);
 }
 
@@ -1297,14 +1297,14 @@ int main(int argc, char **argv)
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_lattice_types.h"	
+#include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_view2d_types.h"	
+#include "DNA_view2d_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"

@@ -44,30 +44,30 @@ extern "C" {
 
 /* Modifiers -------------------------------------- */
 
-/* F-Curve Modifiers (fcm) 
+/* F-Curve Modifiers (fcm)
  *
  * These alter the way F-Curves behave, by altering the value that is returned
  * when evaluating the curve's data at some time (t).
  */
 typedef struct FModifier {
 	struct FModifier *next, *prev;
-	
+
 	struct FCurve *curve;  /* containing curve, only used for updates to CYCLES */
 	void *data;			/* pointer to modifier data */
-	
+
 	char name[64];		/* user-defined description for the modifier - MAX_ID_NAME-2 */
 	short type;			/* type of f-curve modifier */
 	short flag;			/* settings for the modifier */
-	
+
 	float influence;	/* the amount that the modifier should influence the value */
-	
+
 	float sfra;			/* start frame of restricted frame-range */
 	float efra;			/* end frame of restricted frame-range */
 	float blendin;		/* number of frames from sfra before modifier takes full influence */
 	float blendout;		/* number of frames from efra before modifier fades out */
 } FModifier;
 
-/* Types of F-Curve modifier 
+/* Types of F-Curve modifier
  * WARNING: order here is important!
  */
 typedef enum eFModifier_Types {
@@ -81,7 +81,7 @@ typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_PYTHON = 7,
 	FMODIFIER_TYPE_LIMITS = 8,
 	FMODIFIER_TYPE_STEPPED = 9,
-	
+
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
 } eFModifier_Types;
@@ -100,7 +100,7 @@ typedef enum eFModifier_Flags {
 	FMODIFIER_FLAG_RANGERESTRICT = (1<<4),
 		/* use influence control */
 	FMODIFIER_FLAG_USEINFLUENCE  = (1<<5)
-} eFModifier_Flags; 
+} eFModifier_Flags;
 
 /* --- */
 
@@ -109,10 +109,10 @@ typedef struct FMod_Generator {
 		/* general generator information */
 	float *coefficients;		/* coefficients array */
 	unsigned int arraysize;		/* size of the coefficients array */
-	
+
 	int poly_order;				/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
 	int mode;					/* which 'generator' to use eFMod_Generator_Modes */
-	
+
 		/* settings */
 	int flag;					/* settings */
 } FMod_Generator;
@@ -124,7 +124,7 @@ typedef enum eFMod_Generator_Modes {
 } eFMod_Generator_Modes;
 
 
-/* generator flags 
+/* generator flags
  *	- shared by Generator and Function Generator
  */
 typedef enum eFMod_Generator_Flags {
@@ -147,7 +147,7 @@ typedef struct FMod_FunctionGenerator {
 	float phase_multiplier;
 	float phase_offset;
 	float value_offset;
-	
+
 		/* flags */
 	int type;				/* eFMod_Generator_Functions */
 	int flag;				/* eFMod_Generator_flags */
@@ -168,7 +168,7 @@ typedef enum eFMod_Generator_Functions {
 typedef struct FCM_EnvelopeData {
 	float min, max;				/* min/max values for envelope at this point (absolute values)  */
 	float time;					/* time for that this sample-point occurs */
-	
+
 	short f1;					/* settings for 'min' control point */
 	short f2;					/* settings for 'max' control point */
 } FCM_EnvelopeData;
@@ -177,7 +177,7 @@ typedef struct FCM_EnvelopeData {
 typedef struct FMod_Envelope {
 	FCM_EnvelopeData *data;		/* data-points defining envelope to apply (array)  */
 	int totvert;				/* number of envelope points */
-	
+
 	float midval;				/* value that envelope's influence is centered around / based on */
 	float min, max;				/* distances from 'middle-value' for 1:1 envelope influence */
 } FMod_Envelope;
@@ -230,11 +230,11 @@ typedef struct FMod_Noise {
 	float strength;
 	float phase;
 	float offset;
-	
+
 	short depth;
 	short modification;
 } FMod_Noise;
-	
+
 /* modification modes */
 typedef enum eFMod_Noise_Modifications {
 	FCM_NOISE_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
@@ -269,31 +269,31 @@ typedef enum eFMod_Stepped_Flags {
  */
 typedef struct DriverTarget {
 	ID 	*id;				/* ID-block which owns the target, no user count */
-	
+
 	char *rna_path;			/* RNA path defining the setting to use (for DVAR_TYPE_SINGLE_PROP) */
-	
+
 	char pchan_name[64];	/* name of the posebone to use (for vars where DTAR_FLAG_STRUCT_REF is used) - MAX_ID_NAME-2 */
 	short transChan;		/* transform channel index (for DVAR_TYPE_TRANSFORM_CHAN)*/
-	
+
 	short flag;				/* flags for the validity of the target (NOTE: these get reset every time the types change) */
 	int idtype;				/* type of ID-block that this target can use */
 } DriverTarget;
 
 /* Driver Target flags */
 typedef enum eDriverTarget_Flag {
-		/* used for targets that use the pchan_name instead of RNA path 
-		 * (i.e. rotation difference) 
+		/* used for targets that use the pchan_name instead of RNA path
+		 * (i.e. rotation difference)
 		 */
 	DTAR_FLAG_STRUCT_REF	= (1 << 0),
 		/* idtype can only be 'Object' */
 	DTAR_FLAG_ID_OB_ONLY	= (1 << 1),
-	
+
 	/* "localspace" flags */
 		/* base flag - basically "pre parent+constraints" */
 	DTAR_FLAG_LOCALSPACE	= (1 << 2),
 		/* include constraints transformed to space including parents */
 	DTAR_FLAG_LOCAL_CONSTS	= (1 << 3),
-	
+
 	/* error flags */
 	DTAR_FLAG_INVALID		= (1 << 4),
 } eDriverTarget_Flag;
@@ -309,7 +309,7 @@ typedef enum eDriverTarget_TransformChannels {
 	DTAR_TRANSCHAN_SCALEX,
 	DTAR_TRANSCHAN_SCALEY,
 	DTAR_TRANSCHAN_SCALEZ,
-	
+
 	MAX_DTAR_TRANSCHAN_TYPES
 } eDriverTarget_TransformChannels;
 
@@ -328,14 +328,14 @@ typedef enum eDriverTarget_TransformChannels {
  */
 typedef struct DriverVar {
 	struct DriverVar *next, *prev;
-	
+
 	char name[64];              /* name of the variable to use in py-expression (must be valid python identifier) - MAX_ID_NAME-2 */
-	
+
 	DriverTarget targets[8];    /* MAX_DRIVER_TARGETS, target slots */
-	
+
 	char num_targets;           /* number of targets actually used by this variable */
 	char type;                  /* type of driver variable (eDriverVar_Types) */
-	
+
 	short flag;                 /* validation tags, etc. (eDriverVar_Flags) */
 	float curval;               /* result of previous evaluation */
 } DriverVar;
@@ -350,8 +350,8 @@ typedef enum eDriverVar_Types {
 	DVAR_TYPE_LOC_DIFF,
 		/* 'final' transform for object/bones */
 	DVAR_TYPE_TRANSFORM_CHAN,
-	
-	/* maximum number of variable types 
+
+	/* maximum number of variable types
 	 * NOTE: this must always be th last item in this list,
 	 * 		so add new types above this line
 	 */
@@ -362,7 +362,7 @@ typedef enum eDriverVar_Types {
 typedef enum eDriverVar_Flags {
 	/* variable is not set up correctly */
 	DVAR_FLAG_ERROR               = (1 << 0),
-	
+
 	/* variable name doesn't pass the validation tests */
 	DVAR_FLAG_INVALID_NAME        = (1 << 1),
 	/* name starts with a number */
@@ -408,16 +408,16 @@ typedef enum eDriverVar_Flags {
  */
 typedef struct ChannelDriver {
 	ListBase variables;	/* targets for this driver (i.e. list of DriverVar) */
-	
-	/* python expression to execute (may call functions defined in an accessory file) 
+
+	/* python expression to execute (may call functions defined in an accessory file)
 	 * which relates the target 'variables' in some way to yield a single usable value
 	 */
 	char expression[256];	/* expression to compile for evaluation */
 	void *expr_comp; 		/* PyObject - compiled expression, don't save this */
-	
+
 	float curval;		/* result of previous evaluation */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
-	
+
 		/* general settings */
 	int type;			/* type of driver */
 	int flag;			/* settings of driver */
@@ -472,32 +472,32 @@ typedef struct FPoint {
 /* 'Function-Curve' - defines values over time for a given setting (fcu) */
 typedef struct FCurve {
 	struct FCurve *next, *prev;
-	
+
 		/* group */
 	bActionGroup *grp;		/* group that F-Curve belongs to */
-	
+
 		/* driver settings */
 	ChannelDriver *driver;	/* only valid for drivers (i.e. stored in AnimData not Actions) */
 		/* evaluation settings */
 	ListBase modifiers;		/* FCurve Modifiers */
-		
+
 		/* motion data */
 	BezTriple *bezt;		/* user-editable keyframes (array) */
 	FPoint *fpt;			/* 'baked/imported' motion samples (array) */
 	unsigned int totvert;	/* total number of points which define the curve (i.e. size of arrays in FPoints) */
-	
+
 		/* value cache + settings */
 	float curval;			/* value stored from last time curve was evaluated (not threadsafe, debug display only!) */
 	short flag;				/* user-editable settings for this curve */
 	short extend;			/* value-extending mode for this curve (does not cover  */
 	char auto_smoothing;	/* auto-handle smoothing mode */
-	
+
 	char pad[7];
 
 		/* RNA - data link */
 	int array_index;		/* if applicable, the index of the RNA-array item to get */
 	char *rna_path;			/* RNA-path to resolve data-access */
-	
+
 		/* curve coloring (for editor) */
 	int color_mode;			/* coloring method to use (eFCurve_Coloring) */
 	float color[3];			/* the last-color this curve took */
@@ -518,7 +518,7 @@ typedef enum eFCurve_Flags {
 	FCURVE_PROTECTED	= (1<<3),
 		/* fcurve will not be evaluated for the next round */
 	FCURVE_MUTED		= (1<<4),
-	
+
 		/* fcurve uses 'auto-handles', which stay horizontal... */
 		// DEPRECATED
 	FCURVE_AUTO_HANDLES	= (1<<5),
@@ -529,7 +529,7 @@ typedef enum eFCurve_Flags {
 	FCURVE_INT_VALUES		= (1<<11),
 		/* curve can only have certain discrete-number values (no interpolation at all, for enums/booleans) */
 	FCURVE_DISCRETE_VALUES	= (1<<12),
-	
+
 		/* temporary tag for editing */
 	FCURVE_TAGGED			= (1<<15)
 } eFCurve_Flags;
@@ -561,7 +561,7 @@ typedef enum eFCurve_Smoothing {
  * they are not stored here... see DNA_action_types.h instead
  */
 
- 
+
 /* ************************************************ */
 /* Animation Reuse - i.e. users of Actions */
 
@@ -580,7 +580,7 @@ typedef struct AnimMapPair {
 	char to[128];		/* part of path to replace with */
 } AnimMapPair;
 
-/* Retargetting Information for Actions 
+/* Retargetting Information for Actions
  *
  * This should only be used if it is strictly necessary (i.e. user will need to explicitly
  * add this when they find that some channels do not match, or motion is not going to right
@@ -593,7 +593,7 @@ typedef struct AnimMapPair {
 // such consequences...
 typedef struct AnimMapper {
 	struct AnimMapper *next, *prev;
-	
+
 	bAction *target;		/* target action */
 	ListBase mappings;		/* remapping table (bAnimMapPair) */
 } AnimMapper;
@@ -699,14 +699,14 @@ typedef enum eNlaStrip_Flag {
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */
-typedef enum eNlaStrip_Type {	
+typedef enum eNlaStrip_Type {
 		/* 'clip' - references an Action */
 	NLASTRIP_TYPE_CLIP	= 0,
 		/* 'transition' - blends between the adjacent strips */
 	NLASTRIP_TYPE_TRANSITION,
 		/* 'meta' - a strip which acts as a container for a few others */
 	NLASTRIP_TYPE_META,
-	
+
 		/* 'emit sound' - a strip which is used for timing when speaker emits sounds */
 	NLASTRIP_TYPE_SOUND
 } eNlaStrip_Type;
@@ -722,12 +722,12 @@ typedef enum eNlaStrip_Type {
  */
 typedef struct NlaTrack {
 	struct NlaTrack *next, *prev;
-	
+
 	ListBase strips;		/* bActionStrips in this track */
-	
+
 	int flag;				/* settings for this track */
 	int index;				/* index of the track in the stack (NOTE: not really useful, but we need a pad var anyways!) */
-	
+
 	char name[64];			/* short user-description of this track - MAX_ID_NAME-2 */
 } NlaTrack;
 
@@ -743,7 +743,7 @@ typedef enum eNlaTrack_Flag {
 	NLATRACK_SOLO		= (1<<3),
 		/* track's settings (and strips) cannot be edited (to guard against unwanted changes) */
 	NLATRACK_PROTECTED	= (1<<4),
-	
+
 		/* track is not allowed to execute, usually as result of tweaking being enabled (internal flag) */
 	NLATRACK_DISABLED	= (1<<10)
 } eNlaTrack_Flag;
@@ -752,7 +752,7 @@ typedef enum eNlaTrack_Flag {
 /* ************************************ */
 /* KeyingSet Datatypes */
 
-/* Path for use in KeyingSet definitions (ksp) 
+/* Path for use in KeyingSet definitions (ksp)
  *
  * Paths may be either specific (specifying the exact sub-ID
  * dynamic data-block - such as PoseChannels - to act upon, ala
@@ -762,18 +762,18 @@ typedef enum eNlaTrack_Flag {
  */
 typedef struct KS_Path {
 	struct KS_Path *next, *prev;
-	
+
 	ID *id;					/* ID block that keyframes are for */
 	char group[64];			/* name of the group to add to - MAX_ID_NAME-2 */
-	
+
 	int idtype;				/* ID-type that path can be used on */
-	
+
 	short groupmode;		/* group naming (eKSP_Grouping) */
 	short flag;				/* various settings, etc. */
-	
+
 	char *rna_path;			/* dynamically (or statically in the case of predefined sets) path */
 	int array_index;		/* index that path affects */
-	
+
 	short keyingflag;		/* (eInsertKeyFlags) settings to supply insertkey() with */
 	short keyingoverride;	/* (eInsertKeyFlags) for each flag set, the relevant keyingflag bit overrides the default */
 } KS_Path;
@@ -792,14 +792,14 @@ typedef enum eKSP_Grouping {
 	KSP_GROUP_NONE,
 		/* path should be grouped using KeyingSet's name */
 	KSP_GROUP_KSNAME,
-		/* path should be grouped using name of inner-most context item from templates 
+		/* path should be grouped using name of inner-most context item from templates
 		 * 	- this is most useful for relative KeyingSets only
 		 */
 	KSP_GROUP_TEMPLATE_ITEM
 } eKSP_Grouping;
 
 /* ---------------- */
- 
+
 /* KeyingSet definition (ks)
  *
  * A KeyingSet defines a group of properties that should
@@ -812,21 +812,21 @@ typedef enum eKSP_Grouping {
  */
 typedef struct KeyingSet {
 	struct KeyingSet *next, *prev;
-	
+
 	ListBase paths;			/* (KS_Path) paths to keyframe to */
-	
+
 	char idname[64];		/* unique name (for search, etc.) - MAX_ID_NAME-2  */
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) - MAX_ID_NAME-2 */
 	char description[240];	/* (RNA_DYN_DESCR_MAX) short help text. */
 	char typeinfo[64];		/* name of the typeinfo data used for the relative paths - MAX_ID_NAME-2 */
-	
+
 	int active_path;		/* index of the active path */
-	
+
 	short flag;				/* settings for KeyingSet */
-	
+
 	short keyingflag;		/* (eInsertKeyFlags) settings to supply insertkey() with */
 	short keyingoverride;	/* (eInsertKeyFlags) for each flag set, the relevant keyingflag bit overrides the default */
-	
+
 	char pad[6];
 } KeyingSet;
 
@@ -859,7 +859,7 @@ typedef enum eInsertKeyFlags {
 
 /* AnimOverride ------------------------------------- */
 
-/* Animation Override (aor) 
+/* Animation Override (aor)
  *
  * This is used to as temporary storage of values which have been changed by the user, but not
  * yet keyframed (thus, would get overwritten by the animation system before the user had a chance
@@ -870,10 +870,10 @@ typedef enum eInsertKeyFlags {
  */
 typedef struct AnimOverride {
 	struct AnimOverride *next, *prev;
-	
+
 	char *rna_path;			/* RNA-path to use to resolve data-access */
 	int array_index;		/* if applicable, the index of the RNA-array item to get */
-	
+
 	float value;			/* value to override setting with */
 } AnimOverride;
 
@@ -965,7 +965,7 @@ typedef enum eAnimData_Recalc {
 
 /* Base Struct for Anim ------------------------------------- */
 
-/* Used for BKE_animdata_from_id() 
+/* Used for BKE_animdata_from_id()
  * All ID-datablocks which have their own 'local' AnimData
  * should have the same arrangement in their structs.
  */

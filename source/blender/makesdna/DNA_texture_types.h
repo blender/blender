@@ -60,7 +60,7 @@ typedef struct MTex {
 	struct Object *object;
 	struct Tex *tex;
 	char uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
-	
+
 	char projx, projy, projz, mapping;
 	char brush_map_mode, brush_angle_mode;
 	char pad[2];
@@ -70,10 +70,10 @@ typedef struct MTex {
 	short normapspace, which_output;
 	float r, g, b, k;
 	float def_var, rt;
-	
+
 	/* common */
 	float colfac, varfac;
-	
+
 	/* material */
 	float norfac, dispfac, warpfac;
 	float colspecfac, mirrfac, alphafac;
@@ -144,10 +144,10 @@ typedef struct PointDensity {
 	float radius;
 	short source;
 	short pad0;
-	
+
 	short color_source; /* psys_color_source */
 	short ob_color_source;
-	
+
 	int totpoints;
 
 	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
@@ -155,20 +155,20 @@ typedef struct PointDensity {
 	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
 	short ob_cache_space;		/* cache points in worldspace, object space, ... ? */
 	char vertex_attribute_name[64]; /* vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
-	
+
 	void *point_tree;		/* the acceleration tree containing points */
 	float *point_data;		/* dynamically allocated extra for extra information, like particle age */
-	
+
 	float noise_size;
 	short noise_depth;
 	short noise_influence;
 	short noise_basis;
 	short pad1[3];
 	float noise_fac;
-	
+
 	float speed_scale, falloff_speed_scale, pad2;
 	struct ColorBand *coba;	/* for time -> color */
-	
+
 	struct CurveMapping *falloff_curve; /* falloff density curve */
 } PointDensity;
 
@@ -182,7 +182,7 @@ typedef struct VoxelData {
 	short hair_type;
 	short data_type;
 	int _pad;
-	
+
 	struct Object *object; /* for rendering smoke sims */
 	float int_multiplier;
 	int still_frame;
@@ -192,22 +192,22 @@ typedef struct VoxelData {
 	float *dataset;
 	int cachedframe;
 	int ok;
-	
+
 } VoxelData;
 
 typedef struct OceanTex {
 	struct Object *object;
 	char oceanmod[64];
-	
+
 	int output;
 	int pad;
-	
+
 } OceanTex;
-	
+
 typedef struct Tex {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
-	
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+
 	float noisesize, turbul;
 	float bright, contrast, saturation, rfac, gfac, bfac;
 	float filtersize, pad2;
@@ -233,7 +233,7 @@ typedef struct Tex {
 
 	short imaflag, flag;
 	short type, stype;
-	
+
 	float cropxmin, cropymin, cropxmax, cropymax;
 	int texfilter;
 	int afmax;	// anisotropic filter maximum value, ewa -> max eccentricity, feline -> max probes
@@ -244,12 +244,12 @@ typedef struct Tex {
 	short fie_ima;
 	int len;
 	int frames, offset, sfra;
-	
+
 	float checkerdist, nabla;
 	float pad1;
-	
+
 	struct ImageUser iuser;
-	
+
 	struct bNodeTree *nodetree;
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Image *ima;
@@ -259,10 +259,10 @@ typedef struct Tex {
 	struct PointDensity *pd;
 	struct VoxelData *vd;
 	struct OceanTex *ot;
-	
+
 	char use_nodes;
 	char pad[7];
-	
+
 } Tex;
 
 /* used for mapping and texture nodes. note: rot is now in radians */
@@ -272,7 +272,7 @@ typedef struct TexMapping {
 	int flag;
 	char projx, projy, projz, mapping;
 	int type;
-	
+
 	float mat[4][4];
 	float min[3], max[3];
 	struct Object *ob;
@@ -390,7 +390,7 @@ typedef struct ColorMapping {
 #define TEX_PRV_NOR			64
 #define TEX_REPEAT_XMIR		128
 #define TEX_REPEAT_YMIR		256
-#define TEX_FLAG_MASK		( TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR ) 
+#define TEX_FLAG_MASK		( TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR )
 #define TEX_DS_EXPAND		512
 #define TEX_NO_CLAMP		1024
 
@@ -508,7 +508,7 @@ typedef struct ColorMapping {
 #define MTEX_BLEND_SAT		11
 #define MTEX_BLEND_VAL		12
 #define MTEX_BLEND_COLOR	13
-#define MTEX_SOFT_LIGHT     15 
+#define MTEX_SOFT_LIGHT     15
 #define MTEX_LIN_LIGHT      16
 
 /* brush_map_mode */
@@ -655,13 +655,13 @@ enum {
 #define TEX_OCN_DISPLACEMENT	1
 #define TEX_OCN_FOAM			2
 #define TEX_OCN_JPLUS			3
-#define TEX_OCN_EMINUS			4	
+#define TEX_OCN_EMINUS			4
 #define TEX_OCN_EPLUS			5
 
 /* flag */
-#define TEX_OCN_GENERATE_NORMALS	1	
-#define TEX_OCN_XZ				2	
-	
+#define TEX_OCN_GENERATE_NORMALS	1
+#define TEX_OCN_XZ				2
+
 #ifdef __cplusplus
 }
 #endif

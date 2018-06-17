@@ -55,16 +55,16 @@ typedef struct bController {
 	struct bController *next, *prev, *mynew;
 	short type, flag, inputs, totlinks;
 	short otype, totslinks, pad2, pad3;
-	
+
 	char name[64];
 	void *data;
-	
+
 	struct bActuator **links;
 
 	struct bSensor **slinks;
 	short val, valo;
 	unsigned int state_mask;
-	
+
 } bController;
 
 /* controller->type */

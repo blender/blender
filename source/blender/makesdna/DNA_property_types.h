@@ -46,7 +46,7 @@ typedef struct bProperty {
 	short type, flag;
 	int data;				/* data should be 4 bytes to store int,float stuff */
 	void *poin;				/* references data unless its a string which is malloc'd */
-	
+
 } bProperty;
 
 /* property->type XXX Game Property, not RNA */

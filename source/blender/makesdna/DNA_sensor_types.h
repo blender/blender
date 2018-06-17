@@ -52,7 +52,7 @@ typedef struct bNearSensor {
  */
 typedef struct bMouseSensor {
 	/**
-	 * The type of key this sensor listens to. 
+	 * The type of key this sensor listens to.
 	 */
 	short type;
 	short flag;
@@ -167,9 +167,9 @@ typedef struct bSensor {
 	short freq, totlinks, pad1, pad2; /* freq makes reference to skipped ticks between 2 active pulses */
 	char name[64];	/* MAX_NAME */
 	void *data;
-	
+
 	struct bController **links;
-	
+
 	struct Object *ob;
 
 	/* just add here, to avoid align errors... */

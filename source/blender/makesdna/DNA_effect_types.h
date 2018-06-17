@@ -46,7 +46,7 @@
 		/* emit only from faces*/
 #define PAF_OFACE		64
 		/* show emitter (don't hide actual mesh)*/
-#define PAF_SHOWE		128	
+#define PAF_SHOWE		128
 		/* true random emit from faces (not just ordered jitter)*/
 #define PAF_TRAND		256
 		/* even distribution in face emission based on face areas*/
@@ -78,15 +78,15 @@
 typedef struct Effect {
 	struct Effect *next, *prev;
 	short type, flag, buttype, rt;
-	
+
 } Effect;
 
 typedef struct BuildEff {
 	struct BuildEff *next, *prev;
 	short type, flag, buttype, rt;
-	
+
 	float len, sfra;
-	
+
 } BuildEff;
 
 #
@@ -102,40 +102,40 @@ struct Group;
 typedef struct PartEff {
 	struct PartEff *next, *prev;
 	short type, flag, buttype, stype, vertgroup, userjit;
-	
+
 	float sta, end, lifetime;
 	int totpart, totkey, seed;
-	
+
 	float normfac, obfac, randfac, texfac, randlife;
 	float force[3];
 	float damp;
-	
+
 	float nabla, vectsize, maxlen, pad, defvec[3];
-	
+
 	float mult[4], life[4];
 	short child[4], mat[4];
 	short texmap, curmult;
 	short staticstep, omat, timetex, speedtex, flag2, flag2neg;
 	short disp, vertgroup_v;
-	
+
 	char vgroupname[64], vgroupname_v[64];	/* MAX_VGROUP_NAME */
 	float imat[4][4];	/* inverse matrix of parent Object */
-	
+
 	Particle *keys;
 	struct Group *group;
-	
+
 } PartEff;
 
 
 typedef struct WaveEff {
 	struct WaveEff *next, *prev;
 	short type, flag, buttype, stype;
-	
+
 	float startx, starty, height, width;
 	float narrow, speed, minfac, damp;
-	
+
 	float timeoffs, lifetime;
-	
+
 } WaveEff;
 
 #endif

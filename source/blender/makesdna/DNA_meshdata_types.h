@@ -437,7 +437,7 @@ enum {
 enum {
 	ME_SMOOTH   = (1 << 0),
 	ME_FACE_SEL = (1 << 1),
-/*	ME_HIDE     = (1 << 4), */ 
+/*	ME_HIDE     = (1 << 4), */
 };
 
 #define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])

@@ -61,8 +61,8 @@ typedef struct CameraStereoSettings {
 
 typedef struct Camera {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
-	
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+
 	char type; /* CAM_PERSP, CAM_ORTHO or CAM_PANO */
 	char dtx; /* draw type extra */
 	short flag;
@@ -78,7 +78,7 @@ typedef struct Camera {
 	float YF_dofdist;
 
 	struct Ipo *ipo  DNA_DEPRECATED; /* old animation system, deprecated for 2.5 */
-	
+
 	struct Object *dof_ob;
 	struct GPUDOFSettings gpu_dof;
 
