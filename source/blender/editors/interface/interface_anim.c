@@ -122,6 +122,9 @@ void ui_but_anim_decorate_update_from_flag(uiBut *but)
 	else {
 		but->icon = ICON_DOT;
 	}
+
+	const int flag_copy = (UI_BUT_DISABLED | UI_BUT_INACTIVE);
+	but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
 /**
