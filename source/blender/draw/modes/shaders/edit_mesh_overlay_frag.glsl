@@ -29,7 +29,7 @@ out vec4 FragColor;
 /* Vertex flag is shifted and combined with the edge flag */
 #define FACE_ACTIVE     (1 << (2 + 8))
 
-#define LARGE_EDGE_SIZE 2.0
+#define LARGE_EDGE_SIZE 3.0
 
 /* Style Parameters in pixel */
 
