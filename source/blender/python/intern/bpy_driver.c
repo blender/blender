@@ -563,7 +563,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 			{
 				Py_DECREF(expr_code);
 				expr_code = NULL;
-				PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 0, NULL);
+				PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, NULL);
 			}
 		}
 	}
