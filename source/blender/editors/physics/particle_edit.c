@@ -724,6 +724,7 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 
 	KeyIterData iter_data;
 	iter_data.data = data;
+	iter_data.edit = edit;
 	iter_data.psmd = psmd;
 	iter_data.selected = selected;
 	iter_data.func = func;
