@@ -368,18 +368,17 @@ static void studiolight_calculate_cubemap_vector_weight(float normal[3], float *
 	};
 	mul_m3_v3(conversion_matrices[face], normal);
 	normalize_v3(normal);
-	const float halfpix = 1.0f / (2.0f* STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
+	const float halfpix = 1.0f / (2.0f * STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 	*weight = studiolight_texel_solid_angle(x + halfpix, y + halfpix, halfpix);
 }
 
 static void studiolight_calculate_spherical_harmonics_coefficient(StudioLight *sl, int sh_component)
 {
 	const float M_4PI = M_PI * 4.0f;
-	
+
 	float weight_accum = 0.0f;
 	float sh[3] = {0.0f, 0.0f, 0.0f};
-	for (int face = 0; face < 6; face++)
-	{
+	for (int face = 0; face < 6; face++) {
 		float *color;
 		color = sl->radiance_cubemap_buffers[face]->rect_float;
 		for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y++) {
@@ -389,7 +388,7 @@ static void studiolight_calculate_spherical_harmonics_coefficient(StudioLight *s
 				float weight, coef;
 				float cubevec[3];
 				studiolight_calculate_cubemap_vector_weight(cubevec, &weight, face, xf, yf);
-				
+
 				switch (sh_component) {
 					case 0:
 					{
@@ -847,7 +846,7 @@ void BKE_studiolight_init(void)
 	/* Add default studio light */
 	sl = studiolight_create(STUDIOLIGHT_INTERNAL | STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA);
 	BLI_strncpy(sl->name, "INTERNAL_01", FILE_MAXFILE);
-	
+
 	copy_v3_fl3(sl->spherical_harmonics_coefs[0], 1.03271556f, 1.07163882f, 1.11193657f);
 	copy_v3_fl3(sl->spherical_harmonics_coefs[1], -0.00480952f, 0.05290511f, 0.16394117f);
 	copy_v3_fl3(sl->spherical_harmonics_coefs[2], -0.29686999f, -0.27378261f, -0.24797194f);
