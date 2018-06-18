@@ -69,6 +69,7 @@
 #include "RNA_access.h"
 
 #include "ED_armature.h"
+#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 
@@ -1163,6 +1164,11 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
 	}
 }
 
+static void hide_collections_menu_draw(const bContext *C, Menu *menu)
+{
+	ED_hide_collections_menu_draw(C, menu->layout);
+}
+
 void view3d_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
@@ -1182,6 +1188,15 @@ void view3d_buttons_register(ARegionType *art)
 	pt->draw = view3d_panel_vgroup;
 	pt->poll = view3d_panel_vgroup_poll;
 	BLI_addtail(&art->paneltypes, pt);
+
+	MenuType *mt;
+
+	mt = MEM_callocN(sizeof(MenuType), "spacetype view3d menu collections");
+	strcpy(mt->idname, "VIEW3D_MT_collection");
+	strcpy(mt->label, N_("Collection"));
+	strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	mt->draw = hide_collections_menu_draw;
+	WM_menutype_add(mt);
 }
 
 static int view3d_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))

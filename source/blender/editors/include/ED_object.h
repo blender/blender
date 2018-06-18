@@ -40,6 +40,7 @@ struct Base;
 struct EnumPropertyItem;
 struct ID;
 struct Main;
+struct Menu;
 struct ModifierData;
 struct Object;
 struct ReportList;
@@ -58,12 +59,14 @@ struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
 struct Depsgraph;
+struct uiLayout;
 
 #include "DNA_object_enums.h"
 
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
 struct Object *ED_object_active_context(struct bContext *C); /* context.object or context.active_object */
+void ED_hide_collections_menu_draw(const struct bContext *C, struct uiLayout *layout);
 
 /* object_ops.c */
 void ED_operatortypes_object(void);

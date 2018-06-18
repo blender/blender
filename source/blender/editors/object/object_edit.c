@@ -201,7 +201,8 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "select", false, "Select", "");
+	PropertyRNA *prop = RNA_def_boolean(ot->srna, "select", false, "Select", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 static int object_hide_view_set_exec(bContext *C, wmOperator *op)
@@ -257,7 +258,115 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+	PropertyRNA *prop;
+	prop = RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+}
+
+static int object_hide_collection_exec(bContext *C, wmOperator *op)
+{
+	int index = RNA_int_get(op->ptr, "collection_index");
+	bool extend = (CTX_wm_window(C)->eventstate->shift != 0);
+
+	if (CTX_wm_window(C)->eventstate->alt != 0) {
+		index += 10;
+	}
+
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	LayerCollection *lc = BKE_layer_collection_from_index(view_layer, index);
+
+	if (!lc) {
+		return OPERATOR_CANCELLED;
+	}
+
+	BKE_layer_collection_set_visible(scene, view_layer, lc, extend);
+
+	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+#define COLLECTION_INVALID_INDEX -1
+
+void ED_hide_collections_menu_draw(const bContext *C, uiLayout *layout)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	LayerCollection *lc_scene = view_layer->layer_collections.first;
+
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+
+	for (LayerCollection *lc = lc_scene->layer_collections.first; lc; lc = lc->next) {
+		int index = BKE_layer_collection_findindex(view_layer, lc);
+		uiLayout *row = uiLayoutRow(layout, false);
+
+		if (lc->collection->flag & COLLECTION_RESTRICT_VIEW) {
+			continue;
+		}
+
+		if ((view_layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
+		    !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS)) {
+			uiLayoutSetActive(row, false);
+		}
+
+		int icon = ICON_NONE;
+		if (BKE_layer_collection_has_selected_objects(view_layer, lc)) {
+			icon = ICON_LAYER_ACTIVE;
+		}
+		else if (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) {
+			icon = ICON_LAYER_USED;
+		}
+
+		uiItemIntO(row,
+		           lc->collection->id.name + 2,
+		           icon,
+		           "OBJECT_OT_hide_collection",
+		           "collection_index",
+		           index);
+	}
+}
+
+static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	/* Immediately execute if collection index was specified. */
+	int index = RNA_int_get(op->ptr, "collection_index");
+	if (index != COLLECTION_INVALID_INDEX) {
+		return object_hide_collection_exec(C, op);
+	}
+
+	/* Open popup menu. */
+	const char *title = CTX_IFACE_(op->type->translation_context, op->type->name);
+	uiPopupMenu *pup = UI_popup_menu_begin(C, title, ICON_GROUP);
+	uiLayout *layout = UI_popup_menu_layout(pup);
+
+	ED_hide_collections_menu_draw(C, layout);
+
+	UI_popup_menu_end(C, pup);
+
+	return OPERATOR_INTERFACE;
+}
+
+void OBJECT_OT_hide_collection(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Hide Objects By Collection";
+	ot->description = "Show only objects in collection (Shift to extend)";
+	ot->idname = "OBJECT_OT_hide_collection";
+
+	/* api callbacks */
+	ot->exec = object_hide_collection_exec;
+	ot->invoke = object_hide_collection_invoke;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* Properties. */
+	PropertyRNA *prop;
+	prop = RNA_def_int(ot->srna, "collection_index", COLLECTION_INVALID_INDEX, COLLECTION_INVALID_INDEX, INT_MAX,
+	                   "Collection Index", "Index of the collection to change visibility", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /* ******************* toggle editmode operator  ***************** */
@@ -1661,8 +1770,6 @@ bool ED_object_editmode_calc_active_center(Object *obedit, const bool select_onl
 	return false;
 }
 
-#define COLLECTION_INVALID_INDEX -1
-
 static int move_to_collection_poll(bContext *C)
 {
 	if (CTX_wm_space_outliner(C) != NULL) {
@@ -1983,4 +2090,3 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-#undef COLLECTION_INVALID_INDEX

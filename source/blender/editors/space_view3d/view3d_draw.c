@@ -1045,9 +1045,8 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	return name;
 }
 
-static void draw_viewport_name(const bContext *C, ARegion *ar, View3D *v3d, const rcti *rect)
+static void draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
 {
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
 	/* increase size for unicode languages (Chinese in utf-8...) */
@@ -1057,8 +1056,7 @@ static void draw_viewport_name(const bContext *C, ARegion *ar, View3D *v3d, cons
 	char tmpstr[32];
 #endif
 
-	/* TODO: integrate localvd with local hiding */
-	if (v3d->localvd || (view_layer->runtime_flag & VIEW_LAYER_HAS_HIDE)) {
+	if (v3d->localvd) {
 		BLI_snprintf(tmpstr, sizeof(tmpstr), IFACE_("%s (Local)"), name);
 		name = tmpstr;
 	}
@@ -1221,7 +1219,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 			ED_scene_draw_fps(scene, &rect);
 		}
 		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-			draw_viewport_name(C, ar, v3d, &rect);
+			draw_viewport_name(ar, v3d, &rect);
 		}
 
 		if (U.uiflag & USER_DRAWVIEWINFO) {

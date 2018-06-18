@@ -156,7 +156,7 @@ typedef enum {
 #define OL_TOG_RESTRICT_VIEWX   (UI_UNIT_X * 2.0f)
 #define OL_TOG_RESTRICT_RENDERX UI_UNIT_X
 
-#define OL_TOGW OL_TOG_RESTRICT_SELECTX
+#define OL_TOGW OL_TOG_HIDEX
 
 #define OL_RNA_COLX         (UI_UNIT_X * 15)
 #define OL_RNA_COL_SIZEX    (UI_UNIT_X * 7.5f)

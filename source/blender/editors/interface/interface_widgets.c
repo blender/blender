@@ -2657,18 +2657,22 @@ static void widget_state_pie_menu_item(uiWidgetType *wt, int state)
 		copy_v4_v4_char(wt->wcol.inner, wt->wcol.item);
 		wt->wcol.inner[3] = 64;
 	}
-	/* regular disabled */
-	else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
-		widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
-	}
-	/* regular active */
-	else if (state & UI_SELECT) {
-		copy_v4_v4_char(wt->wcol.outline, wt->wcol.inner_sel);
-		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
-	}
-	else if (state & UI_ACTIVE) {
-		copy_v4_v4_char(wt->wcol.inner, wt->wcol.item);
-		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+	else {
+		/* regular active */
+		if (state & (UI_SELECT | UI_ACTIVE)) {
+			copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+		}
+		else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+			/* regular disabled */
+			widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
+		}
+
+		if (state & UI_SELECT) {
+			copy_v4_v4_char(wt->wcol.outline, wt->wcol.inner_sel);
+		}
+		else if (state & UI_ACTIVE) {
+			copy_v4_v4_char(wt->wcol.inner, wt->wcol.item);
+		}
 	}
 }
 
@@ -2685,14 +2689,19 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
 		wt->wcol.inner[3] = 64;
 	}
-	/* regular disabled */
-	else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
-		widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
-	}
-	/* regular active */
-	else if (state & UI_ACTIVE) {
-		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
-		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+	else {
+		/* regular active */
+		if (state & UI_ACTIVE) {
+			copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+		}
+		else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+			/* regular disabled */
+			widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
+		}
+
+		if (state & UI_ACTIVE) {
+			copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+		}
 	}
 }
 

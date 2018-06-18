@@ -250,6 +250,7 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_hide_view_clear);
 	WM_operatortype_append(OBJECT_OT_hide_view_set);
+	WM_operatortype_append(OBJECT_OT_hide_collection);
 }
 
 void ED_operatormacros_object(void)
@@ -409,11 +410,17 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "select", false);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", false);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", true);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_collection", HKEY, KM_PRESS, KM_CTRL, 0);
+
+	/* Collection switching. */
+	for (int i = 0; i < 10; i++) {
+		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_collection", ZEROKEY + i, KM_PRESS, KM_ANY, 0);
+		RNA_int_set(kmi->ptr, "collection_index", (i == 0) ? 10 : i);
+	}
 }
 
 void ED_keymap_proportional_cycle(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)

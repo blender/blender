@@ -1491,7 +1491,9 @@ static void outliner_add_layer_collections_recursive(
 		ten->reinsert_poll = outliner_collections_reorder_poll;
 
 		const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
-		if (exclude) {
+		if (exclude ||
+		    ((layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
+		     !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS))) {
 			ten->flag |= TE_DISABLED;
 		}
 

@@ -992,11 +992,7 @@ int WM_keymap_item_raw_to_string(
 	    alt == KM_ANY &&
 	    oskey == KM_ANY)
 	{
-		/* make it implicit in case of compact result expected. */
-		if (!compact) {
-			ADD_SEP;
-			p += BLI_strcpy_rlen(p, IFACE_("Any"));
-		}
+		/* Don't show anything for any mapping. */
 	}
 	else {
 		if (shift) {
