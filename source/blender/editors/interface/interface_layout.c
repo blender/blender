@@ -1584,7 +1584,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		if (ui_decorate.use_prop_decorate) {
 			layout_row = uiLayoutRow(layout, true);
 			layout_row->space = 0;
-			ui_decorate.len = 1;
+			ui_decorate.len = len;
 		}
 #endif  /* UI_PROP_DECORATE */
 
@@ -1623,10 +1623,6 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 					but->drawflag |= UI_BUT_TEXT_RIGHT;
 					but->drawflag &= ~UI_BUT_TEXT_LEFT;
 				}
-
-#ifdef UI_PROP_DECORATE
-				ui_decorate.len = len;
-#endif
 			}
 			else {
 				if (name) {
