@@ -1360,15 +1360,21 @@ void DRW_draw_render_loop_ex(
 
 	if (DST.draw_ctx.evil_C) {
 		/* needed so manipulator isn't obscured */
-		glDisable(GL_DEPTH_TEST);
-		DRW_draw_manipulator_3d();
+		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		    ((v3d->twflag & V3D_MANIPULATOR_DRAW) != 0))
+		{
+			glDisable(GL_DEPTH_TEST);
+			DRW_draw_manipulator_3d();
+		}
 
 		DRW_draw_region_info();
 
-		/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
-		 * 'DRW_draw_region_info' sets the projection in pixel-space. */
-		DRW_draw_manipulator_2d();
-		glEnable(GL_DEPTH_TEST);
+		if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+			/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
+			 * 'DRW_draw_region_info' sets the projection in pixel-space. */
+			DRW_draw_manipulator_2d();
+			glEnable(GL_DEPTH_TEST);
+		}
 	}
 
 	DRW_stats_reset();
