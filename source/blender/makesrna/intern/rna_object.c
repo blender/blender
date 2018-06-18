@@ -46,6 +46,7 @@
 #include "BKE_paint.h"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_object_deform.h"
 #include "BKE_object_facemap.h"
 
@@ -219,9 +220,12 @@ static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
-static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_type_tag(bmain, ID_OB);
+	Object *ob = ptr->id.data;
+	BKE_main_collection_sync(bmain);
+	DEG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 }
 
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
@@ -2293,6 +2297,18 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rigid Body Constraint", "Constraint constraining rigid bodies");
 
 	/* restrict */
+	prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
+	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
+
+	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
+	RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
 	prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");

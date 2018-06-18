@@ -450,13 +450,20 @@ static void outliner_draw_restrictbuts(
 	uiBut *bt;
 
 	/* get RNA properties (once for speed) */
-	PropertyRNA *collection_prop_hide_viewport;
-	PropertyRNA *collection_prop_hide_select;
-	PropertyRNA *collection_prop_hide_render;
+	PropertyRNA *object_prop_hide_viewport, *object_prop_hide_select, *object_prop_hide_render;
+	PropertyRNA *collection_prop_hide_viewport, *collection_prop_hide_select, *collection_prop_hide_render;
+
+	object_prop_hide_viewport = RNA_struct_type_find_property(&RNA_Object, "hide_viewport");
+	object_prop_hide_select = RNA_struct_type_find_property(&RNA_Object, "hide_select");
+	object_prop_hide_render = RNA_struct_type_find_property(&RNA_Object, "hide_render");
 	collection_prop_hide_select = RNA_struct_type_find_property(&RNA_Collection, "hide_select");
 	collection_prop_hide_viewport = RNA_struct_type_find_property(&RNA_Collection, "hide_viewport");
 	collection_prop_hide_render = RNA_struct_type_find_property(&RNA_Collection, "hide_render");
-	BLI_assert(collection_prop_hide_viewport &&
+
+	BLI_assert(object_prop_hide_viewport &&
+	           object_prop_hide_select &&
+	           object_prop_hide_render &&
+	           collection_prop_hide_viewport &&
 	           collection_prop_hide_select &&
 	           collection_prop_hide_render);
 
@@ -486,6 +493,28 @@ static void outliner_draw_restrictbuts(
 					UI_but_func_set(bt, hidebutton_base_flag_cb, scene, view_layer);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 				}
+
+				PointerRNA ptr;
+				RNA_pointer_create((ID *)ob, &RNA_Object, ob, &ptr);
+
+				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_VIEW_OFF,
+				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				                        &ptr, object_prop_hide_viewport, -1, 0, 0, -1, -1,
+				                        TIP_("Restrict viewport visibility"));
+				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+
+				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_SELECT_OFF,
+				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				                        &ptr, object_prop_hide_select, -1, 0, 0, -1, -1,
+				                        TIP_("Restrict viewport selection"));
+				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+
+				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_RENDER_OFF,
+				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				                        &ptr, object_prop_hide_render, -1, 0, 0, -1, -1,
+				                        TIP_("Restrict render visibility"));
+				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+
 			}
 			else if (tselem->type == TSE_MODIFIER) {
 				ModifierData *md = (ModifierData *)te->directdata;

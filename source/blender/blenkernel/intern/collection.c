@@ -309,15 +309,21 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
 		if (base == NULL) {
 			base = MEM_callocN(sizeof(Base), "Object Base");
 			base->object = cob->ob;
-
-			if ((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) {
-				base->flag |= BASE_VISIBLE_VIEWPORT;
-			}
-			if ((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) {
-				base->flag |= BASE_VISIBLE_RENDER;
-			}
-
 			BLI_addtail(lb, base);
+		}
+
+		int object_restrict = base->object->restrictflag;
+
+		if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
+		    ((object_restrict & OB_RESTRICT_VIEW) == 0))
+		{
+			base->flag |= BASE_VISIBLE_VIEWPORT;
+		}
+
+		if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
+		    ((object_restrict & OB_RESTRICT_RENDER) == 0))
+		{
+			base->flag |= BASE_VISIBLE_RENDER;
 		}
 	}
 

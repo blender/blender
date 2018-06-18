@@ -469,6 +469,12 @@ void DepsgraphRelationBuilder::build_collection(
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	if (!group_done) {
 		LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+			const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
+					? OB_RESTRICT_VIEW
+					: OB_RESTRICT_RENDER;
+			if (cob->ob->restrictflag & restrict_flag) {
+				continue;
+			}
 			build_object(NULL, cob->ob);
 		}
 		LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {

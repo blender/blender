@@ -355,13 +355,6 @@ static void do_version_scene_collection_to_collection(Main *bmain, Scene *scene)
 #endif
 
 
-enum {
-	DO_VERSION_COLLECTION_VISIBLE     = 0,
-	DO_VERSION_COLLECTION_HIDE        = 1,
-	DO_VERSION_COLLECTION_HIDE_RENDER = 2,
-	DO_VERSION_COLLECTION_HIDE_ALL    = 3,
-};
-
 static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 {
 	/* Since we don't have access to FileData we check the (always valid) first
@@ -376,99 +369,26 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 	/* Create collections from layers. */
 	Collection *collection_master = BKE_collection_master(scene);
-
-	struct DoVersionSceneCollections {
-		Collection *collections[20];
-		int created;
-		const char *suffix;
-		int flag;
-	} collections[] =
-	{
-		{
-			.collections = {NULL},
-			.created = 0,
-			.suffix = "",
-			.flag = 0,
-		},
-		{
-			.collections = {NULL},
-			.created = 0,
-			.suffix = " - Hide Viewport",
-			.flag = COLLECTION_RESTRICT_VIEW,
-		},
-		{
-			.collections = {NULL},
-			.created = 0,
-			.suffix = " - Hide Render",
-			.flag = COLLECTION_RESTRICT_RENDER,
-		},
-		{
-			.collections = {NULL},
-			.created = 0,
-			.suffix = " - Hide Render All",
-			.flag = COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER,
-		}
-	};
+	Collection *collections[20] = {NULL};
 
 	for (int layer = 0; layer < 20; layer++) {
 		for (Base *base = scene->base.first; base; base = base->next) {
 			if (base->lay & (1 << layer)) {
-				int collection_index = -1;
-				if ((base->object->restrictflag & OB_RESTRICT_VIEW) &&
-				    (base->object->restrictflag & OB_RESTRICT_RENDER))
-				{
-					collection_index = DO_VERSION_COLLECTION_HIDE_ALL;
-				}
-				else if (base->object->restrictflag & OB_RESTRICT_VIEW) {
-					collection_index = DO_VERSION_COLLECTION_HIDE;
-				}
-				else if (base->object->restrictflag & OB_RESTRICT_RENDER) {
-					collection_index = DO_VERSION_COLLECTION_HIDE_RENDER;
-				}
-				else {
-					collection_index = DO_VERSION_COLLECTION_VISIBLE;
-				}
-
 				/* Create collections when needed only. */
-				if ((collections[collection_index].created & (1 << layer)) == 0) {
+				if (collections[layer] == NULL) {
 					char name[MAX_NAME];
 
-					if ((collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) == 0) {
-						BLI_snprintf(name,
-						             sizeof(collection_master->id.name),
-						             "Collection %d%s",
-						             layer + 1,
-						             collections[DO_VERSION_COLLECTION_VISIBLE].suffix);
+					BLI_snprintf(name,
+					             sizeof(collection_master->id.name),
+					             "Collection %d",
+					             layer + 1);
 
-						Collection *collection = BKE_collection_add(bmain, collection_master, name);
-						collection->id.lib = scene->id.lib;
-						collection->flag |= collections[DO_VERSION_COLLECTION_VISIBLE].flag;
-						collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer] = collection;
-						collections[DO_VERSION_COLLECTION_VISIBLE].created |= (1 << layer);
+					Collection *collection = BKE_collection_add(bmain, collection_master, name);
+					collection->id.lib = scene->id.lib;
+					collections[layer] = collection;
 
-						if (!(scene->lay & (1 << layer))) {
-							collection->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
-						}
-					}
-
-					if (collection_index != DO_VERSION_COLLECTION_VISIBLE) {
-						Collection *collection_parent;
-						collection_parent = collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer];
-						BLI_snprintf(name,
-						             sizeof(collection_master->id.name),
-						             "Collection %d%s",
-						             layer + 1,
-						             collections[collection_index].suffix);
-
-						Collection *collection = BKE_collection_add(bmain, collection_parent, name);
-						collection->id.lib = scene->id.lib;
-						collection->flag |= collections[collection_index].flag;
-						collections[collection_index].collections[layer] = collection;
-						collections[collection_index].created |= (1 << layer);
-
-						if (!(scene->lay & (1 << layer))) {
-							collection->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
-						}
+					if (!(scene->lay & (1 << layer))) {
+						collection->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
 					}
 				}
 
@@ -476,7 +396,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 				 * but since no view layers exists yet at this point it's fast. */
 				BKE_collection_object_add(
 				        bmain,
-				        collections[collection_index].collections[layer], base->object);
+				        collections[layer], base->object);
 			}
 
 			if (base->flag & SELECT) {
@@ -487,46 +407,6 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 			}
 		}
 	}
-
-	/* Re-order the nested hidden collections. */
-	CollectionChild *child_parent = collection_master->children.first;
-	Collection *collection_parent = (child_parent) ? child_parent->collection : NULL;
-
-	for (int layer = 0; layer < 20; layer++) {
-		if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
-			CollectionChild *hide_child = BLI_findptr(
-			        &collection_parent->children,
-			        collections[DO_VERSION_COLLECTION_HIDE].collections[layer],
-			        offsetof(CollectionChild, collection));
-
-			if ((collections[DO_VERSION_COLLECTION_HIDE].created & (1 << layer)) &&
-			    (hide_child != collection_parent->children.first))
-			{
-				BLI_listbase_swaplinks(
-				        &collection_parent->children,
-				        hide_child,
-				        collection_parent->children.first);
-			}
-
-			CollectionChild *hide_all_child = BLI_findptr(
-			        &collection_parent->children,
-			        collections[DO_VERSION_COLLECTION_HIDE_ALL].collections[layer],
-			        offsetof(CollectionChild, collection));
-
-			if ((collections[DO_VERSION_COLLECTION_HIDE_ALL].created & (1 << layer)) &&
-			    (hide_all_child != collection_parent->children.last))
-			{
-				BLI_listbase_swaplinks(
-				        &collection_parent->children,
-				        hide_all_child,
-				        collection_parent->children.last);
-			}
-
-			child_parent = child_parent->next;
-			collection_parent = (child_parent) ? child_parent->collection : NULL;
-		}
-	}
-	BLI_assert(collection_parent == NULL);
 
 	/* Handle legacy render layers. */
 	bool have_override = false;
@@ -577,8 +457,8 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 		/* Set exclusion and overrides. */
 		for (int layer = 0; layer < 20; layer++) {
-			if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
-				Collection *collection = collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer];
+			Collection *collection = collections[layer];
+			if (collection) {
 				LayerCollection *lc = BKE_layer_collection_first_from_scene_collection(view_layer, collection);
 
 				if (srl->lay_exclude & (1 << layer)) {
@@ -612,14 +492,6 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 						        false);
 					}
 				}
-
-				LayerCollection *nlc = lc->layer_collections.first;
-				for (int j = 1; j < 4; j++) {
-					if (collections[j].created & (1 << layer)) {
-						nlc = nlc->next;
-					}
-				}
-				BLI_assert(nlc == NULL);
 			}
 		}
 

@@ -647,14 +647,24 @@ static void layer_collection_sync(
 				BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
 			}
 
-			if ((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) {
+			int object_restrict = base->object->restrictflag;
+
+			if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
+				((object_restrict & OB_RESTRICT_VIEW) == 0))
+			{
 				base->flag |= BASE_VISIBLED | BASE_VISIBLE_VIEWPORT;
 
-				if ((child_restrict & COLLECTION_RESTRICT_SELECT) == 0) {
+				if (((child_restrict & COLLECTION_RESTRICT_SELECT) == 0) &&
+				    ((object_restrict & OB_RESTRICT_SELECT) == 0))
+				{
 					base->flag |= BASE_SELECTABLED;
 				}
 			}
-			if ((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) {
+
+			if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
+			    ((object_restrict & OB_RESTRICT_RENDER) == 0))
+
+			{
 				base->flag |= BASE_VISIBLE_RENDER;
 			}
 
