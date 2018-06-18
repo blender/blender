@@ -93,7 +93,7 @@ enum {
 	BASE_VISIBLED         = (1 << 1),
 	BASE_SELECTABLED      = (1 << 2),
 	BASE_FROMDUPLI        = (1 << 3),
-	BASE_DIRTY_ENGINE_SETTINGS = (1 << 4),
+	/* BASE_DEPRECATED    = (1 << 4), */
 	BASE_FROM_SET         = (1 << 5), /* To be set only by the depsgraph */
 	BASE_VISIBLE_VIEWPORT = (1 << 6),
 	BASE_VISIBLE_RENDER   = (1 << 7),
@@ -111,7 +111,7 @@ enum {
 /* ViewLayer->flag */
 enum {
 	VIEW_LAYER_RENDER = (1 << 0),
-	VIEW_LAYER_ENGINE_DIRTY  = (1 << 1),
+	/* VIEW_LAYER_DEPRECATED  = (1 << 1), */
 	VIEW_LAYER_FREESTYLE = (1 << 2),
 };
 

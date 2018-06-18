@@ -5613,9 +5613,6 @@ static void lib_link_layer_collection(FileData *fd, Library *lib, LayerCollectio
 
 static void lib_link_view_layer(FileData *fd, Library *lib, ViewLayer *view_layer)
 {
-	/* tag scene layer to update for collection tree evaluation */
-	view_layer->flag |= VIEW_LAYER_ENGINE_DIRTY;
-
 	for (FreestyleModuleConfig *fmc = view_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
 		fmc->script = newlibadr(fd, lib, fmc->script);
 	}
@@ -5630,7 +5627,6 @@ static void lib_link_view_layer(FileData *fd, Library *lib, ViewLayer *view_laye
 
 		/* we only bump the use count for the collection objects */
 		base->object = newlibadr(fd, lib, base->object);
-		base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
 
 		if (base->object == NULL) {
 			/* Free in case linked object got lost. */

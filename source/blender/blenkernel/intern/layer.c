@@ -1225,6 +1225,16 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /** \} */
 
+static bool base_is_visible(Base *base, eEvaluationMode mode)
+{
+	if (mode == DAG_EVAL_VIEWPORT) {
+		return ((base->flag & BASE_VISIBLE_VIEWPORT) != 0);
+	}
+	else {
+		return ((base->flag & BASE_VISIBLE_RENDER) != 0);
+	}
+}
+
 /* Evaluation  */
 
 void BKE_layer_eval_view_layer(
@@ -1234,21 +1244,8 @@ void BKE_layer_eval_view_layer(
 {
 	DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
 
-	/* Set visibility based on depsgraph mode. */
+	/* Visibility based on depsgraph mode. */
 	const eEvaluationMode mode = DEG_get_mode(depsgraph);
-	const int base_flag = (mode == DAG_EVAL_VIEWPORT) ? BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
-
-	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
-		if (base->flag & base_flag) {
-			base->flag |= BASE_VISIBLED;
-		}
-		else {
-			base->flag &= ~BASE_VISIBLED;
-		}
-	}
-
-	/* TODO(sergey): Is it always required? */
-	view_layer->flag |= VIEW_LAYER_ENGINE_DIRTY;
 
 	/* Create array of bases, for fast index-based lookup. */
 	const int num_object_bases = BLI_listbase_count(&view_layer->object_bases);
@@ -1257,13 +1254,23 @@ void BKE_layer_eval_view_layer(
 	        num_object_bases, sizeof(Base *), "view_layer->object_bases_array");
 	int base_index = 0;
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		/* if base is not selectabled, clear select. */
+		/* Set visibility. */
+		if (base_is_visible(base, mode)) {
+			base->flag |= BASE_VISIBLED;
+		}
+		else {
+			base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
+		}
+
+		/* If base is not selectabled, clear select. */
 		if ((base->flag & BASE_SELECTABLED) == 0) {
 			base->flag &= ~BASE_SELECTED;
 		}
-		/* Store base in the array. */
+
 		view_layer->object_bases_array[base_index++] = base;
 	}
+
+	/* Flush back base flag to the original view layer for editing. */
 	if (view_layer == DEG_get_evaluated_view_layer(depsgraph)) {
 		ViewLayer *view_layer_orig = DEG_get_input_view_layer(depsgraph);
 		Base *base_orig = view_layer_orig->object_bases.first;
