@@ -326,11 +326,13 @@ void ui_but_anim_paste_driver(bContext *C)
 
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	uiBut *but = arg_but;
 	but = but->prev;
 
 	/* FIXME(campbell), swapping active pointer is weak. */
 	SWAP(struct uiHandleButtonData *, but->active, but->next->active);
+	wm->op_undo_depth++;
 
 	if (but->flag & UI_BUT_DRIVEN) {
 		/* pass */
@@ -354,4 +356,5 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
 	}
 
 	SWAP(struct uiHandleButtonData *, but->active, but->next->active);
+	wm->op_undo_depth--;
 }
