@@ -68,6 +68,7 @@ class RENDER_PT_context(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
