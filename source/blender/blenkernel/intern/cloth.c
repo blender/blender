@@ -350,7 +350,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int 
 	return 1;
 }
 
-static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
+static int do_step_cloth(struct Depsgraph *depsgraph, Scene *scene, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
 	ClothVertex *verts = NULL;
 	Cloth *cloth;
@@ -375,7 +375,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierD
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = pdInitEffectors(depsgraph, clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
+	effectors = pdInitEffectors(depsgraph, scene, ob, NULL, clmd->sim_parms->effector_weights, true);
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH )
 		cloth_update_verts ( ob, clmd, result );
@@ -391,7 +391,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierD
 	// TIMEIT_START(cloth_step)
 
 	/* call the solver. */
-	ret = BPH_cloth_solve(ob, framenr, clmd, effectors);
+	ret = BPH_cloth_solve(scene, ob, framenr, clmd, effectors);
 
 	// TIMEIT_END(cloth_step)
 
@@ -413,7 +413,6 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	int framenr, startframe, endframe;
 	int cache_result;
 
-	clmd->scene= scene;	/* nice to pass on later :) */
 	framenr = DEG_get_ctime(depsgraph);
 	cache= clmd->point_cache;
 
@@ -493,7 +492,7 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	/* do simulation */
 	BKE_ptcache_validate(cache, framenr);
 
-	if (!do_step_cloth(depsgraph, ob, clmd, mesh, framenr)) {
+	if (!do_step_cloth(depsgraph, scene, ob, clmd, mesh, framenr)) {
 		BKE_ptcache_invalidate(cache);
 	}
 	else

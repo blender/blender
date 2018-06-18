@@ -686,7 +686,7 @@ static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, Collision
 }
 
 // cloth - object collisions
-int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, float dt )
+int cloth_bvh_objcollision(Scene *scene, Object *ob, ClothModifierData *clmd, float step, float dt )
 {
 	Cloth *cloth= clmd->clothObject;
 	BVHTree *cloth_bvh= cloth->bvhtree;
@@ -712,7 +712,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, floa
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = get_collisionobjects(scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 
 	if (!collobjs)
 		return 0;
@@ -1207,7 +1207,7 @@ static int cloth_points_objcollisions_resolve(
 }
 
 // cloth - object collisions
-int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, float dt)
+int cloth_points_objcollision(Scene *scene, Object *ob, ClothModifierData *clmd, float step, float dt)
 {
 	Cloth *cloth= clmd->clothObject;
 	BVHTree *cloth_bvh;
@@ -1240,7 +1240,7 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 	/* balance tree */
 	BLI_bvhtree_balance(cloth_bvh);
 
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = get_collisionobjects(scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	if (!collobjs)
 		return 0;
 
@@ -1329,7 +1329,7 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 	return 1|MIN2 ( ret, 1 );
 }
 
-void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, float dt,
+void cloth_find_point_contacts(Scene *scene, Object *ob, ClothModifierData *clmd, float step, float dt,
                                ColliderContacts **r_collider_contacts, int *r_totcolliders)
 {
 	Cloth *cloth= clmd->clothObject;
@@ -1363,7 +1363,7 @@ void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, 
 	/* balance tree */
 	BLI_bvhtree_balance(cloth_bvh);
 
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = get_collisionobjects(scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	if (!collobjs) {
 		*r_collider_contacts = NULL;
 		*r_totcolliders = 0;
