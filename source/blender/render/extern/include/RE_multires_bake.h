@@ -34,8 +34,10 @@
 #define __RE_MULTIRES_BAKE_H__
 
 struct MultiresBakeRender;
+struct Scene;
 
 typedef struct MultiresBakeRender {
+	Scene *scene;
 	DerivedMesh *lores_dm, *hires_dm;
 	bool simple;
 	int bake_filter;      /* Bake-filter, aka margin */

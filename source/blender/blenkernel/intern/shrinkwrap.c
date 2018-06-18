@@ -600,7 +600,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *mesh,
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene, Object *ob, Mesh *mesh,
                                float (*vertexCos)[3], int numVerts)
 {
 
@@ -660,7 +660,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *me
 			/* TODO to be moved to Mesh once we are done with changes in subsurf code. */
 			DerivedMesh *dm = CDDM_from_mesh(mesh);
 
-			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, NULL, (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
+			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, scene, NULL, (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
 
 			if (ss_mesh) {
 				calc.vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);
