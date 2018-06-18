@@ -1584,7 +1584,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		if (ui_decorate.use_prop_decorate) {
 			layout_row = uiLayoutRow(layout, true);
 			layout_row->space = 0;
-			ui_decorate.len = len;
+			ui_decorate.len = max_ii(1, len);
 		}
 #endif  /* UI_PROP_DECORATE */
 
