@@ -2529,6 +2529,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_items(prop, uv_sculpt_relaxation_items);
 	RNA_def_property_ui_text(prop, "Relaxation Method", "Algorithm used for UV relaxation");
 
+	prop = RNA_def_property(srna, "lock_object_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "object_flag", SCE_OBJECT_MODE_LOCK);
+	RNA_def_property_ui_text(prop, "Lock Object Mode", "");
+	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
 	/* Transform */
 	prop = RNA_def_property(srna, "proportional_edit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "proportional");

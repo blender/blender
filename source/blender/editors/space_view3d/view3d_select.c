@@ -424,10 +424,8 @@ static void do_lasso_select_objects(
 
 	for (base = vc->view_layer->object_bases.first; base; base = base->next) {
 		if (BASE_SELECTABLE(base)) { /* use this to avoid un-needed lasso lookups */
-			if (
-#ifdef USE_OBJECT_MODE_STRICT
-			    (is_pose_mode == false) &&
-#endif
+			if (((vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
+			     (is_pose_mode == false) : true) &&
 			    ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK)
 			{
 				if (BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED)) {
@@ -1256,8 +1254,7 @@ static int mixed_bones_object_selectbuffer(
 finally:
 	view3d_opengl_select_cache_end();
 
-#ifdef USE_OBJECT_MODE_STRICT
-	{
+	if (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
 		const bool is_pose_mode = (vc->obact && vc->obact->mode & OB_MODE_POSE);
 		struct {
 			uint data[4];
@@ -1273,7 +1270,6 @@ finally:
 		}
 		hits = j;
 	}
-#endif
 
 	return hits;
 }
@@ -1470,19 +1466,19 @@ static bool ed_object_select_pick(
 				if (base == startbase) break;
 			}
 		}
-#ifdef USE_OBJECT_MODE_STRICT
-		if (is_obedit == false) {
-			if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
-				if (object_mode == OB_MODE_OBJECT) {
-					struct Main *bmain = CTX_data_main(C);
-					ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
-				}
-				if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
-					basact = NULL;
+		if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+			if (is_obedit == false) {
+				if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
+					if (object_mode == OB_MODE_OBJECT) {
+						struct Main *bmain = CTX_data_main(C);
+						ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
+					}
+					if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
+						basact = NULL;
+					}
 				}
 			}
 		}
-#endif
 	}
 	else {
 		unsigned int buffer[MAXPICKBUF];
@@ -1507,19 +1503,19 @@ static bool ed_object_select_pick(
 				basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, has_bones, do_nearest);
 			}
 
-#ifdef USE_OBJECT_MODE_STRICT
-			if (is_obedit == false) {
-				if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
-					if (object_mode == OB_MODE_OBJECT) {
-						struct Main *bmain = CTX_data_main(C);
-						ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
-					}
-					if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
-						basact = NULL;
+			if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+				if (is_obedit == false) {
+					if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
+						if (object_mode == OB_MODE_OBJECT) {
+							struct Main *bmain = CTX_data_main(C);
+							ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
+						}
+						if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
+							basact = NULL;
+						}
 					}
 				}
 			}
-#endif
 
 			if (has_bones && basact) {
 				if (basact->object->type == OB_CAMERA) {
@@ -1609,19 +1605,19 @@ static bool ed_object_select_pick(
 		}
 	}
 
-#ifdef USE_OBJECT_MODE_STRICT
-	/* Disallow switching modes,
-	 * special exception for edit-mode - vertex-parent operator. */
-	if (is_obedit == false) {
-		if (oldbasact && basact) {
-			if ((oldbasact->object->mode != basact->object->mode) &&
-			    (oldbasact->object->mode & basact->object->mode) == 0)
-			{
-				basact = NULL;
+	if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+		/* Disallow switching modes,
+		 * special exception for edit-mode - vertex-parent operator. */
+		if (is_obedit == false) {
+			if (oldbasact && basact) {
+				if ((oldbasact->object->mode != basact->object->mode) &&
+				    (oldbasact->object->mode & basact->object->mode) == 0)
+				{
+					basact = NULL;
+				}
 			}
 		}
 	}
-#endif
 
 	/* so, do we have something selected? */
 	if (basact) {

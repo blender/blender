@@ -255,22 +255,22 @@ static eOLDrawState tree_element_set_active_object(
 	/* find associated base in current scene */
 	base = BKE_view_layer_base_find(view_layer, ob);
 
-#ifdef USE_OBJECT_MODE_STRICT
-	if (base != NULL) {
-		Object *obact = OBACT(view_layer);
-		const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
-		if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
-			if (object_mode == OB_MODE_OBJECT) {
-				struct Main *bmain = CTX_data_main(C);
-				Depsgraph *depsgraph = CTX_data_depsgraph(C);
-				ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
-			}
-			if (!BKE_object_is_mode_compat(base->object, object_mode)) {
-				base = NULL;
+	if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+		if (base != NULL) {
+			Object *obact = OBACT(view_layer);
+			const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
+			if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
+				if (object_mode == OB_MODE_OBJECT) {
+					struct Main *bmain = CTX_data_main(C);
+					Depsgraph *depsgraph = CTX_data_depsgraph(C);
+					ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
+				}
+				if (!BKE_object_is_mode_compat(base->object, object_mode)) {
+					base = NULL;
+				}
 			}
 		}
 	}
-#endif
 
 	if (base) {
 		if (set == OL_SETSEL_EXTEND) {
@@ -282,13 +282,11 @@ static eOLDrawState tree_element_set_active_object(
 		}
 		else {
 			/* deleselect all */
-#ifdef USE_OBJECT_MODE_STRICT
+
 			/* Only in object mode so we can switch the active object,
 			 * keeping all objects in the current 'mode' selected, useful for multi-pose/edit mode.
 			 * This keeps the convention that all objects in the current mode are also selected. see T55246. */
-			if (ob->mode == OB_MODE_OBJECT)
-#endif
-			{
+			if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ? (ob->mode == OB_MODE_OBJECT) : true) {
 				BKE_view_layer_base_deselect_all(view_layer);
 			}
 			ED_object_base_select(base, BA_SELECT);

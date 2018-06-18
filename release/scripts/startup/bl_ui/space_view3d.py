@@ -46,7 +46,9 @@ class VIEW3D_HT_header(Header):
         mode = 'OBJECT' if obj is None else obj.mode
 
         act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[mode]
-        layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
+        row = layout.row(align=True)
+        row.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
+        row.prop(tool_settings, "lock_object_mode", text="")
         del act_mode_item
 
         layout.template_header_3D_mode()
