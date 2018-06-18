@@ -249,7 +249,7 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 	return true;
 }
 
-void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src)
+void BKE_object_link_modifiers(Scene *scene, struct Object *ob_dst, const struct Object *ob_src)
 {
 	ModifierData *md;
 	BKE_object_free_modifiers(ob_dst, 0);
@@ -288,7 +288,7 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 
 		if (md->type == eModifierType_Multires) {
 			/* Has to be done after mod creation, but *before* we actually copy its settings! */
-			multiresModifier_sync_levels_ex(ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
+			multiresModifier_sync_levels_ex(scene, ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
 		}
 
 		modifier_copyData(md, nmd);

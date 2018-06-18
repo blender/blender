@@ -1827,7 +1827,7 @@ static void ccgDM_release(DerivedMesh *dm)
 
 			if (ccgdm->multires.mmd) {
 				if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED)
-					multires_modifier_update_mdisps(dm);
+					multires_modifier_update_mdisps(dm, NULL);
 				if (ccgdm->multires.modified_flags & MULTIRES_HIDDEN_MODIFIED)
 					multires_modifier_update_hidden(dm);
 			}
