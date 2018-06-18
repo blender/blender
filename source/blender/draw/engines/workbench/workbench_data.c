@@ -118,7 +118,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 			wpd->viewvecs[1][2] = vec_far[2] - wpd->viewvecs[0][2];
 		}
 	}
-
 }
 
 void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float light_direction[3])
@@ -154,20 +153,8 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 		wd->num_lights = light_index;
 	}
 
-#if 0
-	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
-		BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED);
-		float rot_matrix[3][3];
-		axis_angle_to_mat3_single(rot_matrix, 'Z', wpd->shading.studiolight_rot_z);
-		mul_v3_m3v3(e_data.display.light_direction, rot_matrix, wpd->studio_light->light_direction);
-	}
-	else {
-#else
-	{
-#endif
-		copy_v3_v3(light_direction, scene->display.light_direction);
-		negate_v3(light_direction);
-	}
+	copy_v3_v3(light_direction, scene->display.light_direction);
+	negate_v3(light_direction);
 
 	DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
 }

@@ -674,7 +674,7 @@ static PointerRNA rna_View3DShading_selected_studio_light_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
 	StudioLight *sl;
-	if (v3d->shading.light == V3D_LIGHTING_MATCAP) {
+	if (v3d->drawtype == OB_SOLID && v3d->shading.light == V3D_LIGHTING_MATCAP) {
 		sl = BKE_studiolight_find(v3d->shading.matcap, STUDIOLIGHT_FLAG_ALL);
 	}
 	else {

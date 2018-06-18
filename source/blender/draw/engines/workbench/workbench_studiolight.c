@@ -34,14 +34,10 @@
 
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd)
 {
-	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
-
-	copy_v3_v3(wd->diffuse_light_x_pos, sl->diffuse_light[STUDIOLIGHT_X_POS]);
-	copy_v3_v3(wd->diffuse_light_x_neg, sl->diffuse_light[STUDIOLIGHT_X_NEG]);
-	copy_v3_v3(wd->diffuse_light_y_pos, sl->diffuse_light[STUDIOLIGHT_Y_POS]);
-	copy_v3_v3(wd->diffuse_light_y_neg, sl->diffuse_light[STUDIOLIGHT_Y_NEG]);
-	copy_v3_v3(wd->diffuse_light_z_pos, sl->diffuse_light[STUDIOLIGHT_Z_POS]);
-	copy_v3_v3(wd->diffuse_light_z_neg, sl->diffuse_light[STUDIOLIGHT_Z_NEG]);
+	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED);
+	for (int i = 0; i < 9; i++) {
+		copy_v3_v3(wd->spherical_harmonics_coefs[i], sl->spherical_harmonics_coefs[i]);
+	}
 }
 
 static void compute_parallel_lines_nor_and_dist(const float v1[2], const float v2[2], const float v3[2], float r_line[2])

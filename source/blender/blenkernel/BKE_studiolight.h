@@ -60,7 +60,7 @@
 struct GPUTexture;
 
 enum StudioLightFlag {
-	STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED                    = (1 << 0),
+	STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED = (1 << 0),
 	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED                  = (1 << 1),
 	STUDIOLIGHT_INTERNAL                                    = (1 << 2),
 	STUDIOLIGHT_EXTERNAL_FILE                               = (1 << 3),
@@ -91,7 +91,7 @@ typedef struct StudioLight {
 	int icon_id_matcap;
 	int icon_id_matcap_flipped;
 	int index;
-	float diffuse_light[6][3];
+	float spherical_harmonics_coefs[9][3];
 	float light_direction[3];
 	ImBuf *equirectangular_radiance_buffer;
 	ImBuf *equirectangular_irradiance_buffer;

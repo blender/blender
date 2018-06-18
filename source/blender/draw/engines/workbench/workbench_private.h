@@ -112,12 +112,7 @@ typedef struct WORKBENCH_UBO_Light {
 } WORKBENCH_UBO_Light;
 
 typedef struct WORKBENCH_UBO_World {
-	float diffuse_light_x_pos[4];
-	float diffuse_light_x_neg[4];
-	float diffuse_light_y_pos[4];
-	float diffuse_light_y_neg[4];
-	float diffuse_light_z_pos[4];
-	float diffuse_light_z_neg[4];
+	float spherical_harmonics_coefs[9][4];
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];
