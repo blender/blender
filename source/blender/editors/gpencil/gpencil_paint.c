@@ -1617,7 +1617,8 @@ static void gp_session_cleanup(tGPsdata *p)
 	p->inittime = 0.0;
 }
 
-static void gp_session_free(tGPsdata *p) {
+static void gp_session_free(tGPsdata *p)
+{
 	if (p->rng != NULL) {
 		BLI_rng_free(p->rng);
 	}
