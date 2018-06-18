@@ -2,6 +2,7 @@ if NOT "%verbose%" == "" (
 	echo Detecting msvc 2017
 )
 set BUILD_VS_VER=15
+set BUILD_VS_YEAR=2017
 set ProgramFilesX86=%ProgramFiles(x86)%
 if not exist "%ProgramFilesX86%" set ProgramFilesX86=%ProgramFiles%
 
