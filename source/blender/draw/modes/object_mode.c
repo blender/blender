@@ -2105,7 +2105,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		return;
 	}
 
-	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
+	bool do_outlines = (draw_ctx->v3d->flag & V3D_SELECT_OUTLINE) && ((ob->base_flag & BASE_SELECTED) != 0);
 	bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
 	if (do_outlines) {
