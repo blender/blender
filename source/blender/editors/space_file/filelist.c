@@ -267,10 +267,11 @@ typedef struct FileListEntryPreview {
 	ImBuf *img;
 } FileListEntryPreview;
 
+
 typedef struct FileListFilter {
 	unsigned int filter;
 	unsigned int filter_id;
-	char filter_glob[256];
+	char filter_glob[FILE_MAXFILE];
 	char filter_search[66];  /* + 2 for heading/trailing implicit '*' wildcards. */
 	short flags;
 } FileListFilter;
@@ -2464,7 +2465,7 @@ static void filelist_readjob_do(
 	BLI_Stack *todo_dirs;
 	TodoDir *td_dir;
 	char dir[FILE_MAX_LIBEXTRA];
-	char filter_glob[64];  /* TODO should be define! */
+	char filter_glob[FILE_MAXFILE];
 	const char *root = filelist->filelist.root;
 	const int max_recursion = filelist->max_recursion;
 	int nbr_done_dirs = 0, nbr_todo_dirs = 1;

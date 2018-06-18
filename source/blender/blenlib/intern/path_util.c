@@ -1438,6 +1438,37 @@ bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
 	return false;
 }
 
+/**
+ * Does basic validation of the given glob string, to prevent common issues from string truncation.
+ *
+ * For now, only forbids last group to be a wildcard-only one, if there are more than one group
+ * (i.e. things like "*.txt;*.cpp;*" are changed to "*.txt;*.cpp;")
+ *
+ * \returns true if it had to modify given \a ext_fnmatch pattern.
+ */
+bool BLI_path_extension_glob_validate(char *ext_fnmatch)
+{
+	bool only_wildcards = false;
+
+	for (size_t i = strlen(ext_fnmatch); i-- > 0; ) {
+		if (ext_fnmatch[i] == ';') {
+			/* Group separator, we truncate here if we only had wildcards so far. Otherwise, all is sound and fine. */
+			if (only_wildcards) {
+				ext_fnmatch[i] = '\0';
+				return true;
+			}
+			return false;
+		}
+		if (!ELEM(ext_fnmatch[i], '?', '*')) {
+			/* Non-wildcard char, we can break here and consider the pattern valid. */
+			return false;
+		}
+		/* So far, only wildcards in last group of the pattern... */
+		only_wildcards = true;
+	}
+	/* Only one group in the pattern, so even if its only made of wildcard(s), it is assumed vaid. */
+	return false;
+}
 
 /**
  * Removes any existing extension on the end of \a path and appends \a ext.

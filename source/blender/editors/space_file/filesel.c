@@ -196,6 +196,10 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			if (tmp != params->filter_glob) {
 				BLI_strncpy(params->filter_glob, tmp, sizeof(params->filter_glob));
 				MEM_freeN(tmp);
+
+				/* Fix stupid things that truncating might have generated,
+				 * like last group being a 'match everything' wildcard-only one... */
+				BLI_path_extension_glob_validate(params->filter_glob);
 			}
 			params->filter |= (FILE_TYPE_OPERATOR | FILE_TYPE_FOLDER);
 		}

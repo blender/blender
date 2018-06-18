@@ -630,7 +630,7 @@ typedef struct FileSelectParams {
 	char renamefile[256];
 	char renameedit[256]; /* annoying but the first is only used for initialization */
 
-	char filter_glob[256]; /* list of filetypes to filter */
+	char filter_glob[256]; /* FILE_MAXFILE */ /* list of filetypes to filter */
 
 	char filter_search[64];  /* text items' name must match to be shown. */
 	int filter_id;  /* same as filter, but for ID types (aka library groups). */
