@@ -545,6 +545,10 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "use_region_overlap")
 
         col.separator()
+        col.label(text="Max Viewport Anti-aliasing Method")
+        col.prop(system, "max_anti_alias_method", text="")
+
+        col.separator()
 
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")

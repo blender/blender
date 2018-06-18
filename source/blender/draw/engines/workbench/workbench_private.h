@@ -32,6 +32,7 @@
 #include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+#include "DNA_userdef_types.h"
 
 #include "DRW_render.h"
 
@@ -50,7 +51,7 @@
 #define STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd) (MATCAP_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL))
 #define CAVITY_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_CAVITY)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
-#define FXAA_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_EFFECT_FXAA && (!DRW_state_is_opengl_render()))
+#define FXAA_ENABLED(wpd) (wpd->user_preferences->gpu_viewport_antialias & USER_AA_FXAA && (!DRW_state_is_opengl_render()))
 #define SPECULAR_HIGHLIGHT_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
@@ -150,6 +151,7 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUShader *transparent_accum_texture_hair_sh;
 	View3DShading shading;
 	StudioLight *studio_light;
+	UserDef *user_preferences;
 	int drawtype;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;

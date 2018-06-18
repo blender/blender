@@ -542,7 +542,7 @@ typedef struct UserDef {
 	char  keyhandles_new;	/* handle types for newly added keyframes */
 	char  gpu_select_method;
 	char  gpu_select_pick_deph;
-	char  pad4;
+	char  gpu_viewport_antialias;
 	char  view_frame_type;  /* eZoomFrame_Mode */
 
 	int view_frame_keyframes; /* number of keyframes to zoom around current frame */
@@ -802,6 +802,12 @@ typedef enum eOpenGL_SelectOptions {
 	USER_SELECT_USE_OCCLUSION_QUERY = 1,
 	USER_SELECT_USE_SELECT_RENDERMODE = 2
 } eOpenGL_SelectOptions;
+
+/* max anti alias draw method UserDef.gpu_viewport_antialias */
+typedef enum eOpenGL_AntiAliasMethod {
+	USER_AA_NONE = 0,
+	USER_AA_FXAA = 1,
+} eOpenGL_AntiAliasMethod;
 
 /* text draw options
  * UserDef.text_render */

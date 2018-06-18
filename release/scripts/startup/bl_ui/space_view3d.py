@@ -3730,9 +3730,6 @@ class VIEW3D_PT_shading_options(Panel):
             sub.prop(shading, "object_outline_color", text="")
 
             layout.prop(view, "show_world")
-            row = layout.split(0.4)
-            row.active = not shading.show_xray
-            row.prop(shading, "show_anti_aliasing")
 
 
 class VIEW3D_PT_overlay(Panel):
