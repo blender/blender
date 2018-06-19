@@ -46,9 +46,7 @@ class VIEW3D_HT_header(Header):
         mode = 'OBJECT' if obj is None else obj.mode
 
         act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[mode]
-        row = layout.row(align=True)
-        row.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
-        row.prop(tool_settings, "lock_object_mode", text="")
+        layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
         del act_mode_item
 
         layout.template_header_3D_mode()
@@ -799,6 +797,8 @@ class VIEW3D_MT_select_pose(Menu):
         layout.separator()
 
         layout.operator_menu_enum("pose.select_grouped", "type", text="Grouped")
+        layout.operator("object.select_pattern", text="Select Pattern...")
+
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
