@@ -1677,7 +1677,7 @@ void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw, RigidbodyWorldIDFun
 struct RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type) { return NULL; }
 struct RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short type) { return NULL; }
 struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene) { return NULL; }
-void BKE_rigidbody_remove_object(Scene *scene, Object *ob) {}
+void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob) {}
 void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob) {}
 void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle) {}
