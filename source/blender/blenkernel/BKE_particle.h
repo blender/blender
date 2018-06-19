@@ -318,6 +318,9 @@ void BKE_particlesettings_free(struct ParticleSettings *part);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
 void psys_free(struct Object *ob, struct ParticleSystem *psys);
 
+/* Copy. */
+void psys_copy_particles(struct ParticleSystem *psys_dst, struct ParticleSystem *psys_src);
+
 bool psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
 
 void psys_interpolate_uvs(const struct MTFace *tface, int quad, const float w[4], float uvco[2]);
