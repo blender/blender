@@ -74,7 +74,8 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
-    bl_label = "Soft Body Cache"
+    bl_label = "Cache"
+    bl_parent_id = 'PHYSICS_PT_softbody'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -84,7 +85,8 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
-    bl_label = "Soft Body Goal"
+    bl_label = "Goal"
+    bl_parent_id = 'PHYSICS_PT_softbody'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -124,7 +126,8 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
-    bl_label = "Soft Body Edges"
+    bl_label = "Edges"
+    bl_parent_id = 'PHYSICS_PT_softbody'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -174,7 +177,8 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
-    bl_label = "Soft Body Self Collision"
+    bl_label = "Self Collision"
+    bl_parent_id = 'PHYSICS_PT_softbody'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -203,7 +207,8 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
-    bl_label = "Soft Body Solver"
+    bl_label = "Solver"
+    bl_parent_id = 'PHYSICS_PT_softbody'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -236,7 +241,8 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
-    bl_label = "Soft Body Field Weights"
+    bl_label = "Field Weights"
+    bl_parent_id = 'PHYSICS_PT_softbody'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
