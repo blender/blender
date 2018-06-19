@@ -4808,7 +4808,7 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
 	sculpt_update_tex(scene, sd, ss);
 }
 
-static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
+static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
@@ -4829,8 +4829,6 @@ static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 
 	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
 	BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, is_smooth, need_mask);
-
-	return 1;
 }
 
 static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
@@ -5075,8 +5073,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
 	int ignore_background_click;
 	int retval;
 
-	if (!sculpt_brush_stroke_init(C, op))
-		return OPERATOR_CANCELLED;
+	sculpt_brush_stroke_init(C, op);
 
 	stroke = paint_stroke_new(C, op, sculpt_stroke_get_location,
 	                          sculpt_stroke_test_start,
@@ -5108,8 +5105,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-	if (!sculpt_brush_stroke_init(C, op))
-		return OPERATOR_CANCELLED;
+	sculpt_brush_stroke_init(C, op);
 
 	op->customdata = paint_stroke_new(C, op, sculpt_stroke_get_location, sculpt_stroke_test_start,
 	                                  sculpt_stroke_update_step, NULL, sculpt_stroke_done, 0);
