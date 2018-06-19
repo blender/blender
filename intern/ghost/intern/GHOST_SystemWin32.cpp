@@ -316,11 +316,21 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 
 	GHOST_Context *context;
 
+	HWND wnd = CreateWindowA("STATIC",
+		"BlenderGLEW",
+		WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+		0, 0, 64, 64,
+		NULL, NULL,
+		GetModuleHandle(NULL), NULL
+	);
+
+	HDC  mHDC = GetDC(wnd);
+
 #if defined(WITH_GL_PROFILE_CORE)
 	for (int minor = 5; minor >= 0; --minor) {
 			context = new GHOST_ContextWGL(
 			    false, true, 0,
-			    NULL, NULL,
+			    wnd, mHDC,
 			    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 			    4, minor,
 			    (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
@@ -336,7 +346,7 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 
 		context = new GHOST_ContextWGL(
 		    false, true, 0,
-		    NULL, NULL,
+		    wnd, mHDC,
 		    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		    3, 3,
 		    (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
