@@ -85,7 +85,8 @@ typedef struct StudioLight {
 	int flag;
 	char name[FILE_MAXFILE];
 	char path[FILE_MAX];
-	char *path_irr;
+	char *path_irr_cache;
+	char *path_sh2_cache;
 	int icon_id_irradiance;
 	int icon_id_radiance;
 	int icon_id_matcap;
