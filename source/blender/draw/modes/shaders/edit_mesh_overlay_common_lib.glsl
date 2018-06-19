@@ -33,7 +33,7 @@ vec4 EDIT_MESH_edge_color_inner(int edge_flag, bool face_active)
 	color = ((edge_flag & EDGE_ACTIVE) != 0) ? colorEditMeshActive : color;
 
 #else
-	vec4 color = colorWireInactive;
+	vec4 color = colorWireEdit;
 	color = ((edge_flag & EDGE_SELECTED) != 0) ? colorEdgeSelect : color;
 #endif
 	return color;
@@ -46,10 +46,6 @@ vec4 EDIT_MESH_vertex_color(int vertex_flag)
 		return colorEdgeSelect;
 	}
 	else {
-#ifdef EDGE_SELECTION
 		return colorWireEdit;
-#else
-		return colorWireInactive;
-#endif
 	}
 }

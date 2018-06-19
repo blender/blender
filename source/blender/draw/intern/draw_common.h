@@ -41,7 +41,6 @@ struct PTCacheEdit;
 typedef struct GlobalsUboStorage {
 	/* UBOs data needs to be 16 byte aligned (size of vec4) */
 	float colorWire[4];
-	float colorWireInactive[4];
 	float colorWireEdit[4];
 	float colorActive[4];
 	float colorSelect[4];

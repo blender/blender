@@ -2,7 +2,6 @@
 /* keep in sync with GlobalsUboStorage */
 layout(std140) uniform globalsBlock {
 	vec4 colorWire;
-	vec4 colorWireInactive;
 	vec4 colorWireEdit;
 	vec4 colorActive;
 	vec4 colorSelect;

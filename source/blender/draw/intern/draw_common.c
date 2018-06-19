@@ -50,7 +50,6 @@ struct GPUTexture *globals_ramp = NULL;
 void DRW_globals_update(void)
 {
 	UI_GetThemeColor4fv(TH_WIRE, ts.colorWire);
-	UI_GetThemeColor4fv(TH_WIRE_INACTIVE, ts.colorWireInactive);
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, ts.colorWireEdit);
 	UI_GetThemeColor4fv(TH_ACTIVE, ts.colorActive);
 	UI_GetThemeColor4fv(TH_SELECT, ts.colorSelect);

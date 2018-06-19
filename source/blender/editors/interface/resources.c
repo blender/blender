@@ -298,8 +298,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->syntaxr; break;
 				case TH_WIRE_EDIT:
 					cp = ts->wire_edit; break;
-				case TH_WIRE_INACTIVE:
-					cp = ts->wire_inactive; break;
 				case TH_LAMP:
 					cp = ts->lamp; break;
 				case TH_SPEAKER:
@@ -936,7 +934,6 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.view_overlay, 0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	rgba_char_args_set(btheme->tv3d.wire_edit,  0x0, 0x0, 0x0, 255);
-	rgba_char_args_set(btheme->tv3d.wire_inactive, 32, 32, 32, 255);
 	rgba_char_args_set(btheme->tv3d.lamp,       0, 0, 0, 40);
 	rgba_char_args_set(btheme->tv3d.speaker,    0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.camera,    0, 0, 0, 255);
@@ -3049,17 +3046,6 @@ void init_userdef_do_versions(Main *bmain)
 			ui_theme_space_init_manipulator_colors(btheme);
 		}
 	}
-
-	for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-		ThemeSpace *ts;
-
-		for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
-			if (btheme->tv3d.wire_inactive[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.wire_inactive,  32, 32, 32, 255);
-			}
-		}
-	}
-
 
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;

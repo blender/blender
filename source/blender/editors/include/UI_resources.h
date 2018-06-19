@@ -90,7 +90,6 @@ typedef enum ThemeColorID {
 	TH_WIRE,
 	TH_WIRE_INNER,
 	TH_WIRE_EDIT,
-	TH_WIRE_INACTIVE,
 	TH_SELECT,
 	TH_ACTIVE,
 	TH_GROUP,
