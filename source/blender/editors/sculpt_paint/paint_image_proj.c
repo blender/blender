@@ -354,12 +354,11 @@ typedef struct ProjPaintState {
 
 	SpinLock *tile_lock;
 
-	DerivedMesh    *dm;
+	Mesh *me_eval;
 	int  dm_totlooptri;
 	int  dm_totpoly;
 	int  dm_totedge;
 	int  dm_totvert;
-	bool dm_release;
 
 	const MVert    *dm_mvert;
 	const MEdge    *dm_medge;
@@ -376,6 +375,9 @@ typedef struct ProjPaintState {
 	 */
 	const MLoopUV **dm_mloopuv;
 	const MLoopUV **dm_mloopuv_clone;    /* other UV map, use for cloning between layers */
+
+	/* Actual material for each index, either from object or Mesh datablock... */
+	Material **mat_array;
 
 	bool use_colormanagement;
 } ProjPaintState;
@@ -469,7 +471,7 @@ BLI_INLINE const MPoly *ps_tri_index_to_mpoly(const ProjPaintState *ps, int tri_
 static TexPaintSlot *project_paint_face_paint_slot(const ProjPaintState *ps, int tri_index)
 {
 	const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-	Material *ma = ps->dm->mat[mp->mat_nr];
+	Material *ma = ps->mat_array[mp->mat_nr];
 	return ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
 }
 
@@ -480,7 +482,7 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int tri_i
 	}
 	else {
 		const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-		Material *ma = ps->dm->mat[mp->mat_nr];
+		Material *ma = ps->mat_array[mp->mat_nr];
 		TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
 		return slot ? slot->ima : ps->canvas_ima;
 	}
@@ -489,14 +491,14 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int tri_i
 static TexPaintSlot *project_paint_face_clone_slot(const ProjPaintState *ps, int tri_index)
 {
 	const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-	Material *ma = ps->dm->mat[mp->mat_nr];
+	Material *ma = ps->mat_array[mp->mat_nr];
 	return ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
 }
 
 static Image *project_paint_face_clone_image(const ProjPaintState *ps, int tri_index)
 {
 	const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-	Material *ma = ps->dm->mat[mp->mat_nr];
+	Material *ma = ps->mat_array[mp->mat_nr];
 	TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
 	return slot ? slot->ima : ps->clone_ima;
 }
@@ -3067,24 +3069,6 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MLoopTri *
 #endif
 }
 
-/**
- * \note when using subsurf or multires, some arrays are thrown away, we need to keep a copy
- */
-static void proj_paint_state_non_cddm_init(ProjPaintState *ps)
-{
-	if (ps->dm->type != DM_TYPE_CDDM) {
-		ps->dm_mvert = MEM_dupallocN(ps->dm_mvert);
-		ps->dm_mpoly = MEM_dupallocN(ps->dm_mpoly);
-		ps->dm_mloop = MEM_dupallocN(ps->dm_mloop);
-		/* looks like these are ok for now.*/
-#if 0
-		ps->dm_mloopuv = MEM_dupallocN(ps->dm_mloopuv);
-		ps->dm_mloopuv_clone = MEM_dupallocN(ps->dm_mloopuv_clone);
-		ps->dm_mloopuv_stencil = MEM_dupallocN(ps->dm_mloopuv_stencil);
-#endif
-	}
-}
-
 static void proj_paint_state_viewport_init(
         ProjPaintState *ps, const Depsgraph *depsgraph, const char symmetry_flag)
 {
@@ -3409,11 +3393,15 @@ static void project_paint_bleed_add_face_user(
 #endif
 
 /* Return true if DM can be painted on, false otherwise */
-static bool proj_paint_state_dm_init(const bContext *C, ProjPaintState *ps)
+static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *ps)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Scene *sce = ps->scene;
+	Object *ob = ps->ob;
 
 	/* Workaround for subsurf selection, try the display mesh first */
+	/* XXX Don't think this is easily doable with new system, and not sure why that was needed in the first place :/ */
+#if 0
 	if (ps->source == PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
 		ps->dm = mesh_create_derived_render(
@@ -3426,32 +3414,39 @@ static bool proj_paint_state_dm_init(const bContext *C, ProjPaintState *ps)
 		        ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
 		ps->dm_release = false;
 	}
-
-	if (!CustomData_has_layer(&ps->dm->loopData, CD_MLOOPUV)) {
-
-		if (ps->dm_release)
-			ps->dm->release(ps->dm);
-
-		ps->dm = NULL;
+#endif
+	ps->me_eval = mesh_get_eval_final(
+	                  depsgraph, sce, ob,
+	                  sce->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
+	if (!CustomData_has_layer(&ps->me_eval->ldata, CD_MLOOPUV)) {
+		ps->me_eval = NULL;
 		return false;
 	}
 
-	DM_update_materials(ps->dm, ps->ob);
+	/* Build final material array, we use this a lot here. */
+	const int totmat = ob->totcol + 1; /* materials start from 1, default material is 0 */
+	ps->mat_array = MEM_malloc_arrayN(totmat, sizeof(*ps->mat_array), __func__);
+	/* We leave last material as empty - rationale here is being able to index
+	 * the materials by using the mf->mat_nr directly and leaving the last
+	 * material as NULL in case no materials exist on mesh, so indexing will not fail. */
+	for (int i = 0; i < totmat - 1; i++) {
+		ps->mat_array[i] = give_current_material(ob, i + 1);
+	}
+	ps->mat_array[totmat - 1] = NULL;
 
-	ps->dm_mvert = ps->dm->getVertArray(ps->dm);
+	ps->dm_mvert = ps->me_eval->mvert;
+	if (ps->do_mask_cavity) {
+		ps->dm_medge = ps->me_eval->medge;
+	}
+	ps->dm_mloop = ps->me_eval->mloop;
+	ps->dm_mpoly = ps->me_eval->mpoly;
 
-	if (ps->do_mask_cavity)
-		ps->dm_medge = ps->dm->getEdgeArray(ps->dm);
+	ps->dm_totvert = ps->me_eval->totvert;
+	ps->dm_totedge = ps->me_eval->totedge;
+	ps->dm_totpoly = ps->me_eval->totpoly;
 
-	ps->dm_mloop = ps->dm->getLoopArray(ps->dm);
-	ps->dm_mpoly = ps->dm->getPolyArray(ps->dm);
-
-	ps->dm_mlooptri = ps->dm->getLoopTriArray(ps->dm);
-
-	ps->dm_totvert = ps->dm->getNumVerts(ps->dm);
-	ps->dm_totedge = ps->dm->getNumEdges(ps->dm);
-	ps->dm_totpoly = ps->dm->getNumPolys(ps->dm);
-	ps->dm_totlooptri = ps->dm->getNumLoopTri(ps->dm);
+	ps->dm_mlooptri = BKE_mesh_runtime_looptri_ensure(ps->me_eval);
+	ps->dm_totlooptri = ps->me_eval->runtime.looptris.len;
 
 	ps->dm_mloopuv = MEM_mallocN(ps->dm_totpoly * sizeof(MLoopUV *), "proj_paint_mtfaces");
 
@@ -3477,11 +3472,11 @@ static void proj_paint_layer_clone_init(
 		ps->dm_mloopuv_clone = MEM_mallocN(ps->dm_totpoly * sizeof(MLoopUV *), "proj_paint_mtfaces");
 
 		if (layer_num != -1)
-			mloopuv_clone_base = CustomData_get_layer_n(&ps->dm->loopData, CD_MLOOPUV, layer_num);
+			mloopuv_clone_base = CustomData_get_layer_n(&ps->me_eval->ldata, CD_MLOOPUV, layer_num);
 
 		if (mloopuv_clone_base == NULL) {
 			/* get active instead */
-			mloopuv_clone_base = CustomData_get_layer(&ps->dm->loopData, CD_MLOOPUV);
+			mloopuv_clone_base = CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV);
 		}
 
 	}
@@ -3511,10 +3506,10 @@ static bool project_paint_clone_face_skip(
 			if (lc->slot_clone != lc->slot_last_clone) {
 				if (!slot->uvname ||
 				    !(lc->mloopuv_clone_base = CustomData_get_layer_named(
-				          &ps->dm->loopData, CD_MLOOPUV,
+				          &ps->me_eval->ldata, CD_MLOOPUV,
 				          lc->slot_clone->uvname)))
 				{
-					lc->mloopuv_clone_base = CustomData_get_layer(&ps->dm->loopData, CD_MLOOPUV);
+					lc->mloopuv_clone_base = CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV);
 				}
 				lc->slot_last_clone = lc->slot_clone;
 			}
@@ -3538,7 +3533,7 @@ static void proj_paint_face_lookup_init(
 {
 	memset(face_lookup, 0, sizeof(*face_lookup));
 	if (ps->do_face_sel) {
-		face_lookup->index_mp_to_orig  = ps->dm->getPolyDataArray(ps->dm, CD_ORIGINDEX);
+		face_lookup->index_mp_to_orig = CustomData_get_layer(&ps->me_eval->pdata, CD_ORIGINDEX);
 		face_lookup->mpoly_orig = ((Mesh *)ps->ob->data)->mpoly;
 	}
 }
@@ -3686,13 +3681,13 @@ static void project_paint_prepare_all_faces(
 			slot = project_paint_face_paint_slot(ps, tri_index);
 			/* all faces should have a valid slot, reassert here */
 			if (slot == NULL) {
-				mloopuv_base = CustomData_get_layer(&ps->dm->loopData, CD_MLOOPUV);
+				mloopuv_base = CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV);
 				tpage = ps->canvas_ima;
 			}
 			else {
 				if (slot != slot_last) {
-					if (!slot->uvname || !(mloopuv_base = CustomData_get_layer_named(&ps->dm->loopData, CD_MLOOPUV, slot->uvname)))
-						mloopuv_base = CustomData_get_layer(&ps->dm->loopData, CD_MLOOPUV);
+					if (!slot->uvname || !(mloopuv_base = CustomData_get_layer_named(&ps->me_eval->ldata, CD_MLOOPUV, slot->uvname)))
+						mloopuv_base = CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV);
 					slot_last = slot;
 				}
 
@@ -3825,7 +3820,7 @@ static void project_paint_begin(
 
 	/* paint onto the derived mesh */
 	if (ps->is_shared_user == false) {
-		if (!proj_paint_state_dm_init(C, ps)) {
+		if (!proj_paint_state_mesh_eval_init(C, ps)) {
 			return;
 		}
 	}
@@ -3837,11 +3832,11 @@ static void project_paint_begin(
 		//int layer_num = CustomData_get_stencil_layer(&ps->dm->loopData, CD_MLOOPUV);
 		int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->ldata, CD_MLOOPUV);
 		if (layer_num != -1)
-			ps->dm_mloopuv_stencil = CustomData_get_layer_n(&ps->dm->loopData, CD_MLOOPUV, layer_num);
+			ps->dm_mloopuv_stencil = CustomData_get_layer_n(&ps->me_eval->ldata, CD_MLOOPUV, layer_num);
 
 		if (ps->dm_mloopuv_stencil == NULL) {
 			/* get active instead */
-			ps->dm_mloopuv_stencil = CustomData_get_layer(&ps->dm->loopData, CD_MLOOPUV);
+			ps->dm_mloopuv_stencil = CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV);
 		}
 
 		if (ps->do_stencil_brush)
@@ -3850,8 +3845,6 @@ static void project_paint_begin(
 
 	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
 	if (ps->is_shared_user == false) {
-		proj_paint_state_non_cddm_init(ps);
-
 		proj_paint_state_cavity_init(ps);
 	}
 
@@ -3941,6 +3934,9 @@ static void project_paint_end(ProjPaintState *ps)
 	MEM_freeN(ps->bucketFlags);
 
 	if (ps->is_shared_user == false) {
+		if (ps->mat_array != NULL) {
+			MEM_freeN(ps->mat_array);
+		}
 
 		/* must be set for non-shared */
 		BLI_assert(ps->dm_mloopuv || ps->is_shared_user);
@@ -3968,22 +3964,6 @@ static void project_paint_end(ProjPaintState *ps)
 		if (ps->do_mask_cavity) {
 			MEM_freeN(ps->cavities);
 		}
-
-		/* copy for subsurf/multires, so throw away */
-		if (ps->dm->type != DM_TYPE_CDDM) {
-			if (ps->dm_mvert) MEM_freeN((void *)ps->dm_mvert);
-			if (ps->dm_mpoly) MEM_freeN((void *)ps->dm_mpoly);
-			if (ps->dm_mloop) MEM_freeN((void *)ps->dm_mloop);
-			/* looks like these don't need copying */
-#if 0
-			if (ps->dm_mloopuv) MEM_freeN(ps->dm_mloopuv);
-			if (ps->dm_mloopuv_clone) MEM_freeN(ps->dm_mloopuv_clone);
-			if (ps->dm_mloopuv_stencil) MEM_freeN(ps->dm_mloopuv_stencil);
-#endif
-		}
-
-		if (ps->dm_release)
-			ps->dm->release(ps->dm);
 	}
 
 	if (ps->blurkernel) {
@@ -4858,7 +4838,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 	struct ImagePool *pool;
 
 	if (!project_bucket_iter_init(ps, pos)) {
-		return 0;
+		return touch_any;
 	}
 
 	if (ps->thread_tot > 1)
@@ -5222,13 +5202,11 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 		}
 
 		project_paint_begin(C, ps, is_multi_view, symmetry_flag_views[i]);
+		if (ps->me_eval == NULL) {
+			goto fail;
+		}
 
 		paint_proj_begin_clone(ps, mouse);
-
-		if (ps->dm == NULL) {
-			goto fail;
-			return NULL;
-		}
 	}
 
 	paint_brush_init_tex(ps_handle->brush);
@@ -5376,8 +5354,9 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	/* allocate and initialize spatial data structures */
 	project_paint_begin(C, &ps, false, 0);
 
-	if (ps.dm == NULL) {
+	if (ps.me_eval == NULL) {
 		BKE_brush_size_set(scene, ps.brush, orig_brush_size);
+		BKE_report(op->reports, RPT_ERROR, "Could not get valid evaluated mesh");
 		return OPERATOR_CANCELLED;
 	}
 	else {
