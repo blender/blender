@@ -351,12 +351,19 @@ typedef enum {
 	VIEW3D_SELECT_PICK_NEAREST = 2,
 } eV3DSelectMode;
 
+typedef enum {
+	/* Don't exclude anything. */
+	VIEW3D_SELECT_FILTER_NOP = 0,
+	/* Don't select objects outside the current mode. */
+	VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK = 1,
+} eV3DSelectObjectFilter;
+
 void view3d_opengl_select_cache_begin(void);
 void view3d_opengl_select_cache_end(void);
 
 int view3d_opengl_select(
         struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const struct rcti *input,
-        eV3DSelectMode select_mode);
+        eV3DSelectMode select_mode, eV3DSelectObjectFilter select_filter);
 
 /* view3d_select.c */
 float ED_view3d_select_dist_px(void);

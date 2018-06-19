@@ -896,6 +896,13 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
 }
 #endif /* WITH_OPENGL_LEGACY */
 
+/** Implement #VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK. */
+static bool drw_select_filter_object_mode_lock(Object *ob, void *user_data)
+{
+	const Object *obact = user_data;
+	return BKE_object_is_mode_compat(ob, obact->mode);
+}
+
 /**
  * \warning be sure to account for a negative return value
  * This is an error, "Too many objects in select buffer"
@@ -905,7 +912,7 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
  */
 int view3d_opengl_select(
         ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input,
-        eV3DSelectMode select_mode)
+        eV3DSelectMode select_mode, eV3DSelectObjectFilter select_filter)
 {
 	struct bThemeState theme_state;
 	Depsgraph *depsgraph = vc->depsgraph;
@@ -951,6 +958,25 @@ int view3d_opengl_select(
 		else {
 			gpu_select_mode = GPU_SELECT_ALL;
 		}
+	}
+
+	struct {
+		DRW_ObjectFilterFn fn;
+		void *user_data;
+	} object_filter = {NULL, NULL};
+	switch (select_filter) {
+		case VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK:
+		{
+			Object *obact = OBACT(vc->view_layer);
+			if (obact && obact->mode != OB_MODE_OBJECT) {
+				object_filter.fn = drw_select_filter_object_mode_lock;
+				object_filter.user_data = obact;
+			}
+			break;
+		}
+		case VIEW3D_SELECT_FILTER_NOP:
+			break;
+
 	}
 
 	/* Tools may request depth outside of regular drawing code. */
@@ -1014,7 +1040,8 @@ int view3d_opengl_select(
 		DRW_draw_select_loop(
 		        depsgraph, ar, v3d,
 		        use_obedit_skip, use_nearest, &rect,
-		        drw_select_loop_pass, &drw_select_loop_user_data);
+		        drw_select_loop_pass, &drw_select_loop_user_data,
+		        object_filter.fn, object_filter.user_data);
 		hits = drw_select_loop_user_data.hits;
 	}
 #endif /* WITH_OPENGL_LEGACY */

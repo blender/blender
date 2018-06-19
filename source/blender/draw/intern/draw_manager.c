@@ -1634,7 +1634,8 @@ void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect,
-        DRW_SelectPassFn select_pass_fn, void *select_pass_user_data)
+        DRW_SelectPassFn select_pass_fn, void *select_pass_user_data,
+        DRW_ObjectFilterFn object_filter_fn, void *object_filter_user_data)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
@@ -1721,6 +1722,7 @@ void DRW_draw_select_loop(
 #endif
 		}
 		else {
+			bool filter_exclude = false;
 			DEG_OBJECT_ITER_BEGIN(
 			        depsgraph, ob,
 			        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
@@ -1728,6 +1730,19 @@ void DRW_draw_select_loop(
 			        DEG_ITER_OBJECT_FLAG_DUPLI)
 			{
 				if ((ob->base_flag & BASE_SELECTABLED) != 0) {
+
+					if (object_filter_fn != NULL) {
+						if (ob->base_flag & BASE_FROMDUPLI) {
+							/* pass (use previous filter_exclude value) */
+						}
+						else {
+							filter_exclude = (object_filter_fn(ob, object_filter_user_data) == false);
+						}
+						if (filter_exclude) {
+							continue;
+						}
+					}
+
 					/* This relies on dupli instances being after their instancing object. */
 					if ((ob->base_flag & BASE_FROMDUPLI) == 0) {
 						Object *ob_orig = DEG_get_original_object(ob);
