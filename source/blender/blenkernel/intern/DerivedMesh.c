@@ -3062,7 +3062,7 @@ static CustomDataMask object_get_datamask(const Depsgraph *depsgraph, Object *ob
 		*r_need_mapping = false;
 	}
 
-	if (ob == actob) {
+	if (DEG_get_original_object(ob) == actob) {
 		bool editing = BKE_paint_select_face_test(ob);
 
 		/* weight paint and face select need original indices because of selection buffer drawing */
