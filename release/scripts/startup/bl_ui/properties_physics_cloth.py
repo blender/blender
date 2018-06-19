@@ -126,7 +126,8 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
-    bl_label = "Cloth Cache"
+    bl_label = "Cache"
+    bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -136,7 +137,8 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
-    bl_label = "Cloth Collision"
+    bl_label = "Collision"
+    bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -176,7 +178,8 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
-    bl_label = "Cloth Stiffness Scaling"
+    bl_label = "Stiffness Scaling"
+    bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -209,7 +212,8 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
-    bl_label = "Cloth Sewing Springs"
+    bl_label = "Sewing Springs"
+    bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -243,7 +247,8 @@ class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
-    bl_label = "Cloth Field Weights"
+    bl_label = "Field Weights"
+    bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
