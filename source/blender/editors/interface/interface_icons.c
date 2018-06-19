@@ -889,7 +889,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 							memset(img->rect, 0, size);
 							di->data.buffer.image = img;
 
-							wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_ANY);
+							wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_STUDIOLIGHT);
 							Icon** tmp = MEM_callocN(sizeof(Icon*), __func__);
 							*tmp = icon;
 							WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
