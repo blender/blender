@@ -3041,17 +3041,28 @@ void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
 	/* called right before rendering, ima->renderslots contains render
 	 * result pointers for everything but the current render */
 	Render *re = RE_GetSceneRender(scene);
-	int slot = ima->render_slot, last = ima->last_render_slot;
 
-	if (slot != last) {
-		RenderSlot *last_slot = BKE_image_get_renderslot(ima, last);
+	/* Ensure we always have a valid render slot. */
+	if (!ima->renderslots.first) {
+		BKE_image_add_renderslot(ima, NULL);
+		ima->render_slot = 0;
+		ima->last_render_slot = 0;
+	}
+	else if (ima->render_slot >= BLI_listbase_count(&ima->renderslots)) {
+		ima->render_slot = 0;
+		ima->last_render_slot = 0;
+	}
+
+	RenderSlot *last_slot = BKE_image_get_renderslot(ima, ima->last_render_slot);
+	RenderSlot *cur_slot = BKE_image_get_renderslot(ima, ima->render_slot);
+
+	if (last_slot && ima->render_slot != ima->last_render_slot) {
 		last_slot->render = NULL;
 		RE_SwapResult(re, &last_slot->render);
 
-		RenderSlot *cur_slot = BKE_image_get_renderslot(ima, slot);
 		if (cur_slot->render) {
 			if (free_current_slot) {
-				BKE_image_clear_renderslot(ima, NULL, slot);
+				BKE_image_clear_renderslot(ima, NULL, ima->render_slot);
 			}
 			else {
 				RE_SwapResult(re, &cur_slot->render);
@@ -3059,7 +3070,7 @@ void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
 		}
 	}
 
-	ima->last_render_slot = slot;
+	ima->last_render_slot = ima->render_slot;
 }
 
 /**************************** multiview load openexr *********************************/
@@ -4713,6 +4724,8 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
 	}
 }
 
+/**************************** Render Slots ***************************/
+
 RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 {
 	RenderSlot *slot = MEM_callocN(sizeof(RenderSlot), "Image new Render Slot");
@@ -4801,7 +4814,6 @@ bool BKE_image_clear_renderslot(Image *ima, ImageUser *iuser, int index)
 
 RenderSlot *BKE_image_get_renderslot(Image *ima, int index)
 {
-	RenderSlot *slot = BLI_findlink(&ima->renderslots, index);
-	BLI_assert(slot);
-	return slot;
+	/* Can be NULL for images without render slots. */
+	return BLI_findlink(&ima->renderslots, index);
 }

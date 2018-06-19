@@ -3928,8 +3928,9 @@ static void direct_link_image(FileData *fd, Image *ima)
 		}
 	}
 	else {
-		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots)
+		LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots) {
 			slot->render = NULL;
+		}
 		ima->last_render_slot = ima->render_slot;
 	}
 

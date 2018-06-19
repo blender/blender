@@ -2260,6 +2260,8 @@ static void write_image(WriteData *wd, Image *ima)
 		writestruct(wd, DATA, Stereo3dFormat, 1, ima->stereo3d_format);
 
 		ima->packedfile = NULL;
+
+		writelist(wd, DATA, RenderSlot, &ima->renderslots);
 	}
 }
 
