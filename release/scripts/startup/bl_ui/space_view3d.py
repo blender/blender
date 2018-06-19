@@ -3630,7 +3630,7 @@ class VIEW3D_PT_shading_lighting(Panel):
             layout.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
                 row = layout.row()
-                row.template_icon_view(shading, "studio_light")
+                row.template_icon_view(shading, "studio_light", show_labels=True)
                 sub = row.column()
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
                 if shading.selected_studio_light.orientation == 'WORLD':
@@ -3638,14 +3638,14 @@ class VIEW3D_PT_shading_lighting(Panel):
 
             elif shading.light == 'MATCAP':
                 row = layout.row()
-                row.template_icon_view(shading, "studio_light")
+                row.template_icon_view(shading, "studio_light", show_labels=True)
                 sub = row.column()
                 sub.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
         elif shading.type in ('MATERIAL'):
             row = layout.row()
-            row.template_icon_view(shading, "studio_light")
+            row.template_icon_view(shading, "studio_light", show_labels=True)
             sub = row.column()
             sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
             if shading.selected_studio_light.orientation == 'WORLD':

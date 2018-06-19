@@ -77,6 +77,9 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "interface_intern.h"
 
 #ifndef WITH_HEADLESS
@@ -734,14 +737,7 @@ static DrawInfo *icon_create_drawinfo(Icon *icon)
 		di->type = ICON_TYPE_GEOM;
 	}
 	else if (icon_data_type == ICON_DATA_STUDIOLIGHT) {
-		const int STUDIOLIGHT_SIZE = 96;
-		StudioLight *sl = icon->obj;
 		di->type = ICON_TYPE_BUFFER;
-		IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
-		img->w = STUDIOLIGHT_SIZE;
-		img->h = STUDIOLIGHT_SIZE;
-		img->rect = BKE_studiolight_preview(sl, STUDIOLIGHT_SIZE, icon->id_type);
-		di->data.buffer.image = img;
 	}
 	else {
 		BLI_assert(0);
@@ -846,6 +842,15 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 static void ui_id_preview_image_render_size(
         const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job);
 
+static void ui_studiolight_icon_job_exec(void *customdata, short *UNUSED(stop), short *UNUSED(do_update), float *UNUSED(progress))
+{
+	Icon **tmp = (Icon **)customdata;
+	Icon *icon = *tmp;
+	DrawInfo *di = icon_ensure_drawinfo(icon);
+	StudioLight *sl = icon->obj;
+	BKE_studiolight_preview(di->data.buffer.image->rect, sl, icon->id_type);
+}
+
 void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
 {
 	Icon *icon = BKE_icon_get(icon_id);
@@ -868,6 +873,29 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 
 						if (id || (prv->tag & PRV_TAG_DEFFERED) != 0) {
 							ui_id_preview_image_render_size(C, NULL, id, prv, size, use_jobs);
+						}
+					}
+					break;
+				}
+				case ICON_TYPE_BUFFER:
+				{
+					if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
+						if (di->data.buffer.image == NULL) {
+							IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
+							img->w = STUDIOLIGHT_ICON_SIZE;
+							img->h = STUDIOLIGHT_ICON_SIZE;
+							size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
+							img->rect = MEM_mallocN(size, __func__);
+							memset(img->rect, 0, size);
+							di->data.buffer.image = img;
+
+							wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_ANY);
+							Icon** tmp = MEM_callocN(sizeof(Icon*), __func__);
+							*tmp = icon;
+							WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
+							WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
+							WM_jobs_callbacks(wm_job, ui_studiolight_icon_job_exec, NULL, NULL, NULL);
+							WM_jobs_start(CTX_wm_manager(C), wm_job);
 						}
 					}
 					break;

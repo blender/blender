@@ -34,6 +34,8 @@
  * Studio lighting for the 3dview
  */
 
+#include "BKE_context.h"
+
 #include "BLI_sys_types.h"
 
 #include "DNA_space_types.h"
@@ -52,13 +54,16 @@
 #define STUDIOLIGHT_Z_POS 4
 #define STUDIOLIGHT_Z_NEG 5
 
-#define STUDIOLIGHT_ICON_ID_TYPE_RADIANCE       0
-#define STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE     1
-#define STUDIOLIGHT_ICON_ID_TYPE_MATCAP         2
-#define STUDIOLIGHT_ICON_ID_TYPE_MATCAP_FLIPPED 3
+#define STUDIOLIGHT_ICON_ID_TYPE_RADIANCE       (1 << 0)
+#define STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE     (1 << 1)
+#define STUDIOLIGHT_ICON_ID_TYPE_MATCAP         (1 << 2)
+#define STUDIOLIGHT_ICON_ID_TYPE_MATCAP_FLIPPED (1 << 3)
+
+#define STUDIOLIGHT_ICON_SIZE 96
 
 struct GPUTexture;
 
+/* StudioLight.flag */
 enum StudioLightFlag {
 	STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED = (1 << 0),
 	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED                  = (1 << 1),
@@ -75,6 +80,7 @@ enum StudioLightFlag {
 	STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED                 = (1 << 11),
 	STUDIOLIGHT_UI_EXPANDED                                 = (1 << 13),
 } StudioLightFlag;
+
 #define STUDIOLIGHT_FLAG_ALL (STUDIOLIGHT_INTERNAL | STUDIOLIGHT_EXTERNAL_FILE)
 #define STUDIOLIGHT_FLAG_ORIENTATIONS (STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_VIEWNORMAL)
 #define STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE (STUDIOLIGHT_INTERNAL | STUDIOLIGHT_ORIENTATION_WORLD)
@@ -82,6 +88,8 @@ enum StudioLightFlag {
 
 typedef struct StudioLight {
 	struct StudioLight *next, *prev;
+
+	int index;
 	int flag;
 	char name[FILE_MAXFILE];
 	char path[FILE_MAX];
@@ -91,7 +99,6 @@ typedef struct StudioLight {
 	int icon_id_radiance;
 	int icon_id_matcap;
 	int icon_id_matcap_flipped;
-	int index;
 	float spherical_harmonics_coefs[9][3];
 	float light_direction[3];
 	ImBuf *equirectangular_radiance_buffer;
@@ -107,7 +114,7 @@ void BKE_studiolight_free(void);
 struct StudioLight *BKE_studiolight_find(const char *name, int flag);
 struct StudioLight *BKE_studiolight_findindex(int index, int flag);
 struct StudioLight *BKE_studiolight_find_first(int flag);
-unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size, int icon_id_type);
+void BKE_studiolight_preview(uint* icon_buffer, StudioLight *sl, int icon_id_type);
 struct ListBase *BKE_studiolight_listbase(void);
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag);
 void BKE_studiolight_refresh(void);

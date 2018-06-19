@@ -1617,6 +1617,8 @@ class StudioLightPanelMixin():
         op = row.operator('wm.studiolight_uninstall', text="", icon='ZOOMOUT')
         op.index = studio_light.index
 
+        box.label(text=studio_light.name)
+
 
 class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
     bl_label = "MatCaps"
