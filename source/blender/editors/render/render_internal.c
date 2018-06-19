@@ -673,14 +673,14 @@ static void render_endjob(void *rjv)
 	 * would be re-assigned. assign dummy callbacks to avoid referencing freed renderjobs bug [#24508] */
 	RE_InitRenderCB(rj->re);
 
-	if (rj->main != G.main)
+	if (rj->main != G_MAIN)
 		BKE_main_free(rj->main);
 
 	/* else the frame will not update for the original value */
 	if (rj->anim && !(rj->scene->r.scemode & R_NO_FRAME_UPDATE)) {
 		/* possible this fails of loading new file while rendering */
-		if (G.main->wm.first) {
-			ED_update_for_newframe(G.main, rj->depsgraph);
+		if (G_MAIN->wm.first) {
+			ED_update_for_newframe(G_MAIN, rj->depsgraph);
 		}
 	}
 
@@ -741,7 +741,7 @@ static void render_endjob(void *rjv)
 		 * and using one from Global will unlock exactly the same manager as
 		 * was locked before running the job.
 		 */
-		WM_set_locked_interface(G.main->wm.first, false);
+		WM_set_locked_interface(G_MAIN->wm.first, false);
 
 		/* We've freed all the derived caches before rendering, which is
 		 * effectively the same as if we re-loaded the file.
@@ -749,11 +749,11 @@ static void render_endjob(void *rjv)
 		 * So let's not try being smart here and just reset all updated
 		 * scene layers and use generic DAG_on_visible_update.
 		 */
-		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
+		for (scene = G_MAIN->scene.first; scene; scene = scene->id.next) {
 			scene->lay_updated = 0;
 		}
 
-		DEG_on_visible_update(G.main, false);
+		DEG_on_visible_update(G_MAIN, false);
 	}
 }
 
