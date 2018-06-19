@@ -262,7 +262,6 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(scene.display_settings, "display_device")
-        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer Color Space")
 
         col.separator()
 
@@ -271,6 +270,10 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
         col.prop(view, "exposure")
         col.prop(view, "gamma")
         col.prop(view, "look")
+
+        col.separator()
+
+        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer Color Space")
 
 
 class SCENE_PT_color_management_curves(SceneButtonsPanel, Panel):
