@@ -55,7 +55,8 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
 
 
 class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
-    bl_label = "Rigid Body Collisions"
+    bl_label = "Collisions"
+    bl_parent_id = 'PHYSICS_PT_rigid_body'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
@@ -99,7 +100,8 @@ class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
 
 
 class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
-    bl_label = "Rigid Body Dynamics"
+    bl_label = "Dynamics"
+    bl_parent_id = 'PHYSICS_PT_rigid_body'
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
