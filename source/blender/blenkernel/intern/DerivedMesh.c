@@ -3055,7 +3055,7 @@ static void editbmesh_build_data(
 static CustomDataMask object_get_datamask(const Depsgraph *depsgraph, Object *ob, bool *r_need_mapping)
 {
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	Object *actob = view_layer->basact ? view_layer->basact->object : NULL;
+	Object *actob = view_layer->basact ? DEG_get_original_object(view_layer->basact->object) : NULL;
 	CustomDataMask mask = ob->customdata_mask;
 
 	if (r_need_mapping) {
