@@ -1331,9 +1331,6 @@ static void drw_particle_get_hair_source(
 	if ((object->mode & OB_MODE_PARTICLE_EDIT) != 0) {
 		r_draw_source->object = DEG_get_original_object(object);
 		r_draw_source->psys = psys_orig_get(psys);
-		if (md != NULL) {
-			r_draw_source->md = modifiers_findByName(r_draw_source->object, md->name);
-		}
 	}
 }
 

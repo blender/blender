@@ -2824,7 +2824,6 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
 
 	ParticleSystem *psys = edit->psys;
-	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 
 	ParticleData *pa = psys ? psys->particles : NULL;
 
@@ -2851,7 +2850,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 	CacheEditrPathsIterData iter_data;
 	iter_data.object = ob;
 	iter_data.edit = edit;
-	iter_data.psmd = psmd;
+	iter_data.psmd = edit->psmd_eval;
 	iter_data.pa = pa;
 	iter_data.segments = segments;
 	iter_data.use_weight = use_weight;
@@ -2881,7 +2880,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 		sim.scene = scene;
 		sim.ob = ob;
 		sim.psys = psys;
-		sim.psmd = psys_get_modifier(ob, psys);
+		sim.psmd = edit->psmd_eval;
 
 		psys_cache_child_paths(&sim, cfra, true, use_render_params);
 	}
