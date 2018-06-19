@@ -66,6 +66,7 @@
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_batch.h"
 
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */
@@ -179,6 +180,7 @@ typedef enum eWS_Qual {
 static struct WindowStateGlobal {
 	GHOST_SystemHandle ghost_system;
 	void *ghost_window;
+	Gwn_Context *gwn_context;
 
 	/* events */
 	eWS_Qual qual;
@@ -1262,6 +1264,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	//GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
 	/* initialize OpenGL immediate mode */
+	g_WS.gwn_context =  GWN_context_create();
 	immInit();
 
 	/* initialize the font */
@@ -1537,6 +1540,12 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	GPU_shader_free_builtin_shaders();
 
 	immDestroy();
+
+	if (g_WS.gwn_context) {
+		GWN_context_active_set(g_WS.gwn_context);
+		GWN_context_discard(g_WS.gwn_context);
+		g_WS.gwn_context = NULL;
+	}
 
 	BLF_exit();
 
