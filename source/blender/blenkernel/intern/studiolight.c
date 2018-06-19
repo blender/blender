@@ -115,6 +115,7 @@ static struct StudioLight *studiolight_create(int flag)
 	for (int index = 0 ; index < 6 ; index ++) {
 		sl->radiance_cubemap_buffers[index] = NULL;
 	}
+
 	return sl;
 }
 
@@ -891,7 +892,7 @@ void BKE_studiolight_free(void)
 struct StudioLight *BKE_studiolight_find_first(int flag)
 {
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
-		if ((sl->flag & flag)) {
+		if ((sl->flag & flag) && (sl->flag & STUDIOLIGHT_DISABLED) == 0) {
 			return sl;
 		}
 	}
@@ -902,7 +903,7 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
 {
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
 		if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
-			if ((sl->flag & flag)) {
+			if ((sl->flag & flag) && (sl->flag & STUDIOLIGHT_DISABLED) == 0) {
 				return sl;
 			}
 			else {
@@ -918,7 +919,7 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
 struct StudioLight *BKE_studiolight_findindex(int index, int flag)
 {
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
-		if (sl->index == index) {
+		if (sl->index == index  && (sl->flag & STUDIOLIGHT_DISABLED) == 0) {
 			return sl;
 		}
 	}
@@ -994,6 +995,8 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 
 void BKE_studiolight_refresh(void)
 {
-	BKE_studiolight_free();
+	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
+		sl->flag |= STUDIOLIGHT_DISABLED;
+	}
 	BKE_studiolight_init();
 }

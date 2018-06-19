@@ -79,6 +79,7 @@ enum StudioLightFlag {
 	STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_GPUTEXTURE       = (1 << 10),
 	STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED                 = (1 << 11),
 	STUDIOLIGHT_UI_EXPANDED                                 = (1 << 13),
+	STUDIOLIGHT_DISABLED                                    = (1 << 14),
 } StudioLightFlag;
 
 #define STUDIOLIGHT_FLAG_ALL (STUDIOLIGHT_INTERNAL | STUDIOLIGHT_EXTERNAL_FILE)
@@ -107,6 +108,7 @@ typedef struct StudioLight {
 	struct GPUTexture *equirectangular_radiance_gputexture;
 	struct GPUTexture *equirectangular_irradiance_gputexture;
 	float *gpu_matcap_3components; /* 3 channel buffer for GPU_R11F_G11F_B10F */
+
 } StudioLight;
 
 void BKE_studiolight_init(void);

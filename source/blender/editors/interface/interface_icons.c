@@ -882,6 +882,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 					if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
 						if (di->data.buffer.image == NULL) {
 							IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
+
 							img->w = STUDIOLIGHT_ICON_SIZE;
 							img->h = STUDIOLIGHT_ICON_SIZE;
 							size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
