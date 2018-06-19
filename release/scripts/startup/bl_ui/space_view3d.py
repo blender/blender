@@ -799,8 +799,6 @@ class VIEW3D_MT_select_pose(Menu):
         layout.operator_menu_enum("pose.select_grouped", "type", text="Grouped")
         layout.operator("object.select_pattern", text="Select Pattern...")
 
-        layout.operator("object.select_pattern", text="Select Pattern...")
-
 
 class VIEW3D_MT_select_particle(Menu):
     bl_label = "Select"
