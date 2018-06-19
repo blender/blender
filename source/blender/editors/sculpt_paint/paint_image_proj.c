@@ -3416,21 +3416,15 @@ static bool proj_paint_state_dm_init(const bContext *C, ProjPaintState *ps)
 	/* Workaround for subsurf selection, try the display mesh first */
 	if (ps->source == PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
-		ps->dm = mesh_create_derived_render(depsgraph, ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
+		ps->dm = mesh_create_derived_render(
+		             depsgraph, ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE);
 		ps->dm_release = true;
-	}
-	else if (ps->ob->derivedFinal &&
-	         CustomData_has_layer(&ps->ob->derivedFinal->loopData, CD_MLOOPUV) &&
-	         (ps->do_face_sel == false || CustomData_has_layer(&ps->ob->derivedFinal->polyData, CD_ORIGINDEX)))
-	{
-		ps->dm = ps->ob->derivedFinal;
-		ps->dm_release = false;
 	}
 	else {
 		ps->dm = mesh_get_derived_final(
 		        depsgraph, ps->scene, ps->ob,
-		        ps->scene->customdata_mask | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
-		ps->dm_release = true;
+		        ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
+		ps->dm_release = false;
 	}
 
 	if (!CustomData_has_layer(&ps->dm->loopData, CD_MLOOPUV)) {
