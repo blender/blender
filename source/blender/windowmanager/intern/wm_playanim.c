@@ -197,7 +197,8 @@ static void playanim_window_get_size(int *r_width, int *r_height)
 static void playanim_gl_matrix(void)
 {
 	/* unified matrix, note it affects offset for drawing */
-	gpuOrtho2D(0.0f, 1.0f, 0.0f, 1.0f);
+	/* note! cannot use gpuOrtho2D here because shader ignores. */
+	gpuOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
 }
 
 /* implementation */
