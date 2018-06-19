@@ -1172,7 +1172,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 						break;
 					}
 				}
-				if(need_add) {
+				if(need_add && stack_index < VOLUME_STACK_SIZE - 1) {
 					stack[stack_index].object = stack_sd->object;
 					stack[stack_index].shader = stack_sd->shader;
 					++stack_index;

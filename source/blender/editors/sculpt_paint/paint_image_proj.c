@@ -3411,13 +3411,13 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
 	else {
 		ps->dm = mesh_get_derived_final(
 		        depsgraph, ps->scene, ps->ob,
-		        ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
+		        ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_MASK_ORIGINDEX : 0));
 		ps->dm_release = false;
 	}
 #endif
 	ps->me_eval = mesh_get_eval_final(
 	                  depsgraph, sce, ob,
-	                  sce->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
+	                  sce->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_MASK_ORIGINDEX : 0));
 	if (!CustomData_has_layer(&ps->me_eval->ldata, CD_MLOOPUV)) {
 		ps->me_eval = NULL;
 		return false;
