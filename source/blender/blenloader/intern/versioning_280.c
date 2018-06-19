@@ -1588,6 +1588,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 19)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Image", "ListBase", "renderslot")) {
 			for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
 				if (ima->type == IMA_TYPE_R_RESULT) {
