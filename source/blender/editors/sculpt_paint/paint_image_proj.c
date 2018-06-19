@@ -3442,7 +3442,7 @@ static bool proj_paint_state_dm_init(ProjPaintState *ps)
 		ps->dm = mesh_get_derived_final(
 		        ps->scene, ps->ob,
 		        ps->scene->customdata_mask | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
-		ps->dm_release = true;
+		ps->dm_release = false;
 	}
 
 	if (!CustomData_has_layer(&ps->dm->loopData, CD_MLOOPUV)) {
