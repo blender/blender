@@ -30,7 +30,7 @@ ccl_device_noinline float svm_ao(KernelGlobals *kg,
 
 	/* Early out if no sampling needed. */
 	if(max_dist <= 0.0f || num_samples < 1 || sd->object == OBJECT_NONE) {
-		return 0.0f;
+		return 1.0f;
 	}
 
 	if(flags & NODE_AO_INSIDE) {
