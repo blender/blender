@@ -204,7 +204,8 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
-    bl_label = "Fluid World"
+    bl_label = "World"
+    bl_parent_id = 'PHYSICS_PT_fluid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -253,7 +254,8 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
-    bl_label = "Fluid Boundary"
+    bl_label = "Boundary"
+    bl_parent_id = 'PHYSICS_PT_fluid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -283,7 +285,8 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
-    bl_label = "Fluid Particles"
+    bl_label = "Particles"
+    bl_parent_id = 'PHYSICS_PT_fluid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
