@@ -43,9 +43,9 @@ class VIEW3D_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        mode = 'OBJECT' if obj is None else obj.mode
+        object_mode = 'OBJECT' if obj is None else obj.mode
 
-        act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[mode]
+        act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
         del act_mode_item
 
@@ -57,22 +57,22 @@ class VIEW3D_HT_header(Header):
 
         if obj:
             # Set above:
-            # mode = obj.mode
+            # object_mode = obj.mode
 
             # Particle edit
-            if mode == 'PARTICLE_EDIT':
+            if object_mode == 'PARTICLE_EDIT':
                 row = layout.row()
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
             if ((((shading.type not in {'SOLID', 'TEXTURED'}) or not shading.show_xray) and
-                (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
-                (mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
+                (object_mode == 'PARTICLE_EDIT' or (object_mode == 'EDIT' and obj.type == 'MESH'))) or
+                (object_mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
                 row = layout.row()
                 row.prop(view, "use_occlude_geometry", text="")
 
         # Pose
-        if obj and mode == 'POSE':
+        if obj and object_mode == 'POSE':
             row = layout.row(align=True)
             row.operator("pose.copy", text="", icon='COPYDOWN')
             row.operator("pose.paste", text="", icon='PASTEDOWN').flipped = False
@@ -96,7 +96,6 @@ class VIEW3D_HT_header(Header):
         layout.separator_spacer()
 
         # Mode & Transform Settings
-        object_mode = 'OBJECT' if obj is None else obj.mode
         scene = context.scene
 
         # Orientation & Pivot
@@ -4126,10 +4125,10 @@ class VIEW3D_PT_context_properties(Panel):
     def _active_context_member(context):
         obj = context.object
         if obj:
-            mode = obj.mode
-            if mode == 'POSE':
+            object_mode = obj.mode
+            if object_mode == 'POSE':
                 return "active_pose_bone"
-            elif mode == 'EDIT' and obj.type == 'ARMATURE':
+            elif object_mode == 'EDIT' and obj.type == 'ARMATURE':
                 return "active_bone"
             else:
                 return "object"
