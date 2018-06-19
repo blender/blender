@@ -1185,14 +1185,14 @@ char *BKE_scene_find_last_marker_name(Scene *scene, int frame)
 	return best_marker ? best_marker->name : NULL;
 }
 
-void BKE_scene_remove_rigidbody_object(Scene *scene, Object *ob)
+void BKE_scene_remove_rigidbody_object(struct Main *bmain, Scene *scene, Object *ob)
 {
 	/* remove rigid body constraint from world before removing object */
 	if (ob->rigidbody_constraint)
 		BKE_rigidbody_remove_constraint(scene, ob);
 	/* remove rigid body object from world before removing object */
 	if (ob->rigidbody_object)
-		BKE_rigidbody_remove_object(scene, ob);
+		BKE_rigidbody_remove_object(bmain, scene, ob);
 }
 
 /* checks for cycle, returns 1 if it's all OK */

@@ -1120,7 +1120,7 @@ RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
 	return scene->rigidbody_world;
 }
 
-void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
+void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	RigidBodyOb *rbo = ob->rigidbody_object;
@@ -1155,6 +1155,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 			}
 			FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 		}
+		BKE_collection_object_remove(bmain, rbw->group, ob, false);
 	}
 
 	/* remove object's settings */

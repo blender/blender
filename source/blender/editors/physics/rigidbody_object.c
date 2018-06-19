@@ -131,11 +131,7 @@ bool ED_rigidbody_object_add(Main *bmain, Scene *scene, Object *ob, int type, Re
 
 void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob)
 {
-	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
-
-	BKE_rigidbody_remove_object(scene, ob);
-	if (rbw)
-		BKE_collection_object_remove(bmain, rbw->group, ob, false);
+	BKE_rigidbody_remove_object(bmain, scene, ob);
 
 	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB);

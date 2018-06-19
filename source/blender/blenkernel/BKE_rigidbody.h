@@ -80,7 +80,7 @@ void BKE_rigidbody_calc_center_of_mass(struct Object *ob, float r_center[3]);
 /* Utilities */
 
 struct RigidBodyWorld *BKE_rigidbody_get_world(struct Scene *scene);
-void BKE_rigidbody_remove_object(struct Scene *scene, struct Object *ob);
+void BKE_rigidbody_remove_object(struct Main *bmain, struct Scene *scene, struct Object *ob);
 void BKE_rigidbody_remove_constraint(struct Scene *scene, struct Object *ob);
 
 /* -------------- */
