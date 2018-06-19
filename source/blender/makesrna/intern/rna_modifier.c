@@ -3127,10 +3127,15 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Normal Mode", "Weighting mode for Harden Normals");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "hn_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_range(prop, 0, 10, 1, 2);
 	RNA_def_property_ui_text(prop, "Normal Strength", "Strength of calculated normal");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "set_wn_strength", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_SET_WN_STR);
+	RNA_def_property_ui_text(prop, "Face Strength", "Set face strength of beveled faces for use in WN Modifier");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

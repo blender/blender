@@ -142,6 +142,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "loop_slide")
         col.prop(md, "mark_seam")
         col.prop(md, "mark_sharp")
+        
+        col.prop(md, "set_wn_strength")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)

@@ -5661,6 +5661,7 @@ void BM_mesh_bevel(
 			}
 		}
 
+
 		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				BLI_assert(find_bevvert(&bp, v) != NULL);

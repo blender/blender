@@ -335,7 +335,7 @@ typedef struct BevelModifierData {
 	float bevel_angle;
 	/* if the MOD_BEVEL_VWEIGHT option is set, this will be the name of the vert group, MAX_VGROUP_NAME */
 	int hnmode;
-	float strength;
+	float hn_strength;
 	char defgrp_name[64];
 } BevelModifierData;
 
@@ -357,6 +357,7 @@ enum {
 /*	MOD_BEVEL_DIST          = (1 << 12), */  /* same as above */
 	MOD_BEVEL_OVERLAP_OK    = (1 << 13),
 	MOD_BEVEL_EVEN_WIDTHS   = (1 << 14),
+	MOD_BEVEL_SET_WN_STR	= (1 << 15),
 };
 
 /* BevelModifierData->val_flags (not used as flags any more) */

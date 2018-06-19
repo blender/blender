@@ -34,6 +34,7 @@
  
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -77,6 +78,30 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
+static void bevel_set_weighted_normal_face_strength(BMesh *bm, Scene *scene)
+{
+	BMFace *f;
+	BMIter fiter;
+	const char *wn_layer_id = MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID;
+	int cd_prop_int_idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT, wn_layer_id);
+
+	if (cd_prop_int_idx == -1) {
+		BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT, wn_layer_id);
+		cd_prop_int_idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT, wn_layer_id);
+	}
+	cd_prop_int_idx -= CustomData_get_layer_index(&bm->pdata, CD_PROP_INT);
+	const int cd_prop_int_offset = CustomData_get_n_offset(&bm->pdata, CD_PROP_INT, cd_prop_int_idx);
+
+	const int face_strength = scene->toolsettings->face_strength;
+
+	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
+		if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+			int *strength = BM_ELEM_CD_GET_VOID_P(f, cd_prop_int_offset);
+			*strength = face_strength;
+		}
+	}
+}
+
 /*
  * This calls the new bevel code (added since 2.64)
  */
@@ -99,6 +124,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
 	const bool mark_seam = (bmd->edge_flags & MOD_BEVEL_MARK_SEAM);
 	const bool mark_sharp = (bmd->edge_flags & MOD_BEVEL_MARK_SHARP);
+	const bool set_wn_strength = (bmd->flags & MOD_BEVEL_SET_WN_STR);
 
 	bm = BKE_mesh_to_bmesh_ex(
 	        mesh,
@@ -170,6 +196,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp, bmd->hnmode, NULL);
+
+	if(set_wn_strength)
+		bevel_set_weighted_normal_face_strength(bm, md->scene);
 
 	result = BKE_bmesh_to_mesh_nomain(bm, &(struct BMeshToMeshParams){0});
 
