@@ -726,8 +726,6 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
-	DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, scene->customdata_mask);
-
 	DMGradient_userData data = {NULL};
 
 	if (is_interactive) {
@@ -786,16 +784,32 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 	ED_view3d_init_mats_rv3d(ob, ar->regiondata);
 
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, scene->customdata_mask | CD_MASK_ORIGINDEX);
+	int *mv_orig_indices = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+	MVert *mv = me_eval->mvert;
+	/* NULL origindex is valid when wehave no generative modifiers... */
+	BLI_assert(mv_orig_indices != NULL || me_eval->totvert == me->totvert);
 	if (data.is_init) {
 		data.vert_visit = BLI_BITMAP_NEW(me->totvert, __func__);
 
-		dm->foreachMappedVert(dm, gradientVertInit__mapFunc, &data, DM_FOREACH_NOP);
+		/* TODO add some similar helpers as DM's foreachMappedXXX callbacks, for evaluated mesh? */
+		for (int mv_idx = 0; mv_idx < me_eval->totvert; mv_idx++, mv++) {
+			const int mv_orig_idx = mv_orig_indices != NULL ? mv_orig_indices[mv_idx] : mv_idx;
+			if (mv_orig_idx != ORIGINDEX_NONE) {
+				gradientVertInit__mapFunc(&data, mv_orig_idx, mv->co, NULL, NULL);
+			}
+		}
 
 		MEM_freeN(data.vert_visit);
 		data.vert_visit = NULL;
 	}
 	else {
-		dm->foreachMappedVert(dm, gradientVertUpdate__mapFunc, &data, DM_FOREACH_NOP);
+		for (int mv_idx = 0; mv_idx < me_eval->totvert; mv_idx++, mv++) {
+			const int mv_orig_idx = mv_orig_indices != NULL ? mv_orig_indices[mv_idx] : mv_idx;
+			if (mv_orig_idx != ORIGINDEX_NONE) {
+				gradientVertUpdate__mapFunc(&data, mv_orig_idx, mv->co, NULL, NULL);
+			}
+		}
 	}
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
