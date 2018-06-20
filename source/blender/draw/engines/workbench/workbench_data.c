@@ -155,8 +155,7 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 
 	copy_v3_v3(light_direction, scene->display.light_direction);
 	negate_v3(light_direction);
-
-	DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
+	DRW_uniformbuffer_update(wpd->world_ubo, wd);
 }
 
 static void workbench_private_material_free(void *data)

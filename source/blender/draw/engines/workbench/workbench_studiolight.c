@@ -121,6 +121,7 @@ static BoundBox *studiolight_object_shadow_bbox_get(WORKBENCH_PrivateData *wpd, 
 		for (int i = 0; i < 8; ++i) {
 			mul_m4_v3(wpd->shadow_mat, oed->shadow_bbox.vec[i]);
 		}
+		oed->shadow_bbox_dirty = false;
 	}
 
 	return &oed->shadow_bbox;

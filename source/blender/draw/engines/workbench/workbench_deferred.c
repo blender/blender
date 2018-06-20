@@ -49,7 +49,7 @@
 
 /* *********** STATIC *********** */
 
-// #define DEBUG_SHADOW_VOLUME
+/* #define DEBUG_SHADOW_VOLUME */
 
 #ifdef DEBUG_SHADOW_VOLUME
 #  include "draw_debug.h"
@@ -76,7 +76,6 @@ static struct {
 	struct GPUTexture *effect_buffer_tx; /* ref only, not alloced */
 
 	SceneDisplay display; /* world light direction for shadows */
-	float light_direction_vs[3];
 	int next_object_id;
 	float normal_world_matrix[3][3];
 
@@ -485,8 +484,6 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DRWShadingGroup *grp;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	static float light_multiplier = 1.0f;
-
 
 	Scene *scene = draw_ctx->scene;
 
@@ -494,9 +491,9 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 	/* Deferred Mix Pass */
 	{
 		workbench_private_data_get_light_direction(wpd, e_data.display.light_direction);
+		studiolight_update_light(wpd, e_data.display.light_direction);
 
 		e_data.display.shadow_shift = scene->display.shadow_shift;
-		copy_v3_v3(e_data.light_direction_vs, wpd->world_data.lights[0].light_direction_vs);
 
 		if (SHADOW_ENABLED(wpd)) {
 			psl->composite_pass = DRW_pass_create(
@@ -504,7 +501,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
 			DRW_shgroup_stencil_mask(grp, 0x00);
-			DRW_shgroup_uniform_float(grp, "lightMultiplier", &light_multiplier, 1);
+			DRW_shgroup_uniform_float_copy(grp, "lightMultiplier", 1.0f);
 			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
@@ -548,7 +545,6 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
 
-			studiolight_update_light(wpd, e_data.display.light_direction);
 		}
 		else {
 			psl->composite_pass = DRW_pass_create(
