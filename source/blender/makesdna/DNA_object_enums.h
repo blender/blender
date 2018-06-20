@@ -50,4 +50,8 @@ typedef enum eObjectMode {
 #define OB_MODE_ALL_MODE_DATA \
 	(OB_MODE_EDIT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_SCULPT | OB_MODE_POSE)
 
+/* Any mode that supports multiple objects at once. */
+#define OB_MODE_ALL_MULTI \
+	(OB_MODE_EDIT | OB_MODE_POSE)
+
 #endif  /* __DNA_OBJECT_ENUMS_H__ */
