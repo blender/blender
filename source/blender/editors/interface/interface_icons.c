@@ -861,7 +861,7 @@ static void ui_studiolight_kill_icon_preview_job(wmWindowManager *wm, int icon_i
 static void ui_studiolight_free_function(StudioLight * sl, void* data)
 {
 	wmWindowManager *wm = data;
-	
+
 	// get icons_id, get icons and kill wm jobs
 	if (sl->icon_id_radiance) {
 		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_radiance);
