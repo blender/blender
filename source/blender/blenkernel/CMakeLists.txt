@@ -140,6 +140,7 @@ set(SRC
 	intern/mesh.c
 	intern/mesh_convert.c
 	intern/mesh_evaluate.c
+	intern/mesh_iterators.c
 	intern/mesh_mapping.c
 	intern/mesh_merge.c
 	intern/mesh_remap.c
@@ -272,6 +273,7 @@ set(SRC
 	BKE_mball.h
 	BKE_mball_tessellate.h
 	BKE_mesh.h
+	BKE_mesh_iterators.h
 	BKE_mesh_mapping.h
 	BKE_mesh_remap.h
 	BKE_mesh_tangent.h
