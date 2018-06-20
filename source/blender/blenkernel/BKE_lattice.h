@@ -41,7 +41,6 @@ struct Main;
 struct Mesh;
 struct Object;
 struct Scene;
-struct DerivedMesh;
 struct BPoint;
 struct MDeformVert;
 struct Depsgraph;

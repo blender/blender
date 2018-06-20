@@ -64,7 +64,6 @@ struct MDeformVert;
 struct MDisps;
 struct Object;
 struct CustomData;
-struct DerivedMesh;
 struct Scene;
 struct MLoopUV;
 struct ReportList;

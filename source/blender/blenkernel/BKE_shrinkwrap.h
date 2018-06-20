@@ -47,7 +47,6 @@
  */
 
 struct Object;
-struct DerivedMesh;
 struct Mesh;
 struct MVert;
 struct MDeformVert;
