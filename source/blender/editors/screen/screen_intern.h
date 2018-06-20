@@ -61,7 +61,7 @@ ScrEdge    *screen_find_active_scredge(bScreen *sc,
                                        const int winsize_x, const int winsize_y,
                                        const int mx, const int my);
 
-struct AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2]);
+struct AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2]);
 
 /* screen_context.c */
 int ed_screen_context(
