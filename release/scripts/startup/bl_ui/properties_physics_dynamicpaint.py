@@ -127,7 +127,8 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Advanced"
+    bl_label = "Advanced"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
@@ -202,7 +203,8 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Output"
+    bl_label = "Output"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -295,7 +297,8 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Initial Color"
+    bl_label = "Initial Color"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -331,7 +334,8 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Effects"
+    bl_label = "Effects"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -380,7 +384,8 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Cache"
+    bl_label = "Cache"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -402,7 +407,8 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Source"
+    bl_label = "Source"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
@@ -454,7 +460,8 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Velocity"
+    bl_label = "Velocity"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -490,7 +497,8 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Waves"
+    bl_label = "Waves"
+    bl_parent_id = "PHYSICS_PT_dynamic_paint"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
