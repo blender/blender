@@ -181,14 +181,14 @@ static void graph_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void graph_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
+static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
 
 	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (sipo->ads == NULL) {
 		sipo->ads = MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
-		sipo->ads->source = (ID *)(G.main->scene.first); // FIXME: this is a really nasty hack here for now...
+		sipo->ads->source = (ID *)WM_window_get_active_scene(wm->winactive);
 	}
 
 	/* force immediate init of any invalid F-Curve colors */
