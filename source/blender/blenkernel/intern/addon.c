@@ -53,9 +53,14 @@ bAddon *BKE_addon_new(void)
 	return addon;
 }
 
+bAddon *BKE_addon_find(ListBase *addon_list, const char *module)
+{
+	return BLI_findstring(addon_list, module, offsetof(bAddon, module));
+}
+
 bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
 {
-	bAddon *addon = BLI_findstring(addon_list, module, offsetof(bAddon, module));
+	bAddon *addon = BKE_addon_find(addon_list, module);
 	if (addon == NULL) {
 		addon = BKE_addon_new();
 		BLI_strncpy(addon->module, module, sizeof(addon->module));
