@@ -628,6 +628,8 @@ void BKE_scene_init(Scene *sce)
 	               CURVEMAP_SLOPE_POS_NEG);
 
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
+
+	sce->toolsettings->object_flag |= SCE_OBJECT_MODE_LOCK;
 	sce->toolsettings->doublimit = 0.001;
 	sce->toolsettings->vgroup_weight = 1.0f;
 	sce->toolsettings->uvcalc_margin = 0.001f;
