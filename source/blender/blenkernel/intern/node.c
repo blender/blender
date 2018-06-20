@@ -312,7 +312,9 @@ void ntreeTypeAdd(bNodeTreeType *nt)
 {
 	BLI_ghash_insert(nodetreetypes_hash, nt->idname, nt);
 	/* XXX pass Main to register function? */
-	update_typeinfo(G.main, NULL, nt, NULL, NULL, false);
+	/* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
+	 * active Mains, which we cannot do anyway currently. */
+	update_typeinfo(G_MAIN, NULL, nt, NULL, NULL, false);
 }
 
 /* callback for hash value free function */
@@ -320,7 +322,9 @@ static void ntree_free_type(void *treetype_v)
 {
 	bNodeTreeType *treetype = treetype_v;
 	/* XXX pass Main to unregister function? */
-	update_typeinfo(G.main, NULL, treetype, NULL, NULL, true);
+	/* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
+	 * active Mains, which we cannot do anyway currently. */
+	update_typeinfo(G_MAIN, NULL, treetype, NULL, NULL, true);
 	MEM_freeN(treetype);
 }
 
@@ -369,7 +373,9 @@ static void node_free_type(void *nodetype_v)
 {
 	bNodeType *nodetype = nodetype_v;
 	/* XXX pass Main to unregister function? */
-	update_typeinfo(G.main, NULL, NULL, nodetype, NULL, true);
+	/* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
+	 * active Mains, which we cannot do anyway currently. */
+	update_typeinfo(G_MAIN, NULL, NULL, nodetype, NULL, true);
 
 	/* XXX deprecated */
 	if (nodetype->type == NODE_DYNAMIC)
@@ -387,7 +393,9 @@ void nodeRegisterType(bNodeType *nt)
 
 	BLI_ghash_insert(nodetypes_hash, nt->idname, nt);
 	/* XXX pass Main to register function? */
-	update_typeinfo(G.main, NULL, NULL, nt, NULL, false);
+	/* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
+	 * active Mains, which we cannot do anyway currently. */
+	update_typeinfo(G_MAIN, NULL, NULL, nt, NULL, false);
 }
 
 void nodeUnregisterType(bNodeType *nt)
@@ -423,7 +431,9 @@ static void node_free_socket_type(void *socktype_v)
 {
 	bNodeSocketType *socktype = socktype_v;
 	/* XXX pass Main to unregister function? */
-	update_typeinfo(G.main, NULL, NULL, NULL, socktype, true);
+	/* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
+	 * active Mains, which we cannot do anyway currently. */
+	update_typeinfo(G_MAIN, NULL, NULL, NULL, socktype, true);
 
 	MEM_freeN(socktype);
 }
@@ -432,7 +442,9 @@ void nodeRegisterSocketType(bNodeSocketType *st)
 {
 	BLI_ghash_insert(nodesockettypes_hash, (void *)st->idname, st);
 	/* XXX pass Main to register function? */
-	update_typeinfo(G.main, NULL, NULL, NULL, st, false);
+	/* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
+	 * active Mains, which we cannot do anyway currently. */
+	update_typeinfo(G_MAIN, NULL, NULL, NULL, st, false);
 }
 
 void nodeUnregisterSocketType(bNodeSocketType *st)
@@ -1787,7 +1799,6 @@ static void free_localized_node_groups(bNodeTree *ntree)
 /** Free (or release) any data used by this nodetree (does not free the nodetree itself). */
 void ntreeFreeTree(bNodeTree *ntree)
 {
-	bNodeTree *tntree;
 	bNode *node, *next;
 	bNodeSocket *sock, *nextsock;
 
@@ -1844,10 +1855,7 @@ void ntreeFreeTree(bNodeTree *ntree)
 		BLI_mutex_free(ntree->duplilock);
 
 	/* if ntree is not part of library, free the libblock data explicitly */
-	for (tntree = G.main->nodetree.first; tntree; tntree = tntree->id.next)
-		if (tntree == ntree)
-			break;
-	if (tntree == NULL) {
+	if (ntree->id.tag & LIB_TAG_NO_MAIN) {
 		BKE_libblock_free_data(&ntree->id, true);
 	}
 }
@@ -2623,7 +2631,8 @@ bool BKE_node_clipboard_validate(void)
 
 		/* currently only validate the ID */
 		if (node->id) {
-			ListBase *lb = which_libbase(G.main, GS(node_info->id_name));
+			/* We want to search into current blend file, so using G_MAIN is valid here too. */
+			ListBase *lb = which_libbase(G_MAIN, GS(node_info->id_name));
 			BLI_assert(lb != NULL);
 
 			if (BLI_findindex(lb, node_info->id) == -1) {
