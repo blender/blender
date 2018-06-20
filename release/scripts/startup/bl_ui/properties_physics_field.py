@@ -181,6 +181,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
         md = context.collision
 
         split = layout.split()
+        layout.use_property_split = True
 
         coll = md.settings
 
@@ -189,40 +190,90 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
 
             layout.active = settings.use
 
-            split = layout.split()
+            col = layout.column()
+            col.prop(settings, "absorption", text="Force Field Absorption")
 
-            col = split.column()
-            col.label(text="Particle:")
+class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
+    bl_label = "Particle"
+    bl_parent_id = "PHYSICS_PT_collision"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob and ob.type == 'MESH') and (context.engine in cls.COMPAT_ENGINES) and (context.collision)
+
+    def draw(self, context):
+        layout = self.layout
+
+        md = context.collision
+
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+
+        coll = md.settings
+
+        if coll:
+            settings = context.object.collision
+
+            layout.active = settings.use
+
+            col = flow.column()
             col.prop(settings, "permeability", slider=True)
             col.prop(settings, "stickiness")
+            col = flow.column()
             col.prop(settings, "use_particle_kill")
-            col.label(text="Particle Damping:")
+
+            col = flow.column()
             sub = col.column(align=True)
-            sub.prop(settings, "damping_factor", text="Factor", slider=True)
-            sub.prop(settings, "damping_random", text="Random", slider=True)
+            sub.prop(settings, "damping_factor", text="Damping", slider=True)
+            sub.prop(settings, "damping_random", text="Randomize", slider=True)
 
-            col.label(text="Particle Friction:")
+            col = flow.column()
             sub = col.column(align=True)
-            sub.prop(settings, "friction_factor", text="Factor", slider=True)
-            sub.prop(settings, "friction_random", text="Random", slider=True)
+            sub.prop(settings, "friction_factor", text="Friction", slider=True)
+            sub.prop(settings, "friction_random", text="Randomize", slider=True)
 
-            col = split.column()
-            col.label(text="Soft Body and Cloth:")
-            sub = col.column(align=True)
-            sub.prop(settings, "thickness_outer", text="Outer", slider=True)
-            sub.prop(settings, "thickness_inner", text="Inner", slider=True)
 
-            col.label(text="Soft Body Damping:")
-            col.prop(settings, "damping", text="Factor", slider=True)
+class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
+    bl_label = "Softbody"
+    bl_parent_id = "PHYSICS_PT_collision"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
-            col.label(text="Force Fields:")
-            col.prop(settings, "absorption", text="Absorption")
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob and ob.type == 'MESH') and (context.engine in cls.COMPAT_ENGINES) and (context.collision)
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+
+        md = context.collision
+        coll = md.settings
+
+        if coll:
+            settings = context.object.collision
+
+            layout.active = settings.use
+
+            col = flow.column()
+            col.prop(settings, "damping", text="Damping", slider=True)
+
+            col = flow.column()
+            col.prop(settings, "thickness_outer", text="Thickness Outer", slider=True)
+            col.prop(settings, "thickness_inner", text="Inner", slider=True)
+
 
 
 classes = (
     PHYSICS_PT_field,
     PHYSICS_PT_field_falloff,
     PHYSICS_PT_collision,
+    PHYSICS_PT_collision_particle,
+    PHYSICS_PT_collision_softbody,
 )
 
 if __name__ == "__main__":  # only for live edit.
