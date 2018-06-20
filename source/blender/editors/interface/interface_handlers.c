@@ -61,6 +61,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_addon.h"
 #include "BKE_colorband.h"
 #include "BKE_blender_undo.h"
 #include "BKE_brush.h"
@@ -7140,7 +7141,10 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	if (ui_block_is_menu(but->block) == false) {
 		uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
 	}
-	uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+
+	if (BKE_addon_find(&U.addons, "ui_translate")) {
+		uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+	}
 
 	mt = WM_menutype_find("WM_MT_button_context", true);
 	if (mt) {
