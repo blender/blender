@@ -288,7 +288,7 @@ def main():
     objects = []
 
     if args.group:
-        group = bpy.data.groups.get(args.group)
+        group = bpy.data.collections.get(args.group)
         if group is None:
             print(f"Group {args.group!r} not found!")
             return
