@@ -457,22 +457,17 @@ static void outliner_draw_restrictbuts(
 				/* View layer render toggle. */
 				ViewLayer *view_layer = te->directdata;
 
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
-
 				bt = uiDefIconButBitS(
 				        block, UI_BTYPE_ICON_TOGGLE_N, VIEW_LAYER_RENDER, 0, ICON_RESTRICT_RENDER_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &view_layer->flag, 0, 0, 0, 0, TIP_("Use view layer for rendering"));
 				UI_but_func_set(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-
-				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 			else if (tselem->type == TSE_MODIFIER) {
 				ModifierData *md = (ModifierData *)te->directdata;
 				Object *ob = (Object *)tselem->id;
 
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 				bt = uiDefIconButBitI(
 				        block, UI_BTYPE_ICON_TOGGLE_N, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
@@ -487,15 +482,12 @@ static void outliner_draw_restrictbuts(
 				        UI_UNIT_Y, &(md->mode), 0, 0, 0, 0, TIP_("Restrict/Allow renderability"));
 				UI_but_func_set(bt, restrictbutton_modifier_cb, scene, ob);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-
-				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 			else if (tselem->type == TSE_POSE_CHANNEL) {
 				bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 				Bone *bone = pchan->bone;
 				Object *ob = (Object *)tselem->id;
 
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 				bt = uiDefIconButBitI(
 				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
@@ -511,13 +503,10 @@ static void outliner_draw_restrictbuts(
 				        TIP_("Restrict/Allow selection in the 3D View"));
 				UI_but_func_set(bt, restrictbutton_bone_select_cb, ob->data, bone);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-
-				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 			else if (tselem->type == TSE_EBONE) {
 				EditBone *ebone = (EditBone *)te->directdata;
 
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 				bt = uiDefIconButBitI(
 				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
@@ -533,13 +522,9 @@ static void outliner_draw_restrictbuts(
 				        TIP_("Restrict/Allow selection in the 3D View"));
 				UI_but_func_set(bt, restrictbutton_ebone_select_cb, NULL, ebone);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-
-				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 			else if (tselem->type == TSE_GP_LAYER) {
 				bGPDlayer *gpl = (bGPDlayer *)te->directdata;
-
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
 				bt = uiDefIconButBitS(
 				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_RESTRICT_VIEW_OFF,
@@ -558,8 +543,6 @@ static void outliner_draw_restrictbuts(
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
 				/* TODO: visibility in renders */
-
-				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 			else if (outliner_is_collection_tree_element(te)) {
 				LayerCollection *lc = (tselem->type == TSE_LAYER_COLLECTION) ? te->directdata : NULL;
@@ -615,8 +598,6 @@ static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOops *soops
 				if (ID_IS_LINKED(id))
 					but_flag |= UI_BUT_DISABLED;
 
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
-
 				if (id->flag & LIB_FAKEUSER) {
 					icon = ICON_FILE_TICK;
 					tip  = TIP_("Data-block will be retained using a fake user");
@@ -650,8 +631,6 @@ static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOops *soops
 				             "even if nothing else uses it"));
 				UI_but_func_set(bt, restrictbutton_id_user_toggle, id, NULL);
 				UI_but_flag_enable(bt, but_flag);
-
-				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 		}
 
@@ -732,8 +711,6 @@ static void outliner_draw_rnabuts(uiBlock *block, ARegion *ar, SpaceOops *soops,
 			outliner_draw_rnabuts(block, ar, soops, sizex, &te->subtree);
 		}
 	}
-
-	UI_block_emboss_set(block, UI_EMBOSS);
 }
 
 static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, TreeElement *te)
