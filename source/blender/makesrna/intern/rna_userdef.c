@@ -2788,7 +2788,7 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ThemeNLAEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
-	RNA_def_struct_ui_text(srna, "Theme NLA Editor", "Theme settings for the NLA Editor");
+	RNA_def_struct_ui_text(srna, "Theme Nonlinear Animation", "Theme settings for the NLA Editor");
 
 	rna_def_userdef_theme_spaces_main(srna);
 	rna_def_userdef_theme_spaces_list_main(srna);
@@ -3058,7 +3058,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{1, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
 		{3, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
 		{4, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet", ""},
-		{5, "NLA_EDITOR", ICON_NLA, "NLA Editor", ""},
+		{5, "NLA_EDITOR", ICON_NLA, "Nonlinear Animation", ""},
 		{6, "IMAGE_EDITOR", ICON_IMAGE_COL, "UV/Image Editor", ""},
 		{7, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequence Editor", ""},
 		{8, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
@@ -3120,7 +3120,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tnla");
 	RNA_def_property_struct_type(prop, "ThemeNLAEditor");
-	RNA_def_property_ui_text(prop, "NLA Editor", "");
+	RNA_def_property_ui_text(prop, "Nonlinear Animation", "");
 
 	prop = RNA_def_property(srna, "dopesheet_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
