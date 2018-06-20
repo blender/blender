@@ -193,6 +193,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
             col = layout.column()
             col.prop(settings, "absorption", text="Force Field Absorption")
 
+
 class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
     bl_label = "Particle"
     bl_parent_id = "PHYSICS_PT_collision"
@@ -265,7 +266,6 @@ class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
             col = flow.column()
             col.prop(settings, "thickness_outer", text="Thickness Outer", slider=True)
             col.prop(settings, "thickness_inner", text="Inner", slider=True)
-
 
 
 classes = (

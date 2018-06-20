@@ -49,7 +49,7 @@ const vec2 jit[9] = vec2[9](
 #define TRIA_VEC_RANGE BIT_RANGE(6)
 const vec2 triavec[43] = vec2[43](
 
-  /* ROUNDBOX_TRIA_ARROWS */
+	/* ROUNDBOX_TRIA_ARROWS */
 	vec2(-0.170000, 0.400000), vec2(-0.050000, 0.520000), vec2( 0.250000, 0.000000), vec2( 0.470000, -0.000000), vec2(-0.170000, -0.400000), vec2(-0.050000, -0.520000),
 	vec2( 0.170000, 0.400000), vec2( 0.050000, 0.520000), vec2(-0.250000, 0.000000), vec2(-0.470000, -0.000000), vec2( 0.170000, -0.400000), vec2( 0.050000, -0.520000),
 
@@ -64,17 +64,16 @@ const vec2 triavec[43] = vec2[43](
 	vec2(0.382684, -0.923879), vec2(-0.382683, -0.923880),
 	vec2(0.000000, -1.000000),
 
-
-  /* ROUNDBOX_TRIA_MENU - menu arrows */
-  vec2(-0.66, 0.08), vec2(-0.56, 0.20), vec2(-0.2, -0.39),
-  vec2(-0.2, -0.18), vec2(0.26, 0.08), vec2(0.15, 0.20),
+	/* ROUNDBOX_TRIA_MENU - menu arrows */
+	vec2(-0.66, 0.08), vec2(-0.56, 0.20), vec2(-0.2, -0.39),
+	vec2(-0.2, -0.18), vec2(0.26, 0.08), vec2(0.15, 0.20),
 
 
 	/* ROUNDBOX_TRIA_CHECK - check mark */
 	vec2(-0.67000, 0.020000),  vec2(-0.500000, 0.190000),  vec2(-0.130000, -0.520000),
 	vec2(-0.130000, -0.170000),  vec2(0.720000, 0.430000),   vec2(0.530000, 0.590000),
 
-    /* ROUNDBOX_TRIA_HOLD_ACTION_ARROW - hold action arrows */
+	/* ROUNDBOX_TRIA_HOLD_ACTION_ARROW - hold action arrows */
 #define OY (-0.2 / 2)
 #define SC (0.35 * 2)
 //	vec2(-0.5 + SC, 1.0 + OY),  vec2( 0.5, 1.0 + OY),  vec2( 0.5, 0.0 + OY + SC),

@@ -240,7 +240,6 @@ def effector_weights_ui(self, context, weights, weight_type):
 def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
 
-
     if not field or field.type == 'NONE':
         return
 
@@ -281,6 +280,7 @@ def basic_force_field_settings_ui(self, context, field):
 
     col.label(text="Collision")
     col.prop(field, "use_absorption")
+
 
 def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
