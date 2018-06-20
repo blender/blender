@@ -73,9 +73,9 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
         elif userpref.active_section == 'LIGHTS':
-            layout.operator('wm.studiolight_install', text="Install MatCap").orientation='MATCAP'
-            layout.operator('wm.studiolight_install', text="Install World HDRI").orientation='WORLD'
-            layout.operator('wm.studiolight_install', text="Install Camera HDRI").orientation='CAMERA'
+            layout.operator('wm.studiolight_install', text="Install MatCap").orientation = 'MATCAP'
+            layout.operator('wm.studiolight_install', text="Install World HDRI").orientation = 'WORLD'
+            layout.operator('wm.studiolight_install', text="Install Camera HDRI").orientation = 'CAMERA'
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
             layout.operator("wm.theme_install")
@@ -1440,12 +1440,13 @@ class USERPREF_PT_addons(Panel):
                 continue
 
             # check if addon should be visible with current filters
-            if ((filter == "All") or
-                        (filter == info["category"]) or
-                        (filter == "Enabled" and is_enabled) or
+            if (
+                    (filter == "All") or
+                    (filter == info["category"]) or
+                    (filter == "Enabled" and is_enabled) or
                     (filter == "Disabled" and not is_enabled) or
                     (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
-                    ):
+            ):
                 if search and search not in info["name"].lower():
                     if info["author"]:
                         if search not in info["author"].lower():

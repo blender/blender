@@ -65,9 +65,11 @@ class VIEW3D_HT_header(Header):
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if ((((shading.type not in {'SOLID', 'TEXTURED'}) or not shading.show_xray) and
-                (object_mode == 'PARTICLE_EDIT' or (object_mode == 'EDIT' and obj.type == 'MESH'))) or
-                (object_mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
+            if (
+                    (((shading.type not in {'SOLID', 'TEXTURED'}) or not shading.show_xray) and
+                     (object_mode == 'PARTICLE_EDIT' or (object_mode == 'EDIT' and obj.type == 'MESH'))) or
+                    (object_mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})
+            ):
                 row = layout.row()
                 row.prop(view, "use_occlude_geometry", text="")
 
@@ -195,7 +197,7 @@ class VIEW3D_HT_header(Header):
         sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading")
 
         row = layout.row(align=True)
-        row.prop(overlay, "show_overlays", icon="WIRE", text="")
+        row.prop(overlay, "show_overlays", icon='WIRE', text="")
 
         sub = row.row(align=True)
         sub.active = overlay.show_overlays

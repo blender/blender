@@ -193,7 +193,7 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(cscene, "seed")
-        row.prop(cscene, "use_animated_seed", text="", icon="TIME")
+        row.prop(cscene, "use_animated_seed", text="", icon='TIME')
 
         layout.prop(cscene, "sampling_pattern", text="Pattern")
 
@@ -1783,7 +1783,7 @@ def draw_pause(self, context):
 
         if view.shading.type == 'RENDERED':
             cscene = scene.cycles
-            layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+            layout.prop(cscene, "preview_pause", icon='PAUSE', text="")
 
 
 def get_panels():

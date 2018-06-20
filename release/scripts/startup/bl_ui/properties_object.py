@@ -95,7 +95,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(ob, "rotation_mode")
-        row.label(text="", icon="BLANK1")
+        row.label(text="", icon='BLANK1')
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
