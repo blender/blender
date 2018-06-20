@@ -62,6 +62,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_studiolight.h"
 
 #include "DEG_depsgraph.h"
 
@@ -82,6 +83,8 @@ char versionstr[48] = "";
 void BKE_blender_free(void)
 {
 	/* samples are in a global list..., also sets G_MAIN->sound->sample NULL */
+
+	BKE_studiolight_free(); /* needs to run before main free as wm is still referenced for icons preview jobs */
 	BKE_main_free(G_MAIN);
 	G_MAIN = NULL;
 

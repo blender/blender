@@ -62,6 +62,7 @@
 #define STUDIOLIGHT_ICON_SIZE 96
 
 struct GPUTexture;
+struct StudioLight;
 
 /* StudioLight.flag */
 enum StudioLightFlag {
@@ -79,13 +80,14 @@ enum StudioLightFlag {
 	STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_GPUTEXTURE       = (1 << 10),
 	STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED                 = (1 << 11),
 	STUDIOLIGHT_UI_EXPANDED                                 = (1 << 13),
-	STUDIOLIGHT_DISABLED                                    = (1 << 14),
 } StudioLightFlag;
 
 #define STUDIOLIGHT_FLAG_ALL (STUDIOLIGHT_INTERNAL | STUDIOLIGHT_EXTERNAL_FILE)
 #define STUDIOLIGHT_FLAG_ORIENTATIONS (STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_VIEWNORMAL)
 #define STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE (STUDIOLIGHT_INTERNAL | STUDIOLIGHT_ORIENTATION_WORLD)
 #define STUDIOLIGHT_ORIENTATIONS_SOLID (STUDIOLIGHT_INTERNAL | STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD)
+
+typedef void StudioLightFreeFunction(struct StudioLight *, void *data);
 
 typedef struct StudioLight {
 	struct StudioLight *next, *prev;
@@ -109,6 +111,13 @@ typedef struct StudioLight {
 	struct GPUTexture *equirectangular_irradiance_gputexture;
 	float *gpu_matcap_3components; /* 3 channel buffer for GPU_R11F_G11F_B10F */
 
+	/*
+	Free function to clean up the running icons previews (wmJob) the usage is in
+	interface_icons. Please be aware that this was build to handle only one free function
+	that cleans up all icons. just to keep the code simple.
+	*/
+	StudioLightFreeFunction *free_function;
+	void* free_function_data;
 } StudioLight;
 
 void BKE_studiolight_init(void);
@@ -120,5 +129,7 @@ void BKE_studiolight_preview(uint* icon_buffer, StudioLight *sl, int icon_id_typ
 struct ListBase *BKE_studiolight_listbase(void);
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag);
 void BKE_studiolight_refresh(void);
+void BKE_studiolight_set_free_function(StudioLight *sl, StudioLightFreeFunction *free_function, void *data);
+void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id);
 
 #endif /*  __BKE_STUDIOLIGHT_H__ */

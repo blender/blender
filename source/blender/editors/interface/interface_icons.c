@@ -851,6 +851,32 @@ static void ui_studiolight_icon_job_exec(void *customdata, short *UNUSED(stop), 
 	BKE_studiolight_preview(di->data.buffer.image->rect, sl, icon->id_type);
 }
 
+static void ui_studiolight_kill_icon_preview_job(wmWindowManager *wm, int icon_id)
+{
+	Icon *icon = BKE_icon_get(icon_id);
+	WM_jobs_kill_type(wm, icon, WM_JOB_TYPE_STUDIOLIGHT);
+	icon->obj = NULL;
+}
+
+static void ui_studiolight_free_function(StudioLight * sl, void* data)
+{
+	wmWindowManager *wm = data;
+	
+	// get icons_id, get icons and kill wm jobs
+	if (sl->icon_id_radiance) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_radiance);
+	}
+	if (sl->icon_id_irradiance) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_irradiance);
+	}
+	if (sl->icon_id_matcap) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_matcap);
+	}
+	if (sl->icon_id_matcap_flipped) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_matcap_flipped);
+	}
+}
+
 void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
 {
 	Icon *icon = BKE_icon_get(icon_id);
@@ -881,6 +907,9 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 				{
 					if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
 						if (di->data.buffer.image == NULL) {
+							wmWindowManager *wm = CTX_wm_manager(C);
+							StudioLight *sl = icon->obj;
+							BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, wm);
 							IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
 
 							img->w = STUDIOLIGHT_ICON_SIZE;
@@ -890,7 +919,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 							memset(img->rect, 0, size);
 							di->data.buffer.image = img;
 
-							wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_STUDIOLIGHT);
+							wmJob *wm_job = WM_jobs_get(wm, CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_STUDIOLIGHT);
 							Icon** tmp = MEM_callocN(sizeof(Icon*), __func__);
 							*tmp = icon;
 							WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);

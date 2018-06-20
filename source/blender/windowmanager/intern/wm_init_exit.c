@@ -517,7 +517,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		GPU_pass_cache_free();
 		DRW_opengl_context_destroy();
 	}
-	BKE_studiolight_free();
 
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();

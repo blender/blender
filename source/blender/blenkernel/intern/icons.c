@@ -119,7 +119,7 @@ static void icon_free(void *val)
 	}
 }
 
-static void icon_free_data(Icon *icon)
+static void icon_free_data(int icon_id, Icon *icon)
 {
 	if (icon->obj_type == ICON_DATA_ID) {
 		((ID *)(icon->obj))->icon_id = 0;
@@ -129,6 +129,12 @@ static void icon_free_data(Icon *icon)
 	}
 	else if (icon->obj_type == ICON_DATA_GEOM) {
 		((struct Icon_Geom *)(icon->obj))->icon_id = 0;
+	}
+	else if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
+		StudioLight *sl = icon->obj;
+		if (sl != NULL) {
+			BKE_studiolight_unset_icon_id(sl, icon_id);
+		}
 	}
 	else {
 		BLI_assert(0);
@@ -699,7 +705,7 @@ bool BKE_icon_delete(const int icon_id)
 
 	Icon *icon = BLI_ghash_popkey(gIcons, SET_INT_IN_POINTER(icon_id), NULL);
 	if (icon) {
-		icon_free_data(icon);
+		icon_free_data(icon_id, icon);
 		icon_free(icon);
 		return true;
 	}
@@ -722,7 +728,7 @@ bool BKE_icon_delete_unmanaged(const int icon_id)
 			return false;
 		}
 		else {
-			icon_free_data(icon);
+			icon_free_data(icon_id, icon);
 			icon_free(icon);
 			return true;
 		}

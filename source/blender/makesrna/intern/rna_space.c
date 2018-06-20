@@ -766,9 +766,6 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 		const int flags = (STUDIOLIGHT_EXTERNAL_FILE | STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
 
 		LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
-			if ((sl->flag & STUDIOLIGHT_DISABLED)){
-				continue;
-			}
 			int icon_id = (v3d->shading.flag & V3D_SHADING_MATCAP_FLIP_X) ? sl->icon_id_matcap_flipped: sl->icon_id_matcap;
 			if ((sl->flag & flags) == flags) {
 				EnumPropertyItem tmp = {sl->index, sl->name, icon_id, sl->name, ""};
@@ -778,9 +775,6 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 	}
 	else {
 		LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
-			if ((sl->flag & STUDIOLIGHT_DISABLED)){
-				continue;
-			}
 			int icon_id = sl->icon_id_irradiance;
 			bool show_studiolight = false;
 

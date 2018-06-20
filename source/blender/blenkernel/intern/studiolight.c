@@ -81,6 +81,21 @@ if (p) {                              \
 
 static void studiolight_free(struct StudioLight *sl)
 {
+#define STUDIOLIGHT_DELETE_ICON(s) {  \
+	if (s != 0) {                          \
+		BKE_icon_delete(s);           \
+		s = 0;                        \
+	}                                 \
+}
+	if (sl->free_function) {
+		sl->free_function(sl, sl->free_function_data);
+	}
+	STUDIOLIGHT_DELETE_ICON(sl->icon_id_radiance);
+	STUDIOLIGHT_DELETE_ICON(sl->icon_id_irradiance);
+	STUDIOLIGHT_DELETE_ICON(sl->icon_id_matcap);
+	STUDIOLIGHT_DELETE_ICON(sl->icon_id_matcap_flipped);
+#undef STUDIOLIGHT_DELETE_ICON
+
 	for (int index = 0 ; index < 6 ; index ++) {
 		IMB_SAFE_FREE(sl->radiance_cubemap_buffers[index]);
 	}
@@ -101,6 +116,7 @@ static struct StudioLight *studiolight_create(int flag)
 	sl->name[0] = 0x00;
 	sl->path_irr_cache = NULL;
 	sl->path_sh2_cache = NULL;
+	sl->free_function = NULL;
 	sl->flag = flag;
 	sl->index = BLI_listbase_count(&studiolights);
 	if (flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL) {
@@ -892,7 +908,7 @@ void BKE_studiolight_free(void)
 struct StudioLight *BKE_studiolight_find_first(int flag)
 {
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
-		if ((sl->flag & flag) && (sl->flag & STUDIOLIGHT_DISABLED) == 0) {
+		if ((sl->flag & flag)) {
 			return sl;
 		}
 	}
@@ -903,7 +919,7 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
 {
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
 		if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
-			if ((sl->flag & flag) && (sl->flag & STUDIOLIGHT_DISABLED) == 0) {
+			if ((sl->flag & flag)) {
 				return sl;
 			}
 			else {
@@ -919,7 +935,7 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
 struct StudioLight *BKE_studiolight_findindex(int index, int flag)
 {
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
-		if (sl->index == index  && (sl->flag & STUDIOLIGHT_DISABLED) == 0) {
+		if (sl->index == index) {
 			return sl;
 		}
 	}
@@ -995,8 +1011,29 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 
 void BKE_studiolight_refresh(void)
 {
-	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
-		sl->flag |= STUDIOLIGHT_DISABLED;
-	}
+	BKE_studiolight_free();
 	BKE_studiolight_init();
+}
+
+void BKE_studiolight_set_free_function(StudioLight *sl, StudioLightFreeFunction *free_function, void *data)
+{
+	sl->free_function = free_function;
+	sl->free_function_data = data;
+}
+
+void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id)
+{
+	BLI_assert(sl != NULL);
+	if (sl->icon_id_radiance == icon_id) {
+		sl->icon_id_radiance = 0;
+	}
+	if (sl->icon_id_irradiance == icon_id) {
+		sl->icon_id_irradiance = 0;
+	}
+	if (sl->icon_id_matcap == icon_id) {
+		sl->icon_id_matcap = 0;
+	}
+	if (sl->icon_id_matcap_flipped == icon_id) {
+		sl->icon_id_matcap_flipped = 0;
+	}
 }
