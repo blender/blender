@@ -4221,16 +4221,6 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 	if (!psys_check_enabled(ob, psys, use_render_params))
 		return;
 
-	if (DEG_is_active(depsgraph)) {
-		if (psys->orig_psys != NULL &&
-		    psys->orig_psys->edit != NULL &&
-		    psys->orig_psys->edit->psys == psys_orig_get(psys))
-		{
-			psys->orig_psys->edit->psys_eval = psys;
-			psys->orig_psys->edit->psmd_eval = psmd;
-		}
-	}
-
 	cfra = DEG_get_ctime(depsgraph);
 
 	sim.depsgraph = depsgraph;
@@ -4383,6 +4373,18 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 
 	if (psys_orig->edit) {
 		psys_orig->edit->flags |= PT_CACHE_EDIT_UPDATE_PARTICLE_FROM_EVAL;
+	}
+
+	if (DEG_is_active(depsgraph)) {
+		if (psys_orig != psys) {
+			if (psys_orig->edit != NULL &&
+			    psys_orig->edit->psys == psys_orig)
+			{
+				psys_orig->edit->psys_eval = psys;
+				psys_orig->edit->psmd_eval = psmd;
+			}
+			psys_orig->flag = psys->flag;
+		}
 	}
 
 	psys->cfra = cfra;
