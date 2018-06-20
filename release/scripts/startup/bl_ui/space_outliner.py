@@ -35,7 +35,16 @@ class OUTLINER_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        layout.prop(space, "display_mode", text="")
+        layout.prop(space, "display_mode", icon_only=True)
+
+        if display_mode in {'VIEW_LAYER'}:
+            layout.operator("outliner.collection_new", text="", icon="ZOOMIN").nested = True
+
+        layout.separator_spacer()
+
+        layout.prop(space, "filter_text", icon="VIEWZOOM", text="")
+
+        layout.separator_spacer()
 
         row = layout.row(align=True)
         if display_mode in {'VIEW_LAYER'}:
@@ -49,8 +58,6 @@ class OUTLINER_HT_header(Header):
             sub = row.row(align=True)
             sub.active = space.use_filter_id_type
             sub.prop(space, "filter_id_type", text="", icon_only=True)
-
-        OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
 
         if space.display_mode == 'DATA_API':
             layout.separator()
@@ -70,12 +77,7 @@ class OUTLINER_HT_header(Header):
                 row = layout.row()
                 row.label(text="No Keying Set Active")
 
-        row = layout.row(align=True)
-        row.prop(space, "use_filter_search", text="")
-        if space.use_filter_search:
-            row.prop(space, "filter_text", text="")
-            row.prop(space, "use_filter_complete", text="")
-            row.prop(space, "use_filter_case_sensitive", text="")
+        OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
 
 
 class OUTLINER_MT_editor_menus(Menu):
@@ -106,11 +108,18 @@ class OUTLINER_MT_view(Menu):
 
         space = context.space_data
 
+        layout.prop(space, "use_filter_complete", text="Exact Match Search")
+        layout.prop(space, "use_filter_case_sensitive", text="Case Sensitive Search")
+
+        layout.separator()
+
         if space.display_mode != 'DATA_API':
             layout.prop(space, "use_sort_alpha")
             layout.prop(space, "show_restrict_columns")
             layout.separator()
             layout.operator("outliner.show_active")
+
+        layout.separator()
 
         layout.operator("outliner.show_one_level", text="Show One Level")
         layout.operator("outliner.show_one_level", text="Hide One Level").open = False
