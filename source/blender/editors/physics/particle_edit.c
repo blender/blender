@@ -410,6 +410,8 @@ typedef struct PEData {
 	BVHTreeFromMesh shape_bvh;
 	Depsgraph *depsgraph;
 
+	RNG *rng;
+
 	const int *mval;
 	rcti *rect;
 	float rad;
@@ -482,6 +484,22 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
 static void PE_free_shape_tree(PEData *data)
 {
 	free_bvhtree_from_mesh(&data->shape_bvh);
+}
+
+static void PE_create_random_generator(PEData *data)
+{
+	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+	rng_seed ^= GET_UINT_FROM_POINTER(data->ob);
+	rng_seed ^= GET_UINT_FROM_POINTER(data->edit);
+	data->rng = BLI_rng_new(rng_seed);
+}
+
+static void PE_free_random_generator(PEData *data)
+{
+	if (data->rng != NULL) {
+		BLI_rng_free(data->rng);
+		data->rng = NULL;
+	}
 }
 
 /*************************** selection utilities *******************************/
@@ -3181,8 +3199,11 @@ static void brush_cut(PEData *data, int pa_index)
 	int k, cut, keys= (int)pow(2.0, (double)pset->draw_step);
 	int screen_co[2];
 
+	BLI_assert(data->rng != NULL);
 	/* blunt scissors */
-	if (BLI_frand() > data->cutfac) return;
+	if (BLI_rng_get_float(data->rng) > data->cutfac) {
+		return;
+	}
 
 	/* don't cut hidden */
 	if (edit->points[pa_index].flag & PEP_HIDE)
@@ -4040,6 +4061,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 
 	/* cache view depths and settings for re-use */
 	PE_set_view3d_data(C, &bedit->data);
+	PE_create_random_generator(&bedit->data);
 
 	return 1;
 }
@@ -4088,7 +4110,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	if (((pset->brushtype == PE_BRUSH_ADD) ?
 	     (sqrtf(dx * dx + dy * dy) > pset->brush[PE_BRUSH_ADD].step) : (dx != 0 || dy != 0)) || bedit->first)
 	{
-		PEData data= bedit->data;
+		PEData data = bedit->data;
 		data.context = C; // TODO(mai): why isnt this set in bedit->data?
 
 		view3d_operator_needs_opengl(C);
@@ -4273,6 +4295,7 @@ static void brush_edit_exit(wmOperator *op)
 {
 	BrushEdit *bedit= op->customdata;
 
+	PE_free_random_generator(&bedit->data);
 	MEM_freeN(bedit);
 }
 
