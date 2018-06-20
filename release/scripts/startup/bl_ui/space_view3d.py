@@ -3511,7 +3511,7 @@ class VIEW3D_MT_edit_gpencil_interpolate(Menu):
         layout.operator("gpencil.interpolate_sequence", text="Sequence")
 
 
-class VIEW3D_PIE_object_mode(Menu):
+class VIEW3D_MT_object_mode_pie(Menu):
     bl_label = "Mode"
 
     def draw(self, context):
@@ -3521,9 +3521,9 @@ class VIEW3D_PIE_object_mode(Menu):
         pie.operator_enum("OBJECT_OT_mode_set", "mode")
 
 
-class VIEW3D_PIE_view(Menu):
+class VIEW3D_MT_view_pie(Menu):
     bl_label = "View"
-    bl_idname = "VIEW3D_PIE_view"
+    bl_idname = "VIEW3D_MT_view_pie"
 
     def draw(self, context):
         layout = self.layout
@@ -4302,8 +4302,8 @@ classes = (
     VIEW3D_MT_edit_armature_delete,
     VIEW3D_MT_edit_gpencil_transform,
     VIEW3D_MT_edit_gpencil_interpolate,
-    VIEW3D_PIE_object_mode,
-    VIEW3D_PIE_view,
+    VIEW3D_MT_object_mode_pie,
+    VIEW3D_MT_view_pie,
     VIEW3D_PT_grease_pencil,
     VIEW3D_PT_grease_pencil_palettecolor,
     VIEW3D_PT_view3d_properties,

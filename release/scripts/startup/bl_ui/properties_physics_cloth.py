@@ -31,7 +31,7 @@ def cloth_panel_enabled(md):
     return md.point_cache.is_baked is False
 
 
-class CLOTH_MT_presets(PresetMenu):
+class CLOTH_PT_presets(PresetMenu):
     bl_label = "Cloth Presets"
     preset_subdir = "cloth"
     preset_operator = "script.execute_preset"
@@ -54,7 +54,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header_preset(self, context):
-        CLOTH_MT_presets.draw_panel_header(self.layout)
+        CLOTH_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -258,7 +258,7 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
 
 
 classes = (
-    CLOTH_MT_presets,
+    CLOTH_PT_presets,
     PHYSICS_PT_cloth,
     PHYSICS_PT_cloth_cache,
     PHYSICS_PT_cloth_collision,

@@ -23,7 +23,7 @@ from bpy.app.translations import pgettext_iface as iface_
 from bl_operators.presets import PresetMenu
 
 
-class FLUID_MT_presets(PresetMenu):
+class FLUID_PT_presets(PresetMenu):
     bl_label = "Fluid Presets"
     preset_subdir = "fluid"
     preset_operator = "script.execute_preset"
@@ -242,7 +242,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
             col.prop(fluid, "simulation_scale", text="Meters")
 
         col = split.column()
-        FLUID_MT_presets.draw_menu(col, text="Viscosity Presets")
+        FLUID_PT_presets.draw_menu(col, text="Viscosity Presets")
 
         sub = col.column(align=True)
         sub.prop(fluid, "viscosity_base", text="Base")
@@ -306,7 +306,7 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
 
 
 classes = (
-    FLUID_MT_presets,
+    FLUID_PT_presets,
     PHYSICS_PT_fluid,
     PHYSICS_PT_domain_gravity,
     PHYSICS_PT_domain_boundary,

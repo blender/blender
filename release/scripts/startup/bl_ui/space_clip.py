@@ -279,7 +279,7 @@ class CLIP_PT_tracking_settings(CLIP_PT_tracking_panel, Panel):
     bl_category = "Track"
 
     def draw_header_preset(self, context):
-        CLIP_MT_tracking_settings_presets.draw_panel_header(self.layout)
+        CLIP_PT_tracking_settings_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
 
@@ -621,7 +621,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         layout.separator()
 
         row = layout.row(align=True)
-        CLIP_MT_track_color_presets.draw_menu(row, 'Color Presets')
+        CLIP_PT_track_color_presets.draw_menu(row, 'Color Presets')
         row.menu('CLIP_MT_track_color_specials', text="", icon='DOWNARROW_HLT')
 
         row = layout.row()
@@ -713,7 +713,7 @@ class CLIP_PT_tracking_camera(Panel):
         return False
 
     def draw_header_preset(self, context):
-        CLIP_MT_camera_presets.draw_panel_header(self.layout)
+        CLIP_PT_camera_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -1419,7 +1419,7 @@ class CLIP_MT_tracking_specials(Menu):
                         text="Unlock Tracks").action = 'UNLOCK'
 
 
-class CLIP_MT_camera_presets(PresetMenu):
+class CLIP_PT_camera_presets(PresetMenu):
     """Predefined tracking camera intrinsics"""
     bl_label = "Camera Presets"
     preset_subdir = "tracking_camera"
@@ -1427,7 +1427,7 @@ class CLIP_MT_camera_presets(PresetMenu):
     preset_add_operator = "clip.camera_preset_add"
 
 
-class CLIP_MT_track_color_presets(PresetMenu):
+class CLIP_PT_track_color_presets(PresetMenu):
     """Predefined track color"""
     bl_label = "Color Presets"
     preset_subdir = "tracking_track_color"
@@ -1435,7 +1435,7 @@ class CLIP_MT_track_color_presets(PresetMenu):
     preset_add_operator = "clip.track_color_preset_add"
 
 
-class CLIP_MT_tracking_settings_presets(PresetMenu):
+class CLIP_PT_tracking_settings_presets(PresetMenu):
     """Predefined tracking settings"""
     bl_label = "Tracking Presets"
     preset_subdir = "tracking_settings"
@@ -1524,9 +1524,9 @@ classes = (
     CLIP_MT_select,
     CLIP_MT_select_grouped,
     CLIP_MT_tracking_specials,
-    CLIP_MT_camera_presets,
-    CLIP_MT_track_color_presets,
-    CLIP_MT_tracking_settings_presets,
+    CLIP_PT_camera_presets,
+    CLIP_PT_track_color_presets,
+    CLIP_PT_tracking_settings_presets,
     CLIP_MT_track_color_specials,
     CLIP_MT_stabilize_2d_specials,
     CLIP_MT_stabilize_2d_rotation_specials,

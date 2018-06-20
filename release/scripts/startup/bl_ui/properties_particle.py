@@ -83,7 +83,7 @@ class PARTICLE_MT_specials(Menu):
         layout.operator("particle.duplicate_particle_system")
 
 
-class PARTICLE_MT_hair_dynamics_presets(PresetMenu):
+class PARTICLE_PT_hair_dynamics_presets(PresetMenu):
     bl_label = "Hair Dynamics Presets"
     preset_subdir = "hair_dynamics"
     preset_operator = "script.execute_preset"
@@ -349,7 +349,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
 
         layout = self.layout
         layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
-        PARTICLE_MT_hair_dynamics_presets.draw_panel_header(layout)
+        PARTICLE_PT_hair_dynamics_presets.draw_panel_header(layout)
 
     def draw(self, context):
         layout = self.layout
@@ -1879,7 +1879,7 @@ class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     PARTICLE_MT_specials,
-    PARTICLE_MT_hair_dynamics_presets,
+    PARTICLE_PT_hair_dynamics_presets,
     PARTICLE_UL_particle_systems,
     PARTICLE_PT_context_particles,
     PARTICLE_PT_emission,

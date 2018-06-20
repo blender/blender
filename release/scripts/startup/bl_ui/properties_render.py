@@ -23,14 +23,14 @@ from bpy.types import Menu, Panel, UIList
 from bl_operators.presets import PresetMenu
 
 
-class RENDER_MT_presets(PresetMenu):
+class RENDER_PT_presets(PresetMenu):
     bl_label = "Render Presets"
     preset_subdir = "render"
     preset_operator = "script.execute_preset"
     preset_add_operator = "render.preset_add"
 
 
-class RENDER_MT_ffmpeg_presets(PresetMenu):
+class RENDER_PT_ffmpeg_presets(PresetMenu):
     bl_label = "FFMPEG Presets"
     preset_subdir = "ffmpeg"
     preset_operator = "script.python_file_run"
@@ -85,7 +85,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     _preset_class = None
 
     def draw_header_preset(self, context):
-        RENDER_MT_presets.draw_panel_header(self.layout)
+        RENDER_PT_presets.draw_panel_header(self.layout)
 
     @staticmethod
     def _draw_framerate_label(*args):
@@ -300,7 +300,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header_preset(self, context):
-        RENDER_MT_ffmpeg_presets.draw_panel_header(self.layout)
+        RENDER_PT_ffmpeg_presets.draw_panel_header(self.layout)
 
     @classmethod
     def poll(cls, context):
@@ -764,8 +764,8 @@ class RENDER_PT_hair(RenderButtonsPanel, Panel):
 
 
 classes = (
-    RENDER_MT_presets,
-    RENDER_MT_ffmpeg_presets,
+    RENDER_PT_presets,
+    RENDER_PT_ffmpeg_presets,
     RENDER_MT_framerate_presets,
     RENDER_PT_context,
     RENDER_PT_dimensions,

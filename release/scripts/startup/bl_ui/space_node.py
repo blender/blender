@@ -290,7 +290,7 @@ class NODE_MT_node(Menu):
         layout.operator("node.read_fullsamplelayers")
 
 
-class NODE_MT_node_color_presets(PresetMenu):
+class NODE_PT_node_color_presets(PresetMenu):
     """Predefined node color"""
     bl_label = "Color Presets"
     preset_subdir = "node_color"
@@ -375,7 +375,7 @@ class NODE_PT_active_node_color(Panel):
         self.layout.prop(node, "use_custom_color", text="")
 
     def draw_header_preset(self, context):
-        NODE_MT_node_color_presets.draw_panel_header(self.layout)
+        NODE_PT_node_color_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -584,7 +584,7 @@ classes = (
     NODE_MT_view,
     NODE_MT_select,
     NODE_MT_node,
-    NODE_MT_node_color_presets,
+    NODE_PT_node_color_presets,
     NODE_MT_node_color_specials,
     NODE_MT_specials,
     NODE_PT_active_node_generic,
