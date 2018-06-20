@@ -1097,8 +1097,6 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 
 		/* works without this except if you try render right after, see: 22027 */
 		DEG_relations_tag_update(bmain);
-		DEG_id_tag_update(&collection->id, 0);
-
 		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -2002,9 +2000,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 			}
 			FOREACH_SCENE_OBJECT_END;
 		}
-
-		/* delete object should renew depsgraph */
-		DEG_relations_tag_update(bmain);
 	}
 
 // XXX	ED_object_editmode_enter(C, 0);

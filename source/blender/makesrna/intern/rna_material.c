@@ -180,6 +180,7 @@ static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 	if (ma->use_nodes && ma->nodetree == NULL)
 		ED_node_shader_default(C, &ma->id);
 
+	DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	rna_Material_draw_update(bmain, CTX_data_scene(C), ptr);
 }

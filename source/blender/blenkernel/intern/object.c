@@ -3528,6 +3528,7 @@ void BKE_object_groups_clear(Main *bmain, Object *ob)
 	Collection *collection = NULL;
 	while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
 		BKE_collection_object_remove(bmain, collection, ob, false);
+		DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 

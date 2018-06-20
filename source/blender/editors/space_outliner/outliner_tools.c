@@ -229,18 +229,22 @@ static void unlink_collection_cb(
 		if (GS(tsep->id->name) == ID_OB) {
 			Object *ob = (Object *)tsep->id;
 			ob->dup_group = NULL;
+			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 			DEG_relations_tag_update(bmain);
 		}
 		else if (GS(tsep->id->name) == ID_GR) {
 			Collection *parent = (Collection *)tsep->id;
 			id_fake_user_set(&collection->id);
 			BKE_collection_child_remove(bmain, parent, collection);
+			DEG_id_tag_update(&parent->id, DEG_TAG_COPY_ON_WRITE);
 			DEG_relations_tag_update(bmain);
 		}
 		else if (GS(tsep->id->name) == ID_SCE) {
-			Collection *parent = BKE_collection_master((Scene *)tsep->id);
+			Scene *scene = (Scene *)tsep->id;
+			Collection *parent = BKE_collection_master(scene);
 			id_fake_user_set(&collection->id);
 			BKE_collection_child_remove(bmain, parent, collection);
+			DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 			DEG_relations_tag_update(bmain);
 		}
 	}
@@ -257,11 +261,14 @@ static void unlink_object_cb(
 		if (GS(tsep->id->name) == ID_GR) {
 			Collection *parent = (Collection *)tsep->id;
 			BKE_collection_object_remove(bmain, parent, ob, true);
+			DEG_id_tag_update(&parent->id, DEG_TAG_COPY_ON_WRITE);
 			DEG_relations_tag_update(bmain);
 		}
 		else if (GS(tsep->id->name) == ID_SCE) {
-			Collection *parent = BKE_collection_master((Scene *)tsep->id);
+			Scene *scene = (Scene *)tsep->id;
+			Collection *parent = BKE_collection_master(scene);
 			BKE_collection_object_remove(bmain, parent, ob, true);
+			DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 			DEG_relations_tag_update(bmain);
 		}
 	}

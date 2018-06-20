@@ -128,12 +128,6 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 	DEG_id_tag_update(&par->id, OB_RECALC_OB);
 
-	/** done once after import */
-#if 0
-	DEG_relations_tag_update(bmain);
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-#endif
-
 	return true;
 }
 

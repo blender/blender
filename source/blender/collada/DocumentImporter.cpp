@@ -232,11 +232,6 @@ void DocumentImporter::finish()
 			objects_to_scale->insert(objects_to_scale->end(), objects_done->begin(), objects_done->end());
 			delete objects_done;
 		}
-
-		// update scene
-		DEG_relations_tag_update(bmain);
-		WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
-
 	}
 
 
@@ -245,7 +240,6 @@ void DocumentImporter::finish()
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext, *objects_to_scale);
 	armature_importer.make_shape_keys(mContext);
-	DEG_relations_tag_update(bmain);
 
 #if 0
 	armature_importer.fix_animation();
@@ -269,13 +263,16 @@ void DocumentImporter::finish()
 			BKE_scene_collections_object_remove(bmain, sce, ob, true);
 		}
 		libnode_ob.clear();
-
-		DEG_relations_tag_update(bmain);
 	}
 
 	bc_match_scale(objects_to_scale, unit_converter, !this->import_settings->import_units);
 
 	delete objects_to_scale;
+
+	// update scene
+	DEG_id_tag_update(&sce->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_relations_tag_update(bmain);
+	WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
 }
 
 

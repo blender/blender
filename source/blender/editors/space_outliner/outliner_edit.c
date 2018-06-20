@@ -2366,6 +2366,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	Object *ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, childname);
 	BKE_collection_object_add(bmain, collection, ob);
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 

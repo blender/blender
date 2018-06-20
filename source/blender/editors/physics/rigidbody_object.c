@@ -125,6 +125,7 @@ bool ED_rigidbody_object_add(Main *bmain, Scene *scene, Object *ob, int type, Re
 
 	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+	DEG_id_tag_update(&rbw->group->id, DEG_TAG_COPY_ON_WRITE);
 
 	return true;
 }

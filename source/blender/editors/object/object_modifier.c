@@ -324,8 +324,6 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}
 
-	DEG_relations_tag_update(bmain);
-
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
 	BKE_object_free_derived_caches(ob);
