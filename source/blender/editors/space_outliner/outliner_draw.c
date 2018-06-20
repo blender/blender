@@ -264,24 +264,6 @@ static void restrictbutton_gp_layer_flag_cb(bContext *C, void *UNUSED(poin), voi
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
-static void restrictbutton_object_mode_cb(bContext *C, void *poin, void *poin2)
-{
-	eObjectMode object_mode_toggle = (eObjectMode)(intptr_t)poin;
-	Object *ob = poin2;
-	/* WEAK, restore original value! Switch is an operator. */
-	ob->mode = object_mode_toggle;
-
-	printf("HELLO %s\n", ob->id.name);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Base *base = BKE_view_layer_base_find(view_layer, ob);
-	if (base == NULL) {
-		return;
-	}
-
-	Scene *scene = CTX_data_scene(C);
-	outliner_object_mode_toggle(C, scene, view_layer, base);
-}
-
 static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
 {
 	ID *id = (ID *)poin;
@@ -453,8 +435,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 }
 
 static void outliner_draw_restrictbuts(
-        uiBlock *block, Scene *scene, const Object *obact, const eObjectMode object_mode_toggle,
-        ARegion *ar, SpaceOops *soops, ListBase *lb)
+        uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, ListBase *lb)
 {
 	uiBut *bt;
 
@@ -563,20 +544,6 @@ static void outliner_draw_restrictbuts(
 
 				/* TODO: visibility in renders */
 			}
-			else if ((tselem->type == 0) && (te->idcode == ID_OB)) {
-				if (object_mode_toggle != OB_MODE_OBJECT) {
-					Object *ob = (Object *)tselem->id;
-					if (ob->type == obact->type) {
-						bt = uiDefIconButBitI(
-						        block, UI_BTYPE_ICON_TOGGLE, object_mode_toggle, 0, ICON_CHECKBOX_DEHLT,
-						        (int)(ar->v2d.cur.xmax - OL_TOG_OBJECT_MODE), te->ys, UI_UNIT_X,
-						        UI_UNIT_Y, &ob->mode, 0, 0, 0, 0,
-						        TIP_("Restrict/Allow editing of strokes and keyframes in this layer"));
-						UI_but_func_set(bt, restrictbutton_object_mode_cb, (void *)(intptr_t)ob->mode, ob);
-						UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-					}
-				}
-			}
 			else if (outliner_is_collection_tree_element(te)) {
 				LayerCollection *lc = (tselem->type == TSE_LAYER_COLLECTION) ? te->directdata : NULL;
 				Collection *collection = outliner_collection_from_tree_element(te);
@@ -609,7 +576,7 @@ static void outliner_draw_restrictbuts(
 		}
 
 		if (TSELEM_OPEN(tselem, soops)) {
-			outliner_draw_restrictbuts(block, scene, obact, object_mode_toggle, ar, soops, &te->subtree);
+			outliner_draw_restrictbuts(block, scene, ar, soops, &te->subtree);
 		}
 	}
 }
@@ -1926,7 +1893,7 @@ static void outliner_draw_restrictcols(ARegion *ar)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
-	immBegin(GWN_PRIM_LINES, 8);
+	immBegin(GWN_PRIM_LINES, 6);
 
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymax);
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymin);
@@ -1936,9 +1903,6 @@ static void outliner_draw_restrictcols(ARegion *ar)
 
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymax);
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymin);
-
-	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_OBJECT_MODE), (int)ar->v2d.cur.ymax);
-	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_OBJECT_MODE), (int)ar->v2d.cur.ymin);
 
 	immEnd();
 	immUnbindProgram();
@@ -2032,11 +1996,10 @@ void draw_outliner(const bContext *C)
 		outliner_draw_userbuts(block, ar, soops, &soops->tree);
 	}
 	else if (has_restrict_icons) {
-		const Object *obact = OBACT(view_layer);
-		const eObjectMode object_mode_toggle = obact ? (obact->mode & OB_MODE_ALL_MULTI) : OB_MODE_OBJECT;
 		/* draw restriction columns */
 		outliner_draw_restrictcols(ar);
-		outliner_draw_restrictbuts(block, scene, obact, object_mode_toggle, ar, soops, &soops->tree);
+
+		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
 	}
 
 	/* draw edit buttons if nessecery */
