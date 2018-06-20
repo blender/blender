@@ -1301,7 +1301,6 @@ typedef struct uiDragToggleHandle {
 	bool is_init;
 	bool is_set;
 	float but_cent_start[2];
-	eButType but_type_start;
 
 	bool xy_lock[2];
 	int  xy_init[2];
@@ -1309,7 +1308,7 @@ typedef struct uiDragToggleHandle {
 } uiDragToggleHandle;
 
 static bool ui_drag_toggle_set_xy_xy(
-        bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
+        bContext *C, ARegion *ar, const bool is_set,
         const int xy_src[2], const int xy_dst[2])
 {
 	/* popups such as layers won't re-evaluate on redraw */
@@ -1333,7 +1332,7 @@ static bool ui_drag_toggle_set_xy_xy(
 				if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
 
 					/* execute the button */
-					if (ui_drag_toggle_but_is_supported(but) && but->type == but_type_start) {
+					if (ui_drag_toggle_but_is_supported(but)) {
 						/* is it pressed? */
 						bool is_set_but = ui_drag_toggle_but_is_pushed(but);
 						if (is_set_but != is_set) {
@@ -1405,7 +1404,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 
 
 	/* touch all buttons between last mouse coord and this one */
-	do_draw = ui_drag_toggle_set_xy_xy(C, ar, drag_info->is_set, drag_info->but_type_start, drag_info->xy_last, xy);
+	do_draw = ui_drag_toggle_set_xy_xy(C, ar, drag_info->is_set, drag_info->xy_last, xy);
 
 	if (do_draw) {
 		ED_region_tag_redraw(ar);
@@ -1784,7 +1783,6 @@ static bool ui_but_drag_init(
 			drag_info->is_set = ui_drag_toggle_but_is_pushed(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
-			drag_info->but_type_start = but->type;
 			copy_v2_v2_int(drag_info->xy_init, &event->x);
 			copy_v2_v2_int(drag_info->xy_last, &event->x);
 
