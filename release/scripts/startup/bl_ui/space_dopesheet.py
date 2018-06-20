@@ -119,13 +119,11 @@ class DOPESHEET_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        # XXX: perhaps our mode menu can be retired eventually when we get editor submodes in the main menu?
-        layout.prop(st, "mode", text="")
-
         if st.mode == 'TIMELINE':
             TIME_MT_editor_menus.draw_collapsible(context, layout)
             TIME_HT_editor_buttons.draw_header(context, layout)
         else:
+            layout.prop(st, "ui_mode", text="")
             DOPESHEET_MT_editor_menus.draw_collapsible(context, layout)
             DOPESHEET_HT_editor_buttons.draw_header(context, layout)
 

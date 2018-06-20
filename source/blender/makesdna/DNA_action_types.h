@@ -687,12 +687,16 @@ typedef struct SpaceAction {
 	bAction     *action;        /* the currently active action */
 	bDopeSheet ads;             /* the currently active context (when not showing action) */
 
-	char mode, autosnap;        /* mode: editing context; autosnap: automatic keyframe snapping mode   */
-	short flag;                 /* flag: bitmapped settings; */
 	float timeslide;            /* for Time-Slide transform mode drawing - current frame? */
 
-	int cache_display;          /* (eTimeline_Cache_Flag) */
-	int pad;
+	short flag;
+	/* Editing context */
+	char mode;
+	/* Storage for sub-space types. */
+	char mode_prev;
+	char autosnap;              /* automatic keyframe snapping mode   */
+	char cache_display;         /* (eTimeline_Cache_Flag) */
+	char _pad1[6];
 } SpaceAction;
 
 /* SpaceAction flag */
