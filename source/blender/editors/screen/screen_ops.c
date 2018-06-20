@@ -669,7 +669,7 @@ static void fullscreen_click_rcti_init(rcti *rect, const short x1, const short y
 	BLI_rcti_init(rect, x, x + icon_size, y, y + icon_size);
 }
 
-AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
+AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
 {
 	AZone *az = NULL;
 
@@ -817,7 +817,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	AZone *az = is_in_area_actionzone(sa, &event->x);
+	AZone *az = ED_area_actionzone_find_xy(sa, &event->x);
 	sActionzoneData *sad;
 
 	/* quick escape */
@@ -878,7 +878,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				WM_window_screen_rect_calc(win, &screen_rect);
 				/* once we drag outside the actionzone, register a gesture
 				 * check we're not on an edge so join finds the other area */
-				is_gesture = ((is_in_area_actionzone(sad->sa1, &event->x) != sad->az) &&
+				is_gesture = ((ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
 				              (screen_area_map_find_active_scredge(
 				                   AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y) == NULL));
 			}
