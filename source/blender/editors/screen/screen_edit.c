@@ -1003,7 +1003,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 		ED_screen_areas_iter(win, scr, area_iter) {
 			if (xy[0] > area_iter->totrct.xmin && xy[0] < area_iter->totrct.xmax) {
 				if (xy[1] > area_iter->totrct.ymin && xy[1] < area_iter->totrct.ymax) {
-					if (ED_area_actionzone_find_xy(area_iter, xy) == NULL) {
+					if (ED_area_actionzone_refresh_xy(area_iter, xy) == NULL) {
 						sa = area_iter;
 						break;
 					}

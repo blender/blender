@@ -68,6 +68,7 @@ ScrEdge    *screen_find_active_scredge(
         const int mx, const int my);
 
 struct AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2]);
+struct AZone *ED_area_actionzone_refresh_xy(ScrArea *sa, const int xy[2]);
 
 /* screen_context.c */
 int ed_screen_context(

@@ -669,7 +669,7 @@ static void fullscreen_click_rcti_init(rcti *rect, const short x1, const short y
 	BLI_rcti_init(rect, x, x + icon_size, y, y + icon_size);
 }
 
-AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
+static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const bool test_only)
 {
 	AZone *az = NULL;
 
@@ -686,93 +686,109 @@ AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
 				break;
 			}
 			else if (az->type == AZONE_FULLSCREEN) {
-				int mouse_radius, spot_radius, fadein_radius, fadeout_radius;
 				rcti click_rect;
-
 				fullscreen_click_rcti_init(&click_rect, az->x1, az->y1, az->x2, az->y2);
+				const bool click_isect = BLI_rcti_isect_pt_v(&click_rect, xy);
 
-				if (BLI_rcti_isect_pt_v(&click_rect, xy)) {
-					az->alpha = 1.0f;
+				if (test_only) {
+					if (click_isect) {
+						break;
+					}
 				}
 				else {
-					mouse_radius = (xy[0] - az->x2) * (xy[0] - az->x2) + (xy[1] - az->y2) * (xy[1] - az->y2);
-					spot_radius = AZONESPOT * AZONESPOT;
-					fadein_radius = AZONEFADEIN * AZONEFADEIN;
-					fadeout_radius = AZONEFADEOUT * AZONEFADEOUT;
-
-					if (mouse_radius < spot_radius) {
+					if (click_isect) {
 						az->alpha = 1.0f;
-					}
-					else if (mouse_radius < fadein_radius) {
-						az->alpha = 1.0f;
-					}
-					else if (mouse_radius < fadeout_radius) {
-						az->alpha = 1.0f - ((float)(mouse_radius - fadein_radius)) / ((float)(fadeout_radius - fadein_radius));
 					}
 					else {
-						az->alpha = 0.0f;
+						int mouse_radius, spot_radius, fadein_radius, fadeout_radius;
+						mouse_radius = (xy[0] - az->x2) * (xy[0] - az->x2) + (xy[1] - az->y2) * (xy[1] - az->y2);
+						spot_radius = AZONESPOT * AZONESPOT;
+						fadein_radius = AZONEFADEIN * AZONEFADEIN;
+						fadeout_radius = AZONEFADEOUT * AZONEFADEOUT;
+
+						if (mouse_radius < spot_radius) {
+							az->alpha = 1.0f;
+						}
+						else if (mouse_radius < fadein_radius) {
+							az->alpha = 1.0f;
+						}
+						else if (mouse_radius < fadeout_radius) {
+							az->alpha = 1.0f - ((float)(mouse_radius - fadein_radius)) / ((float)(fadeout_radius - fadein_radius));
+						}
+						else {
+							az->alpha = 0.0f;
+						}
+
+						/* fade in/out but no click */
+						az = NULL;
 					}
 
-					/* fade in/out but no click */
-					az = NULL;
+					/* XXX force redraw to show/hide the action zone */
+					ED_area_tag_redraw(sa);
+					break;
 				}
-
-				/* XXX force redraw to show/hide the action zone */
-				ED_area_tag_redraw_no_rebuild(sa);
-				break;
 			}
 			else if (az->type == AZONE_REGION_SCROLL) {
 				ARegion *ar = az->ar;
 				View2D *v2d = &ar->v2d;
 				const short isect_value = UI_view2d_mouse_in_scrollers(ar, v2d, xy[0], xy[1]);
-				bool redraw = false;
-
-				if (isect_value == 'h') {
-					if (az->direction == AZ_SCROLL_HOR) {
-						az->alpha = 1.0f;
-						v2d->alpha_hor = 255;
-						v2d->size_hor = V2D_SCROLL_HEIGHT;
-						redraw = true;
-					}
-				}
-				else if (isect_value == 'v') {
-					if (az->direction == AZ_SCROLL_VERT) {
-						az->alpha = 1.0f;
-						v2d->alpha_vert = 255;
-						v2d->size_vert = V2D_SCROLL_WIDTH;
-						redraw = true;
+				if (test_only) {
+					if (isect_value != 0) {
+						break;
 					}
 				}
 				else {
-					const int local_xy[2] = {xy[0] - ar->winrct.xmin, xy[1] - ar->winrct.ymin};
-					float dist_fac = 0.0f, alpha = 0.0f;
+					bool redraw = false;
 
-					if (az->direction == AZ_SCROLL_HOR) {
-						dist_fac = BLI_rcti_length_y(&v2d->hor, local_xy[1]) / AZONEFADEIN;
-						CLAMP(dist_fac, 0.0f, 1.0f);
-						alpha = 1.0f - dist_fac;
-
-						v2d->alpha_hor = alpha * 255;
-						v2d->size_hor = round_fl_to_int(V2D_SCROLL_HEIGHT -
-						                                ((V2D_SCROLL_HEIGHT - V2D_SCROLL_HEIGHT_MIN) * dist_fac));
+					if (isect_value == 'h') {
+						if (az->direction == AZ_SCROLL_HOR) {
+							az->alpha = 1.0f;
+							v2d->alpha_hor = 255;
+							v2d->size_hor = V2D_SCROLL_HEIGHT;
+							redraw = true;
+						}
 					}
-					else if (az->direction == AZ_SCROLL_VERT) {
-						dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / AZONEFADEIN;
-						CLAMP(dist_fac, 0.0f, 1.0f);
-						alpha = 1.0f - dist_fac;
-
-						v2d->alpha_vert = alpha * 255;
-						v2d->size_vert = round_fl_to_int(V2D_SCROLL_WIDTH -
-						                                 ((V2D_SCROLL_WIDTH - V2D_SCROLL_WIDTH_MIN) * dist_fac));
+					else if (isect_value == 'v') {
+						if (az->direction == AZ_SCROLL_VERT) {
+							az->alpha = 1.0f;
+							v2d->alpha_vert = 255;
+							v2d->size_vert = V2D_SCROLL_WIDTH;
+							redraw = true;
+						}
 					}
-					az->alpha = alpha;
-					redraw = true;
-				}
+					else {
+						const int local_xy[2] = {xy[0] - ar->winrct.xmin, xy[1] - ar->winrct.ymin};
+						float dist_fac = 0.0f, alpha = 0.0f;
 
-				if (redraw) {
-					ED_area_tag_redraw_no_rebuild(sa);
+						if (az->direction == AZ_SCROLL_HOR) {
+							dist_fac = BLI_rcti_length_y(&v2d->hor, local_xy[1]) / AZONEFADEIN;
+							CLAMP(dist_fac, 0.0f, 1.0f);
+							alpha = 1.0f - dist_fac;
+
+							v2d->alpha_hor = alpha * 255;
+							v2d->size_hor = round_fl_to_int(
+							        V2D_SCROLL_HEIGHT -
+							        ((V2D_SCROLL_HEIGHT - V2D_SCROLL_HEIGHT_MIN) * dist_fac));
+						}
+						else if (az->direction == AZ_SCROLL_VERT) {
+							dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / AZONEFADEIN;
+							CLAMP(dist_fac, 0.0f, 1.0f);
+							alpha = 1.0f - dist_fac;
+
+							v2d->alpha_vert = alpha * 255;
+							v2d->size_vert = round_fl_to_int(
+							        V2D_SCROLL_WIDTH -
+							        ((V2D_SCROLL_WIDTH - V2D_SCROLL_WIDTH_MIN) * dist_fac));
+						}
+						az->alpha = alpha;
+						redraw = true;
+					}
+
+					if (redraw) {
+						ED_area_tag_redraw_no_rebuild(sa);
+					}
+					/* Don't return! */
 				}
-				/* Don't return! */
 			}
 		}
 	}
@@ -780,6 +796,15 @@ AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
 	return az;
 }
 
+AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
+{
+	return area_actionzone_refresh_xy(sa, xy, true);
+}
+
+AZone *ED_area_actionzone_refresh_xy(ScrArea *sa, const int xy[2])
+{
+	return area_actionzone_refresh_xy(sa, xy, false);
+}
 
 static void actionzone_exit(wmOperator *op)
 {
