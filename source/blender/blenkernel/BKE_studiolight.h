@@ -61,6 +61,22 @@
 
 #define STUDIOLIGHT_ICON_SIZE 96
 
+#define STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL 2
+#define STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS 9
+
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 0
+#define STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS 1
+#endif
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 1
+#define STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS 4
+#endif
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 2
+#define STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS 9
+#endif
+
 struct GPUTexture;
 struct StudioLight;
 
@@ -97,12 +113,12 @@ typedef struct StudioLight {
 	char name[FILE_MAXFILE];
 	char path[FILE_MAX];
 	char *path_irr_cache;
-	char *path_sh2_cache;
+	char *path_sh_cache;
 	int icon_id_irradiance;
 	int icon_id_radiance;
 	int icon_id_matcap;
 	int icon_id_matcap_flipped;
-	float spherical_harmonics_coefs[9][3];
+	float spherical_harmonics_coefs[STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS][3];
 	float light_direction[3];
 	ImBuf *equirectangular_radiance_buffer;
 	ImBuf *equirectangular_irradiance_buffer;

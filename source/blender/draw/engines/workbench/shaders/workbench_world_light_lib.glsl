@@ -1,32 +1,36 @@
 #define BLINN
 
-vec3 spherical_harmonics_L2(vec3 N, vec3 spherical_harmonics_coefs[9])
+vec3 spherical_harmonics(vec3 N, vec3 spherical_harmonics_coefs[STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS])
 {
 	vec3 sh = vec3(0.0);
 
 	sh += 0.282095 * spherical_harmonics_coefs[0];
 
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 0
 	sh += -0.488603 * N.z * spherical_harmonics_coefs[1];
 	sh += 0.488603 * N.y * spherical_harmonics_coefs[2];
 	sh += -0.488603 * N.x * spherical_harmonics_coefs[3];
+#endif
 
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 1
 	sh += 1.092548 * N.x * N.z * spherical_harmonics_coefs[4];
 	sh += -1.092548 * N.z * N.y * spherical_harmonics_coefs[5];
 	sh += 0.315392 * (3.0 * N.y * N.y - 1.0) * spherical_harmonics_coefs[6];
 	sh += -1.092548 * N.x * N.y * spherical_harmonics_coefs[7];
 	sh += 0.546274 * (N.x * N.x - N.z * N.z) * spherical_harmonics_coefs[8];
+#endif
 
 	return sh;
 }
 
 vec3 get_world_diffuse_light(WorldData world_data, vec3 N)
 {
-	return (spherical_harmonics_L2(vec3(N.x, N.y, -N.z), world_data.spherical_harmonics_coefs));
+	return (spherical_harmonics(vec3(N.x, N.y, -N.z), world_data.spherical_harmonics_coefs));
 }
 
 vec3 get_camera_diffuse_light(WorldData world_data, vec3 N)
 {
-	return (spherical_harmonics_L2(vec3(N.x, -N.z, -N.y), world_data.spherical_harmonics_coefs));
+	return (spherical_harmonics(vec3(N.x, -N.z, -N.y), world_data.spherical_harmonics_coefs));
 }
 
 /* N And I are in View Space. */

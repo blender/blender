@@ -112,7 +112,7 @@ typedef struct WORKBENCH_UBO_Light {
 } WORKBENCH_UBO_Light;
 
 typedef struct WORKBENCH_UBO_World {
-	float spherical_harmonics_coefs[9][4];
+	float spherical_harmonics_coefs[STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS][4];
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];
