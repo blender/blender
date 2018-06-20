@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* TODO(lukas): Fix colors in OSL. */
+
 float color_srgb_to_scene_linear(float c)
 {
 	if (c < 0.04045)

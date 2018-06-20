@@ -227,13 +227,14 @@ void BKE_workspace_instance_hook_free(const Main *bmain, WorkSpaceInstanceHook *
  * Add a new layout to \a workspace for \a screen.
  */
 WorkSpaceLayout *BKE_workspace_layout_add(
+        Main *bmain,
         WorkSpace *workspace,
         bScreen *screen,
         const char *name)
 {
 	WorkSpaceLayout *layout = MEM_callocN(sizeof(*layout), __func__);
 
-	BLI_assert(!workspaces_is_screen_used(G.main, screen));
+	BLI_assert(!workspaces_is_screen_used(bmain, screen));
 	layout->screen = screen;
 	workspace_layout_name_set(workspace, layout, name);
 	BLI_addtail(&workspace->layouts, layout);

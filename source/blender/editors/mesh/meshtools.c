@@ -373,7 +373,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	else if (haskey) {
 		/* add a new key-block and add to the mesh */
-		key = me->key = BKE_key_add((ID *)me);
+		key = me->key = BKE_key_add(bmain, (ID *)me);
 		key->type = KEY_RELATIVE;
 	}
 
@@ -593,6 +593,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;
@@ -605,6 +606,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -639,7 +641,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 
 	if (key == NULL) {
-		key = me->key = BKE_key_add((ID *)me);
+		key = me->key = BKE_key_add(bmain, (ID *)me);
 		key->type = KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialize it with the existing mesh */
@@ -670,6 +672,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;

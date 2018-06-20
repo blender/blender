@@ -39,7 +39,7 @@ void LineRep::ComputeBBox()
 	real YMin = _vertices.front()[1];
 	real ZMin = _vertices.front()[2];
 
-	// parse all the coordinates to find 
+	// parse all the coordinates to find
 	// the XMax, YMax, ZMax
 	vector<Vec3r>::iterator v;
 	for (v = _vertices.begin(); v != _vertices.end(); ++v) {

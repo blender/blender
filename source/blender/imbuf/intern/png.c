@@ -82,7 +82,7 @@ int imb_is_a_png(const unsigned char *mem)
 	return(ret_val);
 }
 
-static void Flush(png_structp png_ptr) 
+static void Flush(png_structp png_ptr)
 {
 	(void)png_ptr;
 }
@@ -415,7 +415,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 				num_text++;
 			}
 		}
-		
+
 		metadata = MEM_callocN(num_text * sizeof(png_text), "png_metadata");
 		num_text = 0;
 		for (prop = ibuf->metadata->data.group.first; prop; prop = prop->next) {
@@ -426,7 +426,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 				num_text++;
 			}
 		}
-		
+
 		png_set_text(png_ptr, info_ptr, metadata, num_text);
 		MEM_freeN(metadata);
 
@@ -544,7 +544,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 
 	info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL) {
-		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, 
+		png_destroy_read_struct(&png_ptr, (png_infopp)NULL,
 		                        (png_infopp)NULL);
 		printf("Cannot png_create_info_struct\n");
 		return NULL;
@@ -568,7 +568,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 	// png_set_sig_bytes(png_ptr, 8);
 
 	png_read_info(png_ptr, info_ptr);
-	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, 
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
 	             &color_type, NULL, NULL, NULL);
 
 	channels = png_get_channels(png_ptr, info_ptr);
@@ -601,7 +601,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 			printf("PNG format not supported\n");
 			longjmp(png_jmpbuf(png_ptr), 1);
 	}
-	
+
 	ibuf = IMB_allocImBuf(width, height, 8 * channels, 0);
 
 	if (ibuf) {

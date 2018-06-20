@@ -94,7 +94,7 @@ public: // Implementation of Interface0D
 		return _Point3d.z();
 	}
 
-	/*!  Returns the 3D point. */ 
+	/*!  Returns the 3D point. */
 	virtual Vec3r getPoint3D() const
 	{
 		return _Point3d;
@@ -118,7 +118,7 @@ public: // Implementation of Interface0D
 		return _Point2d.z();
 	}
 
-	/*!  Returns the 2D point. */ 
+	/*!  Returns the 2D point. */
 	virtual Vec2r getPoint2D() const
 	{
 		return Vec2r(_Point2d.x(), _Point2d.y());
@@ -444,7 +444,7 @@ public:
 	}
 
 	/*! Adds a single vertex (SVertex) at the end of the Curve */
-	inline void push_vertex_back(SVertex *iVertex) 
+	inline void push_vertex_back(SVertex *iVertex)
 	{
 		if (!_Vertices.empty()) {
 			Vec3r vec_tmp(iVertex->point2d() - _Vertices.back()->point2d());
@@ -456,7 +456,7 @@ public:
 	}
 
 	/*! Adds a single vertex (CurvePoint) at the front of the Curve */
-	inline void push_vertex_front(Vertex *iVertex) 
+	inline void push_vertex_front(Vertex *iVertex)
 	{
 		if (!_Vertices.empty()) {
 			Vec3r vec_tmp(iVertex->point2d() - _Vertices.front()->point2d());
@@ -468,7 +468,7 @@ public:
 	}
 
 	/*! Adds a single vertex (SVertex) at the front of the Curve */
-	inline void push_vertex_front(SVertex *iVertex) 
+	inline void push_vertex_front(SVertex *iVertex)
 	{
 		if (!_Vertices.empty()) {
 			Vec3r vec_tmp(iVertex->point2d() - _Vertices.front()->point2d());

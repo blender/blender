@@ -142,29 +142,22 @@ Scene *bc_get_scene(bContext *C)
 	return CTX_data_scene(C);
 }
 
-Main *bc_get_main()
-{
-	return G.main;
-}
-
-
-void bc_update_scene(Depsgraph *depsgraph, Scene *scene, float ctime)
+void bc_update_scene(Main *bmain, Depsgraph *depsgraph, Scene *scene, float ctime)
 {
 	BKE_scene_frame_set(scene, ctime);
-	Main *bmain = bc_get_main();
 	BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 }
 
-Object *bc_add_object(Scene *scene, ViewLayer *view_layer, int type, const char *name)
+Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name)
 {
-	Object *ob = BKE_object_add_only_object(G.main, type, name);
+	Object *ob = BKE_object_add_only_object(bmain, type, name);
 
-	ob->data = BKE_object_obdata_add_from_type(G.main, type, name);
+	ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
 	ob->lay = scene->lay;
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
-	BKE_collection_object_add(G.main, layer_collection->collection, ob);
+	BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 	BKE_view_layer_base_select(view_layer, base);
@@ -172,7 +165,8 @@ Object *bc_add_object(Scene *scene, ViewLayer *view_layer, int type, const char 
 	return ob;
 }
 
-Mesh *bc_get_mesh_copy(struct Depsgraph *depsgraph, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
+Mesh *bc_get_mesh_copy(
+        Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
 {
 	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;
@@ -196,7 +190,7 @@ Mesh *bc_get_mesh_copy(struct Depsgraph *depsgraph, Scene *scene, Object *ob, BC
 		dm = mesh_create_derived((Mesh *)ob->data, NULL);
 	}
 
-	tmpmesh = BKE_mesh_add(G.main, "ColladaMesh"); // name is not important here
+	tmpmesh = BKE_mesh_add(bmain, "ColladaMesh"); // name is not important here
 	DM_to_mesh(dm, tmpmesh, ob, CD_MASK_MESH, true);
 	tmpmesh->flag = mesh->flag;
 
@@ -449,7 +443,8 @@ void bc_triangulate_mesh(Mesh *me)
 	BM_mesh_triangulate(bm, quad_method, use_beauty, tag_only, NULL, NULL, NULL);
 
 	BMeshToMeshParams bm_to_me_params = {0};
-	BM_mesh_bm_to_me(bm, me, &bm_to_me_params);
+	bm_to_me_params.calc_object_remap = false;
+	BM_mesh_bm_to_me(NULL, bm, me, &bm_to_me_params);
 	BM_mesh_free(bm);
 }
 

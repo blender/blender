@@ -31,6 +31,11 @@
 
 #include "util/util_foreach.h"
 
+#ifdef WITH_OCIO
+#  include <OpenColorIO/OpenColorIO.h>
+namespace OCIO = OCIO_NAMESPACE;
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 thread_mutex ShaderManager::lookup_table_mutex;
@@ -339,6 +344,40 @@ ShaderManager::ShaderManager()
 {
 	need_update = true;
 	beckmann_table_offset = TABLE_OFFSET_INVALID;
+
+	xyz_to_r = make_float3( 3.2404542f, -1.5371385f, -0.4985314f);
+	xyz_to_g = make_float3(-0.9692660f,  1.8760108f,  0.0415560f);
+	xyz_to_b = make_float3( 0.0556434f, -0.2040259f,  1.0572252f);
+	rgb_to_y = make_float3( 0.2126729f,  0.7151522f,  0.0721750f);
+
+#ifdef WITH_OCIO
+	OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+	if(config) {
+		if(config->hasRole("XYZ") && config->hasRole("scene_linear")) {
+			OCIO::ConstProcessorRcPtr to_rgb_processor = config->getProcessor("XYZ", "scene_linear");
+			OCIO::ConstProcessorRcPtr to_xyz_processor = config->getProcessor("scene_linear", "XYZ");
+			if(to_rgb_processor && to_xyz_processor) {
+				float r[] = {1.0f, 0.0f, 0.0f};
+				float g[] = {0.0f, 1.0f, 0.0f};
+				float b[] = {0.0f, 0.0f, 1.0f};
+				to_xyz_processor->applyRGB(r);
+				to_xyz_processor->applyRGB(g);
+				to_xyz_processor->applyRGB(b);
+				rgb_to_y = make_float3(r[1], g[1], b[1]);
+
+				float x[] = {1.0f, 0.0f, 0.0f};
+				float y[] = {0.0f, 1.0f, 0.0f};
+				float z[] = {0.0f, 0.0f, 1.0f};
+				to_rgb_processor->applyRGB(x);
+				to_rgb_processor->applyRGB(y);
+				to_rgb_processor->applyRGB(z);
+				xyz_to_r = make_float3(x[0], y[0], z[0]);
+				xyz_to_g = make_float3(x[1], y[1], z[1]);
+				xyz_to_b = make_float3(x[2], y[2], z[2]);
+			}
+		}
+	}
+#endif
 }
 
 ShaderManager::~ShaderManager()
@@ -519,6 +558,14 @@ void ShaderManager::device_update_common(Device *device,
 	kintegrator->use_volumes = has_volumes;
 	/* TODO(sergey): De-duplicate with flags set in integrator.cpp. */
 	kintegrator->transparent_shadows = has_transparent_shadow;
+
+	/* film */
+	KernelFilm *kfilm = &dscene->data.film;
+	/* color space, needs to be here because e.g. displacement shaders could depend on it */
+	kfilm->xyz_to_r = float3_to_float4(xyz_to_r);
+	kfilm->xyz_to_g = float3_to_float4(xyz_to_g);
+	kfilm->xyz_to_b = float3_to_float4(xyz_to_b);
+	kfilm->rgb_to_y = float3_to_float4(rgb_to_y);
 }
 
 void ShaderManager::device_free_common(Device *, DeviceScene *dscene, Scene *scene)
@@ -642,6 +689,11 @@ void ShaderManager::get_requested_features(Scene *scene,
 void ShaderManager::free_memory()
 {
 	beckmann_table.free_memory();
+}
+
+float ShaderManager::linear_rgb_to_gray(float3 c)
+{
+	return dot(c, rgb_to_y);
 }
 
 CCL_NAMESPACE_END

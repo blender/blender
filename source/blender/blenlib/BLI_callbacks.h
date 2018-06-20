@@ -62,7 +62,7 @@ typedef struct bCallbackFuncStore {
 } bCallbackFuncStore;
 
 
-void BLI_callback_exec(struct Main *main, struct ID *self, eCbEvent evt);
+void BLI_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt);
 void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 
 void BLI_callback_global_init(void);

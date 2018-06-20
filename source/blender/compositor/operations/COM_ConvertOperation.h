@@ -29,10 +29,10 @@
 class ConvertBaseOperation : public NodeOperation {
 protected:
 	SocketReader *m_inputOperation;
-	
+
 public:
 	ConvertBaseOperation();
-	
+
 	void initExecution();
 	void deinitExecution();
 };
@@ -41,7 +41,7 @@ public:
 class ConvertValueToColorOperation : public ConvertBaseOperation {
 public:
 	ConvertValueToColorOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -49,7 +49,7 @@ public:
 class ConvertColorToValueOperation : public ConvertBaseOperation {
 public:
 	ConvertColorToValueOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -57,7 +57,7 @@ public:
 class ConvertColorToBWOperation : public ConvertBaseOperation {
 public:
 	ConvertColorToBWOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -65,7 +65,7 @@ public:
 class ConvertColorToVectorOperation : public ConvertBaseOperation {
 public:
 	ConvertColorToVectorOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -73,7 +73,7 @@ public:
 class ConvertValueToVectorOperation : public ConvertBaseOperation {
 public:
 	ConvertValueToVectorOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -81,7 +81,7 @@ public:
 class ConvertVectorToColorOperation : public ConvertBaseOperation {
 public:
 	ConvertVectorToColorOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -89,7 +89,7 @@ public:
 class ConvertVectorToValueOperation : public ConvertBaseOperation {
 public:
 	ConvertVectorToValueOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -114,9 +114,9 @@ private:
 	int m_mode;
 public:
 	ConvertYCCToRGBOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	/** Set the YCC mode */
 	void setMode(int mode);
 };
@@ -125,7 +125,7 @@ public:
 class ConvertRGBToYUVOperation : public ConvertBaseOperation {
 public:
 	ConvertRGBToYUVOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -133,7 +133,7 @@ public:
 class ConvertYUVToRGBOperation : public ConvertBaseOperation {
 public:
 	ConvertYUVToRGBOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -141,7 +141,7 @@ public:
 class ConvertRGBToHSVOperation : public ConvertBaseOperation {
 public:
 	ConvertRGBToHSVOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -149,7 +149,7 @@ public:
 class ConvertHSVToRGBOperation : public ConvertBaseOperation {
 public:
 	ConvertHSVToRGBOperation();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
@@ -177,10 +177,10 @@ private:
 public:
 	SeparateChannelOperation();
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	void initExecution();
 	void deinitExecution();
-	
+
 	void setChannel(int channel) { this->m_channel = channel; }
 };
 
@@ -194,7 +194,7 @@ private:
 public:
 	CombineChannelsOperation();
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	void initExecution();
 	void deinitExecution();
 };

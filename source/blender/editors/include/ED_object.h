@@ -40,6 +40,7 @@ struct Base;
 struct EnumPropertyItem;
 struct ID;
 struct Main;
+struct Menu;
 struct ModifierData;
 struct Object;
 struct ReportList;
@@ -58,12 +59,14 @@ struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
 struct Depsgraph;
+struct uiLayout;
 
 #include "DNA_object_enums.h"
 
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
 struct Object *ED_object_active_context(struct bContext *C); /* context.object or context.active_object */
+void ED_hide_collections_menu_draw(const struct bContext *C, struct uiLayout *layout);
 
 /* object_ops.c */
 void ED_operatortypes_object(void);
@@ -245,7 +248,7 @@ int ED_object_modifier_convert(
         struct ReportList *reports, struct Main *bmain, struct Scene *scene,
         struct ViewLayer *view_layer, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_apply(
-        struct ReportList *reports, struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Main *bmain, struct ReportList *reports, struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
@@ -276,8 +279,5 @@ void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int
 #ifdef __cplusplus
 }
 #endif
-
-/* Don't allow switching object-modes when selecting objects. */
-#define USE_OBJECT_MODE_STRICT
 
 #endif /* __ED_OBJECT_H__ */

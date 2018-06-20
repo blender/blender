@@ -48,12 +48,24 @@
 
 #include "bpy_driver.h"
 
+#include "BPY_extern.h"
+
 extern void BPY_update_rna_module(void);
 
 #define USE_RNA_AS_PYOBJECT
 
+#define USE_BYTECODE_WHITELIST
+
+#ifdef USE_BYTECODE_WHITELIST
+#  include <opcode.h>
+#endif
+
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict = NULL;
+
+#ifdef USE_BYTECODE_WHITELIST
+static PyObject *bpy_pydriver_Dict__whitelist = NULL;
+#endif
 
 /* For faster execution we keep a special dictionary for pydrivers, with
  * the needed modules and aliases.
@@ -79,6 +91,9 @@ int bpy_pydriver_create_dict(void)
 		PyDict_Merge(d, PyModule_GetDict(mod), 0); /* 0 - don't overwrite existing values */
 		Py_DECREF(mod);
 	}
+#ifdef USE_BYTECODE_WHITELIST
+	PyObject *mod_math = mod;
+#endif
 
 	/* add bpy to global namespace */
 	mod = PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
@@ -94,6 +109,48 @@ int bpy_pydriver_create_dict(void)
 		PyDict_SetItemString(bpy_pydriver_Dict, "noise", modsub);
 		Py_DECREF(mod);
 	}
+
+#ifdef USE_BYTECODE_WHITELIST
+	/* setup the whitelist */
+	{
+		bpy_pydriver_Dict__whitelist = PyDict_New();
+		const char *whitelist[] = {
+			/* builtins (basic) */
+			"all",
+			"any",
+			"len",
+			/* builtins (numeric) */
+			"max",
+			"min",
+			"pow",
+			"round",
+			"sum",
+			/* types */
+			"bool",
+			"float",
+			"int",
+
+			NULL,
+		};
+
+		for (int i = 0; whitelist[i]; i++) {
+			PyDict_SetItemString(bpy_pydriver_Dict__whitelist, whitelist[i], Py_None);
+		}
+
+		/* Add all of 'math' functions. */
+		if (mod_math != NULL) {
+			PyObject *mod_math_dict = PyModule_GetDict(mod_math);
+			PyObject *arg_key, *arg_value;
+			Py_ssize_t arg_pos = 0;
+			while (PyDict_Next(mod_math_dict, &arg_pos, &arg_key, &arg_value)) {
+				const char *arg_str = _PyUnicode_AsString(arg_key);
+				if (arg_str[0] && arg_str[1] != '_') {
+					PyDict_SetItem(bpy_pydriver_Dict__whitelist, arg_key, Py_None);
+				}
+			}
+		}
+	}
+#endif  /* USE_BYTECODE_WHITELIST */
 
 	return 0;
 }
@@ -163,6 +220,14 @@ void BPY_driver_reset(void)
 		bpy_pydriver_Dict = NULL;
 	}
 
+#ifdef USE_BYTECODE_WHITELIST
+	if (bpy_pydriver_Dict__whitelist) {
+		PyDict_Clear(bpy_pydriver_Dict__whitelist);
+		Py_DECREF(bpy_pydriver_Dict__whitelist);
+		bpy_pydriver_Dict__whitelist = NULL;
+	}
+#endif
+
 	g_pydriver_state_prev.evaltime = FLT_MAX;
 
 	/* freed when clearing driver dict */
@@ -185,6 +250,130 @@ static void pydriver_error(ChannelDriver *driver)
 	PyErr_Clear();
 }
 
+#ifdef USE_BYTECODE_WHITELIST
+
+#define OK_OP(op) [op] = 1
+
+const char secure_opcodes[255] = {
+	OK_OP(0),
+	OK_OP(POP_TOP),
+	OK_OP(ROT_TWO),
+	OK_OP(ROT_THREE),
+	OK_OP(DUP_TOP),
+	OK_OP(DUP_TOP_TWO),
+	OK_OP(NOP),
+	OK_OP(UNARY_POSITIVE),
+	OK_OP(UNARY_NEGATIVE),
+	OK_OP(UNARY_NOT),
+	OK_OP(UNARY_INVERT),
+	OK_OP(BINARY_MATRIX_MULTIPLY),
+	OK_OP(INPLACE_MATRIX_MULTIPLY),
+	OK_OP(BINARY_POWER),
+	OK_OP(BINARY_MULTIPLY),
+	OK_OP(BINARY_MODULO),
+	OK_OP(BINARY_ADD),
+	OK_OP(BINARY_SUBTRACT),
+	OK_OP(BINARY_SUBSCR),
+	OK_OP(BINARY_FLOOR_DIVIDE),
+	OK_OP(BINARY_TRUE_DIVIDE),
+	OK_OP(INPLACE_FLOOR_DIVIDE),
+	OK_OP(INPLACE_TRUE_DIVIDE),
+	OK_OP(INPLACE_ADD),
+	OK_OP(INPLACE_SUBTRACT),
+	OK_OP(INPLACE_MULTIPLY),
+	OK_OP(INPLACE_MODULO),
+	OK_OP(BINARY_LSHIFT),
+	OK_OP(BINARY_RSHIFT),
+	OK_OP(BINARY_AND),
+	OK_OP(BINARY_XOR),
+	OK_OP(BINARY_OR),
+	OK_OP(INPLACE_POWER),
+	OK_OP(INPLACE_LSHIFT),
+	OK_OP(INPLACE_RSHIFT),
+	OK_OP(INPLACE_AND),
+	OK_OP(INPLACE_XOR),
+	OK_OP(INPLACE_OR),
+	OK_OP(RETURN_VALUE),
+	OK_OP(BUILD_TUPLE),
+	OK_OP(BUILD_LIST),
+	OK_OP(BUILD_SET),
+	OK_OP(BUILD_MAP),
+	OK_OP(COMPARE_OP),
+	OK_OP(JUMP_FORWARD),
+	OK_OP(JUMP_IF_FALSE_OR_POP),
+	OK_OP(JUMP_IF_TRUE_OR_POP),
+	OK_OP(JUMP_ABSOLUTE),
+	OK_OP(POP_JUMP_IF_FALSE),
+	OK_OP(POP_JUMP_IF_TRUE),
+	OK_OP(LOAD_GLOBAL),
+	OK_OP(LOAD_FAST),
+	OK_OP(STORE_FAST),
+	OK_OP(DELETE_FAST),
+	OK_OP(LOAD_DEREF),
+	OK_OP(STORE_DEREF),
+
+	/* special cases */
+	OK_OP(LOAD_CONST),         /* ok because constants are accepted */
+	OK_OP(LOAD_NAME),          /* ok, because PyCodeObject.names is checked */
+	OK_OP(CALL_FUNCTION),      /* ok, because we check its 'name' before calling */
+	OK_OP(CALL_FUNCTION_KW),
+	OK_OP(CALL_FUNCTION_EX),
+};
+
+#undef OK_OP
+
+static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *dict_arr[])
+{
+	PyCodeObject *py_code = (PyCodeObject *)expr_code;
+
+	/* Check names. */
+	{
+		for (int i = 0; i < PyTuple_GET_SIZE(py_code->co_names); i++) {
+			PyObject *name = PyTuple_GET_ITEM(py_code->co_names, i);
+
+			bool contains_name = false;
+			for (int j = 0; dict_arr[j]; j++) {
+				if (PyDict_Contains(dict_arr[j], name)) {
+					contains_name = true;
+					break;
+				}
+			}
+
+			if (contains_name == false) {
+				fprintf(stderr, "\tBPY_driver_eval() - restructed access disallows name '%s', "
+				                "enable auto-execution to support\n", _PyUnicode_AsString(name));
+				return false;
+			}
+		}
+	}
+
+	/* Check opcodes. */
+	{
+		const char *codestr;
+		Py_ssize_t  code_len;
+
+		PyBytes_AsStringAndSize(py_code->co_code, (char **)&codestr, &code_len);
+
+#define CODESIZE(op) (HAS_ARG(op) ? 3 : 1)
+
+		for (Py_ssize_t i = 0; i < code_len; i += CODESIZE(codestr[i])) {
+			const int opcode = codestr[i];
+			if (secure_opcodes[opcode] == 0) {
+				fprintf(stderr, "\tBPY_driver_eval() - restructed access disallows opcode '%d', "
+				                "enable auto-execution to support\n", opcode);
+				return false;
+			}
+		}
+
+#undef CODESIZE
+	}
+
+	return true;
+}
+
+#endif  /* USE_BYTECODE_WHITELIST */
+
+
 /* This evals py driver expressions, 'expr' is a Python expression that
  * should evaluate to a float number, which is returned.
  *
@@ -196,8 +385,12 @@ static void pydriver_error(ChannelDriver *driver)
  * (new)note: checking if python is running is not threadsafe [#28114]
  * now release the GIL on python operator execution instead, using
  * PyEval_SaveThread() / PyEval_RestoreThread() so we don't lock up blender.
+ *
+ * For copy-on-write we always cache expressions and write errors in the
+ * original driver, otherwise these would get freed while editing. Due to
+ * the GIL this is thread-safe.
  */
-float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, const float evaltime)
+float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, ChannelDriver *driver_orig, const float evaltime)
 {
 	PyObject *driver_vars = NULL;
 	PyObject *retval = NULL;
@@ -213,10 +406,11 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 	int i;
 
 	/* get the py expression to be evaluated */
-	expr = driver->expression;
+	expr = driver_orig->expression;
 	if (expr[0] == '\0')
 		return 0.0f;
 
+#ifndef USE_BYTECODE_WHITELIST
 	if (!(G.f & G_SCRIPT_AUTOEXEC)) {
 		if (!(G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
 			G.f |= G_SCRIPT_AUTOEXEC_FAIL;
@@ -226,6 +420,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 		}
 		return 0.0f;
 	}
+#else
+	bool is_recompile = false;
+#endif
 
 	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
@@ -249,47 +446,50 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 	/* update global namespace */
 	bpy_pydriver_namespace_update_frame(evaltime);
 
-	if (driver->flag & DRIVER_FLAG_USE_SELF) {
+	if (driver_orig->flag & DRIVER_FLAG_USE_SELF) {
 		bpy_pydriver_namespace_update_self(anim_rna);
 	}
 	else {
 		bpy_pydriver_namespace_clear_self();
 	}
 
-	if (driver->expr_comp == NULL)
-		driver->flag |= DRIVER_FLAG_RECOMPILE;
+	if (driver_orig->expr_comp == NULL)
+		driver_orig->flag |= DRIVER_FLAG_RECOMPILE;
 
 	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
-	if (driver->flag & DRIVER_FLAG_RECOMPILE) {
-		Py_XDECREF(driver->expr_comp);
-		driver->expr_comp = PyTuple_New(2);
+	if (driver_orig->flag & DRIVER_FLAG_RECOMPILE) {
+		Py_XDECREF(driver_orig->expr_comp);
+		driver_orig->expr_comp = PyTuple_New(2);
 
 		expr_code = Py_CompileString(expr, "<bpy driver>", Py_eval_input);
-		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 0, expr_code);
+		PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, expr_code);
 
-		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
-		driver->flag |= DRIVER_FLAG_RENAMEVAR; /* maybe this can be removed but for now best keep until were sure */
+		driver_orig->flag &= ~DRIVER_FLAG_RECOMPILE;
+		driver_orig->flag |= DRIVER_FLAG_RENAMEVAR; /* maybe this can be removed but for now best keep until were sure */
+#ifdef USE_BYTECODE_WHITELIST
+		is_recompile = true;
+#endif
 	}
 	else {
-		expr_code = PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 0);
+		expr_code = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 0);
 	}
 
-	if (driver->flag & DRIVER_FLAG_RENAMEVAR) {
+	if (driver_orig->flag & DRIVER_FLAG_RENAMEVAR) {
 		/* may not be set */
-		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
+		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
 		Py_XDECREF(expr_vars);
 
-		expr_vars = PyTuple_New(BLI_listbase_count(&driver->variables));
-		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 1, expr_vars);
+		expr_vars = PyTuple_New(BLI_listbase_count(&driver_orig->variables));
+		PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 1, expr_vars);
 
-		for (dvar = driver->variables.first, i = 0; dvar; dvar = dvar->next) {
+		for (dvar = driver_orig->variables.first, i = 0; dvar; dvar = dvar->next) {
 			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_FromString(dvar->name));
 		}
 
-		driver->flag &= ~DRIVER_FLAG_RENAMEVAR;
+		driver_orig->flag &= ~DRIVER_FLAG_RENAMEVAR;
 	}
 	else {
-		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
+		expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
 	}
 
 	/* add target values to a dict that will be used as '__locals__' dict */
@@ -350,6 +550,24 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 		}
 	}
 
+#ifdef USE_BYTECODE_WHITELIST
+	if (is_recompile) {
+		if (!(G.f & G_SCRIPT_AUTOEXEC)) {
+			if (!bpy_driver_secure_bytecode_validate(
+			            expr_code, (PyObject *[]){
+			                bpy_pydriver_Dict,
+			                bpy_pydriver_Dict__whitelist,
+			                driver_vars,
+			                NULL,}
+			        ))
+			{
+				Py_DECREF(expr_code);
+				expr_code = NULL;
+				PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, NULL);
+			}
+		}
+	}
+#endif  /* USE_BYTECODE_WHITELIST */
 
 #if 0  /* slow, with this can avoid all Py_CompileString above. */
 	/* execute expression to get a value */

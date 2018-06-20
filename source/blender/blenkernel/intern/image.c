@@ -342,19 +342,18 @@ void BKE_image_free_buffers(Image *ima)
 /** Free (or release) any data used by this image (does not free the image itself). */
 void BKE_image_free(Image *ima)
 {
-	int a;
-
 	/* Also frees animdata. */
 	BKE_image_free_buffers(ima);
 
 	image_free_packedfiles(ima);
 
-	for (a = 0; a < IMA_MAX_RENDER_SLOT; a++) {
-		if (ima->renders[a]) {
-			RE_FreeRenderResult(ima->renders[a]);
-			ima->renders[a] = NULL;
+	LISTBASE_FOREACH(RenderSlot *, slot, &ima->renderslots) {
+		if (slot->render) {
+			RE_FreeRenderResult(slot->render);
+			slot->render = NULL;
 		}
 	}
+	BLI_freelistN(&ima->renderslots);
 
 	BKE_image_free_views(ima);
 	MEM_SAFE_FREE(ima->stereo3d_format);
@@ -379,6 +378,12 @@ static void image_init(Image *ima, short source, short type)
 
 	if (source == IMA_SRC_VIEWER)
 		ima->flag |= IMA_VIEW_AS_RENDER;
+
+	if (type == IMA_TYPE_R_RESULT) {
+		for (int i = 0; i < 8; i++) {
+			BKE_image_add_renderslot(ima, NULL);
+		}
+	}
 
 	BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
 	ima->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Image Stereo Format");
@@ -466,14 +471,15 @@ void BKE_image_copy_data(Main *UNUSED(bmain), Image *ima_dst, const Image *ima_s
 	/* Cleanup stuff that cannot be copied. */
 	ima_dst->cache = NULL;
 	ima_dst->rr = NULL;
-	for (int i = 0; i < IMA_MAX_RENDER_SLOT; i++) {
-		ima_dst->renders[i] = NULL;
+
+	BLI_duplicatelist(&ima_dst->renderslots, &ima_src->renderslots);
+	LISTBASE_FOREACH(RenderSlot *, slot, &ima_dst->renderslots) {
+		slot->render = NULL;
 	}
 
 	BLI_listbase_clear(&ima_dst->anims);
 
 	for (int i = 0; i < TEXTARGET_COUNT; i++) {
-		ima_dst->bindcode[i] = 0;
 		ima_dst->gputexture[i] = NULL;
 	}
 
@@ -538,16 +544,14 @@ bool BKE_image_scale(Image *image, int width, int height)
 	return (ibuf != NULL);
 }
 
-bool BKE_image_has_bindcode(Image *ima)
+bool BKE_image_has_opengl_texture(Image *ima)
 {
-	bool has_bindcode = false;
 	for (int i = 0; i < TEXTARGET_COUNT; i++) {
-		if (ima->bindcode[i]) {
-			has_bindcode = true;
-			break;
+		if (ima->gputexture[i]) {
+			return true;
 		}
 	}
-	return has_bindcode;
+	return false;
 }
 
 static void image_init_color_management(Image *ima)
@@ -572,7 +576,7 @@ static void image_init_color_management(Image *ima)
 
 char BKE_image_alpha_mode_from_extension_ex(const char *filepath)
 {
-	if (BLI_testextensie_n(filepath, ".exr", ".cin", ".dpx", ".hdr", NULL)) {
+	if (BLI_path_extension_check_n(filepath, ".exr", ".cin", ".dpx", ".hdr", NULL)) {
 		return IMA_ALPHA_PREMUL;
 	}
 	else {
@@ -603,7 +607,7 @@ Image *BKE_image_load(Main *bmain, const char *filepath)
 	ima = image_alloc(bmain, BLI_path_basename(filepath), IMA_SRC_FILE, IMA_TYPE_IMAGE);
 	STRNCPY(ima->name, filepath);
 
-	if (BLI_testextensie_array(filepath, imb_ext_movie))
+	if (BLI_path_extension_check_array(filepath, imb_ext_movie))
 		ima->source = IMA_SRC_MOVIE;
 
 	image_init_color_management(ima);
@@ -929,21 +933,6 @@ void BKE_image_tag_time(Image *ima)
 {
 	ima->lastused = PIL_check_seconds_timer_i();
 }
-
-#if 0
-static void tag_all_images_time(Main *bmain)
-{
-	Image *ima;
-	int ctime = PIL_check_seconds_timer_i();
-
-	ima = bmain->image.first;
-	while (ima) {
-		if (ima->bindcode || ima->repbind || ima->ibufs.first) {
-			ima->lastused = ctime;
-		}
-	}
-}
-#endif
 
 static uintptr_t image_mem_size(Image *image)
 {
@@ -1363,63 +1352,63 @@ static bool do_add_image_extension(char *string, const char imtype, const ImageF
 	(void)im_format;  /* may be unused, depends on build options */
 
 	if (imtype == R_IMF_IMTYPE_IRIS) {
-		if (!BLI_testextensie(string, extension_test = ".rgb"))
+		if (!BLI_path_extension_check(string, extension_test = ".rgb"))
 			extension = extension_test;
 	}
 	else if (imtype == R_IMF_IMTYPE_IRIZ) {
-		if (!BLI_testextensie(string, extension_test = ".rgb"))
+		if (!BLI_path_extension_check(string, extension_test = ".rgb"))
 			extension = extension_test;
 	}
 #ifdef WITH_HDR
 	else if (imtype == R_IMF_IMTYPE_RADHDR) {
-		if (!BLI_testextensie(string, extension_test = ".hdr"))
+		if (!BLI_path_extension_check(string, extension_test = ".hdr"))
 			extension = extension_test;
 	}
 #endif
 	else if (ELEM(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
-		if (!BLI_testextensie(string, extension_test = ".png"))
+		if (!BLI_path_extension_check(string, extension_test = ".png"))
 			extension = extension_test;
 	}
 #ifdef WITH_DDS
 	else if (imtype == R_IMF_IMTYPE_DDS) {
-		if (!BLI_testextensie(string, extension_test = ".dds"))
+		if (!BLI_path_extension_check(string, extension_test = ".dds"))
 			extension = extension_test;
 	}
 #endif
 	else if (ELEM(imtype, R_IMF_IMTYPE_TARGA, R_IMF_IMTYPE_RAWTGA)) {
-		if (!BLI_testextensie(string, extension_test = ".tga"))
+		if (!BLI_path_extension_check(string, extension_test = ".tga"))
 			extension = extension_test;
 	}
 	else if (imtype == R_IMF_IMTYPE_BMP) {
-		if (!BLI_testextensie(string, extension_test = ".bmp"))
+		if (!BLI_path_extension_check(string, extension_test = ".bmp"))
 			extension = extension_test;
 	}
 #ifdef WITH_TIFF
 	else if (imtype == R_IMF_IMTYPE_TIFF) {
-		if (!BLI_testextensie_n(string, extension_test = ".tif", ".tiff", NULL)) {
+		if (!BLI_path_extension_check_n(string, extension_test = ".tif", ".tiff", NULL)) {
 			extension = extension_test;
 		}
 	}
 #endif
 #ifdef WITH_OPENIMAGEIO
 	else if (imtype == R_IMF_IMTYPE_PSD) {
-		if (!BLI_testextensie(string, extension_test = ".psd"))
+		if (!BLI_path_extension_check(string, extension_test = ".psd"))
 			extension = extension_test;
 	}
 #endif
 #ifdef WITH_OPENEXR
 	else if (imtype == R_IMF_IMTYPE_OPENEXR || imtype == R_IMF_IMTYPE_MULTILAYER) {
-		if (!BLI_testextensie(string, extension_test = ".exr"))
+		if (!BLI_path_extension_check(string, extension_test = ".exr"))
 			extension = extension_test;
 	}
 #endif
 #ifdef WITH_CINEON
 	else if (imtype == R_IMF_IMTYPE_CINEON) {
-		if (!BLI_testextensie(string, extension_test = ".cin"))
+		if (!BLI_path_extension_check(string, extension_test = ".cin"))
 			extension = extension_test;
 	}
 	else if (imtype == R_IMF_IMTYPE_DPX) {
-		if (!BLI_testextensie(string, extension_test = ".dpx"))
+		if (!BLI_path_extension_check(string, extension_test = ".dpx"))
 			extension = extension_test;
 	}
 #endif
@@ -1427,35 +1416,35 @@ static bool do_add_image_extension(char *string, const char imtype, const ImageF
 	else if (imtype == R_IMF_IMTYPE_JP2) {
 		if (im_format) {
 			if (im_format->jp2_codec == R_IMF_JP2_CODEC_JP2) {
-				if (!BLI_testextensie(string, extension_test = ".jp2"))
+				if (!BLI_path_extension_check(string, extension_test = ".jp2"))
 					extension = extension_test;
 			}
 			else if (im_format->jp2_codec == R_IMF_JP2_CODEC_J2K) {
-				if (!BLI_testextensie(string, extension_test = ".j2c"))
+				if (!BLI_path_extension_check(string, extension_test = ".j2c"))
 					extension = extension_test;
 			}
 			else
 				BLI_assert(!"Unsupported jp2 codec was specified in im_format->jp2_codec");
 		}
 		else {
-			if (!BLI_testextensie(string, extension_test = ".jp2"))
+			if (!BLI_path_extension_check(string, extension_test = ".jp2"))
 				extension = extension_test;
 		}
 	}
 #endif
 	else { //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
-		if (!(BLI_testextensie_n(string, extension_test = ".jpg", ".jpeg", NULL)))
+		if (!(BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", NULL)))
 			extension = extension_test;
 	}
 
 	if (extension) {
 		/* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
 		/* remove any other known image extension */
-		if (BLI_testextensie_array(string, imb_ext_image)) {
-			return BLI_replace_extension(string, FILE_MAX, extension);
+		if (BLI_path_extension_check_array(string, imb_ext_image)) {
+			return BLI_path_extension_replace(string, FILE_MAX, extension);
 		}
 		else {
-			return BLI_ensure_extension(string, FILE_MAX, extension);
+			return BLI_path_extension_ensure(string, FILE_MAX, extension);
 		}
 
 	}
@@ -3015,7 +3004,7 @@ RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
 		if (ima->render_slot == ima->last_render_slot)
 			rr = RE_AcquireResultRead(RE_GetSceneRender(scene));
 		else
-			rr = ima->renders[ima->render_slot];
+			rr = BKE_image_get_renderslot(ima, ima->render_slot)->render;
 
 		/* set proper views */
 		image_init_multilayer_multiview(ima, rr);
@@ -3039,7 +3028,7 @@ bool BKE_image_is_openexr(struct Image *ima)
 {
 #ifdef WITH_OPENEXR
 	if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE)) {
-		return BLI_testextensie(ima->name, ".exr");
+		return BLI_path_extension_check(ima->name, ".exr");
 	}
 #else
 	UNUSED_VARS(ima);
@@ -3049,27 +3038,39 @@ bool BKE_image_is_openexr(struct Image *ima)
 
 void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
 {
-	/* called right before rendering, ima->renders contains render
+	/* called right before rendering, ima->renderslots contains render
 	 * result pointers for everything but the current render */
 	Render *re = RE_GetSceneRender(scene);
-	int slot = ima->render_slot, last = ima->last_render_slot;
 
-	if (slot != last) {
-		ima->renders[last] = NULL;
-		RE_SwapResult(re, &ima->renders[last]);
+	/* Ensure we always have a valid render slot. */
+	if (!ima->renderslots.first) {
+		BKE_image_add_renderslot(ima, NULL);
+		ima->render_slot = 0;
+		ima->last_render_slot = 0;
+	}
+	else if (ima->render_slot >= BLI_listbase_count(&ima->renderslots)) {
+		ima->render_slot = 0;
+		ima->last_render_slot = 0;
+	}
 
-		if (ima->renders[slot]) {
+	RenderSlot *last_slot = BKE_image_get_renderslot(ima, ima->last_render_slot);
+	RenderSlot *cur_slot = BKE_image_get_renderslot(ima, ima->render_slot);
+
+	if (last_slot && ima->render_slot != ima->last_render_slot) {
+		last_slot->render = NULL;
+		RE_SwapResult(re, &last_slot->render);
+
+		if (cur_slot->render) {
 			if (free_current_slot) {
-				RE_FreeRenderResult(ima->renders[slot]);
-				ima->renders[slot] = NULL;
+				BKE_image_clear_renderslot(ima, NULL, ima->render_slot);
 			}
 			else {
-				RE_SwapResult(re, &ima->renders[slot]);
+				RE_SwapResult(re, &cur_slot->render);
 			}
 		}
 	}
 
-	ima->last_render_slot = slot;
+	ima->last_render_slot = ima->render_slot;
 }
 
 /**************************** multiview load openexr *********************************/
@@ -3687,11 +3688,12 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 	if (BKE_image_is_stereo(ima) && (iuser->flag & IMA_SHOW_STEREO))
 		actview = iuser->multiview_eye;
 
+	RenderSlot *slot;
 	if (from_render) {
 		RE_AcquireResultImage(re, &rres, actview);
 	}
-	else if (ima->renders[ima->render_slot]) {
-		rres = *(ima->renders[ima->render_slot]);
+	else if ((slot = BKE_image_get_renderslot(ima, ima->render_slot))->render) {
+		rres = *(slot->render);
 		rres.have_combined = ((RenderView *)rres.views.first)->rectf != NULL;
 	}
 	else
@@ -4720,4 +4722,98 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
 			BKE_image_free_views(ima);
 		}
 	}
+}
+
+/**************************** Render Slots ***************************/
+
+RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
+{
+	RenderSlot *slot = MEM_callocN(sizeof(RenderSlot), "Image new Render Slot");
+	if (name && name[0]) {
+		BLI_strncpy(slot->name, name, sizeof(slot->name));
+	}
+	else {
+		int n = BLI_listbase_count(&ima->renderslots) + 1;
+		BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", n);
+	}
+	BLI_addtail(&ima->renderslots, slot);
+	return slot;
+}
+
+bool BKE_image_remove_renderslot(Image *ima, ImageUser *iuser, int index)
+{
+	int num_slots = BLI_listbase_count(&ima->renderslots);
+	if (index >= num_slots || num_slots == 1) {
+		return false;
+	}
+
+	RenderSlot *remove_slot = BLI_findlink(&ima->renderslots, index);
+	RenderSlot *current_slot = BLI_findlink(&ima->renderslots, ima->render_slot);
+	RenderSlot *current_last_slot = BLI_findlink(&ima->renderslots, ima->last_render_slot);
+
+	RenderSlot *next_slot;
+	if (current_slot == remove_slot) {
+		next_slot = BLI_findlink(&ima->renderslots, (index == num_slots - 1) ? index - 1 : index + 1);
+	}
+	else {
+		next_slot = current_slot;
+	}
+
+	/* If the slot to be removed is the slot with the last render, make another slot the last render slot. */
+	if (remove_slot == current_last_slot) {
+		/* Choose the currently selected slot unless that one is being removed, in that case take the next one. */
+		RenderSlot *next_last_slot;
+		if (current_slot == remove_slot)
+			next_last_slot = next_slot;
+		else
+			next_last_slot = current_slot;
+
+		if (!iuser) return false;
+		Render *re = RE_GetSceneRender(iuser->scene);
+		if (!re) return false;
+		RE_SwapResult(re, &current_last_slot->render);
+		RE_SwapResult(re, &next_last_slot->render);
+		current_last_slot = next_last_slot;
+	}
+
+	current_slot = next_slot;
+
+	BLI_remlink(&ima->renderslots, remove_slot);
+
+	ima->render_slot = BLI_findindex(&ima->renderslots, current_slot);
+	ima->last_render_slot = BLI_findindex(&ima->renderslots, current_last_slot);
+
+	if (remove_slot->render) {
+		RE_FreeRenderResult(remove_slot->render);
+	}
+	MEM_freeN(remove_slot);
+
+	return true;
+}
+
+bool BKE_image_clear_renderslot(Image *ima, ImageUser *iuser, int index)
+{
+	if (index == ima->last_render_slot) {
+		if (!iuser) return false;
+		if (G.is_rendering) return false;
+		Render *re = RE_GetSceneRender(iuser->scene);
+		if (!re) return false;
+		RE_ClearResult(re);
+		return true;
+	}
+	else {
+		RenderSlot *slot = BLI_findlink(&ima->renderslots, index);
+		if (!slot) return false;
+		if (slot->render) {
+			RE_FreeRenderResult(slot->render);
+			slot->render = NULL;
+		}
+		return true;
+	}
+}
+
+RenderSlot *BKE_image_get_renderslot(Image *ima, int index)
+{
+	/* Can be NULL for images without render slots. */
+	return BLI_findlink(&ima->renderslots, index);
 }

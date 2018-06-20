@@ -25,6 +25,7 @@ from bpy.types import (
 )
 
 from rna_prop_ui import PropertyPanel
+from bl_operators.presets import PresetMenu
 
 from .properties_physics_common import (
     point_cache_ui,
@@ -32,12 +33,12 @@ from .properties_physics_common import (
 )
 
 
-class SCENE_MT_units_length_presets(Menu):
+class SCENE_PT_units_length_presets(PresetMenu):
     """Unit of measure for properties that use length values"""
     bl_label = "Unit Presets"
     preset_subdir = "units_length"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    preset_add_operator = "scene.units_length_preset_add"
 
 
 class SCENE_UL_keying_set_paths(UIList):
@@ -65,7 +66,7 @@ class SceneButtonsPanel:
 
 class SCENE_PT_scene(SceneButtonsPanel, Panel):
     bl_label = "Scene"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -79,17 +80,15 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
 
 class SCENE_PT_unit(SceneButtonsPanel, Panel):
     bl_label = "Units"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    def draw_header_preset(self, context):
+        SCENE_PT_units_length_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
 
         unit = context.scene.unit_settings
-
-        row = layout.row(align=True)
-        row.menu("SCENE_MT_units_length_presets", text=SCENE_MT_units_length_presets.bl_label)
-        row.operator("scene.units_length_preset_add", text="", icon='ZOOMIN')
-        row.operator("scene.units_length_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         layout.use_property_split = True
 
@@ -161,7 +160,7 @@ class SceneKeyingSetsPanel:
 class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
     bl_label = "Keying Sets"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -195,7 +194,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
     bl_label = "Active Keying Set"
     bl_parent_id = "SCENE_PT_keying_sets"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -252,7 +251,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
 class SCENE_PT_color_management(SceneButtonsPanel, Panel):
     bl_label = "Color Management"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -263,7 +262,6 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(scene.display_settings, "display_device")
-        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer Color Space")
 
         col.separator()
 
@@ -273,12 +271,16 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
         col.prop(view, "gamma")
         col.prop(view, "look")
 
+        col.separator()
+
+        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer Color Space")
+
 
 class SCENE_PT_color_management_curves(SceneButtonsPanel, Panel):
     bl_label = "Use Curves"
     bl_parent_id = "SCENE_PT_color_management"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
 
@@ -302,7 +304,7 @@ class SCENE_PT_color_management_curves(SceneButtonsPanel, Panel):
 class SCENE_PT_audio(SceneButtonsPanel, Panel):
     bl_label = "Audio"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -434,7 +436,7 @@ class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
 class SCENE_PT_simplify(SceneButtonsPanel, Panel):
     bl_label = "Simplify"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
         rd = context.scene.render
@@ -495,13 +497,13 @@ class SCENE_PT_viewport_display_ssao(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _context_path = "scene"
     _property_type = bpy.types.Scene
 
 
 classes = (
-    SCENE_MT_units_length_presets,
+    SCENE_PT_units_length_presets,
     SCENE_UL_keying_set_paths,
     SCENE_PT_scene,
     SCENE_PT_unit,

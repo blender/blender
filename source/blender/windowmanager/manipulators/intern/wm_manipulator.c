@@ -92,7 +92,7 @@ static wmManipulator *wm_manipulator_create(
 		IDPropertyTemplate val = {0};
 		mpr->properties = IDP_New(IDP_GROUP, &val, "wmManipulatorProperties");
 	}
-	RNA_pointer_create(G.main->wm.first, wt->srna, mpr->properties, mpr->ptr);
+	RNA_pointer_create(G_MAIN->wm.first, wt->srna, mpr->properties, mpr->ptr);
 
 	WM_manipulator_properties_sanitize(mpr->ptr, 0);
 

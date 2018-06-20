@@ -96,7 +96,7 @@ bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(rcti *in
 	return false;
 }
 
-void ProjectorLensDistortionOperation::updateDispersion() 
+void ProjectorLensDistortionOperation::updateDispersion()
 {
 	if (this->m_dispersionAvailable) return;
 	this->lockMutex();

@@ -161,9 +161,9 @@ static PyObject *UnaryPredicate1D___call__(BPy_UnaryPredicate1D *self, PyObject 
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &py_if1D))
 		return NULL;
-	
+
 	Interface1D *if1D = ((BPy_Interface1D *)py_if1D)->if1D;
-	
+
 	if (!if1D) {
 		string class_name(Py_TYPE(self)->tp_name);
 		PyErr_SetString(PyExc_RuntimeError, (class_name + " has no Interface1D").c_str());

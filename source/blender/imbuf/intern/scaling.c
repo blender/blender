@@ -60,7 +60,7 @@ static void imb_half_x_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 
 	do_rect = (ibuf1->rect != NULL);
 	do_float = (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
-	
+
 	_p1 = (uchar *) ibuf1->rect;
 	dest = (uchar *) ibuf2->rect;
 
@@ -113,12 +113,12 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
 
 	if (ibuf1->x <= 1) return(IMB_dupImBuf(ibuf1));
-	
+
 	ibuf2 = IMB_allocImBuf((ibuf1->x) / 2, ibuf1->y, ibuf1->planes, ibuf1->flags);
 	if (ibuf2 == NULL) return (NULL);
 
 	imb_half_x_no_alloc(ibuf2, ibuf1);
-	
+
 	return (ibuf2);
 }
 
@@ -133,7 +133,7 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 
 	do_rect = (ibuf1->rect != NULL);
 	do_float = (ibuf1->rect_float != NULL);
-	
+
 	ibuf2 = IMB_allocImBuf(2 * ibuf1->x, ibuf1->y, ibuf1->planes, ibuf1->flags);
 	if (ibuf2 == NULL) return (NULL);
 
@@ -245,14 +245,14 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 
 	if (ibuf1 == NULL) return (NULL);
 	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
-	
+
 	if (ibuf1->y <= 1) return(IMB_dupImBuf(ibuf1));
 
 	ibuf2 = IMB_allocImBuf(ibuf1->x, (ibuf1->y) / 2, ibuf1->planes, ibuf1->flags);
 	if (ibuf2 == NULL) return (NULL);
 
 	imb_half_y_no_alloc(ibuf2, ibuf1);
-	
+
 	return (ibuf2);
 }
 
@@ -303,7 +303,7 @@ struct ImBuf *IMB_double_y(struct ImBuf *ibuf1)
 	if (ibuf1->rect == NULL) return (NULL);
 
 	ibuf2 = IMB_double_fast_y(ibuf1);
-	
+
 	IMB_filtery(ibuf2);
 	return (ibuf2);
 }
@@ -358,30 +358,30 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 		imb_half_x_no_alloc(ibuf2, ibuf1);
 		return;
 	}
-	
+
 	if (do_rect) {
 		unsigned char *cp1, *cp2, *dest;
-		
+
 		cp1 = (unsigned char *) ibuf1->rect;
 		dest = (unsigned char *) ibuf2->rect;
-		
+
 		for (y = ibuf2->y; y > 0; y--) {
 			cp2 = cp1 + (ibuf1->x << 2);
 			for (x = ibuf2->x; x > 0; x--) {
 				unsigned short p1i[8], p2i[8], desti[4];
-				
+
 				straight_uchar_to_premul_ushort(p1i, cp1);
 				straight_uchar_to_premul_ushort(p2i, cp2);
 				straight_uchar_to_premul_ushort(p1i + 4, cp1 + 4);
 				straight_uchar_to_premul_ushort(p2i + 4, cp2 + 4);
-				
+
 				desti[0] = ((unsigned int) p1i[0] + p2i[0] + p1i[4] + p2i[4]) >> 2;
 				desti[1] = ((unsigned int) p1i[1] + p2i[1] + p1i[5] + p2i[5]) >> 2;
 				desti[2] = ((unsigned int) p1i[2] + p2i[2] + p1i[6] + p2i[6]) >> 2;
 				desti[3] = ((unsigned int) p1i[3] + p2i[3] + p1i[7] + p2i[7]) >> 2;
-				
+
 				premul_ushort_to_straight_uchar(dest, desti);
-				
+
 				cp1 += 8;
 				cp2 += 8;
 				dest += 4;
@@ -390,10 +390,10 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 			if (ibuf1->x & 1) cp1 += 4;
 		}
 	}
-	
+
 	if (do_float) {
 		float *p1f, *p2f, *destf;
-		
+
 		p1f = ibuf1->rect_float;
 		destf = ibuf2->rect_float;
 		for (y = ibuf2->y; y > 0; y--) {
@@ -419,15 +419,15 @@ ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 
 	if (ibuf1 == NULL) return (NULL);
 	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
-	
+
 	if (ibuf1->x <= 1) return(IMB_half_y(ibuf1));
 	if (ibuf1->y <= 1) return(IMB_half_x(ibuf1));
-	
+
 	ibuf2 = IMB_allocImBuf((ibuf1->x) / 2, (ibuf1->y) / 2, ibuf1->planes, ibuf1->flags);
 	if (ibuf2 == NULL) return (NULL);
-	
+
 	imb_onehalf_no_alloc(ibuf2, ibuf1);
-	
+
 	return (ibuf2);
 }
 
@@ -582,7 +582,7 @@ static void shrink_picture_byte(
 			struct scale_outpix_byte *temp;
 
 			y_counter += 65536;
-			
+
 			for (x = 0; x < dst_width; x++) {
 				uintptr_t f =  0x80000000UL / dst_line1[x].weight;
 				*dst++ = (val = (dst_line1[x].r * f) >> 15) > 255 ? 255 : val;
@@ -782,7 +782,7 @@ static void shrink_picture_float(
 			struct scale_outpix_float *temp;
 
 			y_counter += 1.0f;
-			
+
 			for (x = 0; x < dst_width; x++) {
 				float f = 1.0f / dst_line1[x].weight;
 				*dst++ = dst_line1[x].r * f;
@@ -921,7 +921,7 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 		rectf = ibuf->rect_float;
 		newrectf = _newrectf;
 	}
-		
+
 	for (y = ibuf->y; y > 0; y--) {
 		sample = 0.0f;
 		val[0] =  val[1] = val[2] = val[3] = 0.0f;
@@ -940,12 +940,12 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 				nvalf[2] = -valf[2] * sample;
 				nvalf[3] = -valf[3] * sample;
 			}
-			
+
 			sample += add;
 
 			while (sample >= 1.0f) {
 				sample -= 1.0f;
-				
+
 				if (do_rect) {
 					nval[0] += rect[0];
 					nval[1] += rect[1];
@@ -961,31 +961,31 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 					rectf += 4;
 				}
 			}
-			
+
 			if (do_rect) {
 				val[0] = rect[0]; val[1] = rect[1]; val[2] = rect[2]; val[3] = rect[3];
 				rect += 4;
-				
+
 				newrect[0] = ((nval[0] + sample * val[0]) / add + 0.5f);
 				newrect[1] = ((nval[1] + sample * val[1]) / add + 0.5f);
 				newrect[2] = ((nval[2] + sample * val[2]) / add + 0.5f);
 				newrect[3] = ((nval[3] + sample * val[3]) / add + 0.5f);
-				
+
 				newrect += 4;
 			}
 			if (do_float) {
-				
+
 				valf[0] = rectf[0]; valf[1] = rectf[1]; valf[2] = rectf[2]; valf[3] = rectf[3];
 				rectf += 4;
-				
+
 				newrectf[0] = ((nvalf[0] + sample * valf[0]) / add);
 				newrectf[1] = ((nvalf[1] + sample * valf[1]) / add);
 				newrectf[2] = ((nvalf[2] + sample * valf[2]) / add);
 				newrectf[3] = ((nvalf[3] + sample * valf[3]) / add);
-				
+
 				newrectf += 4;
 			}
-			
+
 			sample -= 1.0f;
 		}
 	}
@@ -1005,7 +1005,7 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 		ibuf->rect_float = _newrectf;
 	}
 	(void)rect_size; /* UNUSED in release builds */
-	
+
 	ibuf->x = newx;
 	return(ibuf);
 }
@@ -1053,7 +1053,7 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 			rectf = ibuf->rect_float + x;
 			newrectf = _newrectf + x;
 		}
-		
+
 		sample = 0.0f;
 		val[0] =  val[1] = val[2] = val[3] = 0.0f;
 		valf[0] = valf[1] = valf[2] = valf[3] = 0.0f;
@@ -1071,12 +1071,12 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 				nvalf[2] = -valf[2] * sample;
 				nvalf[3] = -valf[3] * sample;
 			}
-			
+
 			sample += add;
 
 			while (sample >= 1.0f) {
 				sample -= 1.0f;
-				
+
 				if (do_rect) {
 					nval[0] += rect[0];
 					nval[1] += rect[1];
@@ -1096,27 +1096,27 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 			if (do_rect) {
 				val[0] = rect[0]; val[1] = rect[1]; val[2] = rect[2]; val[3] = rect[3];
 				rect += skipx;
-				
+
 				newrect[0] = ((nval[0] + sample * val[0]) / add + 0.5f);
 				newrect[1] = ((nval[1] + sample * val[1]) / add + 0.5f);
 				newrect[2] = ((nval[2] + sample * val[2]) / add + 0.5f);
 				newrect[3] = ((nval[3] + sample * val[3]) / add + 0.5f);
-				
+
 				newrect += skipx;
 			}
 			if (do_float) {
-				
+
 				valf[0] = rectf[0]; valf[1] = rectf[1]; valf[2] = rectf[2]; valf[3] = rectf[3];
 				rectf += skipx;
-				
+
 				newrectf[0] = ((nvalf[0] + sample * valf[0]) / add);
 				newrectf[1] = ((nvalf[1] + sample * valf[1]) / add);
 				newrectf[2] = ((nvalf[2] + sample * valf[2]) / add);
 				newrectf[3] = ((nvalf[3] + sample * valf[3]) / add);
-				
+
 				newrectf += skipx;
 			}
-			
+
 			sample -= 1.0f;
 		}
 	}
@@ -1136,7 +1136,7 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 		ibuf->rect_float = (float *) _newrectf;
 	}
 	(void)rect_size; /* UNUSED in release builds */
-	
+
 	ibuf->y = newy;
 	return(ibuf);
 }
@@ -1189,7 +1189,7 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 	for (y = ibuf->y; y > 0; y--) {
 
 		sample = 0;
-		
+
 		if (do_rect) {
 			val_a = rect[0];
 			nval_a = rect[4];
@@ -1217,7 +1217,7 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 			val_af = rectf[0];
 			nval_af = rectf[4];
 			diff_af = nval_af - val_af;
-	
+
 			val_bf = rectf[1];
 			nval_bf = rectf[5];
 			diff_bf = nval_bf - val_bf;
@@ -1262,7 +1262,7 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 					val_af = nval_af;
 					nval_af = rectf[0];
 					diff_af = nval_af - val_af;
-	
+
 					val_bf = nval_bf;
 					nval_bf = rectf[1];
 					diff_bf = nval_bf - val_bf;
@@ -1305,7 +1305,7 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = (float *) _newrectf;
 	}
-	
+
 	ibuf->x = newx;
 	return(ibuf);
 }
@@ -1391,7 +1391,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 			val_af = rectf[0];
 			nval_af = rectf[skipx];
 			diff_af = nval_af - val_af;
-	
+
 			val_bf = rectf[1];
 			nval_bf = rectf[skipx + 1];
 			diff_bf = nval_bf - val_bf;
@@ -1406,7 +1406,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 
 			rectf += 2 * skipx;
 		}
-		
+
 		for (y = newy; y > 0; y--) {
 			if (sample >= 1.0f) {
 				sample -= 1.0f;
@@ -1437,7 +1437,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 					val_af = nval_af;
 					nval_af = rectf[0];
 					diff_af = nval_af - val_af;
-	
+
 					val_bf = nval_bf;
 					nval_bf = rectf[1];
 					diff_bf = nval_bf - val_bf;
@@ -1480,7 +1480,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = (float *) _newrectf;
 	}
-	
+
 	ibuf->y = newy;
 	return(ibuf);
 }
@@ -1557,7 +1557,7 @@ bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
 	if (ibuf == NULL) return false;
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return false;
-	
+
 	if (newx == ibuf->x && newy == ibuf->y) {
 		return false;
 	}
@@ -1576,7 +1576,7 @@ bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 	if (newy && (newy < ibuf->y)) scaledowny(ibuf, newy);
 	if (newx && (newx > ibuf->x)) scaleupx(ibuf, newx);
 	if (newy && (newy > ibuf->y)) scaleupy(ibuf, newy);
-	
+
 	return true;
 }
 
@@ -1602,15 +1602,15 @@ bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy
 	if (ibuf->rect) do_rect = true;
 	if (ibuf->rect_float) do_float = true;
 	if (do_rect == false && do_float == false) return false;
-	
+
 	if (newx == ibuf->x && newy == ibuf->y) return false;
-	
+
 	if (do_rect) {
 		_newrect = MEM_mallocN(newx * newy * sizeof(int), "scalefastimbuf");
 		if (_newrect == NULL) return false;
 		newrect = _newrect;
 	}
-	
+
 	if (do_float) {
 		_newrectf = MEM_mallocN(newx * newy * sizeof(float) * 4, "scalefastimbuf f");
 		if (_newrectf == NULL) {

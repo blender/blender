@@ -130,7 +130,7 @@ ModifierData *modifier_new(int type)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(type);
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
-	
+
 	/* note, this name must be made unique later */
 	BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
 
@@ -489,7 +489,7 @@ bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode
 	if (scene != NULL && mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return false;
 	if (md->mode & eModifierMode_DisableTemporary) return false;
 	if ((required_mode & eModifierMode_Editmode) && !(mti->flags & eModifierTypeFlag_SupportsEditmode)) return false;
-	
+
 	return true;
 }
 
@@ -505,7 +505,7 @@ CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierDat
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		curr = MEM_callocN(sizeof(CDMaskLink), "CDMaskLink");
-		
+
 		if (modifier_isEnabled(scene, md, required_mode)) {
 			if (mti->requiredDataMask)
 				curr->mask = mti->requiredDataMask(ob, md);
@@ -614,7 +614,7 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ArmatureModifierData *amd = NULL;
-	
+
 	/* return the first selected armature, this lets us use multiple armatures */
 	for (; md; md = md->next) {
 		if (md->type == eModifierType_Armature) {
@@ -623,10 +623,10 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 				return amd->object;
 		}
 	}
-	
+
 	if (amd) /* if were still here then return the last armature */
 		return amd->object;
-	
+
 	return NULL;
 }
 
@@ -659,7 +659,7 @@ Object *modifiers_isDeformedByLattice(Object *ob)
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	LatticeModifierData *lmd = NULL;
-	
+
 	/* return the first selected lattice, this lets us use multiple lattices */
 	for (; md; md = md->next) {
 		if (md->type == eModifierType_Lattice) {
@@ -668,10 +668,10 @@ Object *modifiers_isDeformedByLattice(Object *ob)
 				return lmd->object;
 		}
 	}
-	
+
 	if (lmd) /* if were still here then return the last lattice */
 		return lmd->object;
-	
+
 	return NULL;
 }
 
@@ -683,7 +683,7 @@ Object *modifiers_isDeformedByCurve(Object *ob)
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	CurveModifierData *cmd = NULL;
-	
+
 	/* return the first selected curve, this lets us use multiple curves */
 	for (; md; md = md->next) {
 		if (md->type == eModifierType_Curve) {
@@ -692,10 +692,10 @@ Object *modifiers_isDeformedByCurve(Object *ob)
 				return cmd->object;
 		}
 	}
-	
+
 	if (cmd) /* if were still here then return the last curve */
 		return cmd->object;
-	
+
 	return NULL;
 }
 

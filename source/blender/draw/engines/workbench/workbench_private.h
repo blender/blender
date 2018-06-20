@@ -32,6 +32,7 @@
 #include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+#include "DNA_userdef_types.h"
 
 #include "DRW_render.h"
 
@@ -50,6 +51,7 @@
 #define STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd) (MATCAP_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL))
 #define CAVITY_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_CAVITY)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
+#define FXAA_ENABLED(wpd) (wpd->user_preferences->gpu_viewport_antialias & USER_AA_FXAA && (!DRW_state_is_opengl_render()))
 #define SPECULAR_HIGHLIGHT_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
@@ -61,6 +63,7 @@ typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *prepass_fb;
 	struct GPUFrameBuffer *cavity_fb;
 	struct GPUFrameBuffer *composite_fb;
+	struct GPUFrameBuffer *effect_fb;
 
 	/* Forward render buffers */
 	struct GPUFrameBuffer *object_outline_fb;
@@ -85,6 +88,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *shadow_depth_fail_caps_mani_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
+	struct DRWPass *effect_fxaa_pass;
 
 	/* forward rendering */
 	struct DRWPass *transparent_accum_pass;
@@ -108,12 +112,7 @@ typedef struct WORKBENCH_UBO_Light {
 } WORKBENCH_UBO_Light;
 
 typedef struct WORKBENCH_UBO_World {
-	float diffuse_light_x_pos[4];
-	float diffuse_light_x_neg[4];
-	float diffuse_light_y_pos[4];
-	float diffuse_light_y_neg[4];
-	float diffuse_light_z_pos[4];
-	float diffuse_light_z_neg[4];
+	float spherical_harmonics_coefs[STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS][4];
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];
@@ -121,7 +120,8 @@ typedef struct WORKBENCH_UBO_World {
 	WORKBENCH_UBO_Light lights[3];
 	int num_lights;
 	int matcap_orientation;
-	int pad[2];
+	float background_alpha;
+	int pad[1];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
@@ -146,6 +146,7 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUShader *transparent_accum_texture_hair_sh;
 	View3DShading shading;
 	StudioLight *studio_light;
+	UserDef *user_preferences;
 	int drawtype;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;

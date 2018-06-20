@@ -35,10 +35,10 @@ void MovieDistortionNode::convertToOperations(NodeConverter &converter, const Co
 {
 	bNode *bnode = this->getbNode();
 	MovieClip *clip = (MovieClip *)bnode->id;
-	
+
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
-	
+
 	MovieDistortionOperation *operation = new MovieDistortionOperation(bnode->custom1 == 1);
 	operation->setMovieClip(clip);
 	operation->setFramenumber(context.getFramenumber());

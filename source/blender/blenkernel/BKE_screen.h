@@ -216,6 +216,8 @@ typedef struct PanelType {
 	int (*poll)(const struct bContext *C, struct PanelType *pt);
 	/* draw header (optional) */
 	void (*draw_header)(const struct bContext *C, struct Panel *pa);
+	/* draw header preset (optional) */
+	void (*draw_header_preset)(const struct bContext *C, struct Panel *pa);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *C, struct Panel *pa);
 
@@ -305,6 +307,7 @@ typedef struct Menu {
 
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
+struct ARegionType *BKE_regiontype_from_id_or_first(struct SpaceType *st, int regionid);
 struct ARegionType *BKE_regiontype_from_id(struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);

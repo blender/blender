@@ -21,6 +21,7 @@ import bpy
 import nodeitems_utils
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
+from bl_operators.presets import PresetMenu
 from .properties_grease_pencil_common import (
     GreasePencilDrawingToolsPanel,
     GreasePencilStrokeEditPanel,
@@ -289,12 +290,12 @@ class NODE_MT_node(Menu):
         layout.operator("node.read_fullsamplelayers")
 
 
-class NODE_MT_node_color_presets(Menu):
+class NODE_PT_node_color_presets(PresetMenu):
     """Predefined node color"""
     bl_label = "Color Presets"
     preset_subdir = "node_color"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    preset_add_operator = "node.node_color_preset_add"
 
 
 class NODE_MT_node_color_specials(Menu):
@@ -373,6 +374,9 @@ class NODE_PT_active_node_color(Panel):
         node = context.active_node
         self.layout.prop(node, "use_custom_color", text="")
 
+    def draw_header_preset(self, context):
+        NODE_PT_node_color_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         layout = self.layout
         node = context.active_node
@@ -380,13 +384,8 @@ class NODE_PT_active_node_color(Panel):
         layout.enabled = node.use_custom_color
 
         row = layout.row()
-        col = row.column()
-        col.menu("NODE_MT_node_color_presets")
-        col.prop(node, "color", text="")
-        col = row.column(align=True)
-        col.operator("node.node_color_preset_add", text="", icon='ZOOMIN').remove_active = False
-        col.operator("node.node_color_preset_add", text="", icon='ZOOMOUT').remove_active = True
-        col.menu("NODE_MT_node_color_specials", text="", icon='DOWNARROW_HLT')
+        row.prop(node, "color", text="")
+        row.menu("NODE_MT_node_color_specials", text="", icon='DOWNARROW_HLT')
 
 
 class NODE_PT_active_node_properties(Panel):
@@ -585,7 +584,7 @@ classes = (
     NODE_MT_view,
     NODE_MT_select,
     NODE_MT_node,
-    NODE_MT_node_color_presets,
+    NODE_PT_node_color_presets,
     NODE_MT_node_color_specials,
     NODE_MT_specials,
     NODE_PT_active_node_generic,

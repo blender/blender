@@ -61,9 +61,9 @@ int BLI_getInstallationDir(char *str)
 	BLI_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
 	a = strlen(dir);
 	if (dir[a - 1] == '\\') dir[a - 1] = 0;
-	
+
 	strcpy(str, dir);
-	
+
 	return 1;
 }
 
@@ -155,7 +155,7 @@ void RegisterBlendExtension(void)
 	}
 	if (lresult != ERROR_SUCCESS)
 		RegisterBlendExtension_Fail(root);
-	
+
 	BLI_getInstallationDir(InstallDir);
 	GetSystemDirectory(SysDir, FILE_MAXDIR);
 #ifdef _WIN64
@@ -182,8 +182,8 @@ void RegisterBlendExtension(void)
 void get_default_root(char *root)
 {
 	char str[MAX_PATH + 1];
-	
-	/* the default drive to resolve a directory without a specified drive 
+
+	/* the default drive to resolve a directory without a specified drive
 	 * should be the Windows installation drive, since this was what the OS
 	 * assumes. */
 	if (GetWindowsDirectory(str, MAX_PATH + 1)) {
@@ -193,7 +193,7 @@ void get_default_root(char *root)
 		root[3] = '\0';
 	}
 	else {
-		/* if GetWindowsDirectory fails, something has probably gone wrong, 
+		/* if GetWindowsDirectory fails, something has probably gone wrong,
 		 * we are trying the blender install dir though */
 		if (GetModuleFileName(NULL, str, MAX_PATH + 1)) {
 			printf("Error! Could not get the Windows Directory - "

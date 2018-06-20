@@ -54,17 +54,17 @@ void DefocusNode::convertToOperations(NodeConverter &converter, const Compositor
 		SetValueOperation *maxRadius = new SetValueOperation();
 		maxRadius->setValue(data->maxblur);
 		MathMinimumOperation *minimize = new MathMinimumOperation();
-		
+
 		converter.addOperation(multiply);
 		converter.addOperation(multiplier);
 		converter.addOperation(maxRadius);
 		converter.addOperation(minimize);
-		
+
 		converter.mapInputSocket(getInputSocket(1), multiply->getInputSocket(0));
 		converter.addLink(multiplier->getOutputSocket(), multiply->getInputSocket(1));
 		converter.addLink(multiply->getOutputSocket(), minimize->getInputSocket(0));
 		converter.addLink(maxRadius->getOutputSocket(), minimize->getInputSocket(1));
-		
+
 		radiusOperation = minimize;
 	}
 	else {
@@ -73,20 +73,20 @@ void DefocusNode::convertToOperations(NodeConverter &converter, const Compositor
 		radius_op->setfStop(data->fstop);
 		radius_op->setMaxRadius(data->maxblur);
 		converter.addOperation(radius_op);
-		
+
 		converter.mapInputSocket(getInputSocket(1), radius_op->getInputSocket(0));
-		
+
 		FastGaussianBlurValueOperation *blur = new FastGaussianBlurValueOperation();
 		/* maintain close pixels so far Z values don't bleed into the foreground */
 		blur->setOverlay(FAST_GAUSS_OVERLAY_MIN);
 		converter.addOperation(blur);
-		
+
 		converter.addLink(radius_op->getOutputSocket(0), blur->getInputSocket(0));
 		radius_op->setPostBlur(blur);
-		
+
 		radiusOperation = blur;
 	}
-	
+
 	NodeBokehImage *bokehdata = new NodeBokehImage();
 	bokehdata->angle = data->rotation;
 	bokehdata->rounding = 0.0f;
@@ -97,20 +97,20 @@ void DefocusNode::convertToOperations(NodeConverter &converter, const Compositor
 	}
 	bokehdata->catadioptric = 0.0f;
 	bokehdata->lensshift = 0.0f;
-	
+
 	BokehImageOperation *bokeh = new BokehImageOperation();
 	bokeh->setData(bokehdata);
 	bokeh->deleteDataOnFinish();
 	converter.addOperation(bokeh);
-	
+
 #ifdef COM_DEFOCUS_SEARCH
 	InverseSearchRadiusOperation *search = new InverseSearchRadiusOperation();
 	search->setMaxBlur(data->maxblur);
 	converter.addOperation(search);
-	
+
 	converter.addLink(radiusOperation->getOutputSocket(0), search->getInputSocket(0));
 #endif
-	
+
 	VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
 	if (data->preview)
 		operation->setQuality(COM_QUALITY_LOW);
@@ -119,19 +119,19 @@ void DefocusNode::convertToOperations(NodeConverter &converter, const Compositor
 	operation->setMaxBlur(data->maxblur);
 	operation->setThreshold(data->bthresh);
 	converter.addOperation(operation);
-	
+
 	converter.addLink(bokeh->getOutputSocket(), operation->getInputSocket(1));
 	converter.addLink(radiusOperation->getOutputSocket(), operation->getInputSocket(2));
 #ifdef COM_DEFOCUS_SEARCH
 	converter.addLink(search->getOutputSocket(), operation->getInputSocket(3));
 #endif
-	
+
 	if (data->gamco) {
 		GammaCorrectOperation *correct = new GammaCorrectOperation();
 		converter.addOperation(correct);
 		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
 		converter.addOperation(inverse);
-		
+
 		converter.mapInputSocket(getInputSocket(0), correct->getInputSocket(0));
 		converter.addLink(correct->getOutputSocket(), operation->getInputSocket(0));
 		converter.addLink(operation->getOutputSocket(), inverse->getInputSocket(0));

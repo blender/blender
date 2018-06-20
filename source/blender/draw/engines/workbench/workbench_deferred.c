@@ -49,7 +49,7 @@
 
 /* *********** STATIC *********** */
 
-// #define DEBUG_SHADOW_VOLUME
+/* #define DEBUG_SHADOW_VOLUME */
 
 #ifdef DEBUG_SHADOW_VOLUME
 #  include "draw_debug.h"
@@ -65,6 +65,7 @@ static struct {
 	struct GPUShader *shadow_pass_manifold_sh;
 	struct GPUShader *shadow_caps_sh;
 	struct GPUShader *shadow_caps_manifold_sh;
+	struct GPUShader *effect_fxaa_sh;
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
@@ -72,9 +73,9 @@ static struct {
 	struct GPUTexture *specular_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
+	struct GPUTexture *effect_buffer_tx; /* ref only, not alloced */
 
 	SceneDisplay display; /* world light direction for shadows */
-	float light_direction_vs[3];
 	int next_object_id;
 	float normal_world_matrix[3][3];
 
@@ -84,6 +85,8 @@ static struct {
 } e_data = {{NULL}};
 
 /* Shaders */
+extern char datatoc_common_fxaa_lib_glsl[];
+extern char datatoc_common_fullscreen_vert_glsl[];
 extern char datatoc_common_hair_lib_glsl[];
 
 extern char datatoc_workbench_prepass_vert_glsl[];
@@ -100,6 +103,7 @@ extern char datatoc_workbench_background_lib_glsl[];
 extern char datatoc_workbench_cavity_lib_glsl[];
 extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
+extern char datatoc_workbench_effect_fxaa_frag_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
@@ -317,6 +321,12 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		char *cavity_frag = workbench_build_cavity_frag();
 		e_data.cavity_sh = DRW_shader_create_fullscreen(cavity_frag, NULL);
 		MEM_freeN(cavity_frag);
+
+		e_data.effect_fxaa_sh = DRW_shader_create_with_lib(
+		        datatoc_common_fullscreen_vert_glsl, NULL,
+		        datatoc_workbench_effect_fxaa_frag_glsl,
+		        datatoc_common_fxaa_lib_glsl,
+		        NULL);
 	}
 
 	if (!stl->g_data) {
@@ -335,6 +345,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		e_data.cavity_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
 		e_data.specular_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
+		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
+		e_data.effect_buffer_tx = DRW_texture_pool_query_2D(
 		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 
 		if (NORMAL_ENCODING_ENABLED()) {
@@ -360,6 +372,10 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		GPU_framebuffer_ensure_config(&fbl->composite_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 			GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
+		});
+		GPU_framebuffer_ensure_config(&fbl->effect_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(e_data.effect_buffer_tx),
 		});
 	}
 
@@ -406,6 +422,14 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		DRW_shgroup_uniform_block(grp, "samples_block", e_data.sampling_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
+
+	{
+		psl->effect_fxaa_pass = DRW_pass_create("Effect FXAA", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_fxaa_sh, psl->effect_fxaa_pass);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.effect_buffer_tx);
+		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+	}
 }
 
 void workbench_deferred_engine_free()
@@ -425,6 +449,7 @@ void workbench_deferred_engine_free()
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_manifold_sh);
 
+	DRW_SHADER_FREE_SAFE(e_data.effect_fxaa_sh);
 }
 
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
@@ -446,7 +471,7 @@ static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingG
 
 	if (STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)) {
 		BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE);
-		DRW_shgroup_uniform_texture(grp, "matcapImage", wpd->studio_light->equirectangular_radiance_gputexture);		DRW_shgroup_uniform_texture(grp, "matcapImage", wpd->studio_light->equirectangular_radiance_gputexture);
+		DRW_shgroup_uniform_texture(grp, "matcapImage", wpd->studio_light->equirectangular_radiance_gputexture);
 	}
 
 	workbench_material_set_normal_world_matrix(grp, wpd, e_data.normal_world_matrix);
@@ -459,8 +484,6 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DRWShadingGroup *grp;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	static float light_multiplier = 1.0f;
-
 
 	Scene *scene = draw_ctx->scene;
 
@@ -468,9 +491,9 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 	/* Deferred Mix Pass */
 	{
 		workbench_private_data_get_light_direction(wpd, e_data.display.light_direction);
+		studiolight_update_light(wpd, e_data.display.light_direction);
 
 		e_data.display.shadow_shift = scene->display.shadow_shift;
-		copy_v3_v3(e_data.light_direction_vs, wpd->world_data.lights[0].light_direction_vs);
 
 		if (SHADOW_ENABLED(wpd)) {
 			psl->composite_pass = DRW_pass_create(
@@ -478,7 +501,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
 			DRW_shgroup_stencil_mask(grp, 0x00);
-			DRW_shgroup_uniform_float(grp, "lightMultiplier", &light_multiplier, 1);
+			DRW_shgroup_uniform_float_copy(grp, "lightMultiplier", 1.0f);
 			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
@@ -522,7 +545,6 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
 
-			studiolight_update_light(wpd, e_data.display.light_direction);
 		}
 		else {
 			psl->composite_pass = DRW_pass_create(
@@ -568,7 +590,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 
 			case OB_TEXTURE:
 			{
-				GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, false, false);
+				GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0);
 				DRW_shgroup_uniform_texture(material->shgrp, "image", tex);
 				break;
 			}
@@ -631,7 +653,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 			DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
 			DRW_shgroup_uniform_block(shgrp, "material_block", material->material_ubo);
 			if (image) {
-				GPUTexture *tex = GPU_texture_from_blender(image, NULL, GL_TEXTURE_2D, false, false, false);
+				GPUTexture *tex = GPU_texture_from_blender(image, NULL, GL_TEXTURE_2D, false, 0.0f);
 				DRW_shgroup_uniform_texture(shgrp, "image", tex);
 			}
 		}
@@ -690,7 +712,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
 		/* Fallback from not drawn OB_TEXTURE mode or just OB_SOLID mode */
 		if (!is_drawn) {
-			if ((wpd->shading.color_type != V3D_SHADING_MATERIAL_COLOR) || is_sculpt_mode) {
+			if ((wpd->shading.color_type != V3D_SHADING_MATERIAL_COLOR)) {
 				/* No material split needed */
 				struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {
@@ -720,7 +742,12 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
 						Material *mat = give_current_material(ob, i + 1);
 						material = get_or_create_material_data(vedata, ob, mat, NULL, OB_SOLID);
-						DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
+						if (is_sculpt_mode) {
+							DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+						}
+						else {
+							DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
+						}
 					}
 				}
 			}
@@ -862,8 +889,21 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->composite_pass);
 	}
 
-	GPU_framebuffer_bind(dfbl->color_only_fb);
-	DRW_transform_to_display(e_data.composite_buffer_tx);
+	if (FXAA_ENABLED(wpd)) {
+		GPU_framebuffer_bind(fbl->effect_fb);
+		DRW_transform_to_display(e_data.composite_buffer_tx);
+
+		/* TODO: when rendering the fxaa pass should be done in display space
+		Currently we do not support rendering in the workbench
+		*/
+		GPU_framebuffer_bind(dfbl->color_only_fb);
+		DRW_draw_pass(psl->effect_fxaa_pass);
+	}
+	else {
+		GPU_framebuffer_bind(dfbl->color_only_fb);
+		DRW_transform_to_display(e_data.composite_buffer_tx);
+	}
+
 
 	workbench_private_data_free(wpd);
 }

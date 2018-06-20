@@ -39,27 +39,27 @@ public:
 		EG_RUNNING,
 		EG_FINISHED
 	} GroupState;
-	
+
 	typedef std::map<const Node *, std::string> NodeNameMap;
 	typedef std::map<const NodeOperation *, std::string> OpNameMap;
 	typedef std::map<const ExecutionGroup *, GroupState> GroupStateMap;
-	
+
 	static std::string node_name(const Node *node);
 	static std::string operation_name(const NodeOperation *op);
-	
+
 	static void convert_started();
 	static void execute_started(const ExecutionSystem *system);
-	
+
 	static void node_added(const Node *node);
 	static void node_to_operations(const Node *node);
 	static void operation_added(const NodeOperation *operation);
 	static void operation_read_write_buffer(const NodeOperation *operation);
-	
+
 	static void execution_group_started(const ExecutionGroup *group);
 	static void execution_group_finished(const ExecutionGroup *group);
-	
+
 	static void graphviz(const ExecutionSystem *system);
-	
+
 #ifdef COM_DEBUG
 protected:
 	static int graphviz_operation(const ExecutionSystem *system, const NodeOperation *operation, const ExecutionGroup *group, char *str, int maxlen);
@@ -68,7 +68,7 @@ protected:
 	static int graphviz_legend_group(const char *name, const char *color, const char *style, char *str, int maxlen);
 	static int graphviz_legend(char *str, int maxlen);
 	static bool graphviz_system(const ExecutionSystem *system, char *str, int maxlen);
-	
+
 private:
 	static int m_file_index;
 	static NodeNameMap m_node_names;			/**< map nodes to usable names for debug output */

@@ -55,7 +55,7 @@ typedef struct CollectionChild {
 
 typedef struct Collection {
 	ID id;
-	
+
 	ListBase gobject;   /* CollectionObject */
 	ListBase children;  /* CollectionChild */
 

@@ -54,8 +54,8 @@ void TimeNode::convertToOperations(NodeConverter &converter, const CompositorCon
 
 	curvemapping_initialize((CurveMapping *)node->storage);
 	fac = curvemapping_evaluateF((CurveMapping *)node->storage, 0, fac);
-	operation->setValue(CLAMPIS(fac, 0.0f, 1.0f));
+	operation->setValue(clamp_f(fac, 0.0f, 1.0f));
 	converter.addOperation(operation);
-	
+
 	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

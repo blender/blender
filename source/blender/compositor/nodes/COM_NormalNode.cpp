@@ -36,7 +36,7 @@ void NormalNode::convertToOperations(NodeConverter &converter, const CompositorC
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
 	NodeOutput *outputSocketDotproduct = this->getOutputSocket(1);
-	
+
 	SetVectorOperation *operationSet = new SetVectorOperation();
 	float normal[3];
 	outputSocket->getEditorValueVector(normal);
@@ -47,12 +47,12 @@ void NormalNode::convertToOperations(NodeConverter &converter, const CompositorC
 	operationSet->setZ(normal[2]);
 	operationSet->setW(0.0f);
 	converter.addOperation(operationSet);
-	
+
 	converter.mapOutputSocket(outputSocket, operationSet->getOutputSocket(0));
-	
+
 	DotproductOperation *operation = new DotproductOperation();
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 	converter.addLink(operationSet->getOutputSocket(0), operation->getInputSocket(1));
 	converter.mapOutputSocket(outputSocketDotproduct, operation->getOutputSocket(0));

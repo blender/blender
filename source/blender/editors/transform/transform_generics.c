@@ -58,6 +58,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "PIL_time.h"
+
 #include "BLT_translation.h"
 
 #include "RNA_access.h"
@@ -74,6 +76,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_paint.h"
@@ -1695,6 +1698,10 @@ void postTrans(bContext *C, TransInfo *t)
 		MEM_freeN(t->mouse.data);
 	}
 
+	if (t->rng != NULL) {
+		BLI_rng_free(t->rng);
+	}
+
 	freeSnapping(t);
 }
 
@@ -2163,7 +2170,12 @@ void calculatePropRatio(TransInfo *t)
 							td->factor = sqrtf(2 * dist - dist * dist);
 							break;
 						case PROP_RANDOM:
-							td->factor = BLI_frand() * dist;
+							if (t->rng == NULL) {
+								/* Lazy initialization. */
+								uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+								t->rng = BLI_rng_new(rng_seed);
+							}
+							td->factor = BLI_rng_get_float(t->rng) * dist;
 							break;
 						case PROP_INVSQUARE:
 							td->factor = dist * (2.0f - dist);

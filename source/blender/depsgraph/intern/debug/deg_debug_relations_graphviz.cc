@@ -271,6 +271,26 @@ static void deg_debug_graphviz_relation_style(const DebugContext &ctx,
 	deg_debug_fprintf(ctx, "%s", style);
 }
 
+static void deg_debug_graphviz_relation_arrowhead(const DebugContext &ctx,
+                                                  const DepsRelation *rel)
+{
+	const char *shape_default = "normal";
+	const char *shape_no_cow = "box";
+	const char *shape = shape_default;
+	if (rel->from->get_class() == DEG_NODE_CLASS_OPERATION &&
+	    rel->to->get_class() == DEG_NODE_CLASS_OPERATION)
+	{
+		OperationDepsNode *op_from = (OperationDepsNode *)rel->from;
+		OperationDepsNode *op_to = (OperationDepsNode *)rel->to;
+		if (op_from->owner->type == DEG_NODE_TYPE_COPY_ON_WRITE &&
+		    !op_to->owner->need_tag_cow_before_update())
+		{
+			shape = shape_no_cow;
+		}
+	}
+	deg_debug_fprintf(ctx, "%s", shape);
+}
+
 static void deg_debug_graphviz_node_style(const DebugContext &ctx, const DepsNode *node)
 {
 	const char *base_style = "filled"; /* default style */
@@ -386,6 +406,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case DEG_NODE_TYPE_LAYER_COLLECTIONS:
 		case DEG_NODE_TYPE_EVAL_PARTICLES:
 		case DEG_NODE_TYPE_COPY_ON_WRITE:
+		case DEG_NODE_TYPE_OBJECT_FROM_LAYER:
 		case DEG_NODE_TYPE_BATCH_CACHE:
 		{
 			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
@@ -484,6 +505,8 @@ static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
 		deg_debug_graphviz_relation_color(ctx, rel);
 		deg_debug_fprintf(ctx, ",style=");
 		deg_debug_graphviz_relation_style(ctx, rel);
+		deg_debug_fprintf(ctx, ",arrowhead=");
+		deg_debug_graphviz_relation_arrowhead(ctx, rel);
 		deg_debug_fprintf(ctx, ",penwidth=\"%f\"", penwidth);
 		/* NOTE: edge from node to own cluster is not possible and gives graphviz
 		 * warning, avoid this here by just linking directly to the invisible

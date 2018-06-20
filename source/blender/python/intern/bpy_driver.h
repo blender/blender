@@ -27,14 +27,7 @@
 #ifndef __BPY_DRIVER_H__
 #define __BPY_DRIVER_H__
 
-struct ChannelDriver;
-struct PathResolvedRNA;
-
 int bpy_pydriver_create_dict(void);
 extern PyObject *bpy_pydriver_Dict;
-
-/* externals */
-float BPY_driver_exec(struct PathResolvedRNA *anim_rna, struct ChannelDriver *driver, const float evaltime);
-void BPY_driver_reset(void);
 
 #endif  /* __BPY_DRIVER_H__ */

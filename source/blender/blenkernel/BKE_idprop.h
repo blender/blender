@@ -19,7 +19,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BKE_IDPROP_H__
 #define __BKE_IDPROP_H__
 

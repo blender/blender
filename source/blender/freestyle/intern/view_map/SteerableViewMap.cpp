@@ -91,7 +91,7 @@ void SteerableViewMap::Clear()
 		}
 		delete[] _imagesPyramids;
 		_imagesPyramids = 0;
-	} 
+	}
 	if (!_mapping.empty()) {
 		for (map<unsigned int, double*>::iterator m = _mapping.begin(), mend = _mapping.end();  m != mend; ++m) {
 			delete[] (*m).second;
@@ -170,7 +170,7 @@ unsigned SteerableViewMap::getSVMNumber(unsigned id)
 	map<unsigned int, double *>::iterator o = _mapping.find(id);
 	if (o != _mapping.end()) {
 		double *wvalues = (*o).second;
-		double maxw = 0.0; 
+		double maxw = 0.0;
 		unsigned winner = _nbOrientations + 1;
 		for (unsigned i = 0; i < _nbOrientations; ++i) {
 			double w = wvalues[i];

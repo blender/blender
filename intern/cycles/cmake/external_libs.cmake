@@ -98,6 +98,12 @@ if(CYCLES_STANDALONE_REPOSITORY)
 	endif()
 
 	####
+	# OpenColorIO
+	if(WITH_OPENCOLORIO)
+		find_package(OpenColorIO REQUIRED)
+	endif()
+
+	####
 	# Boost
 	set(__boost_packages filesystem regex system thread date_time)
 	if(WITH_CYCLES_NETWORK)

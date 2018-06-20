@@ -46,23 +46,23 @@ public:
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	void *initializeTileData(rcti *rect);
-	
+
 	void deinitializeTileData(rcti *rect, void *data);
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	
+
 	void setMaxBlur(int maxRadius) { this->m_maxBlur = maxRadius; }
 
 	void setThreshold(float threshold) { this->m_threshold = threshold; }
@@ -79,29 +79,29 @@ private:
 	SocketReader *m_inputRadius;
 public:
 	static const int DIVIDER = 4;
-	
+
 	InverseSearchRadiusOperation();
 
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixelChunk(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
 	void *initializeTileData(rcti *rect);
 	void deinitializeTileData(rcti *rect, void *data);
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	
+
 	void setMaxBlur(int maxRadius) { this->m_maxBlur = maxRadius; }
 };
 #endif

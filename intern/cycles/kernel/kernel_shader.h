@@ -914,10 +914,6 @@ ccl_device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_fac
 			eval += sc->weight*ao_factor;
 			N += bsdf->N*fabsf(average(sc->weight));
 		}
-		else if(CLOSURE_IS_AMBIENT_OCCLUSION(sc->type)) {
-			eval += sc->weight;
-			N += sd->N*fabsf(average(sc->weight));
-		}
 	}
 
 	*N_ = (is_zero(N))? sd->N : normalize(N);

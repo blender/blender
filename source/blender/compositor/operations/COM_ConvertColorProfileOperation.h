@@ -35,17 +35,17 @@ private:
 	 * Cached reference to the inputProgram
 	 */
 	SocketReader *m_inputOperation;
-	
+
 	/**
 	 * @brief color profile where to convert from
 	 */
 	int m_fromProfile;
-	
+
 	/**
 	 * @brief color profile where to convert to
 	 */
 	int m_toProfile;
-	
+
 	/**
 	 * @brief is color predivided
 	 */
@@ -55,22 +55,22 @@ public:
 	 * Default constructor
 	 */
 	ConvertColorProfileOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void setFromColorProfile(int colorProfile) { this->m_fromProfile = colorProfile; }
 	void setToColorProfile(int colorProfile) { this->m_toProfile = colorProfile; }
 	void setPredivided(bool predivided) { this->m_predivided = predivided; }

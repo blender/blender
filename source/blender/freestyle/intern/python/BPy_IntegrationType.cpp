@@ -216,7 +216,7 @@ static PyLongObject _IntegrationType_LAST = {
 int IntegrationType_Init(PyObject *module)
 {
 	PyObject *m, *d, *f;
-	
+
 	if (module == NULL)
 		return -1;
 
@@ -230,7 +230,7 @@ int IntegrationType_Init(PyObject *module)
 	PyDict_SetItemString(IntegrationType_Type.tp_dict, "MAX", BPy_IntegrationType_MAX);
 	PyDict_SetItemString(IntegrationType_Type.tp_dict, "FIRST", BPy_IntegrationType_FIRST);
 	PyDict_SetItemString(IntegrationType_Type.tp_dict, "LAST", BPy_IntegrationType_LAST);
-	
+
 	m = PyModule_Create(&module_definition);
 	if (m == NULL)
 		return -1;

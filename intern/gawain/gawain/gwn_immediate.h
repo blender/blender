@@ -20,7 +20,7 @@
 
 Gwn_VertFormat* immVertexFormat(void); // returns a cleared vertex format, ready for add_attrib
 
-void immBindProgram(GLuint program, const Gwn_ShaderInterface*); // every immBegin must have a program bound first
+void immBindProgram(uint32_t program, const Gwn_ShaderInterface*); // every immBegin must have a program bound first
 void immUnbindProgram(void); // call after your last immEnd, or before binding another program
 
 void immBegin(Gwn_PrimType, unsigned vertex_ct); // must supply exactly vertex_ct vertices

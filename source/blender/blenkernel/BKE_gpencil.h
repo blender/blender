@@ -56,7 +56,7 @@ void BKE_gpencil_stroke_sync_selection(struct bGPDstroke *gps);
 struct bGPDframe *BKE_gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
 struct bGPDframe *BKE_gpencil_frame_addcopy(struct bGPDlayer *gpl, int cframe);
 struct bGPDlayer *BKE_gpencil_layer_addnew(struct bGPdata *gpd, const char *name, bool setactive);
-struct bGPdata   *BKE_gpencil_data_addnew(const char name[]);
+struct bGPdata   *BKE_gpencil_data_addnew(struct Main *bmain, const char name[]);
 
 struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src);
 struct bGPDlayer *BKE_gpencil_layer_duplicate(const struct bGPDlayer *gpl_src);
@@ -88,7 +88,7 @@ bool gpencil_layer_is_editable(const struct bGPDlayer *gpl);
 typedef enum eGP_GetFrame_Mode {
 	/* Use the preceeding gp-frame (i.e. don't add anything) */
 	GP_GETFRAME_USE_PREV  = 0,
-	
+
 	/* Add a new empty/blank frame */
 	GP_GETFRAME_ADD_NEW   = 1,
 	/* Make a copy of the active frame */

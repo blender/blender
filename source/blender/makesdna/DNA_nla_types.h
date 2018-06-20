@@ -43,11 +43,11 @@ typedef struct bActionModifier {
 	struct bActionModifier *next, *prev;
 	short type, flag;
 	char channel[32];
-	
+
 	/* noise modifier */
 	float noisesize, turbul;
 	short channels;
-	
+
 	/* path deform modifier */
 	short no_rot_axis;
 	struct Object *ob;
@@ -74,10 +74,10 @@ typedef struct bActionStrip {
 	float	scale;				/* The amount the action range is scaled by */
 
 	float	blendin, blendout;	/* The number of frames on either end of the strip's length to fade in/out */
-	
+
 	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
 	char	offs_bone[32];		/* if repeat, use this bone/channel for defining offset */
-	
+
 	ListBase modifiers;			/* modifier stack */
 } bActionStrip;
 

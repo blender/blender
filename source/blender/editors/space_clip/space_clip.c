@@ -1435,7 +1435,7 @@ static void clip_tools_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void clip_tools_region_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 /****************** tool properties region ******************/
@@ -1484,7 +1484,7 @@ static void clip_properties_region_draw(const bContext *C, ARegion *ar)
 
 	BKE_movieclip_update_scopes(sc->clip, &sc->user, &sc->scopes);
 
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void clip_properties_region_listener(

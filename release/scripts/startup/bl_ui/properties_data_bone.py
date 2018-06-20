@@ -402,7 +402,7 @@ class BONE_PT_deform(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property

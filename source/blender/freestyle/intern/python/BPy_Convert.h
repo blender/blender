@@ -40,7 +40,7 @@ using namespace Freestyle::Geometry;
 #include "../geometry/BBox.h"
 
 // FEdge, FEdgeSharp, FEdgeSmooth, SShape, SVertex, FEdgeInternal::SVertexIterator
-#include "../view_map/Silhouette.h" 
+#include "../view_map/Silhouette.h"
 
 // Id
 #include "../system/Id.h"

@@ -78,7 +78,7 @@ private:
 
 	void writeArbGeoParams(struct Mesh *mesh);
 	void getGeoGroups(struct Mesh *mesh, std::map<std::string, std::vector<int32_t> > &geoGroups);
-	
+
 	/* fluid surfaces support */
 	void getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels);
 

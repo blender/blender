@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "render/film.h"
 #include "render/image.h"
 #include "render/integrator.h"
 #include "render/light.h"
@@ -1670,7 +1671,8 @@ RGBToBWNode::RGBToBWNode()
 void RGBToBWNode::constant_fold(const ConstantFolder& folder)
 {
 	if(folder.all_inputs_constant()) {
-		folder.make_constant(linear_rgb_to_gray(color));
+		float val = folder.scene->shader_manager->linear_rgb_to_gray(color);
+		folder.make_constant(val);
 	}
 }
 
@@ -1766,7 +1768,8 @@ void ConvertNode::constant_fold(const ConstantFolder& folder)
 			if(to == SocketType::FLOAT) {
 				if(from == SocketType::COLOR) {
 					/* color to float */
-					folder.make_constant(linear_rgb_to_gray(value_color));
+					float val = folder.scene->shader_manager->linear_rgb_to_gray(value_color);
+					folder.make_constant(val);
 				}
 				else {
 					/* vector/point/normal to float */
@@ -2789,11 +2792,17 @@ NODE_DEFINE(AmbientOcclusionNode)
 {
 	NodeType* type = NodeType::add("ambient_occlusion", create, NodeType::SHADER);
 
-	SOCKET_IN_NORMAL(normal_osl, "NormalIn", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL | SocketType::OSL_INTERNAL);
-	SOCKET_IN_COLOR(color, "Color", make_float3(0.8f, 0.8f, 0.8f));
-	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+	SOCKET_INT(samples, "Samples", 8);
 
-	SOCKET_OUT_CLOSURE(AO, "AO");
+	SOCKET_IN_COLOR(color, "Color", make_float3(0.8f, 0.8f, 0.8f));
+	SOCKET_IN_FLOAT(distance, "Distance", 1.0f);
+	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
+
+	SOCKET_BOOLEAN(inside, "Inside", false);
+	SOCKET_BOOLEAN(only_local, "Only Local", true);
+
+	SOCKET_OUT_COLOR(color, "Color");
+	SOCKET_OUT_FLOAT(ao, "AO");
 
 	return type;
 }
@@ -2806,17 +2815,33 @@ AmbientOcclusionNode::AmbientOcclusionNode()
 void AmbientOcclusionNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *color_in = input("Color");
+	ShaderInput *distance_in = input("Distance");
+	ShaderInput *normal_in = input("Normal");
+	ShaderOutput *color_out = output("Color");
+	ShaderOutput *ao_out = output("AO");
 
-	if(color_in->link)
-		compiler.add_node(NODE_CLOSURE_WEIGHT, compiler.stack_assign(color_in));
-	else
-		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color);
+	int flags = (inside? NODE_AO_INSIDE : 0) | (only_local? NODE_AO_ONLY_LOCAL : 0);
 
-	compiler.add_node(NODE_CLOSURE_AMBIENT_OCCLUSION, compiler.closure_mix_weight_offset());
+	if (!distance_in->link && distance == 0.0f) {
+		flags |= NODE_AO_GLOBAL_RADIUS;
+	}
+
+	compiler.add_node(NODE_AMBIENT_OCCLUSION,
+		compiler.encode_uchar4(flags,
+		                       compiler.stack_assign_if_linked(distance_in),
+		                       compiler.stack_assign_if_linked(normal_in),
+		                       compiler.stack_assign(ao_out)),
+		compiler.encode_uchar4(compiler.stack_assign(color_in),
+		                       compiler.stack_assign(color_out),
+		                       samples),
+		__float_as_uint(distance));
 }
 
 void AmbientOcclusionNode::compile(OSLCompiler& compiler)
 {
+	compiler.parameter(this, "samples");
+	compiler.parameter(this, "inside");
+	compiler.parameter(this, "only_local");
 	compiler.add(this, "node_ambient_occlusion");
 }
 

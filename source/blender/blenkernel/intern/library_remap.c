@@ -195,8 +195,10 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
 
 #ifdef DEBUG_PRINT
-		printf("In %s: Remapping %s (%p) to %s (%p) (is_indirect: %d, skip_indirect: %d)\n",
-		       id->name, old_id->name, old_id, new_id ? new_id->name : "<NONE>", new_id, is_indirect, skip_indirect);
+		printf("In %s (lib %p): Remapping %s (%p) to %s (%p) "
+		       "(is_indirect: %d, skip_indirect: %d, is_reference: %d, skip_reference: %d)\n",
+		       id->name, id->lib, old_id->name, old_id, new_id ? new_id->name : "<NONE>", new_id,
+		       is_indirect, skip_indirect, is_reference, skip_reference);
 #endif
 
 		if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) && (cb_flag & IDWALK_CB_NEVER_NULL)) {
@@ -239,7 +241,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		else {
 			if (!is_never_null) {
 				*id_p = new_id;
-				DEG_id_tag_update_ex(id_remap_data->bmain, id_self, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+				DEG_id_tag_update_ex(id_remap_data->bmain, id_self, DEG_TAG_TRANSFORM | DEG_TAG_TIME | DEG_TAG_GEOMETRY);
 			}
 			if (cb_flag & IDWALK_CB_USER) {
 				id_us_min(old_id);
@@ -1015,7 +1017,7 @@ void BKE_libblock_free(Main *bmain, void *idv)
 void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 {
 	ID *id = idv;
-	
+
 	id_us_min(id);
 
 	/* XXX This is a temp (2.77) hack so that we keep same behavior as in 2.76 regarding collections when deleting an object.
@@ -1031,7 +1033,7 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 
 	if (id->us == 0) {
 		BKE_libblock_unlink(bmain, id, false, false);
-		
+
 		BKE_libblock_free(bmain, id);
 	}
 }

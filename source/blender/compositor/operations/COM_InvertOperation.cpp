@@ -45,10 +45,10 @@ void InvertOperation::executePixelSampled(float output[4], float x, float y, Pix
 	float inputColor[4];
 	this->m_inputValueProgram->readSampled(inputValue, x, y, sampler);
 	this->m_inputColorProgram->readSampled(inputColor, x, y, sampler);
-	
+
 	const float value = inputValue[0];
 	const float invertedValue = 1.0f - value;
-	
+
 	if (this->m_color) {
 		output[0] = (1.0f - inputColor[0]) * value + inputColor[0] * invertedValue;
 		output[1] = (1.0f - inputColor[1]) * value + inputColor[1] * invertedValue;
@@ -57,7 +57,7 @@ void InvertOperation::executePixelSampled(float output[4], float x, float y, Pix
 	else {
 		copy_v3_v3(output, inputColor);
 	}
-	
+
 	if (this->m_alpha)
 		output[3] = (1.0f - inputColor[3]) * value + inputColor[3] * invertedValue;
 	else

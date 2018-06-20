@@ -296,8 +296,10 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 		ARegion *ar;
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->regiondata)
+			if ((ar->regiontype == RGN_TYPE_WINDOW) && ar->regiondata) {
 				ED_view3d_stop_render_preview(wm, ar);
+				break;
+			}
 		}
 	}
 }
@@ -820,7 +822,6 @@ static void view3d_main_region_listener(
 					break;
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
-					DEG_id_tag_update((ID *)&scene->id, DEG_TAG_SELECT_UPDATE);
 					ATTR_FALLTHROUGH;
 				case ND_FRAME:
 				case ND_TRANSFORM:
@@ -875,18 +876,6 @@ static void view3d_main_region_listener(
 				case ND_SELECT:
 				{
 					WM_manipulatormap_tag_refresh(mmap);
-
-					ID *ob_data = wmn->reference;
-					if (ob_data == NULL) {
-						BLI_assert(wmn->window); // Use `WM_event_add_notifier` instead of `WM_main_add_notifier`
-						ViewLayer *view_layer = WM_window_get_active_view_layer(wmn->window);
-						ob_data = OBEDIT_FROM_VIEW_LAYER(view_layer)->data;
-					}
-					if (ob_data) {
-						BLI_assert(OB_DATA_SUPPORT_ID(GS(ob_data->name)));
-						/* TODO(sergey): Notifiers shouldn't really be doing DEG tags. */
-						DEG_id_tag_update(ob_data, DEG_TAG_SELECT_UPDATE);
-					}
 					ATTR_FALLTHROUGH;
 				}
 				case ND_DATA:
@@ -1232,7 +1221,7 @@ static void view3d_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_buttons_region_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void view3d_buttons_region_listener(
@@ -1361,7 +1350,7 @@ static void view3d_tools_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_tools_region_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, (const char * []){CTX_data_mode_string(C), NULL}, -1, true);
+	ED_region_panels_ex(C, ar, (const char * []){CTX_data_mode_string(C), NULL}, -1, true);
 }
 
 /* area (not region) level listener */
@@ -1563,6 +1552,10 @@ void ED_spacetype_view3d(void)
 	art->init = view3d_header_region_init;
 	art->draw = view3d_header_region_draw;
 	art->message_subscribe = view3d_header_region_message_subscribe;
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: hud */
+	art = ED_area_type_hud(st->spaceid);
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);

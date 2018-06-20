@@ -271,7 +271,7 @@ void BKE_brush_debug_print_state(Brush *br)
 	/* create a fake brush and set it to the defaults */
 	Brush def = {{NULL}};
 	brush_defaults(&def);
-	
+
 #define BR_TEST(field, t)					\
 	if (br->field != def.field)				\
 		printf("br->" #field " = %" #t ";\n", br->field)
@@ -281,7 +281,7 @@ void BKE_brush_debug_print_state(Brush *br)
 		printf("br->flag |= " #_f ";\n");			\
 	else if (!(br->flag & _f) && (def.flag & _f))	\
 		printf("br->flag &= ~" #_f ";\n")
-	
+
 #define BR_TEST_FLAG_OVERLAY(_f)							\
 	if ((br->overlay_flags & _f) && !(def.overlay_flags & _f))		\
 		printf("br->overlay_flags |= " #_f ";\n");			\
@@ -355,7 +355,7 @@ void BKE_brush_debug_print_state(Brush *br)
 	BR_TEST(sub_col[2], f);
 
 	printf("\n");
-	
+
 #undef BR_TEST
 #undef BR_TEST_FLAG
 }
@@ -757,7 +757,7 @@ int BKE_brush_size_get(const Scene *scene, const Brush *brush)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	int size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
-	
+
 	return size;
 }
 

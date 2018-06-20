@@ -74,7 +74,7 @@ static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmManipulator
 
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, NULL);
 	wmManipulator *mpr = wwrapper->manipulator;
-	RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_INVERTED);
+	RNA_enum_set(mpr->ptr, "transform",  ED_MANIPULATOR_ARROW_XFORM_FLAG_INVERTED);
 
 	mgroup->customdata = wwrapper;
 

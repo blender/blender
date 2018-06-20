@@ -256,6 +256,7 @@ static struct {
 	GPUShader *outline_resolve_sh;
 	GPUShader *outline_resolve_aa_sh;
 	GPUShader *outline_detect_sh;
+	GPUShader *outline_detect_wire_sh;
 	GPUShader *outline_fade_sh;
 
 	/* regular shaders */
@@ -363,6 +364,14 @@ static void OBJECT_engine_init(void *vedata)
 		            datatoc_object_outline_detect_frag_glsl,
 		            datatoc_common_globals_lib_glsl,
 		            "#extension GL_ARB_texture_gather : enable\n");
+
+		e_data.outline_detect_wire_sh = DRW_shader_create_with_lib(
+		            datatoc_common_fullscreen_vert_glsl, NULL,
+		            datatoc_object_outline_detect_frag_glsl,
+		            datatoc_common_globals_lib_glsl,
+		            "#define WIRE\n"
+		            "#extension GL_ARB_texture_gather : enable\n");
+
 
 		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
 
@@ -592,6 +601,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_aa_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_detect_sh);
+	DRW_SHADER_FREE_SAFE(e_data.outline_detect_wire_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_fade_sh);
 	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_sh);
 	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_wire_sh);
@@ -789,7 +799,7 @@ static void DRW_shgroup_empty_image(
 	struct EmptyImageShadingGroupData *empty_image_data;
 
 	GPUTexture *tex = ob->data ?
-	        GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, false, false) : NULL;
+	        GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, 0.0f) : NULL;
 	void **val_p;
 
 	/* Create on demand, 'tex' may be NULL. */
@@ -864,6 +874,8 @@ static void OBJECT_cache_init(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	OBJECT_PrivateData *g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
+	                           (draw_ctx->v3d->drawtype < OB_MATERIAL);
 	/* TODO : use dpi setting for enabling the second pass */
 	const bool do_outline_expand = false;
 
@@ -880,7 +892,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		GPUShader *sh = e_data.outline_prepass_sh;
 
-		if (draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) {
+		if (xray_enabled) {
 			sh = e_data.outline_prepass_wire_sh;
 		}
 
@@ -917,19 +929,21 @@ static void OBJECT_cache_init(void *vedata)
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR;
 		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
-		static float alphaOcclu = 0.35f;
+		/* Don't occlude the "outline" detection pass if in xray mode (too much flickering). */
+		float alphaOcclu = (xray_enabled) ? 1.0f : 0.35f;
 		/* Reminder : bool uniforms need to be 4 bytes. */
 		static const int bTrue = true;
 		static const int bFalse = false;
 
 		psl->outlines_search = DRW_pass_create("Outlines Detect Pass", state);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_detect_sh, psl->outlines_search);
+		GPUShader *sh = (xray_enabled) ? e_data.outline_detect_wire_sh : e_data.outline_detect_sh;
+		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->outlines_search);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineId", &e_data.outlines_id_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &e_data.outlines_depth_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_float(grp, "alphaOcclu", &alphaOcclu, 1);
+		DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", alphaOcclu);
 		DRW_shgroup_uniform_int(grp, "idOffsets", &stl->g_data->id_ofs_active, 3);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
@@ -2091,13 +2105,15 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		return;
 	}
 
-	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
+	bool do_outlines = (draw_ctx->v3d->flag & V3D_SELECT_OUTLINE) && ((ob->base_flag & BASE_SELECTED) != 0);
 	bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
 	if (do_outlines) {
 		if ((ob != draw_ctx->object_edit) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
 			struct Gwn_Batch *geom;
-			if (v3d->shading.flag & V3D_SHADING_XRAY) {
+			const bool xray_enabled = ((v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
+			                           (v3d->drawtype < OB_MATERIAL);
+			if (xray_enabled) {
 				geom = DRW_cache_object_edge_detection_get(ob, NULL);
 			}
 			else {

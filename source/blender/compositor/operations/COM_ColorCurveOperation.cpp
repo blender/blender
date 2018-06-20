@@ -61,7 +61,7 @@ void ColorCurveOperation::initExecution()
 void ColorCurveOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	CurveMapping *cumap = this->m_curveMapping;
-	
+
 	float fac[4];
 	float image[4];
 

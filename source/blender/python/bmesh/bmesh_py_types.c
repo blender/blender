@@ -36,6 +36,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_global.h"
 
 #include "DEG_depsgraph.h"
 
@@ -903,6 +904,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 	bm = self->bm;
 
 	BM_mesh_bm_to_me(
+	        G.main,  /* XXX UGLY! */
 	        bm, me,
 	        (&(struct BMeshToMeshParams){
 	            .calc_object_remap = true,
@@ -1401,7 +1403,7 @@ static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *ar
 			return NULL;
 		}
 
-		BM_data_interp_from_verts(bm, vert_array[0], vert_array[1], self->v, CLAMPIS(fac, 0.0f, 1.0f));
+		BM_data_interp_from_verts(bm, vert_array[0], vert_array[1], self->v, clamp_f(fac, 0.0f, 1.0f));
 
 		PyMem_FREE(vert_array);
 		Py_RETURN_NONE;

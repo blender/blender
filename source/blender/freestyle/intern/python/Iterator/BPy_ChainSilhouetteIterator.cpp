@@ -98,7 +98,7 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self, PyObj
 		bool restrict_to_selection = (!obj1) ? true : bool_from_PyBool(obj1);
 		ViewEdge *begin = (!obj2 || obj2 == Py_None) ? NULL : ((BPy_ViewEdge *)obj2)->ve;
 		bool orientation = (!obj3) ? true : bool_from_PyBool(obj3);
-		self->cs_it = new ChainSilhouetteIterator(restrict_to_selection, begin, orientation);	
+		self->cs_it = new ChainSilhouetteIterator(restrict_to_selection, begin, orientation);
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");

@@ -55,10 +55,10 @@
 
 #include "DEG_depsgraph_query.h"
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
-	
+
 	collmd->x = NULL;
 	collmd->xnew = NULL;
 	collmd->current_x = NULL;
@@ -74,7 +74,7 @@ static void initData(ModifierData *md)
 static void freeData(ModifierData *md)
 {
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
-	
+
 	if (collmd) {  /* Seriously? */
 		if (collmd->bvhtree) {
 			BLI_bvhtree_free(collmd->bvhtree);
@@ -111,7 +111,7 @@ static void deformVerts(
 	Mesh *mesh_src;
 	MVert *tempVert = NULL;
 	Object *ob = ctx->object;
-	
+
 	if (mesh == NULL) {
 		mesh_src = get_mesh(ob, NULL, NULL, NULL, false, false);
 	}
@@ -131,21 +131,21 @@ static void deformVerts(
 		printf("CollisionModifier deformVerts: Should not happen!\n");
 		return;
 	}
-	
+
 	if (mesh_src) {
 		float current_time = 0;
 		unsigned int mvert_num = 0;
 
 		BKE_mesh_apply_vert_coords(mesh_src, vertexCos);
 		BKE_mesh_calc_normals(mesh_src);
-		
+
 		current_time = DEG_get_ctime(ctx->depsgraph);
-		
+
 		if (G.debug_value > 0)
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
-		
+
 		mvert_num = mesh_src->totvert;
-		
+
 		if (current_time > collmd->time_xnew) {
 			unsigned int i;
 
@@ -161,7 +161,7 @@ static void deformVerts(
 					/* we save global positions */
 					mul_m4_v3(ob->obmat, collmd->x[i].co);
 				}
-				
+
 				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
 				collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
 				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
@@ -218,9 +218,9 @@ static void deformVerts(
 						        collmd->tri, collmd->tri_num,
 						        ob->pd->pdef_sboft);
 					}
-			
+
 				}
-				
+
 				/* happens on file load (ONLY when i decomment changes in readfile.c) */
 				if (!collmd->bvhtree) {
 					collmd->bvhtree = bvhtree_build_from_mvert(
@@ -243,7 +243,7 @@ static void deformVerts(
 			else if (mvert_num != collmd->mvert_num) {
 				freeData((ModifierData *)collmd);
 			}
-			
+
 		}
 		else if (current_time < collmd->time_xnew) {
 			freeData((ModifierData *)collmd);
@@ -254,7 +254,7 @@ static void deformVerts(
 			}
 		}
 	}
-	
+
 	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
 	}

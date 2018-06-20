@@ -89,15 +89,15 @@ static int UnaryFunction1DVec2f___init__(BPy_UnaryFunction1DVec2f *self, PyObjec
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
-	
+
 	if (!obj)
 		self->uf1D_vec2f = new UnaryFunction1D<Vec2f>();
 	else {
 		self->uf1D_vec2f = new UnaryFunction1D<Vec2f>(IntegrationType_from_BPy_IntegrationType(obj));
 	}
-	
+
 	self->uf1D_vec2f->py_uf1D = (PyObject *)self;
-	
+
 	return 0;
 }
 

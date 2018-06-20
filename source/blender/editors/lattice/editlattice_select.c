@@ -59,6 +59,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "DEG_depsgraph.h"
+
 #include "lattice_intern.h"
 
 /* -------------------------------------------------------------------- */
@@ -118,6 +120,7 @@ static int lattice_select_random_exec(bContext *C, wmOperator *op)
 
 		BLI_rng_free(rng);
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	}
@@ -209,6 +212,7 @@ static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
 		}
 
 		/* TODO, only notify changes */
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -295,6 +299,7 @@ static int lattice_select_more_less(bContext *C, const bool select)
 
 	MEM_freeN(selpoints);
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }
@@ -411,6 +416,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 				}
 				break;
 		}
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -470,6 +476,7 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -568,6 +575,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], bool extend, bool de
 			lt->actbp = LT_ACTBP_NONE;
 		}
 
+		DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
 		return true;

@@ -35,9 +35,9 @@ void ConvertAlphaNode::convertToOperations(NodeConverter &converter, const Compo
 	else {
 		operation = new ConvertStraightToPremulOperation();
 	}
-	
+
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

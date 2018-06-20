@@ -11,7 +11,7 @@ void main()
 	if (isSelected != 0)
 		FragColor = colorFaceDot;
 	else
-		FragColor = colorWireEdit;
+		FragColor = colorVertex;
 
 #ifdef VERTEX_FACING
 	FragColor.a *= 1.0 - abs(facing) * 0.4;

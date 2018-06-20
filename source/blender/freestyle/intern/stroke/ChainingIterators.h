@@ -80,7 +80,7 @@ public:
 	{
 		_internalIterator = iBrother._internalIterator;
 		_restrictToSelection = iBrother._restrictToSelection;
-		_restrictToUnvisited = iBrother._restrictToUnvisited;  
+		_restrictToUnvisited = iBrother._restrictToUnvisited;
 		return *this;
 	}
 
@@ -289,7 +289,7 @@ public:
 	 */
 	virtual int traverse(const AdjacencyIterator& it);
 
-	/*! Inits the iterator context */ 
+	/*! Inits the iterator context */
 	virtual int init()
 	{
 		return 0;

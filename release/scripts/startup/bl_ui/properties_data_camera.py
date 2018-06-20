@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
+from bl_operators.presets import PresetMenu
 
 
 class CameraButtonsPanel:
@@ -33,26 +34,26 @@ class CameraButtonsPanel:
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
-class CAMERA_MT_presets(Menu):
+class CAMERA_PT_presets(PresetMenu):
     bl_label = "Camera Presets"
     preset_subdir = "camera"
     preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
-    draw = Menu.draw_preset
+    preset_add_operator = "camera.preset_add"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
 
-class SAFE_AREAS_MT_presets(Menu):
+class SAFE_AREAS_PT_presets(PresetMenu):
     bl_label = "Camera Presets"
     preset_subdir = "safe_areas"
     preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
-    draw = Menu.draw_preset
+    preset_add_operator = "safe_areas.preset_add"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
 
 class DATA_PT_context_camera(CameraButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -72,7 +73,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, Panel):
 
 class DATA_PT_lens(CameraButtonsPanel, Panel):
     bl_label = "Lens"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -113,7 +114,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                     sub = col.column(align=True)
                     sub.prop(ccam, "longitude_min", text="Longiture Min")
                     sub.prop(ccam, "longitude_max", text="Max")
-            elif engine in {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}:
+            elif engine in {'BLENDER_RENDER', 'BLENDER_EEVEE'}:
                 if cam.lens_unit == 'MILLIMETERS':
                     col.prop(cam, "lens")
                 elif cam.lens_unit == 'FOV':
@@ -135,7 +136,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
 
 class DATA_PT_camera_stereoscopy(CameraButtonsPanel, Panel):
     bl_label = "Stereoscopy"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -183,18 +184,15 @@ class DATA_PT_camera_stereoscopy(CameraButtonsPanel, Panel):
 
 class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_label = "Camera"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    def draw_header_preset(self, context):
+        CAMERA_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
 
         cam = context.camera
-
-        row = layout.row(align=True)
-
-        row.menu("CAMERA_MT_presets", text=bpy.types.CAMERA_MT_presets.bl_label)
-        row.operator("camera.preset_add", text="", icon='ZOOMIN')
-        row.operator("camera.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         layout.use_property_split = True
 
@@ -216,7 +214,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
     bl_label = "Depth of Field"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -235,7 +233,7 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
 class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
     bl_label = "Aperture"
     bl_parent_id = "DATA_PT_camera_dof"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -269,7 +267,7 @@ class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
 class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
     bl_label = "Background Images"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
         cam = context.camera
@@ -370,7 +368,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Display"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -403,12 +401,15 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
 class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
     bl_label = "Safe Areas"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
         cam = context.camera
 
         self.layout.prop(cam, "show_safe_areas", text="")
+
+    def draw_header_preset(self, context):
+        SAFE_AREAS_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -419,7 +420,7 @@ class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _context_path = "object.data"
     _property_type = bpy.types.Camera
 
@@ -429,13 +430,6 @@ def draw_display_safe_settings(layout, safe_data, settings):
     show_safe_center = settings.show_safe_center
 
     layout.use_property_split = True
-
-    row = layout.row(align=True)
-    row.menu("SAFE_AREAS_MT_presets", text=bpy.types.SAFE_AREAS_MT_presets.bl_label)
-    row.operator("safe_areas.preset_add", text="", icon='ZOOMIN')
-    row.operator("safe_areas.preset_add", text="", icon='ZOOMOUT').remove_active = True
-
-    layout.separator()
 
     col = layout.column()
     col.active = show_safe_areas
@@ -455,8 +449,8 @@ def draw_display_safe_settings(layout, safe_data, settings):
 
 
 classes = (
-    CAMERA_MT_presets,
-    SAFE_AREAS_MT_presets,
+    CAMERA_PT_presets,
+    SAFE_AREAS_PT_presets,
     DATA_PT_context_camera,
     DATA_PT_lens,
     DATA_PT_camera,

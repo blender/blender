@@ -666,6 +666,13 @@ Closure closure_add(Closure cl1, Closure cl2)
 	return cl;
 }
 
+Closure closure_emission(vec3 rgb)
+{
+	Closure cl = CLOSURE_DEFAULT;
+	cl.emission = rgb;
+	return cl;
+}
+
 #else /* VOLUMETRICS */
 
 struct Closure {
@@ -764,6 +771,13 @@ Closure closure_add(Closure cl1, Closure cl2)
 #  endif
 	cl.radiance = cl1.radiance + cl2.radiance;
 	cl.opacity = saturate(cl1.opacity + cl2.opacity);
+	return cl;
+}
+
+Closure closure_emission(vec3 rgb)
+{
+	Closure cl = CLOSURE_DEFAULT;
+	cl.radiance = rgb;
 	return cl;
 }
 

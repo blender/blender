@@ -50,6 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
+#include "BKE_animsys.h"
 
 #include "RNA_access.h"
 
@@ -62,6 +63,10 @@
 #include "WM_types.h"
 
 #include "interface_intern.h"
+
+/* Show an icon button after each RNA button to use to quickly set keyframes,
+ * this is a way to display animation/driven/override status, see T54951. */
+#define UI_PROP_DECORATE
 
 /************************ Structs and Defines *************************/
 
@@ -132,6 +137,9 @@ enum {
 
 	UI_ITEM_BOX_ITEM  = 1 << 2, /* The item is "inside" a box item */
 	UI_ITEM_PROP_SEP  = 1 << 3,
+	/* Show an icon button next to each property (to set keyframes, show status).
+	 * Enabled by default, depends on 'UI_ITEM_PROP_SEP'. */
+	UI_ITEM_PROP_DECORATE = 1 << 4,
 };
 
 typedef struct uiButtonItem {
@@ -1477,6 +1485,19 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	bool is_array;
 	const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
+#ifdef UI_PROP_DECORATE
+	struct {
+		bool use_prop_decorate;
+		int len;
+		uiLayout *layout;
+		uiBut *but;
+	} ui_decorate = {
+		.use_prop_decorate = (
+		        ((layout->item.flag & UI_ITEM_PROP_DECORATE) != 0) &&
+		        (use_prop_sep && ptr->id.data && id_can_have_animdata(ptr->id.data))),
+	};
+#endif  /* UI_PROP_DECORATE */
+
 	UI_block_layout_set_current(block, layout);
 
 	/* retrieve info */
@@ -1558,14 +1579,25 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 
 	/* Split the label / property. */
 	if (use_prop_sep) {
+		uiLayout *layout_row = NULL;
+#ifdef UI_PROP_DECORATE
+		if (ui_decorate.use_prop_decorate) {
+			layout_row = uiLayoutRow(layout, true);
+			layout_row->space = 0;
+			ui_decorate.len = max_ii(1, len);
+		}
+#endif  /* UI_PROP_DECORATE */
+
 		if (name[0] == '\0') {
 			/* Ensure we get a column when text is not set. */
-			layout = uiLayoutColumn(layout, true);
+			layout = uiLayoutColumn(layout_row ? layout_row : layout, true);
 			layout->space = 0;
 		}
 		else {
 			const PropertySubType subtype = RNA_property_subtype(prop);
-			uiLayout *layout_split = uiLayoutSplit(layout, UI_ITEM_PROP_SEP_DIVIDE, true);
+			uiLayout *layout_split = uiLayoutSplit(
+			        layout_row ? layout_row : layout,
+			        UI_ITEM_PROP_SEP_DIVIDE, true);
 			layout_split->space = 0;
 			uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
 			layout_sub->space = 0;
@@ -1605,8 +1637,22 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			/* Watch out! We can only write into the new column now. */
 			layout = uiLayoutColumn(layout_split, true);
 			layout->space = 0;
-			name = "";
+			if ((type == PROP_ENUM) && (flag & UI_ITEM_R_EXPAND)) {
+				/* pass (expanded enums each have their own name) */
+			}
+			else {
+				name = "";
+			}
 		}
+
+#ifdef UI_PROP_DECORATE
+		if (ui_decorate.use_prop_decorate) {
+			ui_decorate.layout = uiLayoutColumn(layout_row, true);
+			ui_decorate.layout->space = 0;
+			UI_block_layout_set_current(block, layout);
+			ui_decorate.but = block->buttons.last;
+		}
+#endif  /* UI_PROP_DECORATE */
 	}
 	/* End split. */
 
@@ -1654,6 +1700,40 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	if (but && (block->flag & UI_BLOCK_LIST_ITEM) && (but->dt & UI_EMBOSS_NONE)) {
 		UI_but_flag_enable(but, UI_BUT_LIST_ITEM);
 	}
+
+#ifdef UI_PROP_DECORATE
+	if (ui_decorate.use_prop_decorate) {
+		const bool is_anim = RNA_property_animateable(ptr, prop);
+		uiBut *but_decorate = ui_decorate.but ? ui_decorate.but->next : block->buttons.first;
+		uiLayout *layout_col = uiLayoutColumn(ui_decorate.layout, false);
+		layout_col->space = 0;
+		layout_col->emboss = UI_EMBOSS_NONE;
+		int i;
+		for (i = 0; i < ui_decorate.len && but_decorate; i++) {
+			/* The icons are set in 'ui_but_anim_flag' */
+			if (is_anim) {
+				but = uiDefIconBut(
+				        block, UI_BTYPE_BUT, 0, ICON_DOT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+				        NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Animate property"));
+				UI_but_func_set(but, ui_but_anim_decorate_cb, but, NULL);
+				but->flag |= UI_BUT_UNDO | UI_BUT_DRAG_LOCK;
+			}
+			else {
+				/* We may show other information here in future, for now use empty space. */
+				but = uiDefIconBut(
+				        block, UI_BTYPE_BUT, 0, ICON_BLANK1, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+				        NULL, 0.0, 0.0, 0.0, 0.0, "");
+				but->flag |= UI_BUT_DISABLED;
+			}
+			/* Order the decorator after the button we decorate, this is used so we can always
+			 * do a quick lookup. */
+			BLI_remlink(&block->buttons, but);
+			BLI_insertlinkafter(&block->buttons, but_decorate, but);
+			but_decorate = but->next;
+		}
+		BLI_assert(ELEM(i, 1, ui_decorate.len));
+	}
+#endif  /* UI_PROP_DECORATE */
 
 	if (no_bg) {
 		layout->emboss = prev_emboss;
@@ -1811,7 +1891,8 @@ static void search_id_collection(StructRNA *ptype, PointerRNA *ptr, PropertyRNA 
 	StructRNA *srna;
 
 	/* look for collection property in Main */
-	RNA_main_pointer_create(G.main, ptr);
+	/* Note: using global Main is OK-ish here, UI shall not access other Mains anyay... */
+	RNA_main_pointer_create(G_MAIN, ptr);
 
 	*prop = NULL;
 
@@ -1985,12 +2066,15 @@ static uiBut *ui_item_menu(
 	h = UI_UNIT_Y;
 
 	if (layout->root->type == UI_LAYOUT_HEADER) { /* ugly .. */
-		if (force_menu) {
-			w += UI_UNIT_Y;
+		if (icon == ICON_NONE && force_menu) {
+			/* pass */
+		}
+		else if (force_menu) {
+			w += UI_UNIT_X;
 		}
 		else {
 			if (name[0]) {
-				w -= UI_UNIT_Y / 2;
+				w -= UI_UNIT_X / 2;
 			}
 		}
 	}
@@ -3014,10 +3098,16 @@ static void ui_litem_grid_flow_compute(
 		const float wfac = (float)(parameters->litem_w - (parameters->tot_columns - 1) * parameters->space_x) / tot_w;
 
 		for (int col = 0; col < parameters->tot_columns; col++) {
-			results->cos_x_array[col] = col ? results->cos_x_array[col - 1] + results->widths_array[col - 1] + parameters->space_x : parameters->litem_x;
+			results->cos_x_array[col] = (
+			        col ?
+			        results->cos_x_array[col - 1] + results->widths_array[col - 1] + parameters->space_x :
+			        parameters->litem_x
+			);
 			if (parameters->even_columns) {
-				/*                     (<                        remaining width                          > - <       space between remaining columns              >) / <     remaining columns    > */
-				results->widths_array[col] = ((parameters->litem_w - (results->cos_x_array[col] - parameters->litem_x)) - (parameters->tot_columns - col - 1) * parameters->space_x) / (parameters->tot_columns - col);
+				/* (< remaining width > - < space between remaining columns >) / < remaining columns > */
+				results->widths_array[col] = (
+				        ((parameters->litem_w - (results->cos_x_array[col] - parameters->litem_x)) -
+				         (parameters->tot_columns - col - 1) * parameters->space_x) / (parameters->tot_columns - col));
 			}
 			else if (col == parameters->tot_columns - 1) {
 				/* Last column copes width rounding errors... */
@@ -3036,7 +3126,10 @@ static void ui_litem_grid_flow_compute(
 			else {
 				results->heights_array[row] = max_h[row];
 			}
-			results->cos_y_array[row] = row ? results->cos_y_array[row - 1] - parameters->space_y - results->heights_array[row] : parameters->litem_y - results->heights_array[row];
+			results->cos_y_array[row] = (
+			        row ?
+			        results->cos_y_array[row - 1] - parameters->space_y - results->heights_array[row] :
+			        parameters->litem_y - results->heights_array[row]);
 		}
 	}
 
@@ -3068,22 +3161,22 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 		int max_h;
 
 		ui_litem_grid_flow_compute(
-		            &litem->items,
-		            &((UILayoutGridFlowInput) {
-		                  .row_major = gflow->row_major,
-		                  .even_columns = gflow->even_columns,
-		                  .even_rows = gflow->even_rows,
-		                  .litem_w = litem->w,
-		                  .litem_x = litem->x,
-		                  .litem_y = litem->y,
-		                  .space_x = space_x,
-		                  .space_y = space_y,
-		              }),
-		            &((UILayoutGridFlowOutput) {
-		                  .tot_items = &gflow->tot_items,
-		                  .global_avg_w = &avg_w,
-		                  .global_max_h = &max_h,
-		              }));
+		        &litem->items,
+		        &((UILayoutGridFlowInput) {
+		              .row_major = gflow->row_major,
+		              .even_columns = gflow->even_columns,
+		              .even_rows = gflow->even_rows,
+		              .litem_w = litem->w,
+		              .litem_x = litem->x,
+		              .litem_y = litem->y,
+		              .space_x = space_x,
+		              .space_y = space_y,
+		          }),
+		        &((UILayoutGridFlowOutput) {
+		              .tot_items = &gflow->tot_items,
+		              .global_avg_w = &avg_w,
+		              .global_max_h = &max_h,
+		          }));
 
 		if (gflow->tot_items == 0) {
 			litem->w = litem->h = 0;
@@ -3153,23 +3246,23 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 		int tot_w, tot_h;
 
 		ui_litem_grid_flow_compute(
-		            &litem->items,
-		            &((UILayoutGridFlowInput) {
-		                  .row_major = gflow->row_major,
-		                  .even_columns = gflow->even_columns,
-		                  .even_rows = gflow->even_rows,
-		                  .litem_w = litem->w,
-		                  .litem_x = litem->x,
-		                  .litem_y = litem->y,
-		                  .space_x = space_x,
-		                  .space_y = space_y,
-		                  .tot_columns = gflow->tot_columns,
-		                  .tot_rows = gflow->tot_rows,
-		              }),
-		            &((UILayoutGridFlowOutput) {
-		                  .tot_w = &tot_w,
-		                  .tot_h = &tot_h,
-		              }));
+		        &litem->items,
+		        &((UILayoutGridFlowInput) {
+		              .row_major = gflow->row_major,
+		              .even_columns = gflow->even_columns,
+		              .even_rows = gflow->even_rows,
+		              .litem_w = litem->w,
+		              .litem_x = litem->x,
+		              .litem_y = litem->y,
+		              .space_x = space_x,
+		              .space_y = space_y,
+		              .tot_columns = gflow->tot_columns,
+		              .tot_rows = gflow->tot_rows,
+		          }),
+		        &((UILayoutGridFlowOutput) {
+		              .tot_w = &tot_w,
+		              .tot_h = &tot_h,
+		          }));
 
 		litem->w = tot_w;
 		litem->h = tot_h;
@@ -3201,25 +3294,25 @@ static void ui_litem_layout_grid_flow(uiLayout *litem)
 
 	/* This time we directly compute coordinates and sizes of all cells. */
 	ui_litem_grid_flow_compute(
-	            &litem->items,
-	            &((UILayoutGridFlowInput) {
-	                  .row_major = gflow->row_major,
-	                  .even_columns = gflow->even_columns,
-	                  .even_rows = gflow->even_rows,
-	                  .litem_w = litem->w,
-	                  .litem_x = litem->x,
-	                  .litem_y = litem->y,
-	                  .space_x = space_x,
-	                  .space_y = space_y,
-	                  .tot_columns = gflow->tot_columns,
-	                  .tot_rows = gflow->tot_rows,
-	              }),
-	            &((UILayoutGridFlowOutput) {
-	                  .cos_x_array = cos_x,
-	                  .cos_y_array = cos_y,
-	                  .widths_array = widths,
-	                  .heights_array = heights,
-	              }));
+	        &litem->items,
+	        &((UILayoutGridFlowInput) {
+	              .row_major = gflow->row_major,
+	              .even_columns = gflow->even_columns,
+	              .even_rows = gflow->even_rows,
+	              .litem_w = litem->w,
+	              .litem_x = litem->x,
+	              .litem_y = litem->y,
+	              .space_x = space_x,
+	              .space_y = space_y,
+	              .tot_columns = gflow->tot_columns,
+	              .tot_rows = gflow->tot_rows,
+	          }),
+	        &((UILayoutGridFlowOutput) {
+	              .cos_x_array = cos_x,
+	              .cos_y_array = cos_y,
+	              .widths_array = widths,
+	              .heights_array = heights,
+	          }));
 
 	for (item = litem->items.first, i = 0; item; item = item->next, i++) {
 		const int col = gflow->row_major ? i % gflow->tot_columns : i / gflow->tot_rows;
@@ -3422,7 +3515,7 @@ static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int ali
 	litem->redalert = layout->redalert;
 	litem->w = layout->w;
 	litem->emboss = layout->emboss;
-	litem->item.flag = (layout->item.flag & UI_ITEM_PROP_SEP);
+	litem->item.flag = (layout->item.flag & (UI_ITEM_PROP_SEP | UI_ITEM_PROP_DECORATE));
 	BLI_addtail(&layout->items, litem);
 }
 
@@ -3685,6 +3778,16 @@ bool uiLayoutGetPropSep(uiLayout *layout)
 void uiLayoutSetPropSep(uiLayout *layout, bool is_sep)
 {
 	SET_FLAG_FROM_TEST(layout->item.flag, is_sep, UI_ITEM_PROP_SEP);
+}
+
+bool uiLayoutGetPropDecorate(uiLayout *layout)
+{
+	return (layout->item.flag & UI_ITEM_PROP_DECORATE) != 0;
+}
+
+void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
+{
+	SET_FLAG_FROM_TEST(layout->item.flag, is_sep, UI_ITEM_PROP_DECORATE);
 }
 
 bool uiLayoutGetActive(uiLayout *layout)
@@ -3988,6 +4091,9 @@ uiLayout *UI_block_layout(uiBlock *block, int dir, int type, int x, int y, int s
 
 	layout = MEM_callocN(sizeof(uiLayout), "uiLayout");
 	layout->item.type = ITEM_LAYOUT_ROOT;
+
+	/* Only used when 'UI_ITEM_PROP_SEP' is set. */
+	layout->item.flag = UI_ITEM_PROP_DECORATE;
 
 	layout->x = x;
 	layout->y = y;

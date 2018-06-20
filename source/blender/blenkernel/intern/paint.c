@@ -164,7 +164,7 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 {
 	if (sce && view_layer) {
 		ToolSettings *ts = sce->toolsettings;
-		
+
 		if (view_layer->basact && view_layer->basact->object) {
 			switch (view_layer->basact->object->mode) {
 				case OB_MODE_SCULPT:
@@ -607,7 +607,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,
 {
 	int factor = BKE_ccg_factor(level, gpm->level);
 	int gridsize = BKE_ccg_gridsize(gpm->level);
-	
+
 	return gpm->data[(y * factor) * gridsize + (x * factor)];
 }
 
@@ -709,7 +709,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 			}
 			if (reorder)
 				BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
-			BM_mesh_bm_to_me(ss->bm, ob->data, (&(struct BMeshToMeshParams){0}));
+			BM_mesh_bm_to_me(NULL, ss->bm, ob->data, (&(struct BMeshToMeshParams){.calc_object_remap = false}));
 		}
 	}
 }

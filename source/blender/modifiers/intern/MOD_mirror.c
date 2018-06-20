@@ -189,7 +189,7 @@ static Mesh *doMirrorOnAxis(
 			vtmap_b++;
 		}
 	}
-	
+
 	/* handle shape keys */
 	totshape = CustomData_number_of_layers(&result->vdata, CD_SHAPEKEY);
 	for (a = 0; a < totshape; a++) {
@@ -198,14 +198,14 @@ static Mesh *doMirrorOnAxis(
 			mul_m4_v3(mtx, cos[i]);
 		}
 	}
-	
+
 	/* adjust mirrored edge vertex indices */
 	me = result->medge + maxEdges;
 	for (i = 0; i < maxEdges; i++, me++) {
 		me->v1 += maxVerts;
 		me->v2 += maxVerts;
 	}
-	
+
 	/* adjust mirrored poly loopstart indices, and reverse loop order (normals) */
 	mp = result->mpoly + maxPolys;
 	ml = result->mloop;
@@ -229,7 +229,7 @@ static Mesh *doMirrorOnAxis(
 			ml2[j].e = ml2[j + 1].e;
 		}
 		ml2[mp->totloop - 1].e = e;
-		
+
 		mp->loopstart += maxLoops;
 	}
 
@@ -267,7 +267,7 @@ static Mesh *doMirrorOnAxis(
 		int *flip_map = NULL, flip_map_len = 0;
 
 		flip_map = defgroup_flip_map(ob, &flip_map_len, false);
-		
+
 		if (flip_map) {
 			for (i = 0; i < maxVerts; dvert++, i++) {
 				/* merged vertices get both groups, others get flipped */

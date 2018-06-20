@@ -44,6 +44,7 @@ struct WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const struct Ma
 void BKE_workspace_instance_hook_free(const struct Main *bmain, struct WorkSpaceInstanceHook *hook);
 
 struct WorkSpaceLayout *BKE_workspace_layout_add(
+        struct Main *bmain,
         struct WorkSpace *workspace,
         struct bScreen *screen,
         const char *name) ATTR_NONNULL();

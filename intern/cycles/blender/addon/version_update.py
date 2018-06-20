@@ -271,6 +271,40 @@ def custom_bake_remap(scene):
         scene.render.bake.use_pass_indirect = False
 
 
+def ambient_occlusion_node_relink(material, nodetree, traversed):
+    if nodetree in traversed:
+        return
+    traversed.add(nodetree)
+
+    for node in nodetree.nodes:
+        if node.bl_idname == 'ShaderNodeAmbientOcclusion':
+            node.samples = 1
+            node.only_local = False
+            node.inputs['Distance'].default_value = 0.0
+        elif node.bl_idname == 'ShaderNodeGroup':
+            ambient_occlusion_node_relink(material, node.node_tree, traversed)
+
+    # Gather links to replace
+    ao_links = []
+    for link in nodetree.links:
+        if link.from_node.bl_idname == 'ShaderNodeAmbientOcclusion':
+           ao_links.append(link)
+
+    # Replace links
+    for link in ao_links:
+        from_node = link.from_node
+        to_socket = link.to_socket
+
+        nodetree.links.remove(link)
+        nodetree.links.new(from_node.outputs['Color'], to_socket)
+
+def ambient_occlusion_nodes_relink():
+    traversed = set()
+    for material in bpy.data.materials:
+        if check_is_new_shading_material(material):
+            ambient_occlusion_node_relink(material, material.node_tree, traversed)
+
+
 @persistent
 def do_versions(self):
     if bpy.context.user_preferences.version <= (2, 78, 1):
@@ -377,10 +411,6 @@ def do_versions(self):
         for world in bpy.data.worlds:
             cworld = world.cycles
 
-            # World MIS
-            if not cworld.is_property_set("sample_as_light"):
-                cworld.sample_as_light = False
-
             # World MIS Samples
             if not cworld.is_property_set("samples"):
                 cworld.samples = 4
@@ -444,3 +474,16 @@ def do_versions(self):
                 part.tip_radius = cpart.get("tip_width", 0.0)
                 part.radius_scale = cpart.get("radius_scale", 0.01)
                 part.use_close_tip = cpart.get("use_closetip", True)
+
+    if bpy.data.version <= (2, 79, 4) or \
+       (bpy.data.version >= (2, 80, 0) and bpy.data.version <= (2, 80, 18)):
+        for world in bpy.data.worlds:
+            cworld = world.cycles
+            # World MIS
+            if not cworld.is_property_set("sampling_method"):
+                if cworld.get("sample_as_light", False):
+                    cworld.sampling_method = 'MANUAL'
+                else:
+                    cworld.sampling_method = 'NONE'
+
+        ambient_occlusion_nodes_relink()

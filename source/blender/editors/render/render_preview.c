@@ -176,6 +176,9 @@ typedef struct ShaderPreview {
 
 	Main *bmain;
 	Main *pr_main;
+
+	void *gl_context;
+	bool  gl_context_owner;
 } ShaderPreview;
 
 typedef struct IconPreviewSize {
@@ -191,6 +194,8 @@ typedef struct IconPreview {
 	void *owner;
 	ID *id;
 	ListBase sizes;
+
+	void *gl_context;
 } IconPreview;
 
 /* *************************** Preview for buttons *********************** */
@@ -741,6 +746,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	/* set this for all previews, default is react to G.is_break still */
 	RE_test_break_cb(re, sp, shader_preview_break);
 
+	if (sp->gl_context) {
+		RE_gl_context_set(re, sp->gl_context);
+	}
+
 	/* lens adjust */
 	oldlens = ((Camera *)sce->camera->data)->lens;
 	if (sizex > sp->sizey)
@@ -859,6 +868,10 @@ static void shader_preview_free(void *customdata)
 			MEM_freeN(properties);
 		}
 		MEM_freeN(sp->lampcopy);
+	}
+	if (sp->gl_context_owner && sp->gl_context) {
+		WM_opengl_context_dispose(sp->gl_context);
+		sp->gl_context = NULL;
 	}
 
 	MEM_freeN(sp);
@@ -1075,6 +1088,8 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
 		sp->bmain = ip->bmain;
+		sp->gl_context = ip->gl_context;
+		sp->gl_context_owner = false;
 
 		if (is_render) {
 			BLI_assert(ip->id);
@@ -1090,6 +1105,11 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);
+	}
+
+	if (ip->gl_context) {
+		WM_opengl_context_dispose(ip->gl_context);
+		ip->gl_context = NULL;
 	}
 }
 
@@ -1174,8 +1194,17 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 
 	/* render all resolutions from suspended job too */
 	old_ip = WM_jobs_customdata_get(wm_job);
-	if (old_ip)
+	if (old_ip) {
 		BLI_movelisttolist(&ip->sizes, &old_ip->sizes);
+		/* NOTE: This assumes that it will be the same thread
+		 * that will be used when resuming the job. */
+		ip->gl_context = old_ip->gl_context;
+	}
+
+	if (ip->gl_context == NULL) {
+		/* Create context in the main thread. */
+		ip->gl_context = WM_opengl_context_create();
+	}
 
 	/* customdata for preview thread */
 	ip->bmain = CTX_data_main(C);
@@ -1206,7 +1235,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 {
 	Object *ob = CTX_data_active_object(C);
 	wmJob *wm_job;
-	ShaderPreview *sp;
+	ShaderPreview *sp, *old_sp;
 	Scene *scene = CTX_data_scene(C);
 	short id_type = GS(id->name);
 
@@ -1222,6 +1251,21 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Shader Preview",
 	                    WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
 	sp = MEM_callocN(sizeof(ShaderPreview), "shader preview");
+
+	/* Reuse previous gl context. */
+	old_sp = WM_jobs_customdata_get(wm_job);
+	if (old_sp) {
+		/* NOTE: This assumes that it will be the same thread
+		 * that will be used when resuming the job. */
+		old_sp->gl_context_owner = false; /* Don't free it */
+		sp->gl_context = old_sp->gl_context;
+	}
+
+	if (sp->gl_context == NULL) {
+		/* Create context in the main thread. */
+		sp->gl_context = WM_opengl_context_create();
+	}
+	sp->gl_context_owner = true;
 
 	/* customdata for preview thread */
 	sp->scene = scene;

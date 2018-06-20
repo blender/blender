@@ -38,9 +38,9 @@ public:
 	 * Default constructor
 	 */
 	SetSamplerOperation();
-	
+
 	void setSampler(PixelSampler sampler) { this->m_sampler = sampler; }
-	
+
 	/**
 	 * the inner loop of this program
 	 */

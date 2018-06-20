@@ -40,19 +40,19 @@ public:
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 
 class GaussianBlurReferenceOperation : public BlurBaseOperation {
 private:
 	float **m_maintabs;
-	
+
 	void updateGauss();
 	int m_filtersizex;
 	int m_filtersizey;
@@ -67,12 +67,12 @@ public:
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 

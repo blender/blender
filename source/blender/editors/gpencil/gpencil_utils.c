@@ -965,7 +965,7 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
  * \param gps           Stroke data
  * \param brush         Brush data
  */
-void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush)
+void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush, RNG *rng)
 {
 	bGPDspoint *pt1, *pt2, *pt3;
 	float v1[3];
@@ -998,10 +998,10 @@ void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush)
 	for (int i = 1; i < gps->totpoints - 1; ++i) {
 		bGPDspoint *pt = &gps->points[i];
 		/* get vector with shift (apply a division because random is too sensitive */
-		const float fac = BLI_frand() * (brush->draw_random_sub / 10.0f);
+		const float fac = BLI_rng_get_float(rng) * (brush->draw_random_sub / 10.0f);
 		float svec[3];
 		copy_v3_v3(svec, ortho);
-		if (BLI_frand() > 0.5f) {
+		if (BLI_rng_get_float(rng) > 0.5f) {
 			mul_v3_fl(svec, -fac);
 		}
 		else {

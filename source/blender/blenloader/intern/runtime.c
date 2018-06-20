@@ -73,9 +73,9 @@ int BLO_is_a_runtime(const char *path)
 
 	if (fd == -1)
 		goto cleanup;
-	
+
 	lseek(fd, -12, SEEK_END);
-	
+
 	datastart = handle_read_msb_int(fd);
 
 	if (datastart == -1)
@@ -107,7 +107,7 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 		BKE_reportf(reports, RPT_ERROR, "Unable to open '%s': %s", path, strerror(errno));
 		goto cleanup;
 	}
-	
+
 	actualsize = BLI_file_descriptor_size(fd);
 
 	lseek(fd, -12, SEEK_END);
@@ -132,11 +132,11 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 		bfd = blo_read_blendafterruntime(fd, path, actualsize - datastart, reports);
 		fd = -1; // file was closed in blo_read_blendafterruntime()
 	}
-	
+
 cleanup:
 	if (fd != -1)
 		close(fd);
-	
+
 	return bfd;
 }
 

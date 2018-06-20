@@ -134,6 +134,10 @@ typedef enum eDepsNode_Type {
 	 * execution.
 	 */
 	DEG_NODE_TYPE_COPY_ON_WRITE,
+	/* Used by all operations which are updating object when something is
+	 * changed in view layer.
+	 */
+	DEG_NODE_TYPE_OBJECT_FROM_LAYER,
 
 	/* **** Evaluation-Related Outer Types (with Subdata) **** */
 

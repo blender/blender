@@ -68,7 +68,7 @@ void ColorSpillOperation::initExecution()
 		this->m_rmut = 1.0f;
 		this->m_gmut = 1.0f;
 		this->m_bmut = -1.0f;
-		
+
 		this->m_channel2 = 0;
 		this->m_channel3 = 1;
 		if (this->m_settings->unspill == 0) {

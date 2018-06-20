@@ -2425,7 +2425,7 @@ bool device_cuda_init(void)
 			result = true;
 		}
 		else {
-			VLOG(1) << "Neither precompiled kernels nor CUDA compiler wad found,"
+			VLOG(1) << "Neither precompiled kernels nor CUDA compiler was found,"
 			        << " unable to use CUDA";
 		}
 #endif

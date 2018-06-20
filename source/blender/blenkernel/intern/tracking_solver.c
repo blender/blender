@@ -518,7 +518,7 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
 	BKE_tracking_dopesheet_tag_update(tracking);
 
 	object = BKE_tracking_object_get_named(tracking, context->object_name);
-	
+
 	if (context->is_camera)
 		reconstruction = &tracking->reconstruction;
 	else

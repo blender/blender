@@ -104,6 +104,8 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         col.prop(tool_settings, "edge_path_live_unwrap")
         col.label("Double Threshold:")
         col.prop(tool_settings, "double_threshold", text="")
+        col.prop(tool_settings, "use_mesh_automerge")  # , icon='AUTOMERGE_ON'
+
 
 # ********** default tools for editmode_curve ****************
 

@@ -279,7 +279,7 @@ struct Mesh *BKE_object_get_original_mesh(struct Object *object);
 
 int BKE_object_insert_ptcache(struct Object *ob);
 void BKE_object_delete_ptcache(struct Object *ob, int index);
-struct KeyBlock *BKE_object_shapekey_insert(struct Object *ob, const char *name, const bool from_mix);
+struct KeyBlock *BKE_object_shapekey_insert(struct Main *bmain, struct Object *ob, const char *name, const bool from_mix);
 bool BKE_object_shapekey_remove(struct Main *bmain, struct Object *ob, struct KeyBlock *kb);
 bool BKE_object_shapekey_free(struct Main *bmain, struct Object *ob);
 

@@ -107,8 +107,15 @@
 #define MAN_SCALE_C		(MAN_SCALE_X | MAN_SCALE_Y | MAN_SCALE_Z)
 
 /* threshold for testing view aligned manipulator axis */
-#define TW_AXIS_DOT_MIN 0.02f
-#define TW_AXIS_DOT_MAX 0.1f
+struct {
+	float min, max;
+} g_tw_axis_range[2] = {
+	/* Regular range */
+	{0.02f, 0.1f},
+	/* Use a different range because we flip the dot product,
+	 * also the view aligned planes are harder to see so hiding early is preferred. */
+	{0.175f,  0.25f},
+};
 
 /* axes as index */
 enum {
@@ -247,16 +254,18 @@ static bool manipulator_is_axis_visible(
         const RegionView3D *rv3d, const int twtype,
         const float idot[3], const int axis_type, const int axis_idx)
 {
-	bool is_plane = false;
-	const uint aidx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
-	/* don't draw axis perpendicular to the view */
-	if (aidx_norm < 3) {
-		float idot_axis = idot[aidx_norm];
-		if (is_plane) {
-			idot_axis = 1.0f - idot_axis;
-		}
-		if (idot_axis < TW_AXIS_DOT_MIN) {
-			return false;
+	if ((axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) == 0) {
+		bool is_plane = false;
+		const uint aidx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
+		/* don't draw axis perpendicular to the view */
+		if (aidx_norm < 3) {
+			float idot_axis = idot[aidx_norm];
+			if (is_plane) {
+				idot_axis = 1.0f - idot_axis;
+			}
+			if (idot_axis < g_tw_axis_range[is_plane].min) {
+				return false;
+			}
 		}
 	}
 
@@ -333,21 +342,30 @@ static void manipulator_get_axis_color(
 	const float alpha_hi = 1.0f;
 	float alpha_fac;
 
-	bool is_plane = false;
-	const int axis_idx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
-	/* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
-	if (axis_idx_norm < 3) {
-		float idot_axis = idot[axis_idx_norm];
-		if (is_plane) {
-			idot_axis = 1.0f - idot_axis;
-		}
-		alpha_fac = (idot_axis > TW_AXIS_DOT_MAX) ?
-		        1.0f : (idot_axis < TW_AXIS_DOT_MIN) ?
-		        0.0f : ((idot_axis - TW_AXIS_DOT_MIN) / (TW_AXIS_DOT_MAX - TW_AXIS_DOT_MIN));
-	}
-	else {
+	if (axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) {
+		/* Never fade rotation rings. */
 		/* trackball rotation axis is a special case, we only draw a slight overlay */
 		alpha_fac = (axis_idx == MAN_AXIS_ROT_T) ? 0.1f : 1.0f;
+	}
+	else {
+		bool is_plane = false;
+		const int axis_idx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
+		/* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
+		if (axis_idx_norm < 3) {
+			const float idot_min = g_tw_axis_range[is_plane].min;
+			const float idot_max = g_tw_axis_range[is_plane].max;
+			float idot_axis = idot[axis_idx_norm];
+			if (is_plane) {
+				idot_axis = 1.0f - idot_axis;
+			}
+			alpha_fac = (
+			        (idot_axis > idot_max) ?
+			        1.0f : (idot_axis < idot_min) ?
+			        0.0f : ((idot_axis - idot_min) / (idot_max - idot_min)));
+		}
+		else {
+			alpha_fac = 1.0f;
+		}
 	}
 
 	switch (axis_idx) {
@@ -1238,9 +1256,14 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
  * Custom handler for manipulator widgets
  */
 static int manipulator_modal(
-        bContext *C, wmManipulator *widget, const wmEvent *UNUSED(event),
+        bContext *C, wmManipulator *widget, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
+	/* Avoid unnecessary updates, partially address: T55458. */
+	if (ELEM(event->type, TIMER, INBETWEEN_MOUSEMOVE)) {
+		return OPERATOR_RUNNING_MODAL;
+	}
+
 	const ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1315,6 +1338,14 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 			case MAN_AXIS_SCALE_X:
 			case MAN_AXIS_SCALE_Y:
 			case MAN_AXIS_SCALE_Z:
+				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
+					int draw_options = 0;
+					if ((man->twtype & (V3D_MANIP_ROTATE | V3D_MANIP_SCALE)) == 0) {
+						draw_options |= ED_MANIPULATOR_ARROW_DRAW_FLAG_STEM;
+					}
+					RNA_enum_set(axis->ptr, "draw_options", draw_options);
+				}
+
 				WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
 				break;
 			case MAN_AXIS_ROT_X:
@@ -1348,6 +1379,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 				}
 				else if (axis_idx == MAN_AXIS_ROT_C) {
 					WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_VALUE, true);
+					WM_manipulator_set_scale(axis, 1.2f);
 				}
 				else {
 					WM_manipulator_set_scale(axis, 0.2f);
@@ -1447,6 +1479,13 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 
 				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
 				RNA_float_set(axis->ptr, "length", len);
+
+				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
+					if (man->twtype & V3D_MANIP_ROTATE) {
+						/* Avoid rotate and translate arrows overlap. */
+						start_co[2] += 0.215f;
+					}
+				}
 				WM_manipulator_set_matrix_offset_location(axis, start_co);
 				WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
 				break;

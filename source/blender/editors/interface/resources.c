@@ -3031,6 +3031,7 @@ void init_userdef_do_versions(Main *bmain)
 				rgba_char_args_set(ts->panelcolors.sub_back, 0, 0, 0, 25);
 			}
 		}
+		U.gpu_viewport_antialias = USER_AA_FXAA;
 	}
 
 	/**

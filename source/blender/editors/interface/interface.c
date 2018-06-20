@@ -243,19 +243,44 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 
 	rcti rect;
 	ui_but_to_pixelrect(&rect, region, block, block->buttons.last);
-	const float buttons_width = (float)rect.xmax + UI_HEADER_OFFSET_START;
+	const float buttons_width = (float)rect.xmax + UI_HEADER_OFFSET;
 	const float region_width = (float)region->sizex * U.dpi_fac;
 
 	if (region_width <= buttons_width) {
 		return;
 	}
 
-	const float spacing = ((region_width - buttons_width) / (float)sepr_flex_len);
-	float offset = 0;
+	/* We could get rid of this loop if we agree on a max number of spacer */
+	int *spacers_pos = alloca(sizeof(*spacers_pos) * (size_t)sepr_flex_len);
+	int i = 0;
+	for (uiBut *but = block->buttons.first; but; but = but->next) {
+		if (but->type == UI_BTYPE_SEPR_SPACER) {
+			ui_but_to_pixelrect(&rect, region, block, but);
+			spacers_pos[i] = rect.xmax + UI_HEADER_OFFSET;
+			i++;
+		}
+	}
+
+	const float segment_width = region_width / (float)sepr_flex_len;
+	float offset = 0, remaining_space = region_width - buttons_width;
+	i = 0;
 	for (uiBut *but = block->buttons.first; but; but = but->next) {
 		BLI_rctf_translate(&but->rect, offset, 0);
 		if (but->type == UI_BTYPE_SEPR_SPACER) {
-			offset += spacing;
+			/* How much the next block overlap with the current segment */
+			int overlap = (
+			        (i == sepr_flex_len - 1) ?
+			        buttons_width - spacers_pos[i] :
+			        (spacers_pos[i + 1] - spacers_pos[i]) / 2);
+			int segment_end = segment_width * (i + 1);
+			int spacer_end = segment_end - overlap;
+			int spacer_sta = spacers_pos[i] + offset;
+			if (spacer_end > spacer_sta) {
+				float step = min_ff(remaining_space, spacer_end - spacer_sta);
+				remaining_space -= step;
+				offset += step;
+			}
+			i++;
 		}
 	}
 	ui_block_bounds_calc(block);
@@ -1247,6 +1272,9 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 
 		ui_but_anim_flag(but, (scene) ? scene->r.cfra : 0.0f);
 		ui_but_override_flag(but);
+		if (UI_but_is_decorator(but)) {
+			ui_but_anim_decorate_update_from_flag(but);
+		}
 	}
 
 

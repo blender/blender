@@ -247,6 +247,10 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_data_transfer);
 	WM_operatortype_append(OBJECT_OT_datalayout_transfer);
 	WM_operatortype_append(OBJECT_OT_surfacedeform_bind);
+
+	WM_operatortype_append(OBJECT_OT_hide_view_clear);
+	WM_operatortype_append(OBJECT_OT_hide_view_set);
+	WM_operatortype_append(OBJECT_OT_hide_collection);
 }
 
 void ED_operatormacros_object(void)
@@ -289,11 +293,11 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 
 	/* modes */
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_RELEASE, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_CLICK, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
 	RNA_boolean_set(kmi->ptr, "toggle", true);
 
-	kmi = WM_keymap_add_menu_pie(keymap, "VIEW3D_PIE_object_mode", TABKEY, KM_CLICK_DRAG, 0, 0);
+	kmi = WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_object_mode_pie", TABKEY, KM_CLICK_DRAG, 0, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_origin_set", CKEY, KM_PRESS, KM_ALT | KM_SHIFT | KM_CTRL, 0);
 
@@ -404,6 +408,19 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
+
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", false);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", true);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_collection", HKEY, KM_PRESS, KM_CTRL, 0);
+
+	/* Collection switching. */
+	for (int i = 0; i < 10; i++) {
+		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_collection", ZEROKEY + i, KM_PRESS, KM_ANY, 0);
+		RNA_int_set(kmi->ptr, "collection_index", (i == 0) ? 10 : i);
+	}
 }
 
 void ED_keymap_proportional_cycle(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)

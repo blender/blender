@@ -45,7 +45,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_data_transfer.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
 #include "BKE_mesh_mapping.h"
@@ -288,6 +287,7 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 #include "BKE_cachefile.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -905,6 +905,9 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 		return rna_enum_dt_layers_select_src_items;
 	}
 
+	Depsgraph *depsgraph= CTX_data_depsgraph(C);
+	Scene *scene = CTX_data_scene(C);
+
 	/* No active here! */
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
 
@@ -938,22 +941,18 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 		Object *ob_src = dtmd->ob_source;
 
 		if (ob_src) {
-			DerivedMesh *dm_src;
-			CustomData *ldata;
+			Mesh *me_eval;
 			int num_data, i;
 
-			dm_src = object_get_derived_final(ob_src, false);
-			if (dm_src != NULL) {
-				ldata = dm_src->getLoopDataLayout(dm_src);
-				num_data = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
+			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
 
-				RNA_enum_item_add_separator(&item, &totitem);
+			RNA_enum_item_add_separator(&item, &totitem);
 
-				for (i = 0; i < num_data; i++) {
-					tmp_item.value = i;
-					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPUV, i);
-					RNA_enum_item_add(&item, &totitem, &tmp_item);
-				}
+			for (i = 0; i < num_data; i++) {
+				tmp_item.value = i;
+				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(&me_eval->ldata, CD_MLOOPUV, i);
+				RNA_enum_item_add(&item, &totitem, &tmp_item);
 			}
 		}
 	}
@@ -961,22 +960,18 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 		Object *ob_src = dtmd->ob_source;
 
 		if (ob_src) {
-			DerivedMesh *dm_src;
-			CustomData *ldata;
+			Mesh *me_eval;
 			int num_data, i;
 
-			dm_src = object_get_derived_final(ob_src, false);
-			if (dm_src != NULL) {
-				ldata = dm_src->getLoopDataLayout(dm_src);
-				num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
+			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
-				RNA_enum_item_add_separator(&item, &totitem);
+			RNA_enum_item_add_separator(&item, &totitem);
 
-				for (i = 0; i < num_data; i++) {
-					tmp_item.value = i;
-					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPCOL, i);
-					RNA_enum_item_add(&item, &totitem, &tmp_item);
-				}
+			for (i = 0; i < num_data; i++) {
+				tmp_item.value = i;
+				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(&me_eval->ldata, CD_MLOOPCOL, i);
+				RNA_enum_item_add(&item, &totitem, &tmp_item);
 			}
 		}
 	}
@@ -4874,6 +4869,14 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
 	prop = RNA_def_float(srna, "mix_limit", 1.0f, 0.0f, DEG2RADF(180.0f), "Max Angle",
 	                     "Maximum angle between old and new normals", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_subtype(prop, PROP_ANGLE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "no_polynors_fix", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_NORMALEDIT_NO_POLYNORS_FIX);
+	RNA_def_property_boolean_default(prop, false);
+	RNA_def_property_ui_text(prop, "Lock Polygon Normals",
+	                         "Do not flip polygons when their normals are not consistent "
+	                         "with their newly computed custom vertex normals");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);

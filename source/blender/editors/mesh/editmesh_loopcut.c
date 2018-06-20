@@ -400,6 +400,7 @@ static void edgering_select(RingSelOpData *lcd)
 			Object *ob_iter = lcd->objects[ob_index];
 			BMEditMesh *em = BKE_editmesh_from_object(ob_iter);
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
 			WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_iter->data);
 		}
 	}
@@ -496,6 +497,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 				BM_select_history_store(em->bm, lcd->eed);
 
 			EDBM_selectmode_flush(lcd->em);
+			DEG_id_tag_update(lcd->ob->data, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);
 		}
 	}
@@ -868,7 +870,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (cuts != lcd->cuts) {
 		/* allow zero so you can backspace and type in a value
 		 * otherwise 1 as minimum would make more sense */
-		lcd->cuts = CLAMPIS(cuts, 0, SUBD_CUTS_MAX);
+		lcd->cuts = clamp_i(cuts, 0, SUBD_CUTS_MAX);
 		RNA_int_set(op->ptr, "number_cuts", (int)lcd->cuts);
 		ringsel_find_edge(lcd, (int)lcd->cuts);
 		show_cuts = true;
@@ -876,7 +878,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (smoothness != lcd->smoothness) {
-		lcd->smoothness = CLAMPIS(smoothness, -SUBD_SMOOTH_MAX, SUBD_SMOOTH_MAX);
+		lcd->smoothness = clamp_f(smoothness, -SUBD_SMOOTH_MAX, SUBD_SMOOTH_MAX);
 		RNA_float_set(op->ptr, "smoothness", lcd->smoothness);
 		show_cuts = true;
 		ED_region_tag_redraw(lcd->ar);

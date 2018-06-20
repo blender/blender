@@ -215,7 +215,7 @@ typedef struct Editing {
 	ListBase *seqbasep; /* pointer to the current list of seq's being edited (can be within a meta strip) */
 	ListBase seqbase;   /* pointer to the top-most seq's */
 	ListBase metastack;
-	
+
 	/* Context vars, used to be static */
 	Sequence *act_seq;
 	char act_imagedir[1024]; /* 1024 = FILE_MAX */
@@ -233,7 +233,7 @@ typedef struct WipeVars {
 	short forward, wipetype;
 } WipeVars;
 
-typedef struct GlowVars {	
+typedef struct GlowVars {
 	float fMini;    /*	Minimum intensity to trigger a glow */
 	float fClamp;
 	float fBoost;   /*	Amount to multiply glow intensity */
@@ -439,7 +439,7 @@ enum {
 	SEQ_AUDIO_PITCH_ANIMATED    = (1 << 25),
 	SEQ_AUDIO_PAN_ANIMATED      = (1 << 26),
 	SEQ_AUDIO_DRAW_WAVEFORM     = (1 << 27),
-	
+
 	/* don't include Grease Pencil in OpenGL previews of Scene strips */
 	SEQ_SCENE_NO_GPENCIL        = (1 << 28),
 	SEQ_USE_VIEWS               = (1 << 29),

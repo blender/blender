@@ -801,7 +801,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 
 		if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
 			/* TODO: Add button to enable? */
-			uiItemL(col, IFACE_("ERROR: Python auto-execution disabled"), ICON_CANCEL);
+			uiItemL(col, IFACE_("WARNING: Python expressions limited for security"), ICON_ERROR);
 		}
 		else if (driver->flag & DRIVER_FLAG_INVALID) {
 			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_CANCEL);
@@ -1207,7 +1207,7 @@ static int graph_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 void GRAPH_OT_properties(wmOperatorType *ot)
 {
-	ot->name = "Properties";
+	ot->name = "Toggle Sidebar";
 	ot->idname = "GRAPH_OT_properties";
 	ot->description = "Toggle the properties region visibility";
 

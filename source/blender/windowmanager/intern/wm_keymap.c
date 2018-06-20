@@ -828,7 +828,7 @@ wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf, const char *idname, const Enu
 
 	if (!items) {
 		/* init modal items from default config */
-		wmWindowManager *wm = G.main->wm.first;
+		wmWindowManager *wm = G_MAIN->wm.first;
 		if (wm->defaultconf) {
 			wmKeyMap *defaultkm = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, 0, 0);
 
@@ -992,11 +992,7 @@ int WM_keymap_item_raw_to_string(
 	    alt == KM_ANY &&
 	    oskey == KM_ANY)
 	{
-		/* make it implicit in case of compact result expected. */
-		if (!compact) {
-			ADD_SEP;
-			p += BLI_strcpy_rlen(p, IFACE_("Any"));
-		}
+		/* Don't show anything for any mapping. */
 	}
 	else {
 		if (shift) {

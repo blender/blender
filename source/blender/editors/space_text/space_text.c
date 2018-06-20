@@ -551,7 +551,7 @@ static void text_properties_region_draw(const bContext *C, ARegion *ar)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 
 	/* this flag trick is make sure buttons have been added already */
 	if (st->flags & ST_FIND_ACTIVATE) {

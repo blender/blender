@@ -69,7 +69,7 @@ static void filtrow(unsigned char *point, int x)
 static void filtrowf(float *point, int x)
 {
 	float c1, c2, c3;
-	
+
 	if (x > 1) {
 		c1 = c2 = *point;
 		for (x--; x > 0; x--) {
@@ -112,7 +112,7 @@ static void filtcolum(unsigned char *point, int y, int skip)
 static void filtcolumf(float *point, int y, int skip)
 {
 	float c1, c2, c3, *point2;
-	
+
 	if (y > 1) {
 		c1 = c2 = *point;
 		point2 = point;
@@ -211,7 +211,7 @@ static void imb_filterN(ImBuf *out, ImBuf *in)
 
 	const int channels = in->channels;
 	const int rowlen = in->x;
-	
+
 	if (in->rect && out->rect) {
 		for (int y = 0; y < in->y; y++) {
 			/* setup rows */
@@ -515,13 +515,13 @@ void IMB_remakemipmap(ImBuf *ibuf, int use_filter)
 {
 	ImBuf *hbuf = ibuf;
 	int curmap = 0;
-	
+
 	ibuf->miptot = 1;
-	
+
 	while (curmap < IMB_MIPMAP_LEVELS) {
-		
+
 		if (ibuf->mipmap[curmap]) {
-			
+
 			if (use_filter) {
 				ImBuf *nbuf = IMB_allocImBuf(hbuf->x, hbuf->y, hbuf->planes, hbuf->flags);
 				imb_filterN(nbuf, hbuf);
@@ -531,15 +531,15 @@ void IMB_remakemipmap(ImBuf *ibuf, int use_filter)
 			else
 				imb_onehalf_no_alloc(ibuf->mipmap[curmap], hbuf);
 		}
-		
+
 		ibuf->miptot = curmap + 2;
 		hbuf = ibuf->mipmap[curmap];
 		if (hbuf)
 			hbuf->miplevel = curmap + 1;
-		
+
 		if (!hbuf || (hbuf->x <= 2 && hbuf->y <= 2))
 			break;
-		
+
 		curmap++;
 	}
 }
@@ -551,11 +551,11 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 	int curmap = 0;
 
 	imb_freemipmapImBuf(ibuf);
-	
+
 	/* no mipmap for non RGBA images */
 	if (ibuf->rect_float && ibuf->channels < 4)
 		return;
-	
+
 	ibuf->miptot = 1;
 
 	while (curmap < IMB_MIPMAP_LEVELS) {

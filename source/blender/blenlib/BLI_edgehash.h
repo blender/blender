@@ -19,7 +19,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BLI_EDGEHASH_H__
 #define __BLI_EDGEHASH_H__
 

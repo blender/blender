@@ -76,15 +76,15 @@ static int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat *self, PyObjec
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
-	
+
 	if (!obj)
 		self->uf1D_float = new UnaryFunction1D<float>();
 	else {
 		self->uf1D_float = new UnaryFunction1D<float>(IntegrationType_from_BPy_IntegrationType(obj));
 	}
-	
+
 	self->uf1D_float->py_uf1D = (PyObject *)self;
-	
+
 	return 0;
 }
 

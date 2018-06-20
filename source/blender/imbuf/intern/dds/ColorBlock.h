@@ -46,30 +46,30 @@ struct ColorBlock {
 	ColorBlock(const uint * linearImage);
 	ColorBlock(const ColorBlock & block);
 	ColorBlock(const Image * img, uint x, uint y);
-	
+
 	void init(const Image * img, uint x, uint y);
 	void init(uint w, uint h, const uint * data, uint x, uint y);
 	void init(uint w, uint h, const float * data, uint x, uint y);
-	
+
 	void swizzle(uint x, uint y, uint z, uint w); // 0=r, 1=g, 2=b, 3=a, 4=0xFF, 5=0
-	
+
 	bool isSingleColor(Color32 mask = Color32(0xFF, 0xFF, 0xFF, 0x00)) const;
 	bool hasAlpha() const;
-	
-	
+
+
 	// Accessors
 	const Color32 * colors() const;
 
 	Color32 color(uint i) const;
 	Color32 & color(uint i);
-	
+
 	Color32 color(uint x, uint y) const;
 	Color32 & color(uint x, uint y);
-	
+
 private:
-	
+
 	Color32 m_color[4 * 4];
-	
+
 };
 
 

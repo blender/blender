@@ -47,11 +47,11 @@
 typedef struct DLRBT_Node {
 	/* ListBase capabilities */
 	struct DLRBT_Node *next, *prev;
-	
+
 	/* Tree Associativity settings */
 	struct DLRBT_Node *left, *right;
 	struct DLRBT_Node *parent;
-	
+
 	char tree_col;
 	/* ... for nice alignment, next item should usually be a char too... */
 } DLRBT_Node;
@@ -75,18 +75,18 @@ typedef struct DLRBT_Tree {
 
 /* Callback Types --------------------------------- */
 
-/* return -1, 0, 1 for whether the given data is less than, equal to, or greater than the given node 
+/* return -1, 0, 1 for whether the given data is less than, equal to, or greater than the given node
  *	- node: <DLRBT_Node> the node to compare to
  *	- data: pointer to the relevant data or values stored in the bitpattern dependent on the function
  */
 typedef short (*DLRBT_Comparator_FP)(void *node, void *data);
 
-/* return a new node instance wrapping the given data 
+/* return a new node instance wrapping the given data
  *	- data: pointer to the relevant data to create a subclass of node from
  */
 typedef DLRBT_Node *(*DLRBT_NAlloc_FP)(void *data);
 
-/* update an existing node instance accordingly to be in sync with the given data *	
+/* update an existing node instance accordingly to be in sync with the given data *
  *  - node: <DLRBT_Node> the node to update
  *	- data: pointer to the relevant data or values stored in the bitpattern dependent on the function
  */
@@ -130,28 +130,28 @@ short BLI_dlrbTree_contains(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *
 
 
 /* Node Operations (Managed) --------------------- */
-/* These methods automate the process of adding/removing nodes from the BST, 
+/* These methods automate the process of adding/removing nodes from the BST,
  * using the supplied data and callbacks
  */
 
 /* Add the given data to the tree, and return the node added */
 // NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned
-DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, 
+DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
                              DLRBT_NAlloc_FP new_cb, DLRBT_NUpdate_FP update_cb, void *data);
 
 
 /* Remove the given element from the tree and balance again */
-// FIXME: this is not implemented yet... 
+// FIXME: this is not implemented yet...
 // void BLI_dlrbTree_remove(DLRBT_Tree *tree, DLRBT_Node *node);
 
 /* Node Operations (Manual) --------------------- */
-/* These methods require custom code for creating BST nodes and adding them to the 
+/* These methods require custom code for creating BST nodes and adding them to the
  * tree in special ways, such that the node can then be balanced.
  *
  * It is recommended that these methods are only used where the other method is too cumbersome...
  */
 
-/* Balance the tree after the given node has been added to it 
+/* Balance the tree after the given node has been added to it
  * (using custom code, in the Binary Tree way).
  */
 void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node);

@@ -2536,6 +2536,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_items(prop, uv_sculpt_relaxation_items);
 	RNA_def_property_ui_text(prop, "Relaxation Method", "Algorithm used for UV relaxation");
 
+	prop = RNA_def_property(srna, "lock_object_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "object_flag", SCE_OBJECT_MODE_LOCK);
+	RNA_def_property_ui_text(prop, "Lock Object Modes", "Restrict select to the current mode");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
 	/* Transform */
 	prop = RNA_def_property(srna, "proportional_edit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "proportional");
@@ -5090,12 +5095,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_placeholder", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_TOUCH);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Placeholders",
 	                         "Create empty placeholder files while rendering frames (similar to Unix 'touch')");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use_overwrite", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", R_NO_OVERWRITE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Overwrite", "Overwrite existing files while rendering");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
@@ -5117,6 +5124,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_file_extension", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXTENSION);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "File Extensions",
 	                         "Add the file format extensions to the rendered file name (eg: filename + .jpg)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
@@ -5142,6 +5150,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_save_buffers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXR_TILE_FILE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Save Buffers",
 	                         "Save tiles for all RenderLayers and SceneNodes to files in the temp directory "
 	                         "(saves memory, required for Full Sample)");
@@ -5156,12 +5165,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "displaymode");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, display_mode_items);
 	RNA_def_property_ui_text(prop, "Display", "Select where rendered images will be displayed");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use_lock_interface", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_lock_interface", 1);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
 	RNA_def_property_ui_text(prop, "Lock Interface", "Lock interface during rendering in favor of giving more memory to the renderer");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
@@ -5176,6 +5187,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	/* Render result EXR cache. */
 	prop = RNA_def_property(srna, "use_render_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXR_CACHE_FILE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Cache Result",
 	                         "Save render cache to EXR files (useful for heavy compositing, "
 	                         "Note: affects indirectly rendered scenes)");
@@ -5688,36 +5700,6 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-#ifdef WITH_CLAY_ENGINE
-	static const EnumPropertyItem clay_matcap_items[] = {
-	    {1, "01", ICON_MATCAP_01, "", ""},
-	    {2, "02", ICON_MATCAP_02, "", ""},
-	    {3, "03", ICON_MATCAP_03, "", ""},
-	    {4, "04", ICON_MATCAP_04, "", ""},
-	    {5, "05", ICON_MATCAP_05, "", ""},
-	    {6, "06", ICON_MATCAP_06, "", ""},
-	    {7, "07", ICON_MATCAP_07, "", ""},
-	    {8, "08", ICON_MATCAP_08, "", ""},
-	    {9, "09", ICON_MATCAP_09, "", ""},
-	    {10, "10", ICON_MATCAP_10, "", ""},
-	    {11, "11", ICON_MATCAP_11, "", ""},
-	    {12, "12", ICON_MATCAP_12, "", ""},
-	    {13, "13", ICON_MATCAP_13, "", ""},
-	    {14, "14", ICON_MATCAP_14, "", ""},
-	    {15, "15", ICON_MATCAP_15, "", ""},
-	    {16, "16", ICON_MATCAP_16, "", ""},
-	    {17, "17", ICON_MATCAP_17, "", ""},
-	    {19, "18", ICON_MATCAP_18, "", ""},
-	    {19, "19", ICON_MATCAP_19, "", ""},
-	    {20, "20", ICON_MATCAP_20, "", ""},
-	    {21, "21", ICON_MATCAP_21, "", ""},
-	    {22, "22", ICON_MATCAP_22, "", ""},
-	    {23, "23", ICON_MATCAP_23, "", ""},
-	    {24, "24", ICON_MATCAP_24, "", ""},
-	    {0, NULL, 0, NULL, NULL}
-	};
-#endif
-
 	static float default_light_direction[3] = {-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3};
 
 	srna = RNA_def_struct(brna, "SceneDisplay", NULL);
@@ -5741,43 +5723,6 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
 
-#ifdef WITH_CLAY_ENGINE
-	/* Matcap. */
-	prop = RNA_def_property(srna, "matcap_icon", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, clay_matcap_items);
-	RNA_def_property_enum_default(prop, 1);
-	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture by this material");
-
-	prop = RNA_def_property(srna, "matcap_rotation", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_default(prop, 0.0f);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Rotation", "Orientation of the matcap on the model");
-
-	prop = RNA_def_property(srna, "matcap_hue", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Hue Shift", "Hue correction of the matcap");
-
-	prop = RNA_def_property(srna, "matcap_saturation", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Saturation", "Saturation correction of the matcap");
-
-	prop = RNA_def_property(srna, "matcap_value", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Value", "Value correction of the matcap");
-
-	prop = RNA_def_property(srna, "matcap_ssao_factor_cavity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Cavity Strength", "Strength of the Cavity effect");
-	RNA_def_property_range(prop, 0.0f, 250.0f);
-
-	prop = RNA_def_property(srna, "matcap_ssao_factor_edge", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Edge Strength", "Strength of the Edge effect");
-	RNA_def_property_range(prop, 0.0f, 250.0f);
-
 	prop = RNA_def_property(srna, "matcap_ssao_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_ui_text(prop, "Distance", "Distance of object that contribute to the Cavity/Edge effect");
@@ -5794,12 +5739,6 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	RNA_def_property_int_default(prop, 16);
 	RNA_def_property_ui_text(prop, "Samples", "Number of samples");
 	RNA_def_property_range(prop, 1, 500);
-
-	prop = RNA_def_property(srna, "matcap_hair_brightness_randomness", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_default(prop, 0.0f);
-	RNA_def_property_ui_text(prop, "Hair Brightness Randomness", "Brightness randomness for hair");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-#endif
 }
 
 static void rna_def_scene_eevee(BlenderRNA *brna)

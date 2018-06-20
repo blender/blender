@@ -33,4 +33,8 @@ void gpu_extensions_exit(void);
 void gpu_debug_init(void);
 void gpu_debug_exit(void);
 
+/* gpu_framebuffer.c */
+void gpu_framebuffer_module_init(void);
+void gpu_framebuffer_module_exit(void);
+
 #endif  /* __GPU_PRIVATE_H__ */

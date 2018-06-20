@@ -144,8 +144,12 @@ struct ComponentDepsNode : public DepsNode {
 	OperationDepsNode *entry_operation;
 	OperationDepsNode *exit_operation;
 
-	// XXX: a poll() callback to check if component's first node can be started?
 	virtual bool depends_on_cow() { return true; }
+
+	/* Denotes whether COW component is to be tagged when this component
+	 * is tagged for update.
+	 */
+	virtual bool need_tag_cow_before_update() { return true; }
 };
 
 /* ---------------------------------------- */
@@ -168,8 +172,14 @@ struct ComponentDepsNode : public DepsNode {
 		DEG_COMPONENT_NODE_DECLARE;                                \
 	}
 
+#define DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(name)      \
+	struct name ## ComponentDepsNode : public ComponentDepsNode {  \
+		DEG_COMPONENT_NODE_DECLARE;                                \
+		virtual bool need_tag_cow_before_update() { return false; }  \
+	}
+
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Animation);
-DEG_COMPONENT_NODE_DECLARE_GENERIC(BatchCache);
+DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(BatchCache);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Cache);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(CopyOnWrite);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Geometry);
@@ -182,6 +192,7 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Sequencer);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Shading);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ShadingParameters);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Transform);
+DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(ObjectFromLayer);
 
 /* Bone Component */
 struct BoneComponentDepsNode : public ComponentDepsNode {

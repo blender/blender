@@ -210,7 +210,7 @@ void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference
 
 void WM_main_add_notifier(unsigned int type, void *reference)
 {
-	Main *bmain = G.main;
+	Main *bmain = G_MAIN;
 	wmWindowManager *wm = bmain->wm.first;
 	wmNotifier *note;
 
@@ -235,7 +235,7 @@ void WM_main_add_notifier(unsigned int type, void *reference)
  */
 void WM_main_remove_notifier_reference(const void *reference)
 {
-	Main *bmain = G.main;
+	Main *bmain = G_MAIN;
 	wmWindowManager *wm = bmain->wm.first;
 
 	if (wm) {
@@ -263,7 +263,7 @@ void WM_main_remove_notifier_reference(const void *reference)
 
 void WM_main_remap_editor_id_reference(ID *old_id, ID *new_id)
 {
-	Main *bmain = G.main;
+	Main *bmain = G_MAIN;
 	bScreen *sc;
 
 	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
@@ -714,7 +714,7 @@ void WM_event_print(const wmEvent *event)
  */
 void WM_report_banner_show(void)
 {
-	wmWindowManager *wm = G.main->wm.first;
+	wmWindowManager *wm = G_MAIN->wm.first;
 	ReportList *wm_reports = &wm->reports;
 	ReportTimerInfo *rti;
 
@@ -749,7 +749,7 @@ static void wm_add_reports(ReportList *reports)
 {
 	/* if the caller owns them, handle this */
 	if (reports->list.first && (reports->flag & RPT_OP_HOLD) == 0) {
-		wmWindowManager *wm = G.main->wm.first;
+		wmWindowManager *wm = G_MAIN->wm.first;
 
 		/* add reports to the global list, otherwise they are not seen */
 		BLI_movelisttolist(&wm->reports.list, &reports->list);
@@ -843,6 +843,7 @@ static bool wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
 static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat, const bool store)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
+	enum { NOP, SET, CLEAR, } hud_status = NOP;
 
 	op->customdata = NULL;
 
@@ -854,10 +855,19 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 	 * called from operators that already do an undo push. usually
 	 * this will happen for python operators that call C operators */
 	if (wm->op_undo_depth == 0) {
-		if (op->type->flag & OPTYPE_UNDO)
+		if (op->type->flag & OPTYPE_UNDO) {
 			ED_undo_push_op(C, op);
-		else if (op->type->flag & OPTYPE_UNDO_GROUPED)
+			if (repeat == 0) {
+				hud_status = CLEAR;
+			}
+		}
+		else if (op->type->flag & OPTYPE_UNDO_GROUPED) {
 			ED_undo_grouped_push_op(C, op);
+			if (repeat == 0) {
+				hud_status = CLEAR;
+			}
+		}
+
 	}
 
 	if (repeat == 0) {
@@ -873,9 +883,27 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 
 			wm_operator_register(C, op);
 			WM_operator_region_active_win_set(C);
+
+			/* Show the redo panel. */
+			hud_status = SET;
 		}
 		else {
 			WM_operator_free(op);
+		}
+	}
+
+	if (hud_status != NOP) {
+		if (hud_status == SET) {
+			ScrArea *sa = CTX_wm_area(C);
+			if (sa) {
+				ED_area_type_hud_ensure(C, sa);
+			}
+		}
+		else if (hud_status == CLEAR) {
+			ED_area_type_hud_clear(wm, NULL);
+		}
+		else {
+			BLI_assert(0);
 		}
 	}
 }
@@ -979,14 +1007,7 @@ int WM_operator_call_notest(bContext *C, wmOperator *op)
  */
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
-	const OperatorRepeatContextHandle *context_info;
-	int retval;
-
-	context_info = ED_operator_repeat_prepare_context(C, op);
-	retval = wm_operator_exec(C, op, true, true);
-	ED_operator_repeat_reset_context(C, context_info);
-
-	return retval;
+	return wm_operator_exec(C, op, true, true);
 }
 /**
  * \return true if #WM_operator_repeat can run
@@ -2358,8 +2379,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				if (event->type == MOUSEMOVE && !wm_manipulatormap_modal_get(mmap)) {
 					int part;
 					mpr = wm_manipulatormap_highlight_find(mmap, C, event, &part);
-					wm_manipulatormap_highlight_set(mmap, C, mpr, part);
-					if (mpr != NULL) {
+					if (wm_manipulatormap_highlight_set(mmap, C, mpr, part) && mpr != NULL) {
 						WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_manipulatormap_tooltip_init);
 					}
 				}
@@ -2527,24 +2547,34 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		return action;
 
 	if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-		if (event->check_drag) {
+
+		/* Test for CLICK_DRAG events. */
+		if (wm_action_not_handled(action)) {
+			if (event->check_drag) {
+				wmWindow *win = CTX_wm_window(C);
+				if ((abs(event->x - win->eventstate->prevclickx)) >= U.tweak_threshold ||
+				    (abs(event->y - win->eventstate->prevclicky)) >= U.tweak_threshold)
+				{
+					short val = event->val;
+					short type = event->type;
+					event->val = KM_CLICK_DRAG;
+					event->type = win->eventstate->type;
+
+					CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
+
+					action |= wm_handlers_do_intern(C, event, handlers);
+
+					event->val = val;
+					event->type = type;
+
+					win->eventstate->check_click = 0;
+					win->eventstate->check_drag = 0;
+				}
+			}
+		}
+		else {
 			wmWindow *win = CTX_wm_window(C);
-			if ((abs(event->x - win->eventstate->prevclickx)) >= U.tweak_threshold ||
-			    (abs(event->y - win->eventstate->prevclicky)) >= U.tweak_threshold)
-			{
-				short val = event->val;
-				short type = event->type;
-				event->val = KM_CLICK_DRAG;
-				event->type = win->eventstate->type;
-
-				CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
-
-				action |= wm_handlers_do_intern(C, event, handlers);
-
-				event->val = val;
-				event->type = type;
-
-				win->eventstate->check_click = 0;
+			if (win) {
 				win->eventstate->check_drag = 0;
 			}
 		}
@@ -2552,7 +2582,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
 		/* All events that don't set wmEvent.prevtype must be ignored. */
 
-		/* test for CLICK events */
+		/* Test for CLICK events. */
 		if (wm_action_not_handled(action)) {
 			wmWindow *win = CTX_wm_window(C);
 
@@ -2604,9 +2634,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		}
 		else {
 			wmWindow *win = CTX_wm_window(C);
-
-			if (win)
+			if (win) {
 				win->eventstate->check_click = 0;
+			}
 		}
 	}
 

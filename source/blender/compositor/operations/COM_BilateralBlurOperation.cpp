@@ -84,7 +84,7 @@ void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *d
 			}
 		}
 	}
-	
+
 	if (blurDivider > 0.0f) {
 		mul_v4_v4fl(output, blurColor, 1.0f / blurDivider);
 	}

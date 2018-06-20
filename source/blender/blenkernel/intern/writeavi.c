@@ -150,7 +150,7 @@ static void filepath_avi(char *string, RenderData *rd, bool preview, const char 
 	BLI_make_existing_file(string);
 
 	if (rd->scemode & R_EXTENSION) {
-		if (!BLI_testextensie(string, ".avi")) {
+		if (!BLI_path_extension_check(string, ".avi")) {
 			BLI_path_frame_range(string, sfra, efra, 4);
 			strcat(string, ".avi");
 		}
@@ -189,7 +189,7 @@ static int start_avi(void *context_v, Scene *UNUSED(scene), RenderData *rd, int 
 		BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file");
 		return 0;
 	}
-			
+
 	AVI_set_compress_option(avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_WIDTH, &x);
 	AVI_set_compress_option(avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_HEIGHT, &y);
 	AVI_set_compress_option(avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_QUALITY, &quality);
@@ -199,7 +199,7 @@ static int start_avi(void *context_v, Scene *UNUSED(scene), RenderData *rd, int 
 	avi->odd_fields = 0;
 /*  avi->interlace = rd->mode & R_FIELDS; */
 /*  avi->odd_fields = (rd->mode & R_ODDFIELD) ? 1 : 0; */
-	
+
 	printf("Created avi: %s\n", name);
 	return 1;
 }
@@ -211,7 +211,7 @@ static int append_avi(void *context_v, RenderData *UNUSED(rd), int start_frame, 
 	int x, y;
 	char *cp, rt;
 	AviMovie *avi = context_v;
-	
+
 	if (avi == NULL)
 		return 0;
 
@@ -222,7 +222,7 @@ static int append_avi(void *context_v, RenderData *UNUSED(rd), int start_frame, 
 	/* flip y and convert to abgr */
 	for (y = 0; y < recty; y++, rt1 += rectx, rt2 -= rectx) {
 		memcpy(rt1, rt2, rectx * sizeof(int));
-		
+
 		cp = (char *)rt1;
 		for (x = rectx; x > 0; x--) {
 			rt = cp[0];
@@ -234,7 +234,7 @@ static int append_avi(void *context_v, RenderData *UNUSED(rd), int start_frame, 
 			cp += 4;
 		}
 	}
-	
+
 	AVI_write_frame(avi, (frame - start_frame), AVI_FORMAT_RGB32, rectot, rectx * recty * 4);
 //	printf("added frame %3d (frame %3d in avi): ", frame, frame-start_frame);
 

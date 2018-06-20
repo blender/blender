@@ -34,13 +34,13 @@ protected:
 public:
 	CurveBaseOperation();
 	~CurveBaseOperation();
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
 	void deinitExecution();
-	
+
 	void setCurveMapping(CurveMapping *mapping);
 };
 #endif

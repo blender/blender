@@ -268,7 +268,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR | OPTYPE_UNDO_GROUPED;
-	ot->undo_group = "FRAME_CHANGE";
+	ot->undo_group = "Frame Change";
 
 	/* rna */
 	ot->prop = RNA_def_float(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
@@ -332,7 +332,7 @@ static void ANIM_OT_start_frame_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Start Frame";
 	ot->idname = "ANIM_OT_start_frame_set";
-	ot->description = "Set the start frame";
+	ot->description = "Set the current frame as the preview or scene start frame";
 
 	/* api callbacks */
 	ot->exec = anim_set_sfra_exec;
@@ -376,7 +376,7 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set End Frame";
 	ot->idname = "ANIM_OT_end_frame_set";
-	ot->description = "Set the end frame";
+	ot->description = "Set the current frame as the preview or scene end frame";
 
 	/* api callbacks */
 	ot->exec = anim_set_efra_exec;

@@ -55,8 +55,10 @@ static const char *bc_get_joint_name(T *node)
 }
 
 
-ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, ViewLayer *view_layer, const ImportSettings *import_settings) :
+ArmatureImporter::ArmatureImporter(
+        UnitConverter *conv, MeshImporterBase *mesh, Main *bmain, Scene *sce, ViewLayer *view_layer, const ImportSettings *import_settings) :
 	TransformReader(conv),
+	m_bmain(bmain),
 	scene(sce),
 	view_layer(view_layer),
 	unit_converter(conv),
@@ -411,7 +413,7 @@ Object *ArmatureImporter::get_empty_for_leaves()
 {
 	if (empty) return empty;
 
-	empty = bc_add_object(scene, view_layer, OB_EMPTY, NULL);
+	empty = bc_add_object(m_bmain, scene, view_layer, OB_EMPTY, NULL);
 	empty->empty_drawtype = OB_EMPTY_SPHERE;
 
 	return empty;
@@ -586,7 +588,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo& skin)
 		ob_arm = skin.set_armature(shared);
 	}
 	else {
-		ob_arm = skin.create_armature(scene, view_layer);  //once for every armature
+		ob_arm = skin.create_armature(m_bmain, scene, view_layer);  //once for every armature
 	}
 
 	// enter armature edit mode
@@ -856,8 +858,9 @@ bool ArmatureImporter::write_controller(const COLLADAFW::Controller *controller)
 	return true;
 }
 
-void ArmatureImporter::make_shape_keys()
+void ArmatureImporter::make_shape_keys(bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	std::vector<COLLADAFW::MorphController *>::iterator mc;
 	float weight;
 
@@ -873,7 +876,7 @@ void ArmatureImporter::make_shape_keys()
 
 			Mesh *source_me = (Mesh *)source_ob->data;
 			//insert key to source mesh
-			Key *key = source_me->key = BKE_key_add((ID *)source_me);
+			Key *key = source_me->key = BKE_key_add(bmain, (ID *)source_me);
 			key->type = KEY_RELATIVE;
 			KeyBlock *kb;
 

@@ -32,6 +32,7 @@
  *  \ingroup bmesh
  */
 
+struct Main;
 struct Mesh;
 
 void BM_mesh_cd_validate(BMesh *bm);
@@ -60,8 +61,8 @@ struct BMeshToMeshParams {
 	int64_t cd_mask_extra;
 };
 void BM_mesh_bm_to_me(
-        BMesh *bm, struct Mesh *me,
+        struct Main *bmain, BMesh *bm, struct Mesh *me,
         const struct BMeshToMeshParams *params)
-ATTR_NONNULL(1, 2, 3);
+ATTR_NONNULL(2, 3, 4);
 
 #endif /* __BMESH_MESH_CONV_H__ */

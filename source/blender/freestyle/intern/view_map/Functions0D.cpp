@@ -250,7 +250,7 @@ int Curvature2DAngleF0D::operator()(Interface0DIterator& iter)
 	if ((N1.norm() == 0) && (N2.norm() == 0)) {
 		Exception::raiseException();
 		result = 0;
-		return -1; 
+		return -1;
 	}
 	double cosin = N1 * N2;
 	if (cosin > 1)

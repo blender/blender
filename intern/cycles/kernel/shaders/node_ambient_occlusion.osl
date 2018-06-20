@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Blender Foundation
+ * Copyright 2011-2018 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,19 @@
 #include "stdosl.h"
 
 shader node_ambient_occlusion(
-	normal NormalIn = N,
-	color Color = 0.8,
-	output closure color AO = 0)
+	color ColorIn = color(0.8, 0.8, 0.8),
+	int samples = 8,
+	float Distance = 1.0,
+	normal Normal = N,
+	int inside = 0,
+	int only_local = 1,
+	output color ColorOut = color(0.8, 0.8, 0.8),
+	output float AO = 1.0)
 {
-	AO = Color * ambient_occlusion();
+	int global_radius = (Distance == 0.0 && !isconnected(Distance));
+
+	/* Abuse texture call with special @ao token. */
+	AO = texture("@ao", samples, Distance, Normal[0], Normal[1], Normal[2], inside, "sblur", only_local, "tblur", global_radius);
+	ColorOut = ColorIn * AO;
 }
 

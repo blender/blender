@@ -119,7 +119,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		/* don't need to worry about the new modifier's name, since that is set to the number
 		 * of particle systems which shouldn't have too many duplicates
 		 */
-		new_md = object_add_particle_system(scene, ob, name);
+		new_md = object_add_particle_system(bmain, scene, ob, name);
 	}
 	else {
 		/* get new modifier data to add */
@@ -524,7 +524,8 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	return 1;
 }
 
-static int modifier_apply_shape(ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md)
+static int modifier_apply_shape(
+        Main *bmain, ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -564,7 +565,7 @@ static int modifier_apply_shape(ReportList *reports, Depsgraph *depsgraph, Scene
 		}
 
 		if (key == NULL) {
-			key = me->key = BKE_key_add((ID *)me);
+			key = me->key = BKE_key_add(bmain, (ID *)me);
 			key->type = KEY_RELATIVE;
 			/* if that was the first key block added, then it was the basis.
 			 * Initialize it with the mesh, and add another for the modifier */
@@ -673,7 +674,7 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 }
 
 int ED_object_modifier_apply(
-        ReportList *reports, Depsgraph *depsgraph,
+        Main *bmain, ReportList *reports, Depsgraph *depsgraph,
         Scene *scene, Object *ob, ModifierData *md, int mode)
 {
 	int prev_mode;
@@ -702,7 +703,7 @@ int ED_object_modifier_apply(
 	md->mode |= eModifierMode_Realtime;
 
 	if (mode == MODIFIER_APPLY_SHAPE) {
-		if (!modifier_apply_shape(reports, depsgraph, scene, ob, md)) {
+		if (!modifier_apply_shape(bmain, reports, depsgraph, scene, ob, md)) {
 			md->mode = prev_mode;
 			return 0;
 		}
@@ -1017,13 +1018,14 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 
 static int modifier_apply_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int apply_as = RNA_enum_get(op->ptr, "apply_as");
 
-	if (!md || !ED_object_modifier_apply(op->reports, depsgraph, scene, ob, md, apply_as)) {
+	if (!md || !ED_object_modifier_apply(bmain, op->reports, depsgraph, scene, ob, md, apply_as)) {
 		return OPERATOR_CANCELLED;
 	}
 

@@ -249,6 +249,9 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -671,7 +674,7 @@ static PointerRNA rna_View3DShading_selected_studio_light_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
 	StudioLight *sl;
-	if (v3d->shading.light == V3D_LIGHTING_MATCAP) {
+	if (v3d->drawtype == OB_SOLID && v3d->shading.light == V3D_LIGHTING_MATCAP) {
 		sl = BKE_studiolight_find(v3d->shading.matcap, STUDIOLIGHT_FLAG_ALL);
 	}
 	else {
@@ -719,8 +722,8 @@ static const EnumPropertyItem *rna_View3DShading_light_itemf(
 static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	char* dna_storage = v3d->shading.studio_light;
-	
+	char *dna_storage = v3d->shading.studio_light;
+
 	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
 	if (v3d->drawtype == OB_SOLID && v3d->shading.light == V3D_LIGHTING_MATCAP) {
 		flag = STUDIOLIGHT_ORIENTATION_VIEWNORMAL;
@@ -737,8 +740,8 @@ static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 {
 	View3D *v3d = (View3D *)ptr->data;
-	char* dna_storage = v3d->shading.studio_light;
-	
+	char *dna_storage = v3d->shading.studio_light;
+
 	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
 	if (v3d->drawtype == OB_SOLID && v3d->shading.light == V3D_LIGHTING_MATCAP) {
 		flag = STUDIOLIGHT_ORIENTATION_VIEWNORMAL;
@@ -763,7 +766,7 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 		const int flags = (STUDIOLIGHT_EXTERNAL_FILE | STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
 
 		LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
-			int icon_id = sl->irradiance_icon_id;
+			int icon_id = (v3d->shading.flag & V3D_SHADING_MATCAP_FLIP_X) ? sl->icon_id_matcap_flipped: sl->icon_id_matcap;
 			if ((sl->flag & flags) == flags) {
 				EnumPropertyItem tmp = {sl->index, sl->name, icon_id, sl->name, ""};
 				RNA_enum_item_add(&item, &totitem, &tmp);
@@ -772,10 +775,10 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 	}
 	else {
 		LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
-			int icon_id = sl->irradiance_icon_id;
+			int icon_id = sl->icon_id_irradiance;
 			bool show_studiolight = false;
 
-			if ((sl->flag & STUDIOLIGHT_INTERNAL)) {
+			if (sl->flag & STUDIOLIGHT_INTERNAL) {
 				/* always show internal lights */
 				show_studiolight = true;
 			}
@@ -788,7 +791,7 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 
 					case OB_MATERIAL:
 						show_studiolight = (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD) > 0;
-						icon_id = sl->radiance_icon_id;
+						icon_id = sl->icon_id_radiance;
 						break;
 				}
 			}
@@ -1662,6 +1665,16 @@ static const EnumPropertyItem *rna_FileSelectParams_recursion_level_itemf(
 	return fileselectparams_recursion_level_items;
 }
 
+static void rna_FileSelectPrams_filter_glob_set(PointerRNA *ptr, const char *value)
+{
+	FileSelectParams *params = ptr->data;
+
+	BLI_strncpy(params->filter_glob, value, sizeof(params->filter_glob));
+
+	/* Remove stupi things like last group being a wildcard-only one... */
+	BLI_path_extension_glob_validate(params->filter_glob);
+}
+
 static void rna_FileBrowser_FSMenuEntry_path_get(PointerRNA *ptr, char *value)
 {
 	char *path = ED_fsmenu_entry_get_path(ptr->data);
@@ -2423,10 +2436,10 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "studiolight_background", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "studiolight_background_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shading.studiolight_background");
 	RNA_def_property_float_default(prop, 0.0);
-	RNA_def_property_ui_text(prop, "Show Background", "Show the studiolight in the background");
+	RNA_def_property_ui_text(prop, "Background", "Show the studiolight in the background");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 3);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -4137,7 +4150,10 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "filter_glob", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "filter_glob");
-	RNA_def_property_ui_text(prop, "Extension Filter", "");
+	RNA_def_property_ui_text(prop, "Extension Filter",
+	                         "UNIX shell-like filename patterns matching, supports wildcards ('*') "
+	                         "and list of patterns separated by ';'");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_FileSelectPrams_filter_glob_set");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
 	prop = RNA_def_property(srna, "filter_search", PROP_STRING, PROP_NONE);

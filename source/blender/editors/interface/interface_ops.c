@@ -1004,6 +1004,7 @@ static int editsource_exec(bContext *C, wmOperator *op)
 		ui_editsource_active_but_set(but);
 
 		/* redraw and get active button python info */
+		ED_region_do_layout(C, ar);
 		ED_region_do_draw(C, ar);
 		ar->do_draw = false;
 

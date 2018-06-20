@@ -76,7 +76,6 @@
 #include "draw_cache_impl.h"
 
 #include "draw_mode_engines.h"
-#include "engines/clay/clay_engine.h"
 #include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
 #include "engines/workbench/workbench_engine.h"
@@ -1312,12 +1311,13 @@ void DRW_draw_render_loop_ex(
 	}
 
 	DRW_stats_begin();
-	DRW_hair_update();
 
 	GPU_framebuffer_bind(DST.default_framebuffer);
 
 	/* Start Drawing */
 	DRW_state_reset();
+
+	DRW_hair_update();
 
 	drw_engines_draw_background();
 
@@ -1360,15 +1360,21 @@ void DRW_draw_render_loop_ex(
 
 	if (DST.draw_ctx.evil_C) {
 		/* needed so manipulator isn't obscured */
-		glDisable(GL_DEPTH_TEST);
-		DRW_draw_manipulator_3d();
+		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		    ((v3d->twflag & V3D_MANIPULATOR_DRAW) != 0))
+		{
+			glDisable(GL_DEPTH_TEST);
+			DRW_draw_manipulator_3d();
+		}
 
 		DRW_draw_region_info();
 
-		/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
-		 * 'DRW_draw_region_info' sets the projection in pixel-space. */
-		DRW_draw_manipulator_2d();
-		glEnable(GL_DEPTH_TEST);
+		if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+			/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
+			 * 'DRW_draw_region_info' sets the projection in pixel-space. */
+			DRW_draw_manipulator_2d();
+			glEnable(GL_DEPTH_TEST);
+		}
 	}
 
 	DRW_stats_reset();
@@ -1548,6 +1554,11 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	GPU_viewport_free(DST.viewport);
 	GPU_framebuffer_restore();
 
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	drw_state_ensure_not_reused(&DST);
+#endif
+
 	/* Changing Context */
 	if (re_gl_context != NULL) {
 		DRW_shape_cache_reset(); /* XXX fix that too. */
@@ -1560,11 +1571,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	else {
 		DRW_opengl_context_disable();
 	}
-
-#ifdef DEBUG
-	/* Avoid accidental reuse. */
-	drw_state_ensure_not_reused(&DST);
-#endif
 }
 
 void DRW_render_object_iter(
@@ -1628,7 +1634,8 @@ void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect,
-        DRW_SelectPassFn select_pass_fn, void *select_pass_user_data)
+        DRW_SelectPassFn select_pass_fn, void *select_pass_user_data,
+        DRW_ObjectFilterFn object_filter_fn, void *object_filter_user_data)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
@@ -1715,6 +1722,7 @@ void DRW_draw_select_loop(
 #endif
 		}
 		else {
+			bool filter_exclude = false;
 			DEG_OBJECT_ITER_BEGIN(
 			        depsgraph, ob,
 			        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
@@ -1722,6 +1730,19 @@ void DRW_draw_select_loop(
 			        DEG_ITER_OBJECT_FLAG_DUPLI)
 			{
 				if ((ob->base_flag & BASE_SELECTABLED) != 0) {
+
+					if (object_filter_fn != NULL) {
+						if (ob->base_flag & BASE_FROMDUPLI) {
+							/* pass (use previous filter_exclude value) */
+						}
+						else {
+							filter_exclude = (object_filter_fn(ob, object_filter_user_data) == false);
+						}
+						if (filter_exclude) {
+							continue;
+						}
+					}
+
 					/* This relies on dupli instances being after their instancing object. */
 					if ((ob->base_flag & BASE_FROMDUPLI) == 0) {
 						Object *ob_orig = DEG_get_original_object(ob);
@@ -1738,8 +1759,6 @@ void DRW_draw_select_loop(
 		DRW_render_instance_buffer_finish();
 	}
 
-	DRW_hair_update();
-
 	/* Setup framebuffer */
 	draw_select_framebuffer_setup(rect);
 	GPU_framebuffer_bind(g_select_buffer.framebuffer);
@@ -1748,6 +1767,8 @@ void DRW_draw_select_loop(
 	/* Start Drawing */
 	DRW_state_reset();
 	DRW_draw_callbacks_pre_scene();
+
+	DRW_hair_update();
 
 	DRW_state_lock(
 	        DRW_STATE_WRITE_DEPTH |
@@ -1898,10 +1919,11 @@ void DRW_draw_depth_loop(
 		DRW_render_instance_buffer_finish();
 	}
 
-	DRW_hair_update();
-
 	/* Start Drawing */
 	DRW_state_reset();
+
+	DRW_hair_update();
+
 	DRW_draw_callbacks_pre_scene();
 	drw_engines_draw_scene();
 	DRW_draw_callbacks_post_scene();
@@ -2068,9 +2090,6 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 
 void DRW_engines_register(void)
 {
-#ifdef WITH_CLAY_ENGINE
-	RE_engines_register(&DRW_engine_viewport_clay_type);
-#endif
 	RE_engines_register(&DRW_engine_viewport_eevee_type);
 	RE_engines_register(&DRW_engine_viewport_workbench_type);
 
@@ -2165,10 +2184,6 @@ void DRW_engines_free(void)
 	MEM_SAFE_FREE(DST.RST.bound_ubo_slots);
 
 	DRW_opengl_context_disable();
-
-#ifdef WITH_CLAY_ENGINE
-	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
-#endif
 }
 
 /** \} */

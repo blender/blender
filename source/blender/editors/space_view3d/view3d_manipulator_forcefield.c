@@ -72,7 +72,7 @@ static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmManipulato
 
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, NULL);
 	wmManipulator *mpr = wwrapper->manipulator;
-	RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
+	RNA_enum_set(mpr->ptr, "transform",  ED_MANIPULATOR_ARROW_XFORM_FLAG_CONSTRAINED);
 	ED_manipulator_arrow3d_set_ui_range(mpr, -200.0f, 200.0f);
 	ED_manipulator_arrow3d_set_range_fac(mpr, 6.0f);
 

@@ -44,16 +44,16 @@ protected:
 public:
 	PreviewOperation(const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 	void verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key);
-	
+
 	bool isOutputOperation(bool /*rendering*/) const { return !G.background; }
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const;
-	
+
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	bool isPreviewOperation() const { return true; }
-	
+
 };
 #endif

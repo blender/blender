@@ -40,7 +40,6 @@
 
 #include "BKE_context.h"
 #include "BKE_data_transfer.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_mesh_runtime.h"
@@ -137,20 +136,17 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(
 		Scene *scene = CTX_data_scene(C);
 
 		if (ob_src) {
-			DerivedMesh *dm_src;
-			CustomData *ldata;
+			Mesh *me_eval;
 			int num_data, i;
 
-			/* XXX Is this OK? */
-			dm_src = mesh_get_derived_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
-			ldata = dm_src->getLoopDataLayout(dm_src);
-			num_data = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
+			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
 
 			RNA_enum_item_add_separator(&item, &totitem);
 
 			for (i = 0; i < num_data; i++) {
 				tmp_item.value = i;
-				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPUV, i);
+				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(&me_eval->ldata, CD_MLOOPUV, i);
 				RNA_enum_item_add(&item, &totitem, &tmp_item);
 			}
 		}
@@ -160,20 +156,17 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(
 		Scene *scene = CTX_data_scene(C);
 
 		if (ob_src) {
-			DerivedMesh *dm_src;
-			CustomData *ldata;
+			Mesh *me_eval;
 			int num_data, i;
 
-			/* XXX Is this OK? */
-			dm_src = mesh_get_derived_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
-			ldata = dm_src->getLoopDataLayout(dm_src);
-			num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
+			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
 			RNA_enum_item_add_separator(&item, &totitem);
 
 			for (i = 0; i < num_data; i++) {
 				tmp_item.value = i;
-				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPCOL, i);
+				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(&me_eval->ldata, CD_MLOOPCOL, i);
 				RNA_enum_item_add(&item, &totitem, &tmp_item);
 			}
 		}

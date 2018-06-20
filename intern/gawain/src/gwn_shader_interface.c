@@ -193,7 +193,7 @@ static const Gwn_ShaderInput* add_uniform(Gwn_ShaderInterface* shaderface, const
 		return input;
 	}
 
-Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
+Gwn_ShaderInterface* GWN_shaderinterface_create(int32_t program)
 	{
 	Gwn_ShaderInterface* shaderface = calloc(1, sizeof(Gwn_ShaderInterface));
 	shaderface->program = program;

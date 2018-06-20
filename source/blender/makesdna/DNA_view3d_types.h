@@ -62,7 +62,7 @@ struct GPUViewport;
 #endif
 
 typedef struct RegionView3D {
-	
+
 	float winmat[4][4];			/* GL_PROJECTION matrix */
 	float viewmat[4][4];		/* GL_MODELVIEW matrix */
 	float viewinv[4][4];		/* inverse of viewmat */
@@ -193,24 +193,24 @@ typedef struct View3D {
 
 	unsigned int lay_prev; /* for active layer toggle */
 	unsigned int lay_used; /* used while drawing */
-	
+
 	short persp  DNA_DEPRECATED;
 	short view   DNA_DEPRECATED;
-	
+
 	struct Object *camera, *ob_centre;
 	rctf render_border;
 
 	struct View3D *localvd; /* allocated backup of its self while in localview */
-	
+
 	char ob_centre_bone[64];		/* optional string for armature bone to define center, MAXBONENAME */
-	
+
 	unsigned int lay;
 	int layact;
-	
+
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
 	short scenelock, _pad1;
 	short flag, flag2, pad2;
-	
+
 	float lens, grid;
 	float near, far;
 	float ofs[3]  DNA_DEPRECATED;			/* XXX deprecated */
@@ -227,7 +227,7 @@ typedef struct View3D {
 
 	/* transform manipulator info */
 	char twtype, _pad5, twflag;
-	
+
 	short flag3;
 
 	/* drawflags, denoting state */

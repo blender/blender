@@ -61,7 +61,7 @@ struct LinkNode;
 struct KDTree;
 struct RNG;
 struct BVHTreeRay;
-struct BVHTreeRayHit; 
+struct BVHTreeRayHit;
 struct EdgeHash;
 struct Depsgraph;
 struct ViewLayer;
@@ -90,6 +90,8 @@ typedef struct ParticleSimulationData {
 	 * maximum value per time step is important. Only sph_integrate makes use of
 	 * this at the moment. Other solvers could, too. */
 	float courant_num;
+	/* Only valid during dynamics_step(). */
+	struct RNG *rng;
 } ParticleSimulationData;
 
 typedef struct SPHData {
@@ -196,7 +198,7 @@ typedef struct ParticleCollisionElement {
 
 	/* values interpolated from original data*/
 	float x0[3], x1[3], x2[3], p[3];
-	
+
 	/* results for found intersection point */
 	float nor[3], vel[3], uv[2];
 
@@ -316,6 +318,9 @@ void BKE_particlesettings_free(struct ParticleSettings *part);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
 void psys_free(struct Object *ob, struct ParticleSystem *psys);
 
+/* Copy. */
+void psys_copy_particles(struct ParticleSystem *psys_dst, struct ParticleSystem *psys_src);
+
 bool psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
 
 void psys_interpolate_uvs(const struct MTFace *tface, int quad, const float w[4], float uvco[2]);
@@ -329,9 +334,10 @@ void psys_particle_on_emitter(struct ParticleSystemModifierData *psmd, int distr
                               float utan[3], float vtan[3], float orco[3]);
 struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct ParticleSystem *psys);
 
-struct ModifierData *object_add_particle_system(struct Scene *scene, struct Object *ob, const char *name);
-void object_remove_particle_system(struct Scene *scene, struct Object *ob);
-struct ParticleSettings *BKE_particlesettings_add(struct Main *main, const char *name);
+struct ModifierData *object_add_particle_system(
+        struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name);
+void object_remove_particle_system(struct Main *bmain, struct Scene *scene, struct Object *ob);
+struct ParticleSettings *BKE_particlesettings_add(struct Main *bmain, const char *name);
 void BKE_particlesettings_copy_data(
         struct Main *bmain, struct ParticleSettings *part_dst, const struct ParticleSettings *part_src,
         const int flag);

@@ -270,10 +270,10 @@ char *BKE_reports_string(ReportList *reports, ReportType level)
 void BKE_reports_print(ReportList *reports, ReportType level)
 {
 	char *cstring = BKE_reports_string(reports, level);
-	
+
 	if (cstring == NULL)
 		return;
-	
+
 	puts(cstring);
 	fflush(stdout);
 	MEM_freeN(cstring);
@@ -282,12 +282,12 @@ void BKE_reports_print(ReportList *reports, ReportType level)
 Report *BKE_reports_last_displayable(ReportList *reports)
 {
 	Report *report;
-	
+
 	for (report = reports->list.last; report; report = report->prev) {
 		if (ELEM(report->type, RPT_ERROR, RPT_WARNING, RPT_INFO))
 			return report;
 	}
-	
+
 	return NULL;
 }
 

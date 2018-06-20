@@ -108,8 +108,8 @@ DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_set
 	mImportStage(General),
 	mContext(C),
 	view_layer(CTX_data_view_layer(mContext)),
-	armature_importer(&unit_converter, &mesh_importer, CTX_data_scene(C), view_layer, import_settings),
-	mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C), view_layer),
+	armature_importer(&unit_converter, &mesh_importer, CTX_data_main(C), CTX_data_scene(C), view_layer, import_settings),
+	mesh_importer(&unit_converter, &armature_importer, CTX_data_main(C), CTX_data_scene(C), view_layer),
 	anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C))
 {
 }
@@ -244,7 +244,7 @@ void DocumentImporter::finish()
 
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext, *objects_to_scale);
-	armature_importer.make_shape_keys();
+	armature_importer.make_shape_keys(mContext);
 	DEG_relations_tag_update(bmain);
 
 #if 0
@@ -266,7 +266,7 @@ void DocumentImporter::finish()
 		std::vector<Object *>::iterator it;
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
-			BKE_scene_collections_object_remove(G.main, sce, ob, true);
+			BKE_scene_collections_object_remove(bmain, sce, ob, true);
 		}
 		libnode_ob.clear();
 
@@ -379,11 +379,12 @@ Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 		return NULL;
 	}
 
-	Object *ob = bc_add_object(sce, view_layer, OB_CAMERA, NULL);
+	Main *bmain = CTX_data_main(mContext);
+	Object *ob = bc_add_object(bmain, sce, view_layer, OB_CAMERA, NULL);
 	Camera *cam = uid_camera_map[cam_uid];
 	Camera *old_cam = (Camera *)ob->data;
 	ob->data = cam;
-	BKE_libblock_free_us(G.main, old_cam);
+	BKE_libblock_free_us(bmain, old_cam);
 	return ob;
 }
 
@@ -395,11 +396,12 @@ Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 		return NULL;
 	}
 
-	Object *ob = bc_add_object(sce, view_layer, OB_LAMP, NULL);
+	Main *bmain = CTX_data_main(mContext);
+	Object *ob = bc_add_object(bmain, sce, view_layer, OB_LAMP, NULL);
 	Lamp *la = uid_lamp_map[lamp_uid];
 	Lamp *old_lamp = (Lamp *)ob->data;
 	ob->data = la;
-	BKE_libblock_free_us(G.main, old_lamp);
+	BKE_libblock_free_us(bmain, old_lamp);
 	return ob;
 }
 
@@ -407,9 +409,10 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 {
 	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
 
-	Object *obn = BKE_object_copy(G.main, source_ob);
+	Main *bmain = CTX_data_main(mContext);
+	Object *obn = BKE_object_copy(bmain, source_ob);
 	DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-	BKE_collection_object_add_from(G.main, sce, source_ob, obn);
+	BKE_collection_object_add_from(bmain, sce, source_ob, obn);
 
 	if (instance_node) {
 		anim_importer.read_node_transform(instance_node, obn);
@@ -490,6 +493,7 @@ void DocumentImporter::report_unknown_reference(const COLLADAFW::Node &node, con
 
 std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
 {
+	Main *bmain = CTX_data_main(mContext);
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	bool read_transform = true;
@@ -511,7 +515,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		if (parent_node == NULL && !is_library_node) {
 			// A Joint on root level is a skeleton without root node.
 			// Here we add the armature "on the fly":
-			par = bc_add_object(sce, view_layer, OB_ARMATURE, std::string("Armature").c_str());
+			par = bc_add_object(bmain, sce, view_layer, OB_ARMATURE, std::string("Armature").c_str());
 			objects_done->push_back(par);
 			root_objects->push_back(par);
 			object_map.insert(std::pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), par));
@@ -624,10 +628,10 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 			//Check if Object is armature, by checking if immediate child is a JOINT node.
 			if (is_armature(node)) {
-				ob = bc_add_object(sce, view_layer, OB_ARMATURE, name.c_str());
+				ob = bc_add_object(bmain, sce, view_layer, OB_ARMATURE, name.c_str());
 			}
 			else {
-				ob = bc_add_object(sce, view_layer, OB_EMPTY, NULL);
+				ob = bc_add_object(bmain, sce, view_layer, OB_EMPTY, NULL);
 			}
 			objects_done->push_back(ob);
 			if (parent_node == NULL) {
@@ -644,7 +648,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 			ob = *it;
 			std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
-			BKE_libblock_rename(G.main, &ob->id, (char *)nodename.c_str());
+			BKE_libblock_rename(bmain, &ob->id, (char *)nodename.c_str());
 			object_map.insert(std::pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), ob));
 			node_map[node->getUniqueId()] = node;
 
@@ -754,8 +758,9 @@ bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
 	if (mImportStage != General)
 		return true;
 
+	Main *bmain = CTX_data_main(mContext);
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
-	Material *ma = BKE_material_add(G.main, (char *)str_mat_id.c_str());
+	Material *ma = BKE_material_add(bmain, (char *)str_mat_id.c_str());
 
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
@@ -940,14 +945,15 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 	if (mImportStage != General)
 		return true;
 
+	Main *bmain = CTX_data_main(mContext);
 	Camera *cam = NULL;
 	std::string cam_id, cam_name;
 
 	ExtraTags *et=getExtraTags(camera->getUniqueId());
 	cam_id = camera->getOriginalId();
 	cam_name = camera->getName();
-	if (cam_name.size()) cam = (Camera *)BKE_camera_add(G.main, (char *)cam_name.c_str());
-	else cam = (Camera *)BKE_camera_add(G.main, (char *)cam_id.c_str());
+	if (cam_name.size()) cam = (Camera *)BKE_camera_add(bmain, (char *)cam_name.c_str());
+	else cam = (Camera *)BKE_camera_add(bmain, (char *)cam_id.c_str());
 
 	if (!cam) {
 		fprintf(stderr, "Cannot create camera.\n");
@@ -1102,6 +1108,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 	if (mImportStage != General)
 		return true;
 
+	Main *bmain = CTX_data_main(mContext);
 	Lamp *lamp = NULL;
 	std::string la_id, la_name;
 
@@ -1114,8 +1121,8 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
-	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add(G.main, (char *)la_name.c_str());
-	else lamp = (Lamp *)BKE_lamp_add(G.main, (char *)la_id.c_str());
+	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add(bmain, (char *)la_name.c_str());
+	else lamp = (Lamp *)BKE_lamp_add(bmain, (char *)la_id.c_str());
 
 	if (!lamp) {
 		fprintf(stderr, "Cannot create lamp.\n");

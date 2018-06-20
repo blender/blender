@@ -144,7 +144,7 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void buttons_main_region_draw_properties(const bContext *C, SpaceButs *sbuts, ARegion *ar)
+static void buttons_main_region_layout_properties(const bContext *C, SpaceButs *sbuts, ARegion *ar)
 {
 	const bool vertical = (sbuts->align == BUT_VERTICAL);
 
@@ -203,12 +203,10 @@ static void buttons_main_region_draw_properties(const bContext *C, SpaceButs *sb
 			break;
 	}
 
-	if (contexts[0]) {
-		ED_region_panels(C, ar, contexts, sbuts->mainb, vertical);
-	}
+	ED_region_panels_layout_ex(C, ar, contexts, sbuts->mainb, vertical);
 }
 
-static void buttons_main_region_draw_tool(const bContext *C, SpaceButs *sbuts, ARegion *ar)
+static void buttons_main_region_layout_tool(const bContext *C, SpaceButs *sbuts, ARegion *ar)
 {
 	const bool vertical = (sbuts->align == BUT_VERTICAL);
 	const char *contexts[3] = {NULL};
@@ -260,30 +258,24 @@ static void buttons_main_region_draw_tool(const bContext *C, SpaceButs *sbuts, A
 				ARRAY_SET_ITEMS(contexts, ".todo");
 				break;
 		}
-		if (contexts[0]) {
-			ED_region_panels(C, ar, contexts, -1, vertical);
-		}
 	}
 	else if (workspace->tools_space_type == SPACE_IMAGE) {
 		/* TODO */
 	}
 
-	if (contexts[0] == NULL) {
-		UI_ThemeClearColor(TH_BACK);
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
+	ED_region_panels_layout_ex(C, ar, contexts, -1, vertical);
 }
 
-static void buttons_main_region_draw(const bContext *C, ARegion *ar)
+static void buttons_main_region_layout(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
 
 	if (sbuts->mainb == BCONTEXT_TOOL) {
-		buttons_main_region_draw_tool(C, sbuts, ar);
+		buttons_main_region_layout_tool(C, sbuts, ar);
 	}
 	else {
-		buttons_main_region_draw_properties(C, sbuts, ar);
+		buttons_main_region_layout_properties(C, sbuts, ar);
 	}
 
 	sbuts->re_align = 0;
@@ -619,7 +611,8 @@ void ED_spacetype_buttons(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init = buttons_main_region_init;
-	art->draw = buttons_main_region_draw;
+	art->layout = buttons_main_region_layout;
+	art->draw = ED_region_panels_draw;
 	art->listener = buttons_main_region_listener;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	BLI_addhead(&st->regiontypes, art);

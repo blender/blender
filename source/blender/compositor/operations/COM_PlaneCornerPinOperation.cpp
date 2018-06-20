@@ -49,7 +49,7 @@ static bool check_corners(float corners[4][2])
 		cur_cross = cross_v2v2(v1, v2);
 		if (fabsf(cur_cross) <= FLT_EPSILON)
 			return false;
-		
+
 		if (cross == 0.0f)
 			cross = cur_cross;
 		else if (cross * cur_cross < 0.0f)
@@ -67,7 +67,7 @@ static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float c
 		corners[i][0] = result[0];
 		corners[i][1] = result[1];
 	}
-	
+
 	/* convexity check:
 	 * concave corners need to be prevented, otherwise
 	 * BKE_tracking_homography_between_two_quads will freeze
@@ -95,7 +95,7 @@ PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() :
 	addInputSocket(COM_DT_VECTOR);
 	addInputSocket(COM_DT_VECTOR);
 	addInputSocket(COM_DT_VECTOR);
-	
+
 	/* XXX this is stupid: we need to make this "complex",
 	 * so we can use the initializeTileData function
 	 * to read corners from input sockets ...
@@ -106,21 +106,21 @@ PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() :
 void PlaneCornerPinMaskOperation::initExecution()
 {
 	PlaneDistortMaskOperation::initExecution();
-	
+
 	initMutex();
 }
 
 void PlaneCornerPinMaskOperation::deinitExecution()
 {
 	PlaneDistortMaskOperation::deinitExecution();
-	
+
 	deinitMutex();
 }
 
 void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
 {
 	void *data = PlaneDistortMaskOperation::initializeTileData(rect);
-	
+
 	/* get corner values once, by reading inputs at (0,0)
 	 * XXX this assumes invariable values (no image inputs),
 	 * we don't have a nice generic system for that yet
@@ -134,11 +134,11 @@ void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
 		float corners[4][2];
 		readCornersFromSockets(rect, readers, corners);
 		calculateCorners(corners, true, 0);
-		
+
 		m_corners_ready = true;
 	}
 	unlockMutex();
-	
+
 	return data;
 }
 
@@ -164,21 +164,21 @@ PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() :
 void PlaneCornerPinWarpImageOperation::initExecution()
 {
 	PlaneDistortWarpImageOperation::initExecution();
-	
+
 	initMutex();
 }
 
 void PlaneCornerPinWarpImageOperation::deinitExecution()
 {
 	PlaneDistortWarpImageOperation::deinitExecution();
-	
+
 	deinitMutex();
 }
 
 void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
 {
 	void *data = PlaneDistortWarpImageOperation::initializeTileData(rect);
-	
+
 	/* get corner values once, by reading inputs at (0,0)
 	 * XXX this assumes invariable values (no image inputs),
 	 * we don't have a nice generic system for that yet
@@ -193,11 +193,11 @@ void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
 		float corners[4][2];
 		readCornersFromSockets(rect, readers, corners);
 		calculateCorners(corners, true, 0);
-		
+
 		m_corners_ready = true;
 	}
 	unlockMutex();
-	
+
 	return data;
 }
 
@@ -206,7 +206,7 @@ bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(rcti *in
 	for (int i = 0; i < 4; ++i)
 		if (getInputOperation(i + 1)->determineDependingAreaOfInterest(input, readOperation, output))
 			return true;
-	
+
 	/* XXX this is bad, but unavoidable with the current design:
 	 * we don't know the actual corners and matrix at this point,
 	 * so all we can do is get the full input image

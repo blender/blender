@@ -2071,7 +2071,9 @@ void TEXT_OT_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
+	PropertyRNA *prop;
+	prop = RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /******************* toggle overwrite operator **********************/
@@ -2243,13 +2245,15 @@ static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
-			if (ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
-				txt_screen_skip(st, ar, st->viewlines * (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1));
+			if (event->val == KM_RELEASE) {
+				if (ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
+					txt_screen_skip(st, ar, st->viewlines * (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1));
 
-				ED_area_tag_redraw(CTX_wm_area(C));
+					ED_area_tag_redraw(CTX_wm_area(C));
+				}
+				scroll_exit(C, op);
+				return OPERATOR_FINISHED;
 			}
-			scroll_exit(C, op);
-			return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;

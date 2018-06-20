@@ -28,7 +28,7 @@
  *  \date 16/12/2002
  */
 
-//! inherits from class Rep 
+//! inherits from class Rep
 #include "Rep.h"
 
 namespace Freestyle {

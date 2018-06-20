@@ -53,7 +53,7 @@
 
 #include "MOD_util.h"
 
-static void initData(ModifierData *md) 
+static void initData(ModifierData *md)
 {
 	HookModifierData *hmd = (HookModifierData *) md;
 
@@ -259,7 +259,7 @@ static void deformVerts_do(
 	float dmat[4][4];
 	int i, *index_pt;
 	struct HookData_cb hd;
-	
+
 	if (hmd->curfalloff == NULL) {
 		/* should never happen, but bad lib linking could cause it */
 		hmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);

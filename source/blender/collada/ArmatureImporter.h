@@ -62,6 +62,7 @@ extern "C" {
 class ArmatureImporter : private TransformReader
 {
 private:
+	Main *m_bmain;
 	Scene *scene;
 	ViewLayer *view_layer;
 	UnitConverter *unit_converter;
@@ -138,7 +139,8 @@ private:
 	TagsMap uid_tags_map;
 public:
 
-	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, ViewLayer *view_layer, const ImportSettings *import_settings);
+	ArmatureImporter(
+	        UnitConverter *conv, MeshImporterBase *mesh, Main *bmain, Scene *sce, ViewLayer *view_layer, const ImportSettings *import_settings);
 	~ArmatureImporter();
 
 	void add_root_joint(COLLADAFW::Node *node, Object *parent);
@@ -146,7 +148,7 @@ public:
 	// here we add bones to armatures, having armatures previously created in write_controller
 	void make_armatures(bContext *C, std::vector<Object *> &objects_to_scale);
 
-	void make_shape_keys();
+	void make_shape_keys(bContext *C);
 
 #if 0
 	// link with meshes, create vertex groups, assign weights

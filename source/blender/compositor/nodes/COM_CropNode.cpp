@@ -45,7 +45,7 @@ void CropNode::convertToOperations(NodeConverter &converter, const CompositorCon
 	operation->setCropSettings(cropSettings);
 	operation->setRelative(relative);
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
 }

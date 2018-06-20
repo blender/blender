@@ -39,15 +39,15 @@ void KeyingScreenNode::convertToOperations(NodeConverter &converter, const Compo
 	bNode *editorNode = this->getbNode();
 	MovieClip *clip = (MovieClip *) editorNode->id;
 	NodeKeyingScreenData *keyingscreen_data = (NodeKeyingScreenData *) editorNode->storage;
-	
+
 	NodeOutput *outputScreen = this->getOutputSocket(0);
-	
+
 	// always connect the output image
 	KeyingScreenOperation *operation = new KeyingScreenOperation();
 	operation->setMovieClip(clip);
 	operation->setTrackingObject(keyingscreen_data->tracking_object);
 	operation->setFramenumber(context.getFramenumber());
 	converter.addOperation(operation);
-	
+
 	converter.mapOutputSocket(outputScreen, operation->getOutputSocket());
 }

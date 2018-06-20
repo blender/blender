@@ -186,7 +186,7 @@ class OUTLINER_MT_collection(Menu):
             layout.menu("OUTLINER_MT_collection_view_layer")
 
         layout.separator()
-        layout.operator_menu_enum("outliner.id_operation", 'type', text="ID Data")
+        layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
 
 
 class OUTLINER_MT_collection_new(Menu):
@@ -205,6 +205,8 @@ class OUTLINER_MT_object(Menu):
         layout = self.layout
 
         space = context.space_data
+        obj = context.active_object
+        object_mode = 'OBJECT' if obj is None else obj.mode
 
         layout.operator("outliner.object_operation", text="Delete").type = 'DELETE'
         if space.display_mode == 'VIEW_LAYER' and not space.use_filter_collection:
@@ -218,11 +220,19 @@ class OUTLINER_MT_object(Menu):
 
         layout.separator()
 
+        if object_mode in {'EDIT', 'POSE'}:
+            name = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode].name
+            layout.operator("outliner.object_operation", text=f"{name} Set").type = 'OBJECT_MODE_ENTER'
+            layout.operator("outliner.object_operation", text=f"{name} Clear").type = 'OBJECT_MODE_EXIT'
+            del name
+
+            layout.separator()
+
         if not (space.display_mode == 'VIEW_LAYER' and not space.use_filter_collection):
             layout.operator("outliner.id_operation", text="Unlink").type = 'UNLINK'
             layout.separator()
 
-        layout.operator_menu_enum("outliner.id_operation", 'type', text="ID Data")
+        layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
 
 
 class OUTLINER_PT_filter(Panel):

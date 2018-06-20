@@ -116,7 +116,7 @@ static SpaceLink *action_new(const ScrArea *sa, const Scene *scene)
 
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 
 	/* channel list region */
 	ar = MEM_callocN(sizeof(ARegion), "channel region for action");
@@ -752,7 +752,7 @@ static void action_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void action_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void action_region_listener(

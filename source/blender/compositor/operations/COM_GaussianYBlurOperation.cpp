@@ -172,7 +172,7 @@ void GaussianYBlurOperation::deinitExecution()
 bool GaussianYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	
+
 	if (!m_sizeavailable) {
 		rcti sizeInput;
 		sizeInput.xmin = 0;

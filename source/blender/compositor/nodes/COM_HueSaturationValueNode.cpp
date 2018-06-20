@@ -46,16 +46,16 @@ void HueSaturationValueNode::convertToOperations(NodeConverter &converter, const
 
 	ConvertRGBToHSVOperation *rgbToHSV = new ConvertRGBToHSVOperation();
 	converter.addOperation(rgbToHSV);
-	
+
 	ConvertHSVToRGBOperation *hsvToRGB = new ConvertHSVToRGBOperation();
 	converter.addOperation(hsvToRGB);
-	
+
 	ChangeHSVOperation *changeHSV = new ChangeHSVOperation();
 	converter.mapInputSocket(hueSocket, changeHSV->getInputSocket(1));
 	converter.mapInputSocket(saturationSocket, changeHSV->getInputSocket(2));
 	converter.mapInputSocket(valueSocket, changeHSV->getInputSocket(3));
 	converter.addOperation(changeHSV);
-	
+
 	MixBlendOperation *blend = new MixBlendOperation();
 	blend->setResolutionInputSocketIndex(1);
 	converter.addOperation(blend);

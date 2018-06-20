@@ -71,7 +71,7 @@ void calcAlpha(ImBuf *ibuf)
 {
 	int i;
 	char *rect;
-	
+
 	if (ibuf) {
 		rect = (char *) ibuf->rect;
 		for (i = ibuf->x * ibuf->y; i > 0; i--) {
@@ -86,21 +86,21 @@ void readBitmapFontVersion0(ImBuf *ibuf, unsigned char *rect, int step)
 	int glyphcount, bytes, i, index, linelength, ysize;
 	unsigned char *buffer;
 	bmFont * bmfont;
-	
+
 	linelength = ibuf->x * step;
-	
+
 	glyphcount = (rect[6 * step] << 8) | rect[7 * step];
 	bytes = ((glyphcount - 1) * sizeof(bmGlyph)) + sizeof(bmFont);
-	
+
 	ysize = (bytes + (ibuf->x - 1)) / ibuf->x;
-	
+
 	if (ysize < ibuf->y) {
 		/* we're first going to copy all data into a linear buffer.
 		 * step can be 4 or 1 bytes, and the data is not sequential because
 		 * the bitmap was flipped vertically. */
-		
+
 		buffer = MEM_mallocN(bytes, "readBitmapFontVersion0:buffer");
-		
+
 		index = 0;
 		for (i = 0; i < bytes; i++) {
 			buffer[i] = rect[index];
@@ -111,12 +111,12 @@ void readBitmapFontVersion0(ImBuf *ibuf, unsigned char *rect, int step)
 				index -= linelength;
 			}
 		}
-		
+
 		/* we're now going to endian convert the data */
-		
+
 		bmfont = MEM_mallocN(bytes, "readBitmapFontVersion0:bmfont");
 		index = 0;
-		
+
 		/* first read the header */
 		bmfont->magic[0]    = buffer[index++];
 		bmfont->magic[1]    = buffer[index++];
@@ -126,7 +126,7 @@ void readBitmapFontVersion0(ImBuf *ibuf, unsigned char *rect, int step)
 		bmfont->glyphcount  = (buffer[index] << 8) | buffer[index + 1]; index += 2;
 		bmfont->xsize       = (buffer[index] << 8) | buffer[index + 1]; index += 2;
 		bmfont->ysize       = (buffer[index] << 8) | buffer[index + 1]; index += 2;
-		
+
 		for (i = 0; i < bmfont->glyphcount; i++) {
 			bmfont->glyphs[i].unicode  = (buffer[index] << 8) | buffer[index + 1]; index += 2;
 			bmfont->glyphs[i].locx     = (buffer[index] << 8) | buffer[index + 1]; index += 2;
@@ -141,9 +141,9 @@ void readBitmapFontVersion0(ImBuf *ibuf, unsigned char *rect, int step)
 				printfGlyph(&bmfont->glyphs[i]);
 			}
 		}
-		
+
 		MEM_freeN(buffer);
-		
+
 		if (G.debug & G_DEBUG) {
 			printf("Oldy = %d Newy = %d\n", ibuf->y, ibuf->y - ysize);
 			printf("glyphcount = %d\n", glyphcount);
@@ -173,7 +173,7 @@ void detectBitmapFont(ImBuf *ibuf)
 	unsigned char *rect;
 	unsigned short version;
 	int i;
-	
+
 	if (ibuf != NULL && ibuf->rect != NULL) {
 			/* bitmap must have an x size that is a power of two */
 		if (is_power_of_two(ibuf->x)) {
@@ -215,7 +215,7 @@ void detectBitmapFont(ImBuf *ibuf)
 int locateGlyph(bmFont *bmfont, unsigned short unicode)
 {
 	int min, max, current = 0;
-	
+
 	if (bmfont) {
 		min = 0;
 		max = bmfont->glyphcount;
@@ -242,7 +242,7 @@ int locateGlyph(bmFont *bmfont, unsigned short unicode)
 			}
 		}
 	}
-	
+
 	return(current);
 }
 
@@ -256,19 +256,19 @@ void matrixGlyph(
 {
 	int index;
 	bmFont *bmfont;
-	
+
 	*centerx = *centery = 0.0;
 	*sizex = *sizey = 1.0;
 	*transx = *transy = 0.0;
 	*movex = *movey = 0.0;
 	*advance = 1.0;
-		
+
 	if (ibuf) {
 		bmfont = ibuf->userdata;
 		if (bmfont && (ibuf->userflags & IB_BITMAPFONT)) {
 			index = locateGlyph(bmfont, unicode);
 			if (index) {
-								
+
 				*sizex = (bmfont->glyphs[index].sizex) / (float) (bmfont->glyphs[0].sizex);
 				*sizey = (bmfont->glyphs[index].sizey) / (float) (bmfont->glyphs[0].sizey);
 
@@ -279,10 +279,10 @@ void matrixGlyph(
 				*centery = (ibuf->y - bmfont->glyphs[0].locy) / (float) ibuf->y;
 
 				/* 2.0 units is the default size of an object */
-				
+
 				*movey = 1.0f - *sizey + 2.0f * (bmfont->glyphs[index].ofsy - bmfont->glyphs[0].ofsy) / (float) bmfont->glyphs[0].sizey;
 				*movex = *sizex - 1.0f + 2.0f * (bmfont->glyphs[index].ofsx - bmfont->glyphs[0].ofsx) / (float) bmfont->glyphs[0].sizex;
-				
+
 				*advance = 2.0f * bmfont->glyphs[index].advance / (float) bmfont->glyphs[0].advance;
 
 				// printfGlyph(&bmfont->glyphs[index]);

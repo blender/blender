@@ -38,6 +38,8 @@
 #include "BLI_rand.h"
 #include "BLI_listbase.h"
 
+#include "PIL_time.h"
+
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
@@ -86,6 +88,7 @@ typedef struct PaintStroke {
 	void *mode_data;
 	void *stroke_cursor;
 	wmTimer *timer;
+	struct RNG *rng;
 
 	/* Cached values */
 	ViewContext vc;
@@ -403,17 +406,24 @@ static bool paint_brush_update(bContext *C,
 		}
 	}
 
+	if ((do_random || do_random_mask) && stroke->rng == NULL) {
+		/* Lazy initialization. */
+		uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+		rng_seed ^= (uint)GET_INT_FROM_POINTER(brush);
+		stroke->rng = BLI_rng_new(rng_seed);
+	}
+
 	if (do_random) {
 		if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
 			ups->brush_rotation += -brush->mtex.random_angle / 2.0f +
-			                       brush->mtex.random_angle * BLI_frand();
+			                       brush->mtex.random_angle * BLI_rng_get_float(stroke->rng);
 		}
 	}
 
 	if (do_random_mask) {
 		if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
 			ups->brush_rotation_sec += -brush->mask_mtex.random_angle / 2.0f +
-			                           brush->mask_mtex.random_angle * BLI_frand();
+			                           brush->mask_mtex.random_angle * BLI_rng_get_float(stroke->rng);
 		}
 	}
 
@@ -783,6 +793,10 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
 			CTX_wm_manager(C),
 			CTX_wm_window(C),
 			stroke->timer);
+	}
+
+	if (stroke->rng) {
+		BLI_rng_free(stroke->rng);
 	}
 
 	if (stroke->stroke_cursor)

@@ -6,7 +6,7 @@
 # basename_LIBRARY_RELEASE is defined, basename_LIBRARY, basename_LIBRARY_DEBUG,
 # and basename_LIBRARY_RELEASE will be set to the release value.  If only
 # basename_LIBRARY_DEBUG is defined, then basename_LIBRARY,
-# basename_LIBRARY_DEBUG and basename_LIBRARY_RELEASE will take the debug value.  
+# basename_LIBRARY_DEBUG and basename_LIBRARY_RELEASE will take the debug value.
 #
 # If the generator supports configuration types, then basename_LIBRARY and
 # basename_LIBRARIES will be set with debug and optimized flags specifying the
@@ -53,10 +53,10 @@ macro( select_library_configurations basename )
         # if the generator supports configuration types or CMAKE_BUILD_TYPE
         # is set, then set optimized and debug options.
         if( CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE )
-            set( ${basename}_LIBRARY 
+            set( ${basename}_LIBRARY
                 optimized ${${basename}_LIBRARY_RELEASE}
                 debug ${${basename}_LIBRARY_DEBUG} )
-            set( ${basename}_LIBRARIES 
+            set( ${basename}_LIBRARIES
                 optimized ${${basename}_LIBRARY_RELEASE}
                 debug ${${basename}_LIBRARY_DEBUG} )
         else( CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE )
@@ -67,14 +67,14 @@ macro( select_library_configurations basename )
         endif( CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE )
     endif( ${basename}_LIBRARY_DEBUG AND ${basename}_LIBRARY_RELEASE )
 
-    set( ${basename}_LIBRARY ${${basename}_LIBRARY} CACHE FILEPATH 
+    set( ${basename}_LIBRARY ${${basename}_LIBRARY} CACHE FILEPATH
         "The ${basename} library" )
 
     if( ${basename}_LIBRARY )
         set( ${basename}_FOUND TRUE )
     endif( ${basename}_LIBRARY )
 
-    mark_as_advanced( ${basename}_LIBRARY 
+    mark_as_advanced( ${basename}_LIBRARY
         ${basename}_LIBRARY_RELEASE
         ${basename}_LIBRARY_DEBUG
     )

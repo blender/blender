@@ -297,20 +297,6 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
 	MEM_freeN(name);
 }
 
-/************************* Dependencies ****************************/
-
-bool BKE_collection_is_animated(Collection *collection, Object *UNUSED(parent))
-{
-	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
-	{
-		if (object->proxy) {
-			return true;
-		}
-	}
-	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-	return false;
-}
-
 /* **************** Object List Cache *******************/
 
 static void collection_object_cache_fill(ListBase *lb, Collection *collection, int parent_restrict)
@@ -323,20 +309,21 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
 		if (base == NULL) {
 			base = MEM_callocN(sizeof(Base), "Object Base");
 			base->object = cob->ob;
-
-			if ((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) {
-				base->flag |= BASE_VISIBLED | BASE_VISIBLE_VIEWPORT;
-
-				if ((child_restrict & COLLECTION_RESTRICT_SELECT) == 0) {
-					base->flag |= BASE_SELECTABLED;
-				}
-			}
-
-			if ((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) {
-				base->flag |= BASE_VISIBLE_RENDER;
-			}
-
 			BLI_addtail(lb, base);
+		}
+
+		int object_restrict = base->object->restrictflag;
+
+		if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
+		    ((object_restrict & OB_RESTRICT_VIEW) == 0))
+		{
+			base->flag |= BASE_VISIBLE_VIEWPORT;
+		}
+
+		if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
+		    ((object_restrict & OB_RESTRICT_RENDER) == 0))
+		{
+			base->flag |= BASE_VISIBLE_RENDER;
 		}
 	}
 
@@ -377,7 +364,7 @@ void BKE_collection_object_cache_free(Collection *collection)
 	collection_object_cache_free(collection);
 }
 
-Base *BKE_collection_or_layer_objects(Depsgraph *depsgraph,
+Base *BKE_collection_or_layer_objects(const Depsgraph *depsgraph,
                                       const Scene *scene,
                                       const ViewLayer *view_layer,
                                       Collection *collection)
@@ -623,7 +610,7 @@ static bool scene_collections_object_remove(Main *bmain, Scene *scene, Object *o
 {
 	bool removed = false;
 
-	BKE_scene_remove_rigidbody_object(scene, ob);
+	BKE_scene_remove_rigidbody_object(bmain, scene, ob);
 
 	FOREACH_SCENE_COLLECTION_BEGIN(scene, collection)
 	{

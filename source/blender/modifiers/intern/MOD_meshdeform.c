@@ -98,7 +98,7 @@ static void copyData(const ModifierData *md, ModifierData *target)
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
-{	
+{
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
 
@@ -305,7 +305,7 @@ static void meshdeformModifier_do(
 	 * We'll support this case once granular dependency graph is landed.
 	 */
 	cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(mmd->object, &free_cagemesh);
-	
+
 	if (cagemesh == NULL) {
 		modifier_setError(md, "Cannot get mesh from cage object");
 		return;
@@ -444,7 +444,7 @@ void modifier_mdef_compact_influences(ModifierData *md)
 	weights = mmd->bindweights;
 	if (!weights)
 		return;
-	
+
 	totvert = mmd->totvert;
 	totcagevert = mmd->totcagevert;
 
@@ -490,7 +490,7 @@ void modifier_mdef_compact_influences(ModifierData *md)
 	}
 
 	mmd->bindoffsets[b] = totinfluence;
-	
+
 	/* free */
 	MEM_freeN(mmd->bindweights);
 	mmd->bindweights = NULL;

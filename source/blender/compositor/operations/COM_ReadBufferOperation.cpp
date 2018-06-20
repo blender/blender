@@ -120,8 +120,8 @@ void ReadBufferOperation::readResolutionFromWriteBuffer()
 	}
 }
 
-void ReadBufferOperation::updateMemoryBuffer() 
+void ReadBufferOperation::updateMemoryBuffer()
 {
 	this->m_buffer = this->getMemoryProxy()->getBuffer();
-	
+
 }

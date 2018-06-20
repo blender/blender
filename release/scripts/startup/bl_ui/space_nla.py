@@ -39,6 +39,7 @@ class NLA_HT_header(Header):
 
         dopesheet_filter(layout, context)
 
+        layout.separator_spacer()
         layout.prop(st, "auto_snap", text="")
 
 

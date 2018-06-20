@@ -94,6 +94,9 @@ typedef struct DialInteraction {
 #define DIAL_WIDTH       1.0f
 #define DIAL_RESOLUTION 48
 
+/* Could make option, negative to clip more (don't show when view aligned). */
+#define DIAL_CLIP_BIAS 0.02
+
 /**
  * We can't use this for the #wmManipulatorType.matrix_basis_get callback, it conflicts with depth picking.
  */
@@ -347,6 +350,7 @@ static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, 
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
 		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix_basis[3]);
+		clip_plane[3] += DIAL_CLIP_BIAS * mpr->scale_final;
 		glEnable(GL_CLIP_DISTANCE0);
 	}
 
@@ -373,7 +377,7 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
 		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix_basis[3]);
-		clip_plane[3] -= 0.02f * mpr->scale_final;
+		clip_plane[3] += DIAL_CLIP_BIAS * mpr->scale_final;
 
 		glEnable(GL_CLIP_DISTANCE0);
 	}

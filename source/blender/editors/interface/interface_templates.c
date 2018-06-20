@@ -500,6 +500,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					Main *bmain = CTX_data_main(C);
 					Scene *scene = CTX_data_scene(C);
 					ED_object_single_user(bmain, scene, (struct Object *)id);
+					DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 					WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 					DEG_relations_tag_update(bmain);
 				}
@@ -1578,12 +1579,16 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 #endif
 
 	if (WM_operator_repeat_check(C, op)) {
+		int layout_flags = 0;
+		if (block->panel == NULL) {
+			layout_flags = UI_TEMPLATE_OP_PROPS_SHOW_TITLE;
+		}
 #if 0
 		bool has_advanced = false;
 #endif
 
 		UI_block_func_set(block, ED_undo_operator_repeat_cb, op, NULL);
-		template_operator_redo_property_buts_draw(C, op, layout, UI_TEMPLATE_OP_PROPS_COMPACT, NULL /* &has_advanced */ );
+		template_operator_redo_property_buts_draw(C, op, layout, layout_flags, NULL /* &has_advanced */ );
 		UI_block_func_set(block, NULL, NULL, NULL); /* may want to reset to old state instead of NULLing all */
 
 #if 0
@@ -1743,7 +1748,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		/* enabled */
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 		uiItemR(row, &ptr, "mute", 0, "",
-		        (con->flag & CONSTRAINT_OFF) ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF);
+		        (con->flag & CONSTRAINT_OFF) ? ICON_HIDE_ON : ICON_HIDE_OFF);
 		UI_block_emboss_set(block, UI_EMBOSS);
 
 		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
@@ -2180,6 +2185,19 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 	MEM_freeN(cb);
 }
 
+/********************* Icon Template ************************/
+/**
+ * \param icon_scale: Scale of the icon, 1x == button height.
+ */
+void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
+{
+	uiBlock *block;
+	uiBut *but;
+
+	block = uiLayoutAbsoluteBlock(layout);
+	but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, ICON_X, 0, 0, UI_UNIT_X * icon_scale, UI_UNIT_Y * icon_scale, NULL, 0.0, 0.0, 0.0, 0.0, "");
+	ui_def_but_icon(but, icon_value, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+}
 
 /********************* Icon viewer Template ************************/
 typedef struct IconViewMenuArgs {
@@ -2266,13 +2284,20 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname,
 	value = RNA_property_enum_get(ptr, prop);
 	RNA_enum_icon_from_value(items, value, &icon);
 
-	cb_args = MEM_callocN(sizeof(IconViewMenuArgs), __func__);
-	cb_args->ptr = *ptr;
-	cb_args->prop = prop;
-	cb_args->show_labels = show_labels;
-	cb_args->icon_scale = icon_scale;
 
-	but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb_args, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
+	if (RNA_property_editable(ptr, prop)) {
+		cb_args = MEM_callocN(sizeof(IconViewMenuArgs), __func__);
+		cb_args->ptr = *ptr;
+		cb_args->prop = prop;
+		cb_args->show_labels = show_labels;
+		cb_args->icon_scale = icon_scale;
+
+		but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb_args, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
+	}
+	else {
+		but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, ICON_X, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, NULL, 0.0, 0.0, 0.0, 0.0, "");
+	}
+
 
 	ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 
@@ -3944,6 +3969,8 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 		PointerRNA ptr;
 
 		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+		uiLayoutSetPropSep(layout, true);
 
 		/* main draw call */
 		return_info = uiDefAutoButsRNA(layout, &ptr, check_prop, label_align, (flag & UI_TEMPLATE_OP_PROPS_COMPACT));

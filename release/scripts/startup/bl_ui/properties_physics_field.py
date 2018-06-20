@@ -38,7 +38,7 @@ class PhysicButtonsPanel:
 
 class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
     bl_label = "Force Fields"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -47,44 +47,34 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
         field = ob.field
 
-        split = layout.split(percentage=0.2)
-        split.label(text="Type:")
-
-        split.prop(field, "type", text="")
+        layout.prop(field, "type")
 
         if field.type not in {'NONE', 'GUIDE', 'TEXTURE'}:
-            split = layout.split(percentage=0.2)
-            split.label(text="Shape:")
-            split.prop(field, "shape", text="")
+            layout.prop(field, "shape", text="Shape")
         elif field.type == 'TEXTURE':
-            split = layout.split(percentage=0.2)
-            split.label(text="Texture:")
-            split.row().template_ID(field, "texture", new="texture.new")
-
-        split = layout.split()
+            layout.row().template_ID(field, "texture", new="texture.new")
 
         if field.type == 'NONE':
             return  # nothing to draw
         elif field.type == 'GUIDE':
-            col = split.column()
+            col = layout.column()
             col.prop(field, "guide_minimum")
             col.prop(field, "guide_free")
             col.prop(field, "falloff_power")
             col.prop(field, "use_guide_path_add")
             col.prop(field, "use_guide_path_weight")
 
-            col = split.column()
-            col.label(text="Clumping:")
+            col.label(text="Clumping")
             col.prop(field, "guide_clump_amount")
             col.prop(field, "guide_clump_shape")
 
-            row = layout.row()
-            row.prop(field, "use_max_distance")
-            sub = row.row()
+            col.prop(field, "use_max_distance")
+            sub = col.column()
             sub.active = field.use_max_distance
             sub.prop(field, "distance_max")
 
@@ -94,88 +84,91 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
             if field.guide_kink_type != 'NONE':
                 layout.prop(field, "guide_kink_axis")
 
-                split = layout.split()
-
-                col = split.column()
+                col = layout.column()
                 col.prop(field, "guide_kink_frequency")
                 col.prop(field, "guide_kink_shape")
-
-                col = split.column()
                 col.prop(field, "guide_kink_amplitude")
 
         elif field.type == 'TEXTURE':
-            col = split.column()
+            col = layout.column()
             col.prop(field, "strength")
-            col.prop(field, "texture_mode", text="")
+            col.prop(field, "texture_mode")
             col.prop(field, "texture_nabla")
 
-            col = split.column()
             col.prop(field, "use_object_coords")
             col.prop(field, "use_2d_force")
         elif field.type == 'SMOKE_FLOW':
-            col = split.column()
+            col = layout.column()
             col.prop(field, "strength")
             col.prop(field, "flow")
-            col = split.column()
-            col.label(text="Domain Object:")
-            col.prop(field, "source_object", "")
+            col.prop(field, "source_object")
             col.prop(field, "use_smoke_density")
         else:
             basic_force_field_settings_ui(self, context, field)
 
-        if field.type not in {'NONE', 'GUIDE'}:
 
-            layout.label(text="Falloff:")
-            layout.row().prop(field, "falloff_type", expand=True)
+class PHYSICS_PT_field_falloff(PhysicButtonsPanel, Panel):
+    bl_label = "Falloff"
+    bl_parent_id = "PHYSICS_PT_field"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
-            basic_force_field_falloff_ui(self, context, field)
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (context.engine in cls.COMPAT_ENGINES) and (ob.field) and (ob.field.type not in {'NONE', 'GUIDE'})
 
-            if field.falloff_type == 'CONE':
-                layout.separator()
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
 
-                split = layout.split(percentage=0.35)
+        ob = context.object
+        field = ob.field
 
-                col = split.column()
-                col.label(text="Angular:")
-                col.prop(field, "use_radial_min", text="Use Minimum")
-                col.prop(field, "use_radial_max", text="Use Maximum")
+        layout.prop(field, "falloff_type", text="Shape")
 
-                col = split.column()
-                col.prop(field, "radial_falloff", text="Power")
+        basic_force_field_falloff_ui(self, context, field)
 
-                sub = col.column()
-                sub.active = field.use_radial_min
-                sub.prop(field, "radial_min", text="Angle")
+        if field.falloff_type == 'CONE':
+            layout.separator()
 
-                sub = col.column()
-                sub.active = field.use_radial_max
-                sub.prop(field, "radial_max", text="Angle")
+            col = layout.column()
+            col.prop(field, "radial_falloff", text="Power")
 
-            elif field.falloff_type == 'TUBE':
-                layout.separator()
+            col.label(text="Angular")
 
-                split = layout.split(percentage=0.35)
+            col.prop(field, "use_radial_min", text="Use Min Angle")
+            sub = col.column()
+            sub.active = field.use_radial_min
+            sub.prop(field, "radial_min", text="Min Angle")
 
-                col = split.column()
-                col.label(text="Radial:")
-                col.prop(field, "use_radial_min", text="Use Minimum")
-                col.prop(field, "use_radial_max", text="Use Maximum")
+            col.prop(field, "use_radial_max", text="Use Max Angle")
+            sub = col.column()
+            sub.active = field.use_radial_max
+            sub.prop(field, "radial_max", text="Max Angle")
 
-                col = split.column()
-                col.prop(field, "radial_falloff", text="Power")
+        elif field.falloff_type == 'TUBE':
+            layout.separator()
 
-                sub = col.column()
-                sub.active = field.use_radial_min
-                sub.prop(field, "radial_min", text="Distance")
+            col = layout.column()
 
-                sub = col.column()
-                sub.active = field.use_radial_max
-                sub.prop(field, "radial_max", text="Distance")
+            col.prop(field, "radial_falloff", text="Power")
+
+            col.label(text="Radial")
+
+            col.prop(field, "use_radial_min", text="Use Minimum")
+            sub = col.column()
+            sub.active = field.use_radial_min
+            sub.prop(field, "radial_min", text="Distance")
+
+            col.prop(field, "use_radial_max", text="Use Maximum")
+            sub = col.column()
+            sub.active = field.use_radial_max
+            sub.prop(field, "radial_max", text="Distance")
 
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
     bl_label = "Collision"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -188,6 +181,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
         md = context.collision
 
         split = layout.split()
+        layout.use_property_split = True
 
         coll = md.settings
 
@@ -196,39 +190,90 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
 
             layout.active = settings.use
 
-            split = layout.split()
+            col = layout.column()
+            col.prop(settings, "absorption", text="Force Field Absorption")
 
-            col = split.column()
-            col.label(text="Particle:")
+
+class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
+    bl_label = "Particle"
+    bl_parent_id = "PHYSICS_PT_collision"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob and ob.type == 'MESH') and (context.engine in cls.COMPAT_ENGINES) and (context.collision)
+
+    def draw(self, context):
+        layout = self.layout
+
+        md = context.collision
+
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+
+        coll = md.settings
+
+        if coll:
+            settings = context.object.collision
+
+            layout.active = settings.use
+
+            col = flow.column()
             col.prop(settings, "permeability", slider=True)
             col.prop(settings, "stickiness")
+            col = flow.column()
             col.prop(settings, "use_particle_kill")
-            col.label(text="Particle Damping:")
+
+            col = flow.column()
             sub = col.column(align=True)
-            sub.prop(settings, "damping_factor", text="Factor", slider=True)
-            sub.prop(settings, "damping_random", text="Random", slider=True)
+            sub.prop(settings, "damping_factor", text="Damping", slider=True)
+            sub.prop(settings, "damping_random", text="Randomize", slider=True)
 
-            col.label(text="Particle Friction:")
+            col = flow.column()
             sub = col.column(align=True)
-            sub.prop(settings, "friction_factor", text="Factor", slider=True)
-            sub.prop(settings, "friction_random", text="Random", slider=True)
+            sub.prop(settings, "friction_factor", text="Friction", slider=True)
+            sub.prop(settings, "friction_random", text="Randomize", slider=True)
 
-            col = split.column()
-            col.label(text="Soft Body and Cloth:")
-            sub = col.column(align=True)
-            sub.prop(settings, "thickness_outer", text="Outer", slider=True)
-            sub.prop(settings, "thickness_inner", text="Inner", slider=True)
 
-            col.label(text="Soft Body Damping:")
-            col.prop(settings, "damping", text="Factor", slider=True)
+class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
+    bl_label = "Softbody"
+    bl_parent_id = "PHYSICS_PT_collision"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
-            col.label(text="Force Fields:")
-            col.prop(settings, "absorption", text="Absorption")
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob and ob.type == 'MESH') and (context.engine in cls.COMPAT_ENGINES) and (context.collision)
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+
+        md = context.collision
+        coll = md.settings
+
+        if coll:
+            settings = context.object.collision
+
+            layout.active = settings.use
+
+            col = flow.column()
+            col.prop(settings, "damping", text="Damping", slider=True)
+
+            col = flow.column()
+            col.prop(settings, "thickness_outer", text="Thickness Outer", slider=True)
+            col.prop(settings, "thickness_inner", text="Inner", slider=True)
 
 
 classes = (
     PHYSICS_PT_field,
+    PHYSICS_PT_field_falloff,
     PHYSICS_PT_collision,
+    PHYSICS_PT_collision_particle,
+    PHYSICS_PT_collision_softbody,
 )
 
 if __name__ == "__main__":  # only for live edit.

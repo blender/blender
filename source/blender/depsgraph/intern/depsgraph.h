@@ -38,6 +38,8 @@
 
 #include <stdlib.h>
 
+#include "DNA_ID.h" /* for ID_Type */
+
 #include "BKE_library.h" /* for MAX_LIBARRAY */
 
 #include "BLI_threads.h"  /* for SpinLock */
@@ -128,6 +130,7 @@ struct Depsgraph {
 	IDDepsNode *find_id_node(const ID *id) const;
 	IDDepsNode *add_id_node(ID *id, ID *id_cow_hint = NULL);
 	void clear_id_nodes();
+	void clear_id_nodes_conditional(const std::function <bool (ID_Type id_type)>& filter);
 
 	/* Add new relationship between two nodes. */
 	DepsRelation *add_new_relation(OperationDepsNode *from,

@@ -58,18 +58,18 @@ int BLI_linklist_count(const LinkNode *list)
 int BLI_linklist_index(const LinkNode *list, void *ptr)
 {
 	int index;
-	
+
 	for (index = 0; list; list = list->next, index++)
 		if (list->link == ptr)
 			return index;
-	
+
 	return -1;
 }
 
 LinkNode *BLI_linklist_find(LinkNode *list, int index)
 {
 	int i;
-	
+
 	for (i = 0; list; list = list->next, i++)
 		if (i == index)
 			return list;
@@ -80,16 +80,16 @@ LinkNode *BLI_linklist_find(LinkNode *list, int index)
 void BLI_linklist_reverse(LinkNode **listp)
 {
 	LinkNode *rhead = NULL, *cur = *listp;
-	
+
 	while (cur) {
 		LinkNode *next = cur->next;
-		
+
 		cur->next = rhead;
 		rhead = cur;
-		
+
 		cur = next;
 	}
-	
+
 	*listp = rhead;
 }
 
@@ -199,7 +199,7 @@ void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nli
 {
 	nlink->link = ptr;
 	nlink->next = NULL;
-	
+
 	if (list_pair->list) {
 		BLI_assert((list_pair->last_node != NULL) && (list_pair->last_node->next == NULL));
 		list_pair->last_node->next = nlink;
@@ -275,11 +275,11 @@ void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc)
 {
 	while (list) {
 		LinkNode *next = list->next;
-		
+
 		if (freefunc)
 			freefunc(list->link);
 		MEM_freeN(list);
-		
+
 		list = next;
 	}
 }

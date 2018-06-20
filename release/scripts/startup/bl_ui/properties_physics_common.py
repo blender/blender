@@ -240,12 +240,10 @@ def effector_weights_ui(self, context, weights, weight_type):
 def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
 
-    split = layout.split()
-
     if not field or field.type == 'NONE':
         return
 
-    col = split.column()
+    col = layout.column()
 
     if field.type == 'DRAG':
         col.prop(field, "linear_drag", text="Linear")
@@ -265,10 +263,10 @@ def basic_force_field_settings_ui(self, context, field):
     else:
         col.prop(field, "flow")
 
-    col = split.column()
+    col = layout.column()
     sub = col.column(align=True)
     sub.prop(field, "noise")
-    sub.prop(field, "seed")
+    sub.prop(field, "seed", text="Noise Seed")
     if field.type == 'TURBULENCE':
         col.prop(field, "use_global_coords", text="Global")
     elif field.type == 'HARMONIC':
@@ -276,46 +274,34 @@ def basic_force_field_settings_ui(self, context, field):
     if field.type == 'FORCE':
         col.prop(field, "use_gravity_falloff", text="Gravitation")
 
-    split = layout.split()
-
-    col = split.column()
-    col.label(text="Effect point:")
+    col.label(text="Effect point")
     col.prop(field, "apply_to_location")
     col.prop(field, "apply_to_rotation")
 
-    col = split.column()
-    col.label(text="Collision:")
+    col.label(text="Collision")
     col.prop(field, "use_absorption")
 
 
 def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
 
-    split = layout.split(percentage=0.35)
-
     if not field or field.type == 'NONE':
         return
 
-    col = split.column()
-    col.prop(field, "z_direction", text="")
+    col = layout.column()
+    col.prop(field, "z_direction")
 
-    col = split.column()
     col.prop(field, "falloff_power", text="Power")
 
-    split = layout.split()
-    col = split.column()
-    row = col.row(align=True)
-    row.prop(field, "use_min_distance", text="")
-    sub = row.row(align=True)
+    col.prop(field, "use_min_distance", text="Min Min Distance")
+    sub = col.column(align=True)
     sub.active = field.use_min_distance
-    sub.prop(field, "distance_min", text="Minimum")
+    sub.prop(field, "distance_min", text="Min Distance")
 
-    col = split.column()
-    row = col.row(align=True)
-    row.prop(field, "use_max_distance", text="")
-    sub = row.row(align=True)
+    col.prop(field, "use_max_distance", text="Use Max Distance")
+    sub = col.column(align=True)
     sub.active = field.use_max_distance
-    sub.prop(field, "distance_max", text="Maximum")
+    sub.prop(field, "distance_max", text="Max Distance")
 
 
 classes = (

@@ -49,7 +49,7 @@ void CompositorNode::convertToOperations(NodeConverter &converter, const Composi
 	/* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */
 	compositorOperation->setUseAlphaInput(ignore_alpha || alphaSocket->isLinked());
 	compositorOperation->setActive(is_active);
-	
+
 	converter.addOperation(compositorOperation);
 	converter.mapInputSocket(imageSocket, compositorOperation->getInputSocket(0));
 	/* only use alpha link if "use alpha" is enabled */
@@ -58,6 +58,6 @@ void CompositorNode::convertToOperations(NodeConverter &converter, const Composi
 	else
 		converter.mapInputSocket(alphaSocket, compositorOperation->getInputSocket(1));
 	converter.mapInputSocket(depthSocket, compositorOperation->getInputSocket(2));
-	
+
 	converter.addNodeInputPreview(imageSocket);
 }

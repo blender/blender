@@ -76,6 +76,9 @@ void OBJECT_OT_drop_named_material(struct wmOperatorType *ot);
 void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 
 /* object_edit.c */
+void OBJECT_OT_hide_view_set(struct wmOperatorType *ot);
+void OBJECT_OT_hide_view_clear(struct wmOperatorType *ot);
+void OBJECT_OT_hide_collection(struct wmOperatorType *ot);
 void OBJECT_OT_mode_set(struct wmOperatorType *ot);
 void OBJECT_OT_mode_set_or_submode(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);

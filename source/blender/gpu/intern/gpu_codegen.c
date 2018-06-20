@@ -416,15 +416,26 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 		else if (from == GPU_FLOAT)
 			BLI_dynstr_appendf(ds, "vec3(%s, %s, %s)", name, name, name);
 	}
-	else {
+	else if (to == GPU_VEC4) {
 		if (from == GPU_VEC3)
 			BLI_dynstr_appendf(ds, "vec4(%s, 1.0)", name);
 		else if (from == GPU_VEC2)
 			BLI_dynstr_appendf(ds, "vec4(%s.r, %s.r, %s.r, %s.g)", name, name, name, name);
 		else if (from == GPU_FLOAT)
 			BLI_dynstr_appendf(ds, "vec4(%s, %s, %s, 1.0)", name, name, name);
-		else /* can happen with closure */
-			BLI_dynstr_append(ds, name);
+	}
+	else if (to == GPU_CLOSURE) {
+		if (from == GPU_VEC4)
+			BLI_dynstr_appendf(ds, "closure_emission(%s.rgb)", name);
+		else if (from == GPU_VEC3)
+			BLI_dynstr_appendf(ds, "closure_emission(%s.rgb)", name);
+		else if (from == GPU_VEC2)
+			BLI_dynstr_appendf(ds, "closure_emission(%s.rrr)", name);
+		else if (from == GPU_FLOAT)
+			BLI_dynstr_appendf(ds, "closure_emission(vec3(%s, %s, %s))", name, name, name);
+	}
+	else {
+		BLI_dynstr_append(ds, name);
 	}
 }
 
@@ -1178,77 +1189,6 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 				BLI_addtail(inputs, input);
 			}
 		}
-	}
-
-	GPU_shader_unbind();
-}
-
-void GPU_pass_bind(GPUPass *pass, ListBase *inputs, double time, int mipmap)
-{
-	GPUInput *input;
-	GPUShader *shader = pass->shader;
-
-	if (!shader)
-		return;
-
-	GPU_shader_bind(shader);
-
-	/* create the textures */
-	for (input = inputs->first; input; input = input->next) {
-		if (input->ima)
-			input->tex = GPU_texture_from_blender(input->ima, input->iuser, input->textarget, input->image_isdata, time, mipmap);
-		else if (input->prv)
-			input->tex = GPU_texture_from_preview(input->prv, mipmap);
-	}
-
-	/* bind the textures, in second loop so texture binding during
-	 * create doesn't overwrite already bound textures */
-	for (input = inputs->first; input; input = input->next) {
-		if (input->tex && input->bindtex) {
-			GPU_texture_bind(input->tex, input->texid);
-			GPU_shader_uniform_texture(shader, input->shaderloc, input->tex);
-		}
-	}
-}
-
-void GPU_pass_update_uniforms(GPUPass *pass, ListBase *inputs)
-{
-	GPUInput *input;
-	GPUShader *shader = pass->shader;
-
-	if (!shader)
-		return;
-
-	/* pass dynamic inputs to opengl, others were removed */
-	for (input = inputs->first; input; input = input->next) {
-		if (!(input->ima || input->tex || input->prv)) {
-			if (input->dynamictype == GPU_DYNAMIC_MAT_HARD) {
-				// The hardness is actually a short pointer, so we convert it here
-				float val = (float)(*(short *)input->dynamicvec);
-				GPU_shader_uniform_vector(shader, input->shaderloc, 1, 1, &val);
-			}
-			else {
-				GPU_shader_uniform_vector(shader, input->shaderloc, input->type, 1,
-					input->dynamicvec);
-			}
-		}
-	}
-}
-
-void GPU_pass_unbind(GPUPass *pass, ListBase *inputs)
-{
-	GPUInput *input;
-	GPUShader *shader = pass->shader;
-
-	if (!shader)
-		return;
-
-	for (input = inputs->first; input; input = input->next) {
-		if (input->tex && input->bindtex)
-			GPU_texture_unbind(input->tex);
-
-		if (input->ima || input->prv)
-			input->tex = NULL;
 	}
 
 	GPU_shader_unbind();

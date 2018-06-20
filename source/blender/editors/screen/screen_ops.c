@@ -679,7 +679,7 @@ static void fullscreen_click_rcti_init(rcti *rect, const short x1, const short y
 	BLI_rcti_init(rect, x, x + icon_size, y, y + icon_size);
 }
 
-AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
+static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const bool test_only)
 {
 	AZone *az = NULL;
 
@@ -687,102 +687,117 @@ AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 		if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
 			if (az->type == AZONE_AREA) {
 				/* no triangle intersect but a hotspot circle based on corner */
-				int radius = (xy[0] - az->x1) * (xy[0] - az->x1) + (xy[1] - az->y1) * (xy[1] - az->y1);
-
-				if (radius <= AZONESPOT * AZONESPOT)
+				int radius_sq = SQUARE(xy[0] - az->x1) + SQUARE(xy[1] - az->y1);
+				if (radius_sq <= SQUARE(AZONESPOT)) {
 					break;
+				}
 			}
 			else if (az->type == AZONE_REGION) {
 				break;
 			}
 			else if (az->type == AZONE_FULLSCREEN) {
-				int mouse_radius, spot_radius, fadein_radius, fadeout_radius;
 				rcti click_rect;
-
 				fullscreen_click_rcti_init(&click_rect, az->x1, az->y1, az->x2, az->y2);
+				const bool click_isect = BLI_rcti_isect_pt_v(&click_rect, xy);
 
-				if (BLI_rcti_isect_pt_v(&click_rect, xy)) {
-					az->alpha = 1.0f;
+				if (test_only) {
+					if (click_isect) {
+						break;
+					}
 				}
 				else {
-					mouse_radius = (xy[0] - az->x2) * (xy[0] - az->x2) + (xy[1] - az->y2) * (xy[1] - az->y2);
-					spot_radius = AZONESPOT * AZONESPOT;
-					fadein_radius = AZONEFADEIN * AZONEFADEIN;
-					fadeout_radius = AZONEFADEOUT * AZONEFADEOUT;
-
-					if (mouse_radius < spot_radius) {
+					if (click_isect) {
 						az->alpha = 1.0f;
-					}
-					else if (mouse_radius < fadein_radius) {
-						az->alpha = 1.0f;
-					}
-					else if (mouse_radius < fadeout_radius) {
-						az->alpha = 1.0f - ((float)(mouse_radius - fadein_radius)) / ((float)(fadeout_radius - fadein_radius));
 					}
 					else {
-						az->alpha = 0.0f;
+						const int mouse_sq = SQUARE(xy[0] - az->x2) + SQUARE(xy[1] - az->y2);
+						const int spot_sq = SQUARE(AZONESPOT);
+						const int fadein_sq = SQUARE(AZONEFADEIN);
+						const int fadeout_sq = SQUARE(AZONEFADEOUT);
+
+						if (mouse_sq < spot_sq) {
+							az->alpha = 1.0f;
+						}
+						else if (mouse_sq < fadein_sq) {
+							az->alpha = 1.0f;
+						}
+						else if (mouse_sq < fadeout_sq) {
+							az->alpha = 1.0f - ((float)(mouse_sq - fadein_sq)) / ((float)(fadeout_sq - fadein_sq));
+						}
+						else {
+							az->alpha = 0.0f;
+						}
+
+						/* fade in/out but no click */
+						az = NULL;
 					}
 
-					/* fade in/out but no click */
-					az = NULL;
+					/* XXX force redraw to show/hide the action zone */
+					ED_area_tag_redraw(sa);
+					break;
 				}
-
-				/* XXX force redraw to show/hide the action zone */
-				ED_area_tag_redraw_no_rebuild(sa);
-				break;
 			}
 			else if (az->type == AZONE_REGION_SCROLL) {
 				ARegion *ar = az->ar;
 				View2D *v2d = &ar->v2d;
 				const short isect_value = UI_view2d_mouse_in_scrollers(ar, v2d, xy[0], xy[1]);
-				bool redraw = false;
-
-				if (isect_value == 'h') {
-					if (az->direction == AZ_SCROLL_HOR) {
-						az->alpha = 1.0f;
-						v2d->alpha_hor = 255;
-						v2d->size_hor = V2D_SCROLL_HEIGHT;
-						redraw = true;
-					}
-				}
-				else if (isect_value == 'v') {
-					if (az->direction == AZ_SCROLL_VERT) {
-						az->alpha = 1.0f;
-						v2d->alpha_vert = 255;
-						v2d->size_vert = V2D_SCROLL_WIDTH;
-						redraw = true;
+				if (test_only) {
+					if (isect_value != 0) {
+						break;
 					}
 				}
 				else {
-					const int local_xy[2] = {xy[0] - ar->winrct.xmin, xy[1] - ar->winrct.ymin};
-					float dist_fac = 0.0f, alpha = 0.0f;
+					bool redraw = false;
 
-					if (az->direction == AZ_SCROLL_HOR) {
-						dist_fac = BLI_rcti_length_y(&v2d->hor, local_xy[1]) / AZONEFADEIN;
-						CLAMP(dist_fac, 0.0f, 1.0f);
-						alpha = 1.0f - dist_fac;
-
-						v2d->alpha_hor = alpha * 255;
-						v2d->size_hor = round_fl_to_int(V2D_SCROLL_HEIGHT -
-						                                ((V2D_SCROLL_HEIGHT - V2D_SCROLL_HEIGHT_MIN) * dist_fac));
+					if (isect_value == 'h') {
+						if (az->direction == AZ_SCROLL_HOR) {
+							az->alpha = 1.0f;
+							v2d->alpha_hor = 255;
+							v2d->size_hor = V2D_SCROLL_HEIGHT;
+							redraw = true;
+						}
 					}
-					else if (az->direction == AZ_SCROLL_VERT) {
-						dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / AZONEFADEIN;
-						CLAMP(dist_fac, 0.0f, 1.0f);
-						alpha = 1.0f - dist_fac;
-
-						v2d->alpha_vert = alpha * 255;
-						v2d->size_vert = round_fl_to_int(V2D_SCROLL_WIDTH -
-						                                 ((V2D_SCROLL_WIDTH - V2D_SCROLL_WIDTH_MIN) * dist_fac));
+					else if (isect_value == 'v') {
+						if (az->direction == AZ_SCROLL_VERT) {
+							az->alpha = 1.0f;
+							v2d->alpha_vert = 255;
+							v2d->size_vert = V2D_SCROLL_WIDTH;
+							redraw = true;
+						}
 					}
-					az->alpha = alpha;
-					redraw = true;
-				}
+					else {
+						const int local_xy[2] = {xy[0] - ar->winrct.xmin, xy[1] - ar->winrct.ymin};
+						float dist_fac = 0.0f, alpha = 0.0f;
 
-				if (redraw) {
-					ED_area_tag_redraw_no_rebuild(sa);
+						if (az->direction == AZ_SCROLL_HOR) {
+							dist_fac = BLI_rcti_length_y(&v2d->hor, local_xy[1]) / AZONEFADEIN;
+							CLAMP(dist_fac, 0.0f, 1.0f);
+							alpha = 1.0f - dist_fac;
+
+							v2d->alpha_hor = alpha * 255;
+							v2d->size_hor = round_fl_to_int(
+							        V2D_SCROLL_HEIGHT -
+							        ((V2D_SCROLL_HEIGHT - V2D_SCROLL_HEIGHT_MIN) * dist_fac));
+						}
+						else if (az->direction == AZ_SCROLL_VERT) {
+							dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / AZONEFADEIN;
+							CLAMP(dist_fac, 0.0f, 1.0f);
+							alpha = 1.0f - dist_fac;
+
+							v2d->alpha_vert = alpha * 255;
+							v2d->size_vert = round_fl_to_int(
+							        V2D_SCROLL_WIDTH -
+							        ((V2D_SCROLL_WIDTH - V2D_SCROLL_WIDTH_MIN) * dist_fac));
+						}
+						az->alpha = alpha;
+						redraw = true;
+					}
+
+					if (redraw) {
+						ED_area_tag_redraw_no_rebuild(sa);
+					}
+					/* Don't return! */
 				}
-				/* Don't return! */
 			}
 		}
 	}
@@ -790,6 +805,15 @@ AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 	return az;
 }
 
+AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
+{
+	return area_actionzone_refresh_xy(sa, xy, true);
+}
+
+AZone *ED_area_actionzone_refresh_xy(ScrArea *sa, const int xy[2])
+{
+	return area_actionzone_refresh_xy(sa, xy, false);
+}
 
 static void actionzone_exit(wmOperator *op)
 {
@@ -827,7 +851,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	AZone *az = is_in_area_actionzone(sa, &event->x);
+	AZone *az = ED_area_actionzone_find_xy(sa, &event->x);
 	sActionzoneData *sad;
 
 	/* quick escape */
@@ -888,7 +912,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				WM_window_screen_rect_calc(win, &screen_rect);
 				/* once we drag outside the actionzone, register a gesture
 				 * check we're not on an edge so join finds the other area */
-				is_gesture = ((is_in_area_actionzone(sad->sa1, &event->x) != sad->az) &&
+				is_gesture = ((ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
 				              (screen_area_map_find_active_scredge(
 				                   AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y) == NULL));
 			}
@@ -2262,7 +2286,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case MOUSEMOVE:
 		{
 			const float aspect = BLI_rctf_size_x(&rmd->ar->v2d.cur) / (BLI_rcti_size_x(&rmd->ar->v2d.mask) + 1);
-			const int snap_size_threshold = (U.widget_unit * 3) / aspect;
+			const int snap_size_threshold = (U.widget_unit * 2) / aspect;
 			if (rmd->edge == AE_LEFT_TO_TOPRIGHT || rmd->edge == AE_RIGHT_TO_TOPLEFT) {
 				delta = event->x - rmd->origx;
 				if (rmd->edge == AE_LEFT_TO_TOPRIGHT) delta = -delta;
@@ -2454,7 +2478,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 
 	ot->poll = ED_operator_screenactive_norender;
 	ot->flag = OPTYPE_UNDO_GROUPED;
-	ot->undo_group = "FRAME_CHANGE";
+	ot->undo_group = "Frame Change";
 
 	/* rna */
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
@@ -2513,7 +2537,7 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 
 	ot->poll = ED_operator_screenactive_norender;
 	ot->flag = OPTYPE_UNDO_GROUPED;
-	ot->undo_group = "FRAME_CHANGE";
+	ot->undo_group = "Frame Change";
 
 	/* rna */
 	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of the frame range");
@@ -2626,7 +2650,7 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 
 	ot->poll = ED_operator_screenactive_norender;
 	ot->flag = OPTYPE_UNDO_GROUPED;
-	ot->undo_group = "FRAME_CHANGE";
+	ot->undo_group = "Frame Change";
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "next", true, "Next Keyframe", "");
@@ -2693,7 +2717,7 @@ static void SCREEN_OT_marker_jump(wmOperatorType *ot)
 
 	ot->poll = ED_operator_screenactive_norender;
 	ot->flag = OPTYPE_UNDO_GROUPED;
-	ot->undo_group = "FRAME_CHANGE";
+	ot->undo_group = "Frame Change";
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "next", true, "Next Marker", "");

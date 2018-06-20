@@ -1414,6 +1414,7 @@ static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
 	MEM_freeN(group_index);
 
 	if (changed) {
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	else {
@@ -1621,6 +1622,7 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 		MEM_freeN(edarray);
 		//	if (EM_texFaceCheck())
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -1824,6 +1826,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 		}
 	}
 
+	DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
 	return true;
@@ -1930,6 +1933,7 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
 				EDBM_selectmode_flush(em);
 				break;
 		}
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -1975,6 +1979,7 @@ static int edbm_faces_select_interior_exec(bContext *C, wmOperator *UNUSED(op))
 			continue;
 		}
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -2032,6 +2037,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 				Object *ob_iter = objects[ob_index];
 				EDBM_flag_disable_all(BKE_editmesh_from_object(ob_iter), BM_ELEM_SELECT);
 				if (basact->object != ob_iter) {
+					DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
 					WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
 				}
 			}
@@ -2150,8 +2156,10 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 		 * switch UV layers, vgroups for eg. */
 		if (vc.view_layer->basact != basact) {
 			vc.view_layer->basact = basact;
+			DEG_id_tag_update(&vc.scene->id, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, vc.scene);
 		}
+		DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
 		return true;
@@ -2482,7 +2490,7 @@ bool EDBM_selectmode_toggle(
 			Object *ob_iter = objects[ob_index];
 			BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
 			EDBM_selectmode_set(em_iter);
-			DEG_id_tag_update(ob_iter->data, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(ob_iter->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
 		}
 		WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
@@ -2932,6 +2940,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			select_linked_delimit_end(em);
 		}
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	}
@@ -3143,6 +3152,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	 * index selections isn't very common. */
 	RNA_int_set(op->ptr, "index", index);
 
+	DEG_id_tag_update(basact->object->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, basact->object->data);
 
 	return OPERATOR_FINISHED;
@@ -3172,6 +3182,7 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 
 	edbm_select_linked_pick_ex(em, ele, sel, delimit);
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3260,6 +3271,7 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 
 		EDBM_selectmode_flush(em);
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -3357,6 +3369,7 @@ static int edbm_select_loose_exec(bContext *C, wmOperator *op)
 
 		EDBM_selectmode_flush(em);
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -3420,6 +3433,8 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 
 		if (tot_mirr_iter) {
 			EDBM_selectmode_flush(em);
+
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 
@@ -3480,6 +3495,7 @@ static int edbm_select_more_exec(bContext *C, wmOperator *op)
 		}
 
 		EDBM_select_more(em, use_face_step);
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -3530,6 +3546,7 @@ static int edbm_select_less_exec(bContext *C, wmOperator *op)
 		}
 
 		EDBM_select_less(em, use_face_step);
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -3855,6 +3872,7 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 		else {
 			EDBM_selectmode_flush(em);
 		}
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -3953,6 +3971,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
 		BLI_LINKSTACK_FREE(stack);
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -4049,6 +4068,7 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 			}
 		}
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		EDBM_selectmode_flush(em);
@@ -4152,6 +4172,7 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 			EDBM_deselect_flush(em);
 		}
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -4246,6 +4267,7 @@ static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
 
 		if (changed) {
 			EDBM_selectmode_flush(em);
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
@@ -4418,6 +4440,7 @@ static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
 			EDBM_selectmode_to_scene(C);
 		}
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -4625,6 +4648,7 @@ static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
 
 		EDBM_selectmode_flush(em);
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);

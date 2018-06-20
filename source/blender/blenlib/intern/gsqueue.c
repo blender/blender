@@ -66,7 +66,7 @@ GSQueue *BLI_gsqueue_new(size_t elem_size)
 	GSQueue *gq = MEM_mallocN(sizeof(*gq), "gqueue_new");
 	gq->head = gq->tail = NULL;
 	gq->elem_size = elem_size;
-	
+
 	return gq;
 }
 
@@ -82,13 +82,13 @@ bool BLI_gsqueue_is_empty(GSQueue *gq)
  * Query number elements in the queue
  */
 int BLI_gsqueue_len(GSQueue *gq)
-{ 
+{
 	GSQueueElem *elem;
 	int size = 0;
 
 	for (elem = gq->head; elem; elem = elem->next)
 		size++;
-	
+
 	return size;
 }
 
@@ -121,7 +121,7 @@ void BLI_gsqueue_pop(GSQueue *gq, void *r_item)
 	else {
 		gq->head = gq->head->next;
 	}
-	
+
 	if (r_item) {
 		memcpy(r_item, elem->data, gq->elem_size);
 	}
@@ -137,7 +137,7 @@ void BLI_gsqueue_pop(GSQueue *gq, void *r_item)
 void BLI_gsqueue_push(GSQueue *gq, const void *item)
 {
 	GSQueueElem *elem;
-	
+
 	/* compare: prevent events added double in row */
 	if (!BLI_gsqueue_is_empty(gq)) {
 		if (0 == memcmp(item, gq->head->data, gq->elem_size))
@@ -146,7 +146,7 @@ void BLI_gsqueue_push(GSQueue *gq, const void *item)
 	elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
 	memcpy(elem->data, item, gq->elem_size);
 	elem->next = NULL;
-	
+
 	if (BLI_gsqueue_is_empty(gq)) {
 		gq->tail = gq->head = elem;
 	}

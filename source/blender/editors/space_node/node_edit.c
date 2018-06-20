@@ -656,6 +656,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 					if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree))
 						GPU_material_free(&wo->gpumaterial);
 
+				ED_node_tag_update_nodetree(bmain, ntree, node);
 				WM_main_add_notifier(NC_IMAGE, NULL);
 			}
 
@@ -929,11 +930,13 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
+			if (event->val == KM_RELEASE) {
+				node_resize_exit(C, op, false);
+				ED_node_post_apply_transform(C, snode->edittree);
 
-			node_resize_exit(C, op, false);
-			ED_node_post_apply_transform(C, snode->edittree);
-
-			return OPERATOR_FINISHED;
+				return OPERATOR_FINISHED;
+			}
+			break;
 	}
 
 	return OPERATOR_RUNNING_MODAL;

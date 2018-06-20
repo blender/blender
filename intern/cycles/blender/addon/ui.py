@@ -18,6 +18,7 @@
 
 import bpy
 from bpy_extras.node_utils import find_node_input, find_output_node
+from bl_operators.presets import PresetMenu
 
 from bpy.types import (
     Panel,
@@ -26,20 +27,20 @@ from bpy.types import (
 )
 
 
-class CYCLES_MT_sampling_presets(Menu):
+class CYCLES_MT_sampling_presets(PresetMenu):
     bl_label = "Sampling Presets"
     preset_subdir = "cycles/sampling"
     preset_operator = "script.execute_preset"
+    preset_add_operator = "render.cycles_sampling_preset_add"
     COMPAT_ENGINES = {'CYCLES'}
-    draw = Menu.draw_preset
 
 
-class CYCLES_MT_integrator_presets(Menu):
+class CYCLES_MT_integrator_presets(PresetMenu):
     bl_label = "Integrator Presets"
     preset_subdir = "cycles/integrator"
     preset_operator = "script.execute_preset"
+    preset_add_operator = "render.cycles_integrator_preset_add"
     COMPAT_ENGINES = {'CYCLES'}
-    draw = Menu.draw_preset
 
 
 class CyclesButtonsPanel:
@@ -144,17 +145,15 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
     bl_label = "Sampling"
     bl_options = {'DEFAULT_CLOSED'}
 
+    def draw_header_preset(self, context):
+        CYCLES_MT_sampling_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = False
 
         scene = context.scene
         cscene = scene.cycles
-
-        row = layout.row(align=True)
-        row.menu("CYCLES_MT_sampling_presets", text=bpy.types.CYCLES_MT_sampling_presets.bl_label)
-        row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMIN")
-        row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
         layout.use_property_split = True
 
@@ -315,17 +314,11 @@ class CYCLES_RENDER_PT_light_paths(CyclesButtonsPanel, Panel):
     bl_label = "Light Paths"
     bl_options = {'DEFAULT_CLOSED'}
 
+    def draw_header_preset(self, context):
+        CYCLES_MT_integrator_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        scene = context.scene
-        cscene = scene.cycles
-
-        row = layout.row(align=True)
-        row.menu("CYCLES_MT_integrator_presets", text=bpy.types.CYCLES_MT_integrator_presets.bl_label)
-        row.operator("render.cycles_integrator_preset_add", text="", icon="ZOOMIN")
-        row.operator("render.cycles_integrator_preset_add", text="", icon="ZOOMOUT").remove_active = True
+        pass
 
 
 class CYCLES_RENDER_PT_light_paths_max_bounces(CyclesButtonsPanel, Panel):
@@ -1374,11 +1367,13 @@ class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
         cworld = world.cycles
 
         col = layout.column()
-        col.prop(cworld, "sample_as_light", text="Multiple Importance")
+        col.prop(cworld, "sampling_method", text="Sampling")
 
         sub = col.column()
-        sub.active = cworld.sample_as_light
-        sub.prop(cworld, "sample_map_resolution")
+        sub.active = cworld.sampling_method != 'NONE'
+        subsub = sub.row(align=True)
+        subsub.active = cworld.sampling_method == 'MANUAL'
+        subsub.prop(cworld, "sample_map_resolution")
         if use_branched_path(context):
             subsub = sub.column(align=True)
             subsub.active = use_sample_all_lights(context)

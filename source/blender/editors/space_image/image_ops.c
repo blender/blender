@@ -1538,7 +1538,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 		BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
 	}
 
-	if (BLI_testextensie_array(str, imb_ext_movie))
+	if (BLI_path_extension_check_array(str, imb_ext_movie))
 		sima->image->source = IMA_SRC_MOVIE;
 	else
 		sima->image->source = IMA_SRC_FILE;
@@ -3464,7 +3464,8 @@ static int image_cycle_render_slot_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 
 	/* no undo push for browsing existing */
-	if (ima->renders[ima->render_slot] || ima->render_slot == ima->last_render_slot)
+	RenderSlot *slot = BKE_image_get_renderslot(ima, ima->render_slot);
+	if ((slot && slot->render) || ima->render_slot == ima->last_render_slot)
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -3485,6 +3486,97 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER;
 
 	RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
+}
+
+/********************* clear render slot operator *********************/
+
+static int image_clear_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Image *ima = CTX_data_edit_image(C);
+
+	if (!BKE_image_clear_renderslot(ima, &sima->iuser, ima->render_slot)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_clear_render_slot(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Render Slot";
+	ot->idname = "IMAGE_OT_clear_render_slot";
+	ot->description = "Clear the currently selected render slot";
+
+	/* api callbacks */
+	ot->exec = image_clear_render_slot_exec;
+	ot->poll = image_cycle_render_slot_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER;
+}
+
+/********************* add render slot operator *********************/
+
+static int image_add_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Image *ima = CTX_data_edit_image(C);
+
+	RenderSlot *slot = BKE_image_add_renderslot(ima, NULL);
+	ima->render_slot = BLI_findindex(&ima->renderslots, slot);
+
+	WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_add_render_slot(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Render Slot";
+	ot->idname = "IMAGE_OT_add_render_slot";
+	ot->description = "Add a new render slot";
+
+	/* api callbacks */
+	ot->exec = image_add_render_slot_exec;
+	ot->poll = image_cycle_render_slot_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER;
+}
+
+/********************* remove render slot operator *********************/
+
+static int image_remove_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Image *ima = CTX_data_edit_image(C);
+
+	if (!BKE_image_remove_renderslot(ima, &sima->iuser, ima->render_slot)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_remove_render_slot(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Render Slot";
+	ot->idname = "IMAGE_OT_remove_render_slot";
+	ot->description = "Remove the current render slot";
+
+	/* api callbacks */
+	ot->exec = image_remove_render_slot_exec;
+	ot->poll = image_cycle_render_slot_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /********************** change frame operator *********************/

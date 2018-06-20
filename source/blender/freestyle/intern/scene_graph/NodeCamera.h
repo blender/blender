@@ -52,7 +52,7 @@ public:
 	} CameraType;
 
 	/*! Default matrices: Identity for both projection and modelview. */
-	NodeCamera(CameraType camera_type = GENERIC); 
+	NodeCamera(CameraType camera_type = GENERIC);
 #if 0  /* UNUSED, gives warning in gcc */
 	NodeCamera(const NodeCamera& iBrother);
 #endif

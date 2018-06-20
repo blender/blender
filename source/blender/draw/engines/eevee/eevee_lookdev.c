@@ -149,12 +149,12 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 
 		GPUFrameBuffer *fb = effects->final_fb;
 		GPU_framebuffer_bind(fb);
-		GPU_framebuffer_viewport_set(fb, rect.xmax - viewport_inset_x, 0, viewport_inset_x, viewport_inset_y);
+		GPU_framebuffer_viewport_set(fb, rect.xmax - viewport_inset_x, rect.ymin, viewport_inset_x, viewport_inset_y);
 		DRW_draw_pass(psl->lookdev_pass);
 
 		fb = dfbl->depth_only_fb;
 		GPU_framebuffer_bind(fb);
-		GPU_framebuffer_viewport_set(fb, rect.xmax - viewport_inset_x, 0, viewport_inset_x, viewport_inset_y);
+		GPU_framebuffer_viewport_set(fb, rect.xmax - viewport_inset_x, rect.ymin, viewport_inset_x, viewport_inset_y);
 		DRW_draw_pass(psl->lookdev_pass);
 
 		DRW_viewport_matrix_override_unset_all();

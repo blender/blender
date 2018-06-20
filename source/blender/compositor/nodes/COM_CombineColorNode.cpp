@@ -38,7 +38,7 @@ void CombineColorNode::convertToOperations(NodeConverter &converter, const Compo
 	NodeInput *inputBSocket = this->getInputSocket(2);
 	NodeInput *inputASocket = this->getInputSocket(3);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
-	
+
 	CombineChannelsOperation *operation = new CombineChannelsOperation();
 	if (inputRSocket->isLinked()) {
 		operation->setResolutionInputSocketIndex(0);
@@ -53,16 +53,16 @@ void CombineColorNode::convertToOperations(NodeConverter &converter, const Compo
 		operation->setResolutionInputSocketIndex(3);
 	}
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(inputRSocket, operation->getInputSocket(0));
 	converter.mapInputSocket(inputGSocket, operation->getInputSocket(1));
 	converter.mapInputSocket(inputBSocket, operation->getInputSocket(2));
 	converter.mapInputSocket(inputASocket, operation->getInputSocket(3));
-	
+
 	NodeOperation *color_conv = getColorConverter(context);
 	if (color_conv) {
 		converter.addOperation(color_conv);
-		
+
 		converter.addLink(operation->getOutputSocket(), color_conv->getInputSocket(0));
 		converter.mapOutputSocket(outputSocket, color_conv->getOutputSocket());
 	}

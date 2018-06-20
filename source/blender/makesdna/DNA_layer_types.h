@@ -56,7 +56,8 @@ typedef struct LayerCollection {
 	struct Collection *collection;
 	struct SceneCollection *scene_collection DNA_DEPRECATED;
 	short flag;
-	short pad[3];
+	short runtime_flag;
+	short pad[2];
 	ListBase layer_collections; /* synced with collection->children */
 } LayerCollection;
 
@@ -64,7 +65,8 @@ typedef struct ViewLayer {
 	struct ViewLayer *next, *prev;
 	char name[64]; /* MAX_NAME */
 	short flag;
-	short pad[3];
+	short runtime_flag;
+	short pad[2];
 	ListBase object_bases;      /* ObjectBase */
 	struct SceneStats *stats;   /* default allocated now */
 	struct Base *basact;
@@ -89,14 +91,15 @@ typedef struct ViewLayer {
 
 /* Base->flag */
 enum {
-	BASE_SELECTED         = (1 << 0),
-	BASE_VISIBLED         = (1 << 1),
-	BASE_SELECTABLED      = (1 << 2),
-	BASE_FROMDUPLI        = (1 << 3),
-	BASE_DIRTY_ENGINE_SETTINGS = (1 << 4),
+	BASE_SELECTED         = (1 << 0), /* Object is selected. */
+	BASE_VISIBLED         = (1 << 1), /* Object is visible. */
+	BASE_SELECTABLED      = (1 << 2), /* Object can be selected. */
+	BASE_FROMDUPLI        = (1 << 3), /* Object comes from duplicator. */
+	/* BASE_DEPRECATED    = (1 << 4), */
 	BASE_FROM_SET         = (1 << 5), /* To be set only by the depsgraph */
-	BASE_VISIBLE_VIEWPORT = (1 << 6),
-	BASE_VISIBLE_RENDER   = (1 << 7),
+	BASE_VISIBLE_VIEWPORT = (1 << 6), /* Object is visible in viewport. */
+	BASE_VISIBLE_RENDER   = (1 << 7), /* Object is visible in final render */
+	BASE_HIDE             = (1 << 8), /* Object is hidden for editing. */
 };
 
 /* LayerCollection->flag */
@@ -108,11 +111,23 @@ enum {
 	LAYER_COLLECTION_EXCLUDE = (1 << 4),
 };
 
+/* Layer Collection->runtime_flag */
+enum {
+	LAYER_COLLECTION_HAS_OBJECTS = (1 << 0),
+	LAYER_COLLECTION_HAS_VISIBLE_OBJECTS = (1 << 1),
+	LAYER_COLLECTION_HAS_ENABLED_OBJECTS = (1 << 2),
+};
+
 /* ViewLayer->flag */
 enum {
 	VIEW_LAYER_RENDER = (1 << 0),
-	VIEW_LAYER_ENGINE_DIRTY  = (1 << 1),
+	/* VIEW_LAYER_DEPRECATED  = (1 << 1), */
 	VIEW_LAYER_FREESTYLE = (1 << 2),
+};
+
+/* ViewLayer->runtime_flag */
+enum {
+	VIEW_LAYER_HAS_HIDE = (1 << 0),
 };
 
 /****************************** Deprecated ******************************/

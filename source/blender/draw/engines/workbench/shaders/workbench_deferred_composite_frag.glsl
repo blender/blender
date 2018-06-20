@@ -32,7 +32,7 @@ void main()
 
 #ifndef V3D_SHADING_OBJECT_OUTLINE
 	if (object_id == NO_OBJECT_ID) {
-		fragColor = vec4(background_color(world_data, uv_viewport.y), 0.0);
+		fragColor = vec4(background_color(world_data, uv_viewport.y), world_data.background_alpha);
 		return;
 	}
 #else /* !V3D_SHADING_OBJECT_OUTLINE */
@@ -41,10 +41,10 @@ void main()
 	if (object_id == NO_OBJECT_ID) {
 		vec3 background = background_color(world_data, uv_viewport.y);
 		if (object_outline == 0.0) {
-			fragColor = vec4(background, 0.0);
+			fragColor = vec4(background, world_data.background_alpha);
 		}
 		else {
-			fragColor = vec4(mix(world_data.object_outline_color.rgb, background, object_outline), 1.0-object_outline);
+			fragColor = vec4(mix(world_data.object_outline_color.rgb, background, object_outline), clamp(world_data.background_alpha, 1.0, object_outline));
 		}
 		return;
 	}
@@ -106,7 +106,7 @@ void main()
 #endif
 
 #ifdef V3D_SHADING_SHADOW
-	float light_factor = -dot(normal_viewport, world_data.light_direction_vs.xyz);
+	float light_factor = -dot(normal_viewport, world_data.lights[0].light_direction_vs.xyz);
 	/* The step function might be ok for meshes but it's
 	 * clearly not the case for hairs. Do smoothstep in this case. */
 	float shadow_mix = (diffuse_color.a == 1.0 || diffuse_color.a == 0.0)

@@ -34,9 +34,10 @@ void forEachObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 	}
 }
 
-bool AnimationExporter::exportAnimations(Scene *sce)
+bool AnimationExporter::exportAnimations(Main *bmain, Scene *sce)
 {
 	bool has_animations = hasAnimations(sce);
+	m_bmain = bmain;
 	if (has_animations) {
 		this->scene = sce;
 
@@ -214,7 +215,7 @@ void AnimationExporter::export_sampled_matrix_animation(Object *ob, std::vector<
 	for (std::vector<float>::iterator ctime = ctimes.begin(); ctime != ctimes.end(); ++ctime) {
 		float fmat[4][4];
 
-		bc_update_scene(depsgraph, scene, *ctime);
+		bc_update_scene(m_bmain, depsgraph, scene, *ctime);
 		BKE_object_matrix_local_get(ob, fmat);
 		if (this->export_settings->limit_precision)
 			bc_sanitize_mat(fmat, 6);
@@ -246,7 +247,7 @@ void AnimationExporter::export_sampled_transrotloc_animation(Object *ob, std::ve
 		float fsize[3];
 		float feul[3];
 
-		bc_update_scene(depsgraph, scene, *ctime);
+		bc_update_scene(m_bmain, depsgraph, scene, *ctime);
 		BKE_object_matrix_local_get(ob, fmat);
 		mat4_decompose(floc, fquat, fsize, fmat);
 		quat_to_eul(feul, fquat);
@@ -1315,7 +1316,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 		float frame = *it;
 
 		float ctime = BKE_scene_frame_get_from_ctime(scene, frame);
-		bc_update_scene(depsgraph, scene, ctime);
+		bc_update_scene(m_bmain, depsgraph, scene, ctime);
 		if (is_bone_animation) {
 
 			if (pchan->flag & POSE_CHAIN) {

@@ -41,7 +41,7 @@ protected:
 	int m_movieClipwidth;
 	int m_framenumber;
 	bool m_cacheFrame;
-	
+
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
@@ -49,7 +49,7 @@ protected:
 
 public:
 	MovieClipBaseOperation();
-	
+
 	void initExecution();
 	void deinitExecution();
 	void setMovieClip(MovieClip *image) { this->m_movieClip = image; }

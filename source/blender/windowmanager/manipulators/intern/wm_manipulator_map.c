@@ -542,9 +542,8 @@ static wmManipulator *manipulator_find_intersected_3d(
 
 	int hotspot_radii[] = {
 		3 * U.pixelsize,
-#if 0 /* We may want to enable when selection doesn't run on mousemove! */
-		7 * U.pixelsize,
-#endif
+		/* This runs on mouse move, careful doing too many tests! */
+		10 * U.pixelsize,
 	};
 
 	*r_part = 0;
@@ -846,7 +845,7 @@ bool WM_manipulatormap_cursor_set(const wmManipulatorMap *mmap, wmWindow *win)
 	return false;
 }
 
-void wm_manipulatormap_highlight_set(
+bool wm_manipulatormap_highlight_set(
         wmManipulatorMap *mmap, const bContext *C, wmManipulator *mpr, int part)
 {
 	if ((mpr != mmap->mmap_context.highlight) ||
@@ -881,7 +880,11 @@ void wm_manipulatormap_highlight_set(
 			ARegion *ar = CTX_wm_region(C);
 			ED_region_tag_redraw(ar);
 		}
+
+		return true;
 	}
+
+	return false;
 }
 
 wmManipulator *wm_manipulatormap_highlight_get(wmManipulatorMap *mmap)

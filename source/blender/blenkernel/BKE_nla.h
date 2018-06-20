@@ -34,6 +34,7 @@
  */
 
 struct AnimData;
+struct Main;
 struct NlaStrip;
 struct NlaTrack;
 struct bAction;
@@ -50,9 +51,9 @@ void BKE_nlastrip_free(ListBase *strips, struct NlaStrip *strip);
 void BKE_nlatrack_free(ListBase *tracks, struct NlaTrack *nlt);
 void BKE_nla_tracks_free(ListBase *tracks);
 
-struct NlaStrip *BKE_nlastrip_copy(struct NlaStrip *strip, const bool use_same_action);
-struct NlaTrack *BKE_nlatrack_copy(struct NlaTrack *nlt, const bool use_same_actions);
-void BKE_nla_tracks_copy(ListBase *dst, ListBase *src);
+struct NlaStrip *BKE_nlastrip_copy(struct Main *bmain, struct NlaStrip *strip, const bool use_same_action);
+struct NlaTrack *BKE_nlatrack_copy(struct Main *bmain, struct NlaTrack *nlt, const bool use_same_actions);
+void BKE_nla_tracks_copy(struct Main *bmain, ListBase *dst, ListBase *src);
 
 struct NlaTrack *BKE_nlatrack_add(struct AnimData *adt, struct NlaTrack *prev);
 struct NlaStrip *BKE_nlastrip_new(struct bAction *act);

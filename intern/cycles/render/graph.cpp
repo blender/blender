@@ -232,8 +232,8 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 	}
 
 	if(from->type() != to->type()) {
-		/* for closures we can't do automatic conversion */
-		if(from->type() == SocketType::CLOSURE || to->type() == SocketType::CLOSURE) {
+		/* can't do automatic conversion from closure */
+		if(from->type() == SocketType::CLOSURE) {
 			fprintf(stderr, "Cycles shader graph connect: can only connect closure to closure "
 			        "(%s.%s to %s.%s).\n",
 			        from->parent->name.c_str(), from->name().c_str(),
@@ -242,9 +242,28 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 		}
 
 		/* add automatic conversion node in case of type mismatch */
-		ShaderNode *convert = add(new ConvertNode(from->type(), to->type(), true));
+		ShaderNode *convert;
+		ShaderInput *convert_in;
 
-		connect(from, convert->inputs[0]);
+		if (to->type() == SocketType::CLOSURE) {
+			EmissionNode *emission = new EmissionNode();
+			emission->color = make_float3(1.0f, 1.0f, 1.0f);
+			emission->strength = 1.0f;
+			convert = add(emission);
+			/* Connect float inputs to Strength to save an additional Falue->Color conversion. */
+			if(from->type() == SocketType::FLOAT) {
+				convert_in = convert->input("Strength");
+			}
+			else {
+				convert_in = convert->input("Color");
+			}
+		}
+		else {
+			convert = add(new ConvertNode(from->type(), to->type(), true));
+			convert_in = convert->inputs[0];
+		}
+
+		connect(from, convert_in);
 		connect(convert->outputs[0], to);
 	}
 	else {
@@ -477,7 +496,7 @@ void ShaderGraph::remove_proxy_nodes()
  * Try to constant fold some nodes, and pipe result directly to
  * the input socket of connected nodes.
  */
-void ShaderGraph::constant_fold()
+void ShaderGraph::constant_fold(Scene *scene)
 {
 	ShaderNodeSet done, scheduled;
 	queue<ShaderNode*> traverse_queue;
@@ -517,7 +536,7 @@ void ShaderGraph::constant_fold()
 				}
 			}
 			/* Optimize current node. */
-			ConstantFolder folder(this, node, output);
+			ConstantFolder folder(this, node, output, scene);
 			node->constant_fold(folder);
 		}
 	}
@@ -715,7 +734,7 @@ void ShaderGraph::clean(Scene *scene)
 	/* Graph simplification */
 
 	/* NOTE: Remove proxy nodes was already done. */
-	constant_fold();
+	constant_fold(scene);
 	simplify_settings(scene);
 	deduplicate_nodes();
 	verify_volume_output();

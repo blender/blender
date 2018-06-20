@@ -149,7 +149,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 #ifdef __AO__
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion || (sd->flag & SD_AO)) {
+		if(kernel_data.integrator.use_ambient_occlusion) {
 			enqueue_flag = 1;
 		}
 	}

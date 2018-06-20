@@ -297,6 +297,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
 #define RULER_ID "RulerData3D"
 static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
@@ -308,7 +309,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 	bool changed = false;
 
 	if (scene->gpd == NULL) {
-		scene->gpd = BKE_gpencil_data_addnew("GPencil");
+		scene->gpd = BKE_gpencil_data_addnew(bmain, "GPencil");
 	}
 
 	gpl = BLI_findstring(&scene->gpd->layers, ruler_name, offsetof(bGPDlayer, info));

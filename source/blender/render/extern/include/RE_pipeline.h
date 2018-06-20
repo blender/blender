@@ -221,6 +221,7 @@ void RE_ReleaseResultImageViews(struct Render *re, struct RenderResult *rr);
 void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr, const int view_id);
 void RE_ReleaseResultImage(struct Render *re);
 void RE_SwapResult(struct Render *re, struct RenderResult **rr);
+void RE_ClearResult(struct Render *re);
 struct RenderStats *RE_GetStats(struct Render *re);
 
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
@@ -311,8 +312,10 @@ void RE_draw_lock_cb		(struct Render *re, void *handle, void (*f)(void *handle, 
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
 void RE_current_scene_update_cb(struct Render *re, void *handle, void (*f)(void *handle, struct Scene *scene));
 
+/* TODO replace by a simple set and get draw manager. */
 void  RE_gl_context_create(Render *re);
 void  RE_gl_context_destroy(Render *re);
+void  RE_gl_context_set(Render *re, void *gl_context);
 void *RE_gl_context_get(Render *re);
 void *RE_gwn_context_get(Render *re);
 

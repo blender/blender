@@ -77,6 +77,9 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "interface_intern.h"
 
 #ifndef WITH_HEADLESS
@@ -451,49 +454,6 @@ static void icon_verify_datatoc(IconImage *iimg)
 	}
 }
 
-static void init_matcap_icons(void)
-{
-	/* dynamic allocation now, tucking datatoc pointers in DrawInfo */
-#define INIT_MATCAP_ICON(icon_id, name)                                       \
-	{                                                                         \
-		unsigned char *rect = (unsigned char *)datatoc_ ##name## _jpg;        \
-		int size = datatoc_ ##name## _jpg_size;                               \
-		DrawInfo *di;                                                         \
-		                                                                      \
-		di = def_internal_icon(NULL, icon_id, 0, 0, 96, ICON_TYPE_BUFFER);   \
-		di->data.buffer.image->datatoc_rect = rect;                           \
-		di->data.buffer.image->datatoc_size = size;                           \
-	} (void)0
-
-	INIT_MATCAP_ICON(ICON_MATCAP_01, mc01);
-	INIT_MATCAP_ICON(ICON_MATCAP_02, mc02);
-	INIT_MATCAP_ICON(ICON_MATCAP_03, mc03);
-	INIT_MATCAP_ICON(ICON_MATCAP_04, mc04);
-	INIT_MATCAP_ICON(ICON_MATCAP_05, mc05);
-	INIT_MATCAP_ICON(ICON_MATCAP_06, mc06);
-	INIT_MATCAP_ICON(ICON_MATCAP_07, mc07);
-	INIT_MATCAP_ICON(ICON_MATCAP_08, mc08);
-	INIT_MATCAP_ICON(ICON_MATCAP_09, mc09);
-	INIT_MATCAP_ICON(ICON_MATCAP_10, mc10);
-	INIT_MATCAP_ICON(ICON_MATCAP_11, mc11);
-	INIT_MATCAP_ICON(ICON_MATCAP_12, mc12);
-	INIT_MATCAP_ICON(ICON_MATCAP_13, mc13);
-	INIT_MATCAP_ICON(ICON_MATCAP_14, mc14);
-	INIT_MATCAP_ICON(ICON_MATCAP_15, mc15);
-	INIT_MATCAP_ICON(ICON_MATCAP_16, mc16);
-	INIT_MATCAP_ICON(ICON_MATCAP_17, mc17);
-	INIT_MATCAP_ICON(ICON_MATCAP_18, mc18);
-	INIT_MATCAP_ICON(ICON_MATCAP_19, mc19);
-	INIT_MATCAP_ICON(ICON_MATCAP_20, mc20);
-	INIT_MATCAP_ICON(ICON_MATCAP_21, mc21);
-	INIT_MATCAP_ICON(ICON_MATCAP_22, mc22);
-	INIT_MATCAP_ICON(ICON_MATCAP_23, mc23);
-	INIT_MATCAP_ICON(ICON_MATCAP_24, mc24);
-
-#undef INIT_MATCAP_ICON
-
-}
-
 static void init_internal_icons(void)
 {
 //	bTheme *btheme = UI_GetTheme();
@@ -645,7 +605,7 @@ static void init_iconfile_list(struct ListBase *list)
 		if ((dir[i].type & S_IFREG)) {
 			const char *filename = dir[i].relname;
 
-			if (BLI_testextensie(filename, ".png")) {
+			if (BLI_path_extension_check(filename, ".png")) {
 				/* loading all icons on file start is overkill & slows startup
 				 * its possible they change size after blender load anyway. */
 #if 0
@@ -777,14 +737,7 @@ static DrawInfo *icon_create_drawinfo(Icon *icon)
 		di->type = ICON_TYPE_GEOM;
 	}
 	else if (icon_data_type == ICON_DATA_STUDIOLIGHT) {
-		const int STUDIOLIGHT_SIZE = 96;
-		StudioLight *sl = icon->obj;
 		di->type = ICON_TYPE_BUFFER;
-		IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
-		img->w = STUDIOLIGHT_SIZE;
-		img->h = STUDIOLIGHT_SIZE;
-		img->rect = BKE_studiolight_preview(sl, STUDIOLIGHT_SIZE, icon->id_type);
-		di->data.buffer.image = img;
 	}
 	else {
 		BLI_assert(0);
@@ -850,7 +803,6 @@ void UI_icons_init(int first_dyn_id)
 	init_iconfile_list(&iconfilelist);
 	init_internal_icons();
 	init_brush_icons();
-	init_matcap_icons();
 #endif
 }
 
@@ -890,6 +842,41 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 static void ui_id_preview_image_render_size(
         const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job);
 
+static void ui_studiolight_icon_job_exec(void *customdata, short *UNUSED(stop), short *UNUSED(do_update), float *UNUSED(progress))
+{
+	Icon **tmp = (Icon **)customdata;
+	Icon *icon = *tmp;
+	DrawInfo *di = icon_ensure_drawinfo(icon);
+	StudioLight *sl = icon->obj;
+	BKE_studiolight_preview(di->data.buffer.image->rect, sl, icon->id_type);
+}
+
+static void ui_studiolight_kill_icon_preview_job(wmWindowManager *wm, int icon_id)
+{
+	Icon *icon = BKE_icon_get(icon_id);
+	WM_jobs_kill_type(wm, icon, WM_JOB_TYPE_STUDIOLIGHT);
+	icon->obj = NULL;
+}
+
+static void ui_studiolight_free_function(StudioLight * sl, void* data)
+{
+	wmWindowManager *wm = data;
+
+	// get icons_id, get icons and kill wm jobs
+	if (sl->icon_id_radiance) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_radiance);
+	}
+	if (sl->icon_id_irradiance) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_irradiance);
+	}
+	if (sl->icon_id_matcap) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_matcap);
+	}
+	if (sl->icon_id_matcap_flipped) {
+		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_matcap_flipped);
+	}
+}
+
 void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
 {
 	Icon *icon = BKE_icon_get(icon_id);
@@ -912,6 +899,33 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 
 						if (id || (prv->tag & PRV_TAG_DEFFERED) != 0) {
 							ui_id_preview_image_render_size(C, NULL, id, prv, size, use_jobs);
+						}
+					}
+					break;
+				}
+				case ICON_TYPE_BUFFER:
+				{
+					if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
+						if (di->data.buffer.image == NULL) {
+							wmWindowManager *wm = CTX_wm_manager(C);
+							StudioLight *sl = icon->obj;
+							BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, wm);
+							IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
+
+							img->w = STUDIOLIGHT_ICON_SIZE;
+							img->h = STUDIOLIGHT_ICON_SIZE;
+							size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
+							img->rect = MEM_mallocN(size, __func__);
+							memset(img->rect, 0, size);
+							di->data.buffer.image = img;
+
+							wmJob *wm_job = WM_jobs_get(wm, CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_STUDIOLIGHT);
+							Icon** tmp = MEM_callocN(sizeof(Icon*), __func__);
+							*tmp = icon;
+							WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
+							WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
+							WM_jobs_callbacks(wm_job, ui_studiolight_icon_job_exec, NULL, NULL, NULL);
+							WM_jobs_start(CTX_wm_manager(C), wm_job);
 						}
 					}
 					break;
@@ -1479,7 +1493,7 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 		id = RNA_pointer_get(ptr, "texture").data;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_DynamicPaintSurface)) {
-		DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
+		DynamicPaintSurface *surface = ptr->data;
 
 		if (surface->format == MOD_DPAINT_SURFACE_F_PTEX)
 			return ICON_TEXTURE_SHADED;
@@ -1487,6 +1501,18 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 			return ICON_OUTLINER_DATA_MESH;
 		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
 			return ICON_FILE_IMAGE;
+	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_StudioLight)) {
+		StudioLight *sl = ptr->data;
+		switch (sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS) {
+			case STUDIOLIGHT_ORIENTATION_CAMERA:
+				return sl->icon_id_irradiance;
+			case STUDIOLIGHT_ORIENTATION_WORLD:
+			default:
+				return sl->icon_id_radiance;
+			case STUDIOLIGHT_ORIENTATION_VIEWNORMAL:
+				return sl->icon_id_matcap;
+		}
 	}
 
 	/* get icon from ID */

@@ -78,11 +78,6 @@ const EnumPropertyItem rna_enum_navigation_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static const EnumPropertyItem rna_enum_studio_light_icons_id_items[] = {
-	{0, "DEFAULT", 0, "Default", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 
 #if defined(WITH_INTERNATIONAL) || !defined(RNA_RUNTIME)
 static const EnumPropertyItem rna_enum_language_default_items[] = {
@@ -704,59 +699,12 @@ static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
 	return sl->index;
 }
 
-/* StudioLight.icon_id */
-static int rna_UserDef_studiolight_icon_id_get(PointerRNA *ptr)
-{
-	StudioLight *sl = (StudioLight *)ptr->data;
-	if (sl->flag & (STUDIOLIGHT_ORIENTATION_VIEWNORMAL | STUDIOLIGHT_ORIENTATION_CAMERA)) {
-		return 1;
-	}
-	return 0;
-}
-
-static const EnumPropertyItem *rna_UserDef_studiolight_icon_id_itemf(
-        bContext *UNUSED(C), PointerRNA *ptr,
-        PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	EnumPropertyItem *item = NULL;
-	int totitem = 0;
-	StudioLight *sl = (StudioLight *)ptr->data;
-
-	if ((sl->flag & (STUDIOLIGHT_ORIENTATION_VIEWNORMAL | STUDIOLIGHT_ORIENTATION_CAMERA)) == 0) {
-		EnumPropertyItem tmp = {0, sl->name, sl->radiance_icon_id, sl->name, ""};
-		RNA_enum_item_add(&item, &totitem, &tmp);
-	}
-
-	{
-		EnumPropertyItem tmp = {1, sl->name, sl->irradiance_icon_id, sl->name, ""};
-		RNA_enum_item_add(&item, &totitem, &tmp);
-	}
-	RNA_enum_item_end(&item, &totitem);
-	*r_free = true;
-	return item;
-}
-
 /* StudioLight.is_user_defined */
 static int rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
 	return (sl->flag & STUDIOLIGHT_USER_DEFINED) > 0;
 }
-
-/* StudioLight.show_expanded */
-static int rna_UserDef_studiolight_show_expanded_get(PointerRNA *ptr)
-{
-	StudioLight *sl = (StudioLight *)ptr->data;
-	return (sl->flag & STUDIOLIGHT_UI_EXPANDED) > 0;
-}
-
-static void rna_UserDef_studiolight_show_expanded_set(PointerRNA *ptr, const bool value)
-{
-	StudioLight *sl = (StudioLight *)ptr->data;
-	sl->flag ^= STUDIOLIGHT_UI_EXPANDED;
-	sl->flag |= value ? STUDIOLIGHT_UI_EXPANDED : 0;
-}
-
 
 /* StudioLight.orientation */
 
@@ -1748,7 +1696,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "wire_edit", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Wire Edit", "");
+	RNA_def_property_ui_text(prop, "Wire Edit", "Color for wireframe when in edit mode, but edge selection is active");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 
@@ -3306,20 +3254,10 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Defined", "");
 
-	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_UserDef_studiolight_show_expanded_get", "rna_UserDef_studiolight_show_expanded_set");
-	RNA_def_property_ui_text(prop, "Show Expanded", "");
-
 	prop = RNA_def_property(srna, "orientation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_studio_light_orientation_items);
 	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_orientation_get", "rna_UserDef_studiolight_orientation_set", NULL);
 	RNA_def_property_ui_text(prop, "Orientation", "");
-
-	prop = RNA_def_property(srna, "icon_id", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_icon_id_get", NULL, "rna_UserDef_studiolight_icon_id_itemf");
-	RNA_def_property_enum_items(prop, rna_enum_studio_light_icons_id_items);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Preview", "Preview of the studiolight");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_name_get", "rna_UserDef_studiolight_name_length", NULL);
@@ -4129,6 +4067,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem gpu_antialias_method_items[] = {
+	    {USER_AA_NONE, "OFF",  0, "Off", "Disable Anti Alias in viewport"},
+	    {USER_AA_FXAA, "FXAA", 0, "FXAA", "Use FXAA, a fast screenspace Anti Alias method"},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -4386,6 +4330,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Region Overlap",
 	                         "Draw tool/property regions over the main region, when using Triple Buffer");
 	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+
+	prop = RNA_def_property(srna, "max_anti_alias_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "gpu_viewport_antialias");
+	RNA_def_property_enum_items(prop, gpu_antialias_method_items);
+	RNA_def_property_ui_text(prop, "Viewport Anti-aliasing",
+	                         "Method to draw the Anti-Aliasing in the viewport");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 #ifdef WITH_OPENSUBDIV
 	prop = RNA_def_property(srna, "opensubdiv_compute_type", PROP_ENUM, PROP_NONE);

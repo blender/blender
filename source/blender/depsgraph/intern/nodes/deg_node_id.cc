@@ -156,6 +156,7 @@ void IDDepsNode::destroy()
 	if (id_cow != id_orig && id_cow != NULL) {
 		deg_free_copy_on_write_datablock(id_cow);
 		MEM_freeN(id_cow);
+		id_cow = NULL;
 		DEG_COW_PRINT("Destroy CoW for %s: id_orig=%p id_cow=%p\n",
 		              id_orig->name, id_orig, id_cow);
 	}

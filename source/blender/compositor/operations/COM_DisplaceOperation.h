@@ -49,14 +49,14 @@ public:
 	 * the inner loop of this program
 	 */
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2]);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */

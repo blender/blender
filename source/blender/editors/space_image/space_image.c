@@ -272,6 +272,9 @@ static void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_invert);
 
 	WM_operatortype_append(IMAGE_OT_cycle_render_slot);
+	WM_operatortype_append(IMAGE_OT_clear_render_slot);
+	WM_operatortype_append(IMAGE_OT_add_render_slot);
+	WM_operatortype_append(IMAGE_OT_remove_render_slot);
 
 	WM_operatortype_append(IMAGE_OT_sample);
 	WM_operatortype_append(IMAGE_OT_sample_line);
@@ -358,7 +361,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "toggle", true);
 
 	/* fast switch to render slots */
-	for (i = 0; i < MIN2(IMA_MAX_RENDER_SLOT, 9); i++) {
+	for (i = 0; i < 9; i++) {
 		kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_int", ONEKEY + i, KM_PRESS, 0, 0);
 		RNA_string_set(kmi->ptr, "data_path", "space_data.image.render_slots.active_index");
 		RNA_int_set(kmi->ptr, "value", i);
@@ -869,7 +872,7 @@ static void image_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void image_buttons_region_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void image_buttons_region_listener(
@@ -944,7 +947,7 @@ static void image_tools_region_draw(const bContext *C, ARegion *ar)
 	}
 	ED_space_image_release_buffer(sima, ibuf, lock);
 
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void image_tools_region_listener(
@@ -1096,7 +1099,6 @@ void ED_spacetype_image(void)
 	art->init = image_main_region_init;
 	art->draw = image_main_region_draw;
 	art->listener = image_main_region_listener;
-
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: listview/buttons */
@@ -1132,6 +1134,10 @@ void ED_spacetype_image(void)
 	art->init = image_header_region_init;
 	art->draw = image_header_region_draw;
 
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: hud */
+	art = ED_area_type_hud(st->spaceid);
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);

@@ -55,10 +55,10 @@
 
 #include "curve_intern.h"
 
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "DEG_depsgraph.h"
 
 /* returns 1 in case (de)selection was successful */
 bool select_beztriple(BezTriple *bezt, bool selstatus, short flag, eVisible_Types hidden)
@@ -404,6 +404,7 @@ static int de_select_first_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 
 	selectend_nurb(obedit, FIRST, true, DESELECT);
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	BKE_curve_nurb_vert_active_validate(obedit->data);
 
@@ -430,6 +431,7 @@ static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 
 	selectend_nurb(obedit, LAST, true, DESELECT);
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	BKE_curve_nurb_vert_active_validate(obedit->data);
 
@@ -488,6 +490,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 				break;
 		}
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		BKE_curve_nurb_vert_active_validate(cu);
 	}
@@ -540,6 +543,7 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 
 		if (changed) {
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
@@ -608,6 +612,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
 		}
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	if (!select) {
 		BKE_curve_nurb_vert_active_validate(obedit->data);
@@ -670,6 +675,7 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -698,6 +704,7 @@ static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase *editnurb = object_editcurve_get(obedit);
 
 	select_adjacent_cp(editnurb, 1, 0, SELECT);
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -726,6 +733,7 @@ static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase *editnurb = object_editcurve_get(obedit);
 
 	select_adjacent_cp(editnurb, -1, 0, SELECT);
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -814,6 +822,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 		select_adjacent_cp(editnurb, -1, 0, SELECT);
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1001,6 +1010,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	BKE_curve_nurb_vert_active_validate(obedit->data);
 
@@ -1087,6 +1097,7 @@ static int curve_select_random_exec(bContext *C, wmOperator *op)
 		curve_select_random(editnurb, randfac, seed_iter, select);
 		BKE_curve_nurb_vert_active_validate(obedit->data);
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -1197,6 +1208,7 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1503,6 +1515,7 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	if (changed) {
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		return OPERATOR_FINISHED;
 	}
@@ -1744,6 +1757,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	BKE_curve_nurb_vert_active_set(cu, nu_dst, vert_dst_p);
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }

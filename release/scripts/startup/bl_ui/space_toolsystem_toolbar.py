@@ -98,17 +98,18 @@ class _defs_view3d_generic:
     @ToolDef.from_fn
     def cursor_click():
         return dict(
-            text="Cursor Click",
+            text="None",
             icon="ops.generic.cursor",
             keymap=(
-                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
+                # This is a dummy keymap entry, until particle system is properly working with toolsystem.
+                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK', ctrl=True, alt=True, shift=True)),
             ),
         )
 
     @ToolDef.from_fn
     def ruler():
         return dict(
-            text="Ruler/Protractor",
+            text="Ruler",
             icon="ops.view3d.ruler",
             widget="VIEW3D_WGT_ruler",
             keymap=(

@@ -377,7 +377,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					/* merge in data - we'll fix the drivers manually */
-					BKE_animdata_merge_copy(&ob->id, &base->object->id, ADT_MERGECOPY_KEEP_DST, false);
+					BKE_animdata_merge_copy(bmain, &ob->id, &base->object->id, ADT_MERGECOPY_KEEP_DST, false);
 				}
 			}
 
@@ -388,7 +388,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					/* merge in data - we'll fix the drivers manually */
-					BKE_animdata_merge_copy(&arm->id, &curarm->id, ADT_MERGECOPY_KEEP_DST, false);
+					BKE_animdata_merge_copy(bmain, &arm->id, &curarm->id, ADT_MERGECOPY_KEEP_DST, false);
 				}
 			}
 
@@ -403,6 +403,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	ED_armature_from_edit(bmain, arm);
 	ED_armature_edit_free(arm);
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;

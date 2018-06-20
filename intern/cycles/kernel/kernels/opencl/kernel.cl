@@ -20,6 +20,7 @@
 #include "kernel/kernel_math.h"
 #include "kernel/kernel_types.h"
 #include "kernel/kernel_globals.h"
+#include "kernel/kernel_color.h"
 #include "kernel/kernels/opencl/kernel_opencl_image.h"
 
 #include "kernel/kernel_film.h"

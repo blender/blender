@@ -41,26 +41,26 @@ public:
 	 * Default constructor
 	 */
 	MapValueOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	/**
 	 * @brief set the TexMapping settings
 	 */
 	void setSettings(TexMapping *settings) { this->m_settings = settings; }
-	
+
 };
 #endif

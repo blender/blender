@@ -33,12 +33,12 @@ void DoubleEdgeMaskNode::convertToOperations(NodeConverter &converter, const Com
 {
 	DoubleEdgeMaskOperation *operation;
 	bNode *bnode = this->getbNode();
-	
+
 	operation = new DoubleEdgeMaskOperation();
 	operation->setAdjecentOnly(bnode->custom1);
 	operation->setKeepInside(bnode->custom2);
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));

@@ -193,7 +193,8 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	/* Flush stdout to be sure python callbacks are printing stuff after blender. */
 	fflush(stdout);
 
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
+	/* NOTE: using G_MAIN seems valid here??? Not sure it's actually even used anyway, we could as well pass NULL? */
+	BLI_callback_exec(G_MAIN, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	fputc('\n', stdout);
 	fflush(stdout);
@@ -328,6 +329,14 @@ RenderResult *RE_AcquireResultWrite(Render *re)
 	}
 
 	return NULL;
+}
+
+void RE_ClearResult(Render *re)
+{
+	if (re) {
+		render_result_free(re->result);
+		re->result = NULL;
+	}
 }
 
 void RE_SwapResult(Render *re, RenderResult **rr)
@@ -1021,10 +1030,13 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 
 /* ********* GL Context ******** */
 
+/* Create the gl context of the Render.
+ * It will be free by the render itself. */
 void RE_gl_context_create(Render *re)
 {
 	/* Needs to be created in the main ogl thread. */
 	re->gl_context = WM_opengl_context_create();
+	re->gl_context_ownership = true;
 }
 
 void RE_gl_context_destroy(Render *re)
@@ -1036,9 +1048,20 @@ void RE_gl_context_destroy(Render *re)
 		re->gwn_context = NULL;
 	}
 	if (re->gl_context) {
-		WM_opengl_context_dispose(re->gl_context);
+		if (re->gl_context_ownership) {
+			WM_opengl_context_dispose(re->gl_context);
+		}
 		re->gl_context = NULL;
 	}
+}
+
+/* Manually set the gl context of the Render.
+ * It won't be free by the render itself. */
+void RE_gl_context_set(Render *re, void *gl_context)
+{
+	BLI_assert(gl_context); /* Cannot set NULL */
+	re->gl_context = gl_context;
+	re->gl_context_ownership = false;
 }
 
 void *RE_gl_context_get(Render *re)
@@ -1225,19 +1248,6 @@ static int composite_needs_render(Scene *sce, int this_scene)
 	return 0;
 }
 
-static bool rlayer_node_uses_alpha(bNodeTree *ntree, bNode *node)
-{
-	bNodeSocket *sock;
-
-	for (sock = node->outputs.first; sock; sock = sock->next) {
-		/* Weak! but how to make it better? */
-		if (STREQ(sock->name, "Alpha") && nodeCountSocketLinks(ntree, sock) > 0)
-			return true;
-	}
-
-	return false;
-}
-
 bool RE_allow_render_generic_object(Object *ob)
 {
 	/* override not showing object when duplis are used with particles */
@@ -1250,188 +1260,6 @@ bool RE_allow_render_generic_object(Object *ob)
 	return true;
 }
 
-/* Issue here is that it's possible that object which is used by boolean,
- * array or shrinkwrap modifiers weren't displayed in the viewport before
- * rendering. This leads to situations when apply() of this modifiers
- * could not get ob->derivedFinal and modifiers are not being applied.
- *
- * This was worked around by direct call of get_derived_final() from those
- * modifiers, but such approach leads to write conflicts with threaded
- * update.
- *
- * Here we make sure derivedFinal will be calculated by update_for_newframe
- * function later in the pipeline and all the modifiers are applied
- * properly without hacks from their side.
- *                                                  - sergey -
- */
-#define DEPSGRAPH_WORKAROUND_HACK
-
-#ifdef DEPSGRAPH_WORKAROUND_HACK
-static void tag_dependend_object_for_render(Scene *scene, Object *object);
-
-static void tag_dependend_group_for_render(Scene *scene, Collection *collection)
-{
-	if (collection->id.tag & LIB_TAG_DOIT) {
-		return;
-	}
-	collection->id.tag |= LIB_TAG_DOIT;
-
-	for (CollectionObject *cob = collection->gobject.first; cob != NULL; cob = cob->next) {
-		Object *object = cob->ob;
-		tag_dependend_object_for_render(scene, object);
-	}
-}
-
-static void tag_dependend_object_for_render(Scene *scene, Object *object)
-{
-	if (object->type == OB_MESH) {
-		if (RE_allow_render_generic_object(object)) {
-			ModifierData *md;
-			VirtualModifierData virtualModifierData;
-
-			if (object->particlesystem.first) {
-				DEG_id_tag_update(&object->id, OB_RECALC_DATA);
-			}
-
-			for (md = modifiers_getVirtualModifierList(object, &virtualModifierData);
-			     md;
-			     md = md->next)
-			{
-				if (!modifier_isEnabled(scene, md, eModifierMode_Render)) {
-					continue;
-				}
-
-				if (md->type == eModifierType_Boolean) {
-					BooleanModifierData *bmd = (BooleanModifierData *)md;
-					if (bmd->object && bmd->object->type == OB_MESH) {
-						DEG_id_tag_update(&bmd->object->id, OB_RECALC_DATA);
-					}
-				}
-				else if (md->type == eModifierType_Array) {
-					ArrayModifierData *amd = (ArrayModifierData *)md;
-					if (amd->start_cap && amd->start_cap->type == OB_MESH) {
-						DEG_id_tag_update(&amd->start_cap->id, OB_RECALC_DATA);
-					}
-					if (amd->end_cap && amd->end_cap->type == OB_MESH) {
-						DEG_id_tag_update(&amd->end_cap->id, OB_RECALC_DATA);
-					}
-				}
-				else if (md->type == eModifierType_Shrinkwrap) {
-					ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
-					if (smd->target  && smd->target->type == OB_MESH) {
-						DEG_id_tag_update(&smd->target->id, OB_RECALC_DATA);
-					}
-				}
-				else if (md->type == eModifierType_ParticleSystem) {
-					ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-					ParticleSystem *psys = psmd->psys;
-					ParticleSettings *part = psys->part;
-					switch (part->ren_as) {
-						case PART_DRAW_OB:
-							if (part->dup_ob != NULL) {
-								DEG_id_tag_update(&part->dup_ob->id, OB_RECALC_DATA);
-							}
-							break;
-						case PART_DRAW_GR:
-							if (part->dup_group != NULL) {
-								FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, ob)
-								{
-									DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-								}
-								FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-							}
-							break;
-					}
-				}
-			}
-		}
-	}
-	if (object->dup_group != NULL) {
-		tag_dependend_group_for_render(scene, object->dup_group);
-	}
-}
-
-static void tag_dependend_objects_for_render(Main *bmain, Scene *scene)
-{
-	BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
-	FOREACH_OBJECT_RENDERABLE_BEGIN(scene, object)
-	{
-		tag_dependend_object_for_render(scene, object);
-	}
-	FOREACH_OBJECT_RENDERABLE_END;
-}
-#endif
-
-static void tag_scenes_for_render(Render *re)
-{
-	bNode *node;
-	Scene *sce;
-
-	for (sce = re->main->scene.first; sce; sce = sce->id.next) {
-		sce->id.tag &= ~LIB_TAG_DOIT;
-#ifdef DEPSGRAPH_WORKAROUND_HACK
-		tag_dependend_objects_for_render(re->main, sce);
-#endif
-	}
-
-#ifdef WITH_FREESTYLE
-	if (re->freestyle_bmain) {
-		for (sce = re->freestyle_bmain->scene.first; sce; sce = sce->id.next) {
-			sce->id.tag &= ~LIB_TAG_DOIT;
-#ifdef DEPSGRAPH_WORKAROUND_HACK
-			tag_dependend_objects_for_render(re->freestyle_bmain, sce);
-#endif
-		}
-	}
-#endif
-
-	if (RE_GetCamera(re) && composite_needs_render(re->scene, 1)) {
-		re->scene->id.tag |= LIB_TAG_DOIT;
-#ifdef DEPSGRAPH_WORKAROUND_HACK
-		tag_dependend_objects_for_render(re->main, re->scene);
-#endif
-	}
-
-	if (re->scene->nodetree == NULL) return;
-
-	/* check for render-layers nodes using other scenes, we tag them LIB_TAG_DOIT */
-	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
-		node->flag &= ~NODE_TEST;
-		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
-			if (node->id) {
-				if (!MAIN_VERSION_ATLEAST(re->main, 265, 5)) {
-					if (rlayer_node_uses_alpha(re->scene->nodetree, node)) {
-						Scene *scene = (Scene *)node->id;
-
-						if (scene->r.alphamode != R_ALPHAPREMUL) {
-							BKE_reportf(re->reports, RPT_WARNING, "Setting scene %s alpha mode to Premul", scene->id.name + 2);
-
-							/* also print, so feedback is immediate */
-							printf("2.66 versioning fix: setting scene %s alpha mode to Premul\n", scene->id.name + 2);
-
-							scene->r.alphamode = R_ALPHAPREMUL;
-						}
-					}
-				}
-
-				if (node->id != (ID *)re->scene) {
-					if ((node->id->tag & LIB_TAG_DOIT) == 0) {
-						Scene *scene = (Scene *) node->id;
-						if (render_scene_has_layers_to_render(scene, NULL)) {
-							node->flag |= NODE_TEST;
-							node->id->tag |= LIB_TAG_DOIT;
-#ifdef DEPSGRAPH_WORKAROUND_HACK
-							tag_dependend_objects_for_render(re->main, scene);
-#endif
-						}
-					}
-				}
-			}
-		}
-	}
-
-}
-
 static void ntree_render_scenes(Render *re)
 {
 	bNode *node;
@@ -1440,12 +1268,6 @@ static void ntree_render_scenes(Render *re)
 	bool scene_changed = false;
 
 	if (re->scene->nodetree == NULL) return;
-
-	tag_scenes_for_render(re);
-
-#ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
-	tag_collections_for_render(re);
-#endif
 
 	/* now foreach render-result node tagged we do a full render */
 	/* results are stored in a way compisitor will find it */
@@ -1564,9 +1386,6 @@ static void do_render_composite(Render *re)
 	bNodeTree *ntree = re->scene->nodetree;
 	int update_newframe = 0;
 
-	/* INIT seeding, compositor can use random texture */
-	BLI_srandom(re->r.cfra);
-
 	if (composite_needs_render(re->scene, 1)) {
 		/* save memory... free all cached images */
 		ntreeFreeCache(ntree);
@@ -1641,11 +1460,6 @@ static void do_render_composite(Render *re)
 
 #ifdef WITH_FREESTYLE
 	free_all_freestyle_renders();
-#endif
-
-#ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
-	/* Restore their visibility based on the viewport visibility flags. */
-	tag_collections_for_render(re);
 #endif
 
 	/* weak... the display callback wants an active renderlayer pointer... */
@@ -1831,7 +1645,7 @@ static void do_render_all_options(Render *re)
 
 	/* ensure no images are in memory from previous animated sequences */
 	BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-	BKE_sequencer_all_free_anim_ibufs(re->r.cfra);
+	BKE_sequencer_all_free_anim_ibufs(re->main, re->r.cfra);
 
 	if (RE_engine_render(re, 1)) {
 		/* in this case external render overrides all */
@@ -2101,7 +1915,7 @@ static void update_physics_cache(Render *re, Scene *scene, ViewLayer *view_layer
 	PTCacheBaker baker;
 
 	memset(&baker, 0, sizeof(baker));
-	baker.main = re->main;
+	baker.bmain = re->main;
 	baker.scene = scene;
 	baker.view_layer = view_layer;
 	baker.depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
@@ -2166,14 +1980,6 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 		re->disprect = disprect;
 		return 1;
 	}
-
-	/* check all scenes involved */
-	tag_scenes_for_render(re);
-
-#ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
-	/* Update collection collections visibility. */
-	tag_collections_for_render(re);
-#endif
 
 	/*
 	 * Disabled completely for now,
@@ -2352,7 +2158,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 					ImageFormatData imf = rd->im_format;
 					imf.imtype = R_IMF_IMTYPE_JPEG90;
 
-					if (BLI_testextensie(name, ".exr"))
+					if (BLI_path_extension_check(name, ".exr"))
 						name[strlen(name) - 4] = 0;
 					BKE_image_path_ensure_ext_from_imformat(name, &imf);
 
@@ -2407,7 +2213,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 				ImageFormatData imf = rd->im_format;
 				imf.imtype = R_IMF_IMTYPE_JPEG90;
 
-				if (BLI_testextensie(name, ".exr"))
+				if (BLI_path_extension_check(name, ".exr"))
 					name[strlen(name) - 4] = 0;
 
 				BKE_image_path_ensure_ext_from_imformat(name, &imf);
@@ -2520,7 +2326,8 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	/* Flush stdout to be sure python callbacks are printing stuff after blender. */
 	fflush(stdout);
 
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
+	/* NOTE: using G_MAIN seems valid here??? Not sure it's actually even used anyway, we could as well pass NULL? */
+	BLI_callback_exec(G_MAIN, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime - render_time);
 	printf(" (Saving: %s)\n", name);
@@ -2839,6 +2646,9 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 	RE_SetCamera(re, camera);
 
 	do_render_3d(re);
+
+	/* Destroy the opengl context in the correct thread. */
+	RE_gl_context_destroy(re);
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */

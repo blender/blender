@@ -72,14 +72,14 @@ void SocketBufferNode::convertToOperations(NodeConverter &converter, const Compo
 {
 	NodeOutput *output = this->getOutputSocket(0);
 	NodeInput *input = this->getInputSocket(0);
-	
+
 	DataType datatype = output->getDataType();
 	WriteBufferOperation *writeOperation = new WriteBufferOperation(datatype);
 	ReadBufferOperation *readOperation = new ReadBufferOperation(datatype);
 	readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
 	converter.addOperation(writeOperation);
 	converter.addOperation(readOperation);
-	
+
 	converter.mapInputSocket(input, writeOperation->getInputSocket(0));
 	converter.mapOutputSocket(output, readOperation->getOutputSocket());
 }

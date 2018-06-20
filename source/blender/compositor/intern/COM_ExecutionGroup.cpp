@@ -73,16 +73,16 @@ CompositorPriority ExecutionGroup::getRenderPriotrity()
 bool ExecutionGroup::canContainOperation(NodeOperation *operation)
 {
 	if (!this->m_initialized) { return true; }
-	
+
 	if (operation->isReadBufferOperation()) { return true; }
 	if (operation->isWriteBufferOperation()) { return false; }
 	if (operation->isSetOperation()) { return true; }
-	
+
 	/* complex groups don't allow further ops (except read buffer and values, see above) */
 	if (m_complex) { return false; }
 	/* complex ops can't be added to other groups (except their own, which they initialize, see above) */
 	if (operation->isComplex()) { return false; }
-	
+
 	return true;
 }
 
@@ -90,16 +90,16 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
 {
 	if (!canContainOperation(operation))
 		return false;
-	
+
 	if (!operation->isReadBufferOperation() && !operation->isWriteBufferOperation()) {
 		m_complex = operation->isComplex();
 		m_openCL = operation->isOpenCL();
 		m_singleThreaded = operation->isSingleThreaded();
 		m_initialized = true;
 	}
-	
+
 	m_operations.push_back(operation);
-	
+
 	return true;
 }
 
@@ -382,7 +382,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 {
 	if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED)
 		this->m_chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
-	
+
 	atomic_add_and_fetch_u(&this->m_chunksFinished, 1);
 	if (memoryBuffers) {
 		for (unsigned int index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {

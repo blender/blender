@@ -178,14 +178,14 @@ static void nla_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void nla_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
+static void nla_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	SpaceNla *snla = (SpaceNla *)sa->spacedata.first;
 
 	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (snla->ads == NULL) {
 		snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
-		snla->ads->source = (ID *)G.main->scene.first; // XXX this is bad, but we need this to be set correct
+		snla->ads->source = (ID *)WM_window_get_active_scene(wm->winactive);
 	}
 
 	ED_area_tag_refresh(sa);
@@ -360,7 +360,7 @@ static void nla_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void nla_buttons_region_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, NULL, -1, true);
+	ED_region_panels(C, ar);
 }
 
 static void nla_region_listener(

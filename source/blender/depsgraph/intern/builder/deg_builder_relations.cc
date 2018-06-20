@@ -334,51 +334,49 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
         const char *name)
 {
 	ListBase *effectors = pdInitEffectors(NULL, scene, object, psys, eff, false);
-	if (effectors != NULL) {
-		LISTBASE_FOREACH (EffectorCache *, eff, effectors) {
+	if (effectors == NULL) {
+		return;
+	}
+	LISTBASE_FOREACH (EffectorCache *, eff, effectors) {
+		if (eff->ob != object) {
+			ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_TRANSFORM);
+			add_relation(eff_key, key, name);
+		}
+		if (eff->psys != NULL) {
 			if (eff->ob != object) {
-				ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_TRANSFORM);
+				ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
+				add_relation(eff_key, key, name);
+				/* TODO: remove this when/if EVAL_PARTICLES is sufficient
+				 * for up to date particles.
+				 */
+				ComponentKey mod_key(&eff->ob->id, DEG_NODE_TYPE_GEOMETRY);
+				add_relation(mod_key, key, name);
+			}
+			else if (eff->psys != psys) {
+				OperationKey eff_key(&eff->ob->id,
+				                     DEG_NODE_TYPE_EVAL_PARTICLES,
+				                     DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
+				                     eff->psys->name);
 				add_relation(eff_key, key, name);
 			}
-			if (eff->psys != NULL) {
-				if (eff->ob != object) {
-					ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
-					add_relation(eff_key, key, name);
-
-					/* TODO: remove this when/if EVAL_PARTICLES is sufficient
-					 * for up to date particles.
-					 */
-					ComponentKey mod_key(&eff->ob->id, DEG_NODE_TYPE_GEOMETRY);
-					add_relation(mod_key, key, name);
-				}
-				else if (eff->psys != psys) {
-					OperationKey eff_key(&eff->ob->id,
-					                     DEG_NODE_TYPE_EVAL_PARTICLES,
-					                     DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
-					                     eff->psys->name);
-					add_relation(eff_key, key, name);
-				}
-			}
-			if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
-				ComponentKey trf_key(&eff->pd->f_source->id,
-				                     DEG_NODE_TYPE_TRANSFORM);
-				add_relation(trf_key, key, "Smoke Force Domain");
-
-				ComponentKey eff_key(&eff->pd->f_source->id,
-				                     DEG_NODE_TYPE_GEOMETRY);
-				add_relation(eff_key, key, "Smoke Force Domain");
-			}
-			if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
-				add_collision_relations(key,
-				                        scene,
-				                        object,
-				                        NULL,
-				                        true,
-				                        "Force Absorption");
-			}
+		}
+		if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
+			ComponentKey trf_key(&eff->pd->f_source->id,
+			                     DEG_NODE_TYPE_TRANSFORM);
+			add_relation(trf_key, key, "Smoke Force Domain");
+			ComponentKey eff_key(&eff->pd->f_source->id,
+			                     DEG_NODE_TYPE_GEOMETRY);
+			add_relation(eff_key, key, "Smoke Force Domain");
+		}
+		if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
+			add_collision_relations(key,
+			                        scene,
+			                        object,
+			                        NULL,
+			                        true,
+			                        "Force Absorption");
 		}
 	}
-
 	pdEndEffectors(&effectors);
 }
 
@@ -471,6 +469,14 @@ void DepsgraphRelationBuilder::build_collection(
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	if (!group_done) {
 		LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+			if (allow_restrict_flags) {
+				const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
+				        ? OB_RESTRICT_VIEW
+				        : OB_RESTRICT_RENDER;
+				if (cob->ob->restrictflag & restrict_flag) {
+					continue;
+				}
+			}
 			build_object(NULL, cob->ob);
 		}
 		LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
@@ -478,16 +484,12 @@ void DepsgraphRelationBuilder::build_collection(
 		}
 	}
 	if (object != NULL) {
-		const ListBase group_objects = BKE_collection_object_cache_get(collection);
-		const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
-			BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
-		LISTBASE_FOREACH (Base *, base, &group_objects) {
-			if ((base->flag & base_flag) == 0) {
-				continue;
-			}
-			ComponentKey dupli_transform_key(&base->object->id, DEG_NODE_TYPE_TRANSFORM);
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(collection, ob, graph_->mode)
+		{
+			ComponentKey dupli_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
 		}
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 	}
 }
 
@@ -610,7 +612,7 @@ void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
 	                                 DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                                 DEG_OPCODE_VIEW_LAYER_EVAL);
 	OperationKey object_flags_key(&object->id,
-	                              DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                              DEG_NODE_TYPE_OBJECT_FROM_LAYER,
 	                              DEG_OPCODE_OBJECT_BASE_FLAGS);
 	add_relation(view_layer_done_key, object_flags_key, "Base flags flush");
 }
@@ -1430,10 +1432,11 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		const ListBase group_objects = BKE_collection_object_cache_get(rbw->group);
-		LISTBASE_FOREACH (Base *, base, &group_objects) {
-			Object *object = base->object;
-			if (object == NULL || object->type != OB_MESH) {
+		build_collection(DEG_COLLECTION_OWNER_OBJECT, NULL, rbw->group);
+
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
+		{
+			if (object->type != OB_MESH) {
 				continue;
 			}
 
@@ -1451,6 +1454,13 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			OperationKey trans_op(&object->id, DEG_NODE_TYPE_TRANSFORM, trans_opcode);
 
 			add_relation(sim_key, rbo_key, "Rigidbody Sim Eval -> RBO Sync");
+
+			/* Geometry must be known to create the rigid body. RBO_MESH_BASE uses the non-evaluated
+			 * mesh, so then the evaluation is unnecessary. */
+			if (object->rigidbody_object->mesh_source != RBO_MESH_BASE) {
+				ComponentKey geom_key(&object->id, DEG_NODE_TYPE_GEOMETRY);
+				add_relation(geom_key, init_key, "Object Geom Eval -> Rigidbody Rebuild");
+			}
 
 			/* if constraints exist, those depend on the result of the rigidbody sim
 			 * - This allows constraints to modify the result of the sim (i.e. clamping)
@@ -1481,14 +1491,14 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			/* Needed to get correct base values. */
 			add_relation(trans_op, sim_key, "Base Ob Transform -> Rigidbody Sim Eval");
 		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 
 	/* constraints */
 	if (rbw->constraints) {
-		const ListBase constraint_objects = BKE_collection_object_cache_get(rbw->constraints);
-		LISTBASE_FOREACH (Base *, base, &constraint_objects) {
-			Object *object = base->object;
-			if (object == NULL || !object->rigidbody_constraint) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, object)
+		{
+			if (!object->rigidbody_constraint) {
 				continue;
 			}
 
@@ -1508,6 +1518,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			/* - ensure that sim depends on this constraint's transform */
 			add_relation(trans_key, sim_key, "RigidBodyConstraint Transform -> RB Simulation");
 		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 }
 

@@ -953,6 +953,9 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 		}
 
 		if (ar1->overlap && ((ar1->alignment & RGN_SPLIT_PREV) == 0)) {
+			if (ELEM(ar1->alignment, RGN_ALIGN_FLOAT)) {
+				continue;
+			}
 			align1 = ar1->alignment;
 			if (BLI_rcti_isect(&ar1->winrct, &ar->winrct, NULL)) {
 				if (align1 != align) {
@@ -994,6 +997,9 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 		if (ar1->flag & (RGN_FLAG_HIDDEN)) {
 			continue;
 		}
+		if (ELEM(ar1->alignment, RGN_ALIGN_FLOAT)) {
+			continue;
+		}
 
 		if (ar1->overlap && (ar1->alignment & RGN_SPLIT_PREV) == 0) {
 			if ((ar1->alignment != align) && BLI_rcti_isect(&ar1->winrct, &ar->winrct, NULL)) {
@@ -1008,6 +1014,9 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 /* overlapping regions only in the following restricted cases */
 bool ED_region_is_overlap(int spacetype, int regiontype)
 {
+	if (regiontype == RGN_TYPE_HUD) {
+		return 1;
+	}
 	if (U.uiflag2 & USER_REGION_OVERLAP) {
 		if (ELEM(spacetype, SPACE_VIEW3D, SPACE_SEQ, SPACE_IMAGE)) {
 			if (ELEM(regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
@@ -1052,8 +1061,9 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	/* clear state flags first */
 	ar->flag &= ~RGN_FLAG_TOO_SMALL;
 	/* user errors */
-	if (ar->next == NULL && alignment != RGN_ALIGN_QSPLIT)
+	if ((ar->next == NULL) && !ELEM(alignment, RGN_ALIGN_QSPLIT, RGN_ALIGN_FLOAT)) {
 		alignment = RGN_ALIGN_NONE;
+	}
 
 	/* prefsize, taking into account DPI */
 	prefsizex = UI_DPI_FAC * ((ar->sizex > 1) ? ar->sizex + 0.5f : ar->type->prefsizex);
@@ -1076,7 +1086,28 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		/* hidden is user flag */
 	}
 	else if (alignment == RGN_ALIGN_FLOAT) {
-		/* XXX floating area region, not handled yet here */
+		/**
+		 * \note Currently this window type is only used for #RGN_TYPE_HUD,
+		 * We expect the panel to resize it's self to be larger.
+		 *
+		 * This aligns to the lower left of the area.
+		 */
+		rcti overlap_remainder_margin = *overlap_remainder;
+		BLI_rcti_resize(
+		        &overlap_remainder_margin,
+		        max_ii(0, BLI_rcti_size_x(overlap_remainder) - UI_UNIT_X / 2),
+		        max_ii(0, BLI_rcti_size_y(overlap_remainder) - UI_UNIT_Y / 2));
+		ar->winrct.xmin = overlap_remainder_margin.xmin;
+		ar->winrct.ymin = overlap_remainder_margin.ymin;
+		ar->winrct.xmax = ar->winrct.xmin + ar->sizex - 1;
+		ar->winrct.ymax = ar->winrct.ymin + ar->sizey - 1;
+
+		BLI_rcti_isect(&ar->winrct, &overlap_remainder_margin, &ar->winrct);
+		if (BLI_rcti_size_x(&ar->winrct) < UI_UNIT_X ||
+		    BLI_rcti_size_y(&ar->winrct) < UI_UNIT_Y)
+		{
+			ar->flag |= RGN_FLAG_TOO_SMALL;
+		}
 	}
 	else if (rct_fits(remainder, 'v', 1) < 0 || rct_fits(remainder, 'h', 1) < 0) {
 		/* remainder is too small for any usage */
@@ -1215,7 +1246,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	if (ar->winy > 1) ar->sizey = (ar->winy + 0.5f) /  UI_DPI_FAC;
 
 	/* exception for multiple overlapping regions on same spot */
-	if (ar->overlap) {
+	if (ar->overlap & (alignment != RGN_ALIGN_FLOAT)) {
 		region_overlap_fix(sa, ar);
 	}
 
@@ -1424,7 +1455,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	}
 
 	for (ar = sa->regionbase.first; ar; ar = ar->next)
-		ar->type = BKE_regiontype_from_id(sa->type, ar->regiontype);
+		ar->type = BKE_regiontype_from_id_or_first(sa->type, ar->regiontype);
 
 	/* area sizes */
 	area_calc_totrct(sa, &window_rect);
@@ -1480,13 +1511,13 @@ static void region_update_rect(ARegion *ar)
 /**
  * Call to move a popup window (keep OpenGL context free!)
  */
-void ED_region_update_rect(bContext *UNUSED(C), ARegion *ar)
+void ED_region_update_rect(ARegion *ar)
 {
 	region_update_rect(ar);
 }
 
 /* externally called for floating regions like menus */
-void ED_region_init(bContext *UNUSED(C), ARegion *ar)
+void ED_region_init(ARegion *ar)
 {
 	/* refresh can be called before window opened */
 	region_subwindow(ar);
@@ -1781,7 +1812,10 @@ static ThemeColorID region_background_color_id(const bContext *C, const ARegion 
 
 static void region_clear_color(const bContext *C, const ARegion *ar, ThemeColorID colorid)
 {
-	if (ar->overlap) {
+	if (ar->alignment == RGN_ALIGN_FLOAT) {
+		/* handle our own drawing. */
+	}
+	else if (ar->overlap) {
 		/* view should be in pixelspace */
 		UI_view2d_view_restore(C);
 
@@ -1806,15 +1840,16 @@ BLI_INLINE bool streq_array_any(const char *s, const char *arr[])
 	return false;
 }
 
-static void ed_panel_draw(const bContext *C,
-                          ScrArea *sa,
-                          ARegion *ar,
-                          ListBase *lb,
-                          PanelType *pt,
-                          Panel *panel,
-                          int w,
-                          int em,
-                          bool vertical)
+static void ed_panel_draw(
+        const bContext *C,
+        ScrArea *sa,
+        ARegion *ar,
+        ListBase *lb,
+        PanelType *pt,
+        Panel *panel,
+        int w,
+        int em,
+        bool vertical)
 {
 	uiStyle *style = UI_style_get_dpi();
 
@@ -1826,6 +1861,21 @@ static void ed_panel_draw(const bContext *C,
 
 	/* bad fixed values */
 	int xco, yco, h = 0;
+
+	if (pt->draw_header_preset && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+		/* for preset menu */
+		panel->layout = UI_block_layout(
+		        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+		        0, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, 0, style);
+
+		pt->draw_header_preset(C, panel);
+
+		int headerend = w - UI_UNIT_X;
+
+		UI_block_layout_resolve(block, &xco, &yco);
+		UI_block_translate(block, headerend - xco, 0);
+		panel->layout = NULL;
+	}
 
 	if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 		int labelx, labely;
@@ -1891,13 +1941,16 @@ static void ed_panel_draw(const bContext *C,
  * Matching against any of these strings will draw the panel.
  * Can be NULL to skip context checks.
  */
-void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], int contextnr, const bool vertical)
+void ED_region_panels_layout_ex(
+        const bContext *C, ARegion *ar,
+        const char *contexts[], int contextnr, const bool vertical)
 {
+	ar->runtime.category = NULL;
+
 	const WorkSpace *workspace = CTX_wm_workspace(C);
 	ScrArea *sa = CTX_wm_area(C);
 	PanelType *pt;
 	View2D *v2d = &ar->v2d;
-	View2DScrollers *scrollers;
 	int x, y, w, em;
 	bool is_context_new = 0;
 	int scroll;
@@ -1908,6 +1961,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 	const char *category = NULL;
 	const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
 	int margin_x = 0;
+	const bool region_layout_based = ar->flag & RGN_FLAG_DYNAMIC_SIZE;
 
 	BLI_SMALLSTACK_DECLARE(pt_stack, PanelType *);
 
@@ -2018,7 +2072,28 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 	UI_panels_end(C, ar, &x, &y);
 
 	/* before setting the view */
-	if (vertical) {
+	if (region_layout_based) {
+		/* XXX, only single panel support atm.
+		 * Can't use x/y values calculated above because they're not using the real height of panels,
+		 * instead they calculate offsets for the next panel to start drawing. */
+		Panel *panel = ar->panels.last;
+		if (panel != NULL) {
+			int size_dyn[2] = {
+				UI_UNIT_X * ((panel->flag & PNL_CLOSED) ? 8 : 14),
+				UI_panel_size_y(panel),
+			};
+			/* region size is layout based and needs to be updated */
+			if ((ar->sizex != size_dyn[0]) ||
+			    (ar->sizey != size_dyn[1]))
+			{
+				ar->sizex = size_dyn[0];
+				ar->sizey = size_dyn[1];
+				sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+			}
+			y = ABS(ar->sizey - 1);
+		}
+	}
+	else if (vertical) {
 		/* we always keep the scroll offset - so the total view gets increased with the scrolled away part */
 		if (v2d->cur.ymax < -FLT_EPSILON) {
 			/* Clamp to lower view boundary */
@@ -2059,7 +2134,22 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 #endif
 	}
 
-	region_clear_color(C, ar, (ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
+	if (use_category_tabs) {
+		ar->runtime.category = category;
+	}
+}
+void ED_region_panels_layout(const bContext *C, ARegion *ar)
+{
+	ED_region_panels_layout_ex(C, ar, NULL, -1, true);
+}
+
+void ED_region_panels_draw(const bContext *C, ARegion *ar)
+{
+	View2D *v2d = &ar->v2d;
+
+	if (ar->alignment != RGN_ALIGN_FLOAT) {
+		region_clear_color(C, ar, (ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
+	}
 
 	/* reset line width for drawing tabs */
 	glLineWidth(1.0f);
@@ -2073,14 +2163,32 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *contexts[], in
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
 
-	if (use_category_tabs) {
-		UI_panel_category_draw_all(ar, category);
+	/* Set in layout. */
+	if (ar->runtime.category) {
+		UI_panel_category_draw_all(ar, ar->runtime.category);
 	}
 
 	/* scrollers */
-	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	View2DScrollers *scrollers = UI_view2d_scrollers_calc(
+	        C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+}
+
+void ED_region_panels_ex(
+        const bContext *C, ARegion *ar,
+        const char *contexts[], int contextnr, const bool vertical)
+{
+	/* TODO: remove? */
+	ED_region_panels_layout_ex(C, ar, contexts, contextnr, vertical);
+	ED_region_panels_draw(C, ar);
+}
+
+void ED_region_panels(const bContext *C, ARegion *ar)
+{
+	/* TODO: remove? */
+	ED_region_panels_layout(C, ar);
+	ED_region_panels_draw(C, ar);
 }
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
@@ -2102,13 +2210,12 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 	Header header = {NULL};
 	int maxco, xco, yco;
 	int headery = ED_area_headersize();
-	const int start_ofs = UI_HEADER_OFFSET_START;
 	bool region_layout_based = ar->flag & RGN_FLAG_DYNAMIC_SIZE;
 
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(&ar->v2d);
 
-	xco = maxco = start_ofs;
+	xco = maxco = UI_HEADER_OFFSET;
 	yco = headery + (ar->winy - headery) / 2 - floor(0.2f * UI_UNIT_Y);
 
 	/* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
@@ -2139,7 +2246,7 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 		if (xco > maxco)
 			maxco = xco;
 
-		int new_sizex = (maxco + start_ofs) / UI_DPI_FAC;
+		int new_sizex = (maxco + UI_HEADER_OFFSET) / UI_DPI_FAC;
 
 		if (region_layout_based && (ar->sizex != new_sizex)) {
 			/* region size is layout based and needs to be updated */
@@ -2152,8 +2259,12 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 		UI_block_end(C, block);
 	}
 
+	if (!region_layout_based) {
+		maxco += UI_HEADER_OFFSET;
+	}
+
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + (region_layout_based ? 0 : UI_UNIT_X + 80), headery);
+	UI_view2d_totRect_set(&ar->v2d, maxco, headery);
 
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
@@ -2161,10 +2272,10 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 
 void ED_region_header_draw(const bContext *C, ARegion *ar)
 {
-	UI_view2d_view_ortho(&ar->v2d);
-
 	/* clear */
 	region_clear_color(C, ar, region_background_color_id(C, ar));
+
+	UI_view2d_view_ortho(&ar->v2d);
 
 	/* View2D matrix might have changed due to dynamic sized regions. */
 	UI_blocklist_update_window_matrix(C, &ar->uiblocks);
@@ -2686,6 +2797,9 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
 					if (ABS(rect->ymax - arn->winrct.ymax) < 2) {
 						rect->ymax = arn->winrct.ymin;
 					}
+				}
+				else if (arn->alignment == RGN_ALIGN_FLOAT) {
+					/* Skip floating. */
 				}
 				else {
 					BLI_assert(!"Region overlap with unknown alignment");

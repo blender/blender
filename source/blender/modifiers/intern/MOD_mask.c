@@ -115,17 +115,17 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	}
 
 	/* Overview of Method:
-	 *	1. Get the vertices that are in the vertexgroup of interest 
+	 *	1. Get the vertices that are in the vertexgroup of interest
 	 *	2. Filter out unwanted geometry (i.e. not in vertexgroup), by populating mappings with new vs old indices
 	 *	3. Make a new mesh containing only the mapping data
 	 */
-	
+
 	/* get original number of verts, edges, and faces */
 	maxVerts = mesh->totvert;
 	maxEdges = mesh->totedge;
 	maxPolys = mesh->totpoly;
-	
-	/* check if we can just return the original mesh 
+
+	/* check if we can just return the original mesh
 	 *	- must have verts and therefore verts assigned to vgroups to do anything useful
 	 */
 	if (!(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) ||
@@ -133,7 +133,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	{
 		return mesh;
 	}
-	
+
 	/* if mode is to use selected armature bones, aggregate the bone groups */
 	if (mmd->mode == MOD_MASK_MODE_ARM) { /* --- using selected bones --- */
 		Object *oba = mmd->ob_arm;
@@ -142,18 +142,18 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		bool *bone_select_array;
 		int bone_select_tot = 0;
 		const int defbase_tot = BLI_listbase_count(&ob->defbase);
-		
+
 		/* check that there is armature object with bones to use, otherwise return original mesh */
 		if (ELEM(NULL, oba, oba->pose, ob->defbase.first)) {
 			return mesh;
 		}
-		
-		/* determine whether each vertexgroup is associated with a selected bone or not 
+
+		/* determine whether each vertexgroup is associated with a selected bone or not
 		 * - each cell is a boolean saying whether bone corresponding to the ith group is selected
 		 * - groups that don't match a bone are treated as not existing (along with the corresponding ungrouped verts)
 		 */
 		bone_select_array = MEM_malloc_arrayN((size_t)defbase_tot, sizeof(char), "mask array");
-		
+
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
 			pchan = BKE_pose_channel_find_name(oba->pose, def->name);
 			if (pchan && pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
@@ -169,8 +169,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		 * key = oldindex, value = newindex
 		 */
 		vertHash = BLI_ghash_int_new_ex("mask vert gh", (unsigned int)maxVerts);
-		
-		/* add vertices which exist in vertexgroups into vertHash for filtering 
+
+		/* add vertices which exist in vertexgroups into vertHash for filtering
 		 * - dv = for each vertex, what vertexgroups does it belong to
 		 * - dw = weight that vertex was assigned to a vertexgroup it belongs to
 		 */
@@ -178,7 +178,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 			MDeformWeight *dw = dv->dw;
 			bool found = false;
 			int j;
-			
+
 			/* check the groups that vertex is assigned to, and see if it was any use */
 			for (j = 0; j < dv->totweight; j++, dw++) {
 				if (dw->def_nr < defbase_tot) {
@@ -190,16 +190,16 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 					}
 				}
 			}
-			
+
 			if (found_test != found) {
 				continue;
 			}
-			
+
 			/* add to ghash for verts (numVerts acts as counter for mapping) */
 			BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numVerts));
 			numVerts++;
 		}
-		
+
 		/* free temp hashes */
 		MEM_freeN(bone_select_array);
 	}
@@ -210,10 +210,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		if (defgrp_index == -1) {
 			return mesh;
 		}
-			
+
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
 		vertHash = BLI_ghash_int_new_ex("mask vert2 bh", (unsigned int)maxVerts);
-		
+
 		/* add vertices which exist in vertexgroup into ghash for filtering */
 		for (i = 0, dv = dvert; i < maxVerts; i++, dv++) {
 			const bool found = defvert_find_weight(dv, defgrp_index) != 0.0f;
@@ -239,12 +239,12 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	/* overalloc, assume all polys are seen */
 	loop_mapping = MEM_malloc_arrayN((size_t)maxPolys, sizeof(int), "mask loopmap");
 
-	/* loop over edges and faces, and do the same thing to 
-	 * ensure that they only reference existing verts 
+	/* loop over edges and faces, and do the same thing to
+	 * ensure that they only reference existing verts
 	 */
 	for (i = 0; i < maxEdges; i++) {
 		const MEdge *me = &medge_src[i];
-		
+
 		/* only add if both verts will be in new mesh */
 		if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1)) &&
 		    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2)))
@@ -258,14 +258,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		const MLoop *ml_src = &mloop_src[mp_src->loopstart];
 		bool ok = true;
 		int j;
-		
+
 		for (j = 0; j < mp_src->totloop; j++, ml_src++) {
 			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(ml_src->v))) {
 				ok = false;
 				break;
 			}
 		}
-		
+
 		/* all verts must be available */
 		if (ok) {
 			BLI_ghash_insert(polyHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numPolys));
@@ -274,13 +274,13 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 			numLoops += mp_src->totloop;
 		}
 	}
-	
-	
-	/* now we know the number of verts, edges and faces, 
+
+
+	/* now we know the number of verts, edges and faces,
 	 * we can create the new (reduced) mesh
 	 */
 	result = BKE_mesh_new_nomain_from_template(mesh, numVerts, numEdges, 0, numLoops, numPolys);
-	
+
 	mpoly_dst = result->mpoly;
 	mloop_dst = result->mloop;
 	medge_dst = result->medge;
@@ -293,21 +293,21 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		MVert *v_dst;
 		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
 		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
-		
+
 		v_src = &mvert_src[i_src];
 		v_dst = &mvert_dst[i_dst];
 
 		*v_dst = *v_src;
 		CustomData_copy_data(&mesh->vdata, &result->vdata, i_src, i_dst, 1);
 	}
-		
+
 	/* edges */
 	GHASH_ITER (gh_iter, edgeHash) {
 		const MEdge *e_src;
 		MEdge *e_dst;
 		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
 		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
-		
+
 		e_src = &medge_src[i_src];
 		e_dst = &medge_dst[i_dst];
 
@@ -316,7 +316,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		e_dst->v1 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v1)));
 		e_dst->v2 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v2)));
 	}
-	
+
 	/* faces */
 	GHASH_ITER (gh_iter, polyHash) {
 		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
@@ -327,7 +327,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		const int i_ml_dst = loop_mapping[i_dst];
 		const MLoop *ml_src = &mloop_src[i_ml_src];
 		MLoop *ml_dst = &mloop_dst[i_ml_dst];
-		
+
 		CustomData_copy_data(&mesh->pdata, &result->pdata, i_src, i_dst, 1);
 		CustomData_copy_data(&mesh->ldata, &result->ldata, i_ml_src, i_ml_dst, mp_src->totloop);
 
@@ -344,7 +344,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	/* why is this needed? - campbell */
 	/* recalculate normals */
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-	
+
 	/* free hashes */
 	BLI_ghash_free(vertHash, NULL, NULL);
 	BLI_ghash_free(edgeHash, NULL, NULL);

@@ -627,7 +627,7 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
 {
 	Object *ob = OBACT(view_layer);
 	View3D *v3d = draw_ctx->v3d;
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) > 0 || (v3d->overlay.flag & V3D_OVERLAY_HIDE_CURSOR)) {
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_CURSOR)) {
 		return false;
 	}
 
@@ -732,6 +732,9 @@ void DRW_draw_cursor(void)
 			GWN_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
 
 			GWN_batch_draw(cursor_batch);
+
+			glDisable(GL_BLEND);
+			glDisable(GL_LINE_SMOOTH);
 		}
 	}
 }

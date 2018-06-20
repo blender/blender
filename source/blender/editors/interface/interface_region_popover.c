@@ -168,11 +168,17 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 			block->my = handle->prev_my;
 		}
 
-		/* Prefer popover from header to be positioned into the editor. */
 		if (!slideout) {
 			ScrArea *sa = CTX_wm_area(C);
-			if (sa && ED_area_header_alignment(sa) == RGN_ALIGN_BOTTOM) {
-				ARegion *ar = CTX_wm_region(C);
+			ARegion *ar = CTX_wm_region(C);
+
+			if (ar && ar->panels.first) {
+				/* For regions with panels, prefer to open to top so we can
+				 * see the values of the buttons below changing. */
+				UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
+			}
+			else if (sa && ED_area_header_alignment(sa) == RGN_ALIGN_BOTTOM) {
+				/* Prefer popover from header to be positioned into the editor. */
 				if (ar && ar->regiontype == RGN_TYPE_HEADER) {
 					UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
 				}

@@ -85,7 +85,7 @@ void *WorkScheduler::thread_execute_cpu(void *data)
 		device->execute(work);
 		delete work;
 	}
-	
+
 	return NULL;
 }
 
@@ -93,12 +93,12 @@ void *WorkScheduler::thread_execute_gpu(void *data)
 {
 	Device *device = (Device *)data;
 	WorkPackage *work;
-	
+
 	while ((work = (WorkPackage *)BLI_thread_queue_pop(g_gpuqueue))) {
 		device->execute(work);
 		delete work;
 	}
-	
+
 	return NULL;
 }
 #endif

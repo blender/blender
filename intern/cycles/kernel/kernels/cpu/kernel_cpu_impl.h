@@ -30,6 +30,7 @@
 #    include "kernel/split/kernel_split_data.h"
 #    include "kernel/kernel_globals.h"
 
+#    include "kernel/kernel_color.h"
 #    include "kernel/kernels/cpu/kernel_cpu_image.h"
 #    include "kernel/kernel_film.h"
 #    include "kernel/kernel_path.h"

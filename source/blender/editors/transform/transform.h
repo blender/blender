@@ -65,6 +65,7 @@ struct wmEvent;
 struct wmTimer;
 struct ARegion;
 struct ReportList;
+struct RNG;
 struct EditBone;
 struct RenderEngineType;
 struct SnapObjectContext;
@@ -535,6 +536,9 @@ typedef struct TransInfo {
 	void		*draw_handle_view;
 	void		*draw_handle_pixel;
 	void		*draw_handle_cursor;
+
+	/** Currently only used for random curve of proportional editing. */
+	struct RNG *rng;
 
 	/** Typically for mode settings. */
 	TransCustomDataContainer custom;

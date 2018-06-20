@@ -20,13 +20,14 @@
 import bpy
 from bpy.types import Panel, Menu
 from bpy.app.translations import pgettext_iface as iface_
+from bl_operators.presets import PresetMenu
 
 
-class FLUID_MT_presets(Menu):
+class FLUID_PT_presets(PresetMenu):
     bl_label = "Fluid Presets"
     preset_subdir = "fluid"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    preset_add_operator = "fluid.preset_add"
 
 
 class PhysicButtonsPanel:
@@ -203,7 +204,8 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
-    bl_label = "Fluid World"
+    bl_label = "World"
+    bl_parent_id = 'PHYSICS_PT_fluid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -240,11 +242,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
             col.prop(fluid, "simulation_scale", text="Meters")
 
         col = split.column()
-        col.label(text="Viscosity Presets:")
-        sub = col.row(align=True)
-        sub.menu("FLUID_MT_presets", text=bpy.types.FLUID_MT_presets.bl_label)
-        sub.operator("fluid.preset_add", text="", icon='ZOOMIN')
-        sub.operator("fluid.preset_add", text="", icon='ZOOMOUT').remove_active = True
+        FLUID_PT_presets.draw_menu(col, text="Viscosity Presets")
 
         sub = col.column(align=True)
         sub.prop(fluid, "viscosity_base", text="Base")
@@ -256,7 +254,8 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
-    bl_label = "Fluid Boundary"
+    bl_label = "Boundary"
+    bl_parent_id = 'PHYSICS_PT_fluid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -286,7 +285,8 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
-    bl_label = "Fluid Particles"
+    bl_label = "Particles"
+    bl_parent_id = 'PHYSICS_PT_fluid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -306,7 +306,7 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
 
 
 classes = (
-    FLUID_MT_presets,
+    FLUID_PT_presets,
     PHYSICS_PT_fluid,
     PHYSICS_PT_domain_gravity,
     PHYSICS_PT_domain_boundary,

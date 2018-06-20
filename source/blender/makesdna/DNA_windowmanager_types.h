@@ -239,7 +239,7 @@ typedef struct wmWindow {
 #endif
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
-/* should be something like DNA_EXCLUDE 
+/* should be something like DNA_EXCLUDE
  * but the preprocessor first removes all comments, spaces etc */
 #
 #
@@ -377,11 +377,6 @@ typedef struct wmOperator {
 	struct wmOperator *opm;       /* current running macro, not saved */
 	struct uiLayout *layout;      /* runtime for drawing */
 	short flag, pad[3];
-
-	/* Screen context the operator was finished in. It gets temporarily
-	 * restored during operator repeat. Only set for registered operators. */
-	struct ScrArea *execution_area;
-	struct ARegion *execution_region;
 } wmOperator;
 
 /* operator type return flags: exec(), invoke() modal(), return values */

@@ -46,6 +46,7 @@
 #include "BKE_paint.h"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_object_deform.h"
 #include "BKE_object_facemap.h"
 
@@ -219,9 +220,12 @@ static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
-static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_type_tag(bmain, ID_OB);
+	Object *ob = ptr->id.data;
+	BKE_main_collection_sync(bmain);
+	DEG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 }
 
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
@@ -278,7 +282,7 @@ static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
 		/* exit/enter editmode to get new shape */
 		switch (ob->type) {
 			case OB_MESH:
-				EDBM_mesh_load(ob);
+				EDBM_mesh_load(bmain, ob);
 				EDBM_mesh_make(ob, scene->toolsettings->selectmode, true);
 
 				DEG_id_tag_update(ob->data, 0);
@@ -894,12 +898,27 @@ static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
 	return PROP_EDITABLE;
 }
 
+static int rna_MaterialSlot_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))
+{
+	Object *ob = (Object *)ptr->id.data;
+	const int index = (Material **)ptr->data - ob->mat;
+	bool is_editable;
+
+	if ((ob->matbits == NULL) || ob->matbits[index]) {
+		is_editable = !ID_IS_LINKED(ob);
+	}
+	else {
+		is_editable = ob->data ? !ID_IS_LINKED(ob->data) : false;
+	}
+
+	return is_editable ? PROP_EDITABLE : 0;
+}
 
 static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	Material *ma;
-	int index = (Material **)ptr->data - ob->mat;
+	const int index = (Material **)ptr->data - ob->mat;
 
 	ma = give_current_material(ob, index + 1);
 	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
@@ -1566,6 +1585,7 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_MaterialSlot_material_editable");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_pointer_funcs(prop, "rna_MaterialSlot_material_get", "rna_MaterialSlot_material_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Material", "Material data-block used by this material slot");
@@ -1985,6 +2005,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get",
 	                               "rna_Object_active_material_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_editable_func(prop, "rna_Object_active_material_editable");
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
@@ -2276,6 +2297,18 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rigid Body Constraint", "Constraint constraining rigid bodies");
 
 	/* restrict */
+	prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
+	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
+
+	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
+	RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
 	prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");

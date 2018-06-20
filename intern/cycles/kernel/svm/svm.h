@@ -144,6 +144,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_color_util.h"
 #include "kernel/svm/svm_math_util.h"
 
+#include "kernel/svm/svm_ao.h"
 #include "kernel/svm/svm_attribute.h"
 #include "kernel/svm/svm_gradient.h"
 #include "kernel/svm/svm_blackbody.h"
@@ -243,7 +244,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				svm_node_geometry(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_CONVERT:
-				svm_node_convert(sd, stack, node.y, node.z, node.w);
+				svm_node_convert(kg, sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_TEX_COORD:
 				svm_node_tex_coord(kg, sd, path_flag, stack, node, &offset);
@@ -323,9 +324,6 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 #if NODES_GROUP(NODE_GROUP_LEVEL_1)
 			case NODE_CLOSURE_HOLDOUT:
 				svm_node_closure_holdout(sd, stack, node);
-				break;
-			case NODE_CLOSURE_AMBIENT_OCCLUSION:
-				svm_node_closure_ambient_occlusion(sd, stack, node);
 				break;
 			case NODE_FRESNEL:
 				svm_node_fresnel(sd, stack, node.y, node.z, node.w);
@@ -465,7 +463,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				svm_node_wireframe(kg, sd, stack, node);
 				break;
 			case NODE_WAVELENGTH:
-				svm_node_wavelength(sd, stack, node.y, node.z);
+				svm_node_wavelength(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_BLACKBODY:
 				svm_node_blackbody(kg, sd, stack, node.y, node.z);
@@ -479,6 +477,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 #  ifdef __SHADER_RAYTRACE__
 			case NODE_BEVEL:
 				svm_node_bevel(kg, sd, state, stack, node);
+				break;
+			case NODE_AMBIENT_OCCLUSION:
+				svm_node_ao(kg, sd, state, stack, node);
 				break;
 #  endif  /* __SHADER_RAYTRACE__ */
 #endif  /* NODES_GROUP(NODE_GROUP_LEVEL_3) */

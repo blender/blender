@@ -126,7 +126,7 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 	struct ImBuf *ibuf = NULL;
 	bool use_float = false; /* for precision higher then 8 use float */
 	bool use_alpha = false;
-	
+
 	long signed_offsets[4] = {0, 0, 0, 0};
 	int float_divs[4] = {1, 1, 1, 1};
 
@@ -134,9 +134,9 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 	unsigned int y;
 	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 	bool is_jp2, is_j2k;
-	
+
 	opj_dparameters_t parameters;   /* decompression parameters */
-	
+
 	opj_event_mgr_t event_mgr;      /* event manager */
 	opj_image_t *image = NULL;
 
@@ -180,7 +180,7 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 
 	/* decode the stream and fill the image structure */
 	image = opj_decode(dinfo, cio);
-	
+
 	if (!image) {
 		fprintf(stderr, "ERROR -> j2k_to_image: failed to decode image!\n");
 		opj_destroy_decompress(dinfo);
@@ -196,10 +196,10 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 		fprintf(stderr, "\nError: invalid raw image parameters\n");
 		return NULL;
 	}
-	
+
 	w = image->comps[0].w;
 	h = image->comps[0].h;
-	
+
 	switch (image->numcomps) {
 		case 1: /* Grayscale */
 		case 3: /* Color */
@@ -211,38 +211,38 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 			use_alpha = true;
 			break;
 	}
-	
-	
+
+
 	i = image->numcomps;
 	if (i > 4) i = 4;
-	
+
 	while (i) {
 		i--;
-		
+
 		if (image->comps[i].prec > 8)
 			use_float = true;
-		
+
 		if (image->comps[i].sgnd)
 			signed_offsets[i] =  1 << (image->comps[i].prec - 1);
-		
+
 		/* only needed for float images but dosnt hurt to calc this */
 		float_divs[i] = (1 << image->comps[i].prec) - 1;
 	}
-	
+
 	ibuf = IMB_allocImBuf(w, h, planes, use_float ? IB_rectfloat : IB_rect);
-	
+
 	if (ibuf == NULL) {
 		if (dinfo)
 			opj_destroy_decompress(dinfo);
 		return NULL;
 	}
-	
+
 	ibuf->ftype = IMB_FTYPE_JP2;
 	if (is_jp2)
 		ibuf->foptions.flag |= JP2_JP2;
 	else
 		ibuf->foptions.flag |= JP2_J2K;
-	
+
 	if (use_float) {
 		float *rect_float = ibuf->rect_float;
 
@@ -293,7 +293,7 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 				PIXEL_LOOPER_END;
 			}
 		}
-		
+
 	}
 	else {
 		unsigned char *rect_uchar = (unsigned char *)ibuf->rect;
@@ -346,19 +346,19 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 			}
 		}
 	}
-	
+
 	/* free remaining structures */
 	if (dinfo) {
 		opj_destroy_decompress(dinfo);
 	}
-	
+
 	/* free image data structure */
 	opj_image_destroy(image);
-	
+
 	if (flags & IB_rect) {
 		IMB_rect_from_float(ibuf);
 	}
-	
+
 	return(ibuf);
 }
 
@@ -416,8 +416,8 @@ BLI_INLINE int DOWNSAMPLE_FLOAT_TO_16BIT(const float _val)
 
 static int initialise_4K_poc(opj_poc_t *POC, int numres)
 {
-	POC[0].tile  = 1; 
-	POC[0].resno0  = 0; 
+	POC[0].tile  = 1;
+	POC[0].resno0  = 0;
 	POC[0].compno0 = 0;
 	POC[0].layno1  = 1;
 	POC[0].resno1  = numres - 1;
@@ -438,7 +438,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 	parameters->tile_size_on = 0; /* false */
 	parameters->cp_tdx = 1;
 	parameters->cp_tdy = 1;
-	
+
 	/*Tile part*/
 	parameters->tp_flag = 'C';
 	parameters->tp_on = 1;
@@ -487,7 +487,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 				parameters->cp_rsiz = DCP_CINEMA2K;
 			}
 			break;
-	
+
 		case CINEMA4K_24:
 			if (parameters->numresolution < 1) {
 				parameters->numresolution = 1;
@@ -534,7 +534,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 			}
 			parameters->max_comp_size = COMP_24_CS;
 			break;
-		
+
 		case CINEMA2K_48:
 			for (i = 0; i < parameters->tcp_numlayers; i++) {
 				temp_rate = 0;
@@ -572,22 +572,22 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 {
 	unsigned char *rect_uchar;
 	float *rect_float, from_straight[4];
-	
+
 	unsigned int subsampling_dx = parameters->subsampling_dx;
 	unsigned int subsampling_dy = parameters->subsampling_dy;
-	
+
 	unsigned int i, i_next, numcomps, w, h, prec;
 	unsigned int y;
 	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 	OPJ_COLOR_SPACE color_space;
 	opj_image_cmptparm_t cmptparm[4];   /* maximum of 4 components */
 	opj_image_t *image = NULL;
-	
+
 	float (*chanel_colormanage_cb)(float);
-	
+
 	img_fol_t img_fol; /* only needed for cinema presets */
 	memset(&img_fol, 0, sizeof(img_fol_t));
-	
+
 	if (ibuf->float_colorspace || (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA)) {
 		/* float buffer was managed already, no need in color space conversion */
 		chanel_colormanage_cb = channel_colormanage_noop;
@@ -596,9 +596,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		/* standard linear-to-srgb conversion if float buffer wasn't managed */
 		chanel_colormanage_cb = linearrgb_to_srgb;
 	}
-	
+
 	if (ibuf->foptions.flag & JP2_CINE) {
-		
+
 		if (ibuf->x == 4096 || ibuf->y == 2160)
 			parameters->cp_cinema = CINEMA4K_24;
 		else {
@@ -616,7 +616,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 			}
 			cinema_parameters(parameters);
 		}
-		
+
 		color_space = (ibuf->foptions.flag & JP2_YCC) ? CLRSPC_SYCC : CLRSPC_SRGB;
 		prec = 12;
 		numcomps = 3;
@@ -624,20 +624,20 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	else {
 		/* Get settings from the imbuf */
 		color_space = (ibuf->foptions.flag & JP2_YCC) ? CLRSPC_SYCC : CLRSPC_SRGB;
-		
+
 		if (ibuf->foptions.flag & JP2_16BIT) prec = 16;
 		else if (ibuf->foptions.flag & JP2_12BIT) prec = 12;
 		else prec = 8;
-		
+
 		/* 32bit images == alpha channel */
 		/* grayscale not supported yet */
 		numcomps = (ibuf->planes == 32) ? 4 : 3;
 	}
-	
+
 	w = ibuf->x;
 	h = ibuf->y;
-	
-	
+
+
 	/* initialize image components */
 	memset(&cmptparm, 0, 4 * sizeof(opj_image_cmptparm_t));
 	for (i = 0; i < numcomps; i++) {
@@ -665,7 +665,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	/* set image data */
 	rect_uchar = (unsigned char *) ibuf->rect;
 	rect_float = ibuf->rect_float;
-	
+
 	/* set the destination channels */
 	r = image->comps[0].data;
 	g = image->comps[1].data;
@@ -676,7 +676,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		/* No need to use the floating point buffer, just write the 8 bits from the char buffer */
 		rect_float = NULL;
 	}
-	
+
 	if (rect_float) {
 		int channels_in_float = ibuf->channels ? ibuf->channels : 4;
 
@@ -744,7 +744,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 					}
 				}
 				break;
-			
+
 			case 12:
 				if (numcomps == 4) {
 					if (channels_in_float == 4) {
@@ -898,7 +898,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 					PIXEL_LOOPER_END;
 				}
 				break;
-			
+
 			case 12: /* Up Sampling, a bit pointless but best write the bit depth requested */
 				if (numcomps == 4) {
 					PIXEL_LOOPER_BEGIN(rect_uchar)
@@ -944,17 +944,17 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 				break;
 		}
 	}
-	
+
 	/* Decide if MCT should be used */
 	parameters->tcp_mct = image->numcomps == 3 ? 1 : 0;
-	
+
 	if (parameters->cp_cinema) {
 		cinema_setup_encoder(parameters, image, &img_fol);
 	}
-	
+
 	if (img_fol.rates)
 		MEM_freeN(img_fol.rates);
-	
+
 	return image;
 }
 
@@ -963,14 +963,14 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 {
 	int quality = ibuf->foptions.quality;
-	
+
 	int bSuccess;
 	opj_cparameters_t parameters;   /* compression parameters */
 	opj_event_mgr_t event_mgr;      /* event manager */
 	opj_image_t *image = NULL;
-	
+
 	(void)flags; /* unused */
-	
+
 	/*
 	 * configure the event callbacks (not required)
 	 * setting of each callback is optional
@@ -979,22 +979,22 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 	event_mgr.error_handler = error_callback;
 	event_mgr.warning_handler = warning_callback;
 	event_mgr.info_handler = info_callback;
-	
+
 	/* set encoding parameters to default values */
 	opj_set_default_encoder_parameters(&parameters);
-	
+
 	/* compression ratio */
 	/* invert range, from 10-100, 100-1
 	 * where jpeg see's 1 and highest quality (lossless) and 100 is very low quality*/
 	parameters.tcp_rates[0] = ((100 - quality) / 90.0f * 99.0f) + 1;
 
-	
+
 	parameters.tcp_numlayers = 1; /* only one resolution */
 	parameters.cp_disto_alloc = 1;
 
 	image = ibuftoimage(ibuf, &parameters);
-	
-	
+
+
 	{   /* JP2 format output */
 		int codestream_length;
 		opj_cio_t *cio = NULL;
@@ -1021,7 +1021,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 
 		/* encode the image */
 		bSuccess = opj_encode(cinfo, cio, image, NULL); /* last arg used to be parameters.index but this deprecated */
-		
+
 		if (!bSuccess) {
 			opj_cio_close(cio);
 			fprintf(stderr, "failed to encode image\n");
@@ -1031,7 +1031,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 
 		/* write the buffer to disk */
 		f = BLI_fopen(name, "wb");
-		
+
 		if (!f) {
 			fprintf(stderr, "failed to open %s for writing\n", name);
 			return 1;
@@ -1041,13 +1041,13 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 		fprintf(stderr, "Generated outfile %s\n", name);
 		/* close and free the byte stream */
 		opj_cio_close(cio);
-		
+
 		/* free remaining compression structures */
 		opj_destroy_compress(cinfo);
 	}
 
 	/* free image data */
 	opj_image_destroy(image);
-	
+
 	return 1;
 }

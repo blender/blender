@@ -64,6 +64,7 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_VERTEX_SELECT, ts.colorVertexSelect);
 	UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, ts.colorEditMeshActive);
 	UI_GetThemeColor4fv(TH_EDGE_SELECT, ts.colorEdgeSelect);
+
 	UI_GetThemeColor4fv(TH_EDGE_SEAM, ts.colorEdgeSeam);
 	UI_GetThemeColor4fv(TH_EDGE_SHARP, ts.colorEdgeSharp);
 	UI_GetThemeColor4fv(TH_EDGE_CREASE, ts.colorEdgeCrease);
@@ -118,8 +119,8 @@ void DRW_globals_update(void)
 	ts.sizeLampCircleShadow = ts.sizeLampCircle + U.pixelsize * 3.0f;
 
 	/* M_SQRT2 to be at least the same size of the old square */
-	ts.sizeVertex = ceilf(UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
-	ts.sizeFaceDot = ceilf(UI_GetThemeValuef(TH_FACEDOT_SIZE) * (float)M_SQRT2);
+	ts.sizeVertex = max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
+	ts.sizeFaceDot = UI_GetThemeValuef(TH_FACEDOT_SIZE);
 	ts.sizeEdge = 1.0f / 2.0f; /* TODO Theme */
 	ts.sizeEdgeFix = 0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * (float)M_SQRT1_2);
 

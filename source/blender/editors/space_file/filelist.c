@@ -267,10 +267,11 @@ typedef struct FileListEntryPreview {
 	ImBuf *img;
 } FileListEntryPreview;
 
+
 typedef struct FileListFilter {
 	unsigned int filter;
 	unsigned int filter_id;
-	char filter_glob[256];
+	char filter_glob[FILE_MAXFILE];
 	char filter_search[66];  /* + 2 for heading/trailing implicit '*' wildcards. */
 	short flags;
 } FileListFilter;
@@ -1973,31 +1974,31 @@ int ED_path_extension_type(const char *path)
 	else if (file_is_blend_backup(path)) {
 		return FILE_TYPE_BLENDER_BACKUP;
 	}
-	else if (BLI_testextensie(path, ".app")) {
+	else if (BLI_path_extension_check(path, ".app")) {
 		return FILE_TYPE_APPLICATIONBUNDLE;
 	}
-	else if (BLI_testextensie(path, ".py")) {
+	else if (BLI_path_extension_check(path, ".py")) {
 		return FILE_TYPE_PYSCRIPT;
 	}
-	else if (BLI_testextensie_n(path, ".txt", ".glsl", ".osl", ".data", ".pov", ".ini", ".mcr", ".inc", NULL)) {
+	else if (BLI_path_extension_check_n(path, ".txt", ".glsl", ".osl", ".data", ".pov", ".ini", ".mcr", ".inc", NULL)) {
 		return FILE_TYPE_TEXT;
 	}
-	else if (BLI_testextensie_n(path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", NULL)) {
+	else if (BLI_path_extension_check_n(path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", NULL)) {
 		return FILE_TYPE_FTFONT;
 	}
-	else if (BLI_testextensie(path, ".btx")) {
+	else if (BLI_path_extension_check(path, ".btx")) {
 		return FILE_TYPE_BTX;
 	}
-	else if (BLI_testextensie(path, ".dae")) {
+	else if (BLI_path_extension_check(path, ".dae")) {
 		return FILE_TYPE_COLLADA;
 	}
-	else if (BLI_testextensie(path, ".abc")) {
+	else if (BLI_path_extension_check(path, ".abc")) {
 		return FILE_TYPE_ALEMBIC;
 	}
-	else if (BLI_testextensie_array(path, imb_ext_image)) {
+	else if (BLI_path_extension_check_array(path, imb_ext_image)) {
 		return FILE_TYPE_IMAGE;
 	}
-	else if (BLI_testextensie(path, ".ogg")) {
+	else if (BLI_path_extension_check(path, ".ogg")) {
 		if (IMB_isanim(path)) {
 			return FILE_TYPE_MOVIE;
 		}
@@ -2005,10 +2006,10 @@ int ED_path_extension_type(const char *path)
 			return FILE_TYPE_SOUND;
 		}
 	}
-	else if (BLI_testextensie_array(path, imb_ext_movie)) {
+	else if (BLI_path_extension_check_array(path, imb_ext_movie)) {
 		return FILE_TYPE_MOVIE;
 	}
-	else if (BLI_testextensie_array(path, imb_ext_audio)) {
+	else if (BLI_path_extension_check_array(path, imb_ext_audio)) {
 		return FILE_TYPE_SOUND;
 	}
 	return 0;
@@ -2233,7 +2234,7 @@ static int filelist_readjob_list_dir(
 			/* Otherwise, do not check extensions for directories! */
 			else if (!(entry->typeflag & FILE_TYPE_DIR)) {
 				entry->typeflag = file_extension_type(root, entry->relpath);
-				if (filter_glob[0] && BLI_testextensie_glob(entry->relpath, filter_glob)) {
+				if (filter_glob[0] && BLI_path_extension_check_glob(entry->relpath, filter_glob)) {
 					entry->typeflag |= FILE_TYPE_OPERATOR;
 				}
 			}
@@ -2464,7 +2465,7 @@ static void filelist_readjob_do(
 	BLI_Stack *todo_dirs;
 	TodoDir *td_dir;
 	char dir[FILE_MAX_LIBEXTRA];
-	char filter_glob[64];  /* TODO should be define! */
+	char filter_glob[FILE_MAXFILE];
 	const char *root = filelist->filelist.root;
 	const int max_recursion = filelist->max_recursion;
 	int nbr_done_dirs = 0, nbr_todo_dirs = 1;

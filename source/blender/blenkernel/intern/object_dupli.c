@@ -124,7 +124,7 @@ static void init_context(
 static void copy_dupli_context(DupliContext *r_ctx, const DupliContext *ctx, Object *ob, float mat[4][4], int index)
 {
 	*r_ctx = *ctx;
-	
+
 	/* XXX annoying, previously was done by passing an ID* argument, this at least is more explicit */
 	if (ctx->gen->type == OB_DUPLICOLLECTION)
 		r_ctx->collection = ctx->object->dup_group;
@@ -233,13 +233,12 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 	Object *parent = ctx->object;
 
 	if (ctx->collection) {
-		int collectionid = 0;
-		FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(ctx->collection, base)
+		eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(ctx->collection, ob, mode)
 		{
-			Object *ob = base->object;
-			if ((base->flag & BASE_VISIBLED) && ob != ctx->obedit && is_child(ob, parent)) {
+			if ((ob != ctx->obedit) && is_child(ob, parent)) {
 				DupliContext pctx;
-				copy_dupli_context(&pctx, ctx, ctx->object, NULL, collectionid);
+				copy_dupli_context(&pctx, ctx, ctx->object, NULL, _base_id);
 
 				/* mballs have a different dupli handling */
 				if (ob->type != OB_MBALL) {
@@ -247,9 +246,8 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 				}
 				make_child_duplis_cb(&pctx, userdata, ob);
 			}
-			collectionid++;
 		}
-		FOREACH_COLLECTION_BASE_RECURSIVE_END
+		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 	}
 	else {
 		int baseid = 0;
@@ -278,9 +276,7 @@ static void make_duplis_collection(const DupliContext *ctx)
 {
 	Object *ob = ctx->object;
 	Collection *collection;
-	Base *base;
 	float collection_mat[4][4];
-	int id;
 
 	if (ob->dup_group == NULL) return;
 	collection = ob->dup_group;
@@ -291,20 +287,22 @@ static void make_duplis_collection(const DupliContext *ctx)
 	mul_m4_m4m4(collection_mat, ob->obmat, collection_mat);
 	/* don't access 'ob->obmat' from now on. */
 
-	const ListBase dup_collection_objects = BKE_collection_object_cache_get(collection);
-	for (base = dup_collection_objects.first, id = 0; base; base = base->next, id++) {
-		if (base->object != ob && (base->flag & BASE_VISIBLED)) {
+	eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
+	FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(collection, cob, mode)
+	{
+		if (cob != ob) {
 			float mat[4][4];
 
 			/* collection dupli offset, should apply after everything else */
-			mul_m4_m4m4(mat, collection_mat, base->object->obmat);
+			mul_m4_m4m4(mat, collection_mat, cob->obmat);
 
-			make_dupli(ctx, base->object, mat, id);
+			make_dupli(ctx, cob, mat, _base_id);
 
 			/* recursion */
-			make_recursive_duplis(ctx, base->object, collection_mat, id);
+			make_recursive_duplis(ctx, cob, collection_mat, _base_id);
 		}
 	}
+	FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 }
 
 static const DupliGenerator gen_dupli_collection = {
@@ -540,7 +538,7 @@ static const DupliGenerator gen_dupli_verts = {
 };
 
 /* OB_DUPLIVERTS - FONT */
-static Object *find_family_object(const char *family, size_t family_len, unsigned int ch, GHash *family_gh)
+static Object *find_family_object(Main *bmain, const char *family, size_t family_len, unsigned int ch, GHash *family_gh)
 {
 	Object **ob_pt;
 	Object *ob;
@@ -557,7 +555,7 @@ static Object *find_family_object(const char *family, size_t family_len, unsigne
 		ch_utf8[ch_utf8_len] = '\0';
 		ch_utf8_len += 1;  /* compare with null terminator */
 
-		for (ob = G.main->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (STREQLEN(ob->id.name + 2 + family_len, ch_utf8, ch_utf8_len)) {
 				if (STREQLEN(ob->id.name + 2, family, family_len)) {
 					break;
@@ -593,7 +591,7 @@ static void make_duplis_font(const DupliContext *ctx)
 
 	/* in par the family name is stored, use this to find the other objects */
 
-	BKE_vfont_to_curve_ex(G.main, par, par->data, FO_DUPLI, NULL,
+	BKE_vfont_to_curve_ex(par, par->data, FO_DUPLI, NULL,
 	                      &text, &text_len, &text_free, &chartransdata);
 
 	if (text == NULL || chartransdata == NULL) {
@@ -614,7 +612,9 @@ static void make_duplis_font(const DupliContext *ctx)
 	/* advance matching BLI_strncpy_wchar_from_utf8 */
 	for (a = 0; a < text_len; a++, ct++) {
 
-		ob = find_family_object(cu->family, family_len, (unsigned int)text[a], family_gh);
+		/* XXX That G.main is *really* ugly, but not sure what to do here...
+		 * Definitively don't think it would be safe to put back Main *bmain pointer in DupliContext as done in 2.7x? */
+		ob = find_family_object(G.main, cu->family, family_len, (unsigned int)text[a], family_gh);
 		if (ob) {
 			vec[0] = fsize * (ct->xof - xof);
 			vec[1] = fsize * (ct->yof - yof);
@@ -820,7 +820,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 {
 	Scene *scene = ctx->scene;
 	Object *par = ctx->object;
-	bool for_render = DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER;
+	eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
+	bool for_render = mode == DAG_EVAL_RENDER;
 	bool use_texcoords = for_render;
 
 	Object *ob = NULL, **oblist = NULL, obcopy, *obcopylist = NULL;
@@ -836,6 +837,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	float (*obmat)[4];
 	int a, b, hair = 0;
 	int totpart, totchild, totcollection = 0 /*, pa_num */;
+	RNG *rng;
 
 	int no_draw_flag = PARS_UNEXIST;
 
@@ -846,7 +848,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	if (part == NULL)
 		return;
 
-	if (!psys_check_enabled(par, psys, (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER)))
+	if (!psys_check_enabled(par, psys, for_render))
 		return;
 
 	if (!for_render)
@@ -857,7 +859,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	totpart = psys->totpart;
 	totchild = psys->totchild;
 
-	BLI_srandom((unsigned int)(31415926 + psys->seed));
+	rng = BLI_rng_new_srandom(31415926u + (unsigned int)psys->seed);
 
 	if ((for_render || part->draw_as == PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 		ParticleSimulationData sim = {NULL};
@@ -910,12 +912,12 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					totcollection += dw->count;
 			}
 			else {
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
 				{
 					(void) object;
 					totcollection++;
 				}
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 
 			/* we also copy the actual objects to restore afterwards, since
@@ -935,7 +937,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 			}
 			else {
 				a = 0;
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
 				{
 					oblist[a] = object;
 					obcopylist[a] = *object;
@@ -945,7 +947,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 						continue;
 					}
 				}
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 		}
 		else {
@@ -992,7 +994,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 				/* for collections, pick the object based on settings */
 				if (part->draw & PART_DRAW_RAND_GR)
-					b = BLI_rand() % totcollection;
+					b = BLI_rng_get_int(rng) % totcollection;
 				else
 					b = a % totcollection;
 
@@ -1035,7 +1037,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 			if (part->ren_as == PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 				b = 0;
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
 				{
 					copy_m4_m4(tmat, oblist[b]->obmat);
 
@@ -1060,7 +1062,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 					b++;
 				}
-				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 			else {
 				/* to give ipos in object correct offset */
@@ -1131,6 +1133,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		end_latt_deform(psys->lattice_deform_data);
 		psys->lattice_deform_data = NULL;
 	}
+
+	BLI_rng_free(rng);
 }
 
 static void make_duplis_particles(const DupliContext *ctx)
@@ -1249,7 +1253,7 @@ DupliApplyData *duplilist_apply(Depsgraph *depsgraph, Object *ob, Scene *scene, 
 {
 	DupliApplyData *apply_data = NULL;
 	int num_objects = BLI_listbase_count(duplilist);
-	
+
 	if (num_objects > 0) {
 		DupliObject *dob;
 		int i;
@@ -1270,7 +1274,7 @@ DupliApplyData *duplilist_apply(Depsgraph *depsgraph, Object *ob, Scene *scene, 
 			/* copy obmat from duplis */
 			copy_m4_m4(apply_data->extra[i].obmat, dob->ob->obmat);
 			copy_m4_m4(dob->ob->obmat, dob->mat);
-			
+
 			/* copy layers from the main duplicator object */
 			apply_data->extra[i].lay = dob->ob->lay;
 			dob->ob->lay = ob->lay;
@@ -1290,7 +1294,7 @@ void duplilist_restore(ListBase *duplilist, DupliApplyData *apply_data)
 	for (dob = duplilist->last, i = apply_data->num_objects - 1; dob; dob = dob->prev, --i) {
 		copy_m4_m4(dob->ob->obmat, apply_data->extra[i].obmat);
 		dob->ob->transflag &= ~OB_DUPLICALCDERIVED;
-		
+
 		dob->ob->lay = apply_data->extra[i].lay;
 	}
 }

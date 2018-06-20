@@ -869,6 +869,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "expand", false, "", "Expand button to show more detail");
 
+	func = RNA_def_function(srna, "template_icon", "uiTemplateIcon");
+	RNA_def_function_ui_description(func, "Display a large icon");
+	parm = RNA_def_int(func, "icon_value", 0, 0, INT_MAX, "Icon to display", "", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_float(func, "scale", 1.0f, 1.0f, 100.0f, "Scale", "Scale the icon size (by the button size)", 1.0f, 100.0f);
+
 	func = RNA_def_function(srna, "template_icon_view", "uiTemplateIconView");
 	RNA_def_function_ui_description(func, "Enum. Large widget showing Icon previews");
 	api_ui_item_rna_common(func);

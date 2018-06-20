@@ -1362,7 +1362,7 @@ static int uv_select_more_less(bContext *C, const bool select)
 		else {
 			EDBM_select_less(em, true);
 		}
-
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		return OPERATOR_FINISHED;
 	}
@@ -1434,6 +1434,7 @@ static int uv_select_more_less(bContext *C, const bool select)
 		uv_select_flush_from_tag_loop(sima, scene, obedit, select);
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2058,6 +2059,7 @@ static int uv_select_all_exec(bContext *C, wmOperator *op)
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -2371,7 +2373,7 @@ static int uv_mouse_select_multi(
 #endif
 	}
 
-	DEG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
@@ -2547,7 +2549,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
-		DEG_id_tag_update(obedit->data, 0);
+		DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -3052,6 +3054,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 			uv_select_sync_flush(ts, em, select);
 
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
+				DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 			}
 		}
@@ -3181,6 +3184,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	if (changed) {
 		uv_select_sync_flush(ts, em, select);
 
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -3314,6 +3318,7 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 			uv_select_sync_flush(scene->toolsettings, em, select);
 
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
+				DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 			}
 		}
@@ -3746,6 +3751,7 @@ static int uv_select_pinned_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3812,6 +3818,8 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_hide(em, swap);
+
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return OPERATOR_FINISHED;
@@ -3880,6 +3888,8 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX | SCE_SELECT_EDGE);
 
 	BM_select_history_validate(em->bm);
+
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3933,6 +3943,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
 	/* call the mesh function if we are in mesh sync sel */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_reveal(em, select);
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return OPERATOR_FINISHED;
@@ -4022,6 +4033,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
 	/* re-select tagged faces */
 	BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
 
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;

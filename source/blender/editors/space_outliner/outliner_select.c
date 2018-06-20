@@ -81,6 +81,7 @@ static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *vi
 
 	if (obact == NULL) {
 		ED_object_base_activate(C, base);
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		obact = base->object;
 		use_all = true;
@@ -104,6 +105,7 @@ static void do_outliner_activate_obdata(bContext *C, Scene *scene, ViewLayer *vi
 			}
 			if (ok) {
 				ED_object_base_select(base, (ob->mode & OB_MODE_EDIT) ? BA_SELECT : BA_DESELECT);
+				DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 				WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 			}
 		}
@@ -118,6 +120,7 @@ static void do_outliner_activate_pose(bContext *C, ViewLayer *view_layer, Base *
 	if (obact == NULL) {
 		ED_object_base_activate(C, base);
 		Scene *scene = CTX_data_scene(C);
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		obact = base->object;
 		use_all = true;
@@ -144,10 +147,25 @@ static void do_outliner_activate_pose(bContext *C, ViewLayer *view_layer, Base *
 				ED_object_base_select(base, (ob->mode & OB_MODE_POSE) ? BA_SELECT : BA_DESELECT);
 
 				Scene *scene = CTX_data_scene(C);
+				DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 				WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 			}
 		}
+	}
+}
+
+/* For draw callback to run mode switching */
+void outliner_object_mode_toggle(
+        bContext *C, Scene *scene, ViewLayer *view_layer,
+        Base *base)
+{
+	Object *obact = OBACT(view_layer);
+	if (obact->mode & OB_MODE_EDIT) {
+		do_outliner_activate_obdata(C, scene, view_layer, base);
+	}
+	else if (obact->mode & OB_MODE_POSE) {
+		do_outliner_activate_pose(C, view_layer, base);
 	}
 }
 
@@ -251,22 +269,22 @@ static eOLDrawState tree_element_set_active_object(
 	/* find associated base in current scene */
 	base = BKE_view_layer_base_find(view_layer, ob);
 
-#ifdef USE_OBJECT_MODE_STRICT
-	if (base != NULL) {
-		Object *obact = OBACT(view_layer);
-		const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
-		if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
-			if (object_mode == OB_MODE_OBJECT) {
-				struct Main *bmain = CTX_data_main(C);
-				Depsgraph *depsgraph = CTX_data_depsgraph(C);
-				ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
-			}
-			if (!BKE_object_is_mode_compat(base->object, object_mode)) {
-				base = NULL;
+	if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+		if (base != NULL) {
+			Object *obact = OBACT(view_layer);
+			const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
+			if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
+				if (object_mode == OB_MODE_OBJECT) {
+					struct Main *bmain = CTX_data_main(C);
+					Depsgraph *depsgraph = CTX_data_depsgraph(C);
+					ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
+				}
+				if (!BKE_object_is_mode_compat(base->object, object_mode)) {
+					base = NULL;
+				}
 			}
 		}
 	}
-#endif
 
 	if (base) {
 		if (set == OL_SETSEL_EXTEND) {
@@ -278,13 +296,11 @@ static eOLDrawState tree_element_set_active_object(
 		}
 		else {
 			/* deleselect all */
-#ifdef USE_OBJECT_MODE_STRICT
+
 			/* Only in object mode so we can switch the active object,
 			 * keeping all objects in the current 'mode' selected, useful for multi-pose/edit mode.
 			 * This keeps the convention that all objects in the current mode are also selected. see T55246. */
-			if (ob->mode == OB_MODE_OBJECT)
-#endif
-			{
+			if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ? (ob->mode == OB_MODE_OBJECT) : true) {
 				BKE_view_layer_base_deselect_all(view_layer);
 			}
 			ED_object_base_select(base, BA_SELECT);
@@ -297,6 +313,7 @@ static eOLDrawState tree_element_set_active_object(
 
 		if (set != OL_SETSEL_NONE) {
 			ED_object_base_activate(C, base); /* adds notifier */
+			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 
@@ -976,6 +993,7 @@ static void do_outliner_item_activate_tree_element(
 				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 			}
 
+			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 		else if (OB_DATA_SUPPORT_EDITMODE(te->idcode)) {
@@ -1176,6 +1194,7 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 		outliner_item_border_select(scene, &rectf, te, select);
 	}
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	ED_region_tag_redraw(ar);
 

@@ -1108,43 +1108,43 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
 	*     - all smooth fans of all immediate loop-neighbors vertices;
 	* This can be simplified as 'all loops of selected vertices and their immediate neighbors'
 	* need to be tagged for update.
-*/
-BM_ITER_MESH(v, &viter, bm, BM_VERTS_OF_MESH) {
-	if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-		BM_ITER_ELEM(l, &liter, v, BM_LOOPS_OF_VERT) {
-			BM_ELEM_API_FLAG_ENABLE(l, BM_LNORSPACE_UPDATE);
+	*/
+	BM_ITER_MESH(v, &viter, bm, BM_VERTS_OF_MESH) {
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+			BM_ITER_ELEM(l, &liter, v, BM_LOOPS_OF_VERT) {
+				BM_ELEM_API_FLAG_ENABLE(l, BM_LNORSPACE_UPDATE);
 
-			/* Note that we only handle unselected neighbor vertices here, main loop will take care of
-			* selected ones. */
-			if (!BM_elem_flag_test(l->prev->v, BM_ELEM_SELECT) &&
-				!BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->prev->v)))
-			{
-				BMLoop *l_prev;
-				BMIter liter_prev;
-				BM_ITER_ELEM(l_prev, &liter_prev, l->prev->v, BM_LOOPS_OF_VERT) {
-					BM_ELEM_API_FLAG_ENABLE(l_prev, BM_LNORSPACE_UPDATE);
+				/* Note that we only handle unselected neighbor vertices here, main loop will take care of
+				* selected ones. */
+				if (!BM_elem_flag_test(l->prev->v, BM_ELEM_SELECT) &&
+					!BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->prev->v)))
+				{
+					BMLoop *l_prev;
+					BMIter liter_prev;
+					BM_ITER_ELEM(l_prev, &liter_prev, l->prev->v, BM_LOOPS_OF_VERT) {
+						BM_ELEM_API_FLAG_ENABLE(l_prev, BM_LNORSPACE_UPDATE);
+					}
+					BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(l_prev->v));
 				}
-				BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(l_prev->v));
+
+				if (!BM_elem_flag_test(l->next->v, BM_ELEM_SELECT) &&
+					!BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->next->v)))
+				{
+					BMLoop *l_next;
+					BMIter liter_next;
+					BM_ITER_ELEM(l_next, &liter_next, l->next->v, BM_LOOPS_OF_VERT) {
+						BM_ELEM_API_FLAG_ENABLE(l_next, BM_LNORSPACE_UPDATE);
+					}
+					BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(l_next->v));
+				}
 			}
 
-			if (!BM_elem_flag_test(l->next->v, BM_ELEM_SELECT) &&
-				!BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->next->v)))
-			{
-				BMLoop *l_next;
-				BMIter liter_next;
-				BM_ITER_ELEM(l_next, &liter_next, l->next->v, BM_LOOPS_OF_VERT) {
-					BM_ELEM_API_FLAG_ENABLE(l_next, BM_LNORSPACE_UPDATE);
-				}
-				BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(l_next->v));
-			}
+			BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(v));
 		}
-
-		BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(v));
 	}
-}
 
-MEM_freeN(done_verts);
-bm->spacearr_dirty |= BM_SPACEARR_DIRTY;
+	MEM_freeN(done_verts);
+	bm->spacearr_dirty |= BM_SPACEARR_DIRTY;
 }
 
 void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
@@ -1469,59 +1469,6 @@ int BM_total_loop_select(BMesh *bm)
 		}
 	}
 	return r_sel;
-}
-
-static void UNUSED_FUNCTION(bm_mdisps_space_set)(
-        Object *ob, BMesh *bm, int from, int to)
-{
-	/* switch multires data out of tangent space */
-	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		BMEditMesh *em = BKE_editmesh_create(bm, false);
-		DerivedMesh *dm = CDDM_from_editbmesh(em, true, false);
-		MDisps *mdisps;
-		BMFace *f;
-		BMIter iter;
-		// int i = 0; // UNUSED
-
-		multires_set_space(dm, ob, from, to);
-
-		mdisps = CustomData_get_layer(&dm->loopData, CD_MDISPS);
-
-		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-			BMLoop *l;
-			BMIter liter;
-			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-				MDisps *lmd = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
-
-				if (!lmd->disps) {
-					printf("%s: warning - 'lmd->disps' == NULL\n", __func__);
-				}
-
-				if (lmd->disps && lmd->totdisp == mdisps->totdisp) {
-					memcpy(lmd->disps, mdisps->disps, sizeof(float) * 3 * lmd->totdisp);
-				}
-				else if (mdisps->disps) {
-					if (lmd->disps)
-						MEM_freeN(lmd->disps);
-
-					lmd->disps = MEM_dupallocN(mdisps->disps);
-					lmd->totdisp = mdisps->totdisp;
-					lmd->level = mdisps->level;
-				}
-
-				mdisps++;
-				// i += 1;
-			}
-		}
-
-		dm->needsFree = 1;
-		dm->release(dm);
-
-		/* setting this to NULL prevents BKE_editmesh_free from freeing it */
-		em->bm = NULL;
-		BKE_editmesh_free(em);
-		MEM_freeN(em);
-	}
 }
 
 /**

@@ -222,7 +222,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 					Material *ma = give_current_material(ob, i + 1);
 					Image *ima = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 					GPUTexture *tex = ima ?
-					        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, false, false) : NULL;
+					        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0f) : NULL;
 
 					if (tex) {
 						DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);
@@ -237,7 +237,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 			else {
 				Image *ima = scene->toolsettings->imapaint.canvas;
 				GPUTexture *tex = ima ?
-				        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, false, false) : NULL;
+				        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0f) : NULL;
 
 				if (tex) {
 					DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);

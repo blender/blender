@@ -704,7 +704,7 @@ static int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryP
 	if (newId == 0) {
 		newId = new Id(_curve->getId());
 		_curve->setSplittingId(newId);
-	} 
+	}
 
 	Chain *new_curve_a = new Chain(*newId);
 	newId->setSecond(newId->getSecond() + 1);
@@ -791,9 +791,9 @@ int Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& p
 	if (!splitted_chains.empty()) {
 		for (cit = splitted_chains.begin(), citend = splitted_chains.end(); cit != citend; ++cit) {
 			delete (*cit);
-		} 
+		}
 		splitted_chains.clear();
-	} 
+	}
 
 	_current_chains_set.clear();
 #if 0
@@ -1036,7 +1036,7 @@ static Stroke *createStroke(Interface1D& inter)
 	Vec2r previous = current;
 	SVertex *sv;
 	CurvePoint *cp;
-	StrokeVertex *stroke_vertex = NULL;  
+	StrokeVertex *stroke_vertex = NULL;
 	bool hasSingularity = false;
 
 	do {

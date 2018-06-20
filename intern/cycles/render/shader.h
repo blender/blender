@@ -196,6 +196,8 @@ public:
 
 	static void free_memory();
 
+	float linear_rgb_to_gray(float3 c);
+
 protected:
 	ShaderManager();
 
@@ -212,6 +214,11 @@ protected:
 	                                  DeviceRequestedFeatures *requested_features);
 
 	thread_spin_lock attribute_lock_;
+
+	float3 xyz_to_r;
+	float3 xyz_to_g;
+	float3 xyz_to_b;
+	float3 rgb_to_y;
 };
 
 CCL_NAMESPACE_END

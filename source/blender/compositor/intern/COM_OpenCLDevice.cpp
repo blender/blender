@@ -74,7 +74,7 @@ void OpenCLDevice::execute(WorkPackage *work)
 	                                                              chunkNumber, inputBuffers, outputBuffer);
 
 	delete outputBuffer;
-	
+
 	executionGroup->finalizeChunkExecution(chunkNumber, inputBuffers);
 }
 cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex,
@@ -106,7 +106,7 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
                                                                ReadBufferOperation *reader)
 {
 	cl_int error;
-	
+
 	MemoryBuffer *result = reader->getInputMemoryBuffer(inputMemoryBuffers);
 
 	const cl_image_format *imageFormat = determineImageFormat(result);

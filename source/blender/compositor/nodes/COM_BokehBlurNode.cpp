@@ -49,7 +49,7 @@ void BokehBlurNode::convertToOperations(NodeConverter &converter, const Composit
 		operation->setThreshold(0.0f);
 		operation->setMaxBlur(b_node->custom4);
 		operation->setDoScaleSize(true);
-		
+
 		converter.addOperation(operation);
 		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
@@ -60,7 +60,7 @@ void BokehBlurNode::convertToOperations(NodeConverter &converter, const Composit
 		BokehBlurOperation *operation = new BokehBlurOperation();
 		operation->setQuality(context.getQuality());
 		operation->setExtendBounds(extend_bounds);
-		
+
 		converter.addOperation(operation);
 		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));

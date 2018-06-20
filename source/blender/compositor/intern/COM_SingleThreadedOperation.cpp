@@ -49,7 +49,7 @@ void SingleThreadedOperation::deinitExecution()
 void *SingleThreadedOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cachedInstance) return this->m_cachedInstance;
-	
+
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
 		//

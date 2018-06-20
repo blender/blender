@@ -20,7 +20,10 @@
   #define TRUST_NO_ONE 1
 #endif
 
-#include <GL/glew.h>
+#if defined(WITH_OPENGL)
+  #include <GL/glew.h>
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 

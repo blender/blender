@@ -42,7 +42,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 	void setDoDegree2RadConversion(bool abool) { this->m_doDegree2RadConversion = abool; }
-	
+
 	void ensureDegree();
 };
 

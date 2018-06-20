@@ -64,7 +64,7 @@ BBox<Vec2i> GetBorderCF();
 void LoadMapCF(const char *iFileName, const char *iMapName, unsigned iNbLevels = 4, float iSigma = 1.0f);
 
 // ReadMapPixel
-/*! Reads a pixel in a user-defined map 
+/*! Reads a pixel in a user-defined map
  *  \return the floating value stored for that pixel
  *  \param iMapName
  *    The name of the map

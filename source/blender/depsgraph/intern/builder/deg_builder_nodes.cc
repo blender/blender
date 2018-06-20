@@ -458,6 +458,14 @@ void DepsgraphNodeBuilder::build_collection(
 	add_id_node(&collection->id);
 	/* Build collection objects. */
 	LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+		if (allow_restrict_flags) {
+			const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
+					? OB_RESTRICT_VIEW
+					: OB_RESTRICT_RENDER;
+			if (cob->ob->restrictflag & restrict_flag) {
+				continue;
+			}
+		}
 		build_object(-1, cob->ob, DEG_ID_LINKED_INDIRECTLY);
 	}
 	/* Build child collections. */
@@ -552,7 +560,7 @@ void DepsgraphNodeBuilder::build_object_flags(
 	const bool is_from_set = (linked_state == DEG_ID_LINKED_VIA_SET);
 	/* TODO(sergey): Is this really best component to be used? */
 	add_operation_node(&object->id,
-	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                   DEG_NODE_TYPE_OBJECT_FROM_LAYER,
 	                   function_bind(BKE_object_eval_flush_base_flags,
 	                                 _1,
 	                                 scene_cow,
@@ -897,11 +905,11 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		const ListBase group_objects = BKE_collection_object_cache_get(rbw->group);
-		LISTBASE_FOREACH (Base *, base, &group_objects) {
-			Object *object = base->object;
+		build_collection(DEG_COLLECTION_OWNER_OBJECT, rbw->group);
 
-			if (!object || (object->type != OB_MESH))
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
+		{
+			if (object->type != OB_MESH)
 				continue;
 
 			/* 2) create operation for flushing results */
@@ -915,6 +923,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 			                           get_cow_datablock(object)),
 			                   DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY);
 		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 }
 

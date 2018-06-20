@@ -63,6 +63,7 @@
 #include "BKE_scene.h"
 #include "BKE_material.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "../blenloader/BLO_readfile.h"
@@ -251,6 +252,55 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items");
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Object Mode Enter/Exit
+ * \{ */
+
+static void item_object_mode_enter_exit(
+        bContext *C, ReportList *reports, Object *ob,
+        bool enter)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *obact = OBACT(view_layer);
+
+	if ((ob->type != obact->type) || ID_IS_LINKED(ob->data)) {
+		return;
+	}
+	if (((ob->mode & obact->mode) != 0) == enter) {
+		return;
+	}
+
+	if (ob == obact) {
+		BKE_report(reports, RPT_WARNING, "Active object mode not changed");
+		return;
+	}
+
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
+	if (base == NULL) {
+		return;
+	}
+	Scene *scene = CTX_data_scene(C);
+	outliner_object_mode_toggle(C, scene, view_layer, base);
+}
+
+void item_object_mode_enter_cb(
+        bContext *C, ReportList *reports, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+{
+	Object *ob = (Object *)tselem->id;
+	item_object_mode_enter_exit(C, reports, ob, true);
+}
+
+void item_object_mode_exit_cb(
+        bContext *C, ReportList *reports, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+{
+	Object *ob = (Object *)tselem->id;
+	item_object_mode_enter_exit(C, reports, ob, false);
+}
+
+/** \} */
 
 /* Rename --------------------------------------------------- */
 
@@ -901,6 +951,7 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	else
 		outliner_set_flag(&soops->tree, TSE_SELECTED, 1);
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	ED_region_tag_redraw_no_rebuild(ar);
 
@@ -2169,6 +2220,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		DEG_relations_tag_update(bmain);
 
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 
 		return OPERATOR_FINISHED;

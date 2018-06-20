@@ -53,7 +53,7 @@ struct ColorBand;
 typedef enum eUIFont_ID {
 	UIFONT_DEFAULT	= 0,
 /*	UIFONT_BITMAP	= 1 */ /* UNUSED */
-	
+
 	/* free slots */
 	UIFONT_CUSTOM1	= 2,
 	UIFONT_CUSTOM2	= 3
@@ -97,16 +97,16 @@ typedef enum eFontStyle_Align {
 
 typedef struct uiStyle {
 	struct uiStyle *next, *prev;
-	
+
 	char name[64];			/* MAX_STYLE_NAME */
-	
+
 	uiFontStyle paneltitle;
 	uiFontStyle grouplabel;
 	uiFontStyle widgetlabel;
 	uiFontStyle widget;
-	
+
 	float panelzoom;
-	
+
 	short minlabelchars;	/* in characters */
 	short minwidgetchars;	/* in characters */
 
@@ -169,7 +169,7 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_num, wcol_numslider, wcol_tab;
 	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item, wcol_tooltip;
 	uiWidgetColors wcol_box, wcol_scroll, wcol_progress, wcol_list_item, wcol_pie_menu;
-	
+
 	uiWidgetStateColors wcol_state;
 
 	uiPanelColors panel; /* depricated, but we keep it for do_versions (2.66.1) */
@@ -179,10 +179,10 @@ typedef struct ThemeUI {
 	/* fac: 0 - 1 for blend factor, width in pixels */
 	float menu_shadow_fac;
 	short menu_shadow_width;
-	
+
 	char editor_outline[4];
 	short pad[1];
-	
+
 	char iconfile[256];	// FILE_MAXFILE length
 	float icon_alpha;
 	float icon_saturation;
@@ -209,7 +209,7 @@ typedef struct ThemeSpace {
 	char title[4]; 	/* panel title */
 	char text[4];
 	char text_hi[4];
-	
+
 	/* header colors */
 	char header[4];			/* region background */
 	char header_title[4];	/* unused */
@@ -227,19 +227,19 @@ typedef struct ThemeSpace {
 	char button_title[4];	/* panel title */
 	char button_text[4];
 	char button_text_hi[4];
-	
+
 	/* listview regions */
 	char list[4];			/* region background */
 	char list_title[4]; 	/* panel title */
 	char list_text[4];
 	char list_text_hi[4];
-	
+
 	/* float panel */
 /*	char panel[4];			unused */
 /*	char panel_title[4];	unused */
 /*	char panel_text[4];		unused */
 /*	char panel_text_hi[4];	unused */
-	
+
 	/* note, cannot use name 'panel' because of DNA mapping old files */
 	uiPanelColors panelcolors;
 
@@ -247,10 +247,10 @@ typedef struct ThemeSpace {
 
 	char shade1[4];
 	char shade2[4];
-	
+
 	char hilite[4];
-	char grid[4]; 
-	
+	char grid[4];
+
 	char view_overlay[4];
 
 	char wire[4], wire_edit[4], select[4];
@@ -270,58 +270,58 @@ typedef struct ThemeSpace {
 	char cframe[4];
 	char time_keyframe[4], time_gp_keyframe[4];
 	char freestyle_edge_mark[4], freestyle_face_mark[4];
-	
+
 	char nurb_uline[4], nurb_vline[4];
 	char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4], lastsel_point[4];
-	
+
 	char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4], handle_auto_clamped[4];
 	char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4], handle_sel_auto_clamped[4];
-	
+
 	char ds_channel[4], ds_subchannel[4]; /* dopesheet */
 	char keytype_keyframe[4], keytype_extreme[4], keytype_breakdown[4], keytype_jitter[4]; /* keytypes */
 	char keytype_keyframe_select[4], keytype_extreme_select[4], keytype_breakdown_select[4], keytype_jitter_select[4]; /* keytypes */
 	char keyborder[4], keyborder_select[4];
-	
+
 	char console_output[4], console_input[4], console_info[4], console_error[4];
 	char console_cursor[4], console_select[4];
-	
+
 	char vertex_size, outline_width, facedot_size;
 	char noodle_curving;
 
 	/* syntax for textwindow and nodes */
-	char syntaxl[4], syntaxs[4]; // in nodespace used for backdrop matte 
+	char syntaxl[4], syntaxs[4]; // in nodespace used for backdrop matte
 	char syntaxb[4], syntaxn[4]; // in nodespace used for color input
 	char syntaxv[4], syntaxc[4]; // in nodespace used for converter group
-	char syntaxd[4], syntaxr[4]; // in nodespace used for distort 
+	char syntaxd[4], syntaxr[4]; // in nodespace used for distort
 
 	char nodeclass_output[4], nodeclass_filter[4];
 	char nodeclass_vector[4], nodeclass_texture[4];
 	char nodeclass_shader[4], nodeclass_script[4];
 	char nodeclass_pattern[4], nodeclass_layout[4];
-	
+
 	char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];		/* for sequence editor */
 	char effect[4], transition[4], meta[4], text_strip[4];
-	
+
 	float keyframe_scale_fac; /* for dopesheet - scale factor for size of keyframes (i.e. height of channels) */
-	
-	char editmesh_active[4]; 
+
+	char editmesh_active[4];
 
 	char handle_vertex[4];
 	char handle_vertex_select[4];
-	
+
 	char handle_vertex_size;
 
 	char clipping_border_3d[4];
-	
+
 	char marker_outline[4], marker[4], act_marker[4], sel_marker[4], dis_marker[4], lock_marker[4];
 	char bundle_solid[4];
 	char path_before[4], path_after[4];
 	char camera_path[4];
 	char hpad[2];
-	
+
 	char gp_vertex_size;
 	char gp_vertex[4], gp_vertex_select[4];
-	
+
 	char preview_back[4];
 	char preview_stitch_face[4];
 	char preview_stitch_edge[4];
@@ -329,7 +329,7 @@ typedef struct ThemeSpace {
 	char preview_stitch_stitchable[4];
 	char preview_stitch_unstitchable[4];
 	char preview_stitch_active[4];
-	
+
 	char uv_shadow[4]; /* two uses, for uvs with modifier applied on mesh and uvs during painting */
 	char uv_others[4]; /* uvs of other objects */
 
@@ -337,14 +337,14 @@ typedef struct ThemeSpace {
 	char selected_highlight[4];	/* outliner - selected item */
 
 	char skin_root[4]; /* Skin modifier root color */
-	
+
 	/* NLA */
 	char anim_active[4];	 /* Active Action + Summary Channel */
 	char anim_non_active[4]; /* Active Action = NULL */
-	
+
 	char nla_tweaking[4];   /* NLA 'Tweaking' action/strip */
 	char nla_tweakdupli[4]; /* NLA - warning color for duplicate instances of tweaking strip */
-	
+
 	char nla_transition[4], nla_transition_sel[4]; /* NLA "Transition" strips */
 	char nla_meta[4], nla_meta_sel[4];             /* NLA "Meta" strips */
 	char nla_sound[4], nla_sound_sel[4];           /* NLA "Sound" strips */
@@ -369,10 +369,10 @@ typedef struct ThemeWireColor {
 	char 	solid[4];
 	char	select[4];
 	char 	active[4];
-	
+
 	short 	flag;  /* eWireColor_Flags */
 	short 	pad;
-} ThemeWireColor; 
+} ThemeWireColor;
 
 /* ThemeWireColor.flag */
 typedef enum eWireColor_Flags {
@@ -384,9 +384,9 @@ typedef enum eWireColor_Flags {
 typedef struct bTheme {
 	struct bTheme *next, *prev;
 	char name[32];
-	
+
 	ThemeUI tui;
-	
+
 	/* Individual Spacetypes */
 	/* note: ensure UI_THEMESPACE_END is updated when adding */
 	ThemeSpace tbuts;
@@ -411,7 +411,7 @@ typedef struct bTheme {
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];
 	/*ThemeWireColor tobj[20];*/
-	
+
 	int active_theme_area, pad;
 } bTheme;
 
@@ -449,7 +449,7 @@ typedef struct WalkNavigation {
 typedef struct UserDef {
 	/* UserDef has separate do-version handling, and can be read from other files */
 	int versionfile, subversionfile;
-	
+
 	int flag;  /* eUserPref_Flag */
 	int dupflag;  /* eDupli_ID_Flags */
 	int savetime;
@@ -465,13 +465,13 @@ typedef struct UserDef {
 	char image_editor[1024];    /* 1024 = FILE_MAX */
 	char anim_player[1024];	    /* 1024 = FILE_MAX */
 	int anim_player_preset;
-	
+
 	short v2d_min_gridsize;		/* minimum spacing between gridlines in View2D grids */
 	short timecode_style;		/* eTimecodeStyles, style of timecode display */
-	
+
 	short versions;
 	short dbl_click_time;
-	
+
 	short pad;
 	short wheellinescroll;
 	int uiflag;   /* eUserpref_UI_Flag */
@@ -481,7 +481,7 @@ typedef struct UserDef {
 	short app_flag;
 	short language;
 	short userpref, viewzoom;
-	
+
 	int mixbufsize;
 	int audiodevice;
 	int audiorate;
@@ -512,7 +512,7 @@ typedef struct UserDef {
 	struct ListBase addons;
 	struct ListBase autoexec_paths;
 	char keyconfigstr[64];
-	
+
 	short undosteps;
 	short pad1;
 	int undomemory;
@@ -541,7 +541,7 @@ typedef struct UserDef {
 	char  keyhandles_new;	/* handle types for newly added keyframes */
 	char  gpu_select_method;
 	char  gpu_select_pick_deph;
-	char  pad4;
+	char  gpu_viewport_antialias;
 	char  view_frame_type;  /* eZoomFrame_Mode */
 
 	int view_frame_keyframes; /* number of keyframes to zoom around current frame */
@@ -549,7 +549,7 @@ typedef struct UserDef {
 
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
-	
+
 	short widget_unit;		/* private, defaults to 20 for 72 DPI setting */
 	short anisotropic_filter;
 	short use_16bit_textures, use_gpu_mipmap;
@@ -563,12 +563,12 @@ typedef struct UserDef {
 
 	/* eImageDrawMethod, Method to be used to draw the images (AUTO, GLSL, Textures or DrawPixels) */
 	short image_draw_method;
-	
+
 	float glalphaclip;
-	
+
 	short autokey_mode;		/* eAutokey_Mode, autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
-	
+
 	short text_render, pad9;		/* options for text rendering */
 
 	struct ColorBand coba_weight;	/* from texture.h */
@@ -586,7 +586,7 @@ typedef struct UserDef {
 
 	int compute_device_type;
 	int compute_device_id;
-	
+
 	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
 
 	short pie_interaction_type;     /* if keeping a pie menu spawn button pressed after this time, it turns into
@@ -736,7 +736,7 @@ typedef enum eUserpref_APP_Flag {
 typedef enum eAutokey_Mode {
 	/* AUTOKEY_ON is a bitflag */
 	AUTOKEY_ON             = 1,
-	
+
 	/* AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2) to preserve setting, even when autokey turned off  */
 	AUTOKEY_MODE_NORMAL    = 3,
 	AUTOKEY_MODE_EDITKEYS  = 5
@@ -759,7 +759,7 @@ typedef enum eAutokey_Flag {
 	AUTOKEY_FLAG_INSERTNEEDED	= (1 << 1),
 	AUTOKEY_FLAG_AUTOMATKEY		= (1 << 2),
 	AUTOKEY_FLAG_XYZ2RGB		= (1 << 3),
-	
+
 	/* toolsettings->autokey_flag */
 	AUTOKEY_FLAG_ONLYKEYINGSET	= (1 << 6),
 	AUTOKEY_FLAG_NOWARNING		= (1 << 7),
@@ -802,6 +802,12 @@ typedef enum eOpenGL_SelectOptions {
 	USER_SELECT_USE_SELECT_RENDERMODE = 2
 } eOpenGL_SelectOptions;
 
+/* max anti alias draw method UserDef.gpu_viewport_antialias */
+typedef enum eOpenGL_AntiAliasMethod {
+	USER_AA_NONE = 0,
+	USER_AA_FXAA = 1,
+} eOpenGL_AntiAliasMethod;
+
 /* text draw options
  * UserDef.text_render */
 typedef enum eText_Draw_Options {
@@ -837,7 +843,7 @@ typedef enum eColorPicker_Types {
  * UserDef.timecode_style */
 typedef enum eTimecodeStyles {
 	/* as little info as is necessary to show relevant info
-	 * with '+' to denote the frames 
+	 * with '+' to denote the frames
 	 * i.e. HH:MM:SS+FF, MM:SS+FF, SS+FF, or MM:SS
 	 */
 	USER_TIMECODE_MINIMAL       = 0,

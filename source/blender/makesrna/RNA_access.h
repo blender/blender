@@ -594,6 +594,7 @@ extern StructRNA RNA_StretchToConstraint;
 extern StructRNA RNA_StringProperty;
 extern StructRNA RNA_Struct;
 extern StructRNA RNA_StucciTexture;
+extern StructRNA RNA_StudioLight;
 extern StructRNA RNA_SubsurfModifier;
 extern StructRNA RNA_SunLamp;
 extern StructRNA RNA_SurfaceCurve;

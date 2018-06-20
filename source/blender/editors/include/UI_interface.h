@@ -830,6 +830,7 @@ struct Panel *UI_panel_begin(struct ScrArea *sa, struct ARegion *ar, struct List
 void UI_panel_end(uiBlock *block, int width, int height);
 void UI_panels_scale(struct ARegion *ar, float new_width);
 void UI_panel_label_offset(struct uiBlock *block, int *x, int *y);
+int UI_panel_size_y(const struct Panel *pa);
 
 bool                       UI_panel_category_is_visible(struct ARegion *ar);
 void                       UI_panel_category_add(struct ARegion *ar, const char *name);
@@ -905,7 +906,7 @@ void UI_exit(void);
 #define UI_ITEM_O_DEPRESS       (1 << 9)
 #define UI_ITEM_R_COMPACT       (1 << 10)
 
-#define UI_HEADER_OFFSET_START ((void)0, 0.4f * UI_UNIT_X)
+#define UI_HEADER_OFFSET ((void)0, 0.2f * UI_UNIT_X)
 
 /* uiLayoutOperatorButs flags */
 enum {
@@ -963,6 +964,7 @@ void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 void uiLayoutSetEmboss(uiLayout *layout, char emboss);
 void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
+void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 
 int uiLayoutGetOperatorContext(uiLayout *layout);
 bool uiLayoutGetActive(uiLayout *layout);
@@ -975,6 +977,7 @@ float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 int uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
+bool uiLayoutGetPropDecorate(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
@@ -1030,6 +1033,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct bContext *C, struct ID *id, int show_buttons, struct ID *parent,
                        struct MTex *slot, const char *preview_id);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int expand);
+void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale);
 void uiTemplateIconView(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int show_labels, float icon_scale);
 void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateWaveform(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
@@ -1255,5 +1259,7 @@ void UI_widgetbase_draw_cache_end(void);
 #define USE_UI_POPOVER_ONCE
 
 bool UI_but_is_tool(const uiBut *but);
+#define UI_but_is_decorator(but) \
+	((but)->func == ui_but_anim_decorate_cb)
 
 #endif  /* __UI_INTERFACE_H__ */

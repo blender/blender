@@ -48,25 +48,25 @@ void BoxMaskOperation::executePixelSampled(float output[4], float x, float y, Pi
 {
 	float inputMask[4];
 	float inputValue[4];
-	
+
 	float rx = x / this->getWidth();
 	float ry = y / this->getHeight();
-	
+
 	const float dy = (ry - this->m_data->y) / this->m_aspectRatio;
 	const float dx = rx - this->m_data->x;
 	rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
 	ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
-	
+
 	this->m_inputMask->readSampled(inputMask, x, y, sampler);
 	this->m_inputValue->readSampled(inputValue, x, y, sampler);
-	
+
 	float halfHeight = this->m_data->height / 2.0f;
 	float halfWidth = this->m_data->width / 2.0f;
 	bool inside = (rx > this->m_data->x - halfWidth &&
 	               rx < this->m_data->x + halfWidth &&
 	               ry > this->m_data->y - halfHeight &&
 	               ry < this->m_data->y + halfHeight);
-	
+
 	switch (this->m_maskType) {
 		case CMP_NODE_MASKTYPE_ADD:
 			if (inside) {

@@ -159,7 +159,7 @@ static ImBuf *IMB_ibImageFromFile(const char *filepath, int flags, char colorspa
 static bool imb_is_filepath_format(const char *filepath)
 {
 	/* return true if this is one of the formats that can't be loaded from memory */
-	return BLI_testextensie_array(filepath, imb_ext_image_filepath_only);
+	return BLI_path_extension_check_array(filepath, imb_ext_image_filepath_only);
 }
 
 ImBuf *IMB_loadifffile(int file, const char *filepath, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
@@ -199,7 +199,7 @@ static void imb_cache_filename(char *filename, const char *name, int flags)
 	/* read .tx instead if it exists and is not older */
 	if (flags & IB_tilecache) {
 		BLI_strncpy(filename, name, IMB_FILENAME_SIZE);
-		if (!BLI_replace_extension(filename, IMB_FILENAME_SIZE, ".tx"))
+		if (!BLI_path_extension_replace(filename, IMB_FILENAME_SIZE, ".tx"))
 			return;
 
 		if (BLI_file_older(name, filename))

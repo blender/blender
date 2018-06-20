@@ -316,7 +316,7 @@ static void dpaint_bake_endjob(void *customdata)
 	G.is_rendering = false;
 	BKE_spacedata_draw_locks(false);
 
-	WM_set_locked_interface(G.main->wm.first, false);
+	WM_set_locked_interface(G_MAIN->wm.first, false);
 
 	/* Bake was successful:
 	 *  Report for ended bake and how long it took */

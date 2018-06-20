@@ -37,6 +37,6 @@ void ColorNode::convertToOperations(NodeConverter &converter, const CompositorCo
 	output->getEditorValueColor(col);
 	operation->setChannels(col);
 	converter.addOperation(operation);
-	
+
 	converter.mapOutputSocket(output, operation->getOutputSocket());
 }

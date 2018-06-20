@@ -224,7 +224,7 @@ static int node_properties_poll(bContext *C)
 
 void NODE_OT_properties(wmOperatorType *ot)
 {
-	ot->name = "Properties";
+	ot->name = "Toggle Sidebar";
 	ot->description = "Toggle the properties region visibility";
 	ot->idname = "NODE_OT_properties";
 

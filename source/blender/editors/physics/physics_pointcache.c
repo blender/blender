@@ -140,7 +140,7 @@ static void ptcache_job_endjob(void *customdata)
 	G.is_rendering = false;
 	BKE_spacedata_draw_locks(false);
 
-	WM_set_locked_interface(G.main->wm.first, false);
+	WM_set_locked_interface(G_MAIN->wm.first, false);
 
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
 	WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, job->baker->pid.ob);
@@ -164,7 +164,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 {
 	PTCacheBaker *baker = MEM_callocN(sizeof(PTCacheBaker), "PTCacheBaker");
 
-	baker->main = CTX_data_main(C);
+	baker->bmain = CTX_data_main(C);
 	baker->scene = CTX_data_scene(C);
 	baker->view_layer = CTX_data_view_layer(C);
 	baker->depsgraph = CTX_data_depsgraph(C);

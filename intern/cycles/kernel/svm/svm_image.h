@@ -33,7 +33,8 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	}
 
 	if(srgb) {
-		r = color_srgb_to_scene_linear_v4(r);
+		/* TODO(lukas): Implement proper conversion for image textures. */
+		r = color_srgb_to_linear_v4(r);
 	}
 
 	return r;

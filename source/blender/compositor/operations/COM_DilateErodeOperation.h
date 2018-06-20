@@ -31,11 +31,11 @@ private:
 	 * Cached reference to the inputProgram
 	 */
 	SocketReader *m_inputProgram;
-	
+
 	float m_distance;
 	float m__switch;
 	float m_inset;
-	
+
 	/**
 	 * determines the area of interest to track pixels
 	 * keep this one as small as possible for speed gain.
@@ -43,27 +43,27 @@ private:
 	int m_scope;
 public:
 	DilateErodeThresholdOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void setDistance(float distance) { this->m_distance = distance; }
 	void setSwitch(float sw) { this->m__switch = sw; }
 	void setInset(float inset) { this->m_inset = inset; }
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 };
@@ -79,43 +79,43 @@ protected:
 	int m_scope;
 public:
 	DilateDistanceOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
+
 	void setDistance(float distance) { this->m_distance = distance; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	
+
 	void executeOpenCL(OpenCLDevice *device,
-	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
 	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
 	                   list<cl_kernel> *clKernelsToCleanUp);
 };
 class ErodeDistanceOperation : public DilateDistanceOperation {
 public:
 	ErodeDistanceOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
 
 	void executeOpenCL(OpenCLDevice *device,
-	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
-	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
+	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
 	                   list<cl_kernel> *clKernelsToCleanUp);
 };
 
@@ -125,38 +125,38 @@ protected:
 	 * Cached reference to the inputProgram
 	 */
 	SocketReader *m_inputProgram;
-	
+
 	int m_iterations;
-	
+
 public:
 	DilateStepOperation();
-	
+
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	
+
 	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
 	void deinitializeTileData(rcti *rect, void *data);
-	
+
 	void setIterations(int iterations) { this->m_iterations = iterations; }
-	
+
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 
 class ErodeStepOperation : public DilateStepOperation {
 public:
 	ErodeStepOperation();
-	
+
 	void *initializeTileData(rcti *rect);
 };
 

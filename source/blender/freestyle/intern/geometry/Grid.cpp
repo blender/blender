@@ -242,7 +242,7 @@ bool Grid::nextRayCell(Vec3u& current_cell, Vec3u& next_cell)
 	real t_min, t;
 	unsigned i;
 
-	t_min = FLT_MAX;    // init tmin with handle of the case where one or 2 _u[i] = 0. 
+	t_min = FLT_MAX;    // init tmin with handle of the case where one or 2 _u[i] = 0.
 	unsigned coord = 0; // predominant coord(0=x, 1=y, 2=z)
 
 

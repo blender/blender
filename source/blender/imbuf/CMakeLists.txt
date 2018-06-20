@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
 	../blenkernel
 	../blenlib
@@ -83,7 +83,7 @@ set(SRC
 	intern/IMB_filter.h
 	intern/IMB_indexer.h
 	intern/imbuf.h
-	
+
 	# orphan include
 	../../../intern/ffmpeg/ffmpeg_compat.h
 )

@@ -291,23 +291,24 @@ static void ui_imageuser_slot_menu(bContext *UNUSED(C), uiLayout *layout, void *
 {
 	uiBlock *block = uiLayoutGetBlock(layout);
 	Image *image = image_p;
-	int slot;
+	int slot_id;
 
 	uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("Slot"),
 	         0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	uiItemS(layout);
 
-	slot = IMA_MAX_RENDER_SLOT;
-	while (slot--) {
+	slot_id = BLI_listbase_count(&image->renderslots) - 1;
+	for (RenderSlot *slot = image->renderslots.last; slot; slot = slot->prev) {
 		char str[64];
-		if (image->render_slots[slot].name[0] != '\0') {
-			BLI_strncpy(str, image->render_slots[slot].name, sizeof(str));
+		if (slot->name[0] != '\0') {
+			BLI_strncpy(str, slot->name, sizeof(str));
 		}
 		else {
-			BLI_snprintf(str, sizeof(str), IFACE_("Slot %d"), slot + 1);
+			BLI_snprintf(str, sizeof(str), IFACE_("Slot %d"), slot_id + 1);
 		}
 		uiDefButS(block, UI_BTYPE_BUT_MENU, B_NOP, str, 0, 0,
-		          UI_UNIT_X * 5, UI_UNIT_X, &image->render_slot, (float) slot, 0.0, 0, -1, "");
+		          UI_UNIT_X * 5, UI_UNIT_X, &image->render_slot, (float) slot_id, 0.0, 0, -1, "");
+		slot_id--;
 	}
 }
 
@@ -708,8 +709,9 @@ static void uiblock_layer_pass_buttons(
 	/* menu buts */
 	if (render_slot) {
 		char str[64];
-		if (image->render_slots[*render_slot].name[0] != '\0') {
-			BLI_strncpy(str, image->render_slots[*render_slot].name, sizeof(str));
+		RenderSlot *slot = BKE_image_get_renderslot(image, *render_slot);
+		if (slot->name[0] != '\0') {
+			BLI_strncpy(str, slot->name, sizeof(str));
 		}
 		else {
 			BLI_snprintf(str, sizeof(str), IFACE_("Slot %d"), *render_slot + 1);
@@ -1313,7 +1315,7 @@ static int image_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_properties(wmOperatorType *ot)
 {
-	ot->name = "Properties";
+	ot->name = "Toggle Sidebar";
 	ot->idname = "IMAGE_OT_properties";
 	ot->description = "Toggle the properties region visibility";
 
@@ -1337,7 +1339,7 @@ static int image_scopes_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_toolshelf(wmOperatorType *ot)
 {
-	ot->name = "Tool Shelf";
+	ot->name = "Toggle Toolbar";
 	ot->idname = "IMAGE_OT_toolshelf";
 	ot->description = "Toggles tool shelf display";
 

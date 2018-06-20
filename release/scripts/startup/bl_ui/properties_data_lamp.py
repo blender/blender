@@ -22,14 +22,6 @@ from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 
 
-class LAMP_MT_sunsky_presets(Menu):
-    bl_label = "Sun & Sky Presets"
-    preset_subdir = "sunsky"
-    preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
-    draw = Menu.draw_preset
-
-
 class DataButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -44,7 +36,7 @@ class DataButtonsPanel:
 class DATA_PT_context_lamp(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -63,7 +55,7 @@ class DATA_PT_context_lamp(DataButtonsPanel, Panel):
 
 class DATA_PT_preview(DataButtonsPanel, Panel):
     bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         self.layout.template_preview(context.lamp)
@@ -71,7 +63,7 @@ class DATA_PT_preview(DataButtonsPanel, Panel):
 
 class DATA_PT_lamp(DataButtonsPanel, Panel):
     bl_label = "Lamp"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -243,7 +235,7 @@ class DATA_PT_EEVEE_shadow_contact(DataButtonsPanel, Panel):
 
 class DATA_PT_area(DataButtonsPanel, Panel):
     bl_label = "Area Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -269,7 +261,7 @@ class DATA_PT_area(DataButtonsPanel, Panel):
 
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -330,7 +322,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
     bl_label = "Falloff Curve"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -346,13 +338,12 @@ class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _context_path = "object.data"
     _property_type = bpy.types.Lamp
 
 
 classes = (
-    LAMP_MT_sunsky_presets,
     DATA_PT_context_lamp,
     DATA_PT_preview,
     DATA_PT_lamp,

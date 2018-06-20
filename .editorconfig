@@ -1,0 +1,44 @@
+# C/C++
+[*.{c,cc,h,hh,inl,glsl}]
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = tab
+indent_size = 4
+max_line_length = 120
+
+# CMake & Text
+[*.{cmake,txt}]
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = tab
+indent_size = 4
+max_line_length = 120
+
+# Python
+[*.py]
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+max_line_length = 120
+
+# Shell
+[*.sh]
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = tab
+indent_size = 4
+max_line_length = 120
+
+# reStructuredText
+[*.rst]
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = space
+indent_size = 3
+max_line_length = 120

@@ -20,7 +20,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BLI_KDTREE_H__
 #define __BLI_KDTREE_H__
 

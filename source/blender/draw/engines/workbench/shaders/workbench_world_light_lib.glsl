@@ -1,24 +1,36 @@
 #define BLINN
 
+vec3 spherical_harmonics(vec3 N, vec3 spherical_harmonics_coefs[STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS])
+{
+	vec3 sh = vec3(0.0);
+
+	sh += 0.282095 * spherical_harmonics_coefs[0];
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 0
+	sh += -0.488603 * N.z * spherical_harmonics_coefs[1];
+	sh += 0.488603 * N.y * spherical_harmonics_coefs[2];
+	sh += -0.488603 * N.x * spherical_harmonics_coefs[3];
+#endif
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 1
+	sh += 1.092548 * N.x * N.z * spherical_harmonics_coefs[4];
+	sh += -1.092548 * N.z * N.y * spherical_harmonics_coefs[5];
+	sh += 0.315392 * (3.0 * N.y * N.y - 1.0) * spherical_harmonics_coefs[6];
+	sh += -1.092548 * N.x * N.y * spherical_harmonics_coefs[7];
+	sh += 0.546274 * (N.x * N.x - N.z * N.z) * spherical_harmonics_coefs[8];
+#endif
+
+	return sh;
+}
+
 vec3 get_world_diffuse_light(WorldData world_data, vec3 N)
 {
-	vec4 result = world_data.diffuse_light_x_pos * clamp(N.x, 0.0, 1.0);
-	result = mix(result, world_data.diffuse_light_x_neg, clamp(-N.x, 0.0, 1.0));
-	result = mix(result, world_data.diffuse_light_y_pos, clamp(-N.y, 0.0, 1.0));
-	result = mix(result, world_data.diffuse_light_y_neg, clamp(N.y, 0.0, 1.0));
-	result = mix(result, world_data.diffuse_light_z_pos, clamp(N.z, 0.0, 1.0));
-	return mix(result, world_data.diffuse_light_z_neg, clamp(-N.z, 0.0, 1.0)).xyz;
+	return (spherical_harmonics(vec3(N.x, N.y, -N.z), world_data.spherical_harmonics_coefs));
 }
 
 vec3 get_camera_diffuse_light(WorldData world_data, vec3 N)
 {
-	vec4 result = world_data.diffuse_light_x_pos * clamp(N.x, 0.0, 1.0);
-	result = mix(result, world_data.diffuse_light_x_neg, clamp(-N.x, 0.0, 1.0));
-	result = mix(result, world_data.diffuse_light_z_pos, clamp( N.y, 0.0, 1.0));
-	result = mix(result, world_data.diffuse_light_z_neg, clamp(-N.y, 0.0, 1.0));
-	result = mix(result, world_data.diffuse_light_y_pos, clamp( N.z, 0.0, 1.0));
-	result = mix(result, world_data.diffuse_light_y_neg, clamp(-N.z, 0.0, 1.0));
-	return result.rgb;
+	return (spherical_harmonics(vec3(N.x, -N.z, -N.y), world_data.spherical_harmonics_coefs));
 }
 
 /* N And I are in View Space. */

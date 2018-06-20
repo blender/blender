@@ -121,10 +121,10 @@ char *xdnd_debug_milliseconds (void)
 #define dnd_debug3(a,b,c)   printf("%s: %d: %s: " a "\n", __FILE__, __LINE__, xdnd_debug_milliseconds (), b, c)
 #define dnd_debug4(a,b,c,d) printf("%s: %d: %s: " a "\n", __FILE__, __LINE__, xdnd_debug_milliseconds (), b, c, d)
 #else
-#define dnd_debug1(a)       
-#define dnd_debug2(a,b)     
-#define dnd_debug3(a,b,c)   
-#define dnd_debug4(a,b,c,d) 
+#define dnd_debug1(a)       do {} while (0)
+#define dnd_debug2(a,b)     do {} while (0)
+#define dnd_debug3(a,b,c)   do {} while (0)
+#define dnd_debug4(a,b,c,d) do {} while (0)
 #endif
 
 #define dnd_warning(a) fprintf (stderr, a)

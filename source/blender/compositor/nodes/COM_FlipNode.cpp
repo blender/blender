@@ -49,7 +49,7 @@ void FlipNode::convertToOperations(NodeConverter &converter, const CompositorCon
 			operation->setFlipY(true);
 			break;
 	}
-	
+
 	converter.addOperation(operation);
 	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));

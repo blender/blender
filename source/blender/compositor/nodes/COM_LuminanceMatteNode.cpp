@@ -46,10 +46,10 @@ void LuminanceMatteNode::convertToOperations(NodeConverter &converter, const Com
 
 	SetAlphaOperation *operation = new SetAlphaOperation();
 	converter.addOperation(operation);
-	
+
 	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 	converter.addLink(operationSet->getOutputSocket(), operation->getInputSocket(1));
 	converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
-	
+
 	converter.addPreview(operation->getOutputSocket());
 }

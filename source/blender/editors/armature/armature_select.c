@@ -254,7 +254,9 @@ void *get_nearest_bone(
 	rect.xmin = rect.xmax = xy[0];
 	rect.ymin = rect.ymax = xy[1];
 
-	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
+	hits = view3d_opengl_select(
+	        &vc, buffer, MAXPICKBUF, &rect,
+	        VIEW3D_SELECT_PICK_NEAREST, VIEW3D_SELECT_FILTER_NOP);
 
 	*r_base = NULL;
 
@@ -446,9 +448,11 @@ static EditBone *get_nearest_editbonepoint(
 
 	{
 		const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
+		const eV3DSelectObjectFilter select_filter = VIEW3D_SELECT_FILTER_NOP;
+
 		rcti rect;
 		BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
-		const int hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
+		const int hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode, select_filter);
 		if (hits12 == 1) {
 			hits = selectbuffer_ret_hits_12(buffer, hits12);
 			goto cache_end;
@@ -458,7 +462,9 @@ static EditBone *get_nearest_editbonepoint(
 
 			offs = 4 * hits12;
 			BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
-			const int hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
+			const int hits5 = view3d_opengl_select(
+			        vc, buffer + offs, MAXPICKBUF - offs, &rect,
+			        select_mode, select_filter);
 
 			if (hits5 == 1) {
 				hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);
@@ -717,6 +723,7 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 
 			if (vc.view_layer->basact != basact) {
 				vc.view_layer->basact = basact;
+				DEG_id_tag_update(&vc.scene->id, DEG_TAG_SELECT_UPDATE);
 				WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, vc.scene);
 			}
 		}

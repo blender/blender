@@ -392,6 +392,7 @@ DEG_COMPONENT_NODE_DEFINE(Sequencer,         SEQUENCER,          ID_RECALC);
 DEG_COMPONENT_NODE_DEFINE(Shading,           SHADING,            ID_RECALC_DRAW);
 DEG_COMPONENT_NODE_DEFINE(ShadingParameters, SHADING_PARAMETERS, ID_RECALC_DRAW);
 DEG_COMPONENT_NODE_DEFINE(Transform,         TRANSFORM,          ID_RECALC_TRANSFORM);
+DEG_COMPONENT_NODE_DEFINE(ObjectFromLayer,   OBJECT_FROM_LAYER,  ID_RECALC);
 
 /* Node Types Register =================================== */
 
@@ -412,6 +413,7 @@ void deg_register_component_depsnodes()
 	deg_register_node_typeinfo(&DNTI_SHADING);
 	deg_register_node_typeinfo(&DNTI_SHADING_PARAMETERS);
 	deg_register_node_typeinfo(&DNTI_TRANSFORM);
+	deg_register_node_typeinfo(&DNTI_OBJECT_FROM_LAYER);
 }
 
 }  // namespace DEG

@@ -57,15 +57,17 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
         col = flow.column()
         row = col.row(align=True)
         row.prop(ob, "location")
-        row.prop(ob, "lock_location", text="")
+        row.use_property_decorate = False
+        row.prop(ob, "lock_location", text="", emboss=False)
 
         if ob.rotation_mode == 'QUATERNION':
             col = flow.column()
             row = col.row(align=True)
             row.prop(ob, "rotation_quaternion", text="Rotation")
             sub = row.column(align=True)
-            sub.prop(ob, "lock_rotation_w", text="")
-            sub.prop(ob, "lock_rotation", text="")
+            sub.use_property_decorate = False
+            sub.prop(ob, "lock_rotation_w", text="", emboss=False)
+            sub.prop(ob, "lock_rotation", text="", emboss=False)
         elif ob.rotation_mode == 'AXIS_ANGLE':
             # row.column().label(text="Rotation")
             #row.column().prop(pchan, "rotation_angle", text="Angle")
@@ -75,20 +77,25 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
             row.prop(ob, "rotation_axis_angle", text="Rotation")
 
             sub = row.column(align=True)
-            sub.prop(ob, "lock_rotation_w", text="")
-            sub.prop(ob, "lock_rotation", text="")
+            sub.use_property_decorate = False
+            sub.prop(ob, "lock_rotation_w", text="", emboss=False)
+            sub.prop(ob, "lock_rotation", text="", emboss=False)
         else:
             col = flow.column()
             row = col.row(align=True)
             row.prop(ob, "rotation_euler", text="Rotation")
-            row.prop(ob, "lock_rotation", text="")
+            row.use_property_decorate = False
+            row.prop(ob, "lock_rotation", text="", emboss=False)
 
         col = flow.column()
         row = col.row(align=True)
         row.prop(ob, "scale")
-        row.prop(ob, "lock_scale", text="")
+        row.use_property_decorate = False
+        row.prop(ob, "lock_scale", text="", emboss=False)
 
-        layout.prop(ob, "rotation_mode")
+        row = layout.row(align=True)
+        row.prop(ob, "rotation_mode")
+        row.label(text="", icon="BLANK1")
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
@@ -352,7 +359,7 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit fr
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _context_path = "object"
     _property_type = bpy.types.Object
 

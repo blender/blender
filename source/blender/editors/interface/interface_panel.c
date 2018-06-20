@@ -110,7 +110,7 @@ typedef struct uiHandlePanelData {
 	int startsizex, startsizey;
 } uiHandlePanelData;
 
-static int get_panel_real_size_y(Panel *pa);
+static int get_panel_real_size_y(const Panel *pa);
 static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelState state);
 
 /*********************** space specific code ************************/
@@ -855,7 +855,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 /************************** panel alignment *************************/
 
-static int get_panel_header(Panel *pa)
+static int get_panel_header(const Panel *pa)
 {
 	if (pa->type && (pa->type->flag & PNL_NO_HEADER))
 		return 0;
@@ -863,7 +863,7 @@ static int get_panel_header(Panel *pa)
 	return PNL_HEADER;
 }
 
-static int get_panel_size_y(Panel *pa)
+static int get_panel_size_y(const Panel *pa)
 {
 	if (pa->type && (pa->type->flag & PNL_NO_HEADER))
 		return pa->sizey;
@@ -871,7 +871,7 @@ static int get_panel_size_y(Panel *pa)
 	return PNL_HEADER + pa->sizey;
 }
 
-static int get_panel_real_size_y(Panel *pa)
+static int get_panel_real_size_y(const Panel *pa)
 {
 	int sizey = (pa->flag & PNL_CLOSED) ? 0 : pa->sizey;
 
@@ -879,6 +879,11 @@ static int get_panel_real_size_y(Panel *pa)
 		return sizey;
 
 	return PNL_HEADER + sizey;
+}
+
+int UI_panel_size_y(const Panel *pa)
+{
+	return get_panel_real_size_y(pa);
 }
 
 /* this function is needed because uiBlock and Panel itself don't
@@ -1596,6 +1601,10 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 			ED_region_tag_redraw(ar);
 	}
 	else if (show_drag && BLI_rctf_isect_x(&rect_drag, mx)) {
+		/* XXX, for now don't allow dragging in floating windows yet. */
+		if (ar->alignment == RGN_ALIGN_FLOAT) {
+			return;
+		}
 		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
 	}
 	else if (show_pin && BLI_rctf_isect_x(&rect_pin, mx)) {

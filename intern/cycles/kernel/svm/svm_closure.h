@@ -217,7 +217,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			/* sheen */
 			if(diffuse_weight > CLOSURE_WEIGHT_CUTOFF && sheen > CLOSURE_WEIGHT_CUTOFF) {
-				float m_cdlum = linear_rgb_to_gray(base_color);
+				float m_cdlum = linear_rgb_to_gray(kg, base_color);
 				float3 m_ctint = m_cdlum > 0.0f ? base_color / m_cdlum : make_float3(1.0f, 1.0f, 1.0f); // normalize lum. to isolate hue+sat
 
 				/* color of the sheen component */
@@ -994,24 +994,6 @@ ccl_device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 nod
 		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, sd->svm_closure_weight);
 
 	sd->flag |= SD_HOLDOUT;
-}
-
-ccl_device void svm_node_closure_ambient_occlusion(ShaderData *sd, float *stack, uint4 node)
-{
-	uint mix_weight_offset = node.y;
-
-	if(stack_valid(mix_weight_offset)) {
-		float mix_weight = stack_load_float(stack, mix_weight_offset);
-
-		if(mix_weight == 0.0f)
-			return;
-
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_AMBIENT_OCCLUSION_ID, sd->svm_closure_weight * mix_weight);
-	}
-	else
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_AMBIENT_OCCLUSION_ID, sd->svm_closure_weight);
-
-	sd->flag |= SD_AO;
 }
 
 /* Closure Nodes */

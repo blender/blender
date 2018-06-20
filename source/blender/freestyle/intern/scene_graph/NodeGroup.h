@@ -48,7 +48,7 @@ public:
 	/*! Adds a child. Makes a addRef on the iChild reference counter */
 	virtual void AddChild(Node *iChild);
 
-	/*! destroys all the underlying nodes 
+	/*! destroys all the underlying nodes
 	 *  Returns the reference counter after having done a release()
 	 */
 	virtual int destroy();

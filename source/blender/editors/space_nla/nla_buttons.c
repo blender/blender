@@ -574,7 +574,7 @@ static int nla_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 void NLA_OT_properties(wmOperatorType *ot)
 {
-	ot->name = "Properties";
+	ot->name = "Toggle Sidebar";
 	ot->idname = "NLA_OT_properties";
 	ot->description = "Toggle the properties region visibility";
 

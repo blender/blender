@@ -53,7 +53,7 @@ class WorkScheduler {
 	 * inside this loop new work is queried and being executed
 	 */
 	static void *thread_execute_gpu(void *data);
-#endif	
+#endif
 public:
 	/**
 	 * @brief schedule a chunk of a group to be calculated.

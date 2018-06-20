@@ -58,6 +58,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_addon.h"
 #include "BKE_colorband.h"
 #include "BKE_blender_undo.h"
 #include "BKE_brush.h"
@@ -1267,6 +1268,34 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 
 #ifdef USE_DRAG_TOGGLE
 
+/* Helpers that wrap boolean functions, to support different kinds of buttons. */
+
+static bool ui_drag_toggle_but_is_supported(const uiBut *but)
+{
+	if (ui_but_is_bool(but)) {
+		return true;
+	}
+	else if (UI_but_is_decorator(but)) {
+		return ELEM(but->icon, ICON_SPACE2, ICON_SPACE3, ICON_DOT, ICON_LIBRARY_DATA_OVERRIDE);
+	}
+	else {
+		return false;
+	}
+}
+
+static bool ui_drag_toggle_but_is_pushed(uiBut *but)
+{
+	if (ui_but_is_bool(but)) {
+		return ui_but_is_pushed(but);
+	}
+	else if (UI_but_is_decorator(but)) {
+		return (but->icon == ICON_SPACE2);
+	}
+	else {
+		return false;
+	}
+}
+
 typedef struct uiDragToggleHandle {
 	/* init */
 	bool is_init;
@@ -1304,10 +1333,9 @@ static bool ui_drag_toggle_set_xy_xy(
 				if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
 
 					/* execute the button */
-					if (ui_but_is_bool(but) && but->type == but_type_start) {
+					if (ui_drag_toggle_but_is_supported(but) && but->type == but_type_start) {
 						/* is it pressed? */
-						bool is_set_but = ui_but_is_pushed(but);
-						BLI_assert(ui_but_is_bool(but) == true);
+						bool is_set_but = ui_drag_toggle_but_is_pushed(but);
 						if (is_set_but != is_set) {
 							UI_but_execute(C, but);
 							if (do_check) {
@@ -1437,7 +1465,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 
 static bool ui_but_is_drag_toggle(const uiBut *but)
 {
-	return ((ui_but_is_bool(but) == true) &&
+	return ((ui_drag_toggle_but_is_supported(but) == true) &&
 	        /* menu check is importnt so the button dragged over isn't removed instantly */
 	        (ui_block_is_menu(but->block) == false));
 }
@@ -1745,7 +1773,7 @@ static bool ui_but_drag_init(
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 		data->cancel = true;
 #ifdef USE_DRAG_TOGGLE
-		if (ui_but_is_bool(but)) {
+		if (ui_drag_toggle_but_is_supported(but)) {
 			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
 			ARegion *ar_prev;
 
@@ -1753,7 +1781,7 @@ static bool ui_but_drag_init(
 			 * typically 'button_activate_exit()' handles this */
 			ui_apply_but_autokey(C, but);
 
-			drag_info->is_set = ui_but_is_pushed(but);
+			drag_info->is_set = ui_drag_toggle_but_is_pushed(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
 			drag_info->but_type_start = but->type;
@@ -3585,10 +3613,50 @@ static uiBut *ui_but_list_row_text_activate(
 
 /* ***************** events for different button types *************** */
 
+#ifdef USE_DRAG_TOGGLE
+/* Shared by any button that supports drag-toggle. */
+static bool ui_do_but_ANY_drag_toggle(
+        bContext *C, uiBut *but,
+        uiHandleButtonData *data, const wmEvent *event,
+        int *r_retval)
+{
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_but_is_drag_toggle(but)) {
+#if 0		/* UNUSED */
+			data->togdual = event->ctrl;
+			data->togonly = !event->shift;
+#endif
+			ui_apply_but(C, but->block, but, data, true);
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			*r_retval = WM_UI_HANDLER_BREAK;
+			return true;
+		}
+	}
+	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
+		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
+		data->applied = false;
+		*r_retval = ui_do_but_EXIT(C, but, data, event);
+		return true;
+	}
+	return false;
+}
+#endif  /* USE_DRAG_TOGGLE */
+
 static int ui_do_but_BUT(
         bContext *C, uiBut *but,
         uiHandleButtonData *data, const wmEvent *event)
 {
+#ifdef USE_DRAG_TOGGLE
+	{
+		int retval;
+		if (ui_do_but_ANY_drag_toggle(C, but, data, event, &retval)) {
+			return retval;
+		}
+	}
+#endif
+
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
@@ -3836,25 +3904,14 @@ static int ui_do_but_TOG(
         uiHandleButtonData *data, const wmEvent *event)
 {
 #ifdef USE_DRAG_TOGGLE
-	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_but_is_drag_toggle(but)) {
-#if 0		/* UNUSED */
-			data->togdual = event->ctrl;
-			data->togonly = !event->shift;
-#endif
-			ui_apply_but(C, but->block, but, data, true);
-			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
-			data->dragstartx = event->x;
-			data->dragstarty = event->y;
-			return WM_UI_HANDLER_BREAK;
+	{
+		int retval;
+		if (ui_do_but_ANY_drag_toggle(C, but, data, event, &retval)) {
+			return retval;
 		}
 	}
-	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
-		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
-		data->applied = false;
-		return ui_do_but_EXIT(C, but, data, event);
-	}
 #endif
+
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 #if 0		/* UNUSED */
@@ -4277,10 +4334,14 @@ static int ui_do_but_NUM(
 			retval = WM_UI_HANDLER_BREAK; /* allow accumulating values, otherwise scrolling gets preference */
 		else if (type == WHEELDOWNMOUSE && event->ctrl) {
 			mx = but->rect.xmin;
+			but->drawflag &= ~UI_BUT_ACTIVE_RIGHT;
+			but->drawflag |= UI_BUT_ACTIVE_LEFT;
 			click = 1;
 		}
 		else if (type == WHEELUPMOUSE && event->ctrl) {
 			mx = but->rect.xmax;
+			but->drawflag &= ~UI_BUT_ACTIVE_LEFT;
+			but->drawflag |= UI_BUT_ACTIVE_RIGHT;
 			click = 1;
 		}
 		else if (event->val == KM_PRESS) {
@@ -5086,12 +5147,12 @@ static int ui_do_but_COLOR(
 			rgb_to_hsv_compat_v(col, hsv);
 
 			if (event->type == WHEELDOWNMOUSE)
-				hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
+				hsv[2] = clamp_f(hsv[2] - 0.05f, 0.0f, 1.0f);
 			else if (event->type == WHEELUPMOUSE)
-				hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
+				hsv[2] = clamp_f(hsv[2] + 0.05f, 0.0f, 1.0f);
 			else {
 				float fac = 0.005 * (event->y - event->prevy);
-				hsv[2] = CLAMPIS(hsv[2] + fac, 0.0f, 1.0f);
+				hsv[2] = clamp_f(hsv[2] + fac, 0.0f, 1.0f);
 			}
 
 			hsv_to_rgb_v(hsv, data->vec);
@@ -5810,12 +5871,12 @@ static int ui_do_but_HSVCIRCLE(
 		}
 		/* XXX hardcoded keymap check.... */
 		else if (event->type == WHEELDOWNMOUSE) {
-			hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
+			hsv[2] = clamp_f(hsv[2] - 0.05f, 0.0f, 1.0f);
 			ui_but_hsv_set(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if (event->type == WHEELUPMOUSE) {
-			hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
+			hsv[2] = clamp_f(hsv[2] + 0.05f, 0.0f, 1.0f);
 			ui_but_hsv_set(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
@@ -7010,7 +7071,10 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	if (ui_block_is_menu(but->block) == false) {
 		uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
 	}
-	uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+
+	if (BKE_addon_find(&U.addons, "ui_translate")) {
+		uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+	}
 
 	mt = WM_menutype_find("WM_MT_button_context", true);
 	if (mt) {
@@ -8167,6 +8231,10 @@ void UI_context_update_anim_flag(const bContext *C)
 			for (but = block->buttons.first; but; but = but->next) {
 				ui_but_anim_flag(but, (scene) ? scene->r.cfra : 0.0f);
 				ui_but_override_flag(but);
+				if (UI_but_is_decorator(but)) {
+					ui_but_anim_decorate_update_from_flag(but);
+				}
+
 				ED_region_tag_redraw(ar);
 
 				if (but->active) {
@@ -9136,7 +9204,7 @@ static int ui_handle_menu_event(
 
 				add_v2_v2v2_int(menu->popup_create_vars.event_xy, menu->popup_create_vars.event_xy, mdiff);
 
-				ui_popup_translate(C, ar, mdiff);
+				ui_popup_translate(ar, mdiff);
 			}
 
 			return retval;

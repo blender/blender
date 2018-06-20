@@ -24,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BLI_SMALLHASH_H__
 #define __BLI_SMALLHASH_H__
 

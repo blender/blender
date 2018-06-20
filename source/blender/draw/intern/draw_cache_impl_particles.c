@@ -45,6 +45,7 @@
 #include "DNA_customdata_types.h"
 
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
@@ -1309,17 +1310,42 @@ static void drw_particle_update_ptcache(
 	}
 }
 
+typedef struct ParticleDrawSource {
+	Object *object;
+	ParticleSystem *psys;
+	ModifierData *md;
+	PTCacheEdit *edit;
+} ParticleDrawSource;
+
+static void drw_particle_get_hair_source(
+        Object *object,
+        ParticleSystem *psys,
+        ModifierData *md,
+        PTCacheEdit *edit,
+        ParticleDrawSource *r_draw_source)
+{
+	r_draw_source->object = object;
+	r_draw_source->psys = psys;
+	r_draw_source->md = md;
+	r_draw_source->edit = edit;
+	if ((object->mode & OB_MODE_PARTICLE_EDIT) != 0) {
+		r_draw_source->object = DEG_get_original_object(object);
+		r_draw_source->psys = psys_orig_get(psys);
+	}
+}
+
 Gwn_Batch *DRW_particles_batch_cache_get_hair(
         Object *object,
         ParticleSystem *psys,
         ModifierData *md)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
-
 	if (cache->hair.hairs == NULL) {
 		drw_particle_update_ptcache(object, psys);
-		ensure_seg_pt_count(NULL, psys, &cache->hair);
-		particle_batch_cache_ensure_pos_and_seg(NULL, psys, md, &cache->hair);
+		ParticleDrawSource source;
+		drw_particle_get_hair_source(object, psys, md, NULL, &source);
+		ensure_seg_pt_count(source.edit, source.psys, &cache->hair);
+		particle_batch_cache_ensure_pos_and_seg(source.edit, source.psys, source.md, &cache->hair);
 		cache->hair.hairs = GWN_batch_create(
 		        GWN_PRIM_LINE_STRIP,
 		        cache->hair.pos,
@@ -1515,7 +1541,7 @@ Gwn_Batch *DRW_particles_batch_cache_get_edit_tip_points(
 
 /* Ensure all textures and buffers needed for GPU accelerated drawing. */
 bool particles_ensure_procedural_data(
-        Object *UNUSED(object),
+        Object *object,
         ParticleSystem *psys,
         ModifierData *md,
         ParticleHairCache **r_hair_cache,
@@ -1524,22 +1550,27 @@ bool particles_ensure_procedural_data(
 {
 	bool need_ft_update = false;
 
-	ParticleSettings *part = psys->part;
-	ParticleBatchCache *cache = particle_batch_cache_get(psys);
+	drw_particle_update_ptcache(object, psys);
+
+	ParticleDrawSource source;
+	drw_particle_get_hair_source(object, psys, md, NULL, &source);
+
+	ParticleSettings *part = source.psys->part;
+	ParticleBatchCache *cache = particle_batch_cache_get(source.psys);
 	*r_hair_cache = &cache->hair;
 
 	(*r_hair_cache)->final[subdiv].strands_res = 1 << (part->draw_step + subdiv);
 
 	/* Refreshed on combing and simulation. */
 	if ((*r_hair_cache)->proc_point_buf == NULL) {
-		ensure_seg_pt_count(NULL, psys, &cache->hair);
-		particle_batch_cache_ensure_procedural_pos(NULL, psys, &cache->hair);
+		ensure_seg_pt_count(source.edit, source.psys, &cache->hair);
+		particle_batch_cache_ensure_procedural_pos(source.edit, source.psys, &cache->hair);
 		need_ft_update = true;
 	}
 
 	/* Refreshed if active layer or custom data changes. */
 	if ((*r_hair_cache)->strand_tex == NULL) {
-		particle_batch_cache_ensure_procedural_strand_data(NULL, psys, md, &cache->hair);
+		particle_batch_cache_ensure_procedural_strand_data(source.edit, source.psys, source.md, &cache->hair);
 	}
 
 	/* Refreshed only on subdiv count change. */
@@ -1548,7 +1579,7 @@ bool particles_ensure_procedural_data(
 		need_ft_update = true;
 	}
 	if ((*r_hair_cache)->final[subdiv].proc_hairs[thickness_res - 1] == NULL) {
-		particle_batch_cache_ensure_procedural_indices(NULL, psys, &cache->hair, thickness_res, subdiv);
+		particle_batch_cache_ensure_procedural_indices(source.edit, source.psys, &cache->hair, thickness_res, subdiv);
 	}
 
 

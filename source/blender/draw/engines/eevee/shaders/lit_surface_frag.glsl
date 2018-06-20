@@ -374,7 +374,7 @@ void CLOSURE_NAME(
 		accumulate_light(trans, 1.0, refr_accum);
 	}
 	#endif
-#endif /* Specular probes */ 
+#endif /* Specular probes */
 
 
 	/* ---------------------------- */

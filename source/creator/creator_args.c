@@ -397,7 +397,7 @@ static void arg_py_context_restore(
 	/* script may load a file, check old data is valid before using */
 	if (c_py->has_win) {
 		if ((c_py->win == NULL) ||
-		    ((BLI_findindex(&G.main->wm, c_py->wm) != -1) &&
+		    ((BLI_findindex(&G_MAIN->wm, c_py->wm) != -1) &&
 		     (BLI_findindex(&c_py->wm->windows, c_py->win) != -1)))
 		{
 			CTX_wm_window_set(C, c_py->win);
@@ -405,7 +405,7 @@ static void arg_py_context_restore(
 	}
 
 	if ((c_py->scene == NULL) ||
-	    BLI_findindex(&G.main->scene, c_py->scene) != -1)
+	    BLI_findindex(&G_MAIN->scene, c_py->scene) != -1)
 	{
 		CTX_data_scene_set(C, c_py->scene);
 	}
@@ -1774,7 +1774,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
 
 		if (BLO_has_bfile_extension(filename)) {
 			/* Just pretend a file was loaded, so the user can press Save and it'll save at the filename from the CLI. */
-			BLI_strncpy(G.main->name, filename, FILE_MAX);
+			BLI_strncpy(G_MAIN->name, filename, FILE_MAX);
 			G.relbase_valid = true;
 			G.save_over = true;
 			printf("... opened default scene instead; saving will write to: %s\n", filename);

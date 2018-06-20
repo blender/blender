@@ -145,8 +145,8 @@ void ED_editors_exit(bContext *C)
 		return;
 
 	/* frees all editmode undos */
-	if (G.main->wm.first) {
-		wmWindowManager *wm = G.main->wm.first;
+	if (G_MAIN->wm.first) {
+		wmWindowManager *wm = G_MAIN->wm.first;
 		/* normally we don't check for NULL undo stack, do here since it may run in different context. */
 		if (wm->undo_stack) {
 			BKE_undosys_stack_destroy(wm->undo_stack);

@@ -2260,6 +2260,8 @@ static void write_image(WriteData *wd, Image *ima)
 		writestruct(wd, DATA, Stereo3dFormat, 1, ima->stereo3d_format);
 
 		ima->packedfile = NULL;
+
+		writelist(wd, DATA, RenderSlot, &ima->renderslots);
 	}
 }
 
@@ -2687,6 +2689,10 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
 	writestruct(wd, DATA, ARegion, 1, ar);
 
 	if (ar->regiondata) {
+		if (ar->flag & RGN_FLAG_TEMP_REGIONDATA) {
+			return;
+		}
+
 		switch (spacetype) {
 			case SPACE_VIEW3D:
 				if (ar->regiontype == RGN_TYPE_WINDOW) {
@@ -4091,7 +4097,7 @@ bool BLO_write_file(
 			if (G.relbase_valid) {
 				/* blend may not have been saved before. Tn this case
 				 * we should not have any relative paths, but if there
-				 * is somehow, an invalid or empty G.main->name it will
+				 * is somehow, an invalid or empty G_MAIN->name it will
 				 * print an error, don't try make the absolute in this case. */
 				BKE_bpath_absolute_convert(mainvar, BKE_main_blendfile_path_from_global(), NULL);
 			}
@@ -4099,7 +4105,7 @@ bool BLO_write_file(
 	}
 
 	if (write_flags & G_FILE_RELATIVE_REMAP) {
-		/* note, making relative to something OTHER then G.main->name */
+		/* note, making relative to something OTHER then G_MAIN->name */
 		BKE_bpath_relative_convert(mainvar, filepath, NULL);
 	}
 
