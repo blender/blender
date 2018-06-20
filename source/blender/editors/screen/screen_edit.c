@@ -1106,7 +1106,7 @@ void ED_screen_set_subwinactive(bContext *C, const wmEvent *event)
 		for (sa = scr->areabase.first; sa; sa = sa->next) {
 			if (event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
 				if (event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
-					if (NULL == ED_area_actionzone_find_xy(sa, &event->x))
+					if (NULL == ED_area_actionzone_refresh_xy(sa, &event->x))
 						break;
 		}
 		if (sa) {

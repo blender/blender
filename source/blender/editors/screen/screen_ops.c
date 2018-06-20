@@ -665,7 +665,7 @@ static void fullscreen_click_rcti_init(rcti *rect, const short x1, const short y
 	BLI_rcti_init(rect, x, x + icon_size, y, y + icon_size);
 }
 
-AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
+static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const bool test_only)
 {
 	AZone *az = NULL;
 
@@ -682,40 +682,49 @@ AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
 				break;
 			}
 			else if (az->type == AZONE_FULLSCREEN) {
-				int mouse_radius, spot_radius, fadein_radius, fadeout_radius;
 				rcti click_rect;
-
 				fullscreen_click_rcti_init(&click_rect, az->x1, az->y1, az->x2, az->y2);
+				const bool click_isect = BLI_rcti_isect_pt_v(&click_rect, xy);
 
-				if (BLI_rcti_isect_pt_v(&click_rect, xy)) {
-					az->alpha = 1.0f;
+				if (test_only) {
+					if (click_isect) {
+						break;
+					}
 				}
 				else {
-					mouse_radius = (xy[0] - az->x2) * (xy[0] - az->x2) + (xy[1] - az->y2) * (xy[1] - az->y2);
-					spot_radius = AZONESPOT * AZONESPOT;
-					fadein_radius = AZONEFADEIN * AZONEFADEIN;
-					fadeout_radius = AZONEFADEOUT * AZONEFADEOUT;
+					int mouse_radius, spot_radius, fadein_radius, fadeout_radius;
 
-					if (mouse_radius < spot_radius) {
+					fullscreen_click_rcti_init(&click_rect, az->x1, az->y1, az->x2, az->y2);
+					if (click_isect) {
 						az->alpha = 1.0f;
-					}
-					else if (mouse_radius < fadein_radius) {
-						az->alpha = 1.0f;
-					}
-					else if (mouse_radius < fadeout_radius) {
-						az->alpha = 1.0f - ((float)(mouse_radius - fadein_radius)) / ((float)(fadeout_radius - fadein_radius));
 					}
 					else {
-						az->alpha = 0.0f;
+						mouse_radius = (xy[0] - az->x2) * (xy[0] - az->x2) + (xy[1] - az->y2) * (xy[1] - az->y2);
+						spot_radius = AZONESPOT * AZONESPOT;
+						fadein_radius = AZONEFADEIN * AZONEFADEIN;
+						fadeout_radius = AZONEFADEOUT * AZONEFADEOUT;
+
+						if (mouse_radius < spot_radius) {
+							az->alpha = 1.0f;
+						}
+						else if (mouse_radius < fadein_radius) {
+							az->alpha = 1.0f;
+						}
+						else if (mouse_radius < fadeout_radius) {
+							az->alpha = 1.0f - ((float)(mouse_radius - fadein_radius)) / ((float)(fadeout_radius - fadein_radius));
+						}
+						else {
+							az->alpha = 0.0f;
+						}
+
+						/* fade in/out but no click */
+						az = NULL;
 					}
 
-					/* fade in/out but no click */
-					az = NULL;
+					/* XXX force redraw to show/hide the action zone */
+					ED_area_tag_redraw(sa);
+					break;
 				}
-
-				/* XXX force redraw to show/hide the action zone */
-				ED_area_tag_redraw(sa);
-				break;
 			}
 		}
 	}
@@ -723,6 +732,15 @@ AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
 	return az;
 }
 
+AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
+{
+	return area_actionzone_refresh_xy(sa, xy, true);
+}
+
+AZone *ED_area_actionzone_refresh_xy(ScrArea *sa, const int xy[2])
+{
+	return area_actionzone_refresh_xy(sa, xy, false);
+}
 
 static void actionzone_exit(wmOperator *op)
 {
