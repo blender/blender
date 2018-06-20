@@ -673,10 +673,10 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 		if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
 			if (az->type == AZONE_AREA) {
 				/* no triangle intersect but a hotspot circle based on corner */
-				int radius = (xy[0] - az->x1) * (xy[0] - az->x1) + (xy[1] - az->y1) * (xy[1] - az->y1);
-
-				if (radius <= AZONESPOT * AZONESPOT)
+				int radius_sq = SQUARE(xy[0] - az->x1) + SQUARE(xy[1] - az->y1);
+				if (radius_sq <= SQUARE(AZONESPOT)) {
 					break;
+				}
 			}
 			else if (az->type == AZONE_REGION) {
 				break;
@@ -692,26 +692,23 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 					}
 				}
 				else {
-					int mouse_radius, spot_radius, fadein_radius, fadeout_radius;
-
-					fullscreen_click_rcti_init(&click_rect, az->x1, az->y1, az->x2, az->y2);
 					if (click_isect) {
 						az->alpha = 1.0f;
 					}
 					else {
-						mouse_radius = (xy[0] - az->x2) * (xy[0] - az->x2) + (xy[1] - az->y2) * (xy[1] - az->y2);
-						spot_radius = AZONESPOT * AZONESPOT;
-						fadein_radius = AZONEFADEIN * AZONEFADEIN;
-						fadeout_radius = AZONEFADEOUT * AZONEFADEOUT;
+						const int mouse_sq = SQUARE(xy[0] - az->x2) + SQUARE(xy[1] - az->y2);
+						const int spot_sq = SQUARE(AZONESPOT);
+						const int fadein_sq = SQUARE(AZONEFADEIN);
+						const int fadeout_sq = SQUARE(AZONEFADEOUT);
 
-						if (mouse_radius < spot_radius) {
+						if (mouse_sq < spot_sq) {
 							az->alpha = 1.0f;
 						}
-						else if (mouse_radius < fadein_radius) {
+						else if (mouse_sq < fadein_sq) {
 							az->alpha = 1.0f;
 						}
-						else if (mouse_radius < fadeout_radius) {
-							az->alpha = 1.0f - ((float)(mouse_radius - fadein_radius)) / ((float)(fadeout_radius - fadein_radius));
+						else if (mouse_sq < fadeout_sq) {
+							az->alpha = 1.0f - ((float)(mouse_sq - fadein_sq)) / ((float)(fadeout_sq - fadein_sq));
 						}
 						else {
 							az->alpha = 0.0f;
