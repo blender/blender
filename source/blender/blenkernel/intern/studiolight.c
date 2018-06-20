@@ -60,6 +60,12 @@ static ListBase studiolights;
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 32
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH (STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * 2)
 
+/*
+	Disable this option so caches are not loaded from disk
+	Do not checkin with this commented out
+*/
+#define STUDIOLIGHT_LOAD_CACHED_FILES
+
 static const char *STUDIOLIGHT_CAMERA_FOLDER = "studiolights/camera/";
 static const char *STUDIOLIGHT_WORLD_FOLDER = "studiolights/world/";
 static const char *STUDIOLIGHT_MATCAP_FOLDER = "studiolights/matcap/";
@@ -345,24 +351,24 @@ static void studiolight_calculate_cubemap_vector_weight(float normal[3], float *
 	copy_v3_fl3(normal, x * 2.0f - 1.0f, y * 2.0f - 1.0f, 1.0f);
 	const float conversion_matrices[6][3][3] = {
 		{
-			{0.0f, 0.0f, -1.0f},
+			{0.0f,  0.0f, 1.0f},
 			{0.0f, -1.0f, 0.0f},
-			{-1.0f, 0.0f, 0.0f},
+			{1.0f,  0.0f, 0.0f},
 		},
 		{
 			{0.0f, 0.0f, -1.0f},
 			{0.0f, -1.0f, 0.0f},
 			{-1.0f, 0.0f, 0.0f},
-		},
-		{
-			{1.0f, 0.0f, 0.0f},
-			{0.0f, 0.0f, 1.0f},
-			{0.0f, -1.0f, 0.0f},
 		},
 		{
 			{1.0f, 0.0f, 0.0f},
 			{0.0f, 0.0f, -1.0f},
 			{0.0f, 1.0f, 0.0f},
+		},
+		{
+			{1.0f, 0.0f, 0.0f},
+			{0.0f, 0.0f, 1.0f},
+			{0.0f, -1.0f, 0.0f},
 		},
 		{
 			{1.0f, 0.0f, 0.0f},
@@ -375,6 +381,7 @@ static void studiolight_calculate_cubemap_vector_weight(float normal[3], float *
 			{0.0f, 0.0f, 1.0f},
 		}
 	};
+
 	mul_m3_v3(conversion_matrices[face], normal);
 	normalize_v3(normal);
 	const float halfpix = 1.0f / (2.0f * STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
@@ -567,6 +574,7 @@ static void studiolight_calculate_specular_irradiance(StudioLight *sl, float col
 
 static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
 {
+#ifdef STUDIOLIGHT_LOAD_CACHED_FILES
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		ImBuf *ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path_irr_cache, 0, NULL);
@@ -577,23 +585,26 @@ static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
 			return true;
 		}
 	}
+#endif
 	return false;
 }
 
 static bool studiolight_load_spherical_harmonics_coefficients(StudioLight *sl)
 {
+#ifdef STUDIOLIGHT_LOAD_CACHED_FILES
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		FILE *fp = BLI_fopen(sl->path_sh2_cache, "rb");
 		if (fp) {
 			if (fread((void*)(sl->spherical_harmonics_coefs), sizeof(sl->spherical_harmonics_coefs), 1, fp))
 			{
 				sl->flag |= STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED;
-                fclose(fp);
+				fclose(fp);
 				return true;
 			}
 			fclose(fp);
 		}
 	}
+#endif
 	return false;
 }
 
