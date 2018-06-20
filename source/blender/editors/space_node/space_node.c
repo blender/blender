@@ -1045,4 +1045,3 @@ void ED_spacetype_node(void)
 
 	BKE_spacetype_register(st);
 }
-
