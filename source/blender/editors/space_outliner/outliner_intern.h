@@ -226,6 +226,10 @@ void outliner_item_select(
         struct SpaceOops *soops, const struct TreeElement *te,
         const bool extend, const bool toggle);
 
+void outliner_object_mode_toggle(
+        struct bContext *C, Scene *scene, ViewLayer *view_layer,
+        Base *base);
+
 /* outliner_edit.c ---------------------------------------------- */
 typedef void (*outliner_operation_cb)(
         struct bContext *C, struct ReportList *, struct Scene *scene,
@@ -270,6 +274,13 @@ void id_delete_cb(
 void id_remap_cb(
         struct bContext *C, struct ReportList *reports, struct Scene *scene, struct TreeElement *te,
         struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
+
+void item_object_mode_enter_cb(
+        struct bContext *C, struct ReportList *reports, struct Scene *scene,
+        TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
+void item_object_mode_exit_cb(
+        struct bContext *C, struct ReportList *reports, struct Scene *scene,
+        TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
 
 TreeElement *outliner_dropzone_find(const struct SpaceOops *soops, const float fmval[2], const bool children);
 

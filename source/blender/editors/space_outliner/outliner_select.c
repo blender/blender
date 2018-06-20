@@ -155,6 +155,20 @@ static void do_outliner_activate_pose(bContext *C, ViewLayer *view_layer, Base *
 	}
 }
 
+/* For draw callback to run mode switching */
+void outliner_object_mode_toggle(
+        bContext *C, Scene *scene, ViewLayer *view_layer,
+        Base *base)
+{
+	Object *obact = OBACT(view_layer);
+	if (obact->mode & OB_MODE_EDIT) {
+		do_outliner_activate_obdata(C, scene, view_layer, base);
+	}
+	else if (obact->mode & OB_MODE_POSE) {
+		do_outliner_activate_pose(C, view_layer, base);
+	}
+}
+
 /* ****************************************************** */
 /* Outliner Element Selection/Activation on Click */
 
