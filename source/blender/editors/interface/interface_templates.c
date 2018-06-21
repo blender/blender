@@ -1356,8 +1356,7 @@ static uiLayout *draw_modifier(
 		UI_block_emboss_set(block, UI_EMBOSS);
 
 		/* modifier name */
-		md->scene = scene;
-		if (mti->isDisabled && mti->isDisabled(md, 0)) {
+		if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
 			uiLayoutSetRedAlert(row, true);
 		}
 		uiItemR(row, &ptr, "name", 0, "", ICON_NONE);

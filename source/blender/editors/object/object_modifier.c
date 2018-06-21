@@ -529,7 +529,7 @@ static int modifier_apply_shape(
 
 	md->scene = scene;
 
-	if (mti->isDisabled && mti->isDisabled(md, 0)) {
+	if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
 		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 		return 0;
 	}
@@ -589,7 +589,7 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 
 	md->scene = scene;
 
-	if (mti->isDisabled && mti->isDisabled(md, 0)) {
+	if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
 		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 		return 0;
 	}

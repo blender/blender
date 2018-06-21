@@ -87,7 +87,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 }
 
-static bool isDisabled(ModifierData *md, int useRenderParams)
+static bool isDisabled(const struct Scene *scene, ModifierData *md, int useRenderParams)
 {
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 	ParticleSystem *psys;
@@ -112,7 +112,7 @@ static bool isDisabled(ModifierData *md, int useRenderParams)
 				if (useRenderParams) required_mode = eModifierMode_Render;
 				else required_mode = eModifierMode_Realtime;
 
-				if (!modifier_isEnabled(md->scene, ob_md, required_mode))
+				if (!modifier_isEnabled(scene, ob_md, required_mode))
 					return true;
 
 				break;

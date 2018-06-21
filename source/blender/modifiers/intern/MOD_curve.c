@@ -71,7 +71,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(userRenderParams))
+static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, int UNUSED(userRenderParams))
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
 

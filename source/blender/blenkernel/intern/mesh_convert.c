@@ -1156,7 +1156,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 		return NULL;
 	}
 
-	if (mti->isDisabled && mti->isDisabled(md, 0)) {
+	if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
 		return NULL;
 	}
 
