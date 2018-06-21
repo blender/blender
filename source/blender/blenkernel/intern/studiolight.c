@@ -60,6 +60,20 @@ static ListBase studiolights;
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 32
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH (STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * 2)
 
+#define STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE 0
+#define STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS 1
+/*
+	The method to calculate the irradiance buffers
+	The irradiance buffer is only shown in the background when in LookDev.
+
+	STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE is very slow, but very accurate
+	STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS is faster but has artifacts
+*/
+// #define STUDIOLIGHT_IRRADIANCE_METHOD STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
+#define STUDIOLIGHT_IRRADIANCE_METHOD STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS
+
+
+
 /*
 	Disable this option so caches are not loaded from disk
 	Do not checkin with this commented out
@@ -471,6 +485,27 @@ static void studiolight_calculate_spherical_harmonics_coefficient(StudioLight *s
 	copy_v3_v3(sl->spherical_harmonics_coefs[sh_component], sh);
 }
 
+BLI_INLINE void studiolight_sample_spherical_harmonics(StudioLight *sl, float color[3], float normal[3])
+{
+	copy_v3_fl(color, 0.0f);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[0], 0.282095f);
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 0
+	/* Spherical Harmonics L1 */
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[1], -0.488603f * normal[2]);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[2],  0.488603f * normal[1]);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[3], -0.488603f * normal[0]);
+#endif
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 1
+	/* Spherical Harmonics L1 */
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[4], 1.092548f * normal[0] * normal[2]);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[5], -1.092548f * normal[2] * normal[1]);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[6], 0.315392f * (3.0f * normal[1] * normal[1] - 1.0f));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[7], -1.092548 * normal[0] * normal[1]);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[8], 0.546274 * (normal[0] * normal[0] - normal[2] * normal[2]));
+#endif
+}
 
 static void studiolight_calculate_diffuse_light(StudioLight *sl)
 {
@@ -608,9 +643,12 @@ static bool studiolight_load_spherical_harmonics_coefficients(StudioLight *sl)
 static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-		/* check for cached irr file */
-
+#if STUDIOLIGHT_IRRADIANCE_METHOD == STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED);
+#endif
+#if STUDIOLIGHT_IRRADIANCE_METHOD == STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS
+		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED);
+#endif
 
 		float *colbuf = MEM_mallocN(STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH * STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * sizeof(float[4]), __func__);
 		float *color = colbuf;
@@ -621,20 +659,33 @@ static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *
 				float xf = x / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH;
 				float dir[3];
 				equirectangular_to_direction(dir, xf, yf);
+
+#if STUDIOLIGHT_IRRADIANCE_METHOD == STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
 				studiolight_calculate_specular_irradiance(sl, color, dir);
+#endif
+#if STUDIOLIGHT_IRRADIANCE_METHOD == STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS
+				studiolight_sample_spherical_harmonics(sl, color, dir);
+#endif
+
 				color[3] = 1.0f;
 				color += 4;
 			}
 		}
+
 		sl->equirectangular_irradiance_buffer = IMB_allocFromBuffer(
 		        NULL, colbuf,
 		        STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH,
 		        STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT);
 		MEM_freeN(colbuf);
 
+#if STUDIOLIGHT_IRRADIANCE_METHOD == STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
+		/*
+			Only store cached files when using STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
+		*/
 		if (sl->flag & STUDIOLIGHT_USER_DEFINED) {
 			IMB_saveiff(sl->equirectangular_irradiance_buffer, sl->path_irr_cache, IB_rectfloat);
 		}
+#endif
 	}
 	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED;
 }
@@ -846,25 +897,8 @@ static void studiolight_irradiance_preview(uint* icon_buffer, StudioLight *sl)
 				normal[2] = -sqrtf(1.0f - SQUARE(dist));
 				SWAP(float, normal[1], normal[2]);
 
-				float color[3] = {0.0f, 0.0f, 0.0f};
-				/* Spherical Harmonics L0 */
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[0], 0.282095f);
-
-#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 0
-				/* Spherical Harmonics L1 */
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[1], -0.488603f * normal[2]);
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[2],  0.488603f * normal[1]);
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[3], -0.488603f * normal[0]);
-#endif
-
-#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 1
-				/* Spherical Harmonics L1 */
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[4], 1.092548f * normal[0] * normal[2]);
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[5], -1.092548f * normal[2] * normal[1]);
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[6], 0.315392f * (3.0f * normal[1] * normal[1] - 1.0f));
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[7], -1.092548 * normal[0] * normal[1]);
-				madd_v3_v3fl(color, sl->spherical_harmonics_coefs[8], 0.546274 * (normal[0] * normal[0] - normal[2] * normal[2]));
-#endif
+				float color[3];
+				studiolight_sample_spherical_harmonics(sl, color, normal);
 				pixelresult = rgb_to_cpack(
 				        linearrgb_to_srgb(color[0]),
 				        linearrgb_to_srgb(color[1]),
