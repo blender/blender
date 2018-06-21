@@ -1401,10 +1401,9 @@ void BKE_layer_eval_view_layer(
 		view_layer->object_bases_array[base_index++] = base;
 	}
 
-
 	/* Flush back base flag to the original view layer for editing. */
-	ViewLayer *view_layer_orig = DEG_get_input_view_layer(depsgraph);
 	if (view_layer == DEG_get_evaluated_view_layer(depsgraph)) {
+		ViewLayer *view_layer_orig = DEG_get_input_view_layer(depsgraph);
 		Base *base_orig = view_layer_orig->object_bases.first;
 		const Base *base_eval = view_layer->object_bases.first;
 		while (base_orig != NULL) {
@@ -1412,14 +1411,6 @@ void BKE_layer_eval_view_layer(
 			base_orig = base_orig->next;
 			base_eval = base_eval->next;
 		}
-	}
-
-	/* Hidden objects can't be active. */
-	if (view_layer->basact && !(view_layer->basact->flag & BASE_VISIBLED)) {
-		view_layer->basact = NULL;
-	}
-	if (view_layer_orig->basact && !(view_layer_orig->basact->flag & BASE_VISIBLED)) {
-		view_layer_orig->basact = NULL;
 	}
 }
 
