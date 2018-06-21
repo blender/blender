@@ -2956,7 +2956,7 @@ static KeyBlock *insert_meshkey(Main *bmain, Object *ob, const char *name, const
 	if (newkey || from_mix == false) {
 		/* create from mesh */
 		kb = BKE_keyblock_add_ctime(key, name, false);
-		BKE_keyblock_convert_from_mesh(me, kb);
+		BKE_keyblock_convert_from_mesh(me, key, kb);
 	}
 	else {
 		/* copy from current values */

@@ -612,7 +612,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Mesh *me = (Mesh *)ob->data;
 	Mesh *selme = NULL;
-	DerivedMesh *dm = NULL;
+	Mesh *me_deformed = NULL;
 	Key *key = me->key;
 	KeyBlock *kb;
 	bool ok = false, nonequal_verts = false;
@@ -646,7 +646,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 
 		/* first key added, so it was the basis. initialize it with the existing mesh */
 		kb = BKE_keyblock_add(key, NULL);
-		BKE_keyblock_convert_from_mesh(me, kb);
+		BKE_keyblock_convert_from_mesh(me, key, kb);
 	}
 
 	/* now ready to add new keys from selected meshes */
@@ -658,15 +658,15 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 			selme = (Mesh *)base->object->data;
 
 			if (selme->totvert == me->totvert) {
-				dm = mesh_get_derived_deform(depsgraph, scene, base->object, CD_MASK_BAREMESH);
+				me_deformed = mesh_get_eval_deform(depsgraph, scene, base->object, CD_MASK_BAREMESH);
 
-				if (!dm) continue;
+				if (!me_deformed) {
+					continue;
+				}
 
 				kb = BKE_keyblock_add(key, base->object->id.name + 2);
 
-				DM_to_meshkey(dm, me, kb);
-
-				dm->release(dm);
+				BKE_mesh_runtime_eval_to_meshkey(me_deformed, me, kb);
 			}
 		}
 	}
