@@ -139,14 +139,16 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
                 layout.enabled = False
 
     if not cache.use_external or cachetype == 'SMOKE':
-        row = layout.row(align=True)
+        col = layout.column(align=True)
+        col.use_property_split = True
 
         if cachetype not in {'PSYS', 'DYNAMIC_PAINT'}:
-            row.enabled = enabled
-            row.prop(cache, "frame_start")
-            row.prop(cache, "frame_end")
+
+            col.enabled = enabled
+            col.prop(cache, "frame_start", text="Simulation Start")
+            col.prop(cache, "frame_end")
         if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
-            row.prop(cache, "frame_step")
+            col.prop(cache, "frame_step")
 
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
@@ -206,8 +208,11 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
 def effector_weights_ui(self, context, weights, weight_type):
     layout = self.layout
+    layout.use_property_split = True
 
     layout.prop(weights, "group")
+
+    layout.use_property_split = False
 
     split = layout.split()
 
