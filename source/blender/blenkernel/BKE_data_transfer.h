@@ -145,7 +145,7 @@ bool BKE_object_data_transfer_mesh(
         struct ReportList *reports);
 bool BKE_object_data_transfer_dm(
         struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob_src, struct Object *ob_dst, struct Mesh *dm_dst,
+        struct Object *ob_src, struct Object *ob_dst, struct Mesh *me_dst,
         const int data_types, bool use_create,
         const int map_vert_mode, const int map_edge_mode, const int map_loop_mode, const int map_poly_mode,
         struct SpaceTransform *space_transform, const bool auto_transform,

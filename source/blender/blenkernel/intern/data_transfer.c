@@ -310,21 +310,21 @@ static void data_transfer_dtdata_type_preprocess(
 }
 
 static void data_transfer_dtdata_type_postprocess(
-        Object *UNUSED(ob_src), Object *UNUSED(ob_dst), Mesh *UNUSED(dm_src), Mesh *dm_dst, Mesh *me_dst,
+        Object *UNUSED(ob_src), Object *UNUSED(ob_dst), Mesh *UNUSED(dm_src), Mesh *me_dst,
         const int dtdata_type, const bool changed)
 {
 	if (dtdata_type == DT_TYPE_LNOR) {
 		/* Bake edited destination loop normals into custom normals again. */
-		MVert *verts_dst = dm_dst ? dm_dst->mvert : me_dst->mvert;
-		const int num_verts_dst = dm_dst ? dm_dst->totvert : me_dst->totvert;
-		MEdge *edges_dst = dm_dst ? dm_dst->medge : me_dst->medge;
-		const int num_edges_dst = dm_dst ? dm_dst->totedge : me_dst->totedge;
-		MPoly *polys_dst = dm_dst ? dm_dst->mpoly : me_dst->mpoly;
-		const int num_polys_dst = dm_dst ? dm_dst->totpoly : me_dst->totpoly;
-		MLoop *loops_dst = dm_dst ? dm_dst->mloop : me_dst->mloop;
-		const int num_loops_dst = dm_dst ? dm_dst->totloop : me_dst->totloop;
-		CustomData *pdata_dst = dm_dst ? &dm_dst->pdata : &me_dst->pdata;
-		CustomData *ldata_dst = dm_dst ? &dm_dst->ldata : &me_dst->ldata;
+		MVert *verts_dst = me_dst->mvert;
+		const int num_verts_dst = me_dst->totvert;
+		MEdge *edges_dst = me_dst->medge;
+		const int num_edges_dst = me_dst->totedge;
+		MPoly *polys_dst = me_dst->mpoly;
+		const int num_polys_dst = me_dst->totpoly;
+		MLoop *loops_dst = me_dst->mloop;
+		const int num_loops_dst = me_dst->totloop;
+		CustomData *pdata_dst = &me_dst->pdata;
+		CustomData *ldata_dst = &me_dst->ldata;
 
 		const float (*poly_nors_dst)[3] = CustomData_get_layer(pdata_dst, CD_NORMAL);
 		float (*loop_nors_dst)[3] = CustomData_get_layer(ldata_dst, CD_NORMAL);
@@ -760,7 +760,7 @@ static bool data_transfer_layersmapping_cdlayers(
 }
 
 static bool data_transfer_layersmapping_generate(
-        ListBase *r_map, Object *ob_src, Object *ob_dst, Mesh *dm_src, Mesh *dm_dst, Mesh *me_dst,
+        ListBase *r_map, Object *ob_src, Object *ob_dst, Mesh *dm_src, Mesh *me_dst,
         const int elem_type, int cddata_type, int mix_mode, float mix_factor, const float *mix_weights,
         const int num_elem_dst, const bool use_create, const bool use_delete, const int fromlayers, const int tolayers,
         SpaceTransform *space_transform)
@@ -773,11 +773,11 @@ static bool data_transfer_layersmapping_generate(
 	if (elem_type == ME_VERT) {
 		if (!(cddata_type & CD_FAKE)) {
 			cd_src = &dm_src->vdata;
-			cd_dst = dm_dst ? &dm_dst->vdata : &me_dst->vdata;
+			cd_dst = &me_dst->vdata;
 
 			if (!data_transfer_layersmapping_cdlayers(r_map, cddata_type, mix_mode, mix_factor, mix_weights,
 			                                          num_elem_dst, use_create, use_delete,
-			                                          cd_src, cd_dst, dm_dst != NULL,
+			                                          cd_src, cd_dst, me_dst != ob_dst->data,
 			                                          fromlayers, tolayers,
 			                                          interp, interp_data))
 			{
@@ -793,23 +793,16 @@ static bool data_transfer_layersmapping_generate(
 			const uint64_t data_flag = 0;
 
 			if (!(dm_src->cd_flag & ME_CDFLAG_VERT_BWEIGHT)) {
-				if (use_delete && !dm_dst) {
+				if (use_delete) {
 					me_dst->cd_flag &= ~ME_CDFLAG_VERT_BWEIGHT;
 				}
 				return true;
 			}
-			if (dm_dst) {
-				dm_dst->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-			}
-			else {
-				me_dst->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-			}
+			me_dst->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
 			if (r_map) {
 				data_transfer_layersmapping_add_item(r_map, cddata_type, mix_mode, mix_factor, mix_weights,
-				                                     dm_src->mvert,
-				                                     dm_dst ? dm_dst->mvert : me_dst->mvert,
-				                                     dm_src->totvert,
-				                                     dm_dst ? dm_dst->totvert : me_dst->totvert,
+				                                     dm_src->mvert, me_dst->mvert,
+				                                     dm_src->totvert, me_dst->totvert,
 				                                     elem_size, data_size, data_offset, data_flag,
 				                                     data_transfer_interp_char, interp_data);
 			}
@@ -819,11 +812,11 @@ static bool data_transfer_layersmapping_generate(
 			bool ret;
 
 			cd_src = &dm_src->vdata;
-			cd_dst = dm_dst ? &dm_dst->vdata : &me_dst->vdata;
+			cd_dst = &me_dst->vdata;
 
 			ret = data_transfer_layersmapping_vgroups(r_map, mix_mode, mix_factor, mix_weights,
 			                                          num_elem_dst, use_create, use_delete,
-			                                          ob_src, ob_dst, cd_src, cd_dst, dm_dst != NULL,
+			                                          ob_src, ob_dst, cd_src, cd_dst, me_dst != ob_dst->data,
 			                                          fromlayers, tolayers);
 
 			/* Mesh stores its dvert in a specific pointer too. :( */
@@ -838,11 +831,11 @@ static bool data_transfer_layersmapping_generate(
 	else if (elem_type == ME_EDGE) {
 		if (!(cddata_type & CD_FAKE)) {  /* Unused for edges, currently... */
 			cd_src = &dm_src->edata;
-			cd_dst = dm_dst ? &dm_dst->edata : &me_dst->edata;
+			cd_dst = &me_dst->edata;
 
 			if (!data_transfer_layersmapping_cdlayers(r_map, cddata_type, mix_mode, mix_factor, mix_weights,
 			                                          num_elem_dst, use_create, use_delete,
-			                                          cd_src, cd_dst, dm_dst != NULL,
+			                                          cd_src, cd_dst, me_dst != ob_dst->data,
 			                                          fromlayers, tolayers,
 			                                          interp, interp_data))
 			{
@@ -858,23 +851,16 @@ static bool data_transfer_layersmapping_generate(
 			const uint64_t data_flag = 0;
 
 			if (!(dm_src->cd_flag & ME_CDFLAG_EDGE_CREASE)) {
-				if (use_delete && !dm_dst) {
+				if (use_delete && !me_dst) {
 					me_dst->cd_flag &= ~ME_CDFLAG_EDGE_CREASE;
 				}
 				return true;
 			}
-			if (dm_dst) {
-				dm_dst->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-			}
-			else {
-				me_dst->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-			}
+			me_dst->cd_flag |= ME_CDFLAG_EDGE_CREASE;
 			if (r_map) {
 				data_transfer_layersmapping_add_item(r_map, cddata_type, mix_mode, mix_factor, mix_weights,
-				                                     dm_src->medge,
-				                                     dm_dst ? dm_dst->medge : me_dst->medge,
-				                                     dm_src->totedge,
-				                                     dm_dst ? dm_dst->totedge : me_dst->totedge,
+				                                     dm_src->medge, me_dst->medge,
+				                                     dm_src->totedge, me_dst->totedge,
 				                                     elem_size, data_size, data_offset, data_flag,
 				                                     data_transfer_interp_char, interp_data);
 			}
@@ -887,23 +873,16 @@ static bool data_transfer_layersmapping_generate(
 			const uint64_t data_flag = 0;
 
 			if (!(dm_src->cd_flag & ME_CDFLAG_EDGE_BWEIGHT)) {
-				if (use_delete && !dm_dst) {
+				if (use_delete && !me_dst) {
 					me_dst->cd_flag &= ~ME_CDFLAG_EDGE_BWEIGHT;
 				}
 				return true;
 			}
-			if (dm_dst) {
-				dm_dst->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-			}
-			else {
-				me_dst->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-			}
+			me_dst->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
 			if (r_map) {
 				data_transfer_layersmapping_add_item(r_map, cddata_type, mix_mode, mix_factor, mix_weights,
-				                                     dm_src->medge,
-				                                     dm_dst ? dm_dst->medge : me_dst->medge,
-				                                     dm_src->totedge,
-				                                     dm_dst ? dm_dst->totedge : me_dst->totedge,
+				                                     dm_src->medge, me_dst->medge,
+				                                     dm_src->totedge, me_dst->totedge,
 				                                     elem_size, data_size, data_offset, data_flag,
 				                                     data_transfer_interp_char, interp_data);
 			}
@@ -917,10 +896,8 @@ static bool data_transfer_layersmapping_generate(
 
 			data_transfer_layersmapping_add_item(
 			        r_map, cddata_type, mix_mode, mix_factor, mix_weights,
-			        dm_src->medge,
-			        dm_dst ? dm_dst->medge : me_dst->medge,
-			        dm_src->totedge,
-			        dm_dst ? dm_dst->totedge : me_dst->totedge,
+			        dm_src->medge, me_dst->medge,
+			        dm_src->totedge, me_dst->totedge,
 			        elem_size, data_size, data_offset, data_flag, NULL, interp_data);
 			return true;
 		}
@@ -941,11 +918,11 @@ static bool data_transfer_layersmapping_generate(
 
 		if (!(cddata_type & CD_FAKE)) {
 			cd_src = &dm_src->ldata;
-			cd_dst = dm_dst ? &dm_dst->ldata : &me_dst->ldata;
+			cd_dst = &me_dst->ldata;
 
 			if (!data_transfer_layersmapping_cdlayers(
 			        r_map, cddata_type, mix_mode, mix_factor, mix_weights,
-			        num_elem_dst, use_create, use_delete, cd_src, cd_dst, dm_dst != NULL,
+			        num_elem_dst, use_create, use_delete, cd_src, cd_dst, me_dst != ob_dst->data,
 			        fromlayers, tolayers,
 			        interp, interp_data))
 			{
@@ -965,11 +942,11 @@ static bool data_transfer_layersmapping_generate(
 
 		if (!(cddata_type & CD_FAKE)) {
 			cd_src = &dm_src->pdata;
-			cd_dst = dm_dst ? &dm_dst->pdata : &me_dst->pdata;
+			cd_dst = &me_dst->pdata;
 
 			if (!data_transfer_layersmapping_cdlayers(
 			        r_map, cddata_type, mix_mode, mix_factor, mix_weights,
-			        num_elem_dst, use_create, use_delete, cd_src, cd_dst, dm_dst != NULL,
+			        num_elem_dst, use_create, use_delete, cd_src, cd_dst, me_dst != ob_dst->data,
 			        fromlayers, tolayers,
 			        interp, interp_data))
 			{
@@ -986,10 +963,8 @@ static bool data_transfer_layersmapping_generate(
 
 			data_transfer_layersmapping_add_item(
 			        r_map, cddata_type, mix_mode, mix_factor, mix_weights,
-			        dm_src->mpoly,
-			        dm_dst ? dm_dst->mpoly : me_dst->mpoly,
-			        dm_src->totpoly,
-			        dm_dst ? dm_dst->totpoly : me_dst->totpoly,
+			        dm_src->mpoly, me_dst->mpoly,
+			        dm_src->totpoly, me_dst->totpoly,
 			        elem_size, data_size, data_offset, data_flag, NULL, interp_data);
 			return true;
 		}
@@ -1056,35 +1031,35 @@ void BKE_object_data_transfer_layout(
 			const int num_elem_dst = me_dst->totvert;
 
 			data_transfer_layersmapping_generate(
-			        NULL, ob_src, ob_dst, dm_src, NULL, me_dst, ME_VERT, cddata_type, 0, 0.0f, NULL,
+			        NULL, ob_src, ob_dst, dm_src, me_dst, ME_VERT, cddata_type, 0, 0.0f, NULL,
 			        num_elem_dst, use_create, use_delete, fromlayers, tolayers, NULL);
 		}
 		if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
 			const int num_elem_dst = me_dst->totedge;
 
 			data_transfer_layersmapping_generate(
-			        NULL, ob_src, ob_dst, dm_src, NULL, me_dst, ME_EDGE, cddata_type, 0, 0.0f, NULL,
+			        NULL, ob_src, ob_dst, dm_src, me_dst, ME_EDGE, cddata_type, 0, 0.0f, NULL,
 			        num_elem_dst, use_create, use_delete, fromlayers, tolayers, NULL);
 		}
 		if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
 			const int num_elem_dst = me_dst->totloop;
 
 			data_transfer_layersmapping_generate(
-			        NULL, ob_src, ob_dst, dm_src, NULL, me_dst, ME_LOOP, cddata_type, 0, 0.0f, NULL,
+			        NULL, ob_src, ob_dst, dm_src, me_dst, ME_LOOP, cddata_type, 0, 0.0f, NULL,
 			        num_elem_dst, use_create, use_delete, fromlayers, tolayers, NULL);
 		}
 		if (DT_DATATYPE_IS_POLY(dtdata_type)) {
 			const int num_elem_dst = me_dst->totpoly;
 
 			data_transfer_layersmapping_generate(
-			        NULL, ob_src, ob_dst, dm_src, NULL, me_dst, ME_POLY, cddata_type, 0, 0.0f, NULL,
+			        NULL, ob_src, ob_dst, dm_src, me_dst, ME_POLY, cddata_type, 0, 0.0f, NULL,
 			        num_elem_dst, use_create, use_delete, fromlayers, tolayers, NULL);
 		}
 	}
 }
 
 bool BKE_object_data_transfer_dm(
-        struct Depsgraph *depsgraph, Scene *scene, Object *ob_src, Object *ob_dst, Mesh *dm_dst,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob_src, Object *ob_dst, Mesh *me_dst,
         const int data_types, bool use_create, const int map_vert_mode, const int map_edge_mode,
         const int map_loop_mode, const int map_poly_mode, SpaceTransform *space_transform, const bool auto_transform,
         const float max_distance, const float ray_radius, const float islands_handling_precision,
@@ -1101,7 +1076,6 @@ bool BKE_object_data_transfer_dm(
 	SpaceTransform auto_space_transform;
 
 	Mesh *dm_src;
-	Mesh *me_dst;
 	bool dirty_nors_dst = true;  /* Assumed always true if not using a dm as destination. */
 	int i;
 
@@ -1120,21 +1094,18 @@ bool BKE_object_data_transfer_dm(
 
 	BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
-	me_dst = ob_dst->data;
-	if (dm_dst) {
-		dirty_nors_dst = (dm_dst->runtime.cd_dirty_vert & CD_NORMAL) != 0;
+	if (me_dst) {
+		dirty_nors_dst = (me_dst->runtime.cd_dirty_vert & CD_NORMAL) != 0;
 		/* Never create needed custom layers on passed destination mesh
 		 * (assumed to *not* be ob_dst->data, aka modifier case). */
 		use_create = false;
 	}
+	else {
+		me_dst = ob_dst->data;
+	}
 
 	if (vgroup_name) {
-		if (dm_dst) {
-			mdef = CustomData_get_layer(&dm_dst->vdata, CD_MDEFORMVERT);
-		}
-		else {
-			mdef = CustomData_get_layer(&me_dst->vdata, CD_MDEFORMVERT);
-		}
+		mdef = CustomData_get_layer(&me_dst->vdata, CD_MDEFORMVERT);
 		if (mdef) {
 			vg_idx = defgroup_name_index(ob_dst, vgroup_name);
 		}
@@ -1156,14 +1127,11 @@ bool BKE_object_data_transfer_dm(
 	}
 
 	if (auto_transform) {
-		MVert *verts_dst = dm_dst ? dm_dst->mvert : me_dst->mvert;
-		const int num_verts_dst = dm_dst ? dm_dst->totvert : me_dst->totvert;
-
 		if (space_transform == NULL) {
 			space_transform = &auto_space_transform;
 		}
 
-		BKE_mesh_remap_find_best_match_from_dm(verts_dst, num_verts_dst, dm_src, space_transform);
+		BKE_mesh_remap_find_best_match_from_dm(me_dst->mvert, me_dst->totvert, dm_src, space_transform);
 	}
 
 	/* Check all possible data types.
@@ -1177,8 +1145,7 @@ bool BKE_object_data_transfer_dm(
 			continue;
 		}
 
-		data_transfer_dtdata_type_preprocess(
-		            dm_src, dm_dst ? dm_dst : me_dst, dtdata_type, dirty_nors_dst);
+		data_transfer_dtdata_type_preprocess(dm_src, me_dst, dtdata_type, dirty_nors_dst);
 
 		cddata_type = BKE_object_data_transfer_dttype_to_cdtype(dtdata_type);
 
@@ -1192,8 +1159,8 @@ bool BKE_object_data_transfer_dm(
 		}
 
 		if (DT_DATATYPE_IS_VERT(dtdata_type)) {
-			MVert *verts_dst = dm_dst ? dm_dst->mvert : me_dst->mvert;
-			const int num_verts_dst = dm_dst ? dm_dst->totvert : me_dst->totvert;
+			MVert *verts_dst = me_dst->mvert;
+			const int num_verts_dst = me_dst->totvert;
 
 			if (!geom_map_init[VDATA]) {
 				const int num_verts_src = dm_src->totvert;
@@ -1234,7 +1201,7 @@ bool BKE_object_data_transfer_dm(
 			}
 
 			if (data_transfer_layersmapping_generate(
-			        &lay_map, ob_src, ob_dst, dm_src, dm_dst, me_dst, ME_VERT,
+			        &lay_map, ob_src, ob_dst, dm_src, me_dst, ME_VERT,
 			        cddata_type, mix_mode, mix_factor, weights[VDATA],
 			        num_verts_dst, use_create, use_delete, fromlayers, tolayers, space_transform))
 			{
@@ -1250,10 +1217,10 @@ bool BKE_object_data_transfer_dm(
 			}
 		}
 		if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
-			MVert *verts_dst = dm_dst ? dm_dst->mvert : me_dst->mvert;
-			const int num_verts_dst = dm_dst ? dm_dst->totvert : me_dst->totvert;
-			MEdge *edges_dst = dm_dst ? dm_dst->medge : me_dst->medge;
-			const int num_edges_dst = dm_dst ? dm_dst->totedge : me_dst->totedge;
+			MVert *verts_dst = me_dst->mvert;
+			const int num_verts_dst = me_dst->totvert;
+			MEdge *edges_dst = me_dst->medge;
+			const int num_edges_dst = me_dst->totedge;
 
 			if (!geom_map_init[EDATA]) {
 				const int num_edges_src = dm_src->totedge;
@@ -1291,7 +1258,7 @@ bool BKE_object_data_transfer_dm(
 			}
 
 			if (data_transfer_layersmapping_generate(
-			        &lay_map, ob_src, ob_dst, dm_src, dm_dst, me_dst, ME_EDGE,
+			        &lay_map, ob_src, ob_dst, dm_src, me_dst, ME_EDGE,
 			        cddata_type, mix_mode, mix_factor, weights[EDATA],
 			        num_edges_dst, use_create, use_delete, fromlayers, tolayers, space_transform))
 			{
@@ -1307,16 +1274,16 @@ bool BKE_object_data_transfer_dm(
 			}
 		}
 		if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
-			MVert *verts_dst = dm_dst ? dm_dst->mvert : me_dst->mvert;
-			const int num_verts_dst = dm_dst ? dm_dst->totvert : me_dst->totvert;
-			MEdge *edges_dst = dm_dst ? dm_dst->medge : me_dst->medge;
-			const int num_edges_dst = dm_dst ? dm_dst->totedge : me_dst->totedge;
-			MPoly *polys_dst = dm_dst ? dm_dst->mpoly : me_dst->mpoly;
-			const int num_polys_dst = dm_dst ? dm_dst->totpoly : me_dst->totpoly;
-			MLoop *loops_dst = dm_dst ? dm_dst->mloop : me_dst->mloop;
-			const int num_loops_dst = dm_dst ? dm_dst->totloop : me_dst->totloop;
-			CustomData *pdata_dst = dm_dst ? &dm_dst->pdata : &me_dst->pdata;
-			CustomData *ldata_dst = dm_dst ? &dm_dst->ldata : &me_dst->ldata;
+			MVert *verts_dst = me_dst->mvert;
+			const int num_verts_dst = me_dst->totvert;
+			MEdge *edges_dst = me_dst->medge;
+			const int num_edges_dst = me_dst->totedge;
+			MPoly *polys_dst = me_dst->mpoly;
+			const int num_polys_dst = me_dst->totpoly;
+			MLoop *loops_dst = me_dst->mloop;
+			const int num_loops_dst = me_dst->totloop;
+			CustomData *pdata_dst = &me_dst->pdata;
+			CustomData *ldata_dst = &me_dst->ldata;
 
 			MeshRemapIslandsCalc island_callback = data_transfer_get_loop_islands_generator(cddata_type);
 
@@ -1346,7 +1313,7 @@ bool BKE_object_data_transfer_dm(
 				        verts_dst, num_verts_dst, edges_dst, num_edges_dst,
 				        loops_dst, num_loops_dst, polys_dst, num_polys_dst,
 				        ldata_dst, pdata_dst,
-				        ((dm_dst ? dm_dst : me_dst)->flag & ME_AUTOSMOOTH) != 0, (dm_dst ? dm_dst : me_dst)->smoothresh, dirty_nors_dst,
+				        (me_dst->flag & ME_AUTOSMOOTH) != 0, me_dst->smoothresh, dirty_nors_dst,
 				        dm_src,
 				        island_callback, islands_handling_precision, &geom_map[LDATA]);
 				geom_map_init[LDATA] = true;
@@ -1360,7 +1327,7 @@ bool BKE_object_data_transfer_dm(
 			}
 
 			if (data_transfer_layersmapping_generate(
-			        &lay_map, ob_src, ob_dst, dm_src, dm_dst, me_dst, ME_LOOP,
+			        &lay_map, ob_src, ob_dst, dm_src, me_dst, ME_LOOP,
 			        cddata_type, mix_mode, mix_factor, weights[LDATA],
 			        num_loops_dst, use_create, use_delete, fromlayers, tolayers, space_transform))
 			{
@@ -1376,13 +1343,13 @@ bool BKE_object_data_transfer_dm(
 			}
 		}
 		if (DT_DATATYPE_IS_POLY(dtdata_type)) {
-			MVert *verts_dst = dm_dst ? dm_dst->mvert : me_dst->mvert;
-			const int num_verts_dst = dm_dst ? dm_dst->totvert : me_dst->totvert;
-			MPoly *polys_dst = dm_dst ? dm_dst->mpoly : me_dst->mpoly;
-			const int num_polys_dst = dm_dst ? dm_dst->totpoly : me_dst->totpoly;
-			MLoop *loops_dst = dm_dst ? dm_dst->mloop : me_dst->mloop;
-			const int num_loops_dst = dm_dst ? dm_dst->totloop : me_dst->totloop;
-			CustomData *pdata_dst = dm_dst ? &dm_dst->pdata : &me_dst->pdata;
+			MVert *verts_dst = me_dst->mvert;
+			const int num_verts_dst = me_dst->totvert;
+			MPoly *polys_dst = me_dst->mpoly;
+			const int num_polys_dst = me_dst->totpoly;
+			MLoop *loops_dst = me_dst->mloop;
+			const int num_loops_dst = me_dst->totloop;
+			CustomData *pdata_dst = &me_dst->pdata;
 
 			if (!geom_map_init[PDATA]) {
 				const int num_polys_src = dm_src->totpoly;
@@ -1421,7 +1388,7 @@ bool BKE_object_data_transfer_dm(
 			}
 
 			if (data_transfer_layersmapping_generate(
-			        &lay_map, ob_src, ob_dst, dm_src, dm_dst, me_dst, ME_POLY,
+			        &lay_map, ob_src, ob_dst, dm_src, me_dst, ME_POLY,
 			        cddata_type, mix_mode, mix_factor, weights[PDATA],
 			        num_polys_dst, use_create, use_delete, fromlayers, tolayers, space_transform))
 			{
@@ -1437,7 +1404,7 @@ bool BKE_object_data_transfer_dm(
 			}
 		}
 
-		data_transfer_dtdata_type_postprocess(ob_src, ob_dst, dm_src, dm_dst, me_dst, dtdata_type, changed);
+		data_transfer_dtdata_type_postprocess(ob_src, ob_dst, dm_src, me_dst, dtdata_type, changed);
 	}
 
 	for (i = 0; i < DATAMAX; i++) {
