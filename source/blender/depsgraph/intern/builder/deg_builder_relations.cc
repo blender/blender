@@ -464,9 +464,9 @@ void DepsgraphRelationBuilder::build_collection(
 		}
 	}
 	const bool group_done = built_map_.checkIsBuiltAndTag(collection);
-	OperationKey object_local_transform_key(object != NULL ? &object->id : NULL,
+	OperationKey object_transform_final_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,
-	                                        DEG_OPCODE_TRANSFORM_LOCAL);
+	                                        DEG_OPCODE_TRANSFORM_FINAL);
 	if (!group_done) {
 		LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
 			if (allow_restrict_flags) {
@@ -487,7 +487,7 @@ void DepsgraphRelationBuilder::build_collection(
 		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(collection, ob, graph_->mode)
 		{
 			ComponentKey dupli_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
-			add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
+			add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
 		}
 		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 	}
