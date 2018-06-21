@@ -596,7 +596,9 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		ComponentKey proxy_transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(ob_transform_key, proxy_transform_key, "Proxy Transform");
 	}
-
+	if (object->proxy_group) {
+		build_object(NULL, object->proxy_group);
+	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
 		build_collection(DEG_COLLECTION_OWNER_OBJECT, object, object->dup_group);

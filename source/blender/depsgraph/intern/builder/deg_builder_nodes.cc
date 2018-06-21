@@ -541,6 +541,9 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	if (object->proxy_from) {
 		build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY);
 	}
+	if (object->proxy_group) {
+		build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY);
+	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
 		build_collection(DEG_COLLECTION_OWNER_OBJECT, object->dup_group);
