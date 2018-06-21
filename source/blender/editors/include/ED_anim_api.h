@@ -690,6 +690,7 @@ void ANIM_list_elem_update(struct Main *bmain, struct Scene *scene, bAnimListEle
 void ANIM_sync_animchannels_to_data(const struct bContext *C);
 
 void ANIM_center_frame(struct bContext *C, int smooth_viewtx);
+
 /* ************************************************* */
 /* OPERATORS */
 
@@ -715,6 +716,10 @@ struct AnimData *ED_actedit_animdata_from_context(struct bContext *C);
 void ED_animedit_unlink_action(struct bContext *C, struct ID *id,
                                struct AnimData *adt, struct bAction *act,
                                struct ReportList *reports, bool force_delete);
+
+
+/* Drivers Editor - Utility to set up UI correctly */
+void ED_drivers_editor_init(struct bContext *C, struct ScrArea *sa);
 
 /* ************************************************ */
 
