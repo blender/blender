@@ -4886,7 +4886,7 @@ static void dynamic_paint_prepare_effect_cb(
 		EffectedPoint epoint;
 		pd_point_from_loc(scene, realCoord[bData->s_pos[index]].v, vel, index, &epoint);
 		epoint.vel_to_sec = 1.0f;
-		pdDoEffectors(effectors, NULL, surface->effector_weights, &epoint, forc, NULL);
+		BKE_effectors_apply(effectors, NULL, surface->effector_weights, &epoint, forc, NULL);
 	}
 
 	/* if global gravity is enabled, add it too */
@@ -4926,7 +4926,7 @@ static int dynamicPaint_prepareEffectStep(
 
 	/* Init force data if required */
 	if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
-		ListBase *effectors = pdInitEffectors(depsgraph, scene, ob, NULL, surface->effector_weights, true);
+		ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, surface->effector_weights);
 
 		/* allocate memory for force data (dir vector + strength) */
 		*force = MEM_mallocN(sData->total_points * 4 * sizeof(float), "PaintEffectForces");
@@ -4950,7 +4950,7 @@ static int dynamicPaint_prepareEffectStep(
 			}
 			average_force /= sData->total_points;
 		}
-		pdEndEffectors(&effectors);
+		BKE_effectors_free(effectors);
 	}
 
 	/* Get number of required steps using average point distance

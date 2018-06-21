@@ -93,7 +93,8 @@ Depsgraph::Depsgraph(Scene *scene,
     mode(mode),
     ctime(BKE_scene_frame_get(scene)),
     scene_cow(NULL),
-    is_active(false)
+    is_active(false),
+	effector_relations(NULL)
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
@@ -360,6 +361,8 @@ void Depsgraph::clear_id_nodes()
 	/* Clear containers. */
 	BLI_ghash_clear(id_hash, NULL, NULL);
 	id_nodes.clear();
+	/* Clear physics relation caches. */
+	deg_clear_physics_relations(this);
 }
 
 /* Add new relationship between two nodes. */

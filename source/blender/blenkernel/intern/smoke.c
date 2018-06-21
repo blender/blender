@@ -2512,7 +2512,7 @@ static void update_effectors_task_cb(
 			mul_m4_v3(sds->obmat, voxelCenter);
 
 			pd_point_from_loc(data->scene, voxelCenter, vel, index, &epoint);
-			pdDoEffectors(data->effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
+			BKE_effectors_apply(data->effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
 
 			/* convert retvel to local space */
 			mag = len_v3(retvel);
@@ -2533,7 +2533,7 @@ static void update_effectors(struct Depsgraph *depsgraph, Scene *scene, Object *
 	ListBase *effectors;
 	/* make sure smoke flow influence is 0.0f */
 	sds->effector_weights->weight[PFIELD_SMOKEFLOW] = 0.0f;
-	effectors = pdInitEffectors(depsgraph, scene, ob, NULL, sds->effector_weights, true);
+	effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, sds->effector_weights);
 
 	if (effectors) {
 		// precalculate wind forces
@@ -2560,7 +2560,7 @@ static void update_effectors(struct Depsgraph *depsgraph, Scene *scene, Object *
 		                        &settings);
 	}
 
-	pdEndEffectors(&effectors);
+	BKE_effectors_free(effectors);
 }
 
 static void step(

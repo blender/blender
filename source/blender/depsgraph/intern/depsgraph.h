@@ -226,6 +226,10 @@ struct Depsgraph {
 	/* NITE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
 	int debug_flags;
 	string debug_name;
+
+	/* Cached list of effectors for collections and the scene created
+	 * along with relations, for fast lookup during evaluation. */
+	GHash *effector_relations;
 };
 
 }  // namespace DEG

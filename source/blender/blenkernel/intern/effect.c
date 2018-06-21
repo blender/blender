@@ -74,6 +74,7 @@
 #include "BKE_smoke.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
 #include "RE_render_ext.h"
@@ -135,9 +136,8 @@ PartDeflect *object_add_collision_fields(int type)
 	return pd;
 }
 
-/* ***************** PARTICLES ***************** */
+/************************ PARTICLES ***************************/
 
-/* -------------------------- Effectors ------------------ */
 void free_partdeflect(PartDeflect *pd)
 {
 	if (!pd)
@@ -149,114 +149,7 @@ void free_partdeflect(PartDeflect *pd)
 	MEM_freeN(pd);
 }
 
-static EffectorCache *new_effector_cache(struct Depsgraph *depsgraph, Scene *scene, Object *ob, ParticleSystem *psys, PartDeflect *pd)
-{
-	EffectorCache *eff = MEM_callocN(sizeof(EffectorCache), "EffectorCache");
-	eff->depsgraph = depsgraph;
-	eff->scene = scene;
-	eff->ob = ob;
-	eff->psys = psys;
-	eff->pd = pd;
-	eff->frame = -1;
-	return eff;
-}
-static void add_object_to_effectors(ListBase **effectors, struct Depsgraph *depsgraph, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src, bool for_simulation)
-{
-	EffectorCache *eff = NULL;
-
-	if ( ob == ob_src )
-		return;
-
-	if (for_simulation) {
-		if (weights->weight[ob->pd->forcefield] == 0.0f )
-			return;
-
-		if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal )
-			return;
-	}
-
-	if (*effectors == NULL)
-		*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
-
-	eff = new_effector_cache(depsgraph, scene, ob, NULL, ob->pd);
-
-	/* make sure imat is up to date */
-	invert_m4_m4(ob->imat, ob->obmat);
-
-	BLI_addtail(*effectors, eff);
-}
-static void add_particles_to_effectors(ListBase **effectors, struct Depsgraph *depsgraph, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src, bool for_simulation)
-{
-	ParticleSettings *part= psys->part;
-	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
-
-	if ( !psys_check_enabled(ob, psys, for_render) )
-		return;
-
-	if ( psys == psys_src && (part->flag & PART_SELF_EFFECT) == 0)
-		return;
-
-	if ( part->pd && part->pd->forcefield && (!for_simulation || weights->weight[part->pd->forcefield] != 0.0f)) {
-		if (*effectors == NULL)
-			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
-
-		BLI_addtail(*effectors, new_effector_cache(depsgraph, scene, ob, psys, part->pd));
-	}
-
-	if (part->pd2 && part->pd2->forcefield && (!for_simulation || weights->weight[part->pd2->forcefield] != 0.0f)) {
-		if (*effectors == NULL)
-			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
-
-		BLI_addtail(*effectors, new_effector_cache(depsgraph, scene, ob, psys, part->pd2));
-	}
-}
-
-/* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(
-        struct Depsgraph *depsgraph, Scene *scene, Object *ob_src, ParticleSystem *psys_src,
-        EffectorWeights *weights, bool for_simulation)
-{
-	/* For dependency building, we get objects from the scene.
-	 * For simulation, we get objects from the depsgraph. */
-	Base *base = BKE_collection_or_layer_objects((for_simulation) ? depsgraph : NULL, scene, NULL, weights->group);
-	ListBase *effectors = NULL;
-
-	for (; base; base = base->next) {
-		if (base->object->pd && base->object->pd->forcefield) {
-			add_object_to_effectors(&effectors, depsgraph, scene, weights, base->object, ob_src, for_simulation);
-		}
-
-		if (base->object->particlesystem.first) {
-			ParticleSystem *psys= base->object->particlesystem.first;
-
-			for (; psys; psys=psys->next) {
-				add_particles_to_effectors(&effectors, depsgraph, scene, weights, base->object, psys, psys_src, for_simulation);
-			}
-		}
-	}
-
-	if (for_simulation) {
-		pdPrecalculateEffectors(depsgraph, effectors);
-	}
-
-	return effectors;
-}
-
-void pdEndEffectors(ListBase **effectors)
-{
-	if (*effectors) {
-		EffectorCache *eff = (*effectors)->first;
-
-		for (; eff; eff=eff->next) {
-			if (eff->guide_data)
-				MEM_freeN(eff->guide_data);
-		}
-
-		BLI_freelistN(*effectors);
-		MEM_freeN(*effectors);
-		*effectors = NULL;
-	}
-}
+/******************** EFFECTOR RELATIONS ***********************/
 
 static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *eff)
 {
@@ -299,12 +192,144 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
 	}
 }
 
-void pdPrecalculateEffectors(struct Depsgraph *depsgraph, ListBase *effectors)
+static void add_effector_relation(ListBase *relations, Object *ob, ParticleSystem *psys, PartDeflect *pd)
 {
-	if (effectors) {
-		EffectorCache *eff = effectors->first;
-		for (; eff; eff=eff->next)
-			precalculate_effector(depsgraph, eff);
+	EffectorRelation *relation = MEM_callocN(sizeof(EffectorRelation), "EffectorRelation");
+	relation->ob = ob;
+	relation->psys = psys;
+	relation->pd = pd;
+
+	BLI_addtail(relations, relation);
+}
+
+static void add_effector_evaluation(ListBase **effectors, Depsgraph *depsgraph, Scene *scene, Object *ob, ParticleSystem *psys, PartDeflect *pd)
+{
+	if (*effectors == NULL) {
+		*effectors = MEM_callocN(sizeof(ListBase), "effector effectors");
+	}
+
+	EffectorCache *eff = MEM_callocN(sizeof(EffectorCache), "EffectorCache");
+	eff->depsgraph = depsgraph;
+	eff->scene = scene;
+	eff->ob = ob;
+	eff->psys = psys;
+	eff->pd = pd;
+	eff->frame = -1;
+	BLI_addtail(*effectors, eff);
+
+	precalculate_effector(depsgraph, eff);
+}
+
+/* Create list of effector relations in the collection or entire scene.
+ * This is used by the depsgraph to build relations, as well as faster
+ * lookup of effectors during evaluation. */
+ListBase *BKE_effector_relations_create(
+        Depsgraph *depsgraph,
+        ViewLayer *view_layer,
+        Collection *collection)
+{
+	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
+	ListBase *relations = MEM_callocN(sizeof(ListBase), "effector relations");
+
+	for (; base; base = base->next) {
+		Object *ob = base->object;
+
+		if (ob->pd && ob->pd->forcefield) {
+			add_effector_relation(relations, ob, NULL, ob->pd);
+		}
+
+		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+			ParticleSettings *part = psys->part;
+
+			if (psys_check_enabled(ob, psys, for_render)) {
+				if (part->pd && part->pd->forcefield) {
+					add_effector_relation(relations, ob, psys, part->pd);
+				}
+				if (part->pd2 && part->pd2->forcefield) {
+					add_effector_relation(relations, ob, psys, part->pd2);
+				}
+			}
+		}
+	}
+
+	return relations;
+}
+
+void BKE_effector_relations_free(ListBase *lb)
+{
+	if (lb) {
+		BLI_freelistN(lb);
+		MEM_freeN(lb);
+	}
+}
+
+/* Create effective list of effectors from relations built beforehand. */
+ListBase *BKE_effectors_create(
+        Depsgraph *depsgraph,
+        Scene *scene,
+        Object *ob_src,
+        ParticleSystem *psys_src,
+        EffectorWeights *weights)
+{
+	ListBase *relations = DEG_get_effector_relations(depsgraph, weights->group);
+	ListBase *effectors = NULL;
+
+	if (!relations) {
+		return NULL;
+	}
+
+	for (EffectorRelation *relation = relations->first; relation; relation = relation->next) {
+		/* Get evaluated object. */
+		Object *ob = (Object*)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+
+		if (relation->psys) {
+			/* Get evaluated particle system. */
+			ParticleSystem *psys = BLI_findstring(&ob->particlesystem,
+			        relation->psys->name, offsetof(ParticleSystem, name));
+			ParticleSettings *part = psys->part;
+
+			if (psys == psys_src && (part->flag & PART_SELF_EFFECT) == 0) {
+				continue;
+			}
+
+			PartDeflect *pd = (relation->pd == relation->psys->part->pd) ? part->pd : part->pd2;
+			if (weights->weight[pd->forcefield] == 0.0f) {
+				continue;
+			}
+
+			add_effector_evaluation(&effectors, depsgraph, scene, ob, psys, pd);
+		}
+		else {
+			/* Object effector. */
+			if (ob == ob_src) {
+				continue;
+			}
+			else if (weights->weight[ob->pd->forcefield] == 0.0f) {
+				continue;
+			}
+			else if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal) {
+				continue;
+			}
+
+			add_effector_evaluation(&effectors, depsgraph, scene, ob, NULL, ob->pd);
+		}
+	}
+
+	return effectors;
+}
+
+void BKE_effectors_free(ListBase *lb)
+{
+	if (lb) {
+		for (EffectorCache *eff = lb->first; eff; eff = eff->next) {
+			if (eff->guide_data) {
+				MEM_freeN(eff->guide_data);
+			}
+		}
+
+		BLI_freelistN(lb);
+		MEM_freeN(lb);
 	}
 }
 
@@ -963,7 +988,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 	}
 }
 
-/*  -------- pdDoEffectors() --------
+/*  -------- BKE_effectors_apply() --------
  * generic force/speed system, now used for particles and softbodies
  * scene       = scene where it runs in, for time and stuff
  * lb			= listbase with objects that take part in effecting
@@ -976,7 +1001,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
  * flags		= only used for softbody wind now
  * guide		= old speed of particle
  */
-void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *weights, EffectedPoint *point, float *force, float *impulse)
+void BKE_effectors_apply(ListBase *effectors, ListBase *colliders, EffectorWeights *weights, EffectedPoint *point, float *force, float *impulse)
 {
 	/*
 	 * Modifies the force on a particle according to its

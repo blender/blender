@@ -93,6 +93,7 @@
 #include "BKE_bvhutils.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
 #include "PIL_time.h"
@@ -1307,9 +1308,10 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
 
 static void psys_update_effectors(ParticleSimulationData *sim)
 {
-	pdEndEffectors(&sim->psys->effectors);
-	sim->psys->effectors = pdInitEffectors(sim->depsgraph, sim->scene, sim->ob, sim->psys,
-	                                       sim->psys->part->effector_weights, true);
+	BKE_effectors_free(sim->psys->effectors);
+	sim->psys->effectors = BKE_effectors_create(sim->depsgraph,
+	                                            sim->scene, sim->ob, sim->psys,
+	                                            sim->psys->part->effector_weights);
 	precalc_guides(sim, sim->psys->effectors);
 }
 
@@ -2066,7 +2068,7 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 	/* add effectors */
 	pd_point_from_particle(efdata->sim, efdata->pa, state, &epoint);
 	if (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)
-		pdDoEffectors(sim->psys->effectors, sim->colliders, part->effector_weights, &epoint, force, impulse);
+		BKE_effectors_apply(sim->psys->effectors, sim->colliders, part->effector_weights, &epoint, force, impulse);
 
 	mul_v3_fl(force, efdata->ptex.field);
 	mul_v3_fl(impulse, efdata->ptex.field);
@@ -2957,18 +2959,20 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 
 
 	/* particle instance modifier with "path" option need cached paths even if particle system doesn't */
-	FOREACH_SCENE_OBJECT_BEGIN(sim->scene, ob)
-	{
-		ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleInstance);
-		if (md) {
-			ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
-			if (pimd->flag & eParticleInstanceFlag_Path && pimd->ob == sim->ob && pimd->psys == (psys - (ParticleSystem*)sim->ob->particlesystem.first)) {
-				skip = 0;
-				break;
+	if (skip) {
+		FOREACH_SCENE_OBJECT_BEGIN(sim->scene, ob)
+		{
+			ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleInstance);
+			if (md) {
+				ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+				if (pimd->flag & eParticleInstanceFlag_Path && pimd->ob == sim->ob && pimd->psys == (psys - (ParticleSystem*)sim->ob->particlesystem.first)) {
+					skip = 0;
+					break;
+				}
 			}
 		}
+		FOREACH_SCENE_OBJECT_END;
 	}
-	FOREACH_SCENE_OBJECT_END;
 
 	if (!skip) {
 		psys_cache_paths(sim, cfra, use_render_params);

@@ -357,31 +357,30 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   const char *name)
 {
 	Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
-	ListBase *effectors = pdInitEffectors(depsgraph, scene, object, NULL, effector_weights, false);
-	if (effectors == NULL) {
-		return;
-	}
-	for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
-		if (eff->ob != object && eff->pd->forcefield != skip_forcefield) {
-			DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
-			if (eff->psys) {
-				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_EVAL_PARTICLES, name);
+	DEG::Depsgraph *deg_graph = (DEG::Depsgraph *)depsgraph;
+	ListBase *relations = deg_build_effector_relations(deg_graph, effector_weights->group);
+
+	LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
+		if (relation->ob != object && relation->pd->forcefield != skip_forcefield) {
+			DEG_add_object_relation(handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
+			if (relation->psys) {
+				DEG_add_object_relation(handle, relation->ob, DEG_OB_COMP_EVAL_PARTICLES, name);
 				/* TODO: remove this when/if EVAL_PARTICLES is sufficient
 				 * for up to date particles.
 				 */
-				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_GEOMETRY, name);
+				DEG_add_object_relation(handle, relation->ob, DEG_OB_COMP_GEOMETRY, name);
 			}
-			if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
+			if (relation->pd->forcefield == PFIELD_SMOKEFLOW && relation->pd->f_source) {
 				DEG_add_object_relation(handle,
-				                        eff->pd->f_source,
+				                        relation->pd->f_source,
 				                        DEG_OB_COMP_TRANSFORM,
 				                        "Smoke Force Domain");
 				DEG_add_object_relation(handle,
-				                        eff->pd->f_source,
+				                        relation->pd->f_source,
 				                        DEG_OB_COMP_GEOMETRY,
 				                        "Smoke Force Domain");
 			}
-			if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
+			if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
 				DEG_add_collision_relations(handle,
 				                            scene,
 				                            object,
@@ -393,5 +392,4 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 			}
 		}
 	}
-	pdEndEffectors(&effectors);
 }

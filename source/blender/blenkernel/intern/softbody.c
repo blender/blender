@@ -139,7 +139,7 @@ typedef struct  SB_thread_context {
 		float timenow;
 		int ifirst;
 		int ilast;
-		ListBase *do_effector;
+		ListBase *effectors;
 		int do_deflector;
 		float fieldfactor;
 		float windfactor;
@@ -1444,7 +1444,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 	return deflected;
 }
 
-static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow, int ifirst, int ilast, struct ListBase *do_effector)
+static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow, int ifirst, int ilast, struct ListBase *effectors)
 {
 	SoftBody *sb = ob->soft;
 	int a;
@@ -1478,14 +1478,14 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 					float vel[3], sp[3], pr[3], force[3];
 					float f, windfactor  = 0.25f;
 					/*see if we have wind*/
-					if (do_effector) {
+					if (effectors) {
 						EffectedPoint epoint;
 						float speed[3] = {0.0f, 0.0f, 0.0f};
 						float pos[3];
 						mid_v3_v3v3(pos, sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos);
 						mid_v3_v3v3(vel, sb->bpoint[bs->v1].vec, sb->bpoint[bs->v2].vec);
 						pd_point_from_soft(scene, pos, vel, -1, &epoint);
-						pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+						BKE_effectors_apply(effectors, NULL, sb->effector_weights, &epoint, force, speed);
 
 						mul_v3_fl(speed, windfactor);
 						add_v3_v3(vel, speed);
@@ -1521,29 +1521,27 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 static void scan_for_ext_spring_forces(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float timenow)
 {
 	SoftBody *sb = ob->soft;
-	ListBase *do_effector = NULL;
 
-	do_effector = pdInitEffectors(depsgraph, scene, ob, NULL, sb->effector_weights, true);
-	_scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
-	pdEndEffectors(&do_effector);
+	ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, sb->effector_weights);
+	_scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, effectors);
+	BKE_effectors_free(effectors);
 }
 
 static void *exec_scan_for_ext_spring_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
-	_scan_for_ext_spring_forces(pctx->scene, pctx->ob, pctx->timenow, pctx->ifirst, pctx->ilast, pctx->do_effector);
+	_scan_for_ext_spring_forces(pctx->scene, pctx->ob, pctx->timenow, pctx->ifirst, pctx->ilast, pctx->effectors);
 	return NULL;
 }
 
 static void sb_sfesf_threads_run(struct Depsgraph *depsgraph, Scene *scene, struct Object *ob, float timenow, int totsprings, int *UNUSED(ptr_to_break_func(void)))
 {
-	ListBase *do_effector = NULL;
 	ListBase threads;
 	SB_thread_context *sb_threads;
 	int i, totthread, left, dec;
 	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
-	do_effector= pdInitEffectors(depsgraph, scene, ob, NULL, ob->soft->effector_weights, true);
+	ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, ob->soft->effector_weights);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
 	totthread= BKE_scene_num_threads(scene);
@@ -1568,7 +1566,7 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph, Scene *scene, stru
 		}
 		else
 			sb_threads[i].ifirst  = 0;
-		sb_threads[i].do_effector = do_effector;
+		sb_threads[i].effectors = effectors;
 		sb_threads[i].do_deflector = false;// not used here
 		sb_threads[i].fieldfactor = 0.0f;// not used here
 		sb_threads[i].windfactor  = 0.0f;// not used here
@@ -1588,7 +1586,7 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph, Scene *scene, stru
 	/* clean up */
 	MEM_freeN(sb_threads);
 
-	pdEndEffectors(&do_effector);
+	BKE_effectors_free(effectors);
 }
 
 
@@ -1941,7 +1939,7 @@ static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, floa
 /* since this is definitely the most CPU consuming task here .. try to spread it */
 /* core function _softbody_calc_forces_slice_in_a_thread */
 /* result is int to be able to flag user break */
-static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, float forcetime, float timenow, int ifirst, int ilast, int *UNUSED(ptr_to_break_func(void)), ListBase *do_effector, int do_deflector, float fieldfactor, float windfactor)
+static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, float forcetime, float timenow, int ifirst, int ilast, int *UNUSED(ptr_to_break_func(void)), ListBase *effectors, int do_deflector, float fieldfactor, float windfactor)
 {
 	float iks;
 	int bb, do_selfcollision, do_springcollision, do_aero;
@@ -2060,14 +2058,14 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			}
 
 			/* particle field & vortex */
-			if (do_effector) {
+			if (effectors) {
 				EffectedPoint epoint;
 				float kd;
 				float force[3] = {0.0f, 0.0f, 0.0f};
 				float speed[3] = {0.0f, 0.0f, 0.0f};
 				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 				pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
-				pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+				BKE_effectors_apply(effectors, NULL, sb->effector_weights, &epoint, force, speed);
 
 				/* apply forcefield*/
 				mul_v3_fl(force, fieldfactor* eval_sb_fric_force_scale);
@@ -2142,11 +2140,11 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 static void *exec_softbody_calc_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
-	_softbody_calc_forces_slice_in_a_thread(pctx->scene, pctx->ob, pctx->forcetime, pctx->timenow, pctx->ifirst, pctx->ilast, NULL, pctx->do_effector, pctx->do_deflector, pctx->fieldfactor, pctx->windfactor);
+	_softbody_calc_forces_slice_in_a_thread(pctx->scene, pctx->ob, pctx->forcetime, pctx->timenow, pctx->ifirst, pctx->ilast, NULL, pctx->effectors, pctx->do_deflector, pctx->fieldfactor, pctx->windfactor);
 	return NULL;
 }
 
-static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow, int totpoint, int *UNUSED(ptr_to_break_func(void)), struct ListBase *do_effector, int do_deflector, float fieldfactor, float windfactor)
+static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow, int totpoint, int *UNUSED(ptr_to_break_func(void)), struct ListBase *effectors, int do_deflector, float fieldfactor, float windfactor)
 {
 	ListBase threads;
 	SB_thread_context *sb_threads;
@@ -2178,7 +2176,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 		}
 		else
 			sb_threads[i].ifirst  = 0;
-		sb_threads[i].do_effector = do_effector;
+		sb_threads[i].effectors = effectors;
 		sb_threads[i].do_deflector = do_deflector;
 		sb_threads[i].fieldfactor = fieldfactor;
 		sb_threads[i].windfactor  = windfactor;
@@ -2208,7 +2206,6 @@ static void softbody_calc_forcesEx(struct Depsgraph *depsgraph, Scene *scene, Ob
 	 */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	/*BodyPoint *bproot;*/ /* UNUSED */
-	ListBase *do_effector = NULL;
 	/* float gravity; */ /* UNUSED */
 	/* float iks; */
 	float fieldfactor = -1.0f, windfactor  = 0.25;
@@ -2229,20 +2226,20 @@ static void softbody_calc_forcesEx(struct Depsgraph *depsgraph, Scene *scene, Ob
 		sb_sfesf_threads_run(depsgraph, scene, ob, timenow, sb->totspring, NULL);
 
 	/* after spring scan because it uses Effoctors too */
-	do_effector= pdInitEffectors(depsgraph, scene, ob, NULL, sb->effector_weights, true);
+	ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, sb->effector_weights);
 
 	if (do_deflector) {
 		float defforce[3];
 		do_deflector = sb_detect_aabb_collisionCached(defforce, ob->lay, ob, timenow);
 	}
 
-	sb_cf_threads_run(scene, ob, forcetime, timenow, sb->totpoint, NULL, do_effector, do_deflector, fieldfactor, windfactor);
+	sb_cf_threads_run(scene, ob, forcetime, timenow, sb->totpoint, NULL, effectors, do_deflector, fieldfactor, windfactor);
 
 	/* finally add forces caused by face collision */
 	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob, timenow);
 
 	/* finish matrix and solve */
-	pdEndEffectors(&do_effector);
+	BKE_effectors_free(effectors);
 }
 
 
@@ -2269,7 +2266,6 @@ static void softbody_calc_forces(struct Depsgraph *depsgraph, Scene *scene, Obje
 		BodyPoint  *bp;
 		/* BodyPoint *bproot; */ /* UNUSED */
 		BodySpring *bs;
-		ListBase *do_effector = NULL;
 		float iks, ks, kd, gravity[3] = {0.0f, 0.0f, 0.0f};
 		float fieldfactor = -1.0f, windfactor  = 0.25f;
 		float tune = sb->ballstiff;
@@ -2291,7 +2287,7 @@ static void softbody_calc_forces(struct Depsgraph *depsgraph, Scene *scene, Obje
 
 		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(depsgraph, scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */
-		do_effector= pdInitEffectors(depsgraph, scene, ob, NULL, ob->soft->effector_weights, true);
+		ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, ob->soft->effector_weights);
 
 		if (do_deflector) {
 			float defforce[3];
@@ -2394,13 +2390,13 @@ static void softbody_calc_forces(struct Depsgraph *depsgraph, Scene *scene, Obje
 
 
 				/* particle field & vortex */
-				if (do_effector) {
+				if (effectors) {
 					EffectedPoint epoint;
 					float force[3] = {0.0f, 0.0f, 0.0f};
 					float speed[3] = {0.0f, 0.0f, 0.0f};
 					float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 					pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
-					pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+					BKE_effectors_apply(effectors, NULL, sb->effector_weights, &epoint, force, speed);
 
 					/* apply forcefield*/
 					mul_v3_fl(force, fieldfactor* eval_sb_fric_force_scale);
@@ -2492,7 +2488,7 @@ static void softbody_calc_forces(struct Depsgraph *depsgraph, Scene *scene, Obje
 
 		/* finally add forces caused by face collision */
 		if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob, timenow);
-		pdEndEffectors(&do_effector);
+		BKE_effectors_free(effectors);
 	}
 }
 

@@ -333,52 +333,49 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
         bool add_absorption,
         const char *name)
 {
-	::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph*>(graph_);
-	ListBase *effectors = pdInitEffectors(depsgraph, scene, object, psys, eff, false);
-	if (effectors == NULL) {
-		return;
-	}
-	LISTBASE_FOREACH (EffectorCache *, eff, effectors) {
-		if (eff->ob != object) {
-			ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_TRANSFORM);
+	ListBase *relations = deg_build_effector_relations(graph_, eff->group);
+
+	LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
+		if (relation->ob != object) {
+			ComponentKey eff_key(&relation->ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(eff_key, key, name);
+
+			if (relation->pd->forcefield == PFIELD_SMOKEFLOW && relation->pd->f_source) {
+				ComponentKey trf_key(&relation->pd->f_source->id,
+				                     DEG_NODE_TYPE_TRANSFORM);
+				add_relation(trf_key, key, "Smoke Force Domain");
+				ComponentKey eff_key(&relation->pd->f_source->id,
+				                     DEG_NODE_TYPE_GEOMETRY);
+				add_relation(eff_key, key, "Smoke Force Domain");
+			}
+			if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
+				add_collision_relations(key,
+				                        scene,
+				                        object,
+				                        NULL,
+				                        true,
+				                        "Force Absorption");
+			}
 		}
-		if (eff->psys != NULL) {
-			if (eff->ob != object) {
-				ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
+		if (relation->psys) {
+			if (relation->ob != object) {
+				ComponentKey eff_key(&relation->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
 				add_relation(eff_key, key, name);
 				/* TODO: remove this when/if EVAL_PARTICLES is sufficient
 				 * for up to date particles.
 				 */
-				ComponentKey mod_key(&eff->ob->id, DEG_NODE_TYPE_GEOMETRY);
+				ComponentKey mod_key(&relation->ob->id, DEG_NODE_TYPE_GEOMETRY);
 				add_relation(mod_key, key, name);
 			}
-			else if (eff->psys != psys) {
-				OperationKey eff_key(&eff->ob->id,
+			else if (relation->psys != psys) {
+				OperationKey eff_key(&relation->ob->id,
 				                     DEG_NODE_TYPE_EVAL_PARTICLES,
 				                     DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
-				                     eff->psys->name);
+				                     relation->psys->name);
 				add_relation(eff_key, key, name);
 			}
 		}
-		if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
-			ComponentKey trf_key(&eff->pd->f_source->id,
-			                     DEG_NODE_TYPE_TRANSFORM);
-			add_relation(trf_key, key, "Smoke Force Domain");
-			ComponentKey eff_key(&eff->pd->f_source->id,
-			                     DEG_NODE_TYPE_GEOMETRY);
-			add_relation(eff_key, key, "Smoke Force Domain");
-		}
-		if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
-			add_collision_relations(key,
-			                        scene,
-			                        object,
-			                        NULL,
-			                        true,
-			                        "Force Absorption");
-		}
 	}
-	pdEndEffectors(&effectors);
 }
 
 Depsgraph *DepsgraphRelationBuilder::getGraph()

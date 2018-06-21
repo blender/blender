@@ -375,7 +375,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Scene *scene, Object *ob, 
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = pdInitEffectors(depsgraph, scene, ob, NULL, clmd->sim_parms->effector_weights, true);
+	effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, clmd->sim_parms->effector_weights);
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH )
 		cloth_update_verts ( ob, clmd, result );
@@ -395,7 +395,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Scene *scene, Object *ob, 
 
 	// TIMEIT_END(cloth_step)
 
-	pdEndEffectors(&effectors);
+	BKE_effectors_free(effectors);
 
 	// printf ( "%f\n", ( float ) tval() );
 
