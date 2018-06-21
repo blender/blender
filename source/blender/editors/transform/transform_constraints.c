@@ -559,7 +559,7 @@ static void applyObjectConstraintRot(
 
 		/* on setup call, use first object */
 		if (td == NULL) {
-			td = tc->data;
+			td = TRANS_DATA_CONTAINER_FIRST_OK(t)->data;
 		}
 
 		if (t->flag & T_EDIT) {
