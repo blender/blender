@@ -576,6 +576,7 @@ enum {
 	INDEX_ID_WM,
 	INDEX_ID_MSK,
 	INDEX_ID_NULL,
+	INDEX_ID_MAX,
 };
 
 #ifdef __cplusplus
