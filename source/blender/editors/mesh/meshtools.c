@@ -54,6 +54,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -1322,7 +1323,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 	}
 	else {
 		/* derived mesh to find deformed locations */
-		DerivedMesh *dm = mesh_get_derived_final(vc.depsgraph, vc.scene, ob, CD_MASK_BAREMESH);
+		Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, vc.scene, ob, CD_MASK_BAREMESH);
 		ARegion *ar = vc.ar;
 		RegionView3D *rv3d = ar->regiondata;
 
@@ -1334,7 +1335,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 		ED_view3d_init_mats_rv3d(ob, rv3d);
 
-		if (dm == NULL) {
+		if (me_eval == NULL) {
 			return false;
 		}
 
@@ -1345,9 +1346,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 		data.len_best = FLT_MAX;
 		data.v_idx_best = -1;
 
-		dm->foreachMappedVert(dm, ed_mesh_pick_vert__mapFunc, &data, DM_FOREACH_NOP);
-
-		dm->release(dm);
+		BKE_mesh_foreach_mapped_vert(me_eval, ed_mesh_pick_vert__mapFunc, &data, MESH_FOREACH_NOP);
 
 		if (data.v_idx_best == -1) {
 			return false;
