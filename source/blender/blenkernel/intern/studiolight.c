@@ -63,21 +63,21 @@ static ListBase studiolights;
 #define STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE 0
 #define STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS 1
 /*
-	The method to calculate the irradiance buffers
-	The irradiance buffer is only shown in the background when in LookDev.
-
-	STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE is very slow, but very accurate
-	STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS is faster but has artifacts
-*/
+ * The method to calculate the irradiance buffers
+ * The irradiance buffer is only shown in the background when in LookDev.
+ *
+ * STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE is very slow, but very accurate
+ * STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS is faster but has artifacts
+ */
 // #define STUDIOLIGHT_IRRADIANCE_METHOD STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
 #define STUDIOLIGHT_IRRADIANCE_METHOD STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS
 
 
 
 /*
-	Disable this option so caches are not loaded from disk
-	Do not checkin with this commented out
-*/
+ * Disable this option so caches are not loaded from disk
+ * Do not checkin with this commented out
+ */
 #define STUDIOLIGHT_LOAD_CACHED_FILES
 
 static const char *STUDIOLIGHT_CAMERA_FOLDER = "studiolights/camera/";
@@ -682,8 +682,8 @@ static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *
 
 #if STUDIOLIGHT_IRRADIANCE_METHOD == STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
 		/*
-			Only store cached files when using STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
-		*/
+		 * Only store cached files when using STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
+		 */
 		if (sl->flag & STUDIOLIGHT_USER_DEFINED) {
 			IMB_saveiff(sl->equirectangular_irradiance_buffer, sl->path_irr_cache, IB_rectfloat);
 		}

@@ -128,10 +128,10 @@ typedef struct StudioLight {
 	float *gpu_matcap_3components; /* 3 channel buffer for GPU_R11F_G11F_B10F */
 
 	/*
-	Free function to clean up the running icons previews (wmJob) the usage is in
-	interface_icons. Please be aware that this was build to handle only one free function
-	that cleans up all icons. just to keep the code simple.
-	*/
+	 * Free function to clean up the running icons previews (wmJob) the usage is in
+	 * interface_icons. Please be aware that this was build to handle only one free function
+	 * that cleans up all icons. just to keep the code simple.
+	 */
 	StudioLightFreeFunction *free_function;
 	void* free_function_data;
 } StudioLight;
