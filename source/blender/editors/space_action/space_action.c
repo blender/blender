@@ -104,6 +104,7 @@ static SpaceLink *action_new(const ScrArea *sa, const Scene *scene)
 
 	saction->autosnap = SACTSNAP_FRAME;
 	saction->mode = SACTCONT_DOPESHEET;
+	saction->mode_prev = SACTCONT_DOPESHEET;
 
 	saction->ads.filterflag |= ADS_FILTER_SUMMARY;
 
@@ -858,6 +859,7 @@ static void action_space_subtype_set(ScrArea *sa, int value)
 		sact->mode = value;
 	}
 	else {
+		printf("%p mode prev = %d\n", sact, sact->mode_prev);
 		sact->mode = sact->mode_prev;
 	}
 }

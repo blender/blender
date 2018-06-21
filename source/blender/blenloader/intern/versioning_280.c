@@ -1474,5 +1474,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+		if (!DNA_struct_elem_find(fd->filesdna, "SpaceAction", "char", "mode_prev")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_ACTION) {
+							SpaceAction *saction = (SpaceAction *)sl;
+							/* "Dopesheet" should be default here, unless it looks like the Action Editor was active instead */
+							if ((saction->mode_prev == 0) && (saction->action == NULL)) {
+								saction->mode_prev = SACTCONT_DOPESHEET;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
