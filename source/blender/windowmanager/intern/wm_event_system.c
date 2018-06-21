@@ -2622,15 +2622,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					}
 				}
 				else if (event->val == KM_DBL_CLICK) {
+					/* The underlying event is a press, so try and handle this. */
 					event->val = KM_PRESS;
 					action |= wm_handlers_do_intern(C, event, handlers);
-					event->val = KM_RELEASE;
-					action |= wm_handlers_do_intern(C, event, handlers);
-
-					if (wm_action_not_handled(action)) {
-						event->val = KM_CLICK;
-						action |= wm_handlers_do_intern(C, event, handlers);
-					}
 
 					/* revert value if not handled */
 					if (wm_action_not_handled(action)) {
@@ -3953,7 +3947,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* if previous event was same type, and previous was release, and now it presses... */
 			if (wm_event_is_double_click(&event, evt)) {
 				CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
-				evt->val = event.val = KM_DBL_CLICK;
+				event.val = KM_DBL_CLICK;
 			}
 
 			/* this case happens on holding a key pressed, it should not generate
