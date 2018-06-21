@@ -521,7 +521,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, const wmEven
 	/* UI code doesn't handle return values - it just always returns break.
 	 * to make the DBL_CLICK conversion work, we just don't send this to UI, except mouse clicks */
 	if (((handler->flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
-	    (event->type != LEFTMOUSE) &&
+	    !ISMOUSE_BUTTON(event->type) &&
 	    (event->val == KM_DBL_CLICK))
 	{
 		return WM_HANDLER_CONTINUE;
