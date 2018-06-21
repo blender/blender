@@ -161,7 +161,6 @@ struct Render {
 	/* TODO replace by a whole draw manager. */
 	void *gl_context;
 	void *gwn_context;
-	bool gl_context_ownership;
 };
 
 /* **************** defines ********************* */
