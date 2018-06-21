@@ -7066,8 +7066,10 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	}
 
 	/* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
-	if (ui_block_is_menu(but->block) == false) {
-		uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+	if (U.flag & USER_DEVELOPER_UI) {
+		if (ui_block_is_menu(but->block) == false) {
+			uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+		}
 	}
 
 	if (BKE_addon_find(&U.addons, "ui_translate")) {

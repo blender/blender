@@ -632,7 +632,7 @@ typedef enum eUserPref_Flag {
 	USER_FLAG_DEPRECATED_7	= (1 << 7),  /* cleared */
 	USER_MAT_ON_OB			= (1 << 8),
 	USER_FLAG_DEPRECATED_9	= (1 << 9),   /* cleared */
-	USER_FLAG_DEPRECATED_10	= (1 << 10),  /* cleared */
+	USER_DEVELOPER_UI		= (1 << 10),
 	USER_TOOLTIPS			= (1 << 11),
 	USER_TWOBUTTONMOUSE		= (1 << 12),
 	USER_NONUMPAD			= (1 << 13),

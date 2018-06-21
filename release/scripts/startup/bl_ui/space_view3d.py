@@ -3845,6 +3845,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         data = context.active_object.data
         statvis = tool_settings.statvis
         with_freestyle = bpy.app.build_options.freestyle
+        show_developer_ui = context.user_preferences.view.show_developer_ui
 
         col = layout.column()
         col.active = display_all
@@ -3867,7 +3868,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub.prop(data, "show_extra_face_area", text="Face Area")
         sub.prop(data, "show_extra_face_angle", text="Face Angle")
 
-        if bpy.app.debug:
+        if show_developer_ui:
             sub.prop(data, "show_extra_indices", text="Indices")
 
         if with_freestyle:

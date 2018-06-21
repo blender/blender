@@ -231,6 +231,7 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "ui_line_width", text="Line Width")
         col.prop(view, "show_tooltips")
         col.prop(view, "show_tooltips_python")
+        col.prop(view, "show_developer_ui")
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
