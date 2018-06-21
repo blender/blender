@@ -245,6 +245,18 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
 
+			/* sync scene's "selected keys only" flag with our "only selected" flag
+			 * XXX: This is a workaround for T55525. We shouldn't really be syncing the flags like this,
+			 *      but it's a simpler fix for now than also figuring out how the next/prev keyframe tools
+			 *      should work in the 3D View if we allowed full access to the timeline's dopesheet filters
+			 *      (i.e. we'd have to figure out where to host those settings, to be on a scene level like
+			 *      this flag currently is, along with several other unknowns)
+			 */
+			if (ac->scene->flag & SCE_KEYS_NO_SELONLY)
+				saction->ads.filterflag &= ~ADS_FILTER_ONLYSEL;
+			else
+				saction->ads.filterflag |= ADS_FILTER_ONLYSEL;
+
 			ac->datatype = ANIMCONT_TIMELINE;
 			ac->data = &saction->ads;
 
