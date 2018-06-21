@@ -1150,11 +1150,10 @@ bool BKE_object_data_transfer_dm(
 	 *     of data in it (multi-threaded evaluation of the modifier stack, see T46672).
 	 */
 	/* XXX TODO new depsgraph shall always ensure we have that src evaluated mesh built before this point, now, I think? */
-	dm_src = dm_dst ? ob_src->runtime.mesh_eval : mesh_get_eval_final(depsgraph, scene, ob_src, dm_src_mask);
+	dm_src = mesh_get_eval_final(depsgraph, scene, ob_src, dm_src_mask);
 	if (!dm_src) {
 		return changed;
 	}
-//	dm_src = CDDM_copy(dm_src);
 
 	if (auto_transform) {
 		MVert *verts_dst = dm_dst ? dm_dst->mvert : me_dst->mvert;
@@ -1445,7 +1444,6 @@ bool BKE_object_data_transfer_dm(
 		BKE_mesh_remap_free(&geom_map[i]);
 		MEM_SAFE_FREE(weights[i]);
 	}
-//	dm_src->release(dm_src);
 
 	return changed;
 
