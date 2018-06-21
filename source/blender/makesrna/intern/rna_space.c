@@ -327,6 +327,7 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "ED_anim_api.h"
 #include "ED_buttons.h"
 #include "ED_fileselect.h"
 #include "ED_image.h"
@@ -1528,9 +1529,16 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 
 /* Space Graph Editor */
 
-static void rna_SpaceGraphEditor_display_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *ptr)
 {
 	ScrArea *sa = rna_area_from_space(ptr);
+	SpaceIpo *sipo = (SpaceIpo *)ptr->data;
+
+	/* for "Drivers" mode, enable all the necessary bits and pieces */
+	if (sipo->mode == SIPO_MODE_DRIVERS) {
+		ED_drivers_editor_init(C, sa);
+		ED_area_tag_redraw(sa);
+	}
 
 	/* after changing view mode, must force recalculation of F-Curve colors
 	 * which can only be achieved using refresh as opposed to redraw
@@ -3750,6 +3758,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, rna_enum_space_graph_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, "rna_SpaceGraphEditor_display_mode_update");
 
 	/* display */
