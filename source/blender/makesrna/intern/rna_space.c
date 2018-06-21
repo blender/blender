@@ -1500,9 +1500,10 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 			saction->action = NULL;
 	}
 
-	/* Collapse summary channel and hide channel list for timeline */
+	/* Collapse (and show) summary channel and hide channel list for timeline */
 	if (saction->mode == SACTCONT_TIMELINE) {
 		saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
+		saction->ads.filterflag |= ADS_FILTER_SUMMARY;
 	}
 
 	if (sa && sa->spacedata.first == saction) {

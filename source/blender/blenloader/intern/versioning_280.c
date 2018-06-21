@@ -144,6 +144,7 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
 
 	saction->mode = SACTCONT_TIMELINE;
 	saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
+	saction->ads.filterflag |= ADS_FILTER_SUMMARY;
 }
 
 /**
