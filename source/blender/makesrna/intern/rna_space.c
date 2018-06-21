@@ -1522,7 +1522,6 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 
 	/* store current mode as "old mode", so that returning from other editors doesn't always reset to "Action Editor" */
 	if (saction->mode != SACTCONT_TIMELINE) {
-		printf("%p storing %d as old mode over %d\n", saction, saction->mode, saction->mode_prev);
 		saction->mode_prev = saction->mode;
 	}
 }
