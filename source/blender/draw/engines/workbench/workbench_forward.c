@@ -334,7 +334,9 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		psl->composite_pass = DRW_pass_create("Composite", state);
 
 		grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
-		DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
+		if (OBJECT_ID_PASS_ENABLED(wpd)) {
+			DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
+		}
 		DRW_shgroup_uniform_texture_ref(grp, "transparentAccum", &e_data.transparent_accum_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "transparentRevealage", &e_data.transparent_revealage_tx);
 		DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
