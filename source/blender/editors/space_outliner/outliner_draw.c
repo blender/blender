@@ -2096,12 +2096,12 @@ void draw_outliner(const bContext *C)
 		outliner_draw_restrictbuts(block, scene, view_layer, ar, soops, &soops->tree);
 	}
 
+	UI_block_emboss_set(block, UI_EMBOSS);
+
 	/* draw edit buttons if nessecery */
 	if (te_edit) {
 		outliner_buttons(C, block, ar, te_edit);
 	}
-
-	UI_block_emboss_set(block, UI_EMBOSS);
 
 	UI_block_end(C, block);
 	UI_block_draw(C, block);
