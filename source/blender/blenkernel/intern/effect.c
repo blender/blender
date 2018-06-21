@@ -188,8 +188,9 @@ static void add_object_to_effectors(ListBase **effectors, struct Depsgraph *deps
 static void add_particles_to_effectors(ListBase **effectors, struct Depsgraph *depsgraph, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src, bool for_simulation)
 {
 	ParticleSettings *part= psys->part;
+	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 
-	if ( !psys_check_enabled(ob, psys, G.is_rendering) )
+	if ( !psys_check_enabled(ob, psys, for_render) )
 		return;
 
 	if ( psys == psys_src && (part->flag & PART_SELF_EFFECT) == 0)
@@ -215,7 +216,9 @@ ListBase *pdInitEffectors(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob_src, ParticleSystem *psys_src,
         EffectorWeights *weights, bool for_simulation)
 {
-	Base *base = BKE_collection_or_layer_objects(depsgraph, scene, NULL, weights->group);
+	/* For dependency building, we get objects from the scene.
+	 * For simulation, we get objects from the depsgraph. */
+	Base *base = BKE_collection_or_layer_objects((for_simulation) ? depsgraph : NULL, scene, NULL, weights->group);
 	ListBase *effectors = NULL;
 
 	for (; base; base = base->next) {

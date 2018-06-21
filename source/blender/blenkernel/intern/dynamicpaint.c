@@ -5890,6 +5890,7 @@ static int dynamicPaint_doStep(
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
 	DynamicPaintCanvasSettings *canvas = surface->canvas;
+	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 	int ret = 1;
 
 	if (sData->total_points < 1)
@@ -5960,7 +5961,7 @@ static int dynamicPaint_doStep(
 					/* Apply brush on the surface depending on it's collision type */
 					if (brush->psys && brush->psys->part &&
 					    ELEM(brush->psys->part->type, PART_EMITTER, PART_FLUID) &&
-					    psys_check_enabled(brushObj, brush->psys, G.is_rendering))
+					    psys_check_enabled(brushObj, brush->psys, for_render))
 					{
 						/* Paint a particle system */
 						BKE_animsys_evaluate_animdata(depsgraph, scene, &brush->psys->part->id, brush->psys->part->adt,

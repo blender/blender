@@ -333,7 +333,8 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
         bool add_absorption,
         const char *name)
 {
-	ListBase *effectors = pdInitEffectors(NULL, scene, object, psys, eff, false);
+	::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph*>(graph_);
+	ListBase *effectors = pdInitEffectors(depsgraph, scene, object, psys, eff, false);
 	if (effectors == NULL) {
 		return;
 	}

@@ -356,7 +356,8 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   int skip_forcefield,
                                   const char *name)
 {
-	ListBase *effectors = pdInitEffectors(NULL, scene, object, NULL, effector_weights, false);
+	Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
+	ListBase *effectors = pdInitEffectors(depsgraph, scene, object, NULL, effector_weights, false);
 	if (effectors == NULL) {
 		return;
 	}

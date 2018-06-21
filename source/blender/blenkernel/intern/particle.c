@@ -256,7 +256,8 @@ struct LatticeDeformData *psys_create_lattice_deform_data(ParticleSimulationData
 	if (psys_in_edit_mode(sim->depsgraph, sim->psys) == 0) {
 		Object *lattice = NULL;
 		ModifierData *md = (ModifierData *)psys_get_modifier(sim->ob, sim->psys);
-		int mode = G.is_rendering ? eModifierMode_Render : eModifierMode_Realtime;
+		bool for_render = DEG_get_mode(sim->depsgraph) == DAG_EVAL_RENDER;
+		int mode = for_render ? eModifierMode_Render : eModifierMode_Realtime;
 
 		for (; md; md = md->next) {
 			if (md->type == eModifierType_Lattice) {
