@@ -576,6 +576,7 @@ BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(
 
 }
 
+#if STUDIOLIGHT_IRRADIANCE_METHOD == STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
 static void studiolight_calculate_specular_irradiance(StudioLight *sl, float color[3], const float normal[3])
 {
 	copy_v3_fl(color, 0.0f);
@@ -603,7 +604,7 @@ static void studiolight_calculate_specular_irradiance(StudioLight *sl, float col
 
 	mul_v3_fl(color, 1.0 / M_PI);
 }
-
+#endif
 static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
 {
 #ifdef STUDIOLIGHT_LOAD_CACHED_FILES
