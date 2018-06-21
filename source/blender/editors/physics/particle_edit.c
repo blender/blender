@@ -3017,7 +3017,7 @@ static void PE_mirror_x(
 
 	/* Note: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh. Avoids an (impossible)
 	 *       mesh -> orig -> mesh tessface indices conversion... */
-	mirrorfaces = mesh_get_x_mirror_faces__real_mesh(ob, NULL, use_dm_final_indices ? psmd_eval->mesh_final : NULL);
+	mirrorfaces = mesh_get_x_mirror_faces(ob, NULL, use_dm_final_indices ? psmd_eval->mesh_final : NULL);
 
 	if (!edit->mirror_cache)
 		PE_update_mirror_cache(ob, psys);
