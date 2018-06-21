@@ -385,7 +385,7 @@ public:
 		VLOG(1) << "Found nvcc " << nvcc
 		        << ", CUDA version " << cuda_version
 		        << ".";
-		const int major = cuda_version / 10, minor = cuda_version & 10;
+		const int major = cuda_version / 10, minor = cuda_version % 10;
 		if(cuda_version == 0) {
 			cuda_error_message("CUDA nvcc compiler version could not be parsed.");
 			return false;
