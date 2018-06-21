@@ -35,8 +35,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_colormanagement.h"
 
-//#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
@@ -46,7 +46,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"

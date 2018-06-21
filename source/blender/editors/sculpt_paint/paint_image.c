@@ -51,7 +51,6 @@
 
 #include "BKE_colorband.h"
 #include "BKE_context.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_brush.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
