@@ -605,6 +605,7 @@ static void studiolight_calculate_specular_irradiance(StudioLight *sl, float col
 	mul_v3_fl(color, 1.0 / M_PI);
 }
 #endif
+
 static bool studiolight_load_irradiance_equirectangular_image(StudioLight *sl)
 {
 #ifdef STUDIOLIGHT_LOAD_CACHED_FILES
