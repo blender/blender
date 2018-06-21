@@ -237,11 +237,9 @@ static const EnumPropertyItem autosnap_items[] = {
 #endif
 
 const EnumPropertyItem rna_enum_shading_type_items[] = {
-	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
-	{OB_SOLID, "SOLID", ICON_SOLID, "Single Color", "Display the object or material in a single color"},
-	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Texture", "Display the object solid, with a texture"},
-	{OB_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Display objects solid, with GLSL material"},
-	{OB_RENDER, "RENDERED", ICON_SMOOTH, "Rendered", "Display render preview"},
+	{OB_SOLID,    "SOLID",    ICON_SOLID,         "Solid",    "Display in solid mode"},
+	{OB_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "LookDev",  "Display in LookDev mode"},
+	{OB_RENDER,   "RENDERED", ICON_SMOOTH,        "Rendered", "Display render preview"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -251,6 +249,15 @@ const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 	{V3D_LIGHTING_MATCAP, "MATCAP", 0, "MatCap", "Display using matcap material and lighting"},
 	{0, NULL, 0, NULL, NULL}
 };
+
+static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
+	{V3D_SHADING_SINGLE_COLOR,   "SOLID",    0, "Single",   "Show scene in a single color"},
+	{V3D_SHADING_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show material color"},
+	{V3D_SHADING_RANDOM_COLOR,   "RANDOM",   0, "Random",   "Show random object color"},
+	{V3D_SHADING_TEXTURE_COLOR,  "TEXTURE",  0, "Texture",  "Show texture"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 
 static const EnumPropertyItem rna_enum_studio_light_items[] = {
 	{0, "DEFAULT", 0, "Default", ""},
@@ -692,9 +699,6 @@ static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
 	if (value != v3d->drawtype && value == OB_RENDER) {
 		v3d->prev_drawtype = v3d->drawtype;
 	}
-	if (value == OB_TEXTURE && v3d->shading.light == V3D_LIGHTING_MATCAP) {
-		v3d->shading.light = V3D_LIGHTING_STUDIO;
-	}
 	v3d->drawtype = value;
 }
 
@@ -710,7 +714,6 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 	int totitem = 0;
 
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_SOLID);
-	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_TEXTURE);
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_MATERIAL);
@@ -753,10 +756,13 @@ static int rna_View3DShading_light_get(PointerRNA *ptr)
 static void rna_View3DShading_light_set(PointerRNA *ptr, int value)
 {
 	View3D *v3d = (View3D *)ptr->data;
+	if (value == V3D_LIGHTING_MATCAP && v3d->shading.color_type == V3D_SHADING_TEXTURE_COLOR) {
+		v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
+	}
 	v3d->shading.light = value;
 }
 
-static const EnumPropertyItem *rna_View3DShading_light_itemf(
+static const EnumPropertyItem *rna_View3DShading_color_type_itemf(
         bContext *UNUSED(C), PointerRNA *ptr,
         PropertyRNA *UNUSED(prop), bool *r_free)
 {
@@ -765,14 +771,15 @@ static const EnumPropertyItem *rna_View3DShading_light_itemf(
 	int totitem = 0;
 	EnumPropertyItem *item = NULL;
 
-	if (v3d->drawtype == OB_SOLID || v3d->drawtype == OB_TEXTURE) {
-		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_lighting_items, V3D_LIGHTING_FLAT);
-		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_lighting_items, V3D_LIGHTING_STUDIO);
+	if (v3d->drawtype == OB_SOLID) {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_SINGLE_COLOR);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_MATERIAL_COLOR);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_RANDOM_COLOR);
+		if (v3d->shading.light != V3D_LIGHTING_MATCAP) {
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_TEXTURE_COLOR);
+		}
 	}
 
-	if (v3d->drawtype == OB_SOLID) {
-		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_lighting_items, V3D_LIGHTING_MATCAP);
-	}
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
 	return item;
@@ -2367,13 +2374,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem color_type_items[] = {
-		{V3D_SHADING_SINGLE_COLOR,   "SINGLE",   0, "Single",   "Show scene in a single color"},
-		{V3D_SHADING_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show material color"},
-		{V3D_SHADING_RANDOM_COLOR,   "RANDOM",   0, "Random",   "Show random object color"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "View3DShading", NULL);
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_nested(brna, srna, "SpaceView3D");
@@ -2391,7 +2391,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "light", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shading.light");
 	RNA_def_property_enum_items(prop, rna_enum_viewport_lighting_items);
-	RNA_def_property_enum_funcs(prop, "rna_View3DShading_light_get", "rna_View3DShading_light_set", "rna_View3DShading_light_itemf");
+	RNA_def_property_enum_funcs(prop, "rna_View3DShading_light_get", "rna_View3DShading_light_set", NULL);
 	RNA_def_property_ui_text(prop, "Lighting", "Lighting Method for Solid/Texture Viewport Shading");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
@@ -2450,7 +2450,8 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "color_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shading.color_type");
-	RNA_def_property_enum_items(prop, color_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_shading_color_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_View3DShading_color_type_itemf");
 	RNA_def_property_ui_text(prop, "Color", "Color Type");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 

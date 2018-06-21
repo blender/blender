@@ -1,4 +1,4 @@
-#ifdef OB_TEXTURE
+#ifdef V3D_SHADING_TEXTURE_COLOR
 uniform sampler2D image;
 #endif
 uniform mat4 ProjectionMatrix;
@@ -10,7 +10,7 @@ uniform vec4 viewvecs[3];
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 in vec3 normal_viewport;
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
-#ifdef OB_TEXTURE
+#ifdef V3D_SHADING_TEXTURE_COLOR
 in vec2 uv_interp;
 #endif
 #ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
@@ -32,12 +32,12 @@ void main()
 {
 	vec4 diffuse_color;
 	vec3 diffuse_light = vec3(1.0);
-#ifdef OB_SOLID
-	diffuse_color = material_data.diffuse_color;
-#endif /* OB_SOLID */
-#ifdef OB_TEXTURE
+
+#ifdef V3D_SHADING_TEXTURE_COLOR
 	diffuse_color = texture(image, uv_interp);
-#endif /* OB_TEXTURE */
+#else
+	diffuse_color = material_data.diffuse_color;
+#endif /* V3D_SHADING_TEXTURE_COLOR */
 
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
 	vec3 I_vs = view_vector_from_screen_uv(uv_viewport, viewvecs, ProjectionMatrix);

@@ -4,7 +4,7 @@ layout(std140) uniform material_block {
 	MaterialData material_data;
 };
 
-#ifdef OB_TEXTURE
+#ifdef V3D_SHADING_TEXTURE_COLOR
 uniform sampler2D image;
 #endif
 
@@ -12,9 +12,9 @@ uniform sampler2D image;
 in vec3 normal_viewport;
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
 
-#ifdef OB_TEXTURE
+#ifdef V3D_SHADING_TEXTURE_COLOR
 in vec2 uv_interp;
-#endif /* OB_TEXTURE */
+#endif /* V3D_SHADING_TEXTURE_COLOR */
 
 #ifdef HAIR_SHADER
 flat in float hair_rand;
@@ -40,17 +40,16 @@ void main()
 	n = normalize(n);
 #endif
 
-#ifdef OB_SOLID
+#ifdef V3D_SHADING_TEXTURE_COLOR
+	diffuseColor = texture(image, uv_interp);
+#else
 	diffuseColor = vec4(material_data.diffuse_color.rgb, 0.0);
 #  ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
-
 	specularColor = vec4(material_data.diffuse_color.rgb, 0.0);
-#  endif
-#endif /* OB_SOLID */
 
-#ifdef OB_TEXTURE
-	diffuseColor = texture(image, uv_interp);
-#endif /* OB_TEXTURE */
+#  endif
+#endif /* V3D_SHADING_TEXTURE_COLOR */
+
 #ifdef HAIR_SHADER
 	float hair_color_variation = hair_rand * 0.1;
 	diffuseColor.rgb = clamp(diffuseColor.rgb - hair_color_variation, 0.0, 1.0);

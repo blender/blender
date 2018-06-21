@@ -1024,7 +1024,6 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 			break;
 
 		case OB_SOLID:
-		case OB_TEXTURE:
 			if (shading_flags & V3D_SHADING_XRAY) {
 				use_drw_engine(&draw_engine_workbench_transparent);
 			}

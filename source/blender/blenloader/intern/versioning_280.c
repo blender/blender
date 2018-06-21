@@ -1490,5 +1490,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						if (v3d->drawtype == OB_TEXTURE)
+						{
+							v3d->drawtype = OB_SOLID;
+							v3d->shading.light = V3D_LIGHTING_STUDIO;
+							v3d->shading.color_type = V3D_SHADING_TEXTURE_COLOR;
+						}
+					}
+				}
+			}
+		}
+
 	}
 }

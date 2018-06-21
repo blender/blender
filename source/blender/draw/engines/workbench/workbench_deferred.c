@@ -175,17 +175,17 @@ static char *workbench_build_cavity_frag(void)
 	return str;
 }
 
-static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype, bool is_hair)
+static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, bool use_textures, bool is_hair)
 {
 	if (e_data.prepass_sh_cache[index] == NULL) {
-		char *defines = workbench_material_build_defines(wpd, drawtype, is_hair);
+		char *defines = workbench_material_build_defines(wpd, use_textures, is_hair);
 		char *composite_frag = workbench_build_composite_frag(wpd);
 		char *prepass_vert = workbench_build_prepass_vert();
 		char *prepass_frag = workbench_build_prepass_frag();
 		e_data.prepass_sh_cache[index] = DRW_shader_create(
 		        prepass_vert, NULL,
 		        prepass_frag, defines);
-		if (drawtype == OB_SOLID && !is_hair) {
+		if (!use_textures && !is_hair) {
 			e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
 		}
 		MEM_freeN(prepass_vert);
@@ -197,15 +197,15 @@ static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int d
 
 static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
 {
-	int index_solid = workbench_material_get_shader_index(wpd, OB_SOLID, false);
-	int index_solid_hair = workbench_material_get_shader_index(wpd, OB_SOLID, true);
-	int index_texture = workbench_material_get_shader_index(wpd, OB_TEXTURE, false);
-	int index_texture_hair = workbench_material_get_shader_index(wpd, OB_TEXTURE, true);
+	int index_solid = workbench_material_get_shader_index(wpd, false, false);
+	int index_solid_hair = workbench_material_get_shader_index(wpd, false, true);
+	int index_texture = workbench_material_get_shader_index(wpd, true, false);
+	int index_texture_hair = workbench_material_get_shader_index(wpd, true, true);
 
-	ensure_deferred_shaders(wpd, index_solid, OB_SOLID, false);
-	ensure_deferred_shaders(wpd, index_solid_hair, OB_SOLID, true);
-	ensure_deferred_shaders(wpd, index_texture, OB_TEXTURE, false);
-	ensure_deferred_shaders(wpd, index_texture_hair, OB_TEXTURE, true);
+	ensure_deferred_shaders(wpd, index_solid, false, false);
+	ensure_deferred_shaders(wpd, index_solid_hair, false, true);
+	ensure_deferred_shaders(wpd, index_texture, true, false);
+	ensure_deferred_shaders(wpd, index_texture_hair, true, true);
 
 	wpd->prepass_solid_sh = e_data.prepass_sh_cache[index_solid];
 	wpd->prepass_solid_hair_sh = e_data.prepass_sh_cache[index_solid_hair];
@@ -557,7 +557,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 }
 
 static WORKBENCH_MaterialData *get_or_create_material_data(
-        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int drawtype)
+        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int color_type)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
@@ -570,7 +570,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	/* Solid */
 	workbench_material_update_data(wpd, ob, mat, &material_template);
 	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
-	material_template.drawtype = drawtype;
+	material_template.color_type = color_type;
 	material_template.ima = ima;
 	uint hash = workbench_material_get_hash(&material_template);
 
@@ -578,22 +578,16 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
 		material->shgrp = DRW_shgroup_create(
-		        drawtype == OB_SOLID ? wpd->prepass_solid_sh : wpd->prepass_texture_sh, psl->prepass_pass);
+		        color_type == V3D_SHADING_TEXTURE_COLOR ? wpd->prepass_texture_sh: wpd->prepass_solid_sh, psl->prepass_pass);
 		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
 		material->object_id = material_template.object_id;
 		copy_v4_v4(material->material_data.diffuse_color, material_template.material_data.diffuse_color);
 		copy_v4_v4(material->material_data.specular_color, material_template.material_data.specular_color);
 		material->material_data.roughness = material_template.material_data.roughness;
-		switch (drawtype) {
-			case OB_SOLID:
-				break;
-
-			case OB_TEXTURE:
-			{
-				GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0);
-				DRW_shgroup_uniform_texture(material->shgrp, "image", tex);
-				break;
-			}
+		if (color_type == V3D_SHADING_TEXTURE_COLOR)
+		{
+			GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0);
+			DRW_shgroup_uniform_texture(material->shgrp, "image", tex);
 		}
 		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
 		material->material_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_Material), &material->material_data);
@@ -630,19 +624,11 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 		if (draw_as == PART_DRAW_PATH) {
 			Image *image = NULL;
 			Material *mat = give_current_material(ob, part->omat);
-			int mat_drawtype = OB_SOLID;
+			ED_object_get_active_image(ob, part->omat, &image, NULL, NULL, NULL);
+			int color_type = workbench_material_determine_color_type(wpd, image);
+			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, color_type);
 
-			if (wpd->drawtype == OB_TEXTURE) {
-				ED_object_get_active_image(ob, part->omat, &image, NULL, NULL, NULL);
-				/* use OB_SOLID when no texture could be determined */
-				if (image) {
-					mat_drawtype = OB_TEXTURE;
-				}
-			}
-
-			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, mat_drawtype);
-
-			struct GPUShader *shader = (mat_drawtype == OB_SOLID)
+			struct GPUShader *shader = (color_type != V3D_SHADING_TEXTURE_COLOR)
 			                           ? wpd->prepass_solid_hair_sh
 			                           : wpd->prepass_texture_hair_sh;
 			DRWShadingGroup *shgrp = DRW_shgroup_hair_create(
@@ -682,7 +668,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		const bool is_active = (ob == draw_ctx->obact);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 		bool is_drawn = false;
-		if (!is_sculpt_mode && wpd->drawtype == OB_TEXTURE && ELEM(ob->type, OB_MESH)) {
+		if (!is_sculpt_mode && TEXTURE_DRAWING_ENABLED(wpd) && ELEM(ob->type, OB_MESH)) {
 			const Mesh *me = ob->data;
 			if (me->mloopuv) {
 				const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
@@ -697,12 +683,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 						Material *mat = give_current_material(ob, i + 1);
 						Image *image;
 						ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
-						/* use OB_SOLID when no texture could be determined */
-						int mat_drawtype = OB_SOLID;
-						if (image) {
-							mat_drawtype = OB_TEXTURE;
-						}
-						material = get_or_create_material_data(vedata, ob, mat, image, mat_drawtype);
+						int color_type = workbench_material_determine_color_type(wpd, image);
+						material = get_or_create_material_data(vedata, ob, mat, image, color_type);
 						DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 					}
 					is_drawn = true;
@@ -712,11 +694,11 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
 		/* Fallback from not drawn OB_TEXTURE mode or just OB_SOLID mode */
 		if (!is_drawn) {
-			if ((wpd->shading.color_type != V3D_SHADING_MATERIAL_COLOR)) {
+			if (ELEM(wpd->shading.color_type, V3D_SHADING_SINGLE_COLOR, V3D_SHADING_RANDOM_COLOR)) {
 				/* No material split needed */
 				struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {
-					material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
+					material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type);
 					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 					}
@@ -741,7 +723,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 						}
 
 						Material *mat = give_current_material(ob, i + 1);
-						material = get_or_create_material_data(vedata, ob, mat, NULL, OB_SOLID);
+						material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR);
 						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 						}

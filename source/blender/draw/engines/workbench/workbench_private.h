@@ -41,11 +41,10 @@
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define MAX_SHADERS (1 << 10)
 
-#define OB_SOLID_ENABLED(wpd) (wpd->drawtype & OB_SOLID)
-#define OB_TEXTURE_ENABLED(wpd) (wpd->drawtype & OB_TEXTURE)
+#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->color_type & V3D_SHADING_TEXTURE_COLOR)
 #define FLAT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_FLAT)
 #define STUDIOLIGHT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_STUDIO)
-#define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP && OB_SOLID_ENABLED(wpd))
+#define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP)
 #define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD))
 #define STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_CAMERA))
 #define STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd) (MATCAP_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL))
@@ -57,6 +56,8 @@
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) || CAVITY_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
+#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->color_type & V3D_SHADING_TEXTURE_COLOR)
+
 
 typedef struct WORKBENCH_FramebufferList {
 	/* Deferred render buffers */
@@ -147,7 +148,7 @@ typedef struct WORKBENCH_PrivateData {
 	View3DShading shading;
 	StudioLight *studio_light;
 	UserDef *user_preferences;
-	int drawtype;
+	int color_type;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
@@ -176,7 +177,7 @@ typedef struct WORKBENCH_MaterialData {
 	struct GPUUniformBuffer *material_ubo;
 
 	int object_id;
-	int drawtype;
+	int color_type;
 	Image *ima;
 
 	/* Linked shgroup for drawing */
@@ -228,10 +229,11 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
-char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair);
+int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima);
+char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
-int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair);
+int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_set_normal_world_matrix(
         DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
 

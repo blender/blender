@@ -355,11 +355,12 @@ enum {
 	V3D_SHADING_MATCAP_FLIP_X       = (1 << 6),
 };
 
-/* View3DShading->single_color_type */
+/* View3DShading->color_type */
 enum {
 	V3D_SHADING_MATERIAL_COLOR = 0,
 	V3D_SHADING_RANDOM_COLOR   = 1,
 	V3D_SHADING_SINGLE_COLOR   = 2,
+	V3D_SHADING_TEXTURE_COLOR  = 3,
 };
 
 /* View3DOverlay->flag */

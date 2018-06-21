@@ -15,7 +15,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	View3D *v3d = draw_ctx->v3d;
 	if (v3d) {
 		wpd->shading = v3d->shading;
-		wpd->drawtype = v3d->drawtype;
 		if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
 			wpd->studio_light = BKE_studiolight_find(
 			        wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
@@ -30,7 +29,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		wpd->shading.light = V3D_LIGHTING_STUDIO;
 		wpd->shading.shadow_intensity = 0.5;
 		copy_v3_fl(wpd->shading.single_color, 0.8f);
-		wpd->drawtype = OB_SOLID;
 		wpd->studio_light = BKE_studiolight_find_first(STUDIOLIGHT_INTERNAL);
 	}
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
