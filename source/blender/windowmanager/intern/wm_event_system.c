@@ -2329,13 +2329,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				else if (event->val == KM_DBL_CLICK) {
 					event->val = KM_PRESS;
 					action |= wm_handlers_do_intern(C, event, handlers);
-					event->val = KM_RELEASE;
-					action |= wm_handlers_do_intern(C, event, handlers);
-
-					if (wm_action_not_handled(action)) {
-						event->val = KM_CLICK;
-						action |= wm_handlers_do_intern(C, event, handlers);
-					}
 
 					/* revert value if not handled */
 					if (wm_action_not_handled(action)) {
