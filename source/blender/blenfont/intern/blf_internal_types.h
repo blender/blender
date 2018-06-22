@@ -134,7 +134,7 @@ typedef struct GlyphBLF {
 	int advance_i;
 
 	/* texture id where this glyph is store. */
-	GPUTexture* tex;
+	GPUTexture *tex;
 
 	/* position inside the texture where this glyph is store. */
 	int offset_x;

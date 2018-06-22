@@ -180,7 +180,9 @@ GPUTexture *GPU_texture_from_blender(
 GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
 
 void GPU_texture_update(GPUTexture *tex, const void *pixels);
-void GPU_texture_update_sub(GPUTexture *tex, const void *pixels, int offset_x, int offset_y, int offset_z, int width, int height, int depth);
+void GPU_texture_update_sub(
+        GPUTexture *tex, const void *pixels,
+        int offset_x, int offset_y, int offset_z, int width, int height, int depth);
 
 void GPU_invalid_tex_init(void);
 void GPU_invalid_tex_bind(int mode);
