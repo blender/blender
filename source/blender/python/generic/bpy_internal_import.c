@@ -185,7 +185,7 @@ PyObject *bpy_text_import_name(const char *name, int *found)
 	Text *text;
 	char txtname[MAX_ID_NAME - 2];
 	int namelen = strlen(name);
-//XXX	Main *maggie = bpy_import_main ? bpy_import_main:G.main;
+//XXX	Main *maggie = bpy_import_main ? bpy_import_main : G_MAIN;
 	Main *maggie = bpy_import_main;
 
 	*found = 0;
@@ -234,7 +234,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	Text *text;
 	const char *name;
 	const char *filepath;
-//XXX	Main *maggie = bpy_import_main ? bpy_import_main:G.main;
+//XXX	Main *maggie = bpy_import_main ? bpy_import_main : G_MAIN;
 	Main *maggie = bpy_import_main;
 
 	if (!maggie) {

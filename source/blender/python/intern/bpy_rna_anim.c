@@ -45,6 +45,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idcode.h"
+#include "BKE_library.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -266,12 +267,14 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 		return PyBool_FromLong(result);
 	}
 	else {
+		ID *id = self->ptr.id.data;
 		ReportList reports;
 		short result;
 
 		BKE_reports_init(&reports, RPT_STORE);
 
-		result = insert_keyframe(G.main, &reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, keytype, options);
+		BLI_assert(BKE_id_is_in_gobal_main(id));
+		result = insert_keyframe(G_MAIN, &reports, id, NULL, group_name, path_full, index, cfra, keytype, options);
 		MEM_freeN((void *)path_full);
 
 		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)

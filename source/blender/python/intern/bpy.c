@@ -34,7 +34,7 @@
 #include "BLI_string.h"
 
 #include "BKE_appdir.h"
-#include "BKE_global.h" /* XXX, G.main only */
+#include "BKE_global.h" /* XXX, G_MAIN only */
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
 
@@ -136,7 +136,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 
 	list = PyList_New(0);
 
-	BKE_bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
+	BKE_bpath_traverse_main(G_MAIN, bpy_blend_paths_visit_cb, flag, (void *)list);
 
 	return list;
 }

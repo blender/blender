@@ -7017,7 +7017,7 @@ PyObject *BPY_rna_module(void)
 	PointerRNA ptr;
 
 	/* for now, return the base RNA type rather than a real module */
-	RNA_main_pointer_create(G.main, &ptr);
+	RNA_main_pointer_create(G_MAIN, &ptr);
 	pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 
 	rna_module_ptr = &pyrna->ptr;
@@ -7028,9 +7028,9 @@ void BPY_update_rna_module(void)
 {
 	if (rna_module_ptr) {
 #if 0
-		RNA_main_pointer_create(G.main, rna_module_ptr);
+		RNA_main_pointer_create(G_MAIN, rna_module_ptr);
 #else
-		rna_module_ptr->data = G.main; /* just set data is enough */
+		rna_module_ptr->data = G_MAIN; /* just set data is enough */
 #endif
 	}
 }
