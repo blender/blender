@@ -448,7 +448,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 				auxData = &auxdata_stack.dmtreedata;
 			}
 		}
-		/* After sucessufuly build the trees, start projection vertexs */
+		/* After successfully build the trees, start projection vertices. */
 		ShrinkwrapCalcCBData data = {
 			.calc = calc,
 			.treeData = treeData, .targ_tree = targ_tree, .targ_callback = targ_callback,
