@@ -1526,5 +1526,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			if (scene->toolsettings->manipulator_flag == 0) {
+				scene->toolsettings->manipulator_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
+			}
+		}
 	}
 }

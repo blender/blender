@@ -159,14 +159,6 @@ enum {
 	MAN_AXES_SCALE,
 };
 
-/* naming from old blender we may combine. */
-enum {
-	V3D_MANIP_TRANSLATE      = 1,
-	V3D_MANIP_ROTATE         = 2,
-	V3D_MANIP_SCALE          = 4,
-};
-
-
 typedef struct ManipulatorGroup {
 	bool all_hidden;
 	int twtype;
@@ -269,9 +261,9 @@ static bool manipulator_is_axis_visible(
 		}
 	}
 
-	if ((axis_type == MAN_AXES_TRANSLATE && !(twtype & V3D_MANIP_TRANSLATE)) ||
-	    (axis_type == MAN_AXES_ROTATE && !(twtype & V3D_MANIP_ROTATE)) ||
-	    (axis_type == MAN_AXES_SCALE && !(twtype & V3D_MANIP_SCALE)))
+	if ((axis_type == MAN_AXES_TRANSLATE && !(twtype & SCE_MANIP_TRANSLATE)) ||
+	    (axis_type == MAN_AXES_ROTATE && !(twtype & SCE_MANIP_ROTATE)) ||
+	    (axis_type == MAN_AXES_SCALE && !(twtype & SCE_MANIP_SCALE)))
 	{
 		return false;
 	}
@@ -301,34 +293,34 @@ static bool manipulator_is_axis_visible(
 		case MAN_AXIS_SCALE_Z:
 			return (rv3d->twdrawflag & MAN_SCALE_Z);
 		case MAN_AXIS_SCALE_C:
-			return (rv3d->twdrawflag & MAN_SCALE_C && (twtype & V3D_MANIP_TRANSLATE) == 0);
+			return (rv3d->twdrawflag & MAN_SCALE_C && (twtype & SCE_MANIP_TRANSLATE) == 0);
 		case MAN_AXIS_TRANS_XY:
 			return (rv3d->twdrawflag & MAN_TRANS_X &&
 			        rv3d->twdrawflag & MAN_TRANS_Y &&
-			        (twtype & V3D_MANIP_ROTATE) == 0);
+			        (twtype & SCE_MANIP_ROTATE) == 0);
 		case MAN_AXIS_TRANS_YZ:
 			return (rv3d->twdrawflag & MAN_TRANS_Y &&
 			        rv3d->twdrawflag & MAN_TRANS_Z &&
-			        (twtype & V3D_MANIP_ROTATE) == 0);
+			        (twtype & SCE_MANIP_ROTATE) == 0);
 		case MAN_AXIS_TRANS_ZX:
 			return (rv3d->twdrawflag & MAN_TRANS_Z &&
 			        rv3d->twdrawflag & MAN_TRANS_X &&
-			        (twtype & V3D_MANIP_ROTATE) == 0);
+			        (twtype & SCE_MANIP_ROTATE) == 0);
 		case MAN_AXIS_SCALE_XY:
 			return (rv3d->twdrawflag & MAN_SCALE_X &&
 			        rv3d->twdrawflag & MAN_SCALE_Y &&
-			        (twtype & V3D_MANIP_TRANSLATE) == 0 &&
-			        (twtype & V3D_MANIP_ROTATE) == 0);
+			        (twtype & SCE_MANIP_TRANSLATE) == 0 &&
+			        (twtype & SCE_MANIP_ROTATE) == 0);
 		case MAN_AXIS_SCALE_YZ:
 			return (rv3d->twdrawflag & MAN_SCALE_Y &&
 			        rv3d->twdrawflag & MAN_SCALE_Z &&
-			        (twtype & V3D_MANIP_TRANSLATE) == 0 &&
-			        (twtype & V3D_MANIP_ROTATE) == 0);
+			        (twtype & SCE_MANIP_TRANSLATE) == 0 &&
+			        (twtype & SCE_MANIP_ROTATE) == 0);
 		case MAN_AXIS_SCALE_ZX:
 			return (rv3d->twdrawflag & MAN_SCALE_Z &&
 			        rv3d->twdrawflag & MAN_SCALE_X &&
-			        (twtype & V3D_MANIP_TRANSLATE) == 0 &&
-			        (twtype & V3D_MANIP_ROTATE) == 0);
+			        (twtype & SCE_MANIP_TRANSLATE) == 0 &&
+			        (twtype & SCE_MANIP_ROTATE) == 0);
 	}
 	return false;
 }
@@ -1122,15 +1114,15 @@ static void manipulator_line_range(const int twtype, const short axis_type, floa
 
 	switch (axis_type) {
 		case MAN_AXES_TRANSLATE:
-			if (twtype & V3D_MANIP_SCALE) {
+			if (twtype & SCE_MANIP_SCALE) {
 				*r_start = *r_len - ofs + 0.075f;
 			}
-			if (twtype & V3D_MANIP_ROTATE) {
+			if (twtype & SCE_MANIP_ROTATE) {
 				*r_len += ofs;
 			}
 			break;
 		case MAN_AXES_SCALE:
-			if (twtype & (V3D_MANIP_TRANSLATE | V3D_MANIP_ROTATE)) {
+			if (twtype & (SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE)) {
 				*r_len -= ofs + 0.025f;
 			}
 			break;
@@ -1172,8 +1164,10 @@ static void manipulator_xform_message_subscribe(
 
 	if (type_fn == TRANSFORM_WGT_manipulator) {
 		extern PropertyRNA rna_ToolSettings_transform_pivot_point;
+		extern PropertyRNA rna_ToolSettings_use_manipulator_mode;
 		const PropertyRNA *props[] = {
-			&rna_ToolSettings_transform_pivot_point
+			&rna_ToolSettings_transform_pivot_point,
+			&rna_ToolSettings_use_manipulator_mode,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			WM_msg_subscribe_rna(mbus, &toolsettings_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
@@ -1304,16 +1298,16 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 		wmKeyMapItem *kmi = km ? km->items.first : NULL;
 
 		if (kmi == NULL) {
-			man->twtype |= V3D_MANIP_TRANSLATE | V3D_MANIP_ROTATE | V3D_MANIP_SCALE;
+			man->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 		}
 		else if (STREQ(kmi->idname, "TRANSFORM_OT_translate")) {
-			man->twtype |= V3D_MANIP_TRANSLATE;
+			man->twtype |= SCE_MANIP_TRANSLATE;
 		}
 		else if (STREQ(kmi->idname, "TRANSFORM_OT_rotate")) {
-			man->twtype |= V3D_MANIP_ROTATE;
+			man->twtype |= SCE_MANIP_ROTATE;
 		}
 		else if (STREQ(kmi->idname, "TRANSFORM_OT_resize")) {
-			man->twtype |= V3D_MANIP_SCALE;
+			man->twtype |= SCE_MANIP_SCALE;
 		}
 		BLI_assert(man->twtype != 0);
 	}
@@ -1340,7 +1334,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 			case MAN_AXIS_SCALE_Z:
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
 					int draw_options = 0;
-					if ((man->twtype & (V3D_MANIP_ROTATE | V3D_MANIP_SCALE)) == 0) {
+					if ((man->twtype & (SCE_MANIP_ROTATE | SCE_MANIP_SCALE)) == 0) {
 						draw_options |= ED_MANIPULATOR_ARROW_DRAW_FLAG_STEM;
 					}
 					RNA_enum_set(axis->ptr, "draw_options", draw_options);
@@ -1443,6 +1437,12 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 	RegionView3D *rv3d = ar->regiondata;
 	struct TransformBounds tbounds;
 
+	{
+		Scene *scene = CTX_data_scene(C);
+		int manipulator_flag_all = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
+		man->twtype = scene->toolsettings->manipulator_flag & manipulator_flag_all;
+	}
+
 	/* skip, we don't draw anything anyway */
 	if ((man->all_hidden =
 	     (ED_transform_calc_manipulator_stats(
@@ -1481,7 +1481,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 				RNA_float_set(axis->ptr, "length", len);
 
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
-					if (man->twtype & V3D_MANIP_ROTATE) {
+					if (man->twtype & SCE_MANIP_ROTATE) {
 						/* Avoid rotate and translate arrows overlap. */
 						start_co[2] += 0.215f;
 					}

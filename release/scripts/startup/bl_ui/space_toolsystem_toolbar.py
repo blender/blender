@@ -173,11 +173,16 @@ class _defs_transform:
 
     @ToolDef.from_fn
     def transform():
+        def draw_settings(context, layout, tool):
+            tool_settings = context.tool_settings
+            layout.prop(tool_settings, "use_manipulator_mode")
+
         return dict(
             text="Transform",
             icon="ops.transform.transform",
             widget="TRANSFORM_WGT_manipulator",
             # No keymap default action, only for manipulators!
+            draw_settings=draw_settings,
         )
 
 
