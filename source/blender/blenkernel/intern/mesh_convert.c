@@ -817,7 +817,6 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *
 	/* make new mesh data from the original copy */
 	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_MESH);
 	ListBase nurblist = {NULL, NULL};
-	bool needsFree = false;
 
 	BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 0);
 	BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 1);
@@ -832,30 +831,7 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *
 		ob->data = cu;
 		ob->type = OB_CURVE;
 
-		/* curve objects can't contain DM in usual cases, we could free memory */
-		needsFree = true;
-	}
-
-	/* Just to avoid dangling pointer, dm will be removed. */
-	{
-		DerivedMesh *dm = ob->derivedFinal;
-		if (dm != NULL) {
-			dm->needsFree = needsFree;
-			dm->release(dm);
-		}
-	}
-
-	if (needsFree) {
-		BKE_mesh_free(me_eval);
-
-		ob->derivedFinal = NULL;
-		ob->runtime.mesh_eval = NULL;
-
-		/* curve object could have got bounding box only in special cases */
-		if (ob->bb) {
-			MEM_freeN(ob->bb);
-			ob->bb = NULL;
-		}
+		BKE_object_free_derived_caches(ob);
 	}
 }
 
