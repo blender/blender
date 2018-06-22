@@ -4021,11 +4021,19 @@ class VIEW3D_PT_overlay_paint(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_parent_id = 'VIEW3D_PT_overlay'
-    bl_label = "Paint"
+    bl_label = ""
 
     @classmethod
     def poll(cls, context):
         return context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(text={
+            "PAINT_TEXTURE": "Texture Paint",
+            "PAINT_VERTEX":  "Vertex Paint",
+            "PAINT_WEIGHT":  "Weight Paint",
+        }[context.mode])
 
     def draw(self, context):
         layout = self.layout
@@ -4036,10 +4044,15 @@ class VIEW3D_PT_overlay_paint(Panel):
         col = layout.column()
         col.active = display_all
 
+
+        col.prop(overlay, {
+            "PAINT_TEXTURE": "texture_paint_mode_opacity",
+            "PAINT_VERTEX":  "vertex_paint_mode_opacity",
+            "PAINT_WEIGHT":  "weight_paint_mode_opacity",
+        }[context.mode], text="Opacity")
+
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
             col.prop(overlay, "show_paint_wire")
-
-        col.prop(view, "show_mode_shade_override")
 
 
 class VIEW3D_PT_quad_view(Panel):

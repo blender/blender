@@ -18,7 +18,5 @@ void main()
 	const vec4 colSel = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 
-	const vec4 colUnsel = vec4(0.5, 0.5, 0.5, 1.0);
-
-	fragColor = bool(finalFlag & VERTEX_SELECTED) ? colSel : colUnsel;
+	fragColor = bool(finalFlag & VERTEX_SELECTED) ? colSel : colorWire;
 }

@@ -194,8 +194,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 
 	{
 		/* Create a pass */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-		                 DRW_STATE_MULTIPLY | DRW_STATE_WIRE;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND;
 		psl->image_faces = DRW_pass_create("Image Color Pass", state);
 
 		stl->g_data->shgroup_fallback = DRW_shgroup_create(e_data.fallback_sh, psl->image_faces);
@@ -227,6 +226,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 					if (tex) {
 						DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);
 						DRW_shgroup_uniform_texture(grp, "image", tex);
+						DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
 						stl->g_data->shgroup_image_array[i] = grp;
 					}
 					else {
@@ -242,6 +242,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 				if (tex) {
 					DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);
 					DRW_shgroup_uniform_texture(grp, "image", tex);
+					DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
 					stl->g_data->shgroup_image_array[0] = grp;
 				}
 				else {
@@ -285,7 +286,7 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 		/* Get geometry cache */
 		const Mesh *me = ob->data;
 		Scene *scene = draw_ctx->scene;
-		const bool use_surface = DRW_object_is_mode_shade(ob) == true;
+		const bool use_surface = draw_ctx->v3d->overlay.texture_paint_mode_opacity != 0.0; //DRW_object_is_mode_shade(ob) == true;
 		const bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
 		bool ok = false;
 

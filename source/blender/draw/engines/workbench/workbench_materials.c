@@ -17,7 +17,7 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Mate
 	copy_v4_v4(data->material_data.specular_color, default_specular_color);
 	data->material_data.roughness = 0.5f;
 
-	if (DRW_object_is_paint_mode(ob) || color_type == V3D_SHADING_SINGLE_COLOR) {
+	if (color_type == V3D_SHADING_SINGLE_COLOR) {
 		copy_v3_v3(data->material_data.diffuse_color, wpd->shading.single_color);
 	}
 	else if (color_type == V3D_SHADING_RANDOM_COLOR) {

@@ -123,6 +123,8 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 {
 	PAINT_WEIGHT_PassList *psl = ((PAINT_WEIGHT_Data *)vedata)->psl;
 	PAINT_WEIGHT_StorageList *stl = ((PAINT_WEIGHT_Data *)vedata)->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const View3D *v3d = draw_ctx->v3d;
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -133,15 +135,14 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 		/* Create a pass */
 		psl->weight_faces = DRW_pass_create(
 		        "Weight Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_MULTIPLY);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND);
 
 		stl->g_data->fweights_shgrp = DRW_shgroup_create(e_data.weight_face_shader, psl->weight_faces);
 
 		static float light[3] = {-0.3f, 0.5f, 1.0f};
-		static float alpha = 1.0f;
 		static float world_light = 1.0f;
 		DRW_shgroup_uniform_vec3(stl->g_data->fweights_shgrp, "light", light, 1);
-		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "alpha", &alpha, 1);
+		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "alpha", &v3d->overlay.weight_paint_mode_opacity, 1);
 		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "global", &world_light, 1);
 	}
 
@@ -182,7 +183,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 	if ((ob->type == OB_MESH) && (ob == draw_ctx->obact)) {
 		const Mesh *me = ob->data;
 		const bool use_wire = (v3d->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE) != 0;
-		const bool use_surface = DRW_object_is_mode_shade(ob) == true;
+		const bool use_surface = v3d->overlay.weight_paint_mode_opacity != 0.0f;
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 		struct Gwn_Batch *geom;
