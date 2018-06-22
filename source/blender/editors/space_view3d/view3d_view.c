@@ -509,7 +509,6 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);  /* can be NULL */
 	Object *camera_ob = v3d ? v3d->camera : scene->camera;
 	Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
@@ -523,7 +522,7 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 	}
 
 	/* this function does all the important stuff */
-	if (BKE_camera_view_frame_fit_to_scene(depsgraph, scene, view_layer, camera_ob_eval, r_co, &r_scale)) {
+	if (BKE_camera_view_frame_fit_to_scene(depsgraph, scene, camera_ob_eval, r_co, &r_scale)) {
 		ObjectTfmProtectedChannels obtfm;
 		float obmat_new[4][4];
 

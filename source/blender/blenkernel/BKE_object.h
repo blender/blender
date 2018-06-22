@@ -183,8 +183,6 @@ void BKE_object_foreach_display_point(
         void (*func_cb)(const float[3], void *), void *user_data);
 void BKE_scene_foreach_display_point(
         struct Depsgraph *depsgraph,
-        struct Scene *scene,
-        struct ViewLayer *view_layer,
         void (*func_cb)(const float[3], void *), void *user_data);
 
 bool BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);

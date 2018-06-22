@@ -126,7 +126,7 @@ void BKE_camera_view_frame(
 
 bool BKE_camera_view_frame_fit_to_scene(
         struct Depsgraph *depsgraph,
-        struct Scene *scene, struct ViewLayer *view_layer, struct Object *camera_ob,
+        struct Scene *scene, struct Object *camera_ob,
         float r_co[3], float *r_scale);
 bool BKE_camera_view_frame_fit_to_coords(
         const struct Depsgraph *depsgraph,
@@ -155,4 +155,3 @@ void BKE_camera_background_image_clear(struct Camera *cam);
 #endif
 
 #endif
-
