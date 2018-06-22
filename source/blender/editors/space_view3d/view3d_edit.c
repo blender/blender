@@ -4591,7 +4591,7 @@ void ED_view3d_cursor3d_position(bContext *C, const int mval[2], float cursor_co
 	}
 }
 
-void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
+void ED_view3d_cursor3d_position_rotation(bContext *C, const int mval[2], float cursor_co[3], float cursor_quat[4])
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -4599,16 +4599,19 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
-	View3DCursor *cursor_curr = ED_view3d_cursor3d_get(scene, v3d);
-	View3DCursor  cursor_prev = *cursor_curr;
+	/* XXX, caller should check. */
+	if (rv3d == NULL)
+		return;
 
-	ED_view3d_cursor3d_position(C, mval, cursor_curr->location);
-	copy_qt_qt(cursor_curr->rotation, rv3d->viewquat);
-	cursor_curr->rotation[0] *= -1.0f;
+	ED_view3d_cursor3d_position(C, mval, cursor_co);
+
+	copy_qt_qt(cursor_quat, rv3d->viewquat);
+	cursor_quat[0] *= -1.0f;
 
 	{
 		const float mval_fl[2] = {UNPACK2(mval)};
 		float ray_no[3];
+		float ray_co[3];
 
 		struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
 		        bmain, scene, CTX_data_depsgraph(C), 0, ar, v3d);
@@ -4624,16 +4627,21 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 		            .use_object_edit_cage = false,
 		        },
 		        mval_fl, &dist_px,
-		        cursor_curr->location, ray_no, NULL,
+		        ray_co, ray_no, NULL,
 		        &ob_dummy, obmat))
 		{
+			if (U.uiflag & USER_DEPTH_CURSOR) {
+				copy_v3_v3(cursor_co, ray_co);
+			}
+
 			float tquat[4];
+
 			/* Math normal (Z). */
 			{
 				float z_src[3] = {0, 0, 1};
-				mul_qt_v3(cursor_curr->rotation, z_src);
+				mul_qt_v3(cursor_quat, z_src);
 				rotation_between_vecs_to_quat(tquat, z_src, ray_no);
-				mul_qt_qtqt(cursor_curr->rotation, tquat, cursor_curr->rotation);
+				mul_qt_qtqt(cursor_quat, tquat, cursor_quat);
 			}
 
 			/* Match object matrix (X). */
@@ -4646,15 +4654,28 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 				const int ortho_axis = axis_dominant_v3_ortho_single(ortho_axis_dot);
 				float x_src[3] = {1, 0, 0};
 				float x_dst[3];
-				mul_qt_v3(cursor_curr->rotation, x_src);
+				mul_qt_v3(cursor_quat, x_src);
 				project_plane_v3_v3v3(x_dst, obmat[ortho_axis], ray_no);
 				normalize_v3(x_dst);
 				rotation_between_vecs_to_quat(tquat, x_src, x_dst);
-				mul_qt_qtqt(cursor_curr->rotation, tquat, cursor_curr->rotation);
+				mul_qt_qtqt(cursor_quat, tquat, cursor_quat);
 			}
 		}
 		ED_transform_snap_object_context_destroy(snap_context);
 	}
+}
+
+void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+
+	View3DCursor *cursor_curr = ED_view3d_cursor3d_get(scene, v3d);
+	View3DCursor  cursor_prev = *cursor_curr;
+
+	ED_view3d_cursor3d_position_rotation(C, mval, cursor_curr->location, cursor_curr->rotation);
 
 	/* offset the cursor lock to avoid jumping to new offset */
 	if (v3d->ob_centre_cursor) {
