@@ -3124,29 +3124,34 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 }
 
 /* Is this a good candidate for using tri_corner_adj_vmesh? */
-static bool tri_corner_test(BevelParams *bp, BevVert *bv)
+static int tri_corner_test(BevelParams *bp, BevVert *bv)
 {
 	float ang, totang, angdiff;
 	EdgeHalf *e;
 	int i;
+	int in_plane_e = 0;
 
-	if (bv->edgecount != 3 || bv->selcount != 3)
-		return false;
 	totang = 0.0f;
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < bv->edgecount; i++) {
 		e = &bv->edges[i];
 		ang = BM_edge_calc_face_angle_signed_ex(e->e, 0.0f);
-		if (ang <= (float) M_PI_4 || ang >= 3.0f * (float) M_PI_4)
-			return false;
+		if (ang <= M_PI_4)
+			in_plane_e++;
+		else if (ang >= 3.0f * (float) M_PI_4)
+			return -1;
 		totang += ang;
 	}
+	if (in_plane_e != bv->edgecount - 3)
+		return -1;
 	angdiff = fabsf(totang - 3.0f * (float)M_PI_2);
 	if ((bp->pro_super_r == PRO_SQUARE_R && angdiff > (float)M_PI / 16.0f) ||
 	    (angdiff > (float)M_PI_4))
 	{
-		return false;
+		return -1;
 	}
-	return true;
+	if (bv->edgecount != 3 || bv->selcount != 3)
+		return 0;
+	return 1;
 }
 
 static VMesh *tri_corner_adj_vmesh(BevelParams *bp, BevVert *bv)
@@ -3157,7 +3162,7 @@ static VMesh *tri_corner_adj_vmesh(BevelParams *bp, BevVert *bv)
 	VMesh *vm;
 	BoundVert *bndv;
 
-	BLI_assert(bv->edgecount == 3 && bv->selcount == 3);
+	/*BLI_assert(bv->edgecount == 3 && bv->selcount == 3);		Add support for in plane edges */
 	bndv = bv->vmesh->boundstart;
 	copy_v3_v3(co0, bndv->nv.co);
 	bndv = bndv->next;
@@ -3190,9 +3195,14 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 	BoundVert *bndv;
 	MemArena *mem_arena = bp->mem_arena;
 	float r, fac, fullness;
+	n = bv->vmesh->count;
+
+	/* Same bevel as that of 3 edges of vert in a cube */
+	if (n == 3 && tri_corner_test(bp, bv) != -1 && bp->pro_super_r != PRO_SQUARE_IN_R) {
+		return tri_corner_adj_vmesh(bp, bv);
+	}
 
 	/* First construct an initial control mesh, with nseg==2 */
-	n = bv->vmesh->count;
 	ns = bv->vmesh->seg;
 	vm0 = new_adj_vmesh(mem_arena, n, 2, bv->vmesh->boundstart);
 
@@ -3667,7 +3677,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 	else if (vpipe) {
 		vm1 = pipe_adj_vmesh(bp, bv, vpipe);
 	}
-	else if (tri_corner_test(bp, bv)) {
+	else if (tri_corner_test(bp, bv) == 1) {
 		vm1 = tri_corner_adj_vmesh(bp, bv);
 		/* the PRO_SQUARE_IN_R profile has boundary edges that merge
 		 * and no internal ring polys except possibly center ngon */
