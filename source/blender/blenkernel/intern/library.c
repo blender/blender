@@ -2414,3 +2414,10 @@ void BKE_id_tag_clear_atomic(ID *id, int tag)
 {
 	atomic_fetch_and_and_int32(&id->tag, ~tag);
 }
+
+/** Check that given ID pointer actually is in G_MAIN.
+ * Main intended use is for debug asserts in places we cannot easily get rid of G_Main... */
+bool BKE_id_is_in_gobal_main(ID *id) {
+	return (BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
+}
+

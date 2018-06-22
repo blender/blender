@@ -200,6 +200,8 @@ void BKE_library_make_local(
 void BKE_id_tag_set_atomic(struct ID *id, int tag);
 void BKE_id_tag_clear_atomic(struct ID *id, int tag);
 
+bool BKE_id_is_in_gobal_main(struct ID *id);
+
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME N_("Untitled")
 
