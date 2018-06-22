@@ -860,7 +860,7 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
 
 		/* add under the mouse */
 		ED_object_location_from_view(C, ob->loc);
-		ED_view3d_cursor3d_position(C, ob->loc, event->mval);
+		ED_view3d_cursor3d_position(C, event->mval, ob->loc);
 	}
 
 	BKE_object_empty_draw_type_set(ob, OB_EMPTY_IMAGE);
@@ -984,7 +984,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 			const int mval[2] = {event->x - ar->winrct.xmin,
 			                     event->y - ar->winrct.ymin};
 			ED_object_location_from_view(C, loc);
-			ED_view3d_cursor3d_position(C, loc, mval);
+			ED_view3d_cursor3d_position(C, mval, loc);
 			RNA_float_set_array(op->ptr, "location", loc);
 		}
 	}
@@ -2384,7 +2384,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 		const int mval[2] = {event->x - ar->winrct.xmin,
 		                     event->y - ar->winrct.ymin};
 		ED_object_location_from_view(C, basen->object->loc);
-		ED_view3d_cursor3d_position(C, basen->object->loc, mval);
+		ED_view3d_cursor3d_position(C, mval, basen->object->loc);
 	}
 
 	ED_base_object_select(basen, BA_SELECT);
