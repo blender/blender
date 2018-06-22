@@ -140,7 +140,7 @@ static void uv_warp_compute(
 
 static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        Mesh *me_eval)
+        Mesh *mesh)
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
 	int numPolys, numLoops;
@@ -158,12 +158,12 @@ static Mesh *applyModifier(
 	const int axis_v = umd->axis_v;
 
 	/* make sure there are UV Maps available */
-	if (!CustomData_has_layer(&me_eval->ldata, CD_MLOOPUV)) {
-		return me_eval;
+	if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
+		return mesh;
 	}
 	else if (ELEM(NULL, umd->object_src, umd->object_dst)) {
 		modifier_setError(md, "From/To objects must be set");
-		return me_eval;
+		return mesh;
 	}
 
 	/* make sure anything moving UVs is available */
@@ -189,16 +189,16 @@ static Mesh *applyModifier(
 	}
 
 	/* make sure we're using an existing layer */
-	CustomData_validate_layer_name(&me_eval->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
+	CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
 
-	numPolys = me_eval->totpoly;
-	numLoops = me_eval->totloop;
+	numPolys = mesh->totpoly;
+	numLoops = mesh->totloop;
 
-	mpoly = me_eval->mpoly;
-	mloop = me_eval->mloop;
+	mpoly = mesh->mpoly;
+	mloop = mesh->mloop;
 	/* make sure we are not modifying the original UV map */
-	mloopuv = CustomData_duplicate_referenced_layer_named(&me_eval->ldata, CD_MLOOPUV, uvname, numLoops);
-	modifier_get_vgroup_mesh(ctx->object, me_eval, umd->vgroup_name, &dvert, &defgrp_index);
+	mloopuv = CustomData_duplicate_referenced_layer_named(&mesh->ldata, CD_MLOOPUV, uvname, numLoops);
+	modifier_get_vgroup_mesh(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
 	UVWarpData data = {.mpoly = mpoly, .mloop = mloop, .mloopuv = mloopuv,
 	                   .dvert = dvert, .defgrp_index = defgrp_index,
@@ -214,7 +214,7 @@ static Mesh *applyModifier(
 	/* XXX TODO is this still needed? */
 //	me_eval->dirty |= DM_DIRTY_TESS_CDLAYERS;
 
-	return me_eval;
+	return mesh;
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)

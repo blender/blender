@@ -40,7 +40,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_deform.h"
