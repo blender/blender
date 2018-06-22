@@ -37,6 +37,7 @@
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 
 #include "DEG_depsgraph.h"
 
@@ -903,8 +904,9 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
 	bm = self->bm;
 
+	BLI_assert(BKE_id_is_in_gobal_main(&me->id));
 	BM_mesh_bm_to_me(
-	        G.main,  /* XXX UGLY! */
+	        G_MAIN,  /* XXX UGLY! */
 	        bm, me,
 	        (&(struct BMeshToMeshParams){
 	            .calc_object_remap = true,

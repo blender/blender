@@ -123,7 +123,7 @@ static void rna_Screen_layout_name_set(PointerRNA *ptr, const char *value)
 {
 	bScreen *screen = ptr->data;
 	WorkSpace *workspace;
-	WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G.main, screen, &workspace);
+	WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, &workspace);
 
 	if (layout) {
 		BKE_workspace_layout_name_set(workspace, layout, value);
