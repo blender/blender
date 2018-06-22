@@ -139,8 +139,6 @@ static const EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_cloth.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"

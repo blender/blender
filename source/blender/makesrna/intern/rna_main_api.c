@@ -53,7 +53,6 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_curve.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_mesh.h"
 #include "BKE_armature.h"

@@ -104,7 +104,6 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_particle.h"
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
