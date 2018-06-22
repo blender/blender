@@ -98,12 +98,28 @@ typedef struct ViewDepths {
 	bool damaged;
 } ViewDepths;
 
+
+/* Rotate 3D cursor on placement. */
+enum eV3DCursorOrient {
+	V3D_CURSOR_ORIENT_NONE = 0,
+	V3D_CURSOR_ORIENT_VIEW,
+	V3D_CURSOR_ORIENT_GEOM,
+};
+
 struct View3DCursor *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d);
 void ED_view3d_cursor3d_calc_mat3(const struct Scene *scene, const struct View3D *v3d, float mat[3][3]);
 void ED_view3d_cursor3d_calc_mat4(const struct Scene *scene, const struct View3D *v3d, float mat[4][4]);
-void ED_view3d_cursor3d_position(struct bContext *C, const int mval[2], float cursor_co[3]);
-void ED_view3d_cursor3d_position_rotation(struct bContext *C, const int mval[2], float cursor_co[3], float cursor_quat[4]);
-void ED_view3d_cursor3d_update(struct bContext *C, const int mval[2]);
+void ED_view3d_cursor3d_position(
+        struct bContext *C, const int mval[2],
+        const bool use_depth,
+        float cursor_co[3]);
+void ED_view3d_cursor3d_position_rotation(
+        struct bContext *C, const int mval[2],
+        const bool use_depth, enum eV3DCursorOrient orientation,
+        float cursor_co[3], float cursor_quat[4]);
+void ED_view3d_cursor3d_update(
+        struct bContext *C, const int mval[2],
+        bool use_depth, enum eV3DCursorOrient orientation);
 
 struct Camera *ED_view3d_camera_data_get(struct View3D *v3d, struct RegionView3D *rv3d);
 

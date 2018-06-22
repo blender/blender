@@ -714,7 +714,7 @@ static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const w
 			break;
 		}
 		default:
-			ED_view3d_cursor3d_update(C, event->mval);
+			ED_view3d_cursor3d_update(C, event->mval, true, V3D_CURSOR_ORIENT_VIEW);
 			break;
 	}
 
