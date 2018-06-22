@@ -28,7 +28,7 @@
  *  \ingroup edsculpt
  *
  * Utility functions for getting vertex locations while painting
- * (since they may be instanced multiple times in a DerivedMesh)
+ * (since they may be instanced multiple times in an evaluated mesh)
  */
 
 #include "MEM_guardedalloc.h"
@@ -39,8 +39,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.h"  /* XXX To be removed, only used for DMCoNo struct */
 #include "BKE_context.h"
+#include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 
 #include "DEG_depsgraph.h"
@@ -107,24 +108,10 @@ static void vpaint_proj_dm_map_cosnos_init(
         struct VertProjHandle *vp_handle)
 {
 	Mesh *me = ob->data;
-	DerivedMesh *dm;
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
-	dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
-
-	if (dm->foreachMappedVert) {
-		memset(vp_handle->vcosnos, 0, sizeof(DMCoNo) * me->totvert);
-		dm->foreachMappedVert(dm, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, DM_FOREACH_USE_NORMAL);
-	}
-	else {
-		DMCoNo *v_co_no = vp_handle->vcosnos;
-		int a;
-		for (a = 0; a < me->totvert; a++, v_co_no++) {
-			dm->getVertCo(dm, a, v_co_no->co);
-			dm->getVertNo(dm, a, v_co_no->no);
-		}
-	}
-
-	dm->release(dm);
+	memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * me->totvert);
+	BKE_mesh_foreach_mapped_vert(me_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
 }
 
 
@@ -185,21 +172,13 @@ static void vpaint_proj_dm_map_cosnos_update(
 	Scene *scene = vp_handle->scene;
 	Object *ob = vp_handle->ob;
 	Mesh *me = ob->data;
-	DerivedMesh *dm;
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 	/* quick sanity check - we shouldn't have to run this if there are no modifiers */
 	BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
 
-	dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
-
-	/* highly unlikely this will become unavailable once painting starts (perhaps with animated modifiers) */
-	if (LIKELY(dm->foreachMappedVert)) {
-		copy_vn_fl(vp_handle->dists_sq, me->totvert, FLT_MAX);
-
-		dm->foreachMappedVert(dm, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, DM_FOREACH_USE_NORMAL);
-	}
-
-	dm->release(dm);
+	copy_vn_fl(vp_handle->dists_sq, me->totvert, FLT_MAX);
+	BKE_mesh_foreach_mapped_vert(me_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
 }
 
 
