@@ -243,7 +243,7 @@ if(WITH_CODEC_FFMPEG)
 		ffmpeg/AUD_FFMPEGWriter.h
 	)
 
-	remove_strict_flags_file(
+	remove_strict_cxx_flags_file(
 		ffmpeg/AUD_FFMPEGFactory.cpp
 		ffmpeg/AUD_FFMPEGReader.cpp
 		ffmpeg/AUD_FFMPEGWriter.cpp

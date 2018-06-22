@@ -105,7 +105,7 @@ if(WITH_CODEC_FFMPEG)
 	)
 	add_definitions(-DWITH_FFMPEG)
 
-	remove_strict_flags_file(
+	remove_strict_cxx_flags_file(
 		VideoFFmpeg.cpp
 		VideoDeckLink
 		DeckLink

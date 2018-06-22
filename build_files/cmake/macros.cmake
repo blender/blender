@@ -1120,28 +1120,39 @@ endmacro()
 # note, we can only append flags on a single file so we need to negate the options.
 # at the moment we cant shut up ffmpeg deprecations, so use this, but will
 # probably add more removals here.
-macro(remove_strict_flags_file
+macro(remove_strict_c_flags_file
 	filenames)
-
 	foreach(_SOURCE ${ARGV})
-
 		if(CMAKE_COMPILER_IS_GNUCC OR
 		  (CMAKE_C_COMPILER_ID MATCHES "Clang"))
-
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
 					COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS}"
 			)
 		endif()
-
 		if(MSVC)
 			# TODO
 		endif()
-
 	endforeach()
-
 	unset(_SOURCE)
+endmacro()
 
+macro(remove_strict_cxx_flags_file
+	filenames)
+	remove_strict_c_flags_file(${filenames} ${ARHV})
+	foreach(_SOURCE ${ARGV})
+		if(CMAKE_COMPILER_IS_GNUCC OR
+		  (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+			set_source_files_properties(${_SOURCE}
+				PROPERTIES
+					COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS}"
+			)
+		endif()
+		if(MSVC)
+			# TODO
+		endif()
+	endforeach()
+	unset(_SOURCE)
 endmacro()
 
 # External libs may need 'signed char' to be default.
