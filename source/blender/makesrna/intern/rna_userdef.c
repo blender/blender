@@ -36,6 +36,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_appdir.h"
 #include "BKE_DerivedMesh.h"
@@ -714,26 +715,40 @@ static int rna_UserDef_studiolight_path_length(PointerRNA *ptr)
 static void rna_UserDef_studiolight_path_irr_cache_get(PointerRNA *ptr, char *value)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	BLI_strncpy(value, sl->path_irr_cache, FILE_MAX);
+	if (sl->path_irr_cache) {
+		BLI_strncpy(value, sl->path_irr_cache, FILE_MAX);
+	}
+	value[0] = 0x00;
 }
 
 static int rna_UserDef_studiolight_path_irr_cache_length(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	return strlen(sl->path_irr_cache);
+	if (sl->path_irr_cache)
+	{
+		return strlen(sl->path_irr_cache);
+	}
+	return 0;
 }
 
 /* StudioLight.path_sh_cache */
 static void rna_UserDef_studiolight_path_sh_cache_get(PointerRNA *ptr, char *value)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	BLI_strncpy(value, sl->path_sh_cache, FILE_MAX);
+	if (sl->path_sh_cache) {
+		BLI_strncpy(value, sl->path_sh_cache, FILE_MAX);
+	}
+	value[0] = 0x00;
 }
 
 static int rna_UserDef_studiolight_path_sh_cache_length(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	return strlen(sl->path_sh_cache);
+	if (sl->path_sh_cache)
+	{
+		return strlen(sl->path_sh_cache);
+	}
+	return 0;
 }
 
 /* StudioLight.index */
@@ -758,10 +773,16 @@ static int rna_UserDef_studiolight_orientation_get(PointerRNA *ptr)
 	return sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS;
 }
 
-static void rna_UserDef_studiolight_orientation_set(PointerRNA *UNUSED(ptr), const int UNUSED(value))
+static void rna_UserDef_studiolight_spherical_harmonics_coefficients_get(PointerRNA *ptr, float *values)
 {
+	StudioLight *sl = (StudioLight *)ptr->data;
+	float *value = values;
+	for (int i = 0; i < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; i++)
+	{
+		copy_v3_v3(value, sl->spherical_harmonics_coefs[i]);
+		value += 3;
+	}
 }
-
 
 #else
 
@@ -3321,7 +3342,8 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "orientation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_studio_light_orientation_items);
-	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_orientation_get", "rna_UserDef_studiolight_orientation_set", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_orientation_get", NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Orientation", "");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -3345,8 +3367,13 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "SH Cache Path", "Path where the spherical harmonics cache is stored");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	RNA_define_verify_sdna(true);
+	const int spherical_harmonics_dim[] = {STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS, 3};
+	prop = RNA_def_property(srna, "spherical_harmonics_coefficients", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_multi_array(prop, 2, spherical_harmonics_dim);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_UserDef_studiolight_spherical_harmonics_coefficients_get", NULL, NULL);
 
+	RNA_define_verify_sdna(true);
 }
 
 static void rna_def_userdef_pathcompare(BlenderRNA *brna)
