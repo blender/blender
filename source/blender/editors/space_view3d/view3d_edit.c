@@ -4553,7 +4553,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 
 /* cursor position in vec, result in vec, mval in region coords */
 /* note: cannot use event->mval here (called by object_add() */
-void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
+void ED_view3d_cursor3d_position(bContext *C, const int mval[2], float cursor_co[3])
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -4566,28 +4566,28 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	if (rv3d == NULL)
 		return;
 
-	ED_view3d_calc_zfac(rv3d, fp, &flip);
+	ED_view3d_calc_zfac(rv3d, cursor_co, &flip);
 
 	/* reset the depth based on the view offset (we _know_ the offset is infront of us) */
 	if (flip) {
-		negate_v3_v3(fp, rv3d->ofs);
+		negate_v3_v3(cursor_co, rv3d->ofs);
 		/* re initialize, no need to check flip again */
-		ED_view3d_calc_zfac(rv3d, fp, NULL /* &flip */ );
+		ED_view3d_calc_zfac(rv3d, cursor_co, NULL /* &flip */ );
 	}
 
 	if (U.uiflag & USER_DEPTH_CURSOR) {  /* maybe this should be accessed some other way */
 		struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 		view3d_operator_needs_opengl(C);
-		if (ED_view3d_autodist(depsgraph, ar, v3d, mval, fp, true, NULL)) {
+		if (ED_view3d_autodist(depsgraph, ar, v3d, mval, cursor_co, true, NULL)) {
 			depth_used = true;
 		}
 	}
 
 	if (depth_used == false) {
 		float depth_pt[3];
-		copy_v3_v3(depth_pt, fp);
-		ED_view3d_win_to_3d_int(v3d, ar, depth_pt, mval, fp);
+		copy_v3_v3(depth_pt, cursor_co);
+		ED_view3d_win_to_3d_int(v3d, ar, depth_pt, mval, cursor_co);
 	}
 }
 
@@ -4602,7 +4602,7 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 	View3DCursor *cursor_curr = ED_view3d_cursor3d_get(scene, v3d);
 	View3DCursor  cursor_prev = *cursor_curr;
 
-	ED_view3d_cursor3d_position(C, cursor_curr->location, mval);
+	ED_view3d_cursor3d_position(C, mval, cursor_curr->location);
 	copy_qt_qt(cursor_curr->rotation, rv3d->viewquat);
 	cursor_curr->rotation[0] *= -1.0f;
 
@@ -4660,13 +4660,15 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 	if (v3d->ob_centre_cursor) {
 		if (U.uiflag & USER_LOCK_CURSOR_ADJUST) {
 
-			float co_curr[2], co_prev[2];
+			float co_2d_curr[2], co_2d_prev[2];
 
-			if ((ED_view3d_project_float_global(ar, cursor_prev.location, co_prev, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
-			    (ED_view3d_project_float_global(ar, cursor_curr->location, co_curr, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
+			if ((ED_view3d_project_float_global(
+			             ar, cursor_prev.location, co_2d_prev, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
+			    (ED_view3d_project_float_global(
+			            ar, cursor_curr->location, co_2d_curr, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
 			{
-				rv3d->ofs_lock[0] += (co_curr[0] - co_prev[0]) / (ar->winx * 0.5f);
-				rv3d->ofs_lock[1] += (co_curr[1] - co_prev[1]) / (ar->winy * 0.5f);
+				rv3d->ofs_lock[0] += (co_2d_curr[0] - co_2d_prev[0]) / (ar->winx * 0.5f);
+				rv3d->ofs_lock[1] += (co_2d_curr[1] - co_2d_prev[1]) / (ar->winy * 0.5f);
 			}
 		}
 		else {
