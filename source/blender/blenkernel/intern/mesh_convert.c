@@ -1233,7 +1233,7 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 		cos = CustomData_get_layer_n(&mesh_src->vdata, CD_SHAPEKEY, i);
 		kb->totelem = mesh_src->totvert;
 
-		kb->data = kbcos = MEM_malloc_arrayN(kb->totelem, 3 * sizeof(float), "kbcos DerivedMesh.c");
+		kb->data = kbcos = MEM_malloc_arrayN(kb->totelem, 3 * sizeof(float), __func__);
 		if (kb->uid == actshape_uid) {
 			MVert *mvert = mesh_src->mvert;
 
@@ -1254,7 +1254,7 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 				MEM_freeN(kb->data);
 
 			kb->totelem = mesh_src->totvert;
-			kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), "kb->data derivedmesh.c");
+			kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), __func__);
 			fprintf(stderr, "%s: lost a shapekey layer: '%s'! (bmesh internal error)\n", __func__, kb->name);
 		}
 	}

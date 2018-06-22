@@ -166,7 +166,7 @@ void BKE_object_handle_data_update(
 	/* TODO(sergey): Only used by legacy depsgraph. */
 	if (adt) {
 		/* evaluate drivers - datalevel */
-		/* XXX: for mesh types, should we push this to derivedmesh instead? */
+		/* XXX: for mesh types, should we push this to evaluated mesh instead? */
 		BKE_animsys_evaluate_animdata(depsgraph, scene, data_id, adt, ctime, ADT_RECALC_DRIVERS);
 	}
 

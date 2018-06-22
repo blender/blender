@@ -719,7 +719,7 @@ void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
 	if (ob && ob->sculpt) {
 		sculptsession_bm_to_me_update_data_only(ob, reorder);
 
-		/* ensure the objects DerivedMesh mesh doesn't hold onto arrays now realloc'd in the mesh [#34473] */
+		/* ensure the objects evaluated mesh doesn't hold onto arrays now realloc'd in the mesh [#34473] */
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
@@ -857,7 +857,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 }
 
 /**
- * \param need_mask So the DerivedMesh thats returned has mask data
+ * \param need_mask So taht the evaluated mesh that is returned has mask data.
  */
 void BKE_sculpt_update_mesh_elements(
         Depsgraph *depsgraph, Scene *scene, Sculpt *sd, Object *ob,
@@ -1107,7 +1107,7 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
 
 	/* Active modifiers means extra deformation, which can't be handled correct
 	 * on birth of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
-	 * stuff and show final DerivedMesh so user would see actual object shape.
+	 * stuff and show final evaluated mesh so user would see actual object shape.
 	 */
 	deformed |= object->sculpt->modifiers_active;
 
@@ -1151,7 +1151,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Object *ob, Mesh *me_eval_deform)
 	}
 
 	/* always build pbvh from original mesh, and only use it for drawing if
-	 * this derivedmesh is just original mesh. it's the multires subsurf dm
+	 * this evaluated mesh is just original mesh. it's the multires subsurf dm
 	 * that this is actually for, to support a pbvh on a modified mesh */
 	if (!pbvh && ob->type == OB_MESH) {
 		Mesh *me = BKE_object_get_original_mesh(ob);
