@@ -52,6 +52,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_util.h"
 
@@ -324,8 +325,9 @@ static void meshdeformModifier_do(
 
 		/* progress bar redraw can make this recursive .. */
 		if (!recursive) {
+			Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 			recursive = 1;
-			mmd->bindfunc(md->scene, mmd, cagemesh, (float *)vertexCos, numVerts, cagemat);
+			mmd->bindfunc(scene, mmd, cagemesh, (float *)vertexCos, numVerts, cagemat);
 			recursive = 0;
 		}
 	}

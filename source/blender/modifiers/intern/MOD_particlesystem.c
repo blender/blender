@@ -48,8 +48,9 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 
-#include "MOD_util.h"
+#include "DEG_depsgraph_query.h"
 
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -210,8 +211,9 @@ static void deformVerts(
 	}
 
 	if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
+		struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(ctx->depsgraph, md->scene, ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0);
+		particle_system_update(ctx->depsgraph, scene, ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
 	}
 }

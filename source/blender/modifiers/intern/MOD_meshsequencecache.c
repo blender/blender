@@ -98,7 +98,7 @@ static Mesh *applyModifier(
 	Mesh *me = (ctx->object->type == OB_MESH) ? ctx->object->data : NULL;
 	Mesh *org_mesh = mesh;
 
-	Scene *scene = md->scene; /* for FPS macro */
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	const float frame = DEG_get_ctime(ctx->depsgraph);
 	const float time = BKE_cachefile_time_offset(mcmd->cache_file, frame, FPS);
 	const char *err_str = NULL;

@@ -54,6 +54,8 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 
 static void initData(ModifierData *md)
@@ -78,6 +80,7 @@ static void deformVerts(
 {
 	Mesh *mesh_src;
 	ClothModifierData *clmd = (ClothModifierData *) md;
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
 	/* check for alloc failing */
 	if (!clmd->sim_parms || !clmd->coll_parms) {
@@ -123,7 +126,7 @@ static void deformVerts(
 
 	BKE_mesh_apply_vert_coords(mesh_src, vertexCos);
 
-	clothModifier_do(clmd, ctx->depsgraph, md->scene, ctx->object, mesh_src, vertexCos);
+	clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh_src, vertexCos);
 
 	BKE_id_free(NULL, mesh_src);
 }

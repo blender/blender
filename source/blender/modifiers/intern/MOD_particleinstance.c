@@ -54,6 +54,7 @@
 #include "BKE_pointcache.h"
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 static void initData(ModifierData *md)
 {
@@ -202,6 +203,7 @@ static Mesh *applyModifier(
 {
 	Mesh *result;
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	ParticleSimulationData sim;
 	ParticleSystem *psys = NULL;
 	ParticleData *pa = NULL;
@@ -247,7 +249,7 @@ static Mesh *applyModifier(
 		return mesh;
 
 	sim.depsgraph = ctx->depsgraph;
-	sim.scene = md->scene;
+	sim.scene = scene;
 	sim.ob = pimd->ob;
 	sim.psys = psys;
 	sim.psmd = psys_get_modifier(pimd->ob, psys);

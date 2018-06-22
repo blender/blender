@@ -55,6 +55,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -108,10 +109,12 @@ static DerivedMesh *applyModifier(
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
-	if (ctx->flag & MOD_APPLY_ORCO)
+	if (ctx->flag & MOD_APPLY_ORCO) {
 		return dm;
+	}
 
-	return smokeModifier_do(smd, ctx->depsgraph, md->scene, ctx->object, dm);
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+	return smokeModifier_do(smd, ctx->depsgraph, scene, ctx->object, dm);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

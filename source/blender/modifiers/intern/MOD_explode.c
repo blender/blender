@@ -51,6 +51,8 @@
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.h"
@@ -1028,18 +1030,20 @@ static DerivedMesh *applyModifier(
 			createFacepa(emd, psmd, derivedData);
 		}
 		/* 2. create new mesh */
+		Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 		if (emd->flag & eExplodeFlag_EdgeCut) {
 			int *facepa = emd->facepa;
 			DerivedMesh *splitdm = cutEdges(emd, dm);
-			DerivedMesh *explode = explodeMesh(emd, psmd, ctx, md->scene, splitdm);
+			DerivedMesh *explode = explodeMesh(emd, psmd, ctx, scene, splitdm);
 
 			MEM_freeN(emd->facepa);
 			emd->facepa = facepa;
 			splitdm->release(splitdm);
 			return explode;
 		}
-		else
-			return explodeMesh(emd, psmd, ctx, md->scene, derivedData);
+		else {
+			return explodeMesh(emd, psmd, ctx, scene, derivedData);
+		}
 	}
 	return derivedData;
 }

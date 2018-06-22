@@ -42,8 +42,8 @@
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
-
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -107,7 +107,8 @@ static DerivedMesh *applyModifier(
 
 	/* dont apply dynamic paint on orco dm stack */
 	if (!(ctx->flag & MOD_APPLY_ORCO)) {
-		return dynamicPaint_Modifier_do(pmd, ctx->depsgraph, md->scene, ctx->object, dm);
+		Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+		return dynamicPaint_Modifier_do(pmd, ctx->depsgraph, scene, ctx->object, dm);
 	}
 	return dm;
 }
