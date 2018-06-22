@@ -888,7 +888,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 
 void GPU_texture_update_sub(GPUTexture *tex, const void *pixels, int offset_x, int offset_y, int offset_z, int width, int height, int depth)
 {
-	BLI_assert(tex->format > -1);
+	BLI_assert((int)tex->format > -1);
 	BLI_assert(tex->components > -1);
 	
 	GLenum format, data_format;
