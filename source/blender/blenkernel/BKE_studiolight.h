@@ -145,6 +145,8 @@ void BKE_studiolight_preview(uint* icon_buffer, StudioLight *sl, int icon_id_typ
 struct ListBase *BKE_studiolight_listbase(void);
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag);
 void BKE_studiolight_refresh(void);
+StudioLight *BKE_studiolight_new(const char* path, int orientation);
+void BKE_studiolight_remove(StudioLight *sl);
 void BKE_studiolight_set_free_function(StudioLight *sl, StudioLightFreeFunction *free_function, void *data);
 void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id);
 

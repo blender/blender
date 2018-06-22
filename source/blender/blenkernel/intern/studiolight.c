@@ -57,6 +57,7 @@
 
 /* Statics */
 static ListBase studiolights;
+static int last_studiolight_id = 0;
 #define STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE 128
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT 32
 #define STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH (STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * 2)
@@ -141,7 +142,7 @@ static struct StudioLight *studiolight_create(int flag)
 	sl->path_sh_cache = NULL;
 	sl->free_function = NULL;
 	sl->flag = flag;
-	sl->index = BLI_listbase_count(&studiolights);
+	sl->index = ++last_studiolight_id;
 	if (flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL) {
 		sl->icon_id_matcap = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP);
 		sl->icon_id_matcap_flipped = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP_FLIPPED);
@@ -822,9 +823,24 @@ static void studiolight_calculate_light_direction(StudioLight *sl)
 	sl->flag |= STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED;
 }
 
+static StudioLight* studiolight_add_file(const char *path, int flag)
+{
+	char filename[FILE_MAXFILE];
+	BLI_split_file_part(path, filename, FILE_MAXFILE);
+	if (BLI_path_extension_check_array(filename, imb_ext_image)) {
+		StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
+		BLI_strncpy(sl->name, filename, FILE_MAXFILE);
+		BLI_strncpy(sl->path, path, FILE_MAXFILE);
+		sl->path_irr_cache = BLI_string_joinN(path, ".irr");
+		sl->path_sh_cache = BLI_string_joinN(path, ".sh2");
+		BLI_addtail(&studiolights, sl);
+		return sl;
+	}
+	return NULL;
+}
+
 static void studiolight_add_files_from_datafolder(const int folder_id, const char *subfolder, int flag)
 {
-	StudioLight *sl;
 	struct direntry *dir;
 	const char *folder = BKE_appdir_folder_id(folder_id, subfolder);
 	if (folder) {
@@ -832,16 +848,7 @@ static void studiolight_add_files_from_datafolder(const int folder_id, const cha
 		int i;
 		for (i = 0; i < totfile; i++) {
 			if ((dir[i].type & S_IFREG)) {
-				const char *filename = dir[i].relname;
-				const char *path = dir[i].path;
-				if (BLI_path_extension_check_array(filename, imb_ext_image)) {
-					sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
-					BLI_strncpy(sl->name, filename, FILE_MAXFILE);
-					BLI_strncpy(sl->path, path, FILE_MAXFILE);
-					sl->path_irr_cache = BLI_string_joinN(path, ".irr");
-					sl->path_sh_cache = BLI_string_joinN(path, ".sh2");
-					BLI_addtail(&studiolights, sl);
-				}
+				studiolight_add_file(dir[i].path, flag);
 			}
 		}
 		BLI_filelist_free(dir, totfile);
@@ -1156,6 +1163,24 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 			studiolight_calculate_irradiance_equirectangular_image(sl);
 		}
 	}
+}
+
+/*
+ * Python API Functions
+ */
+void BKE_studiolight_remove(StudioLight *sl)
+{
+	if (sl->flag & STUDIOLIGHT_USER_DEFINED)
+	{
+		BLI_remlink(&studiolights, sl);
+		studiolight_free(sl);
+	}
+}
+
+StudioLight *BKE_studiolight_new(const char* path, int orientation)
+{
+	StudioLight * sl = studiolight_add_file(path, orientation | STUDIOLIGHT_USER_DEFINED);
+	return sl;
 }
 
 void BKE_studiolight_refresh(void)
