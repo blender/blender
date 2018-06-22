@@ -752,6 +752,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	};
 
 	static EnumPropertyItem harden_normals_items[] = {
+		{ BEVEL_HN_NONE, "HN_NONE", 0, "Off", "Do not use Harden Normals" },
 		{ BEVEL_HN_FACE, "HN_FACE", 0, "Face Area", "Use faces as weight" },
 		{ BEVEL_HN_ADJ, "HN_ADJ", 0, "Vertex average", "Use adjacent vertices as weight" },
 		{ 0, NULL, 0, NULL, NULL },

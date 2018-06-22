@@ -32,11 +32,14 @@
  *  \ingroup modifiers
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 
@@ -99,6 +102,109 @@ static void bevel_set_weighted_normal_face_strength(BMesh *bm, Scene *scene)
 			int *strength = BM_ELEM_CD_GET_VOID_P(f, cd_prop_int_offset);
 			*strength = face_strength;
 		}
+	}
+}
+
+static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn_strength, int hnmode, MDeformVert *dvert, int vgroup)
+{
+	if (bmd->res > 20)
+		return;
+	BM_mesh_normals_update(bm);
+	BM_lnorspace_update(bm);
+	BM_normals_loops_edges_tag(bm, true);
+
+	int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+
+	BMFace *f;
+	BMLoop *l, *l_cur, *l_first;
+	BMIter fiter;
+
+	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
+		l_cur = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			if ((!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) || (!BM_elem_flag_test(l_cur, BM_ELEM_TAG) &&
+				BM_loop_check_cyclic_smooth_fan(l_cur)))) {
+
+				if (!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) && !BM_elem_flag_test(l_cur->prev->e, BM_ELEM_TAG)) {
+					const int loop_index = BM_elem_index_get(l_cur);
+					short *clnors = BM_ELEM_CD_GET_VOID_P(l_cur, cd_clnors_offset);
+					BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[loop_index], f->no, clnors);
+				}
+				else {
+					BMVert *v_pivot = l_cur->v;
+					BMEdge *e_next;
+					const BMEdge *e_org = l_cur->e;
+					BMLoop *lfan_pivot, *lfan_pivot_next;
+
+					lfan_pivot = l_cur;
+					e_next = lfan_pivot->e;
+					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
+					float cn_wght[3] = { 0.0f, 0.0f, 0.0f };
+
+					while (true) {
+						lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
+						if (lfan_pivot_next) {
+							BLI_assert(lfan_pivot_next->v == v_pivot);
+						}
+						else {
+							e_next = (lfan_pivot->e == e_next) ? lfan_pivot->prev->e : lfan_pivot->e;
+						}
+
+						BLI_SMALLSTACK_PUSH(loops, lfan_pivot);
+
+						if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
+							int weight = BM_elem_float_data_get(&bm->edata, lfan_pivot->f, CD_BWEIGHT);
+							if (weight) {
+								if (bmd->hnmode == MOD_BEVEL_HN_FACE) {
+									float cur[3];
+									mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
+									add_v3_v3(cn_wght, cur);
+								}
+								else
+									add_v3_v3(cn_wght, lfan_pivot->f->no);
+							}
+							else
+								add_v3_v3(cn_wght, lfan_pivot->f->no);
+
+						}
+						else if (bmd->lim_flags & MOD_BEVEL_VGROUP) {
+							const bool has_vgroup = dvert != NULL;
+							const bool vert_of_group = has_vgroup && defvert_find_index(&dvert[BM_elem_index_get(l->v)], vgroup) != NULL;
+							if (vert_of_group && bmd->hnmode == MOD_BEVEL_HN_FACE) {
+								float cur[3];
+								mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
+								add_v3_v3(cn_wght, cur);
+							}
+							else
+								add_v3_v3(cn_wght, lfan_pivot->f->no);
+						}
+						else {
+							float cur[3];
+							mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
+							add_v3_v3(cn_wght, cur);
+						}
+						if (!BM_elem_flag_test(e_next, BM_ELEM_TAG) || (e_next == e_org)) {
+							break;
+						}
+						lfan_pivot = lfan_pivot_next;
+					}
+
+					normalize_v3(cn_wght);
+					mul_v3_fl(cn_wght, hn_strength);
+					float n_final[3];
+
+					while ((l = BLI_SMALLSTACK_POP(loops))) {
+						const int l_index = BM_elem_index_get(l);
+						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
+						copy_v3_v3(n_final, l->f->no);
+						mul_v3_fl(n_final, 1.0f - hn_strength);
+						add_v3_v3(n_final, cn_wght);
+						normalize_v3(n_final);
+						BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
+					}
+				}
+			}
+		} while ((l_cur = l_cur->next) != l_first);
 	}
 }
 
@@ -196,6 +302,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp, bmd->hnmode, NULL);
+
+	if (bmd->hnmode != MOD_BEVEL_HN_NONE)
+		bevel_mod_harden_normals(bmd, bm, bmd->hn_strength, bmd->hnmode, dvert, vgroup);
 
 	if(set_wn_strength)
 		bevel_set_weighted_normal_face_strength(bm, md->scene);

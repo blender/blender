@@ -3025,6 +3025,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem prop_harden_normals_items[] = {
+		{ MOD_BEVEL_HN_NONE, "HN_NONE", 0, "Off", "Do not use Harden Normals" },
 		{ MOD_BEVEL_HN_FACE, "HN_FACE", 0, "Face Area", "Use faces as weight" },
 		{ MOD_BEVEL_HN_ADJ, "HN_ADJ", 0, "Vertex average", "Use adjacent vertices as weight" },
 		{ 0, NULL, 0, NULL, NULL },
@@ -3123,8 +3124,8 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "hn_strength", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_range(prop, 0, 10, 1, 2);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 1, 2);
 	RNA_def_property_ui_text(prop, "Normal Strength", "Strength of calculated normal");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

@@ -376,6 +376,7 @@ enum {
 
 /* BevelModifierData->hnmode */
 enum {
+	MOD_BEVEL_HN_NONE,
 	MOD_BEVEL_HN_FACE,
 	MOD_BEVEL_HN_ADJ,
 };

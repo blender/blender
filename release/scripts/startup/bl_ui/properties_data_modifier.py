@@ -143,8 +143,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "mark_seam")
         col.prop(md, "mark_sharp")
         
-        col.prop(md, "set_wn_strength")
-
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
         if md.limit_method == 'ANGLE':
@@ -155,6 +153,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.label(text="Width Method:")
         layout.row().prop(md, "offset_type", expand=True)
+        
+        layout.label(text="Normal Mode")
+        layout.row().prop(md, "hnmode", expand=True)
+        layout.prop(md, "hn_strength")
+        layout.prop(md, "set_wn_strength")
+
 
     def BOOLEAN(self, layout, ob, md):
         split = layout.split()
