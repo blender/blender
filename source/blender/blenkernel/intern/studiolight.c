@@ -39,6 +39,7 @@
 #include "BLI_fileops_types.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_path_util.h"
 #include "BLI_rand.h"
 #include "BLI_string.h"
@@ -72,7 +73,7 @@ static ListBase studiolights;
 // #define STUDIOLIGHT_IRRADIANCE_METHOD STUDIOLIGHT_IRRADIANCE_METHOD_RADIANCE
 #define STUDIOLIGHT_IRRADIANCE_METHOD STUDIOLIGHT_IRRADIANCE_METHOD_SPHERICAL_HARMONICS
 
-
+#define STUDIOLIGHT_SPHERICAL_HARMONICS_WINDOWING
 
 /*
  * Disable this option so caches are not loaded from disk
@@ -207,10 +208,14 @@ static void studiolight_load_equirectangular_image(StudioLight *sl)
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		ImBuf *ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path, 0, NULL);
-		if (ibuf) {
-			IMB_float_from_rect(ibuf);
-			sl->equirectangular_radiance_buffer = ibuf;
+		if (ibuf == NULL)
+		{
+			float *colbuf = MEM_mallocN(sizeof(float[4]), __func__);
+			copy_v4_fl4(colbuf, 1.0f, 0.0f, 1.0f, 1.0f);
+			ibuf = IMB_allocFromBuffer(NULL, colbuf, 1, 1);
 		}
+		IMB_float_from_rect(ibuf);
+		sl->equirectangular_radiance_buffer = ibuf;
 	}
 	sl->flag |= STUDIOLIGHT_EXTERNAL_IMAGE_LOADED;
 }
@@ -345,6 +350,9 @@ BLI_INLINE void studiolight_evaluate_radiance_buffer(
 
 }
 
+/*
+ * Spherical Harmonics
+ */
 BLI_INLINE float studiolight_area_element(float x, float y)
 {
 	return atan2(x * y, sqrtf(x * x + y * y + 1));
@@ -485,6 +493,92 @@ static void studiolight_calculate_spherical_harmonics_coefficient(StudioLight *s
 	copy_v3_v3(sl->spherical_harmonics_coefs[sh_component], sh);
 }
 
+#ifdef STUDIOLIGHT_SPHERICAL_HARMONICS_WINDOWING
+static void studiolight_calculate_spherical_harmonics_luminance(StudioLight *sl, float luminance[STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS])
+{
+	for (int index = 0; index < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; index++)
+	{
+		luminance[index] = rgb_to_grayscale(sl->spherical_harmonics_coefs[index]);
+	}
+}
+
+static void studiolight_apply_spherical_harmonics_windowing(StudioLight *sl, float max_lamplacian)
+{
+	/* From Peter-Pike Sloan's Stupid SH Tricks http://www.ppsloan.org/publications/StupidSH36.pdf */
+	float table_l[STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL + 1];
+	float table_b[STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL + 1];
+
+	table_l[0] = 0.0f;
+	table_b[0] = 0.0f;
+
+	/* convert to luminance */
+	float luminance[STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS];
+	studiolight_calculate_spherical_harmonics_luminance(sl, luminance);
+
+	int index = 1;
+	for (int level = 1; level <= STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL; level ++)
+	{
+		table_l[level] = (float)(SQUARE(level) * SQUARE(level + 1));
+
+		float b = 0.0f;
+		for (int m = -1; m <= level; m++)
+		{
+			b += SQUARE(luminance[index++]);
+		}
+		table_b[level] = b;
+	}
+
+	float squared_lamplacian = 0.0f;
+	for (int level = 1; level <= STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL; level ++)
+	{
+		squared_lamplacian += table_l[level] * table_b[level];
+	}
+
+	const float target_squared_laplacian = max_lamplacian * max_lamplacian;
+	if (squared_lamplacian <= target_squared_laplacian)
+	{
+		return;
+	}
+
+	float lambda = 0.0f;
+
+	const int no_iterations = 10000000;
+	for (int i = 0; i < no_iterations; ++i)
+	{
+		float f = 0.0f;
+		float fd = 0.0f;
+
+		for (int level = 1; level <= (int)STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL; ++level)
+		{
+			f += table_l[level] * table_b[level] / SQUARE(1.0f + lambda * table_l[level]);
+			fd += (2.0f * SQUARE(table_l[level]) * table_b[level]) / CUBE(1.0f + lambda * table_l[level]);
+		}
+
+		f = target_squared_laplacian - f;
+
+		float delta = -f / fd;
+		lambda += delta;
+
+		if (ABS(delta) < 1e-6f)
+		{
+			break;
+		}
+	}
+
+	/* Apply windowing lambda */
+	index = 0;
+	for (int level = 0; level <= STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL; level ++)
+	{
+		float s = 1.0f / (1.0f + lambda * SQUARE(level) * SQUARE(level + 1.0f));
+
+		for (int m = -1; m <= level; m++)
+		{
+			mul_v3_fl(sl->spherical_harmonics_coefs[index++], s);
+		}
+	}
+}
+#endif
+
 BLI_INLINE void studiolight_sample_spherical_harmonics(StudioLight *sl, float color[3], float normal[3])
 {
 	copy_v3_fl(color, 0.0f);
@@ -516,6 +610,11 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 		for (int comp = 0; comp < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; comp ++) {
 			studiolight_calculate_spherical_harmonics_coefficient(sl, comp);
 		}
+
+#ifdef STUDIOLIGHT_SPHERICAL_HARMONICS_WINDOWING
+		studiolight_apply_spherical_harmonics_windowing(sl, STUDIOLIGHT_SPHERICAL_HARMONICS_WINDOWING_TARGET_LAMPLACIAN);
+#endif
+
 		if (sl->flag & STUDIOLIGHT_USER_DEFINED) {
 			FILE *fp = BLI_fopen(sl->path_sh_cache, "wb");
 			if (fp) {
@@ -525,11 +624,6 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 		}
 	}
 	sl->flag |= STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED;
-}
-
-static float area_element(float x, float y )
-{
-	return atan2f(x * y, sqrt(x * x + y * y + 1));
 }
 
 static float texel_coord_solid_angle(float a_U, float a_V, int a_Size)
@@ -546,7 +640,7 @@ static float texel_coord_solid_angle(float a_U, float a_V, int a_Size)
 	float y0 = v - resolution_inv;
 	float x1 = u + resolution_inv;
 	float y1 = v + resolution_inv;
-	return area_element(x0, y0) - area_element(x0, y1) - area_element(x1, y0) + area_element(x1, y1);
+	return studiolight_area_element(x0, y0) - studiolight_area_element(x0, y1) - studiolight_area_element(x1, y0) + studiolight_area_element(x1, y1);
 }
 
 BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(
