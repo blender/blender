@@ -1041,7 +1041,7 @@ macro(remove_cc_flag
 
 endmacro()
 
-macro(add_cc_flag
+macro(add_c_flag
 	flag)
 
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
@@ -1076,7 +1076,7 @@ macro(remove_strict_flags)
 		)
 
 		# negate flags implied by '-Wall'
-		add_cc_flag("${C_REMOVE_STRICT_FLAGS}")
+		add_c_flag("${C_REMOVE_STRICT_FLAGS}")
 		add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
 	endif()
 
@@ -1089,7 +1089,7 @@ macro(remove_strict_flags)
 		)
 
 		# negate flags implied by '-Wall'
-		add_cc_flag("${C_REMOVE_STRICT_FLAGS}")
+		add_c_flag("${C_REMOVE_STRICT_FLAGS}")
 		add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
 	endif()
 
