@@ -121,7 +121,8 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
 	ID *id = (ID *)ptr->data;
 	BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
-	BLI_libblock_ensure_unique_name(G.main, id->name);
+	BLI_assert(BKE_id_is_in_gobal_main(id));
+	BLI_libblock_ensure_unique_name(G_MAIN, id->name);
 }
 
 static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -414,7 +415,9 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
 	short *totcol = give_totcolp_id(id);
 	Material *mat_id = assign_ptr->id.data;
 	if (totcol && (key >= 0 && key < *totcol)) {
-		assign_material_id(G.main, id, mat_id, key + 1);
+		BLI_assert(BKE_id_is_in_gobal_main(id));
+		BLI_assert(BKE_id_is_in_gobal_main(&mat_id->id));
+		assign_material_id(G_MAIN, id, mat_id, key + 1);
 		return 1;
 	}
 	else {
@@ -470,7 +473,8 @@ static void rna_IDMaterials_clear_id(ID *id, Main *bmain, int remove_material_sl
 static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Library *lib = (Library *)ptr->data;
-	BKE_library_filepath_set(G.main, lib, value);
+	BLI_assert(BKE_id_is_in_gobal_main(&lib->id));
+	BKE_library_filepath_set(G_MAIN, lib, value);
 }
 
 /* ***** ImagePreview ***** */

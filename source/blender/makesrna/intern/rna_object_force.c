@@ -97,6 +97,7 @@ static const EnumPropertyItem empty_vortex_shape_items[] = {
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
@@ -240,7 +241,8 @@ static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, 
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BKE_ptcache_ids_from_object(G_MAIN, &pidlist, ob, NULL, 0);
 
 	*min = 0;
 	*max = 0;
@@ -263,7 +265,8 @@ static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
 	ListBase pidlist;
 	int num = 0;
 
-	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BKE_ptcache_ids_from_object(G_MAIN, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {
@@ -284,7 +287,8 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BKE_ptcache_ids_from_object(G_MAIN, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {
@@ -307,7 +311,8 @@ static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max,
 	*min = 1;
 	*max = 20;
 
-	BKE_ptcache_ids_from_object(G.main, &pidlist, ob, NULL, 0);
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BKE_ptcache_ids_from_object(G_MAIN, &pidlist, ob, NULL, 0);
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {

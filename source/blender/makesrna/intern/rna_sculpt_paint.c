@@ -218,14 +218,20 @@ static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
-	return (pset->object && pset->scene && PE_get_current(G.main, pset->scene, pset->object));
+	if (pset->object != NULL && pset->scene != NULL) {
+		BLI_assert(BKE_id_is_in_gobal_main(&pset->object->id));
+		BLI_assert(BKE_id_is_in_gobal_main(&pset->scene->id));
+	}
+	return (pset->object && pset->scene && PE_get_current(G_MAIN, pset->scene, pset->object));
 }
 static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
 	if (pset->scene) {
-		PTCacheEdit *edit = PE_get_current(G.main, pset->scene, pset->object);
+		BLI_assert(BKE_id_is_in_gobal_main(&pset->scene->id));
+		BLI_assert(BKE_id_is_in_gobal_main(&pset->object->id));
+		PTCacheEdit *edit = PE_get_current(G_MAIN, pset->scene, pset->object);
 
 		return (edit && edit->psys);
 	}
