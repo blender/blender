@@ -2944,6 +2944,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 	for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
 		tref->runtime = NULL;
 		tref->properties = newdataadr(fd, tref->properties);
+		IDP_DirectLinkGroup_OrFree(&tref->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}
 }
 
