@@ -33,6 +33,7 @@
 #include "BLI_ghash.h"
 
 extern "C" {
+#include "BKE_collision.h"
 #include "BKE_effect.h"
 } /* extern "C" */
 
@@ -54,6 +55,28 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph,
 	}
 
 	return (ListBase *)BLI_ghash_lookup(deg_graph->effector_relations, collection);
+}
+
+ListBase *DEG_get_collision_relations(const Depsgraph *graph,
+                                      Collection *collection)
+{
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	if (deg_graph->collision_relations == NULL) {
+		return NULL;
+	}
+
+	return (ListBase*)BLI_ghash_lookup(deg_graph->collision_relations, collection);
+}
+
+ListBase *DEG_get_smoke_collision_relations(const Depsgraph *graph,
+                                            Collection *collection)
+{
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	if (deg_graph->smoke_collision_relations == NULL) {
+		return NULL;
+	}
+
+	return (ListBase*)BLI_ghash_lookup(deg_graph->smoke_collision_relations, collection);
 }
 
 /*********************** Internal API ************************/
@@ -78,13 +101,60 @@ ListBase *deg_build_effector_relations(Depsgraph *graph,
 	return relations;
 }
 
+ListBase *deg_build_collision_relations(Depsgraph *graph,
+                                        Collection *collection)
+{
+	if (graph->collision_relations == NULL) {
+		graph->collision_relations = BLI_ghash_ptr_new("Depsgraph collision relations hash");
+	}
+
+	ListBase *relations = reinterpret_cast<ListBase*>(BLI_ghash_lookup(graph->collision_relations, collection));
+	if (relations == NULL) {
+		::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph*>(graph);
+		relations = BKE_collision_relations_create(depsgraph, collection, eModifierType_Collision);
+		BLI_ghash_insert(graph->collision_relations, collection, relations);
+	}
+
+	return relations;
+}
+
+ListBase *deg_build_smoke_collision_relations(Depsgraph *graph,
+                                              Collection *collection)
+{
+	if (graph->smoke_collision_relations == NULL) {
+		graph->smoke_collision_relations = BLI_ghash_ptr_new("Depsgraph smoke collision relations hash");
+	}
+
+	ListBase *relations = reinterpret_cast<ListBase*>(BLI_ghash_lookup(graph->smoke_collision_relations, collection));
+	if (relations == NULL) {
+		::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph*>(graph);
+		relations = BKE_collision_relations_create(depsgraph, collection, eModifierType_Smoke);
+		BLI_ghash_insert(graph->smoke_collision_relations, collection, relations);
+	}
+
+	return relations;
+}
+
 static void free_effector_relations(void *value)
 {
 	BKE_effector_relations_free(reinterpret_cast<ListBase*>(value));
 }
 
+static void free_collision_relations(void *value)
+{
+	BKE_collision_relations_free(reinterpret_cast<ListBase*>(value));
+}
+
 void deg_clear_physics_relations(Depsgraph *graph)
 {
+	if (graph->collision_relations) {
+		BLI_ghash_free(graph->collision_relations, NULL, free_collision_relations);
+		graph->collision_relations = NULL;
+	}
+	if (graph->smoke_collision_relations) {
+		BLI_ghash_free(graph->smoke_collision_relations, NULL, free_collision_relations);
+		graph->smoke_collision_relations = NULL;
+	}
 	if (graph->effector_relations) {
 		BLI_ghash_free(graph->effector_relations, NULL, free_effector_relations);
 		graph->effector_relations = NULL;

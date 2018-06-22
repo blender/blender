@@ -143,6 +143,8 @@ string deg_color_end(void);
 /* Physics Utilities -------------------------------------------------- */
 
 struct ListBase *deg_build_effector_relations(Depsgraph *graph, struct Collection *collection);
+struct ListBase *deg_build_collision_relations(Depsgraph *graph, struct Collection *collection);
+struct ListBase *deg_build_smoke_collision_relations(Depsgraph *graph, struct Collection *collection);
 void deg_clear_physics_relations(Depsgraph *graph);
 
 }  // namespace DEG

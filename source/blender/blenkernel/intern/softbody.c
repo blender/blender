@@ -1522,7 +1522,7 @@ static void scan_for_ext_spring_forces(struct Depsgraph *depsgraph, Scene *scene
 {
 	SoftBody *sb = ob->soft;
 
-	ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, sb->effector_weights);
+	ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, sb->effector_weights);
 	_scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, effectors);
 	BKE_effectors_free(effectors);
 }
@@ -1541,7 +1541,7 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph, Scene *scene, stru
 	int i, totthread, left, dec;
 	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
-	ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, ob->soft->effector_weights);
+	ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, ob->soft->effector_weights);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
 	totthread= BKE_scene_num_threads(scene);
@@ -2226,7 +2226,7 @@ static void softbody_calc_forcesEx(struct Depsgraph *depsgraph, Scene *scene, Ob
 		sb_sfesf_threads_run(depsgraph, scene, ob, timenow, sb->totspring, NULL);
 
 	/* after spring scan because it uses Effoctors too */
-	ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, sb->effector_weights);
+	ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, sb->effector_weights);
 
 	if (do_deflector) {
 		float defforce[3];
@@ -2287,7 +2287,7 @@ static void softbody_calc_forces(struct Depsgraph *depsgraph, Scene *scene, Obje
 
 		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(depsgraph, scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */
-		ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, ob->soft->effector_weights);
+		ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, ob->soft->effector_weights);
 
 		if (do_deflector) {
 			float defforce[3];

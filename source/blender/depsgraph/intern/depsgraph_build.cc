@@ -324,32 +324,35 @@ void DEG_relations_tag_update(Main *bmain)
 }
 
 void DEG_add_collision_relations(DepsNodeHandle *handle,
-                                 Scene *scene,
                                  Object *object,
                                  Collection *collection,
                                  unsigned int modifier_type,
                                  DEG_CollobjFilterFunction fn,
-                                 bool dupli,
                                  const char *name)
 {
-	unsigned int numcollobj;
-	Object **collobjs = get_collisionobjects_ext(scene, object, collection, &numcollobj, modifier_type, dupli);
+	Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
+	DEG::Depsgraph *deg_graph = (DEG::Depsgraph *)depsgraph;
+	ListBase *relations;
 
-	for (unsigned int i = 0; i < numcollobj; i++) {
-		Object *ob1 = collobjs[i];
-
-		if (!fn || fn(ob1, modifiers_findByType(ob1, (ModifierType)modifier_type))) {
-			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
-			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
-		}
+	if (modifier_type == eModifierType_Smoke) {
+		relations = deg_build_smoke_collision_relations(deg_graph, collection);
+	}
+	else {
+		relations = deg_build_collision_relations(deg_graph, collection);
 	}
 
-	if (collobjs)
-		MEM_freeN(collobjs);
+	LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
+		Object *ob1 = relation->ob;
+		if (ob1 != object) {
+			if (!fn || fn(ob1, modifiers_findByType(ob1, (ModifierType)modifier_type))) {
+				DEG_add_object_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
+				DEG_add_object_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
+			}
+		}
+	}
 }
 
 void DEG_add_forcefield_relations(DepsNodeHandle *handle,
-                                  Scene *scene,
                                   Object *object,
                                   EffectorWeights *effector_weights,
                                   bool add_absorption,
@@ -382,12 +385,10 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 			}
 			if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
 				DEG_add_collision_relations(handle,
-				                            scene,
 				                            object,
 				                            NULL,
 				                            eModifierType_Collision,
 				                            NULL,
-				                            true,
 				                            "Force Absorption");
 			}
 		}

@@ -272,13 +272,10 @@ struct DepsgraphRelationBuilder
 	void build_nested_shapekey(ID *owner, Key *key);
 
 	void add_collision_relations(const OperationKey &key,
-	                             Scene *scene,
 	                             Object *object,
 	                             Collection *collection,
-	                             bool dupli,
 	                             const char *name);
 	void add_forcefield_relations(const OperationKey &key,
-	                              Scene *scene,
 	                              Object *object,
 	                              ParticleSystem *psys,
 	                              EffectorWeights *eff,

@@ -34,15 +34,21 @@
 
 struct Colllection;
 struct Depsgraph;
+struct ListBase;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Get effector relations from collection or entire scene during evaluation,
- * these are created during depsgraph relations building. */
+/* Get collision/effector relations from collection or entire scene. These
+ * created during depsgraph relations building and should only be accessed
+ * during evaluation. */
 struct ListBase *DEG_get_effector_relations(const struct Depsgraph *depsgraph,
                                             struct Collection *collection);
+struct ListBase *DEG_get_collision_relations(const struct Depsgraph *depsgraph,
+                                             struct Collection *collection);
+struct ListBase *DEG_get_smoke_collision_relations(const struct Depsgraph *depsgraph,
+                                                   struct Collection *collection);
 
 #ifdef __cplusplus
 } /* extern "C" */

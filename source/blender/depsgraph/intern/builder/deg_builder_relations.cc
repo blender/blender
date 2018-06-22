@@ -298,36 +298,25 @@ DepsRelation *DepsgraphRelationBuilder::add_operation_relation(
 
 void DepsgraphRelationBuilder::add_collision_relations(
         const OperationKey &key,
-        Scene *scene,
         Object *object,
         Collection *collection,
-        bool dupli,
         const char *name)
 {
-	unsigned int numcollobj;
-	Object **collobjs = get_collisionobjects_ext(scene,
-	                                             object,
-	                                             collection,
-	                                             &numcollobj,
-	                                             eModifierType_Collision,
-	                                             dupli);
-	for (unsigned int i = 0; i < numcollobj; i++) {
-		Object *ob1 = collobjs[i];
+	ListBase *relations = deg_build_collision_relations(graph_, collection);
 
-		ComponentKey trf_key(&ob1->id, DEG_NODE_TYPE_TRANSFORM);
-		add_relation(trf_key, key, name);
+	LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
+		if (relation->ob != object) {
+			ComponentKey trf_key(&relation->ob->id, DEG_NODE_TYPE_TRANSFORM);
+			add_relation(trf_key, key, name);
 
-		ComponentKey coll_key(&ob1->id, DEG_NODE_TYPE_GEOMETRY);
-		add_relation(coll_key, key, name);
-	}
-	if (collobjs != NULL) {
-		MEM_freeN(collobjs);
+			ComponentKey coll_key(&relation->ob->id, DEG_NODE_TYPE_GEOMETRY);
+			add_relation(coll_key, key, name);
+		}
 	}
 }
 
 void DepsgraphRelationBuilder::add_forcefield_relations(
         const OperationKey &key,
-        Scene *scene,
         Object *object,
         ParticleSystem *psys,
         EffectorWeights *eff,
@@ -351,10 +340,8 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
 			}
 			if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
 				add_collision_relations(key,
-				                        scene,
 				                        object,
 				                        NULL,
-				                        true,
 				                        "Force Absorption");
 			}
 		}
@@ -1586,10 +1573,8 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 		/* Collisions */
 		if (part->type != PART_HAIR) {
 			add_collision_relations(psys_key,
-			                        scene_,
 			                        object,
 			                        part->collision_group,
-			                        true,
 			                        "Particle Collision");
 		}
 		else if ((psys->flag & PSYS_HAIR_DYNAMICS) &&
@@ -1597,15 +1582,12 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 		         psys->clmd->coll_parms != NULL)
 		{
 			add_collision_relations(psys_key,
-			                        scene_,
 			                        object,
 			                        psys->clmd->coll_parms->group,
-			                        true,
 			                        "Hair Collision");
 		}
 		/* Effectors. */
 		add_forcefield_relations(psys_key,
-		                         scene_,
 		                         object,
 		                         psys,
 		                         part->effector_weights,

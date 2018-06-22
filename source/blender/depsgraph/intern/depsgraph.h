@@ -227,8 +227,10 @@ struct Depsgraph {
 	int debug_flags;
 	string debug_name;
 
-	/* Cached list of effectors for collections and the scene created
-	 * along with relations, for fast lookup during evaluation. */
+	/* Cached list of colliders/effectors for collections and the scene
+	 * created along with relations, for fast lookup during evaluation. */
+	GHash *collision_relations;
+	GHash *smoke_collision_relations;
 	GHash *effector_relations;
 };
 

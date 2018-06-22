@@ -51,6 +51,9 @@ extern "C" {
 #include "BPH_mass_spring.h"
 #include "implicit.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 static float I3[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 
 /* Number of off-diagonal non-zero matrix blocks.
@@ -848,7 +851,7 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
  * until a good replacement is ready
  */
 static void cloth_collision_solve_extra(
-        Scene *scene, Object *ob, ClothModifierData *clmd, ListBase *effectors,
+        Depsgraph *depsgraph, Scene *scene, Object *ob, ClothModifierData *clmd, ListBase *effectors,
         float frame, float step, float dt)
 {
 	Cloth *cloth = clmd->clothObject;
@@ -882,7 +885,7 @@ static void cloth_collision_solve_extra(
 	// call collision function
 	// TODO: check if "step" or "step+dt" is correct - dg
 	do_extra_solve = cloth_bvh_objcollision(
-	        scene, ob, clmd, step / clmd->sim_parms->timescale, dt / clmd->sim_parms->timescale);
+	        depsgraph, ob, clmd, step / clmd->sim_parms->timescale, dt / clmd->sim_parms->timescale);
 
 	// copy corrected positions back to simulation
 	for (i = 0; i < mvert_num; i++) {
@@ -970,12 +973,13 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
 	sres->status |= result->status;
 }
 
-int BPH_cloth_solve(Scene *scene, Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
+int BPH_cloth_solve(Depsgraph *depsgraph, Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	/* Hair currently is a cloth sim in disguise ...
 	 * Collision detection and volumetrics work differently then.
 	 * Bad design, TODO
 	 */
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	const bool is_hair = (clmd->hairdata != NULL);
 
 	unsigned int i=0;
@@ -1020,7 +1024,7 @@ int BPH_cloth_solve(Scene *scene, Object *ob, float frame, ClothModifierData *cl
 		if (is_hair) {
 			/* determine contact points */
 			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
-				cloth_find_point_contacts(scene, ob, clmd, 0.0f, tf, &contacts, &totcolliders);
+				cloth_find_point_contacts(depsgraph, ob, clmd, 0.0f, tf, &contacts, &totcolliders);
 			}
 
 			/* setup vertex constraints for pinned vertices and contacts */
@@ -1059,7 +1063,7 @@ int BPH_cloth_solve(Scene *scene, Object *ob, float frame, ClothModifierData *cl
 		BPH_mass_spring_solve_positions(id, dt);
 
 		if (!is_hair) {
-			cloth_collision_solve_extra(scene, ob, clmd, effectors, frame, step, dt);
+			cloth_collision_solve_extra(depsgraph, scene, ob, clmd, effectors, frame, step, dt);
 		}
 
 		BPH_mass_spring_apply_result(id);

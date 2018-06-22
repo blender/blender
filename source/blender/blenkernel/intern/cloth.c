@@ -350,7 +350,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int 
 	return 1;
 }
 
-static int do_step_cloth(struct Depsgraph *depsgraph, Scene *scene, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
+static int do_step_cloth(Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
 	ClothVertex *verts = NULL;
 	Cloth *cloth;
@@ -375,7 +375,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Scene *scene, Object *ob, 
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, clmd->sim_parms->effector_weights);
+	effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights);
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH )
 		cloth_update_verts ( ob, clmd, result );
@@ -391,7 +391,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Scene *scene, Object *ob, 
 	// TIMEIT_START(cloth_step)
 
 	/* call the solver. */
-	ret = BPH_cloth_solve(scene, ob, framenr, clmd, effectors);
+	ret = BPH_cloth_solve(depsgraph, ob, framenr, clmd, effectors);
 
 	// TIMEIT_END(cloth_step)
 
@@ -405,7 +405,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Scene *scene, Object *ob, 
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
-void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh, float (*vertexCos)[3])
+void clothModifier_do(ClothModifierData *clmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh, float (*vertexCos)[3])
 {
 	PointCache *cache;
 	PTCacheID pid;
@@ -492,7 +492,7 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	/* do simulation */
 	BKE_ptcache_validate(cache, framenr);
 
-	if (!do_step_cloth(depsgraph, scene, ob, clmd, mesh, framenr)) {
+	if (!do_step_cloth(depsgraph, ob, clmd, mesh, framenr)) {
 		BKE_ptcache_invalidate(cache);
 	}
 	else

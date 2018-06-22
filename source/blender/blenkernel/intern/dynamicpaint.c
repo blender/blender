@@ -4926,7 +4926,7 @@ static int dynamicPaint_prepareEffectStep(
 
 	/* Init force data if required */
 	if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
-		ListBase *effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, surface->effector_weights);
+		ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, surface->effector_weights);
 
 		/* allocate memory for force data (dir vector + strength) */
 		*force = MEM_mallocN(sData->total_points * 4 * sizeof(float), "PaintEffectForces");

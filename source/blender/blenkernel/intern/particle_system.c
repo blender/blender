@@ -1310,7 +1310,7 @@ static void psys_update_effectors(ParticleSimulationData *sim)
 {
 	BKE_effectors_free(sim->psys->effectors);
 	sim->psys->effectors = BKE_effectors_create(sim->depsgraph,
-	                                            sim->scene, sim->ob, sim->psys,
+	                                            sim->ob, sim->psys,
 	                                            sim->psys->part->effector_weights);
 	precalc_guides(sim, sim->psys->effectors);
 }
@@ -3540,7 +3540,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	psys_update_effectors(sim);
 
 	if (part->type != PART_HAIR)
-		sim->colliders = get_collider_cache(sim->scene, sim->ob, part->collision_group);
+		sim->colliders = BKE_collider_cache_create(sim->depsgraph, sim->ob, part->collision_group);
 
 	/* initialize physics type specific stuff */
 	switch (part->phystype) {
@@ -3747,7 +3747,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			pa->state.time=cfra;
 	}
 
-	free_collider_cache(&sim->colliders);
+	BKE_collider_cache_free(&sim->colliders);
 	BLI_rng_free(sim->rng);
 	sim->rng = NULL;
 }

@@ -1283,7 +1283,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Scene *scene, RigidBod
 		ListBase *effectors;
 
 		/* get effectors present in the group specified by effector_weights */
-		effectors = BKE_effectors_create(depsgraph, scene, ob, NULL, effector_weights);
+		effectors = BKE_effectors_create(depsgraph, ob, NULL, effector_weights);
 		if (effectors) {
 			float eff_force[3] = {0.0f, 0.0f, 0.0f};
 			float eff_loc[3], eff_vel[3];

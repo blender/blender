@@ -130,7 +130,6 @@ void BKE_effector_relations_free(struct ListBase *lb);
 
 struct ListBase *BKE_effectors_create(
         struct Depsgraph *depsgraph,
-        struct Scene *scene,
         struct Object *ob_src,
         struct ParticleSystem *psys_src,
         struct EffectorWeights *weights);
