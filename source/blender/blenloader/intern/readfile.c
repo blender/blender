@@ -5031,7 +5031,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 	for (md=lb->first; md; md=md->next) {
 		md->error = NULL;
-		md->scene = NULL;
 
 		/* if modifiers disappear, or for upward compatibility */
 		if (NULL == modifierType_getInfo(md->type))

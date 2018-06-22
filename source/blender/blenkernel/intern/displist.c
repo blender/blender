@@ -855,8 +855,6 @@ static void curve_calc_modifiers_pre(
 		for (; md; md = md->next) {
 			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-			md->scene = scene;
-
 			if (!modifier_isEnabled(scene, md, required_mode))
 				continue;
 			if (mti->type != eModifierTypeType_OnlyDeform)
@@ -961,7 +959,6 @@ static void curve_calc_modifiers_post(
 
 	for (; md; md = md->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		md->scene = scene;
 
 		if (!modifier_isEnabled(scene, md, required_mode))
 			continue;

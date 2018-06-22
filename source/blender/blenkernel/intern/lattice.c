@@ -1045,8 +1045,6 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 	for (; md; md = md->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		md->scene = scene;
-
 		if (!(mti->flags & eModifierTypeFlag_AcceptsLattice)) continue;
 		if (!(md->mode & eModifierMode_Realtime)) continue;
 		if (editmode && !(md->mode & eModifierMode_Editmode)) continue;

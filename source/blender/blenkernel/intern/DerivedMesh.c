@@ -2093,8 +2093,6 @@ static void mesh_calc_modifiers(
 		for (; md; md = md->next, curr = curr->next) {
 			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-			md->scene = scene;
-
 			if (!modifier_isEnabled(scene, md, required_mode)) {
 				continue;
 			}
@@ -2159,8 +2157,6 @@ static void mesh_calc_modifiers(
 
 	for (; md; md = md->next, curr = curr->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
-		md->scene = scene;
 
 		if (!modifier_isEnabled(scene, md, required_mode)) {
 			continue;
@@ -2637,8 +2633,6 @@ static void editbmesh_calc_modifiers(
 	curr = datamasks;
 	for (i = 0; md; i++, md = md->next, curr = curr->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
-		md->scene = scene;
 
 		if (!editbmesh_modifier_is_enabled(scene, md, dm)) {
 			continue;

@@ -1150,8 +1150,6 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 	KeyBlock *kb;
 	ModifierEvalContext mectx = {depsgraph, ob, 0};
 
-	md->scene = scene;
-
 	if (!(md->mode & eModifierMode_Realtime)) {
 		return NULL;
 	}
