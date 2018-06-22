@@ -1076,7 +1076,7 @@ macro(remove_strict_flags)
 		)
 
 		# negate flags implied by '-Wall'
-		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
+		add_cc_flag("${C_REMOVE_STRICT_FLAGS}")
 		add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
 	endif()
 
@@ -1089,7 +1089,7 @@ macro(remove_strict_flags)
 		)
 
 		# negate flags implied by '-Wall'
-		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
+		add_cc_flag("${C_REMOVE_STRICT_FLAGS}")
 		add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
 	endif()
 
@@ -1130,7 +1130,7 @@ macro(remove_strict_flags_file
 
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
-					COMPILE_FLAGS "${CC_REMOVE_STRICT_FLAGS}"
+					COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS}"
 			)
 		endif()
 
