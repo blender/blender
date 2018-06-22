@@ -33,13 +33,14 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_context.h"
 
 #include "BIF_gl.h"
 
@@ -61,7 +62,7 @@
 void paintface_flush_flags(Object *ob, short flag)
 {
 	Mesh *me = BKE_mesh_from_object(ob);
-	DerivedMesh *dm = ob->derivedFinal;
+	Mesh *me_eval = ob->runtime.mesh_eval;
 	MPoly *polys, *mp_orig;
 	const int *index_array = NULL;
 	int totpoly;
@@ -80,14 +81,14 @@ void paintface_flush_flags(Object *ob, short flag)
 		BKE_mesh_flush_select_from_polys(me);
 	}
 
-	if (dm == NULL)
+	if (me_eval == NULL)
 		return;
 
 	/* Mesh polys => Final derived polys */
 
-	if ((index_array = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX))) {
-		polys = dm->getPolyArray(dm);
-		totpoly = dm->getNumPolys(dm);
+	if ((index_array = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX))) {
+		polys = me_eval->mpoly;
+		totpoly = me_eval->totpoly;
 
 		/* loop over final derived polys */
 		for (i = 0; i < totpoly; i++) {
@@ -474,8 +475,8 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool exten
 void paintvert_flush_flags(Object *ob)
 {
 	Mesh *me = BKE_mesh_from_object(ob);
-	DerivedMesh *dm = ob->derivedFinal;
-	MVert *dm_mvert, *dm_mv;
+	Mesh *me_eval = ob->runtime.mesh_eval;
+	MVert *mvert_eval, *mv;
 	const int *index_array = NULL;
 	int totvert;
 	int i;
@@ -487,28 +488,28 @@ void paintvert_flush_flags(Object *ob)
 	 * since this could become slow for realtime updates (circle-select for eg) */
 	BKE_mesh_flush_select_from_verts(me);
 
-	if (dm == NULL)
+	if (me_eval == NULL)
 		return;
 
-	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
+	index_array = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
 
-	dm_mvert = dm->getVertArray(dm);
-	totvert = dm->getNumVerts(dm);
+	mvert_eval = me_eval->mvert;
+	totvert = me_eval->totvert;
 
-	dm_mv = dm_mvert;
+	mv = mvert_eval;
 
 	if (index_array) {
 		int orig_index;
-		for (i = 0; i < totvert; i++, dm_mv++) {
+		for (i = 0; i < totvert; i++, mv++) {
 			orig_index = index_array[i];
 			if (orig_index != ORIGINDEX_NONE) {
-				dm_mv->flag = me->mvert[index_array[i]].flag;
+				mv->flag = me->mvert[index_array[i]].flag;
 			}
 		}
 	}
 	else {
-		for (i = 0; i < totvert; i++, dm_mv++) {
-			dm_mv->flag = me->mvert[i].flag;
+		for (i = 0; i < totvert; i++, mv++) {
+			mv->flag = me->mvert[i].flag;
 		}
 	}
 
