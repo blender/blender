@@ -692,6 +692,32 @@ static int rna_UserDef_studiolight_path_length(PointerRNA *ptr)
 	return strlen(sl->path);
 }
 
+/* StudioLight.path_irr_cache */
+static void rna_UserDef_studiolight_path_irr_cache_get(PointerRNA *ptr, char *value)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	BLI_strncpy(value, sl->path_irr_cache, FILE_MAX);
+}
+
+static int rna_UserDef_studiolight_path_irr_cache_length(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return strlen(sl->path_irr_cache);
+}
+
+/* StudioLight.path_sh_cache */
+static void rna_UserDef_studiolight_path_sh_cache_get(PointerRNA *ptr, char *value)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	BLI_strncpy(value, sl->path_sh_cache, FILE_MAX);
+}
+
+static int rna_UserDef_studiolight_path_sh_cache_length(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return strlen(sl->path_sh_cache);
+}
+
 /* StudioLight.index */
 static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
 {
@@ -3268,6 +3294,16 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_path_get", "rna_UserDef_studiolight_path_length", NULL);
 	RNA_def_property_ui_text(prop, "Path", "");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "path_irr_cache", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_path_irr_cache_get", "rna_UserDef_studiolight_path_irr_cache_length", NULL);
+	RNA_def_property_ui_text(prop, "Irradiance Cache Path", "Path where the irradiance cache is stored");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "path_sh_cache", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_path_sh_cache_get", "rna_UserDef_studiolight_path_sh_cache_length", NULL);
+	RNA_def_property_ui_text(prop, "SH Cache Path", "Path where the spherical harmonics cache is stored");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	RNA_define_verify_sdna(true);

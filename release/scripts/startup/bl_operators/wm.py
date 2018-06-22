@@ -2478,16 +2478,20 @@ class WM_OT_studiolight_uninstall(Operator):
     bl_label = "Uninstall Studio Light"
     index = bpy.props.IntProperty()
 
+    def _remove_path(self, path):
+        if path.exists():
+            path.unlink()
+
     def execute(self, context):
         import pathlib
         userpref = context.user_preferences
         for studio_light in userpref.studio_lights:
             if studio_light.index == self.index:
-                path = pathlib.Path(studio_light.path)
-                if path.exists():
-                    path.unlink()
-                    userpref.studio_lights_refresh()
-                    return {'FINISHED'}
+                self._remove_path(pathlib.Path(studio_light.path))
+                self._remove_path(pathlib.Path(studio_light.path_irr_cache))
+                self._remove_path(pathlib.Path(studio_light.path_sh_cache))
+                userpref.studio_lights_refresh()
+                return {'FINISHED'}
         return {'CANCELLED'}
 
 
