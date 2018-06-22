@@ -1048,6 +1048,12 @@ macro(add_cc_flag
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
 endmacro()
 
+macro(add_cxx_flag
+	flag)
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+endmacro()
+
 macro(remove_strict_flags)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
@@ -1071,6 +1077,7 @@ macro(remove_strict_flags)
 
 		# negate flags implied by '-Wall'
 		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
+		add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
 	endif()
 
 	if(CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -1083,6 +1090,7 @@ macro(remove_strict_flags)
 
 		# negate flags implied by '-Wall'
 		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
+		add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
 	endif()
 
 	if(MSVC)
