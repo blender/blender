@@ -549,12 +549,11 @@ static DerivedMesh *doOcean(
 }
 #else  /* WITH_OCEANSIM */
 static DerivedMesh *doOcean(
-        ModifierData *md, Scene *scene, Object *UNUSED(ob),
+        ModifierData *UNUSED(md), Scene *UNUSED(scene), Object *UNUSED(ob),
         DerivedMesh *derivedData,
         int UNUSED(useRenderParams))
 {
 	/* unused */
-	(void)md;
 	return derivedData;
 }
 #endif /* WITH_OCEANSIM */
