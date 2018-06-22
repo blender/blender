@@ -419,7 +419,7 @@ if(WITH_CODEC_FFMPEG)
 	)
 	add_definitions(-DWITH_FFMPEG)
 
-	remove_strict_flags_file(
+	remove_strict_c_flags_file(
 		intern/writeffmpeg.c
 	)
 endif()
