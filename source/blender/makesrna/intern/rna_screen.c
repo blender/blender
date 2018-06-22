@@ -82,7 +82,7 @@ static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static int rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
 {
 	/* can be NULL on file load, T42619 */
-	wmWindowManager *wm = G.main->wm.first;
+	wmWindowManager *wm = G_MAIN->wm.first;
 	return wm ? (ED_screen_animation_playing(wm) != NULL) : 0;
 }
 
@@ -95,7 +95,7 @@ static int rna_region_alignment_get(PointerRNA *ptr)
 static void rna_Screen_layout_name_get(PointerRNA *ptr, char *value)
 {
 	const bScreen *screen = ptr->data;
-	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G.main, screen, NULL);
+	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, NULL);
 
 	if (layout) {
 		const char *name = BKE_workspace_layout_name_get(layout);
@@ -109,7 +109,7 @@ static void rna_Screen_layout_name_get(PointerRNA *ptr, char *value)
 static int rna_Screen_layout_name_length(PointerRNA *ptr)
 {
 	const bScreen *screen = ptr->data;
-	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G.main, screen, NULL);
+	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, NULL);
 
 	if (layout) {
 		const char *name = BKE_workspace_layout_name_get(layout);

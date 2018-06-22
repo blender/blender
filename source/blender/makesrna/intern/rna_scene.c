@@ -1485,7 +1485,8 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	BKE_view_layer_rename(G.main, scene, view_layer, value);
+	BLI_assert(BKE_id_is_in_gobal_main(&scene->id));
+	BKE_view_layer_rename(G_MAIN, scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
@@ -1541,7 +1542,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 		ts->selectmode = flag;
 
 		/* Update select mode in all the workspaces in mesh edit mode. */
-		wmWindowManager *wm = G.main->wm.first;
+		wmWindowManager *wm = G_MAIN->wm.first;
 		for (wmWindow *win = wm->windows.first; win; win = win->next) {
 			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 

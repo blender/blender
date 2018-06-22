@@ -261,7 +261,7 @@ static wmManipulator *rna_ManipulatorProperties_find_operator(PointerRNA *ptr)
 #endif
 
 	/* We could try workaruond this lookup, but not trivial. */
-	for (bScreen *screen = G.main->screen.first; screen; screen = screen->id.next) {
+	for (bScreen *screen = G_MAIN->screen.first; screen; screen = screen->id.next) {
 		IDProperty *properties = ptr->data;
 		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 			for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {

@@ -495,7 +495,7 @@ static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, int valu
 	v3d->scenelock = value;
 
 	if (value) {
-		Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
+		Scene *scene = ED_screen_scene_find(sc, G_MAIN->wm.first);
 		int bit;
 
 		v3d->lay = scene->lay;
@@ -517,7 +517,7 @@ static View3DCursor *rna_View3D_Cursor_get_from_scene_or_localview(PointerRNA *p
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *screen = ptr->id.data;
-	Scene *scene = ED_screen_scene_find(screen, G.main->wm.first);
+	Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first);
 	return ED_view3d_cursor3d_get(scene, v3d);
 }
 
@@ -549,7 +549,7 @@ static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *screen = ptr->id.data;
-	Scene *scene = ED_screen_scene_find(screen, G.main->wm.first);
+	Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first);
 
 	return ED_view3d_grid_scale(scene, v3d, NULL);
 }
@@ -680,7 +680,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 static int rna_3DViewShading_type_get(PointerRNA *ptr)
 {
 	bScreen *screen = ptr->id.data;
-	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, screen);
+	Scene *scene = WM_windows_scene_get_from_screen(G_MAIN->wm.first, screen);
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	View3D *v3d = (View3D *)ptr->data;
 
@@ -967,7 +967,7 @@ static int rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
-	wmWindow *win = ED_screen_window_find(sc, G.main->wm.first);
+	wmWindow *win = ED_screen_window_find(sc, G_MAIN->wm.first);
 	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 	return ED_space_image_show_uvedit(sima, obedit);
@@ -977,7 +977,7 @@ static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
-	wmWindow *win = ED_screen_window_find(sc, G.main->wm.first);
+	wmWindow *win = ED_screen_window_find(sc, G_MAIN->wm.first);
 	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	return ED_space_image_check_show_maskedit(sima, view_layer);
 }
