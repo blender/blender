@@ -864,7 +864,7 @@ static Mesh *subdivide_base(Mesh *orig)
 
 	MEM_freeN(degree);
 
-	/* Allocate output derivedmesh */
+	/* Allocate output mesh */
 	result = BKE_mesh_new_nomain_from_template(
 	        orig,
 	        totorigvert + totsubd,

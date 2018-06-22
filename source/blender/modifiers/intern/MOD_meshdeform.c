@@ -295,7 +295,7 @@ static void meshdeformModifier_do(
 	if (!mmd->object || (!mmd->bindcagecos && !mmd->bindfunc))
 		return;
 
-	/* Get cage derivedmesh.
+	/* Get cage mesh.
 	 *
 	 * Only do this is the target object is in edit mode by itself, meaning
 	 * we don't allow linked edit meshes here.
@@ -394,7 +394,7 @@ static void meshdeformModifier_do(
 	                        meshdeform_vert_task,
 	                        &settings);
 
-	/* release cage derivedmesh */
+	/* release cage mesh */
 	MEM_freeN(dco);
 	MEM_freeN(cagecos);
 	if (cagemesh != NULL && free_cagemesh) {

@@ -37,7 +37,6 @@
 #include "DNA_object_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_data_transfer.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
