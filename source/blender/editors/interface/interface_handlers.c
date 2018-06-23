@@ -6649,6 +6649,30 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 	UI_popup_block_ex(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but, NULL);
 }
 
+static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void *arg2)
+{
+	uiBut *but = arg1;
+	bUserMenuItem *umi = arg2;
+	if (umi) {
+		ED_screen_user_menu_remove(umi);
+	}
+	char drawstr[sizeof(but->drawstr)];
+	STRNCPY(drawstr, but->drawstr);
+	if (but->flag & UI_BUT_HAS_SEP_CHAR) {
+		char *sep = strrchr(drawstr, UI_SEP_CHAR);
+		if (sep) {
+			*sep = '\0';
+		}
+	}
+	ED_screen_user_menu_add(C, drawstr, but->optype, but->opptr ? but->opptr->data : NULL, but->opcontext);
+}
+
+static void popup_user_menu_remove_func(bContext *UNUSED(C), void *UNUSED(arg1), void *arg2)
+{
+	bUserMenuItem *umi = arg2;
+	ED_screen_user_menu_remove(umi);
+}
+
 /**
  * menu to chow when right clicking on the panel header
  */
@@ -7019,6 +7043,27 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Shortcut"),
 			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			UI_but_func_set(but2, popup_add_shortcut_func, but, NULL);
+		}
+
+		uiItemS(layout);
+
+		{
+			bUserMenuItem *umi = ED_screen_user_menu_find(
+			        C, but->optype, but->opptr ? but->opptr->data : NULL, but->opcontext);
+
+			but2 = uiDefIconTextBut(
+			        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
+			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Favourites Menu"),
+			        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+			        "Add to a user defined context menu (stored in the user preferences)");
+			UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, umi);
+			if (umi) {
+				but2 = uiDefIconTextBut(
+				        block, UI_BTYPE_BUT, 0, ICON_CANCEL,
+				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Favourites Menu"),
+				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				UI_but_func_set(but2, popup_user_menu_remove_func, NULL, umi);
+			}
 		}
 
 		/* Set the operator pointer for python access */

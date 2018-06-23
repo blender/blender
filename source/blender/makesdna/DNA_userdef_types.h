@@ -430,6 +430,17 @@ typedef struct bPathCompare {
 	char flag, pad[7];
 } bPathCompare;
 
+typedef struct bUserMenuItem {
+	struct bUserMenuItem *next, *prev;
+	char space_type;
+	char opcontext;
+	char _pad0[6];
+	char ui_name[64];
+	char opname[64];
+	char context[64];
+	struct IDProperty *prop;
+} bUserMenuItem;
+
 typedef struct SolidLight {
 	int flag, pad;
 	float col[4], spec[4], vec[4];
@@ -511,6 +522,8 @@ typedef struct UserDef {
 	struct ListBase user_keymaps;
 	struct ListBase addons;
 	struct ListBase autoexec_paths;
+	struct ListBase user_menu_items; /* bUserMenuItem */
+
 	char keyconfigstr[64];
 
 	short undosteps;

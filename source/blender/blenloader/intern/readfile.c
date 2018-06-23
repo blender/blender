@@ -8713,6 +8713,12 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	user->uifonts.first = user->uifonts.last= NULL;
 
 	link_list(fd, &user->uistyles);
+	link_list(fd, &user->user_menu_items);
+
+	for (bUserMenuItem *umi = user->user_menu_items.first; umi; umi = umi->next) {
+		umi->prop = newdataadr(fd, umi->prop);
+		IDP_DirectLinkGroup_OrFree(&umi->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	}
 
 	/* free fd->datamap again */
 	oldnewmap_free_unused(fd->datamap);

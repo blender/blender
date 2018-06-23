@@ -1258,6 +1258,13 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
 	for (const uiStyle *style = userdef->uistyles.first; style; style = style->next) {
 		writestruct(wd, DATA, uiStyle, 1, style);
 	}
+
+	for (const bUserMenuItem *umi = userdef->user_menu_items.first; umi; umi = umi->next) {
+		writestruct(wd, DATA, bUserMenuItem, 1, umi);
+		if (umi->prop) {
+			IDP_WriteProperty(umi->prop, wd);
+		}
+	}
 }
 
 static void write_boid_state(WriteData *wd, BoidState *state)

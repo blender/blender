@@ -1541,11 +1541,6 @@ void ED_spacetype_view3d(void)
 	art->draw = view3d_tools_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
-#if 0
-	/* unfinished still */
-	view3d_toolshelf_register(art);
-#endif
-
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d header region");
 	art->regionid = RGN_TYPE_HEADER;

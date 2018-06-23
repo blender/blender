@@ -121,9 +121,6 @@ typedef struct SpaceType {
 	/* region type definitions */
 	ListBase regiontypes;
 
-	/* tool shelf definitions */
-	ListBase toolshelf;
-
 	/* read and write... */
 
 	/* default keymaps to add */

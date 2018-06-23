@@ -241,6 +241,15 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 	BLI_freelistN(&userdef->uifonts);
 	BLI_freelistN(&userdef->themes);
 
+	for (bUserMenuItem *umi = userdef->user_menu_items.first, *umi_next; umi; umi = umi_next) {
+		umi_next = umi->next;
+		if (umi->prop) {
+			IDP_FreeProperty(umi->prop);
+			MEM_freeN(umi->prop);
+		}
+		MEM_freeN(umi);
+	}
+
 #undef U
 }
 
