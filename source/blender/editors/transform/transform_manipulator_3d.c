@@ -163,6 +163,11 @@ typedef struct ManipulatorGroup {
 	bool all_hidden;
 	int twtype;
 
+	/* Users may change the twtype, detect changes to re-setup manipulator options. */
+	int twtype_init;
+	int twtype_prev;
+	int use_twtype_refresh;
+
 	struct wmManipulator *manipulators[MAN_AXIS_LAST];
 } ManipulatorGroup;
 
@@ -1279,41 +1284,12 @@ static int manipulator_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup *mgroup)
+static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgroup)
 {
-	ManipulatorGroup *man = manipulatorgroup_init(mgroup);
 	struct {
 		wmOperatorType *translate, *rotate, *trackball, *resize;
 	} ot_store = {NULL};
-
-	mgroup->customdata = man;
-
-	{
-		/* TODO: support mixing modes again? - it's supported but tool system makes it unobvious. */
-		man->twtype = 0;
-		ScrArea *sa = CTX_wm_area(C);
-		bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
-		wmKeyMap *km = tref_rt ? WM_keymap_find_all(C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW) : NULL;
-		/* Weak, check first event */
-		wmKeyMapItem *kmi = km ? km->items.first : NULL;
-
-		if (kmi == NULL) {
-			man->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
-		}
-		else if (STREQ(kmi->idname, "TRANSFORM_OT_translate")) {
-			man->twtype |= SCE_MANIP_TRANSLATE;
-		}
-		else if (STREQ(kmi->idname, "TRANSFORM_OT_rotate")) {
-			man->twtype |= SCE_MANIP_ROTATE;
-		}
-		else if (STREQ(kmi->idname, "TRANSFORM_OT_resize")) {
-			man->twtype |= SCE_MANIP_SCALE;
-		}
-		BLI_assert(man->twtype != 0);
-	}
-
-	/* *** set properties for axes *** */
-
+	ManipulatorGroup *man = mgroup->customdata;
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
 		const short axis_type = manipulator_get_axis_type(axis_idx);
@@ -1428,6 +1404,42 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 	MAN_ITER_AXES_END;
 }
 
+static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	ManipulatorGroup *man = manipulatorgroup_init(mgroup);
+
+	mgroup->customdata = man;
+
+	{
+		man->twtype = 0;
+		ScrArea *sa = CTX_wm_area(C);
+		bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
+		wmKeyMap *km = tref_rt ? WM_keymap_find_all(C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW) : NULL;
+		/* Weak, check first event */
+		wmKeyMapItem *kmi = km ? km->items.first : NULL;
+
+		if (kmi == NULL) {
+			/* Setup all manipulators, they can be toggled via 'ToolSettings.manipulator_flag' */
+			man->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
+			man->use_twtype_refresh = true;
+		}
+		else if (STREQ(kmi->idname, "TRANSFORM_OT_translate")) {
+			man->twtype |= SCE_MANIP_TRANSLATE;
+		}
+		else if (STREQ(kmi->idname, "TRANSFORM_OT_rotate")) {
+			man->twtype |= SCE_MANIP_ROTATE;
+		}
+		else if (STREQ(kmi->idname, "TRANSFORM_OT_resize")) {
+			man->twtype |= SCE_MANIP_SCALE;
+		}
+		BLI_assert(man->twtype != 0);
+		man->twtype_init = man->twtype;
+	}
+
+	/* *** set properties for axes *** */
+	manipulatorgroup_init_properties_from_twtype(mgroup);
+}
+
 static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	ManipulatorGroup *man = mgroup->customdata;
@@ -1437,10 +1449,13 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 	RegionView3D *rv3d = ar->regiondata;
 	struct TransformBounds tbounds;
 
-	{
+	if (man->use_twtype_refresh) {
 		Scene *scene = CTX_data_scene(C);
-		int manipulator_flag_all = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
-		man->twtype = scene->toolsettings->manipulator_flag & manipulator_flag_all;
+		man->twtype = scene->toolsettings->manipulator_flag & man->twtype_init;
+		if (man->twtype != man->twtype_prev) {
+			man->twtype_prev = man->twtype;
+			manipulatorgroup_init_properties_from_twtype(mgroup);
+		}
 	}
 
 	/* skip, we don't draw anything anyway */
