@@ -454,6 +454,21 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 	MEM_freeN(pup);
 }
 
+bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
+{
+	if (!UI_block_is_empty(pup->block)) {
+		UI_popup_menu_end(C, pup);
+		return true;
+	}
+	else {
+		UI_block_layout_resolve(pup->block, NULL, NULL);
+		MEM_freeN(pup->block->handle);
+		UI_block_free(C, pup->block);
+		MEM_freeN(pup);
+		return false;
+	}
+}
+
 uiLayout *UI_popup_menu_layout(uiPopupMenu *pup)
 {
 	return pup->layout;
