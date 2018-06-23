@@ -4770,13 +4770,13 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 	};
 
 	prop = RNA_def_boolean(
-	        ot->srna, "use_depth", true, "Depth",
+	        ot->srna, "use_depth", true, "Surface Project",
 	        "Project onto the surface");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	prop = RNA_def_enum(
 	        ot->srna, "orientation", orientation_items, V3D_CURSOR_ORIENT_VIEW,
-	        "View", "Preset viewpoint to use");
+	        "Orientation", "Preset viewpoint to use");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
