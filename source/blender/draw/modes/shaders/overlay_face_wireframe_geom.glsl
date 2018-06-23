@@ -20,7 +20,7 @@ in vec3 obPos[];
 in vec3 vNor[];
 in float forceEdge[];
 
-out float edgeSharpness;
+flat out vec3 edgeSharpness;
 #endif
 
 #define NO_EDGE vec3(10000.0);
@@ -31,6 +31,14 @@ vec3 compute_vec(vec2 v0, vec2 v1)
 	vec2 v = normalize(v1 - v0);
 	v = vec2(-v.y, v.x);
 	return vec3(v, -dot(v, v0));
+}
+
+vec3 get_edge_normal(vec3 n1, vec3 n2, vec3 edge)
+{
+	edge = normalize(edge);
+	vec3 n = n1 + n2;
+	float p = dot(edge, n);
+	return normalize(n - p * edge);
 }
 
 float get_edge_sharpness(vec3 fnor, vec3 vnor)
@@ -50,27 +58,27 @@ void main(void)
 	ssVec2 = do_edge.z ? compute_vec(ssPos[2], ssPos[0]) : NO_EDGE;
 
 #ifdef LIGHT_EDGES
-	vec3 fnor = normalize(cross(obPos[1] - obPos[0], obPos[2] - obPos[0]));
+	vec3 edges[3];
+	edges[0] = obPos[1] - obPos[0];
+	edges[1] = obPos[2] - obPos[1];
+	edges[2] = obPos[0] - obPos[2];
+	vec3 fnor = normalize(cross(edges[0], -edges[2]));
 
-	edgeSharpness = get_edge_sharpness(fnor, vNor[0]);
-	edgeSharpness = (forceEdge[0] == 1.0 || forceEdge[2] == 1.0) ? 1.0 : edgeSharpness;
+	edgeSharpness.x = get_edge_sharpness(fnor, get_edge_normal(vNor[0], vNor[1], edges[0]));
+	edgeSharpness.y = get_edge_sharpness(fnor, get_edge_normal(vNor[1], vNor[2], edges[1]));
+	edgeSharpness.z = get_edge_sharpness(fnor, get_edge_normal(vNor[2], vNor[0], edges[2]));
+	edgeSharpness.x = (forceEdge[0] == 1.0) ? 1.0 : edgeSharpness.x;
+	edgeSharpness.y = (forceEdge[1] == 1.0) ? 1.0 : edgeSharpness.y;
+	edgeSharpness.z = (forceEdge[2] == 1.0) ? 1.0 : edgeSharpness.z;
 #endif
 	gl_Position = gl_in[0].gl_Position;
 	facing = facings.x;
 	EmitVertex();
 
-#ifdef LIGHT_EDGES
-	edgeSharpness = get_edge_sharpness(fnor, vNor[1]);
-	edgeSharpness = (forceEdge[1] == 1.0 || forceEdge[0] == 1.0) ? 1.0 : edgeSharpness;
-#endif
 	gl_Position = gl_in[1].gl_Position;
 	facing = facings.y;
 	EmitVertex();
 
-#ifdef LIGHT_EDGES
-	edgeSharpness = get_edge_sharpness(fnor, vNor[2]);
-	edgeSharpness = (forceEdge[2] == 1.0 || forceEdge[1] == 1.0) ? 1.0 : edgeSharpness;
-#endif
 	gl_Position = gl_in[2].gl_Position;
 	facing = facings.z;
 	EmitVertex();
