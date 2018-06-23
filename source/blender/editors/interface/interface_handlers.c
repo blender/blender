@@ -7053,14 +7053,14 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 
 			but2 = uiDefIconTextBut(
 			        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
-			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Favourites Menu"),
+			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Favorites Menu"),
 			        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
 			        "Add to a user defined context menu (stored in the user preferences)");
 			UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, umi);
 			if (umi) {
 				but2 = uiDefIconTextBut(
 				        block, UI_BTYPE_BUT, 0, ICON_CANCEL,
-				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Favourites Menu"),
+				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Favorites Menu"),
 				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				UI_but_func_set(but2, popup_user_menu_remove_func, NULL, umi);
 			}
