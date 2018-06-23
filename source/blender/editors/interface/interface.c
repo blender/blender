@@ -4031,6 +4031,16 @@ int UI_blocklist_min_y_get(ListBase *lb)
 	return min;
 }
 
+bool UI_block_is_empty(const uiBlock *block)
+{
+	for (const uiBut *but = block->buttons.first; but; but = but->next) {
+		if (!ELEM(but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void UI_block_direction_set(uiBlock *block, char direction)
 {
 	block->direction = direction;
@@ -4780,4 +4790,3 @@ void UI_exit(void)
 	ui_resources_free();
 	ui_but_clipboard_free();
 }
-
