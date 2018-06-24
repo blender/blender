@@ -2254,7 +2254,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, cons
 				}
 				else if (event->type == RIGHTMOUSE) {
 					if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
-						ui_panel_menu(C, ar, block->panel);
+						ui_popup_context_menu_for_panel(C, ar, block->panel);
 						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
