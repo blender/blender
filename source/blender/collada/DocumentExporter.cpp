@@ -85,11 +85,11 @@ extern "C"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_action.h" // pose functions
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_blender_version.h"
+#include "BKE_customdata.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"

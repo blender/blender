@@ -42,7 +42,6 @@ extern "C"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 #include "BKE_scene.h"
