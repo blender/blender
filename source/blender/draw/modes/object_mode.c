@@ -178,6 +178,7 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *lamp_distance;
 	DRWShadingGroup *lamp_buflimit;
 	DRWShadingGroup *lamp_buflimit_points;
+	DRWShadingGroup *lamp_area_sphere;
 	DRWShadingGroup *lamp_area_square;
 	DRWShadingGroup *lamp_area_disk;
 	DRWShadingGroup *lamp_hemi;
@@ -1199,6 +1200,9 @@ static void OBJECT_cache_init(void *vedata)
 		stl->g_data->lamp_groundline = shgroup_groundlines_uniform_color(psl->non_meshes, ts.colorLamp);
 		stl->g_data->lamp_groundpoint = shgroup_groundpoints_uniform_color(psl->non_meshes, ts.colorLamp);
 
+		geom = DRW_cache_screenspace_circle_get();
+		stl->g_data->lamp_area_sphere = shgroup_instance_screen_aligned(psl->non_meshes, geom);
+
 		geom = DRW_cache_lamp_area_square_get();
 		stl->g_data->lamp_area_square = shgroup_instance(psl->non_meshes, geom);
 
@@ -1448,6 +1452,15 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, ViewLayer *vie
 		else {
 			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area_square, color, &la->area_size, shapemat);
 		}
+	}
+
+	if (ELEM(la->type, LA_LOCAL, LA_SPOT)) {
+		/* We only want position not scale. */
+		shapemat[0][0] = shapemat[1][1] = shapemat[2][2] = 1.0f;
+		shapemat[0][1] = shapemat[0][2] = 0.0f;
+		shapemat[1][0] = shapemat[1][2] = 0.0f;
+		shapemat[2][0] = shapemat[2][1] = 0.0f;
+		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area_sphere, color, &la->area_size, shapemat);
 	}
 
 	/* Line and point going to the ground */
