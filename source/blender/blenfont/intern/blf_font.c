@@ -652,7 +652,7 @@ size_t blf_font_width_to_strlen(FontBLF *font, const char *str, size_t len, floa
 	int pen_x = 0;
 	size_t i = 0, i_prev;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
-	const int width_i = (int)width + 1;
+	const int width_i = (int)width;
 	int width_new;
 
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
@@ -674,7 +674,7 @@ size_t blf_font_width_to_strlen(FontBLF *font, const char *str, size_t len, floa
 
 		pen_x += g->advance_i;
 
-		if (width_i < pen_x) {
+		if (width_i <= pen_x) {
 			break;
 		}
 

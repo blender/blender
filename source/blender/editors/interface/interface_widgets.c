@@ -1500,6 +1500,8 @@ float UI_text_clip_middle_ex(
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	}
 
+	BLI_assert(strwidth <= okwidth);
+
 	return strwidth;
 }
 
