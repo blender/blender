@@ -430,16 +430,35 @@ typedef struct bPathCompare {
 	char flag, pad[7];
 } bPathCompare;
 
+typedef struct bUserMenu {
+	struct bUserMenu *next, *prev;
+	char space_type;
+	char _pad0[7];
+	char context[64];
+	/* bUserMenuItem */
+	ListBase items;
+} bUserMenu;
+
+/* May be part of bUserMenu or other list. */
 typedef struct bUserMenuItem {
 	struct bUserMenuItem *next, *prev;
-	char space_type;
-	char opcontext;
-	char _pad0[6];
 	char ui_name[64];
-	char opname[64];
-	char context[64];
-	struct IDProperty *prop;
+	char type;
+	char _pad0[7];
 } bUserMenuItem;
+
+typedef struct bUserMenuItem_Op {
+	bUserMenuItem item;
+	char opname[64];
+	struct IDProperty *prop;
+	char opcontext;
+	char _pad0[7];
+} bUserMenuItem_Op;
+
+enum {
+	USER_MENU_TYPE_SEP = 1,
+	USER_MENU_TYPE_OPERATOR = 2,
+};
 
 typedef struct SolidLight {
 	int flag, pad;
@@ -522,7 +541,7 @@ typedef struct UserDef {
 	struct ListBase user_keymaps;
 	struct ListBase addons;
 	struct ListBase autoexec_paths;
-	struct ListBase user_menu_items; /* bUserMenuItem */
+	struct ListBase user_menus; /* bUserMenu */
 
 	char keyconfigstr[64];
 

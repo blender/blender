@@ -315,13 +315,18 @@ int     ED_operator_camera(struct bContext *C);
 
 /* screen_user_menu.c */
 
-void ED_screen_user_menu_add(
-        struct bContext *C, const char *ui_name,
+struct bUserMenu *ED_screen_user_menu_find(struct bContext *C);
+struct bUserMenu *ED_screen_user_menu_ensure(struct bContext *C);
+
+
+struct bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(
+        struct ListBase *lb,
         struct wmOperatorType *ot, struct IDProperty *prop, short opcontext);
-void ED_screen_user_menu_remove(struct bUserMenuItem *umi);
-struct bUserMenuItem *ED_screen_user_menu_find(
-        struct bContext *C,
+void ED_screen_user_menu_item_add_operator(
+        struct ListBase *lb, const char *ui_name,
         struct wmOperatorType *ot, struct IDProperty *prop, short opcontext);
+void ED_screen_user_menu_item_remove(
+        struct ListBase *lb, struct bUserMenuItem *umi);
 void ED_screen_user_menu_register(void);
 
 /* Cache display helpers */

@@ -8679,6 +8679,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	link_list(fd, &user->themes);
 	link_list(fd, &user->user_keymaps);
+	link_list(fd, &user->user_menus);
 	link_list(fd, &user->addons);
 	link_list(fd, &user->autoexec_paths);
 
@@ -8704,6 +8705,17 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 			direct_link_keymapitem(fd, kmi);
 	}
 
+	for (bUserMenu *um = user->user_menus.first; um; um = um->next) {
+		link_list(fd, &um->items);
+		for (bUserMenuItem *umi = um->items.first; umi; umi = umi->next) {
+			if (umi->type == USER_MENU_TYPE_OPERATOR) {
+				bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+				umi_op->prop = newdataadr(fd, umi_op->prop);
+				IDP_DirectLinkGroup_OrFree(&umi_op->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			}
+		}
+	}
+
 	for (addon = user->addons.first; addon; addon = addon->next) {
 		addon->prop = newdataadr(fd, addon->prop);
 		IDP_DirectLinkGroup_OrFree(&addon->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
@@ -8713,12 +8725,6 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	user->uifonts.first = user->uifonts.last= NULL;
 
 	link_list(fd, &user->uistyles);
-	link_list(fd, &user->user_menu_items);
-
-	for (bUserMenuItem *umi = user->user_menu_items.first; umi; umi = umi->next) {
-		umi->prop = newdataadr(fd, umi->prop);
-		IDP_DirectLinkGroup_OrFree(&umi->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-	}
 
 	/* free fd->datamap again */
 	oldnewmap_free_unused(fd->datamap);

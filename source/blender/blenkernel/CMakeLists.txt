@@ -77,6 +77,7 @@ set(SRC
 	intern/blender.c
 	intern/blender_copybuffer.c
 	intern/blender_undo.c
+	intern/blender_user_menu.c
 	intern/blendfile.c
 	intern/bmfont.c
 	intern/boids.c

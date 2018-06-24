@@ -43,6 +43,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_blender_user_menu.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_idprop.h"
@@ -56,55 +57,64 @@
 #include "UI_resources.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Utilities
+/** \name Menu Type
  * \{ */
 
-void ED_screen_user_menu_add(
-        bContext *C, const char *ui_name,
-        wmOperatorType *ot, IDProperty *prop, short opcontext)
-{
-	SpaceLink *sl = CTX_wm_space_data(C);
-	bUserMenuItem *umi = MEM_callocN(sizeof(bUserMenuItem), __func__);
-	umi->space_type = sl ? sl->spacetype : SPACE_EMPTY;
-	umi->opcontext = opcontext;
-	if (!STREQ(ui_name, ot->name)) {
-		BLI_strncpy(umi->ui_name, ui_name, OP_MAX_TYPENAME);
-	}
-	BLI_strncpy(umi->opname, ot->idname, OP_MAX_TYPENAME);
-	BLI_strncpy(umi->context, CTX_data_mode_string(C), OP_MAX_TYPENAME);
-	umi->prop = prop ? IDP_CopyProperty(prop) : NULL;
-	BLI_addtail(&U.user_menu_items, umi);
-}
-
-void ED_screen_user_menu_remove(bUserMenuItem *umi)
-{
-	BLI_remlink(&U.user_menu_items, umi);
-	if (umi->prop) {
-		IDP_FreeProperty(umi->prop);
-		MEM_freeN(umi->prop);
-	}
-	MEM_freeN(umi);
-}
-
-bUserMenuItem *ED_screen_user_menu_find(
-        bContext *C,
-        wmOperatorType *ot, IDProperty *prop, short opcontext)
+bUserMenu *ED_screen_user_menu_find(bContext *C)
 {
 	SpaceLink *sl = CTX_wm_space_data(C);
 	const char *context = CTX_data_mode_string(C);
-	for (bUserMenuItem *umi = U.user_menu_items.first; umi; umi = umi->next) {
-		if (STREQ(ot->idname, umi->opname) &&
-		    (opcontext == umi->opcontext) &&
-		    (IDP_EqualsProperties(prop, umi->prop)))
-		{
-			if ((ELEM(umi->space_type, SPACE_TOPBAR) || (sl->spacetype == umi->space_type)) &&
-			    (STREQLEN(context, umi->context, OP_MAX_TYPENAME)))
+	return BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context);
+}
+
+bUserMenu *ED_screen_user_menu_ensure(bContext *C)
+{
+	SpaceLink *sl = CTX_wm_space_data(C);
+	const char *context = CTX_data_mode_string(C);
+	return BKE_blender_user_menu_ensure(&U.user_menus, sl->spacetype, context);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu Item
+ * \{ */
+
+bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(
+        ListBase *lb,
+        wmOperatorType *ot, IDProperty *prop, short opcontext)
+{
+	for (bUserMenuItem *umi = lb->first; umi; umi = umi->next) {
+		if (umi->type == USER_MENU_TYPE_OPERATOR) {
+			bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+			if (STREQ(ot->idname, umi_op->opname) &&
+				(opcontext == umi_op->opcontext) &&
+				(IDP_EqualsProperties(prop, umi_op->prop)))
 			{
-				return umi;
+				return umi_op;
 			}
 		}
 	}
 	return NULL;
+}
+
+void ED_screen_user_menu_item_add_operator(
+        ListBase *lb, const char *ui_name,
+        wmOperatorType *ot, IDProperty *prop, short opcontext)
+{
+	bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)BKE_blender_user_menu_item_add(lb, USER_MENU_TYPE_OPERATOR);
+	umi_op->opcontext = opcontext;
+	if (!STREQ(ui_name, ot->name)) {
+		BLI_strncpy(umi_op->item.ui_name, ui_name, OP_MAX_TYPENAME);
+	}
+	BLI_strncpy(umi_op->opname, ot->idname, OP_MAX_TYPENAME);
+	umi_op->prop = prop ? IDP_CopyProperty(prop) : NULL;
+}
+
+void ED_screen_user_menu_item_remove(ListBase *lb, bUserMenuItem *umi)
+{
+	BLI_remlink(lb, umi);
+	BKE_blender_user_menu_item_free(umi);
 }
 
 /** \} */
@@ -117,14 +127,26 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 {
 	SpaceLink *sl = CTX_wm_space_data(C);
 	const char *context = CTX_data_mode_string(C);
-	for (bUserMenuItem *umi = U.user_menu_items.first; umi; umi = umi->next) {
-		if ((ELEM(umi->space_type, SPACE_TOPBAR) || (sl->spacetype == umi->space_type)) &&
-		    (STREQLEN(context, umi->context, OP_MAX_TYPENAME)))
-		{
-			IDProperty *prop = umi->prop ? IDP_CopyProperty(umi->prop) : NULL;
-			uiItemFullO(
-			        menu->layout, umi->opname, umi->ui_name[0] ? umi->ui_name : NULL,
-			        ICON_NONE, prop, umi->opcontext, 0, NULL);
+	bUserMenu *um_array[] = {
+		BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context),
+		(sl->spacetype != SPACE_TOPBAR) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context) : NULL,
+	};
+	for (int um_index = 0; um_index < ARRAY_SIZE(um_array); um_index++) {
+		bUserMenu *um = um_array[um_index];
+		if (um == NULL) {
+			continue;
+		}
+		for (bUserMenuItem *umi = um->items.first; umi; umi = umi->next) {
+			if (umi->type == USER_MENU_TYPE_OPERATOR) {
+				bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+				IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : NULL;
+				uiItemFullO(
+				        menu->layout, umi_op->opname, umi->ui_name[0] ? umi->ui_name : NULL,
+				        ICON_NONE, prop, umi_op->opcontext, 0, NULL);
+			}
+			else if (umi->type == USER_MENU_TYPE_SEP) {
+				uiItemS(menu->layout);
+			}
 		}
 	}
 }

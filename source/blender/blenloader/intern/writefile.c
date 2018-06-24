@@ -1244,6 +1244,22 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
 		}
 	}
 
+	for (const bUserMenu *um = userdef->user_menus.first; um; um = um->next) {
+		writestruct(wd, DATA, bUserMenu, 1, um);
+		for (const bUserMenuItem *umi = um->items.first; umi; umi = umi->next) {
+			if (umi->type == USER_MENU_TYPE_OPERATOR) {
+				const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)umi;
+				writestruct(wd, DATA, bUserMenuItem_Op, 1, umi_op);
+				if (umi_op->prop) {
+					IDP_WriteProperty(umi_op->prop, wd);
+				}
+			}
+			else {
+				writestruct(wd, DATA, bUserMenuItem, 1, umi);
+			}
+		}
+	}
+
 	for (const bAddon *bext = userdef->addons.first; bext; bext = bext->next) {
 		writestruct(wd, DATA, bAddon, 1, bext);
 		if (bext->prop) {
@@ -1257,13 +1273,6 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
 
 	for (const uiStyle *style = userdef->uistyles.first; style; style = style->next) {
 		writestruct(wd, DATA, uiStyle, 1, style);
-	}
-
-	for (const bUserMenuItem *umi = userdef->user_menu_items.first; umi; umi = umi->next) {
-		writestruct(wd, DATA, bUserMenuItem, 1, umi);
-		if (umi->prop) {
-			IDP_WriteProperty(umi->prop, wd);
-		}
 	}
 }
 
