@@ -40,6 +40,9 @@
 #include <algorithm>
 #include <iostream>
 
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
 #include <half.h>
 #include <Iex.h>
 #include <ImfVersion.h>
@@ -64,6 +67,7 @@
 #include <ImfTiledOutputPart.h>
 #include <ImfPartType.h>
 #include <ImfPartHelper.h>
+#pragma clang diagnostic pop
 
 #include "DNA_scene_types.h" /* For OpenEXR compression constants */
 
