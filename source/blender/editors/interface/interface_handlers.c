@@ -82,6 +82,7 @@
 
 #ifdef WITH_INPUT_IME
 #  include "wm_window.h"
+#  include "BLT_translation.h"
 #  include "BLT_lang.h"
 #endif
 
