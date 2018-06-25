@@ -244,6 +244,7 @@ def effector_weights_ui(self, context, weights, weight_type):
 
 def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
+    layout.use_property_split = True
 
     if not field or field.type == 'NONE':
         return
@@ -279,11 +280,9 @@ def basic_force_field_settings_ui(self, context, field):
     if field.type == 'FORCE':
         col.prop(field, "use_gravity_falloff", text="Gravitation")
 
-    col.label(text="Effect point")
-    col.prop(field, "apply_to_location")
-    col.prop(field, "apply_to_rotation")
 
-    col.label(text="Collision")
+    col.prop(field, "apply_to_location", text="Affect Location")
+    col.prop(field, "apply_to_rotation", text="Affect Rotation")
     col.prop(field, "use_absorption")
 
 
@@ -298,15 +297,17 @@ def basic_force_field_falloff_ui(self, context, field):
 
     col.prop(field, "falloff_power", text="Power")
 
-    col.prop(field, "use_min_distance", text="Min Min Distance")
-    sub = col.column(align=True)
+    split = layout.split()
+    split.prop(field, "use_min_distance", text="Min Distance")
+    sub = split.column(align=True)
     sub.active = field.use_min_distance
-    sub.prop(field, "distance_min", text="Min Distance")
+    sub.prop(field, "distance_min", text="")
 
-    col.prop(field, "use_max_distance", text="Use Max Distance")
-    sub = col.column(align=True)
+    split = layout.split()
+    split.prop(field, "use_max_distance", text="Max Distance")
+    sub = split.column(align=True)
     sub.active = field.use_max_distance
-    sub.prop(field, "distance_max", text="Max Distance")
+    sub.prop(field, "distance_max", text="")
 
 
 classes = (
