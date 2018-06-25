@@ -1665,32 +1665,33 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 	float n_final[3] = { 0.0f, 0.0f, 0.0f };
 
 	if (bp->hnmode == BEVEL_HN_FACE) {
-		BLI_bitmap *faces = BLI_BITMAP_NEW(bm->totface, __func__);
+		GHash *faceHash = BLI_ghash_int_new(__func__);
+
 		BM_ITER_ELEM(e, &eiter, bv->v, BM_EDGES_OF_VERT) {
 			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 
 				BMFace *f_a, *f_b;
 				BM_edge_face_pair(e, &f_a, &f_b);
 
-				if (f_a && !BLI_BITMAP_TEST(faces, BM_elem_index_get(f_a))) {
+				if(f_a && !BLI_ghash_haskey(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)))) {
 					int f_area = BM_face_calc_area(f_a);
 					float f_no[3];
 					copy_v3_v3(f_no, f_a->no);
 					mul_v3_fl(f_no, f_area);
 					add_v3_v3(n_final, f_no);
-					BLI_BITMAP_ENABLE(faces, BM_elem_index_get(f_a));
+					BLI_ghash_insert(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)), NULL);
 				}
-				if (f_b && !BLI_BITMAP_TEST(faces, BM_elem_index_get(f_b))) {
+				if(f_b && !BLI_ghash_haskey(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)))) {
 					int f_area = BM_face_calc_area(f_b);
 					float f_no[3];
 					copy_v3_v3(f_no, f_b->no);
 					mul_v3_fl(f_no, f_area);
 					add_v3_v3(n_final, f_no);
-					BLI_BITMAP_ENABLE(faces, BM_elem_index_get(f_b));
+					BLI_ghash_insert(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)), NULL);
 				}
 			}
 		}
-		MEM_freeN(faces);
+		BLI_ghash_free(faceHash, NULL, NULL);
 		normalize_v3(n_final);
 	}
 	else if (bp->hnmode == BEVEL_HN_ADJ) {
