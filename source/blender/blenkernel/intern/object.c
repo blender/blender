@@ -404,6 +404,9 @@ void BKE_object_free_caches(Object *object)
 		}
 	}
 
+	BKE_object_free_derived_caches(object);
+	update_flag |= OB_RECALC_DATA;
+
 	/* Tag object for update, so once memory critical operation is over and
 	 * scene update routines are back to it's business the object will be
 	 * guaranteed to be in a known state.
