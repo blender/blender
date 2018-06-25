@@ -230,8 +230,6 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "ui_scale", text="Scale")
         col.prop(view, "ui_line_width", text="Line Width")
         col.prop(view, "show_tooltips")
-        col.prop(view, "show_tooltips_python")
-        col.prop(view, "show_developer_ui")
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
@@ -239,19 +237,39 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "object_origin_size")
 
         col.separator()
-        col.separator()
-        col.separator()
 
-        col.prop(view, "show_mini_axis", text="Display Mini Axis")
-        sub = col.column()
+        col.prop(view, "show_manipulator_navigate")
+
+        sub = col.column(align=True)
+
+        sub.prop(view, "show_mini_axis", text="Display Mini Axis")
+        sub.active = not view.show_manipulator_navigate
+
+        sub = col.column(align=True)
         sub.active = view.show_mini_axis
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
         col.separator()
 
-        col.label("Warnings")
-        col.prop(view, "use_quit_dialog")
+        # Toolbox doesn't exist yet
+        # col.label(text="Toolbox:")
+        #col.prop(view, "show_column_layout")
+        #col.label(text="Open Toolbox Delay:")
+        #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
+        #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
+        col.prop(view, "show_manipulator", text="Transform Manipulator")
+        # Currently not working
+        # col.prop(view, "show_manipulator_shaded")
+        sub = col.column()
+        sub.active = view.show_manipulator
+        sub.prop(view, "manipulator_size", text="Size")
+
+        col.separator()
+
+        col.label("Development")
+        col.prop(view, "show_tooltips_python")
+        col.prop(view, "show_developer_ui")
 
         row.separator()
         row.separator()
@@ -287,24 +305,6 @@ class USERPREF_PT_interface(Panel):
         row.separator()
 
         col = row.column()
-        # Toolbox doesn't exist yet
-        # col.label(text="Toolbox:")
-        #col.prop(view, "show_column_layout")
-        #col.label(text="Open Toolbox Delay:")
-        #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
-        #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
-        col.prop(view, "show_manipulator")
-        # Currently not working
-        # col.prop(view, "show_manipulator_shaded")
-        sub = col.column()
-        sub.active = view.show_manipulator
-        sub.prop(view, "manipulator_size", text="Size")
-
-        col.prop(view, "show_manipulator_navigate")
-
-        col.separator()
-        col.separator()
-        col.separator()
 
         col.label(text="Menus:")
         col.prop(view, "use_mouse_over_open")
@@ -325,6 +325,10 @@ class USERPREF_PT_interface(Panel):
         col.separator()
 
         col.prop(view, "show_splash")
+
+        col.label("Warnings")
+        col.prop(view, "use_quit_dialog")
+
         col.separator()
 
         col.label(text="App Template:")
