@@ -141,7 +141,7 @@ void BKE_scene_objects_callback(struct Scene *scene, BKE_scene_objects_Cb callba
 #define FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(_collection, _object, _mode) \
     {                                                                                  \
 		int _base_flag = (_mode == DAG_EVAL_VIEWPORT) ?                                \
-			BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;                               \
+			BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;                               \
 		int _base_id = 0;                                                              \
 		for (Base *_base = (Base*)BKE_collection_object_cache_get(_collection).first;  \
 			 _base;                                                                    \

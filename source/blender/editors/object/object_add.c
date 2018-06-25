@@ -2088,7 +2088,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 		DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 		base = BKE_view_layer_base_find(view_layer, ob);
-		if ((base != NULL) && (base->flag & BASE_VISIBLED)) {
+		if ((base != NULL) && (base->flag & BASE_VISIBLE)) {
 			BKE_collection_object_add_from(bmain, scene, ob, obn);
 		}
 		else {

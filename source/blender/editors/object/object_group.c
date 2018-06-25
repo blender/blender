@@ -560,7 +560,7 @@ static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select o
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLED) != 0)) {
+		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
 			if (BKE_collection_has_object_recursive(collection, base->object)) {
 				ED_object_base_select(base, BA_SELECT);
 			}

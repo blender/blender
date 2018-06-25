@@ -287,11 +287,11 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 	bool extend = (CTX_wm_window(C)->eventstate->ctrl == 0);
 
 	/* Undo button toggle, let function do it. */
-	base->flag ^= BASE_HIDE;
+	base->flag ^= BASE_HIDDEN;
 
 	BKE_base_set_visible(scene, view_layer, base, extend);
 
-	if (!extend && (base->flag & BASE_VISIBLED)) {
+	if (!extend && (base->flag & BASE_VISIBLE)) {
 		/* Auto select solo-ed object. */
 		ED_object_base_select(base, BA_SELECT);
 		view_layer->basact = base;
@@ -516,7 +516,7 @@ static void outliner_draw_restrictbuts(
 
 				if (base) {
 					bt = uiDefIconButBitS(
-					        block, UI_BTYPE_ICON_TOGGLE, BASE_HIDE, 0, ICON_HIDE_OFF,
+					        block, UI_BTYPE_ICON_TOGGLE, BASE_HIDDEN, 0, ICON_HIDE_OFF,
 					        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
 					        UI_UNIT_Y, &base->flag, 0, 0, 0, 0,
 					        TIP_("Hide object in viewport (Ctrl to isolate)"));

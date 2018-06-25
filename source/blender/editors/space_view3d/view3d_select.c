@@ -1326,7 +1326,7 @@ static Base *mouse_select_eval_buffer(
 		while (base) {
 			/* skip objects with select restriction, to prevent prematurely ending this loop
 			 * with an un-selectable choice */
-			if ((base->flag & BASE_SELECTABLED) == 0) {
+			if ((base->flag & BASE_SELECTABLE) == 0) {
 				base = base->next;
 				if (base == NULL) base = FIRSTBASE(view_layer);
 				if (base == startbase) break;

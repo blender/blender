@@ -263,7 +263,7 @@ static void backdrawview3d(
 
 	G.f |= G_BACKBUFSEL;
 
-	if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLED) != 0)) {
+	if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
 		draw_object_backbufsel(depsgraph, scene_eval, v3d, rv3d, obact_eval, select_mode);
 	}
 

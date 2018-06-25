@@ -264,21 +264,21 @@ void RNA_def_collections(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_SELECT);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
-	RNA_def_property_ui_text(prop, "Restrict Select", "Disable collection for viewport selection");
+	RNA_def_property_ui_text(prop, "Disable Select", "Disable collection for viewport selection");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
 	prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_VIEW);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
-	RNA_def_property_ui_text(prop, "Restrict Viewport", "Disable collection in viewport");
+	RNA_def_property_ui_text(prop, "Disable Viewport", "Disable collection in viewport");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
 	prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_RENDER);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	RNA_def_property_ui_text(prop, "Restrict Render", "Disable collection in renders");
+	RNA_def_property_ui_text(prop, "Disable Render", "Disable collection in renders");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 }
 

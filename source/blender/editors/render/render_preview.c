@@ -423,7 +423,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 							(*matar)[actcol] = mat;
 					}
 					else if (base->object->type == OB_LAMP) {
-						base->flag |= BASE_VISIBLED;
+						base->flag |= BASE_VISIBLE;
 					}
 				}
 			}

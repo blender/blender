@@ -2693,7 +2693,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			AnimData *adt = ob->adt;
 
 			/* set selection status */
-			if (base->flag & BASE_SELECTABLED) {
+			if (base->flag & BASE_SELECTABLE) {
 				if (selectmode == SELECT_INVERT) {
 					/* swap select */
 					ED_object_base_select(base, BA_INVERT);

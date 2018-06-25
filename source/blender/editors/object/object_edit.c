@@ -166,8 +166,8 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 	bool changed = false;
 
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		if (base->flag & BASE_HIDE) {
-			base->flag &= ~BASE_HIDE;
+		if (base->flag & BASE_HIDDEN) {
+			base->flag &= ~BASE_HIDDEN;
 			changed = true;
 
 			if (select) {
@@ -214,7 +214,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	/* Do nothing if no objects was selected. */
 	bool have_selected = false;
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		if (base->flag & BASE_VISIBLED) {
+		if (base->flag & BASE_VISIBLE) {
 			if (base->flag & BASE_SELECTED) {
 				have_selected = true;
 				break;
@@ -228,20 +228,20 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 
 	/* Hide selected or unselected objects. */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		if (!(base->flag & BASE_VISIBLED)) {
+		if (!(base->flag & BASE_VISIBLE)) {
 			continue;
 		}
 
 		if (!unselected) {
 			if (base->flag & BASE_SELECTED) {
 				ED_object_base_select(base, BA_DESELECT);
-				base->flag |= BASE_HIDE;
+				base->flag |= BASE_HIDDEN;
 			}
 		}
 		else {
 			if (!(base->flag & BASE_SELECTED)) {
 				ED_object_base_select(base, BA_DESELECT);
-				base->flag |= BASE_HIDE;
+				base->flag |= BASE_HIDDEN;
 			}
 		}
 	}

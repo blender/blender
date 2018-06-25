@@ -600,7 +600,7 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
  */
 bool BKE_object_is_visible(Object *ob, const eObjectVisibilityCheck mode)
 {
-	if ((ob->base_flag & BASE_VISIBLED) == 0) {
+	if ((ob->base_flag & BASE_VISIBLE) == 0) {
 		return false;
 	}
 

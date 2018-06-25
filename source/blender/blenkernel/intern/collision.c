@@ -535,7 +535,7 @@ ListBase *BKE_collision_relations_create(Depsgraph *depsgraph, Collection *colle
 		Base *base;
 		/* add objects in same layer in scene */
 		for (SETLOOPER(scene, sce_iter, base)) {
-			if ((base->flag & BASE_VISIBLED) != 0) {
+			if ((base->flag & BASE_VISIBLE) != 0) {
 				add_collision_object(relations, base->object, level, modifier_type);
 			}
 		}

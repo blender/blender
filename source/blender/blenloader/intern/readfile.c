@@ -10040,7 +10040,7 @@ static void add_loose_objects_to_scene(
 				if (flag & FILE_AUTOSELECT) {
 					/* Note that link_object_postprocess() already checks for FILE_AUTOSELECT flag,
 					 * but it will miss objects from non-instantiated collections... */
-					if (base->flag & BASE_SELECTABLED) {
+					if (base->flag & BASE_SELECTABLE) {
 						base->flag |= BASE_SELECTED;
 						BKE_scene_object_base_flag_sync_from_base(base);
 					}
@@ -10073,7 +10073,7 @@ static void add_collections_to_scene(
 				BKE_collection_object_add(bmain, active_collection, ob);
 				Base *base = BKE_view_layer_base_find(view_layer, ob);
 
-				if (base->flag & BASE_SELECTABLED) {
+				if (base->flag & BASE_SELECTABLE) {
 					base->flag |= BASE_SELECTED;
 				}
 
@@ -10184,7 +10184,7 @@ static void link_object_postprocess(ID *id, Main *bmain, Scene *scene, ViewLayer
 		BKE_scene_object_base_flag_sync_from_base(base);
 
 		if (flag & FILE_AUTOSELECT) {
-			if (base->flag & BASE_SELECTABLED) {
+			if (base->flag & BASE_SELECTABLE) {
 				base->flag |= BASE_SELECTED;
 				BKE_scene_object_base_flag_sync_from_base(base);
 			}

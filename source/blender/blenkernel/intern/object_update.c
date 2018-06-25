@@ -401,7 +401,7 @@ void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
 	object->base_flag = base->flag;
 	if (is_from_set) {
 		object->base_flag |= BASE_FROM_SET;
-		object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLED);
+		object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLE);
 	}
 
 	/* Copy to original object datablock if needed. */

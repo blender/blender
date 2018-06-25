@@ -317,13 +317,13 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
 		if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
 		    ((object_restrict & OB_RESTRICT_VIEW) == 0))
 		{
-			base->flag |= BASE_VISIBLE_VIEWPORT;
+			base->flag |= BASE_ENABLED_VIEWPORT;
 		}
 
 		if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
 		    ((object_restrict & OB_RESTRICT_RENDER) == 0))
 		{
-			base->flag |= BASE_VISIBLE_RENDER;
+			base->flag |= BASE_ENABLED_RENDER;
 		}
 	}
 
@@ -903,7 +903,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
 				}
 			}
 			else {
-				if ((base->flag & BASE_SELECTABLED) && !(base->flag & BASE_SELECTED)) {
+				if ((base->flag & BASE_SELECTABLE) && !(base->flag & BASE_SELECTED)) {
 					base->flag |= BASE_SELECTED;
 					changed = true;
 				}

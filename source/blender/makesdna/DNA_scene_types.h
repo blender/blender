@@ -1723,22 +1723,22 @@ extern const char *RE_engine_id_CYCLES;
 /* deprecate this! */
 #define TESTBASE(base)  (                                                     \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define TESTBASELIB(base)  (                                                  \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define TESTBASELIB_BGMODE(base)  (                                           \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define BASE_EDITABLE_BGMODE(base)  (                                         \
 	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define BASE_SELECTABLE(base)                                                 \
-	(((base)->flag & BASE_SELECTABLED) != 0)
+	(((base)->flag & BASE_SELECTABLE) != 0)
 #define BASE_VISIBLE(base)  (                                                 \
-	((base)->flag & BASE_VISIBLED) != 0)
+	((base)->flag & BASE_VISIBLE) != 0)
 
 #define FIRSTBASE(_view_layer)  ((_view_layer)->object_bases.first)
 #define LASTBASE(_view_layer)   ((_view_layer)->object_bases.last)

@@ -130,7 +130,7 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	bool cast_shadow = false;
 
-	if (ob->base_flag & BASE_VISIBLED) {
+	if (ob->base_flag & BASE_VISIBLE) {
 		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
 	}
 

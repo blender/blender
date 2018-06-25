@@ -502,7 +502,7 @@ static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *c
 
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		if (((base->flag & BASE_SELECTED) != 0) &&
-		    ((base->flag & BASE_VISIBLED) != 0))
+		    ((base->flag & BASE_VISIBLE) != 0))
 		{
 			Object *ob = base->object;
 			if ((ob->type == OB_MESH) && (ob != obedit) && ((Mesh *)ob->data)->mloopuv) {

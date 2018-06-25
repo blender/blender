@@ -1725,7 +1725,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 				 */
 				if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
 					/* layer visibility - we check both object and base, since these may not be in sync yet */
-					if ((base->flag & BASE_VISIBLED) == 0) continue;
+					if ((base->flag & BASE_VISIBLE) == 0) continue;
 
 					/* outliner restrict-flag */
 					if (ob->restrictflag & OB_RESTRICT_VIEW) continue;
@@ -2864,7 +2864,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
 	 */
 	if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
 		/* layer visibility - we check both object and base, since these may not be in sync yet */
-		if ((base->flag & BASE_VISIBLED) == 0)
+		if ((base->flag & BASE_VISIBLE) == 0)
 			return false;
 
 		/* outliner restrict-flag */

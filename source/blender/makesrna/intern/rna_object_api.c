@@ -145,7 +145,7 @@ static int rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 		return -1;
 	}
 
-	return ((base->flag & BASE_VISIBLED) != 0) ? 1 : 0;
+	return ((base->flag & BASE_VISIBLE) != 0) ? 1 : 0;
 }
 
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */

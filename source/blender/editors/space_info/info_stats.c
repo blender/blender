@@ -387,7 +387,7 @@ static void stats_update(ViewLayer *view_layer)
 	else {
 		/* Objects */
 		for (base = view_layer->object_bases.first; base; base = base->next)
-			if (base->flag & BASE_VISIBLED) {
+			if (base->flag & BASE_VISIBLE) {
 				stats_dupli_object(base, base->object, &stats);
 			}
 	}

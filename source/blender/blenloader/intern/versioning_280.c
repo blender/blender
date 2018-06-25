@@ -502,7 +502,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 		}
 
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if ((base->flag & BASE_SELECTABLED) && (base->object->flag & SELECT)) {
+			if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
 				base->flag |= BASE_SELECTED;
 			}
 		}
@@ -531,7 +531,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 		/* convert selected bases */
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if ((base->flag & BASE_SELECTABLED) && (base->object->flag & SELECT)) {
+			if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
 				base->flag |= BASE_SELECTED;
 			}
 
