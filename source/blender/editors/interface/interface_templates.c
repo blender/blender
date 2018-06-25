@@ -4262,18 +4262,18 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 
 	/* make a box around the report to make it stand out */
 	UI_block_align_begin(block);
-	but = uiDefBut(block, UI_BTYPE_ROUNDBOX, 0, "", 0, 0, UI_UNIT_X + 10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	but = uiDefBut(block, UI_BTYPE_ROUNDBOX, 0, "", 0, 0, UI_UNIT_X + 5, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
 	/* set the report's bg color in but->col - UI_BTYPE_ROUNDBOX feature */
 	rgb_float_to_uchar(but->col, rti->col);
 	but->col[3] = 255;
 
-	but = uiDefBut(block, UI_BTYPE_ROUNDBOX, 0, "", UI_UNIT_X + 10, 0, UI_UNIT_X + width, UI_UNIT_Y,
+	but = uiDefBut(block, UI_BTYPE_ROUNDBOX, 0, "", UI_UNIT_X + 5, 0, UI_UNIT_X + width, UI_UNIT_Y,
 	               NULL, 0.0f, 0.0f, 0, 0, "");
-	but->col[0] = but->col[1] = but->col[2] = unit_float_to_uchar_clamp(rti->grayscale);
-	but->col[3] = 255;
 
 	UI_block_align_end(block);
 
+	UI_GetThemeColorShade3ubv(TH_BACK, 20, but->col);
+	but->col[3] = 255;
 
 	/* icon and report message on top */
 	icon = UI_icon_from_report_type(report->type);
@@ -4291,7 +4291,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 
 	UI_block_emboss_set(block, UI_EMBOSS);
 
-	uiDefBut(block, UI_BTYPE_LABEL, 0, report->message, UI_UNIT_X + 10, 0, UI_UNIT_X + width, UI_UNIT_Y,
+	uiDefBut(block, UI_BTYPE_LABEL, 0, report->message, UI_UNIT_X + 5, 0, UI_UNIT_X + width, UI_UNIT_Y,
 	         NULL, 0.0f, 0.0f, 0, 0, "");
 }
 
