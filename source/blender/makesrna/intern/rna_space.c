@@ -2295,12 +2295,6 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	/* Filters. */
-	prop = RNA_def_property(srna, "use_filter_search", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", SO_FILTER_SEARCH);
-	RNA_def_property_ui_text(prop, "Search Name", "Filter searched elements");
-	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
-
 	prop = RNA_def_property(srna, "use_filter_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OBJECT);
 	RNA_def_property_ui_text(prop, "Filter Objects", "Show objects");

@@ -1960,7 +1960,6 @@ static void outliner_draw_highlights_recursive(
 	const bool is_searching = (
 	        SEARCHING_OUTLINER(soops) ||
 	        (soops->outlinevis == SO_DATA_API &&
-	         (soops->filter & SO_FILTER_SEARCH) &&
 	         soops->search_string[0] != 0));
 
 	for (TreeElement *te = lb->first; te; te = te->next) {

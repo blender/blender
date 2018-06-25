@@ -274,7 +274,7 @@ typedef enum eSpaceOutliner_Flag {
 
 /* SpaceOops.filter */
 typedef enum eSpaceOutliner_Filter {
-	SO_FILTER_SEARCH           = (1 << 0),
+	SO_FILTER_SEARCH           = (1 << 0), /* Run-time flag. */
 	/* SO_FILTER_ENABLE           = (1 << 1), */ /* Deprecated */
 	SO_FILTER_NO_OBJECT        = (1 << 2),
 	SO_FILTER_NO_OB_CONTENT    = (1 << 3), /* Not only mesh, but modifiers, constraints, ... */

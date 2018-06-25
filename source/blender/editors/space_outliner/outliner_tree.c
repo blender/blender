@@ -1892,10 +1892,11 @@ static int outliner_exclude_filter_get(SpaceOops *soops)
 {
 	int exclude_filter = soops->filter & ~SO_FILTER_OB_STATE;
 
-	if (soops->filter & SO_FILTER_SEARCH) {
-		if (soops->search_string[0] == 0) {
-			exclude_filter &= ~SO_FILTER_SEARCH;
-		}
+	if (soops->search_string[0] != 0) {
+		exclude_filter |= SO_FILTER_SEARCH;
+	}
+	else {
+		exclude_filter &= ~SO_FILTER_SEARCH;
 	}
 
 	/* Let's have this for the collection options at first. */
