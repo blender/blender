@@ -93,16 +93,14 @@ Depsgraph::Depsgraph(Scene *scene,
     mode(mode),
     ctime(BKE_scene_frame_get(scene)),
     scene_cow(NULL),
-    is_active(false),
-	collision_relations(NULL),
-	smoke_collision_relations(NULL),
-	effector_relations(NULL)
+    is_active(false)
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
 	entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
 	debug_flags = G.debug;
 	memset(id_type_updated, 0, sizeof(id_type_updated));
+	memset(physics_relations, 0, sizeof(physics_relations));
 }
 
 Depsgraph::~Depsgraph()

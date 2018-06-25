@@ -302,7 +302,7 @@ void DepsgraphRelationBuilder::add_collision_relations(
         Collection *collection,
         const char *name)
 {
-	ListBase *relations = deg_build_collision_relations(graph_, collection);
+	ListBase *relations = deg_build_collision_relations(graph_, collection, eModifierType_Collision);
 
 	LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
 		if (relation->ob != object) {

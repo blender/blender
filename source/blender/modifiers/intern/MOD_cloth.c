@@ -54,6 +54,7 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
+#include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
 #include "MOD_util.h"

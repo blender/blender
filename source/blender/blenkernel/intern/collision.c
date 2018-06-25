@@ -545,14 +545,7 @@ void BKE_collision_relations_free(ListBase *relations)
  * Self will be excluded. */
 Object **BKE_collision_objects_create(Depsgraph *depsgraph, Object *self, Collection *collection, unsigned int *numcollobj, unsigned int modifier_type)
 {
-	ListBase *relations;
-
-	if (modifier_type == eModifierType_Smoke) {
-		relations = DEG_get_smoke_collision_relations(depsgraph, collection);
-	}
-	else {
-		relations = DEG_get_collision_relations(depsgraph, collection);
-	}
+	ListBase *relations = DEG_get_collision_relations(depsgraph, collection, modifier_type);
 
 	if (!relations) {
 		return NULL;
@@ -592,8 +585,7 @@ void BKE_collision_objects_free(Object **objects)
  * Self will be excluded. */
 ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collection *collection)
 {
-	/* TODO: does this get built? */
-	ListBase *relations = DEG_get_collision_relations(depsgraph, collection);
+	ListBase *relations = DEG_get_collision_relations(depsgraph, collection, eModifierType_Collision);
 	ListBase *cache = NULL;
 
 	if (!relations) {
