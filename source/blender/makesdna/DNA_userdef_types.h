@@ -836,8 +836,9 @@ typedef enum eOpenGL_SelectOptions {
 
 /* max anti alias draw method UserDef.gpu_viewport_antialias */
 typedef enum eOpenGL_AntiAliasMethod {
-	USER_AA_NONE = 0,
-	USER_AA_FXAA = 1,
+	USER_AA_NONE  = 0,
+	USER_AA_FXAA  = 1,
+	USER_AA_TAA8  = 2,
 } eOpenGL_AntiAliasMethod;
 
 /* text draw options

@@ -5,6 +5,12 @@
 #include "UI_resources.h"
 
 
+void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info)
+{
+	effect_info->jitter_index = 0;
+	effect_info->view_updated = true;
+}
+
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();

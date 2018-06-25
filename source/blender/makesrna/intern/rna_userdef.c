@@ -4174,8 +4174,9 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem gpu_antialias_method_items[] = {
-	    {USER_AA_NONE, "OFF",  0, "Off", "Disable Anti Alias in viewport"},
-	    {USER_AA_FXAA, "FXAA", 0, "FXAA", "Use FXAA, a fast screenspace Anti Alias method"},
+	    {USER_AA_NONE,  "OFF",   0, "Off",     "Disable Anti Alias in viewport"},
+	    {USER_AA_FXAA,  "FXAA",  0, "FXAA",    "Use FXAA, a fast screenspace Anti Alias method"},
+	    {USER_AA_TAA8,  "TAA8",  0, "TAA 8x",  "Use TAA with 8 samples when screen is static, when not static fallback to FXAA"},
 	    {0, NULL, 0, NULL, NULL}
 	};
 

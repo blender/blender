@@ -65,7 +65,6 @@ static struct {
 	struct GPUShader *shadow_pass_manifold_sh;
 	struct GPUShader *shadow_caps_sh;
 	struct GPUShader *shadow_caps_manifold_sh;
-	struct GPUShader *effect_fxaa_sh;
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
@@ -85,8 +84,6 @@ static struct {
 } e_data = {{NULL}};
 
 /* Shaders */
-extern char datatoc_common_fxaa_lib_glsl[];
-extern char datatoc_common_fullscreen_vert_glsl[];
 extern char datatoc_common_hair_lib_glsl[];
 
 extern char datatoc_workbench_prepass_vert_glsl[];
@@ -103,7 +100,6 @@ extern char datatoc_workbench_background_lib_glsl[];
 extern char datatoc_workbench_cavity_lib_glsl[];
 extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
-extern char datatoc_workbench_effect_fxaa_frag_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
@@ -219,7 +215,7 @@ static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
 static float *create_disk_samples(int num_samples)
 {
 	/* vec4 to ensure memory alignment. */
-	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * num_samples, "concentric_tex");
+	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * num_samples, __func__);
 	const float num_samples_inv = 1.0f / num_samples;
 
 	for (int i = 0; i < num_samples; i++) {
@@ -272,8 +268,18 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 {
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_TextureList *txl = vedata->txl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+	}
+	if (!stl->effects) {
+		stl->effects = MEM_mallocN(sizeof(*stl->effects), __func__);
+		workbench_effect_info_init(stl->effects);
+	}
 
 	if (!e_data.next_object_id) {
 		memset(e_data.prepass_sh_cache,   0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
@@ -322,17 +328,10 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		e_data.cavity_sh = DRW_shader_create_fullscreen(cavity_frag, NULL);
 		MEM_freeN(cavity_frag);
 
-		e_data.effect_fxaa_sh = DRW_shader_create_with_lib(
-		        datatoc_common_fullscreen_vert_glsl, NULL,
-		        datatoc_workbench_effect_fxaa_frag_glsl,
-		        datatoc_common_fxaa_lib_glsl,
-		        NULL);
 	}
+	workbench_fxaa_engine_init();
+	workbench_taa_engine_init(vedata);
 
-	if (!stl->g_data) {
-		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
-	}
 
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	workbench_private_data_init(wpd);
@@ -424,15 +423,20 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		psl->effect_fxaa_pass = DRW_pass_create("Effect FXAA", DRW_STATE_WRITE_COLOR);
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_fxaa_sh, psl->effect_fxaa_pass);
-		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.effect_buffer_tx);
-		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
-		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+		if (TAA_ENABLED(wpd)) {
+			psl->effect_aa_pass = workbench_taa_create_pass(txl, stl->effects, fbl, &e_data.composite_buffer_tx);
+		}
+		else if (FXAA_ENABLED(wpd)) {
+			psl->effect_aa_pass = workbench_fxaa_create_pass(&e_data.effect_buffer_tx);
+			stl->effects->jitter_index = 0;
+		}
+		else {
+			psl->effect_aa_pass = NULL;
+		}
 	}
 }
 
-void workbench_deferred_engine_free()
+void workbench_deferred_engine_free(void)
 {
 	for (int index = 0; index < MAX_SHADERS; index++) {
 		DRW_SHADER_FREE_SAFE(e_data.prepass_sh_cache[index]);
@@ -449,7 +453,8 @@ void workbench_deferred_engine_free()
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_caps_manifold_sh);
 
-	DRW_SHADER_FREE_SAFE(e_data.effect_fxaa_sh);
+	workbench_fxaa_engine_free();
+	workbench_taa_engine_free();
 }
 
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
@@ -834,7 +839,14 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
+	WORKBENCH_EffectInfo *effect_info = stl->effects;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	const bool taa_enabled = TAA_ENABLED(wpd);
+
+	if (taa_enabled)
+	{
+		workbench_taa_draw_scene_start(effect_info);
+	}
 
 	/* clear in background */
 	GPU_framebuffer_bind(fbl->prepass_fb);
@@ -870,21 +882,14 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->composite_pass);
 	}
 
-	if (FXAA_ENABLED(wpd)) {
-		GPU_framebuffer_bind(fbl->effect_fb);
-		DRW_transform_to_display(e_data.composite_buffer_tx);
-
-		/* TODO: when rendering the fxaa pass should be done in display space
-		Currently we do not support rendering in the workbench
-		*/
-		GPU_framebuffer_bind(dfbl->color_only_fb);
-		DRW_draw_pass(psl->effect_fxaa_pass);
-	}
-	else {
-		GPU_framebuffer_bind(dfbl->color_only_fb);
-		DRW_transform_to_display(e_data.composite_buffer_tx);
+	GPUTexture *final_color_tx = e_data.composite_buffer_tx;
+	if (taa_enabled)
+	{
+		workbench_taa_draw_pass(effect_info, psl->effect_aa_pass);
+		final_color_tx = effect_info->final_color_tx;
+		workbench_taa_draw_scene_end(vedata);
 	}
 
-
+	workbench_fxaa_draw_pass(wpd, fbl->effect_fb, final_color_tx, psl->effect_aa_pass);
 	workbench_private_data_free(wpd);
 }
