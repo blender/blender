@@ -248,7 +248,7 @@ static Mesh *rigidbody_get_mesh(Object *ob)
 			 * on the original; otherwise every time the CoW is recreated it will
 			 * have to be recomputed. */
 			BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
-			return DEG_get_original_object(ob)->data;
+			return ob->runtime.mesh_orig;
 	}
 
 	/* Just return something sensible so that at least Blender won't crash. */
