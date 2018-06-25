@@ -657,7 +657,7 @@ static int layer_collection_sync(
 			int object_restrict = base->object->restrictflag;
 
 			if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
-				((object_restrict & OB_RESTRICT_VIEW) == 0))
+			    ((object_restrict & OB_RESTRICT_VIEW) == 0))
 			{
 				base->flag |= BASE_VISIBLED | BASE_VISIBLE_VIEWPORT;
 

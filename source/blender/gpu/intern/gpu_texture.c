@@ -924,7 +924,7 @@ void GPU_texture_update_sub(
 			break;
 		default:
 			BLI_assert(!"tex->target mode not supported");
-		}
+	}
 
 	if (tex->bytesize == 1) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
@@ -1273,8 +1273,7 @@ void GPU_blend(bool enable)
 
 static GLenum gpu_get_gl_blendfunction(GPUBlendFunction blend)
 {
-	switch (blend)
-	{
+	switch (blend) {
 		case GPU_ONE:
 			return GL_ONE;
 		case GPU_SRC_ALPHA:

@@ -680,7 +680,7 @@ static void rna_StudioLights_remove(UserDef *UNUSED(userdef), StudioLight *studi
 	BKE_studiolight_remove(studio_light);
 }
 
-static StudioLight* rna_StudioLights_new(UserDef *UNUSED(userdef), const char* path, int orientation)
+static StudioLight *rna_StudioLights_new(UserDef *UNUSED(userdef), const char *path, int orientation)
 {
 	return BKE_studiolight_new(path, orientation);
 }
@@ -724,8 +724,7 @@ static void rna_UserDef_studiolight_path_irr_cache_get(PointerRNA *ptr, char *va
 static int rna_UserDef_studiolight_path_irr_cache_length(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	if (sl->path_irr_cache)
-	{
+	if (sl->path_irr_cache) {
 		return strlen(sl->path_irr_cache);
 	}
 	return 0;
@@ -744,8 +743,7 @@ static void rna_UserDef_studiolight_path_sh_cache_get(PointerRNA *ptr, char *val
 static int rna_UserDef_studiolight_path_sh_cache_length(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	if (sl->path_sh_cache)
-	{
+	if (sl->path_sh_cache) {
 		return strlen(sl->path_sh_cache);
 	}
 	return 0;
@@ -777,8 +775,7 @@ static void rna_UserDef_studiolight_spherical_harmonics_coefficients_get(Pointer
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
 	float *value = values;
-	for (int i = 0; i < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; i++)
-	{
+	for (int i = 0; i < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; i++) {
 		copy_v3_v3(value, sl->spherical_harmonics_coefs[i]);
 		value += 3;
 	}

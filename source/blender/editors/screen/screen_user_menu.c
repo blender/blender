@@ -88,8 +88,8 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(
 		if (umi->type == USER_MENU_TYPE_OPERATOR) {
 			bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
 			if (STREQ(ot->idname, umi_op->opname) &&
-				(opcontext == umi_op->opcontext) &&
-				(IDP_EqualsProperties(prop, umi_op->prop)))
+			    (opcontext == umi_op->opcontext) &&
+			    (IDP_EqualsProperties(prop, umi_op->prop)))
 			{
 				return umi_op;
 			}

@@ -223,7 +223,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 
 	if (UNLIKELY(gc->texture_current >= gc->textures_len)) {
 		gc->textures_len *= 2;
-		gc->textures = MEM_recallocN((void *)gc->textures, sizeof(GPUTexture*) * gc->textures_len);
+		gc->textures = MEM_recallocN((void *)gc->textures, sizeof(GPUTexture *) * gc->textures_len);
 	}
 
 	gc->p2_width = (int)blf_next_p2((unsigned int)((gc->glyphs_len_free * gc->glyph_width_max) + (gc->pad * 2)));
@@ -239,7 +239,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	}
 
 	unsigned char *pixels = MEM_callocN((size_t)gc->p2_width * (size_t)gc->p2_height, "BLF texture init");
-	GPUTexture *tex = GPU_texture_create_2D(gc->p2_width, gc->p2_height, GPU_R8, (const float*)pixels, error);
+	GPUTexture *tex = GPU_texture_create_2D(gc->p2_width, gc->p2_height, GPU_R8, (const float *)pixels, error);
 	MEM_freeN(pixels);
 	gc->textures[gc->texture_current] = tex;
 	GPU_texture_bind(tex, 0);

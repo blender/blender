@@ -901,7 +901,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 		return rna_enum_dt_layers_select_src_items;
 	}
 
-	Depsgraph *depsgraph= CTX_data_depsgraph(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 
 	/* No active here! */

@@ -584,8 +584,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		copy_v4_v4(material->material_data.diffuse_color, material_template.material_data.diffuse_color);
 		copy_v4_v4(material->material_data.specular_color, material_template.material_data.specular_color);
 		material->material_data.roughness = material_template.material_data.roughness;
-		if (color_type == V3D_SHADING_TEXTURE_COLOR)
-		{
+		if (color_type == V3D_SHADING_TEXTURE_COLOR) {
 			GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0);
 			DRW_shgroup_uniform_texture(material->shgrp, "image", tex);
 		}

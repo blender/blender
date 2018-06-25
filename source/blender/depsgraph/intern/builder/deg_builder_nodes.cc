@@ -463,9 +463,10 @@ void DepsgraphNodeBuilder::build_collection(
 	/* Build collection objects. */
 	LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
 		if (allow_restrict_flags) {
-			const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
-					? OB_RESTRICT_VIEW
-					: OB_RESTRICT_RENDER;
+			const int restrict_flag = (
+			        (graph_->mode == DAG_EVAL_VIEWPORT) ?
+			        OB_RESTRICT_VIEW :
+			        OB_RESTRICT_RENDER);
 			if (cob->ob->restrictflag & restrict_flag) {
 				continue;
 			}

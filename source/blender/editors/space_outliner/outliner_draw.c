@@ -1516,7 +1516,7 @@ static void outliner_draw_iconrow(
 		const int num_subtypes = (i == INDEX_ID_OB) ? OB_TYPE_MAX : 1;
 		/* See tree_element_id_type_to_index for the index logic. */
 		int index_base = i;
-		if (i > INDEX_ID_OB){
+		if (i > INDEX_ID_OB) {
 			index_base += OB_TYPE_MAX;
 		}
 		for (int j = 0; j < num_subtypes; j++) {

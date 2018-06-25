@@ -2238,7 +2238,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 
 	static const EnumPropertyItem display_mode_items[] = {
 		{SO_SCENES, "SCENES", ICON_SCENE_DATA, "Scenes", "Display scenes and their view layers, collections and objects"},
-		{SO_VIEW_LAYER, "VIEW_LAYER",ICON_RENDER_RESULT, "View Layer", "Display collections and objects in the view layer"},
+		{SO_VIEW_LAYER, "VIEW_LAYER", ICON_RENDER_RESULT, "View Layer", "Display collections and objects in the view layer"},
 		{SO_SEQUENCE, "SEQUENCE", ICON_SEQUENCE, "Sequence", "Display sequence data-blocks"},
 		{SO_LIBRARIES, "LIBRARIES", ICON_FILE_BLEND, "Blender File", "Display data of current file and linked libraries"},
 		{SO_DATA_API, "DATA_API", ICON_RNA, "Data API", "Display low level Blender data and its properties"},

@@ -1496,8 +1496,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
 						View3D *v3d = (View3D *)sl;
-						if (v3d->drawtype == OB_TEXTURE)
-						{
+						if (v3d->drawtype == OB_TEXTURE) {
 							v3d->drawtype = OB_SOLID;
 							v3d->shading.light = V3D_LIGHTING_STUDIO;
 							v3d->shading.color_type = V3D_SHADING_TEXTURE_COLOR;
@@ -1516,7 +1515,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							float alpha = v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE? 0.0f: 0.8f;
+							float alpha = v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE ? 0.0f : 0.8f;
 							v3d->overlay.texture_paint_mode_opacity = alpha;
 							v3d->overlay.vertex_paint_mode_opacity = alpha;
 							v3d->overlay.weight_paint_mode_opacity = alpha;

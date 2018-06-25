@@ -10,7 +10,7 @@
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data)
 {
 	/* When V3D_SHADING_TEXTURE_COLOR is active, use V3D_SHADING_MATERIAL_COLOR as fallback when no texture could be determined */
-	int color_type = wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR? V3D_SHADING_MATERIAL_COLOR: wpd->shading.color_type;
+	int color_type = wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR ? V3D_SHADING_MATERIAL_COLOR : wpd->shading.color_type;
 	static float default_diffuse_color[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	static float default_specular_color[] = {0.5f, 0.5f, 0.5f, 0.5f};
 	copy_v4_v4(data->material_data.diffuse_color, default_diffuse_color);
@@ -169,8 +169,7 @@ void workbench_material_set_normal_world_matrix(
 int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima)
 {
 	int color_type = wpd->shading.color_type;
-	if (color_type == V3D_SHADING_TEXTURE_COLOR && ima == NULL)
-	{
+	if (color_type == V3D_SHADING_TEXTURE_COLOR && ima == NULL) {
 		color_type = V3D_SHADING_MATERIAL_COLOR;
 	}
 	return color_type;

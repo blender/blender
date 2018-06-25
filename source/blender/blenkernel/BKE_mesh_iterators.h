@@ -24,7 +24,7 @@
 #ifndef __BKE_MESH_ITERATORS_H__
 #define __BKE_MESH_ITERATORS_H__
 
-/** \file BKE_MESH_ITERATORS.h
+/** \file BKE_mesh_iterators.h
  *  \ingroup bke
  */
 

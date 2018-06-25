@@ -19,6 +19,7 @@
  */
 
 #ifndef __BKE_BLENDER_USER_MENU_H__
+#define __BKE_BLENDER_USER_MENU_H__
 
 /** \file BKE_blender_user_menu.h
  *  \ingroup bke

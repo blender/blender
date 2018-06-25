@@ -53,7 +53,7 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph,
 		return NULL;
 	}
 
-	return (ListBase*)BLI_ghash_lookup(deg_graph->effector_relations, collection);
+	return (ListBase *)BLI_ghash_lookup(deg_graph->effector_relations, collection);
 }
 
 /*********************** Internal API ************************/

@@ -1493,7 +1493,8 @@ static void outliner_add_layer_collections_recursive(
 		const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
 		if (exclude ||
 		    ((layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
-		     !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS))) {
+		     !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS)))
+		{
 			ten->flag |= TE_DISABLED;
 		}
 
@@ -2268,5 +2269,3 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 
 	BKE_main_id_clear_newpoins(mainvar);
 }
-
-

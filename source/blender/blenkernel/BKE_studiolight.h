@@ -133,7 +133,7 @@ typedef struct StudioLight {
 	 * that cleans up all icons. just to keep the code simple.
 	 */
 	StudioLightFreeFunction *free_function;
-	void* free_function_data;
+	void *free_function_data;
 } StudioLight;
 
 void BKE_studiolight_init(void);
@@ -141,11 +141,11 @@ void BKE_studiolight_free(void);
 struct StudioLight *BKE_studiolight_find(const char *name, int flag);
 struct StudioLight *BKE_studiolight_findindex(int index, int flag);
 struct StudioLight *BKE_studiolight_find_first(int flag);
-void BKE_studiolight_preview(uint* icon_buffer, StudioLight *sl, int icon_id_type);
+void BKE_studiolight_preview(uint *icon_buffer, StudioLight *sl, int icon_id_type);
 struct ListBase *BKE_studiolight_listbase(void);
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag);
 void BKE_studiolight_refresh(void);
-StudioLight *BKE_studiolight_new(const char* path, int orientation);
+StudioLight *BKE_studiolight_new(const char *path, int orientation);
 void BKE_studiolight_remove(StudioLight *sl);
 void BKE_studiolight_set_free_function(StudioLight *sl, StudioLightFreeFunction *free_function, void *data);
 void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id);

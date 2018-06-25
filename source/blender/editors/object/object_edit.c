@@ -315,7 +315,8 @@ void ED_hide_collections_menu_draw(const bContext *C, uiLayout *layout)
 		}
 
 		if ((view_layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
-		    !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS)) {
+		    !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS))
+		{
 			uiLayoutSetActive(row, false);
 		}
 
@@ -2097,4 +2098,3 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
 	                      "Name of the newly added collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
-

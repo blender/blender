@@ -238,7 +238,7 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob, const int UNUSED(f
 /* get the appropriate DerivedMesh based on rigid body mesh source */
 static Mesh *rigidbody_get_mesh(Object *ob)
 {
-	switch(ob->rigidbody_object->mesh_source) {
+	switch (ob->rigidbody_object->mesh_source) {
 		case RBO_MESH_DEFORM:
 			return ob->runtime.mesh_deform_eval;
 		case RBO_MESH_FINAL:

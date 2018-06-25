@@ -1016,7 +1016,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 
 	float size = RNA_float_get(op->ptr, "radius");
 	/* Better defaults for lamp size. */
-	switch(type) {
+	switch (type) {
 		case LA_LOCAL:
 		case LA_SPOT:
 			break;
