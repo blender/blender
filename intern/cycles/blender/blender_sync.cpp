@@ -177,7 +177,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 }
 
 void BlenderSync::sync_data(BL::RenderSettings& b_render,
-	                        BL::Depsgraph& b_depsgraph,
+                            BL::Depsgraph& b_depsgraph,
                             BL::SpaceView3D& b_v3d,
                             BL::Object& b_override,
                             int width, int height,

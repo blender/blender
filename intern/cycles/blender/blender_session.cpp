@@ -449,11 +449,11 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 		BL::Object b_camera_override(b_engine.camera_override());
 		sync->sync_camera(b_render, b_camera_override, width, height, b_rview_name.c_str());
 		sync->sync_data(b_render,
-						b_depsgraph,
-						b_v3d,
-						b_camera_override,
-						width, height,
-						&python_thread_state);
+		                b_depsgraph,
+		                b_v3d,
+		                b_camera_override,
+		                width, height,
+		                &python_thread_state);
 		builtin_images_load();
 
 		/* Make sure all views have different noise patterns. - hardcoded value just to make it random */
@@ -610,11 +610,11 @@ void BlenderSession::bake(BL::Depsgraph& b_depsgraph_,
 		BL::Object b_camera_override(b_engine.camera_override());
 		sync->sync_camera(b_render, b_camera_override, width, height, "");
 		sync->sync_data(b_render,
-						b_depsgraph,
-						b_v3d,
-						b_camera_override,
-						width, height,
-						&python_thread_state);
+		                b_depsgraph,
+		                b_v3d,
+		                b_camera_override,
+		                width, height,
+		                &python_thread_state);
 		builtin_images_load();
 	}
 
