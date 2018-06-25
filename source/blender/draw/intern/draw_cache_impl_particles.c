@@ -289,12 +289,12 @@ static void particle_calculate_parent_uvs(
 	}
 	ParticleData *particle = &psys->particles[parent_index];
 	int num = particle->num_dmcache;
-	if (num == DMCACHE_NOTFOUND) {
+	if (num == DMCACHE_NOTFOUND || num == DMCACHE_ISCHILD) {
 		if (particle->num < psmd->mesh_final->totface) {
 			num = particle->num;
 		}
 	}
-	if (num != DMCACHE_NOTFOUND) {
+	if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
 		MFace *mface = &psmd->mesh_final->mface[num];
 		for (int j = 0; j < num_uv_layers; j++) {
 			psys_interpolate_uvs(
@@ -323,12 +323,12 @@ static void particle_calculate_parent_mcol(
 	}
 	ParticleData *particle = &psys->particles[parent_index];
 	int num = particle->num_dmcache;
-	if (num == DMCACHE_NOTFOUND) {
+	if (num == DMCACHE_NOTFOUND || num == DMCACHE_ISCHILD) {
 		if (particle->num < psmd->mesh_final->totface) {
 			num = particle->num;
 		}
 	}
-	if (num != DMCACHE_NOTFOUND) {
+	if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
 		MFace *mface = &psmd->mesh_final->mface[num];
 		for (int j = 0; j < num_uv_layers; j++) {
 			psys_interpolate_mcol(
