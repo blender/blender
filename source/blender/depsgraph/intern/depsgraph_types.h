@@ -211,6 +211,7 @@ typedef enum eDepsOperation_Code {
 
 	/* Object data. ------------------------------------- */
 	DEG_OPCODE_LIGHT_PROBE_EVAL,
+	DEG_OPCODE_SPEAKER_EVAL,
 
 	/* Pose. -------------------------------------------- */
 	/* Init pose, clear flags, etc. */

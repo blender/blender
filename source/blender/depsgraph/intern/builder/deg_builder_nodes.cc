@@ -65,6 +65,7 @@ extern "C" {
 #include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
@@ -431,6 +432,9 @@ void DepsgraphNodeBuilder::build_id(ID *id) {
 		case ID_LT:
 			build_object_data_geometry_datablock(id);
 			break;
+		case ID_SPK:
+			build_speaker((Speaker *)id);
+			break;
 		default:
 			fprintf(stderr, "Unhandled ID %s\n", id->name);
 			BLI_assert(!"Should never happen");
@@ -615,6 +619,9 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 		case OB_LIGHTPROBE:
 			build_object_data_lightprobe(object);
 			break;
+		case OB_SPEAKER:
+			build_object_data_speaker(object);
+			break;
 		default:
 		{
 			ID *obdata = (ID *)object->data;
@@ -646,6 +653,16 @@ void DepsgraphNodeBuilder::build_object_data_lightprobe(Object *object)
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_LIGHT_PROBE_EVAL);
+}
+
+void DepsgraphNodeBuilder::build_object_data_speaker(Object *object)
+{
+	Speaker *speaker = (Speaker *)object->data;
+	build_speaker(speaker);
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_SPEAKER_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_object_transform(Object *object)
@@ -1462,6 +1479,19 @@ void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
 	                   DEG_OPCODE_LIGHT_PROBE_EVAL);
 
 	build_animdata(&probe->id);
+}
+
+void DepsgraphNodeBuilder::build_speaker(Speaker *speaker)
+{
+	if (built_map_.checkIsBuiltAndTag(speaker)) {
+		return;
+	}
+	/* Placeholder so we can add relations and tag ID node for update. */
+	add_operation_node(&speaker->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_SPEAKER_EVAL);
+	build_animdata(&speaker->id);
 }
 
 /* **** ID traversal callbacks functions **** */

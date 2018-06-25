@@ -75,6 +75,7 @@ struct bConstraint;
 struct ParticleSystem;
 struct ParticleSettings;
 struct Scene;
+struct Speaker;
 struct ViewLayer;
 struct Tex;
 struct World;
@@ -212,6 +213,7 @@ struct DepsgraphRelationBuilder
 	void build_object_data_geometry_datablock(ID *obdata);
 	void build_object_data_lamp(Object *object);
 	void build_object_data_lightprobe(Object *object);
+	void build_object_data_speaker(Object *object);
 	void build_object_parent(Object *object);
 	void build_constraints(ID *id,
 	                       eDepsNode_Type component_type,
@@ -263,6 +265,7 @@ struct DepsgraphRelationBuilder
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
 	void build_lightprobe(LightProbe *probe);
+	void build_speaker(Speaker *speaker);
 
 	void build_nested_datablock(ID *owner, ID *id);
 	void build_nested_nodetree(ID *owner, bNodeTree *ntree);

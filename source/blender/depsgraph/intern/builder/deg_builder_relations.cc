@@ -65,6 +65,7 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_force_types.h"
@@ -440,6 +441,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 		case ID_LT:
 			build_object_data_geometry_datablock(id);
 			break;
+		case ID_SPK:
+			build_speaker((Speaker *)id);
+			break;
 		default:
 			fprintf(stderr, "Unhandled ID %s\n", id->name);
 			BLI_assert(!"Should never happen");
@@ -660,6 +664,9 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		case OB_LIGHTPROBE:
 			build_object_data_lightprobe(object);
 			break;
+		case OB_SPEAKER:
+			build_object_data_speaker(object);
+			break;
 	}
 	Key *key = BKE_key_from_object(object);
 	if (key != NULL) {
@@ -699,6 +706,19 @@ void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
 	                        DEG_NODE_TYPE_PARAMETERS,
 	                        DEG_OPCODE_LIGHT_PROBE_EVAL);
 	add_relation(probe_key, object_key, "LightProbe Update");
+}
+
+void DepsgraphRelationBuilder::build_object_data_speaker(Object *object)
+{
+	Speaker *speaker = (Speaker *)object->data;
+	build_speaker(speaker);
+	OperationKey probe_key(&speaker->id,
+	                       DEG_NODE_TYPE_PARAMETERS,
+	                       DEG_OPCODE_SPEAKER_EVAL);
+	OperationKey object_key(&object->id,
+	                        DEG_NODE_TYPE_PARAMETERS,
+	                        DEG_OPCODE_SPEAKER_EVAL);
+	add_relation(probe_key, object_key, "Speaker Update");
 }
 
 void DepsgraphRelationBuilder::build_object_parent(Object *object)
@@ -2120,6 +2140,14 @@ void DepsgraphRelationBuilder::build_lightprobe(LightProbe *probe)
 		return;
 	}
 	build_animdata(&probe->id);
+}
+
+void DepsgraphRelationBuilder::build_speaker(Speaker *speaker)
+{
+	if (built_map_.checkIsBuiltAndTag(speaker)) {
+		return;
+	}
+	build_animdata(&speaker->id);
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()
