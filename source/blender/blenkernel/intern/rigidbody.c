@@ -246,8 +246,11 @@ static Mesh *rigidbody_get_mesh(Object *ob)
 		return ob->runtime.mesh_eval;
 	}
 	else {
+		/* This mesh may be used for computing looptris, which should be done
+		 * on the original; otherwise every time the CoW is recreated it will
+		 * have to be recomputed. */
 		BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
-		return ob->data;
+		return DEG_get_original_object(ob)->data;
 	}
 }
 
