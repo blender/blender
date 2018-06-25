@@ -211,30 +211,25 @@ class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         tex = context.texture
 
-        layout.prop(tex, "use_color_ramp", text="Ramp")
-        if tex.use_color_ramp:
-            layout.template_color_ramp(tex, "color_ramp", expand=True)
-
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="RGB Multiply:")
+        col = layout.column()
         sub = col.column(align=True)
-        sub.prop(tex, "factor_red", text="R")
+        sub.prop(tex, "factor_red", text="Multiply R")
         sub.prop(tex, "factor_green", text="G")
         sub.prop(tex, "factor_blue", text="B")
 
-        col = split.column()
-        col.label(text="Adjust:")
         col.prop(tex, "intensity")
         col.prop(tex, "contrast")
         col.prop(tex, "saturation")
 
-        col = layout.column()
         col.prop(tex, "use_clamp", text="Clamp")
+        col.prop(tex, "use_color_ramp", text="Ramp")
+        if tex.use_color_ramp:
+            layout.use_property_split = False
+            layout.template_color_ramp(tex, "color_ramp", expand=True)
 
 
 class TextureTypePanel(TextureButtonsPanel):
