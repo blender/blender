@@ -228,11 +228,17 @@ ListBase *BKE_effector_relations_create(
         ViewLayer *view_layer,
         Collection *collection)
 {
-	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
+	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+	const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
+
 	ListBase *relations = MEM_callocN(sizeof(ListBase), "effector relations");
 
 	for (; base; base = base->next) {
+		if (!(base->flag & base_flag)) {
+			continue;
+		}
+
 		Object *ob = base->object;
 
 		if (ob->pd && ob->pd->forcefield) {

@@ -517,27 +517,16 @@ static void add_collision_object(ListBase *relations, Object *ob, int level, uns
  * lookup of colliders during evaluation. */
 ListBase *BKE_collision_relations_create(Depsgraph *depsgraph, Collection *collection, unsigned int modifier_type)
 {
-	ListBase *relations = MEM_callocN(sizeof(ListBase), "CollisionRelation list");
-	int level = 0;
+	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
+	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+	const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
-	/* gather all collision objects */
-	if (collection) {
-		/* use specified collection */
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
-		{
-			add_collision_object(relations, object, level, modifier_type);
-		}
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-	}
-	else {
-		Scene *scene = DEG_get_input_scene(depsgraph);
-		Scene *sce_iter;
-		Base *base;
-		/* add objects in same layer in scene */
-		for (SETLOOPER(scene, sce_iter, base)) {
-			if ((base->flag & BASE_VISIBLE) != 0) {
-				add_collision_object(relations, base->object, level, modifier_type);
-			}
+	ListBase *relations = MEM_callocN(sizeof(ListBase), "CollisionRelation list");
+
+	for (; base; base = base->next) {
+		if (base->flag & base_flag) {
+			add_collision_object(relations, base->object, 0, modifier_type);
 		}
 	}
 
