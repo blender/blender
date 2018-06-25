@@ -56,6 +56,7 @@
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"   /* bvh tree */
 #include "BKE_collection.h"
+#include "BKE_collision.h"
 #include "BKE_colorband.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_constraint.h"
@@ -490,28 +491,17 @@ static void scene_setSubframe(Scene *scene, float subframe)
 	scene->r.subframe = subframe;
 }
 
-static int surface_getBrushFlags(DynamicPaintSurface *surface, const Depsgraph *depsgraph)
+static int surface_getBrushFlags(DynamicPaintSurface *surface, Depsgraph *depsgraph)
 {
-	Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, surface->brush_group);
-	Object *brushObj = NULL;
-	ModifierData *md = NULL;
+	unsigned int numobjects;
+	Object **objects = BKE_collision_objects_create(depsgraph, NULL, surface->brush_group, &numobjects, eModifierType_DynamicPaint);
 
 	int flags = 0;
 
-	while (base) {
-		brushObj = NULL;
+	for (int i = 0; i < numobjects; i++) {
+		Object *brushObj = objects[i];
 
-		/* select object */
-		brushObj = base->object;
-
-		/* next item */
-		base = base->next;
-
-		if (!brushObj) {
-			continue;
-		}
-
-		md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
+		ModifierData *md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
 		if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
 			DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)md;
 
@@ -523,6 +513,8 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, const Depsgraph *
 			}
 		}
 	}
+
+	BKE_collision_objects_free(objects);
 
 	return flags;
 }
@@ -5758,7 +5750,7 @@ static void dynamic_paint_generate_bake_data_cb(
 	}
 }
 
-static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Depsgraph *depsgraph, Object *ob)
+static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Depsgraph *depsgraph, Object *ob)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
@@ -5911,29 +5903,18 @@ static int dynamicPaint_doStep(
 	 * Loop through surface's target paint objects and do painting
 	 */
 	{
-		Object *brushObj = NULL;
-		ModifierData *md = NULL;
-		Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, surface->brush_group);
+		unsigned int numobjects;
+		Object **objects = BKE_collision_objects_create(depsgraph, NULL, surface->brush_group, &numobjects, eModifierType_DynamicPaint);
 
 		/* backup current scene frame */
 		int scene_frame = scene->r.cfra;
 		float scene_subframe = scene->r.subframe;
 
-		while (base) {
-			brushObj = NULL;
-			/* select object */
-			brushObj = base->object;
-
-			/* next item */
-			base = base->next;
-
-			if (!brushObj) {
-				/* skip item */
-				continue;
-			}
+		for (int i = 0; i < numobjects; i++) {
+			Object *brushObj = objects[i];
 
 			/* check if target has an active dp modifier	*/
-			md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
+			ModifierData *md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
 			if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
 				DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)md;
 				/* make sure we're dealing with a brush	*/
@@ -5995,6 +5976,8 @@ static int dynamicPaint_doStep(
 				}
 			}
 		}
+
+		BKE_collision_objects_free(objects);
 	}
 
 	/* surfaces operations that use adjacency data */

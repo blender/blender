@@ -40,10 +40,12 @@ extern "C" {
 } /* extern "C" */
 
 #include "DNA_group_types.h"
+#include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_physics.h"
+#include "DEG_depsgraph_query.h"
 
 #include "depsgraph.h"
 #include "depsgraph_intern.h"
@@ -73,7 +75,8 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph,
 		return NULL;
 	}
 
-	return (ListBase *)BLI_ghash_lookup(deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR], collection);
+	ID *collection_orig = DEG_get_original_id(&collection->id);
+	return (ListBase *)BLI_ghash_lookup(deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR], collection_orig);
 }
 
 ListBase *DEG_get_collision_relations(const Depsgraph *graph,
@@ -86,7 +89,8 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
 		return NULL;
 	}
 
-	return (ListBase *)BLI_ghash_lookup(deg_graph->physics_relations[type], collection);
+	ID *collection_orig = DEG_get_original_id(&collection->id);
+	return (ListBase *)BLI_ghash_lookup(deg_graph->physics_relations[type], collection_orig);
 }
 
 /********************** Depsgraph Building API ************************/
@@ -174,7 +178,7 @@ ListBase *deg_build_effector_relations(Depsgraph *graph,
 	if (relations == NULL) {
 		::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph*>(graph);
 		relations = BKE_effector_relations_create(depsgraph, graph->view_layer, collection);
-		BLI_ghash_insert(hash, collection, relations);
+		BLI_ghash_insert(hash, &collection->id, relations);
 	}
 
 	return relations;
@@ -195,7 +199,7 @@ ListBase *deg_build_collision_relations(Depsgraph *graph,
 	if (relations == NULL) {
 		::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph*>(graph);
 		relations = BKE_collision_relations_create(depsgraph, collection, modifier_type);
-		BLI_ghash_insert(hash, collection, relations);
+		BLI_ghash_insert(hash, &collection->id, relations);
 	}
 
 	return relations;

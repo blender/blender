@@ -518,7 +518,7 @@ static void add_collision_object(ListBase *relations, Object *ob, int level, uns
 ListBase *BKE_collision_relations_create(Depsgraph *depsgraph, Collection *collection, unsigned int modifier_type)
 {
 	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
-	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
+	Base *base = BKE_collection_or_layer_objects(view_layer, collection);
 	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 	const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
@@ -548,6 +548,7 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph, Object *self, Collec
 	ListBase *relations = DEG_get_collision_relations(depsgraph, collection, modifier_type);
 
 	if (!relations) {
+		*numcollobj = 0;
 		return NULL;
 	}
 

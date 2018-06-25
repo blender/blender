@@ -72,6 +72,7 @@ variables on the UI for now
 #include "BLI_threads.h"
 
 #include "BKE_collection.h"
+#include "BKE_collision.h"
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -521,20 +522,18 @@ static void ccd_build_deflector_hash(Depsgraph *depsgraph, Collection *collectio
 {
 	if (!hash) return;
 
-	/* Explicit collision collection. */
-	Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, collection);
+	unsigned int numobjects;
+	Object **objects = BKE_collision_objects_create(depsgraph, vertexowner, collection, &numobjects, eModifierType_Collision);
 
-	for (; base; base = base->next) {
-		/* Only proceed for mesh object in same layer. */
-		if (base->object->type == OB_MESH) {
-			Object *ob = base->object;
-			if (ob == vertexowner) {
-				/* If vertexowner is given  we don't want to check collision with owner object. */
-				continue;
-			}
+	for (int i = 0; i < numobjects; i++) {
+		Object *ob = objects[i];
+
+		if (ob->type == OB_MESH) {
 			ccd_build_deflector_hash_single(hash, ob);
 		}
 	}
+
+	BKE_collision_objects_free(objects);
 }
 
 static void ccd_update_deflector_hash_single(GHash *hash, Object *ob)
@@ -554,23 +553,19 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph, Collection *collecti
 {
 	if ((!hash) || (!vertexowner)) return;
 
-	/* Explicit collision collection. */
-	Base *base = BKE_collection_or_layer_objects(depsgraph, NULL, NULL, collection);
+	unsigned int numobjects;
+	Object **objects = BKE_collision_objects_create(depsgraph, vertexowner, collection, &numobjects, eModifierType_Collision);
 
-	for (; base; base = base->next) {
-		/* Only proceed for mesh object in same layer. */
-		if (base->object->type == OB_MESH) {
-			Object *ob = base->object;
-			if (ob == vertexowner) {
-				/* If vertexowner is given  we don't want to check collision with owner object. */
-				continue;
-			}
+	for (int i = 0; i < numobjects; i++) {
+		Object *ob = objects[i];
 
+		if (ob->type == OB_MESH) {
 			ccd_update_deflector_hash_single(hash, ob);
 		}
 	}
-}
 
+	BKE_collision_objects_free(objects);
+}
 
 /*--- collider caching and dicing ---*/
 
@@ -959,21 +954,13 @@ static void free_softbody_intern(SoftBody *sb)
 /**
  * \note collection overrides scene when not NULL.
  */
-static bool are_there_deflectors(Base *first_base)
-{
-	for (Base *base = first_base; base; base = base->next) {
-		if (base->object->pd) {
-			if (base->object->pd->deflect)
-				return 1;
-		}
-	}
-
-	return 0;
-}
-
 static int query_external_colliders(Depsgraph *depsgraph, Collection *collection)
 {
-	return(are_there_deflectors(BKE_collection_or_layer_objects(depsgraph, NULL, NULL, collection)));
+	unsigned int numobjects;
+	Object **objects = BKE_collision_objects_create(depsgraph, NULL, collection, &numobjects, eModifierType_Collision);
+	BKE_collision_objects_free(objects);
+
+	return (numobjects != 0);
 }
 /* --- dependency information functions*/
 
@@ -3491,9 +3478,7 @@ static void softbody_step(struct Depsgraph *depsgraph, Scene *scene, Object *ob,
 	ccd_update_deflector_hash(depsgraph, sb->collision_group, ob, sb->scratch->colliderhash);
 
 	if (sb->scratch->needstobuildcollider) {
-		if (query_external_colliders(depsgraph, sb->collision_group)) {
-			ccd_build_deflector_hash(depsgraph, sb->collision_group, ob, sb->scratch->colliderhash);
-		}
+		ccd_build_deflector_hash(depsgraph, sb->collision_group, ob, sb->scratch->colliderhash);
 		sb->scratch->needstobuildcollider=0;
 	}
 
