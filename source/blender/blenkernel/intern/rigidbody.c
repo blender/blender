@@ -238,20 +238,22 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob, const int UNUSED(f
 /* get the appropriate DerivedMesh based on rigid body mesh source */
 static Mesh *rigidbody_get_mesh(Object *ob)
 {
-	/* TODO(Sybren): turn this into a switch statement */
-	if (ob->rigidbody_object->mesh_source == RBO_MESH_DEFORM) {
-		return ob->runtime.mesh_deform_eval;
+	switch(ob->rigidbody_object->mesh_source) {
+		case RBO_MESH_DEFORM:
+			return ob->runtime.mesh_deform_eval;
+		case RBO_MESH_FINAL:
+			return ob->runtime.mesh_eval;
+		case RBO_MESH_BASE:
+			/* This mesh may be used for computing looptris, which should be done
+			 * on the original; otherwise every time the CoW is recreated it will
+			 * have to be recomputed. */
+			BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
+			return DEG_get_original_object(ob)->data;
 	}
-	else if (ob->rigidbody_object->mesh_source == RBO_MESH_FINAL) {
-		return ob->runtime.mesh_eval;
-	}
-	else {
-		/* This mesh may be used for computing looptris, which should be done
-		 * on the original; otherwise every time the CoW is recreated it will
-		 * have to be recomputed. */
-		BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
-		return DEG_get_original_object(ob)->data;
-	}
+
+	/* Just return something sensible so that at least Blender won't crash. */
+	BLI_assert(!"Unknown mesh source");
+	return ob->runtime.mesh_eval;
 }
 
 /* create collision shape of mesh - convex hull */
