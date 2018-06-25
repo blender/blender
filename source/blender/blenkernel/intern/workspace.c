@@ -235,6 +235,9 @@ WorkSpaceLayout *BKE_workspace_layout_add(
 	WorkSpaceLayout *layout = MEM_callocN(sizeof(*layout), __func__);
 
 	BLI_assert(!workspaces_is_screen_used(bmain, screen));
+#ifndef DEBUG
+	UNUSED_VARS(bmain);
+#endif
 	layout->screen = screen;
 	workspace_layout_name_set(workspace, layout, name);
 	BLI_addtail(&workspace->layouts, layout);
