@@ -723,16 +723,16 @@ void GPU_material_compile(GPUMaterial *mat)
 	}
 }
 
-void GPU_materials_free(void)
+void GPU_materials_free(Main *bmain)
 {
 	Material *ma;
 	World *wo;
 	extern Material defmaterial;
 
-	for (ma = G.main->mat.first; ma; ma = ma->id.next)
+	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		GPU_material_free(&ma->gpumaterial);
 
-	for (wo = G.main->world.first; wo; wo = wo->id.next)
+	for (wo = bmain->world.first; wo; wo = wo->id.next)
 		GPU_material_free(&wo->gpumaterial);
 
 	GPU_material_free(&defmaterial.gpumaterial);

@@ -44,6 +44,7 @@ extern "C" {
 struct Image;
 struct ImageUser;
 struct ListBase;
+struct Main;
 struct Material;
 struct Object;
 struct Scene;
@@ -251,7 +252,7 @@ GPUMaterial *GPU_material_from_nodetree(
 void GPU_material_compile(GPUMaterial *mat);
 void GPU_material_free(struct ListBase *gpumaterial);
 
-void GPU_materials_free(void);
+void GPU_materials_free(struct Main *bmain);
 
 void GPU_material_orphans_init(void);
 void GPU_material_orphans_exit(void);

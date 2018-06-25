@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -1196,8 +1197,6 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	rcti rect;
 	ED_region_visible_rect(ar, &rect);
 
-	/* Leave room for previously drawn info. */
-	rect.ymax -= offset;
 
 	view3d_draw_border(C, ar);
 	view3d_draw_grease_pencil(C);
@@ -1271,11 +1270,12 @@ RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
 
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
+	Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
 	view3d_draw_view(C, ar);
 
-	GPU_free_images_old();
+	GPU_free_images_old(bmain);
 	GPU_pass_cache_garbage_collect();
 
 	/* XXX This is in order to draw UI batches with the DRW
@@ -1348,7 +1348,7 @@ void ED_view3d_draw_offscreen(
 	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
 		/* free images which can have changed on frame-change
 		 * warning! can be slow so only free animated images - campbell */
-		GPU_free_images_anim();
+		GPU_free_images_anim(G.main);  /* XXX :((( */
 	}
 
 	gpuPushProjectionMatrix();

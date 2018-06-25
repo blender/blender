@@ -1433,7 +1433,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	Render *render = engine->re;
 
 	if (G.background && DST.gl_context == NULL) {
-		WM_init_opengl();
+		WM_init_opengl(G_MAIN);
 	}
 
 	void *re_gl_context = RE_gl_context_get(render);
