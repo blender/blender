@@ -35,6 +35,7 @@
 
 #include "BKE_customdata.h"  /* for CustomDataMask */
 
+struct ColorBand;
 struct CustomData;
 struct Depsgraph;
 struct KeyBlock;
@@ -85,6 +86,10 @@ struct Mesh *mesh_get_eval_deform(
         struct Object *ob, CustomDataMask dataMask);
 
 void BKE_mesh_runtime_eval_to_meshkey(struct Mesh *me_deformed, struct Mesh *me, struct KeyBlock *kb);
+
+/* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
+void BKE_mesh_runtime_color_band_store(const struct ColorBand *coba, const char alert_color[4]);
+
 
 #ifndef NDEBUG
 char *BKE_mesh_runtime_debug_info(struct Mesh *me_eval);

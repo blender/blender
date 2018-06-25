@@ -1438,10 +1438,10 @@ enum {
 	CALC_WP_MIRROR_X            = (1 << 5),
 };
 
-typedef struct DMWeightColorInfo {
+typedef struct MERuntimeWeightColorInfo {
 	const ColorBand *coba;
 	const char *alert_color;
-} DMWeightColorInfo;
+} MERuntimeWeightColorInfo;
 
 
 static int dm_drawflag_calc(const ToolSettings *ts, const Mesh *me)
@@ -1453,7 +1453,7 @@ static int dm_drawflag_calc(const ToolSettings *ts, const Mesh *me)
 	        ((me->editflag & ME_EDIT_MIRROR_X) ? CALC_WP_MIRROR_X : 0));
 }
 
-static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcinfo, const float input)
+static void weightpaint_color(unsigned char r_col[4], MERuntimeWeightColorInfo *dm_wcinfo, const float input)
 {
 	float colf[4];
 
@@ -1476,7 +1476,7 @@ static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcin
 static void calc_weightpaint_vert_color(
         unsigned char r_col[4],
         const MDeformVert *dv,
-        DMWeightColorInfo *dm_wcinfo,
+        MERuntimeWeightColorInfo *dm_wcinfo,
         const int defbase_tot, const int defbase_act,
         const bool *defbase_sel, const int defbase_sel_tot,
         const int draw_flag)
@@ -1521,12 +1521,12 @@ static void calc_weightpaint_vert_color(
 	}
 }
 
-static DMWeightColorInfo G_dm_wcinfo;
+static MERuntimeWeightColorInfo G_me_runtime_wcinfo;
 
-void vDM_ColorBand_store(const ColorBand *coba, const char alert_color[4])
+void BKE_mesh_runtime_color_band_store(const ColorBand *coba, const char alert_color[4])
 {
-	G_dm_wcinfo.coba        = coba;
-	G_dm_wcinfo.alert_color = alert_color;
+	G_me_runtime_wcinfo.coba        = coba;
+	G_me_runtime_wcinfo.alert_color = alert_color;
 }
 
 /**
@@ -1537,7 +1537,7 @@ void vDM_ColorBand_store(const ColorBand *coba, const char alert_color[4])
  * so leave this as is - campbell
  */
 static void calc_weightpaint_vert_array(
-        Object *ob, DerivedMesh *dm, int const draw_flag, DMWeightColorInfo *dm_wcinfo,
+        Object *ob, DerivedMesh *dm, int const draw_flag, MERuntimeWeightColorInfo *dm_wcinfo,
         unsigned char (*r_wtcol_v)[4])
 {
 	BMEditMesh *em = (dm->type == DM_TYPE_EDITBMESH) ? BKE_editmesh_from_object(ob) : NULL;
@@ -1612,7 +1612,7 @@ static void calc_weightpaint_vert_array(
 }
 
 static void calc_weightpaint_vert_array_mesh(
-        Object *ob, Mesh *mesh, int const draw_flag, DMWeightColorInfo *dm_wcinfo,
+        Object *ob, Mesh *mesh, int const draw_flag, MERuntimeWeightColorInfo *dm_wcinfo,
         unsigned char (*r_wtcol_v)[4])
 {
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
@@ -1741,7 +1741,7 @@ void DM_update_weight_mcol(
 	}
 	else {
 		/* No weights given, take them from active vgroup(s). */
-		calc_weightpaint_vert_array(ob, dm, draw_flag, &G_dm_wcinfo, wtcol_v);
+		calc_weightpaint_vert_array(ob, dm, draw_flag, &G_me_runtime_wcinfo, wtcol_v);
 	}
 
 	if (dm->type == DM_TYPE_EDITBMESH) {
@@ -1815,7 +1815,7 @@ static void mesh_update_weight_mcol(
 	}
 	else {
 		/* No weights given, take them from active vgroup(s). */
-		calc_weightpaint_vert_array_mesh(ob, mesh, draw_flag, &G_dm_wcinfo, wtcol_v);
+		calc_weightpaint_vert_array_mesh(ob, mesh, draw_flag, &G_me_runtime_wcinfo, wtcol_v);
 	}
 
 	if (em) {

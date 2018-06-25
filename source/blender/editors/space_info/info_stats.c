@@ -34,6 +34,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
@@ -48,7 +49,6 @@
 #include "BKE_blender_version.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_paint.h"
@@ -92,15 +92,15 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 	switch (ob->type) {
 		case OB_MESH:
 		{
-			/* we assume derivedmesh is already built, this strictly does stats now. */
-			DerivedMesh *dm = ob->derivedFinal;
+			/* we assume evaluated mesh is already built, this strictly does stats now. */
+			Mesh *me_eval = ob->runtime.mesh_eval;
 			int totvert, totedge, totface, totloop;
 
-			if (dm) {
-				totvert = dm->getNumVerts(dm);
-				totedge = dm->getNumEdges(dm);
-				totface = dm->getNumPolys(dm);
-				totloop = dm->getNumLoops(dm);
+			if (me_eval) {
+				totvert = me_eval->totvert;
+				totedge = me_eval->totedge;
+				totface = me_eval->totpoly;
+				totloop = me_eval->totloop;
 
 				stats->totvert += totvert * totob;
 				stats->totedge += totedge * totob;

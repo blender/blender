@@ -48,9 +48,9 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_colorband.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_mesh_runtime.h"
 
 #include "BIF_gl.h"
 
@@ -1856,9 +1856,9 @@ void init_userdef_do_versions(Main *bmain)
 		U.fcu_inactive_alpha = 0.25f;
 	}
 
-	/* signal for derivedmesh to use colorband */
+	/* signal for evaluated mesh to use colorband */
 	/* run in case this was on and is now off in the user prefs [#28096] */
-	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, UI_GetTheme()->tv3d.vertex_unreferenced);
+	BKE_mesh_runtime_color_band_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, UI_GetTheme()->tv3d.vertex_unreferenced);
 
 	if (!USER_VERSION_ATLEAST(192, 0)) {
 		strcpy(U.sounddir, "/");

@@ -39,7 +39,6 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_appdir.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_sound.h"
 #include "BKE_addon.h"
 #include "BKE_studiolight.h"
@@ -101,9 +100,11 @@ static const EnumPropertyItem rna_enum_studio_light_orientation_items[] = {
 #include "DNA_screen_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_idprop.h"
+#include "BKE_main.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
 
@@ -365,7 +366,7 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 	Object *ob;
 
 	bTheme *btheme = UI_GetTheme();
-	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, btheme->tv3d.vertex_unreferenced);
+	BKE_mesh_runtime_color_band_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, btheme->tv3d.vertex_unreferenced);
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_WEIGHT_PAINT)
