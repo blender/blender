@@ -60,6 +60,7 @@
 extern "C"{
 	#include "BLF_api.h"
 	#include "BKE_DerivedMesh.h"
+	#include "BKE_global.h"
 }
 
 
@@ -148,7 +149,7 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, RAS_STORAGE_TYPE
 RAS_OpenGLRasterizer::~RAS_OpenGLRasterizer()
 {
 	// Restore the previous AF value
-	GPU_set_anisotropic(m_prevafvalue);
+	GPU_set_anisotropic(G_MAIN, m_prevafvalue);
 
 	if (m_storage)
 		delete m_storage;
@@ -1158,7 +1159,7 @@ void RAS_OpenGLRasterizer::SetFrontFace(bool ccw)
 
 void RAS_OpenGLRasterizer::SetAnisotropicFiltering(short level)
 {
-	GPU_set_anisotropic((float)level);
+	GPU_set_anisotropic(G_MAIN, (float)level);
 }
 
 short RAS_OpenGLRasterizer::GetAnisotropicFiltering()
@@ -1171,17 +1172,17 @@ void RAS_OpenGLRasterizer::SetMipmapping(MipmapOption val)
 	if (val == RAS_IRasterizer::RAS_MIPMAP_LINEAR)
 	{
 		GPU_set_linear_mipmap(1);
-		GPU_set_mipmap(1);
+		GPU_set_mipmap(G_MAIN, 1);
 	}
 	else if (val == RAS_IRasterizer::RAS_MIPMAP_NEAREST)
 	{
 		GPU_set_linear_mipmap(0);
-		GPU_set_mipmap(1);
+		GPU_set_mipmap(G_MAIN, 1);
 	}
 	else
 	{
 		GPU_set_linear_mipmap(0);
-		GPU_set_mipmap(0);
+		GPU_set_mipmap(G_MAIN, 0);
 	}
 }
 

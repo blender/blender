@@ -948,6 +948,7 @@ void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion *ar)
 
 void wm_draw_update(bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win;
 
@@ -955,7 +956,7 @@ void wm_draw_update(bContext *C)
 	BKE_subsurf_free_unused_buffers();
 #endif
 
-	GPU_free_unused_buffers();
+	GPU_free_unused_buffers(bmain);
 
 	for (win = wm->windows.first; win; win = win->next) {
 #ifdef WIN32

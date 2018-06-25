@@ -3021,7 +3021,7 @@ static void view3d_draw_objects(
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
-		GPU_free_images_old();
+		GPU_free_images_old(bmain);
 	}
 }
 
@@ -3206,7 +3206,7 @@ void ED_view3d_draw_offscreen(
 	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
 		/* free images which can have changed on frame-change
 		 * warning! can be slow so only free animated images - campbell */
-		GPU_free_images_anim();
+		GPU_free_images_anim(bmain);
 	}
 
 	/* setup view matrices before fx or unbinding the offscreen buffers will cause issues */
@@ -3260,7 +3260,7 @@ void ED_view3d_draw_offscreen(
 		}
 
 		/* freeing the images again here could be done after the operator runs, leaving for now */
-		GPU_free_images_anim();
+		GPU_free_images_anim(bmain);
 	}
 
 	/* restore size */

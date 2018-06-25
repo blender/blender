@@ -2216,22 +2216,22 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, bool use_open
 	return mat;
 }
 
-void GPU_materials_free(void)
+void GPU_materials_free(Main *bmain)
 {
 	Object *ob;
 	Material *ma;
 	World *wo;
 	extern Material defmaterial;
 
-	for (ma = G.main->mat.first; ma; ma = ma->id.next)
+	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		GPU_material_free(&ma->gpumaterial);
 
-	for (wo = G.main->world.first; wo; wo = wo->id.next)
+	for (wo = bmain->world.first; wo; wo = wo->id.next)
 		GPU_material_free(&wo->gpumaterial);
 
 	GPU_material_free(&defmaterial.gpumaterial);
 
-	for (ob = G.main->object.first; ob; ob = ob->id.next)
+	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		GPU_lamp_free(ob);
 }
 

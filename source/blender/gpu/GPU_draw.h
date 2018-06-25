@@ -113,25 +113,25 @@ void GPU_render_text(
 /* Mipmap settings
  * - these will free textures on changes */
 
-void GPU_set_mipmap(bool mipmap);
+void GPU_set_mipmap(struct Main *bmain, bool mipmap);
 bool GPU_get_mipmap(void);
 void GPU_set_linear_mipmap(bool linear);
 bool GPU_get_linear_mipmap(void);
-void GPU_paint_set_mipmap(bool mipmap);
+void GPU_paint_set_mipmap(struct Main *bmain, bool mipmap);
 
 /* Anisotropic filtering settings
  * - these will free textures on changes */
-void GPU_set_anisotropic(float value);
+void GPU_set_anisotropic(struct Main *bmain, float value);
 float GPU_get_anisotropic(void);
 
 /* enable gpu mipmapping */
-void GPU_set_gpu_mipmapping(int gpu_mipmap);
+void GPU_set_gpu_mipmapping(struct Main *bmain, int gpu_mipmap);
 
 /* Image updates and free
  * - these deal with images bound as opengl textures */
 
 void GPU_paint_update_image(struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
-void GPU_update_images_framechange(void);
+void GPU_update_images_framechange(struct Main *bmain);
 int GPU_update_image_time(struct Image *ima, double time);
 int GPU_verify_image(
         struct Image *ima, struct ImageUser *iuser,
@@ -144,16 +144,16 @@ void GPU_create_gl_tex_compressed(
         int textarget, struct Image *ima, struct ImBuf *ibuf);
 bool GPU_upload_dxt_texture(struct ImBuf *ibuf);
 void GPU_free_image(struct Image *ima);
-void GPU_free_images(void);
-void GPU_free_images_anim(void);
-void GPU_free_images_old(void);
+void GPU_free_images(struct Main *bmain);
+void GPU_free_images_anim(struct Main *bmain);
+void GPU_free_images_old(struct Main *bmain);
 
 /* smoke drawing functions */
 void GPU_free_smoke(struct SmokeModifierData *smd);
 void GPU_create_smoke(struct SmokeModifierData *smd, int highres);
 
 /* Delayed free of OpenGL buffers by main thread */
-void GPU_free_unused_buffers(void);
+void GPU_free_unused_buffers(struct Main *bmain);
 
 #ifdef WITH_OPENSUBDIV
 struct DerivedMesh;

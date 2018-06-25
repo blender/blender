@@ -1319,12 +1319,13 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 static ListBase queue_back;
 static void game_engine_save_state(bContext *C, wmWindow *win)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *obact = CTX_data_active_object(C);
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	if (obact && obact->mode & OB_MODE_TEXTURE_PAINT)
-		GPU_paint_set_mipmap(1);
+		GPU_paint_set_mipmap(bmain, 1);
 
 	queue_back = win->queue;
 
@@ -1333,10 +1334,11 @@ static void game_engine_save_state(bContext *C, wmWindow *win)
 
 static void game_engine_restore_state(bContext *C, wmWindow *win)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *obact = CTX_data_active_object(C);
 
 	if (obact && obact->mode & OB_MODE_TEXTURE_PAINT)
-		GPU_paint_set_mipmap(0);
+		GPU_paint_set_mipmap(bmain, 0);
 
 	/* check because closing win can set to NULL */
 	if (win) {
@@ -1358,7 +1360,7 @@ static void game_set_commmandline_options(GameData *gm)
 	if ((syshandle = SYS_GetSystem())) {
 		/* User defined settings */
 		test = (U.gameflags & USER_DISABLE_MIPMAP);
-		GPU_set_mipmap(!test);
+		GPU_set_mipmap(G_MAIN, !test);
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", test);
 
 		/* File specific settings: */

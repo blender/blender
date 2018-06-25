@@ -207,10 +207,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 		GPU_init();
 
-		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+		GPU_set_mipmap(G_MAIN, !(U.gameflags & USER_DISABLE_MIPMAP));
 		GPU_set_linear_mipmap(true);
-		GPU_set_anisotropic(U.anisotropic_filter);
-		GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
+		GPU_set_anisotropic(G_MAIN, U.anisotropic_filter);
+		GPU_set_gpu_mipmapping(G_MAIN, U.use_gpu_mipmap);
 
 #ifdef WITH_OPENSUBDIV
 		BKE_subsurf_osd_init();
@@ -590,7 +590,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 #endif
 
 		GPU_global_buffer_pool_free();
-		GPU_free_unused_buffers();
+		GPU_free_unused_buffers(G_MAIN);
 
 		GPU_exit();
 	}

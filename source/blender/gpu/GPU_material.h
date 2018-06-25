@@ -43,6 +43,7 @@ extern "C" {
 
 struct Image;
 struct ImageUser;
+struct Main;
 struct Material;
 struct Object;
 struct Image;
@@ -224,7 +225,7 @@ GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma,
 GPUMaterial *GPU_material_matcap(struct Scene *scene, struct Material *ma, bool use_opensubdiv);
 void GPU_material_free(struct ListBase *gpumaterial);
 
-void GPU_materials_free(void);
+void GPU_materials_free(struct Main *bmain);
 
 bool GPU_lamp_visible(GPULamp *lamp, struct SceneRenderLayer *srl, struct Material *ma);
 void GPU_material_bind(

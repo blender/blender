@@ -212,31 +212,31 @@ static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 
 static void rna_userdef_mipmap_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+	GPU_set_mipmap(bmain, !(U.gameflags & USER_DISABLE_MIPMAP));
 	rna_userdef_update(bmain, scene, ptr);
 }
 
 static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	GPU_set_anisotropic(U.anisotropic_filter);
+	GPU_set_anisotropic(bmain, U.anisotropic_filter);
 	rna_userdef_update(bmain, scene, ptr);
 }
 
 static void rna_userdef_gl_gpu_mipmaps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
+	GPU_set_gpu_mipmapping(bmain, U.use_gpu_mipmap);
 	rna_userdef_update(bmain, scene, ptr);
 }
 
 static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	GPU_free_images();
+	GPU_free_images(bmain);
 	rna_userdef_update(bmain, scene, ptr);
 }
 
 static void rna_userdef_gl_use_16bit_textures(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	GPU_free_images();
+	GPU_free_images(bmain);
 	rna_userdef_update(bmain, scene, ptr);
 }
 

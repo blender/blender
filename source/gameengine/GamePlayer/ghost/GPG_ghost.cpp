@@ -1102,11 +1102,11 @@ int main(
 										                stereoWindow, stereomode, alphaBackground, aasamples);
 
 									if (SYS_GetCommandLineInt(syshandle, "nomipmap", 0)) {
-										GPU_set_mipmap(0);
+										GPU_set_mipmap(G_MAIN, 0);
 									}
 
-									GPU_set_anisotropic(U.anisotropic_filter);
-									GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
+									GPU_set_anisotropic(G_MAIN, U.anisotropic_filter);
+									GPU_set_gpu_mipmapping(G_MAIN, U.use_gpu_mipmap);
 								}
 							}
 						}
