@@ -67,6 +67,9 @@
 /* Show an icon button after each RNA button to use to quickly set keyframes,
  * this is a way to display animation/driven/override status, see T54951. */
 #define UI_PROP_DECORATE
+/* Alternate draw mode where some buttons can use single icon width,
+ * giving more room for the text at the expense of nicely aligned text. */
+#define UI_PROP_SEP_ICON_WIDTH_EXCEPTION
 
 /************************ Structs and Defines *************************/
 
@@ -1595,9 +1598,19 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		}
 		else {
 			const PropertySubType subtype = RNA_property_subtype(prop);
-			uiLayout *layout_split = uiLayoutSplit(
-			        layout_row ? layout_row : layout,
-			        UI_ITEM_PROP_SEP_DIVIDE, true);
+			uiLayout *layout_split;
+#ifdef UI_PROP_SEP_ICON_WIDTH_EXCEPTION
+			if (type == PROP_BOOLEAN && (icon == ICON_NONE) && !icon_only) {
+				w = UI_UNIT_X;
+				layout_split = uiLayoutRow(layout_row ? layout_row : layout, true);
+			}
+			else
+#endif  /* UI_PROP_SEP_ICON_WIDTH_EXCEPTION */
+			{
+				layout_split = uiLayoutSplit(
+				        layout_row ? layout_row : layout,
+				        UI_ITEM_PROP_SEP_DIVIDE, true);
+			}
 			layout_split->space = 0;
 			uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
 			layout_sub->space = 0;
