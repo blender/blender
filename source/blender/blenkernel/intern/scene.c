@@ -1140,6 +1140,7 @@ int BKE_scene_camera_switch_update(Scene *scene)
 	Object *camera = BKE_scene_camera_switch_find(scene);
 	if (camera) {
 		scene->camera = camera;
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 		return 1;
 	}
 #else
