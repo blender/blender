@@ -2794,7 +2794,7 @@ NODE_DEFINE(AmbientOcclusionNode)
 
 	SOCKET_INT(samples, "Samples", 8);
 
-	SOCKET_IN_COLOR(color, "Color", make_float3(0.8f, 0.8f, 0.8f));
+	SOCKET_IN_COLOR(color, "Color", make_float3(1.0f, 1.0f, 1.0f));
 	SOCKET_IN_FLOAT(distance, "Distance", 1.0f);
 	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
 

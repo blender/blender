@@ -1137,7 +1137,7 @@ macro(remove_strict_c_flags_file
 	filenames)
 	foreach(_SOURCE ${ARGV})
 		if(CMAKE_COMPILER_IS_GNUCC OR
-		  (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+		   (CMAKE_C_COMPILER_ID MATCHES "Clang"))
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
 					COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS}"
@@ -1155,10 +1155,10 @@ macro(remove_strict_cxx_flags_file
 	remove_strict_c_flags_file(${filenames} ${ARHV})
 	foreach(_SOURCE ${ARGV})
 		if(CMAKE_COMPILER_IS_GNUCC OR
-		  (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+		   (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
-					COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS}"
+					COMPILE_FLAGS "${CXX_REMOVE_STRICT_FLAGS}"
 			)
 		endif()
 		if(MSVC)
