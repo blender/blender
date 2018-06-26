@@ -46,6 +46,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
@@ -54,6 +55,7 @@
 #include "BKE_brush.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_undo_system.h"
@@ -1126,6 +1128,10 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 		toggle_paint_cursor(C, 1);
 	}
+
+	Mesh *me = BKE_mesh_from_object(ob);
+	BLI_assert(me != NULL);
+	DEG_id_tag_update(&me->id, DEG_TAG_COPY_ON_WRITE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
