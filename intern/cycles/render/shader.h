@@ -20,10 +20,7 @@
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
 #  include "util/util_windows.h"
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wdeprecated-register"
 #  include <OSL/oslexec.h>
-#  pragma clang diagnostic pop
 #endif
 
 #include "render/attribute.h"

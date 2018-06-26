@@ -30,12 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-register"
-#pragma clang diagnostic ignored "-Wexpansion-to-defined"
 #include <OSL/genclosure.h>
 #include <OSL/oslclosure.h>
-#pragma clang diagnostic pop
 
 #include "kernel/osl/osl_closures.h"
 #include "kernel/osl/osl_shader.h"
