@@ -837,7 +837,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	float (*obmat)[4];
 	int a, b, hair = 0;
 	int totpart, totchild, totcollection = 0 /*, pa_num */;
-	RNG *rng;
 
 	int no_draw_flag = PARS_UNEXIST;
 
@@ -858,8 +857,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 	totpart = psys->totpart;
 	totchild = psys->totchild;
-
-	rng = BLI_rng_new_srandom(31415926u + (unsigned int)psys->seed);
 
 	if ((for_render || part->draw_as == PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 		ParticleSimulationData sim = {NULL};
@@ -901,6 +898,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 			totpart = psys->totcached;
 		}
 
+		RNG *rng = BLI_rng_new_srandom(31415926u + (unsigned int)psys->seed);
 		psys_check_group_weights(part);
 
 		psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
@@ -1121,6 +1119,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		}
 		else
 			*ob = obcopy;
+
+		BLI_rng_free(rng);
 	}
 
 	/* clean up */
@@ -1133,8 +1133,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		end_latt_deform(psys->lattice_deform_data);
 		psys->lattice_deform_data = NULL;
 	}
-
-	BLI_rng_free(rng);
 }
 
 static void make_duplis_particles(const DupliContext *ctx)
