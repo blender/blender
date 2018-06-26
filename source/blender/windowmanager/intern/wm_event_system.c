@@ -4347,14 +4347,23 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, struct wmWindow *win)
 	struct CursorKeymapInfo cd_prev = *((struct CursorKeymapInfo *)win->cursor_keymap_status);
 	cd->state_event = *win->eventstate;
 
-	ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->eventstate->x, win->eventstate->y);
-	if (sa == NULL) {
-		return;
-	}
-	ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, win->eventstate->x, win->eventstate->y);
+	/* Find active region and associated area. */
+	ARegion *ar = screen->active_region;
 	if (ar == NULL) {
 		return;
 	}
+
+	ScrArea *sa = NULL;
+	ED_screen_areas_iter(win, screen, sa_iter) {
+		if (BLI_findindex(&sa_iter->regionbase, ar) != -1) {
+			sa = sa_iter;
+			break;
+		}
+	}
+	if (sa == NULL) {
+		return;
+	}
+
 	/* Keep as-is. */
 	if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TEMPORARY, RGN_TYPE_HUD)) {
 		return;
