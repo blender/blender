@@ -1141,7 +1141,7 @@ static void screen_global_topbar_area_create(wmWindow *win)
 
 static void screen_global_statusbar_area_create(wmWindow *win)
 {
-	const short size_y = HEADERY;
+	const short size_y = 0.8f * HEADERY;
 	rcti rect;
 
 	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);

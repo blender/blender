@@ -3861,6 +3861,11 @@ static void ui_item_scale(uiLayout *litem, const float scale[2])
 	int x, y, w, h;
 
 	for (item = litem->items.last; item; item = item->prev) {
+		if (item->type != ITEM_BUTTON) {
+			uiLayout *subitem = (uiLayout *)item;
+			ui_item_scale(subitem, scale);
+		}
+
 		ui_item_size(item, &w, &h);
 		ui_item_offset(item, &x, &y);
 
