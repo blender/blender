@@ -1183,7 +1183,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 /**
 * Information drawn on top of the solid plates and composed data
 */
-void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
+void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(offset))
 {
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);

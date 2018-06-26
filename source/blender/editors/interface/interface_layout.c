@@ -3184,12 +3184,12 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 		              .litem_y = litem->y,
 		              .space_x = space_x,
 		              .space_y = space_y,
-		          }),
+		        }),
 		        &((UILayoutGridFlowOutput) {
 		              .tot_items = &gflow->tot_items,
 		              .global_avg_w = &avg_w,
 		              .global_max_h = &max_h,
-		          }));
+		        }));
 
 		if (gflow->tot_items == 0) {
 			litem->w = litem->h = 0;
@@ -3271,11 +3271,11 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 		              .space_y = space_y,
 		              .tot_columns = gflow->tot_columns,
 		              .tot_rows = gflow->tot_rows,
-		          }),
+		        }),
 		        &((UILayoutGridFlowOutput) {
 		              .tot_w = &tot_w,
 		              .tot_h = &tot_h,
-		          }));
+		        }));
 
 		litem->w = tot_w;
 		litem->h = tot_h;
@@ -3319,13 +3319,13 @@ static void ui_litem_layout_grid_flow(uiLayout *litem)
 	              .space_y = space_y,
 	              .tot_columns = gflow->tot_columns,
 	              .tot_rows = gflow->tot_rows,
-	          }),
+	        }),
 	        &((UILayoutGridFlowOutput) {
 	              .cos_x_array = cos_x,
 	              .cos_y_array = cos_y,
 	              .widths_array = widths,
 	              .heights_array = heights,
-	          }));
+	        }));
 
 	for (item = litem->items.first, i = 0; item; item = item->next, i++) {
 		const int col = gflow->row_major ? i % gflow->tot_columns : i / gflow->tot_rows;

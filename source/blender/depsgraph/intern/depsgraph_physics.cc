@@ -61,7 +61,7 @@ static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type
 			return DEG_PHYSICS_SMOKE_COLLISION;
 		case eModifierType_DynamicPaint:
 			return DEG_PHYSICS_DYNAMIC_BRUSH;
-	};
+	}
 
 	BLI_assert(!"Unknown collision modifier type");
 	return DEG_PHYSICS_RELATIONS_NUM;
