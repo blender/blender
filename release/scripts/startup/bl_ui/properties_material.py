@@ -198,14 +198,14 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
 
         layout.prop(mat, "blend_method")
 
-        if mat.blend_method != "OPAQUE":
+        if mat.blend_method != 'OPAQUE':
             layout.prop(mat, "transparent_shadow_method")
 
             row = layout.row()
-            row.active = ((mat.blend_method == "CLIP") or (mat.transparent_shadow_method == "CLIP"))
+            row.active = ((mat.blend_method == 'CLIP') or (mat.transparent_shadow_method == 'CLIP'))
             row.prop(mat, "alpha_threshold")
 
-        if mat.blend_method not in {"OPAQUE", "CLIP", "HASHED"}:
+        if mat.blend_method not in {'OPAQUE', 'CLIP', 'HASHED'}:
             layout.prop(mat, "show_transparent_backside")
 
         layout.prop(mat, "use_screen_refraction")

@@ -280,7 +280,6 @@ def basic_force_field_settings_ui(self, context, field):
     if field.type == 'FORCE':
         col.prop(field, "use_gravity_falloff", text="Gravitation")
 
-
     col.prop(field, "apply_to_location", text="Affect Location")
     col.prop(field, "apply_to_rotation", text="Affect Rotation")
     col.prop(field, "use_absorption")

@@ -38,7 +38,7 @@ class OUTLINER_HT_header(Header):
         layout.prop(space, "display_mode", icon_only=True)
 
         if display_mode in {'VIEW_LAYER'}:
-            layout.operator("outliner.collection_new", text="", icon="GROUP").nested = True
+            layout.operator("outliner.collection_new", text="", icon='GROUP').nested = True
 
         layout.separator_spacer()
 

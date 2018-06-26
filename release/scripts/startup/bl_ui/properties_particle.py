@@ -1738,7 +1738,6 @@ class PARTICLE_PT_force_fields_type1(ParticleButtonsPanel, Panel):
         basic_force_field_settings_ui(self, context, part.force_field_1)
 
 
-
 class PARTICLE_PT_force_fields_type2(ParticleButtonsPanel, Panel):
     bl_label = "Type 2"
     bl_parent_id = "PARTICLE_PT_force_fields"
@@ -1770,13 +1769,11 @@ class PARTICLE_PT_force_fields_type1_falloff(ParticleButtonsPanel, Panel):
         basic_force_field_falloff_ui(self, context, part.force_field_1)
 
 
-
 class PARTICLE_PT_force_fields_type2_falloff(ParticleButtonsPanel, Panel):
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "PARTICLE_PT_force_fields_type2"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-
 
     def draw(self, context):
         layout = self.layout
