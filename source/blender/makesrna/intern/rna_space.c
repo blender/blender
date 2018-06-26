@@ -251,7 +251,7 @@ const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
-	{V3D_SHADING_SINGLE_COLOR,   "SOLID",    0, "Single",   "Show scene in a single color"},
+	{V3D_SHADING_SINGLE_COLOR,   "SINGLE",   0, "Single",   "Show scene in a single color"},
 	{V3D_SHADING_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show material color"},
 	{V3D_SHADING_RANDOM_COLOR,   "RANDOM",   0, "Random",   "Show random object color"},
 	{V3D_SHADING_TEXTURE_COLOR,  "TEXTURE",  0, "Texture",  "Show texture"},
