@@ -43,22 +43,16 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
     if not genericFiltersOnly:
         if bpy.data.collections:
             row = layout.row(align=True)
-            row.prop(dopesheet, "show_only_collection_objects", text="")
-            if dopesheet.show_only_collection_objects:
-                row.prop(dopesheet, "filter_collection", text="")
+            row.prop(dopesheet, "filter_collection", text="")
 
     if not is_nla:
         row = layout.row(align=True)
-        row.prop(dopesheet, "show_only_matching_fcurves", text="")
-        if dopesheet.show_only_matching_fcurves:
-            row.prop(dopesheet, "filter_fcurve_name", text="")
-            row.prop(dopesheet, "use_multi_word_filter", text="")
+        row.prop(dopesheet, "filter_fcurve_name", text="")
+        row.prop(dopesheet, "use_multi_word_filter", text="")
     else:
         row = layout.row(align=True)
-        row.prop(dopesheet, "use_filter_text", text="")
-        if dopesheet.use_filter_text:
-            row.prop(dopesheet, "filter_text", text="")
-            row.prop(dopesheet, "use_multi_word_filter", text="")
+        row.prop(dopesheet, "filter_text", text="")
+        row.prop(dopesheet, "use_multi_word_filter", text="")
 
 #######################################
 # Dopesheet Filtering Popovers
@@ -94,25 +88,16 @@ class DopesheetFilterPopoverBase:
 
         if (not generic_filters_only) and (bpy.data.collections):
             row = layout.row(align=True)
-            row.prop(dopesheet, "show_only_collection_objects", text="")
-            sub = row.row(align=True)
-            sub.active = dopesheet.show_only_collection_objects
-            sub.prop(dopesheet, "filter_collection", text="")
+            row.prop(dopesheet, "filter_collection", text="")
 
         if not is_nla:
             row = layout.row(align=True)
-            row.prop(dopesheet, "show_only_matching_fcurves", text="")
-            sub = row.row(align=True)
-            sub.active = dopesheet.show_only_matching_fcurves
-            sub.prop(dopesheet, "filter_fcurve_name", text="")
-            sub.prop(dopesheet, "use_multi_word_filter", text="")
+            row.prop(dopesheet, "filter_fcurve_name", text="")
+            row.prop(dopesheet, "use_multi_word_filter", text="")
         else:
             row = layout.row(align=True)
-            row.prop(dopesheet, "use_filter_text", text="")
-            sub = row.row(align=True)
-            sub.active = dopesheet.use_filter_text
-            sub.prop(dopesheet, "filter_text", text="")
-            sub.prop(dopesheet, "use_multi_word_filter", text="")
+            row.prop(dopesheet, "filter_text", text="")
+            row.prop(dopesheet, "use_multi_word_filter", text="")
 
     # Standard = Present in all panels
     @classmethod
@@ -275,10 +260,8 @@ class DOPESHEET_HT_editor_buttons(Header):
                 row.prop(st.dopesheet, "show_hidden", text="")
 
             row = layout.row(align=True)
-            row.prop(st.dopesheet, "use_filter_text", text="")
-            if st.dopesheet.use_filter_text:
-                row.prop(st.dopesheet, "filter_text", text="")
-                row.prop(st.dopesheet, "use_multi_word_filter", text="")
+            row.prop(st.dopesheet, "filter_text", text="")
+            row.prop(st.dopesheet, "use_multi_word_filter", text="")
 
         layout.separator_spacer()
 

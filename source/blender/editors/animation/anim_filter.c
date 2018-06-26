@@ -1221,7 +1221,7 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, eAnim_Chan
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
 						/* name based filtering... */
-						if ( ((ads) && (ads->filterflag & ADS_FILTER_BY_FCU_NAME)) && (owner_id) ) {
+						if ( ((ads) && (ads->searchstr[0] != '\0')) && (owner_id) ) {
 							if (skip_fcurve_with_name(ads, fcu, channel_type, owner, owner_id))
 								continue;
 						}
@@ -1453,7 +1453,7 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 				/* only include if this track is active */
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
 					/* name based filtering... */
-					if (((ads) && (ads->filterflag & ADS_FILTER_BY_FCU_NAME)) && (owner_id)) {
+					if (((ads) && (ads->searchstr[0] != '\0')) && (owner_id)) {
 						bool track_ok = false, strip_ok = false;
 
 						/* check if the name of the track, or the strips it has are ok... */
@@ -1633,7 +1633,7 @@ static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data, bDopeShee
 				/* active... */
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (gpl->flag & GP_LAYER_ACTIVE)) {
 					/* skip layer if the name doesn't match the filter string */
-					if ((ads) && (ads->filterflag & ADS_FILTER_BY_FCU_NAME)) {
+					if ((ads) && (ads->searchstr[0] != '\0')) {
 						if (name_matches_dopesheet_filter(ads, gpl->info) == false)
 							continue;
 					}
@@ -1741,7 +1741,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 				 * objects by the grouped status is on
 				 *	- used to ease the process of doing multiple-character choreographies
 				 */
-				if (ads->filterflag & ADS_FILTER_ONLYOBGROUP) {
+				if (ads->filter_grp != NULL) {
 					if (BKE_collection_has_object_recursive(ads->filter_grp, ob) == 0)
 						continue;
 				}
@@ -2908,7 +2908,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
 	 * objects by the grouped status is on
 	 *	- used to ease the process of doing multiple-character choreographies
 	 */
-	if (ads->filterflag & ADS_FILTER_ONLYOBGROUP) {
+	if (ads->filter_grp != NULL) {
 		if (BKE_collection_has_object_recursive(ads->filter_grp, ob) == 0)
 			return false;
 	}

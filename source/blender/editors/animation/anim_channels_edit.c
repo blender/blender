@@ -2300,17 +2300,8 @@ static int animchannels_find_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
-	/* update filter text, and ensure that filter is enabled if there's something there
-	 * NOTE: we turn the filter off if there's nothing (this is a quick shortcut for dismissing)
-	 */
+	/* update filter text */
 	RNA_string_get(op->ptr, "query", ac.ads->searchstr);
-
-	if (ac.ads->searchstr[0]) {
-		ac.ads->filterflag |= ADS_FILTER_BY_FCU_NAME;
-	}
-	else {
-		ac.ads->filterflag &= ~ADS_FILTER_BY_FCU_NAME;
-	}
 
 	/* redraw */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
