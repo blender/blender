@@ -230,6 +230,12 @@ int PyC_ParseBool(PyObject *o, void *p)
 	return 1;
 }
 
+/* silly function, we dont use arg. just check its compatible with __deepcopy__ */
+int PyC_CheckArgs_DeepCopy(PyObject *args)
+{
+	PyObject *dummy_pydict;
+	return PyArg_ParseTuple(args, "|O!:__deepcopy__", &PyDict_Type, &dummy_pydict) != 0;
+}
 
 #ifndef MATH_STANDALONE
 

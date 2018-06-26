@@ -19,7 +19,11 @@
 
 /* OpenImageIO is used for all image file reading and writing. */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Wexpansion-to-defined"
 #include <OpenImageIO/imageio.h>
+#pragma clang diagnostic pop
 
 #include "util/util_vector.h"
 

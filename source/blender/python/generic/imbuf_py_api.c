@@ -45,6 +45,8 @@
 #include <errno.h>
 #include "BLI_fileops.h"
 
+static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf);
+
 /* -------------------------------------------------------------------- */
 /** \name Type & Utilities
  * \{ */
@@ -109,6 +111,27 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(py_imbuf_copy_doc,
+".. method:: copy()\n"
+"\n"
+"   :return: A copy of the image.\n"
+"   :rtype: :class:`ImBuf`\n"
+);
+static PyObject *py_imbuf_copy(Py_ImBuf *self)
+{
+	PY_IMBUF_CHECK_OBJ(self);
+	return Py_ImBuf_CreatePyObject(self->ibuf);
+}
+
+static PyObject *py_imbuf_deepcopy(Py_ImBuf *self, PyObject *args)
+{
+	if (!PyC_CheckArgs_DeepCopy(args)) {
+		return NULL;
+	}
+	return py_imbuf_copy(self);
+}
+
+
 PyDoc_STRVAR(py_imbuf_free_doc,
 ".. method:: free()\n"
 "\n"
@@ -126,6 +149,9 @@ static PyObject *py_imbuf_free(Py_ImBuf *self)
 static struct PyMethodDef Py_ImBuf_methods[] = {
 	{"resize", (PyCFunction)py_imbuf_resize, METH_VARARGS | METH_KEYWORDS, (char *)py_imbuf_resize_doc},
 	{"free", (PyCFunction)py_imbuf_free, METH_NOARGS, (char *)py_imbuf_free_doc},
+	{"copy", (PyCFunction)py_imbuf_copy, METH_NOARGS, (char *)py_imbuf_copy_doc},
+	{"__copy__", (PyCFunction)py_imbuf_copy, METH_NOARGS, (char *)py_imbuf_copy_doc},
+	{"__deepcopy__", (PyCFunction)py_imbuf_deepcopy, METH_VARARGS, (char *)py_imbuf_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 

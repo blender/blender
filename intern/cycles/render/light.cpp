@@ -587,7 +587,7 @@ void LightManager::device_update_background(Device *device,
 	double time_start = time_dt();
 	if(max(res.x, res.y) < 512) {
 		/* Small enough resolution, faster to do single-threaded. */
-		background_cdf(0, res.x, res.x, res.y, &pixels, cond_cdf);
+		background_cdf(0, res.y, res.x, res.y, &pixels, cond_cdf);
 	}
 	else {
 		/* Threaded evaluation for large resolution. */
