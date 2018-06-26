@@ -19,15 +19,17 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Header, Menu
+from bpy.types import Header, Menu, Panel
+from .space_dopesheet import (
+    DopesheetFilterPopoverBase,
+    dopesheet_filter,
+    )
 
 
 class GRAPH_HT_header(Header):
     bl_space_type = 'GRAPH_EDITOR'
 
     def draw(self, context):
-        from .space_dopesheet import dopesheet_filter
-
         layout = self.layout
         toolsettings = context.tool_settings
 
@@ -38,6 +40,12 @@ class GRAPH_HT_header(Header):
 
         # Now a exposed as a sub-space type
         # layout.prop(st, "mode", text="")
+
+        layout.popover(space_type='GRAPH_EDITOR',
+                           region_type='HEADER',
+                           panel_type="GRAPH_PT_filters",
+                           text="",
+                           icon='FILTER')
 
         GRAPH_MT_editor_menus.draw_collapsible(context, layout)
 
@@ -70,6 +78,21 @@ class GRAPH_HT_header(Header):
             row.operator("graph.ghost_curves_clear", text="", icon='GHOST_DISABLED')
         else:
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
+
+
+class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):
+    bl_space_type = 'GRAPH_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Filters"
+
+    def draw(self, context):
+        layout = self.layout
+
+        DopesheetFilterPopoverBase.draw_generic_filters(context, layout)
+        layout.separator()
+        DopesheetFilterPopoverBase.draw_search_filters(context, layout)
+        layout.separator()
+        DopesheetFilterPopoverBase.draw_standard_filters(context, layout)
 
 
 class GRAPH_MT_editor_menus(Menu):
@@ -382,6 +405,7 @@ classes = (
     GRAPH_MT_delete,
     GRAPH_MT_specials,
     GRAPH_MT_channel_specials,
+    GRAPH_PT_filters,
 )
 
 if __name__ == "__main__":  # only for live edit.

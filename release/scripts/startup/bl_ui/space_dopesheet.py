@@ -19,12 +19,12 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Header, Menu
+from bpy.types import Header, Menu, Panel
 from .space_time import *
 
 
 #######################################
-# DopeSheet Filtering
+# DopeSheet Filtering - Header Buttons
 
 # used for DopeSheet, NLA, and Graph Editors
 def dopesheet_filter(layout, context, genericFiltersOnly=False):
@@ -60,49 +60,148 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
             row.prop(dopesheet, "filter_text", text="")
             row.prop(dopesheet, "use_multi_word_filter", text="")
 
-    if not genericFiltersOnly:
-        row = layout.row(align=True)
-        row.prop(dopesheet, "show_datablock_filters", text="Filters")
+#######################################
+# Dopesheet Filtering Popovers
 
-        if dopesheet.show_datablock_filters:
-            row.prop(dopesheet, "show_scenes", text="")
-            row.prop(dopesheet, "show_worlds", text="")
-            row.prop(dopesheet, "show_nodes", text="")
+# Generic Layout - Used as base for filtering popovers used in all animation editors
+# Used for DopeSheet, NLA, and Graph Editors
+class DopesheetFilterPopoverBase:
+    bl_region_type = 'HEADER'
+    bl_label = "Filters"
 
-            row.prop(dopesheet, "show_transforms", text="")
+    # Generic = Affects all datatypes
+    # XXX: Perhaps we want these to stay in the header instead, for easy/fast access
+    @classmethod
+    def draw_generic_filters(cls, context, layout):
+        dopesheet = context.space_data.dopesheet
+        is_nla = context.area.type == 'NLA_EDITOR'
 
-            if bpy.data.meshes:
-                row.prop(dopesheet, "show_meshes", text="")
-            if bpy.data.shape_keys:
-                row.prop(dopesheet, "show_shapekeys", text="")
-            if bpy.data.meshes:
-                row.prop(dopesheet, "show_modifiers", text="")
-            if bpy.data.materials:
-                row.prop(dopesheet, "show_materials", text="")
-            if bpy.data.lamps:
-                row.prop(dopesheet, "show_lamps", text="")
-            if bpy.data.textures:
-                row.prop(dopesheet, "show_textures", text="")
-            if bpy.data.cameras:
-                row.prop(dopesheet, "show_cameras", text="")
-            if bpy.data.curves:
-                row.prop(dopesheet, "show_curves", text="")
-            if bpy.data.metaballs:
-                row.prop(dopesheet, "show_metaballs", text="")
-            if bpy.data.lattices:
-                row.prop(dopesheet, "show_lattices", text="")
-            if bpy.data.armatures:
-                row.prop(dopesheet, "show_armatures", text="")
-            if bpy.data.particles:
-                row.prop(dopesheet, "show_particles", text="")
-            if bpy.data.speakers:
-                row.prop(dopesheet, "show_speakers", text="")
-            if bpy.data.linestyles:
-                row.prop(dopesheet, "show_linestyles", text="")
-            if bpy.data.grease_pencil:
-                row.prop(dopesheet, "show_gpencil", text="")
+        col = layout.column(align=True)
+        col.prop(dopesheet, "show_only_selected", icon='NONE')
+        col.prop(dopesheet, "show_hidden", icon='NONE')
 
-            layout.prop(dopesheet, "use_datablock_sort", text="")
+        if is_nla:
+            col.prop(dopesheet, "show_missing_nla", icon='NONE')
+        else:  # graph and dopesheet editors - F-Curves and drivers only
+            col.prop(dopesheet, "show_only_errors", icon='NONE')
+
+    # Name/Membership Filters
+    # XXX: Perhaps these should just stay in the headers (exclusively)?
+    @classmethod
+    def draw_search_filters(cls, context, layout, generic_filters_only=False):
+        dopesheet = context.space_data.dopesheet
+        is_nla = context.area.type == 'NLA_EDITOR'
+
+        if (not generic_filters_only) and (bpy.data.collections):
+            row = layout.row(align=True)
+            row.prop(dopesheet, "show_only_collection_objects", text="")
+            sub = row.row(align=True)
+            sub.active = dopesheet.show_only_collection_objects
+            sub.prop(dopesheet, "filter_collection", text="")
+
+        if not is_nla:
+            row = layout.row(align=True)
+            row.prop(dopesheet, "show_only_matching_fcurves", text="")
+            sub = row.row(align=True)
+            sub.active = dopesheet.show_only_matching_fcurves
+            sub.prop(dopesheet, "filter_fcurve_name", text="")
+            sub.prop(dopesheet, "use_multi_word_filter", text="")
+        else:
+            row = layout.row(align=True)
+            row.prop(dopesheet, "use_filter_text", text="")
+            sub = row.row(align=True)
+            sub.active = dopesheet.use_filter_text
+            sub.prop(dopesheet, "filter_text", text="")
+            sub.prop(dopesheet, "use_multi_word_filter", text="")
+
+    # Standard = Present in all panels
+    @classmethod
+    def draw_standard_filters(cls, context, layout):
+        dopesheet = context.space_data.dopesheet
+
+        # Object Data Filters
+        layout.label("Include Sub-Object Data:")
+        split = layout.split()
+
+        # TODO: Add per-channel/axis convenience toggles?
+        col = split.column()
+        col.prop(dopesheet, "show_transforms", text="Transforms")
+
+        col = split.column()
+        col.prop(dopesheet, "show_modifiers", text="Modifiers")
+
+        layout.separator()
+
+        # datablock filters
+        layout.label("Include From Types:")
+        flow = layout.grid_flow(row_major=True, num_columns=2, even_rows=False, align=False)
+
+        flow.prop(dopesheet, "show_scenes", text="Scenes")
+        flow.prop(dopesheet, "show_worlds", text="Worlds")
+        flow.prop(dopesheet, "show_nodes", text="Node Trees")
+
+        if bpy.data.armatures:
+            flow.prop(dopesheet, "show_armatures", text="Armatures")
+        if bpy.data.cameras:
+            flow.prop(dopesheet, "show_cameras", text="Cameras")
+        if bpy.data.grease_pencil:
+            flow.prop(dopesheet, "show_gpencil", text="Grease Pencil Objects")
+        if bpy.data.lamps:
+            flow.prop(dopesheet, "show_lamps", text="Lamps")
+        if bpy.data.materials:
+            flow.prop(dopesheet, "show_materials", text="Materials")
+        if bpy.data.textures:
+            flow.prop(dopesheet, "show_textures", text="Textures")
+        if bpy.data.meshes:
+            flow.prop(dopesheet, "show_meshes", text="Meshes")
+        if bpy.data.shape_keys:
+            flow.prop(dopesheet, "show_shapekeys", text="Shape Keys")
+        if bpy.data.curves:
+            flow.prop(dopesheet, "show_curves", text="Curves")
+        if bpy.data.particles:
+            flow.prop(dopesheet, "show_particles", text="Particles")
+        if bpy.data.lattices:
+            flow.prop(dopesheet, "show_lattices", text="Lattices")
+        if bpy.data.linestyles:
+            flow.prop(dopesheet, "show_linestyles", text="Line Styles")
+        if bpy.data.metaballs:
+            flow.prop(dopesheet, "show_metaballs", text="Metas")
+        if bpy.data.speakers:
+            flow.prop(dopesheet, "show_speakers", text="Speakers")
+
+        layout.separator()
+
+        # performance-related options (users will mostly have these enabled)
+        col = layout.column(align=True)
+        col.label("Options:")
+        col.prop(dopesheet, "use_datablock_sort", icon='NONE')
+
+
+# Popover for Dopesheet Editor(s) - Dopesheet, Action, Shapekey, GPencil, Mask, etc.
+class DOPESHEET_PT_filters(DopesheetFilterPopoverBase, Panel):
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Filters"
+
+    def draw(self, context):
+        layout = self.layout
+
+        dopesheet = context.space_data.dopesheet
+        ds_mode = context.space_data.mode
+
+        layout.prop(dopesheet, "show_summary", text="Summary")
+
+        DopesheetFilterPopoverBase.draw_generic_filters(context, layout)
+
+        if ds_mode in {'DOPESHEET', 'ACTION', 'GPENCIL'}:
+            layout.separator()
+            generic_filters_only = ds_mode != 'DOPESHEET'
+            DopesheetFilterPopoverBase.draw_search_filters(context, layout,
+                                                           generic_filters_only=generic_filters_only)
+
+        if ds_mode == 'DOPESHEET':
+            layout.separator()
+            DopesheetFilterPopoverBase.draw_standard_filters(context, layout)
 
 
 #######################################
@@ -124,12 +223,16 @@ class DOPESHEET_HT_header(Header):
             TIME_HT_editor_buttons.draw_header(context, layout)
         else:
             layout.prop(st, "ui_mode", text="")
+            layout.popover(space_type='DOPESHEET_EDITOR',
+                           region_type='HEADER',
+                           panel_type="DOPESHEET_PT_filters",
+                           text="",
+                           icon='FILTER')
             DOPESHEET_MT_editor_menus.draw_collapsible(context, layout)
             DOPESHEET_HT_editor_buttons.draw_header(context, layout)
 
 
 # Header for "normal" dopesheet editor modes (e.g. Dope Sheet, Action, Shape Keys, etc.)
-# XXX: Temporary, until we have editor submodes in the actual editors menu
 class DOPESHEET_HT_editor_buttons(Header):
     bl_idname = "DOPESHEET_HT_editor_buttons"
     bl_space_type = 'DOPESHEET_EDITOR'
@@ -154,7 +257,7 @@ class DOPESHEET_HT_editor_buttons(Header):
             row.operator("action.push_down", text="Push Down", icon='NLA_PUSHDOWN')
             row.operator("action.stash", text="Stash", icon='FREEZE')
 
-        layout.prop(st.dopesheet, "show_summary", text="Summary")
+        # layout.separator_spacer()
 
         if st.mode == 'DOPESHEET':
             dopesheet_filter(layout, context)
@@ -543,6 +646,7 @@ classes = (
     DOPESHEET_MT_delete,
     DOPESHEET_MT_specials,
     DOPESHEET_MT_channel_specials,
+    DOPESHEET_PT_filters,
 )
 
 if __name__ == "__main__":  # only for live edit.
