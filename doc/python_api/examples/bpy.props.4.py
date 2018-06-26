@@ -14,6 +14,7 @@ import bpy
 def update_func(self, context):
     print("my test function", self)
 
+
 bpy.types.Scene.testprop = bpy.props.FloatProperty(update=update_func)
 
 bpy.context.scene.testprop = 11.0

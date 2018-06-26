@@ -14,4 +14,5 @@ import bpy
 def menu_draw(self, context):
     self.layout.operator("wm.save_homefile")
 
+
 bpy.types.INFO_MT_file.append(menu_draw)

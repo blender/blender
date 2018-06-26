@@ -9,9 +9,9 @@ class ViewOperator(bpy.types.Operator):
     bl_label = "Simple View Operator"
 
     offset = FloatVectorProperty(
-            name="Offset",
-            size=3,
-            )
+        name="Offset",
+        size=3,
+    )
 
     def execute(self, context):
         v3d = context.space_data

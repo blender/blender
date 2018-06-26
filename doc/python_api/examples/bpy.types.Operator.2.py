@@ -42,6 +42,7 @@ def menu_func(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
     self.layout.operator(ExportSomeData.bl_idname, text="Text Export Operator")
 
+
 # Register and add to the file selector
 bpy.utils.register_class(ExportSomeData)
 bpy.types.INFO_MT_file_export.append(menu_func)

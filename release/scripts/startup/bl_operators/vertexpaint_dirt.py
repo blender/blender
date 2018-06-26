@@ -139,36 +139,36 @@ class VertexPaintDirt(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     blur_strength = FloatProperty(
-            name="Blur Strength",
-            description="Blur strength per iteration",
-            min=0.01, max=1.0,
-            default=1.0,
-            )
+        name="Blur Strength",
+        description="Blur strength per iteration",
+        min=0.01, max=1.0,
+        default=1.0,
+    )
     blur_iterations = IntProperty(
-            name="Blur Iterations",
-            description="Number of times to blur the colors (higher blurs more)",
-            min=0, max=40,
-            default=1,
-            )
+        name="Blur Iterations",
+        description="Number of times to blur the colors (higher blurs more)",
+        min=0, max=40,
+        default=1,
+    )
     clean_angle = FloatProperty(
-            name="Highlight Angle",
-            description="Less than 90 limits the angle used in the tonal range",
-            min=0.0, max=pi,
-            default=pi,
-            unit="ROTATION",
-            )
+        name="Highlight Angle",
+        description="Less than 90 limits the angle used in the tonal range",
+        min=0.0, max=pi,
+        default=pi,
+        unit="ROTATION",
+    )
     dirt_angle = FloatProperty(
-            name="Dirt Angle",
-            description="Less than 90 limits the angle used in the tonal range",
-            min=0.0, max=pi,
-            default=0.0,
-            unit="ROTATION",
-            )
+        name="Dirt Angle",
+        description="Less than 90 limits the angle used in the tonal range",
+        min=0.0, max=pi,
+        default=0.0,
+        unit="ROTATION",
+    )
     dirt_only = BoolProperty(
-            name="Dirt Only",
-            description="Don't calculate cleans for convex areas",
-            default=False,
-            )
+        name="Dirt Only",
+        description="Don't calculate cleans for convex areas",
+        default=False,
+    )
 
     @classmethod
     def poll(cls, context):

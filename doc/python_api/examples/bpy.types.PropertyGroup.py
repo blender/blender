@@ -31,6 +31,7 @@ class MyPropertyGroup(bpy.types.PropertyGroup):
     custom_1 = bpy.props.FloatProperty(name="My Float")
     custom_2 = bpy.props.IntProperty(name="My Int")
 
+
 bpy.utils.register_class(MyPropertyGroup)
 
 bpy.types.Object.my_prop_grp = bpy.props.PointerProperty(type=MyPropertyGroup)

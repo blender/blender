@@ -9,6 +9,7 @@ from bpy.types import (
     ManipulatorGroup,
 )
 
+
 class MyLampWidgetGroup(ManipulatorGroup):
     bl_idname = "OBJECT_WGT_lamp_test"
     bl_label = "Test Lamp Widget"
@@ -41,5 +42,6 @@ class MyLampWidgetGroup(ManipulatorGroup):
         ob = context.object
         mpr = self.energy_widget
         mpr.matrix_basis = ob.matrix_world.normalized()
+
 
 bpy.utils.register_class(MyLampWidgetGroup)

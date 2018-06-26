@@ -42,6 +42,7 @@ class SimpleMouseOperator(bpy.types.Operator):
         self.y = event.mouse_y
         return self.execute(context)
 
+
 bpy.utils.register_class(SimpleMouseOperator)
 
 # Test call to the newly defined operator.

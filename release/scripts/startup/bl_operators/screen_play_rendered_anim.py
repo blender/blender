@@ -103,7 +103,7 @@ class PlayRenderedAnim(Operator):
             file_b = rd.frame_path(frame=int(frame_tmp / 10))
 
             file = ("".join((c if file_b[i] == c else "#")
-                    for i, c in enumerate(file_a)))
+                            for i, c in enumerate(file_a)))
             del file_a, file_b, frame_tmp
             file = bpy.path.abspath(file)  # expand '//'
         else:
@@ -115,7 +115,7 @@ class PlayRenderedAnim(Operator):
                 self.report({'WARNING'}, "File %r not found" % file)
                 path_valid = False
 
-            #one last try for full range if we used preview range
+            # one last try for full range if we used preview range
             if scene.use_preview_range and not path_valid:
                 file = rd.frame_path(frame=scene.frame_start, preview=False)
                 file = bpy.path.abspath(file)  # expand '//'

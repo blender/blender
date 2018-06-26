@@ -91,14 +91,18 @@ class TIME_MT_editor_menus(Menu):
 
     @staticmethod
     def draw_menus(layout, context):
-        layout.popover(space_type='DOPESHEET_EDITOR',
-                       region_type='HEADER',
-                       panel_type="TIME_PT_playback",
-                       text="Playback")
-        layout.popover(space_type='DOPESHEET_EDITOR',
-                       region_type='HEADER',
-                       panel_type="TIME_PT_keyframing_settings",
-                       text="Keying")
+        layout.popover(
+            space_type='DOPESHEET_EDITOR',
+            region_type='HEADER',
+            panel_type="TIME_PT_playback",
+            text="Playback",
+        )
+        layout.popover(
+            space_type='DOPESHEET_EDITOR',
+            region_type='HEADER',
+            panel_type="TIME_PT_keyframing_settings",
+            text="Keying",
+        )
         layout.menu("TIME_MT_view")
         layout.menu("TIME_MT_marker")
 

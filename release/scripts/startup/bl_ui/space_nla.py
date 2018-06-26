@@ -23,7 +23,7 @@ from bpy.types import Header, Menu, Panel
 from .space_dopesheet import (
     DopesheetFilterPopoverBase,
     dopesheet_filter,
-    )
+)
 
 
 class NLA_HT_header(Header):
@@ -37,11 +37,13 @@ class NLA_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        layout.popover(space_type='NLA_EDITOR',
-                       region_type='HEADER',
-                       panel_type="NLA_PT_filters",
-                       text="",
-                       icon='FILTER')
+        layout.popover(
+            space_type='NLA_EDITOR',
+            region_type='HEADER',
+            panel_type="NLA_PT_filters",
+            text="",
+            icon='FILTER',
+        )
 
         NLA_MT_editor_menus.draw_collapsible(context, layout)
 

@@ -23,7 +23,7 @@ from bpy.types import Header, Menu, Panel
 from .space_dopesheet import (
     DopesheetFilterPopoverBase,
     dopesheet_filter,
-    )
+)
 
 
 class GRAPH_HT_header(Header):
@@ -41,11 +41,13 @@ class GRAPH_HT_header(Header):
         # Now a exposed as a sub-space type
         # layout.prop(st, "mode", text="")
 
-        layout.popover(space_type='GRAPH_EDITOR',
-                           region_type='HEADER',
-                           panel_type="GRAPH_PT_filters",
-                           text="",
-                           icon='FILTER')
+        layout.popover(
+            space_type='GRAPH_EDITOR',
+            region_type='HEADER',
+            panel_type="GRAPH_PT_filters",
+            text="",
+            icon='FILTER',
+        )
 
         GRAPH_MT_editor_menus.draw_collapsible(context, layout)
 

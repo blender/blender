@@ -135,63 +135,63 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             self.abso_minor_rad = self.major_radius - self.minor_radius
 
     major_segments = IntProperty(
-            name="Major Segments",
-            description="Number of segments for the main ring of the torus",
-            min=3, max=256,
-            default=48,
-            )
+        name="Major Segments",
+        description="Number of segments for the main ring of the torus",
+        min=3, max=256,
+        default=48,
+    )
     minor_segments = IntProperty(
-            name="Minor Segments",
-            description="Number of segments for the minor ring of the torus",
-            min=3, max=256,
-            default=12,
-            )
+        name="Minor Segments",
+        description="Number of segments for the minor ring of the torus",
+        min=3, max=256,
+        default=12,
+    )
     mode = bpy.props.EnumProperty(
-            name="Torus Dimensions",
-            items=(("MAJOR_MINOR", "Major/Minor",
-                    "Use the major/minor radii for torus dimensions"),
-                   ("EXT_INT", "Exterior/Interior",
-                    "Use the exterior/interior radii for torus dimensions")),
-            update=mode_update_callback,
-            )
+        name="Torus Dimensions",
+        items=(("MAJOR_MINOR", "Major/Minor",
+                "Use the major/minor radii for torus dimensions"),
+               ("EXT_INT", "Exterior/Interior",
+                "Use the exterior/interior radii for torus dimensions")),
+        update=mode_update_callback,
+    )
     major_radius = FloatProperty(
-            name="Major Radius",
-            description=("Radius from the origin to the "
-                         "center of the cross sections"),
-            min=0.01, max=100.0,
-            default=1.0,
-            subtype='DISTANCE',
-            unit='LENGTH',
-            )
+        name="Major Radius",
+        description=("Radius from the origin to the "
+                     "center of the cross sections"),
+        min=0.01, max=100.0,
+        default=1.0,
+        subtype='DISTANCE',
+        unit='LENGTH',
+    )
     minor_radius = FloatProperty(
-            name="Minor Radius",
-            description="Radius of the torus' cross section",
-            min=0.01, max=100.0,
-            default=0.25,
-            subtype='DISTANCE',
-            unit='LENGTH',
-            )
+        name="Minor Radius",
+        description="Radius of the torus' cross section",
+        min=0.01, max=100.0,
+        default=0.25,
+        subtype='DISTANCE',
+        unit='LENGTH',
+    )
     abso_major_rad = FloatProperty(
-            name="Exterior Radius",
-            description="Total Exterior Radius of the torus",
-            min=0.01, max=100.0,
-            default=1.25,
-            subtype='DISTANCE',
-            unit='LENGTH',
-            )
+        name="Exterior Radius",
+        description="Total Exterior Radius of the torus",
+        min=0.01, max=100.0,
+        default=1.25,
+        subtype='DISTANCE',
+        unit='LENGTH',
+    )
     abso_minor_rad = FloatProperty(
-            name="Interior Radius",
-            description="Total Interior Radius of the torus",
-            min=0.01, max=100.0,
-            default=0.75,
-            subtype='DISTANCE',
-            unit='LENGTH',
-            )
+        name="Interior Radius",
+        description="Total Interior Radius of the torus",
+        min=0.01, max=100.0,
+        default=0.75,
+        subtype='DISTANCE',
+        unit='LENGTH',
+    )
     generate_uvs = BoolProperty(
-            name="Generate UVs",
-            description="Generate a default UV map",
-            default=False,
-            )
+        name="Generate UVs",
+        description="Generate a default UV map",
+        default=False,
+    )
 
     def draw(self, context):
         layout = self.layout

@@ -368,7 +368,8 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "clear_inner", false, "Clear Inner", "Remove geometry behind the plane");
 	RNA_def_boolean(ot->srna, "clear_outer", false, "Clear Outer", "Remove geometry in front of the plane");
 
-	RNA_def_float(ot->srna, "threshold", 0.0001, 0.0, 10.0, "Axis Threshold", "", 0.00001, 0.1);
+	RNA_def_float(ot->srna, "threshold", 0.0001, 0.0, 10.0, "Axis Threshold",
+													"Preserves the existing geometry along the cut plane", 0.00001, 0.1);
 
 	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
 

@@ -29,6 +29,7 @@ WindowManager.preset_name = StringProperty(
     default="New Preset"
 )
 
+
 class AddPresetBase:
     """Base preset class, only for subclassing
     subclasses must define
@@ -41,26 +42,26 @@ class AddPresetBase:
     bl_options = {'REGISTER', 'INTERNAL'}
 
     name = StringProperty(
-            name="Name",
-            description="Name of the preset, used to make the path name",
-            maxlen=64,
-            options={'SKIP_SAVE'},
-            )
+        name="Name",
+        description="Name of the preset, used to make the path name",
+        maxlen=64,
+        options={'SKIP_SAVE'},
+    )
     remove_name = BoolProperty(
-            default=False,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        default=False,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
     remove_active = BoolProperty(
-            default=False,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        default=False,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     # needed for mix-ins
     order = [
         "name",
         "remove_name",
         "remove_active",
-        ]
+    ]
 
     @staticmethod
     def as_filename(name):  # could reuse for other presets
@@ -225,14 +226,14 @@ class ExecutePreset(Operator):
     bl_label = "Execute a Python Preset"
 
     filepath = StringProperty(
-            subtype='FILE_PATH',
-            options={'SKIP_SAVE'},
-            )
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE'},
+    )
     menu_idname = StringProperty(
-            name="Menu ID Name",
-            description="ID name of the menu this was called from",
-            options={'SKIP_SAVE'},
-            )
+        name="Menu ID Name",
+        description="ID name of the menu this was called from",
+        options={'SKIP_SAVE'},
+    )
 
     def execute(self, context):
         from os.path import basename, splitext
@@ -268,22 +269,26 @@ class PresetMenu(Panel):
     @classmethod
     def draw_panel_header(cls, layout):
         layout.emboss = 'NONE'
-        layout.popover(cls.bl_space_type,
-                       cls.bl_region_type,
-                       cls.__name__,
-                       icon='PRESET',
-                       text='')
+        layout.popover(
+            cls.bl_space_type,
+            cls.bl_region_type,
+            cls.__name__,
+            icon='PRESET',
+            text="",
+        )
 
     @classmethod
     def draw_menu(cls, layout, text=None):
-        if text == None:
+        if text is None:
             text = cls.bl_label
 
-        layout.popover(cls.bl_space_type,
-                       cls.bl_region_type,
-                       cls.__name__,
-                       icon='PRESET',
-                       text=text)
+        layout.popover(
+            cls.bl_space_type,
+            cls.bl_region_type,
+            cls.__name__,
+            icon='PRESET',
+            text=text,
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -329,10 +334,10 @@ class AddPresetCamera(AddPresetBase, Operator):
     preset_subdir = "camera"
 
     use_focal_length = BoolProperty(
-            name="Include Focal Length",
-            description="Include focal length into the preset",
-            options={'SKIP_SAVE'},
-            )
+        name="Include Focal Length",
+        description="Include focal length into the preset",
+        options={'SKIP_SAVE'},
+    )
 
     @property
     def preset_values(self):
@@ -397,12 +402,12 @@ class AddPresetFluid(AddPresetBase, Operator):
 
     preset_defines = [
         "fluid = bpy.context.fluid"
-        ]
+    ]
 
     preset_values = [
         "fluid.settings.viscosity_base",
         "fluid.settings.viscosity_exponent",
-        ]
+    ]
 
     preset_subdir = "fluid"
 
@@ -434,7 +439,7 @@ class AddPresetHairDynamics(AddPresetBase, Operator):
         "settings.density_strength",
         "settings.voxel_cell_size",
         "settings.pin_stiffness",
-        ]
+    ]
 
 
 class AddPresetInteraction(AddPresetBase, Operator):
@@ -476,11 +481,11 @@ class AddPresetTrackingCamera(AddPresetBase, Operator):
     preset_subdir = "tracking_camera"
 
     use_focal_length = BoolProperty(
-            name="Include Focal Length",
-            description="Include focal length into the preset",
-            options={'SKIP_SAVE'},
-            default=True
-            )
+        name="Include Focal Length",
+        description="Include focal length into the preset",
+        options={'SKIP_SAVE'},
+        default=True
+    )
 
     @property
     def preset_values(self):
@@ -601,10 +606,10 @@ class AddPresetOperator(AddPresetBase, Operator):
     preset_menu = "WM_MT_operator_presets"
 
     operator = StringProperty(
-            name="Operator",
-            maxlen=64,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        name="Operator",
+        maxlen=64,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     preset_defines = [
         "op = bpy.context.active_operator",

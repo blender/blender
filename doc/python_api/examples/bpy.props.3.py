@@ -14,6 +14,7 @@ class SceneSettingItem(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty(name="Test Prop", default="Unknown")
     value = bpy.props.IntProperty(name="Test Prop", default=22)
 
+
 bpy.utils.register_class(SceneSettingItem)
 
 bpy.types.Scene.my_settings = \

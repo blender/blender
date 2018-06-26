@@ -15,6 +15,7 @@ font_info = {
     "handler": None,
 }
 
+
 def init():
     """init function - runs once"""
     import os

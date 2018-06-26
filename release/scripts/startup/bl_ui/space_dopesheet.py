@@ -59,6 +59,8 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
 
 # Generic Layout - Used as base for filtering popovers used in all animation editors
 # Used for DopeSheet, NLA, and Graph Editors
+
+
 class DopesheetFilterPopoverBase:
     bl_region_type = 'HEADER'
     bl_label = "Filters"
@@ -211,11 +213,13 @@ class DOPESHEET_HT_header(Header):
             TIME_HT_editor_buttons.draw_header(context, layout)
         else:
             layout.prop(st, "ui_mode", text="")
-            layout.popover(space_type='DOPESHEET_EDITOR',
-                           region_type='HEADER',
-                           panel_type="DOPESHEET_PT_filters",
-                           text="",
-                           icon='FILTER')
+            layout.popover(
+                space_type='DOPESHEET_EDITOR',
+                region_type='HEADER',
+                panel_type="DOPESHEET_PT_filters",
+                text="",
+                icon='FILTER',
+            )
             DOPESHEET_MT_editor_menus.draw_collapsible(context, layout)
             DOPESHEET_HT_editor_buttons.draw_header(context, layout)
 
