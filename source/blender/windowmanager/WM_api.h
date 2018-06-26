@@ -602,6 +602,9 @@ bool        WM_event_is_tablet(const struct wmEvent *event);
 bool        WM_event_is_ime_switch(const struct wmEvent *event);
 #endif
 
+const char *WM_window_cursor_keymap_status_get(const struct wmWindow *win, int button_index, int type_index);
+void WM_window_cursor_keymap_status_refresh(struct bContext *C, struct wmWindow *win);
+
 /* wm_tooltip.c */
 typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *, struct ARegion *, bool *);
 
@@ -618,4 +621,3 @@ void WM_tooltip_refresh(struct bContext *C, struct wmWindow *win);
 #endif
 
 #endif /* __WM_API_H__ */
-

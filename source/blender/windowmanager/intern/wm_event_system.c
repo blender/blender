@@ -499,6 +499,14 @@ void wm_event_do_notifiers(bContext *C)
 	}
 
 	wm_event_do_refresh_wm_and_depsgraph(C);
+
+	/* Status bar */
+	if (wm->winactive) {
+		win = wm->winactive;
+		CTX_wm_window_set(C, win);
+		WM_window_cursor_keymap_status_refresh(C, win);
+		CTX_wm_window_set(C, NULL);
+	}
 }
 
 static int wm_event_always_pass(const wmEvent *event)
@@ -2773,6 +2781,40 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 	}
 }
 
+#ifdef USE_WORKSPACE_TOOL
+static void wm_event_manipulator_temp_handler_apply(
+        bContext *C, ScrArea *sa, ARegion *ar, wmEventHandler *sneaky_handler)
+{
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
+		bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
+		if (tref_rt && tref_rt->keymap[0]) {
+			wmKeyMap *km = WM_keymap_find_all(
+			        C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW);
+			if (km != NULL) {
+				sneaky_handler->keymap = km;
+				sneaky_handler->keymap_tool = sa->runtime.tool;
+
+				/* Handle widgets first. */
+				wmEventHandler *handler_last = ar->handlers.last;
+				while (handler_last && handler_last->manipulator_map == NULL) {
+					handler_last = handler_last->prev;
+				}
+				/* Head of list or after last manipulator. */
+				BLI_insertlinkafter(&ar->handlers, handler_last, sneaky_handler);
+			}
+		}
+	}
+}
+
+static void wm_event_manipulator_temp_handler_clear(
+        bContext *UNUSED(C), ScrArea *UNUSED(sa), ARegion *ar, wmEventHandler *sneaky_handler)
+{
+	if (sneaky_handler->keymap) {
+		BLI_remlink(&ar->handlers, sneaky_handler);
+	}
+}
+#endif  /* USE_WORKSPACE_TOOL */
+
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void wm_event_do_handlers(bContext *C)
@@ -2957,33 +2999,13 @@ void wm_event_do_handlers(bContext *C)
 									 * to fetch its current keymap.
 									 */
 									wmEventHandler sneaky_handler = {NULL};
-									if (ar->regiontype == RGN_TYPE_WINDOW) {
-										bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
-										if (tref_rt && tref_rt->keymap[0]) {
-											wmKeyMap *km = WM_keymap_find_all(
-											        C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW);
-											if (km != NULL) {
-												sneaky_handler.keymap = km;
-												sneaky_handler.keymap_tool = sa->runtime.tool;
-
-												/* Handle widgets first. */
-												wmEventHandler *handler_last = ar->handlers.last;
-												while (handler_last && handler_last->manipulator_map == NULL) {
-													handler_last = handler_last->prev;
-												}
-												/* Head of list or after last manipulator. */
-												BLI_insertlinkafter(&ar->handlers, handler_last, &sneaky_handler);
-											}
-										}
-									}
+									wm_event_manipulator_temp_handler_apply(C, sa, ar, &sneaky_handler);
 #endif /* USE_WORKSPACE_TOOL */
 
 									action |= wm_handlers_do(C, event, &ar->handlers);
 
 #ifdef USE_WORKSPACE_TOOL
-									if (sneaky_handler.keymap) {
-										BLI_remlink(&ar->handlers, &sneaky_handler);
-									}
+									wm_event_manipulator_temp_handler_clear(C, sa, ar, &sneaky_handler);
 #endif /* USE_WORKSPACE_TOOL */
 
 									/* fileread case (python), [#29489] */
@@ -4204,5 +4226,234 @@ bool WM_event_is_ime_switch(const struct wmEvent *event)
 	       (event->ctrl || event->oskey || event->shift || event->alt);
 }
 #endif
+
+/** \} */
+
+
+static wmKeyMapItem *wm_kmi_from_event(
+        bContext *C, wmWindowManager *wm,
+        ListBase *handlers, const wmEvent *event)
+{
+	for (wmEventHandler *handler = handlers->first; handler; handler = handler->next) {
+		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
+		if (handler->flag & WM_HANDLER_DO_FREE) {
+			/* pass */
+		}
+		else if (handler_boundbox_test(handler, event)) { /* optional boundbox */
+			if (handler->keymap) {
+				wmKeyMap *keymap = WM_keymap_active(wm, handler->keymap);
+				if (WM_keymap_poll(C, keymap)) {
+					for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+						if (wm_eventmatch(event, kmi)) {
+							wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+							if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
+								return kmi;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Keymap Status
+ *
+ * Show cursor keys in the status bar.
+ * This is done by detecting changes to the state - full keymap lookups are expensive
+ * so only perform this on changing tools, space types, pressing different modifier keys... etc.
+ * \{ */
+
+/** State storage to detect changes between calls to refresh the information. */
+struct CursorKeymapInfo_State {
+	struct {
+		short shift, ctrl, alt, oskey;
+	} modifiers;
+	short space_type;
+	short region_type;
+	/* Never use, just compare memory for changes. */
+	bToolRef tref;
+};
+
+struct CursorKeymapInfo {
+	/* 0: mouse button index
+	 * 1: event type (click/press, drag)
+	 * 2: text.
+	 */
+	char text[3][2][128];
+	wmEvent state_event;
+	struct CursorKeymapInfo_State state;
+};
+
+static void wm_event_cursor_store(
+        struct CursorKeymapInfo_State *state,
+        const wmEvent *event,
+        short space_type, short region_type,
+        const bToolRef *tref)
+{
+	state->modifiers.shift = event->shift;
+	state->modifiers.ctrl = event->ctrl;
+	state->modifiers.alt = event->alt;
+	state->modifiers.oskey = event->oskey;
+	state->space_type = space_type;
+	state->region_type = region_type;
+	state->tref = tref ? *tref : (bToolRef){0};
+}
+
+const char *WM_window_cursor_keymap_status_get(const wmWindow *win, int button_index, int type_index)
+{
+	if (win->cursor_keymap_status != NULL) {
+		struct CursorKeymapInfo *cd = win->cursor_keymap_status;
+		const char *msg = cd->text[button_index][type_index];
+		if (*msg) {
+			return msg;
+		}
+	}
+	return NULL;
+}
+
+void WM_window_cursor_keymap_status_refresh(bContext *C, struct wmWindow *win)
+{
+	bScreen *screen = WM_window_get_active_screen(win);
+	if (screen->state == SCREENFULL) {
+		return;
+	}
+	ScrArea *sa_statusbar = NULL;
+	for (ScrArea *sa = win->global_areas.areabase.first; sa; sa = sa->next) {
+		if (sa->spacetype == SPACE_STATUSBAR) {
+			sa_statusbar = sa;
+			break;
+		}
+	}
+	if (sa_statusbar == NULL) {
+		return;
+	}
+
+	struct CursorKeymapInfo *cd;
+	if (UNLIKELY(win->cursor_keymap_status == NULL)) {
+		win->cursor_keymap_status = MEM_callocN(sizeof(struct CursorKeymapInfo), __func__);
+	}
+	cd = win->cursor_keymap_status;
+
+	/* Detect unchanged state (early exit). */
+	if (memcmp(&cd->state_event, win->eventstate, sizeof(wmEvent)) == 0) {
+		return;
+	}
+
+	/* Now perform more comprehensive check,
+	 * still keep this fast since it happens on mouse-move. */
+	struct CursorKeymapInfo cd_prev = *((struct CursorKeymapInfo *)win->cursor_keymap_status);
+	cd->state_event = *win->eventstate;
+
+	ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->eventstate->x, win->eventstate->y);
+	if (sa == NULL) {
+		return;
+	}
+	ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, win->eventstate->x, win->eventstate->y);
+	if (ar == NULL) {
+		return;
+	}
+	/* Keep as-is. */
+	if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TEMPORARY, RGN_TYPE_HUD)) {
+		return;
+	}
+	/* Fallback to window. */
+	if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS)) {
+		ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	}
+
+	/* Detect changes to the state. */
+	{
+		bToolRef *tref = NULL;
+		if (ar->regiontype == RGN_TYPE_WINDOW) {
+			Scene *scene = WM_window_get_active_scene(win);
+			WorkSpace *workspace = WM_window_get_active_workspace(win);
+			const bToolKey tkey = {
+				.space_type = sa->spacetype,
+				.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype),
+			};
+			tref = WM_toolsystem_ref_find(workspace, &tkey);
+		}
+		wm_event_cursor_store(&cd->state, win->eventstate, sa->spacetype, ar->regiontype, tref);
+		if (memcmp(&cd->state, &cd_prev.state, sizeof(cd->state)) == 0) {
+			return;
+		}
+	}
+
+	/* Changed context found, detect changes to keymap and refresh the status bar. */
+	const struct {
+		int button_index;
+		int type_index;  /* 0: press or click, 1: drag. */
+		int event_type;
+		int event_value;
+	} event_data[] = {
+		{0, 0, LEFTMOUSE, KM_PRESS},
+		{0, 0, LEFTMOUSE, KM_CLICK},
+		{0, 1, EVT_TWEAK_L, KM_ANY},
+
+		{1, 0, MIDDLEMOUSE, KM_PRESS},
+		{1, 0, MIDDLEMOUSE, KM_CLICK},
+		{1, 1, EVT_TWEAK_M, KM_ANY},
+
+		{2, 0, RIGHTMOUSE, KM_PRESS},
+		{2, 0, RIGHTMOUSE, KM_CLICK},
+		{2, 1, EVT_TWEAK_R, KM_ANY},
+	};
+
+	for (int button_index = 0; button_index < 3; button_index++) {
+		cd->text[button_index][0][0] = '\0';
+		cd->text[button_index][1][0] = '\0';
+	}
+
+	CTX_wm_window_set(C, win);
+	CTX_wm_area_set(C, sa);
+	CTX_wm_region_set(C, ar);
+
+#ifdef USE_WORKSPACE_TOOL
+	wmEventHandler sneaky_handler = {NULL};
+	wm_event_manipulator_temp_handler_apply(C, sa, ar, &sneaky_handler);
+#endif
+
+	ListBase *handlers[] = {
+		&ar->handlers,
+		&sa->handlers,
+		&win->handlers,
+	};
+
+	wmWindowManager *wm = CTX_wm_manager(C);
+	for (int data_index = 0; data_index < ARRAY_SIZE(event_data); data_index++) {
+		const int button_index = event_data[data_index].button_index;
+		const int type_index = event_data[data_index].type_index;
+		if (cd->text[button_index][type_index][0] != 0) {
+			continue;
+		}
+		wmEvent test_event = *win->eventstate;
+		test_event.type = event_data[data_index].event_type;
+		test_event.val = event_data[data_index].event_value;
+		wmKeyMapItem *kmi = NULL;
+		for (int handler_index = 0; handler_index < ARRAY_SIZE(handlers); handler_index++) {
+			kmi = wm_kmi_from_event(C, wm, handlers[handler_index], &test_event);
+			if (kmi) {
+				break;
+			}
+		}
+		if (kmi) {
+			wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+			STRNCPY(cd->text[button_index][type_index], ot ? ot->name : kmi->idname);
+		}
+	}
+
+#ifdef USE_WORKSPACE_TOOL
+	wm_event_manipulator_temp_handler_clear(C, sa, ar, &sneaky_handler);
+#endif
+
+	if (memcmp(&cd_prev.text, &cd->text, sizeof(cd_prev.text)) != 0) {
+		ED_area_tag_redraw(sa_statusbar);
+	}
+
+	CTX_wm_window_set(C, NULL);
+}
 
 /** \} */

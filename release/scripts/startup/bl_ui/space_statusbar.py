@@ -39,11 +39,7 @@ class STATUSBAR_HT_header(Header):
     def draw_left(self, context):
         layout = self.layout
 
-        row = layout.row(align=True)
-        if (bpy.data.filepath):
-            row.label(text=bpy.data.filepath, translate=False)
-        if bpy.data.is_dirty:
-            row.label("(Modified)")
+        layout.template_cursor_keymap()
 
     def draw_center(self, context):
         layout = self.layout

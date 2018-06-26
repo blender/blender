@@ -4295,6 +4295,24 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	         NULL, 0.0f, 0.0f, 0, 0, "");
 }
 
+
+void uiTemplateCursorKeymap(uiLayout *layout, struct bContext *C)
+{
+	wmWindow *win = CTX_wm_window(C);
+	for (int i = 0; i < 3; i++) {
+		uiLayout *box = uiLayoutRow(layout, true);
+		for (int j = 0; j < 2; j++) {
+			const char *msg = WM_window_cursor_keymap_status_get(win, i, j);
+			if ((j == 0) || (msg != NULL)) {
+				uiItemL(box, msg, j == 0 ? (ICON_MOUSE_LMB + i) : ICON_MOUSE_DRAG);
+			}
+		}
+		if (i != 2) {
+			uiItemSpacer(layout);
+		}
+	}
+}
+
 /********************************* Keymap *************************************/
 
 static void keymap_item_modified(bContext *UNUSED(C), void *kmi_p, void *UNUSED(unused))

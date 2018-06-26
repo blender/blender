@@ -229,6 +229,10 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 	if (win->eventstate) MEM_freeN(win->eventstate);
 
+	if (win->cursor_keymap_status) {
+		MEM_freeN(win->cursor_keymap_status);
+	}
+
 	wm_event_free_all(win);
 
 	wm_ghostwindow_destroy(wm, win);

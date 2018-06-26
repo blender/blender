@@ -6946,6 +6946,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->ghostwin = NULL;
 		win->gwnctx = NULL;
 		win->eventstate = NULL;
+		win->cursor_keymap_status = NULL;
 		win->tweak = NULL;
 #ifdef WIN32
 		win->ime_data = NULL;
