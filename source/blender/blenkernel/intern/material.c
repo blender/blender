@@ -537,7 +537,7 @@ void BKE_material_resize_object(Main *bmain, Object *ob, const short totcol, boo
 	if (ob->totcol && ob->actcol == 0) ob->actcol = 1;
 	if (ob->actcol > ob->totcol) ob->actcol = ob->totcol;
 
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 }
 
