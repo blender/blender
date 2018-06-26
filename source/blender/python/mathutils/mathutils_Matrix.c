@@ -33,6 +33,7 @@
 #include "BLI_utildefines.h"
 
 #include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.h"
 
 #ifndef MATH_STANDALONE
 #  include "BLI_string.h"
@@ -1945,8 +1946,9 @@ static PyObject *Matrix_copy(MatrixObject *self)
 }
 static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args)
 {
-	if (!mathutils_deepcopy_args_check(args))
+	if (!PyC_CheckArgs_DeepCopy(args)) {
 		return NULL;
+	}
 	return Matrix_copy(self);
 }
 
