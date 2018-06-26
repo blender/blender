@@ -2973,17 +2973,21 @@ class VIEW3D_MT_edit_mesh_shading(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.label(text="Faces:")
-        layout.operator("mesh.faces_shade_smooth", text="Smooth")
-        layout.operator("mesh.faces_shade_flat", text="Flat")
-        layout.label(text="Edges:")
-        layout.operator("mesh.mark_sharp", text="Smooth").clear = True
-        layout.operator("mesh.mark_sharp", text="Sharp")
-        layout.label(text="Vertices:")
-        props = layout.operator("mesh.mark_sharp", text="Smooth")
+        layout.operator("mesh.faces_shade_smooth", text="Smooth Faces")
+        layout.operator("mesh.faces_shade_flat", text="Flat Faces")
+
+        layout.separator()
+
+        layout.operator("mesh.mark_sharp", text="Smooth Edges").clear = True
+        layout.operator("mesh.mark_sharp", text="Sharp Edges")
+
+        layout.separator()
+
+        props = layout.operator("mesh.mark_sharp", text="Smooth Vertices")
         props.use_verts = True
         props.clear = True
-        layout.operator("mesh.mark_sharp", text="Sharp").use_verts = True
+
+        layout.operator("mesh.mark_sharp", text="Sharp Vertices").use_verts = True
 
 
 class VIEW3D_MT_edit_mesh_weights(Menu):
