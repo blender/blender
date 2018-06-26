@@ -769,7 +769,7 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
 		BLI_snprintf(str, sizeof(str), IFACE_("Marker offset %s"), str_offs);
 	}
 
-	ED_area_headerprint(CTX_wm_area(C), str);
+	ED_workspace_status_text(C, str);
 }
 
 /* copy selection to temp buffer */
@@ -829,7 +829,7 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 
 	/* clear custom header prints */
-	ED_area_headerprint(CTX_wm_area(C), NULL);
+	ED_workspace_status_text(C, NULL);
 }
 
 static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)

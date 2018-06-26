@@ -39,7 +39,7 @@ class STATUSBAR_HT_header(Header):
     def draw_left(self, context):
         layout = self.layout
 
-        layout.template_cursor_keymap()
+        layout.template_input_status()
 
     def draw_center(self, context):
         layout = self.layout

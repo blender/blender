@@ -1021,7 +1021,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "template_reports_banner", "uiTemplateReportsBanner");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
-	func = RNA_def_function(srna, "template_cursor_keymap", "uiTemplateCursorKeymap");
+	func = RNA_def_function(srna, "template_input_status", "uiTemplateInputStatus");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	func = RNA_def_function(srna, "template_node_link", "uiTemplateNodeLink");

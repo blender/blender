@@ -301,7 +301,7 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
 
 #undef WM_MODALKEY
 
-	ED_area_headerprint(CTX_wm_area(C), header);
+	ED_workspace_status_text(C, header);
 }
 
 static void knife_project_v2(const KnifeTool_OpData *kcd, const float co[3], float sco[2])
@@ -2787,7 +2787,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (!obedit || obedit->type != OB_MESH || BKE_editmesh_from_object(obedit) != kcd->em) {
 		knifetool_exit(C, op);
-		ED_area_headerprint(CTX_wm_area(C), NULL);
+		ED_workspace_status_text(C, NULL);
 		return OPERATOR_FINISHED;
 	}
 
@@ -2808,7 +2808,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				ED_region_tag_redraw(kcd->ar);
 
 				knifetool_exit(C, op);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_workspace_status_text(C, NULL);
 
 				return OPERATOR_CANCELLED;
 			case KNF_MODAL_CONFIRM:
@@ -2817,7 +2817,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				knifetool_finish(op);
 				knifetool_exit(C, op);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_workspace_status_text(C, NULL);
 
 				return OPERATOR_FINISHED;
 			case KNF_MODAL_MIDPOINT_ON:

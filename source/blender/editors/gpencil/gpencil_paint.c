@@ -2025,38 +2025,38 @@ static void gpencil_draw_cursor_set(tGPsdata *p)
 }
 
 /* update UI indicators of status, including cursor and header prints */
-static void gpencil_draw_status_indicators(tGPsdata *p)
+static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 {
 	/* header prints */
 	switch (p->status) {
 		case GP_STATUS_PAINTING:
 			/* only print this for paint-sessions, otherwise it gets annoying */
 			if (GPENCIL_SKETCH_SESSIONS_ON(p->scene))
-				ED_area_headerprint(p->sa, IFACE_("Grease Pencil: Drawing/erasing stroke... Release to end stroke"));
+				ED_workspace_status_text(C, IFACE_("Grease Pencil: Drawing/erasing stroke... Release to end stroke"));
 			break;
 
 		case GP_STATUS_IDLING:
 			/* print status info */
 			switch (p->paintmode) {
 				case GP_PAINTMODE_ERASER:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | "
 					                                  "ESC/Enter to end  (or click outside this area)"));
 					break;
 				case GP_PAINTMODE_DRAW_STRAIGHT:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Line Session: Hold and drag LMB to draw | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Line Session: Hold and drag LMB to draw | "
 					                                  "ESC/Enter to end  (or click outside this area)"));
 					break;
 				case GP_PAINTMODE_DRAW:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
 					                                  "E/ESC/Enter to end  (or click outside this area)"));
 					break;
 				case GP_PAINTMODE_DRAW_POLY:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
 					                                  "ESC/Enter to end  (or click outside this area)"));
 					break;
 
 				default: /* unhandled future cases */
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Session: ESC/Enter to end   (or click outside this area)"));
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Session: ESC/Enter to end   (or click outside this area)"));
 					break;
 			}
 			break;
@@ -2064,7 +2064,7 @@ static void gpencil_draw_status_indicators(tGPsdata *p)
 		case GP_STATUS_ERROR:
 		case GP_STATUS_DONE:
 			/* clear status string */
-			ED_area_headerprint(p->sa, NULL);
+			ED_workspace_status_text(C, NULL);
 			break;
 	}
 }
@@ -2744,7 +2744,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		estate = OPERATOR_CANCELLED;
 	else {
 		/* update status indicators - cursor, header, etc. */
-		gpencil_draw_status_indicators(p);
+		gpencil_draw_status_indicators(C, p);
 		gpencil_draw_cursor_set(p); /* cursor may have changed outside our control - T44084 */
 	}
 

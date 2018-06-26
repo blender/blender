@@ -112,7 +112,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 		             WM_bool_as_string(RNA_boolean_get(op->ptr, "use_individual"))
 		            );
 
-		ED_area_headerprint(sa, msg);
+		ED_workspace_status_text(C, msg);
 	}
 }
 
@@ -202,7 +202,7 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
 	}
 
 	if (sa) {
-		ED_area_headerprint(sa, NULL);
+		ED_workspace_status_text(C, NULL);
 	}
 
 	MEM_SAFE_FREE(opdata->ob_store);

@@ -1042,7 +1042,7 @@ static void gpsculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
 	                    " | Shift-Wheel Up/Down for Strength"),
 	             (brush_name) ? brush_name : "<?>");
 
-	ED_area_headerprint(CTX_wm_area(C), str);
+	ED_workspace_status_text(C, str);
 }
 
 /* ************************************************ */
@@ -1176,7 +1176,7 @@ static void gpsculpt_brush_exit(bContext *C, wmOperator *op)
 	}
 
 	/* disable cursor and headerprints */
-	ED_area_headerprint(CTX_wm_area(C), NULL);
+	ED_workspace_status_text(C, NULL);
 	WM_cursor_modal_restore(win);
 	gpencil_toggle_brush_cursor(C, false);
 

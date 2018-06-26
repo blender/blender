@@ -2444,41 +2444,39 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 {
 	RadialControl *rc = op->customdata;
 	char msg[UI_MAX_DRAW_STR];
-	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if (sa) {
-		if (hasNumInput(&rc->num_input)) {
-			char num_str[NUM_STR_REP_LEN];
-			outputNumInput(&rc->num_input, num_str, &scene->unit);
-			BLI_snprintf(msg, sizeof(msg), "%s: %s", RNA_property_ui_name(rc->prop), num_str);
-		}
-		else {
-			const char *ui_name = RNA_property_ui_name(rc->prop);
-			switch (rc->subtype) {
-				case PROP_NONE:
-				case PROP_DISTANCE:
-					BLI_snprintf(msg, sizeof(msg), "%s: %0.4f", ui_name, rc->current_value);
-					break;
-				case PROP_PIXEL:
-					BLI_snprintf(msg, sizeof(msg), "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
-					break;
-				case PROP_PERCENTAGE:
-					BLI_snprintf(msg, sizeof(msg), "%s: %3.1f%%", ui_name, rc->current_value);
-					break;
-				case PROP_FACTOR:
-					BLI_snprintf(msg, sizeof(msg), "%s: %1.3f", ui_name, rc->current_value);
-					break;
-				case PROP_ANGLE:
-					BLI_snprintf(msg, sizeof(msg), "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
-					break;
-				default:
-					BLI_snprintf(msg, sizeof(msg), "%s", ui_name); /* XXX: No value? */
-					break;
-			}
-		}
-		ED_area_headerprint(sa, msg);
+	if (hasNumInput(&rc->num_input)) {
+		char num_str[NUM_STR_REP_LEN];
+		outputNumInput(&rc->num_input, num_str, &scene->unit);
+		BLI_snprintf(msg, sizeof(msg), "%s: %s", RNA_property_ui_name(rc->prop), num_str);
 	}
+	else {
+		const char *ui_name = RNA_property_ui_name(rc->prop);
+		switch (rc->subtype) {
+			case PROP_NONE:
+			case PROP_DISTANCE:
+				BLI_snprintf(msg, sizeof(msg), "%s: %0.4f", ui_name, rc->current_value);
+				break;
+			case PROP_PIXEL:
+				BLI_snprintf(msg, sizeof(msg), "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
+				break;
+			case PROP_PERCENTAGE:
+				BLI_snprintf(msg, sizeof(msg), "%s: %3.1f%%", ui_name, rc->current_value);
+				break;
+			case PROP_FACTOR:
+				BLI_snprintf(msg, sizeof(msg), "%s: %1.3f", ui_name, rc->current_value);
+				break;
+			case PROP_ANGLE:
+				BLI_snprintf(msg, sizeof(msg), "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
+				break;
+			default:
+				BLI_snprintf(msg, sizeof(msg), "%s", ui_name); /* XXX: No value? */
+				break;
+		}
+	}
+
+	ED_workspace_status_text(C, msg);
 }
 
 static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
@@ -3013,7 +3011,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
 	}
 
 	if (sa) {
-		ED_area_headerprint(sa, NULL);
+		ED_workspace_status_text(C, NULL);
 	}
 
 	WM_paint_cursor_end(wm, rc->cursor);

@@ -2946,6 +2946,8 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 		tref->properties = newdataadr(fd, tref->properties);
 		IDP_DirectLinkGroup_OrFree(&tref->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}
+
+	workspace->status_text = NULL;
 }
 
 static void lib_link_workspace_instance_hook(FileData *fd, WorkSpaceInstanceHook *hook, ID *id)
@@ -6460,7 +6462,6 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	BLI_listbase_clear(&ar->panels_category);
 	BLI_listbase_clear(&ar->handlers);
 	BLI_listbase_clear(&ar->uiblocks);
-	ar->headerstr = NULL;
 	ar->visible = 0;
 	ar->type = NULL;
 	ar->do_draw = 0;

@@ -173,6 +173,11 @@ void BKE_workspace_free(WorkSpace *workspace)
 		}
 	}
 	BLI_freelistN(&workspace->tools);
+
+	if (workspace->status_text) {
+		MEM_freeN(workspace->status_text);
+		workspace->status_text = NULL;
+	}
 }
 
 /**

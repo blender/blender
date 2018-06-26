@@ -703,8 +703,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 #endif
 
 	if (is_interactive) {
-		ScrArea *sa = CTX_wm_area(C);
-		ED_area_headerprint(sa, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
+		ED_workspace_status_text(C, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
 		                               "hold Alt for smooth"));
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -729,7 +728,7 @@ static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
 {
 	/* finish */
 	ED_region_tag_redraw(lcd->ar);
-	ED_area_headerprint(CTX_wm_area(C), NULL);
+	ED_workspace_status_text(C, NULL);
 
 	if (lcd->eed) {
 		/* set for redo */
@@ -785,14 +784,14 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case RIGHTMOUSE: /* abort */ // XXX hardcoded
 				ED_region_tag_redraw(lcd->ar);
 				ringsel_exit(C, op);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_workspace_status_text(C, NULL);
 
 				return OPERATOR_CANCELLED;
 			case ESCKEY:
 				if (event->val == KM_RELEASE) {
 					/* cancel */
 					ED_region_tag_redraw(lcd->ar);
-					ED_area_headerprint(CTX_wm_area(C), NULL);
+					ED_workspace_status_text(C, NULL);
 
 					ringcut_cancel(C, op);
 					return OPERATOR_CANCELLED;
@@ -897,7 +896,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		BLI_snprintf(buf, sizeof(buf), IFACE_("Number of Cuts: %s, Smooth: %s (Alt)"),
 		             str_rep, str_rep + NUM_STR_REP_LEN);
-		ED_area_headerprint(CTX_wm_area(C), buf);
+		ED_workspace_status_text(C, buf);
 	}
 
 	/* keep going until the user confirms */

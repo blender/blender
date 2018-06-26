@@ -96,7 +96,7 @@ class MyCustomShapeWidget(Manipulator):
         return {'RUNNING_MODAL'}
 
     def exit(self, context, cancel):
-        context.area.header_text_set()
+        context.workspace.status_text_set()
         if cancel:
             self.target_set_value("offset", self.init_value)
 
@@ -108,7 +108,7 @@ class MyCustomShapeWidget(Manipulator):
             delta /= 10.0
         value = self.init_value + delta
         self.target_set_value("offset", value)
-        context.area.header_text_set("My Manipulator: %.4f" % value)
+        context.workspace.status_text_set("My Manipulator: %.4f" % value)
         return {'RUNNING_MODAL'}
 
 

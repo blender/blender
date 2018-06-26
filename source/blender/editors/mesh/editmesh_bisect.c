@@ -160,7 +160,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		v3d->twflag = 0;
 
 		/* initialize modal callout */
-		ED_area_headerprint(CTX_wm_area(C), IFACE_("LMB: Click and drag to draw cut line"));
+		ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
 	}
 	return ret;
 }
@@ -185,10 +185,10 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	/* update or clear modal callout */
 	if (event->type == EVT_MODAL_MAP) {
 		if (event->val == GESTURE_MODAL_BEGIN) {
-			ED_area_headerprint(CTX_wm_area(C), IFACE_("LMB: Release to confirm cut line"));
+			ED_workspace_status_text(C, IFACE_("LMB: Release to confirm cut line"));
 		}
 		else {
-			ED_area_headerprint(CTX_wm_area(C), NULL);
+			ED_workspace_status_text(C, NULL);
 		}
 	}
 

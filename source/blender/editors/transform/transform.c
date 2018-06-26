@@ -651,7 +651,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 
 static void viewRedrawPost(bContext *C, TransInfo *t)
 {
-	ED_area_headerprint(t->sa, NULL);
+	ED_workspace_status_text(t->context, NULL);
 
 	if (t->spacetype == SPACE_VIEW3D) {
 		/* if autokeying is enabled, send notifiers that keyframes were added */
@@ -3128,7 +3128,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -3282,7 +3282,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -3561,7 +3561,7 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -3664,7 +3664,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -3762,7 +3762,7 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -4121,7 +4121,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -4238,7 +4238,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -4567,7 +4567,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -4669,7 +4669,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -4748,7 +4748,7 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -4829,7 +4829,7 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -4935,7 +4935,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -5016,7 +5016,7 @@ static void applyGPShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -5111,7 +5111,7 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -5193,7 +5193,7 @@ static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -5278,7 +5278,7 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -5401,7 +5401,7 @@ static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -5478,7 +5478,7 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -7204,7 +7204,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -7803,7 +7803,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -7877,7 +7877,7 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -7968,7 +7968,7 @@ static void applyBakeTime(TransInfo *t, const int mval[2])
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -8029,7 +8029,7 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
 
 		recalcData(t);
 
-		ED_area_headerprint(t->sa, str);
+		ED_workspace_status_text(t->context, str);
 	}
 	else {
 		size[0] = size[1] = size[2] = 1;
@@ -8052,9 +8052,9 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
 		recalcData(t);
 
 		if (t->flag & T_2D_EDIT)
-			ED_area_headerprint(t->sa, IFACE_("Select a mirror axis (X, Y)"));
+			ED_workspace_status_text(t->context, IFACE_("Select a mirror axis (X, Y)"));
 		else
-			ED_area_headerprint(t->sa, IFACE_("Select a mirror axis (X, Y, Z)"));
+			ED_workspace_status_text(t->context, IFACE_("Select a mirror axis (X, Y, Z)"));
 	}
 }
 /** \} */
@@ -8116,7 +8116,7 @@ static void applyAlign(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, IFACE_("Align"));
+	ED_workspace_status_text(t->context, IFACE_("Align"));
 }
 /** \} */
 
@@ -8215,7 +8215,7 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -8499,7 +8499,7 @@ static void applyTimeTranslate(TransInfo *t, const int mval[2])
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -8689,7 +8689,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 
@@ -8810,7 +8810,7 @@ static void applyTimeScale(TransInfo *t, const int UNUSED(mval[2]))
 
 	recalcData(t);
 
-	ED_area_headerprint(t->sa, str);
+	ED_workspace_status_text(t->context, str);
 }
 /** \} */
 

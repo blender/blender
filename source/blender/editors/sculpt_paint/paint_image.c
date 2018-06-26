@@ -886,7 +886,7 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
 		             !data->sample_palette ?
 		             IFACE_("Brush. Use Left Click to sample for palette instead") :
 		             IFACE_("Palette. Use Left Click to sample more colors"));
-		ED_area_headerprint(sa, msg);
+		ED_workspace_status_text(C, msg);
 	}
 }
 
@@ -965,8 +965,6 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	Brush *brush = BKE_paint_brush(paint);
 
 	if ((event->type == data->event_type) && (event->val == KM_RELEASE)) {
-		ScrArea *sa = CTX_wm_area(C);
-
 		if (data->show_cursor) {
 			paint->flags |= PAINT_SHOW_BRUSH;
 		}
@@ -977,7 +975,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		WM_cursor_modal_restore(CTX_wm_window(C));
 		MEM_freeN(data);
-		ED_area_headerprint(sa, NULL);
+		ED_workspace_status_text(C, NULL);
 
 		return OPERATOR_FINISHED;
 	}

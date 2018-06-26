@@ -143,7 +143,6 @@ void    ED_area_tag_redraw_regiontype(ScrArea *sa, int type);
 void    ED_area_tag_refresh(ScrArea *sa);
 void    ED_area_do_refresh(struct bContext *C, ScrArea *sa);
 void    ED_area_azones_update(ScrArea *sa, const int mouse_xy[]);
-void    ED_area_headerprint(ScrArea *sa, const char *str);
 void    ED_area_newspace(struct bContext *C, ScrArea *sa, int type, const bool skip_ar_exit);
 void    ED_area_prevspace(struct bContext *C, ScrArea *sa);
 void    ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
@@ -243,6 +242,8 @@ void ED_workspace_object_mode_sync_from_object(
         struct wmWindowManager *wm, WorkSpace *workspace, struct Object *obact);
 void ED_workspace_object_mode_sync_from_scene(
         struct wmWindowManager *wm, WorkSpace *workspace, struct Scene *scene);
+
+void    ED_workspace_status_text(struct bContext *C, const char *str);
 
 /* anim */
 void    ED_update_for_newframe(struct Main *bmain, struct Depsgraph *depsgraph);

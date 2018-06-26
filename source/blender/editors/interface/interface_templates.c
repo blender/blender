@@ -4296,9 +4296,18 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 }
 
 
-void uiTemplateCursorKeymap(uiLayout *layout, struct bContext *C)
+void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
+	WorkSpace *workspace = CTX_wm_workspace(C);
+
+	/* Workspace status text has priority. */
+	if (workspace->status_text) {
+		uiItemL(layout, workspace->status_text, ICON_NONE);
+		return;
+	}
+
+	/* Otherwise should cursor keymap status. */
 	for (int i = 0; i < 3; i++) {
 		uiLayout *box = uiLayoutRow(layout, true);
 		for (int j = 0; j < 2; j++) {

@@ -1118,7 +1118,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 			BLI_strncpy(pld->headerstr,
 			            IFACE_("PoseLib Previewing Pose: [Showing Original Pose] | Use Tab to start previewing poses again"),
 			            sizeof(pld->headerstr));
-			ED_area_headerprint(pld->sa, pld->headerstr);
+			ED_workspace_status_text(C, pld->headerstr);
 		}
 		else if (pld->searchstr[0]) {
 			char tempstr[65];
@@ -1145,14 +1145,14 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 			                    "Current Pose - \"%s\"  | "
 			                    "Use ScrollWheel or PageUp/Down to change"),
 			             tempstr, markern);
-			ED_area_headerprint(pld->sa, pld->headerstr);
+			ED_workspace_status_text(C, pld->headerstr);
 		}
 		else {
 			BLI_snprintf(pld->headerstr, sizeof(pld->headerstr),
 			             IFACE_("PoseLib Previewing Pose: \"%s\"  | "
 			                    "Use ScrollWheel or PageUp/Down to change"),
 			             pld->marker->name);
-			ED_area_headerprint(pld->sa, pld->headerstr);
+			ED_workspace_status_text(C, pld->headerstr);
 		}
 	}
 
@@ -1602,7 +1602,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 	TimeMarker *marker = pld->marker;
 
 	/* redraw the header so that it doesn't show any of our stuff anymore */
-	ED_area_headerprint(pld->sa, NULL);
+	ED_workspace_status_text(C, NULL);
 
 	/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
 	pose->flag |= POSE_DO_UNLOCK;

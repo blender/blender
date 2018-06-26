@@ -291,7 +291,7 @@ static void stitch_update_header(StitchState *state, bContext *C)
 		             state->limit_dist,
 		             WM_bool_as_string(state->use_limit));
 
-		ED_area_headerprint(sa, msg);
+		ED_workspace_status_text(C, msg);
 	}
 }
 
@@ -2089,7 +2089,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 	}
 
 	if (sa)
-		ED_area_headerprint(sa, NULL);
+		ED_workspace_status_text(C, NULL);
 
 	ED_region_draw_cb_exit(CTX_wm_region(C)->type, state->draw_handle);
 

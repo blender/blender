@@ -811,7 +811,7 @@ static bool view3d_ruler_item_mousemove(
 	}
 }
 
-static void view3d_ruler_header_update(ScrArea *sa)
+static void view3d_ruler_header_update(bContext *C)
 {
 	const char *text = IFACE_("Ctrl+LMB: Add, "
 	                          "Del: Remove, "
@@ -821,7 +821,7 @@ static void view3d_ruler_header_update(ScrArea *sa)
 	                          "Enter: Store,  "
 	                          "Esc: Cancel");
 
-	ED_area_headerprint(sa, text);
+	ED_workspace_status_text(C, text);
 }
 
 /* -------------------------------------------------------------------- */
@@ -847,7 +847,7 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	ruler_info->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ruler_info_draw_pixel,
 	                                                           ruler_info, REGION_DRAW_POST_PIXEL);
 
-	view3d_ruler_header_update(sa);
+	view3d_ruler_header_update(C);
 
 	op->flag |= OP_IS_MODAL_CURSOR_REGION;
 
@@ -1079,7 +1079,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (do_draw) {
-		view3d_ruler_header_update(sa);
+		view3d_ruler_header_update(C);
 
 		/* all 3d views draw rulers */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -1093,7 +1093,7 @@ exit:
 		view3d_ruler_free(ruler_info);
 		op->customdata = NULL;
 
-		ED_area_headerprint(sa, NULL);
+		ED_workspace_status_text(C, NULL);
 	}
 
 	return exit_code;

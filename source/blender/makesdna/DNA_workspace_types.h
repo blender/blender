@@ -145,6 +145,9 @@ typedef struct WorkSpace {
 
 	char _pad[2];
 	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
+
+	/* Info text from modal operators (runtime). */
+	char *status_text;
 } WorkSpace;
 
 /* internal struct, but exported for read/write */

@@ -532,7 +532,7 @@ static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
 	char header[UI_MAX_DRAW_STR];
 
 	BLI_strncpy(header, IFACE_("LMB: drag node link, RMB: cancel"), sizeof(header));
-	ED_area_headerprint(CTX_wm_area(C), header);
+	ED_workspace_status_text(C, header);
 }
 
 static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
@@ -729,7 +729,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_RELEASE) {
 				node_link_exit(C, op, true);
 
-				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_workspace_status_text(C, NULL);
 				ED_region_tag_redraw(ar);
 				return OPERATOR_FINISHED;
 			}

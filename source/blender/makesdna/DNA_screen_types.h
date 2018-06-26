@@ -351,7 +351,6 @@ typedef struct ARegion {
 	struct wmTimer *regiontimer; /* blend in/out */
 	struct wmDrawBuffer *draw_buffer;
 
-	char *headerstr;			/* use this string to draw info */
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
 
 	ARegion_Runtime runtime;

@@ -460,15 +460,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 	UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
 
-	/* optional header info instead? */
-	if (ar->headerstr) {
-		UI_ThemeClearColor(TH_HEADER);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		UI_FontThemeColor(BLF_default(), TH_TEXT);
-		BLF_draw_default(UI_UNIT_X, 0.4f * UI_UNIT_Y, 0.0f, ar->headerstr, BLF_DRAW_STR_DUMMY_MAX);
-	}
-	else if (at->draw) {
+	if (at->draw) {
 		at->draw(C, ar);
 	}
 
@@ -639,26 +631,30 @@ void ED_area_tag_refresh(ScrArea *sa)
 /* *************************************************************** */
 
 /* use NULL to disable it */
-void ED_area_headerprint(ScrArea *sa, const char *str)
+void ED_workspace_status_text(bContext *C, const char *str)
 {
-	ARegion *ar;
+	wmWindow *win = CTX_wm_window(C);
+	WorkSpace *workspace = CTX_wm_workspace(C);
 
-	/* happens when running transform operators in backround mode */
-	if (sa == NULL)
+	/* Can be NULL when running operators in background mode. */
+	if (workspace == NULL)
 		return;
 
-	for (ar = sa->regionbase.first; ar; ar = ar->next) {
-		if (ar->regiontype == RGN_TYPE_HEADER) {
-			if (str) {
-				if (ar->headerstr == NULL)
-					ar->headerstr = MEM_mallocN(UI_MAX_DRAW_STR, "headerprint");
-				BLI_strncpy(ar->headerstr, str, UI_MAX_DRAW_STR);
-			}
-			else if (ar->headerstr) {
-				MEM_freeN(ar->headerstr);
-				ar->headerstr = NULL;
-			}
-			ED_region_tag_redraw(ar);
+	if (str) {
+		if (workspace->status_text == NULL)
+			workspace->status_text = MEM_mallocN(UI_MAX_DRAW_STR, "headerprint");
+		BLI_strncpy(workspace->status_text, str, UI_MAX_DRAW_STR);
+	}
+	else if (workspace->status_text) {
+		MEM_freeN(workspace->status_text);
+		workspace->status_text = NULL;
+	}
+
+	/* Redraw status bar. */
+	for (ScrArea *sa = win->global_areas.areabase.first; sa; sa = sa->next) {
+		if (sa->spacetype == SPACE_STATUSBAR) {
+			ED_area_tag_redraw(sa);
+			break;
 		}
 	}
 }

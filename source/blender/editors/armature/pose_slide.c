@@ -627,7 +627,7 @@ static void pose_slide_reset(tPoseSlideOp *pso)
 
 /* draw percentage indicator in header */
 // TODO: Include hints about locks here...
-static void pose_slide_draw_status(tPoseSlideOp *pso)
+static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 {
 	char status_str[UI_MAX_DRAW_STR];
 	char limits_str[UI_MAX_DRAW_STR];
@@ -705,7 +705,7 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
 		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%     |   %s", mode_str, (int)(pso->percentage * 100.0f), limits_str);
 	}
 
-	ED_area_headerprint(pso->sa, status_str);
+	ED_workspace_status_text(C, status_str);
 }
 
 /* common code for invoke() methods */
@@ -781,7 +781,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 	WM_cursor_modal_set(win, BC_EW_SCROLLCURSOR);
 
 	/* header print */
-	pose_slide_draw_status(pso);
+	pose_slide_draw_status(C, pso);
 
 	/* add a modal handler for this operator */
 	WM_event_add_modal_handler(C, op);
@@ -857,7 +857,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case PADENTER:
 		{
 			/* return to normal cursor and header status */
-			ED_area_headerprint(pso->sa, NULL);
+			ED_workspace_status_text(C, NULL);
 			WM_cursor_modal_restore(win);
 
 			/* insert keyframes as required... */
@@ -872,7 +872,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case RIGHTMOUSE:
 		{
 			/* return to normal cursor and header status */
-			ED_area_headerprint(pso->sa, NULL);
+			ED_workspace_status_text(C, NULL);
 			WM_cursor_modal_restore(win);
 
 			/* reset transforms back to original state */
@@ -997,7 +997,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	/* perform pose updates - in response to some user action (e.g. pressing a key or moving the mouse) */
 	if (do_pose_update) {
 		/* update percentage indicator in header */
-		pose_slide_draw_status(pso);
+		pose_slide_draw_status(C, pso);
 
 		/* reset transforms (to avoid accumulation errors) */
 		pose_slide_reset(pso);
