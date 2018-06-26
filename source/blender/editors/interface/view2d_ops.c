@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -1667,6 +1668,21 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	return SCROLLHANDLE_BAR;
 }
 
+static int scroller_activate_poll(bContext *C)
+{
+	if (!view2d_poll(C)) {
+		return false;
+	}
+
+	wmWindow *win = CTX_wm_window(C);
+	ARegion *ar = CTX_wm_region(C);
+	View2D *v2d = &ar->v2d;
+	wmEvent *event = win->eventstate;
+
+	/* check if mouse in scrollbars, if they're enabled */
+	return (UI_view2d_mouse_in_scrollers(ar, v2d, event->x, event->y) != 0);
+}
+
 /* initialize customdata for scroller manipulation operator */
 static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *event, short in_scroller)
 {
@@ -1997,7 +2013,7 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 	ot->modal = scroller_activate_modal;
 	ot->cancel = scroller_activate_cancel;
 
-	ot->poll = view2d_poll;
+	ot->poll = scroller_activate_poll;
 }
 
 /* ********************************************************* */
