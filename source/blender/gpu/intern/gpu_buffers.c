@@ -791,11 +791,14 @@ void GPU_pbvh_bmesh_buffers_update(
 	tottri = gpu_bmesh_face_visible_count(bm_faces);
 
 	if (buffers->smooth) {
+		/* Smooth needs to recreate index buffer, so we have to invalidate the batch. */
+		GWN_BATCH_DISCARD_SAFE(buffers->triangles);
 		/* Count visible vertices */
 		totvert = gpu_bmesh_vert_visible_count(bm_unique_verts, bm_other_verts);
 	}
-	else
+	else {
 		totvert = tottri * 3;
+	}
 
 	if (!tottri) {
 		buffers->tot_tri = 0;
