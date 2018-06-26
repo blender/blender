@@ -40,6 +40,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_listBase.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
@@ -57,12 +58,11 @@
 #include "PIL_time.h"
 
 #include "BKE_anim.h"		/* needed for where_on_path */
+#include "BKE_bvhutils.h"
 #include "BKE_collection.h"
 #include "BKE_collision.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
@@ -314,7 +314,7 @@ ListBase *BKE_effectors_create(
 			else if (weights->weight[ob->pd->forcefield] == 0.0f) {
 				continue;
 			}
-			else if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal) {
+			else if (ob->pd->shape == PFIELD_SHAPE_POINTS && ob->runtime.mesh_eval == NULL) {
 				continue;
 			}
 
@@ -606,12 +606,10 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		efd->size = 0.0f;
 	}
 	else if (eff->pd && eff->pd->shape==PFIELD_SHAPE_POINTS) {
-
-		if (eff->ob->derivedFinal) {
-			DerivedMesh *dm = eff->ob->derivedFinal;
-
-			dm->getVertCo(dm, *efd->index, efd->loc);
-			dm->getVertNo(dm, *efd->index, efd->nor);
+		Mesh *me_eval = eff->ob->runtime.mesh_eval;
+		if (me_eval != NULL) {
+			copy_v3_v3(efd->loc, me_eval->mvert[*efd->index].co);
+			normal_short_to_float_v3(efd->nor, me_eval->mvert[*efd->index].no);
 
 			mul_m4_v3(eff->ob->obmat, efd->loc);
 			mul_mat3_m4_v3(eff->ob->obmat, efd->nor);
@@ -719,7 +717,8 @@ static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoin
 	efd->index = p;
 
 	if (eff->pd->shape == PFIELD_SHAPE_POINTS) {
-		*tot = eff->ob->derivedFinal ? eff->ob->derivedFinal->numVertData : 1;
+		Mesh *me_eval = eff->ob->runtime.mesh_eval;
+		*tot = me_eval != NULL ? me_eval->totvert : 1;
 
 		if (*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {
 			*p = point->index % *tot;

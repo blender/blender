@@ -44,10 +44,6 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 
-#ifdef USE_DERIVEDMESH
-#include "BKE_DerivedMesh.h"
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils
  * \{ */

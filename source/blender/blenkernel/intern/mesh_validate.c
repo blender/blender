@@ -43,7 +43,6 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
 
 #include "DEG_depsgraph.h"
