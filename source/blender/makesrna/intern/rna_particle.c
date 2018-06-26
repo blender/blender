@@ -3085,7 +3085,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dupli Collection", "Show Objects in this collection in place of particles");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_dependency");
 
 	prop = RNA_def_property(srna, "dupli_weights", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "dupliweights", NULL);
