@@ -20,13 +20,9 @@
 /* Parameter value lists from OpenImageIO are used to store custom properties
  * on various data, which can then later be used in shaders. */
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-register"
-#pragma clang diagnostic ignored "-Wexpansion-to-defined"
 #include <OpenImageIO/paramlist.h>
 #include <OpenImageIO/typedesc.h>
 #include <OpenImageIO/ustring.h>
-#pragma clang diagnostic pop
 
 CCL_NAMESPACE_BEGIN
 

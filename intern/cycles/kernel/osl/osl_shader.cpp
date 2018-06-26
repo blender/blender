@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-register"
 #include <OSL/oslexec.h>
-#pragma clang diagnostic pop
 
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/kernel_montecarlo.h"
