@@ -356,9 +356,9 @@ void WM_operator_properties_checker_interval(wmOperatorType *ot, bool nth_can_di
 {
 	const int nth_default = nth_can_disable ? 1 : 2;
 	const int nth_min =  min_ii(nth_default, 2);
-	RNA_def_int(ot->srna, "nth", nth_default, nth_min, INT_MAX, "Nth Selection", "", nth_min, 100);
-	RNA_def_int(ot->srna, "skip", 1, 1, INT_MAX, "Skip", "", 1, 100);
-	RNA_def_int(ot->srna, "offset", 0, INT_MIN, INT_MAX, "Offset", "", -100, 100);
+	RNA_def_int(ot->srna, "nth", nth_default, nth_min, INT_MAX, "Nth Element", "Skip every Nth element", nth_min, 100);
+	RNA_def_int(ot->srna, "skip", 1, 1, INT_MAX, "Skip", "Number of elements to skip at once", 1, 100);
+	RNA_def_int(ot->srna, "offset", 0, INT_MIN, INT_MAX, "Offset", "Offset from the starting point", -100, 100);
 }
 
 void WM_operator_properties_checker_interval_from_op(

@@ -3888,11 +3888,13 @@ void MESH_OT_fill_grid(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_int(ot->srna, "span", 1, 1, 1000, "Span", "Number of sides (zero disables)", 1, 100);
+	prop = RNA_def_int(ot->srna, "span", 1, 1, 1000, "Span", "Number of grid columns", 1, 100);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_int(ot->srna, "offset", 0, -1000, 1000, "Offset", "Number of sides (zero disables)", -100, 100);
+	prop = RNA_def_int(ot->srna, "offset", 0, -1000, 1000, "Offset",
+	                             "Vertex that is the corner of the grid", -100, 100);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	RNA_def_boolean(ot->srna, "use_interp_simple", false, "Simple Blending", "");
+	RNA_def_boolean(ot->srna, "use_interp_simple", false, "Simple Blending",
+	                          "Use simple interpolation of grid vertices");
 }
 
 /** \} */
@@ -6019,7 +6021,8 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 	        ot->srna, "direction", rna_enum_symmetrize_direction_items,
 	        BMO_SYMMETRIZE_NEGATIVE_X,
 	        "Direction", "Which sides to copy from and to");
-	RNA_def_float(ot->srna, "threshold", 1e-4f, 0.0f, 10.0f, "Threshold", "", 1e-5f, 0.1f);
+	RNA_def_float(ot->srna, "threshold", 1e-4f, 0.0f, 10.0f, "Threshold",
+	                        "Limit for snap middle vertices to the axis center", 1e-5f, 0.1f);
 }
 
 /** \} */
@@ -6150,9 +6153,11 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 	        ot->srna, "direction", rna_enum_symmetrize_direction_items,
 	        BMO_SYMMETRIZE_NEGATIVE_X,
 	        "Direction", "Which sides to copy from and to");
-	RNA_def_float_distance(ot->srna, "threshold", 0.05f, 0.0f, 10.0f, "Threshold", "", 1e-4f, 1.0f);
-	RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 1.0f, "Factor", "", 0.0f, 1.0f);
-	RNA_def_boolean(ot->srna, "use_center", true, "Center", "Snap mid verts to the axis center");
+	RNA_def_float_distance(ot->srna, "threshold", 0.05f, 0.0f, 10.0f, "Threshold",
+	                                 "Distance within which matching vertices are searched", 1e-4f, 1.0f);
+	RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 1.0f, "Factor",
+	                        "Mix factor of the locations of the vertices", 0.0f, 1.0f);
+	RNA_def_boolean(ot->srna, "use_center", true, "Center", "Snap middle vertices to the axis center");
 }
 
 /** \} */
