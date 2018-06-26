@@ -894,9 +894,46 @@ static int elem_strcmp(const char *name, const char *oname)
 }
 
 /**
+ * Returns whether the specified field exists according to the struct format
+ * pointed to by old.
+ *
+ * \param sdna  Old SDNA
+ * \param type  Current field type name
+ * \param name  Current field name
+ * \param old  Pointer to struct information in sdna
+ * \return true when existsing, false otherwise.
+ */
+static bool elem_exists(
+        const SDNA *sdna,
+        const char *type,
+        const char *name,
+        const short *old)
+{
+	int a, elemcount;
+	const char *otype, *oname;
+
+	/* in old is the old struct */
+	elemcount = old[1];
+	old += 2;
+	for (a = 0; a < elemcount; a++, old += 2) {
+		otype = sdna->types[old[0]];
+		oname = sdna->names[old[1]];
+
+		if (elem_strcmp(name, oname) == 0) {  /* name equal */
+			return strcmp(type, otype) == 0;  /* type equal */
+		}
+	}
+	return false;
+}
+
+/**
  * Returns the address of the data for the specified field within olddata
  * according to the struct format pointed to by old, or NULL if no such
  * field can be found.
+ *
+ * Passing olddata=NULL doesn't work reliably for existence checks; it will
+ * return NULL both when the field is found at offset 0 and when it is not
+ * found at all. For field existence checks, use elem_exists() instead.
  *
  * \param sdna  Old SDNA
  * \param type  Current field type name
@@ -1307,9 +1344,9 @@ bool DNA_struct_elem_find(const SDNA *sdna, const char *stype, const char *varty
 
 	if (SDNAnr != -1) {
 		const short * const spo = sdna->structs[SDNAnr];
-		const char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
+		const bool found = elem_exists(sdna, vartype, name, spo);
 
-		if (cp) {
+		if (found) {
 			return true;
 		}
 	}
