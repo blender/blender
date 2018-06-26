@@ -32,7 +32,7 @@ class AddPresetObjectDraw(AddPresetBase, Operator):
     # variable used for all preset values
     preset_defines = [
         "obj = bpy.context.object"
-        ]
+    ]
 
     # properties to store in the preset
     preset_values = [
@@ -42,7 +42,7 @@ class AddPresetObjectDraw(AddPresetBase, Operator):
         "obj.show_name",
         "obj.show_axis",
         "obj.show_wire",
-        ]
+    ]
 
     # where to store the preset
     preset_subdir = "object/draw"
@@ -61,7 +61,7 @@ def panel_func(self, context):
 classes = (
     OBJECT_MT_draw_presets,
     AddPresetObjectDraw,
-    )
+)
 
 
 def register():

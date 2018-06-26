@@ -134,10 +134,10 @@ class CLIP_OT_filter_tracks(bpy.types.Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     track_threshold = FloatProperty(
-            name="Track Threshold",
-            description="Filter Threshold to select problematic tracks",
-            default=5.0,
-            )
+        name="Track Threshold",
+        description="Filter Threshold to select problematic tracks",
+        default=5.0,
+    )
 
     @staticmethod
     def _filter_values(context, threshold):
@@ -165,9 +165,10 @@ class CLIP_OT_filter_tracks(bpy.types.Operator):
 
             # Find tracks with markers in both this frame and the previous one.
             relevant_tracks = [
-                    track for track in clip.tracking.tracks
-                    if (track.markers.find_frame(frame) and
-                        track.markers.find_frame(frame - 1))]
+                track for track in clip.tracking.tracks
+                if (track.markers.find_frame(frame) and
+                    track.markers.find_frame(frame - 1))
+            ]
 
             if not relevant_tracks:
                 continue
@@ -399,7 +400,7 @@ class CLIP_OT_delete_proxy(Operator):
 
 class CLIP_OT_set_viewport_background(Operator):
     """Set current movie clip as a camera background in 3D view-port """ \
-    """(works only when a 3D view-port is visible)"""
+        """(works only when a 3D view-port is visible)"""
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
@@ -1047,13 +1048,13 @@ class CLIP_OT_track_settings_to_track(bpy.types.Operator):
         "use_green_channel",
         "use_blue_channel",
         "weight"
-        )
+    )
 
     _attrs_marker = (
         "pattern_corners",
         "search_min",
         "search_max",
-        )
+    )
 
     @classmethod
     def poll(cls, context):

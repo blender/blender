@@ -53,24 +53,26 @@ class QuickFur(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     density = EnumProperty(
-            name="Fur Density",
-            items=(('LIGHT', "Light", ""),
-                   ('MEDIUM', "Medium", ""),
-                   ('HEAVY', "Heavy", "")),
-            default='MEDIUM',
-            )
+        name="Fur Density",
+        items=(
+            ('LIGHT', "Light", ""),
+            ('MEDIUM', "Medium", ""),
+            ('HEAVY', "Heavy", "")
+        ),
+        default='MEDIUM',
+    )
     view_percentage = IntProperty(
-            name="View %",
-            min=1, max=100,
-            soft_min=1, soft_max=100,
-            default=10,
-            )
+        name="View %",
+        min=1, max=100,
+        soft_min=1, soft_max=100,
+        default=10,
+    )
     length = FloatProperty(
-            name="Length",
-            min=0.001, max=100,
-            soft_min=0.01, soft_max=10,
-            default=0.1,
-            )
+        name="Length",
+        min=0.001, max=100,
+        soft_min=0.01, soft_max=10,
+        default=0.1,
+    )
 
     def execute(self, context):
         fake_context = context.copy()
@@ -117,49 +119,51 @@ class QuickExplode(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     style = EnumProperty(
-            name="Explode Style",
-            items=(('EXPLODE', "Explode", ""),
-                   ('BLEND', "Blend", "")),
-            default='EXPLODE',
-            )
+        name="Explode Style",
+        items=(
+            ('EXPLODE', "Explode", ""),
+            ('BLEND', "Blend", ""),
+        ),
+        default='EXPLODE',
+    )
     amount = IntProperty(
-            name="Amount of pieces",
-            min=2, max=10000,
-            soft_min=2, soft_max=10000,
-            default=100,
-            )
+        name="Amount of pieces",
+        min=2, max=10000,
+        soft_min=2, soft_max=10000,
+        default=100,
+    )
     frame_duration = IntProperty(
-            name="Duration",
-            min=1, max=300000,
-            soft_min=1, soft_max=10000,
-            default=50,
-            )
+        name="Duration",
+        min=1, max=300000,
+        soft_min=1, soft_max=10000,
+        default=50,
+    )
 
     frame_start = IntProperty(
-            name="Start Frame",
-            min=1, max=300000,
-            soft_min=1, soft_max=10000,
-            default=1,
-            )
+        name="Start Frame",
+        min=1, max=300000,
+        soft_min=1, soft_max=10000,
+        default=1,
+    )
     frame_end = IntProperty(
-            name="End Frame",
-            min=1, max=300000,
-            soft_min=1, soft_max=10000,
-            default=10,
-            )
+        name="End Frame",
+        min=1, max=300000,
+        soft_min=1, soft_max=10000,
+        default=10,
+    )
 
     velocity = FloatProperty(
-            name="Outwards Velocity",
-            min=0, max=300000,
-            soft_min=0, soft_max=10,
-            default=1,
-            )
+        name="Outwards Velocity",
+        min=0, max=300000,
+        soft_min=0, soft_max=10,
+        default=1,
+    )
 
     fade = BoolProperty(
-            name="Fade",
-            description="Fade the pieces over time",
-            default=True,
-            )
+        name="Fade",
+        description="Fade the pieces over time",
+        default=True,
+    )
 
     def execute(self, context):
         fake_context = context.copy()
@@ -303,19 +307,20 @@ class QuickSmoke(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     style = EnumProperty(
-            name="Smoke Style",
-            items=(('SMOKE', "Smoke", ""),
-                   ('FIRE', "Fire", ""),
-                   ('BOTH', "Smoke + Fire", ""),
-                   ),
-            default='SMOKE',
-            )
+        name="Smoke Style",
+        items=(
+            ('SMOKE', "Smoke", ""),
+            ('FIRE', "Fire", ""),
+            ('BOTH', "Smoke + Fire", ""),
+        ),
+        default='SMOKE',
+    )
 
     show_flows = BoolProperty(
-            name="Render Smoke Objects",
-            description="Keep the smoke objects visible during rendering",
-            default=False,
-            )
+        name="Render Smoke Objects",
+        description="Keep the smoke objects visible during rendering",
+        default=False,
+    )
 
     def execute(self, context):
         if not bpy.app.build_options.mod_smoke:
@@ -391,7 +396,7 @@ class QuickSmoke(Operator):
             node_principled = nodes.new(type='ShaderNodeVolumePrincipled')
             node_principled.location = grid_location(4, 1)
             links.new(node_principled.outputs["Volume"],
-                    node_out.inputs["Volume"])
+                      node_out.inputs["Volume"])
 
             node_principled.inputs["Density"].default_value = 5.0
 
@@ -456,29 +461,31 @@ class QuickFluid(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     style = EnumProperty(
-            name="Fluid Style",
-            items=(('INFLOW', "Inflow", ""),
-                   ('BASIC', "Basic", "")),
-            default='BASIC',
-            )
+        name="Fluid Style",
+        items=(
+            ('INFLOW', "Inflow", ""),
+            ('BASIC', "Basic", ""),
+        ),
+        default='BASIC',
+    )
     initial_velocity = FloatVectorProperty(
-            name="Initial Velocity",
-            description="Initial velocity of the fluid",
-            min=-100.0, max=100.0,
-            default=(0.0, 0.0, 0.0),
-            subtype='VELOCITY',
-            )
+        name="Initial Velocity",
+        description="Initial velocity of the fluid",
+        min=-100.0, max=100.0,
+        default=(0.0, 0.0, 0.0),
+        subtype='VELOCITY',
+    )
     show_flows = BoolProperty(
-            name="Render Fluid Objects",
-            description="Keep the fluid objects visible during rendering",
-            default=False,
-            )
+        name="Render Fluid Objects",
+        description="Keep the fluid objects visible during rendering",
+        default=False,
+    )
     start_baking = BoolProperty(
-            name="Start Fluid Bake",
-            description=("Start baking the fluid immediately "
-                         "after creating the domain object"),
-            default=False,
-            )
+        name="Start Fluid Bake",
+        description=("Start baking the fluid immediately "
+                     "after creating the domain object"),
+        default=False,
+    )
 
     def execute(self, context):
         if not bpy.app.build_options.mod_fluid:

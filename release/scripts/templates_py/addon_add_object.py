@@ -8,7 +8,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "",
     "category": "Add Mesh",
-    }
+}
 
 
 import bpy
@@ -22,11 +22,12 @@ def add_object(self, context):
     scale_x = self.scale.x
     scale_y = self.scale.y
 
-    verts = [Vector((-1 * scale_x, 1 * scale_y, 0)),
-             Vector((1 * scale_x, 1 * scale_y, 0)),
-             Vector((1 * scale_x, -1 * scale_y, 0)),
-             Vector((-1 * scale_x, -1 * scale_y, 0)),
-            ]
+    verts = [
+        Vector((-1 * scale_x, 1 * scale_y, 0)),
+        Vector((1 * scale_x, 1 * scale_y, 0)),
+        Vector((1 * scale_x, -1 * scale_y, 0)),
+        Vector((-1 * scale_x, -1 * scale_y, 0)),
+    ]
 
     edges = []
     faces = [[0, 1, 2, 3]]
@@ -45,11 +46,11 @@ class OBJECT_OT_add_object(Operator, AddObjectHelper):
     bl_options = {'REGISTER', 'UNDO'}
 
     scale = FloatVectorProperty(
-            name="scale",
-            default=(1.0, 1.0, 1.0),
-            subtype='TRANSLATION',
-            description="scaling",
-            )
+        name="scale",
+        default=(1.0, 1.0, 1.0),
+        subtype='TRANSLATION',
+        description="scaling",
+    )
 
     def execute(self, context):
 
@@ -72,7 +73,7 @@ def add_object_manual_map():
     url_manual_prefix = "https://docs.blender.org/manual/en/dev/"
     url_manual_mapping = (
         ("bpy.ops.mesh.add_object", "editors/3dview/object"),
-        )
+    )
     return url_manual_prefix, url_manual_mapping
 
 

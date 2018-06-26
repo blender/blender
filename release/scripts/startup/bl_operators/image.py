@@ -30,8 +30,8 @@ class EditExternally(Operator):
     bl_options = {'REGISTER'}
 
     filepath = StringProperty(
-            subtype='FILE_PATH',
-            )
+        subtype='FILE_PATH',
+    )
 
     @staticmethod
     def _editor_guess(context):

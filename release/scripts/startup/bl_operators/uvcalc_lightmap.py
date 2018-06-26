@@ -33,7 +33,7 @@ class prettyface:
         "yoff",
         "has_parent",
         "rot",
-        )
+    )
 
     def __init__(self, data):
         self.has_parent = False
@@ -63,9 +63,9 @@ class prettyface:
 
                 self.width = self.height = d * 2
 
-            #else:
-            #    print(len(data), data)
-            #    raise "Error"
+            # else:
+            #     print(len(data), data)
+            #     raise "Error"
 
             for pf in data:
                 pf.has_parent = True
@@ -460,7 +460,7 @@ def lightmap_uvpack(meshes,
             # Tall boxes in groups of 2
             for d, boxes in list(odd_dict.items()):
                 if d[1] < max_int_dimension:
-                    #\boxes.sort(key = lambda a: len(a.children))
+                    # boxes.sort(key=lambda a: len(a.children))
                     while len(boxes) >= 2:
                         # print("foo", len(boxes))
                         ok = True
@@ -594,6 +594,7 @@ def unwrap(operator, context, **kwargs):
 
     return {'FINISHED'}
 
+
 from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
@@ -613,50 +614,55 @@ class LightMapPack(Operator):
     bl_options = {'UNDO'}
 
     PREF_CONTEXT = bpy.props.EnumProperty(
-            name="Selection",
-            items=(('SEL_FACES', "Selected Faces", "Space all UVs evenly"),
-                   ('ALL_FACES', "All Faces", "Average space UVs edge length of each loop"),
-                   ('ALL_OBJECTS', "Selected Mesh Object", "Average space UVs edge length of each loop")
-                   ),
-            )
+        name="Selection",
+        items=(
+            ('SEL_FACES', "Selected Faces", "Space all UVs evenly"),
+            ('ALL_FACES', "All Faces", "Average space UVs edge length of each loop"),
+            ('ALL_OBJECTS', "Selected Mesh Object", "Average space UVs edge length of each loop")
+        ),
+    )
 
     # Image & UVs...
     PREF_PACK_IN_ONE = BoolProperty(
-            name="Share Tex Space",
-            description=("Objects Share texture space, map all objects "
-                         "into 1 uvmap"),
-            default=True,
-            )
+        name="Share Tex Space",
+        description=(
+            "Objects Share texture space, map all objects "
+            "into 1 uvmap"
+        ),
+        default=True,
+    )
     PREF_NEW_UVLAYER = BoolProperty(
-            name="New UV Map",
-            description="Create a new UV map for every mesh packed",
-            default=False,
-            )
+        name="New UV Map",
+        description="Create a new UV map for every mesh packed",
+        default=False,
+    )
     PREF_APPLY_IMAGE = BoolProperty(
-            name="New Image",
-            description=("Assign new images for every mesh (only one if "
-                         "shared tex space enabled)"),
-            default=False,
-            )
+        name="New Image",
+        description=(
+            "Assign new images for every mesh (only one if "
+            "shared tex space enabled)"
+        ),
+        default=False,
+    )
     PREF_IMG_PX_SIZE = IntProperty(
-            name="Image Size",
-            description="Width and Height for the new image",
-            min=64, max=5000,
-            default=512,
-            )
+        name="Image Size",
+        description="Width and Height for the new image",
+        min=64, max=5000,
+        default=512,
+    )
     # UV Packing...
     PREF_BOX_DIV = IntProperty(
-            name="Pack Quality",
-            description="Pre Packing before the complex boxpack",
-            min=1, max=48,
-            default=12,
-            )
+        name="Pack Quality",
+        description="Pre Packing before the complex boxpack",
+        min=1, max=48,
+        default=12,
+    )
     PREF_MARGIN_DIV = FloatProperty(
-            name="Margin",
-            description="Size of the margin as a division of the UV",
-            min=0.001, max=1.0,
-            default=0.1,
-            )
+        name="Margin",
+        description="Size of the margin as a division of the UV",
+        min=0.001, max=1.0,
+        default=0.1,
+    )
 
     def execute(self, context):
         kwargs = self.as_keywords()

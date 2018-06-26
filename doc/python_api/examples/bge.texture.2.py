@@ -185,16 +185,16 @@ FragmentShader_v210 = """
 # Only use those for greater efficiency and compatiblity.
 #
 fg_shaders = {
-    '2vuy'       :FragmentShader_2vuy,
-    '8BitYUV'    :FragmentShader_2vuy,
-    'v210'       :FragmentShader_v210,
-    '10BitYUV'   :FragmentShader_v210,
-    '8BitBGRA'   :FragmentShader_R10l,
-    'BGRA'       :FragmentShader_R10l,
-    '8BitARGB'   :FragmentShader_R10l,
-    '10BitRGBXLE':FragmentShader_R10l,
-    'R10l'       :FragmentShader_R10l
-    }
+    '2vuy': FragmentShader_2vuy,
+    '8BitYUV': FragmentShader_2vuy,
+    'v210': FragmentShader_v210,
+    '10BitYUV': FragmentShader_v210,
+    '8BitBGRA': FragmentShader_R10l,
+    'BGRA': FragmentShader_R10l,
+    '8BitARGB': FragmentShader_R10l,
+    '10BitRGBXLE': FragmentShader_R10l,
+    'R10l': FragmentShader_R10l
+}
 
 
 #
@@ -220,6 +220,8 @@ def config_video(obj, format, pixel, is3D=False, mat=0, card=0):
 # Attach this function to an object that has a material with texture
 # and call it once to initialize the object
 #
+
+
 def init(cont):
     # config_video(cont.owner, 'HD720p5994', '8BitBGRA')
     # config_video(cont.owner, 'HD720p5994', '8BitYUV')

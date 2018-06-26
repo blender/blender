@@ -23,9 +23,9 @@ class OffScreenDraw(bpy.types.Operator):
     @staticmethod
     def handle_add(self, context):
         OffScreenDraw._handle_draw = bpy.types.SpaceView3D.draw_handler_add(
-                self.draw_callback_px, (self, context),
-                'WINDOW', 'POST_PIXEL',
-                )
+            self.draw_callback_px, (self, context),
+            'WINDOW', 'POST_PIXEL',
+        )
 
     @staticmethod
     def handle_remove():
@@ -57,19 +57,19 @@ class OffScreenDraw(bpy.types.Operator):
 
         modelview_matrix = camera.matrix_world.inverted()
         projection_matrix = camera.calc_matrix_camera(
-                render.resolution_x,
-                render.resolution_y,
-                render.pixel_aspect_x,
-                render.pixel_aspect_y,
-                )
+            render.resolution_x,
+            render.resolution_y,
+            render.pixel_aspect_x,
+            render.pixel_aspect_y,
+        )
 
         offscreen.draw_view3d(
-                scene,
-                context.space_data,
-                context.region,
-                projection_matrix,
-                modelview_matrix,
-                )
+            scene,
+            context.space_data,
+            context.region,
+            projection_matrix,
+            modelview_matrix,
+        )
 
     @staticmethod
     def _opengl_draw(context, texture, aspect_ratio, scale):

@@ -36,22 +36,22 @@ class SelectPattern(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     pattern = StringProperty(
-            name="Pattern",
-            description="Name filter using '*', '?' and "
-                        "'[abc]' unix style wildcards",
-            maxlen=64,
-            default="*",
-            )
+        name="Pattern",
+        description="Name filter using '*', '?' and "
+        "'[abc]' unix style wildcards",
+        maxlen=64,
+        default="*",
+    )
     case_sensitive = BoolProperty(
-            name="Case Sensitive",
-            description="Do a case sensitive compare",
-            default=False,
-            )
+        name="Case Sensitive",
+        description="Do a case sensitive compare",
+        default=False,
+    )
     extend = BoolProperty(
-            name="Extend",
-            description="Extend the existing selection",
-            default=True,
-            )
+        name="Extend",
+        description="Extend the existing selection",
+        default=True,
+    )
 
     def execute(self, context):
 
@@ -114,10 +114,10 @@ class SelectCamera(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     extend = BoolProperty(
-            name="Extend",
-            description="Extend the selection",
-            default=False
-            )
+        name="Extend",
+        description="Extend the selection",
+        default=False
+    )
 
     def execute(self, context):
         scene = context.scene
@@ -144,24 +144,24 @@ class SelectCamera(Operator):
 
 class SelectHierarchy(Operator):
     """Select object relative to the active object's position """ \
-    """in the hierarchy"""
+        """in the hierarchy"""
     bl_idname = "object.select_hierarchy"
     bl_label = "Select Hierarchy"
     bl_options = {'REGISTER', 'UNDO'}
 
     direction = EnumProperty(
-            items=(('PARENT', "Parent", ""),
-                   ('CHILD', "Child", ""),
-                   ),
-            name="Direction",
-            description="Direction to select in the hierarchy",
-            default='PARENT')
+        items=(('PARENT', "Parent", ""),
+               ('CHILD', "Child", ""),
+               ),
+        name="Direction",
+        description="Direction to select in the hierarchy",
+        default='PARENT')
 
     extend = BoolProperty(
-            name="Extend",
-            description="Extend the existing selection",
-            default=False,
-            )
+        name="Extend",
+        description="Extend the existing selection",
+        default=False,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -218,18 +218,18 @@ class SubdivisionSet(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     level = IntProperty(
-            name="Level",
-            min=-100, max=100,
-            soft_min=-6, soft_max=6,
-            default=1,
-            )
+        name="Level",
+        min=-100, max=100,
+        soft_min=-6, soft_max=6,
+        default=1,
+    )
 
     relative = BoolProperty(
-            name="Relative",
-            description=("Apply the subsurf level as an offset "
-                         "relative to the current level"),
-            default=False,
-            )
+        name="Relative",
+        description=("Apply the subsurf level as an offset "
+                     "relative to the current level"),
+        default=False,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -302,36 +302,36 @@ class SubdivisionSet(Operator):
 
 class ShapeTransfer(Operator):
     """Copy another selected objects active shape to this one by """ \
-    """applying the relative offsets"""
+        """applying the relative offsets"""
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(
-            items=(('OFFSET',
-                    "Offset",
-                    "Apply the relative positional offset",
-                    ),
-                   ('RELATIVE_FACE',
-                    "Relative Face",
-                    "Calculate relative position (using faces)",
-                    ),
-                   ('RELATIVE_EDGE',
-                   "Relative Edge",
-                   "Calculate relative position (using edges)",
-                    ),
-                   ),
-            name="Transformation Mode",
-            description="Relative shape positions to the new shape method",
-            default='OFFSET',
-            )
+        items=(('OFFSET',
+                "Offset",
+                "Apply the relative positional offset",
+                ),
+               ('RELATIVE_FACE',
+                "Relative Face",
+                "Calculate relative position (using faces)",
+                ),
+               ('RELATIVE_EDGE',
+                "Relative Edge",
+                "Calculate relative position (using edges)",
+                ),
+               ),
+        name="Transformation Mode",
+        description="Relative shape positions to the new shape method",
+        default='OFFSET',
+    )
     use_clamp = BoolProperty(
-            name="Clamp Offset",
-            description=("Clamp the transformation to the distance each "
-                         "vertex moves in the original shape"),
-            default=False,
-            )
+        name="Clamp Offset",
+        description=("Clamp the transformation to the distance each "
+                     "vertex moves in the original shape"),
+        default=False,
+    )
 
     def _main(self, ob_act, objects, mode='OFFSET', use_clamp=False):
 
@@ -364,7 +364,7 @@ class ShapeTransfer(Operator):
 
         orig_normals = me_nos(me.vertices)
         # actual mesh vertex location isn't as reliable as the base shape :S
-        #~ orig_coords = me_cos(me.vertices)
+        # orig_coords = me_cos(me.vertices)
         orig_coords = me_cos(me.shape_keys.key_blocks[0].data)
 
         for ob_other in objects:
@@ -494,7 +494,7 @@ class ShapeTransfer(Operator):
 
 class JoinUVs(Operator):
     """Transfer UV Maps from active to selected objects """ \
-    """(needs matching geometry)"""
+        """(needs matching geometry)"""
     bl_idname = "object.join_uvs"
     bl_label = "Transfer UV Maps"
     bl_options = {'REGISTER', 'UNDO'}
@@ -654,7 +654,7 @@ class MakeDupliFace(Operator):
 
 class IsolateTypeRender(Operator):
     """Hide unselected render objects of same type as active """ \
-    """by setting the hide render flag"""
+        """by setting the hide render flag"""
     bl_idname = "object.isolate_type_render"
     bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
@@ -687,38 +687,27 @@ class ClearAllRestrictRender(Operator):
 
 class TransformsToDeltas(Operator):
     """Convert normal object transforms to delta transforms, """ \
-    """any existing delta transforms will be included as well"""
+        """any existing delta transforms will be included as well"""
     bl_idname = "object.transforms_to_deltas"
     bl_label = "Transforms to Deltas"
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(
-            items=(('ALL',
-                    "All Transforms",
-                    "Transfer location, rotation, and scale transforms",
-                    ),
-                   ('LOC',
-                    "Location",
-                    "Transfer location transforms only",
-                    ),
-                   ('ROT',
-                    "Rotation",
-                    "Transfer rotation transforms only",
-                    ),
-                   ('SCALE',
-                    "Scale",
-                    "Transfer scale transforms only",
-                    ),
-                   ),
-            name="Mode",
-            description="Which transforms to transfer",
-            default='ALL',
-            )
+        items=(
+            ('ALL', "All Transforms", "Transfer location, rotation, and scale transforms"),
+            ('LOC', "Location", "Transfer location transforms only"),
+            ('ROT', "Rotation", "Transfer rotation transforms only"),
+            ('SCALE', "Scale", "Transfer scale transforms only"),
+        ),
+        name="Mode",
+        description="Which transforms to transfer",
+        default='ALL',
+    )
     reset_values = BoolProperty(
-            name="Reset Values",
-            description=("Clear transform values after transferring to deltas"),
-            default=True,
-            )
+        name="Reset Values",
+        description=("Clear transform values after transferring to deltas"),
+        default=True,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -784,11 +773,11 @@ class TransformsToDeltasAnim(Operator):
     def execute(self, context):
         # map from standard transform paths to "new" transform paths
         STANDARD_TO_DELTA_PATHS = {
-            "location"             : "delta_location",
-            "rotation_euler"       : "delta_rotation_euler",
-            "rotation_quaternion"  : "delta_rotation_quaternion",
-            #"rotation_axis_angle" : "delta_rotation_axis_angle",
-            "scale"                : "delta_scale"
+            "location": "delta_location",
+            "rotation_euler": "delta_rotation_euler",
+            "rotation_quaternion": "delta_rotation_quaternion",
+            # "rotation_axis_angle" : "delta_rotation_axis_angle",
+            "scale": "delta_scale"
         }
         DELTA_PATHS = STANDARD_TO_DELTA_PATHS.values()
 
@@ -848,8 +837,8 @@ class TransformsToDeltasAnim(Operator):
                     fcu.data_path = "delta_rotation_quaternion"
                     obj.rotation_quaternion.identity()
                 # XXX: currently not implemented
-                #~ elif fcu.data_path == "rotation_axis_angle":
-                #~    fcu.data_path = "delta_rotation_axis_angle"
+                # ~ elif fcu.data_path == "rotation_axis_angle":
+                # ~    fcu.data_path = "delta_rotation_axis_angle"
                 elif fcu.data_path == "scale":
                     fcu.data_path = "delta_scale"
                     obj.scale = 1.0, 1.0, 1.0
@@ -956,18 +945,18 @@ class LodGenerate(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     count = IntProperty(
-            name="Count",
-            default=3,
-            )
+        name="Count",
+        default=3,
+    )
     target = FloatProperty(
-            name="Target Size",
-            min=0.0, max=1.0,
-            default=0.1,
-            )
+        name="Target Size",
+        min=0.0, max=1.0,
+        default=0.1,
+    )
     package = BoolProperty(
-            name="Package into Group",
-            default=False,
-            )
+        name="Package into Group",
+        default=False,
+    )
 
     @classmethod
     def poll(cls, context):

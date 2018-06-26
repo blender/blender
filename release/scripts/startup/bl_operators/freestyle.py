@@ -35,15 +35,15 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     type = EnumProperty(
-            name="Type", description="Type of the modifier to work on",
-            items=(("COLOR", "Color", "Color modifier type"),
-                   ("ALPHA", "Alpha", "Alpha modifier type"),
-                   ("THICKNESS", "Thickness", "Thickness modifier type")),
-            )
+        name="Type", description="Type of the modifier to work on",
+        items=(("COLOR", "Color", "Color modifier type"),
+               ("ALPHA", "Alpha", "Alpha modifier type"),
+               ("THICKNESS", "Thickness", "Thickness modifier type")),
+    )
     name = StringProperty(
-            name="Name",
-            description="Name of the modifier to work on",
-            )
+        name="Name",
+        description="Name of the modifier to work on",
+    )
 
     @classmethod
     def poll(cls, context):

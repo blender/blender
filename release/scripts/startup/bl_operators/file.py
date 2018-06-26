@@ -38,59 +38,59 @@ class WM_OT_previews_batch_generate(Operator):
     # -----------
     # File props.
     files = CollectionProperty(
-            type=bpy.types.OperatorFileListElement,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        type=bpy.types.OperatorFileListElement,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     directory = StringProperty(
-            maxlen=1024,
-            subtype='FILE_PATH',
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        maxlen=1024,
+        subtype='FILE_PATH',
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     # Show only images/videos, and directories!
     filter_blender = BoolProperty(
-            default=True,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
     filter_folder = BoolProperty(
-            default=True,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     # -----------
     # Own props.
     use_scenes = BoolProperty(
-            default=True,
-            name="Scenes",
-            description="Generate scenes' previews",
-            )
+        default=True,
+        name="Scenes",
+        description="Generate scenes' previews",
+    )
     use_groups = BoolProperty(
-            default=True,
-            name="Groups",
-            description="Generate groups' previews",
-            )
+        default=True,
+        name="Groups",
+        description="Generate groups' previews",
+    )
     use_objects = BoolProperty(
-            default=True,
-            name="Objects",
-            description="Generate objects' previews",
-            )
+        default=True,
+        name="Objects",
+        description="Generate objects' previews",
+    )
     use_intern_data = BoolProperty(
-            default=True,
-            name="Mat/Tex/...",
-            description="Generate 'internal' previews (materials, textures, images, etc.)",
-            )
+        default=True,
+        name="Mat/Tex/...",
+        description="Generate 'internal' previews (materials, textures, images, etc.)",
+    )
 
     use_trusted = BoolProperty(
-            default=False,
-            name="Trusted Blend Files",
-            description="Enable python evaluation for selected files",
-            )
+        default=False,
+        name="Trusted Blend Files",
+        description="Enable python evaluation for selected files",
+    )
     use_backups = BoolProperty(
-            default=True,
-            name="Save Backups",
-            description="Keep a backup (.blend1) version of the files when saving with generated previews",
-            )
+        default=True,
+        name="Save Backups",
+        description="Keep a backup (.blend1) version of the files when saving with generated previews",
+    )
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
@@ -148,58 +148,58 @@ class WM_OT_previews_batch_clear(Operator):
     # -----------
     # File props.
     files = CollectionProperty(
-            type=bpy.types.OperatorFileListElement,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        type=bpy.types.OperatorFileListElement,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     directory = StringProperty(
-            maxlen=1024,
-            subtype='FILE_PATH',
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        maxlen=1024,
+        subtype='FILE_PATH',
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     # Show only images/videos, and directories!
     filter_blender = BoolProperty(
-            default=True,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
     filter_folder = BoolProperty(
-            default=True,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     # -----------
     # Own props.
     use_scenes = BoolProperty(
-            default=True,
-            name="Scenes",
-            description="Clear scenes' previews",
-            )
+        default=True,
+        name="Scenes",
+        description="Clear scenes' previews",
+    )
     use_groups = BoolProperty(default=True,
-            name="Groups",
-            description="Clear groups' previews",
-            )
+                              name="Groups",
+                              description="Clear groups' previews",
+                              )
     use_objects = BoolProperty(
-            default=True,
-            name="Objects",
-            description="Clear objects' previews",
-            )
+        default=True,
+        name="Objects",
+        description="Clear objects' previews",
+    )
     use_intern_data = BoolProperty(
-            default=True,
-            name="Mat/Tex/...",
-            description="Clear 'internal' previews (materials, textures, images, etc.)",
-            )
+        default=True,
+        name="Mat/Tex/...",
+        description="Clear 'internal' previews (materials, textures, images, etc.)",
+    )
 
     use_trusted = BoolProperty(
-            default=False,
-            name="Trusted Blend Files",
-            description="Enable python evaluation for selected files",
-            )
+        default=False,
+        name="Trusted Blend Files",
+        description="Enable python evaluation for selected files",
+    )
     use_backups = BoolProperty(
-            default=True,
-            name="Save Backups",
-            description="Keep a backup (.blend1) version of the files when saving with cleared previews",
-            )
+        default=True,
+        name="Save Backups",
+        description="Keep a backup (.blend1) version of the files when saving with cleared previews",
+    )
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)

@@ -60,6 +60,7 @@ def menu_func(self, context):
     layout.separator()
     layout.operator(WM_OT_button_context_test.bl_idname)
 
+
 classes = (
     WM_OT_button_context_test,
     WM_MT_button_context,
@@ -76,6 +77,7 @@ def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
     bpy.types.WM_MT_button_context.remove(menu_func)
+
 
 if __name__ == "__main__":
     register()

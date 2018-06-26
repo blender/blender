@@ -70,4 +70,5 @@ def main():
     print(own["life"])
     """
 
+
 main()

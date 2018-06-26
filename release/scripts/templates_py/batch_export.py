@@ -28,7 +28,7 @@ for obj in selection:
 
     bpy.ops.export_scene.fbx(filepath=fn + ".fbx", use_selection=True)
 
-    ## Can be used for multiple formats
+    # Can be used for multiple formats
     # bpy.ops.export_scene.x3d(filepath=fn + ".x3d", use_selection=True)
 
     obj.select = False

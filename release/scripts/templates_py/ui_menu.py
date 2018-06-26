@@ -42,6 +42,7 @@ def unregister():
 
     bpy.types.INFO_HT_header.remove(draw_item)
 
+
 if __name__ == "__main__":
     register()
 

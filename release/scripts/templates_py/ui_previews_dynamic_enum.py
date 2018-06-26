@@ -89,19 +89,19 @@ preview_collections = {}
 def register():
     from bpy.types import WindowManager
     from bpy.props import (
-            StringProperty,
-            EnumProperty,
-            )
+        StringProperty,
+        EnumProperty,
+    )
 
     WindowManager.my_previews_dir = StringProperty(
-            name="Folder Path",
-            subtype='DIR_PATH',
-            default=""
-            )
+        name="Folder Path",
+        subtype='DIR_PATH',
+        default=""
+    )
 
     WindowManager.my_previews = EnumProperty(
-            items=enum_previews_from_directory_items,
-            )
+        items=enum_previews_from_directory_items,
+    )
 
     # Note that preview collections returned by bpy.utils.previews
     # are regular Python objects - you can use them to store custom data.

@@ -83,11 +83,11 @@ class SequencerCutMulticam(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     camera = IntProperty(
-            name="Camera",
-            min=1, max=32,
-            soft_min=1, soft_max=32,
-            default=1,
-            )
+        name="Camera",
+        min=1, max=32,
+        soft_min=1, soft_max=32,
+        default=1,
+    )
 
     @classmethod
     def poll(cls, context):

@@ -34,7 +34,7 @@ if not hasattr(logic, 'video'):
     logic.mySources[0] = texture.VideoFFmpeg('movie1.avi')
     logic.mySources[1] = texture.VideoFFmpeg('movie2.avi')
 
-    #And then assign (and reassign) the source during the game
+    # And then assign (and reassign) the source during the game
     logic.video.source = logic.mySources[movieSel]
 
     # quick off the movie, but it wont play in the background
