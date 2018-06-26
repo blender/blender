@@ -32,6 +32,8 @@
 #ifndef __GPU_TEXTURE_H__
 #define __GPU_TEXTURE_H__
 
+#include "GPU_state.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -142,19 +144,6 @@ typedef enum GPUTextureFormat {
 	GPU_DEPTH_COMPONENT16,
 } GPUTextureFormat;
 
-/* These map directly to the GL_ blend functions, to minimize API add as needed*/
-typedef enum GPUBlendFunction {
-	GPU_ONE,
-	GPU_SRC_ALPHA,
-	GPU_ONE_MINUS_SRC_ALPHA
-} GPUBlendFunction;
-
-/* These map directly to the GL_ filter functions, to minimize API add as needed*/
-typedef enum GPUFilterFunction {
-	GPU_NEAREST,
-	GPU_LINEAR
-} GPUFilterFunction;
-
 unsigned int GPU_texture_memory_usage_get(void);
 
 GPUTexture *GPU_texture_create_1D(
@@ -220,10 +209,6 @@ bool GPU_texture_depth(const GPUTexture *tex);
 bool GPU_texture_stencil(const GPUTexture *tex);
 bool GPU_texture_integer(const GPUTexture *tex);
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);
-
-void GPU_blend(bool enable);
-void GPU_blend_set_func_separate(GPUBlendFunction src_rgb, GPUBlendFunction dst_rgb, GPUBlendFunction src_alpha, GPUBlendFunction dst_alpha);
-void GPU_blend_set_func(GPUBlendFunction sfactor, GPUBlendFunction dfactor);
 
 #ifdef __cplusplus
 }

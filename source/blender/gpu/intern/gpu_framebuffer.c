@@ -834,3 +834,13 @@ void GPU_offscreen_viewport_data_get(
 	*r_color = ofs->color;
 	*r_depth = ofs->depth;
 }
+
+void GPU_clear_color(float red, float green, float blue, float alpha)
+{
+	glClearColor(red, green, blue, alpha);
+}
+
+void GPU_clear(GPUFrameBufferBits flags)
+{
+	glClear(convert_buffer_bits_to_gl(flags));
+}
