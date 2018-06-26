@@ -86,18 +86,21 @@ class DopesheetFilterPopoverBase:
         dopesheet = context.space_data.dopesheet
         is_nla = context.area.type == 'NLA_EDITOR'
 
-        if (not generic_filters_only) and (bpy.data.collections):
-            row = layout.row(align=True)
-            row.prop(dopesheet, "filter_collection", text="")
-
+        col = layout.column(align=True)
+        col.label("With Name:")
         if not is_nla:
-            row = layout.row(align=True)
+            row = col.row(align=True)
             row.prop(dopesheet, "filter_fcurve_name", text="")
             row.prop(dopesheet, "use_multi_word_filter", text="")
         else:
-            row = layout.row(align=True)
+            row = col.row(align=True)
             row.prop(dopesheet, "filter_text", text="")
             row.prop(dopesheet, "use_multi_word_filter", text="")
+
+        if (not generic_filters_only) and (bpy.data.collections):
+            col = layout.column(align=True)
+            col.label("In Collection:")
+            col.prop(dopesheet, "filter_collection", text="")
 
     # Standard = Present in all panels
     @classmethod
@@ -232,6 +235,7 @@ class DOPESHEET_HT_editor_buttons(Header):
         toolsettings = context.tool_settings
 
         if st.mode in {'ACTION', 'SHAPEKEY'}:
+            # TODO: These buttons need some tidying up - Probably by using a popover, and bypassing the template_id() here
             row = layout.row(align=True)
             row.operator("action.layer_prev", text="", icon='TRIA_DOWN')
             row.operator("action.layer_next", text="", icon='TRIA_UP')
