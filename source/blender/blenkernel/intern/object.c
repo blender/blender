@@ -404,8 +404,15 @@ void BKE_object_free_caches(Object *object)
 		}
 	}
 
-	BKE_object_free_derived_caches(object);
-	update_flag |= OB_RECALC_DATA;
+	/* NOTE: If object ios copming from a duplicator, it might be a temporary
+	 * object created by dependency graph, which shares pointers with original
+	 * object.
+	 * In this case we can not free anything.
+	 */
+	if ((object->base_flag & BASE_FROMDUPLI) == 0) {
+		BKE_object_free_derived_caches(object);
+		update_flag |= OB_RECALC_DATA;
+	}
 
 	/* Tag object for update, so once memory critical operation is over and
 	 * scene update routines are back to it's business the object will be
