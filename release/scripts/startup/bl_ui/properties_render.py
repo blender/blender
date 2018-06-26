@@ -205,7 +205,8 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = False
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         rd = context.scene.render
 

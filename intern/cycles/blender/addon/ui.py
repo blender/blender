@@ -1545,6 +1545,7 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
         cscene = scene.cycles
@@ -1573,7 +1574,7 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
             if cscene.bake_type == 'NORMAL':
                 col.prop(cbk, "normal_space", text="Space")
 
-                sub = col.row(align=True)
+                sub = col.column(align=True)
                 sub.prop(cbk, "normal_r", text="Swizzle R")
                 sub.prop(cbk, "normal_g", text="G")
                 sub.prop(cbk, "normal_b", text="B")
@@ -1595,6 +1596,7 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
 
             elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
                 row = col.row(align=True)
+                row.use_property_split = False
                 row.prop(cbk, "use_pass_direct", toggle=True)
                 row.prop(cbk, "use_pass_indirect", toggle=True)
                 row.prop(cbk, "use_pass_color", toggle=True)
@@ -1613,9 +1615,11 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
             sub.prop(cbk, "use_cage", text="Cage")
             if cbk.use_cage:
                 sub.prop(cbk, "cage_extrusion", text="Extrusion")
-                sub.prop_search(cbk, "cage_object", scene, "objects", text="")
+                sub.prop_search(cbk, "cage_object", scene, "objects", text="Cage Object")
             else:
                 sub.prop(cbk, "cage_extrusion", text="Ray Distance")
+
+            layout.separator()
 
             layout.operator("object.bake", icon='RENDER_STILL').type = cscene.bake_type
 
