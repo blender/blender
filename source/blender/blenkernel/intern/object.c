@@ -404,10 +404,9 @@ void BKE_object_free_caches(Object *object)
 		}
 	}
 
-	/* NOTE: If object ios copming from a duplicator, it might be a temporary
+	/* NOTE: If object is coming from a duplicator, it might be a temporary
 	 * object created by dependency graph, which shares pointers with original
-	 * object.
-	 * In this case we can not free anything.
+	 * object. In this case we can not free anything.
 	 */
 	if ((object->base_flag & BASE_FROMDUPLI) == 0) {
 		BKE_object_free_derived_caches(object);
