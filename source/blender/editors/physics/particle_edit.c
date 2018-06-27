@@ -53,7 +53,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
@@ -3532,7 +3531,7 @@ static void intersect_dm_quad_weights(const float v1[3], const float v2[3], cons
 	interp_weights_poly_v3(w, vert, 4, co);
 }
 
-/* check intersection with a derivedmesh */
+/** Check intersection with an evaluated mesh. */
 static int particle_intersect_mesh(Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh,
                                    float *vert_cos,
                                    const float co1[3], const float co2[3],
@@ -3549,18 +3548,16 @@ static int particle_intersect_mesh(Depsgraph *depsgraph, Scene *scene, Object *o
 	if (mesh == NULL) {
 		psys_disable_all(ob);
 
-		/* TODO(Sybren): port to Mesh when we have decided how to handle derivedFinal and derivedDeform */
-		DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, 0);
-		if (dm == NULL)
-			dm = mesh_get_derived_deform(depsgraph, scene, ob, 0);
+		mesh = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		if (mesh == NULL) {
+			mesh = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		}
 
 		psys_enable_all(ob);
 
-		if (dm == NULL)
+		if (mesh == NULL) {
 			return 0;
-
-		mesh = BKE_id_new_nomain(ID_ME, NULL);
-		DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 	}
 
 	/* BMESH_ONLY, deform dm may not have tessface */
