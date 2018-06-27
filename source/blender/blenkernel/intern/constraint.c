@@ -3420,7 +3420,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con,
 		float co[3] = {0.0f, 0.0f, 0.0f};
 
 		SpaceTransform transform;
-		Mesh *target_eval = mesh_get_eval_final(depsgraph, DEG_get_input_scene(depsgraph), ct->tar, 0);
+		Mesh *target_eval = mesh_get_eval_final(depsgraph, DEG_get_input_scene(depsgraph), ct->tar, CD_MASK_BAREMESH);
 
 		BVHTreeFromMesh treeData = {NULL};
 
@@ -4092,7 +4092,8 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 			if (data->depth_ob) {
 				Object *depth_ob = data->depth_ob;
-				Mesh *target_eval = mesh_get_eval_final(depsgraph, DEG_get_input_scene(depsgraph), depth_ob, 0);
+				Mesh *target_eval = mesh_get_eval_final(
+				                        depsgraph, DEG_get_input_scene(depsgraph), depth_ob, CD_MASK_BAREMESH);
 				if (target_eval) {
 					BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 					BVHTreeRayHit hit;

@@ -61,7 +61,6 @@
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_library.h"
