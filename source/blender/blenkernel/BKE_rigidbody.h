@@ -44,8 +44,8 @@ struct Object;
 /* -------------- */
 /* Memory Management */
 
-void BKE_rigidbody_free_world(struct RigidBodyWorld *rbw);
-void BKE_rigidbody_free_object(struct Object *ob);
+void BKE_rigidbody_free_world(struct Scene *scene);
+void BKE_rigidbody_free_object(struct Object *ob, struct RigidBodyWorld *rbw);
 void BKE_rigidbody_free_constraint(struct Object *ob);
 
 /* ...... */

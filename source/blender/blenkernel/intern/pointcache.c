@@ -1295,8 +1295,8 @@ static int  ptcache_rigidbody_write(int index, void *rb_v, void **data, int UNUS
 
 		if (rbo->type == RBO_TYPE_ACTIVE) {
 #ifdef WITH_BULLET
-			RB_body_get_position(rbo->physics_object, rbo->pos);
-			RB_body_get_orientation(rbo->physics_object, rbo->orn);
+			RB_body_get_position(rbo->shared->physics_object, rbo->pos);
+			RB_body_get_orientation(rbo->shared->physics_object, rbo->orn);
 #endif
 			PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, rbo->pos);
 			PTCACHE_DATA_FROM(data, BPHYS_DATA_ROTATION, rbo->orn);
@@ -1619,9 +1619,9 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 	pid->ob= ob;
 	pid->calldata= rbw;
 	pid->type= PTCACHE_TYPE_RIGIDBODY;
-	pid->cache= rbw->pointcache;
-	pid->cache_ptr= &rbw->pointcache;
-	pid->ptcaches= &rbw->ptcaches;
+	pid->cache= rbw->shared->pointcache;
+	pid->cache_ptr= &rbw->shared->pointcache;
+	pid->ptcaches= &rbw->shared->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_rigidbody_totpoint;
 	pid->error					= ptcache_rigidbody_error;
 

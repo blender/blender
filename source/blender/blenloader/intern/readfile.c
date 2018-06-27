@@ -5476,12 +5476,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->rigidbody_object = newdataadr(fd, ob->rigidbody_object);
 	if (ob->rigidbody_object) {
 		RigidBodyOb *rbo = ob->rigidbody_object;
-
-		/* must nullify the references to physics sim objects, since they no-longer exist
-		 * (and will need to be recalculated)
-		 */
-		rbo->physics_object = NULL;
-		rbo->physics_shape = NULL;
+		/* Allocate runtime-only struct */
+		rbo->shared = MEM_callocN(sizeof(*rbo->shared), "RigidBodyObShared");
 	}
 	ob->rigidbody_constraint = newdataadr(fd, ob->rigidbody_constraint);
 	if (ob->rigidbody_constraint)
@@ -6280,10 +6276,34 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->rigidbody_world = newdataadr(fd, sce->rigidbody_world);
 	rbw = sce->rigidbody_world;
 	if (rbw) {
-		/* must nullify the reference to physics sim object, since it no-longer exist
-		 * (and will need to be recalculated)
-		 */
-		rbw->physics_world = NULL;
+		rbw->shared = newdataadr(fd, rbw->shared);
+
+		if (rbw->shared == NULL) {
+			/* Link deprecated caches if they exist, so we can use them for versioning.
+			 * We should only do this when rbw->shared == NULL, because those pointers
+			 * are always set (for compatibility with older Blenders). We mustn't link
+			 * the same pointcache twice. */
+			direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, false);
+
+			/* make sure simulation starts from the beginning after loading file */
+			if (rbw->pointcache) {
+				rbw->ltime = (float)rbw->pointcache->startframe;
+			}
+		}
+		else {
+			/* must nullify the reference to physics sim object, since it no-longer exist
+			 * (and will need to be recalculated)
+			 */
+			rbw->shared->physics_world = NULL;
+
+			/* link caches */
+			direct_link_pointcache_list(fd, &rbw->shared->ptcaches, &rbw->shared->pointcache, false);
+
+			/* make sure simulation starts from the beginning after loading file */
+			if (rbw->shared->pointcache) {
+				rbw->ltime = (float)rbw->shared->pointcache->startframe;
+			}
+		}
 		rbw->objects = NULL;
 		rbw->numbodies = 0;
 
@@ -6291,13 +6311,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		rbw->effector_weights = newdataadr(fd, rbw->effector_weights);
 		if (!rbw->effector_weights)
 			rbw->effector_weights = BKE_add_effector_weights(NULL);
-
-		/* link cache */
-		direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, false);
-		/* make sure simulation starts from the beginning after loading file */
-		if (rbw->pointcache) {
-			rbw->ltime = (float)rbw->pointcache->startframe;
-		}
 	}
 
 	sce->preview = direct_link_preview_image(fd, sce->preview);

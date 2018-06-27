@@ -449,7 +449,7 @@ void BKE_object_free(Object *ob)
 	BKE_constraints_free_ex(&ob->constraints, false);
 
 	free_partdeflect(ob->pd);
-	BKE_rigidbody_free_object(ob);
+	BKE_rigidbody_free_object(ob, NULL);
 	BKE_rigidbody_free_constraint(ob);
 
 	if (ob->soft) {

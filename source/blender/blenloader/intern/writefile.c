@@ -2646,9 +2646,14 @@ static void write_scene(WriteData *wd, Scene *sce)
 
 	/* writing RigidBodyWorld data to the blend file */
 	if (sce->rigidbody_world) {
+		/* Set deprecated pointers to prevent crashes of older Blenders */
+		sce->rigidbody_world->pointcache = sce->rigidbody_world->shared->pointcache;
+		sce->rigidbody_world->ptcaches = sce->rigidbody_world->shared->ptcaches;
 		writestruct(wd, DATA, RigidBodyWorld, 1, sce->rigidbody_world);
+
+		writestruct(wd, DATA, RigidBodyWorld_Shared, 1, sce->rigidbody_world->shared);
 		writestruct(wd, DATA, EffectorWeights, 1, sce->rigidbody_world->effector_weights);
-		write_pointcaches(wd, &(sce->rigidbody_world->ptcaches));
+		write_pointcaches(wd, &(sce->rigidbody_world->shared->ptcaches));
 	}
 
 	write_previews(wd, sce->preview);

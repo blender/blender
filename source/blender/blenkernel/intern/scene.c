@@ -461,8 +461,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	}
 
 	if (sce->rigidbody_world) {
-		BKE_rigidbody_free_world(sce->rigidbody_world);
-		sce->rigidbody_world = NULL;
+		BKE_rigidbody_free_world(sce);
 	}
 
 	if (sce->r.avicodecdata) {
