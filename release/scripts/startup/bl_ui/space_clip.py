@@ -58,16 +58,18 @@ class CLIP_HT_header(Header):
         sc = context.space_data
         clip = sc.clip
 
+        CLIP_MT_tracking_editor_menus.draw_collapsible(context, layout)
+
+        layout.separator_spacer()
+
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
 
-        CLIP_MT_tracking_editor_menus.draw_collapsible(context, layout)
+        layout.separator_spacer()
 
         if clip:
             tracking = clip.tracking
             active_object = tracking.objects.active
-
-            layout.separator_spacer()
 
             if sc.view == 'CLIP':
                 layout.prop(sc, "pivot_point", text="", icon_only=True)
@@ -118,8 +120,12 @@ class CLIP_HT_header(Header):
 
         CLIP_MT_masking_editor_menus.draw_collapsible(context, layout)
 
+        layout.separator_spacer()
+
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
+
+        layout.separator_spacer()
 
         if clip:
             row = layout.row()
