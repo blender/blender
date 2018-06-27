@@ -149,7 +149,6 @@ set(SRC
 	intern/mesh_tangent.c
 	intern/mesh_validate.c
 	intern/modifier.c
-	intern/modifiers_bmesh.c
 	intern/movieclip.c
 	intern/multires.c
 	intern/nla.c
