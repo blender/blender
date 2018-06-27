@@ -672,8 +672,8 @@ class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "shadow_method")
-        col.prop(props, "shadow_cube_size")
-        col.prop(props, "shadow_cascade_size")
+        col.prop(props, "shadow_cube_size", text="Cube Size")
+        col.prop(props, "shadow_cascade_size", text="Cascade Size")
         col.prop(props, "use_shadow_high_bitdepth")
 
 
@@ -719,7 +719,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
         col = layout.column()
         col.prop(props, "gi_diffuse_bounces")
         col.prop(props, "gi_cubemap_resolution")
-        col.prop(props, "gi_visibility_resolution")
+        col.prop(props, "gi_visibility_resolution", text="Diffuse Occlusion")
 
 
 class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
