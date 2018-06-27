@@ -275,8 +275,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x404040ff),
 		.wire = RGBA(0x000000ff),
@@ -461,8 +459,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade2 = RGBA(0x7f707064),
 		.hilite = RGBA(0x5b8199ff),
 		.grid = RGBA(0xfafafaff),
@@ -548,8 +544,6 @@ const bTheme U_theme_default = {
 			.sub_back = RGBA(0x0000003e),
 			.show_header = 1,
 			.show_back = 1,
-		},
-		.gradients = {
 		},
 		.shade1 = RGBA(0x96969600),
 		.shade2 = RGBA(0x29282e64),
@@ -643,8 +637,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x404040ff),
 		.wire = RGBA(0x000000ff),
@@ -736,8 +728,6 @@ const bTheme U_theme_default = {
 			.sub_back = RGBA(0x0000003e),
 			.show_header = 1,
 			.show_back = 1,
-		},
-		.gradients = {
 		},
 		.shade1 = RGBA(0xc0c0c000),
 		.shade2 = RGBA(0x70707064),
@@ -844,8 +834,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade1 = RGBA(0x96969600),
 		.shade2 = RGBA(0x70707064),
 		.hilite = RGBA(0x60c040ff),
@@ -951,8 +939,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade1 = RGBA(0xa0a0a000),
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x404040ff),
@@ -1051,8 +1037,6 @@ const bTheme U_theme_default = {
 			.sub_back = RGBA(0x0000003e),
 			.show_header = 1,
 			.show_back = 1,
-		},
-		.gradients = {
 		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x404040ff),
