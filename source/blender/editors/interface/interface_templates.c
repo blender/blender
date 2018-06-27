@@ -4310,14 +4310,20 @@ void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
 	/* Otherwise should cursor keymap status. */
 	for (int i = 0; i < 3; i++) {
 		uiLayout *box = uiLayoutRow(layout, true);
-		for (int j = 0; j < 2; j++) {
-			const char *msg = WM_window_cursor_keymap_status_get(win, i, j);
-			if ((j == 0) || (msg != NULL)) {
-				uiItemL(box, msg, j == 0 ? (ICON_MOUSE_LMB + i) : ICON_MOUSE_DRAG);
+
+		const char *msg = WM_window_cursor_keymap_status_get(win, i, 0);
+		const char *msg_drag = WM_window_cursor_keymap_status_get(win, i, 1);
+
+		if (msg || msg_drag) {
+			uiItemL(box, msg ? msg : "", (ICON_MOUSE_LMB + i));
+
+			if (msg_drag) {
+				uiItemL(box, msg_drag, ICON_MOUSE_DRAG);
 			}
-		}
-		if (i != 2) {
-			uiItemSpacer(layout);
+
+			if (i != 2) {
+				uiItemS(layout);
+			}
 		}
 	}
 }

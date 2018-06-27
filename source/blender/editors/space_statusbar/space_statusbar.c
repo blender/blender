@@ -56,21 +56,8 @@ static SpaceLink *statusbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED
 	sstatusbar = MEM_callocN(sizeof(*sstatusbar), "init statusbar");
 	sstatusbar->spacetype = SPACE_STATUSBAR;
 
-	/* header regions */
-	/* *** NOTE: ***
-	 * Python layout code (space_statusbar.py) depends on the list order of
-	 * these! Not nice at all, but the only way to identify the correct header
-	 * to draw to is using alignment + list position. It can't use alignment
-	 * only since code below has to set two right aligned regions - XXX. */
-	ar = MEM_callocN(sizeof(*ar), "right aligned header for statusbar");
-	BLI_addtail(&sstatusbar->regionbase, ar);
-	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_RIGHT;
-	ar = MEM_callocN(sizeof(*ar), "center header for statusbar");
-	BLI_addtail(&sstatusbar->regionbase, ar);
-	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_RIGHT; /* Right aligned too, so region layout code scales it correctly. */
-	ar = MEM_callocN(sizeof(*ar), "left aligned header for statusbar");
+	/* header region */
+	ar = MEM_callocN(sizeof(*ar), "header for statusbar");
 	BLI_addtail(&sstatusbar->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_NONE;

@@ -471,7 +471,9 @@ static void stats_string(ViewLayer *view_layer)
 	s = stats->infostr;
 	ofs = 0;
 
-	ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s | ", versionstr);
+	if (ob) {
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s | ", ob->id.name + 2);
+	}
 
 	if (obedit) {
 		if (BKE_keyblock_from_object(obedit))
@@ -505,15 +507,13 @@ static void stats_string(ViewLayer *view_layer)
 	}
 	else {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
-		                    IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s | Lamps:%s/%s%s%s"),
+		                    IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s%s%s"),
 		                    stats_fmt.totvert, stats_fmt.totface,
 		                    stats_fmt.tottri, stats_fmt.totobjsel,
-		                    stats_fmt.totobj, stats_fmt.totlampsel,
-		                    stats_fmt.totlamp, memstr, gpumemstr);
+		                    stats_fmt.totobj, memstr, gpumemstr);
 	}
 
-	if (ob)
-		BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", ob->id.name + 2);
+	ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", versionstr);
 #undef MAX_INFO_MEM_LEN
 }
 
