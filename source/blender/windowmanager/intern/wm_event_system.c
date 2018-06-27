@@ -4365,6 +4365,9 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, struct wmWindow *win)
 	}
 
 	/* Keep as-is. */
+	if (ELEM(sa->spacetype, SPACE_STATUSBAR, SPACE_TOPBAR)) {
+		return;
+	}
 	if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TEMPORARY, RGN_TYPE_HUD)) {
 		return;
 	}

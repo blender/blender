@@ -468,7 +468,7 @@ static void view_pan_cancel(bContext *C, wmOperator *op)
 void CLIP_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "View Pan";
+	ot->name = "Pan View";
 	ot->idname = "CLIP_OT_view_pan";
 	ot->description = "Pan the view";
 

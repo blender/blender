@@ -98,7 +98,7 @@ void buttons_texture_context_compute(const struct bContext *C, struct SpaceButs 
 /* buttons_ops.c */
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
-void BUTTONS_OT_toolbox(struct wmOperatorType *ot);
+void BUTTONS_OT_context_menu(struct wmOperatorType *ot);
 
 #endif /* __BUTTONS_INTERN_H__ */
 

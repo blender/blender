@@ -1914,7 +1914,7 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent
 /* Menu only! Calls other operators */
 void OUTLINER_OT_operation(wmOperatorType *ot)
 {
-	ot->name = "Execute Operation";
+	ot->name = "Context Menu";
 	ot->idname = "OUTLINER_OT_operation";
 	ot->description = "Context menu for item operations";
 

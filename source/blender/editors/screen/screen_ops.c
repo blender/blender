@@ -3644,7 +3644,7 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 	}
 }
 
-static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static int header_context_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -3659,15 +3659,15 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 	return OPERATOR_INTERFACE;
 }
 
-static void SCREEN_OT_header_toolbox(wmOperatorType *ot)
+static void SCREEN_OT_header_context_menu(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Header Toolbox";
-	ot->description = "Display header region toolbox";
-	ot->idname = "SCREEN_OT_header_toolbox";
+	ot->name = "Header Context Menu";
+	ot->description = "Display header region context menu";
+	ot->idname = "SCREEN_OT_header_context_menu";
 
 	/* api callbacks */
-	ot->invoke = header_toolbox_invoke;
+	ot->invoke = header_context_menu_invoke;
 }
 
 /** \} */
@@ -4682,7 +4682,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_header);
 	WM_operatortype_append(SCREEN_OT_header_toggle_menus);
-	WM_operatortype_append(SCREEN_OT_header_toolbox);
+	WM_operatortype_append(SCREEN_OT_header_context_menu);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	WM_operatortype_append(SCREEN_OT_back_to_previous);
@@ -4801,7 +4801,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	/* note: this is only used when the cursor is inside the header */
 	keymap = WM_keymap_find(keyconf, "Header", 0, 0);
 
-	WM_keymap_add_item(keymap, "SCREEN_OT_header_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_header_context_menu", RIGHTMOUSE, KM_PRESS, 0, 0);
 
 	/* Screen General ------------------------------------------------ */
 	keymap = WM_keymap_find(keyconf, "Screen", 0, 0);

@@ -458,7 +458,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 void FILE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Activate/Select File";
+	ot->name = "Border Select";
 	ot->description = "Activate/select the file(s) contained in the border";
 	ot->idname = "FILE_OT_select_border";
 
@@ -527,7 +527,7 @@ void FILE_OT_select(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Activate/Select File";
+	ot->name = "Select";
 	ot->description = "Activate/select file";
 	ot->idname = "FILE_OT_select";
 

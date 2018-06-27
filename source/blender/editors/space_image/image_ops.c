@@ -423,7 +423,7 @@ static void image_view_pan_cancel(bContext *C, wmOperator *op)
 void IMAGE_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "View Pan";
+	ot->name = "Pan View";
 	ot->idname = "IMAGE_OT_view_pan";
 	ot->description = "Pan the view";
 
@@ -639,7 +639,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "View Zoom";
+	ot->name = "Zoom View";
 	ot->idname = "IMAGE_OT_view_zoom";
 	ot->description = "Zoom in/out the image";
 

@@ -2518,8 +2518,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Activate/Select";
-	ot->description = "Activate/select item(s)";
+	ot->name = "Select";
+	ot->description = "Select and activate item(s)";
 	ot->idname = "VIEW3D_OT_select";
 
 	/* api callbacks */

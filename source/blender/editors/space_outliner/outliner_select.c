@@ -1142,9 +1142,9 @@ static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEv
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
 {
-	ot->name = "Activate Item";
+	ot->name = "Select";
 	ot->idname = "OUTLINER_OT_item_activate";
-	ot->description = "Handle mouse clicks to activate/select items";
+	ot->description = "Handle mouse clicks to select and activate items";
 
 	ot->invoke = outliner_item_activate_invoke;
 

@@ -1590,7 +1590,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Mouse Select Keys";
+	ot->name = "Select Keyframes";
 	ot->idname = "ACTION_OT_clickselect";
 	ot->description = "Select keyframes by clicking on them";
 
