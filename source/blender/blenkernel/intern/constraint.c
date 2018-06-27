@@ -52,6 +52,7 @@
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "DNA_lattice_types.h"
@@ -68,19 +69,18 @@
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
-#include "BKE_displist.h"
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"    /* for geometry targets */
-#include "BKE_cdderivedmesh.h" /* for geometry targets */
-#include "BKE_object.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_idprop.h"
-#include "BKE_shrinkwrap.h"
+#include "BKE_displist.h"
 #include "BKE_editmesh.h"
-#include "BKE_scene.h"
-#include "BKE_tracking.h"
+#include "BKE_global.h"
+#include "BKE_idprop.h"
+#include "BKE_library.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_movieclip.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
+#include "BKE_shrinkwrap.h"
+#include "BKE_tracking.h"
 
 #include "BIK_api.h"
 
@@ -391,99 +391,104 @@ void BKE_constraint_mat_convertspace(
 /* function that sets the given matrix based on given vertex group in mesh */
 static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[4][4])
 {
-	DerivedMesh *dm = NULL;
+	/* when not in EditMode, use the 'final' evaluated mesh, depsgraph
+	 * ensures we build with CD_MDEFORMVERT layer
+	 */
+	Mesh *me_eval = ob->runtime.mesh_eval;
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	float vec[3] = {0.0f, 0.0f, 0.0f};
-	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
+	float plane[3];
 	float imat[3][3], tmat[3][3];
 	const int defgroup = defgroup_name_index(ob, substring);
-	short freeDM = 0;
 
 	/* initialize target matrix using target matrix */
 	copy_m4_m4(mat, ob->obmat);
 
 	/* get index of vertex group */
-	if (defgroup == -1) return;
-
-	/* get DerivedMesh */
-	if (em) {
-		/* target is in editmode, so get a special derived mesh */
-		dm = CDDM_from_editbmesh(em, false, false);
-		freeDM = 1;
-	}
-	else {
-		/* when not in EditMode, use the 'final' derived mesh, depsgraph
-		 * ensures we build with CD_MDEFORMVERT layer
-		 */
-		dm = (DerivedMesh *)ob->derivedFinal;
+	if (defgroup == -1) {
+		return;
 	}
 
-	/* only continue if there's a valid DerivedMesh */
-	if (dm) {
-		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-		int numVerts = dm->getNumVerts(dm);
-		int i;
-		float co[3], nor[3];
+	float vec[3] = {0.0f, 0.0f, 0.0f};
+	float normal[3] = {0.0f, 0.0f, 0.0f};
+	float weightsum = 0.0f;
+	if (me_eval) {
+		MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
+		int numVerts = me_eval->totvert;
 
 		/* check that dvert is a valid pointers (just in case) */
 		if (dvert) {
 			MDeformVert *dv = dvert;
-			float weightsum = 0.0f;
+			MVert *mv = me_eval->mvert;
 
 			/* get the average of all verts with that are in the vertex-group */
-			for (i = 0; i < numVerts; i++, dv++) {
+			for (int i = 0; i < numVerts; i++, dv++, mv++) {
 				MDeformWeight *dw = defvert_find_index(dv, defgroup);
 
 				if (dw && dw->weight > 0.0f) {
-					dm->getVertCo(dm, i, co);
-					dm->getVertNo(dm, i, nor);
-					madd_v3_v3fl(vec, co, dw->weight);
+					float nor[3];
+					normal_short_to_float_v3(nor, mv->no);
+					madd_v3_v3fl(vec, mv->co, dw->weight);
 					madd_v3_v3fl(normal, nor, dw->weight);
 					weightsum += dw->weight;
 				}
 			}
-
-			/* calculate averages of normal and coordinates */
-			if (weightsum > 0) {
-				mul_v3_fl(vec, 1.0f / weightsum);
-				mul_v3_fl(normal, 1.0f / weightsum);
-			}
-
-
-			/* derive the rotation from the average normal:
-			 *		- code taken from transform_manipulator.c,
-			 *			calc_manipulator_stats, V3D_MANIP_NORMAL case
-			 */
-			/*	we need the transpose of the inverse for a normal... */
-			copy_m3_m4(imat, ob->obmat);
-
-			invert_m3_m3(tmat, imat);
-			transpose_m3(tmat);
-			mul_m3_v3(tmat, normal);
-
-			normalize_v3(normal);
-			copy_v3_v3(plane, tmat[1]);
-
-			cross_v3_v3v3(mat[0], normal, plane);
-			if (len_squared_v3(mat[0]) < SQUARE(1e-3f)) {
-				copy_v3_v3(plane, tmat[0]);
-				cross_v3_v3v3(mat[0], normal, plane);
-			}
-
-			copy_v3_v3(mat[2], normal);
-			cross_v3_v3v3(mat[1], mat[2], mat[0]);
-
-			normalize_m4(mat);
-
-
-			/* apply the average coordinate as the new location */
-			mul_v3_m4v3(mat[3], ob->obmat, vec);
 		}
 	}
+	else if (em) {
+		if (CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
+			BMVert *v;
+			BMIter iter;
 
-	/* free temporary DerivedMesh created (in EditMode case) */
-	if (dm && freeDM)
-		dm->release(dm);
+			BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+				MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, v->head.data, CD_MDEFORMVERT);
+				MDeformWeight *dw = defvert_find_index(dv, defgroup);
+
+				if (dw && dw->weight > 0.0f) {
+					madd_v3_v3fl(vec, v->co, dw->weight);
+					madd_v3_v3fl(normal, v->no, dw->weight);
+					weightsum += dw->weight;
+				}
+			}
+		}
+	}
+	else {
+		/* No valid edit or evaluated mesh, just abort. */
+		return;
+	}
+
+	/* calculate averages of normal and coordinates */
+	if (weightsum > 0) {
+		mul_v3_fl(vec, 1.0f / weightsum);
+		mul_v3_fl(normal, 1.0f / weightsum);
+	}
+
+	/* derive the rotation from the average normal:
+	 *		- code taken from transform_manipulator.c,
+	 *			calc_manipulator_stats, V3D_MANIP_NORMAL case
+	 */
+	/*	we need the transpose of the inverse for a normal... */
+	copy_m3_m4(imat, ob->obmat);
+
+	invert_m3_m3(tmat, imat);
+	transpose_m3(tmat);
+	mul_m3_v3(tmat, normal);
+
+	normalize_v3(normal);
+	copy_v3_v3(plane, tmat[1]);
+
+	cross_v3_v3v3(mat[0], normal, plane);
+	if (len_squared_v3(mat[0]) < SQUARE(1e-3f)) {
+		copy_v3_v3(plane, tmat[0]);
+		cross_v3_v3v3(mat[0], normal, plane);
+	}
+
+	copy_v3_v3(mat[2], normal);
+	cross_v3_v3v3(mat[1], mat[2], mat[0]);
+
+	normalize_m4(mat);
+
+	/* apply the average coordinate as the new location */
+	mul_v3_m4v3(mat[3], ob->obmat, vec);
 }
 
 /* function that sets the given matrix based on given vertex group in lattice */
@@ -3405,23 +3410,23 @@ static void shrinkwrap_flush_tars(bConstraint *con, ListBase *list, bool no_copy
 }
 
 
-static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
 
 	if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) ) {
+
 		bool fail = false;
 		float co[3] = {0.0f, 0.0f, 0.0f};
 
 		SpaceTransform transform;
-		/* TODO(sergey): use proper for_render flag here when known. */
-		DerivedMesh *target = object_get_derived_final(ct->tar, false);
+		Mesh *target_eval = mesh_get_eval_final(depsgraph, DEG_get_input_scene(depsgraph), ct->tar, 0);
 
 		BVHTreeFromMesh treeData = {NULL};
 
 		unit_m4(ct->matrix);
 
-		if (target != NULL) {
+		if (target_eval != NULL) {
 			BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->obmat);
 
 			switch (scon->shrinkType) {
@@ -3435,9 +3440,9 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstrai
 					nearest.dist_sq = FLT_MAX;
 
 					if (scon->shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX)
-						bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_VERTS, 2);
+						BKE_bvhtree_from_mesh_get(&treeData, target_eval, BVHTREE_FROM_VERTS, 2);
 					else
-						bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_LOOPTRI, 2);
+						BKE_bvhtree_from_mesh_get(&treeData, target_eval, BVHTREE_FROM_LOOPTRI, 2);
 
 					if (treeData.tree == NULL) {
 						fail = true;
@@ -3489,7 +3494,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstrai
 						break;
 					}
 
-					bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_LOOPTRI, 4);
+					BKE_bvhtree_from_mesh_get(&treeData, target_eval, BVHTREE_FROM_LOOPTRI, 4);
 					if (treeData.tree == NULL) {
 						fail = true;
 						break;
@@ -4087,9 +4092,8 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 			if (data->depth_ob) {
 				Object *depth_ob = data->depth_ob;
-				/* TODO(sergey): use proper for_render flag here when known. */
-				DerivedMesh *target = object_get_derived_final(depth_ob, false);
-				if (target) {
+				Mesh *target_eval = mesh_get_eval_final(depsgraph, DEG_get_input_scene(depsgraph), depth_ob, 0);
+				if (target_eval) {
 					BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 					BVHTreeRayHit hit;
 					float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
@@ -4103,19 +4107,19 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 					sub_v3_v3v3(ray_nor, ray_end, ray_start);
 					normalize_v3(ray_nor);
 
-					bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_LOOPTRI, 4);
+					BKE_bvhtree_from_mesh_get(&treeData, target_eval, BVHTREE_FROM_LOOPTRI, 4);
 
 					hit.dist = BVH_RAYCAST_DIST_MAX;
 					hit.index = -1;
 
-					result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
+					result = BLI_bvhtree_ray_cast(
+					             treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
 
 					if (result != -1) {
 						mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
 					}
 
 					free_bvhtree_from_mesh(&treeData);
-					target->release(target);
 				}
 			}
 		}
