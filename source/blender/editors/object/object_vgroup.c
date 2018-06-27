@@ -63,7 +63,6 @@
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_object_deform.h"
 #include "BKE_object.h"
 #include "BKE_lattice.h"
@@ -1258,27 +1257,6 @@ static void getVerticalAndHorizontalChange(
 	changes[index][1] = len_v3v3(projA, projB);
 }
 
-/* I need the derived mesh to be forgotten so the positions are recalculated
- * with weight changes (see dm_deform_recalc) */
-static void dm_deform_clear(DerivedMesh *dm, Object *ob)
-{
-	if (ob->derivedDeform && (ob->derivedDeform) == dm) {
-		ob->derivedDeform->needsFree = 1;
-		ob->derivedDeform->release(ob->derivedDeform);
-		ob->derivedDeform = NULL;
-	}
-	else if (dm) {
-		dm->needsFree = 1;
-		dm->release(dm);
-	}
-}
-
-/* recalculate the deformation */
-static DerivedMesh *dm_deform_recalc(Depsgraph *depsgraph, Scene *scene, Object *ob)
-{
-	return mesh_get_derived_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
-}
-
 /* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to
  * distToBe distance away from the provided plane strength can change distToBe so that it moves
  * towards distToBe by that percentage cp changes how much the weights are adjusted
@@ -1292,7 +1270,7 @@ static void moveCloserToDistanceFromPlane(
         Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me, int index, float norm[3],
         float coord[3], float d, float distToBe, float strength, float cp)
 {
-	DerivedMesh *dm;
+	Mesh *me_deform;
 	MDeformWeight *dw;
 	MVert m;
 	MDeformVert *dvert = me->dvert + index;
@@ -1316,8 +1294,8 @@ static void moveCloserToDistanceFromPlane(
 	float originalDistToBe = distToBe;
 	do {
 		wasChange = false;
-		dm = dm_deform_recalc(depsgraph, scene, ob);
-		dm->getVert(dm, index, &m);
+		me_deform = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		m = me_deform->mvert[index];
 		copy_v3_v3(oldPos, m.co);
 		distToStart = dot_v3v3(norm, oldPos) + d;
 
@@ -1335,8 +1313,10 @@ static void moveCloserToDistanceFromPlane(
 				continue;
 			}
 			for (k = 0; k < 2; k++) {
-				if (dm) {
-					dm_deform_clear(dm, ob); dm = NULL;
+				if (me_deform) {
+					/* DO NOT try to do own cleanup here, this is call for dramatic failures and bugs!
+					 * Better to over-free and recompute a bit. */
+					BKE_object_free_derived_caches(ob);
 				}
 				oldw = dw->weight;
 				if (k) {
@@ -1354,8 +1334,8 @@ static void moveCloserToDistanceFromPlane(
 				if (dw->weight > 1) {
 					dw->weight = 1;
 				}
-				dm = dm_deform_recalc(depsgraph, scene, ob);
-				dm->getVert(dm, index, &m);
+				me_deform = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+				m = me_deform->mvert[index];
 				getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
 				dw->weight = oldw;
 				if (!k) {
@@ -1449,8 +1429,10 @@ static void moveCloserToDistanceFromPlane(
 			if (oldw == dw->weight) {
 				wasChange = false;
 			}
-			if (dm) {
-				dm_deform_clear(dm, ob); dm = NULL;
+			if (me_deform) {
+				/* DO NOT try to do own cleanup here, this is call for dramatic failures and bugs!
+				 * Better to over-free and recompute a bit. */
+				BKE_object_free_derived_caches(ob);
 			}
 		}
 	} while (wasChange && ((distToStart - distToBe) / fabsf(distToStart - distToBe) ==
@@ -1482,11 +1464,10 @@ static void vgroup_fix(const bContext *C, Scene *scene, Object *ob, float distTo
 				MVert *p = MEM_callocN(sizeof(MVert) * (count), "deformedPoints");
 				int k;
 
-				DerivedMesh *dm = mesh_get_derived_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+				Mesh *me_deform = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
 				k = count;
 				while (k--) {
-					dm->getVert(dm, verts[k], &m);
-					p[k] = m;
+					p[k] = me_deform->mvert[verts[k]];
 				}
 
 				if (count >= 3) {
@@ -1494,7 +1475,7 @@ static void vgroup_fix(const bContext *C, Scene *scene, Object *ob, float distTo
 					float coord[3];
 					float norm[3];
 					getSingleCoordinate(p, count, coord);
-					dm->getVert(dm, i, &m);
+					m = me_deform->mvert[i];
 					sub_v3_v3v3(norm, m.co, coord);
 					mag = normalize_v3(norm);
 					if (mag) { /* zeros fix */
