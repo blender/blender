@@ -216,7 +216,7 @@ static float *create_disk_samples(int num_samples, int num_iterations)
 {
 	/* vec4 to ensure memory alignment. */
 	const int total_samples = num_samples * num_iterations;
-	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * total_samples, __func__);
+	float(*texels)[4] = MEM_mallocN(sizeof(float[4]) * total_samples, __func__);
 	const float num_samples_inv = 1.0f / num_samples;
 
 	for (int i = 0; i < total_samples; i++) {
@@ -637,13 +637,13 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 			int color_type = workbench_material_determine_color_type(wpd, image);
 			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, color_type);
 
-			struct GPUShader *shader = (color_type != V3D_SHADING_TEXTURE_COLOR)
-			                           ? wpd->prepass_solid_hair_sh
-			                           : wpd->prepass_texture_hair_sh;
+			struct GPUShader *shader = (color_type != V3D_SHADING_TEXTURE_COLOR) ?
+			        wpd->prepass_solid_hair_sh :
+			        wpd->prepass_texture_hair_sh;
 			DRWShadingGroup *shgrp = DRW_shgroup_hair_create(
-			                                ob, psys, md,
-			                                psl->prepass_hair_pass,
-			                                shader);
+			        ob, psys, md,
+			        psl->prepass_hair_pass,
+			        shader);
 			DRW_shgroup_stencil_mask(shgrp, 0xFF);
 			DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
 			DRW_shgroup_uniform_block(shgrp, "material_block", material->material_ubo);
@@ -848,8 +848,7 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	const bool taa_enabled = TAA_ENABLED(wpd);
 
-	if (taa_enabled)
-	{
+	if (taa_enabled) {
 		workbench_taa_draw_scene_start(vedata);
 	}
 
@@ -888,8 +887,7 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	}
 
 	GPUTexture *final_color_tx = e_data.composite_buffer_tx;
-	if (taa_enabled)
-	{
+	if (taa_enabled) {
 		workbench_taa_draw_pass(effect_info, psl->effect_aa_pass);
 		final_color_tx = effect_info->final_color_tx;
 		workbench_taa_draw_scene_end(vedata);

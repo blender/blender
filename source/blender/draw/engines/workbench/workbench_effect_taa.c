@@ -20,7 +20,7 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
 	int closest_index = 0;
 	float closest_squared_distance = 1.0f;
 
-	for (int index = 0 ; index < num; index++) {
+	for (int index = 0; index < num; index++) {
 		const float squared_dist = SQUARE(table[index][0]) + SQUARE(table[index][1]);
 		if (squared_dist < closest_squared_distance) {
 			closest_squared_distance = squared_dist;
@@ -29,7 +29,7 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
 	}
 
 	/* move jitter table so that closest sample is in center */
-	for (int index = 0 ; index < num; index++) {
+	for (int index = 0; index < num; index++) {
 		sub_v2_v2(table[index], table[closest_index]);
 	}
 
@@ -39,20 +39,17 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
 	}
 
 	/* sort list based on furtest distance with previous */
-	for (int i = 0 ; i < num - 2; i ++)
-	{
+	for (int i = 0; i < num - 2; i++) {
 		float f_squared_dist = 0.0;
 		int f_index = i;
-		for(int j = i + 1; j < num; j ++)
-		{
+		for (int j = i + 1; j < num; j++) {
 			const float squared_dist = SQUARE(table[i][0] - table[j][0]) + SQUARE(table[i][1] - table[j][1]);
-			if (squared_dist > f_squared_dist)
-			{
+			if (squared_dist > f_squared_dist) {
 				f_squared_dist = squared_dist;
 				f_index = j;
 			}
 		}
-		swap_v2_v2(table[i+1], table[f_index]);
+		swap_v2_v2(table[i + 1], table[f_index]);
 	}
 }
 
@@ -69,13 +66,16 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata)
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	int result = 1;
-	if (TAA_ENABLED(wpd))
-	{
-		if (IN_RANGE_INCL(wpd->user_preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_TAA8, GPU_VIEWPORT_QUALITY_TAA16))
+	if (TAA_ENABLED(wpd)) {
+		if (IN_RANGE_INCL(
+		            wpd->user_preferences->gpu_viewport_quality,
+		            GPU_VIEWPORT_QUALITY_TAA8, GPU_VIEWPORT_QUALITY_TAA16))
 		{
 			result = 8;
 		}
-		else if (IN_RANGE_INCL(wpd->user_preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_TAA16, GPU_VIEWPORT_QUALITY_TAA32))
+		else if (IN_RANGE_INCL(
+		                 wpd->user_preferences->gpu_viewport_quality,
+		                 GPU_VIEWPORT_QUALITY_TAA16, GPU_VIEWPORT_QUALITY_TAA32))
 		{
 			result = 16;
 		}
@@ -92,23 +92,19 @@ void workbench_taa_engine_init(WORKBENCH_Data *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
 
-	if (e_data.effect_taa_sh == NULL)
-	{
+	if (e_data.effect_taa_sh == NULL) {
 		e_data.effect_taa_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_taa_frag_glsl, NULL);
 		workbench_taa_jitter_init();
 	}
 
 	/* reset complete drawing when navigating. */
-	if (effect_info->jitter_index != 0)
-	{
-		if (rv3d && rv3d->rflag & RV3D_NAVIGATING)
-		{
+	if (effect_info->jitter_index != 0) {
+		if (rv3d && rv3d->rflag & RV3D_NAVIGATING) {
 			effect_info->jitter_index = 0;
 		}
 	}
 
-	if (effect_info->view_updated)
-	{
+	if (effect_info->view_updated) {
 		effect_info->jitter_index = 0;
 		effect_info->view_updated = false;
 	}
@@ -119,7 +115,7 @@ void workbench_taa_engine_init(WORKBENCH_Data *vedata)
 		DRW_viewport_matrix_get(view, DRW_MAT_VIEW);
 		DRW_viewport_matrix_get(win, DRW_MAT_WIN);
 		mul_m4_m4m4(effect_info->curr_mat, view, win);
-		if(!equals_m4m4(effect_info->curr_mat, effect_info->last_mat)){
+		if (!equals_m4m4(effect_info->curr_mat, effect_info->last_mat)) {
 			effect_info->jitter_index = 0;
 		}
 	}
@@ -179,8 +175,7 @@ DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_bu
 	DRW_shgroup_uniform_float(grp, "mixFactor", &effect_info->taa_mix_factor, 1);
 	DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
-	if (previous_jitter_even)
-	{
+	if (previous_jitter_even) {
 		effect_info->final_color_tx = txl->history_buffer1_tx;
 		effect_info->final_color_fb = fbl->effect_taa_even_fb;
 	}
@@ -208,8 +203,7 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
 	float mix_factor;
 
 	num_samples = workbench_taa_calculate_num_iterations(vedata);
-	switch(num_samples)
-	{
+	switch (num_samples) {
 		case 8:
 			samples = e_data.jitter_8;
 			break;
@@ -268,8 +262,7 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 	const WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-	if (effect_info->jitter_index == 1)
-	{
+	if (effect_info->jitter_index == 1) {
 		GPU_framebuffer_blit(dfbl->depth_only_fb, 0, fbl->depth_buffer_fb, 0, GPU_DEPTH_BIT);
 	}
 	else {
@@ -287,8 +280,7 @@ void workbench_taa_draw_pass(WORKBENCH_EffectInfo *effect_info, DRWPass *pass)
 	DRW_draw_pass(pass);
 
 	copy_m4_m4(effect_info->last_mat, effect_info->curr_mat);
-	if (effect_info->jitter_index != 0)
-	{
+	if (effect_info->jitter_index != 0) {
 		DRW_viewport_request_redraw();
 	}
 }

@@ -37,13 +37,12 @@ extern char datatoc_workbench_effect_fxaa_frag_glsl[];
 /* *********** Functions *********** */
 void workbench_fxaa_engine_init(void)
 {
-	if (e_data.effect_fxaa_sh == NULL)
-	{
+	if (e_data.effect_fxaa_sh == NULL) {
 		e_data.effect_fxaa_sh = DRW_shader_create_with_lib(
-		    datatoc_common_fullscreen_vert_glsl, NULL,
-		    datatoc_workbench_effect_fxaa_frag_glsl,
-		    datatoc_common_fxaa_lib_glsl,
-		    NULL);
+		        datatoc_common_fullscreen_vert_glsl, NULL,
+		        datatoc_workbench_effect_fxaa_frag_glsl,
+		        datatoc_common_fxaa_lib_glsl,
+		        NULL);
 	}
 }
 

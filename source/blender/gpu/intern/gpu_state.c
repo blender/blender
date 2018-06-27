@@ -30,17 +30,16 @@
 
 static GLenum gpu_get_gl_blendfunction(GPUBlendFunction blend)
 {
-	switch (blend)
-	{
-	case GPU_ONE:
-		return GL_ONE;
-	case GPU_SRC_ALPHA:
-		return GL_SRC_ALPHA;
-	case GPU_ONE_MINUS_SRC_ALPHA:
-		return GL_ONE_MINUS_SRC_ALPHA;
-	default:
-		BLI_assert(!"Unhandled blend mode");
-		return GL_ZERO;
+	switch (blend) {
+		case GPU_ONE:
+			return GL_ONE;
+		case GPU_SRC_ALPHA:
+			return GL_SRC_ALPHA;
+		case GPU_ONE_MINUS_SRC_ALPHA:
+			return GL_ONE_MINUS_SRC_ALPHA;
+		default:
+			BLI_assert(!"Unhandled blend mode");
+			return GL_ZERO;
 	}
 }
 

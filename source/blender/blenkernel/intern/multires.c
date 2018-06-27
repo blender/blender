@@ -721,8 +721,8 @@ static DerivedMesh *multires_dm_create_local(Scene *scene, Object *ob, DerivedMe
 static DerivedMesh *subsurf_dm_create_local(
         Scene *scene, Object *ob, DerivedMesh *dm,
         int lvl,
-		bool is_simple, bool is_optimal, bool is_plain_uv, bool alloc_paint_mask,
-		bool for_render)
+        bool is_simple, bool is_optimal, bool is_plain_uv, bool alloc_paint_mask,
+        bool for_render)
 {
 	SubsurfModifierData smd = {{NULL}};
 	SubsurfFlags flags = 0;
