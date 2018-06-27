@@ -1040,8 +1040,6 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	}
 	/* Wire up dependency to time source. */
 	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
-	TimeSourceKey time_src_key;
-	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
 	/* Relation from action itself. */
 	if (adt->action != NULL) {
 		ComponentKey action_key(&adt->action->id, DEG_NODE_TYPE_ANIMATION);
@@ -1210,6 +1208,9 @@ void DepsgraphRelationBuilder::build_action(bAction *action)
 	if (built_map_.checkIsBuiltAndTag(action)) {
 		return;
 	}
+	TimeSourceKey time_src_key;
+	ComponentKey animation_key(&action->id, DEG_NODE_TYPE_ANIMATION);
+	add_relation(time_src_key, animation_key, "TimeSrc -> Animation");
 }
 
 void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
