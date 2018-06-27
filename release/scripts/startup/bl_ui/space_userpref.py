@@ -550,8 +550,7 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "use_region_overlap")
 
         col.separator()
-        col.label(text="Max Viewport Anti-aliasing Method")
-        col.prop(system, "max_anti_alias_method", text="")
+        col.prop(system, "gpu_viewport_quality")
 
         col.separator()
 

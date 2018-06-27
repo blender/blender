@@ -268,7 +268,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 {
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	WORKBENCH_StorageList *stl = vedata->stl;
-	WORKBENCH_TextureList *txl = vedata->txl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
@@ -382,7 +381,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		Scene *scene = draw_ctx->scene;
 		/* AO Samples Tex */
-		const int ssao_samples = scene->display.matcap_ssao_samples;
+		const int ssao_samples_single_iteration = scene->display.matcap_ssao_samples;
+		const int ssao_samples = MIN2(ssao_samples_single_iteration, 500);
 		if (e_data.sampling_ubo && (e_data.cached_sample_num != ssao_samples)) {
 			DRW_UBO_FREE_SAFE(e_data.sampling_ubo);
 			DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
@@ -405,6 +405,19 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
+		if (TAA_ENABLED(wpd)) {
+			psl->effect_aa_pass = workbench_taa_create_pass(vedata, &e_data.composite_buffer_tx);
+		}
+		else if (FXAA_ENABLED(wpd)) {
+			psl->effect_aa_pass = workbench_fxaa_create_pass(&e_data.effect_buffer_tx);
+			stl->effects->jitter_index = 0;
+		}
+		else {
+			psl->effect_aa_pass = NULL;
+		}
+	}
+
+	{
 		int state = DRW_STATE_WRITE_COLOR;
 		psl->cavity_pass = DRW_pass_create("Cavity", state);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.cavity_sh, psl->cavity_pass);
@@ -420,19 +433,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		DRW_shgroup_uniform_texture(grp, "ssao_jitter", e_data.jitter_tx);
 		DRW_shgroup_uniform_block(grp, "samples_block", e_data.sampling_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
-	}
-
-	{
-		if (TAA_ENABLED(wpd)) {
-			psl->effect_aa_pass = workbench_taa_create_pass(txl, stl->effects, fbl, &e_data.composite_buffer_tx);
-		}
-		else if (FXAA_ENABLED(wpd)) {
-			psl->effect_aa_pass = workbench_fxaa_create_pass(&e_data.effect_buffer_tx);
-			stl->effects->jitter_index = 0;
-		}
-		else {
-			psl->effect_aa_pass = NULL;
-		}
 	}
 }
 
@@ -845,7 +845,7 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 
 	if (taa_enabled)
 	{
-		workbench_taa_draw_scene_start(effect_info);
+		workbench_taa_draw_scene_start(vedata);
 	}
 
 	/* clear in background */

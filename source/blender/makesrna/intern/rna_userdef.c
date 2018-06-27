@@ -4173,13 +4173,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem gpu_antialias_method_items[] = {
-	    {USER_AA_NONE,  "OFF",   0, "Off",     "Disable Anti Alias in viewport"},
-	    {USER_AA_FXAA,  "FXAA",  0, "FXAA",    "Use FXAA, a fast screenspace Anti Alias method"},
-	    {USER_AA_TAA8,  "TAA8",  0, "TAA 8x",  "Use TAA with 8 samples when screen is static, when not static fallback to FXAA"},
-	    {0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -4438,12 +4431,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	                         "Draw tool/property regions over the main region, when using Triple Buffer");
 	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
-	prop = RNA_def_property(srna, "max_anti_alias_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "gpu_viewport_antialias");
-	RNA_def_property_enum_items(prop, gpu_antialias_method_items);
-	RNA_def_property_ui_text(prop, "Viewport Anti-aliasing",
-	                         "Method to draw the Anti-Aliasing in the viewport");
+	prop = RNA_def_property(srna, "gpu_viewport_quality", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "gpu_viewport_quality");
+	RNA_def_property_float_default(prop, 0.6f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Viewport Quality", "Quality setting for Solid mode rendering in the 3d viewport");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 
 #ifdef WITH_OPENSUBDIV
 	prop = RNA_def_property(srna, "opensubdiv_compute_type", PROP_ENUM, PROP_NONE);

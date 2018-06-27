@@ -52,10 +52,8 @@
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 
 #define IS_NAVIGATING(wpd) (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING)
-#define FXAA_ENABLED(wpd) ((!DRW_state_is_opengl_render()) && ((wpd->user_preferences->gpu_viewport_antialias == USER_AA_FXAA) || (ELEM(wpd->user_preferences->gpu_viewport_antialias, USER_AA_TAA8) && IS_NAVIGATING(wpd))))
-#define TAA8_ENABLED(wpd) (ELEM(wpd->user_preferences->gpu_viewport_antialias, USER_AA_TAA8) && (!DRW_state_is_opengl_render()) && (!IS_NAVIGATING(wpd)))
-#define TAA_ENABLED(wpd) (TAA8_ENABLED(wpd))
-
+#define FXAA_ENABLED(wpd) ((!DRW_state_is_opengl_render()) && (IN_RANGE(wpd->user_preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_FXAA, GPU_VIEWPORT_QUALITY_TAA8) || ((wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8) && IS_NAVIGATING(wpd))))
+#define TAA_ENABLED(wpd) (wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd))
 #define SPECULAR_HIGHLIGHT_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
@@ -269,11 +267,12 @@ void workbench_fxaa_draw_pass(WORKBENCH_PrivateData *wpd, GPUFrameBuffer *fb, GP
 /* workbench_effect_taa.c */
 void workbench_taa_engine_init(WORKBENCH_Data *vedata);
 void workbench_taa_engine_free(void);
-DRWPass *workbench_taa_create_pass(WORKBENCH_TextureList *txl, WORKBENCH_EffectInfo *effect_info, WORKBENCH_FramebufferList *fbl, GPUTexture **color_buffer_tx);
+DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_buffer_tx);
 void workbench_taa_draw_pass(WORKBENCH_EffectInfo *effect_info, /*WORKBENCH_PrivateData *wpd, , GPUFrameBuffer *fb, GPUTexture *tx, */DRWPass *effect_aa_pass);
-void workbench_taa_draw_scene_start(WORKBENCH_EffectInfo *effect_info);
+void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata);
 void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata);
 void workbench_taa_view_updated(WORKBENCH_Data *vedata);
+int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
 int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima);

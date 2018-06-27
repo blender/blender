@@ -24,19 +24,24 @@ void ssao_factors(
 	/* convert from -1.0...1.0 range to 0.0..1.0 for easy use with texture coordinates */
 	offset *= 0.5;
 
+
 	int num_samples = int(ssao_samples_num);
 
 	/* Note. Putting noise usage here to put some ALU after texture fetch. */
 	vec2 rotX = noise.rg;
 	vec2 rotY = vec2(-rotX.y, rotX.x);
 
-	for (int x = 0; x < num_samples && x < 500; x++) {
+	for (int x = 0; x < num_samples; x++) {
+		int sample_index = x;
+		if (sample_index > 500) {
+			continue;
+		}
 		/* ssao_samples[x].xy is sample direction (normalized).
 		 * ssao_samples[x].z is sample distance from disk center. */
 
 		/* Rotate with random direction to get jittered result. */
-		vec2 dir_jittered = vec2(dot(ssao_samples[x].xy, rotX), dot(ssao_samples[x].xy, rotY));
-		dir_jittered.xy *= ssao_samples[x].z + noise.b;
+		vec2 dir_jittered = vec2(dot(ssao_samples[sample_index].xy, rotX), dot(ssao_samples[sample_index].xy, rotY));
+		dir_jittered.xy *= ssao_samples[sample_index].z + noise.b;
 
 		vec2 uvcoords = screenco.xy + dir_jittered * offset;
 

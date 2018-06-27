@@ -3031,7 +3031,6 @@ void init_userdef_do_versions(Main *bmain)
 				rgba_char_args_set(ts->panelcolors.sub_back, 0, 0, 0, 25);
 			}
 		}
-		U.gpu_viewport_antialias = USER_AA_FXAA;
 	}
 
 	/**
@@ -3039,6 +3038,7 @@ void init_userdef_do_versions(Main *bmain)
 	 */
 	{
 		/* (keep this block even if it becomes empty). */
+		U.gpu_viewport_quality = 0.6f;
 	}
 
 	if (((bTheme *)U.themes.first)->tui.manipulator_hi[3] == 0) {
