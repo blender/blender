@@ -2304,20 +2304,12 @@ static void WM_OT_window_close(wmOperatorType *ot)
 
 static void WM_OT_window_new(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	ot->name = "New Window";
 	ot->idname = "WM_OT_window_new";
 	ot->description = "Create a new Blender window";
 
 	ot->exec = wm_window_new_exec;
-	ot->invoke = wm_window_new_invoke;
 	ot->poll = wm_operator_winactive_normal;
-
-	prop = RNA_def_enum(ot->srna, "screen", DummyRNA_NULL_items, 0, "Screen", "");
-	RNA_def_enum_funcs(prop, wm_window_new_screen_itemf);
-	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
-	ot->prop = prop;
 }
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)

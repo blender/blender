@@ -271,26 +271,6 @@ wmWindow *wm_window_new(bContext *C)
 	return win;
 }
 
-/**
- * A higher level version of copy that tests the new window can be added.
- */
-static wmWindow *wm_window_new_test(bContext *C)
-{
-	wmWindow *win = wm_window_new(C);
-
-	WM_check(C);
-
-	if (win->ghostwin) {
-		WM_event_add_notifier(C, NC_WINDOW | NA_ADDED, NULL);
-		return win;
-	}
-	else {
-		wmWindowManager *wm = CTX_wm_manager(C);
-		wm_window_close(C, wm, win);
-		return NULL;
-	}
-}
-
 /* part of wm_window.c api */
 wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_layout)
 {
@@ -996,109 +976,17 @@ int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static WorkSpaceLayout *wm_window_new_find_layout(wmOperator *op, WorkSpace *workspace)
+/* operator callback */
+int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ListBase *listbase = BKE_workspace_layouts_get(workspace);
-	const int layout_id = RNA_enum_get(op->ptr, "screen");
-	int i = 0;
-
-	for (WorkSpaceLayout *layout = listbase->first; layout; layout = layout->next) {
-		if (i++ == layout_id) {
-			return layout;
-		}
-	}
-
-	BLI_assert(0);
-	return NULL;
-}
-
-/* new window operator callback */
-int wm_window_new_exec(bContext *C, wmOperator *op)
-{
-	Main *bmain = CTX_data_main(C);
 	wmWindow *win_src = CTX_wm_window(C);
-	WorkSpace *workspace = WM_window_get_active_workspace(win_src);
-	WorkSpaceLayout *layout_new = wm_window_new_find_layout(op, workspace);
-	bScreen *screen_new = BKE_workspace_layout_screen_get(layout_new);
-	wmWindow *win_dst;
+	bool ok;
 
-	if ((win_dst = wm_window_new_test(C))) {
-		if (screen_new->winid) {
-			/* layout/screen is already used, duplicate it */
-			layout_new = ED_workspace_layout_duplicate(bmain, workspace, layout_new, win_dst);
-			screen_new = BKE_workspace_layout_screen_get(layout_new);
-		}
-		/* New window with a different screen but same workspace */
-		WM_window_set_active_workspace(win_dst, workspace);
-		WM_window_set_active_screen(win_dst, workspace, screen_new);
-		win_dst->scene = win_src->scene;
-		screen_new->winid = win_dst->winid;
-		CTX_wm_window_set(C, win_dst);
+	ok = (wm_window_copy_test(C, win_src, true) != NULL);
 
-		ED_screen_refresh(CTX_wm_manager(C), win_dst);
-	}
-
-	return (win_dst != NULL) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-int wm_window_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	wmWindow *win = CTX_wm_window(C);
-	WorkSpace *workspace = WM_window_get_active_workspace(win);
-	ListBase *listbase = BKE_workspace_layouts_get(workspace);
-
-	if (BLI_listbase_count_at_most(listbase, 2) == 1) {
-		RNA_enum_set(op->ptr, "screen", 0);
-		return wm_window_new_exec(C, op);
-	}
-	else {
-		return WM_enum_search_invoke_previews(C, op, 6, 2);
-	}
-}
-
-const EnumPropertyItem *wm_window_new_screen_itemf(
-        bContext *C, struct PointerRNA *UNUSED(ptr), struct PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	if (C == NULL) {
-		return DummyRNA_NULL_items;
-	}
-	wmWindow *win = CTX_wm_window(C);
-	WorkSpace *workspace = WM_window_get_active_workspace(win);
-	ListBase *listbase = BKE_workspace_layouts_get(workspace);
-	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	int value = 0, totitem = 0;
-	int count_act_screens = 0;
-	/* XXX setting max number of windows to 20. We'd need support
-	 * for dynamic strings in EnumPropertyItem.name to avoid this. */
-	static char active_screens[20][MAX_NAME + 12];
-
-	for (WorkSpaceLayout *layout = listbase->first; layout; layout = layout->next) {
-		bScreen *screen = BKE_workspace_layout_screen_get(layout);
-		const char *layout_name = BKE_workspace_layout_name_get(layout);
-
-		if (screen->winid) {
-			BLI_snprintf(active_screens[count_act_screens], sizeof(*active_screens), "%s (Duplicate)", layout_name);
-			tmp.name = active_screens[count_act_screens++];
-		}
-		else {
-			tmp.name = layout_name;
-		}
-
-		tmp.value = value;
-		tmp.identifier = layout_name;
-		UI_id_icon_render(C, CTX_data_scene(C), &screen->id, true, false);
-		tmp.icon = BKE_icon_id_ensure(&screen->id);
-
-		RNA_enum_item_add(&item, &totitem, &tmp);
-		value++;
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*r_free = true;
-
-	return item;
-}
 
 /* fullscreen operator callback */
 int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))

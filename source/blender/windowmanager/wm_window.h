@@ -84,10 +84,7 @@ int			wm_window_close_exec(bContext *C, struct wmOperator *op);
 int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
 void		wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win) ATTR_NONNULL();
 
-const struct EnumPropertyItem *wm_window_new_screen_itemf(
-        bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 int			wm_window_new_exec(bContext *C, struct wmOperator *op);
-int			wm_window_new_invoke(bContext *C, struct wmOperator *op, const struct wmEvent *event);
 
 /* Initial (unmaximized) size to start with for
  * systems that can't find it for themselves (X11).
