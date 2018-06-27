@@ -37,6 +37,7 @@
 
 struct Base;
 struct bArmature;
+struct bAction;
 struct CacheFile;
 struct Camera;
 struct bGPdata;
@@ -185,6 +186,7 @@ struct DepsgraphNodeBuilder {
 	void build_particle_settings(ParticleSettings *part);
 	void build_cloth(Object *object);
 	void build_animdata(ID *id);
+	void build_action(bAction *action);
 	void build_driver(ID *id, FCurve *fcurve, int driver_index);
 	void build_driver_variables(ID *id, FCurve *fcurve);
 	void build_driver_id_property(ID *id, const char *rna_path);

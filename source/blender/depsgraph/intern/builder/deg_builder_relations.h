@@ -50,6 +50,7 @@
 
 struct Base;
 struct bArmature;
+struct bAction;
 struct bGPdata;
 struct CacheFile;
 struct Camera;
@@ -231,6 +232,7 @@ struct DepsgraphRelationBuilder
 	                                     OperationDepsNode *operation_from,
 	                                     ListBase *strips);
 	void build_animdata_drivers(ID *id);
+	void build_action(bAction *action);
 	void build_driver(ID *id, FCurve *fcurve);
 	void build_driver_data(ID *id, FCurve *fcurve);
 	void build_driver_variables(ID *id, FCurve *fcurve);

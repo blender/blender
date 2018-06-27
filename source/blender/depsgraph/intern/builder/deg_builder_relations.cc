@@ -1032,6 +1032,9 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	if (adt == NULL) {
 		return;
 	}
+	if (adt->action != NULL) {
+		build_action(adt->action);
+	}
 	if (adt->action == NULL && adt->nla_tracks.first == NULL) {
 		return;
 	}
@@ -1040,9 +1043,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	TimeSourceKey time_src_key;
 	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
 	/* Relation from action itself. */
-	if (adt->action != NULL &&
-	    !built_map_.checkIsBuiltAndTag(&adt->action->id))
-	{
+	if (adt->action != NULL) {
 		ComponentKey action_key(&adt->action->id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(action_key, adt_key, "Action -> Animation");
 	}
@@ -1201,6 +1202,13 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 		if (adt->action || adt->nla_tracks.first) {
 			add_relation(adt_key, driver_key, "AnimData Before Drivers");
 		}
+	}
+}
+
+void DepsgraphRelationBuilder::build_action(bAction *action)
+{
+	if (built_map_.checkIsBuiltAndTag(action)) {
+		return;
 	}
 }
 

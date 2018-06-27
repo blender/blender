@@ -749,18 +749,13 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 	if (adt == NULL) {
 		return;
 	}
+	if (adt->action != NULL) {
+		build_action(adt->action);
+	}
 	/* animation */
 	if (adt->action || adt->nla_tracks.first || adt->drivers.first) {
 		(void) add_id_node(id);
 		ID *id_cow = get_cow_id(id);
-
-		if (adt->action != NULL &&
-		    !built_map_.checkIsBuiltAndTag(&adt->action->id))
-		{
-			add_operation_node(&adt->action->id, DEG_NODE_TYPE_ANIMATION,
-			                   NULL,
-			                   DEG_OPCODE_ANIMATION);
-		}
 
 		// XXX: Hook up specific update callbacks for special properties which
 		// may need it...
@@ -790,6 +785,17 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 			build_driver(id, fcu, driver_index++);
 		}
 	}
+}
+
+void DepsgraphNodeBuilder::build_action(bAction *action)
+{
+	if (built_map_.checkIsBuiltAndTag(action)) {
+		return;
+	}
+	add_operation_node(&action->id,
+	                   DEG_NODE_TYPE_ANIMATION,
+	                   NULL,
+	                   DEG_OPCODE_ANIMATION);
 }
 
 /**
