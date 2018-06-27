@@ -480,6 +480,10 @@ class IMAGE_HT_header(Header):
 
         layout.prop(sima, "mode", text="")
 
+        MASK_MT_editor_menus.draw_collapsible(context, layout)
+
+        layout.separator_spacer()
+
         layout.template_ID(sima, "image", new="image.new", open="image.open")
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
@@ -487,6 +491,8 @@ class IMAGE_HT_header(Header):
         if show_maskedit:
             row = layout.row()
             row.template_ID(sima, "mask", new="mask.new")
+
+        layout.separator_spacer()
 
         # uv editing
         if show_uvedit:
@@ -500,10 +506,7 @@ class IMAGE_HT_header(Header):
                 layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", icon_only=True)
 
-        MASK_MT_editor_menus.draw_collapsible(context, layout)
-
-        layout.separator_spacer()
-
+        
         if show_uvedit or show_maskedit or mode == 'PAINT':
             layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
 
