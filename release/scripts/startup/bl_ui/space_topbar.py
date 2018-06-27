@@ -297,10 +297,10 @@ class INFO_MT_file(Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
-        layout.menu("INFO_MT_file_open_recent", icon='OPEN_RECENT')
-        layout.operator("wm.revert_mainfile", icon='FILE_REFRESH')
-        layout.operator("wm.recover_last_session", icon='RECOVER_LAST')
-        layout.operator("wm.recover_auto_save", text="Recover Auto Save...", icon='RECOVER_AUTO')
+        layout.menu("INFO_MT_file_open_recent")
+        layout.operator("wm.revert_mainfile")
+        layout.operator("wm.recover_last_session")
+        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
         layout.separator()
 
@@ -308,15 +308,15 @@ class INFO_MT_file(Menu):
         layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save As...", icon='SAVE_AS')
+        layout.operator("wm.save_as_mainfile", text="Save As...")
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save Copy...", icon='SAVE_COPY').copy = True
+        layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
 
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_homefile", icon='SAVE_PREFS')
-        layout.operator("wm.read_factory_settings", icon='LOAD_FACTORY')
+        layout.operator("wm.save_homefile")
+        layout.operator("wm.read_factory_settings")
 
         layout.separator()
 
@@ -332,7 +332,7 @@ class INFO_MT_file(Menu):
 
         layout.separator()
 
-        layout.menu("INFO_MT_file_external_data", icon='EXTERNAL_DATA')
+        layout.menu("INFO_MT_file_external_data")
 
         layout.separator()
 
@@ -443,7 +443,7 @@ class INFO_MT_render(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(rd, "display_mode", text="Display Mode", icon='IMAGE_COL')
+        layout.prop_menu_enum(rd, "display_mode", text="Display Mode")
         layout.prop(rd, "use_lock_interface", text="Lock Interface")
 
         layout.separator()
@@ -453,7 +453,7 @@ class INFO_MT_render(Menu):
         props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
         props.view_context = False
         props.animation = True
-        layout.menu("INFO_MT_opengl_render", icon='SETTINGS')
+        layout.menu("INFO_MT_opengl_render")
 
         layout.separator()
 
@@ -530,7 +530,7 @@ class INFO_MT_window(Menu):
 
         if context.scene.render.use_multiview:
             layout.separator()
-            layout.operator("wm.set_stereo_3d", icon='CAMERA_STEREO')
+            layout.operator("wm.set_stereo_3d")
 
 
 class INFO_MT_help(Menu):
