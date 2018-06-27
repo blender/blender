@@ -696,7 +696,7 @@ static void rna_Particle_change_physics_type(Main *bmain, Scene *scene, PointerR
 		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Separate));
 		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Flock));
 
-		((BoidRule*)state->rules.first)->flag |= BOIDRULE_CURRENT;
+		((BoidRule *)state->rules.first)->flag |= BOIDRULE_CURRENT;
 
 		state->flag |= BOIDSTATE_CURRENT;
 		BLI_addtail(&part->boids->states, state);

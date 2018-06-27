@@ -1152,7 +1152,7 @@ BVHTree *bvhtree_from_mesh_get(
 			MEM_freeN(mloop);
 		}
 		if (looptri_allocated) {
-			MEM_freeN((void*)looptri);
+			MEM_freeN((void *)looptri);
 		}
 
 		memset(data, 0, sizeof(*data));
