@@ -212,18 +212,20 @@ static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
 
 
 /* Using Hammersley distribution */
-static float *create_disk_samples(int num_samples)
+static float *create_disk_samples(int num_samples, int num_iterations)
 {
 	/* vec4 to ensure memory alignment. */
-	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * num_samples, __func__);
+	const int total_samples = num_samples * num_iterations;
+	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * total_samples, __func__);
 	const float num_samples_inv = 1.0f / num_samples;
 
-	for (int i = 0; i < num_samples; i++) {
-		float r = (i + 0.5f) * num_samples_inv;
+	for (int i = 0; i < total_samples; i++) {
+		float it_add = (i / num_samples) * 0.499f;
+		float r = fmodf((i + 0.5f + it_add) * num_samples_inv, 1.0f);
 		double dphi;
 		BLI_hammersley_1D(i, &dphi);
 
-		float phi = (float)dphi * 2.0f * M_PI;
+		float phi = (float)dphi * 2.0f * M_PI + it_add;
 		texels[i][0] = cosf(phi);
 		texels[i][1] = sinf(phi);
 		/* This deliberatly distribute more samples
@@ -381,15 +383,18 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		Scene *scene = draw_ctx->scene;
 		/* AO Samples Tex */
+		int num_iterations = workbench_taa_calculate_num_iterations(vedata);
+
 		const int ssao_samples_single_iteration = scene->display.matcap_ssao_samples;
-		const int ssao_samples = MIN2(ssao_samples_single_iteration, 500);
+		const int ssao_samples = MIN2(num_iterations * ssao_samples_single_iteration, 500);
+
 		if (e_data.sampling_ubo && (e_data.cached_sample_num != ssao_samples)) {
 			DRW_UBO_FREE_SAFE(e_data.sampling_ubo);
 			DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
 		}
 
 		if (e_data.sampling_ubo == NULL) {
-			float *samples = create_disk_samples(ssao_samples);
+			float *samples = create_disk_samples(ssao_samples_single_iteration, num_iterations);
 			e_data.jitter_tx = create_jitter_texture(ssao_samples);
 			e_data.sampling_ubo = DRW_uniformbuffer_create(sizeof(float[4]) * ssao_samples, samples);
 			e_data.cached_sample_num = ssao_samples;

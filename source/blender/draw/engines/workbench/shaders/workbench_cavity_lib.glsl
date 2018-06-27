@@ -32,7 +32,7 @@ void ssao_factors(
 	vec2 rotY = vec2(-rotX.y, rotX.x);
 
 	for (int x = 0; x < num_samples; x++) {
-		int sample_index = x;
+		int sample_index = x + (int(ssao_iteration) * num_samples);
 		if (sample_index > 500) {
 			continue;
 		}
