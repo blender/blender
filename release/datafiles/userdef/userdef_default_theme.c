@@ -1140,8 +1140,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade2 = RGBA(0x19191aff),
 		.hilite = RGBA(0xff0000ff),
 		.grid = RGBA(0x313133ff),
@@ -1233,8 +1231,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x404040ff),
 		.wire = RGBA(0x000000ff),
@@ -1314,8 +1310,6 @@ const bTheme U_theme_default = {
 		.panelcolors = {
 			.back = RGBA(0x72727280),
 			.sub_back = RGBA(0x00000019),
-		},
-		.gradients = {
 		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x5b5b5bff),
@@ -1400,8 +1394,6 @@ const bTheme U_theme_default = {
 			.sub_back = RGBA(0x0000003e),
 			.show_header = 1,
 			.show_back = 1,
-		},
-		.gradients = {
 		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x393939ff),
@@ -1506,8 +1498,6 @@ const bTheme U_theme_default = {
 			.show_header = 1,
 			.show_back = 1,
 		},
-		.gradients = {
-		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x404040ff),
 		.wire = RGBA(0x000000ff),
@@ -1589,8 +1579,6 @@ const bTheme U_theme_default = {
 			.sub_back = RGBA(0x0000003e),
 			.show_header = 1,
 			.show_back = 1,
-		},
-		.gradients = {
 		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x404040ff),
@@ -1679,8 +1667,6 @@ const bTheme U_theme_default = {
 			.sub_back = RGBA(0x0000003e),
 			.show_header = 1,
 			.show_back = 1,
-		},
-		.gradients = {
 		},
 		.shade2 = RGBA(0x7f707064),
 		.grid = RGBA(0x5e5e5eff),
