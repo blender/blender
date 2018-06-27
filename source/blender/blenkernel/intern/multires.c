@@ -720,24 +720,33 @@ static DerivedMesh *multires_dm_create_local(Scene *scene, Object *ob, DerivedMe
 
 static DerivedMesh *subsurf_dm_create_local(
         Scene *scene, Object *ob, DerivedMesh *dm,
-        int lvl, int simple, int optimal, int plain_uv, int alloc_paint_mask)
+        int lvl,
+		bool is_simple, bool is_optimal, bool is_plain_uv, bool alloc_paint_mask,
+		bool for_render)
 {
 	SubsurfModifierData smd = {{NULL}};
 	SubsurfFlags flags = 0;
 
 	smd.levels = smd.renderLevels = lvl;
-	if (!plain_uv)
+	if (!is_plain_uv) {
 		smd.flags |= eSubsurfModifierFlag_SubsurfUv;
-	if (simple)
+	}
+	if (is_simple) {
 		smd.subdivType = ME_SIMPLE_SUBSURF;
-	if (optimal)
+	}
+	if (is_optimal) {
 		smd.flags |= eSubsurfModifierFlag_ControlEdges;
+	}
 
-	if (ob->mode & OB_MODE_EDIT)
+	if (ob->mode & OB_MODE_EDIT) {
 		flags |= SUBSURF_IN_EDIT_MODE;
-
-	if (alloc_paint_mask)
+	}
+	if (alloc_paint_mask) {
 		flags |= SUBSURF_ALLOC_PAINT_MASK;
+	}
+	if (for_render) {
+		flags |= SUBSURF_USE_RENDER_PARAMS;
+	}
 
 	return subsurf_make_derived_from_derived(dm, &smd, scene, NULL, flags);
 }
@@ -871,7 +880,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
 	/* subdivide the mesh to highest level without displacements */
 	cddm = CDDM_from_mesh(me);
 	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
-	origdm = subsurf_dm_create_local(scene, ob, cddm, totlvl, 0, 0, mmd->flags & eMultiresModifierFlag_PlainUv, 0);
+	origdm = subsurf_dm_create_local(scene, ob, cddm, totlvl, 0, 0, mmd->flags & eMultiresModifierFlag_PlainUv, 0, false);
 	cddm->release(cddm);
 
 	/* calc disps */
@@ -912,7 +921,7 @@ static void multires_subdivide(
 		/* create subsurf DM from original mesh at high level */
 		cddm = CDDM_from_mesh(me);
 		DM_set_only_copy(cddm, CD_MASK_BAREMESH);
-		highdm = subsurf_dm_create_local(scene, ob, cddm, totlvl, simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, has_mask);
+		highdm = subsurf_dm_create_local(scene, ob, cddm, totlvl, simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, has_mask, false);
 		ss = ((CCGDerivedMesh *)highdm)->ss;
 
 		/* create multires DM from original mesh at low level */
@@ -1233,7 +1242,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
 			else cddm = CDDM_from_mesh(me);
 			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
-			highdm = subsurf_dm_create_local(scene, ob, cddm, totlvl, mmd->simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, has_mask);
+			highdm = subsurf_dm_create_local(scene, ob, cddm, totlvl, mmd->simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, has_mask, false);
 			ss = ((CCGDerivedMesh *)highdm)->ss;
 
 			/* create multires DM from original mesh and displacements */
@@ -1295,7 +1304,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
 			else cddm = CDDM_from_mesh(me);
 			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
-			subdm = subsurf_dm_create_local(scene, ob, cddm, mmd->totlvl, mmd->simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, has_mask);
+			subdm = subsurf_dm_create_local(scene, ob, cddm, mmd->totlvl, mmd->simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, has_mask, false);
 			cddm->release(cddm);
 
 			multiresModifier_disp_run(dm, me, NULL, CALC_DISPLACEMENTS, subdm->getGridData(subdm), mmd->totlvl);
@@ -1378,7 +1387,8 @@ DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
 	result = subsurf_dm_create_local(scene, ob, dm, lvl,
 	                                 mmd->simple, mmd->flags & eMultiresModifierFlag_ControlEdges,
 	                                 mmd->flags & eMultiresModifierFlag_PlainUv,
-	                                 flags & MULTIRES_ALLOC_PAINT_MASK);
+	                                 flags & MULTIRES_ALLOC_PAINT_MASK,
+	                                 render);
 
 	if (!(flags & MULTIRES_USE_LOCAL_MMD)) {
 		ccgdm = (CCGDerivedMesh *)result;
@@ -2200,7 +2210,7 @@ static void multires_apply_smat(struct Depsgraph *depsgraph, Scene *scene, Objec
 	MEM_freeN(vertCos);
 
 	/* scaled ccgDM for tangent space of object with applied scale */
-	dm = subsurf_dm_create_local(scene, ob, cddm, high_mmd.totlvl, high_mmd.simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, 0);
+	dm = subsurf_dm_create_local(scene, ob, cddm, high_mmd.totlvl, high_mmd.simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, 0, false);
 	cddm->release(cddm);
 
 	gridSize = dm->getGridSize(dm);
