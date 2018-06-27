@@ -379,6 +379,7 @@ enum {
 	MOD_BEVEL_HN_NONE,
 	MOD_BEVEL_HN_FACE,
 	MOD_BEVEL_HN_ADJ,
+	MOD_BEVEL_FIX_SHA,
 };
 
 typedef struct SmokeModifierData {

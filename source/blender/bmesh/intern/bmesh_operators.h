@@ -131,6 +131,7 @@ enum {
 	BEVEL_HN_NONE,
 	BEVEL_HN_FACE,
 	BEVEL_HN_ADJ,
+	BEVEL_HN_FIX_SHA,
 };
 
 extern const BMOpDefine *bmo_opdefines[];
