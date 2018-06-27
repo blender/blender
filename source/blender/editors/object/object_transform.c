@@ -485,7 +485,7 @@ static int apply_objects_internal(
 			if (la->type == LA_AREA) {
 				if (apply_rot || apply_loc) {
 					BKE_reportf(reports, RPT_ERROR,
-					            "Area Lamps can only have scale applied: \"%s\"",
+					            "Area Lights can only have scale applied: \"%s\"",
 					            ob->id.name + 2);
 					changed = false;
 				}
@@ -1540,8 +1540,8 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 void OBJECT_OT_transform_axis_target(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Interactive Lamp Track to Cursor";
-	ot->description = "Interactively point cameras and lamps to a location (Ctrl translates)";
+	ot->name = "Interactive Light Track to Cursor";
+	ot->description = "Interactively point cameras and lights to a location (Ctrl translates)";
 	ot->idname = "OBJECT_OT_transform_axis_target";
 
 	/* api callbacks */

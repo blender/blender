@@ -1,7 +1,7 @@
 # Example of a group that edits a single property
 # using the predefined manipulator arrow.
 #
-# Usage: Select a lamp in the 3D view and drag the arrow at it's rear
+# Usage: Select a light in the 3D view and drag the arrow at it's rear
 # to change it's energy value.
 #
 import bpy
@@ -10,9 +10,9 @@ from bpy.types import (
 )
 
 
-class MyLampWidgetGroup(ManipulatorGroup):
-    bl_idname = "OBJECT_WGT_lamp_test"
-    bl_label = "Test Lamp Widget"
+class MyLightWidgetGroup(ManipulatorGroup):
+    bl_idname = "OBJECT_WGT_light_test"
+    bl_label = "Test Light Widget"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT'}
@@ -20,10 +20,10 @@ class MyLampWidgetGroup(ManipulatorGroup):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return (ob and ob.type == 'LAMP')
+        return (ob and ob.type == 'LIGHT')
 
     def setup(self, context):
-        # Arrow manipulator has one 'offset' property we can assign to the lamp energy.
+        # Arrow manipulator has one 'offset' property we can assign to the light energy.
         ob = context.object
         mpr = self.manipulators.new("MANIPULATOR_WT_arrow_3d")
         mpr.target_set_prop("offset", ob.data, "energy")
@@ -44,4 +44,4 @@ class MyLampWidgetGroup(ManipulatorGroup):
         mpr.matrix_basis = ob.matrix_world.normalized()
 
 
-bpy.utils.register_class(MyLampWidgetGroup)
+bpy.utils.register_class(MyLightWidgetGroup)

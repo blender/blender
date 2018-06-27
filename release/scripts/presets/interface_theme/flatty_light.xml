@@ -304,7 +304,7 @@
                    text_keyframe="#ddd700"
                    camera="#b3b3b3"
                    empty="#b3b3b3"
-                   lamp="#cccccc33"
+                   light="#cccccc33"
                    speaker="#b3b3b3"
                    vertex="#000000"
                    vertex_select="#ff8500"

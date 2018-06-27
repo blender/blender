@@ -113,10 +113,10 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 			BL::Material b_mat(b_id);
 			shader_map.set_recalc(b_mat);
 		}
-		/* Lamp */
-		else if (b_id.is_a(&RNA_Lamp)) {
-			BL::Lamp b_lamp(b_id);
-			shader_map.set_recalc(b_lamp);
+		/* Light */
+		else if (b_id.is_a(&RNA_Light)) {
+			BL::Light b_light(b_id);
+			shader_map.set_recalc(b_light);
 		}
 		/* Object */
 		else if (b_id.is_a(&RNA_Object)) {

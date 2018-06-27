@@ -270,8 +270,8 @@ class OUTLINER_PT_filter(Panel):
             sub.prop(space, "use_filter_object_mesh", text="Meshes", icon="MESH_DATA")
         if bpy.data.armatures:
             sub.prop(space, "use_filter_object_armature", text="Armatures", icon="ARMATURE_DATA")
-        if bpy.data.lamps:
-            sub.prop(space, "use_filter_object_lamp", text="Lamps", icon="LAMP_DATA")
+        if bpy.data.lights:
+            sub.prop(space, "use_filter_object_light", text="Lights", icon="LIGHT_DATA")
         if bpy.data.cameras:
             sub.prop(space, "use_filter_object_camera", text="Cameras", icon="CAMERA_DATA")
 

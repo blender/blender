@@ -110,7 +110,7 @@ class ANIM_OT_keying_set_export(Operator):
             # - special handling is needed for "nested" ID-blocks
             #   (e.g. nodetree in Material)
             if ksp.id.bl_rna.identifier.startswith("ShaderNodeTree"):
-                # Find material or lamp using this node tree...
+                # Find material or light using this node tree...
                 id_bpy_path = "bpy.data.nodes[\"%s\"]"
                 found = False
 
@@ -121,14 +121,14 @@ class ANIM_OT_keying_set_export(Operator):
                         break
 
                 if not found:
-                    for lamp in bpy.data.lamps:
-                        if lamp.node_tree == ksp.id:
-                            id_bpy_path = "bpy.data.lamps[\"%s\"].node_tree" % (lamp.name)
+                    for light in bpy.data.lights:
+                        if light.node_tree == ksp.id:
+                            id_bpy_path = "bpy.data.lights[\"%s\"].node_tree" % (light.name)
                             found = True
                             break
 
                 if not found:
-                    self.report({'WARN'}, "Could not find material or lamp using Shader Node Tree - %s" % (ksp.id))
+                    self.report({'WARN'}, "Could not find material or light using Shader Node Tree - %s" % (ksp.id))
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor nodetree using this node tree...
                 for scene in bpy.data.scenes:

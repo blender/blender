@@ -115,7 +115,7 @@ void OBJECT_OT_armature_add(struct wmOperatorType *ot);
 void OBJECT_OT_empty_add(struct wmOperatorType *ot);
 void OBJECT_OT_lightprobe_add(struct wmOperatorType *ot);
 void OBJECT_OT_drop_named_image(struct wmOperatorType *ot);
-void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
+void OBJECT_OT_light_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_speaker_add(struct wmOperatorType *ot);

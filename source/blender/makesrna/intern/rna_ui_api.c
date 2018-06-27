@@ -844,7 +844,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "template_preview", "uiTemplatePreview");
-	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps or worlds");
+	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lights or worlds");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "id", "ID", "", "ID data-block");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -856,7 +856,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	               "(i.e. all previews of materials without explicit ID will have the same size...)");
 
 	func = RNA_def_function(srna, "template_curve_mapping", "uiTemplateCurveMapping");
-	RNA_def_function_ui_description(func, "Item. A curve mapping widget used for e.g falloff curves for lamps");
+	RNA_def_function_ui_description(func, "Item. A curve mapping widget used for e.g falloff curves for lights");
 	api_ui_item_rna_common(func);
 	RNA_def_enum(func, "type", curve_type_items, 0, "Type", "Type of curves to display");
 	RNA_def_boolean(func, "levels", false, "", "Show black/white levels");

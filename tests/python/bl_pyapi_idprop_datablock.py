@@ -90,10 +90,10 @@ def make_lib():
     # datablock pointer to the Camera object
     bpy.data.objects["Cube"].prop = bpy.data.objects['Camera']
 
-    # array of datablock pointers to the Lamp object
+    # array of datablock pointers to the Light object
     for i in range(0, arr_len):
         a = bpy.data.objects["Cube"].prop_array.add()
-        a.test_prop = bpy.data.objects['Lamp']
+        a.test_prop = bpy.data.objects['Light']
         a.name = a.test_prop.name
 
     # make unique named copy of the cube
@@ -124,7 +124,7 @@ def check_lib():
     # check array of pointers in duplicated object
     for i in range(0, arr_len):
         abort_if_false(bpy.data.objects["Cube.001"].prop_array[i].test_prop ==
-                       bpy.data.objects['Lamp'])
+                       bpy.data.objects['Light'])
 
 
 def check_lib_linking():
@@ -137,7 +137,7 @@ def check_lib_linking():
 
     o = bpy.data.scenes["Scene_lib"].objects['Unique_Cube']
 
-    abort_if_false(o.prop_array[0].test_prop == bpy.data.scenes["Scene_lib"].objects['Lamp'])
+    abort_if_false(o.prop_array[0].test_prop == bpy.data.scenes["Scene_lib"].objects['Light'])
     abort_if_false(o.prop == bpy.data.scenes["Scene_lib"].objects['Camera'])
     abort_if_false(o.prop.library == o.library)
 
@@ -187,15 +187,15 @@ def check_scene_copying():
 # count users
 def test_users_counting():
     bpy.ops.wm.read_factory_settings()
-    lamp_us = bpy.data.objects["Lamp"].data.users
+    Light_us = bpy.data.objects["Light"].data.users
     n = 1000
     for i in range(0, n):
-        bpy.data.objects["Cube"]["a%s" % i] = bpy.data.objects["Lamp"].data
-    abort_if_false(bpy.data.objects["Lamp"].data.users == lamp_us + n)
+        bpy.data.objects["Cube"]["a%s" % i] = bpy.data.objects["Light"].data
+    abort_if_false(bpy.data.objects["Light"].data.users == Light_us + n)
 
     for i in range(0, int(n / 2)):
         bpy.data.objects["Cube"]["a%s" % i] = 1
-    abort_if_false(bpy.data.objects["Lamp"].data.users == lamp_us + int(n / 2))
+    abort_if_false(bpy.data.objects["Light"].data.users == Light_us + int(n / 2))
 
 
 # linking
@@ -259,13 +259,13 @@ def test_restrictions1():
     bpy.types.Scene.prop2 = bpy.props.PointerProperty(type=bpy.types.NodeTree, poll=poll1)
 
     # check poll effect on UI (poll returns false => red alert)
-    bpy.context.scene.prop = bpy.data.objects["Lamp.001"]
-    bpy.context.scene.prop1 = bpy.data.objects["Lamp.001"]
+    bpy.context.scene.prop = bpy.data.objects["Light.001"]
+    bpy.context.scene.prop1 = bpy.data.objects["Light.001"]
 
     # check incorrect type assignment
     def sub_test():
         # NodeTree id_prop
-        bpy.context.scene.prop2 = bpy.data.objects["Lamp.001"]
+        bpy.context.scene.prop2 = bpy.data.objects["Light.001"]
 
     check_crash(sub_test)
 

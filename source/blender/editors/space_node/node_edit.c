@@ -424,7 +424,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 			Lamp *la = (Lamp *)id;
 			la->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT_LAMP;
+			output_type = SH_NODE_OUTPUT_LIGHT;
 			shader_type = SH_NODE_EMISSION;
 
 			copy_v3_v3(color, &la->r);
@@ -628,7 +628,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				nodeClearActiveID(ntree, ID_TE);
 
 			if (ELEM(node->type, SH_NODE_OUTPUT_MATERIAL,
-			         SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP, SH_NODE_OUTPUT_LINESTYLE))
+			         SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LIGHT, SH_NODE_OUTPUT_LINESTYLE))
 			{
 				bNode *tnode;
 

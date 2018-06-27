@@ -99,13 +99,13 @@ static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmManipulatorGroup 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	PointerRNA lamp_ptr;
 	const char *propname = "spot_size";
-	RNA_pointer_create(&la->id, &RNA_Lamp, la, &lamp_ptr);
+	RNA_pointer_create(&la->id, &RNA_Light, la, &lamp_ptr);
 	WM_manipulator_target_property_def_rna(mpr, "offset", &lamp_ptr, propname, -1);
 }
 
 void VIEW3D_WGT_lamp_spot(wmManipulatorGroupType *wgt)
 {
-	wgt->name = "Spot Lamp Widgets";
+	wgt->name = "Spot Light Widgets";
 	wgt->idname = "VIEW3D_WGT_lamp_spot";
 
 	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
@@ -213,7 +213,7 @@ static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup 
 
 void VIEW3D_WGT_lamp_area(wmManipulatorGroupType *wgt)
 {
-	wgt->name = "Area Lamp Widgets";
+	wgt->name = "Area Light Widgets";
 	wgt->idname = "VIEW3D_WGT_lamp_area";
 
 	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
@@ -291,7 +291,7 @@ static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmManipulato
 
 void VIEW3D_WGT_lamp_target(wmManipulatorGroupType *wgt)
 {
-	wgt->name = "Target Lamp Widgets";
+	wgt->name = "Target Light Widgets";
 	wgt->idname = "VIEW3D_WGT_lamp_target";
 
 	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |

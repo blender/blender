@@ -733,7 +733,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, c
 
 #define SH_NODE_OUTPUT_MATERIAL			124
 #define SH_NODE_OUTPUT_WORLD			125
-#define SH_NODE_OUTPUT_LAMP				126
+#define SH_NODE_OUTPUT_LIGHT			126
 #define SH_NODE_FRESNEL					127
 #define SH_NODE_MIX_SHADER				128
 #define SH_NODE_ATTRIBUTE				129

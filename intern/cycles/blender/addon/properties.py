@@ -887,17 +887,17 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
         del bpy.types.Material.cycles
 
 
-class CyclesLampSettings(bpy.types.PropertyGroup):
+class CyclesLightSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
-        bpy.types.Lamp.cycles = PointerProperty(
-                name="Cycles Lamp Settings",
-                description="Cycles lamp settings",
+        bpy.types.Light.cycles = PointerProperty(
+                name="Cycles Light Settings",
+                description="Cycles light settings",
                 type=cls,
                 )
         cls.cast_shadow = BoolProperty(
                 name="Cast Shadow",
-                description="Lamp casts shadows",
+                description="Light casts shadows",
                 default=True,
                 )
         cls.samples = IntProperty(
@@ -914,20 +914,20 @@ class CyclesLampSettings(bpy.types.PropertyGroup):
                 )
         cls.use_multiple_importance_sampling = BoolProperty(
                 name="Multiple Importance Sample",
-                description="Use multiple importance sampling for the lamp, "
-                            "reduces noise for area lamps and sharp glossy materials",
+                description="Use multiple importance sampling for the light, "
+                            "reduces noise for area lights and sharp glossy materials",
                 default=True,
                 )
         cls.is_portal = BoolProperty(
                 name="Is Portal",
-                description="Use this area lamp to guide sampling of the background, "
-                            "note that this will make the lamp invisible",
+                description="Use this area light to guide sampling of the background, "
+                            "note that this will make the light invisible",
                 default=False,
                 )
 
     @classmethod
     def unregister(cls):
-        del bpy.types.Lamp.cycles
+        del bpy.types.Light.cycles
 
 
 class CyclesWorldSettings(bpy.types.PropertyGroup):
@@ -1460,7 +1460,7 @@ def register():
     bpy.utils.register_class(CyclesRenderSettings)
     bpy.utils.register_class(CyclesCameraSettings)
     bpy.utils.register_class(CyclesMaterialSettings)
-    bpy.utils.register_class(CyclesLampSettings)
+    bpy.utils.register_class(CyclesLightSettings)
     bpy.utils.register_class(CyclesWorldSettings)
     bpy.utils.register_class(CyclesVisibilitySettings)
     bpy.utils.register_class(CyclesMeshSettings)
@@ -1475,7 +1475,7 @@ def unregister():
     bpy.utils.unregister_class(CyclesRenderSettings)
     bpy.utils.unregister_class(CyclesCameraSettings)
     bpy.utils.unregister_class(CyclesMaterialSettings)
-    bpy.utils.unregister_class(CyclesLampSettings)
+    bpy.utils.unregister_class(CyclesLightSettings)
     bpy.utils.unregister_class(CyclesWorldSettings)
     bpy.utils.unregister_class(CyclesMeshSettings)
     bpy.utils.unregister_class(CyclesObjectSettings)

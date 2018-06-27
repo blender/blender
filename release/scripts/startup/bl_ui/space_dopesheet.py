@@ -132,8 +132,8 @@ class DopesheetFilterPopoverBase:
             flow.prop(dopesheet, "show_cameras", text="Cameras")
         if bpy.data.grease_pencil:
             flow.prop(dopesheet, "show_gpencil", text="Grease Pencil Objects")
-        if bpy.data.lamps:
-            flow.prop(dopesheet, "show_lamps", text="Lamps")
+        if bpy.data.lights:
+            flow.prop(dopesheet, "show_lights", text="Lights")
         if bpy.data.materials:
             flow.prop(dopesheet, "show_materials", text="Materials")
         if bpy.data.textures:

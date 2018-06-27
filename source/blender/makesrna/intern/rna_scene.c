@@ -5952,7 +5952,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_volumetric_lights", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_VOLUMETRIC_LIGHTS);
 	RNA_def_property_boolean_default(prop, 1);
-	RNA_def_property_ui_text(prop, "Volumetric Lighting", "Enable scene lamps interactions with volumetrics");
+	RNA_def_property_ui_text(prop, "Volumetric Lighting", "Enable scene light interactions with volumetrics");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	prop = RNA_def_property(srna, "volumetric_light_clamp", PROP_FLOAT, PROP_NONE);
@@ -6116,13 +6116,13 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "shadow_cube_size", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_default(prop, 512);
 	RNA_def_property_enum_items(prop, eevee_shadow_size_items);
-	RNA_def_property_ui_text(prop, "Cube Shadows Resolution", "Size of point and area lamps shadow maps");
+	RNA_def_property_ui_text(prop, "Cube Shadows Resolution", "Size of point and area light shadow maps");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	prop = RNA_def_property(srna, "shadow_cascade_size", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_default(prop, 1024);
 	RNA_def_property_enum_items(prop, eevee_shadow_size_items);
-	RNA_def_property_ui_text(prop, "Directional Shadows Resolution", "Size of sun lamps shadow maps");
+	RNA_def_property_ui_text(prop, "Directional Shadows Resolution", "Size of sun light shadow maps");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	prop = RNA_def_property(srna, "use_shadow_high_bitdepth", PROP_BOOLEAN, PROP_NONE);

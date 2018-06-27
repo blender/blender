@@ -55,10 +55,10 @@ def check_is_new_shading_world(world):
     return check_is_new_shading_ntree(world.node_tree)
 
 
-def check_is_new_shading_lamp(lamp):
-    if not lamp.node_tree:
+def check_is_new_shading_light(light):
+    if not light.node_tree:
         return False
-    return check_is_new_shading_ntree(lamp.node_tree)
+    return check_is_new_shading_ntree(light.node_tree)
 
 
 def foreach_notree_node(nodetree, callback, traversed):
@@ -83,9 +83,9 @@ def foreach_cycles_node(callback):
                 foreach_notree_node(world.node_tree,
                                     callback,
                                     traversed)
-    for lamp in bpy.data.lamps:
-        if check_is_new_shading_world(lamp):
-                foreach_notree_node(lamp.node_tree,
+    for light in bpy.data.lights:
+        if check_is_new_shading_world(light):
+                foreach_notree_node(light.node_tree,
                                     callback,
                                     traversed)
 
@@ -393,12 +393,12 @@ def do_versions(self):
             if not cscene.is_property_set("tile_order"):
                 cscene.tile_order = 'CENTER'
 
-        for lamp in bpy.data.lamps:
-            clamp = lamp.cycles
+        for light in bpy.data.lights:
+            clight = light.cycles
 
             # MIS
-            if not clamp.is_property_set("use_multiple_importance_sampling"):
-                clamp.use_multiple_importance_sampling = False
+            if not clight.is_property_set("use_multiple_importance_sampling"):
+                clight.use_multiple_importance_sampling = False
 
         for mat in bpy.data.materials:
             cmat = mat.cycles

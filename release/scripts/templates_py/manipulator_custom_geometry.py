@@ -1,6 +1,6 @@
 # Example of a custom widget that defines it's own geometry.
 #
-# Usage: Select a lamp in the 3D view and drag the arrow at it's rear
+# Usage: Select a light in the 3D view and drag the arrow at it's rear
 # to change it's energy value.
 #
 import bpy
@@ -75,7 +75,7 @@ class MyCustomShapeWidget(Manipulator):
     )
 
     def _update_offset_matrix(self):
-        # offset behind the lamp
+        # offset behind the light
         self.matrix_offset.col[3][2] = self.target_get_value("offset") / -10.0
 
     def draw(self, context):
@@ -113,8 +113,8 @@ class MyCustomShapeWidget(Manipulator):
 
 
 class MyCustomShapeWidgetGroup(ManipulatorGroup):
-    bl_idname = "OBJECT_WGT_lamp_test"
-    bl_label = "Test Lamp Widget"
+    bl_idname = "OBJECT_WGT_light_test"
+    bl_label = "Test Light Widget"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT'}
@@ -122,10 +122,10 @@ class MyCustomShapeWidgetGroup(ManipulatorGroup):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return (ob and ob.type == 'LAMP')
+        return (ob and ob.type == 'LIGHT')
 
     def setup(self, context):
-        # Assign the 'offset' target property to the lamp energy.
+        # Assign the 'offset' target property to the light energy.
         ob = context.object
         mpr = self.manipulators.new(MyCustomShapeWidget.bl_idname)
         mpr.target_set_prop("offset", ob.data, "energy")

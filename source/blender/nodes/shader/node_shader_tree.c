@@ -222,7 +222,7 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
 	for (bNode *node = ntree->nodes.first; node; node = node->next) {
 		if (!ELEM(node->type, SH_NODE_OUTPUT_MATERIAL,
 		                      SH_NODE_OUTPUT_WORLD,
-		                      SH_NODE_OUTPUT_LAMP))
+		                      SH_NODE_OUTPUT_LIGHT))
 		{
 			continue;
 		}

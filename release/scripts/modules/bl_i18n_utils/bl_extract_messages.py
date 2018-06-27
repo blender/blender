@@ -385,7 +385,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             return
 
         def full_class_id(cls):
-            """Gives us 'ID.Lamp.AreaLamp' which is best for sorting."""
+            """Gives us 'ID.Light.AreaLight' which is best for sorting."""
             # Always the same issue, some classes listed in blacklist should actually no more exist (they have been
             # unregistered), but are still listed by __subclasses__() calls... :/
             if cls in blacklist_rna_class:

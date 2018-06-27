@@ -253,7 +253,7 @@
                    text_keyframe="#ddd700"
                    camera="#000000"
                    empty="#a78721"
-                   lamp="#d6df1628"
+                   light="#d6df1628"
                    speaker="#a83f2d"
                    vertex="#657780"
                    vertex_select="#00cccb"

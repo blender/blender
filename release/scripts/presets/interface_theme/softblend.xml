@@ -244,7 +244,7 @@
                    gp_vertex="#000000"
                    gp_vertex_select="#ff8500"
                    gp_vertex_size="3"
-                   lamp="#ffe56666"
+                   light="#ffe56666"
                    speaker="#c2e787"
                    camera="#000000"
                    view_overlay="#000000"

@@ -100,7 +100,7 @@ public:
 
 private:
 	/* sync */
-	void sync_lamps(BL::Depsgraph& b_depsgraph, bool update_all);
+	void sync_lights(BL::Depsgraph& b_depsgraph, bool update_all);
 	void sync_materials(BL::Depsgraph& b_depsgraph, bool update_all);
 	void sync_objects(BL::Depsgraph& b_depsgraph, float motion_time = 0.0f);
 	void sync_motion(BL::RenderSettings& b_render,

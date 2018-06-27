@@ -186,7 +186,7 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmManipulatorGrou
 
 void VIEW3D_WGT_empty_image(wmManipulatorGroupType *wgt)
 {
-	wgt->name = "Area Lamp Widgets";
+	wgt->name = "Area Light Widgets";
 	wgt->idname = "VIEW3D_WGT_empty_image";
 
 	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |

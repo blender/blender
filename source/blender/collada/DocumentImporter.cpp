@@ -389,7 +389,7 @@ Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 {
 	const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
 	if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {
-		fprintf(stderr, "Couldn't find lamp by UID.\n");
+		fprintf(stderr, "Couldn't find light by UID.\n");
 		return NULL;
 	}
 
@@ -1122,7 +1122,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 	else lamp = (Lamp *)BKE_lamp_add(bmain, (char *)la_id.c_str());
 
 	if (!lamp) {
-		fprintf(stderr, "Cannot create lamp.\n");
+		fprintf(stderr, "Cannot create light.\n");
 		return true;
 	}
 
@@ -1234,7 +1234,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 			break;
 			case COLLADAFW::Light::UNDEFINED:
 			{
-				fprintf(stderr, "Current lamp type is not supported.\n");
+				fprintf(stderr, "Current light type is not supported.\n");
 				lamp->type = LA_LOCAL;
 			}
 			break;

@@ -232,7 +232,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 		bcam->motion_steps = object_motion_steps(b_ob, b_ob);
 	}
 	else {
-		/* from lamp not implemented yet */
+		/* from light not implemented yet */
 	}
 }
 

@@ -1399,15 +1399,15 @@ class INFO_MT_armature_add(Menu):
         layout.operator("object.armature_add", text="Single Bone", icon='BONE_DATA')
 
 
-class INFO_MT_lamp_add(Menu):
-    bl_idname = "INFO_MT_lamp_add"
-    bl_label = "Lamp"
+class INFO_MT_light_add(Menu):
+    bl_idname = "INFO_MT_light_add"
+    bl_label = "Light"
 
     def draw(self, context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator_enum("object.lamp_add", "type")
+        layout.operator_enum("object.light_add", "type")
 
 
 class INFO_MT_lightprobe_add(Menu):
@@ -1467,7 +1467,7 @@ class INFO_MT_add(Menu):
         else:
             INFO_MT_camera_add.draw(self, context)
 
-        layout.menu("INFO_MT_lamp_add", icon='OUTLINER_OB_LAMP')
+        layout.menu("INFO_MT_light_add", icon='OUTLINER_OB_LIGHT')
         layout.separator()
         layout.menu("INFO_MT_lightprobe_add", icon='OUTLINER_OB_LIGHTPROBE')
         layout.separator()
@@ -1739,14 +1739,14 @@ class VIEW3D_MT_object_specials(Menu):
             props.input_scale = 0.01
             props.header_text = "Empty Draw Size: %.3f"
 
-        if obj.type == 'LAMP':
-            lamp = obj.data
+        if obj.type == 'LIGHT':
+            light = obj.data
 
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             emission_node = None
-            if lamp.node_tree:
-                for node in lamp.node_tree.nodes:
+            if light.node_tree:
+                for node in light.node_tree.nodes:
                     if getattr(node, "type", None) == 'EMISSION':
                         emission_node = node
                         break
@@ -1757,28 +1757,28 @@ class VIEW3D_MT_object_specials(Menu):
                 props.data_path_item = "data.node_tree" \
                                        ".nodes[\"" + emission_node.name + "\"]" \
                                        ".inputs[\"Strength\"].default_value"
-                props.header_text = "Lamp Strength: %.3f"
+                props.header_text = "Light Strength: %.3f"
                 props.input_scale = 0.1
 
-            if lamp.type == 'AREA':
+            if light.type == 'AREA':
                 props = layout.operator("wm.context_modal_mouse", text="Size X")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.size"
-                props.header_text = "Lamp Size X: %.3f"
+                props.header_text = "Light Size X: %.3f"
 
-                if lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
+                if light.shape in {'RECTANGLE', 'ELLIPSE'}:
                     props = layout.operator("wm.context_modal_mouse", text="Size Y")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size_y"
-                    props.header_text = "Lamp Size Y: %.3f"
+                    props.header_text = "Light Size Y: %.3f"
 
-            elif lamp.type in {'SPOT', 'POINT', 'SUN'}:
+            elif light.type in {'SPOT', 'POINT', 'SUN'}:
                 props = layout.operator("wm.context_modal_mouse", text="Size")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.shadow_soft_size"
-                props.header_text = "Lamp Size: %.3f"
+                props.header_text = "Light Size: %.3f"
 
-            if lamp.type == 'SPOT':
+            if light.type == 'SPOT':
                 layout.separator()
                 props = layout.operator("wm.context_modal_mouse", text="Spot Size")
                 props.data_path_iter = "selected_editable_objects"
@@ -4437,7 +4437,7 @@ classes = (
     INFO_MT_edit_curve_add,
     INFO_MT_edit_armature_add,
     INFO_MT_armature_add,
-    INFO_MT_lamp_add,
+    INFO_MT_light_add,
     INFO_MT_lightprobe_add,
     INFO_MT_camera_add,
     INFO_MT_add,

@@ -427,7 +427,7 @@ static void make_renderinfo_string(const RenderStats *rs,
 		if (rs->totface) spos += sprintf(spos, IFACE_("Fa:%d "), rs->totface);
 		if (rs->tothalo) spos += sprintf(spos, IFACE_("Ha:%d "), rs->tothalo);
 		if (rs->totstrand) spos += sprintf(spos, IFACE_("St:%d "), rs->totstrand);
-		if (rs->totlamp) spos += sprintf(spos, IFACE_("La:%d "), rs->totlamp);
+		if (rs->totlamp) spos += sprintf(spos, IFACE_("Li:%d "), rs->totlamp);
 
 		if (rs->mem_peak == 0.0f)
 			spos += sprintf(spos, IFACE_("| Mem:%.2fM (%.2fM, Peak %.2fM) "),

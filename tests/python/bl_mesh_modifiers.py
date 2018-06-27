@@ -127,7 +127,7 @@ def ctx_clear_scene():  # copied from batch_import.py
     # remove obdata, for now only worry about the startup scene
     for bpy_data_iter in (bpy.data.objects,
                           bpy.data.meshes,
-                          bpy.data.lamps,
+                          bpy.data.lights,
                           bpy.data.cameras,
                           ):
 

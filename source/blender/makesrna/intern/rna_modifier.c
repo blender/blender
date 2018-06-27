@@ -1309,7 +1309,7 @@ static void rna_def_modifier_warp(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom falloff curve");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_volume_preserve", PROP_BOOLEAN, PROP_NONE);
@@ -1900,7 +1900,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom falloff curve");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);

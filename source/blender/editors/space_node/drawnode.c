@@ -1215,7 +1215,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			ntype->draw_buttons = node_shader_buts_uvalongstroke;
 			break;
 		case SH_NODE_OUTPUT_MATERIAL:
-		case SH_NODE_OUTPUT_LAMP:
+		case SH_NODE_OUTPUT_LIGHT:
 		case SH_NODE_OUTPUT_WORLD:
 			ntype->draw_buttons = node_buts_output_shader;
 			break;

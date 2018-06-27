@@ -679,7 +679,7 @@ void DepsgraphRelationBuilder::build_object_data_lamp(Object *object)
 	build_lamp(lamp);
 	ComponentKey object_parameters_key(&object->id, DEG_NODE_TYPE_PARAMETERS);
 	ComponentKey lamp_parameters_key(&lamp->id, DEG_NODE_TYPE_PARAMETERS);
-	add_relation(lamp_parameters_key, object_parameters_key, "Lamp -> Object");
+	add_relation(lamp_parameters_key, object_parameters_key, "Light -> Object");
 }
 
 void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
@@ -1968,7 +1968,7 @@ void DepsgraphRelationBuilder::build_lamp(Lamp *lamp)
 		build_nodetree(lamp->nodetree);
 		ComponentKey lamp_parameters_key(&lamp->id, DEG_NODE_TYPE_PARAMETERS);
 		ComponentKey nodetree_key(&lamp->nodetree->id, DEG_NODE_TYPE_SHADING);
-		add_relation(nodetree_key, lamp_parameters_key, "NTree->Lamp Parameters");
+		add_relation(nodetree_key, lamp_parameters_key, "NTree->Light Parameters");
 		build_nested_nodetree(&lamp->id, lamp->nodetree);
 	}
 }

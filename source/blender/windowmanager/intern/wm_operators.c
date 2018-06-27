@@ -3558,7 +3558,7 @@ static const EnumPropertyItem preview_id_type_items[] = {
     {FILTER_ID_GR, "GROUP", 0, "Groups", ""},
     {FILTER_ID_OB, "OBJECT", 0, "Objects", ""},
     {FILTER_ID_MA, "MATERIAL", 0, "Materials", ""},
-    {FILTER_ID_LA, "LAMP", 0, "Lamps", ""},
+    {FILTER_ID_LA, "LIGHT", 0, "Lights", ""},
     {FILTER_ID_WO, "WORLD", 0, "Worlds", ""},
     {FILTER_ID_TE, "TEXTURE", 0, "Textures", ""},
     {FILTER_ID_IM, "IMAGE", 0, "Images", ""},

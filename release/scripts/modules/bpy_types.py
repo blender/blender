@@ -61,7 +61,7 @@ class Library(bpy_types.ID):
         # we could make this an attribute in rna.
         attr_links = ("actions", "armatures", "brushes", "cameras",
                       "curves", "grease_pencil", "collections", "images",
-                      "lamps", "lattices", "materials", "metaballs",
+                      "lights", "lattices", "materials", "metaballs",
                       "meshes", "node_groups", "objects", "scenes",
                       "sounds", "speakers", "textures", "texts",
                       "fonts", "worlds")

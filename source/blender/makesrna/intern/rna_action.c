@@ -423,10 +423,10 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_MATERIAL_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
-	prop = RNA_def_property(srna, "show_lamps", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_lights", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOLAM);
-	RNA_def_property_ui_text(prop, "Display Lamp", "Include visualization of lamp related animation data");
-	RNA_def_property_ui_icon(prop, ICON_LAMP_DATA, 0);
+	RNA_def_property_ui_text(prop, "Display Light", "Include visualization of light related animation data");
+	RNA_def_property_ui_icon(prop, ICON_LIGHT_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "show_linestyles", PROP_BOOLEAN, PROP_NONE);

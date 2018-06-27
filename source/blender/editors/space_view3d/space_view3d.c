@@ -1050,11 +1050,11 @@ static void view3d_main_region_message_subscribe(
 		&RNA_Window,
 
 		/* These object have properties that impact drawing. */
-		&RNA_AreaLamp,
+		&RNA_AreaLight,
 		&RNA_Camera,
-		&RNA_Lamp,
+		&RNA_Light,
 		&RNA_Speaker,
-		&RNA_SunLamp,
+		&RNA_SunLight,
 
 		/* General types the 3D view depends on. */
 		&RNA_Object,

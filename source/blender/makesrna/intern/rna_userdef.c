@@ -1805,9 +1805,10 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Empty", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "lamp", PROP_FLOAT, PROP_COLOR_GAMMA);
+	prop = RNA_def_property(srna, "light", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "lamp");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Lamp", "");
+	RNA_def_property_ui_text(prop, "Light", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "speaker", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -3803,7 +3804,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");
 	RNA_def_property_range(prop, 4, 10);
-	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display");
+	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Light origin display");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* View2D Grid Displays */
@@ -4038,9 +4039,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ARM);
 	RNA_def_property_ui_text(prop, "Duplicate Armature", "Causes armature data to be duplicated with the object");
 
-	prop = RNA_def_property(srna, "use_duplicate_lamp", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_duplicate_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LAMP);
-	RNA_def_property_ui_text(prop, "Duplicate Lamp", "Causes lamp data to be duplicated with the object");
+	RNA_def_property_ui_text(prop, "Duplicate Light", "Causes light data to be duplicated with the object");
 
 	prop = RNA_def_property(srna, "use_duplicate_material", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_MAT);

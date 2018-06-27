@@ -28,23 +28,23 @@ from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
 
 
-def opengl_lamp_buttons(column, lamp):
+def opengl_light_buttons(column, light):
     split = column.row()
 
-    split.prop(lamp, "use", text="", icon='OUTLINER_OB_LAMP' if lamp.use else 'LAMP_DATA')
+    split.prop(light, "use", text="", icon='OUTLINER_OB_LIGHT' if light.use else 'LIGHT_DATA')
 
     col = split.column()
-    col.active = lamp.use
+    col.active = light.use
     row = col.row()
     row.label(text="Diffuse:")
-    row.prop(lamp, "diffuse_color", text="")
+    row.prop(light, "diffuse_color", text="")
     row = col.row()
     row.label(text="Specular:")
-    row.prop(lamp, "specular_color", text="")
+    row.prop(light, "specular_color", text="")
 
     col = split.column()
-    col.active = lamp.use
-    col.prop(lamp, "direction", text="")
+    col.active = light.use
+    col.prop(light, "direction", text="")
 
 
 class USERPREF_HT_header(Header):
@@ -454,7 +454,7 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "use_duplicate_text", text="Text")
         col.prop(edit, "use_duplicate_metaball", text="Metaball")
         col.prop(edit, "use_duplicate_armature", text="Armature")
-        col.prop(edit, "use_duplicate_lamp", text="Lamp")
+        col.prop(edit, "use_duplicate_light", text="Light")
         col.prop(edit, "use_duplicate_material", text="Material")
         col.prop(edit, "use_duplicate_texture", text="Texture")
         #col.prop(edit, "use_duplicate_fcurve", text="F-Curve")
@@ -580,14 +580,14 @@ class USERPREF_PT_system(Panel):
         split.label(text="Colors:")
         split.label(text="Direction:")
 
-        lamp = system.solid_lights[0]
-        opengl_lamp_buttons(column, lamp)
+        light = system.solid_lights[0]
+        opengl_light_buttons(column, light)
 
-        lamp = system.solid_lights[1]
-        opengl_lamp_buttons(column, lamp)
+        light = system.solid_lights[1]
+        opengl_light_buttons(column, light)
 
-        lamp = system.solid_lights[2]
-        opengl_lamp_buttons(column, lamp)
+        light = system.solid_lights[2]
+        opengl_light_buttons(column, light)
 
         column.separator()
 

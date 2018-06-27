@@ -1320,7 +1320,7 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 static void rna_SpaceProperties_context_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
-	/* XXX BCONTEXT_DATA is ugly, but required for lamps... See T51318. */
+	/* XXX BCONTEXT_DATA is ugly, but required for lights... See T51318. */
 	if (ELEM(sbuts->mainb, BCONTEXT_WORLD, BCONTEXT_MATERIAL, BCONTEXT_TEXTURE, BCONTEXT_DATA)) {
 		sbuts->preview = 1;
 	}
@@ -2339,9 +2339,9 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Empties", "Show empty objects");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
-	prop = RNA_def_property(srna, "use_filter_object_lamp", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_filter_object_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_LAMP);
-	RNA_def_property_ui_text(prop, "Show Lamps", "Show lamps objects");
+	RNA_def_property_ui_text(prop, "Show Lights", "Show light objects");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_object_camera", PROP_BOOLEAN, PROP_NONE);
@@ -2482,7 +2482,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_scene_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_SCENE_LIGHT);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Scene Light", "Render lamps and light probes of the scene");
+	RNA_def_property_ui_text(prop, "Scene Light", "Render lights and light probes of the scene");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_specular_highlight", PROP_BOOLEAN, PROP_NONE);
@@ -4085,7 +4085,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 		{FILTER_ID_GD, "GREASE_PENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Show/hide Grease pencil data-blocks"},
 		{FILTER_ID_GR, "GROUP", ICON_GROUP, "Groups", "Show/hide Group data-blocks"},
 		{FILTER_ID_IM, "IMAGE", ICON_IMAGE_DATA, "Images", "Show/hide Image data-blocks"},
-		{FILTER_ID_LA, "LAMP", ICON_LAMP_DATA, "Lamps", "Show/hide Lamp data-blocks"},
+		{FILTER_ID_LA, "LIGHT", ICON_LIGHT_DATA, "Lights", "Show/hide Light data-blocks"},
 		{FILTER_ID_LS, "LINESTYLE", ICON_LINE_DATA,
 		               "Freestyle Linestyles", "Show/hide Freestyle's Line Style data-blocks"},
 		{FILTER_ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattices", "Show/hide Lattice data-blocks"},
@@ -4127,7 +4127,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 		{FILTER_ID_IM | FILTER_ID_MC | FILTER_ID_MSK | FILTER_ID_SO,
 	     "IMAGE", ICON_IMAGE_DATA, "Images & Sounds", "Show/hide images, movie clips, sounds and masks"},
 		{FILTER_ID_CA | FILTER_ID_LA | FILTER_ID_SPK | FILTER_ID_WO | FILTER_ID_WS,
-	     "ENVIRONMENT", ICON_WORLD_DATA, "Environment", "Show/hide worlds, lamps, cameras and speakers"},
+	     "ENVIRONMENT", ICON_WORLD_DATA, "Environment", "Show/hide worlds, lights, cameras and speakers"},
 		{FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_CF,
 	     "MISC", ICON_GREASEPENCIL, "Miscellaneous", "Show/hide other data types"},
 	    {0, NULL, 0, NULL, NULL}

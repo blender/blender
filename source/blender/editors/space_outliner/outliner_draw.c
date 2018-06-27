@@ -1141,7 +1141,7 @@ static void tselem_draw_icon(
 				ICON_DRAW(ICON_RENDER_RESULT);
 				break;
 			case TSE_LINKED_LAMP:
-				ICON_DRAW(ICON_LAMP_DATA);
+				ICON_DRAW(ICON_LIGHT_DATA);
 				break;
 			case TSE_LINKED_MAT:
 				ICON_DRAW(ICON_MATERIAL_DATA);
@@ -1200,7 +1200,7 @@ static void tselem_draw_icon(
 			Object *ob = (Object *)tselem->id;
 			switch (ob->type) {
 				case OB_LAMP:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_LAMP); break;
+					ICON_CLICK_DRAW(ICON_OUTLINER_OB_LIGHT); break;
 				case OB_MESH:
 					ICON_CLICK_DRAW(ICON_OUTLINER_OB_MESH); break;
 				case OB_CAMERA:
@@ -1251,17 +1251,17 @@ static void tselem_draw_icon(
 					Lamp *la = (Lamp *)tselem->id;
 					switch (la->type) {
 						case LA_LOCAL:
-							tselem_draw_icon_uibut(&arg, ICON_LAMP_POINT); break;
+							tselem_draw_icon_uibut(&arg, ICON_LIGHT_POINT); break;
 						case LA_SUN:
-							tselem_draw_icon_uibut(&arg, ICON_LAMP_SUN); break;
+							tselem_draw_icon_uibut(&arg, ICON_LIGHT_SUN); break;
 						case LA_SPOT:
-							tselem_draw_icon_uibut(&arg, ICON_LAMP_SPOT); break;
+							tselem_draw_icon_uibut(&arg, ICON_LIGHT_SPOT); break;
 						case LA_HEMI:
-							tselem_draw_icon_uibut(&arg, ICON_LAMP_HEMI); break;
+							tselem_draw_icon_uibut(&arg, ICON_LIGHT_HEMI); break;
 						case LA_AREA:
-							tselem_draw_icon_uibut(&arg, ICON_LAMP_AREA); break;
+							tselem_draw_icon_uibut(&arg, ICON_LIGHT_AREA); break;
 						default:
-							tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LAMP); break;
+							tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LIGHT); break;
 					}
 					break;
 				}

@@ -1393,45 +1393,45 @@ void BlenderSync::sync_world(BL::Depsgraph& b_depsgraph, bool update_all)
 		background->tag_update(scene);
 }
 
-/* Sync Lamps */
+/* Sync Lights */
 
-void BlenderSync::sync_lamps(BL::Depsgraph& b_depsgraph, bool update_all)
+void BlenderSync::sync_lights(BL::Depsgraph& b_depsgraph, bool update_all)
 {
 	shader_map.set_default(scene->default_light);
 
 	BL::Depsgraph::ids_iterator b_id;
 	for(b_depsgraph.ids.begin(b_id); b_id != b_depsgraph.ids.end(); ++b_id) {
-		if (!b_id->is_a(&RNA_Lamp)) {
+		if (!b_id->is_a(&RNA_Light)) {
 			continue;
 		}
 
-		BL::Lamp b_lamp(*b_id);
+		BL::Light b_light(*b_id);
 		Shader *shader;
 
 		/* test if we need to sync */
-		if(shader_map.sync(&shader, b_lamp) || update_all) {
+		if(shader_map.sync(&shader, b_light) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
 
 			/* create nodes */
-			if(b_lamp.use_nodes() && b_lamp.node_tree()) {
-				shader->name = b_lamp.name().c_str();
+			if(b_light.use_nodes() && b_light.node_tree()) {
+				shader->name = b_light.name().c_str();
 
-				BL::ShaderNodeTree b_ntree(b_lamp.node_tree());
+				BL::ShaderNodeTree b_ntree(b_light.node_tree());
 
 				add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
 			}
 			else {
 				float strength = 1.0f;
 
-				if(b_lamp.type() == BL::Lamp::type_POINT ||
-				   b_lamp.type() == BL::Lamp::type_SPOT ||
-				   b_lamp.type() == BL::Lamp::type_AREA)
+				if(b_light.type() == BL::Light::type_POINT ||
+				   b_light.type() == BL::Light::type_SPOT ||
+				   b_light.type() == BL::Light::type_AREA)
 				{
 					strength = 100.0f;
 				}
 
 				EmissionNode *emission = new EmissionNode();
-				emission->color = get_float3(b_lamp.color());
+				emission->color = get_float3(b_light.color());
 				emission->strength = strength;
 				graph->add(emission);
 
@@ -1459,7 +1459,7 @@ void BlenderSync::sync_shaders(BL::Depsgraph& b_depsgraph)
 	shader_map.pre_sync();
 
 	sync_world(b_depsgraph, auto_refresh_update);
-	sync_lamps(b_depsgraph, auto_refresh_update);
+	sync_lights(b_depsgraph, auto_refresh_update);
 	sync_materials(b_depsgraph, auto_refresh_update);
 
 	/* false = don't delete unused shaders, not supported */
