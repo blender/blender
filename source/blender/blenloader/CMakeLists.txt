@@ -47,6 +47,7 @@ set(INC_SYS
 )
 
 set(SRC
+	${CMAKE_SOURCE_DIR}/release/datafiles/userdef/userdef_default_theme.c
 	intern/blend_validate.c
 	intern/readblenentry.c
 	intern/readfile.c

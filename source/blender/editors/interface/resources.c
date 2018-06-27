@@ -63,6 +63,9 @@
 
 #include "interface_intern.h"
 
+
+extern const bTheme U_theme_default;
+
 /* global for themes */
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
@@ -734,146 +737,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	return (const unsigned char *)cp;
 }
 
-/* use this call to init new bone color sets in Theme */
-static void ui_theme_init_boneColorSets(bTheme *btheme)
-{
-	int i;
-
-	/* define default color sets - currently we only define 15 of these, though that should be ample */
-	/* set 1 */
-	rgba_char_args_set(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
-	rgba_char_args_set(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
-	rgba_char_args_set(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
-	/* set 2 */
-	rgba_char_args_set(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
-	rgba_char_args_set(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
-	rgba_char_args_set(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
-	/* set 3 */
-	rgba_char_args_set(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
-	rgba_char_args_set(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
-	rgba_char_args_set(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
-	/* set 4 */
-	rgba_char_args_set(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
-	rgba_char_args_set(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
-	rgba_char_args_set(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
-	/* set 5 */
-	rgba_char_args_set(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
-	rgba_char_args_set(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
-	rgba_char_args_set(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
-	/* set 6 */
-	rgba_char_args_set(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
-	rgba_char_args_set(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
-	rgba_char_args_set(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
-	/* set 7 */
-	rgba_char_args_set(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
-	rgba_char_args_set(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
-	rgba_char_args_set(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
-	/* set 8 */
-	rgba_char_args_set(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
-	rgba_char_args_set(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
-	rgba_char_args_set(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
-	/* set 9 */
-	rgba_char_args_set(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
-	rgba_char_args_set(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
-	rgba_char_args_set(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
-	/* set 10 */
-	rgba_char_args_set(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
-	rgba_char_args_set(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
-	rgba_char_args_set(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
-	/* set 11 */
-	rgba_char_args_set(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
-	rgba_char_args_set(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
-	rgba_char_args_set(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
-	/* set 12 */
-	rgba_char_args_set(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
-	rgba_char_args_set(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
-	rgba_char_args_set(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
-	/* set 13 */
-	rgba_char_args_set(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
-	rgba_char_args_set(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
-	rgba_char_args_set(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
-	/* set 14 */
-	rgba_char_args_set(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
-	rgba_char_args_set(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
-	rgba_char_args_set(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
-	/* set 15 */
-	rgba_char_args_set(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
-	rgba_char_args_set(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
-	rgba_char_args_set(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
-
-	/* reset flags too */
-	for (i = 0; i < 20; i++)
-		btheme->tarm[i].flag = 0;
-}
-
-/* use this call to init new variables in themespace, if they're same for all */
-static void ui_theme_init_new_do(ThemeSpace *ts)
-{
-	rgba_char_args_set(ts->header_text,    0, 0, 0, 255);
-	rgba_char_args_set(ts->header_title,   0, 0, 0, 255);
-	rgba_char_args_set(ts->header_text_hi, 255, 255, 255, 255);
-
-#if 0
-	rgba_char_args_set(ts->panel_text,     0, 0, 0, 255);
-	rgba_char_args_set(ts->panel_title,        0, 0, 0, 255);
-	rgba_char_args_set(ts->panel_text_hi,  255, 255, 255, 255);
-#endif
-
-	ts->panelcolors.show_back = false;
-	ts->panelcolors.show_header = false;
-	rgba_char_args_set(ts->panelcolors.back,   114, 114, 114, 128);
-	rgba_char_args_set(ts->panelcolors.header, 0, 0, 0, 25);
-	rgba_char_args_set(ts->panelcolors.sub_back, 0, 0, 0, 25);
-
-	rgba_char_args_set(ts->button,         145, 145, 145, 245);
-	rgba_char_args_set(ts->button_title,   0, 0, 0, 255);
-	rgba_char_args_set(ts->button_text,    0, 0, 0, 255);
-	rgba_char_args_set(ts->button_text_hi, 255, 255, 255, 255);
-
-	rgba_char_args_set(ts->list,           165, 165, 165, 255);
-	rgba_char_args_set(ts->list_title,     0, 0, 0, 255);
-	rgba_char_args_set(ts->list_text,      0, 0, 0, 255);
-	rgba_char_args_set(ts->list_text_hi,   255, 255, 255, 255);
-
-	rgba_char_args_set(ts->tab_active,     114, 114, 114, 255);
-	rgba_char_args_set(ts->tab_inactive,   83, 83, 83, 255);
-	rgba_char_args_set(ts->tab_back,       64, 64, 64, 255);
-	rgba_char_args_set(ts->tab_outline,    60, 60, 60, 255);
-}
-
-static void ui_theme_init_new(bTheme *btheme)
-{
-	ThemeSpace *ts;
-
-	for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
-		ui_theme_init_new_do(ts);
-	}
-}
-
-static void ui_theme_space_init_handles_color(ThemeSpace *theme_space)
-{
-	rgba_char_args_set(theme_space->handle_free, 0, 0, 0, 255);
-	rgba_char_args_set(theme_space->handle_auto, 0x90, 0x90, 0x00, 255);
-	rgba_char_args_set(theme_space->handle_vect, 0x40, 0x90, 0x30, 255);
-	rgba_char_args_set(theme_space->handle_align, 0x80, 0x30, 0x60, 255);
-	rgba_char_args_set(theme_space->handle_sel_free, 0, 0, 0, 255);
-	rgba_char_args_set(theme_space->handle_sel_auto, 0xf0, 0xff, 0x40, 255);
-	rgba_char_args_set(theme_space->handle_sel_vect, 0x40, 0xc0, 0x30, 255);
-	rgba_char_args_set(theme_space->handle_sel_align, 0xf0, 0x90, 0xa0, 255);
-	rgba_char_args_set(theme_space->handle_vertex, 0x00, 0x00, 0x00, 0xff);
-	rgba_char_args_set(theme_space->handle_vertex_select, 0xff, 0xff, 0, 0xff);
-	rgba_char_args_set(theme_space->act_spline, 0xdb, 0x25, 0x12, 255);
-}
-
-static void ui_theme_space_init_manipulator_colors(bTheme *btheme)
-{
-	rgba_char_args_set(btheme->tui.manipulator_hi, 255, 255, 255, 255);
-	rgba_char_args_set(btheme->tui.manipulator_primary, 222, 255, 13, 255);
-	rgba_char_args_set(btheme->tui.manipulator_secondary, 0, 255, 255, 255);
-	rgba_char_args_set(btheme->tui.manipulator_a, 23, 127, 23, 255);
-	rgba_char_args_set(btheme->tui.manipulator_b, 127, 23, 23, 255);
-}
-
 /**
  * initialize default theme
  * \note: when you add new colors, created & saved themes need initialized
@@ -881,381 +744,17 @@ static void ui_theme_space_init_manipulator_colors(bTheme *btheme)
  */
 void ui_theme_init_default(void)
 {
-	bTheme *btheme;
 
 	/* we search for the theme with name Default */
-	btheme = BLI_findstring(&U.themes, "Default", offsetof(bTheme, name));
-
+	bTheme *btheme = BLI_findstring(&U.themes, "Default", offsetof(bTheme, name));
 	if (btheme == NULL) {
-		btheme = MEM_callocN(sizeof(bTheme), "theme");
+		btheme = MEM_callocN(sizeof(bTheme), __func__);
 		BLI_addtail(&U.themes, btheme);
-		strcpy(btheme->name, "Default");
 	}
 
 	UI_SetTheme(0, 0);  /* make sure the global used in this file is set */
 
-	/* UI buttons */
-	ui_widget_color_init(&btheme->tui);
-
-	btheme->tui.iconfile[0] = 0;
-	rgba_char_args_set(btheme->tui.wcol_tooltip.text, 255, 255, 255, 255);
-	rgba_char_args_set_fl(btheme->tui.widget_emboss, 1.0f, 1.0f, 1.0f, 0.02f);
-	rgba_char_args_set_fl(btheme->tui.editor_outline, 0.25f, 0.25f, 0.25f, 1.0f);
-
-	rgba_char_args_set(btheme->tui.xaxis, 220,   0,   0, 255);
-	rgba_char_args_set(btheme->tui.yaxis,   0, 220,   0, 255);
-	rgba_char_args_set(btheme->tui.zaxis,   0,   0, 220, 255);
-
-	btheme->tui.menu_shadow_fac = 0.5f;
-	btheme->tui.menu_shadow_width = 12;
-
-	/* Bone Color Sets */
-	ui_theme_init_boneColorSets(btheme);
-
-	/* common (new) variables */
-	ui_theme_init_new(btheme);
-
-	/* Manipulator. */
-	ui_theme_space_init_manipulator_colors(btheme);
-
-	/* space view3d */
-	rgba_char_args_set_fl(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
-	rgba_char_args_set(btheme->tv3d.text,       0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.text_hi, 255, 255, 255, 255);
-
-	rgba_char_args_set_fl(btheme->tv3d.header,  0.45, 0.45, 0.45, 1.0);
-	rgba_char_args_set_fl(btheme->tv3d.button,  0.45, 0.45, 0.45, 0.5);
-//	rgba_char_args_set(btheme->tv3d.panel,      165, 165, 165, 127);
-
-	rgba_char_args_set(btheme->tv3d.shade1,  160, 160, 160, 100);
-	rgba_char_args_set(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
-
-	rgba_char_args_set_fl(btheme->tv3d.grid,     0.251, 0.251, 0.251, 1.0);
-	rgba_char_args_set(btheme->tv3d.view_overlay, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
-	rgba_char_args_set(btheme->tv3d.wire_edit,  0x0, 0x0, 0x0, 255);
-	rgba_char_args_set(btheme->tv3d.lamp,       0, 0, 0, 40);
-	rgba_char_args_set(btheme->tv3d.speaker,    0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.camera,    0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.empty,    0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.select, 241, 88, 0, 255);
-	rgba_char_args_set(btheme->tv3d.active, 255, 170, 64, 255);
-	rgba_char_args_set(btheme->tv3d.group,      8, 48, 8, 255);
-	rgba_char_args_set(btheme->tv3d.group_active, 85, 187, 85, 255);
-	rgba_char_args_set(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
-	rgba_char_args_set(btheme->tv3d.vertex, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.vertex_select, 255, 133, 0, 255);
-	rgba_char_args_set(btheme->tv3d.vertex_bevel, 0, 165, 255, 255);
-	rgba_char_args_set(btheme->tv3d.vertex_unreferenced, 0, 0, 0, 255);
-	btheme->tv3d.vertex_size = 3;
-	btheme->tv3d.outline_width = 1;
-	rgba_char_args_set(btheme->tv3d.edge,       0x0, 0x0, 0x0, 255);
-	rgba_char_args_set(btheme->tv3d.edge_select, 255, 160, 0, 255);
-	rgba_char_args_set(btheme->tv3d.edge_seam, 219, 37, 18, 255);
-	rgba_char_args_set(btheme->tv3d.edge_bevel, 0, 165, 255, 255);
-	rgba_char_args_set(btheme->tv3d.edge_facesel, 75, 75, 75, 255);
-	rgba_char_args_set(btheme->tv3d.face,       0, 0, 0, 18);
-	rgba_char_args_set(btheme->tv3d.face_select, 255, 133, 0, 60);
-	rgba_char_args_set(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
-	rgba_char_args_set(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
-	rgba_char_args_set(btheme->tv3d.loop_normal, 0xDD, 0x23, 0xDD, 255);
-	rgba_char_args_set(btheme->tv3d.face_dot, 255, 133, 0, 255);
-	rgba_char_args_set(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
-	rgba_char_args_set_fl(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
-	rgba_char_args_set(btheme->tv3d.edge_sharp, 0, 255, 255, 255);
-	rgba_char_args_set(btheme->tv3d.header_text, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.header_text_hi, 255, 255, 255, 255);
-	rgba_char_args_set(btheme->tv3d.button_text, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.button_text_hi, 255, 255, 255, 255);
-	rgba_char_args_set(btheme->tv3d.button_title, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.title, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.freestyle_edge_mark, 0x7f, 0xff, 0x7f, 255);
-	rgba_char_args_set(btheme->tv3d.freestyle_face_mark, 0x7f, 0xff, 0x7f, 51);
-	rgba_char_args_set_fl(btheme->tv3d.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);
-	rgba_char_args_set_fl(btheme->tv3d.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
-	rgba_char_args_set(btheme->tv3d.gp_vertex, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.gp_vertex_select, 255, 133, 0, 255);
-	btheme->tv3d.gp_vertex_size = 3;
-
-	btheme->tv3d.facedot_size = 4;
-
-	rgba_char_args_set(btheme->tv3d.extra_edge_len, 32, 0, 0, 255);
-	rgba_char_args_set(btheme->tv3d.extra_edge_angle, 32, 32, 0, 255);
-	rgba_char_args_set(btheme->tv3d.extra_face_area, 0, 32, 0, 255);
-	rgba_char_args_set(btheme->tv3d.extra_face_angle, 0, 0, 128, 255);
-
-	rgba_char_args_set(btheme->tv3d.cframe, 0x60, 0xc0,  0x40, 255);
-
-	rgba_char_args_set(btheme->tv3d.nurb_uline, 0x90, 0x90, 0x00, 255);
-	rgba_char_args_set(btheme->tv3d.nurb_vline, 0x80, 0x30, 0x60, 255);
-	rgba_char_args_set(btheme->tv3d.nurb_sel_uline, 0xf0, 0xff, 0x40, 255);
-	rgba_char_args_set(btheme->tv3d.nurb_sel_vline, 0xf0, 0x90, 0xa0, 255);
-
-	ui_theme_space_init_handles_color(&btheme->tv3d);
-
-	rgba_char_args_set(btheme->tv3d.act_spline, 0xdb, 0x25, 0x12, 255);
-	rgba_char_args_set(btheme->tv3d.lastsel_point,  0xff, 0xff, 0xff, 255);
-
-	rgba_char_args_set(btheme->tv3d.bone_solid, 200, 200, 200, 255);
-	/* alpha 80 is not meant editable, used for wire+action draw */
-	rgba_char_args_set(btheme->tv3d.bone_pose, 80, 200, 255, 80);
-	rgba_char_args_set(btheme->tv3d.bone_pose_active, 140, 255, 255, 80);
-
-	rgba_char_args_set(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
-	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
-
-	rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
-	rgba_char_args_set(btheme->tv3d.gradients.gradient, 0, 0, 0, 0);
-	rgba_char_args_set(btheme->tv3d.gradients.high_gradient, 58, 58, 58, 255);
-	btheme->tv3d.gradients.show_grad = false;
-
-	rgba_char_args_set(btheme->tv3d.clipping_border_3d, 50, 50, 50, 255);
-
-	rgba_char_args_set(btheme->tv3d.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
-	rgba_char_args_set(btheme->tv3d.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
-
-	/* space buttons */
-	/* to have something initialized */
-	btheme->tbuts = btheme->tv3d;
-
-	rgba_char_args_set_fl(btheme->tbuts.back,   0.45, 0.45, 0.45, 1.0);
-//	rgba_char_args_set(btheme->tbuts.panel, 0x82, 0x82, 0x82, 255);
-
-	/* graph editor */
-	btheme->tipo = btheme->tv3d;
-	rgba_char_args_set_fl(btheme->tipo.back,    0.42, 0.42, 0.42, 1.0);
-	rgba_char_args_set_fl(btheme->tipo.list,    0.4, 0.4, 0.4, 1.0);
-	rgba_char_args_set(btheme->tipo.grid,   94, 94, 94, 255);
-//	rgba_char_args_set(btheme->tipo.panel,  255, 255, 255, 150);
-	rgba_char_args_set(btheme->tipo.shade1,     150, 150, 150, 100);    /* scrollbars */
-	rgba_char_args_set(btheme->tipo.shade2,     0x70, 0x70, 0x70, 100);
-	rgba_char_args_set(btheme->tipo.vertex,     0, 0, 0, 255);
-	rgba_char_args_set(btheme->tipo.vertex_select, 255, 133, 0, 255);
-	rgba_char_args_set(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255);
-	btheme->tipo.vertex_size = 6;
-
-	rgba_char_args_set(btheme->tipo.handle_vertex,      0, 0, 0, 255);
-	rgba_char_args_set(btheme->tipo.handle_vertex_select, 255, 133, 0, 255);
-	rgba_char_args_set(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
-	rgba_char_args_set(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
-	btheme->tipo.handle_vertex_size = 5;
-
-	rgba_char_args_set(btheme->tipo.ds_channel,      82, 96, 110, 255);
-	rgba_char_args_set(btheme->tipo.ds_subchannel,  124, 137, 150, 255);
-	rgba_char_args_set(btheme->tipo.group,           79, 101, 73, 255);
-	rgba_char_args_set(btheme->tipo.group_active,   135, 177, 125, 255);
-
-	/* dopesheet */
-	btheme->tact = btheme->tipo;
-	rgba_char_args_set(btheme->tact.strip,          12, 10, 10, 128);
-	rgba_char_args_set(btheme->tact.strip_select,   255, 140, 0, 255);
-
-	rgba_char_args_set(btheme->tact.anim_active,    204, 112, 26, 102);
-
-	rgba_char_args_set(btheme->tact.keytype_keyframe,           232, 232, 232, 255);
-	rgba_char_args_set(btheme->tact.keytype_keyframe_select,    255, 190,  50, 255);
-	rgba_char_args_set(btheme->tact.keytype_extreme,            232, 179, 204, 255);
-	rgba_char_args_set(btheme->tact.keytype_extreme_select,     242, 128, 128, 255);
-	rgba_char_args_set(btheme->tact.keytype_breakdown,          179, 219, 232, 255);
-	rgba_char_args_set(btheme->tact.keytype_breakdown_select,    84, 191, 237, 255);
-	rgba_char_args_set(btheme->tact.keytype_jitter,             148, 229, 117, 255);
-	rgba_char_args_set(btheme->tact.keytype_jitter_select,       97, 192,  66, 255);
-
-	rgba_char_args_set(btheme->tact.keyborder,               0,   0,   0, 255);
-	rgba_char_args_set(btheme->tact.keyborder_select,        0,   0,   0, 255);
-
-	btheme->tact.keyframe_scale_fac = 1.0f;
-
-	/* space nla */
-	btheme->tnla = btheme->tact;
-
-	rgba_char_args_set(btheme->tnla.anim_active,     204, 112, 26, 102); /* same as for dopesheet; duplicate here for easier reference */
-	rgba_char_args_set(btheme->tnla.anim_non_active, 153, 135, 97, 77);
-
-	rgba_char_args_set(btheme->tnla.nla_tweaking,   77, 243, 26, 77);
-	rgba_char_args_set(btheme->tnla.nla_tweakdupli, 217, 0, 0, 255);
-
-	rgba_char_args_set(btheme->tnla.nla_transition,     28, 38, 48, 255);
-	rgba_char_args_set(btheme->tnla.nla_transition_sel, 46, 117, 219, 255);
-	rgba_char_args_set(btheme->tnla.nla_meta,           51, 38, 66, 255);
-	rgba_char_args_set(btheme->tnla.nla_meta_sel,       105, 33, 150, 255);
-	rgba_char_args_set(btheme->tnla.nla_sound,          43, 61, 61, 255);
-	rgba_char_args_set(btheme->tnla.nla_sound_sel,      31, 122, 122, 255);
-
-	rgba_char_args_set(btheme->tnla.keyborder,               0,   0,   0, 255);
-	rgba_char_args_set(btheme->tnla.keyborder_select,        0,   0,   0, 255);
-
-	/* space file */
-	/* to have something initialized */
-	btheme->tfile = btheme->tv3d;
-	rgba_char_args_set_fl(btheme->tfile.back, 0.3, 0.3, 0.3, 1);
-//	rgba_char_args_set_fl(btheme->tfile.panel, 0.3, 0.3, 0.3, 1);
-	rgba_char_args_set_fl(btheme->tfile.list, 0.4, 0.4, 0.4, 1);
-	rgba_char_args_set(btheme->tfile.text,  250, 250, 250, 255);
-	rgba_char_args_set(btheme->tfile.text_hi, 15, 15, 15, 255);
-//	rgba_char_args_set(btheme->tfile.panel, 145, 145, 145, 255);  /* bookmark/ui regions */
-	rgba_char_args_set(btheme->tfile.hilite, 255, 140, 25, 255);  /* selected files */
-
-	rgba_char_args_set(btheme->tfile.image, 250, 250, 250, 255);
-	rgba_char_args_set(btheme->tfile.movie, 250, 250, 250, 255);
-	rgba_char_args_set(btheme->tfile.scene, 250, 250, 250, 255);
-
-
-	/* space seq */
-	btheme->tseq = btheme->tv3d;
-	rgba_char_args_set(btheme->tseq.back,   116, 116, 116, 255);
-	rgba_char_args_set(btheme->tseq.movie,  81, 105, 135, 255);
-	rgba_char_args_set(btheme->tseq.movieclip,  32, 32, 143, 255);
-	rgba_char_args_set(btheme->tseq.mask,   152, 78, 62, 255);
-	rgba_char_args_set(btheme->tseq.image,  109, 88, 129, 255);
-	rgba_char_args_set(btheme->tseq.scene,  78, 152, 62, 255);
-	rgba_char_args_set(btheme->tseq.audio,  46, 143, 143, 255);
-	rgba_char_args_set(btheme->tseq.effect,     169, 84, 124, 255);
-	rgba_char_args_set(btheme->tseq.transition, 162, 95, 111, 255);
-	rgba_char_args_set(btheme->tseq.meta,   109, 145, 131, 255);
-	rgba_char_args_set(btheme->tseq.text_strip,   162, 151, 0, 255);
-	rgba_char_args_set(btheme->tseq.preview_back,   0, 0, 0, 255);
-	rgba_char_args_set(btheme->tseq.grid,   64, 64, 64, 255);
-
-	/* space image */
-	btheme->tima = btheme->tv3d;
-	rgba_char_args_set(btheme->tima.back,   53, 53, 53, 255);
-	rgba_char_args_set(btheme->tima.vertex, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tima.vertex_select, 255, 133, 0, 255);
-	rgba_char_args_set(btheme->tima.wire_edit, 192, 192, 192, 255);
-	rgba_char_args_set(btheme->tima.edge_select, 255, 133, 0, 255);
-	btheme->tima.vertex_size = 3;
-	btheme->tima.facedot_size = 3;
-	rgba_char_args_set(btheme->tima.face,   255, 255, 255, 10);
-	rgba_char_args_set(btheme->tima.face_select, 255, 133, 0, 60);
-	rgba_char_args_set(btheme->tima.editmesh_active, 255, 255, 255, 128);
-	rgba_char_args_set_fl(btheme->tima.preview_back,        0.0, 0.0, 0.0, 0.3);
-	rgba_char_args_set_fl(btheme->tima.preview_stitch_face, 0.5, 0.5, 0.0, 0.2);
-	rgba_char_args_set_fl(btheme->tima.preview_stitch_edge, 1.0, 0.0, 1.0, 0.2);
-	rgba_char_args_set_fl(btheme->tima.preview_stitch_vert, 0.0, 0.0, 1.0, 0.2);
-	rgba_char_args_set_fl(btheme->tima.preview_stitch_stitchable, 0.0, 1.0, 0.0, 1.0);
-	rgba_char_args_set_fl(btheme->tima.preview_stitch_unstitchable, 1.0, 0.0, 0.0, 1.0);
-	rgba_char_args_set_fl(btheme->tima.preview_stitch_active, 0.886, 0.824, 0.765, 0.140);
-
-	rgba_char_args_test_set(btheme->tima.uv_others, 96, 96, 96, 255);
-	rgba_char_args_test_set(btheme->tima.uv_shadow, 112, 112, 112, 255);
-
-	ui_theme_space_init_handles_color(&btheme->tima);
-	btheme->tima.handle_vertex_size = 5;
-
-	/* space text */
-	btheme->text = btheme->tv3d;
-	rgba_char_args_set(btheme->text.back,   153, 153, 153, 255);
-	rgba_char_args_set(btheme->text.shade1,     143, 143, 143, 255);
-	rgba_char_args_set(btheme->text.shade2,     0xc6, 0x77, 0x77, 255);
-	rgba_char_args_set(btheme->text.hilite,     255, 0, 0, 255);
-
-	/* syntax highlighting */
-	rgba_char_args_set(btheme->text.syntaxn,    0, 0, 200, 255);    /* Numbers  Blue*/
-	rgba_char_args_set(btheme->text.syntaxl,    100, 0, 0, 255);    /* Strings  Red */
-	rgba_char_args_set(btheme->text.syntaxc,    0, 100, 50, 255);   /* Comments  Greenish */
-	rgba_char_args_set(btheme->text.syntaxv,    95, 95, 0, 255);    /* Special  Yellow*/
-	rgba_char_args_set(btheme->text.syntaxd,    50, 0, 140, 255);   /* Decorator/Preprocessor Dir.  Blue-purple */
-	rgba_char_args_set(btheme->text.syntaxr,    140, 60, 0, 255);   /* Reserved  Orange*/
-	rgba_char_args_set(btheme->text.syntaxb,    128, 0, 80, 255);   /* Builtin  Red-purple */
-	rgba_char_args_set(btheme->text.syntaxs,    76, 76, 76, 255);   /* Gray (mix between fg/bg) */
-
-	/* space oops */
-	btheme->toops = btheme->tv3d;
-	rgba_char_args_set_fl(btheme->toops.back,   0.45, 0.45, 0.45, 1.0);
-
-	rgba_char_args_set_fl(btheme->toops.match,  0.2, 0.5, 0.2, 0.3);    /* highlighting search match - soft green*/
-	rgba_char_args_set_fl(btheme->toops.selected_highlight, 0.51, 0.53, 0.55, 0.3);
-
-	/* space info */
-	btheme->tinfo = btheme->tv3d;
-	rgba_char_args_set_fl(btheme->tinfo.back,   0.45, 0.45, 0.45, 1.0);
-	rgba_char_args_set(btheme->tinfo.info_selected, 96, 128, 255, 255);
-	rgba_char_args_set(btheme->tinfo.info_selected_text, 255, 255, 255, 255);
-	rgba_char_args_set(btheme->tinfo.info_error, 220, 0, 0, 255);
-	rgba_char_args_set(btheme->tinfo.info_error_text, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tinfo.info_warning, 220, 128, 96, 255);
-	rgba_char_args_set(btheme->tinfo.info_warning_text, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tinfo.info_info, 0, 170, 0, 255);
-	rgba_char_args_set(btheme->tinfo.info_info_text, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tinfo.info_debug, 196, 196, 196, 255);
-	rgba_char_args_set(btheme->tinfo.info_debug_text, 0, 0, 0, 255);
-
-	/* space user preferences */
-	btheme->tuserpref = btheme->tv3d;
-	rgba_char_args_set_fl(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
-
-	/* space console */
-	btheme->tconsole = btheme->tv3d;
-	rgba_char_args_set(btheme->tconsole.back, 0, 0, 0, 255);
-	rgba_char_args_set(btheme->tconsole.console_output, 96, 128, 255, 255);
-	rgba_char_args_set(btheme->tconsole.console_input, 255, 255, 255, 255);
-	rgba_char_args_set(btheme->tconsole.console_info, 0, 170, 0, 255);
-	rgba_char_args_set(btheme->tconsole.console_error, 220, 96, 96, 255);
-	rgba_char_args_set(btheme->tconsole.console_cursor, 220, 96, 96, 255);
-	rgba_char_args_set(btheme->tconsole.console_select, 255, 255, 255, 48);
-
-	/* space time */
-	btheme->ttime = btheme->tv3d;
-	rgba_char_args_set_fl(btheme->ttime.back,   0.45, 0.45, 0.45, 1.0);
-	rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
-	rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);      /* sliders */
-
-	rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
-	rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
-
-	/* space node, re-uses syntax and console color storage */
-	btheme->tnode = btheme->tv3d;
-	rgba_char_args_set(btheme->tnode.syntaxr, 115, 115, 115, 255);  /* wire inner color */
-	rgba_char_args_set(btheme->tnode.edge_select, 255, 255, 255, 255);  /* wire selected */
-	rgba_char_args_set(btheme->tnode.syntaxl, 155, 155, 155, 160);  /* TH_NODE, backdrop */
-	rgba_char_args_set(btheme->tnode.syntaxn, 100, 100, 100, 255);  /* in */
-	rgba_char_args_set(btheme->tnode.nodeclass_output, 100, 100, 100, 255);  /* output */
-	rgba_char_args_set(btheme->tnode.syntaxb, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.syntaxv, 104, 106, 117, 255);  /* generator */
-	rgba_char_args_set(btheme->tnode.syntaxc, 105, 117, 110, 255);  /* group */
-	rgba_char_args_set(btheme->tnode.nodeclass_texture, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.nodeclass_shader, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.nodeclass_filter, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.nodeclass_script, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.nodeclass_pattern, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.nodeclass_vector, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.nodeclass_layout, 108, 105, 111, 255);  /* operator */
-	rgba_char_args_set(btheme->tnode.movie, 155, 155, 155, 160);  /* frame */
-	rgba_char_args_set(btheme->tnode.syntaxs, 151, 116, 116, 255);  /* matte nodes */
-	rgba_char_args_set(btheme->tnode.syntaxd, 116, 151, 151, 255);  /* distort nodes */
-	rgba_char_args_set(btheme->tnode.console_output, 223, 202, 53, 255);  /* interface nodes */
-	btheme->tnode.noodle_curving = 5;
-
-	/* space clip */
-	btheme->tclip = btheme->tv3d;
-
-	rgba_char_args_set(btheme->tclip.marker_outline, 0x00, 0x00, 0x00, 255);
-	rgba_char_args_set(btheme->tclip.marker, 0x7f, 0x7f, 0x00, 255);
-	rgba_char_args_set(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
-	rgba_char_args_set(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
-	rgba_char_args_set(btheme->tclip.dis_marker, 0x7f, 0x00, 0x00, 255);
-	rgba_char_args_set(btheme->tclip.lock_marker, 0x7f, 0x7f, 0x7f, 255);
-	rgba_char_args_set(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
-	rgba_char_args_set(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
-	rgba_char_args_set(btheme->tclip.grid, 0x5e, 0x5e, 0x5e, 255);
-	rgba_char_args_set(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
-	rgba_char_args_set(btheme->tclip.list, 0x66, 0x66, 0x66, 0xff);
-	rgba_char_args_set(btheme->tclip.strip, 0x0c, 0x0a, 0x0a, 0x80);
-	rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
-	btheme->tclip.handle_vertex_size = 5;
-	ui_theme_space_init_handles_color(&btheme->tclip);
-
-	/* space topbar */
-	char tmp[4];
-	btheme->ttopbar = btheme->tv3d;
-	/* swap colors */
-	copy_v4_v4_char(tmp, btheme->ttopbar.header);
-	copy_v4_v4_char(btheme->ttopbar.header, btheme->ttopbar.tab_inactive);
-	copy_v4_v4_char(btheme->ttopbar.back, tmp);
-
-	/* space statusbar */
-	btheme->tstatusbar = btheme->tv3d;
+	memcpy(btheme, &U_theme_default, sizeof(*btheme));
 }
 
 void ui_style_init_default(void)
@@ -1871,121 +1370,19 @@ void init_userdef_do_versions(Main *bmain)
 
 	/* added seam, normal color, undo */
 	if (!USER_VERSION_ATLEAST(235, 0)) {
-		bTheme *btheme;
-
 		U.uiflag |= USER_GLOBALUNDO;
 		if (U.undosteps == 0) U.undosteps = 32;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for (alpha == 0) is safe, then color was never set */
-			if (btheme->tv3d.edge_seam[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.edge_seam, 230, 150, 50, 255);
-			}
-			if (btheme->tv3d.normal[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
-			}
-			if (btheme->tv3d.vertex_normal[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
-			}
-			if (btheme->tv3d.face_dot[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.face_dot, 255, 138, 48, 255);
-				btheme->tv3d.facedot_size = 4;
-			}
-		}
 	}
 	if (!USER_VERSION_ATLEAST(236, 0)) {
 		/* illegal combo... */
 		if (U.flag & USER_LMOUSESELECT)
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 	}
-	if (!USER_VERSION_ATLEAST(237, 0)) {
-		bTheme *btheme;
-		/* new space type */
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for (alpha == 0) is safe, then color was never set */
-			if (btheme->ttime.back[3] == 0) {
-				/* copied from ui_theme_init_default */
-				btheme->ttime = btheme->tv3d;
-				rgba_char_args_set_fl(btheme->ttime.back,   0.45, 0.45, 0.45, 1.0);
-				rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
-				rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);  /* sliders */
-			}
-			if (btheme->text.syntaxn[3] == 0) {
-				rgba_char_args_set(btheme->text.syntaxn,    0, 0, 200, 255);    /* Numbers  Blue*/
-				rgba_char_args_set(btheme->text.syntaxl,    100, 0, 0, 255);    /* Strings  red */
-				rgba_char_args_set(btheme->text.syntaxc,    0, 100, 50, 255);   /* Comments greenish */
-				rgba_char_args_set(btheme->text.syntaxv,    95, 95, 0, 255);    /* Special */
-				rgba_char_args_set(btheme->text.syntaxb,    128, 0, 80, 255);   /* Builtin, red-purple */
-			}
-		}
-	}
-	if (!USER_VERSION_ATLEAST(238, 0)) {
-		bTheme *btheme;
-		/* bone colors */
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
-			if (btheme->tv3d.bone_solid[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.bone_solid, 200, 200, 200, 255);
-				rgba_char_args_set(btheme->tv3d.bone_pose, 80, 200, 255, 80);
-			}
-		}
-	}
-	if (!USER_VERSION_ATLEAST(239, 0)) {
-		bTheme *btheme;
-		/* bone colors */
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
-			if (btheme->tnla.strip[3] == 0) {
-				rgba_char_args_set(btheme->tnla.strip_select,   0xff, 0xff, 0xaa, 255);
-				rgba_char_args_set(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
-			}
-		}
-	}
 	if (!USER_VERSION_ATLEAST(240, 0)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* Lamp theme, check for alpha==0 is safe, then color was never set */
-			if (btheme->tv3d.lamp[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.lamp,   0, 0, 0, 40);
-/* TEMPORAL, remove me! (ton) */
-				U.uiflag |= USER_PLAINMENUS;
-			}
-
-		}
+		U.uiflag |= USER_PLAINMENUS;
 		if (U.obcenter_dia == 0) U.obcenter_dia = 6;
 	}
 	if (!USER_VERSION_ATLEAST(242, 0)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* Node editor theme, check for alpha==0 is safe, then color was never set */
-			if (btheme->tnode.syntaxn[3] == 0) {
-				/* re-uses syntax color storage */
-				btheme->tnode = btheme->tv3d;
-				rgba_char_args_set(btheme->tnode.edge_select, 255, 255, 255, 255);
-				rgba_char_args_set(btheme->tnode.syntaxl, 150, 150, 150, 255);  /* TH_NODE, backdrop */
-				rgba_char_args_set(btheme->tnode.syntaxn, 129, 131, 144, 255);  /* in/output */
-				rgba_char_args_set(btheme->tnode.syntaxb, 127, 127, 127, 255);  /* operator */
-				rgba_char_args_set(btheme->tnode.syntaxv, 142, 138, 145, 255);  /* generator */
-				rgba_char_args_set(btheme->tnode.syntaxc, 120, 145, 120, 255);  /* group */
-			}
-			/* Group theme colors */
-			if (btheme->tv3d.group[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.group, 0x0C, 0x30, 0x0C, 255);
-				rgba_char_args_set(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
-			}
-			/* Sequence editor theme*/
-			if (btheme->tseq.movie[3] == 0) {
-				rgba_char_args_set(btheme->tseq.movie,  81, 105, 135, 255);
-				rgba_char_args_set(btheme->tseq.image,  109, 88, 129, 255);
-				rgba_char_args_set(btheme->tseq.scene,  78, 152, 62, 255);
-				rgba_char_args_set(btheme->tseq.audio,  46, 143, 143, 255);
-				rgba_char_args_set(btheme->tseq.effect,     169, 84, 124, 255);
-				rgba_char_args_set(btheme->tseq.transition, 162, 95, 111, 255);
-				rgba_char_args_set(btheme->tseq.meta,   109, 145, 131, 255);
-			}
-		}
-
 		/* set defaults for 3D View rotating axis indicator */
 		/* since size can't be set to 0, this indicates it's not saved in startup.blend */
 		if (U.rvisize == 0) {
@@ -1995,141 +1392,24 @@ void init_userdef_do_versions(Main *bmain)
 		}
 
 	}
-	if (!USER_VERSION_ATLEAST(243, 0)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* long keyframe color */
-			/* check for alpha==0 is safe, then color was never set */
-			if (btheme->tact.strip[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.edge_sharp, 255, 32, 32, 255);
-				rgba_char_args_set(btheme->tact.strip_select,   0xff, 0xff, 0xaa, 204);
-				rgba_char_args_set(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 204);
-			}
-
-			/* IPO-Editor - Vertex Size*/
-			if (btheme->tipo.vertex_size == 0) {
-				btheme->tipo.vertex_size = 3;
-			}
-		}
-	}
 	if (!USER_VERSION_ATLEAST(244, 0)) {
 		/* set default number of recently-used files (if not set) */
 		if (U.recent_files == 0) U.recent_files = 10;
 	}
 	if (!USER_VERSION_ATLEAST(245, 3)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
-		}
 		if (U.coba_weight.tot == 0)
 			BKE_colorband_init(&U.coba_weight, true);
 	}
 	if (!USER_VERSION_ATLEAST(245, 3)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* these should all use the same color */
-			rgba_char_args_set(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
-			rgba_char_args_set(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
-			rgba_char_args_set(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
-			rgba_char_args_set(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
-			rgba_char_args_set(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			//rgba_char_args_set(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255); Not needed anymore
-			rgba_char_args_set(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
-		}
-	}
-	if (!USER_VERSION_ATLEAST(245, 3)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* action channel groups (recolor anyway) */
-			rgba_char_args_set(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
-			rgba_char_args_set(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
-
-			/* bone custom-color sets */
-			if (btheme->tarm[0].solid[3] == 0)
-				ui_theme_init_boneColorSets(btheme);
-		}
-	}
-	if (!USER_VERSION_ATLEAST(245, 3)) {
 		U.flag |= USER_ADD_VIEWALIGNED | USER_ADD_EDITMODE;
 	}
-	if (!USER_VERSION_ATLEAST(245, 3)) {
-		bTheme *btheme;
-
-		/* adjust themes */
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			const char *col;
-
-			/* IPO Editor: Handles/Vertices */
-			col = btheme->tipo.vertex;
-			rgba_char_args_set(btheme->tipo.handle_vertex, col[0], col[1], col[2], 255);
-			col = btheme->tipo.vertex_select;
-			rgba_char_args_set(btheme->tipo.handle_vertex_select, col[0], col[1], col[2], 255);
-			btheme->tipo.handle_vertex_size = btheme->tipo.vertex_size;
-
-			/* Sequence/Image Editor: colors for GPencil text */
-			col = btheme->tv3d.bone_pose;
-			rgba_char_args_set(btheme->tseq.bone_pose, col[0], col[1], col[2], 255);
-			rgba_char_args_set(btheme->tima.bone_pose, col[0], col[1], col[2], 255);
-			col = btheme->tv3d.vertex_select;
-			rgba_char_args_set(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
-		}
-	}
 	if (!USER_VERSION_ATLEAST(250, 0)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* this was not properly initialized in 2.45 */
-			if (btheme->tima.face_dot[3] == 0) {
-				rgba_char_args_set(btheme->tima.editmesh_active, 255, 255, 255, 128);
-				rgba_char_args_set(btheme->tima.face_dot, 255, 133, 0, 255);
-				btheme->tima.facedot_size = 2;
-			}
-
-			/* DopeSheet - (Object) Channel color */
-			rgba_char_args_set(btheme->tact.ds_channel,     82, 96, 110, 255);
-			rgba_char_args_set(btheme->tact.ds_subchannel,  124, 137, 150, 255);
-			/* DopeSheet - Group Channel color (saner version) */
-			rgba_char_args_set(btheme->tact.group, 79, 101, 73, 255);
-			rgba_char_args_set(btheme->tact.group_active, 135, 177, 125, 255);
-
-			/* Graph Editor - (Object) Channel color */
-			rgba_char_args_set(btheme->tipo.ds_channel,     82, 96, 110, 255);
-			rgba_char_args_set(btheme->tipo.ds_subchannel,  124, 137, 150, 255);
-			/* Graph Editor - Group Channel color */
-			rgba_char_args_set(btheme->tipo.group, 79, 101, 73, 255);
-			rgba_char_args_set(btheme->tipo.group_active, 135, 177, 125, 255);
-
-			/* Nla Editor - (Object) Channel color */
-			rgba_char_args_set(btheme->tnla.ds_channel,     82, 96, 110, 255);
-			rgba_char_args_set(btheme->tnla.ds_subchannel,  124, 137, 150, 255);
-			/* NLA Editor - New Strip colors */
-			rgba_char_args_set(btheme->tnla.strip,          12, 10, 10, 128);
-			rgba_char_args_set(btheme->tnla.strip_select,   255, 140, 0, 255);
-		}
-
 		/* adjust grease-pencil distances */
 		U.gp_manhattendist = 1;
 		U.gp_euclideandist = 2;
 
 		/* adjust default interpolation for new IPO-curves */
 		U.ipo_new = BEZT_IPO_BEZ;
-	}
-
-	if (!USER_VERSION_ATLEAST(250, 1)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-
-			/* common (new) variables, it checks for alpha==0 */
-			ui_theme_init_new(btheme);
-
-			if (btheme->tui.wcol_num.outline[3] == 0)
-				ui_widget_color_init(&btheme->tui);
-
-			rgba_char_args_set_fl(btheme->tinfo.back, 0.45, 0.45, 0.45, 1.0);
-			rgba_char_args_set_fl(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
-		}
 	}
 
 	if (!USER_VERSION_ATLEAST(250, 3)) {
@@ -2194,66 +1474,8 @@ void init_userdef_do_versions(Main *bmain)
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 	}
 	if (!USER_VERSION_ATLEAST(252, 4)) {
-		bTheme *btheme;
-
 		/* default new handle type is auto handles */
 		U.keyhandles_new = HD_AUTO;
-
-		/* init new curve colors */
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			ui_theme_space_init_handles_color(&btheme->tv3d);
-			ui_theme_space_init_handles_color(&btheme->tipo);
-
-			/* edge crease */
-			rgba_char_args_set_fl(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
-		}
-	}
-	if (!USER_VERSION_ATLEAST(253, 0)) {
-		bTheme *btheme;
-
-		/* init new curve colors */
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tv3d.lastsel_point[3] == 0)
-				rgba_char_args_set(btheme->tv3d.lastsel_point, 0xff, 0xff, 0xff, 255);
-		}
-	}
-	if (!USER_VERSION_ATLEAST(252, 5)) {
-		bTheme *btheme;
-
-		/* interface_widgets.c */
-		struct uiWidgetColors wcol_progress = {
-			{0, 0, 0, 255},
-			{190, 190, 190, 255},
-			{100, 100, 100, 180},
-			{128, 128, 128, 255},
-
-			{0, 0, 0, 255},
-			{255, 255, 255, 255},
-
-			0,
-			5, -5
-		};
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* init progress bar theme */
-			btheme->tui.wcol_progress = wcol_progress;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(255, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tv3d.extra_edge_len, 32, 0, 0, 255);
-			rgba_char_args_set(btheme->tv3d.extra_face_angle, 0, 32, 0, 255);
-			rgba_char_args_set(btheme->tv3d.extra_face_area, 0, 0, 128, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(256, 4)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if ((btheme->tv3d.outline_width) == 0) btheme->tv3d.outline_width = 1;
-		}
 	}
 
 	if (!USER_VERSION_ATLEAST(257, 0)) {
@@ -2262,226 +1484,22 @@ void init_userdef_do_versions(Main *bmain)
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
 
-	if (!USER_VERSION_ATLEAST(258, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			btheme->tnode.noodle_curving = 5;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(259, 1)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			btheme->tv3d.speaker[3] = 255;
-		}
-	}
-
 	if (!USER_VERSION_ATLEAST(260, 3)) {
-		bTheme *btheme;
-
 		/* if new keyframes handle default is stuff "auto", make it "auto-clamped" instead
 		 * was changed in 260 as part of GSoC11, but version patch was wrong
 		 */
 		if (U.keyhandles_new == HD_AUTO)
 			U.keyhandles_new = HD_AUTO_ANIM;
 
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tv3d.bundle_solid[3] == 0)
-				rgba_char_args_set(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
-
-			if (btheme->tv3d.camera_path[3] == 0)
-				rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
-
-			if ((btheme->tclip.back[3]) == 0) {
-				btheme->tclip = btheme->tv3d;
-
-				rgba_char_args_set(btheme->tclip.marker_outline, 0x00, 0x00, 0x00, 255);
-				rgba_char_args_set(btheme->tclip.marker, 0x7f, 0x7f, 0x00, 255);
-				rgba_char_args_set(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
-				rgba_char_args_set(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
-				rgba_char_args_set(btheme->tclip.dis_marker, 0x7f, 0x00, 0x00, 255);
-				rgba_char_args_set(btheme->tclip.lock_marker, 0x7f, 0x7f, 0x7f, 255);
-				rgba_char_args_set(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
-				rgba_char_args_set(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
-				rgba_char_args_set(btheme->tclip.grid, 0x5e, 0x5e, 0x5e, 255);
-				rgba_char_args_set(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
-				rgba_char_args_set(btheme->tclip.handle_vertex, 0x00, 0x00, 0x00, 0xff);
-				rgba_char_args_set(btheme->tclip.handle_vertex_select, 0xff, 0xff, 0, 0xff);
-				btheme->tclip.handle_vertex_size = 5;
-			}
-
-			/* auto-clamped handles -> based on auto */
-			if (btheme->tipo.handle_auto_clamped[3] == 0)
-				rgba_char_args_set(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
-			if (btheme->tipo.handle_sel_auto_clamped[3] == 0)
-				rgba_char_args_set(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
-		}
-
 		/* enable (Cycles) addon by default */
 		BKE_addon_ensure(&U.addons, "cycles");
 	}
 
-	if (!USER_VERSION_ATLEAST(260, 5)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tui.panel.header, 0, 0, 0, 25);
-			btheme->tui.icon_alpha = 1.0;
-		}
-	}
-
 	if (!USER_VERSION_ATLEAST(261, 4)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set_fl(btheme->tima.preview_stitch_face, 0.071, 0.259, 0.694, 0.150);
-			rgba_char_args_set_fl(btheme->tima.preview_stitch_edge, 1.0, 0.522, 0.0, 0.7);
-			rgba_char_args_set_fl(btheme->tima.preview_stitch_vert, 1.0, 0.522, 0.0, 0.5);
-			rgba_char_args_set_fl(btheme->tima.preview_stitch_stitchable, 0.0, 1.0, 0.0, 1.0);
-			rgba_char_args_set_fl(btheme->tima.preview_stitch_unstitchable, 1.0, 0.0, 0.0, 1.0);
-			rgba_char_args_set_fl(btheme->tima.preview_stitch_active, 0.886, 0.824, 0.765, 0.140);
-
-			rgba_char_args_set_fl(btheme->toops.match, 0.2, 0.5, 0.2, 0.3);
-			rgba_char_args_set_fl(btheme->toops.selected_highlight, 0.51, 0.53, 0.55, 0.3);
-		}
-
 		U.use_16bit_textures = true;
 	}
 
-	if (!USER_VERSION_ATLEAST(262, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tui.wcol_menu_item.item[3] == 255)
-				rgba_char_args_set(btheme->tui.wcol_menu_item.item, 172, 172, 172, 128);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(262, 3)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tui.wcol_tooltip.inner[3] == 0) {
-				btheme->tui.wcol_tooltip = btheme->tui.wcol_menu_back;
-			}
-			if (btheme->tui.wcol_tooltip.text[0] == 160) { /* hrmf */
-				rgba_char_args_set(btheme->tui.wcol_tooltip.text, 255, 255, 255, 255);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(262, 4)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tseq.movieclip[3] == 0) {
-				rgba_char_args_set(btheme->tseq.movieclip,  32, 32, 143, 255);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(263, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tclip.strip[0] == 0) {
-				rgba_char_args_set(btheme->tclip.list, 0x66, 0x66, 0x66, 0xff);
-				rgba_char_args_set(btheme->tclip.strip, 0x0c, 0x0a, 0x0a, 0x80);
-				rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(263, 6)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next)
-			rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
-	}
-
-	if (!USER_VERSION_ATLEAST(263, 7)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* DopeSheet Summary */
-			rgba_char_args_set(btheme->tact.anim_active,    204, 112, 26, 102);
-
-			/* NLA Colors */
-			rgba_char_args_set(btheme->tnla.anim_active,     204, 112, 26, 102); /* same as dopesheet above */
-			rgba_char_args_set(btheme->tnla.anim_non_active, 153, 135, 97, 77);
-
-			rgba_char_args_set(btheme->tnla.nla_tweaking,   77, 243, 26, 77);
-			rgba_char_args_set(btheme->tnla.nla_tweakdupli, 217, 0, 0, 255);
-
-			rgba_char_args_set(btheme->tnla.nla_transition,     28, 38, 48, 255);
-			rgba_char_args_set(btheme->tnla.nla_transition_sel, 46, 117, 219, 255);
-			rgba_char_args_set(btheme->tnla.nla_meta,           51, 38, 66, 255);
-			rgba_char_args_set(btheme->tnla.nla_meta_sel,       105, 33, 150, 255);
-			rgba_char_args_set(btheme->tnla.nla_sound,          43, 61, 61, 255);
-			rgba_char_args_set(btheme->tnla.nla_sound_sel,      31, 122, 122, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(263, 11)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tseq.mask[3] == 0) {
-				rgba_char_args_set(btheme->tseq.mask,  152, 78, 62, 255);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(263, 15)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tv3d.bone_pose_active, 140, 255, 255, 80);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(263, 16)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tact.anim_active[3] == 0)
-				rgba_char_args_set(btheme->tact.anim_active, 204, 112, 26, 102);
-
-			if (btheme->tnla.anim_active[3] == 0)
-				rgba_char_args_set(btheme->tnla.anim_active, 204, 112, 26, 102);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(263, 22)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tipo.lastsel_point[3] == 0)
-				rgba_char_args_set(btheme->tipo.lastsel_point, 0xff, 0xff, 0xff, 255);
-
-			if (btheme->tv3d.skin_root[3] == 0)
-				rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(264, 9)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tui.xaxis, 220,   0,   0, 255);
-			rgba_char_args_set(btheme->tui.yaxis,   0, 220,   0, 255);
-			rgba_char_args_set(btheme->tui.zaxis,   0,   0, 220, 255);
-		}
-	}
-
 	if (!USER_VERSION_ATLEAST(267, 0)) {
-		/* Freestyle color settings */
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for alpha == 0 is safe, then color was never set */
-			if (btheme->tv3d.freestyle_edge_mark[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.freestyle_edge_mark, 0x7f, 0xff, 0x7f, 255);
-				rgba_char_args_set(btheme->tv3d.freestyle_face_mark, 0x7f, 0xff, 0x7f, 51);
-			}
-
-			if (btheme->tv3d.wire_edit[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.wire_edit,  0x0, 0x0, 0x0, 255);
-			}
-		}
 
 		/* GL Texture Garbage Collection */
 		if (U.textimeout == 0) {
@@ -2523,175 +1541,12 @@ void init_userdef_do_versions(Main *bmain)
 			U.tweak_threshold = 10;
 	}
 
-	if (!USER_VERSION_ATLEAST(265, 1)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* note: the toggle operator for transparent backdrops limits to these spacetypes */
-			if (btheme->tnode.button[3] == 255) {
-				btheme->tv3d.button[3] = 128;
-				btheme->tnode.button[3] = 128;
-				btheme->tima.button[3] = 128;
-				btheme->tseq.button[3] = 128;
-				btheme->tclip.button[3] = 128;
-			}
-		}
-	}
-
-	/* panel header/backdrop supported locally per editor now */
-	if (!USER_VERSION_ATLEAST(265, 2)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			ThemeSpace *ts;
-
-			/* new color, panel backdrop. Not used anywhere yet, until you enable it */
-			copy_v3_v3_char(btheme->tui.panel.back, btheme->tbuts.button);
-			btheme->tui.panel.back[3] = 128;
-
-			for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
-				ts->panelcolors = btheme->tui.panel;
-			}
-		}
-	}
-
 	/* NOTE!! from now on use U.versionfile and U.subversionfile */
 #undef USER_VERSION_ATLEAST
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST((&(U)), ver, subver)
 
-	if (!USER_VERSION_ATLEAST(266, 0)) {
-		bTheme *btheme;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* rna definition limits fac to 0.01 */
-			if (btheme->tui.menu_shadow_fac == 0.0f) {
-				btheme->tui.menu_shadow_fac = 0.5f;
-				btheme->tui.menu_shadow_width = 12;
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(265, 4)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->text.syntaxd,    50, 0, 140, 255);   /* Decorator/Preprocessor Dir.  Blue-purple */
-			rgba_char_args_set(btheme->text.syntaxr,    140, 60, 0, 255);   /* Reserved  Orange */
-			rgba_char_args_set(btheme->text.syntaxs,    76, 76, 76, 255);   /* Gray (mix between fg/bg) */
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(265, 6)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			copy_v4_v4_char(btheme->tv3d.gradients.high_gradient, btheme->tv3d.back);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(265, 9)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_test_set(btheme->tnode.syntaxs, 151, 116, 116, 255);  /* matte nodes */
-			rgba_char_args_test_set(btheme->tnode.syntaxd, 116, 151, 151, 255);  /* distort nodes */
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(265, 11)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_test_set(btheme->tconsole.console_select, 255, 255, 255, 48);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(266, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_test_set(btheme->tnode.console_output, 223, 202, 53, 255);  /* interface nodes */
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(268, 3)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_test_set(btheme->tima.uv_others, 96, 96, 96, 255);
-			rgba_char_args_test_set(btheme->tima.uv_shadow, 112, 112, 112, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(269, 5)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tima.wire_edit, 192, 192, 192, 255);
-			rgba_char_args_set(btheme->tima.edge_select, 255, 133, 0, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(269, 6)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			char r, g, b;
-			r = btheme->tnode.syntaxn[0];
-			g = btheme->tnode.syntaxn[1];
-			b = btheme->tnode.syntaxn[2];
-			rgba_char_args_test_set(btheme->tnode.nodeclass_output, r, g, b, 255);
-			r = btheme->tnode.syntaxb[0];
-			g = btheme->tnode.syntaxb[1];
-			b = btheme->tnode.syntaxb[2];
-			rgba_char_args_test_set(btheme->tnode.nodeclass_filter, r, g, b, 255);
-			rgba_char_args_test_set(btheme->tnode.nodeclass_vector, r, g, b, 255);
-			rgba_char_args_test_set(btheme->tnode.nodeclass_texture, r, g, b, 255);
-			rgba_char_args_test_set(btheme->tnode.nodeclass_shader, r, g, b, 255);
-			rgba_char_args_test_set(btheme->tnode.nodeclass_script, r, g, b, 255);
-			rgba_char_args_test_set(btheme->tnode.nodeclass_pattern, r, g, b, 255);
-			rgba_char_args_test_set(btheme->tnode.nodeclass_layout, r, g, b, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(269, 8)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_test_set(btheme->tinfo.info_selected, 96, 128, 255, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_selected_text, 255, 255, 255, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_error, 220, 0, 0, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_error_text, 0, 0, 0, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_warning, 220, 128, 96, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_warning_text, 0, 0, 0, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_info, 0, 170, 0, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_info_text, 0, 0, 0, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_debug, 196, 196, 196, 255);
-			rgba_char_args_test_set(btheme->tinfo.info_debug_text, 0, 0, 0, 255);
-		}
-	}
 
 	if (!USER_VERSION_ATLEAST(269, 9)) {
-		bTheme *btheme;
-		/* Action Editor (and NLA Editor) - Keyframe Colors */
-		/* Graph Editor - larger vertex size defaults */
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* Action Editor ................. */
-			/* key types */
-			rgba_char_args_set(btheme->tact.keytype_keyframe,           232, 232, 232, 255);
-			rgba_char_args_set(btheme->tact.keytype_keyframe_select,    255, 190,  50, 255);
-			rgba_char_args_set(btheme->tact.keytype_extreme,            232, 179, 204, 255);
-			rgba_char_args_set(btheme->tact.keytype_extreme_select,     242, 128, 128, 255);
-			rgba_char_args_set(btheme->tact.keytype_breakdown,          179, 219, 232, 255);
-			rgba_char_args_set(btheme->tact.keytype_breakdown_select,    84, 191, 237, 255);
-			rgba_char_args_set(btheme->tact.keytype_jitter,             148, 229, 117, 255);
-			rgba_char_args_set(btheme->tact.keytype_jitter_select,       97, 192,  66, 255);
-
-			/* key border */
-			rgba_char_args_set(btheme->tact.keyborder,               0,   0,   0, 255);
-			rgba_char_args_set(btheme->tact.keyborder_select,        0,   0,   0, 255);
-
-			/* NLA ............................ */
-			/* key border */
-			rgba_char_args_set(btheme->tnla.keyborder,               0,   0,   0, 255);
-			rgba_char_args_set(btheme->tnla.keyborder_select,        0,   0,   0, 255);
-
-			/* Graph Editor ................... */
-			btheme->tipo.vertex_size = 6;
-			btheme->tipo.handle_vertex_size = 5;
-		}
-
 		/* grease pencil - new layer color */
 		if (U.gpencil_new_layer_col[3] < 0.1f) {
 			/* defaults to black, but must at least be visible! */
@@ -2699,139 +1554,10 @@ void init_userdef_do_versions(Main *bmain)
 		}
 	}
 
-	if (!USER_VERSION_ATLEAST(269, 10)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			ThemeSpace *ts;
-
-			for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
-				rgba_char_args_set(ts->tab_active, 114, 114, 114, 255);
-				rgba_char_args_set(ts->tab_inactive, 83, 83, 83, 255);
-				rgba_char_args_set(ts->tab_back, 64, 64, 64, 255);
-				rgba_char_args_set(ts->tab_outline, 60, 60, 60, 255);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(271, 0)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tui.wcol_tooltip.text, 255, 255, 255, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(272, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set_fl(btheme->tv3d.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);
-			rgba_char_args_set_fl(btheme->tv3d.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
-			rgba_char_args_set_fl(btheme->tima.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);
-			rgba_char_args_set_fl(btheme->tima.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
-			rgba_char_args_set(btheme->tnode.syntaxr, 115, 115, 115, 255);
-		}
-	}
-
 	if (!USER_VERSION_ATLEAST(271, 5)) {
-		bTheme *btheme;
-
-		struct uiWidgetColors wcol_pie_menu = {
-			{10, 10, 10, 200},
-			{25, 25, 25, 230},
-			{140, 140, 140, 255},
-			{45, 45, 45, 230},
-
-			{160, 160, 160, 255},
-			{255, 255, 255, 255},
-
-			1,
-			10, -10
-		};
-
 		U.pie_menu_radius = 100;
 		U.pie_menu_threshold = 12;
 		U.pie_animation_timeout = 6;
-
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			btheme->tui.wcol_pie_menu = wcol_pie_menu;
-
-			ui_theme_space_init_handles_color(&btheme->tclip);
-			ui_theme_space_init_handles_color(&btheme->tima);
-			btheme->tima.handle_vertex_size = 5;
-			btheme->tclip.handle_vertex_size = 5;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(271, 6)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for (alpha == 0) is safe, then color was never set */
-			if (btheme->tv3d.loop_normal[3] == 0) {
-				rgba_char_args_set(btheme->tv3d.loop_normal, 0xDD, 0x23, 0xDD, 255);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(272, 3)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set_fl(btheme->tui.widget_emboss, 1.0f, 1.0f, 1.0f, 0.02f);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(273, 1)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* Grease Pencil vertex settings */
-			rgba_char_args_set(btheme->tv3d.gp_vertex, 0, 0, 0, 255);
-			rgba_char_args_set(btheme->tv3d.gp_vertex_select, 255, 133, 0, 255);
-			btheme->tv3d.gp_vertex_size = 3;
-
-			rgba_char_args_set(btheme->tseq.gp_vertex, 0, 0, 0, 255);
-			rgba_char_args_set(btheme->tseq.gp_vertex_select, 255, 133, 0, 255);
-			btheme->tseq.gp_vertex_size = 3;
-
-			rgba_char_args_set(btheme->tima.gp_vertex, 0, 0, 0, 255);
-			rgba_char_args_set(btheme->tima.gp_vertex_select, 255, 133, 0, 255);
-			btheme->tima.gp_vertex_size = 3;
-
-			rgba_char_args_set(btheme->tnode.gp_vertex, 0, 0, 0, 255);
-			rgba_char_args_set(btheme->tnode.gp_vertex_select, 255, 133, 0, 255);
-			btheme->tnode.gp_vertex_size = 3;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(273, 5)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			unsigned char *cp = (unsigned char *)btheme->tv3d.clipping_border_3d;
-			int c;
-			copy_v4_v4_char((char *)cp, btheme->tv3d.back);
-			c = cp[0] - 8;
-			CLAMP(c, 0, 255);
-			cp[0] = c;
-			c = cp[1] - 8;
-			CLAMP(c, 0, 255);
-			cp[1] = c;
-			c = cp[2] - 8;
-			CLAMP(c, 0, 255);
-			cp[2] = c;
-			cp[3] = 255;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(274, 5)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			copy_v4_v4_char(btheme->tima.metadatatext, btheme->tima.text_hi);
-			copy_v4_v4_char(btheme->tseq.metadatatext, btheme->tseq.text_hi);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(275, 1)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			copy_v4_v4_char(btheme->tclip.metadatatext, btheme->tseq.text_hi);
-		}
 	}
 
 	if (!USER_VERSION_ATLEAST(275, 2)) {
@@ -2840,79 +1566,6 @@ void init_userdef_do_versions(Main *bmain)
 
 	if (!USER_VERSION_ATLEAST(275, 4)) {
 		U.node_margin = 80;
-	}
-
-	if (!USER_VERSION_ATLEAST(276, 1)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set_fl(btheme->tima.preview_back, 0.0f, 0.0f, 0.0f, 0.3f);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(276, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tclip.gp_vertex, 0, 0, 0, 255);
-			rgba_char_args_set(btheme->tclip.gp_vertex_select, 255, 133, 0, 255);
-			btheme->tclip.gp_vertex_size = 3;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(276, 3)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tseq.text_strip, 162, 151, 0, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(276, 8)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tui.wcol_progress.item, 128, 128, 128, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(276, 10)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* 3dView Keyframe Indicators */
-			rgba_char_args_set(btheme->tv3d.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
-			rgba_char_args_set(btheme->tv3d.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(277, 0)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (memcmp(btheme->tui.wcol_list_item.item, btheme->tui.wcol_list_item.text_sel, sizeof(char) * 3) == 0) {
-				copy_v4_v4_char(btheme->tui.wcol_list_item.item, btheme->tui.wcol_text.item);
-				copy_v4_v4_char(btheme->tui.wcol_list_item.text_sel, btheme->tui.wcol_text.text_sel);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(277, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tact.keyframe_scale_fac < 0.1f)
-				btheme->tact.keyframe_scale_fac = 1.0f;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(278, 2)) {
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			rgba_char_args_set(btheme->tv3d.vertex_bevel, 0, 165, 255, 255);
-			rgba_char_args_set(btheme->tv3d.edge_bevel, 0, 165, 255, 255);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(278, 3)) {
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* Keyframe Indicators (were using wrong alpha) */
-			btheme->tv3d.time_keyframe[3] = btheme->tv3d.time_gp_keyframe[3] = 255;
-			btheme->ttime.time_keyframe[3] = btheme->ttime.time_gp_keyframe[3] = 255;
-		}
 	}
 
 	if (!USER_VERSION_ATLEAST(278, 6)) {
@@ -2930,106 +1583,13 @@ void init_userdef_do_versions(Main *bmain)
 		U.uiflag |= USER_LOCK_CURSOR_ADJUST;
 	}
 
-	if (!USER_VERSION_ATLEAST(280, 9)) {
-		/* interface_widgets.c */
-		struct uiWidgetColors wcol_tab = {
-			{60, 60, 60, 255},
-			{83, 83, 83, 255},
-			{114, 114, 114, 255},
-			{90, 90, 90, 255},
 
-			{0, 0, 0, 255},
-			{0, 0, 0, 255},
+	if (!USER_VERSION_ATLEAST(278, 20)) {
+		U.gpu_viewport_quality = 0.6f;
 
-			0,
-			0, 0
-		};
-
+		/* Reset theme, old themes will not be compatible with minor version updates from now on. */
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			char tmp[4];
-
-			btheme->tui.wcol_tab = wcol_tab;
-			btheme->ttopbar = btheme->tv3d;
-			/* swap colors */
-			copy_v4_v4_char(tmp, btheme->ttopbar.header);
-			copy_v4_v4_char(btheme->ttopbar.header, btheme->ttopbar.tab_inactive);
-			copy_v4_v4_char(btheme->ttopbar.back, tmp);
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(280, 9)) {
-		/* Timeline removal */
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			if (btheme->tipo.anim_active[3] == 0) {
-				rgba_char_args_set(btheme->tipo.anim_active,    204, 112, 26, 102);
-			}
-			if (btheme->tseq.anim_active[3] == 0) {
-				rgba_char_args_set(btheme->tseq.anim_active,    204, 112, 26, 102);
-			}
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(280, 10)) {
-		/* Roundness */
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			btheme->tui.wcol_regular.roundness = 0.25f;
-			btheme->tui.wcol_tool.roundness = 0.2f;
-			btheme->tui.wcol_text.roundness = 0.2f;
-			btheme->tui.wcol_radio.roundness = 0.2f;
-			btheme->tui.wcol_option.roundness = 0.333333f;
-			btheme->tui.wcol_toggle.roundness = 0.25f;
-			btheme->tui.wcol_num.roundness = 0.5f;
-			btheme->tui.wcol_numslider.roundness = 0.5f;
-			btheme->tui.wcol_tab.roundness = 0.25f;
-			btheme->tui.wcol_menu.roundness = 0.2f;
-			btheme->tui.wcol_pulldown.roundness = 0.2f;
-			btheme->tui.wcol_menu_back.roundness = 0.25f;
-			btheme->tui.wcol_menu_item.roundness = 0.25f;
-			btheme->tui.wcol_tooltip.roundness = 0.25f;
-			btheme->tui.wcol_box.roundness = 0.2f;
-			btheme->tui.wcol_scroll.roundness = 0.5f;
-			btheme->tui.wcol_progress.roundness = 0.25f;
-			btheme->tui.wcol_list_item.roundness = 0.2f;
-			btheme->tui.wcol_pie_menu.roundness = 0.5f;
-			rgba_char_args_set_fl(btheme->tui.editor_outline, 0.25f, 0.25f, 0.25f, 1.0f);
-		}
-	}
-
-	if (((bTheme *)U.themes.first)->tui.wcol_toolbar_item.text[3] == 0) {
-		struct uiWidgetColors wcol_toolbar_item = {
-			.outline = {0x0, 0x0, 0x0, 0xff},
-			.inner = {0x46, 0x46, 0x46, 0xff},
-			.inner_sel = {0xcc, 0xcc, 0xcc, 0xff},
-			.item = {0x0, 0x0, 0x0, 0xff},
-
-			.text = {0xff, 0xff, 0xff, 0xff},
-			.text_sel = {0x33, 0x33, 0x33, 0xff},
-
-			.shaded = 0,
-			.shadetop = 0,
-			.shadedown = 0,
-			.alpha_check = 0,
-			.roundness = 0.3f,
-		};
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			btheme->tui.wcol_toolbar_item = wcol_toolbar_item;
-			btheme->tui.icon_saturation = 1.0f;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(280, 16)) {
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			btheme->tstatusbar = btheme->tv3d;
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(280, 17)) {
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			ThemeSpace *ts;
-
-			for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
-				rgba_char_args_set(ts->panelcolors.sub_back, 0, 0, 0, 25);
-			}
+			memcpy(btheme, &U_theme_default, sizeof(*btheme));
 		}
 	}
 
@@ -3038,13 +1598,6 @@ void init_userdef_do_versions(Main *bmain)
 	 */
 	{
 		/* (keep this block even if it becomes empty). */
-		U.gpu_viewport_quality = 0.6f;
-	}
-
-	if (((bTheme *)U.themes.first)->tui.manipulator_hi[3] == 0) {
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			ui_theme_space_init_manipulator_colors(btheme);
-		}
 	}
 
 	if (U.pixelsize == 0.0f)
