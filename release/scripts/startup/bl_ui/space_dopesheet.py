@@ -48,11 +48,9 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
     if not is_nla:
         row = layout.row(align=True)
         row.prop(dopesheet, "filter_fcurve_name", text="")
-        row.prop(dopesheet, "use_multi_word_filter", text="")
     else:
         row = layout.row(align=True)
         row.prop(dopesheet, "filter_text", text="")
-        row.prop(dopesheet, "use_multi_word_filter", text="")
 
 #######################################
 # Dopesheet Filtering Popovers
@@ -93,11 +91,9 @@ class DopesheetFilterPopoverBase:
         if not is_nla:
             row = col.row(align=True)
             row.prop(dopesheet, "filter_fcurve_name", text="")
-            row.prop(dopesheet, "use_multi_word_filter", text="")
         else:
             row = col.row(align=True)
             row.prop(dopesheet, "filter_text", text="")
-            row.prop(dopesheet, "use_multi_word_filter", text="")
 
         if (not generic_filters_only) and (bpy.data.collections):
             col = layout.column(align=True)
@@ -213,13 +209,7 @@ class DOPESHEET_HT_header(Header):
             TIME_HT_editor_buttons.draw_header(context, layout)
         else:
             layout.prop(st, "ui_mode", text="")
-            layout.popover(
-                space_type='DOPESHEET_EDITOR',
-                region_type='HEADER',
-                panel_type="DOPESHEET_PT_filters",
-                text="",
-                icon='FILTER',
-            )
+
             DOPESHEET_MT_editor_menus.draw_collapsible(context, layout)
             DOPESHEET_HT_editor_buttons.draw_header(context, layout)
 
@@ -244,13 +234,15 @@ class DOPESHEET_HT_editor_buttons(Header):
             row.operator("action.layer_prev", text="", icon='TRIA_DOWN')
             row.operator("action.layer_next", text="", icon='TRIA_UP')
 
-            layout.template_ID(st, "action", new="action.new", unlink="action.unlink")
-
             row = layout.row(align=True)
             row.operator("action.push_down", text="Push Down", icon='NLA_PUSHDOWN')
             row.operator("action.stash", text="Stash", icon='FREEZE')
 
-        # layout.separator_spacer()
+            layout.separator_spacer()
+
+            layout.template_ID(st, "action", new="action.new", unlink="action.unlink")
+
+        layout.separator_spacer()
 
         if st.mode == 'DOPESHEET':
             dopesheet_filter(layout, context)
@@ -269,9 +261,16 @@ class DOPESHEET_HT_editor_buttons(Header):
 
             row = layout.row(align=True)
             row.prop(st.dopesheet, "filter_text", text="")
-            row.prop(st.dopesheet, "use_multi_word_filter", text="")
 
-        layout.separator_spacer()
+        layout.popover(
+            space_type='DOPESHEET_EDITOR',
+            region_type='HEADER',
+            panel_type="DOPESHEET_PT_filters",
+            text="",
+            icon='FILTER',
+        )
+
+        layout.separator()
 
         row = layout.row(align=True)
         row.prop(toolsettings, "use_proportional_action", text="", icon_only=True)
@@ -325,6 +324,10 @@ class DOPESHEET_MT_view(Menu):
         st = context.space_data
 
         layout.operator("action.properties", icon='MENU_PANEL')
+        layout.separator()
+
+        layout.prop(st.dopesheet, "use_multi_word_filter", text="Multi-word Match Search")
+
         layout.separator()
 
         layout.prop(st, "use_realtime_update")
