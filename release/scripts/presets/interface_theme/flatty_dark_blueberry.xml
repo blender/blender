@@ -71,8 +71,8 @@
         <wcol_text>
           <ThemeWidgetColors outline="#43454d"
                              inner="#2d2e33ff"
-                             inner_sel="#717280ff"
-                             item="#599eb3ff"
+                             inner_sel="#3f7780ff"
+                             item="#264a4fff"
                              text="#eeeeee"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
@@ -88,16 +88,16 @@
                              item="#ffffffff"
                              text="#eeeeee"
                              text_sel="#ffffff"
-                             show_shaded="FALSE"
-                             shadetop="0"
-                             shadedown="-15"
+                             show_shaded="TRUE"
+                             shadetop="-5"
+                             shadedown="0"
                              roundness="0.5">
           </ThemeWidgetColors>
         </wcol_option>
         <wcol_toggle>
           <ThemeWidgetColors outline="#43434d"
                              inner="#595966ff"
-                             inner_sel="#3f7d80ff"
+                             inner_sel="#80858aff"
                              item="#191919ff"
                              text="#eeeeee"
                              text_sel="#ffffff"
@@ -227,7 +227,7 @@
         <wcol_scroll>
           <ThemeWidgetColors outline="#2f3035"
                              inner="#585a6700"
-                             inner_sel="#599eb3ff"
+                             inner_sel="#3f7780ff"
                              item="#585a67ff"
                              text="#ffffff"
                              text_sel="#ffffff"
@@ -241,7 +241,7 @@
           <ThemeWidgetColors outline="#b3b3b3"
                              inner="#ccccccff"
                              inner_sel="#646464b4"
-                             item="#599eb3ff"
+                             item="#5db3c1ff"
                              text="#eeeeee"
                              text_sel="#ffffff"
                              show_shaded="FALSE"
@@ -254,7 +254,7 @@
           <ThemeWidgetColors outline="#28292d"
                              inner="#28292d00"
                              inner_sel="#5f616fff"
-                             item="#599eb3ff"
+                             item="#3f7780ff"
                              text="#eeeeee"
                              text_sel="#ffffff"
                              show_shaded="FALSE"
@@ -264,12 +264,12 @@
           </ThemeWidgetColors>
         </wcol_list_item>
         <wcol_state>
-          <ThemeWidgetStateColors inner_anim="#73be4c"
-                                  inner_anim_sel="#5aa633"
-                                  inner_key="#f0eb64"
-                                  inner_key_sel="#d7d34b"
-                                  inner_driven="#b400ff"
-                                  inner_driven_sel="#9900e6"
+          <ThemeWidgetStateColors inner_anim="#5b9936"
+                                  inner_anim_sel="#7ce647"
+                                  inner_key="#bba336"
+                                  inner_key_sel="#e6e600"
+                                  inner_driven="#b456e4"
+                                  inner_driven_sel="#ec4dff"
                                   inner_overridden="#000000"
                                   inner_overridden_sel="#000000"
                                   blend="0.5">
@@ -746,21 +746,21 @@
       </ThemeProperties>
     </properties>
     <text_editor>
-      <ThemeTextEditor line_numbers_background="#313133"
+      <ThemeTextEditor line_numbers_background="#222427"
                        selected_text="#19191a"
-                       cursor="#ff0000"
+                       cursor="#19ff8d"
                        syntax_builtin="#ff1961"
                        syntax_symbols="#ff734d"
                        syntax_special="#95d600"
                        syntax_preprocessor="#ad80ff"
                        syntax_reserved="#c4753b"
-                       syntax_comment="#939393"
+                       syntax_comment="#9199a4"
                        syntax_string="#f6e162"
                        syntax_numbers="#50dbff">
         <space>
           <ThemeSpaceGeneric back="#222427"
                              title="#eeeeee"
-                             text="#ffffff"
+                             text="#f2f2f2"
                              text_hi="#ffffff"
                              header="#3a3c42ff"
                              header_text="#eeeeee"
@@ -949,18 +949,18 @@
       </ThemeUserPreferences>
     </user_preferences>
     <console>
-      <ThemeConsole line_output="#b3c2ff"
+      <ThemeConsole line_output="#8ac5ff"
                     line_input="#ffffff"
-                    line_info="#47b347"
-                    line_error="#de6f6f"
-                    cursor="#de5959"
-                    select="#ffffff30">
+                    line_info="#4fc84f"
+                    line_error="#ff4c4c"
+                    cursor="#19ff8d"
+                    select="#f6f6ff21">
         <space>
           <ThemeSpaceGeneric back="#222427"
                              title="#eeeeee"
                              text="#ffffff"
                              text_hi="#ffffff"
-                             header="#3a3c42ff"
+                             header="#222427ff"
                              header_text="#eeeeee"
                              header_text_hi="#ffffff"
                              button="#2f303599"
