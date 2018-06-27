@@ -42,26 +42,21 @@ class TEXT_HT_header(Header):
             sub.operator("text.resolve_conflict", text="", icon='HELP')
 
         row = layout.row(align=True)
-        row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
-
-        row = layout.row(align=True)
         row.prop(st, "show_line_numbers", text="")
         row.prop(st, "show_word_wrap", text="")
         row.prop(st, "show_syntax_highlight", text="")
 
+        layout.separator_spacer()
+
+        row = layout.row(align=True)
+        row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
+
+        layout.separator_spacer()
+
+
+
         if text:
             osl = text.name.endswith(".osl") or text.name.endswith(".oso")
-
-            if osl:
-                row = layout.row()
-                row.operator("node.shader_script_update")
-            else:
-                row = layout.row()
-                row.operator("text.run_script")
-
-                row = layout.row()
-                row.active = text.name.endswith(".py")
-                row.prop(text, "use_module")
 
             row = layout.row()
             if text.filepath:
@@ -75,6 +70,18 @@ class TEXT_HT_header(Header):
                 row.label(text="Text: External"
                           if text.library
                           else "Text: Internal")
+            if osl:
+                row = layout.row()
+                row.operator("node.shader_script_update")
+            else:
+                row = layout.row()
+                row.active = text.name.endswith(".py")
+                row.prop(text, "use_module")
+
+                row = layout.row()
+                row.operator("text.run_script")
+
+
 
 
 class TEXT_MT_editor_menus(Menu):
