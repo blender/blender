@@ -4633,14 +4633,16 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 		 * C.object["someprop"]
 		 */
 
-		if (!curptr.data)
+		if (!curptr.data) {
 			return false;
+		}
 
 		/* look up property name in current struct */
 		token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), use_id_prop);
 
-		if (!token)
+		if (!token) {
 			return false;
+		}
 
 		prop = NULL;
 		if (use_id_prop) { /* look up property name in current struct */
@@ -4652,11 +4654,13 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 			prop = RNA_struct_find_property(&curptr, token);
 		}
 
-		if (token != fixedbuf)
+		if (token != fixedbuf) {
 			MEM_freeN(token);
+		}
 
-		if (!prop)
+		if (!prop) {
 			return false;
+		}
 
 		if (r_elements) {
 			prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
@@ -4693,12 +4697,16 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 				 */
 				if (*path) {
 					PointerRNA nextptr;
-					if (!rna_path_parse_collection_key(&path, &curptr, prop, &nextptr))
+					if (!rna_path_parse_collection_key(&path, &curptr, prop, &nextptr)) {
 						return false;
+					}
 
-					curptr = nextptr;
-					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-					index = -1;
+					/* Only reset current pointer & prop if we still have something to parse, else we lose the result! */
+					if (path[0] != '\0') {
+						curptr = nextptr;
+						prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
+						index = -1;
+					}
 				}
 				break;
 			}
@@ -4771,8 +4779,9 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
  */
 bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, false))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, false)) {
 		return false;
+	}
 
 	return r_ptr->data != NULL && *r_prop != NULL;
 }
@@ -7760,8 +7769,11 @@ void RNA_struct_override_apply(
 			}
 #ifndef NDEBUG
 			else {
-				printf("Failed to apply static override operation to '%s.%s' (could not resolve some properties)\n",
-				       ((ID *)ptr_override->id.data)->name, op->rna_path);
+				printf("Failed to apply static override operation to '%s.%s' "
+				       "(could not resolve some properties, local:  %d, override: %d)\n",
+				       ((ID *)ptr_override->id.data)->name, op->rna_path,
+				       RNA_path_resolve_property(ptr_local, op->rna_path, &data_local, &prop_local),
+				       RNA_path_resolve_property(ptr_override, op->rna_path, &data_override, &prop_override));
 			}
 #endif
 		}
