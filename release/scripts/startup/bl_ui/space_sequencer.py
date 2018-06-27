@@ -83,21 +83,18 @@ class SEQUENCER_HT_header(Header):
 
         SEQUENCER_MT_editor_menus.draw_collapsible(context, layout)
 
-        row = layout.row(align=True)
-        row.prop(scene, "use_preview_range", text="", toggle=True)
-        row.prop(scene, "lock_frame_selection_to_range", text="", toggle=True)
+        layout.separator_spacer()
+
+        layout.template_running_jobs()
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.prop(st, "display_mode", expand=True, text="")
 
         if st.view_type == 'SEQUENCER':
-            row = layout.row(align=True)
-            row.operator("sequencer.copy", text="", icon='COPYDOWN')
-            row.operator("sequencer.paste", text="", icon='PASTEDOWN')
-
             layout.separator()
-            layout.operator("sequencer.refresh_all")
             layout.prop(st, "show_backdrop")
+            layout.operator("sequencer.refresh_all")
+
         else:
             if st.view_type == 'SEQUENCER_PREVIEW':
                 layout.separator()
@@ -134,7 +131,12 @@ class SEQUENCER_HT_header(Header):
         props.animation = True
         props.sequencer = True
 
-        layout.template_running_jobs()
+        if st.view_type == 'SEQUENCER':
+
+            row = layout.row(align=True)
+            row.operator("sequencer.copy", text="", icon='COPYDOWN')
+            row.operator("sequencer.paste", text="", icon='PASTEDOWN')
+
 
 
 class SEQUENCER_MT_editor_menus(Menu):
