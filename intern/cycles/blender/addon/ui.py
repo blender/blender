@@ -1126,30 +1126,29 @@ class CYCLES_LAMP_PT_lamp(CyclesButtonsPanel, Panel):
 
         layout.prop(lamp, "type", expand=True)
 
-        split = layout.split()
-        col = split.column(align=True)
+        layout.use_property_split = True
+
+        col = layout.column()
 
         if lamp.type in {'POINT', 'SUN', 'SPOT'}:
             col.prop(lamp, "shadow_soft_size", text="Size")
         elif lamp.type == 'AREA':
-            col.prop(lamp, "shape", text="")
+            col.prop(lamp, "shape", text="Shape")
             sub = col.column(align=True)
 
             if lamp.shape in {'SQUARE', 'DISK'}:
                 sub.prop(lamp, "size")
             elif lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
                 sub.prop(lamp, "size", text="Size X")
-                sub.prop(lamp, "size_y", text="Size Y")
+                sub.prop(lamp, "size_y", text="Y")
 
         if not (lamp.type == 'AREA' and clamp.is_portal):
-            sub = col.column(align=True)
+            sub = col.column()
             if use_branched_path(context):
                 subsub = sub.row(align=True)
                 subsub.active = use_sample_all_lights(context)
                 subsub.prop(clamp, "samples")
             sub.prop(clamp, "max_bounces")
-
-        col = split.column()
 
         sub = col.column(align=True)
         sub.active = not (lamp.type == 'AREA' and clamp.is_portal)
@@ -1192,17 +1191,12 @@ class CYCLES_LAMP_PT_spot(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
         lamp = context.lamp
+        layout.use_property_split = True
 
-        split = layout.split()
-
-        col = split.column()
-        sub = col.column()
-        sub.prop(lamp, "spot_size", text="Size")
-        sub.prop(lamp, "spot_blend", text="Blend", slider=True)
-
-        col = split.column()
+        col = layout.column()
+        col.prop(lamp, "spot_size", text="Size")
+        col.prop(lamp, "spot_blend", text="Blend", slider=True)
         col.prop(lamp, "show_cone")
 
 
