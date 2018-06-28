@@ -1617,14 +1617,15 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 #if 0
 					if (rna_path) {
-						printf("Checking %s, %s [%d] vs %s [%d]; diffing: %d; insert: %d (could be used: %d, do_create: %d)\n",
+						printf("Checking %s, %s [%d] vs %s [%d]; is_id: %d, diffing: %d; "
+						       "insert: %d (could be used: %d, do_create: %d)\n",
 						       rna_path, propname_a ? propname_a : "", idx_a, propname_b ? propname_b : "", idx_b,
-						       is_valid_for_diffing, is_valid_for_insertion,
+						       is_id, is_valid_for_diffing, is_valid_for_insertion,
 						       (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) != 0, do_create);
 					}
 #endif
 
-					if (!(is_valid_for_diffing || is_valid_for_insertion)) {
+					if (!(is_id || is_valid_for_diffing || is_valid_for_insertion)) {
 						/* Differences we cannot handle, we can break here
 						 * (we do not support replacing ID pointers in collections e.g.). */
 						equals = false;
@@ -1635,7 +1636,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 					/* There may be a propname defined in some cases, while no actual name set
 					 * (e.g. happens with point cache), in that case too we want to fall back to index.
 					 * Note that we do not need the RNA path for insertion operations. */
-					if (is_valid_for_diffing) {
+					if (is_id || is_valid_for_diffing) {
 						if ((propname_a != NULL && propname_a[0] != '\0') &&
 						    (propname_b != NULL && propname_b[0] != '\0'))
 						{
@@ -1686,7 +1687,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						            NULL, prev_propname_a, -1, idx_a - 1, true, NULL, NULL);
 //						printf("%s: Adding insertion op override after '%s'/%d\n", rna_path, prev_propname_a, idx_a - 1);
 					}
-					else if (is_valid_for_diffing) {
+					else if (is_id || is_valid_for_diffing) {
 						if (equals || do_create) {
 							const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
 							const int eq = rna_property_override_diff_propptr(
@@ -1723,7 +1724,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						break;
 					}
 
-					if (!(use_insertion && !is_valid_for_diffing)) {
+					if (!(use_insertion && !(is_id || is_valid_for_diffing))) {
 						break;
 					}
 
