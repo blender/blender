@@ -410,16 +410,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		if (TAA_ENABLED(wpd)) {
-			psl->effect_aa_pass = workbench_taa_create_pass(vedata, &e_data.composite_buffer_tx);
-		}
-		else if (FXAA_ENABLED(wpd)) {
-			psl->effect_aa_pass = workbench_fxaa_create_pass(&e_data.effect_buffer_tx);
-			stl->effects->jitter_index = 0;
-		}
-		else {
-			psl->effect_aa_pass = NULL;
-		}
+		workbench_aa_create_pass(vedata, &e_data.effect_buffer_tx);
 	}
 
 	{
@@ -844,11 +835,9 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
-	WORKBENCH_EffectInfo *effect_info = stl->effects;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	const bool taa_enabled = TAA_ENABLED(wpd);
 
-	if (taa_enabled) {
+	if (TAA_ENABLED(wpd)) {
 		workbench_taa_draw_scene_start(vedata);
 	}
 
@@ -886,13 +875,6 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->composite_pass);
 	}
 
-	GPUTexture *final_color_tx = e_data.composite_buffer_tx;
-	if (taa_enabled) {
-		workbench_taa_draw_pass(effect_info, psl->effect_aa_pass);
-		final_color_tx = effect_info->final_color_tx;
-		workbench_taa_draw_scene_end(vedata);
-	}
-
-	workbench_fxaa_draw_pass(wpd, fbl->effect_fb, final_color_tx, psl->effect_aa_pass);
+	workbench_aa_draw_pass(vedata, e_data.composite_buffer_tx);
 	workbench_private_data_free(wpd);
 }

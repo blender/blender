@@ -56,22 +56,6 @@ DRWPass *workbench_fxaa_create_pass(GPUTexture **color_buffer_tx)
 	return pass;
 }
 
-void workbench_fxaa_draw_pass(WORKBENCH_PrivateData *wpd, GPUFrameBuffer *fb, GPUTexture *tx, DRWPass *effect_aa_pass)
-{
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	if (FXAA_ENABLED(wpd)) {
-		GPU_framebuffer_bind(fb);
-		DRW_transform_to_display(tx);
-		GPU_framebuffer_bind(dfbl->color_only_fb);
-		DRW_draw_pass(effect_aa_pass);
-	}
-	else {
-		GPU_framebuffer_bind(dfbl->color_only_fb);
-		DRW_transform_to_display(tx);
-	}
-
-}
-
 void workbench_fxaa_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.effect_fxaa_sh);

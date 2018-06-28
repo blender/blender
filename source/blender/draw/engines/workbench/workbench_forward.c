@@ -287,7 +287,6 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		        forward_vert, NULL,
 		        forward_depth_frag, defines_hair);
 
-		workbench_fxaa_engine_init();
 
 		e_data.checker_depth_sh = DRW_shader_create_fullscreen(
 		        datatoc_workbench_checkerboard_depth_frag_glsl, NULL);
@@ -296,6 +295,9 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		MEM_freeN(defines);
 		MEM_freeN(defines_hair);
 	}
+	workbench_fxaa_engine_init();
+	workbench_taa_engine_init(vedata);
+
 	select_forward_shaders(wpd);
 
 	const float *viewport_size = DRW_viewport_size_get();
@@ -359,7 +361,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		psl->effect_aa_pass = workbench_fxaa_create_pass(&e_data.effect_buffer_tx);
+		workbench_aa_create_pass(vedata, &e_data.effect_buffer_tx);
 	}
 
 	/* Checker Depth */
@@ -582,6 +584,10 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
+	if (TAA_ENABLED(wpd)) {
+		workbench_taa_draw_scene_start(vedata);
+	}
+
 	/* Write Depth + Object ID */
 	const float clear_outline[4] = {0.0f};
 	GPU_framebuffer_bind(fbl->object_outline_fb);
@@ -606,8 +612,8 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	GPU_framebuffer_bind(fbl->composite_fb);
 	DRW_draw_pass(psl->composite_pass);
 
-	/* Color correct */
-	workbench_fxaa_draw_pass(wpd, fbl->effect_fb, e_data.composite_buffer_tx, psl->effect_aa_pass);
+	/* Color correct and Anti aliasing */
+	workbench_aa_draw_pass(vedata, e_data.composite_buffer_tx);
 
 	/* Apply checker pattern */
 	GPU_framebuffer_bind(dfbl->depth_only_fb);

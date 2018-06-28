@@ -69,8 +69,7 @@ typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *composite_fb;
 
 	struct GPUFrameBuffer *effect_fb;
-	struct GPUFrameBuffer *effect_taa_even_fb;
-	struct GPUFrameBuffer *effect_taa_uneven_fb;
+	struct GPUFrameBuffer *effect_taa_fb;
 	struct GPUFrameBuffer *depth_buffer_fb;
 
 	/* Forward render buffers */
@@ -80,8 +79,7 @@ typedef struct WORKBENCH_FramebufferList {
 } WORKBENCH_FramebufferList;
 
 typedef struct WORKBENCH_TextureList {
-	struct GPUTexture *history_buffer1_tx;
-	struct GPUTexture *history_buffer2_tx;
+	struct GPUTexture *history_buffer_tx;
 	struct GPUTexture *depth_buffer_tx;
 } WORKBENCH_TextureList;
 
@@ -195,10 +193,6 @@ typedef struct WORKBENCH_EffectInfo {
 	int jitter_index;
 	float taa_mix_factor;
 	bool view_updated;
-
-	/* The TX that holds the last color data */
-	struct GPUTexture *final_color_tx;
-	struct GPUFrameBuffer *final_color_fb;
 } WORKBENCH_EffectInfo;
 
 typedef struct WORKBENCH_MaterialData {
@@ -258,11 +252,14 @@ void workbench_forward_cache_init(WORKBENCH_Data *vedata);
 void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
 
+/* workbench_effect_aa.c */
+void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx);
+void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx);
+
 /* workbench_effect_fxaa.c */
 void workbench_fxaa_engine_init(void);
 void workbench_fxaa_engine_free(void);
 DRWPass *workbench_fxaa_create_pass(GPUTexture **color_buffer_tx);
-void workbench_fxaa_draw_pass(WORKBENCH_PrivateData *wpd, GPUFrameBuffer *fb, GPUTexture *tx, DRWPass *effect_aa_pass);
 
 /* workbench_effect_taa.c */
 void workbench_taa_engine_init(WORKBENCH_Data *vedata);
