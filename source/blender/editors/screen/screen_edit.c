@@ -216,7 +216,7 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 {
 	short x, y;
 	const short area_min_x = AREAMINX;
-	const short area_min_y = ED_area_headersize();
+	const short area_min_y = ED_area_headersize() + 1;
 
 	// area big enough?
 	if (dir == 'v' && (sa->v4->vec.x - sa->v1->vec.x <= 2 * area_min_x)) return 0;
