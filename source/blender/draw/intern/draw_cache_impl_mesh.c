@@ -2149,7 +2149,13 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPUV));
 
+
 	if (cache->tri_aligned_uv == NULL) {
+		const MLoopUV *mloopuv = rdata->mloopuv;
+		if (mloopuv == NULL) {
+			return NULL;
+		}
+
 		uint vidx = 0;
 
 		static Gwn_VertFormat format = { 0 };
@@ -2166,7 +2172,6 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
 		int vbo_len_used = 0;
 		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
-		const MLoopUV *mloopuv = rdata->mloopuv;
 
 		BMEditMesh *embm = rdata->edit_bmesh;
 		/* get uv's from active UVMap */
