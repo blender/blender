@@ -43,6 +43,8 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
+        if not ob:
+            return False
         return (context.engine in cls.COMPAT_ENGINES) and (ob.field) and (ob.field.type != 'NONE')
 
     def draw(self, context):
