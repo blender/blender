@@ -29,6 +29,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
@@ -39,10 +40,10 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_modifier.h"
+#include "BKE_bvhutils.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_modifier.h"
 
 #include "ED_mesh.h"
 #include "ED_armature.h"

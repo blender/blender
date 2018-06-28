@@ -62,4 +62,6 @@ void BKE_mesh_foreach_mapped_face_center(
         void *userData,
         MeshForeachFlag flag);
 
+void BKE_mesh_foreach_mapped_vert_coords_get(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
+
 #endif  /* __BKE_MESH_ITERATORS_H__ */
