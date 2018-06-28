@@ -1021,6 +1021,27 @@ static void drw_engines_enable_from_object_mode(void)
 	use_drw_engine(&draw_engine_motion_path_type);
 }
 
+static void drw_engines_enable_from_paint_mode(int mode)
+{
+	switch (mode) {
+		case CTX_MODE_SCULPT:
+			use_drw_engine(&draw_engine_sculpt_type);
+			break;
+		case CTX_MODE_PAINT_WEIGHT:
+			use_drw_engine(&draw_engine_pose_type);
+			use_drw_engine(&draw_engine_paint_weight_type);
+			break;
+		case CTX_MODE_PAINT_VERTEX:
+			use_drw_engine(&draw_engine_paint_vertex_type);
+			break;
+		case CTX_MODE_PAINT_TEXTURE:
+			use_drw_engine(&draw_engine_paint_texture_type);
+			break;
+		default:
+			break;
+	}
+}
+
 static void drw_engines_enable_from_mode(int mode)
 {
 	switch (mode) {
@@ -1048,21 +1069,14 @@ static void drw_engines_enable_from_mode(int mode)
 		case CTX_MODE_POSE:
 			use_drw_engine(&draw_engine_pose_type);
 			break;
-		case CTX_MODE_SCULPT:
-			use_drw_engine(&draw_engine_sculpt_type);
-			break;
-		case CTX_MODE_PAINT_WEIGHT:
-			use_drw_engine(&draw_engine_pose_type);
-			use_drw_engine(&draw_engine_paint_weight_type);
-			break;
-		case CTX_MODE_PAINT_VERTEX:
-			use_drw_engine(&draw_engine_paint_vertex_type);
-			break;
-		case CTX_MODE_PAINT_TEXTURE:
-			use_drw_engine(&draw_engine_paint_texture_type);
-			break;
 		case CTX_MODE_PARTICLE:
 			use_drw_engine(&draw_engine_particle_type);
+			break;
+		case CTX_MODE_SCULPT:
+		case CTX_MODE_PAINT_WEIGHT:
+		case CTX_MODE_PAINT_VERTEX:
+		case CTX_MODE_PAINT_TEXTURE:
+			/* Should have already been enabled */
 			break;
 		case CTX_MODE_OBJECT:
 			break;
@@ -1096,6 +1110,8 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	drw_engines_enable_from_engine(engine_type, drawtype, v3d->shading.flag);
 
 	if (DRW_state_draw_support()) {
+		/* Draw paint modes first so that they are drawn below the wireframes. */
+		drw_engines_enable_from_paint_mode(mode);
 		drw_engines_enable_from_overlays(v3d->overlay.flag);
 		drw_engines_enable_from_object_mode();
 		drw_engines_enable_from_mode(mode);
@@ -1648,6 +1664,7 @@ void DRW_draw_select_loop(
 
 	/* Get list of enabled engines */
 	if (use_obedit) {
+		drw_engines_enable_from_paint_mode(obedit_mode);
 		drw_engines_enable_from_mode(obedit_mode);
 	}
 	else {
