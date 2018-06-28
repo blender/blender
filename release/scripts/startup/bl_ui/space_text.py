@@ -53,8 +53,6 @@ class TEXT_HT_header(Header):
 
         layout.separator_spacer()
 
-
-
         if text:
             osl = text.name.endswith(".osl") or text.name.endswith(".oso")
 
@@ -80,8 +78,6 @@ class TEXT_HT_header(Header):
 
                 row = layout.row()
                 row.operator("text.run_script")
-
-
 
 
 class TEXT_MT_editor_menus(Menu):

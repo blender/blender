@@ -138,7 +138,6 @@ class SEQUENCER_HT_header(Header):
             row.operator("sequencer.paste", text="", icon='PASTEDOWN')
 
 
-
 class SEQUENCER_MT_editor_menus(Menu):
     bl_idname = "SEQUENCER_MT_editor_menus"
     bl_label = ""
