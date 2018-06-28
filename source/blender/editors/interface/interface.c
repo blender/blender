@@ -61,6 +61,7 @@
 
 #include "GPU_glew.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -1381,7 +1382,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 		UI_block_end(C, block);
 
 	/* we set this only once */
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	/* scale fonts */
 	ui_fontscale(&style.paneltitle.points, block->aspect);

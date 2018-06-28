@@ -62,6 +62,7 @@
 #include "UI_interface_icons.h"
 
 #include "interface_intern.h"
+#include "GPU_framebuffer.h"
 
 
 extern const bTheme U_theme_default;
@@ -1274,14 +1275,14 @@ void UI_ThemeClearColor(int colorid)
 	float col[3];
 
 	UI_GetThemeColor3fv(colorid, col);
-	glClearColor(col[0], col[1], col[2], 0.0f);
+	GPU_clear_color(col[0], col[1], col[2], 0.0f);
 }
 
 void UI_ThemeClearColorAlpha(int colorid, float alpha)
 {
 	float col[3];
 	UI_GetThemeColor3fv(colorid, col);
-	glClearColor(col[0], col[1], col[2], alpha);
+	GPU_clear_color(col[0], col[1], col[2], alpha);
 }
 
 

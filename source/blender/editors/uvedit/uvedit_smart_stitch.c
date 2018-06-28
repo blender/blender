@@ -65,6 +65,7 @@
 #include "ED_space_api.h"
 
 #include "GPU_batch.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1570,7 +1571,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	}
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	/* Static Tris */
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
@@ -1623,12 +1624,12 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_EDGE, col);
 	stitch_draw_vbo(vbo_line, GWN_PRIM_LINES, col);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 
 	/* draw stitch vert/lines preview */
 	if (state->mode == STITCH_VERT) {
-		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) * 2.0f);
+		GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE) * 2.0f);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
 		vbo = GWN_vertbuf_create_with_format(&format);

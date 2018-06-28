@@ -41,6 +41,7 @@
 #include "BKE_main.h"
 
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 
@@ -346,9 +347,9 @@ static void outliner_drag_drop_tooltip_cb(const wmWindow *win, void *vdata)
 	const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, tooltip, col_fg, col_bg);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)

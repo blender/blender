@@ -74,6 +74,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "filelist.h"
 
@@ -377,14 +378,14 @@ static void file_draw_preview(
 	xco = sx + (int)dx;
 	yco = sy - layout->prv_h + (int)dy;
 
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	/* shadow */
 	if (use_dropshadow) {
 		UI_draw_box_shadow(220, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
 	}
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	/* the image */
 	if (!is_icon && typeflags & FILE_TYPE_FTFONT) {
@@ -419,7 +420,7 @@ static void file_draw_preview(
 		UI_but_drag_set_image(but, BLI_strdup(path), icon, imb, scale, true);
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)

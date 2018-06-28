@@ -61,6 +61,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -389,8 +390,8 @@ static void draw_marker(
 #endif
 	int icon_id;
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	/* vertical line - dotted */
 #ifdef DURIAN_CAMERA_SWITCH
@@ -405,7 +406,7 @@ static void draw_marker(
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_getf(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 		if (marker->flag & SELECT) {
@@ -444,7 +445,7 @@ static void draw_marker(
 
 	UI_icon_draw(xpos - 0.45f * UI_DPI_ICON_SIZE, yoffs + UI_DPI_ICON_SIZE, icon_id);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* and the marker name too, shifted slightly to the top-right */
 #ifdef DURIAN_CAMERA_SWITCH
@@ -491,12 +492,12 @@ void ED_markers_draw(const bContext *C, int flag)
 		const unsigned char shade[4] = {0, 0, 0, 16};
 		immUniformColor4ubv(shade);
 
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 		immRectf(pos, v2d->cur.xmin, 0, v2d->cur.xmax, UI_MARKER_MARGIN_Y);
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 
 		immUnbindProgram();
 	}

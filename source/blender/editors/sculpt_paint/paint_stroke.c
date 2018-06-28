@@ -62,6 +62,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -149,8 +150,8 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 	PaintStroke *stroke = customdata;
 
 	if (stroke && brush) {
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		GPU_line_smooth(true);
+		GPU_blend(true);
 
 		ARegion *ar = stroke->vc.ar;
 
@@ -168,8 +169,8 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 
 		immUnbindProgram();
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 	}
 }
 
@@ -178,14 +179,14 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	PaintStroke *stroke = customdata;
 
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 
 	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
 	immUniform1i("num_colors", 2);  /* "advanced" mode */
@@ -218,7 +219,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 	immUnbindProgram();
 
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 }
 
 static bool paint_tool_require_location(Brush *brush, ePaintMode mode)

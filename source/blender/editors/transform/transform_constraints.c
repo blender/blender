@@ -44,6 +44,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -742,16 +743,16 @@ void drawConstraint(TransInfo *t)
 			drawLine(t, t->center_global, tc->mtx[1], 'Y', 0);
 			drawLine(t, t->center_global, tc->mtx[2], 'Z', 0);
 
-			depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
+			depth_test_enabled = GPU_depth_test_enabled();
 			if (depth_test_enabled)
-				glDisable(GL_DEPTH_TEST);
+				GPU_depth_test(false);
 
 			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
-			glGetFloatv(GL_VIEWPORT, viewport_size);
+			GPU_viewport_size_getf(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
 			immUniform1i("num_colors", 0);  /* "simple" mode */
@@ -767,7 +768,7 @@ void drawConstraint(TransInfo *t)
 			immUnbindProgram();
 
 			if (depth_test_enabled)
-				glEnable(GL_DEPTH_TEST);
+				GPU_depth_test(true);
 		}
 
 		if (tc->mode & CON_AXIS0) {
@@ -818,9 +819,9 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			gpuScale2f(1.0f, (ysize / xsize) * (xmask / ymask));
 		}
 
-		depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
+		depth_test_enabled = GPU_depth_test_enabled();
 		if (depth_test_enabled)
-			glDisable(GL_DEPTH_TEST);
+			GPU_depth_test(false);
 
 		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
@@ -834,7 +835,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		immUnbindProgram();
 
 		if (depth_test_enabled)
-			glEnable(GL_DEPTH_TEST);
+			GPU_depth_test(true);
 
 		gpuPopMatrix();
 	}

@@ -70,6 +70,7 @@
 #include "BKE_context.h"
 
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "DEG_depsgraph.h"
 
@@ -3832,8 +3833,8 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		selected = 0;
 
 	/* set blending again, as may not be set in previous step */
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
 
 	/* step 1) draw backdrop ...........................................  */
 	if (acf->draw_backdrop)
@@ -3852,7 +3853,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	}
 
 	/* turn off blending, since not needed anymore... */
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* step 4) draw special toggles  .................................
 	 *	- in Graph Editor, checkboxes for visibility in curves area
@@ -3930,7 +3931,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 			/* FIXME: replace hardcoded color here, and check on extents! */
 			immUniformColor3f(1.0f, 0.0f, 0.0f);
 
-			glLineWidth(2.0f);
+			GPU_line_width(2.0f);
 
 			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2f(pos, (float)offset, yminc);

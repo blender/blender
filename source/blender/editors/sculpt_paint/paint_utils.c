@@ -65,6 +65,7 @@
 
 #include "GPU_glew.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
@@ -291,7 +292,7 @@ static void imapaint_pick_uv(Mesh *me_eval, Scene *scene, Object *ob_eval, unsig
 	const int *index_mp_to_orig  = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
 	/* get the needed opengl matrices */
-	glGetIntegerv(GL_VIEWPORT, view);
+	GPU_viewport_size_geti(view);
 	gpuGetModelViewMatrix(matrix);
 	gpuGetProjectionMatrix(proj);
 	view[0] = view[1] = 0;

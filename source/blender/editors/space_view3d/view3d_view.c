@@ -55,6 +55,7 @@
 #include "GPU_glew.h"
 #include "GPU_select.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1004,7 +1005,7 @@ int view3d_opengl_select(
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
-		glEnable(GL_DEPTH_TEST);
+		GPU_depth_test(true);
 	}
 
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
@@ -1050,7 +1051,7 @@ int view3d_opengl_select(
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;
-		glDisable(GL_DEPTH_TEST);
+		GPU_depth_test(false);
 	}
 
 	if (vc->rv3d->rflag & RV3D_CLIPPING)

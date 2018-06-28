@@ -65,6 +65,7 @@
 #include "file_intern.h"    // own include
 #include "fsmenu.h"
 #include "filelist.h"
+#include "GPU_framebuffer.h"
 
 /* ******************** default callbacks for file space ***************** */
 
@@ -408,8 +409,8 @@ static void file_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear_color(col[0], col[1], col[2], 0.0);
+	GPU_clear(GPU_COLOR_BIT);
 
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
 
@@ -687,8 +688,8 @@ static void file_ui_region_draw(const bContext *C, ARegion *ar)
 	float col[3];
 	/* clear */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear_color(col[0], col[1], col[2], 0.0);
+	GPU_clear(GPU_COLOR_BIT);
 
 	/* scrolling here is just annoying, disable it */
 	ar->v2d.cur.ymax = BLI_rctf_size_y(&ar->v2d.cur);

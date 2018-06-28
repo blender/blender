@@ -42,6 +42,7 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -101,9 +102,9 @@ static void manipulator_primitive_draw_intern(
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	manipulator_primitive_draw_geom(color_inner, color_outer, draw_style);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	gpuPopMatrix();
 
@@ -117,9 +118,9 @@ static void manipulator_primitive_draw_intern(
 		gpuPushMatrix();
 		gpuMultMatrix(inter->init_matrix_final);
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		manipulator_primitive_draw_geom(color_inner, color_outer, draw_style);
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 
 		gpuPopMatrix();
 	}

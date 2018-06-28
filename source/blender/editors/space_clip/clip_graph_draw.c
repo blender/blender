@@ -45,6 +45,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "WM_types.h"
 
@@ -80,11 +81,11 @@ static void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track,
 
 	if (track == data->act_track) {
 		col[3] = 1.0f;
-		glLineWidth(2.0f);
+		GPU_line_width(2.0f);
 	}
 	else {
 		col[3] = 0.5f;
-		glLineWidth(1.0f);
+		GPU_line_width(1.0f);
 	}
 
 	immUniformColor4fv(col);
@@ -152,13 +153,13 @@ static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc, unsigned int p
 	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
 	                                   &userdata, tracking_segment_knot_cb, NULL, NULL);
 	/* draw graph lines */
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	clip_graph_tracking_values_iterate(sc,
 	                                   (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
 	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
 	                                   &userdata, tracking_segment_point_cb, tracking_segment_start_cb,
 	                                   tracking_segment_end_cb);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* selected knot handles on top of curves */
 	userdata.sel = true;
@@ -226,11 +227,11 @@ static void tracking_error_segment_start_cb(void *userdata, MovieTrackingTrack *
 
 		if (track == data->active_track) {
 			col[3] = 1.0f;
-			glLineWidth(2.0f);
+			GPU_line_width(2.0f);
 		}
 		else {
 			col[3] = 0.5f;
-			glLineWidth(1.0f);
+			GPU_line_width(1.0f);
 		}
 
 		immUniformColor4fv(col);
@@ -330,7 +331,7 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		glPointSize(3.0f);
+		GPU_point_size(3.0f);
 
 		if (sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) {
 			draw_tracks_motion_curves(v2d, sc, pos);

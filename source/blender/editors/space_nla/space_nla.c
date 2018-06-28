@@ -63,6 +63,7 @@
 #include "UI_view2d.h"
 
 #include "nla_intern.h" /* own include */
+#include "GPU_framebuffer.h"
 
 /* ******************** manage regions ********************* */
 
@@ -232,7 +233,7 @@ static void nla_channel_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 	UI_view2d_view_ortho(v2d);
 
@@ -278,7 +279,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 	UI_view2d_view_ortho(v2d);
 

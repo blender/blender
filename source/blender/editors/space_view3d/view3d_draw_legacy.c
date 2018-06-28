@@ -105,6 +105,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_select.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "RE_engine.h"
 
@@ -246,16 +247,16 @@ static void backdrawview3d(
 	if (rv3d->gpuoffscreen)
 		GPU_offscreen_bind(rv3d->gpuoffscreen, true);
 	else
-		glScissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
+		GPU_scissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	GPU_clear_color(0.0, 0.0, 0.0, 0.0);
 	if (v3d->zbuf) {
-		glEnable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		GPU_depth_test(true);
+		GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
 	}
 	else {
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
+		GPU_clear(GPU_COLOR_BIT);
+		GPU_depth_test(false);
 	}
 
 	if (rv3d->rflag & RV3D_CLIPPING)
@@ -274,7 +275,7 @@ static void backdrawview3d(
 
 	G.f &= ~G_BACKBUFSEL;
 	v3d->zbuf = false;
-	glDisable(GL_DEPTH_TEST);
+	GPU_depth_test(false);
 	glEnable(GL_DITHER);
 
 	if (rv3d->rflag & RV3D_CLIPPING)
@@ -684,11 +685,11 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 					ibuf = ibuf->mipmap[mip - 1];
 			}
 
-			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+			if (v3d->zbuf) GPU_depth_test(false);
 			glDepthMask(GL_FALSE);
 
-			glEnable(GL_BLEND);
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			GPU_blend(true);
+			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 			gpuPushProjectionMatrix();
 			gpuPushMatrix();
@@ -715,10 +716,10 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 			gpuPopProjectionMatrix();
 			gpuPopMatrix();
 
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 
 			glDepthMask(GL_TRUE);
-			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+			if (v3d->zbuf) GPU_depth_test(true);
 
 			if (freeibuf)
 				IMB_freeImBuf(freeibuf);
@@ -883,17 +884,17 @@ void ED_view3d_draw_depth_gpencil(
 	/* Setup view matrix. */
 	ED_view3d_draw_setup_view(NULL, depsgraph, scene, ar, v3d, NULL, NULL, NULL);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+	GPU_clear(GPU_DEPTH_BIT);
 
 	v3d->zbuf = true;
-	glEnable(GL_DEPTH_TEST);
+	GPU_depth_test(true);
 
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		ED_gpencil_draw_view3d(NULL, scene, view_layer, depsgraph, v3d, ar, true);
 	}
 
 	v3d->zbuf = zbuf;
-	if (!zbuf) glDisable(GL_DEPTH_TEST);
+	if (!zbuf) GPU_depth_test(false);
 }
 
 /* *********************** customdata **************** */

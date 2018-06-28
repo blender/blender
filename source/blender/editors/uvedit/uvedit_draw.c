@@ -64,6 +64,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
@@ -87,7 +88,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	x_fac = zoom[0];
 	y_fac = zoom[1];
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	gpuTranslate2fv(cursor);
 
@@ -96,7 +97,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 	immUniform1i("num_colors", 2);  /* "advanced" mode */
@@ -654,8 +655,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			/* draw transparent faces */
 			UI_GetThemeColor4fv(TH_FACE, col1);
 			UI_GetThemeColor4fv(TH_FACE_SELECT, col2);
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
+			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+			GPU_blend(true);
 
 			Gwn_VertFormat *format = immVertexFormat();
 			pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -691,7 +692,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 			immUnbindProgram();
 
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 		else {
 			if (efa_act && !uvedit_face_visible_test(scene, obedit, ima, efa_act)) {
@@ -706,9 +707,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	/* 4. draw edges */
 
 	if (sima->flag & SI_SMOOTH_UV) {
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_line_smooth(true);
+		GPU_blend(true);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
 
 	pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -719,13 +720,13 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
-			glGetFloatv(GL_VIEWPORT, viewport_size);
+			GPU_viewport_size_getf(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 			immUniform1i("num_colors", 2);  /* "advanced" mode */
 			immUniformArray4fv("colors", (float *)(float[][4]){{0.56f, 0.56f, 0.56f, 1.0f}, {0.07f, 0.07f, 0.07f, 1.0f}}, 2);
 			immUniform1f("dash_width", 4.0f);
-			glLineWidth(1.0f);
+			GPU_line_width(1.0f);
 
 			break;
 		}
@@ -738,13 +739,13 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			else {
 				immUniformColor3f(0.0f, 0.0f, 0.0f);
 			}
-			glLineWidth(1.0f);
+			GPU_line_width(1.0f);
 
 			break;
 		case SI_UVDT_OUTLINE:
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			imm_cpack(0x0);
-			glLineWidth(3.0f);
+			GPU_line_width(3.0f);
 
 			break;
 	}
@@ -780,7 +781,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 
 		if (sima->dt_uv == SI_UVDT_OUTLINE) {
-			glLineWidth(1.0f);
+			GPU_line_width(1.0f);
 			UI_GetThemeColor4fv(TH_WIRE_EDIT, col2);
 
 			if (me->drawflag & ME_DRAWEDGES) {
@@ -883,8 +884,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	GWN_batch_discard(loop_batch);
 
 	if (sima->flag & SI_SMOOTH_UV) {
-		glDisable(GL_LINE_SMOOTH);
-		glDisable(GL_BLEND);
+		GPU_line_smooth(false);
+		GPU_blend(false);
 	}
 
 	/* 5. draw face centers */
@@ -900,7 +901,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 		pointsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
-		glPointSize(pointsize);
+		GPU_point_size(pointsize);
 
 		immBeginAtMost(GWN_PRIM_POINTS, bm->totface);
 
@@ -961,7 +962,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		/* unselected uvs */
 		immUniformThemeColor(TH_VERTEX);
 		pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
-		glPointSize(pointsize);
+		GPU_point_size(pointsize);
 
 		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
 
@@ -980,7 +981,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 		/* pinned uvs */
 		/* give odd pointsizes odd pin pointsizes */
-		glPointSize(pointsize * 2 + (((int)pointsize % 2) ? (-1) : 0));
+		GPU_point_size(pointsize * 2 + (((int)pointsize % 2) ? (-1) : 0));
 		imm_cpack(0xFF);
 
 		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
@@ -1001,7 +1002,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 		/* selected uvs */
 		immUniformThemeColor(TH_VERTEX_SELECT);
-		glPointSize(pointsize);
+		GPU_point_size(pointsize);
 
 		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
 

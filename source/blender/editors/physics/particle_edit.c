@@ -80,6 +80,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "UI_resources.h"
 
@@ -2897,13 +2898,13 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 
 		immUniformColor4ub(255, 255, 255, 128);
 
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		GPU_line_smooth(true);
+		GPU_blend(true);
 
 		imm_draw_circle_wire_2d(pos, (float)x, (float)y, pe_brush_size_get(scene, brush), 40);
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 
 		immUnbindProgram();
 	}

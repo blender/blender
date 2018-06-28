@@ -62,6 +62,8 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_draw.h"
+#include "GPU_state.h"
+#include "GPU_framebuffer.h"
 
 #include "BLF_api.h"
 
@@ -97,8 +99,8 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
 	rect.ymax = scirct->ymax - ar->winrct.ymin;
 
 	/* set transp line */
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
 	UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
@@ -137,7 +139,7 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
 	immEnd();
 	immUnbindProgram();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
@@ -296,7 +298,7 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 
@@ -305,12 +307,12 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 	immRectf(pos, (x1 + x2 + width) * 0.5f, (y1 + y2 - width) * 0.5f, x2 - pad, (y1 + y2 + width) * 0.5f);
 
 	immUnbindProgram();
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static void region_draw_azone_tab_plus(AZone *az)
 {
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	/* add code to draw region hidden as 'too small' */
 	switch (az->edge) {
@@ -346,9 +348,9 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 	if (!sa)
 		return;
 
-	glLineWidth(1.0f);
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_line_width(1.0f);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	gpuPushMatrix();
 	gpuTranslate2f(-ar->winrct.xmin, -ar->winrct.ymin);
@@ -388,7 +390,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 
 	gpuPopMatrix();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 /* Follow wmMsgNotifyFn spec */
@@ -473,7 +475,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 	/* for debugging unneeded area redraws and partial redraw */
 #if 0
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -481,7 +483,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	immRectf(pos, ar->drawrct.xmin - ar->winrct.xmin, ar->drawrct.ymin - ar->winrct.ymin,
 	        ar->drawrct.xmax - ar->winrct.xmin, ar->drawrct.ymax - ar->winrct.ymin);
 	immUnbindProgram();
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 #endif
 
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
@@ -1817,12 +1819,12 @@ static void region_clear_color(const bContext *C, const ARegion *ar, ThemeColorI
 
 		float back[4];
 		UI_GetThemeColor4fv(colorid, back);
-		glClearColor(back[3] * back[0], back[3] * back[1], back[3] * back[2], back[3]);
-		glClear(GL_COLOR_BUFFER_BIT);
+		GPU_clear_color(back[3] * back[0], back[3] * back[1], back[3] * back[2], back[3]);
+		GPU_clear(GPU_COLOR_BIT);
 	}
 	else {
 		UI_ThemeClearColor(colorid);
-		glClear(GL_COLOR_BUFFER_BIT);
+		GPU_clear(GPU_COLOR_BIT);
 	}
 }
 
@@ -2148,7 +2150,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* reset line width for drawing tabs */
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	/* set the view */
 	UI_view2d_view_ortho(v2d);
@@ -2378,7 +2380,7 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 	const int header_height = UI_UNIT_Y;
 	uiStyle *style = UI_style_get_dpi();
 	int fontid = style->widget.uifont_id;
-	GLint scissor[4];
+	int scissor[4];
 	rcti rect;
 	int num_lines = 0;
 
@@ -2406,19 +2408,19 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 	rect.ymin = rect.ymax - header_height * num_lines;
 
 	/* setup scissor */
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor(rect.xmin, rect.ymin,
+	GPU_scissor_geti(scissor);
+	GPU_scissor(rect.xmin, rect.ymin,
 	          BLI_rcti_size_x(&rect) + 1, BLI_rcti_size_y(&rect) + 1);
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(fill_color);
 	immRecti(pos, rect.xmin, rect.ymin, rect.xmax + 1, rect.ymax + 1);
 	immUnbindProgram();
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* text */
 	UI_FontThemeColor(fontid, TH_TEXT_HI);
@@ -2438,7 +2440,7 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 	BLF_disable(fontid, BLF_CLIPPING);
 
 	/* restore scissor as it was before */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 }
 
 void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], const bool full_redraw)

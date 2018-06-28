@@ -51,6 +51,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -123,7 +124,7 @@ static void dial_geom_draw(
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 	const bool filled = (draw_options & ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL) != 0;
 
-	glLineWidth(mpr->line_width);
+	GPU_line_width(mpr->line_width);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -158,7 +159,7 @@ static void dial_geom_draw(
  */
 static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[3], const float color[4])
 {
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	gpuPushMatrix();
 	gpuRotate3f(RAD2DEGF(angle), 0.0f, 0.0f, -1.0f);
@@ -313,9 +314,9 @@ static void dial_draw_intern(
 
 		/* draw! */
 		for (int i = 0; i < 2; i++) {
-			glDisable(GL_POLYGON_SMOOTH);
+			GPU_polygon_smooth(false);
 			dial_ghostarc_draw(mpr, angle_ofs, angle_delta, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
-			glEnable(GL_POLYGON_SMOOTH);
+			GPU_polygon_smooth(true);
 
 			dial_ghostarc_draw_helpline(angle_ofs, co_outer, color); /* starting position */
 			dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, color); /* starting position + current value */
@@ -382,9 +383,9 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 		glEnable(GL_CLIP_DISTANCE0);
 	}
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	dial_draw_intern(C, mpr, false, is_highlight, clip_plane);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	if (clip_plane) {
 		glDisable(GL_CLIP_DISTANCE0);

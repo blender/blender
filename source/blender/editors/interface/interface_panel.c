@@ -63,6 +63,7 @@
 #include "UI_resources.h"
 
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "interface_intern.h"
 
@@ -486,10 +487,10 @@ static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float
 {
 
 	/* set antialias line */
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
+	GPU_line_smooth(true);
+	GPU_blend(true);
 
-	glLineWidth(2.0);
+	GPU_line_width(2.0);
 
 	immBegin(GWN_PRIM_LINES, 4);
 
@@ -501,8 +502,8 @@ static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float
 
 	immEnd();
 
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
+	GPU_line_smooth(false);
+	GPU_blend(false);
 
 }
 
@@ -529,7 +530,7 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	dx = 0.5f * (xmax - xmin);
 	dy = 0.5f * (ymax - ymin);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	immUniformColor4ub(255, 255, 255, 50);
 
 	immBegin(GWN_PRIM_LINES, 4);
@@ -554,7 +555,7 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 
 	immEnd();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static void immRectf_tris_color_ex(unsigned int pos, float x1, float y1, float x2, float y2,
@@ -696,7 +697,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		float maxx = is_closed_x ? (minx + PNL_HEADER / block->aspect) : rect->xmax;
 		float y = headrect.ymax;
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
@@ -736,7 +737,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			immEnd();
 		}
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	immUnbindProgram();
@@ -749,11 +750,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	if (show_pin)
 #endif
 	{
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		UI_icon_draw_aspect(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
 		                    (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
 		                    (block->aspect / UI_DPI_FAC), 1.0f);
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 
@@ -809,12 +810,12 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 		/* panel backdrop */
 		if (is_subpanel) {
-			glEnable(GL_BLEND);
+			GPU_blend(true);
 			immUniformThemeColor(TH_PANEL_SUB_BACK);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 		else if (UI_GetThemeValue(TH_PANEL_SHOW_BACK)) {
-			glEnable(GL_BLEND);
+			GPU_blend(true);
 			immUniformThemeColor(TH_PANEL_BACK);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
@@ -1959,14 +1960,14 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 
 	/* begin drawing */
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw the background */
 	if (is_alpha) {
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		immUniformColor4ubv(theme_col_tab_bg);
 	}
 	else {
@@ -1976,7 +1977,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	immRecti(pos, v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
 
 	if (is_alpha) {
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	immUnbindProgram();
@@ -1997,7 +1998,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		}
 #endif
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 #ifdef USE_FLAT_INACTIVE
 		if (is_active)
@@ -2047,7 +2048,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		/* main tab title */
 		BLF_draw(fontid, category_id_draw, category_draw_len);
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 
 		/* tab blackline remaining (last tab) */
 		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
@@ -2085,7 +2086,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		pc_dyn->rect.xmin = v2d->mask.xmin;
 	}
 
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 
 	BLF_disable(fontid, BLF_ROTATION);
 

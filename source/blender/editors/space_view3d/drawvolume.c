@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_state.h"
 
 #include "view3d_intern.h"  // own include
 
@@ -632,11 +633,11 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
 	glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean *)&gl_depth_write);
 
-	glEnable(GL_DEPTH_TEST);
+	GPU_depth_test(true);
 	glDepthMask(GL_FALSE);
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	draw_buffer(sds, shader, &slicer, ob_sizei, invsize, num_points, false);
 
 	/* Draw fire separately (T47639). */
@@ -655,11 +656,11 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	glDepthMask(gl_depth_write);
 
 	if (!gl_blend) {
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	if (gl_depth) {
-		glEnable(GL_DEPTH_TEST);
+		GPU_depth_test(true);
 	}
 }
 
@@ -831,7 +832,7 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 		}
 	}
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, verts);

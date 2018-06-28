@@ -57,6 +57,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -453,8 +454,8 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 /* Helper callback for drawing the cursor itself */
 static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUSED(p_ptr))
 {
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
+	GPU_line_smooth(true);
+	GPU_blend(true);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -469,8 +470,8 @@ static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUS
 
 	immUnbindProgram();
 
-	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+	GPU_blend(false);
+	GPU_line_smooth(false);
 }
 
 /* Turn brush cursor in 3D view on/off */

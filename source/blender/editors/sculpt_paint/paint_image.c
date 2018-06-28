@@ -82,6 +82,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "BIF_gl.h"
 
@@ -413,15 +414,15 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 	PaintOperation *pop = (PaintOperation *)customdata;
 
 	if (pop) {
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		GPU_line_smooth(true);
+		GPU_blend(true);
 
 		Gwn_VertFormat *format = immVertexFormat();
 		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		glLineWidth(4.0);
+		GPU_line_width(4.0);
 		immUniformColor4ub(0, 0, 0, 255);
 
 		immBegin(GWN_PRIM_LINES, 2);
@@ -429,7 +430,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		immVertex2i(pos, pop->startmouse[0], pop->startmouse[1]);
 		immEnd();
 
-		glLineWidth(2.0);
+		GPU_line_width(2.0);
 		immUniformColor4ub(255, 255, 255, 255);
 
 		immBegin(GWN_PRIM_LINES, 2);
@@ -439,8 +440,8 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 
 		immUnbindProgram();
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 	}
 }
 

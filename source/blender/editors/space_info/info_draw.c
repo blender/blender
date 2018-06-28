@@ -51,6 +51,7 @@
 
 #include "info_intern.h"
 #include "textview.h"
+#include "GPU_framebuffer.h"
 
 /* complicates things a bit, so leaving in old simple code */
 #define USE_INFO_NEWLINE
@@ -130,7 +131,7 @@ static int report_textview_begin(TextViewContext *tvc)
 	tvc->iter = reports->list.last;
 
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 #ifdef USE_INFO_NEWLINE
 	tvc->iter_tmp = 0;

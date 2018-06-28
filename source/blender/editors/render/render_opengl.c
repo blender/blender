@@ -322,8 +322,8 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			DRW_opengl_context_enable();
 			GPU_offscreen_bind(oglrender->ofs, true);
 
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+			GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
 
 			wmOrtho2(0, sizex, 0, sizey);
 			gpuTranslate2f(sizex / 2, sizey / 2);

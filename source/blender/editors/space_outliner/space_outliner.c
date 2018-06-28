@@ -63,6 +63,7 @@
 
 
 #include "outliner_intern.h"
+#include "GPU_framebuffer.h"
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -289,7 +290,7 @@ static void outliner_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear */
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 	draw_outliner(C);
 

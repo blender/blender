@@ -62,6 +62,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "UI_resources.h"
 
@@ -607,7 +608,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	}
 
 	if (load_tex(brush, vc, zoom, col, primary)) {
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glDepthMask(GL_FALSE);
@@ -726,7 +727,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	if (load_tex_cursor(brush, vc, zoom)) {
 		bool do_pop = false;
 		float center[2];
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glDepthMask(GL_FALSE);
@@ -829,7 +830,7 @@ BLI_INLINE void draw_tri_point(
 {
 	immUniformColor4fv(selected ? sel_col : pivot_col);
 
-	glLineWidth(3.0f);
+	GPU_line_width(3.0f);
 
 	float w = width / 2.0f;
 	float tri[3][2] = {
@@ -845,7 +846,7 @@ BLI_INLINE void draw_tri_point(
 	immEnd();
 
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	immBegin(GWN_PRIM_LINE_LOOP, 3);
 	immVertex2fv(pos, tri[0]);
@@ -860,7 +861,7 @@ BLI_INLINE void draw_rect_point(
 {
 	immUniformColor4fv(selected ? sel_col : handle_col);
 
-	glLineWidth(3.0f);
+	GPU_line_width(3.0f);
 
 	float w = width / 2.0f;
 	float minx = co[0] - w;
@@ -871,7 +872,7 @@ BLI_INLINE void draw_rect_point(
 	imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
 
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
 }
@@ -880,7 +881,7 @@ BLI_INLINE void draw_rect_point(
 BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], BezTriple *bez)
 {
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-	glLineWidth(3.0f);
+	GPU_line_width(3.0f);
 
 	immBegin(GWN_PRIM_LINE_STRIP, 3);
 	immVertex2fv(pos, bez->vec[0]);
@@ -888,7 +889,7 @@ BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], Bez
 	immVertex2fv(pos, bez->vec[2]);
 	immEnd();
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	if (bez->f1 || bez->f2) {
 		immUniformColor4fv(sel_col);
@@ -920,8 +921,8 @@ static void paint_draw_curve_cursor(Brush *brush)
 		PaintCurve *pc = brush->paint_curve;
 		PaintCurvePoint *cp = pc->points;
 
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		GPU_line_smooth(true);
+		GPU_blend(true);
 
 		/* draw the bezier handles and the curve segment between the current and next point */
 		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -954,7 +955,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 			float (*v)[2] = (float(*)[2])data;
 
 			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-			glLineWidth(3.0f);
+			GPU_line_width(3.0f);
 			immBegin(GWN_PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
 			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
 				immVertex2fv(pos, v[j]);
@@ -962,7 +963,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 			immEnd();
 
 			immUniformColor4f(0.9f, 0.9f, 1.0f, 0.5f);
-			glLineWidth(1.0f);
+			GPU_line_width(1.0f);
 			immBegin(GWN_PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
 			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
 				immVertex2fv(pos, v[j]);
@@ -976,8 +977,8 @@ static void paint_draw_curve_cursor(Brush *brush)
 		draw_rect_point(pos, selec_col, handle_col, &cp->bez.vec[0][0], 8.0f, cp->bez.f1 || cp->bez.f2);
 		draw_rect_point(pos, selec_col, handle_col, &cp->bez.vec[2][0], 8.0f, cp->bez.f3 || cp->bez.f2);
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 
 		immUnbindProgram();
 	}
@@ -1107,9 +1108,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	}
 
 	/* make lines pretty */
-	glLineWidth(1.0f);
-	glEnable(GL_BLEND); /* TODO: also set blend mode? */
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_width(1.0f);
+	GPU_blend(true); /* TODO: also set blend mode? */
+	GPU_line_smooth(true);
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -1129,8 +1130,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	immUnbindProgram();
 
 	/* restore GL state */
-	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+	GPU_blend(false);
+	GPU_line_smooth(false);
 }
 
 /* Public API */

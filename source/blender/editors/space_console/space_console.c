@@ -49,6 +49,7 @@
 #include "UI_view2d.h"
 
 #include "console_intern.h" // own include
+#include "GPU_framebuffer.h"
 
 /* ******************** default callbacks for console space ***************** */
 
@@ -227,7 +228,7 @@ static void console_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 	/* worlks best with no view2d matrix set */
 	UI_view2d_view_ortho(v2d);

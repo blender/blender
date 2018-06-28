@@ -54,6 +54,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "clip_intern.h"  /* own include */
 
@@ -147,7 +148,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		strip[3] = 0.5f;
 		selected_strip[3] = 1.0f;
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		clip_draw_dopesheet_background(ar, clip, pos_id);
 
@@ -279,7 +280,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 			immUnbindProgram();
 		}
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 }
 
@@ -378,7 +379,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	PropertyRNA *chan_prop_lock = RNA_struct_type_find_property(&RNA_MovieTrackingTrack, "lock");
 	BLI_assert(chan_prop_lock);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	for (channel = dopesheet->channels.first; channel; channel = channel->next) {
 		float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
 		float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
@@ -403,7 +404,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 		/* adjust y-position for next one */
 		y -= CHANNEL_STEP;
 	}
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	UI_block_end(C, block);
 	UI_block_draw(C, block);
