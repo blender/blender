@@ -1585,7 +1585,7 @@ void init_userdef_do_versions(Main *bmain)
 	}
 
 
-	if (!USER_VERSION_ATLEAST(278, 20)) {
+	if (!USER_VERSION_ATLEAST(280, 20)) {
 		U.gpu_viewport_quality = 0.6f;
 
 		/* Reset theme, old themes will not be compatible with minor version updates from now on. */
