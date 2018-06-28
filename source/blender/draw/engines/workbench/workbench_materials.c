@@ -123,10 +123,9 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 	input[3] = (uint)(material_template->material_data.roughness * 512);
 	result += BLI_ghashutil_uinthash_v4_murmur(input);
 
-	if (material_template->color_type == V3D_SHADING_TEXTURE_COLOR) {
-		/* add texture reference */
-		result += BLI_ghashutil_inthash_p_murmur(material_template->ima);
-	}
+	/* add texture reference */
+	result += BLI_ghashutil_inthash_p_murmur(material_template->ima);
+
 	return result;
 }
 
