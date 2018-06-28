@@ -1848,13 +1848,13 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				GPU_line_width(3.0f);
 
 				UI_make_axis_color(col, col2, 'X');
-				immUniformColor3ubv((GLubyte *)col2);
+				immUniformColor3ubv(col2);
 
 				drawArrow(RIGHT, 5, 10, 5);
 				drawArrow(LEFT, 5, 10, 5);
 
 				UI_make_axis_color(col, col2, 'Y');
-				immUniformColor3ubv((GLubyte *)col2);
+				immUniformColor3ubv(col2);
 
 				drawArrow(UP, 5, 10, 5);
 				drawArrow(DOWN, 5, 10, 5);
