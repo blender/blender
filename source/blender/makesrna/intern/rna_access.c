@@ -4641,6 +4641,10 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 	int type;
 	const bool do_item_ptr = r_item_ptr != NULL && !eval_pointer;
 
+	if (do_item_ptr) {
+		RNA_POINTER_INVALIDATE(&nextptr);
+	}
+
 	prop = NULL;
 	curptr = *ptr;
 
@@ -7196,6 +7200,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 static bool rna_property_override_operation_apply(
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
+        PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
         IDOverrideStaticPropertyOperation *opop);
 
 bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index)
@@ -7233,7 +7238,11 @@ bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, 
 	    .subitem_reference_index = index,
 	    .subitem_local_index = index
 	};
-	return rna_property_override_operation_apply(ptr, fromptr, NULL, prop_dst, prop_src, NULL, &opop);
+	return rna_property_override_operation_apply(
+	            ptr, fromptr, NULL,
+	            prop_dst, prop_src, NULL,
+	            NULL, NULL, NULL,
+	            &opop);
 }
 
 /* use RNA_warning macro which includes __func__ suffix */
@@ -7469,6 +7478,7 @@ static bool rna_property_override_operation_store(
 static bool rna_property_override_operation_apply(
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
+        PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
         IDOverrideStaticPropertyOperation *opop)
 {
 	int len_local, len_reference, len_storage = 0;
@@ -7540,6 +7550,7 @@ static bool rna_property_override_operation_apply(
 	            ptr_local, ptr_override, ptr_storage,
 	            prop_local, prop_override, prop_storage,
 	            len_local, len_reference, len_storage,
+	            ptr_item_local, ptr_item_override, ptr_item_storage,
 	            opop);
 }
 
@@ -7688,8 +7699,11 @@ bool RNA_struct_override_matches(
 						    .subitem_reference_index = -1,
 						    .subitem_local_index = -1
 						};
-						rna_property_override_operation_apply(ptr_local, ptr_reference, NULL,
-						                                      prop_local, prop_reference, NULL, &opop_tmp);
+						rna_property_override_operation_apply(
+						            ptr_local, ptr_reference, NULL,
+						            prop_local, prop_reference, NULL,
+						            NULL, NULL, NULL,
+						            &opop_tmp);
 						if (r_report_flags) {
 							*r_report_flags |= RNA_OVERRIDE_MATCH_RESULT_RESTORED;
 						}
@@ -7783,6 +7797,7 @@ bool RNA_struct_override_store(
 static void rna_property_override_apply_ex(
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
+        PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
         IDOverrideStaticProperty *op, const bool do_insert)
 {
 	for (IDOverrideStaticPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
@@ -7792,8 +7807,11 @@ static void rna_property_override_apply_ex(
 			}
 			continue;
 		}
-		if (!rna_property_override_operation_apply(ptr_local, ptr_override, ptr_storage,
-		                                           prop_local, prop_override, prop_storage, opop))
+		if (!rna_property_override_operation_apply(
+		        ptr_local, ptr_override, ptr_storage,
+		        prop_local, prop_override, prop_storage,
+		        ptr_item_local, ptr_item_override, ptr_item_storage,
+		        opop))
 		{
 			/* TODO No assert here, would be much much better to just report as warning,
 			 * failing override applications will probably be fairly common! */
@@ -7818,22 +7836,28 @@ void RNA_struct_override_apply(
 		for (IDOverrideStaticProperty *op = override->properties.first; op; op = op->next) {
 			/* Simplified for now! */
 			PointerRNA data_override, data_local;
+			PointerRNA data_item_override, data_item_local;
 			PropertyRNA *prop_override, *prop_local;
 
-			if (RNA_path_resolve_property(ptr_local, op->rna_path, &data_local, &prop_local) &&
-			    RNA_path_resolve_property(ptr_override, op->rna_path, &data_override, &prop_override))
+			if (RNA_path_resolve_property_and_item_pointer(
+			        ptr_local, op->rna_path, &data_local, &prop_local, &data_item_local) &&
+			    RNA_path_resolve_property_and_item_pointer(
+			        ptr_override, op->rna_path, &data_override, &prop_override, &data_item_override))
 			{
-				PointerRNA data_storage;
+				PointerRNA data_storage, data_item_storage;
 				PropertyRNA *prop_storage = NULL;
 
 				/* It is totally OK if this does not success, only a subset of override operations actually need storage. */
 				if (ptr_storage && (ptr_storage->id.data != NULL)) {
-					RNA_path_resolve_property(ptr_storage, op->rna_path, &data_storage, &prop_storage);
+					RNA_path_resolve_property_and_item_pointer(
+					            ptr_storage, op->rna_path, &data_storage, &prop_storage, &data_item_storage);
 				}
 
 				rna_property_override_apply_ex(
 				            &data_local, &data_override, prop_storage ? &data_storage : NULL,
-				            prop_local, prop_override, prop_storage, op, do_insert);
+				            prop_local, prop_override, prop_storage,
+				            &data_item_local, &data_item_override, prop_storage ? &data_item_storage : NULL,
+				            op, do_insert);
 			}
 #ifndef NDEBUG
 			else {

@@ -2008,6 +2008,7 @@ bool rna_property_override_apply_default(
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *ptr_storage,
         PropertyRNA *prop_dst, PropertyRNA *prop_src, PropertyRNA *prop_storage,
         const int len_dst, const int len_src, const int len_storage,
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage));

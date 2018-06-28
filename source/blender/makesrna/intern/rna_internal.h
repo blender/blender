@@ -208,6 +208,7 @@ bool rna_AnimaData_override_apply(
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, struct PointerRNA *ptr_storage,
         struct PropertyRNA *prop_local, struct PropertyRNA *prop_reference, struct PropertyRNA *prop_storage,
         const int len_local, const int len_reference, const int len_storage,
+        struct PointerRNA *ptr_item_local, struct PointerRNA *ptr_item_reference, struct PointerRNA *ptr_item_storage,
         struct IDOverrideStaticPropertyOperation *opop);
 
 void rna_def_animviz_common(struct StructRNA *srna);
@@ -427,6 +428,7 @@ bool rna_property_override_apply_default(
         struct PointerRNA *ptr_dst, struct PointerRNA *ptr_src, struct PointerRNA *ptr_storage,
         struct PropertyRNA *prop_dst, struct PropertyRNA *prop_src, struct PropertyRNA *prop_storage,
         const int len_dst, const int len_src, const int len_storage,
+        struct PointerRNA *ptr_item_dst, struct PointerRNA *ptr_item_src, struct PointerRNA *ptr_item_storage,
         struct IDOverrideStaticPropertyOperation *opop);
 
 

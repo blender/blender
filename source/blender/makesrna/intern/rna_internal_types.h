@@ -166,6 +166,7 @@ typedef bool (*RNAPropOverrideApply)(
         struct PointerRNA *ptr_dst, struct PointerRNA *ptr_src, struct PointerRNA *ptr_storage,
         struct PropertyRNA *prop_dst, struct PropertyRNA *prop_src, struct PropertyRNA *prop_storage,
         const int len_dst, const int len_src, const int len_storage,
+        struct PointerRNA *ptr_item_dst, struct PointerRNA *ptr_item_src, struct PointerRNA *ptr_item_storage,
         struct IDOverrideStaticPropertyOperation *opop);
 
 /* Container - generic abstracted container of RNA properties */

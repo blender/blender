@@ -1150,6 +1150,7 @@ bool rna_Object_constraints_override_apply(
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
         PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
         const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
@@ -1224,6 +1225,7 @@ bool rna_Object_modifiers_override_apply(
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
         PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
         const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
