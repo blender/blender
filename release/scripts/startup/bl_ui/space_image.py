@@ -484,6 +484,18 @@ class IMAGE_HT_header(Header):
 
         layout.prop(sima, "mode", text="")
 
+        # uv editing
+        if show_uvedit:
+            uvedit = sima.uv_editor
+
+            layout.prop(toolsettings, "use_uv_select_sync", text="")
+
+            if toolsettings.use_uv_select_sync:
+                layout.template_edit_mode_selection()
+            else:
+                layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
+                layout.prop(uvedit, "sticky_select_mode", icon_only=True)
+
         MASK_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.separator_spacer()
@@ -497,18 +509,6 @@ class IMAGE_HT_header(Header):
             row.template_ID(sima, "mask", new="mask.new")
 
         layout.separator_spacer()
-
-        # uv editing
-        if show_uvedit:
-            uvedit = sima.uv_editor
-
-            layout.prop(toolsettings, "use_uv_select_sync", text="")
-
-            if toolsettings.use_uv_select_sync:
-                layout.template_edit_mode_selection()
-            else:
-                layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
-                layout.prop(uvedit, "sticky_select_mode", icon_only=True)
 
         if show_uvedit or show_maskedit or mode == 'PAINT':
             layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
