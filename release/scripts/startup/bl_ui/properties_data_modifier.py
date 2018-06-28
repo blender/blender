@@ -990,7 +990,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
             render = max(scene.cycles.dicing_rate * ob.cycles.dicing_rate, 0.1)
             preview = max(scene.cycles.preview_dicing_rate * ob.cycles.dicing_rate, 0.1)
-            col.label("Render %.2f px, Preview %.2f px" % (render, preview))
+            col.label(f"Render {render:10.2f} px, Preview {preview:10.2f} px")
 
     def SURFACE(self, layout, ob, md):
         layout.label(text="Settings are inside the Physics tab")
