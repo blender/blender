@@ -35,6 +35,7 @@
 #include "DNA_object_force_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
@@ -1936,6 +1937,19 @@ static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)
 		 */
 		if ((ob->base_flag & BASE_SELECTED) || (ob->parent->base_flag & BASE_SELECTED)) {
 			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->parent->obmat[3]);
+			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->obmat[3]);
+		}
+	}
+
+	if (ob->rigidbody_constraint) {
+		Object *rbc_ob1 = ob->rigidbody_constraint->ob1;
+		Object *rbc_ob2 = ob->rigidbody_constraint->ob2;
+		if (rbc_ob1 && DRW_check_object_visible_within_active_context(rbc_ob1)) {
+			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, rbc_ob1->obmat[3]);
+			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->obmat[3]);
+		}
+		if (rbc_ob2 && DRW_check_object_visible_within_active_context(rbc_ob2)) {
+			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, rbc_ob2->obmat[3]);
 			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->obmat[3]);
 		}
 	}
