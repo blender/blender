@@ -54,20 +54,26 @@ class TEXT_HT_header(Header):
         layout.separator_spacer()
 
         if text:
-            osl = text.name.endswith(".osl") or text.name.endswith(".oso")
+            is_osl = text.name.endswith((".osl", ".osl"))
 
             row = layout.row()
             if text.filepath:
                 if text.is_dirty:
-                    row.label(text=iface_("File: *%r (unsaved)") %
-                              text.filepath, translate=False)
+                    row.label(
+                        iface_(f"File: *{text.filepath} (unsaved)"),
+                        translate=False,
+                    )
                 else:
-                    row.label(text=iface_("File: %r") %
-                              text.filepath, translate=False)
+                    row.label(
+                        iface_(f"File: {text.filepath}"),
+                        translate=False,
+                    )
             else:
-                row.label(text="Text: External"
-                          if text.library
-                          else "Text: Internal")
+                row.label(
+                    "Text: External"
+                    if text.library
+                    else "Text: Internal"
+                )
             if osl:
                 row = layout.row()
                 row.operator("node.shader_script_update")

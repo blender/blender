@@ -104,7 +104,11 @@ class IMAGE_MT_view(Menu):
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
         for a, b in ratios:
-            layout.operator("image.view_zoom_ratio", text=iface_("Zoom %d:%d") % (a, b), translate=False).ratio = a / b
+            layout.operator(
+                "image.view_zoom_ratio",
+                text=iface_(f"Zoom {a:d}:{b:d}"),
+                translate=False,
+            ).ratio = a / b
 
         layout.separator()
 
