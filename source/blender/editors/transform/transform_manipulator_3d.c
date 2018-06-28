@@ -1413,23 +1413,20 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 	{
 		man->twtype = 0;
 		ScrArea *sa = CTX_wm_area(C);
-		bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
-		wmKeyMap *km = tref_rt ? WM_keymap_find_all(C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW) : NULL;
-		/* Weak, check first event */
-		wmKeyMapItem *kmi = km ? km->items.first : NULL;
+		const bToolRef *tref = sa->runtime.tool;
 
-		if (kmi == NULL) {
+		if (tref == NULL || STREQ(tref->idname, "Transform")) {
 			/* Setup all manipulators, they can be toggled via 'ToolSettings.manipulator_flag' */
 			man->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 			man->use_twtype_refresh = true;
 		}
-		else if (STREQ(kmi->idname, "TRANSFORM_OT_translate")) {
+		else if (STREQ(tref->idname, "Move")) {
 			man->twtype |= SCE_MANIP_TRANSLATE;
 		}
-		else if (STREQ(kmi->idname, "TRANSFORM_OT_rotate")) {
+		else if (STREQ(tref->idname, "Rotate")) {
 			man->twtype |= SCE_MANIP_ROTATE;
 		}
-		else if (STREQ(kmi->idname, "TRANSFORM_OT_resize")) {
+		else if (STREQ(tref->idname, "Scale")) {
 			man->twtype |= SCE_MANIP_SCALE;
 		}
 		BLI_assert(man->twtype != 0);
