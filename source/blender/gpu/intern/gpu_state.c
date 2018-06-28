@@ -37,6 +37,8 @@ static GLenum gpu_get_gl_blendfunction(GPUBlendFunction blend)
 			return GL_SRC_ALPHA;
 		case GPU_ONE_MINUS_SRC_ALPHA:
 			return GL_ONE_MINUS_SRC_ALPHA;
+		case GPU_DST_COLOR:
+			return GL_DST_COLOR;
 		case GPU_ZERO:
 			return GL_ZERO;
 		default:
