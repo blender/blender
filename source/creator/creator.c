@@ -239,7 +239,7 @@ int main(
 	/* Unbuffered stdout makes stdout and stderr better synchronised, and helps
 	 * when stepping through code in a debugger (prints are immediately
 	 * visible). */
-	setbuffer(stdout, NULL, 0);
+	setvbuf(stdout, NULL, _IONBF, 0);
 
 #ifdef WIN32
 	/* We delay loading of openmp so we can set the policy here. */
