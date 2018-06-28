@@ -4680,7 +4680,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 				/* resolve pointer if further path elements follow
 				 * or explicitly requested
 				 */
-				if (eval_pointer || *path) {
+				if (eval_pointer || *path != '\0') {
 					PointerRNA nextptr = RNA_property_pointer_get(&curptr, prop);
 
 					curptr = nextptr;
@@ -4701,8 +4701,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 						return false;
 					}
 
-					/* Only reset current pointer & prop if we still have something to parse, else we lose the result! */
-					if (path[0] != '\0') {
+					if (eval_pointer || *path != '\0') {
 						curptr = nextptr;
 						prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
 						index = -1;
