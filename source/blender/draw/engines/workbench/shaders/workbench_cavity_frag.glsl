@@ -3,7 +3,6 @@ out vec4 fragColor;
 uniform sampler2D depthBuffer;
 uniform sampler2D colorBuffer;
 uniform sampler2D normalBuffer;
-uniform sampler2D positionBuffer;
 
 uniform vec2 invertedViewportSize;
 uniform mat4 WinMatrix; /* inverse WinMatrix */
