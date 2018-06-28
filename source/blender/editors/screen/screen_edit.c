@@ -212,11 +212,12 @@ static void screen_delarea(bContext *C, bScreen *sc, ScrArea *sa)
 
 /* return 0: no split possible */
 /* else return (integer) screencoordinate split point */
-static short testsplitpoint(ScrArea *sa, char dir, float fac)
+static short testsplitpoint(ScrArea *sa, const rcti *window_rect, char dir, float fac)
 {
 	short x, y;
 	const short area_min_x = AREAMINX;
-	const short area_min_y = ED_area_headersize() + 1;
+	const short area_min_y = ED_area_headersize();
+	int area_min;
 
 	// area big enough?
 	if (dir == 'v' && (sa->v4->vec.x - sa->v1->vec.x <= 2 * area_min_x)) return 0;
@@ -229,10 +230,21 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 		y = sa->v1->vec.y +
 		        round_fl_to_short(fac * (float)(sa->v2->vec.y - sa->v1->vec.y));
 
-		if (y - sa->v1->vec.y < area_min_y)
-			y = sa->v1->vec.y + area_min_y;
-		else if (sa->v2->vec.y - y < area_min_y)
-			y = sa->v2->vec.y - area_min_y;
+		area_min = area_min_y;
+
+		if (sa->v1->vec.y > window_rect->ymin) {
+			area_min += U.pixelsize;
+		}
+		if (sa->v2->vec.y < (window_rect->ymax - 1)) {
+			area_min += U.pixelsize;
+		}
+
+		if (y - sa->v1->vec.y < area_min) {
+			y = sa->v1->vec.y + area_min;
+		}
+		else if (sa->v2->vec.y - y < area_min) {
+			y = sa->v2->vec.y - area_min;
+		}
 
 		return y;
 	}
@@ -240,24 +252,38 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 		x = sa->v1->vec.x +
 		        round_fl_to_short(fac * (float)(sa->v4->vec.x - sa->v1->vec.x));
 
-		if (x - sa->v1->vec.x < area_min_x)
-			x = sa->v1->vec.x + area_min_x;
-		else if (sa->v4->vec.x - x < area_min_x)
-			x = sa->v4->vec.x - area_min_x;
+		area_min = area_min_x;
+
+		if (sa->v1->vec.x > window_rect->xmin) {
+			area_min += U.pixelsize;
+		}
+		if (sa->v4->vec.x < (window_rect->xmax - 1)) {
+			area_min += U.pixelsize;
+		}
+
+		if (x - sa->v1->vec.x < area_min) {
+			x = sa->v1->vec.x + area_min;
+		}
+		else if (sa->v4->vec.x - x < area_min) {
+			x = sa->v4->vec.x - area_min;
+		}
 
 		return x;
 	}
 }
 
-ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
+ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 {
 	ScrArea *newa = NULL;
 	ScrVert *sv1, *sv2;
 	short split;
+	rcti window_rect;
 
 	if (sa == NULL) return NULL;
 
-	split = testsplitpoint(sa, dir, fac);
+	WM_window_rect_calc(win, &window_rect);
+
+	split = testsplitpoint(sa, &window_rect, dir, fac);
 	if (split == 0) return NULL;
 
 	/* note regarding (fac > 0.5f) checks below.
