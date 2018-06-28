@@ -1518,11 +1518,11 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 	if (rbw->constraints) {
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, object)
 		{
-			if (!object->rigidbody_constraint) {
+			RigidBodyCon *rbc = object->rigidbody_constraint;
+			if (rbc == NULL || rbc->ob1 == NULL || rbc->ob2 == NULL) {
+				/* When either ob1 or ob2 is NULL, the constraint doesn't work. */
 				continue;
 			}
-
-			RigidBodyCon *rbc = object->rigidbody_constraint;
 
 			/* final result of the constraint object's transform controls how the
 			 * constraint affects the physics sim for these objects
