@@ -656,9 +656,9 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 		param_flush(ms->handle);
 
 		if (sa) {
-			BLI_snprintf(str, sizeof(str),
-			             IFACE_("Minimize Stretch. Blend %.2f (Press + and -, or scroll wheel to set)"), ms->blend);
-			ED_workspace_status_text(C, str);
+			BLI_snprintf(str, sizeof(str), IFACE_("Minimize Stretch. Blend %.2f"), ms->blend);
+			ED_area_status_text(sa, str);
+			ED_workspace_status_text(C, IFACE_("Press + and -, or scroll wheel to set blending"));
 		}
 
 		ms->lasttime = PIL_check_seconds_timer();
@@ -673,8 +673,9 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
 	MinStretch *ms = op->customdata;
 	ScrArea *sa = CTX_wm_area(C);
 
-	if (sa)
-		ED_workspace_status_text(C, NULL);
+	ED_area_status_text(sa, NULL);
+	ED_workspace_status_text(C, NULL);
+
 	if (ms->timer)
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), ms->timer);
 

@@ -1115,10 +1115,8 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 	/* do header print - if interactively previewing */
 	if (pld->state == PL_PREVIEW_RUNNING) {
 		if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
-			BLI_strncpy(pld->headerstr,
-			            IFACE_("PoseLib Previewing Pose: [Showing Original Pose] | Use Tab to start previewing poses again"),
-			            sizeof(pld->headerstr));
-			ED_workspace_status_text(C, pld->headerstr);
+			ED_area_status_text(pld->sa, IFACE_("PoseLib Previewing Pose: [Showing Original Pose]"));
+			ED_workspace_status_text(C, IFACE_("Use Tab to start previewing poses again"));
 		}
 		else if (pld->searchstr[0]) {
 			char tempstr[65];
@@ -1142,17 +1140,17 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 
 			BLI_snprintf(pld->headerstr, sizeof(pld->headerstr),
 			             IFACE_("PoseLib Previewing Pose: Filter - [%s] | "
-			                    "Current Pose - \"%s\"  | "
-			                    "Use ScrollWheel or PageUp/Down to change"),
+			                    "Current Pose - \"%s\""),
 			             tempstr, markern);
-			ED_workspace_status_text(C, pld->headerstr);
+			ED_area_status_text(pld->sa, pld->headerstr);
+			ED_workspace_status_text(C, IFACE_("Use ScrollWheel or PageUp/Down to change pose"));
 		}
 		else {
 			BLI_snprintf(pld->headerstr, sizeof(pld->headerstr),
-			             IFACE_("PoseLib Previewing Pose: \"%s\"  | "
-			                    "Use ScrollWheel or PageUp/Down to change"),
+			             IFACE_("PoseLib Previewing Pose: \"%s\""),
 			             pld->marker->name);
-			ED_workspace_status_text(C, pld->headerstr);
+			ED_area_status_text(pld->sa, pld->headerstr);
+			ED_workspace_status_text(C, NULL);
 		}
 	}
 
@@ -1602,6 +1600,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 	TimeMarker *marker = pld->marker;
 
 	/* redraw the header so that it doesn't show any of our stuff anymore */
+	ED_area_status_text(pld->sa, NULL);
 	ED_workspace_status_text(C, NULL);
 
 	/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */

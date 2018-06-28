@@ -1519,26 +1519,29 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 }
 
 
-static void sequencer_slip_update_header(bContext *C, Scene *scene, SlipData *data, int offset)
+static void sequencer_slip_update_header(Scene *scene, ScrArea *sa, SlipData *data, int offset)
 {
 	char msg[UI_MAX_DRAW_STR];
 
-	if (hasNumInput(&data->num_input)) {
-		char num_str[NUM_STR_REP_LEN];
-		outputNumInput(&data->num_input, num_str, &scene->unit);
-		BLI_snprintf(msg, sizeof(msg), IFACE_("Trim offset: %s"), num_str);
-	}
-	else {
-		BLI_snprintf(msg, sizeof(msg), IFACE_("Trim offset: %d"), offset);
+	if (sa) {
+		if (hasNumInput(&data->num_input)) {
+			char num_str[NUM_STR_REP_LEN];
+			outputNumInput(&data->num_input, num_str, &scene->unit);
+			BLI_snprintf(msg, sizeof(msg), IFACE_("Trim offset: %s"), num_str);
+		}
+		else {
+			BLI_snprintf(msg, sizeof(msg), IFACE_("Trim offset: %d"), offset);
+		}
 	}
 
-	ED_workspace_status_text(C, msg);
+	ED_area_status_text(sa, msg);
 }
 
 static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	SlipData *data = (SlipData *)op->customdata;
+	ScrArea *sa = CTX_wm_area(C);
 	const bool has_numInput = hasNumInput(&data->num_input);
 	bool handled = true;
 
@@ -1547,7 +1550,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 		float offset;
 		applyNumInput(&data->num_input, &offset);
 
-		sequencer_slip_update_header(C, scene, data, (int)offset);
+		sequencer_slip_update_header(scene, sa, data, (int)offset);
 
 		RNA_int_set(op->ptr, "offset", offset);
 
@@ -1581,7 +1584,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 				UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
 				offset = mouseloc[0] - data->init_mouseloc[0];
 
-				sequencer_slip_update_header(C, scene, data, offset);
+				sequencer_slip_update_header(scene, sa, data, offset);
 
 				RNA_int_set(op->ptr, "offset", offset);
 
@@ -1601,7 +1604,9 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 			MEM_freeN(data->ts);
 			MEM_freeN(data);
 			op->customdata = NULL;
-			ED_workspace_status_text(C, NULL);
+			if (sa) {
+				ED_area_status_text(sa, NULL);
+			}
 			WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 			return OPERATOR_FINISHED;
 		}
@@ -1631,7 +1636,10 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 			WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
 			BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
-			ED_workspace_status_text(C, NULL);
+
+			if (sa) {
+				ED_area_status_text(sa, NULL);
+			}
 
 			return OPERATOR_CANCELLED;
 		}
@@ -1659,7 +1667,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 		float offset;
 		applyNumInput(&data->num_input, &offset);
 
-		sequencer_slip_update_header(C, scene, data, (int)offset);
+		sequencer_slip_update_header(scene, sa, data, (int)offset);
 
 		RNA_int_set(op->ptr, "offset", offset);
 

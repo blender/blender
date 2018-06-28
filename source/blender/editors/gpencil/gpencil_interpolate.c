@@ -358,19 +358,20 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
 	char status_str[UI_MAX_DRAW_STR];
 	char msg_str[UI_MAX_DRAW_STR];
 
-	BLI_strncpy(msg_str, IFACE_("GPencil Interpolation: ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"), UI_MAX_DRAW_STR);
+	BLI_strncpy(msg_str, IFACE_("GPencil Interpolation: "), UI_MAX_DRAW_STR);
 
 	if (hasNumInput(&p->num)) {
 		char str_offs[NUM_STR_REP_LEN];
 
 		outputNumInput(&p->num, str_offs, &scene->unit);
-		BLI_snprintf(status_str, sizeof(status_str), "%s: %s", msg_str, str_offs);
+		BLI_snprintf(status_str, sizeof(status_str), "%s%s", msg_str, str_offs);
 	}
 	else {
-		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", msg_str, (int)((p->init_factor + p->shift)  * 100.0f));
+		BLI_snprintf(status_str, sizeof(status_str), "%s%d %%", msg_str, (int)((p->init_factor + p->shift)  * 100.0f));
 	}
 
-	ED_workspace_status_text(C, status_str);
+	ED_area_status_text(p->sa, status_str);
+	ED_workspace_status_text(C, IFACE_("ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"));
 }
 
 /* Update screen and stroke */
@@ -403,6 +404,7 @@ static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
 		}
 
 		/* clear status message area */
+		ED_area_status_text(tgpi->sa, NULL);
 		ED_workspace_status_text(C, NULL);
 
 		/* finally, free memory used by temp data */
@@ -550,6 +552,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 		case RETKEY:
 		{
 			/* return to normal cursor and header status */
+			ED_area_status_text(tgpi->sa, NULL);
 			ED_workspace_status_text(C, NULL);
 			WM_cursor_modal_restore(win);
 
@@ -585,6 +588,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 		case RIGHTMOUSE:
 		{
 			/* return to normal cursor and header status */
+			ED_area_status_text(tgpi->sa, NULL);
 			ED_workspace_status_text(C, NULL);
 			WM_cursor_modal_restore(win);
 

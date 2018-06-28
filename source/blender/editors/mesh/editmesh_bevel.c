@@ -130,7 +130,7 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 		             WM_bool_as_string(opdata->value_mode == PROFILE_VALUE),
 		             offset_str, RNA_int_get(op->ptr, "segments"), RNA_float_get(op->ptr, "profile"));
 
-		ED_workspace_status_text(C, msg);
+		ED_area_status_text(sa, msg);
 	}
 }
 
@@ -273,7 +273,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 	ScrArea *sa = CTX_wm_area(C);
 
 	if (sa) {
-		ED_workspace_status_text(C, NULL);
+		ED_area_status_text(sa, NULL);
 	}
 
 	if (opdata->is_modal) {

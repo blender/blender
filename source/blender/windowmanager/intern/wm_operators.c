@@ -2436,6 +2436,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 {
 	RadialControl *rc = op->customdata;
 	char msg[UI_MAX_DRAW_STR];
+	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
 
 	if (hasNumInput(&rc->num_input)) {
@@ -2468,7 +2469,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 		}
 	}
 
-	ED_workspace_status_text(C, msg);
+	ED_area_status_text(sa, msg);
 }
 
 static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
@@ -3002,9 +3003,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
 		rc->dial = NULL;
 	}
 
-	if (sa) {
-		ED_workspace_status_text(C, NULL);
-	}
+	ED_area_status_text(sa, NULL);
 
 	WM_paint_cursor_end(wm, rc->cursor);
 

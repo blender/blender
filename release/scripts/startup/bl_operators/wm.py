@@ -828,17 +828,17 @@ class WM_OT_context_modal_mouse(Operator):
                     header_text = header_text % eval("item.%s" % self.data_path_item)
                 else:
                     header_text = (self.header_text % delta) + " (delta)"
-                context.workspace.status_text_set(header_text)
+                context.area.header_text_set(header_text)
 
         elif 'LEFTMOUSE' == event_type:
             item = next(iter(self._values.keys()))
             self._values_clear()
-            context.workspace.status_text_set()
+            context.area.header_text_set()
             return operator_value_undo_return(item)
 
         elif event_type in {'RIGHTMOUSE', 'ESC'}:
             self._values_restore()
-            context.workspace.status_text_set()
+            context.area.header_text_set()
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}

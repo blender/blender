@@ -876,6 +876,11 @@ void ED_region_exit(bContext *C, ARegion *ar)
 	WM_event_modal_handler_region_replace(win, ar, NULL);
 	WM_draw_region_free(ar);
 
+	if (ar->headerstr) {
+		MEM_freeN(ar->headerstr);
+		ar->headerstr = NULL;
+	}
+
 	if (ar->regiontimer) {
 		WM_event_remove_timer(wm, win, ar->regiontimer);
 		ar->regiontimer = NULL;
@@ -1413,7 +1418,8 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 			}
 		}
 
-		/* prevent hanging header prints */
+		/* prevent hanging status prints */
+		ED_area_status_text(sa, NULL);
 		ED_workspace_status_text(C, NULL);
 	}
 
