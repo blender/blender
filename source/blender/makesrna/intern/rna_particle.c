@@ -607,6 +607,14 @@ static void rna_Particle_redo_dependency(Main *bmain, Scene *scene, PointerRNA *
 	rna_Particle_redo(bmain, scene, ptr);
 }
 
+static void rna_Particle_redo_count(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ParticleSettings *part = (ParticleSettings *)ptr->data;
+	DEG_relations_tag_update(bmain);
+	psys_check_group_weights(part);
+	particle_recalc(bmain, scene, ptr, PSYS_RECALC_REDO);
+}
+
 static void rna_Particle_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET);
@@ -2320,8 +2328,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_group_count", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_COUNT_GR);
-	RNA_def_property_ui_text(prop, "Use Count", "Use object multiple times in the same group");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+	RNA_def_property_ui_text(prop, "Use Count", "Use object multiple times in the same collecton");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_count");
 
 	prop = RNA_def_property(srna, "use_global_dupli", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_GLOBAL_OB);
@@ -3085,7 +3093,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dupli Collection", "Show Objects in this collection in place of particles");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_dependency");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_count");
 
 	prop = RNA_def_property(srna, "dupli_weights", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "dupliweights", NULL);

@@ -387,6 +387,35 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/************************ refresh dupli objects *********************/
+
+static int dupliob_refresh_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+
+	if (!psys)
+		return OPERATOR_CANCELLED;
+
+	psys_check_group_weights(psys->part);
+	DEG_id_tag_update(&psys->part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_dupliob_refresh(wmOperatorType *ot)
+{
+	ot->name = "Refresh Dupli Objects";
+	ot->idname = "PARTICLE_OT_dupliob_refresh";
+	ot->description = "Refresh list of dupli objects and their weights";
+
+	ot->exec = dupliob_refresh_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /************************ move up particle dupliweight operator *********************/
 
 static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
@@ -405,6 +434,7 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlinkbefore(&part->dupliweights, dw->prev, dw);
 
+			DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;
 		}
@@ -444,6 +474,7 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 			dw->flag |= PART_DUPLIW_CURRENT;
 			BLI_addhead(&part->dupliweights, dw);
 
+			DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;
 		}
@@ -490,6 +521,7 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 	if (dw)
 		dw->flag |= PART_DUPLIW_CURRENT;
 
+	DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 
 	return OPERATOR_FINISHED;
@@ -527,6 +559,7 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlinkafter(&part->dupliweights, dw->next, dw);
 
+			DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;
 		}

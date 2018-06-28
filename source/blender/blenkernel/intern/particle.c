@@ -350,73 +350,84 @@ bool psys_check_edited(ParticleSystem *psys)
 		return (psys->pointcache->edit && psys->pointcache->edit->edited);
 }
 
+void psys_find_group_weights(ParticleSettings *part)
+{
+	/* Find object pointers based on index. If the collection is linked from
+	 * another library linking may not have the object pointers available on
+	 * file load, so we have to retrieve them later. See T49273. */
+	const ListBase dup_group_objects = BKE_collection_object_cache_get(part->dup_group);
+
+	for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
+		if (dw->ob == NULL) {
+			Base *base = BLI_findlink(&dup_group_objects, dw->index);
+			if (base != NULL) {
+				dw->ob = base->object;
+			}
+		}
+	}
+}
+
 void psys_check_group_weights(ParticleSettings *part)
 {
 	ParticleDupliWeight *dw, *tdw;
-	int current = 0;
 
 	if (part->ren_as != PART_DRAW_GR || !part->dup_group) {
 		BLI_freelistN(&part->dupliweights);
 		return;
 	}
 
-	const ListBase dup_group_objects = BKE_collection_object_cache_get(part->dup_group);
-	if (dup_group_objects.first) {
-		/* First try to find NULL objects from their index,
-		 * and remove all weights that don't have an object in the group. */
-		dw = part->dupliweights.first;
-		while (dw) {
-			if (dw->ob == NULL || !BKE_collection_has_object_recursive(part->dup_group, dw->ob)) {
-				Base *base = BLI_findlink(&dup_group_objects, dw->index);
-				if (base != NULL) {
-					dw->ob = base->object;
-				}
-				else {
-					tdw = dw->next;
-					BLI_freelinkN(&part->dupliweights, dw);
-					dw = tdw;
-				}
-			}
-			else {
-				dw = dw->next;
-			}
+	/* Find object pointers. */
+	psys_find_group_weights(part);
+
+	/* Remove NULL objects, that were removed from the collection. */
+	dw = part->dupliweights.first;
+	while (dw) {
+		if (dw->ob == NULL || !BKE_collection_has_object_recursive(part->dup_group, dw->ob)) {
+			tdw = dw->next;
+			BLI_freelinkN(&part->dupliweights, dw);
+			dw = tdw;
 		}
-
-		/* then add objects in the group to new list */
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
-		{
-			dw = part->dupliweights.first;
-			while (dw && dw->ob != object) {
-				dw = dw->next;
-			}
-
-			if (!dw) {
-				dw = MEM_callocN(sizeof(ParticleDupliWeight), "ParticleDupliWeight");
-				dw->ob = object;
-				dw->count = 1;
-				BLI_addtail(&part->dupliweights, dw);
-			}
-		}
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-
-		dw = part->dupliweights.first;
-		for (; dw; dw = dw->next) {
-			if (dw->flag & PART_DUPLIW_CURRENT) {
-				current = 1;
-				break;
-			}
-		}
-
-		if (!current) {
-			dw = part->dupliweights.first;
-			if (dw)
-				dw->flag |= PART_DUPLIW_CURRENT;
+		else {
+			dw = dw->next;
 		}
 	}
-	else {
-		BLI_freelistN(&part->dupliweights);
+
+	/* Add new objects in the collection. */
+	int index = 0;
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+	{
+		dw = part->dupliweights.first;
+		while (dw && dw->ob != object) {
+			dw = dw->next;
+		}
+
+		if (!dw) {
+			dw = MEM_callocN(sizeof(ParticleDupliWeight), "ParticleDupliWeight");
+			dw->ob = object;
+			dw->count = 1;
+			BLI_addtail(&part->dupliweights, dw);
+		}
+
+		dw->index = index++;
+	}
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+
+	/* Ensure there is an element marked as current. */
+	int current = 0;
+	for (dw = part->dupliweights.first; dw; dw = dw->next) {
+		if (dw->flag & PART_DUPLIW_CURRENT) {
+			current = 1;
+			break;
+		}
+	}
+
+	if (!current) {
+		dw = part->dupliweights.first;
+		if (dw)
+			dw->flag |= PART_DUPLIW_CURRENT;
 	}
 }
+
 int psys_uses_gravity(ParticleSimulationData *sim)
 {
 	return sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY && sim->psys->part && sim->psys->part->effector_weights->global_gravity != 0.0f;

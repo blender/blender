@@ -836,7 +836,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size = 0.0;
 	float (*obmat)[4];
 	int a, b, hair = 0;
-	int totpart, totchild, totcollection = 0 /*, pa_num */;
+	int totpart, totchild;
 
 	int no_draw_flag = PARS_UNEXIST;
 
@@ -899,15 +899,26 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		}
 
 		RNG *rng = BLI_rng_new_srandom(31415926u + (unsigned int)psys->seed);
-		psys_check_group_weights(part);
 
 		psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 		/* gather list of objects or single object */
+		int totcollection = 0;
+
 		if (part->ren_as == PART_DRAW_GR) {
 			if (part->draw & PART_DRAW_COUNT_GR) {
-				for (dw = part->dupliweights.first; dw; dw = dw->next)
-					totcollection += dw->count;
+				psys_find_group_weights(part);
+
+				for (dw = part->dupliweights.first; dw; dw = dw->next) {
+					FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
+					{
+						if (dw->ob == object) {
+							totcollection += dw->count;
+							break;
+						}
+					}
+					FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
+				}
 			}
 			else {
 				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
@@ -923,14 +934,20 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 			oblist = MEM_callocN((size_t)totcollection * sizeof(Object *), "dupcollection object list");
 			obcopylist = MEM_callocN((size_t)totcollection * sizeof(Object), "dupcollection copy list");
 
-			if (part->draw & PART_DRAW_COUNT_GR && totcollection) {
-				dw = part->dupliweights.first;
-
-				for (a = 0; a < totcollection; dw = dw->next) {
-					for (b = 0; b < dw->count; b++, a++) {
-						oblist[a] = dw->ob;
-						obcopylist[a] = *dw->ob;
+			if (part->draw & PART_DRAW_COUNT_GR) {
+				a = 0;
+				for (dw = part->dupliweights.first; dw; dw = dw->next) {
+					FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
+					{
+						if (dw->ob == object) {
+							for (b = 0; b < dw->count; b++, a++) {
+								oblist[a] = dw->ob;
+								obcopylist[a] = *dw->ob;
+							}
+							break;
+						}
 					}
+					FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 				}
 			}
 			else {
@@ -940,10 +957,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					oblist[a] = object;
 					obcopylist[a] = *object;
 					a++;
-
-					if (a >= totcollection) {
-						continue;
-					}
 				}
 				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}

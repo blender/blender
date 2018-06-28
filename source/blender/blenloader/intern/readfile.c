@@ -4246,40 +4246,8 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			}
 
 			if (part->dupliweights.first && part->dup_group) {
-				ParticleDupliWeight *dw;
-				int index_ok = 0;
-				/* check for old files without indices (all indexes 0) */
-				if (BLI_listbase_is_single(&part->dupliweights)) {
-					/* special case for only one object in the group */
-					index_ok = 1;
-				}
-				else {
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						if (dw->index > 0) {
-							index_ok = 1;
-							break;
-						}
-					}
-				}
-
-				if (index_ok) {
-					/* if we have indexes, let's use them */
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						/* Do not try to restore pointer here, we have to search for group objects in another
-						 * separated step.
-						 * Reason is, the used group may be linked from another library, which has not yet
-						 * been 'lib_linked'.
-						 * Since dw->ob is not considered as an object user (it does not make objet directly linked),
-						 * we may have no valid way to retrieve it yet.
-						 * See T49273. */
-						dw->ob = NULL;
-					}
-				}
-				else {
-					/* otherwise try to get objects from own library (won't work on library linked groups) */
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
-					}
+				for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
+					dw->ob = newlibadr(fd, part->id.lib, dw->ob);
 				}
 			}
 			else {
@@ -9303,6 +9271,10 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 				}
 			}
 		}
+	}
+
+	for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
+		expand_doit(fd, mainvar, dw->ob);
 	}
 }
 

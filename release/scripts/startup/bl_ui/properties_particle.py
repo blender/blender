@@ -1275,6 +1275,8 @@ class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
         subsub.operator("particle.dupliob_remove", icon='ZOOMOUT', text="")
         subsub.operator("particle.dupliob_move_up", icon='TRIA_UP', text="")
         subsub.operator("particle.dupliob_move_down", icon='TRIA_DOWN', text="")
+        subsub.separator()
+        subsub.operator("particle.dupliob_refresh", icon='FILE_REFRESH', text="")
 
         weight = part.active_dupliweight
         if weight:
