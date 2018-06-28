@@ -74,7 +74,7 @@ class TEXT_HT_header(Header):
                     if text.library
                     else "Text: Internal"
                 )
-            if osl:
+            if is_osl:
                 row = layout.row()
                 row.operator("node.shader_script_update")
             else:
