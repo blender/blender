@@ -89,7 +89,6 @@ kmi = km.keymap_items.new('screen.screen_set', 'LEFT_ARROW', 'PRESS', ctrl=True)
 kmi.properties.delta = -1
 kmi = km.keymap_items.new('screen.screen_full_area', 'SPACE', 'PRESS', shift=True)
 kmi = km.keymap_items.new('screen.screenshot', 'F3', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('screen.screencast', 'F3', 'PRESS', alt=True)
 kmi = km.keymap_items.new('screen.region_quadview', 'SPACE', 'PRESS')
 kmi = km.keymap_items.new('screen.repeat_history', 'F3', 'PRESS')
 kmi = km.keymap_items.new('screen.repeat_last', 'G', 'PRESS')
@@ -1931,4 +1930,3 @@ kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('transform.translate', 'W', 'PRESS')
 kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_S', 'ANY')
 kmi = km.keymap_items.new('transform.resize', 'R', 'PRESS')
-

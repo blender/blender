@@ -447,7 +447,6 @@ enum {
 	WM_JOB_TYPE_COMPOSITE,
 	WM_JOB_TYPE_RENDER,
 	WM_JOB_TYPE_RENDER_PREVIEW,  /* UI preview */
-	WM_JOB_TYPE_SCREENCAST,
 	WM_JOB_TYPE_OBJECT_SIM_OCEAN,
 	WM_JOB_TYPE_OBJECT_SIM_FLUID,
 	WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
@@ -462,7 +461,7 @@ enum {
 	WM_JOB_TYPE_POINTCACHE,
 	WM_JOB_TYPE_DPAINT_BAKE,
 	WM_JOB_TYPE_ALEMBIC,
-	/* add as needed, screencast, seq proxy build
+	/* add as needed, seq proxy build
 	 * if having hard coded values is a problem */
 };
 
@@ -554,4 +553,3 @@ void WM_tooltip_refresh(struct bContext *C, struct wmWindow *win);
 #endif
 
 #endif /* __WM_API_H__ */
-

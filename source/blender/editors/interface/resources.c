@@ -2325,10 +2325,6 @@ void init_userdef_do_versions(Main *bmain)
 		if (U.dbl_click_time == 0) {
 			U.dbl_click_time = 350;
 		}
-		if (U.scrcastfps == 0) {
-			U.scrcastfps = 10;
-			U.scrcastwait = 50;
-		}
 		if (U.v2d_min_gridsize == 0) {
 			U.v2d_min_gridsize = 35;
 		}

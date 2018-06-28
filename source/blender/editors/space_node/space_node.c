@@ -747,7 +747,6 @@ static void node_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegi
 			break;
 		case NC_SCREEN:
 			switch (wmn->data) {
-				case ND_SCREENCAST:
 				case ND_ANIMPLAY:
 					ED_region_tag_redraw(ar);
 					break;
@@ -968,4 +967,3 @@ void ED_spacetype_node(void)
 
 	BKE_spacetype_register(st);
 }
-

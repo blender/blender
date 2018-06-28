@@ -530,7 +530,7 @@ static void sequencer_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCREEN:
-			if (ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
+			if (ELEM(wmn->data, ND_ANIMPLAY))
 				ED_region_tag_redraw(ar);
 			break;
 	}

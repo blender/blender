@@ -527,8 +527,7 @@ typedef struct UserDef {
 	int view_frame_keyframes; /* number of keyframes to zoom around current frame */
 	float view_frame_seconds; /* seconds to zoom around current frame */
 
-	short scrcastfps;		/* frame rate for screencast to be played back */
-	short scrcastwait;		/* milliseconds between screencast snapshots */
+	char _pad0[4];
 
 	short widget_unit;		/* private, defaults to 20 for 72 DPI setting */
 	short anisotropic_filter;

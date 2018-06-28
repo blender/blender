@@ -91,7 +91,6 @@ kmi = km.keymap_items.new('screen.screen_full_area', 'UP_ARROW', 'PRESS', ctrl=T
 kmi = km.keymap_items.new('screen.screen_full_area', 'DOWN_ARROW', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('screen.screen_full_area', 'SPACE', 'PRESS', shift=True)
 kmi = km.keymap_items.new('screen.screenshot', 'F3', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('screen.screencast', 'F3', 'PRESS', alt=True)
 kmi = km.keymap_items.new('screen.region_quadview', 'W', 'PRESS', alt=True)
 kmi = km.keymap_items.new('screen.repeat_history', 'F3', 'PRESS', shift=True)
 kmi = km.keymap_items.new('screen.repeat_last', 'R', 'PRESS', shift=True)
@@ -2449,4 +2448,3 @@ kmi = km.keymap_items.new_modal('SELECT', 'LEFTMOUSE', 'RELEASE', any=True)
 kmi = km.keymap_items.new_modal('SELECT', 'RIGHTMOUSE', 'RELEASE', any=True)
 kmi = km.keymap_items.new_modal('BEGIN', 'MIDDLEMOUSE', 'PRESS')
 kmi = km.keymap_items.new_modal('DESELECT', 'MIDDLEMOUSE', 'RELEASE')
-
