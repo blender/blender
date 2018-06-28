@@ -864,7 +864,7 @@ static void curve_calc_modifiers_pre(
 				deformedVerts = BKE_curve_nurbs_vertexCos_get(nurb, &numVerts);
 			}
 
-			modifier_deformVerts_DM_deprecated(md, &mectx, NULL, deformedVerts, numVerts);
+			modifier_deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
 
 			if (md == pretessellatePoint)
 				break;

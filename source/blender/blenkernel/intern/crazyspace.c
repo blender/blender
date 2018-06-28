@@ -404,7 +404,7 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph, Scene *scene, Obje
 				if ((mti->deformMatrices || mti->deformMatrices_DM) && !deformed)
 					continue;
 
-				modifier_deformVerts_DM_deprecated(md, &mectx, NULL, deformedVerts, me->totvert);
+				modifier_deformVerts(md, &mectx, NULL, deformedVerts, me->totvert);
 				deformed = 1;
 			}
 		}
