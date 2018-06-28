@@ -124,7 +124,10 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 	result += BLI_ghashutil_uinthash_v4_murmur(input);
 
 	/* add texture reference */
-	result += BLI_ghashutil_inthash_p_murmur(material_template->ima);
+	if (material_template->ima)
+	{
+		result += BLI_ghashutil_inthash_p_murmur(material_template->ima);
+	}
 
 	return result;
 }
