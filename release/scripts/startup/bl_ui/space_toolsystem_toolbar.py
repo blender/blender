@@ -131,36 +131,39 @@ class _defs_transform:
     def translate():
         return dict(
             text="Move",
-            cursor='SCROLL_XY',
+            # cursor='SCROLL_XY',
             icon="ops.transform.translate",
             widget="TRANSFORM_WGT_manipulator",
-            keymap=(
-                ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            # TODO, implement as optional fallback manipulator
+            # keymap=(
+            #     ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            # ),
         )
 
     @ToolDef.from_fn
     def rotate():
         return dict(
             text="Rotate",
-            cursor='SCROLL_XY',
+            # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
             widget="TRANSFORM_WGT_manipulator",
-            keymap=(
-                ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            # TODO, implement as optional fallback manipulator
+            # keymap=(
+            #     ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            # ),
         )
 
     @ToolDef.from_fn
     def scale():
         return dict(
             text="Scale",
-            cursor='SCROLL_XY',
+            # cursor='SCROLL_XY',
             icon="ops.transform.resize",
             widget="TRANSFORM_WGT_manipulator",
-            keymap=(
-                ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            # TODO, implement as optional fallback manipulator
+            # keymap=(
+            #     ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            # ),
         )
 
     @ToolDef.from_fn
