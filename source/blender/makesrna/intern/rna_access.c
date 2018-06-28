@@ -4608,17 +4608,38 @@ static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, Prope
 	return true;
 }
 
+/**
+ * Generic rna path parser.
+ *
+ * \note All parameters besides \a ptr and \a path are optional.
+ *
+ * \param ptr The root of given RNA path.
+ * \param path The RNA path.
+ * \param r_ptr The final RNA data holding the last property in \a path.
+ * \param r_prop The final property of \a r_ptr, from \a path.
+ * \param r_index The final index in the \a r_prop, if defined by \a path.
+ * \param r_item_ptr Only valid for Pointer and Collection, return the actual value of the pointer,
+ *                   or of the collection item. Mutually exclusive with \a eval_pointer option.
+ * \param r_elements A list of \a PropertyElemRNA items
+ *                   (pairs of \a PointerRNA, \a PropertyRNA that represent the whole given \a path).
+ * \param eval_pointer If \a true, and \a path leads to a Pointer property, or an item in a Collection property,
+ *                     \a r_ptr will be set to the value of that property, and \a r_prop will be NULL.
+ *                     Mutually exclusive with \a r_item_ptr.
+ * \return \a true on success, \a false if the path is somehow invalid.
+ */
 static bool rna_path_parse(PointerRNA *ptr, const char *path,
                            PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index,
-                           ListBase *r_elements,
+                           PointerRNA *r_item_ptr, ListBase *r_elements,
                            const bool eval_pointer)
 {
+	BLI_assert(r_item_ptr == NULL || !eval_pointer);
 	PropertyRNA *prop;
-	PointerRNA curptr;
+	PointerRNA curptr, nextptr;
 	PropertyElemRNA *prop_elem = NULL;
 	int index = -1;
 	char fixedbuf[256];
 	int type;
+	const bool do_item_ptr = r_item_ptr != NULL && !eval_pointer;
 
 	prop = NULL;
 	curptr = *ptr;
@@ -4627,6 +4648,10 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 		return false;
 
 	while (*path) {
+		if (do_item_ptr) {
+			RNA_POINTER_INVALIDATE(&nextptr);
+		}
+
 		int use_id_prop = (*path == '[') ? 1 : 0;
 		char *token;
 		/* custom property lookup ?
@@ -4680,9 +4705,11 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 				/* resolve pointer if further path elements follow
 				 * or explicitly requested
 				 */
-				if (eval_pointer || *path != '\0') {
-					PointerRNA nextptr = RNA_property_pointer_get(&curptr, prop);
+				if (do_item_ptr || eval_pointer || *path != '\0') {
+					nextptr = RNA_property_pointer_get(&curptr, prop);
+				}
 
+				if (eval_pointer || *path != '\0') {
 					curptr = nextptr;
 					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
 					index = -1;
@@ -4692,11 +4719,9 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 			case PROP_COLLECTION: {
 				/* Resolve pointer if further path elements follow.
 				 * Note that if path is empty, rna_path_parse_collection_key will do nothing anyway,
-				 * so eval_pointer is of no use here (esp. as in this case, we want to keep found prop,
-				 * erasing it breaks operators - e.g. bpy.types.Operator.bl_rna.foobar errors...).
+				 * so do_item_ptr is of no use in that case.
 				 */
 				if (*path) {
-					PointerRNA nextptr;
 					if (!rna_path_parse_collection_key(&path, &curptr, prop, &nextptr)) {
 						return false;
 					}
@@ -4723,12 +4748,18 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 		}
 	}
 
-	if (r_ptr)
+	if (r_ptr) {
 		*r_ptr = curptr;
-	if (r_prop)
+	}
+	if (r_prop) {
 		*r_prop = prop;
-	if (r_index)
+	}
+	if (r_index) {
 		*r_index = index;
+	}
+	if (r_item_ptr && do_item_ptr) {
+		*r_item_ptr = nextptr;
+	}
 
 	if (prop_elem && (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop || prop_elem->index != index)) {
 		prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
@@ -4749,7 +4780,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
  */
 bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, true))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, NULL, true))
 		return false;
 
 	return r_ptr->data != NULL;
@@ -4763,7 +4794,7 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prop
  */
 bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, true))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, true))
 		return false;
 
 	return r_ptr->data != NULL;
@@ -4778,7 +4809,7 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
  */
 bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, false)) {
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, NULL, false)) {
 		return false;
 	}
 
@@ -4795,12 +4826,50 @@ bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_
  */
 bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, false))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, false))
 		return false;
 
 	return r_ptr->data != NULL && *r_prop != NULL;
 }
 
+/**
+ * Resolve the given RNA Path to find both the pointer AND property indicated by fully resolving the path,
+ * and get the value of the Pointer property (or item of the collection).
+ *
+ * This is a convenience method to avoid logic errors and ugly syntax, it combines both \a RNA_path_resolve and
+ * \a RNA_path_resolve_property in a single call.
+ * \note Assumes all pointers provided are valid.
+ * \param r_item_pointer The final Pointer or Collection item value. You must check for its validity before use!
+ * \return True only if both a valid pointer and property are found after resolving the path
+ */
+bool RNA_path_resolve_property_and_item_pointer(
+        PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, PointerRNA *r_item_ptr)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, r_item_ptr, NULL, false)) {
+		return false;
+	}
+
+	return r_ptr->data != NULL && *r_prop != NULL;
+}
+
+/**
+ * Resolve the given RNA Path to find both the pointer AND property (as well as the array index)
+ * indicated by fully resolving the path, and get the value of the Pointer property (or item of the collection).
+ *
+ * This is a convenience method to avoid logic errors and ugly syntax, it combines both \a RNA_path_resolve_full and
+ * \a RNA_path_resolve_property_full in a single call.
+ * \note Assumes all pointers provided are valid.
+ * \param r_item_pointer The final Pointer or Collection item value. You must check for its validity before use!
+ * \return True only if both a valid pointer and property are found after resolving the path
+ */
+bool RNA_path_resolve_property_and_item_pointer_full(
+        PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index, PointerRNA *r_item_ptr)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, r_item_ptr, NULL, false))
+		return false;
+
+	return r_ptr->data != NULL && *r_prop != NULL;
+}
 /**
  * Resolve the given RNA Path into a linked list of PropertyElemRNA's.
  *
@@ -4812,7 +4881,7 @@ bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRN
  */
 bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_elements)
 {
-	return rna_path_parse(ptr, path, NULL, NULL, NULL, r_elements, false);
+	return rna_path_parse(ptr, path, NULL, NULL, NULL, NULL, r_elements, false);
 }
 
 char *RNA_path_append(const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *prop, int intkey, const char *strkey)

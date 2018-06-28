@@ -1007,6 +1007,16 @@ bool RNA_path_resolve_property(PointerRNA *ptr, const char *path,
 bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path,
                                     PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
 
+/* path_resolve_property_and_item_pointer() variants ensure that pointer + property both exist,
+ * and resolve last Pointer value if possible (Pointer prop or item of a Collection prop). */
+bool RNA_path_resolve_property_and_item_pointer(
+        PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop,
+        PointerRNA *r_item_ptr);
+
+bool RNA_path_resolve_property_and_item_pointer_full(
+        PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index,
+        PointerRNA *r_item_ptr);
+
 typedef struct PropertyElemRNA PropertyElemRNA;
 struct PropertyElemRNA {
 	PropertyElemRNA *next, *prev;
