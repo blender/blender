@@ -163,7 +163,7 @@ class SpellChecker:
         "rolloff",
         "runtime",
         "scanline",
-        "screencast", "screenshot", "screenshots",
+        "screenshot", "screenshots",
         "seekability",
         "selfcollision",
         "shadowbuffer", "shadowbuffers",

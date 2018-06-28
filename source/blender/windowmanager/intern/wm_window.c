@@ -1314,11 +1314,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				state = GHOST_GetWindowState(win->ghostwin);
 				win->windowstate = state;
 
-				/* stop screencast if resize */
-				if (type == GHOST_kEventWindowSize) {
-					WM_jobs_stop(wm, WM_window_get_active_screen(win), NULL);
-				}
-
 				WM_window_set_dpi(win);
 
 				/* win32: gives undefined window size when minimized */

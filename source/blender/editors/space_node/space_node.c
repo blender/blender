@@ -772,7 +772,6 @@ static void node_region_listener(
 				WM_manipulatormap_tag_refresh(mmap);
 			}
 			switch (wmn->data) {
-				case ND_SCREENCAST:
 				case ND_ANIMPLAY:
 				case ND_LAYER:
 					ED_region_tag_redraw(ar);

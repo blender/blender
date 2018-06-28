@@ -115,7 +115,7 @@ static void statusbar_header_region_listener(
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SCREEN:
-			if (ELEM(wmn->data, ND_LAYER, ND_SCREENCAST, ND_ANIMPLAY)) {
+			if (ELEM(wmn->data, ND_LAYER, ND_ANIMPLAY)) {
 				ED_region_tag_redraw(ar);
 			}
 			break;
