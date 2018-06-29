@@ -40,10 +40,10 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_matrix.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_image.h"
@@ -155,79 +155,6 @@ void get_texture_coords_mesh(
 	}
 }
 
-void get_texture_coords(
-        MappingInfoModifierData *dmd, Object *ob,
-        DerivedMesh *dm,
-        float (*co)[3], float (*texco)[3],
-        int numVerts)
-{
-	int i;
-	int texmapping = dmd->texmapping;
-	float mapob_imat[4][4];
-
-	if (texmapping == MOD_DISP_MAP_OBJECT) {
-		if (dmd->map_object)
-			invert_m4_m4(mapob_imat, dmd->map_object->obmat);
-		else /* if there is no map object, default to local */
-			texmapping = MOD_DISP_MAP_LOCAL;
-	}
-
-	/* UVs need special handling, since they come from faces */
-	if (texmapping == MOD_DISP_MAP_UV) {
-		if (CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
-			MPoly *mpoly = dm->getPolyArray(dm);
-			MPoly *mp;
-			MLoop *mloop = dm->getLoopArray(dm);
-			char *done = MEM_calloc_arrayN(numVerts, sizeof(*done),
-			                         "get_texture_coords done");
-			int numPolys = dm->getNumPolys(dm);
-			char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-			MLoopUV *mloop_uv;
-
-			CustomData_validate_layer_name(&dm->loopData, CD_MLOOPUV, dmd->uvlayer_name, uvname);
-			mloop_uv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, uvname);
-
-			/* verts are given the UV from the first face that uses them */
-			for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
-				unsigned int fidx = mp->totloop - 1;
-
-				do {
-					unsigned int lidx = mp->loopstart + fidx;
-					unsigned int vidx = mloop[lidx].v;
-
-					if (done[vidx] == 0) {
-						/* remap UVs from [0, 1] to [-1, 1] */
-						texco[vidx][0] = (mloop_uv[lidx].uv[0] * 2.0f) - 1.0f;
-						texco[vidx][1] = (mloop_uv[lidx].uv[1] * 2.0f) - 1.0f;
-						done[vidx] = 1;
-					}
-
-				} while (fidx--);
-			}
-
-			MEM_freeN(done);
-			return;
-		}
-		else /* if there are no UVs, default to local */
-			texmapping = MOD_DISP_MAP_LOCAL;
-	}
-
-	for (i = 0; i < numVerts; ++i, ++co, ++texco) {
-		switch (texmapping) {
-			case MOD_DISP_MAP_LOCAL:
-				copy_v3_v3(*texco, *co);
-				break;
-			case MOD_DISP_MAP_GLOBAL:
-				mul_v3_m4v3(*texco, ob->obmat, *co);
-				break;
-			case MOD_DISP_MAP_OBJECT:
-				mul_v3_m4v3(*texco, ob->obmat, *co);
-				mul_m4_v3(mapob_imat, *texco);
-				break;
-		}
-	}
-}
-
 void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 {
 	while ((md = md->next) && md->type == eModifierType_Armature) {
@@ -238,60 +165,6 @@ void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 			break;
 	}
 	/* lattice/mesh modifier too */
-}
-
-/* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
-DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], bool use_normals)
-{
-	if (dm) {
-		if (dm->type != DM_TYPE_CDDM) {
-			dm = CDDM_copy(dm);
-		}
-		CDDM_apply_vert_coords(dm, vertexCos);
-
-		if (use_normals) {
-			DM_ensure_normals(dm);
-		}
-	}
-	else {
-		dm = get_dm(ob, em, dm, vertexCos, use_normals, false);
-	}
-
-	return dm;
-}
-
-/* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
-DerivedMesh *get_dm(
-        Object *ob, struct BMEditMesh *em, DerivedMesh *dm,
-        float (*vertexCos)[3], bool use_normals, bool use_orco)
-{
-	if (dm) {
-		/* pass */
-	}
-	else if (ob->type == OB_MESH) {
-		if (em) dm = CDDM_from_editbmesh(em, false, false);
-		else dm = CDDM_from_mesh((struct Mesh *)(ob->data));
-
-		if (vertexCos) {
-			CDDM_apply_vert_coords(dm, vertexCos);
-			dm->dirty |= DM_DIRTY_NORMALS;
-		}
-
-		if (use_orco) {
-			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
-		}
-	}
-	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
-		dm = CDDM_from_curve(ob);
-	}
-
-	if (use_normals) {
-		if (LIKELY(dm)) {
-			DM_ensure_normals(dm);
-		}
-	}
-
-	return dm;
 }
 
 /* returns a mesh if mesh == NULL, for deforming modifiers that need it */
@@ -343,33 +216,6 @@ Mesh *get_mesh(
 	}
 
 	return mesh;
-}
-
-/* Get derived mesh for other object, which is used as an operand for the modifier,
- * i.e. second operand for boolean modifier.
- */
-DerivedMesh *get_dm_for_modifier(Object *ob, ModifierApplyFlag flag)
-{
-	if (flag & MOD_APPLY_RENDER) {
-		/* TODO(sergey): Use proper derived render in the future. */
-		return ob->derivedFinal;
-	}
-	else {
-		return ob->derivedFinal;
-	}
-}
-
-void modifier_get_vgroup(Object *ob, DerivedMesh *dm, const char *name, MDeformVert **dvert, int *defgrp_index)
-{
-	*defgrp_index = defgroup_name_index(ob, name);
-	*dvert = NULL;
-
-	if (*defgrp_index != -1) {
-		if (ob->type == OB_LATTICE)
-			*dvert = BKE_lattice_deform_verts_get(ob);
-		else if (dm)
-			*dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	}
 }
 
 /* TODO(sybren): replace the above function with this one, once we got rid of DerivedMesh for modifiers. */

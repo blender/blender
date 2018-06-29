@@ -50,7 +50,6 @@ struct Main;
 struct Object;
 struct Scene;
 struct Depsgraph;
-struct DerivedMesh;
 struct ModifierData;
 struct MTFace;
 struct MCol;
