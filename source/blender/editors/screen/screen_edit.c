@@ -215,20 +215,21 @@ static void screen_delarea(bContext *C, bScreen *sc, ScrArea *sa)
 static short testsplitpoint(ScrArea *sa, const rcti *window_rect, char dir, float fac)
 {
 	short x, y;
+	const int cur_area_width = area_geometry_width(sa);
+	const int cur_area_height = area_geometry_height(sa);
 	const short area_min_x = AREAMINX;
 	const short area_min_y = ED_area_headersize();
 	int area_min;
 
 	// area big enough?
-	if (dir == 'v' && (sa->v4->vec.x - sa->v1->vec.x <= 2 * area_min_x)) return 0;
-	if (dir == 'h' && (sa->v2->vec.y - sa->v1->vec.y <= 2 * area_min_y)) return 0;
+	if (dir == 'v' && (cur_area_width <= 2 * area_min_x)) return 0;
+	if (dir == 'h' && (cur_area_height <= 2 * area_min_y)) return 0;
 
 	// to be sure
 	CLAMP(fac, 0.0f, 1.0f);
 
 	if (dir == 'h') {
-		y = sa->v1->vec.y +
-		        round_fl_to_short(fac * (float)(sa->v2->vec.y - sa->v1->vec.y));
+		y = sa->v1->vec.y + round_fl_to_short(fac * cur_area_height);
 
 		area_min = area_min_y;
 
@@ -249,8 +250,7 @@ static short testsplitpoint(ScrArea *sa, const rcti *window_rect, char dir, floa
 		return y;
 	}
 	else {
-		x = sa->v1->vec.x +
-		        round_fl_to_short(fac * (float)(sa->v4->vec.x - sa->v1->vec.x));
+		x = sa->v1->vec.x + round_fl_to_short(fac * cur_area_width);
 
 		area_min = area_min_x;
 
@@ -447,6 +447,15 @@ void screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new)
 }
 
 
+int area_geometry_height(const ScrArea *area)
+{
+	return area->v2->vec.y - area->v1->vec.y + 1;
+}
+int area_geometry_width(const ScrArea *area)
+{
+	return area->v4->vec.x - area->v1->vec.x + 1;
+}
+
 /* with sa as center, sb is located at: 0=W, 1=N, 2=E, 3=S */
 /* -1 = not valid check */
 /* used with join operator */
@@ -611,19 +620,19 @@ static void screen_vertices_scale(
 
 	/* if the window's Y axis grows, clamp header sized areas */
 	if (screen_size_y_prev < screen_size_y) {  /* growing? */
-		const int headery_margin_max = headery_init + 4;
+		const int headery_margin_max = headery_init + 5;
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 			sa->temp = 0;
 
 			if (ar && !(ar->flag & RGN_FLAG_HIDDEN)) {
 				if (sa->v2->vec.y == max[1]) {
-					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_margin_max) {
+					if (area_geometry_height(sa) < headery_margin_max) {
 						sa->temp = TEMP_TOP;
 					}
 				}
 				else if (sa->v1->vec.y == min[1]) {
-					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_margin_max) {
+					if (area_geometry_height(sa) < headery_margin_max) {
 						sa->temp = TEMP_BOTTOM;
 					}
 				}
@@ -712,7 +721,7 @@ static void screen_vertices_scale(
 		if (sa->v2->vec.y < window_rect->ymax)
 			headery += U.pixelsize;
 
-		if (sa->v2->vec.y - sa->v1->vec.y + 1 < headery) {
+		if (area_geometry_height(sa) < headery) {
 			/* lower edge */
 			ScrEdge *se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
 			if (se && sa->v1 != sa->v2) {

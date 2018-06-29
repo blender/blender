@@ -1282,7 +1282,7 @@ static void area_move_set_limits(
 			if (sa->v2->vec.y < (window_rect.ymax - 1))
 				areamin += U.pixelsize;
 
-			y1 = sa->v2->vec.y - sa->v1->vec.y + 1 - areamin;
+			y1 = area_geometry_height(sa) - areamin;
 
 			/* if top or down edge selected, test height */
 			if (sa->v1->editflag && sa->v4->editflag)
@@ -1299,7 +1299,7 @@ static void area_move_set_limits(
 			if (sa->v4->vec.x < (window_rect.xmax - 1))
 				areamin += U.pixelsize;
 
-			x1 = sa->v4->vec.x - sa->v1->vec.x + 1 - areamin;
+			x1 = area_geometry_width(sa) - areamin;
 
 			/* if left or right edge selected, test width */
 			if (sa->v1->editflag && sa->v2->editflag)
@@ -1460,7 +1460,7 @@ static void area_move_apply_do(
 		ED_screen_areas_iter(win, sc, sa) {
 			if (sa->v1->editflag || sa->v2->editflag || sa->v3->editflag || sa->v4->editflag) {
 				if (ED_area_is_global(sa)) {
-					sa->global->cur_fixed_height = round_fl_to_int((sa->v2->vec.y - sa->v1->vec.y) / UI_DPI_FAC);
+					sa->global->cur_fixed_height = round_fl_to_int(area_geometry_height(sa) / UI_DPI_FAC);
 					sc->do_refresh = true;
 					redraw_all = true;
 				}

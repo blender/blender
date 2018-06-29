@@ -55,6 +55,8 @@ void        screen_change_update(struct bContext *C, wmWindow *win, bScreen *sc)
 bScreen    *screen_change_prepare(bScreen *screen_old, bScreen *screen_new, struct Main *bmain, struct bContext *C, wmWindow *win);
 ScrArea    *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac, int merge);
 int         screen_area_join(struct bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2);
+int         area_geometry_height(const ScrArea *area);
+int         area_geometry_width(const ScrArea *area);
 int         area_getorientation(ScrArea *sa, ScrArea *sb);
 void        select_connected_scredge(const wmWindow *win, ScrEdge *edge);
 
