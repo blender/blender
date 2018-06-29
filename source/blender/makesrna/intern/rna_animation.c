@@ -586,6 +586,7 @@ static FCurve *rna_Driver_find(AnimData *adt, ReportList *reports, const char *d
 }
 
 bool rna_AnimaData_override_apply(
+        Main *UNUSED(bmain),
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *ptr_storage,
         PropertyRNA *prop_dst, PropertyRNA *prop_src, PropertyRNA *UNUSED(prop_storage),
         const int len_dst, const int len_src, const int len_storage,

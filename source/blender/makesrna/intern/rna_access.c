@@ -7198,12 +7198,13 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 }
 
 static bool rna_property_override_operation_apply(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
         PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
         IDOverrideStaticPropertyOperation *opop);
 
-bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index)
+bool RNA_property_copy(Main *bmain, PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index)
 {
 	if (!RNA_property_editable(ptr, prop)) {
 		return false;
@@ -7239,6 +7240,7 @@ bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, 
 	    .subitem_local_index = index
 	};
 	return rna_property_override_operation_apply(
+	            bmain,
 	            ptr, fromptr, NULL,
 	            prop_dst, prop_src, NULL,
 	            NULL, NULL, NULL,
@@ -7268,17 +7270,18 @@ void _RNA_warning(const char *format, ...)
 }
 
 static int rna_property_override_diff(
+        Main *bmain,
         PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
         eRNACompareMode mode, IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags);
 
-bool RNA_property_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, eRNACompareMode mode)
+bool RNA_property_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, eRNACompareMode mode)
 {
 	BLI_assert(ELEM(mode, RNA_EQ_STRICT, RNA_EQ_UNSET_MATCH_ANY, RNA_EQ_UNSET_MATCH_NONE));
 
-	return (rna_property_override_diff(ptr_a, ptr_b, prop, NULL, NULL, NULL, mode, NULL, 0, NULL) == 0);
+	return (rna_property_override_diff(bmain, ptr_a, ptr_b, prop, NULL, NULL, NULL, mode, NULL, 0, NULL) == 0);
 }
 
-bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
+bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
 {
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop;
@@ -7297,7 +7300,7 @@ bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mod
 	for (; iter.valid; RNA_property_collection_next(&iter)) {
 		PropertyRNA *prop = iter.ptr.data;
 
-		if (!RNA_property_equals(ptr_a, ptr_b, prop, mode)) {
+		if (!RNA_property_equals(bmain, ptr_a, ptr_b, prop, mode)) {
 			equals = false;
 			break;
 		}
@@ -7320,6 +7323,7 @@ bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mod
  * \note When there is no equality, but we cannot determine an order (greater than/lesser than), we return 1.
  */
 static int rna_property_override_diff(
+        Main *bmain,
         PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b,
         const char *rna_path, eRNACompareMode mode,
         IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags)
@@ -7419,6 +7423,7 @@ static int rna_property_override_diff(
 		diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
 	}
 	const int diff = override_diff(
+	                     bmain,
 	                     ptr_a, ptr_b, prop_a, prop_b, len_a, len_b,
 	                     mode, override, rna_path, diff_flags, &override_changed);
 	if (override_changed && r_report_flags) {
@@ -7431,6 +7436,7 @@ static int rna_property_override_diff(
 /* Modify local data-block to make it ready for override application (only needed for diff operations, where we use
  * the local data-block's data as second operand). */
 static bool rna_property_override_operation_store(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_reference, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_reference, PropertyRNA *prop_storage,
         IDOverrideStaticProperty *op)
@@ -7465,8 +7471,11 @@ static bool rna_property_override_operation_store(
 		}
 
 		if (prop_local->override_store(
-		        ptr_local, ptr_reference, ptr_storage, prop_local, prop_reference, prop_storage,
-		        len_local, len_reference, len_storage, opop))
+		        bmain,
+		        ptr_local, ptr_reference, ptr_storage,
+		        prop_local, prop_reference, prop_storage,
+		        len_local, len_reference, len_storage,
+		        opop))
 		{
 			changed = true;
 		}
@@ -7476,6 +7485,7 @@ static bool rna_property_override_operation_store(
 }
 
 static bool rna_property_override_operation_apply(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
         PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
@@ -7547,6 +7557,7 @@ static bool rna_property_override_operation_apply(
 
 	/* get and set the default values as appropriate for the various types */
 	return override_apply(
+	            bmain,
 	            ptr_local, ptr_override, ptr_storage,
 	            prop_local, prop_override, prop_storage,
 	            len_local, len_reference, len_storage,
@@ -7564,6 +7575,7 @@ static bool rna_property_override_operation_apply(
  * \return True if _resulting_ \a ptr_local does match \a ptr_reference.
  */
 bool RNA_struct_override_matches(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_reference, const char *root_path,
         IDOverrideStatic *override, const eRNAOverrideMatch flags,
         eRNAOverrideMatchResult *r_report_flags)
@@ -7668,6 +7680,7 @@ bool RNA_struct_override_matches(
 
 		eRNAOverrideMatchResult report_flags = 0;
 		const int diff = rna_property_override_diff(
+		                     bmain,
 		                     ptr_local, ptr_reference, NULL, prop_local, prop_reference, rna_path,
 		                     RNA_EQ_STRICT, override, flags, &report_flags);
 
@@ -7700,6 +7713,7 @@ bool RNA_struct_override_matches(
 						    .subitem_local_index = -1
 						};
 						rna_property_override_operation_apply(
+						            bmain,
 						            ptr_local, ptr_reference, NULL,
 						            prop_local, prop_reference, NULL,
 						            NULL, NULL, NULL,
@@ -7757,6 +7771,7 @@ bool RNA_struct_override_matches(
 
 /** Store needed second operands into \a storage data-block for differential override operations. */
 bool RNA_struct_override_store(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_reference, PointerRNA *ptr_storage, IDOverrideStatic *override)
 {
 	bool changed = false;
@@ -7780,8 +7795,11 @@ bool RNA_struct_override_store(
 				RNA_path_resolve_property(ptr_storage, op->rna_path, &data_storage, &prop_storage);
 			}
 
-			if (rna_property_override_operation_store(&data_local, &data_reference, &data_storage,
-			                                          prop_reference, prop_local, prop_storage, op))
+			if (rna_property_override_operation_store(
+			        bmain,
+			        &data_local, &data_reference, &data_storage,
+			        prop_reference, prop_local, prop_storage,
+			        op))
 			{
 				changed = true;
 			}
@@ -7795,6 +7813,7 @@ bool RNA_struct_override_store(
 }
 
 static void rna_property_override_apply_ex(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
         PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
@@ -7808,6 +7827,7 @@ static void rna_property_override_apply_ex(
 			continue;
 		}
 		if (!rna_property_override_operation_apply(
+		        bmain,
 		        ptr_local, ptr_override, ptr_storage,
 		        prop_local, prop_override, prop_storage,
 		        ptr_item_local, ptr_item_override, ptr_item_storage,
@@ -7823,6 +7843,7 @@ static void rna_property_override_apply_ex(
 /** Apply given \a override operations on \a ptr_local, using \a ptr_override
  * (and \a ptr_storage form differential ops) as source. */
 void RNA_struct_override_apply(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage, IDOverrideStatic *override)
 {
 #ifdef DEBUG_OVERRIDE_TIMEIT
@@ -7854,6 +7875,7 @@ void RNA_struct_override_apply(
 				}
 
 				rna_property_override_apply_ex(
+				            bmain,
 				            &data_local, &data_override, prop_storage ? &data_storage : NULL,
 				            prop_local, prop_override, prop_storage,
 				            &data_item_local, &data_item_override, prop_storage ? &data_item_storage : NULL,

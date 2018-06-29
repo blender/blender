@@ -439,7 +439,7 @@ void BKE_override_static_property_operation_delete(
  * (of IDOverridePropertyOperation) has to be added.
  *
  * \return true if status is OK, false otherwise. */
-bool BKE_override_static_status_check_local(ID *local)
+bool BKE_override_static_status_check_local(Main *bmain, ID *local)
 {
 	BLI_assert(local->override_static != NULL);
 
@@ -459,6 +459,7 @@ bool BKE_override_static_status_check_local(ID *local)
 	RNA_id_pointer_create(reference, &rnaptr_reference);
 
 	if (!RNA_struct_override_matches(
+	        bmain,
 	        &rnaptr_local, &rnaptr_reference, NULL, local->override_static,
 	        RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE | RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN, NULL))
 	{
@@ -478,7 +479,7 @@ bool BKE_override_static_status_check_local(ID *local)
  * This is typically used to detect whether some reference has changed and local needs to be updated against it.
  *
  * \return true if status is OK, false otherwise. */
-bool BKE_override_static_status_check_reference(ID *local)
+bool BKE_override_static_status_check_reference(Main *bmain, ID *local)
 {
 	BLI_assert(local->override_static != NULL);
 
@@ -492,7 +493,7 @@ bool BKE_override_static_status_check_reference(ID *local)
 	BLI_assert(GS(local->name) == GS(reference->name));
 
 	if (reference->override_static && (reference->tag & LIB_TAG_OVERRIDESTATIC_REFOK) == 0) {
-		if (!BKE_override_static_status_check_reference(reference)) {
+		if (!BKE_override_static_status_check_reference(bmain, reference)) {
 			/* If reference is also override of another data-block, and its status is not OK,
 			 * then this override is not OK either.
 			 * Note that this should only happen when reloading libraries... */
@@ -506,6 +507,7 @@ bool BKE_override_static_status_check_reference(ID *local)
 	RNA_id_pointer_create(reference, &rnaptr_reference);
 
 	if (!RNA_struct_override_matches(
+	        bmain,
 	        &rnaptr_local, &rnaptr_reference, NULL, local->override_static,
 	        RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN, NULL))
 	{
@@ -528,7 +530,7 @@ bool BKE_override_static_status_check_reference(ID *local)
  * are much cheaper.
  *
  * \return true if new overriding op was created, or some local data was reset. */
-bool BKE_override_static_operations_create(ID *local, const bool force_auto)
+bool BKE_override_static_operations_create(Main *bmain, ID *local, const bool force_auto)
 {
 	BLI_assert(local->override_static != NULL);
 	const bool is_template = (local->override_static->reference == NULL);
@@ -541,6 +543,7 @@ bool BKE_override_static_operations_create(ID *local, const bool force_auto)
 
 		eRNAOverrideMatchResult report_flags = 0;
 		RNA_struct_override_matches(
+		            bmain,
 		            &rnaptr_local, &rnaptr_reference, NULL, local->override_static,
 		            RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_RESTORE, &report_flags);
 		if (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) {
@@ -577,7 +580,7 @@ void BKE_main_override_static_operations_create(Main *bmain, const bool force_au
 			if (force_auto ||
 			    (ID_IS_STATIC_OVERRIDE_AUTO(id) && (id->tag & LIB_TAG_OVERRIDESTATIC_AUTOREFRESH)))
 			{
-				BKE_override_static_operations_create(id, force_auto);
+				BKE_override_static_operations_create(bmain, id, force_auto);
 				id->tag &= ~LIB_TAG_OVERRIDESTATIC_AUTOREFRESH;
 			}
 		}
@@ -625,7 +628,7 @@ void BKE_override_static_update(Main *bmain, ID *local)
 		RNA_id_pointer_create(local->override_static->storage, rnaptr_storage);
 	}
 
-	RNA_struct_override_apply(&rnaptr_dst, &rnaptr_src, rnaptr_storage, local->override_static);
+	RNA_struct_override_apply(bmain, &rnaptr_dst, &rnaptr_src, rnaptr_storage, local->override_static);
 
 	/* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa. So when we'll free tmp_id,
 	 * we'll actually free old, outdated data from local. */
@@ -693,7 +696,7 @@ OverrideStaticStorage *BKE_override_static_operations_store_initialize(void)
  * Generate suitable 'write' data (this only affects differential override operations).
  *
  * Note that \a local ID is no more modified by this call, all extra data are stored in its temp \a storage_id copy. */
-ID *BKE_override_static_operations_store_start(OverrideStaticStorage *override_storage, ID *local)
+ID *BKE_override_static_operations_store_start(Main *bmain, OverrideStaticStorage *override_storage, ID *local)
 {
 	BLI_assert(local->override_static != NULL);
 	BLI_assert(override_storage != NULL);
@@ -705,7 +708,7 @@ ID *BKE_override_static_operations_store_start(OverrideStaticStorage *override_s
 	}
 
 	/* Forcefully ensure we know about all needed override operations. */
-	BKE_override_static_operations_create(local, false);
+	BKE_override_static_operations_create(bmain, local, false);
 
 	ID *storage_id;
 #ifdef DEBUG_OVERRIDE_TIMEIT
@@ -725,7 +728,9 @@ ID *BKE_override_static_operations_store_start(OverrideStaticStorage *override_s
 		RNA_id_pointer_create(local, &rnaptr_final);
 		RNA_id_pointer_create(storage_id, &rnaptr_storage);
 
-		if (!RNA_struct_override_store(&rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_static)) {
+		if (!RNA_struct_override_store(
+		        bmain, &rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_static))
+		{
 			BKE_libblock_free_ex(override_storage, storage_id, true, false);
 			storage_id = NULL;
 		}

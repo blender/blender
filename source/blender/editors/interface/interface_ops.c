@@ -464,6 +464,7 @@ static int override_remove_button_poll(bContext *C)
 
 static int override_remove_button_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr, id_refptr, src;
 	PropertyRNA *prop;
 	int index;
@@ -505,7 +506,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
 		}
 		BKE_override_static_property_operation_delete(oprop, opop);
 		if (!is_template) {
-			RNA_property_copy(&ptr, &src, prop, index);
+			RNA_property_copy(bmain, &ptr, &src, prop, index);
 		}
 		if (BLI_listbase_is_empty(&oprop->operations)) {
 			BKE_override_static_property_delete(id->override_static, oprop);
@@ -515,7 +516,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
 		/* Just remove whole generic override operation of this property. */
 		BKE_override_static_property_delete(id->override_static, oprop);
 		if (!is_template) {
-			RNA_property_copy(&ptr, &src, prop, -1);
+			RNA_property_copy(bmain, &ptr, &src, prop, -1);
 		}
 	}
 
@@ -699,6 +700,7 @@ bool UI_context_copy_to_selected_list(
  */
 static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 {
+	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr, lptr, idptr;
 	PropertyRNA *prop, *lprop;
 	bool success = false;
@@ -747,7 +749,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 								break;
 							}
 							else {
-								if (RNA_property_copy(&lptr, &ptr, prop, (all) ? -1 : index)) {
+								if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
 									RNA_property_update(C, &lptr, prop);
 									success = true;
 								}

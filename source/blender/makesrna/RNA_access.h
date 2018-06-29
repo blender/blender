@@ -977,7 +977,7 @@ void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, int pos);
 
 /* copy/reset */
-bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index);
+bool RNA_property_copy(struct Main *bmain, PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index);
 bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 /* Path
@@ -1251,8 +1251,12 @@ typedef enum eRNACompareMode {
 	RNA_EQ_COMPARE,
 } eRNACompareMode;
 
-bool RNA_property_equals(struct PointerRNA *ptr_a, struct PointerRNA *ptr_b, struct PropertyRNA *prop, eRNACompareMode mode);
-bool RNA_struct_equals(struct PointerRNA *ptr_a, struct PointerRNA *ptr_b, eRNACompareMode mode);
+bool RNA_property_equals(
+        struct Main *bmain,
+        struct PointerRNA *ptr_a, struct PointerRNA *ptr_b, struct PropertyRNA *prop, eRNACompareMode mode);
+bool RNA_struct_equals(
+        struct Main *bmain,
+        struct PointerRNA *ptr_a, struct PointerRNA *ptr_b, eRNACompareMode mode);
 
 /* Override. */
 
@@ -1284,15 +1288,18 @@ typedef enum eRNAOverrideStatus {
 } eRNAOverrideStatus;
 
 bool RNA_struct_override_matches(
+        struct Main *bmain,
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, const char *root_path,
         struct IDOverrideStatic *override, const eRNAOverrideMatch flags,
         eRNAOverrideMatchResult *r_report_flags);
 
 bool RNA_struct_override_store(
+        struct Main *bmain,
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, PointerRNA *ptr_storage,
         struct IDOverrideStatic *override);
 
 void RNA_struct_override_apply(
+        struct Main *bmain,
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_override, struct PointerRNA *ptr_storage,
         struct IDOverrideStatic *override);
 

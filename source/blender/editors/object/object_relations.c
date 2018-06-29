@@ -2343,7 +2343,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 					new_ob->id.override_static->flag &= ~STATICOVERRIDE_AUTO;
 				}
 				/* We still want to store all objects' current override status (i.e. change of parent). */
-				BKE_override_static_operations_create(&new_ob->id, true);
+				BKE_override_static_operations_create(bmain, &new_ob->id, true);
 			}
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;

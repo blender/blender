@@ -133,6 +133,7 @@ typedef void (*PropEnumSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *pr
  * \note \a override, \a rna_path and \a r_override_changed may be NULL pointers.
  */
 typedef int (*RNAPropOverrideDiff)(
+        struct Main *bmain,
         struct PointerRNA *ptr_a, struct PointerRNA *ptr_b,
         struct PropertyRNA *prop_a, struct PropertyRNA *prop_b,
         const int len_a, const int len_b,
@@ -150,6 +151,7 @@ typedef int (*RNAPropOverrideDiff)(
  *       is out of range (or even change it to basic 'set' operation if nothing else works).
  */
 typedef bool (*RNAPropOverrideStore)(
+        struct Main *bmain,
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, struct PointerRNA *ptr_storage,
         struct PropertyRNA *prop_local, struct PropertyRNA *prop_reference, struct PropertyRNA *prop_storage,
         const int len_local, const int len_reference, const int len_storage,
@@ -163,6 +165,7 @@ typedef bool (*RNAPropOverrideStore)(
  * \note In non-array cases, \a len values are 0.
  */
 typedef bool (*RNAPropOverrideApply)(
+        struct Main *bmain,
         struct PointerRNA *ptr_dst, struct PointerRNA *ptr_src, struct PointerRNA *ptr_storage,
         struct PropertyRNA *prop_dst, struct PropertyRNA *prop_src, struct PropertyRNA *prop_storage,
         const int len_dst, const int len_src, const int len_storage,

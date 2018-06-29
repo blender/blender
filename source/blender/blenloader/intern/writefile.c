@@ -3840,7 +3840,7 @@ static bool write_file_handle(
 				const bool do_override = !ELEM(override_storage, NULL, bmain) && id->override_static;
 
 				if (do_override) {
-					BKE_override_static_operations_store_start(override_storage, id);
+					BKE_override_static_operations_store_start(bmain, override_storage, id);
 				}
 
 				switch ((ID_Type)GS(id->name)) {
