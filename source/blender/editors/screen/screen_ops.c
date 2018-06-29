@@ -1366,6 +1366,7 @@ static int area_snap_calc_location(
 			final_loc = m_loc;
 			if (delta != bigger && delta != -smaller) {
 				final_loc -= (m_loc % AREAGRID);
+				CLAMP(final_loc, origval - smaller, origval + bigger);
 			}
 			break;
 
@@ -1428,10 +1429,10 @@ static void area_move_apply_do(
 {
 	wmWindow *win = CTX_wm_window(C);
 	bScreen *sc = CTX_wm_screen(C);
-	bool doredraw = false;
-	CLAMP(delta, -smaller, bigger);
-
 	short final_loc = -1;
+	bool doredraw = false;
+
+	CLAMP(delta, -smaller, bigger);
 
 	if (snap_type == SNAP_NONE) {
 		final_loc = origval + delta;
