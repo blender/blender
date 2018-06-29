@@ -4310,6 +4310,9 @@ static void ui_paneltype_draw_impl(
 	panel->type = pt;
 	panel->flag = PNL_POPOVER;
 
+	uiLayout *last_item = layout->items.last;
+
+	/* Draw main panel. */
 	if (show_header) {
 		uiLayout *row = uiLayoutRow(layout, false);
 		if (pt->draw_header) {
@@ -4326,19 +4329,21 @@ static void ui_paneltype_draw_impl(
 
 	MEM_freeN(panel);
 
-	PanelType *pt_iter = pt;
-	while (pt_iter->prev) {
-		pt_iter = pt_iter->prev;
-	}
-	do {
-		if (pt_iter != pt && STREQ(pt_iter->parent_id, pt->idname)) {
-			if (pt_iter->poll == NULL || pt_iter->poll(C, pt_iter)) {
+	/* Draw child panels. */
+	for (LinkData *link = pt->children.first; link; link = link->next) {
+		PanelType *child_pt = link->data;
+
+		if (child_pt->poll == NULL || child_pt->poll(C, child_pt)) {
+			/* Add space if something was added to the layout. */
+			if (last_item != layout->items.last) {
 				uiItemS(layout);
-				uiLayout *col = uiLayoutColumn(layout, false);
-				ui_paneltype_draw_impl(C, pt_iter, col, true);
+				last_item = layout->items.last;
 			}
+
+			uiLayout *col = uiLayoutColumn(layout, false);
+			ui_paneltype_draw_impl(C, child_pt, col, true);
 		}
-	} while ((pt_iter = pt_iter->next));
+	}
 }
 
 /**
