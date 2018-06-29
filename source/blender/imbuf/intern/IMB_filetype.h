@@ -119,4 +119,3 @@ void imb_loadtiletiff(struct ImBuf *ibuf, const unsigned char *mem, size_t size,
 int imb_savetiff(struct ImBuf *ibuf, const char *name, int flags);
 
 #endif	/* __IMB_FILETYPE_H__ */
-

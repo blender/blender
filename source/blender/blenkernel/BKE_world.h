@@ -51,4 +51,3 @@ struct Depsgraph;
 void BKE_world_eval(struct Depsgraph *depsgraph, struct World *world);
 
 #endif
-

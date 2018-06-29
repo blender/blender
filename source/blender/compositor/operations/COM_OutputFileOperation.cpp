@@ -311,4 +311,3 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		}
 	}
 }
-

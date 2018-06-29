@@ -63,4 +63,3 @@ void BKE_context_create(bMovieHandle *mh);
 #endif
 
 #endif
-

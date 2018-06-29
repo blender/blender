@@ -174,4 +174,3 @@ bool MapUVOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOpe
 
 	return false;
 }
-

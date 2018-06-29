@@ -179,4 +179,3 @@ void do_versions_after_linking_270(struct Main *bmain);
 void do_versions_after_linking_280(struct Main *bmain);
 
 #endif
-

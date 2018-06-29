@@ -3718,4 +3718,3 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 
 	sb->last_frame = framenr;
 }
-

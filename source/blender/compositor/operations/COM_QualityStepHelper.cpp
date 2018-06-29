@@ -68,4 +68,3 @@ void QualityStepHelper::initExecution(QualityHelper helper)
 			break;
 	}
 }
-

@@ -99,4 +99,3 @@ unsigned int mem_read(Stream & mem, unsigned char *i, unsigned int cnt)
 	mem.pos += cnt;
 	return(cnt);
 }
-

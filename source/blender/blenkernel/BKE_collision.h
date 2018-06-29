@@ -187,4 +187,3 @@ void BKE_collider_cache_free(struct ListBase **colliders);
 /////////////////////////////////////////////////
 
 #endif
-

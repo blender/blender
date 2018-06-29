@@ -102,4 +102,3 @@ typedef enum eActStrip_Flag {
 } eActStrip_Flag;
 
 #endif
-

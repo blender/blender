@@ -47,4 +47,3 @@ void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h)
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1);
 
 #endif
-

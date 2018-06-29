@@ -1618,4 +1618,3 @@ BoidState *boid_get_current_state(BoidSettings *boids)
 
 	return state;
 }
-

@@ -156,4 +156,3 @@ typedef struct SceneCollection {
 #endif
 
 #endif  /* __DNA_LAYER_TYPES_H__ */
-

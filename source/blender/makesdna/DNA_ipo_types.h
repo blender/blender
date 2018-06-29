@@ -507,6 +507,3 @@ typedef struct Ipo {
 #define IPO_DRIVER_FLAG_INVALID 	(1<<0)
 
 #endif
-
-
-

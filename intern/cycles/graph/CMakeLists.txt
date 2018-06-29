@@ -20,4 +20,3 @@ include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
 cycles_add_library(cycles_graph ${SRC} ${SRC_HEADERS})
-

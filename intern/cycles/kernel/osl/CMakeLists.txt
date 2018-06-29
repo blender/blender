@@ -31,4 +31,3 @@ include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
 cycles_add_library(cycles_kernel_osl ${SRC} ${HEADER_SRC})
-

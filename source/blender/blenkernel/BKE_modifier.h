@@ -561,4 +561,3 @@ struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(
         struct Object *ob_eval, bool *r_free_mesh);
 
 #endif
-

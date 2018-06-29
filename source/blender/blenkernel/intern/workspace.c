@@ -538,4 +538,3 @@ bool BKE_workspace_owner_id_check(
 		return BLI_findstring(&workspace->owner_ids, owner_id, offsetof(wmOwnerID, name)) != NULL;
 	}
 }
-

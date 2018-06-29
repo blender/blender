@@ -291,5 +291,3 @@ int OIIO_getVersionHex(void)
 }
 
 } // export "C"
-
-

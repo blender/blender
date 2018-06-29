@@ -354,4 +354,3 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(rcti *inpu
 		return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 	}
 }
-

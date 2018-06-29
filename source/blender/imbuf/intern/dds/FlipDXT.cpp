@@ -252,4 +252,3 @@ int FlipDXTCImage(unsigned int width, unsigned int height, unsigned int levels, 
 
 	return 1;
 }
-

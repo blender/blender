@@ -40,4 +40,3 @@ void CPUDevice::execute(WorkPackage *work)
 
 	executionGroup->finalizeChunkExecution(chunkNumber, NULL);
 }
-

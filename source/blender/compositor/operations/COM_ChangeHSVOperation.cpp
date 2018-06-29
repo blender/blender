@@ -65,4 +65,3 @@ void ChangeHSVOperation::executePixelSampled(float output[4], float x, float y, 
 	output[2] = inputColor1[2] * value[0];
 	output[3] = inputColor1[3];
 }
-

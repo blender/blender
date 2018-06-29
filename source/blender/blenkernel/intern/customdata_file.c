@@ -449,4 +449,3 @@ CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t
 
 	return layer;
 }
-

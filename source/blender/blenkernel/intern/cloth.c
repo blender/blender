@@ -1508,4 +1508,3 @@ static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh )
 /***************************************************************************************
  * SPRING NETWORK GWN_BATCH_BUILDING IMPLEMENTATION END
  ***************************************************************************************/
-

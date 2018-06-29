@@ -59,4 +59,3 @@ void matrixGlyph(struct ImBuf *ibuf, unsigned short unicode,
 #endif
 
 #endif
-

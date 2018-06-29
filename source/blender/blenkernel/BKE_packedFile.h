@@ -83,4 +83,3 @@ bool BKE_pack_check(struct ID *id);
 void BKE_unpack_id(struct Main *bmain, struct ID *id, struct ReportList *reports, int how);
 
 #endif
-

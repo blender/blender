@@ -87,4 +87,3 @@ void MovieClipAttributeOperation::determineResolution(
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];
 }
-

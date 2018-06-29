@@ -214,4 +214,3 @@ void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose);
 #endif
 
 #endif
-

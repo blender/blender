@@ -123,4 +123,3 @@ void ChannelMatteOperation::executePixelSampled(float output[4], float x, float 
 	/* don't make something that was more transparent less transparent */
 	output[0] = min(alpha, inColor[3]);
 }
-

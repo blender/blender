@@ -100,4 +100,3 @@ public:
 	void setActive(bool active) { this->m_active = active; }
 };
 #endif
-

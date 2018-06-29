@@ -820,4 +820,3 @@ int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type)
 	return icon_id;
 }
 /** \} */
-

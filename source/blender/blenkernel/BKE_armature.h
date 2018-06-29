@@ -240,4 +240,3 @@ void BKE_pose_eval_proxy_copy(
 #endif
 
 #endif
-

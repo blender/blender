@@ -335,4 +335,3 @@ bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffer
 
 	return NodeOperation::determineDependingAreaOfInterest(&rect, readOperation, output);
 }
-

@@ -161,4 +161,3 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph, struct ListBase *conlist
 #endif
 
 #endif
-

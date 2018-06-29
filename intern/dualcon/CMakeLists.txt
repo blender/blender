@@ -46,4 +46,3 @@ set(SRC
 )
 
 blender_add_lib(bf_intern_dualcon "${SRC}" "${INC}" "${INC_SYS}")
-
