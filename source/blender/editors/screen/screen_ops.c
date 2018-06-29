@@ -844,8 +844,8 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	AZone *az = ED_area_actionzone_find_xy(sa, &event->x);
 	sActionzoneData *sad;
 
-	/* quick escape */
-	if (az == NULL)
+	/* quick escape - Scroll azones only hide/unhide the scroll-bars, they have their own handling. */
+	if (az == NULL || ELEM(az->type, AZONE_REGION_SCROLL))
 		return OPERATOR_PASS_THROUGH;
 
 	/* ok we do the actionzone */
@@ -859,9 +859,6 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		actionzone_apply(C, op, sad->az->type);
 		actionzone_exit(op);
 		return OPERATOR_FINISHED;
-	}
-	else if (ELEM(sad->az->type, AZONE_REGION_SCROLL)) {
-		return OPERATOR_PASS_THROUGH;
 	}
 	else {
 		/* add modal handler */
