@@ -2,6 +2,8 @@
 
 #include "workbench_private.h"
 
+#include "BIF_gl.h"
+
 #include "BLI_dynstr.h"
 
 #define HSV_SATURATION 0.5
@@ -177,11 +179,21 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *i
 	return color_type;
 }
 
-void workbench_material_shgroup_uniform(DRWShadingGroup *grp, WORKBENCH_MaterialData *material)
+void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material)
 {
-	DRW_shgroup_uniform_vec4(grp, "materialDiffuseColor", material->diffuse_color, 1);
-	DRW_shgroup_uniform_vec4(grp, "materialSpecularColor", material->specular_color, 1);
-	DRW_shgroup_uniform_float(grp, "materialRoughness", &material->roughness, 1);
+	if (workbench_material_determine_color_type(wpd, material->ima) == V3D_SHADING_TEXTURE_COLOR)
+	{
+		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
+		DRW_shgroup_uniform_texture(grp, "image", tex);
+	}
+	else {
+		DRW_shgroup_uniform_vec4(grp, "materialDiffuseColor", material->diffuse_color, 1);
+	}
+
+	if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
+		DRW_shgroup_uniform_vec4(grp, "materialSpecularColor", material->specular_color, 1);
+		DRW_shgroup_uniform_float(grp, "materialRoughness", &material->roughness, 1);
+	}
 }
 
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material)
