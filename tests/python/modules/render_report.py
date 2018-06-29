@@ -444,4 +444,3 @@ class Report:
                 print_message("{}" . format(test), 'FAILURE', "FAILED")
 
         return not bool(failed_tests)
-

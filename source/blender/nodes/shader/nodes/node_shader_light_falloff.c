@@ -64,4 +64,3 @@ void register_node_type_sh_light_falloff(void)
 
 	nodeRegisterType(&ntype);
 }
-

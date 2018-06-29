@@ -102,4 +102,3 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
             self.fail('Error %d running Blender:\n%s' % (proc.returncode, output))
 
         return output
-

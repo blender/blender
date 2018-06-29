@@ -5827,4 +5827,3 @@ void PAINT_OT_add_simple_uvs(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-

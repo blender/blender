@@ -543,4 +543,3 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 
 	delete_laplacian_system(sys);
 }
-

@@ -1507,4 +1507,3 @@ int externtex(const MTex *mtex,
 
 	return (rgb != 0);
 }
-

@@ -440,4 +440,3 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-

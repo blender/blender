@@ -570,4 +570,3 @@ void outliner_keymap(wmKeyConfig *keyconf)
 
 	outliner_item_drag_drop_modal_keymap(keyconf);
 }
-

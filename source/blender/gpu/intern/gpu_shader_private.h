@@ -41,4 +41,3 @@ struct GPUShader {
 };
 
 #endif  /* __GPU_SHADER_PRIVATE_H__ */
-

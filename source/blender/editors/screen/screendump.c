@@ -298,4 +298,3 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen",
 	                "Capture the whole window (otherwise only capture the active area)");
 }
-

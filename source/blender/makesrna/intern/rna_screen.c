@@ -586,4 +586,3 @@ void RNA_def_screen(BlenderRNA *brna)
 }
 
 #endif
-

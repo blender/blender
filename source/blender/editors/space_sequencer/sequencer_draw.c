@@ -1766,5 +1766,3 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 		ANIM_draw_cfra_number(C, v2d, cfra_flag);
 	}
 }
-
-

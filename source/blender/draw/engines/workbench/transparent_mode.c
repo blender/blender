@@ -93,4 +93,3 @@ DrawEngineType draw_engine_workbench_transparent = {
 	NULL,
 	NULL,
 };
-

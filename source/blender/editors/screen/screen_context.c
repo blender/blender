@@ -665,4 +665,3 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 	return -1; /* found but not available */
 }
-

@@ -336,4 +336,3 @@ void ED_masklayer_snap_frames(MaskLayer *masklay, Scene *scene, short mode)
 			break;
 	}
 }
-

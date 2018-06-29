@@ -66,4 +66,3 @@ struct dirlink {
 };
 
 #endif /* __BLI_FILEOPS_TYPES_H__ */
-

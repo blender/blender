@@ -57,4 +57,3 @@ void wm_draw_region_blend(struct ARegion *ar, int view, bool blend);
 struct GPUTexture *wm_draw_region_texture(struct ARegion *ar, int view);
 
 #endif /* __WM_DRAW_H__ */
-

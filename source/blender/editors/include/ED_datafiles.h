@@ -242,4 +242,3 @@ extern char datatoc_mc24_jpg[];
 
 
 #endif /* __ED_DATAFILES_H__ */
-

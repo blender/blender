@@ -72,4 +72,3 @@ void main()
 	vert_generic();
 #endif
 }
-

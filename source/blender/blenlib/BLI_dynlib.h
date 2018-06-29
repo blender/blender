@@ -40,4 +40,3 @@ char *BLI_dynlib_get_error_as_string(DynamicLibrary *lib);
 void BLI_dynlib_close(DynamicLibrary *lib);
 
 #endif /* __BLI_DYNLIB_H__ */
-

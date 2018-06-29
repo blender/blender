@@ -60,4 +60,3 @@ void workbench_fxaa_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.effect_fxaa_sh);
 }
-

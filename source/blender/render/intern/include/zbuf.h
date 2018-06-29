@@ -49,4 +49,3 @@ void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, f
                        void (*func)(void *, int, int, float, float) );
 
 #endif
-

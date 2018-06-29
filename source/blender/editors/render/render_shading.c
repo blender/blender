@@ -1694,4 +1694,3 @@ void TEXTURE_OT_slot_paste(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
-

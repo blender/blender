@@ -418,4 +418,3 @@ bool BLI_heap_is_valid(const Heap *heap)
 }
 
 /** \} */
-

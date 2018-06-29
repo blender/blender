@@ -145,4 +145,3 @@ void ED_uvedit_draw_main(
 void ED_uvedit_buttons_register(struct ARegionType *art);
 
 #endif /* __ED_UVEDIT_H__ */
-

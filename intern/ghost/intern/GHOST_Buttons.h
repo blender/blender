@@ -75,4 +75,3 @@ struct GHOST_Buttons {
 };
 
 #endif // __GHOST_BUTTONS_H__
-

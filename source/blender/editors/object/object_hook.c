@@ -917,4 +917,3 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 }
-

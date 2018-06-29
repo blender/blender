@@ -222,4 +222,3 @@ void RNA_def_lightprobe(BlenderRNA *brna)
 }
 
 #endif
-

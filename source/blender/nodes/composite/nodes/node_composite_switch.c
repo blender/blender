@@ -53,4 +53,3 @@ void register_node_type_cmp_switch(void)
 	node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 	nodeRegisterType(&ntype);
 }
-

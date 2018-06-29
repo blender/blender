@@ -730,4 +730,3 @@ extern struct CLG_LogRef *WM_LOG_MSGBUS_SUB;
 #endif
 
 #endif /* __WM_TYPES_H__ */
-

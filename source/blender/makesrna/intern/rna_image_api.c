@@ -397,4 +397,3 @@ void RNA_api_image(StructRNA *srna)
 }
 
 #endif
-

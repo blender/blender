@@ -212,4 +212,3 @@ int sequencer_image_seq_get_minmax_frame(struct wmOperator *op, int sfra, int *r
 void sequencer_image_seq_reserve_frames(struct wmOperator *op, struct StripElem *se, int len, int minframe, int numdigits);
 
 #endif /* __SEQUENCER_INTERN_H__ */
-

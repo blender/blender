@@ -235,4 +235,3 @@ bool mat3_from_axis_conversion_single(
 #endif
 
 #endif /* __BLI_MATH_ROTATION_H__ */
-

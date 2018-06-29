@@ -212,4 +212,3 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 	UI_popup_menu_end(C, pup);
 }
 #endif
-

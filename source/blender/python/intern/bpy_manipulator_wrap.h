@@ -33,4 +33,3 @@ void BPY_RNA_manipulator_wrapper(struct wmManipulatorType *wt, void *userdata);
 void BPY_RNA_manipulatorgroup_wrapper(struct wmManipulatorGroupType *wgt, void *userdata);
 
 #endif  /* __BPY_MANIPULATOR_WRAP_H__ */
-

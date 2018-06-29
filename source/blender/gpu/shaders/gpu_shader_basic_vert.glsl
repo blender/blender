@@ -73,4 +73,3 @@ void main()
 	varying_texture_coord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).st;
 #endif
 }
-

@@ -94,4 +94,3 @@ int			wm_window_new_exec(bContext *C, struct wmOperator *op);
 #define WM_WIN_INIT_PAD 40
 
 #endif /* __WM_WINDOW_H__ */
-

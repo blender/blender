@@ -109,4 +109,3 @@ void wm_manipulator_vec_draw(
 
 
 #endif  /* __MANIPULATOR_LIBRARY_INTERN_H__ */
-

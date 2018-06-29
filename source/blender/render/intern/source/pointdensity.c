@@ -963,4 +963,3 @@ void RE_point_density_free(struct PointDensity *pd)
 void RE_point_density_fix_linking(void)
 {
 }
-

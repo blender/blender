@@ -5,4 +5,3 @@ void main()
 {
 	objectId = uint(object_id);
 }
-

@@ -424,4 +424,3 @@ int ED_space_image_maskedit_mask_poll(bContext *C)
 
 	return false;
 }
-

@@ -1074,4 +1074,3 @@ void ED_uvedit_draw_main(
 			ED_image_draw_cursor(ar, sima->cursor);
 	}
 }
-

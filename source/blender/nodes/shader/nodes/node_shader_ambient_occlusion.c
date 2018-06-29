@@ -70,4 +70,3 @@ void register_node_type_sh_ambient_occlusion(void)
 
 	nodeRegisterType(&ntype);
 }
-

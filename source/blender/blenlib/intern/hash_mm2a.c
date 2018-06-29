@@ -144,4 +144,3 @@ uint32_t BLI_hash_mm2(const unsigned char *data, size_t len, uint32_t seed)
 
 	return h;
 }
-

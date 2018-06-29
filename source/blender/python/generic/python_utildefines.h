@@ -57,4 +57,3 @@ Py_LOCAL_INLINE(int) PyList_APPEND(PyObject *op, PyObject *v)
 #endif
 
 #endif  /* __PYTHON_UTILDEFINES_H__ */
-

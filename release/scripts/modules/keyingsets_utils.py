@@ -258,4 +258,3 @@ def RKS_GEN_bendy_bones(ksi, context, ks, data):
             ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
         else:
             ks.paths.add(id_block, path)
-

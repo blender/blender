@@ -273,4 +273,3 @@ void OBJECT_OT_data_transfer(struct wmOperatorType *ot);
 void OBJECT_OT_datalayout_transfer(struct wmOperatorType *ot);
 
 #endif /* __OBJECT_INTERN_H__ */
-

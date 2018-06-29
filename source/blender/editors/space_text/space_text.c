@@ -641,4 +641,3 @@ void ED_spacetype_text(void)
 	ED_text_format_register_pov();
 	ED_text_format_register_pov_ini();
 }
-

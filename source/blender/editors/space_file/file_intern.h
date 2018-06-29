@@ -130,4 +130,3 @@ void file_panels_register(struct ARegionType *art);
 void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, rcti *r_bounds);
 
 #endif /* __FILE_INTERN_H__ */
-

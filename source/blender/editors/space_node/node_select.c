@@ -1064,5 +1064,3 @@ void NODE_OT_find_node(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "prev", 0, "Previous", "");
 
 }
-
-

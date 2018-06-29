@@ -461,4 +461,3 @@ inline GHOST_TStandardCursor GHOST_Window::getCursorShape() const
 }
 
 #endif // _GHOST_WINDOW_H
-

@@ -115,4 +115,3 @@ bool wm_cursor_arrow_move(struct wmWindow *win, const struct wmEvent *event);
 
 
 #endif /* __WM_CURSORS_H__ */
-

@@ -64,4 +64,3 @@ PyObject *BPyInit__bpy_path(void)
 
 	return submodule;
 }
-

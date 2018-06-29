@@ -193,4 +193,3 @@ protected:
 };
 
 #endif // __GHOST_TIMERTASK_H__
-

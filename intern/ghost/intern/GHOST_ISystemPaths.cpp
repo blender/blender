@@ -96,6 +96,3 @@ GHOST_ISystemPaths *GHOST_ISystemPaths::get()
 	}
 	return m_systemPaths;
 }
-
-
-

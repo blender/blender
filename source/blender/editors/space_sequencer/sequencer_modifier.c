@@ -281,4 +281,3 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, SEQ_MODIFIER_COPY_REPLACE, "Type", "");
 }
-

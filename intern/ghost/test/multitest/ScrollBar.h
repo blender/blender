@@ -50,4 +50,3 @@ void		scrollbar_get_rect			(ScrollBar *sb, int rect_r[2][2]);
 void		scrollbar_get_thumb			(ScrollBar *sb, int thumb_r[2][2]);
 
 void		scrollbar_free				(ScrollBar *sb);
-

@@ -98,4 +98,3 @@ protected:
 
 
 #endif // __GHOST_DISPLAYMANAGERWIN32_H__
-

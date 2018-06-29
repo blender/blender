@@ -133,4 +133,3 @@ protected:
 };
 
 #endif // __GHOST_EVENTDRAGNDROP_H__
-

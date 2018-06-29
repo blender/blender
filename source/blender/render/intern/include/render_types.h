@@ -169,4 +169,3 @@ struct Render {
 #define R_ANIMATION		1
 
 #endif /* __RENDER_TYPES_H__ */
-

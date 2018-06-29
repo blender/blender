@@ -824,4 +824,3 @@ void BPY_app_translations_end(void)
 	_clear_translations_cache();
 #endif
 }
-

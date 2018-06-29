@@ -80,4 +80,3 @@ void main()
 	transparentAccum = vec4(shaded_color * weight, alpha);
 	revealageAccum = weight;
 }
-

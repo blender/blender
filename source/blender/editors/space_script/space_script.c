@@ -226,4 +226,3 @@ void ED_spacetype_script(void)
 
 	BKE_spacetype_register(st);
 }
-

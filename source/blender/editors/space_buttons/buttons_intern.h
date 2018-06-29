@@ -101,4 +101,3 @@ void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_context_menu(struct wmOperatorType *ot);
 
 #endif /* __BUTTONS_INTERN_H__ */
-

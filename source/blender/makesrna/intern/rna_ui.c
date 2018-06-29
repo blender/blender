@@ -1437,4 +1437,3 @@ void RNA_def_ui(BlenderRNA *brna)
 }
 
 #endif /* RNA_RUNTIME */
-

@@ -319,4 +319,3 @@ float ltc_evaluate_disk(vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
 	return form_factor * diffuse_sphere_integral_cheap(avg_dir.z, form_factor);
 #endif
 }
-

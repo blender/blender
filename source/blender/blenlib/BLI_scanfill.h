@@ -139,4 +139,3 @@ bool BLI_scanfill_calc_self_isect(
 #endif
 
 #endif
-

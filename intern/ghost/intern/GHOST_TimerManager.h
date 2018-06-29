@@ -127,4 +127,3 @@ protected:
 };
 
 #endif // __GHOST_TIMERMANAGER_H__
-

@@ -259,4 +259,3 @@ extern const int rna_matrix_dimsize_4x2[];
 #endif
 
 #endif /* __RNA_DEFINE_H__ */
-

@@ -242,5 +242,3 @@ fnmatch (const char *pattern, const char *string, int flags)
 /* intentionally empty for UNIX */
 
 #endif /* WIN32 */
-
-

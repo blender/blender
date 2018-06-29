@@ -194,4 +194,3 @@ void RE_bake_engine_set_engine_parameters(
         struct Render *re, struct Main *bmain, struct Scene *scene);
 
 #endif /* __RE_ENGINE_H__ */
-

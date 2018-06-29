@@ -89,4 +89,3 @@ protected:
 };
 
 #endif // __GHOST_EVENTKEY_H__
-

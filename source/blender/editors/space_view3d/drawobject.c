@@ -818,4 +818,3 @@ void ED_draw_object_facemap(
 
 	dm->release(dm);
 }
-

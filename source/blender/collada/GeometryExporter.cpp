@@ -680,5 +680,3 @@ COLLADASW::URI GeometryExporter::makeUrl(std::string id)
 {
 	return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 }
-
-

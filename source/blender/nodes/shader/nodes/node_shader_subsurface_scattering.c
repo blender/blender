@@ -100,4 +100,3 @@ void register_node_type_sh_subsurface_scattering(void)
 
 	nodeRegisterType(&ntype);
 }
-

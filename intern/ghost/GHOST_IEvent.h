@@ -91,4 +91,3 @@ public:
 };
 
 #endif // __GHOST_IEVENT_H__
-

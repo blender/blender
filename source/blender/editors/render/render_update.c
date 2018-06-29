@@ -371,4 +371,3 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 			break;
 	}
 }
-

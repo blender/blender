@@ -99,4 +99,3 @@ DrawEngineType draw_engine_workbench_solid = {
 	NULL,
 	NULL,
 };
-

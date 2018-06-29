@@ -95,4 +95,3 @@ struct ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap);
 void wm_manipulatormaptypes_free(void);
 
 #endif  /* __WM_MANIPULATOR_WMAPI_H__ */
-
