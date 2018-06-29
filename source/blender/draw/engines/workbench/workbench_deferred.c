@@ -72,7 +72,6 @@ static struct {
 	struct GPUTexture *specular_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
-	struct GPUTexture *effect_buffer_tx; /* ref only, not alloced */
 
 	SceneDisplay display; /* world light direction for shadows */
 	int next_object_id;
@@ -346,8 +345,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		e_data.specular_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
 		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
-		e_data.effect_buffer_tx = DRW_texture_pool_query_2D(
-		        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 
 		if (NORMAL_ENCODING_ENABLED()) {
 			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(
@@ -375,7 +372,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		});
 		GPU_framebuffer_ensure_config(&fbl->effect_fb, {
 			GPU_ATTACHMENT_NONE,
-			GPU_ATTACHMENT_TEXTURE(e_data.effect_buffer_tx),
+			GPU_ATTACHMENT_TEXTURE(e_data.color_buffer_tx),
 		});
 	}
 
@@ -410,7 +407,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		workbench_aa_create_pass(vedata, &e_data.effect_buffer_tx);
+		workbench_aa_create_pass(vedata, &e_data.color_buffer_tx);
 	}
 
 	{

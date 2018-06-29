@@ -58,7 +58,6 @@ static struct {
 	struct GPUTexture *transparent_accum_tx; /* ref only, not alloced */
 	struct GPUTexture *transparent_revealage_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
-	struct GPUTexture *effect_buffer_tx; /* ref only, not alloced */
 
 	int next_object_id;
 	float normal_world_matrix[3][3];
@@ -306,8 +305,6 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	        size[0], size[1], GPU_R16F, &draw_engine_workbench_transparent);
 	e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
 	        size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_transparent);
-	e_data.effect_buffer_tx = DRW_texture_pool_query_2D(
-	        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 
 	GPU_framebuffer_ensure_config(&fbl->object_outline_fb, {
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -326,7 +323,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	});
 	GPU_framebuffer_ensure_config(&fbl->effect_fb, {
 		GPU_ATTACHMENT_NONE,
-		GPU_ATTACHMENT_TEXTURE(e_data.effect_buffer_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.transparent_accum_tx),
 	});
 
 	/* Transparency Accum */
@@ -356,7 +353,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		workbench_aa_create_pass(vedata, &e_data.effect_buffer_tx);
+		workbench_aa_create_pass(vedata, &e_data.transparent_accum_tx);
 	}
 
 	/* Checker Depth */
