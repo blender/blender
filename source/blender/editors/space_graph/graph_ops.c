@@ -715,4 +715,3 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Graph Editor", SPACE_IPO, 0);
 	graphedit_keymap_keyframes(keyconf, keymap);
 }
-

@@ -65,4 +65,3 @@ protected:
 
 
 #endif // __GHOST_EVENTWHEEL_H__
-

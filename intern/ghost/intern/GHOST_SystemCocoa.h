@@ -304,4 +304,3 @@ protected:
 };
 
 #endif // __GHOST_SYSTEMCOCOA_H__
-

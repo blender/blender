@@ -56,4 +56,3 @@ void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, fl
 void unpack_menu(struct bContext *C, const char *opname, const char *id_name, const char *abs_name, const char *folder, struct PackedFile *pf);
 
 #endif /* __ED_UTIL_H__ */
-

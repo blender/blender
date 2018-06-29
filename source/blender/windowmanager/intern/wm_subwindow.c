@@ -379,4 +379,3 @@ void wmOrtho2_pixelspace(const float x, const float y)
 }
 
 /* ********** END MY WINDOW ************** */
-

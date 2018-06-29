@@ -1487,4 +1487,3 @@ int shade_samples(ShadeSample *ssamp, PixStr *ps, int x, int y)
 	}
 	return 0;
 }
-

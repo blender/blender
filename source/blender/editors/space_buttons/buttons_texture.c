@@ -687,4 +687,3 @@ void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, Prope
 		UI_but_func_set(but, template_texture_show, user->ptr.data, user->prop);
 	}
 }
-

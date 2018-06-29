@@ -350,4 +350,3 @@ void RENDER_OT_view_show(struct wmOperatorType *ot)
 	ot->invoke = render_view_show_invoke;
 	ot->poll = ED_operator_screenactive;
 }
-

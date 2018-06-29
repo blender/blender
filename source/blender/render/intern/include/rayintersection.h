@@ -133,4 +133,3 @@ typedef struct Isect {
 #endif
 
 #endif /* __RAYINTERSECTION_H__ */
-

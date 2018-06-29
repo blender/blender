@@ -101,4 +101,3 @@ void IMAGE_OT_properties(struct wmOperatorType *ot);
 void IMAGE_OT_toolshelf(struct wmOperatorType *ot);
 
 #endif /* __IMAGE_INTERN_H__ */
-

@@ -60,4 +60,3 @@ void register_node_type_sh_volume_scatter(void)
 
 	nodeRegisterType(&ntype);
 }
-

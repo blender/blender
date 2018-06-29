@@ -40,4 +40,3 @@ void time_operatortypes(void);
 void time_keymap(struct wmKeyConfig *keyconf);
 
 #endif /* __TIME_INTERN_H__ */
-

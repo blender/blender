@@ -144,4 +144,3 @@ void BIK_test_constraint(struct Object *ob, struct bConstraint *cons)
 	if (plugin && plugin->test_constraint)
 		plugin->test_constraint(ob, cons);
 }
-

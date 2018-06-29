@@ -66,4 +66,3 @@ void PE_deselect_all_visible(struct PTCacheEdit *edit);
 void ED_particle_undosys_type(struct UndoType *ut);
 
 #endif /* __ED_PARTICLE_H__ */
-

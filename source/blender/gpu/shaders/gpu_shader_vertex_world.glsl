@@ -78,4 +78,3 @@ void main()
 	varposition = gl_Vertex.xyz;
 
 	varnormal = normalize(-varposition);
-

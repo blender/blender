@@ -368,4 +368,3 @@ void BOID_OT_state_move_down(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-

@@ -2661,4 +2661,3 @@ void SKETCH_OT_gesture(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING; // OPTYPE_UNDO
 }
-

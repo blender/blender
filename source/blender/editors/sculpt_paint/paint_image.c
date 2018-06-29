@@ -1223,4 +1223,3 @@ int mask_paint_poll(bContext *C)
 {
 	return BKE_paint_select_elem_test(CTX_data_active_object(C));
 }
-

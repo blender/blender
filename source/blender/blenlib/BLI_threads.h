@@ -209,4 +209,3 @@ void BLI_thread_queue_nowait(ThreadQueue *queue);
 #endif
 
 #endif
-

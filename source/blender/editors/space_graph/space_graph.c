@@ -759,4 +759,3 @@ void ED_spacetype_ipo(void)
 
 	BKE_spacetype_register(st);
 }
-

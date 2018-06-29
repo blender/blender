@@ -394,4 +394,3 @@ struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
 
 #endif /* __RE_PIPELINE_H__ */
-

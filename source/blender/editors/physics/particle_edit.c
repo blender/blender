@@ -4632,4 +4632,3 @@ void PARTICLE_OT_unify_length(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-

@@ -948,4 +948,3 @@ void POSE_OT_select_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "only_active", false, "Active Only", "Only operate on the active bone");
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
-

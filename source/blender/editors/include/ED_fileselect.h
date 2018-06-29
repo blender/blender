@@ -145,4 +145,3 @@ char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name);
 
 #endif /* __ED_FILESELECT_H__ */
-

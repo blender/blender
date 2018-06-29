@@ -74,4 +74,3 @@ void RNA_api_actuator(StructRNA *srna)
 }
 
 #endif
-

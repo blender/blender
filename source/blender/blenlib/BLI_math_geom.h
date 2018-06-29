@@ -508,4 +508,3 @@ float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])
 #endif
 
 #endif /* __BLI_MATH_GEOM_H__ */
-

@@ -101,4 +101,3 @@ BLI_INLINE void glScale2fv(const float vec[2])  { glScalef(UNPACK2(vec), 0.0); }
 BLI_INLINE void glRotate3fv(const float angle, const float vec[3])   { glRotatef(angle, UNPACK3(vec)); }
 
 #endif /* #ifdef __BIF_GL_H__ */
-

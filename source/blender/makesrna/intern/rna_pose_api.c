@@ -84,4 +84,3 @@ void RNA_api_pose_channel(StructRNA *srna)
 
 
 #endif
-

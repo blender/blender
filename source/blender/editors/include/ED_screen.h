@@ -207,4 +207,3 @@ void ED_region_cache_draw_cached_segments(const struct ARegion *ar, const int nu
 #define ED_KEYMAP_HEADER    64
 
 #endif /* __ED_SCREEN_H__ */
-

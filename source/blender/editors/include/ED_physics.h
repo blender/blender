@@ -57,4 +57,3 @@ void ED_operatortypes_physics(void);
 void ED_keymap_physics(struct wmKeyConfig *keyconf);
 
 #endif /* __ED_PHYSICS_H__ */
-

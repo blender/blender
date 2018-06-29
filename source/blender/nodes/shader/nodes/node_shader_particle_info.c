@@ -72,4 +72,3 @@ void register_node_type_sh_particle_info(void)
 
 	nodeRegisterType(&ntype);
 }
-

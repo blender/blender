@@ -467,4 +467,3 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
 	/* settings */
 	ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
 }
-

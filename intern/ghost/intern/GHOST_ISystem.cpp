@@ -105,4 +105,3 @@ GHOST_ISystem *GHOST_ISystem::getSystem()
 {
 	return m_system;
 }
-

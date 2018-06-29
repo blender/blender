@@ -811,4 +811,3 @@ void ED_file_read_bookmarks(void)
 		fsmenu_read_bookmarks(ED_fsmenu_get(), name);
 	}
 }
-

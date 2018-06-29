@@ -35,4 +35,3 @@
 PyObject *BPY_app_alembic_struct(void);
 
 #endif  /* __BPY_APP_ALEMBIC_H__ */
-

@@ -83,4 +83,3 @@ void RNA_api_controller(StructRNA *srna)
 }
 
 #endif
-

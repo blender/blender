@@ -93,4 +93,3 @@ int imagewrap(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const floa
 void image_sample(struct Image *ima, float fx, float fy, float dx, float dy, float result[4], struct ImagePool *pool);
 
 #endif /* __TEXTURE_H__ */
-

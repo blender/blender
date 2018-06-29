@@ -109,4 +109,3 @@ typedef struct ISBData {
 } ISBData;
 
 #endif /* __SHADBUF_H__ */
-

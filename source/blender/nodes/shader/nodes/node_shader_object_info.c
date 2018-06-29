@@ -66,4 +66,3 @@ void register_node_type_sh_object_info(void)
 
 	nodeRegisterType(&ntype);
 }
-

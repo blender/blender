@@ -88,4 +88,3 @@ void		wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win) ATTR
 #define WM_WIN_INIT_PAD 40
 
 #endif /* __WM_WINDOW_H__ */
-

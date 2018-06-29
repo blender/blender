@@ -78,4 +78,3 @@ RayObject *RE_rayobject_empty_create()
 {
 	return RE_rayobject_unalignRayAPI( &empty_raytree );
 }
-

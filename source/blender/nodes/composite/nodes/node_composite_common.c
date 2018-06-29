@@ -64,4 +64,3 @@ void register_node_type_cmp_group(void)
 
 	nodeRegisterType(&ntype);
 }
-

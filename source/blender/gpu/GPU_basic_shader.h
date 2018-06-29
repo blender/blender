@@ -140,4 +140,3 @@ void GPU_basic_shader_use_glsl_set(bool enabled);
 #endif
 
 #endif
-

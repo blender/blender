@@ -465,4 +465,3 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	knifetool_modal_keymap(keyconf);
 }
-

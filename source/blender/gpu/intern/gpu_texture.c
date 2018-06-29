@@ -769,4 +769,3 @@ void GPU_texture_framebuffer_set(GPUTexture *tex, GPUFrameBuffer *fb, int attach
 	tex->fb = fb;
 	tex->fb_attachment = attachment;
 }
-

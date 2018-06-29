@@ -241,4 +241,3 @@ void ED_uvedit_buttons_register(ARegionType *art)
 	pt->poll = image_panel_uv_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
-

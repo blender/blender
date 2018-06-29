@@ -163,4 +163,3 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 	/* internal */
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
-

@@ -723,4 +723,3 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 }
 
 /** \} */
-

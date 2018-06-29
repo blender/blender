@@ -1306,4 +1306,3 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main *bmain)
 
 	ED_viewport_render_kill_jobs(wm, bmain, false);
 }
-

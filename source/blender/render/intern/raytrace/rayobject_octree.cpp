@@ -1096,6 +1096,3 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 	/* reached end, no intersections found */
 	return 0;
 }
-
-
-

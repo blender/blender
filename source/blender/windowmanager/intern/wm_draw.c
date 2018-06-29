@@ -1069,4 +1069,3 @@ void WM_redraw_windows(bContext *C)
 	CTX_wm_area_set(C, area_prev);
 	CTX_wm_region_set(C, ar_prev);
 }
-

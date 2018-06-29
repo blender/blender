@@ -102,4 +102,3 @@ void SEQUENCER_OT_properties(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 }
-

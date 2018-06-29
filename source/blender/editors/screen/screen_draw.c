@@ -352,4 +352,3 @@ void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
 	glEnd();
 	glDisable(GL_BLEND);
 }
-

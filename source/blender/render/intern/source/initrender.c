@@ -620,6 +620,3 @@ void RE_parts_init(Render *re, bool do_crop)
 		}
 	}
 }
-
-
-

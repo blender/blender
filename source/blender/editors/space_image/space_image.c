@@ -1085,4 +1085,3 @@ void ED_spacetype_image(void)
 
 	BKE_spacetype_register(st);
 }
-

@@ -216,4 +216,3 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/bin/i686-w64-mingw32-ranlib.exe")
 		COMMAND ${CMAKE_COMMAND} -E copy "${DOWNLOAD_DIR}/mingw/mingw32/bin/ranlib.exe" "${DOWNLOAD_DIR}/mingw/mingw32/bin/i686-w64-mingw32-ranlib.exe"
 	)
 endif()
-

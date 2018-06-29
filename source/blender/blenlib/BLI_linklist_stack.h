@@ -199,4 +199,3 @@
 /** \} */
 
 #endif  /* __BLI_LINKLIST_STACK_H__ */
-

@@ -368,4 +368,3 @@ public:
 };
 
 #endif // __GHOST_IWINDOW_H__
-

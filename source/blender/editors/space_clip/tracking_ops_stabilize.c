@@ -344,4 +344,3 @@ void CLIP_OT_stabilize_2d_rotation_select(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-

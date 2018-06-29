@@ -85,4 +85,3 @@ void ED_image_draw_info(struct Scene *scene, struct ARegion *ar, bool color_mana
 bool ED_space_image_show_cache(struct SpaceImage *sima);
 
 #endif /* __ED_IMAGE_H__ */
-

@@ -993,4 +993,3 @@ void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *ob
 			ED_image_draw_cursor(ar, sima->cursor);
 	}
 }
-

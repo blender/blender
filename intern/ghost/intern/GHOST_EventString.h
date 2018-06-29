@@ -64,4 +64,3 @@ public:
 };
 
 #endif // __GHOST_EVENTSTRING_H__
-

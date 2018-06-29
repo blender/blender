@@ -200,4 +200,3 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 }
 
 #endif
-

@@ -2500,4 +2500,3 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float shadfac[4])
 	}
 
 }
-

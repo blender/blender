@@ -2170,4 +2170,3 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
 		copy_v3_v3(td->ext->rot, eul);
 	}
 }
-

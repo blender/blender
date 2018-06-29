@@ -289,4 +289,3 @@ void action_keymap(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Dopesheet", SPACE_ACTION, 0);
 	action_keymap_keyframes(keyconf, keymap);
 }
-

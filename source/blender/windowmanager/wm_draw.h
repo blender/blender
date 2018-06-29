@@ -61,4 +61,3 @@ void		wm_triple_draw_textures	(struct wmWindow *win, struct wmDrawTriple *triple
 void		wm_draw_data_free		(struct wmWindow *win);
 
 #endif /* __WM_DRAW_H__ */
-

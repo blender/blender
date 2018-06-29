@@ -350,4 +350,3 @@ def select_prev(bm, report):
             break
 
     return True
-

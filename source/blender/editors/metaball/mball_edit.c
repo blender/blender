@@ -661,5 +661,3 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 
 	return false;
 }
-
-

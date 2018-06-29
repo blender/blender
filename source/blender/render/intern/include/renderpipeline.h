@@ -44,4 +44,3 @@ void render_update_anim_renderdata(struct Render *re, struct RenderData *rd);
 void render_copy_renderdata(struct RenderData *to, struct RenderData *from);
 
 #endif /* __RENDERPIPELINE_H__ */
-

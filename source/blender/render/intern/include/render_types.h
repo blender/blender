@@ -685,4 +685,3 @@ typedef struct LampRen {
 #define R_TRANSFORMED		(1|2)
 
 #endif /* __RENDER_TYPES_H__ */
-

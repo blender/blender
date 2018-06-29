@@ -130,4 +130,3 @@ const char *WM_bool_as_string(bool test);
 #endif
 
 #endif /* __WM_KEYMAP_H__ */
-

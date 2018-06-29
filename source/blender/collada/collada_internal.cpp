@@ -357,4 +357,3 @@ std::string get_morph_id(Object *ob)
 {
 	return translate_id(id_name(ob)) + "-morph";
 }
-

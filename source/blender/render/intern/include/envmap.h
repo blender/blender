@@ -51,4 +51,3 @@ int envmaptex(struct Tex *tex, const float texvec[3], float dxt[3], float dyt[3]
 void env_rotate_scene(struct Render *re, float mat[4][4], int do_rotate);
 
 #endif /* __ENVMAP_H__ */
-

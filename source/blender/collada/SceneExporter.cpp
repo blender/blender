@@ -242,4 +242,3 @@ void SceneExporter::writeNodes(bContext *C, Object *ob, Scene *sce)
 	if (ob->type != OB_ARMATURE)
 		colladaNode.end();
 }
-

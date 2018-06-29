@@ -1844,5 +1844,3 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 
 	BKE_main_id_clear_newpoins(mainvar);
 }
-
-

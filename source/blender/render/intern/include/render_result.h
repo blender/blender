@@ -118,4 +118,3 @@ void render_result_views_shallowdelete(struct RenderResult *rr);
 bool render_result_has_views(struct RenderResult *rr);
 
 #endif /* __RENDER_RESULT_H__ */
-

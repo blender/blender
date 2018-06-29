@@ -1066,4 +1066,3 @@ void strand_minmax(StrandRen *strand, float min[3], float max[3], const float wi
 		}
 	}
 }
-

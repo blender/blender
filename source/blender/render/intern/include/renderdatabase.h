@@ -171,4 +171,3 @@ void RE_Database_FromScene_Vectors(Render *re, struct Main *bmain, struct Scene 
 #endif
 
 #endif /* __RENDERDATABASE_H__ */
-

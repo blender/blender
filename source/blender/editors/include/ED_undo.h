@@ -61,4 +61,3 @@ void ED_undosys_type_free(void);
 struct MemFile *ED_undosys_stack_memfile_get_active(struct UndoStack *ustack);
 
 #endif /* __ED_UNDO_H__ */
-

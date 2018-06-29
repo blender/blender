@@ -50,4 +50,3 @@ void RNA_api_material(StructRNA *UNUSED(srna))
 }
 
 #endif
-

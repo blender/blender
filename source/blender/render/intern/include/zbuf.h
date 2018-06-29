@@ -148,4 +148,3 @@ void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, 
 void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const float ho2[4]);
 
 #endif
-

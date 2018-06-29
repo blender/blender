@@ -180,4 +180,3 @@ uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *ev
 }
 
 /** \} */
-

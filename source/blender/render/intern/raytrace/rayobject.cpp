@@ -531,4 +531,3 @@ void RE_rayobject_set_control(RayObject *r, void *data, RE_rayobjectcontrol_test
 		r->control.test_break = test_break;
 	}
 }
-

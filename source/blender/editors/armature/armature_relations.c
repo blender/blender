@@ -900,4 +900,3 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
-

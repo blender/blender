@@ -148,4 +148,3 @@ void action_operatortypes(void);
 void action_keymap(struct wmKeyConfig *keyconf);
 
 #endif /* __ACTION_INTERN_H__ */
-

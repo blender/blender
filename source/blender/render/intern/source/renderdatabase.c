@@ -1600,4 +1600,3 @@ int clip_render_object(float boundbox[2][3], float bounds[4], float winmat[4][4]
 
 	return flag;
 }
-

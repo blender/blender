@@ -34,4 +34,3 @@
 /* internal exports only */
 
 #endif /* __USERPREF_INTERN_H__ */
-

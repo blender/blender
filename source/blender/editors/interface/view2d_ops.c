@@ -2168,4 +2168,3 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);
 }
-

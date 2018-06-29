@@ -396,4 +396,3 @@ inline GHOST_NDOFManager *GHOST_System::getNDOFManager() const
 #endif
 
 #endif // __GHOST_SYSTEM_H__
-

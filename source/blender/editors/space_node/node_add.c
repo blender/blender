@@ -543,4 +543,3 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
 	RNA_def_enum_funcs(prop, new_node_tree_type_itemf);
 	RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME - 2, "Name", "");
 }
-

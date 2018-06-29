@@ -159,4 +159,3 @@ void nla_operatortypes(void);
 void nla_keymap(wmKeyConfig *keyconf);
 
 #endif /* __NLA_INTERN_H__ */
-

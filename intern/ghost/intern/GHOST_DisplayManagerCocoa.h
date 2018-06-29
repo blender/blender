@@ -103,4 +103,3 @@ protected:
 
 
 #endif // __GHOST_DISPLAYMANAGERCOCOA_H__
-

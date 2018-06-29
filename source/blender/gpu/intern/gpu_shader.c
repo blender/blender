@@ -816,5 +816,3 @@ void GPU_shader_free_builtin_shaders(void)
 		}
 	}
 }
-
-

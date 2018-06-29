@@ -37,4 +37,3 @@
 #else // defined(WIN32) || defined(__APPLE__)
 	#include <GL/gl.h>
 #endif // defined(WIN32) || defined(__APPLE__)
-

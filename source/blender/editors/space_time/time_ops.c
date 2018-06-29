@@ -224,4 +224,3 @@ void time_keymap(wmKeyConfig *keyconf)
 #endif
 	WM_keymap_add_item(keymap, "TIME_OT_view_frame", PAD0, KM_PRESS, 0, 0);
 }
-

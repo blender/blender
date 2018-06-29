@@ -49,4 +49,3 @@ void	wm_subwindow_rect_get(wmWindow *win, int swinid, struct rcti *r_rect);
 void    wm_subwindow_rect_set(wmWindow *win, int swinid, const rcti *rect);
 
 #endif /* __WM_SUBWINDOW_H__ */
-

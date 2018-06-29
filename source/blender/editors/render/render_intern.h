@@ -103,4 +103,3 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot);
 void RENDER_OT_opengl(struct wmOperatorType *ot);
 
 #endif /* __RENDER_INTERN_H__ */
-

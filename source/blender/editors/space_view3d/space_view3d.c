@@ -1530,4 +1530,3 @@ void ED_spacetype_view3d(void)
 
 	BKE_spacetype_register(st);
 }
-

@@ -171,4 +171,3 @@ void	GPU_select_to_index_array(unsigned int *col, const unsigned int size);
 #endif
 
 #endif
-

@@ -80,4 +80,3 @@ void    fsmenu_refresh_bookmarks_status(struct FSMenu *fsmenu);
 int     fsmenu_get_active_indices(struct FSMenu *fsmenu, enum FSMenuCategory category, const char *dir);
 
 #endif
-

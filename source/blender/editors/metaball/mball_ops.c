@@ -97,4 +97,3 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
 	ED_keymap_proportional_cycle(keyconf, keymap);
 	ED_keymap_proportional_editmode(keyconf, keymap, true);
 }
-

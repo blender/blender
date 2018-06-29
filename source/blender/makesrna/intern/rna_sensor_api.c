@@ -76,4 +76,3 @@ void RNA_api_sensor(StructRNA *srna)
 }
 
 #endif
-

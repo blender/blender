@@ -164,4 +164,3 @@ void RNA_def_speaker(BlenderRNA *brna)
 }
 
 #endif
-

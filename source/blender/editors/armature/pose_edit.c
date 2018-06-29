@@ -1215,4 +1215,3 @@ void POSE_OT_quaternions_flip(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-

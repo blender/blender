@@ -2096,4 +2096,3 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-

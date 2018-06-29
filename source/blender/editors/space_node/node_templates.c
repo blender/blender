@@ -772,4 +772,3 @@ void uiTemplateNodeView(uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *
 	else
 		ui_node_draw_node(layout, C, ntree, node, 0);
 }
-

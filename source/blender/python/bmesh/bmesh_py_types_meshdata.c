@@ -804,4 +804,3 @@ void BPy_BM_init_types_meshdata(void)
 	bm_init_types_bmdvert();
 	bm_init_types_bmvertskin();
 }
-

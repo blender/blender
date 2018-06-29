@@ -1407,4 +1407,3 @@ void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspec
 {
 	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, ICON_SIZE_PREVIEW, size, false, true);
 }
-

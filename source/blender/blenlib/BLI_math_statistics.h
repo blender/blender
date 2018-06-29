@@ -67,4 +67,3 @@ void BLI_covariance_m3_v3n(
 #endif
 
 #endif /* __BLI_MATH_STATISTICS_H__ */
-

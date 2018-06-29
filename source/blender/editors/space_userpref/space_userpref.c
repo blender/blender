@@ -192,4 +192,3 @@ void ED_spacetype_userpref(void)
 
 	BKE_spacetype_register(st);
 }
-

@@ -852,4 +852,3 @@ int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, const
 
 	return inside;
 }
-

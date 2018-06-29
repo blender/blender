@@ -208,4 +208,3 @@ static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 		DO_MINMAX(t, min, max);
 	}
 }
-

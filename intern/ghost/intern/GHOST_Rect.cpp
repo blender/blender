@@ -138,4 +138,3 @@ bool GHOST_Rect::clip(GHOST_Rect& r) const
 	}
 	return clipped;
 }
-

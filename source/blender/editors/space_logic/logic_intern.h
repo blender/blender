@@ -52,4 +52,3 @@ void logic_buttons(struct bContext *C, struct ARegion *ar);
 void make_unique_prop_names(struct bContext *C, char *str);
 
 #endif /* __LOGIC_INTERN_H__ */
-

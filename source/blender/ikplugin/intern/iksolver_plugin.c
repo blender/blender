@@ -582,4 +582,3 @@ void iksolver_execute_tree(struct Scene *scene, Object *ob,  bPoseChannel *pchan
 		free_posetree(tree);
 	}
 }
-

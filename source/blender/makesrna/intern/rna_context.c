@@ -220,4 +220,3 @@ void RNA_def_context(BlenderRNA *brna)
 }
 
 #endif
-

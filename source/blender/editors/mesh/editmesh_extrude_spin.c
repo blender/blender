@@ -149,4 +149,3 @@ void MESH_OT_spin(wmOperatorType *ot)
 }
 
 /** \} */
-

@@ -557,4 +557,3 @@ typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, GHOST_T
 #endif
 
 #endif // __GHOST_TYPES_H__
-

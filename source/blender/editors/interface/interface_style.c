@@ -539,4 +539,3 @@ void UI_fontstyle_set(const uiFontStyle *fs)
 
 	BLF_size(font->blf_id, fs->points * U.pixelsize, U.dpi);
 }
-

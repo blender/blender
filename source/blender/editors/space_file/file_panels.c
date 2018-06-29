@@ -106,4 +106,3 @@ void file_panels_register(ARegionType *art)
 	pt->draw = file_panel_operator;
 	BLI_addtail(&art->paneltypes, pt);
 }
-

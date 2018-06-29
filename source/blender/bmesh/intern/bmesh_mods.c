@@ -1104,4 +1104,3 @@ BMVert *BM_face_loop_separate_multi(BMesh *bm, BMLoop **larr, int larr_len)
 {
 	return bmesh_kernel_unglue_region_make_vert_multi(bm, larr, larr_len);
 }
-

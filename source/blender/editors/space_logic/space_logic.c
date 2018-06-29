@@ -371,5 +371,3 @@ void ED_spacetype_logic(void)
 
 	BKE_spacetype_register(st);
 }
-
-

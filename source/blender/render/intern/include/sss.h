@@ -64,4 +64,3 @@ int sample_sss(struct Render *re, struct Material *mat, const float co[3], float
 int sss_pass_done(struct Render *re, struct Material *mat);
 
 #endif /*__SSS_H__*/
-

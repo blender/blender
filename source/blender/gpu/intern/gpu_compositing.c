@@ -1458,4 +1458,3 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			break;
 	}
 }
-

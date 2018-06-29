@@ -283,4 +283,3 @@ void print_m4(const char *str, float M[4][4]);
 #endif
 
 #endif /* __BLI_MATH_MATRIX_H__ */
-

@@ -705,4 +705,3 @@ void ED_spacetype_action(void)
 
 	BKE_spacetype_register(st);
 }
-

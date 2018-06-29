@@ -456,4 +456,3 @@ void BM_mesh_beautify_fill(
 	TIMEIT_END(beautify_fill);
 #endif
 }
-

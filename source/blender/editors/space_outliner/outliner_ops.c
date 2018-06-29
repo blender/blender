@@ -155,4 +155,3 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_add_selected", DKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_ALT, 0);
 }
-

@@ -258,4 +258,3 @@ int bone_looper(struct Object *ob, struct Bone *bone, void *data,
 
 
 #endif /* __ARMATURE_INTERN_H__ */
-

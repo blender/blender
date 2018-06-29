@@ -227,4 +227,3 @@ BLI_INLINE void BLI_parallel_range_settings_defaults(
 #endif
 
 #endif
-

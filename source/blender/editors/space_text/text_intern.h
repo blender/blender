@@ -151,4 +151,3 @@ void TEXT_OT_autocomplete(struct wmOperatorType *ot);
 extern const char *text_context_dir[]; /* doc access */
 
 #endif /* __TEXT_INTERN_H__ */
-

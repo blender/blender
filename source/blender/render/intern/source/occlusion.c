@@ -1530,4 +1530,3 @@ void free_occ_samples(Render *re, RenderPart *pa)
 		cache->step = 0;
 	}
 }
-

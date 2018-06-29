@@ -48,4 +48,3 @@ void free_pointdensities(struct Render *re);
 int pointdensitytex(struct Tex *tex, const float texvec[3], struct TexResult *texres);
 
 #endif /* __POINTDENSITY_H__ */
-

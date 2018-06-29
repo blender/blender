@@ -328,4 +328,3 @@ extern bool view3d_camera_border_hack_test;
 #endif
 
 #endif /* __VIEW3D_INTERN_H__ */
-

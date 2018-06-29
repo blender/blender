@@ -46,4 +46,3 @@ void cache_occ_samples(struct Render *re, struct RenderPart *pa, struct ShadeSam
 void free_occ_samples(struct Render *re, struct RenderPart *pa);
 
 #endif
-

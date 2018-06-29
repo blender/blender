@@ -58,4 +58,3 @@ if(MSVC)
 		DEPENDEES mkdir update patch download configure build install
 	)
 endif()
-

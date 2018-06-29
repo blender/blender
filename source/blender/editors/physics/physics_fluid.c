@@ -1118,4 +1118,3 @@ void FLUID_OT_bake(wmOperatorType *ot)
 	ot->exec = fluid_bake_exec;
 	ot->poll = ED_operator_object_active_editable;
 }
-

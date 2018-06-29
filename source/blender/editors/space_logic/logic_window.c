@@ -2598,4 +2598,3 @@ void logic_buttons(bContext *C, ARegion *ar)
 
 	if (idar) MEM_freeN(idar);
 }
-

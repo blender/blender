@@ -709,4 +709,3 @@ void ED_animedit_unlink_action(struct bContext *C, struct ID *id,
 /* ************************************************ */
 
 #endif /* __ED_ANIM_API_H__ */
-

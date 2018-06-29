@@ -563,4 +563,3 @@ void ED_spacetype_outliner(void)
 
 	BKE_spacetype_register(st);
 }
-
