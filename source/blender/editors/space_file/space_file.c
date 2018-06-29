@@ -506,7 +506,9 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", HKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.params.show_hidden");
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);

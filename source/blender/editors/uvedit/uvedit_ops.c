@@ -4397,9 +4397,11 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "UV Editor", 0, 0);
 	keymap->poll = ED_operator_uvedit_can_uv_sculpt;
 
+#ifdef USE_WM_KEYMAP_27X
 	/* Uv sculpt toggle */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_uv_sculpt");
+#endif
 
 	/* Mark edge seam */
 	WM_keymap_add_item(keymap, "UV_OT_mark_seam", EKEY, KM_PRESS, KM_CTRL, 0);
@@ -4460,9 +4462,11 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 
 	/* unwrap */
 	WM_keymap_add_item(keymap, "UV_OT_unwrap", EKEY, KM_PRESS, 0, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "UV_OT_minimize_stretch", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_pack_islands", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_average_islands_scale", AKEY, KM_PRESS, KM_CTRL, 0);
+#endif
 
 	/* hide */
 	kmi = WM_keymap_add_item(keymap, "UV_OT_hide", HKEY, KM_PRESS, 0, 0);

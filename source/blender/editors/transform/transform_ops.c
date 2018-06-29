@@ -1124,11 +1124,13 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			/* Will fall-through to texture-space transform. */
 			kmi = WM_keymap_add_item(keymap, "OBJECT_OT_transform_axis_target", TKEY, KM_PRESS, KM_SHIFT, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 			kmi = WM_keymap_add_item(keymap, OP_TRANSLATION, TKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_boolean_set(kmi->ptr, "texture_space", true);
 
 			kmi = WM_keymap_add_item(keymap, OP_RESIZE, TKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 			RNA_boolean_set(kmi->ptr, "texture_space", true);
+#endif
 
 			WM_keymap_add_item(keymap, OP_SKIN_RESIZE, AKEY, KM_PRESS, KM_CTRL, 0);
 

@@ -222,7 +222,9 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	/* destructive */
 	WM_keymap_add_item(keymap, "ACTION_OT_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_menu(keymap, "DOPESHEET_MT_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_menu(keymap, "DOPESHEET_MT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "ACTION_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);

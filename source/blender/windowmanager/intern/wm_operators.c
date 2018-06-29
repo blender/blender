@@ -3943,7 +3943,10 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 
 	/* note, this doesn't replace existing keymap items */
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_verify_item(keymap, "WM_OT_window_new", WKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
+#endif
+
 #ifdef __APPLE__
 	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_menu(keymap, "INFO_MT_file_open_recent", OKEY, KM_PRESS, KM_SHIFT | KM_OSKEY, 0);
@@ -3953,28 +3956,39 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_OSKEY, 0);
 #endif
 	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_CTRL, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
+#endif
 	WM_keymap_add_menu(keymap, "INFO_MT_file_open_recent", OKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link", OKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
+#endif
 
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
+#endif
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "copy", true);
 
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
+#endif
+
 	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "WM_OT_doc_view_manual_ui_context", F1KEY, KM_PRESS, KM_ALT, 0);
 
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
+#endif
 
 	/* menus that can be accessed anywhere in blender */
 

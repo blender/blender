@@ -254,10 +254,12 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "use_all_regions", false);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_lock_to_active", PADPERIOD, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_lock_clear", PADPERIOD, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_navigate", FKEY, KM_PRESS, KM_SHIFT, 0);
+#endif
 
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 
@@ -286,21 +288,27 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_dolly", EQUALKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_dolly", MINUSKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "delta", -1);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom_camera_1_to_1", PADENTER, KM_PRESS, KM_SHIFT, 0);
+#endif
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_lock", HOMEKEY, KM_PRESS, 0, 0); /* only with lock view */
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_cursor", HOMEKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_pick", FKEY, KM_PRESS, KM_ALT, 0);
+#endif
 
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "center", false); /* only without camera view */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "use_all_regions", true);
 	RNA_boolean_set(kmi->ptr, "center", false); /* only without camera view */
+#ifdef USE_WM_KEYMAP_27X
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", CKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "center", true);
+#endif
 
 	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_view_pie", ACCENTGRAVEKEY, KM_CLICK_DRAG, 0, 0);
 
@@ -328,6 +336,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "type", V3D_VIEW_STEPRIGHT);
 	RNA_float_set(kmi->ptr, "angle", (float)M_PI);
 
+#ifdef USE_WM_KEYMAP_27X
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANRIGHT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANLEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", V3D_VIEW_PANUP);
@@ -340,6 +349,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_roll", WHEELUPMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "type", V3D_VIEW_STEPLEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_roll", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "type", V3D_VIEW_STEPRIGHT);
+#endif
 
 	/* active aligned, replaces '*' key in 2.4x */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT, 0);

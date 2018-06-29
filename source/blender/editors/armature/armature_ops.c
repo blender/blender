@@ -204,7 +204,11 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_align", AKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
+#else
+	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_SHIFT, 0);
+#endif
 	WM_keymap_add_item(keymap, "ARMATURE_OT_roll_clear", RKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
@@ -245,7 +249,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_shortest_path_pick", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_armature_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_armature_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_dissolve", XKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);

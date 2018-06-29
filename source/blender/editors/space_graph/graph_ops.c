@@ -611,7 +611,9 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 
 	WM_keymap_add_item(keymap, "GRAPH_OT_bake", CKEY, KM_PRESS, KM_ALT, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_menu(keymap, "GRAPH_MT_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_menu(keymap, "GRAPH_MT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_menu(keymap, "GRAPH_MT_specials", WKEY, KM_PRESS, 0, 0);

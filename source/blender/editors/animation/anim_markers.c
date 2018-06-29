@@ -1671,7 +1671,9 @@ void ED_keymap_marker(wmKeyConfig *keyconf)
 
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_item(keymap, "MARKER_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_rename", MKEY, KM_PRESS, KM_CTRL, 0);
 

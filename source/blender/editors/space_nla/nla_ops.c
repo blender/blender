@@ -193,7 +193,9 @@ static void nla_keymap_channels(wmKeyMap *keymap)
 	RNA_boolean_set(kmi->ptr, "above_selected", true);
 
 	/* delete tracks */
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "NLA_OT_tracks_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_item(keymap, "NLA_OT_tracks_delete", DELKEY, KM_PRESS, 0, 0);
 }
 
@@ -270,7 +272,9 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_make_single_user", UKEY, KM_PRESS, 0, 0);
 
 	/* delete */
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "NLA_OT_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_item(keymap, "NLA_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	/* split */

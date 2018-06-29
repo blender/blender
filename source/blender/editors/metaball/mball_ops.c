@@ -83,7 +83,9 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", true);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MBALL_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 

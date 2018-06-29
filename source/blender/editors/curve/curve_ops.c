@@ -269,10 +269,14 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_make_segment", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_delete", XKEY, KM_PRESS, 0, 0);
+#endif
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_delete", DELKEY, KM_PRESS, 0, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CURVE_OT_dissolve_verts", XKEY, KM_PRESS, KM_CTRL, 0);
+#endif
 	WM_keymap_add_item(keymap, "CURVE_OT_dissolve_verts", DELKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_tilt_clear", TKEY, KM_PRESS, KM_ALT, 0);
@@ -286,7 +290,11 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", true);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CURVE_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
+#else
+	WM_keymap_add_item(keymap, "CURVE_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT, 0);
+#endif
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 
