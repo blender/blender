@@ -566,7 +566,6 @@ void makeDerivedMesh(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
         CustomDataMask dataMask, const bool build_shapekey_layers);
 
-void weight_to_rgb(float r_rgb[3], const float weight);
 /** Update the weight MCOL preview layer.
  * If weights are NULL, use object's active vgroup(s).
  * Else, weights must be an array of weight float values.

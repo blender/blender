@@ -2767,7 +2767,7 @@ static void psys_cache_edit_paths_iter(
 		/* selection coloring in edit mode */
 		if (use_weight) {
 			if (k == 0) {
-				weight_to_rgb(ca->col, pind.hkey[1]->weight);
+				BKE_defvert_weight_to_rgb(ca->col, pind.hkey[1]->weight);
 			}
 			else {
 				/* warning: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
@@ -2789,8 +2789,8 @@ static void psys_cache_edit_paths_iter(
 				float w1[3], w2[3];
 				keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
 
-				weight_to_rgb(w1, pind.hkey[0]->weight);
-				weight_to_rgb(w2, pind.hkey[1]->weight);
+				BKE_defvert_weight_to_rgb(w1, pind.hkey[0]->weight);
+				BKE_defvert_weight_to_rgb(w2, pind.hkey[1]->weight);
 
 				interp_v3_v3v3(ca->col, w1, w2, keytime);
 			}

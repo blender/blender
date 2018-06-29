@@ -41,7 +41,6 @@ struct Base;
 struct BoundBox;
 struct Gwn_Batch;
 struct Depsgraph;
-struct DerivedMesh;
 struct Object;
 struct SmokeDomainSettings;
 struct bAnimVizSettings;

@@ -48,7 +48,7 @@
 #include "BLI_buffer.h"
 #include "BLI_bitmap.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_material.h"
 #include "BKE_layer.h"
@@ -277,7 +277,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 						else
 							areadiff = 1.0f - (area / uvarea);
 
-						weight_to_rgb(col, areadiff);
+						BKE_defvert_weight_to_rgb(col, areadiff);
 						immUniformColor3fv(col);
 
 						/* TODO: use editmesh tessface */
@@ -357,7 +357,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						a = fabsf(uvang[i] - ang[i]) / (float)M_PI;
-						weight_to_rgb(col, 1.0f - pow2f(1.0f - a));
+						BKE_defvert_weight_to_rgb(col, 1.0f - pow2f(1.0f - a));
 						immAttrib3fv(color, col);
 						immVertex2fv(pos, luv->uv);
 					}

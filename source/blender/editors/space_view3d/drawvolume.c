@@ -40,8 +40,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_colorband.h"
+#include "BKE_deform.h"
 #include "BKE_particle.h"
 
 #include "smoke_API.h"
@@ -685,7 +685,7 @@ static void add_needle(float (*verts)[3], float (*colors)[3], float center[3],
 	float len = len_v3(dir);
 
 	float rgb[3];
-	weight_to_rgb(rgb, len);
+	BKE_defvert_weight_to_rgb(rgb, len);
 
 	if (len != 0.0f) {
 		mul_v3_fl(dir, 1.0f / len);
@@ -725,7 +725,7 @@ static void add_streamline(float (*verts)[3], float(*colors)[3], float center[3]
 	const float len = len_v3(dir);
 
 	float rgb[3];
-	weight_to_rgb(rgb, len);
+	BKE_defvert_weight_to_rgb(rgb, len);
 
 	copy_v3_v3(colors[(*offset)], rgb);
 	copy_v3_v3(verts[(*offset)++], center);

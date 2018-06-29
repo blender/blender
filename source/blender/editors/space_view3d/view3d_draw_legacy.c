@@ -57,7 +57,6 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"

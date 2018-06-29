@@ -70,7 +70,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_boids.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
@@ -81,7 +80,6 @@
 #include "BKE_particle.h"
 
 #include "BKE_collection.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_cloth.h"
@@ -328,7 +326,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
 
 	/* CACHE LOCATIONS */
 	if (!mesh_final->runtime.deformed_only) {
-		/* Will use later to speed up subsurf/derivedmesh */
+		/* Will use later to speed up subsurf/evaluated mesh. */
 		LinkNode *node, *nodedmelem, **nodearray;
 		int totdmelem, totelem, i, *origindex, *origindex_poly = NULL;
 

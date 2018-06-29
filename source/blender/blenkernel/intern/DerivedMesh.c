@@ -1394,39 +1394,6 @@ static void add_orco_mesh(
  * happens on enter/exit wpaint.
  */
 
-void weight_to_rgb(float r_rgb[3], const float weight)
-{
-	const float blend = ((weight / 2.0f) + 0.5f);
-
-	if (weight <= 0.25f) {    /* blue->cyan */
-		r_rgb[0] = 0.0f;
-		r_rgb[1] = blend * weight * 4.0f;
-		r_rgb[2] = blend;
-	}
-	else if (weight <= 0.50f) {  /* cyan->green */
-		r_rgb[0] = 0.0f;
-		r_rgb[1] = blend;
-		r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
-	}
-	else if (weight <= 0.75f) {  /* green->yellow */
-		r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
-		r_rgb[1] = blend;
-		r_rgb[2] = 0.0f;
-	}
-	else if (weight <= 1.0f) {  /* yellow->red */
-		r_rgb[0] = blend;
-		r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
-		r_rgb[2] = 0.0f;
-	}
-	else {
-		/* exceptional value, unclamped or nan,
-		 * avoid uninitialized memory use */
-		r_rgb[0] = 1.0f;
-		r_rgb[1] = 0.0f;
-		r_rgb[2] = 1.0f;
-	}
-}
-
 /* draw_flag's for calc_weightpaint_vert_color */
 enum {
 	/* only one of these should be set, keep first (for easy bit-shifting) */
@@ -1461,7 +1428,7 @@ static void weightpaint_color(unsigned char r_col[4], MERuntimeWeightColorInfo *
 		BKE_colorband_evaluate(dm_wcinfo->coba, input, colf);
 	}
 	else {
-		weight_to_rgb(colf, input);
+		BKE_defvert_weight_to_rgb(colf, input);
 	}
 
 	/* don't use rgb_float_to_uchar() here because

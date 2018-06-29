@@ -27,6 +27,7 @@
 #include "CLG_log.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
 #include "DNA_layer_types.h"
@@ -35,7 +36,6 @@
 #include "BLI_array_utils.h"
 #include "BLI_alloca.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"

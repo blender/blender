@@ -41,7 +41,6 @@
 #include "BLI_utildefines.h"
 
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_library.h"
@@ -218,20 +217,24 @@ static void deformVerts(
 	}
 }
 
-/* disabled particles in editmode for now, until support for proper derivedmesh
+/* disabled particles in editmode for now, until support for proper evaluated mesh
  * updates is coded */
 #if 0
 static void deformVertsEM(
-        ModifierData *md, Object *ob, EditMesh *editData,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, BMEditMesh *editData,
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = derivedData;
+	const bool do_temp_mesh = (mesh == NULL);
+	if (do_temp_mesh) {
+		mesh = BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name);
+		BM_mesh_bm_to_me(NULL, editData->bm, mesh, &((BMeshToMeshParams){0}));
+	}
 
-	if (!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	deformVerts(md, ob, mesh, vertexCos, numVerts);
 
-	deformVerts(md, ob, dm, vertexCos, numVerts);
-
-	if (!derivedData) dm->release(dm);
+	if (derivedData) {
+		BKE_id_free(NULL, mesh);
+	}
 }
 #endif
 
