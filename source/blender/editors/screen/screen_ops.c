@@ -1235,8 +1235,8 @@ static void area_move_set_limits(
 	if (use_bigger_smaller_snap != NULL) {
 		*use_bigger_smaller_snap = false;
 		for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
-			const int size_min = round_fl_to_int(area->global->size_min * UI_DPI_FAC);
-			const int size_max = round_fl_to_int(area->global->size_max * UI_DPI_FAC);
+			const int size_min = ED_area_global_min_size_y(area) - 1;
+			const int size_max = ED_area_global_max_size_y(area) - 1;
 
 			/* logic here is only tested for lower edge :) */
 			/* left edge */

@@ -718,7 +718,7 @@ static void screen_vertices_scale(
 		/* adjust headery if verts are along the edge of window */
 		if (sa->v1->vec.y > window_rect->ymin)
 			headery += U.pixelsize;
-		if (sa->v2->vec.y < window_rect->ymax)
+		if (sa->v2->vec.y < (window_rect->ymax - 1))
 			headery += U.pixelsize;
 
 		if (area_geometry_height(sa) < headery) {
@@ -744,21 +744,32 @@ static void screen_vertices_scale(
 
 	/* Global areas have a fixed size that only changes with the DPI. Here we ensure that exactly this size is set. */
 	for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+		int height = ED_area_global_size_y(area) - 1;
+
 		if (area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
 			continue;
 		}
+
+		if (area->v1->vec.y > window_rect->ymin) {
+			height += U.pixelsize;
+		}
+		if (area->v2->vec.y < (window_rect->ymax - 1)) {
+			height += U.pixelsize;
+		}
+
 		/* width */
 		area->v1->vec.x = area->v2->vec.x = window_rect->xmin;
 		area->v3->vec.x = area->v4->vec.x = window_rect->xmax - 1;
 		/* height */
 		area->v1->vec.y = area->v4->vec.y = window_rect->ymin;
 		area->v2->vec.y = area->v3->vec.y = window_rect->ymax - 1;
+
 		switch (area->global->align) {
 			case GLOBAL_AREA_ALIGN_TOP:
-				area->v1->vec.y = area->v4->vec.y = area->v2->vec.y - ED_area_global_size_y(area);
+				area->v1->vec.y = area->v4->vec.y = area->v2->vec.y - height;
 				break;
 			case GLOBAL_AREA_ALIGN_BOTTOM:
-				area->v2->vec.y = area->v3->vec.y = area->v1->vec.y + ED_area_global_size_y(area);
+				area->v2->vec.y = area->v3->vec.y = area->v1->vec.y + height;
 				break;
 		}
 	}

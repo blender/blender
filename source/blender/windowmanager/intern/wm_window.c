@@ -2013,22 +2013,37 @@ void WM_window_rect_calc(const wmWindow *win, rcti *r_rect)
  */
 void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 {
-	rcti rect;
+	rcti window_rect, screen_rect;
 
-	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win), 0, WM_window_pixels_y(win));
+	WM_window_rect_calc(win, &window_rect);
+	screen_rect = window_rect;
 
 	/* Substract global areas from screen rectangle. */
 	for (ScrArea *global_area = win->global_areas.areabase.first; global_area; global_area = global_area->next) {
+		int height = ED_area_global_size_y(global_area) - 1;
+
 		if (global_area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
 			continue;
 		}
 
 		switch (global_area->global->align) {
 			case GLOBAL_AREA_ALIGN_TOP:
-				rect.ymax -= ED_area_global_size_y(global_area);
+				if ((screen_rect.ymax - height) > window_rect.ymin) {
+					height += U.pixelsize;
+				}
+				if (screen_rect.ymax < (window_rect.ymax - 1)) {
+					height += U.pixelsize;
+				}
+				screen_rect.ymax -= height;
 				break;
 			case GLOBAL_AREA_ALIGN_BOTTOM:
-				rect.ymin += ED_area_global_size_y(global_area);
+				if (screen_rect.ymin > window_rect.ymin) {
+					height += U.pixelsize;
+				}
+				if ((screen_rect.ymin + height) < (window_rect.ymax - 1)) {
+					height += U.pixelsize;
+				}
+				screen_rect.ymin += height;
 				break;
 			default:
 				BLI_assert(0);
@@ -2036,9 +2051,9 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 		}
 	}
 
-	BLI_assert(rect.xmin < rect.xmax);
-	BLI_assert(rect.ymin < rect.ymax);
-	*r_rect = rect;
+	BLI_assert(screen_rect.xmin < screen_rect.xmax);
+	BLI_assert(screen_rect.ymin < screen_rect.ymax);
+	*r_rect = screen_rect;
 }
 
 bool WM_window_is_fullscreen(wmWindow *win)

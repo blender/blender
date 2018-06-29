@@ -2362,6 +2362,16 @@ int ED_area_global_size_y(const ScrArea *area)
 	BLI_assert(ED_area_is_global(area));
 	return round_fl_to_int(area->global->cur_fixed_height * UI_DPI_FAC);
 }
+int ED_area_global_min_size_y(const ScrArea *area)
+{
+	BLI_assert(ED_area_is_global(area));
+	return round_fl_to_int(area->global->size_min * UI_DPI_FAC);
+}
+int ED_area_global_max_size_y(const ScrArea *area)
+{
+	BLI_assert(ED_area_is_global(area));
+	return round_fl_to_int(area->global->size_max * UI_DPI_FAC);
+}
 
 bool ED_area_is_global(const ScrArea *area)
 {
