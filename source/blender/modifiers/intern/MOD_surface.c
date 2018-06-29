@@ -111,7 +111,7 @@ static void deformVerts(
 		        LIB_ID_COPY_NO_PREVIEW,
 		        false);
 	}
-	else surmd->mesh = get_mesh(ctx->object, NULL, NULL, NULL, false, false);
+	else surmd->mesh = MOD_get_mesh_eval(ctx->object, NULL, NULL, NULL, false, false);
 
 	if (!ctx->object->pd) {
 		printf("SurfaceModifier deformVerts: Should not happen!\n");

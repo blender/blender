@@ -120,7 +120,7 @@ static void deformVerts(
 		return;
 
 	if (mesh_src == NULL) {
-		mesh_src = get_mesh(ctx->object, NULL, NULL, vertexCos, false, true);
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, NULL, vertexCos, false, true);
 		if (mesh_src == NULL) {
 			return;
 		}

@@ -150,9 +150,9 @@ void weightvg_do_mask(
 		t_map.texmapping = tex_mapping;
 
 		tex_co = MEM_calloc_arrayN(numVerts, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
-		get_texture_coords_mesh(&t_map, ob, mesh, NULL, tex_co);
+		MOD_get_texture_coords(&t_map, ob, mesh, NULL, tex_co);
 
-		modifier_init_texture(depsgraph, texture);
+		MOD_init_texture(depsgraph, texture);
 
 		/* For each weight (vertex), make the mix between org and new weights. */
 		for (i = 0; i < num; ++i) {

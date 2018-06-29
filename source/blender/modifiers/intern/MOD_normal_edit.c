@@ -470,7 +470,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd, Object *ob, Mes
 		clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, num_loops);
 	}
 
-	modifier_get_vgroup_mesh(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (enmd->mode == MOD_NORMALEDIT_MODE_RADIAL) {
 		normalEditModifier_do_radial(

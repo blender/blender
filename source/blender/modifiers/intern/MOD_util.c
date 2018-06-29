@@ -63,7 +63,7 @@
 
 #include "bmesh.h"
 
-void modifier_init_texture(const Depsgraph *depsgraph, Tex *tex)
+void MOD_init_texture(const Depsgraph *depsgraph, Tex *tex)
 {
 	if (!tex)
 		return;
@@ -75,7 +75,7 @@ void modifier_init_texture(const Depsgraph *depsgraph, Tex *tex)
 
 /* TODO to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
 /** \param cos may be NULL, in which case we use directly mesh vertices' coordinates. */
-void get_texture_coords_mesh(
+void MOD_get_texture_coords(
         MappingInfoModifierData *dmd,
         Object *ob,
         Mesh *mesh,
@@ -155,7 +155,7 @@ void get_texture_coords_mesh(
 	}
 }
 
-void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
+void MOD_previous_vcos_store(ModifierData *md, float (*vertexCos)[3])
 {
 	while ((md = md->next) && md->type == eModifierType_Armature) {
 		ArmatureModifierData *amd = (ArmatureModifierData *) md;
@@ -168,7 +168,7 @@ void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 }
 
 /* returns a mesh if mesh == NULL, for deforming modifiers that need it */
-Mesh *get_mesh(
+Mesh *MOD_get_mesh_eval(
         Object *ob, struct BMEditMesh *em, Mesh *mesh,
         float (*vertexCos)[3], bool use_normals, bool use_orco)
 {
@@ -218,8 +218,7 @@ Mesh *get_mesh(
 	return mesh;
 }
 
-/* TODO(sybren): replace the above function with this one, once we got rid of DerivedMesh for modifiers. */
-void modifier_get_vgroup_mesh(Object *ob, struct Mesh *mesh, const char *name, MDeformVert **dvert, int *defgrp_index)
+void MOD_get_vgroup(Object *ob, struct Mesh *mesh, const char *name, MDeformVert **dvert, int *defgrp_index)
 {
 	*defgrp_index = defgroup_name_index(ob, name);
 	*dvert = NULL;

@@ -271,7 +271,7 @@ static void deformVerts_do(
 
 	/* Generic data needed for applying per-vertex calculations (initialize all members) */
 	hd.vertexCos = vertexCos;
-	modifier_get_vgroup_mesh(ob, mesh, hmd->name, &hd.dvert, &hd.defgrp_index);
+	MOD_get_vgroup(ob, mesh, hmd->name, &hd.dvert, &hd.defgrp_index);
 
 	hd.curfalloff = hmd->curfalloff;
 
@@ -354,7 +354,7 @@ static void deformVerts(
         float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
-	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
 
@@ -369,7 +369,7 @@ static void deformVertsEM(
         struct Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
-	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 
 	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
 

@@ -118,7 +118,7 @@ static void smoothModifier_do(
 		numDMEdges = 0;
 	}
 
-	modifier_get_vgroup_mesh(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
 	/* NOTICE: this can be optimized a little bit by moving the
 	 * if (dvert) out of the loop, if needed */

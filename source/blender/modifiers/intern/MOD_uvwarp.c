@@ -198,7 +198,7 @@ static Mesh *applyModifier(
 	mloop = mesh->mloop;
 	/* make sure we are not modifying the original UV map */
 	mloopuv = CustomData_duplicate_referenced_layer_named(&mesh->ldata, CD_MLOOPUV, uvname, numLoops);
-	modifier_get_vgroup_mesh(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
 	UVWarpData data = {.mpoly = mpoly, .mloop = mloop, .mloopuv = mloopuv,
 	                   .dvert = dvert, .defgrp_index = defgrp_index,

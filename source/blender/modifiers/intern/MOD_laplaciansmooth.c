@@ -379,7 +379,7 @@ static void laplaciansmoothModifier_do(
 	sys->medges = mesh->medge;
 	sys->vertexCos = vertexCos;
 	sys->min_area = 0.00001f;
-	modifier_get_vgroup_mesh(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
 	sys->vert_centroid[0] = 0.0f;
 	sys->vert_centroid[1] = 0.0f;
@@ -507,7 +507,7 @@ static void deformVerts(
 	if (numVerts == 0)
 		return;
 
-	mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);
@@ -525,7 +525,7 @@ static void deformVertsEM(
 	if (numVerts == 0)
 		return;
 
-	mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+	mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);

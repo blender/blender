@@ -293,14 +293,14 @@ static void displaceModifier_do(
 	if (dmd->strength == 0.0f) return;
 
 	mvert = mesh->mvert;
-	modifier_get_vgroup_mesh(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (dmd->texture) {
 		tex_co = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tex_co),
 		                     "displaceModifier_do tex_co");
-		get_texture_coords_mesh((MappingInfoModifierData *)dmd, ob, mesh, vertexCos, tex_co);
+		MOD_get_texture_coords((MappingInfoModifierData *)dmd, ob, mesh, vertexCos, tex_co);
 
-		modifier_init_texture(depsgraph, dmd->texture);
+		MOD_init_texture(depsgraph, dmd->texture);
 	}
 	else {
 		tex_co = NULL;
@@ -376,7 +376,7 @@ static void deformVerts(
         float (*vertexCos)[3],
         int numVerts)
 {
-	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
@@ -391,7 +391,7 @@ static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 

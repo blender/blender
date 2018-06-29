@@ -113,7 +113,7 @@ static void deformVerts(
 	Object *ob = ctx->object;
 
 	if (mesh == NULL) {
-		mesh_src = get_mesh(ob, NULL, NULL, NULL, false, false);
+		mesh_src = MOD_get_mesh_eval(ob, NULL, NULL, NULL, false, false);
 	}
 	else {
 		/* Not possible to use get_mesh() in this case as we'll modify its vertices

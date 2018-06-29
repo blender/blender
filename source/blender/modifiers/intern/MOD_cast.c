@@ -153,7 +153,7 @@ static void sphere_do(
 
 	/* 3) if we were given a vertex group name,
 	 * only those vertices should be affected */
-	modifier_get_vgroup_mesh(ob, mesh, cmd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, cmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (flag & MOD_CAST_SIZE_FROM_RADIUS) {
 		len = cmd->radius;
@@ -255,7 +255,7 @@ static void cuboid_do(
 
 	/* 3) if we were given a vertex group name,
 	 * only those vertices should be affected */
-	modifier_get_vgroup_mesh(ob, mesh, cmd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, cmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (ctrl_ob) {
 		if (flag & MOD_CAST_USE_OB_TRANSFORM) {
@@ -429,7 +429,7 @@ static void deformVerts(
         int numVerts)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
-	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
@@ -451,7 +451,7 @@ static void deformVertsEM(
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
-	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 

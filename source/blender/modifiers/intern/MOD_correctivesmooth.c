@@ -581,7 +581,7 @@ static void correctivesmooth_modifier_do(
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
 
-	modifier_get_vgroup_mesh(ob, mesh, csmd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, csmd->defgrp_name, &dvert, &defgrp_index);
 
 	/* if rest bind_coords not are defined, set them (only run during bind) */
 	if ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) &&
@@ -717,7 +717,7 @@ static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	correctivesmooth_modifier_do(md, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, NULL);
 
@@ -731,7 +731,7 @@ static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 
 	correctivesmooth_modifier_do(md, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, editData);
 

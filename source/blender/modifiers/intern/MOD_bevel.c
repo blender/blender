@@ -108,7 +108,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	        });
 
 	if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0])
-		modifier_get_vgroup_mesh(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
+		MOD_get_vgroup(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
 
 	if (vertex_only) {
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

@@ -119,7 +119,7 @@ static void deformVerts(
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
 
-	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
 	armature_deform_verts(amd->object, ctx->object, mesh, vertexCos, NULL,
 	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
@@ -136,9 +136,9 @@ static void deformVertsEM(
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	Mesh *mesh_src = get_mesh(ctx->object, em, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, em, mesh, NULL, false, false);
 
-	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
 	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, NULL,
 	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
@@ -160,7 +160,7 @@ static void deformMatricesEM(
         float (*defMats)[3][3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	Mesh *mesh_src = get_mesh(ctx->object, em, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, em, mesh, NULL, false, false);
 
 	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats, numVerts,
 	                      amd->deformflag, NULL, amd->defgrp_name);
@@ -175,7 +175,7 @@ static void deformMatrices(
         float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats, numVerts,
 	                      amd->deformflag, NULL, amd->defgrp_name);
