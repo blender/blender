@@ -6,6 +6,8 @@ uniform float materialRoughness;
 
 #ifdef V3D_SHADING_TEXTURE_COLOR
 uniform sampler2D image;
+uniform float ImageTransparencyCutoff = 0.1;
+
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
@@ -42,6 +44,9 @@ void main()
 
 #ifdef V3D_SHADING_TEXTURE_COLOR
 	diffuseColor = texture(image, uv_interp);
+	if (diffuseColor.a < ImageTransparencyCutoff) {
+		discard;
+	}
 #else
 	diffuseColor = vec4(materialDiffuseColor.rgb, 0.0);
 #  ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL

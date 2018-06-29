@@ -1,5 +1,7 @@
 #ifdef V3D_SHADING_TEXTURE_COLOR
 uniform sampler2D image;
+uniform float ImageTransparencyCutoff = 0.1;
+
 #endif
 uniform mat4 ProjectionMatrix;
 uniform mat3 normalWorldMatrix;
@@ -35,6 +37,9 @@ void main()
 
 #ifdef V3D_SHADING_TEXTURE_COLOR
 	diffuse_color = texture(image, uv_interp);
+	if (diffuse_color.a < ImageTransparencyCutoff) {
+		discard;
+	}
 #else
 	diffuse_color = materialDiffuseColor;
 #endif /* V3D_SHADING_TEXTURE_COLOR */

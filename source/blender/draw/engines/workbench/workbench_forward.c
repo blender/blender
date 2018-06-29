@@ -51,6 +51,7 @@ static struct {
 	struct GPUShader *composite_sh_cache[MAX_SHADERS];
 	struct GPUShader *transparent_accum_sh_cache[MAX_SHADERS];
 	struct GPUShader *object_outline_sh;
+	struct GPUShader *object_outline_texture_sh;
 	struct GPUShader *object_outline_hair_sh;
 	struct GPUShader *checker_depth_sh;
 
@@ -78,20 +79,6 @@ extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
 /* static functions */
-static char *workbench_build_forward_depth_frag(void)
-{
-	char *str = NULL;
-
-	DynStr *ds = BLI_dynstr_new();
-
-	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
-	BLI_dynstr_append(ds, datatoc_workbench_forward_depth_frag_glsl);
-
-	str = BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
-	return str;
-}
-
 static char *workbench_build_forward_vert(void)
 {
 	char *str = NULL;
@@ -189,7 +176,15 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		material->shgrp = grp;
 
 		/* Depth */
-		material->shgrp_object_outline = DRW_shgroup_create(e_data.object_outline_sh, psl->object_outline_pass);
+		if (workbench_material_determine_color_type(wpd, material->ima) == V3D_SHADING_TEXTURE_COLOR)
+		{
+			material->shgrp_object_outline = DRW_shgroup_create(e_data.object_outline_texture_sh, psl->object_outline_pass);
+			GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
+			DRW_shgroup_uniform_texture(material->shgrp_object_outline, "image", tex);
+		}
+		else {
+			material->shgrp_object_outline = DRW_shgroup_create(e_data.object_outline_sh, psl->object_outline_pass);
+		}
 		material->object_id = engine_object_data->object_id;
 		DRW_shgroup_uniform_int(material->shgrp_object_outline, "object_id", &material->object_id, 1);
 		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
@@ -266,23 +261,26 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		memset(e_data.composite_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 		memset(e_data.transparent_accum_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 
-		char *defines = workbench_material_build_defines(wpd, OB_SOLID, false);
-		char *defines_hair = workbench_material_build_defines(wpd, OB_SOLID, true);
+		char *defines = workbench_material_build_defines(wpd, false, false);
+		char *defines_texture = workbench_material_build_defines(wpd, true, false);
+		char *defines_hair = workbench_material_build_defines(wpd, false, true);
 		char *forward_vert = workbench_build_forward_vert();
-		char *forward_depth_frag = workbench_build_forward_depth_frag();
 		e_data.object_outline_sh = DRW_shader_create(
 		        forward_vert, NULL,
-		        forward_depth_frag, defines);
+		        datatoc_workbench_forward_depth_frag_glsl, defines);
+		e_data.object_outline_texture_sh = DRW_shader_create(
+		        forward_vert, NULL,
+		        datatoc_workbench_forward_depth_frag_glsl, defines_texture);
 		e_data.object_outline_hair_sh = DRW_shader_create(
 		        forward_vert, NULL,
-		        forward_depth_frag, defines_hair);
+		        datatoc_workbench_forward_depth_frag_glsl, defines_hair);
 
 
 		e_data.checker_depth_sh = DRW_shader_create_fullscreen(
 		        datatoc_workbench_checkerboard_depth_frag_glsl, NULL);
 		MEM_freeN(forward_vert);
-		MEM_freeN(forward_depth_frag);
 		MEM_freeN(defines);
+		MEM_freeN(defines_texture);
 		MEM_freeN(defines_hair);
 	}
 	workbench_fxaa_engine_init();
@@ -369,6 +367,7 @@ void workbench_forward_engine_free()
 		DRW_SHADER_FREE_SAFE(e_data.transparent_accum_sh_cache[index]);
 	}
 	DRW_SHADER_FREE_SAFE(e_data.object_outline_sh);
+	DRW_SHADER_FREE_SAFE(e_data.object_outline_texture_sh);
 	DRW_SHADER_FREE_SAFE(e_data.object_outline_hair_sh);
 	DRW_SHADER_FREE_SAFE(e_data.checker_depth_sh);
 
