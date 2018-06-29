@@ -429,52 +429,112 @@ static void studiolight_calculate_spherical_harmonics_coefficient(StudioLight *s
 				float cubevec[3];
 				studiolight_calculate_cubemap_vector_weight(cubevec, &weight, face, xf, yf);
 
+				const float nx = cubevec[0];
+				const float ny = cubevec[1];
+				const float nz = cubevec[2];
+				const float nx2 = SQUARE(nx);
+				const float ny2 = SQUARE(ny);
+				const float nz2 = SQUARE(nz);
+				const float nx4 = SQUARE(nx2);
+				const float ny4 = SQUARE(ny2);
+				const float nz4 = SQUARE(nz2);
+
 				switch (sh_component) {
+					/* L0 */
 					case 0:
 					{
 						coef = 0.2822095f;
 						break;
 					}
 
+					/* L1 */
 					case 1:
 					{
-						coef = -0.488603f * cubevec[2] * 2.0f / 3.0f;
+						coef = -0.488603f * nz * 2.0f / 3.0f;
 						break;
 					}
 					case 2:
 					{
-						coef = 0.488603f * cubevec[1] * 2.0f / 3.0f;
+						coef = 0.488603f * ny * 2.0f / 3.0f;
 						break;
 					}
 					case 3:
 					{
-						coef = -0.488603f * cubevec[0] * 2.0f / 3.0f;
+						coef = -0.488603f * nx * 2.0f / 3.0f;
 						break;
 					}
 
+					/* L2 */
 					case 4:
 					{
-						coef = 1.092548f * cubevec[0] * cubevec[2] * 1.0f / 4.0f;
+						coef = 1.092548f * nx * nz * 1.0f / 4.0f;
 						break;
 					}
 					case 5:
 					{
-						coef = -1.092548f * cubevec[2] * cubevec[1] * 1.0f / 4.0f;
+						coef = -1.092548f * nz * ny * 1.0f / 4.0f;
 						break;
 					}
 					case 6:
 					{
-						coef = 0.315392f * (3.0f * cubevec[2] * cubevec[2] - 1.0f) * 1.0f / 4.0f;
+						coef = 0.315392f * (3.0f * ny2 - 1.0f) * 1.0f / 4.0f;
 						break;
 					}
 					case 7:
 					{
-						coef = 1.092548f * cubevec[0] * cubevec[1] * 1.0f / 4.0f;
+						coef = 1.092548f * nx * ny * 1.0f / 4.0f;
 						break;
 					}
 					case 8:
 					{
-						coef = 0.546274f * (cubevec[0] * cubevec[0] - cubevec[2] * cubevec[2]) * 1.0f / 4.0f;
+						coef = 0.546274f * (nx2 - nz2) * 1.0f / 4.0f;
+						break;
+					}
+
+					/* L4 */
+					case 9:
+					{
+						coef = (2.5033429417967046f * nx * nz * (nx2 - nz2)) / -24.0f;
+						break;
+					}
+					case 10:
+					{
+						coef = (-1.7701307697799304f * nz * ny * (3.0f * nx2 - nz2)) / -24.0f;
+						break;
+					}
+					case 11:
+					{
+						coef = (0.9461746957575601f * nz * nx * (-1.0f +7.0f*ny2)) / -24.0f;
+						break;
+					}
+					case 12:
+					{
+						coef = (-0.6690465435572892f * nz * ny * (-3.0f + 7.0f * ny2)) / -24.0f;
+						break;
+					}
+					case 13:
+					{
+						coef = ((105.0f*ny4-90.0f*ny2+9.0f)/28.359261614f) / -24.0f;
+						break;
+					}
+					case 14:
+					{
+						coef = (-0.6690465435572892f * nx * ny * (-3.0f + 7.0f * ny2)) / -24.0f;
+						break;
+					}
+					case 15:
+					{
+						coef = (0.9461746957575601f * (nx2 - nz2) * (-1.0f + 7.0f * ny2)) / -24.0f;
+						break;
+					}
+					case 16:
+					{
+						coef = (-1.7701307697799304f * nx * ny * (nx2 - 3.0f * nz2)) / -24.0f;
+						break;
+					}
+					case 17:
+					{
+						coef = (0.6258357354491761f * (nx4 - 6.0f * nz2 * nx2 + nz4)) / -24.0f;
 						break;
 					}
 
@@ -573,24 +633,48 @@ static void studiolight_apply_spherical_harmonics_windowing(StudioLight *sl, flo
 
 BLI_INLINE void studiolight_sample_spherical_harmonics(StudioLight *sl, float color[3], float normal[3])
 {
+	const float nx = normal[0];
+	const float ny = normal[1];
+	const float nz = normal[2];
+
 	copy_v3_fl(color, 0.0f);
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[0], 0.282095f);
 
 #if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 0
 	/* Spherical Harmonics L1 */
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[1], -0.488603f * normal[2]);
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[2],  0.488603f * normal[1]);
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[3], -0.488603f * normal[0]);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[1], -0.488603f * nz);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[2],  0.488603f * ny);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[3], -0.488603f * nx);
 #endif
 
 #if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 1
-	/* Spherical Harmonics L1 */
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[4], 1.092548f * normal[0] * normal[2]);
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[5], -1.092548f * normal[2] * normal[1]);
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[6], 0.315392f * (3.0f * normal[1] * normal[1] - 1.0f));
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[7], -1.092548 * normal[0] * normal[1]);
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[8], 0.546274 * (normal[0] * normal[0] - normal[2] * normal[2]));
+	/* Spherical Harmonics L2 */
+	const float nx2 = SQUARE(nx);
+	const float ny2 = SQUARE(ny);
+	const float nz2 = SQUARE(nz);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[4], 1.092548f * nx * nz);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[5], -1.092548f * nz * ny);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[6], 0.315392f * (3.0f * ny2 - 1.0f));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[7], -1.092548 * nx * ny);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[8], 0.546274 * (nx2 - nz2));
 #endif
+
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL > 3
+	/* Spherical Harmonics L4 */
+	const float nx4 = SQUARE(nx2);
+	const float ny4 = SQUARE(ny2);
+	const float nz4 = SQUARE(nz2);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[9],   2.5033429417967046f * nx * nz * (nx2 - nz2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[10], -1.7701307697799304f * nz * ny * (3.0f * nx2 - nz2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[11],  0.9461746957575601f * nz * nx * (-1.0f + 7.0f*ny2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[12], -0.6690465435572892f * nz * ny * (-3.0f + 7.0f * ny2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[13],  (105.0f*ny4-90.0f*ny2+9.0f)/28.359261614f);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[14], -0.6690465435572892f * nx * ny * (-3.0f + 7.0f * ny2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[15],  0.9461746957575601f * (nx2 - nz2) * (-1.0f + 7.0f * ny2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[16], -1.7701307697799304f * nx * ny * (nx2 - 3.0f * nz2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[17],  0.6258357354491761f * (nx4 - 6.0f * nz2 * nx2 + nz4));
+#endif
+
 }
 
 static void studiolight_calculate_diffuse_light(StudioLight *sl)
