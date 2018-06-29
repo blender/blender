@@ -44,8 +44,8 @@
  */
 static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
-	const float width = area_geometry_width(sa) - 1;
-	const float height = area_geometry_height(sa) - 1;
+	const float width = screen_geom_area_width(sa) - 1;
+	const float height = screen_geom_area_height(sa) - 1;
 	vec2f points[10];
 	short i;
 	float w, h;
@@ -125,8 +125,8 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
  */
 static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
-	const float width = area_geometry_width(sa) - 1;
-	const float height = area_geometry_height(sa) - 1;
+	const float width = screen_geom_area_width(sa) - 1;
+	const float height = screen_geom_area_height(sa) - 1;
 	vec2f points[10];
 	short i;
 	float w, h;

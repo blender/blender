@@ -900,7 +900,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* once we drag outside the actionzone, register a gesture
 				 * check we're not on an edge so join finds the other area */
 				is_gesture = ((ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
-				              (screen_area_map_find_active_scredge(
+				              (screen_geom_area_map_find_active_scredge(
 				                   AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y) == NULL));
 			}
 			else {
@@ -1282,7 +1282,7 @@ static void area_move_set_limits(
 			if (sa->v2->vec.y < (window_rect.ymax - 1))
 				areamin += U.pixelsize;
 
-			y1 = area_geometry_height(sa) - areamin;
+			y1 = screen_geom_area_height(sa) - areamin;
 
 			/* if top or down edge selected, test height */
 			if (sa->v1->editflag && sa->v4->editflag)
@@ -1299,7 +1299,7 @@ static void area_move_set_limits(
 			if (sa->v4->vec.x < (window_rect.xmax - 1))
 				areamin += U.pixelsize;
 
-			x1 = area_geometry_width(sa) - areamin;
+			x1 = screen_geom_area_width(sa) - areamin;
 
 			/* if left or right edge selected, test width */
 			if (sa->v1->editflag && sa->v2->editflag)
@@ -1325,17 +1325,17 @@ static int area_move_init(bContext *C, wmOperator *op)
 	y = RNA_int_get(op->ptr, "y");
 
 	/* setup */
-	actedge = screen_find_active_scredge(win, sc, x, y);
+	actedge = screen_geom_find_active_scredge(win, sc, x, y);
 	if (actedge == NULL) return 0;
 
 	md = MEM_callocN(sizeof(sAreaMoveData), "sAreaMoveData");
 	op->customdata = md;
 
-	md->dir = scredge_is_horizontal(actedge) ? 'h' : 'v';
+	md->dir = screen_geom_edge_is_horizontal(actedge) ? 'h' : 'v';
 	if (md->dir == 'h') md->origval = actedge->v1->vec.y;
 	else md->origval = actedge->v1->vec.x;
 
-	select_connected_scredge(win, actedge);
+	screen_geom_select_connected_edge(win, actedge);
 	/* now all vertices with 'flag == 1' are the ones that can be moved. Move this to editflag */
 	ED_screen_verts_iter(win, sc, v1) {
 		v1->editflag = v1->flag;
@@ -1460,7 +1460,7 @@ static void area_move_apply_do(
 		ED_screen_areas_iter(win, sc, sa) {
 			if (sa->v1->editflag || sa->v2->editflag || sa->v3->editflag || sa->v4->editflag) {
 				if (ED_area_is_global(sa)) {
-					sa->global->cur_fixed_height = round_fl_to_int(area_geometry_height(sa) / UI_DPI_FAC);
+					sa->global->cur_fixed_height = round_fl_to_int(screen_geom_area_height(sa) / UI_DPI_FAC);
 					sc->do_refresh = true;
 					redraw_all = true;
 				}
@@ -1881,11 +1881,11 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		WM_window_screen_rect_calc(win, &screen_rect);
 
-		actedge = screen_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(sc), &screen_rect, x, y);
+		actedge = screen_geom_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(sc), &screen_rect, x, y);
 		if (actedge == NULL)
 			return OPERATOR_CANCELLED;
 
-		dir = scredge_is_horizontal(actedge) ? 'v' : 'h';
+		dir = screen_geom_edge_is_horizontal(actedge) ? 'v' : 'h';
 
 		RNA_enum_set(op->ptr, "direction", dir);
 
@@ -3112,7 +3112,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
 	rcti screen_rect;
 
 	WM_window_screen_rect_calc(win, &screen_rect);
-	actedge = screen_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y);
+	actedge = screen_geom_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y);
 
 	if (actedge == NULL) return OPERATOR_CANCELLED;
 

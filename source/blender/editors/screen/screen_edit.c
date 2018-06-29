@@ -74,104 +74,6 @@
 #include "screen_intern.h"  /* own module include */
 
 
-/* ******************* screen vert, edge, area managing *********************** */
-
-static ScrVert *screen_addvert_ex(ScrAreaMap *area_map, short x, short y)
-{
-	ScrVert *sv = MEM_callocN(sizeof(ScrVert), "addscrvert");
-	sv->vec.x = x;
-	sv->vec.y = y;
-
-	BLI_addtail(&area_map->vertbase, sv);
-	return sv;
-}
-static ScrVert *screen_addvert(bScreen *sc, short x, short y)
-{
-	return screen_addvert_ex(AREAMAP_FROM_SCREEN(sc), x, y);
-}
-
-static ScrEdge *screen_addedge_ex(ScrAreaMap *area_map, ScrVert *v1, ScrVert *v2)
-{
-	ScrEdge *se = MEM_callocN(sizeof(ScrEdge), "addscredge");
-
-	BKE_screen_sort_scrvert(&v1, &v2);
-	se->v1 = v1;
-	se->v2 = v2;
-
-	BLI_addtail(&area_map->edgebase, se);
-	return se;
-}
-static ScrEdge *screen_addedge(bScreen *sc, ScrVert *v1, ScrVert *v2)
-{
-	return screen_addedge_ex(AREAMAP_FROM_SCREEN(sc), v1, v2);
-}
-
-bool scredge_is_horizontal(ScrEdge *se)
-{
-	return (se->v1->vec.y == se->v2->vec.y);
-}
-
-/**
- * \param bounds_rect: Either window or screen bounds. Used to exclude edges along window/screen edges.
- */
-ScrEdge *screen_area_map_find_active_scredge(
-        const ScrAreaMap *area_map,
-        const rcti *bounds_rect,
-        const int mx, const int my)
-{
-	int safety = U.widget_unit / 10;
-
-	CLAMP_MIN(safety, 2);
-
-	for (ScrEdge *se = area_map->edgebase.first; se; se = se->next) {
-		if (scredge_is_horizontal(se)) {
-			if ((se->v1->vec.y > bounds_rect->ymin) && (se->v1->vec.y < (bounds_rect->ymax - 1))) {
-				short min, max;
-				min = MIN2(se->v1->vec.x, se->v2->vec.x);
-				max = MAX2(se->v1->vec.x, se->v2->vec.x);
-
-				if (abs(my - se->v1->vec.y) <= safety && mx >= min && mx <= max)
-					return se;
-			}
-		}
-		else {
-			if ((se->v1->vec.x > bounds_rect->xmin) && (se->v1->vec.x < (bounds_rect->xmax - 1))) {
-				short min, max;
-				min = MIN2(se->v1->vec.y, se->v2->vec.y);
-				max = MAX2(se->v1->vec.y, se->v2->vec.y);
-
-				if (abs(mx - se->v1->vec.x) <= safety && my >= min && my <= max)
-					return se;
-			}
-		}
-	}
-
-	return NULL;
-}
-
-/* need win size to make sure not to include edges along screen edge */
-ScrEdge *screen_find_active_scredge(
-        const wmWindow *win, const bScreen *screen,
-        const int mx, const int my)
-{
-	/* Use layout size (screen excluding global areas) for screen-layout area edges */
-	rcti screen_rect;
-	ScrEdge *se;
-
-	WM_window_screen_rect_calc(win, &screen_rect);
-	se = screen_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(screen), &screen_rect, mx, my);
-
-	if (!se) {
-		/* Use entire window size (screen including global areas) for global area edges */
-		rcti win_rect;
-		WM_window_rect_calc(win, &win_rect);
-		se = screen_area_map_find_active_scredge(&win->global_areas, &win_rect, mx, my);
-	}
-	return se;
-}
-
-
-
 /* adds no space data */
 static ScrArea *screen_addarea_ex(
         ScrAreaMap *area_map,
@@ -210,68 +112,6 @@ static void screen_delarea(bContext *C, bScreen *sc, ScrArea *sa)
 	MEM_freeN(sa);
 }
 
-/* return 0: no split possible */
-/* else return (integer) screencoordinate split point */
-static short testsplitpoint(ScrArea *sa, const rcti *window_rect, char dir, float fac)
-{
-	short x, y;
-	const int cur_area_width = area_geometry_width(sa);
-	const int cur_area_height = area_geometry_height(sa);
-	const short area_min_x = AREAMINX;
-	const short area_min_y = ED_area_headersize();
-	int area_min;
-
-	// area big enough?
-	if (dir == 'v' && (cur_area_width <= 2 * area_min_x)) return 0;
-	if (dir == 'h' && (cur_area_height <= 2 * area_min_y)) return 0;
-
-	// to be sure
-	CLAMP(fac, 0.0f, 1.0f);
-
-	if (dir == 'h') {
-		y = sa->v1->vec.y + round_fl_to_short(fac * cur_area_height);
-
-		area_min = area_min_y;
-
-		if (sa->v1->vec.y > window_rect->ymin) {
-			area_min += U.pixelsize;
-		}
-		if (sa->v2->vec.y < (window_rect->ymax - 1)) {
-			area_min += U.pixelsize;
-		}
-
-		if (y - sa->v1->vec.y < area_min) {
-			y = sa->v1->vec.y + area_min;
-		}
-		else if (sa->v2->vec.y - y < area_min) {
-			y = sa->v2->vec.y - area_min;
-		}
-
-		return y;
-	}
-	else {
-		x = sa->v1->vec.x + round_fl_to_short(fac * cur_area_width);
-
-		area_min = area_min_x;
-
-		if (sa->v1->vec.x > window_rect->xmin) {
-			area_min += U.pixelsize;
-		}
-		if (sa->v4->vec.x < (window_rect->xmax - 1)) {
-			area_min += U.pixelsize;
-		}
-
-		if (x - sa->v1->vec.x < area_min) {
-			x = sa->v1->vec.x + area_min;
-		}
-		else if (sa->v4->vec.x - x < area_min) {
-			x = sa->v4->vec.x - area_min;
-		}
-
-		return x;
-	}
-}
-
 ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 {
 	ScrArea *newa = NULL;
@@ -283,7 +123,7 @@ ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, flo
 
 	WM_window_rect_calc(win, &window_rect);
 
-	split = testsplitpoint(sa, &window_rect, dir, fac);
+	split = screen_geom_find_area_split_point(sa, &window_rect, dir, fac);
 	if (split == 0) return NULL;
 
 	/* note regarding (fac > 0.5f) checks below.
@@ -292,15 +132,15 @@ ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, flo
 
 	if (dir == 'h') {
 		/* new vertices */
-		sv1 = screen_addvert(sc, sa->v1->vec.x, split);
-		sv2 = screen_addvert(sc, sa->v4->vec.x, split);
+		sv1 = screen_geom_vertex_add(sc, sa->v1->vec.x, split);
+		sv2 = screen_geom_vertex_add(sc, sa->v4->vec.x, split);
 
 		/* new edges */
-		screen_addedge(sc, sa->v1, sv1);
-		screen_addedge(sc, sv1, sa->v2);
-		screen_addedge(sc, sa->v3, sv2);
-		screen_addedge(sc, sv2, sa->v4);
-		screen_addedge(sc, sv1, sv2);
+		screen_geom_edge_add(sc, sa->v1, sv1);
+		screen_geom_edge_add(sc, sv1, sa->v2);
+		screen_geom_edge_add(sc, sa->v3, sv2);
+		screen_geom_edge_add(sc, sv2, sa->v4);
+		screen_geom_edge_add(sc, sv1, sv2);
 
 		if (fac > 0.5f) {
 			/* new areas: top */
@@ -324,15 +164,15 @@ ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, flo
 	}
 	else {
 		/* new vertices */
-		sv1 = screen_addvert(sc, split, sa->v1->vec.y);
-		sv2 = screen_addvert(sc, split, sa->v2->vec.y);
+		sv1 = screen_geom_vertex_add(sc, split, sa->v1->vec.y);
+		sv2 = screen_geom_vertex_add(sc, split, sa->v2->vec.y);
 
 		/* new edges */
-		screen_addedge(sc, sa->v1, sv1);
-		screen_addedge(sc, sv1, sa->v4);
-		screen_addedge(sc, sa->v2, sv2);
-		screen_addedge(sc, sv2, sa->v3);
-		screen_addedge(sc, sv1, sv2);
+		screen_geom_edge_add(sc, sa->v1, sv1);
+		screen_geom_edge_add(sc, sv1, sa->v4);
+		screen_geom_edge_add(sc, sa->v2, sv2);
+		screen_geom_edge_add(sc, sv2, sa->v3);
+		screen_geom_edge_add(sc, sv1, sv2);
 
 		if (fac > 0.5f) {
 			/* new areas: right */
@@ -375,15 +215,15 @@ bScreen *screen_add(Main *bmain, const char *name, const rcti *rect)
 	sc->do_refresh = true;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
 
-	sv1 = screen_addvert(sc, rect->xmin,     rect->ymin);
-	sv2 = screen_addvert(sc, rect->xmin,     rect->ymax - 1);
-	sv3 = screen_addvert(sc, rect->xmax - 1, rect->ymax - 1);
-	sv4 = screen_addvert(sc, rect->xmax - 1, rect->ymin);
+	sv1 = screen_geom_vertex_add(sc, rect->xmin,     rect->ymin);
+	sv2 = screen_geom_vertex_add(sc, rect->xmin,     rect->ymax - 1);
+	sv3 = screen_geom_vertex_add(sc, rect->xmax - 1, rect->ymax - 1);
+	sv4 = screen_geom_vertex_add(sc, rect->xmax - 1, rect->ymin);
 
-	screen_addedge(sc, sv1, sv2);
-	screen_addedge(sc, sv2, sv3);
-	screen_addedge(sc, sv3, sv4);
-	screen_addedge(sc, sv4, sv1);
+	screen_geom_edge_add(sc, sv1, sv2);
+	screen_geom_edge_add(sc, sv2, sv3);
+	screen_geom_edge_add(sc, sv3, sv4);
+	screen_geom_edge_add(sc, sv4, sv1);
 
 	/* dummy type, no spacedata */
 	screen_addarea(sc, sv1, sv2, sv3, sv4, SPACE_EMPTY);
@@ -447,15 +287,6 @@ void screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new)
 }
 
 
-int area_geometry_height(const ScrArea *area)
-{
-	return area->v2->vec.y - area->v1->vec.y + 1;
-}
-int area_geometry_width(const ScrArea *area)
-{
-	return area->v4->vec.x - area->v1->vec.x + 1;
-}
-
 /* with sa as center, sb is located at: 0=W, 1=N, 2=E, 3=S */
 /* -1 = not valid check */
 /* used with join operator */
@@ -508,26 +339,26 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	if (dir == 0) {
 		sa1->v1 = sa2->v1;
 		sa1->v2 = sa2->v2;
-		screen_addedge(scr, sa1->v2, sa1->v3);
-		screen_addedge(scr, sa1->v1, sa1->v4);
+		screen_geom_edge_add(scr, sa1->v2, sa1->v3);
+		screen_geom_edge_add(scr, sa1->v1, sa1->v4);
 	}
 	else if (dir == 1) {
 		sa1->v2 = sa2->v2;
 		sa1->v3 = sa2->v3;
-		screen_addedge(scr, sa1->v1, sa1->v2);
-		screen_addedge(scr, sa1->v3, sa1->v4);
+		screen_geom_edge_add(scr, sa1->v1, sa1->v2);
+		screen_geom_edge_add(scr, sa1->v3, sa1->v4);
 	}
 	else if (dir == 2) {
 		sa1->v3 = sa2->v3;
 		sa1->v4 = sa2->v4;
-		screen_addedge(scr, sa1->v2, sa1->v3);
-		screen_addedge(scr, sa1->v1, sa1->v4);
+		screen_geom_edge_add(scr, sa1->v2, sa1->v3);
+		screen_geom_edge_add(scr, sa1->v1, sa1->v4);
 	}
 	else if (dir == 3) {
 		sa1->v1 = sa2->v1;
 		sa1->v4 = sa2->v4;
-		screen_addedge(scr, sa1->v1, sa1->v2);
-		screen_addedge(scr, sa1->v3, sa1->v4);
+		screen_geom_edge_add(scr, sa1->v1, sa1->v2);
+		screen_geom_edge_add(scr, sa1->v3, sa1->v4);
 	}
 
 	screen_delarea(C, scr, sa2);
@@ -536,243 +367,6 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	BKE_icon_changed(scr->id.icon_id);
 
 	return 1;
-}
-
-void select_connected_scredge(const wmWindow *win, ScrEdge *edge)
-{
-	bScreen *sc = WM_window_get_active_screen(win);
-	ScrEdge *se;
-	int oneselected;
-	char dir;
-
-	/* select connected, only in the right direction */
-	/* 'dir' is the direction of EDGE */
-
-	if (edge->v1->vec.x == edge->v2->vec.x) dir = 'v';
-	else dir = 'h';
-
-	ED_screen_verts_iter(win, sc, sv) {
-		sv->flag = 0;
-	}
-
-	edge->v1->flag = 1;
-	edge->v2->flag = 1;
-
-	oneselected = 1;
-	while (oneselected) {
-		se = sc->edgebase.first;
-		oneselected = 0;
-		while (se) {
-			if (se->v1->flag + se->v2->flag == 1) {
-				if (dir == 'h') {
-					if (se->v1->vec.y == se->v2->vec.y) {
-						se->v1->flag = se->v2->flag = 1;
-						oneselected = 1;
-					}
-				}
-				if (dir == 'v') {
-					if (se->v1->vec.x == se->v2->vec.x) {
-						se->v1->flag = se->v2->flag = 1;
-						oneselected = 1;
-					}
-				}
-			}
-			se = se->next;
-		}
-	}
-}
-
-/**
- * Test if screen vertices should be scaled and do if needed.
- */
-static void screen_vertices_scale(
-        const wmWindow *win, bScreen *sc,
-        const rcti *window_rect, const rcti *screen_rect)
-{
-	/* clamp Y size of header sized areas when expanding windows
-	 * avoids annoying empty space around file menu */
-#define USE_HEADER_SIZE_CLAMP
-
-	const int headery_init = ED_area_headersize();
-	const int screen_size_x = BLI_rcti_size_x(screen_rect);
-	const int screen_size_y = BLI_rcti_size_y(screen_rect);
-	ScrVert *sv = NULL;
-	ScrArea *sa;
-	int screen_size_x_prev, screen_size_y_prev;
-	float min[2], max[2];
-
-	/* calculate size */
-	min[0] = min[1] = 20000.0f;
-	max[0] = max[1] = 0.0f;
-
-	for (sv = sc->vertbase.first; sv; sv = sv->next) {
-		const float fv[2] = {(float)sv->vec.x, (float)sv->vec.y};
-		minmax_v2v2_v2(min, max, fv);
-	}
-
-	screen_size_x_prev = (max[0] - min[0]) + 1;
-	screen_size_y_prev = (max[1] - min[1]) + 1;
-
-
-#ifdef USE_HEADER_SIZE_CLAMP
-#define TEMP_BOTTOM 1
-#define TEMP_TOP 2
-
-	/* if the window's Y axis grows, clamp header sized areas */
-	if (screen_size_y_prev < screen_size_y) {  /* growing? */
-		const int headery_margin_max = headery_init + 5;
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
-			sa->temp = 0;
-
-			if (ar && !(ar->flag & RGN_FLAG_HIDDEN)) {
-				if (sa->v2->vec.y == max[1]) {
-					if (area_geometry_height(sa) < headery_margin_max) {
-						sa->temp = TEMP_TOP;
-					}
-				}
-				else if (sa->v1->vec.y == min[1]) {
-					if (area_geometry_height(sa) < headery_margin_max) {
-						sa->temp = TEMP_BOTTOM;
-					}
-				}
-			}
-		}
-	}
-#endif
-
-
-	if (screen_size_x_prev != screen_size_x || screen_size_y_prev != screen_size_y) {
-		const float facx = ((float)screen_size_x - 1) / ((float)screen_size_x_prev - 1);
-		const float facy = ((float)screen_size_y - 1) / ((float)screen_size_y_prev - 1);
-
-		/* make sure it fits! */
-		for (sv = sc->vertbase.first; sv; sv = sv->next) {
-			sv->vec.x = screen_rect->xmin + round_fl_to_short((sv->vec.x - min[0]) * facx);
-			CLAMP(sv->vec.x, screen_rect->xmin, screen_rect->xmax - 1);
-
-			sv->vec.y = screen_rect->ymin + round_fl_to_short((sv->vec.y - min[1]) * facy);
-			CLAMP(sv->vec.y, screen_rect->ymin, screen_rect->ymax - 1);
-		}
-	}
-
-
-#ifdef USE_HEADER_SIZE_CLAMP
-	if (screen_size_y_prev < screen_size_y) {  /* growing? */
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			ScrEdge *se = NULL;
-
-			if (sa->temp == 0)
-				continue;
-
-			if (sa->v1 == sa->v2)
-				continue;
-
-			/* adjust headery if verts are along the edge of window */
-			if (sa->temp == TEMP_TOP) {
-				/* lower edge */
-				const int yval = sa->v2->vec.y - headery_init;
-				se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
-				if (se != NULL) {
-					select_connected_scredge(win, se);
-				}
-				for (sv = sc->vertbase.first; sv; sv = sv->next) {
-					if (sv != sa->v2 && sv != sa->v3) {
-						if (sv->flag) {
-							sv->vec.y = yval;
-						}
-					}
-				}
-			}
-			else {
-				/* upper edge */
-				const int yval = sa->v1->vec.y + headery_init;
-				se = BKE_screen_find_edge(sc, sa->v2, sa->v3);
-				if (se != NULL) {
-					select_connected_scredge(win, se);
-				}
-				for (sv = sc->vertbase.first; sv; sv = sv->next) {
-					if (sv != sa->v1 && sv != sa->v4) {
-						if (sv->flag) {
-							sv->vec.y = yval;
-						}
-					}
-				}
-			}
-		}
-	}
-
-#undef USE_HEADER_SIZE_CLAMP
-#undef TEMP_BOTTOM
-#undef TEMP_TOP
-#endif
-
-
-	/* test for collapsed areas. This could happen in some blender version... */
-	/* ton: removed option now, it needs Context... */
-
-	/* make each window at least ED_area_headersize() high */
-	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		int headery = headery_init;
-
-		/* adjust headery if verts are along the edge of window */
-		if (sa->v1->vec.y > window_rect->ymin)
-			headery += U.pixelsize;
-		if (sa->v2->vec.y < (window_rect->ymax - 1))
-			headery += U.pixelsize;
-
-		if (area_geometry_height(sa) < headery) {
-			/* lower edge */
-			ScrEdge *se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
-			if (se && sa->v1 != sa->v2) {
-				const int yval = sa->v2->vec.y - headery + 1;
-
-				select_connected_scredge(win, se);
-
-				/* all selected vertices get the right offset */
-				for (sv = sc->vertbase.first; sv; sv = sv->next) {
-					/* if is a collapsed area */
-					if (sv != sa->v2 && sv != sa->v3) {
-						if (sv->flag) {
-							sv->vec.y = yval;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/* Global areas have a fixed size that only changes with the DPI. Here we ensure that exactly this size is set. */
-	for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
-		int height = ED_area_global_size_y(area) - 1;
-
-		if (area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
-			continue;
-		}
-
-		if (area->v1->vec.y > window_rect->ymin) {
-			height += U.pixelsize;
-		}
-		if (area->v2->vec.y < (window_rect->ymax - 1)) {
-			height += U.pixelsize;
-		}
-
-		/* width */
-		area->v1->vec.x = area->v2->vec.x = window_rect->xmin;
-		area->v3->vec.x = area->v4->vec.x = window_rect->xmax - 1;
-		/* height */
-		area->v1->vec.y = area->v4->vec.y = window_rect->ymin;
-		area->v2->vec.y = area->v3->vec.y = window_rect->ymax - 1;
-
-		switch (area->global->align) {
-			case GLOBAL_AREA_ALIGN_TOP:
-				area->v1->vec.y = area->v4->vec.y = area->v2->vec.y - height;
-				break;
-			case GLOBAL_AREA_ALIGN_BOTTOM:
-				area->v2->vec.y = area->v3->vec.y = area->v1->vec.y + height;
-				break;
-		}
-	}
 }
 
 
@@ -854,7 +448,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 		WM_window_rect_calc(win, &window_rect);
 		WM_window_screen_rect_calc(win, &screen_rect); /* Get screen bounds __after__ updating window DPI! */
 
-		screen_vertices_scale(win, screen, &window_rect, &screen_rect);
+		screen_geom_vertices_scale(win, screen);
 
 		ED_screen_areas_iter(win, screen, area) {
 			/* set spacetype and region callbacks, calls init() */
@@ -1021,10 +615,10 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 		}
 	}
 	else {
-		ScrEdge *actedge = screen_find_active_scredge(win, screen, xy[0], xy[1]);
+		ScrEdge *actedge = screen_geom_find_active_scredge(win, screen, xy[0], xy[1]);
 
 		if (actedge) {
-			if (scredge_is_horizontal(actedge))
+			if (screen_geom_edge_is_horizontal(actedge))
 				WM_cursor_set(win, CURSOR_Y_MOVE);
 			else
 				WM_cursor_set(win, CURSOR_X_MOVE);
@@ -1140,15 +734,15 @@ static ScrArea *screen_area_create_with_geometry(
         ScrAreaMap *area_map, const rcti *rect,
         short spacetype)
 {
-	ScrVert *bottom_left  = screen_addvert_ex(area_map, rect->xmin, rect->ymin);
-	ScrVert *top_left     = screen_addvert_ex(area_map, rect->xmin, rect->ymax);
-	ScrVert *top_right    = screen_addvert_ex(area_map, rect->xmax, rect->ymax);
-	ScrVert *bottom_right = screen_addvert_ex(area_map, rect->xmax, rect->ymin);
+	ScrVert *bottom_left  = screen_geom_vertex_add_ex(area_map, rect->xmin, rect->ymin);
+	ScrVert *top_left     = screen_geom_vertex_add_ex(area_map, rect->xmin, rect->ymax);
+	ScrVert *top_right    = screen_geom_vertex_add_ex(area_map, rect->xmax, rect->ymax);
+	ScrVert *bottom_right = screen_geom_vertex_add_ex(area_map, rect->xmax, rect->ymin);
 
-	screen_addedge_ex(area_map, bottom_left, top_left);
-	screen_addedge_ex(area_map, top_left, top_right);
-	screen_addedge_ex(area_map, top_right, bottom_right);
-	screen_addedge_ex(area_map, bottom_right, bottom_left);
+	screen_geom_edge_add_ex(area_map, bottom_left, top_left);
+	screen_geom_edge_add_ex(area_map, top_left, top_right);
+	screen_geom_edge_add_ex(area_map, top_right, bottom_right);
+	screen_geom_edge_add_ex(area_map, bottom_right, bottom_left);
 
 	return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, spacetype);
 }
