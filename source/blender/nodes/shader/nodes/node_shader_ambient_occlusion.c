@@ -49,8 +49,8 @@ static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat, bNode *UNUSED(nod
 
 static void node_shader_init_ambient_occlusion(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->custom1 = 8; /* samples */
-	node->custom2 = SHD_AO_LOCAL;
+	node->custom1 = 16; /* samples */
+	node->custom2 = 0;
 }
 
 /* node type definition */

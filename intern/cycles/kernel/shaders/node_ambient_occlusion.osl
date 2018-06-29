@@ -18,11 +18,11 @@
 
 shader node_ambient_occlusion(
 	color ColorIn = color(1.0, 1.0, 1.0),
-	int samples = 8,
+	int samples = 16,
 	float Distance = 1.0,
 	normal Normal = N,
 	int inside = 0,
-	int only_local = 1,
+	int only_local = 0,
 	output color ColorOut = color(1.0, 1.0, 1.0),
 	output float AO = 1.0)
 {
