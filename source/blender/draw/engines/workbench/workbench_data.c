@@ -159,15 +159,8 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	DRW_uniformbuffer_update(wpd->world_ubo, wd);
 }
 
-static void workbench_private_material_free(void *data)
-{
-	WORKBENCH_MaterialData *material_data = data;
-	DRW_UBO_FREE_SAFE(material_data->material_ubo);
-	MEM_freeN(material_data);
-}
-
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
-	BLI_ghash_free(wpd->material_hash, NULL, workbench_private_material_free);
+	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);
 }

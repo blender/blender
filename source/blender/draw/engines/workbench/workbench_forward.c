@@ -177,11 +177,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		DRW_shgroup_uniform_float(grp, "alpha", &wpd->shading.xray_alpha, 1);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 		workbench_material_set_normal_world_matrix(grp, wpd, e_data.normal_world_matrix);
-		material->object_id = engine_object_data->object_id;
-		copy_v4_v4(material->material_data.diffuse_color, material_template.material_data.diffuse_color);
-		copy_v4_v4(material->material_data.specular_color, material_template.material_data.specular_color);
-		material->material_data.roughness = material_template.material_data.roughness;
-
+		workbench_material_copy(material, &material_template);
 		if (color_type == V3D_SHADING_TEXTURE_COLOR) {
 			GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0f);
 			DRW_shgroup_uniform_texture(grp, "image", tex);
@@ -194,8 +190,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 			DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		}
 
-		material->material_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_Material), &material->material_data);
-		DRW_shgroup_uniform_block(grp, "material_block", material->material_ubo);
+		workbench_material_shgroup_uniform(grp, material);
 		material->shgrp = grp;
 
 		/* Depth */
@@ -431,7 +426,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			                                shader);
 			workbench_material_set_normal_world_matrix(shgrp, wpd, e_data.normal_world_matrix);
 			DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
-			DRW_shgroup_uniform_block(shgrp, "material_block", material->material_ubo);
+			workbench_material_shgroup_uniform(shgrp, material);
 			DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 			/* Hairs have lots of layer and can rapidly become the most prominent surface.
 			 * So lower their alpha artificially. */

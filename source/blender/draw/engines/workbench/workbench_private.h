@@ -138,13 +138,6 @@ typedef struct WORKBENCH_UBO_World {
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
-typedef struct WORKBENCH_UBO_Material {
-	float diffuse_color[4];
-	float specular_color[4];
-	float roughness;
-	float pad[3];
-} WORKBENCH_UBO_Material;
-BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_Material, 16)
 
 typedef struct WORKBENCH_PrivateData {
 	struct GHash *material_hash;
@@ -196,10 +189,9 @@ typedef struct WORKBENCH_EffectInfo {
 } WORKBENCH_EffectInfo;
 
 typedef struct WORKBENCH_MaterialData {
-	/* Solid color */
-	WORKBENCH_UBO_Material material_data;
-	struct GPUUniformBuffer *material_ubo;
-
+	float diffuse_color[4];
+	float specular_color[4];
+	float roughness;
 	int object_id;
 	int color_type;
 	Image *ima;
@@ -279,6 +271,8 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_set_normal_world_matrix(
         DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
+void workbench_material_shgroup_uniform(DRWShadingGroup *grp, WORKBENCH_MaterialData *material);
+void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material);
 
 /* workbench_studiolight.c */
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);

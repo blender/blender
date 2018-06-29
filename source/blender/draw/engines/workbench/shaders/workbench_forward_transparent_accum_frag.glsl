@@ -7,6 +7,10 @@ uniform float alpha = 0.5;
 uniform vec2 invertedViewportSize;
 uniform vec4 viewvecs[3];
 
+uniform vec4 materialDiffuseColor;
+uniform vec4 materialSpecularColor;
+uniform float materialRoughness;
+
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 in vec3 normal_viewport;
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
@@ -21,10 +25,6 @@ layout(std140) uniform world_block {
 	WorldData world_data;
 };
 
-layout(std140) uniform material_block {
-	MaterialData material_data;
-};
-
 layout(location=0) out vec4 transparentAccum;
 layout(location=1) out float revealageAccum; /* revealage actually stored in transparentAccum.a */
 
@@ -36,7 +36,7 @@ void main()
 #ifdef V3D_SHADING_TEXTURE_COLOR
 	diffuse_color = texture(image, uv_interp);
 #else
-	diffuse_color = material_data.diffuse_color;
+	diffuse_color = materialDiffuseColor;
 #endif /* V3D_SHADING_TEXTURE_COLOR */
 
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
@@ -53,7 +53,7 @@ void main()
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	vec3 specular_color = get_world_specular_lights(world_data, vec4(material_data.specular_color.rgb, material_data.roughness), nor, I_vs);
+	vec3 specular_color = get_world_specular_lights(world_data, vec4(materialSpecularColor.rgb, materialRoughness), nor, I_vs);
 #else
 	vec3 specular_color = vec3(0.0);
 #endif

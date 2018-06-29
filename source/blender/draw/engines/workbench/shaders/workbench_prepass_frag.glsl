@@ -1,8 +1,8 @@
 uniform int object_id = 0;
 
-layout(std140) uniform material_block {
-	MaterialData material_data;
-};
+uniform vec4 materialDiffuseColor;
+uniform vec4 materialSpecularColor;
+uniform float materialRoughness;
 
 #ifdef V3D_SHADING_TEXTURE_COLOR
 uniform sampler2D image;
@@ -43,9 +43,9 @@ void main()
 #ifdef V3D_SHADING_TEXTURE_COLOR
 	diffuseColor = texture(image, uv_interp);
 #else
-	diffuseColor = vec4(material_data.diffuse_color.rgb, 0.0);
+	diffuseColor = vec4(materialDiffuseColor.rgb, 0.0);
 #  ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
-	specularColor = vec4(material_data.diffuse_color.rgb, 0.0);
+	specularColor = vec4(materialDiffuseColor.rgb, 0.0);
 
 #  endif
 #endif /* V3D_SHADING_TEXTURE_COLOR */
@@ -56,7 +56,7 @@ void main()
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	specularColor = vec4(material_data.specular_color.rgb, material_data.roughness);
+	specularColor = vec4(materialSpecularColor.rgb, materialRoughness);
 #  ifdef HAIR_SHADER
 	specularColor.rgb = clamp(specularColor.rgb - hair_color_variation, 0.0, 1.0);
 #  endif

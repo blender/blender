@@ -580,18 +580,14 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
 		material->shgrp = DRW_shgroup_create(
 		        color_type == V3D_SHADING_TEXTURE_COLOR ? wpd->prepass_texture_sh: wpd->prepass_solid_sh, psl->prepass_pass);
+		workbench_material_copy(material, &material_template);
 		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
-		material->object_id = material_template.object_id;
-		copy_v4_v4(material->material_data.diffuse_color, material_template.material_data.diffuse_color);
-		copy_v4_v4(material->material_data.specular_color, material_template.material_data.specular_color);
-		material->material_data.roughness = material_template.material_data.roughness;
+		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
+		workbench_material_shgroup_uniform(material->shgrp, material);
 		if (color_type == V3D_SHADING_TEXTURE_COLOR) {
 			GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0);
 			DRW_shgroup_uniform_texture(material->shgrp, "image", tex);
 		}
-		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
-		material->material_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_Material), &material->material_data);
-		DRW_shgroup_uniform_block(material->shgrp, "material_block", material->material_ubo);
 
 		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
 	}
@@ -637,7 +633,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 			        shader);
 			DRW_shgroup_stencil_mask(shgrp, 0xFF);
 			DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
-			DRW_shgroup_uniform_block(shgrp, "material_block", material->material_ubo);
+			workbench_material_shgroup_uniform(shgrp, material);
 			if (image) {
 				GPUTexture *tex = GPU_texture_from_blender(image, NULL, GL_TEXTURE_2D, false, 0.0f);
 				DRW_shgroup_uniform_texture(shgrp, "image", tex);

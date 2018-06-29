@@ -15,9 +15,3 @@ struct WorldData {
 	float background_alpha;
 	int pad[1];
 };
-
-struct MaterialData {
-	vec4 diffuse_color;
-	vec4 specular_color;
-	float roughness;
-};
