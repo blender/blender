@@ -257,7 +257,6 @@ DRWPass *workbench_fxaa_create_pass(GPUTexture **color_buffer_tx);
 void workbench_taa_engine_init(WORKBENCH_Data *vedata);
 void workbench_taa_engine_free(void);
 DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_buffer_tx);
-void workbench_taa_draw_pass(WORKBENCH_EffectInfo *effect_info, /*WORKBENCH_PrivateData *wpd, , GPUFrameBuffer *fb, GPUTexture *tx, */DRWPass *effect_aa_pass);
 void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata);
 void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata);
 void workbench_taa_view_updated(WORKBENCH_Data *vedata);

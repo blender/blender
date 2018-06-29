@@ -56,6 +56,7 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
 	/* move jitter table so that closest sample is in center */
 	for (int index = 0; index < num; index++) {
 		sub_v2_v2(table[index], table[closest_index]);
+		mul_v2_fl(table[index], 2.0f);
 	}
 
 	/* swap center sample to the start of the table */
@@ -104,7 +105,8 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata)
 		{
 			result = 16;
 		}
-		else {
+		else
+		{
 			result = 32;
 		}
 	}
@@ -203,11 +205,12 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
 	WORKBENCH_EffectInfo *effect_info = stl->effects;
 	const float *viewport_size = DRW_viewport_size_get();
 	int num_samples = 8;
-	float (*samples)[2] = e_data.jitter_8;
+	float (*samples)[2];
 	float mix_factor;
 
 	num_samples = workbench_taa_calculate_num_iterations(vedata);
 	switch (num_samples) {
+		default:
 		case 8:
 			samples = e_data.jitter_8;
 			break;
@@ -215,7 +218,6 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
 			samples = e_data.jitter_16;
 			break;
 		case 32:
-		default:
 			samples = e_data.jitter_32;
 			break;
 	}
@@ -262,9 +264,9 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 	 * default depth buffer
 	 */
 	const WORKBENCH_StorageList *stl = vedata->stl;
-	const WORKBENCH_EffectInfo *effect_info = stl->effects;
 	const WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	WORKBENCH_EffectInfo *effect_info = stl->effects;
 
 	if (effect_info->jitter_index == 1) {
 		GPU_framebuffer_blit(dfbl->depth_only_fb, 0, fbl->depth_buffer_fb, 0, GPU_DEPTH_BIT);
@@ -276,11 +278,6 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 	GPU_framebuffer_blit(dfbl->color_only_fb, 0, fbl->effect_taa_fb, 0, GPU_COLOR_BIT);
 
 	DRW_viewport_matrix_override_unset_all();
-}
-
-void workbench_taa_draw_pass(WORKBENCH_EffectInfo *effect_info, DRWPass *pass)
-{
-	DRW_draw_pass(pass);
 
 	copy_m4_m4(effect_info->last_mat, effect_info->curr_mat);
 	if (effect_info->jitter_index != 0) {

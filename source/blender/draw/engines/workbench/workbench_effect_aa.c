@@ -61,11 +61,23 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 		DRW_draw_pass(psl->effect_aa_pass);
 	}
 	else if (TAA_ENABLED(wpd)) {
-		GPU_framebuffer_bind(fbl->effect_fb);
-		DRW_transform_to_display(tx);
-
-		GPU_framebuffer_bind(dfbl->color_only_fb);
-		workbench_taa_draw_pass(effect_info, psl->effect_aa_pass);
+		/*
+		 * when drawing the first TAA frame, we transform directly to the
+		 * color_only_fb as the TAA shader is just performing a direct copy.
+		 * the workbench_taa_draw_screen_end will fill the history buffer
+		 * for the other iterations.
+		 */
+		if (effect_info->jitter_index == 1)
+		{
+			GPU_framebuffer_bind(dfbl->color_only_fb);
+			DRW_transform_to_display(tx);
+		}
+		else {
+			GPU_framebuffer_bind(fbl->effect_fb);
+			DRW_transform_to_display(tx);
+			GPU_framebuffer_bind(dfbl->color_only_fb);
+			DRW_draw_pass(psl->effect_aa_pass);
+		}
 		workbench_taa_draw_scene_end(vedata);
 	}
 	else {
