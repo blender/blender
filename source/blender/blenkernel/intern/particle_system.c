@@ -3814,7 +3814,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
 }
 
 static void particles_fluid_step(
-        Main *bmain, ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
+        ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
 {
 	ParticleSystem *psys = sim->psys;
 	if (psys->particles) {
@@ -3845,7 +3845,7 @@ static void particles_fluid_step(
 			// ok, start loading
 			BLI_join_dirfile(filename, sizeof(filename), fss->surfdataPath, OB_FLUIDSIM_SURF_PARTICLES_FNAME);
 
-			BLI_path_abs(filename, modifier_path_relbase(bmain, sim->ob));
+			BLI_path_abs(filename, modifier_path_relbase_from_global(sim->ob));
 
 			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no
 
@@ -3919,7 +3919,7 @@ static void particles_fluid_step(
 		} // fluid sim particles done
 	}
 #else
-	UNUSED_VARS(bmain, use_render_params);
+	UNUSED_VARS(use_render_params);
 #endif // WITH_MOD_FLUID
 }
 
@@ -4307,7 +4307,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 		}
 		case PART_FLUID:
 		{
-			particles_fluid_step(G.main  /* Yuck :/ */, &sim, (int)cfra, use_render_params);
+			particles_fluid_step(&sim, (int)cfra, use_render_params);
 			break;
 		}
 		default:
