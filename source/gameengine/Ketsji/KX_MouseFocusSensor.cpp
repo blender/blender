@@ -517,4 +517,3 @@ PyObject *KX_MouseFocusSensor::pyattr_get_hit_uv(void *self_v, const KX_PYATTRIB
 #endif // WITH_PYTHON
 
 /* eof */
-

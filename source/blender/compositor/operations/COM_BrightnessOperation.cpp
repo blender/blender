@@ -89,4 +89,3 @@ void BrightnessOperation::deinitExecution()
 	this->m_inputBrightnessProgram = NULL;
 	this->m_inputContrastProgram = NULL;
 }
-

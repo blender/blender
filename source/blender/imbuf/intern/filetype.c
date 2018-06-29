@@ -107,4 +107,3 @@ void imb_filetypes_exit(void)
 		if (type->exit)
 			type->exit();
 }
-

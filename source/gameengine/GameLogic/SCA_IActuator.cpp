@@ -137,4 +137,3 @@ void SCA_IActuator::UnlinkAllControllers()
 	}
 	m_linkedcontrollers.clear();
 }
-

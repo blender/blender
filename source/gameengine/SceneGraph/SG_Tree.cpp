@@ -419,4 +419,3 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 	}
 	return sizes(1, 0);
 }
-

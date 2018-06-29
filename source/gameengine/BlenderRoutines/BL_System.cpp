@@ -99,4 +99,3 @@ void SYS_WriteCommandLineString(SYS_SystemHandle sys, const char *paramname, con
 {
 	((SingletonSystem *)sys)->string_params.insert(paramname, value);
 }
-

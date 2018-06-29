@@ -951,4 +951,3 @@ int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags)
 
 	return(ret);
 }
-

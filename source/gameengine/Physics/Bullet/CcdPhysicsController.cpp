@@ -2661,4 +2661,3 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 		m_shapeProxy->Release();
 	}
 }
-

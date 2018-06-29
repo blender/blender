@@ -295,5 +295,3 @@ void RAS_OpenGLLight::Update()
 		GPU_lamp_update_spot(lamp, m_spotsize, m_spotblend);
 	}
 }
-
-

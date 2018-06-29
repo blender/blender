@@ -129,4 +129,3 @@ AviError AVI_set_compress_option(AviMovie *movie, int option_type, int stream, A
 
 	return AVI_ERROR_NONE;
 }
-

@@ -187,4 +187,3 @@ PyTypeObject FilterBlueScreenType =
 	0,                         /* tp_alloc */
 	Filter_allocNew,           /* tp_new */
 };
-

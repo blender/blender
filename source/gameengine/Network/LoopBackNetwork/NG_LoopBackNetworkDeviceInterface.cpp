@@ -109,4 +109,3 @@ vector<NG_NetworkMessage*> NG_LoopBackNetworkDeviceInterface::RetrieveNetworkMes
 	}
 	return messages;
 }
-

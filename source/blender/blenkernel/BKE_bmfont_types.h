@@ -56,4 +56,3 @@ typedef struct bmFont {
 } bmFont;
 
 #endif
-

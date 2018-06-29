@@ -311,4 +311,3 @@ typedef enum eRigidBodyCon_Flag {
 /* ******************************** */
 
 #endif /* __DNA_RIGIDBODY_TYPES_H__ */
-

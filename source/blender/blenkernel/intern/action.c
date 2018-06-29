@@ -1501,4 +1501,3 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 		BKE_animsys_evaluate_animdata(NULL, &workob->id, &adt, cframe, ADT_RECALC_ANIM);
 	}
 }
-

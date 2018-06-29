@@ -74,4 +74,3 @@ void CBrokenLinkInfo::BreakLink()
 	m_bRestored=false;
 	m_pExpr->AddRef();
 }
-

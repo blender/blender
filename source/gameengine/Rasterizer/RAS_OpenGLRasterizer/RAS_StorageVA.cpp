@@ -257,4 +257,3 @@ void RAS_StorageVA::EnableTextures(bool enable)
 		m_last_attrib_num = 0;
 	}
 }
-

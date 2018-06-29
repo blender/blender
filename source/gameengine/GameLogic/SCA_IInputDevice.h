@@ -331,4 +331,3 @@ public:
 };
 
 #endif	 /* __SCA_IINPUTDEVICE_H__ */
-

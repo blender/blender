@@ -2282,4 +2282,3 @@ int do_version_tface(Main *main)
 
 	return nowarning;
 }
-

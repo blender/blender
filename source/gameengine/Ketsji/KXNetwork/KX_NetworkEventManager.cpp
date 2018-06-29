@@ -74,4 +74,3 @@ void KX_NetworkEventManager::NextFrame()
 void KX_NetworkEventManager::EndFrame()
 {
 }
-

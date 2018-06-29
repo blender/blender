@@ -1388,5 +1388,3 @@ PyTypeObject ImageFFmpegType =
 };
 
 #endif	//WITH_FFMPEG
-
-

@@ -28,4 +28,3 @@ set(SRC
 )
 
 blender_add_lib(extern_rangetree "${SRC}" "${INC}" "")
-

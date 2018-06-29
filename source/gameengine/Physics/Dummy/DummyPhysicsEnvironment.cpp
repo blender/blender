@@ -118,4 +118,3 @@ PHY_IPhysicsController* DummyPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallb
 	//collision detection / raytesting
 	return NULL;
 }
-

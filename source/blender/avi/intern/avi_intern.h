@@ -67,4 +67,3 @@ int avi_get_format_fcc(AviFormat format);
 int avi_get_format_compression(AviFormat format);
 
 #endif
-

@@ -118,4 +118,3 @@ void EllipseMaskOperation::deinitExecution()
 	this->m_inputMask = NULL;
 	this->m_inputValue = NULL;
 }
-

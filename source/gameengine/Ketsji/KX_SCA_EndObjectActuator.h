@@ -71,4 +71,3 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 
 #endif
-

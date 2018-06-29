@@ -141,4 +141,3 @@ enum eNlaTime_ConvertModes {
 float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
 
 #endif
-

@@ -70,4 +70,3 @@ void InvertOperation::deinitExecution()
 	this->m_inputValueProgram = NULL;
 	this->m_inputColorProgram = NULL;
 }
-

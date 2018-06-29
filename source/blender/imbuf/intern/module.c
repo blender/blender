@@ -51,4 +51,3 @@ void IMB_exit(void)
 	imb_mmap_lock_exit();
 	imb_refcounter_lock_exit();
 }
-

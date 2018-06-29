@@ -55,4 +55,3 @@ void SCA_RandomEventManager::NextFrame()
 		(*it)->Activate(m_logicmgr);
 	}
 }
-

@@ -450,4 +450,3 @@ void IMB_tiles_to_rect(ImBuf *ibuf)
 		}
 	}
 }
-

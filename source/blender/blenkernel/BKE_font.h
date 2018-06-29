@@ -108,4 +108,3 @@ void BKE_vfont_clipboard_get(
 #endif
 
 #endif
-

@@ -89,4 +89,3 @@ void BKE_sca_actuators_id_loop(struct ListBase *atclist, SCAActuatorIDFunc func,
 const char *sca_state_name_get(Object *ob, short bit);
 
 #endif
-

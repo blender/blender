@@ -226,4 +226,3 @@ void BKE_sim_debug_data_clear(void);
 void BKE_sim_debug_data_clear_category(const char *category);
 
 #endif
-

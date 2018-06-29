@@ -175,4 +175,3 @@ void blo_do_versions_270(struct FileData *fd, struct Library *lib, struct Main *
 void do_versions_after_linking_270(struct Main *bmain);
 
 #endif
-

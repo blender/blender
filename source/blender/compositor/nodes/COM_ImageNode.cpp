@@ -271,4 +271,3 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 		}
 	}
 }
-

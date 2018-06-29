@@ -28,5 +28,3 @@
 /** \file gameengine/Ketsji/KXNetwork/KX_NetworkObjectSensor.cpp
  *  \ingroup ketsjinet
  */
-
-

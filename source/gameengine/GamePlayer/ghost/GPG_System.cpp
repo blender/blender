@@ -49,5 +49,3 @@ double GPG_System::GetTimeInSeconds()
 	time /= 1000.0;
 	return time;
 }
-
-

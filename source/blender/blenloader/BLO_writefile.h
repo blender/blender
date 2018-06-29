@@ -45,4 +45,3 @@ extern bool BLO_write_file_mem(
         struct Main *mainvar, struct MemFile *compare, struct MemFile *current, int write_flags);
 
 #endif
-

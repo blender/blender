@@ -139,4 +139,3 @@ typedef struct WaveEff {
 } WaveEff;
 
 #endif
-

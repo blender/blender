@@ -780,4 +780,3 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 
 	return(ibuf);
 }
-

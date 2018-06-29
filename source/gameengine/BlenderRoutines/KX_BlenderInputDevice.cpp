@@ -30,4 +30,3 @@
  */
 
 #include "KX_BlenderInputDevice.h"
-

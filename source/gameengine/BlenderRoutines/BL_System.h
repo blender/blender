@@ -67,4 +67,3 @@ extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar,
 #endif
 
 #endif /* __BL_SYSTEM_H__ */
-

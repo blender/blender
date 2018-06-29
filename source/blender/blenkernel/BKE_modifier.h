@@ -458,4 +458,3 @@ void modwrap_deformVertsEM(
         float (*vertexCos)[3], int numVerts);
 
 #endif
-

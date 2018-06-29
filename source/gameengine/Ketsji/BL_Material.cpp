@@ -121,4 +121,3 @@ void BL_Material::SetUsers(int num)
 {
 	num_users = num;
 }
-

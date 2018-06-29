@@ -222,6 +222,3 @@ void SG_Node::SetSimulatedTime(double time,bool recurse)
 		}
 	}
 }
-
-
-

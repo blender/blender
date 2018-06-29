@@ -117,4 +117,3 @@ vector<CValue*> SCA_TimeEventManager::GetTimeValues()
 {
 	return m_timevalues;
 }
-

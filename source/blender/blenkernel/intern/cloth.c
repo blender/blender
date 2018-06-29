@@ -1507,4 +1507,3 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 /***************************************************************************************
  * SPRING NETWORK BUILDING IMPLEMENTATION END
  ***************************************************************************************/
-

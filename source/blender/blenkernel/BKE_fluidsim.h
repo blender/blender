@@ -51,4 +51,3 @@ void fluid_get_bb(struct MVert *mvert, int totvert, float obmat[4][4],
 void fluid_estimate_memory(struct Object *ob, struct FluidsimSettings *fss, char *value);
 
 #endif
-

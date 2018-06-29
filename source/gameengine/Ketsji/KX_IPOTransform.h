@@ -84,4 +84,3 @@ protected:
 };
 
 #endif
-

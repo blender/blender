@@ -129,5 +129,3 @@ void Image::setFormat(Image::Format f)
 {
 	m_format = f;
 }
-
-

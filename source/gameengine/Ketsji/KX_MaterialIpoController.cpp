@@ -102,4 +102,3 @@ KX_MaterialIpoController::~KX_MaterialIpoController()
 	}
 
 }
-

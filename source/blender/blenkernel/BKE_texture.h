@@ -144,4 +144,3 @@ void BKE_texture_fetch_images_for_pool(struct Tex *texture, struct ImagePool *po
 #endif
 
 #endif
-

@@ -46,4 +46,3 @@ void PixelateOperation::executePixelSampled(float output[4], float x, float y, P
 	float ny = round(y);
 	this->m_inputOperation->readSampled(output, nx, ny, sampler);
 }
-

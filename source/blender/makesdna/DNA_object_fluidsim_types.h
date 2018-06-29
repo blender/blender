@@ -190,4 +190,3 @@ typedef struct FluidsimSettings {
 #endif
 
 #endif  /* __DNA_OBJECT_FLUIDSIM_TYPES_H__ */
-

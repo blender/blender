@@ -165,4 +165,3 @@ MakeScreenShot(
 	/* save_screenshot() frees dumprect and im_format */
 	save_screenshot(filename, dumpsx, dumpsy, pixels, im_format);
 }
-

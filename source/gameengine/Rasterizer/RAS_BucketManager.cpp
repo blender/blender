@@ -377,4 +377,3 @@ void RAS_BucketManager::MergeBucketManager(RAS_BucketManager *other, SCA_IScene 
 	other->GetAlphaBuckets().clear();
 	//printf("AFTER %d %d\n", GetSolidBuckets().size(), GetAlphaBuckets().size());
 }
-

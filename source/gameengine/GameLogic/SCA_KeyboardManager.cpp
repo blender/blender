@@ -77,4 +77,3 @@ bool SCA_KeyboardManager::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 	return false;
 	//return m_kxsystem->IsPressed(inputcode);
 }
-

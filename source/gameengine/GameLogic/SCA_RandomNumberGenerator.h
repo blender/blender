@@ -82,4 +82,3 @@ class SCA_RandomNumberGenerator {
 };
 
 #endif /* __SCA_RANDOMNUMBERGENERATOR_H__ */
-

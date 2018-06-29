@@ -94,4 +94,3 @@ class KX_StateActuator : public SCA_IActuator
 };
 
 #endif
-

@@ -301,4 +301,3 @@ struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);
 #endif
 
 #endif
-

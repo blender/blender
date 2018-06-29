@@ -212,4 +212,3 @@ typedef struct Lamp {
 #define LA_SHADMAP_VARIANCE	1
 
 #endif /* __DNA_LAMP_TYPES_H__ */
-

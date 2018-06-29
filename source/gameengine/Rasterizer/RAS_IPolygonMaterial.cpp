@@ -293,4 +293,3 @@ bool RAS_IPolyMaterial::UsesObjectColor() const
 }
 
 unsigned int RAS_IPolyMaterial::m_newpolymatid = 0;
-

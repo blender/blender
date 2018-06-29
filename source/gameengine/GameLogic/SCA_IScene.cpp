@@ -142,4 +142,3 @@ void SCA_IScene::RemoveObjectDebugProperties(class CValue* gameobj)
 		++it;
 	}
 }
-

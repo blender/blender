@@ -53,4 +53,3 @@ public:
 typedef std::vector<KX_IInterpolator *> T_InterpolatorList;
 
 #endif
-

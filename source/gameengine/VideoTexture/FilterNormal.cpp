@@ -170,4 +170,3 @@ PyTypeObject FilterNormalType =
 	0,                         /* tp_alloc */
 	Filter_allocNew,           /* tp_new */
 };
-

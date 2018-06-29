@@ -70,4 +70,3 @@ void BKE_freestyle_lineset_unique_name(FreestyleConfig *config, FreestyleLineSet
 #endif
 
 #endif
-

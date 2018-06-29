@@ -41,4 +41,3 @@ extern struct BulletSoftBody *bsbNew(void);
 extern void bsbFree(struct BulletSoftBody *sb);
 
 #endif
-

@@ -51,4 +51,3 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 #endif
 
 #endif /* __BLO_RUNTIME_H__ */
-

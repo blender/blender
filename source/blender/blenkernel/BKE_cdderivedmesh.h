@@ -174,4 +174,3 @@ void CDDM_set_mloop(struct DerivedMesh *dm, struct MLoop *mloop);
 void CDDM_set_mpoly(struct DerivedMesh *dm, struct MPoly *mpoly);
 
 #endif
-

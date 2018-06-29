@@ -2078,4 +2078,3 @@ GlobalSettings* KX_KetsjiEngine::GetGlobalSettings(void)
 {
 	return &m_globalsettings;
 }
-

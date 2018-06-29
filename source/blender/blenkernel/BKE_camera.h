@@ -152,4 +152,3 @@ bool           BKE_camera_multiview_spherical_stereo(struct RenderData *rd, stru
 #endif
 
 #endif
-

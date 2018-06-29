@@ -53,4 +53,3 @@ public:
 };
 
 #endif //__SCA_PYTHONJOYSTICK_H__
-

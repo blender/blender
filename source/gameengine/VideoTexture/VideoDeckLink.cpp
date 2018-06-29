@@ -1225,4 +1225,3 @@ PyTypeObject VideoDeckLinkType =
 ////////////////////////////////////////////
 
 #endif		// WITH_GAMEENGINE_DECKLINK
-

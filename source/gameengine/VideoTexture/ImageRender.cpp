@@ -942,5 +942,3 @@ PyTypeObject ImageMirrorType = {
 	0,                         /* tp_alloc */
 	Image_allocNew,           /* tp_new */
 };
-
-

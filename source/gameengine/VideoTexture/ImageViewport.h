@@ -110,4 +110,3 @@ PyObject *ImageViewport_getAlpha(PyImage *self, void *closure);
 int ImageViewport_setAlpha(PyImage *self, PyObject *value, void *closure);
 
 #endif
-

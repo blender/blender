@@ -2464,4 +2464,3 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	RAS_BucketManager *bucketmanager = kxscene->GetBucketManager();
 	bucketmanager->OptimizeBuckets(distance);
 }
-

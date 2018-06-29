@@ -57,5 +57,3 @@ enum ePF_FileStatus {
 };
 
 #endif /* PACKEDFILE_TYPES_H */
-
-

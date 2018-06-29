@@ -143,5 +143,3 @@ CValue* CStringValue::GetReplica()
 	replica->ProcessReplica();
 	return replica;
 };
-
-

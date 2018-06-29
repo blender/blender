@@ -95,5 +95,3 @@ void bsbFree(BulletSoftBody *bsb)
 	/* no internal data yet */
 	MEM_freeN(bsb);
 }
-
-

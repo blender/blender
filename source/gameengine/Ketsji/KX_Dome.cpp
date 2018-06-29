@@ -2048,4 +2048,3 @@ void KX_Dome::RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i)
 
 	scene->RenderBuckets(camtrans, m_rasterizer);
 }
-

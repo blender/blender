@@ -48,4 +48,3 @@ void MemoryProxy::free()
 		this->m_buffer = NULL;
 	}
 }
-

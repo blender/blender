@@ -665,4 +665,3 @@ void mem_read(Stream & mem, BlockCTX1 & block)
 	mem_read(mem, block.col1[1]);
 	mem_read(mem, block.indices);
 }
-

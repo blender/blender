@@ -311,4 +311,3 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		}
 	}
 }
-

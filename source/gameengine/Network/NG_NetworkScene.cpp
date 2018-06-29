@@ -269,4 +269,3 @@ void NG_NetworkScene::ClearMessageMap(TMessageMap& map)
 	// Empty the map
 	map.clear();
 }
-

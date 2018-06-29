@@ -240,4 +240,3 @@ void BL_ConvertTextProperty(Object* object, KX_FontObject* fontobj,SCA_TimeEvent
 		propval->Release();
 	}
 }
-

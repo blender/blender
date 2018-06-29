@@ -62,4 +62,3 @@ public:
 };
 
 #endif  /* __RAS_OPENGLOFFSCREEN__ */
-

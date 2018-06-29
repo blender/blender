@@ -72,4 +72,3 @@ class KX_VisibilityActuator : public SCA_IActuator
 };
 
 #endif
-

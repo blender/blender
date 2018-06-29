@@ -421,5 +421,3 @@ RAS_FramingManager::
 	}
 
 }
-
-

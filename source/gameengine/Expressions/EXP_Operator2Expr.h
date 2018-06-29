@@ -63,4 +63,3 @@ private:
 };
 
 #endif  /* __EXP_OPERATOR2EXPR_H__ */
-

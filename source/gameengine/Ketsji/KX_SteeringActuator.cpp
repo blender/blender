@@ -636,4 +636,3 @@ PyObject *KX_SteeringActuator::pyattr_get_steeringVec(void *self, const struct K
 #endif // WITH_PYTHON
 
 /* eof */
-

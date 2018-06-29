@@ -3766,4 +3766,3 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 
 	sb->last_frame = framenr;
 }
-

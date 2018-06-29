@@ -85,4 +85,3 @@ void DifferenceMatteOperation::executePixelSampled(float output[4], float x, flo
 		output[0] = inColor1[3];
 	}
 }
-

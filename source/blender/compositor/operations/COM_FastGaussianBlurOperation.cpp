@@ -322,4 +322,3 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
 	unlockMutex();
 	return this->m_iirgaus;
 }
-

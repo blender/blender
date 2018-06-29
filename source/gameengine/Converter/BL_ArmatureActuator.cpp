@@ -268,4 +268,3 @@ PyObject *BL_ArmatureActuator::pyattr_get_constraint(void *self, const struct KX
 }
 
 #endif // WITH_PYTHON
-

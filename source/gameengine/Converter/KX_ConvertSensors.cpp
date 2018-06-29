@@ -660,4 +660,3 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		sens=sens->next;
 	}
 }
-

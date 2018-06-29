@@ -130,4 +130,3 @@ CValue* CEmptyValue::GetReplica()
 	replica->ProcessReplica();
 	return replica;
 }
-

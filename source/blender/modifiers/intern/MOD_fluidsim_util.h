@@ -48,4 +48,3 @@ struct DerivedMesh *fluidsimModifier_do(
         int useRenderParams, int isFinalCalc);
 
 #endif
-

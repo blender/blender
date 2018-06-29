@@ -53,4 +53,3 @@ void AlphaOverPremultiplyOperation::executePixelSampled(float output[4], float x
 		output[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
 	}
 }
-

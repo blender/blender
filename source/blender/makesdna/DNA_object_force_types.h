@@ -454,4 +454,3 @@ typedef struct SoftBody {
 #endif
 
 #endif  /* __DNA_OBJECT_FORCE_TYPES_H__ */
-

@@ -114,4 +114,3 @@ double KX_TimeLogger::GetAverage(void) const
 
 	return avg;
 }
-

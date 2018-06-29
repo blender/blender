@@ -676,4 +676,3 @@ void RAS_MaterialBucket::Optimize(MT_Scalar distance)
 			jt->Join(&*it, distance);
 #endif
 }
-

@@ -113,4 +113,3 @@ void BL_DeformableGameObject::SetDeformer(class RAS_Deformer* deformer)
 		(*mit)->SetDeformer(deformer);
 	}
 }
-

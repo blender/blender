@@ -251,4 +251,3 @@ void lamp_drivers_update(Scene *scene, Lamp *la, float ctime)
 
 	la->id.tag &= ~LIB_TAG_DOIT;
 }
-

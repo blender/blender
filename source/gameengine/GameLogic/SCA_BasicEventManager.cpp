@@ -58,4 +58,3 @@ void SCA_BasicEventManager::NextFrame()
 		(*it)->Activate(m_logicmgr);
 	}
 }
-

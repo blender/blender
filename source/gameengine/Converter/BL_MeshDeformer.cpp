@@ -236,4 +236,3 @@ void BL_MeshDeformer::VerifyStorage()
 		m_tvtot = m_bmesh->totvert;
 	}
 }
-

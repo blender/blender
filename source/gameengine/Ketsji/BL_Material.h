@@ -179,5 +179,3 @@ extern MTex* getMTexFromMaterial(Material *mat, int index);
 // ------------------------------------
 
 #endif
-
-

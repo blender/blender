@@ -756,4 +756,3 @@ void my_free_envmapdata(EnvMap *env)
 
 
 } // extern C
-

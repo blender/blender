@@ -118,4 +118,3 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 	}
 	return false;
 }
-

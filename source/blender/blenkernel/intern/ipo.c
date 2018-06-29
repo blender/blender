@@ -2123,4 +2123,3 @@ void do_versions_ipos_to_animato(Main *bmain)
 	if (G.debug & G_DEBUG)
 		printf("INFO: Animato convert done\n");
 }
-

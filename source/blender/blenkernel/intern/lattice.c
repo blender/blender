@@ -1230,4 +1230,3 @@ void BKE_lattice_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
                                Lattice *UNUSED(latt))
 {
 }
-

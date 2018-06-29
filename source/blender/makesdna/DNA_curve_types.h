@@ -469,4 +469,3 @@ enum {
 #define SURF_SEEN			4
 
 #endif
-

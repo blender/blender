@@ -102,5 +102,3 @@ void	KX_MotionState::CalculateWorldTransformations()
 	//bool parentUpdated = false;
 	//m_node->ComputeWorldTransforms(NULL, parentUpdated);
 }
-
-

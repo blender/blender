@@ -65,4 +65,3 @@ typedef struct Speaker {
 #define SPK_RELATIVE    (1<<2)
 
 #endif /* __DNA_SPEAKER_TYPES_H__ */
-

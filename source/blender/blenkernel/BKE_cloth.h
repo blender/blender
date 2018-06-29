@@ -242,4 +242,3 @@ void cloth_parallel_transport_hair_frame(float mat[3][3], const float dir_old[3]
 ////////////////////////////////////////////////
 
 #endif
-

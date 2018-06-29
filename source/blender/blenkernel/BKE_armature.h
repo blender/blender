@@ -211,4 +211,3 @@ void BKE_pose_eval_proxy_copy(struct EvaluationContext *eval_ctx,
 #endif
 
 #endif
-

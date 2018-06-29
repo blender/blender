@@ -52,4 +52,3 @@ void BKE_ipo_free(struct Ipo *ipo);
 #endif
 
 #endif
-

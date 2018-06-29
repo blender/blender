@@ -50,4 +50,3 @@ void KX_RayEventManager::NextFrame()
 		(*it)->Activate(m_logicmgr);
 	}
 }
-

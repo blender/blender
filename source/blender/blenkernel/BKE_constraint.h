@@ -156,4 +156,3 @@ void BKE_constraints_solve(struct ListBase *conlist, struct bConstraintOb *cob, 
 #endif
 
 #endif
-

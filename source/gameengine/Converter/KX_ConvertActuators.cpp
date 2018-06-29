@@ -1142,5 +1142,3 @@ void BL_ConvertActuators(const char* maggiename,
 		bact = bact->next;
 	}
 }
-
-

@@ -831,4 +831,3 @@ PyBufferProcs imageBufferProcs =
 	(getbufferproc)Image_getbuffer,
 	(releasebufferproc)Image_releaseBuffer
 };
-

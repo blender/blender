@@ -78,4 +78,3 @@ KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(const char *r
 	}
 	return NULL;
 }
-

@@ -1298,4 +1298,3 @@ void DoubleEdgeMaskOperation::deinitExecution()
 		this->m_cachedInstance = NULL;
 	}
 }
-

@@ -56,4 +56,3 @@ void SCA_AlwaysEventManager::NextFrame()
 		(*it)->Activate(m_logicmgr);
 	}
 }
-

@@ -1153,4 +1153,3 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "editable_gpencil_strokes", list);
 }
-

@@ -1176,4 +1176,3 @@ const char *sca_state_name_get(Object *ob, short bit)
 	}
 	return NULL;
 }
-

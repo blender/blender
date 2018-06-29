@@ -138,4 +138,3 @@ void KX_TimeCategoryLogger::DisposeLoggers(void)
 		delete it->second;
 	}
 }
-

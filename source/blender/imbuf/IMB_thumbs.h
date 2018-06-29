@@ -102,4 +102,3 @@ void IMB_thumb_path_unlock(const char *path);
 #endif /* __cplusplus */
 
 #endif /* __IMB_THUMBS_H__ */
-

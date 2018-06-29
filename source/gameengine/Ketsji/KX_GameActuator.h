@@ -88,4 +88,3 @@ protected:
 }; /* end of class KX_GameActuator */
 
 #endif
-

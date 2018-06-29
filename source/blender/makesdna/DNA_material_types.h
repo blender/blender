@@ -478,4 +478,3 @@ typedef struct Material {
 #define MA_VOL_SHADE_SHADEDPLUSMULTIPLE			4
 
 #endif
-

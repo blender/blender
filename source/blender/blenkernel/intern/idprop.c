@@ -1068,4 +1068,3 @@ void IDP_ClearProperty(IDProperty *prop)
 }
 
 /** \} */
-

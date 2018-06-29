@@ -77,4 +77,3 @@ void LuminanceMatteOperation::executePixelSampled(float output[4], float x, floa
 	/* don't make something that was more transparent less transparent */
 	output[0] = min_ff(alpha, inColor[3]);
 }
-
