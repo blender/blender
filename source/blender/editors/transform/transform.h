@@ -809,7 +809,7 @@ void freeVertSlideVerts(TransInfo *t, TransCustomData *custom_data);
 void projectVertSlideData(TransInfo *t, bool is_final);
 
 
-/* TODO. transform_queries.c */
+/* TODO. transform_query.c */
 bool checkUseAxisMatrix(TransInfo *t);
 
 #define TRANSFORM_DIST_MAX_PX 1000.0f

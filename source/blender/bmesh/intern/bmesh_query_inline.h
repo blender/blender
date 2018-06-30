@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_queries_inline.h
+/** \file blender/bmesh/intern/bmesh_query_inline.h
  *  \ingroup bmesh
  */
 
