@@ -37,7 +37,7 @@ __all__ = (
     "new",
     "remove",
     "ImagePreviewCollection",
-    )
+)
 
 import _bpy
 _utils_previews = _bpy._utils_previews
@@ -76,9 +76,9 @@ class ImagePreviewCollection(dict):
             return
 
         raise ResourceWarning(
-                "<%s id=%s[%d]>: left open, remove with "
-                "'bpy.utils.previews.remove()'" %
-                (self.__class__.__name__, self._uuid, len(self)))
+            f"{self!r}: left open, remove with "
+            "'bpy.utils.previews.remove()'"
+        )
         self.close()
 
     def _gen_key(self, name):
@@ -86,17 +86,17 @@ class ImagePreviewCollection(dict):
 
     def new(self, name):
         if name in self:
-            raise KeyError("key %r already exists" % name)
+            raise KeyError(f"key {name!r} already exists")
         p = self[name] = _utils_previews.new(
-                self._gen_key(name))
+            self._gen_key(name))
         return p
     new.__doc__ = _utils_previews.new.__doc__
 
     def load(self, name, path, path_type, force_reload=False):
         if name in self:
-            raise KeyError("key %r already exists" % name)
+            raise KeyError("key {name!r} already exists")
         p = self[name] = _utils_previews.load(
-                self._gen_key(name), path, path_type, force_reload)
+            self._gen_key(name), path, path_type, force_reload)
         return p
     load.__doc__ = _utils_previews.load.__doc__
 
@@ -116,11 +116,7 @@ class ImagePreviewCollection(dict):
         super().__delitem__(key)
 
     def __repr__(self):
-        return "<%s id=%s[%d], %s>" % (
-                self.__class__.__name__,
-                self._uuid,
-                len(self),
-                super().__repr__())
+        return f"<{self.__class__.__name__:s} id={self._uuid:s}[{len(self):d}], {super()!r}>"
 
 
 def new():
@@ -148,6 +144,7 @@ import atexit
 
 def exit_clear_warning():
     del ImagePreviewCollection.__del__
+
 
 atexit.register(exit_clear_warning)
 del atexit, exit_clear_warning
