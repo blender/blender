@@ -454,7 +454,7 @@ typedef struct bUserMenuItem {
 
 typedef struct bUserMenuItem_Op {
 	bUserMenuItem item;
-	char opname[64];
+	char op_idname[64];
 	struct IDProperty *prop;
 	char opcontext;
 	char _pad0[7];

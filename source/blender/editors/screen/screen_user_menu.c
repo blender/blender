@@ -87,7 +87,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(
 	for (bUserMenuItem *umi = lb->first; umi; umi = umi->next) {
 		if (umi->type == USER_MENU_TYPE_OPERATOR) {
 			bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
-			if (STREQ(ot->idname, umi_op->opname) &&
+			if (STREQ(ot->idname, umi_op->op_idname) &&
 			    (opcontext == umi_op->opcontext) &&
 			    (IDP_EqualsProperties(prop, umi_op->prop)))
 			{
@@ -122,7 +122,7 @@ void ED_screen_user_menu_item_add_operator(
 	if (!STREQ(ui_name, ot->name)) {
 		STRNCPY(umi_op->item.ui_name, ui_name);
 	}
-	STRNCPY(umi_op->opname, ot->idname);
+	STRNCPY(umi_op->op_idname, ot->idname);
 	umi_op->prop = prop ? IDP_CopyProperty(prop) : NULL;
 }
 
@@ -163,16 +163,17 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 			continue;
 		}
 		for (bUserMenuItem *umi = um->items.first; umi; umi = umi->next) {
+			const char *ui_name = umi->ui_name[0] ? umi->ui_name : NULL;
 			if (umi->type == USER_MENU_TYPE_OPERATOR) {
 				bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
 				IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : NULL;
 				uiItemFullO(
-				        menu->layout, umi_op->opname, umi->ui_name[0] ? umi->ui_name : NULL,
+				        menu->layout, umi_op->op_idname, ui_name,
 				        ICON_NONE, prop, umi_op->opcontext, 0, NULL);
 			}
 			else if (umi->type == USER_MENU_TYPE_MENU) {
 				bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
-				uiItemM(menu->layout, umi_mt->mt_idname, umi->ui_name[0] ? umi->ui_name : NULL,
+				uiItemM(menu->layout, umi_mt->mt_idname, ui_name,
 				        ICON_NONE);
 			}
 			else if (umi->type == USER_MENU_TYPE_SEP) {
