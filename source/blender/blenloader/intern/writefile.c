@@ -1254,6 +1254,14 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
 					IDP_WriteProperty(umi_op->prop, wd);
 				}
 			}
+			else if (umi->type == USER_MENU_TYPE_MENU) {
+				const bUserMenuItem_Menu *umi_mt = (const bUserMenuItem_Menu *)umi;
+				writestruct(wd, DATA, bUserMenuItem_Menu, 1, umi_mt);
+			}
+			else if (umi->type == USER_MENU_TYPE_PROP) {
+				const bUserMenuItem_Prop *umi_pr = (const bUserMenuItem_Prop *)umi;
+				writestruct(wd, DATA, bUserMenuItem_Prop, 1, umi_pr);
+			}
 			else {
 				writestruct(wd, DATA, bUserMenuItem, 1, umi);
 			}

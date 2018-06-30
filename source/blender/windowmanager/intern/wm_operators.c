@@ -805,7 +805,7 @@ bool WM_operator_pystring_abbreviate(char *str, int str_len_max)
 
 /* return NULL if no match is found */
 #if 0
-static const char *wm_context_member_from_ptr(bContext *C, PointerRNA *ptr)
+static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
 {
 	/* loop over all context items and do 2 checks
 	 *
@@ -860,7 +860,7 @@ static const char *wm_context_member_from_ptr(bContext *C, PointerRNA *ptr)
 
 /* use hard coded checks for now */
 
-static const char *wm_context_member_from_ptr(bContext *C, PointerRNA *ptr)
+static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
 {
 	const char *member_id = NULL;
 
@@ -983,6 +983,11 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 		}
 	}
 	return ret;
+}
+
+const char *WM_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
+{
+	return wm_context_member_from_ptr(C, ptr);
 }
 
 char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)

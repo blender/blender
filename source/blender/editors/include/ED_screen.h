@@ -63,6 +63,7 @@ struct wmMsgSubscribeValue;
 struct wmOperatorType;
 struct IDProperty;
 struct MenuType;
+struct PropertyRNA;
 
 /* regions */
 void    ED_region_do_listen(
@@ -330,6 +331,9 @@ struct bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(
 struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(
         struct ListBase *lb,
         const struct MenuType *mt);
+struct bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(
+        struct ListBase *lb,
+        const char *context_data_path, const char *prop_id, int prop_index);
 
 void ED_screen_user_menu_item_add_operator(
         struct ListBase *lb, const char *ui_name,
@@ -337,6 +341,9 @@ void ED_screen_user_menu_item_add_operator(
 void ED_screen_user_menu_item_add_menu(
         struct ListBase *lb, const char *ui_name,
         const struct MenuType *mt);
+void ED_screen_user_menu_item_add_prop(
+        ListBase *lb, const char *ui_name,
+        const char *context_data_path, const char *prop_id, int prop_index);
 
 void ED_screen_user_menu_item_remove(
         struct ListBase *lb, struct bUserMenuItem *umi);

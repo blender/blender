@@ -422,6 +422,7 @@ char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struc
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 bool        WM_operator_py_idname_ok_or_report(struct ReportList *reports, const char *classname, const char *idname);
+const char *WM_context_member_from_ptr(struct bContext *C, const struct PointerRNA *ptr);
 
 /* *************** uilist types ******************** */
 void                WM_uilisttype_init(void);

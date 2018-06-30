@@ -216,18 +216,28 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 	UI_popup_block_ex(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but, NULL);
 }
 
-static bool ui_but_is_user_menu_compatible(uiBut *but)
+static bool ui_but_is_user_menu_compatible(bContext *C, uiBut *but)
 {
-	return (but->optype || UI_but_menutype_get(but));
+	return (but->optype ||
+	        (but->rnaprop &&
+	         (RNA_property_type(but->rnaprop) == PROP_BOOLEAN) &&
+	         (WM_context_member_from_ptr(C, &but->rnapoin) != NULL)) ||
+	        UI_but_menutype_get(but));
 }
 
-static bUserMenuItem *ui_but_user_menu_find(uiBut *but, bUserMenu *um)
+static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *um)
 {
 	MenuType *mt = NULL;
 	if (but->optype) {
 		IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 		return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
 		        &um->items, but->optype, prop, but->opcontext);
+	}
+	else if (but->rnaprop) {
+		const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
+		const char *prop_id = RNA_property_identifier(but->rnaprop);
+		return (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
+		        &um->items, member_id, prop_id, but->rnaindex);
 	}
 	else if ((mt = UI_but_menutype_get(but))) {
 		return (bUserMenuItem *)ED_screen_user_menu_item_find_menu(
@@ -238,9 +248,9 @@ static bUserMenuItem *ui_but_user_menu_find(uiBut *but, bUserMenu *um)
 	}
 }
 
-static void ui_but_user_menu_add(uiBut *but, bUserMenu *um)
+static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
 {
-	BLI_assert(ui_but_is_user_menu_compatible(but));
+	BLI_assert(ui_but_is_user_menu_compatible(C, but));
 
 	char drawstr[sizeof(but->drawstr)];
 	STRNCPY(drawstr, but->drawstr);
@@ -257,6 +267,26 @@ static void ui_but_user_menu_add(uiBut *but, bUserMenu *um)
 		        &um->items, drawstr,
 		        but->optype, but->opptr ? but->opptr->data : NULL, but->opcontext);
 	}
+	else if (but->rnaprop) {
+		/* Note: 'member_id' may be a path. */
+		const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
+		const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
+		const char *member_id_data_path = member_id;
+		if (data_path) {
+			member_id_data_path = BLI_sprintfN("%s.%s", member_id, data_path);
+		}
+		const char *prop_id = RNA_property_identifier(but->rnaprop);
+		/* Note, ignore 'drawstr', use property idname always. */
+		ED_screen_user_menu_item_add_prop(
+		        &um->items, "",
+		        member_id_data_path, prop_id, but->rnaindex);
+		if (data_path) {
+			MEM_freeN((void *)data_path);
+		}
+		if (member_id != member_id_data_path) {
+			MEM_freeN((void *)member_id_data_path);
+		}
+	}
 	else if ((mt = UI_but_menutype_get(but))) {
 		ED_screen_user_menu_item_add_menu(
 		        &um->items, drawstr,
@@ -268,7 +298,7 @@ static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void *U
 {
 	uiBut *but = arg1;
 	bUserMenu *um = ED_screen_user_menu_ensure(C);
-	ui_but_user_menu_add(but, um);
+	ui_but_user_menu_add(C, but, um);
 }
 
 static void popup_user_menu_remove_func(bContext *UNUSED(C), void *arg1, void *arg2)
@@ -658,7 +688,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 	}
 
 	/* Favorites Menu */
-	if (ui_but_is_user_menu_compatible(but)) {
+	if (ui_but_is_user_menu_compatible(C, but)) {
 		uiBlock *block = uiLayoutGetBlock(layout);
 		const int w = uiLayoutGetWidth(layout);
 		uiBut *but2;
@@ -672,7 +702,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
 		bUserMenu *um = ED_screen_user_menu_find(C);
 		if (um) {
-			bUserMenuItem *umi = ui_but_user_menu_find(but, um);
+			bUserMenuItem *umi = ui_but_user_menu_find(C, but, um);
 			if (umi != NULL) {
 				but2 = uiDefIconTextBut(
 				        block, UI_BTYPE_BUT, 0, ICON_CANCEL,

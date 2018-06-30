@@ -76,14 +76,17 @@ bUserMenuItem *BKE_blender_user_menu_item_add(ListBase *lb, int type)
 {
 	uint size;
 
-	if (type == USER_MENU_TYPE_OPERATOR) {
+	if (type == USER_MENU_TYPE_SEP) {
+		size = sizeof(bUserMenuItem);
+	}
+	else if (type == USER_MENU_TYPE_OPERATOR) {
 		size = sizeof(bUserMenuItem_Op);
 	}
 	else if (type == USER_MENU_TYPE_MENU) {
 		size = sizeof(bUserMenuItem_Menu);
 	}
-	else if (type == USER_MENU_TYPE_SEP) {
-		size = sizeof(bUserMenuItem);
+	else if (type == USER_MENU_TYPE_PROP) {
+		size = sizeof(bUserMenuItem_Prop);
 	}
 	else {
 		BLI_assert(0);

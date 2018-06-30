@@ -56,6 +56,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "RNA_access.h"
+
 /* -------------------------------------------------------------------- */
 /** \name Menu Type
  * \{ */
@@ -113,6 +115,24 @@ struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(
 	return NULL;
 }
 
+struct bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(
+        struct ListBase *lb,
+        const char *context_data_path, const char *prop_id, int prop_index)
+{
+	for (bUserMenuItem *umi = lb->first; umi; umi = umi->next) {
+		if (umi->type == USER_MENU_TYPE_PROP) {
+			bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
+			if (STREQ(context_data_path, umi_pr->context_data_path) &&
+			    STREQ(prop_id, umi_pr->prop_id) &&
+			    (prop_index == umi_pr->prop_index))
+			{
+				return umi_pr;
+			}
+		}
+	}
+	return NULL;
+}
+
 void ED_screen_user_menu_item_add_operator(
         ListBase *lb, const char *ui_name,
         const wmOperatorType *ot, const IDProperty *prop, short opcontext)
@@ -135,6 +155,17 @@ void ED_screen_user_menu_item_add_menu(
 		STRNCPY(umi_mt->item.ui_name, ui_name);
 	}
 	STRNCPY(umi_mt->mt_idname, mt->idname);
+}
+
+void ED_screen_user_menu_item_add_prop(
+        ListBase *lb, const char *ui_name,
+        const char *context_data_path, const char *prop_id, int prop_index)
+{
+	bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)BKE_blender_user_menu_item_add(lb, USER_MENU_TYPE_PROP);
+	STRNCPY(umi_pr->item.ui_name, ui_name);
+	STRNCPY(umi_pr->context_data_path, context_data_path);
+	STRNCPY(umi_pr->prop_id, prop_id);
+	umi_pr->prop_index = prop_index;
 }
 
 void ED_screen_user_menu_item_remove(ListBase *lb, bUserMenuItem *umi)
@@ -175,6 +206,47 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 				bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
 				uiItemM(menu->layout, umi_mt->mt_idname, ui_name,
 				        ICON_NONE);
+			}
+			else if (umi->type == USER_MENU_TYPE_PROP) {
+				bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
+
+				char *data_path = strchr(umi_pr->context_data_path, '.');
+				if (data_path) {
+					*data_path = '\0';
+				}
+				PointerRNA ptr = CTX_data_pointer_get(C, umi_pr->context_data_path);
+				if (ptr.type == NULL) {
+					PointerRNA ctx_ptr;
+					RNA_pointer_create(NULL, &RNA_Context, (void *)C, &ctx_ptr);
+					if (!RNA_path_resolve_full(&ctx_ptr, umi_pr->context_data_path, &ptr, NULL, NULL)) {
+						ptr.type = NULL;
+					}
+				}
+				if (data_path) {
+					*data_path = '.';
+					data_path += 1;
+				}
+
+				bool ok = false;
+				if (ptr.type != NULL) {
+					PropertyRNA *prop = NULL;
+					PointerRNA prop_ptr = ptr;
+					if ((data_path == NULL) || RNA_path_resolve_full(&ptr, data_path, &prop_ptr, NULL, NULL)) {
+						prop = RNA_struct_find_property(&prop_ptr, umi_pr->prop_id);
+						if (prop) {
+							ok = true;
+							uiItemFullR(
+							        menu->layout,
+							        &prop_ptr, prop, umi_pr->prop_index,
+							        0, 0, ui_name, ICON_NONE);
+						}
+					}
+				}
+				if (!ok) {
+					char label[512];
+					SNPRINTF(label, "Missing: %s.%s", umi_pr->context_data_path, umi_pr->prop_id);
+					uiItemL(menu->layout, label, ICON_NONE);
+				}
 			}
 			else if (umi->type == USER_MENU_TYPE_SEP) {
 				uiItemS(menu->layout);
