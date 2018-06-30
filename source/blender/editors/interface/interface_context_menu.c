@@ -216,10 +216,31 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 	UI_popup_block_ex(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but, NULL);
 }
 
-static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void *UNUSED(arg2))
+static bool ui_but_is_user_menu_compatible(uiBut *but)
 {
-	uiBut *but = arg1;
-	bUserMenu *um = ED_screen_user_menu_ensure(C);
+	return (but->optype || UI_but_menutype_get(but));
+}
+
+static bUserMenuItem *ui_but_user_menu_find(uiBut *but, bUserMenu *um)
+{
+	MenuType *mt = NULL;
+	if (but->optype) {
+		IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+		return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
+		        &um->items, but->optype, prop, but->opcontext);
+	}
+	else if ((mt = UI_but_menutype_get(but))) {
+		return (bUserMenuItem *)ED_screen_user_menu_item_find_menu(
+		        &um->items, mt);
+	}
+	else {
+		return NULL;
+	}
+}
+
+static void ui_but_user_menu_add(uiBut *but, bUserMenu *um)
+{
+	BLI_assert(ui_but_is_user_menu_compatible(but));
 
 	char drawstr[sizeof(but->drawstr)];
 	STRNCPY(drawstr, but->drawstr);
@@ -229,9 +250,25 @@ static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void *U
 			*sep = '\0';
 		}
 	}
-	ED_screen_user_menu_item_add_operator(
-	        &um->items, drawstr,
-	        but->optype, but->opptr ? but->opptr->data : NULL, but->opcontext);
+
+	MenuType *mt = NULL;
+	if (but->optype) {
+		ED_screen_user_menu_item_add_operator(
+		        &um->items, drawstr,
+		        but->optype, but->opptr ? but->opptr->data : NULL, but->opcontext);
+	}
+	else if ((mt = UI_but_menutype_get(but))) {
+		ED_screen_user_menu_item_add_menu(
+		        &um->items, drawstr,
+		        mt);
+	}
+}
+
+static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void *UNUSED(arg2))
+{
+	uiBut *but = arg1;
+	bUserMenu *um = ED_screen_user_menu_ensure(C);
+	ui_but_user_menu_add(but, um);
 }
 
 static void popup_user_menu_remove_func(bContext *UNUSED(C), void *arg1, void *arg2)
@@ -614,33 +651,36 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 			UI_but_func_set(but2, popup_add_shortcut_func, but, NULL);
 		}
 
-		uiItemS(layout);
-
-		{
-			but2 = uiDefIconTextBut(
-			        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
-			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Favorites Menu"),
-			        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
-			        "Add to a user defined context menu (stored in the user preferences)");
-			UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, NULL);
-
-			bUserMenu *um = ED_screen_user_menu_find(C);
-			if (um) {
-				bUserMenuItem_Op *umi_op = ED_screen_user_menu_item_find_operator(
-				        &um->items, but->optype, prop, but->opcontext);
-				if (umi_op != NULL) {
-					but2 = uiDefIconTextBut(
-					        block, UI_BTYPE_BUT, 0, ICON_CANCEL,
-					        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Favorites Menu"),
-					        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-					UI_but_func_set(but2, popup_user_menu_remove_func, um, umi_op);
-				}
-			}
-		}
-
 		/* Set the operator pointer for python access */
 		uiLayoutSetContextFromBut(layout, but);
 
+		uiItemS(layout);
+	}
+
+	/* Favorites Menu */
+	if (ui_but_is_user_menu_compatible(but)) {
+		uiBlock *block = uiLayoutGetBlock(layout);
+		const int w = uiLayoutGetWidth(layout);
+		uiBut *but2;
+
+		but2 = uiDefIconTextBut(
+		        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
+		        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Favorites Menu"),
+		        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+		        "Add to a user defined context menu (stored in the user preferences)");
+		UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, NULL);
+
+		bUserMenu *um = ED_screen_user_menu_find(C);
+		if (um) {
+			bUserMenuItem *umi = ui_but_user_menu_find(but, um);
+			if (umi != NULL) {
+				but2 = uiDefIconTextBut(
+				        block, UI_BTYPE_BUT, 0, ICON_CANCEL,
+				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Favorites Menu"),
+				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				UI_but_func_set(but2, popup_user_menu_remove_func, um, umi);
+			}
+		}
 		uiItemS(layout);
 	}
 

@@ -460,9 +460,15 @@ typedef struct bUserMenuItem_Op {
 	char _pad0[7];
 } bUserMenuItem_Op;
 
+typedef struct bUserMenuItem_Menu {
+	bUserMenuItem item;
+	char mt_idname[64];
+} bUserMenuItem_Menu;
+
 enum {
 	USER_MENU_TYPE_SEP = 1,
 	USER_MENU_TYPE_OPERATOR = 2,
+	USER_MENU_TYPE_MENU = 3,
 };
 
 typedef struct SolidLight {
