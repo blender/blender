@@ -471,36 +471,6 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 	}
 }
 
-bool ui_but_is_editable(const uiBut *but)
-{
-	return !ELEM(but->type,
-	             UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE,
-	             UI_BTYPE_ROUNDBOX, UI_BTYPE_LISTBOX, UI_BTYPE_PROGRESS_BAR);
-}
-
-bool ui_but_is_editable_as_text(const uiBut *but)
-{
-	return  ELEM(but->type,
-	             UI_BTYPE_TEXT, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER,
-	             UI_BTYPE_SEARCH_MENU);
-
-}
-
-bool ui_but_is_toggle(const uiBut *but)
-{
-	return ELEM(
-	        but->type,
-	        UI_BTYPE_BUT_TOGGLE,
-	        UI_BTYPE_TOGGLE,
-	        UI_BTYPE_ICON_TOGGLE,
-	        UI_BTYPE_ICON_TOGGLE_N,
-	        UI_BTYPE_TOGGLE_N,
-	        UI_BTYPE_CHECKBOX,
-	        UI_BTYPE_CHECKBOX_N,
-	        UI_BTYPE_ROW
-	);
-}
-
 static uiBut *ui_but_prev(uiBut *but)
 {
 	while (but->prev) {
