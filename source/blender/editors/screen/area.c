@@ -421,6 +421,17 @@ void ED_area_do_msg_notify_tag_refresh(
 	ED_area_tag_refresh(sa);
 }
 
+/**
+ * Although there's no general support for minimizing areas, the status-bar can
+ * be snapped to be only a few pixels high. A few pixels rather than 0 so it
+ * can be un-minimized again. We consider it pseudo-minimalized and don't draw
+ * it then.
+ */
+static bool area_is_pseudo_minimized(const ScrArea *area)
+{
+	return (area->winx < 3) || (area->winy < 3);
+}
+
 /* only exported for WM */
 void ED_region_do_layout(bContext *C, ARegion *ar)
 {
@@ -432,7 +443,7 @@ void ED_region_do_layout(bContext *C, ARegion *ar)
 		return;
 	}
 
-	if (at->do_lock) {
+	if (at->do_lock || (sa && area_is_pseudo_minimized(sa))) {
 		return;
 	}
 
@@ -462,8 +473,13 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 	UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
 
+	if (sa && area_is_pseudo_minimized(sa)) {
+		UI_ThemeClearColor(TH_EDITOR_OUTLINE);
+		glClear(GL_COLOR_BUFFER_BIT);
+		return;
+	}
 	/* optional header info instead? */
-	if (ar->headerstr) {
+	else if (ar->headerstr) {
 		UI_ThemeClearColor(TH_HEADER);
 		glClear(GL_COLOR_BUFFER_BIT);
 

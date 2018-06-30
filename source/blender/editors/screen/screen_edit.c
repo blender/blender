@@ -787,7 +787,7 @@ static void screen_global_statusbar_area_create(wmWindow *win)
 	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
 	rect.ymax = rect.ymin + size_y;
 
-	screen_global_area_create(win, SPACE_STATUSBAR, GLOBAL_AREA_ALIGN_BOTTOM, &rect, size_y, size_y, size_y);
+	screen_global_area_create(win, SPACE_STATUSBAR, GLOBAL_AREA_ALIGN_BOTTOM, &rect, size_y, 0, size_y);
 }
 
 void ED_screen_global_areas_create(wmWindow *win)

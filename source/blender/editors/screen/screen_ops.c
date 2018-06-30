@@ -1235,8 +1235,11 @@ static void area_move_set_limits(
 	if (use_bigger_smaller_snap != NULL) {
 		*use_bigger_smaller_snap = false;
 		for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
-			const int size_min = ED_area_global_min_size_y(area) - 1;
-			const int size_max = ED_area_global_max_size_y(area) - 1;
+			int size_min = ED_area_global_min_size_y(area) - 1;
+			int size_max = ED_area_global_max_size_y(area) - 1;
+
+			size_min = MAX2(size_min, 0);
+			BLI_assert(size_min < size_max);
 
 			/* logic here is only tested for lower edge :) */
 			/* left edge */
@@ -1412,7 +1415,8 @@ static int area_snap_calc_location(
 			break;
 	}
 
-	BLI_assert(IN_RANGE_INCL(final_loc, origval - smaller, origval + bigger));
+	BLI_assert(ELEM(snap_type, SNAP_BIGGER_SMALLER_ONLY) ||
+	           IN_RANGE_INCL(final_loc, origval - smaller, origval + bigger));
 
 	return final_loc;
 }
@@ -1429,7 +1433,9 @@ static void area_move_apply_do(
 	short final_loc = -1;
 	bool doredraw = false;
 
-	CLAMP(delta, -smaller, bigger);
+	if (snap_type != SNAP_BIGGER_SMALLER_ONLY) {
+		CLAMP(delta, -smaller, bigger);
+	}
 
 	if (snap_type == SNAP_NONE) {
 		final_loc = origval + delta;
