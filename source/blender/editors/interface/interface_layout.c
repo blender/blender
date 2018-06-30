@@ -1922,7 +1922,7 @@ static uiBut *ui_item_menu(
 	return but;
 }
 
-void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const char *name, int icon)
+void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon)
 {
 	MenuType *mt;
 

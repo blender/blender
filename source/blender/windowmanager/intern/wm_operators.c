@@ -1899,8 +1899,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	if (mt) {
 		UI_menutype_draw(C, mt, layout);
 
-//		wmWindowManager *wm = CTX_wm_manager(C);
-//		uiItemM(layout, C, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NONE);
+//		uiItemM(layout, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NONE);
 	}
 
 	UI_block_emboss_set(block, UI_EMBOSS_PULLDOWN);
