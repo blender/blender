@@ -262,7 +262,7 @@ static void rna_uiItemL(
 }
 
 static void rna_uiItemM(
-        uiLayout *layout, bContext *C, const char *menuname, const char *name, const char *text_ctxt,
+        uiLayout *layout, const char *menuname, const char *name, const char *text_ctxt,
         int translate, int icon, int icon_value)
 {
 	/* Get translated name (label). */
@@ -272,7 +272,7 @@ static void rna_uiItemM(
 		icon = icon_value;
 	}
 
-	uiItemM(layout, C, menuname, name, icon);
+	uiItemM(layout, menuname, name, icon);
 }
 
 static void rna_uiItemPopoverPanel(
@@ -709,7 +709,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
 
 	func = RNA_def_function(srna, "menu", "rna_uiItemM");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_string(func, "menu", NULL, 0, "", "Identifier of the menu");
 	api_ui_item_common(func);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

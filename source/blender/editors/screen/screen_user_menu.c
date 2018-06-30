@@ -172,8 +172,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 			}
 			else if (umi->type == USER_MENU_TYPE_MENU) {
 				bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
-				uiItemM(
-				        menu->layout, NULL, umi_mt->mt_idname, umi->ui_name[0] ? umi->ui_name : NULL,
+				uiItemM(menu->layout, umi_mt->mt_idname, umi->ui_name[0] ? umi->ui_name : NULL,
 				        ICON_NONE);
 			}
 			else if (umi->type == USER_MENU_TYPE_SEP) {
