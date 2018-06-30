@@ -404,6 +404,10 @@ typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
 
 /* interface_query.c */
+bool UI_but_is_tool(const uiBut *but);
+#define UI_but_is_decorator(but) \
+	((but)->func == ui_but_anim_decorate_cb)
+
 bool UI_block_is_empty(const uiBlock *block);
 
 
@@ -1264,9 +1268,5 @@ void UI_widgetbase_draw_cache_end(void);
 
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
-
-bool UI_but_is_tool(const uiBut *but);
-#define UI_but_is_decorator(but) \
-	((but)->func == ui_but_anim_decorate_cb)
 
 #endif  /* __UI_INTERFACE_H__ */

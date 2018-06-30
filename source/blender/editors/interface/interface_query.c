@@ -32,6 +32,9 @@
 
 #include "interface_intern.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 /* -------------------------------------------------------------------- */
 /** \name Button (uiBut)
  * \{ */
@@ -64,6 +67,31 @@ bool ui_but_is_toggle(const uiBut *but)
 	        UI_BTYPE_CHECKBOX_N,
 	        UI_BTYPE_ROW
 	);
+}
+
+#ifdef USE_UI_POPOVER_ONCE
+bool ui_but_is_popover_once_compat(const uiBut *but)
+{
+	return (
+	        (but->type == UI_BTYPE_BUT) ||
+	        ui_but_is_toggle(but)
+	);
+}
+#endif
+
+bool UI_but_is_tool(const uiBut *but)
+{
+	/* very evil! */
+	if (but->optype != NULL) {
+		static wmOperatorType *ot = NULL;
+		if (ot == NULL) {
+			ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
+		}
+		if (but->optype == ot) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /** \} */
