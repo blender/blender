@@ -8816,7 +8816,7 @@ static void applyTimeScale(TransInfo *t, const int UNUSED(mval[2]))
 /** \} */
 
 
-/* TODO, move to: transform_queries.c */
+/* TODO, move to: transform_query.c */
 bool checkUseAxisMatrix(TransInfo *t)
 {
 	/* currently only checks for editmode */
