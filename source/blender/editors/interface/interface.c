@@ -105,18 +105,6 @@ static void ui_but_to_pixelrect(struct rcti *rect, const struct ARegion *ar, str
 
 static void ui_but_free(const bContext *C, uiBut *but);
 
-bool ui_block_is_menu(const uiBlock *block)
-{
-	return (((block->flag & UI_BLOCK_LOOP) != 0) &&
-	        /* non-menu popups use keep-open, so check this is off */
-	        ((block->flag & UI_BLOCK_KEEP_OPEN) == 0));
-}
-
-bool ui_block_is_pie_menu(const uiBlock *block)
-{
-	return ((block->flag & UI_BLOCK_RADIAL) != 0);
-}
-
 static bool ui_but_is_unit_radians_ex(UnitSettings *unit, const int unit_type)
 {
 	return (unit->system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION);
@@ -4030,16 +4018,6 @@ int UI_blocklist_min_y_get(ListBase *lb)
 			min = block->rect.ymin;
 
 	return min;
-}
-
-bool UI_block_is_empty(const uiBlock *block)
-{
-	for (const uiBut *but = block->buttons.first; but; but = but->next) {
-		if (!ELEM(but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
-			return false;
-		}
-	}
-	return true;
 }
 
 void UI_block_direction_set(uiBlock *block, char direction)

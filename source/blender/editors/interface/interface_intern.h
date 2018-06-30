@@ -444,8 +444,6 @@ typedef struct uiSafetyRct {
 
 void ui_fontscale(short *points, float aspect);
 
-extern bool ui_block_is_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
-extern bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 extern void ui_block_to_window_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_block_to_window(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_block_to_window_rctf(const struct ARegion *ar, uiBlock *block, rctf *rct_dst, const rctf *rct_src);
@@ -696,10 +694,6 @@ extern void ui_but_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut 
 extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);
 extern uiBut *ui_but_find_active_in_region(struct ARegion *ar);
 extern uiBut *ui_but_find_mouse_over(struct ARegion *ar, const struct wmEvent *event);
-bool ui_but_is_editable(const uiBut *but);
-bool ui_but_is_editable_as_text(const uiBut *but);
-bool ui_but_is_toggle(const uiBut *but);
-bool ui_but_is_popover_once_compat(const uiBut *but);
 void ui_but_pie_dir_visual(RadialDirection dir, float vec[2]);
 void ui_but_pie_dir(RadialDirection dir, float vec[2]);
 float ui_block_calc_pie_segment(struct uiBlock *block, const float event_xy[2]);
@@ -755,14 +749,14 @@ void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float m
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_popover_back(ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_pie_center(uiBlock *block);
-uiWidgetColors *ui_tooltip_get_theme(void);
+struct uiWidgetColors *ui_tooltip_get_theme(void);
 
 void ui_draw_widget_back_color(
         uiWidgetTypeEnum type, bool use_shadow, const rcti *rect,
         const float color[4]);
 void ui_draw_widget_back(
         uiWidgetTypeEnum type, bool use_shadow, const rcti *rect);
-void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *block, rcti *rect);
+void ui_draw_tooltip_background(struct uiStyle *UNUSED(style), uiBlock *block, rcti *rect);
 
 extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
 
@@ -813,6 +807,15 @@ void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, fl
 
 void ui_but_anim_decorate_cb(struct bContext *C, void *arg_but, void *arg_dummy);
 void ui_but_anim_decorate_update_from_flag(uiBut *but);
+
+/* interface_query.c */
+bool ui_but_is_editable(const uiBut *but);
+bool ui_but_is_editable_as_text(const uiBut *but);
+bool ui_but_is_toggle(const uiBut *but);
+bool ui_but_is_popover_once_compat(const uiBut *but);
+
+extern bool ui_block_is_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 
 /* interface_context_menu.c */
 bool ui_popup_context_menu_for_button(struct bContext *C, uiBut *but);

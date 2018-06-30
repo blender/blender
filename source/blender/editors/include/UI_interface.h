@@ -402,6 +402,11 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
  */
 typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
+
+/* interface_query.c */
+bool UI_block_is_empty(const uiBlock *block);
+
+
 /* interface_region_menu_popup.c */
 /* Popup Menus
  *
@@ -534,8 +539,6 @@ void    UI_block_order_flip(uiBlock *block);
 void    UI_block_flag_enable(uiBlock *block, int flag);
 void    UI_block_flag_disable(uiBlock *block, int flag);
 void    UI_block_translate(uiBlock *block, int x, int y);
-
-bool    UI_block_is_empty(const uiBlock *block);
 
 int     UI_but_return_value_get(uiBut *but);
 
