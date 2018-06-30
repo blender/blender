@@ -1753,6 +1753,7 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *sa, ScrArea *sb)
 /* do the split, return success */
 static int area_split_apply(bContext *C, wmOperator *op)
 {
+	const wmWindow *win = CTX_wm_window(C);
 	bScreen *sc = CTX_wm_screen(C);
 	sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
 	float fac;
@@ -1761,16 +1762,15 @@ static int area_split_apply(bContext *C, wmOperator *op)
 	fac = RNA_float_get(op->ptr, "factor");
 	dir = RNA_enum_get(op->ptr, "direction");
 
-	sd->narea = area_split(CTX_wm_window(C), sc, sd->sarea, dir, fac, 0); /* 0 = no merge */
+	sd->narea = area_split(win, sc, sd->sarea, dir, fac, 0); /* 0 = no merge */
 
 	if (sd->narea) {
-		ScrVert *sv;
-
 		sd->nedge = area_findsharededge(sc, sd->sarea, sd->narea);
 
 		/* select newly created edge, prepare for moving edge */
-		for (sv = sc->vertbase.first; sv; sv = sv->next)
+		ED_screen_verts_iter(win, sc, sv) {
 			sv->editflag = 0;
+		}
 
 		sd->nedge->v1->editflag = 1;
 		sd->nedge->v2->editflag = 1;
