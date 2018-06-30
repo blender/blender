@@ -499,6 +499,10 @@ class INFO_MT_edit(Menu):
 
         layout.separator()
 
+        layout.operator("wm.search_menu", text="Operator Search...")
+
+        layout.separator()
+
         # Should move elsewhere (impacts outliner & 3D view).
         tool_settings = context.tool_settings
         layout.prop(tool_settings, "lock_object_mode")
