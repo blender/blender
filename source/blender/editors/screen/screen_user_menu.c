@@ -131,7 +131,7 @@ void ED_screen_user_menu_item_add_menu(
         const MenuType *mt)
 {
 	bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)BKE_blender_user_menu_item_add(lb, USER_MENU_TYPE_MENU);
-	if (!STREQ(ui_name, mt->idname)) {
+	if (!STREQ(ui_name, mt->label)) {
 		STRNCPY(umi_mt->item.ui_name, ui_name);
 	}
 	STRNCPY(umi_mt->mt_idname, mt->idname);
