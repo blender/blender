@@ -591,7 +591,7 @@ static bGPDframe *rna_GPencil_frame_copy(bGPDlayer *layer, bGPDframe *src)
 	return frame;
 }
 
-static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int setactive)
+static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, bool setactive)
 {
 	bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, name, setactive != 0);
 
@@ -636,7 +636,7 @@ static void rna_GPencil_clear(bGPdata *gpd)
 }
 
 /* Palettes */
-static bGPDpalette *rna_GPencil_palette_new(bGPdata *gpd, const char *name, int setactive)
+static bGPDpalette *rna_GPencil_palette_new(bGPdata *gpd, const char *name, bool setactive)
 {
 	bGPDpalette *palette = BKE_gpencil_palette_addnew(gpd, name, setactive != 0);
 

@@ -693,7 +693,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 	{
 		Scene *scene = CTX_data_scene(C);
 		ToolSettings *settings = scene->toolsettings;
-		const int mesh_select_mode[3] = {
+		const bool mesh_select_mode[3] = {
 		    (settings->selectmode & SCE_SELECT_VERTEX) != 0,
 		    (settings->selectmode & SCE_SELECT_EDGE)   != 0,
 		    (settings->selectmode & SCE_SELECT_FACE)   != 0,

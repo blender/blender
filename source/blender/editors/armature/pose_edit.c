@@ -806,7 +806,7 @@ static int pose_armature_layers_showall_exec(bContext *C, wmOperator *op)
 	bArmature *arm = armature_layers_get_data(&ob);
 	PointerRNA ptr;
 	int maxLayers = (RNA_boolean_get(op->ptr, "all")) ? 32 : 16;
-	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	bool layers[32] = {false}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	int i;
 
 	/* sanity checking */
@@ -858,7 +858,7 @@ static int armature_layers_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	Object *ob = CTX_data_active_object(C);
 	bArmature *arm = armature_layers_get_data(&ob);
 	PointerRNA ptr;
-	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	bool layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
 	/* sanity checking */
 	if (arm == NULL)
@@ -879,7 +879,7 @@ static int armature_layers_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	bArmature *arm = armature_layers_get_data(&ob);
 	PointerRNA ptr;
-	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	bool layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
 	if (arm == NULL) {
 		return OPERATOR_CANCELLED;
@@ -923,7 +923,7 @@ void ARMATURE_OT_armature_layers(wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int pose_bone_layers_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	bool layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
 	/* get layers that are active already */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
@@ -949,7 +949,7 @@ static int pose_bone_layers_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	PointerRNA ptr;
-	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	bool layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
 	if (ob == NULL || ob->data == NULL) {
 		return OPERATOR_CANCELLED;
@@ -998,7 +998,7 @@ void POSE_OT_bone_layers(wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int armature_bone_layers_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	bool layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
 	/* get layers that are active already */
 	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
@@ -1026,7 +1026,7 @@ static int armature_bone_layers_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
 	PointerRNA ptr;
-	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	bool layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);

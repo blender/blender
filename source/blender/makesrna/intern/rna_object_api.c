@@ -122,7 +122,7 @@ static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, 
 	}
 }
 
-static int rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
+static bool rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
@@ -135,7 +135,7 @@ static int rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 	return ((base->flag & BASE_SELECTED) != 0) ? 1 : 0;
 }
 
-static int rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
+static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
@@ -200,7 +200,7 @@ static void rna_Object_camera_fit_coords(
 /* settings: 0 - preview, 1 - render */
 static Mesh *rna_Object_to_mesh(
         Object *ob, bContext *C, ReportList *reports, Depsgraph *depsgraph,
-        int apply_modifiers, int calc_tessface, int calc_undeformed)
+        bool apply_modifiers, bool calc_tessface, bool calc_undeformed)
 {
 	Main *bmain = CTX_data_main(C);
 
@@ -208,7 +208,7 @@ static Mesh *rna_Object_to_mesh(
 }
 
 static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *reports,
-                                           const char *name, int from_mix)
+                                           const char *name, bool from_mix)
 {
 	Main *bmain = CTX_data_main(C);
 	KeyBlock *kb = NULL;
@@ -297,7 +297,7 @@ static int mesh_looptri_to_poly_index(Mesh *me_eval, const MLoopTri *lt)
 static void rna_Object_ray_cast(
         Object *ob, ReportList *reports,
         float origin[3], float direction[3], float distance,
-        int *r_success, float r_location[3], float r_normal[3], int *r_index)
+        bool *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	bool success = false;
 
@@ -352,7 +352,7 @@ static void rna_Object_ray_cast(
 
 static void rna_Object_closest_point_on_mesh(
         Object *ob, ReportList *reports, float origin[3], float distance,
-        int *r_success, float r_location[3], float r_normal[3], int *r_index)
+        bool *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 
@@ -397,12 +397,12 @@ finally:
 	free_bvhtree_from_mesh(&treeData);
 }
 
-static int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
+static bool rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 {
 	return BKE_object_is_modified(scene, ob) & settings;
 }
 
-static int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
+static bool rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
 {
 	return BKE_object_is_deform_modified(scene, ob) & settings;
 }
@@ -442,7 +442,7 @@ void rna_Object_me_eval_info(struct Object *ob, int type, char *result)
 }
 #endif /* NDEBUG */
 
-static int rna_Object_update_from_editmode(Object *ob, Main *bmain)
+static bool rna_Object_update_from_editmode(Object *ob, Main *bmain)
 {
 	/* fail gracefully if we aren't in edit-mode. */
 	return ED_object_editmode_load(bmain, ob);

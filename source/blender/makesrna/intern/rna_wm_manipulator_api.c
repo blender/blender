@@ -166,7 +166,7 @@ static PointerRNA rna_manipulator_target_set_operator(
 /** \name Manipulator Property Access
  * \{ */
 
-static int rna_manipulator_target_is_valid(
+static bool rna_manipulator_target_is_valid(
         wmManipulator *mpr, ReportList *reports, const char *target_propname)
 {
 	wmManipulatorProperty *mpr_prop =

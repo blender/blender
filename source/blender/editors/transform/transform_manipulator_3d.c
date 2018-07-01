@@ -401,9 +401,9 @@ static void manipulator_get_axis_color(
 	r_col_hi[3] = alpha_hi * alpha_fac;
 }
 
-static void manipulator_get_axis_constraint(const int axis_idx, int r_axis[3])
+static void manipulator_get_axis_constraint(const int axis_idx, bool r_axis[3])
 {
-	zero_v3_int(r_axis);
+	ARRAY_SET_ITEMS(r_axis, 0, 0, 0);
 
 	switch (axis_idx) {
 		case MAN_AXIS_TRANS_X:
@@ -1293,7 +1293,7 @@ static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgr
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
 		const short axis_type = manipulator_get_axis_type(axis_idx);
-		int constraint_axis[3] = {1, 0, 0};
+		bool constraint_axis[3] = {1, 0, 0};
 		PointerRNA *ptr;
 
 		manipulator_get_axis_constraint(axis_idx, constraint_axis);
@@ -1665,7 +1665,7 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmManipulato
 		for (int x = 0; x < 3; x++) {
 			for (int y = 0; y < 3; y++) {
 				for (int z = 0; z < 3; z++) {
-					int constraint[3] = {x != 1, y != 1, z != 1};
+					bool constraint[3] = {x != 1, y != 1, z != 1};
 					ptr = WM_manipulator_operator_set(mpr, i, ot_resize, NULL);
 					if (prop_release_confirm == NULL) {
 						prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");

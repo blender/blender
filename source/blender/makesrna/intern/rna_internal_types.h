@@ -63,10 +63,10 @@ typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
 typedef int (*PropArrayLengthGetFunc)(struct PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION]);
-typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
-typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
-typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int *values);
-typedef void (*PropBooleanArraySetFunc)(struct PointerRNA *ptr, const int *values);
+typedef bool (*PropBooleanGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, bool value);
+typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, bool *values);
+typedef void (*PropBooleanArraySetFunc)(struct PointerRNA *ptr, const bool *values);
 typedef int (*PropIntGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropIntSetFunc)(struct PointerRNA *ptr, int value);
 typedef void (*PropIntArrayGetFunc)(struct PointerRNA *ptr, int *values);
@@ -100,10 +100,10 @@ typedef int (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char
 typedef int (*PropCollectionAssignIntFunc)(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
 
 /* extended versions with PropertyRNA argument */
-typedef int (*PropBooleanGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
-typedef void (*PropBooleanSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
-typedef void (*PropBooleanArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);
-typedef void (*PropBooleanArraySetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values);
+typedef bool (*PropBooleanGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*PropBooleanSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value);
+typedef void (*PropBooleanArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, bool *values);
+typedef void (*PropBooleanArraySetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const bool *values);
 typedef int (*PropIntGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*PropIntSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
 typedef void (*PropIntArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);
@@ -294,8 +294,8 @@ typedef struct BoolPropertyRNA {
 	PropBooleanArrayGetFuncEx getarray_ex;
 	PropBooleanArraySetFuncEx setarray_ex;
 
-	int defaultvalue;
-	const int *defaultarray;
+	bool defaultvalue;
+	const bool *defaultarray;
 } BoolPropertyRNA;
 
 typedef struct IntPropertyRNA {

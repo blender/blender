@@ -546,7 +546,7 @@ static void rna_GPencilInterpolateSettings_type_set(PointerRNA *ptr, int value)
 }
 
 /* Grease pencil Drawing Brushes */
-static bGPDbrush *rna_GPencil_brush_new(ToolSettings *ts, const char *name, int setactive)
+static bGPDbrush *rna_GPencil_brush_new(ToolSettings *ts, const char *name, bool setactive)
 {
 	bGPDbrush *brush = BKE_gpencil_brush_addnew(ts, name, setactive != 0);
 
@@ -725,7 +725,7 @@ void rna_Scene_set_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 	}
 }
 
-static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
+static void rna_Scene_layer_set(PointerRNA *ptr, const bool *values)
 {
 	Scene *scene = (Scene *)ptr->data;
 
@@ -1548,7 +1548,7 @@ static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 }
 
-static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
+static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *value)
 {
 	ToolSettings *ts = (ToolSettings *)ptr->data;
 	int flag = (value[0] ? SCE_SELECT_VERTEX : 0) | (value[1] ? SCE_SELECT_EDGE : 0) | (value[2] ? SCE_SELECT_FACE : 0);

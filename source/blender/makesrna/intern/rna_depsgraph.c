@@ -338,7 +338,7 @@ static ID *rna_Depsgraph_id_eval_get(Depsgraph *depsgraph, ID *id_orig)
 	return DEG_get_evaluated_id(depsgraph, id_orig);
 }
 
-static int rna_Depsgraph_id_type_updated(Depsgraph *depsgraph, int id_type)
+static bool rna_Depsgraph_id_type_updated(Depsgraph *depsgraph, int id_type)
 {
 	return DEG_id_type_updated(depsgraph, id_type);
 }

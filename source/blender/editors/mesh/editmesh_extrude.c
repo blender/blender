@@ -480,7 +480,7 @@ static void manipulator_mesh_extrude_setup(const bContext *UNUSED(C), wmManipula
 	for (int i = 0; i < 4; i++) {
 		PointerRNA *ptr = WM_manipulator_operator_set(man->invoke_xyz_no[i], 0, man->ot_extrude, NULL);
 		{
-			int constraint[3] = {0, 0, 0};
+			bool constraint[3] = {0, 0, 0};
 			constraint[MIN2(i, 2)] = 1;
 			PointerRNA macroptr = RNA_pointer_get(ptr, "TRANSFORM_OT_translate");
 			RNA_boolean_set(&macroptr, "release_confirm", true);
@@ -492,7 +492,7 @@ static void manipulator_mesh_extrude_setup(const bContext *UNUSED(C), wmManipula
 	for (int i = 0; i < 4; i++) {
 		PointerRNA *ptr = WM_manipulator_operator_set(man->adjust_xyz_no[i], 0, man->ot_extrude, NULL);
 		{
-			int constraint[3] = {0, 0, 0};
+			bool constraint[3] = {0, 0, 0};
 			constraint[MIN2(i, 2)] = 1;
 			PointerRNA macroptr = RNA_pointer_get(ptr, "TRANSFORM_OT_translate");
 			RNA_boolean_set(&macroptr, "release_confirm", true);
@@ -588,7 +588,7 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 		wmOperator *op_transform = op->macro.last;
 		float value[4];
 		RNA_float_get_array(op_transform->ptr, "value", value);
-		int constraint_axis[3];
+		bool constraint_axis[3];
 		RNA_boolean_get_array(op_transform->ptr, "constraint_axis", constraint_axis);
 		int orientation_type = RNA_enum_get(op_transform->ptr, "constraint_orientation");
 

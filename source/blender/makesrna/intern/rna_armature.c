@@ -259,7 +259,7 @@ static void rna_Armature_layer_used_refresh(bArmature *arm, ListBase *bones)
 	}
 }
 
-static void rna_bone_layer_set(int *layer, const int *values)
+static void rna_bone_layer_set(int *layer, const bool *values)
 {
 	int i, tot = 0;
 
@@ -277,7 +277,7 @@ static void rna_bone_layer_set(int *layer, const int *values)
 	}
 }
 
-static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
+static void rna_Bone_layer_set(PointerRNA *ptr, const bool *values)
 {
 	bArmature *arm = (bArmature *)ptr->id.data;
 	Bone *bone = (Bone *)ptr->data;
@@ -288,7 +288,7 @@ static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
 	rna_Armature_layer_used_refresh(arm, &arm->bonebase);
 }
 
-static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
+static void rna_Armature_layer_set(PointerRNA *ptr, const bool *values)
 {
 	bArmature *arm = (bArmature *)ptr->data;
 	int i, tot = 0;
@@ -359,7 +359,7 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 	ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
 }
 
-static void rna_EditBone_layer_set(PointerRNA *ptr, const int values[])
+static void rna_EditBone_layer_set(PointerRNA *ptr, const bool values[])
 {
 	EditBone *data = (EditBone *)(ptr->data);
 	rna_bone_layer_set(&data->layer, values);

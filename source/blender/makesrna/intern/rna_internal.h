@@ -482,7 +482,7 @@ int rna_parameter_size(struct PropertyRNA *parm);
 
 struct Mesh *rna_Main_meshes_new_from_object(
         struct Main *bmain, struct ReportList *reports, struct Depsgraph *depsgraph,
-        struct Object *ob, int apply_modifiers, int calc_tessface, int calc_undeformed);
+        struct Object *ob, bool apply_modifiers, bool calc_tessface, bool calc_undeformed);
 
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct bContext *C, struct ReportList *reports);
@@ -493,7 +493,7 @@ void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct Re
 int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
 
 const char *rna_translate_ui_text(
-        const char *text, const char *text_ctxt, struct StructRNA *type, struct PropertyRNA *prop, int translate);
+        const char *text, const char *text_ctxt, struct StructRNA *type, struct PropertyRNA *prop, bool translate);
 
 /* Internal functions that cycles uses so we need to declare (tsk tsk) */
 void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);

@@ -2238,17 +2238,17 @@ void RNA_property_update_cache_free(void)
 
 /* Property Data */
 
-int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
+bool RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
-	int value;
+	bool value;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr)))
-		value = IDP_Int(idprop);
+		value = IDP_Int(idprop) != 0;
 	else if (bprop->get)
 		value = bprop->get(ptr);
 	else if (bprop->get_ex)
@@ -2261,7 +2261,7 @@ int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 	return value;
 }
 
-void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
+void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
@@ -2271,10 +2271,10 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	BLI_assert(ELEM(value, false, true));
 
 	/* just in case other values are passed */
-	if (value) value = 1;
+	BLI_assert(ELEM(value, true, false));
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
-		IDP_Int(idprop) = value;
+		IDP_Int(idprop) = (int)value;
 		rna_idproperty_touch(idprop);
 	}
 	else if (bprop->set) {
@@ -2295,7 +2295,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	}
 }
 
-void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
+void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *values)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
@@ -2304,10 +2304,15 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
-		if (prop->arraydimension == 0)
+		if (prop->arraydimension == 0) {
 			values[0] = RNA_property_boolean_get(ptr, prop);
-		else
-			memcpy(values, IDP_Array(idprop), sizeof(int) * idprop->len);
+		}
+		else {
+			int *values_src = IDP_Array(idprop);
+			for (uint i = 0; i < idprop->len; i++) {
+				values[i] = (bool)values_src[i];
+			}
+		}
 	}
 	else if (prop->arraydimension == 0)
 		values[0] = RNA_property_boolean_get(ptr, prop);
@@ -2316,16 +2321,16 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 	else if (bprop->getarray_ex)
 		bprop->getarray_ex(ptr, prop, values);
 	else if (bprop->defaultarray)
-		memcpy(values, bprop->defaultarray, sizeof(int) * prop->totarraylength);
+		memcpy(values, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(int) * prop->totarraylength);
+		memset(values, 0, sizeof(bool) * prop->totarraylength);
 }
 
-int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
+bool RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-	int tmp[RNA_MAX_ARRAY_LENGTH];
+	bool tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
-	int value;
+	bool value;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != false);
@@ -2337,9 +2342,9 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 		value = tmp[index];
 	}
 	else {
-		int *tmparray;
+		bool *tmparray;
 
-		tmparray = MEM_mallocN(sizeof(int) * len, __func__);
+		tmparray = MEM_mallocN(sizeof(bool) * len, __func__);
 		RNA_property_boolean_get_array(ptr, prop, tmparray);
 		value = tmparray[index];
 		MEM_freeN(tmparray);
@@ -2350,7 +2355,7 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 	return value;
 }
 
-void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values)
+void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bool *values)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
@@ -2359,11 +2364,15 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
-		if (prop->arraydimension == 0)
+		if (prop->arraydimension == 0) {
 			IDP_Int(idprop) = values[0];
-		else
-			memcpy(IDP_Array(idprop), values, sizeof(int) * idprop->len);
-
+		}
+		else {
+			int *values_dst = IDP_Array(idprop);
+			for (uint i = 0; i < idprop->len; i++) {
+				values_dst[i] = (int)values[i];
+			}
+		}
 		rna_idproperty_touch(idprop);
 	}
 	else if (prop->arraydimension == 0)
@@ -2383,14 +2392,17 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 		if (group) {
 			idprop = IDP_New(IDP_ARRAY, &val, prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(IDP_Array(idprop), values, sizeof(int) * idprop->len);
+			int *values_dst = IDP_Array(idprop);
+			for (uint i = 0; i < idprop->len; i++) {
+				values_dst[i] = (int)values[i];
+			}
 		}
 	}
 }
 
-void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value)
+void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, bool value)
 {
-	int tmp[RNA_MAX_ARRAY_LENGTH];
+	bool tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -2405,9 +2417,9 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 		RNA_property_boolean_set_array(ptr, prop, tmp);
 	}
 	else {
-		int *tmparray;
+		bool *tmparray;
 
-		tmparray = MEM_mallocN(sizeof(int) * len, __func__);
+		tmparray = MEM_mallocN(sizeof(bool) * len, __func__);
 		RNA_property_boolean_get_array(ptr, prop, tmparray);
 		tmparray[index] = value;
 		RNA_property_boolean_set_array(ptr, prop, tmparray);
@@ -2415,7 +2427,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 	}
 }
 
-int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+bool RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 
@@ -2426,7 +2438,7 @@ int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 	return bprop->defaultvalue;
 }
 
-void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
+void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, bool *values)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 
@@ -2436,14 +2448,14 @@ void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA
 	if (prop->arraydimension == 0)
 		values[0] = bprop->defaultvalue;
 	else if (bprop->defaultarray)
-		memcpy(values, bprop->defaultarray, sizeof(int) * prop->totarraylength);
+		memcpy(values, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(int) * prop->totarraylength);
+		memset(values, 0, sizeof(bool) * prop->totarraylength);
 }
 
-int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index)
+bool RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-	int tmp[RNA_MAX_ARRAY_LENGTH];
+	bool tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -2456,9 +2468,9 @@ int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 		return tmp[index];
 	}
 	else {
-		int *tmparray, value;
+		bool *tmparray, value;
 
-		tmparray = MEM_mallocN(sizeof(int) * len, __func__);
+		tmparray = MEM_mallocN(sizeof(bool) * len, __func__);
 		RNA_property_boolean_get_default_array(ptr, prop, tmparray);
 		value = tmparray[index];
 		MEM_freeN(tmparray);
@@ -3849,6 +3861,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_CHAR: var = (dtype)((char *)raw.array)[a]; break;       \
 		case PROP_RAW_SHORT: var = (dtype)((short *)raw.array)[a]; break;     \
 		case PROP_RAW_INT: var = (dtype)((int *)raw.array)[a]; break;         \
+		case PROP_RAW_BOOLEAN: var = (dtype)((bool *)raw.array)[a]; break;    \
 		case PROP_RAW_FLOAT: var = (dtype)((float *)raw.array)[a]; break;     \
 		case PROP_RAW_DOUBLE: var = (dtype)((double *)raw.array)[a]; break;   \
 		default: var = (dtype)0;                                              \
@@ -3861,6 +3874,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_CHAR: ((char *)raw.array)[a] = (char)var; break;        \
 		case PROP_RAW_SHORT: ((short *)raw.array)[a] = (short)var; break;     \
 		case PROP_RAW_INT: ((int *)raw.array)[a] = (int)var; break;           \
+		case PROP_RAW_BOOLEAN: ((bool *)raw.array)[a] = (bool)var; break;     \
 		case PROP_RAW_FLOAT: ((float *)raw.array)[a] = (float)var; break;     \
 		case PROP_RAW_DOUBLE: ((double *)raw.array)[a] = (double)var; break;  \
 		default: break;                                                       \
@@ -3873,6 +3887,7 @@ int RNA_raw_type_sizeof(RawPropertyType type)
 		case PROP_RAW_CHAR: return sizeof(char);
 		case PROP_RAW_SHORT: return sizeof(short);
 		case PROP_RAW_INT: return sizeof(int);
+		case PROP_RAW_BOOLEAN: return sizeof(bool);
 		case PROP_RAW_FLOAT: return sizeof(float);
 		case PROP_RAW_DOUBLE: return sizeof(double);
 		default: return 0;
@@ -3974,8 +3989,9 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		int err = 0, j, a = 0;
 		int needconv = 1;
 
-		if (((itemtype == PROP_BOOLEAN || itemtype == PROP_INT) && in.type == PROP_RAW_INT) ||
-		    (itemtype == PROP_FLOAT && in.type == PROP_RAW_FLOAT))
+		if (((itemtype == PROP_INT) && (in.type == PROP_RAW_INT)) ||
+		    ((itemtype == PROP_BOOLEAN) && (in.type == PROP_RAW_BOOLEAN)) ||
+		    ((itemtype == PROP_FLOAT) && (in.type == PROP_RAW_FLOAT)))
 		{
 			/* avoid creating temporary buffer if the data type match */
 			needconv = 0;
@@ -4025,7 +4041,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								case PROP_BOOLEAN:
 								{
 									int b;
-									RAW_GET(int, b, in, a);
+									RAW_GET(bool, b, in, a);
 									RNA_property_boolean_set(&itemptr, iprop, b);
 									break;
 								}
@@ -4052,7 +4068,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								case PROP_BOOLEAN:
 								{
 									int b = RNA_property_boolean_get(&itemptr, iprop);
-									RAW_SET(int, in, a, b);
+									RAW_SET(bool, in, a, b);
 									break;
 								}
 								case PROP_INT:
@@ -4090,7 +4106,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								case PROP_BOOLEAN:
 								{
 									for (j = 0; j < itemlen; j++, a++)
-										RAW_GET(int, ((int *)tmparray)[j], in, a);
+										RAW_GET(bool, ((bool *)tmparray)[j], in, a);
 									RNA_property_boolean_set_array(&itemptr, iprop, tmparray);
 									break;
 								}
@@ -4118,7 +4134,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								{
 									RNA_property_boolean_get_array(&itemptr, iprop, tmparray);
 									for (j = 0; j < itemlen; j++, a++)
-										RAW_SET(int, in, a, ((int *)tmparray)[j]);
+										RAW_SET(int, in, a, ((bool *)tmparray)[j]);
 									break;
 								}
 								case PROP_INT:
@@ -4145,7 +4161,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 							switch (itemtype) {
 								case PROP_BOOLEAN:
 								{
-									RNA_property_boolean_set_array(&itemptr, iprop, &((int *)in.array)[a]);
+									RNA_property_boolean_set_array(&itemptr, iprop, &((bool *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
@@ -4169,7 +4185,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 							switch (itemtype) {
 								case PROP_BOOLEAN:
 								{
-									RNA_property_boolean_get_array(&itemptr, iprop, &((int *)in.array)[a]);
+									RNA_property_boolean_get_array(&itemptr, iprop, &((bool *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
@@ -4208,7 +4224,7 @@ RawPropertyType RNA_property_raw_type(PropertyRNA *prop)
 		/* this property has no raw access, yet we try to provide a raw type to help building the array */
 		switch (prop->type) {
 			case PROP_BOOLEAN:
-				return PROP_RAW_INT;
+				return PROP_RAW_BOOLEAN;
 			case PROP_INT:
 				return PROP_RAW_INT;
 			case PROP_FLOAT:
@@ -5479,7 +5495,7 @@ char *RNA_path_property_py(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index
 
 /* Quick name based property access */
 
-int RNA_boolean_get(PointerRNA *ptr, const char *name)
+bool RNA_boolean_get(PointerRNA *ptr, const char *name)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -5492,7 +5508,7 @@ int RNA_boolean_get(PointerRNA *ptr, const char *name)
 	}
 }
 
-void RNA_boolean_set(PointerRNA *ptr, const char *name, int value)
+void RNA_boolean_set(PointerRNA *ptr, const char *name, bool value)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -5502,7 +5518,7 @@ void RNA_boolean_set(PointerRNA *ptr, const char *name, int value)
 		printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
 }
 
-void RNA_boolean_get_array(PointerRNA *ptr, const char *name, int *values)
+void RNA_boolean_get_array(PointerRNA *ptr, const char *name, bool *values)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -5512,7 +5528,7 @@ void RNA_boolean_get_array(PointerRNA *ptr, const char *name, int *values)
 		printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
 }
 
-void RNA_boolean_set_array(PointerRNA *ptr, const char *name, const int *values)
+void RNA_boolean_set_array(PointerRNA *ptr, const char *name, const bool *values)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -6140,8 +6156,8 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 					BLI_dynstr_append(dynstr, bool_as_py_string(RNA_property_boolean_get_index(ptr, prop, index)));
 				}
 				else {
-					int fixedbuf[RNA_MAX_ARRAY_LENGTH];
-					int *buf = ARRAY_SIZE(fixedbuf) >= len ? fixedbuf : MEM_mallocN(sizeof(*buf) * len,  __func__);
+					bool fixedbuf[RNA_MAX_ARRAY_LENGTH];
+					bool *buf = ARRAY_SIZE(fixedbuf) >= len ? fixedbuf : MEM_mallocN(sizeof(*buf) * len,  __func__);
 
 					RNA_property_boolean_get_array(ptr, prop, buf);
 					BLI_dynstr_append(dynstr, "(");
@@ -6762,9 +6778,9 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 			}
 
 			if (len == 0)
-				*((int *)dest) = *((int *)src);
+				*((bool *)dest) = *((bool *)src);
 			else
-				memcpy(dest, src, len * sizeof(int));
+				memcpy(dest, src, len * sizeof(bool));
 
 			break;
 		}
@@ -7112,7 +7128,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 		case PROP_BOOLEAN:
 			if (len) {
 				if (index == -1) {
-					int *tmparray = MEM_callocN(sizeof(int) * len, "reset_defaults - boolean");
+					bool *tmparray = MEM_callocN(sizeof(bool) * len, "reset_defaults - boolean");
 
 					RNA_property_boolean_get_default_array(ptr, prop, tmparray);
 					RNA_property_boolean_set_array(ptr, prop, tmparray);

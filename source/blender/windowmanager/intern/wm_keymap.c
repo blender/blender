@@ -1367,7 +1367,7 @@ wmKeyMapItem *WM_key_event_operator(
 	return wm_keymap_item_find(C, opname, opcontext, properties, is_hotkey, true, r_keymap);
 }
 
-int WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
+bool WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
 {
 	int k1type, k2type;
 

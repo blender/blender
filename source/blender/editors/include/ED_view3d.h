@@ -407,7 +407,7 @@ void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d);
 #  define ED_view3d_clear_mats_rv3d(rv3d) (void)(rv3d)
 #  define ED_view3d_check_mats_rv3d(rv3d) (void)(rv3d)
 #endif
-int ED_view3d_view_layer_set(int lay, const int *values, int *active);
+int ED_view3d_view_layer_set(int lay, const bool *values, int *active);
 
 struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d);
 void                    ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixStore *rv3dmat);

@@ -121,13 +121,13 @@ static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace, const bTool
 }
 
 static bToolRef *rna_WorkSpace_tools_from_space_view3d_mode(
-        WorkSpace *workspace, int mode, int create)
+        WorkSpace *workspace, int mode, bool create)
 {
 	return rna_WorkSpace_tools_from_tkey(workspace, &(bToolKey){ .space_type = SPACE_VIEW3D, .mode = mode}, create);
 }
 
 static bToolRef *rna_WorkSpace_tools_from_space_image_mode(
-        WorkSpace *workspace, int mode, int create)
+        WorkSpace *workspace, int mode, bool create)
 {
 	return rna_WorkSpace_tools_from_tkey(workspace, &(bToolKey){ .space_type = SPACE_IMAGE, .mode = mode}, create);
 }

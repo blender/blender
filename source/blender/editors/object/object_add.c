@@ -333,7 +333,8 @@ bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view
 
 	/* Get layers! */
 	{
-		int a, layer_values[20];
+		int a;
+		bool layer_values[20];
 		if (!layer)
 			layer = &_layer;
 

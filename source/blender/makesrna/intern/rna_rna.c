@@ -762,14 +762,14 @@ static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
 			values[i] = nprop->defaultvalue;
 	}
 }
-static void rna_BoolProperty_default_array_get(PointerRNA *ptr, int *values)
+static void rna_BoolProperty_default_array_get(PointerRNA *ptr, bool *values)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	BoolPropertyRNA *nprop = (BoolPropertyRNA *)prop;
 	rna_idproperty_check(&prop, ptr);
 
 	if (nprop->defaultarray) {
-		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(int));
+		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(bool));
 	}
 	else {
 		int i;
@@ -1308,16 +1308,16 @@ int rna_property_override_diff_default(
 		case PROP_BOOLEAN:
 		{
 			if (len_a) {
-				int array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
-				int *array_a, *array_b;
+				bool array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
+				bool *array_a, *array_b;
 
-				array_a = (len_a > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(int) * len_a, "RNA equals") : array_stack_a;
-				array_b = (len_b > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(int) * len_b, "RNA equals") : array_stack_b;
+				array_a = (len_a > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(bool) * len_a, "RNA equals") : array_stack_a;
+				array_b = (len_b > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(bool) * len_b, "RNA equals") : array_stack_b;
 
 				RNA_property_boolean_get_array(ptr_a, prop_a, array_a);
 				RNA_property_boolean_get_array(ptr_b, prop_b, array_b);
 
-				const int comp = memcmp(array_a, array_b, sizeof(int) * len_a);
+				const int comp = memcmp(array_a, array_b, sizeof(bool) * len_a);
 
 				if (do_create && comp != 0) {
 					/* XXX TODO this will have to be refined to handle array items */
@@ -1342,8 +1342,8 @@ int rna_property_override_diff_default(
 				return comp;
 			}
 			else {
-				const int value_a = RNA_property_boolean_get(ptr_a, prop_a);
-				const int value_b = RNA_property_boolean_get(ptr_b, prop_b);
+				const bool value_a = RNA_property_boolean_get(ptr_a, prop_a);
+				const bool value_b = RNA_property_boolean_get(ptr_b, prop_b);
 				const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
 				if (do_create && comp != 0) {
@@ -2030,8 +2030,8 @@ bool rna_property_override_apply_default(
 	switch (RNA_property_type(prop_dst)) {
 		case PROP_BOOLEAN:
 			if (is_array && index == -1) {
-				int array_stack_a[RNA_STACK_ARRAY];
-				int *array_a;
+				bool array_stack_a[RNA_STACK_ARRAY];
+				bool *array_a;
 
 				array_a = (len_dst > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(*array_a) * len_dst, __func__) : array_stack_a;
 
@@ -2049,7 +2049,7 @@ bool rna_property_override_apply_default(
 				if (array_a != array_stack_a) MEM_freeN(array_a);
 			}
 			else {
-				const int value = RNA_PROPERTY_GET_SINGLE(boolean, ptr_src, prop_src, index);
+				const bool value = RNA_PROPERTY_GET_SINGLE(boolean, ptr_src, prop_src, index);
 
 				switch (override_op) {
 					case IDOVERRIDESTATIC_OP_REPLACE:

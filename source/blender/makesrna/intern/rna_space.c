@@ -554,7 +554,7 @@ static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
 	return ED_view3d_grid_scale(scene, v3d, NULL);
 }
 
-static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
+static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const bool *values)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 

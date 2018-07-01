@@ -827,7 +827,7 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
 
-void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *userptr, int compact, int multiview)
+void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *userptr, bool compact, bool multiview)
 {
 	PropertyRNA *prop;
 	PointerRNA imaptr;
@@ -1063,7 +1063,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	MEM_freeN(cb);
 }
 
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_management)
+void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management)
 {
 	ImageFormatData *imf = imfptr->data;
 	ID *id = imfptr->id.data;

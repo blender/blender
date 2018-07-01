@@ -564,7 +564,7 @@ static void py_to_int(const struct ItemConvertArgData *arg, PyObject *py, char *
 
 static void py_to_bool(const struct ItemConvertArgData *UNUSED(arg), PyObject *py, char *data)
 {
-	*(int *)data = (int)PyObject_IsTrue(py);
+	*(bool *)data = (bool)PyObject_IsTrue(py);
 }
 
 static int py_float_check(PyObject *py)
@@ -596,7 +596,7 @@ static void int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, void *v
 
 static void bool_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, void *value)
 {
-	RNA_property_boolean_set_index(ptr, prop, index, *(int *)value);
+	RNA_property_boolean_set_index(ptr, prop, index, *(bool *)value);
 }
 
 static void convert_item_init_float(
@@ -655,7 +655,7 @@ int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data,
 			convert_item_init_bool(ptr, prop, &convert_item);
 
 			ret = py_to_array(
-			        py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(int),
+			        py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(bool),
 			        &convert_item, (RNA_SetArrayFunc)RNA_property_boolean_set_array, error_prefix);
 			break;
 		}
@@ -885,10 +885,9 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 			}
 			break;
 		}
-		case PROP_BOOLEAN:
 		case PROP_INT:
 		{
-			int value_i = PyLong_AsLong(value);
+			int value_i = PyC_Long_AsI32(value);
 			if (value_i == -1 && PyErr_Occurred()) {
 				PyErr_Clear();
 				return 0;
@@ -904,10 +903,40 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 					tmp_arr = tmp;
 				}
 
-				if (type == PROP_BOOLEAN)
-					RNA_property_boolean_get_array(ptr, prop, tmp_arr);
-				else
-					RNA_property_int_get_array(ptr, prop, tmp_arr);
+				RNA_property_int_get_array(ptr, prop, tmp_arr);
+
+				for (i = 0; i < len; i++) {
+					if (tmp_arr[i] == value_i) {
+						break;
+					}
+				}
+
+				if (tmp_arr != tmp)
+					PyMem_FREE(tmp_arr);
+
+				return i < len ? 1 : 0;
+			}
+			break;
+		}
+		case PROP_BOOLEAN:
+		{
+			int value_i = PyC_Long_AsBool(value);
+			if (value_i == -1 && PyErr_Occurred()) {
+				PyErr_Clear();
+				return 0;
+			}
+			else {
+				bool tmp[32];
+				bool *tmp_arr;
+
+				if (len * sizeof(bool) > sizeof(tmp)) {
+					tmp_arr = PyMem_MALLOC(len * sizeof(bool));
+				}
+				else {
+					tmp_arr = tmp;
+				}
+
+				RNA_property_boolean_get_array(ptr, prop, tmp_arr);
 
 				for (i = 0; i < len; i++) {
 					if (tmp_arr[i] == value_i) {

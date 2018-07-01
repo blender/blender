@@ -898,15 +898,15 @@ void RNA_property_update_cache_free(void);
 
 /* Property Data */
 
-int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value);
-void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
-int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
-void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values);
-void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
-int RNA_property_boolean_get_default(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
-int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+bool RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value);
+void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *values);
+bool RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bool *values);
+void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, bool value);
+bool RNA_property_boolean_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, bool *values);
+bool RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value);
@@ -1050,10 +1050,10 @@ char *RNA_path_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int
  * There is no support for pointers and collections here yet, these can be
  * added when ID properties support them. */
 
-int  RNA_boolean_get(PointerRNA *ptr, const char *name);
-void RNA_boolean_set(PointerRNA *ptr, const char *name, int value);
-void RNA_boolean_get_array(PointerRNA *ptr, const char *name, int *values);
-void RNA_boolean_set_array(PointerRNA *ptr, const char *name, const int *values);
+bool RNA_boolean_get(PointerRNA *ptr, const char *name);
+void RNA_boolean_set(PointerRNA *ptr, const char *name, bool value);
+void RNA_boolean_get_array(PointerRNA *ptr, const char *name, bool *values);
+void RNA_boolean_set_array(PointerRNA *ptr, const char *name, const bool *values);
 
 int  RNA_int_get(PointerRNA *ptr, const char *name);
 void RNA_int_set(PointerRNA *ptr, const char *name, int value);

@@ -1076,7 +1076,7 @@ finally:
 /** \name View Layer Utilities
  * \{ */
 
-int ED_view3d_view_layer_set(int lay, const int *values, int *active)
+int ED_view3d_view_layer_set(int lay, const bool *values, int *active)
 {
 	int i, tot = 0;
 
