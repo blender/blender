@@ -212,7 +212,7 @@ class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
         md = context.collision
 
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         coll = md.settings
 
@@ -252,7 +252,7 @@ class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
         layout = self.layout
 
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         md = context.collision
         coll = md.settings

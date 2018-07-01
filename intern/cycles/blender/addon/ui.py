@@ -847,7 +847,7 @@ class CYCLES_CAMERA_PT_dof_aperture(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         cam = context.camera
         ccam = cam.cycles
@@ -878,7 +878,7 @@ class CYCLES_CAMERA_PT_dof_viewport(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         cam = context.camera
         dof_options = cam.gpu_dof

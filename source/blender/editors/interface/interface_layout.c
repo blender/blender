@@ -186,7 +186,7 @@ typedef struct uiLayoutItemGridFlow {
 	/* If positive, absolute fixed number of columns.
 	 * If 0, fully automatic (based on available width).
 	 * If negative, automatic but only generates number of columns/rows multiple of given (absolute) value. */
-	int num_columns;
+	int columns_len;
 
 	/* Pure internal runtime storage. */
 	int tot_items, tot_columns, tot_rows;
@@ -3200,8 +3200,8 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 		/* Even in varying column width case, we fix our columns number from weighted average width of items,
 		 * a proper solving of required width would be too costly, and this should give reasonably good results
 		 * in all resonable cases... */
-		if (gflow->num_columns > 0) {
-			gflow->tot_columns = gflow->num_columns;
+		if (gflow->columns_len > 0) {
+			gflow->tot_columns = gflow->columns_len;
 		}
 		else {
 			if (avg_w == 0.0f) {
@@ -3218,7 +3218,7 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 		 * Note that modulo does not prevent ending with fewer columns/rows than modulo, if mandatory
 		 * to avoid empty column/row. */
 		{
-			const int modulo = (gflow->num_columns < -1) ? -gflow->num_columns : 0;
+			const int modulo = (gflow->columns_len < -1) ? -gflow->columns_len : 0;
 			const int step = modulo ? modulo : 1;
 
 			if (gflow->row_major) {
@@ -3580,7 +3580,7 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 }
 
 uiLayout *uiLayoutGridFlow(
-        uiLayout *layout, int row_major, int num_columns, int even_columns, int even_rows, int align)
+        uiLayout *layout, int row_major, int columns_len, int even_columns, int even_rows, int align)
 {
 	uiLayoutItemGridFlow *flow;
 
@@ -3590,7 +3590,7 @@ uiLayout *uiLayoutGridFlow(
 
 	flow->litem.space = (flow->litem.align) ? 0 : layout->root->style->columnspace;
 	flow->row_major = row_major;
-	flow->num_columns = num_columns;
+	flow->columns_len = columns_len;
 	flow->even_columns = even_columns;
 	flow->even_rows = even_rows;
 

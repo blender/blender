@@ -120,7 +120,7 @@ class DopesheetFilterPopoverBase:
 
         # datablock filters
         layout.label("Include From Types:")
-        flow = layout.grid_flow(row_major=True, num_columns=2, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=2, even_rows=False, align=False)
 
         flow.prop(dopesheet, "show_scenes", text="Scenes")
         flow.prop(dopesheet, "show_worlds", text="Worlds")
