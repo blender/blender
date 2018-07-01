@@ -1633,7 +1633,7 @@ void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)
 	}
 }
 
-void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
+void RNA_def_property_boolean_default(PropertyRNA *prop, bool value)
 {
 	StructRNA *srna = DefRNA.laststruct;
 
@@ -1652,7 +1652,7 @@ void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
 	}
 }
 
-void RNA_def_property_boolean_array_default(PropertyRNA *prop, const int *array)
+void RNA_def_property_boolean_array_default(PropertyRNA *prop, const bool *array)
 {
 	StructRNA *srna = DefRNA.laststruct;
 
@@ -2624,7 +2624,7 @@ void RNA_def_py_data(PropertyRNA *prop, void *py_data)
 
 /* Compact definitions */
 
-PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier, int default_value,
+PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier, bool default_value,
                              const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -2637,7 +2637,7 @@ PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier,
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value,
+PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *identifier, int len, bool *default_value,
                                    const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -2651,7 +2651,7 @@ PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *ident
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value,
+PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_, const char *identifier, int len, bool *default_value,
                                    const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -2666,7 +2666,7 @@ PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_, const char *ident
 }
 
 PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont_, const char *identifier, int len,
-                                          int *default_value, const char *ui_name, const char *ui_description)
+                                          bool *default_value, const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
@@ -2679,7 +2679,7 @@ PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont_, const char
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value,
+PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, bool *default_value,
                                     const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -3218,6 +3218,7 @@ int rna_parameter_size(PropertyRNA *parm)
 	if (len > 0) {
 		switch (ptype) {
 			case PROP_BOOLEAN:
+				return sizeof(bool) * len;
 			case PROP_INT:
 				return sizeof(int) * len;
 			case PROP_FLOAT:
@@ -3229,6 +3230,7 @@ int rna_parameter_size(PropertyRNA *parm)
 	else {
 		switch (ptype) {
 			case PROP_BOOLEAN:
+				return sizeof(bool);
 			case PROP_INT:
 			case PROP_ENUM:
 				return sizeof(int);
@@ -3416,8 +3418,8 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
 			if (bprop->defaultarray) {
-				int *array = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
-				memcpy(array, bprop->defaultarray, sizeof(int) * prop->totarraylength);
+				bool *array = MEM_mallocN(sizeof(bool) * prop->totarraylength, "RNA_def_property_store");
+				memcpy(array, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
 				bprop->defaultarray = array;
 			}
 			break;

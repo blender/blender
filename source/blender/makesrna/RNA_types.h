@@ -306,6 +306,7 @@ typedef enum RawPropertyType {
 	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
 	PROP_RAW_SHORT,
 	PROP_RAW_CHAR,
+	PROP_RAW_BOOLEAN,
 	PROP_RAW_DOUBLE,
 	PROP_RAW_FLOAT
 } RawPropertyType;
@@ -340,10 +341,10 @@ typedef struct EnumPropertyItem {
 } EnumPropertyItem;
 
 /* extended versions with PropertyRNA argument */
-typedef int (*BooleanPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop);
-typedef void (*BooleanPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
-typedef void (*BooleanArrayPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);
-typedef void (*BooleanArrayPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values);
+typedef bool (*BooleanPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*BooleanPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value);
+typedef void (*BooleanArrayPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, bool *values);
+typedef void (*BooleanArrayPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, const bool *values);
 typedef int (*IntPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*IntPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
 typedef void (*IntArrayPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);

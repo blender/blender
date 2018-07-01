@@ -1007,7 +1007,7 @@ static unsigned int free_localbit(Main *bmain)
 	return 0;
 }
 
-int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
+int ED_view3d_scene_layer_set(int lay, const bool *values, int *active)
 {
 	int i, tot = 0;
 

@@ -293,7 +293,7 @@ static inline int4 get_int4(const BL::Array<int, 4>& array)
 	return make_int4(array[0], array[1], array[2], array[3]);
 }
 
-static inline uint get_layer(const BL::Array<int, 20>& array)
+static inline uint get_layer(const BL::Array<bool, 20>& array)
 {
 	uint layer = 0;
 
@@ -304,8 +304,8 @@ static inline uint get_layer(const BL::Array<int, 20>& array)
 	return layer;
 }
 
-static inline uint get_layer(const BL::Array<int, 20>& array,
-                             const BL::Array<int, 8>& local_array,
+static inline uint get_layer(const BL::Array<bool, 20>& array,
+                             const BL::Array<bool, 8>& local_array,
                              bool is_light = false,
                              uint scene_layers = (1 << 20) - 1)
 {

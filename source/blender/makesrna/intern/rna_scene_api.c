@@ -135,7 +135,7 @@ static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
 }
 
 static void rna_SceneRender_get_frame_path(
-        RenderData *rd, Main *bmain, int frame, int preview, const char *view, char *name)
+        RenderData *rd, Main *bmain, int frame, bool preview, const char *view, char *name)
 {
 	const char *suffix = BKE_scene_multiview_view_suffix_get(rd, view);
 
@@ -156,7 +156,7 @@ static void rna_SceneRender_get_frame_path(
 static void rna_Scene_ray_cast(
         Scene *scene, Main *bmain,
         float origin[3], float direction[3], float ray_dist,
-        int *r_success, float r_location[3], float r_normal[3], int *r_index,
+        bool *r_success, float r_location[3], float r_normal[3], int *r_index,
         Object **r_ob, float r_obmat[16])
 {
 	normalize_v3(direction);
@@ -203,22 +203,22 @@ static void rna_Scene_alembic_export(
         int geom_samples,
         float shutter_open,
         float shutter_close,
-        int selected_only,
-        int uvs,
-        int normals,
-        int vcolors,
-        int apply_subdiv,
-        int flatten_hierarchy,
-        int visible_layers_only,
-        int renderable_only,
-        int face_sets,
-        int use_subdiv_schema,
-        int export_hair,
-        int export_particles,
+        bool selected_only,
+        bool uvs,
+        bool normals,
+        bool vcolors,
+        bool apply_subdiv,
+        bool flatten_hierarchy,
+        bool visible_layers_only,
+        bool renderable_only,
+        bool face_sets,
+        bool use_subdiv_schema,
+        bool export_hair,
+        bool export_particles,
         int compression_type,
-        int packuv,
+        bool packuv,
         float scale,
-        int triangulate,
+        bool triangulate,
         int quad_method,
         int ngon_method)
 {

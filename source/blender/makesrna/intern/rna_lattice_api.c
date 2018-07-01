@@ -41,7 +41,7 @@
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
-static void rna_Lattice_transform(Lattice *lt, float *mat, int shape_keys)
+static void rna_Lattice_transform(Lattice *lt, float *mat, bool shape_keys)
 {
 	BKE_lattice_transform(lt, (float (*)[4])mat, shape_keys);
 

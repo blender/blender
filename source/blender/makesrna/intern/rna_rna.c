@@ -752,14 +752,14 @@ static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
 			values[i] = nprop->defaultvalue;
 	}
 }
-static void rna_BoolProperty_default_array_get(PointerRNA *ptr, int *values)
+static void rna_BoolProperty_default_array_get(PointerRNA *ptr, bool *values)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	BoolPropertyRNA *nprop = (BoolPropertyRNA *)prop;
 	rna_idproperty_check(&prop, ptr);
 
 	if (nprop->defaultarray) {
-		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(int));
+		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(bool));
 	}
 	else {
 		int i;

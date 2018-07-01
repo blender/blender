@@ -61,7 +61,7 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 #ifdef RNA_RUNTIME
 
 const char *rna_translate_ui_text(
-        const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, int translate)
+        const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, bool translate)
 {
 	/* Also return text if UI labels translation is disabled. */
 	if (!text || !text[0] || !translate || !BLT_translate_iface()) {
@@ -97,8 +97,8 @@ const char *rna_translate_ui_text(
 
 static void rna_uiItemR(
         uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, const char *text_ctxt,
-        int translate, int icon, int expand, int slider, int toggle, int icon_only, int event,
-        int full_event, int emboss, int index, int icon_value)
+        bool translate, int icon, bool expand, bool slider, bool toggle, bool icon_only, bool event,
+        bool full_event, bool emboss, int index, int icon_value)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	int flag = 0;
@@ -128,7 +128,7 @@ static void rna_uiItemR(
 
 static void rna_uiItemMenuEnumR(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
-        const char *text_ctxt, int translate, int icon)
+        const char *text_ctxt, bool translate, int icon)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -144,7 +144,7 @@ static void rna_uiItemMenuEnumR(
 
 static void rna_uiItemEnumR_string(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value,
-        const char *name, const char *text_ctxt, int translate, int icon)
+        const char *name, const char *text_ctxt, bool translate, int icon)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -163,7 +163,7 @@ static void rna_uiItemEnumR_string(
 static void rna_uiItemPointerR(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname,
         struct PointerRNA *searchptr, const char *searchpropname,
-        const char *name, const char *text_ctxt, int translate, int icon)
+        const char *name, const char *text_ctxt, bool translate, int icon)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -181,7 +181,7 @@ static void rna_uiItemPointerR(
 
 static PointerRNA rna_uiItemO(
         uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
-        int translate, int icon, int emboss, int depress, int icon_value)
+        bool translate, int icon, bool emboss, bool depress, int icon_value)
 {
 	wmOperatorType *ot;
 
@@ -207,7 +207,7 @@ static PointerRNA rna_uiItemO(
 
 static PointerRNA rna_uiItemOMenuHold(
         uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
-        int translate, int icon, int emboss, int depress, int icon_value,
+        bool translate, int icon, bool emboss, bool depress, int icon_value,
         const char *menu)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
@@ -232,7 +232,7 @@ static PointerRNA rna_uiItemOMenuHold(
 
 static void rna_uiItemMenuEnumO(
         uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name,
-        const char *text_ctxt, int translate, int icon)
+        const char *text_ctxt, bool translate, int icon)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 
@@ -248,7 +248,7 @@ static void rna_uiItemMenuEnumO(
 }
 
 static void rna_uiItemL(
-        uiLayout *layout, const char *name, const char *text_ctxt, int translate,
+        uiLayout *layout, const char *name, const char *text_ctxt, bool translate,
         int icon, int icon_value)
 {
 	/* Get translated name (label). */
@@ -263,7 +263,7 @@ static void rna_uiItemL(
 
 static void rna_uiItemM(
         uiLayout *layout, const char *menuname, const char *name, const char *text_ctxt,
-        int translate, int icon, int icon_value)
+        bool translate, int icon, int icon_value)
 {
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, NULL, translate);
@@ -277,7 +277,7 @@ static void rna_uiItemM(
 
 static void rna_uiTemplateAnyID(
         uiLayout *layout, PointerRNA *ptr, const char *propname, const char *proptypename,
-        const char *name, const char *text_ctxt, int translate)
+        const char *name, const char *text_ctxt, bool translate)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -295,7 +295,7 @@ static void rna_uiTemplateAnyID(
 
 static void rna_uiTemplatePathBuilder(
         uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *root_ptr,
-        const char *name, const char *text_ctxt, int translate)
+        const char *name, const char *text_ctxt, bool translate)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 

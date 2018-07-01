@@ -418,6 +418,7 @@ static const char *rna_type_type_name(PropertyRNA *prop)
 {
 	switch (prop->type) {
 		case PROP_BOOLEAN:
+			return "bool";
 		case PROP_INT:
 		case PROP_ENUM:
 			return "int";
@@ -1617,6 +1618,21 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
 
 	switch (prop->type) {
 		case PROP_BOOLEAN:
+		{
+			if (!prop->arraydimension) {
+				fprintf(f, "bool %sget(PointerRNA *ptr);\n", func);
+				fprintf(f, "void %sset(PointerRNA *ptr, bool value);\n", func);
+			}
+			else if (prop->arraydimension && prop->totarraylength) {
+				fprintf(f, "void %sget(PointerRNA *ptr, bool values[%u]);\n", func, prop->totarraylength);
+				fprintf(f, "void %sset(PointerRNA *ptr, const bool values[%u]);\n", func, prop->totarraylength);
+			}
+			else {
+				fprintf(f, "void %sget(PointerRNA *ptr, bool values[]);\n", func);
+				fprintf(f, "void %sset(PointerRNA *ptr, const bool values[]);\n", func);
+			}
+			break;
+		}
 		case PROP_INT:
 		{
 			if (!prop->arraydimension) {
@@ -1749,15 +1765,15 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 		{
 			if (!prop->arraydimension) {
 				fprintf(f, "\tinline bool %s(void);\n", rna_safe_id(prop->identifier));
-				fprintf(f, "\tinline void %s(int value);", rna_safe_id(prop->identifier));
+				fprintf(f, "\tinline void %s(bool value);", rna_safe_id(prop->identifier));
 			}
 			else if (prop->totarraylength) {
-				fprintf(f, "\tinline Array<int, %u> %s(void);\n", prop->totarraylength, rna_safe_id(prop->identifier));
-				fprintf(f, "\tinline void %s(int values[%u]);", rna_safe_id(prop->identifier), prop->totarraylength);
+				fprintf(f, "\tinline Array<bool, %u> %s(void);\n", prop->totarraylength, rna_safe_id(prop->identifier));
+				fprintf(f, "\tinline void %s(bool values[%u]);", rna_safe_id(prop->identifier), prop->totarraylength);
 			}
 			else if (prop->getlength) {
-				fprintf(f, "\tinline DynamicArray<int> %s(void);\n", rna_safe_id(prop->identifier));
-				fprintf(f, "\tinline void %s(int values[]);", rna_safe_id(prop->identifier));
+				fprintf(f, "\tinline DynamicArray<bool> %s(void);\n", rna_safe_id(prop->identifier));
+				fprintf(f, "\tinline void %s(bool values[]);", rna_safe_id(prop->identifier));
 			}
 			break;
 		}
@@ -2947,7 +2963,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			unsigned int i;
 
 			if (prop->arraydimension && prop->totarraylength) {
-				fprintf(f, "static int rna_%s%s_%s_default[%u] = {\n\t", srna->identifier, strnest,
+				fprintf(f, "static bool rna_%s%s_%s_default[%u] = {\n\t", srna->identifier, strnest,
 				        prop->identifier, prop->totarraylength);
 
 				for (i = 0; i < prop->totarraylength; i++) {
@@ -3552,22 +3568,22 @@ static const char *cpp_classes = ""
 "\n"
 "#define BOOLEAN_PROPERTY(sname, identifier) \\\n"
 "	inline bool sname::identifier(void) { return sname##_##identifier##_get(&ptr) ? true: false; } \\\n"
-"	inline void sname::identifier(int value) { sname##_##identifier##_set(&ptr, value); }\n"
+"	inline void sname::identifier(bool value) { sname##_##identifier##_set(&ptr, value); }\n"
 "\n"
 "#define BOOLEAN_ARRAY_PROPERTY(sname, size, identifier) \\\n"
-"	inline Array<int, size> sname::identifier(void) \\\n"
-"		{ Array<int, size> ar; sname##_##identifier##_get(&ptr, ar.data); return ar; } \\\n"
-"	inline void sname::identifier(int values[size]) \\\n"
+"	inline Array<bool, size> sname::identifier(void) \\\n"
+"		{ Array<bool, size> ar; sname##_##identifier##_get(&ptr, ar.data); return ar; } \\\n"
+"	inline void sname::identifier(bool values[size]) \\\n"
 "		{ sname##_##identifier##_set(&ptr, values); } \\\n"
 "\n"
 "#define BOOLEAN_DYNAMIC_ARRAY_PROPERTY(sname, identifier) \\\n"
-"	inline DynamicArray<int> sname::identifier(void) { \\\n"
+"	inline DynamicArray<bool> sname::identifier(void) { \\\n"
 "		int arraylen[3]; \\\n"
 "		int len = sname##_##identifier##_get_length(&ptr, arraylen); \\\n"
-"		DynamicArray<int> ar(len); \\\n"
+"		DynamicArray<bool> ar(len); \\\n"
 "		sname##_##identifier##_get(&ptr, ar.data); \\\n"
 "		return ar; } \\\n"
-"	inline void sname::identifier(int values[]) \\\n"
+"	inline void sname::identifier(bool values[]) \\\n"
 "		{ sname##_##identifier##_set(&ptr, values); } \\\n"
 "\n"
 "#define INT_PROPERTY(sname, identifier) \\\n"

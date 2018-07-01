@@ -151,7 +151,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
 
 static void rna_Image_pack(
         Image *image, Main *bmain, bContext *C, ReportList *reports,
-        int as_png, const char *data, int data_len)
+        bool as_png, const char *data, int data_len)
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 

@@ -263,7 +263,7 @@ static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struc
 	}
 }
 
-static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static bool bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
 	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
@@ -273,7 +273,7 @@ static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 	PyGILState_STATE gilstate;
 	bool use_gil;
 	const bool is_write_ok = pyrna_write_check();
-	int value;
+	bool value;
 
 	BLI_assert(py_data != NULL);
 
@@ -301,11 +301,14 @@ static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 		value = false;
 	}
 	else {
-		value = PyC_Long_AsI32(ret);
+		int value_i = PyC_Long_AsBool(ret);
 
-		if (value == -1 && PyErr_Occurred()) {
+		if (value_i == -1 && PyErr_Occurred()) {
 			PyC_Err_PrintWithFunc(py_func);
 			value = false;
+		}
+		else {
+			value = (bool)value_i;
 		}
 
 		Py_DECREF(ret);
@@ -321,7 +324,7 @@ static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 	return value;
 }
 
-static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
+static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value)
 {
 	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
@@ -420,7 +423,7 @@ static int bpy_prop_poll_cb(struct PointerRNA *self, PointerRNA candidate, struc
 	return result;
 }
 
-static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values)
+static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, bool *values)
 {
 	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
@@ -481,7 +484,7 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct Propert
 	}
 }
 
-static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values)
+static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, const bool *values)
 {
 	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
@@ -511,7 +514,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr, struct Propert
 	self = pyrna_struct_as_instance(ptr);
 	PyTuple_SET_ITEM(args, 0, self);
 
-	py_values = PyC_Tuple_PackArray_I32FromBool(values, len);
+	py_values = PyC_Tuple_PackArray_Bool(values, len);
 	PyTuple_SET_ITEM(args, 1, py_values);
 
 	ret = PyObject_CallObject(py_func, args);
@@ -2097,7 +2100,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 	if (srna) {
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
-		int def[PYRNA_STACK_ARRAY] = {0};
+		bool def[PYRNA_STACK_ARRAY] = {0};
 		int size = 3;
 		PropertyRNA *prop;
 		PyObject *pydef = NULL;

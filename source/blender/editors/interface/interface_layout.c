@@ -351,7 +351,7 @@ static int ui_layout_local_dir(uiLayout *layout)
 	}
 }
 
-static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, int align)
+static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, bool align)
 {
 	uiLayout *sub;
 
@@ -521,7 +521,7 @@ static void ui_item_array(
 			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, 0, 0, w, UI_UNIT_Y);
 		}
 		else {
-			int *boolarr = NULL;
+			bool *boolarr = NULL;
 
 			/* even if 'expand' is fale, expanding anyway */
 
@@ -536,7 +536,7 @@ static void ui_item_array(
 
 			/* show checkboxes for rna on a non-emboss block (menu for eg) */
 			if (type == PROP_BOOLEAN && ELEM(layout->root->block->dt, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN)) {
-				boolarr = MEM_callocN(sizeof(int) * len, __func__);
+				boolarr = MEM_callocN(sizeof(bool) * len, __func__);
 				RNA_property_boolean_get_array(ptr, prop, boolarr);
 			}
 
@@ -2859,7 +2859,7 @@ static void ui_litem_layout_overlap(uiLayout *litem)
 }
 
 /* layout create functions */
-uiLayout *uiLayoutRow(uiLayout *layout, int align)
+uiLayout *uiLayoutRow(uiLayout *layout, bool align)
 {
 	uiLayout *litem;
 
@@ -2880,7 +2880,7 @@ uiLayout *uiLayoutRow(uiLayout *layout, int align)
 	return litem;
 }
 
-uiLayout *uiLayoutColumn(uiLayout *layout, int align)
+uiLayout *uiLayoutColumn(uiLayout *layout, bool align)
 {
 	uiLayout *litem;
 
@@ -2901,7 +2901,7 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align)
 	return litem;
 }
 
-uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
+uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, bool align)
 {
 	uiLayoutItemFlow *flow;
 
@@ -3023,7 +3023,7 @@ uiLayout *uiLayoutListBox(
 	return (uiLayout *)box;
 }
 
-uiLayout *uiLayoutAbsolute(uiLayout *layout, int align)
+uiLayout *uiLayoutAbsolute(uiLayout *layout, bool align)
 {
 	uiLayout *litem;
 
@@ -3070,7 +3070,7 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
 	return litem;
 }
 
-uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, bool align)
 {
 	uiLayoutItemSplit *split;
 

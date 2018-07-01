@@ -162,7 +162,7 @@ static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 
 		/* read the result */
 		RNA_parameter_get_lookup(&list, "ok", &ret);
-		ok = *(int *)ret;
+		ok = *(bool *)ret;
 	}
 	RNA_parameter_list_free(&list);
 

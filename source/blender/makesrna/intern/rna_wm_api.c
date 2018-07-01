@@ -87,7 +87,7 @@ static void rna_Operator_report(wmOperator *op, int type, const char *msg)
 	BKE_report(op->reports, type, msg);
 }
 
-static int rna_Operator_is_repeat(wmOperator *op, bContext *C)
+static bool rna_Operator_is_repeat(wmOperator *op, bContext *C)
 {
 	return WM_operator_is_repeat(C, op);
 }
@@ -99,7 +99,7 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 
 }
 
-static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
+static bool rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
 {
 	return WM_event_add_modal_handler(C, operator) != NULL;
 }
@@ -171,7 +171,7 @@ static int rna_Operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 
 static wmKeyMapItem *rna_KeyMap_item_new(
         wmKeyMap *km, ReportList *reports, const char *idname, int type, int value,
-        int any, int shift, int ctrl, int alt, int oskey, int keymodifier, int head)
+        bool any, bool shift, bool ctrl, bool alt, bool oskey, int keymodifier, bool head)
 {
 /*	wmWindowManager *wm = CTX_wm_manager(C); */
 	wmKeyMapItem *kmi = NULL;
@@ -209,8 +209,8 @@ static wmKeyMapItem *rna_KeyMap_item_new(
 
 static wmKeyMapItem *rna_KeyMap_item_new_modal(
         wmKeyMap *km, ReportList *reports, const char *propvalue_str,
-        int type, int value, int any, int shift, int ctrl, int alt,
-        int oskey, int keymodifier)
+        int type, int value, bool any, bool shift, bool ctrl, bool alt,
+        bool oskey, int keymodifier)
 {
 	int modifier = 0;
 	int propvalue = 0;
@@ -250,7 +250,7 @@ static void rna_KeyMap_item_remove(wmKeyMap *km, ReportList *reports, PointerRNA
 	RNA_POINTER_INVALIDATE(kmi_ptr);
 }
 
-static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid, int modal)
+static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid, bool modal)
 {
 	if (modal == 0) {
 		return WM_keymap_find(keyconf, idname, spaceid, regionid);
@@ -305,7 +305,7 @@ static PointerRNA rna_KeyConfig_find_item_from_operator(
         const char *idname,
         int opcontext,
         PointerRNA *properties,
-        int is_hotkey,
+        bool is_hotkey,
         PointerRNA *km_ptr)
 {
 	char idname_bl[OP_MAX_TYPENAME];

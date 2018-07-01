@@ -410,7 +410,7 @@ static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, f
 	oa->forcerot[0] = 60.0f * oa->forcerot[1];
 }
 
-static void rna_StateActuator_state_set(PointerRNA *ptr, const int *values)
+static void rna_StateActuator_state_set(PointerRNA *ptr, const bool *values)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bStateActuator *sa = act->data;

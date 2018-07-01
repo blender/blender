@@ -238,9 +238,9 @@ void RE_texture_rng_exit() RET_NONE
 bool RE_layers_have_name(struct RenderResult *result) RET_ZERO
 const char *RE_engine_active_view_get(struct RenderEngine *engine) RET_NULL
 void RE_engine_active_view_set(struct RenderEngine *engine, const char *viewname) RET_NONE
-void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Object *camera, int use_spherical_stereo, float *r_modelmat) RET_NONE
-float RE_engine_get_camera_shift_x(struct RenderEngine *engine, struct Object *camera, int use_spherical_stereo) RET_ZERO
-int RE_engine_get_spherical_stereo(struct RenderEngine *engine, struct Object *camera) RET_ZERO
+void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Object *camera, bool use_spherical_stereo, float *r_modelmat) RET_NONE
+float RE_engine_get_camera_shift_x(struct RenderEngine *engine, struct Object *camera, bool use_spherical_stereo) RET_ZERO
+bool RE_engine_get_spherical_stereo(struct RenderEngine *engine, struct Object *camera) RET_ZERO
 void RE_SetActiveRenderView(struct Render *re, const char *viewname) RET_NONE
 
 struct RenderPass *RE_pass_find_by_name(volatile struct RenderLayer *rl, const char *name, const char *viewname) RET_NULL
@@ -435,7 +435,7 @@ void WM_keymap_restore_to_default(struct wmKeyMap *keymap, struct bContext *C) R
 void WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi) RET_NONE
 void WM_keymap_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties) RET_NONE
 void WM_keyconfig_update_tag(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi) RET_NONE
-int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2) RET_ZERO
+bool WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2) RET_ZERO
 int	WM_keymap_map_type_get(struct wmKeyMapItem *kmi) RET_ZERO
 
 
@@ -479,7 +479,7 @@ void ED_node_tree_path_get_fixedbuf(struct SpaceNode *snode, char *value, int ma
 void ED_node_tree_start(struct SpaceNode *snode, struct bNodeTree *ntree, struct ID *id, struct ID *from) RET_NONE
 void ED_node_tree_push(struct SpaceNode *snode, struct bNodeTree *ntree, struct bNode *gnode) RET_NONE
 void ED_node_tree_pop(struct SpaceNode *snode) RET_NONE
-int ED_view3d_scene_layer_set(int lay, const int *values, int *active) RET_ZERO
+int ED_view3d_scene_layer_set(int lay, const bool *values, int *active) RET_ZERO
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip) RET_NONE
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist) RET_NONE
 struct BGpic *ED_view3d_background_image_new(struct View3D *v3d) RET_NULL
@@ -511,9 +511,9 @@ void uiLayoutSetEnabled(uiLayout *layout, bool enabled) RET_NONE
 void uiLayoutSetAlignment(uiLayout *layout, char alignment) RET_NONE
 void uiLayoutSetScaleX(struct uiLayout *layout, float scale) RET_NONE
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale) RET_NONE
-void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, int show_labels, float icon_scale) RET_NONE
+void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool show_labels, float icon_scale) RET_NONE
 void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base) RET_NONE
-void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges, int calc_tessface) RET_NONE
+void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_tessface) RET_NONE
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE
 void ED_mesh_tessfaces_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE
@@ -570,11 +570,11 @@ void uiItemR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int
 void uiItemFullO(uiLayout *layout, const char *idname, const char *name, int icon, struct IDProperty *properties, int context, int flag, struct PointerRNA *r_opptr) RET_NONE
 void uiItemFullO_ptr(struct uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag, struct PointerRNA *r_opptr) RET_NONE
 void uiItemFullOMenuHold_ptr( uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag, const char *menu_id,  /* extra menu arg. */ PointerRNA *r_opptr) RET_NONE
-struct uiLayout *uiLayoutRow(uiLayout *layout, int align) RET_NULL
-struct uiLayout *uiLayoutColumn(uiLayout *layout, int align) RET_NULL
-struct uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align) RET_NULL
+struct uiLayout *uiLayoutRow(uiLayout *layout, bool align) RET_NULL
+struct uiLayout *uiLayoutColumn(uiLayout *layout, bool align) RET_NULL
+struct uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, bool align) RET_NULL
 struct uiLayout *uiLayoutBox(struct uiLayout *layout) RET_NULL
-struct uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align) RET_NULL
+struct uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, bool align) RET_NULL
 bool uiLayoutGetRedAlert(struct uiLayout *layout) RET_ZERO
 void uiLayoutSetRedAlert(uiLayout *layout, bool redalert) RET_NONE
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
@@ -606,11 +606,11 @@ void uiTemplateHeader(struct uiLayout *layout, struct bContext *C) RET_NONE
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, const char *newop, const char *openop, const char *unlinkop, int filter) RET_NONE
 struct uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr) RET_NULL
 struct uiLayout *uiTemplateConstraint(struct uiLayout *layout, struct PointerRNA *ptr) RET_NULL
-void uiTemplatePreview(struct uiLayout *layout, struct bContext *C, struct ID *id, int show_buttons, struct ID *parent,
+void uiTemplatePreview(struct uiLayout *layout, struct bContext *C, struct ID *id, bool show_buttons, struct ID *parent,
                        struct MTex *slot, const char *preview_id) RET_NONE
 void uiTemplateIDPreview(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, const char *newop, const char *openop, const char *unlinkop, int rows, int cols, int filter) RET_NONE
-void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int type, int levels, int brush, int neg_slope) RET_NONE
-void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int expand) RET_NONE
+void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int type, bool levels, bool brush, bool neg_slope) RET_NONE
+void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool expand) RET_NONE
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *used_ptr, const char *used_propname, int active_layer) RET_NONE
 void uiTemplateImageLayers(struct uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser) RET_NONE
 void uiTemplateList(struct uiLayout *layout, struct bContext *C, const char *listtype_name, const char *list_id,
@@ -620,8 +620,8 @@ void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C) RET_NONE
 void uiTemplateOperatorSearch(struct uiLayout *layout) RET_NONE
 void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C) RET_NONE
 void uiTemplateEditModeSelection(struct uiLayout *layout, struct bContext *C) RET_NONE
-void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact, int multiview) RET_NONE
-void uiTemplateColorPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic) RET_NONE
+void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, bool compact, bool multiview) RET_NONE
+void uiTemplateColorPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool value_slider, bool lock, bool lock_luminosity, bool cubic) RET_NONE
 void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C) RET_NONE
 void uiTemplateWaveform(uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
@@ -631,16 +631,16 @@ void uiTemplateNodeView(struct uiLayout *layout, struct bContext *C, struct bNod
 void uiTemplateTextureUser(struct uiLayout *layout, struct bContext *C) RET_NONE
 void uiTemplateTextureShow(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop) RET_NONE
 void uiTemplateKeymapItemProperties(struct uiLayout *layout, struct PointerRNA *ptr) RET_NONE
-void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact) RET_NONE
+void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, bool compact) RET_NONE
 void uiTemplateMovieclipInformation(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr) RET_NONE
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
-void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int compact) RET_NONE
-void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, int color_management) RET_NONE
+void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, bool compact) RET_NONE
+void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, bool color_management) RET_NONE
 void uiTemplateColorspaceSettings(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
 void uiTemplateColormanagedViewSettings(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname) RET_NONE
 void uiTemplateComponentMenu(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name) RET_NONE
 void uiTemplateNodeSocket(struct uiLayout *layout, struct bContext *C, float *color) RET_NONE
-void uiTemplatePalette(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, int color) RET_NONE
+void uiTemplatePalette(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool color) RET_NONE
 void uiTemplateImageStereo3d(struct uiLayout *layout, struct PointerRNA *stereo3d_format_ptr) RET_NONE
 void uiTemplateCacheFile(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname) RET_NONE
 
@@ -655,14 +655,14 @@ void RE_engine_update_result(struct RenderEngine *engine, struct RenderResult *r
 void RE_engine_update_progress(struct RenderEngine *engine, float progress) RET_NONE
 void RE_engine_set_error_message(RenderEngine *engine, const char *msg) RET_NONE
 void RE_engine_add_pass(RenderEngine *engine, const char *name, int channels, const char *chan_id, const char *layername) RET_NONE
-void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel, int highlight, int merge_results) RET_NONE
+void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, bool cancel, bool highlight, bool merge_results) RET_NONE
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info) RET_NONE
 void RE_layer_load_from_file(struct RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y) RET_NONE
 void RE_result_load_from_file(struct RenderResult *result, struct ReportList *reports, const char *filename) RET_NONE
 void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr, const int view_id) RET_NONE
 void RE_ReleaseResult(struct Render *re) RET_NONE
 void RE_ReleaseResultImage(struct Render *re) RET_NONE
-int RE_engine_test_break(struct RenderEngine *engine) RET_ZERO
+bool RE_engine_test_break(struct RenderEngine *engine) RET_ZERO
 void RE_engines_init() RET_NONE
 void RE_engines_exit() RET_NONE
 void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) RET_NONE

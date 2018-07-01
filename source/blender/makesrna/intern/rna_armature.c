@@ -238,7 +238,7 @@ static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, bool create)
 	return ebone->prop;
 }
 
-static void rna_bone_layer_set(int *layer, const int *values)
+static void rna_bone_layer_set(int *layer, const bool *values)
 {
 	int i, tot = 0;
 
@@ -256,13 +256,13 @@ static void rna_bone_layer_set(int *layer, const int *values)
 	}
 }
 
-static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
+static void rna_Bone_layer_set(PointerRNA *ptr, const bool *values)
 {
 	Bone *bone = (Bone *)ptr->data;
 	rna_bone_layer_set(&bone->layer, values);
 }
 
-static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
+static void rna_Armature_layer_set(PointerRNA *ptr, const bool *values)
 {
 	bArmature *arm = (bArmature *)ptr->data;
 	int i, tot = 0;
@@ -333,7 +333,7 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 	ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
 }
 
-static void rna_EditBone_layer_set(PointerRNA *ptr, const int values[])
+static void rna_EditBone_layer_set(PointerRNA *ptr, const bool values[])
 {
 	EditBone *data = (EditBone *)(ptr->data);
 	rna_bone_layer_set(&data->layer, values);

@@ -100,12 +100,12 @@ static void rna_Mesh_free_tangents(Mesh *mesh)
 	CustomData_free_layers(&mesh->ldata, CD_MLOOPTANGENT, mesh->totloop);
 }
 
-static void rna_Mesh_calc_tessface(Mesh *mesh, int free_mpoly)
+static void rna_Mesh_calc_tessface(Mesh *mesh, bool free_mpoly)
 {
 	ED_mesh_calc_tessface(mesh, free_mpoly != 0);
 }
 
-static void rna_Mesh_calc_smooth_groups(Mesh *mesh, int use_bitflags, int *r_poly_group_len,
+static void rna_Mesh_calc_smooth_groups(Mesh *mesh, bool use_bitflags, int *r_poly_group_len,
                                         int **r_poly_group, int *r_group_total)
 {
 	*r_poly_group_len = mesh->totpoly;
@@ -193,7 +193,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(
 	DAG_id_tag_update(&mesh->id, 0);
 }
 
-static void rna_Mesh_transform(Mesh *mesh, float *mat, int shape_keys)
+static void rna_Mesh_transform(Mesh *mesh, float *mat, bool shape_keys)
 {
 	BKE_mesh_transform(mesh, (float (*)[4])mat, shape_keys);
 
@@ -209,7 +209,7 @@ static void rna_Mesh_flip_normals(Mesh *mesh)
 	DAG_id_tag_update(&mesh->id, 0);
 }
 
-static void rna_Mesh_split_faces(Mesh *mesh, int free_loop_normals)
+static void rna_Mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 {
 	BKE_mesh_split_faces(mesh, free_loop_normals != 0);
 }

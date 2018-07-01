@@ -410,7 +410,7 @@ static void rna_ImaPaint_canvas_update(Main *bmain, Scene *scene, PointerRNA *UN
 	}
 }
 
-static int rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
+static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
 {
 	return imapaint->missing_data == 0;
 }

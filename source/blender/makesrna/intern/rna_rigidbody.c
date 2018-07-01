@@ -262,7 +262,7 @@ static void rna_RigidBodyOb_collision_margin_set(PointerRNA *ptr, float value)
 #endif
 }
 
-static void rna_RigidBodyOb_collision_groups_set(PointerRNA *ptr, const int *values)
+static void rna_RigidBodyOb_collision_groups_set(PointerRNA *ptr, const bool *values)
 {
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
 	int i;

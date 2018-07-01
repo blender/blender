@@ -258,7 +258,7 @@ void RE_engine_add_pass(RenderEngine *engine, const char *name, int channels, co
 	render_result_add_pass(re->result, name, channels, chan_id, layername, NULL);
 }
 
-void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel, int highlight, int merge_results)
+void RE_engine_end_result(RenderEngine *engine, RenderResult *result, bool cancel, bool highlight, bool merge_results)
 {
 	Render *re = engine->re;
 
@@ -309,7 +309,7 @@ RenderResult *RE_engine_get_result(RenderEngine *engine)
 
 /* Cancel */
 
-int RE_engine_test_break(RenderEngine *engine)
+bool RE_engine_test_break(RenderEngine *engine)
 {
 	Render *re = engine->re;
 
@@ -402,7 +402,7 @@ void RE_engine_active_view_set(RenderEngine *engine, const char *viewname)
 	RE_SetActiveRenderView(re, viewname);
 }
 
-float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, int use_spherical_stereo)
+float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, bool use_spherical_stereo)
 {
 	Render *re = engine->re;
 
@@ -413,7 +413,7 @@ float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, int use
 	return BKE_camera_multiview_shift_x(re ? &re->r : NULL, camera, re->viewname);
 }
 
-void RE_engine_get_camera_model_matrix(RenderEngine *engine, Object *camera, int use_spherical_stereo, float *r_modelmat)
+void RE_engine_get_camera_model_matrix(RenderEngine *engine, Object *camera, bool use_spherical_stereo, float *r_modelmat)
 {
 	Render *re = engine->re;
 
@@ -424,7 +424,7 @@ void RE_engine_get_camera_model_matrix(RenderEngine *engine, Object *camera, int
 	BKE_camera_multiview_model_matrix(re ? &re->r : NULL, camera, re->viewname, (float (*)[4])r_modelmat);
 }
 
-int RE_engine_get_spherical_stereo(RenderEngine *engine, Object *camera)
+bool RE_engine_get_spherical_stereo(RenderEngine *engine, Object *camera)
 {
 	Render *re = engine->re;
 	return BKE_camera_multiview_spherical_stereo(re ? &re->r : NULL, camera) ? 1 : 0;

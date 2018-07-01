@@ -91,7 +91,7 @@ int PyC_AsArray_FAST(
 		}
 	}
 	else if (type == &PyBool_Type) {
-		int *array_bool = array;
+		bool *array_bool = array;
 		for (i = 0; i < length; i++) {
 			array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
 		}

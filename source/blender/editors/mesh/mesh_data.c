@@ -989,7 +989,7 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 
 /************************** Add Geometry Layers *************************/
 
-void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
+void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_tessface)
 {
 	bool tessface_input = false;
 

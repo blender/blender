@@ -1373,7 +1373,7 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
 }
 
 void uiTemplatePreview(
-        uiLayout *layout, bContext *C, ID *id, int show_buttons, ID *parent, MTex *slot,
+        uiLayout *layout, bContext *C, ID *id, bool show_buttons, ID *parent, MTex *slot,
         const char *preview_id)
 {
 	uiLayout *row, *col;
@@ -1683,7 +1683,7 @@ static void colorband_buttons_layout(
 	}
 }
 
-void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname, int expand)
+void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname, bool expand)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1783,7 +1783,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 /**
  * \param icon_scale: Scale of the icon, 1x == button height.
  */
-void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname, int show_labels, float icon_scale)
+void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname, bool show_labels, float icon_scale)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	IconViewMenuArgs *cb_args;
@@ -2176,8 +2176,8 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 
 /* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
 static void curvemap_buttons_layout(
-        uiLayout *layout, PointerRNA *ptr, char labeltype, int levels,
-        int brush, int neg_slope, RNAUpdateCb *cb)
+        uiLayout *layout, PointerRNA *ptr, char labeltype, bool levels,
+        bool brush, bool neg_slope, RNAUpdateCb *cb)
 {
 	CurveMapping *cumap = ptr->data;
 	CurveMap *cm = &cumap->cm[cumap->cur];
@@ -2340,7 +2340,7 @@ static void curvemap_buttons_layout(
 
 void uiTemplateCurveMapping(
         uiLayout *layout, PointerRNA *ptr, const char *propname, int type,
-        int levels, int brush, int neg_slope)
+        bool levels, bool brush, bool neg_slope)
 {
 	RNAUpdateCb *cb;
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
@@ -2384,8 +2384,8 @@ void uiTemplateCurveMapping(
 
 /* This template now follows User Preference for type - name is not correct anymore... */
 void uiTemplateColorPicker(
-        uiLayout *layout, PointerRNA *ptr, const char *propname, int value_slider,
-        int lock, int lock_luminosity, int cubic)
+        uiLayout *layout, PointerRNA *ptr, const char *propname, bool value_slider,
+        bool lock, bool lock_luminosity, bool cubic)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	uiBlock *block = uiLayoutGetBlock(layout);
@@ -2481,7 +2481,7 @@ void uiTemplateColorPicker(
 	}
 }
 
-void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, int UNUSED(colors))
+void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, bool UNUSED(colors))
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;

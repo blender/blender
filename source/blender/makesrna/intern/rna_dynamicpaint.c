@@ -239,7 +239,7 @@ static int rna_DynamicPaint_use_color_preview_get(PointerRNA *ptr)
 }
 
 /* does output layer exist*/
-static int rna_DynamicPaint_is_output_exists(DynamicPaintSurface *surface, Object *ob, int index)
+static bool rna_DynamicPaint_is_output_exists(DynamicPaintSurface *surface, Object *ob, int index)
 {
 	return dynamicPaint_outputLayerExists(surface, ob, index);
 }

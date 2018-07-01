@@ -141,16 +141,16 @@ void RE_result_load_from_file(struct RenderResult *result, struct ReportList *re
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
 void RE_engine_add_pass(RenderEngine *engine, const char *name, int channels, const char *chan_id, const char *layername);
-void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel, int highlight, int merge_results);
+void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, bool cancel, bool highlight, bool merge_results);
 struct RenderResult *RE_engine_get_result(struct RenderEngine *engine);
 
 const char *RE_engine_active_view_get(RenderEngine *engine);
 void RE_engine_active_view_set(RenderEngine *engine, const char *viewname);
-float RE_engine_get_camera_shift_x(RenderEngine *engine, struct Object *camera, int use_spherical_stereo);
-void RE_engine_get_camera_model_matrix(RenderEngine *engine, struct Object *camera, int use_spherical_stereo, float *r_modelmat);
-int RE_engine_get_spherical_stereo(RenderEngine *engine, struct Object *camera);
+float RE_engine_get_camera_shift_x(RenderEngine *engine, struct Object *camera, bool use_spherical_stereo);
+void RE_engine_get_camera_model_matrix(RenderEngine *engine, struct Object *camera, bool use_spherical_stereo, float *r_modelmat);
+bool RE_engine_get_spherical_stereo(RenderEngine *engine, struct Object *camera);
 
-int RE_engine_test_break(RenderEngine *engine);
+bool RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
 void RE_engine_update_progress(RenderEngine *engine, float progress);
 void RE_engine_update_memory_stats(RenderEngine *engine, float mem_used, float mem_peak);

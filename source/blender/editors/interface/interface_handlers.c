@@ -1605,7 +1605,7 @@ static void ui_selectcontext_apply(
 				wmWindow *win = CTX_wm_window(C);
 				if (!win->eventstate->shift) {
 					const int len = RNA_property_array_length(&but->rnapoin, prop);
-					int *tmparray = MEM_callocN(sizeof(int) * len, __func__);
+					bool *tmparray = MEM_callocN(sizeof(bool) * len, __func__);
 
 					tmparray[index] = true;
 

@@ -305,7 +305,7 @@ static void transformops_loopsel_hack(bContext *C, wmOperator *op)
 		if (op->opm && op->opm->opm && op->opm->opm->prev) {
 			wmOperator *op_prev = op->opm->opm->prev;
 			Scene *scene = CTX_data_scene(C);
-			int mesh_select_mode[3];
+			bool mesh_select_mode[3];
 			PropertyRNA *prop = RNA_struct_find_property(op_prev->ptr, "mesh_select_mode_init");
 
 			if (prop && RNA_property_is_set(op_prev->ptr, prop)) {

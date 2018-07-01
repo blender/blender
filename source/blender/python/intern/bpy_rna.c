@@ -1667,7 +1667,7 @@ static int pyrna_py_to_prop(
 					return -1;
 				}
 				else {
-					if (data) *((int *)data) = param;
+					if (data) *((bool *)data) = param;
 					else RNA_property_boolean_set(ptr, prop, param);
 				}
 				break;
@@ -2477,9 +2477,9 @@ static PyObject *pyrna_prop_array_subscript_slice(
 			}
 			case PROP_BOOLEAN:
 			{
-				int values_stack[PYRNA_STACK_ARRAY];
-				int *values;
-				if (length > PYRNA_STACK_ARRAY) { values = PyMem_MALLOC(sizeof(int) * length); }
+				bool values_stack[PYRNA_STACK_ARRAY];
+				bool *values;
+				if (length > PYRNA_STACK_ARRAY) { values = PyMem_MALLOC(sizeof(bool) * length); }
 				else                            { values = values_stack; }
 
 				RNA_property_boolean_get_array(ptr, prop, values);
@@ -2860,7 +2860,7 @@ static int prop_subscript_ass_array_slice__int_recursive(
 }
 
 static int prop_subscript_ass_array_slice__bool_recursive(
-        PyObject **value_items, int *value,
+        PyObject **value_items, bool *value,
         int totdim, const int dimsize[])
 {
 	const int length = dimsize[0];
@@ -2983,9 +2983,9 @@ static int prop_subscript_ass_array_slice(
 		}
 		case PROP_BOOLEAN:
 		{
-			int values_stack[PYRNA_STACK_ARRAY];
-			int *values = (length_flat > PYRNA_STACK_ARRAY) ?
-			              (values_alloc = PyMem_MALLOC(sizeof(*values) * length_flat)) : values_stack;
+			bool values_stack[PYRNA_STACK_ARRAY];
+			bool *values = (length_flat > PYRNA_STACK_ARRAY) ?
+			               (values_alloc = PyMem_MALLOC(sizeof(bool) * length_flat)) : values_stack;
 
 			if (start != 0 || stop != length) {
 				/* partial assignment? - need to get the array */
@@ -4915,6 +4915,8 @@ static bool foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, con
 		case PROP_RAW_INT:
 			if (attr_signed) return (f == 'i') ? 1 : 0;
 			else             return (f == 'I') ? 1 : 0;
+		case PROP_RAW_BOOLEAN:
+			return (f == '?') ? 1 : 0;
 		case PROP_RAW_FLOAT:
 			return (f == 'f') ? 1 : 0;
 		case PROP_RAW_DOUBLE:
@@ -4980,6 +4982,9 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 						break;
 					case PROP_RAW_INT:
 						((int *)array)[i] = (int)PyLong_AsLong(item);
+						break;
+					case PROP_RAW_BOOLEAN:
+						((bool *)array)[i] = (int)PyLong_AsLong(item) != 0;
 						break;
 					case PROP_RAW_FLOAT:
 						((float *)array)[i] = (float)PyFloat_AsDouble(item);
@@ -5313,7 +5318,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 			case PROP_BOOLEAN:
 				ret = PyTuple_New(len);
 				for (a = 0; a < len; a++)
-					PyTuple_SET_ITEM(ret, a, PyBool_FromLong(((int *)data)[a]));
+					PyTuple_SET_ITEM(ret, a, PyBool_FromLong(((bool *)data)[a]));
 				break;
 			case PROP_INT:
 				ret = PyTuple_New(len);
@@ -5356,7 +5361,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 		/* see if we can coerce into a python type - PropertyType */
 		switch (type) {
 			case PROP_BOOLEAN:
-				ret = PyBool_FromLong(*(int *)data);
+				ret = PyBool_FromLong(*(bool *)data);
 				break;
 			case PROP_INT:
 				ret = PyLong_FromLong(*(int *)data);

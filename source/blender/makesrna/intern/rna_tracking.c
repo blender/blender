@@ -664,7 +664,7 @@ static void rna_trackingObject_remove(MovieTracking *tracking, ReportList *repor
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 }
 
-static MovieTrackingMarker *rna_trackingMarkers_find_frame(MovieTrackingTrack *track, int framenr, int exact)
+static MovieTrackingMarker *rna_trackingMarkers_find_frame(MovieTrackingTrack *track, int framenr, bool exact)
 {
 	if (exact)
 		return BKE_tracking_marker_get_exact(track, framenr);
@@ -706,7 +706,7 @@ static void rna_trackingMarkers_delete_frame(MovieTrackingTrack *track, int fram
 }
 
 static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_find_frame(MovieTrackingPlaneTrack *plane_track,
-                                                                     int framenr, int exact)
+                                                                     int framenr, bool exact)
 {
 	if (exact)
 		return BKE_tracking_plane_marker_get_exact(plane_track, framenr);
