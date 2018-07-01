@@ -20,7 +20,7 @@ const bTheme U_theme_default = {
 	.name = "Default",
 	.tui = {
 		.wcol_regular = {
-			.outline = RGBA(0x38393e00),
+			.outline = RGBA(0x38393eff),
 			.inner = RGBA(0x505158ff),
 			.inner_sel = RGBA(0x80858aff),
 			.item = RGBA(0x38393eff),
@@ -30,7 +30,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_tool = {
-			.outline = RGBA(0x2f2f3400),
+			.outline = RGBA(0x2f2f34ff),
 			.inner = RGBA(0x505158ff),
 			.inner_sel = RGBA(0x2f2f34ff),
 			.item = RGBA(0xe6ebffff),
@@ -40,7 +40,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_toolbar_item = {
-			.outline = RGBA(0x19191900),
+			.outline = RGBA(0x191919ff),
 			.inner = RGBA(0x505158ff),
 			.inner_sel = RGBA(0x2d2d33ff),
 			.item = RGBA(0x191919ff),
@@ -49,7 +49,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.25f,
 		},
 		.wcol_text = {
-			.outline = RGBA(0x43454d00),
+			.outline = RGBA(0x43454dff),
 			.inner = RGBA(0x2d2e33ff),
 			.inner_sel = RGBA(0x717280ff),
 			.item = RGBA(0x599eb3ff),
@@ -60,7 +60,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_radio = {
-			.outline = RGBA(0x42435200),
+			.outline = RGBA(0x424352ff),
 			.inner = RGBA(0x505158ff),
 			.inner_sel = RGBA(0x2d2d33ff),
 			.item = RGBA(0xffffffff),
@@ -71,7 +71,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_option = {
-			.outline = RGBA(0x42435200),
+			.outline = RGBA(0x424352ff),
 			.inner = RGBA(0x5c5c66cc),
 			.inner_sel = RGBA(0x70707cff),
 			.item = RGBA(0xffffffff),
@@ -81,7 +81,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.25f,
 		},
 		.wcol_toggle = {
-			.outline = RGBA(0x43434d00),
+			.outline = RGBA(0x43434dff),
 			.inner = RGBA(0x595966ff),
 			.inner_sel = RGBA(0x3f7d80ff),
 			.item = RGBA(0x191919ff),
@@ -90,7 +90,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.25f,
 		},
 		.wcol_num = {
-			.outline = RGBA(0x46464d00),
+			.outline = RGBA(0x46464dff),
 			.inner = RGBA(0x505158ff),
 			.inner_sel = RGBA(0x3f7780ff),
 			.item = RGBA(0x46464dff),
@@ -100,7 +100,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.3f,
 		},
 		.wcol_numslider = {
-			.outline = RGBA(0x46464d00),
+			.outline = RGBA(0x46464dff),
 			.inner = RGBA(0x3f3f47ff),
 			.inner_sel = RGBA(0x3f7780ff),
 			.item = RGBA(0x505158ff),
@@ -111,7 +111,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.4f,
 		},
 		.wcol_tab = {
-			.outline = RGBA(0x28292d00),
+			.outline = RGBA(0x28292dff),
 			.inner = RGBA(0x323239ff),
 			.inner_sel = RGBA(0x43444bff),
 			.item = RGBA(0x28292dff),
@@ -120,7 +120,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.15f,
 		},
 		.wcol_menu = {
-			.outline = RGBA(0x43454d00),
+			.outline = RGBA(0x43454dff),
 			.inner = RGBA(0x29282eff),
 			.inner_sel = RGBA(0x505158ff),
 			.item = RGBA(0xe6e6e6ff),
@@ -131,7 +131,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_pulldown = {
-			.outline = RGBA(0x43454d00),
+			.outline = RGBA(0x43454dff),
 			.inner = RGBA(0x29282e99),
 			.inner_sel = RGBA(0x505158ff),
 			.item = RGBA(0x696a72ff),
@@ -142,7 +142,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_menu_back = {
-			.outline = RGBA(0x29282e00),
+			.outline = RGBA(0x29282eff),
 			.inner = RGBA(0x1f1f1fef),
 			.inner_sel = RGBA(0x505158ff),
 			.item = RGBA(0x696a72ff),
@@ -161,7 +161,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.25f,
 		},
 		.wcol_tooltip = {
-			.outline = RGBA(0x2f303500),
+			.outline = RGBA(0x2f3035ff),
 			.inner = RGBA(0x19191aef),
 			.inner_sel = RGBA(0x19191aef),
 			.item = RGBA(0x19191aef),
@@ -172,7 +172,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.25f,
 		},
 		.wcol_box = {
-			.outline = RGBA(0x2d2e3300),
+			.outline = RGBA(0x2d2e33ff),
 			.inner = RGBA(0x43454dff),
 			.inner_sel = RGBA(0x3f7780ff),
 			.item = RGBA(0x191919ff),
@@ -181,7 +181,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_scroll = {
-			.outline = RGBA(0x2f303500),
+			.outline = RGBA(0x2f3035ff),
 			.inner = RGBA(0x585a6700),
 			.inner_sel = RGBA(0x599eb3ff),
 			.item = RGBA(0x585a67ff),
@@ -192,7 +192,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.5f,
 		},
 		.wcol_progress = {
-			.outline = RGBA(0xb3b3b300),
+			.outline = RGBA(0xb3b3b3ff),
 			.inner = RGBA(0xccccccff),
 			.inner_sel = RGBA(0x646464b4),
 			.item = RGBA(0x599eb3ff),
@@ -201,7 +201,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.25f,
 		},
 		.wcol_list_item = {
-			.outline = RGBA(0x28292d00),
+			.outline = RGBA(0x28292dff),
 			.inner = RGBA(0x28292d00),
 			.inner_sel = RGBA(0x5f616fff),
 			.item = RGBA(0x599eb3ff),
@@ -210,7 +210,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_pie_menu = {
-			.outline = RGBA(0x29282e00),
+			.outline = RGBA(0x29282eff),
 			.inner = RGBA(0x29282eff),
 			.inner_sel = RGBA(0x505158ff),
 			.item = RGBA(0x696a72ff),
@@ -221,7 +221,7 @@ const bTheme U_theme_default = {
 			.roundness = 0.5f,
 		},
 		.wcol_state = {
-			.inner_anim = RGBA(0x73be4c00),
+			.inner_anim = RGBA(0x73be4cff),
 			.inner_anim_sel = RGBA(0x5aa633ff),
 			.inner_key = RGBA(0xf0eb64ff),
 			.inner_key_sel = RGBA(0xd7d34bff),
