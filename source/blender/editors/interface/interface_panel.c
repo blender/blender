@@ -620,9 +620,10 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 #endif
 	{
 		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
-		                    (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-		                    (block->aspect / UI_DPI_FAC), 1.0f);
+		UI_icon_draw_aspect(
+		        headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
+		        (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
+		        (block->aspect / UI_DPI_FAC), 1.0f);
 		glDisable(GL_BLEND);
 	}
 
@@ -1755,18 +1756,21 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 #endif
 		{
 			glColor3ubv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
-			ui_panel_category_draw_tab(GL_POLYGON, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-			                           tab_curve_radius - px, roundboxtype, true, true, NULL);
+			ui_panel_category_draw_tab(
+			        GL_POLYGON, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			        tab_curve_radius - px, roundboxtype, true, true, NULL);
 
 			/* tab outline */
 			glColor3ubv(theme_col_tab_outline);
-			ui_panel_category_draw_tab(GL_LINE_STRIP, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
-			                           tab_curve_radius, roundboxtype, true, true, NULL);
+			ui_panel_category_draw_tab(
+			        GL_LINE_STRIP, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
+			        tab_curve_radius, roundboxtype, true, true, NULL);
 			/* tab highlight (3d look) */
 			glColor3ubv(is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
-			ui_panel_category_draw_tab(GL_LINE_STRIP, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-			                           tab_curve_radius, roundboxtype, true, false,
-			                           is_active ? theme_col_back : theme_col_tab_inactive);
+			ui_panel_category_draw_tab(
+			        GL_LINE_STRIP, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			        tab_curve_radius, roundboxtype, true, false,
+			        is_active ? theme_col_back : theme_col_tab_inactive);
 		}
 
 		/* tab blackline */
@@ -1779,8 +1783,9 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		}
 
 		if (do_scaletabs) {
-			category_draw_len = BLF_width_to_strlen(fontid, category_id_draw, category_draw_len,
-			                                        category_width, NULL);
+			category_draw_len = BLF_width_to_strlen(
+			        fontid, category_id_draw, category_draw_len,
+			        category_width, NULL);
 		}
 
 		BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);

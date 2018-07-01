@@ -316,8 +316,9 @@ int UI_calc_float_precision(int prec, double value)
 bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t maxlength)
 {
 	if (but->rnapoin.id.data && but->rnapoin.data && but->rnaprop) {
-		BLI_snprintf(r_str, maxlength, "%s.%s", RNA_struct_identifier(but->rnapoin.type),
-		             RNA_property_identifier(but->rnaprop));
+		BLI_snprintf(
+		        r_str, maxlength, "%s.%s", RNA_struct_identifier(but->rnapoin.type),
+		        RNA_property_identifier(but->rnaprop));
 		return true;
 	}
 	else if (but->optype) {

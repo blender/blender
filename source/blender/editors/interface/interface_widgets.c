@@ -358,13 +358,16 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, const rcti *re
 	float facxi = (maxxi != minxi) ? 1.0f / (maxxi - minxi) : 0.0f; /* for uv, can divide by zero */
 	float facyi = (maxyi != minyi) ? 1.0f / (maxyi - minyi) : 0.0f;
 	int a, tot = 0, minsize;
-	const int hnum = ((roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT)) == (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT) ||
-	                  (roundboxalign & (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)) == (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)) ? 1 : 2;
-	const int vnum = ((roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT)) == (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT) ||
-	                  (roundboxalign & (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) == (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) ? 1 : 2;
+	const int hnum = (
+	        (roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT)) == (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT) ||
+	        (roundboxalign & (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)) == (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)) ? 1 : 2;
+	const int vnum = (
+	        (roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT)) == (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT) ||
+	        (roundboxalign & (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) == (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) ? 1 : 2;
 
-	minsize = min_ii(BLI_rcti_size_x(rect) * hnum,
-	                 BLI_rcti_size_y(rect) * vnum);
+	minsize = min_ii(
+	        BLI_rcti_size_x(rect) * hnum,
+	        BLI_rcti_size_y(rect) * vnum);
 
 	if (2.0f * rad > minsize)
 		rad = 0.5f * minsize;
@@ -769,10 +772,12 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
 		float triangle_strip_emboss[WIDGET_SIZE_MAX * 2][2]; /* only for emboss */
 
-		const unsigned char tcol[4] = {wcol->outline[0],
-		                               wcol->outline[1],
-		                               wcol->outline[2],
-		                               wcol->outline[3] / WIDGET_AA_JITTER};
+		const unsigned char tcol[4] = {
+			wcol->outline[0],
+			wcol->outline[1],
+			wcol->outline[2],
+			wcol->outline[3] / WIDGET_AA_JITTER,
+		};
 		unsigned char emboss[4];
 
 		widget_verts_to_triangle_strip(wtb, wtb->totvert, triangle_strip);
@@ -810,10 +815,12 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 	/* decoration */
 	if (wtb->tria1.tot || wtb->tria2.tot) {
-		const unsigned char tcol[4] = {wcol->item[0],
-		                               wcol->item[1],
-		                               wcol->item[2],
-		                               (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER)};
+		const unsigned char tcol[4] = {
+			wcol->item[0],
+			wcol->item[1],
+			wcol->item[2],
+			(unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER),
+		};
 		glColor4ubv(tcol);
 
 		/* for each AA step */
@@ -1272,8 +1279,9 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 	/* once the label's gone, chop off the least significant digits */
 	if (but->strwidth > okwidth) {
 		float strwidth;
-		drawstr_len = BLF_width_to_strlen(fstyle->uifont_id, but->drawstr + but->ofs,
-		                                  drawstr_len - but->ofs, okwidth, &strwidth) + but->ofs;
+		drawstr_len = BLF_width_to_strlen(
+		        fstyle->uifont_id, but->drawstr + but->ofs,
+		        drawstr_len - but->ofs, okwidth, &strwidth) + but->ofs;
 		but->strwidth = strwidth;
 		but->drawstr[drawstr_len] = 0;
 	}
@@ -1299,8 +1307,9 @@ static void widget_draw_text_ime_underline(
 			ofs_x = 0;
 		}
 
-		width = BLF_width(fstyle->uifont_id, drawstr + but->ofs,
-		                  ime_data->composite_len + but->pos - but->ofs);
+		width = BLF_width(
+		        fstyle->uifont_id, drawstr + but->ofs,
+		        ime_data->composite_len + but->pos - but->ofs);
 
 		glColor4ubv((unsigned char *)wcol->text);
 		UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 1);
@@ -1317,8 +1326,9 @@ static void widget_draw_text_ime_underline(
 				ofs_x = 0;
 			}
 
-			width = BLF_width(fstyle->uifont_id, drawstr + but->ofs,
-			                  sel_end + sel_start - but->ofs);
+			width = BLF_width(
+			        fstyle->uifont_id, drawstr + but->ofs,
+			        sel_end + sel_start - but->ofs);
 
 			UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 2);
 		}
@@ -1371,9 +1381,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 			if (ime_data && ime_data->composite_len) {
 				/* insert composite string into cursor pos */
-				BLI_snprintf((char *)drawstr, UI_MAX_DRAW_STR, "%s%s%s",
-				             but->editstr, ime_data->str_composite,
-				             but->editstr + but->pos);
+				BLI_snprintf(
+				        (char *)drawstr, UI_MAX_DRAW_STR, "%s%s%s",
+				        but->editstr, ime_data->str_composite,
+				        but->editstr + but->pos);
 			}
 			else
 #endif
@@ -1504,8 +1515,9 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		/* for underline drawing */
 		float font_xofs, font_yofs;
 
-		UI_fontstyle_draw_ex(fstyle, rect, drawstr + but->ofs,
-		                   drawstr_left_len - but->ofs, &font_xofs, &font_yofs);
+		UI_fontstyle_draw_ex(
+		        fstyle, rect, drawstr + but->ofs,
+		        drawstr_left_len - but->ofs, &font_xofs, &font_yofs);
 
 		if (but->menu_key != '\0') {
 			char fixedbuf[128];
@@ -2275,8 +2287,9 @@ static void ui_hsv_cursor(float x, float y)
 	glPopMatrix();
 }
 
-void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
-                                const float mx, const float my)
+void ui_hsvcircle_vals_from_pos(
+        float *val_rad, float *val_dist, const rcti *rect,
+        const float mx, const float my)
 {
 	/* duplication of code... well, simple is better now */
 	const float centx = BLI_rcti_cent_x_fl(rect);

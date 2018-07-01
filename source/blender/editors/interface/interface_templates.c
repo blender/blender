@@ -276,8 +276,9 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 		/* fake button, it holds space for search items */
 		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, NULL, 0, 0, 0, 0, NULL);
 
-		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
-		                     template_ui.prv_rows, template_ui.prv_cols, "");
+		but = uiDefSearchBut(
+		        block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
+		        template_ui.prv_rows, template_ui.prv_cols, "");
 		UI_but_func_search_set(
 		        but, ui_searchbox_create_generic, id_search_cb_p,
 		        &template_ui, id_search_call_cb, idptr.data);
@@ -394,8 +395,9 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_ALONE:
 			if (id) {
-				const bool do_scene_obj = (GS(id->name) == ID_OB) &&
-				                          (template_ui->ptr.type == &RNA_SceneObjects);
+				const bool do_scene_obj = (
+				        (GS(id->name) == ID_OB) &&
+				        (template_ui->ptr.type == &RNA_SceneObjects));
 
 				/* make copy */
 				if (do_scene_obj) {
@@ -497,10 +499,12 @@ static void template_ID(
 	if (flag & UI_ID_PREVIEWS) {
 		template_ui->preview = true;
 
-		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template_ui), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
-		                     TIP_(template_id_browse_tip(type)));
-		ui_def_but_icon(but, id ? ui_id_icon_get(C, id, true) : RNA_struct_ui_icon(type),
-		                UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+		but = uiDefBlockButN(
+		        block, id_search_menu, MEM_dupallocN(template_ui), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
+		        TIP_(template_id_browse_tip(type)));
+		ui_def_but_icon(
+		        but, id ? ui_id_icon_get(C, id, true) : RNA_struct_ui_icon(type),
+		        UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 
 		if ((idfrom && idfrom->lib) || !editable)
 			UI_but_flag_enable(but, UI_BUT_DISABLED);
@@ -508,8 +512,9 @@ static void template_ID(
 		uiLayoutRow(layout, true);
 	}
 	else if (flag & UI_ID_BROWSE) {
-		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template_ui), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
-		                     TIP_(template_id_browse_tip(type)));
+		but = uiDefBlockButN(
+		        block, id_search_menu, MEM_dupallocN(template_ui), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
+		        TIP_(template_id_browse_tip(type)));
 		ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
 		/* default dragging of icon for id browse buttons */
 		UI_but_drag_set_id(but, id);
@@ -526,20 +531,23 @@ static void template_ID(
 
 		//text_idbutton(id, name);
 		name[0] = '\0';
-		but = uiDefButR(block, UI_BTYPE_TEXT, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y,
-		                &idptr, "name", -1, 0, 0, -1, -1, RNA_struct_ui_description(type));
+		but = uiDefButR(
+		        block, UI_BTYPE_TEXT, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y,
+		        &idptr, "name", -1, 0, 0, -1, -1, RNA_struct_ui_description(type));
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_RENAME));
 		if (user_alert) UI_but_flag_enable(but, UI_BUT_REDALERT);
 
 		if (id->lib) {
 			if (id->tag & LIB_TAG_INDIRECT) {
-				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_INDIRECT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
-				                   NULL, 0, 0, 0, 0, TIP_("Indirect library data-block, cannot change"));
+				but = uiDefIconBut(
+				        block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_INDIRECT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+				        NULL, 0, 0, 0, 0, TIP_("Indirect library data-block, cannot change"));
 				UI_but_flag_enable(but, UI_BUT_DISABLED);
 			}
 			else {
-				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
-				                   NULL, 0, 0, 0, 0, TIP_("Direct linked library data-block, click to make local"));
+				but = uiDefIconBut(
+				        block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+				        NULL, 0, 0, 0, 0, TIP_("Direct linked library data-block, click to make local"));
 				if (!id_make_local(CTX_data_main(C), id, true /* test */, false) || (idfrom && idfrom->lib))
 					UI_but_flag_enable(but, UI_BUT_DISABLED);
 			}
@@ -553,9 +561,10 @@ static void template_ID(
 
 			numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", id->us);
 
-			but = uiDefBut(block, UI_BTYPE_BUT, 0, numstr, 0, 0,
-			               numstr_len * 0.2f * UI_UNIT_X + UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
-			               TIP_("Display number of users of this data (click to make a single-user copy)"));
+			but = uiDefBut(
+			        block, UI_BTYPE_BUT, 0, numstr, 0, 0,
+			        numstr_len * 0.2f * UI_UNIT_X + UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+			        TIP_("Display number of users of this data (click to make a single-user copy)"));
 			but->flag |= UI_BUT_UNDO;
 
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ALONE));
@@ -581,41 +590,47 @@ static void template_ID(
 		int w = id ? UI_UNIT_X : (flag & UI_ID_OPEN) ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
 
 		/* i18n markup, does nothing! */
-		BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_DEFAULT,
-		                                 BLT_I18NCONTEXT_ID_SCENE,
-		                                 BLT_I18NCONTEXT_ID_OBJECT,
-		                                 BLT_I18NCONTEXT_ID_MESH,
-		                                 BLT_I18NCONTEXT_ID_CURVE,
-		                                 BLT_I18NCONTEXT_ID_METABALL,
-		                                 BLT_I18NCONTEXT_ID_MATERIAL,
-		                                 BLT_I18NCONTEXT_ID_TEXTURE,
-		                                 BLT_I18NCONTEXT_ID_IMAGE,
-		                                 BLT_I18NCONTEXT_ID_LATTICE,
-		                                 BLT_I18NCONTEXT_ID_LAMP,
-		                                 BLT_I18NCONTEXT_ID_CAMERA,
-		                                 BLT_I18NCONTEXT_ID_WORLD,
-		                                 BLT_I18NCONTEXT_ID_SCREEN,
-		                                 BLT_I18NCONTEXT_ID_TEXT,
+		BLT_I18N_MSGID_MULTI_CTXT(
+		        "New",
+		        BLT_I18NCONTEXT_DEFAULT,
+		        BLT_I18NCONTEXT_ID_SCENE,
+		        BLT_I18NCONTEXT_ID_OBJECT,
+		        BLT_I18NCONTEXT_ID_MESH,
+		        BLT_I18NCONTEXT_ID_CURVE,
+		        BLT_I18NCONTEXT_ID_METABALL,
+		        BLT_I18NCONTEXT_ID_MATERIAL,
+		        BLT_I18NCONTEXT_ID_TEXTURE,
+		        BLT_I18NCONTEXT_ID_IMAGE,
+		        BLT_I18NCONTEXT_ID_LATTICE,
+		        BLT_I18NCONTEXT_ID_LAMP,
+		        BLT_I18NCONTEXT_ID_CAMERA,
+		        BLT_I18NCONTEXT_ID_WORLD,
+		        BLT_I18NCONTEXT_ID_SCREEN,
+		        BLT_I18NCONTEXT_ID_TEXT,
 		);
-		BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_ID_SPEAKER,
-		                                 BLT_I18NCONTEXT_ID_SOUND,
-		                                 BLT_I18NCONTEXT_ID_ARMATURE,
-		                                 BLT_I18NCONTEXT_ID_ACTION,
-		                                 BLT_I18NCONTEXT_ID_NODETREE,
-		                                 BLT_I18NCONTEXT_ID_BRUSH,
-		                                 BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
-		                                 BLT_I18NCONTEXT_ID_GPENCIL,
-		                                 BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
+		BLT_I18N_MSGID_MULTI_CTXT(
+		        "New",
+		        BLT_I18NCONTEXT_ID_SPEAKER,
+		        BLT_I18NCONTEXT_ID_SOUND,
+		        BLT_I18NCONTEXT_ID_ARMATURE,
+		        BLT_I18NCONTEXT_ID_ACTION,
+		        BLT_I18NCONTEXT_ID_NODETREE,
+		        BLT_I18NCONTEXT_ID_BRUSH,
+		        BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
+		        BLT_I18NCONTEXT_ID_GPENCIL,
+		        BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
 		);
 
 		if (newop) {
-			but = uiDefIconTextButO(block, UI_BTYPE_BUT, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
-			                        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, UI_UNIT_Y, NULL);
+			but = uiDefIconTextButO(
+			        block, UI_BTYPE_BUT, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
+			        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, UI_UNIT_Y, NULL);
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
-			but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_ZOOMIN, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
-			                       0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			but = uiDefIconTextBut(
+			        block, UI_BTYPE_BUT, 0, ICON_ZOOMIN, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
+			        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 
@@ -626,8 +641,9 @@ static void template_ID(
 	/* Due to space limit in UI - skip the "open" icon for packed data, and allow to unpack.
 	 * Only for images, sound and fonts */
 	if (id && BKE_pack_check(id)) {
-		but = uiDefIconButO(block, UI_BTYPE_BUT, "FILE_OT_unpack_item", WM_OP_INVOKE_REGION_WIN, ICON_PACKAGE, 0, 0,
-		                    UI_UNIT_X, UI_UNIT_Y, TIP_("Packed File, click to unpack"));
+		but = uiDefIconButO(
+		        block, UI_BTYPE_BUT, "FILE_OT_unpack_item", WM_OP_INVOKE_REGION_WIN, ICON_PACKAGE, 0, 0,
+		        UI_UNIT_X, UI_UNIT_Y, TIP_("Packed File, click to unpack"));
 		UI_but_operator_ptr_get(but);
 
 		RNA_string_set(but->opptr, "id_name", id->name + 2);
@@ -638,13 +654,15 @@ static void template_ID(
 		int w = id ? UI_UNIT_X : (flag & UI_ID_ADD_NEW) ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
 
 		if (openop) {
-			but = uiDefIconTextButO(block, UI_BTYPE_BUT, openop, WM_OP_INVOKE_DEFAULT, ICON_FILESEL, (id) ? "" : IFACE_("Open"),
-			                        0, 0, w, UI_UNIT_Y, NULL);
+			but = uiDefIconTextButO(
+			        block, UI_BTYPE_BUT, openop, WM_OP_INVOKE_DEFAULT, ICON_FILESEL, (id) ? "" : IFACE_("Open"),
+			        0, 0, w, UI_UNIT_Y, NULL);
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 		else {
-			but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_FILESEL, (id) ? "" : IFACE_("Open"), 0, 0, w, UI_UNIT_Y,
-			                       NULL, 0, 0, 0, 0, NULL);
+			but = uiDefIconTextBut(
+			        block, UI_BTYPE_BUT, 0, ICON_FILESEL, (id) ? "" : IFACE_("Open"), 0, 0, w, UI_UNIT_Y,
+			        NULL, 0, 0, 0, 0, NULL);
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 
@@ -665,9 +683,10 @@ static void template_ID(
 		}
 		else {
 			if ((RNA_property_flag(template_ui->prop) & PROP_NEVER_UNLINK) == 0) {
-				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
-				                   TIP_("Unlink data-block "
-				                        "(Shift + Click to set users to zero, data will then not be saved)"));
+				but = uiDefIconBut(
+				        block, UI_BTYPE_BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+				        TIP_("Unlink data-block "
+				             "(Shift + Click to set users to zero, data will then not be saved)"));
 				UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_DELETE));
 
 				if (RNA_property_flag(template_ui->prop) & PROP_NEVER_NULL) {
@@ -743,8 +762,9 @@ void uiTemplateID(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
         const char *openop, const char *unlinkop, int filter)
 {
-	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop,
-	               UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE, 0, 0, filter);
+	ui_template_id(
+	        layout, C, ptr, propname, newop, openop, unlinkop,
+	        UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE, 0, 0, filter);
 }
 
 void uiTemplateIDBrowse(
@@ -758,8 +778,9 @@ void uiTemplateIDPreview(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
         const char *openop, const char *unlinkop, int rows, int cols, int filter)
 {
-	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop,
-	               UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE | UI_ID_PREVIEWS, rows, cols, filter);
+	ui_template_id(
+	        layout, C, ptr, propname, newop, openop, unlinkop,
+	        UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE | UI_ID_PREVIEWS, rows, cols, filter);
 }
 
 /************************ ID Chooser Template ***************************/
@@ -832,8 +853,9 @@ void uiTemplateAnyID(
  * - propname: property identifier for property that path gets stored to
  * - root_ptr: struct that path gets built from
  */
-void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *UNUSED(root_ptr),
-                           const char *text)
+void uiTemplatePathBuilder(
+        uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *UNUSED(root_ptr),
+        const char *text)
 {
 	PropertyRNA *propPath;
 	uiLayout *row;
@@ -938,8 +960,9 @@ static uiLayout *draw_modifier(
 		BLI_snprintf(str, sizeof(str), IFACE_("%s parent deform"), md->name);
 		uiDefBut(block, UI_BTYPE_LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Modifier name"));
 
-		but = uiDefBut(block, UI_BTYPE_BUT, 0, IFACE_("Make Real"), 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0,
-		               TIP_("Convert virtual modifier to a real modifier"));
+		but = uiDefBut(
+		        block, UI_BTYPE_BUT, 0, IFACE_("Make Real"), 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0,
+		        TIP_("Convert virtual modifier to a real modifier"));
 		UI_but_func_set(but, modifiers_convertToReal, ob, md);
 	}
 	else {
@@ -995,9 +1018,10 @@ static uiLayout *draw_modifier(
 			if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 				/* add disabled pre-tessellated button, so users could have
 				 * message for this modifiers */
-				but = uiDefIconButBitI(block, UI_BTYPE_TOGGLE, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0,
-				                       UI_UNIT_X - 2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
-				                       TIP_("This modifier can only be applied on splines' points"));
+				but = uiDefIconButBitI(
+				        block, UI_BTYPE_TOGGLE, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0,
+				        UI_UNIT_X - 2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
+				        TIP_("This modifier can only be applied on splines' points"));
 				UI_but_flag_enable(but, UI_BUT_DISABLED);
 			}
 			else if (mti->type != eModifierTypeType_Constructive) {
@@ -1452,8 +1476,9 @@ void uiTemplatePreview(
 	UI_but_func_drawextra_set(block, ED_preview_draw, pparent, slot);
 	UI_block_func_handle_set(block, do_preview_buttons, NULL);
 
-	uiDefIconButS(block, UI_BTYPE_GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.3f), &ui_preview->height,
-	              UI_UNIT_Y, UI_UNIT_Y * 50.0f, 0.0f, 0.0f, "");
+	uiDefIconButS(
+	        block, UI_BTYPE_GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.3f), &ui_preview->height,
+	        UI_UNIT_Y, UI_UNIT_Y * 50.0f, 0.0f, 0.0f, "");
 
 	/* add buttons */
 	if (pid && show_buttons) {
@@ -1601,17 +1626,20 @@ static void colorband_buttons_layout(
 	UI_block_align_begin(block);
 	row = uiLayoutRow(split, false);
 
-	bt = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_ZOOMIN, "", 0, 0, 2.0f * unit, UI_UNIT_Y, NULL,
-	                      0, 0, 0, 0, TIP_("Add a new color stop to the colorband"));
+	bt = uiDefIconTextBut(
+	        block, UI_BTYPE_BUT, 0, ICON_ZOOMIN, "", 0, 0, 2.0f * unit, UI_UNIT_Y, NULL,
+	        0, 0, 0, 0, TIP_("Add a new color stop to the colorband"));
 
 	UI_but_funcN_set(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
-	bt = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_ZOOMOUT, "", xs +  2.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
-	              NULL, 0, 0, 0, 0, TIP_("Delete the active position"));
+	bt = uiDefIconTextBut(
+	        block, UI_BTYPE_BUT, 0, ICON_ZOOMOUT, "", xs +  2.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
+	        NULL, 0, 0, 0, 0, TIP_("Delete the active position"));
 	UI_but_funcN_set(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
-	bt = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_ARROW_LEFTRIGHT, "", xs + 4.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
-	              NULL, 0, 0, 0, 0, TIP_("Flip the color ramp"));
+	bt = uiDefIconTextBut(
+	        block, UI_BTYPE_BUT, 0, ICON_ARROW_LEFTRIGHT, "", xs + 4.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
+	        NULL, 0, 0, 0, 0, TIP_("Flip the color ramp"));
 	UI_but_funcN_set(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 
 	bt = uiDefIconButO(block, UI_BTYPE_BUT, "UI_OT_eyedropper_colorband", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, xs + 6.0f * unit, ys + UI_UNIT_Y, UI_UNIT_X, UI_UNIT_Y, NULL);
@@ -2012,8 +2040,9 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "",           -4, 16, width + 8, 6 * UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 
-	bt = uiDefButBitI(block, UI_BTYPE_TOGGLE, CUMA_DO_CLIP, 1, IFACE_("Use Clipping"),
-	                  0, 5 * UI_UNIT_Y, width, UI_UNIT_Y, &cumap->flag, 0.0, 0.0, 10, 0, "");
+	bt = uiDefButBitI(
+	        block, UI_BTYPE_TOGGLE, CUMA_DO_CLIP, 1, IFACE_("Use Clipping"),
+	        0, 5 * UI_UNIT_Y, width, UI_UNIT_Y, &cumap->flag, 0.0, 0.0, 10, 0, "");
 	UI_but_func_set(bt, curvemap_buttons_setclip, cumap, NULL);
 
 	UI_block_align_begin(block);
@@ -2272,11 +2301,13 @@ static void curvemap_buttons_layout(
 	if (brush)
 		bt = uiDefIconBlockBut(block, curvemap_brush_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, dx, TIP_("Tools"));
 	else if (neg_slope)
-		bt = uiDefIconBlockBut(block, curvemap_tools_negslope_func, cumap, 0, ICON_MODIFIER,
-		                       0, 0, dx, dx, TIP_("Tools"));
+		bt = uiDefIconBlockBut(
+		        block, curvemap_tools_negslope_func, cumap, 0, ICON_MODIFIER,
+		        0, 0, dx, dx, TIP_("Tools"));
 	else
-		bt = uiDefIconBlockBut(block, curvemap_tools_posslope_func, cumap, 0, ICON_MODIFIER,
-		                       0, 0, dx, dx, TIP_("Tools"));
+		bt = uiDefIconBlockBut(
+		        block, curvemap_tools_posslope_func, cumap, 0, ICON_MODIFIER,
+		        0, 0, dx, dx, TIP_("Tools"));
 
 	UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
@@ -2406,24 +2437,28 @@ void uiTemplateColorPicker(
 
 	switch (U.color_picker_type) {
 		case USER_CP_SQUARE_SV:
-			but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
-			                     -1, 0.0, 0.0, UI_GRAD_SV, 0, "");
+			but = uiDefButR_prop(
+			        block, UI_BTYPE_HSVCUBE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
+			        -1, 0.0, 0.0, UI_GRAD_SV, 0, "");
 			break;
 		case USER_CP_SQUARE_HS:
-			but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
-			                     -1, 0.0, 0.0, UI_GRAD_HS, 0, "");
+			but = uiDefButR_prop(
+			        block, UI_BTYPE_HSVCUBE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
+			        -1, 0.0, 0.0, UI_GRAD_HS, 0, "");
 			break;
 		case USER_CP_SQUARE_HV:
-			but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
-			                     -1, 0.0, 0.0, UI_GRAD_HV, 0, "");
+			but = uiDefButR_prop(
+			        block, UI_BTYPE_HSVCUBE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
+			        -1, 0.0, 0.0, UI_GRAD_HV, 0, "");
 			break;
 
 		/* user default */
 		case USER_CP_CIRCLE_HSV:
 		case USER_CP_CIRCLE_HSL:
 		default:
-			but = uiDefButR_prop(block, UI_BTYPE_HSVCIRCLE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
-			                     -1, 0.0, 0.0, 0, 0, "");
+			but = uiDefButR_prop(
+			        block, UI_BTYPE_HSVCIRCLE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
+			        -1, 0.0, 0.0, 0, 0, "");
 			break;
 
 	}
@@ -2449,31 +2484,36 @@ void uiTemplateColorPicker(
 		switch (U.color_picker_type) {
 			case USER_CP_CIRCLE_HSL:
 				uiItemS(row);
-				but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
-				                     -1, softmin, softmax, UI_GRAD_L_ALT, 0, "");
+				but = uiDefButR_prop(
+				        block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
+				        -1, softmin, softmax, UI_GRAD_L_ALT, 0, "");
 				break;
 			case USER_CP_SQUARE_SV:
 				uiItemS(col);
-				but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
-				                     -1, softmin, softmax, UI_GRAD_SV + 3, 0, "");
+				but = uiDefButR_prop(
+				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
+				        -1, softmin, softmax, UI_GRAD_SV + 3, 0, "");
 				break;
 			case USER_CP_SQUARE_HS:
 				uiItemS(col);
-				but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
-				                     -1, softmin, softmax, UI_GRAD_HS + 3, 0, "");
+				but = uiDefButR_prop(
+				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
+				        -1, softmin, softmax, UI_GRAD_HS + 3, 0, "");
 				break;
 			case USER_CP_SQUARE_HV:
 				uiItemS(col);
-				but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
-				                     -1, softmin, softmax, UI_GRAD_HV + 3, 0, "");
+				but = uiDefButR_prop(
+				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
+				        -1, softmin, softmax, UI_GRAD_HV + 3, 0, "");
 				break;
 
 			/* user default */
 			case USER_CP_CIRCLE_HSV:
 			default:
 				uiItemS(row);
-				but = uiDefButR_prop(block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
-				                     -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
+				but = uiDefButR_prop(
+				        block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
+				        -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
 				break;
 		}
 
@@ -2524,8 +2564,9 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
 		}
 
 		RNA_pointer_create(&palette->id, &RNA_PaletteColor, color, &color_ptr);
-		uiDefButR(block, UI_BTYPE_COLOR, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, &color_ptr, "color", -1, 0.0, 1.0,
-		          UI_PALETTE_COLOR, col_id, "");
+		uiDefButR(
+		        block, UI_BTYPE_COLOR, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, &color_ptr, "color", -1, 0.0, 1.0,
+		        UI_PALETTE_COLOR, col_id, "");
 		row_cols++;
 		col_id++;
 	}
@@ -2689,8 +2730,9 @@ void uiTemplateGameStates(
 				else if (used_prop && RNA_property_boolean_get_index(used_ptr, used_prop, state))
 					icon = ICON_LAYER_USED;
 
-				but = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, icon, 0, 0, UI_UNIT_X / 2, UI_UNIT_Y / 2, ptr, prop,
-				                         state, 0, 0, -1, -1, sca_state_name_get(ob, state));
+				but = uiDefIconButR_prop(
+				        block, UI_BTYPE_ICON_TOGGLE, 0, icon, 0, 0, UI_UNIT_X / 2, UI_UNIT_Y / 2, ptr, prop,
+				        state, 0, 0, -1, -1, sca_state_name_get(ob, state));
 				UI_but_func_set(but, handle_layer_buttons, but, SET_INT_IN_POINTER(state));
 				but->type = UI_BTYPE_TOGGLE;
 			}
@@ -2757,8 +2799,9 @@ static int cmpstringp(const void *p1, const void *p2)
 	return BLI_strcasecmp(((StringCmp *) p1)->name, ((StringCmp *) p2)->name);
 }
 
-static void uilist_filter_items_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct PointerRNA *dataptr,
-                                        const char *propname)
+static void uilist_filter_items_default(
+        struct uiList *ui_list, struct bContext *UNUSED(C), struct PointerRNA *dataptr,
+        const char *propname)
 {
 	uiListDyn *dyn_data = ui_list->dyn_data;
 	PropertyRNA *prop = RNA_struct_find_property(dataptr, propname);
@@ -3200,9 +3243,10 @@ void uiTemplateList(
 					/* list item behind label & other buttons */
 					sub = uiLayoutRow(overlap, false);
 
-					but = uiDefButR_prop(subblock, UI_BTYPE_LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0,
-					                     TIP_("Double click to rename"));
+					but = uiDefButR_prop(
+					        subblock, UI_BTYPE_LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
+					        active_dataptr, activeprop, 0, 0, org_i, 0, 0,
+					        TIP_("Double click to rename"));
 					if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr, item_dyntip_propname))) {
 						UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data);
 					}
@@ -3258,8 +3302,9 @@ void uiTemplateList(
 
 			/* next/prev button */
 			BLI_snprintf(numstr, sizeof(numstr), "%d :", dyn_data->items_shown);
-			but = uiDefIconTextButR_prop(block, UI_BTYPE_NUM, 0, 0, numstr, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
-			                             active_dataptr, activeprop, 0, 0, 0, 0, 0, "");
+			but = uiDefIconTextButR_prop(
+			        block, UI_BTYPE_NUM, 0, 0, numstr, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
+			        active_dataptr, activeprop, 0, 0, 0, 0, 0, "");
 			if (dyn_data->items_shown == 0)
 				UI_but_flag_enable(but, UI_BUT_DISABLED);
 			break;

@@ -38,16 +38,18 @@
 
 bool ui_but_is_editable(const uiBut *but)
 {
-	return !ELEM(but->type,
-	             UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE,
-	             UI_BTYPE_ROUNDBOX, UI_BTYPE_LISTBOX, UI_BTYPE_PROGRESS_BAR);
+	return !ELEM(
+	        but->type,
+	        UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE,
+	        UI_BTYPE_ROUNDBOX, UI_BTYPE_LISTBOX, UI_BTYPE_PROGRESS_BAR);
 }
 
 bool ui_but_is_editable_as_text(const uiBut *but)
 {
-	return  ELEM(but->type,
-	             UI_BTYPE_TEXT, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER,
-	             UI_BTYPE_SEARCH_MENU);
+	return ELEM(
+	        but->type,
+	        UI_BTYPE_TEXT, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER,
+	        UI_BTYPE_SEARCH_MENU);
 
 }
 

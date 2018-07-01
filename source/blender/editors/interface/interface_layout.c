@@ -700,8 +700,9 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 		but = uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w - UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls UI_context_active_but_prop_get_filebrowser */
-		uiDefIconButO(block, UI_BTYPE_BUT, subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" : "BUTTONS_OT_file_browse",
-		              WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
+		uiDefIconButO(
+		        block, UI_BTYPE_BUT, subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" : "BUTTONS_OT_file_browse",
+		        WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
 	}
 	else if (flag & UI_ITEM_R_EVENT) {
 		but = uiDefButR_prop(block, UI_BTYPE_KEY_EVENT, 0, name, x, y, w, h, ptr, prop, index, 0, 0, -1, -1, NULL);
@@ -1085,8 +1086,9 @@ void uiItemsFullEnumO_items(
 				}
 				else {
 					/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
-					but = uiDefBut(block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
-					               0.0, 0.0, 0, 0, "");
+					but = uiDefBut(
+					        block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
+					        0.0, 0.0, 0, 0, "");
 				}
 				ui_but_tip_from_enum_item(but, item);
 			}
@@ -2086,8 +2088,9 @@ void uiItemMenuEnumO_ptr(
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext = layout->root->opcontext;
 
-	but = ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl,
-	                   RNA_struct_ui_description(ot->srna), true);
+	but = ui_item_menu(
+	        layout, name, icon, menu_item_enum_opname_menu, NULL, lvl,
+	        RNA_struct_ui_description(ot->srna), true);
 
 	/* add hotkey here, lower UI code can't detect it */
 	if ((layout->root->block->flag & UI_BLOCK_LOOP) &&

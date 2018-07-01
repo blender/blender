@@ -1638,9 +1638,10 @@ View2DScrollers *UI_view2d_scrollers_calc(
 		scrollers->yclamp = yclamp;
 		scrollers->yunits = yunits;
 
-		scrollers->grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d,
-		                                      xunits, xclamp, yunits, yclamp,
-		                                      BLI_rcti_size_x(&hor), BLI_rcti_size_y(&vert));
+		scrollers->grid = UI_view2d_grid_calc(
+		        CTX_data_scene(C), v2d,
+		        xunits, xclamp, yunits, yclamp,
+		        BLI_rcti_size_x(&hor), BLI_rcti_size_y(&vert));
 	}
 
 	/* return scrollers */
@@ -2008,12 +2009,14 @@ void UI_view2d_listview_visible_cells(
 	/* using 'cur' rect coordinates, call the cell-getting function to get the cells for this */
 	if (v2d) {
 		/* min */
-		UI_view2d_listview_view_to_cell(v2d, columnwidth, rowheight, startx, starty,
-		                                v2d->cur.xmin, v2d->cur.ymin, column_min, row_min);
+		UI_view2d_listview_view_to_cell(
+		        v2d, columnwidth, rowheight, startx, starty,
+		        v2d->cur.xmin, v2d->cur.ymin, column_min, row_min);
 
 		/* max*/
-		UI_view2d_listview_view_to_cell(v2d, columnwidth, rowheight, startx, starty,
-		                                v2d->cur.xmax, v2d->cur.ymax, column_max, row_max);
+		UI_view2d_listview_view_to_cell(
+		        v2d, columnwidth, rowheight, startx, starty,
+		        v2d->cur.xmax, v2d->cur.ymax, column_max, row_max);
 	}
 }
 
@@ -2423,13 +2426,15 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 		}
 
 		if (v2s->rect.xmin >= v2s->rect.xmax)
-			BLF_draw_default((float)(v2s->mval[0] + xofs), (float)(v2s->mval[1] + yofs), 0.0,
-			                  v2s->str, BLF_DRAW_STR_DUMMY_MAX);
+			BLF_draw_default(
+			        (float)(v2s->mval[0] + xofs), (float)(v2s->mval[1] + yofs), 0.0,
+			        v2s->str, BLF_DRAW_STR_DUMMY_MAX);
 		else {
 			BLF_clipping_default(v2s->rect.xmin - 4, v2s->rect.ymin - 4, v2s->rect.xmax + 4, v2s->rect.ymax + 4);
 			BLF_enable_default(BLF_CLIPPING);
-			BLF_draw_default(v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f,
-			                 v2s->str, BLF_DRAW_STR_DUMMY_MAX);
+			BLF_draw_default(
+			        v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f,
+			        v2s->str, BLF_DRAW_STR_DUMMY_MAX);
 			BLF_disable_default(BLF_CLIPPING);
 		}
 	}

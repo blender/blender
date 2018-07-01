@@ -806,9 +806,10 @@ static int editsource_exec(bContext *C, wmOperator *op)
 
 		if (but_store) {
 			if (but_store->py_dbg_ln != -1) {
-				ret = editsource_text_edit(C, op,
-				                           but_store->py_dbg_fn,
-				                           but_store->py_dbg_ln);
+				ret = editsource_text_edit(
+				        C, op,
+				        but_store->py_dbg_fn,
+				        but_store->py_dbg_ln);
 			}
 			else {
 				BKE_report(op->reports, RPT_ERROR, "Active button is not from a script, cannot edit source");
@@ -916,14 +917,18 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
 
 		if (!BLI_is_dir(root)) {
-			BKE_report(op->reports, RPT_ERROR, "Please set your User Preferences' 'Translation Branches "
-			                                   "Directory' path to a valid directory");
+			BKE_report(
+			        op->reports, RPT_ERROR,
+			        "Please set your User Preferences' 'Translation Branches "
+			        "Directory' path to a valid directory");
 			return OPERATOR_CANCELLED;
 		}
 		ot = WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0);
 		if (ot == NULL) {
-			BKE_reportf(op->reports, RPT_ERROR, "Could not find operator '%s'! Please enable ui_translate add-on "
-			                                    "in the User Preferences", EDTSRC_I18N_OP_NAME);
+			BKE_reportf(
+			        op->reports, RPT_ERROR,
+			        "Could not find operator '%s'! Please enable ui_translate add-on "
+			        "in the User Preferences", EDTSRC_I18N_OP_NAME);
 			return OPERATOR_CANCELLED;
 		}
 		/* Try to find a valid po file for current language... */
@@ -934,8 +939,9 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 
-		UI_but_string_info_get(C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
-		                &rna_struct, &rna_prop, &rna_enum, &rna_ctxt, NULL);
+		UI_but_string_info_get(
+		        C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
+		        &rna_struct, &rna_prop, &rna_enum, &rna_ctxt, NULL);
 
 		WM_operator_properties_create_ptr(&ptr, ot);
 		RNA_string_set(&ptr, "lang", uilng);

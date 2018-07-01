@@ -81,8 +81,10 @@ int UI_draw_roundbox_corner_get(void)
 
 void UI_draw_roundbox_gl_mode(int mode, float minx, float miny, float maxx, float maxy, float rad)
 {
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+	};
 	int a;
 
 	/* mult */
@@ -159,8 +161,9 @@ void UI_draw_roundbox_shade_x(
         int mode, float minx, float miny, float maxx, float maxy,
         float rad, float shadetop, float shadedown)
 {
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	const float div = maxy - miny;
 	const float idiv = 1.0f / div;
 	float coltop[3], coldown[3], color[4];
@@ -267,8 +270,9 @@ void UI_draw_roundbox_shade_y(
         int mode, float minx, float miny, float maxx, float maxy,
         float rad, float shadeLeft, float shadeRight)
 {
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	const float div = maxx - minx;
 	const float idiv = 1.0f / div;
 	float colLeft[3], colRight[3], color[4];
@@ -1526,10 +1530,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		if (scopes->track_preview)
 			IMB_freeImBuf(scopes->track_preview);
 
-		ImBuf *tmpibuf = BKE_tracking_sample_pattern(scopes->frame_width, scopes->frame_height,
-		                                             scopes->track_search, scopes->track,
-		                                             &scopes->undist_marker, true, scopes->use_track_mask,
-		                                             width, height, scopes->track_pos);
+		ImBuf *tmpibuf = BKE_tracking_sample_pattern(
+		        scopes->frame_width, scopes->frame_height,
+		        scopes->track_search, scopes->track,
+		        &scopes->undist_marker, true, scopes->use_track_mask,
+		        width, height, scopes->track_pos);
 		if (tmpibuf) {
 			if (tmpibuf->rect_float)
 				IMB_rect_from_float(tmpibuf);
@@ -1556,8 +1561,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 				UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f);
 			}
 
-			glaDrawPixelsSafe(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y,
-			                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
+			glaDrawPixelsSafe(
+			        rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y,
+			        drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
 
 			/* draw cross for pixel position */
 			glTranslatef(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1], 0.f);
