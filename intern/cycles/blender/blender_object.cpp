@@ -414,6 +414,7 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 				mesh->motion_steps = motion_steps;
 			}
 
+			object->motion.clear();
 			object->motion.resize(motion_steps, transform_empty());
 
 			if(motion_steps) {

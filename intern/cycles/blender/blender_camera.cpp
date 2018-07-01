@@ -457,6 +457,7 @@ static void blender_camera_sync(Camera *cam,
 	cam->matrix = blender_camera_matrix(bcam->matrix,
 	                                    bcam->type,
 	                                    bcam->panorama_type);
+	cam->motion.clear();
 	cam->motion.resize(bcam->motion_steps, cam->matrix);
 	cam->use_perspective_motion = false;
 	cam->shuttertime = bcam->shuttertime;
