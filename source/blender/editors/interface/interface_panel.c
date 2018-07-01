@@ -558,8 +558,9 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	GPU_blend(false);
 }
 
-static void immRectf_tris_color_ex(unsigned int pos, float x1, float y1, float x2, float y2,
-                              unsigned int col, const float color[3])
+static void immRectf_tris_color_ex(
+        unsigned int pos, float x1, float y1, float x2, float y2,
+        unsigned int col, const float color[3])
 {
 	immAttrib4fv(col, color);
 	immVertex2f(pos, x1, y1);
@@ -604,10 +605,12 @@ static void ui_draw_panel_dragwidget(unsigned int pos, unsigned int col, const r
 			const int x_co = (x_min + x_ofs) + (i_x * (box_size + box_margin));
 			const int y_co = (y_min + y_ofs) + (i_y * (box_size + box_margin));
 
-			immRectf_tris_color_ex(pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom,
-			                       col, col_dark);
-			immRectf_tris_color_ex(pos, x_co - box_size, y_co, x_co, y_co + box_size,
-			                       col, col_high);
+			immRectf_tris_color_ex(
+			        pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom,
+			        col, col_dark);
+			immRectf_tris_color_ex(
+			        pos, x_co - box_size, y_co, x_co, y_co + box_size,
+			        col, col_high);
 		}
 	}
 	immEnd();
@@ -751,9 +754,10 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 #endif
 	{
 		GPU_blend(true);
-		UI_icon_draw_aspect(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
-		                    (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-		                    (block->aspect / UI_DPI_FAC), 1.0f);
+		UI_icon_draw_aspect(
+		        headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
+		        (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
+		        (block->aspect / UI_DPI_FAC), 1.0f);
 		GPU_blend(false);
 	}
 
@@ -2004,19 +2008,22 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		if (is_active)
 #endif
 		{
-			ui_panel_category_draw_tab(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-			                           tab_curve_radius - px, roundboxtype, true, true, NULL,
-			                           is_active ? theme_col_tab_active : theme_col_tab_inactive);
+			ui_panel_category_draw_tab(
+			        true, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			        tab_curve_radius - px, roundboxtype, true, true, NULL,
+			        is_active ? theme_col_tab_active : theme_col_tab_inactive);
 
 			/* tab outline */
-			ui_panel_category_draw_tab(false, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
-			                           tab_curve_radius, roundboxtype, true, true, NULL, theme_col_tab_outline);
+			ui_panel_category_draw_tab(
+			        false, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
+			        tab_curve_radius, roundboxtype, true, true, NULL, theme_col_tab_outline);
 
 			/* tab highlight (3d look) */
-			ui_panel_category_draw_tab(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-			                           tab_curve_radius, roundboxtype, true, false,
-			                           is_active ? theme_col_back : theme_col_tab_inactive,
-			                           is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
+			ui_panel_category_draw_tab(
+			        false, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			        tab_curve_radius, roundboxtype, true, false,
+			        is_active ? theme_col_back : theme_col_tab_inactive,
+			        is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
 		}
 
 		/* tab blackline */
@@ -2034,8 +2041,9 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		}
 
 		if (do_scaletabs) {
-			category_draw_len = BLF_width_to_strlen(fontid, category_id_draw, category_draw_len,
-			                                        category_width, NULL);
+			category_draw_len = BLF_width_to_strlen(
+			        fontid, category_id_draw, category_draw_len,
+			        category_width, NULL);
 		}
 
 		BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);

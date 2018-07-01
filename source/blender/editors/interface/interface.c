@@ -935,10 +935,11 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
 		else {
 			butstr_orig = BLI_strdup(but->str);
 		}
-		BLI_snprintf(but->strdata,
-		             sizeof(but->strdata),
-		             "%s" UI_SEP_CHAR_S "%s",
-		             butstr_orig, shortcut_str);
+		BLI_snprintf(
+		        but->strdata,
+		        sizeof(but->strdata),
+		        "%s" UI_SEP_CHAR_S "%s",
+		        butstr_orig, shortcut_str);
 		MEM_freeN(butstr_orig);
 		but->str = but->strdata;
 		but->flag |= UI_BUT_HAS_SEP_CHAR;
@@ -2121,8 +2122,9 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 		precision = float_precision;
 	}
 
-	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision,
-	               unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type), do_split, pad);
+	bUnit_AsString(
+	        str, len_max, ui_get_but_scale_unit(but, value), precision,
+	        unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type), do_split, pad);
 }
 
 static float ui_get_but_step_unit(uiBut *but, float step_default)
@@ -2343,8 +2345,9 @@ static bool ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char 
 
 	/* ugly, use the draw string to get the value,
 	 * this could cause problems if it includes some text which resolves to a unit */
-	bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr,
-	                    ui_get_but_scale_unit(but, 1.0), but->block->unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
+	bUnit_ReplaceString(
+	        str_unit_convert, sizeof(str_unit_convert), but->drawstr,
+	        ui_get_but_scale_unit(but, 1.0), but->block->unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
 
 	return BPY_execute_string_as_number(C, str_unit_convert, true, r_value);
 }
@@ -3429,12 +3432,14 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 		}
 		else {
 			if (item->icon) {
-				uiDefIconTextButI(block, UI_BTYPE_BUT_MENU, B_NOP, item->icon, item->name, 0, 0,
-				                  UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, item->value, 0.0, 0, -1, item->description);
+				uiDefIconTextButI(
+				        block, UI_BTYPE_BUT_MENU, B_NOP, item->icon, item->name, 0, 0,
+				        UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, item->value, 0.0, 0, -1, item->description);
 			}
 			else {
-				uiDefButI(block, UI_BTYPE_BUT_MENU, B_NOP, item->name, 0, 0,
-				          UI_UNIT_X * 5, UI_UNIT_X, &handle->retvalue, item->value, 0.0, 0, -1, item->description);
+				uiDefButI(
+				        block, UI_BTYPE_BUT_MENU, B_NOP, item->name, 0, 0,
+				        UI_UNIT_X * 5, UI_UNIT_X, &handle->retvalue, item->value, 0.0, 0, -1, item->description);
 			}
 		}
 	}

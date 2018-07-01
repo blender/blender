@@ -1325,8 +1325,10 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 
 		if (but) {
 			if (but->flag & UI_BUT_DRAG_LOCK) {
-				const float but_cent_new[2] = {BLI_rctf_cent_x(&but->rect),
-				                               BLI_rctf_cent_y(&but->rect)};
+				const float but_cent_new[2] = {
+					BLI_rctf_cent_x(&but->rect),
+					BLI_rctf_cent_y(&but->rect),
+				};
 
 				/* check if this is a different button, chances are high the button wont move about :) */
 				if (len_manhattan_v2v2(drag_info->but_cent_start, but_cent_new) > 1.0f) {
@@ -1398,10 +1400,11 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 			ui_apply_but_undo(but);
 		}
 
-		WM_event_remove_ui_handler(&win->modalhandlers,
-		                           ui_handler_region_drag_toggle,
-		                           ui_handler_region_drag_toggle_remove,
-		                           drag_info, false);
+		WM_event_remove_ui_handler(
+		        &win->modalhandlers,
+		        ui_handler_region_drag_toggle,
+		        ui_handler_region_drag_toggle_remove,
+		        drag_info, false);
 		ui_handler_region_drag_toggle_remove(C, drag_info);
 
 		WM_event_add_mousemove(C);
@@ -3159,13 +3162,15 @@ static void ui_do_but_textedit(
 				}
 				break;
 			case RIGHTARROWKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
-				                 event->shift != 0, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				ui_textedit_move(
+				        but, data, STRCUR_DIR_NEXT,
+				        event->shift != 0, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case LEFTARROWKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_PREV,
-				                 event->shift != 0, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				ui_textedit_move(
+				        but, data, STRCUR_DIR_PREV,
+				        event->shift != 0, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case WHEELDOWNMOUSE:
@@ -3182,8 +3187,9 @@ static void ui_do_but_textedit(
 				}
 				ATTR_FALLTHROUGH;
 			case ENDKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
-				                 event->shift != 0, STRCUR_JUMP_ALL);
+				ui_textedit_move(
+				        but, data, STRCUR_DIR_NEXT,
+				        event->shift != 0, STRCUR_JUMP_ALL);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case WHEELUPMOUSE:
@@ -3200,8 +3206,9 @@ static void ui_do_but_textedit(
 				}
 				ATTR_FALLTHROUGH;
 			case HOMEKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_PREV,
-				                 event->shift != 0, STRCUR_JUMP_ALL);
+				ui_textedit_move(
+				        but, data, STRCUR_DIR_PREV,
+				        event->shift != 0, STRCUR_JUMP_ALL);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case PADENTER:
@@ -3210,14 +3217,16 @@ static void ui_do_but_textedit(
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case DELKEY:
-				changed = ui_textedit_delete(but, data, 1,
-				                             event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				changed = ui_textedit_delete(
+				        but, data, 1,
+				        event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 
 			case BACKSPACEKEY:
-				changed = ui_textedit_delete(but, data, 0,
-				                             event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				changed = ui_textedit_delete(
+				        but, data, 0,
+				        event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 
@@ -3232,10 +3241,12 @@ static void ui_do_but_textedit(
 				if (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey))
 #endif
 				{
-					ui_textedit_move(but, data, STRCUR_DIR_PREV,
-					                 false, STRCUR_JUMP_ALL);
-					ui_textedit_move(but, data, STRCUR_DIR_NEXT,
-					                 true, STRCUR_JUMP_ALL);
+					ui_textedit_move(
+					        but, data, STRCUR_DIR_PREV,
+					        false, STRCUR_JUMP_ALL);
+					ui_textedit_move(
+					        but, data, STRCUR_DIR_NEXT,
+					        true, STRCUR_JUMP_ALL);
 					retval = WM_UI_HANDLER_BREAK;
 				}
 				break;
@@ -9675,8 +9686,9 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
 
 #ifdef USE_DRAG_TOGGLE
 		{
-			WM_event_free_ui_handler_all(C, &win->modalhandlers,
-			                             ui_handler_region_drag_toggle, ui_handler_region_drag_toggle_remove);
+			WM_event_free_ui_handler_all(
+			        C, &win->modalhandlers,
+			        ui_handler_region_drag_toggle, ui_handler_region_drag_toggle_remove);
 		}
 #endif
 

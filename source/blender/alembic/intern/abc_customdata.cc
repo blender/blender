@@ -26,7 +26,14 @@
 
 #include <Alembic/AbcGeom/All.h>
 #include <algorithm>
+
+#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #include <unordered_map>
+typedef std::unordered_map<uint64_t, int> uv_index_map;
+#else
+#include <map>
+typedef std::map<uint64_t, int> uv_index_map;
+#endif
 
 extern "C" {
 #include "DNA_customdata_types.h"
@@ -106,7 +113,7 @@ static void get_uvs(const CDStreamConfig &config,
 		}
 	}
 	else {
-		std::unordered_map<uint64_t, int> idx_map;
+		uv_index_map idx_map;
 		int idx_count = 0;
 
 		for (int i = 0; i < num_poly; ++i) {
@@ -117,7 +124,7 @@ static void get_uvs(const CDStreamConfig &config,
 				loopuvpoly--;
 				Imath::V2f uv(loopuvpoly->uv[0], loopuvpoly->uv[1]);
 				uint64_t k = uv_to_hash_key(uv);
-				std::unordered_map<uint64_t, int>::iterator it = idx_map.find(k);
+				uv_index_map::iterator it = idx_map.find(k);
 				if (it == idx_map.end()) {
 					idx_map[k] = idx_count;
 					uvs.push_back(uv);

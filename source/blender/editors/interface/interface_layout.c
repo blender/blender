@@ -594,8 +594,9 @@ static void ui_item_array(
 					icon = boolarr[a] ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
 				}
 
-				width_item = (compact && type == PROP_BOOLEAN) ?
-				                 min_ii(w, ui_text_icon_width(layout, str_buf, icon, false)) : w;
+				width_item = (
+				        (compact && type == PROP_BOOLEAN) ?
+				        min_ii(w, ui_text_icon_width(layout, str_buf, icon, false)) : w);
 
 				but = uiDefAutoButR(block, ptr, prop, a, str_buf, icon, 0, 0, width_item, UI_UNIT_Y);
 				if (slider && but->type == UI_BTYPE_NUM)
@@ -776,8 +777,9 @@ static uiBut *ui_item_with_label(
 		but = uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, prop_but_width - UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls UI_context_active_but_prop_get_filebrowser */
-		uiDefIconButO(block, UI_BTYPE_BUT, subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" : "BUTTONS_OT_file_browse",
-		              WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
+		uiDefIconButO(
+		        block, UI_BTYPE_BUT, subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" : "BUTTONS_OT_file_browse",
+		        WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
 	}
 	else if (flag & UI_ITEM_R_EVENT) {
 		but = uiDefButR_prop(block, UI_BTYPE_KEY_EVENT, 0, name, x, y, prop_but_width, h, ptr, prop, index, 0, 0, -1, -1, NULL);
@@ -796,8 +798,9 @@ static uiBut *ui_item_with_label(
 	}
 	else {
 		const char *str = (type == PROP_ENUM && !(flag & UI_ITEM_R_ICON_ONLY)) ? NULL : "";
-		but = uiDefAutoButR(block, ptr, prop, index, str, icon,
-		                    x, y, prop_but_width, h);
+		but = uiDefAutoButR(
+		        block, ptr, prop, index, str, icon,
+		        x, y, prop_but_width, h);
 	}
 
 	UI_block_layout_set_current(block, layout);
@@ -1185,8 +1188,9 @@ void uiItemsFullEnumO_items(
 				}
 				else {
 					/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
-					but = uiDefBut(block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
-					               0.0, 0.0, 0, 0, "");
+					but = uiDefBut(
+					        block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
+					        0.0, 0.0, 0, 0, "");
 				}
 				ui_but_tip_from_enum_item(but, item);
 			}
@@ -1964,8 +1968,8 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		}
 
 		UI_but_func_search_set(
-		            but, ui_searchbox_create_generic, ui_rna_collection_search_cb,
-		            coll_search, NULL, NULL);
+		        but, ui_searchbox_create_generic, ui_rna_collection_search_cb,
+		        coll_search, NULL, NULL);
 		but->free_search_arg = true;
 	}
 	else if (but->type == UI_BTYPE_SEARCH_MENU) {
@@ -2386,8 +2390,9 @@ void uiItemMenuEnumO_ptr(
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext = layout->root->opcontext;
 
-	but = ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl,
-	                   RNA_struct_ui_description(ot->srna), true);
+	but = ui_item_menu(
+	        layout, name, icon, menu_item_enum_opname_menu, NULL, lvl,
+	        RNA_struct_ui_description(ot->srna), true);
 
 	/* add hotkey here, lower UI code can't detect it */
 	if ((layout->root->block->flag & UI_BLOCK_LOOP) &&

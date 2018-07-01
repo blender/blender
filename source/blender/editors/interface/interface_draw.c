@@ -152,8 +152,10 @@ void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float 
 void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4])
 {
 #if 0
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+	};
 	int a;
 
 	Gwn_VertFormat *format = immVertexFormat();
@@ -267,8 +269,10 @@ void UI_draw_roundbox_shade_x(
         float rad, float shadetop, float shadedown, const float col[4])
 {
 #if 0
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+	};
 	const float div = maxy - miny;
 	const float idiv = 1.0f / div;
 	float coltop[3], coldown[3];
@@ -412,8 +416,10 @@ void UI_draw_roundbox_shade_y(
         bool filled, float minx, float miny, float maxx, float maxy,
         float rad, float shadeleft, float shaderight, const float col[4])
 {
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+	};
 	const float div = maxx - minx;
 	const float idiv = 1.0f / div;
 	float colLeft[3], colRight[3];
@@ -551,10 +557,10 @@ void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highligh
 	const int miny = rect->ymin + U.pixelsize, maxy = rect->ymax - U.pixelsize;
 	int a;
 	float vec[4][2] = {
-	    {0.195, 0.02},
-	    {0.55, 0.169},
-	    {0.831, 0.45},
-	    {0.98, 0.805},
+		{0.195, 0.02},
+		{0.55, 0.169},
+		{0.831, 0.45},
+		{0.98, 0.805},
 	};
 
 
@@ -659,8 +665,9 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	}
 
 	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-	immDrawPixelsTex(&state, (float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect,
-	                 facx, facy, NULL);
+	immDrawPixelsTex(
+	        &state, (float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect,
+	        facx, facy, NULL);
 
 	GPU_blend(false);
 
@@ -804,10 +811,11 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUS
 	/* need scissor test, histogram can draw outside of boundary */
 	int scissor[4];
 	GPU_scissor_geti(scissor);
-	GPU_scissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -927,10 +935,11 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 
 	/* need scissor test, waveform can draw outside of boundary */
 	GPU_scissor_geti(scissor);
-	GPU_scissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	/* draw scale numbers first before binding any shader */
 	for (int i = 0; i < 6; i++) {
@@ -1199,10 +1208,11 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UN
 	/* need scissor test, hvectorscope can draw outside of boundary */
 	int scissor[4];
 	GPU_scissor_geti(scissor);
-	GPU_scissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -1584,8 +1594,9 @@ static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoo
 	float fy = rect->ymin + zoomy * (-offsy);
 	if (fy > rect->ymin) fy -= dy * (floorf(fy - rect->ymin));
 
-	float line_count = floorf((rect->xmax - fx) / dx) + 1.0f +
-	                   floorf((rect->ymax - fy) / dy) + 1.0f;
+	float line_count = (
+	        floorf((rect->xmax - fx) / dx) + 1.0f +
+	        floorf((rect->ymax - fy) / dy) + 1.0f);
 
 	immBegin(GWN_PRIM_LINES, (int)line_count * 2);
 	while (fx < rect->xmax) {
@@ -1604,9 +1615,10 @@ static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoo
 
 static void gl_shaded_color(unsigned char *col, int shade)
 {
-	immUniformColor3ub(col[0] - shade > 0 ? col[0] - shade : 0,
-	                   col[1] - shade > 0 ? col[1] - shade : 0,
-	                   col[2] - shade > 0 ? col[2] - shade : 0);
+	immUniformColor3ub(
+	        col[0] - shade > 0 ? col[0] - shade : 0,
+	        col[1] - shade > 0 ? col[1] - shade : 0,
+	        col[2] - shade > 0 ? col[2] - shade : 0);
 }
 
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti *rect)
@@ -1633,10 +1645,11 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	};
 	rcti scissor_region = {0, ar->winx, 0, ar->winy};
 	BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
-	GPU_scissor(scissor_new.xmin,
-	          scissor_new.ymin,
-	          BLI_rcti_size_x(&scissor_new),
-	          BLI_rcti_size_y(&scissor_new));
+	GPU_scissor(
+	        scissor_new.xmin,
+	        scissor_new.ymin,
+	        BLI_rcti_size_x(&scissor_new),
+	        BLI_rcti_size_y(&scissor_new));
 
 	/* calculate offset and zoom */
 	float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&cumap->curr);
@@ -1679,10 +1692,11 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 			gl_shaded_color((unsigned char *)wcol->inner, -20);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 			immUniformColor3ubv((unsigned char *)wcol->inner);
-			immRectf(pos, rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
-			              rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
-			              rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
-			              rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
+			immRectf(pos,
+			         rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
+			         rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
+			         rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
+			         rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
 		}
 		else {
 			immUniformColor3ubv((unsigned char *)wcol->inner);
@@ -1848,10 +1862,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 	/* need scissor test, preview image can draw outside of boundary */
 	int scissor[4];
 	GPU_scissor_geti(scissor);
-	GPU_scissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	if (scopes->track_disabled) {
 		float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};
@@ -1867,10 +1882,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 		if (scopes->track_preview)
 			IMB_freeImBuf(scopes->track_preview);
 
-		ImBuf *tmpibuf = BKE_tracking_sample_pattern(scopes->frame_width, scopes->frame_height,
-		                                             scopes->track_search, scopes->track,
-		                                             &scopes->undist_marker, true, scopes->use_track_mask,
-		                                             width, height, scopes->track_pos);
+		ImBuf *tmpibuf = BKE_tracking_sample_pattern(
+		        scopes->frame_width, scopes->frame_height,
+		        scopes->track_search, scopes->track,
+		        &scopes->undist_marker, true, scopes->use_track_mask,
+		        width, height, scopes->track_pos);
 		if (tmpibuf) {
 			if (tmpibuf->rect_float)
 				IMB_rect_from_float(tmpibuf);
@@ -1903,10 +1919,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 
 			/* draw cross for pixel position */
 			gpuTranslate2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);
-			GPU_scissor(rect.xmin,
-			          rect.ymin,
-			          BLI_rctf_size_x(&rect),
-			          BLI_rctf_size_y(&rect));
+			GPU_scissor(
+			        rect.xmin,
+			        rect.ymin,
+			        BLI_rctf_size_x(&rect),
+			        BLI_rctf_size_y(&rect));
 
 			Gwn_VertFormat *format = immVertexFormat();
 			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -1991,10 +2008,11 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	rcti scissor_region = {0, ar->winx, 0, ar->winy};
 
 	BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
-	GPU_scissor(scissor_new.xmin,
-	          scissor_new.ymin,
-	          BLI_rcti_size_x(&scissor_new),
-	          BLI_rcti_size_y(&scissor_new));
+	GPU_scissor(
+	        scissor_new.xmin,
+	        scissor_new.ymin,
+	        BLI_rcti_size_x(&scissor_new),
+	        BLI_rcti_size_y(&scissor_new));
 
 	float x = 0.5f * (recti->xmin + recti->xmax);
 	float y = 0.5f * (recti->ymin + recti->ymax);
