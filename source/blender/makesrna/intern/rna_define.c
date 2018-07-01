@@ -3389,9 +3389,6 @@ void RNA_def_func_free_pointers(FunctionRNA *func)
 void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 {
 	ContainerRNA *cont = cont_;
-	EnumPropertyItem *earray;
-	float *farray;
-	int *iarray;
 	int a;
 
 	/* annoying since we just added this to a hash, could make this add the correct key to the hash
@@ -3406,8 +3403,12 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 		}
 	}
 
-	if (prop->name) prop->name = BLI_strdup(prop->name);
-	if (prop->description) prop->description = BLI_strdup(prop->description);
+	if (prop->name) {
+		prop->name = BLI_strdup(prop->name);
+	}
+	if (prop->description) {
+		prop->description = BLI_strdup(prop->description);
+	}
 
 	switch (prop->type) {
 		case PROP_BOOLEAN:
@@ -3415,9 +3416,9 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
 			if (bprop->defaultarray) {
-				iarray = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
-				memcpy(iarray, bprop->defaultarray, sizeof(int) * prop->totarraylength);
-				bprop->defaultarray = iarray;
+				int *array = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
+				memcpy(array, bprop->defaultarray, sizeof(int) * prop->totarraylength);
+				bprop->defaultarray = array;
 			}
 			break;
 		}
@@ -3426,9 +3427,9 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
 			if (iprop->defaultarray) {
-				iarray = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
-				memcpy(iarray, iprop->defaultarray, sizeof(int) * prop->totarraylength);
-				iprop->defaultarray = iarray;
+				int *array = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
+				memcpy(array, iprop->defaultarray, sizeof(int) * prop->totarraylength);
+				iprop->defaultarray = array;
 			}
 			break;
 		}
@@ -3437,17 +3438,20 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
 			if (eprop->item) {
-				earray = MEM_mallocN(sizeof(EnumPropertyItem) * (eprop->totitem + 1), "RNA_def_property_store");
-				memcpy(earray, eprop->item, sizeof(EnumPropertyItem) * (eprop->totitem + 1));
-				eprop->item = earray;
+				EnumPropertyItem *array = MEM_mallocN(sizeof(EnumPropertyItem) * (eprop->totitem + 1), "RNA_def_property_store");
+				memcpy(array, eprop->item, sizeof(EnumPropertyItem) * (eprop->totitem + 1));
+				eprop->item = array;
 
 				for (a = 0; a < eprop->totitem; a++) {
-					if (earray[a].identifier)
-						earray[a].identifier = BLI_strdup(earray[a].identifier);
-					if (earray[a].name)
-						earray[a].name = BLI_strdup(earray[a].name);
-					if (earray[a].description)
-						earray[a].description = BLI_strdup(earray[a].description);
+					if (array[a].identifier) {
+						array[a].identifier = BLI_strdup(array[a].identifier);
+					}
+					if (array[a].name) {
+						array[a].name = BLI_strdup(array[a].name);
+					}
+					if (array[a].description) {
+						array[a].description = BLI_strdup(array[a].description);
+					}
 				}
 			}
 			break;
@@ -3457,9 +3461,9 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
 			if (fprop->defaultarray) {
-				farray = MEM_mallocN(sizeof(float) * prop->totarraylength, "RNA_def_property_store");
-				memcpy(farray, fprop->defaultarray, sizeof(float) * prop->totarraylength);
-				fprop->defaultarray = farray;
+				float *array = MEM_mallocN(sizeof(float) * prop->totarraylength, "RNA_def_property_store");
+				memcpy(array, fprop->defaultarray, sizeof(float) * prop->totarraylength);
+				fprop->defaultarray = array;
 			}
 			break;
 		}
