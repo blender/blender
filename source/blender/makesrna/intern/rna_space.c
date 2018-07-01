@@ -2436,7 +2436,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_define_verify_sdna(1);
 
-	prop = RNA_def_property(srna, "studiolight_rot_z", PROP_FLOAT, PROP_ANGLE);
+	prop = RNA_def_property(srna, "studiolight_rotate_z", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "shading.studiolight_rot_z");
 	RNA_def_property_float_default(prop, 0.0);
 	RNA_def_property_ui_text(prop, "Studiolight Rotation", "Rotation of the studiolight around the Z-Axis");

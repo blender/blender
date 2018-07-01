@@ -3658,7 +3658,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 sub = row.column()
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
                 if shading.selected_studio_light.orientation == 'WORLD':
-                    layout.row().prop(shading, "studiolight_rot_z")
+                    layout.row().prop(shading, "studiolight_rotate_z")
 
             elif shading.light == 'MATCAP':
                 row = layout.row()
@@ -3673,7 +3673,7 @@ class VIEW3D_PT_shading_lighting(Panel):
             sub = row.column()
             sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
             if shading.selected_studio_light.orientation == 'WORLD':
-                layout.row().prop(shading, "studiolight_rot_z")
+                layout.row().prop(shading, "studiolight_rotate_z")
                 layout.row().prop(shading, "studiolight_background_alpha")
             layout.prop(shading, "use_scene_light")
 
