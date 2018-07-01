@@ -1932,13 +1932,8 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)
 {
 	if (ob->parent && DRW_check_object_visible_within_active_context(ob->parent)) {
-		/* Only draw relationship lines when object or its parent are selected
-		 * as a way of reducing visual clutter.
-		 */
-		if ((ob->base_flag & BASE_SELECTED) || (ob->parent->base_flag & BASE_SELECTED)) {
-			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->parent->obmat[3]);
-			DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->obmat[3]);
-		}
+		DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->parent->obmat[3]);
+		DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->obmat[3]);
 	}
 
 	if (ob->rigidbody_constraint) {
