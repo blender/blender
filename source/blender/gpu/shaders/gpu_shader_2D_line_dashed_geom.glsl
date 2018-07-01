@@ -12,7 +12,7 @@ uniform vec2 viewport_size;
 
 /* Uniforms from fragment shader, used here to optimize out useless computation in case of solid line. */
 uniform float dash_factor;  /* if > 1.0, solid line. */
-uniform int num_colors;  /* Enabled if > 0, 1 for solid line. */
+uniform int colors_len;  /* Enabled if > 0, 1 for solid line. */
 
 layout(lines) in;
 
@@ -34,7 +34,7 @@ void main()
 
 	gl_Position = v2;
 	color_geom = color_vert[1];
-	if ((num_colors == 1) || (dash_factor >= 1.0f)) {
+	if ((colors_len == 1) || (dash_factor >= 1.0f)) {
 		/* Solid line, optimize out distance computation! */
 		distance_along_line = 0.0f;
 	}

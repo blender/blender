@@ -582,7 +582,7 @@ void draw_image_sample_line(SpaceImage *sima)
 		GPU_viewport_size_getf(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 2);  /* Advanced dashes. */
+		immUniform1i("colors_len", 2);  /* Advanced dashes. */
 		immUniformArray4fv("colors", (float *)(float[][4]){{1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
 		immUniform1f("dash_width", 2.0f);
 

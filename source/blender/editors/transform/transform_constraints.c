@@ -755,7 +755,7 @@ void drawConstraint(TransInfo *t)
 			GPU_viewport_size_getf(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-			immUniform1i("num_colors", 0);  /* "simple" mode */
+			immUniform1i("colors_len", 0);  /* "simple" mode */
 			immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			immUniform1f("dash_width", 2.0f);
 			immUniform1f("dash_factor", 0.5f);

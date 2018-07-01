@@ -1895,7 +1895,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
 		immUniformColor4f(1.0f, 0.39f, 0.39f, 0.78f);
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniform1f("dash_width", 12.0f);
 		immUniform1f("dash_factor", 0.5f);
 

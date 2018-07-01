@@ -100,7 +100,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 2);  /* "advanced" mode */
+	immUniform1i("colors_len", 2);  /* "advanced" mode */
 	immUniformArray4fv("colors", (float *)(float[][4]){{1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
 	immUniform1f("dash_width", 8.0f);
 
@@ -723,7 +723,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			GPU_viewport_size_getf(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-			immUniform1i("num_colors", 2);  /* "advanced" mode */
+			immUniform1i("colors_len", 2);  /* "advanced" mode */
 			immUniformArray4fv("colors", (float *)(float[][4]){{0.56f, 0.56f, 0.56f, 1.0f}, {0.07f, 0.07f, 0.07f, 1.0f}}, 2);
 			immUniform1f("dash_width", 4.0f);
 			GPU_line_width(1.0f);

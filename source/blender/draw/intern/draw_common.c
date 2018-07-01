@@ -261,7 +261,7 @@ DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, float colo
 	DRW_shgroup_uniform_vec2(grp, "viewport_size", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(grp, "dash_width", &dash_width, 1);
 	DRW_shgroup_uniform_float(grp, "dash_factor", &dash_factor, 1);
-	DRW_shgroup_uniform_int_copy(grp, "num_colors", 0); /* "simple" mode */
+	DRW_shgroup_uniform_int_copy(grp, "colors_len", 0); /* "simple" mode */
 
 	return grp;
 }

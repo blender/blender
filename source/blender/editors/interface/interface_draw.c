@@ -1333,7 +1333,7 @@ static void ui_draw_colorband_handle(
 		GPU_viewport_size_getf(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 2);  /* "advanced" mode */
+		immUniform1i("colors_len", 2);  /* "advanced" mode */
 		immUniformArray4fv("colors", (float *)(float[][4]){{0.8f, 0.8f, 0.8f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
 		immUniform1f("dash_width", active ? 4.0f : 2.0f);
 

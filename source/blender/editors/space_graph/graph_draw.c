@@ -96,7 +96,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 	immUniformColor3f(0.0f, 0.0f, 0.0f);
 	immUniform1f("dash_width", 10.0f);
 	immUniform1f("dash_factor", 0.5f);
@@ -850,7 +850,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 
 	/* No curve to modify/visualize the result?
 	 * => We still want to show the 1-1 default...
@@ -971,7 +971,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 	immUniform1f("dash_width", 20.0f);
 	immUniform1f("dash_factor", 0.5f);
 
@@ -1057,7 +1057,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			GPU_viewport_size_getf(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-			immUniform1i("num_colors", 0);  /* Simple dashes. */
+			immUniform1i("colors_len", 0);  /* Simple dashes. */
 
 			if (BKE_fcurve_is_protected(fcu)) {
 				/* protected curves (non editable) are drawn with dotted lines */

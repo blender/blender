@@ -189,7 +189,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-	immUniform1i("num_colors", 2);  /* "advanced" mode */
+	immUniform1i("colors_len", 2);  /* "advanced" mode */
 	const float alpha = (float)paint->paint_cursor_col[3] / 255.0f;
 	immUniformArray4fv("colors", (float *)(float[][4]){{0.0f, 0.0f, 0.0f, alpha}, {1.0f, 1.0f, 1.0f, alpha}}, 2);
 	immUniform1f("dash_width", 6.0f);

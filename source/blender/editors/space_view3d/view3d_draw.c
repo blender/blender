@@ -521,7 +521,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 		GPU_viewport_size_getf(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
 
@@ -683,7 +683,7 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-	immUniform1i("num_colors", 0);  /* "simple" mode */
+	immUniform1i("colors_len", 0);  /* "simple" mode */
 	immUniform4f("color", 1.0f, 0.25f, 0.25f, 1.0f);
 	immUniform1f("dash_width", 6.0f);
 	immUniform1f("dash_factor", 0.5f);

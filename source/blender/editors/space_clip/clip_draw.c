@@ -368,7 +368,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		GPU_viewport_size_getf(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
@@ -672,7 +672,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	GPU_viewport_size_getf(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* "simple" mode */
+	immUniform1i("colors_len", 0);  /* "simple" mode */
 
 	/* marker position and offset position */
 	if ((track->flag & SELECT) == sel && (marker->flag & MARKER_DISABLED) == 0) {
@@ -1214,7 +1214,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 		GPU_viewport_size_getf(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 
 		if (draw_plane_quad) {
 			const bool stipple = !draw_outline && tiny;

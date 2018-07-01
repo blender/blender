@@ -1049,7 +1049,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 	immUniformThemeColor(TH_BACK);
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 	immUniform1f("dash_width", 6.0f);
 	immUniform1f("dash_factor", 0.5f);
 
