@@ -579,11 +579,48 @@ class INFO_MT_help(Menu):
         layout.operator("wm.splash", icon='BLENDER')
 
 
+class TOPBAR_MT_file_specials(Menu):
+    bl_label = "File Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.link", text="Link", icon='LINK_BLEND')
+        layout.operator("wm.append", text="Append", icon='APPEND_BLEND')
+
+        layout.separator()
+
+        layout.menu("INFO_MT_file_import", icon='IMPORT')
+        layout.menu("INFO_MT_file_export", icon='EXPORT')
+
+
+class TOPBAR_MT_window_specials(Menu):
+    bl_label = "Window Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'EXEC_AREA'
+
+        layout.operator("wm.window_new")
+
+        layout.operator_context = 'INVOKE_AREA'
+
+        layout.operator("screen.area_dupli")
+
+        layout.separator()
+
+        layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
+
+
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
     TOPBAR_PT_pivot_point,
     TOPBAR_PT_snapping,
+    TOPBAR_MT_file_specials,
+    TOPBAR_MT_window_specials,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,

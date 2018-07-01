@@ -3986,11 +3986,14 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
+#else
+	WM_keymap_add_item(keymap, "WM_OT_doc_view_manual_ui_context", F1KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "TOPBAR_MT_file_specials", F2KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "WM_OT_search_menu", F3KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "TOPBAR_MT_window_specials", F4KEY, KM_PRESS, 0, 0);
 #endif
 
 	/* menus that can be accessed anywhere in blender */
-
-	WM_keymap_add_item(keymap, "WM_OT_search_menu", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_search_menu", ACCENTGRAVEKEY, KM_CLICK, 0, 0);
 
 	WM_keymap_add_menu(keymap, "SCREEN_MT_user_menu", QKEY, KM_PRESS, 0, 0);
