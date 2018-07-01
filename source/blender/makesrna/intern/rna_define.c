@@ -3415,7 +3415,7 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
 			if (bprop->defaultarray) {
-				iarray = MEM_callocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
+				iarray = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
 				memcpy(iarray, bprop->defaultarray, sizeof(int) * prop->totarraylength);
 				bprop->defaultarray = iarray;
 			}
@@ -3426,7 +3426,7 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
 			if (iprop->defaultarray) {
-				iarray = MEM_callocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
+				iarray = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
 				memcpy(iarray, iprop->defaultarray, sizeof(int) * prop->totarraylength);
 				iprop->defaultarray = iarray;
 			}
@@ -3437,7 +3437,7 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
 			if (eprop->item) {
-				earray = MEM_callocN(sizeof(EnumPropertyItem) * (eprop->totitem + 1), "RNA_def_property_store");
+				earray = MEM_mallocN(sizeof(EnumPropertyItem) * (eprop->totitem + 1), "RNA_def_property_store");
 				memcpy(earray, eprop->item, sizeof(EnumPropertyItem) * (eprop->totitem + 1));
 				eprop->item = earray;
 
@@ -3457,7 +3457,7 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
 			if (fprop->defaultarray) {
-				farray = MEM_callocN(sizeof(float) * prop->totarraylength, "RNA_def_property_store");
+				farray = MEM_mallocN(sizeof(float) * prop->totarraylength, "RNA_def_property_store");
 				memcpy(farray, fprop->defaultarray, sizeof(float) * prop->totarraylength);
 				fprop->defaultarray = farray;
 			}
