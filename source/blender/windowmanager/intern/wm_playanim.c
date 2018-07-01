@@ -67,6 +67,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_batch.h"
+#include "GPU_init_exit.h"
 
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */
@@ -1266,7 +1267,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	/* initialize OpenGL immediate mode */
 	g_WS.gwn_context =  GWN_context_create();
-	immInit();
+	GPU_init();
 
 	/* initialize the font */
 	BLF_init();
@@ -1540,7 +1541,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	GPU_shader_free_builtin_shaders();
 
-	immDestroy();
+	GPU_exit();
 
 	if (g_WS.gwn_context) {
 		GWN_context_active_set(g_WS.gwn_context);
