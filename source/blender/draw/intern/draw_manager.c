@@ -2184,8 +2184,6 @@ void DRW_opengl_context_create(void)
 	}
 	/* This changes the active context. */
 	DST.gl_context = WM_opengl_context_create();
-	/* Make the context active for this thread (main thread) */
-	WM_opengl_context_activate(DST.gl_context);
 	/* Be sure to create gawain.context too. */
 	DST.gwn_context = GWN_context_create();
 	if (!G.background) {

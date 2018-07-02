@@ -110,9 +110,6 @@ GHOST_TSuccess GHOST_ContextGLX::swapBuffers()
 
 GHOST_TSuccess GHOST_ContextGLX::activateDrawingContext()
 {
-	if (m_init == false) {
-		initContext();
-	}
 	if (m_display) {
 		return ::glXMakeCurrent(m_display, m_window, m_context) ? GHOST_kSuccess : GHOST_kFailure;
 	}
@@ -187,8 +184,7 @@ const bool GLXEW_ARB_create_context_robustness =
 	glxewInit();
 #endif  /* USE_GLXEW_INIT_WORKAROUND */
 
-	/* Only init the non-offscreen context directly */
-	const bool do_init = (m_window != None);
+
 
 	if (GLXEW_ARB_create_context) {
 		int profileBitCore   = m_contextProfileMask & GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
@@ -308,27 +304,12 @@ const bool GLXEW_ARB_create_context_robustness =
 	GHOST_TSuccess success;
 
 	if (m_context != NULL) {
+		const unsigned char *version;
+
 		if (!s_sharedContext)
 			s_sharedContext = m_context;
 
 		s_sharedCount++;
-	}
-
-	if (do_init) {
-		success = initContext();
-	}
-
-	GHOST_X11_ERROR_HANDLERS_RESTORE(handler_store);
-
-	return success;
-}
-
-GHOST_TSuccess GHOST_ContextGLX::initContext()
-{
-	GHOST_TSuccess success;
-
-	if (m_context != NULL) {
-		const unsigned char *version;
 
 		glXMakeCurrent(m_display, m_window, m_context);
 
@@ -360,11 +341,12 @@ GHOST_TSuccess GHOST_ContextGLX::initContext()
 		success = GHOST_kFailure;
 	}
 
-	/* We tag as init even if it fails. */
-	m_init = true;
+
+	GHOST_X11_ERROR_HANDLERS_RESTORE(handler_store);
 
 	return success;
 }
+
 
 GHOST_TSuccess GHOST_ContextGLX::releaseNativeHandles()
 {
