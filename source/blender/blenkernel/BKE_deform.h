@@ -116,4 +116,6 @@ void BKE_defvert_extract_vgroup_to_polyweights(
         struct MDeformVert *dvert, const int defgroup, const int num_verts, struct MLoop *loops, const int num_loops,
         struct MPoly *polys, const int num_polys, float *r_weights, const bool invert_vgroup);
 
+void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight);
+
 #endif  /* __BKE_DEFORM_H__ */

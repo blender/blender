@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -79,6 +80,8 @@
 #include "GPU_immediate_util.h"
 #include "GPU_material.h"
 #include "GPU_viewport.h"
+#include "GPU_state.h"
+#include "GPU_framebuffer.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -449,7 +452,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 	x2 = viewborder.xmax;
 	y2 = viewborder.ymax;
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	/* apply offsets so the real 3D camera shows through */
 
@@ -477,8 +480,8 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 			float alpha = 1.0f;
 
 			if (ca->passepartalpha != 1.0f) {
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-				glEnable(GL_BLEND);
+				GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+				GPU_blend(true);
 				alpha = ca->passepartalpha;
 			}
 
@@ -493,7 +496,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 			if (y2i > 0.0f)
 				immRectf(shdr_pos, x1i, y1i, x2i, 0.0f);
 
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 
 		immUniformThemeColor(TH_BACK);
@@ -515,10 +518,10 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 
 	{
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
 
@@ -672,15 +675,15 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 	/* use the same program for everything */
 	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-	immUniform1i("num_colors", 0);  /* "simple" mode */
+	immUniform1i("colors_len", 0);  /* "simple" mode */
 	immUniform4f("color", 1.0f, 0.25f, 0.25f, 1.0f);
 	immUniform1f("dash_width", 6.0f);
 	immUniform1f("dash_factor", 0.5f);
@@ -716,7 +719,7 @@ void ED_view3d_draw_depth(
 
 	ED_view3d_draw_setup_view(NULL, depsgraph, scene, ar, v3d, NULL, NULL, NULL);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+	GPU_clear(GPU_DEPTH_BIT);
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_set(rv3d);
@@ -725,7 +728,7 @@ void ED_view3d_draw_depth(
 	rv3d->rflag |= RV3D_ZOFFSET_DISABLED;
 
 	v3d->zbuf = true;
-	glEnable(GL_DEPTH_TEST);
+	GPU_depth_test(true);
 
 	DRW_draw_depth_loop(depsgraph, ar, v3d);
 
@@ -735,7 +738,7 @@ void ED_view3d_draw_depth(
 	rv3d->rflag &= ~RV3D_ZOFFSET_DISABLED;
 
 	v3d->zbuf = zbuf;
-	if (!v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	if (!v3d->zbuf) GPU_depth_test(false);
 
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
@@ -807,10 +810,10 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 	}
 
 	/* draw axis lines */
-	glLineWidth(2.0f);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_line_width(2.0f);
+	GPU_line_smooth(true);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -830,7 +833,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 
 	immEnd();
 	immUnbindProgram();
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 
 	/* draw axis names */
 	for (int axis_i = 0; axis_i < 3; axis_i++) {
@@ -853,8 +856,8 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 
 	negate_v3_v3(o, rv3d->ofs);
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);  /* don't overwrite zbuf */
 
 	Gwn_VertFormat *format = immVertexFormat();
@@ -937,7 +940,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 
 	/* -- draw rotation center -- */
 	immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
-	glPointSize(5.0f);
+	GPU_point_size(5.0f);
 	immBegin(GWN_PRIM_POINTS, 1);
 	immAttrib4ubv(col, color);
 	immVertex3fv(pos, o);
@@ -951,7 +954,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 	/* ^^ just playing around, does not work */
 #endif
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	glDepthMask(GL_TRUE);
 }
 #endif /* WITH_INPUT_NDOF */
@@ -1182,7 +1185,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 /**
 * Information drawn on top of the solid plates and composed data
 */
-void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
+void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(offset))
 {
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1196,8 +1199,6 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	rcti rect;
 	ED_region_visible_rect(ar, &rect);
 
-	/* Leave room for previously drawn info. */
-	rect.ymax -= offset;
 
 	view3d_draw_border(C, ar);
 	view3d_draw_grease_pencil(C);
@@ -1271,11 +1272,12 @@ RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
 
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
+	Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
 	view3d_draw_view(C, ar);
 
-	GPU_free_images_old();
+	GPU_free_images_old(bmain);
 	GPU_pass_cache_garbage_collect();
 
 	/* XXX This is in order to draw UI batches with the DRW
@@ -1283,7 +1285,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	gpu_batch_presets_reset();
 
 	/* No depth test for drawing action zones afterwards. */
-	glDisable(GL_DEPTH_TEST);
+	GPU_depth_test(false);
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
@@ -1348,7 +1350,7 @@ void ED_view3d_draw_offscreen(
 	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
 		/* free images which can have changed on frame-change
 		 * warning! can be slow so only free animated images - campbell */
-		GPU_free_images_anim();
+		GPU_free_images_anim(G.main);  /* XXX :((( */
 	}
 
 	gpuPushProjectionMatrix();

@@ -58,4 +58,3 @@ TEST(guardedalloc, GuardedIntegerOverflow)
 	EXPECT_EXIT(MallocArray(SIZE_MAX, 12345567), ABORT_PREDICATE, "");
 	EXPECT_EXIT(CallocArray(SIZE_MAX, SIZE_MAX), ABORT_PREDICATE, "");
 }
-

@@ -481,7 +481,7 @@ def do_versions(self):
             cworld = world.cycles
             # World MIS
             if not cworld.is_property_set("sampling_method"):
-                if cworld.get("sample_as_light", False):
+                if cworld.get("sample_as_light", True):
                     cworld.sampling_method = 'MANUAL'
                 else:
                     cworld.sampling_method = 'NONE'

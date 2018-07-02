@@ -118,6 +118,7 @@ typedef struct MultiresBakerJobData {
 
 /* data passing to multires-baker job */
 typedef struct {
+	Scene *scene;
 	ListBase data;
 	bool bake_clear;      /* Clear the images before baking */
 	int bake_filter;      /* Bake-filter, aka margin */
@@ -241,7 +242,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 
 	tmp_mmd.lvl = *lvl;
 	tmp_mmd.sculptlvl = *lvl;
-	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob, 0);
+	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, scene, ob, 0);
 	cddm->release(cddm);
 
 	return dm;
@@ -268,7 +269,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 
 	tmp_mmd.lvl = mmd->totlvl;
 	tmp_mmd.sculptlvl = mmd->totlvl;
-	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob, 0);
+	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, scene, ob, 0);
 	cddm->release(cddm);
 
 	return dm;
@@ -371,6 +372,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		multires_force_update(ob);
 
 		/* copy data stored in job descriptor */
+		bkr.scene = scene;
 		bkr.bake_filter = scene->r.bake_filter;
 		bkr.mode = scene->r.bake_mode;
 		bkr.use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
@@ -413,6 +415,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	Object *ob;
 
 	/* backup scene settings, so their changing in UI would take no effect on baker */
+	bkj->scene = scene;
 	bkj->bake_filter = scene->r.bake_filter;
 	bkj->mode = scene->r.bake_mode;
 	bkj->use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
@@ -474,6 +477,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 		MultiresBakeRender bkr = {NULL};
 
 		/* copy data stored in job descriptor */
+		bkr.scene = bkj->scene;
 		bkr.bake_filter = bkj->bake_filter;
 		bkr.mode = bkj->mode;
 		bkr.use_lores_mesh = bkj->use_lores_mesh;

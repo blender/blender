@@ -46,6 +46,8 @@
 #include "BKE_modifier.h"
 #include "BKE_ocean.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_modifiertypes.h"
 
 #ifdef WITH_OCEANSIM
@@ -406,7 +408,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 }
 
 static DerivedMesh *doOcean(
-        ModifierData *md, Object *ob,
+        ModifierData *md, Scene *scene, Object *ob,
         DerivedMesh *derivedData,
         int UNUSED(useRenderParams))
 {
@@ -450,7 +452,7 @@ static DerivedMesh *doOcean(
 		if (!omd->oceancache) {
 			init_cache_data(ob, omd);
 		}
-		BKE_ocean_simulate_cache(omd->oceancache, md->scene->r.cfra);
+		BKE_ocean_simulate_cache(omd->oceancache, scene->r.cfra);
 	}
 	else {
 		simulate_ocean_modifier(omd);
@@ -464,7 +466,7 @@ static DerivedMesh *doOcean(
 		dm = CDDM_copy(derivedData);
 	}
 
-	cfra = md->scene->r.cfra;
+	cfra = scene->r.cfra;
 	CLAMP(cfra, omd->bakestart, omd->bakeend);
 	cfra -= omd->bakestart; /* shift to 0 based */
 
@@ -547,12 +549,11 @@ static DerivedMesh *doOcean(
 }
 #else  /* WITH_OCEANSIM */
 static DerivedMesh *doOcean(
-        ModifierData *md, Object *UNUSED(ob),
+        ModifierData *UNUSED(md), Scene *UNUSED(scene), Object *UNUSED(ob),
         DerivedMesh *derivedData,
         int UNUSED(useRenderParams))
 {
 	/* unused */
-	(void)md;
 	return derivedData;
 }
 #endif /* WITH_OCEANSIM */
@@ -562,8 +563,10 @@ static DerivedMesh *applyModifier(
         DerivedMesh *derivedData)
 {
 	DerivedMesh *result;
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-	result = doOcean(md, ctx->object, derivedData, 0);
+
+	result = doOcean(md, scene, ctx->object, derivedData, 0);
 
 	if (result != derivedData)
 		result->dirty |= DM_DIRTY_NORMALS;

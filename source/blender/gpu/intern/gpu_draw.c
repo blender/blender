@@ -140,7 +140,7 @@ static struct GPUTextureState {
 
 /* Mipmap settings */
 
-void GPU_set_gpu_mipmapping(int gpu_mipmap)
+void GPU_set_gpu_mipmapping(Main *bmain, int gpu_mipmap)
 {
 	int old_value = GTS.gpu_mipmap;
 
@@ -148,14 +148,14 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap)
 	GTS.gpu_mipmap = gpu_mipmap;
 
 	if (old_value != GTS.gpu_mipmap) {
-		GPU_free_images();
+		GPU_free_images(bmain);
 	}
 }
 
-void GPU_set_mipmap(bool mipmap)
+void GPU_set_mipmap(Main *bmain, bool mipmap)
 {
 	if (GTS.domipmap != mipmap) {
-		GPU_free_images();
+		GPU_free_images(bmain);
 		GTS.domipmap = mipmap;
 	}
 }
@@ -203,10 +203,10 @@ static GLenum gpu_get_mipmap_filter(bool mag)
 }
 
 /* Anisotropic filtering settings */
-void GPU_set_anisotropic(float value)
+void GPU_set_anisotropic(Main *bmain, float value)
 {
 	if (GTS.anisotropic != value) {
-		GPU_free_images();
+		GPU_free_images(bmain);
 
 		/* Clamp value to the maximum value the graphics card supports */
 		const float max = GPU_max_texture_anisotropy();
@@ -682,7 +682,7 @@ void GPU_create_gl_tex_compressed(
  * temporary disabling/enabling mipmapping on all images for quick texture
  * updates with glTexSubImage2D. images that didn't change don't have to be
  * re-uploaded to OpenGL */
-void GPU_paint_set_mipmap(bool mipmap)
+void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
 {
 	if (!GTS.domipmap)
 		return;
@@ -690,7 +690,7 @@ void GPU_paint_set_mipmap(bool mipmap)
 	GTS.texpaint = !mipmap;
 
 	if (mipmap) {
-		for (Image *ima = G.main->image.first; ima; ima = ima->id.next) {
+		for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
 			if (BKE_image_has_opengl_texture(ima)) {
 				if (ima->tpageflag & IMA_MIPMAP_COMPLETE) {
 					if (ima->gputexture[TEXTARGET_TEXTURE_2D]) {
@@ -709,7 +709,7 @@ void GPU_paint_set_mipmap(bool mipmap)
 
 	}
 	else {
-		for (Image *ima = G.main->image.first; ima; ima = ima->id.next) {
+		for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
 			if (BKE_image_has_opengl_texture(ima)) {
 				if (ima->gputexture[TEXTARGET_TEXTURE_2D]) {
 					GPU_texture_bind(ima->gputexture[TEXTARGET_TEXTURE_2D], 0);
@@ -980,7 +980,7 @@ static void gpu_queue_image_for_free(Image *ima)
 	BLI_thread_unlock(LOCK_OPENGL);
 }
 
-void GPU_free_unused_buffers(void)
+void GPU_free_unused_buffers(Main *bmain)
 {
 	if (!BLI_thread_is_main())
 		return;
@@ -992,7 +992,7 @@ void GPU_free_unused_buffers(void)
 		Image *ima = node->link;
 
 		/* check in case it was freed in the meantime */
-		if (G.main && BLI_findindex(&G.main->image, ima) != -1)
+		if (bmain && BLI_findindex(&bmain->image, ima) != -1)
 			GPU_free_image(ima);
 	}
 
@@ -1020,24 +1020,29 @@ void GPU_free_image(Image *ima)
 	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE | IMA_GLBIND_IS_DATA);
 }
 
-void GPU_free_images(void)
+void GPU_free_images(Main *bmain)
 {
-	if (G.main)
-		for (Image *ima = G.main->image.first; ima; ima = ima->id.next)
+	if (bmain) {
+		for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
 			GPU_free_image(ima);
+		}
+	}
 }
 
 /* same as above but only free animated images */
-void GPU_free_images_anim(void)
+void GPU_free_images_anim(Main *bmain)
 {
-	if (G.main)
-		for (Image *ima = G.main->image.first; ima; ima = ima->id.next)
-			if (BKE_image_is_animated(ima))
+	if (bmain) {
+		for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
+			if (BKE_image_is_animated(ima)) {
 				GPU_free_image(ima);
+			}
+		}
+	}
 }
 
 
-void GPU_free_images_old(void)
+void GPU_free_images_old(Main *bmain)
 {
 	static int lasttime = 0;
 	int ctime = (int)PIL_check_seconds_timer();
@@ -1055,7 +1060,7 @@ void GPU_free_images_old(void)
 
 	lasttime = ctime;
 
-	Image *ima = G.main->image.first;
+	Image *ima = bmain->image.first;
 	while (ima) {
 		if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
 			/* If it's in GL memory, deallocate and set time tag to current time

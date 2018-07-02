@@ -1767,16 +1767,16 @@ void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
 	}
 }
 
-void BKE_keyblock_convert_from_mesh(Mesh *me, KeyBlock *kb)
+void BKE_keyblock_convert_from_mesh(Mesh *me, Key *key, KeyBlock *kb)
 {
-	int tot = me->totvert;
+	const int len = me->totvert;
 
 	if (me->totvert == 0) return;
 
 	MEM_SAFE_FREE(kb->data);
 
-	kb->data = MEM_mallocN(me->key->elemsize * tot, __func__);
-	kb->totelem = tot;
+	kb->data = MEM_malloc_arrayN((size_t)len, (size_t)key->elemsize, __func__);
+	kb->totelem = len;
 
 	BKE_keyblock_update_from_mesh(me, kb);
 }

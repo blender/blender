@@ -81,4 +81,3 @@ void TranslateOperation::setFactorXY(float factorX, float factorY)
 	m_factorX = factorX;
 	m_factorY = factorY;
 }
-

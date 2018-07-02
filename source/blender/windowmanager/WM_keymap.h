@@ -81,7 +81,7 @@ bool		 WM_keymap_remove(struct wmKeyConfig *keyconfig, struct wmKeyMap *keymap);
 bool         WM_keymap_poll(struct bContext *C, struct wmKeyMap *keymap);
 
 wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
-int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
+bool          WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
 
 /* Modal Keymap */
 
@@ -127,9 +127,14 @@ char *WM_key_event_operator_string(
 
 const char *WM_bool_as_string(bool test);
 
+/* Minimal keymap, see: T55666, will eventually remove.
+ * Keep this until final design is settled on. */
+#if 0
+#define USE_WM_KEYMAP_27X
+#endif
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __WM_KEYMAP_H__ */
-

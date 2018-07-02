@@ -129,7 +129,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 			Object *ob = base->object;
 			AnimData *adt = ob->adt;
 
-			if (nlaedit_is_tweakmode_on(ac) == 0 && (base->flag & BASE_SELECTABLED)) {
+			if (nlaedit_is_tweakmode_on(ac) == 0 && (base->flag & BASE_SELECTABLE)) {
 				/* set selection status */
 				if (selectmode == SELECT_INVERT) {
 					/* swap select */
@@ -507,7 +507,7 @@ void NLA_OT_action_pushdown(wmOperatorType *ot)
 
 /* ******************** Action Unlink ******************************** */
 
-static int nla_action_unlink_poll(bContext *C)
+static bool nla_action_unlink_poll(bContext *C)
 {
 	if (ED_operator_nla_active(C)) {
 		return nla_panel_context(C, NULL, NULL, NULL);

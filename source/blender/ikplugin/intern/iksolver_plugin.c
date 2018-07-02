@@ -582,4 +582,3 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph, struct Scene *scene, Obj
 		free_posetree(tree);
 	}
 }
-

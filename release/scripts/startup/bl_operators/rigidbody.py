@@ -51,7 +51,7 @@ class CopyRigidbodySettings(Operator):
         "mesh_source",
         "use_deform",
         "enabled",
-        )
+    )
 
     @classmethod
     def poll(cls, context):
@@ -93,23 +93,23 @@ class BakeToKeyframes(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     frame_start = IntProperty(
-            name="Start Frame",
-            description="Start frame for baking",
-            min=0, max=300000,
-            default=1,
-            )
+        name="Start Frame",
+        description="Start frame for baking",
+        min=0, max=300000,
+        default=1,
+    )
     frame_end = IntProperty(
-            name="End Frame",
-            description="End frame for baking",
-            min=1, max=300000,
-            default=250,
-            )
+        name="End Frame",
+        description="End frame for baking",
+        min=1, max=300000,
+        default=250,
+    )
     step = IntProperty(
-            name="Frame Step",
-            description="Frame Step",
-            min=1, max=120,
-            default=1,
-            )
+        name="Frame Step",
+        description="Frame Step",
+        min=1, max=120,
+        default=1,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -217,28 +217,34 @@ class ConnectRigidBodies(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     con_type = EnumProperty(
-            name="Type",
-            description="Type of generated constraint",
-            # XXX Would be nice to get icons too, but currently not possible ;)
-            items=tuple((e.identifier, e.name, e.description, e. value)
-                        for e in bpy.types.RigidBodyConstraint.bl_rna.properties["type"].enum_items),
-            default='FIXED',
-            )
+        name="Type",
+        description="Type of generated constraint",
+        # XXX Would be nice to get icons too, but currently not possible ;)
+        items=tuple(
+            (e.identifier, e.name, e.description, e. value)
+            for e in bpy.types.RigidBodyConstraint.bl_rna.properties["type"].enum_items
+        ),
+        default='FIXED',
+    )
     pivot_type = EnumProperty(
-            name="Location",
-            description="Constraint pivot location",
-            items=(('CENTER', "Center", "Pivot location is between the constrained rigid bodies"),
-                   ('ACTIVE', "Active", "Pivot location is at the active object position"),
-                   ('SELECTED', "Selected", "Pivot location is at the selected object position")),
-            default='CENTER',
-            )
+        name="Location",
+        description="Constraint pivot location",
+        items=(
+            ('CENTER', "Center", "Pivot location is between the constrained rigid bodies"),
+            ('ACTIVE', "Active", "Pivot location is at the active object position"),
+            ('SELECTED', "Selected", "Pivot location is at the selected object position"),
+        ),
+        default='CENTER',
+    )
     connection_pattern = EnumProperty(
-            name="Connection Pattern",
-            description="Pattern used to connect objects",
-            items=(('SELECTED_TO_ACTIVE', "Selected to Active", "Connect selected objects to the active object"),
-                   ('CHAIN_DISTANCE', "Chain by Distance", "Connect objects as a chain based on distance, starting at the active object")),
-            default='SELECTED_TO_ACTIVE',
-            )
+        name="Connection Pattern",
+        description="Pattern used to connect objects",
+        items=(
+            ('SELECTED_TO_ACTIVE', "Selected to Active", "Connect selected objects to the active object"),
+            ('CHAIN_DISTANCE', "Chain by Distance", "Connect objects as a chain based on distance, starting at the active object"),
+        ),
+        default='SELECTED_TO_ACTIVE',
+    )
 
     @classmethod
     def poll(cls, context):

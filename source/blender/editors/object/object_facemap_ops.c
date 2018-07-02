@@ -163,14 +163,14 @@ static void object_facemap_swap(Object *ob, int num1, int num2)
 		object_fmap_swap_object_mode(ob, num1, num2);
 }
 
-static int face_map_supported_poll(bContext *C)
+static bool face_map_supported_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 	return (ob && !ob->id.lib && ob->type == OB_MESH && data && !data->lib);
 }
 
-static int face_map_supported_edit_mode_poll(bContext *C)
+static bool face_map_supported_edit_mode_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;

@@ -3,7 +3,6 @@ out vec4 fragColor;
 uniform sampler2D depthBuffer;
 uniform sampler2D colorBuffer;
 uniform sampler2D normalBuffer;
-uniform sampler2D positionBuffer;
 
 uniform vec2 invertedViewportSize;
 uniform mat4 WinMatrix; /* inverse WinMatrix */
@@ -17,14 +16,14 @@ layout(std140) uniform samples_block {
 	vec4 ssao_samples[500];
 };
 
-#define ssao_samples_num	ssao_params.x
-#define jitter_tilling		ssao_params.yz
-#define dfdy_sign			ssao_params.w
+#define ssao_samples_num    ssao_params.x
+#define jitter_tilling      ssao_params.yz
+#define ssao_iteration      ssao_params.w
 
-#define ssao_distance		ssao_settings.x
-#define ssao_factor_cavity	ssao_settings.y
-#define ssao_factor_edge	ssao_settings.z
-#define ssao_attenuation	ssao_settings.a
+#define ssao_distance       ssao_settings.x
+#define ssao_factor_cavity  ssao_settings.y
+#define ssao_factor_edge    ssao_settings.z
+#define ssao_attenuation    ssao_settings.a
 
 vec3 get_view_space_from_depth(in vec2 uvcoords, in float depth)
 {

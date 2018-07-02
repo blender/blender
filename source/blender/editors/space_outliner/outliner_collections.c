@@ -102,7 +102,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 /* -------------------------------------------------------------------- */
 /* Poll functions. */
 
-int ED_outliner_collections_editor_poll(bContext *C)
+bool ED_outliner_collections_editor_poll(bContext *C)
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
 	return (so != NULL) && ELEM(so->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
@@ -164,8 +164,10 @@ static int collection_new_exec(bContext *C, wmOperator *op)
 	            data.collection,
 	            NULL);
 
-	outliner_cleanup_tree(soops);
+	DEG_id_tag_update(&data.collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
+
+	outliner_cleanup_tree(soops);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -236,17 +238,18 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 	/* Effectively delete the collections. */
 	GSetIterator collections_to_edit_iter;
 	GSET_ITER(collections_to_edit_iter, data.collections_to_edit) {
-		/* TODO: what if collection was child and got deleted in the meantime? */
 		Collection *collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
-		BKE_collection_delete(bmain, collection, hierarchy);
+
+		/* Test in case collection got deleted as part of another one. */
+		if (BLI_findindex(&bmain->collection, collection) != -1) {
+			BKE_collection_delete(bmain, collection, hierarchy);
+		}
 	}
 
 	BLI_gset_free(data.collections_to_edit, NULL);
 
+	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
-
-	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
@@ -462,10 +465,8 @@ static int collection_link_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BLI_gset_free(data.collections_to_edit, NULL);
 
+	DEG_id_tag_update(&active_collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
-
-	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
@@ -527,9 +528,6 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
 
 	DEG_relations_tag_update(bmain);
 
-	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
-
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return OPERATOR_FINISHED;
@@ -576,7 +574,7 @@ static TreeTraversalAction layer_collection_find_data_to_edit(TreeElement *te, v
 	return TRAVERSE_CONTINUE;
 }
 
-static int collections_view_layer_poll(bContext *C, bool include)
+static bool collections_view_layer_poll(bContext *C, bool include)
 {
 	/* Poll function so the right click menu show current state of selected collections. */
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -607,12 +605,12 @@ static int collections_view_layer_poll(bContext *C, bool include)
 	return result;
 }
 
-static int collections_exclude_poll(bContext *C)
+static bool collections_exclude_poll(bContext *C)
 {
 	return collections_view_layer_poll(C, false);
 }
 
-static int collections_include_poll(bContext *C)
+static bool collections_include_poll(bContext *C)
 {
 	return collections_view_layer_poll(C, true);
 }

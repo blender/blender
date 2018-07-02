@@ -73,6 +73,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -202,7 +203,7 @@ static void gp_session_validatebuffer(tGPsdata *p);
 /* Context Wrangling... */
 
 /* check if context is suitable for drawing */
-static int gpencil_draw_poll(bContext *C)
+static bool gpencil_draw_poll(bContext *C)
 {
 	if (ED_operator_regionactive(C)) {
 		/* check if current context can support GPencil data */
@@ -1878,9 +1879,9 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		const uint shdr_pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_line_smooth(true);
+		GPU_blend(true);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 		immUniformColor4ub(255, 100, 100, 20);
 		imm_draw_circle_fill_2d(shdr_pos, x, y, p->radius, 40);
@@ -1890,11 +1891,11 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
 		immUniformColor4f(1.0f, 0.39f, 0.39f, 0.78f);
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniform1f("dash_width", 12.0f);
 		immUniform1f("dash_factor", 0.5f);
 
@@ -1905,8 +1906,8 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 
 		immUnbindProgram();
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 	}
 }
 
@@ -2025,38 +2026,38 @@ static void gpencil_draw_cursor_set(tGPsdata *p)
 }
 
 /* update UI indicators of status, including cursor and header prints */
-static void gpencil_draw_status_indicators(tGPsdata *p)
+static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 {
 	/* header prints */
 	switch (p->status) {
 		case GP_STATUS_PAINTING:
 			/* only print this for paint-sessions, otherwise it gets annoying */
 			if (GPENCIL_SKETCH_SESSIONS_ON(p->scene))
-				ED_area_headerprint(p->sa, IFACE_("Grease Pencil: Drawing/erasing stroke... Release to end stroke"));
+				ED_workspace_status_text(C, IFACE_("Grease Pencil: Drawing/erasing stroke... Release to end stroke"));
 			break;
 
 		case GP_STATUS_IDLING:
 			/* print status info */
 			switch (p->paintmode) {
 				case GP_PAINTMODE_ERASER:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | "
 					                                  "ESC/Enter to end  (or click outside this area)"));
 					break;
 				case GP_PAINTMODE_DRAW_STRAIGHT:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Line Session: Hold and drag LMB to draw | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Line Session: Hold and drag LMB to draw | "
 					                                  "ESC/Enter to end  (or click outside this area)"));
 					break;
 				case GP_PAINTMODE_DRAW:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
 					                                  "E/ESC/Enter to end  (or click outside this area)"));
 					break;
 				case GP_PAINTMODE_DRAW_POLY:
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
 					                                  "ESC/Enter to end  (or click outside this area)"));
 					break;
 
 				default: /* unhandled future cases */
-					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Session: ESC/Enter to end   (or click outside this area)"));
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Session: ESC/Enter to end   (or click outside this area)"));
 					break;
 			}
 			break;
@@ -2064,7 +2065,7 @@ static void gpencil_draw_status_indicators(tGPsdata *p)
 		case GP_STATUS_ERROR:
 		case GP_STATUS_DONE:
 			/* clear status string */
-			ED_area_headerprint(p->sa, NULL);
+			ED_workspace_status_text(C, NULL);
 			break;
 	}
 }
@@ -2744,7 +2745,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		estate = OPERATOR_CANCELLED;
 	else {
 		/* update status indicators - cursor, header, etc. */
-		gpencil_draw_status_indicators(p);
+		gpencil_draw_status_indicators(C, p);
 		gpencil_draw_cursor_set(p); /* cursor may have changed outside our control - T44084 */
 	}
 

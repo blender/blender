@@ -174,6 +174,4 @@ int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject 
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 #endif
 
-int mathutils_deepcopy_args_check(PyObject *args);
-
 #endif /* __MATHUTILS_H__ */

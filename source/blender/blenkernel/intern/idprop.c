@@ -1106,4 +1106,3 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
 }
 
 /** \} */
-

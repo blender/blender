@@ -51,6 +51,7 @@
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "ED_anim_api.h"
 
@@ -87,15 +88,15 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 
 	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 	immUniformColor3f(0.0f, 0.0f, 0.0f);
 	immUniform1f("dash_width", 10.0f);
 	immUniform1f("dash_factor", 0.5f);
@@ -114,7 +115,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 
 	if (env->totvert > 0) {
 		/* set size of vertices (non-adjustable for now) */
-		glPointSize(2.0f);
+		GPU_point_size(2.0f);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -281,7 +282,7 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	GPU_enable_program_point_size();
 
 	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
@@ -293,7 +294,7 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
 	draw_fcurve_keyframe_vertices(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), pos);
 
 	GPU_disable_program_point_size();
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 /* Handles ---------------- */
@@ -449,8 +450,8 @@ static void draw_fcurve_samples(SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	/* draw */
 	if (first && last) {
 		/* anti-aliased lines for more consistent appearance */
-		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) GPU_line_smooth(true);
+		GPU_blend(true);
 
 		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -462,8 +463,8 @@ static void draw_fcurve_samples(SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 
 		immUnbindProgram();
 
-		glDisable(GL_BLEND);
-		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) GPU_line_smooth(false);
 	}
 }
 
@@ -846,10 +847,10 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 
 	/* No curve to modify/visualize the result?
 	 * => We still want to show the 1-1 default...
@@ -862,7 +863,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 
 		immUniform1f("dash_width", 40.0f);
 		immUniform1f("dash_factor", 0.5f);
-		glLineWidth(2.0f);
+		GPU_line_width(2.0f);
 
 		/* draw 1-1 line, stretching just past the screen limits
 		 * NOTE: we need to scale the y-values to be valid for the units
@@ -925,7 +926,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			/* x marks the spot .................................................... */
 			/* -> outer frame */
 			immUniformColor3f(0.9f, 0.9f, 0.9f);
-			glPointSize(7.0);
+			GPU_point_size(7.0);
 
 			immBegin(GWN_PRIM_POINTS, 1);
 			immVertex2f(shdr_pos, x, y);
@@ -933,7 +934,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 
 			/* inner frame */
 			immUniformColor3f(0.9f, 0.0f, 0.0f);
-			glPointSize(3.0);
+			GPU_point_size(3.0);
 
 			immBegin(GWN_PRIM_POINTS, 1);
 			immVertex2f(shdr_pos, x, y);
@@ -954,23 +955,23 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	FCurve *fcu;
 
 	/* draw with thick dotted lines */
-	glLineWidth(3.0f);
+	GPU_line_width(3.0f);
 
 	/* anti-aliased lines for less jagged appearance */
 	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
-		glEnable(GL_LINE_SMOOTH);
+		GPU_line_smooth(true);
 	}
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 	immUniform1f("dash_width", 20.0f);
 	immUniform1f("dash_factor", 0.5f);
 
@@ -989,9 +990,9 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	immUnbindProgram();
 
 	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
-		glDisable(GL_LINE_SMOOTH);
+		GPU_line_smooth(false);
 	}
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 /* This is called twice from space_graph.c -> graph_main_region_draw()
@@ -1036,27 +1037,27 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			/* set color/drawing style for curve itself */
 			/* draw active F-Curve thicker than the rest to make it stand out */
 			if (fcu->flag & FCURVE_ACTIVE) {
-				glLineWidth(2.5);
+				GPU_line_width(2.5);
 			}
 			else {
-				glLineWidth(1.0);
+				GPU_line_width(1.0);
 			}
 
 			/* anti-aliased lines for less jagged appearance */
 			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
-				glEnable(GL_LINE_SMOOTH);
+				GPU_line_smooth(true);
 			}
-			glEnable(GL_BLEND);
+			GPU_blend(true);
 
 			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
-			glGetFloatv(GL_VIEWPORT, viewport_size);
+			GPU_viewport_size_get_f(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-			immUniform1i("num_colors", 0);  /* Simple dashes. */
+			immUniform1i("colors_len", 0);  /* Simple dashes. */
 
 			if (BKE_fcurve_is_protected(fcu)) {
 				/* protected curves (non editable) are drawn with dotted lines */
@@ -1104,9 +1105,9 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			immUnbindProgram();
 
 			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
-				glDisable(GL_LINE_SMOOTH);
+				GPU_line_smooth(false);
 			}
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 
 		/* 2) draw handles and vertices as appropriate based on active
@@ -1134,16 +1135,16 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				gpuTranslate2f(0.0f, offset);
 
 				/* set this once and for all - all handles and handle-verts should use the same thickness */
-				glLineWidth(1.0);
+				GPU_line_width(1.0);
 
 				if (fcu->bezt) {
 					bool do_handles = draw_fcurve_handles_check(sipo, fcu);
 
 					if (do_handles) {
 						/* only draw handles/vertices on keyframes */
-						glEnable(GL_BLEND);
+						GPU_blend(true);
 						draw_fcurve_handles(sipo, fcu);
-						glDisable(GL_BLEND);
+						GPU_blend(false);
 					}
 
 					draw_fcurve_vertices(ar, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
@@ -1229,8 +1230,8 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 		y = (float)ACHANNEL_FIRST(ac);
 
 		/* set blending again, as may not be set in previous step */
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
 
 		for (ale = anim_data.first, i = 0; ale; ale = ale->next, i++) {
 			const float yminc = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
@@ -1252,7 +1253,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 		UI_block_end(C, block);
 		UI_block_draw(C, block);
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	/* free tempolary channels */

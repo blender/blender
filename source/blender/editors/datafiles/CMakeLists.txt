@@ -202,6 +202,10 @@ set(ICON_NAMES
 	group_uvs
 	rna
 	rna_add
+	mouse_lmb
+	mouse_mmb
+	mouse_rmb
+	mouse_drag
 	outliner_ob_empty
 	outliner_ob_mesh
 	outliner_ob_curve

@@ -51,8 +51,8 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_scene.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_main.h"
 
 #include "ED_armature.h"
@@ -128,12 +128,6 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 	DEG_id_tag_update(&par->id, OB_RECALC_OB);
 
-	/** done once after import */
-#if 0
-	DEG_relations_tag_update(bmain);
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-#endif
-
 	return true;
 }
 
@@ -166,13 +160,13 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
 }
 
 Mesh *bc_get_mesh_copy(
-        Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
+        Depsgraph *depsgraph, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
 {
-	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;
 	Mesh *mesh = (Mesh *)ob->data;
-	DerivedMesh *dm = NULL;
+	Mesh *tmpmesh = NULL;
 	if (apply_modifiers) {
+#if 0  /* Not supported by new system currently... */
 		switch (export_mesh_type) {
 			case BC_MESH_TYPE_VIEW:
 			{
@@ -185,14 +179,20 @@ Mesh *bc_get_mesh_copy(
 				break;
 			}
 		}
+#else
+		tmpmesh = mesh_get_eval_final(depsgraph, scene, ob, mask);
+#endif
 	}
 	else {
-		dm = mesh_create_derived((Mesh *)ob->data, NULL);
+		tmpmesh = mesh;
 	}
 
-	tmpmesh = BKE_mesh_add(bmain, "ColladaMesh"); // name is not important here
-	DM_to_mesh(dm, tmpmesh, ob, CD_MASK_MESH, true);
-	tmpmesh->flag = mesh->flag;
+	BKE_id_copy_ex(NULL, &tmpmesh->id, (ID **)&tmpmesh,
+	               LIB_ID_CREATE_NO_MAIN |
+	               LIB_ID_CREATE_NO_USER_REFCOUNT |
+	               LIB_ID_CREATE_NO_DEG_TAG |
+	               LIB_ID_COPY_NO_PREVIEW,
+	               false);
 
 	if (triangulate) {
 		bc_triangulate_mesh(tmpmesh);

@@ -28,152 +28,23 @@
  *  \ingroup spview3d
  */
 
-
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
-
-#include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
-
 #include "ED_screen.h"
-#include "ED_undo.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "view3d_intern.h"  /* own include */
-
-/* ******************* */
-
-typedef struct CustomTool {
-	struct CustomTool *next, *prev;
-	char opname[OP_MAX_TYPENAME];
-	char context[OP_MAX_TYPENAME];
-} CustomTool;
-
-static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
-{
-	wmOperatorType *ot = arg2;
-
-	if (ot) {
-		CustomTool *ct = MEM_callocN(sizeof(CustomTool), "CustomTool");
-
-		BLI_addtail(arg_listbase, ct);
-		BLI_strncpy(ct->opname, ot->idname, OP_MAX_TYPENAME);
-		BLI_strncpy(ct->context, CTX_data_mode_string(C), OP_MAX_TYPENAME);
-	}
-
-}
-
-static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
-{
-	GHashIterator iter;
-
-	for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
-		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
-
-		if (BLI_strcasestr(ot->name, str)) {
-			if (WM_operator_poll((bContext *)C, ot)) {
-
-				if (false == UI_search_item_add(items, ot->name, ot, 0))
-					break;
-			}
-		}
-	}
-}
-
-
-/* ID Search browse menu, open */
-static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
-{
-	static char search[OP_MAX_TYPENAME];
-	wmEvent event;
-	wmWindow *win = CTX_wm_window(C);
-	uiBlock *block;
-	uiBut *but;
-
-	/* clear initial search string, then all items show */
-	search[0] = 0;
-
-	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
-	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
-
-	/* fake button, it holds space for search items */
-	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 15, UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
-
-	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, 19, 0, 0, "");
-	UI_but_func_search_set(but, NULL, operator_search_cb, arg_listbase, operator_call_cb, NULL);
-
-	UI_block_bounds_set_normal(block, 6);
-	UI_block_direction_set(block, UI_DIR_DOWN);
-	UI_block_end(C, block);
-
-	wm_event_init_from_window(win, &event);
-	event.type = EVT_BUT_OPEN;
-	event.val = KM_PRESS;
-	event.customdata = but;
-	event.customdatafree = false;
-	wm_event_add(win, &event);
-
-	return block;
-}
-
-
-static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
-{
-	SpaceLink *sl = CTX_wm_space_data(C);
-	SpaceType *st = NULL;
-	uiLayout *col;
-	const char *context = CTX_data_mode_string(C);
-
-	if (sl)
-		st = BKE_spacetype_from_id(sl->spacetype);
-
-	if (st && st->toolshelf.first) {
-		CustomTool *ct;
-
-		for (ct = st->toolshelf.first; ct; ct = ct->next) {
-			if (STREQLEN(context, ct->context, OP_MAX_TYPENAME)) {
-				col = uiLayoutColumn(pa->layout, true);
-				uiItemFullO(col, ct->opname, NULL, ICON_NONE, NULL, WM_OP_INVOKE_REGION_WIN, 0, NULL);
-			}
-		}
-	}
-	col = uiLayoutColumn(pa->layout, true);
-	uiDefBlockBut(uiLayoutGetBlock(pa->layout), tool_search_menu, &st->toolshelf, "Add Tool", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Add Tool in shelf, gets saved in files");
-}
-
-
-void view3d_toolshelf_register(ARegionType *art)
-{
-	PanelType *pt;
-
-	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel tools");
-	strcpy(pt->idname, "VIEW3D_PT_tool_shelf");
-	strcpy(pt->label, N_("Tool Shelf"));
-	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = view3d_panel_tool_shelf;
-	BLI_addtail(&art->paneltypes, pt);
-}
 
 /* ********** operator to open/close toolshelf region */
 
@@ -200,4 +71,3 @@ void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 }
-

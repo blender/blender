@@ -2,6 +2,8 @@
 
 #include "workbench_private.h"
 
+#include "BIF_gl.h"
+
 #include "BLI_dynstr.h"
 
 #define HSV_SATURATION 0.5
@@ -9,16 +11,16 @@
 
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data)
 {
-	/* When in OB_TEXTURE always uyse V3D_SHADING_MATERIAL_COLOR as fallback when no texture could be determined */
-	int color_type = wpd->drawtype == OB_SOLID ? wpd->shading.color_type : V3D_SHADING_MATERIAL_COLOR;
+	/* When V3D_SHADING_TEXTURE_COLOR is active, use V3D_SHADING_MATERIAL_COLOR as fallback when no texture could be determined */
+	int color_type = wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR ? V3D_SHADING_MATERIAL_COLOR : wpd->shading.color_type;
 	static float default_diffuse_color[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	static float default_specular_color[] = {0.5f, 0.5f, 0.5f, 0.5f};
-	copy_v4_v4(data->material_data.diffuse_color, default_diffuse_color);
-	copy_v4_v4(data->material_data.specular_color, default_specular_color);
-	data->material_data.roughness = 0.5f;
+	copy_v4_v4(data->diffuse_color, default_diffuse_color);
+	copy_v4_v4(data->specular_color, default_specular_color);
+	data->roughness = 0.5f;
 
-	if (DRW_object_is_paint_mode(ob) || color_type == V3D_SHADING_SINGLE_COLOR) {
-		copy_v3_v3(data->material_data.diffuse_color, wpd->shading.single_color);
+	if (color_type == V3D_SHADING_SINGLE_COLOR) {
+		copy_v3_v3(data->diffuse_color, wpd->shading.single_color);
 	}
 	else if (color_type == V3D_SHADING_RANDOM_COLOR) {
 		uint hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
@@ -28,19 +30,19 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Mate
 		float offset = fmodf((hash / 100000.0) * M_GOLDEN_RATION_CONJUGATE, 1.0);
 
 		float hsv[3] = {offset, HSV_SATURATION, HSV_VALUE};
-		hsv_to_rgb_v(hsv, data->material_data.diffuse_color);
+		hsv_to_rgb_v(hsv, data->diffuse_color);
 	}
 	else {
 		/* V3D_SHADING_MATERIAL_COLOR */
 		if (mat) {
-			copy_v3_v3(data->material_data.diffuse_color, &mat->r);
-			copy_v3_v3(data->material_data.specular_color, &mat->specr);
-			data->material_data.roughness = mat->roughness;
+			copy_v3_v3(data->diffuse_color, &mat->r);
+			copy_v3_v3(data->specular_color, &mat->specr);
+			data->roughness = mat->roughness;
 		}
 	}
 }
 
-char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair)
+char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair)
 {
 	char *str = NULL;
 
@@ -79,15 +81,9 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype,
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
 	}
-	switch (drawtype) {
-		case OB_SOLID:
-			BLI_dynstr_appendf(ds, "#define OB_SOLID\n");
-			break;
-		case OB_TEXTURE:
-			BLI_dynstr_appendf(ds, "#define OB_TEXTURE\n");
-			break;
+	if (use_textures) {
+		BLI_dynstr_appendf(ds, "#define V3D_SHADING_TEXTURE_COLOR\n");
 	}
-
 	if (NORMAL_ENCODING_ENABLED()) {
 		BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
 	}
@@ -104,7 +100,10 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype,
 #if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 2
 	BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL 2\n");
 #endif
-	BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS 9\n");
+#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 4
+	BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL 4\n");
+#endif
+	BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS 18\n");
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -115,33 +114,35 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 {
 	uint input[4];
 	uint result;
-	float *color = material_template->material_data.diffuse_color;
+	float *color = material_template->diffuse_color;
 	input[0] = (uint)(color[0] * 512);
 	input[1] = (uint)(color[1] * 512);
 	input[2] = (uint)(color[2] * 512);
 	input[3] = material_template->object_id;
 	result = BLI_ghashutil_uinthash_v4_murmur(input);
 
-	color = material_template->material_data.specular_color;
+	color = material_template->specular_color;
 	input[0] = (uint)(color[0] * 512);
 	input[1] = (uint)(color[1] * 512);
 	input[2] = (uint)(color[2] * 512);
-	input[3] = (uint)(material_template->material_data.roughness * 512);
+	input[3] = (uint)(material_template->roughness * 512);
 	result += BLI_ghashutil_uinthash_v4_murmur(input);
 
-	if (material_template->drawtype == OB_TEXTURE) {
-		/* add texture reference */
+	/* add texture reference */
+	if (material_template->ima)
+	{
 		result += BLI_ghashutil_inthash_p_murmur(material_template->ima);
 	}
+
 	return result;
 }
 
-int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype, bool is_hair)
+int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair)
 {
 	/* NOTE: change MAX_SHADERS accordingly when modifying this function. */
 	int index = 0;
-	/* 1 bit OB_SOLID and OB_TEXTURE */
-	SET_FLAG_FROM_TEST(index, drawtype == OB_TEXTURE, 1 << 0);
+	/* 1 bit V3D_SHADING_TEXTURE_COLOR */
+	SET_FLAG_FROM_TEST(index, use_textures, 1 << 0);
 	/* 2 bits FLAT/STUDIO/MATCAP/SCENE */
 	SET_FLAG_FROM_TEST(index, wpd->shading.light, wpd->shading.light << 1);
 	/* 1 bit V3D_SHADING_SPECULAR_HIGHLIGHT */
@@ -170,4 +171,39 @@ void workbench_material_set_normal_world_matrix(
 		copy_m3_m4(persistent_matrix, matrix);
 		DRW_shgroup_uniform_mat3(grp, "normalWorldMatrix", persistent_matrix);
 	}
+}
+
+int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima)
+{
+	int color_type = wpd->shading.color_type;
+	if (color_type == V3D_SHADING_TEXTURE_COLOR && ima == NULL) {
+		color_type = V3D_SHADING_MATERIAL_COLOR;
+	}
+	return color_type;
+}
+
+void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material)
+{
+	if (workbench_material_determine_color_type(wpd, material->ima) == V3D_SHADING_TEXTURE_COLOR)
+	{
+		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
+		DRW_shgroup_uniform_texture(grp, "image", tex);
+	}
+	else {
+		DRW_shgroup_uniform_vec4(grp, "materialDiffuseColor", material->diffuse_color, 1);
+	}
+
+	if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
+		DRW_shgroup_uniform_vec4(grp, "materialSpecularColor", material->specular_color, 1);
+		DRW_shgroup_uniform_float(grp, "materialRoughness", &material->roughness, 1);
+	}
+}
+
+void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material)
+{
+	dest_material->object_id = source_material->object_id;
+	copy_v4_v4(dest_material->diffuse_color, source_material->diffuse_color);
+	copy_v4_v4(dest_material->specular_color, source_material->specular_color);
+	dest_material->roughness = source_material->roughness;
+	dest_material->ima = source_material->ima;
 }

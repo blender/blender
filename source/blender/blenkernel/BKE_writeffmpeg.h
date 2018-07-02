@@ -92,4 +92,3 @@ void BKE_ffmpeg_context_free(void *context_v);
 #endif
 
 #endif
-

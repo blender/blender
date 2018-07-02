@@ -163,6 +163,9 @@ struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
 
 struct Main *BLO_main_from_memfile(struct MemFile *memfile, struct Main *bmain, struct Scene **r_scene);
 
+/* datafiles (generated theme) */
+extern const struct bTheme U_theme_default;
+
 #ifdef __cplusplus
 }
 #endif

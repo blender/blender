@@ -60,6 +60,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "WM_types.h"
 
@@ -156,8 +157,8 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	MovieTrackingPlaneTrack *act_plane_track = BKE_tracking_plane_track_get_active(&clip->tracking);
 	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	/* cache background */
 	ED_region_cache_draw_background(ar);
@@ -235,7 +236,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 		}
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* current frame */
 	x = (sc->user.framenr - sfra) / (efra - sfra + 1) * ar->winx;
@@ -313,8 +314,8 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 
 	/* checkerboard for case alpha */
 	if (ibuf->planes == 32) {
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 		imm_draw_box_checker_2d(x, y, x + zoomx * ibuf->x, y + zoomy * ibuf->y);
 	}
@@ -335,7 +336,7 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 	}
 
 	if (ibuf->planes == 32)
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 }
 
 static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int height, float zoomx, float zoomy)
@@ -364,10 +365,10 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
@@ -460,7 +461,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 
 		if (TRACK_VIEW_SELECTED(sc, track)) {
 			if ((b - a - 1) >= 1) {
-				glPointSize(5.0f);
+				GPU_point_size(5.0f);
 
 				immBegin(GWN_PRIM_POINTS, b - a - 1);
 
@@ -475,7 +476,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		}
 
 		if ((b - a) >= 2) {
-			glLineWidth(3.0f);
+			GPU_line_width(3.0f);
 
 			immBegin(GWN_PRIM_LINE_STRIP, b - a);
 
@@ -488,7 +489,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	}
 
 	if (TRACK_VIEW_SELECTED(sc, track)) {
-		glPointSize(3.0f);
+		GPU_point_size(3.0f);
 
 		if ((curindex - a) >= 1) {
 			immUniformThemeColor(TH_PATH_BEFORE);
@@ -515,7 +516,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		}
 	}
 
-	glLineWidth(1);
+	GPU_line_width(1);
 
 	if ((curindex - a + 1) >= 2) {
 		immUniformThemeColor(TH_PATH_BEFORE);
@@ -559,7 +560,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	px[0] = 1.0f / width / sc->zoom;
 	px[1] = 1.0f / height / sc->zoom;
 
-	glLineWidth(tiny ? 1.0f : 3.0f);
+	GPU_line_width(tiny ? 1.0f : 3.0f);
 
 	immUniformThemeColor(TH_MARKER_OUTLINE);
 
@@ -576,7 +577,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		if (isect_point_quad_v2(p, marker->pattern_corners[0], marker->pattern_corners[1],
 		                        marker->pattern_corners[2], marker->pattern_corners[3]))
 		{
-			glPointSize(tiny ? 3.0f : 4.0f);
+			GPU_point_size(tiny ? 3.0f : 4.0f);
 
 			immBegin(GWN_PRIM_POINTS, 1);
 			immVertex2f(position, pos[0], pos[1]);
@@ -660,7 +661,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	px[0] = 1.0f / width / sc->zoom;
 	px[1] = 1.0f / height / sc->zoom;
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	/* Since we are switching solid and dashed lines in rather complex logic here, just always go with dashed shader. */
 	immUnbindProgram();
@@ -668,10 +669,10 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* "simple" mode */
+	immUniform1i("colors_len", 0);  /* "simple" mode */
 
 	/* marker position and offset position */
 	if ((track->flag & SELECT) == sel && (marker->flag & MARKER_DISABLED) == 0) {
@@ -700,7 +701,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		if (isect_point_quad_v2(p, marker->pattern_corners[0], marker->pattern_corners[1],
 		                        marker->pattern_corners[2], marker->pattern_corners[3]))
 		{
-			glPointSize(tiny ? 1.0f : 2.0f);
+			GPU_point_size(tiny ? 1.0f : 2.0f);
 
 			immUniform1f("dash_factor", 2.0f);  /* Solid "line" */
 
@@ -932,7 +933,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 
 		BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
-		glLineWidth(outline ? 3.0f : 1.0f);
+		GPU_line_width(outline ? 3.0f : 1.0f);
 
 		immBegin(GWN_PRIM_LINES, 2);
 		immVertex2f(pos, 0.0f, 0.0f);
@@ -1125,8 +1126,8 @@ static void draw_plane_marker_image(Scene *scene,
 
 			if (plane_track->image_opacity != 1.0f || ibuf->planes == 32) {
 				transparent = true;
-				glEnable(GL_BLEND);
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				GPU_blend(true);
+				GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 			}
 
 			glGenTextures(1, (GLuint *)&texid);
@@ -1174,7 +1175,7 @@ static void draw_plane_marker_image(Scene *scene,
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			if (transparent) {
-				glDisable(GL_BLEND);
+				GPU_blend(false);
 			}
 		}
 
@@ -1210,16 +1211,16 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 
 		if (draw_plane_quad) {
 			const bool stipple = !draw_outline && tiny;
 			const bool thick = draw_outline && !tiny;
 
-			glLineWidth(thick ? 3.0f : 1.0f);
+			GPU_line_width(thick ? 3.0f : 1.0f);
 
 			if (stipple) {
 				immUniform1f("dash_width", 6.0f);
@@ -1483,7 +1484,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 		MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 		float pos[4], vec[4], mat[4][4], aspy;
 
-		glPointSize(3.0f);
+		GPU_point_size(3.0f);
 
 		aspy = 1.0f / clip->tracking.camera.pixel_aspect;
 		BKE_tracking_get_projection_matrix(tracking, object, framenr, width, height, mat);
@@ -1711,8 +1712,8 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 			immUniformColor4fv(layer->color);
 
-			glLineWidth(layer->thickness);
-			glPointSize((float)(layer->thickness + 2));
+			GPU_line_width(layer->thickness);
+			GPU_point_size((float)(layer->thickness + 2));
 
 			while (frame) {
 				bGPDstroke *stroke = frame->strokes.first;

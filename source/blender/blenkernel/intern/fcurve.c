@@ -2775,4 +2775,3 @@ float calculate_fcurve(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
 		return 0.0f;
 	}
 }
-

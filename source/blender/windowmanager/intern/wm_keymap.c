@@ -166,7 +166,8 @@ static void wm_keyconfig_properties_update_ot(ListBase *km_lb)
 static bool wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 {
 	return (STREQ(a->idname, b->idname) &&
-	        RNA_struct_equals(a->ptr, b->ptr, RNA_EQ_UNSET_MATCH_NONE) &&
+	        /* We do not really care about which Main we pass here, tbh. */
+	        RNA_struct_equals(G_MAIN, a->ptr, b->ptr, RNA_EQ_UNSET_MATCH_NONE) &&
 	        (a->flag & KMI_INACTIVE) == (b->flag & KMI_INACTIVE) &&
 	        a->propvalue == b->propvalue);
 }
@@ -1366,7 +1367,7 @@ wmKeyMapItem *WM_key_event_operator(
 	return wm_keymap_item_find(C, opname, opcontext, properties, is_hotkey, true, r_keymap);
 }
 
-int WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
+bool WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
 {
 	int k1type, k2type;
 

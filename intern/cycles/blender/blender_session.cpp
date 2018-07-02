@@ -54,6 +54,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
                                BL::BlendData& b_data,
                                bool preview_osl)
 : session(NULL),
+  sync(NULL),
   b_engine(b_engine),
   b_userpref(b_userpref),
   b_data(b_data),
@@ -81,6 +82,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
                                BL::RegionView3D& b_rv3d,
                                int width, int height)
 : session(NULL),
+  sync(NULL),
   b_engine(b_engine),
   b_userpref(b_userpref),
   b_data(b_data),
@@ -209,11 +211,8 @@ void BlenderSession::reset_session(BL::BlendData& b_data, BL::Depsgraph& b_depsg
 		/* if scene or session parameters changed, it's easier to simply re-create
 		 * them rather than trying to distinguish which settings need to be updated
 		 */
-
-		delete session;
-
+		free_session();
 		create_session();
-
 		return;
 	}
 
@@ -449,11 +448,11 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 		BL::Object b_camera_override(b_engine.camera_override());
 		sync->sync_camera(b_render, b_camera_override, width, height, b_rview_name.c_str());
 		sync->sync_data(b_render,
-						b_depsgraph,
-						b_v3d,
-						b_camera_override,
-						width, height,
-						&python_thread_state);
+		                b_depsgraph,
+		                b_v3d,
+		                b_camera_override,
+		                width, height,
+		                &python_thread_state);
 		builtin_images_load();
 
 		/* Make sure all views have different noise patterns. - hardcoded value just to make it random */
@@ -610,11 +609,11 @@ void BlenderSession::bake(BL::Depsgraph& b_depsgraph_,
 		BL::Object b_camera_override(b_engine.camera_override());
 		sync->sync_camera(b_render, b_camera_override, width, height, "");
 		sync->sync_data(b_render,
-						b_depsgraph,
-						b_v3d,
-						b_camera_override,
-						width, height,
-						&python_thread_state);
+		                b_depsgraph,
+		                b_v3d,
+		                b_camera_override,
+		                width, height,
+		                &python_thread_state);
 		builtin_images_load();
 	}
 

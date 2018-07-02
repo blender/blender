@@ -60,6 +60,7 @@
 #include "ED_undo.h"
 
 #include "interface_intern.h"
+#include "GPU_framebuffer.h"
 
 
 /* -------------------------------------------------------------------- */
@@ -87,7 +88,7 @@ static bool last_redo_poll(const bContext *C)
 /** \name Redo Panel
  * \{ */
 
-static int hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	return last_redo_poll(C);
 }
@@ -194,8 +195,8 @@ static void hud_region_draw(const bContext *C, ARegion *ar)
 {
 	UI_view2d_view_ortho(&ar->v2d);
 	wmOrtho2_region_pixelspace(ar);
-	glClearColor(0, 0, 0, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear_color(0, 0, 0, 0.0f);
+	GPU_clear(GPU_COLOR_BIT);
 
 	if ((ar->flag & RGN_FLAG_HIDDEN) == 0) {
 		float color[4];

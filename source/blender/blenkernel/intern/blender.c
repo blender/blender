@@ -48,6 +48,7 @@
 #include "BKE_addon.h"
 #include "BKE_blender.h"  /* own include */
 #include "BKE_blender_version.h"  /* own include */
+#include "BKE_blender_user_menu.h"
 #include "BKE_blendfile.h"
 #include "BKE_brush.h"
 #include "BKE_cachefile.h"
@@ -206,6 +207,15 @@ static void userdef_free_keymaps(UserDef *userdef)
 	BLI_listbase_clear(&userdef->user_keymaps);
 }
 
+static void userdef_free_user_menus(UserDef *userdef)
+{
+	for (bUserMenu *um = userdef->user_menus.first, *um_next; um; um = um_next) {
+		um_next = um->next;
+		BKE_blender_user_menu_item_free_list(&um->items);
+		MEM_freeN(um);
+	}
+}
+
 static void userdef_free_addons(UserDef *userdef)
 {
 	for (bAddon *addon = userdef->addons.first, *addon_next; addon; addon = addon_next) {
@@ -226,6 +236,7 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 #endif
 
 	userdef_free_keymaps(userdef);
+	userdef_free_user_menus(userdef);
 	userdef_free_addons(userdef);
 
 	if (clear_fonts) {
@@ -240,6 +251,7 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 	BLI_freelistN(&userdef->uistyles);
 	BLI_freelistN(&userdef->uifonts);
 	BLI_freelistN(&userdef->themes);
+
 
 #undef U
 }

@@ -175,7 +175,7 @@ static void actedit_change_action(bContext *C, bAction *act)
  *     The NLA Editor is active (i.e. Animation Data panel -> new action)
  *  2) The associated AnimData block must not be in tweakmode
  */
-static int action_new_poll(bContext *C)
+static bool action_new_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -295,7 +295,7 @@ void ACTION_OT_new(wmOperatorType *ot)
  *  2) There must be an action active
  *  3) The associated AnimData block must not be in tweakmode
  */
-static int action_pushdown_poll(bContext *C)
+static bool action_pushdown_poll(bContext *C)
 {
 	if (ED_operator_action_active(C)) {
 		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
@@ -426,7 +426,7 @@ void ACTION_OT_stash(wmOperatorType *ot)
  *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions
  *  2) The associated AnimData block must not be in tweakmode
  */
-static int action_stash_create_poll(bContext *C)
+static bool action_stash_create_poll(bContext *C)
 {
 	if (ED_operator_action_active(C)) {
 		AnimData *adt = ED_actedit_animdata_from_context(C);
@@ -618,7 +618,7 @@ void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act,
 
 /* -------------------------- */
 
-static int action_unlink_poll(bContext *C)
+static bool action_unlink_poll(bContext *C)
 {
 	if (ED_operator_action_active(C)) {
 		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
@@ -749,7 +749,7 @@ static void action_layer_switch_strip(AnimData *adt,
 
 /* ********************** One Layer Up Operator ************************** */
 
-static int action_layer_next_poll(bContext *C)
+static bool action_layer_next_poll(bContext *C)
 {
 	/* Action Editor's action editing modes only */
 	if (ED_operator_action_active(C)) {
@@ -860,7 +860,7 @@ void ACTION_OT_layer_next(wmOperatorType *ot)
 
 /* ********************* One Layer Down Operator ************************* */
 
-static int action_layer_prev_poll(bContext *C)
+static bool action_layer_prev_poll(bContext *C)
 {
 	/* Action Editor's action editing modes only */
 	if (ED_operator_action_active(C)) {

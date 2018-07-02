@@ -1827,7 +1827,7 @@ static void ccgDM_release(DerivedMesh *dm)
 
 			if (ccgdm->multires.mmd) {
 				if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED)
-					multires_modifier_update_mdisps(dm);
+					multires_modifier_update_mdisps(dm, NULL);
 				if (ccgdm->multires.modified_flags & MULTIRES_HIDDEN_MODIFIED)
 					multires_modifier_update_hidden(dm);
 			}
@@ -2930,6 +2930,7 @@ static bool subsurf_use_gpu_backend(SubsurfFlags flags)
 struct DerivedMesh *subsurf_make_derived_from_derived(
         struct DerivedMesh *dm,
         struct SubsurfModifierData *smd,
+        struct Scene *scene,
         float (*vertCos)[3],
         SubsurfFlags flags)
 {
@@ -2943,7 +2944,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	/* note: editmode calculation can only run once per
 	 * modifier stack evaluation (uses freed cache) [#36299] */
 	if (flags & SUBSURF_FOR_EDIT_MODE) {
-		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels, false) : smd->levels;
+		int levels = (scene != NULL) ? get_render_subsurf_level(&scene->r, smd->levels, false) : smd->levels;
 
 		/* TODO(sergey): Same as emCache below. */
 		if ((flags & SUBSURF_IN_EDIT_MODE) && smd->mCache) {
@@ -2964,7 +2965,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	else if (flags & SUBSURF_USE_RENDER_PARAMS) {
 		/* Do not use cache in render mode. */
 		CCGSubSurf *ss;
-		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->renderLevels, true) : smd->renderLevels;
+		int levels = (scene != NULL) ? get_render_subsurf_level(&scene->r, smd->renderLevels, true) : smd->renderLevels;
 
 		if (levels == 0)
 			return dm;
@@ -2980,7 +2981,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	}
 	else {
 		int useIncremental = (smd->flags & eSubsurfModifierFlag_Incremental);
-		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels, false) : smd->levels;
+		int levels = (scene != NULL) ? get_render_subsurf_level(&scene->r, smd->levels, false) : smd->levels;
 		CCGSubSurf *ss;
 
 		/* It is quite possible there is a much better place to do this. It

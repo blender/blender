@@ -84,4 +84,3 @@
 #endif // GHOST_DEBUG
 
 #endif // __GHOST_DEBUG_H__
-

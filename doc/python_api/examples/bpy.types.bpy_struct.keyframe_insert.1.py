@@ -12,6 +12,7 @@ from bpy.props import PointerProperty
 class MyPropGroup(bpy.types.PropertyGroup):
     nested = bpy.props.FloatProperty(name="Nested", default=0.0)
 
+
 # register it so its available for all bones
 bpy.utils.register_class(MyPropGroup)
 bpy.types.Bone.my_prop = PointerProperty(type=MyPropGroup,

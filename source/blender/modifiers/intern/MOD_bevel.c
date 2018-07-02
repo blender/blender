@@ -34,8 +34,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
@@ -43,7 +44,6 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -300,7 +300,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	        });
 
 	if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0])
-		modifier_get_vgroup_mesh(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
+		MOD_get_vgroup(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
 
 	if (vertex_only) {
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

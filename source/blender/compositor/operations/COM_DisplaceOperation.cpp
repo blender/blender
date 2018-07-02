@@ -190,4 +190,3 @@ bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffer
 
 	return false;
 }
-

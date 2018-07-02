@@ -75,4 +75,3 @@ public:
 };
 
 #endif // __GHOST_IContext_H__
-

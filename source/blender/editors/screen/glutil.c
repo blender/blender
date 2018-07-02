@@ -51,6 +51,7 @@
 #include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "UI_interface.h"
 
@@ -59,11 +60,11 @@
 void setlinestyle(int nr)
 {
 	if (nr == 0) {
-		glDisable(GL_LINE_STIPPLE);
+		GPU_line_stipple(false);
 	}
 	else {
 
-		glEnable(GL_LINE_STIPPLE);
+		GPU_line_stipple(true);
 		if (U.pixelsize > 1.0f)
 			glLineStipple(nr, 0xCCCC);
 		else

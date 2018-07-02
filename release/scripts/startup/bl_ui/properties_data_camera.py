@@ -242,7 +242,7 @@ class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
         cam = context.camera
         dof_options = cam.gpu_dof
 
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         if context.engine == 'BLENDER_EEVEE':
             col = flow.column()

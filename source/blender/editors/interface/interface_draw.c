@@ -58,6 +58,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "UI_interface.h"
 
@@ -119,7 +120,7 @@ void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float 
 		.alpha_discard = 1.0f,
 	};
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	if (filled) {
 		/* plain antialiased filled box */
@@ -135,24 +136,26 @@ void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float 
 	}
 	else {
 		/* plain antialiased unfilled box */
-		glEnable(GL_LINE_SMOOTH);
+		GPU_line_smooth(true);
 
 		Gwn_Batch *batch = ui_batch_roundbox_get(filled, false);
 		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
 		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
 		GWN_batch_draw(batch);
 
-		glDisable(GL_LINE_SMOOTH);
+		GPU_line_smooth(false);
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4])
 {
 #if 0
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+	};
 	int a;
 
 	Gwn_VertFormat *format = immVertexFormat();
@@ -266,8 +269,10 @@ void UI_draw_roundbox_shade_x(
         float rad, float shadetop, float shadedown, const float col[4])
 {
 #if 0
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+	};
 	const float div = maxy - miny;
 	const float idiv = 1.0f / div;
 	float coltop[3], coldown[3];
@@ -411,8 +416,10 @@ void UI_draw_roundbox_shade_y(
         bool filled, float minx, float miny, float maxx, float maxy,
         float rad, float shadeleft, float shaderight, const float col[4])
 {
-	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float vec[7][2] = {
+		{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+		{0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+	};
 	const float div = maxx - minx;
 	const float idiv = 1.0f / div;
 	float colLeft[3], colRight[3];
@@ -550,10 +557,10 @@ void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highligh
 	const int miny = rect->ymin + U.pixelsize, maxy = rect->ymax - U.pixelsize;
 	int a;
 	float vec[4][2] = {
-	    {0.195, 0.02},
-	    {0.55, 0.169},
-	    {0.831, 0.45},
-	    {0.98, 0.805},
+		{0.195, 0.02},
+		{0.55, 0.169},
+		{0.831, 0.45},
+		{0.98, 0.805},
 	};
 
 
@@ -645,12 +652,12 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	/* scissor doesn't seem to be doing the right thing...? */
 #if 0
 	/* prevent drawing outside widget area */
-	GLint scissor[4];
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor(rect->xmin, rect->ymin, w, h);
+	int scissor[4];
+	GPU_scissor_get_i(scissor);
+	GPU_scissor(rect->xmin, rect->ymin, w, h);
 #endif
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	if (w != ibuf->x || h != ibuf->y) {
 		facx = (float)w / (float)ibuf->x;
@@ -658,14 +665,15 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	}
 
 	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-	immDrawPixelsTex(&state, (float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect,
-	                 facx, facy, NULL);
+	immDrawPixelsTex(
+	        &state, (float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect,
+	        facx, facy, NULL);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 #if 0
 	// restore scissortest
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 #endif
 
 #endif
@@ -710,9 +718,9 @@ void UI_draw_safe_areas(
 static void draw_scope_end(const rctf *rect, GLint *scissor)
 {
 	/* restore scissortest */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	/* outline */
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
@@ -731,14 +739,14 @@ static void histogram_draw_one(
 	if (res == 0)
 		return;
 
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
 
 	immUniformColor4fv(color);
 
 	if (is_line) {
 		/* curve outline */
-		glLineWidth(1.5);
+		GPU_line_width(1.5);
 
 		immBegin(GWN_PRIM_LINE_STRIP, res);
 		for (int i = 0; i < res; i++) {
@@ -762,7 +770,7 @@ static void histogram_draw_one(
 		/* curve outline */
 		immUniformColor4f(0.0f, 0.0f, 0.0f, 0.25f);
 
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		immBegin(GWN_PRIM_LINE_STRIP, res);
 		for (int i = 0; i < res; i++) {
 			float x2 = x + i * (w / (float)res);
@@ -771,7 +779,7 @@ static void histogram_draw_one(
 		immEnd();
 	}
 
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 }
 
 #define HISTOGRAM_TOT_GRID_LINES 4
@@ -792,8 +800,8 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUS
 	float w = BLI_rctf_size_x(&rect);
 	float h = BLI_rctf_size_y(&rect) * hist->ymax;
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	float color[4];
 	UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
@@ -801,12 +809,13 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUS
 	UI_draw_roundbox_4fv(true, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, histogram can draw outside of boundary */
-	GLint scissor[4];
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	int scissor[4];
+	GPU_scissor_get_i(scissor);
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -879,7 +888,7 @@ static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *recti)
 {
 	Scopes *scopes = (Scopes *)but->poin;
-	GLint scissor[4];
+	int scissor[4];
 	float colors[3][3];
 	float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
 	float colors_alpha[3][3], colorsycc_alpha[3][3]; /* colors  pre multiplied by alpha for speed up */
@@ -916,8 +925,8 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 	/* Flush text cache before changing scissors. */
 	BLF_batch_draw_flush();
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	float color[4];
 	UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
@@ -925,11 +934,12 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 	UI_draw_roundbox_4fv(true, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, waveform can draw outside of boundary */
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	GPU_scissor_get_i(scissor);
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	/* draw scale numbers first before binding any shader */
 	for (int i = 0; i < 6; i++) {
@@ -943,8 +953,8 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 	/* Flush text cache before drawing things on top. */
 	BLF_batch_draw_flush();
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -1010,7 +1020,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 
 	if (scopes->ok && scopes->waveform_1 != NULL) {
 		glBlendFunc(GL_ONE, GL_ONE);
-		glPointSize(1.0);
+		GPU_point_size(1.0);
 
 		/* LUMA (1 channel) */
 		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA) {
@@ -1098,7 +1108,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 	/* outline */
 	draw_scope_end(&rect, scissor);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static float polar_to_x(float center, float diam, float ampli, float angle)
@@ -1187,8 +1197,8 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UN
 
 	float alpha = scopes->vecscope_alpha * scopes->vecscope_alpha * scopes->vecscope_alpha;
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	float color[4];
 	UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
@@ -1196,12 +1206,13 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UN
 	UI_draw_roundbox_4fv(true, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, hvectorscope can draw outside of boundary */
-	GLint scissor[4];
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	int scissor[4];
+	GPU_scissor_get_i(scissor);
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -1249,7 +1260,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UN
 		float col[3] = {alpha, alpha, alpha};
 
 		glBlendFunc(GL_ONE, GL_ONE);
-		glPointSize(1.0);
+		GPU_point_size(1.0);
 
 		gpuPushMatrix();
 		gpuTranslate2f(centerx, centery);
@@ -1265,12 +1276,12 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UN
 	/* outline */
 	draw_scope_end(&rect, scissor);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static void ui_draw_colorband_handle_tri_hlight(unsigned int pos, float x1, float y1, float halfwidth, float height)
 {
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 
 	immBegin(GWN_PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, x1 + halfwidth, y1);
@@ -1278,7 +1289,7 @@ static void ui_draw_colorband_handle_tri_hlight(unsigned int pos, float x1, floa
 	immVertex2f(pos, x1 - halfwidth, y1);
 	immEnd();
 
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 }
 
 static void ui_draw_colorband_handle_tri(unsigned int pos, float x1, float y1, float halfwidth, float height, bool fill)
@@ -1329,10 +1340,10 @@ static void ui_draw_colorband_handle(
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 2);  /* "advanced" mode */
+		immUniform1i("colors_len", 2);  /* "advanced" mode */
 		immUniformArray4fv("colors", (float *)(float[][4]){{0.8f, 0.8f, 0.8f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
 		immUniform1f("dash_width", active ? 4.0f : 2.0f);
 
@@ -1358,7 +1369,7 @@ static void ui_draw_colorband_handle(
 	ui_draw_colorband_handle_box(shdr_pos, x - half_width, y1 - 1, x + half_width, y1 + height, false);
 
 	/* draw all triangles blended */
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width, half_width, true);
 
@@ -1377,7 +1388,7 @@ static void ui_draw_colorband_handle(
 	immUniformColor3ub(0, 0, 0);
 	ui_draw_colorband_handle_tri_hlight(shdr_pos, x, y1 + height, half_width, half_width);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	immUniformColor3ub(128, 128, 128);
 	ui_draw_colorband_handle_box(shdr_pos, x - (half_width - 1), y1, x + (half_width - 1), y1 + height, true);
@@ -1425,7 +1436,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 	/* layer: color ramp */
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	CBData *cbd = coba->data;
 
@@ -1471,7 +1482,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 
 	immUnbindProgram();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* New format */
 	format = immVertexFormat();
@@ -1483,7 +1494,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	imm_draw_box_wire_2d(position, x1, y1, x1 + sizex, rect->ymax);
 
 	/* layer: box outline */
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
 	immBegin(GWN_PRIM_LINES, 2);
@@ -1498,7 +1509,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	immVertex2f(position, x1 + sizex, y1 - 1);
 	immEnd();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* layer: draw handles */
 	for (int a = 0; a < coba->tot; a++, cbd++) {
@@ -1561,11 +1572,11 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ubv((unsigned char *)wcol->inner);
 
-	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
+	GPU_blend(true);
+	GPU_line_smooth(true);
 	imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, 1.0f, 32);
-	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+	GPU_blend(false);
+	GPU_line_smooth(false);
 
 	/* matrix after circle */
 	gpuPopMatrix();
@@ -1583,8 +1594,9 @@ static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoo
 	float fy = rect->ymin + zoomy * (-offsy);
 	if (fy > rect->ymin) fy -= dy * (floorf(fy - rect->ymin));
 
-	float line_count = floorf((rect->xmax - fx) / dx) + 1.0f +
-	                   floorf((rect->ymax - fy) / dy) + 1.0f;
+	float line_count = (
+	        floorf((rect->xmax - fx) / dx) + 1.0f +
+	        floorf((rect->ymax - fy) / dy) + 1.0f);
 
 	immBegin(GWN_PRIM_LINES, (int)line_count * 2);
 	while (fx < rect->xmax) {
@@ -1603,9 +1615,10 @@ static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoo
 
 static void gl_shaded_color(unsigned char *col, int shade)
 {
-	immUniformColor3ub(col[0] - shade > 0 ? col[0] - shade : 0,
-	                   col[1] - shade > 0 ? col[1] - shade : 0,
-	                   col[2] - shade > 0 ? col[2] - shade : 0);
+	immUniformColor3ub(
+	        col[0] - shade > 0 ? col[0] - shade : 0,
+	        col[1] - shade > 0 ? col[1] - shade : 0,
+	        col[2] - shade > 0 ? col[2] - shade : 0);
 }
 
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti *rect)
@@ -1622,8 +1635,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	CurveMap *cuma = &cumap->cm[cumap->cur];
 
 	/* need scissor test, curve can draw outside of boundary */
-	GLint scissor[4];
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
+	int scissor[4];
+	GPU_scissor_get_i(scissor);
 	rcti scissor_new = {
 		.xmin = rect->xmin,
 		.ymin = rect->ymin,
@@ -1632,10 +1645,11 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	};
 	rcti scissor_region = {0, ar->winx, 0, ar->winy};
 	BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
-	glScissor(scissor_new.xmin,
-	          scissor_new.ymin,
-	          BLI_rcti_size_x(&scissor_new),
-	          BLI_rcti_size_y(&scissor_new));
+	GPU_scissor(
+	        scissor_new.xmin,
+	        scissor_new.ymin,
+	        BLI_rcti_size_x(&scissor_new),
+	        BLI_rcti_size_y(&scissor_new));
 
 	/* calculate offset and zoom */
 	float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&cumap->curr);
@@ -1658,7 +1672,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 		ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f);
 	}
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -1667,21 +1681,22 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	/* backdrop */
 	if (but->a1 == UI_GRAD_H) {
 		/* grid, hsv uses different grid */
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		immUniformColor4ub(0, 0, 0, 48);
 		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 	else {
 		if (cumap->flag & CUMA_DO_CLIP) {
 			gl_shaded_color((unsigned char *)wcol->inner, -20);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 			immUniformColor3ubv((unsigned char *)wcol->inner);
-			immRectf(pos, rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
-			              rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
-			              rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
-			              rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
+			immRectf(pos,
+			         rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
+			         rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
+			         rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
+			         rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
 		}
 		else {
 			immUniformColor3ubv((unsigned char *)wcol->inner);
@@ -1752,8 +1767,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 
 	/* the curve */
 	immUniformColor3ubv((unsigned char *)wcol->item);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
+	GPU_line_smooth(true);
+	GPU_blend(true);
 	immBegin(GWN_PRIM_LINE_STRIP, (CM_TABLE + 1) + 2);
 
 	if (cuma->table == NULL)
@@ -1785,8 +1800,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 		immVertex2f(pos, fx, fy);
 	}
 	immEnd();
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
+	GPU_line_smooth(false);
+	GPU_blend(false);
 	immUnbindProgram();
 
 	/* the points, use aspect to make them visible on edges */
@@ -1796,7 +1811,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	cmp = cuma->curve;
-	glPointSize(3.0f);
+	GPU_point_size(3.0f);
 	immBegin(GWN_PRIM_POINTS, cuma->totpoint);
 	for (int a = 0; a < cuma->totpoint; a++) {
 		float color[4];
@@ -1813,7 +1828,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	immUnbindProgram();
 
 	/* restore scissortest */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
 	/* outline */
 	format = immVertexFormat();
@@ -1841,16 +1856,17 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 	int width  = BLI_rctf_size_x(&rect) + 1;
 	int height = BLI_rctf_size_y(&rect);
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	/* need scissor test, preview image can draw outside of boundary */
-	GLint scissor[4];
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor((rect.xmin - 1),
-	          (rect.ymin - 1),
-	          (rect.xmax + 1) - (rect.xmin - 1),
-	          (rect.ymax + 1) - (rect.ymin - 1));
+	int scissor[4];
+	GPU_scissor_get_i(scissor);
+	GPU_scissor(
+	        (rect.xmin - 1),
+	        (rect.ymin - 1),
+	        (rect.xmax + 1) - (rect.xmin - 1),
+	        (rect.ymax + 1) - (rect.ymin - 1));
 
 	if (scopes->track_disabled) {
 		float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};
@@ -1866,10 +1882,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 		if (scopes->track_preview)
 			IMB_freeImBuf(scopes->track_preview);
 
-		ImBuf *tmpibuf = BKE_tracking_sample_pattern(scopes->frame_width, scopes->frame_height,
-		                                             scopes->track_search, scopes->track,
-		                                             &scopes->undist_marker, true, scopes->use_track_mask,
-		                                             width, height, scopes->track_pos);
+		ImBuf *tmpibuf = BKE_tracking_sample_pattern(
+		        scopes->frame_width, scopes->frame_height,
+		        scopes->track_search, scopes->track,
+		        &scopes->undist_marker, true, scopes->use_track_mask,
+		        width, height, scopes->track_pos);
 		if (tmpibuf) {
 			if (tmpibuf->rect_float)
 				IMB_rect_from_float(tmpibuf);
@@ -1885,7 +1902,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 		gpuPushMatrix();
 
 		/* draw content of pattern area */
-		glScissor(rect.xmin, rect.ymin, scissor[2], scissor[3]);
+		GPU_scissor(rect.xmin, rect.ymin, scissor[2], scissor[3]);
 
 		if (width > 0 && height > 0) {
 			ImBuf *drawibuf = scopes->track_preview;
@@ -1902,10 +1919,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 
 			/* draw cross for pixel position */
 			gpuTranslate2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);
-			glScissor(rect.xmin,
-			          rect.ymin,
-			          BLI_rctf_size_x(&rect),
-			          BLI_rctf_size_y(&rect));
+			GPU_scissor(
+			        rect.xmin,
+			        rect.ymin,
+			        BLI_rctf_size_x(&rect),
+			        BLI_rctf_size_y(&rect));
 
 			Gwn_VertFormat *format = immVertexFormat();
 			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -1953,7 +1971,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 	/* outline */
 	draw_scope_end(&rect, scissor);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *recti)
@@ -1975,10 +1993,10 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	    0.15142777f, 0.52896401f, 0.82076344f, 0.97952994f,
 	};
 
-	GLint scissor[4];
+	int scissor[4];
 
 	/* need scissor test, can draw outside of boundary */
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
+	GPU_scissor_get_i(scissor);
 
 	rcti scissor_new = {
 		.xmin = recti->xmin,
@@ -1990,10 +2008,11 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	rcti scissor_region = {0, ar->winx, 0, ar->winy};
 
 	BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
-	glScissor(scissor_new.xmin,
-	          scissor_new.ymin,
-	          BLI_rcti_size_x(&scissor_new),
-	          BLI_rcti_size_y(&scissor_new));
+	GPU_scissor(
+	        scissor_new.xmin,
+	        scissor_new.ymin,
+	        BLI_rcti_size_x(&scissor_new),
+	        BLI_rcti_size_y(&scissor_new));
 
 	float x = 0.5f * (recti->xmin + recti->xmax);
 	float y = 0.5f * (recti->ymin + recti->ymax);
@@ -2003,26 +2022,26 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4ubv(but->col);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	immBegin(GWN_PRIM_TRI_FAN, 16);
 	for (int a = 0; a < 16; a++)
 		immVertex2f(pos, x + size * si[a], y + size * co[a]);
 	immEnd();
 
 	immUniformColor4ub(0, 0, 0, 150);
-	glLineWidth(1);
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_width(1);
+	GPU_line_smooth(true);
 	immBegin(GWN_PRIM_LINE_LOOP, 16);
 	for (int a = 0; a < 16; a++)
 		immVertex2f(pos, x + size * si[a], y + size * co[a]);
 	immEnd();
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
+	GPU_line_smooth(false);
+	GPU_blend(false);
 
 	immUnbindProgram();
 
 	/* restore scissortest */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 }
 
 /* ****************************************************** */
@@ -2093,7 +2112,7 @@ static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, f
 
 void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
 {
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -2112,7 +2131,7 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 
 	immUnbindProgram();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 
@@ -2136,7 +2155,7 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
 		a = i * aspect;
 	}
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	const float dalpha = alpha * 2.0f / 255.0f;
 	float calpha = dalpha;
 	float visibility = 1.0f;
@@ -2173,10 +2192,10 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
 	GWN_batch_draw(batch);
 
 	/* outline emphasis */
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 	float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
 	UI_draw_roundbox_4fv(false, rct->xmin - 0.5f, rct->ymin - 0.5f, rct->xmax + 0.5f, rct->ymax + 0.5f, radius + 0.5f, color);
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }

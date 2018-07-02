@@ -167,12 +167,19 @@ typedef struct View3DOverlay {
 	/* Paint mode settings */
 	int paint_flag;
 
+	/* Alpha for texture, weight, vertex paint overlay */
+	float texture_paint_mode_opacity;
+	float vertex_paint_mode_opacity;
+	float weight_paint_mode_opacity;
+
 	/* Armature edit/pose mode settings */
 	int arm_flag;
 	float bone_selection_alpha;
 
 	/* Other settings */
 	float wireframe_threshold;
+
+	int pad;
 } View3DOverlay;
 
 /* 3D ViewPort Struct */
@@ -331,7 +338,7 @@ typedef struct View3D {
 #define V3D_SOLID_MATCAP		(1 << 12)	/* user flag */
 #define V3D_SHOW_SOLID_MATCAP	(1 << 13)	/* runtime flag */
 #define V3D_OCCLUDE_WIRE		(1 << 14)
-#define V3D_SHOW_MODE_SHADE_OVERRIDE	(1 << 15)
+#define V3D_SHOW_MODE_SHADE_OVERRIDE (1 << 15) /* XXX: DNA deprecated */
 
 
 /* View3d->flag3 (short) */
@@ -355,11 +362,12 @@ enum {
 	V3D_SHADING_MATCAP_FLIP_X       = (1 << 6),
 };
 
-/* View3DShading->single_color_type */
+/* View3DShading->color_type */
 enum {
 	V3D_SHADING_MATERIAL_COLOR = 0,
 	V3D_SHADING_RANDOM_COLOR   = 1,
 	V3D_SHADING_SINGLE_COLOR   = 2,
+	V3D_SHADING_TEXTURE_COLOR  = 3,
 };
 
 /* View3DOverlay->flag */
@@ -447,4 +455,3 @@ enum {
 #define RV3D_CAMZOOM_MAX_FACTOR 44.9852813742385702928f
 
 #endif
-

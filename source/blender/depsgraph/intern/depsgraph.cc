@@ -100,6 +100,7 @@ Depsgraph::Depsgraph(Scene *scene,
 	entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
 	debug_flags = G.debug;
 	memset(id_type_updated, 0, sizeof(id_type_updated));
+	memset(physics_relations, 0, sizeof(physics_relations));
 }
 
 Depsgraph::~Depsgraph()
@@ -360,6 +361,8 @@ void Depsgraph::clear_id_nodes()
 	/* Clear containers. */
 	BLI_ghash_clear(id_hash, NULL, NULL);
 	id_nodes.clear();
+	/* Clear physics relation caches. */
+	deg_clear_physics_relations(this);
 }
 
 /* Add new relationship between two nodes. */

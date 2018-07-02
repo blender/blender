@@ -50,6 +50,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1207,10 +1208,10 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
 
 			immUniformColor4ub(255, 255, 255, 32);
 
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
+			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+			GPU_blend(true);
 			immRecti(pos, x1 - 4, y1, x2, y2);
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 	}
 
@@ -1506,10 +1507,10 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
-			glGetFloatv(GL_VIEWPORT, viewport_size);
+			GPU_viewport_size_get_f(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-			immUniform1i("num_colors", 0);  /* "simple" mode */
+			immUniform1i("colors_len", 0);  /* "simple" mode */
 			immUniformThemeColor(TH_GRID);  /* same color as line number background */
 			immUniform1f("dash_width", 2.0f);
 			immUniform1f("dash_factor", 0.5f);

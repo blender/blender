@@ -71,7 +71,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(userRenderParams))
+static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, int UNUSED(userRenderParams))
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
 
@@ -113,7 +113,7 @@ static void deformVerts(
         int numVerts)
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
-	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
@@ -134,7 +134,7 @@ static void deformVertsEM(
         float (*vertexCos)[3],
         int numVerts)
 {
-	Mesh *mesh_src = get_mesh(ctx->object, em, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, em, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 

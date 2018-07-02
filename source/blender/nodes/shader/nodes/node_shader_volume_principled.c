@@ -162,4 +162,3 @@ void register_node_type_sh_volume_principled(void)
 
 	nodeRegisterType(&ntype);
 }
-

@@ -41,6 +41,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "ED_screen.h"
+
 static void rna_WorkspaceTool_setup(
         ID *id,
         bToolRef *tref,
@@ -80,10 +82,14 @@ static PointerRNA rna_WorkspaceTool_operator_properties(
 
 #else
 
-void RNA_api_workspace(StructRNA *UNUSED(srna))
+void RNA_api_workspace(StructRNA *srna)
 {
-	/* FunctionRNA *func; */
-	/* PropertyRNA *parm; */
+	FunctionRNA *func;
+
+	func = RNA_def_function(srna, "status_text_set", "ED_workspace_status_text");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Set the status bar text, typically key shortcuts for modal operators");
+	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the status bar, no argument clears the text");
 }
 
 void RNA_api_workspace_tool(StructRNA *srna)

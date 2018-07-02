@@ -705,7 +705,7 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
 		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%     |   %s", mode_str, (int)(pso->percentage * 100.0f), limits_str);
 	}
 
-	ED_area_headerprint(pso->sa, status_str);
+	ED_area_status_text(pso->sa, status_str);
 }
 
 /* common code for invoke() methods */
@@ -857,7 +857,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case PADENTER:
 		{
 			/* return to normal cursor and header status */
-			ED_area_headerprint(pso->sa, NULL);
+			ED_area_status_text(pso->sa, NULL);
 			WM_cursor_modal_restore(win);
 
 			/* insert keyframes as required... */
@@ -872,7 +872,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case RIGHTMOUSE:
 		{
 			/* return to normal cursor and header status */
-			ED_area_headerprint(pso->sa, NULL);
+			ED_area_status_text(pso->sa, NULL);
 			WM_cursor_modal_restore(win);
 
 			/* reset transforms back to original state */

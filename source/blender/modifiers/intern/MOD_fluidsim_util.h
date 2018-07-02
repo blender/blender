@@ -49,4 +49,3 @@ struct DerivedMesh *fluidsimModifier_do(
         struct DerivedMesh *dm);
 
 #endif
-

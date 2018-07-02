@@ -46,6 +46,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -438,7 +439,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 	float color_back[4] = {1.0f, 1.0f, 1.0f, 0.5f};
 
 	/* anti-aliased lines for more consistent appearance */
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 
 	BLF_enable(blf_mono_font, BLF_ROTATION);
 	BLF_size(blf_mono_font, 14 * U.pixelsize, U.dpi);
@@ -458,7 +459,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			ED_view3d_project_float_global(ar, ruler_item->co[j], co_ss[j], V3D_PROJ_TEST_NOP);
 		}
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
@@ -466,10 +467,10 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
-			glGetFloatv(GL_VIEWPORT, viewport_size);
+			GPU_viewport_size_get_f(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-			immUniform1i("num_colors", 2);  /* "advanced" mode */
+			immUniform1i("colors_len", 2);  /* "advanced" mode */
 			const float *col = is_act ? color_act : color_base;
 			immUniformArray4fv("colors", (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}}, 2);
 			immUniform1f("dash_width", 6.0f);
@@ -545,7 +546,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				rot_90_vec_b[1] =  dir_ruler[0];
 				normalize_v2(rot_90_vec_b);
 
-				glEnable(GL_BLEND);
+				GPU_blend(true);
 
 				immUniformColor3ubv(color_wire);
 
@@ -569,7 +570,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immEnd();
 
-				glDisable(GL_BLEND);
+				GPU_blend(false);
 			}
 
 			immUnbindProgram();
@@ -605,10 +606,10 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
-			glGetFloatv(GL_VIEWPORT, viewport_size);
+			GPU_viewport_size_get_f(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-			immUniform1i("num_colors", 2);  /* "advanced" mode */
+			immUniform1i("colors_len", 2);  /* "advanced" mode */
 			const float *col = is_act ? color_act : color_base;
 			immUniformArray4fv("colors", (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}}, 2);
 			immUniform1f("dash_width", 6.0f);
@@ -633,7 +634,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				normalize_v2(rot_90_vec);
 
-				glEnable(GL_BLEND);
+				GPU_blend(true);
 
 				immUniformColor3ubv(color_wire);
 
@@ -651,7 +652,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immEnd();
 
-				glDisable(GL_BLEND);
+				GPU_blend(false);
 			}
 
 			immUnbindProgram();
@@ -687,7 +688,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 		}
 	}
 
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 
 	BLF_disable(blf_mono_font, BLF_ROTATION);
 
@@ -811,7 +812,7 @@ static bool view3d_ruler_item_mousemove(
 	}
 }
 
-static void view3d_ruler_header_update(ScrArea *sa)
+static void view3d_ruler_header_update(bContext *C)
 {
 	const char *text = IFACE_("Ctrl+LMB: Add, "
 	                          "Del: Remove, "
@@ -821,7 +822,7 @@ static void view3d_ruler_header_update(ScrArea *sa)
 	                          "Enter: Store,  "
 	                          "Esc: Cancel");
 
-	ED_area_headerprint(sa, text);
+	ED_workspace_status_text(C, text);
 }
 
 /* -------------------------------------------------------------------- */
@@ -847,7 +848,7 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	ruler_info->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ruler_info_draw_pixel,
 	                                                           ruler_info, REGION_DRAW_POST_PIXEL);
 
-	view3d_ruler_header_update(sa);
+	view3d_ruler_header_update(C);
 
 	op->flag |= OP_IS_MODAL_CURSOR_REGION;
 
@@ -1079,7 +1080,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (do_draw) {
-		view3d_ruler_header_update(sa);
+		view3d_ruler_header_update(C);
 
 		/* all 3d views draw rulers */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -1093,7 +1094,7 @@ exit:
 		view3d_ruler_free(ruler_info);
 		op->customdata = NULL;
 
-		ED_area_headerprint(sa, NULL);
+		ED_workspace_status_text(C, NULL);
 	}
 
 	return exit_code;

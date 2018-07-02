@@ -155,7 +155,7 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
 
         col = layout.column()
 
-        if probe.type != "PLANAR":
+        if probe.type != 'PLANAR':
             col.prop(probe, "data_draw_size", text="Size")
         else:
             col.prop(ob, "empty_draw_size", text="Arrow Size")

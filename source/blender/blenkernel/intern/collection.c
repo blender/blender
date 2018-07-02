@@ -317,13 +317,13 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
 		if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
 		    ((object_restrict & OB_RESTRICT_VIEW) == 0))
 		{
-			base->flag |= BASE_VISIBLE_VIEWPORT;
+			base->flag |= BASE_ENABLED_VIEWPORT;
 		}
 
 		if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
 		    ((object_restrict & OB_RESTRICT_RENDER) == 0))
 		{
-			base->flag |= BASE_VISIBLE_RENDER;
+			base->flag |= BASE_ENABLED_RENDER;
 		}
 	}
 
@@ -364,36 +364,13 @@ void BKE_collection_object_cache_free(Collection *collection)
 	collection_object_cache_free(collection);
 }
 
-Base *BKE_collection_or_layer_objects(const Depsgraph *depsgraph,
-                                      const Scene *scene,
-                                      const ViewLayer *view_layer,
-                                      Collection *collection)
+Base *BKE_collection_or_layer_objects(const ViewLayer *view_layer, Collection *collection)
 {
-	// TODO: this is used by physics to get objects from a collection, but the
-	// the physics systems are not all using the depsgraph correctly which means
-	// we try different things. Instead we should explicitly get evaluated or
-	// non-evaluated data and always have the depsgraph available when needed
-
 	if (collection) {
 		return BKE_collection_object_cache_get(collection).first;
 	}
-	else if (depsgraph) {
-		view_layer = DEG_get_evaluated_view_layer(depsgraph);
-
-		if (view_layer) {
-			return FIRSTBASE(view_layer);
-		}
-		else {
-			view_layer = DEG_get_input_view_layer(depsgraph);
-			return FIRSTBASE(view_layer);
-		}
-	}
-	else if (view_layer) {
-		return FIRSTBASE(view_layer);
-	}
 	else {
-		/* depsgraph is NULL during deg build */
-		return FIRSTBASE(BKE_view_layer_context_active_PLACEHOLDER(scene));
+		return FIRSTBASE(view_layer);
 	}
 }
 
@@ -903,7 +880,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
 				}
 			}
 			else {
-				if ((base->flag & BASE_SELECTABLED) && !(base->flag & BASE_SELECTED)) {
+				if ((base->flag & BASE_SELECTABLE) && !(base->flag & BASE_SELECTED)) {
 					base->flag |= BASE_SELECTED;
 					changed = true;
 				}

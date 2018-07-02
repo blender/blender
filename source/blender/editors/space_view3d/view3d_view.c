@@ -55,6 +55,7 @@
 #include "GPU_glew.h"
 #include "GPU_select.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -463,7 +464,7 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 
 }
 
-static int view3d_camera_to_view_poll(bContext *C)
+static bool view3d_camera_to_view_poll(bContext *C)
 {
 	View3D *v3d;
 	ARegion *ar;
@@ -509,7 +510,6 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);  /* can be NULL */
 	Object *camera_ob = v3d ? v3d->camera : scene->camera;
 	Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
@@ -523,7 +523,7 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 	}
 
 	/* this function does all the important stuff */
-	if (BKE_camera_view_frame_fit_to_scene(depsgraph, scene, view_layer, camera_ob_eval, r_co, &r_scale)) {
+	if (BKE_camera_view_frame_fit_to_scene(depsgraph, scene, camera_ob_eval, r_co, &r_scale)) {
 		ObjectTfmProtectedChannels obtfm;
 		float obmat_new[4][4];
 
@@ -663,7 +663,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-int ED_operator_rv3d_user_region_poll(bContext *C)
+bool ED_operator_rv3d_user_region_poll(bContext *C)
 {
 	View3D *v3d_dummy;
 	ARegion *ar_dummy;
@@ -1005,7 +1005,7 @@ int view3d_opengl_select(
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
-		glEnable(GL_DEPTH_TEST);
+		GPU_depth_test(true);
 	}
 
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
@@ -1051,7 +1051,7 @@ int view3d_opengl_select(
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;
-		glDisable(GL_DEPTH_TEST);
+		GPU_depth_test(false);
 	}
 
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
@@ -1076,7 +1076,7 @@ finally:
 /** \name View Layer Utilities
  * \{ */
 
-int ED_view3d_view_layer_set(int lay, const int *values, int *active)
+int ED_view3d_view_layer_set(int lay, const bool *values, int *active)
 {
 	int i, tot = 0;
 

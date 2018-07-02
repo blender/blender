@@ -95,7 +95,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	 * do NULL-pointer check of the base, so it's fine to pass original one.
 	 */
 	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
-		BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;
+		BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
 	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
 		if (base->flag & base_flag) {
 			build_object(base, base->object);

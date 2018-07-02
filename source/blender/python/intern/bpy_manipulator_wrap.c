@@ -233,4 +233,3 @@ void BPY_RNA_manipulatorgroup_wrapper(wmManipulatorGroupType *wgt, void *userdat
 }
 
 /** \} */
-

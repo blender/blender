@@ -49,6 +49,7 @@
 #include "BLI_task.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
@@ -1082,7 +1083,7 @@ static void statvis_calc_overhang(
 	/* fallback max */
 	{
 		float fcol[3];
-		weight_to_rgb(fcol, 1.0f);
+		BKE_defvert_weight_to_rgb(fcol, 1.0f);
 		rgb_float_to_uchar(col_fallback_max, fcol);
 	}
 
@@ -1096,7 +1097,7 @@ static void statvis_calc_overhang(
 			fac = (fac - min) * minmax_irange;
 			fac = 1.0f - fac;
 			CLAMP(fac, 0.0f, 1.0f);
-			weight_to_rgb(fcol, fac);
+			BKE_defvert_weight_to_rgb(fcol, fac);
 			rgb_float_to_uchar(r_face_colors[index], fcol);
 		}
 		else {
@@ -1231,7 +1232,7 @@ static void statvis_calc_thickness(
 			fac = (fac - min) * minmax_irange;
 			fac = 1.0f - fac;
 			CLAMP(fac, 0.0f, 1.0f);
-			weight_to_rgb(fcol, fac);
+			BKE_defvert_weight_to_rgb(fcol, fac);
 			rgb_float_to_uchar(r_face_colors[i], fcol);
 		}
 		else {
@@ -1270,7 +1271,7 @@ static void statvis_calc_intersect(
 	overlap = BKE_bmbvh_overlap(bmtree, bmtree, &overlap_len);
 
 	/* same for all faces */
-	weight_to_rgb(fcol, 1.0f);
+	BKE_defvert_weight_to_rgb(fcol, 1.0f);
 	rgb_float_to_uchar(col, fcol);
 
 	if (overlap) {
@@ -1357,7 +1358,7 @@ static void statvis_calc_distort(
 			float fcol[3];
 			fac = (fac - min) * minmax_irange;
 			CLAMP(fac, 0.0f, 1.0f);
-			weight_to_rgb(fcol, fac);
+			BKE_defvert_weight_to_rgb(fcol, fac);
 			rgb_float_to_uchar(r_face_colors[index], fcol);
 		}
 		else {
@@ -1407,7 +1408,7 @@ static void statvis_calc_sharp(
 			float fcol[3];
 			fac = (fac - min) * minmax_irange;
 			CLAMP(fac, 0.0f, 1.0f);
-			weight_to_rgb(fcol, fac);
+			BKE_defvert_weight_to_rgb(fcol, fac);
 			rgb_float_to_uchar(r_vert_colors[i], fcol);
 		}
 		else {

@@ -64,6 +64,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 /* *************************************************** */
 /* CURRENT FRAME DRAWING */
@@ -138,7 +139,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 	const float time = scene->r.cfra + scene->r.subframe;
 	const float x = (float)(time * scene->r.framelen);
 
-	glLineWidth((flag & DRAWCFRA_WIDE) ? 3.0 : 2.0);
+	GPU_line_width((flag & DRAWCFRA_WIDE) ? 3.0 : 2.0);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -166,8 +167,8 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 
 	/* only draw this if preview range is set */
 	if (PRVRANGEON) {
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
 
 		Gwn_VertFormat *format = immVertexFormat();
 		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -187,7 +188,7 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 
 		immUnbindProgram();
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 }
 
@@ -199,8 +200,8 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 {
 	/* draw darkened area outside of active timeline frame range */
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -216,7 +217,7 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 		immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* thin lines where the actual frames are */
 	immUniformThemeColorShade(TH_BACK, -60);

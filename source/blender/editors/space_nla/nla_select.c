@@ -653,7 +653,7 @@ void NLA_OT_click_select(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Mouse Select";
+	ot->name = "Select";
 	ot->idname = "NLA_OT_click_select";
 	ot->description = "Handle clicks to select NLA Strips";
 

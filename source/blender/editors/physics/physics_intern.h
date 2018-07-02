@@ -95,6 +95,7 @@ void PARTICLE_OT_dupliob_copy(struct wmOperatorType *ot);
 void PARTICLE_OT_dupliob_remove(struct wmOperatorType *ot);
 void PARTICLE_OT_dupliob_move_up(struct wmOperatorType *ot);
 void PARTICLE_OT_dupliob_move_down(struct wmOperatorType *ot);
+void PARTICLE_OT_dupliob_refresh(struct wmOperatorType *ot);
 
 /* particle_boids.c */
 void BOID_OT_rule_add(struct wmOperatorType *ot);

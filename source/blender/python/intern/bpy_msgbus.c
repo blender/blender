@@ -397,4 +397,3 @@ PyObject *BPY_msgbus_module(void)
 }
 
 /** \} */
-

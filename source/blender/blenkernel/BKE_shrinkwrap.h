@@ -76,7 +76,7 @@ typedef struct ShrinkwrapCalcData {
 
 } ShrinkwrapCalcData;
 
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct Mesh *mesh,
+void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Scene *scene, struct Object *ob, struct Mesh *mesh,
                                float (*vertexCos)[3], int numVerts);
 
 /*

@@ -104,7 +104,11 @@ class IMAGE_MT_view(Menu):
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
         for a, b in ratios:
-            layout.operator("image.view_zoom_ratio", text=iface_("Zoom %d:%d") % (a, b), translate=False).ratio = a / b
+            layout.operator(
+                "image.view_zoom_ratio",
+                text=iface_(f"Zoom {a:d}:{b:d}"),
+                translate=False,
+            ).ratio = a / b
 
         layout.separator()
 
@@ -480,14 +484,6 @@ class IMAGE_HT_header(Header):
 
         layout.prop(sima, "mode", text="")
 
-        layout.template_ID(sima, "image", new="image.new", open="image.open")
-        if not show_render:
-            layout.prop(sima, "use_image_pin", text="")
-
-        if show_maskedit:
-            row = layout.row()
-            row.template_ID(sima, "mask", new="mask.new")
-
         # uv editing
         if show_uvedit:
             uvedit = sima.uv_editor
@@ -504,8 +500,19 @@ class IMAGE_HT_header(Header):
 
         layout.separator_spacer()
 
+        layout.template_ID(sima, "image", new="image.new", open="image.open")
+
+        if show_maskedit:
+            row = layout.row()
+            row.template_ID(sima, "mask", new="mask.new")
+
+        layout.separator_spacer()
+
         if show_uvedit or show_maskedit or mode == 'PAINT':
-            layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
+            layout.prop(sima, "use_realtime_update", icon_only=True, icon='FILE_REFRESH')
+
+        if not show_render:
+            layout.prop(sima, "use_image_pin", text="")
 
         if show_uvedit:
             uvedit = sima.uv_editor
@@ -513,18 +520,19 @@ class IMAGE_HT_header(Header):
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
 
+            # Snap
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_snap", text="")
+            row.prop(toolsettings, "snap_uv_element", icon_only=True)
+            if toolsettings.snap_uv_element != 'INCREMENT':
+                row.prop(toolsettings, "snap_target", text="")
+
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_edit", icon_only=True)
             # if toolsettings.proportional_edit != 'DISABLED':
             sub = row.row(align=True)
             sub.active = toolsettings.proportional_edit != 'DISABLED'
             sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-
-            row = layout.row(align=True)
-            row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_uv_element", icon_only=True)
-            if toolsettings.snap_uv_element != 'INCREMENT':
-                row.prop(toolsettings, "snap_target", text="")
 
         layout.prop(sima, "pivot_point", icon_only=True)
 

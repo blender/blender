@@ -120,4 +120,3 @@ void VIEW3D_WGT_force_field(wmManipulatorGroupType *wgt)
 }
 
 /** \} */
-

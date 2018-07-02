@@ -19,6 +19,7 @@ def get_float(self):
 def set_float(self, value):
     self["testprop"] = value
 
+
 bpy.types.Scene.test_float = bpy.props.FloatProperty(get=get_float, set=set_float)
 
 
@@ -26,6 +27,7 @@ bpy.types.Scene.test_float = bpy.props.FloatProperty(get=get_float, set=set_floa
 def get_date(self):
     import datetime
     return str(datetime.datetime.now())
+
 
 bpy.types.Scene.test_date = bpy.props.StringProperty(get=get_date)
 
@@ -40,6 +42,7 @@ def get_array(self):
 def set_array(self, values):
     self["somebool"] = values[0] and values[1]
 
+
 bpy.types.Scene.test_array = bpy.props.BoolVectorProperty(size=2, get=get_array, set=set_array)
 
 
@@ -50,7 +53,7 @@ test_items = [
     ("GREEN", "Green", "", 2),
     ("BLUE", "Blue", "", 3),
     ("YELLOW", "Yellow", "", 4),
-    ]
+]
 
 
 def get_enum(self):
@@ -60,6 +63,7 @@ def get_enum(self):
 
 def set_enum(self, value):
     print("setting value", value)
+
 
 bpy.types.Scene.test_enum = bpy.props.EnumProperty(items=test_items, get=get_enum, set=set_enum)
 

@@ -82,7 +82,7 @@ static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static int rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
 {
 	/* can be NULL on file load, T42619 */
-	wmWindowManager *wm = G.main->wm.first;
+	wmWindowManager *wm = G_MAIN->wm.first;
 	return wm ? (ED_screen_animation_playing(wm) != NULL) : 0;
 }
 
@@ -95,7 +95,7 @@ static int rna_region_alignment_get(PointerRNA *ptr)
 static void rna_Screen_layout_name_get(PointerRNA *ptr, char *value)
 {
 	const bScreen *screen = ptr->data;
-	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G.main, screen, NULL);
+	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, NULL);
 
 	if (layout) {
 		const char *name = BKE_workspace_layout_name_get(layout);
@@ -109,7 +109,7 @@ static void rna_Screen_layout_name_get(PointerRNA *ptr, char *value)
 static int rna_Screen_layout_name_length(PointerRNA *ptr)
 {
 	const bScreen *screen = ptr->data;
-	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G.main, screen, NULL);
+	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, NULL);
 
 	if (layout) {
 		const char *name = BKE_workspace_layout_name_get(layout);
@@ -123,7 +123,7 @@ static void rna_Screen_layout_name_set(PointerRNA *ptr, const char *value)
 {
 	bScreen *screen = ptr->data;
 	WorkSpace *workspace;
-	WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G.main, screen, &workspace);
+	WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, &workspace);
 
 	if (layout) {
 		BKE_workspace_layout_name_set(workspace, layout, value);
@@ -289,7 +289,7 @@ static void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float re
 	UI_view2d_region_to_view(v2d, x, y, &result[0], &result[1]);
 }
 
-static void rna_View2D_view_to_region(struct View2D *v2d, float x, float y, int clip, int result[2])
+static void rna_View2D_view_to_region(struct View2D *v2d, float x, float y, bool clip, int result[2])
 {
 	if (clip)
 		UI_view2d_view_to_region_clip(v2d, x, y, &result[0], &result[1]);
@@ -385,8 +385,8 @@ static void rna_def_area(BlenderRNA *brna)
 
 	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 
-	func = RNA_def_function(srna, "header_text_set", "ED_area_headerprint");
-	RNA_def_function_ui_description(func, "Set the header text");
+	func = RNA_def_function(srna, "header_text_set", "ED_area_status_text");
+	RNA_def_function_ui_description(func, "Set the header status text");
 	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text");
 }
 
@@ -586,4 +586,3 @@ void RNA_def_screen(BlenderRNA *brna)
 }
 
 #endif
-

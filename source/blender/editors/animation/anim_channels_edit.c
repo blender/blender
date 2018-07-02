@@ -659,7 +659,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
 /* ****************** Operator Utilities ********************************** */
 
 /* poll callback for being in an Animation Editor channels list region */
-static int animedit_poll_channels_active(bContext *C)
+static bool animedit_poll_channels_active(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 
@@ -675,7 +675,7 @@ static int animedit_poll_channels_active(bContext *C)
 }
 
 /* poll callback for Animation Editor channels list region + not in NLA-tweakmode for NLA */
-static int animedit_poll_channels_nla_tweakmode_off(bContext *C)
+static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1415,7 +1415,7 @@ static void ANIM_OT_channels_move(wmOperatorType *ot)
 
 /* ******************** Group Channel Operator ************************ */
 
-static int animchannels_grouping_poll(bContext *C)
+static bool animchannels_grouping_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceLink *sl;
@@ -2190,7 +2190,7 @@ static void ANIM_OT_channels_clean_empty(wmOperatorType *ot)
 
 /* ******************* Reenable Disabled Operator ******************* */
 
-static int animchannels_enable_poll(bContext *C)
+static bool animchannels_enable_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 
@@ -2264,7 +2264,7 @@ static void ANIM_OT_channels_fcurves_enable(wmOperatorType *ot)
 /* ****************** Find / Set Filter Operator ******************** */
 
 /* XXX: make this generic? */
-static int animchannels_find_poll(bContext *C)
+static bool animchannels_find_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 
@@ -2300,17 +2300,8 @@ static int animchannels_find_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
-	/* update filter text, and ensure that filter is enabled if there's something there
-	 * NOTE: we turn the filter off if there's nothing (this is a quick shortcut for dismissing)
-	 */
+	/* update filter text */
 	RNA_string_get(op->ptr, "query", ac.ads->searchstr);
-
-	if (ac.ads->searchstr[0]) {
-		ac.ads->filterflag |= ADS_FILTER_BY_FCU_NAME;
-	}
-	else {
-		ac.ads->filterflag &= ~ADS_FILTER_BY_FCU_NAME;
-	}
 
 	/* redraw */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -2693,7 +2684,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			AnimData *adt = ob->adt;
 
 			/* set selection status */
-			if (base->flag & BASE_SELECTABLED) {
+			if (base->flag & BASE_SELECTABLE) {
 				if (selectmode == SELECT_INVERT) {
 					/* swap select */
 					ED_object_base_select(base, BA_INVERT);

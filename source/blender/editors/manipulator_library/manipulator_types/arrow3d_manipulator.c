@@ -51,6 +51,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
+#include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -118,7 +119,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 			{-unitx,  unity, 0},
 		};
 
-		glLineWidth(arrow->manipulator.line_width);
+		GPU_line_width(arrow->manipulator.line_width);
 		wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GWN_PRIM_LINE_LOOP);
 	}
 	else {
@@ -133,7 +134,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 		};
 
 		if (draw_options & ED_MANIPULATOR_ARROW_DRAW_FLAG_STEM) {
-			glLineWidth(arrow->manipulator.line_width);
+			GPU_line_width(arrow->manipulator.line_width);
 			wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GWN_PRIM_LINE_STRIP);
 		}
 		else {
@@ -197,9 +198,9 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	arrow_draw_geom(arrow, select, color);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	gpuPopMatrix();
 
@@ -210,9 +211,9 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 		gpuMultMatrix(inter->init_matrix_final);
 
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		arrow_draw_geom(arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 
 		gpuPopMatrix();
 	}

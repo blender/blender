@@ -41,7 +41,6 @@ struct Base;
 struct BoundBox;
 struct Gwn_Batch;
 struct Depsgraph;
-struct DerivedMesh;
 struct Object;
 struct SmokeDomainSettings;
 struct bAnimVizSettings;
@@ -235,7 +234,6 @@ struct Object *ED_view3d_cameracontrol_object_get(
 
 /* view3d_toolbar.c */
 void VIEW3D_OT_toolshelf(struct wmOperatorType *ot);
-void view3d_toolshelf_register(struct ARegionType *art);
 
 /* view3d_snap.c */
 bool ED_view3d_minmax_verts(struct Object *obedit, float min[3], float max[3]);

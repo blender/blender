@@ -67,7 +67,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(userRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(userRenderParams))
 {
 	LatticeModifierData *lmd = (LatticeModifierData *) md;
 
@@ -100,9 +100,9 @@ static void deformVerts(
         int numVerts)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *) md;
-	struct Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	struct Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
-	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
 	lattice_deform_verts(lmd->object, ctx->object, mesh_src,
 	                     vertexCos, numVerts, lmd->name, lmd->strength);
@@ -115,7 +115,7 @@ static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
         struct Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	struct Mesh *mesh_src = get_mesh(ctx->object, em, mesh, NULL, false, false);
+	struct Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, em, mesh, NULL, false, false);
 
 	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 

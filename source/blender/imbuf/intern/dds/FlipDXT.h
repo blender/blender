@@ -29,4 +29,3 @@
 int FlipDXTCImage(unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data);
 
 #endif
-

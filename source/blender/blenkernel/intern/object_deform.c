@@ -784,4 +784,3 @@ void BKE_object_defgroup_subset_to_index_array(
 		}
 	}
 }
-

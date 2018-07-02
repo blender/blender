@@ -710,7 +710,7 @@ static void uiblock_layer_pass_buttons(
 	if (render_slot) {
 		char str[64];
 		RenderSlot *slot = BKE_image_get_renderslot(image, *render_slot);
-		if (slot->name[0] != '\0') {
+		if (slot && slot->name[0] != '\0') {
 			BLI_strncpy(str, slot->name, sizeof(str));
 		}
 		else {
@@ -827,7 +827,7 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
 
-void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *userptr, int compact, int multiview)
+void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *userptr, bool compact, bool multiview)
 {
 	PropertyRNA *prop;
 	PointerRNA imaptr;
@@ -1063,7 +1063,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	MEM_freeN(cb);
 }
 
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_management)
+void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management)
 {
 	ImageFormatData *imf = imfptr->data;
 	ID *id = imfptr->id.data;
@@ -1349,4 +1349,3 @@ void IMAGE_OT_toolshelf(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 }
-

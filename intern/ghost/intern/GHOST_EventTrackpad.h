@@ -72,4 +72,3 @@ protected:
 
 
 #endif // _GHOST_EVENT_PAN_H_
-

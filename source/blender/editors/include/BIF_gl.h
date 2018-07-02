@@ -48,4 +48,3 @@
 #define GLA_PIXEL_OFS 0.375f
 
 #endif /* #ifdef __BIF_GL_H__ */
-

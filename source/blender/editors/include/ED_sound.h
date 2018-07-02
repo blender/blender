@@ -34,4 +34,3 @@
 void ED_operatortypes_sound(void);
 
 #endif /* __ED_SOUND_H__ */
-

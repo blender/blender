@@ -96,10 +96,7 @@ bool BKE_collection_object_cyclic_check(struct Main *bmain, struct Object *objec
 struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
 void BKE_collection_object_cache_free(struct Collection *collection);
 
-struct Base *BKE_collection_or_layer_objects(const struct Depsgraph *depsgraph,
-                                             const struct Scene *scene,
-                                             const struct ViewLayer *view_layer,
-                                             struct Collection *collection);
+struct Base *BKE_collection_or_layer_objects(const struct ViewLayer *view_layer, struct Collection *collection);
 
 /* Editing. */
 
@@ -141,7 +138,7 @@ void BKE_scene_objects_callback(struct Scene *scene, BKE_scene_objects_Cb callba
 #define FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(_collection, _object, _mode) \
     {                                                                                  \
 		int _base_flag = (_mode == DAG_EVAL_VIEWPORT) ?                                \
-			BASE_VISIBLE_VIEWPORT : BASE_VISIBLE_RENDER;                               \
+			BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;                               \
 		int _base_id = 0;                                                              \
 		for (Base *_base = (Base*)BKE_collection_object_cache_get(_collection).first;  \
 			 _base;                                                                    \

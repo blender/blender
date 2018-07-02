@@ -91,4 +91,3 @@ public:
 };
 
 #endif // __GHOST_ITIMERTASK_H__
-

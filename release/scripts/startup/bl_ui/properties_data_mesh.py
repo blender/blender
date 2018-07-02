@@ -353,19 +353,16 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
                     row.active = enable_edit_value
                     row.prop(kb, "value")
 
-                    split = layout.split()
+                    layout.use_property_split = True
 
-                    col = split.column(align=True)
-                    col.active = enable_edit_value
-                    col.label(text="Range:")
-                    col.prop(kb, "slider_min", text="Min")
-                    col.prop(kb, "slider_max", text="Max")
+                    col = layout.column()
+                    sub.active = enable_edit_value
+                    sub = col.column(align=True)
+                    sub.prop(kb, "slider_min", text="Range Min")
+                    sub.prop(kb, "slider_max", text="Max")
 
-                    col = split.column(align=True)
-                    col.active = enable_edit_value
-                    col.label(text="Blend:")
-                    col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="")
-                    col.prop_search(kb, "relative_key", key, "key_blocks", text="")
+                    col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="Vertex Group")
+                    col.prop_search(kb, "relative_key", key, "key_blocks", text="Relative To")
 
             else:
                 layout.prop(kb, "interpolation")
@@ -419,6 +416,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         obj = context.object
         me = context.mesh

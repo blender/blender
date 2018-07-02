@@ -289,7 +289,7 @@ static int eyedropper_colorband_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int eyedropper_colorband_poll(bContext *C)
+static bool eyedropper_colorband_poll(bContext *C)
 {
 	uiBut *but = UI_context_active_but_get(C);
 	return (but && but->type == UI_BTYPE_COLORBAND);

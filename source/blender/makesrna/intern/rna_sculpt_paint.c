@@ -104,7 +104,6 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_particle.h"
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
@@ -248,7 +247,7 @@ static char *rna_ParticleEdit_path(PointerRNA *UNUSED(ptr))
 	return BLI_strdup("tool_settings.particle_edit");
 }
 
-static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ToolSettings *ts = scene->toolsettings;
@@ -425,7 +424,7 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
 	}
 }
 
-static int rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
+static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
 {
 	return imapaint->missing_data == 0;
 }

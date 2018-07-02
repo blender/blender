@@ -34,6 +34,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
@@ -48,7 +49,6 @@
 #include "BKE_blender_version.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_paint.h"
@@ -92,15 +92,15 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 	switch (ob->type) {
 		case OB_MESH:
 		{
-			/* we assume derivedmesh is already built, this strictly does stats now. */
-			DerivedMesh *dm = ob->derivedFinal;
+			/* we assume evaluated mesh is already built, this strictly does stats now. */
+			Mesh *me_eval = ob->runtime.mesh_eval;
 			int totvert, totedge, totface, totloop;
 
-			if (dm) {
-				totvert = dm->getNumVerts(dm);
-				totedge = dm->getNumEdges(dm);
-				totface = dm->getNumPolys(dm);
-				totloop = dm->getNumLoops(dm);
+			if (me_eval) {
+				totvert = me_eval->totvert;
+				totedge = me_eval->totedge;
+				totface = me_eval->totpoly;
+				totloop = me_eval->totloop;
 
 				stats->totvert += totvert * totob;
 				stats->totedge += totedge * totob;
@@ -387,7 +387,7 @@ static void stats_update(ViewLayer *view_layer)
 	else {
 		/* Objects */
 		for (base = view_layer->object_bases.first; base; base = base->next)
-			if (base->flag & BASE_VISIBLED) {
+			if (base->flag & BASE_VISIBLE) {
 				stats_dupli_object(base, base->object, &stats);
 			}
 	}
@@ -471,7 +471,9 @@ static void stats_string(ViewLayer *view_layer)
 	s = stats->infostr;
 	ofs = 0;
 
-	ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s | ", versionstr);
+	if (ob) {
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s | ", ob->id.name + 2);
+	}
 
 	if (obedit) {
 		if (BKE_keyblock_from_object(obedit))
@@ -505,15 +507,13 @@ static void stats_string(ViewLayer *view_layer)
 	}
 	else {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
-		                    IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s | Lamps:%s/%s%s%s"),
+		                    IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s%s%s"),
 		                    stats_fmt.totvert, stats_fmt.totface,
 		                    stats_fmt.tottri, stats_fmt.totobjsel,
-		                    stats_fmt.totobj, stats_fmt.totlampsel,
-		                    stats_fmt.totlamp, memstr, gpumemstr);
+		                    stats_fmt.totobj, memstr, gpumemstr);
 	}
 
-	if (ob)
-		BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", ob->id.name + 2);
+	ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", versionstr);
 #undef MAX_INFO_MEM_LEN
 }
 

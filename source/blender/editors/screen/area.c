@@ -62,6 +62,8 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_draw.h"
+#include "GPU_state.h"
+#include "GPU_framebuffer.h"
 
 #include "BLF_api.h"
 
@@ -97,8 +99,8 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
 	rect.ymax = scirct->ymax - ar->winrct.ymin;
 
 	/* set transp line */
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
 	UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
@@ -137,7 +139,7 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
 	immEnd();
 	immUnbindProgram();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
@@ -296,7 +298,7 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 
@@ -305,12 +307,12 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 	immRectf(pos, (x1 + x2 + width) * 0.5f, (y1 + y2 - width) * 0.5f, x2 - pad, (y1 + y2 + width) * 0.5f);
 
 	immUnbindProgram();
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static void region_draw_azone_tab_plus(AZone *az)
 {
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	/* add code to draw region hidden as 'too small' */
 	switch (az->edge) {
@@ -346,9 +348,9 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 	if (!sa)
 		return;
 
-	glLineWidth(1.0f);
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_line_width(1.0f);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	gpuPushMatrix();
 	gpuTranslate2f(-ar->winrct.xmin, -ar->winrct.ymin);
@@ -388,7 +390,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 
 	gpuPopMatrix();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 /* Follow wmMsgNotifyFn spec */
@@ -419,6 +421,17 @@ void ED_area_do_msg_notify_tag_refresh(
 	ED_area_tag_refresh(sa);
 }
 
+/**
+ * Although there's no general support for minimizing areas, the status-bar can
+ * be snapped to be only a few pixels high. A few pixels rather than 0 so it
+ * can be un-minimized again. We consider it pseudo-minimalized and don't draw
+ * it then.
+ */
+static bool area_is_pseudo_minimized(const ScrArea *area)
+{
+	return (area->winx < 3) || (area->winy < 3);
+}
+
 /* only exported for WM */
 void ED_region_do_layout(bContext *C, ARegion *ar)
 {
@@ -430,7 +443,7 @@ void ED_region_do_layout(bContext *C, ARegion *ar)
 		return;
 	}
 
-	if (at->do_lock) {
+	if (at->do_lock || (sa && area_is_pseudo_minimized(sa))) {
 		return;
 	}
 
@@ -460,8 +473,13 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 	UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
 
+	if (sa && area_is_pseudo_minimized(sa)) {
+		UI_ThemeClearColor(TH_EDITOR_OUTLINE);
+		glClear(GL_COLOR_BUFFER_BIT);
+		return;
+	}
 	/* optional header info instead? */
-	if (ar->headerstr) {
+	else if (ar->headerstr) {
 		UI_ThemeClearColor(TH_HEADER);
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -481,7 +499,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 	/* for debugging unneeded area redraws and partial redraw */
 #if 0
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -489,7 +507,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	immRectf(pos, ar->drawrct.xmin - ar->winrct.xmin, ar->drawrct.ymin - ar->winrct.ymin,
 	        ar->drawrct.xmax - ar->winrct.xmin, ar->drawrct.ymax - ar->winrct.ymin);
 	immUnbindProgram();
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 #endif
 
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
@@ -639,7 +657,7 @@ void ED_area_tag_refresh(ScrArea *sa)
 /* *************************************************************** */
 
 /* use NULL to disable it */
-void ED_area_headerprint(ScrArea *sa, const char *str)
+void ED_area_status_text(ScrArea *sa, const char *str)
 {
 	ARegion *ar;
 
@@ -659,6 +677,34 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 				ar->headerstr = NULL;
 			}
 			ED_region_tag_redraw(ar);
+		}
+	}
+}
+
+void ED_workspace_status_text(bContext *C, const char *str)
+{
+	wmWindow *win = CTX_wm_window(C);
+	WorkSpace *workspace = CTX_wm_workspace(C);
+
+	/* Can be NULL when running operators in background mode. */
+	if (workspace == NULL)
+		return;
+
+	if (str) {
+		if (workspace->status_text == NULL)
+			workspace->status_text = MEM_mallocN(UI_MAX_DRAW_STR, "headerprint");
+		BLI_strncpy(workspace->status_text, str, UI_MAX_DRAW_STR);
+	}
+	else if (workspace->status_text) {
+		MEM_freeN(workspace->status_text);
+		workspace->status_text = NULL;
+	}
+
+	/* Redraw status bar. */
+	for (ScrArea *sa = win->global_areas.areabase.first; sa; sa = sa->next) {
+		if (sa->spacetype == SPACE_STATUSBAR) {
+			ED_area_tag_redraw(sa);
+			break;
 		}
 	}
 }
@@ -1036,7 +1082,7 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
 	return 0;
 }
 
-static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti *remainder, rcti *overlap_remainder, int quad)
+static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rcti *overlap_remainder, int quad)
 {
 	rcti *remainder_prev = remainder;
 	int prefsizex, prefsizey;
@@ -1287,7 +1333,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		*overlap_remainder = *remainder;
 	}
 
-	region_rect_recursive(win, sa, ar->next, remainder, overlap_remainder, quad);
+	region_rect_recursive(sa, ar->next, remainder, overlap_remainder, quad);
 }
 
 static void area_calc_totrct(ScrArea *sa, const rcti *window_rect)
@@ -1417,7 +1463,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
 	/* region rect sizes */
 	rect = area->totrct;
 	overlap_rect = rect;
-	region_rect_recursive(win, area, area->regionbase.first, &rect, &overlap_rect, 0);
+	region_rect_recursive(area, area->regionbase.first, &rect, &overlap_rect, 0);
 
 	for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
 		region_subwindow(ar);
@@ -1463,7 +1509,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	/* region rect sizes */
 	rect = sa->totrct;
 	overlap_rect = rect;
-	region_rect_recursive(win, sa, sa->regionbase.first, &rect, &overlap_rect, 0);
+	region_rect_recursive(sa, sa->regionbase.first, &rect, &overlap_rect, 0);
 	sa->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
 
 	/* default area handlers */
@@ -1821,12 +1867,12 @@ static void region_clear_color(const bContext *C, const ARegion *ar, ThemeColorI
 
 		float back[4];
 		UI_GetThemeColor4fv(colorid, back);
-		glClearColor(back[3] * back[0], back[3] * back[1], back[3] * back[2], back[3]);
-		glClear(GL_COLOR_BUFFER_BIT);
+		GPU_clear_color(back[3] * back[0], back[3] * back[1], back[3] * back[2], back[3]);
+		GPU_clear(GPU_COLOR_BIT);
 	}
 	else {
 		UI_ThemeClearColor(colorid);
-		glClear(GL_COLOR_BUFFER_BIT);
+		GPU_clear(GPU_COLOR_BIT);
 	}
 }
 
@@ -2152,7 +2198,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* reset line width for drawing tabs */
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	/* set the view */
 	UI_view2d_view_ortho(v2d);
@@ -2208,26 +2254,33 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 	uiLayout *layout;
 	HeaderType *ht;
 	Header header = {NULL};
-	int maxco, xco, yco;
-	int headery = ED_area_headersize();
 	bool region_layout_based = ar->flag & RGN_FLAG_DYNAMIC_SIZE;
+
+	/* Height of buttons and scaling needed to achieve it. */
+	const int buttony = min_ii(UI_UNIT_Y, ar->winy - 2 * UI_DPI_FAC);
+	const float buttony_scale = buttony / (float)UI_UNIT_Y;
+
+	/* Vertically center buttons. */
+	int xco = UI_HEADER_OFFSET;
+	int yco = buttony + (ar->winy - buttony) / 2;
+	int maxco = xco;
+
+	/* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
+	if (!ELEM(CTX_wm_area(C)->spacetype, SPACE_TOPBAR, SPACE_STATUSBAR)) {
+		yco -= 1;
+	}
 
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(&ar->v2d);
 
-	xco = maxco = UI_HEADER_OFFSET;
-	yco = headery + (ar->winy - headery) / 2 - floor(0.2f * UI_UNIT_Y);
-
-	/* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
-	if (CTX_wm_area(C)->spacetype == SPACE_TOPBAR) {
-		xco += 1;
-		yco += 1;
-	}
-
 	/* draw all headers types */
 	for (ht = ar->type->headertypes.first; ht; ht = ht->next) {
 		block = UI_block_begin(C, ar, ht->idname, UI_EMBOSS);
-		layout = UI_block_layout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, UI_UNIT_Y, 1, 0, style);
+		layout = UI_block_layout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, buttony, 1, 0, style);
+
+		if (buttony_scale != 1.0f) {
+			uiLayoutSetScaleY(layout, buttony_scale);
+		}
 
 		if (ht->draw) {
 			header.type = ht;
@@ -2264,7 +2317,7 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco, headery);
+	UI_view2d_totRect_set(&ar->v2d, maxco, ar->winy);
 
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
@@ -2325,6 +2378,16 @@ int ED_area_global_size_y(const ScrArea *area)
 	BLI_assert(ED_area_is_global(area));
 	return round_fl_to_int(area->global->cur_fixed_height * UI_DPI_FAC);
 }
+int ED_area_global_min_size_y(const ScrArea *area)
+{
+	BLI_assert(ED_area_is_global(area));
+	return round_fl_to_int(area->global->size_min * UI_DPI_FAC);
+}
+int ED_area_global_max_size_y(const ScrArea *area)
+{
+	BLI_assert(ED_area_is_global(area));
+	return round_fl_to_int(area->global->size_max * UI_DPI_FAC);
+}
 
 bool ED_area_is_global(const ScrArea *area)
 {
@@ -2375,7 +2438,7 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 	const int header_height = UI_UNIT_Y;
 	uiStyle *style = UI_style_get_dpi();
 	int fontid = style->widget.uifont_id;
-	GLint scissor[4];
+	int scissor[4];
 	rcti rect;
 	int num_lines = 0;
 
@@ -2403,19 +2466,19 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 	rect.ymin = rect.ymax - header_height * num_lines;
 
 	/* setup scissor */
-	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor(rect.xmin, rect.ymin,
+	GPU_scissor_get_i(scissor);
+	GPU_scissor(rect.xmin, rect.ymin,
 	          BLI_rcti_size_x(&rect) + 1, BLI_rcti_size_y(&rect) + 1);
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(fill_color);
 	immRecti(pos, rect.xmin, rect.ymin, rect.xmax + 1, rect.ymax + 1);
 	immUnbindProgram();
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* text */
 	UI_FontThemeColor(fontid, TH_TEXT_HI);
@@ -2435,7 +2498,7 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 	BLF_disable(fontid, BLF_CLIPPING);
 
 	/* restore scissor as it was before */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 }
 
 void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], const bool full_redraw)

@@ -43,7 +43,6 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
 
 #include "DEG_depsgraph.h"
@@ -976,7 +975,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
  *
  * \returns true if a change is made.
  */
-int BKE_mesh_validate(Mesh *me, const int do_verbose, const int cddata_check_mask)
+bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_mask)
 {
 	bool is_valid = true;
 	bool changed;
@@ -1051,7 +1050,7 @@ bool BKE_mesh_is_valid(Mesh *me)
  * Check all material indices of polygons are valid, invalid ones are set to 0.
  * \returns is_valid.
  */
-int BKE_mesh_validate_material_indices(Mesh *me)
+bool BKE_mesh_validate_material_indices(Mesh *me)
 {
 	MPoly *mp;
 	const int max_idx = max_ii(0, me->totcol - 1);

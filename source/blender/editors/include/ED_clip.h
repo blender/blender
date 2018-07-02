@@ -44,13 +44,13 @@ struct Scene;
 /*  ** clip_editor.c ** */
 
 /* common poll functions */
-int ED_space_clip_poll(struct bContext *C);
+bool ED_space_clip_poll(struct bContext *C);
 
-int ED_space_clip_view_clip_poll(struct bContext *C);
+bool ED_space_clip_view_clip_poll(struct bContext *C);
 
-int ED_space_clip_tracking_poll(struct bContext *C);
-int ED_space_clip_maskedit_poll(struct bContext *C);
-int ED_space_clip_maskedit_mask_poll(struct bContext *C);
+bool ED_space_clip_tracking_poll(struct bContext *C);
+bool ED_space_clip_maskedit_poll(struct bContext *C);
+bool ED_space_clip_maskedit_mask_poll(struct bContext *C);
 
 void ED_space_clip_get_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_get_size_fl(struct SpaceClip *sc, float size[2]);

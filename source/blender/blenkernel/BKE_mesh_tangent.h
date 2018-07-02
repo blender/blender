@@ -58,4 +58,3 @@ void BKE_mesh_calc_loop_tangent_step_0(
         char *ract_uv_name, char *rren_uv_name, short *rtangent_mask);
 
 #endif /* __BKE_MESH_TANGENT_H__ */
-

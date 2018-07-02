@@ -41,6 +41,7 @@ class CustomDrawOperator(bpy.types.Operator):
 
         col.prop(self, "my_string")
 
+
 bpy.utils.register_class(CustomDrawOperator)
 
 # test call

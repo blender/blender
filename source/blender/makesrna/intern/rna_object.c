@@ -224,6 +224,7 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 {
 	Object *ob = ptr->id.data;
 	BKE_main_collection_sync(bmain);
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 }
@@ -326,6 +327,9 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		return;
 	}
 
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BLI_assert(BKE_id_is_in_gobal_main(id));
+
 	if (ob->type == OB_EMPTY) {
 		if (ob->data) {
 			id_us_min((ID *)ob->data);
@@ -338,7 +342,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		}
 	}
 	else if (ob->type == OB_MESH) {
-		BKE_mesh_assign_object(G.main, ob, (Mesh *)id);
+		BKE_mesh_assign_object(G_MAIN, ob, (Mesh *)id);
 	}
 	else {
 		if (ob->data) {
@@ -350,7 +354,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		id_us_plus(id);
 
 		ob->data = id;
-		test_object_materials(G.main, ob, id);
+		test_object_materials(G_MAIN, ob, id);
 
 		if (GS(id->name) == ID_CU)
 			BKE_curve_type_test(ob);
@@ -737,7 +741,9 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object *)ptr->id.data;
 
 	DEG_id_tag_update(value.data, 0);
-	assign_material(G.main, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BLI_assert(BKE_id_is_in_gobal_main(value.data));
+	assign_material(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 }
 
 static int rna_Object_active_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -929,7 +935,9 @@ static void rna_MaterialSlot_material_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object *)ptr->id.data;
 	int index = (Material **)ptr->data - ob->mat;
 
-	assign_material(G.main, ob, value.data, index + 1, BKE_MAT_ASSIGN_EXISTING);
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BLI_assert(BKE_id_is_in_gobal_main(value.data));
+	assign_material(G_MAIN, ob, value.data, index + 1, BKE_MAT_ASSIGN_EXISTING);
 }
 
 static int rna_MaterialSlot_link_get(PointerRNA *ptr)
@@ -1139,9 +1147,11 @@ static void rna_Object_constraints_clear(Object *object, Main *bmain)
 }
 
 bool rna_Object_constraints_override_apply(
+        Main *UNUSED(bmain),
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
         PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
         const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
@@ -1213,9 +1223,11 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
 }
 
 bool rna_Object_modifiers_override_apply(
+        Main *UNUSED(bmain),
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
         PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
         const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
@@ -1409,32 +1421,32 @@ static void rna_FaceMap_face_remove(ID *id, bFaceMap *fmap, ReportList *reports,
 }
 
 /* generic poll functions */
-int rna_Lattice_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+bool rna_Lattice_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_LATTICE;
 }
 
-int rna_Curve_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+bool rna_Curve_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_CURVE;
 }
 
-int rna_Armature_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+bool rna_Armature_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_ARMATURE;
 }
 
-int rna_Mesh_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+bool rna_Mesh_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_MESH;
 }
 
-int rna_Camera_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+bool rna_Camera_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_CAMERA;
 }
 
-int rna_Lamp_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+bool rna_Lamp_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_LAMP;
 }
@@ -2299,19 +2311,19 @@ static void rna_def_object(BlenderRNA *brna)
 	/* restrict */
 	prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
-	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
+	RNA_def_property_ui_text(prop, "Disable View", "Disable object in the viewport");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
 
 	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
-	RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport");
+	RNA_def_property_ui_text(prop, "Disable Select", "Disable object selection in the viewport");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
-	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");
+	RNA_def_property_ui_text(prop, "Disable Render", "Disable object in renders");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
 

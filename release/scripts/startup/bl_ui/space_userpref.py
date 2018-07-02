@@ -73,9 +73,9 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
         elif userpref.active_section == 'LIGHTS':
-            layout.operator('wm.studiolight_install', text="Install MatCap").orientation='MATCAP'
-            layout.operator('wm.studiolight_install', text="Install World HDRI").orientation='WORLD'
-            layout.operator('wm.studiolight_install', text="Install Camera HDRI").orientation='CAMERA'
+            layout.operator('wm.studiolight_install', text="Install MatCap").orientation = 'MATCAP'
+            layout.operator('wm.studiolight_install', text="Install World HDRI").orientation = 'WORLD'
+            layout.operator('wm.studiolight_install', text="Install Camera HDRI").orientation = 'CAMERA'
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
             layout.operator("wm.theme_install")
@@ -230,7 +230,6 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "ui_scale", text="Scale")
         col.prop(view, "ui_line_width", text="Line Width")
         col.prop(view, "show_tooltips")
-        col.prop(view, "show_tooltips_python")
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
@@ -238,19 +237,39 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "object_origin_size")
 
         col.separator()
-        col.separator()
-        col.separator()
 
-        col.prop(view, "show_mini_axis", text="Display Mini Axis")
-        sub = col.column()
+        col.prop(view, "show_manipulator_navigate")
+
+        sub = col.column(align=True)
+
+        sub.prop(view, "show_mini_axis", text="Display Mini Axis")
+        sub.active = not view.show_manipulator_navigate
+
+        sub = col.column(align=True)
         sub.active = view.show_mini_axis
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
         col.separator()
 
-        col.label("Warnings")
-        col.prop(view, "use_quit_dialog")
+        # Toolbox doesn't exist yet
+        # col.label(text="Toolbox:")
+        #col.prop(view, "show_column_layout")
+        #col.label(text="Open Toolbox Delay:")
+        #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
+        #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
+        col.prop(view, "show_manipulator", text="Transform Manipulator")
+        # Currently not working
+        # col.prop(view, "show_manipulator_shaded")
+        sub = col.column()
+        sub.active = view.show_manipulator
+        sub.prop(view, "manipulator_size", text="Size")
+
+        col.separator()
+
+        col.label("Development")
+        col.prop(view, "show_tooltips_python")
+        col.prop(view, "show_developer_ui")
 
         row.separator()
         row.separator()
@@ -286,24 +305,6 @@ class USERPREF_PT_interface(Panel):
         row.separator()
 
         col = row.column()
-        # Toolbox doesn't exist yet
-        # col.label(text="Toolbox:")
-        #col.prop(view, "show_column_layout")
-        #col.label(text="Open Toolbox Delay:")
-        #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
-        #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
-        col.prop(view, "show_manipulator")
-        # Currently not working
-        # col.prop(view, "show_manipulator_shaded")
-        sub = col.column()
-        sub.active = view.show_manipulator
-        sub.prop(view, "manipulator_size", text="Size")
-
-        col.prop(view, "show_manipulator_navigate")
-
-        col.separator()
-        col.separator()
-        col.separator()
 
         col.label(text="Menus:")
         col.prop(view, "use_mouse_over_open")
@@ -324,6 +325,10 @@ class USERPREF_PT_interface(Panel):
         col.separator()
 
         col.prop(view, "show_splash")
+
+        col.label("Warnings")
+        col.prop(view, "use_quit_dialog")
+
         col.separator()
 
         col.label(text="App Template:")
@@ -500,12 +505,6 @@ class USERPREF_PT_system(Panel):
 
         col.separator()
 
-        col.label(text="Screencast:")
-        col.prop(system, "screencast_fps")
-        col.prop(system, "screencast_wait_time")
-
-        col.separator()
-
         if bpy.app.build_options.cycles:
             addon = userpref.addons.get("cycles")
             if addon is not None:
@@ -545,8 +544,7 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "use_region_overlap")
 
         col.separator()
-        col.label(text="Max Viewport Anti-aliasing Method")
-        col.prop(system, "max_anti_alias_method", text="")
+        col.prop(system, "gpu_viewport_quality")
 
         col.separator()
 
@@ -948,7 +946,7 @@ class USERPREF_PT_theme(Panel):
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets, 1):
-                col.label(text=iface_("Color Set %d:") % i, translate=False)
+                col.label(iface_(f"Color Set {i:d}"), translate=False)
 
                 row = col.row()
 
@@ -1440,12 +1438,13 @@ class USERPREF_PT_addons(Panel):
                 continue
 
             # check if addon should be visible with current filters
-            if ((filter == "All") or
-                        (filter == info["category"]) or
-                        (filter == "Enabled" and is_enabled) or
+            if (
+                    (filter == "All") or
+                    (filter == info["category"]) or
+                    (filter == "Enabled" and is_enabled) or
                     (filter == "Disabled" and not is_enabled) or
                     (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
-                    ):
+            ):
                 if search and search not in info["name"].lower():
                     if info["author"]:
                         if search not in info["author"].lower():

@@ -96,7 +96,7 @@ void		WM_main				(struct bContext *C) ATTR_NORETURN;
 
 void		WM_init_splash		(struct bContext *C);
 
-void		WM_init_opengl		(void);
+void		WM_init_opengl		(struct Main *bmain);
 
 void		WM_check			(struct bContext *C);
 
@@ -165,10 +165,11 @@ void		WM_cursor_grab_enable(struct wmWindow *win, bool wrap, bool hide, int boun
 void		WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 void		WM_cursor_time		(struct wmWindow *win, int nr);
 
-void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
-                                      int (*poll)(struct bContext *C),
-                                      void (*draw)(struct bContext *C, int, int, void *customdata),
-                                      void *customdata);
+void *WM_paint_cursor_activate(
+        struct wmWindowManager *wm,
+        bool (*poll)(struct bContext *C),
+        void (*draw)(struct bContext *C, int, int, void *customdata),
+        void *customdata);
 
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 void		WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *ar);
@@ -283,7 +284,7 @@ int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, const str
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 bool        WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format);
 			/* poll callback, context checks */
-int			WM_operator_winactive	(struct bContext *C);
+bool			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
 int			WM_operator_props_popup_confirm(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_operator_props_popup_call(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
@@ -326,8 +327,8 @@ struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const ch
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
 
 
-int			WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
-int			WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, short context);
+bool        WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
+bool        WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, short context);
 int         WM_operator_call_ex(struct bContext *C, struct wmOperator *op, const bool store);
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_call_notest(struct bContext *C, struct wmOperator *op);
@@ -422,6 +423,7 @@ char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struc
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 bool        WM_operator_py_idname_ok_or_report(struct ReportList *reports, const char *classname, const char *idname);
+const char *WM_context_member_from_ptr(struct bContext *C, const struct PointerRNA *ptr);
 
 /* *************** uilist types ******************** */
 void                WM_uilisttype_init(void);
@@ -474,8 +476,9 @@ void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx
 void                WM_drag_free(struct wmDrag *drag);
 void                WM_drag_free_list(struct ListBase *lb);
 
-struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event),
-                                    void (*copy)(struct wmDrag *, struct wmDropBox *));
+struct wmDropBox	*WM_dropbox_add(
+        ListBase *lb, const char *idname, bool (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event),
+        void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 			/* Set OpenGL viewport and scissor */
@@ -504,7 +507,6 @@ enum {
 	WM_JOB_TYPE_COMPOSITE,
 	WM_JOB_TYPE_RENDER,
 	WM_JOB_TYPE_RENDER_PREVIEW,  /* UI preview */
-	WM_JOB_TYPE_SCREENCAST,
 	WM_JOB_TYPE_OBJECT_SIM_OCEAN,
 	WM_JOB_TYPE_OBJECT_SIM_FLUID,
 	WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
@@ -602,6 +604,9 @@ bool        WM_event_is_tablet(const struct wmEvent *event);
 bool        WM_event_is_ime_switch(const struct wmEvent *event);
 #endif
 
+const char *WM_window_cursor_keymap_status_get(const struct wmWindow *win, int button_index, int type_index);
+void WM_window_cursor_keymap_status_refresh(struct bContext *C, struct wmWindow *win);
+
 /* wm_tooltip.c */
 typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *, struct ARegion *, bool *);
 
@@ -618,4 +623,3 @@ void WM_tooltip_refresh(struct bContext *C, struct wmWindow *win);
 #endif
 
 #endif /* __WM_API_H__ */
-

@@ -762,14 +762,14 @@ static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
 			values[i] = nprop->defaultvalue;
 	}
 }
-static void rna_BoolProperty_default_array_get(PointerRNA *ptr, int *values)
+static void rna_BoolProperty_default_array_get(PointerRNA *ptr, bool *values)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	BoolPropertyRNA *nprop = (BoolPropertyRNA *)prop;
 	rna_idproperty_check(&prop, ptr);
 
 	if (nprop->defaultarray) {
-		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(int));
+		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(bool));
 	}
 	else {
 		int i;
@@ -1222,6 +1222,7 @@ static bool rna_property_override_diff_propptr_validate_diffing(
 
 /* Used for both Pointer and Collection properties. */
 static int rna_property_override_diff_propptr(
+        Main *bmain,
         PointerRNA *propptr_a, PointerRNA *propptr_b,
         eRNACompareMode mode, const bool no_ownership, const bool no_prop_name,
         IDOverrideStatic *override, const char *rna_path, const int flags, bool *r_override_changed)
@@ -1264,7 +1265,8 @@ static int rna_property_override_diff_propptr(
 		}
 		else {
 			eRNAOverrideMatchResult report_flags = 0;
-			const bool match = RNA_struct_override_matches(propptr_a, propptr_b, rna_path, override, flags, &report_flags);
+			const bool match = RNA_struct_override_matches(
+			                       bmain, propptr_a, propptr_b, rna_path, override, flags, &report_flags);
 			if (r_override_changed && (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) != 0) {
 				*r_override_changed = true;
 			}
@@ -1274,7 +1276,7 @@ static int rna_property_override_diff_propptr(
 	else {
 		/* We could also use is_diff_pointer, but then we potentially lose the gt/lt info -
 		 * and don't think performances are critical here for now anyway... */
-		return !RNA_struct_equals(propptr_a, propptr_b, mode);
+		return !RNA_struct_equals(bmain, propptr_a, propptr_b, mode);
 	}
 }
 
@@ -1287,7 +1289,9 @@ static int rna_property_override_diff_propptr(
 	(is_array ? RNA_property_##_typename##_set_index((_ptr), (_prop), (_index), (_value)) : \
 	            RNA_property_##_typename##_set((_ptr), (_prop), (_value)))
 
-int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
+int rna_property_override_diff_default(
+        Main *bmain,
+        PointerRNA *ptr_a, PointerRNA *ptr_b,
         PropertyRNA *prop_a, PropertyRNA *prop_b,
         const int len_a, const int len_b,
         const int mode,
@@ -1304,16 +1308,16 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 		case PROP_BOOLEAN:
 		{
 			if (len_a) {
-				int array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
-				int *array_a, *array_b;
+				bool array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
+				bool *array_a, *array_b;
 
-				array_a = (len_a > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(int) * len_a, "RNA equals") : array_stack_a;
-				array_b = (len_b > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(int) * len_b, "RNA equals") : array_stack_b;
+				array_a = (len_a > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(bool) * len_a, "RNA equals") : array_stack_a;
+				array_b = (len_b > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(bool) * len_b, "RNA equals") : array_stack_b;
 
 				RNA_property_boolean_get_array(ptr_a, prop_a, array_a);
 				RNA_property_boolean_get_array(ptr_b, prop_b, array_b);
 
-				const int comp = memcmp(array_a, array_b, sizeof(int) * len_a);
+				const int comp = memcmp(array_a, array_b, sizeof(bool) * len_a);
 
 				if (do_create && comp != 0) {
 					/* XXX TODO this will have to be refined to handle array items */
@@ -1338,8 +1342,8 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				return comp;
 			}
 			else {
-				const int value_a = RNA_property_boolean_get(ptr_a, prop_a);
-				const int value_b = RNA_property_boolean_get(ptr_b, prop_b);
+				const bool value_a = RNA_property_boolean_get(ptr_a, prop_a);
+				const bool value_b = RNA_property_boolean_get(ptr_b, prop_b);
 				const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
 				if (do_create && comp != 0) {
@@ -1541,6 +1545,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
 				const bool no_prop_name = (RNA_property_override_flag(prop_a) & PROPOVERRIDE_NO_PROP_NAME) != 0;
 				return rna_property_override_diff_propptr(
+				            bmain,
 				            &propptr_a, &propptr_b, mode, no_ownership, no_prop_name,
 				            override, rna_path, flags, r_override_changed);
 			}
@@ -1617,14 +1622,15 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 #if 0
 					if (rna_path) {
-						printf("Checking %s, %s [%d] vs %s [%d]; diffing: %d; insert: %d (could be used: %d, do_create: %d)\n",
+						printf("Checking %s, %s [%d] vs %s [%d]; is_id: %d, diffing: %d; "
+						       "insert: %d (could be used: %d, do_create: %d)\n",
 						       rna_path, propname_a ? propname_a : "", idx_a, propname_b ? propname_b : "", idx_b,
-						       is_valid_for_diffing, is_valid_for_insertion,
+						       is_id, is_valid_for_diffing, is_valid_for_insertion,
 						       (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) != 0, do_create);
 					}
 #endif
 
-					if (!(is_valid_for_diffing || is_valid_for_insertion)) {
+					if (!(is_id || is_valid_for_diffing || is_valid_for_insertion)) {
 						/* Differences we cannot handle, we can break here
 						 * (we do not support replacing ID pointers in collections e.g.). */
 						equals = false;
@@ -1635,7 +1641,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 					/* There may be a propname defined in some cases, while no actual name set
 					 * (e.g. happens with point cache), in that case too we want to fall back to index.
 					 * Note that we do not need the RNA path for insertion operations. */
-					if (is_valid_for_diffing) {
+					if (is_id || is_valid_for_diffing) {
 						if ((propname_a != NULL && propname_a[0] != '\0') &&
 						    (propname_b != NULL && propname_b[0] != '\0'))
 						{
@@ -1686,12 +1692,13 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						            NULL, prev_propname_a, -1, idx_a - 1, true, NULL, NULL);
 //						printf("%s: Adding insertion op override after '%s'/%d\n", rna_path, prev_propname_a, idx_a - 1);
 					}
-					else if (is_valid_for_diffing) {
+					else if (is_id || is_valid_for_diffing) {
 						if (equals || do_create) {
 							const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
 							const int eq = rna_property_override_diff_propptr(
-							              &iter_a.ptr, &iter_b.ptr, mode, no_ownership, no_prop_name,
-							              override, extended_rna_path, flags, r_override_changed);
+							                   bmain,
+							                   &iter_a.ptr, &iter_b.ptr, mode, no_ownership, no_prop_name,
+							                   override, extended_rna_path, flags, r_override_changed);
 							equals = equals && eq;
 						}
 					}
@@ -1723,7 +1730,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						break;
 					}
 
-					if (!(use_insertion && !is_valid_for_diffing)) {
+					if (!(use_insertion && !(is_id || is_valid_for_diffing))) {
 						break;
 					}
 
@@ -1762,6 +1769,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 }
 
 bool rna_property_override_store_default(
+        Main *UNUSED(bmain),
         PointerRNA *ptr_local, PointerRNA *ptr_reference, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_reference, PropertyRNA *prop_storage,
         const int len_local, const int len_reference, const int len_storage,
@@ -2005,9 +2013,11 @@ bool rna_property_override_store_default(
 }
 
 bool rna_property_override_apply_default(
+        Main *UNUSED(bmain),
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *ptr_storage,
         PropertyRNA *prop_dst, PropertyRNA *prop_src, PropertyRNA *prop_storage,
         const int len_dst, const int len_src, const int len_storage,
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage));
@@ -2020,8 +2030,8 @@ bool rna_property_override_apply_default(
 	switch (RNA_property_type(prop_dst)) {
 		case PROP_BOOLEAN:
 			if (is_array && index == -1) {
-				int array_stack_a[RNA_STACK_ARRAY];
-				int *array_a;
+				bool array_stack_a[RNA_STACK_ARRAY];
+				bool *array_a;
 
 				array_a = (len_dst > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(*array_a) * len_dst, __func__) : array_stack_a;
 
@@ -2039,7 +2049,7 @@ bool rna_property_override_apply_default(
 				if (array_a != array_stack_a) MEM_freeN(array_a);
 			}
 			else {
-				const int value = RNA_PROPERTY_GET_SINGLE(boolean, ptr_src, prop_src, index);
+				const bool value = RNA_PROPERTY_GET_SINGLE(boolean, ptr_src, prop_src, index);
 
 				switch (override_op) {
 					case IDOVERRIDESTATIC_OP_REPLACE:

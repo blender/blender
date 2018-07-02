@@ -173,6 +173,11 @@ void BKE_workspace_free(WorkSpace *workspace)
 		}
 	}
 	BLI_freelistN(&workspace->tools);
+
+	if (workspace->status_text) {
+		MEM_freeN(workspace->status_text);
+		workspace->status_text = NULL;
+	}
 }
 
 /**
@@ -235,6 +240,9 @@ WorkSpaceLayout *BKE_workspace_layout_add(
 	WorkSpaceLayout *layout = MEM_callocN(sizeof(*layout), __func__);
 
 	BLI_assert(!workspaces_is_screen_used(bmain, screen));
+#ifndef DEBUG
+	UNUSED_VARS(bmain);
+#endif
 	layout->screen = screen;
 	workspace_layout_name_set(workspace, layout, name);
 	BLI_addtail(&workspace->layouts, layout);
@@ -530,4 +538,3 @@ bool BKE_workspace_owner_id_check(
 		return BLI_findstring(&workspace->owner_ids, owner_id, offsetof(wmOwnerID, name)) != NULL;
 	}
 }
-

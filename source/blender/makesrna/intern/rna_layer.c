@@ -198,8 +198,7 @@ static void rna_LayerCollection_use_update(Main *bmain, Scene *UNUSED(scene), Po
 
 	BKE_layer_collection_sync(scene, view_layer);
 
-	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
 }

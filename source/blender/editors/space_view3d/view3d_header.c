@@ -196,7 +196,7 @@ static int view3d_layers_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_layers_poll(bContext *C)
+static bool view3d_layers_poll(bContext *C)
 {
 	return (ED_operator_view3d_active(C) && CTX_wm_view3d(C)->localvd == NULL);
 }
@@ -234,7 +234,7 @@ static int toggle_show_xray(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int toggle_show_xray_poll(bContext *C)
+static bool toggle_show_xray_poll(bContext *C)
 {
 	bool result = (ED_operator_view3d_active(C) && !ED_operator_posemode(C) && !ED_operator_editmesh(C));
 	if (result) {

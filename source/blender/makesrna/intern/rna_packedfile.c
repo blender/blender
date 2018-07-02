@@ -79,4 +79,3 @@ void RNA_def_packedfile(BlenderRNA *brna)
 }
 
 #endif
-

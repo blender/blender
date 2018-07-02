@@ -1291,7 +1291,7 @@ static void gp_convert_set_end_frame(struct Main *UNUSED(main), struct Scene *UN
 	}
 }
 
-static int gp_convert_poll(bContext *C)
+static bool gp_convert_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = NULL;

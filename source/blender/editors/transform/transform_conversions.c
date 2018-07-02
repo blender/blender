@@ -61,7 +61,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_rect.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"

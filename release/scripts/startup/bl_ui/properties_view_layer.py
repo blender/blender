@@ -38,6 +38,7 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
         rd = scene.render
@@ -54,26 +55,20 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
         rd = scene.render
         view_layer = context.view_layer
 
-        split = layout.split()
-
-        col = split.column()
+        col = layout.column()
         col.prop(view_layer, "use_pass_combined")
         col.prop(view_layer, "use_pass_z")
         col.prop(view_layer, "use_pass_mist")
         col.prop(view_layer, "use_pass_normal")
-        col.separator()
         col.prop(view_layer, "use_pass_ambient_occlusion")
-
-        col = split.column()
-        col.label(text="Subsurface:")
-        row = col.row(align=True)
-        row.prop(view_layer, "use_pass_subsurface_direct", text="Direct", toggle=True)
-        row.prop(view_layer, "use_pass_subsurface_color", text="Color", toggle=True)
+        col.prop(view_layer, "use_pass_subsurface_direct", text="Subsurface Direct")
+        col.prop(view_layer, "use_pass_subsurface_color", text="Subsurface Color")
 
 
 classes = (

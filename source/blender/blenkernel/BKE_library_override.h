@@ -62,10 +62,10 @@ struct IDOverrideStaticPropertyOperation *BKE_override_static_property_operation
 void BKE_override_static_property_operation_delete(
         struct IDOverrideStaticProperty *override_property, struct IDOverrideStaticPropertyOperation *override_property_operation);
 
-bool BKE_override_static_status_check_local(struct ID *local);
-bool BKE_override_static_status_check_reference(struct ID *local);
+bool BKE_override_static_status_check_local(struct Main *bmain, struct ID *local);
+bool BKE_override_static_status_check_reference(struct Main *bmain, struct ID *local);
 
-bool BKE_override_static_operations_create(struct ID *local, const bool force_auto);
+bool BKE_override_static_operations_create(struct Main *bmain, struct ID *local, const bool force_auto);
 void BKE_main_override_static_operations_create(struct Main *bmain, const bool force_auto);
 
 void BKE_override_static_update(struct Main *bmain, struct ID *local);
@@ -78,7 +78,8 @@ void BKE_main_override_static_update(struct Main *bmain);
 typedef struct Main OverrideStaticStorage;
 
 OverrideStaticStorage *BKE_override_static_operations_store_initialize(void);
-struct ID *BKE_override_static_operations_store_start(OverrideStaticStorage *override_storage, struct ID *local);
+struct ID *BKE_override_static_operations_store_start(
+        struct Main *bmain, OverrideStaticStorage *override_storage, struct ID *local);
 void BKE_override_static_operations_store_end(OverrideStaticStorage *override_storage, struct ID *local);
 void BKE_override_static_operations_store_finalize(OverrideStaticStorage *override_storage);
 

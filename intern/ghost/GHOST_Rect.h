@@ -257,4 +257,3 @@ inline bool GHOST_Rect::isInside(GHOST_TInt32 x, GHOST_TInt32 y) const
 }
 
 #endif // __GHOST_RECT_H__
-

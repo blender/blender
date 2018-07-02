@@ -53,7 +53,6 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_curve.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_mesh.h"
 #include "BKE_armature.h"
@@ -130,8 +129,9 @@ static void rna_idname_validate(const char *name, char *r_name)
 }
 
 
-static void rna_Main_ID_remove(Main *bmain, ReportList *reports, PointerRNA *id_ptr,
-                               int do_unlink, int do_id_user, int do_ui_user)
+static void rna_Main_ID_remove(
+        Main *bmain, ReportList *reports, PointerRNA *id_ptr,
+        bool do_unlink, bool do_id_user, bool do_ui_user)
 {
 	ID *id = id_ptr->data;
 	if (do_unlink) {
@@ -167,7 +167,7 @@ static Scene *rna_Main_scenes_new(Main *bmain, const char *name)
 
 	return BKE_scene_add(bmain, safe_name);
 }
-static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, PointerRNA *scene_ptr, int do_unlink)
+static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, PointerRNA *scene_ptr, bool do_unlink)
 {
 	/* don't call BKE_libblock_free(...) directly */
 	Scene *scene = scene_ptr->data;
@@ -300,7 +300,7 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 Mesh *rna_Main_meshes_new_from_object(
         Main *bmain, ReportList *reports, Depsgraph *depsgraph,
-        Object *ob, int apply_modifiers, int calc_tessface, int calc_undeformed)
+        Object *ob, bool apply_modifiers, bool calc_tessface, bool calc_undeformed)
 {
 	Scene *sce = DEG_get_evaluated_scene(depsgraph);
 
@@ -330,7 +330,7 @@ static Lamp *rna_Main_lamps_new(Main *bmain, const char *name, int type)
 	return lamp;
 }
 
-static Image *rna_Main_images_new(Main *bmain, const char *name, int width, int height, int alpha, int float_buffer, int stereo3d)
+static Image *rna_Main_images_new(Main *bmain, const char *name, int width, int height, bool alpha, bool float_buffer, bool stereo3d)
 {
 	char safe_name[MAX_ID_NAME - 2];
 	rna_idname_validate(name, safe_name);
@@ -340,7 +340,7 @@ static Image *rna_Main_images_new(Main *bmain, const char *name, int width, int 
 	id_us_min(&image->id);
 	return image;
 }
-static Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char *filepath, int check_existing)
+static Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char *filepath, bool check_existing)
 {
 	Image *ima;
 
@@ -391,7 +391,7 @@ static MetaBall *rna_Main_metaballs_new(Main *bmain, const char *name)
 	return mb;
 }
 
-static VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepath, int check_existing)
+static VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepath, bool check_existing)
 {
 	VFont *font;
 	errno = 0;
@@ -461,7 +461,7 @@ static Speaker *rna_Main_speakers_new(Main *bmain, const char *name)
 	return speaker;
 }
 
-static bSound *rna_Main_sounds_load(Main *bmain, const char *name, int check_existing)
+static bSound *rna_Main_sounds_load(Main *bmain, const char *name, bool check_existing)
 {
 	bSound *sound;
 
@@ -484,7 +484,7 @@ static Text *rna_Main_texts_new(Main *bmain, const char *name)
 	return BKE_text_add(bmain, safe_name);
 }
 
-static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath, int is_internal)
+static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath, bool is_internal)
 {
 	Text *txt;
 
@@ -538,7 +538,7 @@ static Palette *rna_Main_palettes_new(Main *bmain, const char *name)
 	return (Palette *)palette;
 }
 
-static MovieClip *rna_Main_movieclip_load(Main *bmain, ReportList *reports, const char *filepath, int check_existing)
+static MovieClip *rna_Main_movieclip_load(Main *bmain, ReportList *reports, const char *filepath, bool check_existing)
 {
 	MovieClip *clip;
 
@@ -593,7 +593,7 @@ static LightProbe *rna_Main_lightprobe_new(Main *bmain, const char *name)
 
 /* tag functions, all the same */
 #define RNA_MAIN_ID_TAG_FUNCS_DEF(_func_name, _listbase_name, _id_type)            \
-	static void rna_Main_##_func_name##_tag(Main *bmain, int value) {              \
+	static void rna_Main_##_func_name##_tag(Main *bmain, bool value) {             \
 		BKE_main_id_tag_listbase(&bmain->_listbase_name, LIB_TAG_DOIT, value);     \
 	}                                                                              \
 

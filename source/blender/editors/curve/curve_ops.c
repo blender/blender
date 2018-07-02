@@ -286,7 +286,11 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", true);
 
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CURVE_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
+#else
+	WM_keymap_add_item(keymap, "CURVE_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT, 0);
+#endif
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 

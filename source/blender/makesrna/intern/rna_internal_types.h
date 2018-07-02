@@ -63,10 +63,10 @@ typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
 typedef int (*PropArrayLengthGetFunc)(struct PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION]);
-typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
-typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
-typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int *values);
-typedef void (*PropBooleanArraySetFunc)(struct PointerRNA *ptr, const int *values);
+typedef bool (*PropBooleanGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, bool value);
+typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, bool *values);
+typedef void (*PropBooleanArraySetFunc)(struct PointerRNA *ptr, const bool *values);
 typedef int (*PropIntGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropIntSetFunc)(struct PointerRNA *ptr, int value);
 typedef void (*PropIntArrayGetFunc)(struct PointerRNA *ptr, int *values);
@@ -88,8 +88,8 @@ typedef const EnumPropertyItem *(*PropEnumItemFunc)(
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
 typedef StructRNA *(*PropPointerTypeFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
-typedef int (*PropPointerPollFunc)(struct PointerRNA *ptr, const PointerRNA value);
-typedef int (*PropPointerPollFuncPy)(struct PointerRNA *ptr, const PointerRNA value, const PropertyRNA *prop);
+typedef bool (*PropPointerPollFunc)(struct PointerRNA *ptr, const PointerRNA value);
+typedef bool (*PropPointerPollFuncPy)(struct PointerRNA *ptr, const PointerRNA value, const PropertyRNA *prop);
 typedef void (*PropCollectionBeginFunc)(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
 typedef void (*PropCollectionNextFunc)(struct CollectionPropertyIterator *iter);
 typedef void (*PropCollectionEndFunc)(struct CollectionPropertyIterator *iter);
@@ -100,10 +100,10 @@ typedef int (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char
 typedef int (*PropCollectionAssignIntFunc)(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
 
 /* extended versions with PropertyRNA argument */
-typedef int (*PropBooleanGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
-typedef void (*PropBooleanSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
-typedef void (*PropBooleanArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);
-typedef void (*PropBooleanArraySetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values);
+typedef bool (*PropBooleanGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*PropBooleanSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value);
+typedef void (*PropBooleanArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, bool *values);
+typedef void (*PropBooleanArraySetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const bool *values);
 typedef int (*PropIntGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*PropIntSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
 typedef void (*PropIntArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);
@@ -133,6 +133,7 @@ typedef void (*PropEnumSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *pr
  * \note \a override, \a rna_path and \a r_override_changed may be NULL pointers.
  */
 typedef int (*RNAPropOverrideDiff)(
+        struct Main *bmain,
         struct PointerRNA *ptr_a, struct PointerRNA *ptr_b,
         struct PropertyRNA *prop_a, struct PropertyRNA *prop_b,
         const int len_a, const int len_b,
@@ -150,6 +151,7 @@ typedef int (*RNAPropOverrideDiff)(
  *       is out of range (or even change it to basic 'set' operation if nothing else works).
  */
 typedef bool (*RNAPropOverrideStore)(
+        struct Main *bmain,
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, struct PointerRNA *ptr_storage,
         struct PropertyRNA *prop_local, struct PropertyRNA *prop_reference, struct PropertyRNA *prop_storage,
         const int len_local, const int len_reference, const int len_storage,
@@ -163,9 +165,11 @@ typedef bool (*RNAPropOverrideStore)(
  * \note In non-array cases, \a len values are 0.
  */
 typedef bool (*RNAPropOverrideApply)(
+        struct Main *bmain,
         struct PointerRNA *ptr_dst, struct PointerRNA *ptr_src, struct PointerRNA *ptr_storage,
         struct PropertyRNA *prop_dst, struct PropertyRNA *prop_src, struct PropertyRNA *prop_storage,
         const int len_dst, const int len_src, const int len_storage,
+        struct PointerRNA *ptr_item_dst, struct PointerRNA *ptr_item_src, struct PointerRNA *ptr_item_storage,
         struct IDOverrideStaticPropertyOperation *opop);
 
 /* Container - generic abstracted container of RNA properties */
@@ -290,8 +294,8 @@ typedef struct BoolPropertyRNA {
 	PropBooleanArrayGetFuncEx getarray_ex;
 	PropBooleanArraySetFuncEx setarray_ex;
 
-	int defaultvalue;
-	const int *defaultarray;
+	bool defaultvalue;
+	const bool *defaultarray;
 } BoolPropertyRNA;
 
 typedef struct IntPropertyRNA {

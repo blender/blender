@@ -144,7 +144,6 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_color_util.h"
 #include "kernel/svm/svm_math_util.h"
 
-#include "kernel/svm/svm_ao.h"
 #include "kernel/svm/svm_attribute.h"
 #include "kernel/svm/svm_gradient.h"
 #include "kernel/svm/svm_blackbody.h"
@@ -185,6 +184,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_bump.h"
 
 #ifdef __SHADER_RAYTRACE__
+#  include "kernel/svm/svm_ao.h"
 #  include "kernel/svm/svm_bevel.h"
 #endif
 

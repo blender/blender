@@ -4702,4 +4702,3 @@ void param_flush_restore(ParamHandle *handle)
 			p_face_restore_uvs(f);
 	}
 }
-

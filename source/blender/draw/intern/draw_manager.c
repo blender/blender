@@ -187,39 +187,6 @@ bool DRW_object_is_flat_normal(const Object *ob)
 	return true;
 }
 
-/**
- * Return true if the object has its own draw mode.
- * Caller must check this is active */
-int DRW_object_is_mode_shade(const Object *ob)
-{
-	BLI_assert(ob == DST.draw_ctx.obact);
-	UNUSED_VARS_NDEBUG(ob);
-	if ((DST.draw_ctx.object_mode & OB_MODE_EDIT) == 0) {
-		if ((DST.draw_ctx.object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) > 0) {
-			if (ELEM(DST.draw_ctx.v3d->drawtype, OB_MATERIAL, OB_RENDER)) {
-				return false;
-			}
-			else if ((DST.draw_ctx.v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE) == 0) {
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-	}
-	return -1;
-}
-
-int DRW_object_is_paint_mode(const Object *ob)
-{
-	if (ob == DST.draw_ctx.obact) {
-		if ((DST.draw_ctx.object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) > 0) {
-			return true;
-		}
-	}
-	return false;
-}
-
 bool DRW_check_psys_visible_within_active_context(
         Object *object,
         struct ParticleSystem *psys)
@@ -1024,7 +991,6 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 			break;
 
 		case OB_SOLID:
-		case OB_TEXTURE:
 			if (shading_flags & V3D_SHADING_XRAY) {
 				use_drw_engine(&draw_engine_workbench_transparent);
 			}
@@ -1055,6 +1021,27 @@ static void drw_engines_enable_from_object_mode(void)
 	use_drw_engine(&draw_engine_motion_path_type);
 }
 
+static void drw_engines_enable_from_paint_mode(int mode)
+{
+	switch (mode) {
+		case CTX_MODE_SCULPT:
+			use_drw_engine(&draw_engine_sculpt_type);
+			break;
+		case CTX_MODE_PAINT_WEIGHT:
+			use_drw_engine(&draw_engine_pose_type);
+			use_drw_engine(&draw_engine_paint_weight_type);
+			break;
+		case CTX_MODE_PAINT_VERTEX:
+			use_drw_engine(&draw_engine_paint_vertex_type);
+			break;
+		case CTX_MODE_PAINT_TEXTURE:
+			use_drw_engine(&draw_engine_paint_texture_type);
+			break;
+		default:
+			break;
+	}
+}
+
 static void drw_engines_enable_from_mode(int mode)
 {
 	switch (mode) {
@@ -1082,21 +1069,14 @@ static void drw_engines_enable_from_mode(int mode)
 		case CTX_MODE_POSE:
 			use_drw_engine(&draw_engine_pose_type);
 			break;
-		case CTX_MODE_SCULPT:
-			use_drw_engine(&draw_engine_sculpt_type);
-			break;
-		case CTX_MODE_PAINT_WEIGHT:
-			use_drw_engine(&draw_engine_pose_type);
-			use_drw_engine(&draw_engine_paint_weight_type);
-			break;
-		case CTX_MODE_PAINT_VERTEX:
-			use_drw_engine(&draw_engine_paint_vertex_type);
-			break;
-		case CTX_MODE_PAINT_TEXTURE:
-			use_drw_engine(&draw_engine_paint_texture_type);
-			break;
 		case CTX_MODE_PARTICLE:
 			use_drw_engine(&draw_engine_particle_type);
+			break;
+		case CTX_MODE_SCULPT:
+		case CTX_MODE_PAINT_WEIGHT:
+		case CTX_MODE_PAINT_VERTEX:
+		case CTX_MODE_PAINT_TEXTURE:
+			/* Should have already been enabled */
 			break;
 		case CTX_MODE_OBJECT:
 			break;
@@ -1130,6 +1110,8 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	drw_engines_enable_from_engine(engine_type, drawtype, v3d->shading.flag);
 
 	if (DRW_state_draw_support()) {
+		/* Draw paint modes first so that they are drawn below the wireframes. */
+		drw_engines_enable_from_paint_mode(mode);
 		drw_engines_enable_from_overlays(v3d->overlay.flag);
 		drw_engines_enable_from_object_mode();
 		drw_engines_enable_from_mode(mode);
@@ -1467,7 +1449,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	Render *render = engine->re;
 
 	if (G.background && DST.gl_context == NULL) {
-		WM_init_opengl();
+		WM_init_opengl(G_MAIN);
 	}
 
 	void *re_gl_context = RE_gl_context_get(render);
@@ -1682,6 +1664,7 @@ void DRW_draw_select_loop(
 
 	/* Get list of enabled engines */
 	if (use_obedit) {
+		drw_engines_enable_from_paint_mode(obedit_mode);
 		drw_engines_enable_from_mode(obedit_mode);
 	}
 	else {
@@ -1729,7 +1712,7 @@ void DRW_draw_select_loop(
 			        DEG_ITER_OBJECT_FLAG_VISIBLE |
 			        DEG_ITER_OBJECT_FLAG_DUPLI)
 			{
-				if ((ob->base_flag & BASE_SELECTABLED) != 0) {
+				if ((ob->base_flag & BASE_SELECTABLE) != 0) {
 
 					if (object_filter_fn != NULL) {
 						if (ob->base_flag & BASE_FROMDUPLI) {

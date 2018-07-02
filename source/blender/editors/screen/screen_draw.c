@@ -27,6 +27,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "BLI_math.h"
 
@@ -43,11 +44,11 @@
  */
 static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
+	const float width = screen_geom_area_width(sa) - 1;
+	const float height = screen_geom_area_height(sa) - 1;
 	vec2f points[10];
 	short i;
 	float w, h;
-	float width = sa->v3->vec.x - sa->v1->vec.x;
-	float height = sa->v3->vec.y - sa->v1->vec.y;
 
 	if (height < width) {
 		h = height / 8;
@@ -124,11 +125,11 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
  */
 static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
+	const float width = screen_geom_area_width(sa) - 1;
+	const float height = screen_geom_area_height(sa) - 1;
 	vec2f points[10];
 	short i;
 	float w, h;
-	float width = sa->v3->vec.x - sa->v1->vec.x;
-	float height = sa->v3->vec.y - sa->v1->vec.y;
 
 	if (height < width) {
 		h = height / 4;
@@ -353,7 +354,7 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
  */
 static void scrarea_draw_shape_dark(ScrArea *sa, char dir, unsigned int pos)
 {
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	immUniformColor4ub(0, 0, 0, 50);
 
 	draw_join_shape(sa, dir, pos);
@@ -364,7 +365,7 @@ static void scrarea_draw_shape_dark(ScrArea *sa, char dir, unsigned int pos)
  */
 static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir), unsigned int pos)
 {
-	glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
+	GPU_blend_set_func(GPU_DST_COLOR, GPU_SRC_ALPHA);
 	/* value 181 was hardly computed: 181~105 */
 	immUniformColor4ub(255, 255, 255, 50);
 	/* draw_join_shape(sa, dir); */
@@ -444,7 +445,7 @@ void ED_screen_draw_edges(wmWindow *win)
 	/* Note: first loop only draws if U.pixelsize > 1, skip otherwise */
 	if (U.pixelsize > 1.0f) {
 		/* FIXME: doesn't our glLineWidth already scale by U.pixelsize? */
-		glLineWidth((2.0f * U.pixelsize) - 1);
+		GPU_line_width((2.0f * U.pixelsize) - 1);
 		immUniformThemeColor(TH_EDITOR_OUTLINE);
 
 		for (sa = screen->areabase.first; sa; sa = sa->next) {
@@ -452,7 +453,7 @@ void ED_screen_draw_edges(wmWindow *win)
 		}
 	}
 
-	glLineWidth(1);
+	GPU_line_width(1);
 	immUniformThemeColor(TH_EDITOR_OUTLINE);
 
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
@@ -479,7 +480,7 @@ void ED_screen_draw_join_shape(ScrArea *sa1, ScrArea *sa2)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	glLineWidth(1);
+	GPU_line_width(1);
 
 	/* blended join arrow */
 	int dir = area_getorientation(sa1, sa2);
@@ -504,12 +505,12 @@ void ED_screen_draw_join_shape(ScrArea *sa1, ScrArea *sa2)
 				break;
 		}
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		scrarea_draw_shape_dark(sa2, dir, pos);
 		scrarea_draw_shape_light(sa1, dira, pos);
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	immUnbindProgram();
@@ -521,7 +522,7 @@ void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* splitpoint */
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	immUniformColor4ub(255, 255, 255, 100);
 
 	immBegin(GWN_PRIM_LINES, 2);
@@ -562,7 +563,7 @@ void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
 		immEnd();
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	immUnbindProgram();
 }
@@ -645,8 +646,8 @@ void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uns
 	GPUOffScreen *offscreen = GPU_offscreen_create(size_x, size_y, 0, true, false, err_out);
 
 	GPU_offscreen_bind(offscreen, true);
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	GPU_clear_color(0.0, 0.0, 0.0, 0.0);
+	GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
 
 	screen_preview_draw(screen, size_x, size_y);
 

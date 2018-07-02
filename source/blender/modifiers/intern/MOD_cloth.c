@@ -54,6 +54,9 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
+#include "DEG_depsgraph_physics.h"
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 
 static void initData(ModifierData *md)
@@ -78,6 +81,7 @@ static void deformVerts(
 {
 	Mesh *mesh_src;
 	ClothModifierData *clmd = (ClothModifierData *) md;
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
 	/* check for alloc failing */
 	if (!clmd->sim_parms || !clmd->coll_parms) {
@@ -88,7 +92,7 @@ static void deformVerts(
 	}
 
 	if (mesh == NULL) {
-		mesh_src = get_mesh(ctx->object, NULL, NULL, NULL, false, false);
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, NULL, NULL, false, false);
 	}
 	else {
 		/* Not possible to use get_mesh() in this case as we'll modify its vertices
@@ -123,7 +127,7 @@ static void deformVerts(
 
 	BKE_mesh_apply_vert_coords(mesh_src, vertexCos);
 
-	clothModifier_do(clmd, ctx->depsgraph, md->scene, ctx->object, mesh_src, vertexCos);
+	clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh_src, vertexCos);
 
 	BKE_id_free(NULL, mesh_src);
 }
@@ -132,10 +136,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
 	ClothModifierData *clmd = (ClothModifierData *)md;
 	if (clmd != NULL) {
-		/* Actual code uses get_collisionobjects */
-		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, clmd->coll_parms->group, eModifierType_Collision, NULL, true, "Cloth Collision");
-
-		DEG_add_forcefield_relations(ctx->node, ctx->scene, ctx->object, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
+		DEG_add_collision_relations(ctx->node, ctx->object, clmd->coll_parms->group, eModifierType_Collision, NULL, "Cloth Collision");
+		DEG_add_forcefield_relations(ctx->node, ctx->object, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 	}
 }
 

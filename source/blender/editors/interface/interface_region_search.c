@@ -64,6 +64,7 @@
 
 #include "interface_intern.h"
 #include "interface_regions_intern.h"
+#include "GPU_state.h"
 
 #define MENU_BORDER			(int)(0.3f * U.widget_unit)
 
@@ -422,22 +423,23 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *ar)
 				ui_searchbox_butrect(&rect, data, a);
 
 				/* widget itself */
-				ui_draw_preview_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
-				                     (a == data->active) ? UI_ACTIVE : 0);
+				ui_draw_preview_item(
+				        &data->fstyle, &rect, data->items.names[a], data->items.icons[a],
+				        (a == data->active) ? UI_ACTIVE : 0);
 			}
 
 			/* indicate more */
 			if (data->items.more) {
 				ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
-				glEnable(GL_BLEND);
+				GPU_blend(true);
 				UI_icon_draw(rect.xmax - 18, rect.ymin - 7, ICON_TRIA_DOWN);
-				glDisable(GL_BLEND);
+				GPU_blend(false);
 			}
 			if (data->items.offset) {
 				ui_searchbox_butrect(&rect, data, 0);
-				glEnable(GL_BLEND);
+				GPU_blend(true);
 				UI_icon_draw(rect.xmin, rect.ymax - 9, ICON_TRIA_UP);
-				glDisable(GL_BLEND);
+				GPU_blend(false);
 			}
 
 		}
@@ -447,22 +449,23 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *ar)
 				ui_searchbox_butrect(&rect, data, a);
 
 				/* widget itself */
-				ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
-				                  (a == data->active) ? UI_ACTIVE : 0, data->use_sep);
+				ui_draw_menu_item(
+				        &data->fstyle, &rect, data->items.names[a], data->items.icons[a],
+				        (a == data->active) ? UI_ACTIVE : 0, data->use_sep);
 
 			}
 			/* indicate more */
 			if (data->items.more) {
 				ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
-				glEnable(GL_BLEND);
+				GPU_blend(true);
 				UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
-				glDisable(GL_BLEND);
+				GPU_blend(false);
 			}
 			if (data->items.offset) {
 				ui_searchbox_butrect(&rect, data, 0);
-				glEnable(GL_BLEND);
+				GPU_blend(true);
 				UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
-				glDisable(GL_BLEND);
+				GPU_blend(false);
 			}
 		}
 	}
@@ -723,8 +726,9 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 				}
 
 				rect_pre.xmax += 4;  /* sneaky, avoid showing ugly margin */
-				ui_draw_menu_item(&data->fstyle, &rect_pre, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, text_pre),
-				                  data->items.icons[a], state, false);
+				ui_draw_menu_item(
+				        &data->fstyle, &rect_pre, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, text_pre),
+				        data->items.icons[a], state, false);
 				ui_draw_menu_item(&data->fstyle, &rect_post, data->items.names[a], 0, state, data->use_sep);
 			}
 
@@ -732,15 +736,15 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 		/* indicate more */
 		if (data->items.more) {
 			ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
-			glEnable(GL_BLEND);
+			GPU_blend(true);
 			UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 		if (data->items.offset) {
 			ui_searchbox_butrect(&rect, data, 0);
-			glEnable(GL_BLEND);
+			GPU_blend(true);
 			UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 	}
 }

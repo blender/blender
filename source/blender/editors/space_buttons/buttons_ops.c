@@ -60,9 +60,9 @@
 
 #include "buttons_intern.h"  /* own include */
 
-/********************** toolbox operator *********************/
+/********************** context_menu operator *********************/
 
-static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static int context_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	bScreen *sc = CTX_wm_screen(C);
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
@@ -80,15 +80,15 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UN
 	return OPERATOR_INTERFACE;
 }
 
-void BUTTONS_OT_toolbox(wmOperatorType *ot)
+void BUTTONS_OT_context_menu(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Toolbox";
-	ot->description = "Display button panel toolbox";
-	ot->idname = "BUTTONS_OT_toolbox";
+	ot->name = "Context Menu";
+	ot->description = "Display button panel context_menu";
+	ot->idname = "BUTTONS_OT_context_menu";
 
 	/* api callbacks */
-	ot->invoke = toolbox_invoke;
+	ot->invoke = context_menu_invoke;
 	ot->poll = ED_operator_buttons_active;
 }
 

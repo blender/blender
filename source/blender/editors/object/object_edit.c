@@ -148,7 +148,7 @@ Object *ED_object_active_context(bContext *C)
 
 /* ********************** object hiding *************************** */
 
-static int object_hide_poll(bContext *C)
+static bool object_hide_poll(bContext *C)
 {
 	if (CTX_wm_space_outliner(C) != NULL) {
 		return ED_outliner_collections_editor_poll(C);
@@ -166,8 +166,8 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 	bool changed = false;
 
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		if (base->flag & BASE_HIDE) {
-			base->flag &= ~BASE_HIDE;
+		if (base->flag & BASE_HIDDEN) {
+			base->flag &= ~BASE_HIDDEN;
 			changed = true;
 
 			if (select) {
@@ -210,31 +210,40 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool unselected = RNA_boolean_get(op->ptr, "unselected");
-	bool changed = false;
 
+	/* Do nothing if no objects was selected. */
+	bool have_selected = false;
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		if (!(base->flag & BASE_VISIBLED)) {
+		if (base->flag & BASE_VISIBLE) {
+			if (base->flag & BASE_SELECTED) {
+				have_selected = true;
+				break;
+			}
+		}
+	}
+
+	if (!have_selected) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* Hide selected or unselected objects. */
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		if (!(base->flag & BASE_VISIBLE)) {
 			continue;
 		}
 
 		if (!unselected) {
 			if (base->flag & BASE_SELECTED) {
 				ED_object_base_select(base, BA_DESELECT);
-				base->flag |= BASE_HIDE;
-				changed = true;
+				base->flag |= BASE_HIDDEN;
 			}
 		}
 		else {
 			if (!(base->flag & BASE_SELECTED)) {
 				ED_object_base_select(base, BA_DESELECT);
-				base->flag |= BASE_HIDE;
-				changed = true;
+				base->flag |= BASE_HIDDEN;
 			}
 		}
-	}
-
-	if (!changed) {
-		return OPERATOR_CANCELLED;
 	}
 
 	BKE_layer_collection_sync(scene, view_layer);
@@ -306,7 +315,8 @@ void ED_hide_collections_menu_draw(const bContext *C, uiLayout *layout)
 		}
 
 		if ((view_layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
-		    !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS)) {
+		    !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS))
+		{
 			uiLayoutSetActive(row, false);
 		}
 
@@ -704,7 +714,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int editmode_toggle_poll(bContext *C)
+static bool editmode_toggle_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
@@ -876,7 +886,6 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 	Base *base;
 	Curve *cu, *cu1;
 	Nurb *nu;
-	bool do_depgraph_update = false;
 
 	if (ID_IS_LINKED(scene)) return;
 
@@ -1033,8 +1042,8 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 				else if (event == 22) {
 					/* Copy the constraint channels over */
 					BKE_constraints_copy(&base->object->constraints, &ob->constraints, true);
-
-					do_depgraph_update = true;
+					DEG_id_tag_update(&base->object->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_relations_tag_update(bmain);
 				}
 				else if (event == 23) {
 					base->object->softflag = ob->softflag;
@@ -1045,6 +1054,9 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 					if (!modifiers_findByType(base->object, eModifierType_Softbody)) {
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
 					}
+
+					DEG_id_tag_update(&base->object->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_relations_tag_update(bmain);
 				}
 				else if (event == 26) {
 #if 0 // XXX old animation system
@@ -1085,9 +1097,6 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 			}
 		}
 	}
-
-	if (do_depgraph_update)
-		DEG_relations_tag_update(bmain);
 }
 
 static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *view_layer, Object *obedit)
@@ -1316,7 +1325,7 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 
 /* --------- */
 
-static int object_update_paths_poll(bContext *C)
+static bool object_update_paths_poll(bContext *C)
 {
 	if (ED_operator_object_active_editable(C)) {
 		Object *ob = ED_object_active_context(C);
@@ -1485,7 +1494,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	return (done) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int shade_poll(bContext *C)
+static bool shade_poll(bContext *C)
 {
 	return (CTX_data_edit_object(C) == NULL);
 }
@@ -1572,7 +1581,7 @@ static const EnumPropertyItem *object_mode_set_itemsf(
 	return item;
 }
 
-static int object_mode_set_poll(bContext *C)
+static bool object_mode_set_poll(bContext *C)
 {
 	/* Since Grease Pencil editmode is also handled here,
 	 * we have a special exception for allowing this operator
@@ -1770,7 +1779,7 @@ bool ED_object_editmode_calc_active_center(Object *obedit, const bool select_onl
 	return false;
 }
 
-static int move_to_collection_poll(bContext *C)
+static bool move_to_collection_poll(bContext *C)
 {
 	if (CTX_wm_space_outliner(C) != NULL) {
 		return ED_outliner_collections_editor_poll(C);
@@ -1850,7 +1859,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 	            is_link ? "linked" : "moved",
 	            collection->id.name + 2);
 
-	DEG_relations_tag_update(CTX_data_main(C));
+	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
@@ -2089,4 +2098,3 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
 	                      "Name of the newly added collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
-

@@ -80,4 +80,3 @@ protected:
 };
 
 #endif // __GHOST_CALLBACKEVENTCONSUMER_H__
-

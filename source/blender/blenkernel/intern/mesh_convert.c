@@ -817,7 +817,6 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *
 	/* make new mesh data from the original copy */
 	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_MESH);
 	ListBase nurblist = {NULL, NULL};
-	bool needsFree = false;
 
 	BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 0);
 	BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 1);
@@ -832,30 +831,7 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *
 		ob->data = cu;
 		ob->type = OB_CURVE;
 
-		/* curve objects can't contain DM in usual cases, we could free memory */
-		needsFree = true;
-	}
-
-	/* Just to avoid dangling pointer, dm will be removed. */
-	{
-		DerivedMesh *dm = ob->derivedFinal;
-		if (dm != NULL) {
-			dm->needsFree = needsFree;
-			dm->release(dm);
-		}
-	}
-
-	if (needsFree) {
-		BKE_mesh_free(me_eval);
-
-		ob->derivedFinal = NULL;
-		ob->runtime.mesh_eval = NULL;
-
-		/* curve object could have got bounding box only in special cases */
-		if (ob->bb) {
-			MEM_freeN(ob->bb);
-			ob->bb = NULL;
-		}
+		BKE_object_free_derived_caches(ob);
 	}
 }
 
@@ -1150,13 +1126,11 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 	KeyBlock *kb;
 	ModifierEvalContext mectx = {depsgraph, ob, 0};
 
-	md->scene = scene;
-
 	if (!(md->mode & eModifierMode_Realtime)) {
 		return NULL;
 	}
 
-	if (mti->isDisabled && mti->isDisabled(md, 0)) {
+	if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
 		return NULL;
 	}
 
@@ -1235,7 +1209,7 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 		cos = CustomData_get_layer_n(&mesh_src->vdata, CD_SHAPEKEY, i);
 		kb->totelem = mesh_src->totvert;
 
-		kb->data = kbcos = MEM_malloc_arrayN(kb->totelem, 3 * sizeof(float), "kbcos DerivedMesh.c");
+		kb->data = kbcos = MEM_malloc_arrayN(kb->totelem, 3 * sizeof(float), __func__);
 		if (kb->uid == actshape_uid) {
 			MVert *mvert = mesh_src->mvert;
 
@@ -1256,7 +1230,7 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 				MEM_freeN(kb->data);
 
 			kb->totelem = mesh_src->totvert;
-			kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), "kb->data derivedmesh.c");
+			kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), __func__);
 			fprintf(stderr, "%s: lost a shapekey layer: '%s'! (bmesh internal error)\n", __func__, kb->name);
 		}
 	}

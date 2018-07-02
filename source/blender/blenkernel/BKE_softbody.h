@@ -74,4 +74,3 @@ extern void             SB_estimate_transform(Object *ob, float lloc[3], float l
 
 
 #endif
-

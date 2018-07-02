@@ -103,7 +103,7 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
 	return 1;
 }
 
-static int graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	return graph_panel_context(C, NULL, NULL);
 }
@@ -564,7 +564,7 @@ static void driver_update_flags_cb(bContext *UNUSED(C), void *fcu_v, void *UNUSE
 }
 
 /* drivers panel poll */
-static int graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceIpo *sipo = CTX_wm_space_graph(C);
 
@@ -1016,7 +1016,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 /* ----------------------------------------------------------------- */
 
 /* poll to make this not show up in the graph editor, as this is only to be used as a popup elsewhere */
-static int graph_panel_drivers_popover_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool graph_panel_drivers_popover_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	return ED_operator_graphedit_active((bContext *)C) == false;
 }

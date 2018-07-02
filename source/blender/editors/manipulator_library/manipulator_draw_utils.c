@@ -41,6 +41,7 @@
 #include "GPU_batch.h"
 #include "GPU_glew.h"
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -104,13 +105,13 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	 * since it causes issues leaving the GL state modified. */
 #if 0
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
+	GPU_depth_test(true);
 #endif
 
 	GWN_batch_draw(batch);
 
 #if 0
-	glDisable(GL_DEPTH_TEST);
+	GPU_depth_test(false);
 	glDisable(GL_CULL_FACE);
 #endif
 

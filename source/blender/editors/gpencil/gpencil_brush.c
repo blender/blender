@@ -78,6 +78,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "gpencil_intern.h"
 
@@ -988,8 +989,8 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		GPU_line_smooth(true);
+		GPU_blend(true);
 
 		/* Inner Ring: Light color for action of the brush */
 		/* TODO: toggle between add and remove? */
@@ -1002,8 +1003,8 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 
 		immUnbindProgram();
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 	}
 }
 
@@ -1042,7 +1043,7 @@ static void gpsculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
 	                    " | Shift-Wheel Up/Down for Strength"),
 	             (brush_name) ? brush_name : "<?>");
 
-	ED_area_headerprint(CTX_wm_area(C), str);
+	ED_workspace_status_text(C, str);
 }
 
 /* ************************************************ */
@@ -1176,7 +1177,7 @@ static void gpsculpt_brush_exit(bContext *C, wmOperator *op)
 	}
 
 	/* disable cursor and headerprints */
-	ED_area_headerprint(CTX_wm_area(C), NULL);
+	ED_workspace_status_text(C, NULL);
 	WM_cursor_modal_restore(win);
 	gpencil_toggle_brush_cursor(C, false);
 
@@ -1186,7 +1187,7 @@ static void gpsculpt_brush_exit(bContext *C, wmOperator *op)
 }
 
 /* poll callback for stroke sculpting operator(s) */
-static int gpsculpt_brush_poll(bContext *C)
+static bool gpsculpt_brush_poll(bContext *C)
 {
 	/* NOTE: this is a bit slower, but is the most accurate... */
 	return CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0;

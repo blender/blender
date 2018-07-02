@@ -55,6 +55,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_physics.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -108,10 +110,12 @@ static DerivedMesh *applyModifier(
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
-	if (ctx->flag & MOD_APPLY_ORCO)
+	if (ctx->flag & MOD_APPLY_ORCO) {
 		return dm;
+	}
 
-	return smokeModifier_do(smd, ctx->depsgraph, md->scene, ctx->object, dm);
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+	return smokeModifier_do(smd, ctx->depsgraph, scene, ctx->object, dm);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
@@ -136,11 +140,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	SmokeModifierData *smd = (SmokeModifierData *)md;
 
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-		/* Actual code uses get_collisionobjects */
-		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, smd->domain->fluid_group, eModifierType_Smoke, is_flow_cb, true, "Smoke Flow");
-		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, smd->domain->coll_group, eModifierType_Smoke, is_coll_cb, true, "Smoke Coll");
-
-		DEG_add_forcefield_relations(ctx->node, ctx->scene, ctx->object, smd->domain->effector_weights, true, PFIELD_SMOKEFLOW, "Smoke Force Field");
+		DEG_add_collision_relations(ctx->node, ctx->object, smd->domain->fluid_group, eModifierType_Smoke, is_flow_cb, "Smoke Flow");
+		DEG_add_collision_relations(ctx->node, ctx->object, smd->domain->coll_group, eModifierType_Smoke, is_coll_cb, "Smoke Coll");
+		DEG_add_forcefield_relations(ctx->node, ctx->object, smd->domain->effector_weights, true, PFIELD_SMOKEFLOW, "Smoke Force Field");
 	}
 }
 

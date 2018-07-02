@@ -43,6 +43,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -64,7 +65,7 @@
 static void axis_geom_draw(
         const wmManipulator *mpr, const float color[4], const bool UNUSED(select))
 {
-	glLineWidth(mpr->line_width);
+	GPU_line_width(mpr->line_width);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	const uint pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
@@ -128,15 +129,15 @@ static void axis_geom_draw(
 				zero_v3(center);
 				copy_v3_fl(size, HANDLE_SIZE);
 
-				glEnable(GL_DEPTH_TEST);
+				GPU_depth_test(true);
 				glDepthMask(GL_TRUE);
 				glDepthFunc(GL_LEQUAL);
-				glBlendFunc(GL_ONE, GL_ZERO);
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				GPU_blend_set_func(GPU_ONE, GPU_ZERO);
+				GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-				glEnable(GL_LINE_SMOOTH);
-				glEnable(GL_BLEND);
-				glLineWidth(1.0f);
+				GPU_line_smooth(true);
+				GPU_blend(true);
+				GPU_line_width(1.0f);
 				/* Just draw depth values. */
 				immUniformColor4fv(axis_nop);
 				imm_draw_cube_fill_3d(pos_id, center, size);
@@ -150,9 +151,9 @@ static void axis_geom_draw(
 				        },
 				        0.08f);
 				imm_draw_cube_wire_3d(pos_id, center, size);
-				glDisable(GL_BLEND);
-				glDisable(GL_LINE_SMOOTH);
-				glDisable(GL_DEPTH_TEST);
+				GPU_blend(false);
+				GPU_line_smooth(false);
+				GPU_depth_test(false);
 			}
 
 			draw_center_done = true;
@@ -216,9 +217,9 @@ static void axis3d_draw_intern(
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	axis_geom_draw(mpr, color, select);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	gpuPopMatrix();
 }
 
@@ -229,9 +230,9 @@ static void manipulator_axis_draw(const bContext *C, wmManipulator *mpr)
 
 	(void)is_modal;
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	axis3d_draw_intern(C, mpr, false, is_highlight);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static int manipulator_axis_test_select(

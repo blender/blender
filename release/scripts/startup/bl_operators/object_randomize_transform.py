@@ -104,55 +104,55 @@ class RandomizeLocRotSize(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     random_seed = IntProperty(
-            name="Random Seed",
-            description="Seed value for the random generator",
-            min=0,
-            max=10000,
-            default=0,
-            )
+        name="Random Seed",
+        description="Seed value for the random generator",
+        min=0,
+        max=10000,
+        default=0,
+    )
     use_delta = BoolProperty(
-            name="Transform Delta",
-            description=("Randomize delta transform values "
-                         "instead of regular transform"),
-            default=False,
-            )
+        name="Transform Delta",
+        description=("Randomize delta transform values "
+                     "instead of regular transform"),
+        default=False,
+    )
     use_loc = BoolProperty(
-            name="Randomize Location",
-            description="Randomize the location values",
-            default=True,
-            )
+        name="Randomize Location",
+        description="Randomize the location values",
+        default=True,
+    )
     loc = FloatVectorProperty(
-            name="Location",
-            description=("Maximum distance the objects "
-                         "can spread over each axis"),
-            min=-100.0,
-            max=100.0,
-            default=(0.0, 0.0, 0.0),
-            subtype='TRANSLATION',
-            )
+        name="Location",
+        description=("Maximum distance the objects "
+                     "can spread over each axis"),
+        min=-100.0,
+        max=100.0,
+        default=(0.0, 0.0, 0.0),
+        subtype='TRANSLATION',
+    )
     use_rot = BoolProperty(
-            name="Randomize Rotation",
-            description="Randomize the rotation values",
-            default=True,
-            )
+        name="Randomize Rotation",
+        description="Randomize the rotation values",
+        default=True,
+    )
     rot = FloatVectorProperty(
-            name="Rotation",
-            description="Maximum rotation over each axis",
-            min=-3.141592,  # math.pi
-            max=+3.141592,
-            default=(0.0, 0.0, 0.0),
-            subtype='EULER',
-            )
+        name="Rotation",
+        description="Maximum rotation over each axis",
+        min=-3.141592,  # math.pi
+        max=+3.141592,
+        default=(0.0, 0.0, 0.0),
+        subtype='EULER',
+    )
     use_scale = BoolProperty(
-            name="Randomize Scale",
-            description="Randomize the scale values",
-            default=True,
-            )
+        name="Randomize Scale",
+        description="Randomize the scale values",
+        default=True,
+    )
     scale_even = BoolProperty(
-            name="Scale Even",
-            description="Use the same scale value for all axis",
-            default=False,
-            )
+        name="Scale Even",
+        description="Use the same scale value for all axis",
+        default=False,
+    )
 
     '''scale_min = FloatProperty(
             name="Minimun Scale Factor",
@@ -162,13 +162,13 @@ class RandomizeLocRotSize(Operator):
             )'''
 
     scale = FloatVectorProperty(
-            name="Scale",
-            description="Maximum scale randomization over each axis",
-            min=-100.0,
-            max=100.0,
-            default=(1.0, 1.0, 1.0),
-            subtype='TRANSLATION',
-            )
+        name="Scale",
+        description="Maximum scale randomization over each axis",
+        min=-100.0,
+        max=100.0,
+        default=(1.0, 1.0, 1.0),
+        subtype='TRANSLATION',
+    )
 
     def execute(self, context):
         seed = self.random_seed

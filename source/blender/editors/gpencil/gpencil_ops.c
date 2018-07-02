@@ -109,12 +109,13 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	/* Delete Active Frame - For easier video tutorials/review sessions */
 	/* NOTE: This works even when not in EditMode */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", XKEY, KM_PRESS, 0, DKEY);
+	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", DELKEY, KM_PRESS, 0, DKEY);
 }
 
 /* ==================== */
 
 /* Poll callback for stroke editing mode */
-static int gp_stroke_editmode_poll(bContext *C)
+static bool gp_stroke_editmode_poll(bContext *C)
 {
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	return (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE));
@@ -245,6 +246,7 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "GPENCIL_OT_dissolve", DELKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", XKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", DELKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* menu edit specials */
 	WM_keymap_add_menu(keymap, "GPENCIL_MT_gpencil_edit_specials", WKEY, KM_PRESS, 0, 0);

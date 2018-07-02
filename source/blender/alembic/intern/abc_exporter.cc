@@ -158,7 +158,7 @@ static bool export_object(const ExportSettings * const settings, const Base * co
 			return false;
 		}
 		// FIXME Sybren: handle these cleanly (maybe just remove code), now using active scene layer instead.
-		if (settings->visible_layers_only && (ob_base->flag & BASE_VISIBLED) == 0) {
+		if (settings->visible_layers_only && (ob_base->flag & BASE_VISIBLE) == 0) {
 			return false;
 		}
 	}

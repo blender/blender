@@ -675,4 +675,3 @@ vec4 FxaaPixelShader(
     return vec4(FxaaTexTop(tex, posM).xyz, lumaM);
 }
 /*==========================================================================*/
-

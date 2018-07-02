@@ -90,4 +90,3 @@ public:
 };
 
 #endif // __GHOST_SYSTEMPATHSWIN32_H__
-

@@ -284,4 +284,3 @@ bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/, 
 		return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 	}
 }
-

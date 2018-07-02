@@ -1054,7 +1054,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd, 
 	}
 
 	/* gather colliders */
-	colliders = get_collider_cache(clmd->scene, NULL, NULL);
+	colliders = BKE_collider_cache_create(depsgraph, NULL, NULL);
 	if (colliders && collfac > 0.0f) {
 		for (col = colliders->first; col; col = col->next) {
 			MVert *loc0 = col->collmd->x;
@@ -1087,7 +1087,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd, 
 			}
 		}
 	}
-	free_collider_cache(&colliders);
+	BKE_collider_cache_free(&colliders);
 
 	/* divide velocity with density */
 	for (i = 0; i < size; i++) {

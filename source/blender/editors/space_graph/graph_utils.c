@@ -44,15 +44,60 @@
 
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
+#include "BKE_screen.h"
 
 
 #include "WM_api.h"
 
 
 #include "ED_anim_api.h"
+#include "ED_screen.h"
+#include "UI_interface.h"
 
 
 #include "graph_intern.h"   // own include
+
+/* ************************************************************** */
+/* Set Up Drivers Editor */
+
+/* Set up UI configuration for Drivers Editor */
+/* NOTE: Currently called from windowmanager (new drivers editor window) and RNA (mode switching) */
+void ED_drivers_editor_init(bContext *C, ScrArea *sa)
+{
+	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
+
+	/* Set mode */
+	sipo->mode = SIPO_MODE_DRIVERS;
+
+	/* Show Properties Region (or else the settings can't be edited) */
+	ARegion *ar_props = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+	if (ar_props) {
+		UI_panel_category_active_set(ar_props, "Drivers");
+
+		ar_props->flag &= ~RGN_FLAG_HIDDEN;
+		/* XXX: Adjust width of this too? */
+
+		ED_region_visibility_change_update(C, ar_props);
+	}
+	else {
+		printf("%s: Couldn't find properties region for Drivers Editor - %p\n", __func__, sa);
+	}
+
+	/* Adjust framing in graph region */
+	/* TODO: Have a way of not resetting this every time?
+	 * (e.g. So that switching back and forth between editors doesn't keep jumping?)
+	 */
+	ARegion *ar_main = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	if (ar_main) {
+		/* XXX: Ideally we recenter based on the range instead... */
+		ar_main->v2d.tot.xmin = -2.0f;
+		ar_main->v2d.tot.ymin = -2.0f;
+		ar_main->v2d.tot.xmax = 2.0f;
+		ar_main->v2d.tot.ymax = 2.0f;
+
+		ar_main->v2d.cur = ar_main->v2d.tot;
+	}
+}
 
 /* ************************************************************** */
 /* Active F-Curve */
@@ -90,7 +135,7 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 /* Operator Polling Callbacks */
 
 /* Check if there are any visible keyframes (for selection tools) */
-int graphop_visible_keyframes_poll(bContext *C)
+bool graphop_visible_keyframes_poll(bContext *C)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
@@ -139,7 +184,7 @@ int graphop_visible_keyframes_poll(bContext *C)
 }
 
 /* Check if there are any visible + editable keyframes (for editing tools) */
-int graphop_editable_keyframes_poll(bContext *C)
+bool graphop_editable_keyframes_poll(bContext *C)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
@@ -189,7 +234,7 @@ int graphop_editable_keyframes_poll(bContext *C)
 }
 
 /* has active F-Curve that's editable */
-int graphop_active_fcurve_poll(bContext *C)
+bool graphop_active_fcurve_poll(bContext *C)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
@@ -229,7 +274,7 @@ int graphop_active_fcurve_poll(bContext *C)
 }
 
 /* has selected F-Curve that's editable */
-int graphop_selected_fcurve_poll(bContext *C)
+bool graphop_selected_fcurve_poll(bContext *C)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};

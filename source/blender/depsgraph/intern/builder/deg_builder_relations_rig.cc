@@ -307,9 +307,11 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	bArmature *armature = (bArmature *)object->data;
 	// TODO: selection status?
 	/* Attach links between pose operations. */
+	ComponentKey local_transform(&object->id, DEG_NODE_TYPE_TRANSFORM);
 	OperationKey init_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT);
 	OperationKey init_ik_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT_IK);
 	OperationKey flush_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_DONE);
+	add_relation(local_transform, init_key, "Local Transform -> Pose Init");
 	add_relation(init_key, init_ik_key, "Pose Init -> Pose Init IK");
 	add_relation(init_ik_key, flush_key, "Pose Init IK -> Pose Cleanup");
 	/* Make sure pose is up-to-date with armature updates. */

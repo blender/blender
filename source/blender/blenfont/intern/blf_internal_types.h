@@ -32,6 +32,7 @@
 #define __BLF_INTERNAL_TYPES_H__
 
 #include "../../../intern/gawain/gawain/gwn_vertex_buffer.h"
+#include "GPU_texture.h"
 
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
 
@@ -45,7 +46,7 @@ typedef struct BatchBLF {
 	float ofs[2];    /* copy of font->pos */
 	float mat[4][4]; /* previous call modelmatrix. */
 	bool enabled, active, simple_shader;
-	unsigned int tex_bind_state;
+	GPUTexture *tex_bind_state;
 } BatchBLF;
 
 extern BatchBLF g_batch;
@@ -78,7 +79,7 @@ typedef struct GlyphCacheBLF {
 	struct GlyphBLF *glyph_ascii_table[256];
 
 	/* texture array, to draw the glyphs. */
-	unsigned int *textures;
+	GPUTexture **textures;
 
 	/* size of the array. */
 	unsigned int textures_len;
@@ -133,7 +134,7 @@ typedef struct GlyphBLF {
 	int advance_i;
 
 	/* texture id where this glyph is store. */
-	unsigned int tex;
+	GPUTexture *tex;
 
 	/* position inside the texture where this glyph is store. */
 	int offset_x;
@@ -244,7 +245,7 @@ typedef struct FontBLF {
 	int tex_size_max;
 
 	/* cache current OpenGL texture to save calls into the API */
-	unsigned int tex_bind_state;
+	GPUTexture *tex_bind_state;
 
 	/* font options. */
 	int flags;

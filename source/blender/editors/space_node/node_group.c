@@ -65,7 +65,7 @@
 #include "node_intern.h"  /* own include */
 #include "NOD_common.h"
 
-static int node_group_operator_active(bContext *C)
+static bool node_group_operator_active(bContext *C)
 {
 	if (ED_operator_node_active(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);
@@ -84,7 +84,7 @@ static int node_group_operator_active(bContext *C)
 	return false;
 }
 
-static int node_group_operator_editable(bContext *C)
+static bool node_group_operator_editable(bContext *C)
 {
 	if (ED_operator_node_editable(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);

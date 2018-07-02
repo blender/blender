@@ -28,6 +28,8 @@
  */
 
 struct Depsgraph;
+struct DynamicPaintCanvasSettings;
+struct DynamicPaintModifierData;
 struct Main;
 struct Scene;
 struct ViewLayer;

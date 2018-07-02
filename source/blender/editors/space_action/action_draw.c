@@ -59,6 +59,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -215,7 +216,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		const float yminc = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
@@ -319,7 +320,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		/*	Increment the step */
 		y -= ACHANNEL_STEP(ac);
 	}
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* black line marking 'current frame' for Time-Slide transform mode */
 	if (saction->flag & SACTION_MOVING) {
@@ -475,7 +476,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 		const int sta = pid->cache->startframe, end = pid->cache->endframe;
 		const int len = (end - sta + 1) * 6;
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		immUniformColor4fv(col);
 		immRectf(pos, (float)sta, 0.0, (float)end, 1.0);
@@ -509,7 +510,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 			immEnd();
 		}
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 
 		gpuPopMatrix();
 

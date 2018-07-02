@@ -300,7 +300,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	}
 
 	if (calc->vert) {
-		/* calc->vert contains verts from derivedMesh  */
+		/* calc->vert contains verts from evaluated mesh.  */
 		/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
 		/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
 		if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
@@ -357,7 +357,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	/* don't set the initial dist (which is more efficient),
 	 * because its calculated in the targets space, we want the dist in our own space */
 	if (proj_limit_squared != 0.0f) {
-		if (len_squared_v3v3(hit->co, co) > proj_limit_squared) {
+		if (hit->index != -1 && len_squared_v3v3(hit->co, co) > proj_limit_squared) {
 			hit->index = -1;
 		}
 	}
@@ -448,7 +448,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 				auxData = &auxdata_stack.dmtreedata;
 			}
 		}
-		/* After sucessufuly build the trees, start projection vertexs */
+		/* After successfully build the trees, start projection vertices. */
 		ShrinkwrapCalcCBData data = {
 			.calc = calc,
 			.treeData = treeData, .targ_tree = targ_tree, .targ_callback = targ_callback,
@@ -600,7 +600,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *mesh,
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene, Object *ob, Mesh *mesh,
                                float (*vertexCos)[3], int numVerts)
 {
 
@@ -660,7 +660,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *me
 			/* TODO to be moved to Mesh once we are done with changes in subsurf code. */
 			DerivedMesh *dm = CDDM_from_mesh(mesh);
 
-			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, NULL, (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
+			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, scene, NULL, (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
 
 			if (ss_mesh) {
 				calc.vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);

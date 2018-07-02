@@ -53,7 +53,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
@@ -80,6 +79,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "UI_resources.h"
 
@@ -101,7 +101,7 @@
 
 /**************************** utilities *******************************/
 
-int PE_poll(bContext *C)
+bool PE_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -112,7 +112,7 @@ int PE_poll(bContext *C)
 	return (PE_get_current(scene, ob) != NULL);
 }
 
-int PE_hair_poll(bContext *C)
+bool PE_hair_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -126,7 +126,7 @@ int PE_hair_poll(bContext *C)
 	return (edit && edit->psys);
 }
 
-int PE_poll_view3d(bContext *C)
+bool PE_poll_view3d(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2897,13 +2897,13 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 
 		immUniformColor4ub(255, 255, 255, 128);
 
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		GPU_line_smooth(true);
+		GPU_blend(true);
 
 		imm_draw_circle_wire_2d(pos, (float)x, (float)y, pe_brush_size_get(scene, brush), 40);
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 
 		immUnbindProgram();
 	}
@@ -3017,7 +3017,7 @@ static void PE_mirror_x(
 
 	/* Note: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh. Avoids an (impossible)
 	 *       mesh -> orig -> mesh tessface indices conversion... */
-	mirrorfaces = mesh_get_x_mirror_faces__real_mesh(ob, NULL, use_dm_final_indices ? psmd_eval->mesh_final : NULL);
+	mirrorfaces = mesh_get_x_mirror_faces(ob, NULL, use_dm_final_indices ? psmd_eval->mesh_final : NULL);
 
 	if (!edit->mirror_cache)
 		PE_update_mirror_cache(ob, psys);
@@ -3531,7 +3531,7 @@ static void intersect_dm_quad_weights(const float v1[3], const float v2[3], cons
 	interp_weights_poly_v3(w, vert, 4, co);
 }
 
-/* check intersection with a derivedmesh */
+/** Check intersection with an evaluated mesh. */
 static int particle_intersect_mesh(Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh,
                                    float *vert_cos,
                                    const float co1[3], const float co2[3],
@@ -3548,18 +3548,16 @@ static int particle_intersect_mesh(Depsgraph *depsgraph, Scene *scene, Object *o
 	if (mesh == NULL) {
 		psys_disable_all(ob);
 
-		/* TODO(Sybren): port to Mesh when we have decided how to handle derivedFinal and derivedDeform */
-		DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, 0);
-		if (dm == NULL)
-			dm = mesh_get_derived_deform(depsgraph, scene, ob, 0);
+		mesh = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		if (mesh == NULL) {
+			mesh = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		}
 
 		psys_enable_all(ob);
 
-		if (dm == NULL)
+		if (mesh == NULL) {
 			return 0;
-
-		mesh = BKE_id_new_nomain(ID_ME, NULL);
-		DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 	}
 
 	/* BMESH_ONLY, deform dm may not have tessface */
@@ -4393,7 +4391,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 
 /*********************** cut shape ***************************/
 
-static int shape_cut_poll(bContext *C)
+static bool shape_cut_poll(bContext *C)
 {
 	if (PE_hair_poll(C)) {
 		Scene *scene = CTX_data_scene(C);
@@ -4759,7 +4757,7 @@ void PE_create_particle_edit(
 	}
 }
 
-static int particle_edit_toggle_poll(bContext *C)
+static bool particle_edit_toggle_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
@@ -5005,4 +5003,3 @@ void PARTICLE_OT_unify_length(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-

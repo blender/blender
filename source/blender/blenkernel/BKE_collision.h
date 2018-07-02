@@ -49,6 +49,7 @@ struct MFace;
 struct MVert;
 struct Object;
 struct Scene;
+struct Depsgraph;
 struct MVertTri;
 
 ////////////////////////////////////////
@@ -143,14 +144,29 @@ void collision_move_object(struct CollisionModifierData *collmd, float step, flo
 
 void collision_get_collider_velocity(float vel_old[3], float vel_new[3], struct CollisionModifierData *collmd, struct CollPair *collpair);
 
-/////////////////////////////////////////////////
-// used in effect.c
-/////////////////////////////////////////////////
 
-/* explicit control over layer mask and dupli recursion */
-struct Object **get_collisionobjects_ext(struct Scene *scene, struct Object *self, struct Collection *collection, unsigned int *numcollobj, unsigned int modifier_type, bool dupli);
+/* Collision relations for dependency graph build. */
 
-struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Collection *collection, unsigned int *numcollobj, unsigned int modifier_type);
+typedef struct CollisionRelation {
+	struct CollisionRelation *next, *prev;
+	struct Object *ob;
+} CollisionRelation;
+
+struct ListBase *BKE_collision_relations_create(
+        struct Depsgraph *depsgraph,
+        struct Collection *collection,
+        unsigned int modifier_type);
+void BKE_collision_relations_free(struct ListBase *relations);
+
+/* Collision object lists for physics simulation evaluation. */
+
+struct Object **BKE_collision_objects_create(
+        struct Depsgraph *depsgraph,
+        struct Object *self,
+        struct Collection *collection,
+        unsigned int *numcollobj,
+        unsigned int modifier_type);
+void BKE_collision_objects_free(struct Object **objects);
 
 typedef struct ColliderCache {
 	struct ColliderCache *next, *prev;
@@ -158,8 +174,11 @@ typedef struct ColliderCache {
 	struct CollisionModifierData *collmd;
 } ColliderCache;
 
-struct ListBase *get_collider_cache(struct Scene *scene, struct Object *self, struct Collection *collection);
-void free_collider_cache(struct ListBase **colliders);
+struct ListBase *BKE_collider_cache_create(
+        struct Depsgraph *scene,
+        struct Object *self,
+        struct Collection *collection);
+void BKE_collider_cache_free(struct ListBase **colliders);
 
 /////////////////////////////////////////////////
 
@@ -168,4 +187,3 @@ void free_collider_cache(struct ListBase **colliders);
 /////////////////////////////////////////////////
 
 #endif
-

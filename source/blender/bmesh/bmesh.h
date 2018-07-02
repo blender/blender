@@ -84,7 +84,7 @@
  * Edges and Vertices in BMesh are primitive structures.
  *
  * \note There can be more than one edge between two vertices in BMesh,
- * though the rest of Blender (e.g. DerivedMesh, CDDM, CCGSubSurf, etc) does not support this.
+ * though the rest of Blender (i.e. DNA and evaluated Mesh) does not support this.
  * So it should only occur temporarily during editing operations.
  *
  *
@@ -98,7 +98,7 @@
  *
  * These are accessible through the iterator api, which is covered later in this document
  *
- * See source/blender/bmesh/bmesh_queries.h for more misc. queries.
+ * See source/blender/bmesh/bmesh_query.h for more misc. queries.
  *
  *
  * \section bm_api The BMesh API
@@ -246,7 +246,7 @@ extern "C" {
 #include "intern/bmesh_operators.h"
 #include "intern/bmesh_polygon.h"
 #include "intern/bmesh_polygon_edgenet.h"
-#include "intern/bmesh_queries.h"
+#include "intern/bmesh_query.h"
 #include "intern/bmesh_walkers.h"
 
 #include "intern/bmesh_inline.h"

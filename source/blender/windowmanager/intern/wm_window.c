@@ -70,6 +70,7 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 
+#include "ED_anim_api.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_fileselect.h"
@@ -228,6 +229,10 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 	if (win->eventstate) MEM_freeN(win->eventstate);
 
+	if (win->cursor_keymap_status) {
+		MEM_freeN(win->cursor_keymap_status);
+	}
+
 	wm_event_free_all(win);
 
 	wm_ghostwindow_destroy(wm, win);
@@ -264,26 +269,6 @@ wmWindow *wm_window_new(bContext *C)
 	win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
 
 	return win;
-}
-
-/**
- * A higher level version of copy that tests the new window can be added.
- */
-static wmWindow *wm_window_new_test(bContext *C)
-{
-	wmWindow *win = wm_window_new(C);
-
-	WM_check(C);
-
-	if (win->ghostwin) {
-		WM_event_add_notifier(C, NC_WINDOW | NA_ADDED, NULL);
-		return win;
-	}
-	else {
-		wmWindowManager *wm = CTX_wm_manager(C);
-		wm_window_close(C, wm, win);
-		return NULL;
-	}
 }
 
 /* part of wm_window.c api */
@@ -953,30 +938,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 
 	/* do additional setup for specific editor type */
 	if (type == WM_WINDOW_DRIVERS) {
-		/* Configure editor - mode, tabs, framing */
-		SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
-		sipo->mode = SIPO_MODE_DRIVERS;
-
-		ARegion *ar_props = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-		if (ar_props) {
-			UI_panel_category_active_set(ar_props, "Drivers");
-
-			ar_props->flag &= ~RGN_FLAG_HIDDEN;
-			/* XXX: Adjust width of this too? */
-
-			ED_region_visibility_change_update(C, ar_props);
-		}
-
-		ARegion *ar_main = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-		if (ar_main) {
-			/* XXX: Ideally we recenter based on the range instead... */
-			ar_main->v2d.tot.xmin = -2.0f;
-			ar_main->v2d.tot.ymin = -2.0f;
-			ar_main->v2d.tot.xmax = 2.0f;
-			ar_main->v2d.tot.ymax = 2.0f;
-
-			ar_main->v2d.cur = ar_main->v2d.tot;
-		}
+		ED_drivers_editor_init(C, sa);
 	}
 
 	if (sa->spacetype == SPACE_IMAGE)
@@ -1014,109 +976,17 @@ int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static WorkSpaceLayout *wm_window_new_find_layout(wmOperator *op, WorkSpace *workspace)
+/* operator callback */
+int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ListBase *listbase = BKE_workspace_layouts_get(workspace);
-	const int layout_id = RNA_enum_get(op->ptr, "screen");
-	int i = 0;
-
-	for (WorkSpaceLayout *layout = listbase->first; layout; layout = layout->next) {
-		if (i++ == layout_id) {
-			return layout;
-		}
-	}
-
-	BLI_assert(0);
-	return NULL;
-}
-
-/* new window operator callback */
-int wm_window_new_exec(bContext *C, wmOperator *op)
-{
-	Main *bmain = CTX_data_main(C);
 	wmWindow *win_src = CTX_wm_window(C);
-	WorkSpace *workspace = WM_window_get_active_workspace(win_src);
-	WorkSpaceLayout *layout_new = wm_window_new_find_layout(op, workspace);
-	bScreen *screen_new = BKE_workspace_layout_screen_get(layout_new);
-	wmWindow *win_dst;
+	bool ok;
 
-	if ((win_dst = wm_window_new_test(C))) {
-		if (screen_new->winid) {
-			/* layout/screen is already used, duplicate it */
-			layout_new = ED_workspace_layout_duplicate(bmain, workspace, layout_new, win_dst);
-			screen_new = BKE_workspace_layout_screen_get(layout_new);
-		}
-		/* New window with a different screen but same workspace */
-		WM_window_set_active_workspace(win_dst, workspace);
-		WM_window_set_active_screen(win_dst, workspace, screen_new);
-		win_dst->scene = win_src->scene;
-		screen_new->winid = win_dst->winid;
-		CTX_wm_window_set(C, win_dst);
+	ok = (wm_window_copy_test(C, win_src, true) != NULL);
 
-		ED_screen_refresh(CTX_wm_manager(C), win_dst);
-	}
-
-	return (win_dst != NULL) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-int wm_window_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	wmWindow *win = CTX_wm_window(C);
-	WorkSpace *workspace = WM_window_get_active_workspace(win);
-	ListBase *listbase = BKE_workspace_layouts_get(workspace);
-
-	if (BLI_listbase_count_at_most(listbase, 2) == 1) {
-		RNA_enum_set(op->ptr, "screen", 0);
-		return wm_window_new_exec(C, op);
-	}
-	else {
-		return WM_enum_search_invoke_previews(C, op, 6, 2);
-	}
-}
-
-const EnumPropertyItem *wm_window_new_screen_itemf(
-        bContext *C, struct PointerRNA *UNUSED(ptr), struct PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	if (C == NULL) {
-		return DummyRNA_NULL_items;
-	}
-	wmWindow *win = CTX_wm_window(C);
-	WorkSpace *workspace = WM_window_get_active_workspace(win);
-	ListBase *listbase = BKE_workspace_layouts_get(workspace);
-	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	int value = 0, totitem = 0;
-	int count_act_screens = 0;
-	/* XXX setting max number of windows to 20. We'd need support
-	 * for dynamic strings in EnumPropertyItem.name to avoid this. */
-	static char active_screens[20][MAX_NAME + 12];
-
-	for (WorkSpaceLayout *layout = listbase->first; layout; layout = layout->next) {
-		bScreen *screen = BKE_workspace_layout_screen_get(layout);
-		const char *layout_name = BKE_workspace_layout_name_get(layout);
-
-		if (screen->winid) {
-			BLI_snprintf(active_screens[count_act_screens], sizeof(*active_screens), "%s (Duplicate)", layout_name);
-			tmp.name = active_screens[count_act_screens++];
-		}
-		else {
-			tmp.name = layout_name;
-		}
-
-		tmp.value = value;
-		tmp.identifier = layout_name;
-		UI_id_icon_render(C, CTX_data_scene(C), &screen->id, true, false);
-		tmp.icon = BKE_icon_id_ensure(&screen->id);
-
-		RNA_enum_item_add(&item, &totitem, &tmp);
-		value++;
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*r_free = true;
-
-	return item;
-}
 
 /* fullscreen operator callback */
 int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1443,11 +1313,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				GHOST_TWindowState state;
 				state = GHOST_GetWindowState(win->ghostwin);
 				win->windowstate = state;
-
-				/* stop screencast if resize */
-				if (type == GHOST_kEventWindowSize) {
-					WM_jobs_stop(wm, WM_window_get_active_screen(win), NULL);
-				}
 
 				WM_window_set_dpi(win);
 
@@ -2148,22 +2013,37 @@ void WM_window_rect_calc(const wmWindow *win, rcti *r_rect)
  */
 void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 {
-	rcti rect;
+	rcti window_rect, screen_rect;
 
-	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win), 0, WM_window_pixels_y(win));
+	WM_window_rect_calc(win, &window_rect);
+	screen_rect = window_rect;
 
 	/* Substract global areas from screen rectangle. */
 	for (ScrArea *global_area = win->global_areas.areabase.first; global_area; global_area = global_area->next) {
+		int height = ED_area_global_size_y(global_area) - 1;
+
 		if (global_area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
 			continue;
 		}
 
 		switch (global_area->global->align) {
 			case GLOBAL_AREA_ALIGN_TOP:
-				rect.ymax -= ED_area_global_size_y(global_area);
+				if ((screen_rect.ymax - height) > window_rect.ymin) {
+					height += U.pixelsize;
+				}
+				if (screen_rect.ymax < (window_rect.ymax - 1)) {
+					height += U.pixelsize;
+				}
+				screen_rect.ymax -= height;
 				break;
 			case GLOBAL_AREA_ALIGN_BOTTOM:
-				rect.ymin += ED_area_global_size_y(global_area);
+				if (screen_rect.ymin > window_rect.ymin) {
+					height += U.pixelsize;
+				}
+				if ((screen_rect.ymin + height) < (window_rect.ymax - 1)) {
+					height += U.pixelsize;
+				}
+				screen_rect.ymin += height;
 				break;
 			default:
 				BLI_assert(0);
@@ -2171,9 +2051,9 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 		}
 	}
 
-	BLI_assert(rect.xmin < rect.xmax);
-	BLI_assert(rect.ymin < rect.ymax);
-	*r_rect = rect;
+	BLI_assert(screen_rect.xmin < screen_rect.xmax);
+	BLI_assert(screen_rect.ymin < screen_rect.ymax);
+	*r_rect = screen_rect;
 }
 
 bool WM_window_is_fullscreen(wmWindow *win)
@@ -2318,14 +2198,13 @@ void *WM_opengl_context_create(void)
 	 * So we should call this function only on the main thread.
 	 */
 	BLI_assert(BLI_thread_is_main());
-	// BLI_assert(GPU_framebuffer_current_get() == 0);
+	BLI_assert(GPU_framebuffer_current_get() == 0);
 	return GHOST_CreateOpenGLContext(g_system);
 }
 
 void WM_opengl_context_dispose(void *context)
 {
-	// BLI_assert(BLI_thread_is_main());
-	// BLI_assert(GPU_framebuffer_current_get() == 0);
+	BLI_assert(GPU_framebuffer_current_get() == 0);
 	GHOST_DisposeOpenGLContext(g_system, (GHOST_ContextHandle)context);
 }
 

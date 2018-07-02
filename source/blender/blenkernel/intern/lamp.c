@@ -72,7 +72,7 @@ void BKE_lamp_init(Lamp *la)
 	la->samp = 3;
 	la->bias = 1.0f;
 	la->soft = 3.0f;
-	la->area_size = la->area_sizey = la->area_sizez = 0.1f;
+	la->area_size = la->area_sizey = la->area_sizez = 0.25f;
 	la->buffers = 1;
 	la->preview = NULL;
 	la->falloff_type = LA_FALLOFF_INVSQUARE;

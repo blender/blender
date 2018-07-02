@@ -160,7 +160,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		v3d->twflag = 0;
 
 		/* initialize modal callout */
-		ED_area_headerprint(CTX_wm_area(C), IFACE_("LMB: Click and drag to draw cut line"));
+		ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
 	}
 	return ret;
 }
@@ -185,10 +185,10 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	/* update or clear modal callout */
 	if (event->type == EVT_MODAL_MAP) {
 		if (event->val == GESTURE_MODAL_BEGIN) {
-			ED_area_headerprint(CTX_wm_area(C), IFACE_("LMB: Release to confirm cut line"));
+			ED_workspace_status_text(C, IFACE_("LMB: Release to confirm cut line"));
 		}
 		else {
-			ED_area_headerprint(CTX_wm_area(C), NULL);
+			ED_workspace_status_text(C, NULL);
 		}
 	}
 
@@ -368,7 +368,8 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "clear_inner", false, "Clear Inner", "Remove geometry behind the plane");
 	RNA_def_boolean(ot->srna, "clear_outer", false, "Clear Outer", "Remove geometry in front of the plane");
 
-	RNA_def_float(ot->srna, "threshold", 0.0001, 0.0, 10.0, "Axis Threshold", "", 0.00001, 0.1);
+	RNA_def_float(ot->srna, "threshold", 0.0001, 0.0, 10.0, "Axis Threshold",
+	              "Preserves the existing geometry along the cut plane", 0.00001, 0.1);
 
 	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
 

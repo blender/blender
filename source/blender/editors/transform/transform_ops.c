@@ -226,7 +226,7 @@ static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent 
 	return delete_orientation_exec(C, op);
 }
 
-static int delete_orientation_poll(bContext *C)
+static bool delete_orientation_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -307,7 +307,7 @@ static void transformops_loopsel_hack(bContext *C, wmOperator *op)
 		if (op->opm && op->opm->opm && op->opm->opm->prev) {
 			wmOperator *op_prev = op->opm->opm->prev;
 			Scene *scene = CTX_data_scene(C);
-			int mesh_select_mode[3];
+			bool mesh_select_mode[3];
 			PropertyRNA *prop = RNA_struct_find_property(op_prev->ptr, "mesh_select_mode_init");
 
 			if (prop && RNA_property_is_set(op_prev->ptr, prop)) {
@@ -652,7 +652,7 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 	        ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_OPTIONS | P_GPENCIL_EDIT | P_CENTER);
 }
 
-static int skin_resize_poll(bContext *C)
+static bool skin_resize_poll(bContext *C)
 {
 	struct Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MESH) {
@@ -1148,11 +1148,13 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			/* Will fall-through to texture-space transform. */
 			kmi = WM_keymap_add_item(keymap, "OBJECT_OT_transform_axis_target", TKEY, KM_PRESS, KM_SHIFT, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 			kmi = WM_keymap_add_item(keymap, OP_TRANSLATION, TKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_boolean_set(kmi->ptr, "texture_space", true);
 
 			kmi = WM_keymap_add_item(keymap, OP_RESIZE, TKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 			RNA_boolean_set(kmi->ptr, "texture_space", true);
+#endif
 
 			WM_keymap_add_item(keymap, OP_SKIN_RESIZE, AKEY, KM_PRESS, KM_CTRL, 0);
 
@@ -1264,4 +1266,3 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			break;
 	}
 }
-

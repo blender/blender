@@ -27,7 +27,7 @@ out vec3 obPos;
 out vec3 vNor;
 out float forceEdge;
 #else
-out float edgeSharpness;
+flat out vec3 edgeSharpness;
 #endif
 #endif
 
@@ -78,6 +78,14 @@ vec3 get_vertex_pos(uint id)
 	pos.y = texelFetch(vertData, v_id + 1).r;
 	pos.z = texelFetch(vertData, v_id + 2).r;
 	return pos;
+}
+
+vec3 get_edge_normal(vec3 n1, vec3 n2, vec3 edge)
+{
+	edge = normalize(edge);
+	vec3 n = n1 + n2;
+	float p = dot(edge, n);
+	return normalize(n - p * edge);
 }
 
 float get_edge_sharpness(vec3 fnor, vec3 vnor)
@@ -152,24 +160,30 @@ void main()
 
 	gl_Position = p_pos[v_n];
 
+#  ifndef LIGHT_EDGES
 	vec3 nor = get_vertex_nor(v_id[v_n]);
-	facing = normalize(NormalMatrix * nor).z;
+#  else
+	vec3 edges[3];
+	edges[0] = pos[1] - pos[0];
+	edges[1] = pos[2] - pos[1];
+	edges[2] = pos[0] - pos[2];
+	vec3 fnor = normalize(cross(edges[0], -edges[2]));
 
-#  ifdef LIGHT_EDGES
-	vec3 fnor = normalize(cross(pos[1] - pos[0], pos[2] - pos[0]));
-	edgeSharpness = get_edge_sharpness(fnor, nor);
+	vec3 nors[3];
+	nors[0] = get_vertex_nor(v_id.x);
+	nors[1] = get_vertex_nor(v_id.y);
+	nors[2] = get_vertex_nor(v_id.z);
+	edgeSharpness.x = get_edge_sharpness(fnor, get_edge_normal(nors[0], nors[1], edges[0]));
+	edgeSharpness.y = get_edge_sharpness(fnor, get_edge_normal(nors[1], nors[2], edges[1]));
+	edgeSharpness.z = get_edge_sharpness(fnor, get_edge_normal(nors[2], nors[0], edges[2]));
+	edgeSharpness.x = force_edge.x ? 1.0 : edgeSharpness.x;
+	edgeSharpness.y = force_edge.y ? 1.0 : edgeSharpness.y;
+	edgeSharpness.z = force_edge.z ? 1.0 : edgeSharpness.z;
 
-	/* Fix disapearing edges. */
-	if (v_n == 0) {
-		force_edge.xy = force_edge.xz;
-	}
-	else if (v_n == 2) {
-		force_edge.xy = force_edge.yz;
-	}
-	if (any(force_edge.xy)) {
-		edgeSharpness = 1.0;
-	}
+	vec3 nor = nors[v_n];
 #  endif
+
+	facing = normalize(NormalMatrix * nor).z;
 
 #endif
 }

@@ -138,4 +138,3 @@ void BLI_dynlib_close(DynamicLibrary *lib)
 }
 
 #endif
-

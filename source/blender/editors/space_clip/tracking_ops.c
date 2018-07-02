@@ -155,8 +155,8 @@ static int add_marker_at_click_invoke(bContext *C,
                                       wmOperator *op,
                                       const wmEvent *UNUSED(event))
 {
-	ED_area_headerprint(
-	        CTX_wm_area(C),
+	ED_workspace_status_text(
+	        C,
 	        IFACE_("Use LMB click to define location where place the marker"));
 
 	/* Add modal handler for ESC. */
@@ -180,7 +180,7 @@ static int add_marker_at_click_modal(bContext *C,
 			ARegion *ar = CTX_wm_region(C);
 			float pos[2];
 
-			ED_area_headerprint(CTX_wm_area(C), NULL);
+			ED_workspace_status_text(C, NULL);
 
 			ED_clip_point_stable_pos(sc, ar,
 			                         event->x - ar->winrct.xmin,
@@ -196,7 +196,7 @@ static int add_marker_at_click_modal(bContext *C,
 		}
 
 		case ESCKEY:
-			ED_area_headerprint(CTX_wm_area(C), NULL);
+			ED_workspace_status_text(C, NULL);
 			return OPERATOR_CANCELLED;
 	}
 
@@ -2107,7 +2107,7 @@ void CLIP_OT_copy_tracks(wmOperatorType *ot)
 
 /********************* paste tracks from clipboard operator ********************/
 
-static int paste_tracks_poll(bContext *C)
+static bool paste_tracks_poll(bContext *C)
 {
 	if (ED_space_clip_tracking_poll(C)) {
 		return BKE_tracking_clipboard_has_tracks();

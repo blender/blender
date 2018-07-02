@@ -45,12 +45,12 @@
 #include "BKE_texture.h"          /* Texture masking. */
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "MOD_weightvg_util.h"
 #include "MOD_modifiertypes.h"
-
 
 /**
  * This mixes the old weight with the new weight factor.
@@ -185,7 +185,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	/* If no vertex group, bypass. */
@@ -359,8 +359,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	}
 
 	/* Do masking. */
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	weightvg_do_mask(ctx, numIdx, indices, org_w, new_w, ctx->object, result, wmd->mask_constant,
-	                 wmd->mask_defgrp_name, wmd->modifier.scene, wmd->mask_texture,
+	                 wmd->mask_defgrp_name, scene, wmd->mask_texture,
 	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 

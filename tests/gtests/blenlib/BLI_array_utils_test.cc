@@ -187,4 +187,3 @@ TEST(array_utils, BinaryOrInt4Mix)
 	BINARY_OR_TEST(data_cmp, data_a, data_b, data_combine, ARRAY_SIZE(data_cmp));
 }
 #undef BINARY_OR_TEST
-

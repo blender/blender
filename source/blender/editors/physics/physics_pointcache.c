@@ -57,12 +57,12 @@
 
 #include "physics_intern.h"
 
-static int ptcache_bake_all_poll(bContext *C)
+static bool ptcache_bake_all_poll(bContext *C)
 {
 	return CTX_data_scene(C) != NULL;
 }
 
-static int ptcache_poll(bContext *C)
+static bool ptcache_poll(bContext *C)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	return (ptr.data && ptr.id.data);
@@ -440,4 +440,3 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-

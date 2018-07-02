@@ -48,7 +48,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
@@ -58,6 +58,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -301,7 +302,7 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
 
 #undef WM_MODALKEY
 
-	ED_area_headerprint(CTX_wm_area(C), header);
+	ED_workspace_status_text(C, header);
 }
 
 static void knife_project_v2(const KnifeTool_OpData *kcd, const float co[3], float sco[2])
@@ -1010,7 +1011,7 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_TRANSFORM);
-	glLineWidth(2.0);
+	GPU_line_width(2.0);
 
 	immBegin(GWN_PRIM_LINES, 2);
 	immVertex3fv(pos, v1);
@@ -1041,7 +1042,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	View3D *v3d = CTX_wm_view3d(C);
 	const KnifeTool_OpData *kcd = arg;
 
-	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	if (v3d->zbuf) GPU_depth_test(false);
 
 	glPolygonOffset(1.0f, 1.0f);
 
@@ -1057,7 +1058,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 			knifetool_draw_angle_snapping(kcd);
 
 		immUniformColor3ubv(kcd->colors.line);
-		glLineWidth(2.0);
+		GPU_line_width(2.0);
 
 		immBegin(GWN_PRIM_LINES, 2);
 		immVertex3fv(pos, kcd->prev.cage);
@@ -1067,7 +1068,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	if (kcd->prev.vert) {
 		immUniformColor3ubv(kcd->colors.point);
-		glPointSize(11);
+		GPU_point_size(11);
 
 		immBegin(GWN_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->prev.cage);
@@ -1076,7 +1077,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	if (kcd->prev.bmface) {
 		immUniformColor3ubv(kcd->colors.curpoint);
-		glPointSize(9);
+		GPU_point_size(9);
 
 		immBegin(GWN_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->prev.cage);
@@ -1085,7 +1086,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	if (kcd->curr.edge) {
 		immUniformColor3ubv(kcd->colors.edge);
-		glLineWidth(2.0);
+		GPU_line_width(2.0);
 
 		immBegin(GWN_PRIM_LINES, 2);
 		immVertex3fv(pos, kcd->curr.edge->v1->cageco);
@@ -1094,7 +1095,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	}
 	else if (kcd->curr.vert) {
 		immUniformColor3ubv(kcd->colors.point);
-		glPointSize(11);
+		GPU_point_size(11);
 
 		immBegin(GWN_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->curr.cage);
@@ -1103,7 +1104,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	if (kcd->curr.bmface) {
 		immUniformColor3ubv(kcd->colors.curpoint);
-		glPointSize(9);
+		GPU_point_size(9);
 
 		immBegin(GWN_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->curr.cage);
@@ -1114,12 +1115,12 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		KnifeLineHit *lh;
 		int i;
 
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 		/* draw any snapped verts first */
 		immUniformColor4ubv(kcd->colors.point_a);
-		glPointSize(11);
+		GPU_point_size(11);
 
 		immBeginAtMost(GWN_PRIM_POINTS, kcd->totlinehit);
 
@@ -1134,7 +1135,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		/* now draw the rest */
 		immUniformColor4ubv(kcd->colors.curpoint_a);
-		glPointSize(7);
+		GPU_point_size(7);
 
 		immBeginAtMost(GWN_PRIM_POINTS, kcd->totlinehit);
 
@@ -1147,7 +1148,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		immEnd();
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	if (kcd->totkedge > 0) {
@@ -1155,7 +1156,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		KnifeEdge *kfe;
 
 		immUniformColor3ubv(kcd->colors.line);
-		glLineWidth(1.0);
+		GPU_line_width(1.0);
 
 		immBeginAtMost(GWN_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
 
@@ -1176,7 +1177,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		KnifeVert *kfv;
 
 		immUniformColor3ubv(kcd->colors.point);
-		glPointSize(5.0);
+		GPU_point_size(5.0);
 
 		immBeginAtMost(GWN_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
 
@@ -1195,7 +1196,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	gpuPopMatrix();
 
-	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if (v3d->zbuf) GPU_depth_test(true);
 }
 
 /**
@@ -2787,7 +2788,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (!obedit || obedit->type != OB_MESH || BKE_editmesh_from_object(obedit) != kcd->em) {
 		knifetool_exit(C, op);
-		ED_area_headerprint(CTX_wm_area(C), NULL);
+		ED_workspace_status_text(C, NULL);
 		return OPERATOR_FINISHED;
 	}
 
@@ -2808,7 +2809,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				ED_region_tag_redraw(kcd->ar);
 
 				knifetool_exit(C, op);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_workspace_status_text(C, NULL);
 
 				return OPERATOR_CANCELLED;
 			case KNF_MODAL_CONFIRM:
@@ -2817,7 +2818,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				knifetool_finish(op);
 				knifetool_exit(C, op);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_workspace_status_text(C, NULL);
 
 				return OPERATOR_FINISHED;
 			case KNF_MODAL_MIDPOINT_ON:

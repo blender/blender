@@ -51,6 +51,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "WM_api.h"
 
@@ -1535,7 +1536,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 	immBeginAtMost(GWN_PRIM_LINES, vertex_count);
@@ -1754,9 +1755,10 @@ View2DScrollers *UI_view2d_scrollers_calc(
 		scrollers->yclamp = yclamp;
 		scrollers->yunits = yunits;
 
-		scrollers->grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d,
-		                                      xunits, xclamp, yunits, yclamp,
-		                                      BLI_rcti_size_x(&hor), BLI_rcti_size_y(&vert));
+		scrollers->grid = UI_view2d_grid_calc(
+		        CTX_data_scene(C), v2d,
+		        xunits, xclamp, yunits, yclamp,
+		        BLI_rcti_size_x(&hor), BLI_rcti_size_y(&vert));
 	}
 
 	/* return scrollers */
@@ -2131,12 +2133,14 @@ void UI_view2d_listview_visible_cells(
 	/* using 'cur' rect coordinates, call the cell-getting function to get the cells for this */
 	if (v2d) {
 		/* min */
-		UI_view2d_listview_view_to_cell(v2d, columnwidth, rowheight, startx, starty,
-		                                v2d->cur.xmin, v2d->cur.ymin, column_min, row_min);
+		UI_view2d_listview_view_to_cell(
+		        v2d, columnwidth, rowheight, startx, starty,
+		        v2d->cur.xmin, v2d->cur.ymin, column_min, row_min);
 
 		/* max*/
-		UI_view2d_listview_view_to_cell(v2d, columnwidth, rowheight, startx, starty,
-		                                v2d->cur.xmax, v2d->cur.ymax, column_max, row_max);
+		UI_view2d_listview_view_to_cell(
+		        v2d, columnwidth, rowheight, startx, starty,
+		        v2d->cur.xmax, v2d->cur.ymax, column_max, row_max);
 	}
 }
 
@@ -2546,8 +2550,9 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 		}
 
 		if (v2s->rect.xmin >= v2s->rect.xmax)
-			BLF_draw_default((float)(v2s->mval[0] + xofs), (float)(v2s->mval[1] + yofs), 0.0,
-			                  v2s->str, BLF_DRAW_STR_DUMMY_MAX);
+			BLF_draw_default(
+			        (float)(v2s->mval[0] + xofs), (float)(v2s->mval[1] + yofs), 0.0,
+			        v2s->str, BLF_DRAW_STR_DUMMY_MAX);
 		else {
 			BLF_enable(font_id, BLF_CLIPPING);
 			BLF_clipping(font_id, v2s->rect.xmin - 4, v2s->rect.ymin - 4, v2s->rect.xmax + 4, v2s->rect.ymax + 4);
@@ -2566,5 +2571,3 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 
 
 /* ******************************************************** */
-
-

@@ -557,7 +557,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Activate/Select";
+	ot->name = "Select";
 	ot->idname = "SEQUENCER_OT_select";
 	ot->description = "Select a strip (last selected becomes the \"active strip\")";
 
@@ -1282,4 +1282,3 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_active_channel", false, "Same Channel",
 	                "Only consider strips on the same channel as the active one");
 }
-

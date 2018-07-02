@@ -83,4 +83,3 @@ private:
 	ExtraTags* currentExtraTags;
 	std::string currentElement;
 };
-

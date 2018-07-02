@@ -236,6 +236,11 @@ int main(
 	struct CreatorAtExitData app_init_data = {NULL};
 	BKE_blender_atexit_register(callback_main_atexit, &app_init_data);
 
+	/* Unbuffered stdout makes stdout and stderr better synchronised, and helps
+	 * when stepping through code in a debugger (prints are immediately
+	 * visible). */
+	setvbuf(stdout, NULL, _IONBF, 0);
+
 #ifdef WIN32
 	/* We delay loading of openmp so we can set the policy here. */
 # if defined(_MSC_VER)

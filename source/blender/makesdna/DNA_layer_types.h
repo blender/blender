@@ -91,15 +91,19 @@ typedef struct ViewLayer {
 
 /* Base->flag */
 enum {
+	/* User controlled flags. */
 	BASE_SELECTED         = (1 << 0), /* Object is selected. */
-	BASE_VISIBLED         = (1 << 1), /* Object is visible. */
-	BASE_SELECTABLED      = (1 << 2), /* Object can be selected. */
+	BASE_HIDDEN           = (1 << 8), /* Object is hidden for editing. */
+
+	/* Runtime evaluated flags. */
+	BASE_VISIBLE          = (1 << 1), /* Object is enabled and visible. */
+	BASE_SELECTABLE       = (1 << 2), /* Object can be selected. */
 	BASE_FROMDUPLI        = (1 << 3), /* Object comes from duplicator. */
 	/* BASE_DEPRECATED    = (1 << 4), */
-	BASE_FROM_SET         = (1 << 5), /* To be set only by the depsgraph */
-	BASE_VISIBLE_VIEWPORT = (1 << 6), /* Object is visible in viewport. */
-	BASE_VISIBLE_RENDER   = (1 << 7), /* Object is visible in final render */
-	BASE_HIDE             = (1 << 8), /* Object is hidden for editing. */
+	BASE_FROM_SET         = (1 << 5), /* Object comes from set. */
+	BASE_ENABLED_VIEWPORT = (1 << 6), /* Object is enabled in viewport. */
+	BASE_ENABLED_RENDER   = (1 << 7), /* Object is enabled in final render */
+	BASE_ENABLED          = (1 << 9), /* Object is enabled. */
 };
 
 /* LayerCollection->flag */
@@ -152,4 +156,3 @@ typedef struct SceneCollection {
 #endif
 
 #endif  /* __DNA_LAYER_TYPES_H__ */
-

@@ -1035,7 +1035,7 @@ void EDBM_verts_mirror_cache_begin_ex(
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 	if (use_topology) {
-		ED_mesh_mirrtopo_init__real_mesh(me, NULL, &mesh_topo_store, true);
+		ED_mesh_mirrtopo_init(me, NULL, &mesh_topo_store, true);
 	}
 	else {
 		tree = BLI_kdtree_new(bm->totvert);
@@ -1385,7 +1385,7 @@ DerivedMesh *EDBM_mesh_deform_dm_get(BMEditMesh *em)
  * \{ */
 
 /* poll call for mesh operators requiring a view3d context */
-int EDBM_view3d_poll(bContext *C)
+bool EDBM_view3d_poll(bContext *C)
 {
 	if (ED_operator_editmesh(C) && ED_operator_view3d_active(C)) {
 		return 1;

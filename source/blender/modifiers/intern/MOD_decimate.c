@@ -129,7 +129,7 @@ static Mesh *applyModifier(
 			MDeformVert *dvert;
 			int defgrp_index;
 
-			modifier_get_vgroup_mesh(ctx->object, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
+			MOD_get_vgroup(ctx->object, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
 			if (dvert) {
 				const unsigned int vert_tot = mesh->totvert;

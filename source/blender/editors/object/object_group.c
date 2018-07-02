@@ -47,6 +47,7 @@
 #include "BKE_report.h"
 #include "BKE_object.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "ED_screen.h"
@@ -153,6 +154,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 
 			if (!BKE_collection_object_cyclic_check(bmain, base->object, collection)) {
 				BKE_collection_object_add(bmain, collection, base->object);
+				DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 				updated = true;
 			}
 			else {
@@ -223,6 +225,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 			CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 			{
 				BKE_collection_object_remove(bmain, collection, base->object, false);
+				DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 				ok = 1;
 			}
 			CTX_DATA_END;
@@ -315,6 +318,7 @@ static int collection_objects_remove_exec(bContext *C, wmOperator *op)
 		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 		{
 			BKE_collection_object_remove(bmain, collection, base->object, false);
+			DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 			updated = true;
 		}
 		CTX_DATA_END;
@@ -366,6 +370,7 @@ static int collection_create_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
 		BKE_collection_object_add(bmain, collection, base->object);
+		DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	}
 	CTX_DATA_END;
 
@@ -555,7 +560,7 @@ static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select o
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLED) != 0)) {
+		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
 			if (BKE_collection_has_object_recursive(collection, base->object)) {
 				ED_object_base_select(base, BA_SELECT);
 			}

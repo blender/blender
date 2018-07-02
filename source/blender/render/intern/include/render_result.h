@@ -139,4 +139,3 @@ bool render_result_has_views(struct RenderResult *rr);
 } ((void)0)
 
 #endif /* __RENDER_RESULT_H__ */
-

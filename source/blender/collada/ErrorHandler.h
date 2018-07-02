@@ -53,4 +53,3 @@ private:
 	/** Hold error status. */
 	bool mError;
 };
-

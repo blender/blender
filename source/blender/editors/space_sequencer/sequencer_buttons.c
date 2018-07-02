@@ -52,7 +52,7 @@
 /* **************************** buttons ********************************* */
 
 #if 0
-static int sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
 
@@ -102,4 +102,3 @@ void SEQUENCER_OT_properties(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 }
-

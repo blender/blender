@@ -43,12 +43,8 @@ extern "C" {
 #include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_object_force_types.h"
 
 #include "BKE_main.h"
-#include "BKE_collision.h"
-#include "BKE_effect.h"
-#include "BKE_modifier.h"
 #include "BKE_scene.h"
 } /* extern "C" */
 
@@ -321,76 +317,4 @@ void DEG_relations_tag_update(Main *bmain)
 			}
 		}
 	}
-}
-
-void DEG_add_collision_relations(DepsNodeHandle *handle,
-                                 Scene *scene,
-                                 Object *object,
-                                 Collection *collection,
-                                 unsigned int modifier_type,
-                                 DEG_CollobjFilterFunction fn,
-                                 bool dupli,
-                                 const char *name)
-{
-	unsigned int numcollobj;
-	Object **collobjs = get_collisionobjects_ext(scene, object, collection, &numcollobj, modifier_type, dupli);
-
-	for (unsigned int i = 0; i < numcollobj; i++) {
-		Object *ob1 = collobjs[i];
-
-		if (!fn || fn(ob1, modifiers_findByType(ob1, (ModifierType)modifier_type))) {
-			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
-			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
-		}
-	}
-
-	if (collobjs)
-		MEM_freeN(collobjs);
-}
-
-void DEG_add_forcefield_relations(DepsNodeHandle *handle,
-                                  Scene *scene,
-                                  Object *object,
-                                  EffectorWeights *effector_weights,
-                                  bool add_absorption,
-                                  int skip_forcefield,
-                                  const char *name)
-{
-	ListBase *effectors = pdInitEffectors(NULL, scene, object, NULL, effector_weights, false);
-	if (effectors == NULL) {
-		return;
-	}
-	for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
-		if (eff->ob != object && eff->pd->forcefield != skip_forcefield) {
-			DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
-			if (eff->psys) {
-				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_EVAL_PARTICLES, name);
-				/* TODO: remove this when/if EVAL_PARTICLES is sufficient
-				 * for up to date particles.
-				 */
-				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_GEOMETRY, name);
-			}
-			if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
-				DEG_add_object_relation(handle,
-				                        eff->pd->f_source,
-				                        DEG_OB_COMP_TRANSFORM,
-				                        "Smoke Force Domain");
-				DEG_add_object_relation(handle,
-				                        eff->pd->f_source,
-				                        DEG_OB_COMP_GEOMETRY,
-				                        "Smoke Force Domain");
-			}
-			if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
-				DEG_add_collision_relations(handle,
-				                            scene,
-				                            object,
-				                            NULL,
-				                            eModifierType_Collision,
-				                            NULL,
-				                            true,
-				                            "Force Absorption");
-			}
-		}
-	}
-	pdEndEffectors(&effectors);
 }

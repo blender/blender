@@ -104,4 +104,3 @@ void initElbeemMesh(struct Depsgraph *depsgraph, struct Scene *scene, struct Obj
 
 	dm->release(dm);
 }
-

@@ -1471,4 +1471,3 @@ short bezt_selmap_flush(KeyframeEditData *ked, BezTriple *bezt)
 
 	return 0;
 }
-

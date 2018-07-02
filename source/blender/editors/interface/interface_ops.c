@@ -98,7 +98,7 @@ static void UI_OT_reset_default_theme(wmOperatorType *ot)
 
 /* Copy Data Path Operator ------------------------ */
 
-static int copy_data_path_button_poll(bContext *C)
+static bool copy_data_path_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -177,7 +177,7 @@ static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int copy_python_command_button_poll(bContext *C)
+static bool copy_python_command_button_poll(bContext *C)
 {
 	uiBut *but = UI_context_active_but_get(C);
 
@@ -248,7 +248,7 @@ static int operator_button_property_finish(bContext *C, PointerRNA *ptr, Propert
 	}
 }
 
-static int reset_default_button_poll(bContext *C)
+static bool reset_default_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -347,7 +347,7 @@ enum {
 
 static EnumPropertyItem override_type_items[] = {
 	{UIOverride_Type_NOOP, "NOOP", 0, "NoOp",
-	                      "'No-Operation', place holder preventing automatic override to ever affect the property"},
+	 "'No-Operation', place holder preventing automatic override to ever affect the property"},
 	{UIOverride_Type_Replace, "REPLACE", 0, "Replace", "Completely replace value from linked data by local one"},
 	{UIOverride_Type_Difference, "DIFFERENCE", 0, "Difference", "Store difference to linked data value"},
 	{UIOverride_Type_Factor, "FACTOR", 0, "Factor", "Store factor to linked data value (useful e.g. for scale)"},
@@ -355,7 +355,7 @@ static EnumPropertyItem override_type_items[] = {
 };
 
 
-static int override_type_set_button_poll(bContext *C)
+static bool override_type_set_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -408,7 +408,7 @@ static int override_type_set_button_exec(bContext *C, wmOperator *op)
 	}
 
 	IDOverrideStaticPropertyOperation *opop = RNA_property_override_property_operation_get(
-	                                        &ptr, prop, operation, index, true, NULL, &created);
+	        &ptr, prop, operation, index, true, NULL, &created);
 	if (!created) {
 		opop->operation = operation;
 	}
@@ -443,13 +443,14 @@ static void UI_OT_override_type_set_button(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
-	ot->prop = RNA_def_enum(ot->srna, "type", override_type_items, UIOverride_Type_Replace,
-	                        "Type", "Type of override operation");
+	ot->prop = RNA_def_enum(
+	        ot->srna, "type", override_type_items, UIOverride_Type_Replace,
+	        "Type", "Type of override operation");
 	/* TODO: add itemf callback, not all options are available for all data types... */
 }
 
 
-static int override_remove_button_poll(bContext *C)
+static bool override_remove_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -464,6 +465,7 @@ static int override_remove_button_poll(bContext *C)
 
 static int override_remove_button_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr, id_refptr, src;
 	PropertyRNA *prop;
 	int index;
@@ -492,7 +494,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
 		bool is_strict_find;
 		/* Remove override operation for given item, add singular operations for the other items as needed. */
 		IDOverrideStaticPropertyOperation *opop = BKE_override_static_property_operation_find(
-		                                        oprop, NULL, NULL, index, index, false, &is_strict_find);
+		        oprop, NULL, NULL, index, index, false, &is_strict_find);
 		BLI_assert(opop != NULL);
 		if (!is_strict_find) {
 			/* No specific override operation, we have to get generic one,
@@ -505,7 +507,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
 		}
 		BKE_override_static_property_operation_delete(oprop, opop);
 		if (!is_template) {
-			RNA_property_copy(&ptr, &src, prop, index);
+			RNA_property_copy(bmain, &ptr, &src, prop, index);
 		}
 		if (BLI_listbase_is_empty(&oprop->operations)) {
 			BKE_override_static_property_delete(id->override_static, oprop);
@@ -515,7 +517,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
 		/* Just remove whole generic override operation of this property. */
 		BKE_override_static_property_delete(id->override_static, oprop);
 		if (!is_template) {
-			RNA_property_copy(&ptr, &src, prop, -1);
+			RNA_property_copy(bmain, &ptr, &src, prop, -1);
 		}
 	}
 
@@ -699,6 +701,7 @@ bool UI_context_copy_to_selected_list(
  */
 static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 {
+	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr, lptr, idptr;
 	PropertyRNA *prop, *lprop;
 	bool success = false;
@@ -747,7 +750,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 								break;
 							}
 							else {
-								if (RNA_property_copy(&lptr, &ptr, prop, (all) ? -1 : index)) {
+								if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
 									RNA_property_update(C, &lptr, prop);
 									success = true;
 								}
@@ -764,7 +767,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 	return success;
 }
 
-static int copy_to_selected_button_poll(bContext *C)
+static bool copy_to_selected_button_poll(bContext *C)
 {
 	return copy_to_selected_button(C, false, true);
 }
@@ -804,7 +807,7 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
  * when there are too many to display...
  */
 
-static int reports_to_text_poll(bContext *C)
+static bool reports_to_text_poll(bContext *C)
 {
 	return CTX_wm_reports(C) != NULL;
 }
@@ -1022,9 +1025,10 @@ static int editsource_exec(bContext *C, wmOperator *op)
 
 		if (but_store) {
 			if (but_store->py_dbg_ln != -1) {
-				ret = editsource_text_edit(C, op,
-				                           but_store->py_dbg_fn,
-				                           but_store->py_dbg_ln);
+				ret = editsource_text_edit(
+				        C, op,
+				        but_store->py_dbg_fn,
+				        but_store->py_dbg_ln);
 			}
 			else {
 				BKE_report(op->reports, RPT_ERROR, "Active button is not from a script, cannot edit source");
@@ -1132,14 +1136,18 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
 
 		if (!BLI_is_dir(root)) {
-			BKE_report(op->reports, RPT_ERROR, "Please set your User Preferences' 'Translation Branches "
-			                                   "Directory' path to a valid directory");
+			BKE_report(
+			        op->reports, RPT_ERROR,
+			        "Please set your User Preferences' 'Translation Branches "
+			        "Directory' path to a valid directory");
 			return OPERATOR_CANCELLED;
 		}
 		ot = WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0);
 		if (ot == NULL) {
-			BKE_reportf(op->reports, RPT_ERROR, "Could not find operator '%s'! Please enable ui_translate add-on "
-			                                    "in the User Preferences", EDTSRC_I18N_OP_NAME);
+			BKE_reportf(
+			        op->reports, RPT_ERROR,
+			        "Could not find operator '%s'! Please enable ui_translate add-on "
+			        "in the User Preferences", EDTSRC_I18N_OP_NAME);
 			return OPERATOR_CANCELLED;
 		}
 		/* Try to find a valid po file for current language... */
@@ -1150,8 +1158,9 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 
-		UI_but_string_info_get(C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
-		                &rna_struct, &rna_prop, &rna_enum, &rna_ctxt, NULL);
+		UI_but_string_info_get(
+		        C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
+		        &rna_struct, &rna_prop, &rna_enum, &rna_ctxt, NULL);
 
 		WM_operator_properties_create_ptr(&ptr, ot);
 		RNA_string_set(&ptr, "lang", uilng);
@@ -1231,7 +1240,7 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 	ot->exec = reloadtranslation_exec;
 }
 
-int UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
+bool UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	/* should only return true for regions that include buttons, for now
 	 * return true always */

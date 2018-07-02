@@ -224,14 +224,14 @@ static bool object_shape_key_mirror(bContext *C, Object *ob,
 
 /********************** shape key operators *********************/
 
-static int shape_key_mode_poll(bContext *C)
+static bool shape_key_mode_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 	return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) && ob->mode != OB_MODE_EDIT);
 }
 
-static int shape_key_mode_exists_poll(bContext *C)
+static bool shape_key_mode_exists_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -242,7 +242,7 @@ static int shape_key_mode_exists_poll(bContext *C)
 	       (BKE_keyblock_from_object(ob) != NULL);
 }
 
-static int shape_key_move_poll(bContext *C)
+static bool shape_key_move_poll(bContext *C)
 {
 	/* Same as shape_key_mode_exists_poll above, but ensure we have at least two shapes! */
 	Object *ob = ED_object_context(C);
@@ -253,7 +253,7 @@ static int shape_key_move_poll(bContext *C)
 	        ob->mode != OB_MODE_EDIT && key && key->totkey > 1);
 }
 
-static int shape_key_poll(bContext *C)
+static bool shape_key_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -502,4 +502,3 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 
 	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
-

@@ -254,14 +254,14 @@ DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, float colo
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
-	static float dash_width = 12.0f;
+	static float dash_width = 6.0f;
 	static float dash_factor = 0.5f;
 	DRWShadingGroup *grp = DRW_shgroup_line_batch_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", color, 1);
 	DRW_shgroup_uniform_vec2(grp, "viewport_size", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(grp, "dash_width", &dash_width, 1);
 	DRW_shgroup_uniform_float(grp, "dash_factor", &dash_factor, 1);
-	DRW_shgroup_uniform_int_copy(grp, "num_colors", 0); /* "simple" mode */
+	DRW_shgroup_uniform_int_copy(grp, "colors_len", 0); /* "simple" mode */
 
 	return grp;
 }

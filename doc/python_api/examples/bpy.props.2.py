@@ -14,6 +14,7 @@ class MaterialSettings(bpy.types.PropertyGroup):
     my_float = bpy.props.FloatProperty()
     my_string = bpy.props.StringProperty()
 
+
 bpy.utils.register_class(MaterialSettings)
 
 bpy.types.Material.my_settings = \

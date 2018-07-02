@@ -27,6 +27,14 @@
 #include <Alembic/AbcGeom/All.h>
 #include <algorithm>
 
+#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+#include <unordered_map>
+typedef std::unordered_map<uint64_t, int> uv_index_map;
+#else
+#include <map>
+typedef std::map<uint64_t, int> uv_index_map;
+#endif
+
 extern "C" {
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
@@ -50,6 +58,27 @@ using Alembic::Abc::V2fArraySample;
 
 using Alembic::AbcGeom::OV2fGeomParam;
 using Alembic::AbcGeom::OC4fGeomParam;
+
+
+static inline uint64_t uv_to_hash_key(Imath::V2f v)
+{
+	/* Convert -0.0f to 0.0f, so bitwise comparison works. */
+	if (v.x == 0.0f) {
+		v.x = 0.0f;
+	}
+	if (v.y == 0.0f) {
+		v.y = 0.0f;
+	}
+
+	/* Pack floats in 64bit. */
+	union {
+		float xy[2];
+		uint64_t key;
+	} tmp;
+	tmp.xy[0] = v.x;
+	tmp.xy[1] = v.y;
+	return tmp.key;
+}
 
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
@@ -84,6 +113,9 @@ static void get_uvs(const CDStreamConfig &config,
 		}
 	}
 	else {
+		uv_index_map idx_map;
+		int idx_count = 0;
+
 		for (int i = 0; i < num_poly; ++i) {
 			MPoly &current_poly = polygons[i];
 			MLoopUV *loopuvpoly = mloopuv_array + current_poly.loopstart + current_poly.totloop;
@@ -91,15 +123,15 @@ static void get_uvs(const CDStreamConfig &config,
 			for (int j = 0; j < current_poly.totloop; ++j) {
 				loopuvpoly--;
 				Imath::V2f uv(loopuvpoly->uv[0], loopuvpoly->uv[1]);
-
-				std::vector<Imath::V2f>::iterator it = std::find(uvs.begin(), uvs.end(), uv);
-
-				if (it == uvs.end()) {
-					uvidx.push_back(uvs.size());
+				uint64_t k = uv_to_hash_key(uv);
+				uv_index_map::iterator it = idx_map.find(k);
+				if (it == idx_map.end()) {
+					idx_map[k] = idx_count;
 					uvs.push_back(uv);
+					uvidx.push_back(idx_count++);
 				}
 				else {
-					uvidx.push_back(std::distance(uvs.begin(), it));
+					uvidx.push_back(it->second);
 				}
 			}
 		}

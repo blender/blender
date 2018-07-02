@@ -83,4 +83,3 @@ typedef struct Lattice {
 #define LT_ACTBP_NONE	-1
 
 #endif
-

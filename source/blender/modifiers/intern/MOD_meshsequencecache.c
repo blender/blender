@@ -26,12 +26,12 @@
 
 #include "DNA_cachefile_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_cachefile.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_scene.h"
@@ -79,7 +79,7 @@ static void freeData(ModifierData *md)
 	}
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
 {
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 
@@ -98,7 +98,7 @@ static Mesh *applyModifier(
 	Mesh *me = (ctx->object->type == OB_MESH) ? ctx->object->data : NULL;
 	Mesh *org_mesh = mesh;
 
-	Scene *scene = md->scene; /* for FPS macro */
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	const float frame = DEG_get_ctime(ctx->depsgraph);
 	const float time = BKE_cachefile_time_offset(mcmd->cache_file, frame, FPS);
 	const char *err_str = NULL;

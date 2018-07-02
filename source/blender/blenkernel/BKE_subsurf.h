@@ -67,6 +67,7 @@ typedef enum {
 struct DerivedMesh *subsurf_make_derived_from_derived(
         struct DerivedMesh *dm,
         struct SubsurfModifierData *smd,
+        struct Scene *scene,
         float (*vertCos)[3],
         SubsurfFlags flags);
 

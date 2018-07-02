@@ -28,7 +28,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 

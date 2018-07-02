@@ -840,4 +840,3 @@ void BLI_threaded_malloc_end(void)
 		MEM_set_lock_callback(NULL, NULL);
 	}
 }
-

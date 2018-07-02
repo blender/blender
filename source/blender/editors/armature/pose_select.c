@@ -390,7 +390,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 	return OPERATOR_FINISHED;
 }
 
-static int pose_select_linked_poll(bContext *C)
+static bool pose_select_linked_poll(bContext *C)
 {
 	return (ED_operator_view3d_active(C) && ED_operator_posemode(C));
 }
@@ -1049,4 +1049,3 @@ void POSE_OT_select_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "only_active", false, "Active Only", "Only operate on the active bone");
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
-

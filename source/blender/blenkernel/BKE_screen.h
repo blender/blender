@@ -121,9 +121,6 @@ typedef struct SpaceType {
 	/* region type definitions */
 	ListBase regiontypes;
 
-	/* tool shelf definitions */
-	ListBase toolshelf;
-
 	/* read and write... */
 
 	/* default keymaps to add */
@@ -213,7 +210,7 @@ typedef struct PanelType {
 	int flag;
 
 	/* verify if the panel should draw or not */
-	int (*poll)(const struct bContext *C, struct PanelType *pt);
+	bool (*poll)(const struct bContext *C, struct PanelType *pt);
 	/* draw header (optional) */
 	void (*draw_header)(const struct bContext *C, struct Panel *pa);
 	/* draw header preset (optional) */
@@ -292,7 +289,7 @@ typedef struct MenuType {
 	const char *description;
 
 	/* verify if the menu should draw or not */
-	int (*poll)(const struct bContext *C, struct MenuType *mt);
+	bool (*poll)(const struct bContext *C, struct MenuType *mt);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *C, struct Menu *menu);
 
@@ -336,6 +333,7 @@ struct ARegion *BKE_area_find_region_active_win(struct ScrArea *sa);
 struct ARegion *BKE_area_find_region_xy(struct ScrArea *sa, const int regiontype, int x, int y);
 struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc, struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min);
+struct ScrArea *BKE_screen_area_map_find_area_xy(const struct ScrAreaMap *areamap, const int spacetype, int x, int y);
 struct ScrArea *BKE_screen_find_area_xy(struct bScreen *sc, const int spacetype, int x, int y);
 
 unsigned int BKE_screen_view3d_layer_active_ex(

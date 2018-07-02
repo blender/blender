@@ -50,7 +50,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         ob = context.object
 
@@ -95,7 +95,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(ob, "rotation_mode")
-        row.label(text="", icon="BLANK1")
+        row.label(text="", icon='BLANK1')
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
@@ -106,7 +106,7 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=True, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=True, align=False)
 
         ob = context.object
 
@@ -136,7 +136,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         ob = context.object
 
@@ -222,7 +222,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         obj = context.object
         obj_type = obj.type
@@ -285,7 +285,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
         row.prop(ob, "dupli_type", expand=True)
 
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         if ob.dupli_type == 'FRAMES':
 

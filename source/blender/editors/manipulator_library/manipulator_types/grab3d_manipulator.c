@@ -46,6 +46,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -102,7 +103,7 @@ static void grab_geom_draw(
 	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
 	const bool filled = (draw_options & ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL) != 0;
 
-	glLineWidth(mpr->line_width);
+	GPU_line_width(mpr->line_width);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -188,9 +189,9 @@ static void grab3d_draw_intern(
 		gpuMultMatrix(matrix_align);
 	}
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	grab_geom_draw(mpr, color, select, draw_options);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	gpuPopMatrix();
 
 	if (mpr->interaction_data) {
@@ -201,9 +202,9 @@ static void grab3d_draw_intern(
 			gpuMultMatrix(matrix_align);
 		}
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		grab_geom_draw(mpr, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 		gpuPopMatrix();
 	}
 }
@@ -221,9 +222,9 @@ static void manipulator_grab_draw(const bContext *C, wmManipulator *mpr)
 
 	(void)is_modal;
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	grab3d_draw_intern(C, mpr, false, is_highlight);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static int manipulator_grab_modal(

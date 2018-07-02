@@ -34,11 +34,11 @@
 
 #include "BLI_math.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_key_types.h"
 
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_key.h"
 #include "BKE_particle.h"
 
@@ -46,7 +46,7 @@
 
 static void deformVerts(
         ModifierData *UNUSED(md), const ModifierEvalContext *ctx,
-        DerivedMesh *UNUSED(derivedData),
+        Mesh *UNUSED(mesh),
         float (*vertexCos)[3],
         int numVerts)
 {
@@ -62,7 +62,7 @@ static void deformVerts(
 }
 
 static void deformMatrices(
-        ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
         float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
 	Key *key = BKE_key_from_object(ctx->object);
@@ -81,26 +81,26 @@ static void deformMatrices(
 			copy_m3_m3(defMats[a], scale);
 	}
 
-	deformVerts(md, ctx, derivedData, vertexCos, numVerts);
+	deformVerts(md, ctx, mesh, vertexCos, numVerts);
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx,
         struct BMEditMesh *UNUSED(editData),
-        DerivedMesh *derivedData,
+        Mesh *mesh,
         float (*vertexCos)[3],
         int numVerts)
 {
 	Key *key = BKE_key_from_object(ctx->object);
 
 	if (key && key->type == KEY_RELATIVE)
-		deformVerts(md, ctx, derivedData, vertexCos, numVerts);
+		deformVerts(md, ctx, mesh, vertexCos, numVerts);
 }
 
 static void deformMatricesEM(
         ModifierData *UNUSED(md), const ModifierEvalContext *ctx,
         struct BMEditMesh *UNUSED(editData),
-        DerivedMesh *UNUSED(derivedData),
+        Mesh *UNUSED(mesh),
         float (*vertexCos)[3],
         float (*defMats)[3][3],
         int numVerts)
@@ -132,17 +132,17 @@ ModifierTypeInfo modifierType_ShapeKey = {
 
 	/* copyData */          NULL,
 
-	/* deformVerts_DM */    deformVerts,
-	/* deformMatrices_DM */ deformMatrices,
-	/* deformVertsEM_DM */  deformVertsEM,
-	/* deformMatricesEM_DM*/deformMatricesEM,
+	/* deformVerts_DM */    NULL,
+	/* deformMatrices_DM */ NULL,
+	/* deformVertsEM_DM */  NULL,
+	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
-	/* deformMatricesEM */  NULL,
+	/* deformVerts */       deformVerts,
+	/* deformMatrices */    deformMatrices,
+	/* deformVertsEM */     deformVertsEM,
+	/* deformMatricesEM */  deformMatricesEM,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
 

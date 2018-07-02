@@ -71,4 +71,3 @@ void TranslateNode::convertToOperations(NodeConverter &converter, const Composit
 		converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 	}
 }
-

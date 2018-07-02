@@ -8,6 +8,7 @@ from bpy.types import (
     ManipulatorGroup,
 )
 
+
 class MyCameraWidgetGroup(ManipulatorGroup):
     bl_idname = "OBJECT_WGT_test_camera"
     bl_label = "Object Camera Test Widget"
@@ -44,5 +45,6 @@ class MyCameraWidgetGroup(ManipulatorGroup):
         ob = context.object
         mpr = self.roll_widget
         mpr.matrix_basis = ob.matrix_world.normalized()
+
 
 bpy.utils.register_class(MyCameraWidgetGroup)

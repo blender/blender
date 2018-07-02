@@ -28,4 +28,3 @@ if(WITH_LEGACY_OPENGL)
 endif()
 
 add_subdirectory(blender)
-

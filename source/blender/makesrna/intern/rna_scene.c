@@ -413,6 +413,13 @@ const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static const EnumPropertyItem rna_enum_manipulator_items[] = {
+	{SCE_MANIP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{SCE_MANIP_ROTATE, "ROTATE", 0, "Rotate", ""},
+	{SCE_MANIP_SCALE, "SCALE", 0, "Scale", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
 	/* interpolation */
@@ -539,7 +546,7 @@ static void rna_GPencilInterpolateSettings_type_set(PointerRNA *ptr, int value)
 }
 
 /* Grease pencil Drawing Brushes */
-static bGPDbrush *rna_GPencil_brush_new(ToolSettings *ts, const char *name, int setactive)
+static bGPDbrush *rna_GPencil_brush_new(ToolSettings *ts, const char *name, bool setactive)
 {
 	bGPDbrush *brush = BKE_gpencil_brush_addnew(ts, name, setactive != 0);
 
@@ -640,6 +647,14 @@ static void rna_GPencilBrush_name_set(PointerRNA *ptr, const char *value)
 
 /* ----------------- end of Grease pencil drawing brushes ------------*/
 
+static void rna_ToolSettings_manipulator_flag_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	ToolSettings *ts = scene->toolsettings;
+	if ((ts->manipulator_flag & (SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE)) == 0) {
+		ts->manipulator_flag |= SCE_MANIP_TRANSLATE;
+	}
+}
+
 static void rna_SpaceImageEditor_uv_sculpt_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	ED_space_image_uv_sculpt_update(bmain, bmain->wm.first, scene);
@@ -710,7 +725,7 @@ void rna_Scene_set_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 	}
 }
 
-static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
+static void rna_Scene_layer_set(PointerRNA *ptr, const bool *values)
 {
 	Scene *scene = (Scene *)ptr->data;
 
@@ -1485,7 +1500,8 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	BKE_view_layer_rename(G.main, scene, view_layer, value);
+	BLI_assert(BKE_id_is_in_gobal_main(&scene->id));
+	BKE_view_layer_rename(G_MAIN, scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
@@ -1532,7 +1548,7 @@ static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 }
 
-static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
+static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *value)
 {
 	ToolSettings *ts = (ToolSettings *)ptr->data;
 	int flag = (value[0] ? SCE_SELECT_VERTEX : 0) | (value[1] ? SCE_SELECT_EDGE : 0) | (value[2] ? SCE_SELECT_FACE : 0);
@@ -1541,7 +1557,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 		ts->selectmode = flag;
 
 		/* Update select mode in all the workspaces in mesh edit mode. */
-		wmWindowManager *wm = G.main->wm.first;
+		wmWindowManager *wm = G_MAIN->wm.first;
 		for (wmWindow *win = wm->windows.first; win; win = win->next) {
 			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 
@@ -2676,6 +2692,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Project to Self", "Snap onto itself (editmode)");
 	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
+	prop = RNA_def_property(srna, "use_manipulator_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "manipulator_flag");
+	RNA_def_property_enum_items(prop, rna_enum_manipulator_items);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Manipulator",  "");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ToolSettings_manipulator_flag_update");
 
 	/* Grease Pencil */
 	prop = RNA_def_property(srna, "use_gpencil_continuous_drawing", PROP_BOOLEAN, PROP_NONE);

@@ -45,6 +45,7 @@
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 #include "GPU_batch.h"
+#include "GPU_state.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -80,7 +81,7 @@ typedef struct ButtonManipulator2D {
 static void button2d_geom_draw_backdrop(
         const wmManipulator *mpr, const float color[4], const bool select)
 {
-	glLineWidth(mpr->line_width);
+	GPU_line_width(mpr->line_width);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -138,7 +139,7 @@ static void button2d_draw_intern(
 		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor4fv(color);
-		glLineWidth(mpr->line_width);
+		GPU_line_width(mpr->line_width);
 		immUniformColor4fv(color);
 		immBegin(GWN_PRIM_LINE_STRIP, 2);
 		immVertex3fv(pos, matrix_final[3]);
@@ -168,11 +169,11 @@ static void button2d_draw_intern(
 	}
 	else {
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		if (button->shape_batch[0] != NULL) {
-			glEnable(GL_LINE_SMOOTH);
-			glDisable(GL_POLYGON_SMOOTH);
-			glLineWidth(1.0f);
+			GPU_line_smooth(true);
+			GPU_polygon_smooth(false);
+			GPU_line_width(1.0f);
 			for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
 				/* Invert line color for wire. */
 				GWN_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
@@ -185,8 +186,8 @@ static void button2d_draw_intern(
 					color[2] = 1.0f - color[2];
 				}
 			}
-			glDisable(GL_LINE_SMOOTH);
-			glEnable(GL_POLYGON_SMOOTH);
+			GPU_line_smooth(false);
+			GPU_polygon_smooth(true);
 		}
 		else if (button->icon != ICON_NONE) {
 			button2d_geom_draw_backdrop(mpr, color, select);
@@ -206,7 +207,7 @@ static void button2d_draw_intern(
 			}
 			UI_icon_draw(size[0], size[1], button->icon);
 		}
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	if (need_to_pop) {
@@ -224,9 +225,9 @@ static void manipulator_button2d_draw(const bContext *C, wmManipulator *mpr)
 {
 	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	button2d_draw_intern(C, mpr, false, is_highlight);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 static int manipulator_button2d_test_select(

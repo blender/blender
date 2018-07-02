@@ -497,7 +497,7 @@ bool ED_mesh_color_remove_named(Mesh *me, const char *name)
 
 /*********************** UV texture operators ************************/
 
-static int layers_poll(bContext *C)
+static bool layers_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -584,8 +584,8 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		MEM_freeN(me->edit_btmesh);
 		me->edit_btmesh = NULL;
 
-		/* load_editMesh free's pointers used by CustomData layers which might be used by DerivedMesh too,
-		 * so signal to re-create DerivedMesh here (sergey) */
+		/* load_editMesh free's pointers used by CustomData layers which might be used by evaluated mesh too,
+		 * so signal to re-create evaluated mesh here (sergey) */
 		DEG_id_tag_update(&me->id, 0);
 	}
 
@@ -736,7 +736,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 }
 
 /* Clear Mask */
-static int mesh_customdata_mask_clear_poll(bContext *C)
+static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	if (ob && ob->type == OB_MESH) {
@@ -809,7 +809,7 @@ static int mesh_customdata_skin_state(bContext *C)
 	return -1;
 }
 
-static int mesh_customdata_skin_add_poll(bContext *C)
+static bool mesh_customdata_skin_add_poll(bContext *C)
 {
 	return (mesh_customdata_skin_state(C) == 0);
 }
@@ -842,7 +842,7 @@ void MESH_OT_customdata_skin_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mesh_customdata_skin_clear_poll(bContext *C)
+static bool mesh_customdata_skin_clear_poll(bContext *C)
 {
 	return (mesh_customdata_skin_state(C) == 1);
 }
@@ -963,7 +963,7 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 
 /************************** Add Geometry Layers *************************/
 
-void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
+void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_tessface)
 {
 	bool tessface_input = false;
 

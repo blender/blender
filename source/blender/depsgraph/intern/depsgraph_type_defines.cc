@@ -141,6 +141,7 @@ const char *operationCodeAsString(eDepsOperation_Code opcode)
 		STRINGIFY_OPCODE(GEOMETRY_SHAPEKEY);
 		/* Object data. */
 		STRINGIFY_OPCODE(LIGHT_PROBE_EVAL);
+		STRINGIFY_OPCODE(SPEAKER_EVAL);
 		/* Pose. */
 		STRINGIFY_OPCODE(POSE_INIT);
 		STRINGIFY_OPCODE(POSE_INIT_IK);

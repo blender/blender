@@ -61,7 +61,7 @@ void multires_force_render_update(struct Object *ob);
 void multires_force_external_reload(struct Object *ob);
 
 /* internal, only called in subsurf_ccg.c */
-void multires_modifier_update_mdisps(struct DerivedMesh *dm);
+void multires_modifier_update_mdisps(struct DerivedMesh *dm, struct Scene *scene);
 void multires_modifier_update_hidden(struct DerivedMesh *dm);
 
 void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
@@ -75,6 +75,7 @@ typedef enum {
 
 struct DerivedMesh *multires_make_derived_from_derived(struct DerivedMesh *dm,
                                                        struct MultiresModifierData *mmd,
+                                                       struct Scene *scene,
                                                        struct Object *ob,
                                                        MultiresFlags flags);
 
@@ -83,11 +84,11 @@ struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
 struct MultiresModifierData *get_multires_modifier(struct Scene *scene, struct Object *ob, bool use_first);
 struct DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                                     struct Object *ob);
-void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
-void multiresModifier_base_apply(struct MultiresModifierData *mmd, struct Object *ob);
-void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob, int updateblock, int simple);
+void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Scene *scene, struct Object *object, int direction);
+void multiresModifier_base_apply(struct MultiresModifierData *mmd, struct Scene *scene, struct Object *ob);
+void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Scene *scene, struct Object *ob, int updateblock, int simple);
 void multiresModifier_sync_levels_ex(
-        struct Object *ob_dst, struct MultiresModifierData *mmd_src, struct MultiresModifierData *mmd_dst);
+        struct Scene *scene, struct Object *ob_dst, struct MultiresModifierData *mmd_src, struct MultiresModifierData *mmd_dst);
 int multiresModifier_reshape(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                              struct Object *dst, struct Object *src);
 int multiresModifier_reshapeFromDM(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,

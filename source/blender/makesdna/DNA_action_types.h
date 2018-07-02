@@ -598,8 +598,8 @@ typedef struct bDopeSheet {
 	ID      *source;            /* currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil) */
 	ListBase chanbase; /* cache for channels (only initialized when pinned) */           // XXX not used!
 
-	struct Collection *filter_grp;   /* object group for ADS_FILTER_ONLYOBGROUP filtering option */
-	char searchstr[64];         /* string to search for in displayed names of F-Curves for ADS_FILTER_BY_FCU_NAME filtering option */
+	struct Collection *filter_grp;   /* object group for option to only include objects that belong to this Collection */
+	char searchstr[64];         /* string to search for in displayed names of F-Curves, or NlaTracks/GP Layers/etc. */
 
 	int filterflag;             /* flags to use for filtering data */
 	int flag;                   /* standard flags */
@@ -621,7 +621,6 @@ typedef enum eDopeSheet_FilterFlag {
 
 	/* general filtering */
 	ADS_FILTER_SUMMARY          = (1 << 4),   /* for 'DopeSheet' Editors - include 'summary' line */
-	ADS_FILTER_ONLYOBGROUP      = (1 << 5),   /* only the objects in the specified object group get used */
 
 	/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS      = (1 << 6),
@@ -650,7 +649,6 @@ typedef enum eDopeSheet_FilterFlag {
 
 	/* general filtering 3 */
 	ADS_FILTER_INCL_HIDDEN      = (1 << 26),  /* include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
-	ADS_FILTER_BY_FCU_NAME      = (1 << 27),  /* for F-Curves, filter by the displayed name (i.e. to isolate all Location curves only) */
 	ADS_FILTER_ONLY_ERRORS		= (1 << 28),  /* show only F-Curves which are disabled/have errors - for debugging drivers */
 
 	/* GPencil Mode */
@@ -687,12 +685,16 @@ typedef struct SpaceAction {
 	bAction     *action;        /* the currently active action */
 	bDopeSheet ads;             /* the currently active context (when not showing action) */
 
-	char mode, autosnap;        /* mode: editing context; autosnap: automatic keyframe snapping mode   */
-	short flag;                 /* flag: bitmapped settings; */
 	float timeslide;            /* for Time-Slide transform mode drawing - current frame? */
 
-	int cache_display;          /* (eTimeline_Cache_Flag) */
-	int pad;
+	short flag;
+	/* Editing context */
+	char mode;
+	/* Storage for sub-space types. */
+	char mode_prev;
+	char autosnap;              /* automatic keyframe snapping mode   */
+	char cache_display;         /* (eTimeline_Cache_Flag) */
+	char _pad1[6];
 } SpaceAction;
 
 /* SpaceAction flag */

@@ -25,7 +25,9 @@
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "BKE_DerivedMesh.h"
+#include "DNA_defs.h"
+#include "DNA_customdata_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"  /* for utility functions */
@@ -360,7 +362,7 @@ void BKE_editmesh_loop_tangent_calc(
 				mesh2tangent->face_as_quad_map = face_as_quad_map;
 				mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
 #endif
-				mesh2tangent->precomputedFaceNormals = poly_normals;  /* dm->getPolyDataArray(dm, CD_NORMAL) */
+				mesh2tangent->precomputedFaceNormals = poly_normals;
 				/* Note, we assume we do have tessellated loop normals at this point (in case it is object-enabled),
 				 * have to check this is valid...
 				 */

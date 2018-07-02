@@ -84,4 +84,3 @@ void register_node_type_sh_attribute(void)
 
 	nodeRegisterType(&ntype);
 }
-

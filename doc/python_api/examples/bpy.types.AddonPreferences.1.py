@@ -9,7 +9,7 @@ bl_info = {
     "wiki_url": "",
     "tracker_url": "",
     "category": "Object",
-    }
+}
 
 
 import bpy
@@ -23,17 +23,17 @@ class ExampleAddonPreferences(AddonPreferences):
     bl_idname = __name__
 
     filepath = StringProperty(
-            name="Example File Path",
-            subtype='FILE_PATH',
-            )
+        name="Example File Path",
+        subtype='FILE_PATH',
+    )
     number = IntProperty(
-            name="Example Number",
-            default=4,
-            )
+        name="Example Number",
+        default=4,
+    )
     boolean = BoolProperty(
-            name="Example Boolean",
-            default=False,
-            )
+        name="Example Boolean",
+        default=False,
+    )
 
     def draw(self, context):
         layout = self.layout

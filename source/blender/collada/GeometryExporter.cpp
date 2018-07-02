@@ -40,7 +40,6 @@
 extern "C" {
 	#include "BLI_utildefines.h"
 
-	#include "BKE_DerivedMesh.h"
 	#include "BKE_main.h"
 	#include "BKE_global.h"
 	#include "BKE_library.h"
@@ -72,14 +71,8 @@ void GeometryExporter::exportGeom(Main *bmain, struct Depsgraph *depsgraph, Scen
 
 void GeometryExporter::operator()(Object *ob)
 {
-	// XXX don't use DerivedMesh, Mesh instead?
-#if 0
-	DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
-#endif
-
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me = bc_get_mesh_copy(
-					m_bmain,
 					mDepsgraph,
 					mScene,
 					ob,
@@ -170,8 +163,7 @@ void GeometryExporter::operator()(Object *ob)
 		}
 	}
 
-	BKE_libblock_free_us(m_bmain, me);
-
+	BKE_id_free(NULL, me);
 }
 
 void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
@@ -688,5 +680,3 @@ COLLADASW::URI GeometryExporter::makeUrl(std::string id)
 {
 	return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 }
-
-

@@ -171,6 +171,10 @@ static GLenum gpu_texture_get_format(
 				default: break;
 			}
 		}
+		else if (ELEM(data_type, GPU_R8)) {
+			*data_format = GL_UNSIGNED_BYTE;
+			*format = GL_RED;
+		}
 		else {
 			*data_format = GL_FLOAT;
 			*format_flag |= GPU_FORMAT_FLOAT;
@@ -882,35 +886,56 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 	return GPU_texture_create_buffer(data_type, vert->vbo_id);
 }
 
-void GPU_texture_update(GPUTexture *tex, const float *pixels)
+void GPU_texture_update_sub(
+        GPUTexture *tex, const void *pixels,
+        int offset_x, int offset_y, int offset_z, int width, int height, int depth)
 {
-	BLI_assert(tex->format > -1);
+	BLI_assert((int)tex->format > -1);
 	BLI_assert(tex->components > -1);
 
 	GLenum format, data_format;
+	GLint alignment;
 	gpu_texture_get_format(tex->components, tex->format, &format, &data_format,
-	                       &tex->format_flag, &tex->bytesize);
+		&tex->format_flag, &tex->bytesize);
+
+	/* The default pack size for textures is 4, which won't work for byte based textures */
+	if (tex->bytesize == 1) {
+		glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	}
 
 	glBindTexture(tex->target, tex->bindcode);
-
 	switch (tex->target) {
 		case GL_TEXTURE_2D:
 		case GL_TEXTURE_2D_MULTISAMPLE:
 		case GL_TEXTURE_1D_ARRAY:
-			glTexSubImage2D(tex->target, 0, 0, 0, tex->w, tex->h, format, data_format, pixels);
+			glTexSubImage2D(
+			        tex->target, 0, offset_x, offset_y,
+			        width, height, format, data_format, pixels);
 			break;
 		case GL_TEXTURE_1D:
-			glTexSubImage1D(tex->target, 0, 0, tex->w, format, data_format, pixels);
+			glTexSubImage1D(tex->target, 0, offset_x, width, format, data_format, pixels);
 			break;
 		case GL_TEXTURE_3D:
 		case GL_TEXTURE_2D_ARRAY:
-			glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->d, format, data_format, pixels);
+			glTexSubImage3D(
+			        tex->target, 0, offset_x, offset_y, offset_z,
+			        width, height, depth, format, data_format, pixels);
 			break;
 		default:
 			BLI_assert(!"tex->target mode not supported");
 	}
 
+	if (tex->bytesize == 1) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+	}
+
 	glBindTexture(tex->target, 0);
+}
+
+void GPU_texture_update(GPUTexture *tex, const void *pixels)
+{
+	GPU_texture_update_sub(tex, pixels, 0, 0, 0, tex->w, tex->h, tex->d);
 }
 
 void GPU_invalid_tex_init(void)
@@ -1045,9 +1070,10 @@ void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter)
 	BLI_assert((!use_filter && !use_mipmap) || !(GPU_texture_stencil(tex) || GPU_texture_integer(tex)));
 
 	GLenum filter = (use_filter) ? GL_LINEAR : GL_NEAREST;
-	GLenum mipmap = (use_filter)
-	       ? (use_mipmap) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR
-	       : (use_mipmap) ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
+	GLenum mipmap = (
+	        (use_filter) ?
+	        (use_mipmap) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR :
+	        (use_mipmap) ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST);
 
 	glActiveTexture(GL_TEXTURE0 + tex->number);
 	glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, mipmap);
@@ -1067,6 +1093,33 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat)
 	if (tex->target_base == GL_TEXTURE_3D)
 		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, repeat);
 }
+
+static GLenum gpu_get_gl_filterfunction(GPUFilterFunction filter)
+{
+	switch (filter) {
+		case GPU_NEAREST:
+			return GL_NEAREST;
+		case GPU_LINEAR:
+			return GL_LINEAR;
+		default:
+			BLI_assert(!"Unhandled filter mode");
+			return GL_NEAREST;
+	}
+}
+
+void GPU_texture_filters(GPUTexture *tex, GPUFilterFunction min_filter, GPUFilterFunction mag_filter)
+{
+	WARN_NOT_BOUND(tex);
+
+	/* Stencil and integer format does not support filtering. */
+	BLI_assert(!(GPU_texture_stencil(tex) || GPU_texture_integer(tex)));
+	BLI_assert(mag_filter == GPU_NEAREST || mag_filter == GPU_LINEAR);
+
+	glActiveTexture(GL_TEXTURE0 + tex->number);
+	glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, gpu_get_gl_filterfunction(min_filter));
+	glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, gpu_get_gl_filterfunction(mag_filter));
+}
+
 
 static void gpu_texture_delete(GPUTexture *tex)
 {

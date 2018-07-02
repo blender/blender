@@ -206,7 +206,7 @@ static void do_outliner_object_select_recursive(ViewLayer *view_layer, Object *o
 
 	for (base = FIRSTBASE(view_layer); base; base = base->next) {
 		Object *ob = base->object;
-		if ((((base->flag & BASE_VISIBLED) == 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
+		if ((((base->flag & BASE_VISIBLE) == 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
 			ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
 		}
 	}
@@ -1000,7 +1000,7 @@ static void do_outliner_item_activate_tree_element(
 			Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
 			if ((ob != NULL) && (ob->data == tselem->id)) {
 				Base *base = BKE_view_layer_base_find(view_layer, ob);
-				if ((base != NULL) && (base->flag & BASE_VISIBLED)) {
+				if ((base != NULL) && (base->flag & BASE_VISIBLE)) {
 					do_outliner_activate_obdata(C, scene, view_layer, base);
 				}
 			}
@@ -1142,9 +1142,9 @@ static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEv
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
 {
-	ot->name = "Activate Item";
+	ot->name = "Select";
 	ot->idname = "OUTLINER_OT_item_activate";
-	ot->description = "Handle mouse clicks to activate/select items";
+	ot->description = "Handle mouse clicks to select and activate items";
 
 	ot->invoke = outliner_item_activate_invoke;
 

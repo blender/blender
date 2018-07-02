@@ -461,8 +461,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	}
 
 	if (sce->rigidbody_world) {
-		BKE_rigidbody_free_world(sce->rigidbody_world);
-		sce->rigidbody_world = NULL;
+		BKE_rigidbody_free_world(sce);
 	}
 
 	if (sce->r.avicodecdata) {
@@ -636,6 +635,7 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->uvcalc_flag = UVCALC_TRANSFORM_CORRECT;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
+	sce->toolsettings->manipulator_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 
 	sce->toolsettings->selectmode = SCE_SELECT_VERTEX;
 	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
@@ -1139,6 +1139,7 @@ int BKE_scene_camera_switch_update(Scene *scene)
 	Object *camera = BKE_scene_camera_switch_find(scene);
 	if (camera) {
 		scene->camera = camera;
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 		return 1;
 	}
 #else
@@ -1562,7 +1563,7 @@ void BKE_scene_object_base_flag_sync_from_object(Base *base)
 
 	if ((ob->flag & SELECT) != 0) {
 		base->flag |= BASE_SELECTED;
-		BLI_assert((base->flag & BASE_SELECTABLED) != 0);
+		BLI_assert((base->flag & BASE_SELECTABLE) != 0);
 	}
 	else {
 		base->flag &= ~BASE_SELECTED;

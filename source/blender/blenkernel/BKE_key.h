@@ -102,7 +102,7 @@ void    BKE_keyblock_convert_from_curve(struct Curve *cu, struct KeyBlock *kb, s
 void    BKE_keyblock_convert_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
 
 void    BKE_keyblock_update_from_mesh(struct Mesh *me, struct KeyBlock *kb);
-void    BKE_keyblock_convert_from_mesh(struct Mesh *me, struct KeyBlock *kb);
+void    BKE_keyblock_convert_from_mesh(struct Mesh *me, struct Key *key, struct KeyBlock *kb);
 void    BKE_keyblock_convert_to_mesh(struct KeyBlock *kb, struct Mesh *me);
 void    BKE_keyblock_mesh_calc_normals(
         struct KeyBlock *kb, struct Mesh *mesh, float (*r_vertnors)[3], float (*r_polynors)[3], float (*r_loopnors)[3]);

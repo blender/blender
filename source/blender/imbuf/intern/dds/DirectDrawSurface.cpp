@@ -1551,4 +1551,3 @@ void DirectDrawSurface::printInfo() const
 		printf("User Version: %u\n", header.reserved[8]);
 	}
 }
-

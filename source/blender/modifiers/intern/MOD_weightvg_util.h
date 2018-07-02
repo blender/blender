@@ -44,7 +44,7 @@ struct RNG;
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
  *     but couldn't figure a way to do this...
- *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
+ *     Maybe this will need changes in mesh_calc_modifiers?
  *     Or the WeightPaint mode code itself?
  */
 

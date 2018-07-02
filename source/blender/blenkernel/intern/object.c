@@ -249,7 +249,7 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 	return true;
 }
 
-void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src)
+void BKE_object_link_modifiers(Scene *scene, struct Object *ob_dst, const struct Object *ob_src)
 {
 	ModifierData *md;
 	BKE_object_free_modifiers(ob_dst, 0);
@@ -288,7 +288,7 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 
 		if (md->type == eModifierType_Multires) {
 			/* Has to be done after mod creation, but *before* we actually copy its settings! */
-			multiresModifier_sync_levels_ex(ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
+			multiresModifier_sync_levels_ex(scene, ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
 		}
 
 		modifier_copyData(md, nmd);
@@ -404,6 +404,15 @@ void BKE_object_free_caches(Object *object)
 		}
 	}
 
+	/* NOTE: If object is coming from a duplicator, it might be a temporary
+	 * object created by dependency graph, which shares pointers with original
+	 * object. In this case we can not free anything.
+	 */
+	if ((object->base_flag & BASE_FROMDUPLI) == 0) {
+		BKE_object_free_derived_caches(object);
+		update_flag |= OB_RECALC_DATA;
+	}
+
 	/* Tag object for update, so once memory critical operation is over and
 	 * scene update routines are back to it's business the object will be
 	 * guaranteed to be in a known state.
@@ -440,7 +449,7 @@ void BKE_object_free(Object *ob)
 	BKE_constraints_free_ex(&ob->constraints, false);
 
 	free_partdeflect(ob->pd);
-	BKE_rigidbody_free_object(ob);
+	BKE_rigidbody_free_object(ob, NULL);
 	BKE_rigidbody_free_constraint(ob);
 
 	if (ob->soft) {
@@ -600,7 +609,7 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
  */
 bool BKE_object_is_visible(Object *ob, const eObjectVisibilityCheck mode)
 {
-	if ((ob->base_flag & BASE_VISIBLED) == 0) {
+	if ((ob->base_flag & BASE_VISIBLE) == 0) {
 		return false;
 	}
 
@@ -2530,13 +2539,11 @@ void BKE_object_foreach_display_point(
 {
 	float co[3];
 
-	if (ob->derivedFinal) {
-		DerivedMesh *dm = ob->derivedFinal;
-		MVert *mv = dm->getVertArray(dm);
-		int totvert = dm->getNumVerts(dm);
-		int i;
-
-		for (i = 0; i < totvert; i++, mv++) {
+	if (ob->runtime.mesh_eval) {
+		const Mesh *me = ob->runtime.mesh_eval;
+		const MVert *mv = me->mvert;
+		const int totvert = me->totvert;
+		for (int i = 0; i < totvert; i++, mv++) {
 			mul_v3_m4v3(co, obmat, mv->co);
 			func_cb(co, user_data);
 		}
@@ -2558,33 +2565,20 @@ void BKE_object_foreach_display_point(
 }
 
 void BKE_scene_foreach_display_point(
-        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer,
+        Depsgraph *depsgraph,
         void (*func_cb)(const float[3], void *), void *user_data)
 {
-	Base *base;
-	Object *ob;
-
-	for (base = FIRSTBASE(view_layer); base; base = base->next) {
-		if (((base->flag & BASE_VISIBLED) != 0) && ((base->flag & BASE_SELECTED) != 0)) {
-			ob = base->object;
-
-			if ((ob->transflag & OB_DUPLI) == 0) {
-				BKE_object_foreach_display_point(ob, ob->obmat, func_cb, user_data);
-			}
-			else {
-				ListBase *lb;
-				DupliObject *dob;
-
-				lb = object_duplilist(depsgraph, scene, ob);
-				for (dob = lb->first; dob; dob = dob->next) {
-					if (dob->no_draw == 0) {
-						BKE_object_foreach_display_point(dob->ob, dob->mat, func_cb, user_data);
-					}
-				}
-				free_object_duplilist(lb);  /* does restore */
-			}
+	DEG_OBJECT_ITER_BEGIN(
+	        depsgraph, ob,
+	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+	        DEG_ITER_OBJECT_FLAG_VISIBLE |
+	        DEG_ITER_OBJECT_FLAG_DUPLI)
+	{
+		if ((ob->base_flag & BASE_SELECTED) != 0) {
+			BKE_object_foreach_display_point(ob, ob->obmat, func_cb, user_data);
 		}
 	}
+	DEG_OBJECT_ITER_END;
 }
 
 /* copied from DNA_object_types.h */
@@ -2956,7 +2950,7 @@ static KeyBlock *insert_meshkey(Main *bmain, Object *ob, const char *name, const
 	if (newkey || from_mix == false) {
 		/* create from mesh */
 		kb = BKE_keyblock_add_ctime(key, name, false);
-		BKE_keyblock_convert_from_mesh(me, kb);
+		BKE_keyblock_convert_from_mesh(me, key, kb);
 	}
 	else {
 		/* copy from current values */
@@ -3528,6 +3522,7 @@ void BKE_object_groups_clear(Main *bmain, Object *ob)
 	Collection *collection = NULL;
 	while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
 		BKE_collection_object_remove(bmain, collection, ob, false);
+		DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 

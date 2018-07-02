@@ -45,11 +45,12 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
+#include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "BKE_subsurf.h"
-#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -259,7 +260,7 @@ static void add_verts_to_dgroups(
 	 * into account and vertex weights can be mirrored.
 	 *
 	 * The mesh vertex positions used are either the final deformed coords
-	 * from the derivedmesh in weightpaint mode, the final subsurf coords
+	 * from the evaluated mesh in weightpaint mode, the final subsurf coords
 	 * when parenting, or simply the original mesh coords.
 	 */
 
@@ -373,15 +374,11 @@ static void add_verts_to_dgroups(
 	verts = MEM_callocN(mesh->totvert * sizeof(*verts), "closestboneverts");
 
 	if (wpmode) {
-		/* if in weight paint mode, use final verts from derivedmesh */
-		DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		/* if in weight paint mode, use final verts from evaluated mesh */
+		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
 
-		if (dm->foreachMappedVert) {
-			mesh_get_mapped_verts_coords(dm, verts, mesh->totvert);
-			vertsfilled = 1;
-		}
-
-		dm->release(dm);
+		BKE_mesh_foreach_mapped_vert_coords_get(me_eval, verts, mesh->totvert);
+		vertsfilled = 1;
 	}
 	else if (modifiers_findByType(ob, eModifierType_Subsurf)) {
 		/* is subsurf on? Lets use the verts on the limit surface then.

@@ -41,8 +41,12 @@ class TEXT_HT_header(Header):
             sub.alert = True
             sub.operator("text.resolve_conflict", text="", icon='HELP')
 
+        layout.separator_spacer()
+
         row = layout.row(align=True)
         row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
+
+        layout.separator_spacer()
 
         row = layout.row(align=True)
         row.prop(st, "show_line_numbers", text="")
@@ -50,31 +54,36 @@ class TEXT_HT_header(Header):
         row.prop(st, "show_syntax_highlight", text="")
 
         if text:
-            osl = text.name.endswith(".osl") or text.name.endswith(".oso")
-
-            if osl:
-                row = layout.row()
-                row.operator("node.shader_script_update")
-            else:
-                row = layout.row()
-                row.operator("text.run_script")
-
-                row = layout.row()
-                row.active = text.name.endswith(".py")
-                row.prop(text, "use_module")
+            is_osl = text.name.endswith((".osl", ".osl"))
 
             row = layout.row()
             if text.filepath:
                 if text.is_dirty:
-                    row.label(text=iface_("File: *%r (unsaved)") %
-                              text.filepath, translate=False)
+                    row.label(
+                        iface_(f"File: *{text.filepath} (unsaved)"),
+                        translate=False,
+                    )
                 else:
-                    row.label(text=iface_("File: %r") %
-                              text.filepath, translate=False)
+                    row.label(
+                        iface_(f"File: {text.filepath}"),
+                        translate=False,
+                    )
             else:
-                row.label(text="Text: External"
-                          if text.library
-                          else "Text: Internal")
+                row.label(
+                    "Text: External"
+                    if text.library
+                    else "Text: Internal"
+                )
+            if is_osl:
+                row = layout.row()
+                row.operator("node.shader_script_update")
+            else:
+                row = layout.row()
+                row.active = text.name.endswith(".py")
+                row.prop(text, "use_module")
+
+                row = layout.row()
+                row.operator("text.run_script")
 
 
 class TEXT_MT_editor_menus(Menu):

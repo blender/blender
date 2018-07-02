@@ -54,12 +54,16 @@
 #include "ED_markers.h"
 
 #include "GPU_immediate.h"
+#include "GPU_state.h"
+#include "GPU_framebuffer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 #include "WM_message.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -238,8 +242,8 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear_color(col[0], col[1], col[2], 0.0);
+	GPU_clear(GPU_COLOR_BIT);
 
 	UI_view2d_view_ortho(v2d);
 
@@ -285,15 +289,15 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
 			/* Draw a green line to indicate the cursor value */
 			immUniformThemeColorShadeAlpha(TH_CFRAME, -10, -50);
-			glEnable(GL_BLEND);
-			glLineWidth(2.0);
+			GPU_blend(true);
+			GPU_line_width(2.0);
 
 			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2f(pos, v2d->cur.xmin, y);
 			immVertex2f(pos, v2d->cur.xmax, y);
 			immEnd();
 
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 
 		/* current frame or vertical component of vertical component of the cursor */
@@ -303,15 +307,15 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
 			/* to help differentiate this from the current frame, draw slightly darker like the horizontal one */
 			immUniformThemeColorShadeAlpha(TH_CFRAME, -40, -50);
-			glEnable(GL_BLEND);
-			glLineWidth(2.0);
+			GPU_blend(true);
+			GPU_line_width(2.0);
 
 			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2f(pos, x, v2d->cur.ymin);
 			immVertex2f(pos, x, v2d->cur.ymax);
 			immEnd();
 
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 		}
 
 		immUnbindProgram();
@@ -379,8 +383,8 @@ static void graph_channel_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear_color(col[0], col[1], col[2], 0.0);
+	GPU_clear(GPU_COLOR_BIT);
 
 	UI_view2d_view_ortho(v2d);
 
@@ -799,6 +803,24 @@ static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID
 	}
 }
 
+static int graph_space_subtype_get(ScrArea *sa)
+{
+	SpaceIpo *sgraph = sa->spacedata.first;
+	return sgraph->mode;
+}
+
+static void graph_space_subtype_set(ScrArea *sa, int value)
+{
+	SpaceIpo *sgraph = sa->spacedata.first;
+	sgraph->mode = value;
+}
+
+static void graph_space_subtype_item_extend(
+        bContext *UNUSED(C), EnumPropertyItem **item, int *totitem)
+{
+	RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_ipo(void)
 {
@@ -817,6 +839,9 @@ void ED_spacetype_ipo(void)
 	st->listener = graph_listener;
 	st->refresh = graph_refresh;
 	st->id_remap = graph_id_remap;
+	st->space_subtype_item_extend = graph_space_subtype_item_extend;
+	st->space_subtype_get = graph_space_subtype_get;
+	st->space_subtype_set = graph_space_subtype_set;
 
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
@@ -867,4 +892,3 @@ void ED_spacetype_ipo(void)
 
 	BKE_spacetype_register(st);
 }
-

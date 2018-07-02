@@ -82,4 +82,3 @@ void ColorMatteOperation::executePixelSampled(float output[4], float x, float y,
 		output[0] = inColor[3]; /* make pixel just as transparent as it was before */
 	}
 }
-

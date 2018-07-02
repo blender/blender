@@ -69,4 +69,3 @@ extern struct Main *BLO_memfile_main_get(struct MemFile *memfile, struct Main *b
 extern bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename);
 
 #endif  /* __BLO_UNDOFILE_H__ */
-

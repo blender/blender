@@ -106,4 +106,3 @@ MINLINE void blend_color_interpolate_float(float dst[4], const float src1[4], co
 #endif
 
 #endif /* __BLI_MATH_COLOR_BLEND_H__ */
-

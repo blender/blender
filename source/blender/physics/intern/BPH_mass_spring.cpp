@@ -51,6 +51,9 @@ extern "C" {
 #include "BPH_mass_spring.h"
 #include "implicit.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 static float I3[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 
 /* Number of off-diagonal non-zero matrix blocks.
@@ -433,7 +436,7 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 	}
 }
 
-static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
+static void cloth_calc_force(Scene *scene, ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
 {
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
 	Cloth *cloth = clmd->clothObject;
@@ -447,9 +450,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 
 #ifdef CLOTH_FORCE_GRAVITY
 	/* global acceleration (gravitation) */
-	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+	if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 		/* scale gravity force */
-		mul_v3_v3fl(gravity, clmd->scene->physics_settings.gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity);
+		mul_v3_v3fl(gravity, scene->physics_settings.gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity);
 	}
 
 	vert = cloth->verts;
@@ -487,8 +490,8 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 			EffectedPoint epoint;
 
 			BPH_mass_spring_get_motion_state(data, i, x, v);
-			pd_point_from_loc(clmd->scene, x, v, i, &epoint);
-			pdDoEffectors(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
+			pd_point_from_loc(scene, x, v, i, &epoint);
+			BKE_effectors_apply(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
 		}
 
 		for (i = 0; i < cloth->tri_num; i++) {
@@ -847,7 +850,9 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
 /* old collision stuff for cloth, use for continuity
  * until a good replacement is ready
  */
-static void cloth_collision_solve_extra(Object *ob, ClothModifierData *clmd, ListBase *effectors, float frame, float step, float dt)
+static void cloth_collision_solve_extra(
+        Depsgraph *depsgraph, Scene *scene, Object *ob, ClothModifierData *clmd, ListBase *effectors,
+        float frame, float step, float dt)
 {
 	Cloth *cloth = clmd->clothObject;
 	Implicit_Data *id = cloth->implicit;
@@ -879,7 +884,8 @@ static void cloth_collision_solve_extra(Object *ob, ClothModifierData *clmd, Lis
 
 	// call collision function
 	// TODO: check if "step" or "step+dt" is correct - dg
-	do_extra_solve = cloth_bvh_objcollision(ob, clmd, step / clmd->sim_parms->timescale, dt / clmd->sim_parms->timescale);
+	do_extra_solve = cloth_bvh_objcollision(
+	        depsgraph, ob, clmd, step / clmd->sim_parms->timescale, dt / clmd->sim_parms->timescale);
 
 	// copy corrected positions back to simulation
 	for (i = 0; i < mvert_num; i++) {
@@ -915,7 +921,7 @@ static void cloth_collision_solve_extra(Object *ob, ClothModifierData *clmd, Lis
 		BPH_mass_spring_clear_forces(id);
 
 		// calculate forces
-		cloth_calc_force(clmd, frame, effectors, step);
+		cloth_calc_force(scene, clmd, frame, effectors, step);
 
 		// calculate new velocity and position
 		BPH_mass_spring_solve_velocities(id, dt, &result);
@@ -967,12 +973,13 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
 	sres->status |= result->status;
 }
 
-int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
+int BPH_cloth_solve(Depsgraph *depsgraph, Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	/* Hair currently is a cloth sim in disguise ...
 	 * Collision detection and volumetrics work differently then.
 	 * Bad design, TODO
 	 */
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	const bool is_hair = (clmd->hairdata != NULL);
 
 	unsigned int i=0;
@@ -1017,7 +1024,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		if (is_hair) {
 			/* determine contact points */
 			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
-				cloth_find_point_contacts(ob, clmd, 0.0f, tf, &contacts, &totcolliders);
+				cloth_find_point_contacts(depsgraph, ob, clmd, 0.0f, tf, &contacts, &totcolliders);
 			}
 
 			/* setup vertex constraints for pinned vertices and contacts */
@@ -1043,7 +1050,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 
 		// calculate forces
-		cloth_calc_force(clmd, frame, effectors, step);
+		cloth_calc_force(scene, clmd, frame, effectors, step);
 
 		// calculate new velocity and position
 		BPH_mass_spring_solve_velocities(id, dt, &result);
@@ -1056,7 +1063,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		BPH_mass_spring_solve_positions(id, dt);
 
 		if (!is_hair) {
-			cloth_collision_solve_extra(ob, clmd, effectors, frame, step, dt);
+			cloth_collision_solve_extra(depsgraph, scene, ob, clmd, effectors, frame, step, dt);
 		}
 
 		BPH_mass_spring_apply_result(id);

@@ -127,4 +127,3 @@ cycles_set_solution_folder(cycles_osl_shaders)
 # CMAKE_CURRENT_SOURCE_DIR is already included in OSO paths
 delayed_install("" "${SRC_OSO}" ${CYCLES_INSTALL_PATH}/shader)
 delayed_install("${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_OSL_HEADERS}" ${CYCLES_INSTALL_PATH}/shader)
-

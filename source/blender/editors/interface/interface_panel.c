@@ -63,6 +63,7 @@
 #include "UI_resources.h"
 
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "interface_intern.h"
 
@@ -486,10 +487,10 @@ static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float
 {
 
 	/* set antialias line */
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
+	GPU_line_smooth(true);
+	GPU_blend(true);
 
-	glLineWidth(2.0);
+	GPU_line_width(2.0);
 
 	immBegin(GWN_PRIM_LINES, 4);
 
@@ -501,8 +502,8 @@ static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float
 
 	immEnd();
 
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
+	GPU_line_smooth(false);
+	GPU_blend(false);
 
 }
 
@@ -529,7 +530,7 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	dx = 0.5f * (xmax - xmin);
 	dy = 0.5f * (ymax - ymin);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	immUniformColor4ub(255, 255, 255, 50);
 
 	immBegin(GWN_PRIM_LINES, 4);
@@ -554,11 +555,12 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 
 	immEnd();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
-static void immRectf_tris_color_ex(unsigned int pos, float x1, float y1, float x2, float y2,
-                              unsigned int col, const float color[3])
+static void immRectf_tris_color_ex(
+        unsigned int pos, float x1, float y1, float x2, float y2,
+        unsigned int col, const float color[3])
 {
 	immAttrib4fv(col, color);
 	immVertex2f(pos, x1, y1);
@@ -603,10 +605,12 @@ static void ui_draw_panel_dragwidget(unsigned int pos, unsigned int col, const r
 			const int x_co = (x_min + x_ofs) + (i_x * (box_size + box_margin));
 			const int y_co = (y_min + y_ofs) + (i_y * (box_size + box_margin));
 
-			immRectf_tris_color_ex(pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom,
-			                       col, col_dark);
-			immRectf_tris_color_ex(pos, x_co - box_size, y_co, x_co, y_co + box_size,
-			                       col, col_high);
+			immRectf_tris_color_ex(
+			        pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom,
+			        col, col_dark);
+			immRectf_tris_color_ex(
+			        pos, x_co - box_size, y_co, x_co, y_co + box_size,
+			        col, col_high);
 		}
 	}
 	immEnd();
@@ -696,7 +700,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		float maxx = is_closed_x ? (minx + PNL_HEADER / block->aspect) : rect->xmax;
 		float y = headrect.ymax;
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
@@ -736,7 +740,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			immEnd();
 		}
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	immUnbindProgram();
@@ -749,11 +753,12 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	if (show_pin)
 #endif
 	{
-		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
-		                    (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-		                    (block->aspect / UI_DPI_FAC), 1.0f);
-		glDisable(GL_BLEND);
+		GPU_blend(true);
+		UI_icon_draw_aspect(
+		        headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
+		        (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
+		        (block->aspect / UI_DPI_FAC), 1.0f);
+		GPU_blend(false);
 	}
 
 
@@ -809,12 +814,12 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 		/* panel backdrop */
 		if (is_subpanel) {
-			glEnable(GL_BLEND);
+			GPU_blend(true);
 			immUniformThemeColor(TH_PANEL_SUB_BACK);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 		else if (UI_GetThemeValue(TH_PANEL_SHOW_BACK)) {
-			glEnable(GL_BLEND);
+			GPU_blend(true);
 			immUniformThemeColor(TH_PANEL_BACK);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
@@ -1959,14 +1964,14 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 
 	/* begin drawing */
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw the background */
 	if (is_alpha) {
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		immUniformColor4ubv(theme_col_tab_bg);
 	}
 	else {
@@ -1976,7 +1981,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	immRecti(pos, v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
 
 	if (is_alpha) {
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	immUnbindProgram();
@@ -1997,25 +2002,28 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		}
 #endif
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 #ifdef USE_FLAT_INACTIVE
 		if (is_active)
 #endif
 		{
-			ui_panel_category_draw_tab(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-			                           tab_curve_radius - px, roundboxtype, true, true, NULL,
-			                           is_active ? theme_col_tab_active : theme_col_tab_inactive);
+			ui_panel_category_draw_tab(
+			        true, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			        tab_curve_radius - px, roundboxtype, true, true, NULL,
+			        is_active ? theme_col_tab_active : theme_col_tab_inactive);
 
 			/* tab outline */
-			ui_panel_category_draw_tab(false, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
-			                           tab_curve_radius, roundboxtype, true, true, NULL, theme_col_tab_outline);
+			ui_panel_category_draw_tab(
+			        false, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
+			        tab_curve_radius, roundboxtype, true, true, NULL, theme_col_tab_outline);
 
 			/* tab highlight (3d look) */
-			ui_panel_category_draw_tab(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-			                           tab_curve_radius, roundboxtype, true, false,
-			                           is_active ? theme_col_back : theme_col_tab_inactive,
-			                           is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
+			ui_panel_category_draw_tab(
+			        false, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			        tab_curve_radius, roundboxtype, true, false,
+			        is_active ? theme_col_back : theme_col_tab_inactive,
+			        is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
 		}
 
 		/* tab blackline */
@@ -2033,8 +2041,9 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		}
 
 		if (do_scaletabs) {
-			category_draw_len = BLF_width_to_strlen(fontid, category_id_draw, category_draw_len,
-			                                        category_width, NULL);
+			category_draw_len = BLF_width_to_strlen(
+			        fontid, category_id_draw, category_draw_len,
+			        category_width, NULL);
 		}
 
 		BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);
@@ -2047,7 +2056,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		/* main tab title */
 		BLF_draw(fontid, category_id_draw, category_draw_len);
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 
 		/* tab blackline remaining (last tab) */
 		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
@@ -2085,7 +2094,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		pc_dyn->rect.xmin = v2d->mask.xmin;
 	}
 
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 
 	BLF_disable(fontid, BLF_ROTATION);
 
@@ -2254,7 +2263,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, cons
 				}
 				else if (event->type == RIGHTMOUSE) {
 					if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
-						ui_panel_menu(C, ar, block->panel);
+						ui_popup_context_menu_for_panel(C, ar, block->panel);
 						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}

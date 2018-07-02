@@ -61,7 +61,7 @@ static void initData(ModifierData *md)
 	smd->defgrp_name[0] = '\0';
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
 {
 	SmoothModifierData *smd = (SmoothModifierData *) md;
 	short flag;
@@ -118,7 +118,7 @@ static void smoothModifier_do(
 		numDMEdges = 0;
 	}
 
-	modifier_get_vgroup_mesh(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
 	/* NOTICE: this can be optimized a little bit by moving the
 	 * if (dvert) out of the loop, if needed */

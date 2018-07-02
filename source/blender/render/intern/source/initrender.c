@@ -284,6 +284,3 @@ void RE_parts_init(Render *re)
 		}
 	}
 }
-
-
-

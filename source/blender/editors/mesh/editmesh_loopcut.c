@@ -48,6 +48,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "UI_interface.h"
 
@@ -112,7 +113,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	if ((lcd->totedge > 0) || (lcd->totpoint > 0)) {
 		if (v3d && v3d->zbuf)
-			glDisable(GL_DEPTH_TEST);
+			GPU_depth_test(false);
 
 		gpuPushMatrix();
 		gpuMultMatrix(lcd->ob->obmat);
@@ -134,7 +135,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		}
 
 		if (lcd->totpoint > 0) {
-			glPointSize(3.0f);
+			GPU_point_size(3.0f);
 
 			immBegin(GWN_PRIM_POINTS, lcd->totpoint);
 
@@ -150,7 +151,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		gpuPopMatrix();
 
 		if (v3d && v3d->zbuf)
-			glEnable(GL_DEPTH_TEST);
+			GPU_depth_test(true);
 	}
 }
 
@@ -692,7 +693,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 	{
 		Scene *scene = CTX_data_scene(C);
 		ToolSettings *settings = scene->toolsettings;
-		const int mesh_select_mode[3] = {
+		const bool mesh_select_mode[3] = {
 		    (settings->selectmode & SCE_SELECT_VERTEX) != 0,
 		    (settings->selectmode & SCE_SELECT_EDGE)   != 0,
 		    (settings->selectmode & SCE_SELECT_FACE)   != 0,
@@ -703,8 +704,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 #endif
 
 	if (is_interactive) {
-		ScrArea *sa = CTX_wm_area(C);
-		ED_area_headerprint(sa, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
+		ED_workspace_status_text(C, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
 		                               "hold Alt for smooth"));
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -729,7 +729,7 @@ static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
 {
 	/* finish */
 	ED_region_tag_redraw(lcd->ar);
-	ED_area_headerprint(CTX_wm_area(C), NULL);
+	ED_workspace_status_text(C, NULL);
 
 	if (lcd->eed) {
 		/* set for redo */
@@ -785,14 +785,14 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case RIGHTMOUSE: /* abort */ // XXX hardcoded
 				ED_region_tag_redraw(lcd->ar);
 				ringsel_exit(C, op);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_workspace_status_text(C, NULL);
 
 				return OPERATOR_CANCELLED;
 			case ESCKEY:
 				if (event->val == KM_RELEASE) {
 					/* cancel */
 					ED_region_tag_redraw(lcd->ar);
-					ED_area_headerprint(CTX_wm_area(C), NULL);
+					ED_workspace_status_text(C, NULL);
 
 					ringcut_cancel(C, op);
 					return OPERATOR_CANCELLED;
@@ -897,7 +897,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		BLI_snprintf(buf, sizeof(buf), IFACE_("Number of Cuts: %s, Smooth: %s (Alt)"),
 		             str_rep, str_rep + NUM_STR_REP_LEN);
-		ED_area_headerprint(CTX_wm_area(C), buf);
+		ED_workspace_status_text(C, buf);
 	}
 
 	/* keep going until the user confirms */

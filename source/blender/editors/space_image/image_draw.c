@@ -65,6 +65,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "BLF_api.h"
 
@@ -130,7 +131,7 @@ static void draw_render_info(const bContext *C,
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			immUniformThemeColor(TH_FACE_SELECT);
 
-			glLineWidth(1.0f);
+			GPU_line_width(1.0f);
 
 			rcti *tile = tiles;
 			for (int i = 0; i < total_tiles; i++, tile++) {
@@ -170,8 +171,8 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	float hue = 0, sat = 0, val = 0, lum = 0, u = 0, v = 0;
 	float col[4], finalcol[4];
 
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -182,7 +183,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 	immUnbindProgram();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	BLF_size(blf_mono_font, 11 * U.pixelsize, U.dpi);
 
@@ -323,7 +324,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		copy_v4_v4(finalcol, col);
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	dx += 0.25f * UI_UNIT_X;
 
 	BLI_rcti_init(&color_rect, dx, dx + (1.5f * UI_UNIT_X), 0.15f * UI_UNIT_Y, 0.85f * UI_UNIT_Y);
@@ -354,10 +355,10 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		immRecti(pos, color_quater_x, color_quater_y, color_rect_half.xmax, color_rect_half.ymax);
 		immRecti(pos, color_rect_half.xmin, color_rect_half.ymin, color_quater_x, color_quater_y);
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		immUniformColor3fvAlpha(finalcol, fp ? fp[3] : (cp[3] / 255.0f));
 		immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 	else {
 		immUniformColor3fv(finalcol);
@@ -503,8 +504,8 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		if (sima->flag & SI_USE_ALPHA) {
 			imm_draw_box_checker_2d(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 
-			glEnable(GL_BLEND);
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			GPU_blend(true);
+			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		}
 
 		/* If RGBA display with color management */
@@ -544,7 +545,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		}
 
 		if (sima->flag & SI_USE_ALPHA)
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 	}
 }
 
@@ -578,10 +579,10 @@ void draw_image_sample_line(SpaceImage *sima)
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 2);  /* Advanced dashes. */
+		immUniform1i("colors_len", 2);  /* Advanced dashes. */
 		immUniformArray4fv("colors", (float *)(float[][4]){{1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
 		immUniform1f("dash_width", 2.0f);
 
@@ -618,13 +619,13 @@ static void draw_image_paint_helpers(const bContext *C, ARegion *ar, Scene *scen
 				return;
 			}
 
-			glEnable(GL_BLEND);
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			GPU_blend(true);
+			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 			immDrawPixelsTex(&state, x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer, zoomx, zoomy, col);
 
-			glDisable(GL_BLEND);
+			GPU_blend(false);
 
 			BKE_image_release_ibuf(brush->clone.image, ibuf, NULL);
 			IMB_display_buffer_release(cache_handle);
@@ -758,8 +759,8 @@ void draw_image_cache(const bContext *C, ARegion *ar)
 		mask = ED_space_image_get_mask(sima);
 	}
 
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(true);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	/* Draw cache background. */
 	ED_region_cache_draw_background(ar);
@@ -773,7 +774,7 @@ void draw_image_cache(const bContext *C, ARegion *ar)
 		ED_region_cache_draw_cached_segments(ar, num_segments, points, sfra + sima->iuser.offset, efra + sima->iuser.offset);
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	/* Draw current frame. */
 	x = (cfra - sfra) / (efra - sfra + 1) * ar->winx;

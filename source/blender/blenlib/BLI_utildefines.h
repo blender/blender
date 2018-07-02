@@ -274,11 +274,15 @@ extern "C" {
 #define SQUARE(a)  ({ \
 	typeof(a) a_ = (a); \
 	((a_) * (a_)); })
+#define CUBE(a)  ({ \
+	typeof(a) a_ = (a); \
+	((a_) * (a_) * (a_)); })
 
 #else
 
 #define ABS(a)  ((a) < 0 ? (-(a)) : (a))
 #define SQUARE(a)  ((a) * (a))
+#define CUBE(a)  ((a) * (a) * (a))
 
 #endif
 

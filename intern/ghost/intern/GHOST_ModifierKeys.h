@@ -100,4 +100,3 @@ struct GHOST_ModifierKeys {
 };
 
 #endif // __GHOST_MODIFIERKEYS_H__
-

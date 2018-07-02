@@ -106,6 +106,7 @@ bool PyC_RunString_AsString(const char *expr, const char *filename, char **r_val
 
 int PyC_ParseBool(PyObject *o, void *p);
 
+int PyC_CheckArgs_DeepCopy(PyObject *args);
 
 /* Integer parsing (with overflow checks), -1 on error. */
 int     PyC_Long_AsBool(PyObject *value);

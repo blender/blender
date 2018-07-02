@@ -1244,6 +1244,30 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
 		}
 	}
 
+	for (const bUserMenu *um = userdef->user_menus.first; um; um = um->next) {
+		writestruct(wd, DATA, bUserMenu, 1, um);
+		for (const bUserMenuItem *umi = um->items.first; umi; umi = umi->next) {
+			if (umi->type == USER_MENU_TYPE_OPERATOR) {
+				const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)umi;
+				writestruct(wd, DATA, bUserMenuItem_Op, 1, umi_op);
+				if (umi_op->prop) {
+					IDP_WriteProperty(umi_op->prop, wd);
+				}
+			}
+			else if (umi->type == USER_MENU_TYPE_MENU) {
+				const bUserMenuItem_Menu *umi_mt = (const bUserMenuItem_Menu *)umi;
+				writestruct(wd, DATA, bUserMenuItem_Menu, 1, umi_mt);
+			}
+			else if (umi->type == USER_MENU_TYPE_PROP) {
+				const bUserMenuItem_Prop *umi_pr = (const bUserMenuItem_Prop *)umi;
+				writestruct(wd, DATA, bUserMenuItem_Prop, 1, umi_pr);
+			}
+			else {
+				writestruct(wd, DATA, bUserMenuItem, 1, umi);
+			}
+		}
+	}
+
 	for (const bAddon *bext = userdef->addons.first; bext; bext = bext->next) {
 		writestruct(wd, DATA, bAddon, 1, bext);
 		if (bext->prop) {
@@ -2630,9 +2654,14 @@ static void write_scene(WriteData *wd, Scene *sce)
 
 	/* writing RigidBodyWorld data to the blend file */
 	if (sce->rigidbody_world) {
+		/* Set deprecated pointers to prevent crashes of older Blenders */
+		sce->rigidbody_world->pointcache = sce->rigidbody_world->shared->pointcache;
+		sce->rigidbody_world->ptcaches = sce->rigidbody_world->shared->ptcaches;
 		writestruct(wd, DATA, RigidBodyWorld, 1, sce->rigidbody_world);
+
+		writestruct(wd, DATA, RigidBodyWorld_Shared, 1, sce->rigidbody_world->shared);
 		writestruct(wd, DATA, EffectorWeights, 1, sce->rigidbody_world->effector_weights);
-		write_pointcaches(wd, &(sce->rigidbody_world->ptcaches));
+		write_pointcaches(wd, &(sce->rigidbody_world->shared->ptcaches));
 	}
 
 	write_previews(wd, sce->preview);
@@ -3819,7 +3848,7 @@ static bool write_file_handle(
 				const bool do_override = !ELEM(override_storage, NULL, bmain) && id->override_static;
 
 				if (do_override) {
-					BKE_override_static_operations_store_start(override_storage, id);
+					BKE_override_static_operations_store_start(bmain, override_storage, id);
 				}
 
 				switch ((ID_Type)GS(id->name)) {

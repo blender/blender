@@ -24,7 +24,7 @@
 #ifndef __BKE_MESH_ITERATORS_H__
 #define __BKE_MESH_ITERATORS_H__
 
-/** \file BKE_MESH_ITERATORS.h
+/** \file BKE_mesh_iterators.h
  *  \ingroup bke
  */
 
@@ -61,5 +61,7 @@ void BKE_mesh_foreach_mapped_face_center(
         void (*func)(void *userData, int index, const float cent[3], const float no[3]),
         void *userData,
         MeshForeachFlag flag);
+
+void BKE_mesh_foreach_mapped_vert_coords_get(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
 #endif  /* __BKE_MESH_ITERATORS_H__ */

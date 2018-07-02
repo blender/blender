@@ -80,11 +80,17 @@ static char *glsl_material_library = NULL;
 static GPUPass *pass_cache = NULL;
 static SpinLock pass_cache_spin;
 
-static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs)
+static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, GPUVertexAttribs *attribs)
 {
 	BLI_HashMurmur2A hm2a;
 	BLI_hash_mm2a_init(&hm2a, 0);
 	BLI_hash_mm2a_add(&hm2a, (unsigned char *)frag_gen, strlen(frag_gen));
+	if (attribs) {
+		for (int att_idx = 0; att_idx < attribs->totlayer; att_idx++) {
+			char *name = attribs->layer[att_idx].name;
+			BLI_hash_mm2a_add(&hm2a, (unsigned char *)name, strlen(name));
+		}
+	}
 	if (defs)
 		BLI_hash_mm2a_add(&hm2a, (unsigned char *)defs, strlen(defs));
 
@@ -1885,7 +1891,7 @@ GPUPass *GPU_generate_pass_new(
 	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output);
 
 	/* Cache lookup: Reuse shaders already compiled */
-	uint32_t hash = gpu_pass_hash(fragmentgen, defines);
+	uint32_t hash = gpu_pass_hash(fragmentgen, defines, attribs);
 	pass_hash = gpu_pass_cache_lookup(hash);
 
 	if (pass_hash && (pass_hash->next == NULL || pass_hash->next->hash != hash)) {

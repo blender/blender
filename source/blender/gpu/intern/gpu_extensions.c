@@ -306,4 +306,3 @@ void GPU_mem_stats_get(int *totalmem, int *freemem)
 		*freemem = 0;
 	}
 }
-

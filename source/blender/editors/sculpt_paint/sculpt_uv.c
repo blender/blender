@@ -59,6 +59,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -159,7 +160,7 @@ static Brush *uv_sculpt_brush(bContext *C)
 }
 
 
-static int uv_sculpt_brush_poll_do(bContext *C, const bool check_region)
+static bool uv_sculpt_brush_poll_do(bContext *C, const bool check_region)
 {
 	BMEditMesh *em;
 	int ret;
@@ -187,7 +188,7 @@ static int uv_sculpt_brush_poll_do(bContext *C, const bool check_region)
 	return ret;
 }
 
-static int uv_sculpt_brush_poll(bContext *C)
+static bool uv_sculpt_brush_poll(bContext *C)
 {
 	return uv_sculpt_brush_poll_do(C, true);
 }
@@ -218,11 +219,11 @@ static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(cu
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3fvAlpha(brush->add_col, alpha);
 
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+		GPU_line_smooth(true);
+		GPU_blend(true);
 		imm_draw_circle_wire_2d(pos, (float)x, (float)y, size, 40);
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_blend(false);
+		GPU_line_smooth(false);
 
 		immUnbindProgram();
 	}
@@ -246,8 +247,9 @@ void ED_space_image_uv_sculpt_update(Main *bmain, wmWindowManager *wm, Scene *sc
 
 		BKE_paint_init(bmain, scene, ePaintSculptUV, PAINT_CURSOR_SCULPT);
 
-		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
-		                                                                  brush_drawcursor_uvsculpt, NULL);
+		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(
+		        wm, uv_sculpt_brush_poll,
+		        brush_drawcursor_uvsculpt, NULL);
 	}
 	else {
 		if (settings->uvsculpt) {
@@ -257,12 +259,12 @@ void ED_space_image_uv_sculpt_update(Main *bmain, wmWindowManager *wm, Scene *sc
 	}
 }
 
-int uv_sculpt_poll(bContext *C)
+bool uv_sculpt_poll(bContext *C)
 {
 	return uv_sculpt_brush_poll_do(C, true);
 }
 
-int uv_sculpt_keymap_poll(bContext *C)
+bool uv_sculpt_keymap_poll(bContext *C)
 {
 	return uv_sculpt_brush_poll_do(C, false);
 }

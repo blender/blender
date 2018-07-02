@@ -44,6 +44,7 @@
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -103,20 +104,20 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *m
 
 	manipulator_color_get(mpr, mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT, color);
 
-	glLineWidth(mpr->line_width);
+	GPU_line_width(mpr->line_width);
 
 	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	arrow2d_draw_geom(mpr, matrix_final, color);
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	if (mpr->interaction_data) {
 		ManipulatorInteraction *inter = mpr->interaction_data;
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		arrow2d_draw_geom(mpr, inter->init_matrix_final, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 }
 

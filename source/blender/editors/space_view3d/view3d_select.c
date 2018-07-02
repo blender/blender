@@ -265,7 +265,7 @@ static void view3d_userdata_lassoselect_init(
 	r_data->is_changed = false;
 }
 
-static int view3d_selectable_data(bContext *C)
+static bool view3d_selectable_data(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
@@ -1326,7 +1326,7 @@ static Base *mouse_select_eval_buffer(
 		while (base) {
 			/* skip objects with select restriction, to prevent prematurely ending this loop
 			 * with an un-selectable choice */
-			if ((base->flag & BASE_SELECTABLED) == 0) {
+			if ((base->flag & BASE_SELECTABLE) == 0) {
 				base = base->next;
 				if (base == NULL) base = FIRSTBASE(view_layer);
 				if (base == startbase) break;
@@ -2518,8 +2518,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Activate/Select";
-	ot->description = "Activate/select item(s)";
+	ot->name = "Select";
+	ot->description = "Select and activate item(s)";
 	ot->idname = "VIEW3D_OT_select";
 
 	/* api callbacks */

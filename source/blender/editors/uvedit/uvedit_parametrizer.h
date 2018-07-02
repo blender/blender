@@ -120,4 +120,3 @@ void param_flush_restore(ParamHandle *handle);
 #endif
 
 #endif /*__UVEDIT_PARAMETRIZER_H__*/
-

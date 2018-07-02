@@ -54,4 +54,3 @@ void AlphaOverMixedOperation::executePixelSampled(float output[4], float x, floa
 		output[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
 	}
 }
-

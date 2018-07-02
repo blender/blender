@@ -70,4 +70,3 @@
 #define IMB_DPI_DEFAULT 72.0f
 
 #endif	/* __IMBUF_H__ */
-

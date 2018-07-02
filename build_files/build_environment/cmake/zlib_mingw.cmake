@@ -37,4 +37,3 @@ endif()
 if(MSVC)
 	set_target_properties(external_zlib_mingw PROPERTIES FOLDER Mingw)
 endif()
-

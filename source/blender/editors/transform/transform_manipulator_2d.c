@@ -223,7 +223,7 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 
 		/* assign operator */
 		PointerRNA *ptr = WM_manipulator_operator_set(axis, 0, ot_translate, NULL);
-		int constraint[3] = {0};
+		bool constraint[3] = {0};
 		constraint[(axis_idx + 1) % 2] = 1;
 		if (RNA_struct_find_property(ptr, "constraint_axis"))
 			RNA_boolean_set_array(ptr, "constraint_axis", constraint);
@@ -240,8 +240,8 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 		ptr = WM_manipulator_operator_set(man->cage, 0, ot_translate, NULL);
 		RNA_boolean_set(ptr, "release_confirm", 1);
 
-		int constraint_x[3] = {1, 0, 0};
-		int constraint_y[3] = {0, 1, 0};
+		bool constraint_x[3] = {1, 0, 0};
+		bool constraint_y[3] = {0, 1, 0};
 
 		ptr = WM_manipulator_operator_set(man->cage, ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X, ot_resize, NULL);
 		PropertyRNA *prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");

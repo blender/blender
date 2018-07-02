@@ -81,7 +81,7 @@ public:
 		bool ok = BPY_execute_filepath(_context, fn, reports);
 #else
 		bool ok;
-		Text *text = BKE_text_load(&_freestyle_bmain, fn, G.main->name);
+		Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->name);
 		if (text) {
 			ok = BPY_execute_text(_context, text, reports, false);
 			BKE_libblock_delete(&_freestyle_bmain, text);

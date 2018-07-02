@@ -36,5 +36,3 @@ public:
 };
 
 #endif
-
-

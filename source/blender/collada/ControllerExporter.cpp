@@ -199,16 +199,17 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
+	if (((Mesh *)ob->data)->dvert == NULL) {
+		return;
+	}
+
 	me = bc_get_mesh_copy(
-				m_bmain,
 				depsgraph,
 				scene,
 				ob,
 				this->export_settings->export_mesh_type,
 				this->export_settings->apply_modifiers,
 				this->export_settings->triangulate);
-
-	if (!me->dvert) return;
 
 	std::string controller_name = id_name(ob_arm);
 	std::string controller_id = get_controller_id(ob_arm, ob);
@@ -293,7 +294,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
 	add_vertex_weights_element(weights_source_id, joints_source_id, vcounts, joints);
 
-	BKE_libblock_free_us(m_bmain, me);
+	BKE_id_free(NULL, me);
 
 	closeSkin();
 	closeController();
@@ -305,7 +306,6 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	Mesh *me;
 
 	me = bc_get_mesh_copy(
-				m_bmain,
 				depsgraph,
 				scene,
 				ob,
@@ -332,8 +332,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, morph_weights_id)));
 	targets.add();
 
-	BKE_libblock_free_us(m_bmain, me);
-
+	BKE_id_free(NULL, me);
 
 	//support for animations
 	//can also try the base element and param alternative

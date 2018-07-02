@@ -349,9 +349,7 @@ bool modifier_supportsCage(struct Scene *scene, ModifierData *md)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	md->scene = scene;
-
-	return ((!mti->isDisabled || !mti->isDisabled(md, 0)) &&
+	return ((!mti->isDisabled || !mti->isDisabled(scene, md, 0)) &&
 	        (mti->flags & eModifierTypeFlag_SupportsEditmode) &&
 	        modifier_supportsMapping(md));
 }
@@ -360,11 +358,9 @@ bool modifier_couldBeCage(struct Scene *scene, ModifierData *md)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	md->scene = scene;
-
 	return ((md->mode & eModifierMode_Realtime) &&
 	        (md->mode & eModifierMode_Editmode) &&
-	        (!mti->isDisabled || !mti->isDisabled(md, 0)) &&
+	        (!mti->isDisabled || !mti->isDisabled(scene, md, 0)) &&
 	        modifier_supportsMapping(md));
 }
 
@@ -421,9 +417,7 @@ int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *r_lastPossibleC
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		bool supports_mapping;
 
-		md->scene = scene;
-
-		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;
+		if (mti->isDisabled && mti->isDisabled(scene, md, 0)) continue;
 		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
 		if (md->mode & eModifierMode_DisableTemporary) continue;
 
@@ -479,14 +473,12 @@ bool modifiers_isParticleEnabled(Object *ob)
  *
  * \param scene Current scene, may be NULL, in which case isDisabled callback of the modifier is never called.
  */
-bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
+bool modifier_isEnabled(const struct Scene *scene, ModifierData *md, int required_mode)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	md->scene = scene;
-
 	if ((md->mode & required_mode) != required_mode) return false;
-	if (scene != NULL && mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return false;
+	if (scene != NULL && mti->isDisabled && mti->isDisabled(scene, md, required_mode == eModifierMode_Render)) return false;
 	if (md->mode & eModifierMode_DisableTemporary) return false;
 	if ((required_mode & eModifierMode_Editmode) && !(mti->flags & eModifierTypeFlag_SupportsEditmode)) return false;
 

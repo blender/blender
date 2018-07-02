@@ -67,7 +67,7 @@
 /* ********************************************** */
 /* Polling callbacks */
 
-static int gpencil_select_poll(bContext *C)
+static bool gpencil_select_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 

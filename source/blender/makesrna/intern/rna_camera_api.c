@@ -85,4 +85,3 @@ void RNA_api_camera(StructRNA *srna)
 }
 
 #endif
-

@@ -83,6 +83,12 @@ def generate_from_brushes_ex(
 class _defs_view3d_generic:
     @ToolDef.from_fn
     def cursor():
+        def draw_settings(context, layout, tool):
+            wm = context.window_manager
+            props = tool.operator_properties("view3d.cursor3d")
+            layout.prop(props, "use_depth")
+            layout.prop(props, "orientation")
+
         return dict(
             text="Cursor",
             icon="ops.generic.cursor",
@@ -93,6 +99,7 @@ class _defs_view3d_generic:
                  dict(type='EVT_TWEAK_A', value='ANY'),
                  ),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -124,36 +131,39 @@ class _defs_transform:
     def translate():
         return dict(
             text="Move",
-            cursor='SCROLL_XY',
+            # cursor='SCROLL_XY',
             icon="ops.transform.translate",
             widget="TRANSFORM_WGT_manipulator",
-            keymap=(
-                ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            # TODO, implement as optional fallback manipulator
+            # keymap=(
+            #     ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            # ),
         )
 
     @ToolDef.from_fn
     def rotate():
         return dict(
             text="Rotate",
-            cursor='SCROLL_XY',
+            # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
             widget="TRANSFORM_WGT_manipulator",
-            keymap=(
-                ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            # TODO, implement as optional fallback manipulator
+            # keymap=(
+            #     ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            # ),
         )
 
     @ToolDef.from_fn
     def scale():
         return dict(
             text="Scale",
-            cursor='SCROLL_XY',
+            # cursor='SCROLL_XY',
             icon="ops.transform.resize",
             widget="TRANSFORM_WGT_manipulator",
-            keymap=(
-                ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            # TODO, implement as optional fallback manipulator
+            # keymap=(
+            #     ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            # ),
         )
 
     @ToolDef.from_fn
@@ -166,11 +176,16 @@ class _defs_transform:
 
     @ToolDef.from_fn
     def transform():
+        def draw_settings(context, layout, tool):
+            tool_settings = context.tool_settings
+            layout.prop(tool_settings, "use_manipulator_mode")
+
         return dict(
             text="Transform",
             icon="ops.transform.transform",
             widget="TRANSFORM_WGT_manipulator",
             # No keymap default action, only for manipulators!
+            draw_settings=draw_settings,
         )
 
 

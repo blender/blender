@@ -59,7 +59,3 @@ for d in defs.split('\n'):
     py_val = w[0]
 
     print '\tPyModule_AddObject(mod, "%s", PyLong_FromSize_t(%s));' % (val, py_val)
-
-
-
-

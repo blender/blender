@@ -456,4 +456,3 @@ float ColorBlock::volume() const
 	return bounds.volume();
 }
 */
-

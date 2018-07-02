@@ -58,4 +58,3 @@ CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, const char *name);
 CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t datasize);
 
 #endif /* __BKE_CUSTOMDATA_FILE_H__ */
-

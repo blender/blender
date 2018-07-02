@@ -138,4 +138,3 @@ int BLI_getInstallationDir(char *str);
 #endif
 
 #endif /* __BLI_WINSTUFF_H__ */
-

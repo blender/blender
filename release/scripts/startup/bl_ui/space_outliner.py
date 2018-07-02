@@ -35,7 +35,17 @@ class OUTLINER_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        layout.prop(space, "display_mode", text="")
+        layout.prop(space, "display_mode", icon_only=True)
+
+        if display_mode == 'DATA_API':
+            OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
+
+        layout.separator_spacer()
+
+        row = layout.row(align=True)
+        row.prop(space, "filter_text", icon='VIEWZOOM', text="")
+
+        layout.separator_spacer()
 
         row = layout.row(align=True)
         if display_mode in {'VIEW_LAYER'}:
@@ -50,9 +60,13 @@ class OUTLINER_HT_header(Header):
             sub.active = space.use_filter_id_type
             sub.prop(space, "filter_id_type", text="", icon_only=True)
 
-        OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
+        if display_mode == 'VIEW_LAYER':
+            layout.operator("outliner.collection_new", text="", icon='GROUP').nested = True
 
-        if space.display_mode == 'DATA_API':
+        elif display_mode == 'ORPHAN_DATA':
+            layout.operator("outliner.orphans_purge", text="Purge")
+
+        elif space.display_mode == 'DATA_API':
             layout.separator()
 
             row = layout.row(align=True)
@@ -70,13 +84,6 @@ class OUTLINER_HT_header(Header):
                 row = layout.row()
                 row.label(text="No Keying Set Active")
 
-        row = layout.row(align=True)
-        row.prop(space, "use_filter_search", text="")
-        if space.use_filter_search:
-            row.prop(space, "filter_text", text="")
-            row.prop(space, "use_filter_complete", text="")
-            row.prop(space, "use_filter_case_sensitive", text="")
-
 
 class OUTLINER_MT_editor_menus(Menu):
     bl_idname = "OUTLINER_MT_editor_menus"
@@ -89,32 +96,23 @@ class OUTLINER_MT_editor_menus(Menu):
     def draw_menus(layout, context):
         space = context.space_data
 
-        layout.menu("OUTLINER_MT_view")
-
         if space.display_mode == 'DATA_API':
             layout.menu("OUTLINER_MT_edit_datablocks")
 
-        elif space.display_mode == 'ORPHAN_DATA':
-            layout.menu("OUTLINER_MT_edit_orphan_data")
 
-
-class OUTLINER_MT_view(Menu):
-    bl_label = "View"
+class OUTLINER_MT_context(Menu):
+    bl_label = "Outliner"
 
     def draw(self, context):
         layout = self.layout
 
-        space = context.space_data
-
-        if space.display_mode != 'DATA_API':
-            layout.prop(space, "use_sort_alpha")
-            layout.prop(space, "show_restrict_columns")
-            layout.separator()
-            layout.operator("outliner.show_active")
-
         layout.operator("outliner.show_one_level", text="Show One Level")
         layout.operator("outliner.show_one_level", text="Hide One Level").open = False
         layout.operator("outliner.show_hierarchy")
+
+        layout.separator()
+
+        layout.operator("outliner.show_active")
 
         layout.separator()
 
@@ -135,13 +133,6 @@ class OUTLINER_MT_edit_datablocks(Menu):
         layout.operator("outliner.drivers_add_selected")
         layout.operator("outliner.drivers_delete_selected")
 
-
-class OUTLINER_MT_edit_orphan_data(Menu):
-    bl_label = "Edit"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("outliner.orphans_purge")
 
 
 class OUTLINER_MT_collection_view_layer(Menu):
@@ -188,6 +179,10 @@ class OUTLINER_MT_collection(Menu):
         layout.separator()
         layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
 
+        layout.separator()
+
+        OUTLINER_MT_context.draw(self, context)
+
 
 class OUTLINER_MT_collection_new(Menu):
     bl_label = "Collection"
@@ -196,6 +191,10 @@ class OUTLINER_MT_collection_new(Menu):
         layout = self.layout
 
         layout.operator("outliner.collection_new", text="New").nested = False
+
+        layout.separator()
+
+        OUTLINER_MT_context.draw(self, context)
 
 
 class OUTLINER_MT_object(Menu):
@@ -234,6 +233,10 @@ class OUTLINER_MT_object(Menu):
 
         layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
 
+        layout.separator()
+
+        OUTLINER_MT_context.draw(self, context)
+
 
 class OUTLINER_PT_filter(Panel):
     bl_space_type = 'OUTLINER'
@@ -246,54 +249,57 @@ class OUTLINER_PT_filter(Panel):
         space = context.space_data
         display_mode = space.display_mode
 
-        layout.prop(space, "use_filter_collection", text="Collections")
+        layout.prop(space, "use_filter_complete", text="Exact Match Search")
+        layout.prop(space, "use_filter_case_sensitive", text="Case Sensitive Search")
 
         layout.separator()
 
-        col = layout.column()
-        col.prop(space, "use_filter_object", text="Objects")
-        active = space.use_filter_object
+        if space.display_mode != 'DATA_API':
+            layout.prop(space, "use_sort_alpha")
+            layout.prop(space, "show_restrict_columns")
+            layout.separator()
+
+        col = layout.column(align=True)
+
+        col.prop(space, "use_filter_collection", text="Collections", icon="GROUP")
+        col.prop(space, "use_filter_object", text="Objects", icon="OBJECT_DATAMODE")
 
         sub = col.column(align=True)
-        sub.active = active
-        sub.prop(space, "filter_state", text="")
-        sub.prop(space, "use_filter_object_content", text="Object Contents")
-        sub.prop(space, "use_filter_children", text="Object Children")
-
-        layout.separator()
-
-        col = layout.column_flow(align=True)
-        col.active = active
+        sub.active = space.use_filter_object
 
         if bpy.data.meshes:
-            col.prop(space, "use_filter_object_mesh", text="Meshes")
+            sub.prop(space, "use_filter_object_mesh", text="Meshes", icon="MESH_DATA")
         if bpy.data.armatures:
-            col.prop(space, "use_filter_object_armature", text="Armatures")
+            sub.prop(space, "use_filter_object_armature", text="Armatures", icon="ARMATURE_DATA")
         if bpy.data.lamps:
-            col.prop(space, "use_filter_object_lamp", text="Lamps")
+            sub.prop(space, "use_filter_object_lamp", text="Lamps", icon="LAMP_DATA")
         if bpy.data.cameras:
-            col.prop(space, "use_filter_object_camera", text="Cameras")
+            sub.prop(space, "use_filter_object_camera", text="Cameras", icon="CAMERA_DATA")
 
-        col.prop(space, "use_filter_object_empty", text="Empties")
+        sub.prop(space, "use_filter_object_empty", text="Empties", icon="EMPTY_DATA")
 
         if bpy.data.curves or \
            bpy.data.metaballs or \
            bpy.data.lightprobes or \
            bpy.data.lattices or \
            bpy.data.fonts or bpy.data.speakers:
-            col.prop(space, "use_filter_object_others", text="Others")
+            sub.prop(space, "use_filter_object_others", text="Others")
+
+        subsub = sub.column(align=False)
+        subsub.prop(space, "filter_state", text="")
+        subsub.prop(space, "use_filter_object_content", text="Object Contents")
+        subsub.prop(space, "use_filter_children", text="Object Children")
 
 
 classes = (
     OUTLINER_HT_header,
     OUTLINER_MT_editor_menus,
-    OUTLINER_MT_view,
     OUTLINER_MT_edit_datablocks,
-    OUTLINER_MT_edit_orphan_data,
     OUTLINER_MT_collection,
     OUTLINER_MT_collection_new,
     OUTLINER_MT_collection_view_layer,
     OUTLINER_MT_object,
+    OUTLINER_MT_context,
     OUTLINER_PT_filter,
 )
 

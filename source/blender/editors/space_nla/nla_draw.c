@@ -58,6 +58,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_draw.h"
+#include "GPU_state.h"
 
 #include "WM_types.h"
 
@@ -181,10 +182,10 @@ static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymax
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
 	}
@@ -212,7 +213,7 @@ static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymax
 /* Markers inside a NLA-Strip */
 static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc)
 {
-	glLineWidth(2.0f);
+	GPU_line_width(2.0f);
 
 	if (strip->type == NLASTRIP_TYPE_CLIP) {
 		/* try not to be too conspicuous, while being visible enough when transforming */
@@ -232,7 +233,7 @@ static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc)
 		}
 	}
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 }
 
 /* Strips (Proper) ---------------------- */
@@ -307,8 +308,8 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 	immUniformColor3f(0.7f, 0.7f, 0.7f);
 
 	/* draw with AA'd line */
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
+	GPU_line_smooth(true);
+	GPU_blend(true);
 
 	/* influence -------------------------- */
 	if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
@@ -357,8 +358,8 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 	}
 
 	/* turn off AA'd lines */
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
+	GPU_line_smooth(false);
+	GPU_blend(false);
 }
 
 /* helper call to setup dashed-lines for strip outlines */
@@ -369,10 +370,10 @@ static uint nla_draw_use_dashed_outlines(float color[4], bool muted)
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1i("colors_len", 0);  /* Simple dashes. */
 	immUniformColor3fv(color);
 
 	/* line style: dotted for muted */
@@ -380,12 +381,12 @@ static uint nla_draw_use_dashed_outlines(float color[4], bool muted)
 		/* dotted - and slightly thicker for readability of the dashes */
 		immUniform1f("dash_width", 5.0f);
 		immUniform1f("dash_factor", 0.4f);
-		glLineWidth(1.5f);
+		GPU_line_width(1.5f);
 	}
 	else {
 		/* solid line */
 		immUniform1f("dash_factor", 2.0f);
-		glLineWidth(1.0f);
+		GPU_line_width(1.0f);
 	}
 
 	return shdr_pos;
@@ -410,8 +411,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	 */
 	if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (non_solo == 0)) {
 		/* enable transparency... */
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
 
 		switch (strip->extendmode) {
 			/* since this does both sides, only do the 'before' side, and leave the rest to the next case */
@@ -442,7 +443,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 				break;
 		}
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 
@@ -462,9 +463,9 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		/* strip is in disabled track - make less visible */
 		immUniformColor3fvAlpha(color, 0.1f);
 
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		immRectf(shdr_pos, strip->start, yminc, strip->end, ymaxc);
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 
@@ -711,8 +712,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
 					 * and a second darker rect within which we draw keyframe indicator dots if there's data
 					 */
-					glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-					glEnable(GL_BLEND);
+					GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+					GPU_blend(true);
 
 					/* get colors for drawing */
 					float color[4];
@@ -726,7 +727,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 
 					/* draw 'embossed' lines above and below the strip for effect */
 					/* white base-lines */
-					glLineWidth(2.0f);
+					GPU_line_width(2.0f);
 					immUniformColor4f(1.0f, 1.0f, 1.0f, 0.3f);
 					immBegin(GWN_PRIM_LINES, 4);
 					immVertex2f(pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP);
@@ -736,7 +737,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					immEnd();
 
 					/* black top-lines */
-					glLineWidth(1.0f);
+					GPU_line_width(1.0f);
 					immUniformColor3f(0.0f, 0.0f, 0.0f);
 					immBegin(GWN_PRIM_LINES, 4);
 					immVertex2f(pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP);
@@ -752,7 +753,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* draw keyframes in the action */
 					nla_action_draw_keyframes(adt, ale->data, y, yminc + NLACHANNEL_SKIP, ymaxc - NLACHANNEL_SKIP);
 
-					glDisable(GL_BLEND);
+					GPU_blend(false);
 					break;
 				}
 			}
@@ -828,8 +829,8 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 		y = (float)(-NLACHANNEL_HEIGHT(snla));
 
 		/* set blending again, as may not be set in previous step */
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+		GPU_blend(true);
 
 		/* loop through channels, and set up drawing depending on their type  */
 		for (ale = anim_data.first; ale; ale = ale->next) {
@@ -852,7 +853,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 		UI_block_end(C, block);
 		UI_block_draw(C, block);
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 
 	/* free temporary channels */

@@ -1236,6 +1236,9 @@ typedef struct ToolSettings {
 	/* Auto-IK */
 	short autoik_chainlen;  /* runtime only */
 
+	/* SCE_MPR_LOC/SCAL */
+	char manipulator_flag;
+
 	/* Grease Pencil */
 	char gpencil_flags;		/* flags/options for how the tool works */
 	char gpencil_src;		/* for main 3D view Grease Pencil, where data comes from */
@@ -1245,7 +1248,7 @@ typedef struct ToolSettings {
 	char gpencil_seq_align; /*                          : Sequencer Preview */
 	char gpencil_ima_align; /*                          : Image Editor */
 
-	char _pad3[4];
+	char _pad3[3];
 
 	/* Grease Pencil Sculpt */
 	struct GP_BrushEdit_Settings gp_sculpt;
@@ -1724,22 +1727,22 @@ extern const char *RE_engine_id_CYCLES;
 /* deprecate this! */
 #define TESTBASE(base)  (                                                     \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define TESTBASELIB(base)  (                                                  \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define TESTBASELIB_BGMODE(base)  (                                           \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define BASE_EDITABLE_BGMODE(base)  (                                         \
 	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLE) != 0))
 #define BASE_SELECTABLE(base)                                                 \
-	(((base)->flag & BASE_SELECTABLED) != 0)
+	(((base)->flag & BASE_SELECTABLE) != 0)
 #define BASE_VISIBLE(base)  (                                                 \
-	((base)->flag & BASE_VISIBLED) != 0)
+	((base)->flag & BASE_VISIBLE) != 0)
 
 #define FIRSTBASE(_view_layer)  ((_view_layer)->object_bases.first)
 #define LASTBASE(_view_layer)   ((_view_layer)->object_bases.last)
@@ -2010,6 +2013,11 @@ typedef enum eImagePaintMode {
 #define EDGE_MODE_TAG_CREASE			3
 #define EDGE_MODE_TAG_BEVEL				4
 #define EDGE_MODE_TAG_FREESTYLE			5
+
+/* ToolSettings.manipulator_flag */
+#define SCE_MANIP_TRANSLATE	1
+#define SCE_MANIP_ROTATE		2
+#define SCE_MANIP_SCALE		4
 
 /* ToolSettings.gpencil_flags */
 typedef enum eGPencil_Flags {

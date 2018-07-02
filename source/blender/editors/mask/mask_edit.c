@@ -57,7 +57,7 @@
 
 /********************** generic poll functions *********************/
 
-int ED_maskedit_poll(bContext *C)
+bool ED_maskedit_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa) {
@@ -73,7 +73,7 @@ int ED_maskedit_poll(bContext *C)
 	return false;
 }
 
-int ED_maskedit_mask_poll(bContext *C)
+bool ED_maskedit_mask_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa) {
@@ -540,6 +540,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	/* geometry */
 	WM_keymap_add_item(keymap, "MASK_OT_add_vertex_slide", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_add_feather_vertex_slide", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+
 	WM_keymap_add_item(keymap, "MASK_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
@@ -594,7 +595,11 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_slide_point", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_slide_spline_curvature", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_handle_type_set", VKEY, KM_PRESS, 0, 0);
+#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "MASK_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
+#else
+	WM_keymap_add_item(keymap, "MASK_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT, 0);
+#endif
 	// WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	/* ... matches curve editmode */
 

@@ -305,7 +305,7 @@ static int datadropper_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int datadropper_poll(bContext *C)
+static bool datadropper_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;

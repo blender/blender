@@ -195,4 +195,3 @@ void wm_manipulatorgrouptype_init(void)
 }
 
 /** \} */
-

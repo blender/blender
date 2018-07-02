@@ -60,6 +60,7 @@
 
 #include "info_intern.h"  /* own include */
 #include "BLO_readfile.h"
+#include "GPU_framebuffer.h"
 
 /* ******************** default callbacks for info space ***************** */
 
@@ -157,7 +158,7 @@ static void info_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 	/* quick way to avoid drawing if not bug enough */
 	if (ar->winy < 16)
@@ -220,8 +221,10 @@ static void info_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "INFO_OT_select_border", BKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "INFO_OT_report_replay", RKEY, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "INFO_OT_report_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "INFO_OT_report_delete", DELKEY, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "INFO_OT_report_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 #ifdef __APPLE__
 	WM_keymap_add_item(keymap, "INFO_OT_report_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
@@ -263,7 +266,7 @@ static void info_header_listener(
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SCREEN:
-			if (ELEM(wmn->data, ND_LAYER, ND_SCREENCAST, ND_ANIMPLAY)) {
+			if (ELEM(wmn->data, ND_LAYER, ND_ANIMPLAY)) {
 				ED_region_tag_redraw(ar);
 			}
 			break;

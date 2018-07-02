@@ -17,4 +17,5 @@ from bpy.app.handlers import persistent
 def load_handler(dummy):
     print("Load Handler:", bpy.data.filepath)
 
+
 bpy.app.handlers.load_post.append(load_handler)

@@ -37,6 +37,7 @@
 #include "GPU_matrix.h"
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -101,11 +102,12 @@ typedef struct IconImage {
 
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
-#define ICON_TYPE_PREVIEW   0
-#define ICON_TYPE_TEXTURE   1
-#define ICON_TYPE_BUFFER    2
-#define ICON_TYPE_VECTOR    3
-#define ICON_TYPE_GEOM      4
+#define ICON_TYPE_PREVIEW        0
+#define ICON_TYPE_TEXTURE        1
+#define ICON_TYPE_MONO_TEXTURE   2
+#define ICON_TYPE_BUFFER         3
+#define ICON_TYPE_VECTOR         4
+#define ICON_TYPE_GEOM           5
 
 typedef struct DrawInfo {
 	int type;
@@ -159,7 +161,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type = type;
 
-	if (type == ICON_TYPE_TEXTURE) {
+	if (ELEM(type, ICON_TYPE_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
 		di->data.texture.x = xofs;
 		di->data.texture.y = yofs;
 		di->data.texture.w = size;
@@ -458,7 +460,7 @@ static void init_internal_icons(void)
 {
 //	bTheme *btheme = UI_GetTheme();
 	ImBuf *b16buf = NULL, *b32buf = NULL;
-	int x, y, icontype;
+	int x, y;
 
 #if 0 // temp disabled
 	if ((btheme != NULL) && btheme->tui.iconfile[0]) {
@@ -492,56 +494,46 @@ static void init_internal_icons(void)
 		IMB_premultiply_alpha(b32buf);
 
 	if (b16buf && b32buf) {
-		/* free existing texture if any */
+		/* Free existing texture if any. */
 		if (icongltex.id) {
 			glDeleteTextures(1, &icongltex.id);
 			icongltex.id = 0;
 		}
 
-#if 0 /* should be a compile-time check (if needed at all) */
-		/* we only use a texture for cards with non-power of two */
-		if (GPU_full_non_power_of_two_support()) {
-#else
-		{
-#endif
-			glGenTextures(1, &icongltex.id);
+		/* Allocate OpenGL texture. */
+		glGenTextures(1, &icongltex.id);
 
-			if (icongltex.id) {
-				int level = 2;
+		if (icongltex.id) {
+			int level = 2;
 
-				icongltex.w = b32buf->x;
-				icongltex.h = b32buf->y;
-				icongltex.invw = 1.0f / b32buf->x;
-				icongltex.invh = 1.0f / b32buf->y;
+			icongltex.w = b32buf->x;
+			icongltex.h = b32buf->y;
+			icongltex.invw = 1.0f / b32buf->x;
+			icongltex.invh = 1.0f / b32buf->y;
 
-				glBindTexture(GL_TEXTURE_2D, icongltex.id);
+			glBindTexture(GL_TEXTURE_2D, icongltex.id);
 
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, b32buf->x, b32buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b32buf->rect);
-				glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, b32buf->x, b32buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b32buf->rect);
+			glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
 
-				while (b16buf->x > 1) {
-					ImBuf *nbuf = IMB_onehalf(b16buf);
-					glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, nbuf->x, nbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nbuf->rect);
-					level++;
-					IMB_freeImBuf(b16buf);
-					b16buf = nbuf;
-				}
-
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-				glBindTexture(GL_TEXTURE_2D, 0);
+			while (b16buf->x > 1) {
+				ImBuf *nbuf = IMB_onehalf(b16buf);
+				glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, nbuf->x, nbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nbuf->rect);
+				level++;
+				IMB_freeImBuf(b16buf);
+				b16buf = nbuf;
 			}
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
 		}
-	}
 
-	if (icongltex.id)
-		icontype = ICON_TYPE_TEXTURE;
-	else
-		icontype = ICON_TYPE_BUFFER;
-
-	if (b32buf) {
+		/* Define icons. */
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
+			/* Row W has monochrome icons. */
+			int icontype = (y == 8) ? ICON_TYPE_MONO_TEXTURE : ICON_TYPE_TEXTURE;
 			for (x = 0; x < ICON_GRID_COLS; x++) {
 				def_internal_icon(b32buf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,
 				                  x * (ICON_GRID_W + ICON_GRID_MARGIN) + ICON_GRID_MARGIN,
@@ -858,7 +850,7 @@ static void ui_studiolight_kill_icon_preview_job(wmWindowManager *wm, int icon_i
 	icon->obj = NULL;
 }
 
-static void ui_studiolight_free_function(StudioLight * sl, void* data)
+static void ui_studiolight_free_function(StudioLight *sl, void *data)
 {
 	wmWindowManager *wm = data;
 
@@ -920,7 +912,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 							di->data.buffer.image = img;
 
 							wmJob *wm_job = WM_jobs_get(wm, CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_STUDIOLIGHT);
-							Icon** tmp = MEM_callocN(sizeof(Icon*), __func__);
+							Icon **tmp = MEM_callocN(sizeof(Icon *), __func__);
 							*tmp = icon;
 							WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
 							WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
@@ -1106,10 +1098,10 @@ static void icon_draw_cache_flush_ex(void)
 		return;
 
 	/* We need to flush widget base first to ensure correct ordering. */
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	UI_widgetbase_draw_cache_flush();
 
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
@@ -1139,12 +1131,12 @@ void UI_icon_draw_cache_end(void)
 	if (g_icon_draw_cache.calls == 0)
 		return;
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	icon_draw_cache_flush_ex();
 
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_BLEND);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	GPU_blend(false);
 }
 
 static void icon_draw_texture_cached(
@@ -1187,7 +1179,7 @@ static void icon_draw_texture(
 	}
 
 	/* We need to flush widget base first to ensure correct ordering. */
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	UI_widgetbase_draw_cache_flush();
 
 	float x1, x2, y1, y2;
@@ -1291,15 +1283,30 @@ static void icon_draw_size(
 		}
 		glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, rgb, desaturate);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
 		/* texture image use premul alpha for correct scaling */
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 		                  di->data.texture.w, di->data.texture.h, alpha, rgb);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
+	else if (di->type== ICON_TYPE_MONO_TEXTURE) {
+		/* icon that matches text color, assumed to be white */
+		float text_color[4];
+		UI_GetThemeColor4fv(TH_TEXT, text_color);
+		if (rgb) {
+			mul_v3_v3(text_color, rgb);
+		}
+		text_color[3] *= alpha;
+
+		GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
+		                  di->data.texture.w, di->data.texture.h, text_color[3], text_color);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	}
+
 	else if (di->type == ICON_TYPE_BUFFER) {
 		/* it is a builtin icon */
 		iimg = di->data.buffer.image;
@@ -1308,9 +1315,9 @@ static void icon_draw_size(
 #endif
 		if (!iimg->rect) return;  /* something has gone wrong! */
 
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb, desaturate);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_PREVIEW) {
 		PreviewImage *pi = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
@@ -1320,10 +1327,10 @@ static void icon_draw_size(
 			if (!pi->rect[size]) return;  /* something has gone wrong! */
 
 			/* preview images use premul alpha ... */
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 			icon_draw_rect(x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, rgb, desaturate);
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		}
 	}
 }
@@ -1647,4 +1654,3 @@ void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspec
 {
 	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, ICON_SIZE_PREVIEW, size, false);
 }
-

@@ -91,12 +91,12 @@ static void freeData(ModifierData *md)
 	}
 }
 
-static bool isDisabled(ModifierData *md, int useRenderParams)
+static bool isDisabled(const Scene *scene, ModifierData *md, int useRenderParams)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	int levels = (useRenderParams) ? smd->renderLevels : smd->levels;
 
-	return get_render_subsurf_level(&md->scene->r, levels, useRenderParams != 0) == 0;
+	return get_render_subsurf_level(&scene->r, levels, useRenderParams != 0) == 0;
 }
 
 static DerivedMesh *applyModifier(
@@ -104,6 +104,7 @@ static DerivedMesh *applyModifier(
         DerivedMesh *derivedData)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	SubsurfFlags subsurf_flags = 0;
 	DerivedMesh *result;
 	const bool useRenderParams = (ctx->flag & MOD_APPLY_RENDER) != 0;
@@ -146,7 +147,7 @@ static DerivedMesh *applyModifier(
 	}
 #endif
 
-	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, subsurf_flags);
+	result = subsurf_make_derived_from_derived(derivedData, smd, scene, NULL, subsurf_flags);
 	result->cd_flag = derivedData->cd_flag;
 
 	{
@@ -168,6 +169,7 @@ static DerivedMesh *applyModifierEM(
         DerivedMesh *derivedData)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	DerivedMesh *result;
 	/* 'orco' using editmode flags would cause cache to be used twice in editbmesh_calc_modifiers */
 	SubsurfFlags ss_flags = (ctx->flag & MOD_APPLY_ORCO) ? 0 : (SUBSURF_FOR_EDIT_MODE | SUBSURF_IN_EDIT_MODE);
@@ -178,7 +180,7 @@ static DerivedMesh *applyModifierEM(
 	}
 #endif
 
-	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, ss_flags);
+	result = subsurf_make_derived_from_derived(derivedData, smd, scene, NULL, ss_flags);
 
 	return result;
 }
@@ -234,4 +236,3 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
 };
-

@@ -95,7 +95,7 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 		return NULL;
 	}
 
-	Main *bmain_src = G.main;
+	Main *bmain_src = G_MAIN;
 	int write_flags = 0;
 
 	if (use_relative_remap) {

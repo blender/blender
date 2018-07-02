@@ -807,6 +807,10 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 						}
 					}
 				}
+
+				for (ParticleDupliWeight *dw = psett->dupliweights.first; dw; dw = dw->next) {
+					CALLBACK_INVOKE(dw->ob, IDWALK_CB_NOP);
+				}
 				break;
 			}
 

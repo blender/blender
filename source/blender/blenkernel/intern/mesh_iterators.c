@@ -33,6 +33,10 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_iterators.h"
 
+#include "BLI_bitmap.h"
+#include "BLI_math.h"
+
+#include "MEM_guardedalloc.h"
 
 /* Copied from cdDM_foreachMappedVert */
 void BKE_mesh_foreach_mapped_vert(
@@ -151,4 +155,37 @@ void BKE_mesh_foreach_mapped_face_center(
 		func(userData, orig, cent, no);
 	}
 
+}
+
+
+/* Helpers based on above foreach loopers> */
+
+typedef struct MappedVCosData {
+	float (*vertexcos)[3];
+	BLI_bitmap *vertex_visit;
+} MappedVCosData;
+
+static void get_vertexcos__mapFunc(
+        void *user_data, int index, const float co[3],
+        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	MappedVCosData *mapped_vcos_data = (MappedVCosData *)user_data;
+
+	if (BLI_BITMAP_TEST(mapped_vcos_data->vertex_visit, index) == 0) {
+		/* We need coord from prototype vertex, not from copies,
+		 * we assume they stored in the beginning of vertex array stored in evaluated mesh
+		 * (mirror modifier for eg does this). */
+		copy_v3_v3(mapped_vcos_data->vertexcos[index], co);
+		BLI_BITMAP_ENABLE(mapped_vcos_data->vertex_visit, index);
+	}
+}
+
+void BKE_mesh_foreach_mapped_vert_coords_get(Mesh *me_eval, float (*r_cos)[3], const int totcos)
+{
+	MappedVCosData user_data;
+	memset(r_cos, 0, sizeof(*r_cos) * totcos);
+	user_data.vertexcos = r_cos;
+	user_data.vertex_visit = BLI_BITMAP_NEW(totcos, __func__);
+	BKE_mesh_foreach_mapped_vert(me_eval, get_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
+	MEM_freeN(user_data.vertex_visit);
 }

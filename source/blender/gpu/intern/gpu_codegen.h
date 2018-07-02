@@ -200,4 +200,3 @@ void gpu_material_add_node(struct GPUMaterial *material, struct GPUNode *node);
 int GPU_link_changed(struct GPUNodeLink *link);
 
 #endif
-

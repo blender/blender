@@ -46,6 +46,8 @@
 #include "BKE_modifier.h"
 #include "BKE_subsurf.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_modifiertypes.h"
 
 static void initData(ModifierData *md)
@@ -63,6 +65,7 @@ static DerivedMesh *applyModifier(
         DerivedMesh *dm)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	DerivedMesh *result;
 	Mesh *me = (Mesh *)ctx->object->data;
 	const bool useRenderParams = (ctx->flag & MOD_APPLY_RENDER) != 0;
@@ -86,7 +89,7 @@ static DerivedMesh *applyModifier(
 	if (ignore_simplify)
 		flags |= MULTIRES_IGNORE_SIMPLIFY;
 
-	result = multires_make_derived_from_derived(dm, mmd, ctx->object, flags);
+	result = multires_make_derived_from_derived(dm, mmd, scene, ctx->object, flags);
 
 	if (result == dm)
 		return dm;

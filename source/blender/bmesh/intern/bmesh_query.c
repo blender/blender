@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_queries.c
+/** \file blender/bmesh/intern/bmesh_query.c
  *  \ingroup bmesh
  *
  * This file contains functions for answering common

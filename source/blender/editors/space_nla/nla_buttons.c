@@ -184,31 +184,31 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 }
 
 #if 0
-static int nla_panel_poll(const bContext *C, PanelType *pt)
+static bool nla_panel_poll(const bContext *C, PanelType *pt)
 {
 	return nla_panel_context(C, NULL, NULL);
 }
 #endif
 
-static int nla_animdata_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool nla_animdata_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	PointerRNA ptr;
 	return (nla_panel_context(C, &ptr, NULL, NULL) && (ptr.data != NULL));
 }
 
-static int nla_track_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool nla_track_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	PointerRNA ptr;
 	return (nla_panel_context(C, NULL, &ptr, NULL) && (ptr.data != NULL));
 }
 
-static int nla_strip_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool nla_strip_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	PointerRNA ptr;
 	return (nla_panel_context(C, NULL, NULL, &ptr) && (ptr.data != NULL));
 }
 
-static int nla_strip_actclip_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool nla_strip_actclip_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	PointerRNA ptr;
 	NlaStrip *strip;
@@ -222,7 +222,7 @@ static int nla_strip_actclip_panel_poll(const bContext *C, PanelType *UNUSED(pt)
 	return (strip->type == NLASTRIP_TYPE_CLIP);
 }
 
-static int nla_strip_eval_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool nla_strip_eval_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	PointerRNA ptr;
 	NlaStrip *strip;

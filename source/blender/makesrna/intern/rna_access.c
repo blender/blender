@@ -1390,7 +1390,7 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 	return &RNA_UnknownType;
 }
 
-int RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value)
+bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value)
 {
 	prop = rna_ensure_property(prop);
 
@@ -2238,17 +2238,17 @@ void RNA_property_update_cache_free(void)
 
 /* Property Data */
 
-int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
+bool RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
-	int value;
+	bool value;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr)))
-		value = IDP_Int(idprop);
+		value = IDP_Int(idprop) != 0;
 	else if (bprop->get)
 		value = bprop->get(ptr);
 	else if (bprop->get_ex)
@@ -2261,7 +2261,7 @@ int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 	return value;
 }
 
-void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
+void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
@@ -2271,10 +2271,10 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	BLI_assert(ELEM(value, false, true));
 
 	/* just in case other values are passed */
-	if (value) value = 1;
+	BLI_assert(ELEM(value, true, false));
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
-		IDP_Int(idprop) = value;
+		IDP_Int(idprop) = (int)value;
 		rna_idproperty_touch(idprop);
 	}
 	else if (bprop->set) {
@@ -2295,7 +2295,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	}
 }
 
-void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
+void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *values)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
@@ -2304,10 +2304,15 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
-		if (prop->arraydimension == 0)
+		if (prop->arraydimension == 0) {
 			values[0] = RNA_property_boolean_get(ptr, prop);
-		else
-			memcpy(values, IDP_Array(idprop), sizeof(int) * idprop->len);
+		}
+		else {
+			int *values_src = IDP_Array(idprop);
+			for (uint i = 0; i < idprop->len; i++) {
+				values[i] = (bool)values_src[i];
+			}
+		}
 	}
 	else if (prop->arraydimension == 0)
 		values[0] = RNA_property_boolean_get(ptr, prop);
@@ -2316,16 +2321,16 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 	else if (bprop->getarray_ex)
 		bprop->getarray_ex(ptr, prop, values);
 	else if (bprop->defaultarray)
-		memcpy(values, bprop->defaultarray, sizeof(int) * prop->totarraylength);
+		memcpy(values, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(int) * prop->totarraylength);
+		memset(values, 0, sizeof(bool) * prop->totarraylength);
 }
 
-int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
+bool RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-	int tmp[RNA_MAX_ARRAY_LENGTH];
+	bool tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
-	int value;
+	bool value;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != false);
@@ -2337,9 +2342,9 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 		value = tmp[index];
 	}
 	else {
-		int *tmparray;
+		bool *tmparray;
 
-		tmparray = MEM_mallocN(sizeof(int) * len, __func__);
+		tmparray = MEM_mallocN(sizeof(bool) * len, __func__);
 		RNA_property_boolean_get_array(ptr, prop, tmparray);
 		value = tmparray[index];
 		MEM_freeN(tmparray);
@@ -2350,7 +2355,7 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 	return value;
 }
 
-void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values)
+void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bool *values)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
@@ -2359,11 +2364,15 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
-		if (prop->arraydimension == 0)
+		if (prop->arraydimension == 0) {
 			IDP_Int(idprop) = values[0];
-		else
-			memcpy(IDP_Array(idprop), values, sizeof(int) * idprop->len);
-
+		}
+		else {
+			int *values_dst = IDP_Array(idprop);
+			for (uint i = 0; i < idprop->len; i++) {
+				values_dst[i] = (int)values[i];
+			}
+		}
 		rna_idproperty_touch(idprop);
 	}
 	else if (prop->arraydimension == 0)
@@ -2383,14 +2392,17 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 		if (group) {
 			idprop = IDP_New(IDP_ARRAY, &val, prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(IDP_Array(idprop), values, sizeof(int) * idprop->len);
+			int *values_dst = IDP_Array(idprop);
+			for (uint i = 0; i < idprop->len; i++) {
+				values_dst[i] = (int)values[i];
+			}
 		}
 	}
 }
 
-void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value)
+void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, bool value)
 {
-	int tmp[RNA_MAX_ARRAY_LENGTH];
+	bool tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -2405,9 +2417,9 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 		RNA_property_boolean_set_array(ptr, prop, tmp);
 	}
 	else {
-		int *tmparray;
+		bool *tmparray;
 
-		tmparray = MEM_mallocN(sizeof(int) * len, __func__);
+		tmparray = MEM_mallocN(sizeof(bool) * len, __func__);
 		RNA_property_boolean_get_array(ptr, prop, tmparray);
 		tmparray[index] = value;
 		RNA_property_boolean_set_array(ptr, prop, tmparray);
@@ -2415,7 +2427,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 	}
 }
 
-int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+bool RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 
@@ -2426,7 +2438,7 @@ int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 	return bprop->defaultvalue;
 }
 
-void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
+void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, bool *values)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 
@@ -2436,14 +2448,14 @@ void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA
 	if (prop->arraydimension == 0)
 		values[0] = bprop->defaultvalue;
 	else if (bprop->defaultarray)
-		memcpy(values, bprop->defaultarray, sizeof(int) * prop->totarraylength);
+		memcpy(values, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(int) * prop->totarraylength);
+		memset(values, 0, sizeof(bool) * prop->totarraylength);
 }
 
-int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index)
+bool RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-	int tmp[RNA_MAX_ARRAY_LENGTH];
+	bool tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -2456,9 +2468,9 @@ int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 		return tmp[index];
 	}
 	else {
-		int *tmparray, value;
+		bool *tmparray, value;
 
-		tmparray = MEM_mallocN(sizeof(int) * len, __func__);
+		tmparray = MEM_mallocN(sizeof(bool) * len, __func__);
 		RNA_property_boolean_get_default_array(ptr, prop, tmparray);
 		value = tmparray[index];
 		MEM_freeN(tmparray);
@@ -3849,6 +3861,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_CHAR: var = (dtype)((char *)raw.array)[a]; break;       \
 		case PROP_RAW_SHORT: var = (dtype)((short *)raw.array)[a]; break;     \
 		case PROP_RAW_INT: var = (dtype)((int *)raw.array)[a]; break;         \
+		case PROP_RAW_BOOLEAN: var = (dtype)((bool *)raw.array)[a]; break;    \
 		case PROP_RAW_FLOAT: var = (dtype)((float *)raw.array)[a]; break;     \
 		case PROP_RAW_DOUBLE: var = (dtype)((double *)raw.array)[a]; break;   \
 		default: var = (dtype)0;                                              \
@@ -3861,6 +3874,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_CHAR: ((char *)raw.array)[a] = (char)var; break;        \
 		case PROP_RAW_SHORT: ((short *)raw.array)[a] = (short)var; break;     \
 		case PROP_RAW_INT: ((int *)raw.array)[a] = (int)var; break;           \
+		case PROP_RAW_BOOLEAN: ((bool *)raw.array)[a] = (bool)var; break;     \
 		case PROP_RAW_FLOAT: ((float *)raw.array)[a] = (float)var; break;     \
 		case PROP_RAW_DOUBLE: ((double *)raw.array)[a] = (double)var; break;  \
 		default: break;                                                       \
@@ -3873,6 +3887,7 @@ int RNA_raw_type_sizeof(RawPropertyType type)
 		case PROP_RAW_CHAR: return sizeof(char);
 		case PROP_RAW_SHORT: return sizeof(short);
 		case PROP_RAW_INT: return sizeof(int);
+		case PROP_RAW_BOOLEAN: return sizeof(bool);
 		case PROP_RAW_FLOAT: return sizeof(float);
 		case PROP_RAW_DOUBLE: return sizeof(double);
 		default: return 0;
@@ -3974,8 +3989,9 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		int err = 0, j, a = 0;
 		int needconv = 1;
 
-		if (((itemtype == PROP_BOOLEAN || itemtype == PROP_INT) && in.type == PROP_RAW_INT) ||
-		    (itemtype == PROP_FLOAT && in.type == PROP_RAW_FLOAT))
+		if (((itemtype == PROP_INT) && (in.type == PROP_RAW_INT)) ||
+		    ((itemtype == PROP_BOOLEAN) && (in.type == PROP_RAW_BOOLEAN)) ||
+		    ((itemtype == PROP_FLOAT) && (in.type == PROP_RAW_FLOAT)))
 		{
 			/* avoid creating temporary buffer if the data type match */
 			needconv = 0;
@@ -4025,7 +4041,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								case PROP_BOOLEAN:
 								{
 									int b;
-									RAW_GET(int, b, in, a);
+									RAW_GET(bool, b, in, a);
 									RNA_property_boolean_set(&itemptr, iprop, b);
 									break;
 								}
@@ -4052,7 +4068,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								case PROP_BOOLEAN:
 								{
 									int b = RNA_property_boolean_get(&itemptr, iprop);
-									RAW_SET(int, in, a, b);
+									RAW_SET(bool, in, a, b);
 									break;
 								}
 								case PROP_INT:
@@ -4090,7 +4106,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								case PROP_BOOLEAN:
 								{
 									for (j = 0; j < itemlen; j++, a++)
-										RAW_GET(int, ((int *)tmparray)[j], in, a);
+										RAW_GET(bool, ((bool *)tmparray)[j], in, a);
 									RNA_property_boolean_set_array(&itemptr, iprop, tmparray);
 									break;
 								}
@@ -4118,7 +4134,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 								{
 									RNA_property_boolean_get_array(&itemptr, iprop, tmparray);
 									for (j = 0; j < itemlen; j++, a++)
-										RAW_SET(int, in, a, ((int *)tmparray)[j]);
+										RAW_SET(int, in, a, ((bool *)tmparray)[j]);
 									break;
 								}
 								case PROP_INT:
@@ -4145,7 +4161,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 							switch (itemtype) {
 								case PROP_BOOLEAN:
 								{
-									RNA_property_boolean_set_array(&itemptr, iprop, &((int *)in.array)[a]);
+									RNA_property_boolean_set_array(&itemptr, iprop, &((bool *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
@@ -4169,7 +4185,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 							switch (itemtype) {
 								case PROP_BOOLEAN:
 								{
-									RNA_property_boolean_get_array(&itemptr, iprop, &((int *)in.array)[a]);
+									RNA_property_boolean_get_array(&itemptr, iprop, &((bool *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
@@ -4208,7 +4224,7 @@ RawPropertyType RNA_property_raw_type(PropertyRNA *prop)
 		/* this property has no raw access, yet we try to provide a raw type to help building the array */
 		switch (prop->type) {
 			case PROP_BOOLEAN:
-				return PROP_RAW_INT;
+				return PROP_RAW_BOOLEAN;
 			case PROP_INT:
 				return PROP_RAW_INT;
 			case PROP_FLOAT:
@@ -4608,17 +4624,42 @@ static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, Prope
 	return true;
 }
 
+/**
+ * Generic rna path parser.
+ *
+ * \note All parameters besides \a ptr and \a path are optional.
+ *
+ * \param ptr The root of given RNA path.
+ * \param path The RNA path.
+ * \param r_ptr The final RNA data holding the last property in \a path.
+ * \param r_prop The final property of \a r_ptr, from \a path.
+ * \param r_index The final index in the \a r_prop, if defined by \a path.
+ * \param r_item_ptr Only valid for Pointer and Collection, return the actual value of the pointer,
+ *                   or of the collection item. Mutually exclusive with \a eval_pointer option.
+ * \param r_elements A list of \a PropertyElemRNA items
+ *                   (pairs of \a PointerRNA, \a PropertyRNA that represent the whole given \a path).
+ * \param eval_pointer If \a true, and \a path leads to a Pointer property, or an item in a Collection property,
+ *                     \a r_ptr will be set to the value of that property, and \a r_prop will be NULL.
+ *                     Mutually exclusive with \a r_item_ptr.
+ * \return \a true on success, \a false if the path is somehow invalid.
+ */
 static bool rna_path_parse(PointerRNA *ptr, const char *path,
                            PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index,
-                           ListBase *r_elements,
+                           PointerRNA *r_item_ptr, ListBase *r_elements,
                            const bool eval_pointer)
 {
+	BLI_assert(r_item_ptr == NULL || !eval_pointer);
 	PropertyRNA *prop;
-	PointerRNA curptr;
+	PointerRNA curptr, nextptr;
 	PropertyElemRNA *prop_elem = NULL;
 	int index = -1;
 	char fixedbuf[256];
 	int type;
+	const bool do_item_ptr = r_item_ptr != NULL && !eval_pointer;
+
+	if (do_item_ptr) {
+		RNA_POINTER_INVALIDATE(&nextptr);
+	}
 
 	prop = NULL;
 	curptr = *ptr;
@@ -4627,20 +4668,26 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 		return false;
 
 	while (*path) {
+		if (do_item_ptr) {
+			RNA_POINTER_INVALIDATE(&nextptr);
+		}
+
 		int use_id_prop = (*path == '[') ? 1 : 0;
 		char *token;
 		/* custom property lookup ?
 		 * C.object["someprop"]
 		 */
 
-		if (!curptr.data)
+		if (!curptr.data) {
 			return false;
+		}
 
 		/* look up property name in current struct */
 		token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), use_id_prop);
 
-		if (!token)
+		if (!token) {
 			return false;
+		}
 
 		prop = NULL;
 		if (use_id_prop) { /* look up property name in current struct */
@@ -4652,11 +4699,13 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 			prop = RNA_struct_find_property(&curptr, token);
 		}
 
-		if (token != fixedbuf)
+		if (token != fixedbuf) {
 			MEM_freeN(token);
+		}
 
-		if (!prop)
+		if (!prop) {
 			return false;
+		}
 
 		if (r_elements) {
 			prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
@@ -4676,9 +4725,11 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 				/* resolve pointer if further path elements follow
 				 * or explicitly requested
 				 */
-				if (eval_pointer || *path) {
-					PointerRNA nextptr = RNA_property_pointer_get(&curptr, prop);
+				if (do_item_ptr || eval_pointer || *path != '\0') {
+					nextptr = RNA_property_pointer_get(&curptr, prop);
+				}
 
+				if (eval_pointer || *path != '\0') {
 					curptr = nextptr;
 					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
 					index = -1;
@@ -4688,17 +4739,18 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 			case PROP_COLLECTION: {
 				/* Resolve pointer if further path elements follow.
 				 * Note that if path is empty, rna_path_parse_collection_key will do nothing anyway,
-				 * so eval_pointer is of no use here (esp. as in this case, we want to keep found prop,
-				 * erasing it breaks operators - e.g. bpy.types.Operator.bl_rna.foobar errors...).
+				 * so do_item_ptr is of no use in that case.
 				 */
 				if (*path) {
-					PointerRNA nextptr;
-					if (!rna_path_parse_collection_key(&path, &curptr, prop, &nextptr))
+					if (!rna_path_parse_collection_key(&path, &curptr, prop, &nextptr)) {
 						return false;
+					}
 
-					curptr = nextptr;
-					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-					index = -1;
+					if (eval_pointer || *path != '\0') {
+						curptr = nextptr;
+						prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
+						index = -1;
+					}
 				}
 				break;
 			}
@@ -4716,12 +4768,18 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 		}
 	}
 
-	if (r_ptr)
+	if (r_ptr) {
 		*r_ptr = curptr;
-	if (r_prop)
+	}
+	if (r_prop) {
 		*r_prop = prop;
-	if (r_index)
+	}
+	if (r_index) {
 		*r_index = index;
+	}
+	if (r_item_ptr && do_item_ptr) {
+		*r_item_ptr = nextptr;
+	}
 
 	if (prop_elem && (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop || prop_elem->index != index)) {
 		prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
@@ -4742,7 +4800,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
  */
 bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, true))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, NULL, true))
 		return false;
 
 	return r_ptr->data != NULL;
@@ -4756,7 +4814,7 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prop
  */
 bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, true))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, true))
 		return false;
 
 	return r_ptr->data != NULL;
@@ -4771,8 +4829,9 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
  */
 bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, false))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, NULL, false)) {
 		return false;
+	}
 
 	return r_ptr->data != NULL && *r_prop != NULL;
 }
@@ -4787,12 +4846,50 @@ bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_
  */
 bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, false))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, false))
 		return false;
 
 	return r_ptr->data != NULL && *r_prop != NULL;
 }
 
+/**
+ * Resolve the given RNA Path to find both the pointer AND property indicated by fully resolving the path,
+ * and get the value of the Pointer property (or item of the collection).
+ *
+ * This is a convenience method to avoid logic errors and ugly syntax, it combines both \a RNA_path_resolve and
+ * \a RNA_path_resolve_property in a single call.
+ * \note Assumes all pointers provided are valid.
+ * \param r_item_pointer The final Pointer or Collection item value. You must check for its validity before use!
+ * \return True only if both a valid pointer and property are found after resolving the path
+ */
+bool RNA_path_resolve_property_and_item_pointer(
+        PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, PointerRNA *r_item_ptr)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, r_item_ptr, NULL, false)) {
+		return false;
+	}
+
+	return r_ptr->data != NULL && *r_prop != NULL;
+}
+
+/**
+ * Resolve the given RNA Path to find both the pointer AND property (as well as the array index)
+ * indicated by fully resolving the path, and get the value of the Pointer property (or item of the collection).
+ *
+ * This is a convenience method to avoid logic errors and ugly syntax, it combines both \a RNA_path_resolve_full and
+ * \a RNA_path_resolve_property_full in a single call.
+ * \note Assumes all pointers provided are valid.
+ * \param r_item_pointer The final Pointer or Collection item value. You must check for its validity before use!
+ * \return True only if both a valid pointer and property are found after resolving the path
+ */
+bool RNA_path_resolve_property_and_item_pointer_full(
+        PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index, PointerRNA *r_item_ptr)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, r_item_ptr, NULL, false))
+		return false;
+
+	return r_ptr->data != NULL && *r_prop != NULL;
+}
 /**
  * Resolve the given RNA Path into a linked list of PropertyElemRNA's.
  *
@@ -4804,7 +4901,7 @@ bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRN
  */
 bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_elements)
 {
-	return rna_path_parse(ptr, path, NULL, NULL, NULL, r_elements, false);
+	return rna_path_parse(ptr, path, NULL, NULL, NULL, NULL, r_elements, false);
 }
 
 char *RNA_path_append(const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *prop, int intkey, const char *strkey)
@@ -5398,7 +5495,7 @@ char *RNA_path_property_py(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index
 
 /* Quick name based property access */
 
-int RNA_boolean_get(PointerRNA *ptr, const char *name)
+bool RNA_boolean_get(PointerRNA *ptr, const char *name)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -5411,7 +5508,7 @@ int RNA_boolean_get(PointerRNA *ptr, const char *name)
 	}
 }
 
-void RNA_boolean_set(PointerRNA *ptr, const char *name, int value)
+void RNA_boolean_set(PointerRNA *ptr, const char *name, bool value)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -5421,7 +5518,7 @@ void RNA_boolean_set(PointerRNA *ptr, const char *name, int value)
 		printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
 }
 
-void RNA_boolean_get_array(PointerRNA *ptr, const char *name, int *values)
+void RNA_boolean_get_array(PointerRNA *ptr, const char *name, bool *values)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -5431,7 +5528,7 @@ void RNA_boolean_get_array(PointerRNA *ptr, const char *name, int *values)
 		printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
 }
 
-void RNA_boolean_set_array(PointerRNA *ptr, const char *name, const int *values)
+void RNA_boolean_set_array(PointerRNA *ptr, const char *name, const bool *values)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
@@ -6059,8 +6156,8 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 					BLI_dynstr_append(dynstr, bool_as_py_string(RNA_property_boolean_get_index(ptr, prop, index)));
 				}
 				else {
-					int fixedbuf[RNA_MAX_ARRAY_LENGTH];
-					int *buf = ARRAY_SIZE(fixedbuf) >= len ? fixedbuf : MEM_mallocN(sizeof(*buf) * len,  __func__);
+					bool fixedbuf[RNA_MAX_ARRAY_LENGTH];
+					bool *buf = ARRAY_SIZE(fixedbuf) >= len ? fixedbuf : MEM_mallocN(sizeof(*buf) * len,  __func__);
 
 					RNA_property_boolean_get_array(ptr, prop, buf);
 					BLI_dynstr_append(dynstr, "(");
@@ -6681,9 +6778,9 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 			}
 
 			if (len == 0)
-				*((int *)dest) = *((int *)src);
+				*((bool *)dest) = *((bool *)src);
 			else
-				memcpy(dest, src, len * sizeof(int));
+				memcpy(dest, src, len * sizeof(bool));
 
 			break;
 		}
@@ -7031,7 +7128,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 		case PROP_BOOLEAN:
 			if (len) {
 				if (index == -1) {
-					int *tmparray = MEM_callocN(sizeof(int) * len, "reset_defaults - boolean");
+					bool *tmparray = MEM_callocN(sizeof(bool) * len, "reset_defaults - boolean");
 
 					RNA_property_boolean_get_default_array(ptr, prop, tmparray);
 					RNA_property_boolean_set_array(ptr, prop, tmparray);
@@ -7117,11 +7214,13 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 }
 
 static bool rna_property_override_operation_apply(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
+        PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
         IDOverrideStaticPropertyOperation *opop);
 
-bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index)
+bool RNA_property_copy(Main *bmain, PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index)
 {
 	if (!RNA_property_editable(ptr, prop)) {
 		return false;
@@ -7156,7 +7255,12 @@ bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, 
 	    .subitem_reference_index = index,
 	    .subitem_local_index = index
 	};
-	return rna_property_override_operation_apply(ptr, fromptr, NULL, prop_dst, prop_src, NULL, &opop);
+	return rna_property_override_operation_apply(
+	            bmain,
+	            ptr, fromptr, NULL,
+	            prop_dst, prop_src, NULL,
+	            NULL, NULL, NULL,
+	            &opop);
 }
 
 /* use RNA_warning macro which includes __func__ suffix */
@@ -7182,17 +7286,18 @@ void _RNA_warning(const char *format, ...)
 }
 
 static int rna_property_override_diff(
+        Main *bmain,
         PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
         eRNACompareMode mode, IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags);
 
-bool RNA_property_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, eRNACompareMode mode)
+bool RNA_property_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, eRNACompareMode mode)
 {
 	BLI_assert(ELEM(mode, RNA_EQ_STRICT, RNA_EQ_UNSET_MATCH_ANY, RNA_EQ_UNSET_MATCH_NONE));
 
-	return (rna_property_override_diff(ptr_a, ptr_b, prop, NULL, NULL, NULL, mode, NULL, 0, NULL) == 0);
+	return (rna_property_override_diff(bmain, ptr_a, ptr_b, prop, NULL, NULL, NULL, mode, NULL, 0, NULL) == 0);
 }
 
-bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
+bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
 {
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop;
@@ -7211,7 +7316,7 @@ bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mod
 	for (; iter.valid; RNA_property_collection_next(&iter)) {
 		PropertyRNA *prop = iter.ptr.data;
 
-		if (!RNA_property_equals(ptr_a, ptr_b, prop, mode)) {
+		if (!RNA_property_equals(bmain, ptr_a, ptr_b, prop, mode)) {
 			equals = false;
 			break;
 		}
@@ -7234,6 +7339,7 @@ bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mod
  * \note When there is no equality, but we cannot determine an order (greater than/lesser than), we return 1.
  */
 static int rna_property_override_diff(
+        Main *bmain,
         PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b,
         const char *rna_path, eRNACompareMode mode,
         IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags)
@@ -7333,6 +7439,7 @@ static int rna_property_override_diff(
 		diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
 	}
 	const int diff = override_diff(
+	                     bmain,
 	                     ptr_a, ptr_b, prop_a, prop_b, len_a, len_b,
 	                     mode, override, rna_path, diff_flags, &override_changed);
 	if (override_changed && r_report_flags) {
@@ -7345,6 +7452,7 @@ static int rna_property_override_diff(
 /* Modify local data-block to make it ready for override application (only needed for diff operations, where we use
  * the local data-block's data as second operand). */
 static bool rna_property_override_operation_store(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_reference, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_reference, PropertyRNA *prop_storage,
         IDOverrideStaticProperty *op)
@@ -7379,8 +7487,11 @@ static bool rna_property_override_operation_store(
 		}
 
 		if (prop_local->override_store(
-		        ptr_local, ptr_reference, ptr_storage, prop_local, prop_reference, prop_storage,
-		        len_local, len_reference, len_storage, opop))
+		        bmain,
+		        ptr_local, ptr_reference, ptr_storage,
+		        prop_local, prop_reference, prop_storage,
+		        len_local, len_reference, len_storage,
+		        opop))
 		{
 			changed = true;
 		}
@@ -7390,8 +7501,10 @@ static bool rna_property_override_operation_store(
 }
 
 static bool rna_property_override_operation_apply(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
+        PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
         IDOverrideStaticPropertyOperation *opop)
 {
 	int len_local, len_reference, len_storage = 0;
@@ -7460,9 +7573,11 @@ static bool rna_property_override_operation_apply(
 
 	/* get and set the default values as appropriate for the various types */
 	return override_apply(
+	            bmain,
 	            ptr_local, ptr_override, ptr_storage,
 	            prop_local, prop_override, prop_storage,
 	            len_local, len_reference, len_storage,
+	            ptr_item_local, ptr_item_override, ptr_item_storage,
 	            opop);
 }
 
@@ -7476,6 +7591,7 @@ static bool rna_property_override_operation_apply(
  * \return True if _resulting_ \a ptr_local does match \a ptr_reference.
  */
 bool RNA_struct_override_matches(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_reference, const char *root_path,
         IDOverrideStatic *override, const eRNAOverrideMatch flags,
         eRNAOverrideMatchResult *r_report_flags)
@@ -7580,6 +7696,7 @@ bool RNA_struct_override_matches(
 
 		eRNAOverrideMatchResult report_flags = 0;
 		const int diff = rna_property_override_diff(
+		                     bmain,
 		                     ptr_local, ptr_reference, NULL, prop_local, prop_reference, rna_path,
 		                     RNA_EQ_STRICT, override, flags, &report_flags);
 
@@ -7611,8 +7728,12 @@ bool RNA_struct_override_matches(
 						    .subitem_reference_index = -1,
 						    .subitem_local_index = -1
 						};
-						rna_property_override_operation_apply(ptr_local, ptr_reference, NULL,
-						                                      prop_local, prop_reference, NULL, &opop_tmp);
+						rna_property_override_operation_apply(
+						            bmain,
+						            ptr_local, ptr_reference, NULL,
+						            prop_local, prop_reference, NULL,
+						            NULL, NULL, NULL,
+						            &opop_tmp);
 						if (r_report_flags) {
 							*r_report_flags |= RNA_OVERRIDE_MATCH_RESULT_RESTORED;
 						}
@@ -7666,6 +7787,7 @@ bool RNA_struct_override_matches(
 
 /** Store needed second operands into \a storage data-block for differential override operations. */
 bool RNA_struct_override_store(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_reference, PointerRNA *ptr_storage, IDOverrideStatic *override)
 {
 	bool changed = false;
@@ -7689,8 +7811,11 @@ bool RNA_struct_override_store(
 				RNA_path_resolve_property(ptr_storage, op->rna_path, &data_storage, &prop_storage);
 			}
 
-			if (rna_property_override_operation_store(&data_local, &data_reference, &data_storage,
-			                                          prop_reference, prop_local, prop_storage, op))
+			if (rna_property_override_operation_store(
+			        bmain,
+			        &data_local, &data_reference, &data_storage,
+			        prop_reference, prop_local, prop_storage,
+			        op))
 			{
 				changed = true;
 			}
@@ -7704,8 +7829,10 @@ bool RNA_struct_override_store(
 }
 
 static void rna_property_override_apply_ex(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
+        PointerRNA *ptr_item_local, PointerRNA *ptr_item_override, PointerRNA *ptr_item_storage,
         IDOverrideStaticProperty *op, const bool do_insert)
 {
 	for (IDOverrideStaticPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
@@ -7715,8 +7842,12 @@ static void rna_property_override_apply_ex(
 			}
 			continue;
 		}
-		if (!rna_property_override_operation_apply(ptr_local, ptr_override, ptr_storage,
-		                                           prop_local, prop_override, prop_storage, opop))
+		if (!rna_property_override_operation_apply(
+		        bmain,
+		        ptr_local, ptr_override, ptr_storage,
+		        prop_local, prop_override, prop_storage,
+		        ptr_item_local, ptr_item_override, ptr_item_storage,
+		        opop))
 		{
 			/* TODO No assert here, would be much much better to just report as warning,
 			 * failing override applications will probably be fairly common! */
@@ -7728,6 +7859,7 @@ static void rna_property_override_apply_ex(
 /** Apply given \a override operations on \a ptr_local, using \a ptr_override
  * (and \a ptr_storage form differential ops) as source. */
 void RNA_struct_override_apply(
+        Main *bmain,
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage, IDOverrideStatic *override)
 {
 #ifdef DEBUG_OVERRIDE_TIMEIT
@@ -7741,27 +7873,37 @@ void RNA_struct_override_apply(
 		for (IDOverrideStaticProperty *op = override->properties.first; op; op = op->next) {
 			/* Simplified for now! */
 			PointerRNA data_override, data_local;
+			PointerRNA data_item_override, data_item_local;
 			PropertyRNA *prop_override, *prop_local;
 
-			if (RNA_path_resolve_property(ptr_local, op->rna_path, &data_local, &prop_local) &&
-			    RNA_path_resolve_property(ptr_override, op->rna_path, &data_override, &prop_override))
+			if (RNA_path_resolve_property_and_item_pointer(
+			        ptr_local, op->rna_path, &data_local, &prop_local, &data_item_local) &&
+			    RNA_path_resolve_property_and_item_pointer(
+			        ptr_override, op->rna_path, &data_override, &prop_override, &data_item_override))
 			{
-				PointerRNA data_storage;
+				PointerRNA data_storage, data_item_storage;
 				PropertyRNA *prop_storage = NULL;
 
 				/* It is totally OK if this does not success, only a subset of override operations actually need storage. */
 				if (ptr_storage && (ptr_storage->id.data != NULL)) {
-					RNA_path_resolve_property(ptr_storage, op->rna_path, &data_storage, &prop_storage);
+					RNA_path_resolve_property_and_item_pointer(
+					            ptr_storage, op->rna_path, &data_storage, &prop_storage, &data_item_storage);
 				}
 
 				rna_property_override_apply_ex(
+				            bmain,
 				            &data_local, &data_override, prop_storage ? &data_storage : NULL,
-				            prop_local, prop_override, prop_storage, op, do_insert);
+				            prop_local, prop_override, prop_storage,
+				            &data_item_local, &data_item_override, prop_storage ? &data_item_storage : NULL,
+				            op, do_insert);
 			}
 #ifndef NDEBUG
 			else {
-				printf("Failed to apply static override operation to '%s.%s' (could not resolve some properties)\n",
-				       ((ID *)ptr_override->id.data)->name, op->rna_path);
+				printf("Failed to apply static override operation to '%s.%s' "
+				       "(could not resolve some properties, local:  %d, override: %d)\n",
+				       ((ID *)ptr_override->id.data)->name, op->rna_path,
+				       RNA_path_resolve_property(ptr_local, op->rna_path, &data_local, &prop_local),
+				       RNA_path_resolve_property(ptr_override, op->rna_path, &data_override, &prop_override));
 			}
 #endif
 		}

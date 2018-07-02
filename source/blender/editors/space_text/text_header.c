@@ -72,7 +72,7 @@ static ARegion *text_has_properties_region(ScrArea *sa)
 	return arnew;
 }
 
-static int text_properties_poll(bContext *C)
+static bool text_properties_poll(bContext *C)
 {
 	return (CTX_wm_space_text(C) != NULL);
 }
@@ -212,4 +212,3 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 	UI_popup_menu_end(C, pup);
 }
 #endif
-

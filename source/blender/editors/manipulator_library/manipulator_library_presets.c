@@ -148,4 +148,3 @@ void ED_manipulator_draw_preset_facemap(
 		GPU_select_load_id(-1);
 	}
 }
-

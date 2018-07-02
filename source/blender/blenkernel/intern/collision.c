@@ -58,6 +58,10 @@
 #include "BLI_kdopbvh.h"
 #include "BKE_collision.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_physics.h"
+#include "DEG_depsgraph_query.h"
+
 #ifdef WITH_ELTOPO
 #include "eltopo-capi.h"
 #endif
@@ -479,147 +483,143 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 	return collpair;
 }
 
-static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned int *maxobj, Object *ob, Object *self, int level, unsigned int modifier_type)
+static void add_collision_object(ListBase *relations, Object *ob, int level, unsigned int modifier_type)
 {
 	CollisionModifierData *cmd= NULL;
-
-	if (ob == self)
-		return;
 
 	/* only get objects with collision modifier */
 	if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) || (modifier_type != eModifierType_Collision))
 		cmd= (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
 
 	if (cmd) {
-		/* extend array */
-		if (*numobj >= *maxobj) {
-			*maxobj *= 2;
-			*objs= MEM_reallocN(*objs, sizeof(Object *)*(*maxobj));
-		}
-
-		(*objs)[*numobj] = ob;
-		(*numobj)++;
+		CollisionRelation *relation = MEM_callocN(sizeof(CollisionRelation), "CollisionRelation");
+		relation->ob = ob;
+		BLI_addtail(relations, relation);
 	}
 
 	/* objects in dupli groups, one level only for now */
+	/* TODO: this doesn't really work, we are not taking into account the
+	 * dupli transforms and can get objects in the list multiple times. */
 	if (ob->dup_group && level == 0) {
 		Collection *collection= ob->dup_group;
 
 		/* add objects */
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
 		{
-			add_collision_object(objs, numobj, maxobj, object, self, level+1, modifier_type);
+			add_collision_object(relations, object, level+1, modifier_type);
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 }
 
-// return all collision objects in scene
-// collision object will exclude self
-Object **get_collisionobjects_ext(Scene *scene, Object *self, Collection *collection, unsigned int *numcollobj, unsigned int modifier_type, bool dupli)
+/* Create list of collision relations in the collection or entire scene.
+ * This is used by the depsgraph to build relations, as well as faster
+ * lookup of colliders during evaluation. */
+ListBase *BKE_collision_relations_create(Depsgraph *depsgraph, Collection *collection, unsigned int modifier_type)
 {
-	Object **objs;
-	unsigned int numobj= 0, maxobj= 100;
-	int level = dupli ? 0 : 1;
+	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+	Base *base = BKE_collection_or_layer_objects(view_layer, collection);
+	const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+	const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
-	objs= MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
+	ListBase *relations = MEM_callocN(sizeof(ListBase), "CollisionRelation list");
 
-	/* gather all collision objects */
-	if (collection) {
-		/* use specified collection */
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
-		{
-			add_collision_object(&objs, &numobj, &maxobj, object, self, level, modifier_type);
+	for (; base; base = base->next) {
+		if (base->flag & base_flag) {
+			add_collision_object(relations, base->object, 0, modifier_type);
 		}
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
-	else {
-		Scene *sce_iter;
-		Base *base;
-		/* add objects in same layer in scene */
-		for (SETLOOPER(scene, sce_iter, base)) {
-			if ((base->flag & BASE_VISIBLED) != 0) {
-				add_collision_object(&objs, &numobj, &maxobj, base->object, self, level, modifier_type);
+
+	return relations;
+}
+
+void BKE_collision_relations_free(ListBase *relations)
+{
+	if (relations) {
+		BLI_freelistN(relations);
+		MEM_freeN(relations);
+	}
+}
+
+/* Create effective list of colliders from relations built beforehand.
+ * Self will be excluded. */
+Object **BKE_collision_objects_create(Depsgraph *depsgraph, Object *self, Collection *collection, unsigned int *numcollobj, unsigned int modifier_type)
+{
+	ListBase *relations = DEG_get_collision_relations(depsgraph, collection, modifier_type);
+
+	if (!relations) {
+		*numcollobj = 0;
+		return NULL;
+	}
+
+	int maxnum = BLI_listbase_count(relations);
+	int num = 0;
+	Object **objects = MEM_callocN(sizeof(Object*) * maxnum, __func__);
+
+	for (CollisionRelation *relation = relations->first; relation; relation = relation->next) {
+		/* Get evaluated object. */
+		Object *ob = (Object*)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+
+		if (ob != self) {
+			objects[num] = ob;
+			num++;
+		}
+	}
+
+	if (num == 0) {
+		MEM_freeN(objects);
+		objects = NULL;
+	}
+
+	*numcollobj = num;
+	return objects;
+}
+
+void BKE_collision_objects_free(Object **objects)
+{
+	if (objects) {
+		MEM_freeN(objects);
+	}
+}
+
+/* Create effective list of colliders from relations built beforehand.
+ * Self will be excluded. */
+ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collection *collection)
+{
+	ListBase *relations = DEG_get_collision_relations(depsgraph, collection, eModifierType_Collision);
+	ListBase *cache = NULL;
+
+	if (!relations) {
+		return NULL;
+	}
+
+	for (CollisionRelation *relation = relations->first; relation; relation = relation->next) {
+		/* Get evaluated object. */
+		Object *ob = (Object*)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+
+		if (ob == self) {
+			continue;
+		}
+
+		CollisionModifierData *cmd = (CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+		if (cmd && cmd->bvhtree) {
+			if (cache == NULL) {
+				cache = MEM_callocN(sizeof(ListBase), "ColliderCache array");
 			}
+
+			ColliderCache *col = MEM_callocN(sizeof(ColliderCache), "ColliderCache");
+			col->ob = ob;
+			col->collmd = cmd;
+			/* make sure collider is properly set up */
+			collision_move_object(cmd, 1.0, 0.0);
+			BLI_addtail(cache, col);
 		}
 	}
 
-	*numcollobj= numobj;
-
-	return objs;
+	return cache;
 }
 
-Object **get_collisionobjects(Scene *scene, Object *self, Collection *collection, unsigned int *numcollobj, unsigned int modifier_type)
-{
-	/* Need to check for active layers, too.
-	   Otherwise this check fails if the objects are not on the same layer - DG */
-	return get_collisionobjects_ext(scene, self, collection, numcollobj, modifier_type, true);
-}
-
-static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self, int level)
-{
-	CollisionModifierData *cmd= NULL;
-	ColliderCache *col;
-
-	if (ob == self)
-		return;
-
-	if (ob->pd && ob->pd->deflect)
-		cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
-
-	if (cmd && cmd->bvhtree) {
-		if (*objs == NULL)
-			*objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
-
-		col = MEM_callocN(sizeof(ColliderCache), "ColliderCache");
-		col->ob = ob;
-		col->collmd = cmd;
-		/* make sure collider is properly set up */
-		collision_move_object(cmd, 1.0, 0.0);
-		BLI_addtail(*objs, col);
-	}
-
-	/* objects in dupli collection, one level only for now */
-	if (ob->dup_group && level == 0) {
-		Collection *collection= ob->dup_group;
-
-		/* add objects */
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
-		{
-			add_collider_cache_object(objs, object, self, level+1);
-		}
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-	}
-}
-
-ListBase *get_collider_cache(Scene *scene, Object *self, Collection *collection)
-{
-	ListBase *objs= NULL;
-
-	/* add object in same layer in scene */
-	if (collection) {
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
-		{
-			add_collider_cache_object(&objs, object, self, 0);
-		}
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-	}
-	else {
-		Scene *sce_iter;
-		Base *base;
-
-		/* add objects in same layer in scene */
-		for (SETLOOPER(scene, sce_iter, base)) {
-			if (!self || ((base->flag & BASE_VISIBLED) != 0))
-				add_collider_cache_object(&objs, base->object, self, 0);
-
-		}
-	}
-
-	return objs;
-}
-
-void free_collider_cache(ListBase **colliders)
+void BKE_collider_cache_free(ListBase **colliders)
 {
 	if (*colliders) {
 		BLI_freelistN(*colliders);
@@ -686,7 +686,7 @@ static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, Collision
 }
 
 // cloth - object collisions
-int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, float dt )
+int cloth_bvh_objcollision(Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, float step, float dt )
 {
 	Cloth *cloth= clmd->clothObject;
 	BVHTree *cloth_bvh= cloth->bvhtree;
@@ -712,7 +712,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, floa
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = BKE_collision_objects_create(depsgraph, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 
 	if (!collobjs)
 		return 0;
@@ -894,8 +894,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, floa
 	}
 	while ( ret2 && ( clmd->coll_parms->loop_count>rounds ) );
 
-	if (collobjs)
-		MEM_freeN(collobjs);
+	BKE_collision_objects_free(collobjs);
 
 	return 1|MIN2 ( ret, 1 );
 }
@@ -1207,7 +1206,7 @@ static int cloth_points_objcollisions_resolve(
 }
 
 // cloth - object collisions
-int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, float dt)
+int cloth_points_objcollision(Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, float step, float dt)
 {
 	Cloth *cloth= clmd->clothObject;
 	BVHTree *cloth_bvh;
@@ -1240,7 +1239,7 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 	/* balance tree */
 	BLI_bvhtree_balance(cloth_bvh);
 
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = BKE_collision_objects_create(depsgraph, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	if (!collobjs)
 		return 0;
 
@@ -1321,15 +1320,14 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 	}
 	while ( ret2 && ( clmd->coll_parms->loop_count>rounds ) );
 
-	if (collobjs)
-		MEM_freeN(collobjs);
+	BKE_collision_objects_free(collobjs);
 
 	BLI_bvhtree_free(cloth_bvh);
 
 	return 1|MIN2 ( ret, 1 );
 }
 
-void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, float dt,
+void cloth_find_point_contacts(Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, float step, float dt,
                                ColliderContacts **r_collider_contacts, int *r_totcolliders)
 {
 	Cloth *cloth= clmd->clothObject;
@@ -1363,7 +1361,7 @@ void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, 
 	/* balance tree */
 	BLI_bvhtree_balance(cloth_bvh);
 
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = BKE_collision_objects_create(depsgraph, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	if (!collobjs) {
 		*r_collider_contacts = NULL;
 		*r_totcolliders = 0;
@@ -1421,8 +1419,7 @@ void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, 
 			MEM_freeN(overlap);
 	}
 
-	if (collobjs)
-		MEM_freeN(collobjs);
+	BKE_collision_objects_free(collobjs);
 
 	BLI_bvhtree_free(cloth_bvh);
 

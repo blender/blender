@@ -74,14 +74,14 @@
  */
 
 /* poll callback for adding default KeyingSet */
-static int keyingset_poll_default_add(bContext *C)
+static bool keyingset_poll_default_add(bContext *C)
 {
 	/* as long as there's an active Scene, it's fine */
 	return (CTX_data_scene(C) != NULL);
 }
 
 /* poll callback for editing active KeyingSet */
-static int keyingset_poll_active_edit(bContext *C)
+static bool keyingset_poll_active_edit(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -93,7 +93,7 @@ static int keyingset_poll_active_edit(bContext *C)
 }
 
 /* poll callback for editing active KeyingSet Path */
-static int keyingset_poll_activePath_edit(bContext *C)
+static bool keyingset_poll_activePath_edit(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks;

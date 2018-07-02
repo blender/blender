@@ -139,7 +139,7 @@ static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const int value)
 /* ****************************** */
 
 /* wrapper for poll callback */
-static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
+static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 {
 	extern FunctionRNA rna_KeyingSetInfo_poll_func;
 
@@ -163,7 +163,7 @@ static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 
 		/* read the result */
 		RNA_parameter_get_lookup(&list, "ok", &ret);
-		ok = *(int *)ret;
+		ok = *(bool *)ret;
 	}
 	RNA_parameter_list_free(&list);
 
@@ -586,9 +586,11 @@ static FCurve *rna_Driver_find(AnimData *adt, ReportList *reports, const char *d
 }
 
 bool rna_AnimaData_override_apply(
+        Main *UNUSED(bmain),
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *ptr_storage,
         PropertyRNA *prop_dst, PropertyRNA *prop_src, PropertyRNA *UNUSED(prop_storage),
         const int len_dst, const int len_src, const int len_storage,
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);

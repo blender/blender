@@ -174,7 +174,7 @@ static void waveModifier_do(
 	}
 
 	/* get the index of the deform group */
-	modifier_get_vgroup_mesh(ob, mesh, wmd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, wmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (wmd->damp == 0) wmd->damp = 10.0f;
 
@@ -192,9 +192,9 @@ static void waveModifier_do(
 	if (wmd->texture) {
 		tex_co = MEM_malloc_arrayN(numVerts, sizeof(*tex_co),
 		                     "waveModifier_do tex_co");
-		get_texture_coords_mesh((MappingInfoModifierData *)wmd, ob, mesh, vertexCos, tex_co);
+		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ob, mesh, vertexCos, tex_co);
 
-		modifier_init_texture(depsgraph, wmd->texture);
+		MOD_init_texture(depsgraph, wmd->texture);
 	}
 
 	if (lifefac != 0.0f) {
@@ -265,9 +265,10 @@ static void waveModifier_do(
 
 				/*apply texture*/
 				if (wmd->texture) {
+					Scene *scene = DEG_get_evaluated_scene(depsgraph);
 					TexResult texres;
 					texres.nor = NULL;
-					BKE_texture_get_value(wmd->modifier.scene, wmd->texture, tex_co[i], &texres, false);
+					BKE_texture_get_value(scene, wmd->texture, tex_co[i], &texres, false);
 					amplit *= texres.tin;
 				}
 
@@ -307,9 +308,9 @@ static void deformVerts(
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		mesh_src = get_mesh(ctx->object, NULL, mesh, vertexCos, true, false);
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, vertexCos, true, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 
@@ -326,9 +327,9 @@ static void deformVertsEM(
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		mesh_src = get_mesh(ctx->object, editData, mesh, vertexCos, true, false);
+		mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, vertexCos, true, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+		mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 
 	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 

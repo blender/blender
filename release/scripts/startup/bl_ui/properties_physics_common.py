@@ -139,14 +139,16 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
                 layout.enabled = False
 
     if not cache.use_external or cachetype == 'SMOKE':
-        row = layout.row(align=True)
+        col = layout.column(align=True)
+        col.use_property_split = True
 
         if cachetype not in {'PSYS', 'DYNAMIC_PAINT'}:
-            row.enabled = enabled
-            row.prop(cache, "frame_start")
-            row.prop(cache, "frame_end")
+
+            col.enabled = enabled
+            col.prop(cache, "frame_start", text="Simulation Start")
+            col.prop(cache, "frame_end")
         if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
-            row.prop(cache, "frame_step")
+            col.prop(cache, "frame_step")
 
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
@@ -206,8 +208,11 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
 def effector_weights_ui(self, context, weights, weight_type):
     layout = self.layout
+    layout.use_property_split = True
 
     layout.prop(weights, "group")
+
+    layout.use_property_split = False
 
     split = layout.split()
 
@@ -239,6 +244,7 @@ def effector_weights_ui(self, context, weights, weight_type):
 
 def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
+    layout.use_property_split = True
 
     if not field or field.type == 'NONE':
         return
@@ -274,11 +280,8 @@ def basic_force_field_settings_ui(self, context, field):
     if field.type == 'FORCE':
         col.prop(field, "use_gravity_falloff", text="Gravitation")
 
-    col.label(text="Effect point")
-    col.prop(field, "apply_to_location")
-    col.prop(field, "apply_to_rotation")
-
-    col.label(text="Collision")
+    col.prop(field, "apply_to_location", text="Affect Location")
+    col.prop(field, "apply_to_rotation", text="Affect Rotation")
     col.prop(field, "use_absorption")
 
 
@@ -293,15 +296,17 @@ def basic_force_field_falloff_ui(self, context, field):
 
     col.prop(field, "falloff_power", text="Power")
 
-    col.prop(field, "use_min_distance", text="Min Min Distance")
-    sub = col.column(align=True)
+    split = layout.split()
+    split.prop(field, "use_min_distance", text="Min Distance")
+    sub = split.column(align=True)
     sub.active = field.use_min_distance
-    sub.prop(field, "distance_min", text="Min Distance")
+    sub.prop(field, "distance_min", text="")
 
-    col.prop(field, "use_max_distance", text="Use Max Distance")
-    sub = col.column(align=True)
+    split = layout.split()
+    split.prop(field, "use_max_distance", text="Max Distance")
+    sub = split.column(align=True)
     sub.active = field.use_max_distance
-    sub.prop(field, "distance_max", text="Max Distance")
+    sub.prop(field, "distance_max", text="")
 
 
 classes = (

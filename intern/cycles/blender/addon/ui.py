@@ -193,7 +193,7 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(cscene, "seed")
-        row.prop(cscene, "use_animated_seed", text="", icon="TIME")
+        row.prop(cscene, "use_animated_seed", text="", icon='TIME')
 
         layout.prop(cscene, "sampling_pattern", text="Pattern")
 
@@ -847,7 +847,7 @@ class CYCLES_CAMERA_PT_dof_aperture(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         cam = context.camera
         ccam = cam.cycles
@@ -878,7 +878,7 @@ class CYCLES_CAMERA_PT_dof_viewport(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, num_columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         cam = context.camera
         dof_options = cam.gpu_dof
@@ -1126,30 +1126,29 @@ class CYCLES_LAMP_PT_lamp(CyclesButtonsPanel, Panel):
 
         layout.prop(lamp, "type", expand=True)
 
-        split = layout.split()
-        col = split.column(align=True)
+        layout.use_property_split = True
+
+        col = layout.column()
 
         if lamp.type in {'POINT', 'SUN', 'SPOT'}:
             col.prop(lamp, "shadow_soft_size", text="Size")
         elif lamp.type == 'AREA':
-            col.prop(lamp, "shape", text="")
+            col.prop(lamp, "shape", text="Shape")
             sub = col.column(align=True)
 
             if lamp.shape in {'SQUARE', 'DISK'}:
                 sub.prop(lamp, "size")
             elif lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
                 sub.prop(lamp, "size", text="Size X")
-                sub.prop(lamp, "size_y", text="Size Y")
+                sub.prop(lamp, "size_y", text="Y")
 
         if not (lamp.type == 'AREA' and clamp.is_portal):
-            sub = col.column(align=True)
+            sub = col.column()
             if use_branched_path(context):
                 subsub = sub.row(align=True)
                 subsub.active = use_sample_all_lights(context)
                 subsub.prop(clamp, "samples")
             sub.prop(clamp, "max_bounces")
-
-        col = split.column()
 
         sub = col.column(align=True)
         sub.active = not (lamp.type == 'AREA' and clamp.is_portal)
@@ -1192,17 +1191,12 @@ class CYCLES_LAMP_PT_spot(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
         lamp = context.lamp
+        layout.use_property_split = True
 
-        split = layout.split()
-
-        col = split.column()
-        sub = col.column()
-        sub.prop(lamp, "spot_size", text="Size")
-        sub.prop(lamp, "spot_blend", text="Blend", slider=True)
-
-        col = split.column()
+        col = layout.column()
+        col.prop(lamp, "spot_size", text="Size")
+        col.prop(lamp, "spot_blend", text="Blend", slider=True)
         col.prop(lamp, "show_cone")
 
 
@@ -1545,6 +1539,7 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
         cscene = scene.cycles
@@ -1573,7 +1568,7 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
             if cscene.bake_type == 'NORMAL':
                 col.prop(cbk, "normal_space", text="Space")
 
-                sub = col.row(align=True)
+                sub = col.column(align=True)
                 sub.prop(cbk, "normal_r", text="Swizzle R")
                 sub.prop(cbk, "normal_g", text="G")
                 sub.prop(cbk, "normal_b", text="B")
@@ -1595,6 +1590,7 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
 
             elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
                 row = col.row(align=True)
+                row.use_property_split = False
                 row.prop(cbk, "use_pass_direct", toggle=True)
                 row.prop(cbk, "use_pass_indirect", toggle=True)
                 row.prop(cbk, "use_pass_color", toggle=True)
@@ -1613,9 +1609,11 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
             sub.prop(cbk, "use_cage", text="Cage")
             if cbk.use_cage:
                 sub.prop(cbk, "cage_extrusion", text="Extrusion")
-                sub.prop_search(cbk, "cage_object", scene, "objects", text="")
+                sub.prop_search(cbk, "cage_object", scene, "objects", text="Cage Object")
             else:
                 sub.prop(cbk, "cage_extrusion", text="Ray Distance")
+
+            layout.separator()
 
             layout.operator("object.bake", icon='RENDER_STILL').type = cscene.bake_type
 
@@ -1783,7 +1781,7 @@ def draw_pause(self, context):
 
         if view.shading.type == 'RENDERED':
             cscene = scene.cycles
-            layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+            layout.prop(cscene, "preview_pause", icon='PAUSE', text="")
 
 
 def get_panels():

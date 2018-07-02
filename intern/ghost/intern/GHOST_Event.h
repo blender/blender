@@ -104,4 +104,3 @@ protected:
 };
 
 #endif // __GHOST_EVENT_H__
-

@@ -41,15 +41,15 @@
 #include "BLI_utildefines.h"
 
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 
-#include "MOD_util.h"
+#include "DEG_depsgraph_query.h"
 
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -120,7 +120,7 @@ static void deformVerts(
 		return;
 
 	if (mesh_src == NULL) {
-		mesh_src = get_mesh(ctx->object, NULL, NULL, vertexCos, false, true);
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, NULL, vertexCos, false, true);
 		if (mesh_src == NULL) {
 			return;
 		}
@@ -210,26 +210,31 @@ static void deformVerts(
 	}
 
 	if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
+		struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(ctx->depsgraph, md->scene, ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0);
+		particle_system_update(ctx->depsgraph, scene, ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
 	}
 }
 
-/* disabled particles in editmode for now, until support for proper derivedmesh
+/* disabled particles in editmode for now, until support for proper evaluated mesh
  * updates is coded */
 #if 0
 static void deformVertsEM(
-        ModifierData *md, Object *ob, EditMesh *editData,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, BMEditMesh *editData,
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = derivedData;
+	const bool do_temp_mesh = (mesh == NULL);
+	if (do_temp_mesh) {
+		mesh = BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name);
+		BM_mesh_bm_to_me(NULL, editData->bm, mesh, &((BMeshToMeshParams){0}));
+	}
 
-	if (!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	deformVerts(md, ob, mesh, vertexCos, numVerts);
 
-	deformVerts(md, ob, dm, vertexCos, numVerts);
-
-	if (!derivedData) dm->release(dm);
+	if (derivedData) {
+		BKE_id_free(NULL, mesh);
+	}
 }
 #endif
 

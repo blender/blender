@@ -676,7 +676,7 @@ static void node_main_region_draw(const bContext *C, ARegion *ar)
 
 /* ************* dropboxes ************* */
 
-static int node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = drag->poin;
@@ -690,7 +690,7 @@ static int node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *
 	return 0;
 }
 
-static int node_mask_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool node_mask_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = drag->poin;
@@ -772,7 +772,6 @@ static void node_region_listener(
 				WM_manipulatormap_tag_refresh(mmap);
 			}
 			switch (wmn->data) {
-				case ND_SCREENCAST:
 				case ND_ANIMPLAY:
 				case ND_LAYER:
 					ED_region_tag_redraw(ar);
@@ -1045,4 +1044,3 @@ void ED_spacetype_node(void)
 
 	BKE_spacetype_register(st);
 }
-

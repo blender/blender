@@ -232,6 +232,9 @@ typedef struct wmWindow {
 
 	/* custom drawing callbacks */
 	ListBase drawcalls;
+
+	/* Private runtime info to show text in the status bar. */
+	void *cursor_keymap_status;
 } wmWindow;
 
 #ifdef ime_data
@@ -324,7 +327,7 @@ typedef struct wmKeyMap {
 
 	/* runtime */
 	/** Verify if enabled in the current context, use #WM_keymap_poll instead of direct calls. */
-	int (*poll)(struct bContext *);
+	bool (*poll)(struct bContext *);
 	/** For modal, #EnumPropertyItem for now. */
 	const void *modal_items;
 } wmKeyMap;

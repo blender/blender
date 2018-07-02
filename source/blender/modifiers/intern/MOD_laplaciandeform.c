@@ -509,7 +509,7 @@ static bool isValidVertexGroup(LaplacianDeformModifierData *lmd, Object *ob, Mes
 	int defgrp_index;
 	MDeformVert *dvert = NULL;
 
-	modifier_get_vgroup_mesh(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
 
 	return  (dvert != NULL);
 }
@@ -535,7 +535,7 @@ static void initSystem(
 
 		STACK_INIT(index_anchors, numVerts);
 
-		modifier_get_vgroup_mesh(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
+		MOD_get_vgroup(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
 		BLI_assert(dvert != NULL);
 		dv = dvert;
 		for (i = 0; i < numVerts; i++) {
@@ -595,7 +595,7 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd, Object *ob, Mesh 
 	if (!STREQ(lmd->anchor_grp_name, sys->anchor_grp_name)) {
 		return LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP;
 	}
-	modifier_get_vgroup_mesh(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
 	if (!dvert) {
 		return LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP;
 	}
@@ -715,7 +715,7 @@ static void copyData(const ModifierData *md, ModifierData *target)
 	tlmd->cache_system = NULL;
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
 {
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
 	if (lmd->anchor_grp_name[0]) return 0;
@@ -734,7 +734,7 @@ static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	LaplacianDeformModifier_do((LaplacianDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
 	if (mesh_src != mesh) {
@@ -746,7 +746,7 @@ static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 	LaplacianDeformModifier_do((LaplacianDeformModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);
 	if (mesh_src != mesh) {

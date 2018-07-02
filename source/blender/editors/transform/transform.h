@@ -890,7 +890,7 @@ void freeVertSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 void projectVertSlideData(TransInfo *t, bool is_final);
 
 
-/* TODO. transform_queries.c */
+/* TODO. transform_query.c */
 bool checkUseAxisMatrix(TransInfo *t);
 
 #define TRANSFORM_SNAP_MAX_PX 100.0f

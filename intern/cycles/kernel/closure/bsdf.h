@@ -72,15 +72,15 @@ ccl_device_inline float bsdf_get_roughness_squared(const ShaderClosure *sc)
 	return bsdf_get_specular_roughness_squared(sc);
 }
 
-ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
-                                       ShaderData *sd,
-                                       const ShaderClosure *sc,
-                                       float randu,
-                                       float randv,
-                                       float3 *eval,
-                                       float3 *omega_in,
-                                       differential3 *domega_in,
-                                       float *pdf)
+ccl_device_inline int bsdf_sample(KernelGlobals *kg,
+                                  ShaderData *sd,
+                                  const ShaderClosure *sc,
+                                  float randu,
+                                  float randv,
+                                  float3 *eval,
+                                  float3 *omega_in,
+                                  differential3 *domega_in,
+                                  float *pdf)
 {
 	int label;
 
@@ -210,7 +210,7 @@ ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
 #ifndef __KERNEL_CUDA__
 ccl_device
 #else
-ccl_device_forceinline
+ccl_device_inline
 #endif
 float3 bsdf_eval(KernelGlobals *kg,
                  ShaderData *sd,

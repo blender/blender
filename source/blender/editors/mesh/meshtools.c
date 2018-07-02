@@ -34,9 +34,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -49,11 +50,11 @@
 
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -612,7 +613,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Mesh *me = (Mesh *)ob->data;
 	Mesh *selme = NULL;
-	DerivedMesh *dm = NULL;
+	Mesh *me_deformed = NULL;
 	Key *key = me->key;
 	KeyBlock *kb;
 	bool ok = false, nonequal_verts = false;
@@ -646,7 +647,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 
 		/* first key added, so it was the basis. initialize it with the existing mesh */
 		kb = BKE_keyblock_add(key, NULL);
-		BKE_keyblock_convert_from_mesh(me, kb);
+		BKE_keyblock_convert_from_mesh(me, key, kb);
 	}
 
 	/* now ready to add new keys from selected meshes */
@@ -658,15 +659,15 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 			selme = (Mesh *)base->object->data;
 
 			if (selme->totvert == me->totvert) {
-				dm = mesh_get_derived_deform(depsgraph, scene, base->object, CD_MASK_BAREMESH);
+				me_deformed = mesh_get_eval_deform(depsgraph, scene, base->object, CD_MASK_BAREMESH);
 
-				if (!dm) continue;
+				if (!me_deformed) {
+					continue;
+				}
 
 				kb = BKE_keyblock_add(key, base->object->id.name + 2);
 
-				DM_to_meshkey(dm, me, kb);
-
-				dm->release(dm);
+				BKE_mesh_runtime_eval_to_meshkey(me_deformed, me, kb);
 			}
 		}
 	}
@@ -690,40 +691,15 @@ static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
 /* note, is supposed return -1 on error, which callers are currently checking for, but is not used so far */
-int ED_mesh_mirror_topo_table(
-        Object *ob, DerivedMesh *dm, char mode)
+int ED_mesh_mirror_topo_table(Object *ob, Mesh *me_eval, char mode)
 {
 	if (mode == 'u') {        /* use table */
-		if (ED_mesh_mirrtopo_recalc_check(ob->data, dm, &mesh_topo_store)) {
-			ED_mesh_mirror_topo_table(ob, dm, 's');
+		if (ED_mesh_mirrtopo_recalc_check(ob->data, me_eval, &mesh_topo_store)) {
+			ED_mesh_mirror_topo_table(ob, me_eval, 's');
 		}
 	}
 	else if (mode == 's') { /* start table */
-		ED_mesh_mirrtopo_init(ob->data, dm, &mesh_topo_store, false);
-	}
-	else if (mode == 'e') { /* end table */
-		ED_mesh_mirrtopo_free(&mesh_topo_store);
-	}
-	else {
-		BLI_assert(0);
-	}
-
-	return 0;
-}
-
-/* mode is 's' start, or 'e' end, or 'u' use */
-/* if end, ob can be NULL */
-/* note, is supposed return -1 on error, which callers are currently checking for, but is not used so far */
-int ED_mesh_mirror_topo_table__real_mesh(
-        Object *ob, Mesh *mesh, char mode)
-{
-	if (mode == 'u') {        /* use table */
-		if (ED_mesh_mirrtopo_recalc_check__real_mesh(ob->data, mesh, &mesh_topo_store)) {
-			ED_mesh_mirror_topo_table__real_mesh(ob, mesh, 's');
-		}
-	}
-	else if (mode == 's') { /* start table */
-		ED_mesh_mirrtopo_init__real_mesh(ob->data, mesh, &mesh_topo_store, false);
+		ED_mesh_mirrtopo_init(ob->data, me_eval, &mesh_topo_store, false);
 	}
 	else if (mode == 'e') { /* end table */
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
@@ -738,39 +714,7 @@ int ED_mesh_mirror_topo_table__real_mesh(
 /** \} */
 
 
-static int mesh_get_x_mirror_vert_spatial(Object *ob, DerivedMesh *dm, int index)
-{
-	Mesh *me = ob->data;
-	MVert *mvert = dm ? dm->getVertArray(dm) : me->mvert;
-	float vec[3];
-
-	mvert = &mvert[index];
-	vec[0] = -mvert->co[0];
-	vec[1] = mvert->co[1];
-	vec[2] = mvert->co[2];
-
-	return ED_mesh_mirror_spatial_table(ob, NULL, dm, vec, 'u');
-}
-
-static int mesh_get_x_mirror_vert_topo(Object *ob, DerivedMesh *dm, int index)
-{
-	if (ED_mesh_mirror_topo_table(ob, dm, 'u') == -1)
-		return -1;
-
-	return mesh_topo_store.index_lookup[index];
-}
-
-int mesh_get_x_mirror_vert(Object *ob, DerivedMesh *dm, int index, const bool use_topology)
-{
-	if (use_topology) {
-		return mesh_get_x_mirror_vert_topo(ob, dm, index);
-	}
-	else {
-		return mesh_get_x_mirror_vert_spatial(ob, dm, index);
-	}
-}
-
-static int mesh_get_x_mirror_vert_spatial__real_mesh(Object *ob, Mesh *mesh, int index)
+static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *mesh, int index)
 {
 	Mesh *me = ob->data;
 	MVert *mvert = mesh ? mesh->mvert : me->mvert;
@@ -781,24 +725,24 @@ static int mesh_get_x_mirror_vert_spatial__real_mesh(Object *ob, Mesh *mesh, int
 	vec[1] = mvert->co[1];
 	vec[2] = mvert->co[2];
 
-	return ED_mesh_mirror_spatial_table__real_mesh(ob, NULL, mesh, vec, 'u');
+	return ED_mesh_mirror_spatial_table(ob, NULL, mesh, vec, 'u');
 }
 
-static int mesh_get_x_mirror_vert_topo__real_mesh(Object *ob, Mesh *mesh, int index)
+static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
 {
-	if (ED_mesh_mirror_topo_table__real_mesh(ob, mesh, 'u') == -1)
+	if (ED_mesh_mirror_topo_table(ob, mesh, 'u') == -1)
 		return -1;
 
 	return mesh_topo_store.index_lookup[index];
 }
 
-int mesh_get_x_mirror_vert__real_mesh(Object *ob, Mesh *mesh, int index, const bool use_topology)
+int mesh_get_x_mirror_vert(Object *ob, Mesh *me_eval, int index, const bool use_topology)
 {
 	if (use_topology) {
-		return mesh_get_x_mirror_vert_topo__real_mesh(ob, mesh, index);
+		return mesh_get_x_mirror_vert_topo(ob, me_eval, index);
 	}
 	else {
-		return mesh_get_x_mirror_vert_spatial__real_mesh(ob, mesh, index);
+		return mesh_get_x_mirror_vert_spatial(ob, me_eval, index);
 	}
 }
 
@@ -995,68 +939,8 @@ static bool mirror_facecmp(const void *a, const void *b)
 	return (mirror_facerotation((MFace *)a, (MFace *)b) == -1);
 }
 
-/* BMESH_TODO, convert to MPoly (functions above also) */
-int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, DerivedMesh *dm)
-{
-	Mesh *me = ob->data;
-	MVert *mv, *mvert;
-	MFace mirrormf, *mf, *hashmf, *mface;
-	GHash *fhash;
-	int *mirrorverts, *mirrorfaces;
-
-	BLI_assert(em == NULL);  /* Does not work otherwise, currently... */
-
-	const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
-	const int totvert = dm ? dm->getNumVerts(dm) : me->totvert;
-	const int totface = dm ? dm->getNumTessFaces(dm) : me->totface;
-	int a;
-
-	mirrorverts = MEM_callocN(sizeof(int) * totvert, "MirrorVerts");
-	mirrorfaces = MEM_callocN(sizeof(int) * 2 * totface, "MirrorFaces");
-
-	mvert = dm ? dm->getVertArray(dm) : me->mvert;
-	mface = dm ? dm->getTessFaceArray(dm) : me->mface;
-
-	ED_mesh_mirror_spatial_table(ob, em, dm, NULL, 's');
-
-	for (a = 0, mv = mvert; a < totvert; a++, mv++)
-		mirrorverts[a] = mesh_get_x_mirror_vert(ob, dm, a, use_topology);
-
-	ED_mesh_mirror_spatial_table(ob, em, dm, NULL, 'e');
-
-	fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
-	for (a = 0, mf = mface; a < totface; a++, mf++)
-		BLI_ghash_insert(fhash, mf, mf);
-
-	for (a = 0, mf = mface; a < totface; a++, mf++) {
-		mirrormf.v1 = mirrorverts[mf->v3];
-		mirrormf.v2 = mirrorverts[mf->v2];
-		mirrormf.v3 = mirrorverts[mf->v1];
-		mirrormf.v4 = (mf->v4) ? mirrorverts[mf->v4] : 0;
-
-		/* make sure v4 is not 0 if a quad */
-		if (mf->v4 && mirrormf.v4 == 0) {
-			SWAP(unsigned int, mirrormf.v1, mirrormf.v3);
-			SWAP(unsigned int, mirrormf.v2, mirrormf.v4);
-		}
-
-		hashmf = BLI_ghash_lookup(fhash, &mirrormf);
-		if (hashmf) {
-			mirrorfaces[a * 2] = hashmf - mface;
-			mirrorfaces[a * 2 + 1] = mirror_facerotation(&mirrormf, hashmf);
-		}
-		else
-			mirrorfaces[a * 2] = -1;
-	}
-
-	BLI_ghash_free(fhash, NULL, NULL);
-	MEM_freeN(mirrorverts);
-
-	return mirrorfaces;
-}
-
 /* This is a Mesh-based copy of mesh_get_x_mirror_faces() */
-int *mesh_get_x_mirror_faces__real_mesh(Object *ob, BMEditMesh *em, Mesh *mesh)
+int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
 	Mesh *me = ob->data;
 	MVert *mv, *mvert;
@@ -1067,22 +951,22 @@ int *mesh_get_x_mirror_faces__real_mesh(Object *ob, BMEditMesh *em, Mesh *mesh)
 	BLI_assert(em == NULL);  /* Does not work otherwise, currently... */
 
 	const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
-	const int totvert = mesh ? mesh->totvert : me->totvert;
-	const int totface = mesh ? mesh->totface : me->totface;
+	const int totvert = me_eval ? me_eval->totvert : me->totvert;
+	const int totface = me_eval ? me_eval->totface : me->totface;
 	int a;
 
 	mirrorverts = MEM_callocN(sizeof(int) * totvert, "MirrorVerts");
 	mirrorfaces = MEM_callocN(sizeof(int) * 2 * totface, "MirrorFaces");
 
-	mvert = mesh ? mesh->mvert : me->mvert;
-	mface = mesh ? mesh->mface : me->mface;
+	mvert = me_eval ? me_eval->mvert : me->mvert;
+	mface = me_eval ? me_eval->mface : me->mface;
 
-	ED_mesh_mirror_spatial_table__real_mesh(ob, em, mesh, NULL, 's');
+	ED_mesh_mirror_spatial_table(ob, em, me_eval, NULL, 's');
 
 	for (a = 0, mv = mvert; a < totvert; a++, mv++)
-		mirrorverts[a] = mesh_get_x_mirror_vert__real_mesh(ob, mesh, a, use_topology);
+		mirrorverts[a] = mesh_get_x_mirror_vert(ob, me_eval, a, use_topology);
 
-	ED_mesh_mirror_spatial_table__real_mesh(ob, em, mesh, NULL, 'e');
+	ED_mesh_mirror_spatial_table(ob, em, me_eval, NULL, 'e');
 
 	fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
 	for (a = 0, mf = mface; a < totface; a++, mf++)
@@ -1322,7 +1206,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 	}
 	else {
 		/* derived mesh to find deformed locations */
-		DerivedMesh *dm = mesh_get_derived_final(vc.depsgraph, vc.scene, ob, CD_MASK_BAREMESH);
+		Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, vc.scene, ob, CD_MASK_BAREMESH);
 		ARegion *ar = vc.ar;
 		RegionView3D *rv3d = ar->regiondata;
 
@@ -1334,7 +1218,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 		ED_view3d_init_mats_rv3d(ob, rv3d);
 
-		if (dm == NULL) {
+		if (me_eval == NULL) {
 			return false;
 		}
 
@@ -1345,9 +1229,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 		data.len_best = FLT_MAX;
 		data.v_idx_best = -1;
 
-		dm->foreachMappedVert(dm, ed_mesh_pick_vert__mapFunc, &data, DM_FOREACH_NOP);
-
-		dm->release(dm);
+		BKE_mesh_foreach_mapped_vert(me_eval, ed_mesh_pick_vert__mapFunc, &data, MESH_FOREACH_NOP);
 
 		if (data.v_idx_best == -1) {
 			return false;

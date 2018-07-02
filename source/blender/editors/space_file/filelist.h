@@ -127,4 +127,3 @@ bool                filelist_cache_previews_running(struct FileList *filelist);
 #endif
 
 #endif
-

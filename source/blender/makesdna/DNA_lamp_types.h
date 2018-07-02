@@ -152,4 +152,3 @@ typedef struct Lamp {
 #define LA_AREA_ELLIPSE	5
 
 #endif /* __DNA_LAMP_TYPES_H__ */
-

@@ -104,10 +104,10 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
 
         if custom_framerate is True:
-            fps_label_text = "Custom (%r fps)" % fps_rate
+            fps_label_text = f"Custom ({fps_rate!r} fps)"
             show_framerate = True
         else:
-            fps_label_text = "%r fps" % fps_rate
+            fps_label_text = f"{fps_rate!r} fps"
             show_framerate = (preset_label == "Custom")
 
         RENDER_PT_dimensions._frame_rate_args_prev = args
@@ -205,7 +205,8 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = False
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         rd = context.scene.render
 
@@ -671,8 +672,8 @@ class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "shadow_method")
-        col.prop(props, "shadow_cube_size")
-        col.prop(props, "shadow_cascade_size")
+        col.prop(props, "shadow_cube_size", text="Cube Size")
+        col.prop(props, "shadow_cascade_size", text="Cascade Size")
         col.prop(props, "use_shadow_high_bitdepth")
 
 
@@ -718,7 +719,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
         col = layout.column()
         col.prop(props, "gi_diffuse_bounces")
         col.prop(props, "gi_cubemap_resolution")
-        col.prop(props, "gi_visibility_resolution")
+        col.prop(props, "gi_visibility_resolution", text="Diffuse Occlusion")
 
 
 class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):

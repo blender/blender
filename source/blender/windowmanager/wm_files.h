@@ -68,4 +68,3 @@ void        WM_OT_lib_relocate(struct wmOperatorType *ot);
 void        WM_OT_lib_reload(struct wmOperatorType *ot);
 
 #endif /* __WM_FILES_H__ */
-

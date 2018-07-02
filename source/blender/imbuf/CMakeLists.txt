@@ -139,7 +139,7 @@ if(WITH_CODEC_FFMPEG)
 	)
 	add_definitions(-DWITH_FFMPEG)
 
-	remove_strict_flags_file(
+	remove_strict_c_flags_file(
 		intern/indexer.c
 		intern/util.c
 		intern/anim_movie.c

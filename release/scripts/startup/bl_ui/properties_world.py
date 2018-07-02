@@ -74,13 +74,12 @@ class EEVEE_WORLD_PT_mist(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         world = context.world
 
-        split = layout.split(align=True)
-        split.prop(world.mist_settings, "start")
-        split.prop(world.mist_settings, "depth")
-
+        layout.prop(world.mist_settings, "start")
+        layout.prop(world.mist_settings, "depth")
         layout.prop(world.mist_settings, "falloff")
 
 

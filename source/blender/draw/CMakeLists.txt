@@ -111,6 +111,9 @@ set(SRC
 	engines/workbench/workbench_data.c
 	engines/workbench/workbench_engine.c
 	engines/workbench/workbench_deferred.c
+	engines/workbench/workbench_effect_aa.c
+	engines/workbench/workbench_effect_fxaa.c
+	engines/workbench/workbench_effect_taa.c
 	engines/workbench/workbench_forward.c
 	engines/workbench/workbench_materials.c
 	engines/workbench/workbench_studiolight.c
@@ -209,6 +212,7 @@ data_to_c_simple(engines/workbench/shaders/workbench_common_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_data_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_deferred_composite_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_effect_fxaa_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_effect_taa_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_forward_composite_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_forward_depth_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_forward_transparent_accum_frag.glsl SRC)

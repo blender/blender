@@ -273,7 +273,7 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
 
         col.separator()
 
-        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer Color Space")
+        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
 
 
 class SCENE_PT_color_management_curves(SceneButtonsPanel, Panel):
@@ -369,6 +369,7 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
 
@@ -386,13 +387,11 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
             col.prop(rbw, "group")
             col.prop(rbw, "constraints")
 
-            split = col.split()
-
-            col = split.column()
+            col = col.column()
             col.prop(rbw, "time_scale", text="Speed")
             col.prop(rbw, "use_split_impulse")
 
-            col = split.column()
+            col = col.column()
             col.prop(rbw, "steps_per_second", text="Steps Per Second")
             col.prop(rbw, "solver_iterations", text="Solver Iterations")
 
@@ -444,6 +443,15 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
+
+class SCENE_PT_simplify_viewport(SceneButtonsPanel, Panel):
+    bl_label = "Viewport"
+    bl_parent_id = "SCENE_PT_simplify"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
         layout.use_property_split = True
 
         rd = context.scene.render
@@ -451,13 +459,25 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         layout.active = rd.use_simplify
 
         col = layout.column()
-        col.prop(rd, "simplify_subdivision", text="Max Viewport Subdivision")
+        col.prop(rd, "simplify_subdivision", text="Max Subdivision")
         col.prop(rd, "simplify_child_particles", text="Max Child Particles")
 
-        col.separator()
+
+class SCENE_PT_simplify_render(SceneButtonsPanel, Panel):
+    bl_label = "Render"
+    bl_parent_id = "SCENE_PT_simplify"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        rd = context.scene.render
+
+        layout.active = rd.use_simplify
 
         col = layout.column()
-        col.prop(rd, "simplify_subdivision_render", text="Max Render Subdivision")
+        col.prop(rd, "simplify_subdivision_render", text="Max Subdivision")
         col.prop(rd, "simplify_child_particles_render", text="Max Child Particles")
 
 
@@ -519,6 +539,8 @@ classes = (
     SCENE_PT_rigid_body_cache,
     SCENE_PT_rigid_body_field_weights,
     SCENE_PT_simplify,
+    SCENE_PT_simplify_viewport,
+    SCENE_PT_simplify_render,
     SCENE_PT_custom_props,
 )
 

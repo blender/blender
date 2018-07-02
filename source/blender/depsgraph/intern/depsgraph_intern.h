@@ -50,6 +50,7 @@ extern "C" {
 
 struct DEGEditorUpdateContext;
 struct Collection;
+struct ListBase;
 struct Main;
 struct Scene;
 
@@ -138,5 +139,11 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
 bool deg_terminal_do_color(void);
 string deg_color_for_pointer(const void *pointer);
 string deg_color_end(void);
+
+/* Physics Utilities -------------------------------------------------- */
+
+struct ListBase *deg_build_effector_relations(Depsgraph *graph, struct Collection *collection);
+struct ListBase *deg_build_collision_relations(Depsgraph *graph, struct Collection *collection, unsigned int modifier_type);
+void deg_clear_physics_relations(Depsgraph *graph);
 
 }  // namespace DEG

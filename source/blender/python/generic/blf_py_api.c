@@ -114,6 +114,40 @@ static PyObject *py_blf_aspect(PyObject *UNUSED(self), PyObject *args)
 }
 
 
+PyDoc_STRVAR(py_blf_color_doc,
+".. function:: color(fontid, level, r, g, b, a)\n"
+"\n"
+"   Set the color for drawing text.\n"
+"\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
+"   :arg r: red channel 0.0 - 1.0.\n"
+"   :type r: float\n"
+"   :arg g: green channel 0.0 - 1.0.\n"
+"   :type g: float\n"
+"   :arg b: blue channel 0.0 - 1.0.\n"
+"   :type b: float\n"
+"   :arg a: alpha channel 0.0 - 1.0.\n"
+"   :type a: float\n"
+);
+static PyObject *py_blf_color(PyObject *UNUSED(self), PyObject *args)
+{
+	int fontid;
+	float rgba[4];
+
+	if (!PyArg_ParseTuple(
+	        args, "iffff:blf.color",
+	        &fontid, &rgba[0], &rgba[1], &rgba[2], &rgba[3]))
+	{
+		return NULL;
+	}
+
+	BLF_color4fv(fontid, rgba);
+
+	Py_RETURN_NONE;
+}
+
+
 #if BLF_BLUR_ENABLE
 PyDoc_STRVAR(py_blf_blur_doc,
 ".. function:: blur(fontid, radius)\n"
@@ -434,6 +468,7 @@ static PyMethodDef BLF_methods[] = {
 	{"shadow", (PyCFunction) py_blf_shadow, METH_VARARGS, py_blf_shadow_doc},
 	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
+	{"color", (PyCFunction) py_blf_color, METH_VARARGS, py_blf_color_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
 	{"unload", (PyCFunction) py_blf_unload, METH_VARARGS, py_blf_unload_doc},
 	{NULL, NULL, 0, NULL}

@@ -270,6 +270,34 @@ class TOPBAR_PT_snapping(Panel):
                 col.prop(toolsettings, "use_snap_peel_object")
 
 
+class TOPBAR_PT_transform_orientations(Panel):
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
+    bl_label = "Transform Orientations"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label("Tranform Orientations")
+
+        scene = context.scene
+        orientation = scene.current_orientation
+
+        col = layout.split(percentage=0.9)
+        col.prop(scene, "transform_orientation", expand=True)
+        col.operator("transform.create_orientation", text="", icon='ZOOMIN', emboss=False)
+
+        if orientation:
+            row = layout.row(align=False)
+            row.prop(orientation, "name", text="")
+            row.operator("transform.delete_orientation", text="", icon='X', emboss=False)
+
+
 class INFO_MT_editor_menus(Menu):
     bl_idname = "INFO_MT_editor_menus"
     bl_label = ""
@@ -297,10 +325,10 @@ class INFO_MT_file(Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
-        layout.menu("INFO_MT_file_open_recent", icon='OPEN_RECENT')
-        layout.operator("wm.revert_mainfile", icon='FILE_REFRESH')
-        layout.operator("wm.recover_last_session", icon='RECOVER_LAST')
-        layout.operator("wm.recover_auto_save", text="Recover Auto Save...", icon='RECOVER_AUTO')
+        layout.menu("INFO_MT_file_open_recent")
+        layout.operator("wm.revert_mainfile")
+        layout.operator("wm.recover_last_session")
+        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
         layout.separator()
 
@@ -308,15 +336,15 @@ class INFO_MT_file(Menu):
         layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save As...", icon='SAVE_AS')
+        layout.operator("wm.save_as_mainfile", text="Save As...")
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save Copy...", icon='SAVE_COPY').copy = True
+        layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
 
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_homefile", icon='SAVE_PREFS')
-        layout.operator("wm.read_factory_settings", icon='LOAD_FACTORY')
+        layout.operator("wm.save_homefile")
+        layout.operator("wm.read_factory_settings")
 
         layout.separator()
 
@@ -332,7 +360,7 @@ class INFO_MT_file(Menu):
 
         layout.separator()
 
-        layout.menu("INFO_MT_file_external_data", icon='EXTERNAL_DATA')
+        layout.menu("INFO_MT_file_external_data")
 
         layout.separator()
 
@@ -443,7 +471,7 @@ class INFO_MT_render(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(rd, "display_mode", text="Display Mode", icon='IMAGE_COL')
+        layout.prop_menu_enum(rd, "display_mode", text="Display Mode")
         layout.prop(rd, "use_lock_interface", text="Lock Interface")
 
         layout.separator()
@@ -453,7 +481,7 @@ class INFO_MT_render(Menu):
         props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
         props.view_context = False
         props.animation = True
-        layout.menu("INFO_MT_opengl_render", icon='SETTINGS')
+        layout.menu("INFO_MT_opengl_render")
 
         layout.separator()
 
@@ -499,6 +527,10 @@ class INFO_MT_edit(Menu):
 
         layout.separator()
 
+        layout.operator("wm.search_menu", text="Operator Search...")
+
+        layout.separator()
+
         # Should move elsewhere (impacts outliner & 3D view).
         tool_settings = context.tool_settings
         layout.prop(tool_settings, "lock_object_mode")
@@ -521,8 +553,12 @@ class INFO_MT_window(Menu):
 
         layout.separator()
 
+        layout.operator("screen.workspace_cycle", text="Next Workspace").direction = 'NEXT'
+        layout.operator("screen.workspace_cycle", text="Previous Workspace").direction = 'PREV'
+
+        layout.separator()
+
         layout.operator("screen.screenshot")
-        layout.operator("screen.screencast")
 
         if sys.platform[:3] == "win":
             layout.separator()
@@ -530,7 +566,7 @@ class INFO_MT_window(Menu):
 
         if context.scene.render.use_multiview:
             layout.separator()
-            layout.operator("wm.set_stereo_3d", icon='CAMERA_STEREO')
+            layout.operator("wm.set_stereo_3d")
 
 
 class INFO_MT_help(Menu):
@@ -576,11 +612,54 @@ class INFO_MT_help(Menu):
         layout.operator("wm.splash", icon='BLENDER')
 
 
+class TOPBAR_MT_file_specials(Menu):
+    bl_label = "File Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.link", text="Link", icon='LINK_BLEND')
+        layout.operator("wm.append", text="Append", icon='APPEND_BLEND')
+
+        layout.separator()
+
+        layout.menu("INFO_MT_file_import", icon='IMPORT')
+        layout.menu("INFO_MT_file_export", icon='EXPORT')
+
+
+class TOPBAR_MT_window_specials(Menu):
+    bl_label = "Window Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'EXEC_AREA'
+
+        layout.operator("wm.window_new")
+
+        layout.operator_context = 'INVOKE_AREA'
+
+        layout.operator("screen.area_dupli")
+
+        layout.separator()
+
+        layout.operator("screen.area_split", text="Horizontal Split").direction = 'HORIZONTAL'
+        layout.operator("screen.area_split", text="Vertical Split").direction = 'VERTICAL'
+
+        layout.separator()
+
+        layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
+
+
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
     TOPBAR_PT_pivot_point,
     TOPBAR_PT_snapping,
+    TOPBAR_PT_transform_orientations,
+    TOPBAR_MT_file_specials,
+    TOPBAR_MT_window_specials,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,

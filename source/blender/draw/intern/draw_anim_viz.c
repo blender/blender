@@ -348,4 +348,3 @@ DrawEngineType draw_engine_motion_path_type = {
 	NULL,
 	NULL,
 };
-

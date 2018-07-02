@@ -36,7 +36,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_DerivedMesh.h"
+#include "DNA_meshdata_types.h"
+
 #include "BKE_mesh.h"
 
 #include "bmesh.h"

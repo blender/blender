@@ -50,7 +50,7 @@
 
 /*********************** Add modifier operator *************************/
 
-static int strip_modifier_active_poll(bContext *C)
+static bool strip_modifier_active_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -281,4 +281,3 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, SEQ_MODIFIER_COPY_REPLACE, "Type", "");
 }
-

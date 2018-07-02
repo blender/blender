@@ -292,7 +292,9 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(newname, value, sizeof(pchan->name));
 	BLI_strncpy(oldname, pchan->name, sizeof(pchan->name));
 
-	ED_armature_bone_rename(G.main, ob->data, oldname, newname);
+	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
+	BLI_assert(BKE_id_is_in_gobal_main(ob->data));
+	ED_armature_bone_rename(G_MAIN, ob->data, oldname, newname);
 }
 
 static int rna_PoseChannel_has_ik_get(PointerRNA *ptr)
@@ -568,9 +570,11 @@ static void rna_PoseChannel_constraints_remove(
 }
 
 bool rna_PoseChannel_constraints_override_apply(
+        Main *UNUSED(bmain),
         PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
         PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
         const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        PointerRNA *UNUSED(ptr_item_dst), PointerRNA *UNUSED(ptr_item_src), PointerRNA *UNUSED(ptr_item_storage),
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&

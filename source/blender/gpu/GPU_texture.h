@@ -32,6 +32,8 @@
 #ifndef __GPU_TEXTURE_H__
 #define __GPU_TEXTURE_H__
 
+#include "GPU_state.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -166,7 +168,10 @@ GPUTexture *GPU_texture_from_blender(
         struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data, double time);
 GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
 
-void GPU_texture_update(GPUTexture *tex, const float *pixels);
+void GPU_texture_update(GPUTexture *tex, const void *pixels);
+void GPU_texture_update_sub(
+        GPUTexture *tex, const void *pixels,
+        int offset_x, int offset_y, int offset_z, int width, int height, int depth);
 
 void GPU_invalid_tex_init(void);
 void GPU_invalid_tex_bind(int mode);
@@ -189,6 +194,7 @@ void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
 void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat);
+void GPU_texture_filters(GPUTexture *tex, GPUFilterFunction min_filter, GPUFilterFunction mag_filter);
 
 void GPU_texture_attach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb, int attachment);
 int GPU_texture_detach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb);

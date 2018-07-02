@@ -47,6 +47,8 @@
 #include "BKE_screen.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -63,6 +65,7 @@
 #include "ED_markers.h"
 
 #include "action_intern.h"  /* own include */
+#include "GPU_framebuffer.h"
 
 /* ******************** manage regions ********************* */
 
@@ -102,6 +105,7 @@ static SpaceLink *action_new(const ScrArea *sa, const Scene *scene)
 
 	saction->autosnap = SACTSNAP_FRAME;
 	saction->mode = SACTCONT_DOPESHEET;
+	saction->mode_prev = SACTCONT_DOPESHEET;
 
 	saction->ads.filterflag |= ADS_FILTER_SUMMARY;
 
@@ -223,7 +227,7 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 	UI_view2d_view_ortho(v2d);
 
@@ -309,7 +313,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear(GPU_COLOR_BIT);
 
 	UI_view2d_view_ortho(v2d);
 
@@ -835,6 +839,37 @@ static void action_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, I
 
 }
 
+/**
+ * \note Used for splitting out a subset of modes is more involved,
+ * The previous non-timeline mode is stored so switching back to the
+ * dope-sheet doesn't always reset the sub-mode.
+ */
+static int action_space_subtype_get(ScrArea *sa)
+{
+	SpaceAction *sact = sa->spacedata.first;
+	return sact->mode == SACTCONT_TIMELINE ? SACTCONT_TIMELINE : SACTCONT_DOPESHEET;
+}
+
+static void action_space_subtype_set(ScrArea *sa, int value)
+{
+	SpaceAction *sact = sa->spacedata.first;
+	if (value == SACTCONT_TIMELINE) {
+		if (sact->mode != SACTCONT_TIMELINE) {
+			sact->mode_prev = sact->mode;
+		}
+		sact->mode = value;
+	}
+	else {
+		sact->mode = sact->mode_prev;
+	}
+}
+
+static void action_space_subtype_item_extend(
+        bContext *UNUSED(C), EnumPropertyItem **item, int *totitem)
+{
+	RNA_enum_items_add(item, totitem, rna_enum_space_action_mode_items);
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_action(void)
 {
@@ -853,6 +888,9 @@ void ED_spacetype_action(void)
 	st->listener = action_listener;
 	st->refresh = action_refresh;
 	st->id_remap = action_id_remap;
+	st->space_subtype_item_extend = action_space_subtype_item_extend;
+	st->space_subtype_get = action_space_subtype_get;
+	st->space_subtype_set = action_space_subtype_set;
 
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype action region");

@@ -1651,7 +1651,7 @@ void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)
 	}
 }
 
-void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
+void RNA_def_property_boolean_default(PropertyRNA *prop, bool value)
 {
 	StructRNA *srna = DefRNA.laststruct;
 
@@ -1670,7 +1670,7 @@ void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
 	}
 }
 
-void RNA_def_property_boolean_array_default(PropertyRNA *prop, const int *array)
+void RNA_def_property_boolean_array_default(PropertyRNA *prop, const bool *array)
 {
 	StructRNA *srna = DefRNA.laststruct;
 
@@ -2665,7 +2665,7 @@ void RNA_def_py_data(PropertyRNA *prop, void *py_data)
 
 /* Compact definitions */
 
-PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier, int default_value,
+PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier, bool default_value,
                              const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -2678,7 +2678,7 @@ PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier,
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value,
+PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *identifier, int len, bool *default_value,
                                    const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -2692,7 +2692,7 @@ PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *ident
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value,
+PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_, const char *identifier, int len, bool *default_value,
                                    const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -2707,7 +2707,7 @@ PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_, const char *ident
 }
 
 PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont_, const char *identifier, int len,
-                                          int *default_value, const char *ui_name, const char *ui_description)
+                                          bool *default_value, const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
@@ -2720,7 +2720,7 @@ PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont_, const char
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value,
+PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, bool *default_value,
                                     const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
@@ -3259,6 +3259,7 @@ int rna_parameter_size(PropertyRNA *parm)
 	if (len > 0) {
 		switch (ptype) {
 			case PROP_BOOLEAN:
+				return sizeof(bool) * len;
 			case PROP_INT:
 				return sizeof(int) * len;
 			case PROP_FLOAT:
@@ -3270,6 +3271,7 @@ int rna_parameter_size(PropertyRNA *parm)
 	else {
 		switch (ptype) {
 			case PROP_BOOLEAN:
+				return sizeof(bool);
 			case PROP_INT:
 			case PROP_ENUM:
 				return sizeof(int);
@@ -3430,9 +3432,6 @@ void RNA_def_func_free_pointers(FunctionRNA *func)
 void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 {
 	ContainerRNA *cont = cont_;
-	EnumPropertyItem *earray;
-	float *farray;
-	int *iarray;
 	int a;
 
 	/* annoying since we just added this to a hash, could make this add the correct key to the hash
@@ -3447,8 +3446,12 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 		}
 	}
 
-	if (prop->name) prop->name = BLI_strdup(prop->name);
-	if (prop->description) prop->description = BLI_strdup(prop->description);
+	if (prop->name) {
+		prop->name = BLI_strdup(prop->name);
+	}
+	if (prop->description) {
+		prop->description = BLI_strdup(prop->description);
+	}
 
 	switch (prop->type) {
 		case PROP_BOOLEAN:
@@ -3456,9 +3459,9 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
 			if (bprop->defaultarray) {
-				iarray = MEM_callocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
-				memcpy(iarray, bprop->defaultarray, sizeof(int) * prop->totarraylength);
-				bprop->defaultarray = iarray;
+				bool *array = MEM_mallocN(sizeof(bool) * prop->totarraylength, "RNA_def_property_store");
+				memcpy(array, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
+				bprop->defaultarray = array;
 			}
 			break;
 		}
@@ -3467,9 +3470,9 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
 			if (iprop->defaultarray) {
-				iarray = MEM_callocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
-				memcpy(iarray, iprop->defaultarray, sizeof(int) * prop->totarraylength);
-				iprop->defaultarray = iarray;
+				int *array = MEM_mallocN(sizeof(int) * prop->totarraylength, "RNA_def_property_store");
+				memcpy(array, iprop->defaultarray, sizeof(int) * prop->totarraylength);
+				iprop->defaultarray = array;
 			}
 			break;
 		}
@@ -3478,17 +3481,20 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
 			if (eprop->item) {
-				earray = MEM_callocN(sizeof(EnumPropertyItem) * (eprop->totitem + 1), "RNA_def_property_store");
-				memcpy(earray, eprop->item, sizeof(EnumPropertyItem) * (eprop->totitem + 1));
-				eprop->item = earray;
+				EnumPropertyItem *array = MEM_mallocN(sizeof(EnumPropertyItem) * (eprop->totitem + 1), "RNA_def_property_store");
+				memcpy(array, eprop->item, sizeof(EnumPropertyItem) * (eprop->totitem + 1));
+				eprop->item = array;
 
 				for (a = 0; a < eprop->totitem; a++) {
-					if (earray[a].identifier)
-						earray[a].identifier = BLI_strdup(earray[a].identifier);
-					if (earray[a].name)
-						earray[a].name = BLI_strdup(earray[a].name);
-					if (earray[a].description)
-						earray[a].description = BLI_strdup(earray[a].description);
+					if (array[a].identifier) {
+						array[a].identifier = BLI_strdup(array[a].identifier);
+					}
+					if (array[a].name) {
+						array[a].name = BLI_strdup(array[a].name);
+					}
+					if (array[a].description) {
+						array[a].description = BLI_strdup(array[a].description);
+					}
 				}
 			}
 			break;
@@ -3498,9 +3504,9 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
 			if (fprop->defaultarray) {
-				farray = MEM_callocN(sizeof(float) * prop->totarraylength, "RNA_def_property_store");
-				memcpy(farray, fprop->defaultarray, sizeof(float) * prop->totarraylength);
-				fprop->defaultarray = farray;
+				float *array = MEM_mallocN(sizeof(float) * prop->totarraylength, "RNA_def_property_store");
+				memcpy(array, fprop->defaultarray, sizeof(float) * prop->totarraylength);
+				fprop->defaultarray = array;
 			}
 			break;
 		}

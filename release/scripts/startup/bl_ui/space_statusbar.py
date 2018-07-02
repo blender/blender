@@ -25,38 +25,14 @@ class STATUSBAR_HT_header(Header):
     bl_space_type = 'STATUSBAR'
 
     def draw(self, context):
-        area = context.area
-        region = context.region
-
-        if region.alignment == 'RIGHT':
-            if region == area.regions[0]:
-                self.draw_right(context)
-            else:
-                self.draw_center(context)
-        else:
-            self.draw_left(context)
-
-    def draw_left(self, context):
         layout = self.layout
 
-        row = layout.row(align=True)
-        if (bpy.data.filepath):
-            row.label(text=bpy.data.filepath, translate=False)
-        if bpy.data.is_dirty:
-            row.label("(Modified)")
+        # input status
+        layout.template_input_status()
 
-    def draw_center(self, context):
-        layout = self.layout
+        layout.separator_spacer()
 
-        scene = context.scene
-        view_layer = context.view_layer
-
-        layout.label(text=scene.statistics(view_layer), translate=False)
-
-    def draw_right(self, context):
-        layout = self.layout
-
-        layout.template_running_jobs()
+        # messages
         layout.template_reports_banner()
 
         row = layout.row(align=True)
@@ -70,7 +46,16 @@ class STATUSBAR_HT_header(Header):
 
             # include last so text doesn't push buttons out of the header
             row.label(bpy.app.autoexec_fail_message)
-            return
+
+        layout.template_running_jobs()
+
+        layout.separator_spacer()
+
+        # stats
+        scene = context.scene
+        view_layer = context.view_layer
+
+        layout.label(text=scene.statistics(view_layer), translate=False)
 
 
 classes = (

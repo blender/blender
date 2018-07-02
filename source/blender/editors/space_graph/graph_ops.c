@@ -67,7 +67,7 @@
  *	2) Value Indicator (stored per Graph Editor instance)
  */
 
-static int graphview_cursor_poll(bContext *C)
+static bool graphview_cursor_poll(bContext *C)
 {
 	/* prevent changes during render */
 	if (G.is_rendering)

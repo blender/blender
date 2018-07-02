@@ -46,17 +46,19 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
 static void deformVerts(
-        ModifierData *md, const ModifierEvalContext *ctx,
+        ModifierData *UNUSED(md), const ModifierEvalContext *ctx,
         Mesh *UNUSED(derivedData),
         float (*vertexCos)[3],
         int numVerts)
 {
-	sbObjectStep(ctx->depsgraph, md->scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, numVerts);
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+	sbObjectStep(ctx->depsgraph, scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, numVerts);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
@@ -68,9 +70,8 @@ static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgr
 {
 	if (ctx->object->soft) {
 		/* Actual code uses ccd_build_deflector_hash */
-		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, ctx->object->soft->collision_group, eModifierType_Collision, NULL, false, "Softbody Collision");
-
-		DEG_add_forcefield_relations(ctx->node, ctx->scene, ctx->object, ctx->object->soft->effector_weights, true, 0, "Softbody Field");
+		DEG_add_collision_relations(ctx->node, ctx->object, ctx->object->soft->collision_group, eModifierType_Collision, NULL, "Softbody Collision");
+		DEG_add_forcefield_relations(ctx->node, ctx->object, ctx->object->soft->effector_weights, true, 0, "Softbody Field");
 	}
 }
 

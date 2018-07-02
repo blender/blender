@@ -56,21 +56,8 @@ static SpaceLink *statusbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED
 	sstatusbar = MEM_callocN(sizeof(*sstatusbar), "init statusbar");
 	sstatusbar->spacetype = SPACE_STATUSBAR;
 
-	/* header regions */
-	/* *** NOTE: ***
-	 * Python layout code (space_statusbar.py) depends on the list order of
-	 * these! Not nice at all, but the only way to identify the correct header
-	 * to draw to is using alignment + list position. It can't use alignment
-	 * only since code below has to set two right aligned regions - XXX. */
-	ar = MEM_callocN(sizeof(*ar), "right aligned header for statusbar");
-	BLI_addtail(&sstatusbar->regionbase, ar);
-	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_RIGHT;
-	ar = MEM_callocN(sizeof(*ar), "center header for statusbar");
-	BLI_addtail(&sstatusbar->regionbase, ar);
-	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_RIGHT; /* Right aligned too, so region layout code scales it correctly. */
-	ar = MEM_callocN(sizeof(*ar), "left aligned header for statusbar");
+	/* header region */
+	ar = MEM_callocN(sizeof(*ar), "header for statusbar");
 	BLI_addtail(&sstatusbar->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_NONE;
@@ -128,7 +115,7 @@ static void statusbar_header_region_listener(
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SCREEN:
-			if (ELEM(wmn->data, ND_LAYER, ND_SCREENCAST, ND_ANIMPLAY)) {
+			if (ELEM(wmn->data, ND_LAYER, ND_ANIMPLAY)) {
 				ED_region_tag_redraw(ar);
 			}
 			break;
@@ -186,7 +173,7 @@ void ED_spacetype_statusbar(void)
 	/* regions: header window */
 	art = MEM_callocN(sizeof(*art), "spacetype statusbar header region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->prefsizey = HEADERY;
+	art->prefsizey = 0.8f * HEADERY;
 	art->prefsizex = UI_UNIT_X * 5; /* Mainly to avoid glitches */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	art->init = statusbar_header_region_init;

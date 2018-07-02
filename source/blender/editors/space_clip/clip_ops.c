@@ -468,7 +468,7 @@ static void view_pan_cancel(bContext *C, wmOperator *op)
 void CLIP_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "View Pan";
+	ot->name = "Pan View";
 	ot->idname = "CLIP_OT_view_pan";
 	ot->description = "Pan the view";
 
@@ -899,7 +899,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 
 /********************** change frame operator *********************/
 
-static int change_frame_poll(bContext *C)
+static bool change_frame_poll(bContext *C)
 {
 	/* prevent changes during render */
 	if (G.is_rendering)

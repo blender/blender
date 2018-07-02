@@ -242,4 +242,3 @@ bool GHOST_Window::getModifiedState()
 {
 	return m_isUnsavedChanges;
 }
-

@@ -325,7 +325,8 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 	);
 
 	HDC  mHDC = GetDC(wnd);
-
+	HDC  prev_hdc = wglGetCurrentDC();
+	HGLRC prev_context = wglGetCurrentContext();
 #if defined(WITH_GL_PROFILE_CORE)
 	for (int minor = 5; minor >= 0; --minor) {
 			context = new GHOST_ContextWGL(
@@ -337,7 +338,7 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 			    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
 			if (context->initializeDrawingContext()) {
-				return context;
+				goto finished;
 			}
 			else {
 				delete context;
@@ -353,7 +354,7 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 		    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
 		if (context->initializeDrawingContext()) {
-			return context;
+			goto finished;
 		}
 		else {
 			MessageBox(
@@ -386,8 +387,9 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 #else
 #  error // must specify either core or compat at build time
 #endif
-
-	return NULL;
+finished:
+	wglMakeCurrent(prev_hdc, prev_context);
+	return context;
 }
 
 /**

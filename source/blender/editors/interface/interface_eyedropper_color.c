@@ -319,7 +319,7 @@ static int eyedropper_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int eyedropper_poll(bContext *C)
+static bool eyedropper_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;

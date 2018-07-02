@@ -315,7 +315,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional (assumes never disabled if not present).
 	 */
-	bool (*isDisabled)(struct ModifierData *md, int userRenderParams);
+	bool (*isDisabled)(const struct Scene *scene, struct ModifierData *md, int userRenderParams);
 
 	/* Add the appropriate relations to the dependency graph.
 	 *
@@ -397,7 +397,7 @@ bool          modifier_couldBeCage(struct Scene *scene, struct ModifierData *md)
 bool          modifier_isCorrectableDeformed(struct ModifierData *md);
 bool          modifier_isSameTopology(ModifierData *md);
 bool          modifier_isNonGeometrical(ModifierData *md);
-bool          modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
+bool          modifier_isEnabled(const struct Scene *scene, struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
 bool          modifier_isPreview(struct ModifierData *md);
 
@@ -561,4 +561,3 @@ struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(
         struct Object *ob_eval, bool *r_free_mesh);
 
 #endif
-

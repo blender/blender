@@ -54,7 +54,7 @@ void draw_image_grease_pencil(struct bContext *C, bool onlyv2d);
 void draw_image_sample_line(struct SpaceImage *sima);
 
 /* image_ops.c */
-int space_image_main_region_poll(struct bContext *C);
+bool space_image_main_region_poll(struct bContext *C);
 
 void IMAGE_OT_view_all(struct wmOperatorType *ot);
 void IMAGE_OT_view_pan(struct wmOperatorType *ot);
@@ -104,4 +104,3 @@ void IMAGE_OT_properties(struct wmOperatorType *ot);
 void IMAGE_OT_toolshelf(struct wmOperatorType *ot);
 
 #endif /* __IMAGE_INTERN_H__ */
-

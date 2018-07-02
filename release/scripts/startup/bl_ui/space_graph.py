@@ -19,15 +19,17 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Header, Menu
+from bpy.types import Header, Menu, Panel
+from .space_dopesheet import (
+    DopesheetFilterPopoverBase,
+    dopesheet_filter,
+)
 
 
 class GRAPH_HT_header(Header):
     bl_space_type = 'GRAPH_EDITOR'
 
     def draw(self, context):
-        from .space_dopesheet import dopesheet_filter
-
         layout = self.layout
         toolsettings = context.tool_settings
 
@@ -36,11 +38,10 @@ class GRAPH_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        layout.prop(st, "mode", text="")
+        # Now a exposed as a sub-space type
+        # layout.prop(st, "mode", text="")
 
         GRAPH_MT_editor_menus.draw_collapsible(context, layout)
-
-        dopesheet_filter(layout, context)
 
         row = layout.row(align=True)
         row.prop(st, "use_normalization", icon='NORMALIZE_FCURVES', text="Normalize", toggle=True)
@@ -50,13 +51,30 @@ class GRAPH_HT_header(Header):
 
         layout.separator_spacer()
 
+        dopesheet_filter(layout, context)
+
+        row = layout.row(align=True)
+        if st.has_ghost_curves:
+            row.operator("graph.ghost_curves_clear", text="", icon='GHOST_DISABLED')
+        else:
+            row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
+
+        layout.popover(
+            space_type='GRAPH_EDITOR',
+            region_type='HEADER',
+            panel_type="GRAPH_PT_filters",
+            text="",
+            icon='FILTER',
+        )
+
+        layout.prop(st, "auto_snap", text="")
+
         row = layout.row(align=True)
         row.prop(toolsettings, "use_proportional_fcurve", text="", icon_only=True)
         sub = row.row(align=True)
         sub.active = toolsettings.use_proportional_fcurve
         sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
-        layout.prop(st, "auto_snap", text="")
         layout.prop(st, "pivot_point", icon_only=True)
 
         row = layout.row(align=True)
@@ -64,11 +82,20 @@ class GRAPH_HT_header(Header):
         row.operator("graph.paste", text="", icon='PASTEDOWN')
         row.operator("graph.paste", text="", icon='PASTEFLIPDOWN').flipped = True
 
-        row = layout.row(align=True)
-        if st.has_ghost_curves:
-            row.operator("graph.ghost_curves_clear", text="", icon='GHOST_DISABLED')
-        else:
-            row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
+
+class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):
+    bl_space_type = 'GRAPH_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Filters"
+
+    def draw(self, context):
+        layout = self.layout
+
+        DopesheetFilterPopoverBase.draw_generic_filters(context, layout)
+        layout.separator()
+        DopesheetFilterPopoverBase.draw_search_filters(context, layout)
+        layout.separator()
+        DopesheetFilterPopoverBase.draw_standard_filters(context, layout)
 
 
 class GRAPH_MT_editor_menus(Menu):
@@ -381,6 +408,7 @@ classes = (
     GRAPH_MT_delete,
     GRAPH_MT_specials,
     GRAPH_MT_channel_specials,
+    GRAPH_PT_filters,
 )
 
 if __name__ == "__main__":  # only for live edit.

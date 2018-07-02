@@ -35,8 +35,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_colormanagement.h"
 
-//#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
@@ -46,7 +46,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
@@ -118,7 +117,7 @@ static void wpaint_prev_destroy(struct WPaintPrev *wpp)
 /** \name Weight from Bones Operator
  * \{ */
 
-static int weight_from_bones_poll(bContext *C)
+static bool weight_from_bones_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
@@ -152,8 +151,9 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight from Bones";
 	ot->idname = "PAINT_OT_weight_from_bones";
-	ot->description = "Set the weights of the groups matching the attached armature's selected bones, "
-	                  "using the distance between the vertices and the bones";
+	ot->description = (
+	        "Set the weights of the groups matching the attached armature's selected bones, "
+	        "using the distance between the vertices and the bones");
 
 	/* api callbacks */
 	ot->exec = weight_from_bones_exec;
@@ -644,9 +644,10 @@ static void gradientVertInit__mapFunc(
 
 		if (BLI_BITMAP_TEST(grad_data->vert_visit, index) == 0) {
 			WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
-			if (ED_view3d_project_float_object(grad_data->ar,
-			                                   co, vs->sco,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+			if (ED_view3d_project_float_object(
+			            grad_data->ar,
+			            co, vs->sco,
+			            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 			{
 				/* ok */
 				MDeformVert *dv = &me->dvert[index];

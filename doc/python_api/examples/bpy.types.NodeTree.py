@@ -21,4 +21,5 @@ class CyclesNodeTree(bpy.types.NodeTree):
     def poll(cls, context):
         return context.scene.render.engine == 'CYCLES'
 
+
 bpy.utils.register_class(CyclesNodeTree)

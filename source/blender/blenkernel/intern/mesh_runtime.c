@@ -44,10 +44,6 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 
-#ifdef USE_DERIVEDMESH
-#include "BKE_DerivedMesh.h"
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils
  * \{ */
@@ -224,5 +220,153 @@ void BKE_mesh_batch_cache_free(Mesh *me)
 		BKE_mesh_batch_cache_free_cb(me);
 	}
 }
+
+/** \} */
+
+/** \name Mesh runtime debug helpers.
+ * \{ */
+/* evaluated mesh info printing function,
+ * to help track down differences output */
+
+#ifndef NDEBUG
+#include "BLI_dynstr.h"
+
+static void mesh_runtime_debug_info_layers(
+        DynStr *dynstr, CustomData *cd)
+{
+	int type;
+
+	for (type = 0; type < CD_NUMTYPES; type++) {
+		if (CustomData_has_layer(cd, type)) {
+			/* note: doesnt account for multiple layers */
+			const char *name = CustomData_layertype_name(type);
+			const int size = CustomData_sizeof(type);
+			const void *pt = CustomData_get_layer(cd, type);
+			const int pt_size = pt ? (int)(MEM_allocN_len(pt) / size) : 0;
+			const char *structname;
+			int structnum;
+			CustomData_file_write_info(type, &structname, &structnum);
+			BLI_dynstr_appendf(dynstr,
+			                   "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+			                   name, structname, type, (const void *)pt, size, pt_size);
+		}
+	}
+}
+
+char *BKE_mesh_runtime_debug_info(Mesh *me_eval)
+{
+	DynStr *dynstr = BLI_dynstr_new();
+	char *ret;
+
+	BLI_dynstr_appendf(dynstr, "{\n");
+	BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)me_eval);
+#if 0
+	const char *tstr;
+	switch (me_eval->type) {
+		case DM_TYPE_CDDM:     tstr = "DM_TYPE_CDDM";     break;
+		case DM_TYPE_EDITBMESH: tstr = "DM_TYPE_EDITMESH";  break;
+		case DM_TYPE_CCGDM:    tstr = "DM_TYPE_CCGDM";     break;
+		default:               tstr = "UNKNOWN";           break;
+	}
+	BLI_dynstr_appendf(dynstr, "    'type': '%s',\n", tstr);
+#endif
+	BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", me_eval->totvert);
+	BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", me_eval->totedge);
+	BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", me_eval->totface);
+	BLI_dynstr_appendf(dynstr, "    'totpoly': %d,\n", me_eval->totpoly);
+	BLI_dynstr_appendf(dynstr, "    'deformed_only': %d,\n", me_eval->runtime.deformed_only);
+
+	BLI_dynstr_appendf(dynstr, "    'vertexLayers': (\n");
+	mesh_runtime_debug_info_layers(dynstr, &me_eval->vdata);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "    'edgeLayers': (\n");
+	mesh_runtime_debug_info_layers(dynstr, &me_eval->edata);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "    'loopLayers': (\n");
+	mesh_runtime_debug_info_layers(dynstr, &me_eval->ldata);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "    'polyLayers': (\n");
+	mesh_runtime_debug_info_layers(dynstr, &me_eval->pdata);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "    'tessFaceLayers': (\n");
+	mesh_runtime_debug_info_layers(dynstr, &me_eval->fdata);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "}\n");
+
+	ret = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return ret;
+}
+
+void BKE_mesh_runtime_debug_print(Mesh *me_eval)
+{
+	char *str = BKE_mesh_runtime_debug_info(me_eval);
+	puts(str);
+	fflush(stdout);
+	MEM_freeN(str);
+}
+
+/* XXX Should go in customdata file? */
+void BKE_mesh_runtime_debug_print_cdlayers(CustomData *data)
+{
+	int i;
+	const CustomDataLayer *layer;
+
+	printf("{\n");
+
+	for (i = 0, layer = data->layers; i < data->totlayer; i++, layer++) {
+
+		const char *name = CustomData_layertype_name(layer->type);
+		const int size = CustomData_sizeof(layer->type);
+		const char *structname;
+		int structnum;
+		CustomData_file_write_info(layer->type, &structname, &structnum);
+		printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+		       name, structname, layer->type, (const void *)layer->data, size, (int)(MEM_allocN_len(layer->data) / size));
+	}
+
+	printf("}\n");
+}
+
+bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
+{
+	const bool do_verbose = true;
+	const bool do_fixes = false;
+
+	bool is_valid = true;
+	bool changed = true;
+
+	if (do_verbose) {
+		printf("MESH: %s\n", me_eval->id.name + 2);
+	}
+
+	is_valid &= BKE_mesh_validate_all_customdata(
+	                &me_eval->vdata, &me_eval->edata, &me_eval->ldata, &me_eval->pdata,
+	                false,  /* setting mask here isn't useful, gives false positives */
+	                do_verbose, do_fixes,
+	                &changed);
+
+	is_valid &= BKE_mesh_validate_arrays(
+	                me_eval,
+	                me_eval->mvert, me_eval->totvert,
+	                me_eval->medge, me_eval->totedge,
+	                me_eval->mface, me_eval->totface,
+	                me_eval->mloop, me_eval->totloop,
+	                me_eval->mpoly, me_eval->totpoly,
+	                me_eval->dvert,
+	                do_verbose, do_fixes,
+	                &changed);
+
+	BLI_assert(changed == false);
+
+	return is_valid;
+}
+
+#endif  /* NDEBUG */
 
 /** \} */

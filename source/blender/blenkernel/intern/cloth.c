@@ -350,7 +350,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int 
 	return 1;
 }
 
-static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
+static int do_step_cloth(Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
 	ClothVertex *verts = NULL;
 	Cloth *cloth;
@@ -375,7 +375,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierD
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = pdInitEffectors(depsgraph, clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
+	effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights);
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH )
 		cloth_update_verts ( ob, clmd, result );
@@ -391,11 +391,11 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierD
 	// TIMEIT_START(cloth_step)
 
 	/* call the solver. */
-	ret = BPH_cloth_solve(ob, framenr, clmd, effectors);
+	ret = BPH_cloth_solve(depsgraph, ob, framenr, clmd, effectors);
 
 	// TIMEIT_END(cloth_step)
 
-	pdEndEffectors(&effectors);
+	BKE_effectors_free(effectors);
 
 	// printf ( "%f\n", ( float ) tval() );
 
@@ -405,7 +405,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierD
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
-void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh, float (*vertexCos)[3])
+void clothModifier_do(ClothModifierData *clmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh, float (*vertexCos)[3])
 {
 	PointCache *cache;
 	PTCacheID pid;
@@ -413,7 +413,6 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	int framenr, startframe, endframe;
 	int cache_result;
 
-	clmd->scene= scene;	/* nice to pass on later :) */
 	framenr = DEG_get_ctime(depsgraph);
 	cache= clmd->point_cache;
 
@@ -1509,4 +1508,3 @@ static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh )
 /***************************************************************************************
  * SPRING NETWORK GWN_BATCH_BUILDING IMPLEMENTATION END
  ***************************************************************************************/
-

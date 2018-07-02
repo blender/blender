@@ -168,4 +168,3 @@ protected:
 };
 
 #endif // __GHOST_WINDOWMANAGER_H__
-

@@ -462,4 +462,3 @@ protected:
 };
 
 #endif // __GHOST_ISYSTEM_H__
-

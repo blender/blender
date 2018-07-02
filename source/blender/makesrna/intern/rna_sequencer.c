@@ -1046,7 +1046,7 @@ static void rna_SequenceModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	BKE_sequence_invalidate_cache_for_modifier(scene, seq);
 }
 
-static int rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene *) ptr->id.data;
 	Editing *ed = BKE_sequencer_editing_get(scene, false);

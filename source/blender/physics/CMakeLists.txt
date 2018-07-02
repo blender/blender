@@ -28,6 +28,7 @@ set(INC
 	intern
 	../blenlib
 	../blenkernel
+	../depsgraph
 	../imbuf
 	../makesdna
 	../../../intern/guardedalloc

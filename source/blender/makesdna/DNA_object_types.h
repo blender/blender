@@ -367,6 +367,7 @@ enum {
 
 /* 23 and 24 are for life and sector (old file compat.) */
 	OB_ARMATURE   = 25,
+	OB_TYPE_MAX,
 };
 
 /* ObjectDisplay.flag */
@@ -603,4 +604,3 @@ enum {
 #endif
 
 #endif
-

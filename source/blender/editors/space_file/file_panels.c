@@ -57,7 +57,7 @@
 
 #include <string.h>
 
-static int file_panel_operator_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool file_panel_operator_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	return (sfile && sfile->op);
@@ -107,4 +107,3 @@ void file_panels_register(ARegionType *art)
 	pt->draw = file_panel_operator;
 	BLI_addtail(&art->paneltypes, pt);
 }
-

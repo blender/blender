@@ -144,4 +144,3 @@ void ColorCorrectionOperation::deinitExecution()
 	this->m_inputImage = NULL;
 	this->m_inputMask = NULL;
 }
-

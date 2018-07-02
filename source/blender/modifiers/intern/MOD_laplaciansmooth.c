@@ -81,7 +81,7 @@ struct BLaplacianSystem {
 typedef struct BLaplacianSystem LaplacianSystem;
 
 static CustomDataMask required_data_mask(Object *ob, ModifierData *md);
-static bool is_disabled(ModifierData *md, int useRenderParams);
+static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, int useRenderParams);
 static float compute_volume(const float center[3], float (*vertexCos)[3], const MPoly *mpoly, int numPolys, const MLoop *mloop);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, int a_numLoops, int a_numVerts);
 static void delete_laplacian_system(LaplacianSystem *sys);
@@ -379,7 +379,7 @@ static void laplaciansmoothModifier_do(
 	sys->medges = mesh->medge;
 	sys->vertexCos = vertexCos;
 	sys->min_area = 0.00001f;
-	modifier_get_vgroup_mesh(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
 	sys->vert_centroid[0] = 0.0f;
 	sys->vert_centroid[1] = 0.0f;
@@ -474,7 +474,7 @@ static void init_data(ModifierData *md)
 	smd->defgrp_name[0] = '\0';
 }
 
-static bool is_disabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
 {
 	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
 	short flag;
@@ -507,7 +507,7 @@ static void deformVerts(
 	if (numVerts == 0)
 		return;
 
-	mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+	mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);
@@ -525,7 +525,7 @@ static void deformVertsEM(
 	if (numVerts == 0)
 		return;
 
-	mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+	mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
 
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);

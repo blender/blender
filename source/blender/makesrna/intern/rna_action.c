@@ -223,7 +223,7 @@ static void rna_Action_frame_range_get(PointerRNA *ptr, float *values)
 
 
 /* used to check if an action (value pointer) is suitable to be assigned to the ID-block that is ptr */
-int rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
+bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 {
 	ID *srcId = (ID *)ptr->id.data;
 	bAction *act = (bAction *)value.id.data;
@@ -243,7 +243,7 @@ int rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 }
 
 /* used to check if an action (value pointer) can be assigned to Action Editor given current mode */
-int rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
+bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceAction *saction = (SpaceAction *)ptr->data;
 	bAction *act = (bAction *)value.id.data;
@@ -326,13 +326,6 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	/* Object Collection Filtering Settings */
-	prop = RNA_def_property(srna, "show_only_collection_objects", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLYOBGROUP);
-	RNA_def_property_ui_text(prop, "Only Objects in Collection",
-	                         "Only include channels from objects in the specified collection");
-	RNA_def_property_ui_icon(prop, ICON_GROUP, 0);
-	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
-
 	prop = RNA_def_property(srna, "filter_collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "filter_grp");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -340,31 +333,19 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	/* FCurve Display Name Search Settings */
-	prop = RNA_def_property(srna, "show_only_matching_fcurves", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_BY_FCU_NAME);
-	RNA_def_property_ui_text(prop, "Only Matching F-Curves",
-	                         "Only include F-Curves with names containing search text");
-	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
-	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
-
 	prop = RNA_def_property(srna, "filter_fcurve_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "searchstr");
 	RNA_def_property_ui_text(prop, "F-Curve Name Filter", "F-Curve live filtering string");
+	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
 	RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	/* NLA Name Search Settings (Shared with FCurve setting, but with different labels) */
-	prop = RNA_def_property(srna, "use_filter_text", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_BY_FCU_NAME);
-	RNA_def_property_ui_text(prop, "Only Matching Channels",
-	                         "Only include channels with names containing search text");
-	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
-	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
-
 	prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "searchstr");
 	RNA_def_property_ui_text(prop, "Name Filter", "Live filtering string");
 	RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
+	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	/* Multi-word fuzzy search option for name/text filters */

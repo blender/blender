@@ -46,7 +46,9 @@ set(SRC
 	screen_context.c
 	screen_draw.c
 	screen_edit.c
+	screen_geometry.c
 	screen_ops.c
+	screen_user_menu.c
 	screendump.c
 	workspace_edit.c
 	workspace_layout_edit.c

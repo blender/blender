@@ -128,4 +128,3 @@ bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input, Read
 
 	return false;
 }
-

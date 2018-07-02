@@ -338,4 +338,3 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
 		sprintf(str, "%s", tstr);
 	}
 }
-

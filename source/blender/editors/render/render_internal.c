@@ -819,7 +819,7 @@ static void screen_render_cancel(bContext *C, wmOperator *op)
 
 static void clean_viewport_memory_base(Base *base)
 {
-	if ((base->flag & BASE_VISIBLED) == 0) {
+	if ((base->flag & BASE_VISIBLE) == 0) {
 		return;
 	}
 

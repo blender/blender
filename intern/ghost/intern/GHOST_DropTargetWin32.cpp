@@ -392,4 +392,3 @@ void printLastError(void)
 	}
 }
 #endif // GHOST_DEBUG
-

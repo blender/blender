@@ -390,4 +390,3 @@ bool GHOST_System::useNativePixel(void)
 	m_nativePixel = true;
 	return 1;
 }
-

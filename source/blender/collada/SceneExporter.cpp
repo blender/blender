@@ -241,4 +241,3 @@ void SceneExporter::writeNodes(bContext *C, Depsgraph *depsgraph, Object *ob, Sc
 	if (ob->type != OB_ARMATURE)
 		colladaNode.end();
 }
-

@@ -48,6 +48,8 @@
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 
 static bool dependsOnNormals(ModifierData *md);
@@ -82,7 +84,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *) md;
 	return !smd->target;
@@ -103,6 +105,7 @@ static void deformVerts(
         float (*vertexCos)[3],
         int numVerts)
 {
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	Mesh *mesh_src = mesh;
 
 	if (mesh_src == NULL) {
@@ -111,7 +114,7 @@ static void deformVerts(
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, scene, ctx->object, mesh_src, vertexCos, numVerts);
 }
 
 static void deformVertsEM(
@@ -119,6 +122,7 @@ static void deformVertsEM(
         struct BMEditMesh *editData, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	Mesh *mesh_src = mesh;
 
 	if (mesh_src == NULL) {
@@ -127,7 +131,7 @@ static void deformVertsEM(
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, scene, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (!mesh) {
 		BKE_id_free(NULL, mesh_src);

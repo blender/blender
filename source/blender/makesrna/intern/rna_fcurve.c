@@ -853,7 +853,7 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 	}
 }
 
-static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, PointerRNA *bezt_ptr, int do_fast)
+static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, PointerRNA *bezt_ptr, bool do_fast)
 {
 	BezTriple *bezt = bezt_ptr->data;
 	int index = (int)(bezt - fcu->bezt);

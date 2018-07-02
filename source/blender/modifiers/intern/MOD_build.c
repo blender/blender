@@ -46,7 +46,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"

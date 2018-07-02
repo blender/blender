@@ -45,9 +45,13 @@
 #include "DEG_depsgraph_build.h"
 
 #include "BKE_collection.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
+#include "BKE_library.h"
 
 #include "WM_api.h"
+
+#include "RNA_access.h"
 
 static void rna_Collection_all_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -87,6 +91,7 @@ static void rna_Collection_objects_link(Collection *collection, Main *bmain, Rep
 		return;
 	}
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
@@ -98,9 +103,54 @@ static void rna_Collection_objects_unlink(Collection *collection, Main *bmain, R
 		return;
 	}
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
+
+static bool rna_Collection_objects_override_apply(
+        Main *bmain,
+        PointerRNA *ptr_dst, PointerRNA *UNUSED(ptr_src), PointerRNA *UNUSED(ptr_storage),
+        PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
+        const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        PointerRNA *ptr_item_dst, PointerRNA *ptr_item_src, PointerRNA *UNUSED(ptr_item_storage),
+        IDOverrideStaticPropertyOperation *opop)
+{
+	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_REPLACE &&
+	           "Unsupported RNA override operation on collections' objects");
+
+	Collection *coll_dst = ptr_dst->id.data;
+
+	if (ptr_item_dst->type == NULL || ptr_item_src->type == NULL) {
+		BLI_assert(0 && "invalid source or destination object.");
+		return false;
+	}
+
+	Object *ob_dst = ptr_item_dst->data;
+	Object *ob_src = ptr_item_src->data;
+
+	CollectionObject *cob_dst = BLI_findptr(&coll_dst->gobject, ob_dst, offsetof(CollectionObject, ob));
+
+	if (cob_dst == NULL) {
+		BLI_assert(0 && "Could not find destination object in destination collection!");
+		return false;
+	}
+
+	/* XXX TODO We most certainly rather want to have a 'swap object pointer in collection' util in BKE_collection...
+	 * This is only temp auick dirty test! */
+	id_us_min(&cob_dst->ob->id);
+	cob_dst->ob = ob_src;
+	id_us_plus(&cob_dst->ob->id);
+
+	if (BKE_collection_is_in_scene(coll_dst)) {
+		BKE_main_collection_sync(bmain);
+	}
+
+	return true;
+}
+
+
+
 
 static void rna_Collection_children_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -124,6 +174,7 @@ static void rna_Collection_children_link(Collection *collection, Main *bmain, Re
 		return;
 	}
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &child->id);
 }
@@ -135,9 +186,53 @@ static void rna_Collection_children_unlink(Collection *collection, Main *bmain, 
 		return;
 	}
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &child->id);
 }
+
+static bool rna_Collection_children_override_apply(
+        Main *bmain,
+        PointerRNA *ptr_dst, PointerRNA *UNUSED(ptr_src), PointerRNA *UNUSED(ptr_storage),
+        PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
+        const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        PointerRNA *ptr_item_dst, PointerRNA *ptr_item_src, PointerRNA *UNUSED(ptr_item_storage),
+        IDOverrideStaticPropertyOperation *opop)
+{
+	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_REPLACE &&
+	           "Unsupported RNA override operation on collections' objects");
+
+	Collection *coll_dst = ptr_dst->id.data;
+
+	if (ptr_item_dst->type == NULL || ptr_item_src->type == NULL) {
+		BLI_assert(0 && "invalid source or destination sub-collection.");
+		return false;
+	}
+
+	Collection *subcoll_dst = ptr_item_dst->data;
+	Collection *subcoll_src = ptr_item_src->data;
+
+	CollectionChild *collchild_dst = BLI_findptr(&coll_dst->children, subcoll_dst, offsetof(CollectionChild, collection));
+
+	if (collchild_dst == NULL) {
+		BLI_assert(0 && "Could not find destination sub-collection in destination collection!");
+		return false;
+	}
+
+	/* XXX TODO We most certainly rather want to have a 'swap object pointer in collection' util in BKE_collection...
+	 * This is only temp auick dirty test! */
+	id_us_min(&collchild_dst->collection->id);
+	collchild_dst->collection = subcoll_src;
+	id_us_plus(&collchild_dst->collection->id);
+
+	BKE_collection_object_cache_free(coll_dst);
+	BKE_main_collection_sync(bmain);
+
+	return true;
+}
+
+
+
 
 static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -145,8 +240,8 @@ static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *pt
 	BKE_collection_object_cache_free(collection);
 	BKE_main_collection_sync(bmain);
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&collection->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 }
 
@@ -228,6 +323,7 @@ void RNA_def_collections(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+	RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Collection_objects_override_apply");
 	RNA_def_property_ui_text(prop, "Objects", "Objects that are directly in this collection");
 	RNA_def_property_collection_funcs(prop, "rna_Collection_objects_begin",
 	                                        "rna_iterator_listbase_next",
@@ -247,6 +343,8 @@ void RNA_def_collections(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "children", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Collection");
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+	RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Collection_children_override_apply");
 	RNA_def_property_ui_text(prop, "Children", "Collections that are immediate children of this collection");
 	RNA_def_property_collection_funcs(prop, "rna_Collection_children_begin",
 	                                        "rna_iterator_listbase_next",
@@ -260,21 +358,21 @@ void RNA_def_collections(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_SELECT);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
-	RNA_def_property_ui_text(prop, "Restrict Select", "Disable collection for viewport selection");
+	RNA_def_property_ui_text(prop, "Disable Select", "Disable collection for viewport selection");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
 	prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_VIEW);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
-	RNA_def_property_ui_text(prop, "Restrict Viewport", "Disable collection in viewport");
+	RNA_def_property_ui_text(prop, "Disable Viewport", "Disable collection in viewport");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
 	prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_RENDER);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	RNA_def_property_ui_text(prop, "Restrict Render", "Disable collection in renders");
+	RNA_def_property_ui_text(prop, "Disable Render", "Disable collection in renders");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 }
 

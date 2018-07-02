@@ -95,4 +95,3 @@ typedef struct rctf {
 } rctf;
 
 #endif
-

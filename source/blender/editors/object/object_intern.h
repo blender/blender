@@ -145,8 +145,8 @@ void COLLECTION_OT_objects_add_active(struct wmOperatorType *ot);
 void COLLECTION_OT_objects_remove_active(struct wmOperatorType *ot);
 
 /* object_modifier.c */
-int edit_modifier_poll_generic(struct bContext *C, struct StructRNA *rna_type, int obtype_flag);
-int edit_modifier_poll(struct bContext *C);
+bool edit_modifier_poll_generic(struct bContext *C, struct StructRNA *rna_type, int obtype_flag);
+bool edit_modifier_poll(struct bContext *C);
 void edit_modifier_properties(struct wmOperatorType *ot);
 int edit_modifier_invoke_properties(struct bContext *C, struct wmOperator *op);
 struct ModifierData *edit_modifier_property_get(struct wmOperator *op, struct Object *ob, int type);
@@ -273,4 +273,3 @@ void OBJECT_OT_data_transfer(struct wmOperatorType *ot);
 void OBJECT_OT_datalayout_transfer(struct wmOperatorType *ot);
 
 #endif /* __OBJECT_INTERN_H__ */
-

@@ -65,6 +65,7 @@
 #include "file_intern.h"    // own include
 #include "fsmenu.h"
 #include "filelist.h"
+#include "GPU_framebuffer.h"
 
 /* ******************** default callbacks for file space ***************** */
 
@@ -408,8 +409,8 @@ static void file_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear_color(col[0], col[1], col[2], 0.0);
+	GPU_clear(GPU_COLOR_BIT);
 
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
 
@@ -505,6 +506,7 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", HKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.params.show_hidden");
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
@@ -687,8 +689,8 @@ static void file_ui_region_draw(const bContext *C, ARegion *ar)
 	float col[3];
 	/* clear */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GPU_clear_color(col[0], col[1], col[2], 0.0);
+	GPU_clear(GPU_COLOR_BIT);
 
 	/* scrolling here is just annoying, disable it */
 	ar->v2d.cur.ymax = BLI_rctf_size_y(&ar->v2d.cur);
@@ -719,7 +721,7 @@ static void file_ui_region_listener(
 	}
 }
 
-static int filepath_drop_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
+static bool filepath_drop_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_PATH) {
 		SpaceFile *sfile = CTX_wm_space_file(C);
@@ -854,4 +856,3 @@ void ED_file_read_bookmarks(void)
 		fsmenu_read_bookmarks(ED_fsmenu_get(), name);
 	}
 }
-

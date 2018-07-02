@@ -69,4 +69,3 @@ bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c
 #endif
 
 #endif /* __BLI_MATH_SOLVERS_H__ */
-

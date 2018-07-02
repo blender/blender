@@ -57,7 +57,7 @@
 #define PAINT_CURVE_SELECT_THRESHOLD 40.0f
 #define PAINT_CURVE_POINT_SELECT(pcp, i) (*(&pcp->bez.f1 + i) = SELECT)
 
-int paint_curve_poll(bContext *C)
+bool paint_curve_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	Paint *p;
@@ -605,8 +605,9 @@ static int paintcurve_slide_modal(bContext *C, wmOperator *op, const wmEvent *ev
 		{
 			ARegion *ar = CTX_wm_region(C);
 			wmWindow *window = CTX_wm_window(C);
-			float diff[2] = {event->mval[0] - psd->initial_loc[0],
-			                 event->mval[1] - psd->initial_loc[1]};
+			float diff[2] = {
+				event->mval[0] - psd->initial_loc[0],
+				event->mval[1] - psd->initial_loc[1]};
 			if (psd->select == 1) {
 				int i;
 				for (i = 0; i < 3; i++)
@@ -714,7 +715,7 @@ static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const w
 			break;
 		}
 		default:
-			ED_view3d_cursor3d_update(C, event->mval);
+			ED_view3d_cursor3d_update(C, event->mval, true, V3D_CURSOR_ORIENT_VIEW);
 			break;
 	}
 

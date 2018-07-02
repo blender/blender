@@ -38,4 +38,3 @@ void	rect_copy			(int dst[2][2], int src[2][2]);
 int		rect_contains_pt	(int rect[2][2], int pt[2]);
 int		rect_width			(int rect[2][2]);
 int		rect_height			(int rect[2][2]);
-
