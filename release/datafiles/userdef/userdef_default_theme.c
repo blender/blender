@@ -43,7 +43,7 @@ const bTheme U_theme_default = {
 			.outline = RGBA(0x191919ff),
 			.inner = RGBA(0x585858ff),
 			.inner_sel = RGBA(0x333333ff),
-			.item = RGBA(0x191919ff),
+			.item = RGBA(0xffffff8f),
 			.text = RGBA(0xffffffff),
 			.text_sel = RGBA(0xffffffff),
 			.roundness = 0.25f,
@@ -154,7 +154,7 @@ const bTheme U_theme_default = {
 		},
 		.wcol_menu_item = {
 			.inner_sel = RGBA(0x5680c2ff),
-			.item = RGBA(0xacacac80),
+			.item = RGBA(0xffffff8f),
 			.text = RGBA(0xeeeeeeff),
 			.text_sel = RGBA(0xffffffff),
 			.shadetop = 38,

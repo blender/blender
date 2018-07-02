@@ -1961,9 +1961,12 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 	/* part text right aligned */
 	if (drawstr_right) {
+		const char *col = but->block->flag & (UI_BLOCK_LOOP | UI_BLOCK_SHOW_SHORTCUT_ALWAYS) ?
+		                      wcol->item : wcol->text;
+
 		fstyle->align = UI_STYLE_TEXT_RIGHT;
 		rect->xmax -= UI_TEXT_CLIP_MARGIN;
-		UI_fontstyle_draw(fstyle, rect, drawstr_right, (unsigned char *)wcol->text);
+		UI_fontstyle_draw(fstyle, rect, drawstr_right, (const uchar *)col);
 	}
 }
 
