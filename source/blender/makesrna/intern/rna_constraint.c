@@ -399,7 +399,7 @@ static void rna_SplineIKConstraint_joint_bindings_set(PointerRNA *ptr, const flo
 	memcpy(ikData->points, values, ikData->numpoints * sizeof(float));
 }
 
-static int rna_Constraint_cameraObject_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_Constraint_cameraObject_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object *)value.data;
 
@@ -446,7 +446,7 @@ static void rna_Constraint_followTrack_depthObject_set(PointerRNA *ptr, PointerR
 	}
 }
 
-static int rna_Constraint_followTrack_depthObject_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_Constraint_followTrack_depthObject_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object *)value.data;
 

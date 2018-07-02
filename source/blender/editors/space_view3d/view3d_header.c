@@ -200,7 +200,7 @@ static int view3d_layers_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_layers_poll(bContext *C)
+static bool view3d_layers_poll(bContext *C)
 {
 	return (ED_operator_view3d_active(C) && CTX_wm_view3d(C)->localvd == NULL);
 }

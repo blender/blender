@@ -1384,7 +1384,7 @@ DerivedMesh *EDBM_mesh_deform_dm_get(BMEditMesh *em)
  * \{ */
 
 /* poll call for mesh operators requiring a view3d context */
-int EDBM_view3d_poll(bContext *C)
+bool EDBM_view3d_poll(bContext *C)
 {
 	if (ED_operator_editmesh(C) && ED_operator_view3d_active(C)) {
 		return 1;

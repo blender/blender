@@ -48,7 +48,7 @@
 #include "paint_intern.h"  /* own include */
 
 
-static int vertex_weight_paint_mode_poll(bContext *C)
+static bool vertex_weight_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = BKE_mesh_from_object(ob);

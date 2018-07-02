@@ -320,7 +320,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 	return OPERATOR_FINISHED;
 }
 
-static int pose_select_linked_poll(bContext *C)
+static bool pose_select_linked_poll(bContext *C)
 {
 	return (ED_operator_view3d_active(C) && ED_operator_posemode(C));
 }

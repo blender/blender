@@ -654,7 +654,7 @@ void MESH_OT_navmesh_face_add(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int navmesh_obmode_data_poll(bContext *C)
+static bool navmesh_obmode_data_poll(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
@@ -664,7 +664,7 @@ static int navmesh_obmode_data_poll(bContext *C)
 	return false;
 }
 
-static int navmesh_obmode_poll(bContext *C)
+static bool navmesh_obmode_poll(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {

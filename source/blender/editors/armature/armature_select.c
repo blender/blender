@@ -251,7 +251,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
 	return OPERATOR_FINISHED;
 }
 
-static int armature_select_linked_poll(bContext *C)
+static bool armature_select_linked_poll(bContext *C)
 {
 	return (ED_operator_view3d_active(C) && ED_operator_editarmature(C));
 }

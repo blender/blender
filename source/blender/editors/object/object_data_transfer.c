@@ -445,7 +445,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
 /* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
 /* Note this context poll is only really partial, it cannot check for all possible invalid cases. */
-static int data_transfer_poll(bContext *C)
+static bool data_transfer_poll(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -613,7 +613,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
  *       or as a DataTransfer modifier tool.
  */
 
-static int datalayout_transfer_poll(bContext *C)
+static bool datalayout_transfer_poll(bContext *C)
 {
 	return (edit_modifier_poll_generic(C, &RNA_DataTransferModifier, (1 << OB_MESH)) || data_transfer_poll(C));
 }

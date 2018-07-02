@@ -195,7 +195,7 @@ static void gp_session_validatebuffer(tGPsdata *p);
 /* Context Wrangling... */
 
 /* check if context is suitable for drawing */
-static int gpencil_draw_poll(bContext *C)
+static bool gpencil_draw_poll(bContext *C)
 {
 	if (ED_operator_regionactive(C)) {
 		/* check if current context can support GPencil data */

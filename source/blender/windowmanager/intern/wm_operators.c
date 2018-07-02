@@ -1265,7 +1265,7 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFor
 }
 
 /* op->poll */
-int WM_operator_winactive(bContext *C)
+bool WM_operator_winactive(bContext *C)
 {
 	if (CTX_wm_window(C) == NULL) return 0;
 	return 1;
@@ -2028,7 +2028,7 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 }
 
 /* op->poll */
-static int wm_search_menu_poll(bContext *C)
+static bool wm_search_menu_poll(bContext *C)
 {
 	if (CTX_wm_window(C) == NULL) {
 		return 0;
@@ -2115,7 +2115,7 @@ static void WM_OT_call_menu_pie(wmOperatorType *ot)
 
 /* this poll functions is needed in place of WM_operator_winactive
  * while it crashes on full screen */
-static int wm_operator_winactive_normal(bContext *C)
+static bool wm_operator_winactive_normal(bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
 
@@ -2212,8 +2212,9 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
  * - draw(bContext): drawing callback for paint cursor
  */
 
-void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
-                               wmPaintCursorDraw draw, void *customdata)
+void *WM_paint_cursor_activate(
+        wmWindowManager *wm, bool (*poll)(bContext *C),
+        wmPaintCursorDraw draw, void *customdata)
 {
 	wmPaintCursor *pc = MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
 

@@ -64,7 +64,7 @@
 /* ********************** frame change operator ***************************/
 
 /* Check if the operator can be run from the current context */
-static int change_frame_poll(bContext *C)
+static bool change_frame_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 

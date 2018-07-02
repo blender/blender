@@ -317,7 +317,7 @@ typedef struct wmKeyMap {
 
 	/* runtime */
 	/** Verify if enabled in the current context, use #WM_keymap_poll instead of direct calls. */
-	int (*poll)(struct bContext *);
+	bool (*poll)(struct bContext *);
 	/** For modal, #EnumPropertyItem for now. */
 	const void *modal_items;
 } wmKeyMap;

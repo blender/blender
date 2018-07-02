@@ -219,7 +219,7 @@ static void sample_cancel(bContext *C, wmOperator *op)
 	sample_exit(C, op);
 }
 
-static int sample_poll(bContext *C)
+static bool sample_poll(bContext *C)
 {
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
 	return sseq && BKE_sequencer_editing_get(CTX_data_scene(C), false) != NULL;

@@ -1971,7 +1971,7 @@ void GRAPH_OT_euler_filter(wmOperatorType *ot)
 
 /* ***************** Jump to Selected Frames Operator *********************** */
 
-static int graphkeys_framejump_poll(bContext *C)
+static bool graphkeys_framejump_poll(bContext *C)
 {
 	/* prevent changes during render */
 	if (G.is_rendering)
@@ -2806,7 +2806,7 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int graph_driver_delete_invalid_poll(bContext *C)
+static bool graph_driver_delete_invalid_poll(bContext *C)
 {
 	bAnimContext ac;
 	ScrArea *sa = CTX_wm_area(C);

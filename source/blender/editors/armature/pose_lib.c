@@ -173,7 +173,7 @@ static Object *get_poselib_object(bContext *C)
 }
 
 /* Poll callback for operators that require existing PoseLib data (with poses) to work */
-static int has_poselib_pose_data_poll(bContext *C)
+static bool has_poselib_pose_data_poll(bContext *C)
 {
 	Object *ob = get_poselib_object(C);
 	return (ob && ob->poselib);
@@ -182,7 +182,7 @@ static int has_poselib_pose_data_poll(bContext *C)
 /* Poll callback for operators that require existing PoseLib data (with poses)
  * as they need to do some editing work on those poses (i.e. not on lib-linked actions)
  */
-static int has_poselib_pose_data_for_editing_poll(bContext *C)
+static bool has_poselib_pose_data_for_editing_poll(bContext *C)
 {
 	Object *ob = get_poselib_object(C);
 	return (ob && ob->poselib && !ID_IS_LINKED(ob->poselib));
@@ -378,7 +378,7 @@ void POSELIB_OT_action_sanitize(wmOperatorType *ot)
 /* ------------------------------------------ */
 
 /* Poll callback for adding poses to a PoseLib */
-static int poselib_add_poll(bContext *C)
+static bool poselib_add_poll(bContext *C)
 {
 	/* There are 2 cases we need to be careful with:
 	 *  1) When this operator is invoked from a hotkey, there may be no PoseLib yet

@@ -269,7 +269,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 	uiDefAutoButsRNA(layout, &ptr, screenshot_draw_check_prop, '\0');
 }
 
-static int screenshot_poll(bContext *C)
+static bool screenshot_poll(bContext *C)
 {
 	if (G.background)
 		return false;

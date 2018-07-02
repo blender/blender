@@ -1312,7 +1312,7 @@ enum {
  * This is based on the standard ED_operator_areaactive callback,
  * except that it does special checks for a few spacetypes too...
  */
-static int modify_key_op_poll(bContext *C)
+static bool modify_key_op_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);

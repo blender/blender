@@ -55,7 +55,7 @@
 /** \name Make Regular Operator
  * \{ */
 
-static int make_regular_poll(bContext *C)
+static bool make_regular_poll(bContext *C)
 {
 	Object *ob;
 

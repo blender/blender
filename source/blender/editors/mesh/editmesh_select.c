@@ -3833,7 +3833,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 /** \name Select Ungrouped Operator
  * \{ */
 
-static int edbm_select_ungrouped_poll(bContext *C)
+static bool edbm_select_ungrouped_poll(bContext *C)
 {
 	if (ED_operator_editmesh(C)) {
 		Object *obedit = CTX_data_edit_object(C);

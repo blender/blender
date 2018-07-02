@@ -223,7 +223,7 @@ static void rna_Action_frame_range_get(PointerRNA *ptr, float *values)
 
 
 /* used to check if an action (value pointer) is suitable to be assigned to the ID-block that is ptr */
-int rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
+bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 {
 	ID *srcId = (ID *)ptr->id.data;
 	bAction *act = (bAction *)value.id.data;
@@ -243,7 +243,7 @@ int rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 }
 
 /* used to check if an action (value pointer) can be assigned to Action Editor given current mode */
-int rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
+bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceAction *saction = (SpaceAction *)ptr->data;
 	bAction *act = (bAction *)value.id.data;

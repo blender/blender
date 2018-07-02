@@ -784,7 +784,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 	}
 }
 
-static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
@@ -1117,7 +1117,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 }
 
-static int view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Scene *scene = CTX_data_scene(C);
 	return (scene->basact != NULL);

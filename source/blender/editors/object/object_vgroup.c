@@ -2480,7 +2480,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
 /********************** vertex group operators *********************/
 
-static int vertex_group_poll(bContext *C)
+static bool vertex_group_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2491,7 +2491,7 @@ static int vertex_group_poll(bContext *C)
 	        ob->defbase.first);
 }
 
-static int vertex_group_supported_poll(bContext *C)
+static bool vertex_group_supported_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2499,7 +2499,7 @@ static int vertex_group_supported_poll(bContext *C)
 	        data && !ID_IS_LINKED(data));
 }
 
-static int vertex_group_mesh_poll(bContext *C)
+static bool vertex_group_mesh_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2510,7 +2510,7 @@ static int vertex_group_mesh_poll(bContext *C)
 	        ob->defbase.first);
 }
 
-static int UNUSED_FUNCTION(vertex_group_mesh_supported_poll)(bContext *C)
+static bool UNUSED_FUNCTION(vertex_group_mesh_supported_poll)(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2518,7 +2518,7 @@ static int UNUSED_FUNCTION(vertex_group_mesh_supported_poll)(bContext *C)
 }
 
 
-static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
+static bool UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2530,7 +2530,7 @@ static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 }
 
 /* editmode _or_ weight paint vertex sel */
-static int vertex_group_vert_poll_ex(bContext *C, const bool needs_select, const short ob_type_flag)
+static bool vertex_group_vert_poll_ex(bContext *C, const bool needs_select, const short ob_type_flag)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2565,25 +2565,25 @@ static int vertex_group_vert_poll_ex(bContext *C, const bool needs_select, const
 }
 
 #if 0
-static int vertex_group_vert_poll(bContext *C)
+static bool vertex_group_vert_poll(bContext *C)
 {
 	return vertex_group_vert_poll_ex(C, false, 0);
 }
 #endif
 
 
-static int vertex_group_mesh_vert_poll(bContext *C)
+static bool vertex_group_mesh_vert_poll(bContext *C)
 {
 	return vertex_group_vert_poll_ex(C, false, (1 << OB_MESH));
 }
 
-static int vertex_group_vert_select_poll(bContext *C)
+static bool vertex_group_vert_select_poll(bContext *C)
 {
 	return vertex_group_vert_poll_ex(C, true, 0);
 }
 
 #if 0
-static int vertex_group_mesh_vert_select_poll(bContext *C)
+static bool vertex_group_mesh_vert_select_poll(bContext *C)
 {
 	return vertex_group_vert_poll_ex(C, true, (1 << OB_MESH));
 }
@@ -2591,7 +2591,7 @@ static int vertex_group_mesh_vert_select_poll(bContext *C)
 
 
 /* editmode _or_ weight paint vertex sel and active group unlocked */
-static int vertex_group_vert_select_unlocked_poll(bContext *C)
+static bool vertex_group_vert_select_unlocked_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
@@ -2614,7 +2614,7 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 	return 1;
 }
 
-static int vertex_group_vert_select_mesh_poll(bContext *C)
+static bool vertex_group_vert_select_mesh_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;

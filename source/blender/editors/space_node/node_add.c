@@ -402,7 +402,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 
 /* ****************** Add Mask Node Operator  ******************* */
 
-static int node_add_mask_poll(bContext *C)
+static bool node_add_mask_poll(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 

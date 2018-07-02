@@ -121,7 +121,7 @@ void ED_base_object_activate(bContext *C, Base *base)
 
 /********************** Selection Operators **********************/
 
-static int objects_selectable_poll(bContext *C)
+static bool objects_selectable_poll(bContext *C)
 {
 	/* we don't check for linked scenes here, selection is
 	 * still allowed then for inspection of scene */

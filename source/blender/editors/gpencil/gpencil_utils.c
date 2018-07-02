@@ -260,14 +260,14 @@ bool ED_gpencil_has_keyframe_v3d(Scene *scene, Object *ob, int cfra)
 /* Poll Callbacks */
 
 /* poll callback for adding data/layers - special */
-int gp_add_poll(bContext *C)
+bool gp_add_poll(bContext *C)
 {
 	/* the base line we have is that we have somewhere to add Grease Pencil data */
 	return ED_gpencil_data_get_pointers(C, NULL) != NULL;
 }
 
 /* poll callback for checking if there is an active layer */
-int gp_active_layer_poll(bContext *C)
+bool gp_active_layer_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
@@ -276,7 +276,7 @@ int gp_active_layer_poll(bContext *C)
 }
 
 /* poll callback for checking if there is an active brush */
-int gp_active_brush_poll(bContext *C)
+bool gp_active_brush_poll(bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
@@ -285,7 +285,7 @@ int gp_active_brush_poll(bContext *C)
 }
 
 /* poll callback for checking if there is an active palette */
-int gp_active_palette_poll(bContext *C)
+bool gp_active_palette_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
@@ -294,7 +294,7 @@ int gp_active_palette_poll(bContext *C)
 }
 
 /* poll callback for checking if there is an active palette color */
-int gp_active_palettecolor_poll(bContext *C)
+bool gp_active_palettecolor_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);

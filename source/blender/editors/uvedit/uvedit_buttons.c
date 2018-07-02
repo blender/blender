@@ -214,7 +214,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 
 /* Panels */
 
-static int image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	return ED_uvedit_test(obedit);

@@ -86,7 +86,7 @@ ARegion *ED_clip_has_properties_region(ScrArea *sa)
 	return arnew;
 }
 
-static int properties_poll(bContext *C)
+static bool properties_poll(bContext *C)
 {
 	return (CTX_wm_space_clip(C) != NULL);
 }
@@ -161,7 +161,7 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 	return artool;
 }
 
-static int tools_poll(bContext *C)
+static bool tools_poll(bContext *C)
 {
 	return (CTX_wm_space_clip(C) != NULL);
 }

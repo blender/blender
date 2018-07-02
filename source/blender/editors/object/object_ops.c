@@ -274,7 +274,7 @@ void ED_operatormacros_object(void)
 
 }
 
-static int object_mode_poll(bContext *C)
+static bool object_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	return (!ob || ob->mode == OB_MODE_OBJECT);

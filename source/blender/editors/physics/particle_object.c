@@ -154,7 +154,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 
 /********************** new particle settings operator *********************/
 
-static int psys_poll(bContext *C)
+static bool psys_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	return (ptr.data != NULL);
@@ -1105,7 +1105,7 @@ static bool copy_particle_systems_to_object(Main *bmain,
 	return true;
 }
 
-static int copy_particle_systems_poll(bContext *C)
+static bool copy_particle_systems_poll(bContext *C)
 {
 	Object *ob;
 	if (!ED_operator_object_active_editable(C))
@@ -1182,7 +1182,7 @@ void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_active", false, "Use Active", "Use the active particle system from the context");
 }
 
-static int duplicate_particle_systems_poll(bContext *C)
+static bool duplicate_particle_systems_poll(bContext *C)
 {
 	if (!ED_operator_object_active_editable(C)) {
 		return false;

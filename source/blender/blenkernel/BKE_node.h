@@ -202,9 +202,9 @@ typedef struct bNodeType {
 	void (*copyfunc_api)(struct PointerRNA *ptr, struct bNode *src_node);
 
 	/* can this node type be added to a node tree */
-	int (*poll)(struct bNodeType *ntype, struct bNodeTree *nodetree);
+	bool (*poll)(struct bNodeType *ntype, struct bNodeTree *nodetree);
 	/* can this node be added to a node tree */
-	int (*poll_instance)(struct bNode *node, struct bNodeTree *nodetree);
+	bool (*poll_instance)(struct bNode *node, struct bNodeTree *nodetree);
 
 	/* optional handling of link insertion */
 	void (*insert_link)(struct bNodeTree *ntree, struct bNode *node, struct bNodeLink *link);
@@ -283,7 +283,7 @@ typedef struct bNodeTreeType {
 	void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
 	void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);	/* iteration over all node classes */
 	/* Check visibility in the node editor */
-	int (*poll)(const struct bContext *C, struct bNodeTreeType *ntreetype);
+	bool (*poll)(const struct bContext *C, struct bNodeTreeType *ntreetype);
 	/* Select a node tree from the context */
 	void (*get_from_context)(const struct bContext *C, struct bNodeTreeType *ntreetype,
 	                         struct bNodeTree **r_ntree, struct ID **r_id, struct ID **r_from);
@@ -296,7 +296,7 @@ typedef struct bNodeTreeType {
 	/* Tree update. Overrides nodetype->updatetreefunc! */
 	void (*update)(struct bNodeTree *ntree);
 
-	int (*validate_link)(struct bNodeTree *ntree, struct bNodeLink *link);
+	bool (*validate_link)(struct bNodeTree *ntree, struct bNodeLink *link);
 
 	void (*node_add_init)(struct bNodeTree *ntree, struct bNode *bnode);
 

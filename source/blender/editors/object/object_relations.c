@@ -114,7 +114,7 @@
 
 /*********************** Make Vertex Parent Operator ************************/
 
-static int vertex_parent_set_poll(bContext *C)
+static bool vertex_parent_set_poll(bContext *C)
 {
 	return ED_operator_editmesh(C) || ED_operator_editsurfcurve(C) || ED_operator_editlattice(C);
 }

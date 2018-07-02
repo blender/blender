@@ -350,7 +350,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	return OPERATOR_FINISHED;
 }
 
-static int select_poll(bContext *C)
+static bool select_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 

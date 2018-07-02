@@ -39,7 +39,7 @@ typedef struct wmPaintCursor {
 
 	void *customdata;
 
-	int (*poll)(struct bContext *C);
+	bool (*poll)(struct bContext *C);
 	void (*draw)(bContext *C, int, int, void *customdata);
 } wmPaintCursor;
 

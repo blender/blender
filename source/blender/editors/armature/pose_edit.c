@@ -277,7 +277,7 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 
 /* --------- */
 
-static int pose_update_paths_poll(bContext *C)
+static bool pose_update_paths_poll(bContext *C)
 {
 	if (ED_operator_posemode_exclusive(C)) {
 		Object *ob = CTX_data_active_object(C);
@@ -760,7 +760,7 @@ void POSE_OT_rotation_mode_set(wmOperatorType *ot)
 
 /* ********************************************** */
 
-static int armature_layers_poll(bContext *C)
+static bool armature_layers_poll(bContext *C)
 {
 	/* Armature layers operators can be used in posemode OR editmode for armatures */
 	return ED_operator_posemode(C) || ED_operator_editarmature(C);

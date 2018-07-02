@@ -1103,7 +1103,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 /* Public API */
 
-void paint_cursor_start(bContext *C, int (*poll)(bContext *C))
+void paint_cursor_start(bContext *C, bool (*poll)(bContext *C))
 {
 	Paint *p = BKE_paint_get_active_from_context(C);
 
@@ -1114,7 +1114,7 @@ void paint_cursor_start(bContext *C, int (*poll)(bContext *C))
 	BKE_paint_invalidate_overlay_all();
 }
 
-void paint_cursor_start_explicit(Paint *p, wmWindowManager *wm, int (*poll)(bContext *C))
+void paint_cursor_start_explicit(Paint *p, wmWindowManager *wm, bool (*poll)(bContext *C))
 {
 	if (p && !p->paint_cursor)
 		p->paint_cursor = WM_paint_cursor_activate(wm, poll, paint_draw_cursor, NULL);

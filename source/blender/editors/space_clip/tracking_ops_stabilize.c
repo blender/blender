@@ -49,7 +49,7 @@
 
 /********************* add 2d stabilization tracks operator ********************/
 
-static int stabilize_2d_poll(bContext *C)
+static bool stabilize_2d_poll(bContext *C)
 {
 	if (ED_space_clip_tracking_poll(C)) {
 		SpaceClip *sc = CTX_wm_space_clip(C);

@@ -80,7 +80,7 @@
 #include "GPU_material.h"
 
 
-int sh_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
+bool sh_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
 void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 
 

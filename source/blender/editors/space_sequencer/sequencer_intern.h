@@ -76,12 +76,12 @@ void recurs_sel_seq(struct Sequence *seqm);
 int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, const char **error_str);
 
 /* operator helpers */
-int sequencer_edit_poll(struct bContext *C);
+bool sequencer_edit_poll(struct bContext *C);
 /* UNUSED */
-//int sequencer_strip_poll(struct bContext *C);
-int sequencer_strip_has_path_poll(struct bContext *C);
-int sequencer_view_preview_poll(struct bContext *C);
-int sequencer_view_strips_poll(struct bContext *C);
+//bool sequencer_strip_poll(struct bContext *C);
+bool sequencer_strip_has_path_poll(struct bContext *C);
+bool sequencer_view_preview_poll(struct bContext *C);
+bool sequencer_view_strips_poll(struct bContext *C);
 
 /* externs */
 extern EnumPropertyItem sequencer_prop_effect_types[];

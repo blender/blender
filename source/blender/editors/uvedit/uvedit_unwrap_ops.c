@@ -1398,7 +1398,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int uv_from_view_poll(bContext *C)
+static bool uv_from_view_poll(bContext *C)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 

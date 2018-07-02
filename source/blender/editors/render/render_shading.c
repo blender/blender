@@ -682,7 +682,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 
 /********************** render view operators *********************/
 
-static int render_view_remove_poll(bContext *C)
+static bool render_view_remove_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -760,7 +760,7 @@ static bool freestyle_linestyle_check_report(FreestyleLineSet *lineset, ReportLi
 	return true;
 }
 
-static int freestyle_active_module_poll(bContext *C)
+static bool freestyle_active_module_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module = ptr.data;
@@ -893,7 +893,7 @@ void SCENE_OT_freestyle_lineset_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-static int freestyle_active_lineset_poll(bContext *C)
+static bool freestyle_active_lineset_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
@@ -1585,7 +1585,7 @@ static int envmap_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int envmap_save_poll(bContext *C)
+static bool envmap_save_poll(bContext *C)
 {
 	Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 
@@ -1639,7 +1639,7 @@ static int envmap_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int envmap_clear_poll(bContext *C)
+static bool envmap_clear_poll(bContext *C)
 {
 	Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 
@@ -1858,7 +1858,7 @@ static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int copy_mtex_poll(bContext *C)
+static bool copy_mtex_poll(bContext *C)
 {
 	ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 

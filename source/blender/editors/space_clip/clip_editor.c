@@ -76,7 +76,7 @@
 
 /* ******** operactor poll functions ******** */
 
-int ED_space_clip_poll(bContext *C)
+bool ED_space_clip_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
@@ -86,7 +86,7 @@ int ED_space_clip_poll(bContext *C)
 	return false;
 }
 
-int ED_space_clip_view_clip_poll(bContext *C)
+bool ED_space_clip_view_clip_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
@@ -97,7 +97,7 @@ int ED_space_clip_view_clip_poll(bContext *C)
 	return false;
 }
 
-int ED_space_clip_tracking_poll(bContext *C)
+bool ED_space_clip_tracking_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
@@ -107,7 +107,7 @@ int ED_space_clip_tracking_poll(bContext *C)
 	return false;
 }
 
-int ED_space_clip_maskedit_poll(bContext *C)
+bool ED_space_clip_maskedit_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
@@ -118,7 +118,7 @@ int ED_space_clip_maskedit_poll(bContext *C)
 	return false;
 }
 
-int ED_space_clip_maskedit_mask_poll(bContext *C)
+bool ED_space_clip_maskedit_mask_poll(bContext *C)
 {
 	if (ED_space_clip_maskedit_poll(C)) {
 		MovieClip *clip = CTX_data_edit_movieclip(C);

@@ -169,7 +169,7 @@ static void console_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 
 /* ************* dropboxes ************* */
 
-static int id_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool id_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 //	SpaceConsole *sc = CTX_wm_space_console(C);
 	if (drag->type == WM_DRAG_ID)
@@ -188,7 +188,7 @@ static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 	MEM_freeN(text);
 }
 
-static int path_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool path_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	// SpaceConsole *sc = CTX_wm_space_console(C);
 	if (drag->type == WM_DRAG_PATH)

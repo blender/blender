@@ -203,7 +203,7 @@ static int driverdropper_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int driverdropper_poll(bContext *C)
+static bool driverdropper_poll(bContext *C)
 {
 	if (!CTX_wm_window(C)) return 0;
 	else return 1;

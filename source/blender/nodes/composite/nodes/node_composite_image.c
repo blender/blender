@@ -388,7 +388,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
 	}
 }
 
-static int node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
 	if (STREQ(ntree->idname, "CompositorNodeTree")) {
 		Scene *scene;

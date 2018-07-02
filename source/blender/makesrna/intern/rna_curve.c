@@ -393,7 +393,7 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-static int rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	Object *ob = (Object *)value.data;

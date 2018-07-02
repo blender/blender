@@ -2456,7 +2456,7 @@ static int sketch_draw_preview(bContext *C, wmOperator *op, const wmEvent *event
 
 /* ============================================== Poll Functions ============================================= */
 
-int ED_operator_sketch_mode_active_stroke(bContext *C)
+bool ED_operator_sketch_mode_active_stroke(bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);
@@ -2472,7 +2472,7 @@ int ED_operator_sketch_mode_active_stroke(bContext *C)
 	}
 }
 
-static int ED_operator_sketch_mode_gesture(bContext *C)
+static bool ED_operator_sketch_mode_gesture(bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);
@@ -2489,7 +2489,7 @@ static int ED_operator_sketch_mode_gesture(bContext *C)
 	}
 }
 
-int ED_operator_sketch_full_mode(bContext *C)
+bool ED_operator_sketch_full_mode(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -2506,7 +2506,7 @@ int ED_operator_sketch_full_mode(bContext *C)
 	}
 }
 
-int ED_operator_sketch_mode(const bContext *C)
+bool ED_operator_sketch_mode(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -2634,7 +2634,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 	ot->modal  = sketch_draw_stroke_modal;
 	ot->cancel = sketch_draw_stroke_cancel;
 
-	ot->poll = (int (*)(bContext *))ED_operator_sketch_mode;
+	ot->poll = (bool (*)(bContext *))ED_operator_sketch_mode;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 

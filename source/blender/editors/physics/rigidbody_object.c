@@ -65,7 +65,7 @@
 /* ********************************************** */
 /* Helper API's for RigidBody Objects Editing */
 
-static int ED_operator_rigidbody_active_poll(bContext *C)
+static bool ED_operator_rigidbody_active_poll(bContext *C)
 {
 	if (ED_operator_object_active_editable(C)) {
 		Object *ob = ED_object_active_context(C);
@@ -75,7 +75,7 @@ static int ED_operator_rigidbody_active_poll(bContext *C)
 		return 0;
 }
 
-static int ED_operator_rigidbody_add_poll(bContext *C)
+static bool ED_operator_rigidbody_add_poll(bContext *C)
 {
 	if (ED_operator_object_active_editable(C)) {
 		Object *ob = ED_object_active_context(C);

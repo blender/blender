@@ -48,11 +48,11 @@ struct Object;
 struct SculptUndoNode;
 struct SculptOrigVertData;
 
-int sculpt_mode_poll(struct bContext *C);
-int sculpt_mode_poll_view3d(struct bContext *C);
+bool sculpt_mode_poll(struct bContext *C);
+bool sculpt_mode_poll_view3d(struct bContext *C);
 /* checks for a brush, not just sculpt mode */
-int sculpt_poll(struct bContext *C);
-int sculpt_poll_view3d(struct bContext *C);
+bool sculpt_poll(struct bContext *C);
+bool sculpt_poll_view3d(struct bContext *C);
 
 /* Stroke */
 bool sculpt_stroke_get_location(struct bContext *C, float out[3], const float mouse[2]);

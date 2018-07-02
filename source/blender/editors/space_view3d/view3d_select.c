@@ -269,7 +269,7 @@ static void view3d_userdata_lassoselect_init(
 	r_data->is_changed = false;
 }
 
-static int view3d_selectable_data(bContext *C)
+static bool view3d_selectable_data(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 

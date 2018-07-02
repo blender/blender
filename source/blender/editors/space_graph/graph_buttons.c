@@ -103,7 +103,7 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
 	return 1;
 }
 
-static int graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	return graph_panel_context(C, NULL, NULL);
 }
@@ -576,7 +576,7 @@ static void driver_update_flags_cb(bContext *UNUSED(C), void *fcu_v, void *UNUSE
 }
 
 /* drivers panel poll */
-static int graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceIpo *sipo = CTX_wm_space_graph(C);
 

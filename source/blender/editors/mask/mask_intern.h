@@ -121,8 +121,8 @@ void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 
 /* mask_editor.c */
-int ED_maskedit_poll(struct bContext *C);
-int ED_maskedit_mask_poll(struct bContext *C);
+bool ED_maskedit_poll(struct bContext *C);
+bool ED_maskedit_mask_poll(struct bContext *C);
 
 /* mask_shapekey.c */
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);

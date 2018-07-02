@@ -5921,7 +5921,7 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int add_simple_uvs_poll(bContext *C)
+static bool add_simple_uvs_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 

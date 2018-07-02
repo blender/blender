@@ -87,7 +87,7 @@
 
 /* **************** link/append *************** */
 
-static int wm_link_append_poll(bContext *C)
+static bool wm_link_append_poll(bContext *C)
 {
 	if (WM_operator_winactive(C)) {
 		/* linking changes active object which is pretty useful in general,

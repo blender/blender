@@ -81,7 +81,7 @@ void node_group_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int ma
 	BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), maxlen);
 }
 
-int node_group_poll_instance(bNode *node, bNodeTree *nodetree)
+bool node_group_poll_instance(bNode *node, bNodeTree *nodetree)
 {
 	if (node->typeinfo->poll(node->typeinfo, nodetree)) {
 		bNodeTree *grouptree = (bNodeTree *)node->id;

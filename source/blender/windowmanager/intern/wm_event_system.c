@@ -520,7 +520,7 @@ static void wm_handler_ui_cancel(bContext *C)
 
 /* ********************* operators ******************* */
 
-int WM_operator_poll(bContext *C, wmOperatorType *ot)
+bool WM_operator_poll(bContext *C, wmOperatorType *ot)
 {
 	wmOperatorTypeMacro *otmacro;
 
@@ -541,7 +541,7 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 }
 
 /* sets up the new context and calls 'wm_operator_invoke()' with poll_only */
-int WM_operator_poll_context(bContext *C, wmOperatorType *ot, short context)
+bool WM_operator_poll_context(bContext *C, wmOperatorType *ot, short context)
 {
 	return wm_operator_call_internal(C, ot, NULL, NULL, context, true);
 }

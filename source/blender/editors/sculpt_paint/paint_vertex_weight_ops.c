@@ -115,7 +115,7 @@ static void wpaint_prev_destroy(struct WPaintPrev *wpp)
 /** \name Weight from Bones Operator
  * \{ */
 
-static int weight_from_bones_poll(bContext *C)
+static bool weight_from_bones_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 

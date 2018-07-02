@@ -386,7 +386,7 @@ bool ED_space_image_check_show_maskedit(Scene *scene, SpaceImage *sima)
 	return (sima->mode == SI_MODE_MASK);
 }
 
-int ED_space_image_maskedit_poll(bContext *C)
+bool ED_space_image_maskedit_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 
@@ -413,7 +413,7 @@ bool ED_space_image_paint_curve(const bContext *C)
 }
 
 
-int ED_space_image_maskedit_mask_poll(bContext *C)
+bool ED_space_image_maskedit_mask_poll(bContext *C)
 {
 	if (ED_space_image_maskedit_poll(C)) {
 		SpaceImage *sima = CTX_wm_space_image(C);

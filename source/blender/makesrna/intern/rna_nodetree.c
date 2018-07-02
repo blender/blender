@@ -244,7 +244,7 @@ bNodeTreeType *rna_node_tree_type_from_enum(int value)
 	return result;
 }
 
-const EnumPropertyItem *rna_node_tree_type_itemf(void *data, int (*poll)(void *data, bNodeTreeType *), bool *r_free)
+const EnumPropertyItem *rna_node_tree_type_itemf(void *data, bool (*poll)(void *data, bNodeTreeType *), bool *r_free)
 {
 	EnumPropertyItem tmp = {0};
 	EnumPropertyItem *item = NULL;
@@ -320,7 +320,7 @@ bNodeType *rna_node_type_from_enum(int value)
 	return result;
 }
 
-const EnumPropertyItem *rna_node_type_itemf(void *data, int (*poll)(void *data, bNodeType *), bool *r_free)
+const EnumPropertyItem *rna_node_type_itemf(void *data, bool (*poll)(void *data, bNodeType *), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	EnumPropertyItem tmp = {0};
@@ -395,7 +395,7 @@ bNodeSocketType *rna_node_socket_type_from_enum(int value)
 }
 
 const EnumPropertyItem *rna_node_socket_type_itemf(
-        void *data, int (*poll)(void *data, bNodeSocketType *), bool *r_free)
+        void *data, bool (*poll)(void *data, bNodeSocketType *), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	EnumPropertyItem tmp = {0};
@@ -527,7 +527,7 @@ static StructRNA *rna_NodeTree_refine(struct PointerRNA *ptr)
 		return &RNA_NodeTree;
 }
 
-static int rna_NodeTree_poll(const bContext *C, bNodeTreeType *ntreetype)
+static bool rna_NodeTree_poll(const bContext *C, bNodeTreeType *ntreetype)
 {
 	extern FunctionRNA rna_NodeTree_poll_func;
 
@@ -1141,7 +1141,7 @@ char *rna_Node_ImageUser_path(PointerRNA *ptr)
 	return NULL;
 }
 
-static int rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
+static bool rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
 {
 	extern FunctionRNA rna_Node_poll_func;
 
@@ -1149,7 +1149,7 @@ static int rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
 	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
-	int visible;
+	bool visible;
 
 	RNA_pointer_create(NULL, ntype->ext.srna, NULL, &ptr); /* dummy */
 	func = &rna_Node_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
@@ -1166,7 +1166,7 @@ static int rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
 	return visible;
 }
 
-static int rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
+static bool rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
 {
 	extern FunctionRNA rna_Node_poll_instance_func;
 
@@ -1174,7 +1174,7 @@ static int rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
 	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
-	int visible;
+	bool visible;
 
 	RNA_pointer_create(NULL, node->typeinfo->ext.srna, node, &ptr); /* dummy */
 	func = &rna_Node_poll_instance_func; /* RNA_struct_find_function(&ptr, "poll_instance"); */
@@ -1191,7 +1191,7 @@ static int rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
 	return visible;
 }
 
-static int rna_Node_poll_instance_default(bNode *node, bNodeTree *ntree)
+static bool rna_Node_poll_instance_default(bNode *node, bNodeTree *ntree)
 {
 	/* use the basic poll function */
 	return rna_Node_poll(node->typeinfo, ntree);
@@ -1557,7 +1557,7 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-static int rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
 {
 	bNode *node = ptr->data;
 	bNode *parent = value.data;
@@ -2520,7 +2520,7 @@ static void rna_NodeGroup_node_tree_set(PointerRNA *ptr, const PointerRNA value)
 	}
 }
 
-static int rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value)
+static bool rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value)
 {
 	bNodeTree *ntree = ptr->id.data;
 	bNodeTree *ngroup = value.data;

@@ -898,7 +898,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 
 /********************** change frame operator *********************/
 
-static int change_frame_poll(bContext *C)
+static bool change_frame_poll(bContext *C)
 {
 	/* prevent changes during render */
 	if (G.is_rendering)

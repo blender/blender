@@ -63,7 +63,7 @@ static int node_toolbar_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 }
 
 /* non-standard poll operator which doesn't care if there are any nodes */
-static int node_toolbar_poll(bContext *C)
+static bool node_toolbar_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	return (sa && (sa->spacetype == SPACE_NODE));

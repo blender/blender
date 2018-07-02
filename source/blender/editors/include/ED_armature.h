@@ -208,9 +208,9 @@ struct Object *ED_pose_object_from_context(struct bContext *C);
 
 /* sketch */
 
-int ED_operator_sketch_mode_active_stroke(struct bContext *C);
-int ED_operator_sketch_full_mode(struct bContext *C);
-int ED_operator_sketch_mode(const struct bContext *C);
+bool ED_operator_sketch_mode_active_stroke(struct bContext *C);
+bool ED_operator_sketch_full_mode(struct bContext *C);
+bool ED_operator_sketch_mode(const struct bContext *C);
 
 void BIF_convertSketch(struct bContext *C);
 void BIF_deleteSketch(struct bContext *C);

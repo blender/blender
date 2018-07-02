@@ -114,7 +114,7 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 /* ==================== */
 
 /* Poll callback for stroke editing mode */
-static int gp_stroke_editmode_poll(bContext *C)
+static bool gp_stroke_editmode_poll(bContext *C)
 {
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	return (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE));

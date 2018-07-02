@@ -131,7 +131,7 @@ struct KeyingSetInfo;
 struct ExtensionRNA;
 
 /* Polling Callback for KeyingSets */
-typedef int (*cbKeyingSet_Poll)(struct KeyingSetInfo *ksi, struct bContext *C);
+typedef bool (*cbKeyingSet_Poll)(struct KeyingSetInfo *ksi, struct bContext *C);
 /* Context Iterator Callback for KeyingSets */
 typedef void (*cbKeyingSet_Iterator)(struct KeyingSetInfo *ksi, struct bContext *C, struct KeyingSet *ks);
 /* Property Specifier Callback for KeyingSets (called from iterators) */

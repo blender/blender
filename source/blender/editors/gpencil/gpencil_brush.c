@@ -1174,7 +1174,7 @@ static void gpsculpt_brush_exit(bContext *C, wmOperator *op)
 }
 
 /* poll callback for stroke sculpting operator(s) */
-static int gpsculpt_brush_poll(bContext *C)
+static bool gpsculpt_brush_poll(bContext *C)
 {
 	/* NOTE: this is a bit slower, but is the most accurate... */
 	return CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0;

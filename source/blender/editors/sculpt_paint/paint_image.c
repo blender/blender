@@ -264,7 +264,7 @@ static Brush *image_paint_brush(bContext *C)
 	return BKE_paint_brush(&settings->imapaint.paint);
 }
 
-static int image_paint_poll(bContext *C)
+static bool image_paint_poll(bContext *C)
 {
 	Object *obact;
 
@@ -290,7 +290,7 @@ static int image_paint_poll(bContext *C)
 	return 0;
 }
 
-static int image_paint_2d_clone_poll(bContext *C)
+static bool image_paint_2d_clone_poll(bContext *C)
 {
 	Brush *brush = image_paint_brush(C);
 
@@ -976,7 +976,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_color_poll(bContext *C)
+static bool sample_color_poll(bContext *C)
 {
 	return (image_paint_poll(C) || vertex_paint_poll(C));
 }
@@ -1009,7 +1009,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 
 /******************** texture paint toggle operator ********************/
 
-static int texture_paint_toggle_poll(bContext *C)
+static bool texture_paint_toggle_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	if (ob == NULL || ob->type != OB_MESH)
@@ -1145,7 +1145,7 @@ static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int brush_colors_flip_poll(bContext *C)
+static bool brush_colors_flip_poll(bContext *C)
 {
 	if (image_paint_poll(C)) {
 		Brush *br = image_paint_brush(C);
@@ -1195,7 +1195,7 @@ void ED_imapaint_bucket_fill(struct bContext *C, float color[3], wmOperator *op)
 }
 
 
-static int texture_paint_poll(bContext *C)
+static bool texture_paint_poll(bContext *C)
 {
 	if (texture_paint_toggle_poll(C))
 		if (CTX_data_active_object(C)->mode & OB_MODE_TEXTURE_PAINT)
@@ -1204,22 +1204,22 @@ static int texture_paint_poll(bContext *C)
 	return 0;
 }
 
-int image_texture_paint_poll(bContext *C)
+bool image_texture_paint_poll(bContext *C)
 {
 	return (texture_paint_poll(C) || image_paint_poll(C));
 }
 
-int facemask_paint_poll(bContext *C)
+bool facemask_paint_poll(bContext *C)
 {
 	return BKE_paint_select_face_test(CTX_data_active_object(C));
 }
 
-int vert_paint_poll(bContext *C)
+bool vert_paint_poll(bContext *C)
 {
 	return BKE_paint_select_vert_test(CTX_data_active_object(C));
 }
 
-int mask_paint_poll(bContext *C)
+bool mask_paint_poll(bContext *C)
 {
 	return BKE_paint_select_elem_test(CTX_data_active_object(C));
 }

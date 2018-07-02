@@ -928,7 +928,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* test for unlocked camera view in quad view */
-static int view3d_camera_user_poll(bContext *C)
+static bool view3d_camera_user_poll(bContext *C)
 {
 	View3D *v3d;
 	ARegion *ar;
@@ -943,7 +943,7 @@ static int view3d_camera_user_poll(bContext *C)
 	return 0;
 }
 
-static int view3d_lock_poll(bContext *C)
+static bool view3d_lock_poll(bContext *C)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d) {

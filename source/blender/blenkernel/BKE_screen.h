@@ -185,7 +185,7 @@ typedef struct PanelType {
 	int flag;
 
 	/* verify if the panel should draw or not */
-	int (*poll)(const struct bContext *C, struct PanelType *pt);
+	bool (*poll)(const struct bContext *C, struct PanelType *pt);
 	/* draw header (optional) */
 	void (*draw_header)(const struct bContext *C, struct Panel *pa);
 	/* draw entirely, view changes should be handled here */
@@ -256,7 +256,7 @@ typedef struct MenuType {
 	const char *description;
 
 	/* verify if the menu should draw or not */
-	int (*poll)(const struct bContext *C, struct MenuType *mt);
+	bool (*poll)(const struct bContext *C, struct MenuType *mt);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *C, struct Menu *menu);
 

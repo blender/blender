@@ -80,12 +80,12 @@ BLI_INLINE int text_pixel_x_to_column(SpaceText *st, const int x)
 	return (x + (st->cwidth / 2)) / st->cwidth;
 }
 
-static int text_new_poll(bContext *UNUSED(C))
+static bool text_new_poll(bContext *UNUSED(C))
 {
 	return 1;
 }
 
-static int text_edit_poll(bContext *C)
+static bool text_edit_poll(bContext *C)
 {
 	Text *text = CTX_data_edit_text(C);
 
@@ -100,7 +100,7 @@ static int text_edit_poll(bContext *C)
 	return 1;
 }
 
-int text_space_edit_poll(bContext *C)
+bool text_space_edit_poll(bContext *C)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
@@ -116,7 +116,7 @@ int text_space_edit_poll(bContext *C)
 	return 1;
 }
 
-static int text_region_edit_poll(bContext *C)
+static bool text_region_edit_poll(bContext *C)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
@@ -361,7 +361,7 @@ void TEXT_OT_reload(wmOperatorType *ot)
 
 /******************* delete operator *********************/
 
-static int text_unlink_poll(bContext *C)
+static bool text_unlink_poll(bContext *C)
 {
 	/* it should be possible to unlink texts if they're lib-linked in... */
 	return CTX_data_edit_text(C) != NULL;
@@ -447,7 +447,7 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 
 /******************* save operator *********************/
 
-static int text_save_poll(bContext *C)
+static bool text_save_poll(bContext *C)
 {
 	Text *text = CTX_data_edit_text(C);
 
@@ -590,7 +590,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 
 /******************* run script operator *********************/
 
-static int text_run_script_poll(bContext *C)
+static bool text_run_script_poll(bContext *C)
 {
 	return (CTX_data_edit_text(C) != NULL);
 }
@@ -2140,7 +2140,7 @@ typedef struct TextScroll {
 	int zone;
 } TextScroll;
 
-static int text_scroll_poll(bContext *C)
+static bool text_scroll_poll(bContext *C)
 {
 	/* it should be possible to still scroll linked texts to read them, even if they can't be edited... */
 	return CTX_data_edit_text(C) != NULL;
@@ -2323,7 +2323,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 
 /******************** scroll bar operator *******************/
 
-static int text_region_scroll_poll(bContext *C)
+static bool text_region_scroll_poll(bContext *C)
 {
 	/* same as text_region_edit_poll except it works on libdata too */
 	SpaceText *st = CTX_wm_space_text(C);

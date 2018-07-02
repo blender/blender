@@ -85,7 +85,7 @@
 /* Core/Shared Utilities */
 
 /* Poll callback for interpolation operators */
-static int gpencil_view3d_poll(bContext *C)
+static bool gpencil_view3d_poll(bContext *C)
 {
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
@@ -1032,7 +1032,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
 
 /* ******************** Remove Breakdowns ************************ */
 
-static int gpencil_interpolate_reverse_poll(bContext *C)
+static bool gpencil_interpolate_reverse_poll(bContext *C)
 {
 	if (!gpencil_view3d_poll(C)) {
 		return 0;

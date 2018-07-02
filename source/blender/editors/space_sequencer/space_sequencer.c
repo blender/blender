@@ -370,7 +370,7 @@ static void sequencer_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn
 
 /* ************* dropboxes ************* */
 
-static int image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -384,7 +384,7 @@ static int image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 	return 0;
 }
 
-static int movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -397,7 +397,7 @@ static int movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 	return 0;
 }
 
-static int sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);

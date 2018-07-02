@@ -38,7 +38,7 @@
 struct bNodeTree;
 
 void node_group_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-int node_group_poll_instance(struct bNode *node, struct bNodeTree *nodetree);
+bool node_group_poll_instance(struct bNode *node, struct bNodeTree *nodetree);
 
 void ntree_update_reroute_nodes(struct bNodeTree *ntree);
 

@@ -62,7 +62,7 @@
 #include "logic_intern.h"
 
 /* ************* Generic Operator Helpers ************* */
-static int edit_sensor_poll(bContext *C)
+static bool edit_sensor_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "sensor", &RNA_Sensor);
 
@@ -70,7 +70,7 @@ static int edit_sensor_poll(bContext *C)
 	return 1;
 }
 
-static int edit_controller_poll(bContext *C)
+static bool edit_controller_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "controller", &RNA_Controller);
 
@@ -78,7 +78,7 @@ static int edit_controller_poll(bContext *C)
 	return 1;
 }
 
-static int edit_actuator_poll(bContext *C)
+static bool edit_actuator_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "actuator", &RNA_Actuator);
 

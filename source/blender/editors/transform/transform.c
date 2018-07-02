@@ -1680,7 +1680,7 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 	glEnd();
 }
 
-static int helpline_poll(bContext *C)
+static bool helpline_poll(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
 

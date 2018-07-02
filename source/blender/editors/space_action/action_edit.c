@@ -93,7 +93,7 @@
  *  3) that the set of markers being shown are the scene markers, not the list we're merging
  *	4) that there are some selected markers
  */
-static int act_markers_make_local_poll(bContext *C)
+static bool act_markers_make_local_poll(bContext *C)
 {
 	SpaceAction *sact = CTX_wm_space_action(C);
 
@@ -1480,7 +1480,7 @@ void ACTION_OT_keyframe_type(wmOperatorType *ot)
 
 /* ***************** Jump to Selected Frames Operator *********************** */
 
-static int actkeys_framejump_poll(bContext *C)
+static bool actkeys_framejump_poll(bContext *C)
 {
 	/* prevent changes during render */
 	if (G.is_rendering)

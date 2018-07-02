@@ -32,7 +32,7 @@
 #include "node_composite_util.h"
 
 
-int cmp_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+bool cmp_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
 	return STREQ(ntree->idname, "CompositorNodeTree");
 }

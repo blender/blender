@@ -116,7 +116,7 @@ typedef struct TexDelegate {
 } TexDelegate;
 
 
-int tex_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
+bool tex_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
 void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 
 void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread);

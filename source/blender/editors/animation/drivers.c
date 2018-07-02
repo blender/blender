@@ -806,7 +806,7 @@ static const EnumPropertyItem *driver_mapping_type_itemsf(bContext *C, PointerRN
 
 /* Add Driver Button Operator ------------------------ */
 
-static int add_driver_button_poll(bContext *C)
+static bool add_driver_button_poll(bContext *C)
 {
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;

@@ -2105,7 +2105,7 @@ void MASK_OT_feather_weight_clear(wmOperatorType *ot)
 
 /******************** move mask layer operator *********************/
 
-static int mask_layer_move_poll(bContext *C)
+static bool mask_layer_move_poll(bContext *C)
 {
 	if (ED_maskedit_mask_poll(C)) {
 		Mask *mask = CTX_data_edit_mask(C);
@@ -2334,7 +2334,7 @@ void MASK_OT_copy_splines(wmOperatorType *ot)
 
 /********************** paste tracks from clipboard operator *********************/
 
-static int paste_splines_poll(bContext *C)
+static bool paste_splines_poll(bContext *C)
 {
 	if (ED_maskedit_mask_poll(C)) {
 		return BKE_mask_clipboard_is_empty() == false;

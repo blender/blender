@@ -90,7 +90,7 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 /* Operator Polling Callbacks */
 
 /* Check if there are any visible keyframes (for selection tools) */
-int graphop_visible_keyframes_poll(bContext *C)
+bool graphop_visible_keyframes_poll(bContext *C)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
@@ -139,7 +139,7 @@ int graphop_visible_keyframes_poll(bContext *C)
 }
 
 /* Check if there are any visible + editable keyframes (for editing tools) */
-int graphop_editable_keyframes_poll(bContext *C)
+bool graphop_editable_keyframes_poll(bContext *C)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
@@ -189,7 +189,7 @@ int graphop_editable_keyframes_poll(bContext *C)
 }
 
 /* has active F-Curve that's editable */
-int graphop_active_fcurve_poll(bContext *C)
+bool graphop_active_fcurve_poll(bContext *C)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
@@ -229,7 +229,7 @@ int graphop_active_fcurve_poll(bContext *C)
 }
 
 /* has selected F-Curve that's editable */
-int graphop_selected_fcurve_poll(bContext *C)
+bool graphop_selected_fcurve_poll(bContext *C)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};

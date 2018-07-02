@@ -93,12 +93,12 @@ bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, struct Scene *scene, const float
 /* Poll Callbacks ------------------------------------ */
 /* gpencil_utils.c */
 
-int gp_add_poll(struct bContext *C);
-int gp_active_layer_poll(struct bContext *C);
-int gp_active_brush_poll(struct bContext *C);
-int gp_active_palette_poll(struct bContext *C);
-int gp_active_palettecolor_poll(struct bContext *C);
-int gp_brush_crt_presets_poll(bContext *C);
+bool gp_add_poll(struct bContext *C);
+bool gp_active_layer_poll(struct bContext *C);
+bool gp_active_brush_poll(struct bContext *C);
+bool gp_active_palette_poll(struct bContext *C);
+bool gp_active_palettecolor_poll(struct bContext *C);
+bool gp_brush_crt_presets_poll(bContext *C);
 
 /* Copy/Paste Buffer --------------------------------- */
 /* gpencil_edit.c */

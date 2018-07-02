@@ -197,14 +197,14 @@ static void paint_last_stroke_update(Scene *scene, ARegion *ar, const float mval
 /* polling - retrieve whether cursor should be set or operator should be done */
 
 /* Returns true if vertex paint mode is active */
-int vertex_paint_mode_poll(bContext *C)
+bool vertex_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
 	return ob && ob->mode == OB_MODE_VERTEX_PAINT && ((Mesh *)ob->data)->totpoly;
 }
 
-int vertex_paint_poll(bContext *C)
+bool vertex_paint_poll(bContext *C)
 {
 	if (vertex_paint_mode_poll(C) &&
 	    BKE_paint_brush(&CTX_data_tool_settings(C)->vpaint->paint))
@@ -219,14 +219,14 @@ int vertex_paint_poll(bContext *C)
 	return 0;
 }
 
-int weight_paint_mode_poll(bContext *C)
+bool weight_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
 	return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((Mesh *)ob->data)->totpoly;
 }
 
-int weight_paint_poll(bContext *C)
+bool weight_paint_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	ScrArea *sa;
@@ -1232,7 +1232,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 }
 
 /* for switching to/from mode */
-static int paint_poll_test(bContext *C)
+static bool paint_poll_test(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	if (ob == NULL || ob->type != OB_MESH)
