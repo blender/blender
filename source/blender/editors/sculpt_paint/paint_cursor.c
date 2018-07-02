@@ -258,9 +258,10 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 	int size;
 	bool refresh;
-	eOverlayControlFlags invalid = (primary) ? (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) :
-	                                          (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY);
-
+	eOverlayControlFlags invalid = (
+	        (primary) ?
+	        (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) :
+	        (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY));
 	target = (primary) ? &primary_snap : &secondary_snap;
 
 	refresh =
@@ -494,9 +495,10 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
 
 
-static int project_brush_radius(ViewContext *vc,
-                                float radius,
-                                const float location[3])
+static int project_brush_radius(
+        ViewContext *vc,
+        float radius,
+        const float location[3])
 {
 	float view[3], nonortho[3], ortho[3], offset[3], p1[2], p2[2];
 
@@ -567,10 +569,8 @@ static bool sculpt_get_brush_geometry(
 	if (hit) {
 		Brush *brush = BKE_paint_brush(paint);
 
-		*pixel_radius =
-		        project_brush_radius(vc,
-		                             BKE_brush_unprojected_radius_get(scene, brush),
-		                             location);
+		*pixel_radius = project_brush_radius(
+		        vc, BKE_brush_unprojected_radius_get(scene, brush), location);
 
 		if (*pixel_radius == 0)
 			*pixel_radius = BKE_brush_size_get(scene, brush);
@@ -589,15 +589,18 @@ static bool sculpt_get_brush_geometry(
 
 /* Draw an overlay that shows what effect the brush's texture will
  * have on brush strength */
-static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
-                                     ViewContext *vc, int x, int y, float zoom, bool col, bool primary)
+static void paint_draw_tex_overlay(
+        UnifiedPaintSettings *ups, Brush *brush,
+        ViewContext *vc, int x, int y, float zoom, bool col, bool primary)
 {
 	rctf quad;
 	/* check for overlay mode */
 
 	MTex *mtex = (primary) ? &brush->mtex : &brush->mask_mtex;
-	bool valid = (primary) ? (brush->overlay_flags & BRUSH_OVERLAY_PRIMARY) != 0 :
-	                         (brush->overlay_flags & BRUSH_OVERLAY_SECONDARY) != 0;
+	bool valid = (
+	        (primary) ?
+	        (brush->overlay_flags & BRUSH_OVERLAY_PRIMARY) != 0 :
+	        (brush->overlay_flags & BRUSH_OVERLAY_SECONDARY) != 0);
 	int overlay_alpha = (primary) ? brush->texture_overlay_alpha : brush->mask_overlay_alpha;
 
 	if (!(mtex->tex) || !((mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) ||
@@ -714,8 +717,9 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 /* Draw an overlay that shows what effect the brush's texture will
  * have on brush strength */
-static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
-                                      ViewContext *vc, int x, int y, float zoom)
+static void paint_draw_cursor_overlay(
+        UnifiedPaintSettings *ups, Brush *brush,
+        ViewContext *vc, int x, int y, float zoom)
 {
 	rctf quad;
 	/* check for overlay mode */
@@ -796,8 +800,9 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	}
 }
 
-static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
-                                     ViewContext *vc, int x, int y, float zoom, ePaintMode mode)
+static void paint_draw_alpha_overlay(
+        UnifiedPaintSettings *ups, Brush *brush,
+        ViewContext *vc, int x, int y, float zoom, ePaintMode mode)
 {
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
 	bool col = ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex) ? true : false;
@@ -986,8 +991,9 @@ static void paint_draw_curve_cursor(Brush *brush)
 
 /* Special actions taken when paint cursor goes over mesh */
 /* TODO: sculpt only for now */
-static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewContext *vc,
-                                const float location[3])
+static void paint_cursor_on_hit(
+        UnifiedPaintSettings *ups, Brush *brush, ViewContext *vc,
+        const float location[3])
 {
 	float unprojected_radius, projected_radius;
 
@@ -1004,8 +1010,8 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 		}
 
 		/* convert brush radius from 2D to 3D */
-		unprojected_radius = paint_calc_object_space_radius(vc, location,
-		                                                    projected_radius);
+		unprojected_radius = paint_calc_object_space_radius(
+		        vc, location, projected_radius);
 
 		/* scale 3D brush radius by pressure */
 		if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush))

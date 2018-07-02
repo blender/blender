@@ -65,10 +65,11 @@ typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke,
 typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
 typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
 
-struct PaintStroke *paint_stroke_new(struct bContext *C, struct wmOperator *op,
-                                     StrokeGetLocation get_location, StrokeTestStart test_start,
-                                     StrokeUpdateStep update_step, StrokeRedraw redraw,
-                                     StrokeDone done, int event_type);
+struct PaintStroke *paint_stroke_new(
+        struct bContext *C, struct wmOperator *op,
+        StrokeGetLocation get_location, StrokeTestStart test_start,
+        StrokeUpdateStep update_step, StrokeRedraw redraw,
+        StrokeDone done, int event_type);
 void paint_stroke_data_free(struct wmOperator *op);
 
 bool paint_space_stroke_enabled(struct Brush *br, enum ePaintMode mode);
@@ -248,24 +249,28 @@ void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 /* Convert the object-space axis-aligned bounding box (expressed as
  * its minimum and maximum corners) into a screen-space rectangle,
  * returns zero if the result is empty */
-bool paint_convert_bb_to_rect(struct rcti *rect,
-                              const float bb_min[3],
-                              const float bb_max[3],
-                              const struct ARegion *ar,
-                              struct RegionView3D *rv3d,
-                              struct Object *ob);
+bool paint_convert_bb_to_rect(
+        struct rcti *rect,
+        const float bb_min[3],
+        const float bb_max[3],
+        const struct ARegion *ar,
+        struct RegionView3D *rv3d,
+        struct Object *ob);
 
 /* Get four planes in object-space that describe the projection of
  * screen_rect from screen into object-space (essentially converting a
  * 2D screens-space bounding box into four 3D planes) */
-void paint_calc_redraw_planes(float planes[4][4],
-                              const struct ARegion *ar,
-                              struct Object *ob,
-                              const struct rcti *screen_rect);
+void paint_calc_redraw_planes(
+        float planes[4][4],
+        const struct ARegion *ar,
+        struct Object *ob,
+        const struct rcti *screen_rect);
 
 float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
 float paint_get_tex_pixel(const struct MTex *mtex, float u, float v, struct ImagePool *pool, int thread);
-void paint_get_tex_pixel_col(const struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert, struct ColorSpace *colorspace);
+void paint_get_tex_pixel_col(
+        const struct MTex *mtex, float u, float v, float rgba[4],
+        struct ImagePool *pool, int thread, bool convert, struct ColorSpace *colorspace);
 
 void paint_sample_color(struct bContext *C, struct ARegion *ar, int x, int y, bool texpaint_proj, bool palette);
 
@@ -307,8 +312,9 @@ typedef enum {
 	RC_COLOR_OVERRIDE = 32,
 } RCFlags;
 
-void set_brush_rc_props(struct PointerRNA *ptr, const char *paint, const char *prop, const char *secondary_prop,
-                        RCFlags flags);
+void set_brush_rc_props(
+        struct PointerRNA *ptr, const char *paint, const char *prop, const char *secondary_prop,
+        RCFlags flags);
 
 /* paint_hide.c */
 
