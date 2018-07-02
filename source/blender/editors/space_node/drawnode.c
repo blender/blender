@@ -743,7 +743,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
 	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
+	uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "interpolation", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
@@ -774,7 +774,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
 	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateID(
 	        layout, C, ptr, "image",
-	        NULL, "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
+	        "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 
 	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
 
@@ -792,7 +792,7 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
 	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateID(
 	        layout, C, ptr, "image",
-	        ima ? NULL : "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
+	        "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 
 	if (!ima)
 		return;
@@ -1253,7 +1253,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateID(
 	        layout, C, ptr, "image",
-	        NULL, "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
+	        "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 	if (!node->id) return;
 
 	imaptr = RNA_pointer_get(ptr, "image");
@@ -2794,7 +2794,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 
 static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
+	uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 }
 
 static void node_texture_buts_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)

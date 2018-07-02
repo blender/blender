@@ -442,6 +442,7 @@ void register_node_type_cmp_rlayers(void)
 	node_type_storage(&ntype, NULL, node_composit_free_rlayers, node_composit_copy_rlayers);
 	node_type_update(&ntype, cmp_node_rlayers_update, NULL);
 	node_type_init(&ntype, node_cmp_rlayers_outputs);
+	node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 
 	nodeRegisterType(&ntype);
 }
