@@ -101,6 +101,15 @@ class OUTLINER_MT_editor_menus(Menu):
             layout.menu("OUTLINER_MT_edit_orphan_data")
 
 
+class OUTLINER_MT_context(Menu):
+    bl_label = "Outliner"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.menu("INFO_MT_area")
+
+
 class OUTLINER_MT_view(Menu):
     bl_label = "View"
 
@@ -125,10 +134,6 @@ class OUTLINER_MT_view(Menu):
         layout.operator("outliner.show_one_level", text="Show One Level")
         layout.operator("outliner.show_one_level", text="Hide One Level").open = False
         layout.operator("outliner.show_hierarchy")
-
-        layout.separator()
-
-        layout.menu("INFO_MT_area")
 
 
 class OUTLINER_MT_edit_datablocks(Menu):
@@ -198,6 +203,10 @@ class OUTLINER_MT_collection(Menu):
         layout.separator()
         layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
 
+        layout.separator()
+
+        OUTLINER_MT_context.draw(self, context)
+
 
 class OUTLINER_MT_collection_new(Menu):
     bl_label = "Collection"
@@ -206,6 +215,10 @@ class OUTLINER_MT_collection_new(Menu):
         layout = self.layout
 
         layout.operator("outliner.collection_new", text="New").nested = False
+
+        layout.separator()
+
+        OUTLINER_MT_context.draw(self, context)
 
 
 class OUTLINER_MT_object(Menu):
@@ -243,6 +256,10 @@ class OUTLINER_MT_object(Menu):
             layout.separator()
 
         layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
+
+        layout.separator()
+
+        OUTLINER_MT_context.draw(self, context)
 
 
 class OUTLINER_PT_filter(Panel):
@@ -304,6 +321,7 @@ classes = (
     OUTLINER_MT_collection_new,
     OUTLINER_MT_collection_view_layer,
     OUTLINER_MT_object,
+    OUTLINER_MT_context,
     OUTLINER_PT_filter,
 )
 
