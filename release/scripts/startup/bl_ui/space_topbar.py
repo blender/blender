@@ -525,6 +525,11 @@ class INFO_MT_window(Menu):
 
         layout.separator()
 
+        layout.operator("screen.workspace_cycle", text="Next Workspace").direction = 'NEXT'
+        layout.operator("screen.workspace_cycle", text="Previous Workspace").direction = 'PREV'
+
+        layout.separator()
+
         layout.operator("screen.screenshot")
 
         if sys.platform[:3] == "win":
