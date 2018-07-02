@@ -34,6 +34,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_array.h"
 #include "BLI_alloca.h"
@@ -5650,7 +5651,7 @@ void BM_mesh_bevel(
         const bool vertex_only, const bool use_weights, const bool limit_offset,
         const struct MDeformVert *dvert, const int vertex_group, const int mat,
         const bool loop_slide, const bool mark_seam, const bool mark_sharp,
-		const int hnmode, BMOperator *op)
+		const int hnmode, void *mod_bmop_customdata)
 {
 	BMIter iter;
 	BMVert *v, *v_next;
@@ -5658,6 +5659,9 @@ void BM_mesh_bevel(
 	BevVert *bv;
 	BevelParams bp = {NULL};
 	GHashIterator giter;
+
+	BMOperator *op;
+	BevelModNorEditData *clnordata;
 
 	bp.offset = offset;
 	bp.offset_type = offset_type;
@@ -5687,6 +5691,14 @@ void BM_mesh_bevel(
 		BLI_memarena_use_calloc(bp.mem_arena);
 		set_profile_spacing(&bp);
 
+		if (bm->use_toolflags)
+			op = mod_bmop_customdata;
+		else {
+			clnordata = mod_bmop_customdata;
+			clnordata->faceHash = BLI_ghash_ptr_new(__func__);
+			bp.faceHash = clnordata->faceHash;
+		}
+
 		/* Analyze input vertices, sorting edges and assigning initial new vertex positions */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
@@ -5712,11 +5724,6 @@ void BM_mesh_bevel(
 			adjust_offsets(&bp);
 		}
 
-		const bool do_fix_shading = (!bm->use_toolflags && bp.hnmode == BEVEL_HN_FIX_SHA);
-		if (do_fix_shading) {
-			bp.faceHash = BLI_ghash_ptr_new(__func__);
-		}
-
 		/* Build the meshes around vertices, now that positions are final */
 		/* Note: could use GHASH_ITER over bp.vert_hash when backward compatibility no longer matters */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -5736,10 +5743,11 @@ void BM_mesh_bevel(
 			}
 		}
 
-		if (bm->use_toolflags) {
-			GHASH_ITER(giter, bp.vert_hash) {
-				bv = BLI_ghashIterator_getValue(&giter);
-				bevel_extend_edge_data(bv);
+		/* Extend edge data like sharp edges and precompute normals for harden */
+		GHASH_ITER(giter, bp.vert_hash) {
+			bv = BLI_ghashIterator_getValue(&giter);
+			bevel_extend_edge_data(bv);
+			if (bm->use_toolflags) {
 				bevel_harden_normals_mode(bm, &bp, bv, op);
 			}
 		}
@@ -5757,17 +5765,6 @@ void BM_mesh_bevel(
 				BLI_assert(find_bevvert(&bp, v) != NULL);
 				BM_vert_kill(bm, v);
 			}
-		}
-
-		if (do_fix_shading) {
-			BM_mesh_normals_update(bm);
-			BM_lnorspace_update(bm);
-			GHASH_ITER(giter, bp.vert_hash) {
-				bv = BLI_ghashIterator_getValue(&giter);
-				if (bv->fix_shading)
-					bevel_fix_normal_shading_continuity(&bp, bm, bv);
-			}
-			BLI_ghash_free(bp.faceHash, NULL, NULL);
 		}
 
 		/* When called from operator (as opposed to modifier), bm->use_toolflags

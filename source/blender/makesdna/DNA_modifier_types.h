@@ -318,6 +318,11 @@ enum {
 	MOD_EDGESPLIT_FROMFLAG   = (1 << 2),
 };
 
+typedef struct BevelModNorEditData {
+	struct GHash *faceHash;
+	struct GHash *vert_hash;
+} BevelModNorEditData;
+
 typedef struct BevelModifierData {
 	ModifierData modifier;
 
@@ -337,6 +342,7 @@ typedef struct BevelModifierData {
 	int hnmode;
 	float hn_strength;
 	char defgrp_name[64];
+	struct BevelModNorEditData clnordata;
 } BevelModifierData;
 
 /* BevelModifierData->flags and BevelModifierData->lim_flags */

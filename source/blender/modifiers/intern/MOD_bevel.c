@@ -140,6 +140,7 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 					e_next = lfan_pivot->e;
 					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
 					float cn_wght[3] = { 0.0f, 0.0f, 0.0f };
+					bool normal_to_recon_face = false;
 
 					while (true) {
 						lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
@@ -205,6 +206,62 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 				}
 			}
 		} while ((l_cur = l_cur->next) != l_first);
+	}
+}
+
+static void bevel_fix_normal_shading_continuity(BevelModifierData *bmd, BMesh *bm)
+{
+	BM_mesh_normals_update(bm);
+	BM_lnorspace_update(bm);
+
+	GHash *faceHash = bmd->clnordata.faceHash;
+	BMEdge *e;
+	BMLoop *l;
+	BMIter liter, eiter;
+
+	int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+	float ref = 10.0f;
+
+	BM_ITER_MESH(e, &eiter, bm, BM_EDGES_OF_MESH) {
+		BMFace *f_a, *f_b;
+		BM_edge_face_pair(e, &f_a, &f_b);
+
+		bool _f_a = false, _f_b = false;
+		if (f_a)
+			_f_a = BLI_ghash_haskey(faceHash, f_a);
+		if (f_b)
+			_f_b = BLI_ghash_haskey(faceHash, f_b);
+		if (_f_a ^ _f_b) {
+
+			for (int i = 0; i < 2; i++) {
+				BMVert *v = (i == 0) ? e->v1 : e->v2;
+				BM_ITER_ELEM(l, &liter, v, BM_LOOPS_OF_VERT) {
+
+					if (l->f == f_a || l->f == f_b) {
+						const int l_index = BM_elem_index_get(l);
+						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
+						float n_final[3], pow_a[3], pow_b[3];
+
+						zero_v3(n_final);
+						copy_v3_v3(pow_a, f_a->no);
+						copy_v3_v3(pow_b, f_b->no);
+						if (_f_a) {
+							mul_v3_fl(pow_a, bmd->res / ref);
+							mul_v3_fl(pow_b, ref / bmd->res);
+						}
+						else {
+							mul_v3_fl(pow_b, bmd->res / ref);
+							mul_v3_fl(pow_a, ref / bmd->res);
+						}
+						add_v3_v3(n_final, pow_a);
+						add_v3_v3(n_final, pow_b);
+						normalize_v3(n_final);
+
+						BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -301,10 +358,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
-	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp, bmd->hnmode, NULL);
+	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp, bmd->hnmode, &bmd->clnordata);
 
-	if (bmd->hnmode != MOD_BEVEL_HN_NONE && bmd->hnmode != MOD_BEVEL_FIX_SHA)
-		bevel_mod_harden_normals(bmd, bm, bmd->hn_strength, bmd->hnmode, dvert, vgroup);
+	if (bmd->hnmode != MOD_BEVEL_HN_NONE) {
+		if (bmd->hnmode != BEVEL_HN_FIX_SHA)
+			bevel_mod_harden_normals(bmd, bm, bmd->hn_strength, bmd->hnmode, dvert, vgroup);
+		else
+			bevel_fix_normal_shading_continuity(bmd, bm);
+	}
 
 	if(set_wn_strength)
 		bevel_set_weighted_normal_face_strength(bm, md->scene);
@@ -315,6 +376,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	           bm->etoolflagpool == NULL &&
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
 	BM_mesh_free(bm);
+
+	BLI_ghash_free(bmd->clnordata.faceHash, NULL, NULL);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
