@@ -1898,7 +1898,7 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 			}
 		}
 
-		return OPERATOR_CANCELLED;
+		return 0;
 	}
 
 	for (te = te->subtree.first; te; te = te->next) {
