@@ -83,23 +83,25 @@ class SEQUENCER_HT_header(Header):
 
         SEQUENCER_MT_editor_menus.draw_collapsible(context, layout)
 
+        if st.view_type == 'SEQUENCER':
+            layout.prop(st, "show_backdrop", text="Backdrop")
+
         layout.separator_spacer()
 
         layout.template_running_jobs()
 
+        if st.view_type == 'SEQUENCER':
+            layout.separator()
+            layout.operator("sequencer.refresh_all")
+
+        if st.view_type == 'SEQUENCER_PREVIEW':
+            layout.separator()
+            layout.operator("sequencer.refresh_all")
+
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.prop(st, "display_mode", expand=True, text="")
 
-        if st.view_type == 'SEQUENCER':
-            layout.separator()
-            layout.prop(st, "show_backdrop")
-            layout.operator("sequencer.refresh_all")
-
-        else:
-            if st.view_type == 'SEQUENCER_PREVIEW':
-                layout.separator()
-                layout.operator("sequencer.refresh_all")
-
+        if st.view_type != 'SEQUENCER':
             layout.prop(st, "preview_channels", expand=True, text="")
             layout.prop(st, "display_channel", text="Channel")
 
