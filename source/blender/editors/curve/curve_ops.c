@@ -269,14 +269,10 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_make_segment", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 
-#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_delete", XKEY, KM_PRESS, 0, 0);
-#endif
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_delete", DELKEY, KM_PRESS, 0, 0);
 
-#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CURVE_OT_dissolve_verts", XKEY, KM_PRESS, KM_CTRL, 0);
-#endif
 	WM_keymap_add_item(keymap, "CURVE_OT_dissolve_verts", DELKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_tilt_clear", TKEY, KM_PRESS, KM_ALT, 0);

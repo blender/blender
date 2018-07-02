@@ -661,10 +661,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	/* marker */
 	WM_keymap_add_item(keymap, "CLIP_OT_add_marker_slide", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "CLIP_OT_delete_marker", DELKEY, KM_PRESS, KM_SHIFT, 0);
-#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CLIP_OT_delete_marker", XKEY, KM_PRESS, KM_SHIFT, 0);
-#endif
+	WM_keymap_add_item(keymap, "CLIP_OT_delete_marker", DELKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_slide_marker", LEFTMOUSE, KM_PRESS, 0, 0);
 
@@ -672,10 +670,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", 2);    /* toggle */
 
 	/* tracks */
-	WM_keymap_add_item(keymap, "CLIP_OT_delete_track", DELKEY, KM_PRESS, 0, 0);
-#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CLIP_OT_delete_track", XKEY, KM_PRESS, 0, 0);
-#endif
+	WM_keymap_add_item(keymap, "CLIP_OT_delete_track", DELKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", 0);    /* lock */
@@ -774,15 +770,11 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_select_border", BKEY, KM_PRESS, 0, 0);
 
 	/* delete */
-	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", DELKEY, KM_PRESS, 0, 0);
-#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", XKEY, KM_PRESS, 0, 0);
-#endif
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", DELKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", DELKEY, KM_PRESS, KM_SHIFT, 0);
-#ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", XKEY, KM_PRESS, KM_SHIFT, 0);
-#endif
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", DELKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* view */
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_view_all", HOMEKEY, KM_PRESS, 0, 0);

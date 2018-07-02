@@ -556,11 +556,9 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_new", CKEY, KM_PRESS, 0, 0);
-#ifdef USE_WM_KEYMAP_27X
+
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete", XKEY, KM_PRESS, 0, 0);
-#else
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete", DELKEY, KM_PRESS, 0, 0);
-#endif
 
 	WM_keymap_verify_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
