@@ -41,17 +41,7 @@ class GRAPH_HT_header(Header):
         # Now a exposed as a sub-space type
         # layout.prop(st, "mode", text="")
 
-        layout.popover(
-            space_type='GRAPH_EDITOR',
-            region_type='HEADER',
-            panel_type="GRAPH_PT_filters",
-            text="",
-            icon='FILTER',
-        )
-
         GRAPH_MT_editor_menus.draw_collapsible(context, layout)
-
-        dopesheet_filter(layout, context)
 
         row = layout.row(align=True)
         row.prop(st, "use_normalization", icon='NORMALIZE_FCURVES', text="Normalize", toggle=True)
@@ -61,25 +51,36 @@ class GRAPH_HT_header(Header):
 
         layout.separator_spacer()
 
-        row = layout.row(align=True)
-        row.prop(toolsettings, "use_proportional_fcurve", text="", icon_only=True)
-        sub = row.row(align=True)
-        sub.active = toolsettings.use_proportional_fcurve
-        sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
-
-        layout.prop(st, "auto_snap", text="")
-        layout.prop(st, "pivot_point", icon_only=True)
-
-        row = layout.row(align=True)
-        row.operator("graph.copy", text="", icon='COPYDOWN')
-        row.operator("graph.paste", text="", icon='PASTEDOWN')
-        row.operator("graph.paste", text="", icon='PASTEFLIPDOWN').flipped = True
+        dopesheet_filter(layout, context)
 
         row = layout.row(align=True)
         if st.has_ghost_curves:
             row.operator("graph.ghost_curves_clear", text="", icon='GHOST_DISABLED')
         else:
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
+
+        layout.prop(st, "auto_snap", text="")
+
+        layout.popover(
+            space_type='GRAPH_EDITOR',
+            region_type='HEADER',
+            panel_type="GRAPH_PT_filters",
+            text="",
+            icon='FILTER',
+        )
+
+        row = layout.row(align=True)
+        row.prop(toolsettings, "use_proportional_fcurve", text="", icon_only=True)
+        sub = row.row(align=True)
+        sub.active = toolsettings.use_proportional_fcurve
+        sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
+
+        layout.prop(st, "pivot_point", icon_only=True)
+
+        row = layout.row(align=True)
+        row.operator("graph.copy", text="", icon='COPYDOWN')
+        row.operator("graph.paste", text="", icon='PASTEDOWN')
+        row.operator("graph.paste", text="", icon='PASTEFLIPDOWN').flipped = True
 
 
 class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):

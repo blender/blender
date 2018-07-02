@@ -37,6 +37,14 @@ class NLA_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
+        NLA_MT_editor_menus.draw_collapsible(context, layout)
+
+        layout.separator_spacer()
+
+        dopesheet_filter(layout, context)
+
+        layout.prop(st, "auto_snap", text="")
+
         layout.popover(
             space_type='NLA_EDITOR',
             region_type='HEADER',
@@ -44,13 +52,6 @@ class NLA_HT_header(Header):
             text="",
             icon='FILTER',
         )
-
-        NLA_MT_editor_menus.draw_collapsible(context, layout)
-
-        dopesheet_filter(layout, context)
-
-        layout.separator_spacer()
-        layout.prop(st, "auto_snap", text="")
 
 
 class NLA_PT_filters(DopesheetFilterPopoverBase, Panel):
