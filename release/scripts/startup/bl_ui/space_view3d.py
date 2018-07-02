@@ -218,56 +218,54 @@ class VIEW3D_MT_editor_menus(Menu):
         edit_object = context.edit_object
         gp_edit = context.gpencil_data and context.gpencil_data.use_stroke_edit_mode
 
-        # Use aligned row to squeeze out a bit more space.
-        row = layout.row(align=True)
-        row.menu("VIEW3D_MT_view")
+        layout.menu("VIEW3D_MT_view")
 
         # Select Menu
         if gp_edit:
-            row.menu("VIEW3D_MT_select_gpencil")
+            layout.menu("VIEW3D_MT_select_gpencil")
         elif mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             mesh = obj.data
             if mesh.use_paint_mask:
-                row.menu("VIEW3D_MT_select_paint_mask")
+                layout.menu("VIEW3D_MT_select_paint_mask")
             elif mesh.use_paint_mask_vertex and mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
-                row.menu("VIEW3D_MT_select_paint_mask_vertex")
+                layout.menu("VIEW3D_MT_select_paint_mask_vertex")
         elif mode_string != 'SCULPT':
-            row.menu("VIEW3D_MT_select_%s" % mode_string.lower())
+            layout.menu("VIEW3D_MT_select_%s" % mode_string.lower())
 
         if gp_edit:
             pass
         elif mode_string == 'OBJECT':
-            row.menu("INFO_MT_add", text="Add")
+            layout.menu("INFO_MT_add", text="Add")
         elif mode_string == 'EDIT_MESH':
-            row.menu("INFO_MT_mesh_add", text="Add")
+            layout.menu("INFO_MT_mesh_add", text="Add")
         elif mode_string == 'EDIT_CURVE':
-            row.menu("INFO_MT_curve_add", text="Add")
+            layout.menu("INFO_MT_curve_add", text="Add")
         elif mode_string == 'EDIT_SURFACE':
-            row.menu("INFO_MT_surface_add", text="Add")
+            layout.menu("INFO_MT_surface_add", text="Add")
         elif mode_string == 'EDIT_METABALL':
-            row.menu("INFO_MT_metaball_add", text="Add")
+            layout.menu("INFO_MT_metaball_add", text="Add")
         elif mode_string == 'EDIT_ARMATURE':
-            row.menu("INFO_MT_edit_armature_add", text="Add")
+            layout.menu("INFO_MT_edit_armature_add", text="Add")
 
         if gp_edit:
-            row.menu("VIEW3D_MT_edit_gpencil")
+            layout.menu("VIEW3D_MT_edit_gpencil")
         elif edit_object:
-            row.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
+            layout.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
 
             if mode_string == 'EDIT_MESH':
-                row.menu("VIEW3D_MT_edit_mesh_vertices")
-                row.menu("VIEW3D_MT_edit_mesh_edges")
-                row.menu("VIEW3D_MT_edit_mesh_faces")
+                layout.menu("VIEW3D_MT_edit_mesh_vertices")
+                layout.menu("VIEW3D_MT_edit_mesh_edges")
+                layout.menu("VIEW3D_MT_edit_mesh_faces")
 
         elif obj:
             if mode_string != 'PAINT_TEXTURE':
-                row.menu("VIEW3D_MT_%s" % mode_string.lower())
+                layout.menu("VIEW3D_MT_%s" % mode_string.lower())
             if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
-                row.menu("VIEW3D_MT_brush")
+                layout.menu("VIEW3D_MT_brush")
             if mode_string == 'SCULPT':
-                row.menu("VIEW3D_MT_hide_mask")
+                layout.menu("VIEW3D_MT_hide_mask")
         else:
-            row.menu("VIEW3D_MT_object")
+            layout.menu("VIEW3D_MT_object")
 
 
 # ********** Menu **********
