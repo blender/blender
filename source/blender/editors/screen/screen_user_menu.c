@@ -187,6 +187,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 	bUserMenu *um_array[] = {
 		BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context),
 		(sl->spacetype != SPACE_TOPBAR) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context) : NULL,
+		(sl->spacetype == SPACE_VIEW3D) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_BUTS, context) : NULL,
 	};
 	for (int um_index = 0; um_index < ARRAY_SIZE(um_array); um_index++) {
 		bUserMenu *um = um_array[um_index];
