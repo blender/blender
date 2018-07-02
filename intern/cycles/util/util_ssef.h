@@ -606,7 +606,7 @@ ccl_device_inline const ssef uint32_to_float(const ssei &in)
 template<size_t S1, size_t S2, size_t S3, size_t S4>
 ccl_device_inline const ssef set_sign_bit(const ssef &a)
 {
-	return a ^ cast(ssei(S1 << 31, S2 << 31, S3 << 31, S4 << 31));
+	return cast(cast(a) ^ ssei(S1 << 31, S2 << 31, S3 << 31, S4 << 31));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
