@@ -365,7 +365,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		GPU_viewport_size_getf(viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 		immUniform1i("colors_len", 0);  /* "simple" mode */
@@ -669,7 +669,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	GPU_viewport_size_getf(viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 	immUniform1i("colors_len", 0);  /* "simple" mode */
@@ -1211,7 +1211,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		GPU_viewport_size_getf(viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 		immUniform1i("colors_len", 0);  /* "simple" mode */

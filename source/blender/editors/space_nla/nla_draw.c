@@ -182,7 +182,7 @@ static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymax
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		GPU_viewport_size_getf(viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 		immUniform1i("colors_len", 0);  /* "simple" mode */
@@ -370,7 +370,7 @@ static uint nla_draw_use_dashed_outlines(float color[4], bool muted)
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
-	GPU_viewport_size_getf(viewport_size);
+	GPU_viewport_size_get_f(viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 	immUniform1i("colors_len", 0);  /* Simple dashes. */

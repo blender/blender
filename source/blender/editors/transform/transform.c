@@ -1757,7 +1757,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
-			GPU_viewport_size_getf(viewport_size);
+			GPU_viewport_size_get_f(viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
 			immUniform1i("colors_len", 0);  /* "simple" mode */
@@ -7688,7 +7688,7 @@ static void drawVertSlide(TransInfo *t)
 				immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
 				float viewport_size[4];
-				GPU_viewport_size_getf(viewport_size);
+				GPU_viewport_size_get_f(viewport_size);
 				immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
 				immUniform1i("colors_len", 0);  /* "simple" mode */

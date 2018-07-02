@@ -2466,7 +2466,7 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 	rect.ymin = rect.ymax - header_height * num_lines;
 
 	/* setup scissor */
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 	GPU_scissor(rect.xmin, rect.ymin,
 	          BLI_rcti_size_x(&rect) + 1, BLI_rcti_size_y(&rect) + 1);
 

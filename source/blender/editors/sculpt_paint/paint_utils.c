@@ -292,7 +292,7 @@ static void imapaint_pick_uv(Mesh *me_eval, Scene *scene, Object *ob_eval, unsig
 	const int *index_mp_to_orig  = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
 	/* get the needed opengl matrices */
-	GPU_viewport_size_geti(view);
+	GPU_viewport_size_get_i(view);
 	gpuGetModelViewMatrix(matrix);
 	gpuGetProjectionMatrix(proj);
 	view[0] = view[1] = 0;

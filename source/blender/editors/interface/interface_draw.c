@@ -653,7 +653,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 #if 0
 	/* prevent drawing outside widget area */
 	int scissor[4];
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 	GPU_scissor(rect->xmin, rect->ymin, w, h);
 #endif
 
@@ -810,7 +810,7 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUS
 
 	/* need scissor test, histogram can draw outside of boundary */
 	int scissor[4];
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 	GPU_scissor(
 	        (rect.xmin - 1),
 	        (rect.ymin - 1),
@@ -934,7 +934,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 	UI_draw_roundbox_4fv(true, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, waveform can draw outside of boundary */
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 	GPU_scissor(
 	        (rect.xmin - 1),
 	        (rect.ymin - 1),
@@ -1207,7 +1207,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UN
 
 	/* need scissor test, hvectorscope can draw outside of boundary */
 	int scissor[4];
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 	GPU_scissor(
 	        (rect.xmin - 1),
 	        (rect.ymin - 1),
@@ -1340,7 +1340,7 @@ static void ui_draw_colorband_handle(
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
-		GPU_viewport_size_getf(viewport_size);
+		GPU_viewport_size_get_f(viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 		immUniform1i("colors_len", 2);  /* "advanced" mode */
@@ -1636,7 +1636,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 
 	/* need scissor test, curve can draw outside of boundary */
 	int scissor[4];
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 	rcti scissor_new = {
 		.xmin = rect->xmin,
 		.ymin = rect->ymin,
@@ -1861,7 +1861,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 
 	/* need scissor test, preview image can draw outside of boundary */
 	int scissor[4];
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 	GPU_scissor(
 	        (rect.xmin - 1),
 	        (rect.ymin - 1),
@@ -1996,7 +1996,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	int scissor[4];
 
 	/* need scissor test, can draw outside of boundary */
-	GPU_scissor_geti(scissor);
+	GPU_scissor_get_i(scissor);
 
 	rcti scissor_new = {
 		.xmin = recti->xmin,

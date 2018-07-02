@@ -2045,7 +2045,7 @@ static void outliner_draw_tree(
 		int mask_x = BLI_rcti_size_x(&ar->v2d.mask) - (int)OL_TOGW + 1;
 		CLAMP_MIN(mask_x, 0);
 
-		GPU_scissor_getf(scissor);
+		GPU_scissor_get_f(scissor);
 		GPU_scissor(0, 0, mask_x, ar->winy);
 	}
 
