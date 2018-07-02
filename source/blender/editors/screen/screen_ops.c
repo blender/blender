@@ -1899,7 +1899,7 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 	else {
 		ScrEdge *actedge;
-		rcti screen_rect;
+		rcti window_rect;
 		int event_co[2];
 
 		/* retrieve initial mouse coord, so we can find the active edge */
@@ -1910,10 +1910,10 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			copy_v2_v2_int(event_co, &event->x);
 		}
 
-		WM_window_screen_rect_calc(win, &screen_rect);
+		WM_window_rect_calc(win, &window_rect);
 
 		actedge = screen_geom_area_map_find_active_scredge(
-		        AREAMAP_FROM_SCREEN(sc), &screen_rect, event_co[0], event_co[1]);
+		        AREAMAP_FROM_SCREEN(sc), &window_rect, event_co[0], event_co[1]);
 		if (actedge == NULL) {
 			return OPERATOR_CANCELLED;
 		}
@@ -2894,6 +2894,8 @@ static void area_join_draw_cb(const struct wmWindow *UNUSED(win), void *userdata
 /* XXX todo: find edge based on (x,y) and set other area? */
 static int area_join_init(bContext *C, wmOperator *op)
 {
+	const wmWindow *win = CTX_wm_window(C);
+	bScreen *screen = CTX_wm_screen(C);
 	ScrArea *sa1, *sa2;
 	sAreaJoinData *jd = NULL;
 	int x1, y1;
@@ -2906,10 +2908,21 @@ static int area_join_init(bContext *C, wmOperator *op)
 	x2 = RNA_int_get(op->ptr, "max_x");
 	y2 = RNA_int_get(op->ptr, "max_y");
 
-	sa1 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, x1, y1);
-	sa2 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, x2, y2);
-	if (sa1 == NULL || sa2 == NULL || sa1 == sa2)
+	sa1 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, x1, y1);
+	if (sa1 == NULL) {
+		sa1 = BKE_screen_area_map_find_area_xy(&win->global_areas, SPACE_TYPE_ANY, x1, y1);
+	}
+	sa2 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, x2, y2);
+	if (sa2 == NULL) {
+		sa2 = BKE_screen_area_map_find_area_xy(&win->global_areas, SPACE_TYPE_ANY, x2, y2);
+	}
+	if ((sa1 && ED_area_is_global(sa1)) || (sa2 && ED_area_is_global(sa2))) {
+		BKE_report(op->reports, RPT_ERROR, "Global areas (Top Bar, Status Bar) do not support joining");
 		return 0;
+	}
+	else if (sa1 == NULL || sa2 == NULL || sa1 == sa2) {
+		return 0;
+	}
 
 	/* do areas share an edge? */
 	if (sa1->v1 == sa2->v1 || sa1->v1 == sa2->v2 || sa1->v1 == sa2->v3 || sa1->v1 == sa2->v4) shared++;
@@ -3008,7 +3021,7 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 
 	if (!area_join_init(C, op))
-		return OPERATOR_PASS_THROUGH;
+		return OPERATOR_CANCELLED;
 
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
@@ -3141,10 +3154,10 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
 	uiLayout *layout;
 	PointerRNA ptr;
 	ScrEdge *actedge;
-	rcti screen_rect;
+	rcti window_rect;
 
-	WM_window_screen_rect_calc(win, &screen_rect);
-	actedge = screen_geom_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y);
+	WM_window_rect_calc(win, &window_rect);
+	actedge = screen_geom_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(sc), &window_rect, event->x, event->y);
 
 	if (actedge == NULL) return OPERATOR_CANCELLED;
 

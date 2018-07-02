@@ -748,19 +748,21 @@ ScrArea *BKE_screen_find_big_area(bScreen *sc, const int spacetype, const short 
 	return big;
 }
 
-ScrArea *BKE_screen_find_area_xy(bScreen *sc, const int spacetype, int x, int y)
+ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap, const int spacetype, int x, int y)
 {
-	ScrArea *sa, *sa_found = NULL;
-
-	for (sa = sc->areabase.first; sa; sa = sa->next) {
+	for (ScrArea *sa = areamap->areabase.first; sa; sa = sa->next) {
 		if (BLI_rcti_isect_pt(&sa->totrct, x, y)) {
 			if ((spacetype == SPACE_TYPE_ANY) || (sa->spacetype == spacetype)) {
-				sa_found = sa;
+				return sa;
 			}
 			break;
 		}
 	}
-	return sa_found;
+	return NULL;
+}
+ScrArea *BKE_screen_find_area_xy(bScreen *sc, const int spacetype, int x, int y)
+{
+	return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(sc), spacetype, x, y);
 }
 
 

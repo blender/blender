@@ -333,6 +333,7 @@ struct ARegion *BKE_area_find_region_active_win(struct ScrArea *sa);
 struct ARegion *BKE_area_find_region_xy(struct ScrArea *sa, const int regiontype, int x, int y);
 struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc, struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min);
+struct ScrArea *BKE_screen_area_map_find_area_xy(const struct ScrAreaMap *areamap, const int spacetype, int x, int y);
 struct ScrArea *BKE_screen_find_area_xy(struct bScreen *sc, const int spacetype, int x, int y);
 
 unsigned int BKE_screen_view3d_layer_active_ex(
