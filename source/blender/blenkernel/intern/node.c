@@ -3141,13 +3141,13 @@ static void node_type_base_defaults(bNodeType *ntype)
 }
 
 /* allow this node for any tree type */
-static int node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(ntree))
+static bool node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(ntree))
 {
 	return true;
 }
 
 /* use the basic poll function */
-static int node_poll_instance_default(bNode *node, bNodeTree *ntree)
+static bool node_poll_instance_default(bNode *node, bNodeTree *ntree)
 {
 	return node->typeinfo->poll(node->typeinfo, ntree);
 }
@@ -3340,7 +3340,7 @@ void node_type_compatibility(struct bNodeType *ntype, short compatibility)
 
 /* callbacks for undefined types */
 
-static int node_undefined_poll(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(nodetree))
+static bool node_undefined_poll(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(nodetree))
 {
 	/* this type can not be added deliberately, it's just a placeholder */
 	return false;

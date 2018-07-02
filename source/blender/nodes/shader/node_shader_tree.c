@@ -65,7 +65,7 @@
 #include "node_util.h"
 #include "node_shader_util.h"
 
-static int shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
+static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 {
 	Scene *scene = CTX_data_scene(C);
 	const char *engine_id = scene->r.engine;

@@ -332,7 +332,7 @@ static void WORKSPACE_OT_workspace_delete(wmOperatorType *ot)
 	ot->exec = workspace_delete_exec;
 }
 
-static int workspace_append_activate_poll(bContext *C)
+static bool workspace_append_activate_poll(bContext *C)
 {
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_append", false);
 	return WM_operator_poll(C, ot);

@@ -103,7 +103,7 @@
 /** \name Public Poll API
  * \{ */
 
-int ED_operator_regionactive(bContext *C)
+bool ED_operator_regionactive(bContext *C)
 {
 	if (CTX_wm_window(C) == NULL) return 0;
 	if (CTX_wm_screen(C) == NULL) return 0;
@@ -111,7 +111,7 @@ int ED_operator_regionactive(bContext *C)
 	return 1;
 }
 
-int ED_operator_areaactive(bContext *C)
+bool ED_operator_areaactive(bContext *C)
 {
 	if (CTX_wm_window(C) == NULL) return 0;
 	if (CTX_wm_screen(C) == NULL) return 0;
@@ -119,7 +119,7 @@ int ED_operator_areaactive(bContext *C)
 	return 1;
 }
 
-int ED_operator_screenactive(bContext *C)
+bool ED_operator_screenactive(bContext *C)
 {
 	if (CTX_wm_window(C) == NULL) return 0;
 	if (CTX_wm_screen(C) == NULL) return 0;
@@ -127,7 +127,7 @@ int ED_operator_screenactive(bContext *C)
 }
 
 /* XXX added this to prevent anim state to change during renders */
-static int ED_operator_screenactive_norender(bContext *C)
+static bool ED_operator_screenactive_norender(bContext *C)
 {
 	if (G.is_rendering) return 0;
 	if (CTX_wm_window(C) == NULL) return 0;
@@ -136,7 +136,7 @@ static int ED_operator_screenactive_norender(bContext *C)
 }
 
 /* when mouse is over area-edge */
-int ED_operator_screen_mainwinactive(bContext *C)
+bool ED_operator_screen_mainwinactive(bContext *C)
 {
 	bScreen *screen;
 	if (CTX_wm_window(C) == NULL) return 0;
@@ -146,7 +146,7 @@ int ED_operator_screen_mainwinactive(bContext *C)
 	return 1;
 }
 
-int ED_operator_scene(bContext *C)
+bool ED_operator_scene(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	if (scene)
@@ -154,7 +154,7 @@ int ED_operator_scene(bContext *C)
 	return 0;
 }
 
-int ED_operator_scene_editable(bContext *C)
+bool ED_operator_scene_editable(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	if (scene && !ID_IS_LINKED(scene))
@@ -162,7 +162,7 @@ int ED_operator_scene_editable(bContext *C)
 	return 0;
 }
 
-int ED_operator_objectmode(bContext *C)
+bool ED_operator_objectmode(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
@@ -189,12 +189,12 @@ static bool ed_spacetype_test(bContext *C, int type)
 	return 0;
 }
 
-int ED_operator_view3d_active(bContext *C)
+bool ED_operator_view3d_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_VIEW3D);
 }
 
-int ED_operator_region_view3d_active(bContext *C)
+bool ED_operator_region_view3d_active(bContext *C)
 {
 	if (CTX_wm_region_view3d(C))
 		return true;
@@ -204,7 +204,7 @@ int ED_operator_region_view3d_active(bContext *C)
 }
 
 /* generic for any view2d which uses anim_ops */
-int ED_operator_animview_active(bContext *C)
+bool ED_operator_animview_active(bContext *C)
 {
 	if (ED_operator_areaactive(C)) {
 		SpaceLink *sl = (SpaceLink *)CTX_wm_space_data(C);
@@ -216,12 +216,12 @@ int ED_operator_animview_active(bContext *C)
 	return 0;
 }
 
-int ED_operator_outliner_active(bContext *C)
+bool ED_operator_outliner_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_OUTLINER);
 }
 
-int ED_operator_outliner_active_no_editobject(bContext *C)
+bool ED_operator_outliner_active_no_editobject(bContext *C)
 {
 	if (ed_spacetype_test(C, SPACE_OUTLINER)) {
 		Object *ob = ED_object_active_context(C);
@@ -234,22 +234,22 @@ int ED_operator_outliner_active_no_editobject(bContext *C)
 	return 0;
 }
 
-int ED_operator_file_active(bContext *C)
+bool ED_operator_file_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_FILE);
 }
 
-int ED_operator_action_active(bContext *C)
+bool ED_operator_action_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_ACTION);
 }
 
-int ED_operator_buttons_active(bContext *C)
+bool ED_operator_buttons_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_BUTS);
 }
 
-int ED_operator_node_active(bContext *C)
+bool ED_operator_node_active(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -259,7 +259,7 @@ int ED_operator_node_active(bContext *C)
 	return 0;
 }
 
-int ED_operator_node_editable(bContext *C)
+bool ED_operator_node_editable(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -269,75 +269,75 @@ int ED_operator_node_editable(bContext *C)
 	return 0;
 }
 
-int ED_operator_graphedit_active(bContext *C)
+bool ED_operator_graphedit_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IPO);
 }
 
-int ED_operator_sequencer_active(bContext *C)
+bool ED_operator_sequencer_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_SEQ);
 }
 
-int ED_operator_sequencer_active_editable(bContext *C)
+bool ED_operator_sequencer_active_editable(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_SEQ) && ED_operator_scene_editable(C);
 }
 
-int ED_operator_image_active(bContext *C)
+bool ED_operator_image_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IMAGE);
 }
 
-int ED_operator_nla_active(bContext *C)
+bool ED_operator_nla_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_NLA);
 }
 
-int ED_operator_info_active(bContext *C)
+bool ED_operator_info_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_INFO);
 }
 
 
-int ED_operator_console_active(bContext *C)
+bool ED_operator_console_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_CONSOLE);
 }
 
-static int ed_object_hidden(Object *ob)
+static bool ed_object_hidden(Object *ob)
 {
 	/* if hidden but in edit mode, we still display, can happen with animation */
 	return ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT));
 }
 
-int ED_operator_object_active(bContext *C)
+bool ED_operator_object_active(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !ed_object_hidden(ob));
 }
 
-int ED_operator_object_active_editable(bContext *C)
+bool ED_operator_object_active_editable(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob));
 }
 
-int ED_operator_object_active_editable_mesh(bContext *C)
+bool ED_operator_object_active_editable_mesh(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) &&
 	        (ob->type == OB_MESH) && !ID_IS_LINKED(ob->data));
 }
 
-int ED_operator_object_active_editable_font(bContext *C)
+bool ED_operator_object_active_editable_font(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) &&
 	        (ob->type == OB_FONT));
 }
 
-int ED_operator_editmesh(bContext *C)
+bool ED_operator_editmesh(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MESH)
@@ -345,12 +345,12 @@ int ED_operator_editmesh(bContext *C)
 	return 0;
 }
 
-int ED_operator_editmesh_view3d(bContext *C)
+bool ED_operator_editmesh_view3d(bContext *C)
 {
 	return ED_operator_editmesh(C) && ED_operator_view3d_active(C);
 }
 
-int ED_operator_editmesh_region_view3d(bContext *C)
+bool ED_operator_editmesh_region_view3d(bContext *C)
 {
 	if (ED_operator_editmesh(C) && CTX_wm_region_view3d(C))
 		return 1;
@@ -359,7 +359,7 @@ int ED_operator_editmesh_region_view3d(bContext *C)
 	return 0;
 }
 
-int ED_operator_editarmature(bContext *C)
+bool ED_operator_editarmature(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_ARMATURE)
@@ -374,7 +374,7 @@ int ED_operator_editarmature(bContext *C)
  * when it comes to transforming bones, but managing bones layers/groups
  * can be left for pose mode only. (not weight paint mode)
  */
-int ED_operator_posemode_exclusive(bContext *C)
+bool ED_operator_posemode_exclusive(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);
 
@@ -392,7 +392,7 @@ int ED_operator_posemode_exclusive(bContext *C)
 
 /* allows for pinned pose objects to be used in the object buttons
  * and the non-active pose object to be used in the 3D view */
-int ED_operator_posemode_context(bContext *C)
+bool ED_operator_posemode_context(bContext *C)
 {
 	Object *obpose = ED_pose_object_from_context(C);
 
@@ -405,7 +405,7 @@ int ED_operator_posemode_context(bContext *C)
 	return 0;
 }
 
-int ED_operator_posemode(bContext *C)
+bool ED_operator_posemode(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);
 
@@ -421,7 +421,7 @@ int ED_operator_posemode(bContext *C)
 	return 0;
 }
 
-int ED_operator_posemode_local(bContext *C)
+bool ED_operator_posemode_local(bContext *C)
 {
 	if (ED_operator_posemode(C)) {
 		Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
@@ -433,21 +433,21 @@ int ED_operator_posemode_local(bContext *C)
 }
 
 /* wrapper for ED_space_image_show_uvedit */
-int ED_operator_uvedit(bContext *C)
+bool ED_operator_uvedit(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obedit = CTX_data_edit_object(C);
 	return ED_space_image_show_uvedit(sima, obedit);
 }
 
-int ED_operator_uvedit_space_image(bContext *C)
+bool ED_operator_uvedit_space_image(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obedit = CTX_data_edit_object(C);
 	return sima && ED_space_image_show_uvedit(sima, obedit);
 }
 
-int ED_operator_uvmap(bContext *C)
+bool ED_operator_uvmap(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = NULL;
@@ -463,7 +463,7 @@ int ED_operator_uvmap(bContext *C)
 	return false;
 }
 
-int ED_operator_editsurfcurve(bContext *C)
+bool ED_operator_editsurfcurve(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && ELEM(obedit->type, OB_CURVE, OB_SURF))
@@ -471,7 +471,7 @@ int ED_operator_editsurfcurve(bContext *C)
 	return 0;
 }
 
-int ED_operator_editsurfcurve_region_view3d(bContext *C)
+bool ED_operator_editsurfcurve_region_view3d(bContext *C)
 {
 	if (ED_operator_editsurfcurve(C) && CTX_wm_region_view3d(C))
 		return 1;
@@ -480,7 +480,7 @@ int ED_operator_editsurfcurve_region_view3d(bContext *C)
 	return 0;
 }
 
-int ED_operator_editcurve(bContext *C)
+bool ED_operator_editcurve(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_CURVE)
@@ -488,7 +488,7 @@ int ED_operator_editcurve(bContext *C)
 	return 0;
 }
 
-int ED_operator_editcurve_3d(bContext *C)
+bool ED_operator_editcurve_3d(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_CURVE) {
@@ -499,7 +499,7 @@ int ED_operator_editcurve_3d(bContext *C)
 	return 0;
 }
 
-int ED_operator_editsurf(bContext *C)
+bool ED_operator_editsurf(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_SURF)
@@ -507,7 +507,7 @@ int ED_operator_editsurf(bContext *C)
 	return 0;
 }
 
-int ED_operator_editfont(bContext *C)
+bool ED_operator_editfont(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_FONT)
@@ -515,7 +515,7 @@ int ED_operator_editfont(bContext *C)
 	return 0;
 }
 
-int ED_operator_editlattice(bContext *C)
+bool ED_operator_editlattice(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_LATTICE)
@@ -523,7 +523,7 @@ int ED_operator_editlattice(bContext *C)
 	return 0;
 }
 
-int ED_operator_editmball(bContext *C)
+bool ED_operator_editmball(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MBALL)
@@ -531,7 +531,7 @@ int ED_operator_editmball(bContext *C)
 	return 0;
 }
 
-int ED_operator_mask(bContext *C)
+bool ED_operator_mask(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
@@ -559,7 +559,7 @@ int ED_operator_mask(bContext *C)
 	return false;
 }
 
-int ED_operator_camera(bContext *C)
+bool ED_operator_camera(bContext *C)
 {
 	struct Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
 	return (cam != NULL);
@@ -571,7 +571,7 @@ int ED_operator_camera(bContext *C)
 /** \name Internal Screen Utilities
  * \{ */
 
-static int screen_active_editable(bContext *C)
+static bool screen_active_editable(bContext *C)
 {
 	if (ED_operator_screenactive(C)) {
 		/* no full window splitting allowed */
@@ -635,7 +635,7 @@ typedef struct sActionzoneData {
 } sActionzoneData;
 
 /* quick poll to save operators to be created and handled */
-static int actionzone_area_poll(bContext *C)
+static bool actionzone_area_poll(bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -2787,7 +2787,7 @@ static int screen_maximize_area_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int screen_maximize_area_poll(bContext *C)
+static bool screen_maximize_area_poll(bContext *C)
 {
 	const bScreen *screen = CTX_wm_screen(C);
 	const ScrArea *area = CTX_wm_area(C);
@@ -3522,7 +3522,7 @@ static int region_flip_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int region_flip_poll(bContext *C)
+static bool region_flip_poll(bContext *C)
 {
 	ScrArea *area = CTX_wm_area(C);
 
@@ -4545,7 +4545,7 @@ static const EnumPropertyItem space_context_cycle_direction[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int space_context_cycle_poll(bContext *C)
+static bool space_context_cycle_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	/* sa might be NULL if called out of window bounds */
@@ -4753,7 +4753,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 
 }
 
-static int open_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool open_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_PATH) {
 		if (drag->icon == ICON_FILE_BLEND)

@@ -64,7 +64,7 @@
 /* ********************** frame change operator ***************************/
 
 /* Check if the operator can be run from the current context */
-static int change_frame_poll(bContext *C)
+static bool change_frame_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 
@@ -279,7 +279,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 
 /* ****************** Start/End Frame Operators *******************************/
 
-static int anim_set_end_frames_poll(bContext *C)
+static bool anim_set_end_frames_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 

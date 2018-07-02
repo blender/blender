@@ -247,7 +247,7 @@ static char *rna_ParticleEdit_path(PointerRNA *UNUSED(ptr))
 	return BLI_strdup("tool_settings.particle_edit");
 }
 
-static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ToolSettings *ts = scene->toolsettings;

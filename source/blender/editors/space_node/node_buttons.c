@@ -59,7 +59,7 @@
 
 #if 0
 /* poll for active nodetree */
-static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -67,7 +67,7 @@ static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 }
 #endif
 
-static int node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -95,7 +95,7 @@ static void node_sockets_panel(const bContext *C, Panel *pa)
 	}
 }
 
-static int node_tree_interface_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool node_tree_interface_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -216,7 +216,7 @@ static int node_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 }
 
 /* non-standard poll operator which doesn't care if there are any nodes */
-static int node_properties_poll(bContext *C)
+static bool node_properties_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	return (sa && (sa->spacetype == SPACE_NODE));

@@ -50,7 +50,7 @@
 #include "node_texture_util.h"
 
 
-int tex_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+bool tex_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
 	return STREQ(ntree->idname, "TextureNodeTree");
 }

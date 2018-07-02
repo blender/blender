@@ -118,7 +118,7 @@ bool ED_uvedit_test(Object *obedit)
 	return ret;
 }
 
-static int ED_operator_uvedit_can_uv_sculpt(struct bContext *C)
+static bool ED_operator_uvedit_can_uv_sculpt(struct bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
@@ -4060,7 +4060,7 @@ static void UV_OT_reveal(wmOperatorType *ot)
 /** \name Set 2D Cursor Operator
  * \{ */
 
-static int uv_set_2d_cursor_poll(bContext *C)
+static bool uv_set_2d_cursor_poll(bContext *C)
 {
 	return ED_operator_uvedit_space_image(C) ||
 	       ED_space_image_maskedit_poll(C) ||

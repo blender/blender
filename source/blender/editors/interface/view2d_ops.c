@@ -54,7 +54,7 @@
 
 #include "PIL_time.h" /* USER_ZOOM_CONT */
 
-static int view2d_poll(bContext *C)
+static bool view2d_poll(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
 
@@ -129,7 +129,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 }
 
 #ifdef WITH_INPUT_NDOF
-static int view_pan_poll(bContext *C)
+static bool view_pan_poll(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d;
@@ -606,7 +606,7 @@ static int view_zoomdrag_init(bContext *C, wmOperator *op)
 }
 
 /* check if step-zoom can be applied */
-static int view_zoom_poll(bContext *C)
+static bool view_zoom_poll(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d;
@@ -1678,7 +1678,7 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	return SCROLLHANDLE_BAR;
 }
 
-static int scroller_activate_poll(bContext *C)
+static bool scroller_activate_poll(bContext *C)
 {
 	if (!view2d_poll(C)) {
 		return false;

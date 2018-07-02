@@ -98,7 +98,7 @@ static void UI_OT_reset_default_theme(wmOperatorType *ot)
 
 /* Copy Data Path Operator ------------------------ */
 
-static int copy_data_path_button_poll(bContext *C)
+static bool copy_data_path_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -177,7 +177,7 @@ static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int copy_python_command_button_poll(bContext *C)
+static bool copy_python_command_button_poll(bContext *C)
 {
 	uiBut *but = UI_context_active_but_get(C);
 
@@ -248,7 +248,7 @@ static int operator_button_property_finish(bContext *C, PointerRNA *ptr, Propert
 	}
 }
 
-static int reset_default_button_poll(bContext *C)
+static bool reset_default_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -355,7 +355,7 @@ static EnumPropertyItem override_type_items[] = {
 };
 
 
-static int override_type_set_button_poll(bContext *C)
+static bool override_type_set_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -450,7 +450,7 @@ static void UI_OT_override_type_set_button(wmOperatorType *ot)
 }
 
 
-static int override_remove_button_poll(bContext *C)
+static bool override_remove_button_poll(bContext *C)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -767,7 +767,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 	return success;
 }
 
-static int copy_to_selected_button_poll(bContext *C)
+static bool copy_to_selected_button_poll(bContext *C)
 {
 	return copy_to_selected_button(C, false, true);
 }
@@ -807,7 +807,7 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
  * when there are too many to display...
  */
 
-static int reports_to_text_poll(bContext *C)
+static bool reports_to_text_poll(bContext *C)
 {
 	return CTX_wm_reports(C) != NULL;
 }
@@ -1240,7 +1240,7 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 	ot->exec = reloadtranslation_exec;
 }
 
-int UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
+bool UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	/* should only return true for regions that include buttons, for now
 	 * return true always */

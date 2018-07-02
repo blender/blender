@@ -58,12 +58,12 @@
 /* API */
 
 /* check if there is an active rigid body world */
-static int ED_rigidbody_world_active_poll(bContext *C)
+static bool ED_rigidbody_world_active_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	return (scene && scene->rigidbody_world);
 }
-static int ED_rigidbody_world_add_poll(bContext *C)
+static bool ED_rigidbody_world_add_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	return (scene && scene->rigidbody_world == NULL);

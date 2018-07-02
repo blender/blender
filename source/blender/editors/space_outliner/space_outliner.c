@@ -93,7 +93,7 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
 
-static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -151,7 +151,7 @@ static void outliner_parent_drop_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_string_set(drop->ptr, "child", id->name + 2);
 }
 
-static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -197,7 +197,7 @@ static void outliner_parent_clear_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_enum_set(drop->ptr, "type", 0);
 }
 
-static int outliner_scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool outliner_scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -222,7 +222,7 @@ static void outliner_scene_drop_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_string_set(drop->ptr, "object", id->name + 2);
 }
 
-static int outliner_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool outliner_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -247,7 +247,7 @@ static void outliner_material_drop_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_string_set(drop->ptr, "material", id->name + 2);
 }
 
-static int outliner_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool outliner_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);

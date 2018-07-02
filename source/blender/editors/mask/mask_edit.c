@@ -57,7 +57,7 @@
 
 /********************** generic poll functions *********************/
 
-int ED_maskedit_poll(bContext *C)
+bool ED_maskedit_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa) {
@@ -73,7 +73,7 @@ int ED_maskedit_poll(bContext *C)
 	return false;
 }
 
-int ED_maskedit_mask_poll(bContext *C)
+bool ED_maskedit_mask_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa) {

@@ -303,7 +303,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 /* ***************************************** */
 
 /* operator poll callback */
-int composite_node_active(bContext *C)
+bool composite_node_active(bContext *C)
 {
 	if (ED_operator_node_active(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);
@@ -314,7 +314,7 @@ int composite_node_active(bContext *C)
 }
 
 /* operator poll callback */
-int composite_node_editable(bContext *C)
+bool composite_node_editable(bContext *C)
 {
 	if (ED_operator_node_editable(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);
@@ -719,7 +719,7 @@ void ED_node_post_apply_transform(bContext *UNUSED(C), bNodeTree *UNUSED(ntree))
 
 #if 0 /* UNUSED */
 
-static int edit_node_poll(bContext *C)
+static bool edit_node_poll(bContext *C)
 {
 	return ED_operator_node_active(C);
 }
@@ -1617,7 +1617,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 
 /* ****************** Switch View ******************* */
 
-static int node_switch_view_poll(bContext *C)
+static bool node_switch_view_poll(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -2290,7 +2290,7 @@ void NODE_OT_tree_socket_move(wmOperatorType *ot)
 
 /* ********************** Shader Script Update ******************/
 
-static int node_shader_script_update_poll(bContext *C)
+static bool node_shader_script_update_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	RenderEngineType *type = RE_engines_find(scene->r.engine);

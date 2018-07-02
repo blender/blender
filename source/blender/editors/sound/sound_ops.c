@@ -703,7 +703,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-static int sound_poll(bContext *C)
+static bool sound_poll(bContext *C)
 {
 	Editing *ed = CTX_data_scene(C)->ed;
 

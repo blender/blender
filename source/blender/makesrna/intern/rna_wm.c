@@ -751,7 +751,7 @@ static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
 	win->workspace_hook->temp_layout_store = layout_new;
 }
 
-static int rna_Window_screen_assign_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+static bool rna_Window_screen_assign_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	bScreen *screen = value.id.data;
 	return !screen->temp;
@@ -1073,7 +1073,7 @@ static void rna_wmClipboard_set(PointerRNA *UNUSED(ptr), const char *value)
 
 #ifdef WITH_PYTHON
 
-static int rna_operator_poll_cb(bContext *C, wmOperatorType *ot)
+static bool rna_operator_poll_cb(bContext *C, wmOperatorType *ot)
 {
 	extern FunctionRNA rna_Operator_poll_func;
 

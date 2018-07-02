@@ -37,7 +37,7 @@
 #include "node_exec.h"
 
 
-int sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+bool sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
 	return STREQ(ntree->idname, "ShaderNodeTree");
 }

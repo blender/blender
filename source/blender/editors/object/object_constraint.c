@@ -578,7 +578,7 @@ static const EnumPropertyItem constraint_owner_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 
-static int edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
+static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", rna_type);
 	Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
@@ -606,7 +606,7 @@ static int edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 	return 1;
 }
 
-static int edit_constraint_poll(bContext *C)
+static bool edit_constraint_poll(bContext *C)
 {
 	return edit_constraint_poll_generic(C, &RNA_Constraint);
 }
@@ -1265,7 +1265,7 @@ void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstr
 	DEG_relations_tag_update(bmain);
 }
 
-static int constraint_poll(bContext *C)
+static bool constraint_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
 	return (ptr.id.data && ptr.data);

@@ -122,7 +122,7 @@ class PlayRenderedAnim(Operator):
                 file = rd.frame_path(frame=scene.frame_start, preview=False)
                 file = bpy.path.abspath(file)  # expand '//'
                 if not os.path.exists(file):
-                    self.report({'WARNING'}, "File {file!r} not found")
+                    self.report({'WARNING'}, f"File {file!r} not found")
 
         cmd = [player_path]
         # extra options, fps controls etc.

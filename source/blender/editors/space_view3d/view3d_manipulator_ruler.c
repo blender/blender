@@ -1032,7 +1032,7 @@ void VIEW3D_WGT_ruler(wmManipulatorGroupType *wgt)
 /** \name Add Ruler Operator
  * \{ */
 
-static int view3d_ruler_poll(bContext *C)
+static bool view3d_ruler_poll(bContext *C)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if ((tref_rt == NULL) ||

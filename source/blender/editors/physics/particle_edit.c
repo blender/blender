@@ -101,7 +101,7 @@
 
 /**************************** utilities *******************************/
 
-int PE_poll(bContext *C)
+bool PE_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -112,7 +112,7 @@ int PE_poll(bContext *C)
 	return (PE_get_current(scene, ob) != NULL);
 }
 
-int PE_hair_poll(bContext *C)
+bool PE_hair_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -126,7 +126,7 @@ int PE_hair_poll(bContext *C)
 	return (edit && edit->psys);
 }
 
-int PE_poll_view3d(bContext *C)
+bool PE_poll_view3d(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -4391,7 +4391,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 
 /*********************** cut shape ***************************/
 
-static int shape_cut_poll(bContext *C)
+static bool shape_cut_poll(bContext *C)
 {
 	if (PE_hair_poll(C)) {
 		Scene *scene = CTX_data_scene(C);
@@ -4757,7 +4757,7 @@ void PE_create_particle_edit(
 	}
 }
 
-static int particle_edit_toggle_poll(bContext *C)
+static bool particle_edit_toggle_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 

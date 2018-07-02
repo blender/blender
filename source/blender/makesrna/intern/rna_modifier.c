@@ -1152,7 +1152,7 @@ static void rna_MeshSequenceCache_object_path_update(Main *bmain, Scene *scene, 
 	rna_Modifier_update(bmain, scene, ptr);
 }
 
-static int rna_ParticleInstanceModifier_particle_system_poll(PointerRNA *ptr, const PointerRNA value)
+static bool rna_ParticleInstanceModifier_particle_system_poll(PointerRNA *ptr, const PointerRNA value)
 {
 	ParticleInstanceModifierData *psmd = ptr->data;
 	ParticleSystem *psys = value.data;
@@ -1161,7 +1161,7 @@ static int rna_ParticleInstanceModifier_particle_system_poll(PointerRNA *ptr, co
 		return false;
 
 	/* make sure psys is in the object */
-	return BLI_findindex(&psmd->ob->particlesystem, psys) >= 0;
+	return BLI_findindex(&psmd->ob->particlesystem, psys) != -1;
 }
 
 static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *ptr)

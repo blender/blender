@@ -102,7 +102,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 /* -------------------------------------------------------------------- */
 /* Poll functions. */
 
-int ED_outliner_collections_editor_poll(bContext *C)
+bool ED_outliner_collections_editor_poll(bContext *C)
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
 	return (so != NULL) && ELEM(so->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
@@ -574,7 +574,7 @@ static TreeTraversalAction layer_collection_find_data_to_edit(TreeElement *te, v
 	return TRAVERSE_CONTINUE;
 }
 
-static int collections_view_layer_poll(bContext *C, bool include)
+static bool collections_view_layer_poll(bContext *C, bool include)
 {
 	/* Poll function so the right click menu show current state of selected collections. */
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -605,12 +605,12 @@ static int collections_view_layer_poll(bContext *C, bool include)
 	return result;
 }
 
-static int collections_exclude_poll(bContext *C)
+static bool collections_exclude_poll(bContext *C)
 {
 	return collections_view_layer_poll(C, false);
 }
 
-static int collections_include_poll(bContext *C)
+static bool collections_include_poll(bContext *C)
 {
 	return collections_view_layer_poll(C, true);
 }

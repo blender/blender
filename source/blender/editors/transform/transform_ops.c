@@ -223,7 +223,7 @@ static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent 
 	return delete_orientation_exec(C, op);
 }
 
-static int delete_orientation_poll(bContext *C)
+static bool delete_orientation_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -649,7 +649,7 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 	        ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_OPTIONS | P_GPENCIL_EDIT | P_CENTER);
 }
 
-static int skin_resize_poll(bContext *C)
+static bool skin_resize_poll(bContext *C)
 {
 	struct Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MESH) {

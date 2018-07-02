@@ -131,7 +131,7 @@ void GPENCIL_OT_data_add(wmOperatorType *ot)
 /* ******************* Unlink Data ************************ */
 
 /* poll callback for adding data/layers - special */
-static int gp_data_unlink_poll(bContext *C)
+static bool gp_data_unlink_poll(bContext *C)
 {
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
@@ -420,7 +420,7 @@ void GPENCIL_OT_hide(wmOperatorType *ot)
 /* ********************** Show All Layers ***************************** */
 
 /* poll callback for showing layers */
-static int gp_reveal_poll(bContext *C)
+static bool gp_reveal_poll(bContext *C)
 {
 	return ED_gpencil_data_get_active(C) != NULL;
 }
@@ -1811,7 +1811,7 @@ void GPENCIL_OT_palettecolor_hide(wmOperatorType *ot)
 /* ********************** Show All Colors ***************************** */
 
 /* poll callback for showing colors */
-static int gp_palettecolor_reveal_poll(bContext *C)
+static bool gp_palettecolor_reveal_poll(bContext *C)
 {
 	return ED_gpencil_data_get_active(C) != NULL;
 }

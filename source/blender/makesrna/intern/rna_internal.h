@@ -280,16 +280,16 @@ void rna_Mesh_update_draw(struct Main *bmain, struct Scene *scene, struct Pointe
 void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
 
 /* basic poll functions for object types */
-int rna_Armature_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
-int rna_Camera_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
-int rna_Curve_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
-int rna_Lamp_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
-int rna_Lattice_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
-int rna_Mesh_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Armature_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Camera_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Curve_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Lamp_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Lattice_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Mesh_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
 
 /* basic poll functions for actions (to prevent actions getting set in wrong places) */
-int rna_Action_id_poll(struct PointerRNA *ptr, struct PointerRNA value);
-int rna_Action_actedit_assign_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Action_id_poll(struct PointerRNA *ptr, struct PointerRNA value);
+bool rna_Action_actedit_assign_poll(struct PointerRNA *ptr, struct PointerRNA value);
 
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
 char *rna_Node_ImageUser_path(struct PointerRNA *ptr);

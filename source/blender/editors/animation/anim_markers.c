@@ -541,7 +541,7 @@ void ED_markers_draw(const bContext *C, int flag)
 /* ------------------------ */
 
 /* special poll() which checks if there are selected markers first */
-static int ed_markers_poll_selected_markers(bContext *C)
+static bool ed_markers_poll_selected_markers(bContext *C)
 {
 	ListBase *markers = ED_context_get_markers(C);
 
@@ -553,7 +553,7 @@ static int ed_markers_poll_selected_markers(bContext *C)
 	return ED_markers_get_first_selected(markers) != NULL;
 }
 
-static int ed_markers_poll_selected_no_locked_markers(bContext *C)
+static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
 {
 	ListBase *markers = ED_context_get_markers(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -571,7 +571,7 @@ static int ed_markers_poll_selected_no_locked_markers(bContext *C)
 
 
 /* special poll() which checks if there are any markers at all first */
-static int ed_markers_poll_markers_exist(bContext *C)
+static bool ed_markers_poll_markers_exist(bContext *C)
 {
 	ListBase *markers = ED_context_get_markers(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);

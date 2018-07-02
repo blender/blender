@@ -1351,7 +1351,7 @@ void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
 	stroke->mode_data = mode_data;
 }
 
-int paint_poll(bContext *C)
+bool paint_poll(bContext *C)
 {
 	Paint *p = BKE_paint_get_active_from_context(C);
 	Object *ob = CTX_data_active_object(C);

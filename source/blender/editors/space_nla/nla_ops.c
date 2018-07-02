@@ -52,7 +52,7 @@
 /* ************************** poll callbacks for operators **********************************/
 
 /* tweakmode is NOT enabled */
-int nlaop_poll_tweakmode_off(bContext *C)
+bool nlaop_poll_tweakmode_off(bContext *C)
 {
 	Scene *scene;
 
@@ -74,7 +74,7 @@ int nlaop_poll_tweakmode_off(bContext *C)
 }
 
 /* tweakmode IS enabled */
-int nlaop_poll_tweakmode_on(bContext *C)
+bool nlaop_poll_tweakmode_on(bContext *C)
 {
 	Scene *scene;
 

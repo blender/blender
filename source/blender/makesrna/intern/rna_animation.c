@@ -139,7 +139,7 @@ static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const int value)
 /* ****************************** */
 
 /* wrapper for poll callback */
-static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
+static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 {
 	extern FunctionRNA rna_KeyingSetInfo_poll_func;
 

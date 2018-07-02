@@ -6244,7 +6244,7 @@ bool ED_curve_active_center(Curve *cu, float center[3])
 
 /******************** Match texture space operator ***********************/
 
-static int match_texture_space_poll(bContext *C)
+static bool match_texture_space_poll(bContext *C)
 {
 	Object *object = CTX_data_active_object(C);
 

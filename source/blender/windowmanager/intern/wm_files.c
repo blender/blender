@@ -1930,7 +1930,7 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static int wm_revert_mainfile_poll(bContext *UNUSED(C))
+static bool wm_revert_mainfile_poll(bContext *UNUSED(C))
 {
 	return G.relbase_valid;
 }

@@ -242,7 +242,7 @@ static int ed_undo_redo_exec(bContext *C, wmOperator *UNUSED(op))
 	return ret ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int ed_undo_redo_poll(bContext *C)
+static bool ed_undo_redo_poll(bContext *C)
 {
 	wmOperator *last_op = WM_operator_last_redo(C);
 	return last_op && ED_operator_screenactive(C) &&

@@ -50,7 +50,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, struct Object *obedit
 void ED_transverts_update_obedit(TransVertStore *tvs, struct Object *obedit);
 void ED_transverts_free(TransVertStore *tvs);
 bool ED_transverts_check_obedit(Object *obedit);
-int ED_transverts_poll(struct bContext *C);
+bool ED_transverts_poll(struct bContext *C);
 
 /* currently only used for bmesh index values */
 enum {

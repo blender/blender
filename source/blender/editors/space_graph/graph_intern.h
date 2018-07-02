@@ -170,10 +170,10 @@ void graph_buttons_register(struct ARegionType *art);
 
 struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 
-int graphop_visible_keyframes_poll(struct bContext *C);
-int graphop_editable_keyframes_poll(struct bContext *C);
-int graphop_active_fcurve_poll(struct bContext *C);
-int graphop_selected_fcurve_poll(struct bContext *C);
+bool graphop_visible_keyframes_poll(struct bContext *C);
+bool graphop_editable_keyframes_poll(struct bContext *C);
+bool graphop_active_fcurve_poll(struct bContext *C);
+bool graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */
 /* graph_ops.c */

@@ -86,7 +86,7 @@
 /* ************************************************ */
 /* Stroke Edit Mode Management */
 
-static int gpencil_editmode_toggle_poll(bContext *C)
+static bool gpencil_editmode_toggle_poll(bContext *C)
 {
 	return ED_gpencil_data_get_active(C) != NULL;
 }
@@ -131,7 +131,7 @@ void GPENCIL_OT_editmode_toggle(wmOperatorType *ot)
 /* Stroke Editing Operators */
 
 /* poll callback for all stroke editing operators */
-static int gp_stroke_edit_poll(bContext *C)
+static bool gp_stroke_edit_poll(bContext *C)
 {
 	/* NOTE: this is a bit slower, but is the most accurate... */
 	return CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0;
@@ -517,7 +517,7 @@ void GPENCIL_OT_copy(wmOperatorType *ot)
 /* --------------------- */
 /* Paste selected strokes */
 
-static int gp_strokes_paste_poll(bContext *C)
+static bool gp_strokes_paste_poll(bContext *C)
 {
 	/* 1) Must have GP datablock to paste to
 	 *    - We don't need to have an active layer though, as that can easily get added
@@ -784,7 +784,7 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 /* ********************* Add Blank Frame *************************** */
 
 /* Basically the same as the drawing op */
-static int UNUSED_FUNCTION(gp_blank_frame_add_poll)(bContext *C)
+static bool UNUSED_FUNCTION(gp_blank_frame_add_poll)(bContext *C)
 {
 	if (ED_operator_regionactive(C)) {
 		/* check if current context can support GPencil data */
@@ -864,7 +864,7 @@ void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
 
 /* ******************* Delete Active Frame ************************ */
 
-static int gp_actframe_delete_poll(bContext *C)
+static bool gp_actframe_delete_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
@@ -916,7 +916,7 @@ void GPENCIL_OT_active_frame_delete(wmOperatorType *ot)
 
 /* **************** Delete All Active Frames ****************** */
 
-static int gp_actframe_delete_all_poll(bContext *C)
+static bool gp_actframe_delete_all_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 
@@ -1370,7 +1370,7 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
 /* NOTE: For now, we only allow these in the 3D view, as other editors do not
  *       define a cursor or gridstep which can be used
  */
-static int gp_snap_poll(bContext *C)
+static bool gp_snap_poll(bContext *C)
 {
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -2090,7 +2090,7 @@ typedef enum eGP_ReprojectModes {
 	GP_REPROJECT_SURFACE,
 } eGP_ReprojectModes;
 
-static int gp_strokes_reproject_poll(bContext *C)
+static bool gp_strokes_reproject_poll(bContext *C)
 {
 	/* 2 Requirements:
 	 *  - 1) Editable GP data

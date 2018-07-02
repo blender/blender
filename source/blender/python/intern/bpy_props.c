@@ -378,7 +378,7 @@ static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *
 	}
 }
 
-static int bpy_prop_poll_cb(struct PointerRNA *self, PointerRNA candidate, struct PropertyRNA *prop)
+static bool bpy_prop_poll_cb(struct PointerRNA *self, PointerRNA candidate, struct PropertyRNA *prop)
 {
 	PyObject *py_self;
 	PyObject *py_candidate;

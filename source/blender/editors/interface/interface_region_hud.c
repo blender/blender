@@ -88,7 +88,7 @@ static bool last_redo_poll(const bContext *C)
 /** \name Redo Panel
  * \{ */
 
-static int hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	return last_redo_poll(C);
 }

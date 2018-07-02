@@ -179,13 +179,13 @@ static void sima_zoom_set_from_bounds(SpaceImage *sima, ARegion *ar, const rctf 
 }
 
 #if 0 // currently unused
-static int image_poll(bContext *C)
+static bool image_poll(bContext *C)
 {
 	return (CTX_data_edit_image(C) != NULL);
 }
 #endif
 
-static int space_image_buffer_exists_poll(bContext *C)
+static bool space_image_buffer_exists_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	if (sima && ED_space_image_has_buffer(sima)) {
@@ -194,7 +194,7 @@ static int space_image_buffer_exists_poll(bContext *C)
 	return false;
 }
 
-static int image_not_packed_poll(bContext *C)
+static bool image_not_packed_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 
@@ -213,7 +213,7 @@ static bool imbuf_format_writeable(const ImBuf *ibuf)
 	return (BKE_image_imtype_to_ftype(im_format.imtype, &options_dummy) == ibuf->ftype);
 }
 
-static int space_image_file_exists_poll(bContext *C)
+static bool space_image_file_exists_poll(bContext *C)
 {
 	if (space_image_buffer_exists_poll(C)) {
 		Main *bmain = CTX_data_main(C);
@@ -249,7 +249,7 @@ static int space_image_file_exists_poll(bContext *C)
 }
 
 #if 0  /* UNUSED */
-static int space_image_poll(bContext *C)
+static bool space_image_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	if (sima && sima->image) {
@@ -259,7 +259,7 @@ static int space_image_poll(bContext *C)
 }
 #endif
 
-int space_image_main_region_poll(bContext *C)
+bool space_image_main_region_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	/* XXX ARegion *ar = CTX_wm_region(C); */
@@ -271,7 +271,7 @@ int space_image_main_region_poll(bContext *C)
 }
 
 /* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
-static int space_image_main_area_not_uv_brush_poll(bContext *C)
+static bool space_image_main_area_not_uv_brush_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
@@ -284,7 +284,7 @@ static int space_image_main_area_not_uv_brush_poll(bContext *C)
 	return 0;
 }
 
-static int image_sample_poll(bContext *C)
+static bool image_sample_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	if (sima) {
@@ -833,7 +833,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int image_view_selected_poll(bContext *C)
+static bool image_view_selected_poll(bContext *C)
 {
 	return (space_image_main_region_poll(C) && (ED_operator_uvedit(C) || ED_operator_mask(C)));
 }
@@ -2157,7 +2157,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 		uiTemplateImageFormatViews(layout, &imf_ptr, op->ptr);
 }
 
-static int image_save_as_poll(bContext *C)
+static bool image_save_as_poll(bContext *C)
 {
 	if (space_image_buffer_exists_poll(C)) {
 		if (G.is_rendering) {
@@ -2600,7 +2600,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 
 /********************* invert operators *********************/
 
-static int image_invert_poll(bContext *C)
+static bool image_invert_poll(bContext *C)
 {
 	Image *ima = CTX_data_edit_image(C);
 
@@ -3444,7 +3444,7 @@ void IMAGE_OT_record_composite(wmOperatorType *ot)
 
 /********************* cycle render slot operator *********************/
 
-static int image_cycle_render_slot_poll(bContext *C)
+static bool image_cycle_render_slot_poll(bContext *C)
 {
 	Image *ima = CTX_data_edit_image(C);
 
@@ -3580,7 +3580,7 @@ void IMAGE_OT_remove_render_slot(wmOperatorType *ot)
 
 /********************** change frame operator *********************/
 
-static int change_frame_poll(bContext *C)
+static bool change_frame_poll(bContext *C)
 {
 	/* prevent changes during render */
 	if (G.is_rendering)

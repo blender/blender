@@ -1385,7 +1385,7 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 /* KeyingSet and Driver Creation - Helper functions */
 
 /* specialized poll callback for these operators to work in Datablocks view only */
-static int ed_operator_outliner_datablocks_active(bContext *C)
+static bool ed_operator_outliner_datablocks_active(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
@@ -1873,7 +1873,7 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 /* ************************************************************** */
 /* ORPHANED DATABLOCKS */
 
-static int ed_operator_outliner_id_orphans_active(bContext *C)
+static bool ed_operator_outliner_id_orphans_active(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
@@ -2110,7 +2110,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
-static int outliner_parenting_poll(bContext *C)
+static bool outliner_parenting_poll(bContext *C)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 

@@ -568,7 +568,7 @@ static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int brush_curve_preset_poll(bContext *C)
+static bool brush_curve_preset_poll(bContext *C)
 {
 	Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 

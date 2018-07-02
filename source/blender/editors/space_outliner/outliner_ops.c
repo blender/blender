@@ -65,7 +65,7 @@ enum {
 	OUTLINER_ITEM_DRAG_CONFIRM,
 };
 
-static int outliner_item_drag_drop_poll(bContext *C)
+static bool outliner_item_drag_drop_poll(bContext *C)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	return ED_operator_outliner_active(C) &&

@@ -50,7 +50,7 @@
 
 /*********************** Add modifier operator *************************/
 
-static int strip_modifier_active_poll(bContext *C)
+static bool strip_modifier_active_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);

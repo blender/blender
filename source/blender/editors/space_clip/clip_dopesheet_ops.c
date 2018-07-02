@@ -53,7 +53,7 @@
 
 #include "clip_intern.h"	// own include
 
-static int space_clip_dopesheet_poll(bContext *C)
+static bool space_clip_dopesheet_poll(bContext *C)
 {
 	if (ED_space_clip_tracking_poll(C)) {
 		SpaceClip *sc = CTX_wm_space_clip(C);
@@ -70,7 +70,7 @@ static int space_clip_dopesheet_poll(bContext *C)
 
 /********************** select channel operator *********************/
 
-static int dopesheet_select_channel_poll(bContext *C)
+static bool dopesheet_select_channel_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 

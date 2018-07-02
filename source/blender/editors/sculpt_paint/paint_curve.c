@@ -57,7 +57,7 @@
 #define PAINT_CURVE_SELECT_THRESHOLD 40.0f
 #define PAINT_CURVE_POINT_SELECT(pcp, i) (*(&pcp->bez.f1 + i) = SELECT)
 
-int paint_curve_poll(bContext *C)
+bool paint_curve_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	Paint *p;
