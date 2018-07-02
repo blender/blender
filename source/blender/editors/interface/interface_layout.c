@@ -1554,13 +1554,24 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	    /* use checkboxes only as a fallback in pie-menu's, when no icon is defined */
 	    ((layout->root->type == UI_LAYOUT_PIEMENU) && (icon == ICON_NONE)))
 	{
+		int prop_flag = RNA_property_flag(prop);
 		if (type == PROP_BOOLEAN && ((is_array == false) || (index != RNA_NO_INDEX))) {
-			if (is_array) icon = (RNA_property_boolean_get_index(ptr, prop, index)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
-			else icon = (RNA_property_boolean_get(ptr, prop)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
+			if (prop_flag & PROP_ICONS_CONSECUTIVE) {
+				icon = ICON_CHECKBOX_DEHLT; /* but->iconadd will set to correct icon */
+			}
+			else if (is_array) {
+				icon = (RNA_property_boolean_get_index(ptr, prop, index)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
+			}
+			else {
+				icon = (RNA_property_boolean_get(ptr, prop)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
+			}
 		}
 		else if (type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 			int enum_value = RNA_property_enum_get(ptr, prop);
-			if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+			if (prop_flag & PROP_ICONS_CONSECUTIVE) {
+				icon = ICON_CHECKBOX_DEHLT; /* but->iconadd will set to correct icon */
+			}
+			else if (prop_flag & PROP_ENUM_FLAG) {
 				icon = (enum_value & value) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
 			}
 			else {
