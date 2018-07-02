@@ -455,21 +455,19 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 
 	/* TODO(campbell): Use the toolsystem for now, ideally the toolsystem will display brushes directly
 	 * so we don't need to sync between tools and brushes. */
-	if (false) {
-		return brush_generic_tool_set(
-		            bmain, paint, tool, tool_offset,
-		            paint_mode, tool_name, create_missing,
-		            toggle);
-	}
-	else {
+	int ret = brush_generic_tool_set(
+	        bmain, paint, tool, tool_offset,
+	        paint_mode, tool_name, create_missing,
+	        toggle);
+
+	if ((ret == OPERATOR_FINISHED) && (paint->brush != NULL)) {
+		Brush *brush = paint->brush;
 		WorkSpace *workspace = CTX_wm_workspace(C);
-		if (WM_toolsystem_ref_set_by_name(C, workspace, NULL, tool_name, true)) {
-			return OPERATOR_FINISHED;
-		}
-		else {
-			return OPERATOR_CANCELLED;
+		if (WM_toolsystem_ref_set_by_name(C, workspace, NULL, brush->id.name + 2, true)) {
+			/* ok */
 		}
 	}
+	return ret;
 }
 
 static void PAINT_OT_brush_select(wmOperatorType *ot)
