@@ -305,7 +305,7 @@ const bool GLXEW_ARB_create_context_robustness =
 		fprintf(stderr, "Warning! GLX_ARB_create_context not available.\n");
 	}
 
-	GHOST_TSuccess success = GHOST_kSuccess;
+	GHOST_TSuccess success;
 
 	if (m_context != NULL) {
 		if (!s_sharedContext)
