@@ -71,10 +71,11 @@
 #include <assert.h>
 
 /* return true if the element should be hidden/shown */
-static bool is_effected(PartialVisArea area,
-                        float planes[4][4],
-                        const float co[3],
-                        const float mask)
+static bool is_effected(
+        PartialVisArea area,
+        float planes[4][4],
+        const float co[3],
+        const float mask)
 {
 	if (area == PARTIALVIS_ALL)
 		return 1;
@@ -88,12 +89,13 @@ static bool is_effected(PartialVisArea area,
 	}
 }
 
-static void partialvis_update_mesh(Object *ob,
-                                   PBVH *pbvh,
-                                   PBVHNode *node,
-                                   PartialVisAction action,
-                                   PartialVisArea area,
-                                   float planes[4][4])
+static void partialvis_update_mesh(
+        Object *ob,
+        PBVH *pbvh,
+        PBVHNode *node,
+        PartialVisAction action,
+        PartialVisArea area,
+        float planes[4][4])
 {
 	Mesh *me = ob->data;
 	MVert *mvert;
@@ -133,12 +135,13 @@ static void partialvis_update_mesh(Object *ob,
 
 /* Hide or show elements in multires grids with a special GridFlags
  * customdata layer. */
-static void partialvis_update_grids(Object *ob,
-                                    PBVH *pbvh,
-                                    PBVHNode *node,
-                                    PartialVisAction action,
-                                    PartialVisArea area,
-                                    float planes[4][4])
+static void partialvis_update_grids(
+        Object *ob,
+        PBVH *pbvh,
+        PBVHNode *node,
+        PartialVisAction action,
+        PartialVisArea area,
+        float planes[4][4])
 {
 	CCGElem **grids;
 	CCGKey key;
@@ -148,9 +151,10 @@ static void partialvis_update_grids(Object *ob,
 
 
 	/* get PBVH data */
-	BKE_pbvh_node_get_grids(pbvh, node,
-	                        &grid_indices, &totgrid, NULL, NULL,
-	                        &grids);
+	BKE_pbvh_node_get_grids(
+	        pbvh, node,
+	        &grid_indices, &totgrid, NULL, NULL,
+	        &grids);
 	grid_hidden = BKE_pbvh_grid_hidden(pbvh);
 	BKE_pbvh_get_grid_key(pbvh, &key);
 
@@ -165,8 +169,9 @@ static void partialvis_update_grids(Object *ob,
 			switch (action) {
 				case PARTIALVIS_HIDE:
 					/* create grid flags data */
-					gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area,
-					                                     "partialvis_update_grids");
+					gh = grid_hidden[g] = BLI_BITMAP_NEW(
+					        key.grid_area,
+					        "partialvis_update_grids");
 					break;
 				case PARTIALVIS_SHOW:
 					/* entire grid is visible, nothing to show */
@@ -192,8 +197,9 @@ static void partialvis_update_grids(Object *ob,
 				/* skip grid element if not in the effected area */
 				if (is_effected(area, planes, co, mask)) {
 					/* set or clear the hide flag */
-					BLI_BITMAP_SET(gh, y * key.grid_size + x,
-					                  action == PARTIALVIS_HIDE);
+					BLI_BITMAP_SET(
+					        gh, y * key.grid_size + x,
+					        action == PARTIALVIS_HIDE);
 
 					any_changed = true;
 				}
@@ -222,21 +228,21 @@ static void partialvis_update_grids(Object *ob,
 	}
 }
 
-static void partialvis_update_bmesh_verts(BMesh *bm,
-                                          GSet *verts,
-                                          PartialVisAction action,
-                                          PartialVisArea area,
-                                          float planes[4][4],
-                                          bool *any_changed,
-                                          bool *any_visible)
+static void partialvis_update_bmesh_verts(
+        BMesh *bm,
+        GSet *verts,
+        PartialVisAction action,
+        PartialVisArea area,
+        float planes[4][4],
+        bool *any_changed,
+        bool *any_visible)
 {
 	GSetIterator gs_iter;
 
 	GSET_ITER (gs_iter, verts) {
 		BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-		float *vmask = CustomData_bmesh_get(&bm->vdata,
-		                                    v->head.data,
-		                                    CD_PAINT_MASK);
+		float *vmask = CustomData_bmesh_get(
+		        &bm->vdata, v->head.data, CD_PAINT_MASK);
 
 		/* hide vertex if in the hide volume */
 		if (is_effected(area, planes, v->co, *vmask)) {
@@ -266,12 +272,13 @@ static void partialvis_update_bmesh_faces(GSet *faces)
 	}
 }
 
-static void partialvis_update_bmesh(Object *ob,
-                                    PBVH *pbvh,
-                                    PBVHNode *node,
-                                    PartialVisAction action,
-                                    PartialVisArea area,
-                                    float planes[4][4])
+static void partialvis_update_bmesh(
+        Object *ob,
+        PBVH *pbvh,
+        PBVHNode *node,
+        PartialVisAction action,
+        PartialVisArea area,
+        float planes[4][4])
 {
 	BMesh *bm;
 	GSet *unique, *other, *faces;
@@ -284,21 +291,23 @@ static void partialvis_update_bmesh(Object *ob,
 
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-	partialvis_update_bmesh_verts(bm,
-	                              unique,
-	                              action,
-	                              area,
-	                              planes,
-	                              &any_changed,
-	                              &any_visible);
+	partialvis_update_bmesh_verts(
+	        bm,
+	        unique,
+	        action,
+	        area,
+	        planes,
+	        &any_changed,
+	        &any_visible);
 
-	partialvis_update_bmesh_verts(bm,
-	                              other,
-	                              action,
-	                              area,
-	                              planes,
-	                              &any_changed,
-	                              &any_visible);
+	partialvis_update_bmesh_verts(
+	        bm,
+	        other,
+	        action,
+	        area,
+	        planes,
+	        &any_changed,
+	        &any_visible);
 
 	/* finally loop over node faces and tag the ones that are fully hidden */
 	partialvis_update_bmesh_faces(faces);
@@ -317,9 +326,10 @@ static void rect_from_props(rcti *rect, PointerRNA *ptr)
 	rect->ymax = RNA_int_get(ptr, "ymax");
 }
 
-static void clip_planes_from_rect(bContext *C,
-                                  float clip_planes[4][4],
-                                  const rcti *rect)
+static void clip_planes_from_rect(
+        bContext *C,
+        float clip_planes[4][4],
+        const rcti *rect)
 {
 	ViewContext vc;
 	BoundBox bb;
@@ -336,11 +346,12 @@ static void clip_planes_from_rect(bContext *C,
  * inside the clip_planes volume. If mode is outside, get all nodes
  * that lie at least partially outside the volume. If showing all, get
  * all nodes. */
-static void get_pbvh_nodes(PBVH *pbvh,
-                           PBVHNode ***nodes,
-                           int *totnode,
-                           float clip_planes[4][4],
-                           PartialVisArea mode)
+static void get_pbvh_nodes(
+        PBVH *pbvh,
+        PBVHNode ***nodes,
+        int *totnode,
+        float clip_planes[4][4],
+        PartialVisArea mode)
 {
 	BKE_pbvh_SearchCallback cb = NULL;
 

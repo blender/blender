@@ -603,8 +603,9 @@ static int paintcurve_slide_modal(bContext *C, wmOperator *op, const wmEvent *ev
 		{
 			ARegion *ar = CTX_wm_region(C);
 			wmWindow *window = CTX_wm_window(C);
-			float diff[2] = {event->mval[0] - psd->initial_loc[0],
-			                 event->mval[1] - psd->initial_loc[1]};
+			float diff[2] = {
+				event->mval[0] - psd->initial_loc[0],
+				event->mval[1] - psd->initial_loc[1]};
 			if (psd->select == 1) {
 				int i;
 				for (i = 0; i < 3; i++)

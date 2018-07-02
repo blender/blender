@@ -103,8 +103,9 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, Cop
 {
 	if (mode == COPY) {
 		/* copy or swap contents of tile->rect and region in ibuf->rect */
-		IMB_rectcpy(tmpibuf, ibuf, 0, 0, tile->x * IMAPAINT_TILE_SIZE,
-		            tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+		IMB_rectcpy(
+		        tmpibuf, ibuf, 0, 0, tile->x * IMAPAINT_TILE_SIZE,
+		        tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 
 		if (ibuf->rect_float) {
 			SWAP(float *, tmpibuf->rect_float, tile->rect.fp);
@@ -115,8 +116,9 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, Cop
 	}
 	else {
 		if (mode == RESTORE_COPY) {
-			IMB_rectcpy(tmpibuf, ibuf, 0, 0, tile->x * IMAPAINT_TILE_SIZE,
-			            tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+			IMB_rectcpy(
+			        tmpibuf, ibuf, 0, 0, tile->x * IMAPAINT_TILE_SIZE,
+			        tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 		}
 		/* swap to the tmpbuf for easy copying */
 		if (ibuf->rect_float) {
@@ -126,8 +128,9 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, Cop
 			SWAP(unsigned int *, tmpibuf->rect, tile->rect.uint);
 		}
 
-		IMB_rectcpy(ibuf, tmpibuf, tile->x * IMAPAINT_TILE_SIZE,
-		            tile->y * IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+		IMB_rectcpy(
+		        ibuf, tmpibuf, tile->x * IMAPAINT_TILE_SIZE,
+		        tile->y * IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 
 		if (mode == RESTORE) {
 			if (ibuf->rect_float) {
@@ -154,8 +157,9 @@ void *image_undo_find_tile(
 					if (mask) {
 						/* allocate mask if requested */
 						if (!tile->mask) {
-							tile->mask = MEM_callocN(sizeof(unsigned short) * IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE,
-							                         "UndoImageTile.mask");
+							tile->mask = MEM_callocN(
+							        sizeof(unsigned short) * IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE,
+							        "UndoImageTile.mask");
 						}
 
 						*mask = tile->mask;
@@ -202,8 +206,9 @@ void *image_undo_push_tile(
 
 	/* add mask explicitly here */
 	if (mask) {
-		*mask = tile->mask = MEM_callocN(sizeof(unsigned short) * IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE,
-		                         "UndoImageTile.mask");
+		*mask = tile->mask = MEM_callocN(
+		        sizeof(unsigned short) * IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE,
+		        "UndoImageTile.mask");
 	}
 	allocsize = IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE * 4;
 	allocsize *= (ibuf->rect_float) ? sizeof(float) : sizeof(char);
@@ -251,8 +256,9 @@ static void image_undo_restore_runtime(ListBase *lb)
 	ImBuf *ibuf, *tmpibuf;
 	UndoImageTile *tile;
 
-	tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
-	                         IB_rectfloat | IB_rect);
+	tmpibuf = IMB_allocImBuf(
+	        IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
+	        IB_rectfloat | IB_rect);
 
 	for (tile = lb->first; tile; tile = tile->next) {
 		Image *ima = tile->ima;

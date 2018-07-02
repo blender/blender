@@ -164,8 +164,9 @@ void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short te
 	if (imapaintpartial.x1 != imapaintpartial.x2 &&
 	    imapaintpartial.y1 != imapaintpartial.y2)
 	{
-		IMB_partial_display_buffer_update_delayed(ibuf, imapaintpartial.x1, imapaintpartial.y1,
-		                                          imapaintpartial.x2, imapaintpartial.y2);
+		IMB_partial_display_buffer_update_delayed(
+		        ibuf, imapaintpartial.x1, imapaintpartial.y1,
+		        imapaintpartial.x2, imapaintpartial.y2);
 	}
 
 	if (ibuf->mipmap[0])
@@ -323,15 +324,16 @@ typedef struct PaintOperation {
 
 bool paint_use_opacity_masking(Brush *brush)
 {
-	return (brush->flag & BRUSH_AIRBRUSH) ||
-	       (brush->flag & BRUSH_DRAG_DOT) ||
-	       (brush->flag & BRUSH_ANCHORED) ||
-	       (brush->imagepaint_tool == PAINT_TOOL_SMEAR) ||
-	       (brush->imagepaint_tool == PAINT_TOOL_SOFTEN) ||
-	       (brush->imagepaint_tool == PAINT_TOOL_FILL) ||
-	       (brush->flag & BRUSH_USE_GRADIENT) ||
-	       (brush->mtex.tex && !ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)) ?
-	            false : true;
+	return ((brush->flag & BRUSH_AIRBRUSH) ||
+	        (brush->flag & BRUSH_DRAG_DOT) ||
+	        (brush->flag & BRUSH_ANCHORED) ||
+	        (brush->imagepaint_tool == PAINT_TOOL_SMEAR) ||
+	        (brush->imagepaint_tool == PAINT_TOOL_SOFTEN) ||
+	        (brush->imagepaint_tool == PAINT_TOOL_FILL) ||
+	        (brush->flag & BRUSH_USE_GRADIENT) ||
+	        (brush->mtex.tex &&
+	         !ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)) ?
+	        false : true);
 }
 
 void paint_brush_color_get(
@@ -539,8 +541,9 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 				paint_2d_gradient_fill(C, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
 			}
 			else {
-				paint_proj_stroke(C, pop->custom_paint, pop->startmouse, pop->prevmouse, paint_stroke_flipped(stroke),
-				                  1.0, 0.0, BKE_brush_size_get(scene, brush));
+				paint_proj_stroke(
+				        C, pop->custom_paint, pop->startmouse, pop->prevmouse, paint_stroke_flipped(stroke),
+				        1.0, 0.0, BKE_brush_size_get(scene, brush));
 				/* two redraws, one for GPU update, one for notification */
 				paint_proj_redraw(C, pop->custom_paint, false);
 				paint_proj_redraw(C, pop->custom_paint, true);
@@ -554,8 +557,9 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 				paint_2d_bucket_fill(C, color, brush, pop->prevmouse, pop->custom_paint);
 			}
 			else {
-				paint_proj_stroke(C, pop->custom_paint, pop->startmouse, pop->prevmouse, paint_stroke_flipped(stroke),
-				                  1.0, 0.0, BKE_brush_size_get(scene, brush));
+				paint_proj_stroke(
+				        C, pop->custom_paint, pop->startmouse, pop->prevmouse, paint_stroke_flipped(stroke),
+				        1.0, 0.0, BKE_brush_size_get(scene, brush));
 				/* two redraws, one for GPU update, one for notification */
 				paint_proj_redraw(C, pop->custom_paint, false);
 				paint_proj_redraw(C, pop->custom_paint, true);
@@ -606,10 +610,11 @@ static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int retval;
 
-	op->customdata = paint_stroke_new(C, op, NULL, paint_stroke_test_start,
-	                                  paint_stroke_update_step,
-	                                  paint_stroke_redraw,
-	                                  paint_stroke_done, event->type);
+	op->customdata = paint_stroke_new(
+	        C, op, NULL, paint_stroke_test_start,
+	        paint_stroke_update_step,
+	        paint_stroke_redraw,
+	        paint_stroke_done, event->type);
 
 	if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
 		paint_stroke_data_free(op);
@@ -637,10 +642,11 @@ static int paint_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(&firstpoint, "mouse", mouse);
 
-	op->customdata = paint_stroke_new(C, op, NULL, paint_stroke_test_start,
-	                                  paint_stroke_update_step,
-	                                  paint_stroke_redraw,
-	                                  paint_stroke_done, 0);
+	op->customdata = paint_stroke_new(
+	        C, op, NULL, paint_stroke_test_start,
+	        paint_stroke_update_step,
+	        paint_stroke_redraw,
+	        paint_stroke_done, 0);
 	/* frees op->customdata */
 	return paint_stroke_exec(C, op);
 }
@@ -845,11 +851,12 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 
 	if (sa) {
-		BLI_snprintf(msg, sizeof(msg),
-		             IFACE_("Sample color for %s"),
-		             !data->sample_palette ?
-		             IFACE_("Brush. Use Left Click to sample for palette instead") :
-		             IFACE_("Palette. Use Left Click to sample more colors"));
+		BLI_snprintf(
+		        msg, sizeof(msg),
+		        IFACE_("Sample color for %s"),
+		        !data->sample_palette ?
+		        IFACE_("Brush. Use Left Click to sample for palette instead") :
+		        IFACE_("Palette. Use Left Click to sample more colors"));
 		ED_area_headerprint(sa, msg);
 	}
 }

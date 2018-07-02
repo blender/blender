@@ -198,8 +198,9 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
 {
 	switch (mode) {
 		case ePaintSculpt:
-			if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
-			                             SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB))
+			if (ELEM(brush->sculpt_tool,
+			         SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
+			         SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB))
 			{
 				return false;
 			}
@@ -384,15 +385,17 @@ static bool paint_brush_update(
 
 	if (do_random) {
 		if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
-			ups->brush_rotation += -brush->mtex.random_angle / 2.0f +
-			                       brush->mtex.random_angle * BLI_frand();
+			ups->brush_rotation += (
+			        -brush->mtex.random_angle / 2.0f +
+			        brush->mtex.random_angle * BLI_frand());
 		}
 	}
 
 	if (do_random_mask) {
 		if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
-			ups->brush_rotation_sec += -brush->mask_mtex.random_angle / 2.0f +
-			                           brush->mask_mtex.random_angle * BLI_frand();
+			ups->brush_rotation_sec += (
+			        -brush->mask_mtex.random_angle / 2.0f +
+			        brush->mask_mtex.random_angle * BLI_frand());
 		}
 	}
 
@@ -449,14 +452,24 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const float
 #if 0
 	/* special exception here for too high pressure values on first touch in
 	 * windows for some tablets, then we just skip first touch ..  */
-	if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || BKE_brush_use_alpha_pressure(scene, pop->s.brush) || BKE_brush_use_size_pressure(scene, pop->s.brush)))
+	if (tablet && (pressure >= 0.99f) &&
+	    ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
+	     BKE_brush_use_alpha_pressure(scene, pop->s.brush) ||
+	     BKE_brush_use_size_pressure(scene, pop->s.brush)))
+	{
 		return;
+	}
 
 	/* This can be removed once fixed properly in
 	 * BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user)
 	 * at zero pressure we should do nothing 1/2^12 is 0.0002 which is the sensitivity of the most sensitive pen tablet available */
-	if (tablet && (pressure < 0.0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || BKE_brush_use_alpha_pressure(scene, pop->s.brush) || BKE_brush_use_size_pressure(scene, pop->s.brush)))
+	if (tablet && (pressure < 0.0002f) &&
+	    ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
+	     BKE_brush_use_alpha_pressure(scene, pop->s.brush) ||
+	     BKE_brush_use_size_pressure(scene, pop->s.brush)))
+	{
 		return;
+	}
 #endif
 
 	/* copy last position -before- jittering, or space fill code
@@ -540,7 +553,8 @@ static bool paint_smooth_stroke(
 	return true;
 }
 
-static float paint_space_stroke_spacing(const Scene *scene, PaintStroke *stroke, float size_pressure, float spacing_pressure)
+static float paint_space_stroke_spacing(
+        const Scene *scene, PaintStroke *stroke, float size_pressure, float spacing_pressure)
 {
 	/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
 	 * causing very high step sizes, hanging blender [#32381] */
@@ -610,7 +624,8 @@ static float paint_stroke_integrate_overlap(Brush *br, float factor)
 		return 1.0f / max;
 }
 
-static float paint_space_stroke_spacing_variable(const Scene *scene, PaintStroke *stroke, float pressure, float dpressure, float length)
+static float paint_space_stroke_spacing_variable(
+        const Scene *scene, PaintStroke *stroke, float pressure, float dpressure, float length)
 {
 	if (BKE_brush_use_size_pressure(scene, stroke->brush)) {
 		/* use pressure to modify size. set spacing so that at 100%, the circles
@@ -685,13 +700,14 @@ static int paint_space_stroke(bContext *C, wmOperator *op, const float final_mou
 
 /**** Public API ****/
 
-PaintStroke *paint_stroke_new(bContext *C,
-                              wmOperator *op,
-                              StrokeGetLocation get_location,
-                              StrokeTestStart test_start,
-                              StrokeUpdateStep update_step,
-                              StrokeRedraw redraw,
-                              StrokeDone done, int event_type)
+PaintStroke *paint_stroke_new(
+        bContext *C,
+        wmOperator *op,
+        StrokeGetLocation get_location,
+        StrokeTestStart test_start,
+        StrokeUpdateStep update_step,
+        StrokeRedraw redraw,
+        StrokeDone done, int event_type)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
@@ -788,11 +804,12 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 
 static bool sculpt_is_grab_tool(Brush *br)
 {
-	return ELEM(br->sculpt_tool,
-	             SCULPT_TOOL_GRAB,
-	             SCULPT_TOOL_THUMB,
-	             SCULPT_TOOL_ROTATE,
-	             SCULPT_TOOL_SNAKE_HOOK);
+	return ELEM(
+	        br->sculpt_tool,
+	        SCULPT_TOOL_GRAB,
+	        SCULPT_TOOL_THUMB,
+	        SCULPT_TOOL_ROTATE,
+	        SCULPT_TOOL_SNAKE_HOOK);
 }
 
 /* return true if the brush size can change during paint (normally used for pressure) */
@@ -893,9 +910,10 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 	return keymap;
 }
 
-static void paint_stroke_add_sample(const Paint *paint,
-                                    PaintStroke *stroke,
-                                    float x, float y, float pressure)
+static void paint_stroke_add_sample(
+        const Paint *paint,
+        PaintStroke *stroke,
+        float x, float y, float pressure)
 {
 	PaintSample *sample = &stroke->samples[stroke->cur_sample];
 	int max_samples = CLAMPIS(paint->num_input_samples, 1, PAINT_MAX_INPUT_SAMPLES);
@@ -911,8 +929,9 @@ static void paint_stroke_add_sample(const Paint *paint,
 		stroke->num_samples++;
 }
 
-static void paint_stroke_sample_average(const PaintStroke *stroke,
-                                        PaintSample *average)
+static void paint_stroke_sample_average(
+        const PaintStroke *stroke,
+        PaintSample *average)
 {
 	int i;
 
@@ -1057,11 +1076,13 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 
 					if (stroke->stroke_started) {
 						paint_brush_stroke_add_step(C, op, data + 2 * j, 1.0);
-						paint_line_strokes_spacing(C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
+						paint_line_strokes_spacing(
+						        C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
 					}
 				}
 				else {
-					paint_line_strokes_spacing(C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
+					paint_line_strokes_spacing(
+					        C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
 				}
 			}
 		}
@@ -1121,7 +1142,9 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	float pressure;
 
 	/* see if tablet affects event. Line, anchored and drag dot strokes do not support pressure */
-	pressure = (br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ? 1.0f : WM_event_tablet_data(event, &stroke->pen_flip, NULL);
+	pressure = (
+	        (br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ?
+	        1.0f : WM_event_tablet_data(event, &stroke->pen_flip, NULL));
 
 	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
 	paint_stroke_sample_average(stroke, &sample_average);
