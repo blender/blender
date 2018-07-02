@@ -41,17 +41,17 @@ class TEXT_HT_header(Header):
             sub.alert = True
             sub.operator("text.resolve_conflict", text="", icon='HELP')
 
-        row = layout.row(align=True)
-        row.prop(st, "show_line_numbers", text="")
-        row.prop(st, "show_word_wrap", text="")
-        row.prop(st, "show_syntax_highlight", text="")
-
         layout.separator_spacer()
 
         row = layout.row(align=True)
         row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
 
         layout.separator_spacer()
+
+        row = layout.row(align=True)
+        row.prop(st, "show_line_numbers", text="")
+        row.prop(st, "show_word_wrap", text="")
+        row.prop(st, "show_syntax_highlight", text="")
 
         if text:
             is_osl = text.name.endswith((".osl", ".osl"))
