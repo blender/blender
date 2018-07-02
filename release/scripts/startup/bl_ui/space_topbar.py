@@ -611,6 +611,11 @@ class TOPBAR_MT_window_specials(Menu):
 
         layout.separator()
 
+        layout.operator("screen.area_split", text="Horizontal Split").direction = 'HORIZONTAL'
+        layout.operator("screen.area_split", text="Vertical Split").direction = 'VERTICAL'
+
+        layout.separator()
+
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
 
