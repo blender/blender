@@ -520,9 +520,13 @@ class IMAGE_HT_header(Header):
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
 
-        layout.prop(sima, "pivot_point", icon_only=True)
+            # Snap
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_snap", text="")
+            row.prop(toolsettings, "snap_uv_element", icon_only=True)
+            if toolsettings.snap_uv_element != 'INCREMENT':
+                row.prop(toolsettings, "snap_target", text="")
 
-        if show_uvedit:
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_edit", icon_only=True)
             # if toolsettings.proportional_edit != 'DISABLED':
@@ -530,11 +534,7 @@ class IMAGE_HT_header(Header):
             sub.active = toolsettings.proportional_edit != 'DISABLED'
             sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
-            row = layout.row(align=True)
-            row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_uv_element", icon_only=True)
-            if toolsettings.snap_uv_element != 'INCREMENT':
-                row.prop(toolsettings, "snap_target", text="")
+        layout.prop(sima, "pivot_point", icon_only=True)
 
         if ima:
             if ima.is_stereo_3d:

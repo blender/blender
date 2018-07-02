@@ -117,52 +117,9 @@ class VIEW3D_HT_header(Header):
         # Mode & Transform Settings
         scene = context.scene
 
-        # Orientation & Pivot
+        # Orientation
         if object_mode in {'OBJECT', 'EDIT', 'POSE'}:
             layout.prop(scene, "transform_orientation", text="")
-
-            pivot_point = tool_settings.transform_pivot_point
-            act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
-            row = layout.row(align=True)
-            row.popover(
-                space_type='TOPBAR',
-                region_type='HEADER',
-                panel_type="TOPBAR_PT_pivot_point",
-                icon=act_pivot_point.icon,
-                text="",
-            )
-
-        if obj:
-            # Proportional editing
-            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(tool_settings, "proportional_edit", icon_only=True)
-
-                sub = row.row(align=True)
-                sub.active = tool_settings.proportional_edit != 'DISABLED'
-                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-
-            elif object_mode in {'EDIT', 'PARTICLE_EDIT'}:
-                row = layout.row(align=True)
-                row.prop(tool_settings, "proportional_edit", icon_only=True)
-                sub = row.row(align=True)
-                sub.active = tool_settings.proportional_edit != 'DISABLED'
-                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-
-            elif object_mode == 'OBJECT':
-                row = layout.row(align=True)
-                row.prop(tool_settings, "use_proportional_edit_objects", icon_only=True)
-                sub = row.row(align=True)
-                sub.active = tool_settings.use_proportional_edit_objects
-                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-        else:
-            # Proportional editing
-            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(tool_settings, "proportional_edit", icon_only=True)
-                sub = row.row(align=True)
-                sub.active = tool_settings.proportional_edit != 'DISABLED'
-                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
         # Snap
         show_snap = False
@@ -201,6 +158,50 @@ class VIEW3D_HT_header(Header):
                 panel_type="TOPBAR_PT_snapping",
                 icon=icon,
                 text=""
+            )
+
+        # Proportional editing
+        if obj:
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+
+                sub = row.row(align=True)
+                sub.active = tool_settings.proportional_edit != 'DISABLED'
+                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+            elif object_mode in {'EDIT', 'PARTICLE_EDIT'}:
+                row = layout.row(align=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+                sub = row.row(align=True)
+                sub.active = tool_settings.proportional_edit != 'DISABLED'
+                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+            elif object_mode == 'OBJECT':
+                row = layout.row(align=True)
+                row.prop(tool_settings, "use_proportional_edit_objects", icon_only=True)
+                sub = row.row(align=True)
+                sub.active = tool_settings.use_proportional_edit_objects
+                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+        else:
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+                sub = row.row(align=True)
+                sub.active = tool_settings.proportional_edit != 'DISABLED'
+                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+        # Orientation & Pivot
+        if object_mode in {'OBJECT', 'EDIT', 'POSE'}:
+            pivot_point = tool_settings.transform_pivot_point
+            act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
+            row = layout.row(align=True)
+            row.popover(
+                space_type='TOPBAR',
+                region_type='HEADER',
+                panel_type="TOPBAR_PT_pivot_point",
+                icon=act_pivot_point.icon,
+                text="",
             )
 
 

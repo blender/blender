@@ -59,8 +59,6 @@ class GRAPH_HT_header(Header):
         else:
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
 
-        layout.prop(st, "auto_snap", text="")
-
         layout.popover(
             space_type='GRAPH_EDITOR',
             region_type='HEADER',
@@ -68,6 +66,8 @@ class GRAPH_HT_header(Header):
             text="",
             icon='FILTER',
         )
+
+        layout.prop(st, "auto_snap", text="")
 
         row = layout.row(align=True)
         row.prop(toolsettings, "use_proportional_fcurve", text="", icon_only=True)

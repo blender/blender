@@ -262,10 +262,6 @@ class DOPESHEET_HT_editor_buttons(Header):
             row = layout.row(align=True)
             row.prop(st.dopesheet, "filter_text", text="")
 
-        # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
-        if st.mode != 'GPENCIL':
-            layout.prop(st, "auto_snap", text="")
-
         layout.popover(
             space_type='DOPESHEET_EDITOR',
             region_type='HEADER',
@@ -273,6 +269,10 @@ class DOPESHEET_HT_editor_buttons(Header):
             text="",
             icon='FILTER',
         )
+
+        # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
+        if st.mode != 'GPENCIL':
+            layout.prop(st, "auto_snap", text="")
 
         row = layout.row(align=True)
         row.prop(toolsettings, "use_proportional_action", text="", icon_only=True)

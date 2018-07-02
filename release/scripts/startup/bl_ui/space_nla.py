@@ -43,8 +43,6 @@ class NLA_HT_header(Header):
 
         dopesheet_filter(layout, context)
 
-        layout.prop(st, "auto_snap", text="")
-
         layout.popover(
             space_type='NLA_EDITOR',
             region_type='HEADER',
@@ -52,6 +50,8 @@ class NLA_HT_header(Header):
             text="",
             icon='FILTER',
         )
+
+        layout.prop(st, "auto_snap", text="")
 
 
 class NLA_PT_filters(DopesheetFilterPopoverBase, Panel):
