@@ -53,7 +53,7 @@ class NODE_HT_header(Header):
         # layout.prop(snode, "tree_type", text="")
 
         if snode.tree_type == 'ShaderNodeTree':
-            layout.prop(snode, "shader_type", text="", expand=True)
+            layout.prop(snode, "shader_type", text="")
 
             ob = context.object
             if snode.shader_type == 'OBJECT' and ob:
@@ -109,7 +109,7 @@ class NODE_HT_header(Header):
                     row.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
 
         elif snode.tree_type == 'TextureNodeTree':
-            layout.prop(snode, "texture_type", text="", expand=True)
+            layout.prop(snode, "texture_type", text="")
 
             NODE_MT_editor_menus.draw_collapsible(context, layout)
 
@@ -144,15 +144,13 @@ class NODE_HT_header(Header):
             layout.separator_spacer()
 
             layout.template_ID(snode, "node_tree", new="node.new_node_tree")
+
         layout.separator_spacer()
+
+        layout.template_running_jobs()
 
         layout.prop(snode, "pin", text="")
         layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
-
-        layout.separator()
-
-        # Auto-offset nodes (called "insert_offset" in code)
-        layout.prop(snode, "use_insert_offset", text="")
 
         # Snap
         row = layout.row(align=True)
@@ -164,8 +162,6 @@ class NODE_HT_header(Header):
         row = layout.row(align=True)
         row.operator("node.clipboard_copy", text="", icon='COPYDOWN')
         row.operator("node.clipboard_paste", text="", icon='PASTEDOWN')
-
-        layout.template_running_jobs()
 
 
 class NODE_MT_editor_menus(Menu):
@@ -204,8 +200,15 @@ class NODE_MT_view(Menu):
     def draw(self, context):
         layout = self.layout
 
+        snode = context.space_data
+
         layout.operator("node.properties", icon='MENU_PANEL')
         layout.operator("node.toolbar", icon='MENU_PANEL')
+
+        layout.separator()
+
+        # Auto-offset nodes (called "insert_offset" in code)
+        layout.prop(snode, "use_insert_offset")
 
         layout.separator()
 
