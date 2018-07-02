@@ -214,13 +214,14 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
 }
 
 /* Initialize the stroke cache variants from operator properties */
-static bool paint_brush_update(bContext *C,
-                               Brush *brush,
-                               ePaintMode mode,
-                               struct PaintStroke *stroke,
-                               const float mouse_init[2],
-                               float mouse[2], float pressure,
-                               float location[3])
+static bool paint_brush_update(
+        bContext *C,
+        Brush *brush,
+        ePaintMode mode,
+        struct PaintStroke *stroke,
+        const float mouse_init[2],
+        float mouse[2], float pressure,
+        float r_location[3], bool *r_location_is_set)
 {
 	Scene *scene = CTX_data_scene(C);
 	UnifiedPaintSettings *ups = stroke->ups;
@@ -231,6 +232,7 @@ static bool paint_brush_update(bContext *C,
 	bool is_dry_run = false;
 	bool do_random = false;
 	bool do_random_mask = false;
+	*r_location_is_set = false;
 	/* XXX: Use pressure value from first brush step for brushes which don't
 	 *      support strokes (grab, thumb). They depends on initial state and
 	 *      brush coord/pressure/etc.
@@ -329,10 +331,11 @@ static bool paint_brush_update(bContext *C,
 			halfway[1] = dy * 0.5f + stroke->initial_mouse[1];
 
 			if (stroke->get_location) {
-				if (stroke->get_location(C, location, halfway)) {
+				if (stroke->get_location(C, r_location, halfway)) {
 					hit = true;
 					location_sampled = true;
 					location_success = true;
+					*r_location_is_set = true;
 				}
 				else if (!paint_tool_require_location(brush, mode)) {
 					hit = true;
@@ -395,14 +398,17 @@ static bool paint_brush_update(bContext *C,
 
 	if (!location_sampled) {
 		if (stroke->get_location) {
-			if (stroke->get_location(C, location, mouse))
+			if (stroke->get_location(C, r_location, mouse)) {
 				location_success = true;
+				*r_location_is_set = true;
+			}
 			else if (!paint_tool_require_location(brush, mode))
 				location_success = true;
 		}
 		else {
-			zero_v3(location);
+			zero_v3(r_location);
 			location_success = true;
+			/* don't set 'r_location_is_set', since we don't want to use the value. */
 		}
 	}
 
@@ -481,8 +487,13 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const float
 	}
 
 
-	ups->last_hit = paint_brush_update(C, brush, mode, stroke, mouse_in, mouse_out, pressure, location);
-	copy_v3_v3(ups->last_location, location);
+	bool is_location_is_set;
+	ups->last_hit = paint_brush_update(
+	        C, brush, mode, stroke, mouse_in, mouse_out, pressure,
+	        location, &is_location_is_set);
+	if (is_location_is_set) {
+		copy_v3_v3(ups->last_location, location);
+	}
 	if (!ups->last_hit) {
 		return;
 	}
