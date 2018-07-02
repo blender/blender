@@ -102,11 +102,12 @@ typedef struct IconImage {
 
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
-#define ICON_TYPE_PREVIEW   0
-#define ICON_TYPE_TEXTURE   1
-#define ICON_TYPE_BUFFER    2
-#define ICON_TYPE_VECTOR    3
-#define ICON_TYPE_GEOM      4
+#define ICON_TYPE_PREVIEW        0
+#define ICON_TYPE_TEXTURE        1
+#define ICON_TYPE_MONO_TEXTURE   2
+#define ICON_TYPE_BUFFER         3
+#define ICON_TYPE_VECTOR         4
+#define ICON_TYPE_GEOM           5
 
 typedef struct DrawInfo {
 	int type;
@@ -160,7 +161,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type = type;
 
-	if (type == ICON_TYPE_TEXTURE) {
+	if (ELEM(type, ICON_TYPE_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
 		di->data.texture.x = xofs;
 		di->data.texture.y = yofs;
 		di->data.texture.w = size;
@@ -531,6 +532,8 @@ static void init_internal_icons(void)
 
 		/* Define icons. */
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
+			/* Row W has monochrome icons. */
+			int icontype = (y == 8) ? ICON_TYPE_MONO_TEXTURE : ICON_TYPE_TEXTURE;
 			for (x = 0; x < ICON_GRID_COLS; x++) {
 				def_internal_icon(b32buf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,
 				                  x * (ICON_GRID_W + ICON_GRID_MARGIN) + ICON_GRID_MARGIN,
@@ -1289,6 +1292,21 @@ static void icon_draw_size(
 		                  di->data.texture.w, di->data.texture.h, alpha, rgb);
 		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
+	else if (di->type== ICON_TYPE_MONO_TEXTURE) {
+		/* icon that matches text color, assumed to be white */
+		float text_color[4];
+		UI_GetThemeColor4fv(TH_TEXT, text_color);
+		if (rgb) {
+			mul_v3_v3(text_color, rgb);
+		}
+		text_color[3] *= alpha;
+
+		GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
+		                  di->data.texture.w, di->data.texture.h, text_color[3], text_color);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	}
+
 	else if (di->type == ICON_TYPE_BUFFER) {
 		/* it is a builtin icon */
 		iimg = di->data.buffer.image;
