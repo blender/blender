@@ -119,7 +119,26 @@ class VIEW3D_HT_header(Header):
 
         # Orientation
         if object_mode in {'OBJECT', 'EDIT', 'POSE'}:
-            layout.prop(scene, "transform_orientation", text="")
+            orientation = scene.transform_orientation
+            current_orientation = scene.current_orientation
+
+            if not current_orientation:
+                trans_orientation = \
+                    bpy.types.Scene.bl_rna.properties["transform_orientation"].enum_items[orientation]
+                trans_icon = getattr(trans_orientation, "icon", "BLANK1")
+                trans_name = getattr(trans_orientation, "name", "Orientation")
+            else:
+                trans_icon = "VISIBLE_IPO_OFF"
+                trans_name = getattr(current_orientation, "name", "Orientation")
+
+            row = layout.row(align=True)
+            row.popover(
+                space_type='TOPBAR',
+                region_type='HEADER',
+                panel_type="TOPBAR_PT_transform_orientations",
+                text=trans_name,
+                icon=trans_icon,
+            )
 
         # Snap
         show_snap = False
@@ -191,7 +210,7 @@ class VIEW3D_HT_header(Header):
                 sub.active = tool_settings.proportional_edit != 'DISABLED'
                 sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
-        # Orientation & Pivot
+        # Pivot
         if object_mode in {'OBJECT', 'EDIT', 'POSE'}:
             pivot_point = tool_settings.transform_pivot_point
             act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
@@ -4124,33 +4143,6 @@ class VIEW3D_PT_view3d_stereo(Panel):
         split.prop(view, "stereo_3d_volume_alpha", text="Alpha")
 
 
-class VIEW3D_PT_transform_orientations(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = "Transform Orientations"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view)
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        orientation = scene.current_orientation
-
-        row = layout.row(align=True)
-        row.prop(scene, "transform_orientation", text="")
-        row.operator("transform.create_orientation", text="", icon='ZOOMIN')
-
-        if orientation:
-            row = layout.row(align=True)
-            row.prop(orientation, "name", text="")
-            row.operator("transform.delete_orientation", text="", icon='X')
-
-
 class VIEW3D_PT_context_properties(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -4338,7 +4330,6 @@ classes = (
     VIEW3D_PT_overlay_pose,
     VIEW3D_PT_overlay_paint,
     VIEW3D_PT_overlay_sculpt,
-    VIEW3D_PT_transform_orientations,
     VIEW3D_PT_context_properties,
 )
 

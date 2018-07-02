@@ -270,6 +270,34 @@ class TOPBAR_PT_snapping(Panel):
                 col.prop(toolsettings, "use_snap_peel_object")
 
 
+class TOPBAR_PT_transform_orientations(Panel):
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
+    bl_label = "Transform Orientations"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label("Tranform Orientations")
+
+        scene = context.scene
+        orientation = scene.current_orientation
+
+        col = layout.split(percentage=0.9)
+        col.prop(scene, "transform_orientation", expand=True)
+        col.operator("transform.create_orientation", text="", icon='ZOOMIN', emboss=False)
+
+        if orientation:
+            row = layout.row(align=False)
+            row.prop(orientation, "name", text="")
+            row.operator("transform.delete_orientation", text="", icon='X', emboss=False)
+
+
 class INFO_MT_editor_menus(Menu):
     bl_idname = "INFO_MT_editor_menus"
     bl_label = ""
@@ -629,6 +657,7 @@ classes = (
     TOPBAR_HT_lower_bar,
     TOPBAR_PT_pivot_point,
     TOPBAR_PT_snapping,
+    TOPBAR_PT_transform_orientations,
     TOPBAR_MT_file_specials,
     TOPBAR_MT_window_specials,
     INFO_MT_editor_menus,
