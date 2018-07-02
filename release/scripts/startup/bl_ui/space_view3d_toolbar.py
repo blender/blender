@@ -924,7 +924,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
-        if (sculpt.detail_type_method == 'CONSTANT'):
+        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             row = sub.row(align=True)
             row.prop(sculpt, "constant_detail_resolution")
             row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
@@ -942,7 +942,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.prop(sculpt, "symmetrize_direction")
         col.operator("sculpt.symmetrize")
         col.operator("sculpt.optimize")
-        if (sculpt.detail_type_method == 'CONSTANT'):
+        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
 

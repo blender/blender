@@ -1948,6 +1948,7 @@ typedef enum eSculptFlags {
 	/* If set, dynamic-topology detail size will be constant in object space */
 	SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13),
 	SCULPT_DYNTOPO_DETAIL_BRUSH = (1 << 14),
+	SCULPT_DYNTOPO_DETAIL_MANUAL = (1 << 16),
 
 	/* Don't display mask in viewport, but still use it for strokes. */
 	SCULPT_HIDE_MASK = (1 << 15),

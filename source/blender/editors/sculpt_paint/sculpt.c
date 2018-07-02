@@ -3522,13 +3522,16 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush, Unified
 		PBVHTopologyUpdateMode mode = 0;
 		float location[3];
 
-		if (sd->flags & SCULPT_DYNTOPO_SUBDIVIDE)
-			mode |= PBVH_Subdivide;
+		if (!(sd->flags & SCULPT_DYNTOPO_DETAIL_MANUAL)) {
+			if (sd->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
+				mode |= PBVH_Subdivide;
+			}
 
-		if ((sd->flags & SCULPT_DYNTOPO_COLLAPSE) ||
-		    (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY))
-		{
-			mode |= PBVH_Collapse;
+			if ((sd->flags & SCULPT_DYNTOPO_COLLAPSE) ||
+				(brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY))
+			{
+				mode |= PBVH_Collapse;
+			}
 		}
 
 		for (n = 0; n < totnode; n++) {
@@ -4952,7 +4955,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	sculpt_update_cache_variants(C, sd, ob, itemptr);
 	sculpt_restore_mesh(sd, ob);
 
-	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
+	if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
 		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, 1.0f / sd->constant_detail);
 	}
 	else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
@@ -5852,13 +5855,13 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-
-static bool sculpt_and_dynamic_topology_constant_detail_poll(bContext *C)
+static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-	return sculpt_mode_poll(C) && ob->sculpt->bm && (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT);
+	return sculpt_mode_poll(C) && ob->sculpt->bm &&
+	       (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL));
 }
 
 static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
@@ -5920,7 +5923,7 @@ static void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = sculpt_detail_flood_fill_exec;
-	ot->poll = sculpt_and_dynamic_topology_constant_detail_poll;
+	ot->poll = sculpt_and_constant_or_manual_detail_poll;
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -6018,7 +6021,7 @@ static void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
 	ot->invoke = sculpt_sample_detail_size_invoke;
 	ot->exec = sculpt_sample_detail_size_exec;
 	ot->modal = sculpt_sample_detail_size_modal;
-	ot->poll = sculpt_and_dynamic_topology_constant_detail_poll;
+	ot->poll = sculpt_and_constant_or_manual_detail_poll;
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -6036,7 +6039,7 @@ static int sculpt_set_detail_size_exec(bContext *C, wmOperator *UNUSED(op))
 
 	WM_operator_properties_create_ptr(&props_ptr, ot);
 
-	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
+	if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
 		set_brush_rc_props(&props_ptr, "sculpt", "constant_detail_resolution", NULL, 0);
 		RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.constant_detail_resolution");
 	}
