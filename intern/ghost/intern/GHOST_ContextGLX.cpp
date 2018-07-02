@@ -72,8 +72,7 @@ GHOST_ContextGLX::GHOST_ContextGLX(
       m_contextMinorVersion(contextMinorVersion),
       m_contextFlags(contextFlags),
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_context(None),
-      m_init(false)
+      m_context(None)
 {
 	assert(m_display != NULL);
 }
