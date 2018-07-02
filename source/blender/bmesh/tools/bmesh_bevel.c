@@ -37,7 +37,6 @@
 
 #include "BLI_array.h"
 #include "BLI_alloca.h"
-#include "BLI_bitmap.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -1538,12 +1537,12 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {
 	EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
-	while (neg ^ !EDGE_DATA_CHECK(e, flag)) {
+	while ((!neg && !EDGE_DATA_CHECK(e, flag) || (neg && EDGE_DATA_CHECK(e, flag)))) {
 		e = e->next;
 		if (e == efirst)
 			break;
 	}
-	if (neg ^ !EDGE_DATA_CHECK(e, flag))
+	if ((!neg && !EDGE_DATA_CHECK(e, flag) || (neg && EDGE_DATA_CHECK(e, flag))))
 		return;
 
 	efirst = e;
@@ -1551,12 +1550,13 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
 		
-		while ((neg ^ !EDGE_DATA_CHECK(ne, flag)) && ne != efirst) {
+		while ((!neg && !EDGE_DATA_CHECK(e, flag) || (neg && EDGE_DATA_CHECK(e, flag))) && ne != efirst) {
 			if (ne->is_bev)
 				flag_count++;
 			ne = ne->next;
 		}
-		if (ne == e || (ne == efirst && (neg ^ !EDGE_DATA_CHECK(efirst, flag)))) {
+		if (ne == e || (ne == efirst && (!neg && !EDGE_DATA_CHECK(e, flag) ||
+										(neg && EDGE_DATA_CHECK(e, flag))))) {
 			break;
 		}
  		if (flag == BM_ELEM_SEAM)
@@ -5736,19 +5736,26 @@ void BM_mesh_bevel(
 			}
 		}
 
-		GHASH_ITER(giter, bp.vert_hash) {
-			bv = BLI_ghashIterator_getValue(&giter);
-			bevel_extend_edge_data(bv);
-			if(bm->use_toolflags)
+		if (bm->use_toolflags) {
+			GHASH_ITER(giter, bp.vert_hash) {
+				bv = BLI_ghashIterator_getValue(&giter);
+				bevel_extend_edge_data(bv);
 				bevel_harden_normals_mode(bm, &bp, bv, op);
+			}
 		}
-
 
 		/* Rebuild face polygons around affected vertices */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				bevel_rebuild_existing_polygons(bm, &bp, v);
 				bevel_reattach_wires(bm, &bp, v);
+			}
+		}
+
+		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				BLI_assert(find_bevvert(&bp, v) != NULL);
+				BM_vert_kill(bm, v);
 			}
 		}
 
@@ -5761,13 +5768,6 @@ void BM_mesh_bevel(
 					bevel_fix_normal_shading_continuity(&bp, bm, bv);
 			}
 			BLI_ghash_free(bp.faceHash, NULL, NULL);
-		}
-
-		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				BLI_assert(find_bevvert(&bp, v) != NULL);
-				BM_vert_kill(bm, v);
-			}
 		}
 
 		/* When called from operator (as opposed to modifier), bm->use_toolflags

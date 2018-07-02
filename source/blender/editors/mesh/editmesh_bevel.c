@@ -197,8 +197,8 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 					normalize_v3(cn_wght);
 					normalize_v3(cn_unwght);
 					if (calc_n) {
-						mul_v3_fl(calc_n, face_strength);
-						mul_v3_fl(cn_wght, 1.0f - face_strength);
+						mul_v3_fl(cn_wght, face_strength);
+						mul_v3_fl(calc_n, 1.0f - face_strength);
 						add_v3_v3(calc_n, cn_wght);
 						normalize_v3(calc_n);
 					}
@@ -341,7 +341,8 @@ static bool edbm_bevel_calc(wmOperator *op)
 			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
 		}
 
-		bevel_harden_normals(em, &bmop, strength, hnmode);
+		if(hnmode != BEVEL_HN_NONE)
+			bevel_harden_normals(em, &bmop, strength, hnmode);
 
 		/* no need to de-select existing geometry */
 		if (!EDBM_op_finish(em, &bmop, op, true)) {
@@ -788,5 +789,5 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material",
 		"Material for bevel faces (-1 means use adjacent faces)", -1, 100);
 	RNA_def_float(ot->srna, "strength", 0.5f, 0.0f, 1.0f, "Normal Strength", "Strength of calculated normal", 0.0f, 1.0f);
-	RNA_def_enum(ot->srna, "hnmode", harden_normals_items, BEVEL_HN_FACE, "Normal Mode", "Weighting mode for Harden Normals");
+	RNA_def_enum(ot->srna, "hnmode", harden_normals_items, BEVEL_HN_NONE, "Normal Mode", "Weighting mode for Harden Normals");
 }
