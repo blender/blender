@@ -4360,12 +4360,12 @@ void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
 		uiItemL(row, msg ? msg : "", (ICON_MOUSE_LMB + i));
 
 		if (msg_drag) {
-			uiItemL(row, msg_drag, ICON_MOUSE_DRAG);
+			uiItemL(row, msg_drag, (ICON_MOUSE_LMB_DRAG + i));
 		}
 
 		/* Use trick with empty string to keep icons in same position. */
 		row = uiLayoutRow(col, false);
-		uiItemL(row, "                                                        ", ICON_NONE);
+		uiItemL(row, "                                                                   ", ICON_NONE);
 	}
 }
 

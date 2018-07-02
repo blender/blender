@@ -389,7 +389,7 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmE
  */
 static void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
 {
-	ot->name = "Drag and Drop Item";
+	ot->name = "Drag and Drop";
 	ot->idname = "OUTLINER_OT_item_drag_drop";
 	ot->description = "Change the hierarchical position of an item by repositioning it using drag and drop";
 

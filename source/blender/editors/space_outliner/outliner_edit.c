@@ -242,7 +242,7 @@ static int outliner_item_openclose(bContext *C, wmOperator *op, const wmEvent *e
 
 void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 {
-	ot->name = "Open/Close Item";
+	ot->name = "Open/Close";
 	ot->idname = "OUTLINER_OT_item_openclose";
 	ot->description = "Toggle whether item under cursor is enabled or closed";
 
@@ -399,7 +399,7 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
-	ot->name = "Rename Item";
+	ot->name = "Rename";
 	ot->idname = "OUTLINER_OT_item_rename";
 	ot->description = "Rename item under cursor";
 
