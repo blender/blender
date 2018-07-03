@@ -1004,7 +1004,6 @@ int view3d_opengl_select(
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
 	if (v3d->drawtype > OB_WIRE) {
-		v3d->zbuf = true;
 		GPU_depth_test(true);
 	}
 
@@ -1050,7 +1049,6 @@ int view3d_opengl_select(
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 
 	if (v3d->drawtype > OB_WIRE) {
-		v3d->zbuf = 0;
 		GPU_depth_test(false);
 	}
 

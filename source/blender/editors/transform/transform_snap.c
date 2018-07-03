@@ -155,7 +155,6 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (validSnap(t)) {
 			TransSnapPoint *p;
-			View3D *v3d = CTX_wm_view3d(C);
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			float imat[4][4];
 			float size;
@@ -201,8 +200,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
 			immUnbindProgram();
 
-			if (v3d->zbuf)
-				GPU_depth_test(true);
+			GPU_depth_test(true);
 		}
 	}
 	else if (t->spacetype == SPACE_IMAGE) {

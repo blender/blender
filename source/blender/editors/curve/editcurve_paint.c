@@ -373,7 +373,6 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		return;
 	}
 
-	View3D *v3d = cdd->vc.v3d;
 	Object *obedit = cdd->vc.obedit;
 	Curve *cu = obedit->data;
 
@@ -434,37 +433,29 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+			GPU_depth_test(false);
 			GPU_blend(true);
 			GPU_line_smooth(true);
+			GPU_line_width(3.0f);
 
 			imm_cpack(0x0);
 			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
-			GPU_line_width(3.0f);
-
-			if (v3d->zbuf) {
-				GPU_depth_test(false);
-			}
-
 			for (int i = 0; i < stroke_len; i++) {
 				immVertex3fv(pos, coord_array[i]);
 			}
-
 			immEnd();
+
+			GPU_line_width(1.0f);
 
 			imm_cpack(0xffffffff);
 			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
-			GPU_line_width(1.0f);
-
 			for (int i = 0; i < stroke_len; i++) {
 				immVertex3fv(pos, coord_array[i]);
 			}
-
 			immEnd();
 
-			if (v3d->zbuf) {
-				GPU_depth_test(true);
-			}
-
+			/* Reset defaults */
+			GPU_depth_test(true);
 			GPU_blend(false);
 			GPU_line_smooth(false);
 

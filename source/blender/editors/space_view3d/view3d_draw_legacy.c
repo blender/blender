@@ -210,7 +210,9 @@ static void backdrawview3d(
 	}
 #endif
 
+#if 0 /* v3d->zbuf deprecated */
 	if (v3d->drawtype > OB_WIRE) v3d->zbuf = true;
+#endif
 
 	/* dithering and AA break color coding, so disable */
 	glDisable(GL_DITHER);
@@ -249,14 +251,8 @@ static void backdrawview3d(
 		GPU_scissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 
 	GPU_clear_color(0.0, 0.0, 0.0, 0.0);
-	if (v3d->zbuf) {
-		GPU_depth_test(true);
-		GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
-	}
-	else {
-		GPU_clear(GPU_COLOR_BIT);
-		GPU_depth_test(false);
-	}
+	GPU_depth_test(true);
+	GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
 
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_set(rv3d);
@@ -273,7 +269,6 @@ static void backdrawview3d(
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
 
 	G.f &= ~G_BACKBUFSEL;
-	v3d->zbuf = false;
 	GPU_depth_test(false);
 	glEnable(GL_DITHER);
 
@@ -684,7 +679,7 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 					ibuf = ibuf->mipmap[mip - 1];
 			}
 
-			if (v3d->zbuf) GPU_depth_test(false);
+			GPU_depth_test(false);
 			glDepthMask(GL_FALSE);
 
 			GPU_blend(true);
@@ -718,7 +713,7 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 			GPU_blend(false);
 
 			glDepthMask(GL_TRUE);
-			if (v3d->zbuf) GPU_depth_test(true);
+			GPU_depth_test(true);
 
 			if (freeibuf)
 				IMB_freeImBuf(freeibuf);
@@ -878,22 +873,19 @@ void ED_view3d_draw_depth_gpencil(
         Depsgraph *depsgraph, Scene *scene, ARegion *ar, View3D *v3d)
 {
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	bool zbuf = v3d->zbuf;
 
 	/* Setup view matrix. */
 	ED_view3d_draw_setup_view(NULL, depsgraph, scene, ar, v3d, NULL, NULL, NULL);
 
 	GPU_clear(GPU_DEPTH_BIT);
 
-	v3d->zbuf = true;
 	GPU_depth_test(true);
 
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		ED_gpencil_draw_view3d(NULL, scene, view_layer, depsgraph, v3d, ar, true);
 	}
 
-	v3d->zbuf = zbuf;
-	if (!zbuf) GPU_depth_test(false);
+	GPU_depth_test(false);
 }
 
 /* *********************** customdata **************** */

@@ -1037,12 +1037,11 @@ static void knife_init_colors(KnifeColors *colors)
 }
 
 /* modal loop selection drawing callback */
-static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
+static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
-	View3D *v3d = CTX_wm_view3d(C);
 	const KnifeTool_OpData *kcd = arg;
 
-	if (v3d->zbuf) GPU_depth_test(false);
+	GPU_depth_test(false);
 
 	glPolygonOffset(1.0f, 1.0f);
 
@@ -1196,7 +1195,8 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	gpuPopMatrix();
 
-	if (v3d->zbuf) GPU_depth_test(true);
+	/* Reset default */
+	GPU_depth_test(true);
 }
 
 /**

@@ -6972,11 +6972,9 @@ static void drawEdgeSlide(TransInfo *t)
 
 		/* Even mode */
 		if ((slp->use_even == true) || (is_clamp == false)) {
-			View3D *v3d = t->view;
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 
-			if (v3d && v3d->zbuf)
-				GPU_depth_test(false);
+			GPU_depth_test(false);
 
 			GPU_blend(true);
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
@@ -7074,8 +7072,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 			GPU_blend(false);
 
-			if (v3d && v3d->zbuf)
-				GPU_depth_test(true);
+			GPU_depth_test(true);
 		}
 	}
 }
@@ -7603,7 +7600,6 @@ static void drawVertSlide(TransInfo *t)
 
 		/* Non-Prop mode */
 		{
-			View3D *v3d = t->view;
 			TransDataVertSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 			TransDataVertSlideVert *sv;
 			const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
@@ -7611,8 +7607,7 @@ static void drawVertSlide(TransInfo *t)
 			const int alpha_shade = -160;
 			int i;
 
-			if (v3d && v3d->zbuf)
-				GPU_depth_test(false);
+			GPU_depth_test(false);
 
 			GPU_blend(true);
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
@@ -7706,8 +7701,7 @@ static void drawVertSlide(TransInfo *t)
 
 			gpuPopMatrix();
 
-			if (v3d && v3d->zbuf)
-				GPU_depth_test(true);
+			GPU_depth_test(true);
 		}
 	}
 }

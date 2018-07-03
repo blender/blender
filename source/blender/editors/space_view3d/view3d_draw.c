@@ -703,7 +703,6 @@ void ED_view3d_draw_depth(
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
 
-	short zbuf = v3d->zbuf;
 	short flag = v3d->flag;
 	float glalphaclip = U.glalphaclip;
 	int obcenter_dia = U.obcenter_dia;
@@ -727,7 +726,6 @@ void ED_view3d_draw_depth(
 	/* get surface depth without bias */
 	rv3d->rflag |= RV3D_ZOFFSET_DISABLED;
 
-	v3d->zbuf = true;
 	GPU_depth_test(true);
 
 	DRW_draw_depth_loop(depsgraph, ar, v3d);
@@ -737,8 +735,8 @@ void ED_view3d_draw_depth(
 	}
 	rv3d->rflag &= ~RV3D_ZOFFSET_DISABLED;
 
-	v3d->zbuf = zbuf;
-	if (!v3d->zbuf) GPU_depth_test(false);
+	/* Reset default for UI */
+	GPU_depth_test(false);
 
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;

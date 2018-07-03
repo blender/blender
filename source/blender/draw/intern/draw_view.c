@@ -744,8 +744,6 @@ void DRW_draw_cursor(void)
 void DRW_draw_manipulator_3d(void)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	View3D *v3d = draw_ctx->v3d;
-	v3d->zbuf = false;
 	ARegion *ar = draw_ctx->ar;
 
 	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
@@ -760,8 +758,6 @@ void DRW_draw_manipulator_3d(void)
 void DRW_draw_manipulator_2d(void)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	View3D *v3d = draw_ctx->v3d;
-	v3d->zbuf = false;
 	ARegion *ar = draw_ctx->ar;
 
 	WM_manipulatormap_draw(
