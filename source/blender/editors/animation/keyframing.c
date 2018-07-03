@@ -1107,7 +1107,12 @@ short insert_keyframe(
 	}
 
 	if (ret) {
-		DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+		if (act != NULL) {
+			DEG_id_tag_update(&act->id, DEG_TAG_COPY_ON_WRITE);
+		}
+		if (adt != NULL && adt->action != NULL && adt->action != act) {
+			DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+		}
 	}
 
 	return ret;
