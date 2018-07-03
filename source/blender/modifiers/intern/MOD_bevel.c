@@ -111,15 +111,18 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 {
 	if (bmd->res > 20)
 		return;
+
 	BM_mesh_normals_update(bm);
 	BM_lnorspace_update(bm);
 	BM_normals_loops_edges_tag(bm, true);
 
+	const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
 	int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
 	BMFace *f;
 	BMLoop *l, *l_cur, *l_first;
 	BMIter fiter;
+	GHash *faceHash = bmd->clnordata.faceHash;
 
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
 		l_cur = l_first = BM_FACE_FIRST_LOOP(f);
@@ -142,7 +145,8 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 					e_next = lfan_pivot->e;
 					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
 					float cn_wght[3] = { 0.0f, 0.0f, 0.0f };
-					bool normal_to_recon_face = false;
+					int recon_face_count = 0;					/* Reconstructed face */
+					BMFace *recon_face;
 
 					while (true) {
 						lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
@@ -190,6 +194,10 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 							break;
 						}
 						lfan_pivot = lfan_pivot_next;
+						if (!BLI_ghash_haskey(faceHash, f)) {
+							recon_face = f;
+							recon_face_count++;
+						}
 					}
 
 					normalize_v3(cn_wght);
@@ -199,11 +207,19 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 					while ((l = BLI_SMALLSTACK_POP(loops))) {
 						const int l_index = BM_elem_index_get(l);
 						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
-						copy_v3_v3(n_final, l->f->no);
-						mul_v3_fl(n_final, 1.0f - hn_strength);
-						add_v3_v3(n_final, cn_wght);
-						normalize_v3(n_final);
-						BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
+
+						if (!vertex_only || !recon_face_count) {
+							copy_v3_v3(n_final, l->f->no);
+							mul_v3_fl(n_final, 1.0f - hn_strength);
+							add_v3_v3(n_final, cn_wght);
+							normalize_v3(n_final);
+							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
+						}
+						else if (recon_face_count == 1) {
+							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], recon_face->no, clnors);
+						}
+						else if(BLI_ghash_haskey(faceHash, l->f))
+							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], l->v->no, clnors);
 					}
 				}
 			}
@@ -222,6 +238,7 @@ static void bevel_fix_normal_shading_continuity(BevelModifierData *bmd, BMesh *b
 	BMIter liter, eiter;
 
 	int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+	const float hn_strength = bmd->hn_strength;
 	float ref = 10.0f;
 
 	BM_ITER_MESH(e, &eiter, bm, BM_EDGES_OF_MESH) {
@@ -259,6 +276,29 @@ static void bevel_fix_normal_shading_continuity(BevelModifierData *bmd, BMesh *b
 						add_v3_v3(n_final, pow_b);
 						normalize_v3(n_final);
 
+						BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
+					}
+				}
+			}
+		}
+		else if(_f_a == true  && _f_b == true) {
+			for (int i = 0; i < 2; i++) {
+				BMVert *v = (i == 0) ? e->v1 : e->v2;
+				BM_ITER_ELEM(l, &liter, v, BM_LOOPS_OF_VERT) {
+
+					if(l->f == f_a || l->f == f_b) {
+						const int l_index = BM_elem_index_get(l);
+						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
+						float n_final[3], cn_wght[3];
+
+						copy_v3_v3(n_final, v->no);
+						mul_v3_fl(n_final, hn_strength);
+
+						copy_v3_v3(cn_wght, l->f->no);
+						mul_v3_fl(cn_wght, 1.0f - hn_strength);
+
+						add_v3_v3(n_final, cn_wght);
+						normalize_v3(n_final);
 						BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
 					}
 				}
@@ -364,10 +404,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp, bmd->hnmode, &bmd->clnordata);
 
-	if (bmd->hnmode != MOD_BEVEL_HN_NONE) {
+	if (bmd->value > 0 && bmd->hnmode != MOD_BEVEL_HN_NONE) {
 		if (bmd->hnmode != BEVEL_HN_FIX_SHA)
 			bevel_mod_harden_normals(bmd, bm, bmd->hn_strength, bmd->hnmode, dvert, vgroup);
-		else if(bmd->clnordata.faceHash)
+		else if(bmd->clnordata.faceHash && !vertex_only)
 			bevel_fix_normal_shading_continuity(bmd, bm);
 	}
 
