@@ -528,7 +528,11 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.transform_pivot_point");
 	RNA_string_set(kmi->ptr, "value", "ACTIVE_ELEMENT");
 
+#ifdef USE_WM_KEYMAP_27X
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
+#else
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+#endif
 	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator");
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_VIEW3D);
