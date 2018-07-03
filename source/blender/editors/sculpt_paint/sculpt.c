@@ -4870,6 +4870,8 @@ static void sculpt_flush_update(bContext *C)
 	if (mmd)
 		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 
+	DEG_id_tag_update(&ob->id, DEG_TAG_SHADING_UPDATE);
+
 	if (ss->kb || ss->modifiers_active) {
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		ED_region_tag_redraw(ar);
