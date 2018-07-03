@@ -4157,9 +4157,10 @@ class VIEW3D_PT_transform_orientations(Panel):
         scene = context.scene
         orientation = scene.current_orientation
 
-        col = layout.split(percentage=0.9)
+        row = layout.row()
+        col = row.column()
         col.prop(scene, "transform_orientation", expand=True)
-        col.operator("transform.create_orientation", text="", icon='ZOOMIN', emboss=False)
+        row.operator("transform.create_orientation", text="", icon='ZOOMIN', emboss=False).use = True
 
         if orientation:
             row = layout.row(align=False)
