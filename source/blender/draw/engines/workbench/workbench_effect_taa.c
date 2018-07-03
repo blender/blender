@@ -287,6 +287,13 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 
 void workbench_taa_view_updated(WORKBENCH_Data *vedata)
 {
-	WORKBENCH_EffectInfo *effect_info = vedata->stl->effects;
-	effect_info->view_updated = true;
+  WORKBENCH_StorageList *stl = vedata->stl;
+  if (stl)
+  {
+    WORKBENCH_EffectInfo *effect_info = stl->effects;
+    if (effect_info)
+    {
+      effect_info->view_updated = true;
+    }
+  }
 }
