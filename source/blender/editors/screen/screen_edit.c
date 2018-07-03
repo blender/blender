@@ -477,8 +477,8 @@ void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
 	wmWindow *win;
 
 	for (win = wm->windows.first; win; win = win->next) {
-		if (WM_window_get_active_workspace(win) == NULL) {
-			WM_window_set_active_workspace(win, bmain->workspaces.first);
+		if (BKE_workspace_active_get(win->workspace_hook) == NULL) {
+			BKE_workspace_active_set(win->workspace_hook, bmain->workspaces.first);
 		}
 
 		if (BLI_listbase_is_empty(&win->global_areas.areabase)) {
@@ -792,11 +792,19 @@ static void screen_global_statusbar_area_create(wmWindow *win)
 
 void ED_screen_global_areas_create(wmWindow *win)
 {
-	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-	if (screen->temp == 0) {
-		screen_global_topbar_area_create(win);
-		screen_global_statusbar_area_create(win);
+	/* Don't create global areas for child windows. */
+	if (win->parent) {
+		return;
 	}
+
+	/* Don't create global area for temporary windows. */
+	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+	if (screen->temp) {
+		return;
+	}
+
+	screen_global_topbar_area_create(win);
+	screen_global_statusbar_area_create(win);
 }
 
 
@@ -936,13 +944,40 @@ static void screen_set_3dview_camera(Scene *scene, ViewLayer *view_layer, ScrAre
 	}
 }
 
-void ED_screen_update_after_scene_change(const bScreen *screen, Scene *scene_new, ViewLayer *view_layer)
+static ViewLayer *scene_change_get_new_view_layer(const WorkSpace *workspace, const Scene *scene_new)
 {
+	ViewLayer *layer_new = BKE_workspace_view_layer_exists(workspace, scene_new);
+	return layer_new ? layer_new : BKE_view_layer_default_view(scene_new);
+}
+
+void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
+{
+	const bScreen *screen = WM_window_get_active_screen(win);
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	ViewLayer *view_layer = scene_change_get_new_view_layer(workspace, scene);
+
+#if 0
+	/* mode syncing */
+	Object *obact_new = OBACT(view_layer);
+	UNUSED_VARS(obact_new);
+	eObjectMode object_mode_old = workspace->object_mode;
+	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
+	Object *obact_old = OBACT(layer_old);
+	UNUSED_VARS(obact_old, object_mode_old);
+#endif
+
+	BKE_workspace_view_layer_set(workspace, view_layer, scene);
+
+	win->scene = scene;
+	if (CTX_wm_window(C) == win) {
+		CTX_data_scene_set(C, scene);
+	}
+
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 			if (sl->spacetype == SPACE_VIEW3D) {
 				View3D *v3d = (View3D *)sl;
-				screen_set_3dview_camera(scene_new, view_layer, sa, v3d);
+				screen_set_3dview_camera(scene, view_layer, sa, v3d);
 			}
 		}
 	}

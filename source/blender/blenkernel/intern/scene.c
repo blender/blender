@@ -906,7 +906,7 @@ Object *BKE_scene_object_find_by_name(Scene *scene, const char *name)
 /**
  * Sets the active scene, mainly used when running in background mode (``--scene`` command line argument).
  * This is also called to set the scene directly, bypassing windowing code.
- * Otherwise #WM_window_change_active_scene is used when changing scenes by the user.
+ * Otherwise #WM_window_set_active_scene is used when changing scenes by the user.
  */
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {

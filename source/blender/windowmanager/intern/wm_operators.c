@@ -2298,7 +2298,7 @@ static void WM_OT_window_close(wmOperatorType *ot)
 {
 	ot->name = "Close Window";
 	ot->idname = "WM_OT_window_close";
-	ot->description = "Close the current Blender window";
+	ot->description = "Close the current window";
 
 	ot->exec = wm_window_close_exec;
 	ot->poll = WM_operator_winactive;
@@ -2308,9 +2308,19 @@ static void WM_OT_window_new(wmOperatorType *ot)
 {
 	ot->name = "New Window";
 	ot->idname = "WM_OT_window_new";
-	ot->description = "Create a new Blender window";
+	ot->description = "Create a new window";
 
 	ot->exec = wm_window_new_exec;
+	ot->poll = wm_operator_winactive_normal;
+}
+
+static void WM_OT_window_new_main(wmOperatorType *ot)
+{
+	ot->name = "New Main Window";
+	ot->idname = "WM_OT_window_new_main";
+	ot->description = "Create a new main window with its own workspace and scene selection";
+
+	ot->exec = wm_window_new_main_exec;
 	ot->poll = wm_operator_winactive_normal;
 }
 
@@ -3703,6 +3713,7 @@ void wm_operatortype_init(void)
 
 	WM_operatortype_append(WM_OT_window_close);
 	WM_operatortype_append(WM_OT_window_new);
+	WM_operatortype_append(WM_OT_window_new_main);
 	WM_operatortype_append(WM_OT_read_history);
 	WM_operatortype_append(WM_OT_read_homefile);
 	WM_operatortype_append(WM_OT_read_factory_settings);

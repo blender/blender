@@ -191,8 +191,8 @@ bool ED_workspace_change(
 	BLI_assert(BKE_workspace_layout_screen_get(layout_new) == screen_new);
 
 	if (screen_new) {
-		WM_window_set_active_layout(win, workspace_new, layout_new);
-		WM_window_set_active_workspace(win, workspace_new);
+		BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace_new, layout_new);
+		BKE_workspace_active_set(win->workspace_hook, workspace_new);
 
 		/* update screen *after* changing workspace - which also causes the
 		 * actual screen change and updates context (including CTX_wm_workspace) */

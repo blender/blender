@@ -404,7 +404,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	    prev_display_mode != win_src->stereo3d_format->display_mode)
 	{
 		/* in case the hardward supports pageflip but not the display */
-		if ((win_dst = wm_window_copy_test(C, win_src, false))) {
+		if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
 			/* pass */
 		}
 		else {
@@ -423,7 +423,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 			ok = false;
 		}
 		/* pageflip requires a new window to be created with the proper OS flags */
-		else if ((win_dst = wm_window_copy_test(C, win_src, false))) {
+		else if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
 			if (wm_stereo3d_quadbuffer_supported()) {
 				BKE_report(op->reports, RPT_INFO, "Quad-buffer window successfully created");
 			}

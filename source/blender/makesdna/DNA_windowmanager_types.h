@@ -186,8 +186,10 @@ typedef struct wmWindow {
 	void *ghostwin;             /* don't want to include ghost.h stuff */
 	void *gwnctx;               /* don't want to include gawin stuff */
 
-	struct Scene *scene;     /* The scene displayed in this window. */
-	struct Scene *new_scene; /* temporary when switching */
+	struct wmWindow *parent;    /* Parent window */
+
+	struct Scene *scene;        /* The scene displayed in this window. */
+	struct Scene *new_scene;    /* temporary when switching */
 
 	struct WorkSpaceInstanceHook *workspace_hook;
 

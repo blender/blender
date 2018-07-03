@@ -1130,7 +1130,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	newwin->scene = scene;
 
-	WM_window_set_active_workspace(newwin, workspace);
+	BKE_workspace_active_set(newwin->workspace_hook, workspace);
 	/* allocs new screen and adds to newly created window, using window size */
 	layout_new = ED_workspace_layout_add(bmain, workspace, newwin, BKE_workspace_layout_name_get(layout_old));
 	newsc = BKE_workspace_layout_screen_get(layout_new);

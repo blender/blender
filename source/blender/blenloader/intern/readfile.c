@@ -6926,9 +6926,11 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	link_list(fd, &wm->windows);
 
 	for (win = wm->windows.first; win; win = win->next) {
-		WorkSpaceInstanceHook *hook = win->workspace_hook;
+		win->parent = newdataadr(fd, win->parent);
 
+		WorkSpaceInstanceHook *hook = win->workspace_hook;
 		win->workspace_hook = newdataadr(fd, hook);
+
 		/* we need to restore a pointer to this later when reading workspaces, so store in global oldnew-map */
 		oldnewmap_insert(fd->globmap, hook, win->workspace_hook, 0);
 

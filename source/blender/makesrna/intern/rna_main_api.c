@@ -185,7 +185,7 @@ static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports
 				BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-				WM_window_change_active_scene(bmain, C, win, scene_new);
+				WM_window_set_active_scene(bmain, C, win, scene_new);
 
 #ifdef WITH_PYTHON
 				BPy_END_ALLOW_THREADS;

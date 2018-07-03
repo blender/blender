@@ -256,7 +256,7 @@ static int find_free_winid(wmWindowManager *wm)
 }
 
 /* don't change context itself */
-wmWindow *wm_window_new(bContext *C)
+wmWindow *wm_window_new(bContext *C, wmWindow *parent)
 {
 	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -265,6 +265,7 @@ wmWindow *wm_window_new(bContext *C)
 	BLI_addtail(&wm->windows, win);
 	win->winid = find_free_winid(wm);
 
+	win->parent = (parent && parent->parent) ? parent->parent : parent;
 	win->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Stereo 3D Format (window)");
 	win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
 
@@ -272,10 +273,11 @@ wmWindow *wm_window_new(bContext *C)
 }
 
 /* part of wm_window.c api */
-wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_layout)
+wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_layout, const bool child)
 {
 	Main *bmain = CTX_data_main(C);
-	wmWindow *win_dst = wm_window_new(C);
+	wmWindow *win_parent = (child) ? win_src : win_src->parent;
+	wmWindow *win_dst = wm_window_new(C, win_parent);
 	WorkSpace *workspace = WM_window_get_active_workspace(win_src);
 	WorkSpaceLayout *layout_old = WM_window_get_active_layout(win_src);
 	Scene *scene = WM_window_get_active_scene(win_src);
@@ -287,9 +289,9 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 	win_dst->sizey = win_src->sizey;
 
 	win_dst->scene = scene;
-	WM_window_set_active_workspace(win_dst, workspace);
+	BKE_workspace_active_set(win_dst->workspace_hook, workspace);
 	layout_new = duplicate_layout ? ED_workspace_layout_duplicate(bmain, workspace, layout_old, win_dst) : layout_old;
-	WM_window_set_active_layout(win_dst, workspace, layout_new);
+	BKE_workspace_hook_layout_for_workspace_set(win_dst->workspace_hook, workspace, layout_new);
 
 	*win_dst->stereo3d_format = *win_src->stereo3d_format;
 
@@ -300,12 +302,12 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
  * A higher level version of copy that tests the new window can be added.
  * (called from the operator directly)
  */
-wmWindow *wm_window_copy_test(bContext *C, wmWindow *win_src, const bool duplicate_layout)
+wmWindow *wm_window_copy_test(bContext *C, wmWindow *win_src, const bool duplicate_layout, const bool child)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win_dst;
 
-	win_dst = wm_window_copy(C, win_src, duplicate_layout);
+	win_dst = wm_window_copy(C, win_src, duplicate_layout, child);
 
 	WM_check(C);
 
@@ -473,56 +475,67 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
 	wmWindow *tmpwin;
 
-	/* first check if we have to quit (there are non-temp remaining windows) */
+	/* first check if we have to quit (there are non-temp and non-child windows remaining) */
+	if (win->parent == NULL) {
+		for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {
+			if (tmpwin == win)
+				continue;
+			if (tmpwin->parent == NULL)
+				break;
+			if (WM_window_is_temp_screen(tmpwin) == false)
+				break;
+		}
+
+		if (tmpwin == NULL) {
+			wm_quit_with_optional_confirmation_prompt(C, win);
+			return;
+		}
+	}
+
+	/* close child windows */
 	for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {
-		if (tmpwin == win)
-			continue;
-		if (WM_window_is_temp_screen(tmpwin) == false)
-			break;
+		if (tmpwin->parent == win) {
+			wm_window_close(C, wm, tmpwin);
+		}
 	}
 
-	if (tmpwin == NULL) {
-		wm_quit_with_optional_confirmation_prompt(C, win);
+	bScreen *screen = WM_window_get_active_screen(win);
+	WorkSpace *workspace = WM_window_get_active_workspace(win);
+	WorkSpaceLayout *layout = BKE_workspace_active_layout_get(win->workspace_hook);
+
+	BLI_remlink(&wm->windows, win);
+
+	CTX_wm_window_set(C, win);  /* needed by handlers */
+	WM_event_remove_handlers(C, &win->handlers);
+	WM_event_remove_handlers(C, &win->modalhandlers);
+
+	/* for regular use this will _never_ be NULL,
+	 * however we may be freeing an improperly initialized window. */
+	if (screen) {
+		ED_screen_exit(C, win, screen);
 	}
-	else {
-		bScreen *screen = WM_window_get_active_screen(win);
-		WorkSpace *workspace = WM_window_get_active_workspace(win);
-		WorkSpaceLayout *layout = BKE_workspace_active_layout_get(win->workspace_hook);
 
-		BLI_remlink(&wm->windows, win);
+	if (tmpwin) {
+		BLF_batch_reset();
+		gpu_batch_presets_reset();
+		immDeactivate();
+	}
 
-		CTX_wm_window_set(C, win);  /* needed by handlers */
-		WM_event_remove_handlers(C, &win->handlers);
-		WM_event_remove_handlers(C, &win->modalhandlers);
+	wm_window_free(C, wm, win);
 
-		/* for regular use this will _never_ be NULL,
-		 * however we may be freeing an improperly initialized window. */
-		if (screen) {
-			ED_screen_exit(C, win, screen);
-		}
+	/* keep imediatemode active before the next `wm_window_make_drawable` call */
+	if (tmpwin) {
+		GHOST_ActivateWindowDrawingContext(tmpwin->ghostwin);
+		GWN_context_active_set(tmpwin->gwnctx);
+		immActivate();
+	}
 
-		if (tmpwin) {
-			BLF_batch_reset();
-			gpu_batch_presets_reset();
-			immDeactivate();
-		}
+	/* if temp screen, delete it after window free (it stops jobs that can access it) */
+	if (screen && screen->temp) {
+		Main *bmain = CTX_data_main(C);
 
-		wm_window_free(C, wm, win);
-
-		/* keep imediatemode active before the next `wm_window_make_drawable` call */
-		if (tmpwin) {
-			GHOST_ActivateWindowDrawingContext(tmpwin->ghostwin);
-			GWN_context_active_set(tmpwin->gwnctx);
-			immActivate();
-		}
-
-		/* if temp screen, delete it after window free (it stops jobs that can access it) */
-		if (screen && screen->temp) {
-			Main *bmain = CTX_data_main(C);
-
-			BLI_assert(BKE_workspace_layout_screen_get(layout) == screen);
-			BKE_workspace_layout_remove(bmain, workspace, layout);
-		}
+		BLI_assert(BKE_workspace_layout_screen_get(layout) == screen);
+		BKE_workspace_layout_remove(bmain, workspace, layout);
 	}
 }
 
@@ -809,7 +822,7 @@ void wm_window_ghostwindows_remove_invalid(bContext *C, wmWindowManager *wm)
 wmWindow *WM_window_open(bContext *C, const rcti *rect)
 {
 	wmWindow *win_prev = CTX_wm_window(C);
-	wmWindow *win = wm_window_new(C);
+	wmWindow *win = wm_window_new(C, win_prev);
 
 	win->posx = rect->xmin;
 	win->posy = rect->ymin;
@@ -869,7 +882,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 
 	/* add new window? */
 	if (win == NULL) {
-		win = wm_window_new(C);
+		win = wm_window_new(C, win_prev);
 
 		win->posx = rect.xmin;
 		win->posy = rect.ymin;
@@ -887,7 +900,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 
 	if (WM_window_get_active_workspace(win) == NULL) {
 		WorkSpace *workspace = WM_window_get_active_workspace(win_prev);
-		WM_window_set_active_workspace(win, workspace);
+		BKE_workspace_active_set(win->workspace_hook, workspace);
 	}
 
 	if (screen == NULL) {
@@ -904,7 +917,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 	}
 	/* In case we reuse an already existing temp window (see win lookup above). */
 	else if (WM_window_get_active_scene(win) != scene) {
-		WM_window_change_active_scene(bmain, C, win, scene);
+		WM_window_set_active_scene(bmain, C, win, scene);
 	}
 
 	screen->temp = 1;
@@ -976,17 +989,25 @@ int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-/* operator callback */
 int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmWindow *win_src = CTX_wm_window(C);
 	bool ok;
 
-	ok = (wm_window_copy_test(C, win_src, true) != NULL);
+	ok = (wm_window_copy_test(C, win_src, true, true) != NULL);
 
 	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
+int wm_window_new_main_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	wmWindow *win_src = CTX_wm_window(C);
+	bool ok;
+
+	ok = (wm_window_copy_test(C, win_src, true, false) != NULL);
+
+	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
 
 /* fullscreen operator callback */
 int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2103,21 +2124,45 @@ Scene *WM_window_get_active_scene(const wmWindow *win)
 /**
  * \warning Only call outside of area/region loops
  */
-void WM_window_change_active_scene(Main *bmain, bContext *C, wmWindow *win, Scene *scene_new)
+void WM_window_set_active_scene(Main *bmain, bContext *C, wmWindow *win, Scene *scene)
 {
-	const bScreen *screen = WM_window_get_active_screen(win);
-	Scene *scene_old = win->scene;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win_parent = (win->parent) ? win->parent : win;
 
-	ED_scene_change_update(bmain, C, win, screen, scene_old, scene_new);
+	/* Set scene in parent and its child windows. */
+	ED_screen_scene_change(C, win_parent, scene);
+
+	for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
+		if (win_child->parent == win_parent) {
+			ED_screen_scene_change(C, win_child, scene);
+		}
+	}
+
+	/* Update depsgraph and renderers for scene change. */
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win_parent);
+	ED_scene_change_update(bmain, scene, view_layer);
+
+	/* Complete redraw. */
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
 WorkSpace *WM_window_get_active_workspace(const wmWindow *win)
 {
 	return BKE_workspace_active_get(win->workspace_hook);
 }
-void WM_window_set_active_workspace(wmWindow *win, WorkSpace *workspace)
+
+void WM_window_set_active_workspace(bContext *C, wmWindow *win, WorkSpace *workspace)
 {
-	BKE_workspace_active_set(win->workspace_hook, workspace);
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win_parent = (win->parent) ? win->parent : win;
+
+	ED_workspace_change(workspace, C, wm, win);
+
+	for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
+		if (win_child->parent == win_parent) {
+			ED_workspace_change(workspace, C, wm, win_child);
+		}
+	}
 }
 
 WorkSpaceLayout *WM_window_get_active_layout(const wmWindow *win)

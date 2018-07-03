@@ -675,7 +675,7 @@ static void rna_Window_scene_update(bContext *C, PointerRNA *ptr)
 		BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-		WM_window_change_active_scene(bmain, C, win, win->new_scene);
+		WM_window_set_active_scene(bmain, C, win, win->new_scene);
 
 #ifdef WITH_PYTHON
 		BPy_END_ALLOW_THREADS;
@@ -2040,6 +2040,9 @@ static void rna_def_window(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Window", NULL);
 	RNA_def_struct_ui_text(srna, "Window", "Open window");
 	RNA_def_struct_sdna(srna, "wmWindow");
+
+	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Parent Window", "Active workspace and scene follow this window");
 
 	rna_def_window_stereo3d(brna);
 
