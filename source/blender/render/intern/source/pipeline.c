@@ -64,6 +64,7 @@
 #include "BKE_animsys.h"  /* <------ should this be here?, needed for sequencer update */
 #include "BKE_camera.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h" /* XXX needed by wm_window.h */
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
@@ -95,6 +96,7 @@
 #include "RE_render_ext.h"
 
 #include "../../../windowmanager/WM_api.h" /* XXX */
+#include "../../../windowmanager/wm_window.h" /* XXX */
 #include "../../../intern/gawain/gawain/gwn_context.h"
 
 #ifdef WITH_FREESTYLE
@@ -1034,6 +1036,8 @@ void RE_gl_context_create(Render *re)
 {
 	/* Needs to be created in the main ogl thread. */
 	re->gl_context = WM_opengl_context_create();
+	/* So we activate the window's one afterwards. */
+	wm_window_reset_drawable();
 }
 
 void RE_gl_context_destroy(Render *re)
