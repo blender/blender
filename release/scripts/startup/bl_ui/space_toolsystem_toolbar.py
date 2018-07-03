@@ -130,7 +130,7 @@ class _defs_transform:
     @ToolDef.from_fn
     def translate():
         return dict(
-            text="Move",
+            text="Grab",
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
             widget="TRANSFORM_WGT_manipulator",
@@ -939,10 +939,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
-        (
-            _defs_transform.translate,
-            _defs_transform.transform,
-        ),
+        _defs_transform.transform,
+        _defs_transform.translate,
         _defs_transform.rotate,
         (
             _defs_transform.scale,
