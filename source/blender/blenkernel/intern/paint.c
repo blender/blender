@@ -68,6 +68,7 @@
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "bmesh.h"
 
@@ -947,13 +948,14 @@ void BKE_sculpt_update_mesh_elements(
 
 	if (ss->modifiers_active) {
 		if (!ss->orig_cos) {
+			Object *object_orig = DEG_get_original_object(ob);
 			int a;
 
 			BKE_sculptsession_free_deformMats(ss);
 
 			ss->orig_cos = (ss->kb) ? BKE_keyblock_convert_to_vertcos(ob, ss->kb) : BKE_mesh_vertexCos_get(me, NULL);
 
-			BKE_crazyspace_build_sculpt(depsgraph, scene, ob, &ss->deform_imats, &ss->deform_cos);
+			BKE_crazyspace_build_sculpt(depsgraph, scene, object_orig, &ss->deform_imats, &ss->deform_cos);
 			BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos, me->totvert);
 
 			for (a = 0; a < me->totvert; ++a) {
