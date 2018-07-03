@@ -931,9 +931,10 @@ SculptUndoNode *sculpt_undo_push_node(
 
 	unode = sculpt_undo_alloc_node(ob, node, type);
 
-	BLI_thread_unlock(LOCK_CUSTOM1);
-
-	/* copy threaded, hopefully this is the performance critical part */
+	/* NOTE: If this ever becomes a bottleneck, make a lock inside of the node.
+	 * so we release global lock sooner, but keep data locked for until it is
+	 * fully initialized.
+	 */
 
 	if (unode->grids) {
 		int totgrid, *grids;
@@ -969,6 +970,8 @@ SculptUndoNode *sculpt_undo_push_node(
 	/* store active shape key */
 	if (ss->kb) BLI_strncpy(unode->shapeName, ss->kb->name, sizeof(ss->kb->name));
 	else unode->shapeName[0] = '\0';
+
+	BLI_thread_unlock(LOCK_CUSTOM1);
 
 	return unode;
 }
