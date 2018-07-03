@@ -857,7 +857,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 }
 
 /**
- * \param need_mask So taht the evaluated mesh that is returned has mask data.
+ * \param need_mask So that the evaluated mesh that is returned has mask data.
  */
 void BKE_sculpt_update_mesh_elements(
         Depsgraph *depsgraph, Scene *scene, Sculpt *sd, Object *ob,
