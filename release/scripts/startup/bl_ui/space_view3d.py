@@ -133,9 +133,9 @@ class VIEW3D_HT_header(Header):
 
             row = layout.row(align=True)
             row.popover(
-                space_type='TOPBAR',
+                space_type='VIEW_3D',
                 region_type='HEADER',
-                panel_type="TOPBAR_PT_transform_orientations",
+                panel_type="VIEW3D_PT_transform_orientations",
                 text=trans_name,
                 icon=trans_icon,
             )
@@ -172,9 +172,9 @@ class VIEW3D_HT_header(Header):
 
             sub = row.row(align=True)
             sub.popover(
-                space_type='TOPBAR',
+                space_type='VIEW_3D',
                 region_type='HEADER',
-                panel_type="TOPBAR_PT_snapping",
+                panel_type="VIEW3D_PT_snapping",
                 icon=icon,
                 text=""
             )
@@ -216,9 +216,9 @@ class VIEW3D_HT_header(Header):
             act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
             row = layout.row(align=True)
             row.popover(
-                space_type='TOPBAR',
+                space_type='VIEW_3D',
                 region_type='HEADER',
-                panel_type="TOPBAR_PT_pivot_point",
+                panel_type="VIEW3D_PT_pivot_point",
                 icon=act_pivot_point.icon,
                 text="",
             )
@@ -4076,6 +4076,97 @@ class VIEW3D_PT_overlay_paint(Panel):
             col.prop(overlay, "show_paint_wire")
 
 
+class VIEW3D_PT_pivot_point(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Pivot Point"
+
+    def draw(self, context):
+        toolsettings = context.tool_settings
+        obj = context.active_object
+        mode = context.mode
+
+        layout = self.layout
+        col = layout.column()
+        col.label("Pivot Point")
+        col.prop(toolsettings, "transform_pivot_point", expand=True)
+
+        col.separator()
+
+        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
+            col.prop(
+                toolsettings,
+                "use_transform_pivot_point_align",
+                text="Center Points Only",
+            )
+
+
+class VIEW3D_PT_snapping(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Snapping"
+
+    def draw(self, context):
+        toolsettings = context.tool_settings
+        snap_elements = toolsettings.snap_elements
+        obj = context.active_object
+        mode = context.mode
+        object_mode = 'OBJECT' if obj is None else obj.mode
+
+        layout = self.layout
+        col = layout.column()
+        col.label("Snapping")
+        col.prop(toolsettings, "snap_elements", expand=True)
+
+        col.separator()
+        if 'INCREMENT' in snap_elements:
+            col.prop(toolsettings, "use_snap_grid_absolute")
+
+        if snap_elements != {'INCREMENT'}:
+            col.label("Target")
+            row = col.row(align=True)
+            row.prop(toolsettings, "snap_target", expand=True)
+
+            if obj:
+                if object_mode == 'EDIT':
+                    col.prop(toolsettings, "use_snap_self")
+                if object_mode in {'OBJECT', 'POSE', 'EDIT'}:
+                    col.prop(toolsettings, "use_snap_align_rotation", text="Align Rotation")
+
+            if 'FACE' in snap_elements:
+                col.prop(toolsettings, "use_snap_project", text="Project Elements")
+
+            if 'VOLUME' in snap_elements:
+                col.prop(toolsettings, "use_snap_peel_object")
+
+
+class VIEW3D_PT_transform_orientations(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Transform Orientations"
+
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label("Tranform Orientations")
+
+        scene = context.scene
+        orientation = scene.current_orientation
+
+        col = layout.split(percentage=0.9)
+        col.prop(scene, "transform_orientation", expand=True)
+        col.operator("transform.create_orientation", text="", icon='ZOOMIN', emboss=False)
+
+        if orientation:
+            row = layout.row(align=False)
+            row.prop(orientation, "name", text="")
+            row.operator("transform.delete_orientation", text="", icon='X', emboss=False)
+
+
 class VIEW3D_PT_quad_view(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -4330,6 +4421,9 @@ classes = (
     VIEW3D_PT_overlay_pose,
     VIEW3D_PT_overlay_paint,
     VIEW3D_PT_overlay_sculpt,
+    VIEW3D_PT_pivot_point,
+    VIEW3D_PT_snapping,
+    VIEW3D_PT_transform_orientations,
     VIEW3D_PT_context_properties,
 )
 

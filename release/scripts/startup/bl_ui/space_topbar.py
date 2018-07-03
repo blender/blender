@@ -206,98 +206,6 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
 
-class TOPBAR_PT_pivot_point(Panel):
-    bl_space_type = 'TOPBAR'
-    bl_region_type = 'HEADER'
-    bl_label = "Pivot Point"
-
-    def draw(self, context):
-        toolsettings = context.tool_settings
-        obj = context.active_object
-        mode = context.mode
-
-        layout = self.layout
-        col = layout.column()
-        col.label("Pivot Point")
-        col.prop(toolsettings, "transform_pivot_point", expand=True)
-
-        col.separator()
-
-        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
-            col.prop(
-                toolsettings,
-                "use_transform_pivot_point_align",
-                text="Center Points Only",
-            )
-
-
-class TOPBAR_PT_snapping(Panel):
-    bl_space_type = 'TOPBAR'
-    bl_region_type = 'HEADER'
-    bl_label = "Snapping"
-
-    def draw(self, context):
-        toolsettings = context.tool_settings
-        snap_elements = toolsettings.snap_elements
-        obj = context.active_object
-        mode = context.mode
-        object_mode = 'OBJECT' if obj is None else obj.mode
-
-        layout = self.layout
-        col = layout.column()
-        col.label("Snapping")
-        col.prop(toolsettings, "snap_elements", expand=True)
-
-        col.separator()
-        if 'INCREMENT' in snap_elements:
-            col.prop(toolsettings, "use_snap_grid_absolute")
-
-        if snap_elements != {'INCREMENT'}:
-            col.label("Target")
-            row = col.row(align=True)
-            row.prop(toolsettings, "snap_target", expand=True)
-
-            if obj:
-                if object_mode == 'EDIT':
-                    col.prop(toolsettings, "use_snap_self")
-                if object_mode in {'OBJECT', 'POSE', 'EDIT'}:
-                    col.prop(toolsettings, "use_snap_align_rotation", text="Align Rotation")
-
-            if 'FACE' in snap_elements:
-                col.prop(toolsettings, "use_snap_project", text="Project Elements")
-
-            if 'VOLUME' in snap_elements:
-                col.prop(toolsettings, "use_snap_peel_object")
-
-
-class TOPBAR_PT_transform_orientations(Panel):
-    bl_space_type = 'TOPBAR'
-    bl_region_type = 'HEADER'
-    bl_label = "Transform Orientations"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label("Tranform Orientations")
-
-        scene = context.scene
-        orientation = scene.current_orientation
-
-        col = layout.split(percentage=0.9)
-        col.prop(scene, "transform_orientation", expand=True)
-        col.operator("transform.create_orientation", text="", icon='ZOOMIN', emboss=False)
-
-        if orientation:
-            row = layout.row(align=False)
-            row.prop(orientation, "name", text="")
-            row.operator("transform.delete_orientation", text="", icon='X', emboss=False)
-
-
 class INFO_MT_editor_menus(Menu):
     bl_idname = "INFO_MT_editor_menus"
     bl_label = ""
@@ -655,9 +563,6 @@ class TOPBAR_MT_window_specials(Menu):
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
-    TOPBAR_PT_pivot_point,
-    TOPBAR_PT_snapping,
-    TOPBAR_PT_transform_orientations,
     TOPBAR_MT_file_specials,
     TOPBAR_MT_window_specials,
     INFO_MT_editor_menus,
