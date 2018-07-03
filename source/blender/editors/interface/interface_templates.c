@@ -4357,7 +4357,9 @@ void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
 		const char *msg = WM_window_cursor_keymap_status_get(win, i, 0);
 		const char *msg_drag = WM_window_cursor_keymap_status_get(win, i, 1);
 
-		uiItemL(row, msg ? msg : "", (ICON_MOUSE_LMB + i));
+		if (msg || (msg_drag == NULL)) {
+			uiItemL(row, msg ? msg : "", (ICON_MOUSE_LMB + i));
+		}
 
 		if (msg_drag) {
 			uiItemL(row, msg_drag, (ICON_MOUSE_LMB_DRAG + i));
