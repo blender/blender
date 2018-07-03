@@ -1165,6 +1165,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_ui_text(prop, "Parent ID Name", "If this is set, the panel becomes a subpanel");
 
+	prop = RNA_def_property(srna, "bl_ui_units_x", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "type->ui_units_x");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_ui_text(prop, "Units X", "When set, defines popup panel width");
+
 	prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PNL_PIN);
 	RNA_def_property_ui_text(prop, "Pin",  "");

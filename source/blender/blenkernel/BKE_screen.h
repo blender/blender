@@ -204,8 +204,10 @@ typedef struct PanelType {
 	char category[BKE_ST_MAXNAME];            /* for category tabs */
 	char owner_id[BKE_ST_MAXNAME];            /* for work-spaces to selectively show. */
 	char parent_id[BKE_ST_MAXNAME];           /* parent idname for subpanels */
-	int space_type;
-	int region_type;
+	short space_type;
+	short region_type;
+	/* For popovers, 0 for default. */
+	int ui_units_x;
 
 	int flag;
 

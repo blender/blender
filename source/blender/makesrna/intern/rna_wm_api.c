@@ -376,12 +376,12 @@ static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
 }
 
 /* popover wrapper */
-static PointerRNA rna_PopoverBegin(bContext *C)
+static PointerRNA rna_PopoverBegin(bContext *C, int ui_units_x)
 {
 	PointerRNA r_ptr;
 	void *data;
 
-	data = (void *)UI_popover_begin(C);
+	data = (void *)UI_popover_begin(C, U.widget_unit * ui_units_x);
 
 	RNA_pointer_create(NULL, &RNA_UIPopover, data, &r_ptr);
 
@@ -602,6 +602,7 @@ void RNA_api_wm(StructRNA *srna)
 	/* wrap UI_popover_begin */
 	func = RNA_def_function(srna, "popover_begin__internal", "rna_PopoverBegin");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	RNA_def_property(func, "ui_units_x", PROP_INT, PROP_UNSIGNED);
 	/* return */
 	parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);

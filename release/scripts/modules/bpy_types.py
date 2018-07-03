@@ -144,9 +144,15 @@ class WindowManager(bpy_types.ID):
         finally:
             self.popmenu_end__internal(popup)
 
-    def popover(self, draw_func, keymap=None):
+    def popover(
+            self, draw_func, *,
+            ui_units_x=0,
+            keymap=None,
+    ):
         import bpy
-        popup = self.popover_begin__internal()
+        popup = self.popover_begin__internal(
+            ui_units_x=ui_units_x,
+        )
 
         try:
             draw_func(popup, bpy.context)
