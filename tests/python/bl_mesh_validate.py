@@ -45,20 +45,20 @@ MESHES = {
             (  # Edges
             ),
             (  # Loops
-             0, 1, 4, 3,
-             3, 4, 6,
-             1, 2, 5, 4,
-             3, 4, 6,
-             4, 7, 6,
-             4, 5, 9, 4, 8, 7,
+                0, 1, 4, 3,
+                3, 4, 6,
+                1, 2, 5, 4,
+                3, 4, 6,
+                4, 7, 6,
+                4, 5, 9, 4, 8, 7,
             ),
             (  # Polygons
-             (0, 4),
-             (4, 3),
-             (7, 4),
-             (11, 3),
-             (14, 3),
-             (16, 6),
+                (0, 4),
+                (4, 3),
+                (7, 4),
+                (11, 3),
+                (14, 3),
+                (16, 6),
             ),
         ),
     ),
@@ -66,17 +66,17 @@ MESHES = {
 
 
 BUILTINS = (
-            "primitive_plane_add",
-            "primitive_cube_add",
-            "primitive_circle_add",
-            "primitive_uv_sphere_add",
-            "primitive_ico_sphere_add",
-            "primitive_cylinder_add",
-            "primitive_cone_add",
-            "primitive_grid_add",
-            "primitive_monkey_add",
-            "primitive_torus_add",
-           )
+    "primitive_plane_add",
+    "primitive_cube_add",
+    "primitive_circle_add",
+    "primitive_uv_sphere_add",
+    "primitive_ico_sphere_add",
+    "primitive_cylinder_add",
+    "primitive_cone_add",
+    "primitive_grid_add",
+    "primitive_monkey_add",
+    "primitive_torus_add",
+)
 BUILTINS_NBR = 4
 BUILTINS_NBRCHANGES = 5
 

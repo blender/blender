@@ -26,7 +26,7 @@ __all__ = (
     "object_add_grid_scale_apply_operator",
     "object_image_guess",
     "world_to_camera_view",
-    )
+)
 
 
 import bpy

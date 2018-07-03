@@ -176,8 +176,8 @@ def addon_keymap_register(wm, keymaps_description):
     for km_info, km_items in keymaps_description:
         km_name, km_sptype, km_regtype, km_ismodal = km_info
         kmap = [k for k in kconf.keymaps
-                  if k.name == km_name and k.region_type == km_regtype and
-                     k.space_type == km_sptype and k.is_modal == km_ismodal]
+                if k.name == km_name and k.region_type == km_regtype and
+                k.space_type == km_sptype and k.is_modal == km_ismodal]
         if kmap:
             kmap = kmap[0]
         else:
@@ -201,8 +201,8 @@ def addon_keymap_unregister(wm, keymaps_description):
         for km_info, km_items in keymaps_description:
             km_name, km_sptype, km_regtype, km_ismodal = km_info
             kmaps = (k for k in kconf.keymaps
-                       if k.name == km_name and k.region_type == km_regtype and
-                          k.space_type == km_sptype and k.is_modal == km_ismodal)
+                     if k.name == km_name and k.region_type == km_regtype and
+                     k.space_type == km_sptype and k.is_modal == km_ismodal)
             for kmap in kmaps:
                 for kmi_kwargs, props in km_items:
                     idname = kmi_kwargs["idname"]

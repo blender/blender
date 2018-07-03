@@ -27,7 +27,7 @@ __all__ = (
     "edge_loops_from_edges",
     "ngon_tessellate",
     "face_random_points",
-    )
+)
 
 
 def mesh_linked_uv_islands(mesh):
@@ -286,7 +286,7 @@ def edge_loops_from_edges(mesh, edges=None):
         ok = True
         while ok:
             ok = False
-            #for i, ed in enumerate(edges):
+            # for i, ed in enumerate(edges):
             i = len(edges)
             while i:
                 i -= 1
@@ -303,7 +303,7 @@ def edge_loops_from_edges(mesh, edges=None):
                     vert_end = line_poly[-1]
                     ok = 1
                     del edges[i]
-                    #break
+                    # break
                 elif v1 == vert_start:
                     line_poly.insert(0, v2)
                     vert_start = line_poly[0]
@@ -315,7 +315,7 @@ def edge_loops_from_edges(mesh, edges=None):
                     vert_start = line_poly[0]
                     ok = 1
                     del edges[i]
-                    #break
+                    # break
         line_polys.append(line_poly)
 
     return line_polys
@@ -481,7 +481,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
                 ii += len(verts)
 
         fill = tessellate_polygon([[v[0] for v in loop] for loop in loop_list])
-        #draw_loops(loop_list)
+        # draw_loops(loop_list)
         #raise Exception("done loop")
         # map to original indices
         fill = [[vert_map[i] for i in reversed(f)] for f in fill]

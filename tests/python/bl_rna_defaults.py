@@ -8,7 +8,7 @@ DUMMY_NAME = "Untitled"
 DUMMY_PATH = __file__
 GLOBALS = {
     "error_num": 0,
-    }
+}
 
 
 def as_float_32(f):
@@ -141,6 +141,7 @@ def main():
             fn_val(fn_id)
 
     print("Error (total): %d" % GLOBALS["error_num"])
+
 
 if __name__ == "__main__":
     main()

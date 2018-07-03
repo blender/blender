@@ -36,7 +36,7 @@ RANDOM_MULTIPLY = 10
 
 STATE = {
     "counter": 0,
-    }
+}
 
 
 op_blacklist = (
@@ -91,7 +91,7 @@ op_blacklist = (
     "wm.keymap_restore",        # another annoying one
     "wm.addon_*",               # harmless, but dont change state
     "console.*",                # just annoying - but harmless
-    )
+)
 
 
 def blend_list(mainpath):
@@ -113,6 +113,7 @@ def blend_list(mainpath):
         return (ext in {".blend", })
 
     return list(sorted(file_list(mainpath, is_blend)))
+
 
 if USE_FILES:
     USE_FILES_LS = blend_list(USE_FILES)
@@ -176,7 +177,7 @@ if USE_ATTRSET:
     CLS_BLACKLIST = (
         bpy.types.BrushTextureSlot,
         bpy.types.Brush,
-        )
+    )
     property_typemap = build_property_typemap(CLS_BLACKLIST)
     bpy_struct_type = bpy.types.Struct.__base__
 
@@ -228,7 +229,7 @@ if USE_ATTRSET:
         {0: "", 1: "hello", 2: "test"}, {"": 0, "hello": 1, "test": 2},
         set(), {"", "test", "."}, {None, ..., type},
         range(10), (" " * i for i in range(10)),
-        )
+    )
 
     def attrset_data():
         for attr in dir(bpy.data):
@@ -480,8 +481,9 @@ def main():
 
     print("Finished %r" % __file__)
 
+
 if __name__ == "__main__":
-    #~ for i in range(200):
-        #~ RANDOM_SEED[0] += 1
+    # ~ for i in range(200):
+        # ~ RANDOM_SEED[0] += 1
         #~ main()
     main()

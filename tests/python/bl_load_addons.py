@@ -33,7 +33,7 @@ import imp
 
 BLACKLIST_DIRS = (
     os.path.join(bpy.utils.resource_path('USER'), "scripts"),
-    ) + tuple(addon_utils.paths()[1:])
+) + tuple(addon_utils.paths()[1:])
 BLACKLIST_ADDONS = set()
 
 
@@ -54,9 +54,10 @@ def _init_addon_blacklist():
 def addon_modules_sorted():
     modules = addon_utils.modules({})
     modules[:] = [
-            mod for mod in modules
-            if not (mod.__file__.startswith(BLACKLIST_DIRS))
-            if not (mod.__name__ in BLACKLIST_ADDONS)]
+        mod for mod in modules
+        if not (mod.__file__.startswith(BLACKLIST_DIRS))
+        if not (mod.__name__ in BLACKLIST_ADDONS)
+    ]
     modules.sort(key=lambda mod: mod.__name__)
     return modules
 

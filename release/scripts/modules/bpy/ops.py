@@ -228,4 +228,5 @@ class BPyOpsSubModOp:
         return ("<function bpy.ops.%s.%s at 0x%x'>" %
                 (self._module, self._func, id(self)))
 
+
 ops_fake_module = BPyOps()

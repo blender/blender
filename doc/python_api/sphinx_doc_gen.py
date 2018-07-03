@@ -73,6 +73,8 @@ def rna_info_BuildRNAInfo_cache():
     if rna_info_BuildRNAInfo_cache.ret is None:
         rna_info_BuildRNAInfo_cache.ret = rna_info.BuildRNAInfo()
     return rna_info_BuildRNAInfo_cache.ret
+
+
 rna_info_BuildRNAInfo_cache.ret = None
 # --- end rna_info cache
 
@@ -434,7 +436,7 @@ else:
     BLENDER_VERSION_DOTS = ".".join(blender_version_strings)
 if BLENDER_REVISION != "Unknown":
     # '2.62a SHA1' (release) or '2.62.1 SHA1' (non-release)
-    BLENDER_VERSION_DOTS += " " + BLENDER_REVISION          
+    BLENDER_VERSION_DOTS += " " + BLENDER_REVISION
 
 if is_release:
     # '2_62a_release'
@@ -516,6 +518,8 @@ def escape_rst(text):
     """ Escape plain text which may contain characters used by RST.
     """
     return text.translate(escape_rst.trans)
+
+
 escape_rst.trans = str.maketrans({
     "`": "\\`",
     "|": "\\|",
@@ -1017,6 +1021,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
         fw("\n\n")
 
     file.close()
+
 
 # Changes in Blender will force errors here
 context_type_map = {

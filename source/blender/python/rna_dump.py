@@ -129,6 +129,7 @@ def seek(r, txt, recurs):
                     newtxt = txt + '[' + str(i) + ']'
                 seek(r[i], newtxt, recurs + 1)
 
+
 seek(bpy.data, 'bpy.data', 0)
 # seek(bpy.types, 'bpy.types', 0)
 '''
@@ -140,8 +141,8 @@ for d in dir(bpy.types):
         seek(r, 'bpy.types.' + d + '.bl_rna', 0)
 '''
 
-#print dir(bpy)
+# print dir(bpy)
 #import sys
-#sys.exit()
+# sys.exit()
 
 print("iter over ", seek_count, "rna items")

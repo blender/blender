@@ -98,5 +98,6 @@ def main():
             for value in read_blend_rend_chunk(arg):
                 print("%d %d %s" % value)
 
+
 if __name__ == '__main__':
     main()
