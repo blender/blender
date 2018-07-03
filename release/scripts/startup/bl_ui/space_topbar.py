@@ -147,8 +147,14 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".weightpaint", category="")
         elif mode == 'PAINT_TEXTURE':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint", category="")
+        elif mode == 'EDIT_TEXT':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".text_edit", category="")
         elif mode == 'EDIT_ARMATURE':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".armature_edit", category="")
+        elif mode == 'EDIT_METABALL':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mball_edit", category="")
+        elif mode == 'EDIT_LATTICE':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".lattice_edit", category="")
         elif mode == 'EDIT_CURVE':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".curve_edit", category="")
         elif mode == 'EDIT_MESH':
@@ -157,6 +163,8 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".posemode", category="")
         elif mode == 'PARTICLE':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
+        elif mode == 'OBJECT':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
 
 
 class _draw_left_context_mode:
