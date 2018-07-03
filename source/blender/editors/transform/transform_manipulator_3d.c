@@ -1420,7 +1420,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 			man->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 			man->use_twtype_refresh = true;
 		}
-		else if (STREQ(tref->idname, "Move")) {
+		else if (STREQ(tref->idname, "Grab")) {
 			man->twtype |= SCE_MANIP_TRANSLATE;
 		}
 		else if (STREQ(tref->idname, "Rotate")) {
