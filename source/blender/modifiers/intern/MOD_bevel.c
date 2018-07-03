@@ -53,6 +53,8 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
+#include "DEG_depsgraph_query.h"
+
 static void initData(ModifierData *md)
 {
 	BevelModifierData *bmd = (BevelModifierData *) md;
@@ -289,6 +291,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	const bool mark_sharp = (bmd->edge_flags & MOD_BEVEL_MARK_SHARP);
 	const bool set_wn_strength = (bmd->flags & MOD_BEVEL_SET_WN_STR);
 
+	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+
 	bm = BKE_mesh_to_bmesh_ex(
 	        mesh,
 	        &(struct BMeshCreateParams){0},
@@ -363,12 +367,12 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	if (bmd->hnmode != MOD_BEVEL_HN_NONE) {
 		if (bmd->hnmode != BEVEL_HN_FIX_SHA)
 			bevel_mod_harden_normals(bmd, bm, bmd->hn_strength, bmd->hnmode, dvert, vgroup);
-		else
+		else if(bmd->clnordata.faceHash)
 			bevel_fix_normal_shading_continuity(bmd, bm);
 	}
 
 	if(set_wn_strength)
-		bevel_set_weighted_normal_face_strength(bm, md->scene);
+		bevel_set_weighted_normal_face_strength(bm, scene);
 
 	result = BKE_bmesh_to_mesh_nomain(bm, &(struct BMeshToMeshParams){0});
 
@@ -377,7 +381,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
 	BM_mesh_free(bm);
 
-	BLI_ghash_free(bmd->clnordata.faceHash, NULL, NULL);
+	if(bmd->clnordata.faceHash)
+		BLI_ghash_free(bmd->clnordata.faceHash, NULL, NULL);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 

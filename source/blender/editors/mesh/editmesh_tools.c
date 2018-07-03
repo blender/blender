@@ -7049,7 +7049,7 @@ static void point_normals_free(bContext *C, wmOperator *op)
 	BMLoopNorEditDataArray *lnors_ed_arr = op->customdata;
 	BM_loop_normal_editdata_array_free(lnors_ed_arr);
 	op->customdata = NULL;
-	ED_area_headerprint(CTX_wm_area(C), NULL);
+	ED_area_status_text(CTX_wm_area(C), NULL);
 }
 
 static void point_normals_update_header(bContext *C, wmOperator *op)
@@ -7080,7 +7080,7 @@ static void point_normals_update_header(bContext *C, wmOperator *op)
 
 #undef WM_MODALKEY
 
-	ED_area_headerprint(CTX_wm_area(C), header);
+	ED_area_status_text(CTX_wm_area(C), header);
 }
 
 /* TODO move that to generic function in BMesh? */
@@ -7226,7 +7226,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 
 			case EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR:
 				new_mode = EDBM_CLNOR_POINTTO_MODE_COORDINATES;
-				ED_view3d_cursor3d_update(C, event->mval);
+				ED_view3d_cursor3d_update(C, event->mval, false, V3D_CURSOR_ORIENT_NONE);
 				copy_v3_v3(target, ED_view3d_cursor3d_get(scene, v3d)->location);
 				break;
 

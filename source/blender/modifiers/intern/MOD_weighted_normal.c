@@ -554,7 +554,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	MDeformVert *dvert;
 	int defgrp_index;
-	modifier_get_vgroup_mesh(ob, result, wnmd->defgrp_name, &dvert, &defgrp_index);
+	MOD_get_vgroup(ctx->object, mesh, wnmd->defgrp_name, &dvert, &defgrp_index);
 
 	WeightedNormalData wn_data = {
 	    .numVerts = numVerts,
