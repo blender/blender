@@ -107,7 +107,6 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertAlmostEqual(0, y)
         self.assertAlmostEqual(2, z)
 
-
     def test_select_after_import(self):
         # Add a sphere, so that there is something in the scene, selected, and active,
         # before we do the Alembic import.

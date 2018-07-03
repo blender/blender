@@ -198,6 +198,7 @@ class TestBufferProtocol(TestHelper, unittest.TestCase):
         self.assertEqual(list(view1), list(view2))
         self.assertEqual(view1.tobytes(), view2.tobytes())
 
+
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])

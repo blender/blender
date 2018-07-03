@@ -61,8 +61,10 @@ class TestClass(bpy.types.PropertyGroup):
 def get_scene(lib_name, sce_name):
     for s in bpy.data.scenes:
         if s.name == sce_name:
-            if (s.library and s.library.name == lib_name) or \
-                    (lib_name == None and s.library == None):
+            if (
+                    (s.library and s.library.name == lib_name) or
+                    (lib_name is None and s.library is None)
+            ):
                 return s
 
 
@@ -309,6 +311,7 @@ def test_restrictions2():
 
     class TestUIList(UIList):
         test = bpy.props.PointerProperty(type=bpy.types.Object)
+
         def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
 

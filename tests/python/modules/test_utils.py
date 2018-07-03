@@ -62,7 +62,6 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
     blender: pathlib.Path = None
     testdir: pathlib.Path = None
 
-
     def run_blender(self, filepath: str, python_script: str, timeout: int=300) -> str:
         """Runs Blender by opening a blendfile and executing a script.
 
@@ -92,7 +91,7 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
             '-E', 'CYCLES',
             '--python-exit-code', '47',
             '--python-expr', python_script,
-            ]
+        ]
         )
 
         proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

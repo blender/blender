@@ -67,5 +67,6 @@ def main():
 
         icondata_to_png(file_src, file_dst)
 
+
 if __name__ == "__main__":
     main()

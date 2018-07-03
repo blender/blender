@@ -50,8 +50,10 @@ for d in defs.split('\n'):
     if not w:
         continue
 
-    try:		w.remove("#define")
-    except:	pass
+    try:
+        w.remove("#define")
+    except:
+        pass
 
     # print w
 

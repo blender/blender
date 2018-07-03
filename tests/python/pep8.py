@@ -93,7 +93,7 @@ def check_files_flake8(files):
         # times types are compared,
         # I rather keep them specific
         "E721",
-        )
+    )
 
     for f, pep8_type in files:
 
@@ -129,10 +129,10 @@ def check_files_pylint(files):
             "C0413,"  # import should be placed at the top
             "W0613,"  # unused argument, may add this back
             # but happens a lot for 'context' for eg.
-                    "W0232,"  # class has no __init__, Operator/Panel/Menu etc
+            "W0232,"  # class has no __init__, Operator/Panel/Menu etc
             "W0142,"  # Used * or ** magic
             # even needed in some cases
-                    "R0902,"  # Too many instance attributes
+            "R0902,"  # Too many instance attributes
             "R0903,"  # Too many statements
             "R0911,"  # Too many return statements
             "R0912,"  # Too many branches
@@ -202,7 +202,6 @@ def main():
         check_files_pylint(files)
     else:
         print("Skipping pylint checks (command not found)")
-
 
 
 if __name__ == "__main__":
