@@ -106,12 +106,10 @@ void main()
 #endif
 
 #ifdef V3D_SHADING_SHADOW
-	float light_factor = -dot(normal_viewport, world_data.lights[0].light_direction_vs.xyz);
+	float light_factor = -dot(normal_viewport, world_data.shadow_direction_vs.xyz);
 	/* The step function might be ok for meshes but it's
 	 * clearly not the case for hairs. Do smoothstep in this case. */
-	float shadow_mix = (diffuse_color.a == 1.0 || diffuse_color.a == 0.0)
-	                        ? step(-shadowShift, -light_factor)
-	                        : smoothstep(1.0, shadowShift, light_factor);
+	float shadow_mix = smoothstep(1.0, shadowShift, light_factor);
 	float light_multiplier = mix(lightMultiplier, shadowMultiplier, shadow_mix);
 
 #else /* V3D_SHADING_SHADOW */

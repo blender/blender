@@ -128,7 +128,7 @@ typedef struct WORKBENCH_UBO_World {
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];
-	float light_direction_vs[4];
+	float shadow_direction_vs[4];
 	WORKBENCH_UBO_Light lights[3];
 	int num_lights;
 	int matcap_orientation;
@@ -282,7 +282,7 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob,
 void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
-void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float light_direction[3]);
+void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float r_light_direction[3]);
 
 extern DrawEngineType draw_engine_workbench_solid;
 extern DrawEngineType draw_engine_workbench_transparent;
