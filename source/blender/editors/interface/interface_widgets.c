@@ -1878,7 +1878,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 #endif
 
 	/* cut string in 2 parts - only for menu entries */
-	if ((but->block->flag & (UI_BLOCK_LOOP | UI_BLOCK_SHOW_SHORTCUT_ALWAYS)) &&
+	if ((but->drawflag & UI_BUT_HAS_SHORTCUT) &&
 	    (but->editstr == NULL))
 	{
 		if (but->flag & UI_BUT_HAS_SEP_CHAR) {
@@ -1961,8 +1961,11 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 	/* part text right aligned */
 	if (drawstr_right) {
-		const char *col = but->block->flag & (UI_BLOCK_LOOP | UI_BLOCK_SHOW_SHORTCUT_ALWAYS) ?
-		                      wcol->item : wcol->text;
+		char col[4];
+		copy_v4_v4_char(col, wcol->text);
+		if (but->drawflag & UI_BUT_HAS_SHORTCUT) {
+			col[3] *= 0.5f;
+		}
 
 		fstyle->align = UI_STYLE_TEXT_RIGHT;
 		rect->xmax -= UI_TEXT_CLIP_MARGIN;

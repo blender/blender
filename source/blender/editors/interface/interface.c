@@ -943,6 +943,7 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
 		MEM_freeN(butstr_orig);
 		but->str = but->strdata;
 		but->flag |= UI_BUT_HAS_SEP_CHAR;
+		but->drawflag |= UI_BUT_HAS_SHORTCUT;
 		ui_but_update(but);
 	}
 }
