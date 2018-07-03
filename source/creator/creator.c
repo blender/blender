@@ -236,7 +236,7 @@ int main(
 	struct CreatorAtExitData app_init_data = {NULL};
 	BKE_blender_atexit_register(callback_main_atexit, &app_init_data);
 
-	/* Unbuffered stdout makes stdout and stderr better synchronised, and helps
+	/* Unbuffered stdout makes stdout and stderr better synchronized, and helps
 	 * when stepping through code in a debugger (prints are immediately
 	 * visible). */
 	setvbuf(stdout, NULL, _IONBF, 0);

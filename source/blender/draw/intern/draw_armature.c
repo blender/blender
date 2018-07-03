@@ -1298,7 +1298,7 @@ static void draw_bone_line(
 		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail);
 	}
 	else {
-		/* In selection mode, draw bone, root and tip separatly. */
+		/* In selection mode, draw bone, root and tip separately. */
 		DRW_select_load_id(select_id | BONESEL_BONE);
 		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display);
 

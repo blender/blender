@@ -1086,7 +1086,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
 
 		/* Render shadow cube */
-		/* Render 6 faces separatly: seems to be faster for the general case.
+		/* Render 6 faces separately: seems to be faster for the general case.
 		 * The only time it's more beneficial is when the CPU culling overhead
 		 * outweight the instancing overhead. which is rarelly the case. */
 		for (int j = 0; j < 6; j++) {
@@ -1193,7 +1193,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		invert_m4_m4(render_mats.mat[DRW_MAT_VIEWINV], viewmat);
 
 		/* Render shadow cascades */
-		/* Render cascade separatly: seems to be faster for the general case.
+		/* Render cascade separately: seems to be faster for the general case.
 		 * The only time it's more beneficial is when the CPU culling overhead
 		 * outweight the instancing overhead. which is rarelly the case. */
 		for (int j = 0; j < la->cascade_count; j++) {

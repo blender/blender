@@ -61,7 +61,7 @@ enum {
  * TODO
  * - Ensure `CurveCache`, `SEQUENCER_DAG_WORKAROUND`.
  * - Check number of verts/edges to see if cache is valid.
- * - Check if 'overlay.edges' can use single attribyte per edge, not 2 (for selection drawing).
+ * - Check if 'overlay.edges' can use single attribute per edge, not 2 (for selection drawing).
  */
 
 static void curve_batch_cache_clear(Curve *cu);

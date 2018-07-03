@@ -431,7 +431,7 @@ void DRW_viewport_matrix_override_set_all(DRWMatrixState *state);
 void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type);
 void DRW_viewport_matrix_override_unset_all(void);
 
-/* Thoses are in viewspace so negative if in persp.
+/* These are in view-space so negative if in perspective.
  * Extract near and far clip distance from the projection matrix. */
 float DRW_viewport_near_distance_get(void);
 float DRW_viewport_far_distance_get(void);

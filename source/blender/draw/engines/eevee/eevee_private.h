@@ -587,7 +587,7 @@ typedef struct EEVEE_EffectsInfo {
 
 /* Common uniform buffer containing all "constant" data over the whole drawing pipeline. */
 /* !! CAUTION !!
- * - [i]vec3 need to be paded to [i]vec4 (even in ubo declaration).
+ * - [i]vec3 need to be padded to [i]vec4 (even in ubo declaration).
  * - Make sure that [i]vec4 start at a multiple of 16 bytes.
  * - Arrays of vec2/vec3 are padded as arrays of vec4.
  * - sizeof(bool) == sizeof(int) in GLSL so use int in C */

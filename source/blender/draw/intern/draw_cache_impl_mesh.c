@@ -1595,7 +1595,7 @@ typedef struct MeshBatchCache {
 	int edges_face_overlay_tri_count; /* Number of tri in edges_face_overlay(_adj)_tx */
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
-	 * to minimise data transfer for skinned mesh. */
+	 * to minimize data transfer for skinned mesh. */
 	Gwn_VertFormat shaded_triangles_format;
 	Gwn_VertBuf *shaded_triangles_data;
 	Gwn_IndexBuf **shaded_triangles_in_order;

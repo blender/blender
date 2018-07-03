@@ -1250,9 +1250,9 @@ static void render_scene_to_probe(
 	/* Move to capture position */
 	negate_v3_v3(posmat[3], pos);
 
-	/* 1 - Render to each cubeface individually.
+	/* 1 - Render to each cube-face individually.
 	 * We do this instead of using geometry shader because a) it's faster,
-	 * b) it's easier than fixing the nodetree shaders (for view dependant effects). */
+	 * b) it's easier than fixing the node-tree shaders (for view dependent effects). */
 	pinfo->layer = 0;
 	perspective_m4(winmat, -clipsta, clipsta, -clipsta, clipsta, clipsta, clipend);
 
@@ -1349,7 +1349,7 @@ static void render_scene_to_planar(
 	EEVEE_draw_shadows(sldata, psl);
 
 	/* Since we are rendering with an inverted view matrix, we need
-	 * to invert the facing for backface culling to be the same. */
+	 * to invert the facing for back-face culling to be the same. */
 	DRW_state_invert_facing();
 	/* Set clipping plan */
 	copy_v4_v4(sldata->clip_data.clip_planes[0], ped->planer_eq_offset);

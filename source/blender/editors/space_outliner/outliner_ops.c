@@ -467,7 +467,7 @@ static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)
 		{OUTLINER_ITEM_DRAG_CONFIRM, "CONFIRM", 0, "Confirm/Drop", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	const char *map_name = "Outliner Item Drap & Drop Modal Map";
+	const char *map_name = "Outliner Item Drag & Drop Modal Map";
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, map_name);
 
