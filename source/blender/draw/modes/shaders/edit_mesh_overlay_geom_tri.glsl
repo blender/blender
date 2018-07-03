@@ -96,11 +96,11 @@ void doLoopStrip(int v, vec3 offset)
 void main()
 {
 	/* Edge */
-	ivec3 eflag; vec3 ecrease, ebweight;
+	ivec3 eflag;
 	for (int v = 0; v < 3; ++v) {
 		flag[v] = eflag[v] = vData[v].y | (vData[v].x << 8);
-		edgesCrease[v] = ecrease[v] = vData[v].z / 255.0;
-		edgesBweight[v] = ebweight[v] = vData[v].w / 255.0;
+		edgesCrease[v] = vData[v].z / 255.0;
+		edgesBweight[v] = vData[v].w / 255.0;
 	}
 
 	/* Face */
@@ -112,10 +112,9 @@ void main()
 		faceColor = colorFace;
 
 	/* Vertex */
-	vec2 pos[3];
-	ssPos[0] = pos[0] = proj(pPos[0]);
-	ssPos[1] = pos[1] = proj(pPos[1]);
-	ssPos[2] = pos[2] = proj(pPos[2]);
+	ssPos[0] = proj(pPos[0]);
+	ssPos[1] = proj(pPos[1]);
+	ssPos[2] = proj(pPos[2]);
 
 	doVertex(0);
 	doVertex(1);
