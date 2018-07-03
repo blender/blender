@@ -43,14 +43,17 @@ else:
 # XXX This is a quick hack to make it work with new I18n... objects! To be reworked!
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description=
-                    "Merge one or more .po files into the first dest one.\n"
-                    "If a msgkey (msgctxt, msgid) is present in more than one merged po, the one in the first file "
-                    "wins, unless it’s marked as fuzzy and one later is not.\n"
-                    "The fuzzy flag is removed if necessary.\n"
-                    "All other comments are never modified.\n"
-                    "Commented messages in dst will always remain commented, and commented messages are never merged "
-                    "from sources.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Merge one or more .po files into the first dest one.\n"
+            "If a msgkey (msgctxt, msgid) is present in more than one merged po, the one in the first file "
+            "wins, unless it’s marked as fuzzy and one later is not.\n"
+            "The fuzzy flag is removed if necessary.\n"
+            "All other comments are never modified.\n"
+            "Commented messages in dst will always remain commented, and commented messages are never merged "
+            "from sources."
+        ),
+    )
     parser.add_argument('-s', '--stats', action="store_true", help="Show statistics info.")
     parser.add_argument('-r', '--replace', action="store_true",
                         help="Replace existing messages of same \"level\" already in dest po.")

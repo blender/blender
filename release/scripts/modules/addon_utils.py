@@ -209,6 +209,8 @@ def modules(module_cache=addons_fake_modules, *, refresh=True):
         )
     )
     return mod_list
+
+
 modules._is_first = True
 
 

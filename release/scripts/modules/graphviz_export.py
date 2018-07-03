@@ -140,7 +140,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                 return None
 
             #rna_path_bone = rna_path[:rna_path.index("]") + 1]
-            #return obj.path_resolve(rna_path_bone)
+            # return obj.path_resolve(rna_path_bone)
             bone_name = rna_path.split("[")[1].split("]")[0]
             return obj.pose.bones[bone_name[1:-1]]
 
@@ -178,6 +178,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
     '''
     print("\nSaved:", filepath)
     return True
+
 
 if __name__ == "__main__":
     import os

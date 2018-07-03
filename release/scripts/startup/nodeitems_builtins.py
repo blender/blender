@@ -69,12 +69,13 @@ def group_tools_draw(self, layout, context):
     layout.operator("node.group_ungroup")
     layout.separator()
 
+
 # maps node tree type to group node type
 node_tree_group_type = {
     'CompositorNodeTree': 'CompositorNodeGroup',
     'ShaderNodeTree': 'ShaderNodeGroup',
     'TextureNodeTree': 'TextureNodeGroup',
-    }
+}
 
 
 # generic node group items generator for shader, compositor and texture node groups
@@ -159,25 +160,25 @@ shader_node_categories = [
         NodeItem("ShaderNodeParticleInfo"),
         NodeItem("ShaderNodeObjectInfo"),
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     ShaderOldNodeCategory("SH_OUTPUT", "Output", items=[
         NodeItem("ShaderNodeOutput"),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     ShaderOldNodeCategory("SH_OP_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),
         NodeItem("ShaderNodeRGBCurve"),
         NodeItem("ShaderNodeInvert"),
         NodeItem("ShaderNodeHueSaturation"),
         NodeItem("ShaderNodeGamma"),
-        ]),
+    ]),
     ShaderOldNodeCategory("SH_OP_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeNormal"),
         NodeItem("ShaderNodeMapping"),
         NodeItem("ShaderNodeVectorCurve"),
         NodeItem("ShaderNodeVectorTransform"),
         NodeItem("ShaderNodeNormalMap"),
-        ]),
+    ]),
     ShaderOldNodeCategory("SH_CONVERTOR", "Converter", items=[
         NodeItem("ShaderNodeValToRGB"),
         NodeItem("ShaderNodeRGBToBW"),
@@ -188,12 +189,12 @@ shader_node_categories = [
         NodeItem("ShaderNodeCombineRGB"),
         NodeItem("ShaderNodeSeparateHSV"),
         NodeItem("ShaderNodeCombineHSV"),
-        ]),
+    ]),
     ShaderOldNodeCategory("SH_GROUP", "Group", items=node_group_items),
     ShaderOldNodeCategory("SH_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),
         NodeItem("NodeReroute"),
-        ]),
+    ]),
 
     # New Shader Nodes (Cycles)
     ShaderNewNodeCategory("SH_NEW_INPUT", "Input", items=[
@@ -216,14 +217,14 @@ shader_node_categories = [
         NodeItem("ShaderNodeUVMap"),
         NodeItem("ShaderNodeUVAlongStroke", poll=line_style_shader_nodes_poll),
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_OUTPUT", "Output", items=[
         NodeItem("ShaderNodeOutputMaterial", poll=object_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLamp", poll=object_shader_nodes_poll),
         NodeItem("ShaderNodeOutputWorld", poll=world_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLineStyle", poll=line_style_shader_nodes_poll),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_SHADER", "Shader", items=[
         NodeItem("ShaderNodeMixShader"),
         NodeItem("ShaderNodeAddShader"),
@@ -245,7 +246,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeVolumeAbsorption"),
         NodeItem("ShaderNodeVolumeScatter"),
         NodeItem("ShaderNodeVolumePrincipled"),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_TEXTURE", "Texture", items=[
         NodeItem("ShaderNodeTexImage"),
         NodeItem("ShaderNodeTexEnvironment"),
@@ -260,7 +261,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeTexBrick"),
         NodeItem("ShaderNodeTexPointDensity"),
         NodeItem("ShaderNodeTexIES"),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_OP_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),
         NodeItem("ShaderNodeRGBCurve"),
@@ -269,7 +270,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeHueSaturation"),
         NodeItem("ShaderNodeGamma"),
         NodeItem("ShaderNodeBrightContrast"),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_OP_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeMapping"),
         NodeItem("ShaderNodeBump"),
@@ -279,7 +280,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeNormal"),
         NodeItem("ShaderNodeVectorCurve"),
         NodeItem("ShaderNodeVectorTransform"),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_CONVERTOR", "Converter", items=[
         NodeItem("ShaderNodeMath"),
         NodeItem("ShaderNodeValToRGB"),
@@ -293,16 +294,16 @@ shader_node_categories = [
         NodeItem("ShaderNodeCombineHSV"),
         NodeItem("ShaderNodeWavelength"),
         NodeItem("ShaderNodeBlackbody"),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_SCRIPT", "Script", items=[
         NodeItem("ShaderNodeScript"),
-        ]),
+    ]),
     ShaderNewNodeCategory("SH_NEW_GROUP", "Group", items=node_group_items),
     ShaderNewNodeCategory("SH_NEW_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),
         NodeItem("NodeReroute"),
-        ]),
-    ]
+    ]),
+]
 
 compositor_node_categories = [
     # Compositor Nodes
@@ -318,7 +319,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeTime"),
         NodeItem("CompositorNodeTrackPos"),
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_OUTPUT", "Output", items=[
         NodeItem("CompositorNodeComposite"),
         NodeItem("CompositorNodeViewer"),
@@ -326,7 +327,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeOutputFile"),
         NodeItem("CompositorNodeLevels"),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_OP_COLOR", "Color", items=[
         NodeItem("CompositorNodeMixRGB"),
         NodeItem("CompositorNodeAlphaOver"),
@@ -340,7 +341,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeColorCorrection"),
         NodeItem("CompositorNodeTonemap"),
         NodeItem("CompositorNodeZcombine"),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_CONVERTOR", "Converter", items=[
         NodeItem("CompositorNodeMath"),
         NodeItem("CompositorNodeValToRGB"),
@@ -357,7 +358,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeSepYCCA"),
         NodeItem("CompositorNodeCombYCCA"),
         NodeItem("CompositorNodeSwitchView"),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_OP_FILTER", "Filter", items=[
         NodeItem("CompositorNodeBlur"),
         NodeItem("CompositorNodeBilateralblur"),
@@ -372,14 +373,14 @@ compositor_node_categories = [
         NodeItem("CompositorNodeDBlur"),
         NodeItem("CompositorNodePixelate"),
         NodeItem("CompositorNodeSunBeams"),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_OP_VECTOR", "Vector", items=[
         NodeItem("CompositorNodeNormal"),
         NodeItem("CompositorNodeMapValue"),
         NodeItem("CompositorNodeMapRange"),
         NodeItem("CompositorNodeNormalize"),
         NodeItem("CompositorNodeCurveVec"),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_MATTE", "Matte", items=[
         NodeItem("CompositorNodeKeying"),
         NodeItem("CompositorNodeKeyingScreen"),
@@ -393,7 +394,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeChromaMatte"),
         NodeItem("CompositorNodeColorMatte"),
         NodeItem("CompositorNodeDoubleEdgeMask"),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_DISTORT", "Distort", items=[
         NodeItem("CompositorNodeScale"),
         NodeItem("CompositorNodeLensdist"),
@@ -408,14 +409,14 @@ compositor_node_categories = [
         NodeItem("CompositorNodeStabilize"),
         NodeItem("CompositorNodePlaneTrackDeform"),
         NodeItem("CompositorNodeCornerPin"),
-        ]),
+    ]),
     CompositorNodeCategory("CMP_GROUP", "Group", items=node_group_items),
     CompositorNodeCategory("CMP_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),
         NodeItem("NodeReroute"),
         NodeItem("CompositorNodeSwitch"),
-        ]),
-    ]
+    ]),
+]
 
 texture_node_categories = [
     # Texture Nodes
@@ -425,12 +426,12 @@ texture_node_categories = [
         NodeItem("TextureNodeTexture"),
         NodeItem("TextureNodeImage"),
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     TextureNodeCategory("TEX_OUTPUT", "Output", items=[
         NodeItem("TextureNodeOutput"),
         NodeItem("TextureNodeViewer"),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
-        ]),
+    ]),
     TextureNodeCategory("TEX_OP_COLOR", "Color", items=[
         NodeItem("TextureNodeMixRGB"),
         NodeItem("TextureNodeCurveRGB"),
@@ -438,11 +439,11 @@ texture_node_categories = [
         NodeItem("TextureNodeHueSaturation"),
         NodeItem("TextureNodeCompose"),
         NodeItem("TextureNodeDecompose"),
-        ]),
+    ]),
     TextureNodeCategory("TEX_PATTERN", "Pattern", items=[
         NodeItem("TextureNodeChecker"),
         NodeItem("TextureNodeBricks"),
-        ]),
+    ]),
     TextureNodeCategory("TEX_TEXTURE", "Textures", items=[
         NodeItem("TextureNodeTexNoise"),
         NodeItem("TextureNodeTexDistNoise"),
@@ -454,26 +455,26 @@ texture_node_categories = [
         NodeItem("TextureNodeTexWood"),
         NodeItem("TextureNodeTexMusgrave"),
         NodeItem("TextureNodeTexStucci"),
-        ]),
+    ]),
     TextureNodeCategory("TEX_CONVERTOR", "Converter", items=[
         NodeItem("TextureNodeMath"),
         NodeItem("TextureNodeValToRGB"),
         NodeItem("TextureNodeRGBToBW"),
         NodeItem("TextureNodeValToNor"),
         NodeItem("TextureNodeDistance"),
-        ]),
+    ]),
     TextureNodeCategory("TEX_DISTORT", "Distort", items=[
         NodeItem("TextureNodeScale"),
         NodeItem("TextureNodeTranslate"),
         NodeItem("TextureNodeRotate"),
         NodeItem("TextureNodeAt"),
-        ]),
+    ]),
     TextureNodeCategory("TEX_GROUP", "Group", items=node_group_items),
     TextureNodeCategory("TEX_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),
         NodeItem("NodeReroute"),
-        ]),
-    ]
+    ]),
+]
 
 
 def register():

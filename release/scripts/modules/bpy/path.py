@@ -183,6 +183,8 @@ def clean_name(name, replace="_"):
 
     trans = maketrans_init()
     return name.translate(trans)
+
+
 clean_name._trans_cache = {}
 
 
@@ -222,6 +224,7 @@ def display_name(name):
 
     name = _clean_utf8(name)
     return name
+
 
 def display_name_to_filepath(name):
     """

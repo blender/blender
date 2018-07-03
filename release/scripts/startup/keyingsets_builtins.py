@@ -527,6 +527,8 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
                 ksi.addProp(ks, bone, prop)
 
 # All properties that are likely to get animated in a character rig, only selected bones.
+
+
 class BUILTIN_KSI_WholeCharacterSelected(KeyingSetInfo):
     """Insert a keyframe for all properties that are likely to get animated in a character rig """
     """(only selected bones)"""
@@ -557,6 +559,8 @@ class BUILTIN_KSI_WholeCharacterSelected(KeyingSetInfo):
 ###############################
 
 # Delta Location
+
+
 class BUILTIN_KSI_DeltaLocation(KeyingSetInfo):
     """Insert keyframes for additional location offset"""
     bl_label = "Delta Location"
@@ -642,6 +646,7 @@ class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
             ks.paths.add(id_block, path)
 
 ###############################
+
 
 # Note that this controls order of options in 'insert keyframe' menu.
 # Better try to keep some logical order here beyond mere alphabetical one, also because of menu entries shortcut.

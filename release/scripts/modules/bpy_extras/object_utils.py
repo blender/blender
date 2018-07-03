@@ -26,7 +26,7 @@ __all__ = (
     "object_add_grid_scale_apply_operator",
     "object_image_guess",
     "world_to_camera_view",
-    )
+)
 
 
 import bpy
@@ -218,24 +218,24 @@ class AddObjectHelper:
             self.rotation.zero()
 
     view_align = BoolProperty(
-            name="Align to View",
-            default=False,
-            update=view_align_update_callback,
-            )
+        name="Align to View",
+        default=False,
+        update=view_align_update_callback,
+    )
     location = FloatVectorProperty(
-            name="Location",
-            subtype='TRANSLATION',
-            )
+        name="Location",
+        subtype='TRANSLATION',
+    )
     rotation = FloatVectorProperty(
-            name="Rotation",
-            subtype='EULER',
-            )
+        name="Rotation",
+        subtype='EULER',
+    )
     layers = BoolVectorProperty(
-            name="Layers",
-            size=20,
-            subtype='LAYER',
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
+        name="Layers",
+        size=20,
+        subtype='LAYER',
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
 
     @classmethod
     def poll(self, context):

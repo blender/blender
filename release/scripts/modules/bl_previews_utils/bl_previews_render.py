@@ -442,7 +442,7 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             if not has_camera:
                 # We had to add a temp camera, now we need to place it to see interesting objects!
                 objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in scene.objects
-                                        if (not ob.hide_render) and (ob.type in OBJECT_TYPES_RENDER))
+                                if (not ob.hide_render) and (ob.type in OBJECT_TYPES_RENDER))
 
             preview_render_do(render_context, 'scenes', scene.name, objects)
 

@@ -20,7 +20,7 @@
 
 __all__ = (
     "load_image",
-    )
+)
 
 
 # limited replacement for BPyImage.comprehensiveImageLoad
