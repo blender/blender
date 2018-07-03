@@ -412,26 +412,6 @@ if platform == "darwin":
 	kmi = km.keymap_items.new('screen.userpref_show', 'COMMA', 'PRESS', oskey=True)
 kmi = km.keymap_items.new('screen.userpref_show', 'U', 'PRESS', ctrl=True, alt=True)
 
-# Map Screen Editing
-km = kc.keymaps.new('Screen Editing', space_type='EMPTY', region_type='WINDOW', modal=False)
-
-kmi = km.keymap_items.new('screen.actionzone', 'LEFTMOUSE', 'PRESS')
-kmi_props_setattr(kmi.properties, 'modifier', 0)
-kmi = km.keymap_items.new('screen.actionzone', 'LEFTMOUSE', 'PRESS', shift=True)
-kmi_props_setattr(kmi.properties, 'modifier', 1)
-kmi = km.keymap_items.new('screen.actionzone', 'LEFTMOUSE', 'PRESS', ctrl=True)
-kmi_props_setattr(kmi.properties, 'modifier', 2)
-kmi = km.keymap_items.new('screen.area_split', 'NONE', 'ANY')
-kmi = km.keymap_items.new('screen.area_join', 'NONE', 'ANY')
-kmi = km.keymap_items.new('screen.area_dupli', 'NONE', 'ANY', shift=True)
-kmi = km.keymap_items.new('screen.area_swap', 'NONE', 'ANY', ctrl=True)
-kmi = km.keymap_items.new('screen.region_scale', 'NONE', 'ANY')
-kmi = km.keymap_items.new('screen.screen_full_area', 'NONE', 'ANY')
-kmi_props_setattr(kmi.properties, 'use_hide_panels', True)
-kmi = km.keymap_items.new('screen.area_move', 'LEFTMOUSE', 'PRESS')
-kmi = km.keymap_items.new('screen.area_options', 'RIGHTMOUSE', 'PRESS')
-kmi = km.keymap_items.new('screen.header', 'F9', 'PRESS', alt=True)
-
 # Map User Interface
 km = kc.keymaps.new('User Interface', space_type='EMPTY', region_type='WINDOW', modal=False)
 
