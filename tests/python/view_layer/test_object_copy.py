@@ -68,7 +68,7 @@ class UnitTesting(ViewLayerTesting):
             self.assertTrue(compare_files(
                 filepath_objects_json,
                 filepath_json,
-                ),
+            ),
                 "Scene dump files differ")
 
     def test_copy_object(self):

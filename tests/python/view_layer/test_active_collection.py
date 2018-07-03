@@ -42,23 +42,23 @@ class UnitTesting(ViewLayerTesting):
         layer.collections.link(subzero)
 
         lookup = [
-                'Master Collection',
-                '1',
-                'sub-zero',
-                'scorpion',
-                '2',
-                '3',
-                '4',
-                '5',
-                'sub-zero',
-                'scorpion']
+            'Master Collection',
+            '1',
+            'sub-zero',
+            'scorpion',
+            '2',
+            '3',
+            '4',
+            '5',
+            'sub-zero',
+            'scorpion']
 
         for i, name in enumerate(lookup):
             layer.collections.active_index = i
             self.assertEqual(
-                    name, layer.collections.active.name,
-                    "Collection index mismatch: [{0}] : {1} != {2}".format(
-                        i, name, layer.collections.active.name))
+                name, layer.collections.active.name,
+                "Collection index mismatch: [{0}] : {1} != {2}".format(
+                    i, name, layer.collections.active.name))
 
 
 # ############################################################

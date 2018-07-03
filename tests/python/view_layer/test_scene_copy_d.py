@@ -23,9 +23,9 @@ class UnitTesting(ViewLayerTesting):
 
         filepath_layers_json_copy = os.path.join(ROOT, 'layers_copy_link.json')
         self.do_scene_copy(
-                filepath_layers_json_copy,
-                'LINK_OBJECTS',
-                (get_scene_collections, get_layers))
+            filepath_layers_json_copy,
+            'LINK_OBJECTS',
+            (get_scene_collections, get_layers))
 
 
 # ############################################################

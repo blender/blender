@@ -157,11 +157,11 @@ def query_scene(filepath, name, callbacks):
 def dump(data):
     import json
     return json.dumps(
-            data,
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': '),
-            )
+        data,
+        sort_keys=True,
+        indent=4,
+        separators=(',', ': '),
+    )
 
 
 # ############################################################
@@ -170,7 +170,7 @@ def dump(data):
 
 PDB = False
 DUMP_DIFF = True
-UPDATE_DIFF = False # HACK used to update tests when something change
+UPDATE_DIFF = False  # HACK used to update tests when something change
 
 
 def compare_files(file_a, file_b):
@@ -187,7 +187,6 @@ def compare_files(file_a, file_b):
         if UPDATE_DIFF:
             import subprocess
             subprocess.call(["cp", "-u", file_a, file_b])
-
 
         if PDB:
             import pdb
@@ -239,8 +238,8 @@ class ViewLayerTesting(unittest.TestCase):
     def path_exists(self, filepath):
         import os
         self.assertTrue(
-                os.path.exists(filepath),
-                "Test file \"{0}\" not found".format(filepath))
+            os.path.exists(filepath),
+            "Test file \"{0}\" not found".format(filepath))
 
     def do_object_add(self, filepath_json, add_mode):
         """
@@ -307,7 +306,7 @@ class ViewLayerTesting(unittest.TestCase):
             self.assertTrue(compare_files(
                 filepath_objects_json,
                 filepath_json,
-                ),
+            ),
                 "Scene dump files differ")
 
     def do_object_add_no_collection(self, add_mode):
@@ -356,7 +355,7 @@ class ViewLayerTesting(unittest.TestCase):
             (self.path_exists(f) for f in (
                 filepath_layers,
                 filepath_json_reference,
-                ))
+            ))
 
             filepath_saved = os.path.join(dirpath, '{0}.blend'.format(copy_mode))
             filepath_json = os.path.join(dirpath, "{0}.json".format(copy_mode))
@@ -376,7 +375,7 @@ class ViewLayerTesting(unittest.TestCase):
             self.assertTrue(compare_files(
                 filepath_json,
                 filepath_json_reference,
-                ),
+            ),
                 "Scene copy \"{0}\" test failed".format(copy_mode.title()))
 
     def do_object_delete(self, del_mode):
@@ -437,7 +436,7 @@ class ViewLayerTesting(unittest.TestCase):
             self.assertTrue(compare_files(
                 filepath_generated_json,
                 filepath_reference_json,
-                ),
+            ),
                 "Scene dump files differ")
 
     def do_visibility_object_add(self, add_mode):
@@ -517,23 +516,24 @@ class MoveSceneCollectionTesting(ViewLayerTesting):
     """
     To be used by tests of view_layer_move_into_scene_collection
     """
+
     def get_initial_scene_tree_map(self):
         collections_map = [
-                ['A', [
-                    ['i', None],
-                    ['ii', None],
-                    ['iii', None],
-                    ]],
-                ['B', None],
-                ['C', [
-                    ['1', None],
-                    ['2', None],
-                    ['3', [
-                        ['dog', None],
-                        ['cat', None],
-                        ]],
-                    ]],
-                ]
+            ['A', [
+                ['i', None],
+                ['ii', None],
+                ['iii', None],
+            ]],
+            ['B', None],
+            ['C', [
+                ['1', None],
+                ['2', None],
+                ['3', [
+                    ['dog', None],
+                    ['cat', None],
+                ]],
+            ]],
+        ]
         return collections_map
 
     def build_scene_tree(self, tree_map, collection=None, ret_dict=None):
@@ -565,8 +565,8 @@ class MoveSceneCollectionTesting(ViewLayerTesting):
         """
         self.cleanup_tree()
         self.assertTrue(
-                hasattr(self, "get_initial_scene_tree_map"),
-                "Test class has no get_initial_scene_tree_map method implemented")
+            hasattr(self, "get_initial_scene_tree_map"),
+            "Test class has no get_initial_scene_tree_map method implemented")
 
         return self.build_scene_tree(self.get_initial_scene_tree_map())
 
@@ -605,20 +605,21 @@ class MoveSceneCollectionSyncTesting(MoveSceneCollectionTesting):
     """
     To be used by tests of view_layer_move_into_scene_collection_sync
     """
+
     def get_initial_layers_tree_map(self):
         layers_map = [
-                ['Layer 1', [
-                    'Master Collection',
-                    'C',
-                    '3',
-                    ]],
-                ['Layer 2', [
-                    'C',
-                    '3',
-                    'dog',
-                    'cat',
-                    ]],
-                ]
+            ['Layer 1', [
+                'Master Collection',
+                'C',
+                '3',
+            ]],
+            ['Layer 2', [
+                'C',
+                '3',
+                'dog',
+                'cat',
+            ]],
+        ]
         return layers_map
 
     def get_reference_layers_tree_map(self):
@@ -634,8 +635,8 @@ class MoveSceneCollectionSyncTesting(MoveSceneCollectionTesting):
         scene = bpy.context.scene
 
         self.assertTrue(
-                hasattr(self, "get_initial_layers_tree_map"),
-                "Test class has no get_initial_layers_tree_map method implemented")
+            hasattr(self, "get_initial_layers_tree_map"),
+            "Test class has no get_initial_layers_tree_map method implemented")
 
         layers_map = self.get_initial_layers_tree_map()
 
@@ -684,6 +685,7 @@ class MoveLayerCollectionTesting(MoveSceneCollectionSyncTesting):
     """
     To be used by tests of view_layer_move_into_layer_collection
     """
+
     def parse_move(self, path, sep='.'):
         """
         convert 'Layer 1.C.2' into:
@@ -739,15 +741,15 @@ class Clay:
 
         # store the variables
         self._scene_collections = {
-                'grandma': scene_collection_grandma,
-                'mom': scene_collection_mom,
-                'kid': scene_collection_kid,
-                }
+            'grandma': scene_collection_grandma,
+            'mom': scene_collection_mom,
+            'kid': scene_collection_kid,
+        }
         self._layer_collections = {
-                'grandma': layer_collection_grandma,
-                'mom': layer_collection_mom,
-                'kid': layer_collection_kid,
-                }
+            'grandma': layer_collection_grandma,
+            'mom': layer_collection_mom,
+            'kid': layer_collection_kid,
+        }
 
         if extra_kid_layer:
             layer_collection_extra = self._layer.collections.link(scene_collection_kid)
@@ -765,7 +767,7 @@ class Clay:
         # remove all the other collections
         while self._scene.master_collection.collections:
             self._scene.master_collection.collections.remove(
-                    self._scene.master_collection.collections[0])
+                self._scene.master_collection.collections[0])
 
         layer = self._scene.view_layers.new('Evaluation Test')
         layer.collections.unlink(layer.collections[0])
@@ -790,9 +792,9 @@ class Clay:
 
         # change scene settings
         self._properties = {
-                'scene': self._scene.collection_properties[ENGINE],
-                'object': self._object.collection_properties[ENGINE],
-                }
+            'scene': self._scene.collection_properties[ENGINE],
+            'object': self._object.collection_properties[ENGINE],
+        }
 
         for key, value in self._layer_collections.items():
             self._properties[key] = self._layer_collections[key].engine_overrides[ENGINE]

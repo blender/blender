@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 
+
 def setup():
     import bpy
 
@@ -28,6 +29,7 @@ def setup():
     for mat in bpy.data.materials:
         mat.use_screen_refraction = True
         mat.use_screen_subsurface = True
+
 
 # When run from inside Blender, render and exit.
 try:

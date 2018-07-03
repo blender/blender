@@ -17,38 +17,38 @@ class UnitTesting(MoveLayerCollectionTesting):
     def get_reference_scene_tree_map(self):
         # original tree, no changes
         reference_tree_map = [
-                ['A', [
-                    ['i', None],
-                    ['ii', None],
-                    ['iii', None],
-                    ]],
-                ['B', None],
-                ['C', [
-                    ['1', None],
-                    ['2', None],
-                    ['3', [
-                        ['dog', None],
-                        ['cat', None],
-                        ]],
-                    ]],
-                ]
+            ['A', [
+                ['i', None],
+                ['ii', None],
+                ['iii', None],
+            ]],
+            ['B', None],
+            ['C', [
+                ['1', None],
+                ['2', None],
+                ['3', [
+                    ['dog', None],
+                    ['cat', None],
+                ]],
+            ]],
+        ]
         return reference_tree_map
 
     def get_reference_layers_tree_map(self):
         # original tree, no changes
         reference_layers_map = [
-                ['Layer 1', [
-                    'Master Collection',
-                    'C',
-                    '3',
-                    ]],
-                ['Layer 2', [
-                    'C',
-                    '3',
-                    'dog',
-                    'cat',
-                    ]],
-                ]
+            ['Layer 1', [
+                'Master Collection',
+                'C',
+                '3',
+            ]],
+            ['Layer 2', [
+                'C',
+                '3',
+                'dog',
+                'cat',
+            ]],
+        ]
         return reference_layers_map
 
     def test_layer_collection_into(self):

@@ -46,7 +46,7 @@ class UnitTesting(ViewLayerTesting):
             self.assertTrue(compare_files(
                 filepath_doversion_json,
                 filepath_layers_json,
-                ),
+            ),
                 "Run: test_scene_write_layers")
 
             if do_read:
@@ -65,7 +65,7 @@ class UnitTesting(ViewLayerTesting):
                 self.assertTrue(compare_files(
                     filepath_read_json,
                     filepath_layers_json,
-                    ),
+                ),
                     "Scene dump files differ")
 
     def test_scene_write_collections(self):
@@ -79,10 +79,10 @@ class UnitTesting(ViewLayerTesting):
         filepath_layers_json = os.path.join(ROOT, 'layers_simple.json')
 
         self.do_scene_write_read(
-                filepath_layers,
-                filepath_layers_json,
-                (get_scene_collections,),
-                False)
+            filepath_layers,
+            filepath_layers_json,
+            (get_scene_collections,),
+            False)
 
     def test_scene_write_layers(self):
         """
@@ -95,10 +95,10 @@ class UnitTesting(ViewLayerTesting):
         filepath_layers_json = os.path.join(ROOT, 'layers.json')
 
         self.do_scene_write_read(
-                filepath_layers,
-                filepath_layers_json,
-                (get_scene_collections, get_layers),
-                False)
+            filepath_layers,
+            filepath_layers_json,
+            (get_scene_collections, get_layers),
+            False)
 
     def test_scene_read_collections(self):
         """
@@ -112,10 +112,10 @@ class UnitTesting(ViewLayerTesting):
         filepath_layers_json = os.path.join(ROOT, 'layers_simple.json')
 
         self.do_scene_write_read(
-                filepath_layers,
-                filepath_layers_json,
-                (get_scene_collections,),
-                True)
+            filepath_layers,
+            filepath_layers_json,
+            (get_scene_collections,),
+            True)
 
     def test_scene_read_layers(self):
         """
@@ -129,10 +129,10 @@ class UnitTesting(ViewLayerTesting):
         filepath_layers_json = os.path.join(ROOT, 'layers.json')
 
         self.do_scene_write_read(
-                filepath_layers,
-                filepath_layers_json,
-                (get_scene_collections, get_layers),
-                True)
+            filepath_layers,
+            filepath_layers_json,
+            (get_scene_collections, get_layers),
+            True)
 
 
 # ############################################################

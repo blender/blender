@@ -16,21 +16,21 @@ from view_layer_common import *
 class UnitTesting(MoveLayerCollectionTesting):
     def get_reference_scene_tree_map(self):
         reference_tree_map = [
-                ['A', [
-                    ['i', None],
-                    ['ii', None],
-                    ['iii', None],
-                    ]],
-                ['B', None],
-                ['C', [
-                    ['1', None],
-                    ['2', None],
-                    ['3', [
-                        ['cat', None],
-                        ['dog', None],
-                        ]],
-                    ]],
-                ]
+            ['A', [
+                ['i', None],
+                ['ii', None],
+                ['iii', None],
+            ]],
+            ['B', None],
+            ['C', [
+                ['1', None],
+                ['2', None],
+                ['3', [
+                    ['cat', None],
+                    ['dog', None],
+                ]],
+            ]],
+        ]
         return reference_tree_map
 
     def get_reference_layers_tree_map(self):

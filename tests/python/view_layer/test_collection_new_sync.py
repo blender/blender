@@ -26,16 +26,16 @@ class UnitTesting(ViewLayerTesting):
         self.assertEqual(view_layer.collections[0].collection, scene.master_collection)
 
         self.assertEqual(
-                {collection.name for collection in view_layer.collections[0].collections},
-                {'Collection 1'})
+            {collection.name for collection in view_layer.collections[0].collections},
+            {'Collection 1'})
 
         self.assertEqual(
-                bpy.ops.outliner.collection_new(),
-                {'FINISHED'})
+            bpy.ops.outliner.collection_new(),
+            {'FINISHED'})
 
         self.assertEqual(
-                {collection.name for collection in view_layer.collections[0].collections},
-                {'Collection 1', 'Collection 2'})
+            {collection.name for collection in view_layer.collections[0].collections},
+            {'Collection 1', 'Collection 2'})
 
 
 # ############################################################
