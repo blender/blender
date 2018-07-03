@@ -351,6 +351,16 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                 _addon_remove(module_name)
             return None
 
+        # 1.1) fail when add-on is too old
+        # This is a temporary 2.8x migration check, so we can manage addons that are supported.
+        try:
+            print(mod.bl_info.get("blender", (0, 0, 0)))
+            if mod.bl_info.get("blender", (0, 0, 0)) < (2, 80, 0):
+                raise Exception(f"Add-on '{module_name:s}' has not been upgraded to 2.8, ignoring")
+        except Exception as ex:
+            handle_error(ex)
+            return None
+
         # 2) try register collected modules
         # removed, addons need to handle own registration now.
 
