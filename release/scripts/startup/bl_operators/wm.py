@@ -2400,7 +2400,7 @@ class WM_OT_toolbar(Operator):
             layout = popover.layout
             cls.draw_cls(layout, context, detect_layout=False, scale_y=1.0)
 
-        wm.popover(draw_menu, keymap=keymap)
+        wm.popover(draw_menu, ui_units_x=8, keymap=keymap)
         return {'FINISHED'}
 
 
