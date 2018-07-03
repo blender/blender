@@ -755,7 +755,9 @@ void ui_theme_init_default(void)
 
 	UI_SetTheme(0, 0);  /* make sure the global used in this file is set */
 
+	const int active_theme_area = btheme->active_theme_area;
 	memcpy(btheme, &U_theme_default, sizeof(*btheme));
+	btheme->active_theme_area = active_theme_area;
 }
 
 void ui_style_init_default(void)
