@@ -4152,7 +4152,7 @@ class VIEW3D_PT_transform_orientations(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label("Tranform Orientations")
+        layout.label("Transform Orientations")
 
         scene = context.scene
         orientation = scene.current_orientation
