@@ -195,18 +195,18 @@ class AddObjectHelper:
             self.rotation.zero()
 
     view_align = BoolProperty(
-            name="Align to View",
-            default=False,
-            update=view_align_update_callback,
-            )
+        name="Align to View",
+        default=False,
+        update=view_align_update_callback,
+    )
     location = FloatVectorProperty(
-            name="Location",
-            subtype='TRANSLATION',
-            )
+        name="Location",
+        subtype='TRANSLATION',
+    )
     rotation = FloatVectorProperty(
-            name="Rotation",
-            subtype='EULER',
-            )
+        name="Rotation",
+        subtype='EULER',
+    )
 
     @classmethod
     def poll(self, context):

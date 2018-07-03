@@ -280,7 +280,6 @@ class DOPESHEET_HT_editor_buttons(Header):
         sub.active = toolsettings.use_proportional_action
         sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
-
         row = layout.row(align=True)
         row.operator("action.copy", text="", icon='COPYDOWN')
         row.operator("action.paste", text="", icon='PASTEDOWN')

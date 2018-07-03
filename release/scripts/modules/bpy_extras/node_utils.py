@@ -21,7 +21,7 @@
 __all__ = (
     "find_node_input",
     "find_output_node",
-    )
+)
 
 
 # XXX Names are not unique. Returns the first match.
@@ -34,6 +34,8 @@ def find_node_input(node, name):
 
 # Return the output node to display in the UI. In case multiple node types are
 # specified, node types earlier in the list get priority.
+
+
 def find_output_node(ntree, nodetypes):
     if ntree:
         output_node = None

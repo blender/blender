@@ -101,7 +101,7 @@ def write_subimage(sub_x, sub_y, sub_w, sub_h,
                 sub_w, sub_h,
                 sub_x, sub_y,
                 # redundant but including to maintain consistency
-                            pixel_w, pixel_h,
+                pixel_w, pixel_h,
             ))
 
         for y in range(sub_h):

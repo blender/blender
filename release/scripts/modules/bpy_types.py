@@ -942,7 +942,6 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props = row.operator(add_operator, text="", icon='ZOOMIN')
             props.name = wm.preset_name
 
-
     def draw_preset(self, context):
         """
         Define these on the subclass:

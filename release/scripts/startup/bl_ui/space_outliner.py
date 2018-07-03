@@ -134,7 +134,6 @@ class OUTLINER_MT_edit_datablocks(Menu):
         layout.operator("outliner.drivers_delete_selected")
 
 
-
 class OUTLINER_MT_collection_view_layer(Menu):
     bl_label = "View Layer"
 
