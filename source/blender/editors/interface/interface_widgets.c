@@ -4386,11 +4386,11 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
  * because we need to pass in the original location so we know where to show the arrow.
  */
 static void ui_draw_popover_back_impl(
-        const uiWidgetColors *wcol, rcti *rect, int direction,
+        const uiWidgetColors *wcol, rcti *rect, int direction, const float unit_size,
         const float mval_origin[2])
 {
 	/* tsk, this isn't nice. */
-	const float unit_half = (BLI_rcti_size_x(rect) / UI_POPOVER_WIDTH_UNITS) / 2;
+	const float unit_half = unit_size / 2;
 	const float cent_x = mval_origin ? mval_origin[0] : BLI_rcti_cent_x(rect);
 	rect->ymax -= unit_half;
 	rect->ymin += unit_half;
@@ -4443,7 +4443,7 @@ void ui_draw_popover_back(ARegion *ar, uiStyle *UNUSED(style), uiBlock *block, r
 	if (block) {
 		float mval_origin[2] = {block->mx, block->my};
 		ui_window_to_block_fl(ar, block, &mval_origin[0], &mval_origin[1]);
-		ui_draw_popover_back_impl(wt->wcol_theme, rect, block->direction, mval_origin);
+		ui_draw_popover_back_impl(wt->wcol_theme, rect, block->direction, U.widget_unit / block->aspect,  mval_origin);
 	}
 	else {
 		wt->state(wt, 0);
