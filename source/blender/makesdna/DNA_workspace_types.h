@@ -58,12 +58,15 @@
 typedef struct bToolRef_Runtime {
 	int cursor;
 
-	/* One of these 3 must be defined. */
+	/** One of these 3 must be defined. */
 	char keymap[64];
 	char manipulator_group[64];
 	char data_block[64];
 
-	/* index when a tool is a member of a group */
+	/** Use to infer primary operator to use when setting accelerator keys. */
+	char operator[64];
+
+	/** Index when a tool is a member of a group. */
 	int index;
 } bToolRef_Runtime;
 
@@ -76,7 +79,7 @@ typedef struct bToolRef {
 	/** Use to avoid initializing the same tool multiple times. */
 	short tag;
 
-	/** bToolKey (spacetype, mode), used in 'WM_api.h' */
+	/** #bToolKey (spacetype, mode), used in 'WM_api.h' */
 	short space_type;
 	/**
 	 * Value depends ont the 'space_type', object mode for 3D view, image editor has own mode too.

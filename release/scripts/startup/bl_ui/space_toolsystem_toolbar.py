@@ -134,6 +134,7 @@ class _defs_transform:
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
             widget="TRANSFORM_WGT_manipulator",
+            operator="transform.translate",
             # TODO, implement as optional fallback manipulator
             # keymap=(
             #     ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
@@ -147,6 +148,7 @@ class _defs_transform:
             # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
             widget="TRANSFORM_WGT_manipulator",
+            operator="transform.rotate",
             # TODO, implement as optional fallback manipulator
             # keymap=(
             #     ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
@@ -160,6 +162,7 @@ class _defs_transform:
             # cursor='SCROLL_XY',
             icon="ops.transform.resize",
             widget="TRANSFORM_WGT_manipulator",
+            operator="transform.resize",
             # TODO, implement as optional fallback manipulator
             # keymap=(
             #     ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
@@ -172,6 +175,7 @@ class _defs_transform:
             text="Scale Cage",
             icon="ops.transform.resize.cage",
             widget="VIEW3D_WGT_xform_cage",
+            operator="transform.resize",
         )
 
     @ToolDef.from_fn
@@ -459,6 +463,7 @@ class _defs_edit_mesh:
             text="Extrude Region",
             icon="ops.mesh.extrude_region_move",
             widget="MESH_WGT_extrude",
+            operator="view3d.edit_mesh_extrude_move_normal",
             keymap=(
                 ("mesh.extrude_context_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='EVT_TWEAK_A', value='ANY')),

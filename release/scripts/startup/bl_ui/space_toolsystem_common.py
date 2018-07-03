@@ -88,6 +88,8 @@ ToolDef = namedtuple(
         # Optional data-block assosiated with this tool.
         # (Typically brush name, usage depends on mode, we could use for non-brush ID's in other modes).
         "data_block",
+        # Optional primary operator (for introspection only).
+        "operator",
         # Optional draw settings (operator options, toolsettings).
         "draw_settings",
     )
@@ -107,6 +109,7 @@ def from_dict(kw_args):
         "widget": None,
         "keymap": None,
         "data_block": None,
+        "operator": None,
         "draw_settings": None,
     }
     kw.update(kw_args)
@@ -568,6 +571,7 @@ def _activate_by_item(context, space_type, item, index):
         cursor=item.cursor or 'DEFAULT',
         manipulator_group=item.widget or "",
         data_block=item.data_block or "",
+        operator=item.operator or "",
         index=index,
     )
 
@@ -643,15 +647,21 @@ def keymap_from_context(context, space_type):
                 kmi.properties.name = item.text
                 continue
 
-            if not item.keymap:
-                continue
-
             # Only check the first item in the tools key-map (a little arbitrary).
-            kmi_first = item.keymap[0].keymap_items[0]
-            kmi_found = wm.keyconfigs.find_item_from_operator(
-                idname=kmi_first.idname,
-                # properties=kmi_first.properties,  # prevents matches, don't use.
-            )[1]
+            if item.operator is not None:
+                kmi_found = wm.keyconfigs.find_item_from_operator(
+                    idname=item.operator,
+                )[1]
+            elif item.keymap is not None:
+                kmi_first = item.keymap[0].keymap_items[0]
+                kmi_found = wm.keyconfigs.find_item_from_operator(
+                    idname=kmi_first.idname,
+                    # properties=kmi_first.properties,  # prevents matches, don't use.
+                )[1]
+                del kmi_first
+            else:
+                kmi_found = None
+
             if kmi_found is not None:
                 kmi_found_type = kmi_found.type
                 # Only for single keys.
