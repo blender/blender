@@ -41,7 +41,7 @@
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define MAX_SHADERS (1 << 10)
 
-#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->color_type & V3D_SHADING_TEXTURE_COLOR)
+#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->shading.color_type & V3D_SHADING_TEXTURE_COLOR)
 #define FLAT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_FLAT)
 #define STUDIOLIGHT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_STUDIO)
 #define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP)
@@ -59,7 +59,6 @@
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) || CAVITY_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
-#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->color_type & V3D_SHADING_TEXTURE_COLOR)
 
 
 typedef struct WORKBENCH_FramebufferList {
@@ -153,7 +152,6 @@ typedef struct WORKBENCH_PrivateData {
 	View3DShading shading;
 	StudioLight *studio_light;
 	UserDef *user_preferences;
-	int color_type;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
