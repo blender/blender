@@ -4856,8 +4856,8 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 #endif
-	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
-	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "use_hide_panels", true);
 
 #ifdef USE_WM_KEYMAP_27X
@@ -4964,9 +4964,9 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	        "reverse", true);
 #else
 	/* play (forward and backwards) */
-	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(
-	        WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", SPACEKEY, KM_PRESS, KM_CTRL | KM_ALT, 0)->ptr,
+	        WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", SPACEKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr,
 	        "reverse", true);
 #endif
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_cancel", ESCKEY, KM_PRESS, 0, 0);
