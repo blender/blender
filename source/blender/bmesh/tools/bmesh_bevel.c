@@ -1551,13 +1551,13 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
 		
-		while ((!neg && !EDGE_DATA_CHECK(e, flag) || (neg && EDGE_DATA_CHECK(e, flag))) && ne != efirst) {
+		while ((!neg && !EDGE_DATA_CHECK(ne, flag) || (neg && EDGE_DATA_CHECK(ne, flag))) && ne != efirst) {
 			if (ne->is_bev)
 				flag_count++;
 			ne = ne->next;
 		}
-		if (ne == e || (ne == efirst && (!neg && !EDGE_DATA_CHECK(e, flag) ||
-										(neg && EDGE_DATA_CHECK(e, flag))))) {
+		if (ne == e || (ne == efirst && (!neg && !EDGE_DATA_CHECK(efirst, flag) ||
+										(neg && EDGE_DATA_CHECK(efirst, flag))))) {
 			break;
 		}
  		if (flag == BM_ELEM_SEAM)
@@ -1657,6 +1657,8 @@ static void bevel_extend_edge_data(BevVert *bv)
 
 static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, BMOperator *op)
 {
+	if (bp->hnmode == BEVEL_HN_NONE)
+		return;
 	int mode = 1;
 
 	VMesh *vm = bv->vmesh;
@@ -1724,69 +1726,6 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 		}
 		bcur = bcur->next;
 	} while (bcur != bstart);
-}
-
-static void bevel_fix_normal_shading_continuity(BevelParams *bp, BMesh *bm, BevVert *bv)
-{
-	GHash *faceHash = bp->faceHash;
-	VMesh *vm = bv->vmesh;
-	BoundVert *bcur = bv->vmesh->boundstart, *start = bcur;
-	int ns = vm->seg;
-	int ns2 = ns / 2;
-
-	BMLoop *l;
-	BMIter liter;
-
-	int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
-	float ref = 20.0f;
-
-	do {
-		for (int i = 0; i <= ns; i++) {
-			BMVert *v1 = mesh_vert(vm, bcur->index, 0, i)->v;
-			BMEdge *e;
-			BMIter eiter;
-
-			BM_ITER_ELEM(e, &eiter, v1, BM_EDGES_OF_VERT) {
-				BMFace *f_a, *f_b;
-				BM_edge_face_pair(e, &f_a, &f_b);
-
-				bool _f_a = false, _f_b = false;
-				if (f_a)
-					_f_a = BLI_ghash_haskey(faceHash, f_a);
-				if (f_b)
-					_f_b = BLI_ghash_haskey(faceHash, f_b);
-				if (_f_a ^ _f_b) {
-
-					BM_ITER_ELEM(l, &liter, v1, BM_LOOPS_OF_VERT) {
-
-						if (l->f == f_a || l->f == f_b) {
-							const int l_index = BM_elem_index_get(l);
-							short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
-							float n_final[3], pow_a[3], pow_b[3];
-
-							zero_v3(n_final);
-							copy_v3_v3(pow_a, f_a->no);
-							copy_v3_v3(pow_b, f_b->no);
-							if (_f_a) {
-								mul_v3_fl(pow_a, ns / ref);
-								mul_v3_fl(pow_b, ref / ns);
-							}
-							else {
-								mul_v3_fl(pow_b, ns / ref);
-								mul_v3_fl(pow_a, ref / ns);
-							}
-							add_v3_v3(n_final, pow_a);
-							add_v3_v3(n_final, pow_b);
-							normalize_v3(n_final);
-
-							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
-						}
-					}
-				}
-			}
-		}
-		bcur = bcur->next;
-	} while (bcur != start);
 }
 
 /* Set the any_seam property for a BevVert and all its BoundVerts */
@@ -3761,7 +3700,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 		vm1 = adj_vmesh(bp, bv);
 	}
 
-	bool do_fix_shading_bv = ((bp->faceHash != NULL) && bv->fix_shading);
+	bool do_fix_shading_bv = bp->faceHash != NULL;
 
 	/* copy final vmesh into bv->vmesh, make BMVerts and BMFaces */
 	vm = bv->vmesh;
