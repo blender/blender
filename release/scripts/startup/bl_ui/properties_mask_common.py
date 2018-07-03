@@ -378,6 +378,12 @@ class MASK_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("mask.select_all", text="All").action = 'SELECT'
+        layout.operator("mask.select_all", text="None").action = 'DESELECT'
+        layout.operator("mask.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
         layout.operator("mask.select_border")
         layout.operator("mask.select_circle")
 
@@ -388,8 +394,6 @@ class MASK_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("mask.select_all").action = 'TOGGLE'
-        layout.operator("mask.select_all", text="Inverse").action = 'INVERT'
         layout.operator("mask.select_linked", text="Select Linked")
 
 

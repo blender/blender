@@ -139,24 +139,25 @@ class IMAGE_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("uv.select_all", text="All").action = 'SELECT'
+        layout.operator("uv.select_all", text="None").action = 'DESELECT'
+        layout.operator("uv.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
         layout.operator("uv.select_border").pinned = False
         layout.operator("uv.select_border", text="Border Select Pinned").pinned = True
         layout.operator("uv.circle_select")
 
         layout.separator()
 
-        layout.operator("uv.select_all").action = 'TOGGLE'
-        layout.operator("uv.select_all", text="Inverse").action = 'INVERT'
+        layout.operator("uv.select_less", text="Less")
+        layout.operator("uv.select_more", text="More")
 
         layout.separator()
 
         layout.operator("uv.select_pinned")
         layout.operator("uv.select_linked").extend = False
-
-        layout.separator()
-
-        layout.operator("uv.select_less", text="Less")
-        layout.operator("uv.select_more", text="More")
 
         layout.separator()
 

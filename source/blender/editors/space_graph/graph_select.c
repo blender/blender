@@ -162,10 +162,24 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	ale_active = get_active_fcurve_channel(&ac);
 
 	/* 'standard' behavior - check if selected, then apply relevant selection */
-	if (RNA_boolean_get(op->ptr, "invert"))
-		deselect_graph_keys(&ac, 0, SELECT_INVERT, true);
-	else
-		deselect_graph_keys(&ac, 1, SELECT_ADD, true);
+	const int action = RNA_enum_get(op->ptr, "action");
+	switch (action) {
+		case SEL_TOGGLE:
+			deselect_graph_keys(&ac, 1, SELECT_ADD, true);
+			break;
+		case SEL_SELECT:
+			deselect_graph_keys(&ac, 0, SELECT_ADD, true);
+			break;
+		case SEL_DESELECT:
+			deselect_graph_keys(&ac, 0, SELECT_SUBTRACT, true);
+			break;
+		case SEL_INVERT:
+			deselect_graph_keys(&ac, 0, SELECT_INVERT, true);
+			break;
+		default:
+			BLI_assert(0);
+			break;
+	}
 
 	/* restore active F-Curve... */
 	if (ale_active) {
@@ -186,11 +200,11 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_select_all_toggle(wmOperatorType *ot)
+void GRAPH_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select All";
-	ot->idname = "GRAPH_OT_select_all_toggle";
+	ot->idname = "GRAPH_OT_select_all";
 	ot->description = "Toggle selection of all keyframes";
 
 	/* api callbacks */
@@ -200,8 +214,8 @@ void GRAPH_OT_select_all_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	/* properties */
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************** Border Select Operator **************************** */

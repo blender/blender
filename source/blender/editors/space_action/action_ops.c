@@ -57,7 +57,7 @@ void action_operatortypes(void)
 	/* keyframes */
 	/* selection */
 	WM_operatortype_append(ACTION_OT_clickselect);
-	WM_operatortype_append(ACTION_OT_select_all_toggle);
+	WM_operatortype_append(ACTION_OT_select_all);
 	WM_operatortype_append(ACTION_OT_select_border);
 	WM_operatortype_append(ACTION_OT_select_lasso);
 	WM_operatortype_append(ACTION_OT_select_circle);
@@ -169,10 +169,12 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
 
 	/* deselect all */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "invert", false);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "invert", true);
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_SELECT);
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_all", AKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
 	/* borderselect */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_border", BKEY, KM_PRESS, 0, 0);

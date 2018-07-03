@@ -62,7 +62,7 @@ void timeline_draw_cache(struct SpaceAction *saction, struct Object *ob, struct 
 /* ***************************************** */
 /* action_select.c */
 
-void ACTION_OT_select_all_toggle(struct wmOperatorType *ot);
+void ACTION_OT_select_all(struct wmOperatorType *ot);
 void ACTION_OT_select_border(struct wmOperatorType *ot);
 void ACTION_OT_select_lasso(struct wmOperatorType *ot);
 void ACTION_OT_select_circle(struct wmOperatorType *ot);

@@ -58,7 +58,7 @@ void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, str
 
 void deselect_graph_keys(struct bAnimContext *ac, bool test, short sel, bool do_channels);
 
-void GRAPH_OT_select_all_toggle(struct wmOperatorType *ot);
+void GRAPH_OT_select_all(struct wmOperatorType *ot);
 void GRAPH_OT_select_border(struct wmOperatorType *ot);
 void GRAPH_OT_select_lasso(struct wmOperatorType *ot);
 void GRAPH_OT_select_circle(struct wmOperatorType *ot);
