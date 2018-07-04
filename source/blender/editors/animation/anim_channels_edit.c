@@ -3253,7 +3253,7 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 
 	/* grouping */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_group", GKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_ungroup", GKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 }
 
 /* ************************************************************************** */
