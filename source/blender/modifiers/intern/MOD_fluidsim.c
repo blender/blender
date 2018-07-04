@@ -76,11 +76,6 @@ static void copyData(const ModifierData *md, ModifierData *target, const int UNU
 			tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
 		}
 	}
-
-	/* Seems to never be used, but for sqke of consistency... */
-	BLI_assert(fluidmd->point_cache == NULL);
-	BLI_assert(tfluidmd->point_cache == NULL);
-	tfluidmd->point_cache = NULL;
 }
 
 
