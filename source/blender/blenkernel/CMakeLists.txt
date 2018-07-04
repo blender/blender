@@ -276,6 +276,7 @@ set(SRC
 	BKE_mesh_iterators.h
 	BKE_mesh_mapping.h
 	BKE_mesh_remap.h
+	BKE_mesh_runtime.h
 	BKE_mesh_tangent.h
 	BKE_modifier.h
 	BKE_movieclip.h
