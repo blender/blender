@@ -87,7 +87,7 @@ static bool POSE_is_bone_selection_overlay_active(void)
 {
 	const DRWContextState *dcs = DRW_context_state_get();
 	const View3D *v3d = dcs->v3d;
-	return v3d && (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECTION);
+	return v3d && (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECTION) && OBPOSE_FROM_OBACT(dcs->obact);
 }
 
 static void POSE_engine_init(void *UNUSED(vedata))
