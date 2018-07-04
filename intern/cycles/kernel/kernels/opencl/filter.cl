@@ -23,7 +23,7 @@
 /* kernels */
 
 __kernel void kernel_ocl_filter_divide_shadow(int sample,
-                                              ccl_global TilesInfo *tiles,
+                                              ccl_global TileInfo *tile_info,
                                               ccl_global float *unfilteredA,
                                               ccl_global float *unfilteredB,
                                               ccl_global float *sampleVariance,
@@ -51,7 +51,7 @@ __kernel void kernel_ocl_filter_divide_shadow(int sample,
 }
 
 __kernel void kernel_ocl_filter_get_feature(int sample,
-                                            ccl_global TilesInfo *tiles,
+                                            ccl_global TileInfo *tile_info,
                                             int m_offset,
                                             int v_offset,
                                             ccl_global float *mean,
@@ -277,26 +277,26 @@ __kernel void kernel_ocl_filter_finalize(ccl_global float *buffer,
 	}
 }
 
-__kernel void kernel_ocl_filter_set_tiles(ccl_global TilesInfo* tiles,
-                                          ccl_global float *buffer_1,
-                                          ccl_global float *buffer_2,
-                                          ccl_global float *buffer_3,
-                                          ccl_global float *buffer_4,
-                                          ccl_global float *buffer_5,
-                                          ccl_global float *buffer_6,
-                                          ccl_global float *buffer_7,
-                                          ccl_global float *buffer_8,
-                                          ccl_global float *buffer_9)
+__kernel void kernel_ocl_filter_set_tile_info(ccl_global TileInfo* tile_info,
+                                              ccl_global float *buffer_1,
+                                              ccl_global float *buffer_2,
+                                              ccl_global float *buffer_3,
+                                              ccl_global float *buffer_4,
+                                              ccl_global float *buffer_5,
+                                              ccl_global float *buffer_6,
+                                              ccl_global float *buffer_7,
+                                              ccl_global float *buffer_8,
+                                              ccl_global float *buffer_9)
 {
 	if((get_global_id(0) == 0) && (get_global_id(1) == 0)) {
-		tiles->buffers[0] = buffer_1;
-		tiles->buffers[1] = buffer_2;
-		tiles->buffers[2] = buffer_3;
-		tiles->buffers[3] = buffer_4;
-		tiles->buffers[4] = buffer_5;
-		tiles->buffers[5] = buffer_6;
-		tiles->buffers[6] = buffer_7;
-		tiles->buffers[7] = buffer_8;
-		tiles->buffers[8] = buffer_9;
+		tile_info->buffers[0] = buffer_1;
+		tile_info->buffers[1] = buffer_2;
+		tile_info->buffers[2] = buffer_3;
+		tile_info->buffers[3] = buffer_4;
+		tile_info->buffers[4] = buffer_5;
+		tile_info->buffers[5] = buffer_6;
+		tile_info->buffers[6] = buffer_7;
+		tile_info->buffers[7] = buffer_8;
+		tile_info->buffers[8] = buffer_9;
 	}
 }

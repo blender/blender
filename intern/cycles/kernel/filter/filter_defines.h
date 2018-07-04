@@ -22,7 +22,7 @@
 #define XTWX_SIZE      (((DENOISE_FEATURES+1)*(DENOISE_FEATURES+2))/2)
 #define XTWY_SIZE      (DENOISE_FEATURES+1)
 
-typedef struct TilesInfo {
+typedef struct TileInfo {
 	int offsets[9];
 	int strides[9];
 	int x[4];
@@ -33,6 +33,6 @@ typedef struct TilesInfo {
 #else
 	long long int buffers[9];
 #endif
-} TilesInfo;
+} TileInfo;
 
 #endif /* __FILTER_DEFINES_H__*/

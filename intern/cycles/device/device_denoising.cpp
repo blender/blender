@@ -21,7 +21,7 @@
 CCL_NAMESPACE_BEGIN
 
 DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
-: tiles_mem(device, "denoising tiles_mem", MEM_READ_WRITE),
+: tile_info_mem(device, "denoising tile info mem", MEM_READ_WRITE),
   storage(device),
   buffer(device),
   device(device)
@@ -55,33 +55,33 @@ DenoisingTask::~DenoisingTask()
 	storage.temporary_2.free();
 	storage.temporary_color.free();
 	buffer.mem.free();
-	tiles_mem.free();
+	tile_info_mem.free();
 }
 
 void DenoisingTask::set_render_buffer(RenderTile *rtiles)
 {
-	tiles = (TilesInfo*) tiles_mem.alloc(sizeof(TilesInfo)/sizeof(int));
+	tile_info = (TileInfo*) tile_info_mem.alloc(sizeof(TileInfo)/sizeof(int));
 
 	device_ptr buffers[9];
 	for(int i = 0; i < 9; i++) {
 		buffers[i] = rtiles[i].buffer;
-		tiles->offsets[i] = rtiles[i].offset;
-		tiles->strides[i] = rtiles[i].stride;
+		tile_info->offsets[i] = rtiles[i].offset;
+		tile_info->strides[i] = rtiles[i].stride;
 	}
-	tiles->x[0] = rtiles[3].x;
-	tiles->x[1] = rtiles[4].x;
-	tiles->x[2] = rtiles[5].x;
-	tiles->x[3] = rtiles[5].x + rtiles[5].w;
-	tiles->y[0] = rtiles[1].y;
-	tiles->y[1] = rtiles[4].y;
-	tiles->y[2] = rtiles[7].y;
-	tiles->y[3] = rtiles[7].y + rtiles[7].h;
+	tile_info->x[0] = rtiles[3].x;
+	tile_info->x[1] = rtiles[4].x;
+	tile_info->x[2] = rtiles[5].x;
+	tile_info->x[3] = rtiles[5].x + rtiles[5].w;
+	tile_info->y[0] = rtiles[1].y;
+	tile_info->y[1] = rtiles[4].y;
+	tile_info->y[2] = rtiles[7].y;
+	tile_info->y[3] = rtiles[7].y + rtiles[7].h;
 
 	target_buffer.offset = rtiles[9].offset;
 	target_buffer.stride = rtiles[9].stride;
 	target_buffer.ptr    = rtiles[9].buffer;
 
-	functions.set_tiles(buffers);
+	functions.set_tile_info(buffers);
 }
 
 void DenoisingTask::setup_denoising_buffer()
@@ -89,7 +89,7 @@ void DenoisingTask::setup_denoising_buffer()
 	/* Expand filter_area by radius pixels and clamp the result to the extent of the neighboring tiles */
 	rect = rect_from_shape(filter_area.x, filter_area.y, filter_area.z, filter_area.w);
 	rect = rect_expand(rect, radius);
-	rect = rect_clip(rect, make_int4(tiles->x[0], tiles->y[0], tiles->x[3], tiles->y[3]));
+	rect = rect_clip(rect, make_int4(tile_info->x[0], tile_info->y[0], tile_info->x[3], tile_info->y[3]));
 
 	buffer.passes = 14;
 	buffer.width = rect.z - rect.x;

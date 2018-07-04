@@ -1251,14 +1251,14 @@ public:
 		}
 	}
 
-	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
+	bool denoising_set_tile_info(device_ptr *buffers, DenoisingTask *task)
 	{
-		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.host_pointer;
+		TileInfo *tile_info = (TileInfo*) task->tile_info_mem.host_pointer;
 		for(int i = 0; i < 9; i++) {
-			tiles->buffers[i] = buffers[i];
+			tile_info->buffers[i] = buffers[i];
 		}
 
-		task->tiles_mem.copy_to_device();
+		task->tile_info_mem.copy_to_device();
 
 		return !have_error();
 	}
@@ -1534,7 +1534,7 @@ public:
 		                   task->rect.w-task->rect.y);
 
 		void *args[] = {&task->render_buffer.samples,
-		                &task->tiles_mem.device_pointer,
+		                &task->tile_info_mem.device_pointer,
 		                &a_ptr,
 		                &b_ptr,
 		                &sample_variance_ptr,
@@ -1568,7 +1568,7 @@ public:
 		                   task->rect.w-task->rect.y);
 
 		void *args[] = {&task->render_buffer.samples,
-		                &task->tiles_mem.device_pointer,
+		                &task->tile_info_mem.device_pointer,
 		                &mean_offset,
 		                &variance_offset,
 		                &mean_ptr,
@@ -1622,7 +1622,7 @@ public:
 		denoising.functions.combine_halves = function_bind(&CUDADevice::denoising_combine_halves, this, _1, _2, _3, _4, _5, _6, &denoising);
 		denoising.functions.get_feature = function_bind(&CUDADevice::denoising_get_feature, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.detect_outliers = function_bind(&CUDADevice::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising);
-		denoising.functions.set_tiles = function_bind(&CUDADevice::denoising_set_tiles, this, _1, &denoising);
+		denoising.functions.set_tile_info = function_bind(&CUDADevice::denoising_set_tile_info, this, _1, &denoising);
 
 		denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
 		denoising.render_buffer.samples = rtile.sample;

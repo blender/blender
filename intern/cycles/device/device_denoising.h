@@ -48,8 +48,8 @@ public:
 		device_ptr ptr;
 	} target_buffer;
 
-	TilesInfo *tiles;
-	device_vector<int> tiles_mem;
+	TileInfo *tile_info;
+	device_vector<int> tile_info_mem;
 
 	int4 rect;
 	int4 filter_area;
@@ -89,7 +89,7 @@ public:
 		              device_ptr depth_ptr,
 		              device_ptr output_ptr
 		              )> detect_outliers;
-		function<bool(device_ptr*)> set_tiles;
+		function<bool(device_ptr*)> set_tile_info;
 		function<void(RenderTile *rtiles)> map_neighbor_tiles;
 		function<void(RenderTile *rtiles)> unmap_neighbor_tiles;
 	} functions;
