@@ -960,6 +960,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		UI_block_emboss_set(node->block, UI_EMBOSS);
 
+		UI_GetThemeColor4fv(TH_TEXT, color);
 		/* custom draw function for this button */
 		UI_draw_icon_tri(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v', color);
 	}
@@ -1079,6 +1080,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		UI_block_emboss_set(node->block, UI_EMBOSS);
 
+		UI_GetThemeColor4fv(TH_TEXT, color);
 		/* custom draw function for this button */
 		UI_draw_icon_tri(rct->xmin + 10.0f, centy, 'h', color);
 	}
