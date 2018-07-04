@@ -704,12 +704,12 @@ static void initData(ModifierData *md)
 	lmd->flag = 0;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const LaplacianDeformModifierData *lmd = (const LaplacianDeformModifierData *)md;
 	LaplacianDeformModifierData *tlmd = (LaplacianDeformModifierData *)target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	tlmd->vertexco = MEM_dupallocN(lmd->vertexco);
 	tlmd->cache_system = NULL;

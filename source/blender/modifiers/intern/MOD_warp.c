@@ -65,12 +65,12 @@ static void initData(ModifierData *md)
 	wmd->flag = 0;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const WarpModifierData *wmd = (const WarpModifierData *) md;
 	WarpModifierData *twmd = (WarpModifierData *) target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	twmd->curfalloff = curvemapping_copy(wmd->curfalloff);
 }

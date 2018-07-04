@@ -293,7 +293,7 @@ void modifiers_foreachTexLink(Object *ob, TexWalkFunc walk, void *userData)
 /* callback's can use this
  * to avoid copying every member.
  */
-void modifier_copyData_generic(const ModifierData *md_src, ModifierData *md_dst)
+void modifier_copyData_generic(const ModifierData *md_src, ModifierData *md_dst, const int UNUSED(flag))
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md_src->type);
 
@@ -326,7 +326,7 @@ void modifier_copyData_ex(ModifierData *md, ModifierData *target, const int flag
 	target->flag = md->flag;
 
 	if (mti->copyData) {
-		mti->copyData(md, target);
+		mti->copyData(md, target, flag);
 	}
 
 	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {

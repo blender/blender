@@ -80,12 +80,12 @@ static void initData(ModifierData *md)
 }
 
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const CorrectiveSmoothModifierData *csmd = (const CorrectiveSmoothModifierData *)md;
 	CorrectiveSmoothModifierData *tcsmd = (CorrectiveSmoothModifierData *)target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	if (csmd->bind_coords) {
 		tcsmd->bind_coords = MEM_dupallocN(csmd->bind_coords);
