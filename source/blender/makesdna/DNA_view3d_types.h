@@ -238,7 +238,7 @@ typedef struct View3D {
 	short flag3;
 
 	/* drawflags, denoting state */
-	char zbuf  DNA_DEPRECATED;
+	char _pad2;
 	char transp, xray;
 
 	char multiview_eye;				/* multiview current eye - for internal use */
