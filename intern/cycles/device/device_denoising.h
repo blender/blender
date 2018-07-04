@@ -89,7 +89,6 @@ public:
 		              device_ptr depth_ptr,
 		              device_ptr output_ptr
 		              )> detect_outliers;
-		function<bool(device_ptr*)> set_tile_info;
 		function<void(RenderTile *rtiles)> map_neighbor_tiles;
 		function<void(RenderTile *rtiles)> unmap_neighbor_tiles;
 	} functions;

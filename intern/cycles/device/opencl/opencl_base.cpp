@@ -246,7 +246,6 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	denoising_program.add_kernel(ustring("filter_nlm_normalize"));
 	denoising_program.add_kernel(ustring("filter_nlm_construct_gramian"));
 	denoising_program.add_kernel(ustring("filter_finalize"));
-	denoising_program.add_kernel(ustring("filter_set_tile_info"));
 
 	vector<OpenCLProgram*> programs;
 	programs.push_back(&base_program);
@@ -981,9 +980,16 @@ bool OpenCLDeviceBase::denoising_divide_shadow(device_ptr a_ptr,
 
 	cl_kernel ckFilterDivideShadow = denoising_program(ustring("filter_divide_shadow"));
 
-	kernel_set_args(ckFilterDivideShadow, 0,
-	                task->render_buffer.samples,
-	                tile_info_mem,
+	int arg_ofs = kernel_set_args(ckFilterDivideShadow, 0,
+	                              task->render_buffer.samples,
+	                              tile_info_mem);
+	cl_mem buffers[9];
+	for(int i = 0; i < 9; i++) {
+		buffers[i] = CL_MEM_PTR(task->tile_info->buffers[i]);
+		arg_ofs += kernel_set_args(ckFilterDivideShadow, arg_ofs,
+		                           buffers[i]);
+	}
+	kernel_set_args(ckFilterDivideShadow, arg_ofs,
 	                a_mem,
 	                b_mem,
 	                sample_variance_mem,
@@ -1012,9 +1018,16 @@ bool OpenCLDeviceBase::denoising_get_feature(int mean_offset,
 
 	cl_kernel ckFilterGetFeature = denoising_program(ustring("filter_get_feature"));
 
-	kernel_set_args(ckFilterGetFeature, 0,
-	                task->render_buffer.samples,
-	                tile_info_mem,
+	int arg_ofs = kernel_set_args(ckFilterGetFeature, 0,
+	                              task->render_buffer.samples,
+	                              tile_info_mem);
+	cl_mem buffers[9];
+	for(int i = 0; i < 9; i++) {
+		buffers[i] = CL_MEM_PTR(task->tile_info->buffers[i]);
+		arg_ofs += kernel_set_args(ckFilterGetFeature, arg_ofs,
+		                           buffers[i]);
+	}
+	kernel_set_args(ckFilterGetFeature, arg_ofs,
 	                mean_offset,
 	                variance_offset,
 	                mean_mem,
@@ -1056,29 +1069,8 @@ bool OpenCLDeviceBase::denoising_detect_outliers(device_ptr image_ptr,
 	return true;
 }
 
-bool OpenCLDeviceBase::denoising_set_tile_info(device_ptr *buffers,
-                                               DenoisingTask *task)
-{
-	task->tile_info_mem.copy_to_device();
-
-	cl_mem tile_info_mem = CL_MEM_PTR(task->tile_info_mem.device_pointer);
-
-	cl_kernel ckFilterSetTileInfo = denoising_program(ustring("filter_set_tile_info"));
-
-	kernel_set_args(ckFilterSetTileInfo, 0, tile_info_mem);
-	for(int i = 0; i < 9; i++) {
-		cl_mem buffer_mem = CL_MEM_PTR(buffers[i]);
-		kernel_set_args(ckFilterSetTileInfo, i+1, buffer_mem);
-	}
-
-	enqueue_kernel(ckFilterSetTileInfo, 1, 1);
-
-	return true;
-}
-
 void OpenCLDeviceBase::denoise(RenderTile &rtile, DenoisingTask& denoising)
 {
-	denoising.functions.set_tile_info = function_bind(&OpenCLDeviceBase::denoising_set_tile_info, this, _1, &denoising);
 	denoising.functions.construct_transform = function_bind(&OpenCLDeviceBase::denoising_construct_transform, this, &denoising);
 	denoising.functions.reconstruct = function_bind(&OpenCLDeviceBase::denoising_reconstruct, this, _1, _2, _3, &denoising);
 	denoising.functions.divide_shadow = function_bind(&OpenCLDeviceBase::denoising_divide_shadow, this, _1, _2, _3, _4, _5, &denoising);

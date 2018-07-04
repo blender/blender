@@ -62,11 +62,10 @@ void DenoisingTask::set_render_buffer(RenderTile *rtiles)
 {
 	tile_info = (TileInfo*) tile_info_mem.alloc(sizeof(TileInfo)/sizeof(int));
 
-	device_ptr buffers[9];
 	for(int i = 0; i < 9; i++) {
-		buffers[i] = rtiles[i].buffer;
 		tile_info->offsets[i] = rtiles[i].offset;
 		tile_info->strides[i] = rtiles[i].stride;
+		tile_info->buffers[i] = rtiles[i].buffer;
 	}
 	tile_info->x[0] = rtiles[3].x;
 	tile_info->x[1] = rtiles[4].x;
@@ -81,7 +80,7 @@ void DenoisingTask::set_render_buffer(RenderTile *rtiles)
 	target_buffer.stride = rtiles[9].stride;
 	target_buffer.ptr    = rtiles[9].buffer;
 
-	functions.set_tile_info(buffers);
+	tile_info_mem.copy_to_device();
 }
 
 void DenoisingTask::setup_denoising_buffer()

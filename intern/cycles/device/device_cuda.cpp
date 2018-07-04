@@ -1251,18 +1251,6 @@ public:
 		}
 	}
 
-	bool denoising_set_tile_info(device_ptr *buffers, DenoisingTask *task)
-	{
-		TileInfo *tile_info = (TileInfo*) task->tile_info_mem.host_pointer;
-		for(int i = 0; i < 9; i++) {
-			tile_info->buffers[i] = buffers[i];
-		}
-
-		task->tile_info_mem.copy_to_device();
-
-		return !have_error();
-	}
-
 #define CUDA_GET_BLOCKSIZE(func, w, h)                                                                          \
 			int threads_per_block;                                                                              \
 			cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
@@ -1622,7 +1610,6 @@ public:
 		denoising.functions.combine_halves = function_bind(&CUDADevice::denoising_combine_halves, this, _1, _2, _3, _4, _5, _6, &denoising);
 		denoising.functions.get_feature = function_bind(&CUDADevice::denoising_get_feature, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.detect_outliers = function_bind(&CUDADevice::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising);
-		denoising.functions.set_tile_info = function_bind(&CUDADevice::denoising_set_tile_info, this, _1, &denoising);
 
 		denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
 		denoising.render_buffer.samples = rtile.sample;

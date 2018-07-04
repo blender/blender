@@ -26,7 +26,7 @@ CCL_NAMESPACE_BEGIN
  * bufferVariance: The buffer-based variance of the shadow feature. Unbiased, but quite noisy.
  */
 ccl_device void kernel_filter_divide_shadow(int sample,
-                                            ccl_global TileInfo *tile_info,
+                                            CCL_FILTER_TILE_INFO,
                                             int x, int y,
                                             ccl_global float *unfilteredA,
                                             ccl_global float *unfilteredB,
@@ -43,7 +43,7 @@ ccl_device void kernel_filter_divide_shadow(int sample,
 
 	int offset = tile_info->offsets[tile];
 	int stride = tile_info->strides[tile];
-	const ccl_global float *ccl_restrict center_buffer = (ccl_global float*) tile_info->buffers[tile];
+	const ccl_global float *ccl_restrict center_buffer = (ccl_global float*) ccl_get_tile_buffer(tile);
 	center_buffer += (y*stride + x + offset)*buffer_pass_stride;
 	center_buffer += buffer_denoising_offset + 14;
 
@@ -79,7 +79,7 @@ ccl_device void kernel_filter_divide_shadow(int sample,
  * - rect: The prefilter area (lower pixels inclusive, upper pixels exclusive).
  */
 ccl_device void kernel_filter_get_feature(int sample,
-                                          ccl_global TileInfo *tile_info,
+                                          CCL_FILTER_TILE_INFO,
                                           int m_offset, int v_offset,
                                           int x, int y,
                                           ccl_global float *mean,
@@ -90,7 +90,7 @@ ccl_device void kernel_filter_get_feature(int sample,
 	int xtile = (x < tile_info->x[1])? 0: ((x < tile_info->x[2])? 1: 2);
 	int ytile = (y < tile_info->y[1])? 0: ((y < tile_info->y[2])? 1: 2);
 	int tile = ytile*3+xtile;
-	ccl_global float *center_buffer = ((ccl_global float*) tile_info->buffers[tile]) + (tile_info->offsets[tile] + y*tile_info->strides[tile] + x)*buffer_pass_stride + buffer_denoising_offset;
+	ccl_global float *center_buffer = ((ccl_global float*) ccl_get_tile_buffer(tile)) + (tile_info->offsets[tile] + y*tile_info->strides[tile] + x)*buffer_pass_stride + buffer_denoising_offset;
 
 	int buffer_w = align_up(rect.z - rect.x, 4);
 	int idx = (y-rect.y)*buffer_w + (x - rect.x);
