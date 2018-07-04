@@ -4463,7 +4463,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "clear", true);
 
 	/* unwrap */
-	WM_keymap_add_item(keymap, "UV_OT_unwrap", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_unwrap", UKEY, KM_PRESS, 0, 0);
 #ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "UV_OT_minimize_stretch", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_pack_islands", PKEY, KM_PRESS, KM_CTRL, 0);

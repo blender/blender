@@ -406,6 +406,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_faces_select_linked_flat", FKEY, KM_PRESS, (KM_CTRL | KM_SHIFT | KM_ALT), 0);
 #endif
 
+	WM_keymap_add_item(keymap, "MESH_OT_select_mirror", MKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* hide */
@@ -512,7 +514,9 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_vertices", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_uv_map", UKEY, KM_PRESS, 0, 0);
+
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_vertex_group", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_group_remove_from", GKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 
 #ifdef USE_WM_KEYMAP_27X
 	/* useful stuff from object-mode */
