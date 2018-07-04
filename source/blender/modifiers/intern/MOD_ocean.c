@@ -163,7 +163,7 @@ static void freeData(ModifierData *md)
 #endif /* WITH_OCEANSIM */
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int UNUSED(flag))
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #ifdef WITH_OCEANSIM
 #if 0
@@ -171,7 +171,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int UNU
 #endif
 	OceanModifierData *tomd = (OceanModifierData *) target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	tomd->refresh = 0;
 
@@ -186,6 +186,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int UNU
 	/* unused */
 	(void)md;
 	(void)target;
+	(void)flag;
 #endif /* WITH_OCEANSIM */
 }
 
