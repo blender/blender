@@ -991,7 +991,7 @@ bool OpenCLDeviceBase::denoising_divide_shadow(device_ptr a_ptr,
 	                buffer_variance_mem,
 	                task->rect,
 	                task->render_buffer.pass_stride,
-	                task->render_buffer.denoising_data_offset);
+	                task->render_buffer.offset);
 	enqueue_kernel(ckFilterDivideShadow,
 	               task->rect.z-task->rect.x,
 	               task->rect.w-task->rect.y);
@@ -1021,7 +1021,7 @@ bool OpenCLDeviceBase::denoising_get_feature(int mean_offset,
 	                variance_mem,
 	                task->rect,
 	                task->render_buffer.pass_stride,
-	                task->render_buffer.denoising_data_offset);
+	                task->render_buffer.offset);
 	enqueue_kernel(ckFilterGetFeature,
 	               task->rect.z-task->rect.x,
 	               task->rect.w-task->rect.y);
@@ -1076,7 +1076,7 @@ bool OpenCLDeviceBase::denoising_set_tiles(device_ptr *buffers,
 	return true;
 }
 
-void OpenCLDeviceBase::denoise(RenderTile &rtile, DenoisingTask& denoising, const DeviceTask &task)
+void OpenCLDeviceBase::denoise(RenderTile &rtile, DenoisingTask& denoising)
 {
 	denoising.functions.set_tiles = function_bind(&OpenCLDeviceBase::denoising_set_tiles, this, _1, &denoising);
 	denoising.functions.construct_transform = function_bind(&OpenCLDeviceBase::denoising_construct_transform, this, &denoising);
@@ -1090,14 +1090,7 @@ void OpenCLDeviceBase::denoise(RenderTile &rtile, DenoisingTask& denoising, cons
 	denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
 	denoising.render_buffer.samples = rtile.sample;
 
-	RenderTile rtiles[9];
-	rtiles[4] = rtile;
-	task.map_neighbor_tiles(rtiles, this);
-	denoising.tiles_from_rendertiles(rtiles);
-
-	denoising.run_denoising();
-
-	task.unmap_neighbor_tiles(rtiles, this);
+	denoising.run_denoising(&rtile);
 }
 
 void OpenCLDeviceBase::shader(DeviceTask& task)

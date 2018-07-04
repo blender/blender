@@ -635,7 +635,7 @@ public:
 				                              (float*) buffer_variance_ptr,
 				                              &task->rect.x,
 				                              task->render_buffer.pass_stride,
-				                              task->render_buffer.denoising_data_offset);
+				                              task->render_buffer.offset);
 			}
 		}
 		return true;
@@ -658,7 +658,7 @@ public:
 				                            (float*) variance_ptr,
 				                            &task->rect.x,
 				                            task->render_buffer.pass_stride,
-				                            task->render_buffer.denoising_data_offset);
+				                            task->render_buffer.offset);
 			}
 		}
 		return true;
@@ -711,7 +711,7 @@ public:
 		}
 	}
 
-	void denoise(DeviceTask &task, DenoisingTask& denoising, RenderTile &tile)
+	void denoise(DenoisingTask& denoising, RenderTile &tile)
 	{
 		tile.sample = tile.start_sample + tile.num_samples;
 
@@ -727,16 +727,7 @@ public:
 		denoising.filter_area = make_int4(tile.x, tile.y, tile.w, tile.h);
 		denoising.render_buffer.samples = tile.sample;
 
-		RenderTile rtiles[9];
-		rtiles[4] = tile;
-		task.map_neighbor_tiles(rtiles, this);
-		denoising.tiles_from_rendertiles(rtiles);
-
-		denoising.run_denoising();
-
-		task.unmap_neighbor_tiles(rtiles, this);
-
-		task.update_progress(&tile, tile.w*tile.h);
+		denoising.run_denoising(&tile);
 	}
 
 	void thread_render(DeviceTask& task)
@@ -777,7 +768,9 @@ public:
 				}
 			}
 			else if(tile.task == RenderTile::DENOISE) {
-				denoise(task, denoising, tile);
+				denoise(denoising, tile);
+
+				task.update_progress(&tile, tile.w*tile.h);
 			}
 
 			task.release_tile(tile);

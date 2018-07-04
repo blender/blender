@@ -159,7 +159,7 @@ public:
 				}
 				else if(tile.task == RenderTile::DENOISE) {
 					tile.sample = tile.start_sample + tile.num_samples;
-					denoise(tile, denoising, *task);
+					denoise(tile, denoising);
 					task->update_progress(&tile, tile.w*tile.h);
 				}
 

@@ -32,20 +32,24 @@ public:
 	float nlm_k_2;
 	float pca_threshold;
 
-	/* Pointer and parameters of the RenderBuffers. */
+	/* Parameters of the RenderBuffers. */
 	struct RenderBuffers {
-		int denoising_data_offset;
-		int denoising_clean_offset;
-		int pass_stride;
 		int offset;
-		int stride;
-		device_ptr ptr;
+		int pass_stride;
 		int samples;
 	} render_buffer;
 
+	/* Pointer and parameters of the target buffer. */
+	struct TargetBuffer {
+		int offset;
+		int stride;
+		int pass_stride;
+		int denoising_clean_offset;
+		device_ptr ptr;
+	} target_buffer;
+
 	TilesInfo *tiles;
 	device_vector<int> tiles_mem;
-	void tiles_from_rendertiles(RenderTile *rtiles);
 
 	int4 rect;
 	int4 filter_area;
@@ -86,6 +90,8 @@ public:
 		              device_ptr output_ptr
 		              )> detect_outliers;
 		function<bool(device_ptr*)> set_tiles;
+		function<void(RenderTile *rtiles)> map_neighbor_tiles;
+		function<void(RenderTile *rtiles)> unmap_neighbor_tiles;
 	} functions;
 
 	/* Stores state of the current Reconstruction operation,
@@ -141,7 +147,7 @@ public:
 	DenoisingTask(Device *device, const DeviceTask &task);
 	~DenoisingTask();
 
-	void run_denoising();
+	void run_denoising(RenderTile *tile);
 
 	struct DenoiseBuffers {
 		int pass_stride;

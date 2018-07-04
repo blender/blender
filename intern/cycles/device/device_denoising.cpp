@@ -36,8 +36,13 @@ DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
 	}
 
 	render_buffer.pass_stride = task.pass_stride;
-	render_buffer.denoising_data_offset = task.pass_denoising_data;
-	render_buffer.denoising_clean_offset = task.pass_denoising_clean;
+	render_buffer.offset = task.pass_denoising_data;
+
+	target_buffer.pass_stride = task.pass_stride;
+	target_buffer.denoising_clean_offset = task.pass_denoising_clean;
+
+	functions.map_neighbor_tiles = function_bind(task.map_neighbor_tiles, _1, device);
+	functions.unmap_neighbor_tiles = function_bind(task.unmap_neighbor_tiles, _1, device);
 }
 
 DenoisingTask::~DenoisingTask()
@@ -53,8 +58,7 @@ DenoisingTask::~DenoisingTask()
 	tiles_mem.free();
 }
 
-
-void DenoisingTask::tiles_from_rendertiles(RenderTile *rtiles)
+void DenoisingTask::set_render_buffer(RenderTile *rtiles)
 {
 	tiles = (TilesInfo*) tiles_mem.alloc(sizeof(TilesInfo)/sizeof(int));
 
@@ -73,9 +77,9 @@ void DenoisingTask::tiles_from_rendertiles(RenderTile *rtiles)
 	tiles->y[2] = rtiles[7].y;
 	tiles->y[3] = rtiles[7].y + rtiles[7].h;
 
-	render_buffer.offset = rtiles[4].offset;
-	render_buffer.stride = rtiles[4].stride;
-	render_buffer.ptr    = rtiles[4].buffer;
+	target_buffer.offset = rtiles[9].offset;
+	target_buffer.stride = rtiles[9].stride;
+	target_buffer.ptr    = rtiles[9].buffer;
 
 	functions.set_tiles(buffers);
 }
@@ -228,21 +232,26 @@ void DenoisingTask::reconstruct()
 	storage.XtWY.alloc_to_device(storage.w*storage.h*XTWY_SIZE, false);
 
 	reconstruction_state.filter_window = rect_from_shape(filter_area.x-rect.x, filter_area.y-rect.y, storage.w, storage.h);
-	int tile_coordinate_offset = filter_area.y*render_buffer.stride + filter_area.x;
-	reconstruction_state.buffer_params = make_int4(render_buffer.offset + tile_coordinate_offset,
-	                                               render_buffer.stride,
-	                                               render_buffer.pass_stride,
-	                                               render_buffer.denoising_clean_offset);
+	int tile_coordinate_offset = filter_area.y*target_buffer.stride + filter_area.x;
+	reconstruction_state.buffer_params = make_int4(target_buffer.offset + tile_coordinate_offset,
+	                                               target_buffer.stride,
+	                                               target_buffer.pass_stride,
+	                                               target_buffer.denoising_clean_offset);
 	reconstruction_state.source_w = rect.z-rect.x;
 	reconstruction_state.source_h = rect.w-rect.y;
 
 	device_sub_ptr color_ptr    (buffer.mem,  8*buffer.pass_stride, 3*buffer.pass_stride);
 	device_sub_ptr color_var_ptr(buffer.mem, 11*buffer.pass_stride, 3*buffer.pass_stride);
-	functions.reconstruct(*color_ptr, *color_var_ptr, render_buffer.ptr);
+	functions.reconstruct(*color_ptr, *color_var_ptr, target_buffer.ptr);
 }
 
-void DenoisingTask::run_denoising()
+void DenoisingTask::run_denoising(RenderTile *tile)
 {
+	RenderTile rtiles[10];
+	rtiles[4] = *tile;
+	functions.map_neighbor_tiles(rtiles);
+	set_render_buffer(rtiles);
+
 	setup_denoising_buffer();
 
 	prefilter_shadowing();
@@ -252,6 +261,7 @@ void DenoisingTask::run_denoising()
 	construct_transform();
 	reconstruct();
 
+	functions.unmap_neighbor_tiles(rtiles);
 }
 
 CCL_NAMESPACE_END
