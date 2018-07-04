@@ -474,29 +474,26 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 /* this is event from ghost, or exit-blender op */
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
-	wmWindow *tmpwin;
-
-	/* first check if we have to quit (there are non-temp and non-child windows remaining) */
-	if (win->parent == NULL) {
-		for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {
-			if (tmpwin == win)
-				continue;
-			if (tmpwin->parent == NULL)
-				break;
-			if (WM_window_is_temp_screen(tmpwin) == false)
-				break;
-		}
-
-		if (tmpwin == NULL) {
-			wm_quit_with_optional_confirmation_prompt(C, win);
-			return;
+	/* First check if there is another main window remaining. */
+	wmWindow *win_other;
+	for (win_other = wm->windows.first; win_other; win_other = win_other->next) {
+		if (win_other != win &&
+		    win_other->parent == NULL &&
+		    !WM_window_is_temp_screen(win_other))
+		{
+			break;
 		}
 	}
 
+	if (win->parent == NULL && win_other == NULL) {
+		wm_quit_with_optional_confirmation_prompt(C, win);
+		return;
+	}
+
 	/* close child windows */
-	for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {
-		if (tmpwin->parent == win) {
-			wm_window_close(C, wm, tmpwin);
+	for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
+		if (win_child->parent == win) {
+			wm_window_close(C, wm, win_child);
 		}
 	}
 
@@ -516,7 +513,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 		ED_screen_exit(C, win, screen);
 	}
 
-	if (tmpwin) {
+	if (win_other) {
 		BLF_batch_reset();
 		gpu_batch_presets_reset();
 		immDeactivate();
@@ -525,9 +522,9 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 	wm_window_free(C, wm, win);
 
 	/* keep imediatemode active before the next `wm_window_make_drawable` call */
-	if (tmpwin) {
-		GHOST_ActivateWindowDrawingContext(tmpwin->ghostwin);
-		GWN_context_active_set(tmpwin->gwnctx);
+	if (win_other) {
+		GHOST_ActivateWindowDrawingContext(win_other->ghostwin);
+		GWN_context_active_set(win_other->gwnctx);
 		immActivate();
 	}
 
