@@ -531,7 +531,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 #ifdef USE_WM_KEYMAP_27X
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
 #else
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 #endif
 	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator");
 
