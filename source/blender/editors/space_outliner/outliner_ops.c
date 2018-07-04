@@ -552,8 +552,9 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_delete", IKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "OUTLINER_OT_drivers_add_selected", DKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_ALT, 0);
+	/* Note: was D, Alt-D, keep these free for duplicate. */
+	WM_keymap_add_item(keymap, "OUTLINER_OT_drivers_add_selected", DKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_new", CKEY, KM_PRESS, 0, 0);
 
