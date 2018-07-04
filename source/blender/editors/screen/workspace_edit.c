@@ -112,6 +112,7 @@ static WorkSpaceLayout *workspace_change_get_new_layout(
         Main *bmain, WorkSpace *workspace_new, wmWindow *win)
 {
 	/* ED_workspace_duplicate may have stored a layout to activate once the workspace gets activated. */
+	WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
 	WorkSpaceLayout *layout_new;
 	bScreen *screen_new;
 
@@ -132,8 +133,8 @@ static WorkSpaceLayout *workspace_change_get_new_layout(
 		                                   workspace_new, layout_new, workspace_change_find_new_layout_cb,
 		                                   NULL, false);
 		if (!layout_temp) {
-			/* fallback solution: duplicate layout */
-			layout_temp = ED_workspace_layout_duplicate(bmain, workspace_new, layout_new, win);
+			/* fallback solution: duplicate layout from old workspace */
+			layout_temp = ED_workspace_layout_duplicate(bmain, workspace_new, layout_old, win);
 		}
 		layout_new = layout_temp;
 	}
