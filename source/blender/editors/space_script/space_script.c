@@ -178,7 +178,7 @@ static void script_header_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void script_main_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
         wmNotifier *UNUSED(wmn), const Scene *UNUSED(scene))
 {
 	/* context changes */

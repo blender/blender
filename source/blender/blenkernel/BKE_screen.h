@@ -88,9 +88,8 @@ typedef struct SpaceType {
 	/* exit is called when the area is hidden or removed */
 	void (*exit)(struct wmWindowManager *wm, struct ScrArea *sa);
 	/* Listeners can react to bContext changes */
-	void (*listener)(struct bScreen *sc, struct ScrArea *sa,
-	                 struct wmNotifier *wmn, struct Scene *scene,
-	                 struct WorkSpace *workspace);
+	void (*listener)(struct wmWindow *win, struct ScrArea *sa,
+	                 struct wmNotifier *wmn, struct Scene *scene);
 
 	/* refresh context, called after filereads, ED_area_tag_refresh() */
 	void (*refresh)(const struct bContext *C, struct ScrArea *sa);
@@ -146,7 +145,7 @@ typedef struct ARegionType {
 	/* snap the size of the region (can be NULL for no snapping). */
 	int (*snap_size)(const struct ARegion *ar, int size, int axis);
 	/* contextual changes should be handled here */
-	void (*listener)(struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar,
+	void (*listener)(struct wmWindow *win, struct ScrArea *sa, struct ARegion *ar,
 	                 struct wmNotifier *wmn, const struct Scene *scene);
 	/* Optional callback to generate subscriptions. */
 	void (*message_subscribe)(

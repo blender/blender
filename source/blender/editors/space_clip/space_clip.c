@@ -323,8 +323,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 	return (SpaceLink *)scn;
 }
 
-static void clip_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
-                          WorkSpace *UNUSED(workspace))
+static void clip_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -1212,7 +1211,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void clip_main_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -1343,7 +1342,7 @@ static void clip_preview_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void clip_preview_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
         wmNotifier *UNUSED(wmn), const Scene *UNUSED(scene))
 {
 }
@@ -1386,7 +1385,7 @@ static void clip_channels_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void clip_channels_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
         wmNotifier *UNUSED(wmn), const Scene *UNUSED(scene))
 {
 }
@@ -1405,7 +1404,7 @@ static void clip_header_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void clip_header_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -1447,7 +1446,7 @@ static void clip_tools_region_draw(const bContext *C, ARegion *ar)
 /****************** tool properties region ******************/
 
 static void clip_props_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -1494,7 +1493,7 @@ static void clip_properties_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void clip_properties_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */

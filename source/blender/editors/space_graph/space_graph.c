@@ -430,7 +430,7 @@ static void graph_buttons_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void graph_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -568,8 +568,7 @@ static void graph_region_message_subscribe(
 }
 
 /* editor level listener */
-static void graph_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
-                           WorkSpace *UNUSED(workspace))
+static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
 

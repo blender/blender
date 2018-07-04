@@ -283,7 +283,7 @@ static void buttons_main_region_layout(const bContext *C, ARegion *ar)
 }
 
 static void buttons_main_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn,
         const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -361,8 +361,7 @@ static void buttons_area_redraw(ScrArea *sa, short buttons)
 
 /* reused! */
 static void buttons_area_listener(
-        bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
-        WorkSpace *UNUSED(workspace))
+        wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
 {
 	SpaceButs *sbuts = sa->spacedata.first;
 

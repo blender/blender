@@ -473,13 +473,13 @@ void wm_event_do_notifiers(bContext *C)
 				ED_screen_do_listen(C, note);
 
 				for (ar = screen->regionbase.first; ar; ar = ar->next) {
-					ED_region_do_listen(screen, NULL, ar, note, scene);
+					ED_region_do_listen(win, NULL, ar, note, scene);
 				}
 
 				ED_screen_areas_iter(win, screen, sa) {
-					ED_area_do_listen(screen, sa, note, scene, workspace);
+					ED_area_do_listen(win, sa, note, scene);
 					for (ar = sa->regionbase.first; ar; ar = ar->next) {
-						ED_region_do_listen(screen, sa, ar, note, scene);
+						ED_region_do_listen(win, sa, ar, note, scene);
 					}
 				}
 			}
