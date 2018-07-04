@@ -13,8 +13,7 @@ vec2 mapping_octahedron(vec3 cubevec, vec2 texel_size)
 	vec2 uvs = cubevec.xy * (0.5) + 0.5;
 
 	/* edge filtering fix */
-	uvs *= 1.0 - 2.0 * texel_size;
-	uvs += texel_size;
+	uvs = (1.0 - 2.0 * texel_size) * uvs + texel_size;
 
 	return uvs;
 }

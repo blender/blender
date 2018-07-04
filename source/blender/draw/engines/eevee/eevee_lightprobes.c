@@ -1091,20 +1091,7 @@ static void glossy_filter_probe(
 		float bias = (i == 0) ? -1.0f : 1.0f;
 		pinfo->texel_size = 1.0f / mipsize;
 		pinfo->padding_size = powf(2.0f, (float)(maxlevel - min_lod_level - 1 - i));
-		/* XXX : WHY THE HECK DO WE NEED THIS ??? */
-		/* padding is incorrect without this! float precision issue? */
-		if (pinfo->padding_size > 32) {
-			pinfo->padding_size += 5;
-		}
-		if (pinfo->padding_size > 16) {
-			pinfo->padding_size += 4;
-		}
-		else if (pinfo->padding_size > 8) {
-			pinfo->padding_size += 2;
-		}
-		else if (pinfo->padding_size > 4) {
-			pinfo->padding_size += 1;
-		}
+		pinfo->padding_size *= pinfo->texel_size;
 		pinfo->layer = probe_idx;
 		pinfo->roughness = (float)i / ((float)maxlevel - 4.0f);
 		pinfo->roughness *= pinfo->roughness; /* Disney Roughness */
