@@ -600,7 +600,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 
 	/* menu + single-step transform */
 	WM_keymap_add_item(keymap, "GRAPH_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "GRAPH_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", VKEY, KM_PRESS, 0, 0);
 
