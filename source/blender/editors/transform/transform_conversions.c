@@ -5463,10 +5463,6 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 		MEM_freeN(custom_data->data);
 		custom_data->data = NULL;
 	}
-	if (tc->data) {
-		MEM_freeN(tc->data); // XXX postTrans usually does this
-		tc->data = NULL;
-	}
 }
 
 static void createTransSeqData(bContext *C, TransInfo *t)
