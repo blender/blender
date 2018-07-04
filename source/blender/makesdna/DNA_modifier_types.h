@@ -119,6 +119,8 @@ typedef struct ModifierData {
 typedef enum {
 	/* This modifier has been inserted in local override, and hence can be fully edited. */
 	eModifierFlag_StaticOverride_Local  = (1 << 0),
+	/* This modifier does not own its caches, but instead shares them with another modifier. */
+	eModifierFlag_SharedCaches          = (1 << 1),
 } ModifierFlag;
 
 typedef enum {
@@ -608,8 +610,12 @@ typedef struct ClothModifierData {
 	struct Cloth *clothObject;            /* The internal data structure for cloth. */
 	struct ClothSimSettings *sim_parms;   /* definition is in DNA_cloth_types.h */
 	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+
+	/* PointCache can be shared with other instances of ClothModifierData.
+	 * Inspect (modifier.flag & eModifierFlag_SharedCaches) to find out. */
 	struct PointCache *point_cache;       /* definition is in DNA_object_force_types.h */
 	struct ListBase ptcaches;
+
 	/* XXX nasty hack, remove once hair can be separated from cloth modifier data */
 	struct ClothHairData *hairdata;
 	/* grid geometry values of hair continuum */
