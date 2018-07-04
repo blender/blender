@@ -1389,9 +1389,9 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 	pid->ob= ob;
 	pid->calldata= sb;
 	pid->type= PTCACHE_TYPE_SOFTBODY;
-	pid->cache= sb->pointcache;
-	pid->cache_ptr= &sb->pointcache;
-	pid->ptcaches= &sb->ptcaches;
+	pid->cache= sb->shared->pointcache;
+	pid->cache_ptr= &sb->shared->pointcache;
+	pid->ptcaches= &sb->shared->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_softbody_totpoint;
 	pid->error					= ptcache_softbody_error;
 

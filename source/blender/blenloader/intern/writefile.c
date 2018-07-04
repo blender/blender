@@ -1816,9 +1816,13 @@ static void write_object(WriteData *wd, Object *ob)
 		write_motionpath(wd, ob->mpath);
 
 		writestruct(wd, DATA, PartDeflect, 1, ob->pd);
-		writestruct(wd, DATA, SoftBody, 1, ob->soft);
 		if (ob->soft) {
-			write_pointcaches(wd, &ob->soft->ptcaches);
+			/* Set deprecated pointers to prevent crashes of older Blenders */
+			ob->soft->pointcache = ob->soft->shared->pointcache;
+			ob->soft->ptcaches = ob->soft->shared->ptcaches;
+			writestruct(wd, DATA, SoftBody, 1, ob->soft);
+			writestruct(wd, DATA, SoftBody_Shared, 1, ob->soft->shared);
+			write_pointcaches(wd, &(ob->soft->shared->ptcaches));
 			writestruct(wd, DATA, EffectorWeights, 1, ob->soft->effector_weights);
 		}
 

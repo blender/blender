@@ -37,6 +37,7 @@ extern "C" {
 #endif
 
 #include "DNA_listBase.h"
+#include "DNA_defs.h"
 
 /* pd->forcefield:  Effector Fields types */
 typedef enum ePFieldType {
@@ -218,6 +219,15 @@ typedef struct SBVertex {
 	float vec[4];
 } SBVertex;
 
+/* Container for data that is shared among CoW copies.
+ *
+ * This is placed in a separate struct so that values can be changed
+ * without having to update all CoW copies. */
+typedef struct SoftBody_Shared {
+	struct PointCache *pointcache;
+	struct ListBase ptcaches;
+} SoftBody_Shared;
+
 typedef struct SoftBody {
 	/* dynamic data */
 	int totpoint, totspring;
@@ -289,8 +299,9 @@ typedef struct SoftBody {
 	float shearstiff;
 	float inpush;
 
-	struct PointCache *pointcache;
-	struct ListBase ptcaches;
+	struct SoftBody_Shared *shared;
+	struct PointCache *pointcache DNA_DEPRECATED;  /* Moved to SoftBody_Shared */
+	struct ListBase ptcaches DNA_DEPRECATED;  /* Moved to SoftBody_Shared */
 
 	struct Collection *collision_group;
 

@@ -716,7 +716,7 @@ static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
 static PointerRNA rna_SoftBodyModifier_point_cache_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
-	return rna_pointer_inherit_refine(ptr, &RNA_PointCache, ob->soft->pointcache);
+	return rna_pointer_inherit_refine(ptr, &RNA_PointCache, ob->soft->shared->pointcache);
 }
 
 static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)

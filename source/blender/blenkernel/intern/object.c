@@ -834,6 +834,7 @@ void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src
 {
 	SoftBody *sb = ob_src->soft;
 	SoftBody *sbn;
+	bool tagged_no_main = ob_dst->id.tag & LIB_TAG_NO_MAIN;
 
 	ob_dst->softflag = ob_src->softflag;
 	if (sb == NULL) {
@@ -872,7 +873,10 @@ void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src
 
 	sbn->scratch = NULL;
 
-	sbn->pointcache = BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches, flag);
+	if (tagged_no_main == 0) {
+		sbn->shared = MEM_dupallocN(sb->shared);
+		sbn->shared->pointcache = BKE_ptcache_copy_list(&sbn->shared->ptcaches, &sb->shared->ptcaches, flag);
+	}
 
 	if (sb->effector_weights)
 		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);

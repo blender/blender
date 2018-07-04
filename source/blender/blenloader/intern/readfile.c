@@ -5437,7 +5437,18 @@ static void direct_link_object(FileData *fd, Object *ob)
 		if (!sb->effector_weights)
 			sb->effector_weights = BKE_add_effector_weights(NULL);
 
-		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache, 0);
+		sb->shared = newdataadr(fd, sb->shared);
+		if (sb->shared == NULL) {
+			/* Link deprecated caches if they exist, so we can use them for versioning.
+			 * We should only do this when sb->shared == NULL, because those pointers
+			 * are always set (for compatibility with older Blenders). We mustn't link
+			 * the same pointcache twice. */
+			direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache, false);
+		}
+		else {
+			/* link caches */
+			direct_link_pointcache_list(fd, &sb->shared->ptcaches, &sb->shared->pointcache, false);
+		}
 	}
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 

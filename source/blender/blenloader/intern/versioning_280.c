@@ -1559,5 +1559,24 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		if (!DNA_struct_elem_find(fd->filesdna, "SoftBody", "SoftBody_Shared", "*shared")) {
+			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+				SoftBody *sb = ob->soft;
+				if (sb == NULL) {
+					continue;
+				}
+				if (sb->shared == NULL) {
+					sb->shared = MEM_callocN(sizeof(*sb->shared), "SoftBody_Shared");
+				}
+
+				/* Move shared pointers from deprecated location to current location */
+				sb->shared->pointcache = sb->pointcache;
+				sb->shared->ptcaches = sb->ptcaches;
+
+				sb->pointcache = NULL;
+				BLI_listbase_clear(&sb->ptcaches);
+			}
+		}
+
 	}
 }
