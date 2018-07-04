@@ -173,24 +173,25 @@ void outliner_object_mode_toggle(
 /* Outliner Element Selection/Activation on Click */
 
 static eOLDrawState active_viewlayer(
-        bContext *C, Scene *UNUSED(scene), ViewLayer *UNUSED(sl), TreeElement *te, TreeStoreElem *tselem, const eOLSetState set)
+        bContext *C, Scene *UNUSED(scene), ViewLayer *UNUSED(sl), TreeElement *te, const eOLSetState set)
 {
-	Scene *sce;
-
 	/* paranoia check */
 	if (te->idcode != ID_SCE)
 		return OL_DRAWSEL_NONE;
-	sce = (Scene *)tselem->id;
 
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	ViewLayer *view_layer = te->directdata;
 
 	if (set != OL_SETSEL_NONE) {
-		BKE_workspace_view_layer_set(workspace, view_layer, sce);
-		WM_event_add_notifier(C, NC_SCREEN | ND_LAYER, NULL);
+		wmWindow *win = CTX_wm_window(C);
+		Scene *scene = WM_window_get_active_scene(win);
+
+		if (BLI_findindex(&scene->view_layers, view_layer) != -1) {
+			WM_window_set_active_view_layer(win, view_layer);
+			WM_event_add_notifier(C, NC_SCREEN | ND_LAYER, NULL);
+		}
 	}
 	else {
-		return BKE_workspace_view_layer_get(workspace, sce) == view_layer;
+		return CTX_data_view_layer(C) == view_layer;
 	}
 	return OL_DRAWSEL_NONE;
 }
@@ -895,7 +896,7 @@ eOLDrawState tree_element_type_active(
 		case TSE_CONSTRAINT:
 			return tree_element_active_constraint(C, scene, view_layer, te, tselem, set);
 		case TSE_R_LAYER:
-			return active_viewlayer(C, scene, view_layer, te, tselem, set);
+			return active_viewlayer(C, scene, view_layer, te, set);
 		case TSE_POSEGRP:
 			return tree_element_active_posegroup(C, scene, view_layer, te, tselem, set);
 		case TSE_SEQUENCE:

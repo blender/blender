@@ -112,7 +112,7 @@ struct WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm
 
 struct Scene *WM_window_get_active_scene(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 void          WM_window_set_active_scene(struct Main *bmain, struct bContext *C, struct wmWindow *win,
-                                            struct Scene *scene_new) ATTR_NONNULL();
+                                         struct Scene *scene_new) ATTR_NONNULL();
 struct WorkSpace *WM_window_get_active_workspace(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 void              WM_window_set_active_workspace(struct bContext *C, struct wmWindow *win, struct WorkSpace *workspace) ATTR_NONNULL(1);
 struct WorkSpaceLayout *WM_window_get_active_layout(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
@@ -121,8 +121,9 @@ void                    WM_window_set_active_layout(
 struct bScreen *WM_window_get_active_screen(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 void            WM_window_set_active_screen(struct wmWindow *win, struct WorkSpace *workspace, struct bScreen *screen) ATTR_NONNULL(1);
 
-struct ViewLayer *WM_window_get_active_view_layer_ex(const struct wmWindow *win, struct Scene **r_scene) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 struct ViewLayer *WM_window_get_active_view_layer(const struct wmWindow *win) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+void              WM_window_set_active_view_layer(struct wmWindow *win, struct ViewLayer *view_layer) ATTR_NONNULL(1);
+void              WM_window_ensure_active_view_layer(struct wmWindow *win) ATTR_NONNULL(1);
 
 bool WM_window_is_temp_screen(const struct wmWindow *win) ATTR_WARN_UNUSED_RESULT;
 

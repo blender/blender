@@ -42,7 +42,6 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_workspace.h"
 #include "BKE_object.h"
 
 #include "DNA_group_types.h"
@@ -130,17 +129,22 @@ ViewLayer *BKE_view_layer_default_render(const Scene *scene)
 	return scene->view_layers.first;
 }
 
-/**
- * Returns the ViewLayer to be used for drawing, outliner, and other context related areas.
- */
-ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const struct WorkSpace *workspace)
+/* Returns view layer with matching name, or NULL if not found. */
+ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
 {
-	return BKE_workspace_view_layer_get(workspace, scene);
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		if (STREQ(view_layer->name, layer_name)) {
+			return view_layer;
+		}
+	}
+
+	return NULL;
 }
 
 /**
- * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
- * Never use this, you should either use BKE_view_layer_from_workspace_get or get ViewLayer explicitly.
+ * This is a placeholder to know which areas of the code need to be addressed
+ * for the Workspace changes. Never use this, you should typically get the
+ * active layer from the context or window.
  */
 ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
@@ -418,9 +422,15 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
 		}
 	}
 
-	/* fix all the animation data and workspace which may link to this */
+	/* fix all the animation data and windows which may link to this */
 	BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
-	BKE_workspace_view_layer_rename(bmain, scene, oldname, view_layer->name);
+
+	wmWindowManager *wm = bmain->wm.first;
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		if (win->scene == scene && STREQ(win->view_layer_name, oldname)) {
+			STRNCPY(win->view_layer_name, view_layer->name);
+		}
+	}
 
 	/* Dependency graph uses view layer name based lookups. */
 	DEG_id_tag_update(&scene->id, 0);

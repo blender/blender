@@ -936,10 +936,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					/* allow callback to set a different screen */
 					BKE_workspace_layout_screen_set(layout, screen);
 				}
-
-				for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first; relation; relation = relation->next) {
-					CALLBACK_INVOKE(relation->scene, IDWALK_CB_NOP);
-				}
 				break;
 			}
 			case ID_GD:

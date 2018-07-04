@@ -49,6 +49,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
@@ -71,6 +72,8 @@
 #include "ED_buttons.h"
 #include "ED_node.h"
 #include "ED_screen.h"
+
+#include "WM_api.h"
 
 #include "../interface/interface_intern.h"
 
@@ -176,8 +179,10 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 
 	const ID_Type id_type = pinid != NULL ? GS(pinid->name) : -1;
 	if (!pinid || id_type == ID_SCE) {
-		WorkSpace *workspace = CTX_wm_workspace(C);
-		ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+		wmWindow *win = CTX_wm_window(C);
+		ViewLayer *view_layer = (win->scene == scene) ?
+			WM_window_get_active_view_layer(win) :
+			BKE_view_layer_default_view(scene);
 
 		brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 		linestyle = BKE_linestyle_active_from_view_layer(view_layer);

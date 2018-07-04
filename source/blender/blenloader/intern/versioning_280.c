@@ -97,14 +97,9 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 {
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
-		Scene *scene = screen->scene;
 		WorkSpace *workspace;
-		ViewLayer *layer = BLI_findlink(&scene->view_layers, scene->r.actlay);
 		if (screen->temp) {
 			continue;
-		}
-		if (!layer) {
-			layer = BKE_view_layer_default_view(scene);
 		}
 
 		if (screen_parent) {
@@ -117,7 +112,6 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
 		}
 		BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
-		BKE_workspace_view_layer_set(workspace, layer, scene);
 	}
 }
 
@@ -178,7 +172,16 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 			BKE_workspace_active_set(win->workspace_hook, workspace);
 			BKE_workspace_active_layout_set(win->workspace_hook, layouts->first);
 
-			win->scene = screen->scene;
+			/* Move scene and view layer to window. */
+			Scene *scene = screen->scene;
+			ViewLayer *layer = BLI_findlink(&scene->view_layers, scene->r.actlay);
+			if (!layer) {
+				layer = BKE_view_layer_default_view(scene);
+			}
+
+			win->scene = scene;
+			STRNCPY(win->view_layer_name, layer->name);
+
 			/* Deprecated from now on! */
 			win->screen = NULL;
 		}
@@ -594,7 +597,7 @@ void do_versions_after_linking_280(Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			/* same render-layer as do_version_workspaces_after_lib_link will activate,
-			 * so same layer as BKE_view_layer_from_workspace_get would return */
+			 * so same layer as BKE_view_layer_default_view would return */
 			ViewLayer *layer = screen->scene->view_layers.first;
 
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {

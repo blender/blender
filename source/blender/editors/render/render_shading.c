@@ -615,12 +615,12 @@ void WORLD_OT_new(wmOperatorType *ot)
 
 static int view_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
+	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = BKE_view_layer_add(scene, NULL);
 
-	if (workspace) {
-		BKE_workspace_view_layer_set(workspace, view_layer, scene);
+	if (win) {
+		WM_window_set_active_view_layer(win, view_layer);
 	}
 
 	DEG_id_tag_update(&scene->id, 0);

@@ -188,8 +188,9 @@ typedef struct wmWindow {
 
 	struct wmWindow *parent;    /* Parent window */
 
-	struct Scene *scene;        /* The scene displayed in this window. */
+	struct Scene *scene;        /* Active scene displayed in this window. */
 	struct Scene *new_scene;    /* temporary when switching */
+	char view_layer_name[64];   /* Active view layer displayed in this window. */
 
 	struct WorkSpaceInstanceHook *workspace_hook;
 

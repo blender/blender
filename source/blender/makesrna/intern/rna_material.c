@@ -148,8 +148,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain, Scene *s
 
 			Object *obedit = NULL;
 			{
-				WorkSpace *workspace = WM_window_get_active_workspace(win);
-				ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+				ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 				obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 			}
 

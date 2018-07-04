@@ -1482,7 +1482,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 {
 	WorkSpace *workspace = WM_window_get_active_workspace(win);
 	const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-	Scene *scene = WM_window_get_active_scene(win);
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	ARegion *ar;
 	rcti rect, overlap_rect;
 	rcti window_rect;
@@ -1542,7 +1542,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		region_azones_add(screen, sa, ar, ar->alignment & ~RGN_SPLIT_PREV);
 	}
 
-	WM_toolsystem_refresh_screen_area(workspace, scene, sa);
+	WM_toolsystem_refresh_screen_area(workspace, view_layer, sa);
 }
 
 static void region_update_rect(ARegion *ar)

@@ -944,35 +944,36 @@ static void screen_set_3dview_camera(Scene *scene, ViewLayer *view_layer, ScrAre
 	}
 }
 
-static ViewLayer *scene_change_get_new_view_layer(const WorkSpace *workspace, const Scene *scene_new)
-{
-	ViewLayer *layer_new = BKE_workspace_view_layer_exists(workspace, scene_new);
-	return layer_new ? layer_new : BKE_view_layer_default_view(scene_new);
-}
-
 void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
 {
-	const bScreen *screen = WM_window_get_active_screen(win);
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	ViewLayer *view_layer = scene_change_get_new_view_layer(workspace, scene);
-
 #if 0
-	/* mode syncing */
-	Object *obact_new = OBACT(view_layer);
-	UNUSED_VARS(obact_new);
-	eObjectMode object_mode_old = workspace->object_mode;
-	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
-	Object *obact_old = OBACT(layer_old);
-	UNUSED_VARS(obact_old, object_mode_old);
+	ViewLayer *view_layer_old = WM_window_get_active_view_layer(win);
 #endif
 
-	BKE_workspace_view_layer_set(workspace, view_layer, scene);
-
+	/* Switch scene. */
 	win->scene = scene;
 	if (CTX_wm_window(C) == win) {
 		CTX_data_scene_set(C, scene);
 	}
 
+	/* Ensure the view layer name is updated. */
+	WM_window_ensure_active_view_layer(win);
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+
+#if 0
+	/* Mode Syncing. */
+	if (view_layer_old) {
+		WorkSpace *workspace = CTX_wm_workspace(C);
+		Object *obact_new = OBACT(view_layer);
+		UNUSED_VARS(obact_new);
+		eObjectMode object_mode_old = workspace->object_mode;
+		Object *obact_old = OBACT(view_layer_old);
+		UNUSED_VARS(obact_old, object_mode_old);
+	}
+#endif
+
+	/* Update 3D view cameras. */
+	const bScreen *screen = WM_window_get_active_screen(win);
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 			if (sl->spacetype == SPACE_VIEW3D) {

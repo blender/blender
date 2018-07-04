@@ -773,8 +773,8 @@ static void rna_workspace_screen_update(bContext *C, PointerRNA *ptr)
 static PointerRNA rna_Window_view_layer_get(PointerRNA *ptr)
 {
 	wmWindow *win = ptr->data;
-	Scene *scene;
-	ViewLayer *view_layer = WM_window_get_active_view_layer_ex(win, &scene);
+	Scene *scene = WM_window_get_active_scene(win);;
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	PointerRNA scene_ptr;
 
 	RNA_id_pointer_create(&scene->id, &scene_ptr);
@@ -784,10 +784,9 @@ static PointerRNA rna_Window_view_layer_get(PointerRNA *ptr)
 static void rna_Window_view_layer_set(PointerRNA *ptr, PointerRNA value)
 {
 	wmWindow *win = ptr->data;
-	Scene *scene = WM_window_get_active_scene(win);
-	WorkSpace *workspace = WM_window_get_active_workspace(win);
+	ViewLayer *view_layer = value.data;
 
-	BKE_workspace_view_layer_set(workspace, value.data, scene);
+	WM_window_set_active_view_layer(win, view_layer);
 }
 
 static PointerRNA rna_KeyMapItem_properties_get(PointerRNA *ptr)

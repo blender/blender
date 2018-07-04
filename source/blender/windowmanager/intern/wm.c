@@ -463,6 +463,7 @@ void wm_add_default(Main *bmain, bContext *C)
 	CTX_wm_manager_set(C, wm);
 	win = wm_window_new(C, NULL);
 	win->scene = CTX_data_scene(C);
+	STRNCPY(win->view_layer_name, CTX_data_view_layer(C)->name);
 	BKE_workspace_active_set(win->workspace_hook, workspace);
 	BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace, layout);
 	screen->winid = win->winid;

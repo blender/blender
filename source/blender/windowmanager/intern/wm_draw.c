@@ -729,9 +729,8 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 /* quick test to prevent changing window drawable */
 static bool wm_draw_update_test_window(wmWindow *win)
 {
-	struct WorkSpace *workspace = WM_window_get_active_workspace(win);
 	Scene *scene = WM_window_get_active_scene(win);
-	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	bScreen *screen = WM_window_get_active_screen(win);
 	ARegion *ar;

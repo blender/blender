@@ -53,6 +53,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_icons.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -280,7 +281,6 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 	wmWindow *win_dst = wm_window_new(C, win_parent);
 	WorkSpace *workspace = WM_window_get_active_workspace(win_src);
 	WorkSpaceLayout *layout_old = WM_window_get_active_layout(win_src);
-	Scene *scene = WM_window_get_active_scene(win_src);
 	WorkSpaceLayout *layout_new;
 
 	win_dst->posx = win_src->posx + 10;
@@ -288,7 +288,8 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 	win_dst->sizex = win_src->sizex;
 	win_dst->sizey = win_src->sizey;
 
-	win_dst->scene = scene;
+	win_dst->scene = win_src->scene;
+	STRNCPY(win_dst->view_layer_name, win_src->view_layer_name);
 	BKE_workspace_active_set(win_dst->workspace_hook, workspace);
 	layout_new = duplicate_layout ? ED_workspace_layout_duplicate(bmain, workspace, layout_old, win_dst) : layout_old;
 	BKE_workspace_hook_layout_for_workspace_set(win_dst->workspace_hook, workspace, layout_new);
@@ -856,6 +857,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 	bScreen *screen;
 	ScrArea *sa;
 	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const char *title;
 
 	/* convert to native OS window coordinates */
@@ -912,12 +914,10 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 		WM_window_set_active_layout(win, workspace, layout);
 	}
 
-	if (win->scene == NULL) {
-		win->scene = scene;
-	}
-	/* In case we reuse an already existing temp window (see win lookup above). */
-	else if (WM_window_get_active_scene(win) != scene) {
-		WM_window_set_active_scene(bmain, C, win, scene);
+	/* Set scene and view layer to match original window. */
+	STRNCPY(win->view_layer_name, view_layer->name);
+	if (WM_window_get_active_scene(win) != scene) {
+		ED_screen_scene_change(C, win, scene);
 	}
 
 	screen->temp = 1;
@@ -2128,22 +2128,72 @@ void WM_window_set_active_scene(Main *bmain, bContext *C, wmWindow *win, Scene *
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win_parent = (win->parent) ? win->parent : win;
+	bool changed = false;
 
 	/* Set scene in parent and its child windows. */
-	ED_screen_scene_change(C, win_parent, scene);
+	if (win_parent->scene != scene) {
+		ED_screen_scene_change(C, win_parent, scene);
+		changed = true;
+	}
 
 	for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
-		if (win_child->parent == win_parent) {
+		if (win_child->parent == win_parent && win_child->scene != scene) {
 			ED_screen_scene_change(C, win_child, scene);
+			changed = true;
 		}
 	}
 
-	/* Update depsgraph and renderers for scene change. */
-	ViewLayer *view_layer = WM_window_get_active_view_layer(win_parent);
-	ED_scene_change_update(bmain, scene, view_layer);
+	if (changed) {
+		/* Update depsgraph and renderers for scene change. */
+		ViewLayer *view_layer = WM_window_get_active_view_layer(win_parent);
+		ED_scene_change_update(bmain, scene, view_layer);
 
-	/* Complete redraw. */
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+		/* Complete redraw. */
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+	}
+}
+
+ViewLayer *WM_window_get_active_view_layer(const wmWindow *win)
+{
+	Scene *scene = WM_window_get_active_scene(win);
+	if (scene == NULL) {
+		return NULL;
+	}
+
+	ViewLayer *view_layer = BKE_view_layer_find(scene, win->view_layer_name);
+	if (view_layer) {
+		return view_layer;
+	}
+
+	return BKE_view_layer_default_view(scene);
+}
+
+void WM_window_set_active_view_layer(wmWindow *win, ViewLayer *view_layer)
+{
+	BLI_assert(BKE_view_layer_find(WM_window_get_active_scene(win), view_layer->name) != NULL);
+
+	wmWindowManager *wm = G_MAIN->wm.first;
+	wmWindow *win_parent = (win->parent) ? win->parent : win;
+
+	/* Set  view layer in parent and child windows. */
+	STRNCPY(win->view_layer_name, view_layer->name);
+
+	for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
+		if (win_child->parent == win_parent) {
+			STRNCPY(win_child->view_layer_name, view_layer->name);
+		}
+	}
+}
+
+void WM_window_ensure_active_view_layer(wmWindow *win)
+{
+	/* Update layer name is correct after scene changes, load without UI, etc. */
+	Scene *scene = WM_window_get_active_scene(win);
+
+	if (scene && BKE_view_layer_find(scene, win->view_layer_name) == NULL) {
+		ViewLayer *view_layer = BKE_view_layer_default_view(scene);
+		STRNCPY(win->view_layer_name, view_layer->name);
+	}
 }
 
 WorkSpace *WM_window_get_active_workspace(const wmWindow *win)
@@ -2187,26 +2237,6 @@ bScreen *WM_window_get_active_screen(const wmWindow *win)
 void WM_window_set_active_screen(wmWindow *win, WorkSpace *workspace, bScreen *screen)
 {
 	BKE_workspace_active_screen_set(win->workspace_hook, workspace, screen);
-}
-
-struct ViewLayer *WM_window_get_active_view_layer_ex(const wmWindow *win, Scene **r_scene)
-{
-	const WorkSpace *workspace = WM_window_get_active_workspace(win);
-	Scene *scene = WM_window_get_active_scene(win);
-	/* May be NULL in rare cases like closing Blender */
-	bScreen *screen = (LIKELY(workspace != NULL) ? BKE_workspace_active_screen_get(win->workspace_hook) : NULL);
-	if (screen != NULL) {
-		if (r_scene) {
-			*r_scene = scene;
-		}
-		return BKE_workspace_view_layer_get(workspace, scene);
-	}
-	return NULL;
-}
-
-struct ViewLayer *WM_window_get_active_view_layer(const wmWindow *win)
-{
-	return WM_window_get_active_view_layer_ex(win, NULL);
 }
 
 bool WM_window_is_temp_screen(const wmWindow *win)

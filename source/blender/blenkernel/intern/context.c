@@ -926,9 +926,17 @@ ViewLayer *CTX_data_view_layer(const bContext *C)
 	if (ctx_data_pointer_verify(C, "view_layer", (void *)&view_layer)) {
 		return view_layer;
 	}
-	else {
-		return BKE_view_layer_from_workspace_get(CTX_data_scene(C), CTX_wm_workspace(C));
+
+	wmWindow *win = CTX_wm_window(C);
+	Scene *scene = CTX_data_scene(C);
+	if (win) {
+		view_layer = BKE_view_layer_find(scene, win->view_layer_name);
+		if (view_layer) {
+			return view_layer;
+		}
 	}
+
+	return BKE_view_layer_default_view(scene);
 }
 
 RenderEngineType *CTX_data_engine_type(const bContext *C)

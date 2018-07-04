@@ -51,6 +51,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_material.h"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 

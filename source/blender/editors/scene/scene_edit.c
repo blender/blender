@@ -23,9 +23,11 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -175,11 +177,16 @@ bool ED_scene_view_layer_delete(
 	BLI_remlink(&scene->view_layers, layer);
 	BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
 
-	ED_workspace_view_layer_unset(bmain, scene, layer, scene->view_layers.first);
+	/* Remove from windows. */
+	wmWindowManager *wm = bmain->wm.first;
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		if (win->scene == scene && STREQ(win->view_layer_name, layer->name)) {
+			ViewLayer *first_layer = BKE_view_layer_default_view(scene);
+			STRNCPY(win->view_layer_name, first_layer->name);
+		}
+	}
 
 	BKE_view_layer_free(layer);
-
-	BKE_workspace_view_layer_remove(bmain, layer);
 
 	DEG_id_tag_update(&scene->id, 0);
 	DEG_relations_tag_update(bmain);

@@ -317,6 +317,7 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		const bScreen *screen = WM_window_get_active_screen(win);
 		Scene *scene = WM_window_get_active_scene(win);
+		ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 		ScrArea *sa;
 
 		CTX_wm_window_set(C, win);
@@ -338,9 +339,15 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
 			scene->customdata_mask |= scene->customdata_mask_modal;
 
-			WorkSpace *workspace = WM_window_get_active_workspace(win);
-
-			BKE_workspace_update_tagged(bmain, workspace, scene);
+			/* TODO(sergey): For now all dependency graphs which are evaluated from
+			 * workspace are considered active. This will work all fine with "locked"
+			 * view layer and time across windows. This is to be granted separately,
+			 * and for until then we have to accept ambiguities when object is shared
+			 * across visible view layers and has overrides on it.
+			 */
+			Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+			DEG_make_active(depsgraph);
+			BKE_scene_graph_update_tagged(depsgraph, bmain);
 		}
 	}
 
@@ -4380,11 +4387,11 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, struct wmWindow *win)
 	{
 		bToolRef *tref = NULL;
 		if (ar->regiontype == RGN_TYPE_WINDOW) {
-			Scene *scene = WM_window_get_active_scene(win);
+			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 			WorkSpace *workspace = WM_window_get_active_workspace(win);
 			const bToolKey tkey = {
 				.space_type = sa->spacetype,
-				.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype),
+				.mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype),
 			};
 			tref = WM_toolsystem_ref_find(workspace, &tkey);
 		}

@@ -2866,19 +2866,6 @@ static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 
 /* ************ READ WORKSPACES *************** */
 
-static void lib_link_workspace_scene_data(FileData *fd, WorkSpace *workspace)
-{
-	for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first;
-		 relation != NULL;
-		 relation = relation->next)
-	{
-		relation->scene = newlibadr(fd, workspace->id.lib, relation->scene);
-	}
-
-	/* Free any relations that got lost due to missing datablocks. */
-	BKE_workspace_scene_relations_free_invalid(workspace);
-}
-
 static void lib_link_workspaces(FileData *fd, Main *bmain)
 {
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
@@ -2890,8 +2877,6 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 		}
 		IDP_LibLinkProperty(id->properties, fd);
 		id_us_ensure_real(id);
-
-		lib_link_workspace_scene_data(fd, workspace);
 
 		for (WorkSpaceLayout *layout = layouts->first, *layout_next; layout; layout = layout_next) {
 			bScreen *screen = newlibadr(fd, id->lib, BKE_workspace_layout_screen_get(layout));
@@ -2918,7 +2903,6 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 {
 	link_list(fd, BKE_workspace_layouts_get(workspace));
 	link_list(fd, &workspace->hook_layout_relations);
-	link_list(fd, &workspace->scene_layer_relations);
 	link_list(fd, &workspace->owner_ids);
 	link_list(fd, &workspace->tools);
 
@@ -7140,19 +7124,6 @@ static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
 	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
-static void lib_link_workspace_scene_data_restore(struct IDNameLib_Map *id_map, WorkSpace *workspace)
-{
-	for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first;
-		 relation != NULL;
-		 relation = relation->next)
-	{
-		relation->scene = restore_pointer_by_name(id_map, &relation->scene->id, USER_IGNORE);
-	}
-
-	/* Free any relations that got lost due to missing datablocks or view layers. */
-	BKE_workspace_scene_relations_free_invalid(workspace);
-}
-
 static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene)
 {
 	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
@@ -7415,9 +7386,6 @@ void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene
 	struct IDNameLib_Map *id_map = BKE_main_idmap_create(newmain);
 
 	for (WorkSpace *workspace = newmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		lib_link_workspace_scene_data_restore(id_map, workspace);
-		BKE_workspace_view_layer_set(workspace, cur_view_layer, curscene);
-
 		ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
 		for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
@@ -7435,6 +7403,9 @@ void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene
 		win->scene = restore_pointer_by_name(id_map, (ID *)win->scene, USER_REAL);
 		if (win->scene == NULL) {
 			win->scene = curscene;
+		}
+		if (BKE_view_layer_find(win->scene, win->view_layer_name) == NULL) {
+			STRNCPY(win->view_layer_name, cur_view_layer->name);
 		}
 		BKE_workspace_active_set(win->workspace_hook, workspace);
 
