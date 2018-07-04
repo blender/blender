@@ -129,7 +129,7 @@ public:
 		}
 		else if(task->type == DeviceTask::RENDER) {
 			RenderTile tile;
-			DenoisingTask denoising(this);
+			DenoisingTask denoising(this, *task);
 
 			/* Allocate buffer for kernel globals */
 			device_only_memory<KernelGlobalsDummy> kgbuffer(this, "kernel_globals");

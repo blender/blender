@@ -138,12 +138,10 @@ public:
 		{}
 	} storage;
 
-	DenoisingTask(Device *device);
+	DenoisingTask(Device *device, const DeviceTask &task);
 	~DenoisingTask();
 
-	void init_from_devicetask(const DeviceTask &task);
-
-	bool run_denoising();
+	void run_denoising();
 
 	struct DenoiseBuffers {
 		int pass_stride;
@@ -160,6 +158,14 @@ public:
 
 protected:
 	Device *device;
+
+	void set_render_buffer(RenderTile *rtiles);
+	void setup_denoising_buffer();
+	void prefilter_shadowing();
+	void prefilter_features();
+	void prefilter_color();
+	void construct_transform();
+	void reconstruct();
 };
 
 CCL_NAMESPACE_END

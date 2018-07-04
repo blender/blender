@@ -107,7 +107,7 @@ public:
 		}
 		else if(task->type == DeviceTask::RENDER) {
 			RenderTile tile;
-			DenoisingTask denoising(this);
+			DenoisingTask denoising(this, *task);
 
 			/* Keep rendering tiles until done. */
 			while(task->acquire_tile(this, tile)) {

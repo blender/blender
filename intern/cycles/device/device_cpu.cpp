@@ -732,8 +732,6 @@ public:
 		task.map_neighbor_tiles(rtiles, this);
 		denoising.tiles_from_rendertiles(rtiles);
 
-		denoising.init_from_devicetask(task);
-
 		denoising.run_denoising();
 
 		task.unmap_neighbor_tiles(rtiles, this);
@@ -766,7 +764,7 @@ public:
 		}
 
 		RenderTile tile;
-		DenoisingTask denoising(this);
+		DenoisingTask denoising(this, task);
 
 		while(task.acquire_tile(this, tile)) {
 			if(tile.task == RenderTile::PATH_TRACE) {

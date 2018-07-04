@@ -1095,8 +1095,6 @@ void OpenCLDeviceBase::denoise(RenderTile &rtile, DenoisingTask& denoising, cons
 	task.map_neighbor_tiles(rtiles, this);
 	denoising.tiles_from_rendertiles(rtiles);
 
-	denoising.init_from_devicetask(task);
-
 	denoising.run_denoising();
 
 	task.unmap_neighbor_tiles(rtiles, this);
