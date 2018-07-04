@@ -140,6 +140,9 @@ BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 	{
 		queue->push_back(op_node);
 		op_node->scheduled = true;
+		DEG_DEBUG_PRINTF((::Depsgraph *)graph,
+		                 EVAL, "Operation is entry point for update: %s\n",
+		                 op_node->identifier().c_str());
 	}
 	GSET_FOREACH_END();
 }
