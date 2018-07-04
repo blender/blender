@@ -223,7 +223,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 	else {
 		// FIXME: what happens when the indention is 1 greater than what it should be (due to grouping)?
 		int colOfs = 20 - 20 * indent;
-		UI_GetThemeColorShade3fv(TH_HEADER, colOfs, r_color);
+		UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, colOfs, r_color);
 	}
 }
 
