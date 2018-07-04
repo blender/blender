@@ -3287,14 +3287,21 @@ SoftBody *sbNew(Scene *scene)
 }
 
 /* frees all */
-void sbFree(SoftBody *sb)
+void sbFree(Object *ob)
 {
+	SoftBody *sb = ob->soft;
+	if (sb == NULL) {
+		return;
+	}
+
 	free_softbody_intern(sb);
 	BKE_ptcache_free_list(&sb->ptcaches);
 	sb->pointcache = NULL;
 	if (sb->effector_weights)
 		MEM_freeN(sb->effector_weights);
 	MEM_freeN(sb);
+
+	ob->soft = NULL;
 }
 
 void sbFreeSimulation(SoftBody *sb)

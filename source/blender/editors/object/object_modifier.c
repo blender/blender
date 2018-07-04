@@ -293,9 +293,8 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 	}
 	else if (md->type == eModifierType_Softbody) {
 		if (ob->soft) {
-			sbFree(ob->soft);
-			ob->soft = NULL;
-			ob->softflag = 0;
+			sbFree(ob);
+			ob->softflag = 0;  /* TODO(Sybren): this should probably be moved into sbFree() */
 		}
 	}
 	else if (md->type == eModifierType_Collision) {

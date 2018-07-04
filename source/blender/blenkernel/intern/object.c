@@ -165,10 +165,7 @@ void BKE_object_free_particlesystems(Object *ob)
 
 void BKE_object_free_softbody(Object *ob)
 {
-	if (ob->soft) {
-		sbFree(ob->soft);
-		ob->soft = NULL;
-	}
+	sbFree(ob);
 }
 
 void BKE_object_free_curve_cache(Object *ob)
@@ -452,10 +449,7 @@ void BKE_object_free(Object *ob)
 	BKE_rigidbody_free_object(ob, NULL);
 	BKE_rigidbody_free_constraint(ob);
 
-	if (ob->soft) {
-		sbFree(ob->soft);
-		ob->soft = NULL;
-	}
+	sbFree(ob);
 
 	for (ObjectEngineData *oed = ob->drawdata.first; oed; oed = oed->next) {
 		if (oed->free != NULL) {

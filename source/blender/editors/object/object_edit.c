@@ -1050,7 +1050,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 					DEG_relations_tag_update(bmain);
 				}
 				else if (event == 23) {
-					if (base->object->soft) sbFree(base->object->soft);
+					sbFree(base->object);
 					BKE_object_copy_softbody(base->object, ob, 0);
 
 					if (!modifiers_findByType(base->object, eModifierType_Softbody)) {
