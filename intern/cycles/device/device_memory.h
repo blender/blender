@@ -200,6 +200,9 @@ public:
 
 	virtual ~device_memory();
 
+	void swap_device(Device *new_device, size_t new_device_size, device_ptr new_device_ptr);
+	void restore_device();
+
 protected:
 	friend class CUDADevice;
 
@@ -222,6 +225,10 @@ protected:
 	void device_copy_to();
 	void device_copy_from(int y, int w, int h, int elem);
 	void device_zero();
+
+	device_ptr original_device_ptr;
+	size_t original_device_size;
+	Device *original_device;
 };
 
 /* Device Only Memory
