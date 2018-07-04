@@ -3458,30 +3458,6 @@ static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
-{
-	/* silly node link button hacks */
-	uiWidgetBase wtb;
-	uiWidgetColors wcol_backup = *wcol;
-	float rad;
-
-	widget_init(&wtb);
-
-	rad = wcol->roundness * U.widget_unit;
-	round_box_edges(&wtb, roundboxalign, rect, rad);
-
-	wcol->inner[0] = min_ii(wcol->inner[0] + 15, 255);
-	wcol->inner[1] = min_ii(wcol->inner[1] + 15, 255);
-	wcol->inner[2] = min_ii(wcol->inner[2] + 15, 255);
-	wcol->outline[0] = min_ii(wcol->outline[0] + 15, 255);
-	wcol->outline[1] = min_ii(wcol->outline[1] + 15, 255);
-	wcol->outline[2] = min_ii(wcol->outline[2] + 15, 255);
-
-	/* decoration */
-	widgetbase_draw(&wtb, wcol);
-	*wcol = wcol_backup;
-}
-
 static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	float back[4];
@@ -3882,6 +3858,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 
 		case UI_WTYPE_MENU_ICON_RADIO:
+		case UI_WTYPE_MENU_NODE_LINK:
 			wt.wcol_theme = &btheme->tui.wcol_menu;
 			wt.draw = widget_menuiconbut;
 			break;
@@ -3889,11 +3866,6 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 		case UI_WTYPE_MENU_POINTER_LINK:
 			wt.wcol_theme = &btheme->tui.wcol_menu;
 			wt.draw = widget_menubut;
-			break;
-
-		case UI_WTYPE_MENU_NODE_LINK:
-			wt.wcol_theme = &btheme->tui.wcol_menu;
-			wt.draw = widget_menunodebut;
 			break;
 
 		case UI_WTYPE_PULLDOWN:
