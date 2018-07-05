@@ -469,23 +469,6 @@ void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
 	}
 }
 
-/* triangle 'icon' inside rect */
-static void ui_draw_tria_rect(const rctf *rect, char dir)
-{
-	float color[4];
-	UI_GetThemeColor3fv(TH_TITLE, color);
-	color[3] = 1.0f;
-
-	if (dir == 'h') {
-		float half = 0.5f * BLI_rctf_size_y(rect);
-		UI_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half, color);
-	}
-	else {
-		float half = 0.5f * BLI_rctf_size_x(rect);
-		UI_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin, color);
-	}
-}
-
 static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float y2)
 {
 
@@ -853,12 +836,18 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 	BLI_rctf_scale(&itemrect, 0.25f);
 
-	if (is_closed_y)
-		ui_draw_tria_rect(&itemrect, 'h');
-	else if (is_closed_x)
-		ui_draw_tria_rect(&itemrect, 'h');
-	else
-		ui_draw_tria_rect(&itemrect, 'v');
+	{
+		float tria_color[4];
+		UI_GetThemeColor3fv(TH_TITLE, tria_color);
+		tria_color[3] = 1.0f;
+
+		if (is_closed_y)
+			ui_draw_anti_tria_rect(&itemrect, 'h', tria_color);
+		else if (is_closed_x)
+			ui_draw_anti_tria_rect(&itemrect, 'h', tria_color);
+		else
+			ui_draw_anti_tria_rect(&itemrect, 'v', tria_color);
+	}
 }
 
 /************************** panel alignment *************************/
