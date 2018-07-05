@@ -22,7 +22,7 @@
 #define XTWX_SIZE      (((DENOISE_FEATURES+1)*(DENOISE_FEATURES+2))/2)
 #define XTWY_SIZE      (DENOISE_FEATURES+1)
 
-typedef struct TilesInfo {
+typedef struct TileInfo {
 	int offsets[9];
 	int strides[9];
 	int x[4];
@@ -33,6 +33,31 @@ typedef struct TilesInfo {
 #else
 	long long int buffers[9];
 #endif
-} TilesInfo;
+} TileInfo;
+
+#ifdef __KERNEL_OPENCL__
+#  define CCL_FILTER_TILE_INFO ccl_global TileInfo* tile_info,  \
+                               ccl_global float *tile_buffer_1, \
+                               ccl_global float *tile_buffer_2, \
+                               ccl_global float *tile_buffer_3, \
+                               ccl_global float *tile_buffer_4, \
+                               ccl_global float *tile_buffer_5, \
+                               ccl_global float *tile_buffer_6, \
+                               ccl_global float *tile_buffer_7, \
+                               ccl_global float *tile_buffer_8, \
+                               ccl_global float *tile_buffer_9
+#  define CCL_FILTER_TILE_INFO_ARG tile_info, \
+                                   tile_buffer_1, tile_buffer_2, tile_buffer_3, \
+                                   tile_buffer_4, tile_buffer_5, tile_buffer_6, \
+                                   tile_buffer_7, tile_buffer_8, tile_buffer_9
+#  define ccl_get_tile_buffer(id) (tile_buffer_ ## id)
+#else
+#  ifdef __KERNEL_CUDA__
+#    define CCL_FILTER_TILE_INFO ccl_global TileInfo* tile_info
+#  else
+#    define CCL_FILTER_TILE_INFO TileInfo* tile_info
+#  endif
+#  define ccl_get_tile_buffer(id) (tile_info->buffers[id])
+#endif
 
 #endif /* __FILTER_DEFINES_H__*/

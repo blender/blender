@@ -32,20 +32,24 @@ public:
 	float nlm_k_2;
 	float pca_threshold;
 
-	/* Pointer and parameters of the RenderBuffers. */
+	/* Parameters of the RenderBuffers. */
 	struct RenderBuffers {
-		int denoising_data_offset;
-		int denoising_clean_offset;
-		int pass_stride;
 		int offset;
-		int stride;
-		device_ptr ptr;
+		int pass_stride;
 		int samples;
 	} render_buffer;
 
-	TilesInfo *tiles;
-	device_vector<int> tiles_mem;
-	void tiles_from_rendertiles(RenderTile *rtiles);
+	/* Pointer and parameters of the target buffer. */
+	struct TargetBuffer {
+		int offset;
+		int stride;
+		int pass_stride;
+		int denoising_clean_offset;
+		device_ptr ptr;
+	} target_buffer;
+
+	TileInfo *tile_info;
+	device_vector<int> tile_info_mem;
 
 	int4 rect;
 	int4 filter_area;
@@ -85,7 +89,8 @@ public:
 		              device_ptr depth_ptr,
 		              device_ptr output_ptr
 		              )> detect_outliers;
-		function<bool(device_ptr*)> set_tiles;
+		function<void(RenderTile *rtiles)> map_neighbor_tiles;
+		function<void(RenderTile *rtiles)> unmap_neighbor_tiles;
 	} functions;
 
 	/* Stores state of the current Reconstruction operation,
@@ -138,12 +143,10 @@ public:
 		{}
 	} storage;
 
-	DenoisingTask(Device *device);
+	DenoisingTask(Device *device, const DeviceTask &task);
 	~DenoisingTask();
 
-	void init_from_devicetask(const DeviceTask &task);
-
-	bool run_denoising();
+	void run_denoising(RenderTile *tile);
 
 	struct DenoiseBuffers {
 		int pass_stride;
@@ -160,6 +163,14 @@ public:
 
 protected:
 	Device *device;
+
+	void set_render_buffer(RenderTile *rtiles);
+	void setup_denoising_buffer();
+	void prefilter_shadowing();
+	void prefilter_features();
+	void prefilter_color();
+	void construct_transform();
+	void reconstruct();
 };
 
 CCL_NAMESPACE_END

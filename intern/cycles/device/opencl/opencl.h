@@ -362,7 +362,7 @@ public:
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half);
 	void shader(DeviceTask& task);
 
-	void denoise(RenderTile& tile, DenoisingTask& denoising, const DeviceTask& task);
+	void denoise(RenderTile& tile, DenoisingTask& denoising);
 
 	class OpenCLDeviceTask : public DeviceTask {
 	public:
@@ -436,8 +436,6 @@ protected:
 	                               device_ptr depth_ptr,
 	                               device_ptr output_ptr,
 	                               DenoisingTask *task);
-	bool denoising_set_tiles(device_ptr *buffers,
-	                         DenoisingTask *task);
 
 	device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int size);
 	void mem_free_sub_ptr(device_ptr ptr);

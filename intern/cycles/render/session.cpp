@@ -502,6 +502,9 @@ void Session::map_neighbor_tiles(RenderTile *tiles, Device *tile_device)
 
 	assert(tiles[4].buffers);
 	device->map_neighbor_tiles(tile_device, tiles);
+
+	/* The denoised result is written back to the original tile. */
+	tiles[9] = tiles[4];
 }
 
 void Session::unmap_neighbor_tiles(RenderTile *tiles, Device *tile_device)

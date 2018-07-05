@@ -488,11 +488,11 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
 
     return (
         "%s%02d:%02d:%02d:%02d" % (
-        sign,
-        int(frame / (3600 * fps)),          # HH
-        int((frame / (60 * fps)) % 60),     # MM
-        int((frame / fps) % 60),            # SS
-        int(frame % fps),                   # FF
+            sign,
+            int(frame / (3600 * fps)),          # HH
+            int((frame / (60 * fps)) % 60),     # MM
+            int((frame / fps) % 60),            # SS
+            int(frame % fps),                   # FF
         ))
 
 
@@ -772,6 +772,7 @@ def _blender_default_map():
     # avoid storing in memory
     del _sys.modules["rna_manual_reference"]
     return ret
+
 
 # hooks for doc lookups
 _manual_map = [_blender_default_map]

@@ -29,7 +29,7 @@ You'll need to specify your user login and password, obviously.
 
 Example usage:
 
-   ./sphinx_doc_update.py --mirror ../../../docs/remote_api_backup/ --source ../.. --blender ../../../build_cmake/bin/blender --user foobar --password barfoo 
+   ./sphinx_doc_update.py --mirror ../../../docs/remote_api_backup/ --source ../.. --blender ../../../build_cmake/bin/blender --user foobar --password barfoo
 
 """
 
@@ -107,14 +107,16 @@ def main():
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # II) Generate doc source in temp dir.
-        doc_gen_cmd = (args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
-                       "--python", "%s/doc/python_api/sphinx_doc_gen.py" % args.source_dir, "--",
-                       "--output", tmp_dir)
+        doc_gen_cmd = (
+            args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
+            "--python", "%s/doc/python_api/sphinx_doc_gen.py" % args.source_dir, "--",
+            "--output", tmp_dir
+        )
         subprocess.run(doc_gen_cmd)
 
         # III) Get Blender version info.
         getver_file = os.path.join(tmp_dir, "blendver.txt")
-        getver_script = (""
+        getver_script = (
             "import sys, bpy\n"
             "with open(sys.argv[-1], 'w') as f:\n"
             "    is_release = bpy.app.version_cycle in {'rc', 'release'}\n"
@@ -124,7 +126,8 @@ def main():
             "    f.write('%d.%d%s\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
             "            if is_release else '%s\\n' % branch)\n"
             "    f.write('%d_%d%s_release' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
-            "            if is_release else '%d_%d_%d' % bpy.app.version)\n")
+            "            if is_release else '%d_%d_%d' % bpy.app.version)\n"
+        )
         get_ver_cmd = (args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
                        "--python-expr", getver_script, "--", getver_file)
         subprocess.run(get_ver_cmd)

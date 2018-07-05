@@ -1251,18 +1251,6 @@ public:
 		}
 	}
 
-	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
-	{
-		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.host_pointer;
-		for(int i = 0; i < 9; i++) {
-			tiles->buffers[i] = buffers[i];
-		}
-
-		task->tiles_mem.copy_to_device();
-
-		return !have_error();
-	}
-
 #define CUDA_GET_BLOCKSIZE(func, w, h)                                                                          \
 			int threads_per_block;                                                                              \
 			cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
@@ -1534,7 +1522,7 @@ public:
 		                   task->rect.w-task->rect.y);
 
 		void *args[] = {&task->render_buffer.samples,
-		                &task->tiles_mem.device_pointer,
+		                &task->tile_info_mem.device_pointer,
 		                &a_ptr,
 		                &b_ptr,
 		                &sample_variance_ptr,
@@ -1542,7 +1530,7 @@ public:
 		                &buffer_variance_ptr,
 		                &task->rect,
 		                &task->render_buffer.pass_stride,
-		                &task->render_buffer.denoising_data_offset};
+		                &task->render_buffer.offset};
 		CUDA_LAUNCH_KERNEL(cuFilterDivideShadow, args);
 		cuda_assert(cuCtxSynchronize());
 
@@ -1568,14 +1556,14 @@ public:
 		                   task->rect.w-task->rect.y);
 
 		void *args[] = {&task->render_buffer.samples,
-		                &task->tiles_mem.device_pointer,
+		                &task->tile_info_mem.device_pointer,
 		                &mean_offset,
 		                &variance_offset,
 		                &mean_ptr,
 		                &variance_ptr,
 		                &task->rect,
 		                &task->render_buffer.pass_stride,
-		                &task->render_buffer.denoising_data_offset};
+		                &task->render_buffer.offset};
 		CUDA_LAUNCH_KERNEL(cuFilterGetFeature, args);
 		cuda_assert(cuCtxSynchronize());
 
@@ -1613,7 +1601,7 @@ public:
 		return !have_error();
 	}
 
-	void denoise(RenderTile &rtile, DenoisingTask& denoising, const DeviceTask &task)
+	void denoise(RenderTile &rtile, DenoisingTask& denoising)
 	{
 		denoising.functions.construct_transform = function_bind(&CUDADevice::denoising_construct_transform, this, &denoising);
 		denoising.functions.reconstruct = function_bind(&CUDADevice::denoising_reconstruct, this, _1, _2, _3, &denoising);
@@ -1622,21 +1610,11 @@ public:
 		denoising.functions.combine_halves = function_bind(&CUDADevice::denoising_combine_halves, this, _1, _2, _3, _4, _5, _6, &denoising);
 		denoising.functions.get_feature = function_bind(&CUDADevice::denoising_get_feature, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.detect_outliers = function_bind(&CUDADevice::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising);
-		denoising.functions.set_tiles = function_bind(&CUDADevice::denoising_set_tiles, this, _1, &denoising);
 
 		denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
 		denoising.render_buffer.samples = rtile.sample;
 
-		RenderTile rtiles[9];
-		rtiles[4] = rtile;
-		task.map_neighbor_tiles(rtiles, this);
-		denoising.tiles_from_rendertiles(rtiles);
-
-		denoising.init_from_devicetask(task);
-
-		denoising.run_denoising();
-
-		task.unmap_neighbor_tiles(rtiles, this);
+		denoising.run_denoising(&rtile);
 	}
 
 	void path_trace(DeviceTask& task, RenderTile& rtile, device_vector<WorkTile>& work_tiles)
@@ -2092,7 +2070,7 @@ public:
 
 			/* keep rendering tiles until done */
 			RenderTile tile;
-			DenoisingTask denoising(this);
+			DenoisingTask denoising(this, *task);
 
 			while(task->acquire_tile(this, tile)) {
 				if(tile.task == RenderTile::PATH_TRACE) {
@@ -2107,7 +2085,7 @@ public:
 				else if(tile.task == RenderTile::DENOISE) {
 					tile.sample = tile.start_sample + tile.num_samples;
 
-					denoise(tile, denoising, *task);
+					denoise(tile, denoising);
 
 					task->update_progress(&tile, tile.w*tile.h);
 				}
