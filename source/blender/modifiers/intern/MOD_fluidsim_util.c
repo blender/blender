@@ -553,8 +553,7 @@ Mesh *fluidsimModifier_do(
 	return mesh;
 #else
 	/* unused */
-	(void)fluidmd;
-	(void)ctx;
+	UNUSED_VARS(fluidmd, ctx, mesh);
 	return NULL;
 #endif
 }
