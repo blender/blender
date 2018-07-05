@@ -853,11 +853,12 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 				switch (v3d->drawtype) {
 					case OB_SOLID:
 					case OB_TEXTURE:
-						show_studiolight = (sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_CAMERA)) > 0;
+						show_studiolight = (
+						        (sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_CAMERA)) != 0);
 						break;
 
 					case OB_MATERIAL:
-						show_studiolight = (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD) > 0;
+						show_studiolight = ((sl->flag & STUDIOLIGHT_ORIENTATION_WORLD) != 0);
 						icon_id = sl->icon_id_radiance;
 						break;
 				}

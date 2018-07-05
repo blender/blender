@@ -761,7 +761,7 @@ static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
 static bool rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	return (sl->flag & STUDIOLIGHT_USER_DEFINED) > 0;
+	return (sl->flag & STUDIOLIGHT_USER_DEFINED) != 0;
 }
 
 /* StudioLight.orientation */

@@ -27,11 +27,11 @@ void main()
 	vec3 vert_pos, proj_camera_pos;
 
 	/* Project camera pos to the needed plane */
-	if ((gridFlag & PLANE_XY) > 0) {
+	if ((gridFlag & PLANE_XY) != 0) {
 		vert_pos = vec3(pos.x, pos.y, 0.0);
 		proj_camera_pos = vec3(cameraPos.x, cameraPos.y, 0.0);
 	}
-	else if ((gridFlag & PLANE_XZ) > 0) {
+	else if ((gridFlag & PLANE_XZ) != 0) {
 		vert_pos = vec3(pos.x, 0.0, pos.y);
 		proj_camera_pos = vec3(cameraPos.x, 0.0, cameraPos.z);
 	}
@@ -52,10 +52,10 @@ void main()
 	vec3 realPos = proj_camera_pos + vert_pos;
 
 	/* Used for additional Z axis */
-	if ((gridFlag & CLIP_Z_POS) > 0) {
+	if ((gridFlag & CLIP_Z_POS) != 0) {
 		realPos.z = max(realPos.z, 0.0);
 	}
-	if ((gridFlag & CLIP_Z_NEG) > 0) {
+	if ((gridFlag & CLIP_Z_NEG) != 0) {
 		realPos.z = min(-realPos.z, 0.0);
 	}
 
