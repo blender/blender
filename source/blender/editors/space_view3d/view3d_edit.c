@@ -3602,7 +3602,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Axis/Type Operator
+/** \name View Axis Operator
  * \{ */
 
 static const EnumPropertyItem prop_view_items[] = {
@@ -3612,7 +3612,6 @@ static const EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_TOP, "TOP", ICON_TRIA_UP, "Top", "View From the Top"},
 	{RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
 	{RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
-	{RV3D_VIEW_CAMERA, "CAMERA", ICON_CAMERA_DATA, "Camera", "View From the Active Camera"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3710,7 +3709,7 @@ static void axis_set_view(
 	}
 }
 
-static int viewnumpad_exec(bContext *C, wmOperator *op)
+static int view_axis_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d;
 	ARegion *ar;
@@ -3738,13 +3737,60 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 		nextperspo = perspo;
 	}
 
-	if (RV3D_VIEW_IS_AXIS(viewnum)) {
+	{
 		float quat[4];
-
 		ED_view3d_quat_from_axis_view(viewnum, quat);
 		axis_set_view(C, v3d, ar, quat, viewnum, nextperspo, align_active, smooth_viewtx);
 	}
-	else if (viewnum == RV3D_VIEW_CAMERA) {
+
+	perspo = rv3d->persp;
+
+	return OPERATOR_FINISHED;
+}
+
+
+void VIEW3D_OT_view_axis(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "View Axis";
+	ot->description = "Use a preset viewpoint";
+	ot->idname = "VIEW3D_OT_view_axis";
+
+	/* api callbacks */
+	ot->exec = view_axis_exec;
+	ot->poll = ED_operator_rv3d_user_region_poll;
+
+	/* flags */
+	ot->flag = 0;
+
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "Preset viewpoint to use");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Camera Operator
+ * \{ */
+
+static int view_camera_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d;
+	ARegion *ar;
+	RegionView3D *rv3d;
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+	rv3d = ar->regiondata;
+
+	ED_view3d_smooth_view_force_finish(C, v3d, ar);
+
+	{
 		if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
 			/* lastview -  */
 
@@ -3816,32 +3862,22 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (rv3d->persp != RV3D_CAMOB) perspo = rv3d->persp;
-
 	return OPERATOR_FINISHED;
 }
 
-
-void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
+void VIEW3D_OT_view_camera(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
-	ot->name = "View Numpad";
-	ot->description = "Use a preset viewpoint";
-	ot->idname = "VIEW3D_OT_viewnumpad";
+	ot->name = "View Camera";
+	ot->description = "Toggle the camera view";
+	ot->idname = "VIEW3D_OT_view_camera";
 
 	/* api callbacks */
-	ot->exec = viewnumpad_exec;
+	ot->exec = view_camera_exec;
 	ot->poll = ED_operator_rv3d_user_region_poll;
 
 	/* flags */
 	ot->flag = 0;
-
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "Preset viewpoint to use");
-	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

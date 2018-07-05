@@ -174,7 +174,8 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_ndof_all);
 #endif /* WITH_INPUT_NDOF */
 	WM_operatortype_append(VIEW3D_OT_view_all);
-	WM_operatortype_append(VIEW3D_OT_viewnumpad);
+	WM_operatortype_append(VIEW3D_OT_view_axis);
+	WM_operatortype_append(VIEW3D_OT_view_camera);
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
 	WM_operatortype_append(VIEW3D_OT_view_roll);
 	WM_operatortype_append(VIEW3D_OT_view_pan);
@@ -313,19 +314,19 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_view_pie", ACCENTGRAVEKEY, KM_CLICK_DRAG, 0, 0);
 
 	/* numpad view hotkeys*/
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD0, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_CAMERA);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_FRONT);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_camera", PAD0, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD1, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_FRONT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD2, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPDOWN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_RIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD3, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_RIGHT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD4, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPLEFT);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_persportho", PAD5, KM_PRESS, 0, 0);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD6, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPRIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD7, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_TOP);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD8, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPUP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_CTRL, 0)->ptr, "type", RV3D_VIEW_BACK);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_CTRL, 0)->ptr, "type", RV3D_VIEW_LEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_CTRL, 0)->ptr, "type", RV3D_VIEW_BOTTOM);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD1, KM_PRESS, KM_CTRL, 0)->ptr, "type", RV3D_VIEW_BACK);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD3, KM_PRESS, KM_CTRL, 0)->ptr, "type", RV3D_VIEW_LEFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD7, KM_PRESS, KM_CTRL, 0)->ptr, "type", RV3D_VIEW_BOTTOM);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD2, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANDOWN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANLEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD6, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANRIGHT);
@@ -352,22 +353,22 @@ void view3d_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* active aligned, replaces '*' key in 2.4x */
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD1, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD3, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD7, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD1, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BACK);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD3, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_LEFT);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", PAD7, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
 
@@ -383,21 +384,21 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_roll", NDOF_BUTTON_ROLL_CCW, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPLEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_roll", NDOF_BUTTON_ROLL_CCW, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPRIGHT);
 
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_FRONT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_BACK, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BACK);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_LEFT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_LEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_RIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_TOP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_BOTTOM, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BOTTOM);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_FRONT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_FRONT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_BACK, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BACK);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_LEFT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_LEFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_RIGHT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_RIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_TOP, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_BOTTOM, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BOTTOM);
 
 	/* 3D mouse align */
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_FRONT, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_RIGHT, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", NDOF_BUTTON_TOP, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
 #endif /* WITH_INPUT_NDOF */

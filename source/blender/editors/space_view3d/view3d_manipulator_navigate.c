@@ -154,7 +154,7 @@ struct NavigateManipulatorInfo g_navigate_params[MPR_TOTAL] = {
 		.manipulator = "MANIPULATOR_WT_button_2d",
 		.SHAPE_VARS(shape_ortho),
 	}, {
-		.opname = "VIEW3D_OT_viewnumpad",
+		.opname = "VIEW3D_OT_view_camera",
 		.manipulator = "MANIPULATOR_WT_button_2d",
 		.SHAPE_VARS(shape_camera),
 	},
@@ -197,7 +197,8 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 	navgroup->region_size[0] = -1;
 	navgroup->region_size[1] = -1;
 
-	wmOperatorType *ot_viewnumpad = WM_operatortype_find("VIEW3D_OT_viewnumpad", true);
+	wmOperatorType *ot_view_axis = WM_operatortype_find("VIEW3D_OT_view_axis", true);
+	wmOperatorType *ot_view_camera = WM_operatortype_find("VIEW3D_OT_view_camera", true);
 
 	for (int i = 0; i < MPR_TOTAL; i++) {
 		const struct NavigateManipulatorInfo *info = &g_navigate_params[i];
@@ -223,8 +224,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 
 	{
 		wmManipulator *mpr = navgroup->mpr_array[MPR_CAMERA];
-		PointerRNA *ptr = WM_manipulator_operator_set(mpr, 0, ot_viewnumpad, NULL);
-		RNA_enum_set(ptr, "type", RV3D_VIEW_CAMERA);
+		WM_manipulator_operator_set(mpr, 0, ot_view_camera, NULL);
 	}
 
 	/* Click only buttons (not modal). */
@@ -259,7 +259,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 		};
 
 		for (int part_index = 0; part_index < 6; part_index += 1) {
-			PointerRNA *ptr = WM_manipulator_operator_set(mpr, part_index + 1, ot_viewnumpad, NULL);
+			PointerRNA *ptr = WM_manipulator_operator_set(mpr, part_index + 1, ot_view_axis, NULL);
 			RNA_enum_set(ptr, "type", mapping[part_index]);
 		}
 
