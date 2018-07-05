@@ -296,11 +296,7 @@ static void wm_notifier_clear(wmNotifier *note)
 	memset(((char *)note) + sizeof(Link), 0, sizeof(*note) - sizeof(Link));
 }
 
-/**
- * Was part of #wm_event_do_notifiers, split out so it can be called once before entering the #WM_main loop.
- * This ensures operators don't run before the UI and depsgraph are initialized.
- */
-void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
+void wm_event_do_depsgraph(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	uint64_t win_combine_v3d_datamask = 0;
@@ -315,18 +311,8 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 
 	/* cached: editor refresh callbacks now, they get context */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
-		const bScreen *screen = WM_window_get_active_screen(win);
 		Scene *scene = WM_window_get_active_scene(win);
 		ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-		ScrArea *sa;
-
-		CTX_wm_window_set(C, win);
-		for (sa = screen->areabase.first; sa; sa = sa->next) {
-			if (sa->do_refresh) {
-				CTX_wm_area_set(C, sa);
-				ED_area_do_refresh(C, sa);
-			}
-		}
 
 		/* XXX make lock in future, or separated derivedmesh users in scene */
 		if (G.is_rendering == false) {
@@ -350,6 +336,30 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 			BKE_scene_graph_update_tagged(depsgraph, bmain);
 		}
 	}
+}
+
+/**
+ * Was part of #wm_event_do_notifiers, split out so it can be called once before entering the #WM_main loop.
+ * This ensures operators don't run before the UI and depsgraph are initialized.
+ */
+void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	/* cached: editor refresh callbacks now, they get context */
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		const bScreen *screen = WM_window_get_active_screen(win);
+		ScrArea *sa;
+
+		CTX_wm_window_set(C, win);
+		for (sa = screen->areabase.first; sa; sa = sa->next) {
+			if (sa->do_refresh) {
+				CTX_wm_area_set(C, sa);
+				ED_area_do_refresh(C, sa);
+			}
+		}
+	}
+
+	wm_event_do_depsgraph(C);
 
 	CTX_wm_window_set(C, NULL);
 }

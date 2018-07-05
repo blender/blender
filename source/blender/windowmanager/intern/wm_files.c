@@ -482,10 +482,11 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 
 	CTX_wm_window_set(C, wm->windows.first);
 
-	ED_editors_init(C);
-
 	Main *bmain = CTX_data_main(C);
 	DEG_on_visible_update(bmain, true);
+	wm_event_do_depsgraph(C);
+
+	ED_editors_init(C);
 
 #ifdef WITH_PYTHON
 	if (is_startup_file) {

@@ -864,15 +864,6 @@ void BKE_sculpt_update_mesh_elements(
         Depsgraph *depsgraph, Scene *scene, Sculpt *sd, Object *ob,
         bool need_pmap, bool need_mask)
 {
-	if (depsgraph == NULL) {
-		/* Happens on file load.
-		 *
-		 * We do nothing in this case, it will be taken care about on depsgraph
-		 * evaluation.
-		 */
-		return;
-	}
-
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = BKE_object_get_original_mesh(ob);
 	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
