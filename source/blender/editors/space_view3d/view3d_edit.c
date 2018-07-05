@@ -3744,12 +3744,6 @@ static int view_axis_exec(bContext *C, wmOperator *op)
 		else if (viewnum == RV3D_VIEW_BOTTOM) {
 			copy_v3_v3(z_rel, rv3d->viewinv[1]);
 		}
-		else if (viewnum == RV3D_VIEW_RIGHT) {
-			negate_v3_v3(z_rel, rv3d->viewinv[0]);
-		}
-		else if (viewnum == RV3D_VIEW_LEFT) {
-			copy_v3_v3(z_rel, rv3d->viewinv[0]);
-		}
 		else if (viewnum == RV3D_VIEW_FRONT) {
 			negate_v3_v3(z_rel, rv3d->viewinv[2]);
 		}
