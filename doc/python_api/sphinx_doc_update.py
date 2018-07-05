@@ -107,9 +107,11 @@ def main():
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # II) Generate doc source in temp dir.
-        doc_gen_cmd = (args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
-                       "--python", "%s/doc/python_api/sphinx_doc_gen.py" % args.source_dir, "--",
-                       "--output", tmp_dir)
+        doc_gen_cmd = (
+            args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
+            "--python", "%s/doc/python_api/sphinx_doc_gen.py" % args.source_dir, "--",
+            "--output", tmp_dir
+        )
         subprocess.run(doc_gen_cmd)
 
         # III) Get Blender version info.
