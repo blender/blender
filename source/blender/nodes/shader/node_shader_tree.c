@@ -258,11 +258,11 @@ static bNodeSocket *ntree_shader_node_find_output(bNode *node,
  * also returned.
  */
 static bool ntree_shader_has_displacement(bNodeTree *ntree,
+                                          bNode *output_node,
                                           bNode **r_node,
                                           bNodeSocket **r_socket,
                                           bNodeLink **r_link)
 {
-	bNode *output_node = ntree_shader_output_node(ntree);
 	if (output_node == NULL) {
 		/* We can't have displacement without output node, apparently. */
 		return false;
@@ -426,17 +426,13 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
 /* Re-link displacement output to unconnected normal sockets via bump node.
  * This way material with have proper displacement in the viewport.
  */
-static void ntree_shader_relink_displacement(bNodeTree *ntree,
-                                             short compatibility)
+static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_node)
 {
-	if ((compatibility & NODE_NEW_SHADING) == 0) {
-		/* We can only deal with new shading system here. */
-		return;
-	}
 	bNode *displacement_node;
 	bNodeSocket *displacement_socket;
 	bNodeLink *displacement_link;
 	if (!ntree_shader_has_displacement(ntree,
+	                                   output_node,
 	                                   &displacement_node,
 	                                   &displacement_socket,
 	                                   &displacement_link))
@@ -514,14 +510,8 @@ static bool ntree_tag_ssr_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *
 /* EEVEE: Scan the ntree to set the Screen Space Reflection
  * layer id of every specular node.
  */
-static void ntree_shader_tag_ssr_node(bNodeTree *ntree, short compatibility)
+static void ntree_shader_tag_ssr_node(bNodeTree *ntree, bNode *output_node)
 {
-	if ((compatibility & NODE_NEWER_SHADING) == 0) {
-		/* We can only deal with new shading system here. */
-		return;
-	}
-
-	bNode *output_node = ntree_shader_output_node(ntree);
 	if (output_node == NULL) {
 		return;
 	}
@@ -549,14 +539,8 @@ static bool ntree_tag_sss_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *
 
 /* EEVEE: Scan the ntree to set the Subsurface Scattering id of every SSS node.
  */
-static void ntree_shader_tag_sss_node(bNodeTree *ntree, short compatibility)
+static void ntree_shader_tag_sss_node(bNodeTree *ntree, bNode *output_node)
 {
-	if ((compatibility & NODE_NEWER_SHADING) == 0) {
-		/* We can only deal with new shading system here. */
-		return;
-	}
-
-	bNode *output_node = ntree_shader_output_node(ntree);
 	if (output_node == NULL) {
 		return;
 	}
@@ -567,15 +551,26 @@ static void ntree_shader_tag_sss_node(bNodeTree *ntree, short compatibility)
 	nodeChainIter(ntree, output_node, ntree_tag_sss_bsdf_cb, &sss_id, true);
 }
 
-/* EEVEE: Find which material domain are used (volume, surface ...).
- */
-void ntreeGPUMaterialDomain(bNodeTree *ntree, bool *has_surface_output, bool *has_volume_output)
+void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, bool *has_surface_output, bool *has_volume_output)
 {
 	/* localize tree to create links for reroute and mute */
 	bNodeTree *localtree = ntreeLocalize(ntree);
+	bNode *output = ntree_shader_output_node(localtree);
+	bNodeTreeExec *exec;
 
-	struct bNode *output = ntree_shader_output_node(localtree);
+	/* Perform all needed modifications on the tree in order to support
+	 * displacement/bump mapping.
+	 */
+	ntree_shader_relink_displacement(localtree, output);
 
+	ntree_shader_tag_ssr_node(localtree, output);
+	ntree_shader_tag_sss_node(localtree, output);
+
+	exec = ntreeShaderBeginExecTree(localtree);
+	ntreeExecGPUNodes(exec, mat, 1);
+	ntreeShaderEndExecTree(exec);
+
+	/* EEVEE: Find which material domain was used (volume, surface ...). */
 	*has_surface_output = false;
 	*has_volume_output = false;
 
@@ -591,28 +586,6 @@ void ntreeGPUMaterialDomain(bNodeTree *ntree, bool *has_surface_output, bool *ha
 			*has_volume_output = (nodeCountSocketLinks(localtree, volume_sock) > 0);
 		}
 	}
-
-	ntreeFreeTree(localtree);
-	MEM_freeN(localtree);
-}
-
-void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibility)
-{
-	/* localize tree to create links for reroute and mute */
-	bNodeTree *localtree = ntreeLocalize(ntree);
-	bNodeTreeExec *exec;
-
-	/* Perform all needed modifications on the tree in order to support
-	 * displacement/bump mapping.
-	 */
-	ntree_shader_relink_displacement(localtree, compatibility);
-
-	ntree_shader_tag_ssr_node(localtree, compatibility);
-	ntree_shader_tag_sss_node(localtree, compatibility);
-
-	exec = ntreeShaderBeginExecTree(localtree);
-	ntreeExecGPUNodes(exec, mat, 1, compatibility);
-	ntreeShaderEndExecTree(exec);
 
 	ntreeFreeTree(localtree);
 	MEM_freeN(localtree);

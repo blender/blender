@@ -254,7 +254,6 @@ typedef struct bNodeType {
 /* nodetype->compatibility */
 #define NODE_OLD_SHADING	(1 << 0)
 #define NODE_NEW_SHADING	(1 << 1)
-#define NODE_NEWER_SHADING	(1 << 2)
 
 /* node resize directions */
 #define NODE_RESIZE_TOP		1
@@ -814,8 +813,8 @@ struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
 void            ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
 bool            ntreeShaderExecTree(struct bNodeTree *ntree, int thread);
 
-void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat, short compatibility);
-void            ntreeGPUMaterialDomain(struct bNodeTree *ntree, bool *has_surface_output, bool *has_volume_output);
+void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat,
+                                      bool *has_surface_output, bool *has_volume_output);
 
 /** \} */
 

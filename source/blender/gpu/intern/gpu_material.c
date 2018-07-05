@@ -644,8 +644,7 @@ GPUMaterial *GPU_material_from_nodetree(
 	mat->engine_type = engine_type;
 	mat->options = options;
 
-	ntreeGPUMaterialNodes(ntree, mat, NODE_NEW_SHADING | NODE_NEWER_SHADING);
-	ntreeGPUMaterialDomain(ntree, &has_surface_output, &has_volume_output);
+	ntreeGPUMaterialNodes(ntree, mat, &has_surface_output, &has_volume_output);
 
 	if (has_surface_output) {
 		mat->domain |= GPU_DOMAIN_SURFACE;
