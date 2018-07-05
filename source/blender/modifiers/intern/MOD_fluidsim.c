@@ -69,11 +69,20 @@ static void copyData(const ModifierData *md, ModifierData *target, const int UNU
 	const FluidsimModifierData *fluidmd = (const FluidsimModifierData *) md;
 	FluidsimModifierData *tfluidmd = (FluidsimModifierData *) target;
 
-	if (fluidmd->fss) {
-		tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
-		if (tfluidmd->fss && (tfluidmd->fss->meshVelocities != NULL)) {
-			tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
-		}
+	/* Free any FSS that was allocated in initData() */
+	if (tfluidmd->fss) {
+		MEM_SAFE_FREE(tfluidmd->fss->meshVelocities);
+		MEM_freeN(tfluidmd->fss);
+	}
+
+	if (fluidmd->fss == NULL) {
+		tfluidmd->fss = NULL;
+		return;
+	}
+
+	tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
+	if (tfluidmd->fss->meshVelocities != NULL) {
+		tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
 	}
 }
 
