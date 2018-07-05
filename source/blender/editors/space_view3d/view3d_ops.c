@@ -371,6 +371,19 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
 
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", EVT_TWEAK_M, EVT_GESTURE_N, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
+	RNA_boolean_set(kmi->ptr, "relative", true);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", EVT_TWEAK_M, EVT_GESTURE_S, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
+	RNA_boolean_set(kmi->ptr, "relative", true);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", EVT_TWEAK_M, EVT_GESTURE_E, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
+	RNA_boolean_set(kmi->ptr, "relative", true);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_axis", EVT_TWEAK_M, EVT_GESTURE_W, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_LEFT);
+	RNA_boolean_set(kmi->ptr, "relative", true);
+
 #ifdef WITH_INPUT_NDOF
 	/* note: positioned here so keymaps show keyboard keys if assigned */
 	/* 3D mouse */
