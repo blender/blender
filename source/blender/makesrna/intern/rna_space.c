@@ -1241,6 +1241,14 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_TOOL);
 	}
 
+	if (sbuts->pathflag & (1 << BCONTEXT_WORKSPACE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_WORKSPACE);
+	}
+
+	if (totitem) {
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
+
 	if (sbuts->pathflag & (1 << BCONTEXT_RENDER)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_RENDER);
 	}
@@ -1257,8 +1265,8 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_WORLD);
 	}
 
-	if (sbuts->pathflag & (1 << BCONTEXT_WORKSPACE)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_WORKSPACE);
+	if (totitem) {
+		RNA_enum_item_add_separator(&item, &totitem);
 	}
 
 	if (sbuts->pathflag & (1 << BCONTEXT_OBJECT)) {

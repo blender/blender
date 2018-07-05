@@ -1009,10 +1009,10 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), NULL);
 
 			if (name) {
-				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER) && ptr->type == &RNA_Scene)) {
+				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_Scene)) {
 					uiItemLDrag(row, ptr, "", icon);  /* save some space */
 				}
-				else if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER) && ptr->type == &RNA_ViewLayer)) {
+				else if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_ViewLayer)) {
 					uiItemLDrag(row, ptr, "", icon);  /* save some space */
 				}
 				else {
