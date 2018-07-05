@@ -31,6 +31,7 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
@@ -40,9 +41,9 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_ocean.h"
 
@@ -344,9 +345,9 @@ static void generate_ocean_geometry_uvs(
 	}
 }
 
-static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
+static Mesh *generate_ocean_geometry(OceanModifierData *omd)
 {
-	DerivedMesh *result;
+	Mesh *result;
 
 	GenerateOceanGeometryData gogd;
 
@@ -371,13 +372,13 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	gogd.sx /= gogd.rx;
 	gogd.sy /= gogd.ry;
 
-	result = CDDM_new(num_verts, 0, 0, num_polys * 4, num_polys);
+	result = BKE_mesh_new_nomain(num_verts, 0, 0, num_polys * 4, num_polys);
 
-	gogd.mverts = CDDM_get_verts(result);
-	gogd.mpolys = CDDM_get_polys(result);
-	gogd.mloops = CDDM_get_loops(result);
+	gogd.mverts = result->mvert;
+	gogd.mpolys = result->mpoly;
+	gogd.mloops = result->mloop;
 
-	gogd.origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
+	gogd.origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
@@ -389,11 +390,11 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	/* create faces */
 	BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polygons, &settings);
 
-	CDDM_calc_edges(result);
+	BKE_mesh_calc_edges(result, false, false);
 
 	/* add uvs */
-	if (CustomData_number_of_layers(&result->loopData, CD_MLOOPUV) < MAX_MTFACE) {
-		gogd.mloopuvs = CustomData_add_layer(&result->loopData, CD_MLOOPUV, CD_CALLOC, NULL, num_polys * 4);
+	if (CustomData_number_of_layers(&result->ldata, CD_MLOOPUV) < MAX_MTFACE) {
+		gogd.mloopuvs = CustomData_add_layer(&result->ldata, CD_MLOOPUV, CD_CALLOC, NULL, num_polys * 4);
 
 		if (gogd.mloopuvs) { /* unlikely to fail */
 			gogd.ix = 1.0 / gogd.rx;
@@ -403,19 +404,19 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 		}
 	}
 
-	result->dirty |= DM_DIRTY_NORMALS;
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
 	return result;
 }
 
-static DerivedMesh *doOcean(
+static Mesh *doOcean(
         ModifierData *md, Scene *scene, Object *ob,
-        DerivedMesh *derivedData,
+        Mesh *mesh,
         int UNUSED(useRenderParams))
 {
 	OceanModifierData *omd = (OceanModifierData *) md;
 
-	DerivedMesh *dm = NULL;
+	Mesh *result = NULL;
 	OceanResult ocr;
 
 	MVert *mverts;
@@ -433,7 +434,7 @@ static DerivedMesh *doOcean(
 
 	/* can happen in when size is small, avoid bad array lookups later and quit now */
 	if (!isfinite(size_co_inv)) {
-		return derivedData;
+		return mesh;
 	}
 
 	/* update modifier */
@@ -457,31 +458,36 @@ static DerivedMesh *doOcean(
 	}
 
 	if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE) {
-		dm = generate_ocean_geometry(omd);
-		DM_ensure_normals(dm);
+		result = generate_ocean_geometry(omd);
+		BKE_mesh_ensure_normals(result);
 	}
 	else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
-		dm = CDDM_copy(derivedData);
+		BKE_id_copy_ex(NULL, &mesh->id, (ID **)&result,
+		               LIB_ID_CREATE_NO_MAIN |
+		               LIB_ID_CREATE_NO_USER_REFCOUNT |
+		               LIB_ID_CREATE_NO_DEG_TAG |
+		               LIB_ID_COPY_NO_PREVIEW,
+		               false);
 	}
 
 	cfra = scene->r.cfra;
 	CLAMP(cfra, omd->bakestart, omd->bakeend);
 	cfra -= omd->bakestart; /* shift to 0 based */
 
-	mverts = dm->getVertArray(dm);
+	mverts = result->mvert;
 
 	/* add vcols before displacement - allows lookup based on position */
 
 	if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-		if (CustomData_number_of_layers(&dm->loopData, CD_MLOOPCOL) < MAX_MCOL) {
-			const int num_polys = dm->getNumPolys(dm);
-			const int num_loops = dm->getNumLoops(dm);
-			MLoop *mloops = dm->getLoopArray(dm);
+		if (CustomData_number_of_layers(&result->ldata, CD_MLOOPCOL) < MAX_MCOL) {
+			const int num_polys = result->totpoly;
+			const int num_loops = result->totloop;
+			MLoop *mloops = result->mloop;
 			MLoopCol *mloopcols = CustomData_add_layer_named(
-			                          &dm->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, num_loops, omd->foamlayername);
+			                          &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, num_loops, omd->foamlayername);
 
 			if (mloopcols) { /* unlikely to fail */
-				MPoly *mpolys = dm->getPolyArray(dm);
+				MPoly *mpolys = result->mpoly;
 				MPoly *mp;
 
 				for (i = 0, mp = mpolys; i < num_polys; i++, mp++) {
@@ -518,7 +524,7 @@ static DerivedMesh *doOcean(
 
 	/* Note: tried to parallelized that one and previous foam loop, but gives 20% slower results... odd. */
 	{
-		const int num_verts = dm->getNumVerts(dm);
+		const int num_verts = result->totvert;
 
 		for (i = 0; i < num_verts; i++) {
 			float *vco = mverts[i].co;
@@ -543,31 +549,30 @@ static DerivedMesh *doOcean(
 
 #undef OCEAN_CO
 
-	return dm;
+	return result;
 }
 #else  /* WITH_OCEANSIM */
-static DerivedMesh *doOcean(
+static Mesh *doOcean(
         ModifierData *UNUSED(md), Scene *UNUSED(scene), Object *UNUSED(ob),
-        DerivedMesh *derivedData,
+        Mesh *mesh,
         int UNUSED(useRenderParams))
 {
-	/* unused */
-	return derivedData;
+	return mesh;
 }
 #endif /* WITH_OCEANSIM */
 
-static DerivedMesh *applyModifier(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *derivedData)
+        Mesh *mesh)
 {
-	DerivedMesh *result;
+	Mesh *result;
 	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
 
-	result = doOcean(md, scene, ctx->object, derivedData, 0);
+	result = doOcean(md, scene, ctx->object, mesh, 0);
 
-	if (result != derivedData)
-		result->dirty |= DM_DIRTY_NORMALS;
+	if (result != mesh)
+		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
 	return result;
 }
@@ -588,14 +593,14 @@ ModifierTypeInfo modifierType_Ocean = {
 	/* deformVerts_DM */    NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
