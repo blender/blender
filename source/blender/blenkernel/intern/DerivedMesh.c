@@ -3182,6 +3182,8 @@ struct Mesh *mesh_create_eval_final_index_render(
 	return final;
 }
 
+#ifdef USE_DERIVEDMESH
+/* Deprecated, use `mesh_create_eval_final_view` instead. */
 DerivedMesh *mesh_create_derived_view(
         struct Depsgraph *depsgraph, Scene *scene,
         Object *ob, CustomDataMask dataMask)
@@ -3195,6 +3197,28 @@ DerivedMesh *mesh_create_derived_view(
 	ob->transflag |= OB_NO_PSYS_UPDATE;
 
 	mesh_calc_modifiers_dm(
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false, false,
+	        NULL, &final);
+
+	ob->transflag &= ~OB_NO_PSYS_UPDATE;
+
+	return final;
+}
+#endif
+
+Mesh *mesh_create_eval_final_view(
+        struct Depsgraph *depsgraph, Scene *scene,
+        Object *ob, CustomDataMask dataMask)
+{
+	Mesh *final;
+
+	/* XXX hack
+	 * psys modifier updates particle state when called during dupli-list generation,
+	 * which can lead to wrong transforms. This disables particle system modifier execution.
+	 */
+	ob->transflag |= OB_NO_PSYS_UPDATE;
+
+	mesh_calc_modifiers(
 	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
