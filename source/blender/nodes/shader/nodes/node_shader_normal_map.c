@@ -111,7 +111,6 @@ void register_node_type_sh_normal_map(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING | NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_normal_map_in, sh_node_normal_map_out);
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_init(&ntype, node_shader_init_normal_map);

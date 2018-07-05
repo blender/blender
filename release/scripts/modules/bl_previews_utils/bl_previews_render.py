@@ -122,21 +122,9 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             light_data.spot_size = 1.0471975803375244  # 60
             scene.objects.link(light)
 
-            if engine == 'BLENDER_RENDER':
-                scene.render.engine = 'BLENDER_RENDER'
-                scene.render.alpha_mode = 'TRANSPARENT'
-
-                world.use_sky_blend = True
-                world.horizon_color = 0.9, 0.9, 0.9
-                world.zenith_color = 0.5, 0.5, 0.5
-                world.ambient_color = 0.1, 0.1, 0.1
-                world.light_settings.use_environment_light = True
-                world.light_settings.environment_energy = 1.0
-                world.light_settings.environment_color = 'SKY_COLOR'
-            elif engine == 'CYCLES':
-                scene.render.engine = 'CYCLES'
-                scene.cycles.film_transparent = True
-                # TODO: define Cycles world?
+            scene.render.engine = 'CYCLES'
+            scene.cycles.film_transparent = True
+            # TODO: define Cycles world?
 
         scene.render.image_settings.file_format = 'PNG'
         scene.render.image_settings.color_depth = '8'
@@ -238,17 +226,6 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             success = False
 
         return success
-
-    def objects_render_engine_guess(obs):
-        for obname, libpath in obs:
-            ob = bpy.data.objects[obname, libpath]
-            for matslot in ob.material_slots:
-                mat = matslot.material
-                if mat and mat.use_nodes and mat.node_tree:
-                    for nd in mat.node_tree.nodes:
-                        if nd.shading_compatibility == {'NEW_SHADING'}:
-                            return 'CYCLES'
-        return 'BLENDER_RENDER'
 
     def object_bbox_merge(bbox, ob, ob_space, offset_matrix):
         # Take collections instances into account (including linked one in this case).
@@ -360,11 +337,10 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                 continue
             objects = ((root.name, None),)
 
-            render_engine = objects_render_engine_guess(objects)
-            render_context = render_contexts.get(render_engine, None)
+            render_context = render_contexts.get('CYCLES', None)
             if render_context is None:
-                render_context = render_context_create(render_engine, objects_ignored)
-                render_contexts[render_engine] = render_context
+                render_context = render_context_create('CYCLES', objects_ignored)
+                render_contexts['CYCLES'] = render_context
 
             scene = bpy.data.scenes[render_context.scene, None]
             bpy.context.screen.scene = scene
@@ -405,11 +381,10 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             # Here too, we do want to keep linked objects members of local collection...
             objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in grp.objects)
 
-            render_engine = objects_render_engine_guess(objects)
-            render_context = render_contexts.get(render_engine, None)
+            render_context = render_contexts.get('CYCLES', None)
             if render_context is None:
-                render_context = render_context_create(render_engine, objects_ignored)
-                render_contexts[render_engine] = render_context
+                render_context = render_context_create('CYCLES', objects_ignored)
+                render_contexts['CYCLES'] = render_context
 
             scene = bpy.data.scenes[render_context.scene, None]
             bpy.context.screen.scene = scene

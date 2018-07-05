@@ -62,7 +62,6 @@ void register_node_type_sh_particle_info(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING | NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, NULL, outputs);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_particle_info);
 	node_type_gpu(&ntype, gpu_shader_particle_info);

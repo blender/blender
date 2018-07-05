@@ -152,7 +152,7 @@ typedef struct bNodeType {
 
 	float width, minwidth, maxwidth;
 	float height, minheight, maxheight;
-	short nclass, flag, compatibility;
+	short nclass, flag;
 
 	/* templates for static sockets */
 	bNodeSocketTemplate *inputs, *outputs;
@@ -250,10 +250,6 @@ typedef struct bNodeType {
 #define NODE_CLASS_INTERFACE		33
 #define NODE_CLASS_SHADER 			40
 #define NODE_CLASS_LAYOUT			100
-
-/* nodetype->compatibility */
-#define NODE_OLD_SHADING	(1 << 0)
-#define NODE_NEW_SHADING	(1 << 1)
 
 /* node resize directions */
 #define NODE_RESIZE_TOP		1
@@ -600,7 +596,6 @@ void            node_type_update(struct bNodeType *ntype,
 void            node_type_exec(struct bNodeType *ntype, NodeInitExecFunction initexecfunc, NodeFreeExecFunction freeexecfunc, NodeExecFunction execfunc);
 void            node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpufunc);
 void            node_type_internal_links(struct bNodeType *ntype, void (*update_internal_links)(struct bNodeTree *, struct bNode *));
-void            node_type_compatibility(struct bNodeType *ntype, short compatibility);
 
 /** \} */
 

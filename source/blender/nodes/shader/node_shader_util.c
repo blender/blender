@@ -226,9 +226,8 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 		do_it = false;
 		/* for groups, only execute outputs for edited group */
 		if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
-			if (node->typeinfo->compatibility & NODE_NEW_SHADING)
-				if (do_outputs && (node->flag & NODE_DO_OUTPUT))
-					do_it = true;
+			if (do_outputs && (node->flag & NODE_DO_OUTPUT))
+				do_it = true;
 		}
 		else {
 			do_it = true;

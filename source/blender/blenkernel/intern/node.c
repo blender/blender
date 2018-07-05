@@ -3333,11 +3333,6 @@ void node_type_internal_links(bNodeType *ntype, void (*update_internal_links)(bN
 	ntype->update_internal_links = update_internal_links;
 }
 
-void node_type_compatibility(struct bNodeType *ntype, short compatibility)
-{
-	ntype->compatibility = compatibility;
-}
-
 /* callbacks for undefined types */
 
 static bool node_undefined_poll(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(nodetree))

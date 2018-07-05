@@ -54,7 +54,6 @@ void register_node_type_sh_sepxyz(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTOR, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_sepxyz_in, sh_node_sepxyz_out);
 	node_type_gpu(&ntype, gpu_shader_sepxyz);
 
@@ -85,7 +84,6 @@ void register_node_type_sh_combxyz(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTOR, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_combxyz_in, sh_node_combxyz_out);
 	node_type_gpu(&ntype, gpu_shader_combxyz);
 

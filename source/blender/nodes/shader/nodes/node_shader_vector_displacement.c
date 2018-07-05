@@ -73,7 +73,6 @@ void register_node_type_sh_vector_displacement(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_VECTOR_DISPLACEMENT, "Vector Displacement", NODE_CLASS_OP_VECTOR, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_vector_displacement_in, sh_node_vector_displacement_out);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_init(&ntype, node_shader_init_vector_displacement);
