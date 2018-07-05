@@ -464,8 +464,8 @@ static Mesh *fluidsim_read_cache(
 	BLI_path_abs(targetFile, modifier_path_relbase_from_global(ob));
 	BLI_path_frame(targetFile, curFrame, 0); // fixed #frame-no
 
-	/* assign material + flags to new dm
-	 * if there's no faces in original dm, keep materials and flags unchanged */
+	/* assign material + flags to new mesh.
+	 * if there's no faces in original mesh, keep materials and flags unchanged */
 	mpoly = orgmesh->mpoly;
 	if (mpoly) {
 		mp_example = *mpoly;
@@ -489,7 +489,7 @@ static Mesh *fluidsim_read_cache(
 			}
 		}
 
-		/* display org. object upon failure which is in dm */
+		/* display org. object upon failure which is in new mesh */
 		return NULL;
 	}
 
@@ -555,7 +555,6 @@ Mesh *fluidsimModifier_do(
 	/* unused */
 	(void)fluidmd;
 	(void)ctx;
-	(void)dm;
 	return NULL;
 #endif
 }
