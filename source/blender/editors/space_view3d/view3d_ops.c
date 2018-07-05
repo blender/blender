@@ -222,8 +222,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_selected);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
 
-	WM_operatortype_append(VIEW3D_OT_toggle_render);
-	WM_operatortype_append(VIEW3D_OT_toggle_xray_draw_option);
+	WM_operatortype_append(VIEW3D_OT_toggle_shading);
 	WM_operatortype_append(VIEW3D_OT_toggle_matcap_flip);
 
 	WM_operatortype_append(VIEW3D_OT_ruler_add);
@@ -404,16 +403,12 @@ void view3d_keymap(wmKeyConfig *keyconf)
 #endif /* WITH_INPUT_NDOF */
 
 	/* drawtype */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, KM_ALT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.shading.type");
-	RNA_string_set(kmi->ptr, "value_1", "SOLID");
-	RNA_string_set(kmi->ptr, "value_2", "TEXTURED");
-
-	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_render", ZKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_xray_draw_option", ZKEY, KM_PRESS, 0, 0);
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", ZKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.use_occlude_geometry");
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_shading", ZKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "type", OB_SOLID);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_shading", ZKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "type", OB_MATERIAL);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_shading", ZKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", OB_RENDER);
 
 	/* selection*/
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);

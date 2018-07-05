@@ -4805,34 +4805,77 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Toggle Render Shading Operator
+/** \name Toggle Shading Operator
  * \{ */
 
-static int toggle_render_exec(bContext *C, wmOperator *UNUSED(op))
+static const EnumPropertyItem prop_shading_type_items[] = {
+	{OB_SOLID, "SOLID", 0, "Solid and X-Ray", "Toggle solid and X-ray shading"},
+	{OB_MATERIAL, "MATERIAL", 0, "LookDev", "Toggle lookdev shading"},
+	{OB_RENDER, "RENDERED", 0, "Rendered", "Toggle rendered shading"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int toggle_shading_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d->drawtype == OB_RENDER) {
-		v3d->drawtype = v3d->prev_drawtype;
+	ScrArea *sa = CTX_wm_area(C);
+	int type = RNA_enum_get(op->ptr, "type");
+
+	if (type == OB_SOLID) {
+		if (v3d->drawtype == OB_SOLID) {
+			/* Toggle X-Ray if already in solid mode. */
+			if (ED_operator_posemode(C) || ED_operator_editmesh(C)) {
+				v3d->flag ^= V3D_ZBUF_SELECT;
+			}
+			else {
+				v3d->shading.flag ^= V3D_SHADING_XRAY;
+			}
+		}
+		else {
+			/* Go to solid mode. */
+			v3d->drawtype = OB_SOLID;
+		}
 	}
-	else {
-		v3d->prev_drawtype = v3d->drawtype;
-		v3d->drawtype = OB_RENDER;
+	else if (type == OB_MATERIAL) {
+		if (v3d->drawtype == OB_MATERIAL) {
+			v3d->drawtype = OB_SOLID;
+		}
+		else {
+			v3d->drawtype = OB_MATERIAL;
+		}
 	}
-	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
+	else if (type == OB_RENDER) {
+		if (v3d->drawtype == OB_RENDER) {
+			v3d->drawtype = v3d->prev_drawtype;
+		}
+		else {
+			v3d->prev_drawtype = v3d->drawtype;
+			v3d->drawtype = OB_RENDER;
+		}
+	}
+
+	ED_view3d_shade_update(bmain, v3d, sa);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_toggle_render(wmOperatorType *ot)
+void VIEW3D_OT_toggle_shading(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
-	ot->name = "Toggle Rendered Shading";
-	ot->description = "Toggle rendered shading mode of the viewport";
-	ot->idname = "VIEW3D_OT_toggle_render";
+	ot->name = "Toggle Shading Type";
+	ot->description = "Toggle shading type in 3D viewport";
+	ot->idname = "VIEW3D_OT_toggle_shading";
 
 	/* api callbacks */
-	ot->exec = toggle_render_exec;
+	ot->exec = toggle_shading_exec;
 	ot->poll = ED_operator_view3d_active;
+
+	prop = RNA_def_enum(ot->srna, "type", prop_shading_type_items, 0, "Type", "Shading type to toggle");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

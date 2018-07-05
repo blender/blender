@@ -64,7 +64,6 @@ enum {
 
 /* view3d_header.c */
 void VIEW3D_OT_layers(struct wmOperatorType *ot);
-void VIEW3D_OT_toggle_xray_draw_option(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
@@ -104,7 +103,7 @@ void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_clear_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
-void VIEW3D_OT_toggle_render(struct wmOperatorType *ot);
+void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 void view3d_boxview_sync(ScrArea *sa, ARegion *ar);
