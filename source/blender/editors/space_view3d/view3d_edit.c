@@ -3730,11 +3730,15 @@ static int view_axis_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "relative")) {
-		float angle_max = FLT_MAX;
-		int view_closest = -1;
-		float z_rel[3] = {0.0f, 0.0f, 1.0f};
+		float z_rel[3];
 
-		if (viewnum == RV3D_VIEW_TOP) {
+		if (viewnum == RV3D_VIEW_RIGHT) {
+			negate_v3_v3(z_rel, rv3d->viewinv[0]);
+		}
+		else if (viewnum == RV3D_VIEW_LEFT) {
+			copy_v3_v3(z_rel, rv3d->viewinv[0]);
+		}
+		else if (viewnum == RV3D_VIEW_TOP) {
 			negate_v3_v3(z_rel, rv3d->viewinv[1]);
 		}
 		else if (viewnum == RV3D_VIEW_BOTTOM) {
@@ -3752,7 +3756,12 @@ static int view_axis_exec(bContext *C, wmOperator *op)
 		else if (viewnum == RV3D_VIEW_BACK) {
 			copy_v3_v3(z_rel, rv3d->viewinv[2]);
 		}
+		else {
+			BLI_assert(0);
+		}
 
+		float angle_max = FLT_MAX;
+		int view_closest = -1;
 		for (int i = RV3D_VIEW_FRONT; i <= RV3D_VIEW_BOTTOM; i++) {
 			float quat[4];
 			float mat[3][3];
