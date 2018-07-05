@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
-from bpy_extras.node_utils import find_node_input, find_output_node
+from bpy_extras.node_utils import find_node_input
 
 
 class WorldButtonsPanel:
@@ -109,7 +109,7 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
 
         if world.use_nodes:
             ntree = world.node_tree
-            node = find_output_node(ntree, ('OUTPUT_WORLD',))
+            node = ntree.get_output_node('EEVEE')
 
             if node:
                 input = find_node_input(node, 'Surface')

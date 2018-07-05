@@ -1101,39 +1101,6 @@ enum {
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
 
-/* geometry output socket defines */
-#define GEOM_OUT_GLOB	0
-#define GEOM_OUT_LOCAL	1
-#define GEOM_OUT_VIEW	2
-#define GEOM_OUT_ORCO	3
-#define GEOM_OUT_UV		4
-#define GEOM_OUT_NORMAL	5
-#define GEOM_OUT_VCOL	6
-#define GEOM_OUT_VCOL_ALPHA	7
-#define GEOM_OUT_FRONTBACK	8
-
-/* material input socket defines */
-#define MAT_IN_COLOR	0
-#define MAT_IN_SPEC		1
-#define MAT_IN_REFL		2
-#define MAT_IN_NORMAL	3
-#define MAT_IN_MIR		4
-#define MAT_IN_AMB		5
-#define MAT_IN_EMIT	6
-#define MAT_IN_SPECTRA	7
-#define MAT_IN_RAY_MIRROR	8
-#define MAT_IN_ALPHA	9
-#define MAT_IN_TRANSLUCENCY	10
-#define NUM_MAT_IN		11	/* for array size */
-
-/* material output socket defines */
-#define MAT_OUT_COLOR		0
-#define MAT_OUT_ALPHA		1
-#define MAT_OUT_NORMAL	2
-#define MAT_OUT_DIFFUSE	3
-#define MAT_OUT_SPEC		4
-#define MAT_OUT_AO		5
-
 /* image */
 #define CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT	1
 
@@ -1175,5 +1142,13 @@ enum {
 	SHD_POINTDENSITY_COLOR_VERTWEIGHT   = 1,
 	SHD_POINTDENSITY_COLOR_VERTNOR      = 2,
 };
+
+/* Output shader node */
+
+typedef enum NodeShaderOutputTarget {
+	SHD_OUTPUT_ALL     = 0,
+	SHD_OUTPUT_EEVEE   = 1,
+	SHD_OUTPUT_CYCLES  = 2,
+} NodeShaderOutputTarget;
 
 #endif

@@ -209,20 +209,52 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
  * render engines works but it's how the GPU shader compilation works. This we
  * can change in the future and make it a generic function, but for now it stays
  * private here.
- *
- * It also does not yet take into account render engine specific output nodes,
- * it should give priority to e.g. the Eevee material output node for Eevee.
  */
-static bNode *ntree_shader_output_node(bNodeTree *ntree)
+bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
 {
 	/* Make sure we only have single node tagged as output. */
 	ntreeSetOutput(ntree);
-	for (bNode *node = ntree->nodes.first; node != NULL; node = node->next) {
-		if (node->flag & NODE_DO_OUTPUT) {
-			return node;
+
+	/* Find output node that matches type and target. If there are
+	 * multiple, we prefer exact target match and active nodes. */
+	bNode *output_node = NULL;
+
+	for (bNode *node = ntree->nodes.first; node; node = node->next) {
+		if (!ELEM(node->type, SH_NODE_OUTPUT_MATERIAL,
+		                      SH_NODE_OUTPUT_WORLD,
+		                      SH_NODE_OUTPUT_LAMP))
+		{
+			continue;
+		}
+
+		if (node->custom1 == SHD_OUTPUT_ALL) {
+			if (output_node == NULL) {
+				output_node = node;
+			}
+			else if (output_node->custom1 == SHD_OUTPUT_ALL) {
+				if ((node->flag & NODE_DO_OUTPUT) &&
+				    !(output_node->flag & NODE_DO_OUTPUT))
+				{
+					output_node = node;
+				}
+			}
+		}
+		else if (node->custom1 == target) {
+			if (output_node == NULL) {
+				output_node = node;
+			}
+			else if(output_node->custom1 == SHD_OUTPUT_ALL) {
+				output_node = node;
+			}
+			else if ((node->flag & NODE_DO_OUTPUT) &&
+				     !(output_node->flag & NODE_DO_OUTPUT))
+			{
+				output_node = node;
+			}
 		}
 	}
-	return NULL;
+
+	return output_node;
 }
 
 /* Find socket with a specified identifier. */
@@ -555,7 +587,7 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, bool *has_surface
 {
 	/* localize tree to create links for reroute and mute */
 	bNodeTree *localtree = ntreeLocalize(ntree);
-	bNode *output = ntree_shader_output_node(localtree);
+	bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
 	bNodeTreeExec *exec;
 
 	/* Perform all needed modifications on the tree in order to support

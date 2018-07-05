@@ -175,6 +175,14 @@ static const EnumPropertyItem node_sampler_type_items[] = {
 	{2, "BICUBIC", 0, "Bicubic", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+
+
+static const EnumPropertyItem prop_shader_output_target_items[] = {
+	{SHD_OUTPUT_ALL, "ALL", 0, "All", "Use shaders for all renderers and viewports, unless there exists a more specific output"},
+	{SHD_OUTPUT_EEVEE, "EEVEE", 0, "Eevee", "Use shaders for Eevee renderer"},
+	{SHD_OUTPUT_CYCLES, "CYCLES", 0, "Cycles", "Use shaders for Cycles renderer"},
+	{0, NULL, 0, NULL, NULL}
+};
 #endif
 
 #ifdef RNA_RUNTIME
@@ -3535,6 +3543,12 @@ static void def_sh_output(StructRNA *srna)
 	prop = RNA_def_property(srna, "is_active_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_DO_OUTPUT);
 	RNA_def_property_ui_text(prop, "Active Output", "True if this node is used as the active output");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "target", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, prop_shader_output_target_items);
+	RNA_def_property_ui_text(prop, "Target", "Which renderer and viewport shading types to use the shaders for");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -8377,12 +8391,21 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 static void rna_def_shader_nodetree(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "ShaderNodeTree", "NodeTree");
 	RNA_def_struct_ui_text(srna, "Shader Node Tree",
 	                       "Node tree consisting of linked nodes used for materials (and other shading data-blocks)");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL);
+
+	func = RNA_def_function(srna, "get_output_node", "ntreeShaderOutputNode");
+	RNA_def_function_ui_description(func, "Return active shader output node for the specified target");
+	parm = RNA_def_enum(func, "target", prop_shader_output_target_items, SHD_OUTPUT_ALL, "Target", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "node", "ShaderNode", "Node", "");
+	RNA_def_function_return(func, parm);
 }
 
 static void rna_def_texture_nodetree(BlenderRNA *brna)

@@ -1001,31 +1001,6 @@ static ShaderOutput *node_find_output_by_name(ShaderNode *node,
 	return node->output(name.c_str());
 }
 
-static BL::ShaderNode find_output_node(BL::ShaderNodeTree& b_ntree)
-{
-	BL::ShaderNodeTree::nodes_iterator b_node;
-	BL::ShaderNode output_node(PointerRNA_NULL);
-
-	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
-		BL::ShaderNodeOutputMaterial b_output_node(*b_node);
-
-		if (b_output_node.is_a(&RNA_ShaderNodeOutputMaterial) ||
-		    b_output_node.is_a(&RNA_ShaderNodeOutputWorld) ||
-		    b_output_node.is_a(&RNA_ShaderNodeOutputLamp)) {
-			/* regular Cycles output node */
-			if(b_output_node.is_active_output()) {
-				output_node = b_output_node;
-				break;
-			}
-			else if(!output_node.ptr.data) {
-				output_node = b_output_node;
-			}
-		}
-	}
-
-	return output_node;
-}
-
 static void add_nodes(Scene *scene,
                       BL::RenderEngine& b_engine,
                       BL::BlendData& b_data,
@@ -1045,7 +1020,7 @@ static void add_nodes(Scene *scene,
 	BL::Node::outputs_iterator b_output;
 
 	/* find the node to use for output if there are multiple */
-	BL::ShaderNode output_node = find_output_node(b_ntree);
+	BL::ShaderNode output_node = b_ntree.get_output_node(BL::ShaderNodeOutputMaterial::target_CYCLES);
 
 	/* add nodes */
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {

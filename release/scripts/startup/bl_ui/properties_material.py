@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 from bpy.app.translations import pgettext_iface as iface_
-from bpy_extras.node_utils import find_node_input, find_output_node
+from bpy_extras.node_utils import find_node_input
 
 
 class MATERIAL_MT_specials(Menu):
@@ -140,7 +140,7 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
 
 def panel_node_draw(layout, ntree, output_type):
-    node = find_output_node(ntree, output_type)
+    node = ntree.get_output_node('EEVEE')
 
     if node:
         input = find_node_input(node, 'Surface')
@@ -171,7 +171,7 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         layout.separator()
 
         if mat.use_nodes:
-            panel_node_draw(layout, mat.node_tree, ('OUTPUT_EEVEE_MATERIAL', 'OUTPUT_MATERIAL'))
+            panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL')
         else:
             layout.use_property_split = True
             layout.prop(mat, "diffuse_color", text="Base Color")

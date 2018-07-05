@@ -17,7 +17,7 @@
 # <pep8 compliant>
 
 import bpy
-from bpy_extras.node_utils import find_node_input, find_output_node
+from bpy_extras.node_utils import find_node_input
 from bl_operators.presets import PresetMenu
 
 from bpy.types import (
@@ -1069,14 +1069,14 @@ class CYCLES_OT_use_shading_nodes(Operator):
         return {'FINISHED'}
 
 
-def panel_node_draw(layout, id_data, output_types, input_name):
+def panel_node_draw(layout, id_data, output_type, input_name):
     if not id_data.use_nodes:
         layout.operator("cycles.use_shading_nodes", icon='NODETREE')
         return False
 
     ntree = id_data.node_tree
 
-    node = find_output_node(ntree, output_types)
+    node = ntree.get_output_node('CYCLES')
     if node:
         input = find_node_input(node, input_name)
         if input:
@@ -1176,7 +1176,7 @@ class CYCLES_LAMP_PT_nodes(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         lamp = context.lamp
-        if not panel_node_draw(layout, lamp, ('OUTPUT_LAMP',), 'Surface'):
+        if not panel_node_draw(layout, lamp, 'OUTPUT_LAMP', 'Surface'):
             layout.prop(lamp, "color")
 
 
@@ -1226,7 +1226,7 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
 
         world = context.world
 
-        if not panel_node_draw(layout, world, ('OUTPUT_WORLD',), 'Surface'):
+        if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "horizon_color", text="Color")
 
 
@@ -1244,7 +1244,7 @@ class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         world = context.world
-        panel_node_draw(layout, world, ('OUTPUT_WORLD',), 'Volume')
+        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
 
 
 class CYCLES_WORLD_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
@@ -1425,7 +1425,7 @@ class CYCLES_MATERIAL_PT_surface(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        if not panel_node_draw(layout, mat, ('OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'), 'Surface'):
+        if not panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface'):
             layout.prop(mat, "diffuse_color")
 
 
@@ -1445,7 +1445,7 @@ class CYCLES_MATERIAL_PT_volume(CyclesButtonsPanel, Panel):
         mat = context.material
         # cmat = mat.cycles
 
-        panel_node_draw(layout, mat, ('OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'), 'Volume')
+        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Volume')
 
 
 class CYCLES_MATERIAL_PT_displacement(CyclesButtonsPanel, Panel):
@@ -1461,7 +1461,7 @@ class CYCLES_MATERIAL_PT_displacement(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        panel_node_draw(layout, mat, ('OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'), 'Displacement')
+        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Displacement')
 
 
 class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
