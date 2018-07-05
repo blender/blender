@@ -713,6 +713,7 @@ typedef struct ObjectRuntimeBackup {
 	CurveCache *curve_cache;
 	Object_Runtime runtime;
 	short base_flag;
+	ListBase drawdata;
 } ObjectRuntimeBackup;
 
 /* Make a backup of object's evaluation runtime data, additionally
@@ -739,6 +740,9 @@ static void deg_backup_object_runtime(
 	object->curve_cache = NULL;
 	/* Make a backup of base flags. */
 	object_runtime_backup->base_flag = object->base_flag;
+	/* Make backup of object draw data.*/
+	object_runtime_backup->drawdata = object->drawdata;
+	BLI_listbase_clear(&object->drawdata);
 }
 
 static void deg_restore_object_runtime(
@@ -778,6 +782,8 @@ static void deg_restore_object_runtime(
 		object->curve_cache = object_runtime_backup->curve_cache;
 	}
 	object->base_flag = object_runtime_backup->base_flag;
+	/* Restore draw data. */
+	object->drawdata = object_runtime_backup->drawdata;
 }
 
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
