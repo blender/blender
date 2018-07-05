@@ -31,6 +31,8 @@
 extern "C" {
 #endif
 
+struct OceanModifierData;
+
 typedef struct OceanResult {
 	float disp[3];
 	float normal[3];
@@ -99,6 +101,8 @@ void BKE_ocean_cache_eval_uv(struct OceanCache *och, struct OceanResult *ocr, in
 void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, int f, int i, int j);
 
 void BKE_ocean_free_cache(struct OceanCache *och);
+void BKE_ocean_free_modifier_cache(struct OceanModifierData *omd);
+
 #ifdef __cplusplus
 }
 #endif

@@ -2083,7 +2083,7 @@ static void init_ocean_modifier_bake(struct Ocean *oc, struct OceanModifierData 
 
 typedef struct OceanBakeJob {
 	/* from wmJob */
-	void *owner;
+	struct Object *owner;
 	short *stop, *do_update;
 	float *progress;
 	int current_frame;
@@ -2149,6 +2149,9 @@ static void oceanbake_endjob(void *customdata)
 
 	oj->omd->oceancache = oj->och;
 	oj->omd->cached = true;
+
+	Object *ob = oj->owner;
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 static int ocean_bake_exec(bContext *C, wmOperator *op)
@@ -2169,8 +2172,8 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if (free) {
-		omd->refresh |= MOD_OCEAN_REFRESH_CLEAR_CACHE;
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		BKE_ocean_free_modifier_cache(omd);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 		return OPERATOR_FINISHED;
 	}
@@ -2232,6 +2235,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation",
 	                     WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_OCEAN);
 	oj = MEM_callocN(sizeof(OceanBakeJob), "ocean bake job");
+	oj->owner = ob;
 	oj->ocean = ocean;
 	oj->och = och;
 	oj->omd = omd;

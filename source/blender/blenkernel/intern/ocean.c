@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
@@ -1512,3 +1513,10 @@ void BKE_ocean_bake(struct Ocean *UNUSED(o), struct OceanCache *UNUSED(och),
 	(void)update_cb;
 }
 #endif /* WITH_OCEANSIM */
+
+void BKE_ocean_free_modifier_cache(struct OceanModifierData *omd)
+{
+	BKE_ocean_free_cache(omd->oceancache);
+	omd->oceancache = NULL;
+	omd->cached = false;
+}

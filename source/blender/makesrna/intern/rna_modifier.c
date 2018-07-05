@@ -50,6 +50,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
+#include "BKE_ocean.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
 #include "RNA_access.h"
@@ -739,8 +740,7 @@ static void rna_OceanModifier_init_update(Main *bmain, Scene *scene, PointerRNA 
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
 
-	omd->refresh |= MOD_OCEAN_REFRESH_RESET | MOD_OCEAN_REFRESH_CLEAR_CACHE;
-
+	BKE_ocean_free_modifier_cache(omd);
 	rna_Modifier_update(bmain, scene, ptr);
 }
 
@@ -754,8 +754,7 @@ static void rna_OceanModifier_ocean_chop_set(PointerRNA *ptr, float value)
 	if ((old_value == 0.0f && value > 0.0f) ||
 	    (old_value > 0.0f && value == 0.0f))
 	{
-		omd->refresh |= MOD_OCEAN_REFRESH_RESET;
-		omd->refresh |= MOD_OCEAN_REFRESH_CLEAR_CACHE;
+		BKE_ocean_free_modifier_cache(omd);
 	}
 }
 

@@ -5225,8 +5225,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type == eModifierType_Ocean) {
 			OceanModifierData *omd = (OceanModifierData *)md;
 			omd->oceancache = NULL;
-			omd->ocean = BKE_ocean_add();
-			omd->refresh = MOD_OCEAN_REFRESH_RESET;
+			omd->ocean = NULL;
 		}
 		else if (md->type == eModifierType_Warp) {
 			WarpModifierData *tmd = (WarpModifierData *)md;

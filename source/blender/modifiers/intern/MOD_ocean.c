@@ -61,13 +61,6 @@ static void init_cache_data(Object *ob, struct OceanModifierData *omd)
 	                                       omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 }
 
-static void clear_cache_data(struct OceanModifierData *omd)
-{
-	BKE_ocean_free_cache(omd->oceancache);
-	omd->oceancache = NULL;
-	omd->cached = false;
-}
-
 /* keep in sync with init_ocean_modifier_bake(), object_modifier.c */
 static void init_ocean_modifier(struct OceanModifierData *omd)
 {
@@ -91,8 +84,6 @@ static void init_ocean_modifier(struct OceanModifierData *omd)
 
 static void simulate_ocean_modifier(struct OceanModifierData *omd)
 {
-	if (!omd || !omd->ocean) return;
-
 	BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
 }
 #endif /* WITH_OCEANSIM */
@@ -125,8 +116,6 @@ static void initData(ModifierData *md)
 
 	omd->seed = 0;
 	omd->time = 1.0;
-
-	omd->refresh = 0;
 
 	omd->size = 1.0;
 	omd->repeat_x = 1;
@@ -174,10 +163,8 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
 	modifier_copyData_generic(md, target, flag);
 
-	tomd->refresh = 0;
-
-	/* XXX todo: copy cache runtime too */
-	tomd->cached = 0;
+	/* The oceancache object will be recreated for this copy
+	 * automatically when cached=true */
 	tomd->oceancache = NULL;
 
 	tomd->ocean = BKE_ocean_add();
@@ -409,19 +396,18 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd)
 	return result;
 }
 
-static Mesh *doOcean(
-        ModifierData *md, Scene *scene, Object *ob,
-        Mesh *mesh,
-        int UNUSED(useRenderParams))
+static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 	OceanModifierData *omd = (OceanModifierData *) md;
+	int cfra_scene = (int)DEG_get_ctime(ctx->depsgraph);
+	Object *ob = ctx->object;
 
 	Mesh *result = NULL;
 	OceanResult ocr;
 
 	MVert *mverts;
 
-	int cfra;
+	int cfra_for_cache;
 	int i, j;
 
 	/* use cached & inverted value for speed
@@ -437,21 +423,12 @@ static Mesh *doOcean(
 		return mesh;
 	}
 
-	/* update modifier */
-	if (omd->refresh & MOD_OCEAN_REFRESH_RESET) {
-		init_ocean_modifier(omd);
-	}
-	if (omd->refresh & MOD_OCEAN_REFRESH_CLEAR_CACHE) {
-		clear_cache_data(omd);
-	}
-	omd->refresh = 0;
-
 	/* do ocean simulation */
 	if (omd->cached == true) {
 		if (!omd->oceancache) {
 			init_cache_data(ob, omd);
 		}
-		BKE_ocean_simulate_cache(omd->oceancache, scene->r.cfra);
+		BKE_ocean_simulate_cache(omd->oceancache, cfra_scene);
 	}
 	else {
 		simulate_ocean_modifier(omd);
@@ -470,9 +447,9 @@ static Mesh *doOcean(
 		               false);
 	}
 
-	cfra = scene->r.cfra;
-	CLAMP(cfra, omd->bakestart, omd->bakeend);
-	cfra -= omd->bakestart; /* shift to 0 based */
+	cfra_for_cache = cfra_scene;
+	CLAMP(cfra_for_cache, omd->bakestart, omd->bakeend);
+	cfra_for_cache -= omd->bakestart; /* shift to 0 based */
 
 	mverts = result->mvert;
 
@@ -501,7 +478,7 @@ static Mesh *doOcean(
 						float foam;
 
 						if (omd->oceancache && omd->cached == true) {
-							BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
+							BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra_for_cache, u, v);
 							foam = ocr.foam;
 							CLAMP(foam, 0.0f, 1.0f);
 						}
@@ -532,7 +509,7 @@ static Mesh *doOcean(
 			const float v = OCEAN_CO(size_co_inv, vco[1]);
 
 			if (omd->oceancache && omd->cached == true) {
-				BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
+				BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra_for_cache, u, v);
 			}
 			else {
 				BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
@@ -552,10 +529,7 @@ static Mesh *doOcean(
 	return result;
 }
 #else  /* WITH_OCEANSIM */
-static Mesh *doOcean(
-        ModifierData *UNUSED(md), Scene *UNUSED(scene), Object *UNUSED(ob),
-        Mesh *mesh,
-        int UNUSED(useRenderParams))
+static Mesh *doOcean(ModifierData *UNUSED(md), const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
 {
 	return mesh;
 }
@@ -566,10 +540,8 @@ static Mesh *applyModifier(
         Mesh *mesh)
 {
 	Mesh *result;
-	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-
-	result = doOcean(md, scene, ctx->object, mesh, 0);
+	result = doOcean(md, ctx, mesh);
 
 	if (result != mesh)
 		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
