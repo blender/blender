@@ -116,6 +116,7 @@ set(SRC_HEADERS
 	util_types_uint3_impl.h
 	util_types_uint4.h
 	util_types_uint4_impl.h
+	util_types_ushort4.h
 	util_types_vector3.h
 	util_types_vector3_impl.h
 	util_vector.h

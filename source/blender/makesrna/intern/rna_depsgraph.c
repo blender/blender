@@ -143,13 +143,13 @@ static PointerRNA rna_DepsgraphUpdate_id_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ID, ptr->data);
 }
 
-static int rna_DepsgraphUpdate_is_dirty_transform_get(PointerRNA *ptr)
+static bool rna_DepsgraphUpdate_is_dirty_transform_get(PointerRNA *ptr)
 {
 	ID *id = ptr->data;
 	return ((id->recalc & ID_RECALC_TRANSFORM) == 0);
 }
 
-static int rna_DepsgraphUpdate_is_dirty_geometry_get(PointerRNA *ptr)
+static bool rna_DepsgraphUpdate_is_dirty_geometry_get(PointerRNA *ptr)
 {
 	ID *id = ptr->data;
 	if (id->recalc & ID_RECALC_GEOMETRY) {

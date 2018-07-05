@@ -287,6 +287,7 @@ set(SRC_UTIL_HEADERS
 	../util/util_types_uint3_impl.h
 	../util/util_types_uint4.h
 	../util/util_types_uint4_impl.h
+	../util/util_types_ushort4.h
 	../util/util_types_vector3.h
 	../util/util_types_vector3_impl.h
 )

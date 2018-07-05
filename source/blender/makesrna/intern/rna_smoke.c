@@ -431,7 +431,7 @@ static void rna_SmokeFlow_uvlayer_set(PointerRNA *ptr, const char *value)
 	rna_object_uvlayer_name_set(ptr, value, flow->uvlayer_name, sizeof(flow->uvlayer_name));
 }
 
-static void rna_Smoke_use_color_ramp_set(PointerRNA *ptr, int value)
+static void rna_Smoke_use_color_ramp_set(PointerRNA *ptr, bool value)
 {
 	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
 

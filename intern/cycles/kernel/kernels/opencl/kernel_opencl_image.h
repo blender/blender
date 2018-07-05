@@ -54,9 +54,21 @@ ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, const ccl_glo
 		float f = 1.0f/255.0f;
 		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
 	}
+	/* Ushort4 */
+	else if(texture_type == IMAGE_DATA_TYPE_USHORT4) {
+		ushort4 r = tex_fetch(ushort4, info, offset);
+		float f = 1.0f/65535.f;
+		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
+	}
 	/* Float */
 	else if(texture_type == IMAGE_DATA_TYPE_FLOAT) {
 		float f = tex_fetch(float, info, offset);
+		return make_float4(f, f, f, 1.0f);
+	}
+	/* UShort */
+	else if(texture_type == IMAGE_DATA_TYPE_USHORT) {
+		ushort r = tex_fetch(ushort, info, offset);
+		float f = r * (1.0f / 65535.0f);
 		return make_float4(f, f, f, 1.0f);
 	}
 	/* Byte */

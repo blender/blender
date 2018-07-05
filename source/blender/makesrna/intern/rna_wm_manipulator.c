@@ -348,12 +348,12 @@ static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, const float value[l
 
 /* wmManipulator.flag */
 #define RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(func_id, member_id, flag_value) \
-static int rna_Manipulator_##func_id##_get(PointerRNA *ptr) \
+static bool rna_Manipulator_##func_id##_get(PointerRNA *ptr) \
 { \
 	wmManipulator *mpr = ptr->data; \
 	return (mpr->member_id & flag_value) != 0; \
 } \
-static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, int value) \
+static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, bool value) \
 { \
 	wmManipulator *mpr = ptr->data; \
 	SET_FLAG_FROM_TEST(mpr->member_id, value, flag_value); \
@@ -361,12 +361,12 @@ static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, int value) \
 
 /* wmManipulator.flag (negative) */
 #define RNA_MANIPULATOR_GENERIC_FLAG_NEG_RW_DEF(func_id, member_id, flag_value) \
-static int rna_Manipulator_##func_id##_get(PointerRNA *ptr) \
+static bool rna_Manipulator_##func_id##_get(PointerRNA *ptr) \
 { \
 	wmManipulator *mpr = ptr->data; \
 	return (mpr->member_id & flag_value) == 0; \
 } \
-static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, int value) \
+static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, bool value) \
 { \
 	wmManipulator *mpr = ptr->data; \
 	SET_FLAG_FROM_TEST(mpr->member_id, !value, flag_value); \
@@ -411,7 +411,7 @@ RNA_MANIPULATOR_FLAG_RO_DEF(state_is_highlight, state, WM_MANIPULATOR_STATE_HIGH
 RNA_MANIPULATOR_FLAG_RO_DEF(state_is_modal, state, WM_MANIPULATOR_STATE_MODAL);
 RNA_MANIPULATOR_FLAG_RO_DEF(state_select, state, WM_MANIPULATOR_STATE_SELECT);
 
-static void rna_Manipulator_state_select_set(struct PointerRNA *ptr, int value)
+static void rna_Manipulator_state_select_set(struct PointerRNA *ptr, bool value)
 {
 	wmManipulator *mpr = ptr->data;
 	wmManipulatorGroup *mgroup = mpr->parent_mgroup;
@@ -604,7 +604,7 @@ static void rna_ManipulatorGroup_bl_label_set(PointerRNA *ptr, const char *value
 		assert(!"setting the bl_label on a non-builtin operator");
 }
 
-static int rna_ManipulatorGroup_has_reports_get(PointerRNA *ptr)
+static bool rna_ManipulatorGroup_has_reports_get(PointerRNA *ptr)
 {
 	wmManipulatorGroup *mgroup = ptr->data;
 	return (mgroup->reports && mgroup->reports->list.first);

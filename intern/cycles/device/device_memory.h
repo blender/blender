@@ -43,6 +43,7 @@ enum MemoryType {
 enum DataType {
 	TYPE_UNKNOWN,
 	TYPE_UCHAR,
+	TYPE_UINT16,
 	TYPE_UINT,
 	TYPE_INT,
 	TYPE_FLOAT,
@@ -57,6 +58,7 @@ static inline size_t datatype_size(DataType datatype)
 		case TYPE_UCHAR: return sizeof(uchar);
 		case TYPE_FLOAT: return sizeof(float);
 		case TYPE_UINT: return sizeof(uint);
+		case TYPE_UINT16: return sizeof(uint16_t);
 		case TYPE_INT: return sizeof(int);
 		case TYPE_HALF: return sizeof(half);
 		case TYPE_UINT64: return sizeof(uint64_t);
@@ -153,6 +155,16 @@ template<> struct device_type_traits<float4> {
 
 template<> struct device_type_traits<half> {
 	static const DataType data_type = TYPE_HALF;
+	static const int num_elements = 1;
+};
+
+template<> struct device_type_traits<ushort4> {
+	static const DataType data_type = TYPE_UINT16;
+	static const int num_elements = 4;
+};
+
+template<> struct device_type_traits<uint16_t> {
+	static const DataType data_type = TYPE_UINT16;
 	static const int num_elements = 1;
 };
 

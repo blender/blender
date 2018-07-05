@@ -160,7 +160,7 @@ static void rna_MetaBall_elements_clear(MetaBall *mb)
 	}
 }
 
-static int rna_Meta_is_editmode_get(PointerRNA *ptr)
+static bool rna_Meta_is_editmode_get(PointerRNA *ptr)
 {
 	MetaBall *mb = ptr->id.data;
 	return (mb->editelems != NULL);

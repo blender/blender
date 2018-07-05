@@ -116,6 +116,8 @@ CCL_NAMESPACE_END
 #include "util/util_types_uint3.h"
 #include "util/util_types_uint4.h"
 
+#include "util/util_types_ushort4.h"
+
 #include "util/util_types_float2.h"
 #include "util/util_types_float3.h"
 #include "util/util_types_float4.h"

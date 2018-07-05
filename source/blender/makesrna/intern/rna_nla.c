@@ -253,7 +253,7 @@ static void rna_NlaStrip_blend_out_set(PointerRNA *ptr, float value)
 	data->blendout = value;
 }
 
-static void rna_NlaStrip_use_auto_blend_set(PointerRNA *ptr, int value)
+static void rna_NlaStrip_use_auto_blend_set(PointerRNA *ptr, bool value)
 {
 	NlaStrip *data = (NlaStrip *)ptr->data;
 
@@ -329,7 +329,7 @@ static void rna_NlaStrip_action_end_frame_set(PointerRNA *ptr, float value)
 	BKE_nlastrip_recalculate_bounds(data);
 }
 
-static void rna_NlaStrip_animated_influence_set(PointerRNA *ptr, int value)
+static void rna_NlaStrip_animated_influence_set(PointerRNA *ptr, bool value)
 {
 	NlaStrip *data = (NlaStrip *)ptr->data;
 
@@ -342,7 +342,7 @@ static void rna_NlaStrip_animated_influence_set(PointerRNA *ptr, int value)
 		data->flag &= ~NLASTRIP_FLAG_USR_INFLUENCE;
 }
 
-static void rna_NlaStrip_animated_time_set(PointerRNA *ptr, int value)
+static void rna_NlaStrip_animated_time_set(PointerRNA *ptr, bool value)
 {
 	NlaStrip *data = (NlaStrip *)ptr->data;
 
@@ -433,7 +433,7 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
 /* Set the 'solo' setting for the given NLA-track, making sure that it is the only one
  * that has this status in its AnimData block.
  */
-static void rna_NlaTrack_solo_set(PointerRNA *ptr, int value)
+static void rna_NlaTrack_solo_set(PointerRNA *ptr, bool value)
 {
 	NlaTrack *data = (NlaTrack *)ptr->data;
 	AnimData *adt = BKE_animdata_from_id(ptr->id.data);

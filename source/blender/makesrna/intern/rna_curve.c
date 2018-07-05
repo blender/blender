@@ -737,7 +737,7 @@ static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA
 	rna_iterator_listbase_begin(iter, BKE_curve_nurbs_get(cu), NULL);
 }
 
-static int rna_Curve_is_editmode_get(PointerRNA *ptr)
+static bool rna_Curve_is_editmode_get(PointerRNA *ptr)
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	const short type = BKE_curve_type_get(cu);

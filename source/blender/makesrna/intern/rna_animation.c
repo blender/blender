@@ -119,7 +119,7 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const int value)
+static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
 {
 	AnimData *adt = (AnimData *)ptr->data;
 

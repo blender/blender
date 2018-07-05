@@ -381,7 +381,7 @@ static void rna_EditBone_connected_check(EditBone *ebone)
 	}
 }
 
-static void rna_EditBone_connected_set(PointerRNA *ptr, int value)
+static void rna_EditBone_connected_set(PointerRNA *ptr, bool value)
 {
 	EditBone *ebone = (EditBone *)(ptr->data);
 
@@ -501,7 +501,7 @@ static void rna_Armature_bones_next(CollectionPropertyIterator *iter)
 	iter->valid = (internal->link != NULL);
 }
 
-static int rna_Armature_is_editmode_get(PointerRNA *ptr)
+static bool rna_Armature_is_editmode_get(PointerRNA *ptr)
 {
 	bArmature *arm = (bArmature *)ptr->id.data;
 	return (arm->edbo != NULL);

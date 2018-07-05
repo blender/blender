@@ -223,13 +223,13 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerR
 	return particle_edit_cache_brush_items;
 }
 
-static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
+static bool rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
 	return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
 }
-static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
+static bool rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 

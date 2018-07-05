@@ -53,6 +53,11 @@ inline float cast_to_float(uchar value)
 	return (float)value / 255.0f;
 }
 template<>
+inline float cast_to_float(uint16_t value)
+{
+	return (float)value / 65535.0f;
+}
+template<>
 inline float cast_to_float(half value)
 {
 	return half_to_float(value);
@@ -77,6 +82,17 @@ inline uchar cast_from_float(float value)
 		return 255;
 	}
 	return (uchar)((255.0f * value) + 0.5f);
+}
+template<>
+inline uint16_t cast_from_float(float value)
+{
+	if(value < 0.0f) {
+		return 0;
+	}
+	else if(value >(1.0f - 0.5f / 65535.0f)) {
+		return 65535;
+	}
+	return (uchar)((65535.0f * value) + 0.5f);
 }
 template<>
 inline half cast_from_float(float value)

@@ -209,14 +209,14 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 	}
 }
 
-static int rna_trackingTrack_select_get(PointerRNA *ptr)
+static bool rna_trackingTrack_select_get(PointerRNA *ptr)
 {
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
 
 	return TRACK_SELECTED(track);
 }
 
-static void rna_trackingTrack_select_set(PointerRNA *ptr, int value)
+static void rna_trackingTrack_select_set(PointerRNA *ptr, bool value)
 {
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
 

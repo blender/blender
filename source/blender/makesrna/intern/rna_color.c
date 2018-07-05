@@ -86,7 +86,7 @@ static void rna_CurveMapping_curves_begin(CollectionPropertyIterator *iter, Poin
 	rna_iterator_array_begin(iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), 0, NULL);
 }
 
-static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
+static void rna_CurveMapping_clip_set(PointerRNA *ptr, bool value)
 {
 	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
@@ -495,7 +495,7 @@ static const EnumPropertyItem *rna_ColorManagedViewSettings_look_itemf(
 	return items;
 }
 
-static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, int value)
+static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, bool value)
 {
 	ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *) ptr->data;
 
