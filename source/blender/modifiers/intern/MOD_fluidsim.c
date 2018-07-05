@@ -33,14 +33,13 @@
  */
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 
-
-#include "BKE_cdderivedmesh.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
 
@@ -80,25 +79,25 @@ static void copyData(const ModifierData *md, ModifierData *target, const int UNU
 
 
 
-static DerivedMesh *applyModifier(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+        Mesh *mesh)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
-	DerivedMesh *result = NULL;
+	Mesh *result = NULL;
 
 	/* check for alloc failing */
 	if (!fluidmd->fss) {
 		initData(md);
 
 		if (!fluidmd->fss) {
-			return dm;
+			return mesh;
 		}
 	}
 
-	result = fluidsimModifier_do(fluidmd, ctx, dm);
+	result = fluidsimModifier_do(fluidmd, ctx, mesh);
 
-	return result ? result : dm;
+	return result ? result : mesh;
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -145,14 +144,14 @@ ModifierTypeInfo modifierType_Fluidsim = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

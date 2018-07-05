@@ -530,10 +530,6 @@ DerivedMesh *getEditDerivedBMesh(
         struct BMEditMesh *em, struct Object *ob, CustomDataMask data_mask,
         float (*vertexCos)[3]);
 
-DerivedMesh *mesh_create_derived_index_render(
-        struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, CustomDataMask dataMask, int index);
-
 /* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived(struct Mesh *me, float (*vertCos)[3]);
 DerivedMesh *mesh_create_derived_view(

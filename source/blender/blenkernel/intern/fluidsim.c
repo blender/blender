@@ -30,35 +30,20 @@
  */
 
 
-// headers for fluidsim bobj meshes
-#include <stdlib.h>
-#include <zlib.h>
-#include <string.h>
-#include <stdio.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_fluidsim_types.h"
-#include "DNA_object_force_types.h" // for pointcache
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_fluidsim.h"
-#include "BKE_modifier.h"
-#include "BKE_mesh.h"
+#include "BKE_library.h"
+#include "BKE_mesh_runtime.h"
 
 /* ************************* fluidsim bobj file handling **************************** */
-
 
 //-------------------------------------------------------------------------------
 // file handling
@@ -69,7 +54,7 @@ void initElbeemMesh(struct Depsgraph *depsgraph, struct Scene *scene, struct Obj
                     int *numTriangles, int **triangles,
                     int useGlobalCoords, int modifierIndex)
 {
-	DerivedMesh *dm;
+	Mesh *mesh;
 	const MVert *mvert;
 	const MLoop *mloop;
 	const MLoopTri *looptri, *lt;
@@ -77,13 +62,13 @@ void initElbeemMesh(struct Depsgraph *depsgraph, struct Scene *scene, struct Obj
 	float *verts;
 	int *tris;
 
-	dm = mesh_create_derived_index_render(depsgraph, scene, ob, CD_MASK_BAREMESH, modifierIndex);
+	mesh = mesh_create_eval_final_index_render(depsgraph, scene, ob, CD_MASK_BAREMESH, modifierIndex);
 
-	mvert = dm->getVertArray(dm);
-	mloop = dm->getLoopArray(dm);
-	looptri = dm->getLoopTriArray(dm);
-	mvert_num = dm->getNumVerts(dm);
-	looptri_num = dm->getNumLoopTri(dm);
+	mvert = mesh->mvert;
+	mloop = mesh->mloop;
+	looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+	mvert_num = mesh->totvert;
+	looptri_num = mesh->runtime.looptris.len;
 
 	*numVertices = mvert_num;
 	verts = MEM_mallocN(mvert_num * sizeof(float[3]), "elbeemmesh_vertices");
@@ -102,5 +87,5 @@ void initElbeemMesh(struct Depsgraph *depsgraph, struct Scene *scene, struct Obj
 	}
 	*triangles = tris;
 
-	dm->release(dm);
+	BKE_id_free(NULL, mesh);
 }

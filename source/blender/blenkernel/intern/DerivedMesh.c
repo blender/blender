@@ -3156,11 +3156,26 @@ DerivedMesh *mesh_create_derived_render(struct Depsgraph *depsgraph, Scene *scen
 	return final;
 }
 
+#ifdef USE_DERIVEDMESH
+/* Deprecated, use `mesh_create_eval_final_index_render` instead. */
 DerivedMesh *mesh_create_derived_index_render(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask, int index)
 {
 	DerivedMesh *final;
 
 	mesh_calc_modifiers_dm(
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, index, false, false, false,
+	        NULL, &final);
+
+	return final;
+}
+#endif
+struct Mesh *mesh_create_eval_final_index_render(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask, int index)
+{
+	Mesh *final;
+
+	mesh_calc_modifiers(
 	        depsgraph, scene, ob, NULL, 1, false, dataMask, index, false, false, false,
 	        NULL, &final);
 
