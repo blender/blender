@@ -2217,38 +2217,38 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		}
 		case OB_LAMP:
-			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_LAMP)
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_LAMP) == 0)
 			{
 				DRW_shgroup_lamp(stl, ob, view_layer);
 			}
 			break;
 		case OB_CAMERA:
-			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_CAMERA)
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_CAMERA) == 0)
 			{
 				DRW_shgroup_camera(stl, ob, view_layer);
 			}
 			break;
 		case OB_EMPTY:
-			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_EMPTY)
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_EMPTY) == 0)
 			{
 				DRW_shgroup_empty(stl, psl, ob, view_layer);
 			}
 			break;
 		case OB_SPEAKER:
-			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_SPEAKER)
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_SPEAKER) == 0)
 			{
 				DRW_shgroup_speaker(stl, ob, view_layer);
 			}
 			break;
 		case OB_LIGHTPROBE:
-			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_LIGHTPROBE)
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_LIGHTPROBE) == 0)
 			{
 				DRW_shgroup_lightprobe(stl, psl, ob, view_layer);
 			}
 			break;
 		case OB_ARMATURE:
 		{
-			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_ARMATURE)
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_ARMATURE) == 0)
 			{
 				bArmature *arm = ob->data;
 				if (arm->edbo == NULL) {

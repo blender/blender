@@ -2609,7 +2609,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_empties", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlay.visible_object_types", V3D_OVERLAY_SHOW_EMPTY);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.hidden_object_types", V3D_OVERLAY_HIDE_EMPTY);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Show Empties", "Draw empties in the overlay");
@@ -2617,7 +2617,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_cameras", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlay.visible_object_types", V3D_OVERLAY_SHOW_CAMERA);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.hidden_object_types", V3D_OVERLAY_HIDE_CAMERA);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Show Cameras", "Draw cameras in the overlay");
@@ -2625,7 +2625,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_speakers", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlay.visible_object_types", V3D_OVERLAY_SHOW_SPEAKER);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.hidden_object_types", V3D_OVERLAY_HIDE_SPEAKER);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Show Speakers", "Draw speakers in the overlay");
@@ -2633,7 +2633,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_lightprobes", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlay.visible_object_types", V3D_OVERLAY_SHOW_LIGHTPROBE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.hidden_object_types", V3D_OVERLAY_HIDE_LIGHTPROBE);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Show Lightprobes", "Draw lightprobes in the overlay");
@@ -2641,7 +2641,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_armatures", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlay.visible_object_types", V3D_OVERLAY_SHOW_ARMATURE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.hidden_object_types", V3D_OVERLAY_HIDE_ARMATURE);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Show Armatures", "Draw armatures in the overlay");
@@ -2649,7 +2649,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_lamps", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlay.visible_object_types", V3D_OVERLAY_SHOW_LAMP);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.hidden_object_types", V3D_OVERLAY_HIDE_LAMP);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Show Lamps", "Draw lamps in the overlay");

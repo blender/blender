@@ -179,7 +179,7 @@ typedef struct View3DOverlay {
 
 	/* Other settings */
 	float wireframe_threshold;
-	int visible_object_types;
+	int hidden_object_types;
 
 } View3DOverlay;
 
@@ -384,16 +384,15 @@ enum {
 	V3D_OVERLAY_ONION_SKINS       = (1 << 7),
 };
 
-/* View3DOverlay->visible_object_types */
+/* View3DOverlay->hidden_object_types */
 enum {
-	V3D_OVERLAY_SHOW_EMPTY        = (1 << OB_EMPTY),
-	V3D_OVERLAY_SHOW_LAMP         = (1 << OB_LAMP),
-	V3D_OVERLAY_SHOW_CAMERA       = (1 << OB_CAMERA),
-	V3D_OVERLAY_SHOW_SPEAKER      = (1 << OB_SPEAKER),
-	V3D_OVERLAY_SHOW_LIGHTPROBE   = (1 << OB_LIGHTPROBE),
-	V3D_OVERLAY_SHOW_ARMATURE     = (1 << OB_ARMATURE),
+	V3D_OVERLAY_HIDE_EMPTY        = (1 << OB_EMPTY),
+	V3D_OVERLAY_HIDE_LAMP         = (1 << OB_LAMP),
+	V3D_OVERLAY_HIDE_CAMERA       = (1 << OB_CAMERA),
+	V3D_OVERLAY_HIDE_SPEAKER      = (1 << OB_SPEAKER),
+	V3D_OVERLAY_HIDE_LIGHTPROBE   = (1 << OB_LIGHTPROBE),
+	V3D_OVERLAY_HIDE_ARMATURE     = (1 << OB_ARMATURE),
 };
-#define V3D_OVERLAY_VISIBLE_OBJECT_TYPES_MASK (V3D_OVERLAY_SHOW_EMPTY | V3D_OVERLAY_SHOW_LAMP | V3D_OVERLAY_SHOW_CAMERA | V3D_OVERLAY_SHOW_SPEAKER | V3D_OVERLAY_SHOW_LIGHTPROBE | V3D_OVERLAY_SHOW_ARMATURE)
 
 /* View3DOverlay->edit_flag */
 enum {
