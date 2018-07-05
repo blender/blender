@@ -391,7 +391,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_menu(keymap, "TEXT_MT_toolbox", RIGHTMOUSE, KM_PRESS, KM_ANY, 0);
 
-	WM_keymap_add_item(keymap, "TEXT_OT_autocomplete", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_autocomplete", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_line_number", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
