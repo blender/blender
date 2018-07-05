@@ -397,7 +397,7 @@ static const EnumPropertyItem *rna_TextureSlot_output_node_itemf(
 	return item;
 }
 
-static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
+static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, bool value)
 {
 	Tex *tex = (Tex *)ptr->data;
 
@@ -422,7 +422,7 @@ static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
 	rna_Texture_nodes_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
-static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
+static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, bool value)
 {
 	Tex *tex = (Tex *)ptr->data;
 

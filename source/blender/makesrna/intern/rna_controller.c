@@ -159,7 +159,7 @@ static void rna_Controller_state_get(PointerRNA *ptr, int *values)
 		values[i] = (cont->state_mask & (1 << i));
 }
 
-static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
+static void rna_Controller_state_set(PointerRNA *ptr, const bool *values)
 {
 	bController *cont = (bController *)ptr->data;
 	int i, tot = 0;

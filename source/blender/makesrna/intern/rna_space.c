@@ -367,7 +367,7 @@ static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_sa, ARe
 	area_region_from_regiondata(sc, regiondata, r_sa, r_ar);
 }
 
-static int rna_Space_view2d_sync_get(PointerRNA *ptr)
+static bool rna_Space_view2d_sync_get(PointerRNA *ptr)
 {
 	ScrArea *sa;
 	ARegion *ar;
@@ -382,7 +382,7 @@ static int rna_Space_view2d_sync_get(PointerRNA *ptr)
 	return false;
 }
 
-static void rna_Space_view2d_sync_set(PointerRNA *ptr, int value)
+static void rna_Space_view2d_sync_set(PointerRNA *ptr, bool value)
 {
 	ScrArea *sa;
 	ARegion *ar;
@@ -477,7 +477,7 @@ static void rna_SpaceView3D_camera_update(Main *bmain, Scene *scene, PointerRNA 
 	}
 }
 
-static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, int value)
+static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, bool value)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
@@ -786,7 +786,7 @@ static void rna_SpaceImageEditor_show_stereo_set(PointerRNA *ptr, int value)
 		sima->iuser.flag &= ~IMA_SHOW_STEREO;
 }
 
-static int rna_SpaceImageEditor_show_stereo_get(PointerRNA *ptr)
+static bool rna_SpaceImageEditor_show_stereo_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	return (sima->iuser.flag & IMA_SHOW_STEREO) != 0;
@@ -807,26 +807,26 @@ static void rna_SpaceImageEditor_show_stereo_update(Main *UNUSED(bmain), Scene *
 	}
 }
 
-static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
+static bool rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	return ED_space_image_show_render(sima);
 }
 
-static int rna_SpaceImageEditor_show_paint_get(PointerRNA *ptr)
+static bool rna_SpaceImageEditor_show_paint_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	return ED_space_image_show_paint(sima);
 }
 
-static int rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
+static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 	return ED_space_image_show_uvedit(sima, sc->scene->obedit);
 }
 
-static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
+static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
@@ -993,7 +993,7 @@ static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext *UNUSED
 
 /* Space Text Editor */
 
-static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
+static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, bool value)
 {
 	SpaceText *st = (SpaceText *)(ptr->data);
 
@@ -1400,7 +1400,7 @@ static void rna_SpaceGraphEditor_display_mode_update(Main *UNUSED(bmain), Scene 
 	ED_area_tag_refresh(sa);
 }
 
-static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
+static bool rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 {
 	SpaceIpo *sipo = (SpaceIpo *)(ptr->data);
 	return (BLI_listbase_is_empty(&sipo->ghostCurves) == false);
@@ -1606,7 +1606,7 @@ static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain), Scene *UNU
 
 /* File browser. */
 
-static int rna_FileSelectParams_use_lib_get(PointerRNA *ptr)
+static bool rna_FileSelectParams_use_lib_get(PointerRNA *ptr)
 {
 	FileSelectParams *params = ptr->data;
 

@@ -1086,7 +1086,7 @@ static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
 
 /* ******** NodeLink ******** */
 
-static int rna_NodeLink_is_hidden_get(PointerRNA *ptr)
+static bool rna_NodeLink_is_hidden_get(PointerRNA *ptr)
 {
 	bNodeLink *link = ptr->data;
 	return nodeLinkIsHidden(link);
@@ -1587,7 +1587,7 @@ static void rna_Node_socket_value_update(ID *id, bNode *node, bContext *C)
 	ED_node_tag_update_nodetree(CTX_data_main(C), (bNodeTree *)id, node);
 }
 
-static void rna_Node_select_set(PointerRNA *ptr, int value)
+static void rna_Node_select_set(PointerRNA *ptr, bool value)
 {
 	bNode *node = (bNode *)ptr->data;
 	nodeSetSelected(node, value);
@@ -1957,7 +1957,7 @@ static void rna_NodeSocket_update(Main *bmain, Scene *UNUSED(scene), PointerRNA 
 	}
 }
 
-static int rna_NodeSocket_is_output_get(PointerRNA *ptr)
+static bool rna_NodeSocket_is_output_get(PointerRNA *ptr)
 {
 	bNodeSocket *sock = ptr->data;
 	return sock->in_out == SOCK_OUT;
@@ -1969,7 +1969,7 @@ static void rna_NodeSocket_link_limit_set(PointerRNA *ptr, int value)
 	sock->limit = (value == 0 ? 0xFFF : value);
 }
 
-static void rna_NodeSocket_hide_set(PointerRNA *ptr, int value)
+static void rna_NodeSocket_hide_set(PointerRNA *ptr, bool value)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
 
@@ -2687,7 +2687,7 @@ static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), P
 	return item;
 }
 
-static int rna_Node_image_has_layers_get(PointerRNA *ptr)
+static bool rna_Node_image_has_layers_get(PointerRNA *ptr)
 {
 	bNode *node = (bNode *)ptr->data;
 	Image *ima = (Image *)node->id;
@@ -2697,7 +2697,7 @@ static int rna_Node_image_has_layers_get(PointerRNA *ptr)
 	return RE_layers_have_name(ima->rr);
 }
 
-static int rna_Node_image_has_views_get(PointerRNA *ptr)
+static bool rna_Node_image_has_views_get(PointerRNA *ptr)
 {
 	bNode *node = (bNode *)ptr->data;
 	Image *ima = (Image *)node->id;

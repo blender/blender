@@ -42,7 +42,7 @@
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
-static int rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
+static bool rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
 {
 	if (G.fileflags & G_AUTOPACK)
 		return 1;
@@ -50,7 +50,7 @@ static int rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
 	return 0;
 }
 
-static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), int value)
+static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), bool value)
 {
 	if (value)
 		G.fileflags |= G_AUTOPACK;
@@ -58,12 +58,12 @@ static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), int value)
 		G.fileflags &= ~G_AUTOPACK;
 }
 
-static int rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))
+static bool rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))
 {
 	return G.relbase_valid;
 }
 
-static int rna_Main_is_dirty_get(PointerRNA *ptr)
+static bool rna_Main_is_dirty_get(PointerRNA *ptr)
 {
 	/* XXX, not totally nice to do it this way, should store in main ? */
 	Main *bmain = (Main *)ptr->data;

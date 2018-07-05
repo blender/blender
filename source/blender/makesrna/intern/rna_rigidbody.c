@@ -131,7 +131,7 @@ static void rna_RigidBodyWorld_num_solver_iterations_set(PointerRNA *ptr, int va
 #endif
 }
 
-static void rna_RigidBodyWorld_split_impulse_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyWorld_split_impulse_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyWorld *rbw = (RigidBodyWorld *)ptr->data;
 
@@ -194,7 +194,7 @@ static void rna_RigidBodyOb_shape_set(PointerRNA *ptr, int value)
 	rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
 }
 
-static void rna_RigidBodyOb_disabled_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyOb_disabled_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
 
@@ -276,7 +276,7 @@ static void rna_RigidBodyOb_collision_groups_set(PointerRNA *ptr, const bool *va
 	rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
 }
 
-static void rna_RigidBodyOb_kinematic_state_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyOb_kinematic_state_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
 
@@ -292,7 +292,7 @@ static void rna_RigidBodyOb_kinematic_state_set(PointerRNA *ptr, int value)
 #endif
 }
 
-static void rna_RigidBodyOb_activation_state_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyOb_activation_state_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
 
@@ -376,7 +376,7 @@ static void rna_RigidBodyCon_type_set(PointerRNA *ptr, int value)
 	rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
 }
 
-static void rna_RigidBodyCon_enabled_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyCon_enabled_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
 
@@ -389,7 +389,7 @@ static void rna_RigidBodyCon_enabled_set(PointerRNA *ptr, int value)
 #endif
 }
 
-static void rna_RigidBodyCon_disable_collisions_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyCon_disable_collisions_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
 
@@ -398,7 +398,7 @@ static void rna_RigidBodyCon_disable_collisions_set(PointerRNA *ptr, int value)
 	rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
 }
 
-static void rna_RigidBodyCon_use_breaking_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyCon_use_breaking_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
 
@@ -433,7 +433,7 @@ static void rna_RigidBodyCon_breaking_threshold_set(PointerRNA *ptr, float value
 #endif
 }
 
-static void rna_RigidBodyCon_override_solver_iterations_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyCon_override_solver_iterations_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
 
@@ -633,7 +633,7 @@ static void rna_RigidBodyCon_motor_lin_max_impulse_set(PointerRNA *ptr, float va
 #endif
 }
 
-static void rna_RigidBodyCon_use_motor_lin_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyCon_use_motor_lin_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
 
@@ -646,7 +646,7 @@ static void rna_RigidBodyCon_use_motor_lin_set(PointerRNA *ptr, int value)
 #endif
 }
 
-static void rna_RigidBodyCon_use_motor_ang_set(PointerRNA *ptr, int value)
+static void rna_RigidBodyCon_use_motor_ang_set(PointerRNA *ptr, bool value)
 {
 	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
 

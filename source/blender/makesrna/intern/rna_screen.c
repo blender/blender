@@ -108,14 +108,14 @@ static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 }
 
 
-static int rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
+static bool rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
 {
 	/* can be NULL on file load, T42619 */
 	wmWindowManager *wm = G_MAIN->wm.first;
 	return wm ? (ED_screen_animation_playing(wm) != NULL) : 0;
 }
 
-static int rna_Screen_fullscreen_get(PointerRNA *ptr)
+static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
 	bScreen *sc = (bScreen *)ptr->data;
 	return (sc->state == SCREENMAXIMIZED);

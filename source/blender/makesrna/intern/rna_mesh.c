@@ -209,10 +209,10 @@ static void rna_MeshAnyLayer_name_set(PointerRNA *ptr, const char *value)
 	rna_cd_layer_name_set(cd, (CustomDataLayer *)ptr->data, value);
 }
 
-static int rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
+static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
 {
 	Mesh *me = ptr->data;
-	return (int)BKE_mesh_has_custom_loop_normals(me);
+	return BKE_mesh_has_custom_loop_normals(me);
 }
 
 /* -------------------------------------------------------------------- */
@@ -778,7 +778,7 @@ static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int
 	CustomData_set_layer_clone_index(data, type, n);
 }
 
-static int rna_MEdge_freestyle_edge_mark_get(PointerRNA *ptr)
+static bool rna_MEdge_freestyle_edge_mark_get(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
 	MEdge *medge = (MEdge *)ptr->data;
@@ -787,7 +787,7 @@ static int rna_MEdge_freestyle_edge_mark_get(PointerRNA *ptr)
 	return fed && (fed->flag & FREESTYLE_EDGE_MARK) != 0;
 }
 
-static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, int value)
+static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, bool value)
 {
 	Mesh *me = rna_mesh(ptr);
 	MEdge *medge = (MEdge *)ptr->data;
@@ -804,7 +804,7 @@ static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_MPoly_freestyle_face_mark_get(PointerRNA *ptr)
+static bool rna_MPoly_freestyle_face_mark_get(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
 	MPoly *mpoly = (MPoly *)ptr->data;
@@ -890,22 +890,22 @@ static int rna_MeshTextureFaceLayer_data_length(PointerRNA *ptr)
 	return (me->edit_btmesh) ? 0 : me->totface;
 }
 
-static int rna_MeshTextureFaceLayer_active_render_get(PointerRNA *ptr)
+static bool rna_MeshTextureFaceLayer_active_render_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_fdata(ptr), CD_MTFACE, 1);
 }
 
-static int rna_MeshTextureFaceLayer_active_get(PointerRNA *ptr)
+static bool rna_MeshTextureFaceLayer_active_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_fdata(ptr), CD_MTFACE, 0);
 }
 
-static int rna_MeshTextureFaceLayer_clone_get(PointerRNA *ptr)
+static bool rna_MeshTextureFaceLayer_clone_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_clone_get(ptr, rna_mesh_fdata(ptr), CD_MTFACE);
 }
 
-static void rna_MeshTextureFaceLayer_active_render_set(PointerRNA *ptr, int value)
+static void rna_MeshTextureFaceLayer_active_render_set(PointerRNA *ptr, bool value)
 {
 	rna_CustomDataLayer_active_set(ptr, rna_mesh_fdata(ptr), value, CD_MTFACE, 1);
 }
@@ -941,22 +941,22 @@ static int rna_MeshTexturePolyLayer_data_length(PointerRNA *ptr)
 	return (me->edit_btmesh) ? 0 : me->totpoly;
 }
 
-static int rna_MeshTexturePolyLayer_active_render_get(PointerRNA *ptr)
+static bool rna_MeshTexturePolyLayer_active_render_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_pdata(ptr), CD_MTEXPOLY, 1);
 }
 
-static int rna_MeshTexturePolyLayer_active_get(PointerRNA *ptr)
+static bool rna_MeshTexturePolyLayer_active_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_pdata(ptr), CD_MTEXPOLY, 0);
 }
 
-static int rna_MeshTexturePolyLayer_clone_get(PointerRNA *ptr)
+static bool rna_MeshTexturePolyLayer_clone_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_clone_get(ptr, rna_mesh_pdata(ptr), CD_MTEXPOLY);
 }
 
-static void rna_MeshTexturePolyLayer_active_render_set(PointerRNA *ptr, int value)
+static void rna_MeshTexturePolyLayer_active_render_set(PointerRNA *ptr, bool value)
 {
 	rna_CustomDataLayer_active_set(ptr, rna_mesh_pdata(ptr), value, CD_MTEXPOLY, 1);
 }
@@ -966,7 +966,7 @@ static void rna_MeshTexturePolyLayer_active_set(PointerRNA *ptr, int value)
 	rna_CustomDataLayer_active_set(ptr, rna_mesh_pdata(ptr), value, CD_MTEXPOLY, 0);
 }
 
-static void rna_MeshTexturePolyLayer_clone_set(PointerRNA *ptr, int value)
+static void rna_MeshTexturePolyLayer_clone_set(PointerRNA *ptr, bool value)
 {
 	rna_CustomDataLayer_clone_set(ptr, rna_mesh_pdata(ptr), value, CD_MTEXPOLY);
 }
@@ -990,17 +990,17 @@ static int rna_MeshColorLayer_data_length(PointerRNA *ptr)
 	return me->totface;
 }
 
-static int rna_MeshColorLayer_active_render_get(PointerRNA *ptr)
+static bool rna_MeshColorLayer_active_render_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_fdata(ptr), CD_MCOL, 1);
 }
 
-static int rna_MeshColorLayer_active_get(PointerRNA *ptr)
+static bool rna_MeshColorLayer_active_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_fdata(ptr), CD_MCOL, 0);
 }
 
-static void rna_MeshColorLayer_active_render_set(PointerRNA *ptr, int value)
+static void rna_MeshColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
 	rna_CustomDataLayer_active_set(ptr, rna_mesh_fdata(ptr), value, CD_MCOL, 1);
 }
@@ -1027,22 +1027,22 @@ static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 	return (me->edit_btmesh) ? 0 : me->totloop;
 }
 
-static int rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
+static bool rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 1);
 }
 
-static int rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
+static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 0);
 }
 
-static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, int value)
+static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
 	rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 1);
 }
 
-static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, int value)
+static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, bool value)
 {
 	rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 0);
 }
@@ -1823,7 +1823,7 @@ static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, ReportList *
 }
 
 
-static int rna_Mesh_is_editmode_get(PointerRNA *ptr)
+static bool rna_Mesh_is_editmode_get(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
 	return (me->edit_btmesh != NULL);

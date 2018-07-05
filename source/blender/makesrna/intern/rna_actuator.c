@@ -329,7 +329,7 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
 }
 /* ConstraintActuator uses the same property for Material and Property.
  * Therefore we need to clear the property when "use_material_detect" mode changes */
-static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, int value)
+static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, bool value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
@@ -342,12 +342,12 @@ static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, 
 	}
 }
 
-static void rna_ActionActuator_add_set(struct PointerRNA *ptr, int value)
+static void rna_ActionActuator_add_set(struct PointerRNA *ptr, bool value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bActionActuator *aa = act->data;
 
-	if (value == 1) {
+	if (value) {
 		aa->flag &= ~ACT_IPOFORCE;
 		aa->flag |= ACT_IPOADD;
 	}
@@ -356,12 +356,12 @@ static void rna_ActionActuator_add_set(struct PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_ActionActuator_force_set(struct PointerRNA *ptr, int value)
+static void rna_ActionActuator_force_set(struct PointerRNA *ptr, bool value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bActionActuator *aa = act->data;
 
-	if (value == 1) {
+	if (value) {
 		aa->flag &= ~ACT_IPOADD;
 		aa->flag |= ACT_IPOFORCE;
 	}

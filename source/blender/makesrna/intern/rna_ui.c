@@ -797,22 +797,22 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
 
 /* UILayout */
 
-static int rna_UILayout_active_get(PointerRNA *ptr)
+static bool rna_UILayout_active_get(PointerRNA *ptr)
 {
 	return uiLayoutGetActive(ptr->data);
 }
 
-static void rna_UILayout_active_set(PointerRNA *ptr, int value)
+static void rna_UILayout_active_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetActive(ptr->data, value);
 }
 
-static int rna_UILayout_alert_get(PointerRNA *ptr)
+static bool rna_UILayout_alert_get(PointerRNA *ptr)
 {
 	return uiLayoutGetRedAlert(ptr->data);
 }
 
-static void rna_UILayout_alert_set(PointerRNA *ptr, int value)
+static void rna_UILayout_alert_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetRedAlert(ptr->data, value);
 }
@@ -827,12 +827,12 @@ static int rna_UILayout_op_context_get(PointerRNA *ptr)
 	return uiLayoutGetOperatorContext(ptr->data);
 }
 
-static int rna_UILayout_enabled_get(PointerRNA *ptr)
+static bool rna_UILayout_enabled_get(PointerRNA *ptr)
 {
 	return uiLayoutGetEnabled(ptr->data);
 }
 
-static void rna_UILayout_enabled_set(PointerRNA *ptr, int value)
+static void rna_UILayout_enabled_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetEnabled(ptr->data, value);
 }
@@ -843,12 +843,12 @@ static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 	return uiLayoutGetRedAlert(ptr->data);
 }
 
-static void rna_UILayout_red_alert_set(PointerRNA *ptr, int value)
+static void rna_UILayout_red_alert_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetRedAlert(ptr->data, value);
 }
 
-static int rna_UILayout_keep_aspect_get(PointerRNA *ptr)
+static bool rna_UILayout_keep_aspect_get(PointerRNA *ptr)
 {
 	return uiLayoutGetKeepAspect(ptr->data);
 }

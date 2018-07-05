@@ -1513,7 +1513,7 @@ int rna_DupliObject_index_get(PointerRNA *ptr)
 	return dob->persistent_id[0];
 }
 
-int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
+bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
 	SculptSession *ss = ((Object *)ptr->id.data)->sculpt;
 	return (ss && ss->bm);

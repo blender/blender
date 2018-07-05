@@ -651,7 +651,7 @@ static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max
 	*max = max_ii(0, mmd->totlvl);  /* intentionally _not_ -1 */
 }
 
-static int rna_MultiresModifier_external_get(PointerRNA *ptr)
+static bool rna_MultiresModifier_external_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	Mesh *me = ob->data;
@@ -700,7 +700,7 @@ static void rna_ShrinkwrapModifier_face_cull_set(struct PointerRNA *ptr, int val
 	    (swm->shrinkOpts & ~(MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE | MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)) | value;
 }
 
-static int rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
+static bool rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
 {
 	return (((MeshDeformModifierData *)ptr->data)->bindcagecos != NULL);
 }
@@ -775,7 +775,7 @@ static void rna_OceanModifier_ocean_chop_set(PointerRNA *ptr, float value)
 	}
 }
 
-static int rna_LaplacianDeformModifier_is_bind_get(PointerRNA *ptr)
+static bool rna_LaplacianDeformModifier_is_bind_get(PointerRNA *ptr)
 {
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)ptr->data;
 	return ((lmd->flag & MOD_LAPLACIANDEFORM_BIND) && (lmd->cache_system != NULL));
@@ -1129,13 +1129,13 @@ static void rna_CorrectiveSmoothModifier_rest_source_update(Main *bmain, Scene *
 	rna_CorrectiveSmoothModifier_update(bmain, scene, ptr);
 }
 
-static int rna_CorrectiveSmoothModifier_is_bind_get(PointerRNA *ptr)
+static bool rna_CorrectiveSmoothModifier_is_bind_get(PointerRNA *ptr)
 {
 	CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)ptr->data;
 	return (csmd->bind_coords != NULL);
 }
 
-static int rna_SurfaceDeformModifier_is_bound_get(PointerRNA *ptr)
+static bool rna_SurfaceDeformModifier_is_bound_get(PointerRNA *ptr)
 {
 	return (((SurfaceDeformModifierData *)ptr->data)->verts != NULL);
 }

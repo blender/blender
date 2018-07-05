@@ -73,7 +73,7 @@ static void rna_Text_filename_set(PointerRNA *ptr, const char *value)
 		text->name = NULL;
 }
 
-static int rna_Text_modified_get(PointerRNA *ptr)
+static bool rna_Text_modified_get(PointerRNA *ptr)
 {
 	Text *text = (Text *)ptr->data;
 	return BKE_text_file_modified_check(text) != 0;

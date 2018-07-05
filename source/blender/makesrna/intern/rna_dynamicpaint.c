@@ -223,7 +223,7 @@ static void rna_DynamicPaint_uvlayer_set(PointerRNA *ptr, const char *value)
 }
 
 /* is point cache used */
-static int rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
+static bool rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 
@@ -231,7 +231,7 @@ static int rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
 }
 
 /* is some 3D view preview available */
-static int rna_DynamicPaint_use_color_preview_get(PointerRNA *ptr)
+static bool rna_DynamicPaint_use_color_preview_get(PointerRNA *ptr)
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 

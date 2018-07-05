@@ -327,13 +327,13 @@ static void rna_Sequence_frame_offset_range(PointerRNA *ptr, int *min, int *max,
 	*max = INT_MAX;
 }
 
-static void rna_Sequence_use_proxy_set(PointerRNA *ptr, int value)
+static void rna_Sequence_use_proxy_set(PointerRNA *ptr, bool value)
 {
 	Sequence *seq = (Sequence *)ptr->data;
 	BKE_sequencer_proxy_set(seq, value != 0);
 }
 
-static void rna_Sequence_use_translation_set(PointerRNA *ptr, int value)
+static void rna_Sequence_use_translation_set(PointerRNA *ptr, bool value)
 {
 	Sequence *seq = (Sequence *)ptr->data;
 	if (value) {
@@ -347,7 +347,7 @@ static void rna_Sequence_use_translation_set(PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_Sequence_use_crop_set(PointerRNA *ptr, int value)
+static void rna_Sequence_use_crop_set(PointerRNA *ptr, bool value)
 {
 	Sequence *seq = (Sequence *)ptr->data;
 	if (value) {
@@ -891,7 +891,7 @@ static void rna_SequenceColorBalance_update(Main *UNUSED(bmain), Scene *UNUSED(s
 		BKE_sequence_invalidate_cache_for_modifier(scene, seq);
 }
 
-static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, int value)
+static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, bool value)
 {
 	Scene *scene = ptr->id.data;
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
