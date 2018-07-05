@@ -338,6 +338,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->overlay.texture_paint_mode_opacity = 0.8;
 	v3d->overlay.weight_paint_mode_opacity = 0.8;
 	v3d->overlay.vertex_paint_mode_opacity = 0.8;
+	v3d->overlay.visible_object_types = V3D_OVERLAY_VISIBLE_OBJECT_TYPES_MASK;
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 

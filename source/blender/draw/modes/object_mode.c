@@ -2217,34 +2217,52 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		}
 		case OB_LAMP:
-			DRW_shgroup_lamp(stl, ob, view_layer);
+			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_LAMP)
+			{
+				DRW_shgroup_lamp(stl, ob, view_layer);
+			}
 			break;
 		case OB_CAMERA:
-			DRW_shgroup_camera(stl, ob, view_layer);
+			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_CAMERA)
+			{
+				DRW_shgroup_camera(stl, ob, view_layer);
+			}
 			break;
 		case OB_EMPTY:
-			DRW_shgroup_empty(stl, psl, ob, view_layer);
+			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_EMPTY)
+			{
+				DRW_shgroup_empty(stl, psl, ob, view_layer);
+			}
 			break;
 		case OB_SPEAKER:
-			DRW_shgroup_speaker(stl, ob, view_layer);
+			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_SPEAKER)
+			{
+				DRW_shgroup_speaker(stl, ob, view_layer);
+			}
 			break;
 		case OB_LIGHTPROBE:
-			DRW_shgroup_lightprobe(stl, psl, ob, view_layer);
+			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_LIGHTPROBE)
+			{
+				DRW_shgroup_lightprobe(stl, psl, ob, view_layer);
+			}
 			break;
 		case OB_ARMATURE:
 		{
-			bArmature *arm = ob->data;
-			if (arm->edbo == NULL) {
-				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
-					DRWArmaturePasses passes = {
-					    .bone_solid = psl->bone_solid,
-					    .bone_outline = psl->bone_outline,
-					    .bone_wire = psl->bone_wire,
-					    .bone_envelope = psl->bone_envelope,
-					    .bone_axes = psl->bone_axes,
-					    .relationship_lines = NULL, /* Don't draw relationship lines */
-					};
-					DRW_shgroup_armature_object(ob, view_layer, passes);
+			if (v3d->overlay.visible_object_types & V3D_OVERLAY_SHOW_ARMATURE)
+			{
+				bArmature *arm = ob->data;
+				if (arm->edbo == NULL) {
+					if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
+						DRWArmaturePasses passes = {
+						    .bone_solid = psl->bone_solid,
+						    .bone_outline = psl->bone_outline,
+						    .bone_wire = psl->bone_wire,
+						    .bone_envelope = psl->bone_envelope,
+						    .bone_axes = psl->bone_axes,
+						    .relationship_lines = NULL, /* Don't draw relationship lines */
+						};
+						DRW_shgroup_armature_object(ob, view_layer, passes);
+					}
 				}
 			}
 			break;
