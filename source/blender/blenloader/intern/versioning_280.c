@@ -1530,19 +1530,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "int", "visible_object_types")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_VIEW3D) {
-							View3D *v3d = (View3D *)sl;
-							v3d->overlay.visible_object_types = V3D_OVERLAY_VISIBLE_OBJECT_TYPES_MASK;
-						}
-					}
-				}
-			}
-		}
-
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			if (scene->toolsettings->manipulator_flag == 0) {
 				scene->toolsettings->manipulator_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
