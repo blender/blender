@@ -3833,7 +3833,7 @@ class VIEW3D_PT_overlay(Panel):
         sub.prop(overlay, "show_all_objects_origin")
 
         sub = split.column()
-        sub.prop(overlay, "show_non_renderable_objects")
+        sub.prop(overlay, "show_non_geometry")
         sub.prop(overlay, "show_relationship_lines")
         sub.prop(overlay, "show_motion_paths")
         #sub.prop(overlay, "show_onion_skins")

@@ -2616,8 +2616,11 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show 3D Cursor", "Display 3D Cursor Overlay");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "show_non_renderable_objects", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.hidden_object_types", V3D_OVERLAY_HIDE_NON_RENDERABLE);
+	prop = RNA_def_property(srna, "show_non_geometry", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(
+	        prop, NULL, "overlay.object_type_exclude",
+	        ((1 << OB_TYPE_MAX) - 1) &
+	        ~((1 << OB_MESH) | (1 << OB_CURVE) | (1 << OB_SURF) | (1 << OB_FONT) | (1 << OB_MBALL)));
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Show Non Renderable", "Draw not renderable objects in the overlay");

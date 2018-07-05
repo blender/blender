@@ -2127,6 +2127,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		return;
 	}
 
+	if (v3d->overlay.object_type_exclude & (1 << ob->type)) {
+		return;
+	}
+
 	bool do_outlines = (draw_ctx->v3d->flag & V3D_SELECT_OUTLINE) && ((ob->base_flag & BASE_SELECTED) != 0);
 	bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
@@ -2185,31 +2189,26 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		case OB_LATTICE:
 		{
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_OTHER) == 0) {
-				if (ob != draw_ctx->object_edit) {
-					struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob, false);
-					if (theme_id == TH_UNDEFINED) {
-						theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-					}
-
-					DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-					DRW_shgroup_call_object_add(shgroup, geom, ob);
+			if (ob != draw_ctx->object_edit) {
+				struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob, false);
+				if (theme_id == TH_UNDEFINED) {
+					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				}
+
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
+				DRW_shgroup_call_object_add(shgroup, geom, ob);
 			}
 			break;
 		}
-
 		case OB_CURVE:
 		{
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_OTHER) == 0) {
-				if (ob != draw_ctx->object_edit) {
-					struct Gwn_Batch *geom = DRW_cache_curve_edge_wire_get(ob);
-					if (theme_id == TH_UNDEFINED) {
-						theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-					}
-					DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-					DRW_shgroup_call_object_add(shgroup, geom, ob);
+			if (ob != draw_ctx->object_edit) {
+				struct Gwn_Batch *geom = DRW_cache_curve_edge_wire_get(ob);
+				if (theme_id == TH_UNDEFINED) {
+					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				}
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
+				DRW_shgroup_call_object_add(shgroup, geom, ob);
 			}
 			break;
 		}
@@ -2221,52 +2220,34 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		}
 		case OB_LAMP:
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_LAMP) == 0)
-			{
-				DRW_shgroup_lamp(stl, ob, view_layer);
-			}
+			DRW_shgroup_lamp(stl, ob, view_layer);
 			break;
 		case OB_CAMERA:
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_CAMERA) == 0)
-			{
-				DRW_shgroup_camera(stl, ob, view_layer);
-			}
+			DRW_shgroup_camera(stl, ob, view_layer);
 			break;
 		case OB_EMPTY:
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_EMPTY) == 0)
-			{
-				DRW_shgroup_empty(stl, psl, ob, view_layer);
-			}
+			DRW_shgroup_empty(stl, psl, ob, view_layer);
 			break;
 		case OB_SPEAKER:
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_SPEAKER) == 0)
-			{
-				DRW_shgroup_speaker(stl, ob, view_layer);
-			}
+			DRW_shgroup_speaker(stl, ob, view_layer);
 			break;
 		case OB_LIGHTPROBE:
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_LIGHTPROBE) == 0)
-			{
-				DRW_shgroup_lightprobe(stl, psl, ob, view_layer);
-			}
+			DRW_shgroup_lightprobe(stl, psl, ob, view_layer);
 			break;
 		case OB_ARMATURE:
 		{
-			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_ARMATURE) == 0)
-			{
-				bArmature *arm = ob->data;
-				if (arm->edbo == NULL) {
-					if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
-						DRWArmaturePasses passes = {
-						    .bone_solid = psl->bone_solid,
-						    .bone_outline = psl->bone_outline,
-						    .bone_wire = psl->bone_wire,
-						    .bone_envelope = psl->bone_envelope,
-						    .bone_axes = psl->bone_axes,
-						    .relationship_lines = NULL, /* Don't draw relationship lines */
-						};
-						DRW_shgroup_armature_object(ob, view_layer, passes);
-					}
+			bArmature *arm = ob->data;
+			if (arm->edbo == NULL) {
+				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
+					DRWArmaturePasses passes = {
+					    .bone_solid = psl->bone_solid,
+					    .bone_outline = psl->bone_outline,
+					    .bone_wire = psl->bone_wire,
+					    .bone_envelope = psl->bone_envelope,
+					    .bone_axes = psl->bone_axes,
+					    .relationship_lines = NULL, /* Don't draw relationship lines */
+					};
+					DRW_shgroup_armature_object(ob, view_layer, passes);
 				}
 			}
 			break;
@@ -2275,10 +2256,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 	}
 
-	if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_OTHER) == 0) {
-		if (ob->pd && ob->pd->forcefield) {
-			DRW_shgroup_forcefield(stl, ob, view_layer);
-		}
+	if (ob->pd && ob->pd->forcefield) {
+		DRW_shgroup_forcefield(stl, ob, view_layer);
 	}
 
 	/* don't show object extras in set's */
