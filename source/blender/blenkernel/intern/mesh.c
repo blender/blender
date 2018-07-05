@@ -1511,6 +1511,21 @@ void BKE_mesh_apply_vert_coords(Mesh *mesh, float (*vertCoords)[3])
 	mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 }
 
+void BKE_mesh_apply_vert_normals(Mesh *mesh, short (*vertNormals)[3])
+{
+	MVert *vert;
+	int i;
+
+	/* this will just return the pointer if it wasn't a referenced layer */
+	vert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
+	mesh->mvert = vert;
+
+	for (i = 0; i < mesh->totvert; ++i, ++vert)
+		copy_v3_v3_short(vert->no, vertNormals[i]);
+
+	mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
+}
+
 /**
  * Compute 'split' (aka loop, or per face corner's) normals.
  *

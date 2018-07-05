@@ -204,6 +204,7 @@ int  BKE_mesh_mselect_active_get(struct Mesh *me, int type);
 void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
 void BKE_mesh_apply_vert_coords(struct Mesh *mesh, float (*vertCoords)[3]);
+void BKE_mesh_apply_vert_normals(struct Mesh *mesh, short (*vertNormals)[3]);
 
 
 /* *** mesh_evaluate.c *** */
