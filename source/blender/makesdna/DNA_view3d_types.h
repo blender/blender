@@ -49,6 +49,7 @@ struct GPUViewport;
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_image_types.h"
+#include "DNA_object_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_gpu_types.h"
 
@@ -178,8 +179,8 @@ typedef struct View3DOverlay {
 
 	/* Other settings */
 	float wireframe_threshold;
+	int visible_object_types;
 
-	int pad;
 } View3DOverlay;
 
 /* 3D ViewPort Struct */
@@ -382,6 +383,17 @@ enum {
 	V3D_OVERLAY_HIDE_MOTION_PATHS = (1 << 6),
 	V3D_OVERLAY_ONION_SKINS       = (1 << 7),
 };
+
+/* View3DOverlay->visible_object_types */
+enum {
+	V3D_OVERLAY_SHOW_EMPTY        = (1 << OB_EMPTY),
+	V3D_OVERLAY_SHOW_LAMP         = (1 << OB_LAMP),
+	V3D_OVERLAY_SHOW_CAMERA       = (1 << OB_CAMERA),
+	V3D_OVERLAY_SHOW_SPEAKER      = (1 << OB_SPEAKER),
+	V3D_OVERLAY_SHOW_LIGHTPROBE   = (1 << OB_LIGHTPROBE),
+	V3D_OVERLAY_SHOW_ARMATURE     = (1 << OB_ARMATURE),
+};
+#define V3D_OVERLAY_VISIBLE_OBJECT_TYPES_MASK (V3D_OVERLAY_SHOW_EMPTY | V3D_OVERLAY_SHOW_LAMP | V3D_OVERLAY_SHOW_CAMERA | V3D_OVERLAY_SHOW_SPEAKER | V3D_OVERLAY_SHOW_LIGHTPROBE | V3D_OVERLAY_SHOW_ARMATURE)
 
 /* View3DOverlay->edit_flag */
 enum {
