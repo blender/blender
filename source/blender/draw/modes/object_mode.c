@@ -2185,27 +2185,31 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		case OB_LATTICE:
 		{
-			if (ob != draw_ctx->object_edit) {
-				struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob, false);
-				if (theme_id == TH_UNDEFINED) {
-					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-				}
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_OTHER) == 0) {
+				if (ob != draw_ctx->object_edit) {
+					struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob, false);
+					if (theme_id == TH_UNDEFINED) {
+						theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+					}
 
-				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-				DRW_shgroup_call_object_add(shgroup, geom, ob);
+					DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
+					DRW_shgroup_call_object_add(shgroup, geom, ob);
+				}
 			}
 			break;
 		}
 
 		case OB_CURVE:
 		{
-			if (ob != draw_ctx->object_edit) {
-				struct Gwn_Batch *geom = DRW_cache_curve_edge_wire_get(ob);
-				if (theme_id == TH_UNDEFINED) {
-					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+			if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_OTHER) == 0) {
+				if (ob != draw_ctx->object_edit) {
+					struct Gwn_Batch *geom = DRW_cache_curve_edge_wire_get(ob);
+					if (theme_id == TH_UNDEFINED) {
+						theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+					}
+					DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
+					DRW_shgroup_call_object_add(shgroup, geom, ob);
 				}
-				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-				DRW_shgroup_call_object_add(shgroup, geom, ob);
 			}
 			break;
 		}
@@ -2271,8 +2275,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 	}
 
-	if (ob->pd && ob->pd->forcefield) {
-		DRW_shgroup_forcefield(stl, ob, view_layer);
+	if ((v3d->overlay.hidden_object_types & V3D_OVERLAY_HIDE_OTHER) == 0) {
+		if (ob->pd && ob->pd->forcefield) {
+			DRW_shgroup_forcefield(stl, ob, view_layer);
+		}
 	}
 
 	/* don't show object extras in set's */
