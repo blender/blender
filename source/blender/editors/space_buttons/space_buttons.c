@@ -65,7 +65,6 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 
 	sbuts = MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype = SPACE_BUTS;
-	sbuts->align = BUT_VERTICAL;
 
 	sbuts->mainb = sbuts->mainbuser = BCONTEXT_OBJECT;
 
@@ -109,17 +108,8 @@ static void buttons_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
+static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
-	SpaceButs *sbuts = sa->spacedata.first;
-
-	/* auto-align based on size */
-	if (sbuts->align == BUT_AUTO || !sbuts->align) {
-		if (sa->winx > sa->winy)
-			sbuts->align = BUT_HORIZONTAL;
-		else
-			sbuts->align = BUT_VERTICAL;
-	}
 }
 
 static SpaceLink *buttons_duplicate(SpaceLink *sl)
@@ -146,8 +136,6 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void buttons_main_region_layout_properties(const bContext *C, SpaceButs *sbuts, ARegion *ar)
 {
-	const bool vertical = (sbuts->align == BUT_VERTICAL);
-
 	buttons_context_compute(C, sbuts);
 
 	const char *contexts[2] = {NULL, NULL};
@@ -203,12 +191,12 @@ static void buttons_main_region_layout_properties(const bContext *C, SpaceButs *
 			break;
 	}
 
+	const bool vertical = true;
 	ED_region_panels_layout_ex(C, ar, contexts, sbuts->mainb, vertical);
 }
 
-static void buttons_main_region_layout_tool(const bContext *C, SpaceButs *sbuts, ARegion *ar)
+static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 {
-	const bool vertical = (sbuts->align == BUT_VERTICAL);
 	const char *contexts[3] = {NULL};
 
 	const WorkSpace *workspace = CTX_wm_workspace(C);
@@ -263,6 +251,7 @@ static void buttons_main_region_layout_tool(const bContext *C, SpaceButs *sbuts,
 		/* TODO */
 	}
 
+	const bool vertical = true;
 	ED_region_panels_layout_ex(C, ar, contexts, -1, vertical);
 }
 
@@ -272,13 +261,12 @@ static void buttons_main_region_layout(const bContext *C, ARegion *ar)
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
 
 	if (sbuts->mainb == BCONTEXT_TOOL) {
-		buttons_main_region_layout_tool(C, sbuts, ar);
+		buttons_main_region_layout_tool(C, ar);
 	}
 	else {
 		buttons_main_region_layout_properties(C, sbuts, ar);
 	}
 
-	sbuts->re_align = 0;
 	sbuts->mainbo = sbuts->mainb;
 }
 

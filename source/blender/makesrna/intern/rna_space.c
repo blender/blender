@@ -1326,14 +1326,6 @@ static void rna_SpaceProperties_context_update(Main *UNUSED(bmain), Scene *UNUSE
 	}
 }
 
-static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
-{
-	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
-
-	sbuts->align = value;
-	sbuts->re_align = 1;
-}
-
 /* Space Console */
 static void rna_ConsoleLine_body_get(PointerRNA *ptr, char *value)
 {
@@ -3161,12 +3153,6 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem align_items[] = {
-		{BUT_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", ""},
-		{BUT_VERTICAL, "VERTICAL", 0, "Vertical", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "SpaceProperties", "Space");
 	RNA_def_struct_sdna(srna, "SpaceButs");
 	RNA_def_struct_ui_text(srna, "Properties Space", "Properties space data");
@@ -3177,13 +3163,6 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceProperties_context_set", "rna_SpaceProperties_context_itemf");
 	RNA_def_property_ui_text(prop, "Context", "Type of active data to display and edit");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_context_update");
-
-	prop = RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "align");
-	RNA_def_property_enum_items(prop, align_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceProperties_align_set", NULL);
-	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 
 	/* pinned data */
 	prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);

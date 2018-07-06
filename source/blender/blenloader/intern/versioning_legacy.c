@@ -1033,7 +1033,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 						SpaceButs *sbuts = (SpaceButs *) sl;
 
 						sbuts->v2d.maxzoom = 1.2f;
-						sbuts->align = 1;	/* horizontal default */
 
 						if (sbuts->mainb == BUTS_LAMP) {
 							sbuts->mainb = CONTEXT_SHADING;
