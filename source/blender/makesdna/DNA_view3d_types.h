@@ -179,7 +179,7 @@ typedef struct View3DOverlay {
 
 	/* Other settings */
 	float wireframe_threshold;
-	int object_type_exclude;
+	char _pad0[4];
 
 } View3DOverlay;
 
@@ -201,6 +201,9 @@ typedef struct View3D {
 
 	unsigned int lay_prev; /* for active layer toggle */
 	unsigned int lay_used; /* used while drawing */
+
+	int object_type_exclude_viewport;
+	int object_type_exclude_select;
 
 	short persp  DNA_DEPRECATED;
 	short view   DNA_DEPRECATED;

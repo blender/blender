@@ -112,6 +112,14 @@ class VIEW3D_HT_header(Header):
         sub.active = overlay.show_overlays
         sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay")
 
+        layout.popover(
+            text="",
+            icon='HIDE_OFF',
+            space_type='VIEW_3D',
+            region_type='HEADER',
+            panel_type="VIEW3D_PT_object_type_visibility",
+        )
+
         layout.separator_spacer()
 
         # Mode & Transform Settings
@@ -3834,7 +3842,6 @@ class VIEW3D_PT_overlay(Panel):
         sub.prop(overlay, "show_all_objects_origin")
 
         sub = split.column()
-        sub.prop(overlay, "show_non_geometry")
         sub.prop(overlay, "show_relationship_lines")
         sub.prop(overlay, "show_motion_paths")
         #sub.prop(overlay, "show_onion_skins")
@@ -4108,6 +4115,51 @@ class VIEW3D_PT_overlay_paint(Panel):
 
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
             col.prop(overlay, "show_paint_wire")
+
+
+class VIEW3D_PT_object_type_visibility(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Object Visibility"
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+
+        col = layout.column()
+
+        split = col.split()
+
+        heading_pair = ("Visible", "Selectable")
+        attr_object_types = (
+		    "mesh",
+		    "curve",
+		    "surf",
+		    "meta",
+		    "font",
+		    "armature",
+		    "lattice",
+		    "empty",
+		    "camera",
+		    "lamp",
+		    "light_probe",
+		    "speaker",
+        )
+
+        attr_vis = [f"show_object_viewport_{attr}" for attr in attr_object_types]
+        attr_sel = [f"show_object_select_{attr}" for attr in attr_object_types]
+
+        sub = split.column()
+        sub.label("Visible")
+        for attr_v in attr_vis:
+            sub.prop(view, attr_v)
+
+        sub = split.column()
+        sub.label("Selectable")
+        for attr_v, attr_s in zip(attr_vis, attr_sel):
+            row = sub.row(align=True)
+            row.active = getattr(view, attr_v)
+            row.prop(view, attr_s)
 
 
 class VIEW3D_PT_pivot_point(Panel):
@@ -4458,6 +4510,7 @@ classes = (
     VIEW3D_PT_overlay_pose,
     VIEW3D_PT_overlay_paint,
     VIEW3D_PT_overlay_sculpt,
+    VIEW3D_PT_object_type_visibility,
     VIEW3D_PT_pivot_point,
     VIEW3D_PT_snapping,
     VIEW3D_PT_transform_orientations,

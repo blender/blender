@@ -2609,16 +2609,6 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show 3D Cursor", "Display 3D Cursor Overlay");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "show_non_geometry", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(
-	        prop, NULL, "overlay.object_type_exclude",
-	        ((1 << OB_TYPE_MAX) - 1) &
-	        ~((1 << OB_MESH) | (1 << OB_CURVE) | (1 << OB_SURF) | (1 << OB_FONT) | (1 << OB_MBALL)));
-	RNA_def_property_boolean_default(prop, true);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Show Non Renderable", "Draw not renderable objects in the overlay");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
 	prop = RNA_def_property(srna, "show_text", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_HIDE_TEXT);
 	RNA_def_property_ui_text(prop, "Show Text", "Display overlay text");
@@ -3023,6 +3013,54 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "stereo3d_volume_alpha");
 	RNA_def_property_ui_text(prop, "Volume Alpha", "Opacity (alpha) of the cameras' frustum volume");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	{
+		struct {
+			const char *name;
+			int type_mask;
+			const char *identifier[2];
+		} info[] = {
+			{"Mesh", (1 << OB_MESH),
+			 {"show_object_viewport_mesh", "show_object_select_mesh"}},
+			{"Curve", (1 << OB_CURVE),
+			 {"show_object_viewport_curve", "show_object_select_curve"}},
+			{"Surface", (1 << OB_SURF),
+			 {"show_object_viewport_surf", "show_object_select_surf"}},
+			{"Meta", (1 << OB_MBALL),
+			 {"show_object_viewport_meta", "show_object_select_meta"}},
+			{"Font", (1 << OB_FONT),
+			 {"show_object_viewport_font", "show_object_select_font"}},
+			{"Armature", (1 << OB_ARMATURE),
+			 {"show_object_viewport_armature", "show_object_select_armature"}},
+			{"Lattice", (1 << OB_LATTICE),
+			 {"show_object_viewport_lattice", "show_object_select_lattice"}},
+			{"Empty", (1 << OB_EMPTY),
+			 {"show_object_viewport_empty", "show_object_select_empty"}},
+			{"Camera", (1 << OB_CAMERA),
+			 {"show_object_viewport_camera", "show_object_select_camera"}},
+			{"Lamp", (1 << OB_LAMP),
+			 {"show_object_viewport_lamp", "show_object_select_lamp"}},
+			{"Speaker", (1 << OB_SPEAKER),
+			 {"show_object_viewport_speaker", "show_object_select_speaker"}},
+			{"Light Probe", (1 << OB_LIGHTPROBE),
+			 {"show_object_viewport_light_probe", "show_object_select_light_probe"}},
+		};
+
+		const char *view_mask_member[2] = {
+			"object_type_exclude_viewport",
+			"object_type_exclude_select",
+		};
+		for (int mask_index = 0; mask_index < 2; mask_index++) {
+			for (int type_index = 0; type_index < ARRAY_SIZE(info); type_index++) {
+				prop = RNA_def_property(srna, info[type_index].identifier[mask_index], PROP_BOOLEAN, PROP_NONE);
+				RNA_def_property_boolean_negative_sdna(
+				        prop, NULL, view_mask_member[mask_index], info[type_index].type_mask);
+				RNA_def_property_ui_text(prop, info[type_index].name, "");
+				RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+			}
+		}
+	}
 
 	/* Nested Structs */
 	prop = RNA_def_property(srna, "shading", PROP_POINTER, PROP_NONE);
