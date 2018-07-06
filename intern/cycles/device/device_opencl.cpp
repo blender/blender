@@ -137,6 +137,10 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		info.has_volume_decoupled = false;
 		info.bvh_layout_mask = BVH_LAYOUT_BVH2;
 		info.id = id;
+
+		/* Check OpenCL extensions */
+		info.has_half_images = platform_device.device_extensions.find("cl_khr_fp16") != string::npos;
+
 		devices.push_back(info);
 		num_devices++;
 	}

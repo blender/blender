@@ -72,6 +72,17 @@ ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, const ccl_glo
 		return make_float4(f, f, f, 1.0f);
 	}
 	/* Byte */
+#ifdef cl_khr_fp16
+	/* half and half4 are optional in OpenCL */
+	else if(texture_type == IMAGE_DATA_TYPE_HALF) {
+		float f = tex_fetch(half, info, offset);
+		return make_float4(f, f, f, 1.0f);
+	}
+	else if(texture_type == IMAGE_DATA_TYPE_HALF4) {
+		half4 r = tex_fetch(half4, info, offset);
+		return make_float4(r.x, r.y, r.z, r.w);
+	}
+#endif
 	else {
 		uchar r = tex_fetch(uchar, info, offset);
 		float f = r * (1.0f/255.0f);
