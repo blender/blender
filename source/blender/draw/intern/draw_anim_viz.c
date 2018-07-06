@@ -149,12 +149,12 @@ static void MPATH_cache_init(void *vedata)
 	MPATH_PassList *psl = ((MPATH_Data *)vedata)->psl;
 
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRWState state = DRW_STATE_WRITE_COLOR;
 		psl->lines = DRW_pass_create("Motionpath Line Pass", state);
 	}
 
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_POINT;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_POINT;
 		psl->points = DRW_pass_create("Motionpath Point Pass", state);
 	}
 }
