@@ -4427,30 +4427,40 @@ void VIEW3D_OT_navigate(wmOperatorType *ot)
 /** \name Background Image Add Operator
  * \{ */
 
-static CameraBGImage *background_image_add(bContext *C)
-{
-	Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
 
-	return BKE_camera_background_image_new(cam);
+static Camera *background_image_camera_from_context(bContext *C)
+{
+	/* Needed to support drag-and-drop & camera buttons context. */
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d != NULL) {
+		if (v3d->camera && v3d->camera->data && v3d->camera->type == OB_CAMERA) {
+			return v3d->camera->data;
+		}
+		return NULL;
+	}
+	else {
+		return CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
+	}
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	background_image_add(C);
+	Camera *cam = background_image_camera_from_context(C);
+	BKE_camera_background_image_new(cam);
 
 	return OPERATOR_FINISHED;
 }
 
 static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
+	Camera *cam = background_image_camera_from_context(C);
 	Image *ima;
 	CameraBGImage *bgpic;
 
 	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
 	/* may be NULL, continue anyway */
 
-	bgpic = background_image_add(C);
+	bgpic = BKE_camera_background_image_new(cam);
 	bgpic->ima = ima;
 
 	cam->flag |= CAM_SHOW_BG_IMAGE;
@@ -4460,19 +4470,24 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
 	return OPERATOR_FINISHED;
 }
 
+static bool background_image_add_poll(bContext *C)
+{
+	return background_image_camera_from_context(C) != NULL;
+}
+
 void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	/* note: having key shortcut here is bad practice,
 	 * but for now keep because this displays when dragging an image over the 3D viewport */
-	ot->name   = "Add Background Image (Ctrl for Empty Object)";
-	ot->description = "Add a new background image (Ctrl for Empty Object)";
+	ot->name   = "Add Background Image";
+	ot->description = "Add a new background image";
 	ot->idname = "VIEW3D_OT_background_image_add";
 
 	/* api callbacks */
 	ot->invoke = background_image_add_invoke;
 	ot->exec   = background_image_add_exec;
-	ot->poll   = ED_operator_camera;
+	ot->poll   = background_image_add_poll;
 
 	/* flags */
 	ot->flag   = OPTYPE_UNDO;

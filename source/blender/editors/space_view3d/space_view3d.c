@@ -596,10 +596,23 @@ static bool view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEven
 	return 0;
 }
 
+static bool view3d_ima_bg_is_camera_view(bContext *C)
+{
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	if ((rv3d && (rv3d->persp == RV3D_CAMOB))) {
+		View3D *v3d = CTX_wm_view3d(C);
+		if (v3d && v3d->camera && v3d->camera->type == OB_CAMERA) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static bool view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-	if (event->ctrl)
-		return false;
+	if (view3d_ima_bg_is_camera_view(C)) {
+		return true;
+	}
 
 	if (!ED_view3d_give_base_under_cursor(C, event->mval)) {
 		return view3d_ima_drop_poll(C, drag, event);
@@ -609,10 +622,14 @@ static bool view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 
 static bool view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
+	if (!view3d_ima_bg_is_camera_view(C)) {
+		return true;
+	}
+
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 
 	/* either holding and ctrl and no object, or dropping to empty */
-	if (((base == NULL) && event->ctrl) ||
+	if ((base == NULL) ||
 	    ((base != NULL) && base->object->type == OB_EMPTY))
 	{
 		return view3d_ima_drop_poll(C, drag, event);
