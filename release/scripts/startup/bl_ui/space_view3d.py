@@ -3627,37 +3627,65 @@ class VIEW3D_PT_view3d_properties(Panel):
 
         view = context.space_data
 
-        col = layout.column()
-        col.active = bool(view.region_3d.view_perspective != 'CAMERA' or view.region_quadviews)
-        col.prop(view, "lens")
-        col.label(text="Lock to Object:")
-        col.prop(view, "lock_object", text="")
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+        col = flow.column()
+
+        subcol = col.column()
+        subcol.active = bool(view.region_3d.view_perspective != 'CAMERA' or view.region_quadviews)
+        subcol.prop(view, "lens", text="Focal Length")
+
+        subcol = col.column(align=True)
+        subcol.prop(view, "clip_start", text="Clip Start")
+        subcol.prop(view, "clip_end", text="End")
+
+        subcol.separator()
+
+        col = flow.column()
+
+        subcol = col.column()
+        subcol.enabled = not view.lock_camera_and_layers
+        subcol.prop(view, "camera", text="Local Camera")
+
+        subcol = col.column(align=True)
+        subcol.prop(view, "use_render_border")
+        subcol.active = view.region_3d.view_perspective != 'CAMERA'
+
+
+class VIEW3D_PT_view3d_camera_lock(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Camera Lock"
+    bl_parent_id = "VIEW3D_PT_view3d_properties"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        view = context.space_data
+
+        col = layout.column(align=True)
+        subcol = col.column()
+        subcol.active = bool(view.region_3d.view_perspective != 'CAMERA' or view.region_quadviews)
+
+        subcol.prop(view, "lock_object")
         lock_object = view.lock_object
         if lock_object:
             if lock_object.type == 'ARMATURE':
-                col.prop_search(view, "lock_bone", lock_object.data,
-                                "edit_bones" if lock_object.mode == 'EDIT'
-                                else "bones",
-                                text="")
+                subcol.prop_search(
+                    view, "lock_bone", lock_object.data,
+                    "edit_bones" if lock_object.mode == 'EDIT'
+                    else "bones",
+                    text=""
+                )
         else:
-            col.prop(view, "lock_cursor", text="Lock to Cursor")
+            subcol.prop(view, "lock_cursor", text="Lock to 3D Cursor")
 
-        col = layout.column()
         col.prop(view, "lock_camera")
-
-        col = layout.column(align=True)
-        col.label(text="Clip:")
-        col.prop(view, "clip_start", text="Start")
-        col.prop(view, "clip_end", text="End")
-
-        subcol = col.column(align=True)
-        subcol.enabled = not view.lock_camera_and_layers
-        subcol.label(text="Local Camera:")
-        subcol.prop(view, "camera", text="")
-
-        col = layout.column(align=True)
-        col.prop(view, "use_render_border")
-        col.active = view.region_3d.view_perspective != 'CAMERA'
 
 
 class VIEW3D_PT_view3d_cursor(Panel):
@@ -4496,6 +4524,7 @@ classes = (
     VIEW3D_PT_grease_pencil,
     VIEW3D_PT_grease_pencil_palettecolor,
     VIEW3D_PT_view3d_properties,
+    VIEW3D_PT_view3d_camera_lock,
     VIEW3D_PT_view3d_cursor,
     VIEW3D_PT_quad_view,
     VIEW3D_PT_view3d_stereo,
