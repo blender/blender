@@ -2209,10 +2209,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 			/* Component explicitly requests to not add relation. */
 			continue;
 		}
-		int rel_flag = 0;
-		if (comp_node->type == DEG_NODE_TYPE_ANIMATION) {
-			rel_flag |= DEPSREL_FLAG_NO_FLUSH;
-		}
+		int rel_flag = DEPSREL_FLAG_NO_FLUSH;
 		/* All entry operations of each component should wait for a proper
 		 * copy of ID.
 		 */
