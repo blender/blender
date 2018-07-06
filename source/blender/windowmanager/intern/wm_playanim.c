@@ -139,6 +139,9 @@ typedef struct PlayState {
 
 	/* restarts player for file drop */
 	char dropped_file[FILE_MAX];
+
+	bool need_frame_update;
+	int frame_cursor_x;
 } PlayState;
 
 /* for debugging */
@@ -558,8 +561,18 @@ static void update_sound_fps(void)
 #endif
 }
 
-static void change_frame(PlayState *ps, int cx)
+static void tag_change_frame(PlayState *ps, int cx)
 {
+	ps->need_frame_update = true;
+	ps->frame_cursor_x = cx;
+}
+
+static void change_frame(PlayState *ps)
+{
+	if (!ps->need_frame_update) {
+		return;
+	}
+
 	int sizex, sizey;
 	int i, i_last;
 
@@ -569,7 +582,7 @@ static void change_frame(PlayState *ps, int cx)
 
 	playanim_window_get_size(&sizex, &sizey);
 	i_last = ((struct PlayAnimPict *)picsbase.last)->frame;
-	i = (i_last * cx) / sizex;
+	i = (i_last * ps->frame_cursor_x) / sizex;
 	CLAMP(i, 0, i_last);
 
 #ifdef WITH_AUDASPACE
@@ -610,6 +623,8 @@ static void change_frame(PlayState *ps, int cx)
 	ps->sstep = true;
 	ps->wait2 = false;
 	ps->next_frame = 0;
+
+	ps->need_frame_update = false;
 }
 
 static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
@@ -961,7 +976,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				if (type == GHOST_kEventButtonDown) {
 					if (inside_window) {
 						g_WS.qual |= WS_QUAL_LMOUSE;
-						change_frame(ps, cx);
+						tag_change_frame(ps, cx);
 					}
 				}
 				else
@@ -1006,7 +1021,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
 				GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &cx, &cy);
 
-				change_frame(ps, cx);
+				tag_change_frame(ps, cx);
 			}
 			break;
 		}
@@ -1442,23 +1457,18 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 			ps.next_frame = ps.direction;
 
-			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, ps.wait2))) {
-				if (hasevent) {
-					GHOST_DispatchEvents(g_WS.ghost_system);
-				}
-				/* Note, this still draws for mousemoves on pause */
-				if (ps.wait2) {
-					if (hasevent) {
-						if (ibuf) {
-							while (pupdate_time()) PIL_sleep_ms(1);
-							ptottime -= swaptime;
-							playanim_toscreen(&ps, ps.picture, ibuf, ps.fontid, ps.fstep);
-						}
-					}
-				}
-				if (ps.go == false) {
-					break;
-				}
+			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0))) {
+				GHOST_DispatchEvents(g_WS.ghost_system);
+			}
+			if (ps.go == false) {
+				break;
+			}
+			change_frame(&ps);
+			if (!hasevent) {
+				PIL_sleep_ms(1);
+			}
+			if (ps.wait2) {
+				continue;
 			}
 
 			ps.wait2 = ps.sstep;
