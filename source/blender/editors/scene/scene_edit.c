@@ -97,7 +97,7 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
 {
 	Scene *scene_new;
 
-	// kill running jobs
+	/* kill running jobs */
 	wmWindowManager *wm = bmain->wm.first;
 	WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_ANY);
 
