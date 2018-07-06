@@ -69,6 +69,17 @@ bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
 	return addon;
 }
 
+bool BKE_addon_remove_safe(ListBase *addon_list, const char *module)
+{
+	bAddon *addon = BLI_findstring(addon_list, module, offsetof(bAddon, module));
+	if (addon) {
+		BLI_remlink(addon_list, addon);
+		BKE_addon_free(addon);
+		return true;
+	}
+	return false;
+}
+
 void BKE_addon_free(bAddon *addon)
 {
 	if (addon->prop) {
