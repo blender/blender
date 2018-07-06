@@ -880,6 +880,21 @@ bool outliner_flag_set(ListBase *lb, short flag, short set)
 	return changed;
 }
 
+bool outliner_flag_flip(ListBase *lb, short flag)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	bool changed = false;
+
+	for (te = lb->first; te; te = te->next) {
+		tselem = TREESTORE(te);
+		tselem->flag ^= flag;
+		changed |= outliner_flag_flip(&te->subtree, flag);
+	}
+
+	return changed;
+}
+
 /* Restriction Columns ------------------------------- */
 
 /* same check needed for both object operation and restrict column button func
@@ -940,16 +955,27 @@ void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 
 /* Toggle Selected (Outliner) ---------------------------------------- */
 
-static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_select_all_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
+	int action = RNA_enum_get(op->ptr, "action");
+	if (action == SEL_TOGGLE) {
+		action = outliner_flag_is_any_test(&soops->tree, TSE_SELECTED, 1) ? SEL_DESELECT : SEL_SELECT;
+	}
 
-	if (outliner_flag_is_any_test(&soops->tree, TSE_SELECTED, 1))
-		outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
-	else
-		outliner_flag_set(&soops->tree, TSE_SELECTED, 1);
+	switch (action) {
+		case SEL_SELECT:
+			outliner_flag_set(&soops->tree, TSE_SELECTED, 1);
+			break;
+		case SEL_DESELECT:
+			outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
+			break;
+		case SEL_INVERT:
+			outliner_flag_flip(&soops->tree, TSE_SELECTED);
+			break;
+	}
 
 	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -958,18 +984,21 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
+void OUTLINER_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Toggle Selected";
-	ot->idname = "OUTLINER_OT_selected_toggle";
+	ot->idname = "OUTLINER_OT_select_all";
 	ot->description = "Toggle the Outliner selection of items";
 
 	/* callbacks */
-	ot->exec = outliner_toggle_selected_exec;
+	ot->exec = outliner_select_all_exec;
 	ot->poll = ED_operator_outliner_active;
 
-	/* no undo or registry, UI option */
+	/* no undo or registry */
+
+	/* rna */
+	WM_operator_properties_select_all(ot);
 }
 
 /* ************************************************************** */

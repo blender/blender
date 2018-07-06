@@ -431,7 +431,7 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_show_hierarchy);
 	WM_operatortype_append(OUTLINER_OT_scroll_page);
 
-	WM_operatortype_append(OUTLINER_OT_selected_toggle);
+	WM_operatortype_append(OUTLINER_OT_select_all);
 	WM_operatortype_append(OUTLINER_OT_expanded_toggle);
 
 	WM_operatortype_append(OUTLINER_OT_keyingset_add_selected);
@@ -542,7 +542,13 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_show_one_level", PADMINUS, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "open", false); /* close */
 
-	WM_keymap_add_item(keymap, "OUTLINER_OT_selected_toggle", AKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_SELECT);
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_select_all", AKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
 	WM_keymap_add_item(keymap, "OUTLINER_OT_expanded_toggle", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* keying sets - only for databrowse */
