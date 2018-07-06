@@ -368,7 +368,6 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             return None
 
         try:
-            print(mod.bl_info.get("blender", (0, 0, 0)))
             if mod.bl_info.get("blender", (0, 0, 0)) < (2, 80, 0):
                 raise Exception(f"Add-on '{module_name:s}' has not been upgraded to 2.8, ignoring")
         except Exception as ex:
