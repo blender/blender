@@ -3700,8 +3700,10 @@ class VIEW3D_PT_view3d_cursor(Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         view = context.space_data
+
         layout.column().prop(view, "cursor_location", text="Location")
 
 
