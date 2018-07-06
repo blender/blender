@@ -719,6 +719,9 @@ void BKE_object_init(Object *ob)
 	ob->dt = OB_TEXTURE;
 	ob->empty_drawtype = OB_PLAINAXES;
 	ob->empty_drawsize = 1.0;
+	if (ob->type == OB_EMPTY) {
+		copy_v2_fl(ob->ima_ofs, -0.5f);
+	}
 
 	if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
 		ob->trackflag = OB_NEGZ;
