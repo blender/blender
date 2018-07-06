@@ -33,4 +33,3 @@ ccl_device void svm_node_value_v(KernelGlobals *kg, ShaderData *sd, float *stack
 }
 
 CCL_NAMESPACE_END
-

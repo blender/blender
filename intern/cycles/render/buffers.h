@@ -147,4 +147,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __BUFFERS_H__ */
-

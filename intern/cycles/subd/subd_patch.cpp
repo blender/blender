@@ -80,7 +80,7 @@ BoundBox LinearQuadPatch::bound()
 
 	for(int i = 0; i < 4; i++)
 		bbox.grow(hull[i]);
-	
+
 	return bbox;
 }
 
@@ -110,9 +110,8 @@ BoundBox BicubicPatch::bound()
 
 	for(int i = 0; i < 16; i++)
 		bbox.grow(hull[i]);
-	
+
 	return bbox;
 }
 
 CCL_NAMESPACE_END
-

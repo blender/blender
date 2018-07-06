@@ -254,4 +254,3 @@ void MemoryManager::set_kernel_arg_buffers(cl_kernel kernel, cl_uint *narg)
 CCL_NAMESPACE_END
 
 #endif  /* WITH_OPENCL */
-

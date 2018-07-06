@@ -51,7 +51,7 @@ ccl_device float single_peaked_henyey_greenstein(float cos_theta, float g)
 ccl_device int volume_henyey_greenstein_setup(HenyeyGreensteinVolume *volume)
 {
 	volume->type = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
-	
+
 	/* clamp anisotropy to avoid delta function */
 	volume->g = signf(volume->g) * min(fabsf(volume->g), 1.0f - 1e-3f);
 

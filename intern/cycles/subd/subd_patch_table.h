@@ -60,4 +60,3 @@ struct PackedPatchTable {
 CCL_NAMESPACE_END
 
 #endif /* __SUBD_PATCH_TABLE_H__ */
-

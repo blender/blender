@@ -759,7 +759,7 @@ void LightManager::device_update_points(Device *,
 			float area = len(axisu)*len(axisv);
 			float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
 			float3 dir = light->dir;
-			
+
 			dir = safe_normalize(dir);
 
 			if(light->use_mis && area > 0.0f)
@@ -788,7 +788,7 @@ void LightManager::device_update_points(Device *,
 			float spot_angle = cosf(light->spot_angle*0.5f);
 			float spot_smooth = (1.0f - spot_angle)*light->spot_smooth;
 			float3 dir = light->dir;
-			
+
 			dir = safe_normalize(dir);
 
 			if(light->use_mis && radius > 0.0f)
@@ -1027,4 +1027,3 @@ void LightManager::device_update_ies(DeviceScene *dscene)
 }
 
 CCL_NAMESPACE_END
-

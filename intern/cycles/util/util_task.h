@@ -118,7 +118,7 @@ protected:
 };
 
 /* Task Scheduler
- * 
+ *
  * Central scheduler that holds running threads ready to execute tasks. A singe
  * queue holds the task from all pools. */
 
@@ -207,4 +207,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif
-

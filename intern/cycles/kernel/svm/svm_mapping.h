@@ -43,4 +43,3 @@ ccl_device void svm_node_min_max(KernelGlobals *kg, ShaderData *sd, float *stack
 }
 
 CCL_NAMESPACE_END
-

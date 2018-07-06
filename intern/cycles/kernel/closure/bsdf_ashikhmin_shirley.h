@@ -117,7 +117,7 @@ ccl_device_forceinline float3 bsdf_ashikhmin_shirley_eval_reflect(
 				lobe = 1.0f;
 			}
 			float norm = sqrtf((n_x + 1.0f)*(n_y + 1.0f)) / (8.0f * M_PI_F);
-			
+
 			out = NdotO * norm * lobe * pump;
 			*pdf = norm * lobe / HdotI;
 		}

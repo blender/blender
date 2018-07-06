@@ -52,4 +52,3 @@ ccl_device void kernel_shadow_blocked_ao(KernelGlobals *kg)
 }
 
 CCL_NAMESPACE_END
-

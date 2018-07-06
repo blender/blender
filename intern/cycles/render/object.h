@@ -129,4 +129,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __OBJECT_H__ */
-

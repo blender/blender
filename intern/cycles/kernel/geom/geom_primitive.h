@@ -192,7 +192,7 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 	/* object motion. note that depending on the mesh having motion vectors, this
 	 * transformation was set match the world/object space of motion_pre/post */
 	Transform tfm;
-	
+
 	tfm = object_fetch_motion_pass_transform(kg, sd->object, OBJECT_PASS_MOTION_PRE);
 	motion_pre = transform_point(&tfm, motion_pre);
 
@@ -240,4 +240,3 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 }
 
 CCL_NAMESPACE_END
-

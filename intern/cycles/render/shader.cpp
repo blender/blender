@@ -313,7 +313,7 @@ void Shader::tag_update(Scene *scene)
 	if(has_displacement && displacement_method == DISPLACE_BOTH) {
 		attributes.add(ATTR_STD_POSITION_UNDISPLACED);
 	}
-	
+
 	/* compare if the attributes changed, mesh manager will check
 	 * need_update_mesh, update the relevant meshes and clear it. */
 	if(attributes.modified(prev_attributes)) {
@@ -398,7 +398,7 @@ ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
 	{
 		manager = new SVMShaderManager();
 	}
-	
+
 	add_default(scene);
 
 	return manager;
@@ -413,7 +413,7 @@ uint ShaderManager::get_attribute_id(ustring name)
 
 	if(it != unique_attribute_id.end())
 		return it->second;
-	
+
 	uint id = (uint)ATTR_STD_NUM + unique_attribute_id.size();
 	unique_attribute_id[name] = id;
 	return id;
@@ -432,10 +432,10 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
 	/* smooth flag */
 	if(smooth)
 		id |= SHADER_SMOOTH_NORMAL;
-	
+
 	/* default flags */
 	id |= SHADER_CAST_SHADOW|SHADER_AREA_LIGHT;
-	
+
 	return id;
 }
 
@@ -696,4 +696,3 @@ float ShaderManager::linear_rgb_to_gray(float3 c)
 }
 
 CCL_NAMESPACE_END
-

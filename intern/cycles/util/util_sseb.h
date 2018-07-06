@@ -38,7 +38,7 @@ struct sseb
 	////////////////////////////////////////////////////////////////////////////////
 	/// Constructors, Assignment & Cast Operators
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	__forceinline sseb           ( ) {}
 	__forceinline sseb           ( const sseb& other ) { m128 = other.m128; }
 	__forceinline sseb& operator=( const sseb& other ) { m128 = other.m128; return *this; }
@@ -47,10 +47,10 @@ struct sseb
 	__forceinline operator const __m128&( void ) const { return m128; }
 	__forceinline operator const __m128i( void ) const { return _mm_castps_si128(m128); }
 	__forceinline operator const __m128d( void ) const { return _mm_castps_pd(m128); }
-	
+
 	__forceinline sseb           ( bool  a )
 		: m128(_mm_lookupmask_ps[(size_t(a) << 3) | (size_t(a) << 2) | (size_t(a) << 1) | size_t(a)]) {}
-	__forceinline sseb           ( bool  a, bool  b) 
+	__forceinline sseb           ( bool  a, bool  b)
 		: m128(_mm_lookupmask_ps[(size_t(b) << 3) | (size_t(a) << 2) | (size_t(b) << 1) | size_t(a)]) {}
 	__forceinline sseb           ( bool  a, bool  b, bool  c, bool  d)
 		: m128(_mm_lookupmask_ps[(size_t(d) << 3) | (size_t(c) << 2) | (size_t(b) << 1) | size_t(a)]) {}
@@ -103,11 +103,11 @@ __forceinline const sseb operator ^=( sseb& a, const sseb& b ) { return a = a ^ 
 __forceinline const sseb operator !=( const sseb& a, const sseb& b ) { return _mm_xor_ps(a, b); }
 __forceinline const sseb operator ==( const sseb& a, const sseb& b ) { return _mm_castsi128_ps(_mm_cmpeq_epi32(a, b)); }
 
-__forceinline const sseb select( const sseb& m, const sseb& t, const sseb& f ) { 
+__forceinline const sseb select( const sseb& m, const sseb& t, const sseb& f ) {
 #if defined(__KERNEL_SSE41__)
-	return _mm_blendv_ps(f, t, m); 
+	return _mm_blendv_ps(f, t, m);
 #else
-	return _mm_or_ps(_mm_and_ps(m, t), _mm_andnot_ps(m, f)); 
+	return _mm_or_ps(_mm_and_ps(m, t), _mm_andnot_ps(m, f));
 #endif
 }
 
@@ -186,4 +186,3 @@ ccl_device_inline void print_sseb(const char *label, const sseb &a)
 CCL_NAMESPACE_END
 
 #endif
-

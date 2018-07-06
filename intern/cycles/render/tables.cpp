@@ -115,4 +115,3 @@ void LookupTables::remove_table(size_t *offset)
 }
 
 CCL_NAMESPACE_END
-

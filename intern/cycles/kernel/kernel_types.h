@@ -1238,19 +1238,19 @@ typedef struct KernelFilm {
 	int pass_glossy_color;
 	int pass_transmission_color;
 	int pass_subsurface_color;
-	
+
 	int pass_diffuse_indirect;
 	int pass_glossy_indirect;
 	int pass_transmission_indirect;
 	int pass_subsurface_indirect;
 	int pass_volume_indirect;
-	
+
 	int pass_diffuse_direct;
 	int pass_glossy_direct;
 	int pass_transmission_direct;
 	int pass_subsurface_direct;
 	int pass_volume_direct;
-	
+
 	int pass_emission;
 	int pass_background;
 	int pass_ao;
@@ -1671,4 +1671,3 @@ typedef struct WorkTile {
 CCL_NAMESPACE_END
 
 #endif /*  __KERNEL_TYPES_H__ */
-

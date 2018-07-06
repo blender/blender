@@ -340,4 +340,3 @@ ccl_device float3 patch_eval_uchar4(KernelGlobals *kg, const ShaderData *sd, int
 }
 
 CCL_NAMESPACE_END
-

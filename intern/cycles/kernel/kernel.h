@@ -64,4 +64,3 @@ void kernel_tex_copy(KernelGlobals *kg,
 CCL_NAMESPACE_END
 
 #endif /* __KERNEL_H__ */
-

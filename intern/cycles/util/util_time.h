@@ -59,4 +59,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif
-

@@ -155,7 +155,7 @@ public:
 };
 
 /* Shader Manager virtual base class
- * 
+ *
  * From this the SVM and OSL shader managers are derived, that do the actual
  * shader compiling and device updating. */
 
@@ -223,4 +223,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __SHADER_H__ */
-

@@ -272,4 +272,3 @@ void view_redraw()
 }
 
 CCL_NAMESPACE_END
-

@@ -193,7 +193,7 @@ ccl_device float svm_musgrave(NodeMusgraveType type, float dimension, float lacu
 		return intensity*noise_musgrave_ridged_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
 	else if(type == NODE_MUSGRAVE_HETERO_TERRAIN)
 		return intensity*noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, offset);
-	
+
 	return 0.0f;
 }
 
@@ -232,4 +232,3 @@ ccl_device void svm_node_tex_musgrave(KernelGlobals *kg, ShaderData *sd, float *
 }
 
 CCL_NAMESPACE_END
-

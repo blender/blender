@@ -51,4 +51,3 @@ ccl_device void svm_node_leave_bump_eval(KernelGlobals *kg, ShaderData *sd, floa
 }
 
 CCL_NAMESPACE_END
-

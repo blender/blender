@@ -61,4 +61,3 @@ ccl_device_noinline float noise_turbulence(float3 p, float octaves, int hard)
 }
 
 CCL_NAMESPACE_END
-

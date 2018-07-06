@@ -179,7 +179,7 @@ public:
 		boost::asio::write(socket,
 			boost::asio::buffer(archive_str),
 			boost::asio::transfer_all(), error);
-		
+
 		if(error.value())
 			error_func->network_error(error.message());
 
@@ -193,7 +193,7 @@ public:
 		boost::asio::write(socket,
 			boost::asio::buffer(buffer, size),
 			boost::asio::transfer_all(), error);
-		
+
 		if(error.value())
 			error_func->network_error(error.message());
 	}
@@ -467,7 +467,7 @@ private:
 	/* buffer and endpoint for receiving messages */
 	char receive_buffer[256];
 	boost::asio::ip::udp::endpoint receive_endpoint;
-	
+
 	// os, version, devices, status, host name, group name, ip as far as fields go
 	struct ServerInfo {
 		string cycles_version;
@@ -489,4 +489,3 @@ CCL_NAMESPACE_END
 #endif
 
 #endif /* __DEVICE_NETWORK_H__ */
-

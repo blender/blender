@@ -356,4 +356,3 @@ ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
 }
 
 CCL_NAMESPACE_END
-

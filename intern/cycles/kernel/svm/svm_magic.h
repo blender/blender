@@ -109,4 +109,3 @@ ccl_device void svm_node_tex_magic(KernelGlobals *kg, ShaderData *sd, float *sta
 }
 
 CCL_NAMESPACE_END
-

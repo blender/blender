@@ -80,4 +80,3 @@ ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *s
 #endif
 
 CCL_NAMESPACE_END
-

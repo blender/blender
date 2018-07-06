@@ -498,4 +498,3 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 CCL_NAMESPACE_END
 
 #endif /* __SVM_H__ */
-

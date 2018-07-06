@@ -535,4 +535,3 @@ int TileManager::get_num_effective_samples()
 }
 
 CCL_NAMESPACE_END
-

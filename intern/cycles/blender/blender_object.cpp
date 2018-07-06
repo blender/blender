@@ -125,7 +125,7 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 			*use_portal = true;
 		return;
 	}
-	
+
 	BL::Lamp b_lamp(b_ob.data());
 
 	/* type */
@@ -185,7 +185,7 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 	PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
 	light->cast_shadow = get_boolean(clamp, "cast_shadow");
 	light->use_mis = get_boolean(clamp, "use_multiple_importance_sampling");
-	
+
 	int samples = get_int(clamp, "samples");
 	if(get_boolean(cscene, "use_square_samples"))
 		light->samples = samples * samples;
@@ -287,7 +287,7 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 {
 	BL::Object b_ob = (b_dupli_ob ? b_dupli_ob.object() : b_parent);
 	bool motion = motion_time != 0.0f;
-	
+
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
 		/* don't use lamps for excluded layers used as mask layer */
@@ -360,7 +360,7 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 
 	if(object_map.sync(&object, b_ob, b_parent, key))
 		object_updated = true;
-	
+
 	/* mesh sync */
 	object->mesh = sync_mesh(b_ob, object_updated, hide_tris);
 
@@ -502,7 +502,7 @@ static bool object_render_hide(BL::Object& b_ob,
 		}
 		parent = parent.parent();
 	}
-	
+
 	hide_triangles = hide_emitter;
 
 	if(show_emitter) {
@@ -530,7 +530,7 @@ void BlenderSync::sync_objects(float motion_time)
 	/* layer data */
 	uint scene_layer = render_layer.scene_layer;
 	bool motion = motion_time != 0.0f;
-	
+
 	if(!motion) {
 		/* prepare for sync */
 		light_map.pre_sync();
@@ -755,4 +755,3 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 }
 
 CCL_NAMESPACE_END
-

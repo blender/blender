@@ -68,7 +68,7 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
 
 	if(!(sd->flag & (SD_EXTINCTION|SD_SCATTER|SD_EMISSION)))
 		return false;
-	
+
 	coeff->sigma_s = make_float3(0.0f, 0.0f, 0.0f);
 	coeff->sigma_t = (sd->flag & SD_EXTINCTION)? sd->closure_transparent_extinction:
 	                                             make_float3(0.0f, 0.0f, 0.0f);
@@ -368,7 +368,7 @@ ccl_device float3 kernel_volume_emission_integrate(VolumeShaderCoefficients *coe
 	}
 	else
 		emission *= t;
-	
+
 	return emission;
 }
 
@@ -475,7 +475,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(
 			new_tp = *throughput * transmittance / pdf;
 		}
 	}
-	else 
+	else
 #endif
 	if(closure_flag & SD_EXTINCTION) {
 		/* absorption only, no sampling needed */
@@ -596,7 +596,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
 					xi = 1.0f - (1.0f - xi)/sample_transmittance;
 				}
 			}
-			else 
+			else
 #endif
 			if(closure_flag & SD_EXTINCTION) {
 				/* absorption only, no sampling needed */
@@ -751,7 +751,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 		step_offset = 0.0f;
 		segment->steps = &segment->stack_step;
 	}
-	
+
 	/* init accumulation variables */
 	float3 accum_emission = make_float3(0.0f, 0.0f, 0.0f);
 	float3 accum_transmittance = make_float3(1.0f, 1.0f, 1.0f);
@@ -1263,7 +1263,7 @@ ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd
 
 	if(!(sd->flag & SD_HAS_VOLUME))
 		return;
-	
+
 	if(sd->flag & SD_BACKFACING) {
 		/* exit volume object: remove from stack */
 		for(int i = 0; stack[i].shader != SHADER_NONE; i++) {

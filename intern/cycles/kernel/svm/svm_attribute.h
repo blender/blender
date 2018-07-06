@@ -154,4 +154,3 @@ void svm_node_attr_bump_dy(KernelGlobals *kg,
 }
 
 CCL_NAMESPACE_END
-

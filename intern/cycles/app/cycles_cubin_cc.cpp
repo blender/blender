@@ -164,7 +164,7 @@ bool link_ptxas(CompilationSettings &settings)
 		ptx += " --verbose";
 		printf("%s\n", ptx.c_str());
 	}
-	
+
 	int pxresult = system(ptx.c_str());
 	if(pxresult) {
 		fprintf(stderr, "Error: ptxas failed (%x)\n\n", pxresult);

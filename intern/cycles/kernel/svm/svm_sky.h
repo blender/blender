@@ -110,7 +110,7 @@ ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack
 	/* Define variables */
 	float sunphi, suntheta, radiance_x, radiance_y, radiance_z;
 	float config_x[9], config_y[9], config_z[9];
-	
+
 	/* Load data */
 	uint dir_offset = node.y;
 	uint out_offset = node.z;
@@ -121,49 +121,49 @@ ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack
 	suntheta = data.y;
 	radiance_x = data.z;
 	radiance_y = data.w;
-	
+
 	data = read_node_float(kg, offset);
 	radiance_z = data.x;
 	config_x[0] = data.y;
 	config_x[1] = data.z;
 	config_x[2] = data.w;
-	
+
 	data = read_node_float(kg, offset);
 	config_x[3] = data.x;
 	config_x[4] = data.y;
 	config_x[5] = data.z;
 	config_x[6] = data.w;
-	
+
 	data = read_node_float(kg, offset);
 	config_x[7] = data.x;
 	config_x[8] = data.y;
 	config_y[0] = data.z;
 	config_y[1] = data.w;
-	
+
 	data = read_node_float(kg, offset);
 	config_y[2] = data.x;
 	config_y[3] = data.y;
 	config_y[4] = data.z;
 	config_y[5] = data.w;
-	
+
 	data = read_node_float(kg, offset);
 	config_y[6] = data.x;
 	config_y[7] = data.y;
 	config_y[8] = data.z;
 	config_z[0] = data.w;
-	
+
 	data = read_node_float(kg, offset);
 	config_z[1] = data.x;
 	config_z[2] = data.y;
 	config_z[3] = data.z;
 	config_z[4] = data.w;
-	
+
 	data = read_node_float(kg, offset);
 	config_z[5] = data.x;
 	config_z[6] = data.y;
 	config_z[7] = data.z;
 	config_z[8] = data.w;
-	
+
 	float3 dir = stack_load_float3(stack, dir_offset);
 	float3 f;
 
@@ -183,4 +183,3 @@ ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack
 }
 
 CCL_NAMESPACE_END
-

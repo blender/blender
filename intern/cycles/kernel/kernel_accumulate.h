@@ -270,7 +270,7 @@ ccl_device_inline void path_radiance_bsdf_bounce(
 			              L_state->transmission +
 			              L_state->subsurface +
 			              L_state->scatter;
-			
+
 			L_state->direct = *throughput;
 		}
 		else {

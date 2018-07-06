@@ -366,4 +366,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_PROGRESS_H__ */
-

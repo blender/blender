@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -82,4 +82,3 @@ ClosureParam *closure_bsdf_phong_ramp_params()
 CCLOSURE_PREPARE(closure_bsdf_phong_ramp_prepare, PhongRampClosure)
 
 CCL_NAMESPACE_END
-

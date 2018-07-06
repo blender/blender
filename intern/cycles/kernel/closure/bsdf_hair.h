@@ -278,4 +278,3 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng,
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_HAIR_H__ */
-

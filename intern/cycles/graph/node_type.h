@@ -263,4 +263,3 @@ const NodeType *structname::register_type()
 	{ type->register_output(ustring(#name), ustring(ui_name), SocketType::ENUM); }
 
 CCL_NAMESPACE_END
-

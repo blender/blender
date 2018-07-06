@@ -106,4 +106,3 @@
 #if CUDA_KERNEL_BRANCHED_MAX_REGISTERS > CUDA_THREAD_MAX_REGISTERS
 #  error "Maximum number of registers per thread exceeded"
 #endif
-

@@ -86,4 +86,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __DEVICE_TASK_H__ */
-

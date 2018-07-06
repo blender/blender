@@ -107,4 +107,3 @@ ccl_device int bsdf_transparent_sample(const ShaderClosure *sc, float3 Ng, float
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_TRANSPARENT_H__ */
-

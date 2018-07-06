@@ -506,7 +506,7 @@ ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3
 
 	if(cos_pi <= 0.0f)
 		return 0.0f;
-	
+
 	return t*t/cos_pi;
 }
 

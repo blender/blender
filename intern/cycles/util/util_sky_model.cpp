@@ -367,4 +367,3 @@ ArHosekSkyModelState * arhosek_xyz_skymodelstate_alloc_init(
 }
 
 CCL_NAMESPACE_END
-

@@ -13,4 +13,3 @@ MIT license
 
 Boost License
 * Boost and OpenCL dynamic loading
-

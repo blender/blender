@@ -62,4 +62,3 @@ __kernel void KERNEL_NAME_EVAL(kernel_ocl_path_trace, KERNEL_NAME)(
 
 #undef KERNEL_NAME_JOIN
 #undef KERNEL_NAME_EVAL
-

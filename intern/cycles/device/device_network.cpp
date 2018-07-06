@@ -797,5 +797,3 @@ void Device::server_run()
 CCL_NAMESPACE_END
 
 #endif
-
-

@@ -241,4 +241,3 @@ ccl_device float4 color_srgb_to_linear_v4(float4 c)
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_COLOR_H__ */
-

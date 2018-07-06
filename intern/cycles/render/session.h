@@ -237,4 +237,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __SESSION_H__ */
-

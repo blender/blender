@@ -174,4 +174,3 @@ ccl_device_inline ProjectionTransform projection_orthographic(float znear, float
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_PROJECTION_H__ */
-

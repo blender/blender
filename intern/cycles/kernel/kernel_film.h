@@ -87,4 +87,3 @@ ccl_device void kernel_film_convert_to_half_float(KernelGlobals *kg,
 }
 
 CCL_NAMESPACE_END
-

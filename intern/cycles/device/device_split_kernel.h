@@ -131,6 +131,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __DEVICE_SPLIT_KERNEL_H__ */
-
-
-

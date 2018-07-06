@@ -171,4 +171,3 @@ private:
 CCL_NAMESPACE_END
 
 #endif /* __OSL_H__  */
-

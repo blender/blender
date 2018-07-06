@@ -165,7 +165,7 @@ public:
 
 	int id; /* index in graph node array */
 	ShaderBump bump; /* for bump mapping utility */
-	
+
 	ShaderNodeSpecialType special_type;	/* special node type */
 
 	/* ** Selective nodes compilation ** */
@@ -294,4 +294,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __GRAPH_H__ */
-
