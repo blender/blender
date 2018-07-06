@@ -1610,11 +1610,7 @@ void init_userdef_do_versions(Main *bmain)
 
 	/* Not versioning, just avoid errors. */
 #ifndef WITH_CYCLES
-	bAddon *addon = BLI_findstring(&U.addons, "cycles", offsetof(bAddon, module));
-	if (addon) {
-		BLI_remlink(&U.addons, addon);
-		BKE_addon_free(addon);
-	}
+	BKE_addon_remove_safe(&U.addons, "cycles");
 #endif
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
