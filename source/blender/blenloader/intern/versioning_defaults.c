@@ -44,7 +44,6 @@
 #include "DNA_object_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_addon.h"
 #include "BKE_brush.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -52,7 +51,6 @@
 #include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
-
 
 /**
  * Override values in in-memory startup.blend, avoids resaving for small changes.
@@ -95,23 +93,6 @@ void BLO_update_defaults_userpref_blend(void)
 #else
 	U.flag &= ~USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
-
-	/* XXX, until these are working w/ 2.8x. */
-	{
-		const char *addon_id_remove[] = {
-			"io_anim_bvh",
-			"io_mesh_ply",
-			"io_mesh_stl",
-			"io_mesh_uv_layout",
-			"io_scene_3ds",
-			"io_scene_fbx",
-			"io_scene_obj",
-			"io_scene_x3d",
-		};
-		for (int i = 0; i < ARRAY_SIZE(addon_id_remove); i++) {
-			BKE_addon_remove_safe(&U.addons, addon_id_remove[i]);
-		}
-	}
 
 	/* Ignore the theme saved in the blend file,
 	 * instead use the theme from 'userdef_default_theme.c' */
