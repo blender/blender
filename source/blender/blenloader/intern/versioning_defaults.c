@@ -100,7 +100,6 @@ void BLO_update_defaults_userpref_blend(void)
 	{
 		const char *addon_id_remove[] = {
 			"io_anim_bvh",
-			"io_curve_svg",
 			"io_mesh_ply",
 			"io_mesh_stl",
 			"io_mesh_uv_layout",
