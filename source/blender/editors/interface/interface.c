@@ -3454,6 +3454,12 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 	block->flag |= UI_BLOCK_IS_FLIP;
 }
 
+static void ui_but_submenu_enable(uiBlock *block, uiBut *but)
+{
+	but->flag |= UI_BUT_ICON_SUBMENU;
+	block->content_hints |= BLOCK_CONTAINS_SUBMENU_BUT;
+}
+
 /**
  * ui_def_but_rna_propname and ui_def_but_rna
  * both take the same args except for propname vs prop, this is done so we can
@@ -3589,7 +3595,7 @@ static uiBut *ui_def_but_rna(
 	}
 
 	if ((type == UI_BTYPE_MENU) && (but->dt == UI_EMBOSS_PULLDOWN)) {
-		but->flag |= UI_BUT_ICON_SUBMENU;
+		ui_but_submenu_enable(block, but);
 	}
 
 	const char *info;
@@ -4328,7 +4334,7 @@ uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, in
 	ui_def_but_icon(but, icon, UI_HAS_ICON);
 
 	but->drawflag |= UI_BUT_ICON_LEFT;
-	but->flag |= UI_BUT_ICON_SUBMENU;
+	ui_but_submenu_enable(block, but);
 
 	but->menu_create_func = func;
 	ui_but_update(but);
@@ -4360,7 +4366,7 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, 
 		but->drawflag |= UI_BUT_ICON_LEFT;
 	}
 	but->flag |= UI_HAS_ICON;
-	but->flag |= UI_BUT_ICON_SUBMENU;
+	ui_but_submenu_enable(block, but);
 
 	but->block_create_func = func;
 	ui_but_update(but);

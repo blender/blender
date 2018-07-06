@@ -105,7 +105,8 @@ typedef enum {
 	UI_WTYPE_PROGRESSBAR,
 } uiWidgetTypeEnum;
 
-#define UI_MENU_WIDTH_MIN (UI_UNIT_Y * 9)
+#define UI_MENU_WIDTH_MIN       (UI_UNIT_Y * 9)
+#define UI_MENU_SUBMENU_PADDING (6 * UI_DPI_FAC) /* some extra padding added to menus containing submenu icons */
 
 /* menu scrolling */
 #define UI_MENU_SCROLL_ARROW	12
@@ -349,6 +350,13 @@ struct PieMenuData {
 	float alphafac;
 };
 
+/* uiBlock.content_hints */
+enum eBlockContentHints {
+	/* In a menu block, if there is a single sub-menu button, we add some
+	 * padding to the right to put nicely aligned triangle icons there. */
+	BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
+};
+
 struct uiBlock {
 	uiBlock *next, *prev;
 
@@ -395,11 +403,15 @@ struct uiBlock {
 
 	int flag;
 	short alignnr;
+	/* Hints about the buttons of this block. Used to avoid iterating over
+	 * buttons to find out if some criteria is met by any. Instead, check this
+	 * criteria when adding the button and set a flag here if it's met. */
+	short content_hints; /* eBlockContentHints */
 
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied to buttons */
 	bool auto_open;
-	char _pad[7];
+	char _pad[5];
 	double auto_open_last;
 
 	const char *lockstr;

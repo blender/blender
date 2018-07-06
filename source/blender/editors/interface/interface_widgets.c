@@ -1359,7 +1359,7 @@ static void widget_draw_submenu_tria(const uiBut *but, const rcti *rect, const u
 	const float aspect = but->block->aspect / UI_DPI_FAC;
 	const int tria_height = (int)(ICON_DEFAULT_HEIGHT / aspect);
 	const int tria_width = (int)(ICON_DEFAULT_WIDTH / aspect) - 2 * U.pixelsize;
-	const int xs = rect->xmax - UI_DPI_ICON_SIZE - aspect;
+	const int xs = rect->xmax - tria_width;
 	const int ys = (rect->ymin + rect->ymax - tria_height) / 2.0f;
 	float col[4];
 	rctf tria_rect;
@@ -2088,6 +2088,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 		widget_draw_icon(but, icon, alpha, rect);
 		if (show_menu_icon) {
+			BLI_assert(but->block->content_hints & BLOCK_CONTAINS_SUBMENU_BUT);
 			widget_draw_submenu_tria(but, rect, wcol);
 		}
 
@@ -2096,10 +2097,6 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 #endif
 
 		rect->xmin += icon_size;
-		/* without this menu keybindings will overlap the arrow icon [#38083] */
-		if (show_menu_icon) {
-			rect->xmax -= icon_size / 2.0f;
-		}
 	}
 
 	if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {
@@ -2107,6 +2104,12 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	}
 	else if ((but->drawflag & UI_BUT_TEXT_RIGHT)) {
 		rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+	}
+
+	/* Menu contains sub-menu items with triangle icon on their right. Shortcut
+	 * strings should be drawn with some padding to the right then. */
+	if (ui_block_is_menu(but->block) && (but->block->content_hints & BLOCK_CONTAINS_SUBMENU_BUT)) {
+		rect->xmax -= UI_MENU_SUBMENU_PADDING;
 	}
 
 	/* extra icons, e.g. 'x' icon to clear text or icon for eyedropper */
