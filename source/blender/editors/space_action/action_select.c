@@ -1369,7 +1369,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	rctf rectf;
 
 	/* get dopesheet info */
-	if (ac->datatype == ANIMCONT_DOPESHEET)
+	if (ELEM(ac->datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE))
 		ads = ac->data;
 
 	/* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
@@ -1490,7 +1490,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 
 		/* highlight channel clicked on */
-		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
+		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
 			/* deselect all other channels first */
 			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 
