@@ -59,19 +59,22 @@ struct OpenCLPlatformDevice {
 	                     cl_device_id device_id,
 	                     cl_device_type device_type,
 	                     const string& device_name,
-	                     const string& hardware_id)
+	                     const string& hardware_id,
+		                 const string& device_extensions)
 	  : platform_id(platform_id),
 	    platform_name(platform_name),
 	    device_id(device_id),
 	    device_type(device_type),
 	    device_name(device_name),
-	    hardware_id(hardware_id) {}
+	    hardware_id(hardware_id),
+	    device_extensions(device_extensions) {}
 	cl_platform_id platform_id;
 	string platform_name;
 	cl_device_id device_id;
 	cl_device_type device_type;
 	string device_name;
 	string hardware_id;
+	string device_extensions;
 };
 
 /* Contains all static OpenCL helper functions. */
@@ -129,6 +132,12 @@ public:
 	                            cl_int* error = NULL);
 
 	static string get_device_name(cl_device_id device_id);
+
+	static bool get_device_extensions(cl_device_id device_id,
+	                                  string *device_extensions,
+	                                  cl_int* error = NULL);
+
+	static string get_device_extensions(cl_device_id device_id);
 
 	static bool get_device_type(cl_device_id device_id,
 	                            cl_device_type *device_type,

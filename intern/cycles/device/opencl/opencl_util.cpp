@@ -831,13 +831,15 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 				FIRST_VLOG(2) << "Adding new device "
 				              << readable_device_name << ".";
 				string hardware_id = get_hardware_id(platform_name, device_id);
+				string device_extensions = get_device_extensions(device_id);
 				usable_devices->push_back(OpenCLPlatformDevice(
 				        platform_id,
 				        platform_name,
 				        device_id,
 				        device_type,
 				        readable_device_name,
-				        hardware_id));
+				        hardware_id,
+				        device_extensions));
 			}
 			else {
 				FIRST_VLOG(2) << "Ignoring device " << device_name
@@ -1045,6 +1047,40 @@ string OpenCLInfo::get_device_name(cl_device_id device_id)
 		return "";
 	}
 	return device_name;
+}
+
+bool OpenCLInfo::get_device_extensions(cl_device_id device_id,
+	string *device_extensions,
+	cl_int* error)
+{
+	char buffer[1024];
+	cl_int err;
+	if((err = clGetDeviceInfo(device_id,
+		CL_DEVICE_EXTENSIONS,
+		sizeof(buffer),
+		&buffer,
+		NULL)) != CL_SUCCESS)
+	{
+		if(error != NULL) {
+			*error = err;
+		}
+		*device_extensions = "";
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	*device_extensions = buffer;
+	return true;
+}
+
+string OpenCLInfo::get_device_extensions(cl_device_id device_id)
+{
+	string device_extensions;
+	if(!get_device_extensions(device_id, &device_extensions)) {
+		return "";
+	}
+	return device_extensions;
 }
 
 bool OpenCLInfo::get_device_type(cl_device_id device_id,
