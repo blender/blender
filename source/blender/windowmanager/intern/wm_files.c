@@ -484,7 +484,13 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 
 	Main *bmain = CTX_data_main(C);
 	DEG_on_visible_update(bmain, true);
-	wm_event_do_depsgraph(C);
+
+	if (!is_startup_file) {
+		/* When starting up, the UI hasn't been fully initialised yet, and
+		 * this call can trigger icon updates, causing a segfault due to a
+		 * not-yet-initialised ghash for the icons. */
+		wm_event_do_depsgraph(C);
+	}
 
 	ED_editors_init(C);
 
