@@ -161,7 +161,7 @@ static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement
 		/* all below close/open? */
 		if (all) {
 			tselem->flag &= ~TSE_CLOSED;
-			outliner_set_flag(&te->subtree, TSE_CLOSED, !outliner_has_one_flag(&te->subtree, TSE_CLOSED, 1));
+			outliner_flag_set(&te->subtree, TSE_CLOSED, !outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1));
 		}
 		else {
 			if (tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
@@ -727,7 +727,7 @@ static int outliner_count_levels(ListBase *lb, const int curlevel)
 	return level;
 }
 
-int outliner_has_one_flag(ListBase *lb, short flag, const int curlevel)
+int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -737,13 +737,13 @@ int outliner_has_one_flag(ListBase *lb, short flag, const int curlevel)
 		tselem = TREESTORE(te);
 		if (tselem->flag & flag) return curlevel;
 
-		level = outliner_has_one_flag(&te->subtree, flag, curlevel + 1);
+		level = outliner_flag_is_any_test(&te->subtree, flag, curlevel + 1);
 		if (level) return level;
 	}
 	return 0;
 }
 
-void outliner_set_flag(ListBase *lb, short flag, short set)
+void outliner_flag_set(ListBase *lb, short flag, short set)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -752,7 +752,7 @@ void outliner_set_flag(ListBase *lb, short flag, short set)
 		tselem = TREESTORE(te);
 		if (set == 0) tselem->flag &= ~flag;
 		else tselem->flag |= flag;
-		outliner_set_flag(&te->subtree, flag, set);
+		outliner_flag_set(&te->subtree, flag, set);
 	}
 }
 
@@ -965,10 +965,10 @@ static int outliner_toggle_expanded_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	if (outliner_has_one_flag(&soops->tree, TSE_CLOSED, 1))
-		outliner_set_flag(&soops->tree, TSE_CLOSED, 0);
+	if (outliner_flag_is_any_test(&soops->tree, TSE_CLOSED, 1))
+		outliner_flag_set(&soops->tree, TSE_CLOSED, 0);
 	else
-		outliner_set_flag(&soops->tree, TSE_CLOSED, 1);
+		outliner_flag_set(&soops->tree, TSE_CLOSED, 1);
 
 	ED_region_tag_redraw(ar);
 
@@ -997,10 +997,10 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if (outliner_has_one_flag(&soops->tree, TSE_SELECTED, 1))
-		outliner_set_flag(&soops->tree, TSE_SELECTED, 0);
+	if (outliner_flag_is_any_test(&soops->tree, TSE_SELECTED, 1))
+		outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
 	else
-		outliner_set_flag(&soops->tree, TSE_SELECTED, 1);
+		outliner_flag_set(&soops->tree, TSE_SELECTED, 1);
 
 	soops->storeflag |= SO_TREESTORE_REDRAW;
 
@@ -1265,7 +1265,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 				outliner_set_coordinates(ar, soops);
 
 			/* deselect all visible, and select found element */
-			outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
+			outliner_flag_set(soops, &soops->tree, TSE_SELECTED, 0);
 			tselem->flag |= TSE_SELECTED;
 
 			/* make te->ys center of view */
@@ -1325,7 +1325,7 @@ static int outliner_one_level_exec(bContext *C, wmOperator *op)
 	const bool add = RNA_boolean_get(op->ptr, "open");
 	int level;
 
-	level = outliner_has_one_flag(&soops->tree, TSE_CLOSED, 1);
+	level = outliner_flag_is_any_test(&soops->tree, TSE_CLOSED, 1);
 	if (add == 1) {
 		if (level) outliner_openclose_level(&soops->tree, 1, level, 1);
 	}

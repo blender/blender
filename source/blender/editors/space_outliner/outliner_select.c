@@ -988,7 +988,7 @@ static bool do_outliner_item_activate_from_cursor(
 			/* all below close/open? */
 			if (extend) {
 				tselem->flag &= ~TSE_CLOSED;
-				outliner_set_flag(&te->subtree, TSE_CLOSED, !outliner_has_one_flag(&te->subtree, TSE_CLOSED, 1));
+				outliner_flag_set(&te->subtree, TSE_CLOSED, !outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1));
 			}
 			else {
 				if (tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;

@@ -1860,8 +1860,8 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 		/* select object that's clicked on and popup context menu */
 		if (!(tselem->flag & TSE_SELECTED)) {
 
-			if (outliner_has_one_flag(&soops->tree, TSE_SELECTED, 1))
-				outliner_set_flag(&soops->tree, TSE_SELECTED, 0);
+			if (outliner_flag_is_any_test(&soops->tree, TSE_SELECTED, 1))
+				outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
 
 			tselem->flag |= TSE_SELECTED;
 			/* redraw, same as outliner_select function */
