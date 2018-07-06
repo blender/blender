@@ -130,7 +130,7 @@ typedef enum eDepsgraph_Tag {
 	DEG_TAG_GEOMETRY    = (1 << 1),
 	/* Time changed and animation is to be re-evaluated, OB_RECALC_TIME. */
 	DEG_TAG_TIME        = (1 << 2),
-	/* Particle system changed. */
+	/* Particle system changed; values are aligned with PSYS_RECALC_xxx. */
 	DEG_TAG_PSYS_REDO   = (1 << 3),
 	DEG_TAG_PSYS_RESET  = (1 << 4),
 	DEG_TAG_PSYS_TYPE   = (1 << 5),
