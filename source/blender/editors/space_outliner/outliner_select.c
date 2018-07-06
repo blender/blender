@@ -1028,7 +1028,7 @@ void outliner_item_select(SpaceOops *soops, const TreeElement *te, const bool ex
 	const short new_flag = toggle ? (tselem->flag ^ TSE_SELECTED) : (tselem->flag | TSE_SELECTED);
 
 	if (extend == false) {
-		outliner_set_flag(&soops->tree, TSE_SELECTED, false);
+		outliner_flag_set(&soops->tree, TSE_SELECTED, false);
 	}
 	tselem->flag = new_flag;
 }
@@ -1039,8 +1039,8 @@ static void outliner_item_toggle_closed(TreeElement *te, const bool toggle_child
 	if (toggle_children) {
 		tselem->flag &= ~TSE_CLOSED;
 
-		const bool all_opened = !outliner_has_one_flag(&te->subtree, TSE_CLOSED, 1);
-		outliner_set_flag(&te->subtree, TSE_CLOSED, all_opened);
+		const bool all_opened = !outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1);
+		outliner_flag_set(&te->subtree, TSE_CLOSED, all_opened);
 	}
 	else {
 		tselem->flag ^= TSE_CLOSED;

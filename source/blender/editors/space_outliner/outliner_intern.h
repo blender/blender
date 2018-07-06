@@ -245,8 +245,8 @@ void outliner_do_object_operation(
 
 int common_restrict_check(struct bContext *C, struct Object *ob);
 
-int outliner_has_one_flag(ListBase *lb, short flag, const int curlevel);
-bool outliner_set_flag(ListBase *lb, short flag, short set);
+int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel);
+bool outliner_flag_set(ListBase *lb, short flag, short set);
 
 void object_toggle_visibility_cb(
         struct bContext *C, struct ReportList *reports, struct Scene *scene,

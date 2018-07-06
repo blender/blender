@@ -165,7 +165,7 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
 	bool changed = false;
 
 	if (!hovered_te || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED)) {
-		changed = outliner_set_flag(&soops->tree, TSE_HIGHLIGHTED, false);
+		changed = outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED, false);
 		if (hovered_te) {
 			hovered_te->store_elem->flag |= TSE_HIGHLIGHTED;
 			changed = true;
@@ -201,7 +201,7 @@ static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement
 		/* all below close/open? */
 		if (all) {
 			tselem->flag &= ~TSE_CLOSED;
-			outliner_set_flag(&te->subtree, TSE_CLOSED, !outliner_has_one_flag(&te->subtree, TSE_CLOSED, 1));
+			outliner_flag_set(&te->subtree, TSE_CLOSED, !outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1));
 		}
 		else {
 			if (tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
@@ -834,7 +834,7 @@ static int outliner_count_levels(ListBase *lb, const int curlevel)
 	return level;
 }
 
-int outliner_has_one_flag(ListBase *lb, short flag, const int curlevel)
+int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -844,7 +844,7 @@ int outliner_has_one_flag(ListBase *lb, short flag, const int curlevel)
 		tselem = TREESTORE(te);
 		if (tselem->flag & flag) return curlevel;
 
-		level = outliner_has_one_flag(&te->subtree, flag, curlevel + 1);
+		level = outliner_flag_is_any_test(&te->subtree, flag, curlevel + 1);
 		if (level) return level;
 	}
 	return 0;
@@ -854,7 +854,7 @@ int outliner_has_one_flag(ListBase *lb, short flag, const int curlevel)
  * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
  * \return if any flag was modified.
  */
-bool outliner_set_flag(ListBase *lb, short flag, short set)
+bool outliner_flag_set(ListBase *lb, short flag, short set)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -874,7 +874,7 @@ bool outliner_set_flag(ListBase *lb, short flag, short set)
 			tselem->flag |= flag;
 			changed = true;
 		}
-		changed |= outliner_set_flag(&te->subtree, flag, set);
+		changed |= outliner_flag_set(&te->subtree, flag, set);
 	}
 
 	return changed;
@@ -914,10 +914,10 @@ static int outliner_toggle_expanded_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	if (outliner_has_one_flag(&soops->tree, TSE_CLOSED, 1))
-		outliner_set_flag(&soops->tree, TSE_CLOSED, 0);
+	if (outliner_flag_is_any_test(&soops->tree, TSE_CLOSED, 1))
+		outliner_flag_set(&soops->tree, TSE_CLOSED, 0);
 	else
-		outliner_set_flag(&soops->tree, TSE_CLOSED, 1);
+		outliner_flag_set(&soops->tree, TSE_CLOSED, 1);
 
 	ED_region_tag_redraw(ar);
 
@@ -946,10 +946,10 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if (outliner_has_one_flag(&soops->tree, TSE_SELECTED, 1))
-		outliner_set_flag(&soops->tree, TSE_SELECTED, 0);
+	if (outliner_flag_is_any_test(&soops->tree, TSE_SELECTED, 1))
+		outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
 	else
-		outliner_set_flag(&soops->tree, TSE_SELECTED, 1);
+		outliner_flag_set(&soops->tree, TSE_SELECTED, 1);
 
 	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -1211,7 +1211,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 				outliner_set_coordinates(ar, soops);
 
 			/* deselect all visible, and select found element */
-			outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
+			outliner_flag_set(soops, &soops->tree, TSE_SELECTED, 0);
 			tselem->flag |= TSE_SELECTED;
 
 			/* make te->ys center of view */
@@ -1271,7 +1271,7 @@ static int outliner_one_level_exec(bContext *C, wmOperator *op)
 	const bool add = RNA_boolean_get(op->ptr, "open");
 	int level;
 
-	level = outliner_has_one_flag(&soops->tree, TSE_CLOSED, 1);
+	level = outliner_flag_is_any_test(&soops->tree, TSE_CLOSED, 1);
 	if (add == 1) {
 		if (level) outliner_openclose_level(&soops->tree, 1, level, 1);
 	}

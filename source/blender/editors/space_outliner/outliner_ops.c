@@ -370,7 +370,7 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmE
 	/* by default we don't change the item position */
 	te_dragged->drag_data->insert_handle = te_dragged;
 	/* unset highlighted tree element, dragged one will be highlighted instead */
-	outliner_set_flag(&soops->tree, TSE_HIGHLIGHTED, false);
+	outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED, false);
 
 	ED_region_tag_redraw_no_rebuild(ar);
 
