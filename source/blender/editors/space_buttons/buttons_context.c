@@ -204,6 +204,9 @@ static int buttons_context_path_object(ButsContextPath *path)
 	if (RNA_struct_is_a(ptr->type, &RNA_Object)) {
 		return 1;
 	}
+	if (!RNA_struct_is_a(ptr->type, &RNA_ViewLayer)) {
+		return 0;
+	}
 
 	ViewLayer *view_layer = ptr->data;
 	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
