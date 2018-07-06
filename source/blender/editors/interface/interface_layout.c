@@ -680,12 +680,15 @@ static void ui_item_enum_expand(
 	}
 
 	for (item = item_array; item->identifier; item++) {
-		if (!item->identifier[0] && (item+1)->identifier) {
-			if (radial && layout_radial) {
-				uiItemS(layout_radial);
-			}
-			else {
-				uiItemS(block->curlayout);
+		if (!item->identifier[0]) {
+			const EnumPropertyItem *next_item = item + 1;
+			if (next_item->identifier) {
+				if (radial && layout_radial) {
+					uiItemS(layout_radial);
+				}
+				else {
+					uiItemS(block->curlayout);
+				}
 			}
 			continue;
 		}
