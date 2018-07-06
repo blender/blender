@@ -1447,7 +1447,7 @@ bool ED_screen_delete_scene(bContext *C, Scene *scene)
 	Main *bmain = CTX_data_main(C);
 	Scene *newscene;
 
-	// kill running jobs
+	/* kill running jobs */
 	wmWindowManager *wm = CTX_wm_manager(C);
 	WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_ANY);
 
