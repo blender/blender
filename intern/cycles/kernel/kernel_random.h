@@ -296,4 +296,3 @@ ccl_device float lcg_step_float_addrspace(ccl_addr_space uint *rng)
 }
 
 CCL_NAMESPACE_END
-

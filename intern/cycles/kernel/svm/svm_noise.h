@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -120,7 +120,7 @@ ccl_device int imod(int a, int b)
 	return a < 0 ? a + b : a;
 }
 
-ccl_device uint phash(int kx, int ky, int kz, int3 p) 
+ccl_device uint phash(int kx, int ky, int kz, int3 p)
 {
 	return hash(imod(kx, p.x), imod(ky, p.y), imod(kz, p.z));
 }
@@ -334,4 +334,3 @@ ccl_device ssef cellnoise_color(const ssef& p)
 #endif
 
 CCL_NAMESPACE_END
-

@@ -323,7 +323,7 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
 			color.y = -color.y;
 			color.z = -color.z;
 		}
-	
+
 		/* object, world space */
 		N = color;
 
@@ -392,4 +392,3 @@ ccl_device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack
 }
 
 CCL_NAMESPACE_END
-

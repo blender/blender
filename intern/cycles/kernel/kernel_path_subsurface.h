@@ -152,4 +152,3 @@ ccl_device void kernel_path_subsurface_setup_indirect(
 #endif  /* __SUBSURFACE__ */
 
 CCL_NAMESPACE_END
-

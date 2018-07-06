@@ -73,4 +73,3 @@ string string_human_readable_number(size_t num);
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_STRING_H__ */
-

@@ -154,7 +154,7 @@ static SocketType::Type convert_socket_type(BL::NodeSocket& b_socket)
 			return SocketType::STRING;
 		case BL::NodeSocket::type_SHADER:
 			return SocketType::CLOSURE;
-		
+
 		default:
 			return SocketType::UNDEFINED;
 	}
@@ -436,7 +436,7 @@ static ShaderNode *add_node(Scene *scene,
 	else if(b_node.is_a(&RNA_ShaderNodeBsdfGlossy)) {
 		BL::ShaderNodeBsdfGlossy b_glossy_node(b_node);
 		GlossyBsdfNode *glossy = new GlossyBsdfNode();
-		
+
 		switch(b_glossy_node.distribution()) {
 			case BL::ShaderNodeBsdfGlossy::distribution_SHARP:
 				glossy->distribution = CLOSURE_BSDF_REFLECTION_ID;
@@ -940,7 +940,7 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node,
                                             BL::NodeSocket& b_socket)
 {
 	string name = b_socket.name();
-	
+
 	if(node_use_modified_socket_name(node)) {
 		BL::Node::inputs_iterator b_input;
 		bool found = false;
@@ -1043,7 +1043,7 @@ static void add_nodes(Scene *scene,
 			}
 		}
 		else if(b_node->is_a(&RNA_ShaderNodeGroup) || b_node->is_a(&RNA_NodeCustomGroup)) {
-			
+
 			BL::ShaderNodeTree b_group_ntree(PointerRNA_NULL);
 			if(b_node->is_a(&RNA_ShaderNodeGroup))
 				b_group_ntree = BL::ShaderNodeTree(((BL::NodeGroup)(*b_node)).node_tree());
@@ -1085,7 +1085,7 @@ static void add_nodes(Scene *scene,
 
 				output_map[b_output->ptr.data] = proxy->outputs[0];
 			}
-			
+
 			if(b_group_ntree) {
 				add_nodes(scene,
 				          b_engine,
@@ -1467,4 +1467,3 @@ void BlenderSync::sync_shaders(BL::Depsgraph& b_depsgraph)
 }
 
 CCL_NAMESPACE_END
-

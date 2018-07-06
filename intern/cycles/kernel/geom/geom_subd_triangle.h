@@ -352,4 +352,3 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals *kg, con
 }
 
 CCL_NAMESPACE_END
-

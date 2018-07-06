@@ -50,7 +50,7 @@ ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
 
 	for(int i = 0; i < sd->num_closure; i++) {
 		sc = &sd->closure[i];
-		
+
 		if(CLOSURE_IS_DISK_BSSRDF(sc->type)) {
 			/* in case of branched path integrate we sample all bssrdf's once,
 			 * for path trace we pick one, so adjust pdf for that */
@@ -533,4 +533,3 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 }
 
 CCL_NAMESPACE_END
-

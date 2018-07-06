@@ -20,11 +20,11 @@ ccl_device void svm_node_combine_hsv(KernelGlobals *kg, ShaderData *sd, float *s
 {
 	uint4 node1 = read_node(kg, offset);
 	uint color_out = node1.y;
-	
+
 	float hue = stack_load_float(stack, hue_in);
 	float saturation = stack_load_float(stack, saturation_in);
 	float value = stack_load_float(stack, value_in);
-	
+
 	/* Combine, and convert back to RGB */
 	float3 color = hsv_to_rgb(make_float3(hue, saturation, value));
 
@@ -36,9 +36,9 @@ ccl_device void svm_node_separate_hsv(KernelGlobals *kg, ShaderData *sd, float *
 {
 	uint4 node1 = read_node(kg, offset);
 	uint value_out = node1.y;
-	
+
 	float3 color = stack_load_float3(stack, color_in);
-	
+
 	/* Convert to HSV */
 	color = rgb_to_hsv(color);
 
@@ -51,4 +51,3 @@ ccl_device void svm_node_separate_hsv(KernelGlobals *kg, ShaderData *sd, float *
 }
 
 CCL_NAMESPACE_END
-

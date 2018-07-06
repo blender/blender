@@ -38,7 +38,7 @@ struct ssei
 	////////////////////////////////////////////////////////////////////////////////
 	/// Constructors, Assignment & Cast Operators
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	__forceinline ssei           ( ) {}
 	__forceinline ssei           ( const ssei& a ) { m128 = a.m128; }
 	__forceinline ssei& operator=( const ssei& a ) { m128 = a.m128; return *this; }
@@ -173,15 +173,15 @@ __forceinline const sseb operator <=( const ssei& a, const ssei& b ) { return !(
 __forceinline const sseb operator <=( const ssei& a, const int32_t& b ) { return a <= ssei(b); }
 __forceinline const sseb operator <=( const int32_t& a, const ssei& b ) { return ssei(a) <= b; }
 
-__forceinline const ssei select( const sseb& m, const ssei& t, const ssei& f ) { 
+__forceinline const ssei select( const sseb& m, const ssei& t, const ssei& f ) {
 #ifdef __KERNEL_SSE41__
-	return _mm_castps_si128(_mm_blendv_ps(_mm_castsi128_ps(f), _mm_castsi128_ps(t), m)); 
+	return _mm_castps_si128(_mm_blendv_ps(_mm_castsi128_ps(f), _mm_castsi128_ps(t), m));
 #else
-	return _mm_or_si128(_mm_and_si128(m, t), _mm_andnot_si128(m, f)); 
+	return _mm_or_si128(_mm_and_si128(m, t), _mm_andnot_si128(m, f));
 #endif
 }
 
-__forceinline const ssei select( const int mask, const ssei& t, const ssei& f ) { 
+__forceinline const ssei select( const int mask, const ssei& t, const ssei& f ) {
 #if defined(__KERNEL_SSE41__) && ((!defined(__clang__) && !defined(_MSC_VER)) || defined(__INTEL_COMPILER))
 	return _mm_castps_si128(_mm_blend_ps(_mm_castsi128_ps(f), _mm_castsi128_ps(t), mask));
 #else
@@ -249,8 +249,8 @@ __forceinline int reduce_add(const ssei& v) { return v[0]+v[1]+v[2]+v[3]; }
 /// Memory load and store operations
 ////////////////////////////////////////////////////////////////////////////////
 
-__forceinline ssei load4i( const void* const a ) { 
-	return _mm_load_si128((__m128i*)a); 
+__forceinline ssei load4i( const void* const a ) {
+	return _mm_load_si128((__m128i*)a);
 }
 
 __forceinline void store4i(void* ptr, const ssei& v) {
@@ -261,7 +261,7 @@ __forceinline void storeu4i(void* ptr, const ssei& v) {
 	_mm_storeu_si128((__m128i*)ptr,v);
 }
 
-__forceinline void store4i( const sseb& mask, void* ptr, const ssei& i ) { 
+__forceinline void store4i( const sseb& mask, void* ptr, const ssei& i ) {
 #if defined (__KERNEL_AVX__)
 	_mm_maskstore_ps((float*)ptr,(__m128i)mask,_mm_castsi128_ps(i));
 #else
@@ -269,17 +269,17 @@ __forceinline void store4i( const sseb& mask, void* ptr, const ssei& i ) {
 #endif
 }
 
-__forceinline ssei load4i_nt (void* ptr) { 
+__forceinline ssei load4i_nt (void* ptr) {
 #if defined(__KERNEL_SSE41__)
-	return _mm_stream_load_si128((__m128i*)ptr); 
+	return _mm_stream_load_si128((__m128i*)ptr);
 #else
-	return _mm_load_si128((__m128i*)ptr); 
+	return _mm_load_si128((__m128i*)ptr);
 #endif
 }
 
-__forceinline void store4i_nt(void* ptr, const ssei& v) { 
+__forceinline void store4i_nt(void* ptr, const ssei& v) {
 #if defined(__KERNEL_SSE41__)
-	_mm_stream_ps((float*)ptr,_mm_castsi128_ps(v)); 
+	_mm_stream_ps((float*)ptr,_mm_castsi128_ps(v));
 #else
 	_mm_store_si128((__m128i*)ptr,v);
 #endif
@@ -300,4 +300,3 @@ ccl_device_inline void print_ssei(const char *label, const ssei &a)
 CCL_NAMESPACE_END
 
 #endif
-

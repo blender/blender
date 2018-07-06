@@ -563,4 +563,3 @@ ccl_device void kernel_background_evaluate(KernelGlobals *kg,
 }
 
 CCL_NAMESPACE_END
-

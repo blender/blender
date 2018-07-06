@@ -452,4 +452,3 @@ bool DisplayBuffer::draw_ready()
 }
 
 CCL_NAMESPACE_END
-

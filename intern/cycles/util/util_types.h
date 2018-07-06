@@ -152,4 +152,3 @@ CCL_NAMESPACE_END
 #endif
 
 #endif /* __UTIL_TYPES_H__ */
-

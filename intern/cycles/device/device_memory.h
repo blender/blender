@@ -51,7 +51,7 @@ enum DataType {
 	TYPE_UINT64,
 };
 
-static inline size_t datatype_size(DataType datatype) 
+static inline size_t datatype_size(DataType datatype)
 {
 	switch(datatype) {
 		case TYPE_UNKNOWN: return 1;
@@ -497,4 +497,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __DEVICE_MEMORY_H__ */
-

@@ -123,5 +123,3 @@ ccl_device int bsdf_principled_diffuse_sample(const ShaderClosure *sc,
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_PRINCIPLED_DIFFUSE_H__ */
-
-

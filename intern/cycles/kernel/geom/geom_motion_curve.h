@@ -214,4 +214,3 @@ ccl_device_inline void motion_cardinal_curve_keys_avx(KernelGlobals *kg,
 #endif
 
 CCL_NAMESPACE_END
-

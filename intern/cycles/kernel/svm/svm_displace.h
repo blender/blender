@@ -160,4 +160,3 @@ ccl_device void svm_node_vector_displacement(KernelGlobals *kg, ShaderData *sd, 
 }
 
 CCL_NAMESPACE_END
-

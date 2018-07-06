@@ -66,7 +66,7 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals *kg, const Sh
 	uint attr_offset = object_attribute_map_offset(kg, sd->object);
 	attr_offset += attribute_primitive_type(kg, sd);
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-	
+
 	while(attr_map.x != id) {
 		if(UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
 			return attribute_not_found();
@@ -77,7 +77,7 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals *kg, const Sh
 
 	AttributeDescriptor desc;
 	desc.element = (AttributeElement)attr_map.y;
-	
+
 	if(sd->prim == PRIM_NONE &&
 	   desc.element != ATTR_ELEMENT_MESH &&
 	   desc.element != ATTR_ELEMENT_VOXEL &&
@@ -108,4 +108,3 @@ ccl_device Transform primitive_attribute_matrix(KernelGlobals *kg, const ShaderD
 }
 
 CCL_NAMESPACE_END
-

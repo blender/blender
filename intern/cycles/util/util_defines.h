@@ -133,4 +133,3 @@ template<typename T> static inline T decltype_helper(T x) { return x; }
 #endif
 
 #endif /* __UTIL_DEFINES_H__ */
-

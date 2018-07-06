@@ -201,4 +201,3 @@ void bvh_reference_sort(int start,
 }
 
 CCL_NAMESPACE_END
-

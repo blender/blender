@@ -294,4 +294,3 @@ void PackedPatchTable::copy_adjusting_offsets(uint* dest, int doffset)
 }
 
 CCL_NAMESPACE_END
-

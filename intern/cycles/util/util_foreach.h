@@ -27,4 +27,3 @@
 #endif
 
 #endif /* __UTIL_FOREACH_H__ */
-

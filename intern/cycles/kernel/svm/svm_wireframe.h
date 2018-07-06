@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2013, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -134,4 +134,3 @@ ccl_device void svm_node_wireframe(KernelGlobals *kg,
 }
 
 CCL_NAMESPACE_END
-

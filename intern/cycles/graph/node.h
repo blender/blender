@@ -97,4 +97,3 @@ struct Node
 };
 
 CCL_NAMESPACE_END
-

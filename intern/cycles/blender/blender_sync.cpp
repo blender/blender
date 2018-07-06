@@ -292,7 +292,7 @@ void BlenderSync::sync_integrator()
 		integrator->mesh_light_samples = mesh_light_samples * mesh_light_samples;
 		integrator->subsurface_samples = subsurface_samples * subsurface_samples;
 		integrator->volume_samples = volume_samples * volume_samples;
-	} 
+	}
 	else {
 		integrator->diffuse_samples = diffuse_samples;
 		integrator->glossy_samples = glossy_samples;
@@ -327,7 +327,7 @@ void BlenderSync::sync_film()
 
 	Film *film = scene->film;
 	Film prevfilm = *film;
-	
+
 	film->exposure = get_float(cscene, "film_exposure");
 	film->filter_type = (FilterType)get_enum(cscene,
 	                                         "pixel_filter_type",
@@ -580,7 +580,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 		params.shadingsystem = SHADINGSYSTEM_SVM;
 	else if(shadingsystem == 1)
 		params.shadingsystem = SHADINGSYSTEM_OSL;
-	
+
 	if(background || DebugFlags().viewport_static_bvh)
 		params.bvh_type = SceneParams::BVH_STATIC;
 	else
@@ -645,7 +645,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 
 	/* device type */
 	vector<DeviceInfo>& devices = Device::available_devices();
-	
+
 	/* device default CPU */
 	foreach(DeviceInfo& device, devices) {
 		if(device.type == DEVICE_CPU) {
@@ -720,7 +720,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	int aa_samples = get_int(cscene, "aa_samples");
 	int preview_samples = get_int(cscene, "preview_samples");
 	int preview_aa_samples = get_int(cscene, "preview_aa_samples");
-	
+
 	if(get_boolean(cscene, "use_square_samples")) {
 		aa_samples = aa_samples * aa_samples;
 		preview_aa_samples = preview_aa_samples * preview_aa_samples;
@@ -817,7 +817,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		params.shadingsystem = SHADINGSYSTEM_SVM;
 	else if(shadingsystem == 1)
 		params.shadingsystem = SHADINGSYSTEM_OSL;
-	
+
 	/* color managagement */
 	params.display_buffer_linear = GLEW_ARB_half_float_pixel &&
 	                               b_engine.support_display_space_shader(b_scene);
@@ -833,4 +833,3 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 }
 
 CCL_NAMESPACE_END
-

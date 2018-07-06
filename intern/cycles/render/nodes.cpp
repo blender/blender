@@ -82,7 +82,7 @@ Transform TextureMapping::compute_transform()
 		mmat[1][y_mapping-1] = 1.0f;
 	if(z_mapping != NONE)
 		mmat[2][z_mapping-1] = 1.0f;
-	
+
 	float3 scale_clamped = scale;
 
 	if(type == TEXTURE || type == NORMAL) {
@@ -94,7 +94,7 @@ Transform TextureMapping::compute_transform()
 		if(fabsf(scale.z) < 1e-5f)
 			scale_clamped.z = signf(scale.z)*1e-5f;
 	}
-	
+
 	Transform smat = transform_scale(scale_clamped);
 	Transform rmat = transform_euler(rotation);
 	Transform tmat = transform_translate(translation);
@@ -137,12 +137,12 @@ bool TextureMapping::skip()
 		return false;
 	if(scale != make_float3(1.0f, 1.0f, 1.0f))
 		return false;
-	
+
 	if(x_mapping != X || y_mapping != Y || z_mapping != Z)
 		return false;
 	if(use_minmax)
 		return false;
-	
+
 	return true;
 }
 
@@ -520,7 +520,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 				compiler.stack_assign_if_linked(alpha_out),
 				srgb),
 			projection);
-	
+
 		tex_mapping.compile_end(compiler, vector_in, vector_offset);
 	}
 	else {
@@ -612,7 +612,7 @@ static void sky_texture_precompute_old(SunSky *sunsky, float3 dir, float turbidi
 	 * zenith_Y/x/y is now radiance_x/y/z
 	 * perez_Y/x/y is now config_x/y/z
 	 */
-	
+
 	float2 spherical = sky_spherical_coordinates(dir);
 	float theta = spherical.x;
 	float phi = spherical.y;
@@ -676,12 +676,12 @@ static void sky_texture_precompute_new(SunSky *sunsky, float3 dir, float turbidi
 	float2 spherical = sky_spherical_coordinates(dir);
 	float theta = spherical.x;
 	float phi = spherical.y;
-	
+
 	/* Clamp Turbidity */
-	turbidity = clamp(turbidity, 0.0f, 10.0f); 
-	
+	turbidity = clamp(turbidity, 0.0f, 10.0f);
+
 	/* Clamp to Horizon */
-	theta = clamp(theta, 0.0f, M_PI_2_F); 
+	theta = clamp(theta, 0.0f, M_PI_2_F);
 
 	sunsky->theta = theta;
 	sunsky->phi = phi;
@@ -773,7 +773,7 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 		sky_texture_precompute_new(&sunsky, sun_direction, turbidity, ground_albedo);
 	else
 		assert(false);
-		
+
 	compiler.parameter(this, "type");
 	compiler.parameter("theta", sunsky.theta);
 	compiler.parameter("phi", sunsky.phi);
@@ -1296,7 +1296,7 @@ void CheckerTextureNode::compile(SVMCompiler& compiler)
 	ShaderInput *color1_in = input("Color1");
 	ShaderInput *color2_in = input("Color2");
 	ShaderInput *scale_in = input("Scale");
-	
+
 	ShaderOutput *color_out = output("Color");
 	ShaderOutput *fac_out = output("Fac");
 
@@ -1371,7 +1371,7 @@ void BrickTextureNode::compile(SVMCompiler& compiler)
 	ShaderInput *bias_in = input("Bias");
 	ShaderInput *brick_width_in = input("Brick Width");
 	ShaderInput *row_height_in = input("Row Height");
-	
+
 	ShaderOutput *color_out = output("Color");
 	ShaderOutput *fac_out = output("Fac");
 
@@ -1393,7 +1393,7 @@ void BrickTextureNode::compile(SVMCompiler& compiler)
 			compiler.stack_assign_if_linked(color_out),
 			compiler.stack_assign_if_linked(fac_out),
 			compiler.stack_assign_if_linked(mortar_smooth_in)));
-			
+
 	compiler.add_node(compiler.encode_uchar4(offset_frequency, squash_frequency),
 		__float_as_int(scale),
 		__float_as_int(mortar_size),
@@ -2307,7 +2307,7 @@ ToonBsdfNode::ToonBsdfNode()
 void ToonBsdfNode::compile(SVMCompiler& compiler)
 {
 	closure = component;
-	
+
 	BsdfNode::compile(compiler, input("Size"), input("Smooth"));
 }
 
@@ -2861,7 +2861,7 @@ void VolumeNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput
 		compiler.add_node(NODE_CLOSURE_WEIGHT, compiler.stack_assign(color_in));
 	else
 		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color);
-	
+
 	compiler.add_node(NODE_CLOSURE_VOLUME,
 		compiler.encode_uchar4(closure,
 			(param1)? compiler.stack_assign(param1): SVM_STACK_INVALID,
@@ -3155,7 +3155,7 @@ void GeometryNode::compile(SVMCompiler& compiler)
 		geom_node = NODE_GEOMETRY_BUMP_DY;
 		attr_node = NODE_ATTR_BUMP_DY;
 	}
-	
+
 	out = output("Position");
 	if(!out->links.empty()) {
 		compiler.add_node(geom_node, NODE_GEOM_P, compiler.stack_assign(out));
@@ -3284,7 +3284,7 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 		attr_node = NODE_ATTR_BUMP_DY;
 		geom_node = NODE_GEOMETRY_BUMP_DY;
 	}
-	
+
 	out = output("Generated");
 	if(!out->links.empty()) {
 		if(compiler.background) {
@@ -3360,7 +3360,7 @@ void TextureCoordinateNode::compile(OSLCompiler& compiler)
 		compiler.parameter("bump_offset", "dy");
 	else
 		compiler.parameter("bump_offset", "center");
-	
+
 	if(compiler.background)
 		compiler.parameter("is_background", true);
 	if(compiler.output_type() == SHADER_TYPE_VOLUME)
@@ -3522,7 +3522,7 @@ void LightPathNode::compile(SVMCompiler& compiler)
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_transmission, compiler.stack_assign(out));
 	}
-	
+
 	out = output("Is Volume Scatter Ray");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_volume_scatter, compiler.stack_assign(out));
@@ -3532,7 +3532,7 @@ void LightPathNode::compile(SVMCompiler& compiler)
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_length, compiler.stack_assign(out));
 	}
-	
+
 	out = output("Ray Depth");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_depth, compiler.stack_assign(out));
@@ -3725,7 +3725,7 @@ void ParticleInfoNode::attributes(Shader *shader, AttributeRequestSet *attribute
 void ParticleInfoNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *out;
-	
+
 	out = output("Index");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_INDEX, compiler.stack_assign(out));
@@ -3735,22 +3735,22 @@ void ParticleInfoNode::compile(SVMCompiler& compiler)
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_RANDOM, compiler.stack_assign(out));
 	}
-	
+
 	out = output("Age");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_AGE, compiler.stack_assign(out));
 	}
-	
+
 	out = output("Lifetime");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LIFETIME, compiler.stack_assign(out));
 	}
-	
+
 	out = output("Location");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LOCATION, compiler.stack_assign(out));
 	}
-	
+
 	/* quaternion data is not yet supported by Cycles */
 #if 0
 	out = output("Rotation");
@@ -3758,17 +3758,17 @@ void ParticleInfoNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ROTATION, compiler.stack_assign(out));
 	}
 #endif
-	
+
 	out = output("Size");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_SIZE, compiler.stack_assign(out));
 	}
-	
+
 	out = output("Velocity");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_VELOCITY, compiler.stack_assign(out));
 	}
-	
+
 	out = output("Angular Velocity");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ANGULAR_VELOCITY, compiler.stack_assign(out));
@@ -3821,7 +3821,7 @@ void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 void HairInfoNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *out;
-	
+
 	out = output("Is Strand");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_IS_STRAND, compiler.stack_assign(out));
@@ -4744,7 +4744,7 @@ void AttributeNode::compile(OSLCompiler& compiler)
 		compiler.parameter("bump_offset", "dy");
 	else
 		compiler.parameter("bump_offset", "center");
-	
+
 	if(Attribute::name_standard(attribute.c_str()) != ATTR_STD_NONE)
 		compiler.parameter("name", (string("geom:") + attribute.c_str()).c_str());
 	else
@@ -5550,7 +5550,7 @@ void RGBRampNode::compile(OSLCompiler& compiler)
 	compiler.parameter_color_array("ramp_color", ramp);
 	compiler.parameter_array("ramp_alpha", ramp_alpha.data(), ramp_alpha.size());
 	compiler.parameter(this, "interpolate");
-	
+
 	compiler.add(this, "node_rgb_ramp");
 }
 
@@ -5583,7 +5583,7 @@ void SetNormalNode::compile(SVMCompiler& compiler)
 
 void SetNormalNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_set_normal"); 
+	compiler.add(this, "node_set_normal");
 }
 
 /* OSLNode */
@@ -5704,7 +5704,7 @@ void NormalMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 
 		attributes->add(ATTR_STD_VERTEX_NORMAL);
 	}
-	
+
 	ShaderNode::attributes(shader, attributes);
 }
 
@@ -5749,7 +5749,7 @@ void NormalMapNode::compile(OSLCompiler& compiler)
 	}
 
 	compiler.parameter(this, "space");
-	compiler.add(this, "node_normal_map"); 
+	compiler.add(this, "node_normal_map");
 }
 
 /* Tangent */
@@ -5794,7 +5794,7 @@ void TangentNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 		else
 			attributes->add(ATTR_STD_GENERATED);
 	}
-	
+
 	ShaderNode::attributes(shader, attributes);
 }
 
@@ -5830,7 +5830,7 @@ void TangentNode::compile(OSLCompiler& compiler)
 
 	compiler.parameter(this, "direction_type");
 	compiler.parameter(this, "axis");
-	compiler.add(this, "node_tangent"); 
+	compiler.add(this, "node_tangent");
 }
 
 /* Bevel */

@@ -218,4 +218,3 @@ private:
 CCL_NAMESPACE_END
 
 #endif /* __BLENDER_SYNC_H__ */
-

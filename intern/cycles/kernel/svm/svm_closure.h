@@ -130,7 +130,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			// calculate weights of the diffuse and specular part
 			float diffuse_weight = (1.0f - saturate(metallic)) * (1.0f - saturate(transmission));
-			
+
 			float final_transmission = saturate(transmission) * (1.0f - saturate(metallic));
 			float specular_weight = (1.0f - final_transmission);
 
@@ -713,7 +713,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				bsdf->N = N;
 				bsdf->size = param1;
 				bsdf->smooth = param2;
-				
+
 				if(type == CLOSURE_BSDF_DIFFUSE_TOON_ID)
 					sd->flag |= bsdf_diffuse_toon_setup(bsdf);
 				else
@@ -725,7 +725,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID: {
 			float3 weight = sd->svm_closure_weight * mix_weight;
-			
+
 			if(sd->flag & SD_BACKFACING && sd->type & PRIMITIVE_ALL_CURVE) {
 				/* todo: giving a fixed weight here will cause issues when
 				 * mixing multiple BSDFS. energy will not be conserved and
@@ -1055,4 +1055,3 @@ ccl_device void svm_node_set_normal(KernelGlobals *kg, ShaderData *sd, float *st
 }
 
 CCL_NAMESPACE_END
-

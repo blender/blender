@@ -29,4 +29,3 @@ void sobol_generate_direction_vectors(uint vectors[][SOBOL_BITS], int dimensions
 CCL_NAMESPACE_END
 
 #endif /* __SOBOL_H__ */
-

@@ -138,4 +138,3 @@ device_sub_ptr::~device_sub_ptr()
 }
 
 CCL_NAMESPACE_END
-

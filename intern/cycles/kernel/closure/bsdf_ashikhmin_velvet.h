@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -46,7 +46,7 @@ ccl_device int bsdf_ashikhmin_velvet_setup(VelvetBsdf *bsdf)
 {
 	float sigma = fmaxf(bsdf->sigma, 0.01f);
 	bsdf->invsigma2 = 1.0f/(sigma * sigma);
-	
+
 	bsdf->type = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
@@ -159,4 +159,3 @@ ccl_device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc, float3 Ng, 
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_ASHIKHMIN_VELVET_H__ */
-

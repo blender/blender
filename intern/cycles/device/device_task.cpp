@@ -126,4 +126,3 @@ void DeviceTask::update_progress(RenderTile *rtile, int pixel_samples)
 }
 
 CCL_NAMESPACE_END
-

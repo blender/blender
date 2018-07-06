@@ -36,7 +36,7 @@ ccl_device_noinline float2 svm_brick(float3 p, float mortar_size, float mortar_s
 	float x, y;
 
 	rownum = floor_to_int(p.y / row_height);
-	
+
 	if(offset_frequency && squash_frequency) {
 		brick_width *= (rownum % squash_frequency) ? 1.0f : squash_amount; /* squash */
 		offset = (rownum % offset_frequency) ? 0.0f : (brick_width*offset_amount); /* offset */
@@ -66,31 +66,31 @@ ccl_device_noinline float2 svm_brick(float3 p, float mortar_size, float mortar_s
 }
 
 ccl_device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
-{	
+{
 	uint4 node2 = read_node(kg, offset);
 	uint4 node3 = read_node(kg, offset);
 	uint4 node4 = read_node(kg, offset);
-	
+
 	/* Input and Output Sockets */
 	uint co_offset, color1_offset, color2_offset, mortar_offset, scale_offset;
 	uint mortar_size_offset, bias_offset, brick_width_offset, row_height_offset;
 	uint color_offset, fac_offset, mortar_smooth_offset;
-	
+
 	/* RNA properties */
 	uint offset_frequency, squash_frequency;
-	
+
 	decode_node_uchar4(node.y, &co_offset, &color1_offset, &color2_offset, &mortar_offset);
 	decode_node_uchar4(node.z, &scale_offset, &mortar_size_offset, &bias_offset, &brick_width_offset);
 	decode_node_uchar4(node.w, &row_height_offset, &color_offset, &fac_offset, &mortar_smooth_offset);
-	
+
 	decode_node_uchar4(node2.x, &offset_frequency, &squash_frequency, NULL, NULL);
 
 	float3 co = stack_load_float3(stack, co_offset);
-	
+
 	float3 color1 = stack_load_float3(stack, color1_offset);
 	float3 color2 = stack_load_float3(stack, color2_offset);
 	float3 mortar = stack_load_float3(stack, mortar_offset);
-	
+
 	float scale = stack_load_float_default(stack, scale_offset, node2.y);
 	float mortar_size = stack_load_float_default(stack, mortar_size_offset, node2.z);
 	float mortar_smooth = stack_load_float_default(stack, mortar_smooth_offset, node4.x);
@@ -99,13 +99,13 @@ ccl_device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *sta
 	float row_height = stack_load_float_default(stack, row_height_offset, node3.y);
 	float offset_amount = __int_as_float(node3.z);
 	float squash_amount = __int_as_float(node3.w);
-	
+
 	float2 f2 = svm_brick(co*scale, mortar_size, mortar_smooth, bias, brick_width, row_height,
 		offset_amount, offset_frequency, squash_amount, squash_frequency);
 
 	float tint = f2.x;
 	float f = f2.y;
-	
+
 	if(f != 1.0f) {
 		float facm = 1.0f - tint;
 		color1 = facm * color1 + tint * color2;
@@ -118,4 +118,3 @@ ccl_device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *sta
 }
 
 CCL_NAMESPACE_END
-

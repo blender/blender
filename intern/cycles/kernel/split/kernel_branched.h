@@ -231,4 +231,3 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 #endif  /* __BRANCHED_PATH__ */
 
 CCL_NAMESPACE_END
-

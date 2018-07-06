@@ -71,4 +71,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __CONSTANT_FOLD_H__ */
-

@@ -47,7 +47,7 @@ typedef ccl_addr_space struct PhongRampBsdf {
 ccl_device float3 bsdf_phong_ramp_get_color(const float3 colors[8], float pos)
 {
 	int MAXCOLORS = 8;
-	
+
 	float npos = pos * (float)(MAXCOLORS - 1);
 	int ipos = float_to_int(npos);
 	if(ipos < 0)
@@ -71,7 +71,7 @@ ccl_device float3 bsdf_phong_ramp_eval_reflect(const ShaderClosure *sc, const fl
 	float m_exponent = bsdf->exponent;
 	float cosNI = dot(bsdf->N, omega_in);
 	float cosNO = dot(bsdf->N, I);
-	
+
 	if(cosNI > 0 && cosNO > 0) {
 		// reflect the view vector
 		float3 R = (2 * cosNO) * bsdf->N - I;
@@ -84,7 +84,7 @@ ccl_device float3 bsdf_phong_ramp_eval_reflect(const ShaderClosure *sc, const fl
 			return bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out;
 		}
 	}
-	
+
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -98,7 +98,7 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, float3 Ng, float3
 	const PhongRampBsdf *bsdf = (const PhongRampBsdf*)sc;
 	float cosNO = dot(bsdf->N, I);
 	float m_exponent = bsdf->exponent;
-	
+
 	if(cosNO > 0) {
 		// reflect the view vector
 		float3 R = (2 * cosNO) * bsdf->N - I;
@@ -107,7 +107,7 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, float3 Ng, float3
 		*domega_in_dx = (2 * dot(bsdf->N, dIdx)) * bsdf->N - dIdx;
 		*domega_in_dy = (2 * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
 #endif
-		
+
 		float3 T, B;
 		make_orthonormals (R, &T, &B);
 		float phi = M_2PI_F * randu;

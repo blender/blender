@@ -47,4 +47,3 @@ using boost::function;
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_FUNCTION_H__ */
-

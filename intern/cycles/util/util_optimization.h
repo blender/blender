@@ -69,4 +69,3 @@
 #endif
 
 #endif /* __UTIL_OPTIMIZATION_H__ */
-

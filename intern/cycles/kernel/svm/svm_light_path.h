@@ -74,4 +74,3 @@ ccl_device void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
 }
 
 CCL_NAMESPACE_END
-

@@ -68,7 +68,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object& b_ob,
 	/* add particle */
 	BL::Particle b_pa = b_psys.particles[persistent_id[0]];
 	Particle pa;
-	
+
 	pa.index = persistent_id[0];
 	pa.age = b_scene.frame_current() - b_pa.birth_time();
 	pa.lifetime = b_pa.lifetime();

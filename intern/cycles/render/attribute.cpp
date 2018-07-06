@@ -202,7 +202,7 @@ bool Attribute::same_storage(TypeDesc a, TypeDesc b)
 {
 	if(a == b)
 		return true;
-	
+
 	if(a == TypeDesc::TypeColor || a == TypeDesc::TypePoint ||
 	   a == TypeDesc::TypeVector || a == TypeDesc::TypeNormal)
 	{
@@ -292,7 +292,7 @@ const char *Attribute::standard_name(AttributeStandard std)
 		case ATTR_STD_NUM:
 			return "";
 	}
-	
+
 	return "";
 }
 
@@ -476,7 +476,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 	}
 
 	attr->std = std;
-	
+
 	return attr;
 }
 
@@ -682,7 +682,7 @@ bool AttributeRequestSet::find(ustring name)
 	foreach(AttributeRequest& req, requests)
 		if(req.name == name)
 			return true;
-	
+
 	return false;
 }
 
@@ -706,4 +706,3 @@ void AttributeRequestSet::clear()
 }
 
 CCL_NAMESPACE_END
-

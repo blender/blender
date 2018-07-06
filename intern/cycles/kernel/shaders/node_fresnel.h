@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 float fresnel_dielectric_cos(float cosi, float eta)
 {
 	/* compute fresnel reflectance without explicitly computing
@@ -46,4 +46,3 @@ color fresnel_conductor(float cosi, color eta, color k)
 	               (tmp_f + (2.0 * eta * cosi) + cosi2);
 	return (Rparl2 + Rperp2) * 0.5;
 }
-

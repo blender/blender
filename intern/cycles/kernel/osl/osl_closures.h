@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -146,4 +146,3 @@ CCLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
 CCL_NAMESPACE_END
 
 #endif /* __OSL_CLOSURES_H__ */
-

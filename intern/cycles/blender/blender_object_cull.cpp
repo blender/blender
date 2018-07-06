@@ -146,4 +146,3 @@ bool BlenderObjectCulling::test_distance(Scene *scene, float3 bb[8])
 }
 
 CCL_NAMESPACE_END
-

@@ -61,12 +61,12 @@ void ParticleSystemManager::device_update_particles(Device *, DeviceScene *dscen
 	int num_particles = 1;
 	for(size_t j = 0; j < scene->particle_systems.size(); j++)
 		num_particles += scene->particle_systems[j]->particles.size();
-	
+
 	KernelParticle *kparticles = dscene->particles.alloc(num_particles);
-	
+
 	/* dummy particle */
 	memset(kparticles, 0, sizeof(KernelParticle));
-	
+
 	int i = 1;
 	for(size_t j = 0; j < scene->particle_systems.size(); j++) {
 		ParticleSystem *psys = scene->particle_systems[j];
@@ -74,7 +74,7 @@ void ParticleSystemManager::device_update_particles(Device *, DeviceScene *dscen
 		for(size_t k = 0; k < psys->particles.size(); k++) {
 			/* pack in texture */
 			Particle& pa = psys->particles[k];
-			
+
 			kparticles[i].index = pa.index;
 			kparticles[i].age = pa.age;
 			kparticles[i].lifetime = pa.lifetime;
@@ -83,13 +83,13 @@ void ParticleSystemManager::device_update_particles(Device *, DeviceScene *dscen
 			kparticles[i].location = float3_to_float4(pa.location);
 			kparticles[i].velocity = float3_to_float4(pa.velocity);
 			kparticles[i].angular_velocity = float3_to_float4(pa.angular_velocity);
-			
+
 			i++;
-			
+
 			if(progress.get_cancel()) return;
 		}
 	}
-	
+
 	dscene->particles.copy_to_device();
 }
 
@@ -105,9 +105,9 @@ void ParticleSystemManager::device_update(Device *device, DeviceScene *dscene, S
 
 	progress.set_status("Updating Particle Systems", "Copying Particles to device");
 	device_update_particles(device, dscene, scene, progress);
-	
+
 	if(progress.get_cancel()) return;
-	
+
 	need_update = false;
 }
 
@@ -122,4 +122,3 @@ void ParticleSystemManager::tag_update(Scene * /*scene*/)
 }
 
 CCL_NAMESPACE_END
-

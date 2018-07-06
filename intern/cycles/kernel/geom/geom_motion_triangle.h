@@ -34,14 +34,14 @@ ccl_device_inline int find_attribute_motion(KernelGlobals *kg, int object, uint 
 	/* todo: find a better (faster) solution for this, maybe store offset per object */
 	uint attr_offset = object_attribute_map_offset(kg, object);
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-	
+
 	while(attr_map.x != id) {
 		attr_offset += ATTR_PRIM_TYPES;
 		attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	}
 
 	*elem = (AttributeElement)attr_map.y;
-	
+
 	/* return result */
 	return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
 }

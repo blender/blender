@@ -213,7 +213,7 @@ void fresnel (vector I, normal N, float eta,
         F *= sqr (beta / (g+c));
         Kr = F;
         Kt = (1.0 - Kr) * eta*eta;
-        // OPT: the following recomputes some of the above values, but it 
+        // OPT: the following recomputes some of the above values, but it
         // gives us the same result as if the shader-writer called refract()
         T = refract(I, N, eta);
     } else {
@@ -415,7 +415,7 @@ color transformc (string from, string to, color x)
     return transformc (to, r);
 }
 
- 
+
 
 // Matrix functions
 

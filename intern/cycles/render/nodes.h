@@ -1123,4 +1123,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __NODES_H__ */
-

@@ -184,7 +184,7 @@ static bool xml_equal_string(xml_node node, const char *name, const char *value)
 
 	if(attr)
 		return string_iequals(attr.value(), value);
-	
+
 	return false;
 }
 
@@ -697,4 +697,3 @@ void xml_read_file(Scene *scene, const char *filepath)
 }
 
 CCL_NAMESPACE_END
-

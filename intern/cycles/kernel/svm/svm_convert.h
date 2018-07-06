@@ -69,4 +69,3 @@ ccl_device void svm_node_convert(KernelGlobals *kg, ShaderData *sd, float *stack
 }
 
 CCL_NAMESPACE_END
-

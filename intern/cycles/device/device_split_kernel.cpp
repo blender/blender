@@ -261,7 +261,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 				ENQUEUE_SPLIT_KERNEL(buffer_update, global_size, local_size);
 
 				if(task->get_cancel() && cancel_time == DBL_MAX) {
-					/* Wait up to twice as many seconds for current samples to finish 
+					/* Wait up to twice as many seconds for current samples to finish
 					 * to avoid artifacts in render result from ending too soon.
 					 */
 					cancel_time = time_dt() + 2.0 * time_multiplier;
@@ -322,5 +322,3 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 }
 
 CCL_NAMESPACE_END
-
-

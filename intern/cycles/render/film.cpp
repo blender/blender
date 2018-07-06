@@ -175,11 +175,11 @@ bool Pass::equals(const array<Pass>& A, const array<Pass>& B)
 {
 	if(A.size() != B.size())
 		return false;
-	
+
 	for(int i = 0; i < A.size(); i++)
 		if(A[i].type != B[i].type)
 			return false;
-	
+
 	return true;
 }
 
@@ -188,7 +188,7 @@ bool Pass::contains(const array<Pass>& passes, PassType type)
 	for(size_t i = 0; i < passes.size(); i++)
 		if(passes[i].type == type)
 			return true;
-	
+
 	return false;
 }
 
@@ -302,7 +302,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
 	if(!need_update)
 		return;
-	
+
 	device_free(device, dscene, scene);
 
 	KernelFilm *kfilm = &dscene->data.film;
@@ -510,4 +510,3 @@ void Film::tag_update(Scene * /*scene*/)
 }
 
 CCL_NAMESPACE_END
-

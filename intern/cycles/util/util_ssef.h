@@ -31,14 +31,14 @@ struct ssef
 	typedef sseb Mask;                    // mask type
 	typedef ssei Int;                     // int type
 	typedef ssef Float;                   // float type
-	
+
 	enum   { size = 4 };  // number of SIMD elements
 	union { __m128 m128; float f[4]; int i[4]; }; // data
 
 	////////////////////////////////////////////////////////////////////////////////
 	/// Constructors, Assignment & Cast Operators
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	__forceinline ssef          () {}
 	__forceinline ssef          (const ssef& other) { m128 = other.m128; }
 	__forceinline ssef& operator=(const ssef& other) { m128 = other.m128; return *this; }
@@ -143,7 +143,7 @@ __forceinline ssef mini(const ssef& a, const ssef& b) {
 	return _mm_castsi128_ps(ci);
 }
 #endif
-	
+
 #if defined(__KERNEL_SSE41__)
 __forceinline ssef maxi(const ssef& a, const ssef& b) {
 	const ssei ai = _mm_castps_si128(a);
@@ -229,7 +229,7 @@ __forceinline const ssef select(const ssef& m, const ssef& t, const ssef& f) {
 #endif
 }
 
-__forceinline const ssef select(const int mask, const ssef& t, const ssef& f) { 
+__forceinline const ssef select(const int mask, const ssef& t, const ssef& f) {
 #if defined(__KERNEL_SSE41__) && ((!defined(__clang__) && !defined(_MSC_VER)) || defined(__INTEL_COMPILER))
 	return _mm_blend_ps(f, t, mask);
 #else
@@ -298,8 +298,8 @@ template<> __forceinline const ssef shuffle<2, 3, 2, 3>(const ssef& a, const sse
 }
 
 #if defined(__KERNEL_SSSE3__)
-__forceinline const ssef shuffle8(const ssef& a, const ssei& shuf) { 
-	return _mm_castsi128_ps(_mm_shuffle_epi8(_mm_castps_si128(a), shuf)); 
+__forceinline const ssef shuffle8(const ssef& a, const ssei& shuf) {
+	return _mm_castsi128_ps(_mm_shuffle_epi8(_mm_castps_si128(a), shuf));
 }
 #endif
 
@@ -333,7 +333,7 @@ template<size_t dst>             __forceinline const ssef insert(const ssef& a, 
 /// Transpose
 ////////////////////////////////////////////////////////////////////////////////
 
-__forceinline void transpose(const ssef& r0, const ssef& r1, const ssef& r2, const ssef& r3, ssef& c0, ssef& c1, ssef& c2, ssef& c3) 
+__forceinline void transpose(const ssef& r0, const ssef& r1, const ssef& r2, const ssef& r3, ssef& c0, ssef& c1, ssef& c2, ssef& c3)
 {
 	ssef l02 = unpacklo(r0,r2);
 	ssef h02 = unpackhi(r0,r2);
@@ -345,7 +345,7 @@ __forceinline void transpose(const ssef& r0, const ssef& r1, const ssef& r2, con
 	c3 = unpackhi(h02,h13);
 }
 
-__forceinline void transpose(const ssef& r0, const ssef& r1, const ssef& r2, const ssef& r3, ssef& c0, ssef& c1, ssef& c2) 
+__forceinline void transpose(const ssef& r0, const ssef& r1, const ssef& r2, const ssef& r3, ssef& c0, ssef& c1, ssef& c2)
 {
 	ssef l02 = unpacklo(r0,r2);
 	ssef h02 = unpackhi(r0,r2);
@@ -382,22 +382,22 @@ __forceinline size_t movemask( const ssef& a ) { return _mm_movemask_ps(a); }
 
 __forceinline ssef load4f(const float4& a) {
 #ifdef __KERNEL_WITH_SSE_ALIGN__
-	return _mm_load_ps(&a.x); 
+	return _mm_load_ps(&a.x);
 #else
-	return _mm_loadu_ps(&a.x); 
+	return _mm_loadu_ps(&a.x);
 #endif
 }
 
 __forceinline ssef load4f(const float3& a) {
 #ifdef __KERNEL_WITH_SSE_ALIGN__
-	return _mm_load_ps(&a.x); 
+	return _mm_load_ps(&a.x);
 #else
-	return _mm_loadu_ps(&a.x); 
+	return _mm_loadu_ps(&a.x);
 #endif
 }
 
 __forceinline ssef load4f(const void* const a) {
-	return _mm_load_ps((float*)a); 
+	return _mm_load_ps((float*)a);
 }
 
 __forceinline ssef load1f_first(const float a) {
@@ -409,14 +409,14 @@ __forceinline void store4f(void* ptr, const ssef& v) {
 }
 
 __forceinline ssef loadu4f(const void* const a) {
-	return _mm_loadu_ps((float*)a); 
+	return _mm_loadu_ps((float*)a);
 }
 
 __forceinline void storeu4f(void* ptr, const ssef& v) {
 	_mm_storeu_ps((float*)ptr,v);
 }
 
-__forceinline void store4f(const sseb& mask, void* ptr, const ssef& f) { 
+__forceinline void store4f(const sseb& mask, void* ptr, const ssef& f) {
 #if defined(__KERNEL_AVX__)
 	_mm_maskstore_ps((float*)ptr,(__m128i)mask,f);
 #else
@@ -428,7 +428,7 @@ __forceinline ssef load4f_nt(void* ptr) {
 #if defined(__KERNEL_SSE41__)
 	return _mm_castsi128_ps(_mm_stream_load_si128((__m128i*)ptr));
 #else
-	return _mm_load_ps((float*)ptr); 
+	return _mm_load_ps((float*)ptr);
 #endif
 }
 
@@ -449,7 +449,7 @@ __forceinline float dot(const ssef& a, const ssef& b) {
 }
 
 /* calculate shuffled cross product, useful when order of components does not matter */
-__forceinline ssef cross_zxy(const ssef& a, const ssef& b) 
+__forceinline ssef cross_zxy(const ssef& a, const ssef& b)
 {
 	const ssef a0 = a;
 	const ssef b0 = shuffle<1,2,0,3>(b);
@@ -458,7 +458,7 @@ __forceinline ssef cross_zxy(const ssef& a, const ssef& b)
 	return msub(a0,b0,a1*b1);
 }
 
-__forceinline ssef cross(const ssef& a, const ssef& b) 
+__forceinline ssef cross(const ssef& a, const ssef& b)
 {
 	return shuffle<1,2,0,3>(cross_zxy(a, b));
 }
@@ -628,4 +628,3 @@ ccl_device_inline void print_ssef(const char *label, const ssef &a)
 CCL_NAMESPACE_END
 
 #endif
-

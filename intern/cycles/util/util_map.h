@@ -54,4 +54,3 @@ using std::unordered_map;
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MAP_H__ */
-

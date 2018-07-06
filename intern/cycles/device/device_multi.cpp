@@ -379,4 +379,3 @@ Device *device_multi_create(DeviceInfo& info, Stats &stats, bool background)
 }
 
 CCL_NAMESPACE_END
-

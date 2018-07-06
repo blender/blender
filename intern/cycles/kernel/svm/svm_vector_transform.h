@@ -22,20 +22,20 @@ ccl_device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, flo
 {
 	uint itype, ifrom, ito;
 	uint vector_in, vector_out;
-	
+
 	decode_node_uchar4(node.y, &itype, &ifrom, &ito, NULL);
 	decode_node_uchar4(node.z, &vector_in, &vector_out, NULL, NULL);
-	
+
 	float3 in = stack_load_float3(stack, vector_in);
-	
+
 	NodeVectorTransformType type = (NodeVectorTransformType)itype;
 	NodeVectorTransformConvertSpace from = (NodeVectorTransformConvertSpace)ifrom;
 	NodeVectorTransformConvertSpace to = (NodeVectorTransformConvertSpace)ito;
-	
+
 	Transform tfm;
 	bool is_object = (sd->object != OBJECT_NONE);
 	bool is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR || type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
-	
+
 	/* From world */
 	if(from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD) {
 		if(to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
@@ -52,7 +52,7 @@ ccl_device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, flo
 				object_inverse_position_transform(kg, sd, &in);
 		}
 	}
-	
+
 	/* From camera */
 	else if(from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
 		if(to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT) {
@@ -69,7 +69,7 @@ ccl_device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, flo
 				object_inverse_position_transform(kg, sd, &in);
 		}
 	}
-	
+
 	/* From object */
 	else if(from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT) {
 		if((to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) && is_object) {
@@ -86,11 +86,11 @@ ccl_device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, flo
 				in = transform_point(&tfm, in);
 		}
 	}
-	
+
 	/* Normalize Normal */
 	if(type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL)
 		in = normalize(in);
-	
+
 	/* Output */
 	if(stack_valid(vector_out)) {
 		stack_store_float3(stack, vector_out, in);
@@ -98,4 +98,3 @@ ccl_device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, flo
 }
 
 CCL_NAMESPACE_END
-

@@ -496,4 +496,3 @@ void Node::hash(MD5Hash& md5)
 }
 
 CCL_NAMESPACE_END
-

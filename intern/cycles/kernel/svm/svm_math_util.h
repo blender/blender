@@ -98,7 +98,7 @@ ccl_device float svm_math(NodeMath type, float Fac1, float Fac2)
 		Fac = saturate(Fac1);
 	else
 		Fac = 0.0f;
-	
+
 	return Fac;
 }
 
@@ -180,4 +180,3 @@ ccl_device_inline float3 svm_math_gamma_color(float3 color, float gamma)
 }
 
 CCL_NAMESPACE_END
-

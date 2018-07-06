@@ -1067,4 +1067,3 @@ void ImageManager::device_free(Device *device)
 }
 
 CCL_NAMESPACE_END
-

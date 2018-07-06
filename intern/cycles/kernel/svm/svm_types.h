@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 /* SVM stack has a fixed size */
 #define SVM_STACK_SIZE 255
 /* SVM stack offsets with this value indicate that it's not on the stack */
-#define SVM_STACK_INVALID 255 
+#define SVM_STACK_INVALID 255
 
 #define SVM_BUMP_EVAL_STATE_SIZE 9
 
@@ -505,4 +505,3 @@ typedef enum ClosureType {
 CCL_NAMESPACE_END
 
 #endif /*  __SVM_TYPES_H__ */
-

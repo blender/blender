@@ -70,4 +70,3 @@ ccl_device_inline int rect_size(int4 rect)
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_RECT_H__ */
-

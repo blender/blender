@@ -104,4 +104,3 @@ public:
 };
 
 CCL_NAMESPACE_END
-

@@ -613,4 +613,3 @@ void Mesh::tessellate(DiagSplit *split)
 }
 
 CCL_NAMESPACE_END
-

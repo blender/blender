@@ -153,4 +153,3 @@ ccl_device_inline void print_sse3i(const char *label, sse3i& a)
 CCL_NAMESPACE_END
 
 #endif /* __KERNEL_COMPAT_CPU_H__ */
-

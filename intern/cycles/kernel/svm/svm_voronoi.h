@@ -137,4 +137,3 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg, ShaderData *sd, float *s
 }
 
 CCL_NAMESPACE_END
-

@@ -183,7 +183,7 @@ void Object::apply_transform(bool apply_to_motion)
 {
 	if(!mesh || tfm == transform_identity())
 		return;
-	
+
 	/* triangles */
 	if(mesh->verts.size()) {
 		/* store matrix to transform later. when accessing these as attributes we
@@ -194,7 +194,7 @@ void Object::apply_transform(bool apply_to_motion)
 		/* apply to mesh vertices */
 		for(size_t i = 0; i < mesh->verts.size(); i++)
 			mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
-		
+
 		if(apply_to_motion) {
 			Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
@@ -840,4 +840,3 @@ void ObjectManager::tag_update(Scene *scene)
 }
 
 CCL_NAMESPACE_END
-

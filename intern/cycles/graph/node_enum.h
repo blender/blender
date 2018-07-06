@@ -45,4 +45,3 @@ private:
 };
 
 CCL_NAMESPACE_END
-

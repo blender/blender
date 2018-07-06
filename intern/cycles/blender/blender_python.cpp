@@ -326,7 +326,7 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
 
 	if(!PyArg_ParseTuple(args, "OOOO", &pysession, &pygraph, &pyv3d, &pyrv3d))
 		return NULL;
-	
+
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 
 	if(PyLong_AsVoidPtr(pyrv3d)) {
@@ -594,7 +594,7 @@ static PyObject *osl_compile_func(PyObject * /*self*/, PyObject *args)
 
 	if(!PyArg_ParseTuple(args, "ss", &inputfile, &outputfile))
 		return NULL;
-	
+
 	/* return */
 	if(!OSLShaderManager::osl_compile(inputfile, outputfile))
 		Py_RETURN_FALSE;

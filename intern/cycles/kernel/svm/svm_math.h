@@ -47,4 +47,3 @@ ccl_device void svm_node_vector_math(KernelGlobals *kg, ShaderData *sd, float *s
 }
 
 CCL_NAMESPACE_END
-

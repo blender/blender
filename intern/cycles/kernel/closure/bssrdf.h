@@ -500,4 +500,3 @@ ccl_device_forceinline float bssrdf_pdf(const ShaderClosure *sc, float r)
 CCL_NAMESPACE_END
 
 #endif /* __KERNEL_BSSRDF_H__ */
-

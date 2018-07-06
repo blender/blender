@@ -111,7 +111,7 @@ __forceinline size_t __popcnt(size_t in) {
 #endif
 
 __forceinline int __bsf(int v) {
-#if defined(__KERNEL_AVX2__) 
+#if defined(__KERNEL_AVX2__)
   return _tzcnt_u32(v);
 #else
   unsigned long r = 0; _BitScanForward(&r,v); return r;
@@ -119,7 +119,7 @@ __forceinline int __bsf(int v) {
 }
 
 __forceinline unsigned int __bsf(unsigned int v) {
-#if defined(__KERNEL_AVX2__) 
+#if defined(__KERNEL_AVX2__)
   return _tzcnt_u32(v);
 #else
   unsigned long r = 0; _BitScanForward(&r,v); return r;
@@ -143,7 +143,7 @@ __forceinline int __btr(int v, int i) {
 }
 
 __forceinline int bitscan(int v) {
-#if defined(__KERNEL_AVX2__) 
+#if defined(__KERNEL_AVX2__)
   return _tzcnt_u32(v);
 #else
   return __bsf(v);
@@ -156,18 +156,18 @@ __forceinline int clz(const int x)
   return _lzcnt_u32(x);
 #else
   if(UNLIKELY(x == 0)) return 32;
-  return 31 - __bsr(x);    
+  return 31 - __bsr(x);
 #endif
 }
 
-__forceinline int __bscf(int& v) 
+__forceinline int __bscf(int& v)
 {
   int i = __bsf(v);
   v &= v-1;
   return i;
 }
 
-__forceinline unsigned int __bscf(unsigned int& v) 
+__forceinline unsigned int __bscf(unsigned int& v)
 {
   unsigned int i = __bsf(v);
   v &= v-1;
@@ -177,7 +177,7 @@ __forceinline unsigned int __bscf(unsigned int& v)
 #if defined(__KERNEL_64_BIT__)
 
 __forceinline size_t __bsf(size_t v) {
-#if defined(__KERNEL_AVX2__) 
+#if defined(__KERNEL_AVX2__)
   return _tzcnt_u64(v);
 #else
   unsigned long r = 0; _BitScanForward64(&r,v); return r;
@@ -212,7 +212,7 @@ __forceinline size_t bitscan(size_t v) {
 #endif
 }
 
-__forceinline size_t __bscf(size_t& v) 
+__forceinline size_t __bscf(size_t& v)
 {
   size_t i = __bsf(v);
   v &= v-1;
@@ -274,7 +274,7 @@ __forceinline size_t __btr(size_t v, size_t i) {
 }
 
 __forceinline int bitscan(int v) {
-#if defined(__KERNEL_AVX2__) 
+#if defined(__KERNEL_AVX2__)
   return _tzcnt_u32(v);
 #else
   return __bsf(v);
@@ -282,7 +282,7 @@ __forceinline int bitscan(int v) {
 }
 
 __forceinline unsigned int bitscan(unsigned int v) {
-#if defined(__KERNEL_AVX2__) 
+#if defined(__KERNEL_AVX2__)
   return _tzcnt_u32(v);
 #else
   return __bsf(v);
@@ -309,11 +309,11 @@ __forceinline int clz(const int x)
   return _lzcnt_u32(x);
 #else
   if(UNLIKELY(x == 0)) return 32;
-  return 31 - __bsr(x);    
+  return 31 - __bsr(x);
 #endif
 }
 
-__forceinline int __bscf(int& v) 
+__forceinline int __bscf(int& v)
 {
   int i = bitscan(v);
 #if defined(__KERNEL_AVX2__)
@@ -324,7 +324,7 @@ __forceinline int __bscf(int& v)
   return i;
 }
 
-__forceinline unsigned int __bscf(unsigned int& v) 
+__forceinline unsigned int __bscf(unsigned int& v)
 {
   unsigned int i = bitscan(v);
   v &= v-1;
@@ -332,7 +332,7 @@ __forceinline unsigned int __bscf(unsigned int& v)
 }
 
 #if (defined(__KERNEL_64_BIT__) || defined(__APPLE__)) && !(defined(__ILP32__) && defined(__x86_64__))
-__forceinline size_t __bscf(size_t& v) 
+__forceinline size_t __bscf(size_t& v)
 {
   size_t i = bitscan(v);
 #if defined(__KERNEL_AVX2__)
@@ -375,28 +375,28 @@ __forceinline __m128 _mm_blendv_ps_emu( __m128 value, __m128 input, __m128 mask)
 #define _mm_blend_ps _mm_blend_ps_emu
 __forceinline __m128 _mm_blend_ps_emu( __m128 value, __m128 input, const int mask)
 {
-    assert(mask < 0x10); return _mm_blendv_ps(value, input, _mm_lookupmask_ps[mask]); 
+    assert(mask < 0x10); return _mm_blendv_ps(value, input, _mm_lookupmask_ps[mask]);
 }
 
 #undef _mm_blendv_epi8
 #define _mm_blendv_epi8 _mm_blendv_epi8_emu
 __forceinline __m128i _mm_blendv_epi8_emu( __m128i value, __m128i input, __m128i mask)
 {
-    return _mm_or_si128(_mm_and_si128(mask, input), _mm_andnot_si128(mask, value)); 
+    return _mm_or_si128(_mm_and_si128(mask, input), _mm_andnot_si128(mask, value));
 }
 
 #undef _mm_min_epi32
 #define _mm_min_epi32 _mm_min_epi32_emu
 __forceinline __m128i _mm_min_epi32_emu( __m128i value, __m128i input)
 {
-    return _mm_blendv_epi8(input, value, _mm_cmplt_epi32(value, input)); 
+    return _mm_blendv_epi8(input, value, _mm_cmplt_epi32(value, input));
 }
 
 #undef _mm_max_epi32
 #define _mm_max_epi32 _mm_max_epi32_emu
 __forceinline __m128i _mm_max_epi32_emu( __m128i value, __m128i input)
 {
-    return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input)); 
+    return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input));
 }
 
 #undef _mm_extract_epi32
@@ -416,7 +416,7 @@ __forceinline int _mm_extract_epi32_emu( __m128i input, const int index)
 #define _mm_insert_epi32 _mm_insert_epi32_emu
 __forceinline __m128i _mm_insert_epi32_emu( __m128i value, int input, const int index)
 {
-    assert(index >= 0 && index < 4); ((int*)&value)[index] = input; return value; 
+    assert(index >= 0 && index < 4); ((int*)&value)[index] = input; return value;
 }
 
 #undef _mm_insert_ps
@@ -487,4 +487,3 @@ CCL_NAMESPACE_END
 #endif /* __KERNEL_GPU__ */
 
 #endif /* __UTIL_SIMD_TYPES_H__ */
-

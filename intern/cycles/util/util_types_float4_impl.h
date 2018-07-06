@@ -102,7 +102,7 @@ ccl_device_inline float4 make_float4(const int4& i)
 ccl_device_inline void print_float4(const char *label, const float4& a)
 {
 	printf("%s: %.8f %.8f %.8f %.8f\n",
-	       label, 
+	       label,
 	       (double)a.x, (double)a.y, (double)a.z, (double)a.w);
 }
 #endif  /* __KERNEL_GPU__ */
