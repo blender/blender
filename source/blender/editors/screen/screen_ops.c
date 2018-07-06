@@ -3659,27 +3659,38 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 /** \name Header Tools Operator
  * \{ */
 
+static bool header_context_menu_poll(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	return (sa && sa->spacetype != SPACE_STATUSBAR);
+}
+
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") : IFACE_("Flip to Top");
 
-	uiItemO(layout, IFACE_("Toggle Header"), ICON_NONE, "SCREEN_OT_header");
+	if (!ELEM(sa->spacetype, SPACE_TOPBAR)) {
+		uiItemO(layout, IFACE_("Toggle Header"), ICON_NONE, "SCREEN_OT_header");
+	}
 
 	/* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
-	uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
+	if (!ELEM(sa->spacetype, SPACE_TOPBAR)) {
+		uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
+	}
+
 	uiItemO(layout, IFACE_("Collapse Menus"),
 	        (sa->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
 	        "SCREEN_OT_header_toggle_menus");
 
-	uiItemS(layout);
-
 	/* file browser should be fullscreen all the time, topbar should
 	 * never be. But other regions can be maximized/restored... */
 	if (!ELEM(sa->spacetype, SPACE_FILE, SPACE_TOPBAR)) {
+		uiItemS(layout);
+
 		const char *but_str = sa->full ? IFACE_("Tile Area") : IFACE_("Maximize Area");
 		uiItemO(layout, but_str, ICON_NONE, "SCREEN_OT_screen_full_area");
 	}
@@ -3708,6 +3719,7 @@ static void SCREEN_OT_header_context_menu(wmOperatorType *ot)
 	ot->idname = "SCREEN_OT_header_context_menu";
 
 	/* api callbacks */
+	ot->poll = header_context_menu_poll;
 	ot->invoke = header_context_menu_invoke;
 }
 

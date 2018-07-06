@@ -557,6 +557,7 @@ class TOPBAR_MT_window_specials(Menu):
         layout.operator_context = 'EXEC_AREA'
 
         layout.operator("wm.window_new")
+        layout.operator("wm.window_new_main")
 
         layout.operator_context = 'INVOKE_AREA'
 

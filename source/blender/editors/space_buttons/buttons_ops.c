@@ -64,17 +64,9 @@
 
 static int context_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-	bScreen *sc = CTX_wm_screen(C);
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
-	PointerRNA ptr;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	RNA_pointer_create(&sc->id, &RNA_SpaceProperties, sbuts, &ptr);
-
-	pup = UI_popup_menu_begin(C, IFACE_("Align"), ICON_NONE);
-	layout = UI_popup_menu_layout(pup);
-	uiItemsEnumR(layout, &ptr, "align");
+	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Context Menu"), ICON_NONE);
+	uiLayout *layout = UI_popup_menu_layout(pup);
+	uiItemM(layout, "INFO_MT_area", NULL, ICON_NONE);
 	UI_popup_menu_end(C, pup);
 
 	return OPERATOR_INTERFACE;
@@ -84,7 +76,7 @@ void BUTTONS_OT_context_menu(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Context Menu";
-	ot->description = "Display button panel context_menu";
+	ot->description = "Display properties editor context_menu";
 	ot->idname = "BUTTONS_OT_context_menu";
 
 	/* api callbacks */
