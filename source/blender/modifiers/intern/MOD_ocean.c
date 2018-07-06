@@ -435,9 +435,6 @@ static DerivedMesh *doOcean(
 	}
 
 	/* update modifier */
-	if (omd->refresh & MOD_OCEAN_REFRESH_ADD) {
-		omd->ocean = BKE_ocean_add();
-	}
 	if (omd->refresh & MOD_OCEAN_REFRESH_RESET) {
 		init_ocean_modifier(omd);
 	}
