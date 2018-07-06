@@ -145,6 +145,7 @@
 #include "BKE_multires.h"
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
+#include "BKE_ocean.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -5224,8 +5225,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type == eModifierType_Ocean) {
 			OceanModifierData *omd = (OceanModifierData *)md;
 			omd->oceancache = NULL;
-			omd->ocean = NULL;
-			omd->refresh = (MOD_OCEAN_REFRESH_ADD|MOD_OCEAN_REFRESH_RESET|MOD_OCEAN_REFRESH_SIM);
+			omd->ocean = BKE_ocean_add();
+			omd->refresh = MOD_OCEAN_REFRESH_RESET;
 		}
 		else if (md->type == eModifierType_Warp) {
 			WarpModifierData *tmd = (WarpModifierData *)md;
