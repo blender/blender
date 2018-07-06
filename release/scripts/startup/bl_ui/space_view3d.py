@@ -3755,14 +3755,18 @@ class VIEW3D_PT_shading_lighting(Panel):
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
         elif shading.type == 'MATERIAL':
-            row = layout.row()
-            row.template_icon_view(shading, "studio_light", show_labels=True)
-            sub = row.column()
-            sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
-            if shading.selected_studio_light.orientation == 'WORLD':
-                layout.row().prop(shading, "studiolight_rotate_z")
-                layout.row().prop(shading, "studiolight_background_alpha")
-            layout.prop(shading, "use_scene_light")
+            col = layout.column(align=True)
+            col.prop(shading, "use_scene_lights")
+            col.prop(shading, "use_scene_world")
+
+            if not shading.use_scene_world:
+                row = layout.row()
+                row.template_icon_view(shading, "studio_light", show_labels=True)
+                sub = row.column()
+                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                if shading.selected_studio_light.orientation == 'WORLD':
+                    layout.row().prop(shading, "studiolight_rotate_z")
+                    layout.row().prop(shading, "studiolight_background_alpha")
 
 
 class VIEW3D_PT_shading_color(Panel):

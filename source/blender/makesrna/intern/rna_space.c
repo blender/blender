@@ -800,8 +800,13 @@ static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 		flag = STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE;
 	}
 	StudioLight *sl = BKE_studiolight_find(dna_storage, flag);
-	BLI_strncpy(dna_storage, sl->name, FILE_MAXFILE);
-	return sl->index;
+	if (sl) {
+		BLI_strncpy(dna_storage, sl->name, FILE_MAXFILE);
+		return sl->index;
+	}
+	else {
+		return 0;
+	}
 }
 
 static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
@@ -818,7 +823,9 @@ static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 		flag = STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE;
 	}
 	StudioLight *sl = BKE_studiolight_findindex(value, flag);
-	BLI_strncpy(dna_storage, sl->name, FILE_MAXFILE);
+	if (sl) {
+		BLI_strncpy(dna_storage, sl->name, FILE_MAXFILE);
+	}
 }
 
 static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
@@ -846,8 +853,10 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 			bool show_studiolight = false;
 
 			if (sl->flag & STUDIOLIGHT_INTERNAL) {
-				/* always show internal lights */
-				show_studiolight = true;
+				/* always show internal lights for solid */
+				if (v3d->drawtype == OB_SOLID) {
+					show_studiolight = true;
+				}
 			}
 			else {
 				switch (v3d->drawtype) {
@@ -2479,10 +2488,16 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "use_scene_light", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_SCENE_LIGHT);
+	prop = RNA_def_property(srna, "use_scene_lights", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_SCENE_LIGHTS);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Scene Light", "Render lights and light probes of the scene");
+	RNA_def_property_ui_text(prop, "Scene Lights", "Render lights and light probes of the scene");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "use_scene_world", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shading.flag", V3D_SHADING_SCENE_WORLD);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Scene World", "Use scene world for lighting");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_specular_highlight", PROP_BOOLEAN, PROP_NONE);

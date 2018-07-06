@@ -361,10 +361,11 @@ enum {
 	V3D_SHADING_OBJECT_OUTLINE      = (1 << 0),
 	V3D_SHADING_XRAY                = (1 << 1),
 	V3D_SHADING_SHADOW              = (1 << 2),
-	V3D_SHADING_SCENE_LIGHT         = (1 << 3),
+	V3D_SHADING_SCENE_LIGHTS        = (1 << 3),
 	V3D_SHADING_SPECULAR_HIGHLIGHT  = (1 << 4),
 	V3D_SHADING_CAVITY              = (1 << 5),
 	V3D_SHADING_MATCAP_FLIP_X       = (1 << 6),
+	V3D_SHADING_SCENE_WORLD         = (1 << 7),
 };
 
 /* View3DShading->color_type */
