@@ -148,20 +148,26 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 /* helper func - set color to draw F-Curve data with */
 static void set_fcurve_vertex_color(FCurve *fcu, bool sel)
 {
-	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
-	int alphaOffset = (int)((fcurve_display_alpha(fcu) - 1.0f) * 255);
-
 	float color[4];
+	float diff;
 
 	/* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
 	if ((fcu->flag & FCURVE_PROTECTED) == 0) {
 		/* Curve's points ARE BEING edited */
-		UI_GetThemeColorShadeAlpha4fv(sel ? TH_VERTEX_SELECT : TH_VERTEX, 0, alphaOffset, color);
+		UI_GetThemeColor3fv(sel ? TH_VERTEX_SELECT : TH_VERTEX, color);
 	}
 	else {
 		/* Curve's points CANNOT BE edited */
-		UI_GetThemeColorShadeAlpha4fv(sel ? TH_TEXT_HI : TH_TEXT, 0, alphaOffset, color);
+		UI_GetThemeColor3fv(sel ? TH_TEXT_HI : TH_TEXT, color);
 	}
+
+	/* Fade the 'intensity' of the vertices based on the selection of the curves too
+	 * - Only fade by 50% the amount the curves were faded by, so that the points
+	 *   still stand out for easier selection
+	 */
+	diff = 1.0f - fcurve_display_alpha(fcu);
+	color[3] = 1.0f - (diff * 0.5f);
+	CLAMP(color[3], 0.2f, 1.0f);
 
 	immUniformColor4fv(color);
 }
