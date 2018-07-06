@@ -737,25 +737,7 @@ static void rna_OceanModifier_init_update(Main *bmain, Scene *scene, PointerRNA 
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
 
-	omd->refresh |= (MOD_OCEAN_REFRESH_RESET | MOD_OCEAN_REFRESH_SIM | MOD_OCEAN_REFRESH_CLEAR_CACHE);
-
-	rna_Modifier_update(bmain, scene, ptr);
-}
-
-static void rna_OceanModifier_sim_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	OceanModifierData *omd = (OceanModifierData *)ptr->data;
-
-	omd->refresh |= MOD_OCEAN_REFRESH_SIM;
-
-	rna_Modifier_update(bmain, scene, ptr);
-}
-
-static void rna_OceanModifier_topology_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	OceanModifierData *omd = (OceanModifierData *)ptr->data;
-
-	omd->refresh |= MOD_OCEAN_REFRESH_TOPOLOGY;
+	omd->refresh |= MOD_OCEAN_REFRESH_RESET | MOD_OCEAN_REFRESH_CLEAR_CACHE;
 
 	rna_Modifier_update(bmain, scene, ptr);
 }
@@ -4070,7 +4052,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Size", "Surface scale factor (does not affect the height of the waves)");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, -1);
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "repeat_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "repeat_x");
@@ -4078,7 +4060,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Repeat X", "Repetitions of the generated surface in X");
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "repeat_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "repeat_y");
@@ -4086,7 +4068,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Repeat Y", "Repetitions of the generated surface in Y");
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_GENERATE_NORMALS);
@@ -4150,7 +4132,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "wave_scale", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "wave_scale");
 	RNA_def_property_ui_text(prop, "Wave Scale", "Scale of the displacement effect");
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "depth", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "depth");
@@ -4182,13 +4164,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	                         "Choppiness of the wave's crest (adds some horizontal component to the displacement)");
 	RNA_def_property_ui_range(prop, 0.0, 4.0, 3, -1);
 	RNA_def_property_float_funcs(prop, NULL, "rna_OceanModifier_ocean_chop_set", NULL);
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 	RNA_def_property_ui_text(prop, "Time", "Current time of the simulation");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, -1);
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "random_seed", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "seed");
