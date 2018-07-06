@@ -424,6 +424,7 @@ const bTheme U_theme_default = {
 		.grid = RGBA(0x1a1a1aff),
 		.group = RGBA(0x44992eff),
 		.group_active = RGBA(0x5ccd3eff),
+		.vertex = RGBA(0x000000ff),
 		.vertex_select = RGBA(0xff8500ff),
 		.cframe = RGBA(0x308837ff),
 		.lastsel_point = RGBA(0xffffffff),
