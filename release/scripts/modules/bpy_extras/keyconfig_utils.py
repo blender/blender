@@ -239,9 +239,9 @@ def _export_properties(prefix, properties, kmi_id, lines=None):
         lines = []
 
     def string_value(value):
-        if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
+        if isinstance(value, (str, bool, float, int)):
             return repr(value)
-        elif getattr(value, '__len__', False):
+        elif hasattr(value, "__len__"):
             return repr(list(value))
 
         print("Export key configuration: can't write ", value)
