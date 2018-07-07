@@ -1203,7 +1203,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             col.prop(tex, "invert", text="Negative")
             col.prop(tex, "use_stencil")
 
-        if isinstance(idblock, Material) or isinstance(idblock, World):
+        if isinstance(idblock, (Material, World)):
             col.prop(tex, "default_value", text="DVar", slider=True)
 
         if isinstance(idblock, Material):
