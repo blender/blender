@@ -825,6 +825,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Mode:")
         col.prop(md, "wrap_method", text="")
 
+        if md.wrap_method in {'PROJECT', 'NEAREST_SURFACEPOINT'}:
+            col.prop(md, "wrap_mode", text="")
+
         if md.wrap_method == 'PROJECT':
             split = layout.split()
             col = split.column()
@@ -850,9 +853,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.prop(md, "cull_face", expand=True)
 
             layout.prop(md, "auxiliary_target")
-
-        elif md.wrap_method == 'NEAREST_SURFACEPOINT':
-            layout.prop(md, "use_keep_above_surface")
 
     def SIMPLE_DEFORM(self, layout, ob, md):
 

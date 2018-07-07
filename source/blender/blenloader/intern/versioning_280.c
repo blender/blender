@@ -2074,4 +2074,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "ShrinkwrapModifierData", "char", "shrinkMode")) {
+			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Shrinkwrap) {
+						ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*)md;
+						if (smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE) {
+							smd->shrinkMode = MOD_SHRINKWRAP_ABOVE_SURFACE;
+							smd->shrinkOpts &= ~MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE;
+						}
+					}
+				}
+			}
+		}
+	}
 }

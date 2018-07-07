@@ -94,6 +94,11 @@ bool BKE_shrinkwrap_project_normal(
         const struct SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit,
         BVHTree_RayCastCallback callback, void *userdata);
 
+/* Apply the shrink to surface modes to the given original coordinates and nearest point. */
+void BKE_shrinkwrap_snap_point_to_surface(
+        int mode, const float hit_co[3], const float hit_no[3], float goal_dist,
+        const float point_co[3], float r_point_co[3]);
+
 /*
  * NULL initializers to local data
  */

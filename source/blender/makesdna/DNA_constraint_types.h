@@ -428,7 +428,8 @@ typedef struct bShrinkwrapConstraint {
 	char		projAxis;		/* axis to project/constrain */
 	char		projAxisSpace;	/* space to project axis in */
 	float		projLimit;		/* distance to search */
-	char 		pad[4];
+	char		shrinkMode;		/* inside/outside/on surface (see MOD shrinkwrap) */
+	char 		pad[3];
 } bShrinkwrapConstraint;
 
 /* Follow Track constraints */

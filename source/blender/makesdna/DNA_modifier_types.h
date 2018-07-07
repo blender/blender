@@ -870,7 +870,7 @@ typedef struct ShrinkwrapModifierData {
 	float keepDist;           /* distance offset to keep from mesh/projection point */
 	short shrinkType;         /* shrink type projection */
 	char  shrinkOpts;         /* shrink options */
-	char  pad1;
+	char  shrinkMode;         /* shrink to surface mode */
 	float projLimit;          /* limit the projection ray cast */
 	char  projAxis;           /* axis to project over */
 
@@ -889,6 +889,20 @@ enum {
 	MOD_SHRINKWRAP_NEAREST_VERTEX  = 2,
 };
 
+/* Shrinkwrap->shrinkMode */
+enum {
+	/* Move vertex to the surface of the target object (keepDist towards original position) */
+	MOD_SHRINKWRAP_ON_SURFACE      = 0,
+	/* Move the vertex inside the target object; don't change if already inside */
+	MOD_SHRINKWRAP_INSIDE          = 1,
+	/* Move the vertex outside the target object; don't change if already outside */
+	MOD_SHRINKWRAP_OUTSIDE         = 2,
+	/* Move vertex to the surface of the target object, with keepDist towards the outside */
+	MOD_SHRINKWRAP_OUTSIDE_SURFACE = 3,
+	/* Move vertex to the surface of the target object, with keepDist along the normal */
+	MOD_SHRINKWRAP_ABOVE_SURFACE   = 4,
+};
+
 /* Shrinkwrap->shrinkOpts */
 enum {
 	/* allow shrinkwrap to move the vertex in the positive direction of axis */
@@ -901,7 +915,9 @@ enum {
 	/* ignore vertex moves if a vertex ends projected on a back face of the target */
 	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE  = (1 << 4),
 
+#ifdef DNA_DEPRECATED_ALLOW
 	MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE    = (1 << 5),  /* distance is measure to the front face of the target */
+#endif
 
 	MOD_SHRINKWRAP_INVERT_VGROUP         = (1 << 6),
 };

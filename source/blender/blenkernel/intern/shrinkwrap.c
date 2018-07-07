@@ -363,7 +363,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	}
 
 	if (hit->index != -1) {
-		madd_v3_v3v3fl(hit->co, hit->co, tmp_no, calc->keepDist);
+		BKE_shrinkwrap_snap_point_to_surface(calc->smd->shrinkMode, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
 		interp_v3_v3v3(co, co, hit->co, weight);
 	}
 }
@@ -541,26 +541,85 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(
 
 	/* Found the nearest vertex */
 	if (nearest->index != -1) {
-		if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE) {
-			/* Make the vertex stay on the front side of the face */
-			madd_v3_v3v3fl(tmp_co, nearest->co, nearest->no, calc->keepDist);
-		}
-		else {
-			/* Adjusting the vertex weight,
-			 * so that after interpolating it keeps a certain distance from the nearest position */
-			const float dist = sasqrt(nearest->dist_sq);
-			if (dist > FLT_EPSILON) {
-				/* linear interpolation */
-				interp_v3_v3v3(tmp_co, tmp_co, nearest->co, (dist - calc->keepDist) / dist);
-			}
-			else {
-				copy_v3_v3(tmp_co, nearest->co);
-			}
-		}
+		BKE_shrinkwrap_snap_point_to_surface(calc->smd->shrinkMode, nearest->co, nearest->no, calc->keepDist, tmp_co, tmp_co);
 
 		/* Convert the coordinates back to mesh coordinates */
 		BLI_space_transform_invert(&calc->local2target, tmp_co);
 		interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
+	}
+}
+
+/* Helper for MOD_SHRINKWRAP_INSIDE, MOD_SHRINKWRAP_OUTSIDE and MOD_SHRINKWRAP_OUTSIDE_SURFACE. */
+static void shrinkwrap_snap_with_side(float r_point_co[3], const float point_co[3], const float hit_co[3], const float hit_no[3], float goal_dist, float forcesign, bool forcesnap)
+{
+	float dist = len_v3v3(point_co, hit_co);
+
+	/* If exactly on the surface, push out along normal */
+	if (dist < FLT_EPSILON) {
+		madd_v3_v3v3fl(r_point_co, hit_co, hit_no, goal_dist * forcesign);
+	}
+	/* Move to the correct side if needed */
+	else {
+		float delta[3];
+		sub_v3_v3v3(delta, point_co, hit_co);
+		float dsign = signf(dot_v3v3(delta, hit_no));
+
+		/* If on the wrong side or too close, move to correct */
+		if (forcesnap || dsign * forcesign < 0 || dist < goal_dist) {
+			interp_v3_v3v3(r_point_co, point_co, hit_co, (dist - goal_dist * dsign * forcesign) / dist);
+		}
+		else {
+			copy_v3_v3(r_point_co, point_co);
+		}
+	}
+}
+
+/**
+ * Apply the shrink to surface modes to the given original coordinates and nearest point.
+ * r_point_co may be the same memory location as point_co, hit_co, or hit_no.
+ */
+void BKE_shrinkwrap_snap_point_to_surface(
+        int mode, const float hit_co[3], const float hit_no[3], float goal_dist,
+        const float point_co[3], float r_point_co[3])
+{
+	float dist;
+
+	switch (mode) {
+		/* Offsets along the line between point_co and hit_co. */
+		case MOD_SHRINKWRAP_ON_SURFACE:
+			if (goal_dist > 0 && (dist = len_v3v3(point_co, hit_co)) > FLT_EPSILON) {
+				interp_v3_v3v3(r_point_co, point_co, hit_co, (dist - goal_dist) / dist);
+			}
+			else {
+				copy_v3_v3(r_point_co, hit_co);
+			}
+			break;
+
+		case MOD_SHRINKWRAP_INSIDE:
+			shrinkwrap_snap_with_side(r_point_co, point_co, hit_co, hit_no, goal_dist, -1, false);
+			break;
+
+		case MOD_SHRINKWRAP_OUTSIDE:
+			shrinkwrap_snap_with_side(r_point_co, point_co, hit_co, hit_no, goal_dist, +1, false);
+			break;
+
+		case MOD_SHRINKWRAP_OUTSIDE_SURFACE:
+			if (goal_dist > 0) {
+				shrinkwrap_snap_with_side(r_point_co, point_co, hit_co, hit_no, goal_dist, +1, true);
+			}
+			else {
+				copy_v3_v3(r_point_co, hit_co);
+			}
+			break;
+
+		/* Offsets along the normal */
+		case MOD_SHRINKWRAP_ABOVE_SURFACE:
+			madd_v3_v3v3fl(r_point_co, hit_co, hit_no, goal_dist);
+			break;
+
+		default:
+			printf("Unknown Shrinkwrap surface snap mode: %d\n", mode);
+			copy_v3_v3(r_point_co, hit_co);
 	}
 }
 

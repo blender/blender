@@ -3456,7 +3456,6 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con,
 				case MOD_SHRINKWRAP_NEAREST_VERTEX:
 				{
 					BVHTreeNearest nearest;
-					float dist;
 
 					nearest.index = -1;
 					nearest.dist_sq = FLT_MAX;
@@ -3475,10 +3474,22 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con,
 
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
 
-					dist = len_v3v3(co, nearest.co);
-					if (dist != 0.0f) {
-						interp_v3_v3v3(co, co, nearest.co, (dist - scon->dist) / dist);   /* linear interpolation */
+					if (nearest.index < 0) {
+						fail = true;
+						break;
 					}
+
+					if (scon->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE) {
+						BKE_shrinkwrap_snap_point_to_surface(scon->shrinkMode, nearest.co, nearest.no, scon->dist, co, co);
+					}
+					else {
+						const float dist = len_v3v3(co, nearest.co);
+
+						if (dist != 0.0f) {
+							interp_v3_v3v3(co, co, nearest.co, (dist - scon->dist) / dist);   /* linear interpolation */
+						}
+					}
+
 					BLI_space_transform_invert(&transform, co);
 					break;
 				}
@@ -3522,13 +3533,14 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con,
 						break;
 					}
 
-					if (BKE_shrinkwrap_project_normal(0, co, no, scon->dist, &transform, treeData.tree,
+					if (BKE_shrinkwrap_project_normal(0, co, no, 0.0f, &transform, treeData.tree,
 					                                  &hit, treeData.raycast_callback, &treeData) == false)
 					{
 						fail = true;
 						break;
 					}
-					copy_v3_v3(co, hit.co);
+
+					BKE_shrinkwrap_snap_point_to_surface(scon->shrinkMode, hit.co, hit.no, scon->dist, co, co);
 					break;
 				}
 			}
