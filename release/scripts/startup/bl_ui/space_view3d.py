@@ -3617,11 +3617,6 @@ class VIEW3D_PT_view3d_properties(Panel):
     bl_region_type = 'UI'
     bl_label = "View"
 
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view)
-
     def draw(self, context):
         layout = self.layout
 
@@ -3693,11 +3688,6 @@ class VIEW3D_PT_view3d_cursor(Panel):
     bl_region_type = 'UI'
     bl_label = "3D Cursor"
 
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view is not None)
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -3713,10 +3703,6 @@ class VIEW3D_PT_shading(Panel):
     bl_label = "Shading"
     bl_ui_units_x = 11
 
-    @classmethod
-    def poll(cls, context):
-        return True
-
     def draw(self, context):
         pass
 
@@ -3726,10 +3712,6 @@ class VIEW3D_PT_shading_lighting(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Lighting"
     bl_parent_id = 'VIEW3D_PT_shading'
-
-    @classmethod
-    def poll(cls, context):
-        return True
 
     def draw(self, context):
         layout = self.layout
@@ -3850,10 +3832,6 @@ class VIEW3D_PT_overlay(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Overlays"
     bl_ui_units_x = 14
-
-    @classmethod
-    def poll(cls, context):
-        return True
 
     def draw(self, context):
         layout = self.layout
@@ -4267,11 +4245,6 @@ class VIEW3D_PT_transform_orientations(Panel):
     bl_label = "Transform Orientations"
     bl_ui_units_x = 8
 
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view)
-
     def draw(self, context):
         layout = self.layout
         layout.label("Transform Orientations")
@@ -4328,7 +4301,7 @@ class VIEW3D_PT_view3d_stereo(Panel):
         scene = context.scene
 
         multiview = scene.render.use_multiview
-        return context.space_data and multiview
+        return multiview
 
     def draw(self, context):
         layout = self.layout
