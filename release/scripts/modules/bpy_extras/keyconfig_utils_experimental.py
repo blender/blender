@@ -140,7 +140,7 @@ def keyconfig_export_as_data(wm, kc, filepath):
         keymaps = []
     edited_kc = FakeKeyConfig()
     for km in wm.keyconfigs.user.keymaps:
-        if km.is_user_modified or True:
+        if km.is_user_modified:
             edited_kc.keymaps.append(km)
     # merge edited keymaps with non-default keyconfig, if it exists
     if kc != wm.keyconfigs.default:
