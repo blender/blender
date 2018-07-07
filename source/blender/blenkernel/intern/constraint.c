@@ -3709,7 +3709,7 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		 *	- the min/max wrappers around (obvec . tarvec) result (stored temporarily in rangle)
 		 *	  are used to ensure that the smallest angle is chosen
 		 */
-		cross_v3_v3v3(raxis, obvec, tarvec);
+		cross_v3_v3v3_hi_prec(raxis, obvec, tarvec);
 
 		rangle = dot_v3v3(obvec, tarvec);
 		rangle = acosf(max_ff(-1.0f, min_ff(1.0f, rangle)));
@@ -3717,7 +3717,35 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		/* construct rotation matrix from the axis-angle rotation found above
 		 *	- this call takes care to make sure that the axis provided is a unit vector first
 		 */
-		axis_angle_to_mat3(rmat, raxis, rangle);
+		float norm = normalize_v3(raxis);
+
+		if (norm < FLT_EPSILON) {
+			/* if dot product is nonzero, while cross is zero, we have two opposite vectors!
+			 *  - this is an ambiguity in the math that needs to be resolved arbitrarily,
+			 *    or there will be a case where damped track strangely does nothing
+			 *  - to do that, rotate around a different local axis
+			 */
+			float tmpvec[3];
+
+			if (fabsf(rangle) < M_PI - 0.01f) {
+				return;
+			}
+
+			rangle = M_PI;
+			copy_v3_v3(tmpvec, track_dir_vecs[(data->trackflag + 1) % 6]);
+			mul_mat3_m4_v3(cob->matrix, tmpvec);
+			cross_v3_v3v3(raxis, obvec, tmpvec);
+
+			if (normalize_v3(raxis) == 0.0f) {
+				return;
+			}
+		}
+		else if (norm < 0.1f) {
+			/* near 0 and Pi arcsin has way better precision than arccos */
+			rangle = (rangle > M_PI_2) ? M_PI - asinf(norm) : asinf(norm);
+		}
+
+		axis_angle_normalized_to_mat3(rmat, raxis, rangle);
 
 		/* rotate the owner in the way defined by this rotation matrix, then reapply the location since
 		 * we may have destroyed that in the process of multiplying the matrix
