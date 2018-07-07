@@ -1636,7 +1636,7 @@ class WM_OT_keyconfig_export(Operator):
 
         wm = context.window_manager
 
-        keyconfig_utils.keyconfig_export(
+        keyconfig_utils.keyconfig_export_as_data(
             wm,
             wm.keyconfigs.active,
             self.filepath,

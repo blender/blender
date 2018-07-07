@@ -581,8 +581,13 @@ def keyconfig_set(filepath, report=None):
     try:
         error_msg = ""
         with open(filepath, 'r', encoding='utf-8') as keyfile:
-            exec(compile(keyfile.read(), filepath, "exec"),
-                 {"__file__": filepath})
+            exec(
+                compile(keyfile.read(), filepath, "exec"),
+                {
+                    "__file__": filepath,
+                    "__name__": "__main__",
+                }
+            )
     except:
         import traceback
         error_msg = traceback.format_exc()

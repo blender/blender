@@ -405,3 +405,10 @@ def keyconfig_test(kc):
         if testEntry(kc, entry):
             result = True
     return result
+
+# Note, we may eventually replace existing logic with this
+# so key configs are always data.
+from .keyconfig_utils_experimental import (
+    keyconfig_export_as_data,
+    keyconfig_import_from_data,
+)
