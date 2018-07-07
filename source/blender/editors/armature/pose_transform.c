@@ -164,8 +164,8 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 			curbone->roll2 += pchan->roll2;
 			curbone->ease1 += pchan->ease1;
 			curbone->ease2 += pchan->ease2;
-			curbone->scaleIn += pchan->scaleIn;
-			curbone->scaleOut += pchan->scaleOut;
+			curbone->scaleIn *= pchan->scaleIn;
+			curbone->scaleOut *= pchan->scaleOut;
 
 			pchan->curveInX = pchan->curveOutX = 0.0f;
 			pchan->curveInY = pchan->curveOutY = 0.0f;
