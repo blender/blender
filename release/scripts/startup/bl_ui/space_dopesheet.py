@@ -283,7 +283,7 @@ class DOPESHEET_HT_editor_buttons(Header):
         row = layout.row(align=True)
         row.operator("action.copy", text="", icon='COPYDOWN')
         row.operator("action.paste", text="", icon='PASTEDOWN')
-        if st.mode not in ('GPENCIL', 'MASK'):
+        if st.mode not in {'GPENCIL', 'MASK'}:
             row.operator("action.paste", text="", icon='PASTEFLIPDOWN').flipped = True
 
 

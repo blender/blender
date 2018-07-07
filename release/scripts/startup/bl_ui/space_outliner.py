@@ -260,28 +260,31 @@ class OUTLINER_PT_filter(Panel):
 
         col = layout.column(align=True)
 
-        col.prop(space, "use_filter_collection", text="Collections", icon="GROUP")
-        col.prop(space, "use_filter_object", text="Objects", icon="OBJECT_DATAMODE")
+        col.prop(space, "use_filter_collection", text="Collections", icon='GROUP')
+        col.prop(space, "use_filter_object", text="Objects", icon='OBJECT_DATAMODE')
 
         sub = col.column(align=True)
         sub.active = space.use_filter_object
 
         if bpy.data.meshes:
-            sub.prop(space, "use_filter_object_mesh", text="Meshes", icon="MESH_DATA")
+            sub.prop(space, "use_filter_object_mesh", text="Meshes", icon='MESH_DATA')
         if bpy.data.armatures:
-            sub.prop(space, "use_filter_object_armature", text="Armatures", icon="ARMATURE_DATA")
+            sub.prop(space, "use_filter_object_armature", text="Armatures", icon='ARMATURE_DATA')
         if bpy.data.lights:
-            sub.prop(space, "use_filter_object_light", text="Lights", icon="LIGHT_DATA")
+            sub.prop(space, "use_filter_object_light", text="Lights", icon='LIGHT_DATA')
         if bpy.data.cameras:
-            sub.prop(space, "use_filter_object_camera", text="Cameras", icon="CAMERA_DATA")
+            sub.prop(space, "use_filter_object_camera", text="Cameras", icon='CAMERA_DATA')
 
-        sub.prop(space, "use_filter_object_empty", text="Empties", icon="EMPTY_DATA")
+        sub.prop(space, "use_filter_object_empty", text="Empties", icon='EMPTY_DATA')
 
-        if bpy.data.curves or \
-           bpy.data.metaballs or \
-           bpy.data.lightprobes or \
-           bpy.data.lattices or \
-           bpy.data.fonts or bpy.data.speakers:
+        if (
+                bpy.data.curves or
+                bpy.data.metaballs or
+                bpy.data.lightprobes or
+                bpy.data.lattices or
+                bpy.data.fonts or
+                bpy.data.speakers
+        ):
             sub.prop(space, "use_filter_object_others", text="Others")
 
         subsub = sub.column(align=False)

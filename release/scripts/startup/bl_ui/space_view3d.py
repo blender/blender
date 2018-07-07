@@ -136,7 +136,7 @@ class VIEW3D_HT_header(Header):
                 trans_icon = getattr(trans_orientation, "icon", "BLANK1")
                 trans_name = getattr(trans_orientation, "name", "Orientation")
             else:
-                trans_icon = "VISIBLE_IPO_OFF"
+                trans_icon = 'VISIBLE_IPO_OFF'
                 trans_name = getattr(current_orientation, "name", "Orientation")
 
             row = layout.row(align=True)
@@ -3761,7 +3761,7 @@ class VIEW3D_PT_shading_color(Panel):
     def poll(cls, context):
         view = context.space_data
         shading = view.shading
-        return shading.type in ['SOLID']
+        return shading.type == 'SOLID'
 
     def draw(self, context):
         layout = self.layout
