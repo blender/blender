@@ -259,7 +259,7 @@ static struct {
 
 static Gwn_VertFormat *vflag_format(void)
 {
-	if (g_ui_batch_cache.format.attrib_ct == 0) {
+	if (g_ui_batch_cache.format.attr_len == 0) {
 		Gwn_VertFormat *format = &g_ui_batch_cache.format;
 		g_ui_batch_cache.vflag_id = GWN_vertformat_attr_add(format, "vflag", GWN_COMP_U32, 1, GWN_FETCH_INT);
 	}

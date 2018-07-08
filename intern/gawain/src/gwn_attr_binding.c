@@ -52,10 +52,10 @@ void get_attrib_locations(const Gwn_VertFormat* format, Gwn_AttrBinding* binding
 	{
 	AttribBinding_clear(binding);
 
-	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
+	for (unsigned a_idx = 0; a_idx < format->attr_len; ++a_idx)
 		{
 		const Gwn_VertAttr* a = format->attribs + a_idx;
-		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
+		for (unsigned n_idx = 0; n_idx < a->name_len; ++n_idx)
 			{
 			const Gwn_ShaderInput* input = GWN_shaderinterface_attr(shaderface, a->name[n_idx]);
 

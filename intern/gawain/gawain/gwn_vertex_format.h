@@ -42,16 +42,16 @@ typedef struct Gwn_VertAttr {
 	Gwn_VertFetchMode fetch_mode;
 	Gwn_VertCompType comp_type;
 	unsigned gl_comp_type;
-	unsigned comp_ct; // 1 to 4 or 8 or 12 or 16
+	unsigned comp_len; // 1 to 4 or 8 or 12 or 16
 	unsigned sz; // size in bytes, 1 to 64
 	unsigned offset; // from beginning of vertex, in bytes
-	unsigned name_ct; // up to GWN_VERT_ATTR_MAX_NAMES
+	unsigned name_len; // up to GWN_VERT_ATTR_MAX_NAMES
 	const char* name[GWN_VERT_ATTR_MAX_NAMES];
 } Gwn_VertAttr;
 
 typedef struct Gwn_VertFormat {
-	unsigned attrib_ct; // 0 to 16 (GWN_VERT_ATTR_MAX_LEN)
-	unsigned name_ct; // total count of active vertex attrib
+	unsigned attr_len; // 0 to 16 (GWN_VERT_ATTR_MAX_LEN)
+	unsigned name_len; // total count of active vertex attrib
 	unsigned stride; // stride in bytes, 1 to 256
 	unsigned name_offset;
 	bool packed;
@@ -62,7 +62,7 @@ typedef struct Gwn_VertFormat {
 void GWN_vertformat_clear(Gwn_VertFormat*);
 void GWN_vertformat_copy(Gwn_VertFormat* dest, const Gwn_VertFormat* src);
 
-unsigned GWN_vertformat_attr_add(Gwn_VertFormat*, const char* name, Gwn_VertCompType, unsigned comp_ct, Gwn_VertFetchMode);
+unsigned GWN_vertformat_attr_add(Gwn_VertFormat*, const char* name, Gwn_VertCompType, unsigned comp_len, Gwn_VertFetchMode);
 void GWN_vertformat_alias_add(Gwn_VertFormat*, const char* alias);
 
 // format conversion

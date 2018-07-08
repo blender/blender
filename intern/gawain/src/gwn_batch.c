@@ -168,9 +168,9 @@ int GWN_batch_vertbuf_add_ex(
 		if (batch->verts[v] == NULL)
 			{
 #if TRUST_NO_ONE
-			// for now all VertexBuffers must have same vertex_ct
-			assert(verts->vertex_ct == batch->verts[0]->vertex_ct);
-			// in the near future we will enable instanced attribs which have their own vertex_ct
+			// for now all VertexBuffers must have same vertex_len
+			assert(verts->vertex_len == batch->verts[0]->vertex_len);
+			// in the near future we will enable instanced attribs which have their own vertex_len
 #endif
 			batch->verts[v] = verts;
 			// TODO: mark dirty so we can keep attrib bindings up-to-date
@@ -336,30 +336,30 @@ static void create_bindings(Gwn_VertBuf* verts, const Gwn_ShaderInterface* inter
 	{
 	const Gwn_VertFormat* format = &verts->format;
 
-	const unsigned attrib_ct = format->attrib_ct;
+	const unsigned attr_len = format->attr_len;
 	const unsigned stride = format->stride;
 
 	GWN_vertbuf_use(verts);
 
-	for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
+	for (unsigned a_idx = 0; a_idx < attr_len; ++a_idx)
 		{
 		const Gwn_VertAttr* a = format->attribs + a_idx;
 
 		const GLvoid* pointer = (const GLubyte*)0 + a->offset + v_first * stride;
 
-		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
+		for (unsigned n_idx = 0; n_idx < a->name_len; ++n_idx)
 			{
 			const Gwn_ShaderInput* input = GWN_shaderinterface_attr(interface, a->name[n_idx]);
 
 			if (input == NULL) continue;
 
-			if (a->comp_ct == 16 || a->comp_ct == 12 || a->comp_ct == 8)
+			if (a->comp_len == 16 || a->comp_len == 12 || a->comp_len == 8)
 				{
 #if TRUST_NO_ONE
 				assert(a->fetch_mode == GWN_FETCH_FLOAT);
 				assert(a->gl_comp_type == GL_FLOAT);
 #endif
-				for (int i = 0; i < a->comp_ct / 4; ++i)
+				for (int i = 0; i < a->comp_len / 4; ++i)
 					{
 					glEnableVertexAttribArray(input->location + i);
 					glVertexAttribDivisor(input->location + i, (use_instancing) ? 1 : 0);
@@ -376,13 +376,13 @@ static void create_bindings(Gwn_VertBuf* verts, const Gwn_ShaderInterface* inter
 					{
 					case GWN_FETCH_FLOAT:
 					case GWN_FETCH_INT_TO_FLOAT:
-						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
+						glVertexAttribPointer(input->location, a->comp_len, a->gl_comp_type, GL_FALSE, stride, pointer);
 						break;
 					case GWN_FETCH_INT_TO_FLOAT_UNIT:
-						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
+						glVertexAttribPointer(input->location, a->comp_len, a->gl_comp_type, GL_TRUE, stride, pointer);
 						break;
 					case GWN_FETCH_INT:
-						glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
+						glVertexAttribIPointer(input->location, a->comp_len, a->gl_comp_type, stride, pointer);
 					}
 				}
 			}
@@ -564,7 +564,7 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 		{
 		// Infer length if vertex count is not given
 		if (v_count == 0)
-			v_count = batch->inst->vertex_ct;
+			v_count = batch->inst->vertex_len;
 
 		if (batch->elem)
 			{
@@ -574,21 +574,21 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 				primitive_restart_enable(el);
 
 #if GWN_TRACK_INDEX_RANGE
-			glDrawElementsInstancedBaseVertex(batch->gl_prim_type, el->index_ct, el->gl_index_type, 0, v_count, el->base_index);
+			glDrawElementsInstancedBaseVertex(batch->gl_prim_type, el->index_len, el->gl_index_type, 0, v_count, el->base_index);
 #else
-			glDrawElementsInstanced(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, v_count);
+			glDrawElementsInstanced(batch->gl_prim_type, el->index_len, GL_UNSIGNED_INT, 0, v_count);
 #endif
 			if (el->use_prim_restart)
 				primitive_restart_disable();
 			}
 		else
-			glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, v_count);
+			glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_len, v_count);
 		}
 	else
 		{
 		// Infer length if vertex count is not given
 		if (v_count == 0)
-			v_count = (batch->elem) ? batch->elem->index_ct : batch->verts[0]->vertex_ct;
+			v_count = (batch->elem) ? batch->elem->index_len : batch->verts[0]->vertex_len;
 
 		if (batch->elem)
 			{

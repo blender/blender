@@ -203,19 +203,19 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(int32_t program)
 	printf("Gwn_ShaderInterface %p, program %d\n", shaderface, program);
 #endif
 
-	GLint max_attrib_name_len, attrib_ct;
+	GLint max_attrib_name_len, attr_len;
 	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attrib_name_len);
-	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &attrib_ct);
+	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &attr_len);
 
-	GLint max_ubo_name_len, ubo_ct;
+	GLint max_ubo_name_len, ubo_len;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &max_ubo_name_len);
-	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_ct);
+	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_len);
 
-	const uint32_t name_buffer_len = attrib_ct * max_attrib_name_len + ubo_ct * max_ubo_name_len;
+	const uint32_t name_buffer_len = attr_len * max_attrib_name_len + ubo_len * max_ubo_name_len;
 	shaderface->name_buffer = malloc(name_buffer_len);
 
 	// Attributes
-	for (uint32_t i = 0; i < attrib_ct; ++i)
+	for (uint32_t i = 0; i < attr_len; ++i)
 		{
 		Gwn_ShaderInput* input = malloc(sizeof(Gwn_ShaderInput));
 		GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
@@ -245,7 +245,7 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(int32_t program)
 		}
 
 	// Uniform Blocks
-	for (uint32_t i = 0; i < ubo_ct; ++i)
+	for (uint32_t i = 0; i < ubo_len; ++i)
 		{
 		Gwn_ShaderInput* input = malloc(sizeof(Gwn_ShaderInput));
 		GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
@@ -274,8 +274,8 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(int32_t program)
 		}
 
 	// Batches ref buffer
-	shaderface->batches_ct = GWN_SHADERINTERFACE_REF_ALLOC_COUNT;
-	shaderface->batches = calloc(shaderface->batches_ct, sizeof(Gwn_Batch*));
+	shaderface->batches_len = GWN_SHADERINTERFACE_REF_ALLOC_COUNT;
+	shaderface->batches = calloc(shaderface->batches_len, sizeof(Gwn_Batch*));
 
 	return shaderface;
 	}
@@ -289,7 +289,7 @@ void GWN_shaderinterface_discard(Gwn_ShaderInterface* shaderface)
 	// Free memory used by name_buffer.
 	free(shaderface->name_buffer);
 	// Remove this interface from all linked Batches vao cache.
-	for (int i = 0; i < shaderface->batches_ct; ++i)
+	for (int i = 0; i < shaderface->batches_len; ++i)
 		if (shaderface->batches[i] != NULL)
 			gwn_batch_remove_interface_ref(shaderface->batches[i], shaderface);
 
@@ -333,16 +333,16 @@ const Gwn_ShaderInput* GWN_shaderinterface_attr(const Gwn_ShaderInterface* shade
 void GWN_shaderinterface_add_batch_ref(Gwn_ShaderInterface* shaderface, Gwn_Batch* batch)
 	{
 	int i; // find first unused slot
-	for (i = 0; i < shaderface->batches_ct; ++i)
+	for (i = 0; i < shaderface->batches_len; ++i)
 		if (shaderface->batches[i] == NULL)
 			break;
 
-	if (i == shaderface->batches_ct)
+	if (i == shaderface->batches_len)
 		{
 		// Not enough place, realloc the array.
-		i = shaderface->batches_ct;
-		shaderface->batches_ct += GWN_SHADERINTERFACE_REF_ALLOC_COUNT;
-		shaderface->batches = realloc(shaderface->batches, sizeof(Gwn_Batch*) * shaderface->batches_ct);
+		i = shaderface->batches_len;
+		shaderface->batches_len += GWN_SHADERINTERFACE_REF_ALLOC_COUNT;
+		shaderface->batches = realloc(shaderface->batches, sizeof(Gwn_Batch*) * shaderface->batches_len);
 		memset(shaderface->batches + i, 0, sizeof(Gwn_Batch*) * GWN_SHADERINTERFACE_REF_ALLOC_COUNT);
 		}
 
@@ -351,7 +351,7 @@ void GWN_shaderinterface_add_batch_ref(Gwn_ShaderInterface* shaderface, Gwn_Batc
 
 void GWN_shaderinterface_remove_batch_ref(Gwn_ShaderInterface* shaderface, Gwn_Batch* batch)
 	{
-	for (int i = 0; i < shaderface->batches_ct; ++i)
+	for (int i = 0; i < shaderface->batches_len; ++i)
 		{
 		if (shaderface->batches[i] == batch)
 			{

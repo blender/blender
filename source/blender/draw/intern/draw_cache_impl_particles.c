@@ -1219,7 +1219,7 @@ static void particle_batch_cache_ensure_pos(
 
 	GWN_VERTBUF_DISCARD_SAFE(point_cache->pos);
 
-	if (format.attrib_ct == 0) {
+	if (format.attr_len == 0) {
 		/* initialize vertex format */
 		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
 		rot_id = GWN_vertformat_attr_add(&format, "rot", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
@@ -1424,7 +1424,7 @@ static void particle_batch_cache_ensure_edit_inner_pos(
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->edit_inner_pos);
 
-	if (format.attrib_ct == 0) {
+	if (format.attr_len == 0) {
 		/* initialize vertex format */
 		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		color_id = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
@@ -1495,7 +1495,7 @@ static void particle_batch_cache_ensure_edit_tip_pos(
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
 
-	if (format.attrib_ct == 0) {
+	if (format.attr_len == 0) {
 		/* initialize vertex format */
 		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		color_id = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);

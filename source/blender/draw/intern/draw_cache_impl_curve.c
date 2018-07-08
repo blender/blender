@@ -503,7 +503,7 @@ static Gwn_VertBuf *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, Cur
 	if (cache->wire.verts == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			/* initialize vertex format */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
@@ -581,7 +581,7 @@ static Gwn_VertBuf *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, C
 	if (cache->normal.verts == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			/* initialize vertex format */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
@@ -675,7 +675,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 	if (cache->overlay.verts == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			/* initialize vertex format */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_U8, 1, GWN_FETCH_INT);
@@ -743,7 +743,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			/* initialize vertex format */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_U8, 1, GWN_FETCH_INT);
@@ -850,7 +850,7 @@ static Gwn_Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, C
 		EditFont *ef = rdata->text.edit_font;
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
@@ -924,7 +924,7 @@ static Gwn_Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, C
 	if (cache->text.cursor == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		}
 

@@ -2159,7 +2159,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint uv; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.uv = GWN_vertformat_attr_add(&format, "uv", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		}
 
@@ -2222,7 +2222,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 	if (*r_vbo == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, nor; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
@@ -2374,7 +2374,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_facedot_pos_with_normals_and_flag(
 	if (cache->ed_fcenter_pos_with_nor_and_sel == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.data = GWN_vertformat_attr_add(&format, "norAndFlag", GWN_COMP_I10, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
@@ -2418,7 +2418,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_edges_visible(
 	if (cache->ed_edge_pos == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
@@ -2463,7 +2463,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_verts_visible(
 	if (cache->ed_vert_pos == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
@@ -2513,7 +2513,7 @@ static Gwn_VertBuf *mesh_create_facedot_select_id(
 	{
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, col; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_I32, 1, GWN_FETCH_INT);
 		}
 
@@ -2561,7 +2561,7 @@ static Gwn_VertBuf *mesh_create_edges_select_id(
 	{
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, col; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_I32, 1, GWN_FETCH_INT);
 		}
 
@@ -2611,7 +2611,7 @@ static Gwn_VertBuf *mesh_create_verts_select_id(
 	{
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, col; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_I32, 1, GWN_FETCH_INT);
 		}
 
@@ -2671,7 +2671,7 @@ static Gwn_VertBuf *mesh_create_tri_weights(
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
@@ -2731,7 +2731,7 @@ static Gwn_VertBuf *mesh_create_tri_vert_colors(
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
 
@@ -2791,7 +2791,7 @@ static Gwn_VertBuf *mesh_create_tri_select_id(
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_I32, 1, GWN_FETCH_INT);
 		}
 
@@ -2847,7 +2847,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 	if (cache->pos_in_order == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, nor; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			/* Normal is padded so that the vbo can be used as a buffer texture */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_I16, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
@@ -2887,7 +2887,7 @@ static Gwn_VertFormat *edit_mesh_overlay_pos_format(uint *r_pos_id)
 {
 	static Gwn_VertFormat format_pos = { 0 };
 	static uint pos_id;
-	if (format_pos.attrib_ct == 0) {
+	if (format_pos.attr_len == 0) {
 		pos_id = GWN_vertformat_attr_add(&format_pos, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	}
 	*r_pos_id = pos_id;
@@ -2899,7 +2899,7 @@ static Gwn_VertFormat *edit_mesh_overlay_nor_format(uint *r_vnor_id, uint *r_lno
 	static Gwn_VertFormat format_nor = { 0 };
 	static Gwn_VertFormat format_nor_loop = { 0 };
 	static uint vnor_id, vnor_loop_id, lnor_id;
-	if (format_nor.attrib_ct == 0) {
+	if (format_nor.attr_len == 0) {
 		vnor_id = GWN_vertformat_attr_add(&format_nor, "vnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		vnor_loop_id = GWN_vertformat_attr_add(&format_nor_loop, "vnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		lnor_id = GWN_vertformat_attr_add(&format_nor_loop, "lnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
@@ -2919,7 +2919,7 @@ static Gwn_VertFormat *edit_mesh_overlay_data_format(uint *r_data_id)
 {
 	static Gwn_VertFormat format_flag = { 0 };
 	static uint data_id;
-	if (format_flag.attrib_ct == 0) {
+	if (format_flag.attr_len == 0) {
 		data_id = GWN_vertformat_attr_add(&format_flag, "data", GWN_COMP_U8, 4, GWN_FETCH_INT);
 	}
 	*r_data_id = data_id;
@@ -3657,7 +3657,7 @@ static Gwn_VertBuf *mesh_create_edge_pos_with_sel(
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, sel; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.sel = GWN_vertformat_attr_add(&format, "select", GWN_COMP_U8, 1, GWN_FETCH_INT);
 		}
@@ -3744,7 +3744,7 @@ static Gwn_VertBuf *mesh_create_vert_pos_with_overlay_data(
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_I8, 1, GWN_FETCH_INT);
 		}
 
@@ -3997,7 +3997,7 @@ Gwn_Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 		/* create batch from DM */
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, n1, n2; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 			attr_id.n1 = GWN_vertformat_attr_add(&format, "N1", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);

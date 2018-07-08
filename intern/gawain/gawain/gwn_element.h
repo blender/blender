@@ -24,7 +24,7 @@ typedef enum {
 } Gwn_IndexBufType;
 
 typedef struct Gwn_IndexBuf {
-	unsigned index_ct;
+	unsigned index_len;
 #if GWN_TRACK_INDEX_RANGE
 	Gwn_IndexBufType index_type;
 	uint32_t gl_index_type;
@@ -41,8 +41,8 @@ unsigned GWN_indexbuf_size_get(const Gwn_IndexBuf*);
 
 typedef struct Gwn_IndexBufBuilder {
 	unsigned max_allowed_index;
-	unsigned max_index_ct;
-	unsigned index_ct;
+	unsigned max_index_len;
+	unsigned index_len;
 	Gwn_PrimType prim_type;
 	unsigned* data;
 	bool use_prim_restart;
@@ -50,10 +50,10 @@ typedef struct Gwn_IndexBufBuilder {
 
 
 // supports all primitive types.
-void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned index_ct, unsigned vertex_ct, bool use_prim_restart);
+void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned index_len, unsigned vertex_len, bool use_prim_restart);
 
 // supports only GWN_PRIM_POINTS, GWN_PRIM_LINES and GWN_PRIM_TRIS.
-void GWN_indexbuf_init(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned prim_ct, unsigned vertex_ct);
+void GWN_indexbuf_init(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned prim_len, unsigned vertex_len);
 
 void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder*, unsigned v);
 void GWN_indexbuf_add_primitive_restart(Gwn_IndexBufBuilder*);

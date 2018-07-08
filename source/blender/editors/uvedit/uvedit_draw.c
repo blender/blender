@@ -765,7 +765,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	immEnd();
 
 	/* Then draw each face contour separately. */
-	if (loop_vbo->vertex_ct != 0) {
+	if (loop_vbo->vertex_len != 0) {
 		GWN_batch_program_use_begin(loop_batch);
 		unsigned int index = 0, loop_vbo_count;
 		BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -792,7 +792,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 					/* Create a color buffer. */
 					static Gwn_VertFormat format = { 0 };
 					static uint shdr_col;
-					if (format.attrib_ct == 0) {
+					if (format.attr_len == 0) {
 						shdr_col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
 					}
 

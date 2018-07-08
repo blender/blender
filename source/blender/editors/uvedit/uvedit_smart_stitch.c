@@ -1567,7 +1567,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 
 	static Gwn_VertFormat format = { 0 };
 	static unsigned int pos_id;
-	if (format.attrib_ct == 0) {
+	if (format.attr_len == 0) {
 		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	}
 

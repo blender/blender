@@ -65,7 +65,7 @@ static ListBase presets_list = {NULL, NULL};
 
 static Gwn_VertFormat *preset_3D_format(void)
 {
-	if (g_presets_3d.format.attrib_ct == 0) {
+	if (g_presets_3d.format.attr_len == 0) {
 		Gwn_VertFormat *format = &g_presets_3d.format;
 		g_presets_3d.attr_id.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		g_presets_3d.attr_id.nor = GWN_vertformat_attr_add(format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);

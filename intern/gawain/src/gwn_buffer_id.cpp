@@ -39,11 +39,11 @@ GLuint GWN_buf_id_alloc()
 	orphan_mutex.lock();
 	if (!orphaned_buffer_ids.empty())
 		{
-		const auto orphaned_buffer_ct = (unsigned)orphaned_buffer_ids.size();
+		const auto orphaned_buffer_len = (unsigned)orphaned_buffer_ids.size();
 #if ORPHAN_DEBUG
-		printf("deleting %u orphaned VBO%s\n", orphaned_buffer_ct, orphaned_buffer_ct == 1 ? "" : "s");
+		printf("deleting %u orphaned VBO%s\n", orphaned_buffer_len, orphaned_buffer_len == 1 ? "" : "s");
 #endif
-		glDeleteBuffers(orphaned_buffer_ct, orphaned_buffer_ids.data());
+		glDeleteBuffers(orphaned_buffer_len, orphaned_buffer_ids.data());
 		orphaned_buffer_ids.clear();
 		}
 	orphan_mutex.unlock();

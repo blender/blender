@@ -17,7 +17,7 @@
 // How to create a Gwn_VertBuf:
 // 1) verts = GWN_vertbuf_create() or GWN_vertbuf_init(verts)
 // 2) GWN_vertformat_attr_add(verts->format, ...)
-// 3) GWN_vertbuf_data_alloc(verts, vertex_ct) <-- finalizes/packs vertex format
+// 3) GWN_vertbuf_data_alloc(verts, vertex_len) <-- finalizes/packs vertex format
 // 4) GWN_vertbuf_attr_fill(verts, pos, application_pos_buffer)
 
 // Is Gwn_VertBuf always used as part of a Gwn_Batch?
@@ -31,8 +31,8 @@ typedef enum {
 
 typedef struct Gwn_VertBuf {
 	Gwn_VertFormat format;
-	unsigned vertex_ct;    // number of verts we want to draw
-	unsigned vertex_alloc; // number of verts data
+	unsigned vertex_len;    /* number of verts we want to draw */
+	unsigned vertex_alloc;  /* number of verts data */
 	bool dirty;
 	unsigned char* data; // NULL indicates data in VRAM (unmapped)
 	uint32_t vbo_id; // 0 indicates not yet allocated
@@ -54,9 +54,9 @@ void GWN_vertbuf_init_with_format_ex(Gwn_VertBuf*, const Gwn_VertFormat*, Gwn_Us
 	GWN_vertbuf_init_with_format_ex(verts, format, GWN_USAGE_STATIC)
 
 unsigned GWN_vertbuf_size_get(const Gwn_VertBuf*);
-void GWN_vertbuf_data_alloc(Gwn_VertBuf*, unsigned v_ct);
-void GWN_vertbuf_data_resize(Gwn_VertBuf*, unsigned v_ct);
-void GWN_vertbuf_vertex_count_set(Gwn_VertBuf*, unsigned v_ct);
+void GWN_vertbuf_data_alloc(Gwn_VertBuf*, unsigned v_len);
+void GWN_vertbuf_data_resize(Gwn_VertBuf*, unsigned v_len);
+void GWN_vertbuf_vertex_count_set(Gwn_VertBuf*, unsigned v_len);
 
 // The most important set_attrib variant is the untyped one. Get it right first.
 // It takes a void* so the app developer is responsible for matching their app data types

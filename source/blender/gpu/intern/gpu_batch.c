@@ -126,7 +126,7 @@ Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
 	/* We have vertices and tris, make a batch from this. */
 	static Gwn_VertFormat format = {0};
 	static struct { uint pos; } attr_id;
-	if (format.attrib_ct == 0) {
+	if (format.attr_len == 0) {
 		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	}
 
@@ -230,7 +230,7 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 	/* We have vertices and tris, make a batch from this. */
 	static Gwn_VertFormat format = {0};
 	static struct { uint pos; } attr_id;
-	if (format.attrib_ct == 0) {
+	if (format.attr_len == 0) {
 		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	}
 

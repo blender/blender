@@ -81,11 +81,11 @@ void GWN_vertbuf_discard(Gwn_VertBuf* verts)
 
 unsigned GWN_vertbuf_size_get(const Gwn_VertBuf* verts)
 	{
-	return vertex_buffer_size(&verts->format, verts->vertex_ct);
+	return vertex_buffer_size(&verts->format, verts->vertex_len);
 	}
 
 // create a new allocation, discarding any existing data
-void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
+void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_len)
 	{
 	Gwn_VertFormat* format = &verts->format;
 	if (!format->packed)
@@ -93,7 +93,7 @@ void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
 
 #if TRUST_NO_ONE
 	// catch any unnecessary use
-	assert(verts->vertex_alloc != v_ct || verts->data == NULL);
+	assert(verts->vertex_alloc != v_len || verts->data == NULL);
 #endif
 
 	// only create the buffer the 1st time
@@ -105,49 +105,49 @@ void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
 		free(verts->data);
 
 #if VRAM_USAGE
-	unsigned new_size = vertex_buffer_size(&verts->format, v_ct);
+	unsigned new_size = vertex_buffer_size(&verts->format, v_len);
 	vbo_memory_usage += new_size - GWN_vertbuf_size_get(verts);
 #endif
 
 	verts->dirty = true;
-	verts->vertex_ct = verts->vertex_alloc = v_ct;
+	verts->vertex_len = verts->vertex_alloc = v_len;
 	verts->data = malloc(sizeof(GLubyte) * GWN_vertbuf_size_get(verts));
 	}
 
 // resize buffer keeping existing data
-void GWN_vertbuf_data_resize(Gwn_VertBuf* verts, unsigned v_ct)
+void GWN_vertbuf_data_resize(Gwn_VertBuf* verts, unsigned v_len)
 	{
 #if TRUST_NO_ONE
 	assert(verts->data != NULL);
-	assert(verts->vertex_alloc != v_ct);
+	assert(verts->vertex_alloc != v_len);
 #endif
 
 #if VRAM_USAGE
-	unsigned new_size = vertex_buffer_size(&verts->format, v_ct);
+	unsigned new_size = vertex_buffer_size(&verts->format, v_len);
 	vbo_memory_usage += new_size - GWN_vertbuf_size_get(verts);
 #endif
 
 	verts->dirty = true;
-	verts->vertex_ct = verts->vertex_alloc = v_ct;
+	verts->vertex_len = verts->vertex_alloc = v_len;
 	verts->data = realloc(verts->data, sizeof(GLubyte) * GWN_vertbuf_size_get(verts));
 	}
 
 // set vertex count but does not change allocation
 // only this many verts will be uploaded to the GPU and rendered
 // this is usefull for streaming data
-void GWN_vertbuf_vertex_count_set(Gwn_VertBuf* verts, unsigned v_ct)
+void GWN_vertbuf_vertex_count_set(Gwn_VertBuf* verts, unsigned v_len)
 	{
 #if TRUST_NO_ONE
 	assert(verts->data != NULL); // only for dynamic data
-	assert(v_ct <= verts->vertex_alloc);
+	assert(v_len <= verts->vertex_alloc);
 #endif
 
 #if VRAM_USAGE
-	unsigned new_size = vertex_buffer_size(&verts->format, v_ct);
+	unsigned new_size = vertex_buffer_size(&verts->format, v_len);
 	vbo_memory_usage += new_size - GWN_vertbuf_size_get(verts);
 #endif
 
-	verts->vertex_ct = v_ct;
+	verts->vertex_len = v_len;
 	}
 
 void GWN_vertbuf_attr_set(Gwn_VertBuf* verts, unsigned a_idx, unsigned v_idx, const void* data)
@@ -156,7 +156,7 @@ void GWN_vertbuf_attr_set(Gwn_VertBuf* verts, unsigned a_idx, unsigned v_idx, co
 	const Gwn_VertAttr* a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
-	assert(a_idx < format->attrib_ct);
+	assert(a_idx < format->attr_len);
 	assert(v_idx < verts->vertex_alloc);
 	assert(verts->data != NULL);
 #endif
@@ -171,7 +171,7 @@ void GWN_vertbuf_attr_fill(Gwn_VertBuf* verts, unsigned a_idx, const void* data)
 	const Gwn_VertAttr* a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
-	assert(a_idx < format->attrib_ct);
+	assert(a_idx < format->attr_len);
 #endif
 
 	const unsigned stride = a->sz; // tightly packed input data
@@ -185,22 +185,22 @@ void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf* verts, unsigned a_idx, unsigned s
 	const Gwn_VertAttr* a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
-	assert(a_idx < format->attrib_ct);
+	assert(a_idx < format->attr_len);
 	assert(verts->data != NULL);
 #endif
 
 	verts->dirty = true;
-	const unsigned vertex_ct = verts->vertex_ct;
+	const unsigned vertex_len = verts->vertex_len;
 
-	if (format->attrib_ct == 1 && stride == format->stride)
+	if (format->attr_len == 1 && stride == format->stride)
 		{
 		// we can copy it all at once
-		memcpy(verts->data, data, vertex_ct * a->sz);
+		memcpy(verts->data, data, vertex_len * a->sz);
 		}
 	else
 		{
 		// we must copy it per vertex
-		for (unsigned v = 0; v < vertex_ct; ++v)
+		for (unsigned v = 0; v < vertex_len; ++v)
 			memcpy((GLubyte*)verts->data + a->offset + v * format->stride, (const GLubyte*)data + v * stride, a->sz);
 		}
 	}
@@ -211,7 +211,7 @@ void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf* verts, unsigned a_idx, Gwn_VertB
 	const Gwn_VertAttr* a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
-	assert(a_idx < format->attrib_ct);
+	assert(a_idx < format->attr_len);
 	assert(verts->data != NULL);
 #endif
 

@@ -34,8 +34,8 @@ typedef struct {
 	GLubyte* buffer_data;
 	unsigned buffer_offset;
 	unsigned buffer_bytes_mapped;
-	unsigned vertex_ct;
-	bool strict_vertex_ct;
+	unsigned vertex_len;
+	bool strict_vertex_len;
 	Gwn_PrimType prim_type;
 
 	Gwn_VertFormat vertex_format;
@@ -73,7 +73,7 @@ void immInit(void)
 	glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
 	imm.prim_type = GWN_PRIM_NONE;
-	imm.strict_vertex_ct = true;
+	imm.strict_vertex_len = true;
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	initialized = true;
@@ -147,10 +147,10 @@ void immUnbindProgram(void)
 	}
 
 #if TRUST_NO_ONE
-static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, Gwn_PrimType prim_type)
+static bool vertex_count_makes_sense_for_primitive(unsigned vertex_len, Gwn_PrimType prim_type)
 	{
-	// does vertex_ct make sense for this primitive type?
-	if (vertex_ct == 0)
+	// does vertex_len make sense for this primitive type?
+	if (vertex_len == 0)
 		return false;
 
 	switch (prim_type)
@@ -158,38 +158,38 @@ static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, Gwn_PrimT
 		case GWN_PRIM_POINTS:
 			return true;
 		case GWN_PRIM_LINES:
-			return vertex_ct % 2 == 0;
+			return vertex_len % 2 == 0;
 		case GWN_PRIM_LINE_STRIP:
 		case GWN_PRIM_LINE_LOOP:
-			return vertex_ct >= 2;
+			return vertex_len >= 2;
 		case GWN_PRIM_LINE_STRIP_ADJ:
-			return vertex_ct >= 4;
+			return vertex_len >= 4;
 		case GWN_PRIM_TRIS:
-			return vertex_ct % 3 == 0;
+			return vertex_len % 3 == 0;
 		case GWN_PRIM_TRI_STRIP:
 		case GWN_PRIM_TRI_FAN:
-			return vertex_ct >= 3;
+			return vertex_len >= 3;
 		default:
 			return false;
 		}
 	}
 #endif
 
-void immBegin(Gwn_PrimType prim_type, unsigned vertex_ct)
+void immBegin(Gwn_PrimType prim_type, unsigned vertex_len)
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
 	assert(imm.prim_type == GWN_PRIM_NONE); // make sure we haven't already begun
-	assert(vertex_count_makes_sense_for_primitive(vertex_ct, prim_type));
+	assert(vertex_count_makes_sense_for_primitive(vertex_len, prim_type));
 #endif
 
 	imm.prim_type = prim_type;
-	imm.vertex_ct = vertex_ct;
+	imm.vertex_len = vertex_len;
 	imm.vertex_idx = 0;
 	imm.unassigned_attrib_bits = imm.attrib_binding.enabled_bits;
 
 	// how many bytes do we need for this draw call?
-	const unsigned bytes_needed = vertex_buffer_size(&imm.vertex_format, vertex_ct);
+	const unsigned bytes_needed = vertex_buffer_size(&imm.vertex_format, vertex_len);
 
 #if TRUST_NO_ONE
 	assert(bytes_needed <= IMM_BUFFER_SIZE);
@@ -234,7 +234,7 @@ void immBegin(Gwn_PrimType prim_type, unsigned vertex_ct)
 //	printf("mapping %u to %u\n", imm.buffer_offset, imm.buffer_offset + bytes_needed - 1);
 
 	imm.buffer_data = glMapBufferRange(GL_ARRAY_BUFFER, imm.buffer_offset, bytes_needed,
-	                                   GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | (imm.strict_vertex_ct ? 0 : GL_MAP_FLUSH_EXPLICIT_BIT));
+	                                   GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | (imm.strict_vertex_len ? 0 : GL_MAP_FLUSH_EXPLICIT_BIT));
 
 #if TRUST_NO_ONE
 	assert(imm.buffer_data != NULL);
@@ -244,33 +244,33 @@ void immBegin(Gwn_PrimType prim_type, unsigned vertex_ct)
 	imm.vertex_data = imm.buffer_data;
 	}
 
-void immBeginAtMost(Gwn_PrimType prim_type, unsigned vertex_ct)
+void immBeginAtMost(Gwn_PrimType prim_type, unsigned vertex_len)
 	{
 #if TRUST_NO_ONE
-	assert(vertex_ct > 0);
+	assert(vertex_len > 0);
 #endif
 
-	imm.strict_vertex_ct = false;
-	immBegin(prim_type, vertex_ct);
+	imm.strict_vertex_len = false;
+	immBegin(prim_type, vertex_len);
 	}
 
 #if IMM_BATCH_COMBO
 
-Gwn_Batch* immBeginBatch(Gwn_PrimType prim_type, unsigned vertex_ct)
+Gwn_Batch* immBeginBatch(Gwn_PrimType prim_type, unsigned vertex_len)
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
 	assert(imm.prim_type == GWN_PRIM_NONE); // make sure we haven't already begun
-	assert(vertex_count_makes_sense_for_primitive(vertex_ct, prim_type));
+	assert(vertex_count_makes_sense_for_primitive(vertex_len, prim_type));
 #endif
 
 	imm.prim_type = prim_type;
-	imm.vertex_ct = vertex_ct;
+	imm.vertex_len = vertex_len;
 	imm.vertex_idx = 0;
 	imm.unassigned_attrib_bits = imm.attrib_binding.enabled_bits;
 
 	Gwn_VertBuf* verts = GWN_vertbuf_create_with_format(&imm.vertex_format);
-	GWN_vertbuf_data_alloc(verts, vertex_ct);
+	GWN_vertbuf_data_alloc(verts, vertex_len);
 
 	imm.buffer_bytes_mapped = GWN_vertbuf_size_get(verts);
 	imm.vertex_data = verts->data;
@@ -281,10 +281,10 @@ Gwn_Batch* immBeginBatch(Gwn_PrimType prim_type, unsigned vertex_ct)
 	return imm.batch;
 	}
 
-Gwn_Batch* immBeginBatchAtMost(Gwn_PrimType prim_type, unsigned vertex_ct)
+Gwn_Batch* immBeginBatchAtMost(Gwn_PrimType prim_type, unsigned vertex_len)
 	{
-	imm.strict_vertex_ct = false;
-	return immBeginBatch(prim_type, vertex_ct);
+	imm.strict_vertex_len = false;
+	return immBeginBatch(prim_type, vertex_len);
 	}
 
 #endif // IMM_BATCH_COMBO
@@ -319,7 +319,7 @@ static void immDrawSetup(void)
 
 	const unsigned stride = imm.vertex_format.stride;
 
-	for (unsigned a_idx = 0; a_idx < imm.vertex_format.attrib_ct; ++a_idx)
+	for (unsigned a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx)
 		{
 		const Gwn_VertAttr* a = imm.vertex_format.attribs + a_idx;
 
@@ -334,13 +334,13 @@ static void immDrawSetup(void)
 			{
 			case GWN_FETCH_FLOAT:
 			case GWN_FETCH_INT_TO_FLOAT:
-				glVertexAttribPointer(loc, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
+				glVertexAttribPointer(loc, a->comp_len, a->gl_comp_type, GL_FALSE, stride, pointer);
 				break;
 			case GWN_FETCH_INT_TO_FLOAT_UNIT:
-				glVertexAttribPointer(loc, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
+				glVertexAttribPointer(loc, a->comp_len, a->gl_comp_type, GL_TRUE, stride, pointer);
 				break;
 			case GWN_FETCH_INT:
-				glVertexAttribIPointer(loc, a->comp_ct, a->gl_comp_type, stride, pointer);
+				glVertexAttribIPointer(loc, a->comp_len, a->gl_comp_type, stride, pointer);
 			}
 		}
 
@@ -355,20 +355,20 @@ void immEnd(void)
 #endif
 
 	unsigned buffer_bytes_used;
-	if (imm.strict_vertex_ct)
+	if (imm.strict_vertex_len)
 		{
 #if TRUST_NO_ONE
-		assert(imm.vertex_idx == imm.vertex_ct); // with all vertices defined
+		assert(imm.vertex_idx == imm.vertex_len); // with all vertices defined
 #endif
 		buffer_bytes_used = imm.buffer_bytes_mapped;
 		}
 	else
 		{
 #if TRUST_NO_ONE
-		assert(imm.vertex_idx <= imm.vertex_ct);
+		assert(imm.vertex_idx <= imm.vertex_len);
 #endif
-		// printf("used %u of %u verts,", imm.vertex_idx, imm.vertex_ct);
-		if (imm.vertex_idx == imm.vertex_ct)
+		// printf("used %u of %u verts,", imm.vertex_idx, imm.vertex_len);
+		if (imm.vertex_idx == imm.vertex_len)
 			{
 			buffer_bytes_used = imm.buffer_bytes_mapped;
 			}
@@ -377,8 +377,8 @@ void immEnd(void)
 #if TRUST_NO_ONE
 			assert(imm.vertex_idx == 0 || vertex_count_makes_sense_for_primitive(imm.vertex_idx, imm.prim_type));
 #endif
-			imm.vertex_ct = imm.vertex_idx;
-			buffer_bytes_used = vertex_buffer_size(&imm.vertex_format, imm.vertex_ct);
+			imm.vertex_len = imm.vertex_idx;
+			buffer_bytes_used = vertex_buffer_size(&imm.vertex_format, imm.vertex_len);
 			// unused buffer bytes are available to the next immBegin
 			// printf(" %u of %u bytes\n", buffer_bytes_used, imm.buffer_bytes_mapped);
 			}
@@ -393,7 +393,7 @@ void immEnd(void)
 		{
 		if (buffer_bytes_used != imm.buffer_bytes_mapped)
 			{
-			GWN_vertbuf_data_resize(imm.batch->verts[0], imm.vertex_ct);
+			GWN_vertbuf_data_resize(imm.batch->verts[0], imm.vertex_len);
 			// TODO: resize only if vertex count is much smaller
 			}
 
@@ -406,10 +406,10 @@ void immEnd(void)
 		{
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 
-		if (imm.vertex_ct > 0)
+		if (imm.vertex_len > 0)
 			{
 			immDrawSetup();
-			glDrawArrays(convert_prim_type_to_gl(imm.prim_type), 0, imm.vertex_ct);
+			glDrawArrays(convert_prim_type_to_gl(imm.prim_type), 0, imm.vertex_len);
 			}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -421,7 +421,7 @@ void immEnd(void)
 
 	// prep for next immBegin
 	imm.prim_type = GWN_PRIM_NONE;
-	imm.strict_vertex_ct = true;
+	imm.strict_vertex_len = true;
 	}
 
 static void setAttribValueBit(unsigned attrib_id)
@@ -443,10 +443,10 @@ void immAttrib1f(unsigned attrib_id, float x)
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_F32);
-	assert(attrib->comp_ct == 1);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 1);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -463,10 +463,10 @@ void immAttrib2f(unsigned attrib_id, float x, float y)
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_F32);
-	assert(attrib->comp_ct == 2);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 2);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -484,10 +484,10 @@ void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_F32);
-	assert(attrib->comp_ct == 3);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 3);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -506,10 +506,10 @@ void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w)
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_F32);
-	assert(attrib->comp_ct == 4);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 4);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -529,10 +529,10 @@ void immAttrib1u(unsigned attrib_id, unsigned x)
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_U32);
-	assert(attrib->comp_ct == 1);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 1);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -548,10 +548,10 @@ void immAttrib2i(unsigned attrib_id, int x, int y)
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_I32);
-	assert(attrib->comp_ct == 2);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 2);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -568,10 +568,10 @@ void immAttrib2s(unsigned attrib_id, short x, short y)
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_I16);
-	assert(attrib->comp_ct == 2);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 2);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -603,10 +603,10 @@ void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_U8);
-	assert(attrib->comp_ct == 3);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 3);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -625,10 +625,10 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GWN_COMP_U8);
-	assert(attrib->comp_ct == 4);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib->comp_len == 4);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -656,8 +656,8 @@ void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4])
 void immSkipAttrib(unsigned attrib_id)
 	{
 #if TRUST_NO_ONE
-	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(attrib_id < imm.vertex_format.attr_len);
+	assert(imm.vertex_idx < imm.vertex_len);
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
@@ -668,7 +668,7 @@ static void immEndVertex(void) // and move on to the next vertex
 	{
 #if TRUST_NO_ONE
 	assert(imm.prim_type != GWN_PRIM_NONE); // make sure we're between a Begin/End pair
-	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(imm.vertex_idx < imm.vertex_len);
 #endif
 
 	// have all attribs been assigned values?
@@ -679,7 +679,7 @@ static void immEndVertex(void) // and move on to the next vertex
 		assert(imm.vertex_idx > 0); // first vertex must have all attribs specified
 #endif
 
-		for (unsigned a_idx = 0; a_idx < imm.vertex_format.attrib_ct; ++a_idx)
+		for (unsigned a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx)
 			{
 			if ((imm.unassigned_attrib_bits >> a_idx) & 1)
 				{

@@ -60,8 +60,8 @@ static void clear_orphans(Gwn_Context* ctx)
 	ctx->orphans_mutex.lock();
 	if (!ctx->orphaned_vertarray_ids.empty())
 		{
-		unsigned orphan_ct = (unsigned)ctx->orphaned_vertarray_ids.size();
-		glDeleteVertexArrays(orphan_ct, ctx->orphaned_vertarray_ids.data());
+		unsigned orphan_len = (unsigned)ctx->orphaned_vertarray_ids.size();
+		glDeleteVertexArrays(orphan_len, ctx->orphaned_vertarray_ids.data());
 		ctx->orphaned_vertarray_ids.clear();
 		}
 	ctx->orphans_mutex.unlock();

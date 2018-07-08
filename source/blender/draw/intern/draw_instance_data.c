@@ -215,7 +215,7 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 			realloc_size = i + 1;
 			uint vert_len = DRW_shgroup_get_instance_count(bbuf->shgroup);
 			vert_len += (vert_len == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
-			if (vert_len + BUFFER_VERTS_CHUNK <= bbuf->vert->vertex_ct) {
+			if (vert_len + BUFFER_VERTS_CHUNK <= bbuf->vert->vertex_len) {
 				uint size = vert_len + BUFFER_VERTS_CHUNK - 1;
 				size = size - size % BUFFER_VERTS_CHUNK;
 				GWN_vertbuf_data_resize(bbuf->vert, size);
@@ -247,7 +247,7 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 			realloc_size = i + 1;
 			uint vert_len = DRW_shgroup_get_instance_count(ibuf->shgroup);
 			vert_len += (vert_len == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
-			if (vert_len + BUFFER_VERTS_CHUNK <= ibuf->vert->vertex_ct) {
+			if (vert_len + BUFFER_VERTS_CHUNK <= ibuf->vert->vertex_len) {
 				uint size = vert_len + BUFFER_VERTS_CHUNK - 1;
 				size = size - size % BUFFER_VERTS_CHUNK;
 				GWN_vertbuf_data_resize(ibuf->vert, size);

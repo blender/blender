@@ -486,14 +486,14 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 
 	const int step = (layout->tile_w + 2 * layout->tile_border_x);
 
-	unsigned int vertex_ct = 0;
+	unsigned int vertex_len = 0;
 	int sx = (int)v2d->tot.xmin;
 	while (sx < v2d->cur.xmax) {
 		sx += step;
-		vertex_ct += 4; /* vertex_count = 2 points per line * 2 lines per divider */
+		vertex_len += 4; /* vertex_count = 2 points per line * 2 lines per divider */
 	}
 
-	if (vertex_ct > 0) {
+	if (vertex_len > 0) {
 		int v1[2], v2[2];
 		unsigned char col_hi[3], col_lo[3];
 
@@ -508,7 +508,7 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 		uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		immBegin(GWN_PRIM_LINES, vertex_ct);
+		immBegin(GWN_PRIM_LINES, vertex_len);
 
 		sx = (int)v2d->tot.xmin;
 		while (sx < v2d->cur.xmax) {

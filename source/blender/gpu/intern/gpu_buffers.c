@@ -133,7 +133,7 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, unsigned int v
 		/* match 'VertexBufferFormat' */
 
 		static Gwn_VertFormat format = {0};
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			g_vbo_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			g_vbo_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_I16, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 			g_vbo_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
@@ -142,7 +142,7 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, unsigned int v
 		buffers->vert_buf = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_DYNAMIC);
 		GWN_vertbuf_data_alloc(buffers->vert_buf, vert_ct);
 	}
-	else if (vert_ct != buffers->vert_buf->vertex_ct) {
+	else if (vert_ct != buffers->vert_buf->vertex_len) {
 		GWN_vertbuf_data_resize(buffers->vert_buf, vert_ct);
 	}
 #else

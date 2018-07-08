@@ -371,10 +371,10 @@ static void mask_color_active_tint(unsigned char r_rgb[4], const unsigned char r
 	}
 }
 
-static void mask_draw_array(unsigned int pos, Gwn_PrimType prim_type, const float (*points)[2], unsigned int vertex_ct)
+static void mask_draw_array(unsigned int pos, Gwn_PrimType prim_type, const float (*points)[2], unsigned int vertex_len)
 {
-	immBegin(prim_type, vertex_ct);
-	for (unsigned int i = 0; i < vertex_ct; ++i) {
+	immBegin(prim_type, vertex_len);
+	for (unsigned int i = 0; i < vertex_len; ++i) {
 		immVertex2fv(pos, points[i]);
 	}
 	immEnd();

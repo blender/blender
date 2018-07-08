@@ -122,7 +122,7 @@ Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 {
 	static Gwn_VertFormat format = { 0 };
 	static struct { uint pos, nor; } attr_id;
-	if (format.attrib_ct == 0) {
+	if (format.attr_len == 0) {
 		/* initialize vertex format */
 		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
@@ -228,7 +228,7 @@ Gwn_Batch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(Lis
 	static Gwn_VertFormat shaded_triangles_format = { 0 };
 	static struct { uint pos, nor, uv; } attr_id;
 
-	if (shaded_triangles_format.attrib_ct == 0) {
+	if (shaded_triangles_format.attr_len == 0) {
 		/* initialize vertex format */
 		attr_id.pos = GWN_vertformat_attr_add(&shaded_triangles_format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		attr_id.nor = GWN_vertformat_attr_add(&shaded_triangles_format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);

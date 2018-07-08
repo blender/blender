@@ -507,7 +507,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 	if (cache->overlay_verts == NULL) {
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			/* initialize vertex format */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_U8, 1, GWN_FETCH_INT);

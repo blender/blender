@@ -33,23 +33,23 @@ unsigned GWN_indexbuf_size_get(const Gwn_IndexBuf* elem)
 		[GWN_INDEX_U16] = sizeof(GLushort),
 		[GWN_INDEX_U32] = sizeof(GLuint)
 		};
-	return elem->index_ct * table[elem->index_type];
+	return elem->index_len * table[elem->index_type];
 #else
-	return elem->index_ct * sizeof(GLuint);
+	return elem->index_len * sizeof(GLuint);
 #endif
 	}
 
-void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned index_ct, unsigned vertex_ct, bool use_prim_restart)
+void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned index_len, unsigned vertex_len, bool use_prim_restart)
 	{
 	builder->use_prim_restart = use_prim_restart;
-	builder->max_allowed_index = vertex_ct - 1;
-	builder->max_index_ct = index_ct;
-	builder->index_ct = 0; // start empty
+	builder->max_allowed_index = vertex_len - 1;
+	builder->max_index_len = index_len;
+	builder->index_len = 0; // start empty
 	builder->prim_type = prim_type;
-	builder->data = calloc(builder->max_index_ct, sizeof(unsigned));
+	builder->data = calloc(builder->max_index_len, sizeof(unsigned));
 	}
 
-void GWN_indexbuf_init(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned prim_ct, unsigned vertex_ct)
+void GWN_indexbuf_init(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned prim_len, unsigned vertex_len)
 	{
 	unsigned verts_per_prim = 0;
 	switch (prim_type)
@@ -73,29 +73,29 @@ void GWN_indexbuf_init(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, uns
 			return;
 		}
 
-	GWN_indexbuf_init_ex(builder, prim_type, prim_ct * verts_per_prim, vertex_ct, false);
+	GWN_indexbuf_init_ex(builder, prim_type, prim_len * verts_per_prim, vertex_len, false);
 	}
 
 void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder* builder, unsigned v)
 	{
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
-	assert(builder->index_ct < builder->max_index_ct);
+	assert(builder->index_len < builder->max_index_len);
 	assert(v <= builder->max_allowed_index);
 #endif
 
-	builder->data[builder->index_ct++] = v;
+	builder->data[builder->index_len++] = v;
 	}
 
 void GWN_indexbuf_add_primitive_restart(Gwn_IndexBufBuilder* builder)
 	{
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
-	assert(builder->index_ct < builder->max_index_ct);
+	assert(builder->index_len < builder->max_index_len);
 	assert(builder->use_prim_restart);
 #endif
 
-	builder->data[builder->index_ct++] = GWN_PRIM_RESTART;
+	builder->data[builder->index_len++] = GWN_PRIM_RESTART;
 	}
 
 void GWN_indexbuf_add_point_vert(Gwn_IndexBufBuilder* builder, unsigned v)
@@ -147,9 +147,9 @@ void GWN_indexbuf_add_line_adj_verts(Gwn_IndexBufBuilder* builder, unsigned v1, 
 // Everything remains 32 bit while building to keep things simple.
 // Find min/max after, then convert to smallest index type possible.
 
-static unsigned index_range(const unsigned values[], unsigned value_ct, unsigned* min_out, unsigned* max_out)
+static unsigned index_range(const unsigned values[], unsigned value_len, unsigned* min_out, unsigned* max_out)
 	{
-	if (value_ct == 0)
+	if (value_len == 0)
 		{
 		*min_out = 0;
 		*max_out = 0;
@@ -157,7 +157,7 @@ static unsigned index_range(const unsigned values[], unsigned value_ct, unsigned
 		}
 	unsigned min_value = values[0];
 	unsigned max_value = values[0];
-	for (unsigned i = 1; i < value_ct; ++i)
+	for (unsigned i = 1; i < value_len; ++i)
 		{
 		const unsigned value = values[i];
 		if (value == GWN_PRIM_RESTART)
@@ -175,7 +175,7 @@ static unsigned index_range(const unsigned values[], unsigned value_ct, unsigned
 static void squeeze_indices_byte(Gwn_IndexBufBuilder *builder, Gwn_IndexBuf* elem)
 	{
 	const unsigned *values = builder->data;
-	const unsigned index_ct = elem->index_ct;
+	const unsigned index_len = elem->index_len;
 
 	// data will never be *larger* than builder->data...
 	// converting in place to avoid extra allocation
@@ -189,14 +189,14 @@ static void squeeze_indices_byte(Gwn_IndexBufBuilder *builder, Gwn_IndexBuf* ele
 		elem->min_index = 0;
 		elem->max_index -= base;
 
-		for (unsigned i = 0; i < index_ct; ++i)
+		for (unsigned i = 0; i < index_len; ++i)
 			data[i] = (values[i] == GWN_PRIM_RESTART) ? 0xFF : (GLubyte)(values[i] - base);
 		}
 	else
 		{
 		elem->base_index = 0;
 
-		for (unsigned i = 0; i < index_ct; ++i)
+		for (unsigned i = 0; i < index_len; ++i)
 			data[i] = (GLubyte)(values[i]);
 		}
 	}
@@ -204,7 +204,7 @@ static void squeeze_indices_byte(Gwn_IndexBufBuilder *builder, Gwn_IndexBuf* ele
 static void squeeze_indices_short(Gwn_IndexBufBuilder *builder, Gwn_IndexBuf* elem)
 	{
 	const unsigned *values = builder->data;
-	const unsigned index_ct = elem->index_ct;
+	const unsigned index_len = elem->index_len;
 
 	// data will never be *larger* than builder->data...
 	// converting in place to avoid extra allocation
@@ -218,14 +218,14 @@ static void squeeze_indices_short(Gwn_IndexBufBuilder *builder, Gwn_IndexBuf* el
 		elem->min_index = 0;
 		elem->max_index -= base;
 
-		for (unsigned i = 0; i < index_ct; ++i)
+		for (unsigned i = 0; i < index_len; ++i)
 			data[i] = (values[i] == GWN_PRIM_RESTART) ? 0xFFFF : (GLushort)(values[i] - base);
 		}
 	else
 		{
 		elem->base_index = 0;
 
-		for (unsigned i = 0; i < index_ct; ++i)
+		for (unsigned i = 0; i < index_len; ++i)
 			data[i] = (GLushort)(values[i]);
 		}
 	}
@@ -245,11 +245,11 @@ void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder* builder, Gwn_IndexBuf* ele
 	assert(builder->data != NULL);
 #endif
 
-	elem->index_ct = builder->index_ct;
+	elem->index_len = builder->index_len;
 	elem->use_prim_restart = builder->use_prim_restart;
 
 #if GWN_TRACK_INDEX_RANGE
-	unsigned range = index_range(builder->data, builder->index_ct, &elem->min_index, &elem->max_index);
+	unsigned range = index_range(builder->data, builder->index_len, &elem->min_index, &elem->max_index);
 
 	// count the primitive restart index.
 	if (elem->use_prim_restart)

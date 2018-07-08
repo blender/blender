@@ -210,7 +210,7 @@ static void fill_format_elem(void *data_dst_void, PyObject *py_src, const Gwn_Ve
 /* No error checking, callers must run PyErr_Occurred */
 static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const Gwn_VertAttr *attr)
 {
-	const uint len = attr->comp_ct;
+	const uint len = attr->comp_len;
 
 /**
  * Args are constants, so range checks will be optimized out if they're nop's.
@@ -247,15 +247,15 @@ static bool bpygwn_vertbuf_fill_impl(
 
 	const uint seq_len = PySequence_Fast_GET_SIZE(seq_fast);
 
-	if (seq_len != vbo->vertex_ct) {
+	if (seq_len != vbo->vertex_len) {
 		PyErr_Format(PyExc_ValueError,
 		             "Expected a sequence of size %d, got %d",
-		             vbo->vertex_ct, seq_len);
+		             vbo->vertex_len, seq_len);
 	}
 
 	PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
 
-	if (attr->comp_ct == 1) {
+	if (attr->comp_len == 1) {
 		for (uint i = 0; i < seq_len; i++) {
 			uchar *data = (uchar *)GWN_vertbuf_raw_step(&data_step);
 			PyObject *item = seq_items[i];
@@ -273,10 +273,10 @@ static bool bpygwn_vertbuf_fill_impl(
 				ok = false;
 				goto finally;
 			}
-			if (PyTuple_GET_SIZE(item) != attr->comp_ct) {
+			if (PyTuple_GET_SIZE(item) != attr->comp_len) {
 				PyErr_Format(PyExc_ValueError,
 				             "expected a tuple of size %d, got %d",
-				             attr->comp_ct, PyTuple_GET_SIZE(item));
+				             attr->comp_len, PyTuple_GET_SIZE(item));
 				ok = false;
 				goto finally;
 			}
@@ -300,7 +300,7 @@ finally:
 #if 0
 static int bpygwn_find_id(const Gwn_VertFormat *fmt, const char *id)
 {
-	for (int i = 0; i < fmt->attrib_ct; i++) {
+	for (int i = 0; i < fmt->attr_len; i++) {
 		for (uint j = 0; j < fmt->name_ct; j++) {
 			if (STREQ(fmt->attribs[i].name[j], id)) {
 				return i;
@@ -346,7 +346,7 @@ static PyObject *bpygwn_VertFormat_attr_add(BPyGwn_VertFormat *self, PyObject *a
 		Gwn_VertFetchMode fetch_mode;
 	} params;
 
-	if (self->fmt.attrib_ct == GWN_VERT_ATTR_MAX_LEN) {
+	if (self->fmt.attr_len == GWN_VERT_ATTR_MAX_LEN) {
 		PyErr_SetString(PyExc_ValueError, "Maxumum attr reached " STRINGIFY(GWN_VERT_ATTR_MAX_LEN));
 		return NULL;
 	}
@@ -440,7 +440,7 @@ static PyObject *bpygwn_VertBuf_fill(BPyGwn_VertBuf *self, PyObject *args, PyObj
 		return NULL;
 	}
 
-	if (params.id >= self->buf->format.attrib_ct) {
+	if (params.id >= self->buf->format.attr_len) {
 		PyErr_Format(PyExc_ValueError,
 		             "Format id %d out of range",
 		             params.id);
@@ -532,10 +532,10 @@ static PyObject *bpygwn_VertBatch_vertbuf_add(BPyGwn_Batch *self, BPyGwn_VertBuf
 		return NULL;
 	}
 
-	if (self->batch->verts[0]->vertex_ct != py_buf->buf->vertex_ct) {
+	if (self->batch->verts[0]->vertex_len != py_buf->buf->vertex_len) {
 		PyErr_Format(PyExc_TypeError,
 		             "Expected %d length, got %d",
-		             self->batch->verts[0]->vertex_ct, py_buf->buf->vertex_ct);
+		             self->batch->verts[0]->vertex_len, py_buf->buf->vertex_len);
 		return NULL;
 	}
 

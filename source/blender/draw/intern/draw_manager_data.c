@@ -553,7 +553,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 {
 #ifdef USE_GPU_SELECT
 	if (G.f & G_PICKSEL) {
-		if (shgroup->instance_count == shgroup->inst_selectid->vertex_ct) {
+		if (shgroup->instance_count == shgroup->inst_selectid->vertex_len) {
 			GWN_vertbuf_data_resize(shgroup->inst_selectid, shgroup->instance_count + 32);
 		}
 		GWN_vertbuf_attr_set(shgroup->inst_selectid, 0, shgroup->instance_count, &DST.select_id);
@@ -564,7 +564,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	UNUSED_VARS_NDEBUG(attr_len);
 
 	for (int i = 0; i < attr_len; ++i) {
-		if (shgroup->instance_count == shgroup->instance_vbo->vertex_ct) {
+		if (shgroup->instance_count == shgroup->instance_vbo->vertex_len) {
 			GWN_vertbuf_data_resize(shgroup->instance_vbo, shgroup->instance_count + 32);
 		}
 		GWN_vertbuf_attr_set(shgroup->instance_vbo, i, shgroup->instance_count, attr[i]);
@@ -651,7 +651,7 @@ static void drw_shgroup_instance_init(
 
 	shgroup->instance_geom = batch;
 #ifndef NDEBUG
-	shgroup->attribs_count = format->attrib_ct;
+	shgroup->attribs_count = format->attr_len;
 #endif
 
 	DRW_instancing_buffer_request(DST.idatalist, format, batch, shgroup,
@@ -662,7 +662,7 @@ static void drw_shgroup_instance_init(
 		/* Not actually used for rendering but alloced in one chunk.
 		 * Plus we don't have to care about ownership. */
 		static Gwn_VertFormat inst_select_format = {0};
-		if (inst_select_format.attrib_ct == 0) {
+		if (inst_select_format.attr_len == 0) {
 			GWN_vertformat_attr_add(&inst_select_format, "selectId", GWN_COMP_I32, 1, GWN_FETCH_INT);
 		}
 		Gwn_Batch *batch_dummy; /* Not used */
@@ -679,7 +679,7 @@ static void drw_shgroup_batching_init(
 	drw_shgroup_init(shgroup, shader);
 
 #ifndef NDEBUG
-	shgroup->attribs_count = (format != NULL) ? format->attrib_ct : 0;
+	shgroup->attribs_count = (format != NULL) ? format->attr_len : 0;
 #endif
 	BLI_assert(format != NULL);
 
@@ -698,7 +698,7 @@ static void drw_shgroup_batching_init(
 	if (G.f & G_PICKSEL) {
 		/* Not actually used for rendering but alloced in one chunk. */
 		static Gwn_VertFormat inst_select_format = {0};
-		if (inst_select_format.attrib_ct == 0) {
+		if (inst_select_format.attr_len == 0) {
 			GWN_vertformat_attr_add(&inst_select_format, "selectId", GWN_COMP_I32, 1, GWN_FETCH_INT);
 		}
 		Gwn_Batch *batch; /* Not used */

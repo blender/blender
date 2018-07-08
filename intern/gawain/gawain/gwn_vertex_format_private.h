@@ -13,4 +13,4 @@
 
 void VertexFormat_pack(Gwn_VertFormat*);
 unsigned padding(unsigned offset, unsigned alignment);
-unsigned vertex_buffer_size(const Gwn_VertFormat*, unsigned vertex_ct);
+unsigned vertex_buffer_size(const Gwn_VertFormat*, unsigned vertex_len);

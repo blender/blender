@@ -823,12 +823,12 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 	Gwn_VertAttr *attr = &format->attribs[0];
 
 	/* Detect incompatible cases (not supported by texture buffers) */
-	BLI_assert(format->attrib_ct == 1 && vert->vbo_id != 0);
-	BLI_assert(attr->comp_ct != 3); /* Not until OGL 4.0 */
+	BLI_assert(format->attr_len == 1 && vert->vbo_id != 0);
+	BLI_assert(attr->comp_len != 3); /* Not until OGL 4.0 */
 	BLI_assert(attr->comp_type != GWN_COMP_I10);
 	BLI_assert(attr->fetch_mode != GWN_FETCH_INT_TO_FLOAT);
 
-	unsigned int byte_per_comp = attr->sz / attr->comp_ct;
+	unsigned int byte_per_comp = attr->sz / attr->comp_len;
 	bool is_uint = ELEM(attr->comp_type, GWN_COMP_U8, GWN_COMP_U16, GWN_COMP_U32);
 
 	/* Cannot fetch signed int or 32bit ints as normalized float. */
@@ -839,7 +839,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 	GPUTextureFormat data_type;
 	switch (attr->fetch_mode) {
 		case GWN_FETCH_FLOAT:
-			switch (attr->comp_ct) {
+			switch (attr->comp_len) {
 				case 1: data_type = GPU_R32F; break;
 				case 2: data_type = GPU_RG32F; break;
 				// case 3: data_type = GPU_RGB32F; break; /* Not supported */
@@ -847,7 +847,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 			}
 			break;
 		case GWN_FETCH_INT:
-			switch (attr->comp_ct) {
+			switch (attr->comp_len) {
 				case 1:
 					switch (byte_per_comp) {
 						case 1: data_type = (is_uint) ? GPU_R8UI : GPU_R8I; break;
@@ -872,7 +872,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 			}
 			break;
 		case GWN_FETCH_INT_TO_FLOAT_UNIT:
-			switch (attr->comp_ct) {
+			switch (attr->comp_len) {
 				case 1: data_type = (byte_per_comp == 1) ? GPU_R8 : GPU_R16; break;
 				case 2: data_type = (byte_per_comp == 1) ? GPU_RG8 : GPU_RG16; break;
 				default: data_type = (byte_per_comp == 1) ? GPU_RGBA8 : GPU_RGBA16; break;

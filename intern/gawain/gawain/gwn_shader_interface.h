@@ -65,7 +65,7 @@ typedef struct Gwn_ShaderInterface {
 	Gwn_ShaderInput* builtin_uniforms[GWN_NUM_UNIFORMS];
 	char* name_buffer;
 	struct Gwn_Batch** batches; // references to batches using this interface
-	unsigned batches_ct;
+	unsigned batches_len;
 } Gwn_ShaderInterface;
 
 Gwn_ShaderInterface* GWN_shaderinterface_create(int32_t program_id);
