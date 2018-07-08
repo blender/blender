@@ -286,7 +286,7 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
 	 *	- draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
 	 */
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	GPU_blend(true);
 	GPU_enable_program_point_size();
@@ -331,8 +331,8 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 	int sel, b;
 
 	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	immBeginAtMost(GWN_PRIM_LINES, 4 * 2 * fcu->totvert);
@@ -459,7 +459,7 @@ static void draw_fcurve_samples(SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) GPU_line_smooth(true);
 		GPU_blend(true);
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformThemeColor((fcu->flag & FCURVE_SELECTED) ? TH_TEXT_HI : TH_TEXT);

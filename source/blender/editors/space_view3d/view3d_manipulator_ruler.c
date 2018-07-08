@@ -793,7 +793,7 @@ static void manipulator_ruler_draw(const bContext *C, wmManipulator *mpr)
 		float co_ss_snap[3];
 		ED_view3d_project_float_global(ar, ruler_item->co[inter->co_index], co_ss_snap, V3D_PROJ_TEST_NOP);
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4fv(color_act);

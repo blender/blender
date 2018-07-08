@@ -127,7 +127,7 @@ static void draw_render_info(const bContext *C,
 				               (int)(-rd->border.ymin * rd->ysch * rd->size * 0.01f));
 			}
 
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			immUniformThemeColor(TH_FACE_SELECT);
 
@@ -174,7 +174,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	GPU_blend(true);
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
@@ -574,7 +574,7 @@ void draw_image_sample_line(SpaceImage *sima)
 		Histogram *hist = &sima->sample_line_hist;
 
 		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int shdr_dashed_pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint shdr_dashed_pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -779,7 +779,7 @@ void draw_image_cache(const bContext *C, ARegion *ar)
 	/* Draw current frame. */
 	x = (cfra - sfra) / (efra - sfra + 1) * ar->winx;
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_CFRAME);
 	immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);

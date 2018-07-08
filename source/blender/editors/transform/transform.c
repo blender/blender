@@ -1774,7 +1774,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		}
 
 		/* And now, solid lines. */
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		UNUSED_VARS_NDEBUG(pos); /* silence warning */
 		BLI_assert(pos == POS_INDEX);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -6982,7 +6982,7 @@ static void drawEdgeSlide(TransInfo *t)
 			gpuPushMatrix();
 			gpuMultMatrix(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
 
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 

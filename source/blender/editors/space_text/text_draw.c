@@ -913,7 +913,7 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
 	float rad;
 
 	/* background so highlights don't go behind the scrollbar */
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_BACK);
 	immRecti(pos, back->xmin, back->ymin, back->xmax, back->ymax);
@@ -967,7 +967,7 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 	boxh = (DOC_HEIGHT + 1) * (st->lheight_dpi + TXT_LINE_SPACING);
 
 	/* Draw panel */
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColor(TH_BACK);
@@ -1066,7 +1066,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 	/* not needed but stands out nicer */
 	UI_draw_box_shadow(220, x, y - boxh, x + boxw, y);
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColor(TH_SHADE1);
@@ -1089,7 +1089,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 		w = st->cwidth * text_get_char_pos(st, str, len);
 
 		if (item == sel) {
-			unsigned int posi = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+			uint posi = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformThemeColor(TH_SHADE2);
@@ -1130,7 +1130,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
 		return;
 	}
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* Draw the selection */
@@ -1443,7 +1443,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	if (st->showlinenrs) {
 		x = TXT_OFFSET + TEXTXLOC;
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColor(TH_GRID);
 		immRecti(pos, (TXT_OFFSET - 12), 0, (TXT_OFFSET - 5) + TEXTXLOC, ar->winy - 2);

@@ -986,7 +986,7 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 
 	if (brush) {
 		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		GPU_line_smooth(true);

@@ -121,7 +121,7 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 	color[3] *= 2.5f;
 
 	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -143,9 +143,9 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 	if (key_ct > 0) {
 		format = immVertexFormat();
 		pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		unsigned int size_id = GWN_vertformat_attr_add(format, "size", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
-		unsigned int color_id = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
-		unsigned int outline_color_id = GWN_vertformat_attr_add(format, "outlineColor", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		uint size_id = GWN_vertformat_attr_add(format, "size", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
+		uint color_id = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		uint outline_color_id = GWN_vertformat_attr_add(format, "outlineColor", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 		GPU_enable_program_point_size();
 		immBegin(GWN_PRIM_POINTS, key_ct);
@@ -706,7 +706,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					AnimData *adt = ale->adt;
 
-					unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+					uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 					immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data,

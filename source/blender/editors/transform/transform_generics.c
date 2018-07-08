@@ -1132,7 +1132,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 		}
 		UI_make_axis_color(col, col2, axis);
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor3ubv(col2);

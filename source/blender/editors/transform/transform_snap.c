@@ -165,7 +165,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
 			invert_m4_m4(imat, rv3d->viewmat);
 
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -219,7 +219,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
 			GPU_blend(true);
 
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

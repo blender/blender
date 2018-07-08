@@ -486,7 +486,7 @@ void ED_markers_draw(const bContext *C, int flag)
 	v2d = UI_view2d_fromcontext(C);
 
 	if (flag & DRAW_MARKERS_MARGIN) {
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		const unsigned char shade[4] = {0, 0, 0, 16};

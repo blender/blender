@@ -167,7 +167,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
 	ED_region_cache_draw_cached_segments(ar, totseg, points, sfra, efra);
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* track */
@@ -290,7 +290,7 @@ static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx
 {
 	int x, y;
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* find window pixel coordinates of origin */
@@ -452,7 +452,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		i++;
 	}
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1145,8 +1145,8 @@ static void draw_plane_marker_image(Scene *scene,
 			gpuMultMatrix(gl_matrix);
 
 			Gwn_VertFormat *imm_format = immVertexFormat();
-			unsigned int pos = GWN_vertformat_attr_add(imm_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-			unsigned int texCoord = GWN_vertformat_attr_add(imm_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			uint pos = GWN_vertformat_attr_add(imm_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			uint texCoord = GWN_vertformat_attr_add(imm_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 			immUniformColor4f(1.0f, 1.0f, 1.0f, plane_track->image_opacity);
@@ -1414,7 +1414,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 		}
 	}
 
-	unsigned int position = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint position = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1598,7 +1598,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	gpuMultMatrix(sc->stabmat);
 	gpuScale2f(width, height);
 
-	unsigned int position = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint position = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

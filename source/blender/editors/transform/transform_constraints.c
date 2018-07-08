@@ -823,7 +823,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		if (depth_test_enabled)
 			GPU_depth_test(false);
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformThemeColor(TH_GRID);

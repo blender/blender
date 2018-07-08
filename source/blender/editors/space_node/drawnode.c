@@ -2182,7 +2182,7 @@ static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNo
 		const float cross_size = 12 * U.pixelsize;
 
 		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -2227,7 +2227,7 @@ static void node_composit_backdrop_boxmask(SpaceNode *snode, ImBuf *backdrop, bN
 	y4 = cy - (-sine * halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 
 	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -2271,7 +2271,7 @@ static void node_composit_backdrop_ellipsemask(SpaceNode *snode, ImBuf *backdrop
 	y4 = cy - (-sine * halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 
 	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -3264,7 +3264,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 				              y + snode->zoom * viewer_border->ymin * ibuf->y,
 				              y + snode->zoom * viewer_border->ymax * ibuf->y);
 
-				unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+				uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				immUniformThemeColor(TH_ACTIVE);
 
@@ -3423,9 +3423,9 @@ static void set_nodelink_vertex(
 static void nodelink_batch_init(void)
 {
 	Gwn_VertFormat format = {0};
-	unsigned int uv_id = GWN_vertformat_attr_add(&format, "uv", GWN_COMP_U8, 2, GWN_FETCH_INT_TO_FLOAT_UNIT);
-	unsigned int pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int expand_id = GWN_vertformat_attr_add(&format, "expand", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint uv_id = GWN_vertformat_attr_add(&format, "uv", GWN_COMP_U8, 2, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	uint pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint expand_id = GWN_vertformat_attr_add(&format, "expand", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_STATIC);
 	int vcount = LINK_RESOL * 2; /* curve */
 	vcount += 2; /* restart strip */

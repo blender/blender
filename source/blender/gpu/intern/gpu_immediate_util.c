@@ -235,7 +235,7 @@ void imm_draw_box_wire_3d(unsigned pos, float x1, float y1, float x2, float y2)
  */
 void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
 {
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
 
 	immUniform4f("color1", 0.15f, 0.15f, 0.15f, 1.0f);

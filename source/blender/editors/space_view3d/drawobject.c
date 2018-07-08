@@ -748,7 +748,7 @@ void ED_draw_object_facemap(
 	const int *facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 	if (facemap_data) {
 		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor4fv(col);
