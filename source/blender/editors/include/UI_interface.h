@@ -76,6 +76,7 @@ struct wmEvent;
 struct wmManipulator;
 struct wmMsgBus;
 struct wmKeyMap;
+struct wmKeyMapItem;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -722,6 +723,9 @@ enum {
 
 int UI_icon_from_id(struct ID *id);
 int UI_icon_from_report_type(int type);
+
+int UI_icon_from_event_type(short event_type, short event_value);
+int UI_icon_from_keymap_item(const struct wmKeyMapItem *kmi, int r_icon_mod[4]);
 
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, const char *str, int x, int y, short width, short height, const char *tip);
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, const char *str, int x, int y, short width, short height, const char *tip);

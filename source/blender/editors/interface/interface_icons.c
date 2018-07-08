@@ -108,6 +108,7 @@ typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 #define ICON_TYPE_BUFFER         3
 #define ICON_TYPE_VECTOR         4
 #define ICON_TYPE_GEOM           5
+#define ICON_TYPE_EVENT          6  /* draw keymap entries using custom renderer. */
 
 typedef struct DrawInfo {
 	int type;
@@ -126,6 +127,14 @@ typedef struct DrawInfo {
 		struct {
 			int x, y, w, h;
 		} texture;
+		struct {
+			/* Can be packed into a single int. */
+			short event_type;
+			short event_value;
+			int icon;
+			/* Allow lookups. */
+			struct DrawInfo *next;
+		} input;
 	} data;
 } DrawInfo;
 
@@ -435,6 +444,143 @@ static void init_brush_icons(void)
 	INIT_BRUSH_ICON(ICON_BRUSH_VERTEXDRAW, vertexdraw);
 
 #undef INIT_BRUSH_ICON
+}
+
+static DrawInfo *g_di_event_list = NULL;
+
+int UI_icon_from_event_type(short event_type, short event_value)
+{
+	if (event_type == RIGHTSHIFTKEY) {
+		event_type = LEFTSHIFTKEY;
+	}
+	else if (event_type == RIGHTCTRLKEY) {
+		event_type = LEFTCTRLKEY;
+	}
+	else if (event_type == RIGHTALTKEY) {
+		event_type = LEFTALTKEY;
+	}
+	else if (event_type == EVT_TWEAK_L) {
+		event_type = LEFTMOUSE;
+		event_value = KM_CLICK_DRAG;
+	}
+	else if (event_type == EVT_TWEAK_M) {
+		event_type = MIDDLEMOUSE;
+		event_value = KM_CLICK_DRAG;
+	}
+	else if (event_type == EVT_TWEAK_R) {
+		event_type = RIGHTMOUSE;
+		event_value = KM_CLICK_DRAG;
+	}
+
+	DrawInfo *di = g_di_event_list;
+	do {
+		if (di->data.input.event_type == event_type) {
+			return di->data.input.icon;
+		}
+	} while ((di = di->data.input.next));
+
+	if (event_type == LEFTMOUSE) {
+		return ELEM(event_value, KM_CLICK, KM_PRESS) ? ICON_MOUSE_LMB : ICON_MOUSE_LMB_DRAG;
+	}
+	else if (event_type == MIDDLEMOUSE) {
+		return ELEM(event_value, KM_CLICK, KM_PRESS) ? ICON_MOUSE_MMB : ICON_MOUSE_MMB_DRAG;
+	}
+	else if (event_type == RIGHTMOUSE) {
+		return ELEM(event_value, KM_CLICK, KM_PRESS) ? ICON_MOUSE_RMB : ICON_MOUSE_RMB_DRAG;
+	}
+
+	return ICON_NONE;
+}
+
+int UI_icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[4])
+{
+	if (r_icon_mod) {
+		memset(r_icon_mod, 0x0, sizeof(int[4]));
+		int i = 0;
+		if (!ELEM(kmi->ctrl, KM_NOTHING, KM_ANY)) {
+			r_icon_mod[i++] = ICON_EVENT_CTRL;
+		}
+		if (!ELEM(kmi->alt, KM_NOTHING, KM_ANY)) {
+			r_icon_mod[i++] = ICON_EVENT_ALT;
+		}
+		if (!ELEM(kmi->shift, KM_NOTHING, KM_ANY)) {
+			r_icon_mod[i++] = ICON_EVENT_SHIFT;
+		}
+		if (!ELEM(kmi->oskey, KM_NOTHING, KM_ANY)) {
+			r_icon_mod[i++] = ICON_EVENT_OS;
+		}
+	}
+	return UI_icon_from_event_type(kmi->type, kmi->val);
+}
+
+static void init_event_icons(void)
+{
+	DrawInfo *di_next = NULL;
+
+#define INIT_EVENT_ICON(icon_id, type, value) \
+	{ \
+		DrawInfo *di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_EVENT); \
+		di->data.input.event_type = type; \
+		di->data.input.event_value = value; \
+		di->data.input.icon = icon_id; \
+		di->data.input.next = di_next; \
+		di_next = di; \
+	}
+	/* end INIT_EVENT_ICON */
+
+	const int w = 16; /* DUMMY */
+
+	INIT_EVENT_ICON(ICON_EVENT_A, AKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_B, BKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_C, CKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_D, DKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_E, EKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F, FKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_G, GKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_H, HKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_I, IKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_J, JKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_K, KKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_L, LKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_M, MKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_N, NKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_O, OKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_P, PKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_Q, QKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_R, RKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_S, SKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_T, TKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_U, UKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_V, VKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_W, WKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_X, XKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_Y, YKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_Z, ZKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_SHIFT, LEFTSHIFTKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_CTRL, LEFTCTRLKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_ALT, LEFTALTKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_OS, OSKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F1,  F1KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F2,  F2KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F3,  F3KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F4,  F4KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F5,  F5KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F6,  F6KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F7,  F7KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F8,  F8KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F9,  F9KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F10, F10KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F11, F11KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_F12, F12KEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_ESC, ESCKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_TAB, TABKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_PAGEUP, PAGEUPKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_PAGEDOWN, PAGEDOWNKEY, KM_ANY);
+	INIT_EVENT_ICON(ICON_EVENT_RETURN, RETKEY, KM_ANY);
+
+	g_di_event_list = di_next;
+
+#undef INIT_EVENT_ICON
 }
 
 static void icon_verify_datatoc(IconImage *iimg)
@@ -795,6 +941,7 @@ void UI_icons_init(int first_dyn_id)
 	init_iconfile_list(&iconfilelist);
 	init_internal_icons();
 	init_brush_icons();
+	init_event_icons();
 #endif
 }
 
@@ -1284,6 +1431,11 @@ static void icon_draw_size(
 		glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, rgb, desaturate);
 		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	}
+	else if (di->type == ICON_TYPE_EVENT) {
+		const short event_type = di->data.input.event_type;
+		const short event_value = di->data.input.event_value;
+		icon_draw_rect_input(x, y, w, h, alpha, event_type, event_value);
 	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
 		/* texture image use premul alpha for correct scaling */

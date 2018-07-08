@@ -4546,14 +4546,43 @@ bool WM_window_modal_keymap_status_draw(
 		if (!items[i].identifier[0]) {
 			continue;
 		}
-		char buf[UI_MAX_DRAW_STR];
-		int available_len = sizeof(buf);
-		char *p = buf;
-		WM_modalkeymap_operator_items_to_string_buf(ot, items[i].value, true, UI_MAX_SHORTCUT_STR, &available_len, &p);
-		p -= 1;
-		if (p > buf) {
-			BLI_snprintf(p, available_len, ": %s", items[i].name);
-			uiItemL(row, buf, 0);
+
+		bool show_text = true;
+
+		{
+			/* warning: O(n^2) */
+			wmKeyMapItem *kmi = NULL;
+			for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+				if (kmi->propvalue == items[i].value) {
+					break;
+				}
+			}
+			if (kmi != NULL) {
+				if (kmi->val == KM_RELEASE) {
+					/* Assume release events just disable something which was toggled on. */
+					continue;
+				}
+				int icon_mod[4];
+				int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+				if (icon != 0) {
+					for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
+						uiItemL(row, "", icon_mod[j]);
+					}
+					uiItemL(row, items[i].name, icon);
+					show_text = false;
+				}
+			}
+		}
+		if (show_text) {
+			char buf[UI_MAX_DRAW_STR];
+			int available_len = sizeof(buf);
+			char *p = buf;
+			WM_modalkeymap_operator_items_to_string_buf(ot, items[i].value, true, UI_MAX_SHORTCUT_STR, &available_len, &p);
+			p -= 1;
+			if (p > buf) {
+				BLI_snprintf(p, available_len, ": %s", items[i].name);
+				uiItemL(row, buf, 0);
+			}
 		}
 	}
 	return true;

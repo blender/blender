@@ -789,6 +789,11 @@ void uiStyleInit(void);
 void ui_icon_ensure_deferred(const struct bContext *C, const int icon_id, const bool big);
 int ui_id_icon_get(const struct bContext *C, struct ID *id, const bool big);
 
+/* interface_icons_event.c */
+void icon_draw_rect_input(
+        float x, float y, int w, int h, float alpha,
+        short event_type, short event_value);
+
 /* resources.c */
 void init_userdef_do_versions(struct Main *bmain);
 void ui_theme_init_default(void);
