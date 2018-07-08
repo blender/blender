@@ -3143,7 +3143,8 @@ class VIEW3D_MT_pose_apply(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("pose.armature_apply")
+        layout.operator("pose.armature_apply").selected = False
+        layout.operator("pose.armature_apply", text="Apply Selected as Rest Pose").selected = True
         layout.operator("pose.visual_transform_apply")
 
         layout.separator()
