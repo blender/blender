@@ -429,7 +429,8 @@ typedef struct bShrinkwrapConstraint {
 	char		projAxisSpace;	/* space to project axis in */
 	float		projLimit;		/* distance to search */
 	char		shrinkMode;		/* inside/outside/on surface (see MOD shrinkwrap) */
-	char 		pad[3];
+	char		flag;			/* options */
+	char 		pad[2];
 } bShrinkwrapConstraint;
 
 /* Follow Track constraints */
@@ -634,6 +635,21 @@ typedef enum eTrackToAxis_Modes {
 	TRACK_nY	= 4,
 	TRACK_nZ	= 5
 } eTrackToAxis_Modes;
+
+/* Shrinkwrap flags */
+typedef enum eShrinkwrap_Flags {
+	/* Also raycast in the opposite direction. */
+	CON_SHRINKWRAP_PROJECT_OPPOSITE     	= (1 << 0),
+	/* Invert the cull mode when projecting opposite. */
+	CON_SHRINKWRAP_PROJECT_INVERT_CULL  	= (1 << 1),
+
+	/* Ignore front faces in project; same value as MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE */
+	CON_SHRINKWRAP_PROJECT_CULL_FRONTFACE	= (1 << 3),
+	/* Ignore back faces in project; same value as MOD_SHRINKWRAP_CULL_TARGET_BACKFACE */
+	CON_SHRINKWRAP_PROJECT_CULL_BACKFACE	= (1 << 4),
+} eShrinkwrap_Flags;
+
+#define CON_SHRINKWRAP_PROJECT_CULL_MASK (CON_SHRINKWRAP_PROJECT_CULL_FRONTFACE | CON_SHRINKWRAP_PROJECT_CULL_BACKFACE)
 
 /* FollowPath flags */
 typedef enum eFollowPath_Flags {

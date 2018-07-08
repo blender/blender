@@ -848,6 +848,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.prop(md, "use_negative_direction")
             col.prop(md, "use_positive_direction")
 
+            subcol = col.column()
+            subcol.active = md.use_negative_direction and md.cull_face != 'OFF'
+            subcol.prop(md, "use_invert_cull")
+
             col = split.column()
             col.label(text="Cull Faces:")
             col.prop(md, "cull_face", expand=True)

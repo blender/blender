@@ -240,7 +240,7 @@ bool BKE_shrinkwrap_project_normal(
 			BLI_space_transform_invert_normal(transf, hit_tmp.no);
 		}
 
-		if (options & (MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE | MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)) {
+		if (options & MOD_SHRINKWRAP_CULL_TARGET_MASK) {
 			/* apply backface */
 			const float dot = dot_v3v3(dir, hit_tmp.no);
 			if (((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
@@ -341,6 +341,12 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 		float inv_no[3];
 		negate_v3_v3(inv_no, tmp_no);
 
+		char options = calc->smd->shrinkOpts;
+
+		if ((options & MOD_SHRINKWRAP_INVERT_CULL_TARGET) && (options & MOD_SHRINKWRAP_CULL_TARGET_MASK)) {
+			options ^= MOD_SHRINKWRAP_CULL_TARGET_MASK;
+		}
+
 		if (aux_tree) {
 			BKE_shrinkwrap_project_normal(
 			        0, tmp_co, inv_no, 0.0,
@@ -349,7 +355,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 		}
 
 		BKE_shrinkwrap_project_normal(
-		        calc->smd->shrinkOpts, tmp_co, inv_no, 0.0,
+		        options, tmp_co, inv_no, 0.0,
 		        &calc->local2target, targ_tree, hit,
 		        targ_callback, treeData);
 	}

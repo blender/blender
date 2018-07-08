@@ -396,6 +396,20 @@ static void rna_SplineIKConstraint_joint_bindings_set(PointerRNA *ptr, const flo
 	memcpy(ikData->points, values, ikData->numpoints * sizeof(float));
 }
 
+static int rna_ShrinkwrapConstraint_face_cull_get(PointerRNA *ptr)
+{
+	bConstraint *con = (bConstraint *)ptr->data;
+	bShrinkwrapConstraint *swc = (bShrinkwrapConstraint *)con->data;
+	return swc->flag & CON_SHRINKWRAP_PROJECT_CULL_MASK;
+}
+
+static void rna_ShrinkwrapConstraint_face_cull_set(struct PointerRNA *ptr, int value)
+{
+	bConstraint *con = (bConstraint *)ptr->data;
+	bShrinkwrapConstraint *swc = (bShrinkwrapConstraint *)con->data;
+	swc->flag = (swc->flag & ~CON_SHRINKWRAP_PROJECT_CULL_MASK) | value;
+}
+
 static bool rna_Constraint_cameraObject_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object *)value.data;
@@ -1916,6 +1930,13 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem shrink_face_cull_items[] = {
+		{0, "OFF", 0, "Off", "No culling"},
+		{CON_SHRINKWRAP_PROJECT_CULL_FRONTFACE, "FRONT", 0, "Front", "No projection when in front of the face"},
+		{CON_SHRINKWRAP_PROJECT_CULL_BACKFACE, "BACK", 0, "Back", "No projection when behind the face"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ShrinkwrapConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Shrinkwrap Constraint", "Create constraint-based shrinkwrap relationship");
 	RNA_def_struct_sdna_from(srna, "bShrinkwrapConstraint", "data");
@@ -1964,6 +1985,25 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Project Distance", "Limit the distance used for projection (zero disables)");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop = RNA_def_property(srna, "use_project_opposite", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CON_SHRINKWRAP_PROJECT_OPPOSITE);
+	RNA_def_property_ui_text(prop, "Project Opposite", "Project in both specified and opposite directions");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop = RNA_def_property(srna, "cull_face", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, shrink_face_cull_items);
+	RNA_def_property_enum_funcs(prop, "rna_ShrinkwrapConstraint_face_cull_get",
+	                            "rna_ShrinkwrapConstraint_face_cull_set", NULL);
+	RNA_def_property_ui_text(prop, "Face Cull",
+	                         "Stop vertices from projecting to a face on the target when facing towards/away");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop = RNA_def_property(srna, "use_invert_cull", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CON_SHRINKWRAP_PROJECT_INVERT_CULL);
+	RNA_def_property_ui_text(prop, "Invert Cull", "When projecting in the opposite direction invert the face cull mode");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
 

@@ -3533,8 +3533,24 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con,
 						break;
 					}
 
-					if (BKE_shrinkwrap_project_normal(0, co, no, 0.0f, &transform, treeData.tree,
-					                                  &hit, treeData.raycast_callback, &treeData) == false)
+					char cull_mode = scon->flag & CON_SHRINKWRAP_PROJECT_CULL_MASK;
+
+					BKE_shrinkwrap_project_normal(cull_mode, co, no, 0.0f, &transform, treeData.tree,
+					                              &hit, treeData.raycast_callback, &treeData);
+
+					if (scon->flag & CON_SHRINKWRAP_PROJECT_OPPOSITE) {
+						float inv_no[3];
+						negate_v3_v3(inv_no, no);
+
+						if ((scon->flag & CON_SHRINKWRAP_PROJECT_INVERT_CULL) && (cull_mode != 0)) {
+							cull_mode ^= CON_SHRINKWRAP_PROJECT_CULL_MASK;
+						}
+
+						BKE_shrinkwrap_project_normal(cull_mode, co, inv_no, 0.0f, &transform, treeData.tree,
+						                              &hit, treeData.raycast_callback, &treeData);
+					}
+
+					if (hit.index < 0)
 					{
 						fail = true;
 						break;

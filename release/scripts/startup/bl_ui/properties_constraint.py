@@ -758,6 +758,15 @@ class ConstraintButtonsPanel:
             split.label(text="Axis Space:")
             rowsub = split.row()
             rowsub.prop(con, "project_axis_space", text="")
+            split = layout.split(factor=0.4)
+            split.label(text="Face Culling:")
+            rowsub = split.row()
+            rowsub.prop(con, "cull_face", expand=True)
+            row = layout.row()
+            row.prop(con, "use_project_opposite")
+            rowsub = row.row()
+            rowsub.active = con.use_project_opposite and con.cull_face != 'OFF'
+            rowsub.prop(con, "use_invert_cull")
             layout.prop(con, "project_limit")
 
     def DAMPED_TRACK(self, context, layout, con):
