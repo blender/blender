@@ -76,9 +76,9 @@ typedef struct ParticleHairCache {
 
 	ParticleHairFinalCache final[MAX_HAIR_SUBDIV];
 
-	int strands_count;
-	int elems_count;
-	int point_count;
+	int strands_len;
+	int elems_len;
+	int point_len;
 } ParticleHairCache;
 
 bool particles_ensure_procedural_data(

@@ -1634,7 +1634,7 @@ typedef struct MeshBatchCache {
 	 * set srgb conversion for auto attribs.*/
 	char *auto_layer_names;
 	int *auto_layer_is_srgb;
-	int auto_layer_ct;
+	int auto_layer_len;
 
 	/* settings to determine if cache is invalid */
 	bool is_maybe_dirty;
@@ -1947,22 +1947,22 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 		uint auto_names_len = 0;
 		uint auto_ofs = 0;
 		uint auto_id = 0;
-		cache->auto_layer_ct = 0;
+		cache->auto_layer_len = 0;
 		for (uint i = 0; i < uv_len; i++) {
 			const char *attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
 			auto_names_len += strlen(attrib_name) + 2; /* include null terminator and b prefix. */
-			cache->auto_layer_ct++;
+			cache->auto_layer_len++;
 		}
 		for (uint i = 0; i < vcol_len; i++) {
 			if (rdata->cd.layers.auto_vcol[i]) {
 				const char *attrib_name = mesh_render_data_vcol_auto_layer_uuid_get(rdata, i);
 				auto_names_len += strlen(attrib_name) + 2; /* include null terminator and b prefix. */
-				cache->auto_layer_ct++;
+				cache->auto_layer_len++;
 			}
 		}
 		auto_names_len += 1; /* add an ultimate '\0' terminator */
 		cache->auto_layer_names = MEM_callocN(auto_names_len * sizeof(char), "Auto layer name buf");
-		cache->auto_layer_is_srgb = MEM_mallocN(cache->auto_layer_ct * sizeof(int), "Auto layer value buf");
+		cache->auto_layer_is_srgb = MEM_mallocN(cache->auto_layer_len * sizeof(int), "Auto layer value buf");
 
 		for (uint i = 0; i < uv_len; i++) {
 			/* UV */
@@ -4330,7 +4330,7 @@ Gwn_Batch **DRW_mesh_batch_cache_get_surface_shaded(
 	if (auto_layer_names) {
 		*auto_layer_names = cache->auto_layer_names;
 		*auto_layer_is_srgb = cache->auto_layer_is_srgb;
-		*auto_layer_count = cache->auto_layer_ct;
+		*auto_layer_count = cache->auto_layer_len;
 	}
 
 	return cache->shaded_triangles;

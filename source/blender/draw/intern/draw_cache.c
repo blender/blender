@@ -2349,26 +2349,26 @@ Gwn_Batch *DRW_cache_bone_arrows_get(void)
 
 			a = axis + 0.31f;
 			/* Axis name */
-			int axis_v_ct;
+			int axis_v_len;
 			float (*axis_verts)[2];
 			if (axis == 0) {
 				axis_verts = x_axis_name;
-				axis_v_ct = X_LEN;
+				axis_v_len = X_LEN;
 			}
 			else if (axis == 1) {
 				axis_verts = y_axis_name;
-				axis_v_ct = Y_LEN;
+				axis_v_len = Y_LEN;
 			}
 			else {
 				axis_verts = z_axis_name;
-				axis_v_ct = Z_LEN;
+				axis_v_len = Z_LEN;
 			}
 
 			/* Axis name shadows */
 			copy_v3_fl(c, 0.0f);
 			c[axis] = 0.3f;
 			for (int j = 0; j < SHADOW_RES; ++j) {
-				for (int i = 0; i < axis_v_ct; ++i) {
+				for (int i = 0; i < axis_v_len; ++i) {
 					float tmp[2];
 					add_v2_v2v2(tmp, axis_verts[i], axis_name_shadow[j]);
 					set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col,
@@ -2379,7 +2379,7 @@ Gwn_Batch *DRW_cache_bone_arrows_get(void)
 			/* Axis name */
 			copy_v3_fl(c, 0.1f);
 			c[axis] = 1.0f;
-			for (int i = 0; i < axis_v_ct; ++i) {
+			for (int i = 0; i < axis_v_len; ++i) {
 				set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col,
 				                   &v, &a, axis_verts[i], c);
 			}
@@ -3125,8 +3125,8 @@ Gwn_Batch *DRW_cache_cursor_get(bool crosshair_lines)
 		const float f20 = 1.0f;
 
 		const int segments = 16;
-		const int vert_ct = segments + 8;
-		const int index_ct = vert_ct + 5;
+		const int vert_len = segments + 8;
+		const int index_len = vert_len + 5;
 
 		uchar red[3] = {255, 0, 0};
 		uchar white[3] = {255, 255, 255};
@@ -3139,10 +3139,10 @@ Gwn_Batch *DRW_cache_cursor_get(bool crosshair_lines)
 		}
 
 		Gwn_IndexBufBuilder elb;
-		GWN_indexbuf_init_ex(&elb, GWN_PRIM_LINE_STRIP, index_ct, vert_ct, true);
+		GWN_indexbuf_init_ex(&elb, GWN_PRIM_LINE_STRIP, index_len, vert_len, true);
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, vert_ct);
+		GWN_vertbuf_data_alloc(vbo, vert_len);
 
 		int v = 0;
 		for (int i = 0; i < segments; ++i) {

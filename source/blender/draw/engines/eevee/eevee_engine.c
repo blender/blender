@@ -191,10 +191,10 @@ static void eevee_draw_background(void *vedata)
 
 	/* Number of iteration: needed for all temporal effect (SSR, volumetrics)
 	 * when using opengl render. */
-	int loop_ct = (DRW_state_is_image_render() &&
+	int loop_len = (DRW_state_is_image_render() &&
 	               (stl->effects->enabled_effects & (EFFECT_VOLUMETRIC | EFFECT_SSR)) != 0) ? 4 : 1;
 
-	while (loop_ct--) {
+	while (loop_len--) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		float clear_depth = 1.0f;
 		uint clear_stencil = 0xFF;

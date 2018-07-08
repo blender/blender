@@ -79,7 +79,7 @@ void DRW_draw_region_info(void)
 
 /* ************************* Grid ************************** */
 
-static void gridline_range(double x0, double dx, double max, int *r_first, int *r_count)
+static void gridline_range(double x0, double dx, double max, int *r_first, int *r_len)
 {
 	/* determine range of gridlines that appear in this Area -- similar calc but separate ranges for x & y
 	 * x0 is gridline 0, the axis in screen space
@@ -90,11 +90,11 @@ static void gridline_range(double x0, double dx, double max, int *r_first, int *
 
 	if (first <= last) {
 		*r_first = first;
-		*r_count = last - first + 1;
+		*r_len = last - first + 1;
 	}
 	else {
 		*r_first = 0;
-		*r_count = 0;
+		*r_len = 0;
 	}
 }
 
@@ -104,14 +104,14 @@ static int gridline_count(ARegion *ar, double x0, double y0, double dx)
 	 * dx is the frequency, shared by x & y directions
 	 * pass in dx of smallest (highest precision) grid we want to draw */
 
-	int first, x_ct, y_ct;
+	int first, x_len, y_len;
 
-	gridline_range(x0, dx, ar->winx, &first, &x_ct);
-	gridline_range(y0, dx, ar->winy, &first, &y_ct);
+	gridline_range(x0, dx, ar->winx, &first, &x_len);
+	gridline_range(y0, dx, ar->winy, &first, &y_len);
 
-	int total_ct = x_ct + y_ct;
+	int total_len = x_len + y_len;
 
-	return total_ct;
+	return total_len;
 }
 
 static bool drawgrid_draw(
@@ -129,7 +129,7 @@ static bool drawgrid_draw(
 	const float y_max = (float)ar->winy;
 
 	int first, ct;
-	int x_ct = 0, y_ct = 0; /* count of lines actually drawn */
+	int x_len = 0, y_len = 0; /* count of lines actually drawn */
 	int lines_skipped_for_next_unit = 0;
 
 	/* draw vertical lines */
@@ -143,13 +143,13 @@ static bool drawgrid_draw(
 			continue;
 		}
 
-		if (x_ct == 0)
+		if (x_len == 0)
 			immAttrib3ub(col, col_value[0], col_value[1], col_value[2]);
 
 		float x = (float)(x0 + i * dx);
 		immVertex2f(pos, x, 0.0f);
 		immVertex2f(pos, x, y_max);
-		++x_ct;
+		++x_len;
 	}
 
 	/* draw horizontal lines */
@@ -163,13 +163,13 @@ static bool drawgrid_draw(
 			continue;
 		}
 
-		if (x_ct + y_ct == 0)
+		if (x_len + y_len == 0)
 			immAttrib3ub(col, col_value[0], col_value[1], col_value[2]);
 
 		float y = (float)(y0 + i * dx);
 		immVertex2f(pos, 0.0f, y);
 		immVertex2f(pos, x_max, y);
-		++y_ct;
+		++y_len;
 	}
 
 	return lines_skipped_for_next_unit > 0;
@@ -249,11 +249,11 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					*grid_unit = bUnit_GetNameDisplay(usys, i);
 					rv3d->gridview = (float)((scalar * (double)v3d->grid) / (double)unit->scale_length);
 
-					int gridline_ct = gridline_count(ar, x, y, dx_scalar);
-					if (gridline_ct == 0)
+					int gridline_len = gridline_count(ar, x, y, dx_scalar);
+					if (gridline_len == 0)
 						goto drawgrid_cleanup; /* nothing to draw */
 
-					immBegin(GWN_PRIM_LINES, gridline_ct * 2);
+					immBegin(GWN_PRIM_LINES, gridline_len * 2);
 				}
 
 				float blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
@@ -302,11 +302,11 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 			}
 		}
 
-		int gridline_ct = gridline_count(ar, x, y, dx);
-		if (gridline_ct == 0)
+		int gridline_len = gridline_count(ar, x, y, dx);
+		if (gridline_len == 0)
 			goto drawgrid_cleanup; /* nothing to draw */
 
-		immBegin(GWN_PRIM_LINES, gridline_ct * 2);
+		immBegin(GWN_PRIM_LINES, gridline_len * 2);
 
 		if (grids_to_draw == 2) {
 			UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0), col2);
@@ -376,7 +376,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		UI_GetThemeColor3ubv(TH_GRID, col_grid);
 
 		if (show_floor) {
-			const uint vertex_ct = 2 * (gridlines * 4 + 2);
+			const uint vertex_len = 2 * (gridlines * 4 + 2);
 			const int sublines = v3d->gridsubdiv;
 
 			uchar col_bg[3], col_grid_emphasise[3], col_grid_light[3];
@@ -387,7 +387,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-			immBegin(GWN_PRIM_LINES, vertex_ct);
+			immBegin(GWN_PRIM_LINES, vertex_len);
 
 			/* draw normal grid lines */
 			UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);

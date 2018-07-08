@@ -115,8 +115,8 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 {
 	struct GPUTexture *tex;
 	struct GPUFrameBuffer *fb = NULL;
-	static float samples_ct = 8192.0f;
-	static float inv_samples_ct = 1.0f / 8192.0f;
+	static float samples_len = 8192.0f;
+	static float inv_samples_len = 1.0f / 8192.0f;
 
 	char *lib_str = BLI_string_joinN(
 	        datatoc_bsdf_common_lib_glsl,
@@ -130,8 +130,8 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 
 	DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-	DRW_shgroup_uniform_float(grp, "sampleCount", &samples_ct, 1);
-	DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_ct, 1);
+	DRW_shgroup_uniform_float(grp, "sampleCount", &samples_len, 1);
+	DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_len, 1);
 	DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 	DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
 
@@ -172,9 +172,9 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
 	struct GPUTexture *tex;
 	struct GPUTexture *hammersley = create_hammersley_sample_texture(8192);
 	struct GPUFrameBuffer *fb = NULL;
-	static float samples_ct = 8192.0f;
+	static float samples_len = 8192.0f;
 	static float a2 = 0.0f;
-	static float inv_samples_ct = 1.0f / 8192.0f;
+	static float inv_samples_len = 1.0f / 8192.0f;
 
 	char *frag_str = BLI_string_joinN(
 	        datatoc_bsdf_common_lib_glsl,
@@ -192,8 +192,8 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
 	DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_float(grp, "a2", &a2, 1);
-	DRW_shgroup_uniform_float(grp, "sampleCount", &samples_ct, 1);
-	DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_ct, 1);
+	DRW_shgroup_uniform_float(grp, "sampleCount", &samples_len, 1);
+	DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_len, 1);
 	DRW_shgroup_uniform_texture(grp, "texHammersley", hammersley);
 	DRW_shgroup_uniform_texture(grp, "utilTex", e_data.util_tex);
 

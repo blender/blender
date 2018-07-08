@@ -325,8 +325,8 @@ typedef struct EEVEE_ShadowRender {
 	float stored_texel_size;
 	float clip_near;
 	float clip_far;
-	int shadow_samples_ct;
-	float shadow_inv_samples_ct;
+	int shadow_samples_len;
+	float shadow_samples_len_inv;
 } EEVEE_ShadowRender;
 
 /* This is just a really long bitflag with special function to access it. */
@@ -352,8 +352,8 @@ typedef struct EEVEE_LampsInfo {
 	int num_light, cache_num_light;
 	int num_cube_layer, cache_num_cube_layer;
 	int num_cascade_layer, cache_num_cascade_layer;
-	int gpu_cube_ct, gpu_cascade_ct, gpu_shadow_ct;
-	int cpu_cube_ct, cpu_cascade_ct;
+	int gpu_cube_len, gpu_cascade_len, gpu_shadow_len;
+	int cpu_cube_len, cpu_cascade_len;
 	int update_flag;
 	int shadow_cube_size, shadow_cascade_size, shadow_method;
 	bool shadow_high_bitdepth;
@@ -452,8 +452,8 @@ typedef struct EEVEE_LightProbesInfo {
 	int layer;
 	float texel_size;
 	float padding_size;
-	float samples_ct;
-	float invsamples_ct;
+	float samples_len;
+	float samples_len_inv;
 	float near_clip;
 	float far_clip;
 	float roughness;
@@ -563,7 +563,7 @@ typedef struct EEVEE_EffectsInfo {
 	/* Other */
 	float prev_persmat[4][4];
 	/* Bloom */
-	int bloom_iteration_ct;
+	int bloom_iteration_len;
 	float source_texel_size[2];
 	float blit_texel_size[2];
 	float downsamp_texel_size[MAX_BLOOM_STEP][2];

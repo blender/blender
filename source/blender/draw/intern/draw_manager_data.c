@@ -412,9 +412,9 @@ static void drw_shgroup_call_procedural_add_ex(
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
-void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, uint point_count, float (*obmat)[4])
+void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, uint point_len, float (*obmat)[4])
 {
-	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_POINTS, point_count, obmat, NULL);
+	drw_shgroup_call_procedural_add_ex(shgroup, GWN_PRIM_POINTS, point_len, obmat, NULL);
 }
 
 void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, uint line_count, float (*obmat)[4])

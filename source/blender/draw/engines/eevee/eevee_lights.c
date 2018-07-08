@@ -235,9 +235,9 @@ static GPUShader *eevee_lights_get_store_sh(int shadow_method, bool high_blur, b
 	return *shader;
 }
 
-static DRWPass *eevee_lights_cube_store_pass_get(EEVEE_PassList *psl, EEVEE_ViewLayerData *sldata, int shadow_method, int shadow_samples_ct)
+static DRWPass *eevee_lights_cube_store_pass_get(EEVEE_PassList *psl, EEVEE_ViewLayerData *sldata, int shadow_method, int shadow_samples_len)
 {
-	bool high_blur = shadow_samples_ct > 16;
+	bool high_blur = shadow_samples_len > 16;
 	DRWPass **pass = (high_blur) ? &psl->shadow_cube_store_pass : &psl->shadow_cube_store_high_pass;
 	if (*pass == NULL) {
 		EEVEE_LampsInfo *linfo = sldata->lamps;
@@ -252,9 +252,9 @@ static DRWPass *eevee_lights_cube_store_pass_get(EEVEE_PassList *psl, EEVEE_View
 	return *pass;
 }
 
-static DRWPass *eevee_lights_cascade_store_pass_get(EEVEE_PassList *psl, EEVEE_ViewLayerData *sldata, int shadow_method, int shadow_samples_ct)
+static DRWPass *eevee_lights_cascade_store_pass_get(EEVEE_PassList *psl, EEVEE_ViewLayerData *sldata, int shadow_method, int shadow_samples_len)
 {
-	bool high_blur = shadow_samples_ct > 16;
+	bool high_blur = shadow_samples_len > 16;
 	DRWPass **pass = (high_blur) ? &psl->shadow_cascade_store_pass : &psl->shadow_cascade_store_high_pass;
 	if (*pass == NULL) {
 		EEVEE_LampsInfo *linfo = sldata->lamps;
@@ -280,8 +280,8 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	linfo->num_light = 0;
 	linfo->num_cube_layer = 0;
 	linfo->num_cascade_layer = 0;
-	linfo->gpu_cube_ct = linfo->gpu_cascade_ct = linfo->gpu_shadow_ct = 0;
-	linfo->cpu_cube_ct = linfo->cpu_cascade_ct = 0;
+	linfo->gpu_cube_len = linfo->gpu_cascade_len = linfo->gpu_shadow_len = 0;
+	linfo->cpu_cube_len = linfo->cpu_cascade_len = 0;
 	memset(linfo->light_ref, 0, sizeof(linfo->light_ref));
 	memset(linfo->shadow_cube_ref, 0, sizeof(linfo->shadow_cube_ref));
 	memset(linfo->shadow_cascade_ref, 0, sizeof(linfo->shadow_cascade_ref));
@@ -361,56 +361,56 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 				int sh_nbr = 1; /* TODO : MSM */
 				int cascade_nbr = la->cascade_count;
 
-				if ((linfo->gpu_cascade_ct + sh_nbr) <= MAX_SHADOW_CASCADE) {
+				if ((linfo->gpu_cascade_len + sh_nbr) <= MAX_SHADOW_CASCADE) {
 					/* Save Light object. */
-					linfo->shadow_cascade_ref[linfo->cpu_cascade_ct] = ob;
+					linfo->shadow_cascade_ref[linfo->cpu_cascade_len] = ob;
 
 					/* Store indices. */
 					EEVEE_ShadowCascadeData *data = &led->data.scad;
-					data->shadow_id = linfo->gpu_shadow_ct;
-					data->cascade_id = linfo->gpu_cascade_ct;
+					data->shadow_id = linfo->gpu_shadow_len;
+					data->cascade_id = linfo->gpu_cascade_len;
 					data->layer_id = linfo->num_cascade_layer;
 
 					/* Increment indices. */
-					linfo->gpu_shadow_ct += 1;
-					linfo->gpu_cascade_ct += sh_nbr;
+					linfo->gpu_shadow_len += 1;
+					linfo->gpu_cascade_len += sh_nbr;
 					linfo->num_cascade_layer += sh_nbr * cascade_nbr;
 
-					linfo->cpu_cascade_ct += 1;
+					linfo->cpu_cascade_len += 1;
 				}
 			}
 			else if (la->type == LA_SPOT || la->type == LA_LOCAL || la->type == LA_AREA) {
 				int sh_nbr = 1; /* TODO : MSM */
 
-				if ((linfo->gpu_cube_ct + sh_nbr) <= MAX_SHADOW_CUBE) {
+				if ((linfo->gpu_cube_len + sh_nbr) <= MAX_SHADOW_CUBE) {
 					/* Save Light object. */
-					linfo->shadow_cube_ref[linfo->cpu_cube_ct] = ob;
+					linfo->shadow_cube_ref[linfo->cpu_cube_len] = ob;
 
 					/* For light update tracking. */
 					if ((prev_cube_sh_id >= 0) &&
 					    (prev_cube_sh_id < linfo->shcaster_backbuffer->count))
 					{
-						linfo->new_shadow_id[prev_cube_sh_id] = linfo->cpu_cube_ct;
+						linfo->new_shadow_id[prev_cube_sh_id] = linfo->cpu_cube_len;
 					}
-					led->prev_cube_shadow_id = linfo->cpu_cube_ct;
+					led->prev_cube_shadow_id = linfo->cpu_cube_len;
 
 					/* Saving lamp bounds for later. */
-					BLI_assert(linfo->cpu_cube_ct >= 0 && linfo->cpu_cube_ct < MAX_LIGHT);
-					copy_v3_v3(linfo->shadow_bounds[linfo->cpu_cube_ct].center, ob->obmat[3]);
-					linfo->shadow_bounds[linfo->cpu_cube_ct].radius = la->clipend;
+					BLI_assert(linfo->cpu_cube_len >= 0 && linfo->cpu_cube_len < MAX_LIGHT);
+					copy_v3_v3(linfo->shadow_bounds[linfo->cpu_cube_len].center, ob->obmat[3]);
+					linfo->shadow_bounds[linfo->cpu_cube_len].radius = la->clipend;
 
 					EEVEE_ShadowCubeData *data = &led->data.scd;
 					/* Store indices. */
-					data->shadow_id = linfo->gpu_shadow_ct;
-					data->cube_id = linfo->gpu_cube_ct;
+					data->shadow_id = linfo->gpu_shadow_len;
+					data->cube_id = linfo->gpu_cube_len;
 					data->layer_id = linfo->num_cube_layer;
 
 					/* Increment indices. */
-					linfo->gpu_shadow_ct += 1;
-					linfo->gpu_cube_ct += sh_nbr;
+					linfo->gpu_shadow_len += 1;
+					linfo->gpu_cube_len += sh_nbr;
 					linfo->num_cube_layer += sh_nbr;
 
-					linfo->cpu_cube_ct += 1;
+					linfo->cpu_cube_len += 1;
 				}
 			}
 		}
@@ -993,7 +993,7 @@ void EEVEE_lights_update(EEVEE_ViewLayerData *sldata)
 	for (i = 0; i < frontbuffer->count; i++, flag++, shcaster++) {
 		/* Run intersection checks to fill the bitfields. */
 		bsphere = linfo->shadow_bounds;
-		for (int j = 0; j < linfo->cpu_cube_ct; j++, bsphere++) {
+		for (int j = 0; j < linfo->cpu_cube_len; j++, bsphere++) {
 			bool iter = sphere_bbox_intersect(bsphere, &shcaster->bbox);
 			lightbits_set_single(&shcaster->bits, j, iter);
 		}
@@ -1139,19 +1139,19 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 			filter_pixel_size = max_ff(0.0f, filter_pixel_size - 3.0f);
 			/* Compute number of concentric samples. Depends directly on filter size. */
 			float pix_size_sqr = filter_pixel_size * filter_pixel_size;
-			srd->shadow_samples_ct = min_ii(max_sample, 4 + 8 * (int)filter_pixel_size + 4 * (int)(pix_size_sqr));
+			srd->shadow_samples_len = min_ii(max_sample, 4 + 8 * (int)filter_pixel_size + 4 * (int)(pix_size_sqr));
 		}
 		else {
 			linfo->filter_size = 0.0f;
-			srd->shadow_samples_ct = 4;
+			srd->shadow_samples_len = 4;
 		}
-		srd->shadow_inv_samples_ct = 1.0f / (float)srd->shadow_samples_ct;
+		srd->shadow_samples_len_inv = 1.0f / (float)srd->shadow_samples_len;
 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
 
 		GPU_framebuffer_texture_layer_attach(sldata->shadow_cube_store_fb, sldata->shadow_cube_pool, 0, evscd->layer_id, 0);
 		GPU_framebuffer_bind(sldata->shadow_cube_store_fb);
 
-		DRWPass *store_pass = eevee_lights_cube_store_pass_get(psl, sldata, linfo->shadow_method, srd->shadow_samples_ct);
+		DRWPass *store_pass = eevee_lights_cube_store_pass_get(psl, sldata, linfo->shadow_method, srd->shadow_samples_len);
 		DRW_draw_pass(store_pass);
 
 		led->need_update = false;
@@ -1240,20 +1240,20 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 				filter_pixel_size = max_ff(0.0f, filter_pixel_size - 3.0f);
 				/* Compute number of concentric samples. Depends directly on filter size. */
 				float pix_size_sqr = filter_pixel_size * filter_pixel_size;
-				srd->shadow_samples_ct = min_ii(max_sample, 4 + 8 * (int)filter_pixel_size + 4 * (int)(pix_size_sqr));
+				srd->shadow_samples_len = min_ii(max_sample, 4 + 8 * (int)filter_pixel_size + 4 * (int)(pix_size_sqr));
 			}
 			else {
 				linfo->filter_size = 0.0f;
-				srd->shadow_samples_ct = 4;
+				srd->shadow_samples_len = 4;
 			}
-			srd->shadow_inv_samples_ct = 1.0f / (float)srd->shadow_samples_ct;
+			srd->shadow_samples_len_inv = 1.0f / (float)srd->shadow_samples_len;
 			DRW_uniformbuffer_update(sldata->shadow_render_ubo, &linfo->shadow_render_data);
 
 			int layer = evscd->layer_id + linfo->current_shadow_cascade;
 			GPU_framebuffer_texture_layer_attach(sldata->shadow_cascade_store_fb, sldata->shadow_cascade_pool, 0, layer, 0);
 			GPU_framebuffer_bind(sldata->shadow_cascade_store_fb);
 
-			DRWPass *store_pass = eevee_lights_cascade_store_pass_get(psl, sldata, linfo->shadow_method, srd->shadow_samples_ct);
+			DRWPass *store_pass = eevee_lights_cascade_store_pass_get(psl, sldata, linfo->shadow_method, srd->shadow_samples_len);
 			DRW_draw_pass(store_pass);
 		}
 	}

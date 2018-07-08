@@ -127,12 +127,12 @@ static void irradiance_pool_size_get(int visibility_size, int total_samples, int
 	                  (visibility_size / IRRADIANCE_SAMPLE_SIZE_Y);
 
 	/* The irradiance itself take one layer, hence the +1 */
-	int layer_ct = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
+	int layer_len = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
 
-	int texel_ct = (int)ceilf((float)total_samples / (float)(layer_ct - 1));
-	r_size[0] = visibility_size * max_ii(1, min_ii(texel_ct, (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
-	r_size[1] = visibility_size * max_ii(1, (texel_ct / (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
-	r_size[2] = layer_ct;
+	int texel_len = (int)ceilf((float)total_samples / (float)(layer_len - 1));
+	r_size[0] = visibility_size * max_ii(1, min_ii(texel_len, (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
+	r_size[1] = visibility_size * max_ii(1, (texel_len / (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
+	r_size[2] = layer_len;
 }
 
 static struct GPUTexture *create_hammersley_sample_texture(int samples)
@@ -480,8 +480,8 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_filter_glossy_sh, psl->probe_glossy_compute);
 		DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
-		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->invsamples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
+		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
 		DRW_shgroup_uniform_float(grp, "roughnessSquared", &pinfo->roughness, 1);
 		DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
 		DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
@@ -501,8 +501,8 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 #ifdef IRRADIANCE_SH_L2
 		DRW_shgroup_uniform_int(grp, "probeSize", &pinfo->shres, 1);
 #else
-		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->invsamples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
+		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
 		DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
 		DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
 		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
@@ -521,8 +521,8 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		DRW_shgroup_uniform_int(grp, "outputSize", &pinfo->shres, 1);
 		DRW_shgroup_uniform_float(grp, "visibilityRange", &pinfo->visibility_range, 1);
 		DRW_shgroup_uniform_float(grp, "visibilityBlur", &pinfo->visibility_blur, 1);
-		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->invsamples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
+		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
 		DRW_shgroup_uniform_float(grp, "storedTexelSize", &pinfo->texel_size, 1);
 		DRW_shgroup_uniform_float(grp, "nearClip", &pinfo->near_clip, 1);
 		DRW_shgroup_uniform_float(grp, "farClip", &pinfo->far_clip, 1);
@@ -1100,18 +1100,18 @@ static void glossy_filter_probe(
 
 #if 1 /* Variable Sample count (fast) */
 		switch (i) {
-			case 0: pinfo->samples_ct = 1.0f; break;
-			case 1: pinfo->samples_ct = 16.0f; break;
-			case 2: pinfo->samples_ct = 32.0f; break;
-			case 3: pinfo->samples_ct = 64.0f; break;
-			default: pinfo->samples_ct = 128.0f; break;
+			case 0: pinfo->samples_len = 1.0f; break;
+			case 1: pinfo->samples_len = 16.0f; break;
+			case 2: pinfo->samples_len = 32.0f; break;
+			case 3: pinfo->samples_len = 64.0f; break;
+			default: pinfo->samples_len = 128.0f; break;
 		}
 #else /* Constant Sample count (slow) */
-		pinfo->samples_ct = 1024.0f;
+		pinfo->samples_len = 1024.0f;
 #endif
 
-		pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
-		pinfo->lodfactor = bias + 0.5f * log((float)(pinfo->target_size * pinfo->target_size) * pinfo->invsamples_ct) / log(2);
+		pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
+		pinfo->lodfactor = bias + 0.5f * log((float)(pinfo->target_size * pinfo->target_size) * pinfo->samples_len_inv) / log(2);
 
 		GPU_framebuffer_ensure_config(&sldata->probe_filter_fb, {
 			GPU_ATTACHMENT_NONE,
@@ -1147,10 +1147,10 @@ static void diffuse_filter_probe(
 	int size[2] = {3, 3};
 #elif defined(IRRADIANCE_CUBEMAP)
 	int size[2] = {8, 8};
-	pinfo->samples_ct = 1024.0f;
+	pinfo->samples_len = 1024.0f;
 #elif defined(IRRADIANCE_HL2)
 	int size[2] = {3, 2};
-	pinfo->samples_ct = 1024.0f;
+	pinfo->samples_len = 1024.0f;
 #endif
 
 	int cell_per_row = pool_size[0] / size[0];
@@ -1160,8 +1160,8 @@ static void diffuse_filter_probe(
 #ifndef IRRADIANCE_SH_L2
 	/* Tweaking parameters to balance perf. vs precision */
 	const float bias = 0.0f;
-	pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
-	pinfo->lodfactor = bias + 0.5f * log((float)(pinfo->target_size * pinfo->target_size) * pinfo->invsamples_ct) / log(2);
+	pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
+	pinfo->lodfactor = bias + 0.5f * log((float)(pinfo->target_size * pinfo->target_size) * pinfo->samples_len_inv) / log(2);
 	pinfo->lod_rt_max = floorf(log2f(pinfo->target_size)) - 2.0f;
 #else
 	pinfo->shres = 32; /* Less texture fetches & reduce branches */
@@ -1188,8 +1188,8 @@ static void diffuse_filter_probe(
 	/* World irradiance have no visibility */
 	if (offset > 0) {
 		/* Compute visibility */
-		pinfo->samples_ct = 512.0f; /* TODO refine */
-		pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
+		pinfo->samples_len = 512.0f; /* TODO refine */
+		pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
 		pinfo->shres = common_data->prb_irradiance_vis_size;
 		pinfo->visibility_range = vis_range;
 		pinfo->visibility_blur = vis_blur;
