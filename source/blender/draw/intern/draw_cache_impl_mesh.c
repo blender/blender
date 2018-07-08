@@ -116,10 +116,10 @@ typedef struct EdgeAdjacentVerts {
 } EdgeAdjacentVerts;
 
 typedef struct EdgeDrawAttr {
-	unsigned char v_flag;
-	unsigned char e_flag;
-	unsigned char crease;
-	unsigned char bweight;
+	uchar v_flag;
+	uchar e_flag;
+	uchar crease;
+	uchar bweight;
 } EdgeDrawAttr;
 
 typedef struct MeshRenderData {
@@ -1349,9 +1349,9 @@ enum {
 	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
 };
 
-static unsigned char mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *efa)
+static uchar mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *efa)
 {
-	unsigned char fflag = 0;
+	uchar fflag = 0;
 
 	if (efa == rdata->efa_act)
 		fflag |= VFLAG_FACE_ACTIVE;
@@ -1397,10 +1397,10 @@ static void mesh_render_data_edge_flag(
 	}
 }
 
-static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *eve)
+static uchar mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *eve)
 {
 
-	unsigned char vflag = 0;
+	uchar vflag = 0;
 
 	/* Current vertex */
 	if (eve == rdata->eve_act)
@@ -1417,8 +1417,8 @@ static void add_overlay_tri(
         const uint pos_id, const uint vnor_id, const uint lnor_id, const uint data_id,
         const BMLoop **bm_looptri, const int base_vert_idx)
 {
-	unsigned char fflag;
-	unsigned char vflag;
+	uchar fflag;
+	uchar vflag;
 
 	if (vbo_pos) {
 		/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
@@ -1528,7 +1528,7 @@ static void add_overlay_loose_vert(
 	}
 
 	if (vbo_data) {
-		unsigned char vflag[4] = {0, 0, 0, 0};
+		uchar vflag[4] = {0, 0, 0, 0};
 		vflag[0] = mesh_render_data_vertex_flag(rdata, eve);
 		GWN_vertbuf_attr_set(vbo_data, data_id, base_vert_idx, vflag);
 	}
@@ -2886,7 +2886,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 static Gwn_VertFormat *edit_mesh_overlay_pos_format(uint *r_pos_id)
 {
 	static Gwn_VertFormat format_pos = { 0 };
-	static unsigned pos_id;
+	static uint pos_id;
 	if (format_pos.attrib_ct == 0) {
 		pos_id = GWN_vertformat_attr_add(&format_pos, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	}
@@ -2898,7 +2898,7 @@ static Gwn_VertFormat *edit_mesh_overlay_nor_format(uint *r_vnor_id, uint *r_lno
 {
 	static Gwn_VertFormat format_nor = { 0 };
 	static Gwn_VertFormat format_nor_loop = { 0 };
-	static unsigned vnor_id, vnor_loop_id, lnor_id;
+	static uint vnor_id, vnor_loop_id, lnor_id;
 	if (format_nor.attrib_ct == 0) {
 		vnor_id = GWN_vertformat_attr_add(&format_nor, "vnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		vnor_loop_id = GWN_vertformat_attr_add(&format_nor_loop, "vnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
@@ -2918,7 +2918,7 @@ static Gwn_VertFormat *edit_mesh_overlay_nor_format(uint *r_vnor_id, uint *r_lno
 static Gwn_VertFormat *edit_mesh_overlay_data_format(uint *r_data_id)
 {
 	static Gwn_VertFormat format_flag = { 0 };
-	static unsigned data_id;
+	static uint data_id;
 	if (format_flag.attrib_ct == 0) {
 		data_id = GWN_vertformat_attr_add(&format_flag, "data", GWN_COMP_U8, 4, GWN_FETCH_INT);
 	}
@@ -3420,7 +3420,7 @@ static Gwn_VertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(MeshRender
 		int j, j_next;
 		for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
 			MEdge *ed = &medge[mloop[mlt->tri[j]].e];
-			unsigned int tri_edge[2]  = {mloop[mlt->tri[j]].v, mloop[mlt->tri[j_next]].v};
+			uint tri_edge[2]  = {mloop[mlt->tri[j]].v, mloop[mlt->tri[j_next]].v};
 
 			if (((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
 			    ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])))

@@ -106,8 +106,8 @@ typedef struct DRWCallState {
 	DRWCallVisibilityFn *visibility_cb;
 	void *user_data;
 
-	unsigned char flag;
-	unsigned char cache_id;   /* Compared with DST.state_cache_id to see if matrices are still valid. */
+	uchar flag;
+	uchar cache_id;   /* Compared with DST.state_cache_id to see if matrices are still valid. */
 	uint16_t matflag;         /* Which matrices to compute. */
 	/* Culling: Using Bounding Sphere for now for faster culling.
 	 * Not ideal for planes. */
@@ -308,7 +308,7 @@ typedef struct DRWManager {
 	DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
 	/* State of the object being evaluated if already allocated. */
 	DRWCallState *ob_state;
-	unsigned char state_cache_id; /* Could be larger but 254 view changes is already a lot! */
+	uchar state_cache_id; /* Could be larger but 254 view changes is already a lot! */
 
 	/* Rendering state */
 	GPUShader *shader;

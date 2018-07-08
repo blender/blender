@@ -514,7 +514,7 @@ static void set_pchan_colorset(Object *ob, bPoseChannel *pchan)
 }
 
 /* This function is for brightening/darkening a given color (like UI_GetThemeColorShade3ubv()) */
-static void cp_shade_color3ub(unsigned char cp[3], const int offset)
+static void cp_shade_color3ub(uchar cp[3], const int offset)
 {
 	int r, g, b;
 
@@ -549,7 +549,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_NORMAL:
 		{
 			if (bcolor) {
-				unsigned char cp[4] = {255};
+				uchar cp[4] = {255};
 
 				if (boneflag & BONE_DRAW_ACTIVE) {
 					copy_v3_v3_char((char *)cp, bcolor->active);
@@ -591,7 +591,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 
 			if (bcolor) {
 				float solid_bcolor[3];
-				rgb_uchar_to_float(solid_bcolor, (unsigned char *)bcolor->solid);
+				rgb_uchar_to_float(solid_bcolor, (uchar *)bcolor->solid);
 				interp_v3_v3v3(fcolor, fcolor, solid_bcolor, 1.0f);
 			}
 
@@ -600,7 +600,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_CONSTS:
 		{
 			if ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) {
-				unsigned char cp[4];
+				uchar cp[4];
 				if (constflag & PCHAN_HAS_TARGET) rgba_char_args_set((char *)cp, 255, 150, 0, 80);
 				else if (constflag & PCHAN_HAS_IK) rgba_char_args_set((char *)cp, 255, 255, 0, 80);
 				else if (constflag & PCHAN_HAS_SPLINEIK) rgba_char_args_set((char *)cp, 200, 255, 0, 80);
@@ -618,7 +618,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_SPHEREBONE_BASE:
 		{
 			if (bcolor) {
-				unsigned char cp[4] = {255};
+				uchar cp[4] = {255};
 
 				if (boneflag & BONE_DRAW_ACTIVE) {
 					copy_v3_v3_char((char *)cp, bcolor->active);
@@ -649,7 +649,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_SPHEREBONE_END:
 		{
 			if (bcolor) {
-				unsigned char cp[4] = {255};
+				uchar cp[4] = {255};
 
 				if (boneflag & BONE_DRAW_ACTIVE) {
 					copy_v3_v3_char((char *)cp, bcolor->active);
@@ -683,7 +683,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		{
 			/* inner part in background color or constraint */
 			if ((constflag) && ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS))) {
-				unsigned char cp[4];
+				uchar cp[4];
 				if (constflag & PCHAN_HAS_TARGET) rgba_char_args_set((char *)cp, 255, 150, 0, 255);
 				else if (constflag & PCHAN_HAS_IK) rgba_char_args_set((char *)cp, 255, 255, 0, 255);
 				else if (constflag & PCHAN_HAS_SPLINEIK) rgba_char_args_set((char *)cp, 200, 255, 0, 255);
@@ -695,7 +695,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 			else {
 				if (bcolor) {
 					const char *cp = bcolor->solid;
-					rgb_uchar_to_float(fcolor, (unsigned char *)cp);
+					rgb_uchar_to_float(fcolor, (uchar *)cp);
 					fcolor[3] = 204.f / 255.f;
 				}
 				else {
@@ -1588,7 +1588,7 @@ static void draw_armature_edit(Object *ob)
 
 				/* Draw names of bone */
 				if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-					unsigned char color[4];
+					uchar color[4];
 					UI_GetThemeColor4ubv((eBone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, color);
 
 					float vec[3];
@@ -1702,7 +1702,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 				/* Draw names of bone */
 				if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-					unsigned char color[4];
+					uchar color[4];
 					UI_GetThemeColor4ubv((arm->flag & ARM_POSEMODE) &&
 					                     (bone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, color);
 					float vec[3];

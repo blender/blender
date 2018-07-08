@@ -46,7 +46,7 @@ typedef struct ViewCachedString {
 	struct ViewCachedString *next, *prev;
 	float vec[3];
 	union {
-		unsigned char ub[4];
+		uchar ub[4];
 		int pack;
 	} col;
 	short sco[2];
@@ -79,7 +79,7 @@ void DRW_text_cache_add(
         const float co[3],
         const char *str, const int str_len,
         short xoffs, short flag,
-        const unsigned char col[4])
+        const uchar col[4])
 {
 	int alloc_len;
 	ViewCachedString *vos;

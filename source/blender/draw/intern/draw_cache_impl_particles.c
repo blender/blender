@@ -263,7 +263,7 @@ static void ensure_seg_pt_count(
 	}
 }
 
-static void particle_pack_mcol(MCol *mcol, unsigned short r_scol[3])
+static void particle_pack_mcol(MCol *mcol, ushort r_scol[3])
 {
 	/* Convert to linear ushort and swizzle */
 	r_scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
@@ -573,7 +573,7 @@ static int particle_batch_cache_fill_segments(
 				}
 				for (int k = 0; k < num_col_layers; k++) {
 					/* TODO Put the conversion outside the loop */
-					unsigned short scol[4];
+					ushort scol[4];
 					particle_pack_mcol(
 					        (is_simple && is_child) ?
 					        &(*r_parent_mcol)[psys->child[i].parent][k] : &mcol[k],
@@ -600,7 +600,7 @@ static int particle_batch_cache_fill_segments(
 			}
 			for (int k = 0; k < num_col_layers; k++) {
 				/* TODO Put the conversion outside the loop */
-				unsigned short scol[4];
+				ushort scol[4];
 				particle_pack_mcol(
 				        (is_simple && is_child) ?
 				        &(*r_parent_mcol)[psys->child[i].parent][k] : &mcol[k],
@@ -734,7 +734,7 @@ static int particle_batch_cache_fill_strands_data(
 				copy_v2_v2(t_uv, uv[k]);
 			}
 			for (int k = 0; k < num_col_layers; k++) {
-				unsigned short *scol = (unsigned short *)GWN_vertbuf_raw_step(col_step + k);
+				ushort *scol = (ushort *)GWN_vertbuf_raw_step(col_step + k);
 				particle_pack_mcol(
 				        (is_simple && is_child) ?
 				        &(*r_parent_mcol)[psys->child[i].parent][k] : &mcol[k],
@@ -1196,7 +1196,7 @@ static void particle_batch_cache_ensure_pos(
 	}
 
 	static Gwn_VertFormat format = { 0 };
-	static unsigned pos_id, rot_id, val_id;
+	static uint pos_id, rot_id, val_id;
 	int i, curr_point;
 	ParticleData *pa;
 	ParticleKey state;
@@ -1420,7 +1420,7 @@ static void particle_batch_cache_ensure_edit_inner_pos(
 	}
 
 	static Gwn_VertFormat format = { 0 };
-	static unsigned pos_id, color_id;
+	static uint pos_id, color_id;
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->edit_inner_pos);
 
@@ -1491,7 +1491,7 @@ static void particle_batch_cache_ensure_edit_tip_pos(
 	}
 
 	static Gwn_VertFormat format = { 0 };
-	static unsigned pos_id, color_id;
+	static uint pos_id, color_id;
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
 

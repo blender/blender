@@ -2985,7 +2985,7 @@ Gwn_Batch *DRW_cache_particles_get_prim(int type)
 		case PART_DRAW_CROSS:
 			if (!SHC.drw_particle_cross) {
 				static Gwn_VertFormat format = { 0 };
-				static unsigned pos_id, axis_id;
+				static uint pos_id, axis_id;
 
 				if (format.attrib_ct == 0) {
 					pos_id = GWN_vertformat_attr_add(&format, "inst_pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
@@ -3032,7 +3032,7 @@ Gwn_Batch *DRW_cache_particles_get_prim(int type)
 		case PART_DRAW_AXIS:
 			if (!SHC.drw_particle_axis) {
 				static Gwn_VertFormat format = { 0 };
-				static unsigned pos_id, axis_id;
+				static uint pos_id, axis_id;
 
 				if (format.attrib_ct == 0) {
 					pos_id = GWN_vertformat_attr_add(&format, "inst_pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
@@ -3083,7 +3083,7 @@ Gwn_Batch *DRW_cache_particles_get_prim(int type)
 				int axis = -1;
 
 				static Gwn_VertFormat format = { 0 };
-				static unsigned pos_id, axis_id;
+				static uint pos_id, axis_id;
 
 				if (format.attrib_ct == 0) {
 					pos_id = GWN_vertformat_attr_add(&format, "inst_pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
@@ -3128,8 +3128,8 @@ Gwn_Batch *DRW_cache_cursor_get(bool crosshair_lines)
 		const int vert_ct = segments + 8;
 		const int index_ct = vert_ct + 5;
 
-		unsigned char red[3] = {255, 0, 0};
-		unsigned char white[3] = {255, 255, 255};
+		uchar red[3] = {255, 0, 0};
+		uchar white[3] = {255, 255, 255};
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, color; } attr_id;
@@ -3161,7 +3161,7 @@ Gwn_Batch *DRW_cache_cursor_get(bool crosshair_lines)
 		GWN_indexbuf_add_generic_vert(&elb, 0);
 
 		if (crosshair_lines) {
-			unsigned char crosshair_color[3];
+			uchar crosshair_color[3];
 			UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
 
 			GWN_indexbuf_add_primitive_restart(&elb);

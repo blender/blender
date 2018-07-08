@@ -34,7 +34,7 @@ void DRW_text_cache_add(
         const float co[3],
         const char *str, const int str_len,
         short xoffs, short flag,
-        const unsigned char col[4]);
+        const uchar col[4]);
 
 void DRW_text_cache_draw(struct DRWTextStore *dt, struct ARegion *ar);
 

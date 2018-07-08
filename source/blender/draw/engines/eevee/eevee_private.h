@@ -332,7 +332,7 @@ typedef struct EEVEE_ShadowRender {
 /* This is just a really long bitflag with special function to access it. */
 #define MAX_LIGHTBITS_FIELDS (MAX_LIGHT / 8)
 typedef struct EEVEE_LightBits {
-	unsigned char fields[MAX_LIGHTBITS_FIELDS];
+	uchar fields[MAX_LIGHTBITS_FIELDS];
 } EEVEE_LightBits;
 
 typedef struct EEVEE_ShadowCaster {

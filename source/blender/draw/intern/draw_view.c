@@ -116,7 +116,7 @@ static int gridline_count(ARegion *ar, double x0, double y0, double dx)
 
 static bool drawgrid_draw(
         ARegion *ar, double x0, double y0, double dx, int skip_mod,
-        unsigned pos, unsigned col, GLubyte col_value[3])
+        uint pos, uint col, GLubyte col_value[3])
 {
 	/* skip every skip_mod lines relative to each axis; they will be overlaid by another drawgrid_draw
 	 * always skip exact x0 & y0 axes; they will be drawn later in color
@@ -220,7 +220,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-	unsigned char col[3], col2[3];
+	uchar col[3], col2[3];
 	UI_GetThemeColor3ubv(TH_GRID, col);
 
 	if (unit->system) {
@@ -369,17 +369,17 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		bool show_axis_y = (v3d->gridflag & V3D_SHOW_Y) != 0;
 		bool show_axis_z = (v3d->gridflag & V3D_SHOW_Z) != 0;
 
-		unsigned char col_grid[3], col_axis[3];
+		uchar col_grid[3], col_axis[3];
 
 		glLineWidth(1.0f);
 
 		UI_GetThemeColor3ubv(TH_GRID, col_grid);
 
 		if (show_floor) {
-			const unsigned vertex_ct = 2 * (gridlines * 4 + 2);
+			const uint vertex_ct = 2 * (gridlines * 4 + 2);
 			const int sublines = v3d->gridsubdiv;
 
-			unsigned char col_bg[3], col_grid_emphasise[3], col_grid_light[3];
+			uchar col_bg[3], col_grid_emphasise[3], col_grid_light[3];
 
 			Gwn_VertFormat *format = immVertexFormat();
 			uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -583,9 +583,9 @@ void DRW_draw_background(void)
 		glDisable(GL_DEPTH_TEST);
 
 		Gwn_VertFormat *format = immVertexFormat();
-		unsigned pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		unsigned color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
-		unsigned char col_hi[3], col_lo[3];
+		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		uchar col_hi[3], col_lo[3];
 
 		gpuPushMatrix();
 		gpuLoadIdentity();
