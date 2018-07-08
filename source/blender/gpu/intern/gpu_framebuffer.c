@@ -300,7 +300,7 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
  * Setting GPUAttachment.mip to -1 will leave the texture in this slot.
  * Setting GPUAttachment.tex to NULL will detach the texture in this slot.
  **/
-void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *config, int config_ct)
+void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *config, int config_len)
 {
 	if (config[0].tex) {
 		BLI_assert(GPU_texture_depth(config[0].tex));
@@ -317,7 +317,7 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *confi
 	}
 
 	int slot = 0;
-	for (int i = 1; i < config_ct; ++i, ++slot) {
+	for (int i = 1; i < config_len; ++i, ++slot) {
 		if (config[i].tex != NULL) {
 			BLI_assert(GPU_texture_depth(config[i].tex) == false);
 			gpu_framebuffer_texture_attach_ex(fb, config[i].tex, slot, config[i].layer, config[i].mip);

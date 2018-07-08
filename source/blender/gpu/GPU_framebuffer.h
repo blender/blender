@@ -117,7 +117,7 @@ void GPU_framebuffer_texture_detach_slot(
 	GPU_framebuffer_config_array(*(_fb), config, (sizeof(config) / sizeof(GPUAttachment))); \
 } while (0)
 
-void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *config, int config_ct);
+void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *config, int config_len);
 
 #define GPU_ATTACHMENT_NONE \
         {.tex = NULL, .layer = -1, .mip = 0}

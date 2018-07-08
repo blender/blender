@@ -354,7 +354,7 @@ static float eval_integral(float x0, float x1, short falloff_type, float sharpne
 #undef INTEGRAL_RESOLUTION
 
 static void compute_sss_kernel(
-        GPUSssKernelData *kd, float radii[3], int sample_ct, int falloff_type, float sharpness)
+        GPUSssKernelData *kd, float radii[3], int sample_len, int falloff_type, float sharpness)
 {
 	float rad[3];
 	/* Minimum radius */
@@ -390,13 +390,13 @@ static void compute_sss_kernel(
 	}
 
 	/* Compute samples locations on the 1d kernel [-1..1] */
-	sss_calculate_offsets(kd, sample_ct, SSS_EXPONENT);
+	sss_calculate_offsets(kd, sample_len, SSS_EXPONENT);
 
 	/* Weights sum for normalization */
 	float sum[3] = {0.0f, 0.0f, 0.0f};
 
 	/* Compute integral of each sample footprint */
-	for (int i = 0; i < sample_ct; i++) {
+	for (int i = 0; i < sample_len; i++) {
 		float x0, x1;
 
 		if (i == 0) {
@@ -406,8 +406,8 @@ static void compute_sss_kernel(
 			x0 = (kd->kernel[i - 1][3] + kd->kernel[i][3]) / 2.0f;
 		}
 
-		if (i == sample_ct - 1) {
-			x1 = kd->kernel[sample_ct - 1][3] + fabsf(kd->kernel[sample_ct - 2][3] - kd->kernel[sample_ct - 1][3]) / 2.0f;
+		if (i == sample_len - 1) {
+			x1 = kd->kernel[sample_len - 1][3] + fabsf(kd->kernel[sample_len - 2][3] - kd->kernel[sample_len - 1][3]) / 2.0f;
 		}
 		else {
 			x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
@@ -428,25 +428,25 @@ static void compute_sss_kernel(
 	for (int i = 0; i < 3; ++i) {
 		if (sum[i] > 0.0f) {
 			/* Normalize */
-			for (int j = 0; j < sample_ct; j++) {
+			for (int j = 0; j < sample_len; j++) {
 				kd->kernel[j][i] /= sum[i];
 			}
 		}
 		else {
 			/* Avoid 0 kernel sum. */
-			kd->kernel[sample_ct / 2][i] = 1.0f;
+			kd->kernel[sample_len / 2][i] = 1.0f;
 		}
 	}
 
 	/* Put center sample at the start of the array (to sample first) */
 	float tmpv[4];
-	copy_v4_v4(tmpv, kd->kernel[sample_ct / 2]);
-	for (int i = sample_ct / 2; i > 0; i--) {
+	copy_v4_v4(tmpv, kd->kernel[sample_len / 2]);
+	for (int i = sample_len / 2; i > 0; i--) {
 		copy_v4_v4(kd->kernel[i], kd->kernel[i - 1]);
 	}
 	copy_v4_v4(kd->kernel[0], tmpv);
 
-	kd->samples = sample_ct;
+	kd->samples = sample_len;
 }
 
 #define INTEGRAL_RESOLUTION 512
@@ -523,12 +523,12 @@ void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], shor
 	}
 }
 
-struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct, GPUTexture **tex_profile)
+struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_len, GPUTexture **tex_profile)
 {
 	if (!material->sss_enabled)
 		return NULL;
 
-	if (material->sss_dirty || (material->sss_samples != sample_ct)) {
+	if (material->sss_dirty || (material->sss_samples != sample_len)) {
 		GPUSssKernelData kd;
 
 		float sharpness = material->sss_sharpness;
@@ -536,7 +536,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 		/* XXX Black magic but it seems to fit. Maybe because we integrate -1..1 */
 		sharpness *= 0.5f;
 
-		compute_sss_kernel(&kd, material->sss_radii, sample_ct, material->sss_falloff, sharpness);
+		compute_sss_kernel(&kd, material->sss_radii, sample_len, material->sss_falloff, sharpness);
 
 		/* Update / Create UBO */
 		GPU_uniformbuffer_update(material->sss_profile, &kd);
@@ -553,7 +553,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 
 		MEM_freeN(translucence_profile);
 
-		material->sss_samples = sample_ct;
+		material->sss_samples = sample_len;
 		material->sss_dirty = false;
 	}
 

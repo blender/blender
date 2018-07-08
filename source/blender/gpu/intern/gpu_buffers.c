@@ -126,7 +126,7 @@ static void gpu_material_diffuse_get(int UNUSED(nr), float diff[4])
 
 /* Allocates a non-initialized buffer to be sent to GPU.
  * Return is false it indicates that the memory map failed. */
-static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, unsigned int vert_ct)
+static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, unsigned int vert_len)
 {
 	if (buffers->vert_buf == NULL) {
 		/* Initialize vertex buffer */
@@ -140,15 +140,15 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, unsigned int v
 		}
 #if 0
 		buffers->vert_buf = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_DYNAMIC);
-		GWN_vertbuf_data_alloc(buffers->vert_buf, vert_ct);
+		GWN_vertbuf_data_alloc(buffers->vert_buf, vert_len);
 	}
-	else if (vert_ct != buffers->vert_buf->vertex_len) {
-		GWN_vertbuf_data_resize(buffers->vert_buf, vert_ct);
+	else if (vert_len != buffers->vert_buf->vertex_len) {
+		GWN_vertbuf_data_resize(buffers->vert_buf, vert_len);
 	}
 #else
 		buffers->vert_buf = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_STATIC);
 	}
-	GWN_vertbuf_data_alloc(buffers->vert_buf, vert_ct);
+	GWN_vertbuf_data_alloc(buffers->vert_buf, vert_len);
 #endif
 	return buffers->vert_buf->data != NULL;
 }

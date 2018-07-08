@@ -241,7 +241,7 @@ GPUBuiltin GPU_get_material_builtins(GPUMaterial *material);
 
 void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], short *falloff_type, float *sharpness);
 struct GPUUniformBuffer *GPU_material_sss_profile_get(
-        GPUMaterial *material, int sample_ct, struct GPUTexture **tex_profile);
+        GPUMaterial *material, int sample_len, struct GPUTexture **tex_profile);
 
 /* High level functions to create and use GPU materials */
 GPUMaterial *GPU_material_from_nodetree_find(

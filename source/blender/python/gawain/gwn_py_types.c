@@ -301,7 +301,7 @@ finally:
 static int bpygwn_find_id(const Gwn_VertFormat *fmt, const char *id)
 {
 	for (int i = 0; i < fmt->attr_len; i++) {
-		for (uint j = 0; j < fmt->name_ct; j++) {
+		for (uint j = 0; j < fmt->name_len; j++) {
 			if (STREQ(fmt->attribs[i].name[j], id)) {
 				return i;
 			}
