@@ -1738,22 +1738,22 @@ static void ui_panel_category_draw_tab(
 		mul_v2_fl(vec[a], rad);
 	}
 
-	unsigned int vert_ct = 0;
+	uint vert_len = 0;
 	if (use_highlight) {
-		vert_ct += (roundboxtype & UI_CNR_TOP_RIGHT) ? 6 : 1;
-		vert_ct += (roundboxtype & UI_CNR_TOP_LEFT) ? 6 : 1;
+		vert_len += (roundboxtype & UI_CNR_TOP_RIGHT) ? 6 : 1;
+		vert_len += (roundboxtype & UI_CNR_TOP_LEFT) ? 6 : 1;
 	}
 	if (use_highlight && !use_shadow) {
-		vert_ct++;
+		vert_len++;
 	}
 	else {
-		vert_ct += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 6 : 1;
-		vert_ct += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 6 : 1;
+		vert_len += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 6 : 1;
+		vert_len += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 6 : 1;
 	}
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
-	immBegin(filled ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_STRIP, vert_ct);
+	immBegin(filled ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_STRIP, vert_len);
 
 	/* start with corner right-top */
 	if (use_highlight) {

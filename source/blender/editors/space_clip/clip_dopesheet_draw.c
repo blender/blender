@@ -128,7 +128,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		float strip[4], selected_strip[4];
 		float height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT);
 
-		unsigned int keyframe_ct = 0;
+		uint keyframe_len = 0;
 
 		Gwn_VertFormat *format = immVertexFormat();
 		uint pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -186,10 +186,10 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 					if (start_frame != end_frame) {
 						immRectf(pos_id, start_frame, (float) y - STRIP_HEIGHT_HALF,
 						         end_frame, (float) y + STRIP_HEIGHT_HALF);
-						keyframe_ct += 2;
+						keyframe_len += 2;
 					}
 					else {
-						keyframe_ct++;
+						keyframe_len++;
 					}
 				}
 
@@ -199,7 +199,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 					MovieTrackingMarker *marker = &track->markers[i];
 
 					if ((marker->flag & (MARKER_DISABLED | MARKER_TRACKED)) == 0) {
-						keyframe_ct++;
+						keyframe_len++;
 					}
 
 					i++;
@@ -212,7 +212,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 		immUnbindProgram();
 
-		if (keyframe_ct > 0) {
+		if (keyframe_len > 0) {
 			/* draw keyframe markers */
 			format = immVertexFormat();
 			pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -222,7 +222,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 			immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 			GPU_enable_program_point_size();
-			immBegin(GWN_PRIM_POINTS, keyframe_ct);
+			immBegin(GWN_PRIM_POINTS, keyframe_len);
 
 			/* all same size with black outline */
 			immAttrib1f(size_id, 2.0f * STRIP_HEIGHT_HALF);

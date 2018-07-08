@@ -1539,10 +1539,10 @@ static void draw_seq_backdrop(View2D *v2d)
 
 	/* Darker lines separating the horizontal bands */
 	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
-	int line_ct = (int)v2d->cur.ymax - i + 1;
+	int line_len = (int)v2d->cur.ymax - i + 1;
 	immUniformThemeColor(TH_GRID);
-	immBegin(GWN_PRIM_LINES, line_ct * 2);
-	while (line_ct--) {
+	immBegin(GWN_PRIM_LINES, line_len * 2);
+	while (line_len--) {
 		immVertex2f(pos, v2d->cur.xmax, i);
 		immVertex2f(pos, v2d->cur.xmin, i);
 	}

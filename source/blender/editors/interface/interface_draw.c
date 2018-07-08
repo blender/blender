@@ -166,16 +166,16 @@ void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float
 		mul_v2_fl(vec[a], rad);
 	}
 
-	unsigned int vert_ct = 0;
-	vert_ct += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 9 : 1;
-	vert_ct += (roundboxtype & UI_CNR_TOP_RIGHT) ? 9 : 1;
-	vert_ct += (roundboxtype & UI_CNR_TOP_LEFT) ? 9 : 1;
-	vert_ct += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 9 : 1;
+	uint vert_len = 0;
+	vert_len += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 9 : 1;
+	vert_len += (roundboxtype & UI_CNR_TOP_RIGHT) ? 9 : 1;
+	vert_len += (roundboxtype & UI_CNR_TOP_LEFT) ? 9 : 1;
+	vert_len += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 9 : 1;
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(col);
 
-	immBegin(filled ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_LOOP, vert_ct);
+	immBegin(filled ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_LOOP, vert_len);
 	/* start with corner right-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
 		immVertex2f(pos, maxx - rad, miny);
