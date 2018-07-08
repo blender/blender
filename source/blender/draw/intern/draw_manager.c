@@ -1564,7 +1564,7 @@ void DRW_render_object_iter(
 
 	DRW_hair_init();
 
-	const int object_type_exclude_viewport = draw_ctx->v3d->object_type_exclude_viewport;
+	const int object_type_exclude_viewport = draw_ctx->v3d ? draw_ctx->v3d->object_type_exclude_viewport : 0;
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
 	{
 		if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
