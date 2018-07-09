@@ -260,14 +260,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->panelcolors.back; break;
 				case TH_PANEL_SUB_BACK:
 					cp = ts->panelcolors.sub_back; break;
-				case TH_PANEL_SHOW_HEADER:
-					cp = &setting;
-					setting = ts->panelcolors.show_header;
-					break;
-				case TH_PANEL_SHOW_BACK:
-					cp = &setting;
-					setting = ts->panelcolors.show_back;
-					break;
 
 				case TH_BUTBACK:
 					cp = ts->button; break;

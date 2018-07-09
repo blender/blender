@@ -580,9 +580,8 @@ static void ui_draw_panel_dragwidget(unsigned int pos, unsigned int col, const r
 	const int x_ofs = y_ofs;
 	int i_x, i_y;
 
-	int col_id = UI_GetThemeValue(TH_PANEL_SHOW_HEADER) ? TH_PANEL_HEADER : TH_PANEL_BACK;
-	UI_GetThemeColorShade4fv(col_id,  col_tint, col_high);
-	UI_GetThemeColorShade4fv(col_id, -col_tint, col_dark);
+	UI_GetThemeColorShade4fv(TH_PANEL_HEADER,  col_tint, col_high);
+	UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, col_dark);
 
 	/* draw multiple boxes */
 	immBegin(GWN_PRIM_TRIS, 4 * 2 * (6 * 2));
@@ -688,43 +687,19 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 		GPU_blend(true);
 
-		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
-			/* draw with background color */
-			immUniformThemeColor(TH_PANEL_HEADER);
-			immRectf(pos, minx, headrect.ymin, maxx, y);
+		/* draw with background color */
+		immUniformThemeColor(TH_PANEL_HEADER);
+		immRectf(pos, minx, headrect.ymin, maxx, y);
 
-			immBegin(GWN_PRIM_LINES, 4);
+		immBegin(GWN_PRIM_LINES, 4);
 
-			immVertex2f(pos, minx, y);
-			immVertex2f(pos, maxx, y);
+		immVertex2f(pos, minx, y);
+		immVertex2f(pos, maxx, y);
 
-			immVertex2f(pos, minx, y);
-			immVertex2f(pos, maxx, y);
+		immVertex2f(pos, minx, y);
+		immVertex2f(pos, maxx, y);
 
-			immEnd();
-		}
-		else if (!(panel->runtime_flag & PNL_FIRST)) {
-			/* draw embossed separator */
-
-			if (is_closed_x == false) {
-				minx += 5.0f / block->aspect;
-				maxx -= 5.0f / block->aspect;
-			}
-
-			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-
-			immBegin(GWN_PRIM_LINES, 2);
-			immVertex2f(pos, minx, y);
-			immVertex2f(pos, maxx, y);
-			immEnd();
-
-			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-
-			immBegin(GWN_PRIM_LINES, 2);
-			immVertex2f(pos, minx, y - 1);
-			immVertex2f(pos, maxx, y - 1);
-			immEnd();
-		}
+		immEnd();
 
 		GPU_blend(false);
 	}
@@ -798,17 +773,13 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
+		GPU_blend(true);
+
 		/* panel backdrop */
-		if (is_subpanel) {
-			GPU_blend(true);
-			immUniformThemeColor(TH_PANEL_SUB_BACK);
-			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-		}
-		else if (UI_GetThemeValue(TH_PANEL_SHOW_BACK)) {
-			GPU_blend(true);
-			immUniformThemeColor(TH_PANEL_BACK);
-			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-		}
+		int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
+
+		immUniformThemeColor(panel_col);
+		immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 		if (panel->control & UI_PNL_SCALE)
 			ui_draw_panel_scalewidget(pos, rect);
