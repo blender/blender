@@ -528,6 +528,8 @@ typedef enum eBConstraint_Flags {
 	CONSTRAINT_BBONE_SHAPE = (1<<10),
 		/* That constraint has been inserted in local override (i.e. it can be fully edited!). */
 	CONSTRAINT_STATICOVERRIDE_LOCAL = (1 << 11),
+		/* use full transformation (not just segment locations) - only set at runtime  */
+	CONSTRAINT_BBONE_SHAPE_FULL = (1 << 12),
 } eBConstraint_Flags;
 
 /* bConstraint->ownspace/tarspace */

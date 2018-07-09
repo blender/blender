@@ -579,11 +579,14 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 			 * PoseChannel by the Armature Object's Matrix to get a worldspace
 			 * matrix.
 			 */
-			if (headtail < 0.000001f) {
+			bool is_bbone = (pchan->bone) && (pchan->bone->segments > 1) && (flag & CONSTRAINT_BBONE_SHAPE);
+			bool full_bbone = (flag & CONSTRAINT_BBONE_SHAPE_FULL) != 0;
+
+			if (headtail < 0.000001f && !(is_bbone && full_bbone)) {
 				/* skip length interpolation if set to head */
 				mul_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
 			}
-			else if ((pchan->bone) && (pchan->bone->segments > 1) && (flag & CONSTRAINT_BBONE_SHAPE)) {
+			else if (is_bbone) {
 				/* use point along bbone */
 				Mat4 bbone[MAX_BBONE_SUBDIV];
 				float tempmat[4][4];
@@ -629,8 +632,18 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 					mul_v3_m4v3(loc, pchan->pose_mat, pt);
 				}
 
+				/* apply full transformation of the segment if requested */
+				if (full_bbone) {
+					int index = floorf(fac);
+					CLAMP(index, 0, pchan->bone->segments-1);
+
+					mul_m4_m4m4(tempmat, pchan->pose_mat, bbone[index].mat);
+				}
+				else {
+					copy_m4_m4(tempmat, pchan->pose_mat);
+				}
+
 				/* use interpolated distance for subtarget */
-				copy_m4_m4(tempmat, pchan->pose_mat);
 				copy_v3_v3(tempmat[3], loc);
 
 				mul_m4_m4m4(mat, ob->obmat, tempmat);
@@ -697,6 +710,16 @@ static void default_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstraint 
 {
 	if (VALID_CONS_TARGET(ct))
 		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->flag, con->headtail);
+	else if (ct)
+		unit_m4(ct->matrix);
+}
+
+/* This is a variant that extracts full transformation from B-Bone segments.
+ */
+static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph), bConstraint *con, bConstraintOb *UNUSED(cob), bConstraintTarget *ct, float UNUSED(ctime))
+{
+	if (VALID_CONS_TARGET(ct))
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->flag | CONSTRAINT_BBONE_SHAPE_FULL, con->headtail);
 	else if (ct)
 		unit_m4(ct->matrix);
 }
@@ -1906,7 +1929,7 @@ static bConstraintTypeInfo CTI_TRANSLIKE = {
 	NULL, /* new data */
 	translike_get_tars, /* get constraint targets */
 	translike_flush_tars, /* flush constraint targets */
-	default_get_tarmat, /* get target matrix */
+	default_get_tarmat_full_bbone, /* get target matrix */
 	translike_evaluate /* evaluate */
 };
 
