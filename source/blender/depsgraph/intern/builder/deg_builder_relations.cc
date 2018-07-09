@@ -2186,7 +2186,7 @@ void DepsgraphRelationBuilder::build_nested_shapekey(ID *owner, Key *key)
 void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node)
 {
 	ID *id_orig = id_node->id_orig;
-
+	const ID_Type id_type = GS(id_orig->name);
 	TimeSourceKey time_source_key;
 	OperationKey copy_on_write_key(id_orig,
 	                               DEG_NODE_TYPE_COPY_ON_WRITE,
@@ -2210,6 +2210,9 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 			continue;
 		}
 		int rel_flag = DEPSREL_FLAG_NO_FLUSH;
+		if (id_type == ID_ME && comp_node->type == DEG_NODE_TYPE_GEOMETRY) {
+			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
+		}
 		/* All entry operations of each component should wait for a proper
 		 * copy of ID.
 		 */
