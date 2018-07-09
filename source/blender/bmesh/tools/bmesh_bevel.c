@@ -5619,7 +5619,7 @@ void BM_mesh_bevel(
 	bp.hnmode = hnmode;
 	bp.faceHash = NULL;
 
-	if (profile >= 0.999f) {  /* r ~ 692, so PRO_SQUARE_R is 1e4 */
+	if (profile >= 0.950f) {  /* r ~ 692, so PRO_SQUARE_R is 1e4 */
 		bp.pro_super_r = PRO_SQUARE_R;
 	}
 
