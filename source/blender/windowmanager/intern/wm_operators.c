@@ -3996,6 +3996,11 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
+	/* F-Keys are a hassle on some macos systems. */
+#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "WM_OT_search_menu", FKEY, KM_PRESS, KM_OSKEY, 0);
+#endif
+
 #ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "WM_OT_doc_view_manual_ui_context", F1KEY, KM_PRESS, KM_ALT, 0);
 
