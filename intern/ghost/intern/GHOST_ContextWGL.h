@@ -131,15 +131,7 @@ private:
 	        int numOfAASamples,
 	        bool needAlpha,
 	        bool needStencil,
-	        bool sRGB,
-	        int *swapMethodOut);
-
-	int _choose_pixel_format_arb_2(bool stereoVisual,
-	        int *numOfAASamples,
-	        bool needAlpha,
-	        bool needStencil,
-	        bool sRGB,
-	        int  swapMethod);
+	        bool sRGB);
 
 	void initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD);
 
