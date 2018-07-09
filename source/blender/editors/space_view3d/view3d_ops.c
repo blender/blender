@@ -311,7 +311,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "center", true);
 #endif
 
-	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_view_pie", ACCENTGRAVEKEY, KM_CLICK_DRAG, 0, 0);
+	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_view_pie", ACCENTGRAVEKEY, KM_PRESS, 0, 0);
 
 	/* numpad view hotkeys*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_camera", PAD0, KM_PRESS, 0, 0);

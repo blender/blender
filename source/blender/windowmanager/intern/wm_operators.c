@@ -4015,8 +4015,6 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* menus that can be accessed anywhere in blender */
-	WM_keymap_add_item(keymap, "WM_OT_search_menu", ACCENTGRAVEKEY, KM_CLICK, 0, 0);
-
 	WM_keymap_add_menu(keymap, "SCREEN_MT_user_menu", QKEY, KM_PRESS, 0, 0);
 
 #ifdef WITH_INPUT_NDOF
