@@ -691,7 +691,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
 			immUniformThemeColor(TH_PANEL_HEADER);
-			immRectf(pos, minx, headrect.ymin + 1, maxx, y);
+			immRectf(pos, minx, headrect.ymin, maxx, y);
 
 			immBegin(GWN_PRIM_LINES, 4);
 
