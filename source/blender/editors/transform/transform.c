@@ -813,6 +813,71 @@ enum {
 	TFM_MODAL_INSERTOFS_TOGGLE_DIR         = 27,
 };
 
+static bool transform_modal_item_poll(const wmOperator *op, int value)
+{
+	const TransInfo *t = op->customdata;
+	switch (value) {
+		case TFM_MODAL_PROPSIZE:
+		case TFM_MODAL_PROPSIZE_UP:
+		case TFM_MODAL_PROPSIZE_DOWN:
+		{
+			if ((t->flag & T_PROP_EDIT) == 0) {
+				return false;
+			}
+			break;
+		}
+		case TFM_MODAL_ADD_SNAP:
+		case TFM_MODAL_REMOVE_SNAP:
+		{
+			if (t->spacetype != SPACE_VIEW3D) {
+				return false;
+			}
+			break;
+		}
+		case TFM_MODAL_AXIS_Z:
+		{
+			if (t->flag & T_2D_EDIT) {
+				return false;
+			}
+			break;
+		}
+		case TFM_MODAL_PLANE_X:
+		case TFM_MODAL_PLANE_Y:
+		case TFM_MODAL_PLANE_Z:
+		{
+			if (t->flag & T_2D_EDIT) {
+				return false;
+			}
+			break;
+		}
+		case TFM_MODAL_EDGESLIDE_UP:
+		case TFM_MODAL_EDGESLIDE_DOWN:
+		{
+			if (t->mode != TFM_EDGE_SLIDE) {
+				return false;
+			}
+			break;
+		}
+		case TFM_MODAL_INSERTOFS_TOGGLE_DIR:
+		{
+			if (t->spacetype != SPACE_NODE) {
+				return false;
+			}
+			break;
+		}
+		case TFM_MODAL_AUTOIK_LEN_INC:
+		case TFM_MODAL_AUTOIK_LEN_DEC:
+		{
+			if ((t->flag & T_AUTOIK) == 0) {
+				return false;
+			}
+			break;
+		}
+
+	}
+	return true;
+}
+
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -853,6 +918,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 	if (keymap && keymap->modal_items) return NULL;
 
 	keymap = WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
+	keymap->poll_modal_item = transform_modal_item_poll;
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE,  KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
