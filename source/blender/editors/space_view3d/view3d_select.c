@@ -1062,6 +1062,8 @@ static Base *object_mouse_select_menu(
 	short baseCount = 0;
 	bool ok;
 	LinkNode *linklist = NULL;
+	const int object_type_exclude_select = (
+	        vc->v3d->object_type_exclude_viewport | vc->v3d->object_type_exclude_select);
 
 	/* handle base->object->select_color */
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
@@ -1079,6 +1081,9 @@ static Base *object_mouse_select_menu(
 			}
 		}
 		else {
+			if (object_type_exclude_select & (1 << base->object->type)) {
+				continue;
+			}
 			const int dist = 15 * U.pixelsize;
 			if (ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK) {
 				const int delta_px[2] = {base->sx - mval[0], base->sy - mval[1]};
@@ -1447,9 +1452,13 @@ static bool ed_object_select_pick(
 			basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, toggle);
 		}
 		else {
+			const int object_type_exclude_select = (
+			        vc.v3d->object_type_exclude_viewport | vc.v3d->object_type_exclude_select);
 			base = startbase;
 			while (base) {
-				if (BASE_SELECTABLE(base)) {
+				if (BASE_SELECTABLE(base) &&
+				    ((object_type_exclude_select & (1 << base->object->type)) == 0))
+				{
 					float screen_co[2];
 					if (ED_view3d_project_float_global(
 					            ar, base->object->obmat[3], screen_co,
