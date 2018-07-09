@@ -802,14 +802,8 @@ enum {
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 {
 	static const EnumPropertyItem modal_items[] = {
-		{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{TFM_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
-		{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
-		{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
-		{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
-		{TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, "Invert Snap On", ""},
-		{TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, "Invert Snap Off", ""},
-		{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
+		{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{TFM_MODAL_AXIS_X, "AXIS_X", 0, "Orientation X axis", ""},
 		{TFM_MODAL_AXIS_Y, "AXIS_Y", 0, "Orientation Y axis", ""},
 		{TFM_MODAL_AXIS_Z, "AXIS_Z", 0, "Orientation Z axis", ""},
@@ -817,6 +811,9 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 		{TFM_MODAL_PLANE_Y, "PLANE_Y", 0, "Orientation Y plane", ""},
 		{TFM_MODAL_PLANE_Z, "PLANE_Z", 0, "Orientation Z plane", ""},
 		{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
+		{TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, "Invert Snap", ""},
+		{TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, "Invert Snap Off", ""},
+		{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
 		{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
 		{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
 		{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
@@ -829,6 +826,9 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 		{TFM_MODAL_EDGESLIDE_DOWN, "EDGESLIDE_PREV_NEXT", 0, "Select previous Edge Slide Edge", ""},
 		{TFM_MODAL_PROPSIZE, "PROPORTIONAL_SIZE", 0, "Adjust Proportional Influence", ""},
 		{TFM_MODAL_INSERTOFS_TOGGLE_DIR, "INSERTOFS_TOGGLE_DIR", 0, "Toggle Direction for Node Auto-offset", ""},
+		{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+		{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
+		{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -840,10 +840,21 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 	keymap = WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 
 	/* items for modal map */
-	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
-	WM_modalkeymap_add_item(keymap, RETKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
-	WM_modalkeymap_add_item(keymap, PADENTER,  KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE,  KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, RETKEY,     KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER,   KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, ESCKEY,     KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
+
+	WM_modalkeymap_add_item(keymap, XKEY, KM_PRESS, 0, 0, TFM_MODAL_AXIS_X);
+	WM_modalkeymap_add_item(keymap, YKEY, KM_PRESS, 0, 0, TFM_MODAL_AXIS_Y);
+	WM_modalkeymap_add_item(keymap, ZKEY, KM_PRESS, 0, 0, TFM_MODAL_AXIS_Z);
+
+	WM_modalkeymap_add_item(keymap, XKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_PLANE_X);
+	WM_modalkeymap_add_item(keymap, YKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_PLANE_Y);
+	WM_modalkeymap_add_item(keymap, ZKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_PLANE_Z);
+
+	WM_modalkeymap_add_item(keymap, CKEY, KM_PRESS, 0, 0, TFM_MODAL_CONS_OFF);
 
 	WM_modalkeymap_add_item(keymap, GKEY, KM_PRESS, 0, 0, TFM_MODAL_TRANSLATE);
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
@@ -1392,21 +1403,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 						t->redraw = TREDRAW_HARD;
 						handled = true;
 					}
-				}
-				else {
-					if (!(t->flag & T_NO_CONSTRAINT)) {
-						stopConstraint(t);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-				}
-				break;
-			case XKEY:
-			case YKEY:
-			case ZKEY:
-				if (!(t->flag & T_NO_CONSTRAINT)) {
-					transform_event_xyz_constraint(t, event->type, cmode);
-					handled = true;
 				}
 				break;
 			case OKEY:
