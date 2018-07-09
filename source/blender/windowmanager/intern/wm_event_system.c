@@ -1973,11 +1973,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 					if (op->type->modalkeymap) {
 						wmWindow *win = CTX_wm_window(C);
-						bScreen *sc = WM_window_get_active_screen(win);
-						ScrArea *sa = WM_window_find_area_status(win, sc);
-						if (sa != NULL) {
-							ED_area_tag_redraw(sa);
-						}
+						WM_window_status_area_tag_redraw(win);
 					}
 				}
 				else {
@@ -3211,11 +3207,7 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 	BLI_addhead(&win->modalhandlers, handler);
 
 	if (op->type->modalkeymap) {
-		bScreen *sc = WM_window_get_active_screen(win);
-		ScrArea *sa = WM_window_find_area_status(win, sc);
-		if (sa != NULL) {
-			ED_area_tag_redraw(sa);
-		}
+		WM_window_status_area_tag_redraw(win);
 	}
 
 	return handler;
@@ -4352,7 +4344,7 @@ const char *WM_window_cursor_keymap_status_get(const wmWindow *win, int button_i
  * Similar to #BKE_screen_area_map_find_area_xy and related functions,
  * use here since the ara is stored in the window manager.
  */
-ScrArea *WM_window_find_area_status(wmWindow *win, bScreen *screen)
+ScrArea *WM_window_status_area_find(wmWindow *win, bScreen *screen)
 {
 	if (screen->state == SCREENFULL) {
 		return NULL;
@@ -4367,10 +4359,19 @@ ScrArea *WM_window_find_area_status(wmWindow *win, bScreen *screen)
 	return sa_statusbar;
 }
 
+void WM_window_status_area_tag_redraw(wmWindow *win)
+{
+	bScreen *sc = WM_window_get_active_screen(win);
+	ScrArea *sa = WM_window_status_area_find(win, sc);
+	if (sa != NULL) {
+		ED_area_tag_redraw(sa);
+	}
+}
+
 void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 {
 	bScreen *screen = WM_window_get_active_screen(win);
-	ScrArea *sa_statusbar = WM_window_find_area_status(win, screen);
+	ScrArea *sa_statusbar = WM_window_status_area_find(win, screen);
 	if (sa_statusbar == NULL) {
 		return;
 	}
