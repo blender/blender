@@ -1226,7 +1226,7 @@ void VIEW3D_OT_properties(wmOperatorType *ot)
 static int view3d_object_mode_menu(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_active_object(C);
-	if (ob->type == OB_ARMATURE) {
+	if (ob && ((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
 		ED_object_mode_toggle(C, OB_MODE_POSE);
 		return OPERATOR_CANCELLED;
 	}
