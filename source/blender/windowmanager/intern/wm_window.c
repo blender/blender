@@ -122,6 +122,9 @@ static struct WMInitStruct {
 
 /* ******** win open & close ************ */
 
+static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate);
+static void wm_window_clear_drawable(wmWindowManager *wm);
+
 /* XXX this one should correctly check for apple top header...
  * done for Cocoa : returns window contents (and not frame) max size*/
 void wm_get_screensize(int *r_width, int *r_height)
@@ -176,10 +179,19 @@ static void wm_window_check_position(rcti *rect)
 	if (rect->ymin < 0) rect->ymin = 0;
 }
 
-
 static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 {
 	if (win->ghostwin) {
+		if (win == wm->windrawable) {
+			/* Prevents non-drawable state of main windows (bugs #22967,
+			 * #25071 and possibly #22477 too). */
+			wm_window_clear_drawable(wm);
+		}
+
+		if (win == wm->winactive) {
+			wm->winactive = NULL;
+		}
+
 		/* We need this window's opengl context active to discard it. */
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 		GWN_context_active_set(win->gwnctx);
@@ -191,9 +203,6 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 		win->ghostwin = NULL;
 		win->gwnctx = NULL;
 
-		/* prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
-		wm->windrawable = NULL;
-		wm->winactive = NULL;
 	}
 }
 
@@ -513,20 +522,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 		ED_screen_exit(C, win, screen);
 	}
 
-	if (win_other) {
-		BLF_batch_reset();
-		gpu_batch_presets_reset();
-		immDeactivate();
-	}
-
 	wm_window_free(C, wm, win);
-
-	/* keep imediatemode active before the next `wm_window_make_drawable` call */
-	if (win_other) {
-		GHOST_ActivateWindowDrawingContext(win_other->ghostwin);
-		GWN_context_active_set(win_other->gwnctx);
-		immActivate();
-	}
 
 	/* if temp screen, delete it after window free (it stops jobs that can access it) */
 	if (screen && screen->temp) {
@@ -646,18 +642,18 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	if (ghostwin) {
 		GHOST_RectangleHandle bounds;
 
-		/* XXX Fix crash when a new window is created.
-		 * However this should be move somewhere else. (fclem) */
-		BLF_batch_reset();
-		gpu_batch_presets_reset();
+		/* Clear drawable so we can set the new window. */
+		wm_window_clear_drawable(wm);
 
 		win->gwnctx = GWN_context_create();
 
-		/* the new window has already been made drawable upon creation */
-		wm->windrawable = win;
-
 		/* needed so we can detect the graphics card below */
 		GPU_init();
+
+		/* Set window as drawable upon creation. Note this has already been
+		 * it has already been activated by GHOST_CreateWindow. */
+		bool activate = false;
+		wm_window_set_drawable(wm, win, activate);
 
 		win->ghostwin = ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win); /* pointer back */
@@ -1095,24 +1091,41 @@ static int query_qual(modifierKeyType qual)
 	return val;
 }
 
+static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate)
+{
+	BLI_assert(ELEM(wm->windrawable, NULL, win));
+
+	wm->windrawable = win;
+	if (activate) {
+		GHOST_ActivateWindowDrawingContext(win->ghostwin);
+	}
+	GWN_context_active_set(win->gwnctx);
+	immActivate();
+}
+
+static void wm_window_clear_drawable(wmWindowManager *wm)
+{
+	if (wm->windrawable) {
+		BLF_batch_reset();
+		gpu_batch_presets_reset();
+		immDeactivate();
+		wm->windrawable = NULL;
+	}
+}
+
 void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 {
 	BLI_assert(GPU_framebuffer_current_get() == 0);
 
 	if (win != wm->windrawable && win->ghostwin) {
 //		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
+		wm_window_clear_drawable(wm);
 
-		wm->windrawable = win;
 		if (G.debug & G_DEBUG_EVENTS) {
 			printf("%s: set drawable %d\n", __func__, win->winid);
 		}
 
-		BLF_batch_reset();
-		gpu_batch_presets_reset();
-		immDeactivate();
-		GHOST_ActivateWindowDrawingContext(win->ghostwin);
-		GWN_context_active_set(win->gwnctx);
-		immActivate();
+		wm_window_set_drawable(wm, win, true);
 
 		/* this can change per window */
 		WM_window_set_dpi(win);
@@ -1132,12 +1145,8 @@ void wm_window_reset_drawable(void)
 	wmWindow *win = wm->windrawable;
 
 	if (win && win->ghostwin) {
-		BLF_batch_reset();
-		gpu_batch_presets_reset();
-		immDeactivate();
-		GHOST_ActivateWindowDrawingContext(win->ghostwin);
-		GWN_context_active_set(win->gwnctx);
-		immActivate();
+		wm_window_clear_drawable(wm);
+		wm_window_set_drawable(wm, win, true);
 	}
 }
 

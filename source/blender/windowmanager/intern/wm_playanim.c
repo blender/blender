@@ -1283,6 +1283,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	/* initialize OpenGL immediate mode */
 	g_WS.gwn_context =  GWN_context_create();
 	GPU_init();
+	immActivate();
 
 	/* initialize the font */
 	BLF_init();
@@ -1551,8 +1552,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	GPU_shader_free_builtin_shaders();
 
-	GPU_exit();
-
 	if (g_WS.gwn_context) {
 		GWN_context_active_set(g_WS.gwn_context);
 		GWN_context_discard(g_WS.gwn_context);
@@ -1560,6 +1559,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	}
 
 	BLF_exit();
+
+	immDeactivate();
+	GPU_exit();
 
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
 

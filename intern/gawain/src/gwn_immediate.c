@@ -77,8 +77,6 @@ void immInit(void)
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	initialized = true;
-
-	immActivate();
 	}
 
 void immActivate(void)
@@ -106,7 +104,6 @@ void immDeactivate(void)
 
 void immDestroy(void)
 	{
-	immDeactivate();
 	GWN_buf_id_free(imm.vbo_id);
 	initialized = false;
 	}

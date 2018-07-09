@@ -186,13 +186,18 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	ED_editors_exit(C);
 }
 
-static void wm_window_substitute_old(wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)
+static void wm_window_substitute_old(wmWindowManager *oldwm, wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)
 {
 	win->ghostwin = oldwin->ghostwin;
 	win->gwnctx = oldwin->gwnctx;
 	win->active = oldwin->active;
-	if (win->active)
+	if (win->active) {
 		wm->winactive = win;
+	}
+	if (oldwm->windrawable == oldwin) {
+		oldwm->windrawable = NULL;
+		wm->windrawable = win;
+	}
 
 	if (!G.background) /* file loading in background mode still calls this */
 		GHOST_SetWindowUserData(win->ghostwin, win);    /* pointer back */
@@ -281,13 +286,13 @@ static void wm_window_match_replace_by_file_wm(
 			if (oldwin->winid == win->winid) {
 				has_match = true;
 
-				wm_window_substitute_old(wm, oldwin, win);
+				wm_window_substitute_old(oldwm, wm, oldwin, win);
 			}
 		}
 	}
 	/* make sure at least one window is kept open so we don't lose the context, check T42303 */
 	if (!has_match) {
-		wm_window_substitute_old(wm, oldwm->windows.first, wm->windows.first);
+		wm_window_substitute_old(oldwm, wm, oldwm->windows.first, wm->windows.first);
 	}
 
 	wm_close_and_free_all(C, current_wm_list);

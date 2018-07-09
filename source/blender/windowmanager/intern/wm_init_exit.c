@@ -491,8 +491,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 #endif
 
 		GPU_free_unused_buffers(G_MAIN);
-
-		GPU_exit();
 	}
 
 	BKE_blender_free();  /* blender.c, does entire library and spacetypes */
@@ -515,6 +513,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	if (opengl_is_init) {
 		GPU_pass_cache_free();
 		DRW_opengl_context_destroy();
+		GPU_exit();
 	}
 
 #ifdef WITH_INTERNATIONAL
