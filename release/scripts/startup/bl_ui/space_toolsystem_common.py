@@ -624,7 +624,10 @@ def keymap_from_context(context, space_type):
     """
     Keymap for popup toolbar, currently generated each time.
     """
+
+    use_search = False  # allows double tap
     use_simple_keymap = False
+
     km_name = "Toolbar Popup"
     wm = context.window_manager
     keyconf = wm.keyconfigs.active
@@ -633,6 +636,10 @@ def keymap_from_context(context, space_type):
         keymap = keyconf.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY')
     for kmi in keymap.keymap_items:
         keymap.keymap_items.remove(kmi)
+
+    if use_search:
+        kmi_search = wm.keyconfigs.find_item_from_operator(idname="wm.toolbar")[1]
+        kmi_search_type = None if not kmi_search else kmi_search.type
 
     items = []
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
@@ -678,6 +685,16 @@ def keymap_from_context(context, space_type):
                         key_modifier=kmi_found.key_modifier,
                     )
                     kmi.properties.name = item.text
+
+                    if use_search:
+                        # Disallow overlap
+                        if kmi_search_type == kmi_found_type:
+                            kmi_search_type = None
+
+    if use_search:
+        # Support double-tap for search.
+        if kmi_search_type:
+            keymap.keymap_items.new("wm.search_menu", type=kmi_search_type, value='PRESS')
 
     wm.keyconfigs.update()
     return keymap
