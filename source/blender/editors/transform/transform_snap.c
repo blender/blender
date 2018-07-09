@@ -122,13 +122,13 @@ int BIF_snappingSupported(Object *obedit)
 }
 #endif
 
-bool validSnap(TransInfo *t)
+bool validSnap(const TransInfo *t)
 {
 	return (t->tsnap.status & (POINT_INIT | TARGET_INIT)) == (POINT_INIT | TARGET_INIT) ||
 	       (t->tsnap.status & (MULTI_POINTS | TARGET_INIT)) == (MULTI_POINTS | TARGET_INIT);
 }
 
-bool activeSnap(TransInfo *t)
+bool activeSnap(const TransInfo *t)
 {
 	return ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
 	       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT);
@@ -471,12 +471,12 @@ void resetSnapping(TransInfo *t)
 	t->tsnap.snapNodeBorder = 0;
 }
 
-bool usingSnappingNormal(TransInfo *t)
+bool usingSnappingNormal(const TransInfo *t)
 {
 	return t->tsnap.align;
 }
 
-bool validSnappingNormal(TransInfo *t)
+bool validSnappingNormal(const TransInfo *t)
 {
 	if (validSnap(t)) {
 		if (!is_zero_v3(t->tsnap.snapNormal)) {
@@ -807,7 +807,7 @@ void removeSnapPoint(TransInfo *t)
 	}
 }
 
-void getSnapPoint(TransInfo *t, float vec[3])
+void getSnapPoint(const TransInfo *t, float vec[3])
 {
 	if (t->tsnap.points.first) {
 		TransSnapPoint *p;
