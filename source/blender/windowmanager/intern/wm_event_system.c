@@ -4524,14 +4524,14 @@ bool WM_window_modal_keymap_status_draw(
         uiLayout *layout)
 {
 	wmKeyMap *keymap = NULL;
-	wmOperatorType *ot = NULL;
+	wmOperator *op = NULL;
 	for (wmEventHandler *handler = win->modalhandlers.first; handler; handler = handler->next) {
 		if (handler->op) {
 			/* 'handler->keymap' could be checked too, seems not to be used. */
 			wmKeyMap *keymap_test = handler->op->type->modalkeymap;
 			if (keymap_test && keymap_test->modal_items) {
 				keymap = keymap_test;
-				ot = handler->op->type;
+				op = handler->op;
 				break;
 			}
 		}
@@ -4544,6 +4544,11 @@ bool WM_window_modal_keymap_status_draw(
 	uiLayout *row = uiLayoutRow(layout, true);
 	for (int i = 0; items[i].identifier; i++) {
 		if (!items[i].identifier[0]) {
+			continue;
+		}
+		if ((keymap->poll_modal_item != NULL) &&
+		    (keymap->poll_modal_item(op, items[i].value) == false))
+		{
 			continue;
 		}
 
@@ -4577,7 +4582,8 @@ bool WM_window_modal_keymap_status_draw(
 			char buf[UI_MAX_DRAW_STR];
 			int available_len = sizeof(buf);
 			char *p = buf;
-			WM_modalkeymap_operator_items_to_string_buf(ot, items[i].value, true, UI_MAX_SHORTCUT_STR, &available_len, &p);
+			WM_modalkeymap_operator_items_to_string_buf(
+			        op->type, items[i].value, true, UI_MAX_SHORTCUT_STR, &available_len, &p);
 			p -= 1;
 			if (p > buf) {
 				BLI_snprintf(p, available_len, ": %s", items[i].name);

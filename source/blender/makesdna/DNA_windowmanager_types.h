@@ -331,6 +331,8 @@ typedef struct wmKeyMap {
 	/* runtime */
 	/** Verify if enabled in the current context, use #WM_keymap_poll instead of direct calls. */
 	bool (*poll)(struct bContext *);
+	bool (*poll_modal_item)(const struct wmOperator *op, int value);
+
 	/** For modal, #EnumPropertyItem for now. */
 	const void *modal_items;
 } wmKeyMap;
