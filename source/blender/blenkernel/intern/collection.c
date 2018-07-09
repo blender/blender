@@ -473,7 +473,7 @@ static bool collection_object_add(Main *bmain, Collection *collection, Object *o
 {
 	if (ob->dup_group) {
 		/* Cyclic dependency check. */
-		if (collection_find_child_recursive(collection, ob->dup_group)) {
+		if (collection_find_child_recursive(ob->dup_group, collection)) {
 			return false;
 		}
 	}
