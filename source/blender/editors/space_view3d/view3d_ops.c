@@ -312,6 +312,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 #endif
 
 	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_view_pie", ACCENTGRAVEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_navigate", ACCENTGRAVEKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* numpad view hotkeys*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_camera", PAD0, KM_PRESS, 0, 0);
