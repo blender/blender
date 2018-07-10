@@ -1842,8 +1842,9 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	Scene *scene = (Scene *)ptr->id.data;
 	Object *camera = scene->camera;
 
-	if (camera)
-		DEG_id_tag_update(&camera->id, 0);
+	if (camera && (camera->type == OB_CAMERA)) {
+		DEG_id_tag_update(&camera->id, OB_RECALC_DATA);
+	}
 }
 
 static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
