@@ -4326,7 +4326,7 @@ void UI_menutype_draw(bContext *C, MenuType *mt, struct uiLayout *layout)
 
 
 static void ui_paneltype_draw_impl(
-        bContext *C, PanelType *pt, uiLayout *layout)
+        bContext *C, PanelType *pt, uiLayout *layout, bool show_header)
 {
 	Panel *panel = MEM_callocN(sizeof(Panel), "popover panel");
 	panel->type = pt;
@@ -4335,13 +4335,15 @@ static void ui_paneltype_draw_impl(
 	uiLayout *last_item = layout->items.last;
 
 	/* Draw main panel. */
-	uiLayout *row = uiLayoutRow(layout, false);
-	if (pt->draw_header) {
-		panel->layout = row;
-		pt->draw_header(C, panel);
-		panel->layout = NULL;
+	if (show_header) {
+		uiLayout *row = uiLayoutRow(layout, false);
+		if (pt->draw_header) {
+			panel->layout = row;
+			pt->draw_header(C, panel);
+			panel->layout = NULL;
+		}
+		uiItemL(row, pt->label, ICON_NONE);
 	}
-	uiItemL(row, pt->label, ICON_NONE);
 
 	panel->layout = layout;
 	pt->draw(C, panel);
@@ -4361,7 +4363,7 @@ static void ui_paneltype_draw_impl(
 			}
 
 			uiLayout *col = uiLayoutColumn(layout, false);
-			ui_paneltype_draw_impl(C, child_pt, col);
+			ui_paneltype_draw_impl(C, child_pt, col, true);
 		}
 	}
 }
@@ -4375,7 +4377,7 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
 		CTX_store_set(C, layout->context);
 	}
 
-	ui_paneltype_draw_impl(C, pt, layout);
+	ui_paneltype_draw_impl(C, pt, layout, false);
 
 	if (layout->context) {
 		CTX_store_set(C, NULL);
