@@ -542,7 +542,7 @@ namespace {
 
 OpenSubdiv::Sdc::SchemeType get_capi_scheme_type(OpenSubdiv_SchemeType type)
 {
-	switch(type) {
+	switch (type) {
 		case OSD_SCHEME_BILINEAR:
 			return OpenSubdiv::Sdc::SCHEME_BILINEAR;
 		case OSD_SCHEME_CATMARK:
@@ -550,8 +550,27 @@ OpenSubdiv::Sdc::SchemeType get_capi_scheme_type(OpenSubdiv_SchemeType type)
 		case OSD_SCHEME_LOOP:
 			return OpenSubdiv::Sdc::SCHEME_LOOP;
 	}
-	assert(!"Unknown sceme type passed via C-API");
+	assert(!"Unknown scheme type passed via C-API");
 	return OpenSubdiv::Sdc::SCHEME_CATMARK;
+}
+
+OpenSubdiv::Sdc::Options::FVarLinearInterpolation
+get_capi_fvar_linear_interpolation(
+        OpenSubdiv_FVarLinearInterpolation linear_interpolation)
+{
+	typedef OpenSubdiv::Sdc::Options Options;
+	switch (linear_interpolation) {
+		case OSD_FVAR_LINEAR_INTERPOLATION_NONE:
+			return Options::FVAR_LINEAR_NONE;
+		case OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY:
+			return Options::FVAR_LINEAR_CORNERS_ONLY;
+		case OSD_FVAR_LINEAR_INTERPOLATION_BOUNDARIES:
+			return Options::FVAR_LINEAR_BOUNDARIES;
+		case OSD_FVAR_LINEAR_INTERPOLATION_ALL:
+			return Options::FVAR_LINEAR_ALL;
+	}
+	assert(!"Unknown fvar linear interpolation passed via C-API");
+	return Options::FVAR_LINEAR_NONE;
 }
 
 }  /* namespace */
@@ -562,17 +581,15 @@ struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
 	typedef OpenSubdiv::Sdc::Options Options;
 
 	using OpenSubdiv::Far::TopologyRefinerFactory;
-	OpenSubdiv::Sdc::SchemeType scheme_type =
-	        get_capi_scheme_type(converter->get_type(converter));
+	const OpenSubdiv::Sdc::SchemeType scheme_type =
+	        get_capi_scheme_type(converter->get_scheme_type(converter));
+	const Options::FVarLinearInterpolation linear_interpolation =
+	        get_capi_fvar_linear_interpolation(
+	                converter->get_fvar_linear_interpolation(converter));
 	Options options;
 	options.SetVtxBoundaryInterpolation(Options::VTX_BOUNDARY_EDGE_ONLY);
 	options.SetCreasingMethod(Options::CREASE_UNIFORM);
-	if (converter->get_subdiv_uvs(converter)) {
-		options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_CORNERS_ONLY);
-	}
-	else {
-		options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
-	}
+	options.SetFVarLinearInterpolation(linear_interpolation);
 
 	TopologyRefinerFactory<TopologyRefinerData>::Options
 	        topology_options(scheme_type, options);
@@ -663,14 +680,17 @@ int openSubdiv_topologyRefnerCompareConverter(
 	const int num_faces = base_level.GetNumFaces();
 	/* Quick preliminary check. */
 	OpenSubdiv::Sdc::SchemeType scheme_type =
-	        get_capi_scheme_type(converter->get_type(converter));
+	        get_capi_scheme_type(converter->get_scheme_type(converter));
 	if (scheme_type != refiner->GetSchemeType()) {
 		return false;
 	}
 	const Options options = refiner->GetSchemeOptions();
-	Options::FVarLinearInterpolation interp = options.GetFVarLinearInterpolation();
-	const bool subdiv_uvs = (interp != Options::FVAR_LINEAR_ALL);
-	if (converter->get_subdiv_uvs(converter) != subdiv_uvs) {
+	const Options::FVarLinearInterpolation interp =
+	        options.GetFVarLinearInterpolation();
+	const Options::FVarLinearInterpolation new_interp =
+	        get_capi_fvar_linear_interpolation(
+	                converter->get_fvar_linear_interpolation(converter));
+	if (new_interp != interp) {
 		return false;
 	}
 	if (converter->get_num_verts(converter) != num_verts ||
