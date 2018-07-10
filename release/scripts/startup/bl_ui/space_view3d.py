@@ -3897,6 +3897,7 @@ class VIEW3D_PT_overlay(Panel):
         #sub.prop(overlay, "show_onion_skins")
         sub.prop(overlay, "show_face_orientation")
         sub.prop(overlay, "show_backface_culling")
+        sub.prop(overlay, "show_bones", text="Bones")
         if shading.type == 'MATERIAL':
             sub.prop(overlay, "show_look_dev")
 
