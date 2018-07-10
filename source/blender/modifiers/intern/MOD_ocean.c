@@ -380,6 +380,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 	OceanModifierData *omd = (OceanModifierData *) md;
 	int cfra_scene = (int)DEG_get_ctime(ctx->depsgraph);
 	Object *ob = ctx->object;
+	bool allocated_ocean = false;
 
 	Mesh *result = NULL;
 	OceanResult ocr;
@@ -410,6 +411,12 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 		BKE_ocean_simulate_cache(omd->oceancache, cfra_scene);
 	}
 	else {
+		/* omd->ocean is NULL on an original object (in contrast to an evaluated one).
+		 * We can create a new one, but we have to free it as well once we're done.
+		 * This function is only called on an original object when applying the modifier
+		 * using the 'Apply Modifier' button, and thus it is not called frequently for
+		 * simulation. */
+		allocated_ocean |= BKE_ocean_ensure(omd);
 		simulate_ocean_modifier(omd);
 	}
 
@@ -501,6 +508,11 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 				vco[1] += ocr.disp[2];
 			}
 		}
+	}
+
+	if (allocated_ocean) {
+		BKE_ocean_free(omd->ocean);
+		omd->ocean = NULL;
 	}
 
 #undef OCEAN_CO

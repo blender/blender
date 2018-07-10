@@ -836,6 +836,17 @@ struct Ocean *BKE_ocean_add(void)
 	return oc;
 }
 
+bool BKE_ocean_ensure(struct OceanModifierData *omd)
+{
+	if (omd->ocean) {
+		return false;
+	}
+
+	omd->ocean = BKE_ocean_add();
+	BKE_ocean_init_from_modifier(omd->ocean, omd);
+	return true;
+}
+
 void BKE_ocean_init_from_modifier(struct Ocean *ocean, struct OceanModifierData const *omd)
 {
 	short do_heightfield, do_chop, do_normals, do_jacobian;
@@ -1530,6 +1541,11 @@ void BKE_ocean_bake(struct Ocean *UNUSED(o), struct OceanCache *UNUSED(och),
 	/* unused */
 	(void)update_cb;
 }
+
+void BKE_ocean_init_from_modifier(struct Ocean *UNUSED(ocean), struct OceanModifierData const *UNUSED(omd))
+{
+}
+
 #endif /* WITH_OCEANSIM */
 
 void BKE_ocean_free_modifier_cache(struct OceanModifierData *omd)
