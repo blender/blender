@@ -41,13 +41,22 @@ typedef enum OpenSubdiv_SchemeType {
 	OSD_SCHEME_LOOP,
 } OpenSubdiv_SchemeType;
 
+typedef enum OpenSubdiv_FVarLinearInterpolation {
+	OSD_FVAR_LINEAR_INTERPOLATION_NONE,
+	OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY,
+	OSD_FVAR_LINEAR_INTERPOLATION_BOUNDARIES,
+	OSD_FVAR_LINEAR_INTERPOLATION_ALL,
+} OpenSubdiv_FVarLinearInterpolation;
+
 typedef struct OpenSubdiv_Converter {
 	/* TODO(sergey): Needs to be implemented. */
 	/* OpenSubdiv::Sdc::Options get_options() const; */
 
-	OpenSubdiv_SchemeType (*get_type)(const OpenSubdiv_Converter *converter);
+	OpenSubdiv_SchemeType (*get_scheme_type)(
+	        const OpenSubdiv_Converter *converter);
 
-	bool (*get_subdiv_uvs)(const OpenSubdiv_Converter *converter);
+	OpenSubdiv_FVarLinearInterpolation (*get_fvar_linear_interpolation)(
+	        const OpenSubdiv_Converter *converter);
 
 	int (*get_num_faces)(const OpenSubdiv_Converter *converter);
 	int (*get_num_edges)(const OpenSubdiv_Converter *converter);
@@ -86,7 +95,6 @@ typedef struct OpenSubdiv_Converter {
 	                       int *vert_faces);
 
 	/* Face-varying data. */
-
 	int (*get_num_uv_layers)(const OpenSubdiv_Converter *converter);
 
 	void (*precalc_uv_layer)(const OpenSubdiv_Converter *converter, int layer);
@@ -99,6 +107,7 @@ typedef struct OpenSubdiv_Converter {
 	                                int face,
 	                                int corner);
 
+	/* User data associated with this converter. */
 	void (*free_user_data)(const OpenSubdiv_Converter *converter);
 	void *user_data;
 } OpenSubdiv_Converter;
