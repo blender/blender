@@ -3223,7 +3223,6 @@ void VIEW3D_OT_view_center_lock(wmOperatorType *ot)
 
 static int render_border_exec(bContext *C, wmOperator *op)
 {
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
@@ -3233,17 +3232,13 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf vb, border;
 
-	const bool camera_only = RNA_boolean_get(op->ptr, "camera_only");
-
-	if (camera_only && rv3d->persp != RV3D_CAMOB)
-		return OPERATOR_PASS_THROUGH;
-
 	/* get border select values using rna */
 	WM_operator_properties_border_to_rcti(op, &rect);
 
 	/* calculate range */
 
 	if (rv3d->persp == RV3D_CAMOB) {
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &vb, false);
 	}
 	else {
@@ -3297,8 +3292,6 @@ static int render_border_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Set Render Border";
 	ot->description = "Set the boundaries of the border render and enable border render";
@@ -3317,10 +3310,6 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_border(ot);
-
-	prop = RNA_def_boolean(ot->srna, "camera_only", false, "Camera Only",
-	                       "Set render border for camera view and final render only");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */

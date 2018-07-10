@@ -692,7 +692,7 @@ class VIEW3D_MT_view_borders(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("view3d.clip_border", text="Clipping Border...")
-        layout.operator("view3d.render_border", text="Render Border...").camera_only = False
+        layout.operator("view3d.render_border", text="Render Border...")
 
         layout.separator()
 
