@@ -3697,11 +3697,11 @@ class VIEW3D_PT_object_type_visibility(Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+
         view = context.space_data
 
         col = layout.column()
-
-        split = col.split()
 
         heading_pair = ("Visible", "Selectable")
         attr_object_types = (
@@ -3722,17 +3722,13 @@ class VIEW3D_PT_object_type_visibility(Panel):
         attr_vis = [f"show_object_viewport_{attr}" for attr in attr_object_types]
         attr_sel = [f"show_object_select_{attr}" for attr in attr_object_types]
 
-        sub = split.column()
-        sub.label("Visible")
-        for attr_v in attr_vis:
-            sub.prop(view, attr_v)
-
-        sub = split.column()
-        sub.label("Selectable")
         for attr_v, attr_s in zip(attr_vis, attr_sel):
-            row = sub.row(align=True)
+            icon_s = 'RESTRICT_SELECT_OFF' if getattr(view, attr_s) else 'RESTRICT_SELECT_ON'
+
+            row = col.row(align=True)
+            row.prop(view, attr_v)
             row.active = getattr(view, attr_v)
-            row.prop(view, attr_s)
+            row.prop(view, attr_s, text="", icon=icon_s, emboss=False)
 
 
 class VIEW3D_PT_shading(Panel):
