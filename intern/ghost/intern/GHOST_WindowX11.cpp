@@ -1677,6 +1677,7 @@ getDPIHint()
 				}
 			}
 		}
+		XrmDestroyDatabase(xrdb);
 	}
 
 	/* Fallback to calculating DPI using X reported DPI, set using xrandr --dpi */
