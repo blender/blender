@@ -165,10 +165,10 @@ void BKE_workspace_free(WorkSpace *workspace)
 		tref_next = tref->next;
 		if (tref->runtime) {
 			MEM_freeN(tref->runtime);
-			if (tref->properties) {
-				IDP_FreeProperty(tref->properties);
-				MEM_freeN(tref->properties);
-			}
+		}
+		if (tref->properties) {
+			IDP_FreeProperty(tref->properties);
+			MEM_freeN(tref->properties);
 		}
 	}
 	BLI_freelistN(&workspace->tools);
