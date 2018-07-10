@@ -452,6 +452,10 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 	BLI_array_declare(sorted_ntypes);
 
 	NODE_TYPES_BEGIN(ntype) {
+		if (!(ntype->poll && ntype->poll(ntype, ntree))) {
+			continue;
+		}
+
 		if (ntype->nclass != nclass) {
 			continue;
 		}
