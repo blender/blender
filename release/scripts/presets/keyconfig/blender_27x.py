@@ -5900,15 +5900,6 @@ keyconfig_data = [
                 ("view3d.zoom_border", {"type": 'B', "value": 'PRESS', "shift": True}, None),
                 (
                     "view3d.render_border",
-                    {"type": 'B', "value": 'PRESS', "shift": True},
-                    {
-                        "properties": [
-                            ("camera_only", True),
-                        ],
-                    }
-                ),
-                (
-                    "view3d.render_border",
                     {"type": 'B', "value": 'PRESS', "ctrl": True},
                     {
                         "properties": [
