@@ -123,7 +123,7 @@ static void eevee_cache_init(void *vedata)
 	EEVEE_volumes_cache_init(sldata, vedata);
 }
 
-static void eevee_cache_populate(void *vedata, Object *ob)
+void EEVEE_cache_populate(void *vedata, Object *ob)
 {
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
@@ -146,7 +146,7 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 				/* TODO: Special case for dupli objects because we cannot save the object pointer. */
 			}
 			else {
-				EEVEE_lightprobes_cache_add(sldata, ob);
+				EEVEE_lightprobes_cache_add(sldata, vedata, ob);
 			}
 		}
 		else if (ob->type == OB_LAMP) {
@@ -282,7 +282,9 @@ static void eevee_draw_background(void *vedata)
 		EEVEE_subsurface_compute(sldata, vedata);
 		EEVEE_reflection_compute(sldata, vedata);
 		EEVEE_occlusion_draw_debug(sldata, vedata);
-		DRW_draw_pass(psl->probe_display);
+		if (psl->probe_display) {
+			DRW_draw_pass(psl->probe_display);
+		}
 		EEVEE_refraction_compute(sldata, vedata);
 
 		/* Opaque refraction */
@@ -367,7 +369,7 @@ static void eevee_id_object_update(void *UNUSED(vedata), Object *object)
 {
 	EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(object);
 	if (ped != NULL && ped->dd.recalc != 0) {
-		ped->need_full_update = true;
+		ped->need_update = (ped->dd.recalc & (ID_RECALC_TRANSFORM | ID_RECALC_COPY_ON_WRITE)) != 0;
 		ped->dd.recalc = 0;
 	}
 	EEVEE_LampEngineData *led = EEVEE_lamp_data_get(object);
@@ -385,10 +387,14 @@ static void eevee_id_object_update(void *UNUSED(vedata), Object *object)
 static void eevee_id_world_update(void *vedata, World *wo)
 {
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+	LightCache *lcache = stl->g_data->light_cache;
 
 	EEVEE_WorldEngineData *wedata = EEVEE_world_data_ensure(wo);
 
 	if (wedata != NULL && wedata->dd.recalc != 0) {
+		if ((lcache->flag & (LIGHTCACHE_BAKED | LIGHTCACHE_BAKING)) == 0) {
+			lcache->flag |= LIGHTCACHE_UPDATE_WORLD;
+		}
 		wedata->dd.recalc = 0;
 	}
 }
@@ -446,7 +452,7 @@ DrawEngineType draw_engine_eevee_type = {
 	&eevee_engine_init,
 	&eevee_engine_free,
 	&eevee_cache_init,
-	&eevee_cache_populate,
+	&EEVEE_cache_populate,
 	&eevee_cache_finish,
 	&eevee_draw_background,
 	NULL, /* Everything is drawn in the background pass (see comment on function) */

@@ -683,6 +683,18 @@ static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 	}
 }
 
+static void view3d_lightcache_update(bContext *C)
+{
+	PointerRNA op_ptr;
+
+	WM_operator_properties_create(&op_ptr, "SCENE_OT_light_cache_bake");
+	RNA_int_set(&op_ptr, "delay", 200);
+	RNA_enum_set_identifier(C, &op_ptr, "subset", "DIRTY");
+
+	WM_operator_name_call(C, "SCENE_OT_light_cache_bake", WM_OP_INVOKE_DEFAULT, &op_ptr);
+
+	WM_operator_properties_free(&op_ptr);
+}
 
 /* region dropbox definition */
 static void view3d_dropboxes(void)
@@ -979,6 +991,9 @@ static void view3d_main_region_listener(
 					WM_manipulatormap_tag_refresh(mmap);
 					break;
 			}
+			break;
+		case NC_LIGHTPROBE:
+			ED_area_tag_refresh(sa);
 			break;
 		case NC_IMAGE:
 			/* this could be more fine grained checks if we had
@@ -1409,6 +1424,13 @@ static void space_view3d_listener(
 	}
 }
 
+static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(sa))
+{
+	/* This is only used by the auto lightprobe refresh for the moment.
+	 * So we don't need to check anything to know what to do. */
+	view3d_lightcache_update((bContext *)C);
+}
+
 const char *view3d_context_dir[] = {
 	"active_base", "active_object", NULL
 };
@@ -1509,6 +1531,7 @@ void ED_spacetype_view3d(void)
 	st->free = view3d_free;
 	st->init = view3d_init;
 	st->listener = space_view3d_listener;
+	st->refresh = space_view3d_refresh;
 	st->duplicate = view3d_duplicate;
 	st->operatortypes = view3d_operatortypes;
 	st->keymap = view3d_keymap;

@@ -393,6 +393,9 @@ BlendFileData *BLO_read_from_memfile(
 		/* makes lookup of existing images in old main */
 		blo_make_image_pointer_map(fd, oldmain);
 
+		/* makes lookup of existing light caches in old main */
+		blo_make_scene_pointer_map(fd, oldmain);
+
 		/* makes lookup of existing video clips in old main */
 		blo_make_movieclip_pointer_map(fd, oldmain);
 
@@ -402,6 +405,9 @@ BlendFileData *BLO_read_from_memfile(
 		/* removed packed data from this trick - it's internal data that needs saves */
 
 		bfd = blo_read_file_internal(fd, filename);
+
+		/* ensures relinked light caches are not freed */
+		blo_end_scene_pointer_map(fd, oldmain);
 
 		/* ensures relinked images are not freed */
 		blo_end_image_pointer_map(fd, oldmain);

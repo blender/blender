@@ -2479,6 +2479,36 @@ static void write_view_layer(WriteData *wd, ViewLayer *view_layer)
 	write_layer_collections(wd, &view_layer->layer_collections);
 }
 
+static void write_lightcache_texture(WriteData *wd, LightCacheTexture *tex)
+{
+	if (tex->data) {
+		size_t data_size = tex->components * tex->tex_size[0] * tex->tex_size[1] * tex->tex_size[2];
+		if (tex->data_type == LIGHTCACHETEX_FLOAT) {
+			data_size *= sizeof(float);
+		}
+		else if (tex->data_type == LIGHTCACHETEX_UINT) {
+			data_size *= sizeof(unsigned int);
+		}
+		writedata(wd, DATA, data_size, tex->data);
+	}
+}
+
+static void write_lightcache(WriteData *wd, LightCache *cache)
+{
+	write_lightcache_texture(wd, &cache->grid_tx);
+	write_lightcache_texture(wd, &cache->cube_tx);
+
+	if (cache->cube_mips) {
+		writestruct(wd, DATA, LightCacheTexture, cache->mips_len, cache->cube_mips);
+		for (int i = 0; i < cache->mips_len; ++i) {
+			write_lightcache_texture(wd, &cache->cube_mips[i]);
+		}
+	}
+
+	writestruct(wd, DATA, LightGridCache,    cache->grid_len, cache->grid_data);
+	writestruct(wd, DATA, LightProbeCache,   cache->cube_len, cache->cube_data);
+}
+
 static void write_scene(WriteData *wd, Scene *sce)
 {
 	/* write LibData */
@@ -2677,6 +2707,12 @@ static void write_scene(WriteData *wd, Scene *sce)
 	if (sce->master_collection) {
 		writestruct(wd, DATA, Collection, 1, sce->master_collection);
 		write_collection_nolib(wd, sce->master_collection);
+	}
+
+	/* Eevee Lightcache */
+	if (sce->eevee.light_cache && !wd->use_memfile) {
+		writestruct(wd, DATA, LightCache, 1, sce->eevee.light_cache);
+		write_lightcache(wd, sce->eevee.light_cache);
 	}
 
 	/* Freed on doversion. */

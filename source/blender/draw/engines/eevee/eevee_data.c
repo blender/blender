@@ -28,6 +28,7 @@
 #include "DRW_render.h"
 
 #include "eevee_private.h"
+#include "eevee_lightcache.h"
 
 static void eevee_view_layer_data_free(void *storage)
 {
@@ -53,6 +54,11 @@ static void eevee_view_layer_data_free(void *storage)
 	MEM_SAFE_FREE(sldata->shcasters_buffers[1].shadow_casters);
 	MEM_SAFE_FREE(sldata->shcasters_buffers[1].flags);
 
+	if (sldata->fallback_lightcache) {
+		EEVEE_lightcache_free(sldata->fallback_lightcache);
+		sldata->fallback_lightcache = NULL;
+	}
+
 	/* Probes */
 	MEM_SAFE_FREE(sldata->probes);
 	DRW_UBO_FREE_SAFE(sldata->probe_ubo);
@@ -60,21 +66,24 @@ static void eevee_view_layer_data_free(void *storage)
 	DRW_UBO_FREE_SAFE(sldata->planar_ubo);
 	DRW_UBO_FREE_SAFE(sldata->common_ubo);
 	DRW_UBO_FREE_SAFE(sldata->clip_ubo);
-	GPU_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
-	for (int i = 0; i < 6; ++i) {
-		GPU_FRAMEBUFFER_FREE_SAFE(sldata->probe_face_fb[i]);
-	}
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_depth_rt);
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
-	DRW_TEXTURE_FREE_SAFE(sldata->irradiance_pool);
-	DRW_TEXTURE_FREE_SAFE(sldata->irradiance_rt);
 }
 
 EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void)
 {
 	return (EEVEE_ViewLayerData *)DRW_view_layer_engine_data_get(
 	        &draw_engine_eevee_type);
+}
+
+EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer)
+{
+	EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_ensure_ex(
+	        view_layer, &draw_engine_eevee_type, &eevee_view_layer_data_free);
+
+	if (*sldata == NULL) {
+		*sldata = MEM_callocN(sizeof(**sldata), "EEVEE_ViewLayerData");
+	}
+
+	return *sldata;
 }
 
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void)

@@ -1541,6 +1541,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_cubemap_draw_size")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				scene->eevee.gi_irradiance_draw_size = 0.1f;
+				scene->eevee.gi_cubemap_draw_size = 0.3f;
+			}
+		}
+
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			if (scene->toolsettings->manipulator_flag == 0) {
 				scene->toolsettings->manipulator_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;

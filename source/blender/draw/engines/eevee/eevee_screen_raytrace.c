@@ -187,6 +187,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
+	LightCache *lcache = stl->g_data->light_cache;
 
 	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
@@ -230,7 +231,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &effects->ssr_normal_input);
 		DRW_shgroup_uniform_texture_ref(grp, "specroughBuffer", &effects->ssr_specrough_input);
-		DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &sldata->probe_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &lcache->cube_tx.tex);
 		DRW_shgroup_uniform_texture_ref(grp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_uniform_texture_ref(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_texture_ref(grp, "hitBuffer", &effects->ssr_hit_output);

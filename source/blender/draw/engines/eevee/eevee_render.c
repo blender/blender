@@ -134,16 +134,30 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	EEVEE_volumes_cache_init(sldata, vedata);
 }
 
+/* Used by light cache. in this case engine is NULL. */
 void EEVEE_render_cache(
         void *vedata, struct Object *ob,
         struct RenderEngine *engine, struct Depsgraph *UNUSED(depsgraph))
 {
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-
-	char info[42];
-	BLI_snprintf(info, sizeof(info), "Syncing %s", ob->id.name + 2);
-	RE_engine_update_stats(engine, NULL, info);
+	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	bool cast_shadow = false;
+
+	if (pinfo->vis_data.collection) {
+		/* Used for rendering probe with visibility groups. */
+		bool ob_vis = BKE_collection_has_object_recursive(pinfo->vis_data.collection, ob);
+		ob_vis = (pinfo->vis_data.invert) ? !ob_vis : ob_vis;
+
+		if (!ob_vis) {
+			return;
+		}
+	}
+
+	if (engine) {
+		char info[42];
+		BLI_snprintf(info, sizeof(info), "Syncing %s", ob->id.name + 2);
+		RE_engine_update_stats(engine, NULL, info);
+	}
 
 	if (ob->base_flag & BASE_VISIBLE) {
 		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
@@ -154,7 +168,7 @@ void EEVEE_render_cache(
 			EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
 		}
 		else if (ob->type == OB_LIGHTPROBE) {
-			EEVEE_lightprobes_cache_add(sldata, ob);
+			EEVEE_lightprobes_cache_add(sldata, vedata, ob);
 		}
 		else if (ob->type == OB_LAMP) {
 			EEVEE_lights_cache_add(sldata, ob);
@@ -477,14 +491,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		DRW_viewport_matrix_override_set(g_data->viewinv, DRW_MAT_VIEWINV);
 
 		/* Refresh Probes */
-		while (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
-			RE_engine_update_stats(engine, NULL, "Updating Probes");
-			EEVEE_lightprobes_refresh(sldata, vedata);
-			/* Refreshing probes can take some times, allow exit. */
-			if (RE_engine_test_break(engine)) {
-				return;
-			}
-		}
+		RE_engine_update_stats(engine, NULL, "Updating Probes");
+		EEVEE_lightprobes_refresh(sldata, vedata);
 		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 

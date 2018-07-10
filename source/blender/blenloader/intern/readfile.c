@@ -158,6 +158,8 @@
 #include "BKE_colortools.h"
 #include "BKE_workspace.h"
 
+#include "DRW_engine.h"
+
 #include "DEG_depsgraph.h"
 
 #include "NOD_common.h"
@@ -1339,6 +1341,8 @@ void blo_freefiledata(FileData *fd)
 			oldnewmap_free(fd->imamap);
 		if (fd->movieclipmap)
 			oldnewmap_free(fd->movieclipmap);
+		if (fd->scenemap)
+			oldnewmap_free(fd->scenemap);
 		if (fd->soundmap)
 			oldnewmap_free(fd->soundmap);
 		if (fd->packedmap)
@@ -1526,6 +1530,13 @@ static void *newimaadr(FileData *fd, const void *adr)		    /* used to restore im
 	return NULL;
 }
 
+static void *newsceadr(FileData *fd, const void *adr)		    /* used to restore scene data after undo */
+{
+	if (fd->scenemap && adr)
+		return oldnewmap_lookup_and_inc(fd->scenemap, adr, true);
+	return NULL;
+}
+
 static void *newmclipadr(FileData *fd, const void *adr)      /* used to restore movie clip data after undo */
 {
 	if (fd->movieclipmap && adr)
@@ -1628,6 +1639,37 @@ void blo_clear_proxy_pointers_from_lib(Main *oldmain)
 	for (; ob; ob= ob->id.next) {
 		if (ob->id.lib)
 			ob->proxy_from = NULL;
+	}
+}
+
+void blo_make_scene_pointer_map(FileData *fd, Main *oldmain)
+{
+	Scene *sce = oldmain->scene.first;
+
+	fd->scenemap = oldnewmap_new();
+
+	for (; sce; sce = sce->id.next) {
+		if (sce->eevee.light_cache) {
+			struct LightCache *light_cache = sce->eevee.light_cache;
+			oldnewmap_insert(fd->scenemap, light_cache, light_cache, 0);
+		}
+	}
+}
+
+void blo_end_scene_pointer_map(FileData *fd, Main *oldmain)
+{
+	OldNew *entry = fd->scenemap->entries;
+	Scene *sce = oldmain->scene.first;
+	int i;
+
+	/* used entries were restored, so we put them to zero */
+	for (i = 0; i < fd->scenemap->nentries; i++, entry++) {
+		if (entry->nr > 0)
+			entry->newp = NULL;
+	}
+
+	for (; sce; sce = sce->id.next) {
+		sce->eevee.light_cache = newsceadr(fd, sce->eevee.light_cache);
 	}
 }
 
@@ -2300,6 +2342,11 @@ static void direct_link_id(FileData *fd, ID *id)
 	if (id->override_static) {
 		id->override_static = newdataadr(fd, id->override_static);
 		link_list_ex(fd, &id->override_static->properties, direct_link_id_override_property_cb);
+	}
+
+	DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
+	if (drawdata) {
+		BLI_listbase_clear((ListBase *)drawdata);
 	}
 }
 
@@ -5492,7 +5539,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->derivedFinal = NULL;
 	BKE_object_runtime_reset(ob);
 	BLI_listbase_clear(&ob->gpulamp);
-	BLI_listbase_clear(&ob->drawdata);
 	link_list(fd, &ob->pc_ids);
 
 	/* Runtime curve data  */
@@ -5737,6 +5783,41 @@ static void lib_link_sequence_modifiers(FileData *fd, Scene *scene, ListBase *lb
 		if (smd->mask_id)
 			smd->mask_id = newlibadr_us(fd, scene->id.lib, smd->mask_id);
 	}
+}
+
+static void direct_link_lightcache_texture(FileData *fd, LightCacheTexture *lctex)
+{
+	lctex->tex = NULL;
+
+	if (lctex->data) {
+		lctex->data = newdataadr(fd, lctex->data);
+		if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+			int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] * lctex->tex_size[2];
+
+			if (lctex->data_type == LIGHTCACHETEX_FLOAT) {
+				BLI_endian_switch_float_array((float *)lctex->data, data_size * sizeof(float));
+			}
+			else if (lctex->data_type == LIGHTCACHETEX_UINT) {
+				BLI_endian_switch_uint32_array((unsigned int *)lctex->data, data_size * sizeof(unsigned int));
+			}
+		}
+	}
+}
+
+static void direct_link_lightcache(FileData *fd, LightCache *cache)
+{
+	direct_link_lightcache_texture(fd, &cache->cube_tx);
+	direct_link_lightcache_texture(fd, &cache->grid_tx);
+
+	if (cache->cube_mips) {
+		cache->cube_mips = newdataadr(fd, cache->cube_mips);
+		for (int i = 0; i < cache->mips_len; ++i) {
+			direct_link_lightcache_texture(fd, &cache->cube_mips[i]);
+		}
+	}
+
+	cache->cube_data = newdataadr(fd, cache->cube_data);
+	cache->grid_data = newdataadr(fd, cache->grid_data);
 }
 
 /* check for cyclic set-scene,
@@ -6297,6 +6378,19 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_glob_list(fd, &sce->view_layers);
 	for (view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
 		direct_link_view_layer(fd, view_layer);
+	}
+
+	if (fd->memfile) {
+		/* If it's undo try to recover the cache. */
+		if (fd->scenemap) sce->eevee.light_cache = newsceadr(fd, sce->eevee.light_cache);
+		else sce->eevee.light_cache = NULL;
+	}
+	else {
+		/* else read the cache from file. */
+		if (sce->eevee.light_cache) {
+			sce->eevee.light_cache = newdataadr(fd, sce->eevee.light_cache);
+			direct_link_lightcache(fd, sce->eevee.light_cache);
+		}
 	}
 
 	sce->layer_properties = newdataadr(fd, sce->layer_properties);

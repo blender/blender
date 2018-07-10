@@ -148,7 +148,7 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_blur);
 
 		/* Compute adequate size for the octahedral map. */
-		linfo->shadow_cube_store_size = (int)ceil(sqrt((sh_cube_size * sh_cube_size) * 6.0f));
+		linfo->shadow_cube_store_size = OCTAHEDRAL_SIZE_FROM_CUBESIZE(sh_cube_size);
 
 		CLAMP(linfo->shadow_cube_store_size, 1, 4096);
 		CLAMP(sh_cube_size, 1, 4096);

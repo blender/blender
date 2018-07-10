@@ -1,15 +1,18 @@
 
 flat in int pid;
-in vec3 worldNormal;
-in vec3 worldPosition;
+in vec2 quadCoord;
 
 out vec4 FragColor;
 
 void main()
 {
-	vec3 V = (ProjectionMatrix[3][3] == 0.0) /* if perspective */
-	            ? normalize(cameraPos - worldPosition)
-	            : cameraForward;
-	vec3 N = normalize(worldNormal);
-	FragColor = vec4(textureLod_octahedron(probeCubes, vec4(reflect(-V, N), pid), 0.0, prbLodCubeMax).rgb, 1.0);
+	float dist_sqr = dot(quadCoord, quadCoord);
+
+	/* Discard outside the circle. */
+	if (dist_sqr > 1.0)
+		discard;
+
+	vec3 view_nor = vec3(quadCoord, sqrt(max(0.0, 1.0 - dist_sqr)));
+	vec3 world_ref = mat3(ViewMatrixInverse) * reflect(vec3(0.0, 0.0, -1.0), view_nor);
+	FragColor = vec4(textureLod_octahedron(probeCubes, vec4(world_ref, pid), 0.0, prbLodCubeMax).rgb, 1.0);
 }

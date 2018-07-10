@@ -27,6 +27,7 @@ struct PlanarData {
 	vec4 clip_edges;
 	vec4 facing_scale_bias;
 	mat4 reflectionmat; /* transform world space into reflection texture space */
+	mat4 unused;
 };
 
 #define pl_plane_eq      plane_equation

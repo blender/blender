@@ -712,14 +712,48 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
         props = scene.eevee
 
         col = layout.column()
+        col.operator("scene.light_cache_bake", text="Bake Indirect Lighting", icon='RENDER_STILL')
+        col.operator("scene.light_cache_bake", text="Bake Cubemap Only", icon='LIGHTPROBE_CUBEMAP').subset = "CUBEMAPS"
+        col.operator("scene.light_cache_free", text="Free Lighting Cache")
+
+        cache_info = scene.eevee.gi_cache_info
+        if cache_info:
+            col.label(text=cache_info)
+
+        col.prop(props, "gi_auto_bake")
+
         col.prop(props, "gi_diffuse_bounces")
         col.prop(props, "gi_cubemap_resolution")
         col.prop(props, "gi_visibility_resolution", text="Diffuse Occlusion")
+
+        layout.use_property_split = False
+        row = layout.split(percentage=0.5)
+        row.alignment = 'RIGHT'
+        row.label("Cubemap Display")
+
+        sub = row.row(align=True)
+        sub.prop(props, "gi_cubemap_draw_size", text="Size")
+        if props.gi_show_cubemaps :
+            sub.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_OFF')
+        else:
+            sub.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_ON')
+
+        row = layout.split(percentage=0.5)
+        row.alignment = 'RIGHT'
+        row.label("Irradiance Display")
+
+        sub = row.row(align=True)
+        sub.prop(props, "gi_irradiance_draw_size", text="Size")
+        if props.gi_show_irradiance :
+            sub.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_OFF')
+        else:
+            sub.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_ON')
 
 
 class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):

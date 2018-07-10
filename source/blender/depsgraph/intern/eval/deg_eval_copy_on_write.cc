@@ -555,6 +555,13 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			update_particle_system_orig_pointers(object_orig, object_cow);
 			break;
 		}
+		case ID_SCE:
+		{
+			Scene *scene_cow = (Scene *)id_cow;
+			const Scene *scene_orig = (const Scene *)id_orig;
+			scene_cow->eevee.light_cache = scene_orig->eevee.light_cache;
+			break;
+		}
 		default:
 			break;
 	}
@@ -926,6 +933,12 @@ void discard_mesh_edit_mode_pointers(ID *id_cow)
 	mesh_cow->edit_btmesh = NULL;
 }
 
+void discard_scene_pointers(ID *id_cow)
+{
+	Scene *scene_cow = (Scene *)id_cow;
+	scene_cow->eevee.light_cache = NULL;
+}
+
 /* NULL-ify all edit mode pointers which points to data from
  * original object.
  */
@@ -947,6 +960,11 @@ void discard_edit_mode_pointers(ID *id_cow)
 			break;
 		case ID_LT:
 			discard_lattice_edit_mode_pointers(id_cow);
+			break;
+		case ID_SCE:
+			/* Not really edit mode but still needs to run before
+			 * BKE_libblock_free_datablock() */
+			discard_scene_pointers(id_cow);
 			break;
 		default:
 			break;
