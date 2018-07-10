@@ -5898,15 +5898,7 @@ keyconfig_data = [
                 ("view3d.select_circle", {"type": 'C', "value": 'PRESS'}, None),
                 ("view3d.clip_border", {"type": 'B', "value": 'PRESS', "alt": True}, None),
                 ("view3d.zoom_border", {"type": 'B', "value": 'PRESS', "shift": True}, None),
-                (
-                    "view3d.render_border",
-                    {"type": 'B', "value": 'PRESS', "ctrl": True},
-                    {
-                        "properties": [
-                            ("camera_only", False),
-                        ],
-                    }
-                ),
+                ("view3d.render_border", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
                 ("view3d.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),
                 ("view3d.camera_to_view", {"type": 'NUMPAD_0', "value": 'PRESS', "ctrl": True, "alt": True}, None),
                 ("view3d.object_as_camera", {"type": 'NUMPAD_0', "value": 'PRESS', "ctrl": True}, None),
