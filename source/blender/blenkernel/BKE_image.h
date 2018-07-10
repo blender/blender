@@ -114,8 +114,6 @@ void    BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const struc
 struct anim *openanim(const char *name, int flags, int streamindex, char colorspace[IMA_MAX_SPACE]);
 struct anim *openanim_noload(const char *name, int flags, int streamindex, char colorspace[IMA_MAX_SPACE]);
 
-void    BKE_image_de_interlace(struct Image *ima, int odd);
-
 void    BKE_image_make_local(struct Main *bmain, struct Image *ima, const bool lib_local);
 
 void    BKE_image_tag_time(struct Image *ima);

@@ -230,7 +230,6 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
 		BLI_strncpy(ibuf->cachename, filepath_tx, sizeof(ibuf->cachename));
 		for (a = 1; a < ibuf->miptot; a++)
 			BLI_strncpy(ibuf->mipmap[a - 1]->cachename, filepath_tx, sizeof(ibuf->cachename));
-		if (flags & IB_fields) IMB_de_interlace(ibuf);
 	}
 
 	close(file);

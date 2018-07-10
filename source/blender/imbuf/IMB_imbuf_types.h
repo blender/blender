@@ -242,7 +242,6 @@ typedef struct ImBuf {
 
 #define IB_rect				(1 << 0)
 #define IB_test				(1 << 1)
-#define IB_fields			(1 << 2)
 #define IB_zbuf				(1 << 3)
 #define IB_mem				(1 << 4)
 #define IB_rectfloat		(1 << 5)
