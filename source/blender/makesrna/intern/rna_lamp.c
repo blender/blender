@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/makesrna/intern/rna_light.c
+/** \file blender/makesrna/intern/rna_lamp.c
  *  \ingroup RNA
  */
 

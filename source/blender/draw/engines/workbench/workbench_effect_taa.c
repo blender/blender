@@ -105,8 +105,7 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata)
 		{
 			result = 16;
 		}
-		else
-		{
+		else {
 			result = 32;
 		}
 	}
@@ -288,11 +287,9 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 void workbench_taa_view_updated(WORKBENCH_Data *vedata)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
-	if (stl)
-	{
+	if (stl) {
 		WORKBENCH_EffectInfo *effect_info = stl->effects;
-		if (effect_info)
-		{
+		if (effect_info) {
 			effect_info->view_updated = true;
 		}
 	}

@@ -67,8 +67,7 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 		 * the workbench_taa_draw_screen_end will fill the history buffer
 		 * for the other iterations.
 		 */
-		if (effect_info->jitter_index == 1)
-		{
+		if (effect_info->jitter_index == 1) {
 			GPU_framebuffer_bind(dfbl->color_only_fb);
 			DRW_transform_to_display(tx);
 		}

@@ -70,7 +70,7 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		}
 		if (flag != 0) {
 			DEG_graph_id_tag_update(bmain,
-			                        (::Depsgraph*)graph,
+			                        (::Depsgraph *)graph,
 			                        id_node->id_orig,
 			                        flag);
 		}

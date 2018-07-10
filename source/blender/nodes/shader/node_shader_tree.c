@@ -243,11 +243,11 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
 			if (output_node == NULL) {
 				output_node = node;
 			}
-			else if(output_node->custom1 == SHD_OUTPUT_ALL) {
+			else if (output_node->custom1 == SHD_OUTPUT_ALL) {
 				output_node = node;
 			}
 			else if ((node->flag & NODE_DO_OUTPUT) &&
-				     !(output_node->flag & NODE_DO_OUTPUT))
+			         !(output_node->flag & NODE_DO_OUTPUT))
 			{
 				output_node = node;
 			}

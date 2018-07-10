@@ -1444,7 +1444,7 @@ static void icon_draw_size(
 		                  di->data.texture.w, di->data.texture.h, alpha, rgb);
 		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
-	else if (di->type== ICON_TYPE_MONO_TEXTURE) {
+	else if (di->type == ICON_TYPE_MONO_TEXTURE) {
 		/* icon that matches text color, assumed to be white */
 		float text_color[4];
 		UI_GetThemeColor4fv(TH_TEXT, text_color);
