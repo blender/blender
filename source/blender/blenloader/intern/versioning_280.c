@@ -164,7 +164,18 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 		for (wmWindow *win = wm->windows.first; win; win = win->next) {
 			bScreen *screen_parent = screen_parent_find(win->screen);
 			bScreen *screen = screen_parent ? screen_parent : win->screen;
+
+			if (screen->temp) {
+				/* We do not generate a new workspace for those screens... still need to set some data in win. */
+				win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
+				win->scene = screen->scene;
+				/* Deprecated from now on! */
+				win->screen = NULL;
+				continue;
+			}
+
 			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, screen->id.name + 2, offsetof(ID, name) + 2);
+			BLI_assert(workspace != NULL);
 			ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
 			win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
