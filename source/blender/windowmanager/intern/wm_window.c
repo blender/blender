@@ -182,11 +182,11 @@ static void wm_window_check_position(rcti *rect)
 static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 {
 	if (win->ghostwin) {
-		if (win == wm->windrawable) {
-			/* Prevents non-drawable state of main windows (bugs #22967,
-			 * #25071 and possibly #22477 too). */
-			wm_window_clear_drawable(wm);
-		}
+		/* Prevents non-drawable state of main windows (bugs #22967,
+		 * #25071 and possibly #22477 too). Always clear it even if
+		 * this window was not the drawable one, because we mess with
+		 * drawing context to discard the GW context. */
+		wm_window_clear_drawable(wm);
 
 		if (win == wm->winactive) {
 			wm->winactive = NULL;
