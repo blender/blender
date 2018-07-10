@@ -383,113 +383,121 @@ class TEXTURE_PT_image(TextureTypePanel, Panel):
         layout = self.layout
 
         tex = context.texture
-
         layout.template_image(tex, "image", tex.image_user)
 
 
 def texture_filter_common(tex, layout):
-    layout.label(text="Filter:")
-    layout.prop(tex, "filter_type", text="")
+    layout.prop(tex, "filter_type", text="Filter Type")
     if tex.use_mipmap and tex.filter_type in {'AREA', 'EWA', 'FELINE'}:
         if tex.filter_type == 'FELINE':
             layout.prop(tex, "filter_lightprobes", text="Light Probes")
         else:
             layout.prop(tex, "filter_eccentricity", text="Eccentricity")
 
-    layout.prop(tex, "filter_size")
-    layout.prop(tex, "use_filter_size_min")
+    layout.prop(tex, "filter_size", text="Size")
+    layout.prop(tex, "use_filter_size_min", text="Minimum Size")
 
 
 class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
-    bl_label = "Image Sampling"
+    bl_label = "Sampling"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'TEXTURE_PT_image'
     tex_type = 'IMAGE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         idblock = context_tex_datablock(context)
         tex = context.texture
         slot = getattr(context, "texture_slot", None)
 
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Alpha:")
-        row = col.row()
-        row.active = bool(tex.image and tex.image.use_alpha)
-        row.prop(tex, "use_alpha", text="Use")
-        col.prop(tex, "use_calculate_alpha", text="Calculate")
-        col.prop(tex, "invert_alpha", text="Invert")
-        col.separator()
+        col = flow.column()
         col.prop(tex, "use_flip_axis", text="Flip X/Y Axis")
-
-        col = split.column()
-
-        col.prop(tex, "use_mipmap")
-        row = col.row()
-        row.active = tex.use_mipmap
-        row.prop(tex, "use_mipmap_gauss")
         col.prop(tex, "use_interpolation")
 
+        col.separator()
+
+        col = flow.column()
+        col.prop(tex, "use_mipmap")
+        sub = col.column()
+        sub.active = tex.use_mipmap
+        sub.prop(tex, "use_mipmap_gauss", text="Gaussian Filter")
+
+        col.separator()
+
+        col = flow.column()
         texture_filter_common(tex, col)
 
 
-class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
-    bl_label = "Image Mapping"
+class TEXTURE_PT_image_alpha(TextureTypePanel, Panel):
+    bl_label = "Alpha"
     bl_options = {'DEFAULT_CLOSED'}
-    tex_type = 'IMAGE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    bl_parent_id = 'TEXTURE_PT_image'
+
+    def draw_header(self, context):
+        tex = context.texture
+        self.layout.prop(tex, "use_alpha", text="")
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         tex = context.texture
 
-        layout.prop(tex, "extension")
+        col = layout.column()
+        col.active = bool(tex.image and tex.image.use_alpha)
+        col.prop(tex, "use_calculate_alpha", text="Calculate")
+        col.prop(tex, "invert_alpha", text="Invert")
 
-        split = layout.split()
+
+class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
+    bl_label = "Mapping"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'TEXTURE_PT_image'
+    tex_type = 'IMAGE'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+
+        tex = context.texture
+
+        col = flow.column()
+        col.prop(tex, "extension")
 
         if tex.extension == 'REPEAT':
-            col = split.column(align=True)
-            col.label(text="Repeat:")
-            col.prop(tex, "repeat_x", text="X")
-            col.prop(tex, "repeat_y", text="Y")
+            sub = col.column(align=True)
+            sub.prop(tex, "repeat_x", text="Repeat X")
+            sub.prop(tex, "repeat_y", text="Y")
 
-            col = split.column(align=True)
-            col.label(text="Mirror:")
-            row = col.row(align=True)
-            row.prop(tex, "use_mirror_x", text="X")
-            row.active = (tex.repeat_x > 1)
-            row = col.row(align=True)
-            row.prop(tex, "use_mirror_y", text="Y")
-            row.active = (tex.repeat_y > 1)
-            layout.separator()
+            sub = col.column()
+            sub.prop(tex, "use_mirror_x", text="Mirror X")
+            sub.active = (tex.repeat_x > 1)
+
+            sub = col.column()
+            sub.prop(tex, "use_mirror_y", text="Y")
+            sub.active = (tex.repeat_y > 1)
 
         elif tex.extension == 'CHECKER':
-            col = split.column(align=True)
-            row = col.row(align=True)
-            row.prop(tex, "use_checker_even", text="Even")
-            row.prop(tex, "use_checker_odd", text="Odd")
+            col = layout.column(align=True)
+            col.prop(tex, "use_checker_even", text="Even")
+            col.prop(tex, "use_checker_odd", text="Odd")
 
-            col = split.column()
+            col = layout.column()
             col.prop(tex, "checker_distance", text="Distance")
 
-            layout.separator()
-
-        split = layout.split()
-
-        col = split.column(align=True)
+        col = flow.column()
+        sub = col.column(align=True)
         # col.prop(tex, "crop_rectangle")
-        col.label(text="Crop Minimum:")
-        col.prop(tex, "crop_min_x", text="X")
-        col.prop(tex, "crop_min_y", text="Y")
+        sub.prop(tex, "crop_min_x", text="Crop Minimum X")
+        sub.prop(tex, "crop_min_y", text="Y")
 
-        col = split.column(align=True)
-        col.label(text="Crop Maximum:")
-        col.prop(tex, "crop_max_x", text="X")
-        col.prop(tex, "crop_max_y", text="Y")
+        sub = col.column(align=True)
+        sub.prop(tex, "crop_max_x", text="Crop Maximum X")
+        sub.prop(tex, "crop_max_y", text="Y")
 
 
 class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
@@ -789,6 +797,7 @@ classes = (
     TEXTURE_PT_blend,
     TEXTURE_PT_stucci,
     TEXTURE_PT_image,
+    TEXTURE_PT_image_alpha,
     TEXTURE_PT_image_sampling,
     TEXTURE_PT_image_mapping,
     TEXTURE_PT_musgrave,
