@@ -545,6 +545,14 @@ static void rna_View3D_Cursor_rotation_set(PointerRNA *ptr, const float *values)
 	copy_qt_qt(cursor->rotation, values);
 }
 
+static void rna_View3D_Cursor_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+{
+	View3D *v3d = ptr->data;
+	if (v3d->localvd == NULL) {
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	}
+}
+
 static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)(ptr->data);
@@ -2844,14 +2852,14 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "3D Cursor Location",
 	                         "3D cursor location for this view (dependent on local view setting)");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 1, RNA_TRANSLATION_PREC_DEFAULT);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_View3D_Cursor_update");
 
 	prop = RNA_def_property(srna, "cursor_rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_View3D_Cursor_rotation_get", "rna_View3D_Cursor_rotation_set", NULL);
 	RNA_def_property_ui_text(prop, "3D Cursor Rotation",
 	                         "Rotation in quaternions (keep normalized)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_View3D_Cursor_update");
 
 	prop = RNA_def_property(srna, "lens", PROP_FLOAT, PROP_UNIT_CAMERA);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
