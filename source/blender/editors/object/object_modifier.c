@@ -2062,25 +2062,6 @@ static bool ocean_bake_poll(bContext *C)
 	return edit_modifier_poll_generic(C, &RNA_OceanModifier, 0);
 }
 
-/* copied from init_ocean_modifier, MOD_ocean.c */
-static void init_ocean_modifier_bake(struct Ocean *oc, struct OceanModifierData *omd)
-{
-	int do_heightfield, do_chop, do_normals, do_jacobian;
-
-	if (!omd || !oc) return;
-
-	do_heightfield = true;
-	do_chop = (omd->chop_amount > 0);
-	do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
-	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
-
-	BKE_ocean_init(oc, omd->resolution * omd->resolution, omd->resolution * omd->resolution, omd->spatial_size, omd->spatial_size,
-	               omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
-	               omd->depth, omd->time,
-	               do_heightfield, do_chop, do_normals, do_jacobian,
-	               omd->seed);
-}
-
 typedef struct OceanBakeJob {
 	/* from wmJob */
 	struct Object *owner;
@@ -2213,7 +2194,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 
 	/* make a copy of ocean to use for baking - threadsafety */
 	ocean = BKE_ocean_add();
-	init_ocean_modifier_bake(ocean, omd);
+	BKE_ocean_init_from_modifier(ocean, omd);
 
 #if 0
 	BKE_ocean_bake(ocean, och);

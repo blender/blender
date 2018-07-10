@@ -836,6 +836,24 @@ struct Ocean *BKE_ocean_add(void)
 	return oc;
 }
 
+void BKE_ocean_init_from_modifier(struct Ocean *ocean, struct OceanModifierData const *omd)
+{
+	short do_heightfield, do_chop, do_normals, do_jacobian;
+
+	do_heightfield = true;
+	do_chop = (omd->chop_amount > 0);
+	do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
+	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
+
+	BKE_ocean_free_data(ocean);
+	BKE_ocean_init(ocean, omd->resolution * omd->resolution, omd->resolution * omd->resolution,
+	               omd->spatial_size, omd->spatial_size,
+	               omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
+	               omd->depth, omd->time,
+	               do_heightfield, do_chop, do_normals, do_jacobian,
+	               omd->seed);
+}
+
 void BKE_ocean_init(struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
                     float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals,
                     short do_jacobian, int seed)

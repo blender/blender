@@ -74,6 +74,7 @@ typedef struct OceanCache {
 struct Ocean *BKE_ocean_add(void);
 void BKE_ocean_free_data(struct Ocean *oc);
 void BKE_ocean_free(struct Ocean *oc);
+void BKE_ocean_init_from_modifier(struct Ocean *ocean, struct OceanModifierData const *omd);
 
 void BKE_ocean_init(
         struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,

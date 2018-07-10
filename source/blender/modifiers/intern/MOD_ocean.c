@@ -61,27 +61,6 @@ static void init_cache_data(Object *ob, struct OceanModifierData *omd)
 	                                       omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 }
 
-/* keep in sync with init_ocean_modifier_bake(), object_modifier.c */
-static void init_ocean_modifier(struct OceanModifierData *omd)
-{
-	int do_heightfield, do_chop, do_normals, do_jacobian;
-
-	if (!omd || !omd->ocean) return;
-
-	do_heightfield = true;
-	do_chop = (omd->chop_amount > 0);
-	do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
-	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
-
-	BKE_ocean_free_data(omd->ocean);
-	BKE_ocean_init(omd->ocean, omd->resolution * omd->resolution, omd->resolution * omd->resolution,
-	               omd->spatial_size, omd->spatial_size,
-	               omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
-	               omd->depth, omd->time,
-	               do_heightfield, do_chop, do_normals, do_jacobian,
-	               omd->seed);
-}
-
 static void simulate_ocean_modifier(struct OceanModifierData *omd)
 {
 	BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
@@ -131,7 +110,7 @@ static void initData(ModifierData *md)
 	omd->foamlayername[0] = '\0';   /* layer name empty by default */
 
 	omd->ocean = BKE_ocean_add();
-	init_ocean_modifier(omd);
+	BKE_ocean_init_from_modifier(omd->ocean, omd);
 	simulate_ocean_modifier(omd);
 #else  /* WITH_OCEANSIM */
 	   /* unused */
@@ -168,7 +147,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 	tomd->oceancache = NULL;
 
 	tomd->ocean = BKE_ocean_add();
-	init_ocean_modifier(tomd);
+	BKE_ocean_init_from_modifier(tomd->ocean, tomd);
 	simulate_ocean_modifier(tomd);
 #else /* WITH_OCEANSIM */
 	/* unused */
