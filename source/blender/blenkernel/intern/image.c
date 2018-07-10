@@ -3129,7 +3129,7 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 #endif  /* WITH_OPENEXR */
 
 /* common stuff to do with images after loading */
-static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
+static void image_initialize_after_load(Image *ima, ImBuf *UNUSED(ibuf))
 {
 	/* Preview is NULL when it has never been used as an icon before.
 	 * Never handle previews/icons outside of main thread. */
@@ -3137,11 +3137,6 @@ static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 		BKE_icon_changed(BKE_icon_id_ensure(&ima->id));
 	}
 
-	/* fields */
-	if (ima->flag & IMA_FIELDS) {
-		if (ima->flag & IMA_STD_FIELD) de_interlace_st(ibuf);
-		else de_interlace_ng(ibuf);
-	}
 	/* timer */
 	BKE_image_tag_time(ima);
 
@@ -4249,7 +4244,7 @@ void BKE_image_pool_release_ibuf(Image *ima, ImBuf *ibuf, ImagePool *pool)
 
 int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool *r_is_in_range)
 {
-	const int len = (iuser->fie_ima * iuser->frames) / 2;
+	const int len = iuser->frames;
 
 	if (r_is_in_range) {
 		*r_is_in_range = false;
@@ -4290,7 +4285,7 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool
 		if (fieldnr) cfra++;
 
 		/* transform to images space */
-		framenr = (cfra + iuser->fie_ima - 2) / iuser->fie_ima;
+		framenr = cfra;
 		if (framenr > iuser->frames) framenr = iuser->frames;
 
 		if (iuser->cycl) {

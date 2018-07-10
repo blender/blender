@@ -51,7 +51,7 @@ typedef struct ImageUser {
 	int framenr;				/* movies, sequences: current to display */
 	int frames;					/* total amount of frames to use */
 	int offset, sfra;			/* offset within movie, start frame in global time */
-	char fie_ima, cycl;		/* fields/image in movie, cyclic flag */
+	char _pad, cycl;		/* cyclic flag */
 	char ok;
 
 	char multiview_eye;			/* multiview current eye - for internal use of drawing routines */
@@ -157,8 +157,8 @@ typedef struct Image {
 
 /* Image.flag */
 enum {
-	IMA_FIELDS              = (1 << 0),
-	IMA_STD_FIELD           = (1 << 1),
+	// IMA_FIELDS              = (1 << 0),
+	// IMA_STD_FIELD           = (1 << 1),
 #ifdef DNA_DEPRECATED
 	IMA_DO_PREMUL           = (1 << 2),  /* deprecated, should not be used */
 #endif

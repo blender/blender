@@ -47,7 +47,6 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
 	ImageUser *iuser = MEM_callocN(sizeof(ImageUser), "node image user");
 	node->storage = iuser;
 	iuser->sfra = 1;
-	iuser->fie_ima = 2;
 	iuser->ok = 1;
 	node->custom1 = 50;  /* default 50% split */
 

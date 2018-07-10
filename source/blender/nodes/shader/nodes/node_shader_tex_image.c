@@ -48,7 +48,6 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 	tex->color_space = SHD_COLORSPACE_COLOR;
 	tex->iuser.frames = 1;
 	tex->iuser.sfra = 1;
-	tex->iuser.fie_ima = 2;
 	tex->iuser.ok = 1;
 
 	node->storage = tex;

@@ -177,7 +177,6 @@ static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sce
 	simage->flag = SI_SHOW_GPENCIL | SI_USE_ALPHA | SI_COORDFLOATS;
 
 	simage->iuser.ok = true;
-	simage->iuser.fie_ima = 2;
 	simage->iuser.frames = 100;
 	simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS;
 

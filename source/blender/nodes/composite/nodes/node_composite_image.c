@@ -304,7 +304,6 @@ static void node_composit_init_image(bNodeTree *ntree, bNode *node)
 	node->storage = iuser;
 	iuser->frames = 1;
 	iuser->sfra = 1;
-	iuser->fie_ima = 2;
 	iuser->ok = 1;
 	iuser->flag |= IMA_ANIM_ALWAYS;
 

@@ -1340,7 +1340,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
 		else {
 			iuser->offset = frame_ofs - 1;
 		}
-		iuser->fie_ima = 2;
 		iuser->scene = scene;
 		BKE_image_init_imageuser(ima, iuser);
 	}
