@@ -267,7 +267,7 @@ class USERPREF_PT_interface(Panel):
 
         col.separator()
 
-        col.label("Development")
+        col.label("Development:")
         col.prop(view, "show_tooltips_python")
         col.prop(view, "show_developer_ui")
 
@@ -326,7 +326,7 @@ class USERPREF_PT_interface(Panel):
 
         col.prop(view, "show_splash")
 
-        col.label("Warnings")
+        col.label("Warnings:")
         col.prop(view, "use_quit_dialog")
 
         col.separator()
@@ -526,13 +526,13 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "use_16bit_textures")
 
         col.separator()
-        col.label(text="Selection")
+        col.label(text="Selection:")
         col.prop(system, "select_method", text="")
         col.prop(system, "use_select_pick_depth")
 
         col.separator()
 
-        col.label(text="Anisotropic Filtering")
+        col.label(text="Anisotropic Filtering:")
         col.prop(system, "anisotropic_filter", text="")
 
         col.separator()
