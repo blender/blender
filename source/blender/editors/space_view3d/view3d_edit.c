@@ -3490,6 +3490,13 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	/* clamp after because we may have been zooming out */
 	CLAMP(new_dist, dist_range[0], dist_range[1]);
 
+	/* TODO(campbell): 'is_camera_lock' not currently working well. */
+	const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
+	if ((rv3d->persp == RV3D_CAMOB) && (is_camera_lock == false)) {
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
+		ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, RV3D_PERSP);
+	}
+
 	ED_view3d_smooth_view(
 	        C, v3d, ar, smooth_viewtx,
 	        &(const V3D_SmoothParams) {.ofs = new_ofs, .dist = &new_dist});
@@ -3501,18 +3508,6 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
-	/* if in camera view do not exec the operator so we do not conflict with set render border*/
-	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d))
-		return WM_gesture_border_invoke(C, op, event);
-	else
-		return OPERATOR_PASS_THROUGH;
-}
-
 void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3521,7 +3516,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
-	ot->invoke = view3d_zoom_border_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = view3d_zoom_border_exec;
 	ot->modal = WM_gesture_border_modal;
 	ot->cancel = WM_gesture_border_cancel;
