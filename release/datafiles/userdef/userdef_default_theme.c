@@ -87,7 +87,7 @@ const bTheme U_theme_default = {
 			.item = RGBA(0x191919ff),
 			.text = RGBA(0xeeeeeeff),
 			.text_sel = RGBA(0xffffffff),
-			.roundness = 0.4f,
+			.roundness = 0.2f,
 		},
 		.wcol_num = {
 			.outline = RGBA(0x444444ff),
