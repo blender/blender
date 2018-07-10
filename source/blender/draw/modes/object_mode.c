@@ -908,7 +908,7 @@ static void OBJECT_cache_init(void *vedata)
 	}
 
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_POINT;
 		DRWPass *pass = psl->lightprobes = DRW_pass_create("Object Probe Pass", state);
 		struct Gwn_Batch *sphere = DRW_cache_sphere_get();
 		struct Gwn_Batch *quad = DRW_cache_quad_get();
@@ -1785,8 +1785,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			DRW_shgroup_uniform_vec3(grp, "increment_y", prb_data->increment_y, 1);
 			DRW_shgroup_uniform_vec3(grp, "increment_z", prb_data->increment_z, 1);
 			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", &prb->grid_resolution_x, 1);
-			DRW_shgroup_uniform_float(grp, "sphere_size", &prb->data_draw_size, 1);
-			DRW_shgroup_call_instances_add(grp, DRW_cache_sphere_get(), NULL, &prb_data->cell_count);
+			DRW_shgroup_call_procedural_points_add(grp, prb_data->cell_count, NULL);
 		}
 		else if (prb->type == LIGHTPROBE_TYPE_CUBE) {
 			prb_data->draw_size = prb->data_draw_size * 0.1f;
@@ -1794,6 +1793,9 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			copy_v3_v3(prb_data->probe_cube_mat[3], ob->obmat[3]);
 
 			DRWShadingGroup *grp = shgroup_theme_id_to_probe_cube_outline_shgrp(stl, theme_id);
+			/* TODO remove or change the drawing of the cube probes. Theses line draws nothing on purpose
+			 * to keep the call ids correct. */
+			zero_m4(prb_data->probe_cube_mat);
 			DRW_shgroup_call_dynamic_add(grp, call_id, &prb_data->draw_size, prb_data->probe_cube_mat);
 		}
 		else {
