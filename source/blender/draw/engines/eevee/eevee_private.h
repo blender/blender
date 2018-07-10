@@ -711,7 +711,7 @@ typedef struct EEVEE_ShadowCascadeData {
  * It works with even if the object is in multiple layers
  * because we don't get the same "Object *" for each layer. */
 typedef struct EEVEE_LampEngineData {
-	ObjectEngineData engine_data;
+	DrawData dd;
 
 	bool need_update;
 	/* This needs to be out of the union to avoid undefined behaviour. */
@@ -724,7 +724,7 @@ typedef struct EEVEE_LampEngineData {
 } EEVEE_LampEngineData;
 
 typedef struct EEVEE_LightProbeEngineData {
-	ObjectEngineData engine_data;
+	DrawData dd;
 
 	/* NOTE: need_full_update is set by dependency graph when the probe or it's
 	 * object is updated. This triggers full probe update, including it's
@@ -752,7 +752,7 @@ typedef struct EEVEE_LightProbeEngineData {
 } EEVEE_LightProbeEngineData;
 
 typedef struct EEVEE_ObjectEngineData {
-	ObjectEngineData engine_data;
+	DrawData dd;
 
 	Object *ob; /* self reference */
 	EEVEE_LightProbeVisTest *test_data;
@@ -761,6 +761,10 @@ typedef struct EEVEE_ObjectEngineData {
 	bool need_update;
 	uint shadow_caster_id;
 } EEVEE_ObjectEngineData;
+
+typedef struct EEVEE_WorldEngineData {
+	DrawData dd;
+} EEVEE_WorldEngineData;
 
 /* *********************************** */
 
@@ -810,6 +814,8 @@ EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob);
 EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob);
 EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob);
+EEVEE_WorldEngineData *EEVEE_world_data_get(World *wo);
+EEVEE_WorldEngineData *EEVEE_world_data_ensure(World *wo);
 
 /* eevee_materials.c */
 struct GPUTexture *EEVEE_materials_get_util_tex(void); /* XXX */

@@ -201,12 +201,8 @@ typedef struct WORKBENCH_MaterialData {
 } WORKBENCH_MaterialData;
 
 typedef struct WORKBENCH_ObjectData {
-	struct ObjectEngineData *next, *prev;
-	struct DrawEngineType *engine_type;
-	/* Only nested data, NOT the engine data itself. */
-	ObjectEngineDataFreeCb free;
-	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
-	int recalc;
+	DrawData dd;
+
 	/* Shadow direction in local object space. */
 	float shadow_dir[3], shadow_depth;
 	float shadow_min[3], shadow_max[3]; /* Min, max in shadow space */

@@ -873,9 +873,7 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	/* world itself */
 	add_operation_node(&world->id,
 	                   DEG_NODE_TYPE_SHADING,
-	                   function_bind(BKE_world_eval,
-	                                 _1,
-	                                 get_cow_datablock(world)),
+	                   NULL,
 	                   DEG_OPCODE_WORLD_UPDATE);
 	/* world's nodetree */
 	if (world->nodetree != NULL) {

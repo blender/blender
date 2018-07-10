@@ -46,6 +46,8 @@
 
 extern "C" {
 #include "DNA_object_types.h"
+
+#include "DRW_engine.h"
 } /* extern "C" */
 
 #include "DEG_depsgraph.h"
@@ -219,12 +221,12 @@ BLI_INLINE OperationDepsNode *flush_schedule_children(
 
 void flush_engine_data_update(ID *id)
 {
-	if (GS(id->name) != ID_OB) {
+	DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
+	if (drawdata == NULL) {
 		return;
 	}
-	Object *object = (Object *)id;
-	LISTBASE_FOREACH(ObjectEngineData *, engine_data, &object->drawdata) {
-		engine_data->recalc |= id->recalc;
+	LISTBASE_FOREACH(DrawData *, dd, drawdata) {
+		dd->recalc |= id->recalc;
 	}
 }
 

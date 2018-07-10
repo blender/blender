@@ -294,9 +294,6 @@ static void world_changed(Main *UNUSED(bmain), World *wo)
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
 
-	/* XXX temporary flag waiting for depsgraph proper tagging */
-	wo->update_flag = 1;
-
 	/* glsl */
 	if (wo->id.recalc & ID_RECALC) {
 		if (!BLI_listbase_is_empty(&defmaterial.gpumaterial)) {

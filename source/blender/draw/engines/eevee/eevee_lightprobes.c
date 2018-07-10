@@ -451,13 +451,12 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 				}
 			}
 
-			if (wo->update_flag != 0 || pinfo->prev_world != wo || pinfo->prev_wo_sh_compiled != wo_sh_compiled) {
+			if (pinfo->prev_world != wo || pinfo->prev_wo_sh_compiled != wo_sh_compiled) {
 				pinfo->update_world |= PROBE_UPDATE_ALL;
 				pinfo->studiolight_index = 0;
 				pinfo->prev_wo_sh_compiled = wo_sh_compiled;
 				pinfo->prev_world = wo;
 			}
-			wo->update_flag = 0;
 		}
 		else if (pinfo->prev_world) {
 			pinfo->update_world |= PROBE_UPDATE_ALL;

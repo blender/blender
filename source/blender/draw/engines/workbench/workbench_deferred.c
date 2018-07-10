@@ -258,9 +258,9 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 /* Functions */
 
 
-static void workbench_init_object_data(ObjectEngineData *engine_data)
+static void workbench_init_object_data(DrawData *dd)
 {
-	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)engine_data;
+	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)dd;
 	data->object_id = ((e_data.next_object_id++) & 0xff) + 1;
 	data->shadow_bbox_dirty = true;
 }
@@ -561,8 +561,8 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	WORKBENCH_MaterialData *material;
-	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
-	        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
+	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_drawdata_ensure(
+	        &ob->id, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 	WORKBENCH_MaterialData material_template;
 
 	/* Solid */
@@ -731,8 +731,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					// DRW_shgroup_call_sculpt_add(wpd->shadow_shgrp, ob, ob->obmat);
 				}
 				else {
-					WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
-					        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
+					WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_drawdata_ensure(
+					        &ob->id, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 
 					if (studiolight_object_cast_visible_shadow(wpd, ob, engine_object_data)) {
 

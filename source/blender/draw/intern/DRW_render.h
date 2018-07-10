@@ -44,6 +44,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
@@ -460,16 +461,14 @@ void **DRW_view_layer_engine_data_ensure_ex(
 void **DRW_view_layer_engine_data_ensure(
         DrawEngineType *engine_type, void (*callback)(void *storage));
 
-/* Objects */
-ObjectEngineData *DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type);
-ObjectEngineData *DRW_object_engine_data_ensure(
-        Object *ob,
+/* DrawData */
+DrawData *DRW_drawdata_get(ID *ib, DrawEngineType *engine_type);
+DrawData *DRW_drawdata_ensure(
+        ID *id,
         DrawEngineType *engine_type,
         size_t size,
-        ObjectEngineDataInitCb init_cb,
-        ObjectEngineDataFreeCb free_cb);
-struct LampEngineData *DRW_lamp_engine_data_ensure(Object *ob, struct RenderEngineType *engine_type);
-void DRW_lamp_engine_data_free(struct LampEngineData *led);
+        DrawDataInitCb init_cb,
+        DrawDataFreeCb free_cb);
 
 /* Settings */
 bool DRW_object_is_renderable(struct Object *ob);

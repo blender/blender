@@ -76,22 +76,6 @@ typedef struct bFaceMap {
 	char pad[7];
 } bFaceMap;
 
-/* Object Runtime display data */
-struct ObjectEngineData;
-typedef void (*ObjectEngineDataInitCb)(struct ObjectEngineData *engine_data);
-typedef void (*ObjectEngineDataFreeCb)(struct ObjectEngineData *engine_data);
-
-#
-#
-typedef struct ObjectEngineData {
-	struct ObjectEngineData *next, *prev;
-	struct DrawEngineType *engine_type;
-	/* Only nested data, NOT the engine data itself. */
-	ObjectEngineDataFreeCb free;
-	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
-	int recalc;
-} ObjectEngineData;
-
 #define MAX_VGROUP_NAME 64
 
 /* bDeformGroup->flag */
@@ -163,6 +147,7 @@ typedef struct Object_Runtime {
 typedef struct Object {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
+	struct DrawDataList drawdata; /* runtime (must be immediately after id for utilities to use it). */
 
 	struct SculptSession *sculpt;
 
@@ -312,7 +297,6 @@ typedef struct Object {
 
 	struct PreviewImage *preview;
 
-	ListBase drawdata;		/* runtime, ObjectEngineData */
 	int pad6;
 	int select_color;
 

@@ -126,9 +126,9 @@ static char *workbench_build_forward_composite_frag(void)
 	return str;
 }
 
-static void workbench_init_object_data(ObjectEngineData *engine_data)
+static void workbench_init_object_data(DrawData *dd)
 {
-	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)engine_data;
+	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)dd;
 	data->object_id = ((e_data.next_object_id++) & 0xff) + 1;
 }
 
@@ -139,8 +139,8 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	WORKBENCH_MaterialData *material;
-	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
-	        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
+	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_drawdata_ensure(
+	        &ob->id, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 	WORKBENCH_MaterialData material_template;
 	DRWShadingGroup *grp;
 

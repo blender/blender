@@ -1355,14 +1355,14 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, ViewLayer *vie
 	static float zero = 0.0f;
 
 	typedef struct LampEngineData {
-		ObjectEngineData engine_data;
+		DrawData dd;
 		float shape_mat[4][4];
 		float spot_blend_mat[4][4];
 	} LampEngineData;
 
 	LampEngineData *lamp_engine_data =
-	        (LampEngineData *)DRW_object_engine_data_ensure(
-	                ob,
+	        (LampEngineData *)DRW_drawdata_ensure(
+	                &ob->id,
 	                &draw_engine_object_type,
 	                sizeof(LampEngineData),
 	                NULL,
@@ -1712,7 +1712,7 @@ static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, ViewLayer *
 }
 
 typedef struct OBJECT_LightProbeEngineData {
-	ObjectEngineData engine_data;
+	DrawData dd;
 
 	float prb_mats[6][4][4];
 	float probe_cube_mat[4][4];
@@ -1733,8 +1733,8 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 	int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);
 
 	OBJECT_LightProbeEngineData *prb_data =
-	        (OBJECT_LightProbeEngineData *)DRW_object_engine_data_ensure(
-	                ob,
+	        (OBJECT_LightProbeEngineData *)DRW_drawdata_ensure(
+	                &ob->id,
 	                &draw_engine_object_type,
 	                sizeof(OBJECT_LightProbeEngineData),
 	                NULL,
