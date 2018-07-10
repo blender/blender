@@ -146,22 +146,24 @@ static void basic_cache_populate(void *vedata, Object *ob)
 	}
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	if (ob == draw_ctx->object_edit) {
-		return;
-	}
-
-	for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
-		if (!psys_check_enabled(ob, psys, false)) {
-			continue;
-		}
-		if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
-			continue;
-		}
-		ParticleSettings *part = psys->part;
-		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
-		if (draw_as == PART_DRAW_PATH) {
-			struct Gwn_Batch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
-			DRW_shgroup_call_add(stl->g_data->depth_shgrp, hairs, NULL);
+	if (ob != draw_ctx->object_edit) {
+		for (ParticleSystem *psys = ob->particlesystem.first;
+		     psys != NULL;
+		     psys = psys->next)
+	 	{
+			if (!psys_check_enabled(ob, psys, false)) {
+				continue;
+			}
+			if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+				continue;
+			}
+			ParticleSettings *part = psys->part;
+			const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as
+			                                                      : part->draw_as;
+			if (draw_as == PART_DRAW_PATH) {
+				struct Gwn_Batch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
+				DRW_shgroup_call_add(stl->g_data->depth_shgrp, hairs, NULL);
+			}
 		}
 	}
 
