@@ -346,7 +346,9 @@ void BKE_view_layer_base_select(struct ViewLayer *view_layer, Base *selbase)
 
 /**************************** Copy View Layer and Layer Collections ***********************/
 
-static void layer_collections_copy_data(ListBase *layer_collections_dst, const ListBase *layer_collections_src)
+static void layer_collections_copy_data(
+        ViewLayer *view_layer_dst, const ViewLayer *view_layer_src,
+        ListBase *layer_collections_dst, const ListBase *layer_collections_src)
 {
 	BLI_duplicatelist(layer_collections_dst, layer_collections_src);
 
@@ -355,8 +357,14 @@ static void layer_collections_copy_data(ListBase *layer_collections_dst, const L
 
 	while (layer_collection_dst != NULL) {
 		layer_collections_copy_data(
+		        view_layer_dst,
+		        view_layer_src,
 		        &layer_collection_dst->layer_collections,
 		        &layer_collection_src->layer_collections);
+
+		if (layer_collection_src == view_layer_src->active_collection) {
+			view_layer_dst->active_collection = layer_collection_dst;
+		}
 
 		layer_collection_dst = layer_collection_dst->next;
 		layer_collection_src = layer_collection_src->next;
@@ -369,7 +377,7 @@ static void layer_collections_copy_data(ListBase *layer_collections_dst, const L
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_view_layer_copy_data(
-        Scene *UNUSED(scene_dst), const Scene *UNUSED(scene_src),
+        Scene *scene_dst, const Scene *UNUSED(scene_src),
         ViewLayer *view_layer_dst, const ViewLayer *view_layer_src,
         const int flag)
 {
@@ -396,9 +404,15 @@ void BKE_view_layer_copy_data(
 		}
 	}
 
-	layer_collections_copy_data(&view_layer_dst->layer_collections, &view_layer_src->layer_collections);
+	view_layer_dst->active_collection = NULL;
+	layer_collections_copy_data(
+	        view_layer_dst,
+	        view_layer_src,
+	        &view_layer_dst->layer_collections,
+	        &view_layer_src->layer_collections);
 
-	// TODO: not always safe to free BKE_layer_collection_sync(scene_dst, view_layer_dst);
+	LayerCollection *lc_scene_dst = view_layer_dst->layer_collections.first;
+	lc_scene_dst->collection = scene_dst->master_collection;
 }
 
 void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, const char *newname)
@@ -598,6 +612,10 @@ static int layer_collection_sync(
 			BLI_findptr(lb_scene, lc->collection, offsetof(CollectionChild, collection)) : NULL;
 
 		if (!collection) {
+			if (lc == view_layer->active_collection) {
+				view_layer->active_collection = NULL;
+			}
+
 			/* Free recursively. */
 			layer_collection_free(view_layer, lc);
 			BLI_freelinkN(lb_layer, lc);
