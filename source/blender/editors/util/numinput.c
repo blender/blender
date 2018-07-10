@@ -277,7 +277,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	int cur;
 
 #ifndef USE_FAKE_EDIT
-	if ((event->ctrl == 0) && (event->alt == 0) &&
+	if ((event->ctrl == 0) && (event->alt == 0) && (event->ascii != '\0') &&
 	    strchr("01234567890@%^&*-+/{}()[]<>.|", event->ascii))
 	{
 		if (!(n->flag & NUM_EDIT_FULL)) {
