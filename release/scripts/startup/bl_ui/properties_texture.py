@@ -199,39 +199,6 @@ class TEXTURE_PT_node_mapping(TextureButtonsPanel, Panel):
         row.prop(mapping, "mapping_z", text="")
 
 
-class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
-    bl_label = "Colors"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-
-    @classmethod
-    def poll(cls, context):
-        tex = context.texture
-        return tex and (tex.type != 'NONE' or tex.use_nodes) and (context.engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        tex = context.texture
-
-        col = layout.column()
-        sub = col.column(align=True)
-        sub.prop(tex, "factor_red", text="Multiply R")
-        sub.prop(tex, "factor_green", text="G")
-        sub.prop(tex, "factor_blue", text="B")
-
-        col.prop(tex, "intensity")
-        col.prop(tex, "contrast")
-        col.prop(tex, "saturation")
-
-        col.prop(tex, "use_clamp", text="Clamp")
-        col.prop(tex, "use_color_ramp", text="Ramp")
-        if tex.use_color_ramp:
-            layout.use_property_split = False
-            layout.template_color_ramp(tex, "color_ramp", expand=True)
-
-
 class TextureTypePanel(TextureButtonsPanel):
 
     @classmethod
@@ -770,6 +737,39 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             col.prop(tex, "use_stencil")
 
 
+class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
+    bl_label = "Colors"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        tex = context.texture
+        return tex and (tex.type != 'NONE' or tex.use_nodes) and (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        tex = context.texture
+
+        col = layout.column()
+        sub = col.column(align=True)
+        sub.prop(tex, "factor_red", text="Multiply R")
+        sub.prop(tex, "factor_green", text="G")
+        sub.prop(tex, "factor_blue", text="B")
+
+        col.prop(tex, "intensity")
+        col.prop(tex, "contrast")
+        col.prop(tex, "saturation")
+
+        col.prop(tex, "use_clamp", text="Clamp")
+        col.prop(tex, "use_color_ramp", text="Ramp")
+        if tex.use_color_ramp:
+            layout.use_property_split = False
+            layout.template_color_ramp(tex, "color_ramp", expand=True)
+
+
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _context_path = "texture"
@@ -789,7 +789,6 @@ classes = (
     TEXTURE_PT_node_mapping,
     TEXTURE_PT_mapping,
     TEXTURE_PT_influence,
-    TEXTURE_PT_colors,
     TEXTURE_PT_clouds,
     TEXTURE_PT_wood,
     TEXTURE_PT_marble,
@@ -803,6 +802,7 @@ classes = (
     TEXTURE_PT_musgrave,
     TEXTURE_PT_voronoi,
     TEXTURE_PT_distortednoise,
+    TEXTURE_PT_colors,
     TEXTURE_PT_custom_props,
 )
 
