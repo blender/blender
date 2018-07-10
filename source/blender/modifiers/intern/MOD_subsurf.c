@@ -91,7 +91,7 @@ static void freeData(ModifierData *md)
 	}
 }
 
-static bool isDisabled(const Scene *scene, ModifierData *md, int useRenderParams)
+static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	int levels = (useRenderParams) ? smd->renderLevels : smd->levels;

@@ -81,7 +81,7 @@ struct BLaplacianSystem {
 typedef struct BLaplacianSystem LaplacianSystem;
 
 static CustomDataMask required_data_mask(Object *ob, ModifierData *md);
-static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, int useRenderParams);
+static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, bool useRenderParams);
 static float compute_volume(const float center[3], float (*vertexCos)[3], const MPoly *mpoly, int numPolys, const MLoop *mloop);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, int a_numLoops, int a_numVerts);
 static void delete_laplacian_system(LaplacianSystem *sys);
@@ -474,7 +474,7 @@ static void init_data(ModifierData *md)
 	smd->defgrp_name[0] = '\0';
 }
 
-static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
+static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
 {
 	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
 	short flag;

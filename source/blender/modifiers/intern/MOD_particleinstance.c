@@ -88,7 +88,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 }
 
-static bool isDisabled(const struct Scene *scene, ModifierData *md, int useRenderParams)
+static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRenderParams)
 {
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 	ParticleSystem *psys;

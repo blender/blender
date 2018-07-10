@@ -1195,7 +1195,7 @@ static void deformVertsEM(
 	surfacedeformModifier_do(md, ctx, vertexCos, numVerts, ctx->object);
 }
 
-static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 

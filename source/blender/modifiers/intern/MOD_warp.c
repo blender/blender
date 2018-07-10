@@ -109,7 +109,7 @@ static void freeData(ModifierData *md)
 }
 
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(userRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(userRenderParams))
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 

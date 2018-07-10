@@ -61,7 +61,7 @@ static void initData(ModifierData *md)
 	smd->defgrp_name[0] = '\0';
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
 {
 	SmoothModifierData *smd = (SmoothModifierData *) md;
 	short flag;

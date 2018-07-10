@@ -317,7 +317,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional (assumes never disabled if not present).
 	 */
-	bool (*isDisabled)(const struct Scene *scene, struct ModifierData *md, int userRenderParams);
+	bool (*isDisabled)(const struct Scene *scene, struct ModifierData *md, bool userRenderParams);
 
 	/* Add the appropriate relations to the dependency graph.
 	 *

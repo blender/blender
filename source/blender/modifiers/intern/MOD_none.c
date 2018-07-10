@@ -43,7 +43,7 @@
  * no other functions will be called
  */
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *UNUSED(md), int UNUSED(userRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *UNUSED(md), bool UNUSED(userRenderParams))
 {
 	return true;
 }
