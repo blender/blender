@@ -390,14 +390,12 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 
 /* for new/open operators */
 void UI_context_active_but_prop_get_templateID(
-        bContext *C,
-        PointerRNA *r_ptr, PropertyRNA **r_prop)
+	bContext *C,
+	PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
 	TemplateID *template_ui;
 	uiBut *but = UI_context_active_but_get(C);
 
-	memset(r_ptr, 0, sizeof(*r_ptr));
-	*r_prop = NULL;
 
 	if (but && but->func_argN) {
 		template_ui = but->func_argN;
