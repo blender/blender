@@ -373,7 +373,7 @@ typedef struct DRWManager {
 	 * the top portion of the struct so DO NOT MOVE IT! */
 	void *gl_context;                /* Unique ghost context used by the draw manager. */
 	Gwn_Context *gwn_context;
-	ThreadMutex gl_context_mutex;    /* Mutex to lock the drw manager and avoid concurent context usage. */
+	TicketMutex *gl_context_mutex;    /* Mutex to lock the drw manager and avoid concurent context usage. */
 
 	/** GPU Resource State: Memory storage between drawing. */
 	struct {

@@ -154,10 +154,10 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 	MEM_freeN(comp);
 }
 
-static void drw_deferred_shader_add(GPUMaterial *mat)
+static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 {
 	/* Do not deferre the compilation if we are rendering for image. */
-	if (DRW_state_is_image_render() || !USE_DEFERRED_COMPILATION) {
+	if (DRW_state_is_image_render() || !USE_DEFERRED_COMPILATION || !deferred) {
 		/* Double checking that this GPUMaterial is not going to be
 		 * compiled by another thread. */
 		DRW_deferred_shader_remove(mat);
@@ -308,10 +308,10 @@ GPUShader *DRW_shader_create_3D_depth_only(void)
 	return GPU_shader_get_builtin_shader(GPU_SHADER_3D_DEPTH_ONLY);
 }
 
-GPUMaterial *DRW_shader_find_from_world(World *wo, const void *engine_type, int options)
+GPUMaterial *DRW_shader_find_from_world(World *wo, const void *engine_type, int options, bool deferred)
 {
 	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
-	if (DRW_state_is_image_render()) {
+	if (DRW_state_is_image_render() || !deferred) {
 		if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
 			/* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
 			 * with the shader code and we will resume the compilation from there. */
@@ -321,10 +321,10 @@ GPUMaterial *DRW_shader_find_from_world(World *wo, const void *engine_type, int 
 	return mat;
 }
 
-GPUMaterial *DRW_shader_find_from_material(Material *ma, const void *engine_type, int options)
+GPUMaterial *DRW_shader_find_from_material(Material *ma, const void *engine_type, int options, bool deferred)
 {
 	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
-	if (DRW_state_is_image_render()) {
+	if (DRW_state_is_image_render() || !deferred) {
 		if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
 			/* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
 			 * with the shader code and we will resume the compilation from there. */
@@ -336,7 +336,7 @@ GPUMaterial *DRW_shader_find_from_material(Material *ma, const void *engine_type
 
 GPUMaterial *DRW_shader_create_from_world(
         struct Scene *scene, World *wo, const void *engine_type, int options,
-        const char *vert, const char *geom, const char *frag_lib, const char *defines)
+        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool deferred)
 {
 	GPUMaterial *mat = NULL;
 	if (DRW_state_is_image_render()) {
@@ -350,7 +350,7 @@ GPUMaterial *DRW_shader_create_from_world(
 	}
 
 	if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
-		drw_deferred_shader_add(mat);
+		drw_deferred_shader_add(mat, deferred);
 	}
 
 	return mat;
@@ -358,7 +358,7 @@ GPUMaterial *DRW_shader_create_from_world(
 
 GPUMaterial *DRW_shader_create_from_material(
         struct Scene *scene, Material *ma, const void *engine_type, int options,
-        const char *vert, const char *geom, const char *frag_lib, const char *defines)
+        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool deferred)
 {
 	GPUMaterial *mat = NULL;
 	if (DRW_state_is_image_render()) {
@@ -372,7 +372,7 @@ GPUMaterial *DRW_shader_create_from_material(
 	}
 
 	if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
-		drw_deferred_shader_add(mat);
+		drw_deferred_shader_add(mat, deferred);
 	}
 
 	return mat;

@@ -240,14 +240,14 @@ struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D_depth_only(void);
-struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options);
-struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options);
+struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options, bool no_deferred);
+struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options, bool no_deferred);
 struct GPUMaterial *DRW_shader_create_from_world(
         struct Scene *scene, struct World *wo, const void *engine_type, int options,
-        const char *vert, const char *geom, const char *frag_lib, const char *defines);
+        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool no_deferred);
 struct GPUMaterial *DRW_shader_create_from_material(
         struct Scene *scene, struct Material *ma, const void *engine_type, int options,
-        const char *vert, const char *geom, const char *frag_lib, const char *defines);
+        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool no_deferred);
 void DRW_shader_free(struct GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) do { \
 	if (shader != NULL) { \
@@ -410,6 +410,7 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass);
 
 /* Viewport */
 typedef enum {
+	/* keep in sync with the union struct DRWMatrixState. */
 	DRW_MAT_PERS = 0,
 	DRW_MAT_PERSINV,
 	DRW_MAT_VIEW,
@@ -421,7 +422,18 @@ typedef enum {
 } DRWViewportMatrixType;
 
 typedef struct DRWMatrixState {
-	float mat[DRW_MAT_COUNT][4][4];
+	union {
+		float mat[DRW_MAT_COUNT][4][4];
+		struct {
+			/* keep in sync with the enum DRWViewportMatrixType. */
+			float persmat[4][4];
+			float persinv[4][4];
+			float viewmat[4][4];
+			float viewinv[4][4];
+			float winmat[4][4];
+			float wininv[4][4];
+		};
+	};
 } DRWMatrixState;
 
 void DRW_viewport_init(const bContext *C);
@@ -453,6 +465,12 @@ void DRW_render_object_iter(
 	void *vedata, struct RenderEngine *engine, struct Depsgraph *depsgraph,
 	void (*callback)(void *vedata, struct Object *ob, struct RenderEngine *engine, struct Depsgraph *depsgraph));
 void DRW_render_instance_buffer_finish(void);
+
+void DRW_custom_pipeline(
+        DrawEngineType *draw_engine_type,
+        struct Depsgraph *depsgraph,
+        void (*callback)(void *vedata, void *user_data),
+        void *user_data);
 
 /* ViewLayers */
 void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
