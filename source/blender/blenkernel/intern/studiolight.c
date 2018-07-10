@@ -239,8 +239,8 @@ static void studiolight_create_equirectangular_radiance_gputexture(StudioLight *
 				offset3 += 3;
 				offset4 += 4;
 			}
-			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(
-			        ibuf->x, ibuf->y, GPU_R11F_G11F_B10F, sl->gpu_matcap_3components, error);
+			sl->equirectangular_radiance_gputexture = GPU_texture_create_nD(
+			        ibuf->x, ibuf->y, 0, 2, sl->gpu_matcap_3components, GPU_R11F_G11F_B10F, GPU_DATA_FLOAT, 0, false, error);
 		}
 		else {
 			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(
