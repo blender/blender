@@ -98,29 +98,30 @@ typedef enum eFlyPanState {
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {
 	static const EnumPropertyItem modal_items[] = {
-		{FLY_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{FLY_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+		{FLY_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+
+		{FLY_MODAL_DIR_FORWARD, "FORWARD", 0, "Forward", ""},
+		{FLY_MODAL_DIR_BACKWARD, "BACKWARD", 0, "Backward", ""},
+		{FLY_MODAL_DIR_LEFT, "LEFT", 0, "Left", ""},
+		{FLY_MODAL_DIR_RIGHT, "RIGHT", 0, "Right", ""},
+		{FLY_MODAL_DIR_UP, "UP", 0, "Up", ""},
+		{FLY_MODAL_DIR_DOWN, "DOWN", 0, "Down", ""},
+
+		{FLY_MODAL_PAN_ENABLE, "PAN_ENABLE", 0, "Pan", ""},
+		{FLY_MODAL_PAN_DISABLE, "PAN_DISABLE", 0, "Pan (Off)", ""},
+
 		{FLY_MODAL_ACCELERATE, "ACCELERATE", 0, "Accelerate", ""},
 		{FLY_MODAL_DECELERATE, "DECELERATE", 0, "Decelerate", ""},
-
-		{FLY_MODAL_PAN_ENABLE, "PAN_ENABLE", 0, "Pan Enable", ""},
-		{FLY_MODAL_PAN_DISABLE, "PAN_DISABLE", 0, "Pan Disable", ""},
-
-		{FLY_MODAL_DIR_FORWARD, "FORWARD", 0, "Fly Forward", ""},
-		{FLY_MODAL_DIR_BACKWARD, "BACKWARD", 0, "Fly Backward", ""},
-		{FLY_MODAL_DIR_LEFT, "LEFT", 0, "Fly Left", ""},
-		{FLY_MODAL_DIR_RIGHT, "RIGHT", 0, "Fly Right", ""},
-		{FLY_MODAL_DIR_UP, "UP", 0, "Fly Up", ""},
-		{FLY_MODAL_DIR_DOWN, "DOWN", 0, "Fly Down", ""},
 
 		{FLY_MODAL_AXIS_LOCK_X, "AXIS_LOCK_X", 0, "X Axis Correction", "X axis correction (toggle)"},
 		{FLY_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "X Axis Correction", "Z axis correction (toggle)"},
 
-		{FLY_MODAL_PRECISION_ENABLE, "PRECISION_ENABLE", 0, "Precision Enable", ""},
-		{FLY_MODAL_PRECISION_DISABLE, "PRECISION_DISABLE", 0, "Precision Disable", ""},
+		{FLY_MODAL_PRECISION_ENABLE, "PRECISION_ENABLE", 0, "Precision", ""},
+		{FLY_MODAL_PRECISION_DISABLE, "PRECISION_DISABLE", 0, "Precision (Off)", ""},
 
-		{FLY_MODAL_FREELOOK_ENABLE, "FREELOOK_ENABLE", 0, "Rotation Enable", ""},
-		{FLY_MODAL_FREELOOK_DISABLE, "FREELOOK_DISABLE", 0, "Rotation Disable", ""},
+		{FLY_MODAL_FREELOOK_ENABLE, "FREELOOK_ENABLE", 0, "Rotation", ""},
+		{FLY_MODAL_FREELOOK_DISABLE, "FREELOOK_DISABLE", 0, "Rotation (Off)", ""},
 
 		{0, NULL, 0, NULL, NULL}};
 
@@ -133,8 +134,8 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	keymap = WM_modalkeymap_add(keyconf, "View3D Fly Modal", modal_items);
 
 	/* items for modal map */
-	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, FLY_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_CANCEL);
 
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, FLY_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_CONFIRM);
