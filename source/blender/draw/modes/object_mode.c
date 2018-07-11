@@ -1975,6 +1975,10 @@ static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)
 
 static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewLayer *view_layer, View3D *v3d)
 {
+	if (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_ORIGINS) {
+		return;
+	}
+
 	const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
 	DRWShadingGroup *shgroup;
 
