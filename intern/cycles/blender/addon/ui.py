@@ -1056,7 +1056,7 @@ class CYCLES_OT_use_shading_nodes(Operator):
     @classmethod
     def poll(cls, context):
         return (getattr(context, "material", False) or getattr(context, "world", False) or
-                getattr(context, "lamp", False))
+                getattr(context, "light", False))
 
     def execute(self, context):
         if context.material:
