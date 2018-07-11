@@ -4398,11 +4398,12 @@ class VIEW3D_PT_overlay_pose(Panel):
         col = layout.column()
         col.active = display_all
         col.prop(overlay, "show_transparent_bones")
-        row = col.split(0.65)
-        row.prop(overlay, "show_bone_select")
-        sub = row.column()
+
+        row = col.row()
+        row.prop(overlay, "show_bone_select", text="")
+        sub = row.row()
         sub.active = display_all and overlay.show_bone_select
-        sub.prop(overlay, "bone_select_alpha", text="")
+        sub.prop(overlay, "bone_select_alpha", text="Fade Geometry")
 
 
 class VIEW3D_PT_overlay_edit_armature(Panel):
