@@ -365,7 +365,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 
 	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
-	                           (draw_ctx->v3d->drawtype < OB_MATERIAL);
+	                           (draw_ctx->v3d->shading.type < OB_MATERIAL);
 	stl->g_data->do_zbufclip = ((v3d->flag & V3D_ZBUF_SELECT) == 0) || xray_enabled;
 
 	{

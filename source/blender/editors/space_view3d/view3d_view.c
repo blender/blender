@@ -184,7 +184,7 @@ void ED_view3d_smooth_view_ex(
 	}
 
 	/* skip smooth viewing for render engine draw */
-	if (smooth_viewtx && v3d->drawtype != OB_RENDER) {
+	if (smooth_viewtx && v3d->shading.type != OB_RENDER) {
 		bool changed = false; /* zero means no difference */
 
 		if (sview->camera_old != sview->camera)
@@ -1003,7 +1003,7 @@ int view3d_opengl_select(
 	 * the object & bone view locking takes 'rect' into account, see: T51629. */
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
-	if (v3d->drawtype > OB_WIRE) {
+	if (v3d->shading.type > OB_WIRE) {
 		GPU_depth_test(true);
 	}
 
@@ -1048,7 +1048,7 @@ int view3d_opengl_select(
 	G.f &= ~G_PICKSEL;
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 
-	if (v3d->drawtype > OB_WIRE) {
+	if (v3d->shading.type > OB_WIRE) {
 		GPU_depth_test(false);
 	}
 

@@ -144,7 +144,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 				}
 				else {
 					RenderEngineType *engine_type =
-					        ED_view3d_engine_type(scene, v3d->drawtype);
+					        ED_view3d_engine_type(scene, v3d->shading.type);
 					if (updated) {
 						DRW_notify_view_update(
 						        (&(DRWUpdateContext){

@@ -1189,7 +1189,7 @@ static int mixed_bones_object_selectbuffer(
 
 	/* define if we use solid nearest select or not */
 	if (use_cycle) {
-		if (v3d->drawtype > OB_WIRE) {
+		if (v3d->shading.type > OB_WIRE) {
 			do_nearest = true;
 			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
 				do_nearest = false;
@@ -1198,7 +1198,7 @@ static int mixed_bones_object_selectbuffer(
 		copy_v2_v2_int(last_mval, mval);
 	}
 	else {
-		if (v3d->drawtype > OB_WIRE) {
+		if (v3d->shading.type > OB_WIRE) {
 			do_nearest = true;
 		}
 	}

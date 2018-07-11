@@ -1095,7 +1095,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		else {
 			if ((cps->depth_mode == CURVE_PAINT_PROJECT_SURFACE) &&
-			    (v3d->drawtype > OB_WIRE))
+			    (v3d->shading.type > OB_WIRE))
 			{
 				/* needed or else the draw matrix can be incorrect */
 				view3d_operator_needs_opengl(C);

@@ -179,7 +179,7 @@ static void backdrawview3d(
 	}
 	/* texture paint mode sampling */
 	else if (obact_eval && (obact_eval->mode & OB_MODE_TEXTURE_PAINT) &&
-	         (v3d->drawtype > OB_WIRE))
+	         (v3d->shading.type > OB_WIRE))
 	{
 		/* do nothing */
 	}
@@ -211,7 +211,7 @@ static void backdrawview3d(
 #endif
 
 #if 0 /* v3d->zbuf deprecated */
-	if (v3d->drawtype > OB_WIRE) v3d->zbuf = true;
+	if (v3d->shading.type > OB_WIRE) v3d->zbuf = true;
 #endif
 
 	/* dithering and AA break color coding, so disable */
@@ -1033,7 +1033,7 @@ bool ED_view3d_calc_render_border(const Scene *scene, Depsgraph *depsgraph, View
 	bool use_border;
 
 	/* test if there is a 3d view rendering */
-	if (v3d->drawtype != OB_RENDER || !view3d_main_region_do_render_draw(scene))
+	if (v3d->shading.type != OB_RENDER || !view3d_main_region_do_render_draw(scene))
 		return false;
 
 	/* test if there is a border render */

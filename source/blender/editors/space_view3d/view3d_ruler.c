@@ -911,7 +911,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					    BLI_listbase_is_empty(&ruler_info->items))
 					{
 						View3D *v3d = CTX_wm_view3d(C);
-						const bool use_depth = (v3d->drawtype >= OB_SOLID);
+						const bool use_depth = (v3d->shading.type >= OB_SOLID);
 
 						/* Create new line */
 						RulerItem *ruler_item_prev = ruler_item_active_get(ruler_info);

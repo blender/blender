@@ -96,7 +96,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
 } ((void)0)
 
 #define OVERLAY_ENABLED(v3d) ((v3d) && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
-#define LOOK_DEV_MODE_ENABLED(v3d) ((v3d) && (v3d->drawtype == OB_MATERIAL))
+#define LOOK_DEV_MODE_ENABLED(v3d) ((v3d) && (v3d->shading.type == OB_MATERIAL))
 #define LOOK_DEV_OVERLAY_ENABLED(v3d) (LOOK_DEV_MODE_ENABLED(v3d) && OVERLAY_ENABLED(v3d) && (v3d->overlay.flag & V3D_OVERLAY_LOOK_DEV))
 #define USE_SCENE_LIGHT(v3d) ((!v3d) || (!LOOK_DEV_MODE_ENABLED(v3d)) || ((LOOK_DEV_MODE_ENABLED(v3d) && (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS))))
 #define LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d) (LOOK_DEV_MODE_ENABLED(v3d) && !(v3d->shading.flag & V3D_SHADING_SCENE_WORLD))

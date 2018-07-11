@@ -907,7 +907,7 @@ static void OBJECT_cache_init(void *vedata)
 	OBJECT_PrivateData *g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
-	                           (draw_ctx->v3d->drawtype < OB_MATERIAL);
+	                           (draw_ctx->v3d->shading.type < OB_MATERIAL);
 	/* TODO : use dpi setting for enabling the second pass */
 	const bool do_outline_expand = false;
 
@@ -2337,7 +2337,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		if ((ob != draw_ctx->object_edit) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
 			struct Gwn_Batch *geom;
 			const bool xray_enabled = ((v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
-			                           (v3d->drawtype < OB_MATERIAL);
+			                           (v3d->shading.type < OB_MATERIAL);
 			if (xray_enabled) {
 				geom = DRW_cache_object_edge_detection_get(ob, NULL);
 			}

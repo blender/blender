@@ -1589,7 +1589,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 
 	v3d.camera = camera;
 	v3d.lay = scene->lay;
-	v3d.drawtype = drawtype;
+	v3d.shading.type = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
 
 	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL) {

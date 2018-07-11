@@ -1052,7 +1052,7 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 
 	wmGizmoMap *gzmap = ar->gizmo_map;
 	wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
-	const bool use_depth = (v3d->drawtype >= OB_SOLID);
+	const bool use_depth = (v3d->shading.type >= OB_SOLID);
 
 	/* Create new line */
 	RulerItem *ruler_item;

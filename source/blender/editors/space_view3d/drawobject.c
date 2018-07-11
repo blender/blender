@@ -121,10 +121,10 @@
 
 int view3d_effective_drawtype(const struct View3D *v3d)
 {
-	if (v3d->drawtype == OB_RENDER) {
-		return v3d->prev_drawtype;
+	if (v3d->shading.type == OB_RENDER) {
+		return v3d->shading.prev_type;
 	}
-	return v3d->drawtype;
+	return v3d->shading.type;
 }
 
 static bool check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
@@ -139,10 +139,10 @@ static bool check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 		return true;
 
 	/* if its drawing textures with zbuf sel, then don't draw dots */
-	if (dt == OB_TEXTURE && vd->drawtype == OB_TEXTURE)
+	if (dt == OB_TEXTURE && vd->shading.type == OB_TEXTURE)
 		return false;
 
-	if ((vd->drawtype >= OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX))
+	if ((vd->shading.type >= OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX))
 		return false;
 
 	return true;

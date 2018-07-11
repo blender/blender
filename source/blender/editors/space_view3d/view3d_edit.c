@@ -4873,7 +4873,7 @@ static int toggle_shading_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (type == OB_SOLID) {
-		if (v3d->drawtype == OB_SOLID) {
+		if (v3d->shading.type == OB_SOLID) {
 			/* Toggle X-Ray if already in solid mode. */
 			if (ED_operator_posemode(C) || ED_operator_editmesh(C)) {
 				v3d->flag ^= V3D_ZBUF_SELECT;
@@ -4884,24 +4884,24 @@ static int toggle_shading_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			/* Go to solid mode. */
-			v3d->drawtype = OB_SOLID;
+			v3d->shading.type = OB_SOLID;
 		}
 	}
 	else if (type == OB_MATERIAL) {
-		if (v3d->drawtype == OB_MATERIAL) {
-			v3d->drawtype = OB_SOLID;
+		if (v3d->shading.type == OB_MATERIAL) {
+			v3d->shading.type = OB_SOLID;
 		}
 		else {
-			v3d->drawtype = OB_MATERIAL;
+			v3d->shading.type = OB_MATERIAL;
 		}
 	}
 	else if (type == OB_RENDER) {
-		if (v3d->drawtype == OB_RENDER) {
-			v3d->drawtype = v3d->prev_drawtype;
+		if (v3d->shading.type == OB_RENDER) {
+			v3d->shading.type = v3d->shading.prev_type;
 		}
 		else {
-			v3d->prev_drawtype = v3d->drawtype;
-			v3d->drawtype = OB_RENDER;
+			v3d->shading.prev_type = v3d->shading.type;
+			v3d->shading.type = OB_RENDER;
 		}
 	}
 

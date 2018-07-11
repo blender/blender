@@ -1200,7 +1200,7 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	Object *obact = OBACT(view_layer);
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
 	View3D * v3d = DST.draw_ctx.v3d;
-	const int drawtype = v3d->drawtype;
+	const int drawtype = v3d->shading.type;
 
 	drw_engines_enable_from_engine(engine_type, drawtype, v3d->shading.flag);
 
@@ -1304,7 +1304,7 @@ void DRW_draw_view(const bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
 	GPUViewport *viewport = WM_draw_region_get_bound_viewport(ar);
 
 	/* Reset before using it. */
@@ -1499,7 +1499,7 @@ void DRW_draw_render_loop(
 	drw_state_prepare_clean_for_draw(&DST);
 
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
 
 	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, NULL);
 }
@@ -1764,7 +1764,7 @@ void DRW_draw_select_loop(
         DRW_ObjectFilterFn object_filter_fn, void *object_filter_user_data)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	Object *obact = OBACT(view_layer);
 	Object *obedit = OBEDIT_FROM_OBACT(obact);
@@ -1983,7 +1983,7 @@ void DRW_draw_depth_loop(
         ARegion *ar, View3D *v3d)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
 

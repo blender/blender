@@ -135,11 +135,14 @@ typedef struct View3DCursor {
 
 /* 3D Viewport Shading setings */
 typedef struct View3DShading {
+	short type;        /* Shading type (VIEW3D_SHADE_SOLID, ..) */
+	short prev_type;   /* Runtime, for toggle between rendered viewport. */
+
 	short flag;
 	short color_type;
 
 	short light;
-	char pad[2];
+	short pad[3];
 	char studio_light[256]; /* FILE_MAXFILE */
 	char matcap[256]; /* FILE_MAXFILE */
 
@@ -267,9 +270,8 @@ typedef struct View3D {
 	float stereo3d_convergence_alpha;
 
 	/* Display settings */
-	short drawtype;         /* Shading mode (OB_SOLID, OB_TEXTURE, ..) */
-	short prev_drawtype;    /* Runtime, for toggle between rendered viewport. */
-	int pad5;
+	short drawtype DNA_DEPRECATED;
+	short pad5[3];
 
 	View3DShading shading;
 	View3DOverlay overlay;

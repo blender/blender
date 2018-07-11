@@ -1307,7 +1307,7 @@ static bool check_rendered_viewport_visible(Main *bmain)
 			if (area->spacetype != SPACE_VIEW3D) {
 				continue;
 			}
-			if (v3d->drawtype == OB_RENDER) {
+			if (v3d->shading.type == OB_RENDER) {
 				return true;
 			}
 		}

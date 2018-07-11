@@ -293,7 +293,7 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 {
 	wmWindowManager *wm = bmain->wm.first;
 
-	if (v3d->drawtype != OB_RENDER) {
+	if (v3d->shading.type != OB_RENDER) {
 		ARegion *ar;
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
@@ -324,7 +324,8 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->grid = 1.0f;
 	v3d->gridlines = 16;
 	v3d->gridsubdiv = 10;
-	v3d->drawtype = OB_SOLID;
+	v3d->shading.type = OB_SOLID;
+	v3d->shading.prev_type = OB_SOLID;
 	v3d->shading.flag = V3D_SHADING_SPECULAR_HIGHLIGHT;
 	v3d->shading.light = V3D_LIGHTING_STUDIO;
 	v3d->shading.shadow_intensity = 0.5f;
@@ -431,8 +432,8 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 		v3dn->lay = v3do->localvd->lay & 0xFFFFFF;
 	}
 
-	if (v3dn->drawtype == OB_RENDER)
-		v3dn->drawtype = OB_SOLID;
+	if (v3dn->shading.type == OB_RENDER)
+		v3dn->shading.type = OB_SOLID;
 
 	/* copy or clear inside new stuff */
 
@@ -1421,7 +1422,7 @@ static void space_view3d_listener(
 		case NC_MATERIAL:
 			switch (wmn->data) {
 				case ND_NODES:
-					if (v3d->drawtype == OB_TEXTURE)
+					if (v3d->shading.type == OB_TEXTURE)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}

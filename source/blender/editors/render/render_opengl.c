@@ -355,7 +355,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
 		if (view_context) {
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
-			       depsgraph, scene, v3d->drawtype,
+			       depsgraph, scene, v3d->shading.type,
 			       v3d, ar, sizex, sizey,
 			       IB_rectfloat, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
 			       oglrender->ofs, err_out);
