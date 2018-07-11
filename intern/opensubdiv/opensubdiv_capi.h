@@ -32,21 +32,11 @@ extern "C" {
 
 // Types declaration.
 struct OpenSubdiv_GLMesh;
+struct OpenSubdiv_GLMeshDescr;
 struct OpenSubdiv_GLMeshFVarData;
 struct OpenSubdiv_TopologyRefinerDescr;
 
 typedef struct OpenSubdiv_GLMesh OpenSubdiv_GLMesh;
-
-#ifdef __cplusplus
-struct OpenSubdiv_GLMeshDescr;
-
-typedef struct OpenSubdiv_GLMesh {
-	int evaluator_type;
-	OpenSubdiv_GLMeshDescr *descriptor;
-	OpenSubdiv_TopologyRefinerDescr *topology_refiner;
-	OpenSubdiv_GLMeshFVarData *fvar_data;
-} OpenSubdiv_GLMesh;
-#endif
 
 // Keep this a bitmask os it's possible to pass available
 // evaluators to Blender.
@@ -86,11 +76,7 @@ void openSubdiv_osdGLMeshBindVertexBuffer(OpenSubdiv_GLMesh *gl_mesh);
 const struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_getGLMeshTopologyRefiner(
         OpenSubdiv_GLMesh *gl_mesh);
 
-/* ** Initialize/Deinitialize global OpenGL drawing buffers/GLSL programs ** */
-bool openSubdiv_osdGLDisplayInit(void);
-void openSubdiv_osdGLDisplayDeinit(void);
-
-/* ** Evaluator API ** */
+/* ============================= Evaluator API ============================== */
 
 struct OpenSubdiv_EvaluatorDescr;
 typedef struct OpenSubdiv_EvaluatorDescr OpenSubdiv_EvaluatorDescr;
@@ -100,17 +86,29 @@ OpenSubdiv_EvaluatorDescr *openSubdiv_createEvaluatorDescr(
         struct OpenSubdiv_TopologyRefinerDescr *topology_refiner,
         int subsurf_level);
 
-void openSubdiv_deleteEvaluatorDescr(OpenSubdiv_EvaluatorDescr *evaluator_descr);
+void openSubdiv_deleteEvaluatorDescr(
+        OpenSubdiv_EvaluatorDescr *evaluator_descr);
 
-void openSubdiv_setEvaluatorCoarsePositions(OpenSubdiv_EvaluatorDescr *evaluator_descr,
-                                            float *positions,
-                                            int start_vert,
-                                            int num_vert);
+void openSubdiv_setEvaluatorCoarsePositions(
+        OpenSubdiv_EvaluatorDescr *evaluator_descr,
+        const float *positions,
+        int start_vertex_index,
+        int num_vertices);
+void openSubdiv_setEvaluatorVaryingData(
+        OpenSubdiv_EvaluatorDescr *evaluator_descr,
+        const float *varying_data,
+        int start_vertex_index,
+        int num_vertices);
 
-void openSubdiv_setEvaluatorVaryingData(OpenSubdiv_EvaluatorDescr *evaluator_descr,
-                                        float *varying_data,
-                                        int start_vert,
-                                        int num_vert);
+void openSubdiv_setEvaluatorCoarsePositionsFromBuffer(
+        OpenSubdiv_EvaluatorDescr *evaluator_descr,
+        const void *buffer,
+        int start_offset,
+        int stride,
+        int start_vertex_index,
+        int num_vertices);
+
+void openSubdiv_refineEvaluator(OpenSubdiv_EvaluatorDescr *evaluator_descr);
 
 void openSubdiv_evaluateLimit(OpenSubdiv_EvaluatorDescr *evaluator_descr,
                               int osd_face_index,
@@ -124,15 +122,18 @@ void openSubdiv_evaluateVarying(OpenSubdiv_EvaluatorDescr *evaluator_descr,
                                float face_u, float face_v,
                                float varying[3]);
 
-/* ** Actual drawing ** */
+/* ============================== Mesh drawing =============================== */
+
+/* Initialize/Deinitialize global OpenGL drawing buffers/GLSL programs. */
+bool openSubdiv_osdGLDisplayInit(void);
+void openSubdiv_osdGLDisplayDeinit(void);
 
 /* Initialize all the invariants which stays the same for every single path,
  * for example lighting model stays untouched for the whole mesh.
  *
  * TODO(sergey): Some of the stuff could be initialized once for all meshes.
  */
-void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
-                                        int active_uv_index);
+void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl, int active_uv_index);
 
 /* Draw specified patches. */
 void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
@@ -140,12 +141,15 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
                                  int start_patch,
                                  int num_patches);
 
-void openSubdiv_osdGLAllocFVar(struct OpenSubdiv_TopologyRefinerDescr *topology_refiner,
-                               OpenSubdiv_GLMesh *gl_mesh,
-                               const float *fvar_data);
+void openSubdiv_osdGLAllocFVar(
+        struct OpenSubdiv_TopologyRefinerDescr *topology_refiner,
+        OpenSubdiv_GLMesh *gl_mesh,
+        const float *fvar_data);
+
 void openSubdiv_osdGLDestroyFVar(OpenSubdiv_GLMesh *gl_mesh);
 
-/* ** Utility functions ** */
+/* =========================== Utility functions ============================ */
+
 int openSubdiv_getAvailableEvaluators(void);
 void openSubdiv_init(void);
 void openSubdiv_cleanup(void);

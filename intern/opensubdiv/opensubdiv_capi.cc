@@ -70,6 +70,7 @@
 #include <opensubdiv/far/stencilTable.h>
 #include <opensubdiv/far/primvarRefiner.h>
 
+#include "opensubdiv_gl_mesh.h"
 #include "opensubdiv_intern.h"
 #include "opensubdiv_topology_refiner.h"
 

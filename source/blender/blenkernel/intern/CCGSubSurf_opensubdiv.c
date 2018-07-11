@@ -198,7 +198,7 @@ void ccgSubSurf_checkTopologyChanged(CCGSubSurf *ss, DerivedMesh *dm)
 			ss->osd_topology_refiner = NULL;
 		}
 
-		/* Reste CPU side. */
+		/* Reset CPU side. */
 		if (ss->osd_evaluator != NULL) {
 			openSubdiv_deleteEvaluatorDescr(ss->osd_evaluator);
 			ss->osd_evaluator = NULL;
@@ -523,6 +523,7 @@ static void opensubdiv_updateEvaluatorCoarsePositions(CCGSubSurf *ss)
 	                                       (float *)positions,
 	                                       0,
 	                                       num_basis_verts);
+	openSubdiv_refineEvaluator(ss->osd_evaluator);
 
 	MEM_freeN(positions);
 }

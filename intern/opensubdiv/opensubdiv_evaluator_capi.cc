@@ -118,7 +118,7 @@ protected:
  * is small enough and better to be allocated in stack rather
  * than in heap.
  *
- * TODO(sergey): Check if bare arrays could be used by CPU evalautor.
+ * TODO(sergey): Check if bare arrays could be used by CPU evaluator.
  */
 template <int element_size, int num_verts>
 class StackAllocatedBuffer {
@@ -142,7 +142,7 @@ protected:
 
 /* Volatile evaluator which can be used from threads.
  *
- * TODO(sergey): Make it possible to evaluate coordinates in chuncks.
+ * TODO(sergey): Make it possible to evaluate coordinates in chunks.
  */
 template<typename SRC_VERTEX_BUFFER,
          typename EVAL_VERTEX_BUFFER,
@@ -347,85 +347,80 @@ OpenSubdiv_EvaluatorDescr *openSubdiv_createEvaluatorDescr(
 		/* Happens on bad topology. */
 		return NULL;
 	}
-
-	const StencilTable *vertex_stencils = NULL;
-	const StencilTable *varying_stencils = NULL;
-	int num_total_verts = 0;
-
 	/* Apply uniform refinement to the mesh so that we can use the
 	 * limit evaluation API features.
 	 */
 	TopologyRefiner::UniformOptions options(subsurf_level);
 	refiner->RefineUniform(options);
-
 	/* Generate stencil table to update the bi-cubic patches control
 	 * vertices after they have been re-posed (both for vertex & varying
 	 * interpolation).
 	 */
-	StencilTableFactory::Options soptions;
-	soptions.generateOffsets = true;
-	soptions.generateIntermediateLevels = false;
-
-	vertex_stencils = StencilTableFactory::Create(*refiner, soptions);
-
-	soptions.interpolationMode = StencilTableFactory::INTERPOLATE_VARYING;
-	varying_stencils = StencilTableFactory::Create(*refiner, soptions);
-
+	StencilTableFactory::Options vertex_stencil_options;
+	vertex_stencil_options.generateOffsets = true;
+	vertex_stencil_options.generateIntermediateLevels = false;
+	const StencilTable *vertex_stencils =
+	        StencilTableFactory::Create(*refiner, vertex_stencil_options);
+	StencilTableFactory::Options varying_stencil_options;
+	varying_stencil_options.generateOffsets = true;
+	varying_stencil_options.generateIntermediateLevels = false;
+	varying_stencil_options.interpolationMode =
+	        StencilTableFactory::INTERPOLATE_VARYING;
+	const StencilTable *varying_stencils =
+	        StencilTableFactory::Create(*refiner, varying_stencil_options);
 	/* Generate bi-cubic patch table for the limit surface. */
 	PatchTableFactory::Options poptions;
 	poptions.SetEndCapType(PatchTableFactory::Options::ENDCAP_BSPLINE_BASIS);
-
-	const PatchTable *patch_table = PatchTableFactory::Create(*refiner, poptions);
-
+	const PatchTable *patch_table =
+	        PatchTableFactory::Create(*refiner, poptions);
 	/* Append local points stencils. */
-	/* TODO(sergey): Do we really need to worry about local points stencils? */
-	if (const StencilTable *local_point_stencil_table =
-	    patch_table->GetLocalPointStencilTable())
-	{
+	const StencilTable *local_point_stencil_table =
+	        patch_table->GetLocalPointStencilTable();
+	if (local_point_stencil_table != NULL) {
 		const StencilTable *table =
-			StencilTableFactory::AppendLocalPointStencilTable(*refiner,
-			                                                  vertex_stencils,
-			                                                  local_point_stencil_table);
+		        StencilTableFactory::AppendLocalPointStencilTable(
+			            *refiner,
+			            vertex_stencils,
+			            local_point_stencil_table);
 		delete vertex_stencils;
 		vertex_stencils = table;
 	}
-	if (const StencilTable *local_point_varying_stencil_table =
-	     patch_table->GetLocalPointVaryingStencilTable())
-	{
+	const StencilTable *local_point_varying_stencil_table =
+	         patch_table->GetLocalPointVaryingStencilTable();
+	if (local_point_varying_stencil_table != NULL) {
 		const StencilTable *table =
-			StencilTableFactory::AppendLocalPointStencilTable(*refiner,
-			                                                  varying_stencils,
-			                                                  local_point_varying_stencil_table);
+		         StencilTableFactory::AppendLocalPointStencilTable(
+			            *refiner,
+			            varying_stencils,
+			            local_point_varying_stencil_table);
 		delete varying_stencils;
 		varying_stencils = table;
 	}
 
-	/* Total number of vertices = coarse verts + refined verts + gregory basis verts. */
-	num_total_verts = vertex_stencils->GetNumControlVertices() +
-		vertex_stencils->GetNumStencils();
-
+	/* Total number of vertices = coarse verts + refined verts + gregory 
+	 * basis verts.
+	 */
+	const int num_total_verts = vertex_stencils->GetNumControlVertices() +
+	                            vertex_stencils->GetNumStencils();
 	const int num_coarse_verts = refiner->GetLevel(0).GetNumVertices();
-
+	/* Create OpenSubdiv's CPU side evaluator. */
 	CpuEvalOutput *eval_output = new CpuEvalOutput(vertex_stencils,
 	                                               varying_stencils,
 	                                               num_coarse_verts,
 	                                               num_total_verts,
 	                                               patch_table);
-
 	OpenSubdiv::Far::PatchMap *patch_map = new PatchMap(*patch_table);
-
+	/* Wrap everything we need into an object which we control from our
+	 * side.
+	 */
 	OpenSubdiv_EvaluatorDescr *evaluator_descr;
 	evaluator_descr = OBJECT_GUARDED_NEW(OpenSubdiv_EvaluatorDescr);
 	evaluator_descr->eval_output = eval_output;
 	evaluator_descr->patch_map = patch_map;
 	evaluator_descr->patch_table = patch_table;
-
-	/* TOOD(sergey): Look into whether w've got duplicated stencils arrays. */
+	/* TOOD(sergey): Look into whether we've got duplicated stencils arrays. */
 	delete varying_stencils;
 	delete vertex_stencils;
-
-	delete refiner;
-
 	return evaluator_descr;
 }
 
@@ -437,27 +432,52 @@ void openSubdiv_deleteEvaluatorDescr(OpenSubdiv_EvaluatorDescr *evaluator_descr)
 	OBJECT_GUARDED_DELETE(evaluator_descr, OpenSubdiv_EvaluatorDescr);
 }
 
-void openSubdiv_setEvaluatorCoarsePositions(OpenSubdiv_EvaluatorDescr *evaluator_descr,
-                                            float *positions,
-                                            int start_vert,
-                                            int num_verts)
+void openSubdiv_setEvaluatorCoarsePositions(
+	    OpenSubdiv_EvaluatorDescr *evaluator_descr,
+        const float *positions,
+        int start_vertex_index,
+        int num_vertices)
 {
 	/* TODO(sergey): Add sanity check on indices. */
-	evaluator_descr->eval_output->UpdateData(positions, start_vert, num_verts);
-	/* TODO(sergey): Consider moving this to a separate call,
-	 * so we can updatwe coordinates in chunks.
-	 */
-	evaluator_descr->eval_output->Refine();
+	evaluator_descr->eval_output->UpdateData(positions,
+	                                         start_vertex_index,
+	                                         num_vertices);
 }
 
-void openSubdiv_setEvaluatorVaryingData(OpenSubdiv_EvaluatorDescr *evaluator_descr,
-                                        float *varying_data,
-                                        int start_vert,
-                                        int num_verts)
+void openSubdiv_setEvaluatorVaryingData(
+        OpenSubdiv_EvaluatorDescr *evaluator_descr,
+        const float *varying_data,
+        int start_vertex_index,
+        int num_vertices)
 {
 	/* TODO(sergey): Add sanity check on indices. */
-	evaluator_descr->eval_output->UpdateVaryingData(varying_data, start_vert, num_verts);
-	/* TODO(sergey): Get rid of this ASAP. */
+	evaluator_descr->eval_output->UpdateVaryingData(varying_data,
+	                                                start_vertex_index,
+	                                                num_vertices);
+}
+
+void openSubdiv_setEvaluatorCoarsePositionsFromBuffer(
+        OpenSubdiv_EvaluatorDescr *evaluator_descr,
+        const void *buffer,
+		int start_offset,
+        int stride,
+        int start_vertex_index,
+        int num_vertices)
+{
+	const unsigned char *current_buffer = (unsigned char *)buffer;
+	current_buffer += start_offset;
+	/* TODO(sergey): Add sanity check on indices. */
+	for (int i = 0; i < num_vertices; ++i) {
+		const int current_vertex_index = start_vertex_index + i;
+		evaluator_descr->eval_output->UpdateData((float *)current_buffer,
+		                                         current_vertex_index,
+		                                         1);
+		current_buffer += stride;
+	}
+}
+
+void openSubdiv_refineEvaluator(OpenSubdiv_EvaluatorDescr *evaluator_descr)
+{
 	evaluator_descr->eval_output->Refine();
 }
 

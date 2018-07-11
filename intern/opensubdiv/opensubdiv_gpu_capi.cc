@@ -45,6 +45,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "opensubdiv_capi.h"
+#include "opensubdiv_gl_mesh.h"
 #include "opensubdiv_topology_refiner.h"
 
 using OpenSubdiv::Osd::GLMeshInterface;
