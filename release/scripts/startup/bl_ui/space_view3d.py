@@ -4058,7 +4058,6 @@ class VIEW3D_PT_overlay_geometry(Panel):
         layout = self.layout
         view = context.space_data
         overlay = view.overlay
-        shading = view.shading
         display_all = overlay.show_overlays
 
         col = layout.column()
@@ -4071,6 +4070,8 @@ class VIEW3D_PT_overlay_geometry(Panel):
         sub.prop(overlay, "wireframe_threshold", text="Wireframe")
 
         col = layout.column(align=True)
+        col.active = display_all
+
         split = col.split()
         sub = split.column(align=True)
         sub.prop(overlay, "show_backface_culling")
@@ -4093,6 +4094,7 @@ class VIEW3D_PT_overlay_motion_tracking(Panel):
     def draw(self, context):
         layout = self.layout
         view = context.space_data
+        overlay = view.overlay
         display_all = overlay.show_overlays
 
         col = layout.column()
