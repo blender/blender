@@ -460,6 +460,7 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 
 	/* TODO(campbell): this depends on depth buffer being written to, currently broken for the 3D view. */
 	bool is_depth_prev = false;
+	bool is_depth_skip_prev = false;
 
 	for (LinkData *link = visible_manipulators->first; link; link = link->next) {
 		mpr = link->data;
@@ -477,6 +478,14 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 			}
 			is_depth_prev = is_depth;
 		}
+		bool is_depth_skip = (mpr->flag & WM_MANIPULATOR_SELECT_BACKGROUND) != 0;
+		if (is_depth_skip == is_depth_skip_prev) {
+			/* pass */
+		}
+		else {
+			glDepthMask(!is_depth_skip);
+			is_depth_skip_prev = is_depth_skip;
+		}
 
 		/* pass the selection id shifted by 8 bits. Last 8 bits are used for selected manipulator part id */
 
@@ -488,6 +497,9 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 
 	if (is_depth_prev) {
 		glDisable(GL_DEPTH_TEST);
+	}
+	if (is_depth_skip_prev) {
+		glDepthMask(true);
 	}
 }
 

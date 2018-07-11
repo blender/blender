@@ -84,6 +84,8 @@ typedef enum eWM_ManipulatorFlag {
 	 * Hide the cursor and lock it's position while interacting with this manipulator.
 	 */
 	WM_MANIPULATOR_GRAB_CURSOR = (1 << 6),
+	/** Don't write into the depth buffer when selecting. */
+	WM_MANIPULATOR_SELECT_BACKGROUND  = (1 << 7),
 } eWM_ManipulatorFlag;
 
 /**
