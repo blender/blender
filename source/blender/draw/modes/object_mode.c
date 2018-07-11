@@ -835,7 +835,7 @@ static void DRW_shgroup_empty_image(
 
 		{
 			DRW_shgroup_instance_format(e_data.empty_image_wire_format, {
-				{"objectColor",         DRW_ATTRIB_FLOAT, 4},
+				{"color",               DRW_ATTRIB_FLOAT, 4},
 				{"size",                DRW_ATTRIB_FLOAT, 1},
 				{"offset",              DRW_ATTRIB_FLOAT, 2},
 				{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
