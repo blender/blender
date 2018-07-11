@@ -1562,7 +1562,7 @@ void init_userdef_do_versions(Main *bmain)
 	if (!USER_VERSION_ATLEAST(278, 6)) {
 		/* Clear preference flags for re-use. */
 		U.flag &= ~(
-		    USER_FLAG_DEPRECATED_1 | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
+		    USER_FLAG_NUMINPUT_ADVANCED | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
 		    USER_FLAG_DEPRECATED_6 | USER_FLAG_DEPRECATED_7 |
 		    USER_FLAG_DEPRECATED_9 | USER_DEVELOPER_UI);
 		U.uiflag &= ~(

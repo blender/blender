@@ -276,17 +276,20 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	short dir = STRCUR_DIR_NEXT, mode = STRCUR_JUMP_NONE;
 	int cur;
 
-#ifndef USE_FAKE_EDIT
-	if ((event->ctrl == 0) && (event->alt == 0) && (event->ascii != '\0') &&
-	    strchr("01234567890@%^&*-+/{}()[]<>.|", event->ascii))
+#ifdef USE_FAKE_EDIT
+	if (U.flag & USER_FLAG_NUMINPUT_ADVANCED)
+#endif
 	{
-		if (!(n->flag & NUM_EDIT_FULL)) {
-			n->flag |= NUM_EDITED;
-			n->flag |= NUM_EDIT_FULL;
-			n->val_flag[idx] |= NUM_EDITED;
+		if ((event->ctrl == 0) && (event->alt == 0) && (event->ascii != '\0') &&
+		    strchr("01234567890@%^&*-+/{}()[]<>.|", event->ascii))
+		{
+			if (!(n->flag & NUM_EDIT_FULL)) {
+				n->flag |= NUM_EDITED;
+				n->flag |= NUM_EDIT_FULL;
+				n->val_flag[idx] |= NUM_EDITED;
+			}
 		}
 	}
-#endif
 
 	switch (event->type) {
 		case EVT_MODAL_MAP:

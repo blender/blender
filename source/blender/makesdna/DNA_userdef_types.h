@@ -673,7 +673,7 @@ typedef enum eUserPref_Section {
 /* UserDef.flag */
 typedef enum eUserPref_Flag {
 	USER_AUTOSAVE			= (1 << 0),
-	USER_FLAG_DEPRECATED_1	= (1 << 1),  /* cleared */
+	USER_FLAG_NUMINPUT_ADVANCED = (1 << 1),
 	USER_FLAG_DEPRECATED_2	= (1 << 2),  /* cleared */
 	USER_FLAG_DEPRECATED_3	= (1 << 3),  /* cleared */
 /*	USER_SCENEGLOBAL         = (1 << 4), deprecated */
