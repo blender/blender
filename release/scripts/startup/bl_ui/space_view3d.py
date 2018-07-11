@@ -4057,25 +4057,20 @@ class VIEW3D_PT_overlay_geometry(Panel):
 
         col = layout.column()
 
-        split = col.split()
-        sub = split.column(align=True)
-
-        icon_w = 'CHECKBOX_HLT' if overlay.show_wireframes else 'CHECKBOX_DEHLT'
-
-        row = sub.row(align=True)
-        row.prop(overlay, "show_wireframes", text="", icon=icon_w)
-        sub = row.row(align=True)
+        row = col.row()
+        row.prop(overlay, "show_wireframes", text="")
+        sub = row.row()
         sub.active = overlay.show_wireframes
         sub.prop(overlay, "wireframe_threshold", text="Wireframe")
-
-        sub = split.column(align=True)
-        sub.prop(overlay, "show_backface_culling")
-        #sub.prop(overlay, "show_onion_skins")
 
         col = layout.column(align=True)
         split = col.split()
         sub = split.column(align=True)
         sub.prop(overlay, "show_face_orientation")
+
+        sub = split.column(align=True)
+        #sub.prop(overlay, "show_onion_skins")
+        sub.prop(overlay, "show_backface_culling")
 
 
 class VIEW3D_PT_overlay_motion_tracking(Panel):
