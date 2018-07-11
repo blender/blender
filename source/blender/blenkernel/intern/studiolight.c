@@ -1037,7 +1037,7 @@ static void studiolight_matcap_preview(uint *icon_buffer, StudioLight *sl, bool 
 			if (flipped) {
 				fx = 1.0f - fx;
 			}
-			nearest_interpolation_color(ibuf, NULL, color, fx * ibuf->x, fy * ibuf->y);
+			nearest_interpolation_color(ibuf, NULL, color, fx * ibuf->x - 1.0f, fy * ibuf->y - 1.0f);
 
 			uint alphamask = alpha_circle_mask(fx, fy, 0.5f - pixel_size, 0.5f);
 
