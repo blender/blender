@@ -169,6 +169,7 @@ enum {
 	LIGHTCACHE_UPDATE_CUBE      = (1 << 4),
 	LIGHTCACHE_UPDATE_GRID      = (1 << 5),
 	LIGHTCACHE_UPDATE_WORLD     = (1 << 6),
+	LIGHTCACHE_UPDATE_AUTO      = (1 << 7),
 };
 
 /* EEVEE_LightCacheTexture->data_type */
