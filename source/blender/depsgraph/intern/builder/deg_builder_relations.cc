@@ -2213,7 +2213,23 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		if (id_type == ID_ME && comp_node->type == DEG_NODE_TYPE_GEOMETRY) {
 			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
 		}
-		if (comp_node->type == DEG_NODE_TYPE_PARAMETERS) {
+		/* Notes on exceptions:
+		 * - Parameters component is where drivers are living. Changing any
+		 *   of the (custom) properties in the original datablock (even the
+		 *   ones which do not imply other component update) need to make
+		 *   sure drivers are properly updated.
+		 *   This way, for example, changing ID property will properly poke
+		 *   all drivers to be updated.
+		 *
+		 * - View layers have cached array of bases in them, which is not
+		 *   copied by copy-on-write, and not preserved. PROBABLY it is better
+		 *   to preserve that cache in copy-on-write, but for the time being
+		 *   we allow flush to layer collections component which will ensure
+		 *   that cached array fo bases exists and is up-to-date.
+		 */
+		if (comp_node->type == DEG_NODE_TYPE_PARAMETERS ||
+		    comp_node->type == DEG_NODE_TYPE_LAYER_COLLECTIONS)
+		{
 			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
 		}
 		/* All entry operations of each component should wait for a proper
