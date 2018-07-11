@@ -3765,15 +3765,17 @@ class VIEW3D_PT_shading_lighting(Panel):
             layout.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
                 row = layout.row()
-                row.template_icon_view(shading, "studio_light", show_labels=True)
+                row.scale_y = 0.8
+                row.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
                 sub = row.column()
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
                 if shading.selected_studio_light.orientation == 'WORLD':
-                    layout.row().prop(shading, "studiolight_rotate_z")
+                    layout.row().prop(shading, "studiolight_rotate_z", text="Rotation")
 
             elif shading.light == 'MATCAP':
                 row = layout.row()
-                row.template_icon_view(shading, "studio_light", show_labels=True)
+                row.scale_y = 0.8
+                row.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
                 sub = row.column()
                 sub.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
@@ -3785,11 +3787,11 @@ class VIEW3D_PT_shading_lighting(Panel):
 
             if not shading.use_scene_world:
                 row = layout.row()
-                row.template_icon_view(shading, "studio_light", show_labels=True)
+                row.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
                 sub = row.column()
                 sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
                 if shading.selected_studio_light.orientation == 'WORLD':
-                    layout.row().prop(shading, "studiolight_rotate_z")
+                    layout.row().prop(shading, "studiolight_rotate_z", text="Rotation")
                     layout.row().prop(shading, "studiolight_background_alpha")
 
 
@@ -3835,45 +3837,108 @@ class VIEW3D_PT_shading_options(Panel):
         view = context.space_data
         shading = view.shading
 
-        if not shading.light == 'MATCAP':
-            row = layout.row()
-            row.prop(shading, "show_specular_highlight")
+        col = layout.column()
 
-        row = layout.split(0.4)
-        row.prop(shading, "show_xray")
+        is_xray = shading.show_xray
+        is_shadows = shading.show_shadows
+
+        icon_x = 'CHECKBOX_HLT' if is_xray else 'CHECKBOX_DEHLT'
+        row = col.row()
+        row.prop(shading, "show_xray", text="")
         sub = row.row()
-        sub.active = shading.show_xray
-        sub.prop(shading, "xray_alpha", text="")
+        sub.active = is_xray
+        sub.prop(shading, "xray_alpha", text="X-Ray")
 
-        row = layout.split(0.4)
-        row.active = not shading.show_xray
-        row.prop(shading, "show_shadows")
-        sub = row.row()
-        sub.active = shading.show_shadows and not shading.show_xray
-        sub.prop(shading, "shadow_intensity", text="")
+        icon_s = 'CHECKBOX_HLT' if is_shadows else 'CHECKBOX_DEHLT'
+        row = col.row()
+        row.prop(shading, "show_shadows", text="")
+        row.active = not is_xray
+        sub = row.row(align=True)
+        sub.active = is_shadows
+        sub.prop(shading, "shadow_intensity", text="Shadow")
+        sub.popover(
+            space_type='VIEW_3D',
+            region_type='HEADER',
+            panel_type="VIEW3D_PT_shading_options_shadow",
+            icon='SCRIPTWIN',
+            text=""
+        )
 
-        row = layout.split(0.4)
-        row.active = not shading.show_xray
+        col = layout.column()
+        row = col.row()
+        row.active = not is_xray
         row.prop(shading, "show_cavity")
-        sub = row.column(align=True)
-        sub.active = not shading.show_xray and shading.show_cavity
-        sub.prop(shading, "cavity_ridge_factor")
-        sub.prop(shading, "cavity_valley_factor")
 
-        row = layout.split(0.4)
+        if shading.show_cavity:
+            sub = col.row(align=True)
+            sub.active = not shading.show_xray and shading.show_cavity
+            sub.prop(shading, "cavity_ridge_factor")
+            sub.prop(shading, "cavity_valley_factor")
+            sub.popover(
+                space_type='VIEW_3D',
+                region_type='HEADER',
+                panel_type="VIEW3D_PT_shading_options_ssao",
+                icon='SCRIPTWIN',
+                text=""
+            )
+
+        row = layout.split()
         row.prop(shading, "show_object_outline")
         sub = row.row()
         sub.active = shading.show_object_outline
         sub.prop(shading, "object_outline_color", text="")
 
-        layout.prop(view, "show_world")
+        col = layout.column()
+        if not shading.light == 'MATCAP':
+            col.prop(shading, "show_specular_highlight")
+
+        col.prop(view, "show_world")
+
+
+class VIEW3D_PT_shading_options_shadow(Panel):
+    bl_label = "Shadow Settings"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        scene = context.scene
+
+        col = layout.column()
+        col.prop(scene.display, "light_direction")
+        col.prop(scene.display, "shadow_shift")
+
+
+class VIEW3D_PT_shading_options_ssao(Panel):
+    bl_label = "SSAO Settings"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        scene = context.scene
+
+        col = layout.column(align=True)
+        col.prop(scene.display, "matcap_ssao_samples")
+        col.prop(scene.display, "matcap_ssao_distance")
+        col.prop(scene.display, "matcap_ssao_attenuation")
 
 
 class VIEW3D_PT_overlay(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_label = "Overlays"
-    bl_ui_units_x = 14
+    bl_ui_units_x = 13
 
     def draw(self, context):
         pass
@@ -4614,6 +4679,8 @@ classes = (
     VIEW3D_PT_shading_lighting,
     VIEW3D_PT_shading_color,
     VIEW3D_PT_shading_options,
+    VIEW3D_PT_shading_options_shadow,
+    VIEW3D_PT_shading_options_ssao,
     VIEW3D_PT_overlay,
     VIEW3D_PT_overlay_manipulators,
     VIEW3D_PT_overlay_guides,
