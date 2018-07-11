@@ -4066,11 +4066,11 @@ class VIEW3D_PT_overlay_geometry(Panel):
         col = layout.column(align=True)
         split = col.split()
         sub = split.column(align=True)
-        sub.prop(overlay, "show_face_orientation")
+        sub.prop(overlay, "show_backface_culling")
 
         sub = split.column(align=True)
         #sub.prop(overlay, "show_onion_skins")
-        sub.prop(overlay, "show_backface_culling")
+        sub.prop(overlay, "show_face_orientation")
 
 
 class VIEW3D_PT_overlay_motion_tracking(Panel):
