@@ -3868,85 +3868,175 @@ class VIEW3D_PT_overlay(Panel):
     bl_ui_units_x = 14
 
     def draw(self, context):
+        pass
+
+
+class VIEW3D_PT_overlay_manipulators(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Manipulators"
+
+    def draw_header(self, context):
+        view = context.space_data
+        self.layout.prop(view, "show_manipulator", text="")
+
+    def draw(self, context):
         layout = self.layout
 
         view = context.space_data
-        shading = view.shading
         overlay = view.overlay
         display_all = overlay.show_overlays
 
         col = layout.column()
         col.active = display_all
 
-        split = col.split()
+        row = col.row(align=True)
+        row.active = view.show_manipulator
+        row.prop(view, "show_manipulator_navigate", text="Navigate", toggle=True)
+        row.prop(view, "show_manipulator_context", text="Active Object", toggle=True)
+        row.prop(view, "show_manipulator_tool", text="Active Tools", toggle=True)
 
-        sub = split.column()
-        sub.prop(view, "show_manipulator", text="Manipulators")
-        has_manipulator = view.show_manipulator
-        subsub = sub.column()
-        subsub.active = has_manipulator
-        subsub.prop(view, "show_manipulator_navigate", text="Navigate")
-        del subsub
-        sub = split.column()
-        sub.active = has_manipulator
-        sub.prop(view, "show_manipulator_context", text="Active Object")
-        sub.prop(view, "show_manipulator_tool", text="Active Tools")
 
-        col.separator()
+class VIEW3D_PT_overlay_guides(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Guides"
 
-        split = col.split()
-        sub = split.column()
-        sub.prop(overlay, "show_text", text="Text")
-        sub.prop(overlay, "show_cursor", text="3D Cursor")
-        sub.prop(overlay, "show_outline_selected")
-        sub.prop(overlay, "show_all_objects_origin")
+    def draw(self, context):
+        layout = self.layout
 
-        sub = split.column()
-        sub.prop(overlay, "show_relationship_lines")
-        sub.prop(overlay, "show_motion_paths")
-        #sub.prop(overlay, "show_onion_skins")
-        sub.prop(overlay, "show_face_orientation")
-        sub.prop(overlay, "show_backface_culling")
-        sub.prop(overlay, "show_ornaments", text="Ornaments")
-        sub.prop(overlay, "show_bones", text="Bones")
-        if shading.type == 'MATERIAL':
-            sub.prop(overlay, "show_look_dev")
-
-        row = col.row()
-        row.prop(overlay, "show_wireframes")
-        sub = row.row()
-        sub.active = overlay.show_wireframes
-        sub.prop(overlay, "wireframe_threshold", text="")
-
+        view = context.space_data
+        overlay = view.overlay
+        shading = view.shading
+        display_all = overlay.show_overlays
 
         col = layout.column()
-        col.active = display_all
-        split = col.split(percentage=0.55)
-        split.prop(overlay, "show_floor", text="Grid Floor")
 
-        row = split.row(align=True)
-        row.prop(overlay, "show_axis_x", text="X", toggle=True)
-        row.prop(overlay, "show_axis_y", text="Y", toggle=True)
-        row.prop(overlay, "show_axis_z", text="Z", toggle=True)
+        split = col.split()
+        sub = split.column()
+        sub.prop(overlay, "show_floor", text="Grid")
 
         if overlay.show_floor:
             sub = col.column(align=True)
             sub.active = bool(overlay.show_floor or view.region_quadviews or not view.region_3d.is_perspective)
-            subsub = sub.column(align=True)
+            subsub = sub.row(align=True)
             subsub.active = overlay.show_floor
             subsub.prop(overlay, "grid_scale", text="Scale")
             subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
-        col.prop(view, "show_reconstruction", text="Motion Tracking")
+
+        sub = split.column()
+        row = sub.row()
+        row.label(text="Axes")
+
+        subrow = row.row(align=True)
+        subrow.prop(overlay, "show_axis_x", text="X", toggle=True)
+        subrow.prop(overlay, "show_axis_y", text="Y", toggle=True)
+        subrow.prop(overlay, "show_axis_z", text="Z", toggle=True)
+
+        split = col.split()
+        sub = split.column()
+        sub.prop(overlay, "show_cursor", text="3D Cursor")
+
+        if shading.type == 'MATERIAL':
+            sub = split.column()
+            sub.prop(overlay, "show_look_dev")
+
+
+class VIEW3D_PT_overlay_object(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Objects"
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        overlay = view.overlay
+        shading = view.shading
+
+        col = layout.column(align=True)
+        split = col.split()
+
+        sub = split.column(align=True)
+        sub.prop(overlay, "show_ornaments", text="Ornaments")
+        sub.prop(overlay, "show_relationship_lines")
+        sub.prop(overlay, "show_all_objects_origin")
+
+        sub = split.column(align=True)
+        sub.prop(overlay, "show_bones", text="Bones")
+        sub.prop(overlay, "show_motion_paths")
+        sub.prop(overlay, "show_outline_selected")
+
+
+class VIEW3D_PT_overlay_geometry(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Geometry"
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        overlay = view.overlay
+        shading = view.shading
+
+        col = layout.column()
+
+        split = col.split()
+        sub = split.column(align=True)
+
+        icon_w = 'CHECKBOX_HLT' if overlay.show_wireframes else 'CHECKBOX_DEHLT'
+
+        row = sub.row(align=True)
+        row.prop(overlay, "show_wireframes", text="", icon=icon_w)
+        sub = row.row(align=True)
+        sub.active = overlay.show_wireframes
+        sub.prop(overlay, "wireframe_threshold", text="Wireframes")
+
+        sub = split.column(align=True)
+        sub.prop(overlay, "show_backface_culling")
+        #sub.prop(overlay, "show_onion_skins")
+
+        col = layout.column(align=True)
+        split = col.split()
+        sub = split.column(align=True)
+        sub.prop(overlay, "show_face_orientation")
+
+
+class VIEW3D_PT_overlay_motion_tracking(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Motion Tracking"
+
+    def draw_header(self, context):
+        view = context.space_data
+        self.layout.prop(view, "show_reconstruction", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+
+        col = layout.column()
+
         if view.show_reconstruction:
-            sub = col.column(align=True)
+            split = col.split()
+
+            sub = split.column(align=True)
             sub.active = view.show_reconstruction
             sub.prop(view, "show_camera_path", text="Camera Path")
-            sub.prop(view, "show_bundle_names", text="3D Marker Names")
-            sub.label(text="Track Type and Size:")
-            row = sub.row(align=True)
+
+            sub = split.column()
+            sub.prop(view, "show_bundle_names", text="Marker Names")
+
+            col = layout.column()
+            col.label(text="Tracks:")
+            row = col.row(align=True)
             row.prop(view, "tracks_draw_type", text="")
-            row.prop(view, "tracks_draw_size", text="")
+            row.prop(view, "tracks_draw_size", text="Size")
 
 
 class VIEW3D_PT_overlay_edit_mesh(Panel):
@@ -4518,6 +4608,11 @@ classes = (
     VIEW3D_PT_shading_color,
     VIEW3D_PT_shading_options,
     VIEW3D_PT_overlay,
+    VIEW3D_PT_overlay_manipulators,
+    VIEW3D_PT_overlay_guides,
+    VIEW3D_PT_overlay_object,
+    VIEW3D_PT_overlay_geometry,
+    VIEW3D_PT_overlay_motion_tracking,
     VIEW3D_PT_overlay_edit_mesh,
     VIEW3D_PT_overlay_edit_curve,
     VIEW3D_PT_overlay_edit_armature,
