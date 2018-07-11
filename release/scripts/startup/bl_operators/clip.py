@@ -133,7 +133,7 @@ class CLIP_OT_filter_tracks(bpy.types.Operator):
     bl_idname = "clip.filter_tracks"
     bl_options = {'UNDO', 'REGISTER'}
 
-    track_threshold = FloatProperty(
+    track_threshold: FloatProperty(
         name="Track Threshold",
         description="Filter Threshold to select problematic tracks",
         default=5.0,

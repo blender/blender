@@ -616,7 +616,7 @@ class LightMapPack(Operator):
     # This fixes infinite image creation reported there [#30968] (sergey)
     bl_options = {'UNDO'}
 
-    PREF_CONTEXT = bpy.props.EnumProperty(
+    PREF_CONTEXT: bpy.props.EnumProperty(
         name="Selection",
         items=(
             ('SEL_FACES', "Selected Faces", "Space all UVs evenly"),
@@ -626,7 +626,7 @@ class LightMapPack(Operator):
     )
 
     # Image & UVs...
-    PREF_PACK_IN_ONE = BoolProperty(
+    PREF_PACK_IN_ONE: BoolProperty(
         name="Share Tex Space",
         description=(
             "Objects Share texture space, map all objects "
@@ -634,12 +634,12 @@ class LightMapPack(Operator):
         ),
         default=True,
     )
-    PREF_NEW_UVLAYER = BoolProperty(
+    PREF_NEW_UVLAYER: BoolProperty(
         name="New UV Map",
         description="Create a new UV map for every mesh packed",
         default=False,
     )
-    PREF_APPLY_IMAGE = BoolProperty(
+    PREF_APPLY_IMAGE: BoolProperty(
         name="New Image",
         description=(
             "Assign new images for every mesh (only one if "
@@ -647,20 +647,20 @@ class LightMapPack(Operator):
         ),
         default=False,
     )
-    PREF_IMG_PX_SIZE = IntProperty(
+    PREF_IMG_PX_SIZE: IntProperty(
         name="Image Size",
         description="Width and Height for the new image",
         min=64, max=5000,
         default=512,
     )
     # UV Packing...
-    PREF_BOX_DIV = IntProperty(
+    PREF_BOX_DIV: IntProperty(
         name="Pack Quality",
         description="Pre Packing before the complex boxpack",
         min=1, max=48,
         default=12,
     )
-    PREF_MARGIN_DIV = FloatProperty(
+    PREF_MARGIN_DIV: FloatProperty(
         name="Margin",
         description="Size of the margin as a division of the UV",
         min=0.001, max=1.0,

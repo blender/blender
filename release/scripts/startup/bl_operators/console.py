@@ -37,7 +37,7 @@ class ConsoleExec(Operator):
     bl_idname = "console.execute"
     bl_label = "Console Execute"
 
-    interactive = BoolProperty(
+    interactive: BoolProperty(
         options={'SKIP_SAVE'},
     )
 
@@ -137,7 +137,7 @@ class ConsoleLanguage(Operator):
     bl_idname = "console.language"
     bl_label = "Console Language"
 
-    language = StringProperty(
+    language: StringProperty(
         name="Language",
         maxlen=32,
     )

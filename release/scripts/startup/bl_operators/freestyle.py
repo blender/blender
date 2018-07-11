@@ -34,13 +34,13 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
     bl_label = "Fill Range by Selection"
     bl_options = {'INTERNAL'}
 
-    type = EnumProperty(
+    type: EnumProperty(
         name="Type", description="Type of the modifier to work on",
         items=(("COLOR", "Color", "Color modifier type"),
                ("ALPHA", "Alpha", "Alpha modifier type"),
                ("THICKNESS", "Thickness", "Thickness modifier type")),
     )
-    name = StringProperty(
+    name: StringProperty(
         name="Name",
         description="Name of the modifier to work on",
     )
@@ -198,9 +198,9 @@ class SCENE_OT_freestyle_module_open(bpy.types.Operator):
     bl_label = "Open Style Module File"
     bl_options = {'INTERNAL'}
 
-    filepath = StringProperty(subtype='FILE_PATH')
+    filepath: StringProperty(subtype='FILE_PATH')
 
-    make_internal = BoolProperty(
+    make_internal: BoolProperty(
         name="Make internal",
         description="Make module file internal after loading",
         default=True)

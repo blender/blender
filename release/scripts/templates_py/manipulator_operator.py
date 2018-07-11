@@ -39,11 +39,11 @@ class SelectSideOfPlane(Operator):
     bl_label = "Select Side of Plane"
     bl_options = {'REGISTER', 'UNDO'}
 
-    plane_co = FloatVectorProperty(
+    plane_co: FloatVectorProperty(
         size=3,
         default=(0, 0, 0),
     )
-    plane_no = FloatVectorProperty(
+    plane_no: FloatVectorProperty(
         size=3,
         default=(0, 0, 1),
     )

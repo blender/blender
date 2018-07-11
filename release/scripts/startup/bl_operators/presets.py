@@ -41,27 +41,20 @@ class AddPresetBase:
     # only because invoke_props_popup requires. Also do not add to search menu.
     bl_options = {'REGISTER', 'INTERNAL'}
 
-    name = StringProperty(
+    name: StringProperty(
         name="Name",
         description="Name of the preset, used to make the path name",
         maxlen=64,
         options={'SKIP_SAVE'},
     )
-    remove_name = BoolProperty(
+    remove_name: BoolProperty(
         default=False,
         options={'HIDDEN', 'SKIP_SAVE'},
     )
-    remove_active = BoolProperty(
+    remove_active: BoolProperty(
         default=False,
         options={'HIDDEN', 'SKIP_SAVE'},
     )
-
-    # needed for mix-ins
-    order = [
-        "name",
-        "remove_name",
-        "remove_active",
-    ]
 
     @staticmethod
     def as_filename(name):  # could reuse for other presets
@@ -225,11 +218,11 @@ class ExecutePreset(Operator):
     bl_idname = "script.execute_preset"
     bl_label = "Execute a Python Preset"
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
         options={'SKIP_SAVE'},
     )
-    menu_idname = StringProperty(
+    menu_idname: StringProperty(
         name="Menu ID Name",
         description="ID name of the menu this was called from",
         options={'SKIP_SAVE'},
@@ -264,7 +257,7 @@ class PresetMenu(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'HEADER'
     bl_label = "Presets"
-    path_menu = Menu.path_menu
+    path_menu: Menu.path_menu
 
     @classmethod
     def draw_panel_header(cls, layout):
@@ -333,7 +326,7 @@ class AddPresetCamera(AddPresetBase, Operator):
 
     preset_subdir = "camera"
 
-    use_focal_length = BoolProperty(
+    use_focal_length: BoolProperty(
         name="Include Focal Length",
         description="Include focal length into the preset",
         options={'SKIP_SAVE'},
@@ -480,7 +473,7 @@ class AddPresetTrackingCamera(AddPresetBase, Operator):
 
     preset_subdir = "tracking_camera"
 
-    use_focal_length = BoolProperty(
+    use_focal_length: BoolProperty(
         name="Include Focal Length",
         description="Include focal length into the preset",
         options={'SKIP_SAVE'},
@@ -605,7 +598,7 @@ class AddPresetOperator(AddPresetBase, Operator):
     bl_label = "Operator Preset"
     preset_menu = "WM_MT_operator_presets"
 
-    operator = StringProperty(
+    operator: StringProperty(
         name="Operator",
         maxlen=64,
         options={'HIDDEN', 'SKIP_SAVE'},

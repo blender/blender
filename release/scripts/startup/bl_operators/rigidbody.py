@@ -92,19 +92,19 @@ class BakeToKeyframes(Operator):
     bl_label = "Bake To Keyframes"
     bl_options = {'REGISTER', 'UNDO'}
 
-    frame_start = IntProperty(
+    frame_start: IntProperty(
         name="Start Frame",
         description="Start frame for baking",
         min=0, max=300000,
         default=1,
     )
-    frame_end = IntProperty(
+    frame_end: IntProperty(
         name="End Frame",
         description="End frame for baking",
         min=1, max=300000,
         default=250,
     )
-    step = IntProperty(
+    step: IntProperty(
         name="Frame Step",
         description="Frame Step",
         min=1, max=120,
@@ -216,7 +216,7 @@ class ConnectRigidBodies(Operator):
     bl_label = "Connect Rigid Bodies"
     bl_options = {'REGISTER', 'UNDO'}
 
-    con_type = EnumProperty(
+    con_type: EnumProperty(
         name="Type",
         description="Type of generated constraint",
         # XXX Would be nice to get icons too, but currently not possible ;)
@@ -226,7 +226,7 @@ class ConnectRigidBodies(Operator):
         ),
         default='FIXED',
     )
-    pivot_type = EnumProperty(
+    pivot_type: EnumProperty(
         name="Location",
         description="Constraint pivot location",
         items=(
@@ -236,7 +236,7 @@ class ConnectRigidBodies(Operator):
         ),
         default='CENTER',
     )
-    connection_pattern = EnumProperty(
+    connection_pattern: EnumProperty(
         name="Connection Pattern",
         description="Pattern used to connect objects",
         items=(

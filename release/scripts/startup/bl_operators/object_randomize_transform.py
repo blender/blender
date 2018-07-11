@@ -103,25 +103,25 @@ class RandomizeLocRotSize(Operator):
     bl_label = "Randomize Transform"
     bl_options = {'REGISTER', 'UNDO'}
 
-    random_seed = IntProperty(
+    random_seed: IntProperty(
         name="Random Seed",
         description="Seed value for the random generator",
         min=0,
         max=10000,
         default=0,
     )
-    use_delta = BoolProperty(
+    use_delta: BoolProperty(
         name="Transform Delta",
         description=("Randomize delta transform values "
                      "instead of regular transform"),
         default=False,
     )
-    use_loc = BoolProperty(
+    use_loc: BoolProperty(
         name="Randomize Location",
         description="Randomize the location values",
         default=True,
     )
-    loc = FloatVectorProperty(
+    loc: FloatVectorProperty(
         name="Location",
         description=("Maximum distance the objects "
                      "can spread over each axis"),
@@ -130,12 +130,12 @@ class RandomizeLocRotSize(Operator):
         default=(0.0, 0.0, 0.0),
         subtype='TRANSLATION',
     )
-    use_rot = BoolProperty(
+    use_rot: BoolProperty(
         name="Randomize Rotation",
         description="Randomize the rotation values",
         default=True,
     )
-    rot = FloatVectorProperty(
+    rot: FloatVectorProperty(
         name="Rotation",
         description="Maximum rotation over each axis",
         min=-3.141592,  # math.pi
@@ -143,25 +143,25 @@ class RandomizeLocRotSize(Operator):
         default=(0.0, 0.0, 0.0),
         subtype='EULER',
     )
-    use_scale = BoolProperty(
+    use_scale: BoolProperty(
         name="Randomize Scale",
         description="Randomize the scale values",
         default=True,
     )
-    scale_even = BoolProperty(
+    scale_even: BoolProperty(
         name="Scale Even",
         description="Use the same scale value for all axis",
         default=False,
     )
 
-    '''scale_min = FloatProperty(
+    '''scale_min: FloatProperty(
             name="Minimun Scale Factor",
             description="Lowest scale percentage possible",
             min=-1.0, max=1.0, precision=3,
             default=0.15,
             )'''
 
-    scale = FloatVectorProperty(
+    scale: FloatVectorProperty(
         name="Scale",
         description="Maximum scale randomization over each axis",
         min=-100.0,

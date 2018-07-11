@@ -568,39 +568,13 @@ class RNAMeta(type):
         return "bl_rna" in cls.__dict__
 
 
-class OrderedDictMini(dict):
-
-    def __init__(self, *args):
-        self.order = []
-        dict.__init__(self, args)
-
-    def __setitem__(self, key, val):
-        dict.__setitem__(self, key, val)
-        if key not in self.order:
-            self.order.append(key)
-
-    def __delitem__(self, key):
-        dict.__delitem__(self, key)
-        self.order.remove(key)
-
-
 class RNAMetaPropGroup(StructMetaPropGroup, RNAMeta):
     pass
 
 
-class OrderedMeta(RNAMeta):
-
-    def __init__(cls, name, bases, attributes):
-        if attributes.__class__ is OrderedDictMini:
-            cls.order = attributes.order
-
-    def __prepare__(name, bases, **kwargs):
-        return OrderedDictMini()  # collections.OrderedDict()
-
-
 # Same as 'Operator'
 # only without 'as_keywords'
-class Manipulator(StructRNA, metaclass=OrderedMeta):
+class Manipulator(StructRNA):
     __slots__ = ()
 
     def __getattribute__(self, attr):
@@ -700,7 +674,7 @@ class Manipulator(StructRNA, metaclass=OrderedMeta):
 
 # Only defined so operators members can be used by accessing self.order
 # with doc generation 'self.properties.bl_rna.properties' can fail
-class Operator(StructRNA, metaclass=OrderedMeta):
+class Operator(StructRNA):
     __slots__ = ()
 
     def __getattribute__(self, attr):
@@ -732,7 +706,7 @@ class Operator(StructRNA, metaclass=OrderedMeta):
                 if attr not in ignore}
 
 
-class Macro(StructRNA, metaclass=OrderedMeta):
+class Macro(StructRNA):
     # bpy_types is imported before ops is defined
     # so we have to do a local import on each run
     __slots__ = ()

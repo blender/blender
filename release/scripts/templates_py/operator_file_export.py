@@ -25,7 +25,7 @@ class ExportSomeData(Operator, ExportHelper):
     # ExportHelper mixin class uses this
     filename_ext = ".txt"
 
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
         default="*.txt",
         options={'HIDDEN'},
         maxlen=255,  # Max internal buffer length, longer would be clamped.
@@ -33,13 +33,13 @@ class ExportSomeData(Operator, ExportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    use_setting = BoolProperty(
+    use_setting: BoolProperty(
         name="Example Boolean",
         description="Example Tooltip",
         default=True,
     )
 
-    type = EnumProperty(
+    type: EnumProperty(
         name="Example Enum",
         description="Choose between two items",
         items=(

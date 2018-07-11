@@ -143,37 +143,37 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
     bl_idname = "view3d.select_or_deselect_all"
     bl_options = {'UNDO'}
 
-    extend = BoolProperty(
+    extend: BoolProperty(
         name="Extend",
         description="Extend selection instead of deselecting everything first",
         default=False,
     )
 
-    toggle = BoolProperty(
+    toggle: BoolProperty(
         name="Toggle",
         description="Toggle the selection",
         default=False,
     )
 
-    deselect = BoolProperty(
+    deselect: BoolProperty(
         name="Deselect",
         description="Remove from selection",
         default=False,
     )
 
-    center = BoolProperty(
+    center: BoolProperty(
         name="Center",
         description="Use the object center when selecting, in editmode used to extend object selection",
         default=False,
     )
 
-    enumerate = BoolProperty(
+    enumerate: BoolProperty(
         name="Enumerate",
         description="List objects under the mouse (object mode only)",
         default=False,
     )
 
-    object = BoolProperty(
+    object: BoolProperty(
         name="Object",
         description="Use object selection (editmode only)",
         default=False,

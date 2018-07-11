@@ -40,20 +40,20 @@ class ANIM_OT_keying_set_export(Operator):
     bl_idname = "anim.keying_set_export"
     bl_label = "Export Keying Set..."
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
     )
-    filter_folder = BoolProperty(
+    filter_folder: BoolProperty(
         name="Filter folders",
         default=True,
         options={'HIDDEN'},
     )
-    filter_text = BoolProperty(
+    filter_text: BoolProperty(
         name="Filter text",
         default=True,
         options={'HIDDEN'},
     )
-    filter_python = BoolProperty(
+    filter_python: BoolProperty(
         name="Filter python",
         default=True,
         options={'HIDDEN'},
@@ -203,51 +203,51 @@ class BakeAction(Operator):
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}
 
-    frame_start = IntProperty(
+    frame_start: IntProperty(
         name="Start Frame",
         description="Start frame for baking",
         min=0, max=300000,
         default=1,
     )
-    frame_end = IntProperty(
+    frame_end: IntProperty(
         name="End Frame",
         description="End frame for baking",
         min=1, max=300000,
         default=250,
     )
-    step = IntProperty(
+    step: IntProperty(
         name="Frame Step",
         description="Frame Step",
         min=1, max=120,
         default=1,
     )
-    only_selected = BoolProperty(
+    only_selected: BoolProperty(
         name="Only Selected Bones",
         description="Only key selected bones (Pose baking only)",
         default=True,
     )
-    visual_keying = BoolProperty(
+    visual_keying: BoolProperty(
         name="Visual Keying",
         description="Keyframe from the final transformations (with constraints applied)",
         default=False,
     )
-    clear_constraints = BoolProperty(
+    clear_constraints: BoolProperty(
         name="Clear Constraints",
         description="Remove all constraints from keyed object/bones, and do 'visual' keying",
         default=False,
     )
-    clear_parents = BoolProperty(
+    clear_parents: BoolProperty(
         name="Clear Parents",
         description="Bake animation onto the object then clear parents (objects only)",
         default=False,
     )
-    use_current_action = BoolProperty(
+    use_current_action: BoolProperty(
         name="Overwrite Current Action",
         description="Bake animation into current action, instead of creating a new one "
         "(useful for baking only part of bones in an armature)",
         default=False,
     )
-    bake_types = EnumProperty(
+    bake_types: EnumProperty(
         name="Bake Data",
         description="Which data's transformations to bake",
         options={'ENUM_FLAG'},
@@ -302,7 +302,7 @@ class ClearUselessActions(Operator):
     bl_label = "Clear Useless Actions"
     bl_options = {'REGISTER', 'UNDO'}
 
-    only_unused = BoolProperty(
+    only_unused: BoolProperty(
         name="Only Unused",
         description="Only unused (Fake User only) actions get considered",
         default=True,
@@ -341,7 +341,7 @@ class UpdateAnimatedTransformConstraint(Operator):
     bl_label = "Update Animated Transform Constraints"
     bl_options = {'REGISTER', 'UNDO'}
 
-    use_convert_to_radians = BoolProperty(
+    use_convert_to_radians: BoolProperty(
         name="Convert To Radians",
         description="Convert fcurves/drivers affecting rotations to radians (Warning: use this only once!)",
         default=True,

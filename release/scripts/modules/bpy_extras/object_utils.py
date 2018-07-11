@@ -194,16 +194,16 @@ class AddObjectHelper:
         if not self.view_align:
             self.rotation.zero()
 
-    view_align = BoolProperty(
+    view_align: BoolProperty(
         name="Align to View",
         default=False,
         update=view_align_update_callback,
     )
-    location = FloatVectorProperty(
+    location: FloatVectorProperty(
         name="Location",
         subtype='TRANSLATION',
     )
-    rotation = FloatVectorProperty(
+    rotation: FloatVectorProperty(
         name="Rotation",
         subtype='EULER',
     )

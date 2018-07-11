@@ -35,19 +35,19 @@ class SelectPattern(Operator):
     bl_label = "Select Pattern"
     bl_options = {'REGISTER', 'UNDO'}
 
-    pattern = StringProperty(
+    pattern: StringProperty(
         name="Pattern",
         description="Name filter using '*', '?' and "
         "'[abc]' unix style wildcards",
         maxlen=64,
         default="*",
     )
-    case_sensitive = BoolProperty(
+    case_sensitive: BoolProperty(
         name="Case Sensitive",
         description="Do a case sensitive compare",
         default=False,
     )
-    extend = BoolProperty(
+    extend: BoolProperty(
         name="Extend",
         description="Extend the existing selection",
         default=True,
@@ -115,7 +115,7 @@ class SelectCamera(Operator):
     bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
 
-    extend = BoolProperty(
+    extend: BoolProperty(
         name="Extend",
         description="Extend the selection",
         default=False
@@ -152,15 +152,15 @@ class SelectHierarchy(Operator):
     bl_label = "Select Hierarchy"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction = EnumProperty(
+    direction: EnumProperty(
         items=(('PARENT', "Parent", ""),
                ('CHILD', "Child", ""),
                ),
         name="Direction",
         description="Direction to select in the hierarchy",
-        default='PARENT')
-
-    extend = BoolProperty(
+        default='PARENT',
+    )
+    extend: BoolProperty(
         name="Extend",
         description="Extend the existing selection",
         default=False,
@@ -221,14 +221,13 @@ class SubdivisionSet(Operator):
     bl_label = "Subdivision Set"
     bl_options = {'REGISTER', 'UNDO'}
 
-    level = IntProperty(
+    level: IntProperty(
         name="Level",
         min=-100, max=100,
         soft_min=-6, soft_max=6,
         default=1,
     )
-
-    relative = BoolProperty(
+    relative: BoolProperty(
         name="Relative",
         description=("Apply the subsurf level as an offset "
                      "relative to the current level"),
@@ -312,7 +311,7 @@ class ShapeTransfer(Operator):
     bl_label = "Transfer Shape Key"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = EnumProperty(
+    mode: EnumProperty(
         items=(('OFFSET',
                 "Offset",
                 "Apply the relative positional offset",
@@ -330,7 +329,7 @@ class ShapeTransfer(Operator):
         description="Relative shape positions to the new shape method",
         default='OFFSET',
     )
-    use_clamp = BoolProperty(
+    use_clamp: BoolProperty(
         name="Clamp Offset",
         description=("Clamp the transformation to the distance each "
                      "vertex moves in the original shape"),
@@ -696,7 +695,7 @@ class TransformsToDeltas(Operator):
     bl_label = "Transforms to Deltas"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = EnumProperty(
+    mode: EnumProperty(
         items=(
             ('ALL', "All Transforms", "Transfer location, rotation, and scale transforms"),
             ('LOC', "Location", "Transfer location transforms only"),
@@ -707,7 +706,7 @@ class TransformsToDeltas(Operator):
         description="Which transforms to transfer",
         default='ALL',
     )
-    reset_values = BoolProperty(
+    reset_values: BoolProperty(
         name="Reset Values",
         description=("Clear transform values after transferring to deltas"),
         default=True,

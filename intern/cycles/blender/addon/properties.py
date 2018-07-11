@@ -17,12 +17,14 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import (BoolProperty,
-                       EnumProperty,
-                       FloatProperty,
-                       IntProperty,
-                       PointerProperty,
-                       StringProperty)
+from bpy.props import (
+    BoolProperty,
+    EnumProperty,
+    FloatProperty,
+    IntProperty,
+    PointerProperty,
+    StringProperty,
+)
 
 # enums
 
@@ -1198,11 +1200,13 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     def unregister(cls):
         del bpy.types.Scene.cycles_curves
 
+
 def update_render_passes(self, context):
     scene = context.scene
     rd = scene.render
     view_layer = context.view_layer
     view_layer.update_render_passes()
+
 
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -1358,13 +1362,13 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             list.append(('OPENCL', "OpenCL", "Use OpenCL for GPU acceleration", 2))
         return list
 
-    compute_device_type = EnumProperty(
-            name="Compute Device Type",
-            description="Device to use for computation (rendering with Cycles)",
-            items=get_device_types,
-            )
+    compute_device_type: EnumProperty(
+        name="Compute Device Type",
+        description="Device to use for computation (rendering with Cycles)",
+        items=get_device_types,
+    )
 
-    devices = bpy.props.CollectionProperty(type=CyclesDeviceSettings)
+    devices: bpy.props.CollectionProperty(type=CyclesDeviceSettings)
 
     def find_existing_device_entry(self, device):
         for device_entry in self.devices:

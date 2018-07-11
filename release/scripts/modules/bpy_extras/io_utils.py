@@ -52,24 +52,18 @@ def _check_axis_conversion(op):
 
 
 class ExportHelper:
-    filepath = StringProperty(
+    filepath: StringProperty(
         name="File Path",
         description="Filepath used for exporting the file",
         maxlen=1024,
         subtype='FILE_PATH',
     )
-    check_existing = BoolProperty(
+    check_existing: BoolProperty(
         name="Check Existing",
         description="Check and warn on overwriting existing files",
         default=True,
         options={'HIDDEN'},
     )
-
-    # needed for mix-ins
-    order = [
-        "filepath",
-        "check_existing",
-    ]
 
     # subclasses can override with decorator
     # True == use ext, False == no ext, None == do nothing.
@@ -112,17 +106,12 @@ class ExportHelper:
 
 
 class ImportHelper:
-    filepath = StringProperty(
+    filepath: StringProperty(
         name="File Path",
         description="Filepath used for importing the file",
         maxlen=1024,
         subtype='FILE_PATH',
     )
-
-    # needed for mix-ins
-    order = [
-        "filepath",
-    ]
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
@@ -172,11 +161,6 @@ def orientation_helper_factory(name, axis_forward='Y', axis_up='Z'):
         default=axis_up,
         update=_update_axis_up,
     )
-
-    members["order"] = [
-        "axis_forward",
-        "axis_up",
-    ]
 
     return type(name, (object,), members)
 
