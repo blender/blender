@@ -4115,10 +4115,10 @@ class VIEW3D_PT_overlay_pose(Panel):
         col.active = display_all
         col.prop(overlay, "show_transparent_bones")
         row = col.split(0.65)
-        row.prop(overlay, "show_bone_selection")
+        row.prop(overlay, "show_bone_select")
         sub = row.column()
-        sub.active = display_all and overlay.show_bone_selection
-        sub.prop(overlay, "bone_selection_alpha", text="")
+        sub.active = display_all and overlay.show_bone_select
+        sub.prop(overlay, "bone_select_alpha", text="")
 
 
 class VIEW3D_PT_overlay_edit_armature(Panel):

@@ -175,7 +175,7 @@ typedef struct View3DOverlay {
 
 	/* Armature edit/pose mode settings */
 	int arm_flag;
-	float bone_selection_alpha;
+	float bone_select_alpha;
 
 	/* Other settings */
 	float wireframe_threshold;
@@ -380,7 +380,7 @@ enum {
 enum {
 	V3D_OVERLAY_FACE_ORIENTATION  = (1 << 0),
 	V3D_OVERLAY_HIDE_CURSOR       = (1 << 1),
-	V3D_OVERLAY_BONE_SELECTION    = (1 << 2),
+	V3D_OVERLAY_BONE_SELECT       = (1 << 2),
 	V3D_OVERLAY_LOOK_DEV          = (1 << 3),
 	V3D_OVERLAY_WIREFRAMES        = (1 << 4),
 	V3D_OVERLAY_HIDE_TEXT         = (1 << 5),

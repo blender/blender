@@ -1256,7 +1256,7 @@ void POSE_OT_quaternions_flip(wmOperatorType *ot)
 static int toggle_bone_selection_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	v3d->overlay.flag ^= V3D_OVERLAY_BONE_SELECTION;
+	v3d->overlay.flag ^= V3D_OVERLAY_BONE_SELECT;
 	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	return OPERATOR_FINISHED;
