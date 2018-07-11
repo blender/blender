@@ -405,6 +405,7 @@ RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_offset_scale, flag, WM_MANIPUL
 RNA_MANIPULATOR_GENERIC_FLAG_NEG_RW_DEF(flag_use_draw_scale, flag, WM_MANIPULATOR_DRAW_OFFSET_SCALE);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_hide, flag, WM_MANIPULATOR_HIDDEN);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_grab_cursor, flag, WM_MANIPULATOR_GRAB_CURSOR);
+RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_select_background, flag, WM_MANIPULATOR_SELECT_BACKGROUND);
 
 /* wmManipulator.state */
 RNA_MANIPULATOR_FLAG_RO_DEF(state_is_highlight, state, WM_MANIPULATOR_STATE_HIGHLIGHT);
@@ -1134,6 +1135,12 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_boolean_funcs(
 	        prop, "rna_Manipulator_flag_use_draw_scale_get", "rna_Manipulator_flag_use_draw_scale_set");
 	RNA_def_property_ui_text(prop, "Scale", "Use scale when calculating the matrix");
+	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+	/* WM_MANIPULATOR_SELECT_BACKGROUND */
+	prop = RNA_def_property(srna, "use_select_background", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(
+	        prop, "rna_Manipulator_flag_use_select_background_get", "rna_Manipulator_flag_use_select_background_set");
+	RNA_def_property_ui_text(prop, "Select Background", "Don't write into the depth buffer");
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
 
 	/* wmManipulator.state (readonly) */
