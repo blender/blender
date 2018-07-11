@@ -137,7 +137,6 @@ void POSE_OT_rotation_mode_set(struct wmOperatorType *ot);
 void POSE_OT_quaternions_flip(struct wmOperatorType *ot);
 
 void POSE_OT_bone_layers(struct wmOperatorType *ot);
-void POSE_OT_toggle_bone_selection_overlay(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Pose Tool Utilities (for PoseLib, Pose Sliding, etc.) */

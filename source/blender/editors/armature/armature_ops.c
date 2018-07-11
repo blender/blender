@@ -132,8 +132,6 @@ void ED_operatortypes_armature(void)
 
 	WM_operatortype_append(POSE_OT_bone_layers);
 
-	WM_operatortype_append(POSE_OT_toggle_bone_selection_overlay);
-
 	WM_operatortype_append(POSE_OT_propagate);
 
 	/* POSELIB */
@@ -377,7 +375,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_toggle_bone_selection_overlay", ZKEY, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", ZKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.show_bone_select");
 
 	/* special transforms: */
 	/*  1) envelope/b-bone size */
