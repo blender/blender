@@ -533,10 +533,6 @@ class Text(bpy_types.ID):
         self.write(string)
 
 
-# values are module: [(cls, path, line), ...]
-TypeMap = {}
-
-
 class Sound(bpy_types.ID):
     __slots__ = ()
 
@@ -548,21 +544,7 @@ class Sound(bpy_types.ID):
 
 
 class RNAMeta(type):
-
-    def __new__(cls, name, bases, classdict, **args):
-        result = type.__new__(cls, name, bases, classdict)
-        if bases and bases[0] is not StructRNA:
-            from _weakref import ref as ref
-            module = result.__module__
-
-            # first part of packages only
-            if "." in module:
-                module = module[:module.index(".")]
-
-            TypeMap.setdefault(module, []).append(ref(result))
-
-        return result
-
+    # TODO(campbell): move to C-API
     @property
     def is_registered(cls):
         return "bl_rna" in cls.__dict__
