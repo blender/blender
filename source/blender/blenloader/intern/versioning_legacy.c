@@ -1598,33 +1598,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 231) {
-		/* new bit flags for showing/hiding grid floor and axes */
-		bScreen *sc = bmain->screen.first;
-
-		while (sc) {
-			ScrArea *sa = sc->areabase.first;
-			while (sa) {
-				SpaceLink *sl = sa->spacedata.first;
-				while (sl) {
-					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d = (View3D*) sl;
-
-						if (v3d->gridflag == 0) {
-							v3d->gridflag |= V3D_SHOW_X;
-							v3d->gridflag |= V3D_SHOW_Y;
-							v3d->gridflag |= V3D_SHOW_FLOOR;
-							v3d->gridflag &= ~V3D_SHOW_Z;
-						}
-					}
-					sl = sl->next;
-				}
-				sa = sa->next;
-			}
-			sc = sc->id.next;
-		}
-	}
-
-	if (bmain->versionfile <= 231) {
 		Material *ma = bmain->mat.first;
 		bScreen *sc = bmain->screen.first;
 		Scene *sce;
