@@ -6528,7 +6528,6 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->v2d.tab_cur = 0;
 	ar->v2d.sms = NULL;
 	ar->v2d.alpha_hor = ar->v2d.alpha_vert = 255; /* visible by default */
-	ar->v2d.size_hor = ar->v2d.size_vert = 0;
 	BLI_listbase_clear(&ar->panels_category);
 	BLI_listbase_clear(&ar->handlers);
 	BLI_listbase_clear(&ar->uiblocks);

@@ -66,8 +66,7 @@ typedef struct View2D {
 
 	/* Usually set externally (as in, not in view2d files). */
 	char alpha_vert, alpha_hor;		/* alpha of vertical and horizontal scrollbars (range is [0, 255]) */
-	short size_vert, size_hor;		/* Dynamic size for scrollers without scale markers (no V2D_SCROLL_SCALE_FOO) */
-	short pad;
+	short pad[3];
 
 	/* animated smooth view */
 	struct SmoothView2DStore *sms;

@@ -743,7 +743,6 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 						if (az->direction == AZ_SCROLL_HOR) {
 							az->alpha = 1.0f;
 							v2d->alpha_hor = 255;
-							v2d->size_hor = V2D_SCROLL_HEIGHT;
 							redraw = true;
 						}
 					}
@@ -751,7 +750,6 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 						if (az->direction == AZ_SCROLL_VERT) {
 							az->alpha = 1.0f;
 							v2d->alpha_vert = 255;
-							v2d->size_vert = V2D_SCROLL_WIDTH;
 							redraw = true;
 						}
 					}
@@ -765,9 +763,6 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 							alpha = 1.0f - dist_fac;
 
 							v2d->alpha_hor = alpha * 255;
-							v2d->size_hor = round_fl_to_int(
-							        V2D_SCROLL_HEIGHT -
-							        ((V2D_SCROLL_HEIGHT - V2D_SCROLL_HEIGHT_MIN) * dist_fac));
 						}
 						else if (az->direction == AZ_SCROLL_VERT) {
 							dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / AZONEFADEIN;
@@ -775,9 +770,6 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 							alpha = 1.0f - dist_fac;
 
 							v2d->alpha_vert = alpha * 255;
-							v2d->size_vert = round_fl_to_int(
-							        V2D_SCROLL_WIDTH -
-							        ((V2D_SCROLL_WIDTH - V2D_SCROLL_WIDTH_MIN) * dist_fac));
 						}
 						az->alpha = alpha;
 						redraw = true;
