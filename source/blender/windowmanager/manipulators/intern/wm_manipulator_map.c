@@ -861,17 +861,18 @@ bool wm_manipulatormap_highlight_set(
 		if (mpr) {
 			mpr->state |= WM_MANIPULATOR_STATE_HIGHLIGHT;
 			mpr->highlight_part = part;
+			mmap->mmap_context.last_cursor = -1;
 
 			if (C && mpr->type->cursor_get) {
 				wmWindow *win = CTX_wm_window(C);
-				win->lastcursor = win->cursor;
+				mmap->mmap_context.last_cursor = win->cursor;
 				WM_cursor_set(win, mpr->type->cursor_get(mpr));
 			}
 		}
 		else {
-			if (C) {
+			if (C && mmap->mmap_context.last_cursor != -1) {
 				wmWindow *win = CTX_wm_window(C);
-				WM_cursor_set(win, win->lastcursor);
+				WM_cursor_set(win, mmap->mmap_context.last_cursor);
 			}
 		}
 

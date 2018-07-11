@@ -114,6 +114,8 @@ struct wmManipulatorMap {
 		/* cursor location at point of entering modal (see: WM_MANIPULATOR_GRAB_CURSOR) */
 		int event_xy[2];
 		short event_grabcursor;
+		/* until we have nice cursor push/pop API. */
+		int last_cursor;
 	} mmap_context;
 };
 
