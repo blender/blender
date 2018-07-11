@@ -1982,12 +1982,15 @@ static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
 {
 	GPUDOFSettings *dofsettings = (GPUDOFSettings *)ptr->data;
 
-	if (value < 3 && dofsettings->num_blades > 2)
-		dofsettings->num_blades = 0;
-	else if (value > 0 && dofsettings->num_blades == 0)
-		dofsettings->num_blades = 3;
-	else
+	if (value == 1 || value == 2) {
+		if (dofsettings->num_blades == 0) {
+			dofsettings->num_blades = 3;
+		} else {
+			dofsettings->num_blades = 0;
+		}
+	} else {
 		dofsettings->num_blades = value;
+	}
 }
 
 static void rna_GPUDOFSettings_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
