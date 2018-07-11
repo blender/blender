@@ -115,7 +115,9 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 
 static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *reports)
 {
-	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+	void *lock;
+
+	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 	if (ibuf) {
 		char filename[FILE_MAX];
 		BLI_strncpy(filename, image->name, sizeof(filename));
@@ -142,7 +144,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
 		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 	}
 
-	BKE_image_release_ibuf(image, ibuf, NULL);
+	BKE_image_release_ibuf(image, ibuf, &lock);
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
