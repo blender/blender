@@ -481,41 +481,6 @@ class SCENE_PT_simplify_render(SceneButtonsPanel, Panel):
         col.prop(rd, "simplify_child_particles_render", text="Max Child Particles")
 
 
-class SCENE_PT_viewport_display(SceneButtonsPanel, Panel):
-    bl_label = "Viewport Display"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        scene = context.scene
-        col = layout.column()
-        col.prop(scene.display, "light_direction")
-        col.prop(scene.display, "shadow_shift")
-
-
-class SCENE_PT_viewport_display_ssao(SceneButtonsPanel, Panel):
-    bl_label = "Screen Space Ambient Occlusion"
-    bl_parent_id = "SCENE_PT_viewport_display"
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        scene = context.scene
-        col = layout.column()
-        col.prop(scene.display, "matcap_ssao_samples")
-        col.prop(scene.display, "matcap_ssao_distance")
-        col.prop(scene.display, "matcap_ssao_attenuation")
-
-
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _context_path = "scene"
@@ -531,8 +496,6 @@ classes = (
     SCENE_PT_keying_set_paths,
     SCENE_PT_color_management,
     SCENE_PT_color_management_curves,
-    SCENE_PT_viewport_display,
-    SCENE_PT_viewport_display_ssao,
     SCENE_PT_audio,
     SCENE_PT_physics,
     SCENE_PT_rigid_body_world,
