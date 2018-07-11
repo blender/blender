@@ -3986,6 +3986,7 @@ class VIEW3D_PT_overlay_guides(Panel):
         display_all = overlay.show_overlays
 
         col = layout.column()
+        col.active = display_all
 
         split = col.split()
         sub = split.column()
@@ -4029,8 +4030,11 @@ class VIEW3D_PT_overlay_object(Panel):
         view = context.space_data
         overlay = view.overlay
         shading = view.shading
+        display_all = overlay.show_overlays
 
         col = layout.column(align=True)
+        col.active = display_all
+
         split = col.split()
 
         sub = split.column(align=True)
@@ -4055,8 +4059,10 @@ class VIEW3D_PT_overlay_geometry(Panel):
         view = context.space_data
         overlay = view.overlay
         shading = view.shading
+        display_all = overlay.show_overlays
 
         col = layout.column()
+        col.active = display_all
 
         row = col.row()
         row.prop(overlay, "show_wireframes", text="")
@@ -4087,8 +4093,10 @@ class VIEW3D_PT_overlay_motion_tracking(Panel):
     def draw(self, context):
         layout = self.layout
         view = context.space_data
+        display_all = overlay.show_overlays
 
         col = layout.column()
+        col.active = display_all
 
         if view.show_reconstruction:
             split = col.split()
@@ -4111,7 +4119,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_parent_id = 'VIEW3D_PT_overlay'
-    bl_label = "Edit Mesh"
+    bl_label = "Mesh Edit Mode"
 
     @classmethod
     def poll(cls, context):
@@ -4121,14 +4129,10 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         layout = self.layout
 
         view = context.space_data
-        shading = view.shading
         overlay = view.overlay
-        tool_settings = context.tool_settings
         display_all = overlay.show_overlays
         data = context.active_object.data
-        statvis = tool_settings.statvis
         with_freestyle = bpy.app.build_options.freestyle
-        show_developer_ui = context.user_preferences.view.show_developer_ui
 
         col = layout.column()
         col.active = display_all
@@ -4136,34 +4140,135 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         split = col.split()
 
         sub = split.column()
-        sub.prop(data, "show_faces", text="Faces")
         sub.prop(data, "show_edges", text="Edges")
-        sub.prop(data, "show_edge_crease", text="Creases")
-        sub.prop(data, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural)
-        sub.prop(data, "show_edge_bevel_weight", text="Bevel")
+        sub = split.column()
+        sub.prop(data, "show_faces", text="Faces")
+
+        row = col.row(align=True)
+        row.prop(data, "show_edge_crease", text="Creases", toggle=True)
+        row.prop(data, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural, toggle=True)
+        row.prop(data, "show_edge_bevel_weight", text="Bevel", toggle=True)
+
         if not with_freestyle:
-            sub.prop(data, "show_edge_seams", text="Seams")
+            row.prop(data, "show_edge_seams", text="Seams")
+
+
+class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay_edit_mesh'
+    bl_label = "Shading"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_MESH'
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        overlay = view.overlay
+        tool_settings = context.tool_settings
+        display_all = overlay.show_overlays
+        data = context.active_object.data
+        statvis = tool_settings.statvis
+
+        col = layout.column()
+        col.active = display_all
+
+        col.prop(overlay, "show_occlude_wire")
+
+        col.prop(overlay, "show_weight", text="Vertex Group Weights")
+        if overlay.show_weight:
+            row = col.split()
+            row.label(text="Zero Weights")
+            row.prop(tool_settings, "vertex_group_user", text="")
+
+        col.prop(data, "show_statvis", text="Mesh Analysis")
+        if data.show_statvis:
+            col = col.column()
+
+            sub = col.split()
+            sub.active = data.show_statvis
+            sub.label(text="Type")
+            sub.prop(statvis, "type", text="")
+
+            statvis_type = statvis.type
+            if statvis_type == 'OVERHANG':
+                row = col.row(align=True)
+                row.prop(statvis, "overhang_min", text="Minimum")
+                row.prop(statvis, "overhang_max", text="Maximum")
+                col.row().prop(statvis, "overhang_axis", expand=True)
+            elif statvis_type == 'THICKNESS':
+                row = col.row(align=True)
+                row.prop(statvis, "thickness_min", text="Minimum")
+                row.prop(statvis, "thickness_max", text="Maximum")
+                col.prop(statvis, "thickness_samples")
+            elif statvis_type == 'INTERSECT':
+                pass
+            elif statvis_type == 'DISTORT':
+                row = col.row(align=True)
+                row.prop(statvis, "distort_min", text="Minimum")
+                row.prop(statvis, "distort_max", text="Maximum")
+            elif statvis_type == 'SHARP':
+                row = col.row(align=True)
+                row.prop(statvis, "sharp_min", text="Minimum")
+                row.prop(statvis, "sharp_max", text="Maximum")
+
+
+class VIEW3D_PT_overlay_edit_mesh_measurement(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay_edit_mesh'
+    bl_label = "Measurement"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_MESH'
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+        data = context.active_object.data
+
+        col = layout.column()
+        col.active = display_all
+
+        split = col.split()
 
         sub = split.column()
-        sub.prop(overlay, "show_occlude_wire")
         sub.prop(data, "show_extra_edge_length", text="Edge Length")
         sub.prop(data, "show_extra_edge_angle", text="Edge Angle")
+
+        sub = split.column()
         sub.prop(data, "show_extra_face_area", text="Face Area")
         sub.prop(data, "show_extra_face_angle", text="Face Angle")
 
-        if show_developer_ui:
-            sub.prop(data, "show_extra_indices", text="Indices")
 
-        if with_freestyle:
-            col.label(text="Freestyle:")
-            row = col.row()
-            row.prop(data, "show_freestyle_edge_marks", text="Edge Marks")
-            row.prop(data, "show_freestyle_face_marks", text="Face Marks")
-            row.prop(data, "show_edge_seams", text="Seams")
+class VIEW3D_PT_overlay_edit_mesh_normals(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay_edit_mesh'
+    bl_label = "Normals"
 
-        col.label(text="Normals:")
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_MESH'
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+
+        col = layout.column()
+        col.active = display_all
+
         row = col.row(align=True)
-
         row.prop(overlay, "show_vertex_normals", text="", icon='VERTEXSEL')
         row.prop(overlay, "show_split_normals", text="", icon='LOOPSEL')
         row.prop(overlay, "show_face_normals", text="", icon='FACESEL')
@@ -4172,37 +4277,56 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub.active = overlay.show_vertex_normals or overlay.show_face_normals or overlay.show_split_normals
         sub.prop(overlay, "normals_length", text="Size")
 
-        col.prop(overlay, "show_weight")
-        if overlay.show_weight:
-            col.label("Show Zero Weights:")
-            col.row().prop(tool_settings, "vertex_group_user", expand=True)
 
-        col.prop(data, "show_statvis", text="Mesh Analysis")
-        if data.show_statvis:
-            sub = col.column()
-            sub.active = data.show_statvis
-            sub.prop(statvis, "type")
-            statvis_type = statvis.type
-            if statvis_type == 'OVERHANG':
-                row = sub.row(align=True)
-                row.prop(statvis, "overhang_min", text="")
-                row.prop(statvis, "overhang_max", text="")
-                sub.row().prop(statvis, "overhang_axis", expand=True)
-            elif statvis_type == 'THICKNESS':
-                row = sub.row(align=True)
-                row.prop(statvis, "thickness_min", text="")
-                row.prop(statvis, "thickness_max", text="")
-                sub.prop(statvis, "thickness_samples")
-            elif statvis_type == 'INTERSECT':
-                pass
-            elif statvis_type == 'DISTORT':
-                row = sub.row(align=True)
-                row.prop(statvis, "distort_min", text="")
-                row.prop(statvis, "distort_max", text="")
-            elif statvis_type == 'SHARP':
-                row = sub.row(align=True)
-                row.prop(statvis, "sharp_min", text="")
-                row.prop(statvis, "sharp_max", text="")
+class VIEW3D_PT_overlay_edit_mesh_freestyle(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Freestyle"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_MESH' and bpy.app.build_options.freestyle
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+        data = context.active_object.data
+
+        col = layout.column()
+        col.active = display_all
+
+        row = col.row()
+        row.prop(data, "show_freestyle_edge_marks", text="Edge Marks")
+        row.prop(data, "show_freestyle_face_marks", text="Face Marks")
+        row.prop(data, "show_edge_seams", text="Seams")
+
+
+class VIEW3D_PT_overlay_edit_mesh_developer(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay_edit_mesh'
+    bl_label = "Developer"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_MESH' and context.user_preferences.view.show_developer_ui
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+        data = context.active_object.data
+
+        col = layout.column()
+        col.active = display_all
+
+        col.prop(data, "show_extra_indices", text="Indices")
 
 
 class VIEW3D_PT_overlay_edit_curve(Panel):
@@ -4684,6 +4808,11 @@ classes = (
     VIEW3D_PT_overlay_geometry,
     VIEW3D_PT_overlay_motion_tracking,
     VIEW3D_PT_overlay_edit_mesh,
+    VIEW3D_PT_overlay_edit_mesh_shading,
+    VIEW3D_PT_overlay_edit_mesh_measurement,
+    VIEW3D_PT_overlay_edit_mesh_normals,
+    VIEW3D_PT_overlay_edit_mesh_freestyle,
+    VIEW3D_PT_overlay_edit_mesh_developer,
     VIEW3D_PT_overlay_edit_curve,
     VIEW3D_PT_overlay_edit_armature,
     VIEW3D_PT_overlay_pose,
