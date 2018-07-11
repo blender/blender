@@ -147,7 +147,7 @@ static int EDIT_MESH_sh_index(ToolSettings *tsettings, RegionView3D *rv3d, bool 
 	return result;
 }
 
-static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, bool anti_alias)
+static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, bool anti_alias, bool looseedge)
 {
 	const int selectmode = tsettings->selectmode;
 	const int fast_mode = rv3d->rflag & RV3D_NAVIGATING;
@@ -174,7 +174,10 @@ static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, b
 	if (anti_alias) {
 		BLI_dynstr_append(ds, "#define ANTI_ALIASING\n");
 	}
-	BLI_dynstr_append(ds, "#define VERTEX_FACING\n");
+
+	if (!looseedge) {
+		BLI_dynstr_append(ds, "#define VERTEX_FACING\n");
+	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -198,7 +201,7 @@ static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D 
 	const int index = EDIT_MESH_sh_index(tsettings, rv3d, fast_mode);
 	if (looseedge) {
 		if (!e_data.overlay_loose_edge_sh_cache[index]) {
-			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true);
+			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true, true);
 			char *lib = EDIT_MESH_sh_lib();
 			e_data.overlay_loose_edge_sh_cache[index] = DRW_shader_create_with_lib(
 			        datatoc_edit_mesh_overlay_vert_glsl,
@@ -213,7 +216,7 @@ static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D 
 	}
 	else {
 		if (!e_data.overlay_tri_sh_cache[index]) {
-			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true);
+			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true, false);
 			char *lib = EDIT_MESH_sh_lib();
 			e_data.overlay_tri_sh_cache[index] = DRW_shader_create_with_lib(
 			        datatoc_edit_mesh_overlay_vert_glsl,
