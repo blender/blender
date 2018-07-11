@@ -442,8 +442,9 @@ ModifierTypeInfo modifierType_Bevel = {
 	/* type */              eModifierTypeType_Constructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_SupportsEditmode |
-	                        eModifierTypeFlag_EnableInEditmode,
-
+	                        eModifierTypeFlag_EnableInEditmode |
+							eModifierTypeFlag_AcceptsCVs,
+	
 	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
