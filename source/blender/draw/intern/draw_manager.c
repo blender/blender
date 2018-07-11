@@ -283,6 +283,29 @@ void DRW_transform_to_display(GPUTexture *tex)
 	}
 }
 
+/* Draw texture to framebuffer without any color transforms */
+void DRW_transform_none(GPUTexture *tex)
+{
+	/* Draw as texture for final render (without immediate mode). */
+	Gwn_Batch *geom = DRW_cache_fullscreen_quad_texcoord_get();
+	GWN_batch_program_set_builtin(geom, GPU_SHADER_2D_IMAGE_COLOR);
+
+	GPU_texture_bind(tex, 0);
+
+	const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	GWN_batch_uniform_4fv(geom, "color", white);
+
+	float mat[4][4];
+	unit_m4(mat);
+	GWN_batch_uniform_mat4(geom, "ModelViewProjectionMatrix", mat);
+
+	GWN_batch_program_use_begin(geom);
+	GWN_batch_draw_range_ex(geom, 0, 0, false);
+	GWN_batch_program_use_end(geom);
+
+	GPU_texture_unbind(tex);
+}
+
 /** \} */
 
 
@@ -2217,8 +2240,8 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 
 void DRW_engines_register(void)
 {
+	RE_engines_register(&DRW_engine_viewport_opengl_type);
 	RE_engines_register(&DRW_engine_viewport_eevee_type);
-	RE_engines_register(&DRW_engine_viewport_workbench_type);
 
 	DRW_engine_register(&draw_engine_workbench_solid);
 	DRW_engine_register(&draw_engine_workbench_transparent);

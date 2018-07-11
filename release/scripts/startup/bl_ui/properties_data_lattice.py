@@ -85,7 +85,7 @@ class DATA_PT_lattice(DataButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
     _context_path = "object.data"
     _property_type = bpy.types.Lattice
 

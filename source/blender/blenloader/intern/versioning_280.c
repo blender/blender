@@ -1615,5 +1615,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "View3DShading", "shading")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				BKE_screen_view3d_shading_init(&scene->display.shading);
+			}
+		}
 	}
 }

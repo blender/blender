@@ -51,6 +51,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_cursor;
 	Gwn_Batch *drw_cursor_only_circle;
 	Gwn_Batch *drw_fullscreen_quad;
+	Gwn_Batch *drw_fullscreen_quad_texcoord;
 	Gwn_Batch *drw_quad;
 	Gwn_Batch *drw_sphere;
 	Gwn_Batch *drw_screenspace_circle;
@@ -285,6 +286,35 @@ Gwn_Batch *DRW_cache_fullscreen_quad_get(void)
 		SHC.drw_fullscreen_quad = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_fullscreen_quad;
+}
+
+Gwn_Batch *DRW_cache_fullscreen_quad_texcoord_get(void)
+{
+	if (!SHC.drw_fullscreen_quad_texcoord) {
+		/* Use a triangle instead of a real quad */
+		/* https://www.slideshare.net/DevCentralAMD/vertex-shader-tricks-bill-bilodeau - slide 14 */
+		float pos[3][2] = {{-1.0f, -1.0f}, { 3.0f, -1.0f}, {-1.0f,  3.0f}};
+		float texCoord[3][2] = {{ 0.0f,  0.0f}, { 2.0f,  0.0f}, { 0.0f,  2.0f}};
+
+		/* Position Only 2D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos, texCoord; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.texCoord = GWN_vertformat_attr_add(&format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, 3);
+
+		for (int i = 0; i < 3; ++i) {
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, i, pos[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.texCoord, i, texCoord[i]);
+		}
+
+		SHC.drw_fullscreen_quad_texcoord = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_fullscreen_quad_texcoord;
 }
 
 /* Just a regular quad with 4 vertices. */

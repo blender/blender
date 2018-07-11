@@ -45,6 +45,18 @@ void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
 	}
 }
 
+static void workspace_aa_draw_transform(GPUTexture *tx)
+{
+	if (DRW_state_is_image_render()) {
+		/* Linear result for render. */
+		DRW_transform_none(tx);
+	}
+	else {
+		/* Display space result for viewport. */
+		DRW_transform_to_display(tx);
+	}
+}
+
 void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
@@ -56,7 +68,7 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	if (FXAA_ENABLED(wpd)) {
 		GPU_framebuffer_bind(fbl->effect_fb);
-		DRW_transform_to_display(tx);
+		workspace_aa_draw_transform(tx);
 		GPU_framebuffer_bind(dfbl->color_only_fb);
 		DRW_draw_pass(psl->effect_aa_pass);
 	}
@@ -69,11 +81,11 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 		 */
 		if (effect_info->jitter_index == 1) {
 			GPU_framebuffer_bind(dfbl->color_only_fb);
-			DRW_transform_to_display(tx);
+			workspace_aa_draw_transform(tx);
 		}
 		else {
 			GPU_framebuffer_bind(fbl->effect_fb);
-			DRW_transform_to_display(tx);
+			workspace_aa_draw_transform(tx);
 			GPU_framebuffer_bind(dfbl->color_only_fb);
 			DRW_draw_pass(psl->effect_aa_pass);
 		}
@@ -81,6 +93,6 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 	}
 	else {
 		GPU_framebuffer_bind(dfbl->color_only_fb);
-		DRW_transform_to_display(tx);
+		workspace_aa_draw_transform(tx);
 	}
 }

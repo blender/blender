@@ -842,6 +842,7 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
+	/* TODO. */
 	if (TAA_ENABLED(wpd)) {
 		workbench_taa_draw_scene_start(vedata);
 	}
@@ -885,7 +886,15 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->volume_pass);
 	}
 
+	/* TODO */
 	workbench_aa_draw_pass(vedata, e_data.composite_buffer_tx);
+}
+
+void workbench_deferred_draw_finish(WORKBENCH_Data *vedata)
+{
+	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PrivateData *wpd = stl->g_data;
+
 	workbench_private_data_free(wpd);
 	workbench_volume_smoke_textures_free(wpd);
 }

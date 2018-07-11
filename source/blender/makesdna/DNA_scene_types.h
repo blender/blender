@@ -1381,6 +1381,9 @@ typedef struct SceneDisplay {
 	float matcap_ssao_attenuation;
 	int matcap_ssao_samples;
 	int pad;
+
+	/* OpenGL render engine settings. */
+	View3DShading shading;
 } SceneDisplay;
 
 typedef struct SceneEEVEE {
@@ -1707,7 +1710,7 @@ enum {
 
 /* RenderData.engine (scene.c) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
-extern const char *RE_engine_id_BLENDER_WORKBENCH;
+extern const char *RE_engine_id_BLENDER_OPENGL;
 extern const char *RE_engine_id_CYCLES;
 
 /* **************** SCENE ********************* */

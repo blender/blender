@@ -21,6 +21,11 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from bl_operators.presets import PresetMenu
+from .space_view3d import (
+    VIEW3D_PT_shading_lighting,
+    VIEW3D_PT_shading_color,
+    VIEW3D_PT_shading_options,
+)
 
 
 class RENDER_PT_presets(PresetMenu):
@@ -79,7 +84,7 @@ class RENDER_PT_context(Panel):
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     bl_label = "Dimensions"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     _frame_rate_args_prev = None
     _preset_class = None
@@ -166,7 +171,7 @@ class RENDER_PT_frame_remapping(RenderButtonsPanel, Panel):
     bl_label = "Time Remapping"
     bl_parent_id = "RENDER_PT_dimensions"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw(self, context):
         layout = self.layout
@@ -183,7 +188,7 @@ class RENDER_PT_frame_remapping(RenderButtonsPanel, Panel):
 class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw(self, context):
         layout = self.layout
@@ -201,7 +206,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
 class RENDER_PT_stamp(RenderButtonsPanel, Panel):
     bl_label = "Metadata"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw(self, context):
         layout = self.layout
@@ -242,7 +247,7 @@ class RENDER_PT_stamp_burn(RenderButtonsPanel, Panel):
     bl_label = "Burn Into Image"
     bl_parent_id = "RENDER_PT_stamp"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw_header(self, context):
         rd = context.scene.render
@@ -266,7 +271,7 @@ class RENDER_PT_stamp_burn(RenderButtonsPanel, Panel):
 
 class RENDER_PT_output(RenderButtonsPanel, Panel):
     bl_label = "Output"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw(self, context):
         layout = self.layout
@@ -298,7 +303,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     bl_label = "Encoding"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw_header_preset(self, context):
         RENDER_PT_ffmpeg_presets.draw_panel_header(self.layout)
@@ -395,7 +400,7 @@ class RENDER_UL_renderviews(UIList):
 
 class RENDER_PT_stereoscopy(RenderButtonsPanel, Panel):
     bl_label = "Stereoscopy"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
@@ -777,7 +782,7 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
-class RENDER_PT_hair(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
     bl_label = "Hair"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
@@ -798,6 +803,60 @@ class RENDER_PT_hair(RenderButtonsPanel, Panel):
         layout.prop(rd, "hair_subdiv")
 
 
+class RENDER_PT_opengl_film(RenderButtonsPanel, Panel):
+    bl_label = "Film"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        rd = context.scene.render
+
+        layout.prop(rd, "use_antialiasing")
+
+        layout.prop(rd, "antialiasing_samples")
+        layout.prop(rd, "alpha_mode")
+
+
+class RENDER_PT_opengl_lighting(RenderButtonsPanel, Panel):
+    bl_label = "Lighting"
+    COMPAT_ENGINES = {'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        VIEW3D_PT_shading_lighting.draw(self, context)
+
+
+class RENDER_PT_opengl_color(RenderButtonsPanel, Panel):
+    bl_label = "Color"
+    COMPAT_ENGINES = {'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        VIEW3D_PT_shading_color.draw(self, context)
+
+
+class RENDER_PT_opengl_options(RenderButtonsPanel, Panel):
+    bl_label = "Options"
+    COMPAT_ENGINES = {'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        VIEW3D_PT_shading_options.draw(self, context)
+
+
 classes = (
     RENDER_PT_presets,
     RENDER_PT_ffmpeg_presets,
@@ -812,7 +871,7 @@ classes = (
     RENDER_PT_stamp_burn,
     RENDER_UL_renderviews,
     RENDER_PT_stereoscopy,
-    RENDER_PT_hair,
+    RENDER_PT_eevee_hair,
     RENDER_PT_eevee_sampling,
     RENDER_PT_eevee_film,
     RENDER_PT_eevee_shadows,
@@ -824,6 +883,10 @@ classes = (
     RENDER_PT_eevee_motion_blur,
     RENDER_PT_eevee_depth_of_field,
     RENDER_PT_eevee_bloom,
+    RENDER_PT_opengl_film,
+    RENDER_PT_opengl_lighting,
+    RENDER_PT_opengl_color,
+    RENDER_PT_opengl_options,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -29,16 +29,16 @@
 #include "DRW_render.h"
 
 #include "workbench_engine.h"
-/* Shaders */
+#include "workbench_private.h"
 
-#define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
-
+#define OPENGL_ENGINE "BLENDER_OPENGL"
 
 /* Note: currently unused, we may want to register so we can see this when debugging the view. */
-RenderEngineType DRW_engine_viewport_workbench_type = {
+RenderEngineType DRW_engine_viewport_opengl_type = {
 	NULL, NULL,
-	WORKBENCH_ENGINE, N_("Workbench"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	OPENGL_ENGINE, N_("OpenGL"), RE_INTERNAL,
+	NULL, &DRW_render_to_image, NULL, NULL, NULL, NULL,
+	&workbench_render_update_passes,
 	&draw_engine_workbench_solid,
 	{NULL, NULL, NULL}
 };

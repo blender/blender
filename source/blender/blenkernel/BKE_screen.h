@@ -45,6 +45,7 @@ struct ScrVert;
 struct SpaceType;
 struct TransformOrientation;
 struct View3D;
+struct View3DShading;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
@@ -354,6 +355,8 @@ bool BKE_screen_is_used(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT AT
 /* zoom factor conversion */
 float BKE_screen_view3d_zoom_to_fac(float camzoom);
 float BKE_screen_view3d_zoom_from_fac(float zoomfac);
+
+void BKE_screen_view3d_shading_init(struct View3DShading *shading);
 
 /* screen */
 void BKE_screen_free(struct bScreen *sc);

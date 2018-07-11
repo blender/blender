@@ -324,15 +324,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->grid = 1.0f;
 	v3d->gridlines = 16;
 	v3d->gridsubdiv = 10;
-	v3d->shading.type = OB_SOLID;
-	v3d->shading.prev_type = OB_SOLID;
-	v3d->shading.flag = V3D_SHADING_SPECULAR_HIGHLIGHT;
-	v3d->shading.light = V3D_LIGHTING_STUDIO;
-	v3d->shading.shadow_intensity = 0.5f;
-	v3d->shading.xray_alpha = 0.5f;
-	v3d->shading.cavity_valley_factor = 1.0f;
-	v3d->shading.cavity_ridge_factor = 1.0f;
-	copy_v3_fl(v3d->shading.single_color, 0.8f);
+	BKE_screen_view3d_shading_init(&v3d->shading);
 
 	v3d->overlay.wireframe_threshold = 0.5f;
 	v3d->overlay.bone_select_alpha = 0.5f;

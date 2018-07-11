@@ -36,7 +36,7 @@ class DataButtonsPanel:
 class DATA_PT_context_light(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw(self, context):
         layout = self.layout
@@ -62,7 +62,7 @@ class DATA_PT_preview(DataButtonsPanel, Panel):
 
 class DATA_PT_light(DataButtonsPanel, Panel):
     bl_label = "Light"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_OPENGL'}
 
     def draw(self, context):
         layout = self.layout
@@ -70,38 +70,6 @@ class DATA_PT_light(DataButtonsPanel, Panel):
         light = context.light
 
         layout.row().prop(light, "type", expand=True)
-
-        layout.use_property_split = True
-
-        col = col.column()
-        col.prop(light, "color")
-        col.prop(light, "energy")
-
-        if light.type in {'POINT', 'SPOT'}:
-
-            col = col.column()
-            col.label(text="Falloff")
-            col.prop(light, "falloff_type")
-            col.prop(light, "distance")
-            col.prop(light, "shadow_soft_size")
-
-            if light.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
-                sub = col.column(align=True)
-                sub.prop(light, "linear_attenuation", slider=True, text="Linear")
-                sub.prop(light, "quadratic_attenuation", slider=True, text="Quadratic")
-
-            elif light.falloff_type == 'INVERSE_COEFFICIENTS':
-                col.label(text="Inverse Coefficients")
-                sub = col.column(align=True)
-                sub.prop(light, "constant_coefficient", text="Constant")
-                sub.prop(light, "linear_coefficient", text="Linear")
-                sub.prop(light, "quadratic_coefficient", text="Quadratic")
-
-        if light.type == 'AREA':
-            col.prop(light, "distance")
-
-        col = split.column()
-        col.label()
 
 
 class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
@@ -234,7 +202,7 @@ class DATA_PT_EEVEE_shadow_contact(DataButtonsPanel, Panel):
 
 class DATA_PT_area(DataButtonsPanel, Panel):
     bl_label = "Area Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_OPENGL'}
 
     @classmethod
     def poll(cls, context):
@@ -260,43 +228,8 @@ class DATA_PT_area(DataButtonsPanel, Panel):
 
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        light = context.light
-        engine = context.engine
-        return (light and light.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        layout = self.layout
-
-        light = context.light
-
-        split = layout.split()
-
-        col = split.column()
-        sub = col.column()
-        sub.prop(light, "spot_size", text="Size")
-        sub.prop(light, "spot_blend", text="Blend", slider=True)
-        col.prop(light, "use_square")
-        col.prop(light, "show_cone")
-
-        col = split.column()
-
-        col.active = (light.shadow_method != 'BUFFER_SHADOW' or light.shadow_buffer_type != 'DEEP')
-        col.prop(light, "use_halo")
-        sub = col.column(align=True)
-        sub.active = light.use_halo
-        sub.prop(light, "halo_intensity", text="Intensity")
-        if light.shadow_method == 'BUFFER_SHADOW':
-            sub.prop(light, "halo_step", text="Step")
-
-
-class DATA_PT_spot(DataButtonsPanel, Panel):
-    bl_label = "Spot Shape"
     bl_parent_id = "DATA_PT_EEVEE_light"
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     @classmethod
     def poll(cls, context):
@@ -337,7 +270,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_light(DataButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
     _context_path = "object.data"
     _property_type = bpy.types.Light
 

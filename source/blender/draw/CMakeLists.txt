@@ -117,6 +117,7 @@ set(SRC
 	engines/workbench/workbench_effect_taa.c
 	engines/workbench/workbench_forward.c
 	engines/workbench/workbench_materials.c
+	engines/workbench/workbench_render.c
 	engines/workbench/workbench_studiolight.c
 	engines/workbench/workbench_volume.c
 	engines/workbench/solid_mode.c

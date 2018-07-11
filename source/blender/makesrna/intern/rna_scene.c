@@ -5753,6 +5753,10 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	RNA_def_property_int_default(prop, 16);
 	RNA_def_property_ui_text(prop, "Samples", "Number of samples");
 	RNA_def_property_range(prop, 1, 500);
+
+	/* OpenGL render engine settings. */
+	prop = RNA_def_property(srna, "shading", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Shading Settings", "Shading settings for OpenGL render engine");
 }
 
 static void rna_def_scene_eevee(BlenderRNA *brna)

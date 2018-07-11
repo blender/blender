@@ -113,7 +113,7 @@
 #include "bmesh.h"
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
-const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
+const char *RE_engine_id_BLENDER_OPENGL = "BLENDER_OPENGL";
 const char *RE_engine_id_CYCLES = "CYCLES";
 
 void free_avicodecdata(AviCodecData *acd)
@@ -360,6 +360,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		BKE_color_managed_view_settings_copy(&sce_copy->r.bake.im_format.view_settings, &sce->r.bake.im_format.view_settings);
 
 		curvemapping_copy_data(&sce_copy->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
+
+		/* viewport display settings */
+		sce_copy->display = sce->display;
 
 		/* tool settings */
 		sce_copy->toolsettings = BKE_toolsettings_copy(sce->toolsettings, 0);
@@ -819,6 +822,9 @@ void BKE_scene_init(Scene *sce)
 	sce->display.matcap_ssao_distance = 0.2f;
 	sce->display.matcap_ssao_attenuation = 1.0f;
 	sce->display.matcap_ssao_samples = 16;
+
+	/* OpenGL Render. */
+	BKE_screen_view3d_shading_init(&sce->display.shading);
 
 	/* SceneEEVEE */
 	sce->eevee.gi_diffuse_bounces = 3;
@@ -1539,6 +1545,11 @@ bool BKE_scene_use_spherical_stereo(Scene *scene)
 bool BKE_scene_uses_blender_eevee(const Scene *scene)
 {
 	return STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+}
+
+bool BKE_scene_uses_blender_opengl(const Scene *scene)
+{
+	return STREQ(scene->r.engine, RE_engine_id_BLENDER_OPENGL);
 }
 
 bool BKE_scene_uses_cycles(const Scene *scene)

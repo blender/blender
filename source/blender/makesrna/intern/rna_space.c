@@ -679,8 +679,12 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 
 static void rna_3DViewShading_type_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	bScreen *screen = ptr->id.data;
+	ID *id = ptr->id.data;
+	if (GS(id->name) == ID_SCE) {
+		return;
+	}
 
+	bScreen *screen = ptr->id.data;
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 			if (sl->spacetype == SPACE_VIEW3D) {
@@ -694,20 +698,40 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *UNUSED(scene), Poi
 	}
 }
 
+static Scene *rna_3DViewShading_scene(PointerRNA *ptr)
+{
+	/* Get scene, depends if using 3D view or OpenGL render settings. */
+	ID *id = ptr->id.data;
+	if (GS(id->name) == ID_SCE) {
+		return (Scene *)id;
+	}
+	else {
+		bScreen *screen = ptr->id.data;
+		return WM_windows_scene_get_from_screen(G_MAIN->wm.first, screen);
+	}
+}
+
 static int rna_3DViewShading_type_get(PointerRNA *ptr)
 {
-	bScreen *screen = ptr->id.data;
-	Scene *scene = WM_windows_scene_get_from_screen(G_MAIN->wm.first, screen);
+	/* Available shading types depend on render engine. */
+	Scene *scene = rna_3DViewShading_scene(ptr);
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	View3DShading *shading = (View3DShading *)ptr->data;
 
-	if (!BKE_scene_uses_blender_eevee(scene) && shading->type == OB_RENDER) {
-		if (!(type && type->view_draw)) {
+	if (BKE_scene_uses_blender_eevee(scene)) {
+		return shading->type;
+	}
+	else if (BKE_scene_uses_blender_opengl(scene)) {
+		return (shading->type == OB_MATERIAL) ? OB_RENDER : shading->type;
+	}
+	else {
+		if (shading->type == OB_RENDER && !(type && type->view_draw)) {
 			return OB_MATERIAL;
 		}
+		else {
+			return shading->type;
+		}
 	}
-
-	return shading->type;
 }
 
 static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
@@ -720,11 +744,10 @@ static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
 }
 
 static const EnumPropertyItem *rna_3DViewShading_type_itemf(
-        bContext *C, PointerRNA *UNUSED(ptr),
+        bContext *UNUSED(C), PointerRNA *ptr,
         PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	wmWindow *win = CTX_wm_window(C);
-	Scene *scene = WM_window_get_active_scene(win);
+	Scene *scene = rna_3DViewShading_scene(ptr);
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
 	EnumPropertyItem *item = NULL;
@@ -734,6 +757,9 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_MATERIAL);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
+	}
+	else if (BKE_scene_uses_blender_opengl(scene)) {
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
 	}
 	else {
@@ -2401,6 +2427,8 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	/* Note these settings are used for both 3D viewport and the OpenGL render
+	 * engine in the scene, so can't assume to always be part of a screen. */
 	srna = RNA_def_struct(brna, "View3DShading", NULL);
 	RNA_def_struct_path_func(srna, "rna_View3DShading_path");
 	RNA_def_struct_ui_text(srna, "3D View Shading Settings", "Settings for shading in the 3D viewport");

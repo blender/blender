@@ -45,9 +45,10 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
@@ -853,6 +854,21 @@ void BKE_screen_view3d_scene_sync(bScreen *sc, Scene *scene)
 			}
 		}
 	}
+}
+
+void BKE_screen_view3d_shading_init(View3DShading *shading)
+{
+	memset(shading, 0, sizeof(*shading));
+
+	shading->type = OB_SOLID;
+	shading->prev_type = OB_SOLID;
+	shading->flag = V3D_SHADING_SPECULAR_HIGHLIGHT;
+	shading->light = V3D_LIGHTING_STUDIO;
+	shading->shadow_intensity = 0.5f;
+	shading->xray_alpha = 0.5f;
+	shading->cavity_valley_factor = 1.0f;
+	shading->cavity_ridge_factor = 1.0f;
+	copy_v3_fl(shading->single_color, 0.8f);
 }
 
 /* magic zoom calculation, no idea what
