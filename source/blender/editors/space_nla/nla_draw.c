@@ -512,13 +512,13 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	}
 
 	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
-	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQF(strip->repeat, 1.0f) == 0) {
+	if ((strip->type == NLASTRIP_TYPE_CLIP) && strip->repeat > 1.0f) {
 		float repeatLen = (strip->actend - strip->actstart) * strip->scale;
 
 		/* only draw lines for whole-numbered repeats, starting from the first full-repeat
 		 * up to the last full repeat (but not if it lies on the end of the strip)
 		 */
-		immBeginAtMost(GWN_PRIM_LINES, 2 * (strip->repeat - 1));
+		immBeginAtMost(GWN_PRIM_LINES, 2 * floorf(strip->repeat));
 		for (int i = 1; i < strip->repeat; i++) {
 			float repeatPos = strip->start + (repeatLen * i);
 
