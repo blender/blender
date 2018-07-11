@@ -4095,12 +4095,12 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 
 void BKE_image_release_ibuf(Image *ima, ImBuf *ibuf, void *lock)
 {
-	if (lock) {
+	if (lock != NULL) {
 		/* for getting image during threaded render / compositing, need to release */
 		if (lock == ima) {
 			BLI_thread_unlock(LOCK_VIEWER); /* viewer image */
 		}
-		else if (lock) {
+		else {
 			RE_ReleaseResultImage(lock); /* render result */
 			BLI_thread_unlock(LOCK_VIEWER); /* view image imbuf */
 		}
