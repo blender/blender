@@ -97,23 +97,6 @@ class VIEW3D_HT_header(Header):
 
         layout.separator_spacer()
 
-        # Viewport Settings
-        row = layout.row(align=True)
-        row.prop(shading, "type", text="", expand=True)
-
-        sub = row.row(align=True)
-        sub.enabled = shading.type != 'RENDERED'
-        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading")
-
-        row = layout.row(align=True)
-        row.prop(overlay, "show_overlays", icon='WIRE', text="")
-
-        sub = row.row(align=True)
-        sub.active = overlay.show_overlays
-        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay")
-
-        layout.separator_spacer()
-
         # Mode & Transform Settings
         scene = context.scene
 
@@ -222,6 +205,23 @@ class VIEW3D_HT_header(Header):
                 icon=act_pivot_point.icon,
                 text="",
             )
+
+        layout.separator_spacer()
+
+        # Viewport Settings
+        row = layout.row(align=True)
+        row.prop(shading, "type", text="", expand=True)
+
+        sub = row.row(align=True)
+        sub.enabled = shading.type != 'RENDERED'
+        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading")
+
+        row = layout.row(align=True)
+        row.prop(overlay, "show_overlays", icon='WIRE', text="")
+
+        sub = row.row(align=True)
+        sub.active = overlay.show_overlays
+        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay")
 
 
 class VIEW3D_MT_editor_menus(Menu):
