@@ -209,6 +209,13 @@ class VIEW3D_HT_header(Header):
         layout.separator_spacer()
 
         # Viewport Settings
+        layout.popover(
+                space_type='VIEW_3D',
+                region_type='HEADER',
+                panel_type="VIEW3D_PT_object_type_visibility",
+                icon="HIDE_OFF",
+                text="")
+
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
 
@@ -3691,9 +3698,9 @@ class VIEW3D_PT_view3d_cursor(Panel):
 
 class VIEW3D_PT_object_type_visibility(Panel):
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_region_type = 'HEADER'
     bl_label = "View Object Types"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 6
 
     def draw(self, context):
         layout = self.layout
