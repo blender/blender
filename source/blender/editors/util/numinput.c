@@ -49,7 +49,7 @@
 #include "UI_interface.h"
 
 /* Numeric input which isn't allowing full numeric editing. */
-// #define USE_FAKE_EDIT
+#define USE_FAKE_EDIT
 
 /* NumInput.flag */
 enum {
