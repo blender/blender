@@ -4155,7 +4155,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         row.prop(data, "show_edge_bevel_weight", text="Bevel", toggle=True)
 
         if not with_freestyle:
-            row.prop(data, "show_edge_seams", text="Seams")
+            row.prop(data, "show_edge_seams", text="Seams", toggle=True)
 
 
 class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
