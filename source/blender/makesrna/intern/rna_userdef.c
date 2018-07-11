@@ -165,36 +165,6 @@ static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	UI_reinit_font();
 }
 
-static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	UserDef *userdef = (UserDef *)ptr->data;
-
-	/* lame, loop over all views and set */
-	bScreen *sc;
-	ScrArea *sa;
-	SpaceLink *sl;
-
-	/* from scene copy to the other views */
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			for (sl = sa->spacedata.first; sl; sl = sl->next) {
-				if (sl->spacetype == SPACE_VIEW3D) {
-					View3D *v3d = (View3D *)sl;
-					if (userdef->manipulator_flag & USER_MANIPULATOR_DRAW) {
-						v3d->twflag |= V3D_MANIPULATOR_DRAW;
-					}
-					else {
-						v3d->twflag &= ~V3D_MANIPULATOR_DRAW;
-					}
-				}
-			}
-		}
-	}
-
-	rna_userdef_update(bmain, scene, ptr);
-}
-
-
 static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -3733,10 +3703,17 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the pivot point");
 
 	/* mini axis */
-	prop = RNA_def_property(srna, "show_mini_axis", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_ROTVIEWICON);
-	RNA_def_property_ui_text(prop, "Show Mini Axes",
-	                         "Show a small rotating 3D axes in the bottom left corner of the 3D View");
+	static const EnumPropertyItem mini_axis_type_items[] = {
+		{0, "MINIMAL", 0, "Simple Axis", ""},
+		{USER_SHOW_MANIPULATOR_AXIS, "MANIPULATOR", 0, "Interactive Navigation", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	prop = RNA_def_property(srna, "mini_axis_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, mini_axis_type_items);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
+	RNA_def_property_ui_text(prop, "Mini Axes Type",
+	                         "Show a small rotating 3D axes in the top right corner of the 3D View");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "mini_axis_size", PROP_INT, PROP_NONE);
@@ -3764,21 +3741,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	/* 3D transform widget */
 	prop = RNA_def_property(srna, "show_manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_DRAW);
-	RNA_def_property_ui_text(prop, "Manipulator", "Use 3D transform manipulator");
-	RNA_def_property_update(prop, 0, "rna_userdef_show_manipulator_update");
-
-	prop = RNA_def_property(srna, "show_manipulator_navigate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_DRAW_NAVIGATE);
-	RNA_def_property_ui_text(prop, "Navigate Manipulator", "Use 3D navigation manipulator");
-	RNA_def_property_update(prop, 0, "rna_userdef_show_manipulator_update");
-
-	/* TODO, expose once it's working. */
-#if 0
-	prop = RNA_def_property(srna, "show_manipulator_shaded", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_SHADED);
-	RNA_def_property_ui_text(prop, "Manipulator Shaded", "Use 3D transform manipulator");
+	RNA_def_property_ui_text(prop, "Manipulators", "Use transform manipulators by default");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-#endif
 
 	prop = RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "manipulator_size");

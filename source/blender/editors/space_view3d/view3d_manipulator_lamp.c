@@ -55,7 +55,9 @@
 static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_CONTEXT)))
+	{
 		return false;
 	}
 

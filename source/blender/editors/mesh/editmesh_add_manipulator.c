@@ -379,7 +379,7 @@ static int add_primitive_cube_manipulator_invoke(bContext *C, wmOperator *op, co
 	int ret = add_primitive_cube_manipulator_exec(C, op);
 	if (ret & OPERATOR_FINISHED) {
 		/* Setup manipulators */
-		if (v3d && (v3d->twflag & V3D_MANIPULATOR_DRAW)) {
+		if (v3d && ((v3d->mpr_flag & V3D_MANIPULATOR_HIDE) == 0)) {
 			ARegion *ar = CTX_wm_region(C);
 			wmManipulatorMap *mmap = ar->manipulator_map;
 			wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find("MESH_WGT_add_bounds", false);

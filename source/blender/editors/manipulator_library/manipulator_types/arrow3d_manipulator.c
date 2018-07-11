@@ -163,15 +163,9 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 
 			const float len = 0.25f;
 			const float width = 0.06f;
-			const bool use_lighting = (!select && ((U.manipulator_flag & USER_MANIPULATOR_SHADED) != 0));
 
 			/* translate to line end */
 			gpuTranslate3f(0.0f, 0.0f, arrow_length);
-
-			if (use_lighting) {
-				immUnbindProgram();
-				immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
-			}
 
 			imm_draw_circle_fill_3d(pos, 0.0, 0.0, width, 8);
 			imm_draw_cylinder_fill_3d(pos, width, 0.0, len, 8, 1);

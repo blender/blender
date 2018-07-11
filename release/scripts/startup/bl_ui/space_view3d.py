@@ -3882,6 +3882,20 @@ class VIEW3D_PT_overlay(Panel):
 
         sub = split.column()
         sub.prop(view, "show_manipulator", text="Manipulators")
+        has_manipulator = view.show_manipulator
+        subsub = sub.column()
+        subsub.active = has_manipulator
+        subsub.prop(view, "show_manipulator_navigate", text="Navigate")
+        del subsub
+        sub = split.column()
+        sub.active = has_manipulator
+        sub.prop(view, "show_manipulator_context", text="Active Object")
+        sub.prop(view, "show_manipulator_tool", text="Active Tools")
+
+        col.separator()
+
+        split = col.split()
+        sub = split.column()
         sub.prop(overlay, "show_text", text="Text")
         sub.prop(overlay, "show_cursor", text="3D Cursor")
         sub.prop(overlay, "show_outline_selected")

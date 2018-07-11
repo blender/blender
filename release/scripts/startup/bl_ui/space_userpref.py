@@ -238,15 +238,15 @@ class USERPREF_PT_interface(Panel):
 
         col.separator()
 
-        col.prop(view, "show_manipulator_navigate")
+        # col.prop(view, "show_manipulator_navigate")
 
         sub = col.column(align=True)
 
-        sub.prop(view, "show_mini_axis", text="Display Mini Axis")
-        sub.active = not view.show_manipulator_navigate
+        sub.label("3D Viewport Axis:")
+        sub.row().prop(view, "mini_axis_type", expand=True)
 
         sub = col.column(align=True)
-        sub.active = view.show_mini_axis
+        sub.active = view.mini_axis_type == 'MINIMAL'
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
@@ -258,9 +258,7 @@ class USERPREF_PT_interface(Panel):
         #col.label(text="Open Toolbox Delay:")
         #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
-        col.prop(view, "show_manipulator", text="Transform Manipulator")
-        # Currently not working
-        # col.prop(view, "show_manipulator_shaded")
+        col.prop(view, "show_manipulator", text="Manipulators")
         sub = col.column()
         sub.active = view.show_manipulator
         sub.prop(view, "manipulator_size", text="Size")

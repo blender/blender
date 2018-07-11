@@ -1383,7 +1383,7 @@ void init_userdef_do_versions(Main *bmain)
 		if (U.rvisize == 0) {
 			U.rvisize = 15;
 			U.rvibright = 8;
-			U.uiflag |= USER_SHOW_ROTVIEWICON;
+			U.uiflag |= USER_SHOW_MANIPULATOR_AXIS;
 		}
 
 	}

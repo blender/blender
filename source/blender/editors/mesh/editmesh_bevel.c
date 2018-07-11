@@ -95,7 +95,7 @@ typedef struct {
 	/* modal only */
 	float mcenter[2];
 	void *draw_handle_pixel;
-	short twflag;
+	short mpr_flag;
 	short value_mode;  /* Which value does mouse movement and numeric input affect? */
 	float segments;     /* Segments as float so smooth mouse pan works in small increments */
 } BevelData;
@@ -201,8 +201,8 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		G.moving = G_TRANSFORM_EDIT;
 
 		if (v3d) {
-			opdata->twflag = v3d->twflag;
-			v3d->twflag = 0;
+			opdata->mpr_flag = v3d->mpr_flag;
+			v3d->mpr_flag = 0;
 		}
 	}
 
@@ -284,7 +284,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 		}
 		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
 		if (v3d) {
-			v3d->twflag = opdata->twflag;
+			v3d->mpr_flag = opdata->mpr_flag;
 		}
 		G.moving = 0;
 	}

@@ -751,7 +751,7 @@ typedef enum eUserpref_UI_Flag {
 	USER_ORBIT_SELECTION	= (1 << 14),
 	USER_DEPTH_NAVIGATE     = (1 << 15),
 	USER_HIDE_DOT			= (1 << 16),
-	USER_SHOW_ROTVIEWICON	= (1 << 17),
+	USER_SHOW_MANIPULATOR_AXIS	= (1 << 17),
 	USER_SHOW_VIEWPORTNAME	= (1 << 18),
 	USER_CAM_LOCK_NO_PARENT	= (1 << 19),
 	USER_ZOOM_TO_MOUSEPOS	= (1 << 20),
@@ -876,8 +876,6 @@ typedef enum eGP_UserdefSettings {
 
 enum {
 	USER_MANIPULATOR_DRAW            = (1 << 0),
-	USER_MANIPULATOR_DRAW_NAVIGATE   = (1 << 1),
-	USER_MANIPULATOR_SHADED          = (1 << 8),
 };
 
 /* Color Picker Types.

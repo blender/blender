@@ -237,7 +237,7 @@ typedef struct View3D {
 	char gridflag;
 
 	/* transform manipulator info */
-	char twtype, _pad5, twflag;
+	char _pad5[2], mpr_flag;
 
 	short flag3;
 
@@ -450,9 +450,13 @@ enum {
 #define V3D_MANIP_CURSOR		5
 #define V3D_MANIP_CUSTOM		1024
 
-/* View3d->twflag (also) */
+/* View3d.mpr_flag (also) */
 enum {
-	V3D_MANIPULATOR_DRAW        = (1 << 0),
+	/** All manipulators. */
+	V3D_MANIPULATOR_HIDE                = (1 << 0),
+	V3D_MANIPULATOR_HIDE_NAVIGATE       = (1 << 1),
+	V3D_MANIPULATOR_HIDE_CONTEXT        = (1 << 2),
+	V3D_MANIPULATOR_HIDE_TOOL           = (1 << 3),
 };
 
 #define RV3D_CAMZOOM_MIN -30

@@ -70,7 +70,7 @@ typedef struct {
 	/* modal only */
 	BMBackup mesh_backup;
 	bool is_first;
-	short twflag;
+	short mpr_flag;
 } BisectData;
 
 static bool mesh_bisect_interactive_calc(
@@ -156,8 +156,8 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		/* misc other vars */
 		G.moving = G_TRANSFORM_EDIT;
-		opdata->twflag = v3d->twflag;
-		v3d->twflag = 0;
+		opdata->mpr_flag = v3d->mpr_flag;
+		v3d->mpr_flag = 0;
 
 		/* initialize modal callout */
 		ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
@@ -169,7 +169,7 @@ static void edbm_bisect_exit(bContext *C, BisectData *opdata)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
-	v3d->twflag = opdata->twflag;
+	v3d->mpr_flag = opdata->mpr_flag;
 	G.moving = 0;
 }
 
@@ -199,7 +199,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		/* Setup manipulators */
 		{
 			View3D *v3d = CTX_wm_view3d(C);
-			if (v3d && (v3d->twflag & V3D_MANIPULATOR_DRAW)) {
+			if (v3d && (v3d->mpr_flag & V3D_MANIPULATOR_HIDE) == 0) {
 				WM_manipulator_group_type_ensure("MESH_WGT_bisect");
 			}
 		}

@@ -179,14 +179,13 @@ struct NavigateWidgetGroup {
 static bool WIDGETGROUP_navigate_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+	if (((U.uiflag & USER_SHOW_MANIPULATOR_AXIS) == 0) ||
+	    (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_NAVIGATE)))
+	{
 		return false;
 	}
-
-	if (U.manipulator_flag & USER_MANIPULATOR_DRAW_NAVIGATE) {
-		return true;
-	}
-	return false;
+	return true;
 
 }
 

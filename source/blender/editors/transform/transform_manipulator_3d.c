@@ -1596,6 +1596,11 @@ static bool WIDGETGROUP_manipulator_poll(const struct bContext *C, struct wmMani
 		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
+
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_TOOL)) {
+		return false;
+	}
 	return true;
 }
 

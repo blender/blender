@@ -2926,8 +2926,23 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_manipulator", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_MANIPULATOR_DRAW);
-	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms");
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_MANIPULATOR_HIDE);
+	RNA_def_property_ui_text(prop, "Manipulator", "Show manipulators of all types");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_manipulator_navigate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_MANIPULATOR_HIDE_NAVIGATE);
+	RNA_def_property_ui_text(prop, "Navigate Manipulator", "");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_manipulator_context", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_MANIPULATOR_HIDE_CONTEXT);
+	RNA_def_property_ui_text(prop, "Context Manipulator", "Context sensitive manipulators for the active item");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_manipulator_tool", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_MANIPULATOR_HIDE_TOOL);
+	RNA_def_property_ui_text(prop, "Tool Manipulator", "Active tool manipulator");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);

@@ -59,12 +59,11 @@
 /**
  * Main draw call for ManipulatorGeomInfo data
  */
-void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const bool select, const float color[4])
+void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const bool UNUSED(select), const float color[4])
 {
 	/* TODO store the Batches inside the ManipulatorGeomInfo and updated it when geom changes
 	 * So we don't need to re-created and discard it every time */
 
-	const bool use_lighting = true || (!select && ((U.manipulator_flag & USER_MANIPULATOR_SHADED) != 0));
 	Gwn_VertBuf *vbo;
 	Gwn_IndexBuf *el;
 	Gwn_Batch *batch;
@@ -72,11 +71,6 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 
 	Gwn_VertFormat format = {0};
 	uint pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	uint nor_id;
-
-	if (use_lighting) {
-		nor_id = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_I16, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
-	}
 
 	/* Elements */
 	GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, info->ntris, info->nverts);
@@ -90,11 +84,6 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	GWN_vertbuf_data_alloc(vbo, info->nverts);
 
 	GWN_vertbuf_attr_fill(vbo, pos_id, info->verts);
-
-	if (use_lighting) {
-		/* Normals are expected to be smooth. */
-		GWN_vertbuf_attr_fill(vbo, nor_id, info->normals);
-	}
 
 	batch = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, el, GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
