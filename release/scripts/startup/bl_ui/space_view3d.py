@@ -210,11 +210,12 @@ class VIEW3D_HT_header(Header):
 
         # Viewport Settings
         layout.popover(
-                space_type='VIEW_3D',
-                region_type='HEADER',
-                panel_type="VIEW3D_PT_object_type_visibility",
-                icon="HIDE_OFF",
-                text="")
+            space_type='VIEW_3D',
+            region_type='HEADER',
+            panel_type="VIEW3D_PT_object_type_visibility",
+            icon="HIDE_OFF",
+            text="",
+        )
 
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
@@ -3933,7 +3934,6 @@ class VIEW3D_PT_overlay_guides(Panel):
             subsub.prop(overlay, "grid_scale", text="Scale")
             subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
-
         sub = split.column()
         row = sub.row()
         row.label(text="Axes")
@@ -3970,12 +3970,12 @@ class VIEW3D_PT_overlay_object(Panel):
         sub = split.column(align=True)
         sub.prop(overlay, "show_ornaments", text="Ornaments")
         sub.prop(overlay, "show_relationship_lines")
-        sub.prop(overlay, "show_all_objects_origin")
+        sub.prop(overlay, "show_outline_selected")
 
         sub = split.column(align=True)
         sub.prop(overlay, "show_bones", text="Bones")
         sub.prop(overlay, "show_motion_paths")
-        sub.prop(overlay, "show_outline_selected")
+        sub.prop(overlay, "show_all_objects_origin")
 
 
 class VIEW3D_PT_overlay_geometry(Panel):
@@ -4001,7 +4001,7 @@ class VIEW3D_PT_overlay_geometry(Panel):
         row.prop(overlay, "show_wireframes", text="", icon=icon_w)
         sub = row.row(align=True)
         sub.active = overlay.show_wireframes
-        sub.prop(overlay, "wireframe_threshold", text="Wireframes")
+        sub.prop(overlay, "wireframe_threshold", text="Wireframe")
 
         sub = split.column(align=True)
         sub.prop(overlay, "show_backface_culling")
