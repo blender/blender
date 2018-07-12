@@ -879,6 +879,8 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	strip = seq->strip;
 	se = strip->stripdata;
 
+	seq->blend_mode = SEQ_TYPE_ALPHAOVER;
+
 	if (use_placeholders) {
 		sequencer_image_seq_reserve_frames(op, se, seq_load.len, minframe, numdigits);
 	}
