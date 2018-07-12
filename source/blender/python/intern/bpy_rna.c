@@ -7446,10 +7446,10 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 		while (PyDict_Next(class_dict, &pos, &key, &item)) {
 			if (pyrna_is_deferred_prop(item)) {
 				if (!has_warning) {
-					PyC_StackSpit();
 					printf("Warning: class %.200s "
 					       "contains a properties which should be a field!\n",
 					       RNA_struct_identifier(srna));
+					PyC_LineSpit();
 					has_warning = true;
 				}
 				printf("    make field: %.200s.%.200s\n",
