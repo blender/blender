@@ -348,10 +348,6 @@ typedef struct {
 	 * Will be NULL for UNDO.
 	 */
 	WriteWrap *ww;
-
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-	bool use_mesh_compat; /* option to save with older mesh format */
-#endif
 } WriteData;
 
 static WriteData *writedata_new(WriteWrap *ww)
@@ -2083,12 +2079,6 @@ static void write_customdata(
 
 static void write_mesh(WriteData *wd, Mesh *mesh)
 {
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-	const bool save_for_old_blender = wd->use_mesh_compat;  /* option to save with older mesh format */
-#else
-	const bool save_for_old_blender = false;
-#endif
-
 	CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
 	CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
 	CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
@@ -2097,19 +2087,17 @@ static void write_mesh(WriteData *wd, Mesh *mesh)
 
 	if (mesh->id.us > 0 || wd->use_memfile) {
 		/* write LibData */
-		if (!save_for_old_blender) {
+		{
 			/* write a copy of the mesh, don't modify in place because it is
 			 * not thread safe for threaded renders that are reading this */
 			Mesh *old_mesh = mesh;
 			Mesh copy_mesh = *mesh;
 			mesh = &copy_mesh;
 
-#ifdef USE_BMESH_SAVE_WITHOUT_MFACE
 			/* cache only - don't write */
 			mesh->mface = NULL;
 			mesh->totface = 0;
 			memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 			/**
 			 * Those calls:
@@ -2120,11 +2108,7 @@ static void write_mesh(WriteData *wd, Mesh *mesh)
 			 */
 			CustomData_file_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
 			CustomData_file_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
-#ifndef USE_BMESH_SAVE_WITHOUT_MFACE  /* Do not copy org fdata in this case!!! */
-			CustomData_file_write_prepare(&mesh->fdata, &flayers, flayers_buff, ARRAY_SIZE(flayers_buff));
-#else
 			flayers = flayers_buff;
-#endif
 			CustomData_file_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
 			CustomData_file_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
 
@@ -2148,73 +2132,6 @@ static void write_mesh(WriteData *wd, Mesh *mesh)
 
 			/* restore pointer */
 			mesh = old_mesh;
-		}
-		else {
-
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-			/* write a copy of the mesh, don't modify in place because it is
-			 * not thread safe for threaded renders that are reading this */
-			Mesh *old_mesh = mesh;
-			Mesh copy_mesh = *mesh;
-			mesh = &copy_mesh;
-
-			mesh->mpoly = NULL;
-			mesh->mface = NULL;
-			mesh->totface = 0;
-			mesh->totpoly = 0;
-			mesh->totloop = 0;
-			CustomData_reset(&mesh->fdata);
-			CustomData_reset(&mesh->pdata);
-			CustomData_reset(&mesh->ldata);
-			mesh->edit_btmesh = NULL;
-
-			/* now fill in polys to mfaces */
-			/* XXX This breaks writing design, by using temp allocated memory, which will likely generate
-			 *     duplicates in stored 'old' addresses.
-			 *     This is very bad, but do not see easy way to avoid this, aside from generating those data
-			 *     outside of save process itself.
-			 *     Maybe we can live with this, though?
-			 */
-			mesh->totface = BKE_mesh_mpoly_to_mface(
-			        &mesh->fdata, &old_mesh->ldata, &old_mesh->pdata,
-			        mesh->totface, old_mesh->totloop, old_mesh->totpoly);
-
-			BKE_mesh_update_customdata_pointers(mesh, false);
-
-			CustomData_file_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
-			CustomData_file_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
-			CustomData_file_write_prepare(&mesh->fdata, &flayers, flayers_buff, ARRAY_SIZE(flayers_buff));
-#if 0
-			CustomData_file_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
-			CustomData_file_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
-#endif
-
-			writestruct_at_address(wd, ID_ME, Mesh, 1, old_mesh, mesh);
-			write_iddata(wd, &mesh->id);
-
-			/* direct data */
-			if (mesh->adt) {
-				write_animdata(wd, mesh->adt);
-			}
-
-			writedata(wd, DATA, sizeof(void *) * mesh->totcol, mesh->mat);
-			/* writedata(wd, DATA, sizeof(MSelect) * mesh->totselect, mesh->mselect); */ /* pre-bmesh NULL's */
-
-			write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, -1, 0);
-			write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, elayers, -1, 0);
-			write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, flayers, -1, 0);
-			/* harmless for older blender versioins but _not_ writing these keeps file size down */
-#if 0
-			write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, llayers, -1, 0);
-			write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, players, -1, 0);
-#endif
-
-			CustomData_free(&mesh->fdata, mesh->totface);
-			flayers = NULL;
-
-			/* restore pointer */
-			mesh = old_mesh;
-#endif /* USE_BMESH_SAVE_AS_COMPAT */
 		}
 	}
 
@@ -3836,10 +3753,6 @@ static bool write_file_handle(
 	blo_split_main(&mainlist, mainvar);
 
 	wd = mywrite_begin(ww, compare, current);
-
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-	wd->use_mesh_compat = (write_flags & G_FILE_MESH_COMPAT) != 0;
-#endif
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
 	/* don't write compatibility data on undo */
