@@ -435,6 +435,10 @@ set(ICON_NAMES
 	copydown
 	pasteflipup
 	pasteflipdown
+	vis_sel_11
+	vis_sel_10
+	vis_sel_10
+	vis_sel_00
 	snap_surface
 	automerge_on
 	automerge_off

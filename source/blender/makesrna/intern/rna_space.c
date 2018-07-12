@@ -905,6 +905,15 @@ static const EnumPropertyItem *rna_SpaceView3D_stereo3d_camera_itemf(
 		return stereo3d_camera_items;
 }
 
+static int rna_SpaceView3D_icon_from_show_object_viewport_get(PointerRNA *ptr)
+{
+	const View3D *v3d = (View3D *)ptr->data;
+	/* Ignore selection values when view is off, intent is to show if visible objects aren't selectable. */
+	const int view_value = (v3d->object_type_exclude_viewport != 0);
+	const int select_value = (v3d->object_type_exclude_select & ~v3d->object_type_exclude_viewport) != 0;
+	return ICON_VIS_SEL_11 + (view_value << 1) + select_value;
+}
+
 static PointerRNA rna_SpaceView3D_shading_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_View3DShading, ptr->data);
@@ -3113,6 +3122,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 			}
 		}
+
+		/* Heper for drawing the icon. */
+		prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);
+		RNA_def_property_int_funcs(prop, "rna_SpaceView3D_icon_from_show_object_viewport_get", NULL, NULL);
+		RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop, "Visibility Iconm", "");
 	}
 
 	/* Nested Structs */

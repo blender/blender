@@ -213,7 +213,7 @@ class VIEW3D_HT_header(Header):
             space_type='VIEW_3D',
             region_type='HEADER',
             panel_type="VIEW3D_PT_object_type_visibility",
-            icon="HIDE_OFF",
+            icon_value=view.icon_from_show_object_viewport,
             text="",
         )
 
