@@ -119,6 +119,7 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 
 	const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
 	int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+	bool do_normal_to_recon = (hn_strength == 1.0f);
 
 	BMFace *f;
 	BMLoop *l, *l_cur, *l_first;
@@ -126,6 +127,9 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 	GHash *faceHash = bmd->clnordata.faceHash;
 
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
+		if (!BLI_ghash_haskey(faceHash, f)) {
+			BM_elem_flag_set(f, BM_ELEM_HIDDEN, true);
+		}
 		l_cur = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			if ((!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) || (!BM_elem_flag_test(l_cur, BM_ELEM_TAG) &&
@@ -191,7 +195,7 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 							mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
 							add_v3_v3(cn_wght, cur);
 						}
-						if (!BLI_ghash_haskey(faceHash, f)) {
+						if (!BLI_ghash_haskey(faceHash, lfan_pivot->f)) {
 							recon_face = f;
 							recon_face_count++;
 						}
@@ -209,15 +213,15 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, float hn
 						const int l_index = BM_elem_index_get(l);
 						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
 
-						if (!vertex_only || !recon_face_count) {
+						if (recon_face_count == 1 || do_normal_to_recon) {
+							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], recon_face->no, clnors);
+						}
+						else if (vertex_only == false || recon_face_count == 0) {
 							copy_v3_v3(n_final, l->f->no);
 							mul_v3_fl(n_final, 1.0f - hn_strength);
 							add_v3_v3(n_final, cn_wght);
 							normalize_v3(n_final);
 							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], n_final, clnors);
-						}
-						else if (recon_face_count == 1) {
-							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], recon_face->no, clnors);
 						}
 						else if(BLI_ghash_haskey(faceHash, l->f))
 							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], l->v->no, clnors);

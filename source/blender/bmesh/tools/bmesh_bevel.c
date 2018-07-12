@@ -3862,6 +3862,8 @@ static BMFace *bevel_build_poly(BevelParams *bp, BMesh *bm, BevVert *bv)
 	BLI_array_staticdeclare(vf, BM_DEFAULT_NGON_STACK_SIZE);
 	BLI_array_staticdeclare(ve, BM_DEFAULT_NGON_STACK_SIZE);
 
+	bool do_fix_shading_bv = bp->faceHash != NULL;
+
 	if (bv->any_seam) {
 		frep = boundvert_rep_face(vm->boundstart, &frep2);
 		if (frep2 && frep && is_bad_uv_poly(bv, frep)) {
@@ -3907,6 +3909,8 @@ static BMFace *bevel_build_poly(BevelParams *bp, BMesh *bm, BevVert *bv)
 	} while ((v = v->next) != vm->boundstart);
 	if (n > 2) {
 		f = bev_create_ngon(bm, vv, n, vf, frep, ve, bp->mat_nr, true);
+		if (do_fix_shading_bv)
+			BLI_ghash_insert(bp->faceHash, f, NULL);
 	}
 	else {
 		f = NULL;
@@ -3921,6 +3925,7 @@ static void bevel_build_trifan(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	BLI_assert(next_bev(bv, NULL)->seg == 1 || bv->selcount == 1);
+	bool do_fix_shading_bv = bp->faceHash != NULL;
 
 	f = bevel_build_poly(bp, bm, bv);
 
@@ -3928,6 +3933,11 @@ static void bevel_build_trifan(BevelParams *bp, BMesh *bm, BevVert *bv)
 		/* we have a polygon which we know starts at the previous vertex, make it into a fan */
 		BMLoop *l_fan = BM_FACE_FIRST_LOOP(f)->prev;
 		BMVert *v_fan = l_fan->v;
+
+		if (f->len == 3) {
+			if (do_fix_shading_bv)
+				BLI_ghash_insert(bp->faceHash, f, NULL);
+		}
 
 		while (f->len > 3) {
 			BMLoop *l_new;
@@ -3949,6 +3959,8 @@ static void bevel_build_trifan(BevelParams *bp, BMesh *bm, BevVert *bv)
 				else if (l_fan->prev->v == v_fan) { l_fan = l_fan->prev; }
 				else { BLI_assert(0); }
 			}
+			if (do_fix_shading_bv)
+				BLI_ghash_insert(bp->faceHash, f_new, NULL);
 		}
 	}
 }
@@ -3957,6 +3969,7 @@ static void bevel_build_quadstrip(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	BLI_assert(bv->selcount == 2);
+	bool do_fix_shading_bv = bp->faceHash != NULL;
 
 	f = bevel_build_poly(bp, bm, bv);
 
@@ -3967,6 +3980,11 @@ static void bevel_build_quadstrip(BevelParams *bp, BMesh *bm, BevVert *bv)
 		BMLoop *l_a = BM_face_vert_share_loop(f, eh_a->rightv->nv.v);
 		BMLoop *l_b = BM_face_vert_share_loop(f, eh_b->leftv->nv.v);
 		int split_count = bv->vmesh->seg + 1;  /* ensure we don't walk past the segments */
+
+		if (f->len == 4) {
+			if (do_fix_shading_bv)
+				BLI_ghash_insert(bp->faceHash, f, NULL);
+		}
 
 		while (f->len > 4 && split_count > 0) {
 			BMLoop *l_new;
@@ -3986,6 +4004,9 @@ static void bevel_build_quadstrip(BevelParams *bp, BMesh *bm, BevVert *bv)
 				/* walk around the new face to get the next verts to split */
 				l_a = l_new->prev;
 				l_b = l_new->next->next;
+
+				if (do_fix_shading_bv)
+					BLI_ghash_insert(bp->faceHash, f, NULL);
 			}
 			split_count--;
 		}
@@ -4962,12 +4983,14 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	VMesh *vm1, *vm2;
 	EdgeHalf *e1, *e2;
 	BMEdge *bme1, *bme2, *center_bme;
-	BMFace *f1, *f2, *f;
+	BMFace *f1, *f2, *f, *r_f;
 	BMVert *verts[4];
 	BMFace *faces[4];
 	BMEdge *edges[4];
 	int k, nseg, i1, i2, odd, mid;
 	int mat_nr = bp->mat_nr;
+
+	bool do_fix_shading_bv = bp->faceHash != NULL;
 
 	if (!BM_edge_is_manifold(bme))
 		return;
@@ -5024,18 +5047,18 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 				/* straddles a seam: choose to interpolate in f1 and snap right edge to bme */
 				edges[0] = edges[1] = NULL;
 				edges[2] = edges[3] = bme;
-				bev_create_ngon(bm, verts, 4, NULL, f1, edges, mat_nr, true);
+				r_f = bev_create_ngon(bm, verts, 4, NULL, f1, edges, mat_nr, true);
 			}
 			else {
 				/* straddles but not a seam: interpolate left half in f1, right half in f2 */
-				bev_create_ngon(bm, verts, 4, faces, NULL, NULL, mat_nr, true);
+				r_f = bev_create_ngon(bm, verts, 4, faces, NULL, NULL, mat_nr, true);
 			}
 		}
 		else if (!odd && k == mid) {
 			/* left poly that touches an even center line on right */
 			edges[0] = edges[1] = NULL;
 			edges[2] = edges[3] = bme;
-			bev_create_ngon(bm, verts, 4, NULL, f1, edges, mat_nr, true);
+			r_f = bev_create_ngon(bm, verts, 4, NULL, f1, edges, mat_nr, true);
 			center_bme = BM_edge_exists(verts[2], verts[3]);
 			BLI_assert(center_bme != NULL);
 		}
@@ -5043,13 +5066,15 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 			/* right poly that touches an even center line on left */
 			edges[0] = edges[1] = bme;
 			edges[2] = edges[3] = NULL;
-			bev_create_ngon(bm, verts, 4, NULL, f2, edges, mat_nr, true);
+			r_f = bev_create_ngon(bm, verts, 4, NULL, f2, edges, mat_nr, true);
 		}
 		else {
 			/* doesn't cross or touch the center line, so interpolate in appropriate f1 or f2 */
 			f = (k <= mid) ? f1 : f2;
-			bev_create_ngon(bm, verts, 4, NULL, f, NULL, mat_nr, true);
+			r_f = bev_create_ngon(bm, verts, 4, NULL, f, NULL, mat_nr, true);
 		}
+		if (do_fix_shading_bv)
+			BLI_ghash_insert(bp->faceHash, r_f, NULL);
 		verts[0] = verts[3];
 		verts[1] = verts[2];
 	}
