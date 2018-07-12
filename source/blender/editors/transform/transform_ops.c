@@ -1123,6 +1123,8 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_snap");
 
+			WM_keymap_add_panel(keymap, SPACE_VIEW3D, RGN_TYPE_HEADER, "VIEW3D_PT_snapping", TABKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+
 			/* Will fall-through to texture-space transform. */
 			kmi = WM_keymap_add_item(keymap, "OBJECT_OT_transform_axis_target", TKEY, KM_PRESS, KM_SHIFT, 0);
 
