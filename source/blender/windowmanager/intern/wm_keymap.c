@@ -509,6 +509,20 @@ wmKeyMapItem *WM_keymap_add_menu_pie(wmKeyMap *keymap, const char *idname, int t
 	return kmi;
 }
 
+wmKeyMapItem *WM_keymap_add_panel(
+        wmKeyMap *keymap,
+        short space_type, short region_type, const char *idname,
+        int type, int val, int modifier, int keymodifier)
+{
+	wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_call_panel", type, val, modifier, keymodifier);
+	RNA_enum_set(kmi->ptr, "space_type", space_type);
+	RNA_enum_set(kmi->ptr, "region_type", region_type);
+	RNA_string_set(kmi->ptr, "name", idname);
+	/* TODO: we might want to disable this. */
+	RNA_boolean_set(kmi->ptr, "keep_open", false);
+	return kmi;
+}
+
 /* tool wrapper for WM_keymap_add_item */
 wmKeyMapItem *WM_keymap_add_tool(wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
 {

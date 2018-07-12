@@ -66,6 +66,10 @@ wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, const char *idname, in
                                  int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_menu_pie(struct wmKeyMap *keymap, const char *idname, int type,
                                      int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_panel(
+        struct wmKeyMap *keymap,
+        short space_type, short region_type, const char *idname,
+        int type, int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_tool(struct wmKeyMap *keymap, const char *idname, int type,
                                  int val, int modifier, int keymodifier);
 
