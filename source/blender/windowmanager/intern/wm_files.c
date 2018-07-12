@@ -64,7 +64,6 @@
 
 #include "BLF_api.h"
 
-#include "DNA_mesh_types.h" /* only for USE_BMESH_SAVE_AS_COMPAT */
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -2088,16 +2087,6 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	         RNA_boolean_get(op->ptr, "copy")),
 	        G_FILE_SAVE_COPY);
 
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-	SET_FLAG_FROM_TEST(
-	        fileflags,
-	        (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
-	         RNA_boolean_get(op->ptr, "use_mesh_compat")),
-	        G_FILE_MESH_COMPAT);
-#else
-#  error "don't remove by accident"
-#endif
-
 	if (wm_file_write(C, path, fileflags, op->reports) != 0)
 		return OPERATOR_CANCELLED;
 
@@ -2147,11 +2136,6 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	prop = RNA_def_boolean(ot->srna, "copy", false, "Save Copy",
 	                "Save a copy of the actual working state but does not make saved file active");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-	RNA_def_boolean(ot->srna, "use_mesh_compat", false, "Legacy Mesh Format",
-	                "Save using legacy mesh format (no ngons) - WARNING: only saves tris and quads, other ngons will "
-	                "be lost (no implicit triangulation)");
-#endif
 }
 
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

@@ -347,9 +347,6 @@ void BKE_mesh_recalc_looptri(
         const struct MVert *mvert,
         int totloop, int totpoly,
         struct MLoopTri *mlooptri);
-int BKE_mesh_mpoly_to_mface(
-        struct CustomData *fdata, struct CustomData *ldata,
-        struct CustomData *pdata, int totface, int totloop, int totpoly);
 void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(struct Mesh *mesh);
 void BKE_mesh_convert_mfaces_to_mpolys_ex(
