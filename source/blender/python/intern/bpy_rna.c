@@ -7577,10 +7577,12 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 		if (!(flag & PROP_REGISTER))
 			continue;
 
+		/* TODO(campbell): Use Python3.7x _PyObject_LookupAttr(), also in the macro below. */
 		identifier = RNA_property_identifier(prop);
 		item = PyObject_GetAttrString(py_class, identifier);
 
 		if (item == NULL) {
+			PyErr_Clear();
 			/* Sneaky workaround to use the class name as the bl_idname */
 
 #define     BPY_REPLACEMENT_STRING(rna_attr, py_attr)                         \
@@ -7595,6 +7597,9 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 						}                                                     \
 					}                                                         \
 					Py_DECREF(item);                                          \
+				}                                                             \
+				else {                                                        \
+					PyErr_Clear();                                            \
 				}                                                             \
 			}  /* intentionally allow else here */
 
