@@ -4009,9 +4009,9 @@ class VIEW3D_PT_overlay_guides(Panel):
 
         split = col.split()
         sub = split.column()
-        sub.prop(overlay, "show_cursor", text="3D Cursor")
+        sub.prop(overlay, "show_text", text="Text Info")
         sub = split.column()
-        sub.prop(overlay, "show_text", text="Viewport Info")
+        sub.prop(overlay, "show_cursor", text="3D Cursor")
 
         if shading.type == 'MATERIAL':
             col.prop(overlay, "show_look_dev")
