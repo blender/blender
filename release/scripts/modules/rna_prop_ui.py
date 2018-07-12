@@ -129,11 +129,18 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         props.data_path = context_member
         del row
 
+    show_developer_ui = context.user_preferences.view.show_developer_ui
     rna_properties = {prop.identifier for prop in rna_item.bl_rna.properties if prop.is_runtime} if items else None
 
     for key, val in items:
 
         if key == '_RNA_UI':
+            continue
+
+        is_rna = (key in rna_properties)
+
+        # only show API defined for developers
+        if is_rna and not show_developer_ui:
             continue
 
         row = layout.row()
@@ -161,8 +168,6 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         row.label(text=key, translate=False)
 
         # explicit exception for arrays
-        is_rna = (key in rna_properties)
-
         if to_dict or to_list:
             row.label(text=val_draw, translate=False)
         else:
