@@ -102,7 +102,6 @@
 #include "DEG_depsgraph_query.h"
 
 #include "RE_engine.h"
-#include "RE_engine.h"
 
 #include "engines/eevee/eevee_lightcache.h"
 

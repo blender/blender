@@ -313,7 +313,8 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	if ((scene_eval->eevee.light_cache == NULL) &&
-	    (sldata->fallback_lightcache == NULL)) {
+	    (sldata->fallback_lightcache == NULL))
+	{
 #if defined(IRRADIANCE_SH_L2)
 		int grid_res = 4;
 #elif defined(IRRADIANCE_CUBEMAP)
@@ -860,7 +861,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 /** \name Rendering
  * \{ */
 
-typedef struct EEVEE_BakeRenderData{
+typedef struct EEVEE_BakeRenderData {
 	EEVEE_Data *vedata;
 	EEVEE_ViewLayerData *sldata;
 	struct GPUFrameBuffer **face_fb; /* should contain 6 framebuffer */
