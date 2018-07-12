@@ -36,19 +36,25 @@ def foreach_cycles_node(callback):
     traversed = set()
     for material in bpy.data.materials:
         if material.node_tree:
-            foreach_notree_node(material.node_tree,
-                                callback,
-                                traversed)
+            foreach_notree_node(
+                material.node_tree,
+                callback,
+                traversed,
+            )
     for world in bpy.data.worlds:
         if world.node_tree:
-            foreach_notree_node(world.node_tree,
-                                callback,
-                                traversed)
+            foreach_notree_node(
+                world.node_tree,
+                callback,
+                traversed,
+            )
     for light in bpy.data.lights:
         if light.node_tree:
-            foreach_notree_node(light.node_tree,
-                                callback,
-                                traversed)
+            foreach_notree_node(
+                light.node_tree,
+                callback,
+                traversed,
+            )
 
 
 def displacement_node_insert(material, nodetree, traversed):
@@ -63,10 +69,12 @@ def displacement_node_insert(material, nodetree, traversed):
     # Gather links to replace
     displacement_links = []
     for link in nodetree.links:
-        if link.to_node.bl_idname == 'ShaderNodeOutputMaterial' and \
-           link.from_node.bl_idname != 'ShaderNodeDisplacement' and \
-           link.to_socket.identifier == 'Displacement':
-           displacement_links.append(link)
+        if (
+                link.to_node.bl_idname == 'ShaderNodeOutputMaterial' and
+                link.from_node.bl_idname != 'ShaderNodeDisplacement' and
+                link.to_socket.identifier == 'Displacement'
+        ):
+            displacement_links.append(link)
 
     # Replace links with displacement node
     for link in displacement_links:
@@ -78,19 +86,21 @@ def displacement_node_insert(material, nodetree, traversed):
         nodetree.links.remove(link)
 
         node = nodetree.nodes.new(type='ShaderNodeDisplacement')
-        node.location[0] = 0.5 * (from_node.location[0] + to_node.location[0]);
-        node.location[1] = 0.5 * (from_node.location[1] + to_node.location[1]);
+        node.location[0] = 0.5 * (from_node.location[0] + to_node.location[0])
+        node.location[1] = 0.5 * (from_node.location[1] + to_node.location[1])
         node.inputs['Scale'].default_value = 0.1
         node.inputs['Midlevel'].default_value = 0.0
 
         nodetree.links.new(from_socket, node.inputs['Height'])
         nodetree.links.new(node.outputs['Displacement'], to_socket)
 
+
 def displacement_nodes_insert():
     traversed = set()
     for material in bpy.data.materials:
         if material.node_tree:
             displacement_node_insert(material, material.node_tree, traversed)
+
 
 def displacement_principled_nodes(node):
     if node.bl_idname == 'ShaderNodeDisplacement':
@@ -99,6 +109,7 @@ def displacement_principled_nodes(node):
     if node.bl_idname == 'ShaderNodeBsdfPrincipled':
         if node.subsurface_method != 'RANDOM_WALK':
             node.subsurface_method = 'BURLEY'
+
 
 def square_roughness_node_insert(material, nodetree, traversed):
     if nodetree in traversed:
@@ -124,7 +135,7 @@ def square_roughness_node_insert(material, nodetree, traversed):
     for link in nodetree.links:
         if link.to_node.bl_idname in roughness_node_types and \
            link.to_socket.identifier == 'Roughness':
-           roughness_links.append(link)
+            roughness_links.append(link)
 
     # Replace links with sqrt node
     for link in roughness_links:
@@ -137,12 +148,13 @@ def square_roughness_node_insert(material, nodetree, traversed):
 
         node = nodetree.nodes.new(type='ShaderNodeMath')
         node.operation = 'POWER'
-        node.location[0] = 0.5 * (from_node.location[0] + to_node.location[0]);
-        node.location[1] = 0.5 * (from_node.location[1] + to_node.location[1]);
+        node.location[0] = 0.5 * (from_node.location[0] + to_node.location[0])
+        node.location[1] = 0.5 * (from_node.location[1] + to_node.location[1])
 
         nodetree.links.new(from_socket, node.inputs[0])
         node.inputs[1].default_value = 0.5
         nodetree.links.new(node.outputs['Value'], to_socket)
+
 
 def square_roughness_nodes_insert():
     traversed = set()
@@ -249,7 +261,7 @@ def ambient_occlusion_node_relink(material, nodetree, traversed):
     ao_links = []
     for link in nodetree.links:
         if link.from_node.bl_idname == 'ShaderNodeAmbientOcclusion':
-           ao_links.append(link)
+            ao_links.append(link)
 
     # Replace links
     for link in ao_links:
@@ -258,6 +270,7 @@ def ambient_occlusion_node_relink(material, nodetree, traversed):
 
         nodetree.links.remove(link)
         nodetree.links.new(from_node.outputs['Color'], to_socket)
+
 
 def ambient_occlusion_nodes_relink():
     traversed = set()
@@ -298,7 +311,7 @@ def do_versions(self):
             sample_clamp = cscene.get("sample_clamp", False)
             if (sample_clamp and
                 not cscene.is_property_set("sample_clamp_direct") and
-                not cscene.is_property_set("sample_clamp_indirect")):
+                    not cscene.is_property_set("sample_clamp_indirect")):
 
                 cscene.sample_clamp_direct = sample_clamp
                 cscene.sample_clamp_indirect = sample_clamp
@@ -316,7 +329,7 @@ def do_versions(self):
             cscene = scene.cycles
             if (cscene.get("no_caustics", False) and
                 not cscene.is_property_set("caustics_reflective") and
-                not cscene.is_property_set("caustics_refractive")):
+                    not cscene.is_property_set("caustics_refractive")):
 
                 cscene.caustics_reflective = False
                 cscene.caustics_refractive = False

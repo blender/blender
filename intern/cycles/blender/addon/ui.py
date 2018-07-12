@@ -1169,7 +1169,7 @@ class CYCLES_LIGHT_PT_nodes(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         return context.light and not (context.light.type == 'AREA' and
-                                     context.light.cycles.is_portal) and \
+                                      context.light.cycles.is_portal) and \
             CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
@@ -1343,6 +1343,7 @@ class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
         # cscene = context.scene.cycles
 
         col = layout.column()
+
 
 class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
@@ -1526,8 +1527,6 @@ class CYCLES_MATERIAL_PT_settings_volume(CyclesButtonsPanel, Panel):
         sub.prop(cmat, "volume_sampling", text="Sampling")
         col.prop(cmat, "volume_interpolation", text="Interpolation")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
-
-
 
 
 class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):

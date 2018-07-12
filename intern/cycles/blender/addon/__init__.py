@@ -45,9 +45,9 @@ if "bpy" in locals():
 import bpy
 
 from . import (
-        engine,
-        version_update,
-        )
+    engine,
+    version_update,
+)
 
 
 class CyclesRender(bpy.types.RenderEngine):
