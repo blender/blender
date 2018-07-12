@@ -251,7 +251,7 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "proxy_render_size", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "render_size");
 	RNA_def_property_enum_items(prop, clip_render_size_items);
-	RNA_def_property_ui_text(prop, "Proxy render size",
+	RNA_def_property_ui_text(prop, "Proxy Render Size",
 	                         "Draw preview using full resolution or different proxy resolutions");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClipUser_proxy_render_settings_update");
 
