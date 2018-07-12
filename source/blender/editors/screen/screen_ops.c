@@ -1372,10 +1372,29 @@ static int area_snap_calc_location(
 			int snap_dist;
 			int dist;
 			{
-				/* Test the snap to middle. */
-				int middle = origval + (bigger - smaller) / 2;
-				snap_dist = abs(m_loc - middle);
-				final_loc = middle;
+				const float div_array[] = {
+					/* Middle. */
+					1.0f / 2.0f,
+					/* Thirds. */
+					1.0f / 3.0f, 2.0f / 3.0f,
+					/* Quaters. */
+					1.0f / 4.0f, 3.0f / 4.0f,
+					/* Eighth. */
+					1.0f / 8.0f, 3.0f / 8.0f,
+					5.0f / 8.0f, 7.0f / 8.0f,
+				};
+				/* Test the snap to the best division. */
+				const int axis_min = origval - smaller;
+				const float axis_span_fl = (float)(bigger + smaller);
+				int snap_dist_best = INT_MAX;
+				for (int i = 0; i < ARRAY_SIZE(div_array); i++) {
+					const int value = axis_min + round_fl_to_int(axis_span_fl * div_array[i]);
+					snap_dist = abs(m_loc - value);
+					if (snap_dist < snap_dist_best) {
+						snap_dist_best = snap_dist;
+						final_loc = value;
+					}
+				}
 			}
 
 			for (const ScrVert *v1 = sc->vertbase.first; v1; v1 = v1->next) {
