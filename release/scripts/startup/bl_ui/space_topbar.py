@@ -563,6 +563,8 @@ class TOPBAR_MT_window_specials(Menu):
 
         layout.operator("screen.area_dupli")
 
+        layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
+
         layout.separator()
 
         layout.operator("screen.area_split", text="Horizontal Split").direction = 'HORIZONTAL'
