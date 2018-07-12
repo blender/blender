@@ -3709,32 +3709,41 @@ class VIEW3D_PT_object_type_visibility(Panel):
 
         col = layout.column()
 
-        heading_pair = ("Visible", "Selectable")
-        attr_object_types = (
-            "mesh",
-            "curve",
-            "surf",
-            "meta",
-            "font",
-            "armature",
-            "lattice",
-            "empty",
-            "camera",
-            "lamp",
-            "light_probe",
-            "speaker",
+        attr_object_types_all = (
+            (
+                "mesh",
+                "curve",
+                "surf",
+                "meta",
+                "font",
+            ),
+            (
+                "armature",
+                "lattice",
+                "empty",
+                "camera",
+                "lamp",
+                "light_probe",
+                "speaker",
+            ),
         )
 
-        attr_vis = [f"show_object_viewport_{attr}" for attr in attr_object_types]
-        attr_sel = [f"show_object_select_{attr}" for attr in attr_object_types]
+        is_first = True
+        for attr_object_types in attr_object_types_all:
+            if is_first is False:
+                col.separator()
+            is_first = False
 
-        for attr_v, attr_s in zip(attr_vis, attr_sel):
-            icon_s = 'RESTRICT_SELECT_OFF' if getattr(view, attr_s) else 'RESTRICT_SELECT_ON'
+            attr_vis = ["show_object_viewport_" f"{attr:s}" for attr in attr_object_types]
+            attr_sel = ["show_object_select_" f"{attr:s}" for attr in attr_object_types]
 
-            row = col.row(align=True)
-            row.prop(view, attr_v)
-            row.active = getattr(view, attr_v)
-            row.prop(view, attr_s, text="", icon=icon_s, emboss=False)
+            for attr_v, attr_s in zip(attr_vis, attr_sel):
+                icon_s = 'RESTRICT_SELECT_OFF' if getattr(view, attr_s) else 'RESTRICT_SELECT_ON'
+
+                row = col.row(align=True)
+                row.prop(view, attr_v)
+                row.active = getattr(view, attr_v)
+                row.prop(view, attr_s, text="", icon=icon_s, emboss=False)
 
 
 class VIEW3D_PT_shading(Panel):
