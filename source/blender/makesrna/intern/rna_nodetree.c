@@ -141,6 +141,10 @@ const EnumPropertyItem rna_enum_node_math_items[] = {
 	{NODE_MATH_MOD,     "MODULO",       0, "Modulo",       ""},
 	{NODE_MATH_ABS,     "ABSOLUTE",     0, "Absolute",     ""},
 	{NODE_MATH_ATAN2,   "ARCTAN2",      0, "Arctan2",      ""},
+	{NODE_MATH_FLOOR,   "FLOOR",        0, "Floor",        ""},
+	{NODE_MATH_CEIL,    "CEIL",         0, "Ceil",         ""},
+	{NODE_MATH_FRACT,   "FRACT",        0, "Fract",        ""},
+	{NODE_MATH_SQRT,    "SQRT",         0, "Square Root",  ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

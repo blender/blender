@@ -40,6 +40,18 @@ float safe_modulo(float a, float b)
 	return result;
 }
 
+float safe_sqrt(float a)
+{
+	float result;
+
+	if (a > 0.0)
+		result = sqrt(a);
+	else
+		result = 0.0;
+
+	return result;
+}
+
 float safe_log(float a, float b)
 {
 	if (a < 0.0 || b < 0.0)
@@ -97,6 +109,14 @@ shader node_math(
 		Value = fabs(Value1);
 	else if (type == "arctan2")
 		Value = atan2(Value1, Value2);
+	else if (type == "floor")
+		Value = floor(Value1);
+	else if (type == "ceil")
+		Value = ceil(Value1);
+	else if (type == "fract")
+		Value = Value1 - floor(Value1);
+	else if (type == "sqrt")
+		Value = safe_sqrt(Value1);
 
 	if (use_clamp)
 		Value = clamp(Value, 0.0, 1.0);

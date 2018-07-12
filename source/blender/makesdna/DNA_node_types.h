@@ -1073,6 +1073,10 @@ enum {
 	NODE_MATH_MOD     = 17,
 	NODE_MATH_ABS     = 18,
 	NODE_MATH_ATAN2   = 19,
+	NODE_MATH_FLOOR   = 20,
+	NODE_MATH_CEIL    = 21,
+	NODE_MATH_FRACT   = 22,
+	NODE_MATH_SQRT    = 23,
 };
 
 /* mix rgb node flags */
