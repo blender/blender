@@ -625,6 +625,16 @@ def keymap_from_context(context, space_type):
     Keymap for popup toolbar, currently generated each time.
     """
 
+    def modifier_keywords_from_item(kmi):
+        return {
+            "any": kmi.any,
+            "shift": kmi.shift,
+            "ctrl": kmi.ctrl,
+            "alt": kmi.alt,
+            "oskey": kmi.oskey,
+            "key_modifier": kmi.key_modifier,
+        }
+
     use_search = False  # allows double tap
     use_simple_keymap = False
 
@@ -677,12 +687,7 @@ def keymap_from_context(context, space_type):
                         idname="wm.tool_set_by_name",
                         type=kmi_found_type,
                         value='PRESS',
-                        any=kmi_found.any,
-                        shift=kmi_found.shift,
-                        ctrl=kmi_found.ctrl,
-                        alt=kmi_found.alt,
-                        oskey=kmi_found.oskey,
-                        key_modifier=kmi_found.key_modifier,
+                        **modifier_keywords_from_item(kmi_found),
                     )
                     kmi.properties.name = item.text
 
@@ -695,6 +700,16 @@ def keymap_from_context(context, space_type):
         # Support double-tap for search.
         if kmi_search_type:
             keymap.keymap_items.new("wm.search_menu", type=kmi_search_type, value='PRESS')
+    else:
+        # The shortcut will show, so we better support running it.
+        kmi_search = wm.keyconfigs.find_item_from_operator(idname="wm.search_menu")[1]
+        if kmi_search:
+            keymap.keymap_items.new(
+                "wm.search_menu",
+                type=kmi_search.type,
+                value='PRESS',
+                **modifier_keywords_from_item(kmi_search),
+            )
 
     wm.keyconfigs.update()
     return keymap
