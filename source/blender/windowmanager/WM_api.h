@@ -441,6 +441,13 @@ void                WM_menutype_freelink(struct MenuType *mt);
 void                WM_menutype_free(void);
 bool                WM_menutype_poll(struct bContext *C, struct MenuType *mt);
 
+/* wm_panel_type.c */
+void                WM_paneltype_init(void);
+void                WM_paneltype_clear(void);
+struct PanelType   *WM_paneltype_find(const char *idname, bool quiet);
+bool                WM_paneltype_add(struct PanelType *mt);
+void                WM_paneltype_remove(struct PanelType *mt);
+
 /* wm_gesture_ops.c */
 int			WM_gesture_border_invoke	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_gesture_border_modal	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);

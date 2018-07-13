@@ -209,6 +209,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	wm_operatortype_init();
 	wm_operatortypes_register();
 
+	WM_paneltype_init();  /* Lookup table only. */
 	WM_menutype_init();
 	WM_uilisttype_init();
 	wm_manipulatortype_init();
@@ -453,6 +454,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		}
 	}
 
+	WM_paneltype_clear();
 	BKE_addon_pref_type_free();
 	wm_operatortype_free();
 	wm_dropbox_free();

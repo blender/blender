@@ -205,6 +205,8 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 	BLI_freelistN(&pt->children);
 	BLI_freelinkN(&art->paneltypes, pt);
 
+	WM_paneltype_remove(pt);
+
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
@@ -312,6 +314,8 @@ static StructRNA *rna_Panel_register(
 			BLI_strncpy(pt->owner_id, owner_id, sizeof(pt->owner_id));
 		}
 	}
+
+	WM_paneltype_add(pt);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
