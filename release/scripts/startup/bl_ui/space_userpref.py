@@ -1473,7 +1473,6 @@ class USERPREF_PT_addons(Panel):
                 sub.active = is_enabled
                 sub.label(text="%s: %s" % (info["category"], info["name"]))
 
-
                 # WARNING: 2.8x exception, may be removed
                 # use disabled state for old add-ons, chances are they are broken.
                 if info.get("blender", (0,)) < (2, 80):

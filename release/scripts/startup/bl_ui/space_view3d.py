@@ -3710,12 +3710,14 @@ class VIEW3D_PT_object_type_visibility(Panel):
         col = layout.column()
 
         attr_object_types = (
+            # Geometry
             "mesh",
             "curve",
             "surf",
             "meta",
             "font",
             None,
+            # Other
             "armature",
             "lattice",
             "empty",
