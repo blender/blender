@@ -28,6 +28,8 @@
  * For popups/popovers only, regions handle panel types by including them in local lists.
  */
 
+#include <stdio.h>
+
 #include "BLI_sys_types.h"
 
 #include "DNA_windowmanager_types.h"
