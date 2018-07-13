@@ -333,7 +333,6 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->shading.cavity_ridge_factor = 1.0f;
 	copy_v3_fl(v3d->shading.single_color, 0.8f);
 
-	v3d->overlay.flag = V3D_OVERLAY_LOOK_DEV;
 	v3d->overlay.wireframe_threshold = 0.5f;
 	v3d->overlay.bone_select_alpha = 0.5f;
 	v3d->overlay.texture_paint_mode_opacity = 0.8;
