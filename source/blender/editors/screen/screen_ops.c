@@ -1201,11 +1201,11 @@ typedef struct sAreaMoveData {
 		SNAP_NONE = 0,
 		/* Snap to an invisible grid with a unit defined in AREAGRID */
 		SNAP_AREAGRID,
-		/* Snap to mid-point and adjacent edges. */
-		SNAP_MIDPOINT_AND_ADJACENT,
+		/* Snap to fraction (half, third.. etc) and adjacent edges. */
+		SNAP_FRACTION_AND_ADJACENT,
 		/* Snap to either bigger or smaller, nothing in-between (used for
 		 * global areas). This has priority over other snap types, if it is
-		 * used, toggling SNAP_MIDPOINT_AND_ADJACENT doesn't work. */
+		 * used, toggling SNAP_FRACTION_AND_ADJACENT doesn't work. */
 		SNAP_BIGGER_SMALLER_ONLY,
 	} snap_type;
 } sAreaMoveData;
@@ -1369,7 +1369,7 @@ static int area_snap_calc_location(
 			m_cursor_final = (m_cursor >= bigger) ? bigger : smaller;
 			break;
 
-		case SNAP_MIDPOINT_AND_ADJACENT:
+		case SNAP_FRACTION_AND_ADJACENT:
 		{
 			const int axis = (dir == 'v') ? 0 : 1;
 			int snap_dist_best = INT_MAX;
@@ -1580,7 +1580,7 @@ static int area_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				case KM_MODAL_SNAP_ON:
 					if (md->snap_type != SNAP_BIGGER_SMALLER_ONLY) {
-						md->snap_type = SNAP_MIDPOINT_AND_ADJACENT;
+						md->snap_type = SNAP_FRACTION_AND_ADJACENT;
 					}
 					break;
 
@@ -2062,7 +2062,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		if (sd->previewmode == 0) {
 			if (sd->do_snap) {
 				const int snap_loc = area_snap_calc_location(
-				        CTX_wm_screen(C), SNAP_MIDPOINT_AND_ADJACENT, sd->delta, sd->origval, dir,
+				        CTX_wm_screen(C), SNAP_FRACTION_AND_ADJACENT, sd->delta, sd->origval, dir,
 				        sd->bigger, sd->smaller);
 				sd->delta = snap_loc - sd->origval;
 			}
@@ -2090,7 +2090,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 1;
 
 					const int snap_loc = area_snap_calc_location(
-					        CTX_wm_screen(C), SNAP_MIDPOINT_AND_ADJACENT, sd->delta, sd->origval, dir,
+					        CTX_wm_screen(C), SNAP_FRACTION_AND_ADJACENT, sd->delta, sd->origval, dir,
 					        sd->origmin + sd->origsize, -sd->origmin);
 
 					sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 0;
