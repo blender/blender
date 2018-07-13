@@ -691,23 +691,29 @@ int ED_object_modifier_apply(
 	if (md != ob->modifiers.first)
 		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected");
 
+	/* Get evaluated modifier, so object links pointer to evaluated data,
+	 * but still use original object it is applied to the original mesh. */
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	ModifierData *md_eval = (ob_eval) ? modifiers_findByName(ob_eval, md->name) : md;
+
 	/* allow apply of a not-realtime modifier, by first re-enabling realtime. */
-	prev_mode = md->mode;
-	md->mode |= eModifierMode_Realtime;
+	prev_mode = md_eval->mode;
+	md_eval->mode |= eModifierMode_Realtime;
 
 	if (mode == MODIFIER_APPLY_SHAPE) {
-		if (!modifier_apply_shape(bmain, reports, depsgraph, scene, ob, md)) {
-			md->mode = prev_mode;
+		if (!modifier_apply_shape(bmain, reports, depsgraph, scene, ob, md_eval)) {
+			md_eval->mode = prev_mode;
 			return 0;
 		}
 	}
 	else {
-		if (!modifier_apply_obdata(reports, depsgraph, scene, ob, md)) {
-			md->mode = prev_mode;
+		if (!modifier_apply_obdata(reports, depsgraph, scene, ob, md_eval)) {
+			md_eval->mode = prev_mode;
 			return 0;
 		}
 	}
 
+	md_eval->mode = prev_mode;
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
 
