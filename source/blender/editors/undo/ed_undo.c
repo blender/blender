@@ -130,7 +130,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		}
 
 		/* TODO(campbell), could use simple optimization. */
-		BLI_assert(step_data_from_name != wm->undo_stack->step_active);
+		/* Pointers match on redo. */
 		step_for_callback = (
 		        BLI_findindex(&wm->undo_stack->steps, step_data_from_name) <
 		        BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active)) ? 1 : -1;
