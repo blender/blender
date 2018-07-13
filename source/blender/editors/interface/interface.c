@@ -979,14 +979,12 @@ static bool ui_but_event_operator_string_from_menu(
 	BLI_assert(mt != NULL);
 
 	bool found = false;
-	IDProperty *prop_menu, *prop_menu_name;
+	IDProperty *prop_menu;
 
 	/* annoying, create a property */
 	IDPropertyTemplate val = {0};
 	prop_menu = IDP_New(IDP_GROUP, &val, __func__); /* dummy, name is unimportant  */
-	IDP_AddToGroup(prop_menu, (prop_menu_name = IDP_NewString("", "name", sizeof(mt->idname))));
-
-	IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
+	IDP_AddToGroup(prop_menu, IDP_NewString(mt->idname, "name", sizeof(mt->idname)));
 
 	if (WM_key_event_operator_string(
 	        C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true,
