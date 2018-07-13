@@ -1350,27 +1350,29 @@ static int area_snap_calc_location(
         const int bigger, const int smaller)
 {
 	BLI_assert(snap_type != SNAP_NONE);
-	int final_loc = -1;
-	const int m_loc = origval + delta;
+	int m_cursor_final = -1;
+	const int m_cursor = origval + delta;
+	const int m_span = (float)(bigger + smaller);
+	const int m_min = origval - smaller;
+	// const int axis_max = axis_min + m_span;
 
 	switch (snap_type) {
 		case SNAP_AREAGRID:
-			final_loc = m_loc;
+			m_cursor_final = m_cursor;
 			if (delta != bigger && delta != -smaller) {
-				final_loc -= (m_loc % AREAGRID);
-				CLAMP(final_loc, origval - smaller, origval + bigger);
+				m_cursor_final -= (m_cursor % AREAGRID);
+				CLAMP(m_cursor_final, origval - smaller, origval + bigger);
 			}
 			break;
 
 		case SNAP_BIGGER_SMALLER_ONLY:
-			final_loc = (m_loc >= bigger) ? bigger : smaller;
+			m_cursor_final = (m_cursor >= bigger) ? bigger : smaller;
 			break;
 
 		case SNAP_MIDPOINT_AND_ADJACENT:
 		{
 			const int axis = (dir == 'v') ? 0 : 1;
-			int snap_dist;
-			int dist;
+			int snap_dist_best = INT_MAX;
 			{
 				const float div_array[] = {
 					/* Middle. */
@@ -1384,15 +1386,12 @@ static int area_snap_calc_location(
 					5.0f / 8.0f, 7.0f / 8.0f,
 				};
 				/* Test the snap to the best division. */
-				const int axis_min = origval - smaller;
-				const float axis_span_fl = (float)(bigger + smaller);
-				int snap_dist_best = INT_MAX;
 				for (int i = 0; i < ARRAY_SIZE(div_array); i++) {
-					const int value = axis_min + round_fl_to_int(axis_span_fl * div_array[i]);
-					snap_dist = abs(m_loc - value);
-					if (snap_dist < snap_dist_best) {
-						snap_dist_best = snap_dist;
-						final_loc = value;
+					const int m_cursor_test = m_min + round_fl_to_int(m_span * div_array[i]);
+					const int snap_dist_test = abs(m_cursor - m_cursor_test);
+					if (snap_dist_best >= snap_dist_test) {
+						snap_dist_best = snap_dist_test;
+						m_cursor_final = m_cursor_test;
 					}
 				}
 			}
@@ -1411,10 +1410,10 @@ static int area_snap_calc_location(
 						const int v_loc2 = (&v2->vec.x)[axis];
 						/* Do not snap to the vertices at the ends. */
 						if ((origval - smaller) < v_loc2 && v_loc2 < (origval + bigger)) {
-							dist = abs(m_loc - v_loc2);
-							if (dist <= snap_dist) {
-								snap_dist = dist;
-								final_loc = v_loc2;
+							const int snap_dist_test = abs(m_cursor - v_loc2);
+							if (snap_dist_best >= snap_dist_test) {
+								snap_dist_best = snap_dist_test;
+								m_cursor_final = v_loc2;
 							}
 						}
 					}
@@ -1427,9 +1426,9 @@ static int area_snap_calc_location(
 	}
 
 	BLI_assert(ELEM(snap_type, SNAP_BIGGER_SMALLER_ONLY) ||
-	           IN_RANGE_INCL(final_loc, origval - smaller, origval + bigger));
+	           IN_RANGE_INCL(m_cursor_final, origval - smaller, origval + bigger));
 
-	return final_loc;
+	return m_cursor_final;
 }
 
 /* moves selected screen edge amount of delta, used by split & move */
