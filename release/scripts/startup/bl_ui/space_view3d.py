@@ -3757,38 +3757,56 @@ class VIEW3D_PT_shading_lighting(Panel):
         view = context.space_data
         shading = view.shading
 
+        col = layout.column()
+        split = col.split(0.9)
+
         if shading.type == 'SOLID':
-            layout.row().prop(shading, "light", expand=True)
+            split.row().prop(shading, "light", expand=True)
+            col = split.column()
+
+            split = layout.split(0.9)
+            col = split.column()
+            sub = col.row()
+            sub.scale_y = 0.6 # smaller matcap/hdri preview
+
             if shading.light == 'STUDIO':
-                row = layout.row()
-                row.scale_y = 0.8
-                row.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
-                sub = row.column()
-                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                sub.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
+
                 if shading.selected_studio_light.orientation == 'WORLD':
-                    layout.row().prop(shading, "studiolight_rotate_z", text="Rotation")
+                    col.prop(shading, "studiolight_rotate_z", text="Rotation")
+
+                col = split.column()
+                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
             elif shading.light == 'MATCAP':
-                row = layout.row()
-                row.scale_y = 0.8
-                row.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
-                sub = row.column()
-                sub.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
-                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                sub.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
+
+                col = split.column()
+                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                col.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
 
         elif shading.type == 'MATERIAL':
-            col = layout.column(align=True)
             col.prop(shading, "use_scene_lights")
             col.prop(shading, "use_scene_world")
 
             if not shading.use_scene_world:
-                row = layout.row()
-                row.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
-                sub = row.column()
-                sub.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                col = layout.column()
+                split = col.split(0.9)
+
+                col = split.column()
+                sub = col.row()
+                sub.scale_y = 0.6
+                sub.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
+
+                col = split.column()
+                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+
                 if shading.selected_studio_light.orientation == 'WORLD':
-                    layout.row().prop(shading, "studiolight_rotate_z", text="Rotation")
-                    layout.row().prop(shading, "studiolight_background_alpha")
+                    split = layout.split(0.9)
+                    col = split.column()
+                    col.prop(shading, "studiolight_rotate_z", text="Rotation")
+                    col.prop(shading, "studiolight_background_alpha")
+                    col = split.column() # to align properly with above
 
 
 class VIEW3D_PT_shading_color(Panel):
