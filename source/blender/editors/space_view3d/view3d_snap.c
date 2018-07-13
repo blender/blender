@@ -802,7 +802,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Cursor to Center";
-	ot->description = "Snap cursor to the Center";
+	ot->description = "Snap cursor to world origin";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_center";
 
 	/* api callbacks */
