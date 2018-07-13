@@ -998,6 +998,41 @@ static bool ui_but_event_operator_string_from_menu(
 	return found;
 }
 
+static bool ui_but_event_operator_string_from_panel(
+        const bContext *C, uiBut *but,
+        char *buf, const size_t buf_len)
+{
+	/** Nearly exact copy of #ui_but_event_operator_string_from_menu */
+	PanelType *pt = UI_but_paneltype_get(but);
+	BLI_assert(pt != NULL);
+
+	bool found = false;
+	IDProperty *prop_panel;
+
+	/* annoying, create a property */
+	IDPropertyTemplate val = {0};
+	prop_panel = IDP_New(IDP_GROUP, &val, __func__); /* dummy, name is unimportant  */
+	IDP_AddToGroup(prop_panel, IDP_NewString(pt->idname, "name", sizeof(pt->idname)));
+	IDP_AddToGroup(prop_panel, IDP_New(IDP_INT, &(IDPropertyTemplate){ .i = pt->space_type, }, "space_type"));
+	IDP_AddToGroup(prop_panel, IDP_New(IDP_INT, &(IDPropertyTemplate){ .i = pt->region_type, }, "region_type"));
+
+	for (int i = 0; i < 2; i++) {
+		/* FIXME(campbell): We can't reasonably search all configurations - long term. */
+		IDP_ReplaceInGroup(prop_panel, IDP_New(IDP_INT, &(IDPropertyTemplate){ .i = i, }, "keep_open"));
+		if (WM_key_event_operator_string(
+		            C, "WM_OT_call_panel", WM_OP_INVOKE_REGION_WIN, prop_panel, true,
+		            buf, buf_len))
+		{
+			found = true;
+			break;
+		}
+	}
+
+	IDP_FreeProperty(prop_panel);
+	MEM_freeN(prop_panel);
+	return found;
+}
+
 static bool ui_but_event_operator_string(
         const bContext *C, uiBut *but,
         char *buf, const size_t buf_len)
@@ -1009,6 +1044,9 @@ static bool ui_but_event_operator_string(
 	}
 	else if (UI_but_menutype_get(but) != NULL) {
 		found = ui_but_event_operator_string_from_menu(C, but, buf, buf_len);
+	}
+	else if (UI_but_paneltype_get(but) != NULL) {
+		found = ui_but_event_operator_string_from_panel(C, but, buf, buf_len);
 	}
 
 	return found;
