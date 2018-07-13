@@ -370,6 +370,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = 'TEXTURE_PT_image'
     tex_type = 'IMAGE'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -402,6 +403,8 @@ class TEXTURE_PT_image_alpha(TextureTypePanel, Panel):
     bl_label = "Alpha"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = 'TEXTURE_PT_image'
+    tex_type = 'IMAGE'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
         tex = context.texture
@@ -424,6 +427,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = 'TEXTURE_PT_image'
     tex_type = 'IMAGE'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
