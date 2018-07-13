@@ -277,16 +277,13 @@ uiPopupBlockHandle *ui_popover_panel_create(
  * \{ */
 
 int UI_popover_panel_invoke(
-        bContext *C, int space_id, int region_id, const char *idname,
+        bContext *C, const char *idname,
         bool keep_open, ReportList *reports)
 {
 	uiLayout *layout;
-	PanelType *pt = UI_paneltype_find(space_id, region_id, idname);
+	PanelType *pt = WM_paneltype_find(idname, true);
 	if (pt == NULL) {
-		BKE_reportf(
-		        reports, RPT_ERROR,
-		        "Panel \"%s\" not found (space %d, region %d)",
-		        idname, space_id, region_id);
+		BKE_reportf(reports, RPT_ERROR, "Panel \"%s\" not found", idname);
 		return OPERATOR_CANCELLED;
 	}
 

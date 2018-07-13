@@ -263,9 +263,7 @@ class PresetMenu(Panel):
     def draw_panel_header(cls, layout):
         layout.emboss = 'NONE'
         layout.popover(
-            cls.bl_space_type,
-            cls.bl_region_type,
-            cls.__name__,
+            panel=cls.__name__,
             icon='PRESET',
             text="",
         )
@@ -276,9 +274,7 @@ class PresetMenu(Panel):
             text = cls.bl_label
 
         layout.popover(
-            cls.bl_space_type,
-            cls.bl_region_type,
-            cls.__name__,
+            panel=cls.__name__,
             icon='PRESET',
             text=text,
         )

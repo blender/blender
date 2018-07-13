@@ -444,7 +444,7 @@ void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *b
 typedef struct uiPopover uiPopover;
 
 int UI_popover_panel_invoke(
-        struct bContext *C, int space_id, int region_id, const char *idname,
+        struct bContext *C, const char *idname,
         bool keep_open, struct ReportList *reports);
 
 uiPopover *UI_popover_begin(struct bContext *C, int menu_width) ATTR_NONNULL(1);
@@ -1170,7 +1170,7 @@ void uiItemPopoverPanel_ptr(
         const char *name, int icon);
 void uiItemPopoverPanel(
         uiLayout *layout, struct bContext *C,
-        int space_id, int region_id, const char *panelname,
+        const char *panelname,
         const char *name, int icon);
 void uiItemPopoverPanelFromGroup(
         uiLayout *layout, struct bContext *C,

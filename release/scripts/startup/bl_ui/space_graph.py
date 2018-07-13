@@ -60,9 +60,7 @@ class GRAPH_HT_header(Header):
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
 
         layout.popover(
-            space_type='GRAPH_EDITOR',
-            region_type='HEADER',
-            panel_type="GRAPH_PT_filters",
+            panel="GRAPH_PT_filters",
             text="",
             icon='FILTER',
         )

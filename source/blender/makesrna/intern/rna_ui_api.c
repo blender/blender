@@ -277,8 +277,7 @@ static void rna_uiItemM(
 
 static void rna_uiItemPopoverPanel(
         uiLayout *layout, bContext *C,
-        int space_type, int region_type, const char *panel_type,
-        const char *name, const char *text_ctxt,
+        const char *panel_type, const char *name, const char *text_ctxt,
         bool translate, int icon, int icon_value)
 {
 	/* Get translated name (label). */
@@ -288,7 +287,7 @@ static void rna_uiItemPopoverPanel(
 		icon = icon_value;
 	}
 
-	uiItemPopoverPanel(layout, C, space_type, region_type, panel_type, name, icon);
+	uiItemPopoverPanel(layout, C, panel_type, name, icon);
 }
 
 static void rna_uiItemPopoverPanelFromGroup(
@@ -717,11 +716,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func = RNA_def_function(srna, "popover", "rna_uiItemPopoverPanel");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm = RNA_def_enum(func, "space_type", rna_enum_space_type_items, 0, "Space Type", "");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_string(func, "panel_type", NULL, 0, "", "Identifier of the panel");
+	parm = RNA_def_string(func, "panel", NULL, 0, "", "Identifier of the panel");
 	api_ui_item_common(func);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);

@@ -94,15 +94,11 @@ class TIME_MT_editor_menus(Menu):
         row = layout.row()
         sub = row.row(align=True)
         sub.popover(
-            space_type='DOPESHEET_EDITOR',
-            region_type='HEADER',
-            panel_type="TIME_PT_playback",
+            panel="TIME_PT_playback",
             text="Playback",
         )
         sub.popover(
-            space_type='DOPESHEET_EDITOR',
-            region_type='HEADER',
-            panel_type="TIME_PT_keyframing_settings",
+            panel="TIME_PT_keyframing_settings",
             text="Keying",
         )
 

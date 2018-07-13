@@ -49,11 +49,11 @@ class OUTLINER_HT_header(Header):
 
         row = layout.row(align=True)
         if display_mode in {'VIEW_LAYER'}:
-            row.popover(space_type='OUTLINER',
-                        region_type='HEADER',
-                        panel_type="OUTLINER_PT_filter",
-                        text="",
-                        icon='FILTER')
+            row.popover(
+                panel="OUTLINER_PT_filter",
+                text="",
+                icon='FILTER',
+            )
         elif display_mode in {'LIBRARIES', 'ORPHAN_DATA'}:
             row.prop(space, "use_filter_id_type", text="", icon='FILTER')
             sub = row.row(align=True)

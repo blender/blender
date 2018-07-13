@@ -44,9 +44,7 @@ class NLA_HT_header(Header):
         dopesheet_filter(layout, context)
 
         layout.popover(
-            space_type='NLA_EDITOR',
-            region_type='HEADER',
-            panel_type="NLA_PT_filters",
+            panel="NLA_PT_filters",
             text="",
             icon='FILTER',
         )

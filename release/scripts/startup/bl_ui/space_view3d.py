@@ -116,9 +116,7 @@ class VIEW3D_HT_header(Header):
 
             row = layout.row(align=True)
             row.popover(
-                space_type='VIEW_3D',
-                region_type='HEADER',
-                panel_type="VIEW3D_PT_transform_orientations",
+                panel="VIEW3D_PT_transform_orientations",
                 text=trans_name,
                 icon=trans_icon,
             )
@@ -155,11 +153,9 @@ class VIEW3D_HT_header(Header):
 
             sub = row.row(align=True)
             sub.popover(
-                space_type='VIEW_3D',
-                region_type='HEADER',
-                panel_type="VIEW3D_PT_snapping",
+                panel="VIEW3D_PT_snapping",
                 icon=icon,
-                text=""
+                text="",
             )
 
         # Proportional editing
@@ -199,9 +195,7 @@ class VIEW3D_HT_header(Header):
             act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
             row = layout.row(align=True)
             row.popover(
-                space_type='VIEW_3D',
-                region_type='HEADER',
-                panel_type="VIEW3D_PT_pivot_point",
+                panel="VIEW3D_PT_pivot_point",
                 icon=act_pivot_point.icon,
                 text="",
             )
@@ -210,9 +204,7 @@ class VIEW3D_HT_header(Header):
 
         # Viewport Settings
         layout.popover(
-            space_type='VIEW_3D',
-            region_type='HEADER',
-            panel_type="VIEW3D_PT_object_type_visibility",
+            panel="VIEW3D_PT_object_type_visibility",
             icon_value=view.icon_from_show_object_viewport,
             text="",
         )
@@ -221,13 +213,13 @@ class VIEW3D_HT_header(Header):
         row.prop(overlay, "show_overlays", icon='WIRE', text="")
         sub = row.row(align=True)
         sub.active = overlay.show_overlays
-        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay")
+        sub.popover(panel="VIEW3D_PT_overlay")
 
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
         sub = row.row(align=True)
         sub.enabled = shading.type != 'RENDERED'
-        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading")
+        sub.popover(panel="VIEW3D_PT_shading")
 
 
 class VIEW3D_MT_editor_menus(Menu):
@@ -3861,9 +3853,7 @@ class VIEW3D_PT_shading_options(Panel):
         sub.active = is_shadows
         sub.prop(shading, "shadow_intensity", text="Shadow")
         sub.popover(
-            space_type='VIEW_3D',
-            region_type='HEADER',
-            panel_type="VIEW3D_PT_shading_options_shadow",
+            panel="VIEW3D_PT_shading_options_shadow",
             icon='SCRIPTWIN',
             text=""
         )
@@ -3879,9 +3869,7 @@ class VIEW3D_PT_shading_options(Panel):
             sub.prop(shading, "cavity_ridge_factor")
             sub.prop(shading, "cavity_valley_factor")
             sub.popover(
-                space_type='VIEW_3D',
-                region_type='HEADER',
-                panel_type="VIEW3D_PT_shading_options_ssao",
+                panel="VIEW3D_PT_shading_options_ssao",
                 icon='SCRIPTWIN',
                 text=""
             )

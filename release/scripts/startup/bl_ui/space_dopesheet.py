@@ -263,9 +263,7 @@ class DOPESHEET_HT_editor_buttons(Header):
             row.prop(st.dopesheet, "filter_text", text="")
 
         layout.popover(
-            space_type='DOPESHEET_EDITOR',
-            region_type='HEADER',
-            panel_type="DOPESHEET_PT_filters",
+            panel="DOPESHEET_PT_filters",
             text="",
             icon='FILTER',
         )

@@ -1778,11 +1778,9 @@ static int wm_call_panel_exec(bContext *C, wmOperator *op)
 {
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
-	const int space_type = RNA_enum_get(op->ptr, "space_type");
-	const int region_type = RNA_enum_get(op->ptr, "region_type");
 	const bool keep_open = RNA_boolean_get(op->ptr, "keep_open");
 
-	return UI_popover_panel_invoke(C, space_type, region_type, idname, keep_open, op->reports);
+	return UI_popover_panel_invoke(C, idname, keep_open, op->reports);
 }
 
 static void WM_OT_call_panel(wmOperatorType *ot)
@@ -1799,10 +1797,6 @@ static void WM_OT_call_panel(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	prop = RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the menu");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_enum(ot->srna, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_enum(ot->srna, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "keep_open", true, "Keep Open", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
