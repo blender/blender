@@ -389,6 +389,29 @@ void math_atan2(float val1, float val2, out float outval)
 	outval = atan(val1, val2);
 }
 
+void math_floor(float val, out float outval)
+{
+	outval = floor(val);
+}
+
+void math_ceil(float val, out float outval)
+{
+	outval = ceil(val);
+}
+
+void math_fract(float val, out float outval)
+{
+	outval = val - floor(val);
+}
+
+void math_sqrt(float val, out float outval)
+{
+	if (val > 0.0)
+		outval = sqrt(val);
+	else
+		outval = 0.0;
+}
+
 void squeeze(float val, float width, float center, out float outval)
 {
 	outval = 1.0 / (1.0 + pow(2.71828183, -((val - center) * width)));

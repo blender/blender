@@ -5068,6 +5068,10 @@ NODE_DEFINE(MathNode)
 	type_enum.insert("modulo", NODE_MATH_MODULO);
 	type_enum.insert("absolute", NODE_MATH_ABSOLUTE);
 	type_enum.insert("arctan2", NODE_MATH_ARCTAN2);
+	type_enum.insert("floor", NODE_MATH_FLOOR);
+	type_enum.insert("ceil", NODE_MATH_CEIL);
+	type_enum.insert("fract", NODE_MATH_FRACT);
+	type_enum.insert("sqrt", NODE_MATH_SQRT);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_MATH_ADD);
 
 	SOCKET_BOOLEAN(use_clamp, "Use Clamp", false);

@@ -89,6 +89,18 @@ void MathNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		case NODE_MATH_ATAN2:
 			operation = new MathArcTan2Operation();
 			break;
+		case NODE_MATH_FLOOR:
+			operation = new MathFloorOperation();
+			break;
+		case NODE_MATH_CEIL:
+			operation = new MathCeilOperation();
+			break;
+		case NODE_MATH_FRACT:
+			operation = new MathFractOperation();
+			break;
+		case NODE_MATH_SQRT:
+			operation = new MathSqrtOperation();
+			break;
 	}
 
 	if (operation) {
