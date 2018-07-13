@@ -53,8 +53,10 @@ struct wmOperatorType;
 struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
+struct wmWindowManager;
 
 #include "DNA_object_enums.h"
+#include "BLI_compiler_attrs.h"
 
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
