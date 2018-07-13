@@ -123,9 +123,10 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 /**
  * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
  */
-static void make_edges_mdata_extend(MEdge **r_alledge, int *r_totedge,
-                                    const MPoly *mpoly, MLoop *mloop,
-                                    const int totpoly)
+static void make_edges_mdata_extend(
+        MEdge **r_alledge, int *r_totedge,
+        const MPoly *mpoly, MLoop *mloop,
+        const int totpoly)
 {
 	int totedge = *r_totedge;
 	int totedge_new;
@@ -498,10 +499,11 @@ void BKE_mesh_from_nurbs_displist(
 	cu = ob->data;
 
 	if (dm == NULL) {
-		if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert,
-		                                     &alledge, &totedge, &allloop,
-		                                     &allpoly, (use_orco_uv) ? &alluv : NULL,
-		                                     &totloop, &totpoly) != 0)
+		if (BKE_mesh_nurbs_displist_to_mdata(
+		            ob, dispbase, &allvert, &totvert,
+		            &alledge, &totedge, &allloop,
+		            &allpoly, (use_orco_uv) ? &alluv : NULL,
+		            &totloop, &totpoly) != 0)
 		{
 			/* Error initializing */
 			return;
