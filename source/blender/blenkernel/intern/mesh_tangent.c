@@ -91,8 +91,9 @@ static void get_position(const SMikkTSpaceContext *pContext, float r_co[3], cons
 	copy_v3_v3(r_co, p_mesh->mverts[p_mesh->mloops[loop_idx].v].co);
 }
 
-static void get_texture_coordinate(const SMikkTSpaceContext *pContext, float r_uv[2], const int face_idx,
-                                   const int vert_idx)
+static void get_texture_coordinate(
+        const SMikkTSpaceContext *pContext, float r_uv[2], const int face_idx,
+        const int vert_idx)
 {
 	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
 	copy_v2_v2(r_uv, p_mesh->luvs[p_mesh->mpolys[face_idx].loopstart + vert_idx].uv);
@@ -104,8 +105,9 @@ static void get_normal(const SMikkTSpaceContext *pContext, float r_no[3], const 
 	copy_v3_v3(r_no, p_mesh->lnors[p_mesh->mpolys[face_idx].loopstart + vert_idx]);
 }
 
-static void set_tspace(const SMikkTSpaceContext *pContext, const float fv_tangent[3], const float face_sign,
-                       const int face_idx, const int vert_idx)
+static void set_tspace(
+        const SMikkTSpaceContext *pContext, const float fv_tangent[3], const float face_sign,
+        const int face_idx, const int vert_idx)
 {
 	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
 	float *p_res = p_mesh->tangents[p_mesh->mpolys[face_idx].loopstart + vert_idx];
@@ -192,8 +194,9 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh, const char *uvmap, float (*r_
 		return;
 	}
 
-	BKE_mesh_calc_loop_tangent_single_ex(mesh->mvert, mesh->totvert, mesh->mloop, r_looptangents,
-	                          loopnors, loopuvs, mesh->totloop, mesh->mpoly, mesh->totpoly, reports);
+	BKE_mesh_calc_loop_tangent_single_ex(
+	        mesh->mvert, mesh->totvert, mesh->mloop, r_looptangents,
+	        loopnors, loopuvs, mesh->totloop, mesh->mpoly, mesh->totpoly, reports);
 }
 
 /** \} */
