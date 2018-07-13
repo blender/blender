@@ -202,7 +202,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 
 		if (v3d) {
 			opdata->mpr_flag = v3d->mpr_flag;
-			v3d->mpr_flag = 0;
+			v3d->mpr_flag = V3D_MANIPULATOR_HIDE;
 		}
 	}
 

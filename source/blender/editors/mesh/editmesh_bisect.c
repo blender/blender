@@ -157,7 +157,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		/* misc other vars */
 		G.moving = G_TRANSFORM_EDIT;
 		opdata->mpr_flag = v3d->mpr_flag;
-		v3d->mpr_flag = 0;
+		v3d->mpr_flag = V3D_MANIPULATOR_HIDE;
 
 		/* initialize modal callout */
 		ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
