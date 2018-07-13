@@ -261,19 +261,6 @@ void		WM_operator_type_set(struct wmOperator *op, struct wmOperatorType *ot);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
 void		WM_operator_handlers_clear(wmWindowManager *wm, struct wmOperatorType *ot);
 
-struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);
-void        WM_operatortype_iter(struct GHashIterator *ghi);
-void		WM_operatortype_append(void (*opfunc)(struct wmOperatorType *));
-void		WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata);
-void		WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata);
-void        WM_operatortype_remove_ptr(struct wmOperatorType *ot);
-bool        WM_operatortype_remove(const char *idname);
-void        WM_operatortype_last_properties_clear_all(void);
-
-struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag);
-struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
-
-
 bool        WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
 bool        WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, short context);
 int         WM_operator_call_ex(struct bContext *C, struct wmOperator *op, const bool store);
@@ -367,14 +354,28 @@ void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 bool        WM_operator_py_idname_ok_or_report(struct ReportList *reports, const char *classname, const char *idname);
 
-/* *************** uilist types ******************** */
+
+/* wm_operator_type.c */
+struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);
+void WM_operatortype_iter(struct GHashIterator *ghi);
+void WM_operatortype_append(void (*opfunc)(struct wmOperatorType *));
+void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata);
+void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata);
+void WM_operatortype_remove_ptr(struct wmOperatorType *ot);
+bool WM_operatortype_remove(const char *idname);
+void WM_operatortype_last_properties_clear_all(void);
+
+struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag);
+struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
+
+/* wm_uilist_type.c */
 void                WM_uilisttype_init(void);
 struct uiListType  *WM_uilisttype_find(const char *idname, bool quiet);
 bool                WM_uilisttype_add(struct uiListType *ult);
 void                WM_uilisttype_freelink(struct uiListType *ult);
 void                WM_uilisttype_free(void);
 
-/* *************** menu types ******************** */
+/* wm_menu_type.c */
 void                WM_menutype_init(void);
 struct MenuType    *WM_menutype_find(const char *idname, bool quiet);
 bool                WM_menutype_add(struct MenuType *mt);
