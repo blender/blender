@@ -888,6 +888,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Dyntopo"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
 
     @classmethod
     def poll(cls, context):
@@ -906,6 +907,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
