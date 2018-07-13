@@ -262,6 +262,27 @@ void WM_operatortype_props_advanced_end(wmOperatorType *ot)
 	ot_prop_basic_count = -1;
 }
 
+/**
+ * Remove memory of all previously executed tools.
+ */
+void WM_operatortype_last_properties_clear_all(void)
+{
+	GHashIterator iter;
+
+	for (WM_operatortype_iter(&iter);
+	     (!BLI_ghashIterator_done(&iter));
+	     (BLI_ghashIterator_step(&iter)))
+	{
+		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
+
+		if (ot->last_properties) {
+			IDP_FreeProperty(ot->last_properties);
+			MEM_freeN(ot->last_properties);
+			ot->last_properties = NULL;
+		}
+	}
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
