@@ -3660,7 +3660,7 @@ void node_tex_sky(vec3 co, out vec4 color)
 	color = vec4(1.0);
 }
 
-void node_tex_voronoi(vec3 co, float scale, float coloring, out vec4 color, out float fac)
+void node_tex_voronoi(vec3 co, float scale, float exponent, float coloring, out vec4 color, out float fac)
 {
 #ifdef BIT_OPERATIONS
 	vec3 p = co * scale;

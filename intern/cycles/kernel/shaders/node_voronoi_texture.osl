@@ -17,12 +17,93 @@
 #include "stdosl.h"
 #include "node_texture.h"
 
+void voronoi_m(point p, string metric, float e, float da[4], point pa[4])
+{
+	/* Compute the distance to and the position of the four closest neighbors to p.
+	 *
+	 * The neighbors are randomly placed, 1 each in a 3x3x3 grid (Worley pattern).
+	 * The distances and points are returned in ascending order, i.e. da[0] and pa[0] will
+	 * contain the distance to the closest point and its coordinates respectively.
+	 */
+	int xx, yy, zz, xi, yi, zi;
+
+	xi = (int)floor(p[0]);
+	yi = (int)floor(p[1]);
+	zi = (int)floor(p[2]);
+
+	da[0] = 1e10;
+	da[1] = 1e10;
+	da[2] = 1e10;
+	da[3] = 1e10;
+
+	for (xx = xi - 1; xx <= xi + 1; xx++) {
+		for (yy = yi - 1; yy <= yi + 1; yy++) {
+			for (zz = zi - 1; zz <= zi + 1; zz++) {
+				point ip = point(xx, yy, zz);
+				point vp = (point)cellnoise_color(ip);
+				point pd = p - (vp + ip);
+
+				float d = 0.0;
+				if (metric == "distance") {
+					d = dot(pd, pd);
+				}
+				else if (metric == "manhattan") {
+					d = fabs(pd[0]) + fabs(pd[1]) + fabs(pd[2]);
+				}
+				else if (metric == "chebychev") {
+					d = max(fabs(pd[0]), max(fabs(pd[1]), fabs(pd[2])));
+				}
+				else if (metric == "minkowski") {
+					d = pow(pow(fabs(pd[0]), e) + pow(fabs(pd[1]), e) + pow(fabs(pd[2]), e), 1.0/e);
+				}
+
+				vp += point(xx, yy, zz);
+
+				if (d < da[0]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = da[0];
+					da[0] = d;
+
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = pa[0];
+					pa[0] = vp;
+				}
+				else if (d < da[1]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = d;
+
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = vp;
+				}
+				else if (d < da[2]) {
+					da[3] = da[2];
+					da[2] = d;
+
+					pa[3] = pa[2];
+					pa[2] = vp;
+				}
+				else if (d < da[3]) {
+					da[3] = d;
+					pa[3] = vp;
+				}
+			}
+		}
+	}
+}
+
 /* Voronoi */
 
 shader node_voronoi_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	string coloring = "intensity",
+	string metric = "distance",
+	string feature = "F1",
+	float Exponent = 1.0,
 	float Scale = 5.0,
 	point Vector = P,
 	output float Fac = 0.0,
@@ -37,17 +118,48 @@ shader node_voronoi_texture(
 	float da[4];
 	point pa[4];
 
-	voronoi(p * Scale, 1.0, da, pa);
+	/* compute distance and point coordinate of 4 nearest neighbours */
+	voronoi_m(p * Scale, metric, Exponent, da, pa);
 
-	/* Colored output */
 	if (coloring == "intensity") {
-		Fac = fabs(da[0]);
+		/* Intensity output */
+		if (feature == "F1") {
+			Fac = fabs(da[0]);
+		}
+		else if (feature == "F2") {
+			Fac = fabs(da[1]);
+		}
+		else if (feature == "F3") {
+			Fac = fabs(da[2]);
+		}
+		else if (feature == "F4") {
+			Fac = fabs(da[3]);
+		}
+		else if (feature == "F2F1") {
+			Fac = fabs(da[1] - da[0]);
+		}
 		Color = color(Fac);
 	}
 	else {
-		Color = cellnoise_color(pa[0]);
-		Fac = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
+		/* Color output */
+		if (feature == "F1") {
+			Color = pa[0];
+		}
+		else if (feature == "F2") {
+			Color = pa[1];
+		}
+		else if (feature == "F3") {
+			Color = pa[2];
+		}
+		else if (feature == "F4") {
+			Color = pa[3];
+		}
+		else if (feature == "F2F1") {
+			Color = fabs(pa[1] - pa[0]);
+		}
 
+		Color = cellnoise_color(Color);
+		Fac = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
 	}
 }
 

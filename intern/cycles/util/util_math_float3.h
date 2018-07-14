@@ -280,6 +280,11 @@ ccl_device_inline float3 sqrt(const float3& a)
 #endif
 }
 
+ccl_device_inline float3 pow3(const float3& a, float e)
+{
+	return make_float3(powf(a.x, e), powf(a.y, e), powf(a.z, e));
+}
+
 ccl_device_inline float3 mix(const float3& a, const float3& b, float t)
 {
 	return a + t*(b - a);

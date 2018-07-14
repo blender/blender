@@ -3055,16 +3055,7 @@ static void rna_ShaderNodeScript_update(Main *bmain, Scene *scene, PointerRNA *p
 	ED_node_tag_update_nodetree(bmain, ntree, node);
 }
 
-static void rna_ShaderNodePrincipled_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
-	bNode *node = (bNode *)ptr->data;
-
-	nodeUpdate(ntree, node);
-	rna_Node_update(bmain, scene, ptr);
-}
-
-static void rna_ShaderNodeSubsurface_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_ShaderNode_socket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 	bNode *node = (bNode *)ptr->data;
@@ -4003,6 +3994,23 @@ static void def_sh_tex_voronoi(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_distance_items[] = {
+		{ SHD_VORONOI_DISTANCE, "DISTANCE", 0, "Distance", "Distance" },
+		{ SHD_VORONOI_MANHATTAN, "MANHATTAN", 0, "Manhattan", "Manhattan (city block) distance" },
+		{ SHD_VORONOI_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev", "Chebychev distance" },
+		{ SHD_VORONOI_MINKOWSKI, "MINKOWSKI", 0, "Minkowski", "Minkowski distance" },
+		{ 0, NULL, 0, NULL, NULL }
+	};
+
+	static EnumPropertyItem prop_feature_items[] = {
+		{ SHD_VORONOI_F1, "F1", 0, "Closest", "Closest point" },
+		{ SHD_VORONOI_F2, "F2", 0, "2nd Closest", "2nd closest point" },
+		{ SHD_VORONOI_F3, "F3", 0, "3rd Closest", "3rd closest point" },
+		{ SHD_VORONOI_F4, "F4", 0, "4th Closest", "4th closest point" },
+		{ SHD_VORONOI_F2F1, "F2F1", 0, "Crackle", "Difference between 2nd and 1st closest point" },
+		{ 0, NULL, 0, NULL, NULL }
+	};
+
 	PropertyRNA *prop;
 
 	RNA_def_struct_sdna_from(srna, "NodeTexVoronoi", "storage");
@@ -4012,6 +4020,18 @@ static void def_sh_tex_voronoi(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "coloring");
 	RNA_def_property_enum_items(prop, prop_coloring_items);
 	RNA_def_property_ui_text(prop, "Coloring", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "distance", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "distance");
+	RNA_def_property_enum_items(prop, prop_distance_items);
+	RNA_def_property_ui_text(prop, "Distance metric", "");
+	RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
+
+	prop = RNA_def_property(srna, "feature", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "feature");
+	RNA_def_property_enum_items(prop, prop_feature_items);
+	RNA_def_property_ui_text(prop, "Feature Output", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -4284,13 +4304,13 @@ static void def_principled(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, node_principled_distribution_items);
 	RNA_def_property_ui_text(prop, "Distribution", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodePrincipled_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 
 	prop = RNA_def_property(srna, "subsurface_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom2");
 	RNA_def_property_enum_items(prop, node_subsurface_method_items);
 	RNA_def_property_ui_text(prop, "Subsurface Method", "Method for rendering subsurface scattering");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodePrincipled_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
 static void def_refraction(StructRNA *srna)
@@ -4525,7 +4545,7 @@ static void def_sh_subsurface(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, prop_subsurface_falloff_items);
 	RNA_def_property_ui_text(prop, "Falloff", "Function to determine how much light nearby points contribute based on their distance to the shading point");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeSubsurface_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
 static void def_sh_tex_ies(StructRNA *srna)

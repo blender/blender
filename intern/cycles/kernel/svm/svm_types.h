@@ -338,6 +338,21 @@ typedef enum NodeVoronoiColoring {
 	NODE_VORONOI_CELLS
 } NodeVoronoiColoring;
 
+typedef enum NodeVoronoiDistanceMetric {
+	NODE_VORONOI_DISTANCE,
+	NODE_VORONOI_MANHATTAN,
+	NODE_VORONOI_CHEBYCHEV,
+	NODE_VORONOI_MINKOWSKI
+} NodeVoronoiDistanceMetric;
+
+typedef enum NodeVoronoiFeature {
+	NODE_VORONOI_F1,
+	NODE_VORONOI_F2,
+	NODE_VORONOI_F3,
+	NODE_VORONOI_F4,
+	NODE_VORONOI_F2F1
+} NodeVoronoiFeature;
+
 typedef enum NodeBlendWeightType {
 	NODE_LAYER_WEIGHT_FRESNEL,
 	NODE_LAYER_WEIGHT_FACING
