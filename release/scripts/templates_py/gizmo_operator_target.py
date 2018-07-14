@@ -1,15 +1,15 @@
-# Example of a manipulator that activates an operator
-# using the predefined dial manipulator to change the camera roll.
+# Example of a gizmo that activates an operator
+# using the predefined dial gizmo to change the camera roll.
 #
 # Usage: Run this script and select a camera in the 3D view.
 #
 import bpy
 from bpy.types import (
-    ManipulatorGroup,
+    GizmoGroup,
 )
 
 
-class MyCameraWidgetGroup(ManipulatorGroup):
+class MyCameraWidgetGroup(GizmoGroup):
     bl_idname = "OBJECT_WGT_test_camera"
     bl_label = "Object Camera Test Widget"
     bl_space_type = 'VIEW_3D'
@@ -22,9 +22,9 @@ class MyCameraWidgetGroup(ManipulatorGroup):
         return (ob and ob.type == 'CAMERA')
 
     def setup(self, context):
-        # Run an operator using the dial manipulator
+        # Run an operator using the dial gizmo
         ob = context.object
-        mpr = self.manipulators.new("MANIPULATOR_WT_dial_3d")
+        mpr = self.gizmos.new("GIZMO_WT_dial_3d")
         props = mpr.target_set_operator("transform.rotate")
         props.constraint_axis = False, False, True
         props.constraint_orientation = 'LOCAL'

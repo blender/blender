@@ -1,16 +1,16 @@
 # Example of a group that edits a single property
-# using the predefined manipulator arrow.
+# using the predefined gizmo arrow.
 #
 # Usage: Select a light in the 3D view and drag the arrow at it's rear
 # to change it's energy value.
 #
 import bpy
 from bpy.types import (
-    ManipulatorGroup,
+    GizmoGroup,
 )
 
 
-class MyLightWidgetGroup(ManipulatorGroup):
+class MyLightWidgetGroup(GizmoGroup):
     bl_idname = "OBJECT_WGT_light_test"
     bl_label = "Test Light Widget"
     bl_space_type = 'VIEW_3D'
@@ -23,9 +23,9 @@ class MyLightWidgetGroup(ManipulatorGroup):
         return (ob and ob.type == 'LIGHT')
 
     def setup(self, context):
-        # Arrow manipulator has one 'offset' property we can assign to the light energy.
+        # Arrow gizmo has one 'offset' property we can assign to the light energy.
         ob = context.object
-        mpr = self.manipulators.new("MANIPULATOR_WT_arrow_3d")
+        mpr = self.gizmos.new("GIZMO_WT_arrow_3d")
         mpr.target_set_prop("offset", ob.data, "energy")
         mpr.matrix_basis = ob.matrix_world.normalized()
         mpr.draw_style = 'BOX'

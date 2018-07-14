@@ -5,8 +5,8 @@
 #
 import bpy
 from bpy.types import (
-    Manipulator,
-    ManipulatorGroup,
+    Gizmo,
+    GizmoGroup,
 )
 
 # Coordinates (each one is a triangle).
@@ -62,7 +62,7 @@ custom_shape_verts = (
 )
 
 
-class MyCustomShapeWidget(Manipulator):
+class MyCustomShapeWidget(Gizmo):
     bl_idname = "VIEW3D_WT_auto_facemap"
     bl_target_properties = (
         {"id": "offset", "type": 'FLOAT', "array_length": 1},
@@ -108,11 +108,11 @@ class MyCustomShapeWidget(Manipulator):
             delta /= 10.0
         value = self.init_value + delta
         self.target_set_value("offset", value)
-        context.area.header_text_set("My Manipulator: %.4f" % value)
+        context.area.header_text_set("My Gizmo: %.4f" % value)
         return {'RUNNING_MODAL'}
 
 
-class MyCustomShapeWidgetGroup(ManipulatorGroup):
+class MyCustomShapeWidgetGroup(GizmoGroup):
     bl_idname = "OBJECT_WGT_light_test"
     bl_label = "Test Light Widget"
     bl_space_type = 'VIEW_3D'
@@ -127,7 +127,7 @@ class MyCustomShapeWidgetGroup(ManipulatorGroup):
     def setup(self, context):
         # Assign the 'offset' target property to the light energy.
         ob = context.object
-        mpr = self.manipulators.new(MyCustomShapeWidget.bl_idname)
+        mpr = self.gizmos.new(MyCustomShapeWidget.bl_idname)
         mpr.target_set_prop("offset", ob.data, "energy")
         mpr.matrix_basis = ob.matrix_world.normalized()
 

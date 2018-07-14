@@ -556,7 +556,7 @@ class RNAMetaPropGroup(StructMetaPropGroup, RNAMeta):
 
 # Same as 'Operator'
 # only without 'as_keywords'
-class Manipulator(StructRNA):
+class Gizmo(StructRNA):
     __slots__ = ()
 
     def __getattribute__(self, attr):
@@ -590,15 +590,15 @@ class Manipulator(StructRNA):
     # Convenience wrappers around private `_gawain` module.
     def draw_custom_shape(self, shape, *, matrix=None, select_id=None):
         """
-        Draw a shape created form :class:`bpy.types.Manipulator.draw_custom_shape`.
+        Draw a shape created form :class:`bpy.types.Gizmo.draw_custom_shape`.
 
         :arg shape: The cached shape to draw.
         :type shape: Undefined.
         :arg matrix: 4x4 matrix, when not given
-           :class:`bpy.types.Manipulator.matrix_world` is used.
+           :class:`bpy.types.Gizmo.matrix_world` is used.
         :type matrix: :class:`mathutils.Matrix`
         :arg select_id: The selection id.
-           Only use when drawing within :class:`bpy.types.Manipulator.draw_select`.
+           Only use when drawing within :class:`bpy.types.Gizmo.draw_select`.
         :type select_it: int
         """
         import gpu
@@ -627,7 +627,7 @@ class Manipulator(StructRNA):
     @staticmethod
     def new_custom_shape(type, verts):
         """
-        Create a new shape that can be passed to :class:`bpy.types.Manipulator.draw_custom_shape`.
+        Create a new shape that can be passed to :class:`bpy.types.Gizmo.draw_custom_shape`.
 
         :arg type: The type of shape to create in (POINTS, LINES, TRIS, LINE_STRIP).
         :type type: string

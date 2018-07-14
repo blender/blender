@@ -1,15 +1,15 @@
-# Example of an operator which uses manipulators to control its properties.
+# Example of an operator which uses gizmos to control its properties.
 #
 # Usage: Run this script, then in mesh edit-mode press Spacebar
 # to activate the operator "Select Side of Plane"
-# The manipulators can then be used to adjust the plane in the 3D view.
+# The gizmos can then be used to adjust the plane in the 3D view.
 #
 import bpy
 import bmesh
 
 from bpy.types import (
     Operator,
-    ManipulatorGroup,
+    GizmoGroup,
 )
 
 from bpy.props import (
@@ -68,7 +68,7 @@ class SelectSideOfPlane(Operator):
 
         if context.space_data.type == 'VIEW_3D':
             wm = context.window_manager
-            wm.manipulator_group_type_add(SelectSideOfPlaneManipulatorGroup.bl_idname)
+            wm.gizmo_group_type_add(SelectSideOfPlaneGizmoGroup.bl_idname)
 
         return {'FINISHED'}
 
@@ -78,10 +78,10 @@ class SelectSideOfPlane(Operator):
         return {'FINISHED'}
 
 
-# Manipulators for plane_co, plane_no
-class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
+# Gizmos for plane_co, plane_no
+class SelectSideOfPlaneGizmoGroup(GizmoGroup):
     bl_idname = "MESH_WGT_select_side_of_plane"
-    bl_label = "Side of Plane Manipulator"
+    bl_label = "Side of Plane Gizmo"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D'}
@@ -106,7 +106,7 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
         op = cls.my_target_operator(context)
         if op is None:
             wm = context.window_manager
-            wm.manipulator_group_type_remove(SelectSideOfPlaneManipulatorGroup.bl_idname)
+            wm.gizmo_group_type_remove(SelectSideOfPlaneGizmoGroup.bl_idname)
             return False
         return True
 
@@ -117,16 +117,16 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
         # Grab
 
         def grab_get_cb():
-            op = SelectSideOfPlaneManipulatorGroup.my_target_operator(context)
+            op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
             return op.plane_co
 
         def grab_set_cb(value):
-            op = SelectSideOfPlaneManipulatorGroup.my_target_operator(context)
+            op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
             op.plane_co = value
             # XXX, this may change!
             op.execute(context)
 
-        mpr = self.manipulators.new("MANIPULATOR_WT_grab_3d")
+        mpr = self.gizmos.new("GIZMO_WT_grab_3d")
         mpr.target_set_handler("offset", get=grab_get_cb, set=grab_set_cb)
 
         mpr.use_draw_value = True
@@ -145,7 +145,7 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
         # Dial
 
         def direction_get_cb():
-            op = SelectSideOfPlaneManipulatorGroup.my_target_operator(context)
+            op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
 
             no_a = self.widget_dial.matrix_basis.col[1].xyz
             no_b = Vector(op.plane_no)
@@ -155,13 +155,13 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
             return no_a.angle_signed(no_b)
 
         def direction_set_cb(value):
-            op = SelectSideOfPlaneManipulatorGroup.my_target_operator(context)
+            op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
             matrix_rotate = Matrix.Rotation(-value, 3, self.rotate_axis)
             no = matrix_rotate * self.widget_dial.matrix_basis.col[1].xyz
             op.plane_no = no
             op.execute(context)
 
-        mpr = self.manipulators.new("MANIPULATOR_WT_dial_3d")
+        mpr = self.gizmos.new("GIZMO_WT_dial_3d")
         mpr.target_set_handler("offset", get=direction_get_cb, set=direction_set_cb)
         mpr.draw_options = {'ANGLE_START_Y'}
 
@@ -216,7 +216,7 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
 
 classes = (
     SelectSideOfPlane,
-    SelectSideOfPlaneManipulatorGroup,
+    SelectSideOfPlaneGizmoGroup,
 )
 
 
