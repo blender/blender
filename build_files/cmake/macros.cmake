@@ -600,7 +600,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_curve
 		bf_editor_gpencil
 		bf_editor_interface
-		bf_editor_manipulator_library
+		bf_editor_gizmo_library
 		bf_editor_mesh
 		bf_editor_metaball
 		bf_editor_object
@@ -635,7 +635,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_physics
 		bf_nodes
 		bf_rna
-		bf_editor_manipulator_library  # rna -> manipulator bad-level calls
+		bf_editor_gizmo_library  # rna -> gizmo bad-level calls
 		bf_python
 		bf_imbuf
 		bf_blenlib

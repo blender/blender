@@ -53,7 +53,7 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
-#include "ED_manipulator_library.h"
+#include "ED_gizmo_library.h"
 
 #include "UI_resources.h"
 

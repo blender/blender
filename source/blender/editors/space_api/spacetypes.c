@@ -67,7 +67,7 @@
 #include "ED_clip.h"
 #include "ED_mask.h"
 #include "ED_sequencer.h"
-#include "ED_manipulator_library.h"
+#include "ED_gizmo_library.h"
 
 #include "io_ops.h"
 

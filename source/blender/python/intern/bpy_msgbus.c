@@ -44,7 +44,7 @@
 #include "bpy_capi_utils.h"
 #include "bpy_rna.h"
 #include "bpy_intern_string.h"
-#include "bpy_manipulator_wrap.h"  /* own include */
+#include "bpy_gizmo_wrap.h"  /* own include */
 
 
 #include "bpy_msgbus.h"  /* own include */

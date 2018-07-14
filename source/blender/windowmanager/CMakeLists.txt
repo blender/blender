@@ -25,8 +25,8 @@
 
 set(INC
 	.
-	manipulators
-	manipulators/intern
+	gizmo
+	gizmo/intern
 	../blenfont
 	../blenkernel
 	../blenlib
@@ -79,12 +79,12 @@ set(SRC
 	intern/wm_tooltip.c
 	intern/wm_uilist_type.c
 	intern/wm_window.c
-	manipulators/intern/wm_manipulator.c
-	manipulators/intern/wm_manipulator_group.c
-	manipulators/intern/wm_manipulator_group_type.c
-	manipulators/intern/wm_manipulator_map.c
-	manipulators/intern/wm_manipulator_target_props.c
-	manipulators/intern/wm_manipulator_type.c
+	gizmo/intern/wm_gizmo.c
+	gizmo/intern/wm_gizmo_group.c
+	gizmo/intern/wm_gizmo_group_type.c
+	gizmo/intern/wm_gizmo_map.c
+	gizmo/intern/wm_gizmo_target_props.c
+	gizmo/intern/wm_gizmo_type.c
 	message_bus/intern/wm_message_bus.c
 	message_bus/intern/wm_message_bus_rna.c
 	message_bus/intern/wm_message_bus_static.c
@@ -100,11 +100,11 @@ set(SRC
 	wm_event_types.h
 	wm_files.h
 	wm_window.h
-	manipulators/WM_manipulator_api.h
-	manipulators/WM_manipulator_types.h
-	manipulators/wm_manipulator_fn.h
-	manipulators/wm_manipulator_wmapi.h
-	manipulators/intern/wm_manipulator_intern.h
+	gizmo/WM_gizmo_api.h
+	gizmo/WM_gizmo_types.h
+	gizmo/wm_gizmo_fn.h
+	gizmo/wm_gizmo_wmapi.h
+	gizmo/intern/wm_gizmo_intern.h
 	message_bus/intern/wm_message_bus_intern.h
 	message_bus/wm_message_bus.h
 )

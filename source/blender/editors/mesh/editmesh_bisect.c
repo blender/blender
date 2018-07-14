@@ -57,7 +57,7 @@
 #define USE_MANIPULATOR
 
 #ifdef USE_MANIPULATOR
-#include "ED_manipulator_library.h"
+#include "ED_gizmo_library.h"
 #include "ED_undo.h"
 #endif
 
