@@ -132,7 +132,7 @@ static unsigned short indices[] = {
 	3, 1, 17,
 };
 
-ManipulatorGeomInfo wm_manipulator_geom_data_arrow = {
+GizmoGeomInfo wm_gizmo_geom_data_arrow = {
 	.nverts  = 25,
 	.ntris   = 46,
 	.verts   = verts,

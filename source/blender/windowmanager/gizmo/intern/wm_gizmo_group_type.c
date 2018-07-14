@@ -36,7 +36,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* only for own init/exit calls (wm_manipulatorgrouptype_init/wm_manipulatorgrouptype_free) */
+/* only for own init/exit calls (wm_gizmogrouptype_init/wm_gizmogrouptype_free) */
 #include "wm.h"
 
 /* own includes */
@@ -44,30 +44,30 @@
 #include "wm_gizmo_intern.h"
 
 
-/** \name ManipulatorGroup Type Append
+/** \name GizmoGroup Type Append
  *
  * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.
  * \{ */
 
-static GHash *global_manipulatorgrouptype_hash = NULL;
+static GHash *global_gizmogrouptype_hash = NULL;
 
-wmManipulatorGroupType *WM_manipulatorgrouptype_find(const char *idname, bool quiet)
+wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet)
 {
 	if (idname[0]) {
-		wmManipulatorGroupType *wgt;
+		wmGizmoGroupType *wgt;
 
-		wgt = BLI_ghash_lookup(global_manipulatorgrouptype_hash, idname);
+		wgt = BLI_ghash_lookup(global_gizmogrouptype_hash, idname);
 		if (wgt) {
 			return wgt;
 		}
 
 		if (!quiet) {
-			printf("search for unknown manipulator group '%s'\n", idname);
+			printf("search for unknown gizmo group '%s'\n", idname);
 		}
 	}
 	else {
 		if (!quiet) {
-			printf("search for empty manipulator group\n");
+			printf("search for empty gizmo group\n");
 		}
 	}
 
@@ -75,123 +75,123 @@ wmManipulatorGroupType *WM_manipulatorgrouptype_find(const char *idname, bool qu
 }
 
 /* caller must free */
-void WM_manipulatorgrouptype_iter(GHashIterator *ghi)
+void WM_gizmogrouptype_iter(GHashIterator *ghi)
 {
-	BLI_ghashIterator_init(ghi, global_manipulatorgrouptype_hash);
+	BLI_ghashIterator_init(ghi, global_gizmogrouptype_hash);
 }
 
-static wmManipulatorGroupType *wm_manipulatorgrouptype_append__begin(void)
+static wmGizmoGroupType *wm_gizmogrouptype_append__begin(void)
 {
-	wmManipulatorGroupType *wgt = MEM_callocN(sizeof(wmManipulatorGroupType), "manipulatorgrouptype");
+	wmGizmoGroupType *wgt = MEM_callocN(sizeof(wmGizmoGroupType), "gizmogrouptype");
 
 	return wgt;
 }
-static void wm_manipulatorgrouptype_append__end(wmManipulatorGroupType *wgt)
+static void wm_gizmogrouptype_append__end(wmGizmoGroupType *wgt)
 {
 	BLI_assert(wgt->name != NULL);
 	BLI_assert(wgt->idname != NULL);
 
-	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
+	wgt->type_update_flag |= WM_GIZMOMAPTYPE_KEYMAP_INIT;
 
 	/* if not set, use default */
 	if (wgt->setup_keymap == NULL) {
-		if (wgt->flag & WM_MANIPULATORGROUPTYPE_SELECT) {
-			wgt->setup_keymap = WM_manipulatorgroup_keymap_common_select;
+		if (wgt->flag & WM_GIZMOGROUPTYPE_SELECT) {
+			wgt->setup_keymap = WM_gizmogroup_keymap_common_select;
 		}
 		else {
-			wgt->setup_keymap = WM_manipulatorgroup_keymap_common;
+			wgt->setup_keymap = WM_gizmogroup_keymap_common;
 		}
 	}
 
-	BLI_ghash_insert(global_manipulatorgrouptype_hash, (void *)wgt->idname, wgt);
+	BLI_ghash_insert(global_gizmogrouptype_hash, (void *)wgt->idname, wgt);
 }
 
-wmManipulatorGroupType *WM_manipulatorgrouptype_append(
-        void (*wtfunc)(struct wmManipulatorGroupType *))
+wmGizmoGroupType *WM_gizmogrouptype_append(
+        void (*wtfunc)(struct wmGizmoGroupType *))
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_append__begin();
+	wmGizmoGroupType *wgt = wm_gizmogrouptype_append__begin();
 	wtfunc(wgt);
-	wm_manipulatorgrouptype_append__end(wgt);
+	wm_gizmogrouptype_append__end(wgt);
 	return wgt;
 }
 
-wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr(
-        void (*wtfunc)(struct wmManipulatorGroupType *, void *), void *userdata)
+wmGizmoGroupType *WM_gizmogrouptype_append_ptr(
+        void (*wtfunc)(struct wmGizmoGroupType *, void *), void *userdata)
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_append__begin();
+	wmGizmoGroupType *wgt = wm_gizmogrouptype_append__begin();
 	wtfunc(wgt, userdata);
-	wm_manipulatorgrouptype_append__end(wgt);
+	wm_gizmogrouptype_append__end(wgt);
 	return wgt;
 }
 
 /**
- * Append and insert into a manipulator typemap.
- * This is most common for C manipulators which are enabled by default.
+ * Append and insert into a gizmo typemap.
+ * This is most common for C gizmos which are enabled by default.
  */
-wmManipulatorGroupTypeRef *WM_manipulatorgrouptype_append_and_link(
-        wmManipulatorMapType *mmap_type,
-        void (*wtfunc)(struct wmManipulatorGroupType *))
+wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(
+        wmGizmoMapType *mmap_type,
+        void (*wtfunc)(struct wmGizmoGroupType *))
 {
-	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_append(wtfunc);
+	wmGizmoGroupType *wgt = WM_gizmogrouptype_append(wtfunc);
 
 	wgt->mmap_params.spaceid = mmap_type->spaceid;
 	wgt->mmap_params.regionid = mmap_type->regionid;
 
-	return WM_manipulatormaptype_group_link_ptr(mmap_type, wgt);
+	return WM_gizmomaptype_group_link_ptr(mmap_type, wgt);
 }
 
 /**
  * Free but don't remove from ghash.
  */
-static void manipulatorgrouptype_free(wmManipulatorGroupType *wgt)
+static void gizmogrouptype_free(wmGizmoGroupType *wgt)
 {
-	if (wgt->ext.srna) { /* python manipulator group, allocs own string */
+	if (wgt->ext.srna) { /* python gizmo group, allocs own string */
 		MEM_freeN((void *)wgt->idname);
 	}
 
 	MEM_freeN(wgt);
 }
 
-void WM_manipulatorgrouptype_free_ptr(wmManipulatorGroupType *wgt)
+void WM_gizmogrouptype_free_ptr(wmGizmoGroupType *wgt)
 {
-	BLI_assert(wgt == WM_manipulatorgrouptype_find(wgt->idname, false));
+	BLI_assert(wgt == WM_gizmogrouptype_find(wgt->idname, false));
 
-	BLI_ghash_remove(global_manipulatorgrouptype_hash, wgt->idname, NULL, NULL);
+	BLI_ghash_remove(global_gizmogrouptype_hash, wgt->idname, NULL, NULL);
 
-	manipulatorgrouptype_free(wgt);
+	gizmogrouptype_free(wgt);
 
 	/* XXX, TODO, update the world! */
 }
 
-bool WM_manipulatorgrouptype_free(const char *idname)
+bool WM_gizmogrouptype_free(const char *idname)
 {
-	wmManipulatorGroupType *wgt = BLI_ghash_lookup(global_manipulatorgrouptype_hash, idname);
+	wmGizmoGroupType *wgt = BLI_ghash_lookup(global_gizmogrouptype_hash, idname);
 
 	if (wgt == NULL) {
 		return false;
 	}
 
-	WM_manipulatorgrouptype_free_ptr(wgt);
+	WM_gizmogrouptype_free_ptr(wgt);
 
 	return true;
 }
 
-static void wm_manipulatorgrouptype_ghash_free_cb(wmManipulatorGroupType *wgt)
+static void wm_gizmogrouptype_ghash_free_cb(wmGizmoGroupType *wgt)
 {
-	manipulatorgrouptype_free(wgt);
+	gizmogrouptype_free(wgt);
 }
 
-void wm_manipulatorgrouptype_free(void)
+void wm_gizmogrouptype_free(void)
 {
-	BLI_ghash_free(global_manipulatorgrouptype_hash, NULL, (GHashValFreeFP)wm_manipulatorgrouptype_ghash_free_cb);
-	global_manipulatorgrouptype_hash = NULL;
+	BLI_ghash_free(global_gizmogrouptype_hash, NULL, (GHashValFreeFP)wm_gizmogrouptype_ghash_free_cb);
+	global_gizmogrouptype_hash = NULL;
 }
 
 /* called on initialize WM_init() */
-void wm_manipulatorgrouptype_init(void)
+void wm_gizmogrouptype_init(void)
 {
 	/* reserve size is set based on blender default setup */
-	global_manipulatorgrouptype_hash = BLI_ghash_str_new_ex("wm_manipulatorgrouptype_init gh", 128);
+	global_gizmogrouptype_hash = BLI_ghash_str_new_ex("wm_gizmogrouptype_init gh", 128);
 }
 
 /** \} */

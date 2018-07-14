@@ -50,11 +50,11 @@
 
 /* -------------------------------------------------------------------- */
 
-/** \name Empty Image Manipulators
+/** \name Empty Image Gizmos
  * \{ */
 
 struct EmptyImageWidgetGroup {
-	wmManipulator *manipulator;
+	wmGizmo *gizmo;
 	struct {
 		Object *ob;
 		float dims[2];
@@ -62,8 +62,8 @@ struct EmptyImageWidgetGroup {
 };
 
 /* translate callbacks */
-static void manipulator_empty_image_prop_matrix_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_empty_image_prop_matrix_get(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         void *value_p)
 {
 	float (*matrix)[4] = value_p;
@@ -84,8 +84,8 @@ static void manipulator_empty_image_prop_matrix_get(
 	matrix[3][1] = (ob->ima_ofs[1] * dims[1]) + (0.5f * dims[1]);
 }
 
-static void manipulator_empty_image_prop_matrix_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_empty_image_prop_matrix_set(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         const void *value_p)
 {
 	const float (*matrix)[4] = value_p;
@@ -104,12 +104,12 @@ static void manipulator_empty_image_prop_matrix_set(
 	ob->ima_ofs[1] = (matrix[3][1] - (0.5f * dims[1])) / dims[1];
 }
 
-static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-	    (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_CONTEXT)))
+	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
 	{
 		return false;
 	}
@@ -122,34 +122,34 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmManipulatorGroupTy
 	return false;
 }
 
-static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
 	struct EmptyImageWidgetGroup *imgroup = MEM_mallocN(sizeof(struct EmptyImageWidgetGroup), __func__);
-	imgroup->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
-	wmManipulator *mpr = imgroup->manipulator;
+	imgroup->gizmo = WM_gizmo_new("GIZMO_WT_cage_2d", mgroup, NULL);
+	wmGizmo *mpr = imgroup->gizmo;
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
 
 	mgroup->customdata = imgroup;
 
-	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
+	WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_HOVER, true);
 
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
-	UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, mpr->color);
+	UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
 }
 
-static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
 	struct EmptyImageWidgetGroup *imgroup = mgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
-	wmManipulator *mpr = imgroup->manipulator;
+	wmGizmo *mpr = imgroup->gizmo;
 
 	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE |
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE |
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
 
 	imgroup->state.ob = ob;
 
@@ -177,24 +177,24 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmManipulatorGrou
 	}
 	RNA_float_set_array(mpr->ptr, "dimensions", imgroup->state.dims);
 
-	WM_manipulator_target_property_def_func(
+	WM_gizmo_target_property_def_func(
 	        mpr, "matrix",
-	        &(const struct wmManipulatorPropertyFnParams) {
-	            .value_get_fn = manipulator_empty_image_prop_matrix_get,
-	            .value_set_fn = manipulator_empty_image_prop_matrix_set,
+	        &(const struct wmGizmoPropertyFnParams) {
+	            .value_get_fn = gizmo_empty_image_prop_matrix_get,
+	            .value_set_fn = gizmo_empty_image_prop_matrix_set,
 	            .range_get_fn = NULL,
 	            .user_data = imgroup,
 	        });
 }
 
-void VIEW3D_WGT_empty_image(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_empty_image(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Area Light Widgets";
 	wgt->idname = "VIEW3D_WGT_empty_image";
 
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	              WM_MANIPULATORGROUPTYPE_3D |
-	              WM_MANIPULATORGROUPTYPE_DEPTH_3D);
+	wgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT |
+	              WM_GIZMOGROUPTYPE_3D |
+	              WM_GIZMOGROUPTYPE_DEPTH_3D);
 
 	wgt->poll = WIDGETGROUP_empty_image_poll;
 	wgt->setup = WIDGETGROUP_empty_image_setup;

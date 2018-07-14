@@ -53,7 +53,7 @@
 /** \name Local Utilities
  * \{ */
 
-static void node_manipulator_calc_matrix_space(
+static void node_gizmo_calc_matrix_space(
         const SpaceNode *snode, const ARegion *ar, float matrix_space[4][4])
 {
 	unit_m4(matrix_space);
@@ -63,7 +63,7 @@ static void node_manipulator_calc_matrix_space(
 	matrix_space[3][1] = (ar->winy / 2) + snode->yof;
 }
 
-static void node_manipulator_calc_matrix_space_with_image_dims(
+static void node_gizmo_calc_matrix_space_with_image_dims(
         const SpaceNode *snode, const ARegion *ar, const float image_dims[2], float matrix_space[4][4])
 {
 	unit_m4(matrix_space);
@@ -79,11 +79,11 @@ static void node_manipulator_calc_matrix_space_with_image_dims(
 
 /* -------------------------------------------------------------------- */
 
-/** \name Backdrop Manipulator
+/** \name Backdrop Gizmo
  * \{ */
 
-static void manipulator_node_backdrop_prop_matrix_get(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void gizmo_node_backdrop_prop_matrix_get(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         void *value_p)
 {
 	float (*matrix)[4] = value_p;
@@ -95,8 +95,8 @@ static void manipulator_node_backdrop_prop_matrix_get(
 	matrix[3][1] = snode->yof;
 }
 
-static void manipulator_node_backdrop_prop_matrix_set(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void gizmo_node_backdrop_prop_matrix_set(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         const void *value_p)
 {
 	const float (*matrix)[4] = value_p;
@@ -108,7 +108,7 @@ static void manipulator_node_backdrop_prop_matrix_set(
 	snode->yof  = matrix[3][1];
 }
 
-static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -127,22 +127,22 @@ static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmManipulatorGrou
 	return false;
 }
 
-static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
-	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
+	wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
 
-	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
+	wwrapper->gizmo = WM_gizmo_new("GIZMO_WT_cage_2d", mgroup, NULL);
 
-	RNA_enum_set(wwrapper->manipulator->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
+	RNA_enum_set(wwrapper->gizmo->ptr, "transform",
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
 
 	mgroup->customdata = wwrapper;
 }
 
-static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
 	Main *bmain = CTX_data_main(C);
-	wmManipulator *cage = ((wmManipulatorWrapper *)mgroup->customdata)->manipulator;
+	wmGizmo *cage = ((wmGizmoWrapper *)mgroup->customdata)->gizmo;
 	const ARegion *ar = CTX_wm_region(C);
 	/* center is always at the origin */
 	const float origin[3] = {ar->winx / 2, ar->winy / 2};
@@ -158,40 +158,40 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		};
 
 		RNA_float_set_array(cage->ptr, "dimensions", dims);
-		WM_manipulator_set_matrix_location(cage, origin);
-		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, false);
+		WM_gizmo_set_matrix_location(cage, origin);
+		WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, false);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
 		SpaceNode *snode = CTX_wm_space_node(C);
 #if 0
 		PointerRNA nodeptr;
 		RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode, &nodeptr);
-		WM_manipulator_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
-		WM_manipulator_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
+		WM_gizmo_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
+		WM_gizmo_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 #endif
 
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        cage, "matrix",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_node_backdrop_prop_matrix_get,
-		            .value_set_fn = manipulator_node_backdrop_prop_matrix_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_node_backdrop_prop_matrix_get,
+		            .value_set_fn = gizmo_node_backdrop_prop_matrix_set,
 		            .range_get_fn = NULL,
 		            .user_data = snode,
 		        });
 	}
 	else {
-		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, true);
+		WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, true);
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-void NODE_WGT_backdrop_transform(wmManipulatorGroupType *wgt)
+void NODE_WGT_backdrop_transform(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Backdrop Transform Widget";
 	wgt->idname = "NODE_WGT_backdrop_transform";
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+	wgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
 	wgt->poll = WIDGETGROUP_node_transform_poll;
 	wgt->setup = WIDGETGROUP_node_transform_setup;
@@ -202,11 +202,11 @@ void NODE_WGT_backdrop_transform(wmManipulatorGroupType *wgt)
 
 /* -------------------------------------------------------------------- */
 
-/** \name Crop Manipulator
+/** \name Crop Gizmo
  * \{ */
 
 struct NodeCropWidgetGroup {
-	wmManipulator *border;
+	wmGizmo *border;
 
 	struct {
 		float dims[2];
@@ -219,7 +219,7 @@ struct NodeCropWidgetGroup {
 	} update_data;
 };
 
-static void manipulator_node_crop_update(struct NodeCropWidgetGroup *crop_group)
+static void gizmo_node_crop_update(struct NodeCropWidgetGroup *crop_group)
 {
 	RNA_property_update(crop_group->update_data.context, &crop_group->update_data.ptr, crop_group->update_data.prop);
 }
@@ -257,8 +257,8 @@ static void two_xy_from_rect(NodeTwoXYs *nxy, const rctf *rect, const float dims
 }
 
 /* scale callbacks */
-static void manipulator_node_crop_prop_matrix_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_node_crop_prop_matrix_get(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         void *value_p)
 {
 	float (*matrix)[4] = value_p;
@@ -276,8 +276,8 @@ static void manipulator_node_crop_prop_matrix_get(
 	matrix[3][1] = (BLI_rctf_cent_y(&rct) - 0.5f) * dims[1];
 }
 
-static void manipulator_node_crop_prop_matrix_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_node_crop_prop_matrix_set(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         const void *value_p)
 {
 	const float (*matrix)[4] = value_p;
@@ -293,10 +293,10 @@ static void manipulator_node_crop_prop_matrix_set(
 	BLI_rctf_recenter(&rct, (matrix[3][0] / dims[0]) + 0.5f, (matrix[3][1] / dims[1]) + 0.5f);
 	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, &rct, &rct);
 	two_xy_from_rect(nxy, &rct, dims, is_relative);
-	manipulator_node_crop_update(crop_group);
+	gizmo_node_crop_update(crop_group);
 }
 
-static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -318,33 +318,33 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmManipulatorGroupType
 	return false;
 }
 
-static void WIDGETGROUP_node_crop_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_crop_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
 	struct NodeCropWidgetGroup *crop_group = MEM_mallocN(sizeof(struct NodeCropWidgetGroup), __func__);
 
-	crop_group->border = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
+	crop_group->border = WM_gizmo_new("GIZMO_WT_cage_2d", mgroup, NULL);
 
 	RNA_enum_set(crop_group->border->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
 
 	mgroup->customdata = crop_group;
 }
 
-static void WIDGETGROUP_node_crop_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_crop_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
 {
 	ARegion *ar = CTX_wm_region(C);
-	wmManipulator *mpr = mgroup->manipulators.first;
+	wmGizmo *mpr = mgroup->gizmos.first;
 
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	node_manipulator_calc_matrix_space(snode, ar, mpr->matrix_space);
+	node_gizmo_calc_matrix_space(snode, ar, mpr->matrix_space);
 }
 
-static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
 	Main *bmain = CTX_data_main(C);
 	struct NodeCropWidgetGroup *crop_group = mgroup->customdata;
-	wmManipulator *mpr = crop_group->border;
+	wmGizmo *mpr = crop_group->border;
 
 	void *lock;
 	Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
@@ -355,7 +355,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmManipulatorGroup 
 		crop_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
 
 		RNA_float_set_array(mpr->ptr, "dimensions", crop_group->state.dims);
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
 
 		SpaceNode *snode = CTX_wm_space_node(C);
 		bNode *node = nodeGetActive(snode->edittree);
@@ -364,28 +364,28 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmManipulatorGroup 
 		RNA_pointer_create((ID *)snode->edittree, &RNA_CompositorNodeCrop, node, &crop_group->update_data.ptr);
 		crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr, "relative");
 
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        mpr, "matrix",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_node_crop_prop_matrix_get,
-		            .value_set_fn = manipulator_node_crop_prop_matrix_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_node_crop_prop_matrix_get,
+		            .value_set_fn = gizmo_node_crop_prop_matrix_set,
 		            .range_get_fn = NULL,
 		            .user_data = node,
 		        });
 	}
 	else {
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, true);
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-void NODE_WGT_backdrop_crop(wmManipulatorGroupType *wgt)
+void NODE_WGT_backdrop_crop(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Backdrop Crop Widget";
 	wgt->idname = "NODE_WGT_backdrop_crop";
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+	wgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
 	wgt->poll = WIDGETGROUP_node_crop_poll;
 	wgt->setup = WIDGETGROUP_node_crop_setup;
@@ -401,14 +401,14 @@ void NODE_WGT_backdrop_crop(wmManipulatorGroupType *wgt)
  * \{ */
 
 struct NodeSunBeamsWidgetGroup {
-	wmManipulator *manipulator;
+	wmGizmo *gizmo;
 
 	struct {
 		float dims[2];
 	} state;
 };
 
-static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -427,36 +427,36 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmManipulatorGroupTyp
 	return false;
 }
 
-static void WIDGETGROUP_node_sbeam_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_sbeam_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
 	struct NodeSunBeamsWidgetGroup *sbeam_group = MEM_mallocN(sizeof(struct NodeSunBeamsWidgetGroup), __func__);
 
-	sbeam_group->manipulator = WM_manipulator_new("MANIPULATOR_WT_grab_3d", mgroup, NULL);
-	wmManipulator *mpr = sbeam_group->manipulator;
+	sbeam_group->gizmo = WM_gizmo_new("GIZMO_WT_grab_3d", mgroup, NULL);
+	wmGizmo *mpr = sbeam_group->gizmo;
 
-	RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_GRAB_STYLE_CROSS_2D);
+	RNA_enum_set(mpr->ptr, "draw_style",  ED_GIZMO_GRAB_STYLE_CROSS_2D);
 
 	mpr->scale_basis = 0.05f;
 
 	mgroup->customdata = sbeam_group;
 }
 
-static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
 {
 	struct NodeSunBeamsWidgetGroup *sbeam_group = mgroup->customdata;
 	ARegion *ar = CTX_wm_region(C);
-	wmManipulator *mpr = mgroup->manipulators.first;
+	wmGizmo *mpr = mgroup->gizmos.first;
 
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	node_manipulator_calc_matrix_space_with_image_dims(snode, ar, sbeam_group->state.dims, mpr->matrix_space);
+	node_gizmo_calc_matrix_space_with_image_dims(snode, ar, sbeam_group->state.dims, mpr->matrix_space);
 }
 
-static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
 	Main *bmain = CTX_data_main(C);
 	struct NodeSunBeamsWidgetGroup *sbeam_group = mgroup->customdata;
-	wmManipulator *mpr = sbeam_group->manipulator;
+	wmGizmo *mpr = sbeam_group->gizmo;
 
 	void *lock;
 	Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
@@ -472,23 +472,23 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmManipulatorGroup
 		/* need to set property here for undo. TODO would prefer to do this in _init */
 		PointerRNA nodeptr;
 		RNA_pointer_create((ID *)snode->edittree, &RNA_CompositorNodeSunBeams, node, &nodeptr);
-		WM_manipulator_target_property_def_rna(mpr, "offset", &nodeptr, "source", -1);
+		WM_gizmo_target_property_def_rna(mpr, "offset", &nodeptr, "source", -1);
 
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_MODAL, true);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_MODAL, true);
 	}
 	else {
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, true);
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-void NODE_WGT_backdrop_sun_beams(wmManipulatorGroupType *wgt)
+void NODE_WGT_backdrop_sun_beams(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Sun Beams Widget";
 	wgt->idname = "NODE_WGT_sbeam";
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+	wgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
 	wgt->poll = WIDGETGROUP_node_sbeam_poll;
 	wgt->setup = WIDGETGROUP_node_sbeam_setup;
@@ -506,14 +506,14 @@ void NODE_WGT_backdrop_sun_beams(wmManipulatorGroupType *wgt)
  * \{ */
 
 struct NodeCornerPinWidgetGroup {
-	wmManipulator *manipulators[4];
+	wmGizmo *gizmos[4];
 
 	struct {
 		float dims[2];
 	} state;
 };
 
-static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -532,16 +532,16 @@ static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmManipulatorGro
 	return false;
 }
 
-static void WIDGETGROUP_node_corner_pin_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_corner_pin_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
 	struct NodeCornerPinWidgetGroup *cpin_group = MEM_mallocN(sizeof(struct NodeCornerPinWidgetGroup), __func__);
-	const wmManipulatorType *wt_grab_3d = WM_manipulatortype_find("MANIPULATOR_WT_grab_3d", false);
+	const wmGizmoType *wt_grab_3d = WM_gizmotype_find("GIZMO_WT_grab_3d", false);
 
 	for (int i = 0; i < 4; i++) {
-		cpin_group->manipulators[i] = WM_manipulator_new_ptr(wt_grab_3d, mgroup, NULL);
-		wmManipulator *mpr = cpin_group->manipulators[i];
+		cpin_group->gizmos[i] = WM_gizmo_new_ptr(wt_grab_3d, mgroup, NULL);
+		wmGizmo *mpr = cpin_group->gizmos[i];
 
-		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_GRAB_STYLE_CROSS_2D);
+		RNA_enum_set(mpr->ptr, "draw_style",  ED_GIZMO_GRAB_STYLE_CROSS_2D);
 
 		mpr->scale_basis = 0.01f;
 	}
@@ -549,7 +549,7 @@ static void WIDGETGROUP_node_corner_pin_setup(const bContext *UNUSED(C), wmManip
 	mgroup->customdata = cpin_group;
 }
 
-static void WIDGETGROUP_node_corner_pin_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_corner_pin_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
 {
 	struct NodeCornerPinWidgetGroup *cpin_group = mgroup->customdata;
 	ARegion *ar = CTX_wm_region(C);
@@ -557,15 +557,15 @@ static void WIDGETGROUP_node_corner_pin_draw_prepare(const bContext *C, wmManipu
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	float matrix_space[4][4];
-	node_manipulator_calc_matrix_space_with_image_dims(snode, ar, cpin_group->state.dims, matrix_space);
+	node_gizmo_calc_matrix_space_with_image_dims(snode, ar, cpin_group->state.dims, matrix_space);
 
 	for (int i = 0; i < 4; i++) {
-		wmManipulator *mpr = cpin_group->manipulators[i];
+		wmGizmo *mpr = cpin_group->gizmos[i];
 		copy_m4_m4(mpr->matrix_space, matrix_space);
 	}
 }
 
-static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
 	Main *bmain = CTX_data_main(C);
 	struct NodeCornerPinWidgetGroup *cpin_group = mgroup->customdata;
@@ -585,32 +585,32 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmManipulator
 		int i = 0;
 		for (bNodeSocket *sock = node->inputs.first; sock && i < 4; sock = sock->next) {
 			if (sock->type == SOCK_VECTOR) {
-				wmManipulator *mpr = cpin_group->manipulators[i++];
+				wmGizmo *mpr = cpin_group->gizmos[i++];
 
 				PointerRNA sockptr;
 				RNA_pointer_create((ID *)snode->edittree, &RNA_NodeSocket, sock, &sockptr);
-				WM_manipulator_target_property_def_rna(mpr, "offset", &sockptr, "default_value", -1);
+				WM_gizmo_target_property_def_rna(mpr, "offset", &sockptr, "default_value", -1);
 
-				WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_MODAL, true);
+				WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_MODAL, true);
 			}
 		}
 	}
 	else {
 		for (int i = 0; i < 4; i++) {
-			wmManipulator *mpr = cpin_group->manipulators[i];
-			WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
+			wmGizmo *mpr = cpin_group->gizmos[i];
+			WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, true);
 		}
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-void NODE_WGT_backdrop_corner_pin(wmManipulatorGroupType *wgt)
+void NODE_WGT_backdrop_corner_pin(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Corner Pin Widget";
 	wgt->idname = "NODE_WGT_backdrop_corner_pin";
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+	wgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
 	wgt->poll = WIDGETGROUP_node_corner_pin_poll;
 	wgt->setup = WIDGETGROUP_node_corner_pin_setup;

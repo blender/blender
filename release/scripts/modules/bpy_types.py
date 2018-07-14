@@ -581,10 +581,10 @@ class Manipulator(StructRNA):
         return super().__delattr__(attr)
 
     from _bpy import (
-        _rna_manipulator_target_set_handler as target_set_handler,
-        _rna_manipulator_target_get_value as target_get_value,
-        _rna_manipulator_target_set_value as target_set_value,
-        _rna_manipulator_target_get_range as target_get_range,
+        _rna_gizmo_target_set_handler as target_set_handler,
+        _rna_gizmo_target_get_value as target_get_value,
+        _rna_gizmo_target_set_value as target_set_value,
+        _rna_gizmo_target_get_range as target_get_range,
     )
 
     # Convenience wrappers around private `_gawain` module.

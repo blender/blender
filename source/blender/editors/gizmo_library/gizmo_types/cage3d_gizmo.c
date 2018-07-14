@@ -26,12 +26,12 @@
 /** \file cage3d_gizmo.c
  *  \ingroup wm
  *
- * \name Cage Manipulator
+ * \name Cage Gizmo
  *
- * 2D Manipulator
+ * 2D Gizmo
  *
- * \brief Rectangular manipulator acting as a 'cage' around its content.
- * Interacting scales or translates the manipulator.
+ * \brief Rectangular gizmo acting as a 'cage' around its content.
+ * Interacting scales or translates the gizmo.
  */
 
 #include "MEM_guardedalloc.h"
@@ -63,24 +63,24 @@
 /* own includes */
 #include "../gizmo_library_intern.h"
 
-#define MANIPULATOR_RESIZER_SIZE 10.0f
-#define MANIPULATOR_MARGIN_OFFSET_SCALE 1.5f
+#define GIZMO_RESIZER_SIZE 10.0f
+#define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 
-static void manipulator_calc_matrix_final_no_offset(
-        const wmManipulator *mpr, float orig_matrix_final_no_offset[4][4], bool use_space)
+static void gizmo_calc_matrix_final_no_offset(
+        const wmGizmo *mpr, float orig_matrix_final_no_offset[4][4], bool use_space)
 {
 	float mat_identity[4][4];
-	struct WM_ManipulatorMatrixParams params = {NULL};
+	struct WM_GizmoMatrixParams params = {NULL};
 	unit_m4(mat_identity);
 	if (use_space == false) {
 		params.matrix_basis = mat_identity;
 	}
 	params.matrix_offset = mat_identity;
-	WM_manipulator_calc_matrix_final_params(mpr, &params, orig_matrix_final_no_offset);
+	WM_gizmo_calc_matrix_final_params(mpr, &params, orig_matrix_final_no_offset);
 }
 
-static void manipulator_calc_rect_view_scale(
-        const wmManipulator *mpr, const float dims[3], float scale[3])
+static void gizmo_calc_rect_view_scale(
+        const wmGizmo *mpr, const float dims[3], float scale[3])
 {
 	UNUSED_VARS(dims);
 
@@ -88,7 +88,7 @@ static void manipulator_calc_rect_view_scale(
 	float matrix_final_no_offset[4][4];
 
 	float x_axis[3], y_axis[3], z_axis[3];
-	manipulator_calc_matrix_final_no_offset(mpr, matrix_final_no_offset, false);
+	gizmo_calc_matrix_final_no_offset(mpr, matrix_final_no_offset, false);
 	mul_v3_mat3_m4v3(x_axis, matrix_final_no_offset, mpr->matrix_offset[0]);
 	mul_v3_mat3_m4v3(y_axis, matrix_final_no_offset, mpr->matrix_offset[1]);
 	mul_v3_mat3_m4v3(z_axis, matrix_final_no_offset, mpr->matrix_offset[2]);
@@ -98,21 +98,21 @@ static void manipulator_calc_rect_view_scale(
 	scale[2] = 1.0f / len_v3(z_axis);
 }
 
-static void manipulator_calc_rect_view_margin(
-        const wmManipulator *mpr, const float dims[3], float margin[3])
+static void gizmo_calc_rect_view_margin(
+        const wmGizmo *mpr, const float dims[3], float margin[3])
 {
 	float handle_size;
-	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+	if (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
 		handle_size = 0.15f;
 	}
 	else {
-		handle_size = MANIPULATOR_RESIZER_SIZE;
+		handle_size = GIZMO_RESIZER_SIZE;
 	}
 	// XXX, the scale isn't taking offset into account, we need to calculate scale per handle!
 	// handle_size *= mpr->scale_final;
 
 	float scale_xyz[3];
-	manipulator_calc_rect_view_scale(mpr, dims, scale_xyz);
+	gizmo_calc_rect_view_scale(mpr, dims, scale_xyz);
 	margin[0] = ((handle_size * scale_xyz[0]));
 	margin[1] = ((handle_size * scale_xyz[1]));
 	margin[2] = ((handle_size * scale_xyz[2]));
@@ -120,12 +120,12 @@ static void manipulator_calc_rect_view_margin(
 
 /* -------------------------------------------------------------------- */
 
-static void manipulator_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_constrain_axis[3])
+static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_constrain_axis[3])
 {
-	if (part >= ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
-	    part <= ED_MANIPULATOR_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z)
+	if (part >= ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
+	    part <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z)
 	{
-		int index = (part - ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z);
+		int index = (part - ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z);
 		int range[3];
 		range[2] = index % 3;
 		index    = index / 3;
@@ -144,7 +144,7 @@ static void manipulator_rect_pivot_from_scale_part(int part, float r_pt[3], bool
 /* -------------------------------------------------------------------- */
 /** \name Box Draw Style
  *
- * Useful for 3D views, see: #ED_MANIPULATOR_CAGE2D_STYLE_BOX
+ * Useful for 3D views, see: #ED_GIZMO_CAGE2D_STYLE_BOX
  * \{ */
 
 static void cage3d_draw_box_corners(
@@ -165,10 +165,10 @@ static void cage3d_draw_box_interaction(
         const float color[4], const int highlighted,
         const float size[3], const float margin[3])
 {
-	if (highlighted >= ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
-	    highlighted <= ED_MANIPULATOR_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z)
+	if (highlighted >= ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
+	    highlighted <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z)
 	{
-		int index = (highlighted - ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z);
+		int index = (highlighted - ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z);
 		int range[3];
 		range[2] = index % 3;
 		index    = index / 3;
@@ -199,7 +199,7 @@ static void cage3d_draw_box_interaction(
 /* -------------------------------------------------------------------- */
 /** \name Circle Draw Style
  *
- * Useful for 2D views, see: #ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE
+ * Useful for 2D views, see: #ED_GIZMO_CAGE2D_STYLE_CIRCLE
  * \{ */
 
 static void imm_draw_point_aspect_3d(
@@ -225,8 +225,8 @@ static void cage3d_draw_circle_wire(
 	imm_draw_cube_wire_3d(pos, (float[3]){0}, r);
 
 #if 0
-	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
-		if (draw_options & ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
+	if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
+		if (draw_options & ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
 			const float rad[2] = {margin[0] / 2, margin[1] / 2};
 			const float center[2] = {0.0f, 0.0f};
 
@@ -279,11 +279,11 @@ static void cage3d_draw_circle_handles(
 
 /** \} */
 
-static void manipulator_cage3d_draw_intern(
+static void gizmo_cage3d_draw_intern(
         RegionView3D *rv3d,
-        wmManipulator *mpr, const bool select, const bool highlight, const int select_id)
+        wmGizmo *mpr, const bool select, const bool highlight, const int select_id)
 {
-	// const bool use_clamp = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) == 0;
+	// const bool use_clamp = (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0;
 	float dims[3];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
 	float matrix_final[4][4];
@@ -294,13 +294,13 @@ static void manipulator_cage3d_draw_intern(
 
 	const float size_real[3] = {dims[0] / 2.0f, dims[1] / 2.0f, dims[2] / 2.0f};
 
-	WM_manipulator_calc_matrix_final(mpr, matrix_final);
+	WM_gizmo_calc_matrix_final(mpr, matrix_final);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
 
 	float margin[3];
-	manipulator_calc_rect_view_margin(mpr, dims, margin);
+	gizmo_calc_rect_view_margin(mpr, dims, margin);
 
 	/* Handy for quick testing draw (if it's outside bounds). */
 	if (false) {
@@ -328,12 +328,12 @@ static void manipulator_cage3d_draw_intern(
 #endif
 
 
-		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE) {
-			for (int i = ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
-			     i <= ED_MANIPULATOR_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z;
+		if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE) {
+			for (int i = ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
+			     i <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z;
 			     i++)
 			{
-				if (i == ED_MANIPULATOR_CAGE3D_PART_SCALE_MID_X_MID_Y_MID_Z) {
+				if (i == ED_GIZMO_CAGE3D_PART_SCALE_MID_X_MID_Y_MID_Z) {
 					continue;
 				}
 				GPU_select_load_id(select_id | i);
@@ -341,8 +341,8 @@ static void manipulator_cage3d_draw_intern(
 				        mpr->color, i, size, margin);
 			}
 		}
-		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
-			const int transform_part = ED_MANIPULATOR_CAGE3D_PART_TRANSLATE;
+		if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
+			const int transform_part = ED_GIZMO_CAGE3D_PART_TRANSLATE;
 			GPU_select_load_id(select_id | transform_part);
 			cage3d_draw_box_interaction(
 			        mpr->color, transform_part, size, margin);
@@ -357,22 +357,22 @@ static void manipulator_cage3d_draw_intern(
 			.ymax = size_real[1],
 		};
 #endif
-		if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_BOX) {
-			/* corner manipulators */
+		if (draw_style == ED_GIZMO_CAGE2D_STYLE_BOX) {
+			/* corner gizmos */
 			GPU_line_width(mpr->line_width + 3.0f);
 			cage3d_draw_box_corners(size_real, margin, (const float[3]){0, 0, 0});
 
-			/* corner manipulators */
+			/* corner gizmos */
 			float color[4];
-			manipulator_color_get(mpr, highlight, color);
+			gizmo_color_get(mpr, highlight, color);
 			GPU_line_width(mpr->line_width);
 			cage3d_draw_box_corners(size_real, margin, color);
 
 			bool show = false;
-			if (mpr->highlight_part == ED_MANIPULATOR_CAGE3D_PART_TRANSLATE) {
+			if (mpr->highlight_part == ED_GIZMO_CAGE3D_PART_TRANSLATE) {
 				/* Only show if we're drawing the center handle
 				 * otherwise the entire rectangle is the hotspot. */
-				if (draw_options & ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
+				if (draw_options & ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
 					show = true;
 				}
 			}
@@ -385,9 +385,9 @@ static void manipulator_cage3d_draw_intern(
 				        mpr->color, mpr->highlight_part, size_real, margin);
 			}
 		}
-		else if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE) {
+		else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
 			float color[4];
-			manipulator_color_get(mpr, highlight, color);
+			gizmo_color_get(mpr, highlight, color);
 
 			GPU_line_smooth(true);
 			GPU_polygon_smooth(true);
@@ -398,7 +398,7 @@ static void manipulator_cage3d_draw_intern(
 			GPU_line_width(mpr->line_width);
 			cage3d_draw_circle_wire(size_real, margin, color, transform_flag, draw_options);
 
-			/* corner manipulators */
+			/* corner gizmos */
 			cage3d_draw_circle_handles(rv3d, matrix_final, size_real, margin, (const float[3]){0, 0, 0}, true, 60);
 			cage3d_draw_circle_handles(rv3d, matrix_final, size_real, margin, color, true, 40);
 
@@ -418,24 +418,24 @@ static void manipulator_cage3d_draw_intern(
 /**
  * For when we want to draw 3d cage in 3d views.
  */
-static void manipulator_cage3d_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
+static void gizmo_cage3d_draw_select(const bContext *C, wmGizmo *mpr, int select_id)
 {
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
-	manipulator_cage3d_draw_intern(rv3d, mpr, true, false, select_id);
+	gizmo_cage3d_draw_intern(rv3d, mpr, true, false, select_id);
 }
 
-static void manipulator_cage3d_draw(const bContext *C, wmManipulator *mpr)
+static void gizmo_cage3d_draw(const bContext *C, wmGizmo *mpr)
 {
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
-	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
-	manipulator_cage3d_draw_intern(rv3d, mpr, false, is_highlight, -1);
+	const bool is_highlight = (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
+	gizmo_cage3d_draw_intern(rv3d, mpr, false, is_highlight, -1);
 }
 
-static int manipulator_cage3d_get_cursor(wmManipulator *mpr)
+static int gizmo_cage3d_get_cursor(wmGizmo *mpr)
 {
-	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+	if (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
 		return BC_NSEW_SCROLLCURSOR;
 	}
 
@@ -448,21 +448,21 @@ typedef struct RectTransformInteraction {
 	float orig_matrix_final_no_offset[4][4];
 } RectTransformInteraction;
 
-static void manipulator_cage3d_setup(wmManipulator *mpr)
+static void gizmo_cage3d_setup(wmGizmo *mpr)
 {
-	mpr->flag |= /* WM_MANIPULATOR_DRAW_MODAL | */ /* TODO */
-	             WM_MANIPULATOR_DRAW_NO_SCALE;
+	mpr->flag |= /* WM_GIZMO_DRAW_MODAL | */ /* TODO */
+	             WM_GIZMO_DRAW_NO_SCALE;
 }
 
-static int manipulator_cage3d_invoke(
-        bContext *C, wmManipulator *mpr, const wmEvent *event)
+static int gizmo_cage3d_invoke(
+        bContext *C, wmGizmo *mpr, const wmEvent *event)
 {
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
 	copy_m4_m4(data->orig_matrix_offset, mpr->matrix_offset);
-	manipulator_calc_matrix_final_no_offset(mpr, data->orig_matrix_final_no_offset, true);
+	gizmo_calc_matrix_final_no_offset(mpr, data->orig_matrix_final_no_offset, true);
 
-	if (manipulator_window_project_3d(
+	if (gizmo_window_project_3d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, false, data->orig_mouse) == 0)
 	{
 		zero_v3(data->orig_mouse);
@@ -473,9 +473,9 @@ static int manipulator_cage3d_invoke(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int manipulator_cage3d_modal(
-        bContext *C, wmManipulator *mpr, const wmEvent *event,
-        eWM_ManipulatorTweak UNUSED(tweak_flag))
+static int gizmo_cage3d_modal(
+        bContext *C, wmGizmo *mpr, const wmEvent *event,
+        eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
 	/* For transform logic to be managable we operate in -0.5..0.5 2D space,
 	 * no matter the size of the rectangle, mouse coorts are scaled to unit space.
@@ -495,7 +495,7 @@ static int manipulator_cage3d_modal(
 		copy_m4_m4(matrix_back, mpr->matrix_offset);
 		copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
 
-		bool ok = manipulator_window_project_3d(
+		bool ok = gizmo_window_project_3d(
 		        C, mpr, (const float[2]){UNPACK2(event->mval)}, false, point_local);
 		copy_m4_m4(mpr->matrix_offset, matrix_back);
 		if (!ok) {
@@ -504,21 +504,21 @@ static int manipulator_cage3d_modal(
 	}
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-	wmManipulatorProperty *mpr_prop;
+	wmGizmoProperty *mpr_prop;
 
-	mpr_prop = WM_manipulator_target_property_find(mpr, "matrix");
+	mpr_prop = WM_gizmo_target_property_find(mpr, "matrix");
 	if (mpr_prop->type != NULL) {
-		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, &mpr->matrix_offset[0][0]);
+		WM_gizmo_target_property_value_get_array(mpr, mpr_prop, &mpr->matrix_offset[0][0]);
 	}
 
-	if (mpr->highlight_part == ED_MANIPULATOR_CAGE3D_PART_TRANSLATE) {
+	if (mpr->highlight_part == ED_GIZMO_CAGE3D_PART_TRANSLATE) {
 		/* do this to prevent clamping from changing size */
 		copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
 		mpr->matrix_offset[3][0] = data->orig_matrix_offset[3][0] + (point_local[0] - data->orig_mouse[0]);
 		mpr->matrix_offset[3][1] = data->orig_matrix_offset[3][1] + (point_local[1] - data->orig_mouse[1]);
 		mpr->matrix_offset[3][2] = data->orig_matrix_offset[3][2] + (point_local[2] - data->orig_mouse[2]);
 	}
-	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE3D_PART_ROTATE) {
+	else if (mpr->highlight_part == ED_GIZMO_CAGE3D_PART_ROTATE) {
 		/* TODO (if needed) */
 	}
 	else {
@@ -527,8 +527,8 @@ static int manipulator_cage3d_modal(
 		float pivot[3];
 		bool constrain_axis[3] = {false};
 
-		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
-			manipulator_rect_pivot_from_scale_part(mpr->highlight_part, pivot, constrain_axis);
+		if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
+			gizmo_rect_pivot_from_scale_part(mpr->highlight_part, pivot, constrain_axis);
 		}
 		else {
 			zero_v3(pivot);
@@ -553,7 +553,7 @@ static int manipulator_cage3d_modal(
 
 				scale[i] = 1.0f + ((delta_curr[i] - delta_orig[i]) / len_v3(data->orig_matrix_offset[i]));
 
-				if ((transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_SIGNED) == 0) {
+				if ((transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_SIGNED) == 0) {
 					if (sign != signum_i(scale[i])) {
 						scale[i] = 0.0f;
 					}
@@ -561,7 +561,7 @@ static int manipulator_cage3d_modal(
 			}
 		}
 
-		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
+		if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
 			if (constrain_axis[0] == false && constrain_axis[1] == false) {
 				scale[1] = scale[0] = (scale[1] + scale[0]) / 2.0f;
 			}
@@ -591,7 +591,7 @@ static int manipulator_cage3d_modal(
 	}
 
 	if (mpr_prop->type != NULL) {
-		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, &mpr->matrix_offset[0][0]);
+		WM_gizmo_target_property_value_set_array(C, mpr, mpr_prop, &mpr->matrix_offset[0][0]);
 	}
 
 	/* tag the region for redraw */
@@ -601,11 +601,11 @@ static int manipulator_cage3d_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void manipulator_cage3d_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+static void gizmo_cage3d_property_update(wmGizmo *mpr, wmGizmoProperty *mpr_prop)
 {
 	if (STREQ(mpr_prop->type->idname, "matrix")) {
-		if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 16) {
-			WM_manipulator_target_property_value_get_array(mpr, mpr_prop, &mpr->matrix_offset[0][0]);
+		if (WM_gizmo_target_property_array_length(mpr, mpr_prop) == 16) {
+			WM_gizmo_target_property_value_get_array(mpr, mpr_prop, &mpr->matrix_offset[0][0]);
 		}
 		else {
 			BLI_assert(0);
@@ -616,19 +616,19 @@ static void manipulator_cage3d_property_update(wmManipulator *mpr, wmManipulator
 	}
 }
 
-static void manipulator_cage3d_exit(bContext *C, wmManipulator *mpr, const bool cancel)
+static void gizmo_cage3d_exit(bContext *C, wmGizmo *mpr, const bool cancel)
 {
 	RectTransformInteraction *data = mpr->interaction_data;
 
 	if (!cancel)
 		return;
 
-	wmManipulatorProperty *mpr_prop;
+	wmGizmoProperty *mpr_prop;
 
 	/* reset properties */
-	mpr_prop = WM_manipulator_target_property_find(mpr, "matrix");
+	mpr_prop = WM_gizmo_target_property_find(mpr, "matrix");
 	if (mpr_prop->type != NULL) {
-		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, &data->orig_matrix_offset[0][0]);
+		WM_gizmo_target_property_value_set_array(C, mpr, mpr_prop, &data->orig_matrix_offset[0][0]);
 	}
 
 	copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
@@ -636,57 +636,57 @@ static void manipulator_cage3d_exit(bContext *C, wmManipulator *mpr, const bool 
 
 
 /* -------------------------------------------------------------------- */
-/** \name Cage Manipulator API
+/** \name Cage Gizmo API
  *
  * \{ */
 
-static void MANIPULATOR_WT_cage_3d(wmManipulatorType *wt)
+static void GIZMO_WT_cage_3d(wmGizmoType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_cage_3d";
+	wt->idname = "GIZMO_WT_cage_3d";
 
 	/* api callbacks */
-	wt->draw = manipulator_cage3d_draw;
-	wt->draw_select = manipulator_cage3d_draw_select;
-	wt->setup = manipulator_cage3d_setup;
-	wt->invoke = manipulator_cage3d_invoke;
-	wt->property_update = manipulator_cage3d_property_update;
-	wt->modal = manipulator_cage3d_modal;
-	wt->exit = manipulator_cage3d_exit;
-	wt->cursor_get = manipulator_cage3d_get_cursor;
+	wt->draw = gizmo_cage3d_draw;
+	wt->draw_select = gizmo_cage3d_draw_select;
+	wt->setup = gizmo_cage3d_setup;
+	wt->invoke = gizmo_cage3d_invoke;
+	wt->property_update = gizmo_cage3d_property_update;
+	wt->modal = gizmo_cage3d_modal;
+	wt->exit = gizmo_cage3d_exit;
+	wt->cursor_get = gizmo_cage3d_get_cursor;
 
-	wt->struct_size = sizeof(wmManipulator);
+	wt->struct_size = sizeof(wmGizmo);
 
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_style[] = {
-		{ED_MANIPULATOR_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
-		{ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
+		{ED_GIZMO_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
+		{ED_GIZMO_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_transform[] = {
-		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
-		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
-		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
+		{ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+		{ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
+		{ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
+		{ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static float unit_v3[3] = {1.0f, 1.0f, 1.0f};
 	RNA_def_float_vector(wt->srna, "dimensions", 3, unit_v3, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
 	RNA_def_enum_flag(wt->srna, "transform", rna_enum_transform, 0, "Transform Options", "");
-	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE, "Draw Style", "");
+	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_CAGE2D_STYLE_CIRCLE, "Draw Style", "");
 	RNA_def_enum_flag(
 	        wt->srna, "draw_options", rna_enum_draw_options,
-	        ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE, "Draw Options", "");
+	        ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE, "Draw Options", "");
 
-	WM_manipulatortype_target_property_def(wt, "matrix", PROP_FLOAT, 16);
+	WM_gizmotype_target_property_def(wt, "matrix", PROP_FLOAT, 16);
 }
 
-void ED_manipulatortypes_cage_3d(void)
+void ED_gizmotypes_cage_3d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_cage_3d);
+	WM_gizmotype_append(GIZMO_WT_cage_3d);
 }
 
 /** \} */

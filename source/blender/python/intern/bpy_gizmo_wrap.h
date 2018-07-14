@@ -25,11 +25,11 @@
 #ifndef __BPY_GIZMO_WRAP_H__
 #define __BPY_GIZMO_WRAP_H__
 
-struct wmManipulatorType;
-struct wmManipulatorGroupType;
+struct wmGizmoType;
+struct wmGizmoGroupType;
 
 /* exposed to rna/wm api */
-void BPY_RNA_manipulator_wrapper(struct wmManipulatorType *wt, void *userdata);
-void BPY_RNA_manipulatorgroup_wrapper(struct wmManipulatorGroupType *wgt, void *userdata);
+void BPY_RNA_gizmo_wrapper(struct wmGizmoType *wt, void *userdata);
+void BPY_RNA_gizmogroup_wrapper(struct wmGizmoGroupType *wgt, void *userdata);
 
 #endif  /* __BPY_GIZMO_WRAP_H__ */

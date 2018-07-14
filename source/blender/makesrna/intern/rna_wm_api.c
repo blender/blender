@@ -118,33 +118,33 @@ static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 }
 
 
-static wmManipulatorGroupType *wm_manipulatorgrouptype_find_for_add_remove(ReportList *reports, const char *idname)
+static wmGizmoGroupType *wm_gizmogrouptype_find_for_add_remove(ReportList *reports, const char *idname)
 {
-	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, true);
+	wmGizmoGroupType *wgt = WM_gizmogrouptype_find(idname, true);
 	if (wgt == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Manipulator group type '%s' not found!", idname);
+		BKE_reportf(reports, RPT_ERROR, "Gizmo group type '%s' not found!", idname);
 		return NULL;
 	}
-	if (wgt->flag & WM_MANIPULATORGROUPTYPE_PERSISTENT) {
-		BKE_reportf(reports, RPT_ERROR, "Manipulator group '%s' has 'PERSISTENT' option set!", idname);
+	if (wgt->flag & WM_GIZMOGROUPTYPE_PERSISTENT) {
+		BKE_reportf(reports, RPT_ERROR, "Gizmo group '%s' has 'PERSISTENT' option set!", idname);
 		return NULL;
 	}
 	return wgt;
 }
 
-static void rna_manipulator_group_type_add(ReportList *reports, const char *idname)
+static void rna_gizmo_group_type_add(ReportList *reports, const char *idname)
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_find_for_add_remove(reports, idname);
+	wmGizmoGroupType *wgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
 	if (wgt != NULL) {
-		WM_manipulator_group_type_add_ptr(wgt);
+		WM_gizmo_group_type_add_ptr(wgt);
 	}
 }
 
-static void rna_manipulator_group_type_remove(Main *bmain, ReportList *reports, const char *idname)
+static void rna_gizmo_group_type_remove(Main *bmain, ReportList *reports, const char *idname)
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_find_for_add_remove(reports, idname);
+	wmGizmoGroupType *wgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
 	if (wgt != NULL) {
-		WM_manipulator_group_type_remove_ptr(bmain, wgt);
+		WM_gizmo_group_type_remove_ptr(bmain, wgt);
 	}
 }
 
@@ -516,16 +516,16 @@ void RNA_api_wm(StructRNA *srna)
 	parm = RNA_def_pointer(func, "timer", "Timer", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "manipulator_group_type_add", "rna_manipulator_group_type_add");
+	func = RNA_def_function(srna, "gizmo_group_type_add", "rna_gizmo_group_type_add");
 	RNA_def_function_ui_description(func, "Activate an existing widget group (when the persistent option isn't set)");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
-	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Manipulator group type name");
+	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Gizmo group type name");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "manipulator_group_type_remove", "rna_manipulator_group_type_remove");
+	func = RNA_def_function(srna, "gizmo_group_type_remove", "rna_gizmo_group_type_remove");
 	RNA_def_function_ui_description(func, "De-activate a widget group (when the persistent option isn't set)");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Manipulator group type name");
+	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Gizmo group type name");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* Progress bar interface */

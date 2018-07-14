@@ -569,7 +569,7 @@ def _activate_by_item(context, space_type, item, index):
         name=item.text,
         keymap=item.keymap[0].name if item.keymap is not None else "",
         cursor=item.cursor or 'DEFAULT',
-        manipulator_group=item.widget or "",
+        gizmo_group=item.widget or "",
         data_block=item.data_block or "",
         operator=item.operator or "",
         index=index,

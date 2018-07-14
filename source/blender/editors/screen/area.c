@@ -2936,8 +2936,8 @@ void ED_region_message_subscribe(
         struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
-	if (ar->manipulator_map != NULL) {
-		WM_manipulatormap_message_subscribe(C, ar->manipulator_map, ar, mbus);
+	if (ar->gizmo_map != NULL) {
+		WM_gizmomap_message_subscribe(C, ar->gizmo_map, ar, mbus);
 	}
 
 	if (BLI_listbase_is_empty(&ar->uiblocks)) {

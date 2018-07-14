@@ -493,7 +493,7 @@ static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
 
-		op->flag |= OP_IS_MODAL_GRAB_CURSOR; // XXX maybe we want this with the manipulator only?
+		op->flag |= OP_IS_MODAL_GRAB_CURSOR; // XXX maybe we want this with the gizmo only?
 
 		/* Use when modal input has some transformation to begin with. */
 		{
@@ -585,7 +585,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	}
 
 	if (flags & P_CENTER) {
-		/* For manipulators that define their own center. */
+		/* For gizmos that define their own center. */
 		prop = RNA_def_property(ot->srna, "center_override", PROP_FLOAT, PROP_XYZ);
 		RNA_def_property_array(prop, 3);
 		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);

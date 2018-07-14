@@ -308,7 +308,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 
-	/* Manipulators aren't used in paint modes */
+	/* Gizmos aren't used in paint modes */
 	if (!ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_PARTICLE_EDIT)) {
 		/* masks aren't used for sculpt and particle painting */
 		PointerRNA meshptr;
@@ -391,9 +391,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	else {
 		/* Moved to popover and topbar. */
 #if 0
-		/* Transform widget / manipulators */
+		/* Transform widget / gizmos */
 		row = uiLayoutRow(layout, true);
-		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		uiItemR(row, &v3dptr, "show_gizmo", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		uiItemR(row, &sceneptr, "transform_orientation", 0, "", ICON_NONE);
 #endif
 	}

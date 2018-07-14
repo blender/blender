@@ -60,7 +60,7 @@ typedef struct bToolRef_Runtime {
 
 	/** One of these 3 must be defined. */
 	char keymap[64];
-	char manipulator_group[64];
+	char gizmo_group[64];
 	char data_block[64];
 
 	/** Use to infer primary operator to use when setting accelerator keys. */

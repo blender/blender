@@ -50,18 +50,18 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* only for own init/exit calls (wm_manipulatortype_init/wm_manipulatortype_free) */
+/* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
 #include "wm.h"
 
 /* own includes */
 #include "gizmo_library_intern.h"
 
 /**
- * Main draw call for ManipulatorGeomInfo data
+ * Main draw call for GizmoGeomInfo data
  */
-void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const bool UNUSED(select), const float color[4])
+void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info, const bool UNUSED(select), const float color[4])
 {
-	/* TODO store the Batches inside the ManipulatorGeomInfo and updated it when geom changes
+	/* TODO store the Batches inside the GizmoGeomInfo and updated it when geom changes
 	 * So we don't need to re-created and discard it every time */
 
 	Gwn_VertBuf *vbo;
@@ -108,7 +108,7 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	GWN_batch_discard(batch);
 }
 
-void wm_manipulator_vec_draw(
+void wm_gizmo_vec_draw(
         const float color[4], const float (*verts)[3], uint vert_count,
         uint pos, uint primitive_type)
 {

@@ -26,8 +26,8 @@
 /** \file blender/windowmanager/gizmos/WM_gizmo_api.h
  *  \ingroup wm
  *
- * \name Manipulator API
- * \brief API for external use of wmManipulator types.
+ * \name Gizmo API
+ * \brief API for external use of wmGizmo types.
  *
  * Only included in WM_api.h
  */
@@ -42,302 +42,302 @@ struct IDProperty;
 struct Main;
 struct PropertyRNA;
 struct wmKeyConfig;
-struct wmManipulator;
-struct wmManipulatorProperty;
-struct wmManipulatorPropertyType;
-struct wmManipulatorType;
-struct wmManipulatorGroup;
-struct wmManipulatorGroupType;
-struct wmManipulatorMap;
-struct wmManipulatorMapType;
-struct wmManipulatorMapType_Params;
+struct wmGizmo;
+struct wmGizmoProperty;
+struct wmGizmoPropertyType;
+struct wmGizmoType;
+struct wmGizmoGroup;
+struct wmGizmoGroupType;
+struct wmGizmoMap;
+struct wmGizmoMapType;
+struct wmGizmoMapType_Params;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 
 #include "wm_gizmo_fn.h"
 
 /* -------------------------------------------------------------------- */
-/* wmManipulator */
+/* wmGizmo */
 
-struct wmManipulator *WM_manipulator_new_ptr(
-        const struct wmManipulatorType *wt, struct wmManipulatorGroup *mgroup,
+struct wmGizmo *WM_gizmo_new_ptr(
+        const struct wmGizmoType *wt, struct wmGizmoGroup *mgroup,
         struct PointerRNA *properties);
-struct wmManipulator *WM_manipulator_new(
-        const char *idname, struct wmManipulatorGroup *mgroup,
+struct wmGizmo *WM_gizmo_new(
+        const char *idname, struct wmGizmoGroup *mgroup,
         struct PointerRNA *properties);
-void WM_manipulator_free(struct wmManipulator *mpr);
-void WM_manipulator_unlink(
-        ListBase *manipulatorlist, struct wmManipulatorMap *mmap, struct wmManipulator *mpr,
+void WM_gizmo_free(struct wmGizmo *mpr);
+void WM_gizmo_unlink(
+        ListBase *gizmolist, struct wmGizmoMap *mmap, struct wmGizmo *mpr,
         struct bContext *C);
 
-void WM_manipulator_name_set(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr, const char *name);
+void WM_gizmo_name_set(struct wmGizmoGroup *mgroup, struct wmGizmo *mpr, const char *name);
 
-bool WM_manipulator_select_unlink(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
-bool WM_manipulator_select_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select);
-void WM_manipulator_highlight_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
+bool WM_gizmo_select_unlink(struct wmGizmoMap *mmap, struct wmGizmo *mpr);
+bool WM_gizmo_select_set(struct wmGizmoMap *mmap, struct wmGizmo *mpr, bool select);
+void WM_gizmo_highlight_set(struct wmGizmoMap *mmap, struct wmGizmo *mpr);
 
-void WM_manipulator_modal_set_from_setup(
-        struct wmManipulatorMap *mmap, struct bContext *C,
-        struct wmManipulator *mpr, int part_index, const struct wmEvent *event);
+void WM_gizmo_modal_set_from_setup(
+        struct wmGizmoMap *mmap, struct bContext *C,
+        struct wmGizmo *mpr, int part_index, const struct wmEvent *event);
 
-struct wmManipulatorOpElem *WM_manipulator_operator_get(
-        struct wmManipulator *mpr, int part_index);
-struct PointerRNA *WM_manipulator_operator_set(
-        struct wmManipulator *mpr, int part_index,
+struct wmGizmoOpElem *WM_gizmo_operator_get(
+        struct wmGizmo *mpr, int part_index);
+struct PointerRNA *WM_gizmo_operator_set(
+        struct wmGizmo *mpr, int part_index,
         struct wmOperatorType *ot, struct IDProperty *properties);
 
 /* callbacks */
-void WM_manipulator_set_fn_custom_modal(struct wmManipulator *mpr, wmManipulatorFnModal fn);
+void WM_gizmo_set_fn_custom_modal(struct wmGizmo *mpr, wmGizmoFnModal fn);
 
-void WM_manipulator_set_matrix_location(
-        struct wmManipulator *mpr, const float origin[3]);
-void WM_manipulator_set_matrix_rotation_from_z_axis(
-        struct wmManipulator *mpr, const float z_axis[3]);
-void WM_manipulator_set_matrix_rotation_from_yz_axis(
-        struct wmManipulator *mpr, const float y_axis[3], const float z_axis[3]);
+void WM_gizmo_set_matrix_location(
+        struct wmGizmo *mpr, const float origin[3]);
+void WM_gizmo_set_matrix_rotation_from_z_axis(
+        struct wmGizmo *mpr, const float z_axis[3]);
+void WM_gizmo_set_matrix_rotation_from_yz_axis(
+        struct wmGizmo *mpr, const float y_axis[3], const float z_axis[3]);
 
-void WM_manipulator_set_matrix_offset_location(
-        struct wmManipulator *mpr, const float origin[3]);
-void WM_manipulator_set_matrix_offset_rotation_from_z_axis(
-        struct wmManipulator *mpr, const float z_axis[3]);
-void WM_manipulator_set_matrix_offset_rotation_from_yz_axis(
-        struct wmManipulator *mpr, const float y_axis[3], const float z_axis[3]);
+void WM_gizmo_set_matrix_offset_location(
+        struct wmGizmo *mpr, const float origin[3]);
+void WM_gizmo_set_matrix_offset_rotation_from_z_axis(
+        struct wmGizmo *mpr, const float z_axis[3]);
+void WM_gizmo_set_matrix_offset_rotation_from_yz_axis(
+        struct wmGizmo *mpr, const float y_axis[3], const float z_axis[3]);
 
-void WM_manipulator_set_flag(struct wmManipulator *mpr, const int flag, const bool enable);
-void WM_manipulator_set_scale(struct wmManipulator *mpr, float scale);
-void WM_manipulator_set_line_width(struct wmManipulator *mpr, const float line_width);
+void WM_gizmo_set_flag(struct wmGizmo *mpr, const int flag, const bool enable);
+void WM_gizmo_set_scale(struct wmGizmo *mpr, float scale);
+void WM_gizmo_set_line_width(struct wmGizmo *mpr, const float line_width);
 
-void WM_manipulator_get_color(const struct wmManipulator *mpr, float color[4]);
-void WM_manipulator_set_color(struct wmManipulator *mpr, const float color[4]);
-void WM_manipulator_get_color_highlight(const struct wmManipulator *mpr, float color_hi[4]);
-void WM_manipulator_set_color_highlight(struct wmManipulator *mpr, const float color[4]);
+void WM_gizmo_get_color(const struct wmGizmo *mpr, float color[4]);
+void WM_gizmo_set_color(struct wmGizmo *mpr, const float color[4]);
+void WM_gizmo_get_color_highlight(const struct wmGizmo *mpr, float color_hi[4]);
+void WM_gizmo_set_color_highlight(struct wmGizmo *mpr, const float color[4]);
 
 /**
- * Leaving values NULL use values from #wmManipulator.
+ * Leaving values NULL use values from #wmGizmo.
  */
-struct WM_ManipulatorMatrixParams {
+struct WM_GizmoMatrixParams {
 	const float(*matrix_space)[4];
 	const float(*matrix_basis)[4];
 	const float(*matrix_offset)[4];
 	const float *scale_final;
 };
 
-void WM_manipulator_calc_matrix_final_params(
-        const struct wmManipulator *mpr, const struct WM_ManipulatorMatrixParams *params,
+void WM_gizmo_calc_matrix_final_params(
+        const struct wmGizmo *mpr, const struct WM_GizmoMatrixParams *params,
         float r_mat[4][4]);
-void WM_manipulator_calc_matrix_final_no_offset(
-        const struct wmManipulator *mpr, float r_mat[4][4]);
+void WM_gizmo_calc_matrix_final_no_offset(
+        const struct wmGizmo *mpr, float r_mat[4][4]);
 
-void WM_manipulator_calc_matrix_final(
-        const struct wmManipulator *mpr, float r_mat[4][4]);
+void WM_gizmo_calc_matrix_final(
+        const struct wmGizmo *mpr, float r_mat[4][4]);
 
 /* properties */
-void WM_manipulator_properties_create_ptr(struct PointerRNA *ptr, struct wmManipulatorType *wt);
-void WM_manipulator_properties_create(struct PointerRNA *ptr, const char *opstring);
-void WM_manipulator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *wtstring);
-void WM_manipulator_properties_sanitize(struct PointerRNA *ptr, const bool no_context);
-bool WM_manipulator_properties_default(struct PointerRNA *ptr, const bool do_update);
-void WM_manipulator_properties_reset(struct wmManipulator *op);
-void WM_manipulator_properties_clear(struct PointerRNA *ptr);
-void WM_manipulator_properties_free(struct PointerRNA *ptr);
+void WM_gizmo_properties_create_ptr(struct PointerRNA *ptr, struct wmGizmoType *wt);
+void WM_gizmo_properties_create(struct PointerRNA *ptr, const char *opstring);
+void WM_gizmo_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *wtstring);
+void WM_gizmo_properties_sanitize(struct PointerRNA *ptr, const bool no_context);
+bool WM_gizmo_properties_default(struct PointerRNA *ptr, const bool do_update);
+void WM_gizmo_properties_reset(struct wmGizmo *op);
+void WM_gizmo_properties_clear(struct PointerRNA *ptr);
+void WM_gizmo_properties_free(struct PointerRNA *ptr);
 
 
-/* wm_manipulator_type.c */
-const struct wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet);
-void WM_manipulatortype_append(void (*wtfunc)(struct wmManipulatorType *));
-void WM_manipulatortype_append_ptr(void (*mnpfunc)(struct wmManipulatorType *, void *), void *userdata);
-bool WM_manipulatortype_remove(struct bContext *C, struct Main *bmain, const char *idname);
-void WM_manipulatortype_remove_ptr(struct bContext *C, struct Main *bmain, struct wmManipulatorType *wt);
-void WM_manipulatortype_iter(struct GHashIterator *ghi);
+/* wm_gizmo_type.c */
+const struct wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet);
+void WM_gizmotype_append(void (*wtfunc)(struct wmGizmoType *));
+void WM_gizmotype_append_ptr(void (*mnpfunc)(struct wmGizmoType *, void *), void *userdata);
+bool WM_gizmotype_remove(struct bContext *C, struct Main *bmain, const char *idname);
+void WM_gizmotype_remove_ptr(struct bContext *C, struct Main *bmain, struct wmGizmoType *wt);
+void WM_gizmotype_iter(struct GHashIterator *ghi);
 
-/* wm_manipulator_group_type.c */
-struct wmManipulatorGroupType *WM_manipulatorgrouptype_find(const char *idname, bool quiet);
-struct wmManipulatorGroupType *WM_manipulatorgrouptype_append(void (*wtfunc)(struct wmManipulatorGroupType *));
-struct wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr(void (*mnpfunc)(struct wmManipulatorGroupType *, void *), void *userdata);
-bool WM_manipulatorgrouptype_free(const char *idname);
-void WM_manipulatorgrouptype_free_ptr(struct wmManipulatorGroupType *wt);
-void WM_manipulatorgrouptype_iter(struct GHashIterator *ghi);
+/* wm_gizmo_group_type.c */
+struct wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet);
+struct wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(struct wmGizmoGroupType *));
+struct wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*mnpfunc)(struct wmGizmoGroupType *, void *), void *userdata);
+bool WM_gizmogrouptype_free(const char *idname);
+void WM_gizmogrouptype_free_ptr(struct wmGizmoGroupType *wt);
+void WM_gizmogrouptype_iter(struct GHashIterator *ghi);
 
-struct wmManipulatorGroupTypeRef *WM_manipulatorgrouptype_append_and_link(
-        struct wmManipulatorMapType *mmap_type,
-        void (*wtfunc)(struct wmManipulatorGroupType *));
+struct wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(
+        struct wmGizmoMapType *mmap_type,
+        void (*wtfunc)(struct wmGizmoGroupType *));
 
-/* wm_manipulator_map.c */
+/* wm_gizmo_map.c */
 
 /* Dynamic Updates (for RNA runtime registration) */
-void WM_manipulatorconfig_update_tag_init(struct wmManipulatorMapType *mmap_type, struct wmManipulatorGroupType *wgt);
-void WM_manipulatorconfig_update_tag_remove(struct wmManipulatorMapType *mmap_type, struct wmManipulatorGroupType *wgt);
-void WM_manipulatorconfig_update(struct Main *bmain);
+void WM_gizmoconfig_update_tag_init(struct wmGizmoMapType *mmap_type, struct wmGizmoGroupType *wgt);
+void WM_gizmoconfig_update_tag_remove(struct wmGizmoMapType *mmap_type, struct wmGizmoGroupType *wgt);
+void WM_gizmoconfig_update(struct Main *bmain);
 
 
 /* wm_maniulator_target_props.c */
-struct wmManipulatorProperty *WM_manipulator_target_property_array(struct wmManipulator *mpr);
-struct wmManipulatorProperty *WM_manipulator_target_property_at_index(
-        struct wmManipulator *mpr, int index);
-struct wmManipulatorProperty *WM_manipulator_target_property_find(
-        struct wmManipulator *mpr, const char *idname);
+struct wmGizmoProperty *WM_gizmo_target_property_array(struct wmGizmo *mpr);
+struct wmGizmoProperty *WM_gizmo_target_property_at_index(
+        struct wmGizmo *mpr, int index);
+struct wmGizmoProperty *WM_gizmo_target_property_find(
+        struct wmGizmo *mpr, const char *idname);
 
-void WM_manipulator_target_property_def_rna_ptr(
-        struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type,
+void WM_gizmo_target_property_def_rna_ptr(
+        struct wmGizmo *mpr, const struct wmGizmoPropertyType *mpr_prop_type,
         struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
-void WM_manipulator_target_property_def_rna(
-        struct wmManipulator *mpr, const char *idname,
+void WM_gizmo_target_property_def_rna(
+        struct wmGizmo *mpr, const char *idname,
         struct PointerRNA *ptr, const char *propname, int index);
 
-void WM_manipulator_target_property_def_func_ptr(
-        struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type,
-        const struct wmManipulatorPropertyFnParams *params);
-void WM_manipulator_target_property_def_func(
-        struct wmManipulator *mpr, const char *idname,
-        const struct wmManipulatorPropertyFnParams *params);
+void WM_gizmo_target_property_def_func_ptr(
+        struct wmGizmo *mpr, const struct wmGizmoPropertyType *mpr_prop_type,
+        const struct wmGizmoPropertyFnParams *params);
+void WM_gizmo_target_property_def_func(
+        struct wmGizmo *mpr, const char *idname,
+        const struct wmGizmoPropertyFnParams *params);
 
-void WM_manipulator_target_property_clear_rna_ptr(
-        struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type);
-void WM_manipulator_target_property_clear_rna(
-        struct wmManipulator *mpr, const char *idname);
+void WM_gizmo_target_property_clear_rna_ptr(
+        struct wmGizmo *mpr, const struct wmGizmoPropertyType *mpr_prop_type);
+void WM_gizmo_target_property_clear_rna(
+        struct wmGizmo *mpr, const char *idname);
 
-bool WM_manipulator_target_property_is_valid_any(struct wmManipulator *mpr);
-bool WM_manipulator_target_property_is_valid(
-        const struct wmManipulatorProperty *mpr_prop);
-float WM_manipulator_target_property_value_get(
-        const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop);
-void  WM_manipulator_target_property_value_set(
-        struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
+bool WM_gizmo_target_property_is_valid_any(struct wmGizmo *mpr);
+bool WM_gizmo_target_property_is_valid(
+        const struct wmGizmoProperty *mpr_prop);
+float WM_gizmo_target_property_value_get(
+        const struct wmGizmo *mpr, struct wmGizmoProperty *mpr_prop);
+void  WM_gizmo_target_property_value_set(
+        struct bContext *C, const struct wmGizmo *mpr, struct wmGizmoProperty *mpr_prop,
         const float value);
 
-void WM_manipulator_target_property_value_get_array(
-        const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
+void WM_gizmo_target_property_value_get_array(
+        const struct wmGizmo *mpr, struct wmGizmoProperty *mpr_prop,
         float *value);
-void WM_manipulator_target_property_value_set_array(
-        struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
+void WM_gizmo_target_property_value_set_array(
+        struct bContext *C, const struct wmGizmo *mpr, struct wmGizmoProperty *mpr_prop,
         const float *value);
 
-bool WM_manipulator_target_property_range_get(
-        const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
+bool WM_gizmo_target_property_range_get(
+        const struct wmGizmo *mpr, struct wmGizmoProperty *mpr_prop,
         float range[2]);
 
-int WM_manipulator_target_property_array_length(
-        const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop);
+int WM_gizmo_target_property_array_length(
+        const struct wmGizmo *mpr, struct wmGizmoProperty *mpr_prop);
 
 /* definitions */
-const struct wmManipulatorPropertyType *WM_manipulatortype_target_property_find(
-        const struct wmManipulatorType *wt, const char *idname);
-void WM_manipulatortype_target_property_def(
-        struct wmManipulatorType *wt, const char *idname, int data_type, int array_length);
+const struct wmGizmoPropertyType *WM_gizmotype_target_property_find(
+        const struct wmGizmoType *wt, const char *idname);
+void WM_gizmotype_target_property_def(
+        struct wmGizmoType *wt, const char *idname, int data_type, int array_length);
 
 /* utilities */
-void WM_manipulator_do_msg_notify_tag_refresh(
+void WM_gizmo_do_msg_notify_tag_refresh(
         struct bContext *C, struct wmMsgSubscribeKey *msg_key, struct wmMsgSubscribeValue *msg_val);
-void WM_manipulator_target_property_subscribe_all(
-        struct wmManipulator *mpr, struct wmMsgBus *mbus, struct ARegion *ar);
+void WM_gizmo_target_property_subscribe_all(
+        struct wmGizmo *mpr, struct wmMsgBus *mbus, struct ARegion *ar);
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorGroup */
+/* wmGizmoGroup */
 
-/* Callbacks for 'wmManipulatorGroupType.setup_keymap' */
-struct wmKeyMap *WM_manipulatorgroup_keymap_common(
-        const struct wmManipulatorGroupType *wgt, struct wmKeyConfig *config);
-struct wmKeyMap *WM_manipulatorgroup_keymap_common_select(
-        const struct wmManipulatorGroupType *wgt, struct wmKeyConfig *config);
+/* Callbacks for 'wmGizmoGroupType.setup_keymap' */
+struct wmKeyMap *WM_gizmogroup_keymap_common(
+        const struct wmGizmoGroupType *wgt, struct wmKeyConfig *config);
+struct wmKeyMap *WM_gizmogroup_keymap_common_select(
+        const struct wmGizmoGroupType *wgt, struct wmKeyConfig *config);
 
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorMap */
+/* wmGizmoMap */
 
-struct wmManipulatorMap *WM_manipulatormap_new_from_type(
-        const struct wmManipulatorMapType_Params *mmap_params);
-const struct ListBase *WM_manipulatormap_group_list(struct wmManipulatorMap *mmap);
-struct wmManipulatorGroup *WM_manipulatormap_group_find(
-        struct wmManipulatorMap *mmap,
+struct wmGizmoMap *WM_gizmomap_new_from_type(
+        const struct wmGizmoMapType_Params *mmap_params);
+const struct ListBase *WM_gizmomap_group_list(struct wmGizmoMap *mmap);
+struct wmGizmoGroup *WM_gizmomap_group_find(
+        struct wmGizmoMap *mmap,
         const char *idname);
-struct wmManipulatorGroup *WM_manipulatormap_group_find_ptr(
-        struct wmManipulatorMap *mmap,
-        const struct wmManipulatorGroupType *wgt);
-void WM_manipulatormap_tag_refresh(struct wmManipulatorMap *mmap);
-void WM_manipulatormap_draw(
-        struct wmManipulatorMap *mmap, const struct bContext *C, const eWM_ManipulatorMapDrawStep drawstep);
-void WM_manipulatormap_add_handlers(struct ARegion *ar, struct wmManipulatorMap *mmap);
-bool WM_manipulatormap_select_all(struct bContext *C, struct wmManipulatorMap *mmap, const int action);
-bool WM_manipulatormap_cursor_set(const struct wmManipulatorMap *mmap, struct wmWindow *win);
-void WM_manipulatormap_message_subscribe(
-        struct bContext *C, struct wmManipulatorMap *mmap, struct ARegion *ar, struct wmMsgBus *mbus);
-bool WM_manipulatormap_is_any_selected(const struct wmManipulatorMap *mmap);
-bool WM_manipulatormap_minmax(
-        const struct wmManipulatorMap *mmap, bool use_hidden, bool use_select,
+struct wmGizmoGroup *WM_gizmomap_group_find_ptr(
+        struct wmGizmoMap *mmap,
+        const struct wmGizmoGroupType *wgt);
+void WM_gizmomap_tag_refresh(struct wmGizmoMap *mmap);
+void WM_gizmomap_draw(
+        struct wmGizmoMap *mmap, const struct bContext *C, const eWM_GizmoFlagMapDrawStep drawstep);
+void WM_gizmomap_add_handlers(struct ARegion *ar, struct wmGizmoMap *mmap);
+bool WM_gizmomap_select_all(struct bContext *C, struct wmGizmoMap *mmap, const int action);
+bool WM_gizmomap_cursor_set(const struct wmGizmoMap *mmap, struct wmWindow *win);
+void WM_gizmomap_message_subscribe(
+        struct bContext *C, struct wmGizmoMap *mmap, struct ARegion *ar, struct wmMsgBus *mbus);
+bool WM_gizmomap_is_any_selected(const struct wmGizmoMap *mmap);
+bool WM_gizmomap_minmax(
+        const struct wmGizmoMap *mmap, bool use_hidden, bool use_select,
         float r_min[3], float r_max[3]);
 
-struct ARegion *WM_manipulatormap_tooltip_init(
+struct ARegion *WM_gizmomap_tooltip_init(
         struct bContext *C, struct ARegion *ar, bool *r_exit_on_event);
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorMapType */
+/* wmGizmoMapType */
 
-struct wmManipulatorMapType *WM_manipulatormaptype_find(
-        const struct wmManipulatorMapType_Params *mmap_params);
-struct wmManipulatorMapType *WM_manipulatormaptype_ensure(
-        const struct wmManipulatorMapType_Params *mmap_params);
+struct wmGizmoMapType *WM_gizmomaptype_find(
+        const struct wmGizmoMapType_Params *mmap_params);
+struct wmGizmoMapType *WM_gizmomaptype_ensure(
+        const struct wmGizmoMapType_Params *mmap_params);
 
-struct wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_find(
-        struct wmManipulatorMapType *mmap_type,
+struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(
+        struct wmGizmoMapType *mmap_type,
         const char *idname);
-struct wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_find_ptr(
-        struct wmManipulatorMapType *mmap_type,
-        const struct wmManipulatorGroupType *wgt);
-struct wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_link(
-        struct wmManipulatorMapType *mmap_type,
+struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(
+        struct wmGizmoMapType *mmap_type,
+        const struct wmGizmoGroupType *wgt);
+struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(
+        struct wmGizmoMapType *mmap_type,
         const char *idname);
-struct wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_link_ptr(
-        struct wmManipulatorMapType *mmap_type,
-        struct wmManipulatorGroupType *wgt);
+struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_link_ptr(
+        struct wmGizmoMapType *mmap_type,
+        struct wmGizmoGroupType *wgt);
 
-void WM_manipulatormaptype_group_init_runtime_keymap(
+void WM_gizmomaptype_group_init_runtime_keymap(
         const struct Main *bmain,
-        struct wmManipulatorGroupType *wgt);
-void WM_manipulatormaptype_group_init_runtime(
-        const struct Main *bmain, struct wmManipulatorMapType *mmap_type,
-        struct wmManipulatorGroupType *wgt);
-void WM_manipulatormaptype_group_unlink(
-        struct bContext *C, struct Main *bmain, struct wmManipulatorMapType *mmap_type,
-        const struct wmManipulatorGroupType *wgt);
+        struct wmGizmoGroupType *wgt);
+void WM_gizmomaptype_group_init_runtime(
+        const struct Main *bmain, struct wmGizmoMapType *mmap_type,
+        struct wmGizmoGroupType *wgt);
+void WM_gizmomaptype_group_unlink(
+        struct bContext *C, struct Main *bmain, struct wmGizmoMapType *mmap_type,
+        const struct wmGizmoGroupType *wgt);
 
-void WM_manipulatormaptype_group_free(struct wmManipulatorGroupTypeRef *wgt);
+void WM_gizmomaptype_group_free(struct wmGizmoGroupTypeRef *wgt);
 
 /* -------------------------------------------------------------------- */
-/* ManipulatorGroup */
+/* GizmoGroup */
 
 /* Add/Ensure/Remove (High level API) */
 
-void WM_manipulator_group_type_add_ptr_ex(
-        struct wmManipulatorGroupType *wgt,
-        struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_type_add_ptr(
-        struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_type_add(const char *idname);
+void WM_gizmo_group_type_add_ptr_ex(
+        struct wmGizmoGroupType *wgt,
+        struct wmGizmoMapType *mmap_type);
+void WM_gizmo_group_type_add_ptr(
+        struct wmGizmoGroupType *wgt);
+void WM_gizmo_group_type_add(const char *idname);
 
-void WM_manipulator_group_type_ensure_ptr_ex(
-        struct wmManipulatorGroupType *wgt,
-        struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_type_ensure_ptr(
-        struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_type_ensure(const char *idname);
+void WM_gizmo_group_type_ensure_ptr_ex(
+        struct wmGizmoGroupType *wgt,
+        struct wmGizmoMapType *mmap_type);
+void WM_gizmo_group_type_ensure_ptr(
+        struct wmGizmoGroupType *wgt);
+void WM_gizmo_group_type_ensure(const char *idname);
 
-void WM_manipulator_group_type_remove_ptr_ex(
-        struct Main *bmain, struct wmManipulatorGroupType *wgt,
-        struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_type_remove_ptr(
-        struct Main *bmain, struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_type_remove(struct Main *bmain, const char *idname);
+void WM_gizmo_group_type_remove_ptr_ex(
+        struct Main *bmain, struct wmGizmoGroupType *wgt,
+        struct wmGizmoMapType *mmap_type);
+void WM_gizmo_group_type_remove_ptr(
+        struct Main *bmain, struct wmGizmoGroupType *wgt);
+void WM_gizmo_group_type_remove(struct Main *bmain, const char *idname);
 
-void WM_manipulator_group_type_unlink_delayed_ptr_ex(
-        struct wmManipulatorGroupType *wgt,
-        struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_type_unlink_delayed_ptr(
-        struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_type_unlink_delayed(const char *idname);
+void WM_gizmo_group_type_unlink_delayed_ptr_ex(
+        struct wmGizmoGroupType *wgt,
+        struct wmGizmoMapType *mmap_type);
+void WM_gizmo_group_type_unlink_delayed_ptr(
+        struct wmGizmoGroupType *wgt);
+void WM_gizmo_group_type_unlink_delayed(const char *idname);
 
 /* Utilities */
-bool WM_manipulator_context_check_drawstep(const struct bContext *C, eWM_ManipulatorMapDrawStep step);
+bool WM_gizmo_context_check_drawstep(const struct bContext *C, eWM_GizmoFlagMapDrawStep step);
 
-bool WM_manipulator_group_type_poll(const struct bContext *C, const struct wmManipulatorGroupType *wgt);
+bool WM_gizmo_group_type_poll(const struct bContext *C, const struct wmGizmoGroupType *wgt);
 
 #endif  /* __WM_GIZMO_API_H__ */

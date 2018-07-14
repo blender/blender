@@ -49,12 +49,12 @@
 
 /* -------------------------------------------------------------------- */
 
-/** \name Manipulator
+/** \name Gizmo
  * \{ */
 
 
-static bool bpy_manipulatortype_target_property_def(
-        wmManipulatorType *wt, PyObject *item)
+static bool bpy_gizmotype_target_property_def(
+        wmGizmoType *wt, PyObject *item)
 {
 	/* Note: names based on 'rna_rna.c' */
 	PyObject *empty_tuple = PyTuple_New(0);
@@ -102,7 +102,7 @@ static bool bpy_manipulatortype_target_property_def(
 		goto fail;
 	}
 
-	WM_manipulatortype_target_property_def(wt, params.id, params.type, params.array_length);
+	WM_gizmotype_target_property_def(wt, params.id, params.type, params.array_length);
 	Py_DECREF(empty_tuple);
 	return true;
 
@@ -111,7 +111,7 @@ fail:
 	return false;
 }
 
-static void manipulator_properties_init(wmManipulatorType *wt)
+static void gizmo_properties_init(wmGizmoType *wt)
 {
 	PyTypeObject *py_class = wt->ext.data;
 	RNA_struct_blender_type_set(wt->ext.srna, wt);
@@ -149,7 +149,7 @@ static void manipulator_properties_init(wmManipulatorType *wt)
 			PyObject **items = PySequence_Fast_ITEMS(bl_target_properties_fast);
 
 			for (uint i = 0; i < items_len; i++) {
-				if (!bpy_manipulatortype_target_property_def(wt, items[i])) {
+				if (!bpy_gizmotype_target_property_def(wt, items[i])) {
 					PyErr_Print();
 					PyErr_Clear();
 					break;
@@ -161,25 +161,25 @@ static void manipulator_properties_init(wmManipulatorType *wt)
 	}
 }
 
-void BPY_RNA_manipulator_wrapper(wmManipulatorType *wt, void *userdata)
+void BPY_RNA_gizmo_wrapper(wmGizmoType *wt, void *userdata)
 {
 	/* take care not to overwrite anything set in
-	 * WM_manipulatormaptype_group_link_ptr before opfunc() is called */
+	 * WM_gizmomaptype_group_link_ptr before opfunc() is called */
 	StructRNA *srna = wt->srna;
-	*wt = *((wmManipulatorType *)userdata);
+	*wt = *((wmGizmoType *)userdata);
 	wt->srna = srna; /* restore */
 
 	/* don't do translations here yet */
 #if 0
-	/* Use i18n context from ext.srna if possible (py manipulatorgroups). */
+	/* Use i18n context from ext.srna if possible (py gizmogroups). */
 	if (wt->ext.srna) {
 		RNA_def_struct_translation_context(wt->srna, RNA_struct_translation_context(wt->ext.srna));
 	}
 #endif
 
-	wt->struct_size = sizeof(wmManipulator);
+	wt->struct_size = sizeof(wmGizmo);
 
-	manipulator_properties_init(wt);
+	gizmo_properties_init(wt);
 }
 
 /** \} */
@@ -187,10 +187,10 @@ void BPY_RNA_manipulator_wrapper(wmManipulatorType *wt, void *userdata)
 
 /* -------------------------------------------------------------------- */
 
-/** \name Manipulator Group
+/** \name Gizmo Group
  * \{ */
 
-static void manipulatorgroup_properties_init(wmManipulatorGroupType *wgt)
+static void gizmogroup_properties_init(wmGizmoGroupType *wgt)
 {
 #ifdef USE_SRNA
 	PyTypeObject *py_class = wgt->ext.data;
@@ -210,26 +210,26 @@ static void manipulatorgroup_properties_init(wmManipulatorGroupType *wgt)
 #endif
 }
 
-void BPY_RNA_manipulatorgroup_wrapper(wmManipulatorGroupType *wgt, void *userdata)
+void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *wgt, void *userdata)
 {
 	/* take care not to overwrite anything set in
-	 * WM_manipulatormaptype_group_link_ptr before opfunc() is called */
+	 * WM_gizmomaptype_group_link_ptr before opfunc() is called */
 #ifdef USE_SRNA
 	StructRNA *srna = wgt->srna;
 #endif
-	*wgt = *((wmManipulatorGroupType *)userdata);
+	*wgt = *((wmGizmoGroupType *)userdata);
 #ifdef USE_SRNA
 	wgt->srna = srna; /* restore */
 #endif
 
 #ifdef USE_SRNA
-	/* Use i18n context from ext.srna if possible (py manipulatorgroups). */
+	/* Use i18n context from ext.srna if possible (py gizmogroups). */
 	if (wgt->ext.srna) {
 		RNA_def_struct_translation_context(wgt->srna, RNA_struct_translation_context(wgt->ext.srna));
 	}
 #endif
 
-	manipulatorgroup_properties_init(wgt);
+	gizmogroup_properties_init(wgt);
 }
 
 /** \} */

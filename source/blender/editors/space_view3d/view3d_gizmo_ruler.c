@@ -93,7 +93,7 @@ enum {
 #define PART_LINE 0xff
 
 /* -------------------------------------------------------------------- */
-/* Ruler Info (wmManipulatorGroup customdata) */
+/* Ruler Info (wmGizmoGroup customdata) */
 
 enum {
 	RULER_STATE_NORMAL = 0,
@@ -123,7 +123,7 @@ typedef struct RulerInfo {
 /* Ruler Item (two or three points) */
 
 typedef struct RulerItem {
-	wmManipulator mpr;
+	wmGizmo mpr;
 
 	/* worldspace coords, middle being optional */
 	float co[3][3];
@@ -143,18 +143,18 @@ typedef struct RulerInteraction {
 /** \name Internal Ruler Utilities
  * \{ */
 
-static RulerItem *ruler_item_add(wmManipulatorGroup *mgroup)
+static RulerItem *ruler_item_add(wmGizmoGroup *mgroup)
 {
 	/* could pass this as an arg */
-	const wmManipulatorType *wt_ruler = WM_manipulatortype_find("VIEW3D_WT_ruler_item", true);
-	RulerItem *ruler_item = (RulerItem *)WM_manipulator_new_ptr(wt_ruler, mgroup, NULL);
-	WM_manipulator_set_flag(&ruler_item->mpr, WM_MANIPULATOR_DRAW_MODAL, true);
+	const wmGizmoType *wt_ruler = WM_gizmotype_find("VIEW3D_WT_ruler_item", true);
+	RulerItem *ruler_item = (RulerItem *)WM_gizmo_new_ptr(wt_ruler, mgroup, NULL);
+	WM_gizmo_set_flag(&ruler_item->mpr, WM_GIZMO_DRAW_MODAL, true);
 	return ruler_item;
 }
 
-static void ruler_item_remove(bContext *C, wmManipulatorGroup *mgroup, RulerItem *ruler_item)
+static void ruler_item_remove(bContext *C, wmGizmoGroup *mgroup, RulerItem *ruler_item)
 {
-	WM_manipulator_unlink(&mgroup->manipulators, mgroup->parent_mmap, &ruler_item->mpr, C);
+	WM_gizmo_unlink(&mgroup->gizmos, mgroup->parent_mmap, &ruler_item->mpr, C);
 }
 
 static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
@@ -192,7 +192,7 @@ static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
 }
 
 static bool view3d_ruler_pick(
-        wmManipulatorGroup *mgroup, RulerItem *ruler_item, const float mval[2],
+        wmGizmoGroup *mgroup, RulerItem *ruler_item, const float mval[2],
         int *r_co_index)
 {
 	RulerInfo *ruler_info = mgroup->customdata;
@@ -380,7 +380,7 @@ static bool view3d_ruler_item_mousemove(
  * \{ */
 
 #define RULER_ID "RulerData3D"
-static bool view3d_ruler_to_gpencil(bContext *C, wmManipulatorGroup *mgroup)
+static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *mgroup)
 {
 	// RulerInfo *ruler_info = mgroup->customdata;
 	Main *bmain = CTX_data_main(C);
@@ -419,7 +419,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmManipulatorGroup *mgroup)
 	gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
 	BKE_gpencil_free_strokes(gpf);
 
-	for (ruler_item = mgroup->manipulators.first; ruler_item; ruler_item = (RulerItem *)ruler_item->mpr.next) {
+	for (ruler_item = mgroup->gizmos.first; ruler_item; ruler_item = (RulerItem *)ruler_item->mpr.next) {
 		bGPDspoint *pt;
 		int j;
 
@@ -457,7 +457,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmManipulatorGroup *mgroup)
 	return changed;
 }
 
-static bool view3d_ruler_from_gpencil(const bContext *C, wmManipulatorGroup *mgroup)
+static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *mgroup)
 {
 	Scene *scene = CTX_data_scene(C);
 	bool changed = false;
@@ -503,10 +503,10 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmManipulatorGroup *mgr
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Ruler Item Manipulator Type
+/** \name Ruler Item Gizmo Type
  * \{ */
 
-static void manipulator_ruler_draw(const bContext *C, wmManipulator *mpr)
+static void gizmo_ruler_draw(const bContext *C, wmGizmo *mpr)
 {
 	Scene *scene = CTX_data_scene(C);
 	UnitSettings *unit = &scene->unit;
@@ -536,7 +536,7 @@ static void manipulator_ruler_draw(const bContext *C, wmManipulator *mpr)
 	UI_GetThemeColor3ubv(TH_TEXT, color_text);
 	UI_GetThemeColor3ubv(TH_WIRE, color_wire);
 
-	const bool is_act = (mpr->flag & WM_MANIPULATOR_DRAW_HOVER);
+	const bool is_act = (mpr->flag & WM_GIZMO_DRAW_HOVER);
 	float dir_ruler[2];
 	float co_ss[3][2];
 	int j;
@@ -804,8 +804,8 @@ static void manipulator_ruler_draw(const bContext *C, wmManipulator *mpr)
 	}
 }
 
-static int manipulator_ruler_test_select(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
+static int gizmo_ruler_test_select(
+        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *event)
 {
 	RulerItem *ruler_item_pick = (RulerItem *)mpr;
 	float mval_fl[2] = {UNPACK2(event->mval)};
@@ -825,9 +825,9 @@ static int manipulator_ruler_test_select(
 	return -1;
 }
 
-static int manipulator_ruler_modal(
-        bContext *C, wmManipulator *mpr, const wmEvent *event,
-        eWM_ManipulatorTweak UNUSED(tweak_flag))
+static int gizmo_ruler_modal(
+        bContext *C, wmGizmo *mpr, const wmEvent *event,
+        eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
 	bool do_draw = false;
 	int exit_code = OPERATOR_RUNNING_MODAL;
@@ -859,10 +859,10 @@ static int manipulator_ruler_modal(
 	return exit_code;
 }
 
-static int manipulator_ruler_invoke(
-        bContext *C, wmManipulator *mpr, const wmEvent *event)
+static int gizmo_ruler_invoke(
+        bContext *C, wmGizmo *mpr, const wmEvent *event)
 {
-	wmManipulatorGroup *mgroup = mpr->parent_mgroup;
+	wmGizmoGroup *mgroup = mpr->parent_mgroup;
 	RulerInfo *ruler_info = mgroup->customdata;
 	RulerItem *ruler_item_pick = (RulerItem *)mpr;
 	RulerInteraction *inter = MEM_callocN(sizeof(RulerInteraction), __func__);
@@ -913,9 +913,9 @@ static int manipulator_ruler_invoke(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void manipulator_ruler_exit(bContext *C, wmManipulator *mpr, const bool cancel)
+static void gizmo_ruler_exit(bContext *C, wmGizmo *mpr, const bool cancel)
 {
-	wmManipulatorGroup *mgroup = mpr->parent_mgroup;
+	wmGizmoGroup *mgroup = mpr->parent_mgroup;
 	RulerInfo *ruler_info = mgroup->customdata;
 
 	if (!cancel) {
@@ -941,7 +941,7 @@ static void manipulator_ruler_exit(bContext *C, wmManipulator *mpr, const bool c
 			}
 			ruler_state_set(C, ruler_info, RULER_STATE_NORMAL);
 		}
-		/* We could convert only the current manipulator, for now just re-generate. */
+		/* We could convert only the current gizmo, for now just re-generate. */
 		view3d_ruler_to_gpencil(C, mgroup);
 	}
 
@@ -952,7 +952,7 @@ static void manipulator_ruler_exit(bContext *C, wmManipulator *mpr, const bool c
 	ruler_state_set(C, ruler_info, RULER_STATE_NORMAL);
 }
 
-static int manipulator_ruler_cursor_get(wmManipulator *mpr)
+static int gizmo_ruler_cursor_get(wmGizmo *mpr)
 {
 	if (mpr->highlight_part == PART_LINE) {
 		return BC_CROSSCURSOR;
@@ -960,18 +960,18 @@ static int manipulator_ruler_cursor_get(wmManipulator *mpr)
 	return BC_NSEW_SCROLLCURSOR;
 }
 
-void VIEW3D_WT_ruler_item(wmManipulatorType *wt)
+void VIEW3D_WT_ruler_item(wmGizmoType *wt)
 {
 	/* identifiers */
 	wt->idname = "VIEW3D_WT_ruler_item";
 
 	/* api callbacks */
-	wt->draw = manipulator_ruler_draw;
-	wt->test_select = manipulator_ruler_test_select;
-	wt->modal = manipulator_ruler_modal;
-	wt->invoke = manipulator_ruler_invoke;
-	wt->exit = manipulator_ruler_exit;
-	wt->cursor_get = manipulator_ruler_cursor_get;
+	wt->draw = gizmo_ruler_draw;
+	wt->test_select = gizmo_ruler_test_select;
+	wt->modal = gizmo_ruler_modal;
+	wt->invoke = gizmo_ruler_invoke;
+	wt->exit = gizmo_ruler_exit;
+	wt->cursor_get = gizmo_ruler_cursor_get;
 
 	wt->struct_size = sizeof(RulerItem);
 }
@@ -979,22 +979,22 @@ void VIEW3D_WT_ruler_item(wmManipulatorType *wt)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Ruler Manipulator Group
+/** \name Ruler Gizmo Group
  * \{ */
 
-static bool WIDGETGROUP_ruler_poll(const bContext *C, wmManipulatorGroupType *wgt)
+static bool WIDGETGROUP_ruler_poll(const bContext *C, wmGizmoGroupType *wgt)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if ((tref_rt == NULL) ||
-	    !STREQ(wgt->idname, tref_rt->manipulator_group))
+	    !STREQ(wgt->idname, tref_rt->gizmo_group))
 	{
-		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
 	return true;
 }
 
-static void WIDGETGROUP_ruler_setup(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *mgroup)
 {
 	RulerInfo *ruler_info = MEM_callocN(sizeof(RulerInfo), __func__);
 
@@ -1012,12 +1012,12 @@ static void WIDGETGROUP_ruler_setup(const bContext *C, wmManipulatorGroup *mgrou
 	mgroup->customdata = ruler_info;
 }
 
-void VIEW3D_WGT_ruler(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_ruler(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Ruler Widgets";
 	wgt->idname = view3d_wgt_ruler_id;
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_SCALE | WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL;
+	wgt->flag |= WM_GIZMOGROUPTYPE_SCALE | WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL;
 
 	wgt->mmap_params.spaceid = SPACE_VIEW3D;
 	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
@@ -1036,7 +1036,7 @@ static bool view3d_ruler_poll(bContext *C)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if ((tref_rt == NULL) ||
-	    !STREQ(view3d_wgt_ruler_id, tref_rt->manipulator_group) ||
+	    !STREQ(view3d_wgt_ruler_id, tref_rt->gizmo_group) ||
 	    CTX_wm_region_view3d(C) == NULL)
 	{
 		return false;
@@ -1050,8 +1050,8 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
 
-	wmManipulatorMap *mmap = ar->manipulator_map;
-	wmManipulatorGroup *mgroup = WM_manipulatormap_group_find(mmap, view3d_wgt_ruler_id);
+	wmGizmoMap *mmap = ar->gizmo_map;
+	wmGizmoGroup *mgroup = WM_gizmomap_group_find(mmap, view3d_wgt_ruler_id);
 	const bool use_depth = (v3d->drawtype >= OB_SOLID);
 
 	/* Create new line */
@@ -1059,9 +1059,9 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 	ruler_item = ruler_item_add(mgroup);
 
 	/* This is a little weak, but there is no real good way to tweak directly. */
-	WM_manipulator_highlight_set(mmap, &ruler_item->mpr);
+	WM_gizmo_highlight_set(mmap, &ruler_item->mpr);
 	if (WM_operator_name_call(
-	        C, "MANIPULATORGROUP_OT_manipulator_tweak",
+	        C, "GIZMOGROUP_OT_gizmo_tweak",
 	        WM_OP_INVOKE_REGION_WIN, NULL) == OPERATOR_RUNNING_MODAL)
 	{
 		RulerInfo *ruler_info = mgroup->customdata;

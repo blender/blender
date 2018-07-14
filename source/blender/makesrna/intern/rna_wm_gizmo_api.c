@@ -46,43 +46,43 @@
 
 #include "ED_gizmo_library.h"
 
-static void rna_manipulator_draw_preset_box(
-        wmManipulator *mpr, float matrix[16], int select_id)
+static void rna_gizmo_draw_preset_box(
+        wmGizmo *mpr, float matrix[16], int select_id)
 {
-	ED_manipulator_draw_preset_box(mpr, (float (*)[4])matrix, select_id);
+	ED_gizmo_draw_preset_box(mpr, (float (*)[4])matrix, select_id);
 }
 
-static void rna_manipulator_draw_preset_arrow(
-        wmManipulator *mpr, float matrix[16], int axis, int select_id)
+static void rna_gizmo_draw_preset_arrow(
+        wmGizmo *mpr, float matrix[16], int axis, int select_id)
 {
-	ED_manipulator_draw_preset_arrow(mpr, (float (*)[4])matrix, axis, select_id);
+	ED_gizmo_draw_preset_arrow(mpr, (float (*)[4])matrix, axis, select_id);
 }
 
-static void rna_manipulator_draw_preset_circle(
-        wmManipulator *mpr, float matrix[16], int axis, int select_id)
+static void rna_gizmo_draw_preset_circle(
+        wmGizmo *mpr, float matrix[16], int axis, int select_id)
 {
-	ED_manipulator_draw_preset_circle(mpr, (float (*)[4])matrix, axis, select_id);
+	ED_gizmo_draw_preset_circle(mpr, (float (*)[4])matrix, axis, select_id);
 }
 
-static void rna_manipulator_draw_preset_facemap(
-        wmManipulator *mpr, struct bContext *C, struct Object *ob, int facemap, int select_id)
+static void rna_gizmo_draw_preset_facemap(
+        wmGizmo *mpr, struct bContext *C, struct Object *ob, int facemap, int select_id)
 {
 	struct Scene *scene = CTX_data_scene(C);
-	ED_manipulator_draw_preset_facemap(C, mpr, scene, ob, facemap, select_id);
+	ED_gizmo_draw_preset_facemap(C, mpr, scene, ob, facemap, select_id);
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Manipulator Property Define
+/** \name Gizmo Property Define
  * \{ */
 
-static void rna_manipulator_target_set_prop(
-        wmManipulator *mpr, ReportList *reports, const char *target_propname,
+static void rna_gizmo_target_set_prop(
+        wmGizmo *mpr, ReportList *reports, const char *target_propname,
         PointerRNA *ptr, const char *propname, int index)
 {
-	const wmManipulatorPropertyType *mpr_prop_type =
-	        WM_manipulatortype_target_property_find(mpr->type, target_propname);
+	const wmGizmoPropertyType *mpr_prop_type =
+	        WM_gizmotype_target_property_find(mpr->type, target_propname);
 	if (mpr_prop_type == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Manipulator target property '%s.%s' not found",
+		BKE_reportf(reports, RPT_ERROR, "Gizmo target property '%s.%s' not found",
 		            mpr->type->idname, target_propname);
 		return;
 	}
@@ -95,13 +95,13 @@ static void rna_manipulator_target_set_prop(
 	}
 
 	if (mpr_prop_type->data_type != RNA_property_type(prop)) {
-		const int manipulator_type_index = RNA_enum_from_value(rna_enum_property_type_items, mpr_prop_type->data_type);
+		const int gizmo_type_index = RNA_enum_from_value(rna_enum_property_type_items, mpr_prop_type->data_type);
 		const int prop_type_index = RNA_enum_from_value(rna_enum_property_type_items, RNA_property_type(prop));
-		BLI_assert((manipulator_type_index != -1) && (prop_type_index == -1));
+		BLI_assert((gizmo_type_index != -1) && (prop_type_index == -1));
 
-		BKE_reportf(reports, RPT_ERROR, "Manipulator target '%s.%s' expects '%s', '%s.%s' is '%s'",
+		BKE_reportf(reports, RPT_ERROR, "Gizmo target '%s.%s' expects '%s', '%s.%s' is '%s'",
 		            mpr->type->idname, target_propname,
-		            rna_enum_property_type_items[manipulator_type_index].identifier,
+		            rna_enum_property_type_items[gizmo_type_index].identifier,
 		            RNA_struct_identifier(ptr->type), propname,
 		            rna_enum_property_type_items[prop_type_index].identifier);
 		return;
@@ -112,7 +112,7 @@ static void rna_manipulator_target_set_prop(
 			const int prop_array_length = RNA_property_array_length(ptr, prop);
 			if (mpr_prop_type->array_length != prop_array_length) {
 				BKE_reportf(reports, RPT_ERROR,
-				            "Manipulator target property '%s.%s' expects an array of length %d, found %d",
+				            "Gizmo target property '%s.%s' expects an array of length %d, found %d",
 				            mpr->type->idname, target_propname,
 				            mpr_prop_type->array_length,
 				            prop_array_length);
@@ -123,7 +123,7 @@ static void rna_manipulator_target_set_prop(
 	else {
 		if (mpr_prop_type->array_length != 1) {
 			BKE_reportf(reports, RPT_ERROR,
-			            "Manipulator target property '%s.%s' expects an array of length %d",
+			            "Gizmo target property '%s.%s' expects an array of length %d",
 			            mpr->type->idname, target_propname,
 			            mpr_prop_type->array_length);
 			return;
@@ -131,16 +131,16 @@ static void rna_manipulator_target_set_prop(
 	}
 
 	if (index >= mpr_prop_type->array_length) {
-		BKE_reportf(reports, RPT_ERROR, "Manipulator target property '%s.%s', index %d must be below %d",
+		BKE_reportf(reports, RPT_ERROR, "Gizmo target property '%s.%s', index %d must be below %d",
 		            mpr->type->idname, target_propname, index, mpr_prop_type->array_length);
 		return;
 	}
 
-	WM_manipulator_target_property_def_rna_ptr(mpr, mpr_prop_type, ptr, prop, index);
+	WM_gizmo_target_property_def_rna_ptr(mpr, mpr_prop_type, ptr, prop, index);
 }
 
-static PointerRNA rna_manipulator_target_set_operator(
-        wmManipulator *mpr, ReportList *reports, const char *opname, int part_index)
+static PointerRNA rna_gizmo_target_set_operator(
+        wmGizmo *mpr, ReportList *reports, const char *opname, int part_index)
 {
 	wmOperatorType *ot;
 
@@ -154,36 +154,36 @@ static PointerRNA rna_manipulator_target_set_operator(
 	IDProperty *properties;
 	{
 		IDPropertyTemplate val = {0};
-		properties = IDP_New(IDP_GROUP, &val, "wmManipulatorProperties");
+		properties = IDP_New(IDP_GROUP, &val, "wmGizmoProperties");
 	}
 
-	return *WM_manipulator_operator_set(mpr, part_index, ot, properties);
+	return *WM_gizmo_operator_set(mpr, part_index, ot, properties);
 }
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Manipulator Property Access
+/** \name Gizmo Property Access
  * \{ */
 
-static bool rna_manipulator_target_is_valid(
-        wmManipulator *mpr, ReportList *reports, const char *target_propname)
+static bool rna_gizmo_target_is_valid(
+        wmGizmo *mpr, ReportList *reports, const char *target_propname)
 {
-	wmManipulatorProperty *mpr_prop =
-	        WM_manipulator_target_property_find(mpr, target_propname);
+	wmGizmoProperty *mpr_prop =
+	        WM_gizmo_target_property_find(mpr, target_propname);
 	if (mpr_prop == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Manipulator target property '%s.%s' not found",
+		BKE_reportf(reports, RPT_ERROR, "Gizmo target property '%s.%s' not found",
 		            mpr->type->idname, target_propname);
 		return false;
 	}
-	return WM_manipulator_target_property_is_valid(mpr_prop);
+	return WM_gizmo_target_property_is_valid(mpr_prop);
 }
 
 /** \} */
 
 #else
 
-void RNA_api_manipulator(StructRNA *srna)
+void RNA_api_gizmo(StructRNA *srna)
 {
 	/* Utility draw functions, since we don't expose new OpenGL drawing wrappers via Python yet.
 	 * exactly how these should be exposed isn't totally clear.
@@ -198,7 +198,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	/* Primitive Shapes */
 
 	/* draw_preset_box */
-	func = RNA_def_function(srna, "draw_preset_box", "rna_manipulator_draw_preset_box");
+	func = RNA_def_function(srna, "draw_preset_box", "rna_gizmo_draw_preset_box");
 	RNA_def_function_ui_description(func, "Draw a box");
 	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -207,7 +207,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	RNA_def_int(func, "select_id", -1, -1, INT_MAX, "Zero when not selecting", "", -1, INT_MAX);
 
 	/* draw_preset_box */
-	func = RNA_def_function(srna, "draw_preset_arrow", "rna_manipulator_draw_preset_arrow");
+	func = RNA_def_function(srna, "draw_preset_arrow", "rna_gizmo_draw_preset_arrow");
 	RNA_def_function_ui_description(func, "Draw a box");
 	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -216,7 +216,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	RNA_def_enum(func, "axis", rna_enum_object_axis_items, 2, "", "Arrow Orientation");
 	RNA_def_int(func, "select_id", -1, -1, INT_MAX, "Zero when not selecting", "", -1, INT_MAX);
 
-	func = RNA_def_function(srna, "draw_preset_circle", "rna_manipulator_draw_preset_circle");
+	func = RNA_def_function(srna, "draw_preset_circle", "rna_gizmo_draw_preset_circle");
 	RNA_def_function_ui_description(func, "Draw a box");
 	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -229,7 +229,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	/* Other Shapes */
 
 	/* draw_preset_facemap */
-	func = RNA_def_function(srna, "draw_preset_facemap", "rna_manipulator_draw_preset_facemap");
+	func = RNA_def_function(srna, "draw_preset_facemap", "rna_gizmo_draw_preset_facemap");
 	RNA_def_function_ui_description(func, "Draw the face-map of a mesh object");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object");
@@ -243,7 +243,7 @@ void RNA_api_manipulator(StructRNA *srna)
 
 	/* Define Properties */
 	/* note, 'target_set_handler' is defined in 'bpy_rna_gizmo.c' */
-	func = RNA_def_function(srna, "target_set_prop", "rna_manipulator_target_set_prop");
+	func = RNA_def_function(srna, "target_set_prop", "rna_gizmo_target_set_prop");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "");
 	parm = RNA_def_string(func, "target", NULL, 0, "", "Target property");
@@ -255,10 +255,10 @@ void RNA_api_manipulator(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_int(func, "index", -1, -1, INT_MAX, "", "", -1, INT_MAX); /* RNA_NO_INDEX == -1 */
 
-	func = RNA_def_function(srna, "target_set_operator", "rna_manipulator_target_set_operator");
+	func = RNA_def_function(srna, "target_set_operator", "rna_gizmo_target_set_operator");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(
-	        func, "Operator to run when activating the manipulator "
+	        func, "Operator to run when activating the gizmo "
 	        "(overrides property targets)");
 	parm = RNA_def_string(func, "operator", NULL, 0, "", "Target operator");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -271,7 +271,7 @@ void RNA_api_manipulator(StructRNA *srna)
 
 	/* Access Properties */
 	/* note, 'target_get', 'target_set' is defined in 'bpy_rna_gizmo.c' */
-	func = RNA_def_function(srna, "target_is_valid", "rna_manipulator_target_is_valid");
+	func = RNA_def_function(srna, "target_is_valid", "rna_gizmo_target_is_valid");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "property", NULL, 0, "", "Property identifier");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -282,7 +282,7 @@ void RNA_api_manipulator(StructRNA *srna)
 }
 
 
-void RNA_api_manipulatorgroup(StructRNA *UNUSED(srna))
+void RNA_api_gizmogroup(StructRNA *UNUSED(srna))
 {
 	/* nothing yet */
 }

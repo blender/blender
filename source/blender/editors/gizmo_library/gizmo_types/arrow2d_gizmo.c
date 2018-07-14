@@ -26,9 +26,9 @@
 /** \file arrow2d_gizmo.c
  *  \ingroup wm
  *
- * \name 2D Arrow Manipulator
+ * \name 2D Arrow Gizmo
  *
- * \brief Simple arrow manipulator which is dragged into a certain direction.
+ * \brief Simple arrow gizmo which is dragged into a certain direction.
  */
 
 #include "BLI_listbase.h"
@@ -61,7 +61,7 @@
 
 #include "../gizmo_library_intern.h"
 
-static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], const float color[4])
+static void arrow2d_draw_geom(wmGizmo *mpr, const float matrix[4][4], const float color[4])
 {
 	const float size = 0.11f;
 	const float size_breadth = size / 2.0f;
@@ -96,24 +96,24 @@ static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], cons
 	gpuPopMatrix();
 }
 
-static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *mpr)
+static void gizmo_arrow2d_draw(const bContext *UNUSED(C), wmGizmo *mpr)
 {
 	float color[4];
 
 	float matrix_final[4][4];
 
-	manipulator_color_get(mpr, mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT, color);
+	gizmo_color_get(mpr, mpr->state & WM_GIZMO_STATE_HIGHLIGHT, color);
 
 	GPU_line_width(mpr->line_width);
 
-	WM_manipulator_calc_matrix_final(mpr, matrix_final);
+	WM_gizmo_calc_matrix_final(mpr, matrix_final);
 
 	GPU_blend(true);
 	arrow2d_draw_geom(mpr, matrix_final, color);
 	GPU_blend(false);
 
 	if (mpr->interaction_data) {
-		ManipulatorInteraction *inter = mpr->interaction_data;
+		GizmoInteraction *inter = mpr->interaction_data;
 
 		GPU_blend(true);
 		arrow2d_draw_geom(mpr, inter->init_matrix_final, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
@@ -121,26 +121,26 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *m
 	}
 }
 
-static void manipulator_arrow2d_setup(wmManipulator *mpr)
+static void gizmo_arrow2d_setup(wmGizmo *mpr)
 {
-	mpr->flag |= WM_MANIPULATOR_DRAW_MODAL;
+	mpr->flag |= WM_GIZMO_DRAW_MODAL;
 }
 
-static int manipulator_arrow2d_invoke(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *UNUSED(event))
+static int gizmo_arrow2d_invoke(
+        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *UNUSED(event))
 {
-	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
+	GizmoInteraction *inter = MEM_callocN(sizeof(GizmoInteraction), __func__);
 
 	copy_m4_m4(inter->init_matrix_basis, mpr->matrix_basis);
-	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
+	WM_gizmo_calc_matrix_final(mpr, inter->init_matrix_final);
 
 	mpr->interaction_data = inter;
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int manipulator_arrow2d_test_select(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
+static int gizmo_arrow2d_test_select(
+        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *event)
 {
 	const float mval[2] = {event->mval[0], event->mval[1]};
 	const float arrow_length = RNA_float_get(mpr->ptr, "length");
@@ -165,14 +165,14 @@ static int manipulator_arrow2d_test_select(
 	/* arrow line intersection check */
 	float isect_1[2], isect_2[2];
 	const int isect = isect_line_sphere_v2(
-	        line[0], line[1], mval_local, MANIPULATOR_HOTSPOT + mpr->line_width * 0.5f,
+	        line[0], line[1], mval_local, GIZMO_HOTSPOT + mpr->line_width * 0.5f,
 	        isect_1, isect_2);
 
 	if (isect > 0) {
 		float line_ext[2][2]; /* extended line for segment check including hotspot */
 		copy_v2_v2(line_ext[0], line[0]);
-		line_ext[1][0] = line[1][0] + MANIPULATOR_HOTSPOT * ((line[1][0] - line[0][0]) / line_len);
-		line_ext[1][1] = line[1][1] + MANIPULATOR_HOTSPOT * ((line[1][1] - line[0][1]) / line_len);
+		line_ext[1][0] = line[1][0] + GIZMO_HOTSPOT * ((line[1][0] - line[0][0]) / line_len);
+		line_ext[1][1] = line[1][1] + GIZMO_HOTSPOT * ((line[1][1] - line[0][1]) / line_len);
 
 		const float lambda_1 = line_point_factor_v2(isect_1, line_ext[0], line_ext[1]);
 		if (isect == 1) {
@@ -193,22 +193,22 @@ static int manipulator_arrow2d_test_select(
 }
 
 /* -------------------------------------------------------------------- */
-/** \name 2D Arrow Manipulator API
+/** \name 2D Arrow Gizmo API
  *
  * \{ */
 
-static void MANIPULATOR_WT_arrow_2d(wmManipulatorType *wt)
+static void GIZMO_WT_arrow_2d(wmGizmoType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_arrow_2d";
+	wt->idname = "GIZMO_WT_arrow_2d";
 
 	/* api callbacks */
-	wt->draw = manipulator_arrow2d_draw;
-	wt->setup = manipulator_arrow2d_setup;
-	wt->invoke = manipulator_arrow2d_invoke;
-	wt->test_select = manipulator_arrow2d_test_select;
+	wt->draw = gizmo_arrow2d_draw;
+	wt->setup = gizmo_arrow2d_setup;
+	wt->invoke = gizmo_arrow2d_invoke;
+	wt->test_select = gizmo_arrow2d_test_select;
 
-	wt->struct_size = sizeof(wmManipulator);
+	wt->struct_size = sizeof(wmGizmo);
 
 	/* rna */
 	RNA_def_float(wt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
@@ -217,9 +217,9 @@ static void MANIPULATOR_WT_arrow_2d(wmManipulatorType *wt)
 	        "Roll", "", DEG2RADF(-360.0f), DEG2RADF(360.0f));
 }
 
-void ED_manipulatortypes_arrow_2d(void)
+void ED_gizmotypes_arrow_2d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_arrow_2d);
+	WM_gizmotype_append(GIZMO_WT_arrow_2d);
 }
 
 /** \} */

@@ -21,9 +21,9 @@
 /** \file view3d_gizmo_navigate_type.c
  *  \ingroup wm
  *
- * \name Custom Orientation/Navigation Manipulator for the 3D View
+ * \name Custom Orientation/Navigation Gizmo for the 3D View
  *
- * \brief Simple manipulator to axis and translate.
+ * \brief Simple gizmo to axis and translate.
  *
  * - scale_basis: used for the size.
  * - matrix_basis: used for the location.
@@ -63,7 +63,7 @@
 #define HANDLE_SIZE 0.33
 
 static void axis_geom_draw(
-        const wmManipulator *mpr, const float color[4], const bool UNUSED(select))
+        const wmGizmo *mpr, const float color[4], const bool UNUSED(select))
 {
 	GPU_line_width(mpr->line_width);
 
@@ -199,7 +199,7 @@ static void axis_geom_draw(
 }
 
 static void axis3d_draw_intern(
-        const bContext *UNUSED(C), wmManipulator *mpr,
+        const bContext *UNUSED(C), wmGizmo *mpr,
         const bool select, const bool highlight)
 {
 	const float *color = highlight ? mpr->color_hi : mpr->color;
@@ -208,9 +208,9 @@ static void axis3d_draw_intern(
 
 	unit_m4(matrix_unit);
 
-	WM_manipulator_calc_matrix_final_params(
+	WM_gizmo_calc_matrix_final_params(
 	        mpr,
-	        &((struct WM_ManipulatorMatrixParams) {
+	        &((struct WM_GizmoMatrixParams) {
 	            .matrix_offset = matrix_unit,
 	        }), matrix_final);
 
@@ -223,10 +223,10 @@ static void axis3d_draw_intern(
 	gpuPopMatrix();
 }
 
-static void manipulator_axis_draw(const bContext *C, wmManipulator *mpr)
+static void gizmo_axis_draw(const bContext *C, wmGizmo *mpr)
 {
-	const bool is_modal = mpr->state & WM_MANIPULATOR_STATE_MODAL;
-	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
+	const bool is_modal = mpr->state & WM_GIZMO_STATE_MODAL;
+	const bool is_highlight = (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 
 	(void)is_modal;
 
@@ -235,8 +235,8 @@ static void manipulator_axis_draw(const bContext *C, wmManipulator *mpr)
 	GPU_blend(false);
 }
 
-static int manipulator_axis_test_select(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
+static int gizmo_axis_test_select(
+        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *event)
 {
 	float point_local[2] = {UNPACK2(event->mval)};
 	sub_v2_v2(point_local, mpr->matrix_basis[3]);
@@ -288,7 +288,7 @@ static int manipulator_axis_test_select(
 	return -1;
 }
 
-static int manipulator_axis_cursor_get(wmManipulator *mpr)
+static int gizmo_axis_cursor_get(wmGizmo *mpr)
 {
 	if (mpr->highlight_part > 0) {
 		return CURSOR_EDIT;
@@ -296,15 +296,15 @@ static int manipulator_axis_cursor_get(wmManipulator *mpr)
 	return BC_NSEW_SCROLLCURSOR;
 }
 
-void VIEW3D_WT_navigate_rotate(wmManipulatorType *wt)
+void VIEW3D_WT_navigate_rotate(wmGizmoType *wt)
 {
 	/* identifiers */
 	wt->idname = "VIEW3D_WT_navigate_rotate";
 
 	/* api callbacks */
-	wt->draw = manipulator_axis_draw;
-	wt->test_select = manipulator_axis_test_select;
-	wt->cursor_get = manipulator_axis_cursor_get;
+	wt->draw = gizmo_axis_draw;
+	wt->test_select = gizmo_axis_test_select;
+	wt->cursor_get = gizmo_axis_cursor_get;
 
-	wt->struct_size = sizeof(wmManipulator);
+	wt->struct_size = sizeof(wmGizmo);
 }

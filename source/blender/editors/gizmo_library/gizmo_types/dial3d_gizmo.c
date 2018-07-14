@@ -26,15 +26,15 @@
 /** \file dial3d_gizmo.c
  *  \ingroup wm
  *
- * \name Dial Manipulator
+ * \name Dial Gizmo
  *
- * 3D Manipulator
+ * 3D Gizmo
  *
- * \brief Circle shaped manipulator for circular interaction.
+ * \brief Circle shaped gizmo for circular interaction.
  * Currently no own handling, use with operator only.
  *
  * - `matrix[0]` is derived from Y and Z.
- * - `matrix[1]` is 'up' when DialManipulator.use_start_y_axis is set.
+ * - `matrix[1]` is 'up' when DialGizmo.use_start_y_axis is set.
  * - `matrix[2]` is the axis the dial rotates around (all dials).
  */
 
@@ -67,12 +67,12 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
-/* to use custom dials exported to geom_dial_manipulator.c */
-// #define USE_MANIPULATOR_CUSTOM_DIAL
+/* to use custom dials exported to geom_dial_gizmo.c */
+// #define USE_GIZMO_CUSTOM_DIAL
 
-static int manipulator_dial_modal(
-        bContext *C, wmManipulator *mpr, const wmEvent *event,
-        eWM_ManipulatorTweak tweak_flag);
+static int gizmo_dial_modal(
+        bContext *C, wmGizmo *mpr, const wmEvent *event,
+        eWM_GizmoFlagTweak tweak_flag);
 
 typedef struct DialInteraction {
 	float init_mval[2];
@@ -99,9 +99,9 @@ typedef struct DialInteraction {
 #define DIAL_CLIP_BIAS 0.02
 
 /**
- * We can't use this for the #wmManipulatorType.matrix_basis_get callback, it conflicts with depth picking.
+ * We can't use this for the #wmGizmoType.matrix_basis_get callback, it conflicts with depth picking.
  */
-static void dial_calc_matrix(const wmManipulator *mpr, float mat[4][4])
+static void dial_calc_matrix(const wmGizmo *mpr, float mat[4][4])
 {
 	float rot[3][3];
 	const float up[3] = {0.0f, 0.0f, 1.0f};
@@ -114,15 +114,15 @@ static void dial_calc_matrix(const wmManipulator *mpr, float mat[4][4])
 /* -------------------------------------------------------------------- */
 
 static void dial_geom_draw(
-        const wmManipulator *mpr, const float color[4], const bool select,
+        const wmGizmo *mpr, const float color[4], const bool select,
         float axis_modal_mat[4][4], float clip_plane[4])
 {
-#ifdef USE_MANIPULATOR_CUSTOM_DIAL
+#ifdef USE_GIZMO_CUSTOM_DIAL
 	UNUSED_VARS(dial, col, axis_modal_mat, clip_plane);
-	wm_manipulator_geometryinfo_draw(&wm_manipulator_geom_data_dial, select);
+	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_dial, select);
 #else
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
-	const bool filled = (draw_options & ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL) != 0;
+	const bool filled = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_FILL) != 0;
 
 	GPU_line_width(mpr->line_width);
 
@@ -181,9 +181,9 @@ static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[
 }
 
 static void dial_ghostarc_draw(
-        const wmManipulator *mpr, const float angle_ofs, const float angle_delta, const float color[4])
+        const wmGizmo *mpr, const float angle_ofs, const float angle_delta, const float color[4])
 {
-	const float width_inner = DIAL_WIDTH - mpr->line_width * 0.5f / U.manipulator_size;
+	const float width_inner = DIAL_WIDTH - mpr->line_width * 0.5f / U.gizmo_size;
 
 	Gwn_VertFormat *format = immVertexFormat();
 	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -196,7 +196,7 @@ static void dial_ghostarc_draw(
 
 static void dial_ghostarc_get_angles(
         struct Depsgraph *depsgraph,
-        const wmManipulator *mpr,
+        const wmGizmo *mpr,
         const wmEvent *event,
         const ARegion *ar, const View3D *v3d,
         float mat[4][4], const float co_outer[3],
@@ -243,7 +243,7 @@ static void dial_ghostarc_get_angles(
 
 	/* Start direction from mouse or set by user */
 	const float *proj_init_rel =
-	        (draw_options & ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_START_Y) ?
+	        (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y) ?
 	        mpr->matrix_basis[1] : proj_mval_init_rel;
 
 	/* return angles */
@@ -274,7 +274,7 @@ fail:
 }
 
 static void dial_draw_intern(
-        const bContext *C, wmManipulator *mpr,
+        const bContext *C, wmGizmo *mpr,
         const bool select, const bool highlight, float clip_plane[4])
 {
 	float matrix_basis_adjust[4][4];
@@ -283,12 +283,12 @@ static void dial_draw_intern(
 
 	BLI_assert(CTX_wm_area(C)->spacetype == SPACE_VIEW3D);
 
-	manipulator_color_get(mpr, highlight, color);
+	gizmo_color_get(mpr, highlight, color);
 
 	dial_calc_matrix(mpr, matrix_basis_adjust);
 
-	WM_manipulator_calc_matrix_final_params(
-	        mpr, &((struct WM_ManipulatorMatrixParams) {
+	WM_gizmo_calc_matrix_final_params(
+	        mpr, &((struct WM_GizmoMatrixParams) {
 	            .matrix_basis = (void *)matrix_basis_adjust,
 	        }), matrix_final);
 
@@ -296,17 +296,17 @@ static void dial_draw_intern(
 	gpuMultMatrix(matrix_final);
 
 	/* draw rotation indicator arc first */
-	if ((mpr->flag & WM_MANIPULATOR_DRAW_VALUE) &&
-	    (mpr->state & WM_MANIPULATOR_STATE_MODAL))
+	if ((mpr->flag & WM_GIZMO_DRAW_VALUE) &&
+	    (mpr->state & WM_GIZMO_STATE_MODAL))
 	{
 		const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
 
 		DialInteraction *inter = mpr->interaction_data;
 
-		/* XXX, View3D rotation manipulator doesn't call modal. */
-		if (!WM_manipulator_target_property_is_valid_any(mpr)) {
+		/* XXX, View3D rotation gizmo doesn't call modal. */
+		if (!WM_gizmo_target_property_is_valid_any(mpr)) {
 			wmWindow *win = CTX_wm_window(C);
-			manipulator_dial_modal((bContext *)C, mpr, win->eventstate, 0);
+			gizmo_dial_modal((bContext *)C, mpr, win->eventstate, 0);
 		}
 
 		float angle_ofs = inter->output.angle_ofs;
@@ -323,7 +323,7 @@ static void dial_draw_intern(
 
 			if (i == 0) {
 				const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
-				if ((draw_options & ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_MIRROR) == 0) {
+				if ((draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR) == 0) {
 					break;
 				}
 			}
@@ -332,17 +332,17 @@ static void dial_draw_intern(
 		}
 	}
 
-	/* draw actual dial manipulator */
+	/* draw actual dial gizmo */
 	dial_geom_draw(mpr, color, select, matrix_basis_adjust, clip_plane);
 
 	gpuPopMatrix();
 }
 
-static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
+static void gizmo_dial_draw_select(const bContext *C, wmGizmo *mpr, int select_id)
 {
 	float clip_plane_buf[4];
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
-	float *clip_plane = (draw_options & ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP) ? clip_plane_buf : NULL;
+	float *clip_plane = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP) ? clip_plane_buf : NULL;
 
 	/* enable clipping if needed */
 	if (clip_plane) {
@@ -363,13 +363,13 @@ static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, 
 	}
 }
 
-static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
+static void gizmo_dial_draw(const bContext *C, wmGizmo *mpr)
 {
-	const bool is_modal = mpr->state & WM_MANIPULATOR_STATE_MODAL;
-	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
+	const bool is_modal = mpr->state & WM_GIZMO_STATE_MODAL;
+	const bool is_highlight = (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 	float clip_plane_buf[4];
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
-	float *clip_plane = (!is_modal && (draw_options & ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP)) ? clip_plane_buf : NULL;
+	float *clip_plane = (!is_modal && (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP)) ? clip_plane_buf : NULL;
 
 	/* enable clipping if needed */
 	if (clip_plane) {
@@ -392,9 +392,9 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 	}
 }
 
-static int manipulator_dial_modal(
-        bContext *C, wmManipulator *mpr, const wmEvent *event,
-        eWM_ManipulatorTweak UNUSED(tweak_flag))
+static int gizmo_dial_modal(
+        bContext *C, wmGizmo *mpr, const wmEvent *event,
+        eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
 	float angle_ofs, angle_delta;
@@ -413,15 +413,15 @@ static int manipulator_dial_modal(
 	inter->output.angle_ofs = angle_ofs;
 
 	/* set the property for the operator and call its modal function */
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
-		WM_manipulator_target_property_value_set(C, mpr, mpr_prop, inter->init_prop_angle + angle_delta);
+	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_find(mpr, "offset");
+	if (WM_gizmo_target_property_is_valid(mpr_prop)) {
+		WM_gizmo_target_property_value_set(C, mpr, mpr_prop, inter->init_prop_angle + angle_delta);
 	}
 	return OPERATOR_RUNNING_MODAL;
 }
 
 
-static void manipulator_dial_setup(wmManipulator *mpr)
+static void gizmo_dial_setup(wmGizmo *mpr)
 {
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
@@ -429,17 +429,17 @@ static void manipulator_dial_setup(wmManipulator *mpr)
 	copy_v3_v3(mpr->matrix_basis[2], dir_default);
 }
 
-static int manipulator_dial_invoke(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
+static int gizmo_dial_invoke(
+        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *event)
 {
 	DialInteraction *inter = MEM_callocN(sizeof(DialInteraction), __func__);
 
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
-		inter->init_prop_angle = WM_manipulator_target_property_value_get(mpr, mpr_prop);
+	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_find(mpr, "offset");
+	if (WM_gizmo_target_property_is_valid(mpr_prop)) {
+		inter->init_prop_angle = WM_gizmo_target_property_value_get(mpr, mpr_prop);
 	}
 
 	mpr->interaction_data = inter;
@@ -448,40 +448,40 @@ static int manipulator_dial_invoke(
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Dial Manipulator API
+/** \name Dial Gizmo API
  *
  * \{ */
 
-static void MANIPULATOR_WT_dial_3d(wmManipulatorType *wt)
+static void GIZMO_WT_dial_3d(wmGizmoType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_dial_3d";
+	wt->idname = "GIZMO_WT_dial_3d";
 
 	/* api callbacks */
-	wt->draw = manipulator_dial_draw;
-	wt->draw_select = manipulator_dial_draw_select;
-	wt->setup = manipulator_dial_setup;
-	wt->invoke = manipulator_dial_invoke;
-	wt->modal = manipulator_dial_modal;
+	wt->draw = gizmo_dial_draw;
+	wt->draw_select = gizmo_dial_draw_select;
+	wt->setup = gizmo_dial_setup;
+	wt->invoke = gizmo_dial_invoke;
+	wt->modal = gizmo_dial_modal;
 
-	wt->struct_size = sizeof(wmManipulator);
+	wt->struct_size = sizeof(wmGizmo);
 
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP, "CLIP", 0, "Clipped", ""},
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_MIRROR, "ANGLE_MIRROR", 0, "Angle Mirror", ""},
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_START_Y, "ANGLE_START_Y", 0, "Angle Start Y", ""},
+		{ED_GIZMO_DIAL_DRAW_FLAG_CLIP, "CLIP", 0, "Clipped", ""},
+		{ED_GIZMO_DIAL_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
+		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR, "ANGLE_MIRROR", 0, "Angle Mirror", ""},
+		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y, "ANGLE_START_Y", 0, "Angle Start Y", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	RNA_def_enum_flag(wt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
 
-	WM_manipulatortype_target_property_def(wt, "offset", PROP_FLOAT, 1);
+	WM_gizmotype_target_property_def(wt, "offset", PROP_FLOAT, 1);
 }
 
-void ED_manipulatortypes_dial_3d(void)
+void ED_gizmotypes_dial_3d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_dial_3d);
+	WM_gizmotype_append(GIZMO_WT_dial_3d);
 }
 
 /** \} */

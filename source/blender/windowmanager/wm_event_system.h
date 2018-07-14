@@ -77,8 +77,8 @@ typedef struct wmEventHandler {
 
 	/* drop box handler */
 	ListBase *dropboxes;
-	/* manipulator handler */
-	struct wmManipulatorMap *manipulator_map;
+	/* gizmo handler */
+	struct wmGizmoMap *gizmo_map;
 } wmEventHandler;
 
 /* custom types for handlers, for signaling, freeing */

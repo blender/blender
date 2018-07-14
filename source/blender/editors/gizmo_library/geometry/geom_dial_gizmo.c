@@ -804,7 +804,7 @@ static const unsigned short indices[] = {
 	186, 191, 0,
 };
 
-ManipulatorGeomInfo wm_manipulator_geom_data_dial = {
+GizmoGeomInfo wm_gizmo_geom_data_dial = {
 	.nverts  = 192,
 	.ntris   = 384,
 	.verts   = verts,

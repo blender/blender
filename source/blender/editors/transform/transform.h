@@ -491,7 +491,7 @@ typedef struct TransInfo {
 	short		persp;
 	short		around;
 	char		spacetype;		/* spacetype where transforming is      */
-	char		helpline;		/* Choice of custom cursor with or without a help line from the manipulator to the mouse position. */
+	char		helpline;		/* Choice of custom cursor with or without a help line from the gizmo to the mouse position. */
 	short		obedit_type;	/* Avoid looking inside TransDataContainer obedit. */
 
 	float		vec[3];			/* translation, to show for widget   	*/
@@ -710,9 +710,9 @@ void flushTransMasking(TransInfo *t);
 void flushTransPaintCurve(TransInfo *t);
 void restoreBones(TransDataContainer *tc);
 
-/*********************** transform_manipulator.c ********** */
+/*********************** transform_gizmo.c ********** */
 
-#define MANIPULATOR_AXIS_LINE_WIDTH 2.0f
+#define GIZMO_AXIS_LINE_WIDTH 2.0f
 
 /* return 0 when no gimbal for selection */
 bool gimbal_axis(struct Object *ob, float gmat[3][3]);

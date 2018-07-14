@@ -2812,8 +2812,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
-	const bool is_face_map = ((is_gp_edit == false) && ar->manipulator_map &&
-	                          WM_manipulatormap_is_any_selected(ar->manipulator_map));
+	const bool is_face_map = ((is_gp_edit == false) && ar->gizmo_map &&
+	                          WM_gizmomap_is_any_selected(ar->gizmo_map));
 	Object *ob_eval = OBACT(view_layer_eval);
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
@@ -2858,7 +2858,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	else if (is_face_map) {
-		ok = WM_manipulatormap_minmax(ar->manipulator_map, true, true, min, max);
+		ok = WM_gizmomap_minmax(ar->gizmo_map, true, true, min, max);
 	}
 	else if (obedit) {
 		/* only selected */
@@ -3705,7 +3705,7 @@ static int view_axis_exec(bContext *C, wmOperator *op)
 		Object *obact = CTX_data_active_object(C);
 		if (obact != NULL) {
 			float twmat[3][3];
-			/* same as transform manipulator when normal is set */
+			/* same as transform gizmo when normal is set */
 			ED_getTransformOrientationMatrix(C, twmat, V3D_AROUND_ACTIVE);
 			align_quat = align_quat_buf;
 			mat3_to_quat(align_quat, twmat);

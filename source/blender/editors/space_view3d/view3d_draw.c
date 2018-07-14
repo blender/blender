@@ -1203,10 +1203,10 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(of
 
 	BLF_batch_draw_begin();
 
-	if ((U.uiflag & USER_SHOW_MANIPULATOR_AXIS) ||
+	if ((U.uiflag & USER_SHOW_GIZMO_AXIS) ||
 	    (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-	    /* No need to display manipulator and this info. */
-	    (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_NAVIGATE)))
+	    /* No need to display gizmo and this info. */
+	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
 	{
 		/* pass */
 	}

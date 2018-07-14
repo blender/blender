@@ -463,8 +463,8 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 	}
 
 	/* derive the rotation from the average normal:
-	 *		- code taken from transform_manipulator.c,
-	 *			calc_manipulator_stats, V3D_MANIP_NORMAL case
+	 *		- code taken from transform_gizmo.c,
+	 *			calc_gizmo_stats, V3D_MANIP_NORMAL case
 	 */
 	/*	we need the transpose of the inverse for a normal... */
 	copy_m3_m4(imat, ob->obmat);

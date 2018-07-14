@@ -51,29 +51,29 @@
 
 
 /* -------------------------------------------------------------------- */
-/** \name Manipulator Target Property Define API
+/** \name Gizmo Target Property Define API
  * \{ */
 
 enum {
-	BPY_MANIPULATOR_FN_SLOT_GET = 0,
-	BPY_MANIPULATOR_FN_SLOT_SET,
-	BPY_MANIPULATOR_FN_SLOT_RANGE_GET,
+	BPY_GIZMO_FN_SLOT_GET = 0,
+	BPY_GIZMO_FN_SLOT_SET,
+	BPY_GIZMO_FN_SLOT_RANGE_GET,
 };
-#define BPY_MANIPULATOR_FN_SLOT_LEN (BPY_MANIPULATOR_FN_SLOT_RANGE_GET + 1)
+#define BPY_GIZMO_FN_SLOT_LEN (BPY_GIZMO_FN_SLOT_RANGE_GET + 1)
 
-struct BPyManipulatorHandlerUserData {
+struct BPyGizmoHandlerUserData {
 
-	PyObject *fn_slots[BPY_MANIPULATOR_FN_SLOT_LEN];
+	PyObject *fn_slots[BPY_GIZMO_FN_SLOT_LEN];
 };
 
-static void py_rna_manipulator_handler_get_cb(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void py_rna_gizmo_handler_get_cb(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         void *value_p)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
-	struct BPyManipulatorHandlerUserData *data = mpr_prop->custom_func.user_data;
-	PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_MANIPULATOR_FN_SLOT_GET], NULL);
+	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
+	PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_GIZMO_FN_SLOT_GET], NULL);
 	if (ret == NULL) {
 		goto fail;
 	}
@@ -87,7 +87,7 @@ static void py_rna_manipulator_handler_get_cb(
 		}
 		else {
 			if (PyC_AsArray(value, ret, mpr_prop->type->array_length, &PyFloat_Type, false,
-			                "Manipulator get callback: ") == -1)
+			                "Gizmo get callback: ") == -1)
 			{
 				goto fail;
 			}
@@ -110,13 +110,13 @@ fail:
 	PyGILState_Release(gilstate);
 }
 
-static void py_rna_manipulator_handler_set_cb(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void py_rna_gizmo_handler_set_cb(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         const void *value_p)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
-	struct BPyManipulatorHandlerUserData *data = mpr_prop->custom_func.user_data;
+	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
 
 	PyObject *args = PyTuple_New(1);
 
@@ -139,7 +139,7 @@ static void py_rna_manipulator_handler_set_cb(
 		goto fail;
 	}
 
-	PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_MANIPULATOR_FN_SLOT_SET], args);
+	PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_GIZMO_FN_SLOT_SET], args);
 	if (ret == NULL) {
 		goto fail;
 	}
@@ -157,15 +157,15 @@ fail:
 	PyGILState_Release(gilstate);
 }
 
-static void py_rna_manipulator_handler_range_get_cb(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void py_rna_gizmo_handler_range_get_cb(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         void *value_p)
 {
-	struct BPyManipulatorHandlerUserData *data = mpr_prop->custom_func.user_data;
+	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
-	PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_MANIPULATOR_FN_SLOT_RANGE_GET], NULL);
+	PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET], NULL);
 	if (ret == NULL) {
 		goto fail;
 	}
@@ -214,13 +214,13 @@ fail:
 	PyGILState_Release(gilstate);
 }
 
-static void py_rna_manipulator_handler_free_cb(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop)
+static void py_rna_gizmo_handler_free_cb(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop)
 {
-	struct BPyManipulatorHandlerUserData *data = mpr_prop->custom_func.user_data;
+	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
-	for (int i = 0; i < BPY_MANIPULATOR_FN_SLOT_LEN; i++) {
+	for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
 		Py_XDECREF(data->fn_slots[i]);
 	}
 	PyGILState_Release(gilstate);
@@ -229,26 +229,26 @@ static void py_rna_manipulator_handler_free_cb(
 
 }
 
-PyDoc_STRVAR(bpy_manipulator_target_set_handler_doc,
+PyDoc_STRVAR(bpy_gizmo_target_set_handler_doc,
 ".. method:: target_set_handler(target, get, set, range=None):\n"
 "\n"
-"   Assigns callbacks to a manipulators property.\n"
+"   Assigns callbacks to a gizmos property.\n"
 "\n"
 "   :arg get: Function that returns the value for this property (single value or sequence).\n"
 "   :type get: callable\n"
 "   :arg set: Function that takes a single value argument and applies it.\n"
 "   :type set: callable\n"
-"   :arg range: Function that returns a (min, max) tuple for manipulators that use a range.\n"
+"   :arg range: Function that returns a (min, max) tuple for gizmos that use a range.\n"
 "   :type range: callable\n"
 );
-static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	struct {
 		PyObject *self;
 		char *target;
-		PyObject *py_fn_slots[BPY_MANIPULATOR_FN_SLOT_LEN];
+		PyObject *py_fn_slots[BPY_GIZMO_FN_SLOT_LEN];
 	} params = {
 		.self = NULL,
 		.target = NULL,
@@ -256,28 +256,28 @@ static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyOb
 	};
 
 	/* Note: this is a counter-part to functions:
-	 * 'Manipulator.target_set_prop & target_set_operator'
-	 * (see: rna_wm_manipulator_api.c). conventions should match. */
+	 * 'Gizmo.target_set_prop & target_set_operator'
+	 * (see: rna_wm_gizmo_api.c). conventions should match. */
 	static const char * const _keywords[] = {"self", "target", "get", "set", "range", NULL};
 	static _PyArg_Parser _parser = {"Os|$OOO:target_set_handler", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kw, &_parser,
 	        &params.self,
 	        &params.target,
-	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_GET],
-	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_SET],
-	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_RANGE_GET]))
+	        &params.py_fn_slots[BPY_GIZMO_FN_SLOT_GET],
+	        &params.py_fn_slots[BPY_GIZMO_FN_SLOT_SET],
+	        &params.py_fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET]))
 	{
 		goto fail;
 	}
 
-	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	const wmManipulatorPropertyType *mpr_prop_type =
-	        WM_manipulatortype_target_property_find(mpr->type, params.target);
+	const wmGizmoPropertyType *mpr_prop_type =
+	        WM_gizmotype_target_property_find(mpr->type, params.target);
 	if (mpr_prop_type == NULL) {
 		PyErr_Format(PyExc_ValueError,
-		             "Manipulator target property '%s.%s' not found",
+		             "Gizmo target property '%s.%s' not found",
 		             mpr->type->idname, params.target);
 		goto fail;
 	}
@@ -285,7 +285,7 @@ static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyOb
 	{
 		const int slots_required = 2;
 		const int slots_start = 2;
-		for (int i = 0; i < BPY_MANIPULATOR_FN_SLOT_LEN; i++) {
+		for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
 			if (params.py_fn_slots[i] == NULL) {
 				if (i < slots_required) {
 					PyErr_Format(PyExc_ValueError, "Argument '%s' not given", _keywords[slots_start + i]);
@@ -299,20 +299,20 @@ static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyOb
 		}
 	}
 
-	struct BPyManipulatorHandlerUserData *data = MEM_callocN(sizeof(*data), __func__);
+	struct BPyGizmoHandlerUserData *data = MEM_callocN(sizeof(*data), __func__);
 
-	for (int i = 0; i < BPY_MANIPULATOR_FN_SLOT_LEN; i++) {
+	for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
 		data->fn_slots[i] = params.py_fn_slots[i];
 		Py_XINCREF(params.py_fn_slots[i]);
 	}
 
-	WM_manipulator_target_property_def_func_ptr(
+	WM_gizmo_target_property_def_func_ptr(
 	        mpr, mpr_prop_type,
-	        &(const struct wmManipulatorPropertyFnParams) {
-	            .value_get_fn = py_rna_manipulator_handler_get_cb,
-	            .value_set_fn = py_rna_manipulator_handler_set_cb,
-	            .range_get_fn = py_rna_manipulator_handler_range_get_cb,
-	            .free_fn = py_rna_manipulator_handler_free_cb,
+	        &(const struct wmGizmoPropertyFnParams) {
+	            .value_get_fn = py_rna_gizmo_handler_get_cb,
+	            .value_set_fn = py_rna_gizmo_handler_set_cb,
+	            .range_get_fn = py_rna_gizmo_handler_range_get_cb,
+	            .free_fn = py_rna_gizmo_handler_free_cb,
 	            .user_data = data,
 	        });
 
@@ -328,10 +328,10 @@ fail:
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Manipulator Target Property Access API
+/** \name Gizmo Target Property Access API
  * \{ */
 
-PyDoc_STRVAR(bpy_manipulator_target_get_value_doc,
+PyDoc_STRVAR(bpy_gizmo_target_get_value_doc,
 ".. method:: target_get_value(target):\n"
 "\n"
 "   Get the value of this target property.\n"
@@ -341,7 +341,7 @@ PyDoc_STRVAR(bpy_manipulator_target_get_value_doc,
 "   :return: The value of the target property.\n"
 "   :rtype: Single value or array based on the target type\n"
 );
-static PyObject *bpy_manipulator_target_get_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct {
 		PyObject *self;
@@ -361,28 +361,28 @@ static PyObject *bpy_manipulator_target_get_value(PyObject *UNUSED(self), PyObje
 		goto fail;
 	}
 
-	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	wmManipulatorProperty *mpr_prop =
-	        WM_manipulator_target_property_find(mpr, params.target);
+	wmGizmoProperty *mpr_prop =
+	        WM_gizmo_target_property_find(mpr, params.target);
 	if (mpr_prop == NULL) {
 		PyErr_Format(PyExc_ValueError,
-		             "Manipulator target property '%s.%s' not found",
+		             "Gizmo target property '%s.%s' not found",
 		             mpr->type->idname, params.target);
 		goto fail;
 	}
 
-	const int array_len = WM_manipulator_target_property_array_length(mpr, mpr_prop);
+	const int array_len = WM_gizmo_target_property_array_length(mpr, mpr_prop);
 	switch (mpr_prop->type->data_type) {
 		case PROP_FLOAT:
 		{
 			if (array_len != 0) {
 				float *value = BLI_array_alloca(value, array_len);
-				WM_manipulator_target_property_value_get_array(mpr, mpr_prop, value);
+				WM_gizmo_target_property_value_get_array(mpr, mpr_prop, value);
 				return PyC_Tuple_PackArray_F32(value, array_len);
 			}
 			else {
-				float value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
+				float value = WM_gizmo_target_property_value_get(mpr, mpr_prop);
 				return PyFloat_FromDouble(value);
 			}
 			break;
@@ -398,7 +398,7 @@ fail:
 	return NULL;
 }
 
-PyDoc_STRVAR(bpy_manipulator_target_set_value_doc,
+PyDoc_STRVAR(bpy_gizmo_target_set_value_doc,
 ".. method:: target_set_value(target):\n"
 "\n"
 "   Set the value of this target property.\n"
@@ -406,7 +406,7 @@ PyDoc_STRVAR(bpy_manipulator_target_set_value_doc,
 "   :arg target: Target property name.\n"
 "   :type target: string\n"
 );
-static PyObject *bpy_manipulator_target_set_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct {
 		PyObject *self;
@@ -429,36 +429,36 @@ static PyObject *bpy_manipulator_target_set_value(PyObject *UNUSED(self), PyObje
 		goto fail;
 	}
 
-	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	wmManipulatorProperty *mpr_prop =
-	        WM_manipulator_target_property_find(mpr, params.target);
+	wmGizmoProperty *mpr_prop =
+	        WM_gizmo_target_property_find(mpr, params.target);
 	if (mpr_prop == NULL) {
 		PyErr_Format(PyExc_ValueError,
-		             "Manipulator target property '%s.%s' not found",
+		             "Gizmo target property '%s.%s' not found",
 		             mpr->type->idname, params.target);
 		goto fail;
 	}
 
-	const int array_len = WM_manipulator_target_property_array_length(mpr, mpr_prop);
+	const int array_len = WM_gizmo_target_property_array_length(mpr, mpr_prop);
 	switch (mpr_prop->type->data_type) {
 		case PROP_FLOAT:
 		{
 			if (array_len != 0) {
 				float *value = BLI_array_alloca(value, array_len);
 				if (PyC_AsArray(value, params.value, mpr_prop->type->array_length, &PyFloat_Type, false,
-				                "Manipulator target property array") == -1)
+				                "Gizmo target property array") == -1)
 				{
 					goto fail;
 				}
-				WM_manipulator_target_property_value_set_array(BPy_GetContext(), mpr, mpr_prop, value);
+				WM_gizmo_target_property_value_set_array(BPy_GetContext(), mpr, mpr_prop, value);
 			}
 			else {
 				float value;
 				if ((value = PyFloat_AsDouble(params.value)) == -1.0f && PyErr_Occurred()) {
 					goto fail;
 				}
-				WM_manipulator_target_property_value_set(BPy_GetContext(), mpr, mpr_prop, value);
+				WM_gizmo_target_property_value_set(BPy_GetContext(), mpr, mpr_prop, value);
 			}
 			Py_RETURN_NONE;
 		}
@@ -474,7 +474,7 @@ fail:
 }
 
 
-PyDoc_STRVAR(bpy_manipulator_target_get_range_doc,
+PyDoc_STRVAR(bpy_gizmo_target_get_range_doc,
 ".. method:: target_get_range(target):\n"
 "\n"
 "   Get the range for this target property.\n"
@@ -484,7 +484,7 @@ PyDoc_STRVAR(bpy_manipulator_target_get_range_doc,
 "   :return: The range of this property (min, max).\n"
 "   :rtype: tuple pair.\n"
 );
-static PyObject *bpy_manipulator_target_get_range(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+static PyObject *bpy_gizmo_target_get_range(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct {
 		PyObject *self;
@@ -504,13 +504,13 @@ static PyObject *bpy_manipulator_target_get_range(PyObject *UNUSED(self), PyObje
 		goto fail;
 	}
 
-	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	wmManipulatorProperty *mpr_prop =
-	        WM_manipulator_target_property_find(mpr, params.target);
+	wmGizmoProperty *mpr_prop =
+	        WM_gizmo_target_property_find(mpr, params.target);
 	if (mpr_prop == NULL) {
 		PyErr_Format(PyExc_ValueError,
-		             "Manipulator target property '%s.%s' not found",
+		             "Gizmo target property '%s.%s' not found",
 		             mpr->type->idname, params.target);
 		goto fail;
 	}
@@ -519,7 +519,7 @@ static PyObject *bpy_manipulator_target_get_range(PyObject *UNUSED(self), PyObje
 		case PROP_FLOAT:
 		{
 			float range[2];
-			WM_manipulator_target_property_range_get(mpr, mpr_prop, range);
+			WM_gizmo_target_property_range_get(mpr, mpr_prop, range);
 			return PyC_Tuple_PackArray_F32(range, 2);
 		}
 		default:
@@ -535,19 +535,19 @@ fail:
 
 /** \} */
 
-int BPY_rna_manipulator_module(PyObject *mod_par)
+int BPY_rna_gizmo_module(PyObject *mod_par)
 {
 	static PyMethodDef method_def_array[] = {
-		/* Manipulator Target Property Define API */
-		{"target_set_handler", (PyCFunction)bpy_manipulator_target_set_handler,
-		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_set_handler_doc},
-		/* Manipulator Target Property Access API */
-		{"target_get_value", (PyCFunction)bpy_manipulator_target_get_value,
-		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_get_value_doc},
-		{"target_set_value", (PyCFunction)bpy_manipulator_target_set_value,
-		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_set_value_doc},
-		{"target_get_range", (PyCFunction)bpy_manipulator_target_get_range,
-		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_get_range_doc},
+		/* Gizmo Target Property Define API */
+		{"target_set_handler", (PyCFunction)bpy_gizmo_target_set_handler,
+		 METH_VARARGS | METH_KEYWORDS, bpy_gizmo_target_set_handler_doc},
+		/* Gizmo Target Property Access API */
+		{"target_get_value", (PyCFunction)bpy_gizmo_target_get_value,
+		 METH_VARARGS | METH_KEYWORDS, bpy_gizmo_target_get_value_doc},
+		{"target_set_value", (PyCFunction)bpy_gizmo_target_set_value,
+		 METH_VARARGS | METH_KEYWORDS, bpy_gizmo_target_set_value_doc},
+		{"target_get_range", (PyCFunction)bpy_gizmo_target_get_range,
+		 METH_VARARGS | METH_KEYWORDS, bpy_gizmo_target_get_range_doc},
 		/* no sentinel needed. */
 	};
 
@@ -556,7 +556,7 @@ int BPY_rna_manipulator_module(PyObject *mod_par)
 		PyObject *func = PyCFunction_New(m, NULL);
 		PyObject *func_inst = PyInstanceMethod_New(func);
 		char name_prefix[128];
-		PyOS_snprintf(name_prefix, sizeof(name_prefix), "_rna_manipulator_%s", m->ml_name);
+		PyOS_snprintf(name_prefix, sizeof(name_prefix), "_rna_gizmo_%s", m->ml_name);
 		/* TODO, return a type that binds nearly to a method. */
 		PyModule_AddObject(mod_par, name_prefix, func_inst);
 	}

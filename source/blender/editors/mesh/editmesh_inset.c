@@ -174,7 +174,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		G.moving = G_TRANSFORM_EDIT;
 		if (v3d) {
 			opdata->mpr_flag = v3d->mpr_flag;
-			v3d->mpr_flag = V3D_MANIPULATOR_HIDE;
+			v3d->mpr_flag = V3D_GIZMO_HIDE;
 		}
 	}
 

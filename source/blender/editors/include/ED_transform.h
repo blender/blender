@@ -113,8 +113,8 @@ bool calculateTransformCenter(struct bContext *C, int centerMode, float cent3d[3
 struct TransInfo;
 struct Scene;
 struct Object;
-struct wmManipulatorGroup;
-struct wmManipulatorGroupType;
+struct wmGizmoGroup;
+struct wmGizmoGroupType;
 struct wmOperator;
 
 /* UNUSED */
@@ -157,15 +157,15 @@ int BIF_countTransformOrientation(const struct bContext *C);
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 
-/* transform manipulators */
+/* transform gizmos */
 
-void TRANSFORM_WGT_manipulator(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_xform_cage(struct wmManipulatorGroupType *wgt);
+void TRANSFORM_WGT_gizmo(struct wmGizmoGroupType *wgt);
+void VIEW3D_WGT_xform_cage(struct wmGizmoGroupType *wgt);
 
-bool ED_widgetgroup_manipulator2d_poll(const struct bContext *C, struct wmManipulatorGroupType *wgt);
-void ED_widgetgroup_manipulator2d_setup(const struct bContext *C, struct wmManipulatorGroup *mgroup);
-void ED_widgetgroup_manipulator2d_refresh(const struct bContext *C, struct wmManipulatorGroup *mgroup);
-void ED_widgetgroup_manipulator2d_draw_prepare(const struct bContext *C, struct wmManipulatorGroup *mgroup);
+bool ED_widgetgroup_gizmo2d_poll(const struct bContext *C, struct wmGizmoGroupType *wgt);
+void ED_widgetgroup_gizmo2d_setup(const struct bContext *C, struct wmGizmoGroup *mgroup);
+void ED_widgetgroup_gizmo2d_refresh(const struct bContext *C, struct wmGizmoGroup *mgroup);
+void ED_widgetgroup_gizmo2d_draw_prepare(const struct bContext *C, struct wmGizmoGroup *mgroup);
 
 
 /* Snapping */
@@ -211,7 +211,7 @@ struct TransformCalcParams {
 	/* Use 'Scene.orientation_type' when zero, otherwise subtract one and use. */
 	ushort orientation_type;
 };
-int ED_transform_calc_manipulator_stats(
+int ED_transform_calc_gizmo_stats(
         const struct bContext *C,
         const struct TransformCalcParams *params,
         struct TransformBounds *tbounds);

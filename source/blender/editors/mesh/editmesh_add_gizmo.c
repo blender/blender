@@ -21,7 +21,7 @@
 /** \file blender/editors/mesh/editmesh_add_gizmo.c
  *  \ingroup edmesh
  *
- * Creation manipulators.
+ * Creation gizmos.
  */
 
 #include "MEM_guardedalloc.h"
@@ -123,24 +123,24 @@ static void calc_initial_placement_point_from_view(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Placement Manipulator
+/** \name Placement Gizmo
  * \{ */
 
-typedef struct ManipulatorPlacementGroup {
-	struct wmManipulator *cage;
+typedef struct GizmoPlacementGroup {
+	struct wmGizmo *cage;
 	struct {
 		bContext *context;
 		wmOperator *op;
 		PropertyRNA *prop_matrix;
 	} data;
-} ManipulatorPlacementGroup;
+} GizmoPlacementGroup;
 
 /**
  * \warning Calling redo from property updates is not great.
  * This is needed because changing the RNA doesn't cause a redo
  * and we're not using operator UI which does just this.
  */
-static void manipulator_placement_exec(ManipulatorPlacementGroup *man)
+static void gizmo_placement_exec(GizmoPlacementGroup *man)
 {
 	wmOperator *op = man->data.op;
 	if (op == WM_operator_last_redo((bContext *)man->data.context)) {
@@ -148,7 +148,7 @@ static void manipulator_placement_exec(ManipulatorPlacementGroup *man)
 	}
 }
 
-static void manipulator_mesh_placement_update_from_op(ManipulatorPlacementGroup *man)
+static void gizmo_mesh_placement_update_from_op(GizmoPlacementGroup *man)
 {
 	wmOperator *op = man->data.op;
 	UNUSED_VARS(op);
@@ -159,11 +159,11 @@ static void manipulator_mesh_placement_update_from_op(ManipulatorPlacementGroup 
 }
 
 /* translate callbacks */
-static void manipulator_placement_prop_matrix_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_placement_prop_matrix_get(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         void *value_p)
 {
-	ManipulatorPlacementGroup *man = mpr->parent_mgroup->customdata;
+	GizmoPlacementGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
 	BLI_assert(mpr_prop->type->array_length == 16);
@@ -175,11 +175,11 @@ static void manipulator_placement_prop_matrix_get(
 	}
 }
 
-static void manipulator_placement_prop_matrix_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_placement_prop_matrix_set(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         const void *value)
 {
-	ManipulatorPlacementGroup *man = mpr->parent_mgroup->customdata;
+	GizmoPlacementGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 
 	BLI_assert(mpr_prop->type->array_length == 16);
@@ -194,30 +194,30 @@ static void manipulator_placement_prop_matrix_set(
 
 	RNA_property_float_set_array(op->ptr, man->data.prop_matrix, &mat[0][0]);
 
-	manipulator_placement_exec(man);
+	gizmo_placement_exec(man);
 }
 
-static bool manipulator_mesh_placement_poll(const bContext *C, wmManipulatorGroupType *wgt)
+static bool gizmo_mesh_placement_poll(const bContext *C, wmGizmoGroupType *wgt)
 {
 	wmOperator *op = WM_operator_last_redo(C);
-	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_primitive_cube_add_manipulator")) {
-		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
+	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_primitive_cube_add_gizmo")) {
+		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
 	return true;
 }
 
-static void manipulator_mesh_placement_modal_from_setup(
-        const bContext *C, wmManipulatorGroup *mgroup)
+static void gizmo_mesh_placement_modal_from_setup(
+        const bContext *C, wmGizmoGroup *mgroup)
 {
-	ManipulatorPlacementGroup *man = mgroup->customdata;
+	GizmoPlacementGroup *man = mgroup->customdata;
 
 	/* Initial size. */
 	{
-		wmManipulator *mpr = man->cage;
+		wmGizmo *mpr = man->cage;
 		zero_m4(mpr->matrix_offset);
 
-		/* TODO: support zero scaled matrix in 'MANIPULATOR_WT_cage_3d'. */
+		/* TODO: support zero scaled matrix in 'GIZMO_WT_cage_3d'. */
 		mpr->matrix_offset[0][0] = 0.01;
 		mpr->matrix_offset[1][1] = 0.01;
 		mpr->matrix_offset[2][2] = 0.01;
@@ -228,7 +228,7 @@ static void manipulator_mesh_placement_modal_from_setup(
 	{
 		wmWindow *win = CTX_wm_window(C);
 		ARegion *ar = CTX_wm_region(C);
-		wmManipulator *mpr = man->cage;
+		wmGizmo *mpr = man->cage;
 
 		{
 			float mat3[3][3];
@@ -244,87 +244,87 @@ static void manipulator_mesh_placement_modal_from_setup(
 		}
 
 		if (1) {
-			wmManipulatorMap *mmap = mgroup->parent_mmap;
-			WM_manipulator_modal_set_from_setup(
-			        mmap, (bContext *)C, man->cage, ED_MANIPULATOR_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z, win->eventstate);
+			wmGizmoMap *mmap = mgroup->parent_mmap;
+			WM_gizmo_modal_set_from_setup(
+			        mmap, (bContext *)C, man->cage, ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z, win->eventstate);
 		}
 	}
 }
 
-static void manipulator_mesh_placement_setup(const bContext *C, wmManipulatorGroup *mgroup)
+static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *mgroup)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 
-	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_primitive_cube_add_manipulator")) {
+	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_primitive_cube_add_gizmo")) {
 		return;
 	}
 
-	struct ManipulatorPlacementGroup *man = MEM_callocN(sizeof(ManipulatorPlacementGroup), __func__);
+	struct GizmoPlacementGroup *man = MEM_callocN(sizeof(GizmoPlacementGroup), __func__);
 	mgroup->customdata = man;
 
-	const wmManipulatorType *wt_cage = WM_manipulatortype_find("MANIPULATOR_WT_cage_3d", true);
+	const wmGizmoType *wt_cage = WM_gizmotype_find("GIZMO_WT_cage_3d", true);
 
-	man->cage = WM_manipulator_new_ptr(wt_cage, mgroup, NULL);
+	man->cage = WM_gizmo_new_ptr(wt_cage, mgroup, NULL);
 
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->cage->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->cage->color);
 
 	RNA_enum_set(man->cage->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE |
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_SIGNED);
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE |
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_SIGNED);
 
-	WM_manipulator_set_flag(man->cage, WM_MANIPULATOR_DRAW_VALUE, true);
+	WM_gizmo_set_flag(man->cage, WM_GIZMO_DRAW_VALUE, true);
 
 	man->data.context = (bContext *)C;
 	man->data.op = op;
 	man->data.prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
 
-	manipulator_mesh_placement_update_from_op(man);
+	gizmo_mesh_placement_update_from_op(man);
 
 	/* Setup property callbacks */
 	{
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        man->cage, "matrix",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_placement_prop_matrix_get,
-		            .value_set_fn = manipulator_placement_prop_matrix_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_placement_prop_matrix_get,
+		            .value_set_fn = gizmo_placement_prop_matrix_set,
 		            .range_get_fn = NULL,
 		            .user_data = NULL,
 		        });
 	}
 
-	manipulator_mesh_placement_modal_from_setup(C, mgroup);
+	gizmo_mesh_placement_modal_from_setup(C, mgroup);
 }
 
-static void manipulator_mesh_placement_draw_prepare(
-        const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void gizmo_mesh_placement_draw_prepare(
+        const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
-	ManipulatorPlacementGroup *man = mgroup->customdata;
+	GizmoPlacementGroup *man = mgroup->customdata;
 	if (man->data.op->next) {
 		man->data.op = WM_operator_last_redo((bContext *)man->data.context);
 	}
-	manipulator_mesh_placement_update_from_op(man);
+	gizmo_mesh_placement_update_from_op(man);
 }
 
-static void MESH_WGT_add_bounds(struct wmManipulatorGroupType *wgt)
+static void MESH_WGT_add_bounds(struct wmGizmoGroupType *wgt)
 {
 	wgt->name = "Mesh Add Bounds";
 	wgt->idname = "MESH_WGT_add_bounds";
 
-	wgt->flag = WM_MANIPULATORGROUPTYPE_3D;
+	wgt->flag = WM_GIZMOGROUPTYPE_3D;
 
 	wgt->mmap_params.spaceid = SPACE_VIEW3D;
 	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = manipulator_mesh_placement_poll;
-	wgt->setup = manipulator_mesh_placement_setup;
-	wgt->draw_prepare = manipulator_mesh_placement_draw_prepare;
+	wgt->poll = gizmo_mesh_placement_poll;
+	wgt->setup = gizmo_mesh_placement_setup;
+	wgt->draw_prepare = gizmo_mesh_placement_draw_prepare;
 }
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Add Cube Manipulator-Operator
+/** \name Add Cube Gizmo-Operator
  *
  * For now we use a separate operator to add a cube,
  * we can try to merge then however they are invoked differently
@@ -332,13 +332,13 @@ static void MESH_WGT_add_bounds(struct wmManipulatorGroupType *wgt)
  * \{ */
 
 
-static int add_primitive_cube_manipulator_exec(bContext *C, wmOperator *op)
+static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	float matrix[4][4];
 
-	/* Get the matrix that defines the cube bounds (as set by the manipulator cage). */
+	/* Get the matrix that defines the cube bounds (as set by the gizmo cage). */
 	{
 		PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
 		if (RNA_property_is_set(op->ptr, prop_matrix)) {
@@ -372,25 +372,25 @@ static int add_primitive_cube_manipulator_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int add_primitive_cube_manipulator_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int add_primitive_cube_gizmo_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 
-	int ret = add_primitive_cube_manipulator_exec(C, op);
+	int ret = add_primitive_cube_gizmo_exec(C, op);
 	if (ret & OPERATOR_FINISHED) {
-		/* Setup manipulators */
-		if (v3d && ((v3d->mpr_flag & V3D_MANIPULATOR_HIDE) == 0)) {
+		/* Setup gizmos */
+		if (v3d && ((v3d->mpr_flag & V3D_GIZMO_HIDE) == 0)) {
 			ARegion *ar = CTX_wm_region(C);
-			wmManipulatorMap *mmap = ar->manipulator_map;
-			wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find("MESH_WGT_add_bounds", false);
-			wmManipulatorGroup *mgroup = WM_manipulatormap_group_find_ptr(mmap, wgt);
+			wmGizmoMap *mmap = ar->gizmo_map;
+			wmGizmoGroupType *wgt = WM_gizmogrouptype_find("MESH_WGT_add_bounds", false);
+			wmGizmoGroup *mgroup = WM_gizmomap_group_find_ptr(mmap, wgt);
 			if (mgroup != NULL) {
-				ManipulatorPlacementGroup *man = mgroup->customdata;
+				GizmoPlacementGroup *man = mgroup->customdata;
 				man->data.op = op;
-				manipulator_mesh_placement_modal_from_setup(C, mgroup);
+				gizmo_mesh_placement_modal_from_setup(C, mgroup);
 			}
 			else {
-				WM_manipulator_group_type_ensure_ptr(wgt);
+				WM_gizmo_group_type_ensure_ptr(wgt);
 			}
 		}
 	}
@@ -398,16 +398,16 @@ static int add_primitive_cube_manipulator_invoke(bContext *C, wmOperator *op, co
 	return ret;
 }
 
-void MESH_OT_primitive_cube_add_manipulator(wmOperatorType *ot)
+void MESH_OT_primitive_cube_add_gizmo(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Cube";
 	ot->description = "Construct a cube mesh";
-	ot->idname = "MESH_OT_primitive_cube_add_manipulator";
+	ot->idname = "MESH_OT_primitive_cube_add_gizmo";
 
 	/* api callbacks */
-	ot->invoke = add_primitive_cube_manipulator_invoke;
-	ot->exec = add_primitive_cube_manipulator_exec;
+	ot->invoke = add_primitive_cube_gizmo_invoke;
+	ot->exec = add_primitive_cube_gizmo_exec;
 	ot->poll = ED_operator_editmesh_view3d;
 
 	/* flags */
@@ -420,7 +420,7 @@ void MESH_OT_primitive_cube_add_manipulator(wmOperatorType *ot)
 	PropertyRNA *prop = RNA_def_float_matrix(ot->srna, "matrix", 4, 4, NULL, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-	WM_manipulatorgrouptype_append(MESH_WGT_add_bounds);
+	WM_gizmogrouptype_append(MESH_WGT_add_bounds);
 }
 
 /** \} */

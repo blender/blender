@@ -198,7 +198,7 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	/* In the future this will allow us to implement face manipulators,
+	/* In the future this will allow us to implement face gizmos,
 	 * and similar functionalities. For now we handle only pose bones. */
 
 	if (ob->type == OB_ARMATURE) {

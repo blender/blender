@@ -413,7 +413,7 @@ const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static const EnumPropertyItem rna_enum_manipulator_items[] = {
+static const EnumPropertyItem rna_enum_gizmo_items[] = {
 	{SCE_MANIP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 	{SCE_MANIP_ROTATE, "ROTATE", 0, "Rotate", ""},
 	{SCE_MANIP_SCALE, "SCALE", 0, "Scale", ""},
@@ -647,11 +647,11 @@ static void rna_GPencilBrush_name_set(PointerRNA *ptr, const char *value)
 
 /* ----------------- end of Grease pencil drawing brushes ------------*/
 
-static void rna_ToolSettings_manipulator_flag_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_ToolSettings_gizmo_flag_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	ToolSettings *ts = scene->toolsettings;
-	if ((ts->manipulator_flag & (SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE)) == 0) {
-		ts->manipulator_flag |= SCE_MANIP_TRANSLATE;
+	if ((ts->gizmo_flag & (SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE)) == 0) {
+		ts->gizmo_flag |= SCE_MANIP_TRANSLATE;
 	}
 }
 
@@ -2690,12 +2690,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop = RNA_def_property(srna, "use_manipulator_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "manipulator_flag");
-	RNA_def_property_enum_items(prop, rna_enum_manipulator_items);
+	prop = RNA_def_property(srna, "use_gizmo_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "gizmo_flag");
+	RNA_def_property_enum_items(prop, rna_enum_gizmo_items);
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Gizmo Mode",  "");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ToolSettings_manipulator_flag_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ToolSettings_gizmo_flag_update");
 
 	/* Grease Pencil */
 	prop = RNA_def_property(srna, "use_gpencil_continuous_drawing", PROP_BOOLEAN, PROP_NONE);

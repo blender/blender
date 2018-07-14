@@ -679,16 +679,16 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_AXIS_Z:
 					cp = btheme->tui.zaxis; break;
 
-				case TH_MANIPULATOR_HI:
-					cp = btheme->tui.manipulator_hi; break;
-				case TH_MANIPULATOR_PRIMARY:
-					cp = btheme->tui.manipulator_primary; break;
-				case TH_MANIPULATOR_SECONDARY:
-					cp = btheme->tui.manipulator_secondary; break;
-				case TH_MANIPULATOR_A:
-					cp = btheme->tui.manipulator_a; break;
-				case TH_MANIPULATOR_B:
-					cp = btheme->tui.manipulator_b; break;
+				case TH_GIZMO_HI:
+					cp = btheme->tui.gizmo_hi; break;
+				case TH_GIZMO_PRIMARY:
+					cp = btheme->tui.gizmo_primary; break;
+				case TH_GIZMO_SECONDARY:
+					cp = btheme->tui.gizmo_secondary; break;
+				case TH_GIZMO_A:
+					cp = btheme->tui.gizmo_a; break;
+				case TH_GIZMO_B:
+					cp = btheme->tui.gizmo_b; break;
 
 				case TH_INFO_SELECTED:
 					cp = ts->info_selected;
@@ -1338,9 +1338,9 @@ void init_userdef_do_versions(Main *bmain)
 		U.savetime = 1;
 // XXX		error(STRINGIFY(BLENDER_STARTUP_FILE)" is buggy, please consider removing it.\n");
 	}
-	if (U.manipulator_size == 0) {
-		U.manipulator_size = 75;
-		U.manipulator_flag |= USER_MANIPULATOR_DRAW;
+	if (U.gizmo_size == 0) {
+		U.gizmo_size = 75;
+		U.gizmo_flag |= USER_GIZMO_DRAW;
 	}
 	if (U.pad_rot_angle == 0.0f)
 		U.pad_rot_angle = 15.0f;
@@ -1383,7 +1383,7 @@ void init_userdef_do_versions(Main *bmain)
 		if (U.rvisize == 0) {
 			U.rvisize = 15;
 			U.rvibright = 8;
-			U.uiflag |= USER_SHOW_MANIPULATOR_AXIS;
+			U.uiflag |= USER_SHOW_GIZMO_AXIS;
 		}
 
 	}

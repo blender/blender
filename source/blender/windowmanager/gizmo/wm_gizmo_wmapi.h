@@ -26,10 +26,10 @@
 /** \file blender/windowmanager/gizmo/wm_gizmo_wmapi.h
  *  \ingroup wm
  *
- * \name Manipulators Window Manager API
+ * \name Gizmos Window Manager API
  * API for usage in window manager code only. It should contain all functionality
- * needed to hook up the manipulator system with Blender's window manager. It's
- * mostly the event system that needs to communicate with manipulator code.
+ * needed to hook up the gizmo system with Blender's window manager. It's
+ * mostly the event system that needs to communicate with gizmo code.
  *
  * Only included in wm.h and lower level files.
  */
@@ -39,59 +39,59 @@
 #define __WM_GIZMO_WMAPI_H__
 
 struct wmEventHandler;
-struct wmManipulatorMap;
+struct wmGizmoMap;
 struct wmOperatorType;
 struct wmOperator;
 
 
 /* -------------------------------------------------------------------- */
-/* wmManipulator */
+/* wmGizmo */
 
-/* wm_manipulator_type.c, for init/exit */
-void wm_manipulatortype_free(void);
-void wm_manipulatortype_init(void);
+/* wm_gizmo_type.c, for init/exit */
+void wm_gizmotype_free(void);
+void wm_gizmotype_init(void);
 
-/* wm_manipulatorgroup_type.c, for init/exit */
-void wm_manipulatorgrouptype_free(void);
-void wm_manipulatorgrouptype_init(void);
-
-/* -------------------------------------------------------------------- */
-/* wmManipulatorGroup */
-
-void MANIPULATORGROUP_OT_manipulator_select(struct wmOperatorType *ot);
-void MANIPULATORGROUP_OT_manipulator_tweak(struct wmOperatorType *ot);
-
-bool wm_manipulatorgroup_is_any_selected(const struct wmManipulatorGroup *mgroup);
+/* wm_gizmogroup_type.c, for init/exit */
+void wm_gizmogrouptype_free(void);
+void wm_gizmogrouptype_init(void);
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorMap */
+/* wmGizmoGroup */
 
-void wm_manipulatormap_remove(struct wmManipulatorMap *mmap);
+void GIZMOGROUP_OT_gizmo_select(struct wmOperatorType *ot);
+void GIZMOGROUP_OT_gizmo_tweak(struct wmOperatorType *ot);
 
-void wm_manipulators_keymap(struct wmKeyConfig *keyconf);
+bool wm_gizmogroup_is_any_selected(const struct wmGizmoGroup *mgroup);
 
-void wm_manipulatormaps_handled_modal_update(
+/* -------------------------------------------------------------------- */
+/* wmGizmoMap */
+
+void wm_gizmomap_remove(struct wmGizmoMap *mmap);
+
+void wm_gizmos_keymap(struct wmKeyConfig *keyconf);
+
+void wm_gizmomaps_handled_modal_update(
         bContext *C, struct wmEvent *event, struct wmEventHandler *handler);
-void wm_manipulatormap_handler_context(bContext *C, struct wmEventHandler *handler);
+void wm_gizmomap_handler_context(bContext *C, struct wmEventHandler *handler);
 
-struct wmManipulator *wm_manipulatormap_highlight_find(
-        struct wmManipulatorMap *mmap, bContext *C, const struct wmEvent *event,
+struct wmGizmo *wm_gizmomap_highlight_find(
+        struct wmGizmoMap *mmap, bContext *C, const struct wmEvent *event,
         int *r_part);
-bool wm_manipulatormap_highlight_set(
-        struct wmManipulatorMap *mmap, const bContext *C,
-        struct wmManipulator *mpr, int part);
-struct wmManipulator *wm_manipulatormap_highlight_get(struct wmManipulatorMap *mmap);
-void wm_manipulatormap_modal_set(
-        struct wmManipulatorMap *mmap, bContext *C, struct wmManipulator *mpr,
+bool wm_gizmomap_highlight_set(
+        struct wmGizmoMap *mmap, const bContext *C,
+        struct wmGizmo *mpr, int part);
+struct wmGizmo *wm_gizmomap_highlight_get(struct wmGizmoMap *mmap);
+void wm_gizmomap_modal_set(
+        struct wmGizmoMap *mmap, bContext *C, struct wmGizmo *mpr,
         const struct wmEvent *event, bool enable);
 
-struct wmManipulator *wm_manipulatormap_modal_get(struct wmManipulatorMap *mmap);
-struct wmManipulator **wm_manipulatormap_selected_get(wmManipulatorMap *mmap, int *r_selected_len);
-struct ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap);
+struct wmGizmo *wm_gizmomap_modal_get(struct wmGizmoMap *mmap);
+struct wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *mmap, int *r_selected_len);
+struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *mmap);
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorMapType */
+/* wmGizmoMapType */
 
-void wm_manipulatormaptypes_free(void);
+void wm_gizmomaptypes_free(void);
 
 #endif  /* __WM_GIZMO_WMAPI_H__ */

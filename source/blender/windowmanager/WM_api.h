@@ -77,9 +77,9 @@ struct wmNDOFMotionData;
 #endif
 
 typedef struct wmJob wmJob;
-typedef struct wmManipulator wmManipulator;
-typedef struct wmManipulatorMap wmManipulatorMap;
-typedef struct wmManipulatorMapType wmManipulatorMapType;
+typedef struct wmGizmo wmGizmo;
+typedef struct wmGizmoMap wmGizmoMap;
+typedef struct wmGizmoMapType wmGizmoMapType;
 
 /* general API */
 void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);

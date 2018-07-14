@@ -121,11 +121,11 @@ static PointerRNA rna_Context_region_data_get(PointerRNA *ptr)
 	return PointerRNA_NULL;
 }
 
-static PointerRNA rna_Context_manipulator_group_get(PointerRNA *ptr)
+static PointerRNA rna_Context_gizmo_group_get(PointerRNA *ptr)
 {
 	bContext *C = (bContext *)ptr->data;
 	PointerRNA newptr;
-	RNA_pointer_create(NULL, &RNA_ManipulatorGroup, CTX_wm_manipulator_group(C), &newptr);
+	RNA_pointer_create(NULL, &RNA_GizmoGroup, CTX_wm_gizmo_group(C), &newptr);
 	return newptr;
 }
 
@@ -256,10 +256,10 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "RegionView3D");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_region_data_get", NULL, NULL, NULL);
 
-	prop = RNA_def_property(srna, "manipulator_group", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "gizmo_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "ManipulatorGroup");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_manipulator_group_get", NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "GizmoGroup");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_gizmo_group_get", NULL, NULL, NULL);
 
 	/* Data */
 	prop = RNA_def_property(srna, "blend_data", PROP_POINTER, PROP_NONE);

@@ -1201,33 +1201,33 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z Axis", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	/* Generic manipulator colors. */
-	prop = RNA_def_property(srna, "manipulator_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_hi");
+	/* Generic gizmo colors. */
+	prop = RNA_def_property(srna, "gizmo_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_hi");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Gizmo Highlight", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_primary");
+	prop = RNA_def_property(srna, "gizmo_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_primary");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Gizmo Primary", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_secondary", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_secondary");
+	prop = RNA_def_property(srna, "gizmo_secondary", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_secondary");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Gizmo Secondary", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_a", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_a");
+	prop = RNA_def_property(srna, "gizmo_a", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_a");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Gizmo A", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_b", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_b");
+	prop = RNA_def_property(srna, "gizmo_b", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_b");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Gizmo B", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
@@ -3705,7 +3705,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	/* mini axis */
 	static const EnumPropertyItem mini_axis_type_items[] = {
 		{0, "MINIMAL", 0, "Simple Axis", ""},
-		{USER_SHOW_MANIPULATOR_AXIS, "MANIPULATOR", 0, "Interactive Navigation", ""},
+		{USER_SHOW_GIZMO_AXIS, "GIZMO", 0, "Interactive Navigation", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3739,16 +3739,16 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotation Angle", "Rotation step for numerical pad keys (2 4 6 8)");
 
 	/* 3D transform widget */
-	prop = RNA_def_property(srna, "show_manipulator", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_DRAW);
-	RNA_def_property_ui_text(prop, "Manipulators", "Use transform manipulators by default");
+	prop = RNA_def_property(srna, "show_gizmo", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gizmo_flag", USER_GIZMO_DRAW);
+	RNA_def_property_ui_text(prop, "Gizmos", "Use transform gizmos by default");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_PIXEL);
-	RNA_def_property_int_sdna(prop, NULL, "manipulator_size");
+	prop = RNA_def_property(srna, "gizmo_size", PROP_INT, PROP_PIXEL);
+	RNA_def_property_int_sdna(prop, NULL, "gizmo_size");
 	RNA_def_property_range(prop, 10, 200);
 	RNA_def_property_int_default(prop, 75);
-	RNA_def_property_ui_text(prop, "Manipulator Size", "Diameter of the manipulator");
+	RNA_def_property_ui_text(prop, "Gizmo Size", "Diameter of the gizmo");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_PIXEL);

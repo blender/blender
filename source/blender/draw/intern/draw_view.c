@@ -739,30 +739,30 @@ void DRW_draw_cursor(void)
 	}
 }
 
-/* **************************** 3D Manipulator ******************************** */
+/* **************************** 3D Gizmo ******************************** */
 
-void DRW_draw_manipulator_3d(void)
+void DRW_draw_gizmo_3d(void)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ARegion *ar = draw_ctx->ar;
 
-	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
-	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
+	/* draw depth culled gizmos - gizmos need to be updated *after* view matrix was set up */
+	/* TODO depth culling gizmos is not yet supported, just drawing _3D here, should
 	 * later become _IN_SCENE (and draw _3D separate) */
-	WM_manipulatormap_draw(
-	        ar->manipulator_map, draw_ctx->evil_C,
-	        WM_MANIPULATORMAP_DRAWSTEP_3D);
+	WM_gizmomap_draw(
+	        ar->gizmo_map, draw_ctx->evil_C,
+	        WM_GIZMOMAP_DRAWSTEP_3D);
 
 }
 
-void DRW_draw_manipulator_2d(void)
+void DRW_draw_gizmo_2d(void)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ARegion *ar = draw_ctx->ar;
 
-	WM_manipulatormap_draw(
-	        ar->manipulator_map, draw_ctx->evil_C,
-	        WM_MANIPULATORMAP_DRAWSTEP_2D);
+	WM_gizmomap_draw(
+	        ar->gizmo_map, draw_ctx->evil_C,
+	        WM_GIZMOMAP_DRAWSTEP_2D);
 
 	glDepthMask(GL_TRUE);
 }

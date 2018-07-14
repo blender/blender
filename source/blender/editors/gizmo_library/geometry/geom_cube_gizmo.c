@@ -66,7 +66,7 @@ static const unsigned short indices[] = {
 	4, 0, 7,
 };
 
-ManipulatorGeomInfo wm_manipulator_geom_data_cube = {
+GizmoGeomInfo wm_gizmo_geom_data_cube = {
 	.nverts  = 8,
 	.ntris   = 12,
 	.verts   = verts,

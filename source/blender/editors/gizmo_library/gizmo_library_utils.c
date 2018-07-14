@@ -26,9 +26,9 @@
 /** \file gizmo_library_utils.c
  *  \ingroup wm
  *
- * \name Manipulator Library Utilities
+ * \name Gizmo Library Utilities
  *
- * \brief This file contains functions for common behaviors of manipulators.
+ * \brief This file contains functions for common behaviors of gizmos.
  */
 
 #include "BLI_math.h"
@@ -50,34 +50,34 @@
 #include "gizmo_library_intern.h"
 
 /* factor for precision tweaking */
-#define MANIPULATOR_PRECISION_FAC 0.05f
+#define GIZMO_PRECISION_FAC 0.05f
 
 
-BLI_INLINE float manipulator_offset_from_value_constr(
+BLI_INLINE float gizmo_offset_from_value_constr(
         const float range_fac, const float min, const float range, const float value,
         const bool inverted)
 {
 	return inverted ? (range_fac * (min + range - value) / range) : (range_fac * (value / range));
 }
 
-BLI_INLINE float manipulator_value_from_offset_constr(
+BLI_INLINE float gizmo_value_from_offset_constr(
         const float range_fac, const float min, const float range, const float value,
         const bool inverted)
 {
 	return inverted ? (min + range - (value * range / range_fac)) : (value * range / range_fac);
 }
 
-float manipulator_offset_from_value(
-        ManipulatorCommonData *data, const float value, const bool constrained, const bool inverted)
+float gizmo_offset_from_value(
+        GizmoCommonData *data, const float value, const bool constrained, const bool inverted)
 {
 	if (constrained)
-		return manipulator_offset_from_value_constr(data->range_fac, data->min, data->range, value, inverted);
+		return gizmo_offset_from_value_constr(data->range_fac, data->min, data->range, value, inverted);
 
 	return value;
 }
 
-float manipulator_value_from_offset(
-        ManipulatorCommonData *data, ManipulatorInteraction *inter, const float offset,
+float gizmo_value_from_offset(
+        GizmoCommonData *data, GizmoInteraction *inter, const float offset,
         const bool constrained, const bool inverted, const bool use_precision)
 {
 	const float max = data->min + data->range;
@@ -88,26 +88,26 @@ float manipulator_value_from_offset(
 	}
 	inter->prev_offset = offset;
 
-	float ofs_new = inter->init_offset + offset - inter->precision_offset * (1.0f - MANIPULATOR_PRECISION_FAC);
+	float ofs_new = inter->init_offset + offset - inter->precision_offset * (1.0f - GIZMO_PRECISION_FAC);
 	float value;
 
 	if (constrained) {
-		value = manipulator_value_from_offset_constr(data->range_fac, data->min, data->range, ofs_new, inverted);
+		value = gizmo_value_from_offset_constr(data->range_fac, data->min, data->range, ofs_new, inverted);
 	}
 	else {
 		value = ofs_new;
 	}
 
 	/* clamp to custom range */
-	if (data->flag & MANIPULATOR_CUSTOM_RANGE_SET) {
+	if (data->flag & GIZMO_CUSTOM_RANGE_SET) {
 		CLAMP(value, data->min, max);
 	}
 
 	return value;
 }
 
-void manipulator_property_data_update(
-        wmManipulator *mpr, ManipulatorCommonData *data, wmManipulatorProperty *mpr_prop,
+void gizmo_property_data_update(
+        wmGizmo *mpr, GizmoCommonData *data, wmGizmoProperty *mpr_prop,
         const bool constrained, const bool inverted)
 {
 	if (mpr_prop->custom_func.value_get_fn != NULL) {
@@ -121,12 +121,12 @@ void manipulator_property_data_update(
 		return;
 	}
 
-	float value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
+	float value = WM_gizmo_target_property_value_get(mpr, mpr_prop);
 
 	if (constrained) {
-		if ((data->flag & MANIPULATOR_CUSTOM_RANGE_SET) == 0) {
+		if ((data->flag & GIZMO_CUSTOM_RANGE_SET) == 0) {
 			float range[2];
-			if (WM_manipulator_target_property_range_get(mpr, mpr_prop, range)) {
+			if (WM_gizmo_target_property_range_get(mpr, mpr_prop, range)) {
 				data->range = range[1] - range[0];
 				data->min = range[0];
 			}
@@ -134,27 +134,27 @@ void manipulator_property_data_update(
 				BLI_assert(0);
 			}
 		}
-		data->offset = manipulator_offset_from_value_constr(data->range_fac, data->min, data->range, value, inverted);
+		data->offset = gizmo_offset_from_value_constr(data->range_fac, data->min, data->range, value, inverted);
 	}
 	else {
 		data->offset = value;
 	}
 }
 
-void manipulator_property_value_reset(
-        bContext *C, const wmManipulator *mpr, ManipulatorInteraction *inter,
-        wmManipulatorProperty *mpr_prop)
+void gizmo_property_value_reset(
+        bContext *C, const wmGizmo *mpr, GizmoInteraction *inter,
+        wmGizmoProperty *mpr_prop)
 {
-	WM_manipulator_target_property_value_set(C, mpr, mpr_prop, inter->init_value);
+	WM_gizmo_target_property_value_set(C, mpr, mpr_prop, inter->init_value);
 }
 
 /* -------------------------------------------------------------------- */
 
-void manipulator_color_get(
-        const wmManipulator *mpr, const bool highlight,
+void gizmo_color_get(
+        const wmGizmo *mpr, const bool highlight,
         float r_col[4])
 {
-	if (highlight && !(mpr->flag & WM_MANIPULATOR_DRAW_HOVER)) {
+	if (highlight && !(mpr->flag & WM_GIZMO_DRAW_HOVER)) {
 		copy_v4_v4(r_col, mpr->color_hi);
 	}
 	else {
@@ -165,26 +165,26 @@ void manipulator_color_get(
 /* -------------------------------------------------------------------- */
 
 /**
- * Takes mouse coordinates and returns them in relation to the manipulator.
- * Both 2D & 3D supported, use so we can use 2D manipulators in the 3D view.
+ * Takes mouse coordinates and returns them in relation to the gizmo.
+ * Both 2D & 3D supported, use so we can use 2D gizmos in the 3D view.
  */
-bool manipulator_window_project_2d(
-        bContext *C, const struct wmManipulator *mpr, const float mval[2], int axis, bool use_offset,
+bool gizmo_window_project_2d(
+        bContext *C, const struct wmGizmo *mpr, const float mval[2], int axis, bool use_offset,
         float r_co[2])
 {
 	float mat[4][4];
 	{
 		float mat_identity[4][4];
-		struct WM_ManipulatorMatrixParams params = {NULL};
+		struct WM_GizmoMatrixParams params = {NULL};
 		if (use_offset == false) {
 			unit_m4(mat_identity);
 			params.matrix_offset = mat_identity;
 		}
-		WM_manipulator_calc_matrix_final_params(mpr, &params, mat);
+		WM_gizmo_calc_matrix_final_params(mpr, &params, mat);
 	}
 
 	/* rotate mouse in relation to the center and relocate it */
-	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+	if (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
 		/* For 3d views, transform 2D mouse pos onto plane. */
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
@@ -220,26 +220,26 @@ bool manipulator_window_project_2d(
 	}
 }
 
-bool manipulator_window_project_3d(
-        bContext *C, const struct wmManipulator *mpr, const float mval[2], bool use_offset,
+bool gizmo_window_project_3d(
+        bContext *C, const struct wmGizmo *mpr, const float mval[2], bool use_offset,
         float r_co[3])
 {
 	float mat[4][4];
 	{
 		float mat_identity[4][4];
-		struct WM_ManipulatorMatrixParams params = {NULL};
+		struct WM_GizmoMatrixParams params = {NULL};
 		if (use_offset == false) {
 			unit_m4(mat_identity);
 			params.matrix_offset = mat_identity;
 		}
-		WM_manipulator_calc_matrix_final_params(mpr, &params, mat);
+		WM_gizmo_calc_matrix_final_params(mpr, &params, mat);
 	}
 
-	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+	if (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
 		/* Note: we might want a custom reference point passed in,
-		 * instead of the manipulator center. */
+		 * instead of the gizmo center. */
 		ED_view3d_win_to_3d(v3d, ar, mat[3], mval, r_co);
 		invert_m4(mat);
 		mul_m4_v3(mat, r_co);

@@ -73,7 +73,7 @@ struct bNodeSocket;
 struct wmDropBox;
 struct wmDrag;
 struct wmEvent;
-struct wmManipulator;
+struct wmGizmo;
 struct wmMsgBus;
 struct wmKeyMap;
 struct wmKeyMapItem;
@@ -1265,7 +1265,7 @@ void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
 
 /* ui_interface_region_tooltip.c */
 struct ARegion *UI_tooltip_create_from_button(struct bContext *C, struct ARegion *butregion, uiBut *but);
-struct ARegion *UI_tooltip_create_from_manipulator(struct bContext *C, struct wmManipulator *mpr);
+struct ARegion *UI_tooltip_create_from_gizmo(struct bContext *C, struct wmGizmo *mpr);
 void UI_tooltip_free(struct bContext *C, struct bScreen *sc, struct ARegion *ar);
 
 /* How long before a tool-tip shows. */

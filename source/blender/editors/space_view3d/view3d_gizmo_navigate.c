@@ -47,17 +47,17 @@
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
-/** \name View3D Navigation Manipulator Group
+/** \name View3D Navigation Gizmo Group
  * \{ */
 
 /* Offset from screen edge. */
-#define MANIPULATOR_OFFSET_FAC 1.5f
+#define GIZMO_OFFSET_FAC 1.5f
 /* Size of main icon. */
-#define MANIPULATOR_SIZE 64
+#define GIZMO_SIZE 64
 /* Factor for size of smaller button. */
-#define MANIPULATOR_MINI_FAC 0.35f
+#define GIZMO_MINI_FAC 0.35f
 /* How much mini buttons offset from the primary. */
-#define MANIPULATOR_MINI_OFFSET_FAC 0.42f
+#define GIZMO_MINI_OFFSET_FAC 0.42f
 
 
 enum {
@@ -122,40 +122,40 @@ static const uchar shape_zoom[] = {
 };
 
 
-struct NavigateManipulatorInfo {
+struct NavigateGizmoInfo {
 	const char *opname;
-	const char *manipulator;
+	const char *gizmo;
 	const unsigned char *shape;
 	uint shape_size;
 };
 
 #define SHAPE_VARS(shape_id) shape = shape_id, .shape_size = ARRAY_SIZE(shape_id)
 
-struct NavigateManipulatorInfo g_navigate_params[MPR_TOTAL] = {
+struct NavigateGizmoInfo g_navigate_params[MPR_TOTAL] = {
 	{
 		.opname = "VIEW3D_OT_move",
-		.manipulator = "MANIPULATOR_WT_button_2d",
+		.gizmo = "GIZMO_WT_button_2d",
 		.SHAPE_VARS(shape_pan),
 	}, {
 		.opname = "VIEW3D_OT_rotate",
-		.manipulator = "VIEW3D_WT_navigate_rotate",
+		.gizmo = "VIEW3D_WT_navigate_rotate",
 		.shape = NULL,
 		.shape_size = 0,
 	}, {
 		.opname = "VIEW3D_OT_zoom",
-		.manipulator = "MANIPULATOR_WT_button_2d",
+		.gizmo = "GIZMO_WT_button_2d",
 		.SHAPE_VARS(shape_zoom),
 	}, {
 		.opname = "VIEW3D_OT_view_persportho",
-		.manipulator = "MANIPULATOR_WT_button_2d",
+		.gizmo = "GIZMO_WT_button_2d",
 		.SHAPE_VARS(shape_persp),
 	}, {
 		.opname = "VIEW3D_OT_view_persportho",
-		.manipulator = "MANIPULATOR_WT_button_2d",
+		.gizmo = "GIZMO_WT_button_2d",
 		.SHAPE_VARS(shape_ortho),
 	}, {
 		.opname = "VIEW3D_OT_view_camera",
-		.manipulator = "MANIPULATOR_WT_button_2d",
+		.gizmo = "GIZMO_WT_button_2d",
 		.SHAPE_VARS(shape_camera),
 	},
 };
@@ -163,7 +163,7 @@ struct NavigateManipulatorInfo g_navigate_params[MPR_TOTAL] = {
 #undef SHAPE_VARS
 
 struct NavigateWidgetGroup {
-	wmManipulator *mpr_array[MPR_TOTAL];
+	wmGizmo *mpr_array[MPR_TOTAL];
 	/* Store the view state to check for changes. */
 	struct {
 		rcti rect_visible;
@@ -176,12 +176,12 @@ struct NavigateWidgetGroup {
 	int region_size[2];
 };
 
-static bool WIDGETGROUP_navigate_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	if (((U.uiflag & USER_SHOW_MANIPULATOR_AXIS) == 0) ||
+	if (((U.uiflag & USER_SHOW_GIZMO_AXIS) == 0) ||
 	    (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-	    (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_NAVIGATE)))
+	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
 	{
 		return false;
 	}
@@ -189,7 +189,7 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmManipulatorGroupType 
 
 }
 
-static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
 	struct NavigateWidgetGroup *navgroup = MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__);
 
@@ -200,37 +200,37 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 	wmOperatorType *ot_view_camera = WM_operatortype_find("VIEW3D_OT_view_camera", true);
 
 	for (int i = 0; i < MPR_TOTAL; i++) {
-		const struct NavigateManipulatorInfo *info = &g_navigate_params[i];
-		navgroup->mpr_array[i] = WM_manipulator_new(info->manipulator, mgroup, NULL);
-		wmManipulator *mpr = navgroup->mpr_array[i];
-		mpr->flag |= WM_MANIPULATOR_GRAB_CURSOR | WM_MANIPULATOR_DRAW_MODAL;
+		const struct NavigateGizmoInfo *info = &g_navigate_params[i];
+		navgroup->mpr_array[i] = WM_gizmo_new(info->gizmo, mgroup, NULL);
+		wmGizmo *mpr = navgroup->mpr_array[i];
+		mpr->flag |= WM_GIZMO_GRAB_CURSOR | WM_GIZMO_DRAW_MODAL;
 		mpr->color[3] = 0.2f;
 		mpr->color_hi[3] = 0.4f;
 
 		/* may be overwritten later */
-		mpr->scale_basis = (MANIPULATOR_SIZE * MANIPULATOR_MINI_FAC) / 2;
+		mpr->scale_basis = (GIZMO_SIZE * GIZMO_MINI_FAC) / 2;
 		if (info->shape != NULL) {
 			PropertyRNA *prop = RNA_struct_find_property(mpr->ptr, "shape");
 			RNA_property_string_set_bytes(
 			        mpr->ptr, prop,
 			        (const char *)info->shape, info->shape_size);
-			RNA_enum_set(mpr->ptr, "draw_options", ED_MANIPULATOR_BUTTON_SHOW_OUTLINE);
+			RNA_enum_set(mpr->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_OUTLINE);
 		}
 
 		wmOperatorType *ot = WM_operatortype_find(info->opname, true);
-		WM_manipulator_operator_set(mpr, 0, ot, NULL);
+		WM_gizmo_operator_set(mpr, 0, ot, NULL);
 	}
 
 	{
-		wmManipulator *mpr = navgroup->mpr_array[MPR_CAMERA];
-		WM_manipulator_operator_set(mpr, 0, ot_view_camera, NULL);
+		wmGizmo *mpr = navgroup->mpr_array[MPR_CAMERA];
+		WM_gizmo_operator_set(mpr, 0, ot_view_camera, NULL);
 	}
 
 	/* Click only buttons (not modal). */
 	{
 		int mpr_ids[] = {MPR_PERSP, MPR_ORTHO, MPR_CAMERA};
 		for (int i = 0; i < ARRAY_SIZE(mpr_ids); i++) {
-			wmManipulator *mpr = navgroup->mpr_array[mpr_ids[i]];
+			wmGizmo *mpr = navgroup->mpr_array[mpr_ids[i]];
 			RNA_boolean_set(mpr->ptr, "show_drag", false);
 		}
 	}
@@ -239,15 +239,15 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 	{
 		int mpr_ids[] = {MPR_MOVE, MPR_ROTATE, MPR_ZOOM};
 		for (int i = 0; i < ARRAY_SIZE(mpr_ids); i++) {
-			wmManipulator *mpr = navgroup->mpr_array[mpr_ids[i]];
-			wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, 0);
+			wmGizmo *mpr = navgroup->mpr_array[mpr_ids[i]];
+			wmGizmoOpElem *mpop = WM_gizmo_operator_get(mpr, 0);
 			RNA_boolean_set(&mpop->ptr, "use_mouse_init", false);
 		}
 	}
 
 	{
-		wmManipulator *mpr = navgroup->mpr_array[MPR_ROTATE];
-		mpr->scale_basis = MANIPULATOR_SIZE / 2;
+		wmGizmo *mpr = navgroup->mpr_array[MPR_ROTATE];
+		mpr->scale_basis = GIZMO_SIZE / 2;
 		char mapping[6] = {
 			RV3D_VIEW_LEFT,
 			RV3D_VIEW_RIGHT,
@@ -258,7 +258,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 		};
 
 		for (int part_index = 0; part_index < 6; part_index += 1) {
-			PointerRNA *ptr = WM_manipulator_operator_set(mpr, part_index + 1, ot_view_axis, NULL);
+			PointerRNA *ptr = WM_gizmo_operator_set(mpr, part_index + 1, ot_view_axis, NULL);
 			RNA_enum_set(ptr, "type", mapping[part_index]);
 		}
 
@@ -269,7 +269,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 	mgroup->customdata = navgroup;
 }
 
-static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
 {
 	struct NavigateWidgetGroup *navgroup = mgroup->customdata;
 	ARegion *ar = CTX_wm_region(C);
@@ -300,9 +300,9 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGr
 	        ((rv3d->viewlock & RV3D_LOCKED) == 0) &&
 	        (navgroup->state.rv3d.is_camera == false));
 	const bool show_fixed_offset = navgroup->state.rv3d.is_camera;
-	const float icon_size = MANIPULATOR_SIZE;
-	const float icon_offset = (icon_size * 0.52f) * MANIPULATOR_OFFSET_FAC * UI_DPI_FAC;
-	const float icon_offset_mini = icon_size * MANIPULATOR_MINI_OFFSET_FAC * UI_DPI_FAC;
+	const float icon_size = GIZMO_SIZE;
+	const float icon_offset = (icon_size * 0.52f) * GIZMO_OFFSET_FAC * UI_DPI_FAC;
+	const float icon_offset_mini = icon_size * GIZMO_MINI_OFFSET_FAC * UI_DPI_FAC;
 	const float co_rotate[2] = {
 		rect_visible.xmax - icon_offset,
 		rect_visible.ymax - icon_offset,
@@ -312,11 +312,11 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGr
 		rect_visible.ymax - icon_offset_mini * 0.75f,
 	};
 
-	wmManipulator *mpr;
+	wmGizmo *mpr;
 
 	for (uint i = 0; i < ARRAY_SIZE(navgroup->mpr_array); i++) {
 		mpr = navgroup->mpr_array[i];
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, true);
 	}
 
 	/* RV3D_LOCKED or Camera: only show supported buttons. */
@@ -324,7 +324,7 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGr
 		mpr = navgroup->mpr_array[MPR_ROTATE];
 		mpr->matrix_basis[3][0] = co_rotate[0];
 		mpr->matrix_basis[3][1] = co_rotate[1];
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
 	}
 
 	int icon_mini_slot = 0;
@@ -332,36 +332,36 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGr
 	mpr = navgroup->mpr_array[MPR_ZOOM];
 	mpr->matrix_basis[3][0] = co[0] - (icon_offset_mini * icon_mini_slot++);
 	mpr->matrix_basis[3][1] = co[1];
-	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+	WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
 
 	mpr = navgroup->mpr_array[MPR_MOVE];
 	mpr->matrix_basis[3][0] = co[0] - (icon_offset_mini * icon_mini_slot++);
 	mpr->matrix_basis[3][1] = co[1];
-	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+	WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
 
 	if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
 		mpr = navgroup->mpr_array[MPR_CAMERA];
 		mpr->matrix_basis[3][0] = co[0] - (icon_offset_mini * icon_mini_slot++);
 		mpr->matrix_basis[3][1] = co[1];
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
 
 		if (navgroup->state.rv3d.is_camera == false) {
 			mpr = navgroup->mpr_array[rv3d->is_persp ? MPR_PERSP : MPR_ORTHO];
 			mpr->matrix_basis[3][0] = co[0] - (icon_offset_mini * icon_mini_slot++);
 			mpr->matrix_basis[3][1] = co[1];
-			WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+			WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
 		}
 	}
 }
 
-void VIEW3D_WGT_navigate(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_navigate(wmGizmoGroupType *wgt)
 {
 	wgt->name = "View3D Navigate";
 	wgt->idname = "VIEW3D_WGT_navigate";
 
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	              WM_MANIPULATORGROUPTYPE_SCALE |
-	              WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL);
+	wgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT |
+	              WM_GIZMOGROUPTYPE_SCALE |
+	              WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL);
 
 	wgt->poll = WIDGETGROUP_navigate_poll;
 	wgt->setup = WIDGETGROUP_navigate_setup;

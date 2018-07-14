@@ -49,14 +49,14 @@
 
 /* -------------------------------------------------------------------- */
 
-/** \name Spot Lamp Manipulators
+/** \name Spot Lamp Gizmos
  * \{ */
 
-static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-	    (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_CONTEXT)))
+	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
 	{
 		return false;
 	}
@@ -70,49 +70,49 @@ static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmManipulatorGroupType
 	return false;
 }
 
-static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
-	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
+	wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
 
-	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, NULL);
-	wmManipulator *mpr = wwrapper->manipulator;
-	RNA_enum_set(mpr->ptr, "transform",  ED_MANIPULATOR_ARROW_XFORM_FLAG_INVERTED);
+	wwrapper->gizmo = WM_gizmo_new("GIZMO_WT_arrow_3d", mgroup, NULL);
+	wmGizmo *mpr = wwrapper->gizmo;
+	RNA_enum_set(mpr->ptr, "transform",  ED_GIZMO_ARROW_XFORM_FLAG_INVERTED);
 
 	mgroup->customdata = wwrapper;
 
-	ED_manipulator_arrow3d_set_range_fac(mpr, 4.0f);
+	ED_gizmo_arrow3d_set_range_fac(mpr, 4.0f);
 
-	UI_GetThemeColor3fv(TH_MANIPULATOR_SECONDARY, mpr->color);
+	UI_GetThemeColor3fv(TH_GIZMO_SECONDARY, mpr->color);
 }
 
-static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
-	wmManipulatorWrapper *wwrapper = mgroup->customdata;
-	wmManipulator *mpr = wwrapper->manipulator;
+	wmGizmoWrapper *wwrapper = mgroup->customdata;
+	wmGizmo *mpr = wwrapper->gizmo;
 	Object *ob = CTX_data_active_object(C);
 	Lamp *la = ob->data;
 	float dir[3];
 
 	negate_v3_v3(dir, ob->obmat[2]);
 
-	WM_manipulator_set_matrix_rotation_from_z_axis(mpr, dir);
-	WM_manipulator_set_matrix_location(mpr, ob->obmat[3]);
+	WM_gizmo_set_matrix_rotation_from_z_axis(mpr, dir);
+	WM_gizmo_set_matrix_location(mpr, ob->obmat[3]);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	PointerRNA lamp_ptr;
 	const char *propname = "spot_size";
 	RNA_pointer_create(&la->id, &RNA_Light, la, &lamp_ptr);
-	WM_manipulator_target_property_def_rna(mpr, "offset", &lamp_ptr, propname, -1);
+	WM_gizmo_target_property_def_rna(mpr, "offset", &lamp_ptr, propname, -1);
 }
 
-void VIEW3D_WGT_lamp_spot(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_lamp_spot(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Spot Light Widgets";
 	wgt->idname = "VIEW3D_WGT_lamp_spot";
 
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	              WM_MANIPULATORGROUPTYPE_3D |
-	              WM_MANIPULATORGROUPTYPE_DEPTH_3D);
+	wgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT |
+	              WM_GIZMOGROUPTYPE_3D |
+	              WM_GIZMOGROUPTYPE_DEPTH_3D);
 
 	wgt->poll = WIDGETGROUP_lamp_spot_poll;
 	wgt->setup = WIDGETGROUP_lamp_spot_setup;
@@ -123,12 +123,12 @@ void VIEW3D_WGT_lamp_spot(wmManipulatorGroupType *wgt)
 
 /* -------------------------------------------------------------------- */
 
-/** \name Area Lamp Manipulators
+/** \name Area Lamp Gizmos
  * \{ */
 
 /* scale callbacks */
-static void manipulator_area_lamp_prop_matrix_get(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void gizmo_area_lamp_prop_matrix_get(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         void *value_p)
 {
 	BLI_assert(mpr_prop->type->array_length == 16);
@@ -139,8 +139,8 @@ static void manipulator_area_lamp_prop_matrix_get(
 	matrix[1][1] = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE) ? la->area_sizey : la->area_size;
 }
 
-static void manipulator_area_lamp_prop_matrix_set(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void gizmo_area_lamp_prop_matrix_set(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         const void *value_p)
 {
 	const float (*matrix)[4] = value_p;
@@ -156,7 +156,7 @@ static void manipulator_area_lamp_prop_matrix_set(
 	}
 }
 
-static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
@@ -171,56 +171,56 @@ static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmManipulatorGroupType
 	return false;
 }
 
-static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
-	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
-	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
-	wmManipulator *mpr = wwrapper->manipulator;
+	wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
+	wwrapper->gizmo = WM_gizmo_new("GIZMO_WT_cage_2d", mgroup, NULL);
+	wmGizmo *mpr = wwrapper->gizmo;
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
 
 	mgroup->customdata = wwrapper;
 
-	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
+	WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_HOVER, true);
 
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
-	UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, mpr->color);
+	UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
 }
 
-static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
-	wmManipulatorWrapper *wwrapper = mgroup->customdata;
+	wmGizmoWrapper *wwrapper = mgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
 	Lamp *la = ob->data;
-	wmManipulator *mpr = wwrapper->manipulator;
+	wmGizmo *mpr = wwrapper->gizmo;
 
 	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 
-	int flag = ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE;
+	int flag = ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE;
 	if (ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_DISK)) {
-		flag |= ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM;
+		flag |= ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM;
 	}
 	RNA_enum_set(mpr->ptr, "transform", flag);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
-	WM_manipulator_target_property_def_func(
+	WM_gizmo_target_property_def_func(
 	        mpr, "matrix",
-	        &(const struct wmManipulatorPropertyFnParams) {
-	            .value_get_fn = manipulator_area_lamp_prop_matrix_get,
-	            .value_set_fn = manipulator_area_lamp_prop_matrix_set,
+	        &(const struct wmGizmoPropertyFnParams) {
+	            .value_get_fn = gizmo_area_lamp_prop_matrix_get,
+	            .value_set_fn = gizmo_area_lamp_prop_matrix_set,
 	            .range_get_fn = NULL,
 	            .user_data = la,
 	        });
 }
 
-void VIEW3D_WGT_lamp_area(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_lamp_area(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Area Light Widgets";
 	wgt->idname = "VIEW3D_WGT_lamp_area";
 
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	              WM_MANIPULATORGROUPTYPE_3D |
-	              WM_MANIPULATORGROUPTYPE_DEPTH_3D);
+	wgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT |
+	              WM_GIZMOGROUPTYPE_3D |
+	              WM_GIZMOGROUPTYPE_DEPTH_3D);
 
 	wgt->poll = WIDGETGROUP_lamp_area_poll;
 	wgt->setup = WIDGETGROUP_lamp_area_setup;
@@ -232,10 +232,10 @@ void VIEW3D_WGT_lamp_area(wmManipulatorGroupType *wgt)
 
 /* -------------------------------------------------------------------- */
 
-/** \name Lamp Target Manipulator
+/** \name Lamp Target Gizmo
  * \{ */
 
-static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
@@ -258,46 +258,46 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmManipulatorGroupTy
 	return false;
 }
 
-static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
-	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
-	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_grab_3d", mgroup, NULL);
-	wmManipulator *mpr = wwrapper->manipulator;
+	wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
+	wwrapper->gizmo = WM_gizmo_new("GIZMO_WT_grab_3d", mgroup, NULL);
+	wmGizmo *mpr = wwrapper->gizmo;
 
 	mgroup->customdata = wwrapper;
 
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
-	UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, mpr->color);
+	UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
 
 	mpr->scale_basis = 0.06f;
 
 	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_transform_axis_target", true);
 
 	RNA_enum_set(mpr->ptr, "draw_options",
-	             ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL | ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW);
+	             ED_GIZMO_GRAB_DRAW_FLAG_FILL | ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW);
 
-	WM_manipulator_operator_set(mpr, 0, ot, NULL);
+	WM_gizmo_operator_set(mpr, 0, ot, NULL);
 }
 
-static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
 {
-	wmManipulatorWrapper *wwrapper = mgroup->customdata;
+	wmGizmoWrapper *wwrapper = mgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
-	wmManipulator *mpr = wwrapper->manipulator;
+	wmGizmo *mpr = wwrapper->gizmo;
 
 	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 	unit_m4(mpr->matrix_offset);
 	mpr->matrix_offset[3][2] = -2.4f / mpr->scale_basis;
-	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
+	WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_OFFSET_SCALE, true);
 }
 
-void VIEW3D_WGT_lamp_target(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_lamp_target(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Target Light Widgets";
 	wgt->idname = "VIEW3D_WGT_lamp_target";
 
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	              WM_MANIPULATORGROUPTYPE_3D);
+	wgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT |
+	              WM_GIZMOGROUPTYPE_3D);
 
 	wgt->poll = WIDGETGROUP_lamp_target_poll;
 	wgt->setup = WIDGETGROUP_lamp_target_setup;

@@ -3248,9 +3248,9 @@ void wm_operatortypes_register(void)
 	WM_operatortype_append(WM_OT_previews_clear);
 	WM_operatortype_append(WM_OT_doc_view_manual_ui_context);
 
-	/* manipulators */
-	WM_operatortype_append(MANIPULATORGROUP_OT_manipulator_select);
-	WM_operatortype_append(MANIPULATORGROUP_OT_manipulator_tweak);
+	/* gizmos */
+	WM_operatortype_append(GIZMOGROUP_OT_gizmo_select);
+	WM_operatortype_append(GIZMOGROUP_OT_gizmo_tweak);
 }
 
 /* circleselect-like modal operators */
@@ -3580,7 +3580,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	RNA_float_set(kmi->ptr, "value", 1.0f / 1.5f);
 #endif /* WITH_INPUT_NDOF */
 
-	wm_manipulators_keymap(keyconf);
+	wm_gizmos_keymap(keyconf);
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);
 	gesture_zoom_border_modal_keymap(keyconf);

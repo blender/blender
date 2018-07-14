@@ -21,15 +21,15 @@
 /** \file grab3d_gizmo.c
  *  \ingroup wm
  *
- * \name Grab Manipulator
+ * \name Grab Gizmo
  *
- * 3D Manipulator, also works in 2D views.
+ * 3D Gizmo, also works in 2D views.
  *
- * \brief Simple manipulator to grab and translate.
+ * \brief Simple gizmo to grab and translate.
  *
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` currently not used.
- * - `matrix[2]` is the widget direction (for all manipulators).
+ * - `matrix[2]` is the widget direction (for all gizmos).
  *
  */
 
@@ -62,23 +62,23 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
-typedef struct GrabManipulator3D {
-	wmManipulator manipulator;
+typedef struct GrabGizmo3D {
+	wmGizmo gizmo;
 	/* Added to 'matrix_basis' when calculating the matrix. */
 	float prop_co[3];
-} GrabManipulator3D;
+} GrabGizmo3D;
 
-static void manipulator_grab_matrix_basis_get(const wmManipulator *mpr, float r_matrix[4][4])
+static void gizmo_grab_matrix_basis_get(const wmGizmo *mpr, float r_matrix[4][4])
 {
-	GrabManipulator3D *grab = (GrabManipulator3D *)mpr;
+	GrabGizmo3D *grab = (GrabGizmo3D *)mpr;
 
-	copy_m4_m4(r_matrix, grab->manipulator.matrix_basis);
+	copy_m4_m4(r_matrix, grab->gizmo.matrix_basis);
 	add_v3_v3(r_matrix[3], grab->prop_co);
 }
 
-static int manipulator_grab_modal(
-        bContext *C, wmManipulator *mpr, const wmEvent *event,
-        eWM_ManipulatorTweak tweak_flag);
+static int gizmo_grab_modal(
+        bContext *C, wmGizmo *mpr, const wmEvent *event,
+        eWM_GizmoFlagTweak tweak_flag);
 
 typedef struct GrabInteraction {
 	float init_mval[2];
@@ -94,14 +94,14 @@ typedef struct GrabInteraction {
 /* -------------------------------------------------------------------- */
 
 static void grab_geom_draw(
-        const wmManipulator *mpr, const float color[4], const bool select, const int draw_options)
+        const wmGizmo *mpr, const float color[4], const bool select, const int draw_options)
 {
-#ifdef USE_MANIPULATOR_CUSTOM_DIAL
+#ifdef USE_GIZMO_CUSTOM_DIAL
 	UNUSED_VARS(grab3d, col, axis_modal_mat);
-	wm_manipulator_geometryinfo_draw(&wm_manipulator_geom_data_grab3d, select);
+	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_grab3d, select);
 #else
 	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
-	const bool filled = (draw_options & ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL) != 0;
+	const bool filled = (draw_options & ED_GIZMO_GRAB_DRAW_FLAG_FILL) != 0;
 
 	GPU_line_width(mpr->line_width);
 
@@ -112,7 +112,7 @@ static void grab_geom_draw(
 
 	immUniformColor4fv(color);
 
-	if (draw_style == ED_MANIPULATOR_GRAB_STYLE_RING_2D) {
+	if (draw_style == ED_GIZMO_GRAB_STYLE_RING_2D) {
 		if (filled) {
 			imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
@@ -120,7 +120,7 @@ static void grab_geom_draw(
 			imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
 	}
-	else if (draw_style == ED_MANIPULATOR_GRAB_STYLE_CROSS_2D) {
+	else if (draw_style == ED_GIZMO_GRAB_STYLE_CROSS_2D) {
 		immBegin(GWN_PRIM_LINES, 4);
 		immVertex2f(pos,  1.0f,  1.0f);
 		immVertex2f(pos, -1.0f, -1.0f);
@@ -140,7 +140,7 @@ static void grab_geom_draw(
 }
 
 static void grab3d_get_translate(
-        const wmManipulator *mpr, const wmEvent *event, const ARegion *ar,
+        const wmGizmo *mpr, const wmEvent *event, const ARegion *ar,
         float co_delta[3])
 {
 	GrabInteraction *inter = mpr->interaction_data;
@@ -163,18 +163,18 @@ static void grab3d_get_translate(
 }
 
 static void grab3d_draw_intern(
-        const bContext *C, wmManipulator *mpr,
+        const bContext *C, wmGizmo *mpr,
         const bool select, const bool highlight)
 {
 	GrabInteraction *inter = mpr->interaction_data;
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
-	const bool align_view = (draw_options & ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW) != 0;
+	const bool align_view = (draw_options & ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW) != 0;
 	float color[4];
 	float matrix_final[4][4];
 	float matrix_align[4][4];
 
-	manipulator_color_get(mpr, highlight, color);
-	WM_manipulator_calc_matrix_final(mpr, matrix_final);
+	gizmo_color_get(mpr, highlight, color);
+	WM_gizmo_calc_matrix_final(mpr, matrix_final);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
@@ -209,16 +209,16 @@ static void grab3d_draw_intern(
 	}
 }
 
-static void manipulator_grab_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
+static void gizmo_grab_draw_select(const bContext *C, wmGizmo *mpr, int select_id)
 {
 	GPU_select_load_id(select_id);
 	grab3d_draw_intern(C, mpr, true, false);
 }
 
-static void manipulator_grab_draw(const bContext *C, wmManipulator *mpr)
+static void gizmo_grab_draw(const bContext *C, wmGizmo *mpr)
 {
-	const bool is_modal = mpr->state & WM_MANIPULATOR_STATE_MODAL;
-	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
+	const bool is_modal = mpr->state & WM_GIZMO_STATE_MODAL;
+	const bool is_highlight = (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 
 	(void)is_modal;
 
@@ -227,11 +227,11 @@ static void manipulator_grab_draw(const bContext *C, wmManipulator *mpr)
 	GPU_blend(false);
 }
 
-static int manipulator_grab_modal(
-        bContext *C, wmManipulator *mpr, const wmEvent *event,
-        eWM_ManipulatorTweak UNUSED(tweak_flag))
+static int gizmo_grab_modal(
+        bContext *C, wmGizmo *mpr, const wmEvent *event,
+        eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
-	GrabManipulator3D *grab = (GrabManipulator3D *)mpr;
+	GrabGizmo3D *grab = (GrabGizmo3D *)mpr;
 	GrabInteraction *inter = mpr->interaction_data;
 	ARegion *ar = CTX_wm_region(C);
 
@@ -241,9 +241,9 @@ static int manipulator_grab_modal(
 	}
 	else {
 		float mval_proj_init[2], mval_proj_curr[2];
-		if ((manipulator_window_project_2d(
+		if ((gizmo_window_project_2d(
 		         C, mpr, inter->init_mval, 2, false, mval_proj_init) == false) ||
-		    (manipulator_window_project_2d(
+		    (gizmo_window_project_2d(
 		         C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false))
 		{
 			return OPERATOR_RUNNING_MODAL;
@@ -254,9 +254,9 @@ static int manipulator_grab_modal(
 	add_v3_v3v3(grab->prop_co, inter->init_prop_co, prop_delta);
 
 	/* set the property for the operator and call its modal function */
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
-		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, grab->prop_co);
+	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_find(mpr, "offset");
+	if (WM_gizmo_target_property_is_valid(mpr_prop)) {
+		WM_gizmo_target_property_value_set_array(C, mpr, mpr_prop, grab->prop_co);
 	}
 	else {
 		zero_v3(grab->prop_co);
@@ -267,8 +267,8 @@ static int manipulator_grab_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int manipulator_grab_invoke(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
+static int gizmo_grab_invoke(
+        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *event)
 {
 	GrabInteraction *inter = MEM_callocN(sizeof(GrabInteraction), __func__);
 
@@ -278,13 +278,13 @@ static int manipulator_grab_invoke(
 #if 0
 	copy_v3_v3(inter->init_prop_co, grab->prop_co);
 #else
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
-		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, inter->init_prop_co);
+	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_find(mpr, "offset");
+	if (WM_gizmo_target_property_is_valid(mpr_prop)) {
+		WM_gizmo_target_property_value_get_array(mpr, mpr_prop, inter->init_prop_co);
 	}
 #endif
 
-	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
+	WM_gizmo_calc_matrix_final(mpr, inter->init_matrix_final);
 
 	mpr->interaction_data = inter;
 
@@ -292,12 +292,12 @@ static int manipulator_grab_invoke(
 }
 
 
-static int manipulator_grab_test_select(
-        bContext *C, wmManipulator *mpr, const wmEvent *event)
+static int gizmo_grab_test_select(
+        bContext *C, wmGizmo *mpr, const wmEvent *event)
 {
 	float point_local[2];
 
-	if (manipulator_window_project_2d(
+	if (gizmo_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
 	{
 		return -1;
@@ -311,65 +311,65 @@ static int manipulator_grab_test_select(
 	return -1;
 }
 
-static void manipulator_grab_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+static void gizmo_grab_property_update(wmGizmo *mpr, wmGizmoProperty *mpr_prop)
 {
-	GrabManipulator3D *grab = (GrabManipulator3D *)mpr;
-	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
-		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, grab->prop_co);
+	GrabGizmo3D *grab = (GrabGizmo3D *)mpr;
+	if (WM_gizmo_target_property_is_valid(mpr_prop)) {
+		WM_gizmo_target_property_value_get_array(mpr, mpr_prop, grab->prop_co);
 	}
 	else {
 		zero_v3(grab->prop_co);
 	}
 }
 
-static int manipulator_grab_cursor_get(wmManipulator *UNUSED(mpr))
+static int gizmo_grab_cursor_get(wmGizmo *UNUSED(mpr))
 {
 	return BC_NSEW_SCROLLCURSOR;
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Grab Manipulator API
+/** \name Grab Gizmo API
  *
  * \{ */
 
-static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
+static void GIZMO_WT_grab_3d(wmGizmoType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_grab_3d";
+	wt->idname = "GIZMO_WT_grab_3d";
 
 	/* api callbacks */
-	wt->draw = manipulator_grab_draw;
-	wt->draw_select = manipulator_grab_draw_select;
-	wt->test_select = manipulator_grab_test_select;
-	wt->matrix_basis_get = manipulator_grab_matrix_basis_get;
-	wt->invoke = manipulator_grab_invoke;
-	wt->property_update = manipulator_grab_property_update;
-	wt->modal = manipulator_grab_modal;
-	wt->cursor_get = manipulator_grab_cursor_get;
+	wt->draw = gizmo_grab_draw;
+	wt->draw_select = gizmo_grab_draw_select;
+	wt->test_select = gizmo_grab_test_select;
+	wt->matrix_basis_get = gizmo_grab_matrix_basis_get;
+	wt->invoke = gizmo_grab_invoke;
+	wt->property_update = gizmo_grab_property_update;
+	wt->modal = gizmo_grab_modal;
+	wt->cursor_get = gizmo_grab_cursor_get;
 
-	wt->struct_size = sizeof(GrabManipulator3D);
+	wt->struct_size = sizeof(GrabGizmo3D);
 
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_style[] = {
-		{ED_MANIPULATOR_GRAB_STYLE_RING_2D, "RING_2D", 0, "Ring", ""},
-		{ED_MANIPULATOR_GRAB_STYLE_CROSS_2D, "CROSS_2D", 0, "Ring", ""},
+		{ED_GIZMO_GRAB_STYLE_RING_2D, "RING_2D", 0, "Ring", ""},
+		{ED_GIZMO_GRAB_STYLE_CROSS_2D, "CROSS_2D", 0, "Ring", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
-		{ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},
+		{ED_GIZMO_GRAB_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
+		{ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_GRAB_STYLE_RING_2D, "Draw Style", "");
+	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_GRAB_STYLE_RING_2D, "Draw Style", "");
 	RNA_def_enum_flag(wt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
 
-	WM_manipulatortype_target_property_def(wt, "offset", PROP_FLOAT, 3);
+	WM_gizmotype_target_property_def(wt, "offset", PROP_FLOAT, 3);
 }
 
-void ED_manipulatortypes_grab_3d(void)
+void ED_gizmotypes_grab_3d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_grab_3d);
+	WM_gizmotype_append(GIZMO_WT_grab_3d);
 }
 
-/** \} */ // Grab Manipulator API
+/** \} */ // Grab Gizmo API

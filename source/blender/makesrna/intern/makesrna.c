@@ -3443,7 +3443,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_userdef.c", NULL, RNA_def_userdef},
 	{"rna_vfont.c", "rna_vfont_api.c", RNA_def_vfont},
 	{"rna_wm.c", "rna_wm_api.c", RNA_def_wm},
-	{"rna_wm_gizmo.c", "rna_wm_gizmo_api.c", RNA_def_wm_manipulator},
+	{"rna_wm_gizmo.c", "rna_wm_gizmo_api.c", RNA_def_wm_gizmo},
 	{"rna_workspace.c", "rna_workspace_api.c", RNA_def_workspace},
 	{"rna_world.c", NULL, RNA_def_world},
 	{"rna_movieclip.c", NULL, RNA_def_movieclip},

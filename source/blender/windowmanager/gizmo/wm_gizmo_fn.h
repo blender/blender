@@ -29,60 +29,60 @@
 
 #include "BLI_compiler_attrs.h"
 
-/* wmManipulatorGroup */
-typedef bool (*wmManipulatorGroupFnPoll)(
-        const struct bContext *, struct wmManipulatorGroupType *)
+/* wmGizmoGroup */
+typedef bool (*wmGizmoGroupFnPoll)(
+        const struct bContext *, struct wmGizmoGroupType *)
         ATTR_WARN_UNUSED_RESULT;
-typedef void (*wmManipulatorGroupFnInit)(
-        const struct bContext *, struct wmManipulatorGroup *);
-typedef void (*wmManipulatorGroupFnRefresh)(
-        const struct bContext *, struct wmManipulatorGroup *);
-typedef void (*wmManipulatorGroupFnDrawPrepare)(
-        const struct bContext *, struct wmManipulatorGroup *);
-typedef struct wmKeyMap *(*wmManipulatorGroupFnSetupKeymap)(
-        const struct wmManipulatorGroupType *, struct wmKeyConfig *)
+typedef void (*wmGizmoGroupFnInit)(
+        const struct bContext *, struct wmGizmoGroup *);
+typedef void (*wmGizmoGroupFnRefresh)(
+        const struct bContext *, struct wmGizmoGroup *);
+typedef void (*wmGizmoGroupFnDrawPrepare)(
+        const struct bContext *, struct wmGizmoGroup *);
+typedef struct wmKeyMap *(*wmGizmoGroupFnSetupKeymap)(
+        const struct wmGizmoGroupType *, struct wmKeyConfig *)
         ATTR_WARN_UNUSED_RESULT;
-typedef void (*wmManipulatorGroupFnMsgBusSubscribe)(
-        const struct bContext *, struct wmManipulatorGroup *, struct wmMsgBus *);
+typedef void (*wmGizmoGroupFnMsgBusSubscribe)(
+        const struct bContext *, struct wmGizmoGroup *, struct wmMsgBus *);
 
-/* wmManipulator */
-/* See: wmManipulatorType for docs on each type. */
+/* wmGizmo */
+/* See: wmGizmoType for docs on each type. */
 
-typedef void    (*wmManipulatorFnSetup)(struct wmManipulator *);
-typedef void    (*wmManipulatorFnDraw)(const struct bContext *, struct wmManipulator *);
-typedef void    (*wmManipulatorFnDrawSelect)(const struct bContext *, struct wmManipulator *, int);
-typedef int     (*wmManipulatorFnTestSelect)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
-typedef int     (*wmManipulatorFnModal)(struct bContext *, struct wmManipulator *, const struct wmEvent *, eWM_ManipulatorTweak);
-typedef void    (*wmManipulatorFnPropertyUpdate)(struct wmManipulator *, struct wmManipulatorProperty *);
-typedef void    (*wmManipulatorFnMatrixBasisGet)(const struct wmManipulator *, float[4][4]);
-typedef int     (*wmManipulatorFnInvoke)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
-typedef void    (*wmManipulatorFnExit)(struct bContext *, struct wmManipulator *, const bool);
-typedef int     (*wmManipulatorFnCursorGet)(struct wmManipulator *);
-typedef void    (*wmManipulatorFnSelectRefresh)(struct wmManipulator *);
-typedef void    (*wmManipulatorFnFree)(struct wmManipulator *);
+typedef void    (*wmGizmoFnSetup)(struct wmGizmo *);
+typedef void    (*wmGizmoFnDraw)(const struct bContext *, struct wmGizmo *);
+typedef void    (*wmGizmoFnDrawSelect)(const struct bContext *, struct wmGizmo *, int);
+typedef int     (*wmGizmoFnTestSelect)(struct bContext *, struct wmGizmo *, const struct wmEvent *);
+typedef int     (*wmGizmoFnModal)(struct bContext *, struct wmGizmo *, const struct wmEvent *, eWM_GizmoFlagTweak);
+typedef void    (*wmGizmoFnPropertyUpdate)(struct wmGizmo *, struct wmGizmoProperty *);
+typedef void    (*wmGizmoFnMatrixBasisGet)(const struct wmGizmo *, float[4][4]);
+typedef int     (*wmGizmoFnInvoke)(struct bContext *, struct wmGizmo *, const struct wmEvent *);
+typedef void    (*wmGizmoFnExit)(struct bContext *, struct wmGizmo *, const bool);
+typedef int     (*wmGizmoFnCursorGet)(struct wmGizmo *);
+typedef void    (*wmGizmoFnSelectRefresh)(struct wmGizmo *);
+typedef void    (*wmGizmoFnFree)(struct wmGizmo *);
 
-/* wmManipulatorProperty ('value' type defined by 'wmManipulatorProperty.data_type') */
-typedef void (*wmManipulatorPropertyFnGet)(
-        const struct wmManipulator *, struct wmManipulatorProperty *,
+/* wmGizmoProperty ('value' type defined by 'wmGizmoProperty.data_type') */
+typedef void (*wmGizmoPropertyFnGet)(
+        const struct wmGizmo *, struct wmGizmoProperty *,
         /* typically 'float *' */
         void *value);
-typedef void (*wmManipulatorPropertyFnSet)(
-        const struct wmManipulator *, struct wmManipulatorProperty *,
+typedef void (*wmGizmoPropertyFnSet)(
+        const struct wmGizmo *, struct wmGizmoProperty *,
         /* typically 'const float *' */
         const void *value);
-typedef void (*wmManipulatorPropertyFnRangeGet)(
-        const struct wmManipulator *, struct wmManipulatorProperty *,
+typedef void (*wmGizmoPropertyFnRangeGet)(
+        const struct wmGizmo *, struct wmGizmoProperty *,
         /* typically 'float[2]' */
         void *range);
-typedef void (*wmManipulatorPropertyFnFree)(
-        const struct wmManipulator *, struct wmManipulatorProperty *);
+typedef void (*wmGizmoPropertyFnFree)(
+        const struct wmGizmo *, struct wmGizmoProperty *);
 
-typedef struct wmManipulatorPropertyFnParams {
-	wmManipulatorPropertyFnGet value_get_fn;
-	wmManipulatorPropertyFnSet value_set_fn;
-	wmManipulatorPropertyFnRangeGet range_get_fn;
-	wmManipulatorPropertyFnFree free_fn;
+typedef struct wmGizmoPropertyFnParams {
+	wmGizmoPropertyFnGet value_get_fn;
+	wmGizmoPropertyFnSet value_set_fn;
+	wmGizmoPropertyFnRangeGet range_get_fn;
+	wmGizmoPropertyFnFree free_fn;
 	void *user_data;
-} wmManipulatorPropertyFnParams;
+} wmGizmoPropertyFnParams;
 
 #endif  /* __WM_GIZMO_FN_H__ */

@@ -21,7 +21,7 @@
 /** \file blender/editors/transform/transform_gizmo_3d.c
  *  \ingroup edtransform
  *
- * \name 3D Transform Manipulator
+ * \name 3D Transform Gizmo
  *
  * Used for 3D View
  */
@@ -106,7 +106,7 @@
 #define MAN_SCALE_Z		(1 << 10)
 #define MAN_SCALE_C		(MAN_SCALE_X | MAN_SCALE_Y | MAN_SCALE_Z)
 
-/* threshold for testing view aligned manipulator axis */
+/* threshold for testing view aligned gizmo axis */
 struct {
 	float min, max;
 } g_tw_axis_range[2] = {
@@ -159,17 +159,17 @@ enum {
 	MAN_AXES_SCALE,
 };
 
-typedef struct ManipulatorGroup {
+typedef struct GizmoGroup {
 	bool all_hidden;
 	int twtype;
 
-	/* Users may change the twtype, detect changes to re-setup manipulator options. */
+	/* Users may change the twtype, detect changes to re-setup gizmo options. */
 	int twtype_init;
 	int twtype_prev;
 	int use_twtype_refresh;
 
-	struct wmManipulator *manipulators[MAN_AXIS_LAST];
-} ManipulatorGroup;
+	struct wmGizmo *gizmos[MAN_AXIS_LAST];
+} GizmoGroup;
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities
@@ -178,22 +178,22 @@ typedef struct ManipulatorGroup {
 /* loop over axes */
 #define MAN_ITER_AXES_BEGIN(axis, axis_idx) \
 	{ \
-		wmManipulator *axis; \
+		wmGizmo *axis; \
 		int axis_idx; \
 		for (axis_idx = 0; axis_idx < MAN_AXIS_LAST; axis_idx++) { \
-			axis = manipulator_get_axis_from_index(man, axis_idx);
+			axis = gizmo_get_axis_from_index(man, axis_idx);
 
 #define MAN_ITER_AXES_END \
 		} \
 	} ((void)0)
 
-static wmManipulator *manipulator_get_axis_from_index(const ManipulatorGroup *man, const short axis_idx)
+static wmGizmo *gizmo_get_axis_from_index(const GizmoGroup *man, const short axis_idx)
 {
 	BLI_assert(IN_RANGE_INCL(axis_idx, (float)MAN_AXIS_TRANS_X, (float)MAN_AXIS_LAST));
-	return man->manipulators[axis_idx];
+	return man->gizmos[axis_idx];
 }
 
-static short manipulator_get_axis_type(const int axis_idx)
+static short gizmo_get_axis_type(const int axis_idx)
 {
 	if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
 		return MAN_AXES_TRANSLATE;
@@ -208,7 +208,7 @@ static short manipulator_get_axis_type(const int axis_idx)
 	return -1;
 }
 
-static uint manipulator_orientation_axis(const int axis_idx, bool *r_is_plane)
+static uint gizmo_orientation_axis(const int axis_idx, bool *r_is_plane)
 {
 	switch (axis_idx) {
 		case MAN_AXIS_TRANS_YZ:
@@ -247,13 +247,13 @@ static uint manipulator_orientation_axis(const int axis_idx, bool *r_is_plane)
 	return 3;
 }
 
-static bool manipulator_is_axis_visible(
+static bool gizmo_is_axis_visible(
         const RegionView3D *rv3d, const int twtype,
         const float idot[3], const int axis_type, const int axis_idx)
 {
 	if ((axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) == 0) {
 		bool is_plane = false;
-		const uint aidx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
+		const uint aidx_norm = gizmo_orientation_axis(axis_idx, &is_plane);
 		/* don't draw axis perpendicular to the view */
 		if (aidx_norm < 3) {
 			float idot_axis = idot[aidx_norm];
@@ -330,7 +330,7 @@ static bool manipulator_is_axis_visible(
 	return false;
 }
 
-static void manipulator_get_axis_color(
+static void gizmo_get_axis_color(
         const int axis_idx, const float idot[3],
         float r_col[4], float r_col_hi[4])
 {
@@ -346,7 +346,7 @@ static void manipulator_get_axis_color(
 	}
 	else {
 		bool is_plane = false;
-		const int axis_idx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
+		const int axis_idx_norm = gizmo_orientation_axis(axis_idx, &is_plane);
 		/* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
 		if (axis_idx_norm < 3) {
 			const float idot_min = g_tw_axis_range[is_plane].min;
@@ -401,7 +401,7 @@ static void manipulator_get_axis_color(
 	r_col_hi[3] = alpha_hi * alpha_fac;
 }
 
-static void manipulator_get_axis_constraint(const int axis_idx, bool r_axis[3])
+static void gizmo_get_axis_constraint(const int axis_idx, bool r_axis[3])
 {
 	ARRAY_SET_ITEMS(r_axis, 0, 0, 0);
 
@@ -596,7 +596,7 @@ bool gimbal_axis(Object *ob, float gmat[3][3])
 
 /* centroid, boundbox, of selection */
 /* returns total items selected */
-int ED_transform_calc_manipulator_stats(
+int ED_transform_calc_gizmo_stats(
         const bContext *C,
         const struct TransformCalcParams *params,
         struct TransformBounds *tbounds)
@@ -952,7 +952,7 @@ int ED_transform_calc_manipulator_stats(
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan;
-		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
+		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the gizmo mode, could be mixed
 		bool ok = false;
 
 		if ((pivot_point == V3D_AROUND_ACTIVE) && (pchan = BKE_pose_channel_active(ob))) {
@@ -1061,7 +1061,7 @@ int ED_transform_calc_manipulator_stats(
 	return totsel;
 }
 
-static void manipulator_get_idot(RegionView3D *rv3d, float r_idot[3])
+static void gizmo_get_idot(RegionView3D *rv3d, float r_idot[3])
 {
 	float view_vec[3], axis_vec[3];
 	ED_view3d_global_to_vector(rv3d, rv3d->twmat[3], view_vec);
@@ -1071,7 +1071,7 @@ static void manipulator_get_idot(RegionView3D *rv3d, float r_idot[3])
 	}
 }
 
-static void manipulator_prepare_mat(
+static void gizmo_prepare_mat(
         const bContext *C, View3D *v3d, RegionView3D *rv3d, const struct TransformBounds *tbounds)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -1108,9 +1108,9 @@ static void manipulator_prepare_mat(
 
 /**
  * Sets up \a r_start and \a r_len to define arrow line range.
- * Needed to adjust line drawing for combined manipulator axis types.
+ * Needed to adjust line drawing for combined gizmo axis types.
  */
-static void manipulator_line_range(const int twtype, const short axis_type, float *r_start, float *r_len)
+static void gizmo_line_range(const int twtype, const short axis_type, float *r_start, float *r_len)
 {
 	const float ofs = 0.2f;
 
@@ -1136,15 +1136,15 @@ static void manipulator_line_range(const int twtype, const short axis_type, floa
 	*r_len -= *r_start;
 }
 
-static void manipulator_xform_message_subscribe(
-        wmManipulatorGroup *mgroup, struct wmMsgBus *mbus,
+static void gizmo_xform_message_subscribe(
+        wmGizmoGroup *mgroup, struct wmMsgBus *mbus,
         Scene *scene, bScreen *UNUSED(screen), ScrArea *UNUSED(sa), ARegion *ar, const void *type_fn)
 {
 	/* Subscribe to view properties */
 	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
 		.owner = ar,
 		.user_data = mgroup->parent_mmap,
-		.notify = WM_manipulator_do_msg_notify_tag_refresh,
+		.notify = WM_gizmo_do_msg_notify_tag_refresh,
 	};
 
 	PointerRNA scene_ptr;
@@ -1167,12 +1167,12 @@ static void manipulator_xform_message_subscribe(
 	PointerRNA toolsettings_ptr;
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
 
-	if (type_fn == TRANSFORM_WGT_manipulator) {
+	if (type_fn == TRANSFORM_WGT_gizmo) {
 		extern PropertyRNA rna_ToolSettings_transform_pivot_point;
-		extern PropertyRNA rna_ToolSettings_use_manipulator_mode;
+		extern PropertyRNA rna_ToolSettings_use_gizmo_mode;
 		const PropertyRNA *props[] = {
 			&rna_ToolSettings_transform_pivot_point,
-			&rna_ToolSettings_use_manipulator_mode,
+			&rna_ToolSettings_use_gizmo_mode,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			WM_msg_subscribe_rna(mbus, &toolsettings_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
@@ -1192,73 +1192,73 @@ static void manipulator_xform_message_subscribe(
 
 
 /* -------------------------------------------------------------------- */
-/** \name Transform Manipulator
+/** \name Transform Gizmo
  * \{ */
 
-static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
+static GizmoGroup *gizmogroup_init(wmGizmoGroup *mgroup)
 {
-	ManipulatorGroup *man;
+	GizmoGroup *man;
 
-	man = MEM_callocN(sizeof(ManipulatorGroup), "manipulator_data");
+	man = MEM_callocN(sizeof(GizmoGroup), "gizmo_data");
 
-	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
-	const wmManipulatorType *wt_dial = WM_manipulatortype_find("MANIPULATOR_WT_dial_3d", true);
-	const wmManipulatorType *wt_prim = WM_manipulatortype_find("MANIPULATOR_WT_primitive_3d", true);
+	const wmGizmoType *wt_arrow = WM_gizmotype_find("GIZMO_WT_arrow_3d", true);
+	const wmGizmoType *wt_dial = WM_gizmotype_find("GIZMO_WT_dial_3d", true);
+	const wmGizmoType *wt_prim = WM_gizmotype_find("GIZMO_WT_primitive_3d", true);
 
-#define MANIPULATOR_NEW_ARROW(v, draw_style) { \
-	man->manipulators[v] = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL); \
-	RNA_enum_set(man->manipulators[v]->ptr, "draw_style", draw_style); \
+#define GIZMO_NEW_ARROW(v, draw_style) { \
+	man->gizmos[v] = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL); \
+	RNA_enum_set(man->gizmos[v]->ptr, "draw_style", draw_style); \
 } ((void)0)
-#define MANIPULATOR_NEW_DIAL(v, draw_options) { \
-	man->manipulators[v] = WM_manipulator_new_ptr(wt_dial, mgroup, NULL); \
-	RNA_enum_set(man->manipulators[v]->ptr, "draw_options", draw_options); \
+#define GIZMO_NEW_DIAL(v, draw_options) { \
+	man->gizmos[v] = WM_gizmo_new_ptr(wt_dial, mgroup, NULL); \
+	RNA_enum_set(man->gizmos[v]->ptr, "draw_options", draw_options); \
 } ((void)0)
-#define MANIPULATOR_NEW_PRIM(v, draw_style) { \
-	man->manipulators[v] = WM_manipulator_new_ptr(wt_prim, mgroup, NULL); \
-	RNA_enum_set(man->manipulators[v]->ptr, "draw_style", draw_style); \
+#define GIZMO_NEW_PRIM(v, draw_style) { \
+	man->gizmos[v] = WM_gizmo_new_ptr(wt_prim, mgroup, NULL); \
+	RNA_enum_set(man->gizmos[v]->ptr, "draw_style", draw_style); \
 } ((void)0)
 
 	/* add/init widgets - order matters! */
-	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_T, ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL);
+	GIZMO_NEW_DIAL(MAN_AXIS_ROT_T, ED_GIZMO_DIAL_DRAW_FLAG_FILL);
 
-	MANIPULATOR_NEW_DIAL(MAN_AXIS_SCALE_C, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
+	GIZMO_NEW_DIAL(MAN_AXIS_SCALE_C, ED_GIZMO_DIAL_DRAW_FLAG_NOP);
 
-	MANIPULATOR_NEW_ARROW(MAN_AXIS_SCALE_X, ED_MANIPULATOR_ARROW_STYLE_BOX);
-	MANIPULATOR_NEW_ARROW(MAN_AXIS_SCALE_Y, ED_MANIPULATOR_ARROW_STYLE_BOX);
-	MANIPULATOR_NEW_ARROW(MAN_AXIS_SCALE_Z, ED_MANIPULATOR_ARROW_STYLE_BOX);
+	GIZMO_NEW_ARROW(MAN_AXIS_SCALE_X, ED_GIZMO_ARROW_STYLE_BOX);
+	GIZMO_NEW_ARROW(MAN_AXIS_SCALE_Y, ED_GIZMO_ARROW_STYLE_BOX);
+	GIZMO_NEW_ARROW(MAN_AXIS_SCALE_Z, ED_GIZMO_ARROW_STYLE_BOX);
 
-	MANIPULATOR_NEW_PRIM(MAN_AXIS_SCALE_XY, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(MAN_AXIS_SCALE_YZ, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(MAN_AXIS_SCALE_ZX, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	GIZMO_NEW_PRIM(MAN_AXIS_SCALE_XY, ED_GIZMO_PRIMITIVE_STYLE_PLANE);
+	GIZMO_NEW_PRIM(MAN_AXIS_SCALE_YZ, ED_GIZMO_PRIMITIVE_STYLE_PLANE);
+	GIZMO_NEW_PRIM(MAN_AXIS_SCALE_ZX, ED_GIZMO_PRIMITIVE_STYLE_PLANE);
 
-	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_X, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
-	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_Y, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
-	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_Z, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
+	GIZMO_NEW_DIAL(MAN_AXIS_ROT_X, ED_GIZMO_DIAL_DRAW_FLAG_CLIP);
+	GIZMO_NEW_DIAL(MAN_AXIS_ROT_Y, ED_GIZMO_DIAL_DRAW_FLAG_CLIP);
+	GIZMO_NEW_DIAL(MAN_AXIS_ROT_Z, ED_GIZMO_DIAL_DRAW_FLAG_CLIP);
 
 	/* init screen aligned widget last here, looks better, behaves better */
-	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_C, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
+	GIZMO_NEW_DIAL(MAN_AXIS_ROT_C, ED_GIZMO_DIAL_DRAW_FLAG_NOP);
 
-	MANIPULATOR_NEW_DIAL(MAN_AXIS_TRANS_C, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
+	GIZMO_NEW_DIAL(MAN_AXIS_TRANS_C, ED_GIZMO_DIAL_DRAW_FLAG_NOP);
 
-	MANIPULATOR_NEW_ARROW(MAN_AXIS_TRANS_X, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
-	MANIPULATOR_NEW_ARROW(MAN_AXIS_TRANS_Y, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
-	MANIPULATOR_NEW_ARROW(MAN_AXIS_TRANS_Z, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	GIZMO_NEW_ARROW(MAN_AXIS_TRANS_X, ED_GIZMO_ARROW_STYLE_NORMAL);
+	GIZMO_NEW_ARROW(MAN_AXIS_TRANS_Y, ED_GIZMO_ARROW_STYLE_NORMAL);
+	GIZMO_NEW_ARROW(MAN_AXIS_TRANS_Z, ED_GIZMO_ARROW_STYLE_NORMAL);
 
-	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_XY, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_YZ, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_ZX, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	GIZMO_NEW_PRIM(MAN_AXIS_TRANS_XY, ED_GIZMO_PRIMITIVE_STYLE_PLANE);
+	GIZMO_NEW_PRIM(MAN_AXIS_TRANS_YZ, ED_GIZMO_PRIMITIVE_STYLE_PLANE);
+	GIZMO_NEW_PRIM(MAN_AXIS_TRANS_ZX, ED_GIZMO_PRIMITIVE_STYLE_PLANE);
 
-	man->manipulators[MAN_AXIS_ROT_T]->flag |= WM_MANIPULATOR_SELECT_BACKGROUND;
+	man->gizmos[MAN_AXIS_ROT_T]->flag |= WM_GIZMO_SELECT_BACKGROUND;
 
 	return man;
 }
 
 /**
- * Custom handler for manipulator widgets
+ * Custom handler for gizmo widgets
  */
-static int manipulator_modal(
-        bContext *C, wmManipulator *widget, const wmEvent *event,
-        eWM_ManipulatorTweak UNUSED(tweak_flag))
+static int gizmo_modal(
+        bContext *C, wmGizmo *widget, const wmEvent *event,
+        eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
 	/* Avoid unnecessary updates, partially address: T55458. */
 	if (ELEM(event->type, TIMER, INBETWEEN_MOUSEMOVE)) {
@@ -1272,13 +1272,13 @@ static int manipulator_modal(
 	struct TransformBounds tbounds;
 
 
-	if (ED_transform_calc_manipulator_stats(
+	if (ED_transform_calc_gizmo_stats(
 	            C, &(struct TransformCalcParams){
 	                .use_only_center = true,
 	            }, &tbounds))
 	{
-		manipulator_prepare_mat(C, v3d, rv3d, &tbounds);
-		WM_manipulator_set_matrix_location(widget, rv3d->twmat[3]);
+		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
+		WM_gizmo_set_matrix_location(widget, rv3d->twmat[3]);
 	}
 
 	ED_region_tag_redraw(ar);
@@ -1286,22 +1286,22 @@ static int manipulator_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgroup)
+static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *mgroup)
 {
 	struct {
 		wmOperatorType *translate, *rotate, *trackball, *resize;
 	} ot_store = {NULL};
-	ManipulatorGroup *man = mgroup->customdata;
+	GizmoGroup *man = mgroup->customdata;
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = manipulator_get_axis_type(axis_idx);
+		const short axis_type = gizmo_get_axis_type(axis_idx);
 		bool constraint_axis[3] = {1, 0, 0};
 		PointerRNA *ptr;
 
-		manipulator_get_axis_constraint(axis_idx, constraint_axis);
+		gizmo_get_axis_constraint(axis_idx, constraint_axis);
 
 		/* custom handler! */
-		WM_manipulator_set_fn_custom_modal(axis, manipulator_modal);
+		WM_gizmo_set_fn_custom_modal(axis, gizmo_modal);
 
 		switch (axis_idx) {
 			case MAN_AXIS_TRANS_X:
@@ -1313,19 +1313,19 @@ static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgr
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
 					int draw_options = 0;
 					if ((man->twtype & (SCE_MANIP_ROTATE | SCE_MANIP_SCALE)) == 0) {
-						draw_options |= ED_MANIPULATOR_ARROW_DRAW_FLAG_STEM;
+						draw_options |= ED_GIZMO_ARROW_DRAW_FLAG_STEM;
 					}
 					RNA_enum_set(axis->ptr, "draw_options", draw_options);
 				}
 
-				WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
+				WM_gizmo_set_line_width(axis, GIZMO_AXIS_LINE_WIDTH);
 				break;
 			case MAN_AXIS_ROT_X:
 			case MAN_AXIS_ROT_Y:
 			case MAN_AXIS_ROT_Z:
 				/* increased line width for better display */
-				WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH + 1.0f);
-				WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_VALUE, true);
+				WM_gizmo_set_line_width(axis, GIZMO_AXIS_LINE_WIDTH + 1.0f);
+				WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_VALUE, true);
 				break;
 			case MAN_AXIS_TRANS_XY:
 			case MAN_AXIS_TRANS_YZ:
@@ -1336,25 +1336,25 @@ static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgr
 			{
 				const float ofs_ax = 7.0f;
 				const float ofs[3] = {ofs_ax, ofs_ax, 0.0f};
-				WM_manipulator_set_scale(axis, 0.07f);
-				WM_manipulator_set_matrix_offset_location(axis, ofs);
-				WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
+				WM_gizmo_set_scale(axis, 0.07f);
+				WM_gizmo_set_matrix_offset_location(axis, ofs);
+				WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_OFFSET_SCALE, true);
 				break;
 			}
 			case MAN_AXIS_TRANS_C:
 			case MAN_AXIS_ROT_C:
 			case MAN_AXIS_SCALE_C:
 			case MAN_AXIS_ROT_T:
-				WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
+				WM_gizmo_set_line_width(axis, GIZMO_AXIS_LINE_WIDTH);
 				if (axis_idx == MAN_AXIS_ROT_T) {
-					WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_HOVER, true);
+					WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_HOVER, true);
 				}
 				else if (axis_idx == MAN_AXIS_ROT_C) {
-					WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_VALUE, true);
-					WM_manipulator_set_scale(axis, 1.2f);
+					WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_VALUE, true);
+					WM_gizmo_set_scale(axis, 1.2f);
 				}
 				else {
-					WM_manipulator_set_scale(axis, 0.2f);
+					WM_gizmo_set_scale(axis, 0.2f);
 				}
 				break;
 		}
@@ -1364,7 +1364,7 @@ static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgr
 				if (ot_store.translate == NULL) {
 					ot_store.translate = WM_operatortype_find("TRANSFORM_OT_translate", true);
 				}
-				ptr = WM_manipulator_operator_set(axis, 0, ot_store.translate, NULL);
+				ptr = WM_gizmo_operator_set(axis, 0, ot_store.translate, NULL);
 				break;
 			case MAN_AXES_ROTATE:
 			{
@@ -1381,7 +1381,7 @@ static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgr
 					}
 					ot_rotate = ot_store.rotate;
 				}
-				ptr = WM_manipulator_operator_set(axis, 0, ot_rotate, NULL);
+				ptr = WM_gizmo_operator_set(axis, 0, ot_rotate, NULL);
 				break;
 			}
 			case MAN_AXES_SCALE:
@@ -1389,7 +1389,7 @@ static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgr
 				if (ot_store.resize == NULL) {
 					ot_store.resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
 				}
-				ptr = WM_manipulator_operator_set(axis, 0, ot_store.resize, NULL);
+				ptr = WM_gizmo_operator_set(axis, 0, ot_store.resize, NULL);
 				break;
 			}
 		}
@@ -1406,9 +1406,9 @@ static void manipulatorgroup_init_properties_from_twtype(wmManipulatorGroup *mgr
 	MAN_ITER_AXES_END;
 }
 
-static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *mgroup)
 {
-	ManipulatorGroup *man = manipulatorgroup_init(mgroup);
+	GizmoGroup *man = gizmogroup_init(mgroup);
 
 	mgroup->customdata = man;
 
@@ -1418,7 +1418,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 		const bToolRef *tref = sa->runtime.tool;
 
 		if (tref == NULL || STREQ(tref->idname, "Transform")) {
-			/* Setup all manipulators, they can be toggled via 'ToolSettings.manipulator_flag' */
+			/* Setup all gizmos, they can be toggled via 'ToolSettings.gizmo_flag' */
 			man->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 			man->use_twtype_refresh = true;
 		}
@@ -1436,12 +1436,12 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 	}
 
 	/* *** set properties for axes *** */
-	manipulatorgroup_init_properties_from_twtype(mgroup);
+	gizmogroup_init_properties_from_twtype(mgroup);
 }
 
-static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
-	ManipulatorGroup *man = mgroup->customdata;
+	GizmoGroup *man = mgroup->customdata;
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1450,16 +1450,16 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 
 	if (man->use_twtype_refresh) {
 		Scene *scene = CTX_data_scene(C);
-		man->twtype = scene->toolsettings->manipulator_flag & man->twtype_init;
+		man->twtype = scene->toolsettings->gizmo_flag & man->twtype_init;
 		if (man->twtype != man->twtype_prev) {
 			man->twtype_prev = man->twtype;
-			manipulatorgroup_init_properties_from_twtype(mgroup);
+			gizmogroup_init_properties_from_twtype(mgroup);
 		}
 	}
 
 	/* skip, we don't draw anything anyway */
 	if ((man->all_hidden =
-	     (ED_transform_calc_manipulator_stats(
+	     (ED_transform_calc_gizmo_stats(
 	             C, &(struct TransformCalcParams){
 	                 .use_only_center = true,
 	             }, &tbounds) == 0)))
@@ -1467,16 +1467,16 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 		return;
 	}
 
-	manipulator_prepare_mat(C, v3d, rv3d, &tbounds);
+	gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
 
 	/* *** set properties for axes *** */
 
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = manipulator_get_axis_type(axis_idx);
-		const int aidx_norm = manipulator_orientation_axis(axis_idx, NULL);
+		const short axis_type = gizmo_get_axis_type(axis_idx);
+		const int aidx_norm = gizmo_orientation_axis(axis_idx, NULL);
 
-		WM_manipulator_set_matrix_location(axis, rv3d->twmat[3]);
+		WM_gizmo_set_matrix_location(axis, rv3d->twmat[3]);
 
 		switch (axis_idx) {
 			case MAN_AXIS_TRANS_X:
@@ -1489,9 +1489,9 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 				float start_co[3] = {0.0f, 0.0f, 0.0f};
 				float len;
 
-				manipulator_line_range(man->twtype, axis_type, &start_co[2], &len);
+				gizmo_line_range(man->twtype, axis_type, &start_co[2], &len);
 
-				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
+				WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
 				RNA_float_set(axis->ptr, "length", len);
 
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
@@ -1500,14 +1500,14 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 						start_co[2] += 0.215f;
 					}
 				}
-				WM_manipulator_set_matrix_offset_location(axis, start_co);
-				WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
+				WM_gizmo_set_matrix_offset_location(axis, start_co);
+				WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_OFFSET_SCALE, true);
 				break;
 			}
 			case MAN_AXIS_ROT_X:
 			case MAN_AXIS_ROT_Y:
 			case MAN_AXIS_ROT_Z:
-				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
+				WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
 				break;
 			case MAN_AXIS_TRANS_XY:
 			case MAN_AXIS_TRANS_YZ:
@@ -1518,7 +1518,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 			{
 				const float *y_axis = rv3d->twmat[aidx_norm - 1 < 0 ? 2 : aidx_norm - 1];
 				const float *z_axis = rv3d->twmat[aidx_norm];
-				WM_manipulator_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
+				WM_gizmo_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
 				break;
 			}
 		}
@@ -1526,134 +1526,134 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 	MAN_ITER_AXES_END;
 }
 
-static void WIDGETGROUP_manipulator_message_subscribe(
-        const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
+static void WIDGETGROUP_gizmo_message_subscribe(
+        const bContext *C, wmGizmoGroup *mgroup, struct wmMsgBus *mbus)
 {
 	Scene *scene = CTX_data_scene(C);
 	bScreen *screen = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	manipulator_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, TRANSFORM_WGT_manipulator);
+	gizmo_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, TRANSFORM_WGT_gizmo);
 }
 
-static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
 {
-	ManipulatorGroup *man = mgroup->customdata;
+	GizmoGroup *man = mgroup->customdata;
 	// ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	// View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	float idot[3];
 
-	/* when looking through a selected camera, the manipulator can be at the
+	/* when looking through a selected camera, the gizmo can be at the
 	 * exact same position as the view, skip so we don't break selection */
 	if (man->all_hidden || fabsf(ED_view3d_pixel_size(rv3d, rv3d->twmat[3])) < 1e-6f) {
 		MAN_ITER_AXES_BEGIN(axis, axis_idx)
 		{
-			WM_manipulator_set_flag(axis, WM_MANIPULATOR_HIDDEN, true);
+			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
 		}
 		MAN_ITER_AXES_END;
 		return;
 	}
-	manipulator_get_idot(rv3d, idot);
+	gizmo_get_idot(rv3d, idot);
 
 	/* *** set properties for axes *** */
 
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = manipulator_get_axis_type(axis_idx);
+		const short axis_type = gizmo_get_axis_type(axis_idx);
 		/* XXX maybe unset _HIDDEN flag on redraw? */
-		if (manipulator_is_axis_visible(rv3d, man->twtype, idot, axis_type, axis_idx)) {
-			WM_manipulator_set_flag(axis, WM_MANIPULATOR_HIDDEN, false);
+		if (gizmo_is_axis_visible(rv3d, man->twtype, idot, axis_type, axis_idx)) {
+			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
 		}
 		else {
-			WM_manipulator_set_flag(axis, WM_MANIPULATOR_HIDDEN, true);
+			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
 			continue;
 		}
 
 		float color[4], color_hi[4];
-		manipulator_get_axis_color(axis_idx, idot, color, color_hi);
-		WM_manipulator_set_color(axis, color);
-		WM_manipulator_set_color_highlight(axis, color_hi);
+		gizmo_get_axis_color(axis_idx, idot, color, color_hi);
+		WM_gizmo_set_color(axis, color);
+		WM_gizmo_set_color_highlight(axis, color_hi);
 
 		switch (axis_idx) {
 			case MAN_AXIS_TRANS_C:
 			case MAN_AXIS_ROT_C:
 			case MAN_AXIS_SCALE_C:
 			case MAN_AXIS_ROT_T:
-				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->viewinv[2]);
+				WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->viewinv[2]);
 				break;
 		}
 	}
 	MAN_ITER_AXES_END;
 }
 
-static bool WIDGETGROUP_manipulator_poll(const struct bContext *C, struct wmManipulatorGroupType *wgt)
+static bool WIDGETGROUP_gizmo_poll(const struct bContext *C, struct wmGizmoGroupType *wgt)
 {
 	/* it's a given we only use this in 3D view */
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if ((tref_rt == NULL) ||
-	    !STREQ(wgt->idname, tref_rt->manipulator_group))
+	    !STREQ(wgt->idname, tref_rt->gizmo_group))
 	{
-		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
 
 	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_TOOL)) {
+	if (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
 		return false;
 	}
 	return true;
 }
 
-void TRANSFORM_WGT_manipulator(wmManipulatorGroupType *wgt)
+void TRANSFORM_WGT_gizmo(wmGizmoGroupType *wgt)
 {
-	wgt->name = "Transform Manipulator";
-	wgt->idname = "TRANSFORM_WGT_manipulator";
+	wgt->name = "Transform Gizmo";
+	wgt->idname = "TRANSFORM_WGT_gizmo";
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_3D;
+	wgt->flag |= WM_GIZMOGROUPTYPE_3D;
 
 	wgt->mmap_params.spaceid = SPACE_VIEW3D;
 	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = WIDGETGROUP_manipulator_poll;
-	wgt->setup = WIDGETGROUP_manipulator_setup;
-	wgt->refresh = WIDGETGROUP_manipulator_refresh;
-	wgt->message_subscribe = WIDGETGROUP_manipulator_message_subscribe;
-	wgt->draw_prepare = WIDGETGROUP_manipulator_draw_prepare;
+	wgt->poll = WIDGETGROUP_gizmo_poll;
+	wgt->setup = WIDGETGROUP_gizmo_setup;
+	wgt->refresh = WIDGETGROUP_gizmo_refresh;
+	wgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
+	wgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
 }
 
 /** \} */
 
 
 /* -------------------------------------------------------------------- */
-/** \name Scale Cage Manipulator
+/** \name Scale Cage Gizmo
  * \{ */
 
 struct XFormCageWidgetGroup {
-	wmManipulator *manipulator;
+	wmGizmo *gizmo;
 };
 
-static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmManipulatorGroupType *wgt)
+static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmGizmoGroupType *wgt)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	if (!STREQ(wgt->idname, tref_rt->manipulator_group)) {
-		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
+	if (!STREQ(wgt->idname, tref_rt->gizmo_group)) {
+		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
 	return true;
 }
 
-static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
 {
 	struct XFormCageWidgetGroup *xmgroup = MEM_mallocN(sizeof(struct XFormCageWidgetGroup), __func__);
-	const wmManipulatorType *wt_cage = WM_manipulatortype_find("MANIPULATOR_WT_cage_3d", true);
-	xmgroup->manipulator = WM_manipulator_new_ptr(wt_cage, mgroup, NULL);
-	wmManipulator *mpr = xmgroup->manipulator;
+	const wmGizmoType *wt_cage = WM_gizmotype_find("GIZMO_WT_cage_3d", true);
+	xmgroup->gizmo = WM_gizmo_new_ptr(wt_cage, mgroup, NULL);
+	wmGizmo *mpr = xmgroup->gizmo;
 
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE);
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
+	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE);
 
 	mpr->color[0] = 1;
 	mpr->color_hi[0] = 1;
@@ -1668,12 +1668,12 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmManipulato
 		PropertyRNA *prop_release_confirm = NULL;
 		PropertyRNA *prop_constraint_axis = NULL;
 
-		int i = ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
+		int i = ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
 		for (int x = 0; x < 3; x++) {
 			for (int y = 0; y < 3; y++) {
 				for (int z = 0; z < 3; z++) {
 					bool constraint[3] = {x != 1, y != 1, z != 1};
-					ptr = WM_manipulator_operator_set(mpr, i, ot_resize, NULL);
+					ptr = WM_gizmo_operator_set(mpr, i, ot_resize, NULL);
 					if (prop_release_confirm == NULL) {
 						prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");
 						prop_constraint_axis = RNA_struct_find_property(ptr, "constraint_axis");
@@ -1687,7 +1687,7 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmManipulato
 	}
 }
 
-static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1695,23 +1695,23 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmManipulatorGroup
 	RegionView3D *rv3d = ar->regiondata;
 
 	struct XFormCageWidgetGroup *xmgroup = mgroup->customdata;
-	wmManipulator *mpr = xmgroup->manipulator;
+	wmGizmo *mpr = xmgroup->gizmo;
 
 	struct TransformBounds tbounds;
 
-	if ((ED_transform_calc_manipulator_stats(
+	if ((ED_transform_calc_gizmo_stats(
 	             C, &(struct TransformCalcParams) {
 	                 .use_local_axis = true,
 	             }, &tbounds) == 0) ||
 	    equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
 	{
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, true);
 	}
 	else {
-		manipulator_prepare_mat(C, v3d, rv3d, &tbounds);
+		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
 
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_GRAB_CURSOR, true);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_GRAB_CURSOR, true);
 
 		float dims[3];
 		sub_v3_v3v3(dims, rv3d->tw_axis_max, rv3d->tw_axis_min);
@@ -1725,14 +1725,14 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmManipulatorGroup
 		PropertyRNA *prop_center_override = NULL;
 		float center[3];
 		float center_global[3];
-		int i = ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
+		int i = ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
 		for (int x = 0; x < 3; x++) {
 			center[0] = (float)(1 - x) * dims[0];
 			for (int y = 0; y < 3; y++) {
 				center[1] = (float)(1 - y) * dims[1];
 				for (int z = 0; z < 3; z++) {
 					center[2] = (float)(1 - z) * dims[2];
-					struct wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, i);
+					struct wmGizmoOpElem *mpop = WM_gizmo_operator_get(mpr, i);
 					if (prop_center_override == NULL) {
 						prop_center_override = RNA_struct_find_property(&mpop->ptr, "center_override");
 					}
@@ -1746,19 +1746,19 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmManipulatorGroup
 }
 
 static void WIDGETGROUP_xform_cage_message_subscribe(
-        const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
+        const bContext *C, wmGizmoGroup *mgroup, struct wmMsgBus *mbus)
 {
 	Scene *scene = CTX_data_scene(C);
 	bScreen *screen = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	manipulator_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, VIEW3D_WGT_xform_cage);
+	gizmo_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, VIEW3D_WGT_xform_cage);
 }
 
-static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
 {
 	struct XFormCageWidgetGroup *xmgroup = mgroup->customdata;
-	wmManipulator *mpr = xmgroup->manipulator;
+	wmGizmo *mpr = xmgroup->gizmo;
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
@@ -1770,12 +1770,12 @@ static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmManipulator
 	}
 }
 
-void VIEW3D_WGT_xform_cage(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_xform_cage(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Transform Cage";
 	wgt->idname = "VIEW3D_WGT_xform_cage";
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_3D;
+	wgt->flag |= WM_GIZMOGROUPTYPE_3D;
 
 	wgt->mmap_params.spaceid = SPACE_VIEW3D;
 	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;

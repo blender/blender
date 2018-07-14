@@ -27,6 +27,6 @@
 #ifndef __BPY_RNA_GIZMO_H__
 #define __BPY_RNA_GIZMO_H__
 
-int BPY_rna_manipulator_module(PyObject *);
+int BPY_rna_gizmo_module(PyObject *);
 
 #endif  /* __BPY_RNA_GIZMO_H__ */

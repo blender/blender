@@ -61,42 +61,42 @@
 #include "wm_gizmo_intern.h"
 
 /**
- * Store all manipulator-maps here. Anyone who wants to register a manipulator for a certain
- * area type can query the manipulator-map to do so.
+ * Store all gizmo-maps here. Anyone who wants to register a gizmo for a certain
+ * area type can query the gizmo-map to do so.
  */
-static ListBase manipulatormaptypes = {NULL, NULL};
+static ListBase gizmomaptypes = {NULL, NULL};
 
 /**
- * Update when manipulator-map types change.
+ * Update when gizmo-map types change.
  */
 /* so operator removal can trigger update */
-typedef enum eWM_ManipulatorGroupTypeGlobalFlag {
-	WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT = (1 << 0),
-	WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE = (1 << 1),
-} eWM_ManipulatorGroupTypeGlobalFlag;
+typedef enum eWM_GizmoFlagGroupTypeGlobalFlag {
+	WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT = (1 << 0),
+	WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE = (1 << 1),
+} eWM_GizmoFlagGroupTypeGlobalFlag;
 
-static eWM_ManipulatorGroupTypeGlobalFlag wm_mmap_type_update_flag = 0;
+static eWM_GizmoFlagGroupTypeGlobalFlag wm_mmap_type_update_flag = 0;
 
 /**
- * Manipulator-map update tagging.
+ * Gizmo-map update tagging.
  */
 enum {
-	/** #manipulatormap_prepare_drawing has run */
-	MANIPULATORMAP_IS_PREPARE_DRAW = (1 << 0),
-	MANIPULATORMAP_IS_REFRESH_CALLBACK = (1 << 1),
+	/** #gizmomap_prepare_drawing has run */
+	GIZMOMAP_IS_PREPARE_DRAW = (1 << 0),
+	GIZMOMAP_IS_REFRESH_CALLBACK = (1 << 1),
 };
 
 
 /* -------------------------------------------------------------------- */
-/** \name wmManipulatorMap Selection Array API
+/** \name wmGizmoMap Selection Array API
  *
- * Just handle ``wm_manipulatormap_select_array_*``, not flags or callbacks.
+ * Just handle ``wm_gizmomap_select_array_*``, not flags or callbacks.
  *
  * \{ */
 
-static void wm_manipulatormap_select_array_ensure_len_alloc(wmManipulatorMap *mmap, int len)
+static void wm_gizmomap_select_array_ensure_len_alloc(wmGizmoMap *mmap, int len)
 {
-	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	wmGizmoMapSelectState *msel = &mmap->mmap_context.select;
 	if (len <= msel->len_alloc) {
 		return;
 	}
@@ -104,20 +104,20 @@ static void wm_manipulatormap_select_array_ensure_len_alloc(wmManipulatorMap *mm
 	msel->len_alloc = len;
 }
 
-void wm_manipulatormap_select_array_clear(wmManipulatorMap *mmap)
+void wm_gizmomap_select_array_clear(wmGizmoMap *mmap)
 {
-	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	wmGizmoMapSelectState *msel = &mmap->mmap_context.select;
 	MEM_SAFE_FREE(msel->items);
 	msel->len = 0;
 	msel->len_alloc = 0;
 }
 
-void wm_manipulatormap_select_array_shrink(wmManipulatorMap *mmap, int len_subtract)
+void wm_gizmomap_select_array_shrink(wmGizmoMap *mmap, int len_subtract)
 {
-	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	wmGizmoMapSelectState *msel = &mmap->mmap_context.select;
 	msel->len -= len_subtract;
 	if (msel->len <= 0) {
-		wm_manipulatormap_select_array_clear(mmap);
+		wm_gizmomap_select_array_clear(mmap);
 	}
 	else {
 		if (msel->len < msel->len_alloc / 2) {
@@ -127,9 +127,9 @@ void wm_manipulatormap_select_array_shrink(wmManipulatorMap *mmap, int len_subtr
 	}
 }
 
-void wm_manipulatormap_select_array_push_back(wmManipulatorMap *mmap, wmManipulator *mpr)
+void wm_gizmomap_select_array_push_back(wmGizmoMap *mmap, wmGizmo *mpr)
 {
-	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	wmGizmoMapSelectState *msel = &mmap->mmap_context.select;
 	BLI_assert(msel->len <= msel->len_alloc);
 	if (msel->len == msel->len_alloc) {
 		msel->len_alloc = (msel->len + 1) * 2;
@@ -138,16 +138,16 @@ void wm_manipulatormap_select_array_push_back(wmManipulatorMap *mmap, wmManipula
 	msel->items[msel->len++] = mpr;
 }
 
-void wm_manipulatormap_select_array_remove(wmManipulatorMap *mmap, wmManipulator *mpr)
+void wm_gizmomap_select_array_remove(wmGizmoMap *mmap, wmGizmo *mpr)
 {
-	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
-	/* remove manipulator from selected_manipulators array */
+	wmGizmoMapSelectState *msel = &mmap->mmap_context.select;
+	/* remove gizmo from selected_gizmos array */
 	for (int i = 0; i < msel->len; i++) {
 		if (msel->items[i] == mpr) {
 			for (int j = i; j < (msel->len - 1); j++) {
 				msel->items[j] = msel->items[j + 1];
 			}
-			wm_manipulatormap_select_array_shrink(mmap, 1);
+			wm_gizmomap_select_array_shrink(mmap, 1);
 			break;
 		}
 	}
@@ -158,41 +158,41 @@ void wm_manipulatormap_select_array_remove(wmManipulatorMap *mmap, wmManipulator
 
 
 /* -------------------------------------------------------------------- */
-/** \name wmManipulatorMap
+/** \name wmGizmoMap
  *
  * \{ */
 
 /**
- * Creates a manipulator-map with all registered manipulators for that type
+ * Creates a gizmo-map with all registered gizmos for that type
  */
-wmManipulatorMap *WM_manipulatormap_new_from_type(
-        const struct wmManipulatorMapType_Params *mmap_params)
+wmGizmoMap *WM_gizmomap_new_from_type(
+        const struct wmGizmoMapType_Params *mmap_params)
 {
-	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(mmap_params);
-	wmManipulatorMap *mmap;
+	wmGizmoMapType *mmap_type = WM_gizmomaptype_ensure(mmap_params);
+	wmGizmoMap *mmap;
 
-	mmap = MEM_callocN(sizeof(wmManipulatorMap), "ManipulatorMap");
+	mmap = MEM_callocN(sizeof(wmGizmoMap), "GizmoMap");
 	mmap->type = mmap_type;
-	WM_manipulatormap_tag_refresh(mmap);
+	WM_gizmomap_tag_refresh(mmap);
 
-	/* create all manipulator-groups for this manipulator-map. We may create an empty one
-	 * too in anticipation of manipulators from operators etc */
-	for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first; wgt_ref; wgt_ref = wgt_ref->next) {
-		wm_manipulatorgroup_new_from_type(mmap, wgt_ref->type);
+	/* create all gizmo-groups for this gizmo-map. We may create an empty one
+	 * too in anticipation of gizmos from operators etc */
+	for (wmGizmoGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first; wgt_ref; wgt_ref = wgt_ref->next) {
+		wm_gizmogroup_new_from_type(mmap, wgt_ref->type);
 	}
 
 	return mmap;
 }
 
-void wm_manipulatormap_remove(wmManipulatorMap *mmap)
+void wm_gizmomap_remove(wmGizmoMap *mmap)
 {
 	/* Clear first so further calls don't waste time trying to maintain correct array state. */
-	wm_manipulatormap_select_array_clear(mmap);
+	wm_gizmomap_select_array_clear(mmap);
 
-	for (wmManipulatorGroup *mgroup = mmap->groups.first, *mgroup_next; mgroup; mgroup = mgroup_next) {
+	for (wmGizmoGroup *mgroup = mmap->groups.first, *mgroup_next; mgroup; mgroup = mgroup_next) {
 		mgroup_next = mgroup->next;
 		BLI_assert(mgroup->parent_mmap == mmap);
-		wm_manipulatorgroup_free(NULL, mgroup);
+		wm_gizmogroup_free(NULL, mgroup);
 	}
 	BLI_assert(BLI_listbase_is_empty(&mmap->groups));
 
@@ -200,22 +200,22 @@ void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 }
 
 
-wmManipulatorGroup *WM_manipulatormap_group_find(
-        struct wmManipulatorMap *mmap,
+wmGizmoGroup *WM_gizmomap_group_find(
+        struct wmGizmoMap *mmap,
         const char *idname)
 {
-	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+	wmGizmoGroupType *wgt = WM_gizmogrouptype_find(idname, false);
 	if (wgt) {
-		return WM_manipulatormap_group_find_ptr(mmap, wgt);
+		return WM_gizmomap_group_find_ptr(mmap, wgt);
 	}
 	return NULL;
 }
 
-wmManipulatorGroup *WM_manipulatormap_group_find_ptr(
-        struct wmManipulatorMap *mmap,
-        const struct wmManipulatorGroupType *wgt)
+wmGizmoGroup *WM_gizmomap_group_find_ptr(
+        struct wmGizmoMap *mmap,
+        const struct wmGizmoGroupType *wgt)
 {
-	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+	for (wmGizmoGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 		if (mgroup->type == wgt) {
 			return mgroup;
 		}
@@ -223,12 +223,12 @@ wmManipulatorGroup *WM_manipulatormap_group_find_ptr(
 	return NULL;
 }
 
-const ListBase *WM_manipulatormap_group_list(wmManipulatorMap *mmap)
+const ListBase *WM_gizmomap_group_list(wmGizmoMap *mmap)
 {
 	return &mmap->groups;
 }
 
-bool WM_manipulatormap_is_any_selected(const wmManipulatorMap *mmap)
+bool WM_gizmomap_is_any_selected(const wmGizmoMap *mmap)
 {
 	return mmap->mmap_context.select.len != 0;
 }
@@ -236,8 +236,8 @@ bool WM_manipulatormap_is_any_selected(const wmManipulatorMap *mmap)
 /**
  * \note We could use a callback to define bounds, for now just use matrix location.
  */
-bool WM_manipulatormap_minmax(
-        const wmManipulatorMap *mmap, bool UNUSED(use_hidden), bool use_select,
+bool WM_gizmomap_minmax(
+        const wmGizmoMap *mmap, bool UNUSED(use_hidden), bool use_select,
         float r_min[3], float r_max[3])
 {
 	if (use_select) {
@@ -255,26 +255,26 @@ bool WM_manipulatormap_minmax(
 }
 
 /**
- * Creates and returns idname hash table for (visible) manipulators in \a mmap
+ * Creates and returns idname hash table for (visible) gizmos in \a mmap
  *
- * \param poll  Polling function for excluding manipulators.
+ * \param poll  Polling function for excluding gizmos.
  * \param data  Custom data passed to \a poll
  *
  * TODO(campbell): this uses unreliable order,
  * best we use an iterator function instead of a hash.
  */
-static GHash *WM_manipulatormap_manipulator_hash_new(
-        const bContext *C, wmManipulatorMap *mmap,
-        bool (*poll)(const wmManipulator *, void *),
+static GHash *WM_gizmomap_gizmo_hash_new(
+        const bContext *C, wmGizmoMap *mmap,
+        bool (*poll)(const wmGizmo *, void *),
         void *data, const bool include_hidden)
 {
 	GHash *hash = BLI_ghash_ptr_new(__func__);
 
-	/* collect manipulators */
-	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
-		if (WM_manipulator_group_type_poll(C, mgroup->type)) {
-			for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
-				if ((include_hidden || (mpr->flag & WM_MANIPULATOR_HIDDEN) == 0) &&
+	/* collect gizmos */
+	for (wmGizmoGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+		if (WM_gizmo_group_type_poll(C, mgroup->type)) {
+			for (wmGizmo *mpr = mgroup->gizmos.first; mpr; mpr = mpr->next) {
+				if ((include_hidden || (mpr->flag & WM_GIZMO_HIDDEN) == 0) &&
 				    (!poll || poll(mpr, data)))
 				{
 					BLI_ghash_insert(hash, mpr, mpr);
@@ -286,35 +286,35 @@ static GHash *WM_manipulatormap_manipulator_hash_new(
 	return hash;
 }
 
-void WM_manipulatormap_tag_refresh(wmManipulatorMap *mmap)
+void WM_gizmomap_tag_refresh(wmGizmoMap *mmap)
 {
 	if (mmap) {
 		/* We might want only to refresh some, for tag all steps. */
-		for (int i = 0; i < WM_MANIPULATORMAP_DRAWSTEP_MAX; i++) {
+		for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
 			mmap->update_flag[i] |= (
-			        MANIPULATORMAP_IS_PREPARE_DRAW |
-			        MANIPULATORMAP_IS_REFRESH_CALLBACK);
+			        GIZMOMAP_IS_PREPARE_DRAW |
+			        GIZMOMAP_IS_REFRESH_CALLBACK);
 		}
 	}
 }
 
-static bool manipulator_prepare_drawing(
-        wmManipulatorMap *mmap, wmManipulator *mpr,
-        const bContext *C, ListBase *draw_manipulators,
-        const eWM_ManipulatorMapDrawStep drawstep)
+static bool gizmo_prepare_drawing(
+        wmGizmoMap *mmap, wmGizmo *mpr,
+        const bContext *C, ListBase *draw_gizmos,
+        const eWM_GizmoFlagMapDrawStep drawstep)
 {
-	int do_draw = wm_manipulator_is_visible(mpr);
+	int do_draw = wm_gizmo_is_visible(mpr);
 	if (do_draw == 0) {
 		/* skip */
 	}
 	else {
 		/* Ensure we get RNA updates */
-		if (do_draw & WM_MANIPULATOR_IS_VISIBLE_UPDATE) {
-			/* hover manipulators need updating, even if we don't draw them */
-			wm_manipulator_update(mpr, C, (mmap->update_flag[drawstep] & MANIPULATORMAP_IS_PREPARE_DRAW) != 0);
+		if (do_draw & WM_GIZMO_IS_VISIBLE_UPDATE) {
+			/* hover gizmos need updating, even if we don't draw them */
+			wm_gizmo_update(mpr, C, (mmap->update_flag[drawstep] & GIZMOMAP_IS_PREPARE_DRAW) != 0);
 		}
-		if (do_draw & WM_MANIPULATOR_IS_VISIBLE_DRAW) {
-			BLI_addhead(draw_manipulators, BLI_genericNodeN(mpr));
+		if (do_draw & WM_GIZMO_IS_VISIBLE_DRAW) {
+			BLI_addhead(draw_gizmos, BLI_genericNodeN(mpr));
 		}
 		return true;
 	}
@@ -323,67 +323,67 @@ static bool manipulator_prepare_drawing(
 }
 
 /**
- * Update manipulators of \a mmap to prepare for drawing. Adds all manipulators that
- * should be drawn to list \a draw_manipulators, note that added items need freeing.
+ * Update gizmos of \a mmap to prepare for drawing. Adds all gizmos that
+ * should be drawn to list \a draw_gizmos, note that added items need freeing.
  */
-static void manipulatormap_prepare_drawing(
-        wmManipulatorMap *mmap, const bContext *C, ListBase *draw_manipulators,
-        const eWM_ManipulatorMapDrawStep drawstep)
+static void gizmomap_prepare_drawing(
+        wmGizmoMap *mmap, const bContext *C, ListBase *draw_gizmos,
+        const eWM_GizmoFlagMapDrawStep drawstep)
 {
 	if (!mmap || BLI_listbase_is_empty(&mmap->groups))
 		return;
-	wmManipulator *mpr_modal = mmap->mmap_context.modal;
+	wmGizmo *mpr_modal = mmap->mmap_context.modal;
 
-	/* only active manipulator needs updating */
+	/* only active gizmo needs updating */
 	if (mpr_modal) {
-		if ((mpr_modal->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL) == 0) {
-			if (wm_manipulatorgroup_is_visible_in_drawstep(mpr_modal->parent_mgroup, drawstep)) {
-				if (manipulator_prepare_drawing(mmap, mpr_modal, C, draw_manipulators, drawstep)) {
-					mmap->update_flag[drawstep] &= ~MANIPULATORMAP_IS_PREPARE_DRAW;
+		if ((mpr_modal->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) {
+			if (wm_gizmogroup_is_visible_in_drawstep(mpr_modal->parent_mgroup, drawstep)) {
+				if (gizmo_prepare_drawing(mmap, mpr_modal, C, draw_gizmos, drawstep)) {
+					mmap->update_flag[drawstep] &= ~GIZMOMAP_IS_PREPARE_DRAW;
 				}
 			}
-			/* don't draw any other manipulators */
+			/* don't draw any other gizmos */
 			return;
 		}
 	}
 
-	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+	for (wmGizmoGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 		/* check group visibility - drawstep first to avoid unnecessary call of group poll callback */
-		if (!wm_manipulatorgroup_is_visible_in_drawstep(mgroup, drawstep) ||
-		    !WM_manipulator_group_type_poll(C, mgroup->type))
+		if (!wm_gizmogroup_is_visible_in_drawstep(mgroup, drawstep) ||
+		    !WM_gizmo_group_type_poll(C, mgroup->type))
 		{
 			continue;
 		}
 
 		/* needs to be initialized on first draw */
-		/* XXX weak: Manipulator-group may skip refreshing if it's invisible (map gets untagged nevertheless) */
-		if (mmap->update_flag[drawstep] & MANIPULATORMAP_IS_REFRESH_CALLBACK) {
+		/* XXX weak: Gizmo-group may skip refreshing if it's invisible (map gets untagged nevertheless) */
+		if (mmap->update_flag[drawstep] & GIZMOMAP_IS_REFRESH_CALLBACK) {
 			/* force refresh again. */
-			mgroup->init_flag &= ~WM_MANIPULATORGROUP_INIT_REFRESH;
+			mgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
 		}
 		/* Calls `setup`, `setup_keymap` and `refresh` if they're defined. */
-		wm_manipulatorgroup_ensure_initialized(mgroup, C);
+		wm_gizmogroup_ensure_initialized(mgroup, C);
 
 		/* prepare drawing */
 		if (mgroup->type->draw_prepare) {
 			mgroup->type->draw_prepare(C, mgroup);
 		}
 
-		for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
-			manipulator_prepare_drawing(mmap, mpr, C, draw_manipulators, drawstep);
+		for (wmGizmo *mpr = mgroup->gizmos.first; mpr; mpr = mpr->next) {
+			gizmo_prepare_drawing(mmap, mpr, C, draw_gizmos, drawstep);
 		}
 	}
 
 	mmap->update_flag[drawstep] &=
-	        ~(MANIPULATORMAP_IS_REFRESH_CALLBACK |
-	          MANIPULATORMAP_IS_PREPARE_DRAW);
+	        ~(GIZMOMAP_IS_REFRESH_CALLBACK |
+	          GIZMOMAP_IS_PREPARE_DRAW);
 }
 
 /**
- * Draw all visible manipulators in \a mmap.
- * Uses global draw_manipulators listbase.
+ * Draw all visible gizmos in \a mmap.
+ * Uses global draw_gizmos listbase.
  */
-static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext *C, ListBase *draw_manipulators)
+static void gizmos_draw_list(const wmGizmoMap *mmap, const bContext *C, ListBase *draw_gizmos)
 {
 	/* Can be empty if we're dynamically added and removed. */
 	if ((mmap == NULL) || BLI_listbase_is_empty(&mmap->groups)) {
@@ -391,19 +391,19 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 	}
 
 	/* TODO this will need it own shader probably? don't think it can be handled from that point though. */
-/*	const bool use_lighting = (U.manipulator_flag & V3D_MANIPULATOR_SHADED) != 0; */
+/*	const bool use_lighting = (U.gizmo_flag & V3D_GIZMO_SHADED) != 0; */
 
 	bool is_depth_prev = false;
 
-	/* draw_manipulators contains all visible manipulators - draw them */
-	for (LinkData *link = draw_manipulators->first, *link_next; link; link = link_next) {
-		wmManipulator *mpr = link->data;
+	/* draw_gizmos contains all visible gizmos - draw them */
+	for (LinkData *link = draw_gizmos->first, *link_next; link; link = link_next) {
+		wmGizmo *mpr = link->data;
 		link_next = link->next;
 
-		bool is_depth = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DEPTH_3D) != 0;
+		bool is_depth = (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_DEPTH_3D) != 0;
 
 		/* Weak! since we don't 100% support depth yet (select ignores depth) always show highlighted */
-		if (is_depth && (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT)) {
+		if (is_depth && (mpr->state & WM_GIZMO_STATE_HIGHLIGHT)) {
 			is_depth = false;
 		}
 
@@ -420,7 +420,7 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 			is_depth_prev = is_depth;
 		}
 
-		/* XXX force AntiAlias Manipulators. */
+		/* XXX force AntiAlias Gizmos. */
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_POLYGON_SMOOTH);
 
@@ -429,8 +429,8 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_POLYGON_SMOOTH);
 
-		/* free/remove manipulator link after drawing */
-		BLI_freelinkN(draw_manipulators, link);
+		/* free/remove gizmo link after drawing */
+		BLI_freelinkN(draw_gizmos, link);
 	}
 
 	if (is_depth_prev) {
@@ -438,34 +438,34 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 	}
 }
 
-void WM_manipulatormap_draw(
-        wmManipulatorMap *mmap, const bContext *C,
-        const eWM_ManipulatorMapDrawStep drawstep)
+void WM_gizmomap_draw(
+        wmGizmoMap *mmap, const bContext *C,
+        const eWM_GizmoFlagMapDrawStep drawstep)
 {
-	if (!WM_manipulator_context_check_drawstep(C, drawstep)) {
+	if (!WM_gizmo_context_check_drawstep(C, drawstep)) {
 		return;
 	}
 
-	ListBase draw_manipulators = {NULL};
+	ListBase draw_gizmos = {NULL};
 
-	manipulatormap_prepare_drawing(mmap, C, &draw_manipulators, drawstep);
-	manipulators_draw_list(mmap, C, &draw_manipulators);
-	BLI_assert(BLI_listbase_is_empty(&draw_manipulators));
+	gizmomap_prepare_drawing(mmap, C, &draw_gizmos, drawstep);
+	gizmos_draw_list(mmap, C, &draw_gizmos);
+	BLI_assert(BLI_listbase_is_empty(&draw_gizmos));
 }
 
-static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible_manipulators)
+static void gizmo_draw_select_3D_loop(const bContext *C, ListBase *visible_gizmos)
 {
 	int select_id = 0;
-	wmManipulator *mpr;
+	wmGizmo *mpr;
 
 	/* TODO(campbell): this depends on depth buffer being written to, currently broken for the 3D view. */
 	bool is_depth_prev = false;
 	bool is_depth_skip_prev = false;
 
-	for (LinkData *link = visible_manipulators->first; link; link = link->next) {
+	for (LinkData *link = visible_gizmos->first; link; link = link->next) {
 		mpr = link->data;
 
-		bool is_depth = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DEPTH_3D) != 0;
+		bool is_depth = (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_DEPTH_3D) != 0;
 		if (is_depth == is_depth_prev) {
 			/* pass */
 		}
@@ -478,7 +478,7 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 			}
 			is_depth_prev = is_depth;
 		}
-		bool is_depth_skip = (mpr->flag & WM_MANIPULATOR_SELECT_BACKGROUND) != 0;
+		bool is_depth_skip = (mpr->flag & WM_GIZMO_SELECT_BACKGROUND) != 0;
 		if (is_depth_skip == is_depth_skip_prev) {
 			/* pass */
 		}
@@ -487,7 +487,7 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 			is_depth_skip_prev = is_depth_skip;
 		}
 
-		/* pass the selection id shifted by 8 bits. Last 8 bits are used for selected manipulator part id */
+		/* pass the selection id shifted by 8 bits. Last 8 bits are used for selected gizmo part id */
 
 		mpr->type->draw_select(C, mpr, select_id << 8);
 
@@ -503,15 +503,15 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 	}
 }
 
-static int manipulator_find_intersected_3d_intern(
-        ListBase *visible_manipulators, const bContext *C, const int co[2],
+static int gizmo_find_intersected_3d_intern(
+        ListBase *visible_gizmos, const bContext *C, const int co[2],
         const int hotspot)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
 	rcti rect;
-	/* Almost certainly overkill, but allow for many custom manipulators. */
+	/* Almost certainly overkill, but allow for many custom gizmos. */
 	GLuint buffer[MAXPICKBUF];
 	short hits;
 	const bool do_passes = GPU_select_query_check_active();
@@ -525,13 +525,13 @@ static int manipulator_find_intersected_3d_intern(
 	else
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_ALL, 0);
 	/* do the drawing */
-	manipulator_draw_select_3D_loop(C, visible_manipulators);
+	gizmo_draw_select_3D_loop(C, visible_gizmos);
 
 	hits = GPU_select_end();
 
 	if (do_passes && (hits > 0)) {
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
-		manipulator_draw_select_3D_loop(C, visible_manipulators);
+		gizmo_draw_select_3D_loop(C, visible_gizmos);
 		GPU_select_end();
 	}
 
@@ -543,13 +543,13 @@ static int manipulator_find_intersected_3d_intern(
 }
 
 /**
- * Try to find a 3D manipulator at screen-space coordinate \a co. Uses OpenGL picking.
+ * Try to find a 3D gizmo at screen-space coordinate \a co. Uses OpenGL picking.
  */
-static wmManipulator *manipulator_find_intersected_3d(
-        bContext *C, const int co[2], ListBase *visible_manipulators,
+static wmGizmo *gizmo_find_intersected_3d(
+        bContext *C, const int co[2], ListBase *visible_gizmos,
         int *r_part)
 {
-	wmManipulator *result = NULL;
+	wmGizmo *result = NULL;
 	int hit = -1;
 
 	int hotspot_radii[] = {
@@ -566,20 +566,20 @@ static wmManipulator *manipulator_find_intersected_3d(
 	hit = -1;
 
 	for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
-		hit = manipulator_find_intersected_3d_intern(visible_manipulators, C, co, hotspot_radii[i]);
+		hit = gizmo_find_intersected_3d_intern(visible_gizmos, C, co, hotspot_radii[i]);
 		if (hit != -1) {
 			break;
 		}
 	}
 
 	if (hit != -1) {
-		LinkData *link = BLI_findlink(visible_manipulators, hit >> 8);
+		LinkData *link = BLI_findlink(visible_gizmos, hit >> 8);
 		if (link != NULL) {
 			*r_part = hit & 255;
 			result = link->data;
 		}
 		else {
-			/* All manipulators should use selection ID they're given as part of the callback,
+			/* All gizmos should use selection ID they're given as part of the callback,
 			 * if they don't it will attempt tp lookup non-existing index. */
 			BLI_assert(0);
 		}
@@ -589,51 +589,51 @@ static wmManipulator *manipulator_find_intersected_3d(
 }
 
 /**
- * Try to find a manipulator under the mouse position. 2D intersections have priority over
+ * Try to find a gizmo under the mouse position. 2D intersections have priority over
  * 3D ones (could check for smallest screen-space distance but not needed right now).
  */
-wmManipulator *wm_manipulatormap_highlight_find(
-        wmManipulatorMap *mmap, bContext *C, const wmEvent *event,
+wmGizmo *wm_gizmomap_highlight_find(
+        wmGizmoMap *mmap, bContext *C, const wmEvent *event,
         int *r_part)
 {
-	wmManipulator *mpr = NULL;
-	ListBase visible_3d_manipulators = {NULL};
-	bool do_step[WM_MANIPULATORMAP_DRAWSTEP_MAX];
+	wmGizmo *mpr = NULL;
+	ListBase visible_3d_gizmos = {NULL};
+	bool do_step[WM_GIZMOMAP_DRAWSTEP_MAX];
 
 	for (int i = 0; i < ARRAY_SIZE(do_step); i++) {
-		do_step[i] = WM_manipulator_context_check_drawstep(C, i);
+		do_step[i] = WM_gizmo_context_check_drawstep(C, i);
 	}
 
-	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+	for (wmGizmoGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 
 		/* If it were important we could initialize here,
 		 * but this only happens when events are handled before drawing,
-		 * just skip to keep code-path for initializing manipulators simple. */
-		if ((mgroup->init_flag & WM_MANIPULATORGROUP_INIT_SETUP) == 0) {
+		 * just skip to keep code-path for initializing gizmos simple. */
+		if ((mgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0) {
 			continue;
 		}
 
-		if (WM_manipulator_group_type_poll(C, mgroup->type)) {
-			eWM_ManipulatorMapDrawStep step;
-			if (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
-				step = WM_MANIPULATORMAP_DRAWSTEP_3D;
+		if (WM_gizmo_group_type_poll(C, mgroup->type)) {
+			eWM_GizmoFlagMapDrawStep step;
+			if (mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
+				step = WM_GIZMOMAP_DRAWSTEP_3D;
 			}
 			else {
-				step = WM_MANIPULATORMAP_DRAWSTEP_2D;
+				step = WM_GIZMOMAP_DRAWSTEP_2D;
 			}
 
 			if (do_step[step]) {
-				if ((mmap->update_flag[step] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&
+				if ((mmap->update_flag[step] & GIZMOMAP_IS_REFRESH_CALLBACK) &&
 				    (mgroup->type->refresh != NULL))
 				{
 					mgroup->type->refresh(C, mgroup);
 					/* cleared below */
 				}
-				if (step == WM_MANIPULATORMAP_DRAWSTEP_3D) {
-					wm_manipulatorgroup_intersectable_manipulators_to_list(mgroup, &visible_3d_manipulators);
+				if (step == WM_GIZMOMAP_DRAWSTEP_3D) {
+					wm_gizmogroup_intersectable_gizmos_to_list(mgroup, &visible_3d_gizmos);
 				}
-				else if (step == WM_MANIPULATORMAP_DRAWSTEP_2D) {
-					if ((mpr = wm_manipulatorgroup_find_intersected_manipulator(mgroup, C, event, r_part))) {
+				else if (step == WM_GIZMOMAP_DRAWSTEP_2D) {
+					if ((mpr = wm_gizmogroup_find_intersected_gizmo(mgroup, C, event, r_part))) {
 						break;
 					}
 				}
@@ -641,62 +641,62 @@ wmManipulator *wm_manipulatormap_highlight_find(
 		}
 	}
 
-	if (!BLI_listbase_is_empty(&visible_3d_manipulators)) {
-		/* 2D manipulators get priority. */
+	if (!BLI_listbase_is_empty(&visible_3d_gizmos)) {
+		/* 2D gizmos get priority. */
 		if (mpr == NULL) {
-			mpr = manipulator_find_intersected_3d(C, event->mval, &visible_3d_manipulators, r_part);
+			mpr = gizmo_find_intersected_3d(C, event->mval, &visible_3d_gizmos, r_part);
 		}
-		BLI_freelistN(&visible_3d_manipulators);
+		BLI_freelistN(&visible_3d_gizmos);
 	}
 
-	mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_3D] &= ~MANIPULATORMAP_IS_REFRESH_CALLBACK;
-	mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_2D] &= ~MANIPULATORMAP_IS_REFRESH_CALLBACK;
+	mmap->update_flag[WM_GIZMOMAP_DRAWSTEP_3D] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
+	mmap->update_flag[WM_GIZMOMAP_DRAWSTEP_2D] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
 
 	return mpr;
 }
 
-void WM_manipulatormap_add_handlers(ARegion *ar, wmManipulatorMap *mmap)
+void WM_gizmomap_add_handlers(ARegion *ar, wmGizmoMap *mmap)
 {
 	wmEventHandler *handler;
 
 	for (handler = ar->handlers.first; handler; handler = handler->next) {
-		if (handler->manipulator_map == mmap) {
+		if (handler->gizmo_map == mmap) {
 			return;
 		}
 	}
 
-	handler = MEM_callocN(sizeof(wmEventHandler), "manipulator handler");
+	handler = MEM_callocN(sizeof(wmEventHandler), "gizmo handler");
 
-	BLI_assert(mmap == ar->manipulator_map);
-	handler->manipulator_map = mmap;
+	BLI_assert(mmap == ar->gizmo_map);
+	handler->gizmo_map = mmap;
 	BLI_addtail(&ar->handlers, handler);
 }
 
-void wm_manipulatormaps_handled_modal_update(
+void wm_gizmomaps_handled_modal_update(
         bContext *C, wmEvent *event, wmEventHandler *handler)
 {
 	const bool modal_running = (handler->op != NULL);
 
 	/* happens on render or when joining areas */
-	if (!handler->op_region || !handler->op_region->manipulator_map) {
+	if (!handler->op_region || !handler->op_region->gizmo_map) {
 		return;
 	}
 
-	wmManipulatorMap *mmap = handler->op_region->manipulator_map;
-	wmManipulator *mpr = wm_manipulatormap_modal_get(mmap);
+	wmGizmoMap *mmap = handler->op_region->gizmo_map;
+	wmGizmo *mpr = wm_gizmomap_modal_get(mmap);
 	ScrArea *area = CTX_wm_area(C);
 	ARegion *region = CTX_wm_region(C);
 
-	wm_manipulatormap_handler_context(C, handler);
+	wm_gizmomap_handler_context(C, handler);
 
 	/* regular update for running operator */
 	if (modal_running) {
-		wmManipulatorOpElem *mpop = mpr ? WM_manipulator_operator_get(mpr, mpr->highlight_part) : NULL;
+		wmGizmoOpElem *mpop = mpr ? WM_gizmo_operator_get(mpr, mpr->highlight_part) : NULL;
 		if (mpr && mpop && (mpop->type != NULL) && (mpop->type == handler->op->type)) {
-			wmManipulatorFnModal modal_fn = mpr->custom_modal ? mpr->custom_modal : mpr->type->modal;
+			wmGizmoFnModal modal_fn = mpr->custom_modal ? mpr->custom_modal : mpr->type->modal;
 			if (modal_fn != NULL) {
 				int retval = modal_fn(C, mpr, event, 0);
-				/* The manipulator is tried to the operator, we can't choose when to exit. */
+				/* The gizmo is tried to the operator, we can't choose when to exit. */
 				BLI_assert(retval & OPERATOR_RUNNING_MODAL);
 				UNUSED_VARS_NDEBUG(retval);
 			}
@@ -704,14 +704,14 @@ void wm_manipulatormaps_handled_modal_update(
 	}
 	/* operator not running anymore */
 	else {
-		wm_manipulatormap_highlight_set(mmap, C, NULL, 0);
+		wm_gizmomap_highlight_set(mmap, C, NULL, 0);
 		if (mpr) {
 			/* This isn't defined if it ends because of success of cancel, we may want to change. */
 			bool cancel = true;
 			if (mpr->type->exit) {
 				mpr->type->exit(C, mpr, cancel);
 			}
-			wm_manipulatormap_modal_set(mmap, C, mpr, NULL, false);
+			wm_gizmomap_modal_set(mmap, C, mpr, NULL, false);
 		}
 	}
 
@@ -721,58 +721,58 @@ void wm_manipulatormaps_handled_modal_update(
 }
 
 /**
- * Deselect all selected manipulators in \a mmap.
+ * Deselect all selected gizmos in \a mmap.
  * \return if selection has changed.
  */
-bool wm_manipulatormap_deselect_all(wmManipulatorMap *mmap)
+bool wm_gizmomap_deselect_all(wmGizmoMap *mmap)
 {
-	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	wmGizmoMapSelectState *msel = &mmap->mmap_context.select;
 
 	if (msel->items == NULL || msel->len == 0) {
 		return false;
 	}
 
 	for (int i = 0; i < msel->len; i++) {
-		wm_manipulator_select_set_ex(mmap, msel->items[i], false, false, true);
+		wm_gizmo_select_set_ex(mmap, msel->items[i], false, false, true);
 	}
 
-	wm_manipulatormap_select_array_clear(mmap);
+	wm_gizmomap_select_array_clear(mmap);
 
 	/* always return true, we already checked
 	 * if there's anything to deselect */
 	return true;
 }
 
-BLI_INLINE bool manipulator_selectable_poll(const wmManipulator *mpr, void *UNUSED(data))
+BLI_INLINE bool gizmo_selectable_poll(const wmGizmo *mpr, void *UNUSED(data))
 {
-	return (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECT);
+	return (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_SELECT);
 }
 
 /**
- * Select all selectable manipulators in \a mmap.
+ * Select all selectable gizmos in \a mmap.
  * \return if selection has changed.
  */
-static bool wm_manipulatormap_select_all_intern(
-        bContext *C, wmManipulatorMap *mmap)
+static bool wm_gizmomap_select_all_intern(
+        bContext *C, wmGizmoMap *mmap)
 {
-	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
-	/* GHash is used here to avoid having to loop over all manipulators twice (once to
+	wmGizmoMapSelectState *msel = &mmap->mmap_context.select;
+	/* GHash is used here to avoid having to loop over all gizmos twice (once to
 	 * get tot_sel for allocating, once for actually selecting). Instead we collect
-	 * selectable manipulators in hash table and use this to get tot_sel and do selection */
+	 * selectable gizmos in hash table and use this to get tot_sel and do selection */
 
-	GHash *hash = WM_manipulatormap_manipulator_hash_new(C, mmap, manipulator_selectable_poll, NULL, true);
+	GHash *hash = WM_gizmomap_gizmo_hash_new(C, mmap, gizmo_selectable_poll, NULL, true);
 	GHashIterator gh_iter;
 	int i;
 	bool changed = false;
 
-	wm_manipulatormap_select_array_ensure_len_alloc(mmap, BLI_ghash_len(hash));
+	wm_gizmomap_select_array_ensure_len_alloc(mmap, BLI_ghash_len(hash));
 
 	GHASH_ITER_INDEX (gh_iter, hash, i) {
-		wmManipulator *mpr_iter = BLI_ghashIterator_getValue(&gh_iter);
-		WM_manipulator_select_set(mmap, mpr_iter, true);
+		wmGizmo *mpr_iter = BLI_ghashIterator_getValue(&gh_iter);
+		WM_gizmo_select_set(mmap, mpr_iter, true);
 	}
-	/* highlight first manipulator */
-	wm_manipulatormap_highlight_set(mmap, C, msel->items[0], msel->items[0]->highlight_part);
+	/* highlight first gizmo */
+	wm_gizmomap_highlight_set(mmap, C, msel->items[0], msel->items[0]->highlight_part);
 
 	BLI_assert(BLI_ghash_len(hash) == msel->len);
 
@@ -781,21 +781,21 @@ static bool wm_manipulatormap_select_all_intern(
 }
 
 /**
- * Select/Deselect all selectable manipulators in \a mmap.
+ * Select/Deselect all selectable gizmos in \a mmap.
  * \return if selection has changed.
  *
  * TODO select all by type
  */
-bool WM_manipulatormap_select_all(bContext *C, wmManipulatorMap *mmap, const int action)
+bool WM_gizmomap_select_all(bContext *C, wmGizmoMap *mmap, const int action)
 {
 	bool changed = false;
 
 	switch (action) {
 		case SEL_SELECT:
-			changed = wm_manipulatormap_select_all_intern(C, mmap);
+			changed = wm_gizmomap_select_all_intern(C, mmap);
 			break;
 		case SEL_DESELECT:
-			changed = wm_manipulatormap_deselect_all(mmap);
+			changed = wm_gizmomap_deselect_all(mmap);
 			break;
 		default:
 			BLI_assert(0);
@@ -809,10 +809,10 @@ bool WM_manipulatormap_select_all(bContext *C, wmManipulatorMap *mmap, const int
 }
 
 /**
- * Prepare context for manipulator handling (but only if area/region is
- * part of screen). Version of #wm_handler_op_context for manipulators.
+ * Prepare context for gizmo handling (but only if area/region is
+ * part of screen). Version of #wm_handler_op_context for gizmos.
  */
-void wm_manipulatormap_handler_context(bContext *C, wmEventHandler *handler)
+void wm_gizmomap_handler_context(bContext *C, wmEventHandler *handler)
 {
 	bScreen *screen = CTX_wm_screen(C);
 
@@ -829,8 +829,8 @@ void wm_manipulatormap_handler_context(bContext *C, wmEventHandler *handler)
 			if (sa == NULL) {
 				/* when changing screen layouts with running modal handlers (like render display), this
 				 * is not an error to print */
-				if (handler->manipulator_map == NULL)
-					printf("internal error: modal manipulator-map handler has invalid area\n");
+				if (handler->gizmo_map == NULL)
+					printf("internal error: modal gizmo-map handler has invalid area\n");
 			}
 			else {
 				ARegion *ar;
@@ -846,9 +846,9 @@ void wm_manipulatormap_handler_context(bContext *C, wmEventHandler *handler)
 	}
 }
 
-bool WM_manipulatormap_cursor_set(const wmManipulatorMap *mmap, wmWindow *win)
+bool WM_gizmomap_cursor_set(const wmGizmoMap *mmap, wmWindow *win)
 {
-	wmManipulator *mpr = mmap->mmap_context.highlight;
+	wmGizmo *mpr = mmap->mmap_context.highlight;
 	if (mpr && mpr->type->cursor_get) {
 		WM_cursor_set(win, mpr->type->cursor_get(mpr));
 		return true;
@@ -857,21 +857,21 @@ bool WM_manipulatormap_cursor_set(const wmManipulatorMap *mmap, wmWindow *win)
 	return false;
 }
 
-bool wm_manipulatormap_highlight_set(
-        wmManipulatorMap *mmap, const bContext *C, wmManipulator *mpr, int part)
+bool wm_gizmomap_highlight_set(
+        wmGizmoMap *mmap, const bContext *C, wmGizmo *mpr, int part)
 {
 	if ((mpr != mmap->mmap_context.highlight) ||
 	    (mpr && part != mpr->highlight_part))
 	{
 		if (mmap->mmap_context.highlight) {
-			mmap->mmap_context.highlight->state &= ~WM_MANIPULATOR_STATE_HIGHLIGHT;
+			mmap->mmap_context.highlight->state &= ~WM_GIZMO_STATE_HIGHLIGHT;
 			mmap->mmap_context.highlight->highlight_part = -1;
 		}
 
 		mmap->mmap_context.highlight = mpr;
 
 		if (mpr) {
-			mpr->state |= WM_MANIPULATOR_STATE_HIGHLIGHT;
+			mpr->state |= WM_GIZMO_STATE_HIGHLIGHT;
 			mpr->highlight_part = part;
 			mmap->mmap_context.last_cursor = -1;
 
@@ -900,7 +900,7 @@ bool wm_manipulatormap_highlight_set(
 	return false;
 }
 
-wmManipulator *wm_manipulatormap_highlight_get(wmManipulatorMap *mmap)
+wmGizmo *wm_gizmomap_highlight_get(wmGizmoMap *mmap)
 {
 	return mmap->mmap_context.highlight;
 }
@@ -908,8 +908,8 @@ wmManipulator *wm_manipulatormap_highlight_get(wmManipulatorMap *mmap)
 /**
  * Caller should call exit when (enable == False).
  */
-void wm_manipulatormap_modal_set(
-        wmManipulatorMap *mmap, bContext *C, wmManipulator *mpr, const wmEvent *event, bool enable)
+void wm_gizmomap_modal_set(
+        wmGizmoMap *mmap, bContext *C, wmGizmo *mpr, const wmEvent *event, bool enable)
 {
 	if (enable) {
 		BLI_assert(mmap->mmap_context.modal == NULL);
@@ -926,10 +926,10 @@ void wm_manipulatormap_modal_set(
 			}
 		}
 
-		mpr->state |= WM_MANIPULATOR_STATE_MODAL;
+		mpr->state |= WM_GIZMO_STATE_MODAL;
 		mmap->mmap_context.modal = mpr;
 
-		if ((mpr->flag & WM_MANIPULATOR_GRAB_CURSOR) &&
+		if ((mpr->flag & WM_GIZMO_GRAB_CURSOR) &&
 		    (event->is_motion_absolute == false))
 		{
 			WM_cursor_grab_enable(win, true, true, NULL);
@@ -940,16 +940,16 @@ void wm_manipulatormap_modal_set(
 			mmap->mmap_context.event_xy[0] = INT_MAX;
 		}
 
-		struct wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, mpr->highlight_part);
+		struct wmGizmoOpElem *mpop = WM_gizmo_operator_get(mpr, mpr->highlight_part);
 		if (mpop && mpop->type) {
 			const int retval = WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
 			if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
-				wm_manipulatormap_modal_set(mmap, C, mpr, event, false);
+				wm_gizmomap_modal_set(mmap, C, mpr, event, false);
 			}
 
-			/* we failed to hook the manipulator to the operator handler or operator was cancelled, return */
+			/* we failed to hook the gizmo to the operator handler or operator was cancelled, return */
 			if (!mmap->mmap_context.modal) {
-				mpr->state &= ~WM_MANIPULATOR_STATE_MODAL;
+				mpr->state &= ~WM_GIZMO_STATE_MODAL;
 				MEM_SAFE_FREE(mpr->interaction_data);
 			}
 			return;
@@ -958,9 +958,9 @@ void wm_manipulatormap_modal_set(
 	else {
 		BLI_assert(ELEM(mmap->mmap_context.modal, NULL, mpr));
 
-		/* deactivate, manipulator but first take care of some stuff */
+		/* deactivate, gizmo but first take care of some stuff */
 		if (mpr) {
-			mpr->state &= ~WM_MANIPULATOR_STATE_MODAL;
+			mpr->state &= ~WM_GIZMO_STATE_MODAL;
 			MEM_SAFE_FREE(mpr->interaction_data);
 		}
 		mmap->mmap_context.modal = NULL;
@@ -986,34 +986,34 @@ void wm_manipulatormap_modal_set(
 	}
 }
 
-wmManipulator *wm_manipulatormap_modal_get(wmManipulatorMap *mmap)
+wmGizmo *wm_gizmomap_modal_get(wmGizmoMap *mmap)
 {
 	return mmap->mmap_context.modal;
 }
 
-wmManipulator **wm_manipulatormap_selected_get(wmManipulatorMap *mmap, int *r_selected_len)
+wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *mmap, int *r_selected_len)
 {
 	*r_selected_len = mmap->mmap_context.select.len;
 	return mmap->mmap_context.select.items;
 }
 
-ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap)
+ListBase *wm_gizmomap_groups_get(wmGizmoMap *mmap)
 {
 	return &mmap->groups;
 }
 
-void WM_manipulatormap_message_subscribe(
-        bContext *C, wmManipulatorMap *mmap, ARegion *ar, struct wmMsgBus *mbus)
+void WM_gizmomap_message_subscribe(
+        bContext *C, wmGizmoMap *mmap, ARegion *ar, struct wmMsgBus *mbus)
 {
-	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
-		if (!WM_manipulator_group_type_poll(C, mgroup->type)) {
+	for (wmGizmoGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+		if (!WM_gizmo_group_type_poll(C, mgroup->type)) {
 			continue;
 		}
-		for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
-			if (mpr->flag & WM_MANIPULATOR_HIDDEN) {
+		for (wmGizmo *mpr = mgroup->gizmos.first; mpr; mpr = mpr->next) {
+			if (mpr->flag & WM_GIZMO_HIDDEN) {
 				continue;
 			}
-			WM_manipulator_target_property_subscribe_all(mpr, mbus, ar);
+			WM_gizmo_target_property_subscribe_all(mpr, mbus, ar);
 		}
 		if (mgroup->type->message_subscribe != NULL) {
 			mgroup->type->message_subscribe(C, mgroup, mbus);
@@ -1021,7 +1021,7 @@ void WM_manipulatormap_message_subscribe(
 	}
 }
 
-/** \} */ /* wmManipulatorMap */
+/** \} */ /* wmGizmoMap */
 
 
 /* -------------------------------------------------------------------- */
@@ -1029,31 +1029,31 @@ void WM_manipulatormap_message_subscribe(
  *
  * \{ */
 
-struct ARegion *WM_manipulatormap_tooltip_init(
+struct ARegion *WM_gizmomap_tooltip_init(
         struct bContext *C, struct ARegion *ar, bool *r_exit_on_event)
 {
-	wmManipulatorMap *mmap = ar->manipulator_map;
+	wmGizmoMap *mmap = ar->gizmo_map;
 	*r_exit_on_event = true;
 	if (mmap) {
-		wmManipulator *mpr = mmap->mmap_context.highlight;
+		wmGizmo *mpr = mmap->mmap_context.highlight;
 		if (mpr) {
-			return UI_tooltip_create_from_manipulator(C, mpr);
+			return UI_tooltip_create_from_gizmo(C, mpr);
 		}
 	}
 	return NULL;
 }
 
-/** \} */ /* wmManipulatorMapType */
+/** \} */ /* wmGizmoMapType */
 
 /* -------------------------------------------------------------------- */
-/** \name wmManipulatorMapType
+/** \name wmGizmoMapType
  *
  * \{ */
 
-wmManipulatorMapType *WM_manipulatormaptype_find(
-        const struct wmManipulatorMapType_Params *mmap_params)
+wmGizmoMapType *WM_gizmomaptype_find(
+        const struct wmGizmoMapType_Params *mmap_params)
 {
-	for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first; mmap_type; mmap_type = mmap_type->next) {
+	for (wmGizmoMapType *mmap_type = gizmomaptypes.first; mmap_type; mmap_type = mmap_type->next) {
 		if (mmap_type->spaceid == mmap_params->spaceid &&
 		    mmap_type->regionid == mmap_params->regionid)
 		{
@@ -1064,57 +1064,57 @@ wmManipulatorMapType *WM_manipulatormaptype_find(
 	return NULL;
 }
 
-wmManipulatorMapType *WM_manipulatormaptype_ensure(
-        const struct wmManipulatorMapType_Params *mmap_params)
+wmGizmoMapType *WM_gizmomaptype_ensure(
+        const struct wmGizmoMapType_Params *mmap_params)
 {
-	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_find(mmap_params);
+	wmGizmoMapType *mmap_type = WM_gizmomaptype_find(mmap_params);
 
 	if (mmap_type) {
 		return mmap_type;
 	}
 
-	mmap_type = MEM_callocN(sizeof(wmManipulatorMapType), "manipulatortype list");
+	mmap_type = MEM_callocN(sizeof(wmGizmoMapType), "gizmotype list");
 	mmap_type->spaceid = mmap_params->spaceid;
 	mmap_type->regionid = mmap_params->regionid;
-	BLI_addhead(&manipulatormaptypes, mmap_type);
+	BLI_addhead(&gizmomaptypes, mmap_type);
 
 	return mmap_type;
 }
 
-void wm_manipulatormaptypes_free(void)
+void wm_gizmomaptypes_free(void)
 {
-	for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first, *mmap_type_next;
+	for (wmGizmoMapType *mmap_type = gizmomaptypes.first, *mmap_type_next;
 	     mmap_type;
 	     mmap_type = mmap_type_next)
 	{
 		mmap_type_next = mmap_type->next;
-		for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first, *wgt_next;
+		for (wmGizmoGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first, *wgt_next;
 		     wgt_ref;
 		     wgt_ref = wgt_next)
 		{
 			wgt_next = wgt_ref->next;
-			WM_manipulatormaptype_group_free(wgt_ref);
+			WM_gizmomaptype_group_free(wgt_ref);
 		}
 		MEM_freeN(mmap_type);
 	}
 }
 
 /**
- * Initialize keymaps for all existing manipulator-groups
+ * Initialize keymaps for all existing gizmo-groups
  */
-void wm_manipulators_keymap(wmKeyConfig *keyconf)
+void wm_gizmos_keymap(wmKeyConfig *keyconf)
 {
-	/* we add this item-less keymap once and use it to group manipulator-group keymaps into it */
-	WM_keymap_find(keyconf, "Manipulators", 0, 0);
+	/* we add this item-less keymap once and use it to group gizmo-group keymaps into it */
+	WM_keymap_find(keyconf, "Gizmos", 0, 0);
 
-	for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first; mmap_type; mmap_type = mmap_type->next) {
-		for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first; wgt_ref; wgt_ref = wgt_ref->next) {
-			wm_manipulatorgrouptype_setup_keymap(wgt_ref->type, keyconf);
+	for (wmGizmoMapType *mmap_type = gizmomaptypes.first; mmap_type; mmap_type = mmap_type->next) {
+		for (wmGizmoGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first; wgt_ref; wgt_ref = wgt_ref->next) {
+			wm_gizmogrouptype_setup_keymap(wgt_ref->type, keyconf);
 		}
 	}
 }
 
-/** \} */ /* wmManipulatorMapType */
+/** \} */ /* wmGizmoMapType */
 
 /* -------------------------------------------------------------------- */
 /** \name Updates for Dynamic Type Registraion
@@ -1122,31 +1122,31 @@ void wm_manipulators_keymap(wmKeyConfig *keyconf)
  * \{ */
 
 
-void WM_manipulatorconfig_update_tag_init(
-        wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
+void WM_gizmoconfig_update_tag_init(
+        wmGizmoMapType *mmap_type, wmGizmoGroupType *wgt)
 {
 	/* tag for update on next use */
-	mmap_type->type_update_flag |= (WM_MANIPULATORMAPTYPE_UPDATE_INIT | WM_MANIPULATORMAPTYPE_KEYMAP_INIT);
-	wgt->type_update_flag |= (WM_MANIPULATORMAPTYPE_UPDATE_INIT | WM_MANIPULATORMAPTYPE_KEYMAP_INIT);
+	mmap_type->type_update_flag |= (WM_GIZMOMAPTYPE_UPDATE_INIT | WM_GIZMOMAPTYPE_KEYMAP_INIT);
+	wgt->type_update_flag |= (WM_GIZMOMAPTYPE_UPDATE_INIT | WM_GIZMOMAPTYPE_KEYMAP_INIT);
 
-	wm_mmap_type_update_flag |= WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT;
+	wm_mmap_type_update_flag |= WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT;
 }
 
-void WM_manipulatorconfig_update_tag_remove(
-        wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
+void WM_gizmoconfig_update_tag_remove(
+        wmGizmoMapType *mmap_type, wmGizmoGroupType *wgt)
 {
 	/* tag for update on next use */
-	mmap_type->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_REMOVE;
-	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_REMOVE;
+	mmap_type->type_update_flag |= WM_GIZMOMAPTYPE_UPDATE_REMOVE;
+	wgt->type_update_flag |= WM_GIZMOMAPTYPE_UPDATE_REMOVE;
 
-	wm_mmap_type_update_flag |= WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE;
+	wm_mmap_type_update_flag |= WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE;
 }
 
 /**
  * Run incase new types have been added (runs often, early exit where possible).
  * Follows #WM_keyconfig_update concentions.
  */
-void WM_manipulatorconfig_update(struct Main *bmain)
+void WM_gizmoconfig_update(struct Main *bmain)
 {
 	if (G.background)
 		return;
@@ -1154,55 +1154,55 @@ void WM_manipulatorconfig_update(struct Main *bmain)
 	if (wm_mmap_type_update_flag == 0)
 		return;
 
-	if (wm_mmap_type_update_flag & WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE) {
-		for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first;
+	if (wm_mmap_type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
+		for (wmGizmoMapType *mmap_type = gizmomaptypes.first;
 		     mmap_type;
 		     mmap_type = mmap_type->next)
 		{
-			if (mmap_type->type_update_flag & WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE) {
-				mmap_type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_REMOVE;
-				for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first, *wgt_ref_next;
+			if (mmap_type->type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
+				mmap_type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;
+				for (wmGizmoGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first, *wgt_ref_next;
 				     wgt_ref;
 				     wgt_ref = wgt_ref_next)
 				{
 					wgt_ref_next = wgt_ref->next;
-					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_UPDATE_REMOVE) {
-						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_REMOVE;
-						WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt_ref->type);
+					if (wgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_UPDATE_REMOVE) {
+						wgt_ref->type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;
+						WM_gizmomaptype_group_unlink(NULL, bmain, mmap_type, wgt_ref->type);
 					}
 				}
 			}
 		}
 
-		wm_mmap_type_update_flag &= ~WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE;
+		wm_mmap_type_update_flag &= ~WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE;
 	}
 
-	if (wm_mmap_type_update_flag & WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT) {
-		for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first;
+	if (wm_mmap_type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT) {
+		for (wmGizmoMapType *mmap_type = gizmomaptypes.first;
 		     mmap_type;
 		     mmap_type = mmap_type->next)
 		{
-			const uchar type_update_all = WM_MANIPULATORMAPTYPE_UPDATE_INIT | WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
+			const uchar type_update_all = WM_GIZMOMAPTYPE_UPDATE_INIT | WM_GIZMOMAPTYPE_KEYMAP_INIT;
 			if (mmap_type->type_update_flag & type_update_all) {
 				mmap_type->type_update_flag &= ~type_update_all;
-				for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first;
+				for (wmGizmoGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first;
 				     wgt_ref;
 				     wgt_ref = wgt_ref->next)
 				{
-					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_KEYMAP_INIT) {
-						WM_manipulatormaptype_group_init_runtime_keymap(bmain, wgt_ref->type);
-						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
+					if (wgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_KEYMAP_INIT) {
+						WM_gizmomaptype_group_init_runtime_keymap(bmain, wgt_ref->type);
+						wgt_ref->type->type_update_flag &= ~WM_GIZMOMAPTYPE_KEYMAP_INIT;
 					}
 
-					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_UPDATE_INIT) {
-						WM_manipulatormaptype_group_init_runtime(bmain, mmap_type, wgt_ref->type);
-						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+					if (wgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_UPDATE_INIT) {
+						WM_gizmomaptype_group_init_runtime(bmain, mmap_type, wgt_ref->type);
+						wgt_ref->type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_INIT;
 					}
 				}
 			}
 		}
 
-		wm_mmap_type_update_flag &= ~WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT;
+		wm_mmap_type_update_flag &= ~WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT;
 	}
 }
 

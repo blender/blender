@@ -80,7 +80,7 @@ struct bContext {
 		struct ScrArea *area;
 		struct ARegion *region;
 		struct ARegion *menu;
-		struct wmManipulatorGroup *manipulator_group;
+		struct wmGizmoGroup *gizmo_group;
 		struct bContextStore *store;
 		const char *operator_poll_msg; /* reason for poll failing */
 	} wm;
@@ -675,9 +675,9 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 	return C->wm.menu;
 }
 
-struct wmManipulatorGroup *CTX_wm_manipulator_group(const bContext *C)
+struct wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C)
 {
-	return C->wm.manipulator_group;
+	return C->wm.gizmo_group;
 }
 
 struct wmMsgBus *CTX_wm_message_bus(const bContext *C)
@@ -876,9 +876,9 @@ void CTX_wm_menu_set(bContext *C, ARegion *menu)
 	C->wm.menu = menu;
 }
 
-void CTX_wm_manipulator_group_set(bContext *C, struct wmManipulatorGroup *mgroup)
+void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *mgroup)
 {
-	C->wm.manipulator_group = mgroup;
+	C->wm.gizmo_group = mgroup;
 }
 
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)

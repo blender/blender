@@ -21,11 +21,11 @@
 /** \file button2d_gizmo.c
  *  \ingroup wm
  *
- * \name Button Manipulator
+ * \name Button Gizmo
  *
- * 2D Manipulator, also works in 3D views.
+ * 2D Gizmo, also works in 3D views.
  *
- * \brief Single click button action for use in manipulator groups.
+ * \brief Single click button action for use in gizmo groups.
  *
  * \note Currently only basic icon & vector-shape buttons are supported.
  *
@@ -66,20 +66,20 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
-typedef struct ButtonManipulator2D {
-	wmManipulator manipulator;
+typedef struct ButtonGizmo2D {
+	wmGizmo gizmo;
 	bool is_init;
 	/* Use an icon or shape */
 	int icon;
 	Gwn_Batch *shape_batch[2];
-} ButtonManipulator2D;
+} ButtonGizmo2D;
 
 #define CIRCLE_RESOLUTION 32
 
 /* -------------------------------------------------------------------- */
 
 static void button2d_geom_draw_backdrop(
-        const wmManipulator *mpr, const float color[4], const bool select)
+        const wmGizmo *mpr, const float color[4], const bool select)
 {
 	GPU_line_width(mpr->line_width);
 
@@ -99,10 +99,10 @@ static void button2d_geom_draw_backdrop(
 }
 
 static void button2d_draw_intern(
-        const bContext *C, wmManipulator *mpr,
+        const bContext *C, wmGizmo *mpr,
         const bool select, const bool highlight)
 {
-	ButtonManipulator2D *button = (ButtonManipulator2D *)mpr;
+	ButtonGizmo2D *button = (ButtonGizmo2D *)mpr;
 
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 	if (button->is_init == false) {
@@ -126,16 +126,16 @@ static void button2d_draw_intern(
 	float color[4];
 	float matrix_final[4][4];
 
-	manipulator_color_get(mpr, highlight, color);
-	WM_manipulator_calc_matrix_final(mpr, matrix_final);
+	gizmo_color_get(mpr, highlight, color);
+	WM_gizmo_calc_matrix_final(mpr, matrix_final);
 
 
-	bool is_3d = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) != 0;
+	bool is_3d = (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) != 0;
 
 
-	if (draw_options & ED_MANIPULATOR_BUTTON_SHOW_HELPLINE) {
+	if (draw_options & ED_GIZMO_BUTTON_SHOW_HELPLINE) {
 		float matrix_final_no_offset[4][4];
-		WM_manipulator_calc_matrix_final_no_offset(mpr, matrix_final_no_offset);
+		WM_gizmo_calc_matrix_final_no_offset(mpr, matrix_final_no_offset);
 		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor4fv(color);
@@ -180,7 +180,7 @@ static void button2d_draw_intern(
 				GWN_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
 				GWN_batch_draw(button->shape_batch[i]);
 
-				if (draw_options & ED_MANIPULATOR_BUTTON_SHOW_OUTLINE) {
+				if (draw_options & ED_GIZMO_BUTTON_SHOW_OUTLINE) {
 					color[0] = 1.0f - color[0];
 					color[1] = 1.0f - color[1];
 					color[2] = 1.0f - color[2];
@@ -215,29 +215,29 @@ static void button2d_draw_intern(
 	}
 }
 
-static void manipulator_button2d_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
+static void gizmo_button2d_draw_select(const bContext *C, wmGizmo *mpr, int select_id)
 {
 	GPU_select_load_id(select_id);
 	button2d_draw_intern(C, mpr, true, false);
 }
 
-static void manipulator_button2d_draw(const bContext *C, wmManipulator *mpr)
+static void gizmo_button2d_draw(const bContext *C, wmGizmo *mpr)
 {
-	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
+	const bool is_highlight = (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 
 	GPU_blend(true);
 	button2d_draw_intern(C, mpr, false, is_highlight);
 	GPU_blend(false);
 }
 
-static int manipulator_button2d_test_select(
-        bContext *C, wmManipulator *mpr, const wmEvent *event)
+static int gizmo_button2d_test_select(
+        bContext *C, wmGizmo *mpr, const wmEvent *event)
 {
 	float point_local[2];
 
 	if (0) {
 		/* correct, but unnecessarily slow. */
-		if (manipulator_window_project_2d(
+		if (gizmo_window_project_2d(
 		        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
 		{
 			return -1;
@@ -256,7 +256,7 @@ static int manipulator_button2d_test_select(
 	return -1;
 }
 
-static int manipulator_button2d_cursor_get(wmManipulator *mpr)
+static int gizmo_button2d_cursor_get(wmGizmo *mpr)
 {
 	if (RNA_boolean_get(mpr->ptr, "show_drag")) {
 		return BC_NSEW_SCROLLCURSOR;
@@ -264,9 +264,9 @@ static int manipulator_button2d_cursor_get(wmManipulator *mpr)
 	return CURSOR_STD;
 }
 
-static void manipulator_button2d_free(wmManipulator *mpr)
+static void gizmo_button2d_free(wmGizmo *mpr)
 {
-	ButtonManipulator2D *shape = (ButtonManipulator2D *)mpr;
+	ButtonGizmo2D *shape = (ButtonGizmo2D *)mpr;
 
 	for (uint i = 0; i < ARRAY_SIZE(shape->shape_batch); i++) {
 		GWN_BATCH_DISCARD_SAFE(shape->shape_batch[i]);
@@ -276,28 +276,28 @@ static void manipulator_button2d_free(wmManipulator *mpr)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Button Manipulator API
+/** \name Button Gizmo API
  *
  * \{ */
 
-static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
+static void GIZMO_WT_button_2d(wmGizmoType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_button_2d";
+	wt->idname = "GIZMO_WT_button_2d";
 
 	/* api callbacks */
-	wt->draw = manipulator_button2d_draw;
-	wt->draw_select = manipulator_button2d_draw_select;
-	wt->test_select = manipulator_button2d_test_select;
-	wt->cursor_get = manipulator_button2d_cursor_get;
-	wt->free = manipulator_button2d_free;
+	wt->draw = gizmo_button2d_draw;
+	wt->draw_select = gizmo_button2d_draw_select;
+	wt->test_select = gizmo_button2d_test_select;
+	wt->cursor_get = gizmo_button2d_cursor_get;
+	wt->free = gizmo_button2d_free;
 
-	wt->struct_size = sizeof(ButtonManipulator2D);
+	wt->struct_size = sizeof(ButtonGizmo2D);
 
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_MANIPULATOR_BUTTON_SHOW_OUTLINE, "OUTLINE", 0, "Outline", ""},
-		{ED_MANIPULATOR_BUTTON_SHOW_HELPLINE, "HELPLINE", 0, "Help Line", ""},
+		{ED_GIZMO_BUTTON_SHOW_OUTLINE, "OUTLINE", 0, "Outline", ""},
+		{ED_GIZMO_BUTTON_SHOW_HELPLINE, "HELPLINE", 0, "Help Line", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	PropertyRNA *prop;
@@ -314,9 +314,9 @@ static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
 	RNA_def_boolean(wt->srna, "show_drag", true, "Show Drag", "");
 }
 
-void ED_manipulatortypes_button_2d(void)
+void ED_gizmotypes_button_2d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_button_2d);
+	WM_gizmotype_append(GIZMO_WT_button_2d);
 }
 
-/** \} */ // Button Manipulator API
+/** \} */ // Button Gizmo API

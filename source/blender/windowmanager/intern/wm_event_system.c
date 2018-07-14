@@ -2004,8 +2004,8 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					CTX_wm_region_set(C, NULL);
 				}
 
-				/* update manipulators during modal handlers */
-				wm_manipulatormaps_handled_modal_update(C, event, handler);
+				/* update gizmos during modal handlers */
+				wm_gizmomaps_handled_modal_update(C, event, handler);
 
 				/* remove modal handler, operator itself should have been canceled and freed */
 				if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
@@ -2392,32 +2392,32 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					}
 				}
 			}
-			else if (handler->manipulator_map) {
+			else if (handler->gizmo_map) {
 				ScrArea *area = CTX_wm_area(C);
 				ARegion *region = CTX_wm_region(C);
-				wmManipulatorMap *mmap = handler->manipulator_map;
-				wmManipulator *mpr = wm_manipulatormap_highlight_get(mmap);
+				wmGizmoMap *mmap = handler->gizmo_map;
+				wmGizmo *mpr = wm_gizmomap_highlight_get(mmap);
 
-				if (region->manipulator_map != handler->manipulator_map) {
-					WM_manipulatormap_tag_refresh(handler->manipulator_map);
+				if (region->gizmo_map != handler->gizmo_map) {
+					WM_gizmomap_tag_refresh(handler->gizmo_map);
 				}
 
-				wm_manipulatormap_handler_context(C, handler);
+				wm_gizmomap_handler_context(C, handler);
 				wm_region_mouse_co(C, event);
 
-				/* handle manipulator highlighting */
-				if (event->type == MOUSEMOVE && !wm_manipulatormap_modal_get(mmap)) {
+				/* handle gizmo highlighting */
+				if (event->type == MOUSEMOVE && !wm_gizmomap_modal_get(mmap)) {
 					int part;
-					mpr = wm_manipulatormap_highlight_find(mmap, C, event, &part);
-					if (wm_manipulatormap_highlight_set(mmap, C, mpr, part) && mpr != NULL) {
-						WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_manipulatormap_tooltip_init);
+					mpr = wm_gizmomap_highlight_find(mmap, C, event, &part);
+					if (wm_gizmomap_highlight_set(mmap, C, mpr, part) && mpr != NULL) {
+						WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_gizmomap_tooltip_init);
 					}
 				}
 				else {
 					/* Either we operate on a single highlighted item
-					 * or groups attached to the selected manipulators.
+					 * or groups attached to the selected gizmos.
 					 * To simplify things both cases loop over an array of items. */
-					wmManipulatorGroup *mgroup_first;
+					wmGizmoGroup *mgroup_first;
 					bool is_mgroup_single;
 
 					if (ISMOUSE(event->type)) {
@@ -2431,8 +2431,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 						is_mgroup_single = true;
 					}
 					else {
-						if (WM_manipulatormap_is_any_selected(mmap)) {
-							const ListBase *groups = WM_manipulatormap_group_list(mmap);
+						if (WM_gizmomap_is_any_selected(mmap)) {
+							const ListBase *groups = WM_gizmomap_group_list(mmap);
 							mgroup_first = groups->first;
 						}
 						else {
@@ -2444,13 +2444,13 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					/* Don't use from now on. */
 					mpr = NULL;
 
-					for (wmManipulatorGroup *mgroup = mgroup_first; mgroup; mgroup = mgroup->next) {
+					for (wmGizmoGroup *mgroup = mgroup_first; mgroup; mgroup = mgroup->next) {
 						/* get user customized keymap from default one */
 
 						if ((is_mgroup_single == false) &&
-						    /* We might want to change the logic here and use some kind of manipulator edit-mode.
+						    /* We might want to change the logic here and use some kind of gizmo edit-mode.
 						     * For now just use keymap when a selection exists. */
-						    wm_manipulatorgroup_is_any_selected(mgroup) == false)
+						    wm_gizmogroup_is_any_selected(mgroup) == false)
 						{
 							continue;
 						}
@@ -2472,14 +2472,14 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									/* weak, but allows interactive callback to not use rawkey */
 									event->keymap_idname = kmi->idname;
 
-									CTX_wm_manipulator_group_set(C, mgroup);
+									CTX_wm_gizmo_group_set(C, mgroup);
 
 									/* handler->op is called later, we want keymap op to be triggered here */
 									handler->op = NULL;
 									action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
 									handler->op = op;
 
-									CTX_wm_manipulator_group_set(C, NULL);
+									CTX_wm_gizmo_group_set(C, NULL);
 
 									if (action & WM_HANDLER_BREAK) {
 										if (keymap_callback.handle_post_fn != NULL) {
@@ -2804,7 +2804,7 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 }
 
 #ifdef USE_WORKSPACE_TOOL
-static void wm_event_manipulator_temp_handler_apply(
+static void wm_event_gizmo_temp_handler_apply(
         bContext *C, ScrArea *sa, ARegion *ar, wmEventHandler *sneaky_handler)
 {
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
@@ -2818,17 +2818,17 @@ static void wm_event_manipulator_temp_handler_apply(
 
 				/* Handle widgets first. */
 				wmEventHandler *handler_last = ar->handlers.last;
-				while (handler_last && handler_last->manipulator_map == NULL) {
+				while (handler_last && handler_last->gizmo_map == NULL) {
 					handler_last = handler_last->prev;
 				}
-				/* Head of list or after last manipulator. */
+				/* Head of list or after last gizmo. */
 				BLI_insertlinkafter(&ar->handlers, handler_last, sneaky_handler);
 			}
 		}
 	}
 }
 
-static void wm_event_manipulator_temp_handler_clear(
+static void wm_event_gizmo_temp_handler_clear(
         bContext *UNUSED(C), ScrArea *UNUSED(sa), ARegion *ar, wmEventHandler *sneaky_handler)
 {
 	if (sneaky_handler->keymap) {
@@ -2846,7 +2846,7 @@ void wm_event_do_handlers(bContext *C)
 
 	/* update key configuration before handling events */
 	WM_keyconfig_update(wm);
-	WM_manipulatorconfig_update(CTX_data_main(C));
+	WM_gizmoconfig_update(CTX_data_main(C));
 
 	for (win = wm->windows.first; win; win = win->next) {
 		bScreen *screen = WM_window_get_active_screen(win);
@@ -3021,13 +3021,13 @@ void wm_event_do_handlers(bContext *C)
 									 * to fetch its current keymap.
 									 */
 									wmEventHandler sneaky_handler = {NULL};
-									wm_event_manipulator_temp_handler_apply(C, sa, ar, &sneaky_handler);
+									wm_event_gizmo_temp_handler_apply(C, sa, ar, &sneaky_handler);
 #endif /* USE_WORKSPACE_TOOL */
 
 									action |= wm_handlers_do(C, event, &ar->handlers);
 
 #ifdef USE_WORKSPACE_TOOL
-									wm_event_manipulator_temp_handler_clear(C, sa, ar, &sneaky_handler);
+									wm_event_gizmo_temp_handler_clear(C, sa, ar, &sneaky_handler);
 #endif /* USE_WORKSPACE_TOOL */
 
 									/* fileread case (python), [#29489] */
@@ -3094,7 +3094,7 @@ void wm_event_do_handlers(bContext *C)
 
 	/* update key configuration after handling events */
 	WM_keyconfig_update(wm);
-	WM_manipulatorconfig_update(CTX_data_main(C));
+	WM_gizmoconfig_update(CTX_data_main(C));
 }
 
 /* ********** filesector handling ************ */
@@ -4470,7 +4470,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 
 #ifdef USE_WORKSPACE_TOOL
 	wmEventHandler sneaky_handler = {NULL};
-	wm_event_manipulator_temp_handler_apply(C, sa, ar, &sneaky_handler);
+	wm_event_gizmo_temp_handler_apply(C, sa, ar, &sneaky_handler);
 #endif
 
 	ListBase *handlers[] = {
@@ -4503,7 +4503,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 	}
 
 #ifdef USE_WORKSPACE_TOOL
-	wm_event_manipulator_temp_handler_clear(C, sa, ar, &sneaky_handler);
+	wm_event_gizmo_temp_handler_clear(C, sa, ar, &sneaky_handler);
 #endif
 
 	if (memcmp(&cd_prev.text, &cd->text, sizeof(cd_prev.text)) != 0) {

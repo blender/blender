@@ -90,7 +90,7 @@ typedef struct RegionView3D {
 	struct wmTimer *smooth_timer;
 
 
-	/* transform manipulator matrix */
+	/* transform gizmo matrix */
 	float twmat[4][4];
 	/* min/max dot product on twmat xyz axis. */
 	float tw_axis_min[3], tw_axis_max[3];
@@ -236,7 +236,7 @@ typedef struct View3D {
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	char gridflag;
 
-	/* transform manipulator info */
+	/* transform gizmo info */
 	char _pad5[2], mpr_flag;
 
 	short flag3;
@@ -453,11 +453,11 @@ enum {
 
 /* View3d.mpr_flag (also) */
 enum {
-	/** All manipulators. */
-	V3D_MANIPULATOR_HIDE                = (1 << 0),
-	V3D_MANIPULATOR_HIDE_NAVIGATE       = (1 << 1),
-	V3D_MANIPULATOR_HIDE_CONTEXT        = (1 << 2),
-	V3D_MANIPULATOR_HIDE_TOOL           = (1 << 3),
+	/** All gizmos. */
+	V3D_GIZMO_HIDE                = (1 << 0),
+	V3D_GIZMO_HIDE_NAVIGATE       = (1 << 1),
+	V3D_GIZMO_HIDE_CONTEXT        = (1 << 2),
+	V3D_GIZMO_HIDE_TOOL           = (1 << 3),
 };
 
 #define RV3D_CAMZOOM_MIN -30

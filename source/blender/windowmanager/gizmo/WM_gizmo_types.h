@@ -26,8 +26,8 @@
 /** \file blender/windowmanager/gizmo/WM_gizmo_types.h
  *  \ingroup wm
  *
- * \name Manipulator Types
- * \brief Manipulator defines for external use.
+ * \name Gizmo Types
+ * \brief Gizmo defines for external use.
  *
  * Only included in WM_types.h and lower level files.
  */
@@ -38,11 +38,11 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct wmManipulatorMapType;
-struct wmManipulatorGroupType;
-struct wmManipulatorGroup;
-struct wmManipulator;
-struct wmManipulatorProperty;
+struct wmGizmoMapType;
+struct wmGizmoGroupType;
+struct wmGizmoGroup;
+struct wmGizmo;
+struct wmGizmoProperty;
 struct wmKeyConfig;
 
 #include "DNA_listBase.h"
@@ -53,154 +53,154 @@ struct wmKeyConfig;
 
 
 /**
- * #wmManipulator.state
+ * #wmGizmo.state
  */
-typedef enum eWM_ManipulatorState {
-	WM_MANIPULATOR_STATE_HIGHLIGHT   = (1 << 0), /* while hovered */
-	WM_MANIPULATOR_STATE_MODAL       = (1 << 1), /* while dragging */
-	WM_MANIPULATOR_STATE_SELECT      = (1 << 2),
-} eWM_ManipulatorState;
+typedef enum eWM_GizmoFlagState {
+	WM_GIZMO_STATE_HIGHLIGHT   = (1 << 0), /* while hovered */
+	WM_GIZMO_STATE_MODAL       = (1 << 1), /* while dragging */
+	WM_GIZMO_STATE_SELECT      = (1 << 2),
+} eWM_GizmoFlagState;
 
 
 /**
- * #wmManipulator.flag
- * Flags for individual manipulators.
+ * #wmGizmo.flag
+ * Flags for individual gizmos.
  */
-typedef enum eWM_ManipulatorFlag {
-	WM_MANIPULATOR_DRAW_HOVER  = (1 << 0), /* draw *only* while hovering */
-	WM_MANIPULATOR_DRAW_MODAL  = (1 << 1), /* draw while dragging */
-	WM_MANIPULATOR_DRAW_VALUE  = (1 << 2), /* draw an indicator for the current value while dragging */
-	WM_MANIPULATOR_HIDDEN      = (1 << 3),
+typedef enum eWM_GizmoFlagFlag {
+	WM_GIZMO_DRAW_HOVER  = (1 << 0), /* draw *only* while hovering */
+	WM_GIZMO_DRAW_MODAL  = (1 << 1), /* draw while dragging */
+	WM_GIZMO_DRAW_VALUE  = (1 << 2), /* draw an indicator for the current value while dragging */
+	WM_GIZMO_HIDDEN      = (1 << 3),
 	/**
 	 * When set 'scale_final' value also scales the offset.
 	 * Use when offset is to avoid screen-space overlap instead of absolute positioning. */
-	WM_MANIPULATOR_DRAW_OFFSET_SCALE  = (1 << 4),
+	WM_GIZMO_DRAW_OFFSET_SCALE  = (1 << 4),
 	/**
 	 * User should still use 'scale_final' for any handles and UI elements.
 	 * This simply skips scale when calculating the final matrix.
-	 * Needed when the manipulator needs to align with the interface underneath it. */
-	WM_MANIPULATOR_DRAW_NO_SCALE  = (1 << 5),
+	 * Needed when the gizmo needs to align with the interface underneath it. */
+	WM_GIZMO_DRAW_NO_SCALE  = (1 << 5),
 	/**
-	 * Hide the cursor and lock it's position while interacting with this manipulator.
+	 * Hide the cursor and lock it's position while interacting with this gizmo.
 	 */
-	WM_MANIPULATOR_GRAB_CURSOR = (1 << 6),
+	WM_GIZMO_GRAB_CURSOR = (1 << 6),
 	/** Don't write into the depth buffer when selecting. */
-	WM_MANIPULATOR_SELECT_BACKGROUND  = (1 << 7),
-} eWM_ManipulatorFlag;
+	WM_GIZMO_SELECT_BACKGROUND  = (1 << 7),
+} eWM_GizmoFlagFlag;
 
 /**
- * #wmManipulatorGroupType.flag
- * Flags that influence the behavior of all manipulators in the group.
+ * #wmGizmoGroupType.flag
+ * Flags that influence the behavior of all gizmos in the group.
  */
-typedef enum eWM_ManipulatorGroupTypeFlag {
-	/* Mark manipulator-group as being 3D */
-	WM_MANIPULATORGROUPTYPE_3D       = (1 << 0),
-	/* Scale manipulators as 3D object that respects zoom (otherwise zoom independent draw size).
+typedef enum eWM_GizmoFlagGroupTypeFlag {
+	/* Mark gizmo-group as being 3D */
+	WM_GIZMOGROUPTYPE_3D       = (1 << 0),
+	/* Scale gizmos as 3D object that respects zoom (otherwise zoom independent draw size).
 	 * note: currently only for 3D views, 2D support needs adding. */
-	WM_MANIPULATORGROUPTYPE_SCALE    = (1 << 1),
-	/* Manipulators can be depth culled with scene objects (covered by other geometry - TODO) */
-	WM_MANIPULATORGROUPTYPE_DEPTH_3D = (1 << 2),
-	/* Manipulators can be selected */
-	WM_MANIPULATORGROUPTYPE_SELECT  = (1 << 3),
-	/* The manipulator group is to be kept (not removed on loading a new file for eg). */
-	WM_MANIPULATORGROUPTYPE_PERSISTENT = (1 << 4),
-	/* Show all other manipulators when interacting. */
-	WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
-} eWM_ManipulatorGroupTypeFlag;
+	WM_GIZMOGROUPTYPE_SCALE    = (1 << 1),
+	/* Gizmos can be depth culled with scene objects (covered by other geometry - TODO) */
+	WM_GIZMOGROUPTYPE_DEPTH_3D = (1 << 2),
+	/* Gizmos can be selected */
+	WM_GIZMOGROUPTYPE_SELECT  = (1 << 3),
+	/* The gizmo group is to be kept (not removed on loading a new file for eg). */
+	WM_GIZMOGROUPTYPE_PERSISTENT = (1 << 4),
+	/* Show all other gizmos when interacting. */
+	WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
+} eWM_GizmoFlagGroupTypeFlag;
 
 
 /**
- * #wmManipulatorGroup.init_flag
+ * #wmGizmoGroup.init_flag
  */
-typedef enum eWM_ManipulatorGroupInitFlag {
+typedef enum eWM_GizmoFlagGroupInitFlag {
 	/* mgroup has been initialized */
-	WM_MANIPULATORGROUP_INIT_SETUP = (1 << 0),
-	WM_MANIPULATORGROUP_INIT_REFRESH = (1 << 1),
-} eWM_ManipulatorGroupInitFlag;
+	WM_GIZMOGROUP_INIT_SETUP = (1 << 0),
+	WM_GIZMOGROUP_INIT_REFRESH = (1 << 1),
+} eWM_GizmoFlagGroupInitFlag;
 
 /**
- * #wmManipulatorMapType.type_update_flag
- * Manipulator-map type update flag
+ * #wmGizmoMapType.type_update_flag
+ * Gizmo-map type update flag
  */
-typedef enum eWM_ManipulatorMapTypeUpdateFlag {
+typedef enum eWM_GizmoFlagMapTypeUpdateFlag {
 	/* A new type has been added, needs to be initialized for all views. */
-	WM_MANIPULATORMAPTYPE_UPDATE_INIT = (1 << 0),
-	WM_MANIPULATORMAPTYPE_UPDATE_REMOVE = (1 << 1),
+	WM_GIZMOMAPTYPE_UPDATE_INIT = (1 << 0),
+	WM_GIZMOMAPTYPE_UPDATE_REMOVE = (1 << 1),
 
 	/* Needed because keymap may be registered before and after window initialization.
 	 * So we need to keep track of keymap initialization separately. */
-	WM_MANIPULATORMAPTYPE_KEYMAP_INIT = (1 << 2),
-} eWM_ManipulatorMapTypeUpdateFlag;
+	WM_GIZMOMAPTYPE_KEYMAP_INIT = (1 << 2),
+} eWM_GizmoFlagMapTypeUpdateFlag;
 
 /* -------------------------------------------------------------------- */
-/* wmManipulator */
+/* wmGizmo */
 
 /**
- * \brief Manipulator tweak flag.
- * Bitflag passed to manipulator while tweaking.
+ * \brief Gizmo tweak flag.
+ * Bitflag passed to gizmo while tweaking.
  *
- * \note Manipulators are responsible for handling this #wmManipulator.modal callback!.
+ * \note Gizmos are responsible for handling this #wmGizmo.modal callback!.
  */
 typedef enum {
 	/* Drag with extra precision (Shift). */
-	WM_MANIPULATOR_TWEAK_PRECISE = (1 << 0),
+	WM_GIZMO_TWEAK_PRECISE = (1 << 0),
 	/* Drag with snap enabled (Ctrl).  */
-	WM_MANIPULATOR_TWEAK_SNAP = (1 << 1),
-} eWM_ManipulatorTweak;
+	WM_GIZMO_TWEAK_SNAP = (1 << 1),
+} eWM_GizmoFlagTweak;
 
 #include "wm_gizmo_fn.h"
 
-typedef struct wmManipulatorOpElem {
+typedef struct wmGizmoOpElem {
 	struct wmOperatorType *type;
-	/* operator properties if manipulator spawns and controls an operator,
-	 * or owner pointer if manipulator spawns and controls a property */
+	/* operator properties if gizmo spawns and controls an operator,
+	 * or owner pointer if gizmo spawns and controls a property */
 	PointerRNA ptr;
 
 	bool is_redo;
-} wmManipulatorOpElem;
+} wmGizmoOpElem;
 
-/* manipulators are set per region by registering them on manipulator-maps */
-struct wmManipulator {
-	struct wmManipulator *next, *prev;
+/* gizmos are set per region by registering them on gizmo-maps */
+struct wmGizmo {
+	struct wmGizmo *next, *prev;
 
 	/* While we don't have a real type, use this to put type-like vars. */
-	const struct wmManipulatorType *type;
+	const struct wmGizmoType *type;
 
 	/* Overrides 'type->modal' when set.
 	 * Note that this is a workaround, remove if we can. */
-	wmManipulatorFnModal custom_modal;
+	wmGizmoFnModal custom_modal;
 
-	/* pointer back to group this manipulator is in (just for quick access) */
-	struct wmManipulatorGroup *parent_mgroup;
+	/* pointer back to group this gizmo is in (just for quick access) */
+	struct wmGizmoGroup *parent_mgroup;
 
 	void *py_instance;
 
 	/* rna pointer to access properties */
 	struct PointerRNA *ptr;
 
-	/* flags that influence the behavior or how the manipulators are drawn */
-	eWM_ManipulatorFlag flag;
+	/* flags that influence the behavior or how the gizmos are drawn */
+	eWM_GizmoFlagFlag flag;
 	/* state flags (active, highlighted, selected) */
-	eWM_ManipulatorState state;
+	eWM_GizmoFlagState state;
 
-	/* Optional ID for highlighting different parts of this manipulator.
+	/* Optional ID for highlighting different parts of this gizmo.
 	 * -1 when unset, otherwise a valid index. (Used as index to 'op_data'). */
 	int highlight_part;
-	/* For single click button manipulators, use a different part as a fallback, -1 when unused. */
+	/* For single click button gizmos, use a different part as a fallback, -1 when unused. */
 	int drag_part;
 
-	/* Transformation of the manipulator in 2d or 3d space.
+	/* Transformation of the gizmo in 2d or 3d space.
 	 * - Matrix axis are expected to be unit length (scale is applied after).
-	 * - Behavior when axis aren't orthogonal depends on each manipulator.
-	 * - Typically the +Z is the primary axis for manipulators to use.
+	 * - Behavior when axis aren't orthogonal depends on each gizmo.
+	 * - Typically the +Z is the primary axis for gizmos to use.
 	 * - 'matrix[3]' must be used for location,
-	 *   besides this it's up to the manipulators internal code how the
+	 *   besides this it's up to the gizmos internal code how the
 	 *   rotation components are used for drawing and interaction.
 	 */
 
-	/* The space this manipulator is being modified in. */
+	/* The space this gizmo is being modified in. */
 	float matrix_space[4][4];
-	/* Transformation of this manipulator. */
+	/* Transformation of this gizmo. */
 	float matrix_basis[4][4];
 	/* custom offset from origin */
 	float matrix_offset[4][4];
@@ -210,25 +210,25 @@ struct wmManipulator {
 	float scale_basis;
 	/* user defined width for line drawing */
 	float line_width;
-	/* manipulator colors (uses default fallbacks if not defined) */
+	/* gizmo colors (uses default fallbacks if not defined) */
 	float color[4], color_hi[4];
 
 	/* data used during interaction */
 	void *interaction_data;
 
-	/* Operator to spawn when activating the manipulator (overrides property editing),
-	 * an array of items (aligned with #wmManipulator.highlight_part). */
-	wmManipulatorOpElem *op_data;
+	/* Operator to spawn when activating the gizmo (overrides property editing),
+	 * an array of items (aligned with #wmGizmo.highlight_part). */
+	wmGizmoOpElem *op_data;
 	int op_data_len;
 
 	struct IDProperty *properties;
 
-	/* over alloc target_properties after 'wmManipulatorType.struct_size' */
+	/* over alloc target_properties after 'wmGizmoType.struct_size' */
 };
 
 /* Similar to PropertyElemRNA, but has an identifier. */
-typedef struct wmManipulatorProperty {
-	const struct wmManipulatorPropertyType *type;
+typedef struct wmGizmoProperty {
+	const struct wmGizmoPropertyType *type;
 
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -237,88 +237,88 @@ typedef struct wmManipulatorProperty {
 
 	/* Optional functions for converting to/from RNA  */
 	struct {
-		wmManipulatorPropertyFnGet value_get_fn;
-		wmManipulatorPropertyFnSet value_set_fn;
-		wmManipulatorPropertyFnRangeGet range_get_fn;
-		wmManipulatorPropertyFnFree free_fn;
+		wmGizmoPropertyFnGet value_get_fn;
+		wmGizmoPropertyFnSet value_set_fn;
+		wmGizmoPropertyFnRangeGet range_get_fn;
+		wmGizmoPropertyFnFree free_fn;
 		void *user_data;
 	} custom_func;
-} wmManipulatorProperty;
+} wmGizmoProperty;
 
-typedef struct wmManipulatorPropertyType {
-	struct wmManipulatorPropertyType *next, *prev;
+typedef struct wmGizmoPropertyType {
+	struct wmGizmoPropertyType *next, *prev;
 	/* PropertyType, typically 'PROP_FLOAT' */
 	int data_type;
 	int array_length;
 
-	/* index within 'wmManipulatorType' */
+	/* index within 'wmGizmoType' */
 	int index_in_type;
 
 	/* over alloc */
 	char idname[0];
-} wmManipulatorPropertyType;
+} wmGizmoPropertyType;
 
 
 /**
- * Simple utility wrapper for storing a single manipulator as wmManipulatorGroup.customdata (which gets freed).
+ * Simple utility wrapper for storing a single gizmo as wmGizmoGroup.customdata (which gets freed).
  */
-typedef struct wmManipulatorWrapper {
-	struct wmManipulator *manipulator;
-} wmManipulatorWrapper;
+typedef struct wmGizmoWrapper {
+	struct wmGizmo *gizmo;
+} wmGizmoWrapper;
 
-struct wmManipulatorMapType_Params {
+struct wmGizmoMapType_Params {
 	short spaceid;
 	short regionid;
 };
 
-typedef struct wmManipulatorType {
+typedef struct wmGizmoType {
 
 	const char *idname; /* MAX_NAME */
 
-	/* Set to 'sizeof(wmManipulator)' or larger for instances of this type,
+	/* Set to 'sizeof(wmGizmo)' or larger for instances of this type,
 	 * use so we can cant to other types without the hassle of a custom-data pointer. */
 	uint struct_size;
 
 	/* Initialize struct (calloc'd 'struct_size' region). */
-	wmManipulatorFnSetup setup;
+	wmGizmoFnSetup setup;
 
-	/* draw manipulator */
-	wmManipulatorFnDraw draw;
+	/* draw gizmo */
+	wmGizmoFnDraw draw;
 
-	/* determines 3d intersection by rendering the manipulator in a selection routine. */
-	wmManipulatorFnDrawSelect draw_select;
+	/* determines 3d intersection by rendering the gizmo in a selection routine. */
+	wmGizmoFnDrawSelect draw_select;
 
-	/* Determine if the mouse intersects with the manipulator.
+	/* Determine if the mouse intersects with the gizmo.
 	 * The calculation should be done in the callback itself, -1 for no seleciton. */
-	wmManipulatorFnTestSelect test_select;
+	wmGizmoFnTestSelect test_select;
 
-	/* handler used by the manipulator. Usually handles interaction tied to a manipulator type */
-	wmManipulatorFnModal modal;
+	/* handler used by the gizmo. Usually handles interaction tied to a gizmo type */
+	wmGizmoFnModal modal;
 
-	/* manipulator-specific handler to update manipulator attributes based on the property value */
-	wmManipulatorFnPropertyUpdate property_update;
+	/* gizmo-specific handler to update gizmo attributes based on the property value */
+	wmGizmoFnPropertyUpdate property_update;
 
 	/* Returns the final transformation which may be different from the 'matrix',
-	 * depending on the manipulator.
+	 * depending on the gizmo.
 	 * Notes:
-	 * - Scale isn't applied (wmManipulator.scale/user_scale).
-	 * - Offset isn't applied (wmManipulator.matrix_offset).
+	 * - Scale isn't applied (wmGizmo.scale/user_scale).
+	 * - Offset isn't applied (wmGizmo.matrix_offset).
 	 */
-	wmManipulatorFnMatrixBasisGet matrix_basis_get;
+	wmGizmoFnMatrixBasisGet matrix_basis_get;
 
-	/* activate a manipulator state when the user clicks on it */
-	wmManipulatorFnInvoke invoke;
+	/* activate a gizmo state when the user clicks on it */
+	wmGizmoFnInvoke invoke;
 
-	/* called when manipulator tweaking is done - used to free data and reset property when cancelling */
-	wmManipulatorFnExit exit;
+	/* called when gizmo tweaking is done - used to free data and reset property when cancelling */
+	wmGizmoFnExit exit;
 
-	wmManipulatorFnCursorGet cursor_get;
+	wmGizmoFnCursorGet cursor_get;
 
-	/* called when manipulator selection state changes */
-	wmManipulatorFnSelectRefresh select_refresh;
+	/* called when gizmo selection state changes */
+	wmGizmoFnSelectRefresh select_refresh;
 
-	/* Free data (not the manipulator it's self), use when the manipulator allocates it's own members. */
-	wmManipulatorFnFree free;
+	/* Free data (not the gizmo it's self), use when the gizmo allocates it's own members. */
+	wmGizmoFnFree free;
 
 	/* RNA for properties */
 	struct StructRNA *srna;
@@ -329,41 +329,41 @@ typedef struct wmManipulatorType {
 	ListBase target_property_defs;
 	int target_property_defs_len;
 
-} wmManipulatorType;
+} wmGizmoType;
 
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorGroup */
+/* wmGizmoGroup */
 
-/* factory class for a manipulator-group type, gets called every time a new area is spawned */
-typedef struct wmManipulatorGroupTypeRef {
-	struct wmManipulatorGroupTypeRef *next, *prev;
-	struct wmManipulatorGroupType *type;
-} wmManipulatorGroupTypeRef;
+/* factory class for a gizmo-group type, gets called every time a new area is spawned */
+typedef struct wmGizmoGroupTypeRef {
+	struct wmGizmoGroupTypeRef *next, *prev;
+	struct wmGizmoGroupType *type;
+} wmGizmoGroupTypeRef;
 
-/* factory class for a manipulator-group type, gets called every time a new area is spawned */
-typedef struct wmManipulatorGroupType {
+/* factory class for a gizmo-group type, gets called every time a new area is spawned */
+typedef struct wmGizmoGroupType {
 	const char *idname;  /* MAX_NAME */
-	const char *name; /* manipulator-group name - displayed in UI (keymap editor) */
+	const char *name; /* gizmo-group name - displayed in UI (keymap editor) */
 	char owner_id[64];  /* MAX_NAME */
 
-	/* poll if manipulator-map should be visible */
-	wmManipulatorGroupFnPoll poll;
-	/* initially create manipulators and set permanent data - stuff you only need to do once */
-	wmManipulatorGroupFnInit setup;
-	/* refresh data, only called if recreate flag is set (WM_manipulatormap_tag_refresh) */
-	wmManipulatorGroupFnRefresh refresh;
+	/* poll if gizmo-map should be visible */
+	wmGizmoGroupFnPoll poll;
+	/* initially create gizmos and set permanent data - stuff you only need to do once */
+	wmGizmoGroupFnInit setup;
+	/* refresh data, only called if recreate flag is set (WM_gizmomap_tag_refresh) */
+	wmGizmoGroupFnRefresh refresh;
 	/* refresh data for drawing, called before each redraw */
-	wmManipulatorGroupFnDrawPrepare draw_prepare;
+	wmGizmoGroupFnDrawPrepare draw_prepare;
 
-	/* Keymap init callback for this manipulator-group (optional),
+	/* Keymap init callback for this gizmo-group (optional),
 	 * will fall back to default tweak keymap when left NULL. */
-	wmManipulatorGroupFnSetupKeymap setup_keymap;
+	wmGizmoGroupFnSetupKeymap setup_keymap;
 
 	/* Optionally subscribe to wmMsgBus events,
 	 * these are calculated automatically from RNA properties,
-	 * only needed if manipulators depend indirectly on properties. */
-	wmManipulatorGroupFnMsgBusSubscribe message_subscribe;
+	 * only needed if gizmos depend indirectly on properties. */
+	wmGizmoGroupFnMsgBusSubscribe message_subscribe;
 
 	/* keymap created with callback from above */
 	struct wmKeyMap *keymap;
@@ -379,44 +379,44 @@ typedef struct wmManipulatorGroupType {
 	/* RNA integration */
 	ExtensionRNA ext;
 
-	eWM_ManipulatorGroupTypeFlag flag;
+	eWM_GizmoFlagGroupTypeFlag flag;
 
 	/* So we know which group type to update. */
-	eWM_ManipulatorMapTypeUpdateFlag type_update_flag;
+	eWM_GizmoFlagMapTypeUpdateFlag type_update_flag;
 
-	/* same as manipulator-maps, so registering/unregistering goes to the correct region */
-	struct wmManipulatorMapType_Params mmap_params;
+	/* same as gizmo-maps, so registering/unregistering goes to the correct region */
+	struct wmGizmoMapType_Params mmap_params;
 
-} wmManipulatorGroupType;
+} wmGizmoGroupType;
 
-typedef struct wmManipulatorGroup {
-	struct wmManipulatorGroup *next, *prev;
+typedef struct wmGizmoGroup {
+	struct wmGizmoGroup *next, *prev;
 
-	struct wmManipulatorGroupType *type;
-	ListBase manipulators;
+	struct wmGizmoGroupType *type;
+	ListBase gizmos;
 
-	struct wmManipulatorMap *parent_mmap;
+	struct wmGizmoMap *parent_mmap;
 
 	void *py_instance;            /* python stores the class instance here */
 	struct ReportList *reports;   /* errors and warnings storage */
 
 	void *customdata;
 	void (*customdata_free)(void *); /* for freeing customdata from above */
-	eWM_ManipulatorGroupInitFlag init_flag;
-} wmManipulatorGroup;
+	eWM_GizmoFlagGroupInitFlag init_flag;
+} wmGizmoGroup;
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorMap */
+/* wmGizmoMap */
 
 /**
- * Pass a value of this enum to #WM_manipulatormap_draw to tell it what to draw.
+ * Pass a value of this enum to #WM_gizmomap_draw to tell it what to draw.
  */
-typedef enum eWM_ManipulatorMapDrawStep {
-	/** Draw 2D manipulator-groups (#WM_MANIPULATORGROUPTYPE_3D not set). */
-	WM_MANIPULATORMAP_DRAWSTEP_2D = 0,
-	/** Draw 3D manipulator-groups (#WM_MANIPULATORGROUPTYPE_3D set). */
-	WM_MANIPULATORMAP_DRAWSTEP_3D,
-} eWM_ManipulatorMapDrawStep;
-#define WM_MANIPULATORMAP_DRAWSTEP_MAX 2
+typedef enum eWM_GizmoFlagMapDrawStep {
+	/** Draw 2D gizmo-groups (#WM_GIZMOGROUPTYPE_3D not set). */
+	WM_GIZMOMAP_DRAWSTEP_2D = 0,
+	/** Draw 3D gizmo-groups (#WM_GIZMOGROUPTYPE_3D set). */
+	WM_GIZMOMAP_DRAWSTEP_3D,
+} eWM_GizmoFlagMapDrawStep;
+#define WM_GIZMOMAP_DRAWSTEP_MAX 2
 
 #endif  /* __WM_GIZMO_TYPES_H__ */

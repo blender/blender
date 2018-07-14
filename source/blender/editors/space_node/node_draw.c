@@ -1412,7 +1412,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 
 				wmOrtho2_pixelspace(ar->winx, ar->winy);
 
-				WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
+				WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
 				gpuPopMatrix();
 				gpuLoadProjectionMatrix(original_proj);

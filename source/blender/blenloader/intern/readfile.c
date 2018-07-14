@@ -6535,7 +6535,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->visible = 0;
 	ar->type = NULL;
 	ar->do_draw = 0;
-	ar->manipulator_map = NULL;
+	ar->gizmo_map = NULL;
 	ar->regiontimer = NULL;
 	ar->draw_buffer = NULL;
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));

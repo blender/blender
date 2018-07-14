@@ -52,7 +52,7 @@
 
 /* -------------------------------------------------------------------- */
 
-/** \name Armature Spline Manipulator
+/** \name Armature Spline Gizmo
  *
  * \{ */
 
@@ -68,7 +68,7 @@
 #define BBONE_SCALE_Y 3.0f
 
 struct BoneSplineHandle {
-	wmManipulator *manipulator;
+	wmGizmo *gizmo;
 	bPoseChannel *pchan;
 	/* We could remove, keep since at the moment for checking the conversion. */
 	float co[3];
@@ -79,8 +79,8 @@ struct BoneSplineWidgetGroup {
 	struct BoneSplineHandle handles[2];
 };
 
-static void manipulator_bbone_offset_get(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void gizmo_bbone_offset_get(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         void *value_p)
 {
 	struct BoneSplineHandle *bh = mpr_prop->custom_func.user_data;
@@ -102,8 +102,8 @@ static void manipulator_bbone_offset_get(
 	copy_v3_v3(value, bh->co);
 }
 
-static void manipulator_bbone_offset_set(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+static void gizmo_bbone_offset_set(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
         const void *value_p)
 {
 	struct BoneSplineHandle *bh = mpr_prop->custom_func.user_data;
@@ -127,7 +127,7 @@ static void manipulator_bbone_offset_set(
 
 }
 
-static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	if (ob != NULL) {
@@ -136,7 +136,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmManipulatorGro
 			if (arm->act_bone && arm->act_bone->segments > 1) {
 				View3D *v3d = CTX_wm_view3d(C);
 				if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-				    (v3d->mpr_flag & (V3D_MANIPULATOR_HIDE | V3D_MANIPULATOR_HIDE_CONTEXT)))
+				    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
 				{
 					/* pass */
 				}
@@ -150,27 +150,27 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmManipulatorGro
 }
 
 
-static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *mgroup)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bPoseChannel *pchan = BKE_pose_channel_active(ob);
 
-	const wmManipulatorType *wt_grab = WM_manipulatortype_find("MANIPULATOR_WT_grab_3d", true);
+	const wmGizmoType *wt_grab = WM_gizmotype_find("GIZMO_WT_grab_3d", true);
 
 	struct BoneSplineWidgetGroup *bspline_group = MEM_callocN(sizeof(struct BoneSplineWidgetGroup), __func__);
 	mgroup->customdata = bspline_group;
 
 	/* Handles */
 	for (int i = 0; i < ARRAY_SIZE(bspline_group->handles); i++) {
-		wmManipulator *mpr;
-		mpr = bspline_group->handles[i].manipulator = WM_manipulator_new_ptr(wt_grab, mgroup, NULL);
-		RNA_enum_set(mpr->ptr, "draw_style", ED_MANIPULATOR_GRAB_STYLE_RING_2D);
+		wmGizmo *mpr;
+		mpr = bspline_group->handles[i].gizmo = WM_gizmo_new_ptr(wt_grab, mgroup, NULL);
+		RNA_enum_set(mpr->ptr, "draw_style", ED_GIZMO_GRAB_STYLE_RING_2D);
 		RNA_enum_set(mpr->ptr, "draw_options",
-		             ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL | ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW);
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_VALUE, true);
+		             ED_GIZMO_GRAB_DRAW_FLAG_FILL | ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW);
+		WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_VALUE, true);
 
-		UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
-		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
+		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, mpr->color);
+		UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
 
 		mpr->scale_basis = 0.06f;
 
@@ -180,7 +180,7 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmManipulatorGr
 	}
 }
 
-static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup *mgroup)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 
@@ -192,7 +192,7 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmManipulator
 
 	/* Handles */
 	for (int i = 0; i < ARRAY_SIZE(bspline_group->handles); i++) {
-		wmManipulator *mpr = bspline_group->handles[i].manipulator;
+		wmGizmo *mpr = bspline_group->handles[i].gizmo;
 		bspline_group->handles[i].pchan = pchan;
 		bspline_group->handles[i].index = i;
 
@@ -201,24 +201,24 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmManipulator
 		copy_m4_m4(mpr->matrix_space, mat);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        mpr, "offset",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_bbone_offset_get,
-		            .value_set_fn = manipulator_bbone_offset_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_bbone_offset_get,
+		            .value_set_fn = gizmo_bbone_offset_set,
 		            .range_get_fn = NULL,
 		            .user_data = &bspline_group->handles[i],
 		        });
 	}
 }
 
-void VIEW3D_WGT_armature_spline(wmManipulatorGroupType *wgt)
+void VIEW3D_WGT_armature_spline(wmGizmoGroupType *wgt)
 {
 	wgt->name = "Armature Spline Widgets";
 	wgt->idname = "VIEW3D_WGT_armature_spline";
 
-	wgt->flag = (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	             WM_MANIPULATORGROUPTYPE_3D);
+	wgt->flag = (WM_GIZMOGROUPTYPE_PERSISTENT |
+	             WM_GIZMOGROUPTYPE_3D);
 
 	wgt->poll = WIDGETGROUP_armature_spline_poll;
 	wgt->setup = WIDGETGROUP_armature_spline_setup;

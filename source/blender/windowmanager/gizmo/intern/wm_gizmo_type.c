@@ -44,7 +44,7 @@
 
 #include "ED_screen.h"
 
-/* only for own init/exit calls (wm_manipulatortype_init/wm_manipulatortype_free) */
+/* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
 #include "wm.h"
 
 /* own includes */
@@ -52,30 +52,30 @@
 #include "wm_gizmo_intern.h"
 
 
-/** \name Manipulator Type Append
+/** \name Gizmo Type Append
  *
  * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.
  * \{ */
 
-static GHash *global_manipulatortype_hash = NULL;
+static GHash *global_gizmotype_hash = NULL;
 
-const wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet)
+const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet)
 {
 	if (idname[0]) {
-		wmManipulatorType *wt;
+		wmGizmoType *wt;
 
-		wt = BLI_ghash_lookup(global_manipulatortype_hash, idname);
+		wt = BLI_ghash_lookup(global_gizmotype_hash, idname);
 		if (wt) {
 			return wt;
 		}
 
 		if (!quiet) {
-			printf("search for unknown manipulator '%s'\n", idname);
+			printf("search for unknown gizmo '%s'\n", idname);
 		}
 	}
 	else {
 		if (!quiet) {
-			printf("search for empty manipulator\n");
+			printf("search for empty gizmo\n");
 		}
 	}
 
@@ -83,15 +83,15 @@ const wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet)
 }
 
 /* caller must free */
-void WM_manipulatortype_iter(GHashIterator *ghi)
+void WM_gizmotype_iter(GHashIterator *ghi)
 {
-	BLI_ghashIterator_init(ghi, global_manipulatortype_hash);
+	BLI_ghashIterator_init(ghi, global_gizmotype_hash);
 }
 
-static wmManipulatorType *wm_manipulatortype_append__begin(void)
+static wmGizmoType *wm_gizmotype_append__begin(void)
 {
-	wmManipulatorType *wt = MEM_callocN(sizeof(wmManipulatorType), "manipulatortype");
-	wt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_ManipulatorProperties);
+	wmGizmoType *wt = MEM_callocN(sizeof(wmGizmoType), "gizmotype");
+	wt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoProperties);
 #if 0
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
@@ -99,35 +99,35 @@ static wmManipulatorType *wm_manipulatortype_append__begin(void)
 #endif
 	return wt;
 }
-static void wm_manipulatortype_append__end(wmManipulatorType *wt)
+static void wm_gizmotype_append__end(wmGizmoType *wt)
 {
-	BLI_assert(wt->struct_size >= sizeof(wmManipulator));
+	BLI_assert(wt->struct_size >= sizeof(wmGizmo));
 
 	RNA_def_struct_identifier(&BLENDER_RNA, wt->srna, wt->idname);
 
-	BLI_ghash_insert(global_manipulatortype_hash, (void *)wt->idname, wt);
+	BLI_ghash_insert(global_gizmotype_hash, (void *)wt->idname, wt);
 }
 
-void WM_manipulatortype_append(void (*wtfunc)(struct wmManipulatorType *))
+void WM_gizmotype_append(void (*wtfunc)(struct wmGizmoType *))
 {
-	wmManipulatorType *wt = wm_manipulatortype_append__begin();
+	wmGizmoType *wt = wm_gizmotype_append__begin();
 	wtfunc(wt);
-	wm_manipulatortype_append__end(wt);
+	wm_gizmotype_append__end(wt);
 }
 
-void WM_manipulatortype_append_ptr(void (*wtfunc)(struct wmManipulatorType *, void *), void *userdata)
+void WM_gizmotype_append_ptr(void (*wtfunc)(struct wmGizmoType *, void *), void *userdata)
 {
-	wmManipulatorType *mt = wm_manipulatortype_append__begin();
+	wmGizmoType *mt = wm_gizmotype_append__begin();
 	wtfunc(mt, userdata);
-	wm_manipulatortype_append__end(mt);
+	wm_gizmotype_append__end(mt);
 }
 
 /**
  * Free but don't remove from ghash.
  */
-static void manipulatortype_free(wmManipulatorType *wt)
+static void gizmotype_free(wmGizmoType *wt)
 {
-	if (wt->ext.srna) { /* python manipulator, allocs own string */
+	if (wt->ext.srna) { /* python gizmo, allocs own string */
 		MEM_freeN((void *)wt->idname);
 	}
 
@@ -138,8 +138,8 @@ static void manipulatortype_free(wmManipulatorType *wt)
 /**
  * \param C: May be NULL.
  */
-static void manipulatortype_unlink(
-        bContext *C, Main *bmain, wmManipulatorType *wt)
+static void gizmotype_unlink(
+        bContext *C, Main *bmain, wmGizmoType *wt)
 {
 	/* Free instances. */
 	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
@@ -147,15 +147,15 @@ static void manipulatortype_unlink(
 			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 				ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
-					wmManipulatorMap *mmap = ar->manipulator_map;
+					wmGizmoMap *mmap = ar->gizmo_map;
 					if (mmap) {
-						wmManipulatorGroup *mgroup;
+						wmGizmoGroup *mgroup;
 						for (mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
-							for (wmManipulator *mpr = mgroup->manipulators.first, *mpr_next;  mpr; mpr = mpr_next) {
+							for (wmGizmo *mpr = mgroup->gizmos.first, *mpr_next;  mpr; mpr = mpr_next) {
 								mpr_next = mpr->next;
 								BLI_assert(mgroup->parent_mmap == mmap);
 								if (mpr->type == wt) {
-									WM_manipulator_unlink(&mgroup->manipulators, mgroup->parent_mmap, mpr, C);
+									WM_gizmo_unlink(&mgroup->gizmos, mgroup->parent_mmap, mpr, C);
 									ED_region_tag_redraw(ar);
 								}
 							}
@@ -167,46 +167,46 @@ static void manipulatortype_unlink(
 	}
 }
 
-void WM_manipulatortype_remove_ptr(bContext *C, Main *bmain, wmManipulatorType *wt)
+void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *wt)
 {
-	BLI_assert(wt == WM_manipulatortype_find(wt->idname, false));
+	BLI_assert(wt == WM_gizmotype_find(wt->idname, false));
 
-	BLI_ghash_remove(global_manipulatortype_hash, wt->idname, NULL, NULL);
+	BLI_ghash_remove(global_gizmotype_hash, wt->idname, NULL, NULL);
 
-	manipulatortype_unlink(C, bmain, wt);
+	gizmotype_unlink(C, bmain, wt);
 
-	manipulatortype_free(wt);
+	gizmotype_free(wt);
 }
 
-bool WM_manipulatortype_remove(bContext *C, Main *bmain, const char *idname)
+bool WM_gizmotype_remove(bContext *C, Main *bmain, const char *idname)
 {
-	wmManipulatorType *wt = BLI_ghash_lookup(global_manipulatortype_hash, idname);
+	wmGizmoType *wt = BLI_ghash_lookup(global_gizmotype_hash, idname);
 
 	if (wt == NULL) {
 		return false;
 	}
 
-	WM_manipulatortype_remove_ptr(C, bmain, wt);
+	WM_gizmotype_remove_ptr(C, bmain, wt);
 
 	return true;
 }
 
-static void wm_manipulatortype_ghash_free_cb(wmManipulatorType *mt)
+static void wm_gizmotype_ghash_free_cb(wmGizmoType *mt)
 {
-	manipulatortype_free(mt);
+	gizmotype_free(mt);
 }
 
-void wm_manipulatortype_free(void)
+void wm_gizmotype_free(void)
 {
-	BLI_ghash_free(global_manipulatortype_hash, NULL, (GHashValFreeFP)wm_manipulatortype_ghash_free_cb);
-	global_manipulatortype_hash = NULL;
+	BLI_ghash_free(global_gizmotype_hash, NULL, (GHashValFreeFP)wm_gizmotype_ghash_free_cb);
+	global_gizmotype_hash = NULL;
 }
 
 /* called on initialize WM_init() */
-void wm_manipulatortype_init(void)
+void wm_gizmotype_init(void)
 {
 	/* reserve size is set based on blender default setup */
-	global_manipulatortype_hash = BLI_ghash_str_new_ex("wm_manipulatortype_init gh", 128);
+	global_gizmotype_hash = BLI_ghash_str_new_ex("wm_gizmotype_init gh", 128);
 }
 
 /** \} */

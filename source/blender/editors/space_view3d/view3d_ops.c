@@ -541,7 +541,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 #else
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 #endif
-	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator_tool");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_gizmo_tool");
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_VIEW3D);
 

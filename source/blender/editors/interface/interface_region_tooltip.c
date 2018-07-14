@@ -615,11 +615,11 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	}
 }
 
-static uiTooltipData *ui_tooltip_data_from_manipulator(bContext *C, wmManipulator *mpr)
+static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *mpr)
 {
 	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	/* TODO(campbell): a way for manipulators to have their own descriptions (low priority). */
+	/* TODO(campbell): a way for gizmos to have their own descriptions (low priority). */
 
 	/* Operator Actions */
 	{
@@ -639,7 +639,7 @@ static uiTooltipData *ui_tooltip_data_from_manipulator(bContext *C, wmManipulato
 		};
 
 		for (int i = 0; i < ARRAY_SIZE(mpop_actions); i++) {
-			wmManipulatorOpElem *mpop = (mpop_actions[i].part != -1) ? WM_manipulator_operator_get(mpr, mpop_actions[i].part) : NULL;
+			wmGizmoOpElem *mpop = (mpop_actions[i].part != -1) ? WM_gizmo_operator_get(mpr, mpop_actions[i].part) : NULL;
 			if (mpop != NULL) {
 				/* Description */
 				const char *info = RNA_struct_ui_description(mpop->type->srna);
@@ -692,10 +692,10 @@ static uiTooltipData *ui_tooltip_data_from_manipulator(bContext *C, wmManipulato
 
 	/* Property Actions */
 	if (mpr->type->target_property_defs_len) {
-		wmManipulatorProperty *mpr_prop_array = WM_manipulator_target_property_array(mpr);
+		wmGizmoProperty *mpr_prop_array = WM_gizmo_target_property_array(mpr);
 		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
 			/* TODO(campbell): function callback descriptions. */
-			wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
+			wmGizmoProperty *mpr_prop = &mpr_prop_array[i];
 			if (mpr_prop->prop != NULL) {
 				const char *info = RNA_property_ui_description(mpr_prop->prop);
 				if (info && info[0]) {
@@ -934,13 +934,13 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 	return ui_tooltip_create_with_data(C, data, init_position, aspect);
 }
 
-ARegion *UI_tooltip_create_from_manipulator(bContext *C, wmManipulator *mpr)
+ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *mpr)
 {
 	wmWindow *win = CTX_wm_window(C);
 	const float aspect = 1.0f;
 	float init_position[2];
 
-	uiTooltipData *data = ui_tooltip_data_from_manipulator(C, mpr);
+	uiTooltipData *data = ui_tooltip_data_from_gizmo(C, mpr);
 	if (data == NULL) {
 		return NULL;
 	}

@@ -29,32 +29,32 @@
 #define __WM_GIZMO_INTERN_H__
 
 struct wmKeyConfig;
-struct wmManipulatorMap;
-struct ManipulatorGeomInfo;
+struct wmGizmoMap;
+struct GizmoGeomInfo;
 struct GHashIterator;
 
 #include "wm_gizmo_fn.h"
 
 /* -------------------------------------------------------------------- */
-/* wmManipulator */
+/* wmGizmo */
 
 
-bool wm_manipulator_select_set_ex(
-        struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select,
+bool wm_gizmo_select_set_ex(
+        struct wmGizmoMap *mmap, struct wmGizmo *mpr, bool select,
         bool use_array, bool use_callback);
-bool wm_manipulator_select_and_highlight(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
+bool wm_gizmo_select_and_highlight(bContext *C, struct wmGizmoMap *mmap, struct wmGizmo *mpr);
 
-void wm_manipulator_calculate_scale(struct wmManipulator *mpr, const bContext *C);
-void wm_manipulator_update(struct wmManipulator *mpr, const bContext *C, const bool refresh_map);
+void wm_gizmo_calculate_scale(struct wmGizmo *mpr, const bContext *C);
+void wm_gizmo_update(struct wmGizmo *mpr, const bContext *C, const bool refresh_map);
 
-int wm_manipulator_is_visible(struct wmManipulator *mpr);
+int wm_gizmo_is_visible(struct wmGizmo *mpr);
 enum {
-	WM_MANIPULATOR_IS_VISIBLE_UPDATE = (1 << 0),
-	WM_MANIPULATOR_IS_VISIBLE_DRAW = (1 << 1),
+	WM_GIZMO_IS_VISIBLE_UPDATE = (1 << 0),
+	WM_GIZMO_IS_VISIBLE_DRAW = (1 << 1),
 };
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorGroup */
+/* wmGizmoGroup */
 
 enum {
 	TWEAK_MODAL_CANCEL = 1,
@@ -65,53 +65,53 @@ enum {
 	TWEAK_MODAL_SNAP_OFF,
 };
 
-struct wmManipulatorGroup *wm_manipulatorgroup_new_from_type(
-        struct wmManipulatorMap *mmap, struct wmManipulatorGroupType *wgt);
-void wm_manipulatorgroup_free(bContext *C, struct wmManipulatorGroup *mgroup);
-void wm_manipulatorgroup_manipulator_register(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr);
-struct wmManipulator *wm_manipulatorgroup_find_intersected_manipulator(
-        const struct wmManipulatorGroup *mgroup, struct bContext *C, const struct wmEvent *event,
+struct wmGizmoGroup *wm_gizmogroup_new_from_type(
+        struct wmGizmoMap *mmap, struct wmGizmoGroupType *wgt);
+void wm_gizmogroup_free(bContext *C, struct wmGizmoGroup *mgroup);
+void wm_gizmogroup_gizmo_register(struct wmGizmoGroup *mgroup, struct wmGizmo *mpr);
+struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(
+        const struct wmGizmoGroup *mgroup, struct bContext *C, const struct wmEvent *event,
         int *r_part);
-void wm_manipulatorgroup_intersectable_manipulators_to_list(
-        const struct wmManipulatorGroup *mgroup, struct ListBase *listbase);
-void wm_manipulatorgroup_ensure_initialized(struct wmManipulatorGroup *mgroup, const struct bContext *C);
-bool wm_manipulatorgroup_is_visible_in_drawstep(
-        const struct wmManipulatorGroup *mgroup, const eWM_ManipulatorMapDrawStep drawstep);
+void wm_gizmogroup_intersectable_gizmos_to_list(
+        const struct wmGizmoGroup *mgroup, struct ListBase *listbase);
+void wm_gizmogroup_ensure_initialized(struct wmGizmoGroup *mgroup, const struct bContext *C);
+bool wm_gizmogroup_is_visible_in_drawstep(
+        const struct wmGizmoGroup *mgroup, const eWM_GizmoFlagMapDrawStep drawstep);
 
-void wm_manipulatorgrouptype_setup_keymap(
-        struct wmManipulatorGroupType *wgt, struct wmKeyConfig *keyconf);
+void wm_gizmogrouptype_setup_keymap(
+        struct wmGizmoGroupType *wgt, struct wmKeyConfig *keyconf);
 
 
 /* -------------------------------------------------------------------- */
-/* wmManipulatorMap */
+/* wmGizmoMap */
 
-typedef struct wmManipulatorMapSelectState {
-	struct wmManipulator **items;
+typedef struct wmGizmoMapSelectState {
+	struct wmGizmo **items;
 	int len, len_alloc;
-} wmManipulatorMapSelectState;
+} wmGizmoMapSelectState;
 
-struct wmManipulatorMap {
+struct wmGizmoMap {
 
-	struct wmManipulatorMapType *type;
-	ListBase groups;  /* wmManipulatorGroup */
+	struct wmGizmoMapType *type;
+	ListBase groups;  /* wmGizmoGroup */
 
 	/* private, update tagging (enum defined in C source). */
-	char update_flag[WM_MANIPULATORMAP_DRAWSTEP_MAX];
+	char update_flag[WM_GIZMOMAP_DRAWSTEP_MAX];
 
 	/**
-	 * \brief Manipulator map runtime context
+	 * \brief Gizmo map runtime context
 	 *
-	 * Contains information about this manipulator-map. Currently
-	 * highlighted manipulator, currently selected manipulators, ...
+	 * Contains information about this gizmo-map. Currently
+	 * highlighted gizmo, currently selected gizmos, ...
 	 */
 	struct {
-		/* we redraw the manipulator-map when this changes */
-		struct wmManipulator *highlight;
-		/* User has clicked this manipulator and it gets all input. */
-		struct wmManipulator *modal;
-		/* array for all selected manipulators */
-		struct wmManipulatorMapSelectState select;
-		/* cursor location at point of entering modal (see: WM_MANIPULATOR_GRAB_CURSOR) */
+		/* we redraw the gizmo-map when this changes */
+		struct wmGizmo *highlight;
+		/* User has clicked this gizmo and it gets all input. */
+		struct wmGizmo *modal;
+		/* array for all selected gizmos */
+		struct wmGizmoMapSelectState select;
+		/* cursor location at point of entering modal (see: WM_GIZMO_GRAB_CURSOR) */
 		int event_xy[2];
 		short event_grabcursor;
 		/* until we have nice cursor push/pop API. */
@@ -120,25 +120,25 @@ struct wmManipulatorMap {
 };
 
 /**
- * This is a container for all manipulator types that can be instantiated in a region.
+ * This is a container for all gizmo types that can be instantiated in a region.
  * (similar to dropboxes).
  *
  * \note There is only ever one of these for every (area, region) combination.
  */
-struct wmManipulatorMapType {
-	struct wmManipulatorMapType *next, *prev;
+struct wmGizmoMapType {
+	struct wmGizmoMapType *next, *prev;
 	short spaceid, regionid;
-	/* types of manipulator-groups for this manipulator-map type */
+	/* types of gizmo-groups for this gizmo-map type */
 	ListBase grouptype_refs;
 
-	/* eManipulatorMapTypeUpdateFlags */
-	eWM_ManipulatorMapTypeUpdateFlag type_update_flag;
+	/* eGizmoMapTypeUpdateFlags */
+	eWM_GizmoFlagMapTypeUpdateFlag type_update_flag;
 };
 
-void wm_manipulatormap_select_array_clear(struct wmManipulatorMap *mmap);
-bool wm_manipulatormap_deselect_all(struct wmManipulatorMap *mmap);
-void wm_manipulatormap_select_array_shrink(struct wmManipulatorMap *mmap, int len_subtract);
-void wm_manipulatormap_select_array_push_back(struct wmManipulatorMap *mmap, wmManipulator *mpr);
-void wm_manipulatormap_select_array_remove(struct wmManipulatorMap *mmap, wmManipulator *mpr);
+void wm_gizmomap_select_array_clear(struct wmGizmoMap *mmap);
+bool wm_gizmomap_deselect_all(struct wmGizmoMap *mmap);
+void wm_gizmomap_select_array_shrink(struct wmGizmoMap *mmap, int len_subtract);
+void wm_gizmomap_select_array_push_back(struct wmGizmoMap *mmap, wmGizmo *mpr);
+void wm_gizmomap_select_array_remove(struct wmGizmoMap *mmap, wmGizmo *mpr);
 
 #endif

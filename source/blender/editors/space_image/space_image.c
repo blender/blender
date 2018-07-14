@@ -581,25 +581,25 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 	return 0;
 }
 
-static void IMAGE_WGT_manipulator2d(wmManipulatorGroupType *wgt)
+static void IMAGE_WGT_gizmo2d(wmGizmoGroupType *wgt)
 {
-	wgt->name = "UV Transform Manipulator";
-	wgt->idname = "IMAGE_WGT_manipulator2d";
+	wgt->name = "UV Transform Gizmo";
+	wgt->idname = "IMAGE_WGT_gizmo2d";
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+	wgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
-	wgt->poll = ED_widgetgroup_manipulator2d_poll;
-	wgt->setup = ED_widgetgroup_manipulator2d_setup;
-	wgt->refresh = ED_widgetgroup_manipulator2d_refresh;
-	wgt->draw_prepare = ED_widgetgroup_manipulator2d_draw_prepare;
+	wgt->poll = ED_widgetgroup_gizmo2d_poll;
+	wgt->setup = ED_widgetgroup_gizmo2d_setup;
+	wgt->refresh = ED_widgetgroup_gizmo2d_refresh;
+	wgt->draw_prepare = ED_widgetgroup_gizmo2d_draw_prepare;
 }
 
 static void image_widgets(void)
 {
-	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(
-	        &(const struct wmManipulatorMapType_Params){SPACE_IMAGE, RGN_TYPE_WINDOW});
+	wmGizmoMapType *mmap_type = WM_gizmomaptype_ensure(
+	        &(const struct wmGizmoMapType_Params){SPACE_IMAGE, RGN_TYPE_WINDOW});
 
-	WM_manipulatorgrouptype_append_and_link(mmap_type, IMAGE_WGT_manipulator2d);
+	WM_gizmogrouptype_append_and_link(mmap_type, IMAGE_WGT_gizmo2d);
 }
 
 /************************** main region ***************************/
@@ -665,15 +665,15 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 	// image space manages own v2d
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
-	/* manipulators */
-	if (ar->manipulator_map == NULL) {
-		const struct wmManipulatorMapType_Params wmap_params = {
+	/* gizmos */
+	if (ar->gizmo_map == NULL) {
+		const struct wmGizmoMapType_Params wmap_params = {
 			.spaceid = SPACE_IMAGE,
 			.regionid = RGN_TYPE_WINDOW,
 		};
-		ar->manipulator_map = WM_manipulatormap_new_from_type(&wmap_params);
+		ar->gizmo_map = WM_gizmomap_new_from_type(&wmap_params);
 	}
-	WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
+	WM_gizmomap_add_handlers(ar, ar->gizmo_map);
 
 	/* mask polls mode */
 	keymap = WM_keymap_find(wm->defaultconf, "Mask Editing", 0, 0);
@@ -807,7 +807,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 		UI_view2d_view_restore(C);
 	}
 
-	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
+	WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
 	draw_image_cache(C, ar);
 
@@ -827,7 +827,7 @@ static void image_main_region_listener(
 	switch (wmn->category) {
 		case NC_GEOM:
 			if (ELEM(wmn->data, ND_DATA, ND_SELECT))
-				WM_manipulatormap_tag_refresh(ar->manipulator_map);
+				WM_gizmomap_tag_refresh(ar->gizmo_map);
 			break;
 		case NC_GPENCIL:
 			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
@@ -838,7 +838,7 @@ static void image_main_region_listener(
 		case NC_IMAGE:
 			if (wmn->action == NA_PAINTING)
 				ED_region_tag_redraw(ar);
-			WM_manipulatormap_tag_refresh(ar->manipulator_map);
+			WM_gizmomap_tag_refresh(ar->gizmo_map);
 			break;
 		case NC_MATERIAL:
 			if (wmn->data == ND_SHADING_LINKS) {
@@ -1089,7 +1089,7 @@ void ED_spacetype_image(void)
 	st->refresh = image_refresh;
 	st->listener = image_listener;
 	st->context = image_context;
-	st->manipulators = image_widgets;
+	st->gizmos = image_widgets;
 	st->id_remap = image_id_remap;
 
 	/* regions: main window */

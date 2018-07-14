@@ -1853,13 +1853,13 @@ static int pyrna_py_to_prop(
 				{
 					const StructRNA *base_type =
 					        RNA_struct_base_child_of(((const BPy_StructRNA *)value)->ptr.type, NULL);
-					if (ELEM(base_type, &RNA_Operator, &RNA_Manipulator)) {
+					if (ELEM(base_type, &RNA_Operator, &RNA_Gizmo)) {
 						value = PyObject_GetAttr(value, bpy_intern_str_properties);
 						value_new = value;
 					}
 				}
 
-				/* if property is an OperatorProperties/ManipulatorProperties pointer and value is a map,
+				/* if property is an OperatorProperties/GizmoProperties pointer and value is a map,
 				 * forward back to pyrna_pydict_to_props */
 				if (PyDict_Check(value)) {
 					const StructRNA *base_type = RNA_struct_base_child_of(ptr_type, NULL);
@@ -1867,7 +1867,7 @@ static int pyrna_py_to_prop(
 						PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
 						return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
 					}
-					else if (base_type == &RNA_ManipulatorProperties) {
+					else if (base_type == &RNA_GizmoProperties) {
 						PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
 						return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
 					}
@@ -7738,7 +7738,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
 #ifdef USE_PEDANTIC_WRITE
 	const bool is_readonly_init = !(RNA_struct_is_a(ptr->type, &RNA_Operator) ||
-	                                RNA_struct_is_a(ptr->type, &RNA_Manipulator));
+	                                RNA_struct_is_a(ptr->type, &RNA_Gizmo));
 	// const char *func_id = RNA_function_identifier(func);  /* UNUSED */
 	/* testing, for correctness, not operator and not draw function */
 	const bool is_readonly = !(RNA_function_flag(func) & FUNC_ALLOW_WRITE);

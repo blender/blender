@@ -30,25 +30,25 @@
 #ifndef __GIZMO_LIBRARY_INTERN_H__
 #define __GIZMO_LIBRARY_INTERN_H__
 
-/* distance around which manipulators respond to input (and get highlighted) */
-#define MANIPULATOR_HOTSPOT 14.0f
+/* distance around which gizmos respond to input (and get highlighted) */
+#define GIZMO_HOTSPOT 14.0f
 
 /**
- * Data for common interactions. Used in manipulator_library_utils.c functions.
+ * Data for common interactions. Used in gizmo_library_utils.c functions.
  */
-typedef struct ManipulatorCommonData {
+typedef struct GizmoCommonData {
 	int flag;
 
 	float range_fac;      /* factor for arrow min/max distance */
 	float offset;
 
-	/* property range for constrained manipulators */
+	/* property range for constrained gizmos */
 	float range;
-	/* min/max value for constrained manipulators */
+	/* min/max value for constrained gizmos */
 	float min, max;
-} ManipulatorCommonData;
+} GizmoCommonData;
 
-typedef struct ManipulatorInteraction {
+typedef struct GizmoInteraction {
 	float init_value; /* initial property value */
 	float init_mval[2];
 	float init_offset;
@@ -60,50 +60,50 @@ typedef struct ManipulatorInteraction {
 	/* Total offset added by precision tweaking.
 	 * Needed to allow toggling precision on/off without causing jumps */
 	float precision_offset;
-} ManipulatorInteraction;
+} GizmoInteraction;
 
-/* ManipulatorCommonData->flag  */
+/* GizmoCommonData->flag  */
 enum {
-	MANIPULATOR_CUSTOM_RANGE_SET = (1 << 0),
+	GIZMO_CUSTOM_RANGE_SET = (1 << 0),
 };
 
 
-float manipulator_offset_from_value(
-        ManipulatorCommonData *data, const float value,
+float gizmo_offset_from_value(
+        GizmoCommonData *data, const float value,
         const bool constrained, const bool inverted);
-float manipulator_value_from_offset(
-        ManipulatorCommonData *data, ManipulatorInteraction *inter, const float offset,
+float gizmo_value_from_offset(
+        GizmoCommonData *data, GizmoInteraction *inter, const float offset,
         const bool constrained, const bool inverted, const bool use_precision);
 
-void manipulator_property_data_update(
-        struct wmManipulator *mpr, ManipulatorCommonData *data, wmManipulatorProperty *mpr_prop,
+void gizmo_property_data_update(
+        struct wmGizmo *mpr, GizmoCommonData *data, wmGizmoProperty *mpr_prop,
         const bool constrained, const bool inverted);
 
-void  manipulator_property_value_reset(
-        bContext *C, const struct wmManipulator *mpr, ManipulatorInteraction *inter, wmManipulatorProperty *mpr_prop);
+void  gizmo_property_value_reset(
+        bContext *C, const struct wmGizmo *mpr, GizmoInteraction *inter, wmGizmoProperty *mpr_prop);
 
 
 /* -------------------------------------------------------------------- */
 
-void manipulator_color_get(
-        const struct wmManipulator *mpr, const bool highlight,
+void gizmo_color_get(
+        const struct wmGizmo *mpr, const bool highlight,
         float r_color[4]);
 
-bool manipulator_window_project_2d(
-        bContext *C, const struct wmManipulator *mpr, const float mval[2], int axis, bool use_offset,
+bool gizmo_window_project_2d(
+        bContext *C, const struct wmGizmo *mpr, const float mval[2], int axis, bool use_offset,
         float r_co[2]);
 
-bool manipulator_window_project_3d(
-        bContext *C, const struct wmManipulator *mpr, const float mval[2], bool use_offset,
+bool gizmo_window_project_3d(
+        bContext *C, const struct wmGizmo *mpr, const float mval[2], bool use_offset,
         float r_co[3]);
 
 /* -------------------------------------------------------------------- */
-/* Manipulator drawing */
+/* Gizmo drawing */
 
 #include "gizmo_geometry.h"
 
-void wm_manipulator_geometryinfo_draw(const struct ManipulatorGeomInfo *info, const bool select, const float color[4]);
-void wm_manipulator_vec_draw(
+void wm_gizmo_geometryinfo_draw(const struct GizmoGeomInfo *info, const bool select, const float color[4]);
+void wm_gizmo_vec_draw(
         const float color[4], const float (*verts)[3], uint vert_count,
         uint pos, uint primitive_type);
 

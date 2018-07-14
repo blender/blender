@@ -51,43 +51,43 @@
 /** \name Property Definition
  * \{ */
 
-BLI_INLINE wmManipulatorProperty *wm_manipulator_target_property_array(wmManipulator *mpr)
+BLI_INLINE wmGizmoProperty *wm_gizmo_target_property_array(wmGizmo *mpr)
 {
-	return (wmManipulatorProperty *)(POINTER_OFFSET(mpr, mpr->type->struct_size));
+	return (wmGizmoProperty *)(POINTER_OFFSET(mpr, mpr->type->struct_size));
 }
 
-wmManipulatorProperty *WM_manipulator_target_property_array(wmManipulator *mpr)
+wmGizmoProperty *WM_gizmo_target_property_array(wmGizmo *mpr)
 {
-	return wm_manipulator_target_property_array(mpr);
+	return wm_gizmo_target_property_array(mpr);
 }
 
-wmManipulatorProperty *WM_manipulator_target_property_at_index(wmManipulator *mpr, int index)
+wmGizmoProperty *WM_gizmo_target_property_at_index(wmGizmo *mpr, int index)
 {
 	BLI_assert(index < mpr->type->target_property_defs_len);
 	BLI_assert(index != -1);
-	wmManipulatorProperty *mpr_prop_array = wm_manipulator_target_property_array(mpr);
+	wmGizmoProperty *mpr_prop_array = wm_gizmo_target_property_array(mpr);
 	return &mpr_prop_array[index];
 }
 
-wmManipulatorProperty *WM_manipulator_target_property_find(wmManipulator *mpr, const char *idname)
+wmGizmoProperty *WM_gizmo_target_property_find(wmGizmo *mpr, const char *idname)
 {
 	int index = BLI_findstringindex(
-	        &mpr->type->target_property_defs, idname, offsetof(wmManipulatorPropertyType, idname));
+	        &mpr->type->target_property_defs, idname, offsetof(wmGizmoPropertyType, idname));
 	if (index != -1) {
-		return WM_manipulator_target_property_at_index(mpr, index);
+		return WM_gizmo_target_property_at_index(mpr, index);
 	}
 	else {
 		return NULL;
 	}
 }
 
-void WM_manipulator_target_property_def_rna_ptr(
-        wmManipulator *mpr, const wmManipulatorPropertyType *mpr_prop_type,
+void WM_gizmo_target_property_def_rna_ptr(
+        wmGizmo *mpr, const wmGizmoPropertyType *mpr_prop_type,
         PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_at_index(mpr, mpr_prop_type->index_in_type);
+	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_at_index(mpr, mpr_prop_type->index_in_type);
 
-	/* if manipulator evokes an operator we cannot use it for property manipulation */
+	/* if gizmo evokes an operator we cannot use it for property manipulation */
 	BLI_assert(mpr->op_data == NULL);
 
 	mpr_prop->type = mpr_prop_type;
@@ -101,22 +101,22 @@ void WM_manipulator_target_property_def_rna_ptr(
 	}
 }
 
-void WM_manipulator_target_property_def_rna(
-        wmManipulator *mpr, const char *idname,
+void WM_gizmo_target_property_def_rna(
+        wmGizmo *mpr, const char *idname,
         PointerRNA *ptr, const char *propname, int index)
 {
-	const wmManipulatorPropertyType *mpr_prop_type = WM_manipulatortype_target_property_find(mpr->type, idname);
+	const wmGizmoPropertyType *mpr_prop_type = WM_gizmotype_target_property_find(mpr->type, idname);
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-	WM_manipulator_target_property_def_rna_ptr(mpr, mpr_prop_type, ptr, prop, index);
+	WM_gizmo_target_property_def_rna_ptr(mpr, mpr_prop_type, ptr, prop, index);
 }
 
-void WM_manipulator_target_property_def_func_ptr(
-        wmManipulator *mpr, const wmManipulatorPropertyType *mpr_prop_type,
-        const wmManipulatorPropertyFnParams *params)
+void WM_gizmo_target_property_def_func_ptr(
+        wmGizmo *mpr, const wmGizmoPropertyType *mpr_prop_type,
+        const wmGizmoPropertyFnParams *params)
 {
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_at_index(mpr, mpr_prop_type->index_in_type);
+	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_at_index(mpr, mpr_prop_type->index_in_type);
 
-	/* if manipulator evokes an operator we cannot use it for property manipulation */
+	/* if gizmo evokes an operator we cannot use it for property manipulation */
 	BLI_assert(mpr->op_data == NULL);
 
 	mpr_prop->type = mpr_prop_type;
@@ -132,20 +132,20 @@ void WM_manipulator_target_property_def_func_ptr(
 	}
 }
 
-void WM_manipulator_target_property_def_func(
-        wmManipulator *mpr, const char *idname,
-        const wmManipulatorPropertyFnParams *params)
+void WM_gizmo_target_property_def_func(
+        wmGizmo *mpr, const char *idname,
+        const wmGizmoPropertyFnParams *params)
 {
-	const wmManipulatorPropertyType *mpr_prop_type = WM_manipulatortype_target_property_find(mpr->type, idname);
-	WM_manipulator_target_property_def_func_ptr(mpr, mpr_prop_type, params);
+	const wmGizmoPropertyType *mpr_prop_type = WM_gizmotype_target_property_find(mpr->type, idname);
+	WM_gizmo_target_property_def_func_ptr(mpr, mpr_prop_type, params);
 }
 
-void WM_manipulator_target_property_clear_rna_ptr(
-        wmManipulator *mpr, const wmManipulatorPropertyType *mpr_prop_type)
+void WM_gizmo_target_property_clear_rna_ptr(
+        wmGizmo *mpr, const wmGizmoPropertyType *mpr_prop_type)
 {
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_at_index(mpr, mpr_prop_type->index_in_type);
+	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_at_index(mpr, mpr_prop_type->index_in_type);
 
-	/* if manipulator evokes an operator we cannot use it for property manipulation */
+	/* if gizmo evokes an operator we cannot use it for property manipulation */
 	BLI_assert(mpr->op_data == NULL);
 
 	mpr_prop->type = NULL;
@@ -155,11 +155,11 @@ void WM_manipulator_target_property_clear_rna_ptr(
 	mpr_prop->index = -1;
 }
 
-void WM_manipulator_target_property_clear_rna(
-        wmManipulator *mpr, const char *idname)
+void WM_gizmo_target_property_clear_rna(
+        wmGizmo *mpr, const char *idname)
 {
-	const wmManipulatorPropertyType *mpr_prop_type = WM_manipulatortype_target_property_find(mpr->type, idname);
-	WM_manipulator_target_property_clear_rna_ptr(mpr, mpr_prop_type);
+	const wmGizmoPropertyType *mpr_prop_type = WM_gizmotype_target_property_find(mpr->type, idname);
+	WM_gizmo_target_property_clear_rna_ptr(mpr, mpr_prop_type);
 }
 
 
@@ -171,26 +171,26 @@ void WM_manipulator_target_property_clear_rna(
 /** \name Property Access
  * \{ */
 
-bool WM_manipulator_target_property_is_valid_any(wmManipulator *mpr)
+bool WM_gizmo_target_property_is_valid_any(wmGizmo *mpr)
 {
-	wmManipulatorProperty *mpr_prop_array = wm_manipulator_target_property_array(mpr);
+	wmGizmoProperty *mpr_prop_array = wm_gizmo_target_property_array(mpr);
 	for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
-		wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
-		if (WM_manipulator_target_property_is_valid(mpr_prop)) {
+		wmGizmoProperty *mpr_prop = &mpr_prop_array[i];
+		if (WM_gizmo_target_property_is_valid(mpr_prop)) {
 			return true;
 		}
 	}
 	return false;
 }
 
-bool WM_manipulator_target_property_is_valid(const wmManipulatorProperty *mpr_prop)
+bool WM_gizmo_target_property_is_valid(const wmGizmoProperty *mpr_prop)
 {
 	return  ((mpr_prop->prop != NULL) ||
 	         (mpr_prop->custom_func.value_get_fn && mpr_prop->custom_func.value_set_fn));
 }
 
-float WM_manipulator_target_property_value_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+float WM_gizmo_target_property_value_get(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop)
 {
 	if (mpr_prop->custom_func.value_get_fn) {
 		float value = 0.0f;
@@ -207,9 +207,9 @@ float WM_manipulator_target_property_value_get(
 	}
 }
 
-void WM_manipulator_target_property_value_set(
-        bContext *C, const wmManipulator *mpr,
-        wmManipulatorProperty *mpr_prop, const float value)
+void WM_gizmo_target_property_value_set(
+        bContext *C, const wmGizmo *mpr,
+        wmGizmoProperty *mpr_prop, const float value)
 {
 	if (mpr_prop->custom_func.value_set_fn) {
 		BLI_assert(mpr_prop->type->array_length == 1);
@@ -227,8 +227,8 @@ void WM_manipulator_target_property_value_set(
 	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
-void WM_manipulator_target_property_value_get_array(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+void WM_gizmo_target_property_value_get_array(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         float *value)
 {
 	if (mpr_prop->custom_func.value_get_fn) {
@@ -238,8 +238,8 @@ void WM_manipulator_target_property_value_get_array(
 	RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
 }
 
-void WM_manipulator_target_property_value_set_array(
-        bContext *C, const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+void WM_gizmo_target_property_value_set_array(
+        bContext *C, const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         const float *value)
 {
 	if (mpr_prop->custom_func.value_set_fn) {
@@ -251,8 +251,8 @@ void WM_manipulator_target_property_value_set_array(
 	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
-bool WM_manipulator_target_property_range_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+bool WM_gizmo_target_property_range_get(
+        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
         float range[2])
 {
 	if (mpr_prop->custom_func.value_get_fn) {
@@ -271,8 +271,8 @@ bool WM_manipulator_target_property_range_get(
 	return true;
 }
 
-int WM_manipulator_target_property_array_length(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop)
+int WM_gizmo_target_property_array_length(
+        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop)
 {
 	if (mpr_prop->custom_func.value_get_fn) {
 		return mpr_prop->type->array_length;
@@ -288,21 +288,21 @@ int WM_manipulator_target_property_array_length(
 /** \name Property Define
  * \{ */
 
-const wmManipulatorPropertyType *WM_manipulatortype_target_property_find(
-        const wmManipulatorType *wt, const char *idname)
+const wmGizmoPropertyType *WM_gizmotype_target_property_find(
+        const wmGizmoType *wt, const char *idname)
 {
-	return BLI_findstring(&wt->target_property_defs, idname, offsetof(wmManipulatorPropertyType, idname));
+	return BLI_findstring(&wt->target_property_defs, idname, offsetof(wmGizmoPropertyType, idname));
 }
 
-void WM_manipulatortype_target_property_def(
-        wmManipulatorType *wt, const char *idname, int data_type, int array_length)
+void WM_gizmotype_target_property_def(
+        wmGizmoType *wt, const char *idname, int data_type, int array_length)
 {
-	wmManipulatorPropertyType *mpt;
+	wmGizmoPropertyType *mpt;
 
-	BLI_assert(WM_manipulatortype_target_property_find(wt, idname) == NULL);
+	BLI_assert(WM_gizmotype_target_property_find(wt, idname) == NULL);
 
 	const uint idname_size = strlen(idname) + 1;
-	mpt = MEM_callocN(sizeof(wmManipulatorPropertyType) + idname_size, __func__);
+	mpt = MEM_callocN(sizeof(wmGizmoPropertyType) + idname_size, __func__);
 	memcpy(mpt->idname, idname, idname_size);
 	mpt->data_type = data_type;
 	mpt->array_length = array_length;
@@ -318,28 +318,28 @@ void WM_manipulatortype_target_property_def(
 /** \name Property Utilities
  * \{ */
 
-void WM_manipulator_do_msg_notify_tag_refresh(
+void WM_gizmo_do_msg_notify_tag_refresh(
         bContext *UNUSED(C), wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)
 {
 	ARegion *ar = msg_val->owner;
-	wmManipulatorMap *mmap = msg_val->user_data;
+	wmGizmoMap *mmap = msg_val->user_data;
 
 	ED_region_tag_redraw(ar);
-	WM_manipulatormap_tag_refresh(mmap);
+	WM_gizmomap_tag_refresh(mmap);
 }
 
 /**
  * Runs on the "prepare draw" pass,
  * drawing the region clears.
  */
-void WM_manipulator_target_property_subscribe_all(
-        wmManipulator *mpr, struct wmMsgBus *mbus, ARegion *ar)
+void WM_gizmo_target_property_subscribe_all(
+        wmGizmo *mpr, struct wmMsgBus *mbus, ARegion *ar)
 {
 	if (mpr->type->target_property_defs_len) {
-		wmManipulatorProperty *mpr_prop_array = WM_manipulator_target_property_array(mpr);
+		wmGizmoProperty *mpr_prop_array = WM_gizmo_target_property_array(mpr);
 		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
-			wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
-			if (WM_manipulator_target_property_is_valid(mpr_prop)) {
+			wmGizmoProperty *mpr_prop = &mpr_prop_array[i];
+			if (WM_gizmo_target_property_is_valid(mpr_prop)) {
 				if (mpr_prop->prop) {
 					WM_msg_subscribe_rna(
 					        mbus, &mpr_prop->ptr, mpr_prop->prop,
@@ -353,7 +353,7 @@ void WM_manipulator_target_property_subscribe_all(
 					        &(const wmMsgSubscribeValue){
 					            .owner = ar,
 					            .user_data = mpr->parent_mgroup->parent_mmap,
-					            .notify = WM_manipulator_do_msg_notify_tag_refresh,
+					            .notify = WM_gizmo_do_msg_notify_tag_refresh,
 					        }, __func__);
 				}
 			}

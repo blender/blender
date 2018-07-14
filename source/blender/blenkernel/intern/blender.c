@@ -300,7 +300,7 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	DATA_SWAP(font_path_ui_mono);
 	DATA_SWAP(keyconfigstr);
 
-	DATA_SWAP(manipulator_flag);
+	DATA_SWAP(gizmo_flag);
 	DATA_SWAP(app_flag);
 
 	/* We could add others. */

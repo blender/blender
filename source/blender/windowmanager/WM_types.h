@@ -123,7 +123,7 @@ struct ImBuf;
 #include "wm_event_types.h"
 #include "gizmo/WM_gizmo_types.h"
 
-/* Include external manipulator API's */
+/* Include external gizmo API's */
 #include "gizmo/WM_gizmo_api.h"
 
 /* ************** wmOperatorType ************************ */

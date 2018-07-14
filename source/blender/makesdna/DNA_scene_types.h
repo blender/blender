@@ -1237,7 +1237,7 @@ typedef struct ToolSettings {
 	short autoik_chainlen;  /* runtime only */
 
 	/* SCE_MPR_LOC/SCAL */
-	char manipulator_flag;
+	char gizmo_flag;
 
 	/* Grease Pencil */
 	char gpencil_flags;		/* flags/options for how the tool works */
@@ -2010,7 +2010,7 @@ typedef enum eImagePaintMode {
 #define EDGE_MODE_TAG_BEVEL				4
 #define EDGE_MODE_TAG_FREESTYLE			5
 
-/* ToolSettings.manipulator_flag */
+/* ToolSettings.gizmo_flag */
 #define SCE_MANIP_TRANSLATE	1
 #define SCE_MANIP_ROTATE		2
 #define SCE_MANIP_SCALE		4
