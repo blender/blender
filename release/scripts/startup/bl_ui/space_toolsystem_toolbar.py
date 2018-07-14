@@ -133,9 +133,9 @@ class _defs_transform:
             text="Grab",
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
-            widget="TRANSFORM_WGT_manipulator",
+            widget="TRANSFORM_WGT_gizmo",
             operator="transform.translate",
-            # TODO, implement as optional fallback manipulator
+            # TODO, implement as optional fallback gizmo
             # keymap=(
             #     ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
@@ -147,9 +147,9 @@ class _defs_transform:
             text="Rotate",
             # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
-            widget="TRANSFORM_WGT_manipulator",
+            widget="TRANSFORM_WGT_gizmo",
             operator="transform.rotate",
-            # TODO, implement as optional fallback manipulator
+            # TODO, implement as optional fallback gizmo
             # keymap=(
             #     ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
@@ -161,9 +161,9 @@ class _defs_transform:
             text="Scale",
             # cursor='SCROLL_XY',
             icon="ops.transform.resize",
-            widget="TRANSFORM_WGT_manipulator",
+            widget="TRANSFORM_WGT_gizmo",
             operator="transform.resize",
-            # TODO, implement as optional fallback manipulator
+            # TODO, implement as optional fallback gizmo
             # keymap=(
             #     ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
@@ -182,13 +182,13 @@ class _defs_transform:
     def transform():
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_manipulator_mode")
+            layout.prop(tool_settings, "use_gizmo")
 
         return dict(
             text="Transform",
             icon="ops.transform.transform",
-            widget="TRANSFORM_WGT_manipulator",
-            # No keymap default action, only for manipulators!
+            widget="TRANSFORM_WGT_gizmo",
+            # No keymap default action, only for gizmo!
             draw_settings=draw_settings,
         )
 
@@ -320,7 +320,7 @@ class _defs_edit_mesh:
             widget=None,
             keymap=(
                 ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
-                ("mesh.primitive_cube_add_manipulator", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
+                ("mesh.primitive_cube_add_gizmo", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
 
