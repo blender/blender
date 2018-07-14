@@ -3958,7 +3958,7 @@ class VIEW3D_PT_overlay_manipulators(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_parent_id = 'VIEW3D_PT_overlay'
-    bl_label = "Manipulators"
+    bl_label = "Gizmo"
 
     def draw_header(self, context):
         view = context.space_data

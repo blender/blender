@@ -1205,31 +1205,31 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "manipulator_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "manipulator_hi");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator Highlight", "");
+	RNA_def_property_ui_text(prop, "Gizmo Highlight", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "manipulator_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "manipulator_primary");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator Primary", "");
+	RNA_def_property_ui_text(prop, "Gizmo Primary", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "manipulator_secondary", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "manipulator_secondary");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator Secondary", "");
+	RNA_def_property_ui_text(prop, "Gizmo Secondary", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "manipulator_a", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "manipulator_a");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator A", "");
+	RNA_def_property_ui_text(prop, "Gizmo A", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "manipulator_b", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "manipulator_b");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator B", "");
+	RNA_def_property_ui_text(prop, "Gizmo B", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 

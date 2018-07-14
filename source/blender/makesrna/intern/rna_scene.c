@@ -2694,7 +2694,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "manipulator_flag");
 	RNA_def_property_enum_items(prop, rna_enum_manipulator_items);
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
-	RNA_def_property_ui_text(prop, "Manipulator",  "");
+	RNA_def_property_ui_text(prop, "Gizmo Mode",  "");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ToolSettings_manipulator_flag_update");
 
 	/* Grease Pencil */

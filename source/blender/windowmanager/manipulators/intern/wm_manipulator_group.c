@@ -303,7 +303,7 @@ static int manipulator_select_invoke(bContext *C, wmOperator *op, const wmEvent 
 void MANIPULATORGROUP_OT_manipulator_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Manipulator Select";
+	ot->name = "Gizmo Select";
 	ot->description = "Select the currently highlighted manipulator";
 	ot->idname = "MANIPULATORGROUP_OT_manipulator_select";
 
@@ -585,8 +585,8 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 void MANIPULATORGROUP_OT_manipulator_tweak(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Manipulator Tweak";
-	ot->description = "Tweak the active manipulator";
+	ot->name = "Gizmo Tweak";
+	ot->description = "Tweak the active gizmo";
 	ot->idname = "MANIPULATORGROUP_OT_manipulator_tweak";
 
 	/* api callbacks */
@@ -600,7 +600,7 @@ void MANIPULATORGROUP_OT_manipulator_tweak(wmOperatorType *ot)
 #endif
 }
 
-/** \} */ // Manipulator operators
+/** \} */
 
 
 static wmKeyMap *manipulatorgroup_tweak_modal_keymap(wmKeyConfig *keyconf, const char *mgroupname)
