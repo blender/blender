@@ -23,34 +23,19 @@ ccl_device float voronoi_F1_distance(float3 p)
 	/* returns squared distance in da */
 	float da = 1e10f;
 
-#ifndef __KERNEL_SSE2__
-	int ix = floor_to_int(p.x), iy = floor_to_int(p.y), iz = floor_to_int(p.z);
+	int3 xyzi = quick_floor_to_int3(p);
 
 	for(int xx = -1; xx <= 1; xx++) {
 		for(int yy = -1; yy <= 1; yy++) {
 			for(int zz = -1; zz <= 1; zz++) {
-				float3 ip = make_float3(ix + xx, iy + yy, iz + zz);
-				float3 vp = ip + cellnoise_color(ip);
+				int3 ip = xyzi + make_int3(xx, yy, zz);
+				float3 fp = make_float3(ip.x, ip.y, ip.z);
+				float3 vp = fp + cellnoise3(fp);
 				float d = len_squared(p - vp);
 				da = min(d, da);
 			}
 		}
 	}
-#else
-	ssef vec_p = load4f(p);
-	ssei xyzi = quick_floor_sse(vec_p);
-
-	for(int xx = -1; xx <= 1; xx++) {
-		for(int yy = -1; yy <= 1; yy++) {
-			for(int zz = -1; zz <= 1; zz++) {
-				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
-				ssef vp = ip + cellnoise_color(ip);
-				float d = len_squared<1, 1, 1, 0>(vec_p - vp);
-				da = min(d, da);
-			}
-		}
-	}
-#endif
 
 	return da;
 }
@@ -59,16 +44,16 @@ ccl_device float3 voronoi_F1_color(float3 p)
 {
 	/* returns color of the nearest point */
 	float da = 1e10f;
-
-#ifndef __KERNEL_SSE2__
 	float3 pa;
-	int ix = floor_to_int(p.x), iy = floor_to_int(p.y), iz = floor_to_int(p.z);
+
+	int3 xyzi = quick_floor_to_int3(p);
 
 	for(int xx = -1; xx <= 1; xx++) {
 		for(int yy = -1; yy <= 1; yy++) {
 			for(int zz = -1; zz <= 1; zz++) {
-				float3 ip = make_float3(ix + xx, iy + yy, iz + zz);
-				float3 vp = ip + cellnoise_color(ip);
+				int3 ip = xyzi + make_int3(xx, yy, zz);
+				float3 fp = make_float3(ip.x, ip.y, ip.z);
+				float3 vp = fp + cellnoise3(fp);
 				float d = len_squared(p - vp);
 
 				if(d < da) {
@@ -79,29 +64,7 @@ ccl_device float3 voronoi_F1_color(float3 p)
 		}
 	}
 
-	return cellnoise_color(pa);
-#else
-	ssef pa, vec_p = load4f(p);
-	ssei xyzi = quick_floor_sse(vec_p);
-
-	for(int xx = -1; xx <= 1; xx++) {
-		for(int yy = -1; yy <= 1; yy++) {
-			for(int zz = -1; zz <= 1; zz++) {
-				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
-				ssef vp = ip + cellnoise_color(ip);
-				float d = len_squared<1, 1, 1, 0>(vec_p - vp);
-
-				if(d < da) {
-					da = d;
-					pa = vp;
-				}
-			}
-		}
-	}
-
-	ssef color = cellnoise_color(pa);
-	return (float3 &)color;
-#endif
+	return cellnoise3(pa);
 }
 
 ccl_device_noinline float4 svm_voronoi(NodeVoronoiColoring coloring, float3 p)
