@@ -65,6 +65,7 @@ class MaterialButtonsPanel:
 
 class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
     bl_label = "Preview"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
@@ -242,11 +243,11 @@ classes = (
     MATERIAL_MT_specials,
     MATERIAL_UL_matslots,
     MATERIAL_PT_preview,
-    MATERIAL_PT_custom_props,
     EEVEE_MATERIAL_PT_context_material,
     EEVEE_MATERIAL_PT_surface,
     EEVEE_MATERIAL_PT_options,
     MATERIAL_PT_viewport,
+    MATERIAL_PT_custom_props,
 )
 
 
