@@ -293,7 +293,7 @@ class ToolSelectPanelHelper:
     def _km_action_simple(cls, kc, context_mode, text, keymap_fn):
         if context_mode is None:
             context_mode = "All"
-        km_idname = f"{cls.keymap_prefix} {context_mode}, {text}"
+        km_idname = f"{cls.keymap_prefix:s} {context_mode:s}, {text:s}"
         km = kc.keymaps.get(km_idname)
         if km is None:
             km = kc.keymaps.new(km_idname, space_type=cls.bl_space_type, region_type='WINDOW')

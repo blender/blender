@@ -220,8 +220,8 @@ class OUTLINER_MT_object(Menu):
 
         if object_mode in {'EDIT', 'POSE'}:
             name = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode].name
-            layout.operator("outliner.object_operation", text=f"{name} Set").type = 'OBJECT_MODE_ENTER'
-            layout.operator("outliner.object_operation", text=f"{name} Clear").type = 'OBJECT_MODE_EXIT'
+            layout.operator("outliner.object_operation", text=f"{name:s} Set").type = 'OBJECT_MODE_ENTER'
+            layout.operator("outliner.object_operation", text=f"{name:s} Clear").type = 'OBJECT_MODE_EXIT'
             del name
 
             layout.separator()
