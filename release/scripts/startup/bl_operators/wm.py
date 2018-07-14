@@ -1629,7 +1629,7 @@ class WM_OT_keyconfig_export(Operator):
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
-    all_keymaps = BoolProperty(
+    all = BoolProperty(
         name="All Keymaps",
         default=False,
         description="Write all keymaps (not just user modified)",
@@ -1669,7 +1669,7 @@ class WM_OT_keyconfig_export(Operator):
             wm,
             wm.keyconfigs.active,
             self.filepath,
-            all_keymaps=self.all_keymaps,
+            all_keymaps=self.all,
         )
 
         return {'FINISHED'}
