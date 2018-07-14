@@ -50,11 +50,10 @@ class WORLD_PT_context_world(WorldButtonsPanel, Panel):
         world = context.world
         space = context.space_data
 
-        split = layout.split(percentage=0.85)
         if scene:
-            split.template_ID(scene, "world", new="world.new")
+            layout.template_ID(scene, "world", new="world.new")
         elif world:
-            split.template_ID(space, "pin_id")
+            layout.template_ID(space, "pin_id")
 
 
 class EEVEE_WORLD_PT_mist(WorldButtonsPanel, Panel):
@@ -125,9 +124,9 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
 
 classes = (
     WORLD_PT_context_world,
-    WORLD_PT_custom_props,
     EEVEE_WORLD_PT_surface,
     EEVEE_WORLD_PT_mist,
+    WORLD_PT_custom_props,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -45,16 +45,15 @@ class DATA_PT_context_light(DataButtonsPanel, Panel):
         light = context.light
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
-
         if ob:
-            split.template_ID(ob, "data")
+            layout.template_ID(ob, "data")
         elif light:
-            split.template_ID(space, "pin_id")
+            layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_preview(DataButtonsPanel, Panel):
     bl_label = "Preview"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):

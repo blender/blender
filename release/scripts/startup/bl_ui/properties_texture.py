@@ -123,27 +123,28 @@ class TEXTURE_PT_context(TextureButtonsPanel, Panel):
         use_pin_id = space.use_pin_id
         user = context.texture_user
 
+        col = layout.column()
+
         if not (use_pin_id and isinstance(pin_id, bpy.types.Texture)):
             pin_id = None
 
         if not pin_id:
-            layout.template_texture_user()
+            col.template_texture_user()
+
+        col.separator()
 
         if user or pin_id:
-            layout.separator()
-
-            split = layout.split(percentage=0.65)
-            col = split.column()
-
             if pin_id:
                 col.template_ID(space, "pin_id")
             else:
                 propname = context.texture_user_property.identifier
                 col.template_ID(user, propname, new="texture.new")
 
+            col.separator()
+
             if tex:
-                split = layout.split(percentage=0.2)
-                split.label(text="Type:")
+                split = col.split(percentage=0.2)
+                split.label(text="Type")
                 split.prop(tex, "type", text="")
 
 
