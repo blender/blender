@@ -149,7 +149,7 @@ class PlayRenderedAnim(Operator):
             opts = [file, f"{scene.frame_start:d}-{scene.frame_end:d}"]
             cmd.extend(opts)
         elif preset == 'RV':
-            opts = ["-fps", str(rd.fps), "-play", f"[ {file} ]"]
+            opts = ["-fps", str(rd.fps), "-play", f"[ {file:s} ]"]
             cmd.extend(opts)
         elif preset == 'MPLAYER':
             opts = []
