@@ -25,7 +25,7 @@ __all__ = (
 
 
 def indent(levels):
-    return levels * "    "
+    return levels * " "
 
 
 def round_float_32(f):
@@ -89,26 +89,26 @@ def _kmi_properties_to_lines_recursive(level, properties, lines):
                 lines_test = []
                 _kmi_properties_to_lines_recursive(level + 2, value, lines_test)
                 if lines_test:
-                    lines.append(f"{indent(level)}(\n")
-                    lines.append(f"{indent(level + 1)}\"{pname}\",\n")
-                    lines.append(f"{indent(level + 1)}" "[\n")
+                    lines.append(f"(")
+                    lines.append(f"\"{pname}\",\n")
+                    lines.append(f"{indent(level + 3)}" "[")
                     lines.extend(lines_test)
-                    lines.append(f"{indent(level + 1)}" "],\n")
-                    lines.append(f"{indent(level)}" "),\n")
+                    lines.append("],\n")
+                    lines.append(f"{indent(level + 3)}" "),\n" f"{indent(level + 2)}")
                 del lines_test
             elif properties.is_property_set(pname):
                 value = string_value(value)
-                lines.append((f"{indent(level)}(\"{pname}\", {value:s}),\n"))
+                lines.append((f"(\"{pname}\", {value:s}),\n" f"{indent(level + 2)}"))
 
 
 def _kmi_properties_to_lines(level, kmi_props, lines):
     if kmi_props is None:
         return
 
-    lines_test = [f"{indent(level)}\"properties\": " "[\n"]
-    _kmi_properties_to_lines_recursive(level + 1, kmi_props, lines_test)
+    lines_test = [f"\"properties\":\n" f"{indent(level + 1)}" "["]
+    _kmi_properties_to_lines_recursive(level, kmi_props, lines_test)
     if len(lines_test) > 1:
-        lines_test.append(f"{indent(level)}" "],\n")
+        lines_test.append("],\n")
         lines.extend(lines_test)
 
 
@@ -150,12 +150,12 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
 
     with open(filepath, "w") as fh:
         fw = fh.write
-        fw("keyconfig_data = [\n")
+        fw("keyconfig_data = \\\n[")
 
         for km, kc_x in export_keymaps:
             km = km.active()
-            fw(f"{indent(1)}" "(\n")
-            fw(f"{indent(2)}" f"\"{km.name:s}\",\n")
+            fw("(")
+            fw(f"\"{km.name:s}\",\n")
             fw(f"{indent(2)}" "{")
             fw(f"\"space_type\": '{km.space_type:s}'")
             fw(f", \"region_type\": '{km.region_type:s}'")
@@ -163,20 +163,18 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
             if km.is_modal:
                 fw(", \"modal\": True")
             fw("},\n")
-            fw(f"{indent(2)}" "{\n")
+            fw(f"{indent(2)}" "{")
             is_modal = km.is_modal
-            fw(f"{indent(3)}" "\"items\": [\n")
+            fw(f"\"items\":\n")
+            fw(f"{indent(3)}[")
             for kmi in km.keymap_items:
                 if is_modal:
                     kmi_id = kmi.propvalue
                 else:
                     kmi_id = kmi.idname
-
-                fw(f"{indent(4)}" "(")
+                fw(f"(")
                 kmi_args = kmi_args_as_data(kmi)
-                kmi_data = _kmi_attrs_or_none(5, kmi)
-                if kmi_data is not None:
-                    fw("\n" f"{indent(5)}")
+                kmi_data = _kmi_attrs_or_none(4, kmi)
                 fw(f"\"{kmi_id:s}\"")
                 if kmi_data is None:
                     fw(f", ")
@@ -188,14 +186,16 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
                     fw(", None),\n")
                 else:
                     fw(",\n")
-                    fw(f"{indent(5)}" "{\n")
+                    fw(f"{indent(5)}" "{")
                     fw(kmi_data)
-                    fw(f"{indent(5)}" "}\n")
-                    fw(f"{indent(4)}" "),\n")
+                    fw(f"{indent(6)}")
+                    fw("},\n" f"{indent(5)}")
+                    fw("),\n")
+                fw(f"{indent(4)}")
+            fw("],\n" f"{indent(3)}")
+            fw("},\n" f"{indent(2)}")
+            fw("),\n" f"{indent(1)}")
 
-            fw(f"{indent(3)}" "],\n")
-            fw(f"{indent(2)}" "},\n")
-            fw(f"{indent(1)}" "),\n")
         fw("]\n")
         fw("\n\n")
         fw("if __name__ == \"__main__\":\n")
