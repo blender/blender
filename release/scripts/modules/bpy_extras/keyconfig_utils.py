@@ -295,8 +295,10 @@ def _kmistr(kmi, is_modal):
     return "".join(s)
 
 
-def keyconfig_export(wm, kc, filepath):
-
+def keyconfig_export(
+        wm, kc, filepath, *,
+        all_keymaps=False,
+):
     f = open(filepath, "w")
 
     f.write("import bpy\n")
@@ -326,7 +328,7 @@ def keyconfig_export(wm, kc, filepath):
         keymaps = []
     edited_kc = FakeKeyConfig()
     for km in wm.keyconfigs.user.keymaps:
-        if km.is_user_modified:
+        if all_keymaps or km.is_user_modified:
             edited_kc.keymaps.append(km)
     # merge edited keymaps with non-default keyconfig, if it exists
     if kc != wm.keyconfigs.default:
