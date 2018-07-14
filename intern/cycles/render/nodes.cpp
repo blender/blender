@@ -913,7 +913,23 @@ NODE_DEFINE(VoronoiTextureNode)
 	coloring_enum.insert("cells", NODE_VORONOI_CELLS);
 	SOCKET_ENUM(coloring, "Coloring", coloring_enum, NODE_VORONOI_INTENSITY);
 
+	static NodeEnum metric;
+	metric.insert("distance", NODE_VORONOI_DISTANCE);
+	metric.insert("manhattan", NODE_VORONOI_MANHATTAN);
+	metric.insert("chebychev", NODE_VORONOI_CHEBYCHEV);
+	metric.insert("minkowski", NODE_VORONOI_MINKOWSKI);
+	SOCKET_ENUM(metric, "Distance Metric", metric, NODE_VORONOI_INTENSITY);
+
+	static NodeEnum feature_enum;
+	feature_enum.insert("F1", NODE_VORONOI_F1);
+	feature_enum.insert("F2", NODE_VORONOI_F2);
+	feature_enum.insert("F3", NODE_VORONOI_F3);
+	feature_enum.insert("F4", NODE_VORONOI_F4);
+	feature_enum.insert("F2F1", NODE_VORONOI_F2F1);
+	SOCKET_ENUM(feature, "Feature", feature_enum, NODE_VORONOI_INTENSITY);
+
 	SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
+	SOCKET_IN_FLOAT(exponent, "Exponent", 0.5f);
 	SOCKET_IN_POINT(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TEXTURE_GENERATED);
 
 	SOCKET_OUT_COLOR(color, "Color");
@@ -931,19 +947,32 @@ void VoronoiTextureNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *scale_in = input("Scale");
 	ShaderInput *vector_in = input("Vector");
+	ShaderInput *exponent_in = input("Exponent");
 	ShaderOutput *color_out = output("Color");
 	ShaderOutput *fac_out = output("Fac");
+
+	if (vector_in->link) compiler.stack_assign(vector_in);
+	if (scale_in->link) compiler.stack_assign(scale_in);
+	if (exponent_in->link) compiler.stack_assign(exponent_in);
 
 	int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
 
 	compiler.add_node(NODE_TEX_VORONOI,
-		coloring,
+		compiler.encode_uchar4(
+			vector_offset,
+			coloring,
+			metric,
+			feature
+		),
 		compiler.encode_uchar4(
 			compiler.stack_assign_if_linked(scale_in),
-			vector_offset,
+			compiler.stack_assign_if_linked(exponent_in),
 			compiler.stack_assign(fac_out),
-			compiler.stack_assign(color_out)),
-		__float_as_int(scale));
+			compiler.stack_assign(color_out)
+		));
+	compiler.add_node(
+		__float_as_int(scale),
+		__float_as_int(exponent));
 
 	tex_mapping.compile_end(compiler, vector_in, vector_offset);
 }
@@ -953,6 +982,8 @@ void VoronoiTextureNode::compile(OSLCompiler& compiler)
 	tex_mapping.compile(compiler);
 
 	compiler.parameter(this, "coloring");
+	compiler.parameter(this, "metric");
+	compiler.parameter(this, "feature");
 	compiler.add(this, "node_voronoi_texture");
 }
 

@@ -776,6 +776,8 @@ typedef struct NodeTexNoise {
 typedef struct NodeTexVoronoi {
 	NodeTexBase base;
 	int coloring;
+	int distance;
+	int feature;
 	int pad;
 } NodeTexVoronoi;
 
@@ -974,16 +976,19 @@ typedef struct NodeSunBeams {
 #define SHD_NOISE_HARD	1
 
 /* voronoi texture */
-#define SHD_VORONOI_DISTANCE_SQUARED	0
-#define SHD_VORONOI_ACTUAL_DISTANCE		1
-#define SHD_VORONOI_MANHATTAN			2
-#define SHD_VORONOI_CHEBYCHEV			3
-#define SHD_VORONOI_MINKOVSKY_H			4
-#define SHD_VORONOI_MINKOVSKY_4			5
-#define SHD_VORONOI_MINKOVSKY			6
+#define SHD_VORONOI_DISTANCE		0
+#define SHD_VORONOI_MANHATTAN		1
+#define SHD_VORONOI_CHEBYCHEV		2
+#define SHD_VORONOI_MINKOWSKI		3
 
 #define SHD_VORONOI_INTENSITY	0
 #define SHD_VORONOI_CELLS		1
+
+#define SHD_VORONOI_F1		0
+#define SHD_VORONOI_F2		1
+#define SHD_VORONOI_F3		2
+#define SHD_VORONOI_F4		3
+#define SHD_VORONOI_F2F1	4
 
 /* musgrave texture */
 #define SHD_MUSGRAVE_MULTIFRACTAL			0

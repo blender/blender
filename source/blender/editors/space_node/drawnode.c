@@ -874,6 +874,8 @@ static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext *UNUSED(C),
 static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "coloring", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "distance", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "feature", 0, "", ICON_NONE);
 }
 
 static void node_shader_buts_tex_pointdensity(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

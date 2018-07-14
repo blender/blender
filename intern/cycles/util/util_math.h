@@ -266,6 +266,11 @@ ccl_device_inline int floor_to_int(float f)
 	return float_to_int(floorf(f));
 }
 
+ccl_device_inline int quick_floor_to_int(float x)
+{
+	return float_to_int(x) - ((x < 0) ? 1 : 0);
+}
+
 ccl_device_inline int ceil_to_int(float f)
 {
 	return float_to_int(ceilf(f));
@@ -548,6 +553,11 @@ ccl_device_inline float beta(float x, float y)
 ccl_device_inline float xor_signmask(float x, int y)
 {
 	return __int_as_float(__float_as_int(x) ^ y);
+}
+
+ccl_device float bits_to_01(uint bits)
+{
+	return bits * (1.0f/(float)0xFFFFFFFF);
 }
 
 /* projections */
