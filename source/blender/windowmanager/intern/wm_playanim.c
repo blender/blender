@@ -28,8 +28,11 @@
 /** \file blender/windowmanager/intern/wm_playanim.c
  *  \ingroup wm
  *
+ * Animation player for image sequences & video's with sound support.
+ * Launched in a separate process from Blender's #RENDER_OT_play_rendered_anim
+ *
  * \note This file uses ghost directly and none of the WM definitions.
- *       this could be made into its own module, alongside creator/
+ * this could be made into its own module, alongside creator.
  */
 
 #include <sys/types.h>
