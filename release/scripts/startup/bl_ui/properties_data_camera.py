@@ -363,7 +363,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
-    bl_label = "Display"
+    bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
