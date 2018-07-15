@@ -33,15 +33,15 @@ CCL_NAMESPACE_BEGIN
 /* Some helpers to silence warning in templated function. */
 static bool isfinite(uchar /*value*/)
 {
-	return false;
+	return true;
 }
 static bool isfinite(half /*value*/)
 {
-	return false;
+	return true;
 }
 static bool isfinite(uint16_t  /*value*/)
 {
-	return false;
+	return true;
 }
 
 ImageManager::ImageManager(const DeviceInfo& info)
@@ -508,7 +508,6 @@ bool ImageManager::file_load_image(Image *img,
                                    int texture_limit,
                                    device_vector<DeviceType>& tex_img)
 {
-	const StorageType alpha_one = (FileFormat == TypeDesc::UINT8)? 255 : 1;
 	ImageInput *in = NULL;
 	if(!file_load_image_generic(img, &in)) {
 		return false;
@@ -601,13 +600,19 @@ bool ImageManager::file_load_image(Image *img,
 	                type == IMAGE_DATA_TYPE_BYTE4 ||
 					type == IMAGE_DATA_TYPE_USHORT4);
 	if(is_rgba) {
+		const StorageType one = util_image_cast_from_float<StorageType>(1.0f);
+
 		if(cmyk) {
 			/* CMYK */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+2] = (pixels[i*4+2]*pixels[i*4+3])/255;
-				pixels[i*4+1] = (pixels[i*4+1]*pixels[i*4+3])/255;
-				pixels[i*4+0] = (pixels[i*4+0]*pixels[i*4+3])/255;
-				pixels[i*4+3] = alpha_one;
+				float c = util_image_cast_to_float(pixels[i*4+0]);
+				float m = util_image_cast_to_float(pixels[i*4+1]);
+				float y = util_image_cast_to_float(pixels[i*4+2]);
+				float k = util_image_cast_to_float(pixels[i*4+3]);
+				pixels[i*4+0] = util_image_cast_from_float<StorageType>((1.0f - c) * (1.0f - k));
+				pixels[i*4+1] = util_image_cast_from_float<StorageType>((1.0f - m) * (1.0f - k));
+				pixels[i*4+2] = util_image_cast_from_float<StorageType>((1.0f - y) * (1.0f - k));
+				pixels[i*4+3] = one;
 			}
 		}
 		else if(components == 2) {
@@ -622,7 +627,7 @@ bool ImageManager::file_load_image(Image *img,
 		else if(components == 3) {
 			/* RGB */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+3] = alpha_one;
+				pixels[i*4+3] = one;
 				pixels[i*4+2] = pixels[i*3+2];
 				pixels[i*4+1] = pixels[i*3+1];
 				pixels[i*4+0] = pixels[i*3+0];
@@ -631,7 +636,7 @@ bool ImageManager::file_load_image(Image *img,
 		else if(components == 1) {
 			/* grayscale */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+3] = alpha_one;
+				pixels[i*4+3] = one;
 				pixels[i*4+2] = pixels[i];
 				pixels[i*4+1] = pixels[i];
 				pixels[i*4+0] = pixels[i];
@@ -639,7 +644,7 @@ bool ImageManager::file_load_image(Image *img,
 		}
 		if(img->use_alpha == false) {
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+3] = alpha_one;
+				pixels[i*4+3] = one;
 			}
 		}
 	}
@@ -871,7 +876,7 @@ void ImageManager::device_load_image(Device *device,
 			thread_scoped_lock device_lock(device_mutex);
 			uint16_t *pixels = (uint16_t*)tex_img->alloc(1, 1);
 
-			pixels[0] = TEX_IMAGE_MISSING_R;
+			pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
 		}
 
 		img->mem = tex_img;
@@ -893,10 +898,10 @@ void ImageManager::device_load_image(Device *device,
 			thread_scoped_lock device_lock(device_mutex);
 			uint16_t *pixels = (uint16_t*)tex_img->alloc(1, 1);
 
-			pixels[0] = TEX_IMAGE_MISSING_R;
-			pixels[1] = TEX_IMAGE_MISSING_G;
-			pixels[2] = TEX_IMAGE_MISSING_B;
-			pixels[3] = TEX_IMAGE_MISSING_A;
+			pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
+			pixels[1] = (TEX_IMAGE_MISSING_G * 65535);
+			pixels[2] = (TEX_IMAGE_MISSING_B * 65535);
+			pixels[3] = (TEX_IMAGE_MISSING_A * 65535);
 		}
 
 		img->mem = tex_img;

@@ -42,7 +42,7 @@ public:
 	half() : v(0) {}
 	half(const unsigned short& i) : v(i) {}
 	operator unsigned short() { return v; }
-	half & operator =(const unsigned short& i) { v = i; return *this; }
+	half& operator =(const unsigned short& i) { v = i; return *this; }
 private:
 	unsigned short v;
 };

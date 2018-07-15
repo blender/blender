@@ -38,68 +38,6 @@ const T *util_image_read(const vector<T>& pixels,
 	return &pixels[index];
 }
 
-/* Cast input pixel from unknown storage to float. */
-template<typename T>
-inline float cast_to_float(T value);
-
-template<>
-inline float cast_to_float(float value)
-{
-	return value;
-}
-template<>
-inline float cast_to_float(uchar value)
-{
-	return (float)value / 255.0f;
-}
-template<>
-inline float cast_to_float(uint16_t value)
-{
-	return (float)value / 65535.0f;
-}
-template<>
-inline float cast_to_float(half value)
-{
-	return half_to_float(value);
-}
-
-/* Cast float value to output pixel type. */
-template<typename T>
-inline T cast_from_float(float value);
-
-template<>
-inline float cast_from_float(float value)
-{
-	return value;
-}
-template<>
-inline uchar cast_from_float(float value)
-{
-	if(value < 0.0f) {
-		return 0;
-	}
-	else if(value > (1.0f - 0.5f / 255.0f)) {
-		return 255;
-	}
-	return (uchar)((255.0f * value) + 0.5f);
-}
-template<>
-inline uint16_t cast_from_float(float value)
-{
-	if(value < 0.0f) {
-		return 0;
-	}
-	else if(value >(1.0f - 0.5f / 65535.0f)) {
-		return 65535;
-	}
-	return (uchar)((65535.0f * value) + 0.5f);
-}
-template<>
-inline half cast_from_float(float value)
-{
-	return float_to_half(value);
-}
-
 template<typename T>
 void util_image_downscale_sample(const vector<T>& pixels,
                                  const size_t width,
@@ -133,7 +71,7 @@ void util_image_downscale_sample(const vector<T>& pixels,
 				                                 components,
 				                                 nx, ny, nz);
 				for(size_t k = 0; k < components; ++k) {
-					accum[k] += cast_to_float(pixel[k]);
+					accum[k] += util_image_cast_to_float(pixel[k]);
 				}
 				++count;
 			}
@@ -142,7 +80,7 @@ void util_image_downscale_sample(const vector<T>& pixels,
 	if(count != 0) {
 		const float inv_count = 1.0f / (float)count;
 		for(size_t k = 0; k < components; ++k) {
-			result[k] = cast_from_float<T>(accum[k] * inv_count);
+			result[k] = util_image_cast_from_float<T>(accum[k] * inv_count);
 		}
 	}
 	else {
