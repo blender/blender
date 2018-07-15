@@ -51,7 +51,7 @@ class VIEW3D_HT_header(Header):
 
         layout.template_header_3D_mode()
 
-        # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
+        # Contains buttons like Mode, Pivot, Layer, Mesh Select Mode...
         shading_type = view.shading.type
         shading_item = bpy.types.View3DShading.bl_rna.properties["type"].enum_items[shading_type]
 

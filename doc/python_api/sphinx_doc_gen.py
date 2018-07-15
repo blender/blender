@@ -334,9 +334,9 @@ except ImportError:
 # to avoid having to match Blender's source tree.
 EXTRA_SOURCE_FILES = (
     "../../../release/scripts/templates_py/bmesh_simple.py",
-    "../../../release/scripts/templates_py/manipulator_operator.py",
-    "../../../release/scripts/templates_py/manipulator_operator_target.py",
-    "../../../release/scripts/templates_py/manipulator_simple.py",
+    "../../../release/scripts/templates_py/gizmo_operator.py",
+    "../../../release/scripts/templates_py/gizmo_operator_target.py",
+    "../../../release/scripts/templates_py/gizmo_simple.py",
     "../../../release/scripts/templates_py/operator_simple.py",
     "../../../release/scripts/templates_py/ui_panel_simple.py",
     "../../../release/scripts/templates_py/ui_previews_custom_icon.py",

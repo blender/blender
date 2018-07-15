@@ -25,7 +25,7 @@ class MyLightWidgetGroup(GizmoGroup):
     def setup(self, context):
         # Arrow gizmo has one 'offset' property we can assign to the light energy.
         ob = context.object
-        mpr = self.gizmos.new("GIZMO_GGT_arrow_3d")
+        mpr = self.gizmos.new("GIZMO_GT_arrow_3d")
         mpr.target_set_prop("offset", ob.data, "energy")
         mpr.matrix_basis = ob.matrix_world.normalized()
         mpr.draw_style = 'BOX'

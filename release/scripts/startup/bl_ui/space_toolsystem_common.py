@@ -74,7 +74,7 @@ ToolDef = namedtuple(
         "icon",
         # An optional cursor to use when this tool is active.
         "cursor",
-        # An optional manipulator group to activate when the tool is set or None for no widget.
+        # An optional gizmo group to activate when the tool is set or None for no gizmo.
         "widget",
         # Optional keymap for tool, either:
         # - A function that populates a keymaps passed in as an argument.

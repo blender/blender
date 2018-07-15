@@ -24,7 +24,7 @@ class MyCameraWidgetGroup(GizmoGroup):
     def setup(self, context):
         # Run an operator using the dial gizmo
         ob = context.object
-        mpr = self.gizmos.new("GIZMO_GGT_dial_3d")
+        mpr = self.gizmos.new("GIZMO_GT_dial_3d")
         props = mpr.target_set_operator("transform.rotate")
         props.constraint_axis = False, False, True
         props.constraint_orientation = 'LOCAL'
