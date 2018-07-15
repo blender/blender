@@ -1985,10 +1985,12 @@ static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
 	if (value == 1 || value == 2) {
 		if (dofsettings->num_blades == 0) {
 			dofsettings->num_blades = 3;
-		} else {
+		}
+		else {
 			dofsettings->num_blades = 0;
 		}
-	} else {
+	}
+	else {
 		dofsettings->num_blades = value;
 	}
 }

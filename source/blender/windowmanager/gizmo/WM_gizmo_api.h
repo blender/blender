@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/gizmos/WM_gizmo_api.h
+/** \file blender/windowmanager/gizmo/WM_gizmo_api.h
  *  \ingroup wm
  *
  * \name Gizmo API
