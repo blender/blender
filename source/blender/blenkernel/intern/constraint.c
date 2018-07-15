@@ -2098,6 +2098,206 @@ static bConstraintTypeInfo CTI_PYTHON = {
 	pycon_evaluate /* evaluate */
 };
 
+/* ----------- Armature Constraint -------------- */
+
+static void armdef_free(bConstraint *con)
+{
+	bArmatureConstraint *data = con->data;
+
+	/* Target list. */
+	BLI_freelistN(&data->targets);
+}
+
+static void armdef_copy(bConstraint *con, bConstraint *srccon)
+{
+	bArmatureConstraint *pcon = (bArmatureConstraint *)con->data;
+	bArmatureConstraint *opcon = (bArmatureConstraint *)srccon->data;
+
+	BLI_duplicatelist(&pcon->targets, &opcon->targets);
+}
+
+static int armdef_get_tars(bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bArmatureConstraint *data = con->data;
+
+		*list = data->targets;
+
+		return BLI_listbase_count(&data->targets);
+	}
+
+	return 0;
+}
+
+static void armdef_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bArmatureConstraint *data = con->data;
+	bConstraintTarget *ct;
+
+	/* Target list. */
+	for (ct = data->targets.first; ct; ct = ct->next) {
+		func(con, (ID **)&ct->tar, false, userdata);
+	}
+}
+
+/* Compute the world space pose matrix of the target bone. */
+static void armdef_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+                              bConstraint *UNUSED(con), bConstraintOb *UNUSED(cob),
+                              bConstraintTarget *ct, float UNUSED(ctime))
+{
+	if (ct != NULL) {
+		if (ct->tar && ct->tar->type == OB_ARMATURE) {
+			bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
+
+			if (pchan != NULL) {
+				mul_m4_m4m4(ct->matrix, ct->tar->obmat, pchan->pose_mat);
+				return;
+			}
+		}
+
+		unit_m4(ct->matrix);
+	}
+}
+
+/* Compute and accumulate transformation for a single target bone. */
+static void armdef_accumulate_bone(bConstraintTarget *ct, bPoseChannel *pchan, const float wco[3], bool force_envelope, float *r_totweight, float r_sum_mat[4][4], DualQuat *r_sum_dq)
+{
+	float mat[4][4], iobmat[4][4], iamat[4][4], basemat[4][4], co[3];
+	Bone *bone = pchan->bone;
+	float weight = ct->weight;
+
+	/* Our object's location in target pose space. */
+	invert_m4_m4(iobmat, ct->tar->obmat);
+	mul_v3_m4v3(co, iobmat, wco);
+
+	/* Inverted rest pose matrix: bone->chan_mat may not be final yet. */
+	invert_m4_m4(iamat, bone->arm_mat);
+
+	/* Multiply by the envelope weight when appropriate. */
+	if (force_envelope || (bone->flag & BONE_MULT_VG_ENV)) {
+		weight *= distfactor_to_bone(co, bone->arm_head, bone->arm_tail,
+		                             bone->rad_head, bone->rad_tail, bone->dist);
+	}
+
+	/* Find the correct bone transform matrix in world space. */
+	if (bone->segments > 1) {
+		/* The target is a B-Bone:
+		 * FIRST: find the segment (see b_bone_deform in armature.c)
+		 * Need to transform co back to bonespace, only need y. */
+		float y = iamat[0][1] * co[0] + iamat[1][1] * co[1] + iamat[2][1] * co[2] + iamat[3][1];
+
+		float segment = bone->length / ((float)bone->segments);
+		int a = (int)(y / segment);
+
+		CLAMP(a, 0, bone->segments - 1);
+
+		/* SECOND: compute the matrix (see pchan_b_bone_defmats in armature.c) */
+		Mat4 b_bone[MAX_BBONE_SUBDIV], b_bone_rest[MAX_BBONE_SUBDIV];
+		float irmat[4][4];
+
+		b_bone_spline_setup(pchan, false, b_bone);
+		b_bone_spline_setup(pchan, true, b_bone_rest);
+
+		invert_m4_m4(irmat, b_bone_rest[a].mat);
+		mul_m4_series(mat, ct->matrix, b_bone[a].mat, irmat, iamat, iobmat);
+	}
+	else {
+		/* Simple bone. */
+		mul_m4_series(mat, ct->matrix, iamat, iobmat);
+	}
+
+	/* Accumulate the transformation. */
+	*r_totweight += weight;
+
+	if (r_sum_dq != NULL) {
+		DualQuat tmpdq;
+
+		mul_m4_series(basemat, ct->tar->obmat, bone->arm_mat, iobmat);
+
+		mat4_to_dquat(&tmpdq, basemat, mat);
+		add_weighted_dq_dq(r_sum_dq, &tmpdq, weight);
+	}
+	else {
+		mul_m4_fl(mat, weight);
+		add_m4_m4m4(r_sum_mat, r_sum_mat, mat);
+	}
+}
+
+static void armdef_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bArmatureConstraint *data = con->data;
+
+	float sum_mat[4][4], input_co[3];
+	DualQuat sum_dq;
+	float weight = 0.0f;
+
+	/* Prepare for blending. */
+	zero_m4(sum_mat);
+	memset(&sum_dq, 0, sizeof(sum_dq));
+
+	DualQuat *pdq = (data->flag & CONSTRAINT_ARMATURE_QUATERNION) ? &sum_dq : NULL;
+	bool use_envelopes = (data->flag & CONSTRAINT_ARMATURE_ENVELOPE) != 0;
+
+	if (cob->pchan && cob->pchan->bone && !(data->flag & CONSTRAINT_ARMATURE_CUR_LOCATION)) {
+		/* For constraints on bones, use the rest position to bind b-bone segments
+		 * and envelopes, to allow safely changing the bone location as if parented. */
+		copy_v3_v3(input_co, cob->pchan->bone->arm_head);
+		mul_m4_v3(cob->ob->obmat, input_co);
+	}
+	else {
+		copy_v3_v3(input_co, cob->matrix[3]);
+	}
+
+	/* Process all targets. */
+	for (bConstraintTarget *ct = targets->first; ct; ct = ct->next) {
+		if (ct->weight <= 0.0f) {
+			continue;
+		}
+
+		/* Lookup the bone and abort if failed. */
+		if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_ARMATURE) {
+			return;
+		}
+
+		bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
+
+		if (pchan == NULL || pchan->bone == NULL) {
+			return;
+		}
+
+		armdef_accumulate_bone(ct, pchan, input_co, use_envelopes, &weight, sum_mat, pdq);
+	}
+
+	/* Compute the final transform. */
+	if (weight > 0.0f) {
+		if (pdq != NULL) {
+			normalize_dq(pdq, weight);
+			dquat_to_mat4(sum_mat, pdq);
+		}
+		else {
+			mul_m4_fl(sum_mat, 1.0f / weight);
+		}
+
+		/* Apply the transform to the result matrix. */
+		mul_m4_m4m4(cob->matrix, sum_mat, cob->matrix);
+	}
+}
+
+static bConstraintTypeInfo CTI_ARMATURE = {
+	CONSTRAINT_TYPE_ARMATURE, /* type */
+	sizeof(bArmatureConstraint), /* size */
+	"Armature", /* name */
+	"bArmatureConstraint", /* struct name */
+	armdef_free, /* free data */
+	armdef_id_looper, /* id looper */
+	armdef_copy, /* copy data */
+	NULL, /* new data */
+	armdef_get_tars, /* get constraint targets */
+	NULL, /* flush constraint targets */
+	armdef_get_tarmat, /* get target matrix */
+	armdef_evaluate /* evaluate */
+};
+
 /* -------- Action Constraint ----------- */
 
 static void actcon_new_data(void *cdata)
@@ -4469,6 +4669,7 @@ static void constraints_init_typeinfo(void)
 	constraintsTypeInfo[27] = &CTI_CAMERASOLVER;     /* Camera Solver Constraint */
 	constraintsTypeInfo[28] = &CTI_OBJECTSOLVER;     /* Object Solver Constraint */
 	constraintsTypeInfo[29] = &CTI_TRANSFORM_CACHE;  /* Transform Cache Constraint */
+	constraintsTypeInfo[30] = &CTI_ARMATURE;         /* Armature Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only
@@ -4684,6 +4885,11 @@ static bConstraint *add_new_constraint(Object *ob, bPoseChannel *pchan, const ch
 	return con;
 }
 
+bool BKE_constraint_target_uses_bbone(struct bConstraint *con, struct bConstraintTarget *UNUSED(ct))
+{
+	return (con->flag & CONSTRAINT_BBONE_SHAPE) || (con->type == CONSTRAINT_TYPE_ARMATURE);
+}
+
 /* ......... */
 
 /* Add new constraint for the given bone */
@@ -4827,6 +5033,48 @@ void BKE_constraints_active_set(ListBase *list, bConstraint *con)
 				c->flag &= ~CONSTRAINT_ACTIVE;
 		}
 	}
+}
+
+static bConstraint *constraint_list_find_from_target(ListBase *constraints, bConstraintTarget *tgt)
+{
+	for (bConstraint *con = constraints->first; con; con = con->next) {
+		ListBase *targets = NULL;
+
+		if (con->type == CONSTRAINT_TYPE_PYTHON) {
+			targets = &((bPythonConstraint*)con->data)->targets;
+		}
+		else if (con->type == CONSTRAINT_TYPE_ARMATURE) {
+			targets = &((bArmatureConstraint*)con->data)->targets;
+		}
+
+		if (targets && BLI_findindex(targets, tgt) != -1) {
+			return con;
+		}
+	}
+
+	return NULL;
+}
+
+/* Finds the constraint that owns the given target within the object. */
+bConstraint *BKE_constraint_find_from_target(Object *ob, bConstraintTarget *tgt)
+{
+	bConstraint *result = constraint_list_find_from_target(&ob->constraints, tgt);
+
+	if (result != NULL) {
+		return result;
+	}
+
+	if (ob->pose != NULL) {
+		for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+			result = constraint_list_find_from_target(&pchan->constraints, tgt);
+
+			if (result != NULL) {
+				return result;
+			}
+		}
+	}
+
+	return NULL;
 }
 
 /* -------- Constraints and Proxies ------- */

@@ -3501,6 +3501,14 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 				IDP_DirectLinkGroup_OrFree(&data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 				break;
 			}
+			case CONSTRAINT_TYPE_ARMATURE:
+			{
+				bArmatureConstraint *data= con->data;
+
+				link_list(fd, &data->targets);
+
+				break;
+			}
 			case CONSTRAINT_TYPE_SPLINEIK:
 			{
 				bSplineIKConstraint *data= con->data;

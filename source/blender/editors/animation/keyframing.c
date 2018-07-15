@@ -810,6 +810,7 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 			switch (con->type) {
 				/* multi-transform constraints */
 				case CONSTRAINT_TYPE_CHILDOF:
+				case CONSTRAINT_TYPE_ARMATURE:
 					return true;
 				case CONSTRAINT_TYPE_TRANSFORM:
 				case CONSTRAINT_TYPE_TRANSLIKE:

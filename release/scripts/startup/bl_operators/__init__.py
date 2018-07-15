@@ -29,6 +29,7 @@ _modules = [
     "anim",
     "clip",
     "console",
+    "constraint",
     "file",
     "image",
     "mask",

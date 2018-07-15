@@ -131,10 +131,14 @@ void BKE_constraints_id_loop(struct ListBase *list, ConstraintIDFunc func, void 
 void BKE_constraint_free_data(struct bConstraint *con);
 void BKE_constraint_free_data_ex(struct bConstraint *con, bool do_id_user);
 
+bool BKE_constraint_target_uses_bbone(struct bConstraint *con, struct bConstraintTarget *ct);
+
 /* Constraint API function prototypes */
 struct bConstraint *BKE_constraints_active_get(struct ListBase *list);
 void                BKE_constraints_active_set(ListBase *list, struct bConstraint *con);
 struct bConstraint *BKE_constraints_find_name(struct ListBase *list, const char *name);
+
+struct bConstraint *BKE_constraint_find_from_target(struct Object *ob, struct bConstraintTarget *tgt);
 
 struct bConstraint *BKE_constraint_add_for_object(struct Object *ob, const char *name, short type);
 struct bConstraint *BKE_constraint_add_for_pose(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);

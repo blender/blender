@@ -1536,6 +1536,18 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 
 					break;
 				}
+				case CONSTRAINT_TYPE_ARMATURE:
+				{
+					bArmatureConstraint *data = con->data;
+					bConstraintTarget *ct;
+
+					/* write targets */
+					for (ct = data->targets.first; ct; ct = ct->next) {
+						writestruct(wd, DATA, bConstraintTarget, 1, ct);
+					}
+
+					break;
+				}
 				case CONSTRAINT_TYPE_SPLINEIK:
 				{
 					bSplineIKConstraint *data = con->data;

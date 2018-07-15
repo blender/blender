@@ -965,7 +965,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					                        opcode);
 					add_relation(target_key, constraint_op_key, cti->name);
 					/* if needs bbone shape, also reference handles */
-					if (con->flag & CONSTRAINT_BBONE_SHAPE) {
+					if (BKE_constraint_target_uses_bbone(con, ct)) {
 						bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
 						/* actually a bbone */
 						if (pchan && pchan->bone && pchan->bone->segments > 1) {

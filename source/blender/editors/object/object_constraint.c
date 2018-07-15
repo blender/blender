@@ -430,6 +430,11 @@ static void test_constraint(Main *bmain, Object *owner, bPoseChannel *pchan, bCo
 	if (check_targets && cti && cti->get_constraint_targets) {
 		cti->get_constraint_targets(con, &targets);
 
+		/* constraints with empty target list that actually require targets */
+		if (!targets.first && ELEM(con->type, CONSTRAINT_TYPE_ARMATURE)) {
+			con->flag |= CONSTRAINT_DISABLE;
+		}
+
 		/* disable and clear constraints targets that are incorrect */
 		for (ct = targets.first; ct; ct = ct->next) {
 			/* general validity checks (for those constraints that need this) */
@@ -470,6 +475,18 @@ static void test_constraint(Main *bmain, Object *owner, bPoseChannel *pchan, bCo
 
 						/* auto-set 'Path' setting on curve so this works  */
 						cu->flag |= CU_PATH;
+					}
+				}
+			}
+			else if (con->type == CONSTRAINT_TYPE_ARMATURE) {
+				if (ct->tar) {
+					if (ct->tar->type != OB_ARMATURE) {
+						ct->tar = NULL;
+						con->flag |= CONSTRAINT_DISABLE;
+					}
+					else if (!BKE_armature_find_bone_name(BKE_armature_from_object(ct->tar), ct->subtarget)) {
+						/* bone must exist in armature... */
+						con->flag |= CONSTRAINT_DISABLE;
 					}
 				}
 			}
@@ -1245,7 +1262,9 @@ void ED_object_constraint_tag_update(Main *bmain, Object *ob, bConstraint *con)
 		BKE_pose_tag_update_constraint_flags(ob->pose);
 	}
 
-	object_test_constraint(bmain, ob, con);
+	if (con) {
+		object_test_constraint(bmain, ob, con);
+	}
 
 	if (ob->type == OB_ARMATURE)
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);

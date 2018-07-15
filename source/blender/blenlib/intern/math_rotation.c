@@ -1872,19 +1872,24 @@ void dquat_to_mat4(float mat[4][4], const DualQuat *dq)
 
 	/* normalize */
 	len = sqrtf(dot_qtqt(q0, q0));
-	if (len != 0.0f)
-		mul_qt_fl(q0, 1.0f / len);
+	if (len != 0.0f) {
+		len = 1.0f / len;
+	}
+	mul_qt_fl(q0, len);
 
 	/* rotation */
 	quat_to_mat4(mat, q0);
 
 	/* translation */
 	t = dq->trans;
-	mat[3][0] = 2.0f * (-t[0] * q0[1] + t[1] * q0[0] - t[2] * q0[3] + t[3] * q0[2]);
-	mat[3][1] = 2.0f * (-t[0] * q0[2] + t[1] * q0[3] + t[2] * q0[0] - t[3] * q0[1]);
-	mat[3][2] = 2.0f * (-t[0] * q0[3] - t[1] * q0[2] + t[2] * q0[1] + t[3] * q0[0]);
+	mat[3][0] = 2.0f * (-t[0] * q0[1] + t[1] * q0[0] - t[2] * q0[3] + t[3] * q0[2]) * len;
+	mat[3][1] = 2.0f * (-t[0] * q0[2] + t[1] * q0[3] + t[2] * q0[0] - t[3] * q0[1]) * len;
+	mat[3][2] = 2.0f * (-t[0] * q0[3] - t[1] * q0[2] + t[2] * q0[1] + t[3] * q0[0]) * len;
 
-	/* note: this does not handle scaling */
+	/* scaling */
+	if (dq->scale_weight) {
+		mul_m4_m4m4(mat, mat, dq->scale);
+	}
 }
 
 void add_weighted_dq_dq(DualQuat *dqsum, const DualQuat *dq, float weight)

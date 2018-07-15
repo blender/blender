@@ -94,6 +94,8 @@ typedef struct bConstraintTarget {
 	short flag;				/* runtime settings (for editor, etc.) */
 	short type;				/* type of target (eConstraintObType) */
 	short rotOrder;			/* rotation order for target (as defined in BLI_math.h) */
+	float weight;   		/* weight for armature deform */
+	char pad[4];
 } bConstraintTarget;
 
 /* bConstraintTarget -> flag */
@@ -180,6 +182,13 @@ typedef struct bSplineIKConstraint {
 	float		bulge_smooth;
 } bSplineIKConstraint;
 
+/* Armature Constraint */
+typedef struct bArmatureConstraint {
+	int flag;       		/* general settings/state indicators accessed by bitmapping */
+	char pad[4];
+
+	ListBase targets;		/* a list of targets that this constraint has (bConstraintTarget-s) */
+} bArmatureConstraint;
 
 /* Single-target subobject constraints ---------------------  */
 
@@ -504,6 +513,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_CAMERASOLVER = 27,		/* Camera Solver Constraint */
 	CONSTRAINT_TYPE_OBJECTSOLVER = 28,		/* Object Solver Constraint */
 	CONSTRAINT_TYPE_TRANSFORM_CACHE = 29,	/* Transform Cache Constraint */
+	CONSTRAINT_TYPE_ARMATURE = 30,			/* Armature Deform Constraint */
 
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
@@ -746,6 +756,13 @@ typedef enum eSplineIK_XZScaleModes {
 	/* x/z scales are computed using a volume preserving technique (from Stretch To constraint) */
 	CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC		= 3
 } eSplineIK_XZScaleModes;
+
+/* bArmatureConstraint -> flag */
+typedef enum eArmature_Flags {
+	CONSTRAINT_ARMATURE_QUATERNION  	= (1<<0),	/* use dual quaternion blending */
+	CONSTRAINT_ARMATURE_ENVELOPE    	= (1<<1),	/* use envelopes */
+	CONSTRAINT_ARMATURE_CUR_LOCATION	= (1<<2),	/* use current bone location */
+} eArmature_Flags;
 
 /* MinMax (floor) flags */
 typedef enum eFloor_Flags {

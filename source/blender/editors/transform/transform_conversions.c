@@ -5599,6 +5599,7 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 				if (ELEM(con->type,
 				         CONSTRAINT_TYPE_FOLLOWPATH,
 				         CONSTRAINT_TYPE_CLAMPTO,
+				         CONSTRAINT_TYPE_ARMATURE,
 				         CONSTRAINT_TYPE_OBJECTSOLVER,
 				         CONSTRAINT_TYPE_FOLLOWTRACK))
 				{
